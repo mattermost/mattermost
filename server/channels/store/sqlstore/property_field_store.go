@@ -431,7 +431,7 @@ func (s *SqlPropertyFieldStore) checkTeamLevelConflict(field *model.PropertyFiel
 // checkChannelLevelConflict checks if a channel-level property would conflict with
 // system properties or the team property of the channel's team.
 // Uses a subquery to get TeamId from Channels table - handles DM channels naturally
-// (DM channels have empty TeamId, so TargetID = '' won't match any team-level property).
+// (DM channels have empty TeamId, so TargetID will be empty and won't match any team-level property).
 func (s *SqlPropertyFieldStore) checkChannelLevelConflict(field *model.PropertyField, excludeID string) (model.PropertyFieldTargetLevel, error) {
 	// Build system subquery
 	systemSubquery := s.buildConflictSubquery("system", field.ObjectType, field.GroupID, field.Name, excludeID)
