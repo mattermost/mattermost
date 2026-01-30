@@ -15,10 +15,10 @@ import {supportsOptions, type PropertyFieldOption, type UserPropertyField} from 
 
 import {getPluginDisplayName} from 'selectors/plugins';
 
-import type {GlobalState} from 'types/store';
-
 import Constants from 'utils/constants';
 import {isKeyPressed} from 'utils/keyboard';
+
+import type {GlobalState} from 'types/store';
 
 import {DangerText} from './controls';
 import './user_properties_values.scss';

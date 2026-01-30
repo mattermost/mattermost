@@ -6,9 +6,9 @@
 import React, {PureComponent} from 'react';
 import {defineMessage, defineMessages, FormattedDate, FormattedMessage, FormattedList, injectIntl} from 'react-intl';
 import type {IntlShape} from 'react-intl';
-import ReactSelect from 'react-select';
-import type {OnChangeValue, ActionMeta, StylesConfig} from 'react-select';
 import {useSelector} from 'react-redux';
+import type {OnChangeValue, ActionMeta, StylesConfig} from 'react-select';
+import ReactSelect from 'react-select';
 
 import type {UserPropertyField, PropertyFieldOption} from '@mattermost/types/properties';
 import type {UserProfile} from '@mattermost/types/users';
@@ -20,8 +20,6 @@ import {isEmail} from 'mattermost-redux/utils/helpers';
 
 import {getPluginDisplayName} from 'selectors/plugins';
 
-import type {GlobalState} from 'types/store';
-
 import SettingItem from 'components/setting_item';
 import SettingItemMax from 'components/setting_item_max';
 import SettingPicture from 'components/setting_picture';
@@ -31,6 +29,8 @@ import LoadingWrapper from 'components/widgets/loading/loading_wrapper';
 import {AnnouncementBarMessages, AnnouncementBarTypes, AcceptedProfileImageTypes, Constants, ValidationErrors} from 'utils/constants';
 import {validHttpUrl} from 'utils/url';
 import * as Utils from 'utils/utils';
+
+import type {GlobalState} from 'types/store';
 
 import SettingDesktopHeader from '../headers/setting_desktop_header';
 import SettingMobileHeader from '../headers/setting_mobile_header';
@@ -1529,7 +1529,8 @@ export class UserSettingsGeneralTab extends PureComponent<Props, State> {
                                 id='user.settings.general.field_managed_by_plugin'
                                 defaultMessage='This field is managed by a plugin and cannot be edited.'
                             />
-                            {' '}(<PluginDisplayName pluginId={attribute.attrs?.source_plugin_id}/>)
+                            {' ('}<PluginDisplayName pluginId={attribute.attrs?.source_plugin_id}/>{')'}
+
                         </span>
                     );
                 } else if (isAdminManaged) {

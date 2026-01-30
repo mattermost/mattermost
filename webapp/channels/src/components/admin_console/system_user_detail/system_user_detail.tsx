@@ -8,9 +8,9 @@ import React, {PureComponent} from 'react';
 import type {ChangeEvent, MouseEvent} from 'react';
 import type {IntlShape, WrappedComponentProps} from 'react-intl';
 import {FormattedMessage, defineMessage, injectIntl} from 'react-intl';
+import {useSelector} from 'react-redux';
 import type {RouteComponentProps} from 'react-router-dom';
 import ReactSelect from 'react-select';
-import {useSelector} from 'react-redux';
 
 import {SyncIcon, PowerPlugOutlineIcon} from '@mattermost/compass-icons/components';
 import type {ServerError} from '@mattermost/types/errors';
@@ -20,6 +20,8 @@ import type {UserProfile} from '@mattermost/types/users';
 
 import type {ActionResult} from 'mattermost-redux/types/actions';
 import {isEmail, getInputTypeFromValueType} from 'mattermost-redux/utils/helpers';
+
+import {getPluginDisplayName} from 'selectors/plugins';
 
 import AdminUserCard from 'components/admin_console/admin_user_card/admin_user_card';
 import BlockableLink from 'components/admin_console/blockable_link';
@@ -38,13 +40,11 @@ import SheidOutlineIcon from 'components/widgets/icons/shield_outline_icon';
 import LoadingSpinner from 'components/widgets/loading/loading_spinner';
 import WithTooltip from 'components/with_tooltip';
 
-import {getPluginDisplayName} from 'selectors/plugins';
-
-import type {GlobalState} from 'types/store';
-
 import {Constants, ModalIdentifiers} from 'utils/constants';
 import {validHttpUrl} from 'utils/url';
 import {toTitleCase} from 'utils/utils';
+
+import type {GlobalState} from 'types/store';
 
 import type {PropsFromRedux} from './index';
 
