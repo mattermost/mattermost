@@ -5359,34 +5359,6 @@ func TestGetBurnOnReadPost(t *testing.T) {
 		assert.Equal(t, model.StringArray{"file1"}, post.FileIds)
 	})
 
-	t.Run("not found error - returns original post unchanged", func(t *testing.T) {
-		th := SetupWithStoreMock(t)
-
-		mockStore := th.App.Srv().Store().(*storemocks.Store)
-		mockTemporaryPostStore := storemocks.TemporaryPostStore{}
-
-		post := &model.Post{
-			Id:        model.NewId(),
-			ChannelId: model.NewId(),
-			UserId:    model.NewId(),
-			Message:   "placeholder message",
-			FileIds:   model.StringArray{"file1"},
-			Type:      model.PostTypeBurnOnRead,
-		}
-
-		mockTemporaryPostStore.On("Get", mock.Anything, post.Id).Return(nil, store.NewErrNotFound("TemporaryPost", post.Id))
-		mockStore.On("TemporaryPost").Return(&mockTemporaryPostStore)
-
-		resultPost, appErr := th.App.getBurnOnReadPost(th.Context, post)
-
-		require.Nil(t, appErr)
-		require.NotNil(t, resultPost)
-		// Original post should be returned unchanged
-		assert.Equal(t, post, resultPost)
-		assert.Equal(t, "placeholder message", resultPost.Message)
-		assert.Equal(t, model.StringArray{"file1"}, resultPost.FileIds)
-	})
-
 	t.Run("other store error - returns app error", func(t *testing.T) {
 		th := SetupWithStoreMock(t)
 

@@ -2186,7 +2186,7 @@ func (a *App) countThreadMentions(rctx request.CTX, user *model.User, post *mode
 		user,
 		map[string]string{},
 		&model.Status{Status: model.StatusOnline}, // Assume the user is online since they would've triggered this
-		true, // Assume channel mentions are always allowed for simplicity
+		true,                                      // Assume channel mentions are always allowed for simplicity
 	)
 
 	posts, nErr := a.Srv().Store().Post().GetPostsByThread(post.Id, timestamp)
@@ -2271,7 +2271,7 @@ func (a *App) countMentionsFromPost(rctx request.CTX, user *model.User, post *mo
 		user,
 		members[user.Id],
 		&model.Status{Status: model.StatusOnline}, // Assume the user is online since they would've triggered this
-		true, // Assume channel mentions are always allowed for simplicity
+		true,                                      // Assume channel mentions are always allowed for simplicity
 	)
 	commentMentions := user.NotifyProps[model.CommentsNotifyProp]
 	checkForCommentMentions := commentMentions == model.CommentsNotifyRoot || commentMentions == model.CommentsNotifyAny
@@ -3445,15 +3445,6 @@ func (a *App) enrichPostWithExpirationMetadata(post *model.Post, expireAt int64)
 func (a *App) getBurnOnReadPost(rctx request.CTX, post *model.Post) (*model.Post, *model.AppError) {
 	tmpPost, err := a.Srv().Store().TemporaryPost().Get(rctx, post.Id)
 	if err != nil {
-		// This condition is to handle deleted BoR posts for author.
-		// Since all read receipts for the BoR posts - including author's, is deleted
-		// when a BoR posts gets burned, the case of missing receipt for author becomes
-		// possible and expected.
-		// In this case, we simply don't modify the post and return it as it is.
-		if store.IsErrNotFound(err) {
-			return post, nil
-		}
-
 		return nil, model.NewAppError("getBurnOnReadPost", "app.post.get_post.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 	clone := post.Clone()

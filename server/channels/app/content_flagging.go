@@ -821,11 +821,17 @@ func (a *App) KeepFlaggedPost(rctx request.CTX, actionRequest *model.FlagContent
 }
 
 func scrubPost(post *model.Post) {
-	post.Message = "*Content deleted as part of Content Flagging review process*"
+	if post.Type == model.PostTypeBurnOnRead {
+		post.Message = "*Content deleted as part of burning the post*"
+	} else {
+		post.Message = "*Content deleted as part of Content Flagging review process*"
+	}
+
 	post.MessageSource = post.Message
 	post.Hashtags = ""
 	post.Metadata = nil
 	post.FileIds = []string{}
+	post.UpdateAt = model.GetMillis()
 	post.SetProps(make(map[string]any))
 }
 

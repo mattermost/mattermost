@@ -1041,6 +1041,12 @@ func (s *SqlPostStore) permanentDelete(postIds []string) (err error) {
 	return nil
 }
 
+// PermanentDeleteAssociatedData deletes the following data items associated with the given post IDs:
+// - Threads
+// - Reactions
+// - Temporary Posts
+// - Read Receipts
+// - Thread replies if post is a root post
 func (s *SqlPostStore) PermanentDeleteAssociatedData(postIds []string) error {
 	transaction, err := s.GetMaster().Beginx()
 	if err != nil {
