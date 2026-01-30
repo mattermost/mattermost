@@ -2,17 +2,17 @@
 // See LICENSE.txt for license information.
 
 .BurnOnReadBadge {
-    display: inline-flex;
     position: relative;
     z-index: 25;
+    display: inline-flex;
     align-items: center;
     padding: 0;
     border: none;
     margin-left: 8px;
     background: transparent;
     cursor: pointer;
-    vertical-align: middle;
     pointer-events: auto;
+    vertical-align: middle;
 
     &:disabled {
         cursor: default;
