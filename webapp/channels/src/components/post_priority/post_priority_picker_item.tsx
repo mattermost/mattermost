@@ -5,7 +5,7 @@ import MenuList from '@mui/material/MenuList';
 import React from 'react';
 import styled from 'styled-components';
 
-import {CheckIcon, AlertOutlineIcon, AlertCircleOutlineIcon, MessageTextOutlineIcon, CheckCircleOutlineIcon, BellRingOutlineIcon} from '@mattermost/compass-icons/components';
+import {CheckIcon, AlertOutlineIcon, AlertCircleOutlineIcon, MessageTextOutlineIcon, CheckCircleOutlineIcon, BellRingOutlineIcon, LockOutlineIcon} from '@mattermost/compass-icons/components';
 
 import {MenuItem} from 'components/menu/menu_item';
 import Toggle from 'components/toggle';
@@ -99,6 +99,10 @@ const PersistentNotificationsIcon = styled(BellRingOutlineIcon)`
     fill: rgba(var(--center-channel-color-rgb), 0.75);
 `;
 
+const EncryptedIcon = styled(LockOutlineIcon)`
+    fill: rgb(147, 51, 234);
+`;
+
 function ToggleItem({
     ariaLabel,
     description,
@@ -140,6 +144,6 @@ function ToggleItem({
     );
 }
 
-export {MenuItem, ToggleItem, StyledCheckIcon, Header, UrgentIcon, ImportantIcon, StandardIcon, AcknowledgementIcon, PersistentNotificationsIcon, Footer};
+export {MenuItem, ToggleItem, StyledCheckIcon, Header, UrgentIcon, ImportantIcon, StandardIcon, AcknowledgementIcon, PersistentNotificationsIcon, EncryptedIcon, Footer};
 
 export default Menu;

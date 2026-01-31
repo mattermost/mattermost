@@ -3991,9 +3991,10 @@ type Config struct {
 	ExportSettings              ExportSettings
 	WranglerSettings            WranglerSettings
 	ConnectedWorkspacesSettings ConnectedWorkspacesSettings
-	AccessControlSettings       AccessControlSettings
-	ContentFlaggingSettings     ContentFlaggingSettings
-	AutoTranslationSettings     AutoTranslationSettings
+	AccessControlSettings          AccessControlSettings
+	ContentFlaggingSettings        ContentFlaggingSettings
+	AutoTranslationSettings        AutoTranslationSettings
+	MattermostExtendedSettings     MattermostExtendedSettings
 }
 
 func (o *Config) Auditable() map[string]any {
@@ -4113,6 +4114,7 @@ func (o *Config) SetDefaults() {
 	o.ConnectedWorkspacesSettings.SetDefaults(isUpdate, o.ExperimentalSettings)
 	o.AccessControlSettings.SetDefaults()
 	o.ContentFlaggingSettings.SetDefaults()
+	o.MattermostExtendedSettings.SetDefaults()
 }
 
 func (o *Config) IsValid() *AppError {

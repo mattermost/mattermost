@@ -4,7 +4,7 @@
 import React from 'react';
 import styled from 'styled-components';
 
-import {AlertOutlineIcon, AlertCircleOutlineIcon} from '@mattermost/compass-icons/components';
+import {AlertOutlineIcon, AlertCircleOutlineIcon, LockOutlineIcon} from '@mattermost/compass-icons/components';
 import {PostPriority} from '@mattermost/types/posts';
 
 type Props = {
@@ -24,13 +24,28 @@ const Badge = styled.span`
     color: #fff;
 
     background-color: ${(props: {priority: PostPriority}) => {
-        return props.priority === PostPriority.URGENT ? 'rgb(var(--semantic-color-danger))' : 'rgb(var(--semantic-color-info))';
+        if (props.priority === PostPriority.URGENT) {
+            return 'rgb(var(--semantic-color-danger))';
+        }
+        if (props.priority === PostPriority.ENCRYPTED) {
+            return 'rgb(147, 51, 234)';
+        }
+        return 'rgb(var(--semantic-color-info))';
     }}
 `;
 
 export default function PriorityLabel({priority, className}: Props) {
-    if (priority !== PostPriority.URGENT && priority !== PostPriority.IMPORTANT) {
+    if (priority !== PostPriority.URGENT && priority !== PostPriority.IMPORTANT && priority !== PostPriority.ENCRYPTED) {
         return null;
+    }
+
+    let icon;
+    if (priority === PostPriority.URGENT) {
+        icon = <AlertOutlineIcon size={14}/>;
+    } else if (priority === PostPriority.ENCRYPTED) {
+        icon = <LockOutlineIcon size={14}/>;
+    } else {
+        icon = <AlertCircleOutlineIcon size={14}/>;
     }
 
     return (
@@ -38,11 +53,7 @@ export default function PriorityLabel({priority, className}: Props) {
             className={className}
             priority={priority}
         >
-            {priority === PostPriority.URGENT ? (
-                <AlertOutlineIcon size={14}/>
-            ) : (
-                <AlertCircleOutlineIcon size={14}/>
-            )}
+            {icon}
         </Badge>
     );
 }

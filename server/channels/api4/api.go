@@ -165,6 +165,8 @@ type Routes struct {
 
 	Agents      *mux.Router // 'api/v4/agents'
 	LLMServices *mux.Router // 'api/v4/llmservices'
+
+	Encryption *mux.Router // 'api/v4/encryption'
 }
 
 type API struct {
@@ -316,6 +318,7 @@ func Init(srv *app.Server) (*API, error) {
 
 	api.BaseRoutes.Agents = api.BaseRoutes.APIRoot.PathPrefix("/agents").Subrouter()
 	api.BaseRoutes.LLMServices = api.BaseRoutes.APIRoot.PathPrefix("/llmservices").Subrouter()
+	api.BaseRoutes.Encryption = api.BaseRoutes.APIRoot.PathPrefix("/encryption").Subrouter()
 
 	api.InitUser()
 	api.InitBot()
@@ -371,6 +374,7 @@ func Init(srv *app.Server) (*API, error) {
 	api.InitAccessControlPolicy()
 	api.InitContentFlagging()
 	api.InitAgents()
+	api.InitEncryption()
 
 	// If we allow testing then listen for manual testing URL hits
 	if *srv.Config().ServiceSettings.EnableTesting {

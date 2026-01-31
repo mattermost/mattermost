@@ -8,6 +8,7 @@ import {FormattedMessage, useIntl} from 'react-intl';
 
 import type {Emoji} from '@mattermost/types/emojis';
 import type {Post} from '@mattermost/types/posts';
+import {PostPriority} from '@mattermost/types/posts';
 import type {Team} from '@mattermost/types/teams';
 import type {UserProfile} from '@mattermost/types/users';
 
@@ -318,6 +319,7 @@ function PostComponent(props: Props) {
             'post--pinned-or-flagged': (post.is_pinned || props.isFlagged) && props.location === Locations.CENTER,
             'mention-comment': props.isCommentMention,
             'post--thread': isRHS,
+            'post--encrypted': post.metadata?.priority?.priority === PostPriority.ENCRYPTED,
         });
     };
 

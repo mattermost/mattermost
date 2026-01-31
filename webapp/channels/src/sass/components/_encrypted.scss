@@ -1,0 +1,144 @@
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
+
+// Encrypted message styling for Mattermost Extended
+
+:root {
+    // Encrypted message theming - can be overridden by custom themes
+    --encrypted-color: 147, 51, 234; // RGB values for purple (#9333EA)
+    --encrypted-color-hex: #9333EA;
+    --encrypted-text-color: #fff;
+}
+
+// Encrypted posts get a subtle purple background tint
+.post[data-priority="encrypted"],
+.post.post--encrypted {
+    background: rgba(var(--encrypted-color), 0.04);
+    border-left: 3px solid rgba(var(--encrypted-color), 1);
+
+    &:hover {
+        background: rgba(var(--encrypted-color), 0.08);
+    }
+}
+
+// In compact mode, maintain the styling
+.post--compact.post--encrypted {
+    background: rgba(var(--encrypted-color), 0.04);
+    border-left: 3px solid rgba(var(--encrypted-color), 1);
+}
+
+// Encrypted priority badge (purple with lock icon)
+.encrypted-priority-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 2px 6px;
+    border-radius: 4px;
+    background: rgba(var(--encrypted-color), 1);
+    color: var(--encrypted-text-color);
+    font-size: 10px;
+    font-weight: 600;
+    text-transform: uppercase;
+
+    svg {
+        width: 12px;
+        height: 12px;
+    }
+}
+
+// Override the Tag component style for encrypted priority
+.encrypted-priority-tag {
+    background-color: rgba(var(--encrypted-color), 1) !important;
+    color: var(--encrypted-text-color) !important;
+}
+
+// Recipient display below the editor
+.encryption-recipient-display {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 16px;
+    margin-top: 4px;
+    font-size: 12px;
+    color: rgba(var(--center-channel-color-rgb), 0.75);
+    background: rgba(var(--encrypted-color), 0.08);
+    border-radius: 4px;
+    border: 1px solid rgba(var(--encrypted-color), 0.2);
+
+    .recipient-icon {
+        color: rgba(var(--encrypted-color), 1);
+    }
+
+    .recipient-list {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 4px;
+
+        .recipient-name {
+            font-weight: 600;
+            color: rgba(var(--center-channel-color-rgb), 0.9);
+        }
+    }
+
+    .recipient-warning {
+        color: rgb(var(--semantic-color-warning));
+        font-size: 11px;
+        margin-top: 4px;
+    }
+}
+
+// Encrypted placeholder for users without access
+.encrypted-placeholder {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 16px;
+    margin: 8px 0;
+    background: rgba(var(--encrypted-color), 0.06);
+    border-radius: 8px;
+    border: 1px solid rgba(var(--encrypted-color), 0.15);
+
+    .encrypted-placeholder-icon {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 40px;
+        height: 40px;
+        background: rgba(var(--encrypted-color), 0.15);
+        border-radius: 8px;
+        color: rgba(var(--encrypted-color), 1);
+
+        svg {
+            width: 24px;
+            height: 24px;
+        }
+    }
+
+    .encrypted-placeholder-content {
+        flex: 1;
+
+        .encrypted-placeholder-title {
+            font-weight: 600;
+            font-size: 14px;
+            color: rgba(var(--center-channel-color-rgb), 0.9);
+            margin-bottom: 2px;
+        }
+
+        .encrypted-placeholder-message {
+            font-size: 12px;
+            color: rgba(var(--center-channel-color-rgb), 0.64);
+        }
+    }
+}
+
+// Lock button in formatting bar (toggle mode)
+.encryption-toggle-button {
+    &.active {
+        background: rgba(var(--encrypted-color), 0.15) !important;
+        color: rgba(var(--encrypted-color), 1) !important;
+
+        &:hover {
+            background: rgba(var(--encrypted-color), 0.25) !important;
+        }
+    }
+}

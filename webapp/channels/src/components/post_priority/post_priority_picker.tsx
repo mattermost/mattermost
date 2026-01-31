@@ -20,7 +20,7 @@ import * as Menu from 'components/menu';
 import Constants from 'utils/constants';
 import * as Keyboard from 'utils/keyboard';
 
-import {Header, MenuItem, StyledCheckIcon, ToggleItem, StandardIcon, ImportantIcon, UrgentIcon, AcknowledgementIcon, PersistentNotificationsIcon, Footer} from './post_priority_picker_item';
+import {Header, MenuItem, StyledCheckIcon, ToggleItem, StandardIcon, ImportantIcon, UrgentIcon, AcknowledgementIcon, PersistentNotificationsIcon, EncryptedIcon, Footer} from './post_priority_picker_item';
 
 import './post_priority_picker.scss';
 
@@ -141,6 +141,21 @@ function PostPriorityPicker({
                 <FormattedMessage
                     id='post_priority.priority.urgent'
                     defaultMessage='Urgent'
+                />
+            }
+        />,
+        <MenuItem
+            key='menu-item-priority-encrypted'
+            id='menu-item-priority-encrypted'
+            role='menuitemradio'
+            aria-checked={priority === PostPriority.ENCRYPTED}
+            onClick={makeOnSelectPriority(PostPriority.ENCRYPTED)}
+            trailingElements={priority === PostPriority.ENCRYPTED && <StyledCheckIcon size={18}/>}
+            leadingElement={<EncryptedIcon size={18}/>}
+            labels={
+                <FormattedMessage
+                    id='post_priority.priority.encrypted'
+                    defaultMessage='Encrypted'
                 />
             }
         />,

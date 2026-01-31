@@ -47,5 +47,19 @@ export default function PriorityLabel({
         );
     }
 
+    if (priority === PostPriority.ENCRYPTED) {
+        return (
+            <Tag
+                {...rest}
+                variant='info'
+                icon={'lock-outline'}
+                text={formatMessage({id: 'post_priority.priority.encrypted', defaultMessage: 'Encrypted'})}
+                uppercase={true}
+                data-testid='post-priority-label'
+                className='encrypted-priority-tag'
+            />
+        );
+    }
+
     return null;
 }

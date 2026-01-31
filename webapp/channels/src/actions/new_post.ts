@@ -30,6 +30,7 @@ import {isThreadOpen, makeGetThreadLastViewedAt} from 'selectors/views/threads';
 
 import WebSocketClient from 'client/web_websocket_client';
 import {ActionTypes} from 'utils/constants';
+import {isEncryptedMessage, decryptMessageHook} from 'utils/encryption';
 
 import type {DispatchFunc, GetStateFunc, ActionFunc, ActionFuncAsync} from 'types/store';
 
@@ -51,15 +52,28 @@ export type NewPostMessageProps = {
 export function completePostReceive(post: Post, websocketMessageProps: NewPostMessageProps, fetchedChannelMember?: boolean): ActionFuncAsync<boolean> {
     return async (dispatch, getState) => {
         const state = getState();
-        const rootPost = PostSelectors.getPost(state, post.root_id);
-        const isPostFromCurrentChannel = post.channel_id === getCurrentChannelId(state);
+        const currentUserId = getCurrentUserId(state);
 
-        if (post.root_id && !rootPost && isPostFromCurrentChannel) {
-            const result = await dispatch(PostActions.getPostThread(post.root_id));
+        // Decrypt encrypted messages (mattermost-extended)
+        let processedPost = post;
+        if (isEncryptedMessage(post.message)) {
+            try {
+                const result = await decryptMessageHook(post, currentUserId);
+                processedPost = result.post;
+            } catch (error) {
+                console.error('Failed to decrypt message:', error);
+            }
+        }
+
+        const rootPost = PostSelectors.getPost(state, processedPost.root_id);
+        const isPostFromCurrentChannel = processedPost.channel_id === getCurrentChannelId(state);
+
+        if (processedPost.root_id && !rootPost && isPostFromCurrentChannel) {
+            const result = await dispatch(PostActions.getPostThread(processedPost.root_id));
 
             if ('error' in result) {
                 if (websocketMessageProps.should_ack) {
-                    WebSocketClient.acknowledgePostedNotification(post.id, 'error', 'missing_root_post', result.error);
+                    WebSocketClient.acknowledgePostedNotification(processedPost.id, 'error', 'missing_root_post', result.error);
                 }
                 return {error: result.error};
             }
@@ -69,36 +83,35 @@ export function completePostReceive(post: Post, websocketMessageProps: NewPostMe
         if (isPostFromCurrentChannel) {
             actions.push({
                 type: ActionTypes.INCREASE_POST_VISIBILITY,
-                data: post.channel_id,
+                data: processedPost.channel_id,
                 amount: 1,
             });
         }
 
         const collapsedThreadsEnabled = isCollapsedThreadsEnabled(state);
-        const isCRTReply = collapsedThreadsEnabled && post.root_id;
+        const isCRTReply = collapsedThreadsEnabled && processedPost.root_id;
 
         actions.push(
-            PostActions.receivedNewPost(post, collapsedThreadsEnabled),
+            PostActions.receivedNewPost(processedPost, collapsedThreadsEnabled),
         );
 
-        const currentUserId = getCurrentUserId(state);
-        const isCRTReplyByCurrentUser = isCRTReply && post.user_id === currentUserId;
+        const isCRTReplyByCurrentUser = isCRTReply && processedPost.user_id === currentUserId;
         if (!isCRTReplyByCurrentUser) {
             actions.push(
-                ...setChannelReadAndViewed(dispatch, getState, post as Post, websocketMessageProps, fetchedChannelMember),
+                ...setChannelReadAndViewed(dispatch, getState, processedPost as Post, websocketMessageProps, fetchedChannelMember),
             );
         }
         dispatch(batchActions(actions));
 
         if (isCRTReply) {
-            dispatch(setThreadRead(post));
+            dispatch(setThreadRead(processedPost));
         }
 
-        const {status, reason, data} = (await dispatch(sendDesktopNotification(post, websocketMessageProps))).data!;
+        const {status, reason, data} = (await dispatch(sendDesktopNotification(processedPost, websocketMessageProps))).data!;
 
         // Only ACK for posts that require it
         if (websocketMessageProps.should_ack) {
-            WebSocketClient.acknowledgePostedNotification(post.id, status, reason, data);
+            WebSocketClient.acknowledgePostedNotification(processedPost.id, status, reason, data);
         }
 
         return {data: true};

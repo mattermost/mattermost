@@ -6352,6 +6352,41 @@ const AdminDefinition: AdminDefinitionType = {
             },
         },
     },
+    mattermost_extended: {
+        icon: (
+            <ShieldOutlineIcon
+                size={16}
+                color={'currentColor'}
+            />
+        ),
+        sectionTitle: defineMessage({id: 'admin.sidebar.mattermost_extended', defaultMessage: 'Mattermost Extended'}),
+        subsections: {
+            encryption: {
+                url: 'mattermost_extended/encryption',
+                title: defineMessage({id: 'admin.sidebar.encryption', defaultMessage: 'Message Encryption'}),
+                schema: {
+                    id: 'MattermostExtendedSettings',
+                    name: defineMessage({id: 'admin.mattermost_extended.encryption.title', defaultMessage: 'Message Encryption'}),
+                    settings: [
+                        {
+                            type: 'bool',
+                            key: 'MattermostExtendedSettings.EnableEncryption',
+                            label: defineMessage({id: 'admin.mattermost_extended.enableEncryption.title', defaultMessage: 'Enable End-to-End Encryption:'}),
+                            help_text: defineMessage({id: 'admin.mattermost_extended.enableEncryption.desc', defaultMessage: 'When true, users can send encrypted messages that can only be read by intended recipients. Messages are encrypted client-side using RSA-OAEP + AES-GCM hybrid encryption.'}),
+                            help_text_markdown: false,
+                        },
+                        {
+                            type: 'bool',
+                            key: 'MattermostExtendedSettings.AdminModeOnly',
+                            label: defineMessage({id: 'admin.mattermost_extended.adminModeOnly.title', defaultMessage: 'Admin-Only Mode:'}),
+                            help_text: defineMessage({id: 'admin.mattermost_extended.adminModeOnly.desc', defaultMessage: 'When true, only system administrators can send encrypted messages. Regular users can still receive and decrypt messages sent to them.'}),
+                            help_text_markdown: false,
+                        },
+                    ],
+                },
+            },
+        },
+    },
 };
 
 export default AdminDefinition;
