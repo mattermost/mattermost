@@ -180,7 +180,7 @@ export function isEncryptionFailed(post: Post): boolean {
 /**
  * Gets the encryption status of a post.
  */
-export function getEncryptionStatus(post: Post): 'none' | 'decrypted' | 'no_keys' | 'no_access' | 'decrypt_error' {
+export function getPostEncryptionStatus(post: Post): 'none' | 'decrypted' | 'no_keys' | 'no_access' | 'decrypt_error' {
     const status = post.props?.encryption_status;
     if (!status) {
         return 'none';

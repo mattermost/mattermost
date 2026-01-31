@@ -66,5 +66,5 @@ export {
     encryptMessageHook,
     decryptMessageHook,
     isEncryptionFailed,
-    getEncryptionStatus,
+    getPostEncryptionStatus,
 } from './message_hooks';
