@@ -598,11 +598,10 @@ func (a *App) SearchUserAccessTokens(term string) ([]*model.UserAccessToken, *mo
 // Returns a map of userId -> publicKey for users with active sessions and public keys set.
 func (a *App) GetSessionPublicKeys(userIds []string) (map[string]string, *model.AppError) {
 	result := make(map[string]string)
-	rctx := request.EmptyContext(a.Log())
 
 	for _, userId := range userIds {
 		// Get active sessions for this user
-		sessions, err := a.GetSessions(rctx, userId)
+		sessions, err := a.GetSessions(userId)
 		if err != nil {
 			continue // Skip users with session errors
 		}

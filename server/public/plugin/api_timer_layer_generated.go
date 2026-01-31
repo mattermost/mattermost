@@ -42,6 +42,13 @@ func (api *apiTimerLayer) RegisterCommand(command *model.Command) error {
 	return _returnsA
 }
 
+func (api *apiTimerLayer) RegisterMessageMiddleware(middleware MessageMiddleware) error {
+	startTime := timePkg.Now()
+	_returnsA := api.apiImpl.RegisterMessageMiddleware(middleware)
+	api.recordTime(startTime, "RegisterMessageMiddleware", _returnsA == nil)
+	return _returnsA
+}
+
 func (api *apiTimerLayer) UnregisterCommand(teamID, trigger string) error {
 	startTime := timePkg.Now()
 	_returnsA := api.apiImpl.UnregisterCommand(teamID, trigger)
@@ -235,6 +242,13 @@ func (api *apiTimerLayer) GetSession(sessionID string) (*model.Session, *model.A
 	startTime := timePkg.Now()
 	_returnsA, _returnsB := api.apiImpl.GetSession(sessionID)
 	api.recordTime(startTime, "GetSession", _returnsB == nil)
+	return _returnsA, _returnsB
+}
+
+func (api *apiTimerLayer) GetSessionPublicKeys(userIDs []string) (map[string]string, *model.AppError) {
+	startTime := timePkg.Now()
+	_returnsA, _returnsB := api.apiImpl.GetSessionPublicKeys(userIDs)
+	api.recordTime(startTime, "GetSessionPublicKeys", _returnsB == nil)
 	return _returnsA, _returnsB
 }
 
@@ -1033,41 +1047,6 @@ func (api *apiTimerLayer) KVList(page, perPage int) ([]string, *model.AppError) 
 	_returnsA, _returnsB := api.apiImpl.KVList(page, perPage)
 	api.recordTime(startTime, "KVList", _returnsB == nil)
 	return _returnsA, _returnsB
-}
-
-func (api *apiTimerLayer) SessionKVSet(sessionId, key string, value []byte) *model.AppError {
-	startTime := timePkg.Now()
-	_returnsA := api.apiImpl.SessionKVSet(sessionId, key, value)
-	api.recordTime(startTime, "SessionKVSet", _returnsA == nil)
-	return _returnsA
-}
-
-func (api *apiTimerLayer) SessionKVGet(sessionId, key string) ([]byte, *model.AppError) {
-	startTime := timePkg.Now()
-	_returnsA, _returnsB := api.apiImpl.SessionKVGet(sessionId, key)
-	api.recordTime(startTime, "SessionKVGet", _returnsB == nil)
-	return _returnsA, _returnsB
-}
-
-func (api *apiTimerLayer) SessionKVDelete(sessionId, key string) *model.AppError {
-	startTime := timePkg.Now()
-	_returnsA := api.apiImpl.SessionKVDelete(sessionId, key)
-	api.recordTime(startTime, "SessionKVDelete", _returnsA == nil)
-	return _returnsA
-}
-
-func (api *apiTimerLayer) GetSessionPublicKeys(userIds []string) (map[string]string, *model.AppError) {
-	startTime := timePkg.Now()
-	_returnsA, _returnsB := api.apiImpl.GetSessionPublicKeys(userIds)
-	api.recordTime(startTime, "GetSessionPublicKeys", _returnsB == nil)
-	return _returnsA, _returnsB
-}
-
-func (api *apiTimerLayer) RegisterMessageMiddleware(middleware MessageMiddleware) error {
-	startTime := timePkg.Now()
-	_returnsA := api.apiImpl.RegisterMessageMiddleware(middleware)
-	api.recordTime(startTime, "RegisterMessageMiddleware", _returnsA == nil)
-	return _returnsA
 }
 
 func (api *apiTimerLayer) PublishWebSocketEvent(event string, payload map[string]any, broadcast *model.WebsocketBroadcast) {
