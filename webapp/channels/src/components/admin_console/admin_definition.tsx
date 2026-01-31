@@ -6353,6 +6353,9 @@ const AdminDefinition: AdminDefinitionType = {
         },
     },
     mattermost_extended: {
+        isHidden: it.any(
+            it.not(it.userHasReadPermissionOnResource(RESOURCE_KEYS.MATTERMOST_EXTENDED.ENCRYPTION)),
+        ),
         icon: (
             <ShieldOutlineIcon
                 size={16}

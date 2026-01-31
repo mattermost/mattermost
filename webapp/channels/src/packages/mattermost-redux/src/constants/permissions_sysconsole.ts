@@ -83,6 +83,9 @@ export const RESOURCE_KEYS = {
         DEVELOPER: 'environment.developer',
         MOBILE_SECURITY: 'environment.mobile_security',
     },
+    MATTERMOST_EXTENDED: {
+        ENCRYPTION: 'mattermost_extended.encryption',
+    },
 };
 
 export const ResourceToSysConsolePermissionsTable: Record<string, string[]> = {
@@ -145,4 +148,5 @@ export const ResourceToSysConsolePermissionsTable: Record<string, string[]> = {
     [RESOURCE_KEYS.EXPERIMENTAL.FEATURES]: [Permissions.SYSCONSOLE_READ_EXPERIMENTAL_FEATURES, Permissions.SYSCONSOLE_WRITE_EXPERIMENTAL_FEATURES],
     [RESOURCE_KEYS.EXPERIMENTAL.FEATURE_FLAGS]: [Permissions.SYSCONSOLE_READ_EXPERIMENTAL_FEATURE_FLAGS, Permissions.SYSCONSOLE_WRITE_EXPERIMENTAL_FEATURE_FLAGS],
     [RESOURCE_KEYS.EXPERIMENTAL.BLEVE]: [Permissions.SYSCONSOLE_READ_EXPERIMENTAL_BLEVE, Permissions.SYSCONSOLE_WRITE_EXPERIMENTAL_BLEVE],
+    [RESOURCE_KEYS.MATTERMOST_EXTENDED.ENCRYPTION]: [Permissions.SYSCONSOLE_READ_EXPERIMENTAL_FEATURES, Permissions.SYSCONSOLE_WRITE_EXPERIMENTAL_FEATURES],
 };
