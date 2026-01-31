@@ -965,29 +965,6 @@ type API interface {
 	// Minimum server version: 5.6
 	KVList(page, perPage int) ([]string, *model.AppError)
 
-	// Session-scoped KV Store Section (mattermost-extended)
-	// Session-scoped storage automatically cleans up when the session disconnects
-
-	// SessionKVSet stores a key-value pair scoped to a specific session.
-	// The data is automatically deleted when the session disconnects or expires.
-	//
-	// @tag KeyValueStore
-	// Minimum server version: 9.5.0-extended
-	SessionKVSet(sessionId, key string, value []byte) *model.AppError
-
-	// SessionKVGet retrieves a value based on the key, scoped to a specific session.
-	// Returns nil for non-existent keys or disconnected sessions.
-	//
-	// @tag KeyValueStore
-	// Minimum server version: 9.5.0-extended
-	SessionKVGet(sessionId, key string) ([]byte, *model.AppError)
-
-	// SessionKVDelete removes a session-scoped key-value pair.
-	//
-	// @tag KeyValueStore
-	// Minimum server version: 9.5.0-extended
-	SessionKVDelete(sessionId, key string) *model.AppError
-
 	// GetSessionPublicKeys retrieves encryption public keys for multiple users in bulk.
 	// Returns a map of userId -> publicKey for users with active sessions.
 	// Returns empty strings for users without public keys.
