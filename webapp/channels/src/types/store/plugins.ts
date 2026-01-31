@@ -482,6 +482,7 @@ export type PostPriorityType = PluginComponent & {
     icon: string;
     variant: 'danger' | 'info' | 'custom';
     color?: string;
+    onSelect?: () => void;
 };
 export type PostPluginComponent = {
     id: string;

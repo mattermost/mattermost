@@ -66,6 +66,7 @@ import type {
     DesktopNotificationHook,
     PluggableText,
     SidebarBrowseOrAddChannelMenuAction,
+    PostPriorityType,
 } from 'types/store/plugins';
 
 const defaultShouldRender = () => true;
@@ -1447,5 +1448,70 @@ export default class PluginRegistry {
 
     registerRHSPluginPopoutListener = reArg(['pluginId', 'onPopoutOpened'], ({pluginId, onPopoutOpened}: {pluginId: string; onPopoutOpened: (teamName: string, channelName: string, listeners: Partial<PopoutListeners>) => void}) => {
         registerRHSPluginPopoutListener(pluginId, onPopoutOpened);
+    });
+
+    /**
+     * Register a custom post priority type that appears in the priority picker and labels.
+     * Accepts the following:
+     * - id - A unique identifier for the priority type (e.g., 'encrypted')
+     * - label - The display text for the priority
+     * - icon - A compass icon name (e.g., 'lock-outline')
+     * - variant - 'danger' | 'info' | 'custom' - determines the badge styling
+     * - color - Optional custom color (used when variant is 'custom')
+     * - onSelect - Optional callback when this priority is selected in the picker
+     * Returns a unique identifier.
+     * (mattermost-extended)
+     */
+    registerPostPriorityType = reArg([
+        'id',
+        'label',
+        'icon',
+        'variant',
+        'color',
+        'onSelect',
+    ], ({
+        id,
+        label,
+        icon,
+        variant,
+        color,
+        onSelect,
+    }: {
+        id: string;
+        label: string;
+        icon: string;
+        variant: PostPriorityType['variant'];
+        color?: string;
+        onSelect?: () => void;
+    }) => {
+        const componentId = generateId();
+
+        store.dispatch({
+            type: ActionTypes.RECEIVED_PLUGIN_POST_PRIORITY_TYPE,
+            data: {
+                id,
+                componentId,
+                pluginId: this.id,
+                label,
+                icon,
+                variant,
+                color,
+                onSelect,
+            },
+        });
+
+        return componentId;
+    });
+
+    /**
+     * Unregister a previously registered post priority type.
+     * Accepts the priority type id.
+     * Returns undefined.
+     */
+    unregisterPostPriorityType = reArg(['priorityId'], ({priorityId}: {priorityId: string}) => {
+        store.dispatch({
+            type: ActionTypes.REMOVED_PLUGIN_POST_PRIORITY_TYPE,
+            id: priorityId,
+        });
     });
 }

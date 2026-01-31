@@ -3,14 +3,17 @@
 
 import React from 'react';
 import {useIntl} from 'react-intl';
+import {useSelector} from 'react-redux';
 
 import {PostPriority} from '@mattermost/types/posts';
+
+import {getPluginPriorityTypes} from 'selectors/plugins';
 
 import Tag from 'components/widgets/tag/tag';
 import type {TagSize} from 'components/widgets/tag/tag';
 
 type Props = {
-    priority?: PostPriority|'';
+    priority?: PostPriority|string|'';
     size?: TagSize;
     uppercase?: boolean;
 }
@@ -20,6 +23,7 @@ export default function PriorityLabel({
     ...rest
 }: Props) {
     const {formatMessage} = useIntl();
+    const pluginPriorityTypes = useSelector(getPluginPriorityTypes);
 
     if (priority === PostPriority.URGENT) {
         return (
@@ -43,6 +47,25 @@ export default function PriorityLabel({
                 text={formatMessage({id: 'post_priority.priority.important', defaultMessage: 'Important'})}
                 uppercase={true}
                 data-testid='post-priority-label'
+            />
+        );
+    }
+
+    // Check for plugin-registered priority types
+    if (priority && pluginPriorityTypes[priority]) {
+        const customType = pluginPriorityTypes[priority];
+        return (
+            <Tag
+                {...rest}
+                variant={customType.variant}
+                icon={customType.icon}
+                text={customType.label}
+                uppercase={true}
+                data-testid='post-priority-label'
+                style={customType.variant === 'custom' && customType.color ? {
+                    '--tag-bg': customType.color + '1a',
+                    '--tag-color': customType.color,
+                } as React.CSSProperties : undefined}
             />
         );
     }

@@ -58,7 +58,7 @@ export type PostAcknowledgement = {
 }
 
 export type PostPriorityMetadata = {
-    priority: PostPriority|'';
+    priority: PostPriority|string|'';  // string allows plugin-registered custom priorities
     requested_ack?: boolean;
     persistent_notifications?: boolean;
 }
@@ -205,7 +205,7 @@ export type PostAnalytics = {
     post_id: string;
     user_actual_id: string;
     root_id: string;
-    priority?: PostPriority|'';
+    priority?: PostPriority|string|'';  // string allows plugin-registered custom priorities
     requested_ack?: boolean;
     persistent_notifications?: boolean;
 }

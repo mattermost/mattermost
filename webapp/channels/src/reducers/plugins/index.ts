@@ -323,6 +323,45 @@ function postCardTypes(state: PluginsState['postTypes'] = {}, action: MMAction) 
     }
 }
 
+function priorityTypes(state: PluginsState['priorityTypes'] = {}, action: MMAction) {
+    switch (action.type) {
+    case ActionTypes.RECEIVED_PLUGIN_POST_PRIORITY_TYPE: {
+        if (action.data) {
+            const nextState = {...state};
+            nextState[action.data.id] = action.data;
+            return nextState;
+        }
+        return state;
+    }
+    case ActionTypes.REMOVED_PLUGIN_POST_PRIORITY_TYPE: {
+        if (action.id && state[action.id]) {
+            const nextState = {...state};
+            delete nextState[action.id];
+            return nextState;
+        }
+        return state;
+    }
+    case ActionTypes.REMOVED_WEBAPP_PLUGIN: {
+        if (!action.data) {
+            return state;
+        }
+        const nextState = {...state};
+        let modified = false;
+        Object.keys(nextState).forEach((k) => {
+            if (nextState[k].pluginId === action.data.id) {
+                delete nextState[k];
+                modified = true;
+            }
+        });
+        return modified ? nextState : state;
+    }
+    case UserTypes.LOGOUT_SUCCESS:
+        return {};
+    default:
+        return state;
+    }
+}
+
 function adminConsoleReducers(state: {[pluginId: string]: any} = {}, action: MMAction) {
     switch (action.type) {
     case ActionTypes.RECEIVED_ADMIN_CONSOLE_REDUCER: {
@@ -503,6 +542,10 @@ export default combineReducers({
     // object where every key is a post type and the values are components wrapped in an
     // an object that contains a plugin id
     postCardTypes,
+
+    // object where every key is a priority id and the values are custom priority type definitions
+    // registered by plugins (e.g., 'encrypted' priority)
+    priorityTypes,
 
     // object where every key is a plugin id and the value is a function that
     // modifies the admin console definition data structure
