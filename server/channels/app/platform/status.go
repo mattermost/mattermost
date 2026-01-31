@@ -214,6 +214,18 @@ func (ps *PlatformService) BroadcastStatus(status *model.Status) {
 }
 
 func (ps *PlatformService) SaveAndBroadcastStatus(status *model.Status) {
+	now := model.GetMillis()
+	ageSeconds := (now - status.LastActivityAt) / 1000
+	// Log if we're about to save a status with LastActivityAt older than 1 minute
+	if ageSeconds > 60 {
+		mlog.Warn("SaveAndBroadcastStatus saving stale LastActivityAt",
+			mlog.String("user_id", status.UserId),
+			mlog.String("status", status.Status),
+			mlog.Bool("manual", status.Manual),
+			mlog.Int64("last_activity_at", status.LastActivityAt),
+			mlog.Int64("age_seconds", ageSeconds))
+	}
+
 	ps.AddStatusCache(status)
 
 	if err := ps.Store.Status().SaveOrUpdate(status); err != nil {
@@ -312,7 +324,23 @@ func (ps *PlatformService) SetStatusOnline(userID string, manual bool) {
 		broadcast = true
 	} else {
 		if status.Manual && !manual {
-			return // manually set status always overrides non-manual one
+			// User has manual status (DND, Away, etc.) - don't change their status,
+			// but DO update LastActivityAt so "Last Online" time stays accurate
+			now := model.GetMillis()
+			if now-status.LastActivityAt > model.StatusMinUpdateTime {
+				mlog.Info("Updating LastActivityAt for manual status user",
+					mlog.String("user_id", userID),
+					mlog.String("status", status.Status),
+					mlog.Int64("old_last_activity", status.LastActivityAt),
+					mlog.Int64("new_last_activity", now),
+					mlog.Int64("age_seconds", (now-status.LastActivityAt)/1000))
+				status.LastActivityAt = now
+				ps.AddStatusCacheSkipClusterSend(status)
+				if err := ps.Store.Status().UpdateLastActivityAt(status.UserId, status.LastActivityAt); err != nil {
+					mlog.Error("Failed to update LastActivityAt for manual status user", mlog.String("user_id", userID), mlog.Err(err))
+				}
+			}
+			return
 		}
 
 		if status.Status != model.StatusOnline {
@@ -500,6 +528,10 @@ func (ps *PlatformService) SetStatusAwayIfNeeded(userID string, manual bool) {
 	status.Status = model.StatusAway
 	status.Manual = manual
 	status.ActiveChannel = ""
+	// Update LastActivityAt when user manually sets away status
+	if manual {
+		status.LastActivityAt = model.GetMillis()
+	}
 
 	ps.SaveAndBroadcastStatus(status)
 	if ps.sharedChannelService != nil {
@@ -523,6 +555,7 @@ func (ps *PlatformService) SetStatusDoNotDisturbTimed(userID string, endtime int
 	status.PrevStatus = status.Status
 	status.Status = model.StatusDnd
 	status.Manual = true
+	status.LastActivityAt = model.GetMillis() // Update activity when user sets DND
 
 	status.DNDEndTime = truncateDNDEndTime(endtime)
 
@@ -552,12 +585,24 @@ func (ps *PlatformService) SetStatusDoNotDisturb(userID string) {
 
 	status, err := ps.GetStatus(userID)
 
+	var oldLastActivityAt int64
 	if err != nil {
 		status = &model.Status{UserId: userID, Status: model.StatusOffline, Manual: false, LastActivityAt: 0, ActiveChannel: ""}
+		oldLastActivityAt = 0
+	} else {
+		oldLastActivityAt = status.LastActivityAt
 	}
+
+	now := model.GetMillis()
+	mlog.Info("SetStatusDoNotDisturb called",
+		mlog.String("user_id", userID),
+		mlog.Int64("old_last_activity", oldLastActivityAt),
+		mlog.Int64("new_last_activity", now),
+		mlog.Int64("age_seconds", (now-oldLastActivityAt)/1000))
 
 	status.Status = model.StatusDnd
 	status.Manual = true
+	status.LastActivityAt = now // Update activity when user sets DND
 
 	ps.SaveAndBroadcastStatus(status)
 	if ps.sharedChannelService != nil {
@@ -578,6 +623,7 @@ func (ps *PlatformService) SetStatusOutOfOffice(userID string) {
 
 	status.Status = model.StatusOutOfOffice
 	status.Manual = true
+	status.LastActivityAt = model.GetMillis() // Update activity when user sets OOO
 
 	ps.SaveAndBroadcastStatus(status)
 	if ps.sharedChannelService != nil {
