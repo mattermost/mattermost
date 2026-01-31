@@ -166,3 +166,6 @@ CLAUDE.md
 
 # Private DB queries
 db-queries/
+
+# Local testing config (contains local paths)
+local-test.config

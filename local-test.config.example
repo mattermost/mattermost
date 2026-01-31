@@ -1,0 +1,18 @@
+# Local Testing Configuration
+# Copy this file to local-test.config and fill in your values
+# DO NOT commit local-test.config - it contains local paths
+
+# Path to your Cloudron backup .tar.gz file
+BACKUP_PATH=C:\path\to\your\backup.tar.gz
+
+# Directory where extracted backup and test data will be stored
+WORK_DIR=C:\mattermost-local-test
+
+# Port for the local Mattermost server (default: 8065)
+MM_PORT=8065
+
+# PostgreSQL settings for local testing
+PG_PORT=5432
+PG_USER=mmuser
+PG_PASSWORD=mostest
+PG_DATABASE=mattermost_test
