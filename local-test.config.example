@@ -16,3 +16,10 @@ PG_PORT=5432
 PG_USER=mmuser
 PG_PASSWORD=mostest
 PG_DATABASE=mattermost_test
+
+# S3 Storage settings (for downloading production files)
+# Uses AWS CLI - install with: winget install Amazon.AWSCLI
+S3_BUCKET=mattermost-modders
+S3_ENDPOINT=https://s3.us-east-005.backblazeb2.com
+S3_ACCESS_KEY=your-access-key-here
+S3_SECRET_KEY=your-secret-key-here

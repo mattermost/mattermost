@@ -87,6 +87,7 @@ echo   webapp     - Build webapp from source and copy to test dir
 echo   docker     - Run using official Docker image (simpler, no code changes)
 echo   fix-config - Reset config.json to clean local settings
 echo   kill       - Kill the running Mattermost server process
+echo   s3-sync   - Download S3 storage files (uploads, plugins, etc.)
 echo.
 echo Configuration:
 echo   Edit local-test.config with your backup path and settings
@@ -256,9 +257,9 @@ if "!NODE_MAJOR!"=="" (
 
 echo Detected Node.js version: !NODE_MAJOR!.x
 
-REM Check if Node version is compatible (18-22)
+REM Check if Node version is compatible (18-24)
 set "NODE_OK=0"
-if !NODE_MAJOR! GEQ 18 if !NODE_MAJOR! LEQ 22 set "NODE_OK=1"
+if !NODE_MAJOR! GEQ 18 if !NODE_MAJOR! LEQ 24 set "NODE_OK=1"
 
 if "!NODE_OK!"=="0" (
     echo.
@@ -280,7 +281,7 @@ if "!NODE_OK!"=="0" (
 echo.
 echo [1/3] Installing dependencies...
 cd /d "!SCRIPT_DIR!webapp"
-call npm install
+call npm install --force --legacy-peer-deps
 if errorlevel 1 (
     echo ERROR: npm install failed
     exit /b 1
@@ -515,4 +516,85 @@ if exist "!WORK_DIR!" (
     rmdir /s /q "!WORK_DIR!"
 )
 echo Cleanup complete.
+goto :eof
+
+:cmd_s3-sync
+echo.
+echo === Downloading S3 Storage Files ===
+echo.
+
+REM Check for required S3 config
+if "!S3_BUCKET!"=="" (
+    echo ERROR: S3_BUCKET not set in local-test.config
+    echo.
+    echo Add these settings to local-test.config:
+    echo   S3_BUCKET=mattermost-modders
+    echo   S3_ENDPOINT=https://s3.us-east-005.backblazeb2.com
+    echo   S3_ACCESS_KEY=your-access-key
+    echo   S3_SECRET_KEY=your-secret-key
+    exit /b 1
+)
+
+if "!S3_ACCESS_KEY!"=="" (
+    echo ERROR: S3_ACCESS_KEY not set in local-test.config
+    exit /b 1
+)
+
+if "!S3_SECRET_KEY!"=="" (
+    echo ERROR: S3_SECRET_KEY not set in local-test.config
+    exit /b 1
+)
+
+REM Check if AWS CLI is installed
+where aws >nul 2>&1
+if errorlevel 1 (
+    echo ERROR: AWS CLI not found.
+    echo.
+    echo Install with: winget install Amazon.AWSCLI
+    echo Or download from: https://aws.amazon.com/cli/
+    exit /b 1
+)
+
+REM Create data directory if it doesn't exist
+if not exist "!WORK_DIR!\data" (
+    mkdir "!WORK_DIR!\data"
+)
+
+echo Bucket: !S3_BUCKET!
+echo Endpoint: !S3_ENDPOINT!
+echo Destination: !WORK_DIR!\data
+echo.
+
+REM Set AWS credentials for this session
+set "AWS_ACCESS_KEY_ID=!S3_ACCESS_KEY!"
+set "AWS_SECRET_ACCESS_KEY=!S3_SECRET_KEY!"
+
+REM Build endpoint URL flag if endpoint is set
+set "ENDPOINT_FLAG="
+if not "!S3_ENDPOINT!"=="" (
+    set "ENDPOINT_FLAG=--endpoint-url !S3_ENDPOINT!"
+)
+
+echo Syncing files from S3 (this may take a while)...
+echo.
+
+REM Sync the entire bucket to local data directory (--delete removes files not in S3)
+aws s3 sync "s3://!S3_BUCKET!/" "!WORK_DIR!\data" !ENDPOINT_FLAG! --size-only --delete --no-sign-request 2>nul
+if errorlevel 1 (
+    REM Try with credentials (no-sign-request failed)
+    aws s3 sync "s3://!S3_BUCKET!/" "!WORK_DIR!\data" !ENDPOINT_FLAG! --size-only --delete
+    if errorlevel 1 (
+        echo ERROR: S3 sync failed
+        exit /b 1
+    )
+)
+
+echo.
+echo === S3 Sync Complete ===
+echo.
+echo Files downloaded to: !WORK_DIR!\data
+echo.
+echo Contents:
+dir /b "!WORK_DIR!\data" 2>nul
+echo.
 goto :eof
