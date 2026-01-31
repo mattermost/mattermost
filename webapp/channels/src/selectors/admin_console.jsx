@@ -39,9 +39,13 @@ export const getConsoleAccess = createSelector(
     (adminDefinition, mySystemPermissions) => {
         const consoleAccess = {read: {}, write: {}};
         const addEntriesForKey = (entryKey) => {
-            const permissions = ResourceToSysConsolePermissionsTable[entryKey].filter((x) => mySystemPermissions.has(x));
-            consoleAccess.read[entryKey] = permissions.length !== 0;
-            consoleAccess.write[entryKey] = permissions.some((permission) => permission.startsWith('sysconsole_write_'));
+            const permissions = ResourceToSysConsolePermissionsTable[entryKey];
+            if (!permissions) {
+                return;
+            }
+            const filteredPermissions = permissions.filter((x) => mySystemPermissions.has(x));
+            consoleAccess.read[entryKey] = filteredPermissions.length !== 0;
+            consoleAccess.write[entryKey] = filteredPermissions.some((permission) => permission.startsWith('sysconsole_write_'));
         };
         const mapAccessValuesForKey = ([key]) => {
             if (typeof RESOURCE_KEYS[key.toUpperCase()] === 'object') {
