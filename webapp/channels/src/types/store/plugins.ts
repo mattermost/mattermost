@@ -85,6 +85,12 @@ export type PluginsState = {
         [postType: string]: PostPluginComponent;
     };
 
+
+
+        priorityTypes: {
+        [priority: string]: PostPriorityType;
+    };
+
     adminConsoleReducers: {
         [pluginId: string]: any;
     };
@@ -471,6 +477,12 @@ export type MessageWillBeUpdatedHook = PluginComponent & {
     hook: (post: Partial<Post>, oldPost: Post) => Promise<{error: {message: string}} | {post: Post}>;
 };
 
+export type PostPriorityType = PluginComponent & {
+    label: string;
+    icon: string;
+    variant: 'danger' | 'info' | 'custom';
+    color?: string;
+};
 export type PostPluginComponent = {
     id: string;
     pluginId: string;
@@ -501,3 +513,6 @@ export type AdminConsolePluginCustomSection = {
 export type SystemConsoleGroupTableComponent = PluginComponent & {
     component: React.ComponentType<BasePluggableProps>;
 };
+
+
+
