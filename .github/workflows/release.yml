@@ -75,6 +75,4 @@ jobs:
             - **Linux arm64**: `mattermost-team-linux-arm64.tar.gz`
 
             ## Changes
-            - Aggressive real-time status tracking for improved "Last Online" accuracy
-
-            See [CLAUDE.md](https://github.com/stalecontext/mattermost-extended/blob/master/CLAUDE.md) for deployment instructions.
+            - TBD
