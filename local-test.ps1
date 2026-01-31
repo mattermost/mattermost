@@ -30,12 +30,12 @@ $SCRIPT_DIR = $PSScriptRoot
 $LOG_FILE = Join-Path $SCRIPT_DIR "local-test.log"
 $CONFIG_FILE = Join-Path $SCRIPT_DIR "local-test.config"
 
-# Initialize log file with timestamp
+# Initialize log file with timestamp (clears previous log)
 $script:LogStartTime = Get-Date
-"=" * 80 | Out-File $LOG_FILE -Append
-"Log started: $($script:LogStartTime.ToString('yyyy-MM-dd HH:mm:ss'))" | Out-File $LOG_FILE -Append
-"Command: $Command" | Out-File $LOG_FILE -Append
-"=" * 80 | Out-File $LOG_FILE -Append
+"=" * 80 | Out-File $LOG_FILE -Encoding UTF8
+"Log started: $($script:LogStartTime.ToString('yyyy-MM-dd HH:mm:ss'))" | Out-File $LOG_FILE -Append -Encoding UTF8
+"Command: $Command" | Out-File $LOG_FILE -Append -Encoding UTF8
+"=" * 80 | Out-File $LOG_FILE -Append -Encoding UTF8
 
 # Logging function - writes to both console and log file
 function Log {
@@ -50,7 +50,7 @@ function Log {
     $logMessage = "[$timestamp] $Message"
 
     # Write to log file
-    $logMessage | Out-File $LOG_FILE -Append
+    $logMessage | Out-File $LOG_FILE -Append -Encoding UTF8
 
     # Write to console
     $params = @{}
@@ -63,21 +63,21 @@ function Log {
 function Log-Error {
     param([string]$Message)
     $timestamp = Get-Date -Format "HH:mm:ss"
-    "[$timestamp] ERROR: $Message" | Out-File $LOG_FILE -Append
+    "[$timestamp] ERROR: $Message" | Out-File $LOG_FILE -Append -Encoding UTF8
     Write-Host "ERROR: $Message" -ForegroundColor Red
 }
 
 function Log-Warning {
     param([string]$Message)
     $timestamp = Get-Date -Format "HH:mm:ss"
-    "[$timestamp] WARNING: $Message" | Out-File $LOG_FILE -Append
+    "[$timestamp] WARNING: $Message" | Out-File $LOG_FILE -Append -Encoding UTF8
     Write-Host "WARNING: $Message" -ForegroundColor Yellow
 }
 
 function Log-Success {
     param([string]$Message)
     $timestamp = Get-Date -Format "HH:mm:ss"
-    "[$timestamp] $Message" | Out-File $LOG_FILE -Append
+    "[$timestamp] $Message" | Out-File $LOG_FILE -Append -Encoding UTF8
     Write-Host $Message -ForegroundColor Green
 }
 
@@ -94,19 +94,19 @@ function Invoke-LoggedCommand {
         Log $Description
     }
 
-    "Executing: $Command" | Out-File $LOG_FILE -Append
+    "Executing: $Command" | Out-File $LOG_FILE -Append -Encoding UTF8
 
     if ($SuppressOutput) {
         $output = Invoke-Expression $Command 2>&1
-        $output | Out-File $LOG_FILE -Append
+        $output | Out-File $LOG_FILE -Append -Encoding UTF8
     } else {
         # Capture and display output while logging
         $output = Invoke-Expression $Command 2>&1 | Tee-Object -Variable capturedOutput
-        $capturedOutput | Out-File $LOG_FILE -Append
+        $capturedOutput | Out-File $LOG_FILE -Append -Encoding UTF8
     }
 
     if ($LASTEXITCODE -ne 0 -and !$AllowFailure) {
-        "Command failed with exit code: $LASTEXITCODE" | Out-File $LOG_FILE -Append
+        "Command failed with exit code: $LASTEXITCODE" | Out-File $LOG_FILE -Append -Encoding UTF8
         return $false
     }
     return $true
@@ -158,13 +158,13 @@ if (!$WORK_DIR) {
 }
 
 # Log config (excluding secrets)
-"Configuration loaded:" | Out-File $LOG_FILE -Append
-"  BACKUP_PATH: $BACKUP_PATH" | Out-File $LOG_FILE -Append
-"  WORK_DIR: $WORK_DIR" | Out-File $LOG_FILE -Append
-"  MM_PORT: $MM_PORT" | Out-File $LOG_FILE -Append
-"  PG_PORT: $PG_PORT" | Out-File $LOG_FILE -Append
-"  PG_USER: $PG_USER" | Out-File $LOG_FILE -Append
-"  PG_DATABASE: $PG_DATABASE" | Out-File $LOG_FILE -Append
+"Configuration loaded:" | Out-File $LOG_FILE -Append -Encoding UTF8
+"  BACKUP_PATH: $BACKUP_PATH" | Out-File $LOG_FILE -Append -Encoding UTF8
+"  WORK_DIR: $WORK_DIR" | Out-File $LOG_FILE -Append -Encoding UTF8
+"  MM_PORT: $MM_PORT" | Out-File $LOG_FILE -Append -Encoding UTF8
+"  PG_PORT: $PG_PORT" | Out-File $LOG_FILE -Append -Encoding UTF8
+"  PG_USER: $PG_USER" | Out-File $LOG_FILE -Append -Encoding UTF8
+"  PG_DATABASE: $PG_DATABASE" | Out-File $LOG_FILE -Append -Encoding UTF8
 
 # ============================================================================
 # Command Functions
@@ -215,7 +215,7 @@ function Reset-Passwords {
 
     Push-Location $toolPath
     $result = & go build -o $RESET_TOOL . 2>&1
-    $result | Out-File $LOG_FILE -Append
+    $result | Out-File $LOG_FILE -Append -Encoding UTF8
     Pop-Location
 
     if ($LASTEXITCODE -ne 0) {
@@ -229,7 +229,7 @@ function Reset-Passwords {
     # Run the tool
     Log "Running password reset tool..."
     $result = & $RESET_TOOL $CONN_STR "test" 2>&1
-    $result | Out-File $LOG_FILE -Append
+    $result | Out-File $LOG_FILE -Append -Encoding UTF8
     $result | ForEach-Object { Log $_ }
 
     if ($LASTEXITCODE -ne 0) {
@@ -278,11 +278,11 @@ function Invoke-Setup {
         if ($sevenZip) {
             Log "Using 7-Zip for extraction..."
             $result = & 7z x $BACKUP_PATH -so 2>$null | & 7z x -si -ttar -o"$backupDir" 2>&1
-            $result | Out-File $LOG_FILE -Append
+            $result | Out-File $LOG_FILE -Append -Encoding UTF8
         } else {
             Log "Using tar for extraction..."
             $result = & tar -xzf $BACKUP_PATH -C $backupDir 2>&1
-            $result | Out-File $LOG_FILE -Append
+            $result | Out-File $LOG_FILE -Append -Encoding UTF8
         }
 
         if ($LASTEXITCODE -ne 0) {
@@ -310,9 +310,9 @@ function Invoke-Setup {
         "postgres:15-alpine"
     )
 
-    "Docker command: docker $($dockerArgs -join ' ')" | Out-File $LOG_FILE -Append
+    "Docker command: docker $($dockerArgs -join ' ')" | Out-File $LOG_FILE -Append -Encoding UTF8
     $result = & docker @dockerArgs 2>&1
-    $result | Out-File $LOG_FILE -Append
+    $result | Out-File $LOG_FILE -Append -Encoding UTF8
 
     if ($LASTEXITCODE -ne 0) {
         Log-Error "Failed to create PostgreSQL container"
@@ -354,8 +354,8 @@ function Invoke-Setup {
 
         # Use Get-Content and pipe to docker exec
         $result = Get-Content $sqlDump -Raw | docker exec -i $PG_CONTAINER psql -U $PG_USER -d $PG_DATABASE 2>&1
-        "Database restore output (truncated):" | Out-File $LOG_FILE -Append
-        ($result | Select-Object -First 50) | Out-File $LOG_FILE -Append
+        "Database restore output (truncated):" | Out-File $LOG_FILE -Append -Encoding UTF8
+        ($result | Select-Object -First 50) | Out-File $LOG_FILE -Append -Encoding UTF8
 
         # Verify restore worked by checking for users
         $userCount = docker exec $PG_CONTAINER psql -U $PG_USER -d $PG_DATABASE -t -c "SELECT COUNT(*) FROM users" 2>$null
@@ -440,7 +440,7 @@ function Invoke-Build {
     Log "Output: $outputPath"
 
     $result = & go build -o $outputPath ./cmd/mattermost 2>&1
-    $result | Out-File $LOG_FILE -Append
+    $result | Out-File $LOG_FILE -Append -Encoding UTF8
     $result | ForEach-Object { Log $_ }
 
     Pop-Location
@@ -494,7 +494,7 @@ function Invoke-Webapp {
     $env:NODE_OPTIONS = "--max-old-space-size=8192"
 
     $result = & npm install --force --legacy-peer-deps 2>&1
-    $result | Out-File $LOG_FILE -Append
+    $result | Out-File $LOG_FILE -Append -Encoding UTF8
 
     if ($LASTEXITCODE -ne 0) {
         Log-Error "npm install failed"
@@ -505,7 +505,7 @@ function Invoke-Webapp {
     Log ""
     Log "[2/3] Building webapp (this may take several minutes)..."
     $result = & npm run build 2>&1
-    $result | Out-File $LOG_FILE -Append
+    $result | Out-File $LOG_FILE -Append -Encoding UTF8
 
     if ($LASTEXITCODE -ne 0) {
         Log-Error "Webapp build failed"
@@ -567,9 +567,9 @@ function Invoke-Docker {
         "mattermost/mattermost-team-edition:11.3.0"
     )
 
-    "Docker command: docker $($dockerArgs -join ' ')" | Out-File $LOG_FILE -Append
+    "Docker command: docker $($dockerArgs -join ' ')" | Out-File $LOG_FILE -Append -Encoding UTF8
     $result = & docker @dockerArgs 2>&1
-    $result | Out-File $LOG_FILE -Append
+    $result | Out-File $LOG_FILE -Append -Encoding UTF8
 
     if ($LASTEXITCODE -ne 0) {
         Log-Error "Failed to start Docker container"
@@ -699,7 +699,10 @@ function Invoke-Start {
     $configPath = Join-Path $WORK_DIR "config.json"
 
     # Run server and capture output to log
-    & $binaryPath server --config $configPath 2>&1 | Tee-Object -FilePath $LOG_FILE -Append
+    & $binaryPath server --config $configPath 2>&1 | ForEach-Object {
+        $_ | Out-File $LOG_FILE -Append -Encoding UTF8
+        Write-Host $_
+    }
 
     Pop-Location
 }
@@ -826,7 +829,7 @@ function Invoke-S3Sync {
 
     # Try with credentials
     $result = & aws s3 sync "s3://$S3_BUCKET/" $dataDir @endpointFlag --size-only --delete 2>&1
-    $result | Out-File $LOG_FILE -Append
+    $result | Out-File $LOG_FILE -Append -Encoding UTF8
     $result | ForEach-Object { Log $_ }
 
     if ($LASTEXITCODE -ne 0) {
@@ -904,8 +907,8 @@ switch ($Command.ToLower()) {
 # Log completion
 $endTime = Get-Date
 $duration = $endTime - $script:LogStartTime
-"" | Out-File $LOG_FILE -Append
-"=" * 80 | Out-File $LOG_FILE -Append
-"Log ended: $($endTime.ToString('yyyy-MM-dd HH:mm:ss'))" | Out-File $LOG_FILE -Append
-"Duration: $($duration.ToString('hh\:mm\:ss'))" | Out-File $LOG_FILE -Append
-"=" * 80 | Out-File $LOG_FILE -Append
+"" | Out-File $LOG_FILE -Append -Encoding UTF8
+"=" * 80 | Out-File $LOG_FILE -Append -Encoding UTF8
+"Log ended: $($endTime.ToString('yyyy-MM-dd HH:mm:ss'))" | Out-File $LOG_FILE -Append -Encoding UTF8
+"Duration: $($duration.ToString('hh\:mm\:ss'))" | Out-File $LOG_FILE -Append -Encoding UTF8
+"=" * 80 | Out-File $LOG_FILE -Append -Encoding UTF8
