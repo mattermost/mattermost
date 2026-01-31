@@ -88,6 +88,7 @@ echo   docker     - Run using official Docker image (simpler, no code changes)
 echo   fix-config - Reset config.json to clean local settings
 echo   kill       - Kill the running Mattermost server process
 echo   s3-sync   - Download S3 storage files (uploads, plugins, etc.)
+echo   all       - Run everything: kill, setup, build, webapp, start
 echo.
 echo Configuration:
 echo   Edit local-test.config with your backup path and settings
@@ -98,6 +99,48 @@ echo   2. local-test.bat build     (build server with your changes)
 echo   3. local-test.bat webapp    (build webapp with your changes)
 echo   4. local-test.bat start     (run and test)
 echo.
+goto :eof
+
+:cmd_all
+echo.
+echo === Running Full Setup and Build ===
+echo.
+echo This will run: kill, clean database, setup, build, webapp, start
+echo.
+
+echo [Step 1/6] Killing any running server...
+call :cmd_kill
+
+echo [Step 2/6] Cleaning database for fresh restore...
+docker rm -f !PG_CONTAINER! >nul 2>&1
+if exist "!WORK_DIR!\pgdata" (
+    rmdir /s /q "!WORK_DIR!\pgdata"
+    echo Database data removed, will restore fresh from backup.
+)
+
+echo [Step 3/6] Setting up environment...
+call :cmd_setup
+if errorlevel 1 (
+    echo ERROR: Setup failed
+    exit /b 1
+)
+
+echo [Step 4/6] Building server...
+call :cmd_build
+if errorlevel 1 (
+    echo ERROR: Server build failed
+    exit /b 1
+)
+
+echo [Step 5/6] Building webapp...
+call :cmd_webapp
+if errorlevel 1 (
+    echo ERROR: Webapp build failed
+    exit /b 1
+)
+
+echo [Step 6/6] Starting server...
+call :cmd_start
 goto :eof
 
 :cmd_setup
