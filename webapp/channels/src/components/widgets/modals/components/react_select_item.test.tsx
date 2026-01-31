@@ -16,10 +16,6 @@ const mockIntl = {
 };
 
 describe('getOptionLabel', () => {
-    beforeEach(() => {
-        jest.clearAllMocks();
-    });
-
     test('should return string label as-is', () => {
         const option: SelectOption = {
             value: 'test',
