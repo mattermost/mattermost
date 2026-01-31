@@ -601,7 +601,7 @@ func (a *App) GetSessionPublicKeys(userIds []string) (map[string]string, *model.
 
 	for _, userId := range userIds {
 		// Get active sessions for this user
-		sessions, err := a.GetSessions(userId)
+		sessions, err := a.GetSessions(request.EmptyContext(a.Log()), userId)
 		if err != nil {
 			continue // Skip users with session errors
 		}

@@ -16,6 +16,7 @@ import (
 	"strings"
 
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/plugin"
 	"github.com/mattermost/mattermost/server/public/shared/i18n"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/public/shared/request"
@@ -1087,19 +1088,6 @@ func (api *PluginAPI) KVDeleteAll() *model.AppError {
 
 func (api *PluginAPI) KVList(page, perPage int) ([]string, *model.AppError) {
 	return api.app.ListPluginKeys(api.id, page, perPage)
-}
-
-// Session-scoped KV Store (mattermost-extended)
-func (api *PluginAPI) SessionKVSet(sessionId, key string, value []byte) *model.AppError {
-	return api.app.SetPluginSessionKey(api.id, sessionId, key, value)
-}
-
-func (api *PluginAPI) SessionKVGet(sessionId, key string) ([]byte, *model.AppError) {
-	return api.app.GetPluginSessionKey(api.id, sessionId, key)
-}
-
-func (api *PluginAPI) SessionKVDelete(sessionId, key string) *model.AppError {
-	return api.app.DeletePluginSessionKey(api.id, sessionId, key)
 }
 
 func (api *PluginAPI) GetSessionPublicKeys(userIds []string) (map[string]string, *model.AppError) {

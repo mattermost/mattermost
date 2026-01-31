@@ -222,8 +222,8 @@ func (ps *PlatformService) SaveAndBroadcastStatus(status *model.Status) {
 			mlog.String("user_id", status.UserId),
 			mlog.String("status", status.Status),
 			mlog.Bool("manual", status.Manual),
-			mlog.Int64("last_activity_at", status.LastActivityAt),
-			mlog.Int64("age_seconds", ageSeconds))
+			mlog.Int("last_activity_at", status.LastActivityAt),
+			mlog.Int("age_seconds", ageSeconds))
 	}
 
 	ps.AddStatusCache(status)
@@ -331,9 +331,9 @@ func (ps *PlatformService) SetStatusOnline(userID string, manual bool) {
 				mlog.Info("Updating LastActivityAt for manual status user",
 					mlog.String("user_id", userID),
 					mlog.String("status", status.Status),
-					mlog.Int64("old_last_activity", status.LastActivityAt),
-					mlog.Int64("new_last_activity", now),
-					mlog.Int64("age_seconds", (now-status.LastActivityAt)/1000))
+					mlog.Int("old_last_activity", status.LastActivityAt),
+					mlog.Int("new_last_activity", now),
+					mlog.Int("age_seconds", (now-status.LastActivityAt)/1000))
 				status.LastActivityAt = now
 				ps.AddStatusCacheSkipClusterSend(status)
 				if err := ps.Store.Status().UpdateLastActivityAt(status.UserId, status.LastActivityAt); err != nil {
@@ -596,9 +596,9 @@ func (ps *PlatformService) SetStatusDoNotDisturb(userID string) {
 	now := model.GetMillis()
 	mlog.Info("SetStatusDoNotDisturb called",
 		mlog.String("user_id", userID),
-		mlog.Int64("old_last_activity", oldLastActivityAt),
-		mlog.Int64("new_last_activity", now),
-		mlog.Int64("age_seconds", (now-oldLastActivityAt)/1000))
+		mlog.Int("old_last_activity", oldLastActivityAt),
+		mlog.Int("new_last_activity", now),
+		mlog.Int("age_seconds", (now-oldLastActivityAt)/1000))
 
 	status.Status = model.StatusDnd
 	status.Manual = true

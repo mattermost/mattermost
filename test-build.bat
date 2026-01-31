@@ -10,13 +10,15 @@ set STEP=%1
 if "%STEP%"=="" set STEP=all
 
 if "%STEP%"=="workspace" goto workspace
+if "%STEP%"=="plugin" goto plugin
 if "%STEP%"=="app" goto app
 if "%STEP%"=="server" goto server
 if "%STEP%"=="webapp" goto webapp
 if "%STEP%"=="all" goto all
 
-echo Usage: test-build.bat [workspace^|app^|server^|webapp^|all]
+echo Usage: test-build.bat [workspace^|plugin^|app^|server^|webapp^|all]
 echo   workspace - Just setup go workspace
+echo   plugin    - Just test public/plugin compilation (interface checks)
 echo   app       - Just test channels/app compilation
 echo   server    - Just test server binary compilation
 echo   webapp    - Just test webapp for common issues
@@ -30,7 +32,7 @@ echo ========================================
 echo.
 
 :workspace
-echo [1/4] Setting up Go workspace...
+echo [1/5] Setting up Go workspace...
 cd server
 call make setup-go-work
 if %ERRORLEVEL% neq 0 (
@@ -45,7 +47,7 @@ cd ..
 echo.
 
 :webapp
-echo [2/4] Checking webapp for common issues...
+echo [2/5] Checking webapp for common issues...
 
 REM Check for corrupted line endings (literal backtick-r-backtick-n)
 echo Scanning for corrupted line endings...
@@ -89,11 +91,34 @@ if exist "webapp\node_modules" (
 if "%STEP%"=="webapp" goto success
 echo.
 
+:plugin
+echo [3/5] Testing compile (public/plugin)...
+echo This catches interface mismatches...
+cd server
+go build ./public/plugin 2>&1
+if %ERRORLEVEL% neq 0 (
+    echo.
+    echo ========================================
+    echo BUILD FAILED - public/plugin
+    echo ========================================
+    echo.
+    echo Common issues:
+    echo   - Interface mismatch: API interface has methods not implemented
+    echo   - Missing generated code: run 'go generate' in public/plugin
+    echo   - Removed API methods still defined in api.go
+    echo.
+    echo To retry just this step: test-build.bat plugin
+    exit /b 1
+)
+cd ..
+if "%STEP%"=="plugin" goto success
+echo.
+
 :app
-echo [3/4] Testing compile (channels/app)...
+echo [4/5] Testing compile (channels/app)...
 echo This is where most server errors occur...
 cd server
-go build -v ./channels/app 2>&1 | findstr /V "go: downloading"
+go build ./channels/app 2>&1
 if %ERRORLEVEL% neq 0 (
     echo.
     echo ========================================
@@ -114,9 +139,9 @@ if "%STEP%"=="app" goto success
 echo.
 
 :server
-echo [4/4] Testing compile (full server)...
+echo [5/5] Testing compile (full server)...
 cd server
-go build -v ./cmd/mattermost 2>&1 | findstr /V "go: downloading"
+go build ./cmd/mattermost 2>&1
 if %ERRORLEVEL% neq 0 (
     echo.
     echo ========================================
@@ -137,6 +162,7 @@ echo.
 echo All compilation checks passed:
 echo   [x] Go workspace setup
 echo   [x] Webapp syntax check
+echo   [x] Plugin API interfaces
 echo   [x] Server channels/app
 echo   [x] Server binary
 echo.
