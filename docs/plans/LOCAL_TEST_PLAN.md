@@ -1,127 +1,150 @@
-# Local Testing Setup Plan
+# Local Testing Setup
 
-## Current Status
-The local test environment is partially working but the webapp isn't fully functional (shows background only).
+## Quick Start
 
-## What's Already Done
-1. ✅ `local-test.bat` created with setup/start/stop commands
-2. ✅ `local-test.config` created with user's backup path
-3. ✅ PostgreSQL container running (`mm-local-postgres`)
-4. ✅ Database restored from Cloudron backup
-5. ✅ Server binary built (`G:\mattermost-local-test\mattermost.exe`)
-6. ✅ Client files downloaded from Mattermost 11.3.0 release
-7. ✅ Server starts and responds to API ping
-
-## Current Problem
-The webapp shows only a background - likely missing configuration or the client files aren't being served correctly from the custom-built server.
-
-## Root Cause Analysis Needed
-1. The server is built from source but client files are from official 11.3.0 release
-2. There may be version/hash mismatches between server and client
-3. The config may be missing required settings
-
-## Solution Options
-
-### Option A: Use Official Release Binary (Recommended for Testing)
-Instead of building from source, use the official Mattermost binary with our database:
 ```batch
-# Download full release, use their binary + client together
-# Only useful for testing database/data, not code changes
-```
+# First time setup (extract backup, create database)
+./local-test.bat setup
 
-### Option B: Build Webapp from Source (Required for Testing Code Changes)
-Need to fix Node.js version compatibility:
-```batch
-# Install Node.js 18.x (required by Mattermost webapp)
-# Current: Node 24.x (too new)
-# Use nvm-windows to switch versions
-```
+# Fix config if restored from Cloudron backup
+./local-test.bat fix-config
 
-### Option C: Use Docker (Simplest)
-Run official Mattermost Docker image with our restored database:
-```batch
-docker run -d --name mm-test \
-  -p 8065:8065 \
-  -e MM_SQLSETTINGS_DRIVERNAME=postgres \
-  -e MM_SQLSETTINGS_DATASOURCE="postgres://mmuser:mostest@host.docker.internal:5432/mattermost_test?sslmode=disable" \
-  mattermost/mattermost-team-edition:11.3.0
-```
-
-## Recommended Fix Steps
-
-### Step 1: Install Node Version Manager
-```batch
-# Download nvm-windows from: https://github.com/coreybutler/nvm-windows/releases
-# Install it, then:
-nvm install 18.20.0
-nvm use 18.20.0
-```
-
-### Step 2: Build Webapp
-```batch
-cd G:\Modding\_Github\mattermost\webapp
-npm install
-npm run build
-```
-
-### Step 3: Copy Built Client to Test Dir
-```batch
-xcopy /E /I /Y "G:\Modding\_Github\mattermost\webapp\channels\dist" "G:\mattermost-local-test\client"
-```
-
-### Step 4: Restart Server
-```batch
-cd G:\Modding\_Github\mattermost
-./local-test.bat stop
+# Build and run
+./local-test.bat build
+./local-test.bat webapp     # Optional: only if testing webapp changes
 ./local-test.bat start
 ```
 
+## Commands
+
+| Command | Description |
+|---------|-------------|
+| `setup` | First-time setup: extract backup, create PostgreSQL, restore database |
+| `start` | Start the local Mattermost server |
+| `stop` | Stop PostgreSQL container |
+| `status` | Show container status |
+| `logs` | View PostgreSQL logs |
+| `psql` | Open PostgreSQL shell |
+| `clean` | Remove all test data and containers |
+| `build` | Build server binary from source |
+| `webapp` | Build webapp from source (requires Node 18-22) |
+| `docker` | Run official Docker image (no code changes) |
+| `fix-config` | Reset config.json to clean local settings |
+
+## Workflow for Testing Code Changes
+
+### Server-only changes (Go code)
+```batch
+./local-test.bat build
+./local-test.bat start
+```
+
+### Webapp changes (React/TypeScript)
+```batch
+./local-test.bat webapp
+./local-test.bat start
+```
+
+### Both server and webapp changes
+```batch
+./local-test.bat build
+./local-test.bat webapp
+./local-test.bat start
+```
+
+## Node.js Requirements
+
+The webapp requires Node.js 18.x-22.x. If you have a different version:
+
+### Option 1: Install nvm-windows
+1. Download from: https://github.com/coreybutler/nvm-windows/releases
+2. Install and restart terminal
+3. Run:
+   ```batch
+   nvm install 20.11.0
+   nvm use 20.11.0
+   ```
+
+### Option 2: Install Node 20 LTS directly
+Download from: https://nodejs.org/
+
 ## Directory Structure
+
 ```
 G:\mattermost-local-test\
 ├── backup\              # Extracted Cloudron backup
 │   ├── data\            # Mattermost data files
-│   └── postgresqldump   # Database dump (restored)
-├── client\              # Webapp files (needs rebuild)
+│   └── postgresqldump   # Database dump
+├── client\              # Webapp files (from build or official release)
 ├── data\                # Working data directory
-├── config.json          # Local config
+├── plugins\             # Server plugins
+├── config.json          # Local configuration
+├── config.json.backup   # Backup of previous config (if fix-config was run)
 ├── mattermost.exe       # Built server binary
 └── pgdata\              # PostgreSQL data (Docker volume)
 ```
 
-## Config File Location
-`G:\mattermost-local-test\config.json` - Already configured with:
-- SiteURL: http://localhost:8065
-- Database: postgres://mmuser:mostest@localhost:5432/mattermost_test
-- FileSettings.Directory: G:/mattermost-local-test/data
+## Configuration
 
-## Docker Container
-- PostgreSQL: `mm-local-postgres` on port 5432
-- Database: `mattermost_test`
-- User: `mmuser` / Password: `mostest`
+Edit `local-test.config`:
 
-## Commands Reference
-```batch
-# Start PostgreSQL
-docker start mm-local-postgres
+```ini
+# Path to Cloudron backup
+BACKUP_PATH=G:\_Backups\Mattermost\app-backup-YYYY-MM-DD.tar.gz
 
-# Stop PostgreSQL
-docker stop mm-local-postgres
+# Working directory
+WORK_DIR=G:\mattermost-local-test
 
-# Connect to database
-docker exec -it mm-local-postgres psql -U mmuser -d mattermost_test
+# Server port (default: 8065)
+MM_PORT=8065
 
-# Start Mattermost server
-cd G:\mattermost-local-test
-./mattermost.exe server --config config.json
-
-# Check server status
-curl http://localhost:8065/api/v4/system/ping
+# PostgreSQL settings
+PG_PORT=5432
+PG_USER=mmuser
+PG_PASSWORD=mostest
+PG_DATABASE=mattermost_test
 ```
 
-## Next Session TODO
-1. Install nvm-windows and Node 18.x
-2. Build webapp from source with our encryption changes
-3. Copy built client to test directory
-4. Restart and verify the full UI works
-5. Test the encryption feature
+## Troubleshooting
+
+### Webapp shows only background
+
+This usually means the config has invalid settings from Cloudron:
+
+```batch
+./local-test.bat fix-config
+./local-test.bat start
+```
+
+### Database connection errors
+
+Check PostgreSQL is running:
+```batch
+./local-test.bat status
+docker start mm-local-postgres
+```
+
+### Webapp build fails
+
+1. Check Node version: `node --version` (needs 18-22)
+2. Clear node_modules and retry:
+   ```batch
+   cd webapp
+   rmdir /s /q node_modules
+   cd ..
+   ./local-test.bat webapp
+   ```
+
+### Port already in use
+
+Change `MM_PORT` in `local-test.config` to a different port.
+
+## Docker Mode (Quick Testing)
+
+If you just want to test the database/data without code changes:
+
+```batch
+./local-test.bat docker
+```
+
+This runs the official Mattermost 11.3.0 Docker image with your restored database.
