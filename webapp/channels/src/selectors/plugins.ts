@@ -166,11 +166,3 @@ export const getSearchButtons = createSelector(
         return components;
     },
 );
-
-export const getPluginPriorityTypes = createSelector(
-    'getPluginPriorityTypes',
-    (state: GlobalState) => state.plugins.priorityTypes,
-    (priorityTypes) => {
-        return priorityTypes || {};
-    },
-);

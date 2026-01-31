@@ -7,14 +7,11 @@ import {FormattedMessage, useIntl} from 'react-intl';
 import {useSelector} from 'react-redux';
 
 import {AlertCircleOutlineIcon} from '@mattermost/compass-icons/components';
-import * as CompassIcons from '@mattermost/compass-icons/components';
 import type {PostPriorityMetadata} from '@mattermost/types/posts';
 import {PostPriority} from '@mattermost/types/posts';
 
 import {getPersistentNotificationIntervalMinutes, isPersistentNotificationsEnabled, isPostAcknowledgementsEnabled} from 'mattermost-redux/selectors/entities/posts';
 import {getTheme} from 'mattermost-redux/selectors/entities/preferences';
-
-import {getPluginPriorityTypes} from 'selectors/plugins';
 
 import {IconContainer} from 'components/advanced_text_editor/formatting_bar/formatting_icon';
 import CompassDesignProvider from 'components/compass_design_provider';
@@ -51,7 +48,6 @@ function PostPriorityPicker({
     const postAcknowledgementsEnabled = useSelector(isPostAcknowledgementsEnabled);
     const persistentNotificationsEnabled = useSelector(isPersistentNotificationsEnabled) && postAcknowledgementsEnabled;
     const interval = useSelector(getPersistentNotificationIntervalMinutes);
-    const pluginPriorityTypes = useSelector(getPluginPriorityTypes);
 
     const messagePriority = formatMessage({id: 'shortcuts.msgs.formatting_bar.post_priority', defaultMessage: 'Message priority'});
 
@@ -60,20 +56,15 @@ function PostPriorityPicker({
         onClose();
     }, [onClose]);
 
-    const makeOnSelectPriority = useCallback((type?: PostPriority | string, onSelectCallback?: () => void) => (e: React.MouseEvent<HTMLLIElement> | React.KeyboardEvent<HTMLLIElement>) => {
+    const makeOnSelectPriority = useCallback((type?: PostPriority) => (e: React.MouseEvent<HTMLLIElement> | React.KeyboardEvent<HTMLLIElement>) => {
         e.stopPropagation();
         e.preventDefault();
 
-        setPriority((type || '') as PostPriority | '');
-
-        // Call the plugin's onSelect callback if provided
-        if (onSelectCallback) {
-            onSelectCallback();
-        }
+        setPriority(type || '');
 
         if (!postAcknowledgementsEnabled) {
             onApply({
-                priority: (type || '') as PostPriority | '',
+                priority: type || '',
                 requested_ack: false,
                 persistent_notifications: false,
             });
@@ -106,38 +97,6 @@ function PostPriorityPicker({
             actionFn();
         }
     }, []);
-
-    // Helper to get icon component from compass icon name
-    const getIconComponent = useCallback((iconName: string, color?: string) => {
-        // Convert icon name like 'lock-outline' to 'LockOutlineIcon'
-        const pascalCase = iconName
-            .split('-')
-            .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
-            .join('') + 'Icon';
-
-        const IconComponent = (CompassIcons as Record<string, React.ComponentType<{size: number; color?: string}>>)[pascalCase];
-        if (IconComponent) {
-            return <IconComponent size={18} color={color || 'currentColor'}/>;
-        }
-        // Fallback to alert icon if not found
-        return <AlertCircleOutlineIcon size={18} color={color || 'currentColor'}/>;
-    }, []);
-
-    // Generate menu items for plugin-registered priority types
-    const pluginMenuItems = useMemo(() => {
-        return Object.entries(pluginPriorityTypes).map(([priorityId, priorityType]) => (
-            <MenuItem
-                key={`menu-item-priority-${priorityId}`}
-                id={`menu-item-priority-${priorityId}`}
-                role='menuitemradio'
-                aria-checked={priority === priorityId}
-                onClick={makeOnSelectPriority(priorityId, priorityType.onSelect)}
-                trailingElements={priority === priorityId && <StyledCheckIcon size={18}/>}
-                leadingElement={getIconComponent(priorityType.icon, priorityType.color)}
-                labels={priorityType.label}
-            />
-        ));
-    }, [pluginPriorityTypes, priority, makeOnSelectPriority, getIconComponent]);
 
     const menuItems = useMemo(() => [
         <MenuItem
@@ -185,15 +144,7 @@ function PostPriorityPicker({
                 />
             }
         />,
-        // Add separator before plugin items if there are any
-        ...(pluginMenuItems.length > 0 ? [
-            <Menu.Separator
-                key='menu-item-plugin-separator'
-                component='li'
-            />,
-            ...pluginMenuItems,
-        ] : []),
-    ], [makeOnSelectPriority, priority, pluginMenuItems]);
+    ], [makeOnSelectPriority, priority]);
 
     const menuCheckboxItems = useMemo(() => (postAcknowledgementsEnabled || persistentNotificationsEnabled ? [
         <Menu.Separator
