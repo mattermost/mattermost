@@ -30,6 +30,7 @@
 | `webapp` | Build webapp from source (requires Node 18-22) |
 | `docker` | Run official Docker image (no code changes) |
 | `fix-config` | Reset config.json to clean local settings |
+| `kill` | Kill the running Mattermost server process |
 
 ## Workflow for Testing Code Changes
 
@@ -137,7 +138,12 @@ docker start mm-local-postgres
 
 ### Port already in use
 
-Change `MM_PORT` in `local-test.config` to a different port.
+Kill the existing server:
+```batch
+./local-test.bat kill
+```
+
+Or change `MM_PORT` in `local-test.config` to a different port.
 
 ## Docker Mode (Quick Testing)
 

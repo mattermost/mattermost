@@ -86,6 +86,7 @@ echo   build      - Build server binary for testing
 echo   webapp     - Build webapp from source and copy to test dir
 echo   docker     - Run using official Docker image (simpler, no code changes)
 echo   fix-config - Reset config.json to clean local settings
+echo   kill       - Kill the running Mattermost server process
 echo.
 echo Configuration:
 echo   Edit local-test.config with your backup path and settings
@@ -465,6 +466,25 @@ echo === Stopping Local Test Environment ===
 echo.
 docker stop !PG_CONTAINER! >nul 2>&1
 echo Stopped.
+goto :eof
+
+:cmd_kill
+echo.
+echo === Killing Mattermost Server ===
+echo.
+REM Find and kill process using port 8065
+for /f "tokens=5" %%a in ('netstat -ano ^| findstr ":!MM_PORT! " ^| findstr "LISTENING"') do (
+    echo Killing process %%a on port !MM_PORT!...
+    taskkill //F //PID %%a >nul 2>&1
+    if !errorlevel!==0 (
+        echo Process %%a killed.
+    ) else (
+        echo Failed to kill process %%a.
+    )
+)
+REM Also try to kill mattermost.exe directly
+taskkill //F //IM mattermost.exe >nul 2>&1
+echo Done.
 goto :eof
 
 :cmd_status
