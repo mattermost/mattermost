@@ -432,6 +432,9 @@ func (a *App) CreatePost(rctx request.CTX, post *model.Post, channel *model.Chan
 		rctx.Logger().Warn("Failed to handle post events", mlog.Err(err))
 	}
 
+	// Update user activity when creating a post (ensures DND/manual status users get LastActivityAt updated)
+	a.Srv().Platform().SetStatusOnline(post.UserId, false)
+
 	// Send any ephemeral posts after the post is created to ensure it shows up after the latest post created
 	if ephemeralPost != nil {
 		a.SendEphemeralPost(rctx, post.UserId, ephemeralPost)
