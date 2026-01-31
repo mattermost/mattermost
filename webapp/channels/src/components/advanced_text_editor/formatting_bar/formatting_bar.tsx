@@ -298,14 +298,4 @@ const FormattingBar = (props: FormattingBarProps): JSX.Element => {
     );
 };
 
-// Custom comparison to prevent re-renders when only callback functions change
-// The callbacks are stable identity-wise in the parent, so we compare other props
-function arePropsEqual(prevProps: FormattingBarProps, nextProps: FormattingBarProps): boolean {
-    return (
-        prevProps.disableControls === nextProps.disableControls &&
-        prevProps.location === nextProps.location &&
-        prevProps.additionalControls === nextProps.additionalControls
-    );
-}
-
-export default memo(FormattingBar, arePropsEqual);
+export default memo(FormattingBar);

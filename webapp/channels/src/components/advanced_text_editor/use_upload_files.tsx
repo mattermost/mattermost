@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {useCallback, useRef, useState} from 'react';
+import React, {useCallback, useEffect, useRef, useState} from 'react';
 import {useSelector} from 'react-redux';
 
 import type {ServerError} from '@mattermost/types/errors';
@@ -42,6 +42,12 @@ const useUploadFiles = (
 
     const fileUploadRef = useRef<FileUploadClass>(null);
 
+    // Keep a ref to the current draft to avoid recreating callbacks on every keystroke
+    const draftRef = useRef(draft);
+    useEffect(() => {
+        draftRef.current = draft;
+    }, [draft]);
+
     const handleFileUploadChange = useCallback(() => {
         focusTextbox();
     }, [focusTextbox]);
@@ -79,17 +85,18 @@ const useUploadFiles = (
     }, [locale, handleDraftChange, storedDrafts]);
 
     const handleUploadStart = useCallback((clientIds: string[]) => {
-        const uploadsInProgress = [...draft.uploadsInProgress, ...clientIds];
+        const currentDraft = draftRef.current;
+        const uploadsInProgress = [...currentDraft.uploadsInProgress, ...clientIds];
 
         const updatedDraft = {
-            ...draft,
+            ...currentDraft,
             uploadsInProgress,
         };
 
         handleDraftChange(updatedDraft, {instant: true});
 
         focusTextbox();
-    }, [draft, handleDraftChange, focusTextbox]);
+    }, [handleDraftChange, focusTextbox]);
 
     const handleUploadError = useCallback((uploadError: string | ServerError | null, clientId?: string, channelId = '', rootId = '') => {
         if (clientId) {

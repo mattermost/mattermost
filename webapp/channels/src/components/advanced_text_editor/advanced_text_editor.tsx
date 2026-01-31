@@ -152,12 +152,11 @@ const AdvancedTextEditor = ({
 
     const isRHS = isThreadView ? false : Boolean(rootId) || location === Locations.RHS_COMMENT;
 
-    const formattingBarPreferenceName = useMemo(() => {
-        if (!isRHS) {
-            return AdvancedTextEditorConst.POST;
-        }
-        return isInEditMode ? AdvancedTextEditorConst.EDIT : AdvancedTextEditorConst.COMMENT;
-    }, [isRHS, isInEditMode]);
+    // Determine the formatting bar preference name based on context
+    let formattingBarPreferenceName = AdvancedTextEditorConst.POST;
+    if (isRHS) {
+        formattingBarPreferenceName = isInEditMode ? AdvancedTextEditorConst.EDIT : AdvancedTextEditorConst.COMMENT;
+    }
 
     const currentUserId = useSelector(getCurrentUserId);
     const channel = useSelector((state: GlobalState) => getChannelSelector(state, channelId));
@@ -880,4 +879,4 @@ const AdvancedTextEditor = ({
     );
 };
 
-export default React.memo(AdvancedTextEditor);
+export default AdvancedTextEditor;
