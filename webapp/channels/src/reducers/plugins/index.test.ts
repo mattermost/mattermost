@@ -19,6 +19,7 @@ function getBaseState(): PluginsState {
         plugins: {},
         postCardTypes: {},
         postTypes: {},
+        priorityTypes: {},
         siteStatsHandlers: {},
         userSettings: {},
     };
