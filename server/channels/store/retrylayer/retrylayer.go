@@ -1505,6 +1505,27 @@ func (s *RetryLayerChannelStore) CountUrgentPostsAfter(channelID string, timesta
 
 }
 
+func (s *RetryLayerChannelStore) CreateChannelLink(rctx request.CTX, link *model.ChannelLink) (*model.ChannelLink, error) {
+
+	tries := 0
+	for {
+		result, err := s.ChannelStore.CreateChannelLink(rctx, link)
+		if err == nil {
+			return result, nil
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
 func (s *RetryLayerChannelStore) CreateDirectChannel(rctx request.CTX, userID *model.User, otherUserID *model.User, channelOptions ...model.ChannelOption) (*model.Channel, error) {
 
 	tries := 0
@@ -1594,6 +1615,27 @@ func (s *RetryLayerChannelStore) DeleteAllSidebarChannelForChannel(channelID str
 	tries := 0
 	for {
 		err := s.ChannelStore.DeleteAllSidebarChannelForChannel(channelID)
+		if err == nil {
+			return nil
+		}
+		if !isRepeatableError(err) {
+			return err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
+func (s *RetryLayerChannelStore) DeleteChannelLink(rctx request.CTX, sourceID string, destinationID string) error {
+
+	tries := 0
+	for {
+		err := s.ChannelStore.DeleteChannelLink(rctx, sourceID, destinationID)
 		if err == nil {
 			return nil
 		}
@@ -2266,6 +2308,48 @@ func (s *RetryLayerChannelStore) GetGuestCount(channelID string, allowFromCache 
 	tries := 0
 	for {
 		result, err := s.ChannelStore.GetGuestCount(channelID, allowFromCache)
+		if err == nil {
+			return result, nil
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
+func (s *RetryLayerChannelStore) GetLinksForDestination(rctx request.CTX, destinationID string, sourceType string) ([]*model.ChannelLink, error) {
+
+	tries := 0
+	for {
+		result, err := s.ChannelStore.GetLinksForDestination(rctx, destinationID, sourceType)
+		if err == nil {
+			return result, nil
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
+func (s *RetryLayerChannelStore) GetLinksForSource(rctx request.CTX, sourceID string) ([]*model.ChannelLink, error) {
+
+	tries := 0
+	for {
+		result, err := s.ChannelStore.GetLinksForSource(rctx, sourceID)
 		if err == nil {
 			return result, nil
 		}

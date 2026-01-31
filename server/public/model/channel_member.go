@@ -67,6 +67,7 @@ type ChannelMember struct {
 	SchemeUser         bool      `json:"scheme_user"`
 	SchemeAdmin        bool      `json:"scheme_admin"`
 	ExplicitRoles      string    `json:"explicit_roles"`
+	SourceID           string    `json:"source_id"`
 }
 
 func (o *ChannelMember) Auditable() map[string]any {
@@ -247,6 +248,11 @@ func GetDefaultChannelNotifyProps() StringMap {
 		IgnoreChannelMentionsNotifyProp: IgnoreChannelMentionsDefault,
 		ChannelAutoFollowThreads:        ChannelAutoFollowThreadsOff,
 	}
+}
+
+// IsSynthetic returns true if this is a synthetic membership
+func (o *ChannelMember) IsSynthetic() bool {
+	return o.SourceID != ""
 }
 
 type ChannelMemberIdentifier struct {

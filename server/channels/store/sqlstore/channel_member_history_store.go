@@ -39,36 +39,44 @@ func newSqlChannelMemberHistoryStore(sqlStore *SqlStore) store.ChannelMemberHist
 }
 
 func (s SqlChannelMemberHistoryStore) LogJoinEvent(userId string, channelId string, joinTime int64) error {
+	return s.logJoinEventT(s.GetMaster(), userId, channelId, joinTime)
+}
+
+// logJoinEventT logs a join event within an existing transaction or db connection
+func (s SqlChannelMemberHistoryStore) logJoinEventT(db sqlxExecutor, userId string, channelId string, joinTime int64) error {
 	channelMemberHistory := &model.ChannelMemberHistory{
 		UserId:    userId,
 		ChannelId: channelId,
 		JoinTime:  joinTime,
 	}
 
-	if _, err := s.GetMaster().NamedExec(`INSERT INTO ChannelMemberHistory
+	if _, err := db.NamedExec(`INSERT INTO ChannelMemberHistory
 		(UserId, ChannelId, JoinTime)
 		VALUES
 		(:UserId, :ChannelId, :JoinTime)`, channelMemberHistory); err != nil {
-		return errors.Wrapf(err, "LogJoinEvent userId=%s channelId=%s joinTime=%d", userId, channelId, joinTime)
+		return errors.Wrapf(err, "logJoinEventT userId=%s channelId=%s joinTime=%d", userId, channelId, joinTime)
 	}
 	return nil
 }
 
 func (s SqlChannelMemberHistoryStore) LogLeaveEvent(userId string, channelId string, leaveTime int64) error {
-	query, params, err := s.getQueryBuilder().
+	return s.logLeaveEventT(s.GetMaster(), userId, channelId, leaveTime)
+}
+
+// logLeaveEventT logs a leave event within an existing transaction or db connection
+func (s SqlChannelMemberHistoryStore) logLeaveEventT(db sqlxExecutor, userId string, channelId string, leaveTime int64) error {
+	query := s.getQueryBuilder().
 		Update("ChannelMemberHistory").
 		Set("LeaveTime", leaveTime).
 		Where(sq.And{
 			sq.Eq{"UserId": userId},
 			sq.Eq{"ChannelId": channelId},
 			sq.Eq{"LeaveTime": nil},
-		}).ToSql()
+		})
+
+	sqlResult, err := db.ExecBuilder(query)
 	if err != nil {
-		return errors.Wrap(err, "channel_member_history_to_sql")
-	}
-	sqlResult, err := s.GetMaster().Exec(query, params...)
-	if err != nil {
-		return errors.Wrapf(err, "LogLeaveEvent userId=%s channelId=%s leaveTime=%d", userId, channelId, leaveTime)
+		return errors.Wrapf(err, "logLeaveEventT userId=%s channelId=%s leaveTime=%d", userId, channelId, leaveTime)
 	}
 
 	if rows, err := sqlResult.RowsAffected(); err == nil && rows != 1 {
