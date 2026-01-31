@@ -5,6 +5,7 @@ import {connect} from 'react-redux';
 
 import type {Post} from '@mattermost/types/posts';
 
+import {createSelector} from 'mattermost-redux/selectors/create_selector';
 import {getDirectTeammate} from 'mattermost-redux/selectors/entities/channels';
 import {getCurrentUserId} from 'mattermost-redux/selectors/entities/common';
 import {getPost} from 'mattermost-redux/selectors/entities/posts';
@@ -18,6 +19,16 @@ import type {GlobalState} from 'types/store';
 import type {FakePost} from 'types/store/rhs';
 
 import ThreadViewerVirtualized from './virtualized_thread_viewer';
+
+// Stable empty array to prevent new reference on each selector call
+const EMPTY_SEPARATOR_ACTIONS: never[] = [];
+
+// Memoized selector for plugin actions to prevent unnecessary re-renders
+const getNewMessagesSeparatorActions = createSelector(
+    'getNewMessagesSeparatorActions',
+    (state: GlobalState) => state.plugins.components.NewMessagesSeparatorAction,
+    (actions) => actions ?? EMPTY_SEPARATOR_ACTIONS,
+);
 
 type OwnProps = {
     channelId: string;
@@ -46,7 +57,7 @@ function makeMapStateToProps() {
             showDate: !useRelativeTimestamp,
             lastViewedAt: collapsedThreads ? lastViewedAt : undefined,
         });
-        const newMessagesSeparatorActions = state.plugins.components.NewMessagesSeparatorAction;
+        const newMessagesSeparatorActions = getNewMessagesSeparatorActions(state);
 
         return {
             currentUserId,

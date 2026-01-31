@@ -111,4 +111,4 @@ const AutoHeightSwitcher = ({showSlot, onTransitionEnd, slot1 = null, slot2 = nu
     );
 };
 
-export default AutoHeightSwitcher;
+export default React.memo(AutoHeightSwitcher);

@@ -19,7 +19,7 @@ import {
     useMergeRefs,
 } from '@floating-ui/react';
 import classNames from 'classnames';
-import React, {useRef, useState, useMemo, cloneElement, isValidElement} from 'react';
+import React, {useRef, useState, useMemo, useCallback, cloneElement, isValidElement, memo} from 'react';
 import type {ReactElement, ReactNode} from 'react';
 import type {MessageDescriptor} from 'react-intl';
 import {defineMessage} from 'react-intl';
@@ -88,7 +88,7 @@ interface Props {
     forcedPlacement?: Placement;
 }
 
-export default function WithTooltip({
+function WithTooltipComponent({
     children,
     title,
     emoji,
@@ -107,31 +107,23 @@ export default function WithTooltip({
 
     const arrowRef = useRef(null);
 
-    function handleChange(open: boolean) {
-        setOpen(open);
+    const handleChange = useCallback((isOpen: boolean) => {
+        setOpen(isOpen);
 
-        if (onOpen && open) {
+        if (onOpen && isOpen) {
             onOpen();
         }
-    }
+    }, [onOpen]);
 
     const placements = useMemo<{initial: Placement; fallback: Placement[]}>(() => {
-        // if an explicit placement is provided, use it exclusively
         if (forcedPlacement) {
             return {initial: forcedPlacement, fallback: [forcedPlacement]};
         }
-
-        let initial: Placement;
-        let fallback: Placement[];
         if (isVertical) {
-            initial = 'top';
-            fallback = ['bottom', 'right', 'left'];
-        } else {
-            initial = 'right';
-            fallback = ['left', 'top', 'bottom'];
+            return {initial: 'top', fallback: ['bottom', 'right', 'left']};
         }
-        return {initial, fallback};
-    }, [isVertical]);
+        return {initial: 'right', fallback: ['left', 'top', 'bottom']};
+    }, [isVertical, forcedPlacement]);
 
     const {refs: {setReference, setFloating}, floatingStyles, context: floatingContext} = useFloating({
         open: disabled ? false : open,
@@ -219,3 +211,7 @@ const TRANSITION_STYLE_PROPS = {
     },
     initial: OverlayTransitionStyles.START,
 };
+
+// Memoize to prevent unnecessary re-renders when parent re-renders
+const WithTooltip = memo(WithTooltipComponent);
+export default WithTooltip;
