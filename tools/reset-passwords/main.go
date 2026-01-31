@@ -43,18 +43,20 @@ func main() {
 	// Update all non-deleted user passwords and clear authentication overrides
 	// We clear AuthService and AuthData to ensure users can login with email/password
 	// We also clear MFA settings and reset failed attempts
+	// Exclude bots by checking they don't have an entry in the bots table
 	result, err := db.Exec(`
-		UPDATE users 
-		SET password = $1, 
-		    authservice = '', 
-		    authdata = NULL, 
-		    mfaactive = false, 
-		    mfasecret = '', 
-		    emailverified = true, 
+		UPDATE users
+		SET password = $1,
+		    authservice = '',
+		    authdata = NULL,
+		    mfaactive = false,
+		    mfasecret = '',
+		    emailverified = true,
 		    failedattempts = 0,
 		    updateat = $2,
 		    lastpasswordupdate = $2
-		WHERE deleteat = 0 AND isbot = false`, string(hash), now)
+		WHERE deleteat = 0
+		  AND id NOT IN (SELECT userid FROM bots WHERE deleteat = 0)`, string(hash), now)
 	if err != nil {
 		fmt.Printf("Error updating passwords: %v\n", err)
 		os.Exit(1)

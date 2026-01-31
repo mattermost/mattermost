@@ -204,30 +204,42 @@ if errorlevel 1 (
 )
 
 echo Waiting for PostgreSQL to be ready...
-timeout /t 5 /nobreak >nul
+:wait_for_pg
+docker exec !PG_CONTAINER! pg_isready -U !PG_USER! >nul 2>&1
+if errorlevel 1 (
+    timeout /t 1 /nobreak >nul
+    goto wait_for_pg
+)
+echo PostgreSQL is ready.
 
 echo [3/5] Restoring database from backup...
 REM Find the SQL dump in the backup
+REM Cloudron backups use "postgresqldump" (no extension)
 set "SQL_DUMP="
-for /r "!WORK_DIR!\backup" %%f in (*.sql *.dump) do (
-    set "SQL_DUMP=%%f"
+if exist "!WORK_DIR!\backup\postgresqldump" (
+    set "SQL_DUMP=!WORK_DIR!\backup\postgresqldump"
 )
-
+REM Fallback: look for .sql or .dump files
 if "!SQL_DUMP!"=="" (
-    REM Cloudron backups use pg_dump format in a specific location
-    for /r "!WORK_DIR!\backup" %%f in (*postgresql*) do (
+    for /r "!WORK_DIR!\backup" %%f in (*.sql *.dump) do (
         set "SQL_DUMP=%%f"
     )
 )
 
 if not "!SQL_DUMP!"=="" (
     echo Found database dump: !SQL_DUMP!
-    docker exec -i !PG_CONTAINER! psql -U !PG_USER! -d !PG_DATABASE! < "!SQL_DUMP!"
+    docker exec -i !PG_CONTAINER! psql -U !PG_USER! -d !PG_DATABASE! < "!SQL_DUMP!" >nul 2>&1
 
-    REM Reset all user passwords to "test" for local testing
-    echo Resetting all user passwords to "test"...
-    call :reset_passwords
-    if errorlevel 1 exit /b 1
+    REM Verify restore worked by checking for users
+    for /f %%c in ('docker exec !PG_CONTAINER! psql -U !PG_USER! -d !PG_DATABASE! -t -c "SELECT COUNT(*) FROM users"') do set "USER_COUNT=%%c"
+    echo Database restored. Found !USER_COUNT! users.
+
+    if !USER_COUNT! GTR 0 (
+        REM Reset all user passwords to "test" for local testing
+        echo Resetting all user passwords to "test"...
+        call :reset_passwords
+        if errorlevel 1 exit /b 1
+    )
 ) else (
     echo WARNING: No SQL dump found in backup. Database will be empty.
 )
