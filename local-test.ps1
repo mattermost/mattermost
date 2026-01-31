@@ -346,6 +346,20 @@ function Invoke-Setup {
         Log-Error "PostgreSQL failed to start within $maxAttempts seconds"
         exit 1
     }
+
+    # Wait for database to be created (POSTGRES_DB env var)
+    Log "Waiting for database '$PG_DATABASE' to be created..."
+    $attempt = 0
+    do {
+        Start-Sleep -Seconds 1
+        $attempt++
+        $dbExists = docker exec $PG_CONTAINER psql -U $PG_USER -d $PG_DATABASE -c "SELECT 1" 2>$null
+    } while ($LASTEXITCODE -ne 0 -and $attempt -lt 10)
+
+    if ($LASTEXITCODE -ne 0) {
+        Log-Error "Database '$PG_DATABASE' was not created"
+        exit 1
+    }
     Log-Success "PostgreSQL is ready."
 
     # [3/5] Restore database from backup
@@ -373,7 +387,11 @@ function Invoke-Setup {
 
         # Verify restore worked by checking for users
         $userCount = docker exec $PG_CONTAINER psql -U $PG_USER -d $PG_DATABASE -t -c "SELECT COUNT(*) FROM users" 2>$null
-        $userCount = $userCount.Trim()
+        if ($userCount) {
+            $userCount = $userCount.Trim()
+        } else {
+            $userCount = "0"
+        }
         Log "Database restored. Found $userCount users."
 
         if ([int]$userCount -gt 0) {
