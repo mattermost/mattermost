@@ -386,15 +386,18 @@ function Invoke-Setup {
         ($result | Select-Object -First 50) | Out-File $LOG_FILE -Append -Encoding UTF8
 
         # Verify restore worked by checking for users
-        $userCount = docker exec $PG_CONTAINER psql -U $PG_USER -d $PG_DATABASE -t -c "SELECT COUNT(*) FROM users" 2>$null
-        if ($userCount) {
-            $userCount = $userCount.Trim()
-        } else {
-            $userCount = "0"
+        $userCountResult = docker exec $PG_CONTAINER psql -U $PG_USER -d $PG_DATABASE -t -c "SELECT COUNT(*) FROM users" 2>$null
+        $userCount = 0
+        if ($userCountResult) {
+            # Handle array output - join and trim
+            $userCountStr = ($userCountResult -join "").Trim()
+            if ($userCountStr -match '^\d+$') {
+                $userCount = [int]$userCountStr
+            }
         }
         Log "Database restored. Found $userCount users."
 
-        if ([int]$userCount -gt 0) {
+        if ($userCount -gt 0) {
             Log "Resetting all user passwords to 'test'..."
             $resetResult = Reset-Passwords
             if (!$resetResult) {
