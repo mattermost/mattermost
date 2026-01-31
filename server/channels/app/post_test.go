@@ -4449,7 +4449,7 @@ func TestPermanentDeletePost(t *testing.T) {
 		assert.Empty(t, post.FileIds)
 
 		// Verify that TemporaryPost exists with original content
-		tmpPost, tmpErr := th.App.Srv().Store().TemporaryPost().Get(th.Context, post.Id)
+		tmpPost, tmpErr := th.App.Srv().Store().TemporaryPost().Get(th.Context, post.Id, true)
 		require.NoError(t, tmpErr)
 		require.NotNil(t, tmpPost)
 		assert.Equal(t, "burn on read message with file", tmpPost.Message)
@@ -4472,7 +4472,7 @@ func TestPermanentDeletePost(t *testing.T) {
 		assert.NotNil(t, err)
 
 		// Verify TemporaryPost is also deleted
-		_, tmpErr = th.App.Srv().Store().TemporaryPost().Get(th.Context, post.Id)
+		_, tmpErr = th.App.Srv().Store().TemporaryPost().Get(th.Context, post.Id, true)
 		assert.Error(t, tmpErr)
 		assert.True(t, store.IsErrNotFound(tmpErr))
 	})
@@ -5005,6 +5005,51 @@ func TestRevealPost(t *testing.T) {
 		require.NotNil(t, revealedPost.Metadata)
 		require.NotZero(t, revealedPost.Metadata.ExpireAt)
 		require.Len(t, revealedPost.Metadata.Files, 1)
+	})
+
+	t.Run("updateTemporaryPostIfAllRead bypasses cache to get fresh data", func(t *testing.T) {
+		enableBoRFeature(th)
+
+		// Create a third user to have multiple recipients
+		user3 := th.CreateUser(t)
+		th.LinkUserToTeam(t, user3, th.BasicTeam)
+		th.AddUserToChannel(t, user3, th.BasicChannel)
+
+		post := createBurnOnReadPost()
+
+		// Get initial TemporaryPost ExpireAt (should be max TTL - 24 hours)
+		tmpPostInitial, err := th.App.Srv().Store().TemporaryPost().Get(th.Context, post.Id, true)
+		require.NoError(t, err)
+		initialExpireAt := tmpPostInitial.ExpireAt
+
+		// First reveal by user2 creates a read receipt
+		_, appErr := th.App.RevealPost(th.Context, post, user2.Id, "")
+		require.Nil(t, appErr)
+
+		// Get the read receipt's ExpireAt (should be 5 minutes)
+		receipt, err := th.App.Srv().Store().ReadReceipt().Get(th.Context, post.Id, user2.Id)
+		require.NoError(t, err)
+
+		// Verify receipt ExpireAt is less than initial tmpPost ExpireAt (5 minutes vs 24 hours)
+		require.Less(t, receipt.ExpireAt, initialExpireAt)
+
+		// At this point, user3 hasn't revealed yet, so TemporaryPost shouldn't be updated
+		tmpPostAfterFirstReveal, err := th.App.Srv().Store().TemporaryPost().Get(th.Context, post.Id, false)
+		require.NoError(t, err)
+		require.Equal(t, initialExpireAt, tmpPostAfterFirstReveal.ExpireAt)
+
+		// Now user3 reveals - this should trigger updateTemporaryPostIfAllRead
+		_, appErr = th.App.RevealPost(th.Context, post, user3.Id, "")
+		require.Nil(t, appErr)
+
+		// Fetch the TemporaryPost with cache bypass to verify it was updated
+		tmpPostAfterAllReveal, err := th.App.Srv().Store().TemporaryPost().Get(th.Context, post.Id, false)
+		require.NoError(t, err)
+
+		// Verify the ExpireAt was updated to match the shortest receipt ExpireAt
+		require.Less(t, tmpPostAfterAllReveal.ExpireAt, initialExpireAt)
+		// Should be close to the first recipient's ExpireAt (within a few ms due to timing)
+		require.InDelta(t, receipt.ExpireAt, tmpPostAfterAllReveal.ExpireAt, 10000) // 10 second tolerance
 	})
 }
 

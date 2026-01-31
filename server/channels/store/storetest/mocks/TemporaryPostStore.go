@@ -33,9 +33,9 @@ func (_m *TemporaryPostStore) Delete(rctx request.CTX, id string) error {
 	return r0
 }
 
-// Get provides a mock function with given fields: rctx, id
-func (_m *TemporaryPostStore) Get(rctx request.CTX, id string) (*model.TemporaryPost, error) {
-	ret := _m.Called(rctx, id)
+// Get provides a mock function with given fields: rctx, id, allowFromCache
+func (_m *TemporaryPostStore) Get(rctx request.CTX, id string, allowFromCache bool) (*model.TemporaryPost, error) {
+	ret := _m.Called(rctx, id, allowFromCache)
 
 	if len(ret) == 0 {
 		panic("no return value specified for Get")
@@ -43,19 +43,19 @@ func (_m *TemporaryPostStore) Get(rctx request.CTX, id string) (*model.Temporary
 
 	var r0 *model.TemporaryPost
 	var r1 error
-	if rf, ok := ret.Get(0).(func(request.CTX, string) (*model.TemporaryPost, error)); ok {
-		return rf(rctx, id)
+	if rf, ok := ret.Get(0).(func(request.CTX, string, bool) (*model.TemporaryPost, error)); ok {
+		return rf(rctx, id, allowFromCache)
 	}
-	if rf, ok := ret.Get(0).(func(request.CTX, string) *model.TemporaryPost); ok {
-		r0 = rf(rctx, id)
+	if rf, ok := ret.Get(0).(func(request.CTX, string, bool) *model.TemporaryPost); ok {
+		r0 = rf(rctx, id, allowFromCache)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*model.TemporaryPost)
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func(request.CTX, string) error); ok {
-		r1 = rf(rctx, id)
+	if rf, ok := ret.Get(1).(func(request.CTX, string, bool) error); ok {
+		r1 = rf(rctx, id, allowFromCache)
 	} else {
 		r1 = ret.Error(1)
 	}
