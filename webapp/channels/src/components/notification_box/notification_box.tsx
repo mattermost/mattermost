@@ -25,10 +25,10 @@ const variantColorMap: Record<NotificationVariant, string> = {
 };
 
 type NotificationWrapperProps = {
-    color: string;
+    $color: string;
 }
 
-const NotificationWrapper = styled.div(({color}: NotificationWrapperProps) => {
+const NotificationWrapper = styled.div<NotificationWrapperProps>(({$color}) => {
     return css`
         display: grid;
         grid-template-columns: minmax(0px, max-content) 1fr  minmax(0px, max-content);
@@ -40,10 +40,10 @@ const NotificationWrapper = styled.div(({color}: NotificationWrapperProps) => {
         column-gap: 4px;
 
         padding: 16px;
-        background-color: rgba(${color}, 0.08);
+        background-color: rgba(${$color}, 0.08);
         border-width: 1px;
         border-style: solid;
-        border-color: rgba(${color}, 0.16);
+        border-color: rgba(${$color}, 0.16);
         border-radius: 4px;
     `;
 });
@@ -63,8 +63,8 @@ const NotificationTitle = styled.h2`
     line-height: 20px;
 `;
 
-const NotificationText = styled.p(({noTitle}: {noTitle: boolean}) => {
-    const area = noTitle ? 'title' : 'text';
+const NotificationText = styled.p<{$noTitle: boolean}>(({$noTitle}) => {
+    const area = $noTitle ? 'title' : 'text';
     return css`
         grid-area: ${area};
         color: rgb(var(--center-channel-color-rgb));
@@ -102,7 +102,7 @@ const NotificationBox = ({variant, title, text, id = ''}: NotificationProps) => 
 
     return (
         <NotificationWrapper
-            color={color}
+            $color={color}
             data-testid={`notification${id ? `_${id}` : ''}`}
         >
             <NotificationIcon>
@@ -111,7 +111,7 @@ const NotificationBox = ({variant, title, text, id = ''}: NotificationProps) => 
             {title && <NotificationTitle>{title}</NotificationTitle>}
             {text && (
                 <NotificationText
-                    noTitle={!title}
+                    $noTitle={!title}
                     data-testid={'notification-text'}
                 >
                     {text}

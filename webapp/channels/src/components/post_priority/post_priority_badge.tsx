@@ -12,7 +12,7 @@ type Props = {
     className?: string;
 }
 
-const Badge = styled.span`
+const Badge = styled.span<{$priority: PostPriority}>`
     display: flex;
     align-items: center;
     justify-content: center;
@@ -23,11 +23,11 @@ const Badge = styled.span`
     border-radius: 10px;
     color: #fff;
 
-    background-color: ${(props: {priority: PostPriority}) => {
-        if (props.priority === PostPriority.URGENT) {
+    background-color: ${({$priority}) => {
+        if ($priority === PostPriority.URGENT) {
             return 'rgb(var(--semantic-color-danger))';
         }
-        if (props.priority === PostPriority.ENCRYPTED) {
+        if ($priority === PostPriority.ENCRYPTED) {
             return 'rgb(147, 51, 234)';
         }
         return 'rgb(var(--semantic-color-info))';
@@ -51,7 +51,7 @@ export default function PriorityLabel({priority, className}: Props) {
     return (
         <Badge
             className={className}
-            priority={priority}
+            $priority={priority}
         >
             {icon}
         </Badge>
