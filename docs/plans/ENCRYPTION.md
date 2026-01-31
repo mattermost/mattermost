@@ -118,6 +118,25 @@ export enum PostPriority {
 }
 ```
 
+**Automatic Un-Compaction (No Extra Code Needed):**
+
+When a post has `metadata.priority.priority` set to any value (including `'encrypted'`), Mattermost automatically treats it as a non-consecutive post. This is handled in `webapp/channels/src/components/post/index.tsx`:
+
+```typescript
+// Line 82 - posts with priority are never consecutive
+if (previousPost && post && !post.metadata?.priority?.priority) {
+    consecutivePost = areConsecutivePostsBySameUser(post, previousPost);
+}
+```
+
+This means encrypted posts will always show:
+- Full post header with username
+- User avatar/profile picture
+- Timestamp
+- Not merged with previous posts from the same user
+
+No additional changes needed for un-compaction - it's automatic when priority is set.
+
 ### 2.3 Modify Priority Picker
 
 **File: `webapp/channels/src/components/post_priority/post_priority_picker.tsx`**
@@ -178,13 +197,93 @@ Styled component shown when user can't decrypt a message:
 
 ### 3.5 Encrypted Message Styling
 
-**New file: `webapp/channels/src/components/encryption/encrypted_styles.scss`**
+**New file: `webapp/channels/src/sass/components/_encrypted.scss`**
 
-Beautiful styling for:
-- Encrypted badge (purple with lock)
-- Recipient display
-- Access denied state
-- Lock button states
+Beautiful styling for encrypted posts with purple theme, using CSS variables for customization:
+
+**1. CSS Variables (add to theme or root):**
+```scss
+:root {
+    // Encrypted message theming - can be overridden by custom themes
+    --encrypted-color: 147, 51, 234; // RGB values for purple (#9333EA)
+    --encrypted-color-hex: #9333EA;
+    --encrypted-text-color: #fff;
+}
+```
+
+**2. Purple Post Background Highlight:**
+```scss
+// Encrypted posts get a subtle purple background tint
+.post[data-priority="encrypted"],
+.post.post--encrypted {
+    background: rgba(var(--encrypted-color), 0.04);
+    border-left: 3px solid rgba(var(--encrypted-color), 1);
+
+    &:hover {
+        background: rgba(var(--encrypted-color), 0.08);
+    }
+}
+
+// In compact mode, maintain the styling
+.post--compact.post--encrypted {
+    background: rgba(var(--encrypted-color), 0.04);
+    border-left: 3px solid rgba(var(--encrypted-color), 1);
+}
+```
+
+**3. Encrypted Badge (purple with lock icon):**
+```scss
+.encrypted-priority-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 2px 6px;
+    border-radius: 4px;
+    background: rgba(var(--encrypted-color), 1);
+    color: var(--encrypted-text-color);
+    font-size: 10px;
+    font-weight: 600;
+    text-transform: uppercase;
+
+    svg {
+        width: 12px;
+        height: 12px;
+    }
+}
+```
+
+**Theme Customization:**
+
+Users can override the encrypted color in their custom theme CSS:
+```css
+/* Example: Change encrypted color to teal */
+:root {
+    --encrypted-color: 20, 184, 166;
+    --encrypted-color-hex: #14b8a6;
+}
+```
+
+**3. Additional Styling:**
+- Recipient display (shows who can decrypt)
+- Access denied placeholder (for users without keys)
+- Lock button active/inactive states
+
+**Modify: `webapp/channels/src/components/post/post_component.tsx`**
+
+Add encrypted class to post container when priority is 'encrypted':
+```typescript
+// Around line 302, modify the classNames call:
+return classNames('a11y__section post', {
+    'post--highlight': shouldHighlight && !fadeOutHighlight,
+    'post--encrypted': post.metadata?.priority?.priority === 'encrypted', // NEW
+    // ... other classes
+});
+```
+
+**Import styles in: `webapp/channels/src/sass/components/_index.scss`**
+```scss
+@import 'encrypted';
+```
 
 ---
 
