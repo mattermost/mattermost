@@ -270,14 +270,28 @@ function Invoke-Setup {
     # [1/5] Extract backup
     Log "[1/5] Extracting backup..."
     $backupDir = Join-Path $WORK_DIR "backup"
-    if (!(Test-Path $backupDir)) {
+    $dumpFile = Join-Path $backupDir "postgresqldump"
+
+    # Check if backup needs extraction (directory missing OR dump file missing)
+    if (!(Test-Path $backupDir) -or !(Test-Path $dumpFile)) {
+        if (Test-Path $backupDir) {
+            Log "Backup directory exists but postgresqldump not found, re-extracting..."
+            Remove-Item -Path $backupDir -Recurse -Force
+        }
         New-Item -ItemType Directory -Path $backupDir -Force | Out-Null
 
-        # Try 7z first, then tar
-        $sevenZip = Get-Command 7z -ErrorAction SilentlyContinue
-        if ($sevenZip) {
+        # Try 7z first (check PATH and common install location), then tar
+        $sevenZipPath = $null
+        $sevenZipCmd = Get-Command 7z -ErrorAction SilentlyContinue
+        if ($sevenZipCmd) {
+            $sevenZipPath = "7z"
+        } elseif (Test-Path "C:\Program Files\7-Zip\7z.exe") {
+            $sevenZipPath = "C:\Program Files\7-Zip\7z.exe"
+        }
+
+        if ($sevenZipPath) {
             Log "Using 7-Zip for extraction..."
-            $result = & 7z x $BACKUP_PATH -so 2>$null | & 7z x -si -ttar -o"$backupDir" 2>&1
+            $result = & $sevenZipPath x $BACKUP_PATH -so 2>$null | & $sevenZipPath x -si -ttar -o"$backupDir" 2>&1
             $result | Out-File $LOG_FILE -Append -Encoding UTF8
         } else {
             Log "Using tar for extraction..."
