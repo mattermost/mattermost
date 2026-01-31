@@ -98,7 +98,6 @@ jobs:
       server_image: ${{ needs.generate-build-variables.outputs.server_image }}
       server: ${{ inputs.server }}
       context_name: "E2E Tests/cypress-smoke"
-      run_cypress_check: true
     secrets:
       MM_LICENSE: ${{ secrets.MM_LICENSE }}
       AUTOMATION_DASHBOARD_URL: ${{ secrets.AUTOMATION_DASHBOARD_URL }}

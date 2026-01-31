@@ -91,7 +91,6 @@ jobs:
       server_image: ${{ needs.generate-build-variables.outputs.server_image }}
       server: ${{ inputs.server }}
       context_name: "E2E Tests/playwright-smoke"
-      run_playwright_check: true
       pr_number: ${{ inputs.pr_number }}
     secrets:
       MM_LICENSE: ${{ secrets.MM_LICENSE }}

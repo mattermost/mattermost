@@ -59,13 +59,6 @@ on:
         type: string
         required: true
 
-      # Control flow
-      run_playwright_check:
-        description: "Whether to run playwright lint/check"
-        type: boolean
-        required: false
-        default: false
-
     outputs:
       passed:
         description: "Number of passed tests"
@@ -105,37 +98,9 @@ jobs:
           description: "Playwright ${{ inputs.test_type }} tests"
           status: pending
 
-  playwright-check:
-    if: inputs.run_playwright_check
-    runs-on: ubuntu-24.04
-    steps:
-      - name: ci/checkout-repo
-        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
-        with:
-          ref: ${{ inputs.commit_sha }}
-          fetch-depth: 0
-      - name: ci/setup-node
-        uses: actions/setup-node@395ad3262231945c25e8478fd5baf05154b1d79f # v6.1.0
-        with:
-          node-version-file: ".nvmrc"
-          cache: npm
-          cache-dependency-path: "e2e-tests/playwright/package-lock.json"
-      - name: ci/get-webapp-node-modules
-        working-directory: webapp
-        run: make node_modules
-      - name: ci/playwright/npm-install
-        working-directory: e2e-tests/playwright
-        run: npm ci
-      - name: ci/playwright/npm-check
-        working-directory: e2e-tests/playwright
-        run: npm run check
-
   run-tests:
     runs-on: ubuntu-24.04
     timeout-minutes: ${{ fromJSON(inputs.timeout_minutes) }}
-    needs:
-      - playwright-check
-    if: always() && (needs.playwright-check.result == 'success' || needs.playwright-check.result == 'skipped')
     defaults:
       run:
         working-directory: e2e-tests
@@ -180,10 +145,102 @@ jobs:
             e2e-tests/playwright/results/
           retention-days: 5
 
+  retest-failed:
+    runs-on: ubuntu-24.04
+    timeout-minutes: ${{ fromJSON(inputs.timeout_minutes) }}
+    needs:
+      - run-tests
+    if: always() && needs.run-tests.result == 'failure'
+    outputs:
+      retest_passed: ${{ steps.check-retest.outputs.passed }}
+    defaults:
+      run:
+        working-directory: e2e-tests
+    env:
+      SERVER: "${{ inputs.server }}"
+      SERVER_IMAGE: "${{ inputs.server_image }}"
+      MM_LICENSE: "${{ secrets.MM_LICENSE }}"
+      ENABLED_DOCKER_SERVICES: "${{ inputs.enabled_docker_services }}"
+      TEST: playwright
+      BRANCH: "${{ inputs.branch }}-${{ inputs.test_type }}-retest"
+      BUILD_ID: "${{ inputs.build_id }}-retest"
+    steps:
+      - name: ci/checkout-repo
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          ref: ${{ inputs.commit_sha }}
+          fetch-depth: 0
+      - name: ci/setup-node
+        uses: actions/setup-node@395ad3262231945c25e8478fd5baf05154b1d79f # v6.1.0
+        with:
+          node-version-file: ".nvmrc"
+          cache: npm
+          cache-dependency-path: "e2e-tests/playwright/package-lock.json"
+      - name: ci/get-webapp-node-modules
+        working-directory: webapp
+        run: make node_modules
+      - name: ci/download-results
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
+        with:
+          name: playwright-${{ inputs.test_type }}-results
+          path: e2e-tests/playwright/
+      - name: ci/extract-failed-tests
+        id: failed-tests
+        run: |
+          # Extract failed test files from results
+          FAILED_FILES=$(jq -r '
+            .suites[]? | .. | .specs[]? |
+            select(.tests[]?.results[]?.status == "failed" or .tests[]?.results[]?.status == "timedOut") |
+            .file
+          ' playwright/results/results.json 2>/dev/null | sort -u | tr '\n' ' ')
+
+          if [ -z "$FAILED_FILES" ]; then
+            echo "No failed tests found"
+            echo "has_failed=false" >> $GITHUB_OUTPUT
+          else
+            echo "Failed test files: $FAILED_FILES"
+            echo "has_failed=true" >> $GITHUB_OUTPUT
+            echo "failed_files=$FAILED_FILES" >> $GITHUB_OUTPUT
+          fi
+      - name: ci/rerun-failed-tests
+        if: steps.failed-tests.outputs.has_failed == 'true'
+        env:
+          FAILED_FILES: ${{ steps.failed-tests.outputs.failed_files }}
+        run: |
+          make cloud-init
+          cd playwright
+          npm run test:ci -- $FAILED_FILES || true
+      - name: ci/cloud-teardown
+        if: always()
+        run: make cloud-teardown
+      - name: ci/check-retest-results
+        id: check-retest
+        run: |
+          if [ -f "playwright/results/summary.json" ]; then
+            FAILED=$(jq '.failed // 0' playwright/results/summary.json)
+            if [ "$FAILED" = "0" ]; then
+              echo "passed=true" >> $GITHUB_OUTPUT
+            else
+              echo "passed=false" >> $GITHUB_OUTPUT
+            fi
+          else
+            echo "passed=false" >> $GITHUB_OUTPUT
+          fi
+      - name: ci/upload-retest-results
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        if: always()
+        with:
+          name: playwright-${{ inputs.test_type }}-retest-results
+          path: |
+            e2e-tests/playwright/logs/
+            e2e-tests/playwright/results/
+          retention-days: 5
+
   report:
     runs-on: ubuntu-24.04
     needs:
       - run-tests
+      - retest-failed
     if: always()
     outputs:
       passed: "${{ steps.calculate-results.outputs.passed }}"
@@ -211,6 +268,34 @@ jobs:
         with:
           name: playwright-${{ inputs.test_type }}-results
           path: e2e-tests/playwright/
+      - name: ci/download-retest-results
+        if: needs.retest-failed.result == 'success'
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
+        continue-on-error: true
+        with:
+          name: playwright-${{ inputs.test_type }}-retest-results
+          path: e2e-tests/playwright/retest-results/
+      - name: ci/merge-retest-results
+        if: needs.retest-failed.result == 'success'
+        run: |
+          # If retest results exist and passed, use them for final status
+          if [ -f "playwright/retest-results/results/summary.json" ]; then
+            RETEST_FAILED=$(jq '.failed // 0' playwright/retest-results/results/summary.json 2>/dev/null || echo "1")
+            ORIGINAL_FAILED=$(jq '.failed // 0' playwright/results/summary.json 2>/dev/null || echo "0")
+            ORIGINAL_PASSED=$(jq '.passed // 0' playwright/results/summary.json 2>/dev/null || echo "0")
+
+            if [ "$RETEST_FAILED" = "0" ]; then
+              echo "Retest passed - updating results to show flaky tests"
+              # Calculate flaky count (tests that failed initially but passed on retest)
+              FLAKY_COUNT=$ORIGINAL_FAILED
+              NEW_PASSED=$((ORIGINAL_PASSED + FLAKY_COUNT))
+              # Update summary.json with flaky info
+              jq --argjson passed "$NEW_PASSED" --argjson flaky "$FLAKY_COUNT" \
+                '.passed = $passed | .failed = 0 | .flaky = $flaky' \
+                playwright/results/summary.json > playwright/results/summary.json.tmp
+              mv playwright/results/summary.json.tmp playwright/results/summary.json
+            fi
+          fi
       - name: ci/aws-configure
         uses: aws-actions/configure-aws-credentials@61815dcd50bd041e203e49132bacad1fd04d2708 # v5.1.1
         with:
@@ -261,6 +346,69 @@ jobs:
         uses: ./.github/actions/calculate-e2e-test-results
         with:
           results_path: e2e-tests/playwright/results
+      - name: ci/comment-failed-tests
+        if: steps.calculate-results.outputs.failed != '0' && inputs.pr_number != ''
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PR_NUMBER: ${{ inputs.pr_number }}
+          REPORT_URL: ${{ steps.upload-to-s3.outputs.report_url }}
+          TEST_TYPE: ${{ inputs.test_type }}
+          FAILED_COUNT: ${{ steps.calculate-results.outputs.failed }}
+        run: |
+          RESULTS_FILE="playwright/results/results.json"
+
+          # Extract failed tests from results
+          if [ -f "$RESULTS_FILE" ]; then
+            ALL_FAILED=$(jq -r '
+              [.. | .specs[]? | select(.tests[]?.results[]?.status == "failed" or .tests[]?.results[]?.status == "timedOut")] |
+              unique_by(.file + .title) |
+              .[] |
+              "| `\(.title | gsub("`"; "\\`") | gsub("\\|"; "\\|"))` | `\(.file)` |"
+            ' "$RESULTS_FILE" 2>/dev/null)
+
+            # Count total and limit to 10 entries
+            TOTAL_LINES=$(echo "$ALL_FAILED" | grep -c '^|' || echo "0")
+            FAILED_TESTS=$(echo "$ALL_FAILED" | head -10)
+
+            if [ -z "$FAILED_TESTS" ]; then
+              FAILED_TESTS="| Unable to parse failed tests | - |"
+            elif [ "$TOTAL_LINES" -gt 10 ]; then
+              REMAINING=$((TOTAL_LINES - 10))
+              FAILED_TESTS="${FAILED_TESTS}
+          | _...and ${REMAINING} more failed tests_ | |"
+            fi
+          else
+            FAILED_TESTS="| Unable to parse failed tests | - |"
+          fi
+
+          # Build comment body with collapsible section
+          COMMENT_BODY=$(cat <<EOF
+          ## E2E Test Failures
+
+          <details>
+          <summary>Playwright ${TEST_TYPE}: ${FAILED_COUNT} failed</summary>
+
+          | Test | File |
+          |------|------|
+          ${FAILED_TESTS}
+
+          </details>
+
+          ---
+          [View Full Report](${REPORT_URL})
+          EOF
+          )
+
+          # Check for existing comment and update, or create new
+          EXISTING_COMMENT=$(gh api repos/${{ github.repository }}/issues/${PR_NUMBER}/comments \
+            --jq '.[] | select(.body | startswith("## E2E Test Failures")) | .id' | head -1)
+
+          if [ -n "$EXISTING_COMMENT" ]; then
+            gh api repos/${{ github.repository }}/issues/comments/${EXISTING_COMMENT} \
+              -X PATCH -f body="$COMMENT_BODY"
+          else
+            gh pr comment ${PR_NUMBER} --body "$COMMENT_BODY"
+          fi
       - name: ci/assert-results
         run: |
           [ "${{ steps.calculate-results.outputs.failed }}" = "0" ]

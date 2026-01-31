@@ -69,13 +69,20 @@ runs:
           PASS_RATE="0.00"
         fi
 
+        # Check for flaky tests (tests that failed initially but passed on retest)
+        FLAKY=$(jq '.flaky // 0' "$SUMMARY_FILE" 2>/dev/null || echo "0")
+
         # Determine smoke_passed and commit_status_message
         if [ "$FAILED" = "0" ]; then
           SMOKE_PASSED=true
-          COMMIT_STATUS_MESSAGE="All test cases passed"
+          if [ "$FLAKY" != "0" ] && [ "$FLAKY" != "null" ]; then
+            COMMIT_STATUS_MESSAGE="${PASSED} tests passed (${FLAKY} flaky)"
+          else
+            COMMIT_STATUS_MESSAGE="${PASSED} tests passed"
+          fi
         else
           SMOKE_PASSED=false
-          COMMIT_STATUS_MESSAGE="${FAILED} test cases failed"
+          COMMIT_STATUS_MESSAGE="${FAILED} failed, ${PASSED} passed"
         fi
 
         # Print results for inspection

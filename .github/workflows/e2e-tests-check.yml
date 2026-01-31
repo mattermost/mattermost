@@ -1,0 +1,68 @@
+---
+name: E2E Tests Check
+on:
+  pull_request:
+    paths:
+      - "e2e-tests/**"
+      - "webapp/platform/client/**"
+      - "webapp/platform/types/**"
+      - ".github/workflows/e2e-tests-check.yml"
+
+jobs:
+  cypress-check:
+    runs-on: ubuntu-24.04
+    defaults:
+      run:
+        working-directory: e2e-tests/cypress
+    steps:
+      - name: ci/checkout-repo
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          fetch-depth: 0
+      - name: ci/setup-node
+        uses: actions/setup-node@395ad3262231945c25e8478fd5baf05154b1d79f # v6.1.0
+        with:
+          node-version-file: ".nvmrc"
+          cache: npm
+          cache-dependency-path: "e2e-tests/cypress/package-lock.json"
+      - name: ci/cypress/npm-install
+        run: npm ci
+      - name: ci/cypress/npm-check
+        run: npm run check
+
+  playwright-check:
+    runs-on: ubuntu-24.04
+    defaults:
+      run:
+        working-directory: e2e-tests/playwright
+    steps:
+      - name: ci/checkout-repo
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          fetch-depth: 0
+      - name: ci/setup-node
+        uses: actions/setup-node@395ad3262231945c25e8478fd5baf05154b1d79f # v6.1.0
+        with:
+          node-version-file: ".nvmrc"
+          cache: npm
+          cache-dependency-path: "e2e-tests/playwright/package-lock.json"
+      - name: ci/get-webapp-node-modules
+        working-directory: webapp
+        run: make node_modules
+      - name: ci/playwright/npm-install
+        run: npm ci
+      - name: ci/playwright/npm-check
+        run: npm run check
+
+  shell-check:
+    runs-on: ubuntu-24.04
+    defaults:
+      run:
+        working-directory: e2e-tests
+    steps:
+      - name: ci/checkout-repo
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          fetch-depth: 0
+      - name: ci/shell-check
+        run: make check-shell

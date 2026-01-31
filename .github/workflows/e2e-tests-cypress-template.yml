@@ -69,13 +69,6 @@ on:
         type: string
         required: true
 
-      # Control flow
-      run_cypress_check:
-        description: "Whether to run cypress lint/check job"
-        type: boolean
-        required: false
-        default: false
-
     outputs:
       passed:
         description: "Number of passed tests"
@@ -120,28 +113,6 @@ jobs:
           context: ${{ inputs.context_name }}
           description: "Cypress ${{ inputs.test_type }} tests"
           status: pending
-
-  cypress-check:
-    if: inputs.run_cypress_check
-    runs-on: ubuntu-24.04
-    steps:
-      - name: ci/checkout-repo
-        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
-        with:
-          ref: ${{ inputs.commit_sha }}
-          fetch-depth: 0
-      - name: ci/setup-node
-        uses: actions/setup-node@395ad3262231945c25e8478fd5baf05154b1d79f # v6.1.0
-        with:
-          node-version-file: ".nvmrc"
-          cache: npm
-          cache-dependency-path: "e2e-tests/cypress/package-lock.json"
-      - name: ci/cypress/npm-install
-        working-directory: e2e-tests/cypress
-        run: npm ci
-      - name: ci/cypress/npm-check
-        working-directory: e2e-tests/cypress
-        run: npm run check
 
   generate-test-cycle:
     runs-on: ubuntu-24.04
@@ -191,9 +162,8 @@ jobs:
     timeout-minutes: ${{ fromJSON(inputs.timeout_minutes) }}
     continue-on-error: ${{ inputs.workers > 1 }}
     needs:
-      - cypress-check
       - generate-test-cycle
-    if: always() && (needs.cypress-check.result == 'success' || needs.cypress-check.result == 'skipped') && needs.generate-test-cycle.result == 'success'
+    if: needs.generate-test-cycle.result == 'success'
     strategy:
       fail-fast: false
       matrix:
@@ -245,11 +215,115 @@ jobs:
             e2e-tests/cypress/results/
           retention-days: 5
 
+  retest-failed:
+    runs-on: ubuntu-24.04
+    timeout-minutes: ${{ fromJSON(inputs.timeout_minutes) }}
+    needs:
+      - generate-test-cycle
+      - run-tests
+    if: always() && needs.generate-test-cycle.result == 'success' && needs.run-tests.result == 'failure'
+    outputs:
+      retest_passed: ${{ steps.check-retest.outputs.passed }}
+    defaults:
+      run:
+        working-directory: e2e-tests
+    env:
+      AUTOMATION_DASHBOARD_URL: "${{ secrets.AUTOMATION_DASHBOARD_URL }}"
+      AUTOMATION_DASHBOARD_TOKEN: "${{ secrets.AUTOMATION_DASHBOARD_TOKEN }}"
+      SERVER: "${{ inputs.server }}"
+      SERVER_IMAGE: "${{ inputs.server_image }}"
+      MM_LICENSE: "${{ secrets.MM_LICENSE }}"
+      ENABLED_DOCKER_SERVICES: "${{ inputs.enabled_docker_services }}"
+      TEST: cypress
+      BRANCH: "${{ inputs.branch }}-${{ inputs.test_type }}-retest"
+      BUILD_ID: "${{ inputs.build_id }}-retest"
+      CYPRESS_pushNotificationServer: "${{ secrets.PUSH_NOTIFICATION_SERVER }}"
+      CWS_URL: "${{ secrets.CWS_URL }}"
+      CWS_EXTRA_HTTP_HEADERS: "${{ secrets.CWS_EXTRA_HTTP_HEADERS }}"
+    steps:
+      - name: ci/checkout-repo
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          ref: ${{ inputs.commit_sha }}
+          fetch-depth: 0
+      - name: ci/setup-node
+        uses: actions/setup-node@395ad3262231945c25e8478fd5baf05154b1d79f # v6.1.0
+        with:
+          node-version-file: ".nvmrc"
+          cache: npm
+          cache-dependency-path: "e2e-tests/cypress/package-lock.json"
+      - name: ci/download-results
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
+        with:
+          pattern: cypress-${{ inputs.test_type }}-results-*
+          path: e2e-tests/cypress/
+          merge-multiple: true
+      - name: ci/extract-failed-tests
+        id: failed-tests
+        run: |
+          # Extract failed spec files from mochawesome results
+          FAILED_FILES=""
+          for file in cypress/results/*.json; do
+            if [ -f "$file" ]; then
+              SPECS=$(jq -r '
+                .results[]? |
+                select(.suites[]?.tests[]?.state == "failed") |
+                .file
+              ' "$file" 2>/dev/null)
+              FAILED_FILES="${FAILED_FILES} ${SPECS}"
+            fi
+          done
+          FAILED_FILES=$(echo "$FAILED_FILES" | tr ' ' '\n' | grep -v '^$' | sort -u | tr '\n' ',' | sed 's/,$//')
+
+          if [ -z "$FAILED_FILES" ]; then
+            echo "No failed tests found"
+            echo "has_failed=false" >> $GITHUB_OUTPUT
+          else
+            echo "Failed spec files: $FAILED_FILES"
+            echo "has_failed=true" >> $GITHUB_OUTPUT
+            echo "failed_files=$FAILED_FILES" >> $GITHUB_OUTPUT
+          fi
+      - name: ci/rerun-failed-tests
+        if: steps.failed-tests.outputs.has_failed == 'true'
+        env:
+          FAILED_FILES: ${{ steps.failed-tests.outputs.failed_files }}
+        run: |
+          make cloud-init
+          cd cypress
+          npm ci
+          npx cypress run --spec "$FAILED_FILES" || true
+      - name: ci/cloud-teardown
+        if: always()
+        run: make cloud-teardown
+      - name: ci/check-retest-results
+        id: check-retest
+        run: |
+          if [ -f "cypress/results/summary.json" ]; then
+            FAILED=$(jq '.failed // 0' cypress/results/summary.json)
+            if [ "$FAILED" = "0" ]; then
+              echo "passed=true" >> $GITHUB_OUTPUT
+            else
+              echo "passed=false" >> $GITHUB_OUTPUT
+            fi
+          else
+            echo "passed=false" >> $GITHUB_OUTPUT
+          fi
+      - name: ci/upload-retest-results
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        if: always()
+        with:
+          name: cypress-${{ inputs.test_type }}-retest-results
+          path: |
+            e2e-tests/cypress/logs/
+            e2e-tests/cypress/results/
+          retention-days: 5
+
   report:
     runs-on: ubuntu-24.04
     needs:
       - generate-test-cycle
       - run-tests
+      - retest-failed
     if: always() && needs.generate-test-cycle.result == 'success'
     outputs:
       passed: "${{ steps.calculate-results.outputs.passed }}"
@@ -277,6 +351,34 @@ jobs:
           pattern: cypress-${{ inputs.test_type }}-results-*
           path: e2e-tests/cypress/
           merge-multiple: true
+      - name: ci/download-retest-results
+        if: needs.retest-failed.result == 'success'
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
+        continue-on-error: true
+        with:
+          name: cypress-${{ inputs.test_type }}-retest-results
+          path: e2e-tests/cypress/retest-results/
+      - name: ci/merge-retest-results
+        if: needs.retest-failed.result == 'success'
+        run: |
+          # If retest results exist and passed, use them for final status
+          if [ -f "cypress/retest-results/results/summary.json" ]; then
+            RETEST_FAILED=$(jq '.failed // 0' cypress/retest-results/results/summary.json 2>/dev/null || echo "1")
+            ORIGINAL_FAILED=$(jq '.failed // 0' cypress/results/summary.json 2>/dev/null || echo "0")
+            ORIGINAL_PASSED=$(jq '.passed // 0' cypress/results/summary.json 2>/dev/null || echo "0")
+
+            if [ "$RETEST_FAILED" = "0" ]; then
+              echo "Retest passed - updating results to show flaky tests"
+              # Calculate flaky count (tests that failed initially but passed on retest)
+              FLAKY_COUNT=$ORIGINAL_FAILED
+              NEW_PASSED=$((ORIGINAL_PASSED + FLAKY_COUNT))
+              # Update summary.json with flaky info
+              jq --argjson passed "$NEW_PASSED" --argjson flaky "$FLAKY_COUNT" \
+                '.passed = $passed | .failed = 0 | .flaky = $flaky' \
+                cypress/results/summary.json > cypress/results/summary.json.tmp
+              mv cypress/results/summary.json.tmp cypress/results/summary.json
+            fi
+          fi
       - name: ci/upload-combined-results
         if: inputs.workers > 1
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
@@ -304,6 +406,68 @@ jobs:
         with:
           results_path: e2e-tests/cypress/results
           check_ad_cycle: "${{ inputs.check_ad_cycle }}"
+      - name: ci/comment-failed-tests
+        if: steps.calculate-results.outputs.failed != '0' && inputs.pr_number != ''
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PR_NUMBER: ${{ inputs.pr_number }}
+          STATUS_CHECK_URL: ${{ needs.generate-test-cycle.outputs.status_check_url }}
+          TEST_TYPE: ${{ inputs.test_type }}
+          FAILED_COUNT: ${{ steps.calculate-results.outputs.failed }}
+        run: |
+          # Extract failed tests from mochawesome results
+          FAILED_TESTS=""
+          for file in cypress/results/*.json; do
+            if [ -f "$file" ]; then
+              TESTS=$(jq -r '
+                .results[]?.suites[]?.tests[]? |
+                select(.state == "failed") |
+                "| `\(.title | gsub("`"; "\\`") | gsub("\\|"; "\\|"))` | `\(.file // "unknown")` |"
+              ' "$file" 2>/dev/null)
+              FAILED_TESTS="${FAILED_TESTS}${TESTS}"
+            fi
+          done
+
+          # Count total and limit to 10 entries
+          TOTAL_LINES=$(echo "$FAILED_TESTS" | grep -c '^|' || echo "0")
+          FAILED_TESTS=$(echo "$FAILED_TESTS" | head -10)
+
+          if [ -z "$FAILED_TESTS" ]; then
+            FAILED_TESTS="| Unable to parse failed tests | - |"
+          elif [ "$TOTAL_LINES" -gt 10 ]; then
+            REMAINING=$((TOTAL_LINES - 10))
+            FAILED_TESTS="${FAILED_TESTS}
+          | _...and ${REMAINING} more failed tests_ | |"
+          fi
+
+          # Build comment body with collapsible section
+          COMMENT_BODY=$(cat <<EOF
+          ## E2E Test Failures
+
+          <details>
+          <summary>Cypress ${TEST_TYPE}: ${FAILED_COUNT} failed</summary>
+
+          | Test | File |
+          |------|------|
+          ${FAILED_TESTS}
+
+          </details>
+
+          ---
+          [View Full Report](${STATUS_CHECK_URL})
+          EOF
+          )
+
+          # Check for existing comment and update, or create new
+          EXISTING_COMMENT=$(gh api repos/${{ github.repository }}/issues/${PR_NUMBER}/comments \
+            --jq '.[] | select(.body | startswith("## E2E Test Failures")) | .id' | head -1)
+
+          if [ -n "$EXISTING_COMMENT" ]; then
+            gh api repos/${{ github.repository }}/issues/comments/${EXISTING_COMMENT} \
+              -X PATCH -f body="$COMMENT_BODY"
+          else
+            gh pr comment ${PR_NUMBER} --body "$COMMENT_BODY"
+          fi
       - name: ci/assert-results
         run: |
           [ "${{ steps.calculate-results.outputs.failed }}" = "0" ]
