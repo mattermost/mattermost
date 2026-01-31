@@ -223,6 +223,11 @@ if "!SQL_DUMP!"=="" (
 if not "!SQL_DUMP!"=="" (
     echo Found database dump: !SQL_DUMP!
     docker exec -i !PG_CONTAINER! psql -U !PG_USER! -d !PG_DATABASE! < "!SQL_DUMP!"
+
+    REM Reset all user passwords to "test" for local testing
+    echo Resetting all user passwords to "test"...
+    call :reset_passwords
+    if errorlevel 1 exit /b 1
 ) else (
     echo WARNING: No SQL dump found in backup. Database will be empty.
 )
@@ -300,9 +305,9 @@ if "!NODE_MAJOR!"=="" (
 
 echo Detected Node.js version: !NODE_MAJOR!.x
 
-REM Check if Node version is compatible (18-24)
+REM Check if Node version is compatible (18-30)
 set "NODE_OK=0"
-if !NODE_MAJOR! GEQ 18 if !NODE_MAJOR! LEQ 24 set "NODE_OK=1"
+if !NODE_MAJOR! GEQ 18 if !NODE_MAJOR! LEQ 30 set "NODE_OK=1"
 
 if "!NODE_OK!"=="0" (
     echo.
@@ -324,6 +329,7 @@ if "!NODE_OK!"=="0" (
 echo.
 echo [1/3] Installing dependencies...
 cd /d "!SCRIPT_DIR!webapp"
+set "NODE_OPTIONS=--max-old-space-size=8192"
 call npm install --force --legacy-peer-deps
 if errorlevel 1 (
     echo ERROR: npm install failed
@@ -640,4 +646,28 @@ echo.
 echo Contents:
 dir /b "!WORK_DIR!\data" 2>nul
 echo.
+goto :eof
+
+:reset_passwords
+REM Build and run the password reset tool
+REM This avoids shell escaping issues with bcrypt hashes
+set "RESET_TOOL=!WORK_DIR!\reset-passwords.exe"
+set "CONN_STR=postgres://!PG_USER!:!PG_PASSWORD!@localhost:!PG_PORT!/!PG_DATABASE!?sslmode=disable"
+
+echo Building password reset tool...
+go build -o "!RESET_TOOL!" "!SCRIPT_DIR!tools\reset-passwords"
+if errorlevel 1 (
+    if not exist "!RESET_TOOL!" (
+        echo ERROR: Failed to build reset-passwords tool.
+        exit /b 1
+    )
+    echo WARNING: Failed to rebuild reset-passwords tool. Using existing version.
+)
+
+REM Run the tool
+"!RESET_TOOL!" "!CONN_STR!" test
+if errorlevel 1 (
+    echo ERROR: Failed to reset passwords.
+    exit /b 1
+)
 goto :eof
