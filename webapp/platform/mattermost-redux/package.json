@@ -61,7 +61,7 @@
   },
   "scripts": {
     "build": "tsc --build --verbose",
-    "postbuild": "sh postbuild.sh",
+    "postbuild": "node postbuild.mjs",
     "clean": "rm -rf lib node_modules *.tsbuildinfo"
   }
 }
