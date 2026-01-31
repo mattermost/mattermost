@@ -472,18 +472,13 @@ goto :eof
 echo.
 echo === Killing Mattermost Server ===
 echo.
-REM Find and kill process using port 8065
-for /f "tokens=5" %%a in ('netstat -ano ^| findstr ":!MM_PORT! " ^| findstr "LISTENING"') do (
-    echo Killing process %%a on port !MM_PORT!...
-    taskkill //F //PID %%a >nul 2>&1
-    if !errorlevel!==0 (
-        echo Process %%a killed.
-    ) else (
-        echo Failed to kill process %%a.
-    )
+REM Kill mattermost.exe directly
+taskkill /F /IM mattermost.exe >nul 2>&1
+if !errorlevel!==0 (
+    echo Mattermost server killed.
+) else (
+    echo No running mattermost.exe found.
 )
-REM Also try to kill mattermost.exe directly
-taskkill //F //IM mattermost.exe >nul 2>&1
 echo Done.
 goto :eof
 
