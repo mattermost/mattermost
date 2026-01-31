@@ -422,6 +422,24 @@ function Invoke-Setup {
         Log "No data directory in backup, created empty data directory."
     }
 
+    # Ensure plugin directories exist
+    $pluginsDir = Join-Path $dataDir "plugins"
+    $clientPluginsDir = Join-Path $dataDir "client\plugins"
+    if (!(Test-Path $pluginsDir)) {
+        New-Item -ItemType Directory -Path $pluginsDir -Force | Out-Null
+    }
+    if (!(Test-Path $clientPluginsDir)) {
+        New-Item -ItemType Directory -Path $clientPluginsDir -Force | Out-Null
+    }
+
+    # Check if plugins were restored from backup
+    $pluginCount = (Get-ChildItem -Path $pluginsDir -Directory -ErrorAction SilentlyContinue).Count
+    if ($pluginCount -eq 0) {
+        Log-Warning "No plugins found in backup. Run './local-test.ps1 s3-sync' to download plugins from S3."
+    } else {
+        Log "Found $pluginCount plugins in backup."
+    }
+
     # [5/5] Create config file
     Log "[5/5] Creating config file..."
     $workDirUnix = $WORK_DIR -replace "\\", "/"
@@ -441,6 +459,12 @@ function Invoke-Setup {
   "LogSettings": {
     "EnableConsole": true,
     "ConsoleLevel": "DEBUG"
+  },
+  "PluginSettings": {
+    "Enable": true,
+    "EnableUploads": true,
+    "Directory": "$workDirUnix/data/plugins",
+    "ClientDirectory": "$workDirUnix/data/client/plugins"
   }
 }
 "@
@@ -454,11 +478,18 @@ function Invoke-Setup {
     Log "PostgreSQL running on port $PG_PORT"
     Log "Data directory: $WORK_DIR\data"
     Log "Config file: $WORK_DIR\config.json"
+    Log "Plugins directory: $WORK_DIR\data\plugins"
     Log ""
     Log "Next steps:"
     Log "  1. Build the server: ./local-test.ps1 build"
-    Log "  2. Start the server: ./local-test.ps1 start"
-    Log "  3. Open http://localhost:$MM_PORT in your browser"
+    if ($pluginCount -eq 0) {
+        Log "  2. Download plugins: ./local-test.ps1 s3-sync"
+        Log "  3. Start the server: ./local-test.ps1 start"
+        Log "  4. Open http://localhost:$MM_PORT in your browser"
+    } else {
+        Log "  2. Start the server: ./local-test.ps1 start"
+        Log "  3. Open http://localhost:$MM_PORT in your browser"
+    }
     Log ""
 }
 
@@ -678,8 +709,8 @@ function Invoke-FixConfig {
   "PluginSettings": {
     "Enable": true,
     "EnableUploads": true,
-    "Directory": "./plugins",
-    "ClientDirectory": "./client/plugins"
+    "Directory": "$workDirUnix/data/plugins",
+    "ClientDirectory": "$workDirUnix/data/client/plugins"
   },
   "EmailSettings": {
     "EnableSignUpWithEmail": true,
