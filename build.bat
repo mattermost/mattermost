@@ -57,15 +57,24 @@ if errorlevel 1 (
 
 echo.
 echo Creating tag v%VERSION%...
+
+:: Check if tag already exists locally or remotely and remove it
+git rev-parse v%VERSION% >nul 2>&1
+if not errorlevel 1 (
+    echo Tag v%VERSION% already exists locally. Removing...
+    git tag -d v%VERSION%
+)
+
+git ls-remote --tags origin refs/tags/v%VERSION% | findstr /C:"v%VERSION%" >nul 2>&1
+if not errorlevel 1 (
+    echo Tag v%VERSION% already exists on remote. Removing...
+    git push origin :refs/tags/v%VERSION%
+)
+
 git tag -a v%VERSION% -m "%COMMIT_MSG%"
 if errorlevel 1 (
     echo.
-    echo ERROR: Failed to create tag. Tag might already exist.
-    echo.
-    echo To delete existing tag:
-    echo   git tag -d v%VERSION%
-    echo   git push origin :refs/tags/v%VERSION%
-    echo.
+    echo ERROR: Failed to create tag.
     exit /b 1
 )
 
