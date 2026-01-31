@@ -32,27 +32,19 @@ echo Message: %COMMIT_MSG%
 echo ================================================================================
 echo.
 
-:: Check for uncommitted changes
+:: Check for uncommitted changes - require clean working tree
 git diff-index --quiet HEAD --
 if errorlevel 1 (
-    echo WARNING: You have uncommitted changes.
+    echo.
+    echo ERROR: You have uncommitted changes.
     echo.
     git status --short
     echo.
-    set /p CONTINUE="Continue anyway? (y/N): "
-    if /i not "!CONTINUE!"=="y" (
-        echo Aborted.
-        exit /b 1
-    )
-)
-
-:: Commit any staged changes
-echo Committing changes...
-git add .
-git commit -m "%COMMIT_MSG%"
-if errorlevel 1 (
-    echo No changes to commit or commit failed.
-    echo Continuing with tag creation...
+    echo Please commit your changes first with a proper message:
+    echo   git add . ^&^& git commit -m "your message"
+    echo.
+    echo Then run build.bat again.
+    exit /b 1
 )
 
 echo.
