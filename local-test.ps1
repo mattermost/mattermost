@@ -948,33 +948,42 @@ function Invoke-All {
 # Main Command Router
 # ============================================================================
 
-switch ($Command.ToLower()) {
-    "help"       { Show-Help }
-    "setup"      { Invoke-Setup }
-    "build"      { Invoke-Build }
-    "webapp"     { Invoke-Webapp }
-    "docker"     { Invoke-Docker }
-    "fix-config" { Invoke-FixConfig }
-    "start"      { Invoke-Start }
-    "stop"       { Invoke-Stop }
-    "kill"       { Invoke-Kill }
-    "status"     { Invoke-Status }
-    "logs"       { Invoke-Logs }
-    "psql"       { Invoke-Psql }
-    "clean"      { Invoke-Clean }
-    "s3-sync"    { Invoke-S3Sync }
-    "all"        { Invoke-All }
-    default      {
-        Log-Error "Unknown command: $Command"
-        Show-Help
+# Save original directory and restore it on exit (including Ctrl+C)
+$script:OriginalDirectory = Get-Location
+
+try {
+    switch ($Command.ToLower()) {
+        "help"       { Show-Help }
+        "setup"      { Invoke-Setup }
+        "build"      { Invoke-Build }
+        "webapp"     { Invoke-Webapp }
+        "docker"     { Invoke-Docker }
+        "fix-config" { Invoke-FixConfig }
+        "start"      { Invoke-Start }
+        "stop"       { Invoke-Stop }
+        "kill"       { Invoke-Kill }
+        "status"     { Invoke-Status }
+        "logs"       { Invoke-Logs }
+        "psql"       { Invoke-Psql }
+        "clean"      { Invoke-Clean }
+        "s3-sync"    { Invoke-S3Sync }
+        "all"        { Invoke-All }
+        default      {
+            Log-Error "Unknown command: $Command"
+            Show-Help
+        }
     }
 }
+finally {
+    # Always restore original directory, even on Ctrl+C
+    Set-Location $script:OriginalDirectory
 
-# Log completion
-$endTime = Get-Date
-$duration = $endTime - $script:LogStartTime
-"" | Out-File $LOG_FILE -Append -Encoding UTF8
-"=" * 80 | Out-File $LOG_FILE -Append -Encoding UTF8
-"Log ended: $($endTime.ToString('yyyy-MM-dd HH:mm:ss'))" | Out-File $LOG_FILE -Append -Encoding UTF8
-"Duration: $($duration.ToString('hh\:mm\:ss'))" | Out-File $LOG_FILE -Append -Encoding UTF8
-"=" * 80 | Out-File $LOG_FILE -Append -Encoding UTF8
+    # Log completion
+    $endTime = Get-Date
+    $duration = $endTime - $script:LogStartTime
+    "" | Out-File $LOG_FILE -Append -Encoding UTF8
+    "=" * 80 | Out-File $LOG_FILE -Append -Encoding UTF8
+    "Log ended: $($endTime.ToString('yyyy-MM-dd HH:mm:ss'))" | Out-File $LOG_FILE -Append -Encoding UTF8
+    "Duration: $($duration.ToString('hh\:mm\:ss'))" | Out-File $LOG_FILE -Append -Encoding UTF8
+    "=" * 80 | Out-File $LOG_FILE -Append -Encoding UTF8
+}
