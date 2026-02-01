@@ -163,6 +163,7 @@ const ThreadView = () => {
     }, [dispatch, thread, threadIdentifier, currentUserId, currentTeamId]);
 
     // Fetch thread followers and pinned posts count (ThreadsInSidebar feature)
+    // Also refetch when rhsState changes (e.g., after adding/removing followers from RHS)
     useEffect(() => {
         if (isThreadsInSidebarEnabled && threadIdentifier) {
             // Fetch thread followers
@@ -179,7 +180,7 @@ const ThreadView = () => {
                 setThreadPinnedPostsCount(0);
             });
         }
-    }, [isThreadsInSidebarEnabled, threadIdentifier]);
+    }, [isThreadsInSidebarEnabled, threadIdentifier, rhsState]);
 
     const goBack = useCallback(() => {
         // Go to the parent channel
@@ -304,45 +305,45 @@ const ThreadView = () => {
                             <span className='icon-discord-thread ThreadView__header-icon'/>
                             <span className='ThreadView__header-text'>{threadName || formatMessage({id: 'threading.header.heading', defaultMessage: 'Thread'})}</span>
                         </h3>
-                        <div className='ThreadView__header-icons'>
-                            {threadFollowersCount > 0 && (
-                                <HeaderIconWrapper
-                                    buttonClass={membersIconClass}
-                                    buttonId={'threadHeaderMembersButton'}
-                                    onClick={showThreadFollowersHandler}
-                                    tooltip={formatMessage({id: 'threading.header.followers', defaultMessage: 'Thread followers'})}
-                                >
-                                    <i
-                                        aria-hidden='true'
-                                        className='icon icon-account-multiple-outline'
-                                    />
+                        <div className='ThreadView__header-icons channel-header__icons'>
+                            <HeaderIconWrapper
+                                buttonClass={membersIconClass}
+                                buttonId={'threadHeaderMembersButton'}
+                                onClick={showThreadFollowersHandler}
+                                tooltip={formatMessage({id: 'threading.header.followers', defaultMessage: 'Thread followers'})}
+                            >
+                                <i
+                                    aria-hidden='true'
+                                    className='icon icon-account-outline channel-header__members'
+                                />
+                                {threadFollowersCount > 0 && (
                                     <span
                                         id='threadFollowersCountText'
                                         className='icon__text'
                                     >
                                         {threadFollowersCount}
                                     </span>
-                                </HeaderIconWrapper>
-                            )}
-                            {threadPinnedPostsCount > 0 && (
-                                <HeaderIconWrapper
-                                    buttonClass={pinnedIconClass}
-                                    buttonId={'threadHeaderPinButton'}
-                                    onClick={showPinnedPostsHandler}
-                                    tooltip={formatMessage({id: 'channel_header.pinnedPosts', defaultMessage: 'Pinned messages'})}
-                                >
-                                    <i
-                                        aria-hidden='true'
-                                        className='icon icon-pin-outline channel-header__pin'
-                                    />
+                                )}
+                            </HeaderIconWrapper>
+                            <HeaderIconWrapper
+                                buttonClass={pinnedIconClass}
+                                buttonId={'threadHeaderPinButton'}
+                                onClick={showPinnedPostsHandler}
+                                tooltip={formatMessage({id: 'channel_header.pinnedPosts', defaultMessage: 'Pinned messages'})}
+                            >
+                                <i
+                                    aria-hidden='true'
+                                    className='icon icon-pin-outline channel-header__pin'
+                                />
+                                {threadPinnedPostsCount > 0 && (
                                     <span
                                         id='threadPinnedPostCountText'
                                         className='icon__text'
                                     >
                                         {threadPinnedPostsCount}
                                     </span>
-                                </HeaderIconWrapper>
-                            )}
+                                )}
+                            </HeaderIconWrapper>
                         </div>
                     </div>
                 </>
