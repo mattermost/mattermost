@@ -96,48 +96,62 @@ type FeatureFlags struct {
 	HideDeletedMessagePlaceholder bool
 }
 
+// featureFlagDefaults defines the default value for each boolean feature flag.
+// Flags not listed here default to false.
+var featureFlagDefaults = map[string]bool{
+	// Flags that default to TRUE
+	"EnableSharedChannelsPlugins":              true,
+	"OnboardingTourTips":                       true,
+	"StreamlinedMarketplace":                   true,
+	"ChannelBookmarks":                         true,
+	"WebSocketEventScope":                      true,
+	"NotificationMonitoring":                   true,
+	"ExperimentalAuditSettingsSystemConsoleUI": true,
+	"CustomProfileAttributes":                  true,
+	"AttributeBasedAccessControl":              true,
+	"ContentFlagging":                          true,
+	"InteractiveDialogAppsForm":                true,
+	"EnableMattermostEntry":                    true,
+	"MobileSSOCodeExchange":                    true,
+	"BurnOnRead":                               true,
+	// All other boolean flags default to false (not listed)
+}
+
+// SetDefaults is intentionally a no-op for FeatureFlags.
+// Feature flag defaults are applied only when the config is first created (via NewFeatureFlags).
+// This allows user-set values (via API or config file) to persist without being overwritten.
+// Environment variables (MM_FEATUREFLAGS_*) are applied after config loading and take precedence.
 func (f *FeatureFlags) SetDefaults() {
+	// Only set TestFeature if empty (it's a string, not bool)
+	if f.TestFeature == "" {
+		f.TestFeature = "off"
+	}
+	// Boolean flags are NOT reset here - their defaults are set in NewFeatureFlags()
+}
+
+// NewFeatureFlags creates a FeatureFlags struct with all default values applied.
+// This should be used when creating a fresh config.
+func NewFeatureFlags() *FeatureFlags {
+	f := &FeatureFlags{}
 	f.TestFeature = "off"
-	f.TestBoolFeature = false
-	f.EnableRemoteClusterService = false
-	f.EnableSharedChannelsDMs = false
-	f.EnableSharedChannelsMemberSync = false
-	f.EnableSyncAllUsersForRemoteCluster = false
-	f.EnableSharedChannelsPlugins = true
-	f.AppsEnabled = false
-	f.CustomChannelIcons = false
-	f.NormalizeLdapDNs = false
-	f.DeprecateCloudFree = false
-	f.WysiwygEditor = false
-	f.OnboardingTourTips = true
-	f.EnableExportDirectDownload = false
-	f.MoveThreadsEnabled = false
-	f.StreamlinedMarketplace = true
-	f.CloudIPFiltering = false
-	f.ConsumePostHook = false
-	f.CloudAnnualRenewals = false
-	f.CloudDedicatedExportUI = false
-	f.ChannelBookmarks = true
-	f.WebSocketEventScope = true
-	f.NotificationMonitoring = true
-	f.ExperimentalAuditSettingsSystemConsoleUI = true
-	f.CustomProfileAttributes = true
-	f.AttributeBasedAccessControl = true
-	f.ContentFlagging = true
-	f.InteractiveDialogAppsForm = true
-	f.EnableMattermostEntry = true
 
-	f.MobileSSOCodeExchange = true
+	// Apply defaults using reflection
+	refStructVal := reflect.ValueOf(f).Elem()
+	refStructType := reflect.TypeFor[FeatureFlags]()
 
-	// FEATURE_FLAG_REMOVAL: AutoTranslation - Remove this default when MVP is to be released
-	f.AutoTranslation = false
+	for i := 0; i < refStructVal.NumField(); i++ {
+		field := refStructVal.Field(i)
+		fieldType := refStructType.Field(i)
 
-	f.BurnOnRead = true
+		if fieldType.Type.Kind() == reflect.Bool {
+			if defaultVal, ok := featureFlagDefaults[fieldType.Name]; ok {
+				field.SetBool(defaultVal)
+			}
+			// If not in map, default is already false (zero value)
+		}
+	}
 
-	// FEATURE_FLAG_REMOVAL: EnableAIPluginBridge - Remove this default when MVP is to be released
-	f.EnableAIPluginBridge = false
-
-	f.HideDeletedMessagePlaceholder = false
+	return f
 }
 
 // ToMap returns the feature flags as a map[string]string

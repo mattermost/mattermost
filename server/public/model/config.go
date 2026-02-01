@@ -3986,7 +3986,7 @@ type Config struct {
 	GuestAccountsSettings       GuestAccountsSettings
 	ImageProxySettings          ImageProxySettings
 	CloudSettings               CloudSettings  // telemetry: none
-	FeatureFlags                *FeatureFlags  `access:"*_read" json:",omitempty"`
+	FeatureFlags                *FeatureFlags  `access:"experimental_feature_flags" json:",omitempty"`
 	ImportSettings              ImportSettings // telemetry: none
 	ExportSettings              ExportSettings
 	WranglerSettings            WranglerSettings
@@ -4105,8 +4105,7 @@ func (o *Config) SetDefaults() {
 	o.ImageProxySettings.SetDefaults()
 	o.CloudSettings.SetDefaults()
 	if o.FeatureFlags == nil {
-		o.FeatureFlags = &FeatureFlags{}
-		o.FeatureFlags.SetDefaults()
+		o.FeatureFlags = NewFeatureFlags()
 	}
 	o.ImportSettings.SetDefaults()
 	o.ExportSettings.SetDefaults()

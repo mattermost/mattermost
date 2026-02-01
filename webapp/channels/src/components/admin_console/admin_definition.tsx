@@ -6338,10 +6338,8 @@ const AdminDefinition: AdminDefinitionType = {
             feature_flags: {
                 url: 'experimental/feature_flags',
                 title: featureFlagsMessages.title,
-                isHidden: it.any(
-                    it.not(it.userHasReadPermissionOnResource(RESOURCE_KEYS.EXPERIMENTAL.FEATURE_FLAGS)),
-                ),
-                isDisabled: true,
+                isHidden: it.not(it.userHasReadPermissionOnResource(RESOURCE_KEYS.EXPERIMENTAL.FEATURE_FLAGS)),
+                isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.EXPERIMENTAL.FEATURE_FLAGS)),
                 searchableStrings: [
                     featureFlagsMessages.title,
                 ],
