@@ -1115,27 +1115,6 @@ func (s *RetryLayerAutoTranslationStore) SetChannelEnabled(channelID string, ena
 
 }
 
-func (s *RetryLayerAutoTranslationStore) SetUserEnabled(userID string, channelID string, enabled bool) error {
-
-	tries := 0
-	for {
-		err := s.AutoTranslationStore.SetUserEnabled(userID, channelID, enabled)
-		if err == nil {
-			return nil
-		}
-		if !isRepeatableError(err) {
-			return err
-		}
-		tries++
-		if tries >= 3 {
-			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
-			return err
-		}
-		timepkg.Sleep(100 * timepkg.Millisecond)
-	}
-
-}
-
 func (s *RetryLayerBotStore) Get(userID string, includeDeleted bool) (*model.Bot, error) {
 
 	tries := 0
