@@ -428,8 +428,17 @@ const FeatureFlags: React.FC<Props> = ({config, patchConfig, disabled = false, a
     const [filter, setFilter] = useState<FilterType>('all');
 
     // Convert config flags to proper booleans (keep ALL flags for saving)
+    // Start with all known flags at their defaults, then override with config values
     const initialFlags = useMemo(() => {
         const flags: Record<string, boolean> = {};
+
+        // First, populate ALL known flags with their default values
+        // This ensures we always send a complete set when saving
+        for (const [key, meta] of Object.entries(FLAG_METADATA)) {
+            flags[key] = meta.defaultValue;
+        }
+
+        // Then override with actual values from server config
         if (config.FeatureFlags) {
             for (const [key, value] of Object.entries(config.FeatureFlags)) {
                 if (key !== 'TestFeature') { // Skip string-only flags
@@ -437,6 +446,7 @@ const FeatureFlags: React.FC<Props> = ({config, patchConfig, disabled = false, a
                 }
             }
         }
+
         return flags;
     }, [config.FeatureFlags]);
 
