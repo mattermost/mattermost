@@ -12,7 +12,6 @@ import FilenameOverlay from 'components/file_attachment/filename_overlay';
 
 import Constants, {FileTypes} from 'utils/constants';
 import {isEncryptedFile} from 'utils/encryption/file';
-import {getCachedUploadThumbnail} from 'utils/encryption/file_hooks';
 import * as Utils from 'utils/utils';
 
 import FileProgressPreview from './file_progress_preview';
@@ -48,34 +47,14 @@ export default class FilePreview extends React.PureComponent<Props> {
 
         this.props.fileInfos.forEach((info) => {
             const type = Utils.getFileType(info.extension);
-            // Check if file is encrypted (has encrypted MIME type from upload)
             const isEncrypted = isEncryptedFile(info);
-
-            // For encrypted files, try to get cached thumbnail (generated before encryption)
-            const cachedThumbnail = isEncrypted ? getCachedUploadThumbnail(info.id) : null;
 
             let className = 'file-preview post-image__column';
             if (isEncrypted) {
                 className += ' file-preview--encrypted';
             }
             let previewImage;
-
-            // For encrypted files with cached thumbnail, use the client-side thumbnail
-            if (isEncrypted && cachedThumbnail) {
-                previewImage = (
-                    <div
-                        className='post-image normal'
-                        style={{
-                            backgroundImage: `url(${cachedThumbnail})`,
-                            backgroundSize: 'cover',
-                        }}
-                    />
-                );
-            } else if (isEncrypted) {
-                // Encrypted file without cached thumbnail - show lock icon
-                className += ' custom-file';
-                previewImage = <div className={'file-icon icon-lock-outline'}/>;
-            } else if (type === FileTypes.SVG && this.props.enableSVGs) {
+            if (type === FileTypes.SVG && this.props.enableSVGs) {
                 previewImage = (
                     <img
                         alt={'file preview'}

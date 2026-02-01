@@ -31,8 +31,6 @@ import {
     encryptFileForChannel,
     cacheFileEncryptionMetadataByClientId,
     mapClientIdToFileId,
-    cacheUploadThumbnail,
-    generateThumbnail,
 } from 'utils/encryption';
 import {cmdOrCtrlPressed, isKeyPressed} from 'utils/keyboard';
 import {hasPlainText, createFileFromClipboardDataItem} from 'utils/paste';
@@ -353,16 +351,6 @@ export class FileUpload extends PureComponent<Props, State> {
             // Encrypt file if encryption is enabled (mattermost-extended)
             if (encryptFiles && this.props.currentUserId) {
                 try {
-                    // Generate thumbnail from original file BEFORE encryption (for upload preview)
-                    // This stays client-side only - never sent to server
-                    if (sortedFiles[i].type.startsWith('image/')) {
-                        const originalBlob = new Blob([sortedFiles[i]], {type: sortedFiles[i].type});
-                        const thumbnailUrl = await generateThumbnail(originalBlob);
-                        if (thumbnailUrl) {
-                            cacheUploadThumbnail(clientId, thumbnailUrl);
-                        }
-                    }
-
                     const {encryptedFile, metadata} = await encryptFileForChannel(
                         sortedFiles[i],
                         channelId,

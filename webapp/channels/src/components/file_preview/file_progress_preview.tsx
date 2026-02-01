@@ -9,7 +9,6 @@ import FilenameOverlay from 'components/file_attachment/filename_overlay';
 
 import {getFileTypeFromMime} from 'utils/file_utils';
 import {ENCRYPTED_FILE_MIME_TYPE} from 'utils/encryption/file';
-import {getCachedUploadThumbnail} from 'utils/encryption/file_hooks';
 import * as Utils from 'utils/utils';
 
 import type {FilePreviewInfo} from './file_preview';
@@ -36,22 +35,7 @@ export default class FileProgressPreview extends React.PureComponent<Props> {
             percent = fileInfo.percent ? fileInfo.percent : 0;
             const percentTxt = ` (${percent.toFixed(0)}%)`;
             const fileType = getFileTypeFromMime(fileInfo.type || '');
-
-            // Check for cached thumbnail (for encrypted image uploads)
-            const cachedThumbnail = getCachedUploadThumbnail(clientId);
-            if (cachedThumbnail) {
-                previewImage = (
-                    <div
-                        className='post-image normal'
-                        style={{
-                            backgroundImage: `url(${cachedThumbnail})`,
-                            backgroundSize: 'cover',
-                        }}
-                    />
-                );
-            } else {
-                previewImage = <div className={'file-icon ' + Utils.getIconClassName(fileType)}/>;
-            }
+            previewImage = <div className={'file-icon ' + Utils.getIconClassName(fileType)}/>;
 
             fileNameComponent = (
                 <>
