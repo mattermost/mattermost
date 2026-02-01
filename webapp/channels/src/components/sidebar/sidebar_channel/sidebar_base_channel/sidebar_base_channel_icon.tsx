@@ -9,11 +9,19 @@ import Constants from 'utils/constants';
 
 type Props = {
     channelType: ChannelType;
+    customIcon?: string;
 }
 
 const SidebarBaseChannelIcon = ({
     channelType,
+    customIcon,
 }: Props) => {
+    if (customIcon) {
+        return (
+            <i className={`icon icon-${customIcon}`}/>
+        );
+    }
+
     if (channelType === Constants.OPEN_CHANNEL) {
         return (
             <i className='icon icon-globe'/>

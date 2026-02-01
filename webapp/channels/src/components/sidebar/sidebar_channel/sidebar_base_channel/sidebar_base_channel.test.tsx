@@ -94,6 +94,26 @@ describe('components/sidebar/sidebar_channel/sidebar_base_channel', () => {
         expect(wrapper).toMatchSnapshot();
     });
 
+    test('should pass customIcon to SidebarBaseChannelIcon when present', () => {
+        const props = {
+            ...baseProps,
+            channel: {
+                ...baseProps.channel,
+                props: {
+                    custom_icon: 'star',
+                },
+            },
+        };
+
+        const wrapper = shallow(
+            <SidebarBaseChannel {...props}/>,
+        );
+
+        const icon = wrapper.find('SidebarBaseChannelIcon');
+        expect(icon.prop('customIcon')).toBe('star');
+        expect(wrapper).toMatchSnapshot();
+    });
+
     test('expect leaveChannel to be called when leave public channel ', async () => {
         const mockfn = jest.fn();
 

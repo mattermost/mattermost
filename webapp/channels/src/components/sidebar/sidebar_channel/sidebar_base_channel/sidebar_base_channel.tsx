@@ -47,6 +47,7 @@ const SidebarBaseChannel = ({
     const channelIcon = (
         <SidebarBaseChannelIcon
             channelType={channel.type}
+            customIcon={channel.props?.custom_icon}
         />
     );
 
