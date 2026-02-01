@@ -17,13 +17,17 @@ import {isEncryptedMessage} from './hybrid';
  */
 export async function decryptPostsInList(posts: PostList, userId: string): Promise<PostList> {
     const decryptedPosts: Record<string, Post> = {};
+    const postIds = Object.keys(posts.posts);
+    console.log('[decryptPostsInList] Processing', postIds.length, 'posts for userId:', userId);
 
     // Decrypt each post that needs it
     await Promise.all(
         Object.entries(posts.posts).map(async ([postId, post]) => {
             if (isEncryptedMessage(post.message)) {
+                console.log('[decryptPostsInList] Decrypting post:', postId);
                 try {
                     const result = await decryptMessageHook(post, userId);
+                    console.log('[decryptPostsInList] Post decrypted:', postId, 'status:', result.post.props?.encryption_status);
                     decryptedPosts[postId] = result.post;
                 } catch (error) {
                     console.error('[decryptPostsInList] Failed to decrypt post:', postId, error);
@@ -41,6 +45,7 @@ export async function decryptPostsInList(posts: PostList, userId: string): Promi
         }),
     );
 
+    console.log('[decryptPostsInList] Completed, returning', Object.keys(decryptedPosts).length, 'posts');
     return {
         ...posts,
         posts: decryptedPosts,

@@ -1,55 +1,87 @@
-import {Middleware} from 'redux';
+import type {AnyAction, Middleware} from 'redux';
 import {PostTypes} from 'mattermost-redux/action_types';
 import {decryptPostsInList} from 'utils/encryption/decrypt_posts';
 import {isEncryptedMessage} from 'utils/encryption/hybrid';
 import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
 
-export function createEncryptionMiddleware(): Middleware {
-    return (store) => (next) => async (action) => {
-        if (action.type === PostTypes.RECEIVED_POSTS ||
-            action.type === PostTypes.RECEIVED_POSTS_SINCE ||
-            action.type === PostTypes.RECEIVED_POSTS_BEFORE ||
-            action.type === PostTypes.RECEIVED_POSTS_AFTER ||
-            action.type === PostTypes.RECEIVED_POSTS_IN_CHANNEL ||
-            action.type === PostTypes.RECEIVED_POSTS_IN_THREAD ||
-            action.type === PostTypes.RECEIVED_NEW_POST ||
-            action.type === PostTypes.RECEIVED_POST
-        ) {
-            const state = store.getState();
-            const userId = getCurrentUserId(state);
+const BATCH_ACTION_TYPE = 'BATCHING_REDUCER.BATCH';
 
-            if (action.data) {
-                if (action.data.posts) { // PostList
-                    const posts = action.data;
-                    const postsMap = posts.posts;
-                    let hasEncrypted = false;
-                    for (const id in postsMap) {
-                        if (isEncryptedMessage(postsMap[id].message)) {
-                            hasEncrypted = true;
-                            break;
-                        }
-                    }
+const POST_ACTION_TYPES = new Set([
+    PostTypes.RECEIVED_POSTS,
+    PostTypes.RECEIVED_POSTS_SINCE,
+    PostTypes.RECEIVED_POSTS_BEFORE,
+    PostTypes.RECEIVED_POSTS_AFTER,
+    PostTypes.RECEIVED_POSTS_IN_CHANNEL,
+    PostTypes.RECEIVED_POSTS_IN_THREAD,
+    PostTypes.RECEIVED_NEW_POST,
+    PostTypes.RECEIVED_POST,
+]);
 
-                    if (hasEncrypted) {
-                         try {
-                             action.data = await decryptPostsInList(posts, userId);
-                         } catch (e) {
-                             console.error('Failed to decrypt posts in middleware', e);
-                         }
-                    }
-                } else if (action.data.id && action.data.message) { // Single Post
-                    const post = action.data;
-                    if (isEncryptedMessage(post.message)) {
-                        try {
-                            const result = await decryptPostsInList({posts: {[post.id]: post}, order: [post.id]}, userId);
-                            action.data = result.posts[post.id];
-                        } catch (e) {
-                             console.error('Failed to decrypt post in middleware', e);
-                        }
-                    }
-                }
+async function decryptActionData(action: AnyAction, userId: string): Promise<void> {
+    if (!action.data) {
+        return;
+    }
+
+    if (action.data.posts) {
+        // PostList
+        const posts = action.data;
+        const postsMap = posts.posts;
+        let hasEncrypted = false;
+        let encryptedCount = 0;
+        for (const id in postsMap) {
+            if (isEncryptedMessage(postsMap[id].message)) {
+                hasEncrypted = true;
+                encryptedCount++;
             }
         }
+        console.log('[EncryptionMiddleware] PostList - total:', Object.keys(postsMap).length, 'encrypted:', encryptedCount);
+
+        if (hasEncrypted) {
+            console.log('[EncryptionMiddleware] Decrypting posts...');
+            try {
+                action.data = await decryptPostsInList(posts, userId);
+                console.log('[EncryptionMiddleware] Decryption complete');
+            } catch (e) {
+                console.error('[EncryptionMiddleware] Failed to decrypt posts:', e);
+            }
+        }
+    } else if (action.data.id && action.data.message) {
+        // Single Post
+        const post = action.data;
+        const isEncrypted = isEncryptedMessage(post.message);
+        console.log('[EncryptionMiddleware] Single post:', post.id, 'encrypted:', isEncrypted);
+        if (isEncrypted) {
+            console.log('[EncryptionMiddleware] Decrypting single post...');
+            try {
+                const result = await decryptPostsInList({posts: {[post.id]: post}, order: [post.id]}, userId);
+                action.data = result.posts[post.id];
+                console.log('[EncryptionMiddleware] Single post decryption complete');
+            } catch (e) {
+                console.error('[EncryptionMiddleware] Failed to decrypt post:', e);
+            }
+        }
+    }
+}
+
+export function createEncryptionMiddleware(): Middleware {
+    return (store) => (next) => async (action) => {
+        const state = store.getState();
+        const userId = getCurrentUserId(state);
+
+        // Handle batch actions - process each action in the payload
+        if (action.type === BATCH_ACTION_TYPE && Array.isArray(action.payload)) {
+            console.log('[EncryptionMiddleware] Processing batch action with', action.payload.length, 'actions');
+            for (const innerAction of action.payload) {
+                if (POST_ACTION_TYPES.has(innerAction.type)) {
+                    console.log('[EncryptionMiddleware] Found post action in batch:', innerAction.type);
+                    await decryptActionData(innerAction, userId);
+                }
+            }
+        } else if (POST_ACTION_TYPES.has(action.type)) {
+            console.log('[EncryptionMiddleware] Intercepted action:', action.type);
+            await decryptActionData(action, userId);
+        }
+
         return next(action);
     };
 }
