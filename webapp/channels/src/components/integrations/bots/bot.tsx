@@ -19,6 +19,8 @@ import WarningIcon from 'components/widgets/icons/fa_warning_icon';
 
 import * as Utils from 'utils/utils';
 
+const SYSTEM_BOT_USERNAME = 'system-bot';
+
 export function matchesFilter(bot: BotType, filter?: string, owner?: UserProfile): boolean {
     if (!filter) {
         return true;
@@ -305,7 +307,7 @@ export default class Bot extends React.PureComponent<Props, State> {
         });
 
         let options;
-        if (ownerUsername !== 'plugin') {
+        if (ownerUsername !== 'plugin' && username !== SYSTEM_BOT_USERNAME) {
             options = (
                 <div className='item-actions'>
                     <button
