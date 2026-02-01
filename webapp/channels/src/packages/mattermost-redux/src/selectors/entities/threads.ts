@@ -10,6 +10,7 @@ import type {UserThread, ThreadsState, UserThreadSynthetic} from '@mattermost/ty
 import type {IDMappedObjects, RelationOneToMany} from '@mattermost/types/utilities';
 
 import {createSelector} from 'mattermost-redux/selectors/create_selector';
+import {getAllPosts} from 'mattermost-redux/selectors/entities/posts';
 import {getCurrentTeamId} from 'mattermost-redux/selectors/entities/teams';
 
 export function getThreadsInTeam(state: GlobalState): RelationOneToMany<Team, UserThread> {
@@ -186,9 +187,17 @@ export const getFollowedThreadsInChannel: (
 ) => UserThread[] = createSelector(
     'getFollowedThreadsInChannel',
     getThreadsInChannel,
-    (threads) => {
+    getAllPosts,
+    (threads, posts) => {
         return threads
             .filter((thread) => thread.is_following)
-            .sort((a, b) => b.last_reply_at - a.last_reply_at);
+            .sort((a, b) => {
+                // Sort alphabetically by post message
+                const postA = posts[a.id];
+                const postB = posts[b.id];
+                const messageA = (postA?.message || '').toLowerCase();
+                const messageB = (postB?.message || '').toLowerCase();
+                return messageA.localeCompare(messageB);
+            });
     },
 );

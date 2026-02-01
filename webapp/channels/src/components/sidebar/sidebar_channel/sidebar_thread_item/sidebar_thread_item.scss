@@ -4,9 +4,10 @@
     padding: 0;
 
     .SidebarLink {
+        position: relative;
         display: flex;
-        height: 28px; // Slightly smaller than regular channels
-        padding: 0 16px 0 32px; // Indent to show hierarchy under channel
+        height: 32px;
+        padding: 0 16px 0 40px; // Extra indent to show hierarchy under channel
         align-items: center;
         border-radius: 4px;
         margin: 0 8px;
@@ -19,12 +20,28 @@
             background: rgba(var(--sidebar-text-rgb), 0.08);
         }
 
-        &.sidebar-item--active {
-            background: rgba(var(--sidebar-text-rgb), 0.16);
-            color: var(--sidebar-text);
+        // Active state - matches regular channel styling
+        &.active {
+            background: rgba(var(--sidebar-text-rgb), 0.08);
+
+            .SidebarChannelLinkLabel {
+                color: var(--sidebar-text);
+            }
 
             .icon .icon-discord-thread {
                 background-color: var(--sidebar-text);
+            }
+
+            // Active indicator bar on left
+            &::before {
+                position: absolute;
+                top: 0;
+                left: -2px;
+                width: 4px;
+                height: 100%;
+                border-radius: 4px;
+                background: var(--sidebar-text-active-border);
+                content: '';
             }
         }
 
@@ -32,6 +49,7 @@
             color: var(--sidebar-text);
 
             .SidebarChannelLinkLabel {
+                color: var(--sidebar-unread-text);
                 font-weight: 600;
             }
 
@@ -70,11 +88,10 @@
 
         .SidebarChannelLinkLabel {
             overflow: hidden;
-            font-size: 12px;
-            line-height: 16px;
+            font-size: 14px;
+            line-height: 20px;
             text-overflow: ellipsis;
             white-space: nowrap;
-            opacity: 0.9;
         }
 
         // Badge styling (from ChannelMentionBadge)

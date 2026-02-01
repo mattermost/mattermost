@@ -86,7 +86,7 @@ const SidebarThreadItem = ({
         <li className='SidebarThreadItem'>
             <Link
                 className={classNames('SidebarLink', {
-                    'sidebar-item--active': isActive,
+                    active: isActive,
                     'unread-title': hasUnread,
                 })}
                 to={link}
