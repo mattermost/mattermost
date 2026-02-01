@@ -7,7 +7,7 @@ import type {ReactNode} from 'react';
 import {useIntl} from 'react-intl';
 import {useSelector, useDispatch} from 'react-redux';
 
-import {DotsVerticalIcon} from '@mattermost/compass-icons/components';
+import {DotsVerticalIcon, PencilOutlineIcon} from '@mattermost/compass-icons/components';
 import type {UserThread, UserThreadSynthetic} from '@mattermost/types/threads';
 
 import {Client4} from 'mattermost-redux/client';
@@ -238,7 +238,12 @@ const ThreadPane = ({
                                     tabIndex={isCustomThreadNamesEnabled ? 0 : undefined}
                                 >
                                     {threadName || formatMessage({id: 'threading.header.heading', defaultMessage: 'Thread'})}
-                                    {isCustomThreadNamesEnabled && <i className='icon icon-pencil-outline ThreadPane__header-edit-icon'/>}
+                                    {isCustomThreadNamesEnabled && (
+                                        <PencilOutlineIcon
+                                            size={14}
+                                            className='ThreadPane__header-edit-icon'
+                                        />
+                                    )}
                                 </span>
                             )}
                         </h3>
