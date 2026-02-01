@@ -127,7 +127,7 @@ export default function ThreadInviteModal({
     }, []);
 
     const renderAriaLabel = useCallback((option: UserProfileValue): string => {
-        return option.username || '';
+        return option?.username || '';
     }, []);
 
     const renderOption = useCallback((
