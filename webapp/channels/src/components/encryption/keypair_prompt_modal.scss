@@ -1,0 +1,23 @@
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
+
+.KeypairPromptModal {
+    .KeypairPromptModal__body {
+        padding: 1em 0;
+    }
+
+    .KeypairPromptModal__checkbox {
+        margin-top: 20px;
+
+        label {
+            display: flex;
+            align-items: center;
+            font-weight: normal;
+            cursor: pointer;
+
+            input {
+                margin: 0 8px 0 0;
+            }
+        }
+    }
+}

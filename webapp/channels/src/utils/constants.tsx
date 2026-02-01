@@ -102,6 +102,8 @@ export const Preferences = {
     UNREAD_SCROLL_POSITION_START_FROM_LEFT: 'start_from_left_off',
     UNREAD_SCROLL_POSITION_START_FROM_NEWEST: 'start_from_newest',
     CATEGORY_THEME: 'theme',
+    CATEGORY_ENCRYPTION: 'encryption',
+    NAME_ENCRYPTION_KEYPAIR_MODAL_DISMISSED: 'keypair_modal_dismissed',
     CATEGORY_NOTIFICATIONS: 'notifications',
     EMAIL_INTERVAL: 'email_interval',
     INTERVAL_IMMEDIATE: 30, // "immediate" is a 30 second interval
@@ -440,6 +442,7 @@ export const ModalIdentifiers = {
     DOWNGRADE_MODAL: 'downgrade_modal',
     PURCHASE_IN_PROGRESS: 'purchase_in_progress',
     DELETE_WORKSPACE: 'delete_workspace',
+    KEYPAIR_PROMPT_MODAL: 'keypair_prompt_modal',
     FEEDBACK: 'feedback',
     DELETE_WORKSPACE_PROGRESS: 'delete_workspace_progress',
     DELETE_WORKSPACE_RESULT: 'delete_workspace_result',

@@ -6759,5 +6759,10 @@
   "yourcomputer": "Your computer",
   "youtube_video.play_button.aria_label": "Play video",
   "youtube_video.play.aria_label": "Play {videoTitle} on YouTube",
-  "youtube_video.thumbnail.alt_text": "Thumbnail for {videoTitle} on YouTube"
-}
+    "youtube_video.thumbnail.alt_text": "Thumbnail for {videoTitle} on YouTube",
+    "encryption.keypair_prompt.title": "Secure Your Messages",
+    "encryption.keypair_prompt.confirm": "Generate Keys",
+    "encryption.keypair_prompt.dismiss": "Dismiss",
+    "encryption.keypair_prompt.description": "Generate your encryption keys to enable end-to-end encryption for your messages. This ensures that only you and your recipients can read your conversations.",
+    "encryption.keypair_prompt.dont_show_again": "Don't show me this again"
+  }

@@ -83,6 +83,9 @@ const Preferences = {
     CATEGORY_BURN_ON_READ: 'burn_on_read',
     BURN_ON_READ_SKIP_CONFIRMATION: 'skip_delete_confirmation',
 
+    CATEGORY_ENCRYPTION: 'encryption',
+    NAME_ENCRYPTION_KEYPAIR_MODAL_DISMISSED: 'keypair_modal_dismissed',
+
     CATEGORY_THEME: 'theme',
     THEMES: {
         denim: {
