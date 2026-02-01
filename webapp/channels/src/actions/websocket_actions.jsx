@@ -48,6 +48,7 @@ import {
     getPostThread,
     getPostThreads,
     postDeleted,
+    postRemoved,
     receivedNewPost,
     receivedPost,
 } from 'mattermost-redux/actions/posts';
@@ -847,13 +848,20 @@ async function handlePostDeleteEvent(msg) {
     }
 
     const state = getState();
+    const config = getConfig(state);
     const collapsedThreads = isCollapsedThreadsEnabled(state);
 
     if (!post.root_id && collapsedThreads) {
         dispatch(decrementThreadCounts(post));
     }
 
-    dispatch(postDeleted(post));
+    // When HideDeletedMessagePlaceholder is enabled, immediately remove the post
+    // instead of showing "(message deleted)" placeholder
+    if (config.FeatureFlagHideDeletedMessagePlaceholder === 'true') {
+        dispatch(postRemoved(post));
+    } else {
+        dispatch(postDeleted(post));
+    }
 
     // update thread when a comment is deleted and CRT is on
     if (post.root_id && collapsedThreads) {
