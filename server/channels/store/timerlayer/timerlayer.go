@@ -7043,6 +7043,22 @@ func (s *TimerLayerPostStore) PermanentDelete(rctx request.CTX, postID string) e
 	return err
 }
 
+func (s *TimerLayerPostStore) PermanentDeleteAssociatedData(postIds []string) error {
+	start := time.Now()
+
+	err := s.PostStore.PermanentDeleteAssociatedData(postIds)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("PostStore.PermanentDeleteAssociatedData", success, elapsed)
+	}
+	return err
+}
+
 func (s *TimerLayerPostStore) PermanentDeleteBatch(endTime int64, limit int64) (int64, error) {
 	start := time.Now()
 
