@@ -2,6 +2,7 @@
 // See LICENSE.txt for license information.
 
 import classNames from 'classnames';
+import deepEqual from 'fast-deep-equal';
 import React, {lazy} from 'react';
 import {Route, Switch, Redirect} from 'react-router-dom';
 import type {RouteComponentProps} from 'react-router-dom';
@@ -35,6 +36,7 @@ import {EmojiIndicesByAlias} from 'utils/emoji';
 import {TEAM_NAME_PATH_PATTERN} from 'utils/path';
 import {getSiteURL} from 'utils/url';
 import {isAndroidWeb, isChromebook, isDesktopApp, isIosWeb} from 'utils/user_agent';
+import * as Utils from 'utils/utils';
 import {isTextDroppableEvent} from 'utils/utils';
 
 import LuxonController from './luxon_controller';
@@ -179,6 +181,12 @@ export default class Root extends React.PureComponent<Props, State> {
     };
 
     componentDidUpdate(prevProps: Props, prevState: State) {
+        if (!deepEqual(prevProps.theme, this.props.theme)) {
+            if (!document.body.classList.contains('console__body')) {
+                Utils.applyTheme(this.props.theme);
+            }
+        }
+
         if (this.props.location.pathname === '/') {
             if (this.props.noAccounts) {
                 prevProps.history.push('/signup_user_complete');
