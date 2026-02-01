@@ -242,22 +242,22 @@ const FlagsGrid = styled.div`
     gap: 12px;
 `;
 
-const FlagCard = styled.div<{isEnabled: boolean; isModified: boolean}>`
+const FlagCard = styled.div<{isEnabled: boolean; isOverride: boolean}>`
     display: flex;
     align-items: center;
     justify-content: space-between;
     padding: 16px 20px;
-    background: ${({isModified}) => isModified ? 'rgba(138, 43, 226, 0.04)' : 'var(--center-channel-bg)'};
+    background: ${({isOverride}) => isOverride ? 'rgba(138, 43, 226, 0.04)' : 'var(--center-channel-bg)'};
     border: 1px solid rgba(var(--center-channel-color-rgb), 0.08);
     border-radius: 8px;
     transition: all 0.15s ease;
-    border-left: 4px solid ${({isModified, isEnabled}) =>
-        isModified ? '#8A2BE2' :
+    border-left: 4px solid ${({isOverride, isEnabled}) =>
+        isOverride ? '#8A2BE2' :
             isEnabled ? 'var(--online-indicator)' :
                 'rgba(var(--center-channel-color-rgb), 0.16)'};
 
     &:hover {
-        background: ${({isModified}) => isModified ? 'rgba(138, 43, 226, 0.08)' : 'rgba(var(--center-channel-color-rgb), 0.04)'};
+        background: ${({isOverride}) => isOverride ? 'rgba(138, 43, 226, 0.08)' : 'rgba(var(--center-channel-color-rgb), 0.04)'};
         box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
     }
 `;
@@ -281,15 +281,15 @@ const FlagDescription = styled.div`
     line-height: 1.4;
 `;
 
-const DefaultBadge = styled.span<{isDefault: boolean}>`
+const OverrideBadge = styled.span`
     display: inline-block;
     padding: 2px 8px;
     margin-left: 8px;
     font-size: 11px;
     font-weight: 500;
     border-radius: 10px;
-    background: ${({isDefault}) => isDefault ? 'rgba(var(--center-channel-color-rgb), 0.08)' : 'rgba(var(--online-indicator-rgb), 0.12)'};
-    color: ${({isDefault}) => isDefault ? 'rgba(var(--center-channel-color-rgb), 0.64)' : 'var(--online-indicator)'};
+    background: rgba(138, 43, 226, 0.12);
+    color: #8A2BE2;
 `;
 
 const UnsavedBadge = styled.span`
@@ -299,8 +299,8 @@ const UnsavedBadge = styled.span`
     font-size: 11px;
     font-weight: 500;
     border-radius: 10px;
-    background: rgba(138, 43, 226, 0.12);
-    color: #8A2BE2;
+    background: rgba(255, 165, 0, 0.12);
+    color: #FFA500;
 `;
 
 const ToggleSwitch = styled.label`
@@ -555,12 +555,14 @@ const FeatureFlags: React.FC<Props> = ({config, patchConfig, disabled = false}) 
                         <strong>{stats.disabled}</strong>
                         {'Disabled'}
                     </StatItem>
-                    <StatItem>
-                        <strong>{stats.nonDefault}</strong>
-                        {'Changed'}
-                    </StatItem>
-                    {stats.pending > 0 && (
+                    {stats.nonDefault > 0 && (
                         <StatItem style={{color: '#8A2BE2'}}>
+                            <strong>{stats.nonDefault}</strong>
+                            {'Overrides'}
+                        </StatItem>
+                    )}
+                    {stats.pending > 0 && (
+                        <StatItem style={{color: '#FFA500'}}>
                             <strong>{stats.pending}</strong>
                             {'Unsaved'}
                         </StatItem>
@@ -580,17 +582,16 @@ const FeatureFlags: React.FC<Props> = ({config, patchConfig, disabled = false}) 
                             <FlagCard
                                 key={flag.key}
                                 isEnabled={flag.value}
-                                isModified={flag.isModified}
+                                isOverride={flag.value !== flag.defaultValue}
                             >
                                 <FlagInfo>
                                     <FlagName>
                                         {flag.key}
-                                        {flag.isModified ? (
+                                        {flag.isModified && (
                                             <UnsavedBadge>{'unsaved'}</UnsavedBadge>
-                                        ) : flag.value === flag.defaultValue ? (
-                                            <DefaultBadge isDefault={true}>{'default'}</DefaultBadge>
-                                        ) : (
-                                            <DefaultBadge isDefault={false}>{'changed'}</DefaultBadge>
+                                        )}
+                                        {!flag.isModified && flag.value !== flag.defaultValue && (
+                                            <OverrideBadge>{'override'}</OverrideBadge>
                                         )}
                                     </FlagName>
                                     <FlagDescription>
