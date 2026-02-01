@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {memo, useEffect, useState} from 'react';
+import React, {memo, useEffect, useState, useCallback} from 'react';
 import {useIntl} from 'react-intl';
 import {useDispatch, useSelector} from 'react-redux';
 
@@ -14,6 +14,7 @@ import CopyButton from 'components/copy_button';
 import ExternalLink from 'components/external_link';
 import WithTooltip from 'components/with_tooltip';
 
+import {useEncryptedFile} from 'components/file_attachment/use_encrypted_file';
 import {FileTypes} from 'utils/constants';
 import {copyToClipboard, getFileType} from 'utils/utils';
 
@@ -38,6 +39,7 @@ interface Props {
     canCopyContent: boolean;
     handleModalClose: () => void;
     content: string;
+    postId?: string;
 }
 
 const FilePreviewModalMainActions: React.FC<Props> = ({
@@ -52,12 +54,23 @@ const FilePreviewModalMainActions: React.FC<Props> = ({
     canCopyContent,
     handleModalClose,
     content,
+    postId,
 }: Props) => {
     const intl = useIntl();
 
     const selectedFilePublicLink = useSelector((state: GlobalState) => selectFilePublicLink(state)?.link);
     const dispatch = useDispatch();
     const [publicLinkCopied, setPublicLinkCopied] = useState(false);
+    const [isDownloading, setIsDownloading] = useState(false);
+
+    // Use encryption hook to handle encrypted files
+    const {
+        isEncrypted,
+        fileUrl: decryptedUrl,
+        status: decryptionStatus,
+        originalFileInfo,
+        decrypt,
+    } = useEncryptedFile(isFileInfo(fileInfo) ? fileInfo : undefined, postId, false);
 
     useEffect(() => {
         if (isFileInfo(fileInfo) && enablePublicLink) {
@@ -77,6 +90,44 @@ const FilePreviewModalMainActions: React.FC<Props> = ({
         copyToClipboard(selectedFilePublicLink ?? '');
         setPublicLinkCopied(true);
     };
+
+    // Helper function to trigger a download with a blob URL
+    const downloadBlobUrl = useCallback((blobUrl: string, downloadFilename: string) => {
+        const link = document.createElement('a');
+        link.href = blobUrl;
+        link.download = downloadFilename;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    }, []);
+
+    // Handle encrypted file download
+    const handleEncryptedDownload = useCallback(async (e: React.MouseEvent) => {
+        e.preventDefault();
+        e.stopPropagation();
+
+        if (isDownloading) {
+            return;
+        }
+
+        // If already decrypted, use the decrypted URL
+        if (decryptedUrl && originalFileInfo) {
+            downloadBlobUrl(decryptedUrl, originalFileInfo.name);
+            return;
+        }
+
+        // Need to decrypt first
+        setIsDownloading(true);
+        try {
+            const result = await decrypt();
+            if (result) {
+                // Use the original filename from the decryption result
+                downloadBlobUrl(result.blobUrl, result.originalInfo.name);
+            }
+        } finally {
+            setIsDownloading(false);
+        }
+    }, [isDownloading, decryptedUrl, originalFileInfo, downloadBlobUrl, decrypt]);
 
     const closeMessage = intl.formatMessage({
         id: 'full_screen_modal.close',
@@ -129,22 +180,49 @@ const FilePreviewModalMainActions: React.FC<Props> = ({
         id: 'view_image_popover.download',
         defaultMessage: 'Download',
     });
-    const download = (
-        <WithTooltip
-            key='download'
-            title={downloadMessage}
-        >
-            <ExternalLink
-                href={fileURL}
-                className='file-preview-modal-main-actions__action-item'
-                location='file_preview_modal_main_actions'
-                download={filename}
-                aria-label={downloadMessage}
+
+    // For encrypted files, use a button that triggers decryption + download
+    // For regular files, use the normal ExternalLink
+    let download;
+    if (isEncrypted) {
+        const isDecrypting = decryptionStatus === 'decrypting' || isDownloading;
+        const downloadingMessage = intl.formatMessage({
+            id: 'view_image_popover.downloading',
+            defaultMessage: 'Downloading...',
+        });
+        download = (
+            <WithTooltip
+                key='download'
+                title={isDecrypting ? downloadingMessage : downloadMessage}
             >
-                <i className='icon icon-download-outline'/>
-            </ExternalLink>
-        </WithTooltip>
-    );
+                <button
+                    className='file-preview-modal-main-actions__action-item'
+                    onClick={handleEncryptedDownload}
+                    disabled={isDecrypting}
+                    aria-label={downloadMessage}
+                >
+                    <i className={isDecrypting ? 'icon icon-loading icon-spin' : 'icon icon-download-outline'}/>
+                </button>
+            </WithTooltip>
+        );
+    } else {
+        download = (
+            <WithTooltip
+                key='download'
+                title={downloadMessage}
+            >
+                <ExternalLink
+                    href={fileURL}
+                    className='file-preview-modal-main-actions__action-item'
+                    location='file_preview_modal_main_actions'
+                    download={filename}
+                    aria-label={downloadMessage}
+                >
+                    <i className='icon icon-download-outline'/>
+                </ExternalLink>
+            </WithTooltip>
+        );
+    }
 
     const copy = (
         <CopyButton

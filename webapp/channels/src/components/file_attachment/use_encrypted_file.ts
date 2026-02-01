@@ -44,8 +44,8 @@ export interface UseEncryptedFileResult {
         size: number;
     } | undefined;
 
-    /** Trigger decryption manually */
-    decrypt: () => Promise<string | null>;
+    /** Trigger decryption manually, returns blob URL and original info */
+    decrypt: () => Promise<{blobUrl: string; originalInfo: {name: string; type: string; size: number}} | null>;
 }
 
 /**
@@ -85,14 +85,14 @@ export function useEncryptedFile(
     const isEncryptedByName = Boolean(fileInfo?.name?.startsWith('encrypted_') && fileInfo?.name?.endsWith('.penc'));
     const isEncrypted = isEncryptedByMime || hasEncryptionMetadata || isEncryptedByName;
 
-    // Manual decrypt function
-    const decrypt = useCallback(async (): Promise<string | null> => {
+    // Manual decrypt function - returns blob URL and original info
+    const decrypt = useCallback(async (): Promise<{blobUrl: string; originalInfo: {name: string; type: string; size: number}} | null> => {
         if (!fileId || !isEncrypted) {
             return null;
         }
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const result = await (dispatch as any)(decryptEncryptedFile(fileId, postId));
-        return result as string | null;
+        return result as {blobUrl: string; originalInfo: {name: string; type: string; size: number}} | null;
     }, [dispatch, fileId, isEncrypted, postId]);
 
     // Auto-decrypt on mount if enabled

@@ -1,8 +1,8 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
-import {defineMessage} from 'react-intl';
+import React, {useCallback, useState} from 'react';
+import {defineMessage, useIntl} from 'react-intl';
 
 import type {FileInfo} from '@mattermost/types/files';
 
@@ -48,41 +48,104 @@ type Props = {
     iconClass?: string;
 
     overrideGenerateFileDownloadUrl?: (fileId: string) => string;
+
+    /*
+     * For encrypted files: the decrypted blob URL to download from (mattermost-extended)
+     */
+    decryptedBlobUrl?: string;
+
+    /*
+     * For encrypted files: the original filename to use for download (mattermost-extended)
+     */
+    decryptedFileName?: string;
 }
 
-export default class FilenameOverlay extends React.PureComponent<Props> {
-    render() {
-        const {
-            canDownload,
-            children,
-            compactDisplay,
-            fileInfo,
-            handleImageClick,
-            iconClass,
-            overrideGenerateFileDownloadUrl,
-        } = this.props;
+export default function FilenameOverlay(props: Props) {
+    const {
+        canDownload,
+        children,
+        compactDisplay,
+        fileInfo,
+        handleImageClick,
+        iconClass,
+        overrideGenerateFileDownloadUrl,
+        decryptedBlobUrl,
+        decryptedFileName,
+    } = props;
 
-        const fileName = fileInfo.name;
-        const trimmedFilename = trimFilename(fileName);
+    const {formatMessage} = useIntl();
+    const [isDownloading, setIsDownloading] = useState(false);
 
-        let filenameOverlay;
-        if (compactDisplay) {
-            filenameOverlay = (
-                <WithTooltip
-                    title={fileName}
+    // Use decrypted filename if available, otherwise use server filename
+    const fileName = decryptedFileName || fileInfo.name;
+    const trimmedFilename = trimFilename(fileName);
+
+    // Helper function to trigger a download with a blob URL
+    const downloadBlobUrl = useCallback((blobUrl: string, downloadFilename: string) => {
+        const link = document.createElement('a');
+        link.href = blobUrl;
+        link.download = downloadFilename;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    }, []);
+
+    // Handle encrypted file download
+    const handleEncryptedDownload = useCallback((e: React.MouseEvent) => {
+        e.preventDefault();
+        e.stopPropagation();
+
+        if (isDownloading || !decryptedBlobUrl) {
+            return;
+        }
+
+        setIsDownloading(true);
+        try {
+            downloadBlobUrl(decryptedBlobUrl, fileName);
+        } finally {
+            setIsDownloading(false);
+        }
+    }, [isDownloading, decryptedBlobUrl, fileName, downloadBlobUrl]);
+
+    let filenameOverlay;
+    if (compactDisplay) {
+        filenameOverlay = (
+            <WithTooltip
+                title={fileName}
+            >
+                <a
+                    href='#'
+                    onClick={handleImageClick}
+                    className='post-image__name btn btn-icon btn-sm'
+                    rel='noopener noreferrer'
                 >
-                    <a
-                        href='#'
-                        onClick={handleImageClick}
-                        className='post-image__name btn btn-icon btn-sm'
-                        rel='noopener noreferrer'
+                    <AttachmentIcon className='icon'/>
+                    {trimmedFilename}
+                </a>
+            </WithTooltip>
+        );
+    } else if (canDownload) {
+        // For encrypted files with decrypted blob URL, use a button that triggers programmatic download
+        if (decryptedBlobUrl) {
+            const downloadMessage = formatMessage({id: 'view_image_popover.download', defaultMessage: 'Download'});
+            filenameOverlay = (
+                <div className={iconClass || 'post-image__name'}>
+                    <WithTooltip
+                        title={defineMessage({id: 'view_image_popover.download', defaultMessage: 'Download'})}
                     >
-                        <AttachmentIcon className='icon'/>
-                        {trimmedFilename}
-                    </a>
-                </WithTooltip>
+                        <button
+                            onClick={handleEncryptedDownload}
+                            disabled={isDownloading}
+                            aria-label={downloadMessage.toLowerCase()}
+                            className='btn btn-icon btn-sm'
+                        >
+                            {children || trimmedFilename}
+                        </button>
+                    </WithTooltip>
+                </div>
             );
-        } else if (canDownload) {
+        } else {
+            // Regular file download via link
             filenameOverlay = (
                 <div className={iconClass || 'post-image__name'}>
                     <WithTooltip
@@ -100,14 +163,14 @@ export default class FilenameOverlay extends React.PureComponent<Props> {
                     </WithTooltip>
                 </div>
             );
-        } else {
-            filenameOverlay = (
-                <span className='post-image__name'>
-                    {trimmedFilename}
-                </span>
-            );
         }
-
-        return (filenameOverlay);
+    } else {
+        filenameOverlay = (
+            <span className='post-image__name'>
+                {trimmedFilename}
+            </span>
+        );
     }
+
+    return filenameOverlay;
 }

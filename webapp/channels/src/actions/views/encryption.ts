@@ -95,17 +95,32 @@ export function encryptedFileCleanup(fileIds: string[]) {
 }
 
 /**
+ * Result of file decryption, includes both the blob URL and original file info.
+ */
+export interface DecryptFileResult {
+    blobUrl: string;
+    originalInfo: OriginalFileInfo;
+}
+
+/**
  * Decrypts a file and stores the blob URL in Redux.
  * This is called when a component needs to display an encrypted file.
+ * Returns both the blob URL and original file info for immediate use.
  */
-export function decryptEncryptedFile(fileId: string, postId?: string): ThunkActionFunc<Promise<string | null>> {
+export function decryptEncryptedFile(fileId: string, postId?: string): ThunkActionFunc<Promise<DecryptFileResult | null>> {
     return async (dispatch, getState) => {
         const state = getState();
 
         // Check if already decrypted
         const existingUrl = getDecryptedFileUrl(state, fileId);
         if (existingUrl) {
-            return existingUrl;
+            // Return existing decryption result
+            const existingState = getState();
+            const existingInfo = existingState.views.encryption.encryptedFiles?.originalInfo?.[fileId];
+            if (existingInfo) {
+                return {blobUrl: existingUrl, originalInfo: existingInfo};
+            }
+            return null;
         }
 
         // Check if already decrypting
@@ -199,7 +214,7 @@ export function decryptEncryptedFile(fileId: string, postId?: string): ThunkActi
                 }
             }
 
-            return blobUrl;
+            return {blobUrl, originalInfo};
         } catch (error) {
             console.error('[decryptEncryptedFile] Decryption failed:', error);
             dispatch(encryptedFileDecryptionFailed(fileId, error instanceof Error ? error.message : 'Decryption failed'));

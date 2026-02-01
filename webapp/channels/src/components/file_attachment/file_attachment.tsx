@@ -86,6 +86,7 @@ export default function FileAttachment(props: Props) {
         status: decryptionStatus,
         error: decryptionError,
         originalFileInfo,
+        fileUrl: decryptedFileUrl,
         thumbnailUrl: decryptedThumbnailUrl,
         decrypt,
     } = useEncryptedFile(props.fileInfo, props.postId, true);
@@ -512,6 +513,8 @@ export default function FileAttachment(props: Props) {
                 handleImageClick={onAttachmentClick}
                 iconClass={'post-image__download'}
                 overrideGenerateFileDownloadUrl={props.overrideGenerateFileDownloadUrl}
+                decryptedBlobUrl={isEncrypted ? decryptedFileUrl : undefined}
+                decryptedFileName={isEncrypted && originalFileInfo ? originalFileInfo.name : undefined}
             >
                 <i className='icon icon-download-outline'/>
             </FilenameOverlay>

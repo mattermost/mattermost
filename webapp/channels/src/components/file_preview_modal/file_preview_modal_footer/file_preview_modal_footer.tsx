@@ -24,6 +24,7 @@ interface Props {
     handleModalClose: () => void;
     canCopyContent: boolean;
     content: string;
+    postId?: string;
 }
 
 const FilePreviewModalFooter: React.FC<Props> = ({post, ...actionProps}: Props) => {

@@ -475,6 +475,7 @@ export default class FilePreviewModal extends React.PureComponent<Props, State> 
                                     handleNext={this.handleNext}
                                     handleModalClose={this.handleModalClose}
                                     content={this.state.content}
+                                    postId={this.props.postId || this.props.post?.id}
                                 />
                                 {zoomBar}
                             </Modal.Title>
@@ -502,6 +503,7 @@ export default class FilePreviewModal extends React.PureComponent<Props, State> 
                                     isExternalFile={isExternalFile}
                                     handleModalClose={this.handleModalClose}
                                     content={this.state.content}
+                                    postId={this.props.postId || this.props.post?.id}
                                 />
                             }
                         </div>
