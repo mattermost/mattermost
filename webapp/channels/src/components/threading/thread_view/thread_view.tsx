@@ -54,7 +54,10 @@ function cleanMessageForDisplay(message: string): string {
         return '';
     }
 
-    let cleaned = message.
+    // Get only the first line of content
+    let cleaned = message.split(/\r?\n/)[0] || message;
+
+    cleaned = cleaned.
 
         // Remove code blocks
         replace(/```[\s\S]*?```/g, '[code]').
