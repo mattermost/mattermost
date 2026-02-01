@@ -31,6 +31,13 @@ const Drafts = makeAsyncComponent('Drafts', lazy(() => import('components/drafts
 );
 const PermalinkView = makeAsyncComponent('PermalinkView', lazy(() => import('components/permalink_view')));
 const PlaybookRunner = makeAsyncComponent('PlaybookRunner', lazy(() => import('components/channel_layout/playbook_runner')));
+const ThreadView = makeAsyncComponent('ThreadView', lazy(() => import('components/threading/thread_view')),
+    (
+        <div className='app__content'>
+            <LoadingScreen/>
+        </div>
+    ),
+);
 
 type Props = PropsFromRedux & OwnProps;
 
@@ -101,6 +108,13 @@ export default class CenterChannel extends React.PureComponent<Props, State> {
                             <Route
                                 path={`/:team(${TEAM_NAME_PATH_PATTERN})/threads/:threadIdentifier(${ID_PATH_PATTERN})?`}
                                 component={GlobalThreads}
+                            />
+                        ) : null}
+                        {/* Full-width thread view for sidebar threads (ThreadsInSidebar feature) */}
+                        {isCollapsedThreadsEnabled ? (
+                            <Route
+                                path={`/:team(${TEAM_NAME_PATH_PATTERN})/thread/:threadIdentifier(${ID_PATH_PATTERN})`}
+                                component={ThreadView}
                             />
                         ) : null}
                         <Route

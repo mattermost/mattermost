@@ -179,3 +179,16 @@ export const getThreadsInChannel: (
         return threadsInChannel;
     },
 );
+
+export const getFollowedThreadsInChannel: (
+    state: GlobalState,
+    channelID: string,
+) => UserThread[] = createSelector(
+    'getFollowedThreadsInChannel',
+    getThreadsInChannel,
+    (threads) => {
+        return threads
+            .filter((thread) => thread.is_following)
+            .sort((a, b) => b.last_reply_at - a.last_reply_at);
+    },
+);

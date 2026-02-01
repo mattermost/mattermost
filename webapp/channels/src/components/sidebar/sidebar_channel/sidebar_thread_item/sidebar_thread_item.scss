@@ -1,0 +1,93 @@
+.SidebarThreadItem {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+
+    .SidebarLink {
+        display: flex;
+        height: 28px; // Slightly smaller than regular channels
+        padding: 0 16px 0 32px; // Indent to show hierarchy under channel
+        align-items: center;
+        border-radius: 4px;
+        margin: 0 8px;
+        color: rgba(var(--sidebar-text-rgb), 0.72);
+        text-decoration: none;
+        cursor: pointer;
+        gap: 6px;
+
+        &:hover {
+            background: rgba(var(--sidebar-text-rgb), 0.08);
+        }
+
+        &.sidebar-item--active {
+            background: rgba(var(--sidebar-text-rgb), 0.16);
+            color: var(--sidebar-text);
+
+            .icon .icon-discord-thread {
+                background-color: var(--sidebar-text);
+            }
+        }
+
+        &.unread-title {
+            color: var(--sidebar-text);
+
+            .SidebarChannelLinkLabel {
+                font-weight: 600;
+            }
+
+            .icon .icon-discord-thread {
+                background-color: var(--sidebar-text);
+            }
+        }
+
+        .icon {
+            display: flex;
+            flex-shrink: 0;
+            align-items: center;
+            justify-content: center;
+            min-width: 16px;
+            min-height: 16px;
+
+            // Discord-style thread icon using CSS mask
+            .icon-discord-thread {
+                background-color: rgba(var(--sidebar-text-rgb), 0.56);
+                mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath d='M5 4h9M2 6l3 2-3 2M8 8h6M5 12h9' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' fill='none'/%3E%3C/svg%3E");
+                mask-repeat: no-repeat;
+                mask-position: center;
+                mask-size: contain;
+                width: 16px;
+                height: 16px;
+                display: inline-block;
+            }
+        }
+
+        .SidebarChannelLinkLabel_wrapper {
+            display: flex;
+            overflow: hidden;
+            flex: 1;
+            min-width: 0;
+        }
+
+        .SidebarChannelLinkLabel {
+            overflow: hidden;
+            font-size: 12px;
+            line-height: 16px;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            opacity: 0.9;
+        }
+
+        // Badge styling (from ChannelMentionBadge)
+        .badge {
+            flex-shrink: 0;
+            margin-left: auto;
+        }
+    }
+}
+
+// Container for thread list under a channel
+.SidebarChannel__threads {
+    list-style: none;
+    margin: 0;
+    padding: 0 0 4px 0;
+}

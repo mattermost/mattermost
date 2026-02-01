@@ -6,7 +6,9 @@ import {bindActionCreators} from 'redux';
 import type {Dispatch} from 'redux';
 
 import {fetchMyCategories} from 'mattermost-redux/actions/channel_categories';
+import {getThreadsForCurrentTeam} from 'mattermost-redux/actions/threads';
 import Permissions from 'mattermost-redux/constants/permissions';
+import {getConfig} from 'mattermost-redux/selectors/entities/general';
 import {isCustomGroupsEnabled} from 'mattermost-redux/selectors/entities/preferences';
 import {haveICurrentChannelPermission, haveISystemPermission} from 'mattermost-redux/selectors/entities/roles';
 import {getCurrentTeam} from 'mattermost-redux/selectors/entities/teams';
@@ -42,6 +44,10 @@ function mapStateToProps(state: GlobalState) {
 
     const canCreateCustomGroups = isCustomGroupsEnabled(state) && haveISystemPermission(state, {permission: Permissions.CREATE_CUSTOM_GROUP});
 
+    // Check if ThreadsInSidebar feature flag is enabled
+    const config = getConfig(state);
+    const isThreadsInSidebarEnabled = (config as Record<string, string>)?.FeatureFlagThreadsInSidebar === 'true';
+
     return {
         teamId: currentTeam ? currentTeam.id : '',
         canCreatePrivateChannel,
@@ -54,6 +60,7 @@ function mapStateToProps(state: GlobalState) {
         canCreateCustomGroups,
         rhsState: getRhsState(state),
         rhsOpen: getIsRhsOpen(state),
+        isThreadsInSidebarEnabled,
     };
 }
 
@@ -62,6 +69,7 @@ function mapDispatchToProps(dispatch: Dispatch) {
         actions: bindActionCreators({
             clearChannelSelection,
             fetchMyCategories,
+            getThreadsForCurrentTeam,
             openModal,
             closeModal,
             closeRightHandSide,

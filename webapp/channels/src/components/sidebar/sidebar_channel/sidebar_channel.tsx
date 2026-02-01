@@ -12,6 +12,7 @@ import Constants from 'utils/constants';
 import SidebarBaseChannel from './sidebar_base_channel';
 import SidebarDirectChannel from './sidebar_direct_channel';
 import SidebarGroupChannel from './sidebar_group_channel';
+import SidebarThreadItem from './sidebar_thread_item';
 
 import type {Props} from './index';
 
@@ -30,6 +31,7 @@ function SidebarChannel({
     channelIndex,
     isAutoSortedCategory,
     autoSortedCategoryIds,
+    followedThreads,
 }: Props) {
     const [show, setShow] = useState(true);
     if (!channel) {
@@ -89,6 +91,18 @@ function SidebarChannel({
         );
     }
 
+    const threadList = (show && followedThreads && followedThreads.length > 0) ? (
+        <ul className='SidebarChannel__threads'>
+            {followedThreads.map((thread) => (
+                <SidebarThreadItem
+                    key={thread.id}
+                    thread={thread}
+                    currentTeamName={currentTeamName}
+                />
+            ))}
+        </ul>
+    ) : null;
+
     if (isDraggable) {
         let selectedCount: React.ReactNode;
         if (isChannelSelected && draggingState.state && draggingState.id === channel.id && multiSelectedChannelIds.length > 1) {
@@ -131,6 +145,7 @@ function SidebarChannel({
                             tabIndex={-1}
                         >
                             {component}
+                            {threadList}
                             {selectedCount}
                         </li>
                     );
@@ -153,6 +168,7 @@ function SidebarChannel({
             role='listitem'
         >
             {component}
+            {threadList}
         </li>
     );
 }

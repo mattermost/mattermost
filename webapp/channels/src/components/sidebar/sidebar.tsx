@@ -38,6 +38,7 @@ type Props = {
     isOpen: boolean;
     actions: {
         fetchMyCategories: (teamId: string) => void;
+        getThreadsForCurrentTeam: (options: {unread: boolean}) => void;
         openModal: <P>(modalData: ModalData<P>) => void;
         closeModal: (modalId: string) => void;
         clearChannelSelection: () => void;
@@ -49,6 +50,7 @@ type Props = {
     canCreateCustomGroups: boolean;
     rhsState?: RhsState;
     rhsOpen?: boolean;
+    isThreadsInSidebarEnabled: boolean;
 };
 
 type State = {
@@ -68,6 +70,11 @@ export default class Sidebar extends React.PureComponent<Props, State> {
     componentDidMount() {
         if (this.props.teamId) {
             this.props.actions.fetchMyCategories(this.props.teamId);
+
+            // Fetch threads for sidebar if feature is enabled
+            if (this.props.isThreadsInSidebarEnabled) {
+                this.props.actions.getThreadsForCurrentTeam({unread: false});
+            }
         }
 
         window.addEventListener('click', this.handleClickClearChannelSelection);
@@ -77,6 +84,16 @@ export default class Sidebar extends React.PureComponent<Props, State> {
     componentDidUpdate(prevProps: Props) {
         if (this.props.teamId && prevProps.teamId !== this.props.teamId) {
             this.props.actions.fetchMyCategories(this.props.teamId);
+
+            // Fetch threads for sidebar if feature is enabled
+            if (this.props.isThreadsInSidebarEnabled) {
+                this.props.actions.getThreadsForCurrentTeam({unread: false});
+            }
+        }
+
+        // Also fetch threads if the feature was just enabled
+        if (this.props.isThreadsInSidebarEnabled && !prevProps.isThreadsInSidebarEnabled && this.props.teamId) {
+            this.props.actions.getThreadsForCurrentTeam({unread: false});
         }
     }
 

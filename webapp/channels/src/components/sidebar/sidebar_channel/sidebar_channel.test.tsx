@@ -43,6 +43,7 @@ describe('components/sidebar/sidebar_channel', () => {
         multiSelectedChannelIds: [],
         autoSortedCategoryIds: new Set<string>(),
         isChannelSelected: false,
+        followedThreads: [],
     };
 
     test('should match snapshot', () => {

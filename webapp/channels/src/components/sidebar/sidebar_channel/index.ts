@@ -5,7 +5,9 @@ import {connect} from 'react-redux';
 import type {ConnectedProps} from 'react-redux';
 
 import {getCurrentChannelId, makeGetChannel, makeGetChannelUnreadCount} from 'mattermost-redux/selectors/entities/channels';
+import {getConfig} from 'mattermost-redux/selectors/entities/general';
 import {getCurrentTeam} from 'mattermost-redux/selectors/entities/teams';
+import {getFollowedThreadsInChannel} from 'mattermost-redux/selectors/entities/threads';
 
 import {getAutoSortedCategoryIds, getDraggingState, isChannelSelected} from 'selectors/views/channel_sidebar';
 
@@ -39,6 +41,11 @@ function makeMapStateToProps() {
 
         const unreadCount = getUnreadCount(state, channel?.id || '');
 
+        // Only fetch followed threads if ThreadsInSidebar feature flag is enabled
+        const config = getConfig(state);
+        const isThreadsInSidebarEnabled = (config as Record<string, string>)?.FeatureFlagThreadsInSidebar === 'true';
+        const followedThreads = (isThreadsInSidebarEnabled && channel) ? getFollowedThreadsInChannel(state, channel.id) : [];
+
         return {
             channel,
             isCurrentChannel: channel?.id === currentChannelId,
@@ -49,6 +56,7 @@ function makeMapStateToProps() {
             isChannelSelected: isChannelSelected(state, ownProps.channelId),
             multiSelectedChannelIds: state.views.channelSidebar.multiSelectedChannelIds,
             autoSortedCategoryIds: getAutoSortedCategoryIds(state),
+            followedThreads,
         };
     };
 }

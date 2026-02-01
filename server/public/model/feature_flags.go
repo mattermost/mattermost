@@ -36,6 +36,9 @@ type FeatureFlags struct {
 
 	CustomChannelIcons bool
 
+	// Enable displaying followed threads under their parent channels in the sidebar
+	ThreadsInSidebar bool
+
 	PermalinkPreviews bool
 
 	NormalizeLdapDNs bool
