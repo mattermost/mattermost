@@ -110,4 +110,7 @@ export {
     clearCachedFileMetadata,
     hasEncryptedFiles,
     getEncryptedFileCount,
+    cacheUploadThumbnail,
+    getCachedUploadThumbnail,
+    clearCachedUploadThumbnails,
 } from './file_hooks';

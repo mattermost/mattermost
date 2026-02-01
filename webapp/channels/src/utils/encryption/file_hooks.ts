@@ -44,6 +44,13 @@ const metadataCacheWithTTL = new Map<string, CacheEntry>();
 // Mapping from clientId to fileId (populated after upload completes)
 const clientIdToFileId = new Map<string, string>();
 
+// Cache for pre-encryption thumbnails (for upload preview)
+interface ThumbnailCacheEntry {
+    thumbnailUrl: string;
+    timestamp: number;
+}
+const thumbnailCache = new Map<string, ThumbnailCacheEntry>();
+
 /**
  * Cleans expired entries from the cache.
  */
@@ -55,6 +62,74 @@ function cleanExpiredEntries(): void {
             if (entry.clientId) {
                 clientIdToFileId.delete(entry.clientId);
             }
+        }
+    }
+    // Also clean thumbnail cache
+    for (const [key, entry] of thumbnailCache.entries()) {
+        if (now - entry.timestamp > CACHE_TTL_MS) {
+            // Revoke the blob URL to free memory
+            URL.revokeObjectURL(entry.thumbnailUrl);
+            thumbnailCache.delete(key);
+        }
+    }
+}
+
+/**
+ * Caches a pre-encryption thumbnail for upload preview.
+ * @param clientId - The client-generated ID for the upload
+ * @param thumbnailUrl - The blob URL for the thumbnail
+ */
+export function cacheUploadThumbnail(clientId: string, thumbnailUrl: string): void {
+    thumbnailCache.set(clientId, {
+        thumbnailUrl,
+        timestamp: Date.now(),
+    });
+}
+
+/**
+ * Gets a cached thumbnail for an encrypted file upload.
+ * @param id - The clientId or fileId
+ * @returns The thumbnail blob URL or null
+ */
+export function getCachedUploadThumbnail(id: string): string | null {
+    // Try direct lookup
+    let entry = thumbnailCache.get(id);
+
+    // If not found, try via clientId to fileId mapping
+    if (!entry) {
+        const fileId = clientIdToFileId.get(id);
+        if (fileId) {
+            entry = thumbnailCache.get(fileId);
+        }
+    }
+
+    // Also check reverse - if id is a fileId, find the clientId
+    if (!entry) {
+        for (const [clientId, mappedFileId] of clientIdToFileId.entries()) {
+            if (mappedFileId === id) {
+                entry = thumbnailCache.get(clientId);
+                break;
+            }
+        }
+    }
+
+    if (!entry || Date.now() - entry.timestamp > CACHE_TTL_MS) {
+        return null;
+    }
+
+    return entry.thumbnailUrl;
+}
+
+/**
+ * Clears cached thumbnails for the given IDs.
+ * @param ids - The clientIds or fileIds to clear
+ */
+export function clearCachedUploadThumbnails(ids: string[]): void {
+    for (const id of ids) {
+        const entry = thumbnailCache.get(id);
+        if (entry) {
+            URL.revokeObjectURL(entry.thumbnailUrl);
+            thumbnailCache.delete(id);
         }
     }
 }
