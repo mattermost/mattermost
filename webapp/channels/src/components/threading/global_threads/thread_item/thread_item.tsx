@@ -284,7 +284,7 @@ function ThreadItem({
                 >
                     {post.message ? (
                         <Markdown
-                            message={post.state === Posts.POST_DELETED ? msgDeleted : (thread.props?.custom_name || cleanMessageForDisplay(post.message))}
+                            message={post.state === Posts.POST_DELETED ? msgDeleted : (post.message?.trimStart().startsWith('#') ? `# ${thread.props?.custom_name || cleanMessageForDisplay(post.message)}` : (thread.props?.custom_name || cleanMessageForDisplay(post.message)))}
                             options={markdownPreviewOptions}
                             imagesMetadata={post?.metadata && post?.metadata?.images}
                             mentionKeys={mentionsKeys}
