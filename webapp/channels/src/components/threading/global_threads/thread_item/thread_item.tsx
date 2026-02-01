@@ -274,14 +274,6 @@ function ThreadItem({
                     </ThreadMenu>
                 </div>
 
-                {/* Show thread name (custom or auto-generated from first line) */}
-                <div className='ThreadItem__thread-name'>
-                    <span className='icon-discord-thread ThreadItem__thread-name-icon'/>
-                    <span className='ThreadItem__thread-name-text'>
-                        {thread.props?.custom_name || cleanMessageForDisplay(post.message) || formatMessage({id: 'threading.thread', defaultMessage: 'Thread'})}
-                    </span>
-                </div>
-
                 {/* The strange interaction here where we need a click/keydown handler messes with the ESLint rules, so we just disable it */}
                 {/*eslint-disable-next-line jsx-a11y/no-static-element-interactions*/}
                 <div
@@ -290,17 +282,25 @@ function ThreadItem({
                     onClick={handleFormattedTextClick}
                     onKeyDown={handleFormattedTextClick}
                 >
-                    {post.message ? (
-                        <Markdown
-                            message={post.state === Posts.POST_DELETED ? msgDeleted : post.message}
-                            options={markdownPreviewOptions}
-                            imagesMetadata={post?.metadata && post?.metadata?.images}
-                            mentionKeys={mentionsKeys}
-                            imageProps={imageProps}
-                        />
-                    ) : (
-                        <Attachment post={post}/>
-                    )}
+                    <h3 className='markdown__heading'>
+                        <span className='icon-discord-thread ThreadItem__thread-icon'/>
+                        {thread.props?.custom_name || cleanMessageForDisplay(post.message) || formatMessage({id: 'threading.thread', defaultMessage: 'Thread'})}
+                    </h3>
+                    <div className='preview__content'>
+                        {post.message && post.state !== Posts.POST_DELETED ? (
+                            <Markdown
+                                message={post.message}
+                                options={markdownPreviewOptions}
+                                imagesMetadata={post?.metadata && post?.metadata?.images}
+                                mentionKeys={mentionsKeys}
+                                imageProps={imageProps}
+                            />
+                        ) : post.state === Posts.POST_DELETED ? (
+                            <span className='post--deleted'>{msgDeleted}</span>
+                        ) : (
+                            <Attachment post={post}/>
+                        )}
+                    </div>
                 </div>
                 <div className='activity'>
                     {participantIds?.length ? (
