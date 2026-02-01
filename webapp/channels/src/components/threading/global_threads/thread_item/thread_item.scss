@@ -127,7 +127,7 @@
         }
     }
 
-    &__custom-name {
+    &__thread-name {
         display: flex;
         align-items: center;
         margin: 0 0 4px;
@@ -137,13 +137,13 @@
         color: var(--center-channel-color);
     }
 
-    &__custom-name-icon {
+    &__thread-name-icon {
         flex-shrink: 0;
         color: rgba(var(--center-channel-color-rgb), 0.64);
         font-size: 14px;
     }
 
-    &__custom-name-text {
+    &__thread-name-text {
         overflow: hidden;
         text-overflow: ellipsis;
         white-space: nowrap;

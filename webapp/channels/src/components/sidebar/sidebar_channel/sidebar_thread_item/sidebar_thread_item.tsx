@@ -11,6 +11,8 @@ import type {UserThread} from '@mattermost/types/threads';
 
 import {getPost} from 'mattermost-redux/selectors/entities/posts';
 
+import {cleanMessageForDisplay} from 'components/threading/utils';
+
 import type {GlobalState} from 'types/store';
 
 import ChannelMentionBadge from '../channel_mention_badge';
@@ -21,52 +23,6 @@ type Props = {
     thread: UserThread;
     currentTeamName: string;
 };
-
-// Clean up message text for display in sidebar
-function cleanMessageForDisplay(message: string): string {
-    if (!message) {
-        return '';
-    }
-
-    // Remove markdown formatting
-    let cleaned = message.
-
-        // Remove code blocks
-        replace(/```[\s\S]*?```/g, '[code]').
-        replace(/`[^`]+`/g, '[code]').
-
-        // Remove links but keep text
-        replace(/\[([^\]]+)\]\([^)]+\)/g, '$1').
-
-        // Remove images
-        replace(/!\[[^\]]*\]\([^)]+\)/g, '[image]').
-
-        // Remove bold/italic
-        replace(/\*\*([^*]+)\*\*/g, '$1').
-        replace(/\*([^*]+)\*/g, '$1').
-        replace(/__([^_]+)__/g, '$1').
-        replace(/_([^_]+)_/g, '$1').
-
-        // Remove headers
-        replace(/^#+\s+/gm, '').
-
-        // Remove blockquotes
-        replace(/^>\s+/gm, '').
-
-        // Remove horizontal rules
-        replace(/^---+$/gm, '').
-
-        // Collapse whitespace
-        replace(/\s+/g, ' ').
-        trim();
-
-    // Truncate if too long (CSS handles overflow but this helps with very long messages)
-    if (cleaned.length > 100) {
-        cleaned = cleaned.substring(0, 100) + '...';
-    }
-
-    return cleaned;
-}
 
 const SidebarThreadItem = ({
     thread,
@@ -88,7 +44,7 @@ const SidebarThreadItem = ({
     // Use custom thread name if set, otherwise use cleaned post message
     const customName = thread.props?.custom_name;
     const rawMessage = post?.message || '';
-    const label = customName || cleanMessageForDisplay(rawMessage) || formatMessage({id: 'threading.thread', defaultMessage: 'Thread'});
+    const label = customName || cleanMessageForDisplay(rawMessage, 100) || formatMessage({id: 'threading.thread', defaultMessage: 'Thread'});
 
     const hasUnread = (thread.unread_replies || 0) > 0 || (thread.unread_mentions || 0) > 0;
 

@@ -39,6 +39,7 @@ import Attachment from './attachments';
 
 import {THREADING_TIME} from '../../common/options';
 import {useThreadRouting} from '../../hooks';
+import {cleanMessageForDisplay} from '../../utils';
 import ThreadMenu from '../thread_menu';
 
 import './thread_item.scss';
@@ -273,13 +274,13 @@ function ThreadItem({
                     </ThreadMenu>
                 </div>
 
-                {/* Show custom thread name if set */}
-                {thread.props?.custom_name && (
-                    <div className='ThreadItem__custom-name'>
-                        <span className='icon-discord-thread ThreadItem__custom-name-icon'/>
-                        <span className='ThreadItem__custom-name-text'>{thread.props.custom_name}</span>
-                    </div>
-                )}
+                {/* Show thread name (custom or auto-generated from first line) */}
+                <div className='ThreadItem__thread-name'>
+                    <span className='icon-discord-thread ThreadItem__thread-name-icon'/>
+                    <span className='ThreadItem__thread-name-text'>
+                        {thread.props?.custom_name || cleanMessageForDisplay(post.message) || formatMessage({id: 'threading.thread', defaultMessage: 'Thread'})}
+                    </span>
+                </div>
 
                 {/* The strange interaction here where we need a click/keydown handler messes with the ESLint rules, so we just disable it */}
                 {/*eslint-disable-next-line jsx-a11y/no-static-element-interactions*/}

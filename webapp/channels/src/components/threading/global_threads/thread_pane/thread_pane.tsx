@@ -33,54 +33,10 @@ import type {GlobalState} from 'types/store';
 import Button from '../../common/button';
 import FollowButton from '../../common/follow_button';
 import {useThreadRouting} from '../../hooks';
+import {cleanMessageForDisplay} from '../../utils';
 import ThreadMenu from '../thread_menu';
 
 import './thread_pane.scss';
-
-// Clean up message text for display in header
-function cleanMessageForDisplay(message: string): string {
-    if (!message) {
-        return '';
-    }
-
-    let cleaned = message.
-
-        // Remove code blocks
-        replace(/```[\s\S]*?```/g, '[code]').
-        replace(/`[^`]+`/g, '[code]').
-
-        // Remove links but keep text
-        replace(/\[([^\]]+)\]\([^)]+\)/g, '$1').
-
-        // Remove images
-        replace(/!\[[^\]]*\]\([^)]+\)/g, '[image]').
-
-        // Remove bold/italic
-        replace(/\*\*([^*]+)\*\*/g, '$1').
-        replace(/\*([^*]+)\*/g, '$1').
-        replace(/__([^_]+)__/g, '$1').
-        replace(/_([^_]+)_/g, '$1').
-
-        // Remove headers
-        replace(/^#+\s+/gm, '').
-
-        // Remove blockquotes
-        replace(/^>\s+/gm, '').
-
-        // Remove horizontal rules
-        replace(/^---+$/gm, '').
-
-        // Collapse whitespace
-        replace(/\s+/g, ' ').
-        trim();
-
-    // Truncate if too long
-    if (cleaned.length > 30) {
-        cleaned = cleaned.substring(0, 30) + '...';
-    }
-
-    return cleaned;
-}
 
 const getChannel = makeGetChannel();
 const getPostsForThread = makeGetPostsForThread();
@@ -199,7 +155,7 @@ const ThreadPane = ({
     }, [dispatch, channelId, threadId, rhsState, threadFollowersThreadId]);
 
     // Get thread name from root post message
-    const threadName = post ? cleanMessageForDisplay(post.message) : '';
+    const threadName = thread.props?.custom_name || (post ? cleanMessageForDisplay(post.message, 30) : '');
 
     // Pinned button class (ThreadsInSidebar feature)
     const pinnedIconClass = classNames('channel-header__icon channel-header__icon--wide channel-header__icon--left btn btn-icon btn-xs', {

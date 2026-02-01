@@ -2494,7 +2494,7 @@ export default class Client4 {
     patchThread = (threadId: string, patch: ThreadPatch) => {
         return this.doFetch<Thread>(
             `${this.getPostRoute(threadId)}/thread`,
-            {method: 'patch', body: JSON.stringify(patch)},
+            {method: 'PATCH', body: JSON.stringify(patch)},
         );
     };
 
