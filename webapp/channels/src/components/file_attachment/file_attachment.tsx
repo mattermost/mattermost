@@ -568,8 +568,8 @@ export default function FileAttachment(props: Props) {
                     'post-image__column',
                     {'keep-open': keepOpen},
                     {'post-image__column--archived': fileInfo.archived},
-                    // Only show encrypted styling when showing placeholder, not after decryption
-                    {'post-image__column--encrypted': showEncryptedPlaceholder},
+                    // Show encrypted styling for all encrypted files (even after decryption)
+                    {'post-image__column--encrypted': isEncrypted},
                     {'post-image__column--decrypting': isDecrypting},
                     {'post-image__column--failed': hasFailed},
                     {'post-image__column--compact': compactDisplay},
