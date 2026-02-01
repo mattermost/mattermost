@@ -4,23 +4,13 @@
 import {Extension} from '@tiptap/core';
 import {Plugin, PluginKey} from '@tiptap/pm/state';
 
-import {ANCHOR_ID_PREFIX} from './comment_anchor_mark';
+import type {InlineAnchor} from 'types/store/pages';
 
-// Anchor type for inline comments
-export type InlineAnchor = {
-    anchor_id: string;
-    text: string;
-};
+import {ANCHOR_ID_PREFIX} from './comment_anchor_mark';
 
 export type InlineCommentConfig = {
     onAddComment?: (anchor: InlineAnchor & {node_path: string[]}) => void;
     onCommentClick?: (commentId: string) => void;
-    comments?: Array<{
-        id: string;
-        props: {
-            inline_anchor?: InlineAnchor;
-        };
-    }>;
     editable?: boolean;
 };
 
@@ -45,7 +35,6 @@ const InlineCommentExtension = Extension.create<InlineCommentConfig>({
         return {
             onAddComment: undefined,
             onCommentClick: undefined,
-            comments: [],
             editable: true,
         };
     },

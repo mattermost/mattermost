@@ -9,6 +9,8 @@ import {
     createTestChannel,
     getBreadcrumb,
     getPageViewerContent,
+    loginAndNavigateToChannel,
+    uniqueName,
 } from './test_helpers';
 
 /**
@@ -22,14 +24,12 @@ test(
     {tag: '@pages'},
     async ({pw, sharedPagesSetup}) => {
         const {team, user, adminClient} = sharedPagesSetup;
-        const channel = await createTestChannel(adminClient, team.id, `Test Channel ${await pw.random.id()}`);
+        const channel = await createTestChannel(adminClient, team.id, uniqueName('Test Channel'));
 
-        const {page, channelsPage} = await pw.testBrowser.login(user);
-        await channelsPage.goto(team.name, channel.name);
-        await channelsPage.toBeVisible();
+        const {page} = await loginAndNavigateToChannel(pw, user, team.name, channel.name);
 
         // # Create wiki and parent page
-        await createWikiThroughUI(page, `Test Wiki ${await pw.random.id()}`);
+        await createWikiThroughUI(page, uniqueName('Test Wiki'));
         const parentPage = await createPageThroughUI(page, 'Parent Page', 'Parent content');
 
         // * Verify parent page is currently displayed with content

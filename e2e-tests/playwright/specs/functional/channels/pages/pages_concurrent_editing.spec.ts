@@ -11,10 +11,13 @@ import {
     getEditor,
     getEditorAndWait,
     getHierarchyPanel,
+    getPageTreeNodeByTitle,
     getPageViewerContent,
+    loginAndNavigateToChannel,
     publishPage,
     createTestUserInChannel,
     selectAllText,
+    uniqueName,
     withRolePermissions,
     SHORT_WAIT,
     EDITOR_LOAD_WAIT,
@@ -38,13 +41,11 @@ test.skip(
         const channel = await adminClient.getChannelByName(team.id, 'town-square');
 
         // # User 1 creates wiki and page
-        const {page: page1, channelsPage: channelsPage1} = await pw.testBrowser.login(user1);
-        await channelsPage1.goto(team.name, channel.name);
-        await channelsPage1.toBeVisible();
+        const {page: page1} = await loginAndNavigateToChannel(pw, user1, team.name, channel.name);
 
-        const wiki = await createWikiThroughUI(page1, `Test Wiki ${await pw.random.id()}`);
+        const wiki = await createWikiThroughUI(page1, uniqueName('Test Wiki'));
         const pageTitle = 'Notification Test Page';
-        const page = await createPageThroughUI(page1, pageTitle, 'Original content');
+        const testPage = await createPageThroughUI(page1, pageTitle, 'Original content');
 
         // # Create user2 and add to channel
         const {user: user2} = await createTestUserInChannel(pw, adminClient, team, channel, 'user2');
@@ -52,14 +53,14 @@ test.skip(
         const {page: user2Page} = await pw.testBrowser.login(user2);
 
         // # User 2 navigates to page and enters edit mode
-        const wikiPageUrl = buildWikiPageUrl(pw.url, team.name, channel.id, wiki.id, page.id);
+        const wikiPageUrl = buildWikiPageUrl(pw.url, team.name, channel.id, wiki.id, testPage.id);
         await user2Page.goto(wikiPageUrl);
         await user2Page.waitForLoadState('networkidle');
 
         const user2HierarchyPanel = getHierarchyPanel(user2Page);
         await user2HierarchyPanel.waitFor({state: 'visible', timeout: HIERARCHY_TIMEOUT});
 
-        const pageNode = user2HierarchyPanel.locator('[data-testid="page-tree-node"]').filter({hasText: pageTitle});
+        const pageNode = getPageTreeNodeByTitle(user2Page, pageTitle);
         await pageNode.waitFor({state: 'visible', timeout: ELEMENT_TIMEOUT});
         await pageNode.click();
         await user2Page.waitForTimeout(EDITOR_LOAD_WAIT);
@@ -72,8 +73,7 @@ test.skip(
         await editor2.pressSequentially(' - User 2 is typing...');
 
         // # User 1 enters edit mode and publishes
-        const hierarchyPanel1 = getHierarchyPanel(page1);
-        const pageNode1 = hierarchyPanel1.locator('[data-testid="page-tree-node"]').filter({hasText: pageTitle});
+        const pageNode1 = getPageTreeNodeByTitle(page1, pageTitle);
         await pageNode1.waitFor({state: 'visible', timeout: ELEMENT_TIMEOUT});
         await pageNode1.click();
         await page1.waitForLoadState('networkidle');
@@ -120,12 +120,10 @@ test.skip(
         const channel = await adminClient.getChannelByName(team.id, 'town-square');
 
         // # User 1 creates wiki and page through UI
-        const {page: page1, channelsPage} = await pw.testBrowser.login(user1);
-        await channelsPage.goto(team.name, channel.name);
-        await channelsPage.toBeVisible();
+        const {page: page1} = await loginAndNavigateToChannel(pw, user1, team.name, channel.name);
 
-        const wiki = await createWikiThroughUI(page1, `Conflict Wiki ${await pw.random.id()}`);
-        const page = await createPageThroughUI(page1, 'Conflict Page', 'Base content here');
+        const wiki = await createWikiThroughUI(page1, uniqueName('Conflict Wiki'));
+        const testPage = await createPageThroughUI(page1, 'Conflict Page', 'Base content here');
 
         // # Create user2 and add to channel
         const {user: user2} = await createTestUserInChannel(pw, adminClient, team, channel, 'user2');
@@ -135,7 +133,7 @@ test.skip(
         await editButton1.click();
 
         const {page: user2Page} = await pw.testBrowser.login(user2);
-        await user2Page.goto(buildChannelPageUrl(pw.url, team.name, channel.name, wiki.id, page.id));
+        await user2Page.goto(buildChannelPageUrl(pw.url, team.name, channel.name, wiki.id, testPage.id));
         await user2Page.waitForLoadState('networkidle');
 
         const editButton2 = user2Page.locator('[data-testid="wiki-page-edit-button"]').first();
@@ -183,12 +181,10 @@ test.skip(
         const channel = await adminClient.getChannelByName(team.id, 'town-square');
 
         // # User 1 creates wiki and page through UI
-        const {page: page1, channelsPage} = await pw.testBrowser.login(user1);
-        await channelsPage.goto(team.name, channel.name);
-        await channelsPage.toBeVisible();
+        const {page: page1} = await loginAndNavigateToChannel(pw, user1, team.name, channel.name);
 
-        const wiki = await createWikiThroughUI(page1, `Overwrite Wiki ${await pw.random.id()}`);
-        const page = await createPageThroughUI(page1, 'Overwrite Test', 'Original text');
+        const wiki = await createWikiThroughUI(page1, uniqueName('Overwrite Wiki'));
+        const testPage = await createPageThroughUI(page1, 'Overwrite Test', 'Original text');
 
         // # Create user2 and add to channel
         const {user: user2} = await createTestUserInChannel(pw, adminClient, team, channel, 'user2');
@@ -198,7 +194,7 @@ test.skip(
         await editButton1.click();
 
         const {page: user2Page} = await pw.testBrowser.login(user2);
-        await user2Page.goto(buildChannelPageUrl(pw.url, team.name, channel.name, wiki.id, page.id));
+        await user2Page.goto(buildChannelPageUrl(pw.url, team.name, channel.name, wiki.id, testPage.id));
         await user2Page.waitForLoadState('networkidle');
 
         const editButton2 = user2Page.locator('[data-testid="wiki-page-edit-button"]').first();
@@ -253,12 +249,10 @@ test.skip(
         const channel = await adminClient.getChannelByName(team.id, 'town-square');
 
         // # User 1 creates wiki and page through UI
-        const {page: page1, channelsPage} = await pw.testBrowser.login(user1);
-        await channelsPage.goto(team.name, channel.name);
-        await channelsPage.toBeVisible();
+        const {page: page1} = await loginAndNavigateToChannel(pw, user1, team.name, channel.name);
 
-        const wiki = await createWikiThroughUI(page1, `Collaborative Wiki ${await pw.random.id()}`);
-        const page = await createPageThroughUI(page1, 'Collaborative Page', 'Shared content');
+        const wiki = await createWikiThroughUI(page1, uniqueName('Collaborative Wiki'));
+        const testPage = await createPageThroughUI(page1, 'Collaborative Page', 'Shared content');
 
         // # Create user2 and add to channel
         const {user: user2} = await createTestUserInChannel(pw, adminClient, team, channel, 'user2');
@@ -269,7 +263,7 @@ test.skip(
 
         // # User 2 views same page
         const {page: user2Page} = await pw.testBrowser.login(user2);
-        await user2Page.goto(buildChannelPageUrl(pw.url, team.name, channel.name, wiki.id, page.id));
+        await user2Page.goto(buildChannelPageUrl(pw.url, team.name, channel.name, wiki.id, testPage.id));
         await user2Page.waitForLoadState('networkidle');
 
         // * Verify User 2 sees "User 1 is editing" indicator (implementation-specific)
@@ -312,11 +306,9 @@ test.skip(
         const channel = await adminClient.getChannelByName(team.id, 'town-square');
 
         // # User 1 creates wiki and page through UI
-        const {page: page1, channelsPage} = await pw.testBrowser.login(user1);
-        await channelsPage.goto(team.name, channel.name);
-        await channelsPage.toBeVisible();
+        const {page: page1} = await loginAndNavigateToChannel(pw, user1, team.name, channel.name);
 
-        const wiki = await createWikiThroughUI(page1, `Merge Wiki ${await pw.random.id()}`);
+        const wiki = await createWikiThroughUI(page1, uniqueName('Merge Wiki'));
         const testPage = await createPageThroughUI(page1, 'Merge Test', 'Section A content.\n\nSection B content.');
 
         // # Create user2 and add to channel
@@ -405,11 +397,9 @@ test(
         const channel = await adminClient.getChannelByName(team.id, 'town-square');
 
         // # User 1: Create wiki and page, then enter edit mode
-        const {page: page1, channelsPage: channelsPage1} = await pw.testBrowser.login(user1);
-        await channelsPage1.goto(team.name, channel.name);
-        await channelsPage1.toBeVisible();
+        const {page: page1} = await loginAndNavigateToChannel(pw, user1, team.name, channel.name);
 
-        const wiki = await createWikiThroughUI(page1, `Concurrent Wiki ${await pw.random.id()}`);
+        const wiki = await createWikiThroughUI(page1, uniqueName('Concurrent Wiki'));
         const testPage = await createPageThroughUI(page1, 'Concurrent Edit Page', 'Original content');
 
         // # User 1: Enter edit mode and make changes (but don't save yet)
@@ -547,12 +537,9 @@ test(
         const channel = await adminClient.getChannelByName(team.id, 'town-square');
 
         // # User 1: Create wiki and page, then enter edit mode
-        const {page: page1, channelsPage: channelsPage1} = await pw.testBrowser.login(user1);
+        const {page: page1} = await loginAndNavigateToChannel(pw, user1, team.name, channel.name);
 
-        await channelsPage1.goto(team.name, channel.name);
-        await channelsPage1.toBeVisible();
-
-        const wiki = await createWikiThroughUI(page1, `Overwrite Wiki ${await pw.random.id()}`);
+        const wiki = await createWikiThroughUI(page1, uniqueName('Overwrite Wiki'));
         const testPage = await createPageThroughUI(page1, 'Overwrite Test Page', 'Original content');
 
         // # User 1: Enter edit mode and make changes (but don't save yet)
@@ -690,18 +677,15 @@ test.skip(
         const channel = await adminClient.getChannelByName(team.id, 'town-square');
 
         // # User 1 creates wiki and page
-        const {page: page1, channelsPage: channelsPage1} = await pw.testBrowser.login(user1);
-        await channelsPage1.goto(team.name, channel.name);
-        await channelsPage1.toBeVisible();
+        const {page: page1} = await loginAndNavigateToChannel(pw, user1, team.name, channel.name);
 
-        const wiki = await createWikiThroughUI(page1, `Test Wiki ${await pw.random.id()}`);
+        const wiki = await createWikiThroughUI(page1, uniqueName('Test Wiki'));
         const pageTitle = 'Conflict Test Page';
         const originalContent = 'Original content that both users will modify';
         const createdPage = await createPageThroughUI(page1, pageTitle, originalContent);
 
         // # User 1 enters edit mode
-        const hierarchyPanel = getHierarchyPanel(page1);
-        const pageNode = hierarchyPanel.locator('[data-testid="page-tree-node"]').filter({hasText: pageTitle});
+        const pageNode = getPageTreeNodeByTitle(page1, pageTitle);
         await pageNode.waitFor({state: 'visible', timeout: ELEMENT_TIMEOUT});
         await pageNode.click();
         await page1.waitForLoadState('networkidle');
@@ -721,7 +705,7 @@ test.skip(
         const user2HierarchyPanel = getHierarchyPanel(user2Page);
         await user2HierarchyPanel.waitFor({state: 'visible', timeout: HIERARCHY_TIMEOUT});
 
-        const pageNode2 = user2HierarchyPanel.locator('[data-testid="page-tree-node"]').filter({hasText: pageTitle});
+        const pageNode2 = getPageTreeNodeByTitle(user2Page, pageTitle);
         await pageNode2.waitFor({state: 'visible', timeout: ELEMENT_TIMEOUT});
         await pageNode2.click();
         await user2Page.waitForTimeout(EDITOR_LOAD_WAIT);
@@ -790,18 +774,15 @@ test(
         const channel = await adminClient.getChannelByName(team.id, 'town-square');
 
         // # User 1 creates wiki and page
-        const {page: page1, channelsPage: channelsPage1} = await pw.testBrowser.login(user1);
-        await channelsPage1.goto(team.name, channel.name);
-        await channelsPage1.toBeVisible();
+        const {page: page1} = await loginAndNavigateToChannel(pw, user1, team.name, channel.name);
 
-        const wiki = await createWikiThroughUI(page1, `Test Wiki ${await pw.random.id()}`);
+        const wiki = await createWikiThroughUI(page1, uniqueName('Test Wiki'));
         const pageTitle = 'Continue Editing Test';
         const originalContent = 'Original content';
         const createdPage = await createPageThroughUI(page1, pageTitle, originalContent);
 
         // # User 1 enters edit mode
-        const hierarchyPanel = getHierarchyPanel(page1);
-        const pageNode = hierarchyPanel.locator('[data-testid="page-tree-node"]').filter({hasText: pageTitle});
+        const pageNode = getPageTreeNodeByTitle(page1, pageTitle);
         await pageNode.waitFor({state: 'visible', timeout: ELEMENT_TIMEOUT});
         await pageNode.click();
         await page1.waitForLoadState('networkidle');
@@ -821,7 +802,7 @@ test(
         const user2HierarchyPanel = getHierarchyPanel(user2Page);
         await user2HierarchyPanel.waitFor({state: 'visible', timeout: HIERARCHY_TIMEOUT});
 
-        const pageNode2 = user2HierarchyPanel.locator('[data-testid="page-tree-node"]').filter({hasText: pageTitle});
+        const pageNode2 = getPageTreeNodeByTitle(user2Page, pageTitle);
         await pageNode2.waitFor({state: 'visible', timeout: ELEMENT_TIMEOUT});
         await pageNode2.click();
         await user2Page.waitForTimeout(EDITOR_LOAD_WAIT);
@@ -898,18 +879,15 @@ test(
         const channel = await adminClient.getChannelByName(team.id, 'town-square');
 
         // # User 1 creates wiki and page
-        const {page: page1, channelsPage: channelsPage1} = await pw.testBrowser.login(user1);
-        await channelsPage1.goto(team.name, channel.name);
-        await channelsPage1.toBeVisible();
+        const {page: page1} = await loginAndNavigateToChannel(pw, user1, team.name, channel.name);
 
-        const wiki = await createWikiThroughUI(page1, `Test Wiki ${await pw.random.id()}`);
+        const wiki = await createWikiThroughUI(page1, uniqueName('Test Wiki'));
         const pageTitle = 'Back to Editing Test';
         const originalContent = 'Original content to be edited';
         const createdPage = await createPageThroughUI(page1, pageTitle, originalContent);
 
         // # User 1 enters edit mode
-        const hierarchyPanel = getHierarchyPanel(page1);
-        const pageNode = hierarchyPanel.locator('[data-testid="page-tree-node"]').filter({hasText: pageTitle});
+        const pageNode = getPageTreeNodeByTitle(page1, pageTitle);
         await pageNode.waitFor({state: 'visible', timeout: ELEMENT_TIMEOUT});
         await pageNode.click();
         await page1.waitForLoadState('networkidle');
@@ -929,7 +907,7 @@ test(
         const user2HierarchyPanel = getHierarchyPanel(user2Page);
         await user2HierarchyPanel.waitFor({state: 'visible', timeout: HIERARCHY_TIMEOUT});
 
-        const pageNode2 = user2HierarchyPanel.locator('[data-testid="page-tree-node"]').filter({hasText: pageTitle});
+        const pageNode2 = getPageTreeNodeByTitle(user2Page, pageTitle);
         await pageNode2.waitFor({state: 'visible', timeout: ELEMENT_TIMEOUT});
         await pageNode2.click();
         await user2Page.waitForTimeout(EDITOR_LOAD_WAIT);

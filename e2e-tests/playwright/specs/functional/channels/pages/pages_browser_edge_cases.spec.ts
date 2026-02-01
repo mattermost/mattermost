@@ -13,6 +13,8 @@ import {
     getEditorAndWait,
     typeInEditor,
     getHierarchyPanel,
+    loginAndNavigateToChannel,
+    uniqueName,
     SHORT_WAIT,
     EDITOR_LOAD_WAIT,
     AUTOSAVE_WAIT,
@@ -29,12 +31,10 @@ test.skip('warns when navigating away with unsaved changes', {tag: '@pages'}, as
     const {team, user, adminClient} = sharedPagesSetup;
     const channel = await adminClient.getChannelByName(team.id, 'town-square');
 
-    const {page, channelsPage} = await pw.testBrowser.login(user);
-    await channelsPage.goto(team.name, channel.name);
-    await channelsPage.toBeVisible();
+    const {page} = await loginAndNavigateToChannel(pw, user, team.name, channel.name);
 
     // # Create wiki through UI
-    await createWikiThroughUI(page, `Unsaved Changes Wiki ${await pw.random.id()}`);
+    await createWikiThroughUI(page, uniqueName('Unsaved Changes Wiki'));
 
     // # Create new page
     // Scope to pages hierarchy panel to avoid strict mode violations with duplicate elements
@@ -93,12 +93,10 @@ test.skip(
         const {team, user, adminClient} = sharedPagesSetup;
         const channel = await adminClient.getChannelByName(team.id, 'town-square');
 
-        const {page, channelsPage} = await pw.testBrowser.login(user);
-        await channelsPage.goto(team.name, channel.name);
-        await channelsPage.toBeVisible();
+        const {page} = await loginAndNavigateToChannel(pw, user, team.name, channel.name);
 
         // # Create wiki and published page through UI
-        const wiki = await createWikiThroughUI(page, `Back Button Wiki ${await pw.random.id()}`);
+        const wiki = await createWikiThroughUI(page, uniqueName('Back Button Wiki'));
         const publishedPage = await createPageThroughUI(page, 'Published Page', 'Original content');
 
         // Navigate to page
@@ -134,12 +132,10 @@ test.skip('preserves scroll position when navigating back to page', {tag: '@page
     const {team, user, adminClient} = sharedPagesSetup;
     const channel = await adminClient.getChannelByName(team.id, 'town-square');
 
-    const {page, channelsPage} = await pw.testBrowser.login(user);
-    await channelsPage.goto(team.name, channel.name);
-    await channelsPage.toBeVisible();
+    const {page} = await loginAndNavigateToChannel(pw, user, team.name, channel.name);
 
     // # Create wiki through UI
-    await createWikiThroughUI(page, `Scroll Wiki ${await pw.random.id()}`);
+    await createWikiThroughUI(page, uniqueName('Scroll Wiki'));
 
     // # Create page with long content through UI
     const newPageButton = getNewPageButton(page);
@@ -190,12 +186,10 @@ test('handles browser refresh during edit without data loss', {tag: '@pages'}, a
     const {team, user, adminClient} = sharedPagesSetup;
     const channel = await adminClient.getChannelByName(team.id, 'town-square');
 
-    const {page, channelsPage} = await pw.testBrowser.login(user);
-    await channelsPage.goto(team.name, channel.name);
-    await channelsPage.toBeVisible();
+    const {page} = await loginAndNavigateToChannel(pw, user, team.name, channel.name);
 
     // # Create wiki through UI
-    await createWikiThroughUI(page, `Refresh Wiki ${await pw.random.id()}`);
+    await createWikiThroughUI(page, uniqueName('Refresh Wiki'));
 
     // Reload to ensure clean state (wiki is already visible after creation)
     await page.reload();

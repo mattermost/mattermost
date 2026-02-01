@@ -12,6 +12,8 @@ import {
     enterEditMode,
     waitForEditModeReady,
     clearEditorContent,
+    loginAndNavigateToChannel,
+    uniqueName,
     ELEMENT_TIMEOUT,
     EDITOR_LOAD_WAIT,
 } from './test_helpers';
@@ -21,14 +23,12 @@ import {
  */
 test('MINIMAL: shows outline after publishing page with heading', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
     const {team, user, adminClient} = sharedPagesSetup;
-    const channel = await createTestChannel(adminClient, team.id, `Test Channel ${await pw.random.id()}`);
+    const channel = await createTestChannel(adminClient, team.id, uniqueName('Test Channel'));
 
-    const {page, channelsPage} = await pw.testBrowser.login(user);
-    await channelsPage.goto(team.name, channel.name);
-    await channelsPage.toBeVisible();
+    const {page} = await loginAndNavigateToChannel(pw, user, team.name, channel.name);
 
     // # Create wiki
-    await createWikiThroughUI(page, `Minimal Test Wiki ${await pw.random.id()}`);
+    await createWikiThroughUI(page, uniqueName('Minimal Test Wiki'));
 
     // # Create page with empty content
     const page1 = await createPageThroughUI(page, 'Test Page', ' ');

@@ -8,6 +8,8 @@ import {
     fillCreatePageModal,
     openSlashCommandMenu,
     getEditorAndWait,
+    loginAndNavigateToChannel,
+    uniqueName,
     ELEMENT_TIMEOUT,
     WEBSOCKET_WAIT,
     UI_MICRO_WAIT,
@@ -21,13 +23,10 @@ test('shows emoji option in slash command menu', {tag: '@pages'}, async ({pw, sh
     const {team, user, adminClient} = sharedPagesSetup;
     const channel = await adminClient.getChannelByName(team.id, 'town-square');
 
-    const {page, channelsPage} = await pw.testBrowser.login(user);
-
-    await channelsPage.goto(team.name, channel.name);
-    await channelsPage.toBeVisible();
+    const {page} = await loginAndNavigateToChannel(pw, user, team.name, channel.name);
 
     // # Create wiki and page
-    await createWikiThroughUI(page, `Emoji Menu Wiki ${await pw.random.id()}`);
+    await createWikiThroughUI(page, uniqueName('Emoji Menu Wiki'));
     const newPageButton = getNewPageButton(page);
     await newPageButton.click();
     await fillCreatePageModal(page, 'Emoji Menu Test');
@@ -46,13 +45,10 @@ test('filters to emoji when typing emoji in slash command menu', {tag: '@pages'}
     const {team, user, adminClient} = sharedPagesSetup;
     const channel = await adminClient.getChannelByName(team.id, 'town-square');
 
-    const {page, channelsPage} = await pw.testBrowser.login(user);
-
-    await channelsPage.goto(team.name, channel.name);
-    await channelsPage.toBeVisible();
+    const {page} = await loginAndNavigateToChannel(pw, user, team.name, channel.name);
 
     // # Create wiki and page
-    await createWikiThroughUI(page, `Emoji Filter Wiki ${await pw.random.id()}`);
+    await createWikiThroughUI(page, uniqueName('Emoji Filter Wiki'));
     const newPageButton = getNewPageButton(page);
     await newPageButton.click();
     await fillCreatePageModal(page, 'Emoji Filter Test');
@@ -81,13 +77,10 @@ test(
         const {team, user, adminClient} = sharedPagesSetup;
         const channel = await adminClient.getChannelByName(team.id, 'town-square');
 
-        const {page, channelsPage} = await pw.testBrowser.login(user);
-
-        await channelsPage.goto(team.name, channel.name);
-        await channelsPage.toBeVisible();
+        const {page} = await loginAndNavigateToChannel(pw, user, team.name, channel.name);
 
         // # Create wiki and page
-        await createWikiThroughUI(page, `Emoji Picker Wiki ${await pw.random.id()}`);
+        await createWikiThroughUI(page, uniqueName('Emoji Picker Wiki'));
         const newPageButton = getNewPageButton(page);
         await newPageButton.click();
         await fillCreatePageModal(page, 'Emoji Picker Test');
@@ -119,13 +112,10 @@ test('inserts system emoji as Unicode character', {tag: '@pages'}, async ({pw, s
     const {team, user, adminClient} = sharedPagesSetup;
     const channel = await adminClient.getChannelByName(team.id, 'town-square');
 
-    const {page, channelsPage} = await pw.testBrowser.login(user);
-
-    await channelsPage.goto(team.name, channel.name);
-    await channelsPage.toBeVisible();
+    const {page} = await loginAndNavigateToChannel(pw, user, team.name, channel.name);
 
     // # Create wiki and page
-    await createWikiThroughUI(page, `Emoji Insert Wiki ${await pw.random.id()}`);
+    await createWikiThroughUI(page, uniqueName('Emoji Insert Wiki'));
     const newPageButton = getNewPageButton(page);
     await newPageButton.click();
     await fillCreatePageModal(page, 'Emoji Insert Test');
@@ -186,13 +176,10 @@ test('closes emoji picker after emoji selection', {tag: '@pages'}, async ({pw, s
     const {team, user, adminClient} = sharedPagesSetup;
     const channel = await adminClient.getChannelByName(team.id, 'town-square');
 
-    const {page, channelsPage} = await pw.testBrowser.login(user);
-
-    await channelsPage.goto(team.name, channel.name);
-    await channelsPage.toBeVisible();
+    const {page} = await loginAndNavigateToChannel(pw, user, team.name, channel.name);
 
     // # Create wiki and page
-    await createWikiThroughUI(page, `Emoji Close Wiki ${await pw.random.id()}`);
+    await createWikiThroughUI(page, uniqueName('Emoji Close Wiki'));
     const newPageButton = getNewPageButton(page);
     await newPageButton.click();
     await fillCreatePageModal(page, 'Emoji Close Test');
@@ -232,13 +219,10 @@ test('finds emoji via alias search in slash command menu', {tag: '@pages'}, asyn
     const {team, user, adminClient} = sharedPagesSetup;
     const channel = await adminClient.getChannelByName(team.id, 'town-square');
 
-    const {page, channelsPage} = await pw.testBrowser.login(user);
-
-    await channelsPage.goto(team.name, channel.name);
-    await channelsPage.toBeVisible();
+    const {page} = await loginAndNavigateToChannel(pw, user, team.name, channel.name);
 
     // # Create wiki and page
-    await createWikiThroughUI(page, `Emoji Alias Wiki ${await pw.random.id()}`);
+    await createWikiThroughUI(page, uniqueName('Emoji Alias Wiki'));
     const newPageButton = getNewPageButton(page);
     await newPageButton.click();
     await fillCreatePageModal(page, 'Emoji Alias Test');
@@ -262,13 +246,10 @@ test('finds emoji via emoticon alias in slash command menu', {tag: '@pages'}, as
     const {team, user, adminClient} = sharedPagesSetup;
     const channel = await adminClient.getChannelByName(team.id, 'town-square');
 
-    const {page, channelsPage} = await pw.testBrowser.login(user);
-
-    await channelsPage.goto(team.name, channel.name);
-    await channelsPage.toBeVisible();
+    const {page} = await loginAndNavigateToChannel(pw, user, team.name, channel.name);
 
     // # Create wiki and page
-    await createWikiThroughUI(page, `Emoticon Alias Wiki ${await pw.random.id()}`);
+    await createWikiThroughUI(page, uniqueName('Emoticon Alias Wiki'));
     const newPageButton = getNewPageButton(page);
     await newPageButton.click();
     await fillCreatePageModal(page, 'Emoticon Alias Test');
@@ -299,13 +280,10 @@ test(
         const {team, user, adminClient} = sharedPagesSetup;
         const channel = await adminClient.getChannelByName(team.id, 'town-square');
 
-        const {page, channelsPage} = await pw.testBrowser.login(user);
-
-        await channelsPage.goto(team.name, channel.name);
-        await channelsPage.toBeVisible();
+        const {page} = await loginAndNavigateToChannel(pw, user, team.name, channel.name);
 
         // # Create wiki and page
-        await createWikiThroughUI(page, `Emoji Autocomplete Wiki ${await pw.random.id()}`);
+        await createWikiThroughUI(page, uniqueName('Emoji Autocomplete Wiki'));
         const newPageButton = getNewPageButton(page);
         await newPageButton.click();
         await fillCreatePageModal(page, 'Emoji Autocomplete Test');
@@ -336,13 +314,10 @@ test(
         const {team, user, adminClient} = sharedPagesSetup;
         const channel = await adminClient.getChannelByName(team.id, 'town-square');
 
-        const {page, channelsPage} = await pw.testBrowser.login(user);
-
-        await channelsPage.goto(team.name, channel.name);
-        await channelsPage.toBeVisible();
+        const {page} = await loginAndNavigateToChannel(pw, user, team.name, channel.name);
 
         // # Create wiki and page
-        await createWikiThroughUI(page, `Emoji Min Chars Wiki ${await pw.random.id()}`);
+        await createWikiThroughUI(page, uniqueName('Emoji Min Chars Wiki'));
         const newPageButton = getNewPageButton(page);
         await newPageButton.click();
         await fillCreatePageModal(page, 'Emoji Min Chars Test');
@@ -366,13 +341,10 @@ test('selects emoji with Enter key from autocomplete', {tag: '@pages'}, async ({
     const {team, user, adminClient} = sharedPagesSetup;
     const channel = await adminClient.getChannelByName(team.id, 'town-square');
 
-    const {page, channelsPage} = await pw.testBrowser.login(user);
-
-    await channelsPage.goto(team.name, channel.name);
-    await channelsPage.toBeVisible();
+    const {page} = await loginAndNavigateToChannel(pw, user, team.name, channel.name);
 
     // # Create wiki and page
-    await createWikiThroughUI(page, `Emoji Enter Select Wiki ${await pw.random.id()}`);
+    await createWikiThroughUI(page, uniqueName('Emoji Enter Select Wiki'));
     const newPageButton = getNewPageButton(page);
     await newPageButton.click();
     await fillCreatePageModal(page, 'Emoji Enter Select Test');
@@ -406,13 +378,10 @@ test('navigates emoji suggestions with arrow keys', {tag: '@pages'}, async ({pw,
     const {team, user, adminClient} = sharedPagesSetup;
     const channel = await adminClient.getChannelByName(team.id, 'town-square');
 
-    const {page, channelsPage} = await pw.testBrowser.login(user);
-
-    await channelsPage.goto(team.name, channel.name);
-    await channelsPage.toBeVisible();
+    const {page} = await loginAndNavigateToChannel(pw, user, team.name, channel.name);
 
     // # Create wiki and page
-    await createWikiThroughUI(page, `Emoji Arrow Nav Wiki ${await pw.random.id()}`);
+    await createWikiThroughUI(page, uniqueName('Emoji Arrow Nav Wiki'));
     const newPageButton = getNewPageButton(page);
     await newPageButton.click();
     await fillCreatePageModal(page, 'Emoji Arrow Nav Test');
@@ -454,13 +423,10 @@ test('closes emoji autocomplete with Escape key', {tag: '@pages'}, async ({pw, s
     const {team, user, adminClient} = sharedPagesSetup;
     const channel = await adminClient.getChannelByName(team.id, 'town-square');
 
-    const {page, channelsPage} = await pw.testBrowser.login(user);
-
-    await channelsPage.goto(team.name, channel.name);
-    await channelsPage.toBeVisible();
+    const {page} = await loginAndNavigateToChannel(pw, user, team.name, channel.name);
 
     // # Create wiki and page
-    await createWikiThroughUI(page, `Emoji Escape Wiki ${await pw.random.id()}`);
+    await createWikiThroughUI(page, uniqueName('Emoji Escape Wiki'));
     const newPageButton = getNewPageButton(page);
     await newPageButton.click();
     await fillCreatePageModal(page, 'Emoji Escape Test');
@@ -494,13 +460,10 @@ test('inserts system emoji as Unicode via autocomplete', {tag: '@pages'}, async 
     const {team, user, adminClient} = sharedPagesSetup;
     const channel = await adminClient.getChannelByName(team.id, 'town-square');
 
-    const {page, channelsPage} = await pw.testBrowser.login(user);
-
-    await channelsPage.goto(team.name, channel.name);
-    await channelsPage.toBeVisible();
+    const {page} = await loginAndNavigateToChannel(pw, user, team.name, channel.name);
 
     // # Create wiki and page
-    await createWikiThroughUI(page, `Emoji Unicode Wiki ${await pw.random.id()}`);
+    await createWikiThroughUI(page, uniqueName('Emoji Unicode Wiki'));
     const newPageButton = getNewPageButton(page);
     await newPageButton.click();
     await fillCreatePageModal(page, 'Emoji Unicode Test');

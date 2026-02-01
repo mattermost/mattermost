@@ -12,6 +12,7 @@ import {
     getEditorAndWait,
     loginAndNavigateToChannel,
     openSlashCommandMenu,
+    uniqueName,
     SHORT_WAIT,
     WEBSOCKET_WAIT,
     ELEMENT_TIMEOUT,
@@ -35,7 +36,7 @@ test(
         const {page} = await loginAndNavigateToChannel(pw, user, team.name, channel.name);
 
         // # Create wiki through UI
-        await createWikiThroughUI(page, `PDF Upload Wiki ${await pw.random.id()}`);
+        await createWikiThroughUI(page, uniqueName('PDF Upload Wiki'));
 
         // # Create new page
         const newPageButton = getNewPageButton(page);
@@ -118,7 +119,7 @@ test(
         const {page} = await loginAndNavigateToChannel(pw, user, team.name, channel.name);
 
         // # Create wiki through UI
-        await createWikiThroughUI(page, `File Paste Wiki ${await pw.random.id()}`);
+        await createWikiThroughUI(page, uniqueName('File Paste Wiki'));
 
         // # Create new page
         const newPageButton = getNewPageButton(page);
@@ -193,7 +194,7 @@ test('rejects executable files in editor', {tag: '@pages'}, async ({pw, sharedPa
     const {page} = await loginAndNavigateToChannel(pw, user, team.name, channel.name);
 
     // # Create wiki through UI
-    await createWikiThroughUI(page, `Executable Rejection Wiki ${await pw.random.id()}`);
+    await createWikiThroughUI(page, uniqueName('Executable Rejection Wiki'));
 
     // # Create new page
     const newPageButton = getNewPageButton(page);
@@ -254,7 +255,7 @@ test('rejects shell script files in editor', {tag: '@pages'}, async ({pw, shared
     const {page} = await loginAndNavigateToChannel(pw, user, team.name, channel.name);
 
     // # Create wiki through UI
-    await createWikiThroughUI(page, `Shell Script Rejection Wiki ${await pw.random.id()}`);
+    await createWikiThroughUI(page, uniqueName('Shell Script Rejection Wiki'));
 
     // # Create new page
     const newPageButton = getNewPageButton(page);
@@ -311,7 +312,7 @@ test('uploads text file and displays as file attachment', {tag: '@pages'}, async
     const {page} = await loginAndNavigateToChannel(pw, user, team.name, channel.name);
 
     // # Create wiki through UI
-    await createWikiThroughUI(page, `Text File Wiki ${await pw.random.id()}`);
+    await createWikiThroughUI(page, uniqueName('Text File Wiki'));
 
     // # Create new page
     const newPageButton = getNewPageButton(page);
@@ -373,7 +374,7 @@ test('uploads ZIP file and displays as file attachment', {tag: '@pages'}, async 
     const {page} = await loginAndNavigateToChannel(pw, user, team.name, channel.name);
 
     // # Create wiki through UI
-    await createWikiThroughUI(page, `ZIP File Wiki ${await pw.random.id()}`);
+    await createWikiThroughUI(page, uniqueName('ZIP File Wiki'));
 
     // # Create new page
     const newPageButton = getNewPageButton(page);
@@ -475,7 +476,7 @@ test('deletes file attachment from editor using delete button', {tag: '@pages'},
     const {page} = await loginAndNavigateToChannel(pw, user, team.name, channel.name);
 
     // # Create wiki through UI
-    await createWikiThroughUI(page, `Delete File Wiki ${await pw.random.id()}`);
+    await createWikiThroughUI(page, uniqueName('Delete File Wiki'));
 
     // # Create new page
     const newPageButton = getNewPageButton(page);
@@ -541,7 +542,7 @@ test('supports mixed media and file attachments in same page', {tag: '@pages'}, 
     const {page} = await loginAndNavigateToChannel(pw, user, team.name, channel.name);
 
     // # Create wiki through UI
-    await createWikiThroughUI(page, `Mixed Files Wiki ${await pw.random.id()}`);
+    await createWikiThroughUI(page, uniqueName('Mixed Files Wiki'));
 
     // # Create new page
     const newPageButton = getNewPageButton(page);

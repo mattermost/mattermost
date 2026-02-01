@@ -10,6 +10,8 @@ import {
     fillCreatePageModal,
     publishCurrentPage,
     getEditorAndWait,
+    loginAndNavigateToChannel,
+    uniqueName,
     SHORT_WAIT,
     EDITOR_LOAD_WAIT,
     ELEMENT_TIMEOUT,
@@ -22,15 +24,13 @@ test('searches pages by title in wiki tree panel', {tag: '@pages'}, async ({pw, 
     const {team, user, adminClient} = sharedPagesSetup;
     const channel = await adminClient.getChannelByName(team.id, 'town-square');
 
-    const {page, channelsPage} = await pw.testBrowser.login(user);
-    await channelsPage.goto(team.name, channel.name);
-    await channelsPage.toBeVisible();
+    const {page} = await loginAndNavigateToChannel(pw, user, team.name, channel.name);
 
     // # Create wiki through UI
-    await createWikiThroughUI(page, `Search Wiki ${await pw.random.id()}`);
+    await createWikiThroughUI(page, uniqueName('Search Wiki'));
 
     // # Create multiple pages with different titles through UI
-    const searchableTitle = `UniqueSearchableTitle${await pw.random.id()}`;
+    const searchableTitle = uniqueName('UniqueSearchableTitle');
     await createPageThroughUI(page, searchableTitle, 'Some content');
     await createPageThroughUI(page, 'Other Page Title', 'Different content');
     await createPageThroughUI(page, 'Another Page', 'More content');
@@ -60,16 +60,14 @@ test('wiki tree panel search filters by title only', {tag: '@pages'}, async ({pw
     const {team, user, adminClient} = sharedPagesSetup;
     const channel = await adminClient.getChannelByName(team.id, 'town-square');
 
-    const {page, channelsPage} = await pw.testBrowser.login(user);
-    await channelsPage.goto(team.name, channel.name);
-    await channelsPage.toBeVisible();
+    const {page} = await loginAndNavigateToChannel(pw, user, team.name, channel.name);
 
     // # Create wiki through UI
-    await createWikiThroughUI(page, `Tree Filter Wiki ${await pw.random.id()}`);
+    await createWikiThroughUI(page, uniqueName('Tree Filter Wiki'));
 
     // # Create page with specific title and different content
     const pageTitle = 'Engineering Documentation';
-    const uniqueContent = `UniqueInternalContent${await pw.random.id()}`;
+    const uniqueContent = uniqueName('UniqueInternalContent');
     const newPageButton = getNewPageButton(page);
     await newPageButton.click();
     await fillCreatePageModal(page, pageTitle);
@@ -109,15 +107,13 @@ test('searches pages by title using global search', {tag: '@pages'}, async ({pw,
     const {team, user, adminClient} = sharedPagesSetup;
     const channel = await adminClient.getChannelByName(team.id, 'town-square');
 
-    const {page, channelsPage} = await pw.testBrowser.login(user);
-    await channelsPage.goto(team.name, channel.name);
-    await channelsPage.toBeVisible();
+    const {page, channelsPage} = await loginAndNavigateToChannel(pw, user, team.name, channel.name);
 
     // # Create wiki through UI
-    await createWikiThroughUI(page, `Global Search Wiki ${await pw.random.id()}`);
+    await createWikiThroughUI(page, uniqueName('Global Search Wiki'));
 
     // # Create page with unique title through UI
-    const searchableTitle = `GlobalSearchableTitle${await pw.random.id()}`;
+    const searchableTitle = uniqueName('GlobalSearchableTitle');
     await createPageThroughUI(page, searchableTitle, 'Test content for global search');
 
     // # Wait for page to be indexed (pages need to be saved to PageContents for search)
@@ -144,15 +140,13 @@ test('searches pages by content using global search', {tag: '@pages'}, async ({p
     const {team, user, adminClient} = sharedPagesSetup;
     const channel = await adminClient.getChannelByName(team.id, 'town-square');
 
-    const {page, channelsPage} = await pw.testBrowser.login(user);
-    await channelsPage.goto(team.name, channel.name);
-    await channelsPage.toBeVisible();
+    const {page, channelsPage} = await loginAndNavigateToChannel(pw, user, team.name, channel.name);
 
     // # Create wiki through UI
-    await createWikiThroughUI(page, `Content Global Search Wiki ${await pw.random.id()}`);
+    await createWikiThroughUI(page, uniqueName('Content Global Search Wiki'));
 
     // # Create page with unique content through UI
-    const uniqueContent = `GlobalSearchContent${await pw.random.id()}`;
+    const uniqueContent = uniqueName('GlobalSearchContent');
     const pageTitle = 'Page for Global Content Search';
     const newPageButton = getNewPageButton(page);
     await newPageButton.click();
@@ -220,13 +214,11 @@ test('type:page modifier filters to pages only', {tag: '@pages'}, async ({pw, sh
     const {team, user, adminClient} = sharedPagesSetup;
     const channel = await adminClient.getChannelByName(team.id, 'town-square');
 
-    const {page, channelsPage} = await pw.testBrowser.login(user);
-    await channelsPage.goto(team.name, channel.name);
-    await channelsPage.toBeVisible();
+    const {page, channelsPage} = await loginAndNavigateToChannel(pw, user, team.name, channel.name);
 
     // # Create wiki and page with unique content
-    await createWikiThroughUI(page, `TypeModifier Wiki ${await pw.random.id()}`);
-    const uniqueKeyword = `TypeFilterTest${await pw.random.id()}`;
+    await createWikiThroughUI(page, uniqueName('TypeModifier Wiki'));
+    const uniqueKeyword = uniqueName('TypeFilterTest');
     await createPageThroughUI(page, `Page with ${uniqueKeyword}`, `Content ${uniqueKeyword}`);
 
     // # Create a regular post with the same keyword
@@ -265,13 +257,11 @@ test('-type:page modifier excludes pages', {tag: '@pages'}, async ({pw, sharedPa
     const {team, user, adminClient} = sharedPagesSetup;
     const channel = await adminClient.getChannelByName(team.id, 'town-square');
 
-    const {page, channelsPage} = await pw.testBrowser.login(user);
-    await channelsPage.goto(team.name, channel.name);
-    await channelsPage.toBeVisible();
+    const {page, channelsPage} = await loginAndNavigateToChannel(pw, user, team.name, channel.name);
 
     // # Create wiki and page with unique content
-    await createWikiThroughUI(page, `ExcludeType Wiki ${await pw.random.id()}`);
-    const uniqueKeyword = `ExcludeTypeTest${await pw.random.id()}`;
+    await createWikiThroughUI(page, uniqueName('ExcludeType Wiki'));
+    const uniqueKeyword = uniqueName('ExcludeTypeTest');
     await createPageThroughUI(page, `Page with ${uniqueKeyword}`, `Content ${uniqueKeyword}`);
 
     // # Create a regular post with the same keyword
@@ -308,20 +298,18 @@ test('wiki: modifier filters by wiki name', {tag: '@pages'}, async ({pw, sharedP
     const {team, user, adminClient} = sharedPagesSetup;
     const channel = await adminClient.getChannelByName(team.id, 'town-square');
 
-    const {page, channelsPage} = await pw.testBrowser.login(user);
-    await channelsPage.goto(team.name, channel.name);
-    await channelsPage.toBeVisible();
+    const {page, channelsPage} = await loginAndNavigateToChannel(pw, user, team.name, channel.name);
 
     // # Create first wiki with a page
-    const wiki1Name = `ProductDocs${await pw.random.id()}`;
+    const wiki1Name = uniqueName('ProductDocs');
     await createWikiThroughUI(page, wiki1Name);
-    const uniqueKeyword = `WikiFilterTest${await pw.random.id()}`;
+    const uniqueKeyword = uniqueName('WikiFilterTest');
     await createPageThroughUI(page, `Page in ${wiki1Name}`, `Content ${uniqueKeyword} in product docs`);
 
     // # Navigate back to channel and create second wiki with a page
     await channelsPage.goto(team.name, channel.name);
     await channelsPage.toBeVisible();
-    const wiki2Name = `EngineeringNotes${await pw.random.id()}`;
+    const wiki2Name = uniqueName('EngineeringNotes');
     await createWikiThroughUI(page, wiki2Name);
     await createPageThroughUI(page, `Page in ${wiki2Name}`, `Content ${uniqueKeyword} in engineering notes`);
 
@@ -355,14 +343,12 @@ test('combined type:page wiki: modifiers', {tag: '@pages'}, async ({pw, sharedPa
     const {team, user, adminClient} = sharedPagesSetup;
     const channel = await adminClient.getChannelByName(team.id, 'town-square');
 
-    const {page, channelsPage} = await pw.testBrowser.login(user);
-    await channelsPage.goto(team.name, channel.name);
-    await channelsPage.toBeVisible();
+    const {page, channelsPage} = await loginAndNavigateToChannel(pw, user, team.name, channel.name);
 
     // # Create wiki with a page
-    const wikiName = `CombinedWiki${await pw.random.id()}`;
+    const wikiName = uniqueName('CombinedWiki');
     await createWikiThroughUI(page, wikiName);
-    const uniqueKeyword = `CombinedTest${await pw.random.id()}`;
+    const uniqueKeyword = uniqueName('CombinedTest');
     await createPageThroughUI(page, `Combined Test Page`, `Content ${uniqueKeyword}`);
 
     // # Wait for indexing

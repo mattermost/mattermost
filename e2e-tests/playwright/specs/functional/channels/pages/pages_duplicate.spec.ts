@@ -14,6 +14,8 @@ import {
     waitForDuplicatedPageInHierarchy,
     duplicatePageThroughUI,
     openMovePageModal,
+    loginAndNavigateToChannel,
+    uniqueName,
     EDITOR_LOAD_WAIT,
     AUTOSAVE_WAIT,
     ELEMENT_TIMEOUT,
@@ -24,15 +26,12 @@ import {
  */
 test('duplicates page to same wiki with default title', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
     const {team, user, adminClient} = sharedPagesSetup;
-    const channel = await createTestChannel(adminClient, team.id, `Test Channel ${await pw.random.id()}`);
+    const channel = await createTestChannel(adminClient, team.id, uniqueName('Test Channel'));
 
-    const {page, channelsPage} = await pw.testBrowser.login(user);
-
-    await channelsPage.goto(team.name, channel.name);
-    await channelsPage.toBeVisible();
+    const {page} = await loginAndNavigateToChannel(pw, user, team.name, channel.name);
 
     // # Create wiki and original page through UI
-    await createWikiThroughUI(page, `Duplicate Wiki ${await pw.random.id()}`);
+    await createWikiThroughUI(page, uniqueName('Duplicate Wiki'));
     const originalPage = await createPageThroughUI(page, 'Original Page', 'Original content here');
 
     // # Wait for page to be fully committed to database
@@ -61,14 +60,12 @@ test('duplicates page to same wiki with default title', {tag: '@pages'}, async (
  */
 test('duplicates child page at same level as source', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
     const {team, user, adminClient} = sharedPagesSetup;
-    const channel = await createTestChannel(adminClient, team.id, `Test Channel ${await pw.random.id()}`);
+    const channel = await createTestChannel(adminClient, team.id, uniqueName('Test Channel'));
 
-    const {page, channelsPage} = await pw.testBrowser.login(user);
-    await channelsPage.goto(team.name, channel.name);
-    await channelsPage.toBeVisible();
+    const {page} = await loginAndNavigateToChannel(pw, user, team.name, channel.name);
 
     // # Create wiki and parent page
-    await createWikiThroughUI(page, `Hierarchy Wiki ${await pw.random.id()}`);
+    await createWikiThroughUI(page, uniqueName('Hierarchy Wiki'));
     const parentPage = await createPageThroughUI(page, 'Parent Page', 'Parent content');
 
     // # Create a child page under the parent
@@ -100,14 +97,12 @@ test('duplicates child page at same level as source', {tag: '@pages'}, async ({p
  */
 test('duplicates page content correctly', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
     const {team, user, adminClient} = sharedPagesSetup;
-    const channel = await createTestChannel(adminClient, team.id, `Test Channel ${await pw.random.id()}`);
+    const channel = await createTestChannel(adminClient, team.id, uniqueName('Test Channel'));
 
-    const {page, channelsPage} = await pw.testBrowser.login(user);
-    await channelsPage.goto(team.name, channel.name);
-    await channelsPage.toBeVisible();
+    const {page} = await loginAndNavigateToChannel(pw, user, team.name, channel.name);
 
     // # Create wiki and page with content
-    await createWikiThroughUI(page, `Content Wiki ${await pw.random.id()}`);
+    await createWikiThroughUI(page, uniqueName('Content Wiki'));
     const contentPage = await createPageThroughUI(
         page,
         'Content Page',
@@ -138,14 +133,12 @@ test('duplicates page content correctly', {tag: '@pages'}, async ({pw, sharedPag
  */
 test('duplicates root page at root level', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
     const {team, user, adminClient} = sharedPagesSetup;
-    const channel = await createTestChannel(adminClient, team.id, `Test Channel ${await pw.random.id()}`);
+    const channel = await createTestChannel(adminClient, team.id, uniqueName('Test Channel'));
 
-    const {page, channelsPage} = await pw.testBrowser.login(user);
-    await channelsPage.goto(team.name, channel.name);
-    await channelsPage.toBeVisible();
+    const {page} = await loginAndNavigateToChannel(pw, user, team.name, channel.name);
 
     // # Create wiki and root-level pages
-    await createWikiThroughUI(page, `Root Level Wiki ${await pw.random.id()}`);
+    await createWikiThroughUI(page, uniqueName('Root Level Wiki'));
     const rootPage1 = await createPageThroughUI(page, 'Root Page 1', 'First root content');
     await createPageThroughUI(page, 'Root Page 2', 'Second root content');
 
@@ -173,15 +166,12 @@ test('duplicates root page at root level', {tag: '@pages'}, async ({pw, sharedPa
  */
 test('moves duplicated page to new parent', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
     const {team, user, adminClient} = sharedPagesSetup;
-    const channel = await createTestChannel(adminClient, team.id, `Test Channel ${await pw.random.id()}`);
+    const channel = await createTestChannel(adminClient, team.id, uniqueName('Test Channel'));
 
-    const {page, channelsPage} = await pw.testBrowser.login(user);
-
-    await channelsPage.goto(team.name, channel.name);
-    await channelsPage.toBeVisible();
+    const {page} = await loginAndNavigateToChannel(pw, user, team.name, channel.name);
 
     // # Create wiki and two pages through UI
-    await createWikiThroughUI(page, `Move Duplicate Wiki ${await pw.random.id()}`);
+    await createWikiThroughUI(page, uniqueName('Move Duplicate Wiki'));
     const page1 = await createPageThroughUI(page, 'Page 1', 'Page 1 content');
     const page2 = await createPageThroughUI(page, 'Page 2', 'Page 2 content');
 

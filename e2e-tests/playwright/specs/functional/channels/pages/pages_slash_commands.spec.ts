@@ -12,6 +12,8 @@ import {
     selectAllText,
     getEditorAndWait,
     pressModifierKey,
+    loginAndNavigateToChannel,
+    uniqueName,
     SHORT_WAIT,
     ELEMENT_TIMEOUT,
     WEBSOCKET_WAIT,
@@ -26,13 +28,10 @@ test('opens slash command menu when typing / on blank line', {tag: '@pages'}, as
     const {team, user, adminClient} = sharedPagesSetup;
     const channel = await adminClient.getChannelByName(team.id, 'town-square');
 
-    const {page, channelsPage} = await pw.testBrowser.login(user);
-
-    await channelsPage.goto(team.name, channel.name);
-    await channelsPage.toBeVisible();
+    const {page} = await loginAndNavigateToChannel(pw, user, team.name, channel.name);
 
     // # Create wiki and page
-    await createWikiThroughUI(page, `Slash Command Wiki ${await pw.random.id()}`);
+    await createWikiThroughUI(page, uniqueName('Slash Command Wiki'));
     const newPageButton = getNewPageButton(page);
     await newPageButton.click();
     await fillCreatePageModal(page, 'Slash Command Test');
@@ -55,12 +54,10 @@ test('does not open slash command menu when / typed mid-line', {tag: '@pages'}, 
     const {team, user, adminClient} = sharedPagesSetup;
     const channel = await adminClient.getChannelByName(team.id, 'town-square');
 
-    const {page, channelsPage} = await pw.testBrowser.login(user);
-    await channelsPage.goto(team.name, channel.name);
-    await channelsPage.toBeVisible();
+    const {page} = await loginAndNavigateToChannel(pw, user, team.name, channel.name);
 
     // # Create wiki and page
-    await createWikiThroughUI(page, `Slash Mid Line Wiki ${await pw.random.id()}`);
+    await createWikiThroughUI(page, uniqueName('Slash Mid Line Wiki'));
     const newPageButton = getNewPageButton(page);
     await newPageButton.click();
     await fillCreatePageModal(page, 'Slash Mid Line Test');
@@ -91,12 +88,10 @@ test('opens slash command menu when / typed at start of new line', {tag: '@pages
     const {team, user, adminClient} = sharedPagesSetup;
     const channel = await adminClient.getChannelByName(team.id, 'town-square');
 
-    const {page, channelsPage} = await pw.testBrowser.login(user);
-    await channelsPage.goto(team.name, channel.name);
-    await channelsPage.toBeVisible();
+    const {page} = await loginAndNavigateToChannel(pw, user, team.name, channel.name);
 
     // # Create wiki and page
-    await createWikiThroughUI(page, `Slash New Line Wiki ${await pw.random.id()}`);
+    await createWikiThroughUI(page, uniqueName('Slash New Line Wiki'));
     const newPageButton = getNewPageButton(page);
     await newPageButton.click();
     await fillCreatePageModal(page, 'Slash New Line Test');
@@ -131,13 +126,10 @@ test('filters slash command menu items by typing search query', {tag: '@pages'},
     const {team, user, adminClient} = sharedPagesSetup;
     const channel = await adminClient.getChannelByName(team.id, 'town-square');
 
-    const {page, channelsPage} = await pw.testBrowser.login(user);
-
-    await channelsPage.goto(team.name, channel.name);
-    await channelsPage.toBeVisible();
+    const {page} = await loginAndNavigateToChannel(pw, user, team.name, channel.name);
 
     // # Create wiki and page
-    await createWikiThroughUI(page, `Slash Filter Wiki ${await pw.random.id()}`);
+    await createWikiThroughUI(page, uniqueName('Slash Filter Wiki'));
     const newPageButton = getNewPageButton(page);
     await newPageButton.click();
     await fillCreatePageModal(page, 'Slash Filter Test');
@@ -194,13 +186,10 @@ test('inserts heading 1 when selected from slash command menu', {tag: '@pages'},
     const {team, user, adminClient} = sharedPagesSetup;
     const channel = await adminClient.getChannelByName(team.id, 'town-square');
 
-    const {page, channelsPage} = await pw.testBrowser.login(user);
-
-    await channelsPage.goto(team.name, channel.name);
-    await channelsPage.toBeVisible();
+    const {page} = await loginAndNavigateToChannel(pw, user, team.name, channel.name);
 
     // # Create wiki and page
-    await createWikiThroughUI(page, `Slash Insert Wiki ${await pw.random.id()}`);
+    await createWikiThroughUI(page, uniqueName('Slash Insert Wiki'));
     const newPageButton = getNewPageButton(page);
     await newPageButton.click();
     await fillCreatePageModal(page, 'Slash Insert Test');
@@ -230,12 +219,10 @@ test('inserts bulleted list when selected from slash command menu', {tag: '@page
     const {team, user, adminClient} = sharedPagesSetup;
     const channel = await adminClient.getChannelByName(team.id, 'town-square');
 
-    const {page, channelsPage} = await pw.testBrowser.login(user);
-    await channelsPage.goto(team.name, channel.name);
-    await channelsPage.toBeVisible();
+    const {page} = await loginAndNavigateToChannel(pw, user, team.name, channel.name);
 
     // # Create wiki and page
-    await createWikiThroughUI(page, `Slash List Wiki ${await pw.random.id()}`);
+    await createWikiThroughUI(page, uniqueName('Slash List Wiki'));
     const newPageButton = getNewPageButton(page);
     await newPageButton.click();
     await fillCreatePageModal(page, 'Slash List Test');
@@ -269,12 +256,10 @@ test('opens image insertion when selected from slash command menu', {tag: '@page
     const {team, user, adminClient} = sharedPagesSetup;
     const channel = await adminClient.getChannelByName(team.id, 'town-square');
 
-    const {page, channelsPage} = await pw.testBrowser.login(user);
-    await channelsPage.goto(team.name, channel.name);
-    await channelsPage.toBeVisible();
+    const {page} = await loginAndNavigateToChannel(pw, user, team.name, channel.name);
 
     // # Create wiki and page
-    await createWikiThroughUI(page, `Slash Image Wiki ${await pw.random.id()}`);
+    await createWikiThroughUI(page, uniqueName('Slash Image Wiki'));
     const newPageButton = getNewPageButton(page);
     await newPageButton.click();
     await fillCreatePageModal(page, 'Slash Image Test');
@@ -347,12 +332,10 @@ test(
         const {team, user, adminClient} = sharedPagesSetup;
         const channel = await adminClient.getChannelByName(team.id, 'town-square');
 
-        const {page, channelsPage} = await pw.testBrowser.login(user);
-        await channelsPage.goto(team.name, channel.name);
-        await channelsPage.toBeVisible();
+        const {page} = await loginAndNavigateToChannel(pw, user, team.name, channel.name);
 
         // # Create wiki and page
-        await createWikiThroughUI(page, `Slash Nav Wiki ${await pw.random.id()}`);
+        await createWikiThroughUI(page, uniqueName('Slash Nav Wiki'));
         const newPageButton = getNewPageButton(page);
         await newPageButton.click();
         await fillCreatePageModal(page, 'Slash Nav Test');
@@ -385,12 +368,10 @@ test('closes slash command menu when pressing Escape', {tag: '@pages'}, async ({
     const {team, user, adminClient} = sharedPagesSetup;
     const channel = await adminClient.getChannelByName(team.id, 'town-square');
 
-    const {page, channelsPage} = await pw.testBrowser.login(user);
-    await channelsPage.goto(team.name, channel.name);
-    await channelsPage.toBeVisible();
+    const {page} = await loginAndNavigateToChannel(pw, user, team.name, channel.name);
 
     // # Create wiki and page
-    await createWikiThroughUI(page, `Slash Escape Wiki ${await pw.random.id()}`);
+    await createWikiThroughUI(page, uniqueName('Slash Escape Wiki'));
     const newPageButton = getNewPageButton(page);
     await newPageButton.click();
     await fillCreatePageModal(page, 'Slash Escape Test');
@@ -413,12 +394,10 @@ test('closes slash command menu when clicking away', {tag: '@pages'}, async ({pw
     const {team, user, adminClient} = sharedPagesSetup;
     const channel = await adminClient.getChannelByName(team.id, 'town-square');
 
-    const {page, channelsPage} = await pw.testBrowser.login(user);
-    await channelsPage.goto(team.name, channel.name);
-    await channelsPage.toBeVisible();
+    const {page} = await loginAndNavigateToChannel(pw, user, team.name, channel.name);
 
     // # Create wiki and page
-    await createWikiThroughUI(page, `Slash Click Away Wiki ${await pw.random.id()}`);
+    await createWikiThroughUI(page, uniqueName('Slash Click Away Wiki'));
     const newPageButton = getNewPageButton(page);
     await newPageButton.click();
     await fillCreatePageModal(page, 'Slash Click Away Test');
@@ -445,12 +424,10 @@ test('verifies ESC key closes slash command menu', {tag: '@pages'}, async ({pw, 
     const {team, user, adminClient} = sharedPagesSetup;
     const channel = await adminClient.getChannelByName(team.id, 'town-square');
 
-    const {page, channelsPage} = await pw.testBrowser.login(user);
-    await channelsPage.goto(team.name, channel.name);
-    await channelsPage.toBeVisible();
+    const {page} = await loginAndNavigateToChannel(pw, user, team.name, channel.name);
 
     // # Create wiki and page
-    await createWikiThroughUI(page, `Slash ESC Key Wiki ${await pw.random.id()}`);
+    await createWikiThroughUI(page, uniqueName('Slash ESC Key Wiki'));
     const newPageButton = getNewPageButton(page);
     await newPageButton.click();
     await fillCreatePageModal(page, 'Slash ESC Key Test');
@@ -481,12 +458,10 @@ test('displays placeholder text in empty editor', {tag: '@pages'}, async ({pw, s
     const {team, user, adminClient} = sharedPagesSetup;
     const channel = await adminClient.getChannelByName(team.id, 'town-square');
 
-    const {page, channelsPage} = await pw.testBrowser.login(user);
-    await channelsPage.goto(team.name, channel.name);
-    await channelsPage.toBeVisible();
+    const {page} = await loginAndNavigateToChannel(pw, user, team.name, channel.name);
 
     // # Create wiki and page
-    await createWikiThroughUI(page, `Placeholder Test Wiki ${await pw.random.id()}`);
+    await createWikiThroughUI(page, uniqueName('Placeholder Test Wiki'));
     const newPageButton = getNewPageButton(page);
     await newPageButton.click();
     await fillCreatePageModal(page, 'Placeholder Test Page');
@@ -521,12 +496,10 @@ test('shows placeholder when cursor at beginning of empty line', {tag: '@pages'}
     const {team, user, adminClient} = sharedPagesSetup;
     const channel = await adminClient.getChannelByName(team.id, 'town-square');
 
-    const {page, channelsPage} = await pw.testBrowser.login(user);
-    await channelsPage.goto(team.name, channel.name);
-    await channelsPage.toBeVisible();
+    const {page} = await loginAndNavigateToChannel(pw, user, team.name, channel.name);
 
     // # Create wiki and page
-    await createWikiThroughUI(page, `Placeholder Line Wiki ${await pw.random.id()}`);
+    await createWikiThroughUI(page, uniqueName('Placeholder Line Wiki'));
     const newPageButton = getNewPageButton(page);
     await newPageButton.click();
     await fillCreatePageModal(page, 'Placeholder Line Test');
@@ -594,12 +567,10 @@ test('inserts numbered list when selected from slash command menu', {tag: '@page
     const {team, user, adminClient} = sharedPagesSetup;
     const channel = await adminClient.getChannelByName(team.id, 'town-square');
 
-    const {page, channelsPage} = await pw.testBrowser.login(user);
-    await channelsPage.goto(team.name, channel.name);
-    await channelsPage.toBeVisible();
+    const {page} = await loginAndNavigateToChannel(pw, user, team.name, channel.name);
 
     // # Create wiki and page
-    await createWikiThroughUI(page, `Slash Numbered Wiki ${await pw.random.id()}`);
+    await createWikiThroughUI(page, uniqueName('Slash Numbered Wiki'));
     const newPageButton = getNewPageButton(page);
     await newPageButton.click();
     await fillCreatePageModal(page, 'Slash Numbered List Test');
@@ -628,12 +599,10 @@ test('inserts quote block when selected from slash command menu', {tag: '@pages'
     const {team, user, adminClient} = sharedPagesSetup;
     const channel = await adminClient.getChannelByName(team.id, 'town-square');
 
-    const {page, channelsPage} = await pw.testBrowser.login(user);
-    await channelsPage.goto(team.name, channel.name);
-    await channelsPage.toBeVisible();
+    const {page} = await loginAndNavigateToChannel(pw, user, team.name, channel.name);
 
     // # Create wiki and page
-    await createWikiThroughUI(page, `Slash Quote Wiki ${await pw.random.id()}`);
+    await createWikiThroughUI(page, uniqueName('Slash Quote Wiki'));
     const newPageButton = getNewPageButton(page);
     await newPageButton.click();
     await fillCreatePageModal(page, 'Slash Quote Test');
@@ -662,12 +631,10 @@ test('inserts callout block when selected from slash command menu', {tag: '@page
     const {team, user, adminClient} = sharedPagesSetup;
     const channel = await adminClient.getChannelByName(team.id, 'town-square');
 
-    const {page, channelsPage} = await pw.testBrowser.login(user);
-    await channelsPage.goto(team.name, channel.name);
-    await channelsPage.toBeVisible();
+    const {page} = await loginAndNavigateToChannel(pw, user, team.name, channel.name);
 
     // # Create wiki and page
-    await createWikiThroughUI(page, `Slash Callout Wiki ${await pw.random.id()}`);
+    await createWikiThroughUI(page, uniqueName('Slash Callout Wiki'));
     const newPageButton = getNewPageButton(page);
     await newPageButton.click();
     await fillCreatePageModal(page, 'Slash Callout Test');
@@ -696,12 +663,10 @@ test('inserts code block when selected from slash command menu', {tag: '@pages'}
     const {team, user, adminClient} = sharedPagesSetup;
     const channel = await adminClient.getChannelByName(team.id, 'town-square');
 
-    const {page, channelsPage} = await pw.testBrowser.login(user);
-    await channelsPage.goto(team.name, channel.name);
-    await channelsPage.toBeVisible();
+    const {page} = await loginAndNavigateToChannel(pw, user, team.name, channel.name);
 
     // # Create wiki and page
-    await createWikiThroughUI(page, `Slash Code Wiki ${await pw.random.id()}`);
+    await createWikiThroughUI(page, uniqueName('Slash Code Wiki'));
     const newPageButton = getNewPageButton(page);
     await newPageButton.click();
     await fillCreatePageModal(page, 'Slash Code Test');
@@ -730,12 +695,10 @@ test('inserts divider when selected from slash command menu', {tag: '@pages'}, a
     const {team, user, adminClient} = sharedPagesSetup;
     const channel = await adminClient.getChannelByName(team.id, 'town-square');
 
-    const {page, channelsPage} = await pw.testBrowser.login(user);
-    await channelsPage.goto(team.name, channel.name);
-    await channelsPage.toBeVisible();
+    const {page} = await loginAndNavigateToChannel(pw, user, team.name, channel.name);
 
     // # Create wiki and page
-    await createWikiThroughUI(page, `Slash Divider Wiki ${await pw.random.id()}`);
+    await createWikiThroughUI(page, uniqueName('Slash Divider Wiki'));
     const newPageButton = getNewPageButton(page);
     await newPageButton.click();
     await fillCreatePageModal(page, 'Slash Divider Test');

@@ -15,17 +15,18 @@ import type {UserActivityPost} from 'mattermost-redux/selectors/entities/posts';
 import {shouldShowJoinLeaveMessages} from 'mattermost-redux/selectors/entities/preferences';
 import {getCurrentUser} from 'mattermost-redux/selectors/entities/users';
 import {createIdsSelector, memoizeResult} from 'mattermost-redux/utils/helpers';
-import {isUserActivityPost, shouldFilterJoinLeavePost, isFromWebhook, ensureString} from 'mattermost-redux/utils/post_utils';
+import {isUserActivityPost, isPageActivityPost, shouldFilterJoinLeavePost, isFromWebhook, ensureString} from 'mattermost-redux/utils/post_utils';
 import {getUserCurrentTimezone} from 'mattermost-redux/utils/timezone_utils';
 
 export const COMBINED_USER_ACTIVITY = 'user-activity-';
+export const COMBINED_PAGE_ACTIVITY = 'page-activity-';
 export const CREATE_COMMENT = 'create-comment';
 export const DATE_LINE = 'date-';
 export const START_OF_NEW_MESSAGES = 'start-of-new-messages-';
 export const MAX_COMBINED_SYSTEM_POSTS = 100;
 
-// Only filter out page content posts from channel feed, NOT comments.
-// Page comments (inline comments) should appear in the channel feed.
+// Filter out page content posts from channel feed.
+// Page comments appear in the Threads view, not the channel timeline.
 const PAGE_POST_TYPES = [Posts.POST_TYPES.PAGE];
 
 interface PostFilterOptions {
@@ -37,9 +38,11 @@ interface PostFilterOptions {
 export function makePreparePostIdsForPostList() {
     const filterPostsAndAddSeparators = makeFilterPostsAndAddSeparators();
     const combineUserActivityPosts = makeCombineUserActivityPosts();
+    const combinePageActivityPosts = makeCombinePageActivityPosts();
     return (state: GlobalState, options: PostFilterOptions) => {
         let postIds = filterPostsAndAddSeparators(state, options);
         postIds = combineUserActivityPosts(state, postIds);
+        postIds = combinePageActivityPosts(state, postIds);
         return postIds;
     };
 }
@@ -229,6 +232,79 @@ export function makeCombineUserActivityPosts() {
     );
 }
 
+export function makeCombinePageActivityPosts() {
+    const getPostsForIds = makeGetPostsForIds();
+
+    return createIdsSelector(
+        'makeCombinePageActivityPosts',
+        (state: GlobalState, postIds: string[]) => postIds,
+        (state: GlobalState, postIds: string[]) => getPostsForIds(state, postIds),
+        (postIds, posts) => {
+            let lastPostIsPageActivity = false;
+            let lastWikiId: string | null = null;
+            let lastUserId: string | null = null;
+            let combinedCount = 0;
+            const out: string[] = [];
+            let changed = false;
+
+            for (let i = 0; i < postIds.length; i++) {
+                const postId = postIds[i];
+
+                if (isStartOfNewMessages(postId) || isDateLine(postId) || isCreateComment(postId)) {
+                    out.push(postId);
+                    lastPostIsPageActivity = false;
+                    lastWikiId = null;
+                    lastUserId = null;
+                    combinedCount = 0;
+                    continue;
+                }
+
+                const post = posts[i];
+                if (!post) {
+                    out.push(postId);
+                    lastPostIsPageActivity = false;
+                    lastWikiId = null;
+                    lastUserId = null;
+                    combinedCount = 0;
+                    continue;
+                }
+
+                const postIsPageActivity = isPageActivityPost(post.type);
+                const wikiId = ensureString(post.props?.wiki_id);
+                const userId = post.user_id;
+
+                // Combine if: consecutive page activity + same wiki + same user
+                const sameGroup = lastPostIsPageActivity &&
+                    wikiId && lastWikiId && wikiId === lastWikiId &&
+                    userId === lastUserId;
+
+                if (postIsPageActivity && sameGroup && combinedCount < MAX_COMBINED_SYSTEM_POSTS) {
+                    out[out.length - 1] += '_' + postId;
+                    combinedCount += 1;
+                    changed = true;
+                } else if (postIsPageActivity) {
+                    out.push(COMBINED_PAGE_ACTIVITY + postId);
+                    combinedCount = 1;
+                    changed = true;
+                } else {
+                    out.push(postId);
+                    combinedCount = 0;
+                }
+
+                lastPostIsPageActivity = postIsPageActivity;
+                lastWikiId = wikiId || null;
+                lastUserId = userId;
+            }
+
+            if (!changed) {
+                return postIds;
+            }
+
+            return out;
+        },
+    );
+}
+
 export function isStartOfNewMessages(item: string) {
     return item.startsWith(START_OF_NEW_MESSAGES);
 }
@@ -261,6 +337,14 @@ export function getPostIdsForCombinedUserActivityPost(item: string) {
     return item.substring(COMBINED_USER_ACTIVITY.length).split('_');
 }
 
+export function isCombinedPageActivityPost(item: string) {
+    return (/^page-activity-(?:[^_]+_)*[^_]+$/).test(item);
+}
+
+export function getPostIdsForCombinedPageActivityPost(item: string) {
+    return item.substring(COMBINED_PAGE_ACTIVITY.length).split('_');
+}
+
 export function getFirstPostId(items: string[]) {
     for (let i = 0; i < items.length; i++) {
         const item = items[i];
@@ -273,6 +357,13 @@ export function getFirstPostId(items: string[]) {
         if (isCombinedUserActivityPost(item)) {
             // This is a combined post, so find the first post ID from it
             const combinedIds = getPostIdsForCombinedUserActivityPost(item);
+
+            return combinedIds[0];
+        }
+
+        if (isCombinedPageActivityPost(item)) {
+            // This is a combined page activity post, so find the first post ID from it
+            const combinedIds = getPostIdsForCombinedPageActivityPost(item);
 
             return combinedIds[0];
         }
@@ -294,8 +385,15 @@ export function getLastPostId(items: string[]) {
         }
 
         if (isCombinedUserActivityPost(item)) {
-            // This is a combined post, so find the first post ID from it
+            // This is a combined post, so find the last post ID from it
             const combinedIds = getPostIdsForCombinedUserActivityPost(item);
+
+            return combinedIds[combinedIds.length - 1];
+        }
+
+        if (isCombinedPageActivityPost(item)) {
+            // This is a combined page activity post, so find the last post ID from it
+            const combinedIds = getPostIdsForCombinedPageActivityPost(item);
 
             return combinedIds[combinedIds.length - 1];
         }
@@ -366,6 +464,74 @@ export function makeGenerateCombinedPost(): (state: GlobalState, combinedId: str
                 },
                 system_post_ids: posts.map((post) => post.id),
                 user_activity_posts: posts,
+            };
+        },
+    );
+}
+
+export type CombinedPageActivityPost = Post & {
+    props: {
+        wiki_id: string;
+        wiki_title: string;
+        pages: Array<{pageId: string; pageTitle: string}>;
+        username: string;
+    };
+    system_post_ids: string[];
+    page_activity_posts: Post[];
+};
+
+export function makeGenerateCombinedPagePost(): (state: GlobalState, combinedId: string) => CombinedPageActivityPost {
+    const getPostsForIds = makeGetPostsForIds();
+    const getPostIds = memoizeResult(getPostIdsForCombinedPageActivityPost);
+
+    return createSelector(
+        'makeGenerateCombinedPagePost',
+        (state: GlobalState, combinedId: string) => combinedId,
+        (state: GlobalState, combinedId: string) => getPostsForIds(state, getPostIds(combinedId)),
+        (combinedId, posts) => {
+            const channelId = posts[0].channel_id;
+            const createAt = posts[posts.length - 1].create_at;
+            const userId = posts[0].user_id;
+            const wikiId = ensureString(posts[0].props?.wiki_id);
+            const wikiTitle = ensureString(posts[0].props?.wiki_title);
+
+            const pages = posts.map((post) => ({
+                pageId: ensureString(post.props?.page_id),
+                pageTitle: ensureString(post.props?.page_title),
+            }));
+
+            return {
+                id: combinedId,
+                create_at: createAt,
+                update_at: 0,
+                edit_at: 0,
+                delete_at: 0,
+                is_pinned: false,
+                user_id: userId,
+                channel_id: channelId,
+                root_id: '',
+                parent_id: '',
+                original_id: '',
+                message: '',
+                type: Posts.POST_TYPES.COMBINED_PAGE_ACTIVITY,
+                props: {
+                    wiki_id: wikiId,
+                    wiki_title: wikiTitle,
+                    pages,
+                    username: ensureString(posts[0].props?.username),
+                },
+                hashtags: '',
+                pending_post_id: '',
+                reply_count: 0,
+                metadata: {
+                    embeds: [],
+                    emojis: [],
+                    files: [],
+                    images: {},
+                    reactions: [],
+                },
+                system_post_ids: posts.map((post) => post.id),
+                page_activity_posts: posts,
             };
         },
     );

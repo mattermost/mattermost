@@ -11,6 +11,13 @@ import type {ActionFuncAsync} from 'mattermost-redux/types/actions';
 import {logError, LogErrorBarMode} from './errors';
 import {forceLogoutIfNecessary} from './helpers';
 
+// Local type definition (matches types/store/pages.ts)
+// Cannot import from webapp due to mattermost-redux import restrictions
+type InlineAnchor = {
+    anchor_id: string;
+    text: string;
+};
+
 // Wiki CRUD Operations
 
 export function getWiki(wikiId: string): ActionFuncAsync<Wiki> {
@@ -363,13 +370,12 @@ export function getPageComments(wikiId: string, pageId: string): ActionFuncAsync
     };
 }
 
-type InlineAnchor = {
-    text: string;
-    anchor_id: string;
-};
-
 export function createPageComment(wikiId: string, pageId: string, message: string, inlineAnchor?: InlineAnchor): ActionFuncAsync<Post> {
     return async (dispatch, getState) => {
+        if (!message || message.trim() === '') {
+            return {error: {message: 'Comment message cannot be empty'}};
+        }
+
         try {
             const comment = await Client4.createPageComment(wikiId, pageId, message, inlineAnchor);
             return {data: comment};
@@ -383,6 +389,10 @@ export function createPageComment(wikiId: string, pageId: string, message: strin
 
 export function createPageCommentReply(wikiId: string, pageId: string, parentCommentId: string, message: string): ActionFuncAsync<Post> {
     return async (dispatch, getState) => {
+        if (!message || message.trim() === '') {
+            return {error: {message: 'Reply message cannot be empty'}};
+        }
+
         try {
             const reply = await Client4.createPageCommentReply(wikiId, pageId, parentCommentId, message);
             return {data: reply};
@@ -461,6 +471,7 @@ export function getPageStatusField(): ActionFuncAsync {
 
             return {data: field};
         } catch (error) {
+            dispatch(logError(error));
             return {error};
         }
     };
@@ -481,6 +492,7 @@ export function getPageStatus(postId: string): ActionFuncAsync {
 
             return {data};
         } catch (error) {
+            dispatch(logError(error));
             return {error};
         }
     };
@@ -511,6 +523,8 @@ export function updatePageStatus(postId: string, status: string): ActionFuncAsyn
 
             return {data: true};
         } catch (error) {
+            forceLogoutIfNecessary(error, dispatch, getState);
+            dispatch(logError(error));
             return {error};
         }
     };
@@ -547,6 +561,7 @@ export function savePageDraft(
             return {data: serverDraft};
         } catch (error) {
             forceLogoutIfNecessary(error, dispatch, getState);
+            dispatch(logError(error));
             return {error};
         }
     };
@@ -559,6 +574,7 @@ export function getPageDraftsForWiki(wikiId: string): ActionFuncAsync {
             return {data: drafts};
         } catch (error) {
             forceLogoutIfNecessary(error, dispatch, getState);
+            dispatch(logError(error));
             return {error};
         }
     };
@@ -571,6 +587,7 @@ export function deletePageDraft(wikiId: string, pageId: string): ActionFuncAsync
             return {data: true};
         } catch (error) {
             forceLogoutIfNecessary(error, dispatch, getState);
+            dispatch(logError(error));
             return {error};
         }
     };

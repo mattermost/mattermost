@@ -10,6 +10,8 @@ import {
     addInlineCommentInEditMode,
     verifyCommentMarkerVisible,
     clickCommentMarkerAndOpenRHS,
+    loginAndNavigateToChannel,
+    uniqueName,
     AUTOSAVE_WAIT,
     ELEMENT_TIMEOUT,
     HIERARCHY_TIMEOUT,
@@ -20,15 +22,12 @@ import {
  */
 test('displays page with title and excerpt in Threads panel', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
     const {team, user, adminClient} = sharedPagesSetup;
-    const channel = await createTestChannel(adminClient, team.id, `Test Channel ${await pw.random.id()}`);
+    const channel = await createTestChannel(adminClient, team.id, uniqueName('Test Channel'));
 
-    const {page, channelsPage} = await pw.testBrowser.login(user);
-
-    await channelsPage.goto(team.name, channel.name);
-    await channelsPage.toBeVisible();
+    const {page} = await loginAndNavigateToChannel(pw, user, team.name, channel.name);
 
     // # Create wiki and page with content
-    await createWikiThroughUI(page, `Threads Wiki ${await pw.random.id()}`);
+    await createWikiThroughUI(page, uniqueName('Threads Wiki'));
     const pageTitle = 'Getting Started Guide';
     const pageContent =
         'This guide covers user authentication, API endpoints, and deployment. It provides step-by-step instructions for new developers.';
@@ -90,14 +89,12 @@ test('displays page with title and excerpt in Threads panel', {tag: '@pages'}, a
  */
 test('displays page comments and inline comments in Threads panel', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
     const {team, user, adminClient} = sharedPagesSetup;
-    const channel = await createTestChannel(adminClient, team.id, `Test Channel ${await pw.random.id()}`);
+    const channel = await createTestChannel(adminClient, team.id, uniqueName('Test Channel'));
 
-    const {page, channelsPage} = await pw.testBrowser.login(user);
-    await channelsPage.goto(team.name, channel.name);
-    await channelsPage.toBeVisible();
+    const {page} = await loginAndNavigateToChannel(pw, user, team.name, channel.name);
 
     // # Create wiki and page
-    await createWikiThroughUI(page, `Comments Wiki ${await pw.random.id()}`);
+    await createWikiThroughUI(page, uniqueName('Comments Wiki'));
     await createPageThroughUI(
         page,
         'Documentation Page',
@@ -153,14 +150,12 @@ test('displays page comments and inline comments in Threads panel', {tag: '@page
  */
 test('displays comment replies in Threads panel', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
     const {team, user, adminClient} = sharedPagesSetup;
-    const channel = await createTestChannel(adminClient, team.id, `Test Channel ${await pw.random.id()}`);
+    const channel = await createTestChannel(adminClient, team.id, uniqueName('Test Channel'));
 
-    const {page, channelsPage} = await pw.testBrowser.login(user);
-    await channelsPage.goto(team.name, channel.name);
-    await channelsPage.toBeVisible();
+    const {page} = await loginAndNavigateToChannel(pw, user, team.name, channel.name);
 
     // # Create wiki and page
-    await createWikiThroughUI(page, `Replies Wiki ${await pw.random.id()}`);
+    await createWikiThroughUI(page, uniqueName('Replies Wiki'));
     await createPageThroughUI(
         page,
         'Feature Spec',
@@ -217,14 +212,12 @@ test('displays multiple inline comments in Threads panel', {tag: '@pages'}, asyn
     test.slow();
 
     const {team, user, adminClient} = sharedPagesSetup;
-    const channel = await createTestChannel(adminClient, team.id, `Test Channel ${await pw.random.id()}`);
+    const channel = await createTestChannel(adminClient, team.id, uniqueName('Test Channel'));
 
-    const {page, channelsPage} = await pw.testBrowser.login(user);
-    await channelsPage.goto(team.name, channel.name);
-    await channelsPage.toBeVisible();
+    const {page} = await loginAndNavigateToChannel(pw, user, team.name, channel.name);
 
     // # Create wiki and page
-    await createWikiThroughUI(page, `Multi Comment Wiki ${await pw.random.id()}`);
+    await createWikiThroughUI(page, uniqueName('Multi Comment Wiki'));
     await createPageThroughUI(
         page,
         'API Documentation',

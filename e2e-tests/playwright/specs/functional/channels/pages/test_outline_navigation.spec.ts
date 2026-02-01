@@ -12,6 +12,8 @@ import {
     enterEditMode,
     waitForEditModeReady,
     clearEditorContent,
+    loginAndNavigateToChannel,
+    uniqueName,
     ELEMENT_TIMEOUT,
 } from './test_helpers';
 
@@ -20,14 +22,12 @@ import {
  */
 test('shows outline after navigating away and back', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
     const {team, user, adminClient} = sharedPagesSetup;
-    const channel = await createTestChannel(adminClient, team.id, `Test Channel ${await pw.random.id()}`);
+    const channel = await createTestChannel(adminClient, team.id, uniqueName('Test Channel'));
 
-    const {page, channelsPage} = await pw.testBrowser.login(user);
-    await channelsPage.goto(team.name, channel.name);
-    await channelsPage.toBeVisible();
+    const {page} = await loginAndNavigateToChannel(pw, user, team.name, channel.name);
 
     // # Create wiki
-    await createWikiThroughUI(page, `Navigation Test Wiki ${await pw.random.id()}`);
+    await createWikiThroughUI(page, uniqueName('Navigation Test Wiki'));
 
     // # Create TWO pages
     const page1 = await createPageThroughUI(page, 'Page 1 with Headings', ' ');

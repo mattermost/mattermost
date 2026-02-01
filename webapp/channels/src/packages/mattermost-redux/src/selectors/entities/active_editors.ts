@@ -3,13 +3,9 @@
 
 import type {GlobalState} from '@mattermost/types/store';
 
+import type {ActiveEditorInfo} from 'mattermost-redux/reducers/entities/active_editors';
 import {createSelector} from 'mattermost-redux/selectors/create_selector';
 import {getUsers} from 'mattermost-redux/selectors/entities/users';
-
-export type ActiveEditorInfo = {
-    userId: string;
-    lastActivity: number;
-};
 
 const EMPTY_EDITORS: ActiveEditorInfo[] = [];
 

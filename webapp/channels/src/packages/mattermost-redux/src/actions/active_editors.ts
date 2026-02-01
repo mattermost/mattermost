@@ -3,6 +3,7 @@
 
 import ActiveEditorsTypes from 'mattermost-redux/action_types/active_editors';
 import {Client4} from 'mattermost-redux/client';
+import type {ActiveEditorInfo} from 'mattermost-redux/reducers/entities/active_editors';
 import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
 import type {ActionFuncAsync, DispatchFunc, GetStateFunc} from 'mattermost-redux/types/actions';
 
@@ -10,11 +11,6 @@ import {logError} from './errors';
 import {getMissingProfilesByIds} from './users';
 
 const STALE_EDITOR_THRESHOLD = 5 * 60 * 1000;
-
-export type ActiveEditorInfo = {
-    userId: string;
-    lastActivity: number;
-};
 
 export type PageActiveEditorsResponse = {
     user_ids: string[];

@@ -12,6 +12,8 @@ import {
     getEditorAndWait,
     typeInEditor,
     getHierarchyPanel,
+    loginAndNavigateToChannel,
+    uniqueName,
     SHORT_WAIT,
     EDITOR_LOAD_WAIT,
     HIERARCHY_TIMEOUT,
@@ -31,12 +33,10 @@ test(
         const {team, user, adminClient} = sharedPagesSetup;
         const channel = await adminClient.getChannelByName(team.id, 'town-square');
 
-        const {page, channelsPage} = await pw.testBrowser.login(user);
-        await channelsPage.goto(team.name, channel.name);
-        await channelsPage.toBeVisible();
+        const {page} = await loginAndNavigateToChannel(pw, user, team.name, channel.name);
 
         // # Create wiki through UI
-        await createWikiThroughUI(page, `Confluence Test Wiki ${await pw.random.id()}`);
+        await createWikiThroughUI(page, uniqueName('Confluence Test Wiki'));
 
         // # Create new page
         const newPageButton = getNewPageButton(page);
@@ -154,12 +154,10 @@ test(
         const {team, user, adminClient} = sharedPagesSetup;
         const channel = await adminClient.getChannelByName(team.id, 'town-square');
 
-        const {page, channelsPage} = await pw.testBrowser.login(user);
-        await channelsPage.goto(team.name, channel.name);
-        await channelsPage.toBeVisible();
+        const {page} = await loginAndNavigateToChannel(pw, user, team.name, channel.name);
 
         // # Create wiki through UI
-        await createWikiThroughUI(page, `Invalid Draft Wiki ${await pw.random.id()}`);
+        await createWikiThroughUI(page, uniqueName('Invalid Draft Wiki'));
 
         // # Create new page
         const newPageButton = getNewPageButton(page);
@@ -229,12 +227,10 @@ test(
         const {team, user, adminClient} = sharedPagesSetup;
         const channel = await adminClient.getChannelByName(team.id, 'town-square');
 
-        const {page, channelsPage} = await pw.testBrowser.login(user);
-        await channelsPage.goto(team.name, channel.name);
-        await channelsPage.toBeVisible();
+        const {page} = await loginAndNavigateToChannel(pw, user, team.name, channel.name);
 
         // # Create wiki through UI
-        await createWikiThroughUI(page, `Drag Drop Wiki ${await pw.random.id()}`);
+        await createWikiThroughUI(page, uniqueName('Drag Drop Wiki'));
 
         // # Create a parent page first
         const newPageButton = getNewPageButton(page);

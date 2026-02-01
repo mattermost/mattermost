@@ -22,6 +22,7 @@ import {
     createPageContent,
     createRichPageContent,
     uniqueName,
+    loginAndNavigateToChannel,
     ELEMENT_TIMEOUT,
     HIERARCHY_TIMEOUT,
     SHORT_WAIT,
@@ -37,10 +38,7 @@ test('moves page between wikis in same channel', {tag: '@pages'}, async ({pw, sh
     const {team, user, adminClient} = sharedPagesSetup;
     const channel = await adminClient.getChannelByName(team.id, 'town-square');
 
-    const {page, channelsPage} = await pw.testBrowser.login(user);
-
-    await channelsPage.goto(team.name, channel.name);
-    await page.waitForLoadState('networkidle');
+    const {page, channelsPage} = await loginAndNavigateToChannel(pw, user, team.name, channel.name);
 
     // # Create first wiki with a page
     const wiki1Name = uniqueName('Source Wiki');
@@ -108,9 +106,7 @@ test('moves page with children between wikis', {tag: '@pages'}, async ({pw, shar
     const {team, user, adminClient} = sharedPagesSetup;
     const channel = await adminClient.getChannelByName(team.id, 'town-square');
 
-    const {page, channelsPage} = await pw.testBrowser.login(user);
-    await channelsPage.goto(team.name, channel.name);
-    await page.waitForLoadState('networkidle');
+    const {page, channelsPage} = await loginAndNavigateToChannel(pw, user, team.name, channel.name);
 
     // # Create first wiki with parent and children using API for reliability
     const wiki1Name = uniqueName('Source Wiki');
@@ -179,9 +175,7 @@ test('duplicates page to another wiki via API', {tag: '@pages'}, async ({pw, sha
     const {team, user, adminClient} = sharedPagesSetup;
     const channel = await adminClient.getChannelByName(team.id, 'town-square');
 
-    const {page, channelsPage} = await pw.testBrowser.login(user);
-    await channelsPage.goto(team.name, channel.name);
-    await page.waitForLoadState('networkidle');
+    const {page, channelsPage} = await loginAndNavigateToChannel(pw, user, team.name, channel.name);
 
     // # Create first wiki with a page
     const wiki1Name = uniqueName('Source Wiki');
@@ -230,9 +224,7 @@ test('moves wiki to different channel in same team', {tag: '@pages'}, async ({pw
     const sourceChannel = await createTestChannel(adminClient, team.id, 'Source Channel', 'O', [user.id]);
     const targetChannel = await createTestChannel(adminClient, team.id, 'Target Channel', 'O', [user.id]);
 
-    const {page, channelsPage} = await pw.testBrowser.login(user);
-    await channelsPage.goto(team.name, sourceChannel.name);
-    await page.waitForLoadState('networkidle');
+    const {page, channelsPage} = await loginAndNavigateToChannel(pw, user, team.name, sourceChannel.name);
 
     // # Create wiki with pages
     const wikiName = uniqueName('Movable Wiki');
@@ -285,9 +277,7 @@ test(
         const sourceChannel = await createTestChannel(adminClient, team.id, 'Source Channel', 'O', [user.id]);
         const targetChannel = await createTestChannel(adminClient, team.id, 'Target Channel', 'O', [user.id]);
 
-        const {page, channelsPage} = await pw.testBrowser.login(user);
-        await channelsPage.goto(team.name, sourceChannel.name);
-        await page.waitForLoadState('networkidle');
+        const {page, channelsPage} = await loginAndNavigateToChannel(pw, user, team.name, sourceChannel.name);
 
         // # Create wiki with nested page structure using UI actions
         const wikiName = uniqueName('Nested Wiki');
@@ -348,9 +338,7 @@ test('updates breadcrumb after moving page between wikis', {tag: '@pages'}, asyn
     const {team, user, adminClient} = sharedPagesSetup;
     const channel = await adminClient.getChannelByName(team.id, 'town-square');
 
-    const {page, channelsPage} = await pw.testBrowser.login(user);
-    await channelsPage.goto(team.name, channel.name);
-    await page.waitForLoadState('networkidle');
+    const {page, channelsPage} = await loginAndNavigateToChannel(pw, user, team.name, channel.name);
 
     // # Create first wiki
     const wiki1Name = uniqueName('Wiki One');
@@ -424,9 +412,7 @@ test('preserves content formatting when duplicating across wikis', {tag: '@pages
     const {team, user, adminClient} = sharedPagesSetup;
     const channel = await adminClient.getChannelByName(team.id, 'town-square');
 
-    const {page, channelsPage} = await pw.testBrowser.login(user);
-    await channelsPage.goto(team.name, channel.name);
-    await page.waitForLoadState('networkidle');
+    const {page, channelsPage} = await loginAndNavigateToChannel(pw, user, team.name, channel.name);
 
     // # Create first wiki with formatted content
     const wiki1Name = uniqueName('Source Wiki');

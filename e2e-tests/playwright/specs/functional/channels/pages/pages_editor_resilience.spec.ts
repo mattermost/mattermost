@@ -22,6 +22,8 @@ import {
     undoAction,
     redoAction,
     pressModifierKey,
+    uniqueName,
+    loginAndNavigateToChannel,
     SHORT_WAIT,
     ELEMENT_TIMEOUT,
     UI_MICRO_WAIT,
@@ -36,15 +38,12 @@ import {
  * @objective Verify editor handles rapid bold button clicks without crashing
  */
 test('handles rapid bold button clicks', {tag: ['@pages', '@flaky']}, async ({pw, sharedPagesSetup}) => {
-    const {team, user, adminClient} = sharedPagesSetup;
-    const channel = await adminClient.getChannelByName(team.id, 'town-square');
+    const {team, user} = sharedPagesSetup;
 
-    const {page, channelsPage} = await pw.testBrowser.login(user);
-    await channelsPage.goto(team.name, channel.name);
-    await channelsPage.toBeVisible();
+    const {page} = await loginAndNavigateToChannel(pw, user, team.name, 'town-square');
 
     // # Create wiki and page
-    await createWikiThroughUI(page, `Rapid Bold Wiki ${await pw.random.id()}`);
+    await createWikiThroughUI(page, uniqueName('Rapid Bold Wiki'));
     const newPageButton = getNewPageButton(page);
     await newPageButton.click();
     await fillCreatePageModal(page, 'Rapid Bold Test');
@@ -72,15 +71,12 @@ test('handles rapid bold button clicks', {tag: ['@pages', '@flaky']}, async ({pw
  * @objective Verify editor handles rapid slash command open/close cycles
  */
 test('handles rapid slash command open/close', {tag: ['@pages', '@flaky']}, async ({pw, sharedPagesSetup}) => {
-    const {team, user, adminClient} = sharedPagesSetup;
-    const channel = await adminClient.getChannelByName(team.id, 'town-square');
+    const {team, user} = sharedPagesSetup;
 
-    const {page, channelsPage} = await pw.testBrowser.login(user);
-    await channelsPage.goto(team.name, channel.name);
-    await channelsPage.toBeVisible();
+    const {page} = await loginAndNavigateToChannel(pw, user, team.name, 'town-square');
 
     // # Create wiki and page
-    await createWikiThroughUI(page, `Rapid Slash Wiki ${await pw.random.id()}`);
+    await createWikiThroughUI(page, uniqueName('Rapid Slash Wiki'));
     const newPageButton = getNewPageButton(page);
     await newPageButton.click();
     await fillCreatePageModal(page, 'Rapid Slash Test');
@@ -105,15 +101,12 @@ test('handles rapid slash command open/close', {tag: ['@pages', '@flaky']}, asyn
  * @objective Verify editor handles typing during formatting toggle
  */
 test('handles rapid typing during formatting', {tag: ['@pages', '@flaky']}, async ({pw, sharedPagesSetup}) => {
-    const {team, user, adminClient} = sharedPagesSetup;
-    const channel = await adminClient.getChannelByName(team.id, 'town-square');
+    const {team, user} = sharedPagesSetup;
 
-    const {page, channelsPage} = await pw.testBrowser.login(user);
-    await channelsPage.goto(team.name, channel.name);
-    await channelsPage.toBeVisible();
+    const {page} = await loginAndNavigateToChannel(pw, user, team.name, 'town-square');
 
     // # Create wiki and page
-    await createWikiThroughUI(page, `Rapid Type Wiki ${await pw.random.id()}`);
+    await createWikiThroughUI(page, uniqueName('Rapid Type Wiki'));
     const newPageButton = getNewPageButton(page);
     await newPageButton.click();
     await fillCreatePageModal(page, 'Rapid Type Test');
@@ -140,15 +133,12 @@ test('handles rapid typing during formatting', {tag: ['@pages', '@flaky']}, asyn
  * @objective Verify backwards text selection works with formatting
  */
 test('handles backwards text selection', {tag: ['@pages', '@flaky']}, async ({pw, sharedPagesSetup}) => {
-    const {team, user, adminClient} = sharedPagesSetup;
-    const channel = await adminClient.getChannelByName(team.id, 'town-square');
+    const {team, user} = sharedPagesSetup;
 
-    const {page, channelsPage} = await pw.testBrowser.login(user);
-    await channelsPage.goto(team.name, channel.name);
-    await channelsPage.toBeVisible();
+    const {page} = await loginAndNavigateToChannel(pw, user, team.name, 'town-square');
 
     // # Create wiki and page
-    await createWikiThroughUI(page, `Backwards Selection Wiki ${await pw.random.id()}`);
+    await createWikiThroughUI(page, uniqueName('Backwards Selection Wiki'));
     const newPageButton = getNewPageButton(page);
     await newPageButton.click();
     await fillCreatePageModal(page, 'Backwards Selection Test');
@@ -179,15 +169,12 @@ test('handles backwards text selection', {tag: ['@pages', '@flaky']}, async ({pw
  * @objective Verify multi-paragraph selection works with formatting
  */
 test('handles multi-paragraph selection', {tag: ['@pages', '@flaky']}, async ({pw, sharedPagesSetup}) => {
-    const {team, user, adminClient} = sharedPagesSetup;
-    const channel = await adminClient.getChannelByName(team.id, 'town-square');
+    const {team, user} = sharedPagesSetup;
 
-    const {page, channelsPage} = await pw.testBrowser.login(user);
-    await channelsPage.goto(team.name, channel.name);
-    await channelsPage.toBeVisible();
+    const {page} = await loginAndNavigateToChannel(pw, user, team.name, 'town-square');
 
     // # Create wiki and page
-    await createWikiThroughUI(page, `Multi Para Wiki ${await pw.random.id()}`);
+    await createWikiThroughUI(page, uniqueName('Multi Para Wiki'));
     const newPageButton = getNewPageButton(page);
     await newPageButton.click();
     await fillCreatePageModal(page, 'Multi Para Test');
@@ -218,15 +205,12 @@ test('handles multi-paragraph selection', {tag: ['@pages', '@flaky']}, async ({p
  * @objective Verify empty selection does not cause errors when clicking format buttons
  */
 test('handles empty selection with formatting click', {tag: ['@pages', '@flaky']}, async ({pw, sharedPagesSetup}) => {
-    const {team, user, adminClient} = sharedPagesSetup;
-    const channel = await adminClient.getChannelByName(team.id, 'town-square');
+    const {team, user} = sharedPagesSetup;
 
-    const {page, channelsPage} = await pw.testBrowser.login(user);
-    await channelsPage.goto(team.name, channel.name);
-    await channelsPage.toBeVisible();
+    const {page} = await loginAndNavigateToChannel(pw, user, team.name, 'town-square');
 
     // # Create wiki and page
-    await createWikiThroughUI(page, `Empty Selection Wiki ${await pw.random.id()}`);
+    await createWikiThroughUI(page, uniqueName('Empty Selection Wiki'));
     const newPageButton = getNewPageButton(page);
     await newPageButton.click();
     await fillCreatePageModal(page, 'Empty Selection Test');
@@ -259,15 +243,12 @@ test('handles empty selection with formatting click', {tag: ['@pages', '@flaky']
  * @objective Verify text formatting can be undone with Ctrl+Z
  */
 test('undoes text formatting with Ctrl+Z', {tag: ['@pages', '@flaky']}, async ({pw, sharedPagesSetup}) => {
-    const {team, user, adminClient} = sharedPagesSetup;
-    const channel = await adminClient.getChannelByName(team.id, 'town-square');
+    const {team, user} = sharedPagesSetup;
 
-    const {page, channelsPage} = await pw.testBrowser.login(user);
-    await channelsPage.goto(team.name, channel.name);
-    await channelsPage.toBeVisible();
+    const {page} = await loginAndNavigateToChannel(pw, user, team.name, 'town-square');
 
     // # Create wiki and page
-    await createWikiThroughUI(page, `Undo Format Wiki ${await pw.random.id()}`);
+    await createWikiThroughUI(page, uniqueName('Undo Format Wiki'));
     const newPageButton = getNewPageButton(page);
     await newPageButton.click();
     await fillCreatePageModal(page, 'Undo Format Test');
@@ -295,15 +276,12 @@ test('undoes text formatting with Ctrl+Z', {tag: ['@pages', '@flaky']}, async ({
  * @objective Verify text formatting can be redone with Ctrl+Y/Ctrl+Shift+Z
  */
 test('redoes text formatting with Ctrl+Y', {tag: ['@pages', '@flaky']}, async ({pw, sharedPagesSetup}) => {
-    const {team, user, adminClient} = sharedPagesSetup;
-    const channel = await adminClient.getChannelByName(team.id, 'town-square');
+    const {team, user} = sharedPagesSetup;
 
-    const {page, channelsPage} = await pw.testBrowser.login(user);
-    await channelsPage.goto(team.name, channel.name);
-    await channelsPage.toBeVisible();
+    const {page} = await loginAndNavigateToChannel(pw, user, team.name, 'town-square');
 
     // # Create wiki and page
-    await createWikiThroughUI(page, `Redo Format Wiki ${await pw.random.id()}`);
+    await createWikiThroughUI(page, uniqueName('Redo Format Wiki'));
     const newPageButton = getNewPageButton(page);
     await newPageButton.click();
     await fillCreatePageModal(page, 'Redo Format Test');
@@ -334,15 +312,12 @@ test('redoes text formatting with Ctrl+Y', {tag: ['@pages', '@flaky']}, async ({
  * @objective Verify multiple undo operations work correctly
  */
 test('handles multiple undo operations', {tag: ['@pages', '@flaky']}, async ({pw, sharedPagesSetup}) => {
-    const {team, user, adminClient} = sharedPagesSetup;
-    const channel = await adminClient.getChannelByName(team.id, 'town-square');
+    const {team, user} = sharedPagesSetup;
 
-    const {page, channelsPage} = await pw.testBrowser.login(user);
-    await channelsPage.goto(team.name, channel.name);
-    await channelsPage.toBeVisible();
+    const {page} = await loginAndNavigateToChannel(pw, user, team.name, 'town-square');
 
     // # Create wiki and page
-    await createWikiThroughUI(page, `Multi Undo Wiki ${await pw.random.id()}`);
+    await createWikiThroughUI(page, uniqueName('Multi Undo Wiki'));
     const newPageButton = getNewPageButton(page);
     await newPageButton.click();
     await fillCreatePageModal(page, 'Multi Undo Test');
@@ -370,15 +345,12 @@ test('handles multiple undo operations', {tag: ['@pages', '@flaky']}, async ({pw
  * @objective Verify editor remains functional after focus loss and refocus
  */
 test('editor remains functional after focus loss', {tag: ['@pages', '@flaky']}, async ({pw, sharedPagesSetup}) => {
-    const {team, user, adminClient} = sharedPagesSetup;
-    const channel = await adminClient.getChannelByName(team.id, 'town-square');
+    const {team, user} = sharedPagesSetup;
 
-    const {page, channelsPage} = await pw.testBrowser.login(user);
-    await channelsPage.goto(team.name, channel.name);
-    await channelsPage.toBeVisible();
+    const {page} = await loginAndNavigateToChannel(pw, user, team.name, 'town-square');
 
     // # Create wiki and page
-    await createWikiThroughUI(page, `Focus Undo Wiki ${await pw.random.id()}`);
+    await createWikiThroughUI(page, uniqueName('Focus Undo Wiki'));
     const newPageButton = getNewPageButton(page);
     await newPageButton.click();
     await fillCreatePageModal(page, 'Focus Undo Test');
@@ -412,15 +384,12 @@ test('editor remains functional after focus loss', {tag: ['@pages', '@flaky']}, 
  * @objective Verify arrow key navigation between blocks
  */
 test('navigates blocks with arrow keys', {tag: ['@pages', '@flaky']}, async ({pw, sharedPagesSetup}) => {
-    const {team, user, adminClient} = sharedPagesSetup;
-    const channel = await adminClient.getChannelByName(team.id, 'town-square');
+    const {team, user} = sharedPagesSetup;
 
-    const {page, channelsPage} = await pw.testBrowser.login(user);
-    await channelsPage.goto(team.name, channel.name);
-    await channelsPage.toBeVisible();
+    const {page} = await loginAndNavigateToChannel(pw, user, team.name, 'town-square');
 
     // # Create wiki and page
-    await createWikiThroughUI(page, `Arrow Nav Wiki ${await pw.random.id()}`);
+    await createWikiThroughUI(page, uniqueName('Arrow Nav Wiki'));
     const newPageButton = getNewPageButton(page);
     await newPageButton.click();
     await fillCreatePageModal(page, 'Arrow Nav Test');
@@ -451,15 +420,12 @@ test('navigates blocks with arrow keys', {tag: ['@pages', '@flaky']}, async ({pw
  * @objective Verify slash menu can be closed and editor remains functional
  */
 test('recovers from closed slash menu', {tag: ['@pages', '@flaky']}, async ({pw, sharedPagesSetup}) => {
-    const {team, user, adminClient} = sharedPagesSetup;
-    const channel = await adminClient.getChannelByName(team.id, 'town-square');
+    const {team, user} = sharedPagesSetup;
 
-    const {page, channelsPage} = await pw.testBrowser.login(user);
-    await channelsPage.goto(team.name, channel.name);
-    await channelsPage.toBeVisible();
+    const {page} = await loginAndNavigateToChannel(pw, user, team.name, 'town-square');
 
     // # Create wiki and page
-    await createWikiThroughUI(page, `Slash Recovery Wiki ${await pw.random.id()}`);
+    await createWikiThroughUI(page, uniqueName('Slash Recovery Wiki'));
     const newPageButton = getNewPageButton(page);
     await newPageButton.click();
     await fillCreatePageModal(page, 'Slash Recovery Test');
@@ -482,15 +448,12 @@ test('recovers from closed slash menu', {tag: ['@pages', '@flaky']}, async ({pw,
  * @objective Verify editor handles Tab key in lists (indent behavior)
  */
 test('handles Tab key in lists for indentation', {tag: ['@pages', '@flaky']}, async ({pw, sharedPagesSetup}) => {
-    const {team, user, adminClient} = sharedPagesSetup;
-    const channel = await adminClient.getChannelByName(team.id, 'town-square');
+    const {team, user} = sharedPagesSetup;
 
-    const {page, channelsPage} = await pw.testBrowser.login(user);
-    await channelsPage.goto(team.name, channel.name);
-    await channelsPage.toBeVisible();
+    const {page} = await loginAndNavigateToChannel(pw, user, team.name, 'town-square');
 
     // # Create wiki and page
-    await createWikiThroughUI(page, `Tab Indent Wiki ${await pw.random.id()}`);
+    await createWikiThroughUI(page, uniqueName('Tab Indent Wiki'));
     const newPageButton = getNewPageButton(page);
     await newPageButton.click();
     await fillCreatePageModal(page, 'Tab Indent Test');
@@ -527,15 +490,12 @@ test('handles Tab key in lists for indentation', {tag: ['@pages', '@flaky']}, as
  * @objective Verify editor content is preserved on rapid navigation
  */
 test('preserves content during rapid interactions', {tag: ['@pages', '@flaky']}, async ({pw, sharedPagesSetup}) => {
-    const {team, user, adminClient} = sharedPagesSetup;
-    const channel = await adminClient.getChannelByName(team.id, 'town-square');
+    const {team, user} = sharedPagesSetup;
 
-    const {page, channelsPage} = await pw.testBrowser.login(user);
-    await channelsPage.goto(team.name, channel.name);
-    await channelsPage.toBeVisible();
+    const {page} = await loginAndNavigateToChannel(pw, user, team.name, 'town-square');
 
     // # Create wiki and page
-    await createWikiThroughUI(page, `Rapid Interact Wiki ${await pw.random.id()}`);
+    await createWikiThroughUI(page, uniqueName('Rapid Interact Wiki'));
     const newPageButton = getNewPageButton(page);
     await newPageButton.click();
     await fillCreatePageModal(page, 'Rapid Interact Test');

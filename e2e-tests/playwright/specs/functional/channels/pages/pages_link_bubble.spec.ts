@@ -17,6 +17,7 @@ import {
     waitForLinkBubbleMenu,
     positionCursorInLink,
     createLinkFromSelection,
+    uniqueName,
     SHORT_WAIT,
     ELEMENT_TIMEOUT,
     HIERARCHY_TIMEOUT,
@@ -33,7 +34,7 @@ test('creates page link with correct text and styling', {tag: '@pages'}, async (
     const {page} = await loginAndNavigateToChannel(pw, user, team.name, channel.name);
 
     // # Create wiki through UI
-    await createWikiThroughUI(page, `Link Test Wiki ${await pw.random.id()}`);
+    await createWikiThroughUI(page, uniqueName('Link Test Wiki'));
 
     // # Create a target page to link to
     await createPageThroughUI(page, 'Target Page');
@@ -104,7 +105,7 @@ test('link persists after publishing page', {tag: '@pages'}, async ({pw, sharedP
     const {page} = await loginAndNavigateToChannel(pw, user, team.name, channel.name);
 
     // # Create wiki through UI
-    await createWikiThroughUI(page, `Link Persist Wiki ${await pw.random.id()}`);
+    await createWikiThroughUI(page, uniqueName('Link Persist Wiki'));
 
     // # Create a target page to link to
     const targetPage = await createPageThroughUI(page, 'Target Page');
@@ -174,7 +175,7 @@ test('allows custom link text when creating link', {tag: '@pages'}, async ({pw, 
     const {page} = await loginAndNavigateToChannel(pw, user, team.name, channel.name);
 
     // # Create wiki through UI
-    await createWikiThroughUI(page, `Custom Link Wiki ${await pw.random.id()}`);
+    await createWikiThroughUI(page, uniqueName('Custom Link Wiki'));
 
     // # Create a target page to link to
     await createPageThroughUI(page, 'Target Page');
@@ -248,7 +249,7 @@ test('shows link bubble menu when clicking on a link', {tag: '@pages'}, async ({
     });
 
     // # Create wiki through UI
-    await createWikiThroughUI(page, `Bubble Menu Wiki ${await pw.random.id()}`);
+    await createWikiThroughUI(page, uniqueName('Bubble Menu Wiki'));
 
     // # Create a target page to link to
     await createPageThroughUI(page, 'Target Page');
@@ -316,7 +317,7 @@ test('closes link bubble menu when pressing Escape', {tag: '@pages'}, async ({pw
     const {page} = await loginAndNavigateToChannel(pw, user, team.name, channel.name);
 
     // # Create wiki through UI
-    await createWikiThroughUI(page, `Escape Test Wiki ${await pw.random.id()}`);
+    await createWikiThroughUI(page, uniqueName('Escape Test Wiki'));
 
     // # Create a target page to link to
     await createPageThroughUI(page, 'Target Page');
@@ -372,7 +373,7 @@ test('copies link URL to clipboard when clicking Copy button', {tag: '@pages'}, 
     await page.context().grantPermissions(['clipboard-read', 'clipboard-write']);
 
     // # Create wiki through UI
-    await createWikiThroughUI(page, `Copy Link Wiki ${await pw.random.id()}`);
+    await createWikiThroughUI(page, uniqueName('Copy Link Wiki'));
 
     // # Create a target page to link to
     const targetPage = await createPageThroughUI(page, 'Target Page');
@@ -427,7 +428,7 @@ test('opens link edit modal when clicking Edit button', {tag: '@pages'}, async (
     const {page} = await loginAndNavigateToChannel(pw, user, team.name, channel.name);
 
     // # Create wiki through UI
-    await createWikiThroughUI(page, `Edit Link Wiki ${await pw.random.id()}`);
+    await createWikiThroughUI(page, uniqueName('Edit Link Wiki'));
 
     // # Create a target page to link to
     await createPageThroughUI(page, 'Target Page');
@@ -482,7 +483,7 @@ test('removes link when clicking Unlink button', {tag: '@pages'}, async ({pw, sh
     const {page} = await loginAndNavigateToChannel(pw, user, team.name, channel.name);
 
     // # Create wiki through UI
-    await createWikiThroughUI(page, `Unlink Wiki ${await pw.random.id()}`);
+    await createWikiThroughUI(page, uniqueName('Unlink Wiki'));
 
     // # Create a target page to link to
     await createPageThroughUI(page, 'Target Page');
@@ -543,7 +544,7 @@ test('exits link mark when pressing space after link', {tag: '@pages'}, async ({
     const {page} = await loginAndNavigateToChannel(pw, user, team.name, channel.name);
 
     // # Create wiki through UI
-    await createWikiThroughUI(page, `Link Space Test Wiki ${await pw.random.id()}`);
+    await createWikiThroughUI(page, uniqueName('Link Space Test Wiki'));
 
     // # Create a target page to link to
     await createPageThroughUI(page, 'Target Page');

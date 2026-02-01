@@ -13,6 +13,8 @@ import {
     getEditorAndWait,
     typeInEditor,
     getHierarchyPanel,
+    loginAndNavigateToChannel,
+    uniqueName,
     UI_MICRO_WAIT,
     EDITOR_LOAD_WAIT,
 } from './test_helpers';
@@ -27,12 +29,10 @@ test('sanitizes XSS attempts in page content', {tag: '@pages'}, async ({pw, shar
     const {team, user, adminClient} = sharedPagesSetup;
     const channel = await adminClient.getChannelByName(team.id, 'town-square');
 
-    const {page, channelsPage} = await pw.testBrowser.login(user);
-    await channelsPage.goto(team.name, channel.name);
-    await channelsPage.toBeVisible();
+    const {page} = await loginAndNavigateToChannel(pw, user, team.name, channel.name);
 
     // # Create wiki through UI
-    await createWikiThroughUI(page, `XSS Test Wiki ${await pw.random.id()}`);
+    await createWikiThroughUI(page, uniqueName('XSS Test Wiki'));
 
     // # Create new page
     const newPageButton = getNewPageButton(page);
@@ -74,12 +74,10 @@ test('sanitizes XSS in page title', {tag: '@pages'}, async ({pw, sharedPagesSetu
     const {team, user, adminClient} = sharedPagesSetup;
     const channel = await adminClient.getChannelByName(team.id, 'town-square');
 
-    const {page, channelsPage} = await pw.testBrowser.login(user);
-    await channelsPage.goto(team.name, channel.name);
-    await channelsPage.toBeVisible();
+    const {page} = await loginAndNavigateToChannel(pw, user, team.name, channel.name);
 
     // # Create wiki through UI
-    await createWikiThroughUI(page, `XSS Title Wiki ${await pw.random.id()}`);
+    await createWikiThroughUI(page, uniqueName('XSS Title Wiki'));
 
     // # Create new page with XSS attempt in title
     const xssTitle = '<img src=x onerror=alert("XSS")>';
@@ -117,12 +115,10 @@ test('prevents SQL injection in page search', {tag: '@pages'}, async ({pw, share
     const {team, user, adminClient} = sharedPagesSetup;
     const channel = await adminClient.getChannelByName(team.id, 'town-square');
 
-    const {page, channelsPage} = await pw.testBrowser.login(user);
-    await channelsPage.goto(team.name, channel.name);
-    await channelsPage.toBeVisible();
+    const {page} = await loginAndNavigateToChannel(pw, user, team.name, channel.name);
 
     // # Create wiki and page through UI
-    await createWikiThroughUI(page, `SQL Test Wiki ${await pw.random.id()}`);
+    await createWikiThroughUI(page, uniqueName('SQL Test Wiki'));
     await createPageThroughUI(page, 'Normal Page', 'Normal content');
 
     // # Attempt SQL injection in search
@@ -158,12 +154,10 @@ test('validates page title length and special characters', {tag: '@pages'}, asyn
     const {team, user, adminClient} = sharedPagesSetup;
     const channel = await adminClient.getChannelByName(team.id, 'town-square');
 
-    const {page, channelsPage} = await pw.testBrowser.login(user);
-    await channelsPage.goto(team.name, channel.name);
-    await channelsPage.toBeVisible();
+    const {page} = await loginAndNavigateToChannel(pw, user, team.name, channel.name);
 
     // # Create wiki through UI
-    await createWikiThroughUI(page, `Validation Wiki ${await pw.random.id()}`);
+    await createWikiThroughUI(page, uniqueName('Validation Wiki'));
 
     // # Create new page
     const newPageButton = getNewPageButton(page);

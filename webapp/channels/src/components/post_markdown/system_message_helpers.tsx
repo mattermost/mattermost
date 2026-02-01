@@ -385,7 +385,7 @@ function renderWikiAddedMessage(post: Post, currentTeamName: string, channel: Ch
     return (
         <FormattedMessage
             id='api.wiki.wiki_added'
-            defaultMessage='{username} added a new doc tab: {wikiLink}'
+            defaultMessage='{username} added a new wiki tab: {wikiLink}'
             values={{
                 wikiLink,
                 username,
@@ -401,7 +401,7 @@ function renderWikiDeletedMessage(post: Post): ReactNode {
     return (
         <FormattedMessage
             id='api.wiki.wiki_deleted'
-            defaultMessage='{username} deleted the doc tab: {wikiTitle}'
+            defaultMessage='{username} deleted the wiki tab: {wikiTitle}'
             values={{
                 wikiTitle,
                 username,
@@ -423,9 +423,56 @@ function renderPageAddedMessage(post: Post, currentTeamName: string, channel: Ch
     return (
         <FormattedMessage
             id='api.page.page_added'
-            defaultMessage='{username} created a new page {pageLink} in the {wikiTitle} doc tab'
+            defaultMessage='{username} created a new page {pageLink} in the {wikiTitle} wiki tab'
             values={{
                 pageLink,
+                wikiTitle,
+                username,
+            }}
+        />
+    );
+}
+
+function renderCombinedPageActivityMessage(post: Post, currentTeamName: string, channel: Channel): ReactNode {
+    const wikiTitle = ensureString(post.props.wiki_title);
+    const wikiId = ensureString(post.props.wiki_id);
+    const username = renderUsername(post.props.username);
+    const pages = post.props.pages;
+
+    if (!Array.isArray(pages) || pages.length === 0) {
+        return null;
+    }
+
+    const pageLinks = pages.map((page: {pageId: string; pageTitle: string}, index: number) => {
+        const pageUrl = `${getSiteURL()}${getWikiUrl(currentTeamName, channel.id, wikiId, page.pageId)}`;
+        return (
+            <React.Fragment key={page.pageId}>
+                {index > 0 && ', '}
+                <a href={pageUrl}>{page.pageTitle}</a>
+            </React.Fragment>
+        );
+    });
+
+    if (pages.length === 1) {
+        return (
+            <FormattedMessage
+                id='api.page.pages_created.one'
+                defaultMessage='{username} created {pageLink} in the {wikiTitle} wiki tab'
+                values={{
+                    pageLink: pageLinks,
+                    wikiTitle,
+                    username,
+                }}
+            />
+        );
+    }
+
+    return (
+        <FormattedMessage
+            id='api.page.pages_created.multiple'
+            defaultMessage='{username} created {pageLinks} in the {wikiTitle} wiki tab'
+            values={{
+                pageLinks: <>{pageLinks}</>,
                 wikiTitle,
                 username,
             }}
@@ -438,19 +485,27 @@ function renderPageMentionMessage(post: Post, currentTeamName: string, channel: 
     const pageId = ensureString(post.props.page_id);
     const wikiId = ensureString(post.props.wiki_id);
     const username = renderUsername(post.props.username);
+    const mentionContext = ensureString(post.props.mention_context);
 
     const pageUrl = `${getSiteURL()}${getWikiUrl(currentTeamName, channel.id, wikiId, pageId)}`;
     const pageLink = <a href={pageUrl}>{pageTitle}</a>;
 
     return (
-        <FormattedMessage
-            id='api.page.page_mention'
-            defaultMessage='{username} was mentioned in page {pageLink}.'
-            values={{
-                pageLink,
-                username,
-            }}
-        />
+        <div className='page-mention-message'>
+            <FormattedMessage
+                id='api.page.page_mention'
+                defaultMessage='Mentioned {username} on the page: {pageLink}'
+                values={{
+                    pageLink,
+                    username,
+                }}
+            />
+            {mentionContext && (
+                <div className='page-mention-context'>
+                    {mentionContext}
+                </div>
+            )}
+        </div>
     );
 }
 
@@ -506,7 +561,7 @@ function renderPageUpdatedMessage(post: Post, currentTeamName: string, channel: 
     return (
         <FormattedMessage
             id='api.page.page_updated'
-            defaultMessage='{users} made updates to the page {pageLink} in the {wikiTitle} doc tab'
+            defaultMessage='{users} made updates to the page {pageLink} in the {wikiTitle} wiki tab'
             values={{
                 users: usersText,
                 pageLink,
@@ -614,6 +669,8 @@ export function renderSystemMessage(post: Post, currentTeamName: string, channel
                 messageData={messageData}
             />
         );
+    } else if (post.type === Posts.POST_TYPES.COMBINED_PAGE_ACTIVITY) {
+        return renderCombinedPageActivityMessage(post, currentTeamName, channel);
     } else if (post.type === Posts.POST_TYPES.GM_CONVERTED_TO_CHANNEL) {
         // This is rendered via a separate component instead of registering in
         // systemMessageRenderers because we need to format a list with keeping i18n support

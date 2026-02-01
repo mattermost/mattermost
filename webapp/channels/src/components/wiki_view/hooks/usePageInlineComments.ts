@@ -38,6 +38,14 @@ export const usePageInlineComments = (pageId?: string, wikiId?: string) => {
     // Track which pages have had comments loaded to avoid redundant fetches
     const loadedPagesRef = useRef<Set<string>>(new Set());
 
+    // Track timeout IDs for cleanup to prevent memory leaks
+    const scrollTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+    const highlightTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+    // Ref to access current inlineComments in event handlers without stale closures
+    const inlineCommentsRef = useRef<Post[]>(inlineComments);
+    inlineCommentsRef.current = inlineComments;
+
     // Store fetch logic in a ref to avoid recreating callbacks
     const fetchInlineCommentsRef = useRef<(force?: boolean) => Promise<void>>();
     fetchInlineCommentsRef.current = async (force = false) => {
@@ -83,26 +91,10 @@ export const usePageInlineComments = (pageId?: string, wikiId?: string) => {
         await fetchInlineCommentsRef.current?.(force);
     }, []);
 
-    // Callback when a new inline comment is created
-    const handleInlineCommentCreated = useCallback((commentId: string) => {
-        // Refresh comments to show the new highlight (force refetch)
-        fetchInlineComments(true);
-
-        // Open RHS focused on the new comment
-        if (pageId && wikiId) {
-            dispatch(openWikiRhs(pageId, wikiId, commentId));
-            setLastClickedCommentId(commentId);
-        }
-    }, [pageId, wikiId, dispatch, fetchInlineComments]);
-
-    // Use the inline comment modal hook
+    // Use the inline comment hook (opens RHS instead of modal)
     const {
-        showCommentModal,
-        commentAnchor,
         handleCreateInlineComment,
-        handleSubmitComment,
-        handleCloseModal,
-    } = useInlineComments(pageId, wikiId, handleInlineCommentCreated);
+    } = useInlineComments(pageId, wikiId);
 
     // Fetch comments when pageId changes (only re-run when pageId actually changes, not when fetchInlineComments reference changes)
     useEffect(() => {
@@ -177,17 +169,18 @@ export const usePageInlineComments = (pageId?: string, wikiId?: string) => {
                 const eventPageId = data?.page_id;
 
                 if (commentId && eventPageId === pageId) {
-                    // Find the anchor ID for this comment before removing it
-                    setInlineComments((prev) => {
-                        const deletedComment = prev.find((comment) => comment.id === commentId);
-                        const inlineAnchor = deletedComment?.props?.inline_anchor as {anchor_id?: string} | undefined;
-                        const anchorId = inlineAnchor?.anchor_id;
-                        if (anchorId) {
-                            // Track the anchor ID so the editor can remove the mark
-                            setDeletedAnchorIds((ids) => [...ids, anchorId]);
-                        }
-                        return prev.filter((comment) => comment.id !== commentId);
-                    });
+                    // Find the anchor ID from the ref (synchronous access to current state)
+                    const deletedComment = inlineCommentsRef.current.find((comment) => comment.id === commentId);
+                    const inlineAnchor = deletedComment?.props?.inline_anchor as {anchor_id?: string} | undefined;
+                    const anchorId = inlineAnchor?.anchor_id;
+
+                    // Track the anchor ID so the editor can remove the mark
+                    if (anchorId) {
+                        setDeletedAnchorIds((ids) => [...ids, anchorId]);
+                    }
+
+                    // Remove the comment from state
+                    setInlineComments((prev) => prev.filter((comment) => comment.id !== commentId));
                 }
             }
         };
@@ -200,33 +193,20 @@ export const usePageInlineComments = (pageId?: string, wikiId?: string) => {
     }, [pageId, fetchInlineComments]);
 
     // Store the latest callback logic in a ref to avoid closure issues with TipTap
-    const handleCommentClickRef = useRef((commentId: string) => {
-        if (isWikiRhsOpen && lastClickedCommentId === commentId) {
-            dispatch(closeRightHandSide());
-            setLastClickedCommentId(null);
-            return;
-        }
-
-        if (pageId && wikiId) {
-            dispatch(openWikiRhs(pageId, wikiId, commentId));
-            setLastClickedCommentId(commentId);
-        }
-
-        setTimeout(() => {
-            const commentElement = document.getElementById(`post_${commentId}`);
-            if (commentElement) {
-                commentElement.scrollIntoView({behavior: 'smooth', block: 'center'});
-                commentElement.classList.add('highlight-animation');
-                setTimeout(() => {
-                    commentElement.classList.remove('highlight-animation');
-                }, HIGHLIGHT_ANIMATION_DURATION_MS);
-            }
-        }, SCROLL_INTO_VIEW_DELAY_MS);
-    });
+    // Initialize with a no-op to avoid stale closure on first render
+    const handleCommentClickRef = useRef<(commentId: string) => void>(() => {});
 
     // Update the ref on every render with the latest values
     useEffect(() => {
         handleCommentClickRef.current = (commentId: string) => {
+            // Clear any pending timeouts to prevent stale operations
+            if (scrollTimeoutRef.current) {
+                clearTimeout(scrollTimeoutRef.current);
+            }
+            if (highlightTimeoutRef.current) {
+                clearTimeout(highlightTimeoutRef.current);
+            }
+
             if (isWikiRhsOpen && lastClickedCommentId === commentId) {
                 dispatch(closeRightHandSide());
                 setLastClickedCommentId(null);
@@ -238,18 +218,30 @@ export const usePageInlineComments = (pageId?: string, wikiId?: string) => {
                 setLastClickedCommentId(commentId);
             }
 
-            setTimeout(() => {
+            scrollTimeoutRef.current = setTimeout(() => {
                 const commentElement = document.getElementById(`post_${commentId}`);
                 if (commentElement) {
                     commentElement.scrollIntoView({behavior: 'smooth', block: 'center'});
                     commentElement.classList.add('highlight-animation');
-                    setTimeout(() => {
+                    highlightTimeoutRef.current = setTimeout(() => {
                         commentElement.classList.remove('highlight-animation');
                     }, HIGHLIGHT_ANIMATION_DURATION_MS);
                 }
             }, SCROLL_INTO_VIEW_DELAY_MS);
         };
     }, [isWikiRhsOpen, lastClickedCommentId, pageId, wikiId, dispatch]);
+
+    // Cleanup timeouts on unmount to prevent memory leaks
+    useEffect(() => {
+        return () => {
+            if (scrollTimeoutRef.current) {
+                clearTimeout(scrollTimeoutRef.current);
+            }
+            if (highlightTimeoutRef.current) {
+                clearTimeout(highlightTimeoutRef.current);
+            }
+        };
+    }, []);
 
     // Stable callback that always calls the latest version from the ref
     const handleCommentClick = useCallback((commentId: string) => {
@@ -265,10 +257,6 @@ export const usePageInlineComments = (pageId?: string, wikiId?: string) => {
         inlineComments,
         handleCommentClick,
         handleCreateInlineComment,
-        showCommentModal,
-        commentAnchor,
-        handleSubmitComment,
-        handleCloseModal,
         deletedAnchorIds,
         clearDeletedAnchorIds,
     };

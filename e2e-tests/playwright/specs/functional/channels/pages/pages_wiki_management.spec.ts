@@ -30,6 +30,7 @@ import {
     verifyBreadcrumbContains,
     verifyPageContentContains,
     uniqueName,
+    loginAndNavigateToChannel,
     EDITOR_LOAD_WAIT,
     ELEMENT_TIMEOUT,
     HIERARCHY_TIMEOUT,
@@ -46,9 +47,7 @@ test('renames wiki through channel tab bar menu', {tag: '@pages'}, async ({pw, s
     const {team, user, adminClient} = sharedPagesSetup;
     const channel = await createTestChannel(adminClient, team.id, 'Test Channel');
 
-    const {page, channelsPage} = await pw.testBrowser.login(user);
-    await channelsPage.goto(team.name, channel.name);
-    await channelsPage.toBeVisible();
+    const {page, channelsPage} = await loginAndNavigateToChannel(pw, user, team.name, channel.name);
 
     const originalWikiName = uniqueName('Original Wiki');
     const newWikiName = uniqueName('Renamed Wiki');
@@ -87,9 +86,7 @@ test('deletes wiki when wiki tab is deleted', {tag: '@pages'}, async ({pw, share
     const {team, user, adminClient} = sharedPagesSetup;
     const channel = await createTestChannel(adminClient, team.id, 'Test Channel');
 
-    const {page, channelsPage} = await pw.testBrowser.login(user);
-    await channelsPage.goto(team.name, channel.name);
-    await channelsPage.toBeVisible();
+    const {page, channelsPage} = await loginAndNavigateToChannel(pw, user, team.name, channel.name);
 
     const wikiName = uniqueName('Delete Test Wiki');
 
@@ -135,9 +132,7 @@ test('updates both wiki tab and wiki title when renamed', {tag: '@pages'}, async
     const {team, user, adminClient} = sharedPagesSetup;
     const channel = await createTestChannel(adminClient, team.id, 'Test Channel');
 
-    const {page, channelsPage} = await pw.testBrowser.login(user);
-    await channelsPage.goto(team.name, channel.name);
-    await channelsPage.toBeVisible();
+    const {page, channelsPage} = await loginAndNavigateToChannel(pw, user, team.name, channel.name);
 
     const originalName = uniqueName('Sync Test Wiki');
     const updatedName = uniqueName('Updated Sync Wiki');
@@ -196,9 +191,7 @@ test(
         const {team, user, adminClient} = sharedPagesSetup;
         const channel = await createTestChannel(adminClient, team.id, 'Test Channel');
 
-        const {page, channelsPage} = await pw.testBrowser.login(user);
-        await channelsPage.goto(team.name, channel.name);
-        await channelsPage.toBeVisible();
+        const {page, channelsPage} = await loginAndNavigateToChannel(pw, user, team.name, channel.name);
 
         const wikiName = uniqueName('Nav Test Wiki');
 
@@ -240,9 +233,7 @@ test('maintains breadcrumb navigation after wiki rename', {tag: '@pages'}, async
     const {team, user, adminClient} = sharedPagesSetup;
     const channel = await createTestChannel(adminClient, team.id, 'Test Channel');
 
-    const {page, channelsPage} = await pw.testBrowser.login(user);
-    await channelsPage.goto(team.name, channel.name);
-    await channelsPage.toBeVisible();
+    const {page, channelsPage} = await loginAndNavigateToChannel(pw, user, team.name, channel.name);
 
     const originalWikiName = uniqueName('Original Navigation Wiki');
     const newWikiName = uniqueName('Renamed Navigation Wiki');
@@ -337,9 +328,7 @@ test('updates hierarchy panel after wiki rename', {tag: '@pages'}, async ({pw, s
     const {team, user, adminClient} = sharedPagesSetup;
     const channel = await createTestChannel(adminClient, team.id, 'Test Channel');
 
-    const {page, channelsPage} = await pw.testBrowser.login(user);
-    await channelsPage.goto(team.name, channel.name);
-    await channelsPage.toBeVisible();
+    const {page, channelsPage} = await loginAndNavigateToChannel(pw, user, team.name, channel.name);
 
     const originalWikiName = uniqueName('Original Hierarchy Wiki');
     const newWikiName = uniqueName('Renamed Hierarchy Wiki');
@@ -403,9 +392,7 @@ test('makes all child pages inaccessible after wiki deletion', {tag: '@pages'}, 
     const {team, user, adminClient} = sharedPagesSetup;
     const channel = await createTestChannel(adminClient, team.id, 'Test Channel');
 
-    const {page, channelsPage} = await pw.testBrowser.login(user);
-    await channelsPage.goto(team.name, channel.name);
-    await channelsPage.toBeVisible();
+    const {page, channelsPage} = await loginAndNavigateToChannel(pw, user, team.name, channel.name);
 
     const wikiName = uniqueName('Deletion Test Wiki');
 
@@ -471,10 +458,7 @@ test('moves wiki to another channel through wiki tab menu', {tag: '@pages'}, asy
     await adminClient.addToChannel(user.id, sourceChannel.id);
     await adminClient.addToChannel(user.id, targetChannel.id);
 
-    const {page, channelsPage} = await pw.testBrowser.login(user);
-
-    // # Navigate to source channel
-    await channelsPage.goto(team.name, sourceChannel.name);
+    const {page, channelsPage} = await loginAndNavigateToChannel(pw, user, team.name, sourceChannel.name);
 
     const wikiName = uniqueName('Wiki to Move');
 
@@ -576,10 +560,7 @@ test(
         await adminClient.addToChannel(user.id, sourceChannel.id);
         await adminClient.addToChannel(user.id, targetChannel.id);
 
-        const {page, channelsPage} = await pw.testBrowser.login(user);
-
-        // # Navigate to source channel
-        await channelsPage.goto(team.name, sourceChannel.name);
+        const {page, channelsPage} = await loginAndNavigateToChannel(pw, user, team.name, sourceChannel.name);
 
         const wikiName = uniqueName('Wiki with Comments');
 

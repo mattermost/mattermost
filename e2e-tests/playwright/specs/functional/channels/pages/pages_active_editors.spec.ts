@@ -21,6 +21,8 @@ import {
     createTestUserInChannel,
     createMultipleTestUsersInChannel,
     waitForActiveEditorsIndicator,
+    loginAndNavigateToChannel,
+    uniqueName,
     AUTOSAVE_WAIT,
     WEBSOCKET_WAIT,
     HIERARCHY_TIMEOUT,
@@ -31,19 +33,15 @@ import {
  */
 test('shows active editor when another user edits page', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
     const {team, user, adminClient} = sharedPagesSetup;
-    const channel = await createTestChannel(adminClient, team.id, `Test Channel ${await pw.random.id()}`, 'O', [
-        user.id,
-    ]);
+    const channel = await createTestChannel(adminClient, team.id, uniqueName('Test Channel'), 'O', [user.id]);
 
     // # Create a second user
     const {user: user2} = await createTestUserInChannel(pw, adminClient, team, channel, 'user2');
 
     // # User 1 logs in and creates a wiki with a page
-    const {page: page1, channelsPage: channelsPage1} = await pw.testBrowser.login(user);
+    const {page: page1} = await loginAndNavigateToChannel(pw, user, team.name, channel.name);
 
-    await channelsPage1.goto(team.name, channel.name);
-
-    const wiki = await createWikiThroughUI(page1, `Active Editors Wiki ${await pw.random.id()}`);
+    const wiki = await createWikiThroughUI(page1, uniqueName('Active Editors Wiki'));
 
     const newPageButton = getNewPageButton(page1);
     await newPageButton.click();
@@ -71,14 +69,9 @@ test('shows active editor when another user edits page', {tag: '@pages'}, async 
     }
 
     // # User 2 logs in and navigates directly to the wiki page
-    const {page: page2, channelsPage: channelsPage2} = await pw.testBrowser.login(user2);
+    const {page: page2} = await loginAndNavigateToChannel(pw, user2, team.name, channel.name);
 
-    // Navigate to the channel first to ensure proper authentication and role loading
-    await channelsPage2.goto(team.name, channel.name);
-    await channelsPage2.toBeVisible();
-    await page2.waitForLoadState('networkidle');
-
-    // Now navigate to the specific page
+    // Navigate to the specific page
     await navigateToPage(page2, pw.url, team.name, channel.id, wiki.id, pageId!);
 
     // # Start editing the page
@@ -105,19 +98,16 @@ test('shows active editor when another user edits page', {tag: '@pages'}, async 
  */
 test('displays multiple active editors with avatars and count', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
     const {team, user, adminClient} = sharedPagesSetup;
-    const channel = await createTestChannel(adminClient, team.id, `Test Channel ${await pw.random.id()}`, 'O', [
-        user.id,
-    ]);
+    const channel = await createTestChannel(adminClient, team.id, uniqueName('Test Channel'), 'O', [user.id]);
 
     // # Create two additional users
     const {user: user2} = await createTestUserInChannel(pw, adminClient, team, channel, 'user2');
     const {user: user3} = await createTestUserInChannel(pw, adminClient, team, channel, 'user3');
 
     // # User 1 logs in and creates a wiki with a page
-    const {page: page1, channelsPage: channelsPage1} = await pw.testBrowser.login(user);
-    await channelsPage1.goto(team.name, channel.name);
+    const {page: page1} = await loginAndNavigateToChannel(pw, user, team.name, channel.name);
 
-    const wiki = await createWikiThroughUI(page1, `Multi Editor Wiki ${await pw.random.id()}`);
+    const wiki = await createWikiThroughUI(page1, uniqueName('Multi Editor Wiki'));
 
     const newPageButton = getNewPageButton(page1);
     await newPageButton.click();
@@ -174,18 +164,15 @@ test('displays multiple active editors with avatars and count', {tag: '@pages'},
  */
 test('removes editor from indicator when draft is deleted', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
     const {team, user, adminClient} = sharedPagesSetup;
-    const channel = await createTestChannel(adminClient, team.id, `Test Channel ${await pw.random.id()}`, 'O', [
-        user.id,
-    ]);
+    const channel = await createTestChannel(adminClient, team.id, uniqueName('Test Channel'), 'O', [user.id]);
 
     // # Create a second user
     const {user: user2} = await createTestUserInChannel(pw, adminClient, team, channel, 'user2');
 
     // # User 1 creates a page
-    const {page: page1, channelsPage: channelsPage1} = await pw.testBrowser.login(user);
-    await channelsPage1.goto(team.name, channel.name);
+    const {page: page1} = await loginAndNavigateToChannel(pw, user, team.name, channel.name);
 
-    const wiki = await createWikiThroughUI(page1, `Editor Removal Wiki ${await pw.random.id()}`);
+    const wiki = await createWikiThroughUI(page1, uniqueName('Editor Removal Wiki'));
 
     const newPageButton = getNewPageButton(page1);
     await newPageButton.click();
@@ -203,11 +190,7 @@ test('removes editor from indicator when draft is deleted', {tag: '@pages'}, asy
     const pageId = pageUrl.split('/').pop();
 
     // # User 2 starts editing
-    const {page: page2, channelsPage: channelsPage2} = await pw.testBrowser.login(user2);
-
-    await channelsPage2.goto(team.name, channel.name);
-    await channelsPage2.toBeVisible();
-    await page2.waitForLoadState('networkidle');
+    const {page: page2} = await loginAndNavigateToChannel(pw, user2, team.name, channel.name);
 
     await navigateToPage(page2, pw.url, team.name, channel.id, wiki.id, pageId!);
 
@@ -234,16 +217,12 @@ test('removes editor from indicator when draft is deleted', {tag: '@pages'}, asy
  */
 test('does not show current user in active editors list', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
     const {team, user, adminClient} = sharedPagesSetup;
-    const channel = await createTestChannel(adminClient, team.id, `Test Channel ${await pw.random.id()}`, 'O', [
-        user.id,
-    ]);
+    const channel = await createTestChannel(adminClient, team.id, uniqueName('Test Channel'), 'O', [user.id]);
 
     // # User logs in and creates a draft
-    const {page, channelsPage} = await pw.testBrowser.login(user);
-    await channelsPage.goto(team.name, channel.name);
-    await channelsPage.toBeVisible();
+    const {page} = await loginAndNavigateToChannel(pw, user, team.name, channel.name);
 
-    await createWikiThroughUI(page, `Self Edit Wiki ${await pw.random.id()}`);
+    await createWikiThroughUI(page, uniqueName('Self Edit Wiki'));
 
     const newPageButton = getNewPageButton(page);
     await newPageButton.click();
@@ -264,19 +243,16 @@ test('does not show current user in active editors list', {tag: '@pages'}, async
 test('displays overflow count when more than 3 editors', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
     test.slow();
     const {team, user, adminClient} = sharedPagesSetup;
-    const channel = await createTestChannel(adminClient, team.id, `Test Channel ${await pw.random.id()}`, 'O', [
-        user.id,
-    ]);
+    const channel = await createTestChannel(adminClient, team.id, uniqueName('Test Channel'), 'O', [user.id]);
 
     // # Create 4 additional users
     const userResults = await createMultipleTestUsersInChannel(pw, adminClient, team, channel, 4, 'user');
     const users = userResults.map((result) => result.user);
 
     // # User 1 creates a page
-    const {page: page1, channelsPage: channelsPage1} = await pw.testBrowser.login(user);
-    await channelsPage1.goto(team.name, channel.name);
+    const {page: page1} = await loginAndNavigateToChannel(pw, user, team.name, channel.name);
 
-    const wiki = await createWikiThroughUI(page1, `Overflow Wiki ${await pw.random.id()}`);
+    const wiki = await createWikiThroughUI(page1, uniqueName('Overflow Wiki'));
 
     const newPageButton = getNewPageButton(page1);
     await newPageButton.click();
@@ -345,19 +321,15 @@ test('displays overflow count when more than 3 editors', {tag: '@pages'}, async 
  */
 test.skip('removes editor from indicator when user navigates away', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
     const {team, user, adminClient} = sharedPagesSetup;
-    const channel = await createTestChannel(adminClient, team.id, `Test Channel ${await pw.random.id()}`, 'O', [
-        user.id,
-    ]);
+    const channel = await createTestChannel(adminClient, team.id, uniqueName('Test Channel'), 'O', [user.id]);
 
     // # Create a second user
     const {user: user2} = await createTestUserInChannel(pw, adminClient, team, channel, 'user2');
 
     // # User 1 creates a page
-    const {page: page1, channelsPage: channelsPage1} = await pw.testBrowser.login(user);
+    const {page: page1} = await loginAndNavigateToChannel(pw, user, team.name, channel.name);
 
-    await channelsPage1.goto(team.name, channel.name);
-
-    const wiki = await createWikiThroughUI(page1, `Navigate Away Wiki ${await pw.random.id()}`);
+    const wiki = await createWikiThroughUI(page1, uniqueName('Navigate Away Wiki'));
 
     const newPageButton = getNewPageButton(page1);
     await newPageButton.click();
@@ -375,11 +347,7 @@ test.skip('removes editor from indicator when user navigates away', {tag: '@page
     const pageId = pageUrl.split('/').pop();
 
     // # User 2 starts editing
-    const {page: page2, channelsPage: channelsPage2} = await pw.testBrowser.login(user2);
-
-    await channelsPage2.goto(team.name, channel.name);
-    await channelsPage2.toBeVisible();
-    await page2.waitForLoadState('networkidle');
+    const {page: page2} = await loginAndNavigateToChannel(pw, user2, team.name, channel.name);
 
     await navigateToPage(page2, pw.url, team.name, channel.id, wiki.id, pageId!);
 
@@ -425,19 +393,15 @@ test(
     {tag: '@pages'},
     async ({pw, sharedPagesSetup}) => {
         const {team, user, adminClient} = sharedPagesSetup;
-        const channel = await createTestChannel(adminClient, team.id, `Test Channel ${await pw.random.id()}`, 'O', [
-            user.id,
-        ]);
+        const channel = await createTestChannel(adminClient, team.id, uniqueName('Test Channel'), 'O', [user.id]);
 
         // # Create a second user
         const {user: user2} = await createTestUserInChannel(pw, adminClient, team, channel, 'user2');
 
         // # User 1 logs in and creates a wiki with a page
-        const {page: page1, channelsPage: channelsPage1} = await pw.testBrowser.login(user);
+        const {page: page1} = await loginAndNavigateToChannel(pw, user, team.name, channel.name);
 
-        await channelsPage1.goto(team.name, channel.name);
-
-        const wiki = await createWikiThroughUI(page1, `Persistence Wiki ${await pw.random.id()}`);
+        const wiki = await createWikiThroughUI(page1, uniqueName('Persistence Wiki'));
 
         const newPageButton = getNewPageButton(page1);
         await newPageButton.click();
@@ -458,11 +422,7 @@ test(
         const pageId = pageUrl.split('/').pop();
 
         // # User 2 logs in and navigates directly to the wiki page
-        const {page: page2, channelsPage: channelsPage2} = await pw.testBrowser.login(user2);
-
-        await channelsPage2.goto(team.name, channel.name);
-        await channelsPage2.toBeVisible();
-        await page2.waitForLoadState('networkidle');
+        const {page: page2} = await loginAndNavigateToChannel(pw, user2, team.name, channel.name);
 
         await navigateToPage(page2, pw.url, team.name, channel.id, wiki.id, pageId!);
 
@@ -503,18 +463,15 @@ test(
 test('removes editor when navigating to different wiki page', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
     test.slow();
     const {team, user, adminClient} = sharedPagesSetup;
-    const channel = await createTestChannel(adminClient, team.id, `Test Channel ${await pw.random.id()}`, 'O', [
-        user.id,
-    ]);
+    const channel = await createTestChannel(adminClient, team.id, uniqueName('Test Channel'), 'O', [user.id]);
 
     // # Create a second user
     const {user: user2} = await createTestUserInChannel(pw, adminClient, team, channel, 'user2');
 
     // # User 1 creates a wiki with two pages
-    const {page: page1, channelsPage: channelsPage1} = await pw.testBrowser.login(user);
-    await channelsPage1.goto(team.name, channel.name);
+    const {page: page1} = await loginAndNavigateToChannel(pw, user, team.name, channel.name);
 
-    const wiki = await createWikiThroughUI(page1, `Wiki Navigation Test ${await pw.random.id()}`);
+    const wiki = await createWikiThroughUI(page1, uniqueName('Wiki Navigation Test'));
 
     // # Create first page
     const newPageButton1 = getNewPageButton(page1);
@@ -543,11 +500,7 @@ test('removes editor when navigating to different wiki page', {tag: '@pages'}, a
     await navigateToPage(page1, pw.url, team.name, channel.id, wiki.id, pageAId!);
 
     // # User 2 starts editing Page A
-    const {page: page2, channelsPage: channelsPage2} = await pw.testBrowser.login(user2);
-
-    await channelsPage2.goto(team.name, channel.name);
-    await channelsPage2.toBeVisible();
-    await page2.waitForLoadState('networkidle');
+    const {page: page2} = await loginAndNavigateToChannel(pw, user2, team.name, channel.name);
 
     await navigateToPage(page2, pw.url, team.name, channel.id, wiki.id, pageAId!);
     await enterEditMode(page2);

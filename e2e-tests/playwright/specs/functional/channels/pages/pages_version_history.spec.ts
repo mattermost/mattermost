@@ -1,28 +1,29 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {createRandomUser} from '@mattermost/playwright-lib';
-
 import {expect, test} from './pages_test_fixture';
 import {
+    AUTOSAVE_WAIT,
     buildWikiPageUrl,
     createPageThroughUI,
     createTestChannel,
+    createTestUserInChannel,
     createWikiThroughUI,
+    EDITOR_LOAD_WAIT,
     editPageThroughUI,
+    ELEMENT_TIMEOUT,
     ensurePanelOpen,
     getPageTreeNodeByTitle,
     getVersionHistoryItems,
     getVersionHistoryModal,
+    loginAndNavigateToChannel,
     openVersionHistoryModal,
-    restorePageVersion,
-    verifyVersionHistoryModal,
-    SHORT_WAIT,
-    EDITOR_LOAD_WAIT,
-    AUTOSAVE_WAIT,
-    WEBSOCKET_WAIT,
-    ELEMENT_TIMEOUT,
     PAGE_LOAD_TIMEOUT,
+    restorePageVersion,
+    SHORT_WAIT,
+    uniqueName,
+    verifyVersionHistoryModal,
+    WEBSOCKET_WAIT,
 } from './test_helpers';
 
 /**
@@ -30,14 +31,12 @@ import {
  */
 test('shows page version history after multiple edits', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
     const {team, user, adminClient} = sharedPagesSetup;
-    const channel = await createTestChannel(adminClient, team.id, `Test Channel ${await pw.random.id()}`);
+    const channel = await createTestChannel(adminClient, team.id, uniqueName('Test Channel'));
 
-    const {page, channelsPage} = await pw.testBrowser.login(user);
-    await channelsPage.goto(team.name, channel.name);
-    await channelsPage.toBeVisible();
+    const {page} = await loginAndNavigateToChannel(pw, user, team.name, channel.name);
 
     // # Create wiki and page through UI
-    await createWikiThroughUI(page, `History Wiki ${await pw.random.id()}`);
+    await createWikiThroughUI(page, uniqueName('History Wiki'));
     await createPageThroughUI(page, 'Version Test Page', 'Original content v1');
 
     // # Make first edit
@@ -67,13 +66,12 @@ test('shows page version history after multiple edits', {tag: '@pages'}, async (
  */
 test('allows non-author to view page version history', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
     const {team, user, adminClient} = sharedPagesSetup;
-    const channel = await createTestChannel(adminClient, team.id, `Test Channel ${await pw.random.id()}`);
+    const channel = await createTestChannel(adminClient, team.id, uniqueName('Test Channel'));
 
     // # User 1 creates page
-    const {page: page1, channelsPage: channelsPage1} = await pw.testBrowser.login(user);
-    await channelsPage1.goto(team.name, channel.name);
+    const {page: page1} = await loginAndNavigateToChannel(pw, user, team.name, channel.name);
 
-    const wiki = await createWikiThroughUI(page1, `Shared Wiki ${await pw.random.id()}`);
+    const wiki = await createWikiThroughUI(page1, uniqueName('Shared Wiki'));
     const createdPage = await createPageThroughUI(page1, 'Shared Page', 'Content by user 1');
 
     // # Edit page to create version history
@@ -81,11 +79,7 @@ test('allows non-author to view page version history', {tag: '@pages'}, async ({
     await page1.waitForTimeout(AUTOSAVE_WAIT); // Wait for auto-save
 
     // # User 2 (non-author) opens the same wiki and page
-    const user2Data = await createRandomUser('user2');
-    const user2 = await adminClient.createUser(user2Data, '', '');
-    user2.password = user2Data.password;
-    await adminClient.addToTeam(team.id, user2.id);
-    await adminClient.addToChannel(user2.id, channel.id);
+    const {user: user2} = await createTestUserInChannel(pw, adminClient, team, channel, 'user2');
 
     // Close user1 page after user2 is set up
     await page1.close();
@@ -119,14 +113,12 @@ test('allows non-author to view page version history', {tag: '@pages'}, async ({
  */
 test('enforces 10-version limit in page history', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
     const {team, user, adminClient} = sharedPagesSetup;
-    const channel = await createTestChannel(adminClient, team.id, `Test Channel ${await pw.random.id()}`);
+    const channel = await createTestChannel(adminClient, team.id, uniqueName('Test Channel'));
 
-    const {page, channelsPage} = await pw.testBrowser.login(user);
-    await channelsPage.goto(team.name, channel.name);
-    await channelsPage.toBeVisible();
+    const {page} = await loginAndNavigateToChannel(pw, user, team.name, channel.name);
 
     // # Create wiki and page through UI
-    await createWikiThroughUI(page, `Version Limit Wiki ${await pw.random.id()}`);
+    await createWikiThroughUI(page, uniqueName('Version Limit Wiki'));
     await createPageThroughUI(page, 'Version Limit Test', 'Original version');
 
     // # Make 14 edits (total 15 versions including original)
@@ -157,14 +149,12 @@ test('enforces 10-version limit in page history', {tag: '@pages'}, async ({pw, s
  */
 test('views version history modal with edit timestamps', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
     const {team, user, adminClient} = sharedPagesSetup;
-    const channel = await createTestChannel(adminClient, team.id, `Test Channel ${await pw.random.id()}`);
+    const channel = await createTestChannel(adminClient, team.id, uniqueName('Test Channel'));
 
-    const {page, channelsPage} = await pw.testBrowser.login(user);
-    await channelsPage.goto(team.name, channel.name);
-    await channelsPage.toBeVisible();
+    const {page} = await loginAndNavigateToChannel(pw, user, team.name, channel.name);
 
     // # Create wiki and page through UI
-    await createWikiThroughUI(page, `Version History Wiki ${await pw.random.id()}`);
+    await createWikiThroughUI(page, uniqueName('Version History Wiki'));
     await createPageThroughUI(page, 'Version History Page', 'Version 1 content');
 
     // # Make first edit
@@ -207,14 +197,12 @@ test('views version history modal with edit timestamps', {tag: '@pages'}, async 
  */
 test('restores previous page version from version history', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
     const {team, user, adminClient} = sharedPagesSetup;
-    const channel = await createTestChannel(adminClient, team.id, `Test Channel ${await pw.random.id()}`);
+    const channel = await createTestChannel(adminClient, team.id, uniqueName('Test Channel'));
 
-    const {page, channelsPage} = await pw.testBrowser.login(user);
-    await channelsPage.goto(team.name, channel.name);
-    await channelsPage.toBeVisible();
+    const {page} = await loginAndNavigateToChannel(pw, user, team.name, channel.name);
 
     // # Create wiki and page with initial content
-    await createWikiThroughUI(page, `Restore Wiki ${await pw.random.id()}`);
+    await createWikiThroughUI(page, uniqueName('Restore Wiki'));
     await createPageThroughUI(page, 'Restore Test Page', 'Version 1: Original content');
 
     // # Make first edit
@@ -273,13 +261,12 @@ test('restores previous page version from version history', {tag: '@pages'}, asy
  */
 test('allows non-author to restore page version', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
     const {team, user, adminClient} = sharedPagesSetup;
-    const channel = await createTestChannel(adminClient, team.id, `Test Channel ${await pw.random.id()}`);
+    const channel = await createTestChannel(adminClient, team.id, uniqueName('Test Channel'));
 
     // # User 1 creates page and makes edits
-    const {page: page1, channelsPage: channelsPage1} = await pw.testBrowser.login(user);
-    await channelsPage1.goto(team.name, channel.name);
+    const {page: page1} = await loginAndNavigateToChannel(pw, user, team.name, channel.name);
 
-    const wiki = await createWikiThroughUI(page1, `Restore Wiki ${await pw.random.id()}`);
+    const wiki = await createWikiThroughUI(page1, uniqueName('Restore Wiki'));
     const createdPage = await createPageThroughUI(page1, 'Shared Restore Page', 'Version 1: Original by user1');
 
     // # Make edits to create version history
@@ -290,11 +277,7 @@ test('allows non-author to restore page version', {tag: '@pages'}, async ({pw, s
     await page1.waitForTimeout(AUTOSAVE_WAIT);
 
     // # User 2 (non-author) joins channel
-    const user2Data = await createRandomUser('user2');
-    const user2 = await adminClient.createUser(user2Data, '', '');
-    user2.password = user2Data.password;
-    await adminClient.addToTeam(team.id, user2.id);
-    await adminClient.addToChannel(user2.id, channel.id);
+    const {user: user2} = await createTestUserInChannel(pw, adminClient, team, channel, 'user2');
 
     // Close user1 page after user2 is set up
     await page1.close();

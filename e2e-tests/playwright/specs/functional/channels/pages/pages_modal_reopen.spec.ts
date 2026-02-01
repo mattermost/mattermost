@@ -16,9 +16,11 @@ import {
     getHierarchyPanel,
     getNewPageButton,
     getPageActionsMenuLocator,
+    loginAndNavigateToChannel,
     openMovePageModal,
     openWikiTabMenu,
     clickWikiTabMenuItem,
+    uniqueName,
     EDITOR_LOAD_WAIT,
     ELEMENT_TIMEOUT,
 } from './test_helpers';
@@ -44,14 +46,12 @@ test.describe('Wiki/Pages Modal Reopening', () => {
      */
     test('Move Page modal can be reopened after cancel', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
         const {team, user, adminClient} = sharedPagesSetup;
-        const channel = await createTestChannel(adminClient, team.id, `Modal Test ${await pw.random.id()}`);
+        const channel = await createTestChannel(adminClient, team.id, uniqueName('Modal Test'));
 
-        const {page, channelsPage} = await pw.testBrowser.login(user);
-        await channelsPage.goto(team.name, channel.name);
-        await channelsPage.toBeVisible();
+        const {page} = await loginAndNavigateToChannel(pw, user, team.name, channel.name);
 
         // # Create wiki and page through UI
-        await createWikiThroughUI(page, `Test Wiki ${await pw.random.id()}`);
+        await createWikiThroughUI(page, uniqueName('Test Wiki'));
         await createPageThroughUI(page, 'Test Page', 'Test content');
         await page.waitForTimeout(EDITOR_LOAD_WAIT);
         await ensurePanelOpen(page);
@@ -87,14 +87,12 @@ test.describe('Wiki/Pages Modal Reopening', () => {
      */
     test('Delete Page modal can be reopened after cancel', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
         const {team, user, adminClient} = sharedPagesSetup;
-        const channel = await createTestChannel(adminClient, team.id, `Modal Test ${await pw.random.id()}`);
+        const channel = await createTestChannel(adminClient, team.id, uniqueName('Modal Test'));
 
-        const {page, channelsPage} = await pw.testBrowser.login(user);
-        await channelsPage.goto(team.name, channel.name);
-        await channelsPage.toBeVisible();
+        const {page} = await loginAndNavigateToChannel(pw, user, team.name, channel.name);
 
         // # Create wiki and page through UI
-        await createWikiThroughUI(page, `Test Wiki ${await pw.random.id()}`);
+        await createWikiThroughUI(page, uniqueName('Test Wiki'));
         await createPageThroughUI(page, 'Page To Delete', 'Content');
         await page.waitForTimeout(EDITOR_LOAD_WAIT);
         await ensurePanelOpen(page);
@@ -134,14 +132,12 @@ test.describe('Wiki/Pages Modal Reopening', () => {
      */
     test('Rename Page modal can be reopened after cancel', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
         const {team, user, adminClient} = sharedPagesSetup;
-        const channel = await createTestChannel(adminClient, team.id, `Modal Test ${await pw.random.id()}`);
+        const channel = await createTestChannel(adminClient, team.id, uniqueName('Modal Test'));
 
-        const {page, channelsPage} = await pw.testBrowser.login(user);
-        await channelsPage.goto(team.name, channel.name);
-        await channelsPage.toBeVisible();
+        const {page} = await loginAndNavigateToChannel(pw, user, team.name, channel.name);
 
         // # Create wiki and page through UI
-        await createWikiThroughUI(page, `Test Wiki ${await pw.random.id()}`);
+        await createWikiThroughUI(page, uniqueName('Test Wiki'));
         await createPageThroughUI(page, 'Page To Rename', 'Content');
         await page.waitForTimeout(EDITOR_LOAD_WAIT);
         await ensurePanelOpen(page);
@@ -181,14 +177,12 @@ test.describe('Wiki/Pages Modal Reopening', () => {
      */
     test('Create Page modal can be reopened after cancel', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
         const {team, user, adminClient} = sharedPagesSetup;
-        const channel = await createTestChannel(adminClient, team.id, `Modal Test ${await pw.random.id()}`);
+        const channel = await createTestChannel(adminClient, team.id, uniqueName('Modal Test'));
 
-        const {page, channelsPage} = await pw.testBrowser.login(user);
-        await channelsPage.goto(team.name, channel.name);
-        await channelsPage.toBeVisible();
+        const {page} = await loginAndNavigateToChannel(pw, user, team.name, channel.name);
 
         // # Create wiki through UI
-        await createWikiThroughUI(page, `Test Wiki ${await pw.random.id()}`);
+        await createWikiThroughUI(page, uniqueName('Test Wiki'));
         await page.waitForTimeout(EDITOR_LOAD_WAIT);
         await ensurePanelOpen(page);
 
@@ -227,14 +221,12 @@ test.describe('Wiki/Pages Modal Reopening', () => {
      */
     test('Version History modal can be reopened after close', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
         const {team, user, adminClient} = sharedPagesSetup;
-        const channel = await createTestChannel(adminClient, team.id, `Modal Test ${await pw.random.id()}`);
+        const channel = await createTestChannel(adminClient, team.id, uniqueName('Modal Test'));
 
-        const {page, channelsPage} = await pw.testBrowser.login(user);
-        await channelsPage.goto(team.name, channel.name);
-        await channelsPage.toBeVisible();
+        const {page} = await loginAndNavigateToChannel(pw, user, team.name, channel.name);
 
         // # Create wiki and page through UI
-        await createWikiThroughUI(page, `Test Wiki ${await pw.random.id()}`);
+        await createWikiThroughUI(page, uniqueName('Test Wiki'));
         await createPageThroughUI(page, 'Page With History', 'Content');
         await page.waitForTimeout(EDITOR_LOAD_WAIT);
         await ensurePanelOpen(page);
@@ -283,14 +275,12 @@ test.describe('Wiki/Pages Modal Reopening', () => {
      */
     test('Wiki Rename modal can be reopened after cancel', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
         const {team, user, adminClient} = sharedPagesSetup;
-        const channel = await createTestChannel(adminClient, team.id, `Modal Test ${await pw.random.id()}`);
+        const channel = await createTestChannel(adminClient, team.id, uniqueName('Modal Test'));
 
-        const {page, channelsPage} = await pw.testBrowser.login(user);
-        await channelsPage.goto(team.name, channel.name);
-        await channelsPage.toBeVisible();
+        const {page} = await loginAndNavigateToChannel(pw, user, team.name, channel.name);
 
         // # Create wiki through UI
-        const wikiName = `Wiki To Rename ${await pw.random.id()}`;
+        const wikiName = uniqueName('Wiki To Rename');
         await createWikiThroughUI(page, wikiName);
         await page.waitForTimeout(EDITOR_LOAD_WAIT);
 
@@ -328,14 +318,12 @@ test.describe('Wiki/Pages Modal Reopening', () => {
      */
     test('Wiki Delete modal can be reopened after cancel', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
         const {team, user, adminClient} = sharedPagesSetup;
-        const channel = await createTestChannel(adminClient, team.id, `Modal Test ${await pw.random.id()}`);
+        const channel = await createTestChannel(adminClient, team.id, uniqueName('Modal Test'));
 
-        const {page, channelsPage} = await pw.testBrowser.login(user);
-        await channelsPage.goto(team.name, channel.name);
-        await channelsPage.toBeVisible();
+        const {page} = await loginAndNavigateToChannel(pw, user, team.name, channel.name);
 
         // # Create wiki through UI
-        const wikiName = `Wiki To Delete ${await pw.random.id()}`;
+        const wikiName = uniqueName('Wiki To Delete');
         await createWikiThroughUI(page, wikiName);
         await page.waitForTimeout(EDITOR_LOAD_WAIT);
 
@@ -373,14 +361,12 @@ test.describe('Wiki/Pages Modal Reopening', () => {
      */
     test('Wiki Move modal can be reopened after cancel', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
         const {team, user, adminClient} = sharedPagesSetup;
-        const channel = await createTestChannel(adminClient, team.id, `Modal Test ${await pw.random.id()}`);
+        const channel = await createTestChannel(adminClient, team.id, uniqueName('Modal Test'));
 
-        const {page, channelsPage} = await pw.testBrowser.login(user);
-        await channelsPage.goto(team.name, channel.name);
-        await channelsPage.toBeVisible();
+        const {page} = await loginAndNavigateToChannel(pw, user, team.name, channel.name);
 
         // # Create wiki through UI
-        const wikiName = `Wiki To Move ${await pw.random.id()}`;
+        const wikiName = uniqueName('Wiki To Move');
         await createWikiThroughUI(page, wikiName);
         await page.waitForTimeout(EDITOR_LOAD_WAIT);
 
@@ -427,14 +413,12 @@ test.describe('Wiki/Pages Modal Reopening', () => {
      */
     test('Create Child Page modal can be reopened after cancel', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
         const {team, user, adminClient} = sharedPagesSetup;
-        const channel = await createTestChannel(adminClient, team.id, `Modal Test ${await pw.random.id()}`);
+        const channel = await createTestChannel(adminClient, team.id, uniqueName('Modal Test'));
 
-        const {page, channelsPage} = await pw.testBrowser.login(user);
-        await channelsPage.goto(team.name, channel.name);
-        await channelsPage.toBeVisible();
+        const {page} = await loginAndNavigateToChannel(pw, user, team.name, channel.name);
 
         // # Create wiki and parent page through UI
-        await createWikiThroughUI(page, `Test Wiki ${await pw.random.id()}`);
+        await createWikiThroughUI(page, uniqueName('Test Wiki'));
         await createPageThroughUI(page, 'Parent Page', 'Content');
         await page.waitForTimeout(EDITOR_LOAD_WAIT);
         await ensurePanelOpen(page);
@@ -473,14 +457,12 @@ test.describe('Wiki/Pages Modal Reopening', () => {
      */
     test('multiple different modals can be opened in sequence', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
         const {team, user, adminClient} = sharedPagesSetup;
-        const channel = await createTestChannel(adminClient, team.id, `Modal Test ${await pw.random.id()}`);
+        const channel = await createTestChannel(adminClient, team.id, uniqueName('Modal Test'));
 
-        const {page, channelsPage} = await pw.testBrowser.login(user);
-        await channelsPage.goto(team.name, channel.name);
-        await channelsPage.toBeVisible();
+        const {page} = await loginAndNavigateToChannel(pw, user, team.name, channel.name);
 
         // # Create wiki and page through UI
-        await createWikiThroughUI(page, `Test Wiki ${await pw.random.id()}`);
+        await createWikiThroughUI(page, uniqueName('Test Wiki'));
         await createPageThroughUI(page, 'Multi Modal Test', 'Content');
         await page.waitForTimeout(EDITOR_LOAD_WAIT);
         await ensurePanelOpen(page);

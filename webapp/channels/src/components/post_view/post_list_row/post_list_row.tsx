@@ -15,6 +15,7 @@ import type {emitShortcutReactToLastPostFrom} from 'actions/post_actions';
 import CenterMessageLock from 'components/center_message_lock';
 import PostComponent from 'components/post';
 import ChannelIntroMessage from 'components/post_view/channel_intro_message/';
+import CombinedPageActivityPost from 'components/post_view/combined_page_activity_post';
 import CombinedUserActivityPost from 'components/post_view/combined_user_activity_post';
 import DateSeparator from 'components/post_view/date_separator';
 import NewMessageSeparator from 'components/post_view/new_message_separator/new_message_separator';
@@ -172,6 +173,16 @@ export default class PostListRow extends React.PureComponent<PostListRowProps> {
         if (PostListUtils.isCombinedUserActivityPost(listId)) {
             return (
                 <CombinedUserActivityPost
+                    location={Locations.CENTER}
+                    combinedId={listId}
+                    {...postProps}
+                />
+            );
+        }
+
+        if (PostListUtils.isCombinedPageActivityPost(listId)) {
+            return (
+                <CombinedPageActivityPost
                     location={Locations.CENTER}
                     combinedId={listId}
                     {...postProps}

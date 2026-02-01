@@ -12,6 +12,7 @@ import {
     getEditorAndWait,
     loginAndNavigateToChannel,
     openSlashCommandMenu,
+    uniqueName,
     SHORT_WAIT,
     WEBSOCKET_WAIT,
     ELEMENT_TIMEOUT,
@@ -32,7 +33,7 @@ test('uploads video file via file picker', {tag: '@pages'}, async ({pw, sharedPa
     const {page} = await loginAndNavigateToChannel(pw, user, team.name, channel.name);
 
     // # Create wiki through UI
-    await createWikiThroughUI(page, `Video Upload Wiki ${await pw.random.id()}`);
+    await createWikiThroughUI(page, uniqueName('Video Upload Wiki'));
 
     // # Create new page
     const newPageButton = getNewPageButton(page);
@@ -152,7 +153,7 @@ test('pastes video from clipboard', {tag: '@pages'}, async ({pw, sharedPagesSetu
     const {page} = await loginAndNavigateToChannel(pw, user, team.name, channel.name);
 
     // # Create wiki through UI
-    await createWikiThroughUI(page, `Video Paste Wiki ${await pw.random.id()}`);
+    await createWikiThroughUI(page, uniqueName('Video Paste Wiki'));
 
     // # Create new page
     const newPageButton = getNewPageButton(page);
@@ -265,7 +266,7 @@ test('rejects non-media files in editor', {tag: '@pages'}, async ({pw, sharedPag
     const {page} = await loginAndNavigateToChannel(pw, user, team.name, channel.name);
 
     // # Create wiki through UI
-    await createWikiThroughUI(page, `File Rejection Wiki ${await pw.random.id()}`);
+    await createWikiThroughUI(page, uniqueName('File Rejection Wiki'));
 
     // # Create new page
     const newPageButton = getNewPageButton(page);
@@ -327,7 +328,7 @@ test('supports webm video format', {tag: '@pages'}, async ({pw, sharedPagesSetup
     const {page} = await loginAndNavigateToChannel(pw, user, team.name, channel.name);
 
     // # Create wiki through UI
-    await createWikiThroughUI(page, `WebM Video Wiki ${await pw.random.id()}`);
+    await createWikiThroughUI(page, uniqueName('WebM Video Wiki'));
 
     // # Create new page
     const newPageButton = getNewPageButton(page);
@@ -442,7 +443,7 @@ test('supports mixed image and video content', {tag: '@pages'}, async ({pw, shar
     const {page} = await loginAndNavigateToChannel(pw, user, team.name, channel.name);
 
     // # Create wiki through UI
-    await createWikiThroughUI(page, `Mixed Media Wiki ${await pw.random.id()}`);
+    await createWikiThroughUI(page, uniqueName('Mixed Media Wiki'));
 
     // # Create new page
     const newPageButton = getNewPageButton(page);

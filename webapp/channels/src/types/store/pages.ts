@@ -44,3 +44,20 @@ export type PageDraftListItem = {
     lastModified: number;
     pageParentId?: string;
 };
+
+/**
+ * InlineAnchor represents an anchor point for inline comments on page content.
+ * It captures the selected text and a unique anchor ID for positioning.
+ */
+export type InlineAnchor = {
+    anchor_id: string;
+    text: string;
+};
+
+/**
+ * TranslationReference links a page to its translation in another language.
+ */
+export type TranslationReference = {
+    page_id: string;
+    language_code: string;
+};

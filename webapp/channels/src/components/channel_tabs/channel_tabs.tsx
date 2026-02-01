@@ -428,6 +428,9 @@ function ChannelTabs({
                         class: 'channel-tabs-container__action-button',
                         children: <i className='icon icon-plus'/>,
                     }}
+                    menuButtonTooltip={{
+                        text: formatMessage({id: 'channel_tabs.add_new_tab', defaultMessage: 'Add new tab'}),
+                    }}
                     menu={{
                         id: 'add-tab-content-menu',
                     }}

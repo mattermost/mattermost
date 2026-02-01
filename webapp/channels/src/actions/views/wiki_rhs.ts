@@ -3,6 +3,15 @@
 
 import {WikiRhsTypes} from 'utils/constants';
 
+import type {InlineAnchor} from 'types/store/pages';
+
+export function setPendingInlineAnchor(anchor: InlineAnchor | null) {
+    return {
+        type: WikiRhsTypes.SET_PENDING_INLINE_ANCHOR,
+        anchor,
+    };
+}
+
 export function setWikiRhsMode(mode: 'outline' | 'comments') {
     return {
         type: WikiRhsTypes.SET_MODE,
@@ -28,5 +37,12 @@ export function setFocusedInlineCommentId(commentId: string | null) {
     return {
         type: WikiRhsTypes.SET_FOCUSED_INLINE_COMMENT_ID,
         commentId,
+    };
+}
+
+export function setSubmittingComment(isSubmitting: boolean) {
+    return {
+        type: WikiRhsTypes.SET_SUBMITTING_COMMENT,
+        isSubmitting,
     };
 }

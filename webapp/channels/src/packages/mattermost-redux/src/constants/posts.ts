@@ -36,6 +36,7 @@ export const PostTypes = {
     REMOVE_FROM_TEAM: 'system_remove_from_team' as PostType,
 
     COMBINED_USER_ACTIVITY: 'system_combined_user_activity' as PostType,
+    COMBINED_PAGE_ACTIVITY: 'system_combined_page_activity' as PostType,
     ME: 'me' as PostType,
     ADD_BOT_TEAMS_CHANNELS: 'add_bot_teams_channels' as PostType,
     REMINDER: 'reminder' as PostType,

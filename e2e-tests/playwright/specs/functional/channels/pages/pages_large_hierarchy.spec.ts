@@ -16,6 +16,7 @@ import {
     verifyBreadcrumbContains,
     createPageContent,
     uniqueName,
+    loginAndNavigateToChannel,
     ELEMENT_TIMEOUT,
     HIERARCHY_TIMEOUT,
     SHORT_WAIT,
@@ -35,9 +36,7 @@ test('loads hierarchy panel with 100+ pages', {tag: '@pages'}, async ({pw, share
     const channel = await createTestChannel(adminClient, team.id, 'Large Hierarchy Test', 'O', [user.id]);
 
     // # Login and navigate to channel
-    const {page, channelsPage} = await pw.testBrowser.login(user);
-    await channelsPage.goto(team.name, channel.name);
-    await page.waitForLoadState('networkidle');
+    const {page} = await loginAndNavigateToChannel(pw, user, team.name, channel.name);
 
     // # Create wiki through UI
     const wiki = await createWikiThroughUI(page, uniqueName('Large Wiki'));
@@ -92,9 +91,7 @@ test('handles deep hierarchy with maximum nesting levels', {tag: '@pages'}, asyn
     const channel = await createTestChannel(adminClient, team.id, 'Deep Hierarchy Test', 'O', [user.id]);
 
     // # Login and navigate to channel
-    const {page, channelsPage} = await pw.testBrowser.login(user);
-    await channelsPage.goto(team.name, channel.name);
-    await page.waitForLoadState('networkidle');
+    const {page} = await loginAndNavigateToChannel(pw, user, team.name, channel.name);
 
     // # Create wiki through UI
     const wiki = await createWikiThroughUI(page, uniqueName('Deep Wiki'));
@@ -156,9 +153,7 @@ test('handles wide hierarchy with 50+ sibling pages', {tag: '@pages'}, async ({p
     const channel = await createTestChannel(adminClient, team.id, 'Wide Hierarchy Test', 'O', [user.id]);
 
     // # Login and navigate to channel
-    const {page, channelsPage} = await pw.testBrowser.login(user);
-    await channelsPage.goto(team.name, channel.name);
-    await page.waitForLoadState('networkidle');
+    const {page} = await loginAndNavigateToChannel(pw, user, team.name, channel.name);
 
     // # Create wiki through UI
     const wiki = await createWikiThroughUI(page, uniqueName('Wide Wiki'));
@@ -216,9 +211,7 @@ test('searches efficiently in wiki with 50+ pages', {tag: '@pages'}, async ({pw,
     const channel = await createTestChannel(adminClient, team.id, 'Search Test', 'O', [user.id]);
 
     // # Login and navigate to channel
-    const {page, channelsPage} = await pw.testBrowser.login(user);
-    await channelsPage.goto(team.name, channel.name);
-    await page.waitForLoadState('networkidle');
+    const {page} = await loginAndNavigateToChannel(pw, user, team.name, channel.name);
 
     // # Create wiki through UI
     const wiki = await createWikiThroughUI(page, uniqueName('Search Wiki'));
@@ -274,9 +267,7 @@ test('expands and collapses page tree nodes efficiently', {tag: '@pages'}, async
     const channel = await createTestChannel(adminClient, team.id, 'Expand Collapse Test', 'O', [user.id]);
 
     // # Login and navigate to channel
-    const {page, channelsPage} = await pw.testBrowser.login(user);
-    await channelsPage.goto(team.name, channel.name);
-    await page.waitForLoadState('networkidle');
+    const {page} = await loginAndNavigateToChannel(pw, user, team.name, channel.name);
 
     // # Create wiki through UI
     const wiki = await createWikiThroughUI(page, uniqueName('Expand Collapse Wiki'));
@@ -361,9 +352,7 @@ test('navigates between pages efficiently in large wiki', {tag: '@pages'}, async
     const channel = await createTestChannel(adminClient, team.id, 'Navigation Perf Test', 'O', [user.id]);
 
     // # Login and navigate to channel
-    const {page, channelsPage} = await pw.testBrowser.login(user);
-    await channelsPage.goto(team.name, channel.name);
-    await page.waitForLoadState('networkidle');
+    const {page} = await loginAndNavigateToChannel(pw, user, team.name, channel.name);
 
     // # Create wiki through UI
     const wiki = await createWikiThroughUI(page, uniqueName('Navigation Wiki'));

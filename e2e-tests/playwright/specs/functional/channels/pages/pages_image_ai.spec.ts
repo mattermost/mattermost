@@ -16,6 +16,7 @@ import {
     loginAndNavigateToChannel,
     openSlashCommandMenu,
     checkAIPluginAvailability,
+    uniqueName,
     ELEMENT_TIMEOUT,
     WEBSOCKET_WAIT,
     UI_MICRO_WAIT,
@@ -121,7 +122,7 @@ test('shows Image AI bubble when image is selected', {tag: '@pages'}, async ({pw
     const {page} = await loginAndNavigateToChannel(pw, user, team.name, channel.name);
 
     // # Create wiki through UI
-    await createWikiThroughUI(page, `Image AI Test Wiki ${await pw.random.id()}`);
+    await createWikiThroughUI(page, uniqueName('Image AI Test Wiki'));
 
     // # Create new page
     const newPageButton = getNewPageButton(page);
@@ -174,7 +175,7 @@ test('shows Image AI menu button in enabled state', {tag: '@pages'}, async ({pw,
     const {page} = await loginAndNavigateToChannel(pw, user, team.name, channel.name);
 
     // # Create wiki through UI
-    await createWikiThroughUI(page, `Image AI Menu Wiki ${await pw.random.id()}`);
+    await createWikiThroughUI(page, uniqueName('Image AI Menu Wiki'));
 
     // # Create new page
     const newPageButton = getNewPageButton(page);
@@ -225,7 +226,7 @@ test('opens Image AI menu when button is clicked', {tag: '@pages'}, async ({pw, 
     const {page} = await loginAndNavigateToChannel(pw, user, team.name, channel.name);
 
     // # Create wiki through UI
-    await createWikiThroughUI(page, `AI Menu Open Wiki ${await pw.random.id()}`);
+    await createWikiThroughUI(page, uniqueName('AI Menu Open Wiki'));
 
     // # Create new page
     const newPageButton = getNewPageButton(page);
@@ -278,7 +279,7 @@ test('hides Image AI bubble when pressing Escape', {tag: '@pages'}, async ({pw, 
     const {page} = await loginAndNavigateToChannel(pw, user, team.name, channel.name);
 
     // # Create wiki through UI
-    await createWikiThroughUI(page, `Bubble Hide Wiki ${await pw.random.id()}`);
+    await createWikiThroughUI(page, uniqueName('Bubble Hide Wiki'));
 
     // # Create new page
     const newPageButton = getNewPageButton(page);
@@ -335,7 +336,7 @@ test('has proper accessibility attributes on AI button', {tag: '@pages'}, async 
     const {page} = await loginAndNavigateToChannel(pw, user, team.name, channel.name);
 
     // # Create wiki through UI
-    await createWikiThroughUI(page, `Accessibility Test Wiki ${await pw.random.id()}`);
+    await createWikiThroughUI(page, uniqueName('Accessibility Test Wiki'));
 
     // # Create new page
     const newPageButton = getNewPageButton(page);
@@ -385,7 +386,7 @@ test('shows Image AI bubble for resizable images', {tag: '@pages'}, async ({pw, 
     const {page} = await loginAndNavigateToChannel(pw, user, team.name, channel.name);
 
     // # Create wiki through UI
-    await createWikiThroughUI(page, `Resizable Image Wiki ${await pw.random.id()}`);
+    await createWikiThroughUI(page, uniqueName('Resizable Image Wiki'));
 
     // # Create new page
     const newPageButton = getNewPageButton(page);
@@ -433,7 +434,7 @@ test('shows Image AI bubble after publishing and re-editing page', {tag: '@pages
     const {page} = await loginAndNavigateToChannel(pw, user, team.name, channel.name);
 
     // # Create wiki through UI
-    await createWikiThroughUI(page, `Publish Bubble Wiki ${await pw.random.id()}`);
+    await createWikiThroughUI(page, uniqueName('Publish Bubble Wiki'));
 
     // # Create new page
     const newPageButton = getNewPageButton(page);
@@ -499,7 +500,7 @@ test('shows AI label in Image AI bubble', {tag: '@pages'}, async ({pw, sharedPag
     const {page} = await loginAndNavigateToChannel(pw, user, team.name, channel.name);
 
     // # Create wiki through UI
-    await createWikiThroughUI(page, `AI Label Wiki ${await pw.random.id()}`);
+    await createWikiThroughUI(page, uniqueName('AI Label Wiki'));
 
     // # Create new page
     const newPageButton = getNewPageButton(page);
@@ -550,7 +551,7 @@ test('shows Extract Handwriting option in Image AI menu', {tag: '@pages'}, async
     const {page} = await loginAndNavigateToChannel(pw, user, team.name, channel.name);
 
     // # Create wiki through UI
-    await createWikiThroughUI(page, `Extract Menu Wiki ${await pw.random.id()}`);
+    await createWikiThroughUI(page, uniqueName('Extract Menu Wiki'));
 
     // # Create new page
     const newPageButton = getNewPageButton(page);
@@ -613,7 +614,7 @@ test('shows Describe Image option in Image AI menu', {tag: '@pages'}, async ({pw
     const {page} = await loginAndNavigateToChannel(pw, user, team.name, channel.name);
 
     // # Create wiki through UI
-    await createWikiThroughUI(page, `Describe Menu Wiki ${await pw.random.id()}`);
+    await createWikiThroughUI(page, uniqueName('Describe Menu Wiki'));
 
     // # Create new page
     const newPageButton = getNewPageButton(page);
@@ -679,7 +680,7 @@ test(
         const {page} = await loginAndNavigateToChannel(pw, user, team.name, channel.name);
 
         // # Create wiki through UI
-        await createWikiThroughUI(page, `Extraction Action Wiki ${await pw.random.id()}`);
+        await createWikiThroughUI(page, uniqueName('Extraction Action Wiki'));
 
         // # Create new page
         const newPageButton = getNewPageButton(page);
@@ -771,7 +772,7 @@ test(
         const {page} = await loginAndNavigateToChannel(pw, user, team.name, channel.name);
 
         // # Create wiki through UI
-        await createWikiThroughUI(page, `TipTap Render Wiki ${await pw.random.id()}`);
+        await createWikiThroughUI(page, uniqueName('TipTap Render Wiki'));
 
         // # Create new page
         const newPageButton = getNewPageButton(page);
@@ -964,7 +965,7 @@ test(
         const {page} = await loginAndNavigateToChannel(pw, user, team.name, channel.name);
 
         // # Create wiki through UI
-        await createWikiThroughUI(page, `Proxy Image AI Wiki ${await pw.random.id()}`);
+        await createWikiThroughUI(page, uniqueName('Proxy Image AI Wiki'));
 
         // # Create new page
         const newPageButton = getNewPageButton(page);
@@ -1064,7 +1065,7 @@ test(
         const {page} = await loginAndNavigateToChannel(pw, user, team.name, channel.name);
 
         // # Create wiki through UI
-        await createWikiThroughUI(page, `AI Process Test Wiki ${await pw.random.id()}`);
+        await createWikiThroughUI(page, uniqueName('AI Process Test Wiki'));
 
         // # Create new page
         const newPageButton = getNewPageButton(page);
@@ -1161,7 +1162,7 @@ test(
         const {page} = await loginAndNavigateToChannel(pw, user, team.name, channel.name);
 
         // # Create wiki through UI
-        await createWikiThroughUI(page, `Editor Functional Wiki ${await pw.random.id()}`);
+        await createWikiThroughUI(page, uniqueName('Editor Functional Wiki'));
 
         // # Create new page
         const newPageButton = getNewPageButton(page);

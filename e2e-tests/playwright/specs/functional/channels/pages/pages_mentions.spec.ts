@@ -17,6 +17,8 @@ import {
     WEBSOCKET_WAIT,
     SHORT_WAIT,
     createTestUserInTeam,
+    uniqueName,
+    loginAndNavigateToChannel,
 } from './test_helpers';
 
 /**
@@ -41,19 +43,16 @@ test(
         const {user: mentionedUser} = await createTestUserInTeam(pw, adminClient, team, 'mentioned');
 
         // # Login as author user first
-        const {page: authorPage, channelsPage: authorChannelsPage} = await pw.testBrowser.login(authorUser);
-        await authorChannelsPage.goto(team.name, channel.name);
+        const {page: authorPage} = await loginAndNavigateToChannel(pw, authorUser, team.name, channel.name);
 
         // # Login as mentioned user in separate page to stub notifications
-        const {page: mentionedPage, channelsPage: mentionedChannelsPage} = await pw.testBrowser.login(mentionedUser);
-        await mentionedChannelsPage.goto(team.name, channel.name);
-        await mentionedChannelsPage.toBeVisible();
+        const {page: mentionedPage} = await loginAndNavigateToChannel(pw, mentionedUser, team.name, channel.name);
         await pw.stubNotification(mentionedPage, 'granted');
 
         // # Switch back to author page
         await authorPage.bringToFront();
 
-        await createWikiThroughUI(authorPage, `Mention Wiki ${await pw.random.id()}`);
+        await createWikiThroughUI(authorPage, uniqueName('Mention Wiki'));
 
         // # Create new page with @mention
         const newPageButton = getNewPageButton(authorPage);
@@ -116,19 +115,16 @@ test(
         const {user: mentionedUser} = await createTestUserInTeam(pw, adminClient, team, 'mentioned');
 
         // # Login as author user first
-        const {page: authorPage, channelsPage: authorChannelsPage} = await pw.testBrowser.login(authorUser);
-        await authorChannelsPage.goto(team.name, channel.name);
+        const {page: authorPage} = await loginAndNavigateToChannel(pw, authorUser, team.name, channel.name);
 
         // # Login as mentioned user in separate page to stub notifications
-        const {page: mentionedPage, channelsPage: mentionedChannelsPage} = await pw.testBrowser.login(mentionedUser);
-        await mentionedChannelsPage.goto(team.name, channel.name);
-        await mentionedChannelsPage.toBeVisible();
+        const {page: mentionedPage} = await loginAndNavigateToChannel(pw, mentionedUser, team.name, channel.name);
         await pw.stubNotification(mentionedPage, 'granted');
 
         // # Switch back to author page
         await authorPage.bringToFront();
 
-        await createWikiThroughUI(authorPage, `Mention Wiki ${await pw.random.id()}`);
+        await createWikiThroughUI(authorPage, uniqueName('Mention Wiki'));
 
         // # Create new page with @mention
         const newPageButton = getNewPageButton(authorPage);
@@ -209,27 +205,30 @@ test(
         const {user: secondMentionedUser} = await createTestUserInTeam(pw, adminClient, team, 'mentioned2');
 
         // # Login as author user first
-        const {page: authorPage, channelsPage: authorChannelsPage} = await pw.testBrowser.login(authorUser);
-        await authorChannelsPage.goto(team.name, channel.name);
+        const {page: authorPage} = await loginAndNavigateToChannel(pw, authorUser, team.name, channel.name);
 
         // # Login as first mentioned user in separate page and stub notifications
-        const {page: firstMentionedPage, channelsPage: firstMentionedChannelsPage} =
-            await pw.testBrowser.login(firstMentionedUser);
-        await firstMentionedChannelsPage.goto(team.name, channel.name);
-        await firstMentionedChannelsPage.toBeVisible();
+        const {page: firstMentionedPage} = await loginAndNavigateToChannel(
+            pw,
+            firstMentionedUser,
+            team.name,
+            channel.name,
+        );
         await pw.stubNotification(firstMentionedPage, 'granted');
 
         // # Login as second mentioned user in separate page and stub notifications
-        const {page: secondMentionedPage, channelsPage: secondMentionedChannelsPage} =
-            await pw.testBrowser.login(secondMentionedUser);
-        await secondMentionedChannelsPage.goto(team.name, channel.name);
-        await secondMentionedChannelsPage.toBeVisible();
+        const {page: secondMentionedPage} = await loginAndNavigateToChannel(
+            pw,
+            secondMentionedUser,
+            team.name,
+            channel.name,
+        );
         await pw.stubNotification(secondMentionedPage, 'granted');
 
         // # Switch back to author page
         await authorPage.bringToFront();
 
-        await createWikiThroughUI(authorPage, `Mention Wiki ${await pw.random.id()}`);
+        await createWikiThroughUI(authorPage, uniqueName('Mention Wiki'));
 
         // # Create new page with first @mention
         const newPageButton = getNewPageButton(authorPage);
@@ -310,10 +309,9 @@ test('displays page mention in Recent Mentions panel', {tag: '@pages'}, async ({
     const {user: mentionedUser} = await createTestUserInTeam(pw, adminClient, team, 'mentioned');
 
     // # Login as author user and create wiki
-    const {page: authorPage, channelsPage: authorChannelsPage} = await pw.testBrowser.login(authorUser);
-    await authorChannelsPage.goto(team.name, channel.name);
+    const {page: authorPage} = await loginAndNavigateToChannel(pw, authorUser, team.name, channel.name);
 
-    await createWikiThroughUI(authorPage, `Mention Wiki ${await pw.random.id()}`);
+    await createWikiThroughUI(authorPage, uniqueName('Mention Wiki'));
 
     // # Create new page with @mention
     const pageTitle = 'Page with Mention in RHS';
@@ -338,9 +336,12 @@ test('displays page mention in Recent Mentions panel', {tag: '@pages'}, async ({
     await authorPage.waitForTimeout(WEBSOCKET_WAIT);
 
     // # Login as mentioned user
-    const {page: mentionedPage, channelsPage: mentionedChannelsPage} = await pw.testBrowser.login(mentionedUser);
-    await mentionedChannelsPage.goto(team.name, channel.name);
-    await mentionedChannelsPage.toBeVisible();
+    const {page: mentionedPage, channelsPage: mentionedChannelsPage} = await loginAndNavigateToChannel(
+        pw,
+        mentionedUser,
+        team.name,
+        channel.name,
+    );
 
     // # Click on the Recent Mentions button in the channel header
     await mentionedPage.getByRole('button', {name: 'Recent mentions'}).click();
@@ -375,27 +376,25 @@ test('handles mention removal and addition correctly', {tag: '@pages'}, async ({
     const {user: secondMentionedUser} = await createTestUserInTeam(pw, adminClient, team, 'mentioned2');
 
     // # Login as author user and create wiki
-    const {page: authorPage, channelsPage: authorChannelsPage} = await pw.testBrowser.login(authorUser);
-    await authorChannelsPage.goto(team.name, channel.name);
+    const {page: authorPage} = await loginAndNavigateToChannel(pw, authorUser, team.name, channel.name);
 
     // # Login as first mentioned user in separate page and stub notifications
-    const {page: firstMentionedPage, channelsPage: firstMentionedChannelsPage} =
-        await pw.testBrowser.login(firstMentionedUser);
-    await firstMentionedChannelsPage.goto(team.name, channel.name);
-    await firstMentionedChannelsPage.toBeVisible();
+    const {page: firstMentionedPage} = await loginAndNavigateToChannel(pw, firstMentionedUser, team.name, channel.name);
     await pw.stubNotification(firstMentionedPage, 'granted');
 
     // # Login as second mentioned user in separate page and stub notifications
-    const {page: secondMentionedPage, channelsPage: secondMentionedChannelsPage} =
-        await pw.testBrowser.login(secondMentionedUser);
-    await secondMentionedChannelsPage.goto(team.name, channel.name);
-    await secondMentionedChannelsPage.toBeVisible();
+    const {page: secondMentionedPage} = await loginAndNavigateToChannel(
+        pw,
+        secondMentionedUser,
+        team.name,
+        channel.name,
+    );
     await pw.stubNotification(secondMentionedPage, 'granted');
 
     // # Switch back to author page
     await authorPage.bringToFront();
 
-    await createWikiThroughUI(authorPage, `Mention Wiki ${await pw.random.id()}`);
+    await createWikiThroughUI(authorPage, uniqueName('Mention Wiki'));
 
     // # Create new page with first @mention
     const newPageButton = getNewPageButton(authorPage);

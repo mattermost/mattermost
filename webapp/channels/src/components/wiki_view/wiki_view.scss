@@ -270,16 +270,21 @@
             border-bottom: 1px solid var(--center-channel-color-08);
 
             .page-title-input {
+                display: block;
+                overflow: hidden;
                 width: 100%;
                 padding: 0;
                 border: none;
                 margin: 0 0 12px 0;
                 background: transparent;
                 color: var(--center-channel-color);
+                font-family: 'Metropolis', sans-serif;
                 font-size: 40px;
+                font-weight: 600;
                 letter-spacing: -0.02em;
                 line-height: 1.2;
                 outline: none;
+                resize: none;
 
                 &::placeholder {
                     color: rgba(var(--center-channel-color-rgb), 0.32);

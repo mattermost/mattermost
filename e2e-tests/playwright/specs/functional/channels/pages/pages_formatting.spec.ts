@@ -17,6 +17,8 @@ import {
     clickFormattingButtonByIcon,
     insertViaSlashCommand,
     verifyEditorElement,
+    uniqueName,
+    loginAndNavigateToChannel,
     SHORT_WAIT,
     ELEMENT_TIMEOUT,
     UI_MICRO_WAIT,
@@ -30,15 +32,12 @@ import {
  * @objective Verify bold toggle via formatting bar button
  */
 test('toggles bold via formatting bar button', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
-    const {team, user, adminClient} = sharedPagesSetup;
-    const channel = await adminClient.getChannelByName(team.id, 'town-square');
+    const {team, user} = sharedPagesSetup;
 
-    const {page, channelsPage} = await pw.testBrowser.login(user);
-    await channelsPage.goto(team.name, channel.name);
-    await channelsPage.toBeVisible();
+    const {page} = await loginAndNavigateToChannel(pw, user, team.name, 'town-square');
 
     // # Create wiki and page
-    await createWikiThroughUI(page, `Bold Test Wiki ${await pw.random.id()}`);
+    await createWikiThroughUI(page, uniqueName('Bold Test Wiki'));
     const newPageButton = getNewPageButton(page);
     await newPageButton.click();
     await fillCreatePageModal(page, 'Bold Format Test');
@@ -59,15 +58,12 @@ test('toggles bold via formatting bar button', {tag: '@pages'}, async ({pw, shar
  * @objective Verify bold toggle via keyboard shortcut Ctrl+B
  */
 test('toggles bold via keyboard shortcut Ctrl+B', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
-    const {team, user, adminClient} = sharedPagesSetup;
-    const channel = await adminClient.getChannelByName(team.id, 'town-square');
+    const {team, user} = sharedPagesSetup;
 
-    const {page, channelsPage} = await pw.testBrowser.login(user);
-    await channelsPage.goto(team.name, channel.name);
-    await channelsPage.toBeVisible();
+    const {page} = await loginAndNavigateToChannel(pw, user, team.name, 'town-square');
 
     // # Create wiki and page
-    await createWikiThroughUI(page, `Bold Shortcut Wiki ${await pw.random.id()}`);
+    await createWikiThroughUI(page, uniqueName('Bold Shortcut Wiki'));
     const newPageButton = getNewPageButton(page);
     await newPageButton.click();
     await fillCreatePageModal(page, 'Bold Shortcut Test');
@@ -92,15 +88,12 @@ test('toggles bold via keyboard shortcut Ctrl+B', {tag: '@pages'}, async ({pw, s
  * @objective Verify italic toggle via formatting bar button
  */
 test('toggles italic via formatting bar button', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
-    const {team, user, adminClient} = sharedPagesSetup;
-    const channel = await adminClient.getChannelByName(team.id, 'town-square');
+    const {team, user} = sharedPagesSetup;
 
-    const {page, channelsPage} = await pw.testBrowser.login(user);
-    await channelsPage.goto(team.name, channel.name);
-    await channelsPage.toBeVisible();
+    const {page} = await loginAndNavigateToChannel(pw, user, team.name, 'town-square');
 
     // # Create wiki and page
-    await createWikiThroughUI(page, `Italic Test Wiki ${await pw.random.id()}`);
+    await createWikiThroughUI(page, uniqueName('Italic Test Wiki'));
     const newPageButton = getNewPageButton(page);
     await newPageButton.click();
     await fillCreatePageModal(page, 'Italic Format Test');
@@ -121,15 +114,12 @@ test('toggles italic via formatting bar button', {tag: '@pages'}, async ({pw, sh
  * @objective Verify italic toggle via keyboard shortcut Ctrl+I
  */
 test('toggles italic via keyboard shortcut Ctrl+I', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
-    const {team, user, adminClient} = sharedPagesSetup;
-    const channel = await adminClient.getChannelByName(team.id, 'town-square');
+    const {team, user} = sharedPagesSetup;
 
-    const {page, channelsPage} = await pw.testBrowser.login(user);
-    await channelsPage.goto(team.name, channel.name);
-    await channelsPage.toBeVisible();
+    const {page} = await loginAndNavigateToChannel(pw, user, team.name, 'town-square');
 
     // # Create wiki and page
-    await createWikiThroughUI(page, `Italic Shortcut Wiki ${await pw.random.id()}`);
+    await createWikiThroughUI(page, uniqueName('Italic Shortcut Wiki'));
     const newPageButton = getNewPageButton(page);
     await newPageButton.click();
     await fillCreatePageModal(page, 'Italic Shortcut Test');
@@ -154,15 +144,12 @@ test('toggles italic via keyboard shortcut Ctrl+I', {tag: '@pages'}, async ({pw,
  * @objective Verify strikethrough toggle via formatting bar button
  */
 test('toggles strikethrough via formatting bar button', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
-    const {team, user, adminClient} = sharedPagesSetup;
-    const channel = await adminClient.getChannelByName(team.id, 'town-square');
+    const {team, user} = sharedPagesSetup;
 
-    const {page, channelsPage} = await pw.testBrowser.login(user);
-    await channelsPage.goto(team.name, channel.name);
-    await channelsPage.toBeVisible();
+    const {page} = await loginAndNavigateToChannel(pw, user, team.name, 'town-square');
 
     // # Create wiki and page
-    await createWikiThroughUI(page, `Strikethrough Wiki ${await pw.random.id()}`);
+    await createWikiThroughUI(page, uniqueName('Strikethrough Wiki'));
     const newPageButton = getNewPageButton(page);
     await newPageButton.click();
     await fillCreatePageModal(page, 'Strikethrough Test');
@@ -183,15 +170,12 @@ test('toggles strikethrough via formatting bar button', {tag: '@pages'}, async (
  * @objective Verify combined formatting (bold + italic)
  */
 test('applies combined formatting (bold + italic)', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
-    const {team, user, adminClient} = sharedPagesSetup;
-    const channel = await adminClient.getChannelByName(team.id, 'town-square');
+    const {team, user} = sharedPagesSetup;
 
-    const {page, channelsPage} = await pw.testBrowser.login(user);
-    await channelsPage.goto(team.name, channel.name);
-    await channelsPage.toBeVisible();
+    const {page} = await loginAndNavigateToChannel(pw, user, team.name, 'town-square');
 
     // # Create wiki and page
-    await createWikiThroughUI(page, `Combined Format Wiki ${await pw.random.id()}`);
+    await createWikiThroughUI(page, uniqueName('Combined Format Wiki'));
     const newPageButton = getNewPageButton(page);
     await newPageButton.click();
     await fillCreatePageModal(page, 'Combined Format Test');
@@ -224,15 +208,12 @@ test('applies combined formatting (bold + italic)', {tag: '@pages'}, async ({pw,
  * @objective Verify formatting is removed when toggled again
  */
 test('removes formatting when toggled again', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
-    const {team, user, adminClient} = sharedPagesSetup;
-    const channel = await adminClient.getChannelByName(team.id, 'town-square');
+    const {team, user} = sharedPagesSetup;
 
-    const {page, channelsPage} = await pw.testBrowser.login(user);
-    await channelsPage.goto(team.name, channel.name);
-    await channelsPage.toBeVisible();
+    const {page} = await loginAndNavigateToChannel(pw, user, team.name, 'town-square');
 
     // # Create wiki and page
-    await createWikiThroughUI(page, `Remove Format Wiki ${await pw.random.id()}`);
+    await createWikiThroughUI(page, uniqueName('Remove Format Wiki'));
     const newPageButton = getNewPageButton(page);
     await newPageButton.click();
     await fillCreatePageModal(page, 'Remove Format Test');
@@ -258,15 +239,12 @@ test('removes formatting when toggled again', {tag: '@pages'}, async ({pw, share
  * @objective Verify formatting persists after publish
  */
 test('formatting persists after publish', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
-    const {team, user, adminClient} = sharedPagesSetup;
-    const channel = await adminClient.getChannelByName(team.id, 'town-square');
+    const {team, user} = sharedPagesSetup;
 
-    const {page, channelsPage} = await pw.testBrowser.login(user);
-    await channelsPage.goto(team.name, channel.name);
-    await channelsPage.toBeVisible();
+    const {page} = await loginAndNavigateToChannel(pw, user, team.name, 'town-square');
 
     // # Create wiki and page
-    await createWikiThroughUI(page, `Persist Format Wiki ${await pw.random.id()}`);
+    await createWikiThroughUI(page, uniqueName('Persist Format Wiki'));
     const newPageButton = getNewPageButton(page);
     await newPageButton.click();
     await fillCreatePageModal(page, 'Persist Format Test');
@@ -297,15 +275,12 @@ test('formatting persists after publish', {tag: '@pages'}, async ({pw, sharedPag
  * @objective Verify heading 1 via formatting bar
  */
 test('inserts heading 1 via formatting bar', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
-    const {team, user, adminClient} = sharedPagesSetup;
-    const channel = await adminClient.getChannelByName(team.id, 'town-square');
+    const {team, user} = sharedPagesSetup;
 
-    const {page, channelsPage} = await pw.testBrowser.login(user);
-    await channelsPage.goto(team.name, channel.name);
-    await channelsPage.toBeVisible();
+    const {page} = await loginAndNavigateToChannel(pw, user, team.name, 'town-square');
 
     // # Create wiki and page
-    await createWikiThroughUI(page, `H1 Format Wiki ${await pw.random.id()}`);
+    await createWikiThroughUI(page, uniqueName('H1 Format Wiki'));
     const newPageButton = getNewPageButton(page);
     await newPageButton.click();
     await fillCreatePageModal(page, 'H1 Format Test');
@@ -326,15 +301,12 @@ test('inserts heading 1 via formatting bar', {tag: '@pages'}, async ({pw, shared
  * @objective Verify heading 2 via formatting bar
  */
 test('inserts heading 2 via formatting bar', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
-    const {team, user, adminClient} = sharedPagesSetup;
-    const channel = await adminClient.getChannelByName(team.id, 'town-square');
+    const {team, user} = sharedPagesSetup;
 
-    const {page, channelsPage} = await pw.testBrowser.login(user);
-    await channelsPage.goto(team.name, channel.name);
-    await channelsPage.toBeVisible();
+    const {page} = await loginAndNavigateToChannel(pw, user, team.name, 'town-square');
 
     // # Create wiki and page
-    await createWikiThroughUI(page, `H2 Format Wiki ${await pw.random.id()}`);
+    await createWikiThroughUI(page, uniqueName('H2 Format Wiki'));
     const newPageButton = getNewPageButton(page);
     await newPageButton.click();
     await fillCreatePageModal(page, 'H2 Format Test');
@@ -355,15 +327,12 @@ test('inserts heading 2 via formatting bar', {tag: '@pages'}, async ({pw, shared
  * @objective Verify heading 3 via formatting bar
  */
 test('inserts heading 3 via formatting bar', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
-    const {team, user, adminClient} = sharedPagesSetup;
-    const channel = await adminClient.getChannelByName(team.id, 'town-square');
+    const {team, user} = sharedPagesSetup;
 
-    const {page, channelsPage} = await pw.testBrowser.login(user);
-    await channelsPage.goto(team.name, channel.name);
-    await channelsPage.toBeVisible();
+    const {page} = await loginAndNavigateToChannel(pw, user, team.name, 'town-square');
 
     // # Create wiki and page
-    await createWikiThroughUI(page, `H3 Format Wiki ${await pw.random.id()}`);
+    await createWikiThroughUI(page, uniqueName('H3 Format Wiki'));
     const newPageButton = getNewPageButton(page);
     await newPageButton.click();
     await fillCreatePageModal(page, 'H3 Format Test');
@@ -384,15 +353,12 @@ test('inserts heading 3 via formatting bar', {tag: '@pages'}, async ({pw, shared
  * @objective Verify H4, H5, H6 headings via markdown input and persistence after publish
  */
 test('inserts lower-level headings (H4-H6) via markdown input', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
-    const {team, user, adminClient} = sharedPagesSetup;
-    const channel = await adminClient.getChannelByName(team.id, 'town-square');
+    const {team, user} = sharedPagesSetup;
 
-    const {page, channelsPage} = await pw.testBrowser.login(user);
-    await channelsPage.goto(team.name, channel.name);
-    await channelsPage.toBeVisible();
+    const {page} = await loginAndNavigateToChannel(pw, user, team.name, 'town-square');
 
     // # Create wiki and page
-    await createWikiThroughUI(page, `Lower Headings Wiki ${await pw.random.id()}`);
+    await createWikiThroughUI(page, uniqueName('Lower Headings Wiki'));
     const newPageButton = getNewPageButton(page);
     await newPageButton.click();
     await fillCreatePageModal(page, 'Lower Headings Test');
@@ -425,15 +391,12 @@ test('inserts lower-level headings (H4-H6) via markdown input', {tag: '@pages'},
  * @objective Verify quote via formatting bar
  */
 test('inserts quote via formatting bar', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
-    const {team, user, adminClient} = sharedPagesSetup;
-    const channel = await adminClient.getChannelByName(team.id, 'town-square');
+    const {team, user} = sharedPagesSetup;
 
-    const {page, channelsPage} = await pw.testBrowser.login(user);
-    await channelsPage.goto(team.name, channel.name);
-    await channelsPage.toBeVisible();
+    const {page} = await loginAndNavigateToChannel(pw, user, team.name, 'town-square');
 
     // # Create wiki and page
-    await createWikiThroughUI(page, `Quote Format Wiki ${await pw.random.id()}`);
+    await createWikiThroughUI(page, uniqueName('Quote Format Wiki'));
     const newPageButton = getNewPageButton(page);
     await newPageButton.click();
     await fillCreatePageModal(page, 'Quote Format Test');
@@ -454,15 +417,12 @@ test('inserts quote via formatting bar', {tag: '@pages'}, async ({pw, sharedPage
  * @objective Verify code block via formatting bar
  */
 test('inserts code block via formatting bar', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
-    const {team, user, adminClient} = sharedPagesSetup;
-    const channel = await adminClient.getChannelByName(team.id, 'town-square');
+    const {team, user} = sharedPagesSetup;
 
-    const {page, channelsPage} = await pw.testBrowser.login(user);
-    await channelsPage.goto(team.name, channel.name);
-    await channelsPage.toBeVisible();
+    const {page} = await loginAndNavigateToChannel(pw, user, team.name, 'town-square');
 
     // # Create wiki and page
-    await createWikiThroughUI(page, `Code Format Wiki ${await pw.random.id()}`);
+    await createWikiThroughUI(page, uniqueName('Code Format Wiki'));
     const newPageButton = getNewPageButton(page);
     await newPageButton.click();
     await fillCreatePageModal(page, 'Code Format Test');
@@ -485,15 +445,12 @@ test('inserts code block via formatting bar', {tag: '@pages'}, async ({pw, share
  * @objective Verify divider via slash command
  */
 test('inserts divider via slash command', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
-    const {team, user, adminClient} = sharedPagesSetup;
-    const channel = await adminClient.getChannelByName(team.id, 'town-square');
+    const {team, user} = sharedPagesSetup;
 
-    const {page, channelsPage} = await pw.testBrowser.login(user);
-    await channelsPage.goto(team.name, channel.name);
-    await channelsPage.toBeVisible();
+    const {page} = await loginAndNavigateToChannel(pw, user, team.name, 'town-square');
 
     // # Create wiki and page
-    await createWikiThroughUI(page, `Divider Format Wiki ${await pw.random.id()}`);
+    await createWikiThroughUI(page, uniqueName('Divider Format Wiki'));
     const newPageButton = getNewPageButton(page);
     await newPageButton.click();
     await fillCreatePageModal(page, 'Divider Format Test');
@@ -511,15 +468,12 @@ test('inserts divider via slash command', {tag: '@pages'}, async ({pw, sharedPag
  * @objective Verify quote via slash command
  */
 test('converts text to quote via slash command', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
-    const {team, user, adminClient} = sharedPagesSetup;
-    const channel = await adminClient.getChannelByName(team.id, 'town-square');
+    const {team, user} = sharedPagesSetup;
 
-    const {page, channelsPage} = await pw.testBrowser.login(user);
-    await channelsPage.goto(team.name, channel.name);
-    await channelsPage.toBeVisible();
+    const {page} = await loginAndNavigateToChannel(pw, user, team.name, 'town-square');
 
     // # Create wiki and page
-    await createWikiThroughUI(page, `Slash Quote Wiki ${await pw.random.id()}`);
+    await createWikiThroughUI(page, uniqueName('Slash Quote Wiki'));
     const newPageButton = getNewPageButton(page);
     await newPageButton.click();
     await fillCreatePageModal(page, 'Slash Quote Test');
@@ -542,15 +496,12 @@ test('converts text to quote via slash command', {tag: '@pages'}, async ({pw, sh
  * @objective Verify code block via slash command
  */
 test('converts text to code block via slash command', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
-    const {team, user, adminClient} = sharedPagesSetup;
-    const channel = await adminClient.getChannelByName(team.id, 'town-square');
+    const {team, user} = sharedPagesSetup;
 
-    const {page, channelsPage} = await pw.testBrowser.login(user);
-    await channelsPage.goto(team.name, channel.name);
-    await channelsPage.toBeVisible();
+    const {page} = await loginAndNavigateToChannel(pw, user, team.name, 'town-square');
 
     // # Create wiki and page
-    await createWikiThroughUI(page, `Slash Code Wiki ${await pw.random.id()}`);
+    await createWikiThroughUI(page, uniqueName('Slash Code Wiki'));
     const newPageButton = getNewPageButton(page);
     await newPageButton.click();
     await fillCreatePageModal(page, 'Slash Code Test');
@@ -577,15 +528,12 @@ test('converts text to code block via slash command', {tag: '@pages'}, async ({p
  * @objective Verify numbered list via formatting bar
  */
 test('creates numbered list via formatting bar', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
-    const {team, user, adminClient} = sharedPagesSetup;
-    const channel = await adminClient.getChannelByName(team.id, 'town-square');
+    const {team, user} = sharedPagesSetup;
 
-    const {page, channelsPage} = await pw.testBrowser.login(user);
-    await channelsPage.goto(team.name, channel.name);
-    await channelsPage.toBeVisible();
+    const {page} = await loginAndNavigateToChannel(pw, user, team.name, 'town-square');
 
     // # Create wiki and page
-    await createWikiThroughUI(page, `Numbered List Wiki ${await pw.random.id()}`);
+    await createWikiThroughUI(page, uniqueName('Numbered List Wiki'));
     const newPageButton = getNewPageButton(page);
     await newPageButton.click();
     await fillCreatePageModal(page, 'Numbered List Test');
@@ -608,15 +556,12 @@ test('creates numbered list via formatting bar', {tag: '@pages'}, async ({pw, sh
  * @objective Verify bulleted list via formatting bar
  */
 test('creates bulleted list via formatting bar', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
-    const {team, user, adminClient} = sharedPagesSetup;
-    const channel = await adminClient.getChannelByName(team.id, 'town-square');
+    const {team, user} = sharedPagesSetup;
 
-    const {page, channelsPage} = await pw.testBrowser.login(user);
-    await channelsPage.goto(team.name, channel.name);
-    await channelsPage.toBeVisible();
+    const {page} = await loginAndNavigateToChannel(pw, user, team.name, 'town-square');
 
     // # Create wiki and page
-    await createWikiThroughUI(page, `Bullet List Wiki ${await pw.random.id()}`);
+    await createWikiThroughUI(page, uniqueName('Bullet List Wiki'));
     const newPageButton = getNewPageButton(page);
     await newPageButton.click();
     await fillCreatePageModal(page, 'Bullet List Test');
@@ -639,15 +584,12 @@ test('creates bulleted list via formatting bar', {tag: '@pages'}, async ({pw, sh
  * @objective Verify adding multiple list items with Enter key
  */
 test('adds multiple list items with Enter key', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
-    const {team, user, adminClient} = sharedPagesSetup;
-    const channel = await adminClient.getChannelByName(team.id, 'town-square');
+    const {team, user} = sharedPagesSetup;
 
-    const {page, channelsPage} = await pw.testBrowser.login(user);
-    await channelsPage.goto(team.name, channel.name);
-    await channelsPage.toBeVisible();
+    const {page} = await loginAndNavigateToChannel(pw, user, team.name, 'town-square');
 
     // # Create wiki and page
-    await createWikiThroughUI(page, `Multi Item List Wiki ${await pw.random.id()}`);
+    await createWikiThroughUI(page, uniqueName('Multi Item List Wiki'));
     const newPageButton = getNewPageButton(page);
     await newPageButton.click();
     await fillCreatePageModal(page, 'Multi Item List Test');
@@ -676,15 +618,12 @@ test('adds multiple list items with Enter key', {tag: '@pages'}, async ({pw, sha
  * @objective Verify list formatting persists after publish
  */
 test('list formatting persists after publish', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
-    const {team, user, adminClient} = sharedPagesSetup;
-    const channel = await adminClient.getChannelByName(team.id, 'town-square');
+    const {team, user} = sharedPagesSetup;
 
-    const {page, channelsPage} = await pw.testBrowser.login(user);
-    await channelsPage.goto(team.name, channel.name);
-    await channelsPage.toBeVisible();
+    const {page} = await loginAndNavigateToChannel(pw, user, team.name, 'town-square');
 
     // # Create wiki and page
-    await createWikiThroughUI(page, `List Persist Wiki ${await pw.random.id()}`);
+    await createWikiThroughUI(page, uniqueName('List Persist Wiki'));
     const newPageButton = getNewPageButton(page);
     await newPageButton.click();
     await fillCreatePageModal(page, 'List Persist Test');
@@ -715,15 +654,12 @@ test('list formatting persists after publish', {tag: '@pages'}, async ({pw, shar
  * @objective Verify table can be inserted via slash command
  */
 test('inserts table via slash command', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
-    const {team, user, adminClient} = sharedPagesSetup;
-    const channel = await adminClient.getChannelByName(team.id, 'town-square');
+    const {team, user} = sharedPagesSetup;
 
-    const {page, channelsPage} = await pw.testBrowser.login(user);
-    await channelsPage.goto(team.name, channel.name);
-    await channelsPage.toBeVisible();
+    const {page} = await loginAndNavigateToChannel(pw, user, team.name, 'town-square');
 
     // # Create wiki and page
-    await createWikiThroughUI(page, `Table Insert Wiki ${await pw.random.id()}`);
+    await createWikiThroughUI(page, uniqueName('Table Insert Wiki'));
     const newPageButton = getNewPageButton(page);
     await newPageButton.click();
     await fillCreatePageModal(page, 'Table Insert Test');
@@ -741,15 +677,12 @@ test('inserts table via slash command', {tag: '@pages'}, async ({pw, sharedPages
  * @objective Verify inserted table has correct 3x3 structure with header row
  */
 test('inserts table with 3x3 grid structure', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
-    const {team, user, adminClient} = sharedPagesSetup;
-    const channel = await adminClient.getChannelByName(team.id, 'town-square');
+    const {team, user} = sharedPagesSetup;
 
-    const {page, channelsPage} = await pw.testBrowser.login(user);
-    await channelsPage.goto(team.name, channel.name);
-    await channelsPage.toBeVisible();
+    const {page} = await loginAndNavigateToChannel(pw, user, team.name, 'town-square');
 
     // # Create wiki and page
-    await createWikiThroughUI(page, `Table Grid Wiki ${await pw.random.id()}`);
+    await createWikiThroughUI(page, uniqueName('Table Grid Wiki'));
     const newPageButton = getNewPageButton(page);
     await newPageButton.click();
     await fillCreatePageModal(page, 'Table Grid Test');
@@ -775,15 +708,12 @@ test('inserts table with 3x3 grid structure', {tag: '@pages'}, async ({pw, share
  * @objective Verify text can be typed into table cells
  */
 test('allows typing in table cells', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
-    const {team, user, adminClient} = sharedPagesSetup;
-    const channel = await adminClient.getChannelByName(team.id, 'town-square');
+    const {team, user} = sharedPagesSetup;
 
-    const {page, channelsPage} = await pw.testBrowser.login(user);
-    await channelsPage.goto(team.name, channel.name);
-    await channelsPage.toBeVisible();
+    const {page} = await loginAndNavigateToChannel(pw, user, team.name, 'town-square');
 
     // # Create wiki and page
-    await createWikiThroughUI(page, `Table Type Wiki ${await pw.random.id()}`);
+    await createWikiThroughUI(page, uniqueName('Table Type Wiki'));
     const newPageButton = getNewPageButton(page);
     await newPageButton.click();
     await fillCreatePageModal(page, 'Table Type Test');
@@ -813,15 +743,12 @@ test('allows typing in table cells', {tag: '@pages'}, async ({pw, sharedPagesSet
  * @objective Verify table can be navigated with Tab and arrow keys
  */
 test('navigates table cells with Tab key', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
-    const {team, user, adminClient} = sharedPagesSetup;
-    const channel = await adminClient.getChannelByName(team.id, 'town-square');
+    const {team, user} = sharedPagesSetup;
 
-    const {page, channelsPage} = await pw.testBrowser.login(user);
-    await channelsPage.goto(team.name, channel.name);
-    await channelsPage.toBeVisible();
+    const {page} = await loginAndNavigateToChannel(pw, user, team.name, 'town-square');
 
     // # Create wiki and page
-    await createWikiThroughUI(page, `Table Nav Wiki ${await pw.random.id()}`);
+    await createWikiThroughUI(page, uniqueName('Table Nav Wiki'));
     const newPageButton = getNewPageButton(page);
     await newPageButton.click();
     await fillCreatePageModal(page, 'Table Nav Test');
@@ -857,15 +784,12 @@ test('navigates table cells with Tab key', {tag: '@pages'}, async ({pw, sharedPa
  * @objective Verify table persists after publish
  */
 test('table persists after publish', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
-    const {team, user, adminClient} = sharedPagesSetup;
-    const channel = await adminClient.getChannelByName(team.id, 'town-square');
+    const {team, user} = sharedPagesSetup;
 
-    const {page, channelsPage} = await pw.testBrowser.login(user);
-    await channelsPage.goto(team.name, channel.name);
-    await channelsPage.toBeVisible();
+    const {page} = await loginAndNavigateToChannel(pw, user, team.name, 'town-square');
 
     // # Create wiki and page
-    await createWikiThroughUI(page, `Table Persist Wiki ${await pw.random.id()}`);
+    await createWikiThroughUI(page, uniqueName('Table Persist Wiki'));
     const newPageButton = getNewPageButton(page);
     await newPageButton.click();
     await fillCreatePageModal(page, 'Table Persist Test');
@@ -900,15 +824,12 @@ test('table persists after publish', {tag: '@pages'}, async ({pw, sharedPagesSet
  * @objective Verify strikethrough formatting persists after publish
  */
 test('strikethrough persists after publish', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
-    const {team, user, adminClient} = sharedPagesSetup;
-    const channel = await adminClient.getChannelByName(team.id, 'town-square');
+    const {team, user} = sharedPagesSetup;
 
-    const {page, channelsPage} = await pw.testBrowser.login(user);
-    await channelsPage.goto(team.name, channel.name);
-    await channelsPage.toBeVisible();
+    const {page} = await loginAndNavigateToChannel(pw, user, team.name, 'town-square');
 
     // # Create wiki and page
-    await createWikiThroughUI(page, `Strike Persist Wiki ${await pw.random.id()}`);
+    await createWikiThroughUI(page, uniqueName('Strike Persist Wiki'));
     const newPageButton = getNewPageButton(page);
     await newPageButton.click();
     await fillCreatePageModal(page, 'Strike Persist Test');
@@ -932,15 +853,12 @@ test('strikethrough persists after publish', {tag: '@pages'}, async ({pw, shared
  * @objective Verify heading formatting persists after publish
  */
 test('headings persist after publish', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
-    const {team, user, adminClient} = sharedPagesSetup;
-    const channel = await adminClient.getChannelByName(team.id, 'town-square');
+    const {team, user} = sharedPagesSetup;
 
-    const {page, channelsPage} = await pw.testBrowser.login(user);
-    await channelsPage.goto(team.name, channel.name);
-    await channelsPage.toBeVisible();
+    const {page} = await loginAndNavigateToChannel(pw, user, team.name, 'town-square');
 
     // # Create wiki and page
-    await createWikiThroughUI(page, `Heading Persist Wiki ${await pw.random.id()}`);
+    await createWikiThroughUI(page, uniqueName('Heading Persist Wiki'));
     const newPageButton = getNewPageButton(page);
     await newPageButton.click();
     await fillCreatePageModal(page, 'Heading Persist Test');
@@ -969,15 +887,12 @@ test('headings persist after publish', {tag: '@pages'}, async ({pw, sharedPagesS
  * @objective Verify quote formatting persists after publish
  */
 test('quote persists after publish', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
-    const {team, user, adminClient} = sharedPagesSetup;
-    const channel = await adminClient.getChannelByName(team.id, 'town-square');
+    const {team, user} = sharedPagesSetup;
 
-    const {page, channelsPage} = await pw.testBrowser.login(user);
-    await channelsPage.goto(team.name, channel.name);
-    await channelsPage.toBeVisible();
+    const {page} = await loginAndNavigateToChannel(pw, user, team.name, 'town-square');
 
     // # Create wiki and page
-    await createWikiThroughUI(page, `Quote Persist Wiki ${await pw.random.id()}`);
+    await createWikiThroughUI(page, uniqueName('Quote Persist Wiki'));
     const newPageButton = getNewPageButton(page);
     await newPageButton.click();
     await fillCreatePageModal(page, 'Quote Persist Test');
@@ -1001,15 +916,12 @@ test('quote persists after publish', {tag: '@pages'}, async ({pw, sharedPagesSet
  * @objective Verify callout can be inserted via formatting bar button
  */
 test('inserts callout via formatting bar button', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
-    const {team, user, adminClient} = sharedPagesSetup;
-    const channel = await adminClient.getChannelByName(team.id, 'town-square');
+    const {team, user} = sharedPagesSetup;
 
-    const {page, channelsPage} = await pw.testBrowser.login(user);
-    await channelsPage.goto(team.name, channel.name);
-    await channelsPage.toBeVisible();
+    const {page} = await loginAndNavigateToChannel(pw, user, team.name, 'town-square');
 
     // # Create wiki and page
-    await createWikiThroughUI(page, `Callout Button Wiki ${await pw.random.id()}`);
+    await createWikiThroughUI(page, uniqueName('Callout Button Wiki'));
     const newPageButton = getNewPageButton(page);
     await newPageButton.click();
     await fillCreatePageModal(page, 'Callout Button Test');
@@ -1031,15 +943,12 @@ test('inserts callout via formatting bar button', {tag: '@pages'}, async ({pw, s
  * @objective Verify callout persists after publish
  */
 test('callout persists after publish', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
-    const {team, user, adminClient} = sharedPagesSetup;
-    const channel = await adminClient.getChannelByName(team.id, 'town-square');
+    const {team, user} = sharedPagesSetup;
 
-    const {page, channelsPage} = await pw.testBrowser.login(user);
-    await channelsPage.goto(team.name, channel.name);
-    await channelsPage.toBeVisible();
+    const {page} = await loginAndNavigateToChannel(pw, user, team.name, 'town-square');
 
     // # Create wiki and page
-    await createWikiThroughUI(page, `Callout Persist Wiki ${await pw.random.id()}`);
+    await createWikiThroughUI(page, uniqueName('Callout Persist Wiki'));
     const newPageButton = getNewPageButton(page);
     await newPageButton.click();
     await fillCreatePageModal(page, 'Callout Persist Test');
@@ -1063,15 +972,12 @@ test('callout persists after publish', {tag: '@pages'}, async ({pw, sharedPagesS
  * @objective Verify code block persists after publish
  */
 test('code block persists after publish', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
-    const {team, user, adminClient} = sharedPagesSetup;
-    const channel = await adminClient.getChannelByName(team.id, 'town-square');
+    const {team, user} = sharedPagesSetup;
 
-    const {page, channelsPage} = await pw.testBrowser.login(user);
-    await channelsPage.goto(team.name, channel.name);
-    await channelsPage.toBeVisible();
+    const {page} = await loginAndNavigateToChannel(pw, user, team.name, 'town-square');
 
     // # Create wiki and page
-    await createWikiThroughUI(page, `Code Persist Wiki ${await pw.random.id()}`);
+    await createWikiThroughUI(page, uniqueName('Code Persist Wiki'));
     const newPageButton = getNewPageButton(page);
     await newPageButton.click();
     await fillCreatePageModal(page, 'Code Persist Test');
@@ -1095,15 +1001,12 @@ test('code block persists after publish', {tag: '@pages'}, async ({pw, sharedPag
  * @objective Verify divider persists after publish
  */
 test('divider persists after publish', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
-    const {team, user, adminClient} = sharedPagesSetup;
-    const channel = await adminClient.getChannelByName(team.id, 'town-square');
+    const {team, user} = sharedPagesSetup;
 
-    const {page, channelsPage} = await pw.testBrowser.login(user);
-    await channelsPage.goto(team.name, channel.name);
-    await channelsPage.toBeVisible();
+    const {page} = await loginAndNavigateToChannel(pw, user, team.name, 'town-square');
 
     // # Create wiki and page
-    await createWikiThroughUI(page, `Divider Persist Wiki ${await pw.random.id()}`);
+    await createWikiThroughUI(page, uniqueName('Divider Persist Wiki'));
     const newPageButton = getNewPageButton(page);
     await newPageButton.click();
     await fillCreatePageModal(page, 'Divider Persist Test');

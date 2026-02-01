@@ -28,7 +28,7 @@ import {extractPlaintextFromTipTapJSON} from 'utils/tiptap_utils';
 
 import type {ActionFuncAsync, DispatchFunc, GetStateFunc} from 'types/store';
 import type {PostDraft} from 'types/store/draft';
-import type {Page} from 'types/store/pages';
+import type {InlineAnchor, Page, TranslationReference} from 'types/store/pages';
 
 /**
  * handleApiError handles the common error handling pattern for API calls.
@@ -59,7 +59,7 @@ function handleApiError(
 
 export {createWiki};
 
-export type {Page} from 'types/store/pages';
+export type {Page, TranslationReference} from 'types/store/pages';
 
 export const GET_PAGES_REQUEST = WikiTypes.GET_PAGES_REQUEST;
 export const GET_PAGES_SUCCESS = WikiTypes.GET_PAGES_SUCCESS;
@@ -883,13 +883,12 @@ export function getPageBreadcrumb(wikiId: string, pageId: string): ActionFuncAsy
     };
 }
 
-type InlineAnchor = {
-    text: string;
-    anchor_id: string;
-};
-
 export function createPageComment(wikiId: string, pageId: string, message: string, inlineAnchor?: InlineAnchor): ActionFuncAsync<Post> {
     return async (dispatch, getState) => {
+        if (!message || message.trim() === '') {
+            return {error: {message: 'Comment message cannot be empty'}};
+        }
+
         try {
             const comment = await Client4.createPageComment(wikiId, pageId, message, inlineAnchor);
 
@@ -909,6 +908,10 @@ export function createPageComment(wikiId: string, pageId: string, message: strin
 
 export function createPageCommentReply(wikiId: string, pageId: string, parentCommentId: string, message: string): ActionFuncAsync<Post> {
     return async (dispatch, getState) => {
+        if (!message || message.trim() === '') {
+            return {error: {message: 'Reply message cannot be empty'}};
+        }
+
         try {
             const reply = await Client4.createPageCommentReply(wikiId, pageId, parentCommentId, message);
 
@@ -1064,11 +1067,6 @@ export function cleanupPublishedDraftTimestamps(): ActionFuncAsync {
 
         return {data: true};
     };
-}
-
-export interface TranslationReference {
-    page_id: string;
-    language_code: string;
 }
 
 /**

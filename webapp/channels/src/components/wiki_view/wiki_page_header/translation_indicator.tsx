@@ -12,16 +12,12 @@ import {getPost} from 'mattermost-redux/selectors/entities/posts';
 import {PagePropsKeys} from 'utils/constants';
 
 import type {GlobalState} from 'types/store';
+import type {TranslationReference} from 'types/store/pages';
 
 import type {Language} from '../wiki_page_editor/ai';
 import {COMMON_LANGUAGES} from '../wiki_page_editor/ai';
 
 import './translation_indicator.scss';
-
-type TranslationReference = {
-    page_id: string;
-    language_code: string;
-};
 
 type Props = {
     pageId: string;

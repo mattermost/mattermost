@@ -1,63 +1,30 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {useState, useCallback} from 'react';
+import {useCallback} from 'react';
 import {useDispatch} from 'react-redux';
 
-import type {ActionResult} from 'mattermost-redux/types/actions';
+import {openWikiRhs} from 'actions/views/rhs';
+import {setPendingInlineAnchor} from 'actions/views/wiki_rhs';
 
-import {createPageComment} from 'actions/pages';
+import type {InlineAnchor} from 'types/store/pages';
 
-type CommentAnchor = {
-    anchor_id: string;
-    text: string;
-};
-
-export const useInlineComments = (pageId?: string, wikiId?: string, onCommentCreated?: (commentId: string) => void) => {
+export const useInlineComments = (pageId?: string, wikiId?: string) => {
     const dispatch = useDispatch();
-    const [showCommentModal, setShowCommentModal] = useState(false);
-    const [commentAnchor, setCommentAnchor] = useState<CommentAnchor | null>(null);
 
-    const handleCreateInlineComment = useCallback((anchor: CommentAnchor) => {
-        setCommentAnchor(anchor);
-        setShowCommentModal(true);
-    }, []);
-
-    const handleSubmitComment = useCallback(async (message: string) => {
-        if (!commentAnchor || !pageId || !wikiId) {
+    const handleCreateInlineComment = useCallback((anchor: InlineAnchor) => {
+        if (!pageId || !wikiId) {
             return;
         }
 
-        const inlineAnchor = {
-            anchor_id: commentAnchor.anchor_id,
-            text: commentAnchor.text,
-        };
-
-        try {
-            const result = await dispatch(createPageComment(wikiId, pageId, message, inlineAnchor));
-            const comment = (result as ActionResult).data;
-
-            if (onCommentCreated && comment?.id) {
-                onCommentCreated(comment.id);
-            }
-        } catch {
-            // Error is handled silently - the UI will reflect the failure
-        }
-
-        setShowCommentModal(false);
-        setCommentAnchor(null);
-    }, [dispatch, commentAnchor, pageId, wikiId, onCommentCreated]);
-
-    const handleCloseModal = useCallback(() => {
-        setShowCommentModal(false);
-        setCommentAnchor(null);
-    }, []);
+        dispatch(setPendingInlineAnchor({
+            anchor_id: anchor.anchor_id,
+            text: anchor.text,
+        }));
+        dispatch(openWikiRhs(pageId, wikiId));
+    }, [dispatch, pageId, wikiId]);
 
     return {
-        showCommentModal,
-        commentAnchor,
         handleCreateInlineComment,
-        handleSubmitComment,
-        handleCloseModal,
     };
 };

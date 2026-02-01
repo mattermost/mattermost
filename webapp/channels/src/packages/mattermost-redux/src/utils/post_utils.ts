@@ -44,6 +44,10 @@ export function isUserActivityPost(postType: PostType): boolean {
     return Posts.USER_ACTIVITY_POST_TYPES.includes(postType);
 }
 
+export function isPageActivityPost(postType: PostType): boolean {
+    return postType === Posts.POST_TYPES.PAGE_ADDED;
+}
+
 export function isPostOwner(userId: UserProfile['id'], post: Post) {
     return userId === post.user_id;
 }

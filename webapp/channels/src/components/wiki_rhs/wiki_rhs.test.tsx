@@ -23,6 +23,11 @@ jest.mock('./all_wiki_threads', () => ({
     default: () => <div data-testid='all-wiki-threads'>{'All Wiki Threads'}</div>,
 }));
 
+jest.mock('./wiki_new_comment_view', () => ({
+    __esModule: true,
+    default: () => <div data-testid='wiki-new-comment-view'>{'New Comment View'}</div>,
+}));
+
 describe('components/wiki_rhs/WikiRHS', () => {
     const mockPageId = 'page-id-123';
     const mockWikiId = 'wiki-id-456';
@@ -47,12 +52,15 @@ describe('components/wiki_rhs/WikiRHS', () => {
         channelLoaded: true,
         activeTab: 'page_comments' as const,
         focusedInlineCommentId: null,
+        pendingInlineAnchor: null,
         isExpanded: false,
+        isSubmittingComment: false,
         actions: {
             publishPage: jest.fn(),
             closeRightHandSide: jest.fn(),
             setWikiRhsActiveTab: jest.fn(),
             setFocusedInlineCommentId: jest.fn(),
+            setPendingInlineAnchor: jest.fn(),
             openWikiRhs: jest.fn(),
             toggleRhsExpanded: jest.fn(),
         },

@@ -1,0 +1,30 @@
+.WikiNewCommentView {
+    display: flex;
+    height: 100%;
+    flex-direction: column;
+
+    &__anchor {
+        padding: 12px 16px;
+        border-left: 3px solid var(--button-bg);
+        margin: 16px;
+        margin-bottom: 0;
+        background: rgba(var(--center-channel-color-rgb), 0.04);
+        color: rgba(var(--center-channel-color-rgb), 0.72);
+        font-size: 14px;
+        font-style: italic;
+        line-height: 1.5;
+    }
+
+    &__input-container {
+        display: flex;
+        flex: 1;
+        flex-direction: column;
+        justify-content: flex-end;
+        padding: 16px;
+        padding-top: 8px;
+
+        .post-create__container {
+            margin: 0;
+        }
+    }
+}

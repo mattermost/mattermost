@@ -1,11 +1,14 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {batchActions} from 'redux-batched-actions';
+
 import type {CreatePostReturnType} from 'mattermost-redux/actions/posts';
 import {getPost} from 'mattermost-redux/selectors/entities/posts';
 
 import {createPageComment as createPageCommentAction, createPageCommentReply} from 'actions/pages';
-import {getWikiRhsWikiId, getFocusedInlineCommentId} from 'selectors/wiki_rhs';
+import {setPendingInlineAnchor, setFocusedInlineCommentId, setSubmittingComment} from 'actions/views/wiki_rhs';
+import {getWikiRhsWikiId, getFocusedInlineCommentId, getPendingInlineAnchor} from 'selectors/wiki_rhs';
 
 import {isPagePost} from 'utils/page_utils';
 
@@ -34,6 +37,12 @@ export function submitPageComment(
     afterSubmit?: (response: SubmitPageCommentReturnType) => void,
 ): ActionFuncAsync<CreatePostReturnType> {
     return async (dispatch, getState) => {
+        // Early validation of message
+        if (!draft.message || !draft.message.trim()) {
+            const error = new Error('Comment message cannot be empty');
+            return {error};
+        }
+
         const state = getState();
 
         const page = getPost(state, pageId);
@@ -54,10 +63,31 @@ export function submitPageComment(
         }
 
         const focusedInlineCommentId = getFocusedInlineCommentId(state);
+        const pendingInlineAnchor = getPendingInlineAnchor(state);
 
         let response;
         if (focusedInlineCommentId) {
             response = await dispatch(createPageCommentReply(wikiId, pageId, focusedInlineCommentId, draft.message));
+        } else if (pendingInlineAnchor) {
+            // Creating a new inline comment with anchor
+            // Set submitting state to prevent UI flash during transition
+            dispatch(setSubmittingComment(true));
+
+            // Capture anchor before await to use in the API call
+            const anchorForCreate = pendingInlineAnchor;
+            response = await dispatch(createPageCommentAction(wikiId, pageId, draft.message, anchorForCreate));
+
+            // Clear pending anchor and focus on the new comment using batch to avoid multiple renders
+            if (!response.error && response.data?.id) {
+                dispatch(batchActions([
+                    setPendingInlineAnchor(null),
+                    setFocusedInlineCommentId(response.data.id),
+                    setSubmittingComment(false),
+                ]));
+            } else {
+                // Clear submitting state on error
+                dispatch(setSubmittingComment(false));
+            }
         } else {
             response = await dispatch(createPageCommentAction(wikiId, pageId, draft.message));
         }

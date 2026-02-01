@@ -8,7 +8,7 @@ import {UserTypes} from 'mattermost-redux/action_types';
 import {ActionTypes} from 'utils/constants';
 import type {Heading} from 'utils/page_outline';
 
-type PagesHierarchyViewState = {
+export type PagesHierarchyViewState = {
     expandedNodes: {[wikiId: string]: {[pageId: string]: boolean}};
     isPanelCollapsed: boolean;
     outlineExpandedNodes: {[pageId: string]: boolean};

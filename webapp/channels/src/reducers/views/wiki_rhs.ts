@@ -6,6 +6,7 @@ import {UserTypes} from 'mattermost-redux/action_types';
 import {ActionTypes, WikiRhsTypes} from 'utils/constants';
 
 import type {MMAction} from 'types/store';
+import type {InlineAnchor} from 'types/store/pages';
 
 export type WikiRhsState = {
     mode: 'outline' | 'comments';
@@ -13,6 +14,8 @@ export type WikiRhsState = {
     selectedPageId: string;
     focusedInlineCommentId: string | null;
     activeTab: 'page_comments' | 'all_threads';
+    pendingInlineAnchor: InlineAnchor | null;
+    isSubmittingComment: boolean;
 };
 
 const initialState: WikiRhsState = {
@@ -21,6 +24,8 @@ const initialState: WikiRhsState = {
     selectedPageId: '',
     focusedInlineCommentId: null,
     activeTab: 'page_comments',
+    pendingInlineAnchor: null,
+    isSubmittingComment: false,
 };
 
 export default function wikiRhsReducer(state = initialState, action: MMAction): WikiRhsState {
@@ -33,6 +38,10 @@ export default function wikiRhsReducer(state = initialState, action: MMAction): 
         return {...state, focusedInlineCommentId: action.commentId};
     case WikiRhsTypes.SET_ACTIVE_TAB:
         return {...state, activeTab: action.tab};
+    case WikiRhsTypes.SET_PENDING_INLINE_ANCHOR:
+        return {...state, pendingInlineAnchor: action.anchor};
+    case WikiRhsTypes.SET_SUBMITTING_COMMENT:
+        return {...state, isSubmittingComment: action.isSubmitting};
     case ActionTypes.UPDATE_RHS_STATE:
         if (action.state === 'wiki') {
             return {...state, selectedPageId: action.pageId || ''};

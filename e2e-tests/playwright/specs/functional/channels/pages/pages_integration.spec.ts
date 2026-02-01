@@ -13,6 +13,8 @@ import {
     createPageThroughUI,
     createWikiThroughUI,
     deletePageViaActionsMenu,
+    EDITOR_LOAD_WAIT,
+    ELEMENT_TIMEOUT,
     enterEditMode,
     expandPageTreeNode,
     fillAndSubmitCommentModal,
@@ -23,12 +25,16 @@ import {
     getHierarchyPanel,
     getNewPageButton,
     getPageTreeNodeByTitle,
+    HIERARCHY_TIMEOUT,
+    loginAndNavigateToChannel,
     navigateToPage,
     openInlineCommentModal,
     openMovePageModal,
     publishPage,
     selectTextInEditor,
+    SHORT_WAIT,
     toggleCommentResolution,
+    uniqueName,
     verifyBreadcrumbContains,
     verifyBreadcrumbDoesNotContain,
     verifyCommentMarkerVisible,
@@ -36,10 +42,6 @@ import {
     verifyPageContentContains,
     verifyWikiRHSContent,
     waitForSearchDebounce,
-    SHORT_WAIT,
-    EDITOR_LOAD_WAIT,
-    ELEMENT_TIMEOUT,
-    HIERARCHY_TIMEOUT,
     WEBSOCKET_WAIT,
 } from './test_helpers';
 
@@ -47,15 +49,12 @@ import {
  * @objective Verify complete workflow: create parent page, create child, verify hierarchy
  */
 test('completes full page lifecycle with hierarchy and comments', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
-    const {team, user, adminClient} = sharedPagesSetup;
-    const channel = await adminClient.getChannelByName(team.id, 'town-square');
+    const {team, user} = sharedPagesSetup;
 
-    const {page, channelsPage} = await pw.testBrowser.login(user);
-    await channelsPage.goto(team.name, channel.name);
-    await channelsPage.toBeVisible();
+    const {page} = await loginAndNavigateToChannel(pw, user, team.name, 'town-square');
 
     // # Create wiki through UI
-    await createWikiThroughUI(page, `Integration Wiki ${await pw.random.id()}`);
+    await createWikiThroughUI(page, uniqueName('Integration Wiki'));
 
     // # Step 1: Create parent page
     const parentPage = await createPageThroughUI(page, 'Parent Integration Page', 'Parent page content');
@@ -92,15 +91,12 @@ test(
     'saves draft, navigates away, returns to draft, then publishes',
     {tag: '@pages'},
     async ({pw, sharedPagesSetup}) => {
-        const {team, user, adminClient} = sharedPagesSetup;
-        const channel = await adminClient.getChannelByName(team.id, 'town-square');
+        const {team, user} = sharedPagesSetup;
 
-        const {page, channelsPage} = await pw.testBrowser.login(user);
-        await channelsPage.goto(team.name, channel.name);
-        await channelsPage.toBeVisible();
+        const {page, channelsPage} = await loginAndNavigateToChannel(pw, user, team.name, 'town-square');
 
         // # Create wiki through UI
-        const wiki = await createWikiThroughUI(page, `Draft Flow Wiki ${await pw.random.id()}`);
+        const wiki = await createWikiThroughUI(page, uniqueName('Draft Flow Wiki'));
 
         // # Step 1: Create draft
         const newPageButton = getNewPageButton(page);
@@ -116,7 +112,7 @@ test(
         await page.waitForTimeout(ELEMENT_TIMEOUT);
 
         // # Step 2: Navigate away (without publishing)
-        await channelsPage.goto(team.name, channel.name);
+        await channelsPage.goto(team.name, 'town-square');
         await channelsPage.toBeVisible();
 
         // # Step 3: Return to wiki by clicking the wiki tab
@@ -154,15 +150,12 @@ test(
  * @objective Verify page with inline comments can be edited without losing comments
  */
 test('preserves inline comments when editing page content', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
-    const {team, user, adminClient} = sharedPagesSetup;
-    const channel = await adminClient.getChannelByName(team.id, 'town-square');
+    const {team, user} = sharedPagesSetup;
 
-    const {page, channelsPage} = await pw.testBrowser.login(user);
-    await channelsPage.goto(team.name, channel.name);
-    await channelsPage.toBeVisible();
+    const {page} = await loginAndNavigateToChannel(pw, user, team.name, 'town-square');
 
     // # Create wiki and page through UI
-    await createWikiThroughUI(page, `Comment Preservation Wiki ${await pw.random.id()}`);
+    await createWikiThroughUI(page, uniqueName('Comment Preservation Wiki'));
     await createPageThroughUI(page, 'Page with Comments', 'Content with comment marker');
 
     // # Enter edit mode and add inline comment using proven helper
@@ -201,30 +194,27 @@ test(
     'searches page, opens result, adds comment, returns to search',
     {tag: '@pages'},
     async ({pw, sharedPagesSetup}) => {
-        const {team, user, adminClient} = sharedPagesSetup;
-        const channel = await adminClient.getChannelByName(team.id, 'town-square');
+        const {team, user} = sharedPagesSetup;
 
-        const {page, channelsPage} = await pw.testBrowser.login(user);
-        await channelsPage.goto(team.name, channel.name);
-        await channelsPage.toBeVisible();
+        const {page} = await loginAndNavigateToChannel(pw, user, team.name, 'town-square');
 
         // # Create wiki and page through UI
-        const uniqueTerm = `SearchTerm${await pw.random.id()}`;
-        await createWikiThroughUI(page, `Search Flow Wiki ${await pw.random.id()}`);
+        const searchTerm = uniqueName('SearchTerm');
+        await createWikiThroughUI(page, uniqueName('Search Flow Wiki'));
         const searchablePage = await createPageThroughUI(
             page,
-            `Page with ${uniqueTerm}`,
-            `Content containing ${uniqueTerm}`,
+            `Page with ${searchTerm}`,
+            `Content containing ${searchTerm}`,
         );
 
         // # Perform search
         const searchInput = page.locator('[data-testid="pages-search-input"]').first();
         await expect(searchInput).toBeVisible({timeout: ELEMENT_TIMEOUT});
-        await searchInput.fill(uniqueTerm);
+        await searchInput.fill(searchTerm);
         await waitForSearchDebounce(page);
 
         // # Click search result - use getByRole to find the button containing the search term
-        const searchResult = page.getByRole('button', {name: new RegExp(uniqueTerm)}).first();
+        const searchResult = page.getByRole('button', {name: new RegExp(searchTerm)}).first();
         await expect(searchResult).toBeVisible({timeout: ELEMENT_TIMEOUT});
         await searchResult.click();
         await page.waitForLoadState('networkidle');
@@ -247,11 +237,11 @@ test(
 
         // * Verify we can still perform searches
         await searchInput.clear();
-        await searchInput.fill(uniqueTerm);
+        await searchInput.fill(searchTerm);
         await waitForSearchDebounce(page);
 
         // * Verify search results are functional
-        const searchResultAfterBack = page.getByRole('button', {name: new RegExp(uniqueTerm)}).first();
+        const searchResultAfterBack = page.getByRole('button', {name: new RegExp(searchTerm)}).first();
         await expect(searchResultAfterBack).toBeVisible({timeout: ELEMENT_TIMEOUT});
     },
 );
@@ -263,15 +253,12 @@ test(
     'creates multi-level hierarchy with comments and breadcrumb navigation',
     {tag: '@pages'},
     async ({pw, sharedPagesSetup}) => {
-        const {team, user, adminClient} = sharedPagesSetup;
-        const channel = await adminClient.getChannelByName(team.id, 'town-square');
+        const {team, user} = sharedPagesSetup;
 
-        const {page, channelsPage} = await pw.testBrowser.login(user);
-        await channelsPage.goto(team.name, channel.name);
-        await channelsPage.toBeVisible();
+        const {page} = await loginAndNavigateToChannel(pw, user, team.name, 'town-square');
 
         // # Create wiki through UI
-        await createWikiThroughUI(page, `Hierarchy Flow Wiki ${await pw.random.id()}`);
+        await createWikiThroughUI(page, uniqueName('Hierarchy Flow Wiki'));
 
         // # Create level 1 page
         const level1Page = await createPageThroughUI(page, 'Level 1 Page', 'Level 1 content');
@@ -314,12 +301,10 @@ test('deletes page with children and updates hierarchy', {tag: '@pages'}, async 
     const {team, user, adminClient} = sharedPagesSetup;
     const channel = await adminClient.getChannelByName(team.id, 'town-square');
 
-    const {page, channelsPage} = await pw.testBrowser.login(user);
-    await channelsPage.goto(team.name, channel.name);
-    await channelsPage.toBeVisible();
+    const {page} = await loginAndNavigateToChannel(pw, user, team.name, 'town-square');
 
     // # Create wiki through UI
-    const wiki = await createWikiThroughUI(page, `Delete Flow Wiki ${await pw.random.id()}`);
+    const wiki = await createWikiThroughUI(page, uniqueName('Delete Flow Wiki'));
 
     // # Create parent with child through UI
     const parent = await createPageThroughUI(page, 'Parent to Delete', 'Parent content');
@@ -352,12 +337,10 @@ test('renames page and updates breadcrumbs and hierarchy', {tag: '@pages'}, asyn
     const {team, user, adminClient} = sharedPagesSetup;
     const channel = await adminClient.getChannelByName(team.id, 'town-square');
 
-    const {page, channelsPage} = await pw.testBrowser.login(user);
-    await channelsPage.goto(team.name, channel.name);
-    await channelsPage.toBeVisible();
+    const {page} = await loginAndNavigateToChannel(pw, user, team.name, 'town-square');
 
     // # Create wiki through UI
-    const wiki = await createWikiThroughUI(page, `Rename Flow Wiki ${await pw.random.id()}`);
+    const wiki = await createWikiThroughUI(page, uniqueName('Rename Flow Wiki'));
 
     const oldTitle = 'Original Page Title';
     const newTitle = 'Renamed Page Title';
@@ -426,12 +409,10 @@ test(
         const {team, user, adminClient} = sharedPagesSetup;
         const channel = await adminClient.getChannelByName(team.id, 'town-square');
 
-        const {page, channelsPage} = await pw.testBrowser.login(user);
-        await channelsPage.goto(team.name, channel.name);
-        await channelsPage.toBeVisible();
+        const {page} = await loginAndNavigateToChannel(pw, user, team.name, 'town-square');
 
         // # Create wiki and pages through UI
-        const wiki = await createWikiThroughUI(page, `Deep Link Flow Wiki ${await pw.random.id()}`);
+        const wiki = await createWikiThroughUI(page, uniqueName('Deep Link Flow Wiki'));
         const parent = await createPageThroughUI(page, 'Deep Link Parent', 'Parent content');
         const child = await createChildPageThroughContextMenu(
             page,
@@ -478,15 +459,12 @@ test(
  * @objective Verify complex workflow: multi-level hierarchy, comments, editing, permissions
  */
 test('executes complex multi-feature workflow end-to-end', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
-    const {team, user, adminClient} = sharedPagesSetup;
-    const channel = await adminClient.getChannelByName(team.id, 'town-square');
+    const {team, user} = sharedPagesSetup;
 
-    const {page, channelsPage} = await pw.testBrowser.login(user);
-    await channelsPage.goto(team.name, channel.name);
-    await channelsPage.toBeVisible();
+    const {page} = await loginAndNavigateToChannel(pw, user, team.name, 'town-square');
 
     // # Create wiki through UI
-    await createWikiThroughUI(page, `Complex Workflow Wiki ${await pw.random.id()}`);
+    await createWikiThroughUI(page, uniqueName('Complex Workflow Wiki'));
 
     // # Step 1: Create root page
     const rootPage = await createPageThroughUI(page, 'Root Project Page', 'Root project documentation');
@@ -543,12 +521,10 @@ test(
         const {team, user, adminClient} = sharedPagesSetup;
         const channel = await adminClient.getChannelByName(team.id, 'town-square');
 
-        const {page, channelsPage} = await pw.testBrowser.login(user);
-        await channelsPage.goto(team.name, channel.name);
-        await channelsPage.toBeVisible();
+        const {page} = await loginAndNavigateToChannel(pw, user, team.name, 'town-square');
 
         // # Create wiki through UI
-        const wiki = await createWikiThroughUI(page, `Draft Recovery Wiki ${await pw.random.id()}`);
+        const wiki = await createWikiThroughUI(page, uniqueName('Draft Recovery Wiki'));
 
         // # Create draft via modal
         const newPageButton = getNewPageButton(page);
@@ -615,15 +591,12 @@ test(
  * @objective Verify page move affects breadcrumbs, hierarchy, and permissions
  */
 test('moves page to new parent and verifies UI updates', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
-    const {team, user, adminClient} = sharedPagesSetup;
-    const channel = await adminClient.getChannelByName(team.id, 'town-square');
+    const {team, user} = sharedPagesSetup;
 
-    const {page, channelsPage} = await pw.testBrowser.login(user);
-    await channelsPage.goto(team.name, channel.name);
-    await channelsPage.toBeVisible();
+    const {page} = await loginAndNavigateToChannel(pw, user, team.name, 'town-square');
 
     // # Create wiki through UI
-    await createWikiThroughUI(page, `Move Page Wiki ${await pw.random.id()}`);
+    await createWikiThroughUI(page, uniqueName('Move Page Wiki'));
 
     // # Create pages: Parent A, Parent B, Child (under A) through UI
     const parentA = await createPageThroughUI(page, 'Parent A', 'Parent A content');
@@ -677,16 +650,13 @@ test('moves page to new parent and verifies UI updates', {tag: '@pages'}, async 
  * @objective Verify pages can be found using wiki tree panel search and results are filtered correctly
  */
 test('searches pages with filters and verifies results', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
-    const {team, user, adminClient} = sharedPagesSetup;
-    const channel = await adminClient.getChannelByName(team.id, 'town-square');
+    const {team, user} = sharedPagesSetup;
 
-    const {page, channelsPage} = await pw.testBrowser.login(user);
-    await channelsPage.goto(team.name, channel.name);
-    await channelsPage.toBeVisible();
+    const {page} = await loginAndNavigateToChannel(pw, user, team.name, 'town-square');
 
     // # Create wiki through UI
-    const searchTerm = `FilterTest${await pw.random.id()}`;
-    await createWikiThroughUI(page, `Search Filters Wiki ${await pw.random.id()}`);
+    const searchTerm = uniqueName('FilterTest');
+    await createWikiThroughUI(page, uniqueName('Search Filters Wiki'));
 
     // # Create multiple pages through UI
     await createPageThroughUI(page, `${searchTerm} First Page`, 'First page content');

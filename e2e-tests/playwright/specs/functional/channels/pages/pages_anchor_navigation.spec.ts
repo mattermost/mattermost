@@ -11,6 +11,8 @@ import {
     addInlineCommentInEditMode,
     verifyCommentMarkerVisible,
     clickCommentMarkerAndOpenRHS,
+    loginAndNavigateToChannel,
+    uniqueName,
     ELEMENT_TIMEOUT,
     HIERARCHY_TIMEOUT,
     WEBSOCKET_WAIT,
@@ -21,14 +23,12 @@ import {
  */
 test('creates inline comment with anchor ID in correct format', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
     const {team, user, adminClient} = sharedPagesSetup;
-    const channel = await createTestChannel(adminClient, team.id, `Test Channel ${await pw.random.id()}`);
+    const channel = await createTestChannel(adminClient, team.id, uniqueName('Test Channel'));
 
-    const {page, channelsPage} = await pw.testBrowser.login(user);
-    await channelsPage.goto(team.name, channel.name);
-    await channelsPage.toBeVisible();
+    const {page} = await loginAndNavigateToChannel(pw, user, team.name, channel.name);
 
     // # Create wiki and page
-    await createWikiThroughUI(page, `Anchor ID Wiki ${await pw.random.id()}`);
+    await createWikiThroughUI(page, uniqueName('Anchor ID Wiki'));
     await createPageThroughUI(page, 'Anchor ID Test', 'This text will have an inline comment with anchor ID');
 
     // # Add inline comment
@@ -56,14 +56,12 @@ test('creates inline comment with anchor ID in correct format', {tag: '@pages'},
  */
 test('navigates to page anchor from channel feed comment context', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
     const {team, user, adminClient} = sharedPagesSetup;
-    const channel = await createTestChannel(adminClient, team.id, `Test Channel ${await pw.random.id()}`);
+    const channel = await createTestChannel(adminClient, team.id, uniqueName('Test Channel'));
 
-    const {page, channelsPage} = await pw.testBrowser.login(user);
-    await channelsPage.goto(team.name, channel.name);
-    await channelsPage.toBeVisible();
+    const {page, channelsPage} = await loginAndNavigateToChannel(pw, user, team.name, channel.name);
 
     // # Create wiki and page with inline comment
-    await createWikiThroughUI(page, `Nav Test Wiki ${await pw.random.id()}`);
+    await createWikiThroughUI(page, uniqueName('Nav Test Wiki'));
     await createPageThroughUI(page, 'Navigation Test Page', 'This is the anchor text for navigation testing');
 
     const editButton = page.locator('[data-testid="wiki-page-edit-button"]');
@@ -110,17 +108,15 @@ test('navigates to page anchor from channel feed comment context', {tag: '@pages
  */
 test('displays correct anchor text in inline comment context', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
     const {team, user, adminClient} = sharedPagesSetup;
-    const channel = await createTestChannel(adminClient, team.id, `Test Channel ${await pw.random.id()}`);
+    const channel = await createTestChannel(adminClient, team.id, uniqueName('Test Channel'));
 
-    const {page, channelsPage} = await pw.testBrowser.login(user);
-    await channelsPage.goto(team.name, channel.name);
-    await channelsPage.toBeVisible();
+    const {page} = await loginAndNavigateToChannel(pw, user, team.name, channel.name);
 
     const anchorText = 'This specific text is the anchor';
     const commentText = 'Comment about the anchor';
 
     // # Create wiki and page with specific anchor text
-    await createWikiThroughUI(page, `Anchor Text Wiki ${await pw.random.id()}`);
+    await createWikiThroughUI(page, uniqueName('Anchor Text Wiki'));
     await createPageThroughUI(page, 'Anchor Text Test', anchorText);
 
     const editButton = page.locator('[data-testid="wiki-page-edit-button"]');
@@ -148,14 +144,12 @@ test('displays correct anchor text in inline comment context', {tag: '@pages'}, 
  */
 test('scrolls to anchor when clicking anchor context in RHS', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
     const {team, user, adminClient} = sharedPagesSetup;
-    const channel = await createTestChannel(adminClient, team.id, `Test Channel ${await pw.random.id()}`);
+    const channel = await createTestChannel(adminClient, team.id, uniqueName('Test Channel'));
 
-    const {page, channelsPage} = await pw.testBrowser.login(user);
-    await channelsPage.goto(team.name, channel.name);
-    await channelsPage.toBeVisible();
+    const {page} = await loginAndNavigateToChannel(pw, user, team.name, channel.name);
 
     // # Create wiki and page
-    await createWikiThroughUI(page, `URL Hash Wiki ${await pw.random.id()}`);
+    await createWikiThroughUI(page, uniqueName('URL Hash Wiki'));
     await createPageThroughUI(page, 'URL Hash Test', 'Text that will be anchored for URL testing');
 
     const editButton = page.locator('[data-testid="wiki-page-edit-button"]');
@@ -193,14 +187,12 @@ test('scrolls to anchor when clicking anchor context in RHS', {tag: '@pages'}, a
  */
 test('highlights anchor element when navigating via hash', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
     const {team, user, adminClient} = sharedPagesSetup;
-    const channel = await createTestChannel(adminClient, team.id, `Test Channel ${await pw.random.id()}`);
+    const channel = await createTestChannel(adminClient, team.id, uniqueName('Test Channel'));
 
-    const {page, channelsPage} = await pw.testBrowser.login(user);
-    await channelsPage.goto(team.name, channel.name);
-    await channelsPage.toBeVisible();
+    const {page} = await loginAndNavigateToChannel(pw, user, team.name, channel.name);
 
     // # Create wiki and page
-    await createWikiThroughUI(page, `Highlight Wiki ${await pw.random.id()}`);
+    await createWikiThroughUI(page, uniqueName('Highlight Wiki'));
     await createPageThroughUI(page, 'Highlight Test', 'This anchored text should highlight when navigated to');
 
     const editButton = page.locator('[data-testid="wiki-page-edit-button"]');
@@ -242,14 +234,12 @@ test('highlights anchor element when navigating via hash', {tag: '@pages'}, asyn
  */
 test('preserves single anchor when editing nearby text', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
     const {team, user, adminClient} = sharedPagesSetup;
-    const channel = await createTestChannel(adminClient, team.id, `Test Channel ${await pw.random.id()}`);
+    const channel = await createTestChannel(adminClient, team.id, uniqueName('Test Channel'));
 
-    const {page, channelsPage} = await pw.testBrowser.login(user);
-    await channelsPage.goto(team.name, channel.name);
-    await channelsPage.toBeVisible();
+    const {page} = await loginAndNavigateToChannel(pw, user, team.name, channel.name);
 
     // # Create wiki and page
-    await createWikiThroughUI(page, `Edit Nearby Wiki ${await pw.random.id()}`);
+    await createWikiThroughUI(page, uniqueName('Edit Nearby Wiki'));
     await createPageThroughUI(page, 'Edit Nearby Test', 'Prefix anchored text suffix');
 
     const editButton = page.locator('[data-testid="wiki-page-edit-button"]');
@@ -297,14 +287,12 @@ test('preserves single anchor when editing nearby text', {tag: '@pages'}, async 
  */
 test('displays clickable anchor context in global Threads panel', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
     const {team, user, adminClient} = sharedPagesSetup;
-    const channel = await createTestChannel(adminClient, team.id, `Test Channel ${await pw.random.id()}`);
+    const channel = await createTestChannel(adminClient, team.id, uniqueName('Test Channel'));
 
-    const {page, channelsPage} = await pw.testBrowser.login(user);
-    await channelsPage.goto(team.name, channel.name);
-    await channelsPage.toBeVisible();
+    const {page} = await loginAndNavigateToChannel(pw, user, team.name, channel.name);
 
     // # Create wiki and page with inline comment
-    await createWikiThroughUI(page, `Threads Anchor Wiki ${await pw.random.id()}`);
+    await createWikiThroughUI(page, uniqueName('Threads Anchor Wiki'));
     await createPageThroughUI(page, 'Threads Anchor Test', 'Content for threads anchor testing');
 
     const editButton = page.locator('[data-testid="wiki-page-edit-button"]');

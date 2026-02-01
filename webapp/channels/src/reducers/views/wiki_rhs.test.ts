@@ -14,6 +14,8 @@ describe('reducers/views/wiki_rhs', () => {
         selectedPageId: '',
         focusedInlineCommentId: null,
         activeTab: 'page_comments',
+        pendingInlineAnchor: null,
+        isSubmittingComment: false,
     };
 
     test('should return initial state', () => {
@@ -98,6 +100,29 @@ describe('reducers/views/wiki_rhs', () => {
         });
     });
 
+    describe('WikiRhsTypes.SET_PENDING_INLINE_ANCHOR', () => {
+        test('should set pendingInlineAnchor', () => {
+            const anchor = {anchor_id: 'anchor123', text: 'Selected text'};
+            const action = {type: WikiRhsTypes.SET_PENDING_INLINE_ANCHOR, anchor};
+
+            const result = wikiRhsReducer(initialState, action as any);
+
+            expect(result.pendingInlineAnchor).toEqual(anchor);
+        });
+
+        test('should clear pendingInlineAnchor', () => {
+            const state = {
+                ...initialState,
+                pendingInlineAnchor: {anchor_id: 'anchor123', text: 'Selected text'},
+            };
+            const action = {type: WikiRhsTypes.SET_PENDING_INLINE_ANCHOR, anchor: null};
+
+            const result = wikiRhsReducer(state, action as any);
+
+            expect(result.pendingInlineAnchor).toBe(null);
+        });
+    });
+
     describe('ActionTypes.UPDATE_RHS_STATE', () => {
         test('should set selectedPageId when state is wiki', () => {
             const action = {
@@ -135,6 +160,25 @@ describe('reducers/views/wiki_rhs', () => {
         });
     });
 
+    describe('WikiRhsTypes.SET_SUBMITTING_COMMENT', () => {
+        test('should set isSubmittingComment to true', () => {
+            const action = {type: WikiRhsTypes.SET_SUBMITTING_COMMENT, isSubmitting: true};
+
+            const result = wikiRhsReducer(initialState, action as any);
+
+            expect(result.isSubmittingComment).toBe(true);
+        });
+
+        test('should set isSubmittingComment to false', () => {
+            const state = {...initialState, isSubmittingComment: true};
+            const action = {type: WikiRhsTypes.SET_SUBMITTING_COMMENT, isSubmitting: false};
+
+            const result = wikiRhsReducer(state, action as any);
+
+            expect(result.isSubmittingComment).toBe(false);
+        });
+    });
+
     describe('UserTypes.LOGOUT_SUCCESS', () => {
         test('should reset to initial state on logout', () => {
             const state: WikiRhsState = {
@@ -143,6 +187,8 @@ describe('reducers/views/wiki_rhs', () => {
                 selectedPageId: 'page123',
                 focusedInlineCommentId: 'comment123',
                 activeTab: 'all_threads',
+                pendingInlineAnchor: null,
+                isSubmittingComment: true,
             };
 
             const action = {type: UserTypes.LOGOUT_SUCCESS};
@@ -160,6 +206,8 @@ describe('reducers/views/wiki_rhs', () => {
             selectedPageId: 'page123',
             focusedInlineCommentId: 'comment123',
             activeTab: 'all_threads',
+            pendingInlineAnchor: null,
+            isSubmittingComment: false,
         };
 
         const result = wikiRhsReducer(state, {type: 'UNKNOWN_ACTION'} as any);

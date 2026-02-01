@@ -13,7 +13,6 @@ import {getPage, getPageStatus} from 'selectors/pages';
 
 import ActiveEditorsIndicator from 'components/active_editors_indicator/active_editors_indicator';
 import {useUser} from 'components/common/hooks/useUser';
-import InlineCommentModal from 'components/inline_comment_modal';
 import LoadingScreen from 'components/loading_screen';
 import ProfilePicture from 'components/profile_picture';
 import UserProfile from 'components/user_profile';
@@ -34,17 +33,6 @@ type Props = {
 };
 
 const PageViewer = ({pageId, wikiId}: Props) => {
-    const renderCount = React.useRef(0);
-    const contentRef = React.useRef<HTMLDivElement>(null);
-    renderCount.current += 1;
-
-    // Track when content is actually painted to DOM
-    React.useLayoutEffect(() => {
-        if (contentRef.current) {
-            // Content is painted, layout complete
-        }
-    }, []);
-
     const dispatch = useDispatch();
     const page = useSelector((state: GlobalState) => getPage(state, pageId));
     const pageStatus = useSelector((state: GlobalState) => getPageStatus(state, pageId));
@@ -53,24 +41,11 @@ const PageViewer = ({pageId, wikiId}: Props) => {
 
     const author = useUser(page?.user_id || '');
 
-    // Track what's causing re-renders
-    const prevPropsRef = React.useRef({pageId, wikiId});
-    React.useEffect(() => {
-        const prev = prevPropsRef.current;
-        if (prev.pageId !== pageId || prev.wikiId !== wikiId) {
-            prevPropsRef.current = {pageId, wikiId};
-        }
-    });
-
     // Use shared inline comments hook
     const {
         inlineComments,
         handleCommentClick,
         handleCreateInlineComment,
-        showCommentModal,
-        commentAnchor,
-        handleSubmitComment,
-        handleCloseModal,
         deletedAnchorIds,
         clearDeletedAnchorIds,
     } = usePageInlineComments(pageId, wikiId || undefined);
@@ -183,7 +158,6 @@ const PageViewer = ({pageId, wikiId}: Props) => {
                 </div>
             </div>
             <div
-                ref={contentRef}
                 className='PageViewer__content'
                 data-testid='page-viewer-content'
             >
@@ -205,13 +179,6 @@ const PageViewer = ({pageId, wikiId}: Props) => {
                     onDeletedAnchorIdsProcessed={clearDeletedAnchorIds}
                 />
             </div>
-            {showCommentModal && commentAnchor && (
-                <InlineCommentModal
-                    selectedText={commentAnchor.text}
-                    onSubmit={handleSubmitComment}
-                    onExited={handleCloseModal}
-                />
-            )}
         </div>
     );
 };

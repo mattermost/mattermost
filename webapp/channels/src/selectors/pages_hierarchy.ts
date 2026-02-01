@@ -5,13 +5,13 @@ import {createSelector} from 'mattermost-redux/selectors/create_selector';
 
 import {getPages} from 'selectors/pages';
 
-import type {PageOrDraft} from 'components/pages_hierarchy_panel/utils/tree_builder';
 import {buildTree, getAncestorIds} from 'components/pages_hierarchy_panel/utils/tree_builder';
 
 import type {GlobalState} from 'types/store';
+import type {PageOrDraft} from 'types/store/pages';
 
-// Re-export types and utilities from tree_builder (single source of truth)
-export type {Page, DraftPage, PageOrDraft, TreeNode} from 'components/pages_hierarchy_panel/utils/tree_builder';
+// Re-export types from canonical source
+export type {Page, DraftPage, PageOrDraft, TreeNode} from 'types/store/pages';
 export {buildTree, getAncestorIds, isDescendant, convertDraftToPagePost} from 'components/pages_hierarchy_panel/utils/tree_builder';
 
 // Get expanded nodes for a wiki
@@ -47,8 +47,11 @@ export const getPagesTree = createSelector(
 
 /**
  * Get ancestor IDs for a page (for expanding path to current page)
+ * Memoized to avoid recalculating on every render
  */
-export function getPageAncestorIds(state: GlobalState, wikiId: string, pageId: string): string[] {
-    const pages = getPages(state, wikiId) as PageOrDraft[];
-    return getAncestorIds(pages, pageId);
-}
+export const getPageAncestorIds = createSelector(
+    'getPageAncestorIds',
+    (state: GlobalState, wikiId: string) => getPages(state, wikiId),
+    (_state: GlobalState, _wikiId: string, pageId: string) => pageId,
+    (pages, pageId) => getAncestorIds(pages as PageOrDraft[], pageId),
+);

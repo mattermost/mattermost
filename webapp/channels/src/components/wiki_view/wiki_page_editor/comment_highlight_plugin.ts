@@ -5,8 +5,9 @@ import {Extension} from '@tiptap/core';
 import {Plugin, PluginKey} from '@tiptap/pm/state';
 import {Decoration, DecorationSet} from '@tiptap/pm/view';
 
+import type {InlineAnchor} from 'types/store/pages';
+
 import {findTextPosition} from './anchor_resolver';
-import type {InlineAnchor} from './inline_comment_extension';
 
 type Comment = {
     id: string;

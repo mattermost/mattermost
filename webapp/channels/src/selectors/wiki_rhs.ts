@@ -22,3 +22,11 @@ export function getFocusedInlineCommentId(state: GlobalState): string | null {
 export function getWikiRhsActiveTab(state: GlobalState): 'page_comments' | 'all_threads' {
     return state.views.wikiRhs?.activeTab || 'page_comments';
 }
+
+export function getPendingInlineAnchor(state: GlobalState): {anchor_id: string; text: string} | null {
+    return state.views.wikiRhs?.pendingInlineAnchor || null;
+}
+
+export function getIsSubmittingComment(state: GlobalState): boolean {
+    return state.views.wikiRhs?.isSubmittingComment || false;
+}

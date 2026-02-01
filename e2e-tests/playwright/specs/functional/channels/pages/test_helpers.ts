@@ -192,7 +192,7 @@ export function createContentWithUrlLink(introText: string, url: string, afterTe
  * @returns A unique string like 'Test Wiki 1733789234567'
  */
 export function uniqueName(prefix: string): string {
-    return `${prefix} ${Date.now()}`;
+    return `${prefix}_${Date.now()}`;
 }
 
 /**
@@ -2202,9 +2202,10 @@ export async function selectTextInEditor(page: Page, textContent?: string) {
 }
 
 /**
- * Opens the inline comment modal from the formatting bar
+ * Opens the inline comment RHS from the formatting bar.
+ * The new implementation uses the Wiki RHS panel instead of a modal dialog.
  * @param page - Playwright page object
- * @returns The comment modal locator
+ * @returns The create comment container locator in the RHS
  */
 export async function openInlineCommentModal(page: Page): Promise<Locator> {
     // Wait for formatting bar bubble to appear
@@ -2212,31 +2213,39 @@ export async function openInlineCommentModal(page: Page): Promise<Locator> {
     await expect(formattingBarBubble).toBeVisible({timeout: ELEMENT_TIMEOUT});
 
     // Click "Add Comment" button from formatting bar
-    const inlineCommentButton = formattingBarBubble.locator('button[title="Add Comment"]');
+    const inlineCommentButton = formattingBarBubble.locator('[data-testid="inline-comment-submit"]');
     await expect(inlineCommentButton).toBeVisible();
     await inlineCommentButton.click();
     await page.waitForTimeout(SHORT_WAIT);
 
-    // Wait for and return the modal
-    const commentModal = page.getByRole('dialog', {name: 'Add Comment'});
-    await expect(commentModal).toBeVisible({timeout: ELEMENT_TIMEOUT});
+    // Wait for wiki RHS to open with the new comment view
+    const wikiRhs = page.locator('[data-testid="wiki-rhs"]');
+    await expect(wikiRhs).toBeVisible({timeout: ELEMENT_TIMEOUT});
 
-    return commentModal;
+    // Wait for the create comment component in the RHS
+    const createComment = page.locator('[data-testid="comment-create"]');
+    await expect(createComment).toBeVisible({timeout: ELEMENT_TIMEOUT});
+
+    return createComment;
 }
 
 /**
- * Fills and submits the inline comment modal
+ * Fills and submits the inline comment using the RHS create comment component
  * @param page - Playwright page object
- * @param commentModal - The comment modal locator
+ * @param createCommentContainer - The create comment container locator (from openInlineCommentModal)
  * @param commentText - Text to add as comment
  */
-export async function fillAndSubmitCommentModal(page: Page, commentModal: Locator, commentText: string) {
-    const textarea = commentModal.locator('textarea').first();
-    await textarea.fill(commentText);
+export async function fillAndSubmitCommentModal(page: Page, createCommentContainer: Locator, commentText: string) {
+    // Find textarea or contenteditable in the create comment component
+    const textArea = createCommentContainer.locator('textarea, [contenteditable="true"]').first();
+    await textArea.fill(commentText);
+    await page.waitForTimeout(SHORT_WAIT);
 
-    const addButton = commentModal.locator('button:has-text("Comment")').first();
-    await expect(addButton).toBeEnabled();
-    await addButton.click();
+    // Submit with Ctrl+Enter (standard Mattermost submit pattern)
+    await textArea.press('Control+Enter');
+
+    // Wait for the thread viewer to appear (indicates comment was created)
+    await page.waitForTimeout(WEBSOCKET_WAIT);
 }
 
 /**

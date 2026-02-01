@@ -21,6 +21,10 @@ import {
     verifyCommentMarkerVisible,
     clickCommentMarkerAndOpenRHS,
     openCommentDotMenu,
+    uniqueName,
+    loginAndNavigateToChannel,
+    getEditor,
+    getHierarchyPanel,
     AUTOSAVE_WAIT,
     ELEMENT_TIMEOUT,
 } from './test_helpers';
@@ -32,12 +36,10 @@ test('allows channel member to create page', {tag: '@pages'}, async ({pw, shared
     const {team, user, adminClient} = sharedPagesSetup;
     const channel = await adminClient.getChannelByName(team.id, 'town-square');
 
-    const {page, channelsPage} = await pw.testBrowser.login(user);
-    await channelsPage.goto(team.name, channel.name);
-    await channelsPage.toBeVisible();
+    const {page} = await loginAndNavigateToChannel(pw, user, team.name, channel.name);
 
     // # Create wiki through UI
-    await createWikiThroughUI(page, `Permission Wiki ${await pw.random.id()}`);
+    await createWikiThroughUI(page, uniqueName('Permission Wiki'));
 
     // # Attempt to create page
     const newPageButton = getNewPageButton(page);
@@ -67,11 +69,10 @@ test('prevents non-member from viewing wiki', {tag: '@pages'}, async ({pw, share
     await adminClient.addToChannel(user.id, privateChannel.id);
 
     try {
-        const {page: userPage, channelsPage} = await pw.testBrowser.login(user);
-        await channelsPage.goto(team.name, privateChannel.name);
+        const {page: userPage} = await loginAndNavigateToChannel(pw, user, team.name, privateChannel.name);
 
         // # Create wiki and page through UI
-        const wiki = await createWikiThroughUI(userPage, `Private Wiki ${await pw.random.id()}`);
+        const wiki = await createWikiThroughUI(userPage, uniqueName('Private Wiki'));
         const testPage = await createPageThroughUI(userPage, 'Private Page', 'Private content');
 
         // # Create user NOT in channel (using MM pattern)
@@ -81,11 +82,7 @@ test('prevents non-member from viewing wiki', {tag: '@pages'}, async ({pw, share
         await adminClient.addToTeam(team.id, createdNonMember.id);
 
         // # Login as non-member and attempt to navigate to wiki
-        const {page: nonMemberPage, channelsPage: nonMemberChannelsPage} = await pw.testBrowser.login(createdNonMember);
-
-        // Wait for login to complete by navigating to a valid page first
-        await nonMemberChannelsPage.goto(team.name, 'town-square');
-        await nonMemberChannelsPage.toBeVisible();
+        const {page: nonMemberPage} = await loginAndNavigateToChannel(pw, createdNonMember, team.name, 'town-square');
 
         // Now attempt to navigate to the private channel wiki
         await nonMemberPage.goto(buildChannelPageUrl(pw.url, team.name, privateChannel.name, wiki.id, testPage.id));
@@ -129,12 +126,10 @@ test('allows channel member to edit page', {tag: '@pages'}, async ({pw, sharedPa
     const {team, user, adminClient} = sharedPagesSetup;
     const channel = await adminClient.getChannelByName(team.id, 'town-square');
 
-    const {page, channelsPage} = await pw.testBrowser.login(user);
-    await channelsPage.goto(team.name, channel.name);
-    await channelsPage.toBeVisible();
+    const {page} = await loginAndNavigateToChannel(pw, user, team.name, channel.name);
 
     // # Create wiki and page through UI
-    await createWikiThroughUI(page, `Edit Permission Wiki ${await pw.random.id()}`);
+    await createWikiThroughUI(page, uniqueName('Edit Permission Wiki'));
     await createPageThroughUI(page, 'Editable Page', 'Original content');
 
     // # Attempt to edit
@@ -167,12 +162,10 @@ test('allows channel admin to delete any page', {tag: '@pages'}, async ({pw, sha
     await adminClient.addToChannel(createdAdminUser.id, channel.id);
     await adminClient.updateChannelMemberRoles(channel.id, createdAdminUser.id, 'channel_admin channel_user');
 
-    const {page, channelsPage} = await pw.testBrowser.login(createdAdminUser);
-    await channelsPage.goto(team.name, channel.name);
-    await channelsPage.toBeVisible();
+    const {page} = await loginAndNavigateToChannel(pw, createdAdminUser, team.name, channel.name);
 
     // # Create wiki and page through UI
-    await createWikiThroughUI(page, `Admin Delete Wiki ${await pw.random.id()}`);
+    await createWikiThroughUI(page, uniqueName('Admin Delete Wiki'));
     const createdPage = await createPageThroughUI(page, 'Page to Delete', 'Content');
 
     // # Open page actions menu
@@ -199,7 +192,7 @@ test('allows channel admin to delete any page', {tag: '@pages'}, async ({pw, sha
     await expect(confirmModal).not.toBeVisible({timeout: ELEMENT_TIMEOUT});
 
     // * Verify page no longer appears in hierarchy
-    const hierarchyPanel = page.locator('[data-testid="pages-hierarchy-panel"]');
+    const hierarchyPanel = getHierarchyPanel(page);
     const deletedPageNode = hierarchyPanel.locator(`[data-testid="page-tree-node"][data-page-id="${createdPage.id}"]`);
     await expect(deletedPageNode).not.toBeVisible({timeout: ELEMENT_TIMEOUT});
 });
@@ -227,32 +220,33 @@ test.skip(
         const {team, user, adminClient} = sharedPagesSetup;
 
         // # Create two channels
+        const channel1Id = uniqueName('channel1');
         const channel1 = await adminClient.createChannel({
             team_id: team.id,
-            name: `channel1-${await pw.random.id()}`,
-            display_name: `Channel 1 ${await pw.random.id()}`,
+            name: channel1Id.toLowerCase().replace(/ /g, '-'),
+            display_name: channel1Id,
             type: 'O',
         });
         await adminClient.addToChannel(user.id, channel1.id);
 
+        const channel2Id = uniqueName('channel2');
         const channel2 = await adminClient.createChannel({
             team_id: team.id,
-            name: `channel2-${await pw.random.id()}`,
-            display_name: `Channel 2 ${await pw.random.id()}`,
+            name: channel2Id.toLowerCase().replace(/ /g, '-'),
+            display_name: channel2Id,
             type: 'O',
         });
         await adminClient.addToChannel(user.id, channel2.id);
 
-        const {page, channelsPage} = await pw.testBrowser.login(user);
+        const {page, channelsPage} = await loginAndNavigateToChannel(pw, user, team.name, channel1.name);
 
         // # Create wiki1 and page in channel1 through UI
-        await channelsPage.goto(team.name, channel1.name);
-        const wiki1 = await createWikiThroughUI(page, `Wiki 1 ${await pw.random.id()}`);
+        const wiki1 = await createWikiThroughUI(page, uniqueName('Wiki 1'));
         const testPage = await createPageThroughUI(page, 'Page to Move', 'Content');
 
         // # Create wiki2 in channel2 through UI
         await channelsPage.goto(team.name, channel2.name);
-        const wiki2 = await createWikiThroughUI(page, `Wiki 2 ${await pw.random.id()}`);
+        const wiki2 = await createWikiThroughUI(page, uniqueName('Wiki 2'));
 
         // # Navigate back to the page in wiki1
         const pageUrl = buildWikiPageUrl(pw.url, team.name, channel1.id, wiki1.id, testPage.id);
@@ -307,11 +301,9 @@ test('restricts page actions based on channel permissions', {tag: '@pages'}, asy
     });
 
     // # Create wiki and page as regular user first
-    const {page: userPage, channelsPage} = await pw.testBrowser.login(user);
-    await channelsPage.goto(team.name, channel.name);
-    await channelsPage.toBeVisible();
+    const {page: userPage} = await loginAndNavigateToChannel(pw, user, team.name, channel.name);
 
-    const wiki = await createWikiThroughUI(userPage, `Readonly Wiki ${await pw.random.id()}`);
+    const wiki = await createWikiThroughUI(userPage, uniqueName('Readonly Wiki'));
     const testPage = await createPageThroughUI(userPage, 'Protected Page', 'Protected content');
 
     // # Create guest user with read-only access
@@ -357,11 +349,7 @@ test(
     {tag: '@pages'},
     async ({pw, sharedPagesSetup}) => {
         const {team, user: userA, adminClient} = sharedPagesSetup;
-        const channel = await createTestChannel(
-            adminClient,
-            team.id,
-            `Comment Resolve Channel ${await pw.random.id()}`,
-        );
+        const channel = await createTestChannel(adminClient, team.id, uniqueName('Comment Resolve Channel'));
 
         // # Add userA to the channel
         await adminClient.addToChannel(userA.id, channel.id);
@@ -374,18 +362,16 @@ test(
         await adminClient.addToChannel(userB.id, channel.id);
 
         // # UserA logs in and creates wiki, page with inline comment
-        const {page: pageA, channelsPage: channelsPageA} = await pw.testBrowser.login(userA);
-        await channelsPageA.goto(team.name, channel.name);
-        await channelsPageA.toBeVisible();
+        const {page: pageA} = await loginAndNavigateToChannel(pw, userA, team.name, channel.name);
 
         // # Create wiki and page
-        const wikiName = `Resolve Permission Wiki ${await pw.random.id()}`;
+        const wikiName = uniqueName('Resolve Permission Wiki');
         await createWikiThroughUI(pageA, wikiName);
         await createPageThroughUI(pageA, 'Resolve Test Page', 'This text will have a comment from userA');
 
         // # Add inline comment using the view mode selection toolbar (more reliable)
         // Select text and add comment in view mode
-        const editor = pageA.locator('.ProseMirror').first();
+        const editor = getEditor(pageA);
         const paragraph = editor.locator('p').first();
         await paragraph.click({clickCount: 3});
         await pageA.waitForTimeout(500);
@@ -395,21 +381,24 @@ test(
         await expect(addCommentButton).toBeVisible({timeout: ELEMENT_TIMEOUT});
         await addCommentButton.click();
 
-        // Fill the comment modal
-        const commentModal = pageA.getByRole('dialog', {name: 'Add Comment'});
-        await expect(commentModal).toBeVisible({timeout: ELEMENT_TIMEOUT});
-        const textarea = commentModal.locator('textarea, [contenteditable="true"]').first();
+        // Wait for wiki RHS to open with the new comment view
+        const wikiRhs = pageA.locator('[data-testid="wiki-rhs"]');
+        await expect(wikiRhs).toBeVisible({timeout: ELEMENT_TIMEOUT});
+
+        // Wait for the create comment component in the RHS
+        const createComment = pageA.locator('[data-testid="comment-create"]');
+        await expect(createComment).toBeVisible({timeout: ELEMENT_TIMEOUT});
+        const textarea = createComment.locator('textarea, [contenteditable="true"]').first();
         await textarea.fill('Comment by userA that userB should not resolve');
-        const submitButton = commentModal.getByRole('button', {name: 'Comment'});
-        await submitButton.click();
+        await pageA.waitForTimeout(500);
+        await textarea.press('Control+Enter');
+        await pageA.waitForTimeout(1000);
 
         // * Verify comment marker is visible
         await verifyCommentMarkerVisible(pageA);
 
         // # UserB logs in and navigates to the same channel
-        const {page: pageB, channelsPage: channelsPageB} = await pw.testBrowser.login(userB);
-        await channelsPageB.goto(team.name, channel.name);
-        await channelsPageB.toBeVisible();
+        const {page: pageB} = await loginAndNavigateToChannel(pw, userB, team.name, channel.name);
 
         // # Open the wiki and navigate to the page
         const wikiTab = pageB.locator('[role="tab"]').filter({hasText: wikiName});

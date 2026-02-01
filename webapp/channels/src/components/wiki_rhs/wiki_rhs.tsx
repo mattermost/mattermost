@@ -10,7 +10,10 @@ import Tab from 'components/tabs/tab';
 import Tabs from 'components/tabs/tabs';
 import WithTooltip from 'components/with_tooltip';
 
+import type {InlineAnchor} from 'types/store/pages';
+
 import AllWikiThreads from './all_wiki_threads';
+import WikiNewCommentView from './wiki_new_comment_view';
 import WikiThreadViewer from './wiki_thread_viewer_container';
 
 import './wiki_rhs.scss';
@@ -22,33 +25,132 @@ type Props = {
     channelLoaded: boolean;
     activeTab: 'page_comments' | 'all_threads';
     focusedInlineCommentId: string | null;
+    pendingInlineAnchor: InlineAnchor | null;
     isExpanded: boolean;
+    isSubmittingComment: boolean;
     actions: {
         publishPage: (wikiId: string, pageId: string) => Promise<{data?: Post; error?: Error}>;
         closeRightHandSide: () => void;
         setWikiRhsActiveTab: (tab: 'page_comments' | 'all_threads') => void;
         setFocusedInlineCommentId: (commentId: string | null) => void;
+        setPendingInlineAnchor: (anchor: InlineAnchor | null) => void;
         openWikiRhs: (pageId: string, wikiId: string, focusedInlineCommentId?: string) => void;
         toggleRhsExpanded: () => void;
     };
 };
 
-const WikiRHS = ({pageId, wikiId, pageTitle, channelLoaded, activeTab, focusedInlineCommentId, isExpanded, actions}: Props) => {
+const WikiRHS = ({pageId, wikiId, pageTitle, channelLoaded, activeTab, focusedInlineCommentId, pendingInlineAnchor, isExpanded, isSubmittingComment, actions}: Props) => {
     const {formatMessage} = useIntl();
 
+    // Destructure actions to use stable references in dependency arrays
+    const {
+        setFocusedInlineCommentId,
+        setPendingInlineAnchor,
+        setWikiRhsActiveTab,
+        openWikiRhs,
+        closeRightHandSide,
+        toggleRhsExpanded,
+    } = actions;
+
     const handleBackClick = useCallback(() => {
-        actions.setFocusedInlineCommentId(null);
-    }, [actions]);
+        setFocusedInlineCommentId(null);
+    }, [setFocusedInlineCommentId]);
+
+    const handleCancelNewComment = useCallback(() => {
+        setPendingInlineAnchor(null);
+    }, [setPendingInlineAnchor]);
 
     const handleTabSwitch = useCallback((key: string) => {
-        actions.setWikiRhsActiveTab(key as 'page_comments' | 'all_threads');
-    }, [actions]);
+        setWikiRhsActiveTab(key as 'page_comments' | 'all_threads');
+    }, [setWikiRhsActiveTab]);
 
     const handleThreadClick = useCallback((targetPageId: string, threadId: string) => {
         if (wikiId) {
-            actions.openWikiRhs(targetPageId, wikiId, threadId);
+            openWikiRhs(targetPageId, wikiId, threadId);
         }
-    }, [wikiId, actions]);
+    }, [wikiId, openWikiRhs]);
+
+    // When creating a new inline comment, show the new comment view
+    // Also keep showing during submission to prevent UI flash when pendingInlineAnchor is cleared
+    if ((pendingInlineAnchor || isSubmittingComment) && pageId && wikiId && !focusedInlineCommentId) {
+        return (
+            <div
+                className='sidebar--right__content WikiRHS'
+                data-testid='wiki-rhs'
+            >
+                <div
+                    className='WikiRHS__header'
+                    data-testid='wiki-rhs-header'
+                >
+                    <WithTooltip
+                        title={
+                            <FormattedMessage
+                                id='wiki_rhs.cancelNewCommentTooltip'
+                                defaultMessage='Cancel'
+                            />
+                        }
+                    >
+                        <button
+                            className='sidebar--right__back btn btn-icon btn-sm'
+                            onClick={handleCancelNewComment}
+                            aria-label={formatMessage({id: 'wiki_rhs.cancel.icon', defaultMessage: 'Cancel Icon'})}
+                            data-testid='wiki-rhs-back-button'
+                        >
+                            <i className='icon icon-arrow-back-ios'/>
+                        </button>
+                    </WithTooltip>
+                    <h2 data-testid='wiki-rhs-header-title'>
+                        <FormattedMessage
+                            id='wiki.comments.new_comment_header'
+                            defaultMessage='New Comment'
+                        />
+                    </h2>
+                    <div
+                        className='WikiRHS__header-actions'
+                        data-testid='wiki-rhs-header-actions'
+                    >
+                        <button
+                            type='button'
+                            className='sidebar--right__expand btn btn-icon btn-sm'
+                            aria-label={isExpanded ? formatMessage({id: 'wiki_rhs.collapse_sidebar', defaultMessage: 'Collapse Sidebar'}) : formatMessage({id: 'wiki_rhs.expand_sidebar', defaultMessage: 'Expand Sidebar'})}
+                            onClick={toggleRhsExpanded}
+                            data-testid='wiki-rhs-expand-button'
+                        >
+                            <i
+                                className='icon icon-arrow-expand'
+                                aria-hidden='true'
+                            />
+                            <i
+                                className='icon icon-arrow-collapse'
+                                aria-hidden='true'
+                            />
+                        </button>
+                        <button
+                            className='WikiRHS__close-btn'
+                            aria-label={formatMessage({id: 'wiki_rhs.close', defaultMessage: 'Close'})}
+                            onClick={closeRightHandSide}
+                            data-testid='wiki-rhs-close-button'
+                        >
+                            <i className='icon-close'/>
+                        </button>
+                    </div>
+                </div>
+                {pendingInlineAnchor ? (
+                    <WikiNewCommentView
+                        pageId={pageId}
+                        anchor={pendingInlineAnchor}
+                    />
+                ) : (
+                    <div className='WikiRHS__loading'>
+                        <FormattedMessage
+                            id='wiki_rhs.submitting_comment'
+                            defaultMessage='Submitting comment...'
+                        />
+                    </div>
+                )}
+            </div>
+        );
+    }
 
     // When focused on an inline comment, show single thread view (no tabs)
     if (focusedInlineCommentId) {
@@ -92,7 +194,7 @@ const WikiRHS = ({pageId, wikiId, pageTitle, channelLoaded, activeTab, focusedIn
                             type='button'
                             className='sidebar--right__expand btn btn-icon btn-sm'
                             aria-label={isExpanded ? formatMessage({id: 'wiki_rhs.collapse_sidebar', defaultMessage: 'Collapse Sidebar'}) : formatMessage({id: 'wiki_rhs.expand_sidebar', defaultMessage: 'Expand Sidebar'})}
-                            onClick={actions.toggleRhsExpanded}
+                            onClick={toggleRhsExpanded}
                             data-testid='wiki-rhs-expand-button'
                         >
                             <i
@@ -107,7 +209,7 @@ const WikiRHS = ({pageId, wikiId, pageTitle, channelLoaded, activeTab, focusedIn
                         <button
                             className='WikiRHS__close-btn'
                             aria-label={formatMessage({id: 'wiki_rhs.close', defaultMessage: 'Close'})}
-                            onClick={actions.closeRightHandSide}
+                            onClick={closeRightHandSide}
                             data-testid='wiki-rhs-close-button'
                         >
                             <i className='icon-close'/>
@@ -164,7 +266,7 @@ const WikiRHS = ({pageId, wikiId, pageTitle, channelLoaded, activeTab, focusedIn
                         type='button'
                         className='sidebar--right__expand btn btn-icon btn-sm'
                         aria-label={isExpanded ? formatMessage({id: 'wiki_rhs.collapse_sidebar', defaultMessage: 'Collapse Sidebar'}) : formatMessage({id: 'wiki_rhs.expand_sidebar', defaultMessage: 'Expand Sidebar'})}
-                        onClick={actions.toggleRhsExpanded}
+                        onClick={toggleRhsExpanded}
                         data-testid='wiki-rhs-expand-button'
                     >
                         <i
@@ -179,7 +281,7 @@ const WikiRHS = ({pageId, wikiId, pageTitle, channelLoaded, activeTab, focusedIn
                     <button
                         className='WikiRHS__close-btn'
                         aria-label={formatMessage({id: 'wiki_rhs.close', defaultMessage: 'Close'})}
-                        onClick={actions.closeRightHandSide}
+                        onClick={closeRightHandSide}
                         data-testid='wiki-rhs-close-button'
                     >
                         <i className='icon-close'/>

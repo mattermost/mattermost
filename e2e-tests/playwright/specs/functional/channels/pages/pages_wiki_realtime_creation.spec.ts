@@ -5,6 +5,10 @@ import {expect, test} from './pages_test_fixture';
 import {
     createWikiThroughUI,
     createTestUserInChannel,
+    loginAndNavigateToChannel,
+    getAllWikiTabs,
+    waitForWikiTab,
+    uniqueName,
     WEBSOCKET_WAIT,
     HIERARCHY_TIMEOUT,
     ELEMENT_TIMEOUT,
@@ -28,37 +32,27 @@ test(
         const {user: user2} = await createTestUserInChannel(pw, adminClient, team, channel, 'user2');
 
         // # User 2 logs in and navigates to the channel FIRST (to establish viewing state)
-        const {page: user2Page, channelsPage: channelsPage2} = await pw.testBrowser.login(user2);
-        await channelsPage2.goto(team.name, channel.name);
-        await channelsPage2.toBeVisible();
-
-        // # Wait for channel to fully load
-        await user2Page.waitForLoadState('networkidle');
+        const {page: user2Page} = await loginAndNavigateToChannel(pw, user2, team.name, channel.name);
 
         // # Verify user2 is in the channel and channel tabs are visible
         const channelTabsContainer = user2Page.locator('.channel-tabs-container');
         await expect(channelTabsContainer).toBeVisible({timeout: ELEMENT_TIMEOUT});
 
         // # Generate unique wiki name
-        const wikiName = `Wiki RT Test ${await pw.random.id()}`;
+        const wikiName = uniqueName('Wiki RT Test');
 
         // # Verify no wiki tab with this name exists yet for user2
-        const wikiTabSelector = user2Page
-            .locator('.channel-tabs-container__tab-wrapper--wiki')
-            .filter({hasText: wikiName});
+        const wikiTabSelector = getAllWikiTabs(user2Page).filter({hasText: wikiName});
         await expect(wikiTabSelector).not.toBeVisible();
 
         // # User 1 logs in and navigates to the same channel
-        const {page: page1, channelsPage: channelsPage1} = await pw.testBrowser.login(user1);
-        await channelsPage1.goto(team.name, channel.name);
-        await channelsPage1.toBeVisible();
+        const {page: page1} = await loginAndNavigateToChannel(pw, user1, team.name, channel.name);
 
         // # User 1 creates a wiki
         await createWikiThroughUI(page1, wikiName);
 
         // * Verify user1 sees the wiki tab (sanity check)
-        const user1WikiTab = page1.locator('.channel-tabs-container__tab-wrapper--wiki').filter({hasText: wikiName});
-        await expect(user1WikiTab).toBeVisible({timeout: HIERARCHY_TIMEOUT});
+        await waitForWikiTab(page1, wikiName, HIERARCHY_TIMEOUT);
 
         // * CRITICAL: Verify user2 sees the wiki tab appear WITHOUT refresh (real-time via WebSocket)
         await user2Page.waitForTimeout(WEBSOCKET_WAIT);
@@ -87,33 +81,34 @@ test(
         const {user: user2} = await createTestUserInChannel(pw, adminClient, team, channel, 'user2');
 
         // # User 2 logs in and navigates to the channel
-        const {page: user2Page, channelsPage: channelsPage2} = await pw.testBrowser.login(user2);
-        await channelsPage2.goto(team.name, channel.name);
-        await channelsPage2.toBeVisible();
-        await user2Page.waitForLoadState('networkidle');
+        const {page: user2Page} = await loginAndNavigateToChannel(pw, user2, team.name, channel.name);
 
-        // # User 1 logs in
-        const {page: page1, channelsPage: channelsPage1} = await pw.testBrowser.login(user1);
-        await channelsPage1.goto(team.name, channel.name);
-        await channelsPage1.toBeVisible();
+        // # User 1 logs in and navigates to the same channel
+        const {page: page1, channelsPage: channelsPage1} = await loginAndNavigateToChannel(
+            pw,
+            user1,
+            team.name,
+            channel.name,
+        );
 
         // # User 1 creates first wiki
-        const wiki1Name = `Wiki A ${await pw.random.id()}`;
+        const wiki1Name = uniqueName('Wiki A');
         await createWikiThroughUI(page1, wiki1Name);
 
         // * Verify user2 sees first wiki tab (real-time)
         await user2Page.waitForTimeout(WEBSOCKET_WAIT);
-        const wiki1Tab = user2Page.locator('.channel-tabs-container__tab-wrapper--wiki').filter({hasText: wiki1Name});
+        const wiki1Tab = getAllWikiTabs(user2Page).filter({hasText: wiki1Name});
         await expect(wiki1Tab).toBeVisible({timeout: HIERARCHY_TIMEOUT});
 
         // # User 1 navigates back to channel and creates second wiki
         await channelsPage1.goto(team.name, channel.name);
-        const wiki2Name = `Wiki B ${await pw.random.id()}`;
+        await page1.waitForLoadState('networkidle');
+        const wiki2Name = uniqueName('Wiki B');
         await createWikiThroughUI(page1, wiki2Name);
 
         // * Verify user2 sees second wiki tab (real-time)
         await user2Page.waitForTimeout(WEBSOCKET_WAIT);
-        const wiki2Tab = user2Page.locator('.channel-tabs-container__tab-wrapper--wiki').filter({hasText: wiki2Name});
+        const wiki2Tab = getAllWikiTabs(user2Page).filter({hasText: wiki2Name});
         await expect(wiki2Tab).toBeVisible({timeout: HIERARCHY_TIMEOUT});
 
         // * Verify both tabs are still visible

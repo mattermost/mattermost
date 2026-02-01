@@ -8,7 +8,8 @@ import type {Team} from '@mattermost/types/teams';
 import type {UserThread} from '@mattermost/types/threads';
 import type {RelationOneToOne} from '@mattermost/types/utilities';
 
-import type {Heading} from 'utils/page_outline';
+import type {PagesHierarchyViewState} from 'reducers/views/pages_hierarchy';
+import type {WikiRhsState} from 'reducers/views/wiki_rhs';
 
 import type {I18nState} from './i18n';
 import type {LhsViewState} from './lhs';
@@ -227,19 +228,7 @@ export type ViewsState = {
         shouldShowPreviewOnChannelSettingsPurposeModal: boolean;
     };
 
-    pagesHierarchy: {
-        expandedNodes: {[wikiId: string]: {[pageId: string]: boolean}};
-        isPanelCollapsed: boolean;
-        outlineExpandedNodes: {[pageId: string]: boolean};
-        outlineCache: {[pageId: string]: Heading[]};
-        lastViewedPage: {[wikiId: string]: string};
-    };
+    pagesHierarchy: PagesHierarchyViewState;
 
-    wikiRhs: {
-        mode: 'outline' | 'comments';
-        wikiId: string | null;
-        selectedPageId: string;
-        focusedInlineCommentId: string | null;
-        activeTab: 'page_comments' | 'all_threads';
-    };
+    wikiRhs: WikiRhsState;
 };

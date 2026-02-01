@@ -17,6 +17,8 @@ import {
     renamePageViaContextMenu,
     enterEditMode,
     getBreadcrumb,
+    loginAndNavigateToChannel,
+    uniqueName,
     SHORT_WAIT,
     EDITOR_LOAD_WAIT,
 } from './test_helpers';
@@ -29,14 +31,12 @@ import {
  */
 test('renames new draft page and preserves content', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
     const {team, user, adminClient} = sharedPagesSetup;
-    const channel = await createTestChannel(adminClient, team.id, `Rename Draft Channel ${await pw.random.id()}`);
+    const channel = await createTestChannel(adminClient, team.id, uniqueName('Rename Draft Channel'));
 
-    const {page, channelsPage} = await pw.testBrowser.login(user);
-    await channelsPage.goto(team.name, channel.name);
-    await channelsPage.toBeVisible();
+    const {page} = await loginAndNavigateToChannel(pw, user, team.name, channel.name);
 
     // # Create wiki through UI
-    await createWikiThroughUI(page, `Rename Draft Wiki ${await pw.random.id()}`);
+    await createWikiThroughUI(page, uniqueName('Rename Draft Wiki'));
 
     // # Create new draft page with specific content
     const originalTitle = 'Draft Page Original Title';
@@ -82,14 +82,12 @@ test('renames new draft page and preserves content', {tag: '@pages'}, async ({pw
  */
 test('renames published page and preserves content', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
     const {team, user, adminClient} = sharedPagesSetup;
-    const channel = await createTestChannel(adminClient, team.id, `Rename Published Channel ${await pw.random.id()}`);
+    const channel = await createTestChannel(adminClient, team.id, uniqueName('Rename Published Channel'));
 
-    const {page, channelsPage} = await pw.testBrowser.login(user);
-    await channelsPage.goto(team.name, channel.name);
-    await channelsPage.toBeVisible();
+    const {page} = await loginAndNavigateToChannel(pw, user, team.name, channel.name);
 
     // # Create wiki through UI
-    await createWikiThroughUI(page, `Rename Published Wiki ${await pw.random.id()}`);
+    await createWikiThroughUI(page, uniqueName('Rename Published Wiki'));
 
     // # Create and publish a page with specific content
     const originalTitle = 'Published Page Original Title';
@@ -123,14 +121,12 @@ test('renames published page and preserves content', {tag: '@pages'}, async ({pw
  */
 test('renames page during edit mode and preserves content', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
     const {team, user, adminClient} = sharedPagesSetup;
-    const channel = await createTestChannel(adminClient, team.id, `Rename Edit Mode Channel ${await pw.random.id()}`);
+    const channel = await createTestChannel(adminClient, team.id, uniqueName('Rename Edit Mode Channel'));
 
-    const {page, channelsPage} = await pw.testBrowser.login(user);
-    await channelsPage.goto(team.name, channel.name);
-    await channelsPage.toBeVisible();
+    const {page} = await loginAndNavigateToChannel(pw, user, team.name, channel.name);
 
     // # Create wiki through UI
-    await createWikiThroughUI(page, `Rename Edit Mode Wiki ${await pw.random.id()}`);
+    await createWikiThroughUI(page, uniqueName('Rename Edit Mode Wiki'));
 
     // # Create and publish a page
     const originalTitle = 'Edit Mode Page Original';
@@ -186,14 +182,12 @@ test('renames page during edit mode and preserves content', {tag: '@pages'}, asy
  */
 test('renames page with complex content and preserves formatting', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
     const {team, user, adminClient} = sharedPagesSetup;
-    const channel = await createTestChannel(adminClient, team.id, `Rename Complex Channel ${await pw.random.id()}`);
+    const channel = await createTestChannel(adminClient, team.id, uniqueName('Rename Complex Channel'));
 
-    const {page, channelsPage} = await pw.testBrowser.login(user);
-    await channelsPage.goto(team.name, channel.name);
-    await channelsPage.toBeVisible();
+    const {page} = await loginAndNavigateToChannel(pw, user, team.name, channel.name);
 
     // # Create wiki through UI
-    await createWikiThroughUI(page, `Rename Complex Wiki ${await pw.random.id()}`);
+    await createWikiThroughUI(page, uniqueName('Rename Complex Wiki'));
 
     // # Create new page with complex content
     const originalTitle = 'Complex Content Page';
@@ -245,14 +239,12 @@ test('renames page with complex content and preserves formatting', {tag: '@pages
  */
 test('multiple consecutive renames preserve content', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
     const {team, user, adminClient} = sharedPagesSetup;
-    const channel = await createTestChannel(adminClient, team.id, `Multi Rename Channel ${await pw.random.id()}`);
+    const channel = await createTestChannel(adminClient, team.id, uniqueName('Multi Rename Channel'));
 
-    const {page, channelsPage} = await pw.testBrowser.login(user);
-    await channelsPage.goto(team.name, channel.name);
-    await channelsPage.toBeVisible();
+    const {page} = await loginAndNavigateToChannel(pw, user, team.name, channel.name);
 
     // # Create wiki through UI
-    await createWikiThroughUI(page, `Multi Rename Wiki ${await pw.random.id()}`);
+    await createWikiThroughUI(page, uniqueName('Multi Rename Wiki'));
 
     // # Create page with content
     const originalTitle = 'Multi Rename Page';
@@ -293,15 +285,12 @@ test('multiple consecutive renames preserve content', {tag: '@pages'}, async ({p
  */
 test('verifies content is not replaced with title after rename', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
     const {team, user, adminClient} = sharedPagesSetup;
-    const channel = await createTestChannel(adminClient, team.id, `Content Preserve Channel ${await pw.random.id()}`);
+    const channel = await createTestChannel(adminClient, team.id, uniqueName('Content Preserve Channel'));
 
-    const {page, channelsPage} = await pw.testBrowser.login(user);
-
-    await channelsPage.goto(team.name, channel.name);
-    await channelsPage.toBeVisible();
+    const {page} = await loginAndNavigateToChannel(pw, user, team.name, channel.name);
 
     // # Create wiki through UI
-    await createWikiThroughUI(page, `Content Preserve Wiki ${await pw.random.id()}`);
+    await createWikiThroughUI(page, uniqueName('Content Preserve Wiki'));
 
     // # Create page with long content that is distinctly longer than any title
     const originalTitle = 'Short Title';

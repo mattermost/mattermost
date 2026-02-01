@@ -21,6 +21,7 @@ import {
     getWebSocketEvents,
     waitForWikiTab,
     uniqueName,
+    loginAndNavigateToChannel,
     EDITOR_LOAD_WAIT,
     ELEMENT_TIMEOUT,
     HIERARCHY_TIMEOUT,
@@ -43,9 +44,12 @@ test(
         const channel = await adminClient.getChannelByName(team.id, 'town-square');
 
         // # User 1 creates wiki
-        const {page: page1, channelsPage: channelsPage1} = await pw.testBrowser.login(user1);
-        await channelsPage1.goto(team.name, channel.name);
-        await channelsPage1.toBeVisible();
+        const {page: page1, channelsPage: channelsPage1} = await loginAndNavigateToChannel(
+            pw,
+            user1,
+            team.name,
+            channel.name,
+        );
 
         const originalWikiName = uniqueName('Original Wiki');
         await createWikiThroughUI(page1, originalWikiName);
@@ -58,9 +62,7 @@ test(
         const {user: user2} = await createTestUserInChannel(pw, adminClient, team, channel, 'user2');
 
         // # User 2 logs in and navigates to channel (should see wiki tab)
-        const {page: user2Page, channelsPage: channelsPage2} = await pw.testBrowser.login(user2);
-        await channelsPage2.goto(team.name, channel.name);
-        await channelsPage2.toBeVisible();
+        const {page: user2Page} = await loginAndNavigateToChannel(pw, user2, team.name, channel.name);
 
         // * Verify wiki tab is visible for user2 with original name
         const originalWikiTab = getWikiTab(user2Page, originalWikiName);
@@ -116,9 +118,12 @@ test(
         await adminClient.addToChannel(user1.id, targetChannel.id);
 
         // # User 1 creates wiki in source channel
-        const {page: page1, channelsPage: channelsPage1} = await pw.testBrowser.login(user1);
-        await channelsPage1.goto(team.name, sourceChannel.name);
-        await channelsPage1.toBeVisible();
+        const {page: page1, channelsPage: channelsPage1} = await loginAndNavigateToChannel(
+            pw,
+            user1,
+            team.name,
+            sourceChannel.name,
+        );
 
         const wikiName = uniqueName('Wiki to Move');
         await createWikiThroughUI(page1, wikiName);
@@ -132,9 +137,12 @@ test(
         await adminClient.addToChannel(user2.id, targetChannel.id);
 
         // # User 2 logs in and navigates to source channel (should see wiki tab)
-        const {page: user2Page, channelsPage: channelsPage2} = await pw.testBrowser.login(user2);
-        await channelsPage2.goto(team.name, sourceChannel.name);
-        await channelsPage2.toBeVisible();
+        const {page: user2Page, channelsPage: channelsPage2} = await loginAndNavigateToChannel(
+            pw,
+            user2,
+            team.name,
+            sourceChannel.name,
+        );
 
         // * Verify wiki tab is visible for user2 in source channel
         const sourceWikiTab = getWikiTab(user2Page, wikiName);
@@ -186,9 +194,7 @@ test(
         const channel = await adminClient.getChannelByName(team.id, 'town-square');
 
         // # User 1 creates wiki with parent/child hierarchy
-        const {page: page1, channelsPage: channelsPage1} = await pw.testBrowser.login(user1);
-        await channelsPage1.goto(team.name, channel.name);
-        await channelsPage1.toBeVisible();
+        const {page: page1} = await loginAndNavigateToChannel(pw, user1, team.name, channel.name);
 
         const wiki = await createWikiThroughUI(page1, uniqueName('Breadcrumb Test Wiki'));
         const parentTitle = uniqueName('Parent Page');
@@ -259,9 +265,7 @@ test(
         const channel = await adminClient.getChannelByName(team.id, 'town-square');
 
         // # User 1 creates wiki with multiple pages
-        const {page: page1, channelsPage: channelsPage1} = await pw.testBrowser.login(user1);
-        await channelsPage1.goto(team.name, channel.name);
-        await channelsPage1.toBeVisible();
+        const {page: page1} = await loginAndNavigateToChannel(pw, user1, team.name, channel.name);
 
         const wiki = await createWikiThroughUI(page1, uniqueName('Move Parent Test Wiki'));
         const originalParentTitle = uniqueName('Original Parent');
@@ -336,9 +340,12 @@ test(
         await adminClient.addToChannel(user1.id, targetChannel.id);
 
         // # User 1 creates wiki in source channel with a page
-        const {page: page1, channelsPage: channelsPage1} = await pw.testBrowser.login(user1);
-        await channelsPage1.goto(team.name, sourceChannel.name);
-        await channelsPage1.toBeVisible();
+        const {page: page1, channelsPage: channelsPage1} = await loginAndNavigateToChannel(
+            pw,
+            user1,
+            team.name,
+            sourceChannel.name,
+        );
 
         const wikiName = uniqueName('Access Test Wiki');
         const wiki = await createWikiThroughUI(page1, wikiName);
@@ -430,9 +437,12 @@ test(
         const channel = await adminClient.getChannelByName(team.id, 'town-square');
 
         // # User 1 creates two wikis and a page in first wiki
-        const {page: page1, channelsPage: channelsPage1} = await pw.testBrowser.login(user1);
-        await channelsPage1.goto(team.name, channel.name);
-        await channelsPage1.toBeVisible();
+        const {page: page1, channelsPage: channelsPage1} = await loginAndNavigateToChannel(
+            pw,
+            user1,
+            team.name,
+            channel.name,
+        );
 
         const sourceWiki = await createWikiThroughUI(page1, uniqueName('Source Wiki'));
         const pageTitle = uniqueName('Page to Move');

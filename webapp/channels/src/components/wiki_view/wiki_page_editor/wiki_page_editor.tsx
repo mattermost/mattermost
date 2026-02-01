@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {useState, useEffect, useCallback} from 'react';
+import React, {useState, useEffect, useCallback, useRef} from 'react';
 import {useIntl} from 'react-intl';
 import {useSelector, useDispatch} from 'react-redux';
 
@@ -12,7 +12,6 @@ import {fetchChannelPages} from 'actions/pages';
 import {getChannelPages} from 'selectors/pages';
 
 import ActiveEditorsIndicator from 'components/active_editors_indicator';
-import InlineCommentModal from 'components/inline_comment_modal';
 import ProfilePicture from 'components/profile_picture';
 import UserProfile from 'components/user_profile';
 
@@ -69,6 +68,16 @@ const WikiPageEditor = ({
     const dispatch = useDispatch();
     const {formatMessage} = useIntl();
     const [localTitle, setLocalTitle] = useState(title);
+    const titleRef = useRef<HTMLTextAreaElement>(null);
+
+    // Auto-resize textarea to fit content
+    const resizeTitleTextarea = useCallback(() => {
+        const textarea = titleRef.current;
+        if (textarea) {
+            textarea.style.height = 'auto';
+            textarea.style.height = `${textarea.scrollHeight}px`;
+        }
+    }, []);
 
     const pages = useSelector((state: GlobalState) => getChannelPages(state, channelId || ''));
 
@@ -97,10 +106,6 @@ const WikiPageEditor = ({
         inlineComments,
         handleCommentClick,
         handleCreateInlineComment,
-        showCommentModal,
-        commentAnchor,
-        handleSubmitComment,
-        handleCloseModal,
         deletedAnchorIds,
         clearDeletedAnchorIds,
     } = usePageInlineComments(
@@ -111,6 +116,11 @@ const WikiPageEditor = ({
     useEffect(() => {
         setLocalTitle(title);
     }, [title]);
+
+    // Resize textarea when title changes
+    useEffect(() => {
+        resizeTitleTextarea();
+    }, [localTitle, resizeTitleTextarea]);
 
     const handleTitleChange = useCallback((newTitle: string) => {
         setLocalTitle(newTitle);
@@ -130,13 +140,14 @@ const WikiPageEditor = ({
                 className='draft-header'
                 data-testid='wiki-page-editor-header'
             >
-                <input
-                    type='text'
+                <textarea
+                    ref={titleRef}
                     className='page-title-input'
                     aria-label={formatMessage({id: 'wiki.page_title_label', defaultMessage: 'Page title'})}
                     placeholder={formatMessage({id: 'wiki.page_title_placeholder', defaultMessage: 'Untitled page...'})}
                     value={localTitle}
                     onChange={(e) => handleTitleChange(e.target.value)}
+                    rows={1}
                     data-testid='wiki-page-title-input'
                 />
                 <div
@@ -224,13 +235,6 @@ const WikiPageEditor = ({
                     onTranslatedPageCreated={onTranslatedPageCreated}
                 />
             </div>
-            {showCommentModal && commentAnchor && (
-                <InlineCommentModal
-                    selectedText={commentAnchor.text}
-                    onSubmit={handleSubmitComment}
-                    onExited={handleCloseModal}
-                />
-            )}
         </div>
     );
 };

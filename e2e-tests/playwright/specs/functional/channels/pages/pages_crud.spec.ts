@@ -13,7 +13,9 @@ import {
     editPageThroughUI,
     getHierarchyPanel,
     getPageViewerContent,
+    loginAndNavigateToChannel,
     SHORT_WAIT,
+    uniqueName,
 } from './test_helpers';
 
 /**
@@ -21,15 +23,12 @@ import {
  */
 test('creates wiki and root page through full UI flow', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
     const {team, user, adminClient} = sharedPagesSetup;
-    const channel = await createTestChannel(adminClient, team.id, `Test Channel ${await pw.random.id()}`);
+    const channel = await createTestChannel(adminClient, team.id, uniqueName('Test Channel'));
 
-    const {page, channelsPage} = await pw.testBrowser.login(user);
-
-    await channelsPage.goto(team.name, channel.name);
-    await channelsPage.toBeVisible();
+    const {page} = await loginAndNavigateToChannel(pw, user, team.name, channel.name);
 
     // # Create wiki through bookmarks UI
-    await createWikiThroughUI(page, `Test Wiki ${await pw.random.id()}`);
+    await createWikiThroughUI(page, uniqueName('Test Wiki'));
 
     // * Verify navigated to new wiki
     await expect(page).toHaveURL(/\/wiki\/[^/]+\/[^/]+/);
@@ -48,14 +47,12 @@ test('creates wiki and root page through full UI flow', {tag: '@pages'}, async (
  */
 test('creates child page under parent', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
     const {team, user, adminClient} = sharedPagesSetup;
-    const channel = await createTestChannel(adminClient, team.id, `Test Channel ${await pw.random.id()}`);
+    const channel = await createTestChannel(adminClient, team.id, uniqueName('Test Channel'));
 
-    const {page, channelsPage} = await pw.testBrowser.login(user);
-    await channelsPage.goto(team.name, channel.name);
-    await channelsPage.toBeVisible();
+    const {page} = await loginAndNavigateToChannel(pw, user, team.name, channel.name);
 
     // # Create wiki through UI
-    await createWikiThroughUI(page, `Test Wiki ${await pw.random.id()}`);
+    await createWikiThroughUI(page, uniqueName('Test Wiki'));
 
     // # Create parent page through UI
     const parentPage = await createPageThroughUI(page, 'Parent Page', 'Parent content');
@@ -73,14 +70,12 @@ test('creates child page under parent', {tag: '@pages'}, async ({pw, sharedPages
  */
 test('views published page', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
     const {team, user, adminClient} = sharedPagesSetup;
-    const channel = await createTestChannel(adminClient, team.id, `Test Channel ${await pw.random.id()}`);
+    const channel = await createTestChannel(adminClient, team.id, uniqueName('Test Channel'));
 
-    const {page, channelsPage} = await pw.testBrowser.login(user);
-    await channelsPage.goto(team.name, channel.name);
-    await channelsPage.toBeVisible();
+    const {page} = await loginAndNavigateToChannel(pw, user, team.name, channel.name);
 
     // # Create wiki and page through UI
-    await createWikiThroughUI(page, `View Wiki ${await pw.random.id()}`);
+    await createWikiThroughUI(page, uniqueName('View Wiki'));
     await createPageThroughUI(page, 'Test Page', 'Test content to view');
 
     // * Verify page content displayed
@@ -94,14 +89,12 @@ test('views published page', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => 
  */
 test('updates existing page content', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
     const {team, user, adminClient} = sharedPagesSetup;
-    const channel = await createTestChannel(adminClient, team.id, `Test Channel ${await pw.random.id()}`);
+    const channel = await createTestChannel(adminClient, team.id, uniqueName('Test Channel'));
 
-    const {page, channelsPage} = await pw.testBrowser.login(user);
-    await channelsPage.goto(team.name, channel.name);
-    await channelsPage.toBeVisible();
+    const {page} = await loginAndNavigateToChannel(pw, user, team.name, channel.name);
 
     // # Create wiki and page through UI
-    await createWikiThroughUI(page, `Update Wiki ${await pw.random.id()}`);
+    await createWikiThroughUI(page, uniqueName('Update Wiki'));
     await createPageThroughUI(page, 'Page to Update', 'Original content');
 
     // # Edit the page by replacing content
@@ -118,14 +111,12 @@ test('updates existing page content', {tag: '@pages'}, async ({pw, sharedPagesSe
  */
 test('deletes page', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
     const {team, user, adminClient} = sharedPagesSetup;
-    const channel = await createTestChannel(adminClient, team.id, `Test Channel ${await pw.random.id()}`);
+    const channel = await createTestChannel(adminClient, team.id, uniqueName('Test Channel'));
 
-    const {page, channelsPage} = await pw.testBrowser.login(user);
-    await channelsPage.goto(team.name, channel.name);
-    await channelsPage.toBeVisible();
+    const {page} = await loginAndNavigateToChannel(pw, user, team.name, channel.name);
 
     // # Create wiki and page through UI
-    await createWikiThroughUI(page, `Delete Wiki ${await pw.random.id()}`);
+    await createWikiThroughUI(page, uniqueName('Delete Wiki'));
     const testPage = await createPageThroughUI(page, 'Page to Delete', 'Content');
 
     // # Delete the page through sidebar context menu
@@ -147,14 +138,12 @@ test('deletes page', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
  */
 test('wiki starts with default draft page', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
     const {team, user, adminClient} = sharedPagesSetup;
-    const channel = await createTestChannel(adminClient, team.id, `Test Channel ${await pw.random.id()}`);
+    const channel = await createTestChannel(adminClient, team.id, uniqueName('Test Channel'));
 
-    const {page, channelsPage} = await pw.testBrowser.login(user);
-    await channelsPage.goto(team.name, channel.name);
-    await channelsPage.toBeVisible();
+    const {page} = await loginAndNavigateToChannel(pw, user, team.name, channel.name);
 
     // # Create wiki through UI
-    await createWikiThroughUI(page, `New Wiki ${await pw.random.id()}`);
+    await createWikiThroughUI(page, uniqueName('New Wiki'));
 
     // * Verify default draft page appears in sidebar
     const draftNode = page.locator('[data-testid="page-tree-node"][data-is-draft="true"]');
@@ -166,14 +155,12 @@ test('wiki starts with default draft page', {tag: '@pages'}, async ({pw, sharedP
  */
 test('shows empty state after deleting default draft', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
     const {team, user, adminClient} = sharedPagesSetup;
-    const channel = await createTestChannel(adminClient, team.id, `Test Channel ${await pw.random.id()}`);
+    const channel = await createTestChannel(adminClient, team.id, uniqueName('Test Channel'));
 
-    const {page, channelsPage} = await pw.testBrowser.login(user);
-    await channelsPage.goto(team.name, channel.name);
-    await channelsPage.toBeVisible();
+    const {page} = await loginAndNavigateToChannel(pw, user, team.name, channel.name);
 
     // # Create wiki through UI
-    await createWikiThroughUI(page, `Empty Wiki ${await pw.random.id()}`);
+    await createWikiThroughUI(page, uniqueName('Empty Wiki'));
 
     // # Delete the default draft
     await deleteDefaultDraftThroughUI(page);
@@ -189,14 +176,12 @@ test('shows empty state after deleting default draft', {tag: '@pages'}, async ({
  */
 test('displays multiple pages in hierarchy', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
     const {team, user, adminClient} = sharedPagesSetup;
-    const channel = await createTestChannel(adminClient, team.id, `Test Channel ${await pw.random.id()}`);
+    const channel = await createTestChannel(adminClient, team.id, uniqueName('Test Channel'));
 
-    const {page, channelsPage} = await pw.testBrowser.login(user);
-    await channelsPage.goto(team.name, channel.name);
-    await channelsPage.toBeVisible();
+    const {page} = await loginAndNavigateToChannel(pw, user, team.name, channel.name);
 
     // # Create wiki through UI
-    await createWikiThroughUI(page, `Multi Page Wiki ${await pw.random.id()}`);
+    await createWikiThroughUI(page, uniqueName('Multi Page Wiki'));
 
     // # Create multiple pages through UI
     await createPageThroughUI(page, 'Page 1', 'Content 1');
@@ -215,14 +200,12 @@ test('displays multiple pages in hierarchy', {tag: '@pages'}, async ({pw, shared
  */
 test('displays page metadata', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
     const {team, user, adminClient} = sharedPagesSetup;
-    const channel = await createTestChannel(adminClient, team.id, `Test Channel ${await pw.random.id()}`);
+    const channel = await createTestChannel(adminClient, team.id, uniqueName('Test Channel'));
 
-    const {page, channelsPage} = await pw.testBrowser.login(user);
-    await channelsPage.goto(team.name, channel.name);
-    await channelsPage.toBeVisible();
+    const {page} = await loginAndNavigateToChannel(pw, user, team.name, channel.name);
 
     // # Create wiki and page through UI
-    await createWikiThroughUI(page, `Meta Wiki ${await pw.random.id()}`);
+    await createWikiThroughUI(page, uniqueName('Meta Wiki'));
     await createPageThroughUI(page, 'Page with Metadata', 'Test content');
 
     // * Verify metadata container is visible

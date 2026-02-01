@@ -54,6 +54,7 @@ import {getWikiUrl, isUrlSafe, isValidUrl} from 'utils/url';
 import {generateId} from 'utils/utils';
 
 import type {GlobalState} from 'types/store';
+import type {InlineAnchor} from 'types/store/pages';
 
 // Extend Window interface for E2E testing
 declare global {
@@ -84,6 +85,7 @@ import InlineCommentExtension from './inline_comment_extension';
 import InlineCommentToolbar from './inline_comment_toolbar';
 import {createMMentionSuggestion} from './mention_mm_bridge';
 import MentionNodeView from './mention_node_view';
+import {PasteMarkdownExtension} from './paste_markdown_extension';
 import {SlashCommandExtension} from './slash_command_extension';
 import usePageRewrite from './use_page_rewrite';
 import Video from './video_extension';
@@ -232,12 +234,6 @@ const HeadingIdPlugin = Extension.create({
     },
 });
 
-// Anchor type - matches InlineAnchor from inline_comment_extension.tsx
-export type InlineAnchorData = {
-    anchor_id: string;
-    text: string;
-};
-
 // AI tools handlers exposed to parent components
 export type AIToolsHandlers = {
     proofread: () => void;
@@ -260,11 +256,11 @@ type Props = {
     wikiId?: string;
     pages?: Post[];
     isExistingPage?: boolean;
-    onCreateInlineComment?: (anchor: InlineAnchorData) => void;
+    onCreateInlineComment?: (anchor: InlineAnchor) => void;
     inlineComments?: Array<{
         id: string;
         props: {
-            inline_anchor?: InlineAnchorData;
+            inline_anchor?: InlineAnchor;
         };
     }>;
     onCommentClick?: (commentId: string) => void;
@@ -802,7 +798,6 @@ const TipTapEditor = ({
                 },
             }),
             InlineCommentExtension.configure({
-                comments: [], // Start with empty array, update via useEffect below
                 onAddComment: onCreateInlineComment,
                 onCommentClick,
                 editable,
@@ -1080,6 +1075,9 @@ const TipTapEditor = ({
                     },
                 }),
             );
+
+            // Paste markdown detection - converts plain text markdown to rich content
+            exts.push(PasteMarkdownExtension);
         }
 
         if (currentUserId && teamId) {

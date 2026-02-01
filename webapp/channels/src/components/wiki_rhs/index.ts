@@ -10,9 +10,9 @@ import {getPost} from 'mattermost-redux/selectors/entities/posts';
 
 import {publishPage} from 'actions/pages';
 import {closeRightHandSide, openWikiRhs, toggleRhsExpanded} from 'actions/views/rhs';
-import {setWikiRhsActiveTab, setFocusedInlineCommentId} from 'actions/views/wiki_rhs';
+import {setWikiRhsActiveTab, setFocusedInlineCommentId, setPendingInlineAnchor} from 'actions/views/wiki_rhs';
 import {getIsRhsExpanded} from 'selectors/rhs';
-import {getSelectedPageId, getWikiRhsWikiId, getWikiRhsActiveTab, getFocusedInlineCommentId} from 'selectors/wiki_rhs';
+import {getSelectedPageId, getWikiRhsWikiId, getWikiRhsActiveTab, getFocusedInlineCommentId, getPendingInlineAnchor, getIsSubmittingComment} from 'selectors/wiki_rhs';
 
 import type {GlobalState} from 'types/store';
 
@@ -32,7 +32,9 @@ function makeMapStateToProps() {
             channelLoaded: Boolean(channel),
             activeTab: getWikiRhsActiveTab(state),
             focusedInlineCommentId: getFocusedInlineCommentId(state),
+            pendingInlineAnchor: getPendingInlineAnchor(state),
             isExpanded: getIsRhsExpanded(state),
+            isSubmittingComment: getIsSubmittingComment(state),
         };
     };
 }
@@ -44,6 +46,7 @@ function mapDispatchToProps(dispatch: Dispatch) {
             closeRightHandSide,
             setWikiRhsActiveTab,
             setFocusedInlineCommentId,
+            setPendingInlineAnchor,
             openWikiRhs,
             toggleRhsExpanded,
         }, dispatch),

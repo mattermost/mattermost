@@ -17,6 +17,8 @@ import {
     getAIRewriteButton,
     openAIToolsMenu,
     getAIToolsTranslateButton,
+    loginAndNavigateToChannel,
+    uniqueName,
     ELEMENT_TIMEOUT,
     PAGE_LOAD_TIMEOUT,
 } from './test_helpers';
@@ -35,14 +37,12 @@ test('shows Translate to option in AI rewrite menu', {tag: '@pages'}, async ({pw
         await configureAIPlugin(adminClient);
     }
 
-    const channel = await createTestChannel(adminClient, team.id, `Translation Test Channel ${await pw.random.id()}`);
+    const channel = await createTestChannel(adminClient, team.id, uniqueName('Translation Test Channel'));
 
-    const {page, channelsPage} = await pw.testBrowser.login(user);
-    await channelsPage.goto(team.name, channel.name);
-    await channelsPage.toBeVisible();
+    const {page} = await loginAndNavigateToChannel(pw, user, team.name, channel.name);
 
     // # Create wiki through UI
-    await createWikiThroughUI(page, `Translation Test Wiki ${await pw.random.id()}`);
+    await createWikiThroughUI(page, uniqueName('Translation Test Wiki'));
 
     // # Create new page
     const newPageButton = getNewPageButton(page);
@@ -92,14 +92,12 @@ test('shows language submenu for translation', {tag: '@pages'}, async ({pw, shar
         await configureAIPlugin(adminClient);
     }
 
-    const channel = await createTestChannel(adminClient, team.id, `Translation Submenu Test ${await pw.random.id()}`);
+    const channel = await createTestChannel(adminClient, team.id, uniqueName('Translation Submenu Test'));
 
-    const {page, channelsPage} = await pw.testBrowser.login(user);
-    await channelsPage.goto(team.name, channel.name);
-    await channelsPage.toBeVisible();
+    const {page} = await loginAndNavigateToChannel(pw, user, team.name, channel.name);
 
     // # Create wiki through UI
-    await createWikiThroughUI(page, `Translation Submenu Wiki ${await pw.random.id()}`);
+    await createWikiThroughUI(page, uniqueName('Translation Submenu Wiki'));
 
     // # Create new page
     const newPageButton = getNewPageButton(page);
@@ -153,14 +151,12 @@ test('shows Translate page option in AI Tools submenu', {tag: '@pages'}, async (
         await configureAIPlugin(adminClient);
     }
 
-    const channel = await createTestChannel(adminClient, team.id, `Translate Page Test ${await pw.random.id()}`);
+    const channel = await createTestChannel(adminClient, team.id, uniqueName('Translate Page Test'));
 
-    const {page, channelsPage} = await pw.testBrowser.login(user);
-    await channelsPage.goto(team.name, channel.name);
-    await channelsPage.toBeVisible();
+    const {page} = await loginAndNavigateToChannel(pw, user, team.name, channel.name);
 
     // # Create wiki through UI
-    await createWikiThroughUI(page, `Translate Page Wiki ${await pw.random.id()}`);
+    await createWikiThroughUI(page, uniqueName('Translate Page Wiki'));
 
     // # Create new page
     const newPageButton = getNewPageButton(page);
@@ -203,14 +199,12 @@ test('opens Translate page modal from AI Tools submenu', {tag: '@pages'}, async 
         await configureAIPlugin(adminClient);
     }
 
-    const channel = await createTestChannel(adminClient, team.id, `Translate Modal Test ${await pw.random.id()}`);
+    const channel = await createTestChannel(adminClient, team.id, uniqueName('Translate Modal Test'));
 
-    const {page, channelsPage} = await pw.testBrowser.login(user);
-    await channelsPage.goto(team.name, channel.name);
-    await channelsPage.toBeVisible();
+    const {page} = await loginAndNavigateToChannel(pw, user, team.name, channel.name);
 
     // # Create wiki through UI
-    await createWikiThroughUI(page, `Translate Modal Wiki ${await pw.random.id()}`);
+    await createWikiThroughUI(page, uniqueName('Translate Modal Wiki'));
 
     // # Create new page
     const newPageButton = getNewPageButton(page);
@@ -265,14 +259,12 @@ test('selects target language in Translate page modal', {tag: '@pages'}, async (
         await configureAIPlugin(adminClient);
     }
 
-    const channel = await createTestChannel(adminClient, team.id, `Language Select Test ${await pw.random.id()}`);
+    const channel = await createTestChannel(adminClient, team.id, uniqueName('Language Select Test'));
 
-    const {page, channelsPage} = await pw.testBrowser.login(user);
-    await channelsPage.goto(team.name, channel.name);
-    await channelsPage.toBeVisible();
+    const {page} = await loginAndNavigateToChannel(pw, user, team.name, channel.name);
 
     // # Create wiki through UI
-    await createWikiThroughUI(page, `Language Select Wiki ${await pw.random.id()}`);
+    await createWikiThroughUI(page, uniqueName('Language Select Wiki'));
 
     // # Create new page
     const newPageButton = getNewPageButton(page);
@@ -328,14 +320,12 @@ test(
     async ({pw, sharedPagesSetup}) => {
         const {team, user, adminClient} = sharedPagesSetup;
 
-        const channel = await createTestChannel(adminClient, team.id, `No Translation Test ${await pw.random.id()}`);
+        const channel = await createTestChannel(adminClient, team.id, uniqueName('No Translation Test'));
 
-        const {page, channelsPage} = await pw.testBrowser.login(user);
-        await channelsPage.goto(team.name, channel.name);
-        await channelsPage.toBeVisible();
+        const {page} = await loginAndNavigateToChannel(pw, user, team.name, channel.name);
 
         // # Create wiki through UI
-        await createWikiThroughUI(page, `No Translation Wiki ${await pw.random.id()}`);
+        await createWikiThroughUI(page, uniqueName('No Translation Wiki'));
 
         // # Create new page
         const newPageButton = getNewPageButton(page);
@@ -377,14 +367,12 @@ test('preserves URLs during page translation', {tag: '@pages'}, async ({pw, shar
         await configureAIPlugin(adminClient);
     }
 
-    const channel = await createTestChannel(adminClient, team.id, `URL Preservation Test ${await pw.random.id()}`);
+    const channel = await createTestChannel(adminClient, team.id, uniqueName('URL Preservation Test'));
 
-    const {page, channelsPage} = await pw.testBrowser.login(user);
-    await channelsPage.goto(team.name, channel.name);
-    await channelsPage.toBeVisible();
+    const {page} = await loginAndNavigateToChannel(pw, user, team.name, channel.name);
 
     // # Create wiki through UI
-    await createWikiThroughUI(page, `URL Preservation Wiki ${await pw.random.id()}`);
+    await createWikiThroughUI(page, uniqueName('URL Preservation Wiki'));
 
     // # Create new page with content containing a URL as link text
     const newPageButton = getNewPageButton(page);

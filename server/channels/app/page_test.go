@@ -1667,6 +1667,9 @@ func TestPageMentionSystemMessages(t *testing.T) {
 		require.Equal(t, createdWiki.Id, mentionMessage.GetProp("wiki_id"))
 		require.Equal(t, "Test Page", mentionMessage.GetProp("page_title"))
 		require.Equal(t, user2.Username, mentionMessage.GetProp("username"), "username property should be set for frontend rendering")
+		mentionContext := mentionMessage.GetProp("mention_context")
+		require.NotNil(t, mentionContext, "mention_context should be set")
+		require.Contains(t, mentionContext, "please review", "mention_context should contain the paragraph text")
 	})
 
 	t.Run("no system messages when wiki setting disabled", func(t *testing.T) {
@@ -1762,6 +1765,9 @@ func TestPageMentionSystemMessages(t *testing.T) {
 		require.NotNil(t, mentionMessage, "System message should be created when mention added via update")
 		require.Equal(t, user2.Id, mentionMessage.GetProp("mentioned_user_id"))
 		require.Equal(t, user2.Username, mentionMessage.GetProp("username"), "username property should be set for frontend rendering")
+		mentionContext := mentionMessage.GetProp("mention_context")
+		require.NotNil(t, mentionContext, "mention_context should be set")
+		require.Contains(t, mentionContext, "added in update", "mention_context should contain the paragraph text")
 	})
 }
 
