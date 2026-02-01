@@ -282,12 +282,9 @@ function ThreadItem({
                     onClick={handleFormattedTextClick}
                     onKeyDown={handleFormattedTextClick}
                 >
-                    <h3 className='markdown__heading'>
-                        {thread.props?.custom_name || cleanMessageForDisplay(post.message)}
-                    </h3>
                     {post.message ? (
                         <Markdown
-                            message={post.state === Posts.POST_DELETED ? msgDeleted : post.message}
+                            message={post.state === Posts.POST_DELETED ? msgDeleted : (thread.props?.custom_name || cleanMessageForDisplay(post.message))}
                             options={markdownPreviewOptions}
                             imagesMetadata={post?.metadata && post?.metadata?.images}
                             mentionKeys={mentionsKeys}
