@@ -255,22 +255,27 @@ const FlagsGrid = styled.div`
     gap: 12px;
 `;
 
-const FlagCard = styled.div<{isEnabled: boolean; isOverride: boolean}>`
+const FlagCard = styled.div<{isEnabled: boolean; isOverride: boolean; useStatusStyling?: boolean}>`
     display: flex;
     align-items: center;
     justify-content: space-between;
     padding: 16px 20px;
-    background: ${({isOverride}) => isOverride ? 'rgba(138, 43, 226, 0.04)' : 'var(--center-channel-bg)'};
+    background: ${({isOverride, isEnabled, useStatusStyling}) =>
+        useStatusStyling ? (isEnabled ? 'rgba(61, 204, 145, 0.04)' : 'var(--center-channel-bg)') :
+            isOverride ? 'rgba(138, 43, 226, 0.04)' : 'var(--center-channel-bg)'};
     border: 1px solid rgba(var(--center-channel-color-rgb), 0.08);
     border-radius: 8px;
     transition: all 0.15s ease;
-    border-left: 4px solid ${({isOverride, isEnabled}) =>
-        isOverride ? '#8A2BE2' :
-            isEnabled ? 'var(--online-indicator)' :
-                'rgba(var(--center-channel-color-rgb), 0.16)'};
+    border-left: 4px solid ${({isOverride, isEnabled, useStatusStyling}) =>
+        useStatusStyling ? (isEnabled ? 'var(--online-indicator)' : 'rgba(var(--center-channel-color-rgb), 0.16)') :
+            isOverride ? '#8A2BE2' :
+                isEnabled ? 'var(--online-indicator)' :
+                    'rgba(var(--center-channel-color-rgb), 0.16)'};
 
     &:hover {
-        background: ${({isOverride}) => isOverride ? 'rgba(138, 43, 226, 0.08)' : 'rgba(var(--center-channel-color-rgb), 0.04)'};
+        background: ${({isOverride, isEnabled, useStatusStyling}) =>
+            useStatusStyling ? (isEnabled ? 'rgba(61, 204, 145, 0.08)' : 'rgba(var(--center-channel-color-rgb), 0.04)') :
+                isOverride ? 'rgba(138, 43, 226, 0.08)' : 'rgba(var(--center-channel-color-rgb), 0.04)'};
         box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
     }
 `;
@@ -422,22 +427,18 @@ const FeatureFlags: React.FC<Props> = ({config, patchConfig, disabled = false, a
     const [searchTerm, setSearchTerm] = useState('');
     const [filter, setFilter] = useState<FilterType>('all');
 
-    // Convert config flags to proper booleans
+    // Convert config flags to proper booleans (keep ALL flags for saving)
     const initialFlags = useMemo(() => {
         const flags: Record<string, boolean> = {};
         if (config.FeatureFlags) {
             for (const [key, value] of Object.entries(config.FeatureFlags)) {
                 if (key !== 'TestFeature') { // Skip string-only flags
-                    // If allowedFlags is provided, only include those flags
-                    if (allowedFlags && !allowedFlags.includes(key)) {
-                        continue;
-                    }
                     flags[key] = toBool(value);
                 }
             }
         }
         return flags;
-    }, [config.FeatureFlags, allowedFlags]);
+    }, [config.FeatureFlags]);
 
     const [localFlags, setLocalFlags] = useState<Record<string, boolean>>(initialFlags);
     const [saving, setSaving] = useState(false);
@@ -461,9 +462,10 @@ const FeatureFlags: React.FC<Props> = ({config, patchConfig, disabled = false, a
 
     const saveNeeded = Object.keys(changedFlags).length > 0;
 
-    // Get flag entries from the local state
+    // Get flag entries from the local state (filtered for display if allowedFlags provided)
     const flagEntries = useMemo(() => {
         return Object.entries(localFlags)
+            .filter(([key]) => !allowedFlags || allowedFlags.includes(key))
             .map(([key, value]) => ({
                 key,
                 value,
@@ -471,7 +473,7 @@ const FeatureFlags: React.FC<Props> = ({config, patchConfig, disabled = false, a
                 defaultValue: FLAG_METADATA[key]?.defaultValue ?? false,
                 isModified: initialFlags[key] !== value,
             }));
-    }, [localFlags, initialFlags]);
+    }, [localFlags, initialFlags, allowedFlags]);
 
     // Filter and search
     const filteredFlags = useMemo(() => {
@@ -532,20 +534,9 @@ const FeatureFlags: React.FC<Props> = ({config, patchConfig, disabled = false, a
         setServerError(null);
 
         try {
-            // Merge local changes with all existing flags to prevent clearing unmentioned ones
-            const allFlags: Record<string, boolean> = {};
-            if (config.FeatureFlags) {
-                for (const [key, value] of Object.entries(config.FeatureFlags)) {
-                    if (key !== 'TestFeature') {
-                        allFlags[key] = toBool(value);
-                    }
-                }
-            }
-            // Apply our local changes on top
-            const mergedFlags = {...allFlags, ...localFlags};
-
+            // Send ALL feature flags to prevent server from clearing unmentioned ones
             const result = await patchConfig({
-                FeatureFlags: mergedFlags,
+                FeatureFlags: localFlags,
             });
 
             if (result.error) {
@@ -559,7 +550,7 @@ const FeatureFlags: React.FC<Props> = ({config, patchConfig, disabled = false, a
         } finally {
             setSaving(false);
         }
-    }, [changedFlags, localFlags, patchConfig, config.FeatureFlags]);
+    }, [changedFlags, localFlags, patchConfig]);
 
     return (
         <Container className='wrapper--admin'>
@@ -611,7 +602,7 @@ const FeatureFlags: React.FC<Props> = ({config, patchConfig, disabled = false, a
                         <strong>{stats.disabled}</strong>
                         {'Disabled'}
                     </StatItem>
-                    {stats.nonDefault > 0 && (
+                    {!showStatusBadge && stats.nonDefault > 0 && (
                         <StatItem style={{color: '#8A2BE2'}}>
                             <strong>{stats.nonDefault}</strong>
                             {'Overrides'}
@@ -639,6 +630,7 @@ const FeatureFlags: React.FC<Props> = ({config, patchConfig, disabled = false, a
                                 key={flag.key}
                                 isEnabled={flag.value}
                                 isOverride={flag.value !== flag.defaultValue}
+                                useStatusStyling={showStatusBadge}
                             >
                                 <FlagInfo>
                                     <FlagName>
