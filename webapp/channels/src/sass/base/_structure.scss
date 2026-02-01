@@ -116,11 +116,11 @@ body.app__body #root {
 
     --columns: min-content minmax(385px, 1fr) min-content;
     grid-template:
-        "announcement announcement announcement" min-content
-        "admin-announcement admin-announcement admin-announcement" min-content
-        "header header header" min-content
-        "team-sidebar main app-sidebar"
-        "footer footer footer" min-content / var(--columns);
+        "announcement announcement announcement announcement" min-content
+        "admin-announcement admin-announcement admin-announcement admin-announcement" min-content
+        "header header header header" min-content
+        "product-sidebar team-sidebar main app-sidebar"
+        "footer footer footer footer" min-content / min-content var(--columns);
 
     > :only-child {
         grid-area: main;
@@ -232,6 +232,10 @@ body.app__body #root {
         grid-area: app-sidebar;
     }
 
+    .ProductSidebar {
+        grid-area: product-sidebar;
+    }
+
     &:not(.console__root) {
         @media screen and (max-width: 768px) {
             padding-bottom: 0;
@@ -246,6 +250,10 @@ body.app__body #root {
             .team-sidebar,
             .app-bar {
                 grid-area: main;
+            }
+
+            .ProductSidebar {
+                display: none;
             }
 
             #SidebarContainer.move--right {

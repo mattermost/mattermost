@@ -1,0 +1,52 @@
+.ProductSidebar {
+    z-index: 17;
+    display: flex;
+    width: 56px;
+    height: 100%;
+    flex-direction: column;
+    justify-content: space-between;
+    background-color: var(--sidebar-header-bg);
+    grid-area: product-sidebar;
+
+    &__topSection,
+    &__bottomSection {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        padding: 8px;
+        gap: 8px;
+    }
+
+    // Scrollable product area for when many products are registered
+    &__topSection {
+        -ms-overflow-style: none; // IE/Edge
+        overflow-x: hidden;
+        overflow-y: auto;
+
+        // Hide scrollbar but keep functionality
+        scrollbar-width: none; // Firefox
+
+        &::-webkit-scrollbar {
+            display: none; // Chrome/Safari
+        }
+    }
+}
+
+// Mobile responsive - follows TeamSidebar pattern
+@media screen and (max-width: 768px) {
+    .ProductSidebar {
+        position: fixed;
+        z-index: 17;
+        top: 0;
+        left: 0;
+        display: none; // Hidden by default on mobile (overrides _structure.scss)
+        height: 100%;
+        transform: translate3d(-56px, 0, 0);
+        transition: transform 0.35s ease;
+
+        &.move--right {
+            display: flex; // Show when drawer opens
+            transform: translate3d(0, 0, 0);
+        }
+    }
+}

@@ -1178,7 +1178,7 @@ export default class PluginRegistry {
         wrapped = true,
         publicComponent,
     }: Omit<ProductComponent, 'id' | 'pluginId'>) => {
-        const id = generateId();
+        const id = this.id;
 
         dispatchPluginComponentWithData('Product', {
             id,
