@@ -6,6 +6,8 @@ import {useCallback, useMemo, useRef, useState} from 'react';
 import {useDispatch, useSelector} from 'react-redux';
 
 import type {ServerError} from '@mattermost/types/errors';
+import type {Post} from '@mattermost/types/posts';
+import {PostPriority} from '@mattermost/types/posts';
 import type {SchedulingInfo} from '@mattermost/types/schedule_post';
 
 import {FileTypes} from 'mattermost-redux/action_types';
@@ -206,6 +208,7 @@ const useSubmit = (
             }
 
             setServerError(null);
+            const isEncrypted = submittingDraft.metadata?.priority?.priority === PostPriority.ENCRYPTED;
             handleDraftChange({
                 message: '',
                 fileInfos: [],
@@ -214,6 +217,11 @@ const useSubmit = (
                 updateAt: 0,
                 channelId,
                 rootId,
+                metadata: isEncrypted ? {
+                    priority: {
+                        priority: PostPriority.ENCRYPTED,
+                    },
+                } : undefined,
             }, {instant: true});
         } catch (err: unknown) {
             if (isServerError(err)) {

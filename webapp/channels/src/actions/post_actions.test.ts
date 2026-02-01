@@ -3,6 +3,7 @@
 
 import type {FileInfo, FilesState} from '@mattermost/types/files';
 import type {Post} from '@mattermost/types/posts';
+import {PostPriority} from '@mattermost/types/posts';
 
 import {ChannelTypes, SearchTypes} from 'mattermost-redux/action_types';
 import * as PostActions from 'mattermost-redux/actions/posts';
@@ -465,6 +466,49 @@ describe('Actions.Posts', () => {
 
             await testStore.dispatch(Actions.createPost(newReply, files));
             expect(testStore.getActions()).toEqual(finalExpectedState);
+        });
+
+        test('with encrypted priority', async () => {
+            const testStore = mockStore(initialState);
+            const newPost = {
+                id: 'new_post_id',
+                channel_id: 'current_channel_id',
+                root_id: '',
+                message: 'encrypted message',
+                metadata: {
+                    priority: {
+                        priority: PostPriority.ENCRYPTED,
+                    },
+                },
+            } as Post;
+            const files: FileInfo[] = [];
+
+            const expectedState = [{
+                args: [newPost, files, undefined],
+                type: 'MOCK_CREATE_POST',
+            }, {
+                args: [
+                    'draft_current_channel_id',
+                    {
+                        message: '',
+                        fileInfos: [],
+                        uploadsInProgress: [],
+                        channelId: 'current_channel_id',
+                        rootId: '',
+                        createAt: 0,
+                        updateAt: 0,
+                        metadata: {
+                            priority: {
+                                priority: PostPriority.ENCRYPTED,
+                            },
+                        },
+                    },
+                ],
+                type: 'MOCK_SET_GLOBAL_ITEM',
+            }];
+
+            await testStore.dispatch(Actions.createPost(newPost, files));
+            expect(testStore.getActions()).toEqual(expectedState);
         });
 
         test('with single shorthand emoji', async () => {

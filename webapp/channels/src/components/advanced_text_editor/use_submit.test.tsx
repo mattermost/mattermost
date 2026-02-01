@@ -13,10 +13,20 @@ import {ModalIdentifiers} from 'utils/constants';
 import type {GlobalState} from 'types/store';
 import type {PostDraft} from 'types/store/draft';
 
+import {PostPriority} from '@mattermost/types/posts';
+
 import useSubmit from './use_submit';
 
 jest.mock('actions/views/modals', () => ({
     openModal: jest.fn(() => ({type: ''})),
+}));
+
+jest.mock('actions/views/create_comment', () => ({
+    onSubmit: jest.fn(() => ({type: 'MOCK_ON_SUBMIT'})),
+}));
+
+jest.mock('actions/views/posts', () => ({
+    editPost: jest.fn(() => ({type: 'MOCK_EDIT_POST'})),
 }));
 
 describe('useSubmit', () => {
@@ -264,6 +274,48 @@ describe('useSubmit', () => {
         expect(openModal).not.toHaveBeenCalledWith(expect.objectContaining({
             modalId: ModalIdentifiers.EDIT_CHANNEL_HEADER,
         }));
+    });
+
+    it('should preserve encrypted priority after submit', async () => {
+        const encryptedDraft: PostDraft = {
+            ...mockDraft,
+            rootId: '',
+            metadata: {
+                priority: {
+                    priority: PostPriority.ENCRYPTED,
+                },
+            },
+        };
+        const {result} = renderHookWithContext(() => useSubmit(
+            encryptedDraft,
+            mockPostError,
+            'channel_id',
+            '',
+            mockServerError,
+            mockLastBlurAt,
+            mockFocusTextbox,
+            mockSetServerError,
+            mockSetShowPreview,
+            mockHandleDraftChange,
+            mockPrioritySubmitCheck,
+            mockAfterOptimisticSubmit,
+            mockAfterSubmit,
+            false,
+            false,
+            'post_id',
+        ), getBaseState());
+
+        const [handleSubmit] = result.current;
+
+        await handleSubmit();
+
+        expect(mockHandleDraftChange).toHaveBeenCalledWith(expect.objectContaining({
+            metadata: {
+                priority: {
+                    priority: PostPriority.ENCRYPTED,
+                },
+            },
+        }), {instant: true});
     });
 });
 

@@ -7,6 +7,7 @@ import {batchActions} from 'redux-batched-actions';
 import type {FileInfo} from '@mattermost/types/files';
 import type {GroupChannel} from '@mattermost/types/groups';
 import type {Post} from '@mattermost/types/posts';
+import {PostPriority} from '@mattermost/types/posts';
 import type {ScheduledPost} from '@mattermost/types/schedule_post';
 
 import {SearchTypes} from 'mattermost-redux/action_types';
@@ -150,10 +151,26 @@ export function createPost(
         const result = await dispatch(PostActions.createPost(post, files, afterSubmit));
 
         if (!options?.keepDraft) {
+            const isEncrypted = post.metadata?.priority?.priority === PostPriority.ENCRYPTED;
+            const newDraft = isEncrypted ? {
+                message: '',
+                fileInfos: [],
+                uploadsInProgress: [],
+                channelId: post.channel_id,
+                rootId: post.root_id,
+                createAt: 0,
+                updateAt: 0,
+                metadata: {
+                    priority: {
+                        priority: PostPriority.ENCRYPTED,
+                    },
+                },
+            } as PostDraft : null;
+
             if (post.root_id) {
-                dispatch(storeCommentDraft(post.root_id, null));
+                dispatch(storeCommentDraft(post.root_id, newDraft));
             } else {
-                dispatch(storeDraft(post.channel_id, null));
+                dispatch(storeDraft(post.channel_id, newDraft));
             }
         }
 
@@ -178,14 +195,14 @@ export function createSchedulePostFromDraft(scheduledPost: ScheduledPost): Actio
     };
 }
 
-function storeDraft(channelId: string, draft: null): ActionFunc {
+function storeDraft(channelId: string, draft: PostDraft | null): ActionFunc {
     return (dispatch) => {
         dispatch(StorageActions.setGlobalItem('draft_' + channelId, draft));
         return {data: true};
     };
 }
 
-function storeCommentDraft(rootPostId: string, draft: null): ActionFunc {
+function storeCommentDraft(rootPostId: string, draft: PostDraft | null): ActionFunc {
     return (dispatch) => {
         dispatch(StorageActions.setGlobalItem('comment_draft_' + rootPostId, draft));
         return {data: true};
