@@ -4,6 +4,7 @@
 package app
 
 import (
+	"encoding/json"
 	"testing"
 
 	"github.com/mattermost/mattermost/server/public/model"
@@ -243,41 +244,218 @@ func TestPermalinkBroadcastHook(t *testing.T) {
 	hook := &permalinkBroadcastHook{}
 
 	refPost := th.CreatePost(t, th.BasicChannel)
+	previewPost := model.NewPreviewPost(refPost, th.BasicTeam, th.BasicChannel)
 
-	th.BasicPost.Metadata.Embeds = append(th.BasicPost.Metadata.Embeds, &model.PostEmbed{Type: model.PostEmbedPermalink, Data: &model.Permalink{
-		PreviewPost: model.NewPreviewPost(refPost, th.BasicTeam, th.BasicChannel),
-	}})
-	originalJSON, err := th.BasicPost.ToJSON()
+	// Create a clean post (no metadata)
+	cleanPost := th.BasicPost.Clone()
+	cleanPost.Metadata = &model.PostMetadata{}
+	cleanJSON, err := cleanPost.ToJSON()
 	require.NoError(t, err)
 
 	wsEvent := model.NewWebSocketEvent(model.WebsocketEventPosted, "", th.BasicPost.ChannelId, "", nil, "")
-	th.BasicPost.Metadata.Embeds[0].Data = nil
-	removedJSON, err := th.BasicPost.ToJSON()
-	require.NoError(t, err)
+	wsEvent.Add("post", cleanJSON)
 
-	wsEvent.Add("post", removedJSON)
-	msg := platform.MakeHookedWebSocketEvent(wsEvent)
+	t.Run("should add permalink metadata when user has permission", func(t *testing.T) {
+		msg := platform.MakeHookedWebSocketEvent(wsEvent)
 
-	// User has permission.
-	err = hook.Process(msg, wc, map[string]any{
-		"preview_channel": th.BasicChannel,
-		"post_json":       originalJSON,
+		err = hook.Process(msg, wc, map[string]any{
+			"preview_channel":          th.BasicChannel,
+			"permalink_previewed_post": previewPost,
+			"preview_prop":             refPost.Id,
+		})
+		require.NoError(t, err)
+
+		gotJSON, ok := msg.Get("post").(string)
+		require.True(t, ok)
+
+		var gotPost model.Post
+		err = json.Unmarshal([]byte(gotJSON), &gotPost)
+		require.NoError(t, err)
+
+		// Verify permalink metadata was added
+		assert.Equal(t, refPost.Id, gotPost.GetPreviewedPostProp())
+		assert.Len(t, gotPost.Metadata.Embeds, 1)
+		assert.Equal(t, model.PostEmbedPermalink, gotPost.Metadata.Embeds[0].Type)
+	})
+
+	t.Run("should not add permalink metadata when user lacks permission", func(t *testing.T) {
+		msg := platform.MakeHookedWebSocketEvent(wsEvent)
+
+		// User does not exist, and thus won't have permission to the channel
+		noPermWc := &platform.WebConn{
+			Platform: th.Server.Platform(),
+			Suite:    th.App,
+			UserId:   "otheruser",
+		}
+
+		err = hook.Process(msg, noPermWc, map[string]any{
+			"preview_channel":          th.BasicChannel,
+			"permalink_previewed_post": previewPost,
+			"preview_prop":             refPost.Id,
+		})
+		require.NoError(t, err)
+
+		gotJSON, ok := msg.Get("post").(string)
+		require.True(t, ok)
+
+		// Post should remain clean (no metadata added)
+		assert.Equal(t, cleanJSON, gotJSON)
+	})
+}
+
+func TestChannelMentionsBroadcastHook(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+
+	session, err := th.Server.Platform().CreateSession(th.Context, &model.Session{
+		UserId: th.BasicUser.Id,
 	})
 	require.NoError(t, err)
 
-	gotJSON, ok := msg.Get("post").(string)
-	require.True(t, ok)
-	require.Equal(t, originalJSON, gotJSON)
+	wc := &platform.WebConn{
+		Platform: th.Server.Platform(),
+		Suite:    th.App,
+		UserId:   session.UserId,
+	}
+	hook := &channelMentionsBroadcastHook{}
 
-	msg = platform.MakeHookedWebSocketEvent(wsEvent)
-	// User does not exist, and thus won't have permission to the channel.
-	wc.UserId = "otheruser"
-	err = hook.Process(msg, wc, map[string]any{
-		"preview_channel": th.BasicChannel,
-		"post_json":       originalJSON,
-	})
+	// Create a private channel that BasicUser doesn't have access to
+	// Use BasicUser2 to create it so BasicUser is never added
+	privateChannel := th.CreatePrivateChannel(t, th.BasicTeam)
+	// Remove BasicUser if they were added automatically
+	_ = th.App.RemoveUserFromChannel(th.Context, th.BasicUser.Id, "", privateChannel)
+	// Ensure BasicUser2 is a member
+	th.AddUserToChannel(t, th.BasicUser2, privateChannel)
+
+	// Create channel mentions map with both channels
+	channelMentions := map[string]any{
+		th.BasicChannel.Name: map[string]any{
+			"id":           th.BasicChannel.Id,
+			"display_name": th.BasicChannel.DisplayName,
+		},
+		privateChannel.Name: map[string]any{
+			"id":           privateChannel.Id,
+			"display_name": privateChannel.DisplayName,
+		},
+	}
+
+	// Create a clean post
+	cleanPost := th.BasicPost.Clone()
+	cleanPost.Metadata = &model.PostMetadata{}
+	cleanJSON, err := cleanPost.ToJSON()
 	require.NoError(t, err)
-	gotJSON, ok = msg.Get("post").(string)
-	require.True(t, ok)
-	require.Equal(t, removedJSON, gotJSON)
+
+	wsEvent := model.NewWebSocketEvent(model.WebsocketEventPosted, "", th.BasicPost.ChannelId, "", nil, "")
+	wsEvent.Add("post", cleanJSON)
+
+	t.Run("should filter channel mentions based on user permissions", func(t *testing.T) {
+		msg := platform.MakeHookedWebSocketEvent(wsEvent)
+
+		err = hook.Process(msg, wc, map[string]any{
+			"channel_mentions": channelMentions,
+		})
+		require.NoError(t, err)
+
+		gotJSON, ok := msg.Get("post").(string)
+		require.True(t, ok)
+
+		var gotPost model.Post
+		err = json.Unmarshal([]byte(gotJSON), &gotPost)
+		require.NoError(t, err)
+
+		// Verify only the permitted channel mention was added
+		mentions := gotPost.GetProp(model.PostPropsChannelMentions)
+		require.NotNil(t, mentions)
+
+		mentionsMap, ok := mentions.(map[string]any)
+		require.True(t, ok)
+
+		// Should have access to BasicChannel
+		assert.Contains(t, mentionsMap, th.BasicChannel.Name)
+		// Should NOT have access to privateChannel
+		assert.NotContains(t, mentionsMap, privateChannel.Name)
+	})
+
+	t.Run("should not add channel mentions when user has no permission to any", func(t *testing.T) {
+		msg := platform.MakeHookedWebSocketEvent(wsEvent)
+
+		// Only include the private channel
+		privateOnlyMentions := map[string]any{
+			privateChannel.Name: map[string]any{
+				"id":           privateChannel.Id,
+				"display_name": privateChannel.DisplayName,
+			},
+		}
+
+		err = hook.Process(msg, wc, map[string]any{
+			"channel_mentions": privateOnlyMentions,
+		})
+		require.NoError(t, err)
+
+		gotJSON, ok := msg.Get("post").(string)
+		require.True(t, ok)
+
+		var gotPost model.Post
+		err = json.Unmarshal([]byte(gotJSON), &gotPost)
+		require.NoError(t, err)
+
+		// Should have no channel mentions
+		mentions := gotPost.GetProp(model.PostPropsChannelMentions)
+		assert.Nil(t, mentions)
+	})
+
+	t.Run("should accumulate with existing post metadata", func(t *testing.T) {
+		// Create a post that already has some metadata (e.g., from permalink hook)
+		refPost := th.CreatePost(t, th.BasicChannel)
+		postWithMetadata := th.BasicPost.Clone()
+		postWithMetadata.Metadata = &model.PostMetadata{
+			Embeds: []*model.PostEmbed{
+				{Type: model.PostEmbedPermalink, Data: model.NewPreviewPost(refPost, th.BasicTeam, th.BasicChannel)},
+			},
+		}
+		postWithMetadataJSON, jsonErr := postWithMetadata.ToJSON()
+		require.NoError(t, jsonErr)
+
+		wsEventWithMeta := model.NewWebSocketEvent(model.WebsocketEventPosted, "", th.BasicPost.ChannelId, "", nil, "")
+		wsEventWithMeta.Add("post", postWithMetadataJSON)
+		msg := platform.MakeHookedWebSocketEvent(wsEventWithMeta)
+
+		err = hook.Process(msg, wc, map[string]any{
+			"channel_mentions": map[string]any{
+				th.BasicChannel.Name: map[string]any{
+					"id":           th.BasicChannel.Id,
+					"display_name": th.BasicChannel.DisplayName,
+				},
+			},
+		})
+		require.NoError(t, err)
+
+		gotJSON, ok := msg.Get("post").(string)
+		require.True(t, ok)
+
+		var gotPost model.Post
+		err = json.Unmarshal([]byte(gotJSON), &gotPost)
+		require.NoError(t, err)
+
+		// Should have BOTH the permalink embed AND channel mentions
+		assert.Len(t, gotPost.Metadata.Embeds, 1, "Permalink embed should be preserved")
+		assert.Equal(t, model.PostEmbedPermalink, gotPost.Metadata.Embeds[0].Type)
+
+		mentions := gotPost.GetProp(model.PostPropsChannelMentions)
+		require.NotNil(t, mentions, "Channel mentions should be added")
+	})
+
+	t.Run("should handle empty channel mentions", func(t *testing.T) {
+		msg := platform.MakeHookedWebSocketEvent(wsEvent)
+
+		err = hook.Process(msg, wc, map[string]any{
+			"channel_mentions": map[string]any{},
+		})
+		require.NoError(t, err)
+
+		// Should return early without error
+		gotJSON, ok := msg.Get("post").(string)
+		require.True(t, ok)
+		assert.Equal(t, cleanJSON, gotJSON)
+	})
 }
