@@ -283,24 +283,19 @@ function ThreadItem({
                     onKeyDown={handleFormattedTextClick}
                 >
                     <h3 className='markdown__heading'>
-                        <span className='icon-discord-thread ThreadItem__thread-icon'/>
-                        {thread.props?.custom_name || cleanMessageForDisplay(post.message) || formatMessage({id: 'threading.thread', defaultMessage: 'Thread'})}
+                        {thread.props?.custom_name || cleanMessageForDisplay(post.message)}
                     </h3>
-                    <div className='preview__content'>
-                        {post.message && post.state !== Posts.POST_DELETED ? (
-                            <Markdown
-                                message={post.message}
-                                options={markdownPreviewOptions}
-                                imagesMetadata={post?.metadata && post?.metadata?.images}
-                                mentionKeys={mentionsKeys}
-                                imageProps={imageProps}
-                            />
-                        ) : post.state === Posts.POST_DELETED ? (
-                            <span className='post--deleted'>{msgDeleted}</span>
-                        ) : (
-                            <Attachment post={post}/>
-                        )}
-                    </div>
+                    {post.message ? (
+                        <Markdown
+                            message={post.state === Posts.POST_DELETED ? msgDeleted : post.message}
+                            options={markdownPreviewOptions}
+                            imagesMetadata={post?.metadata && post?.metadata?.images}
+                            mentionKeys={mentionsKeys}
+                            imageProps={imageProps}
+                        />
+                    ) : (
+                        <Attachment post={post}/>
+                    )}
                 </div>
                 <div className='activity'>
                     {participantIds?.length ? (
