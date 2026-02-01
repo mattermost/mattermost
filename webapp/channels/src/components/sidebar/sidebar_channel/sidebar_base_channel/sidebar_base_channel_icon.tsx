@@ -25,15 +25,16 @@ function MdiSidebarIcon({name}: {name: string}) {
         return <i className='icon icon-globe'/>;
     }
     return (
-        <svg
-            className='sidebar-channel-icon sidebar-channel-icon--mdi'
-            viewBox='0 0 24 24'
-            width='16'
-            height='16'
-            fill='currentColor'
-        >
-            <path d={path}/>
-        </svg>
+        <i className='icon sidebar-channel-icon sidebar-channel-icon--mdi'>
+            <svg
+                viewBox='0 0 24 24'
+                width='18'
+                height='18'
+                fill='currentColor'
+            >
+                <path d={path}/>
+            </svg>
+        </i>
     );
 }
 
@@ -44,24 +45,25 @@ function LucideSidebarIcon({name}: {name: string}) {
         return <i className='icon icon-globe'/>;
     }
     return (
-        <svg
-            className='sidebar-channel-icon sidebar-channel-icon--lucide'
-            viewBox='0 0 24 24'
-            width='16'
-            height='16'
-            fill='none'
-            stroke='currentColor'
-            strokeWidth='2'
-            strokeLinecap='round'
-            strokeLinejoin='round'
-        >
-            {paths.map((d, i) => (
-                <path
-                    key={i}
-                    d={d}
-                />
-            ))}
-        </svg>
+        <i className='icon sidebar-channel-icon sidebar-channel-icon--lucide'>
+            <svg
+                viewBox='0 0 24 24'
+                width='18'
+                height='18'
+                fill='none'
+                stroke='currentColor'
+                strokeWidth='2'
+                strokeLinecap='round'
+                strokeLinejoin='round'
+            >
+                {paths.map((d, i) => (
+                    <path
+                        key={i}
+                        d={d}
+                    />
+                ))}
+            </svg>
+        </i>
     );
 }
 
@@ -76,8 +78,8 @@ function CustomSvgSidebarIcon({base64}: {base64: string}) {
             .replace(/javascript:/gi, '');
 
         return (
-            <span
-                className='sidebar-channel-icon sidebar-channel-icon--custom'
+            <i
+                className='icon sidebar-channel-icon sidebar-channel-icon--custom'
                 dangerouslySetInnerHTML={{__html: sanitized}}
             />
         );
