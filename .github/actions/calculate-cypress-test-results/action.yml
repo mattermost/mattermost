@@ -1,0 +1,206 @@
+---
+name: Calculate Cypress Test Results
+description: Parse Cypress mochawesome test results and calculate pass/fail counts
+
+inputs:
+  results_path:
+    description: Path to the Cypress results directory (e.g., e2e-tests/cypress/results)
+    required: true
+
+outputs:
+  passed:
+    description: Number of passed tests
+    value: ${{ steps.calculate.outputs.passed }}
+  failed:
+    description: Number of failed tests
+    value: ${{ steps.calculate.outputs.failed }}
+  pending:
+    description: Number of pending/skipped tests
+    value: ${{ steps.calculate.outputs.pending }}
+  total_specs:
+    description: Total number of spec files
+    value: ${{ steps.calculate.outputs.total_specs }}
+  commit_status_message:
+    description: Message for commit status (e.g., "X failed, Y passed (Z spec files)")
+    value: ${{ steps.calculate.outputs.commit_status_message }}
+  failed_specs:
+    description: Comma-separated list of failed spec files (for retest)
+    value: ${{ steps.calculate.outputs.failed_specs }}
+  failed_specs_count:
+    description: Number of failed spec files
+    value: ${{ steps.calculate.outputs.failed_specs_count }}
+  failed_tests:
+    description: Markdown table rows of failed tests (for GitHub summary)
+    value: ${{ steps.calculate.outputs.failed_tests }}
+  total:
+    description: Total number of tests (passed + failed)
+    value: ${{ steps.calculate.outputs.total }}
+  pass_rate:
+    description: Pass rate percentage (e.g., "100.00")
+    value: ${{ steps.calculate.outputs.pass_rate }}
+  color:
+    description: Color for webhook based on pass rate (green=100%, yellow=99%+, orange=98%+, red=<98%)
+    value: ${{ steps.calculate.outputs.color }}
+
+runs:
+  using: composite
+  steps:
+    - name: ci/calculate-cypress-results
+      id: calculate
+      shell: bash
+      run: |
+        RESULTS_PATH="${{ inputs.results_path }}"
+
+        PASSED=0
+        FAILED=0
+        PENDING=0
+        TOTAL_SPECS=0
+        FAILED_SPECS=""
+
+        # Mochawesome results are at: results/mochawesome-report/json/tests/integration/**/*.json
+        MOCHAWESOME_DIR="${RESULTS_PATH}/mochawesome-report/json/tests"
+
+        if [ -d "$MOCHAWESOME_DIR" ]; then
+          echo "Parsing Cypress mochawesome results from: $MOCHAWESOME_DIR"
+
+          # Find all JSON result files
+          while IFS= read -r file; do
+            if [ -f "$file" ]; then
+              TOTAL_SPECS=$((TOTAL_SPECS + 1))
+
+              # Count tests by state field (reliable method)
+              # The state field can be: "passed", "failed", "pending"
+              FILE_PASSED=$(jq '[.. | objects | select(.state? == "passed")] | length' "$file" 2>/dev/null || echo "0")
+              FILE_FAILED=$(jq '[.. | objects | select(.state? == "failed")] | length' "$file" 2>/dev/null || echo "0")
+              FILE_PENDING=$(jq '[.. | objects | select(.state? == "pending")] | length' "$file" 2>/dev/null || echo "0")
+
+              PASSED=$((PASSED + FILE_PASSED))
+              FAILED=$((FAILED + FILE_FAILED))
+              PENDING=$((PENDING + FILE_PENDING))
+
+              # If file has failures, extract spec path
+              if [ "$FILE_FAILED" -gt 0 ]; then
+                SPEC_FILE=$(jq -r '.results[0].file // empty' "$file" 2>/dev/null)
+                if [ -n "$SPEC_FILE" ]; then
+                  if [ -n "$FAILED_SPECS" ]; then
+                    FAILED_SPECS="${FAILED_SPECS},${SPEC_FILE}"
+                  else
+                    FAILED_SPECS="${SPEC_FILE}"
+                  fi
+                fi
+              fi
+            fi
+          done < <(find "$MOCHAWESOME_DIR" -name "*.json" -type f 2>/dev/null)
+        else
+          echo "Warning: Mochawesome directory not found at $MOCHAWESOME_DIR"
+        fi
+
+        # Handle case where no results found
+        if [ "$PASSED" = "0" ] && [ "$FAILED" = "0" ] && [ "$TOTAL_SPECS" = "0" ]; then
+          echo "Warning: No Cypress test results found"
+          FAILED=1  # Treat as failure if no results
+        fi
+
+        # Build commit status message
+        if [ "$TOTAL_SPECS" -gt 0 ]; then
+          SPEC_SUFFIX=" in ${TOTAL_SPECS} spec files"
+        else
+          SPEC_SUFFIX=""
+        fi
+
+        if [ "$FAILED" = "0" ]; then
+          COMMIT_STATUS_MESSAGE="${PASSED} passed${SPEC_SUFFIX}"
+        else
+          COMMIT_STATUS_MESSAGE="${FAILED} failed, ${PASSED} passed${SPEC_SUFFIX}"
+        fi
+
+        # Count failed spec files
+        if [ -n "$FAILED_SPECS" ]; then
+          FAILED_SPECS_COUNT=$(echo "$FAILED_SPECS" | tr ',' '\n' | wc -l | tr -d ' ')
+        else
+          FAILED_SPECS_COUNT=0
+        fi
+
+        # Extract failed tests for GitHub summary (markdown table rows)
+        FAILED_TESTS=""
+        if [ "$FAILED" -gt 0 ] && [ -d "$MOCHAWESOME_DIR" ]; then
+          while IFS= read -r file; do
+            if [ -f "$file" ]; then
+              TESTS=$(jq -r '
+                .results[0].file as $specfile |
+                [.. | objects | select(.state? == "failed")] |
+                .[] |
+                "| \(.title | gsub("`"; "\\`") | gsub("\\|"; "\\|")) | \($specfile) |"
+              ' "$file" 2>/dev/null)
+              if [ -n "$TESTS" ]; then
+                FAILED_TESTS="${FAILED_TESTS}${TESTS}"$'\n'
+              fi
+            fi
+          done < <(find "$MOCHAWESOME_DIR" -name "*.json" -type f 2>/dev/null)
+
+          # Limit to 10 entries
+          TOTAL_FAILED_LINES=$(echo "$FAILED_TESTS" | grep -c '^|' || echo "0")
+          if [ "$TOTAL_FAILED_LINES" -gt 10 ]; then
+            FAILED_TESTS=$(echo "$FAILED_TESTS" | head -10)
+            REMAINING=$((TOTAL_FAILED_LINES - 10))
+            FAILED_TESTS="${FAILED_TESTS}| _...and ${REMAINING} more failed tests_ | |"
+          fi
+        fi
+
+        if [ -z "$FAILED_TESTS" ] && [ "$FAILED" -gt 0 ]; then
+          FAILED_TESTS="| Unable to parse failed tests | - |"
+        fi
+
+        # Calculate total and pass rate
+        # Pass rate = passed / (passed + failed), excluding pending
+        TOTAL=$((PASSED + FAILED))
+        if [ "$TOTAL" -gt 0 ]; then
+          PASS_RATE=$(echo "scale=2; ($PASSED * 100) / $TOTAL" | bc)
+        else
+          PASS_RATE="0.00"
+        fi
+
+        # Determine color based on pass rate: green=100%, yellow=99%+, orange=98%+, red=<98%
+        if (( $(echo "$PASS_RATE == 100" | bc -l) )); then
+          COLOR="#43A047"
+        elif (( $(echo "$PASS_RATE >= 99" | bc -l) )); then
+          COLOR="#FFEB3B"
+        elif (( $(echo "$PASS_RATE >= 98" | bc -l) )); then
+          COLOR="#FF9800"
+        else
+          COLOR="#F44336"
+        fi
+
+        # Print results
+        echo "========================================"
+        echo "Cypress Test Results:"
+        echo "  Passed: ${PASSED}"
+        echo "  Failed: ${FAILED}"
+        echo "  Pending: ${PENDING}"
+        echo "  Total: ${TOTAL}"
+        echo "  Pass Rate: ${PASS_RATE}%"
+        echo "  Color: ${COLOR}"
+        echo "  Spec Files: ${TOTAL_SPECS}"
+        echo "  Failed Specs Count: ${FAILED_SPECS_COUNT}"
+        echo "  Status Message: ${COMMIT_STATUS_MESSAGE}"
+        echo "  Failed Specs: ${FAILED_SPECS:-none}"
+        echo "========================================"
+
+        # Set outputs
+        echo "passed=${PASSED}" >> $GITHUB_OUTPUT
+        echo "failed=${FAILED}" >> $GITHUB_OUTPUT
+        echo "pending=${PENDING}" >> $GITHUB_OUTPUT
+        echo "total_specs=${TOTAL_SPECS}" >> $GITHUB_OUTPUT
+        echo "commit_status_message=${COMMIT_STATUS_MESSAGE}" >> $GITHUB_OUTPUT
+        echo "failed_specs=${FAILED_SPECS}" >> $GITHUB_OUTPUT
+        echo "failed_specs_count=${FAILED_SPECS_COUNT}" >> $GITHUB_OUTPUT
+        echo "total=${TOTAL}" >> $GITHUB_OUTPUT
+        echo "pass_rate=${PASS_RATE}" >> $GITHUB_OUTPUT
+        echo "color=${COLOR}" >> $GITHUB_OUTPUT
+
+        # Set multiline output for failed_tests
+        {
+          echo "failed_tests<<EOF"
+          echo "$FAILED_TESTS"
+          echo "EOF"
+        } >> $GITHUB_OUTPUT

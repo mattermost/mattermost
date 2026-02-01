@@ -9,7 +9,7 @@ clean:
 	rm -fv .ci/server.yml
 	rm -fv .ci/.env.{server,dashboard,cypress,playwright}
 
-.PHONY: generate-server start-server run-test stop-server restart-server
+.PHONY: generate-server start-server run-test run-specs stop-server restart-server
 generate-server:
 	bash ./.ci/server.generate.sh
 start-server: generate-server
@@ -17,6 +17,8 @@ start-server: generate-server
 	bash ./.ci/server.prepare.sh
 run-test:
 	bash ./.ci/server.run_test.sh
+run-specs:
+	bash ./.ci/server.run_specs.sh
 stop-server: generate-server
 	bash ./.ci/server.stop.sh
 restart-server: stop-server start-server
