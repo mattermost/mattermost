@@ -14,6 +14,7 @@ import {
     getFileDecryptionStatus,
     getFileDecryptionError,
     getEncryptedFileMetadata,
+    getDecryptedOriginalFileInfo,
 } from 'selectors/views/encrypted_files';
 
 import {decryptEncryptedFile} from 'actions/views/encryption';
@@ -72,6 +73,8 @@ export function useEncryptedFile(
     const status = useSelector((state: GlobalState) => getFileDecryptionStatus(state, fileId));
     const error = useSelector((state: GlobalState) => getFileDecryptionError(state, fileId));
     const metadata = useSelector((state: GlobalState) => getEncryptedFileMetadata(state, fileId));
+    // Original file info is ONLY available after successful decryption
+    const originalFileInfo = useSelector((state: GlobalState) => getDecryptedOriginalFileInfo(state, fileId));
 
     // Check if file is encrypted by:
     // 1. MIME type being encrypted type (application/x-penc)
@@ -97,10 +100,9 @@ export function useEncryptedFile(
         }
     }, [autoDecrypt, isEncrypted, decryptedUrl, status, decrypt]);
 
-    // Get original file info from metadata ONLY after successful decryption
-    // This prevents leaking file info (name, type, size) to users without decryption keys
+    // originalFileInfo is fetched from Redux where it's ONLY stored after successful decryption
+    // This ensures users without decryption keys cannot see file metadata (name, type, size)
     // Before decryption, components should show a generic "Encrypted file" placeholder
-    const originalFileInfo = status === 'decrypted' ? metadata?.original : undefined;
 
     return {
         isEncrypted,

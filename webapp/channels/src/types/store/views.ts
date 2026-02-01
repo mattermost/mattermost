@@ -8,7 +8,7 @@ import type {Team} from '@mattermost/types/teams';
 import type {UserThread} from '@mattermost/types/threads';
 import type {RelationOneToOne} from '@mattermost/types/utilities';
 
-import type {EncryptedFileMetadata} from 'utils/encryption/file';
+import type {EncryptedFileMetadata, OriginalFileInfo} from 'utils/encryption/file';
 
 import type {I18nState} from './i18n';
 import type {LhsViewState} from './lhs';
@@ -24,6 +24,8 @@ export interface EncryptedFilesState {
     status: Record<string, FileDecryptionStatus>;
     errors: Record<string, string>;
     metadata: Record<string, EncryptedFileMetadata>;
+    // Original file info (name, type, size) - ONLY available after successful decryption
+    originalInfo: Record<string, OriginalFileInfo>;
 }
 
 export interface EncryptionViewState {

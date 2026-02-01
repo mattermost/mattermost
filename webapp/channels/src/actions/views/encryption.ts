@@ -10,7 +10,7 @@ import {
     getEncryptedFileMetadata as getMetadataFromProps,
     isEncryptedFile,
 } from 'utils/encryption/file';
-import type {EncryptedFileMetadata} from 'utils/encryption/file';
+import type {EncryptedFileMetadata, OriginalFileInfo} from 'utils/encryption/file';
 import {getCurrentPrivateKey, getSessionId} from 'utils/encryption/session';
 
 import type {ThunkActionFunc} from 'types/store';
@@ -76,6 +76,14 @@ export function encryptedFileThumbnailGenerated(fileId: string, thumbnailUrl: st
         type: ActionTypes.ENCRYPTED_FILE_THUMBNAIL_GENERATED,
         fileId,
         thumbnailUrl,
+    };
+}
+
+export function encryptedFileOriginalInfoReceived(fileId: string, originalInfo: OriginalFileInfo) {
+    return {
+        type: ActionTypes.ENCRYPTED_FILE_ORIGINAL_INFO_RECEIVED,
+        fileId,
+        originalInfo,
     };
 }
 
@@ -163,10 +171,13 @@ export function decryptEncryptedFile(fileId: string, postId?: string): ThunkActi
         try {
             // Fetch and decrypt the file
             const fileUrl = Client4.getFileRoute(fileId);
-            const {blob, blobUrl} = await fetchAndDecryptFile(fileUrl, metadata, privateKey, sessionId);
+            const {blob, blobUrl, originalInfo} = await fetchAndDecryptFile(fileUrl, metadata, privateKey, sessionId);
 
             // Store the decrypted URL
             dispatch(encryptedFileDecrypted(fileId, blobUrl));
+
+            // Store the original file info (now available after decryption)
+            dispatch(encryptedFileOriginalInfoReceived(fileId, originalInfo));
 
             // Generate thumbnail for images
             if (blob.type.startsWith('image/')) {

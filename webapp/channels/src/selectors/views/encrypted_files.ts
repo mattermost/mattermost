@@ -3,7 +3,7 @@
 
 import type {GlobalState} from 'types/store';
 import type {FileDecryptionStatus} from 'types/store/views';
-import type {EncryptedFileMetadata} from 'utils/encryption/file';
+import type {EncryptedFileMetadata, OriginalFileInfo} from 'utils/encryption/file';
 
 /**
  * Gets the decrypted blob URL for a file, if available.
@@ -34,10 +34,18 @@ export function getFileDecryptionError(state: GlobalState, fileId: string): stri
 }
 
 /**
- * Gets the encryption metadata for a file.
+ * Gets the encryption metadata for a file (keys, iv, sender - NOT original file info).
  */
 export function getEncryptedFileMetadata(state: GlobalState, fileId: string): EncryptedFileMetadata | undefined {
     return state.views.encryption.encryptedFiles?.metadata?.[fileId];
+}
+
+/**
+ * Gets the original file info (name, type, size) - ONLY available after successful decryption.
+ * Returns undefined for users who haven't decrypted or can't decrypt.
+ */
+export function getDecryptedOriginalFileInfo(state: GlobalState, fileId: string): OriginalFileInfo | undefined {
+    return state.views.encryption.encryptedFiles?.originalInfo?.[fileId];
 }
 
 /**

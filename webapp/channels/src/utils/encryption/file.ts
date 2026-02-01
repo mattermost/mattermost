@@ -22,18 +22,26 @@ const IV_LENGTH = 12; // 96 bits for AES-GCM
 export const ENCRYPTED_FILE_MIME_TYPE = 'application/x-penc';
 
 /**
- * Metadata stored with encrypted files.
+ * Metadata stored with encrypted files (in post.props).
+ * NOTE: Original file info (name, type, size) is NOT stored here.
+ * It is encrypted inside the file payload and only available after decryption.
  */
 export interface EncryptedFileMetadata {
-    v: number;           // Version (1)
+    v: number;           // Version (2 = metadata inside payload)
     iv: string;          // Base64-encoded 12-byte IV for AES-GCM
     keys: Record<string, string>;  // sessionId → Base64 RSA-encrypted AES key
     sender: string;      // Sender's user ID
-    original: {
-        name: string;    // Original filename
-        type: string;    // Original MIME type
-        size: number;    // Original file size
-    };
+    // NOTE: 'original' field removed - now encrypted inside the file payload
+}
+
+/**
+ * Original file info, stored encrypted inside the file payload.
+ * Only available after successful decryption.
+ */
+export interface OriginalFileInfo {
+    name: string;    // Original filename
+    type: string;    // Original MIME type
+    size: number;    // Original file size
 }
 
 /**
@@ -64,6 +72,15 @@ function generateIv(): Uint8Array {
 
 /**
  * Encrypts a file for multiple recipients using hybrid encryption.
+ *
+ * The encrypted payload format (v2):
+ * [4 bytes: header length as uint32 LE]
+ * [header bytes: JSON with original file info]
+ * [rest: original file content]
+ *
+ * This ensures original filename, type, and size are encrypted
+ * and only available after successful decryption.
+ *
  * @param file - The file to encrypt
  * @param sessionKeys - Array of session keys (sessionId + publicKey)
  * @param senderId - The sender's user ID
@@ -81,14 +98,30 @@ export async function encryptFile(
     // Generate random IV
     const iv = generateIv();
 
+    // Create header with original file info (will be encrypted)
+    const originalInfo: OriginalFileInfo = {
+        name: file.name,
+        type: file.type || 'application/octet-stream',
+        size: file.size,
+    };
+    const headerJson = JSON.stringify(originalInfo);
+    const headerBytes = new TextEncoder().encode(headerJson);
+
     // Read file as ArrayBuffer
     const fileData = await file.arrayBuffer();
 
-    // Encrypt the file with AES-GCM
+    // Create payload: [4-byte header length][header][file content]
+    const headerLength = new Uint32Array([headerBytes.length]);
+    const payload = new Uint8Array(4 + headerBytes.length + fileData.byteLength);
+    payload.set(new Uint8Array(headerLength.buffer), 0);
+    payload.set(headerBytes, 4);
+    payload.set(new Uint8Array(fileData), 4 + headerBytes.length);
+
+    // Encrypt the entire payload with AES-GCM
     const encryptedData = await crypto.subtle.encrypt(
         {name: AES_ALGORITHM, iv},
         aesKey,
-        fileData,
+        payload,
     );
 
     // Create encrypted blob
@@ -107,35 +140,43 @@ export async function encryptFile(
         }
     }
 
+    // Metadata stored in post.props - does NOT contain original file info
     const metadata: EncryptedFileMetadata = {
-        v: 1,
+        v: 2, // Version 2: original info encrypted inside payload
         iv: arrayBufferToBase64(iv.buffer),
         keys: encryptedKeys,
         sender: senderId,
-        original: {
-            name: file.name,
-            type: file.type || 'application/octet-stream',
-            size: file.size,
-        },
     };
 
     return {encryptedBlob, metadata};
 }
 
 /**
+ * Result of decrypting a file (v2 format).
+ */
+export interface DecryptedFileResult {
+    blob: Blob;
+    originalInfo: OriginalFileInfo;
+}
+
+/**
  * Decrypts an encrypted file using the recipient's private key.
+ *
+ * For v2 format, extracts original file info from the encrypted payload.
+ * For v1 format (legacy), uses metadata.original if available.
+ *
  * @param encryptedBlob - The encrypted file blob
  * @param metadata - The encryption metadata
  * @param privateKey - The recipient's private CryptoKey
  * @param sessionId - The session ID to find the encrypted key for
- * @returns The decrypted file as a Blob with original MIME type
+ * @returns The decrypted file blob and original file info
  */
 export async function decryptFile(
     encryptedBlob: Blob,
     metadata: EncryptedFileMetadata,
     privateKey: CryptoKey,
     sessionId: string,
-): Promise<Blob> {
+): Promise<DecryptedFileResult> {
     // Find the encrypted AES key for this session
     const encryptedAesKeyBase64 = metadata.keys[sessionId];
     if (!encryptedAesKeyBase64) {
@@ -158,16 +199,53 @@ export async function decryptFile(
     // Read encrypted blob as ArrayBuffer
     const encryptedData = await encryptedBlob.arrayBuffer();
 
-    // Decrypt the file using AES-GCM
+    // Decrypt the payload using AES-GCM
     const iv = base64ToArrayBuffer(metadata.iv);
-    const decryptedData = await crypto.subtle.decrypt(
+    const decryptedPayload = await crypto.subtle.decrypt(
         {name: AES_ALGORITHM, iv},
         aesKey,
         encryptedData,
     );
 
-    // Return as Blob with original MIME type
-    return new Blob([decryptedData], {type: metadata.original.type});
+    // Handle v2 format: extract header with original file info
+    if (metadata.v === 2) {
+        const payloadArray = new Uint8Array(decryptedPayload);
+
+        // Read header length (first 4 bytes, uint32 LE)
+        const headerLengthView = new DataView(payloadArray.buffer, 0, 4);
+        const headerLength = headerLengthView.getUint32(0, true); // little endian
+
+        // Extract and parse header
+        const headerBytes = payloadArray.slice(4, 4 + headerLength);
+        const headerJson = new TextDecoder().decode(headerBytes);
+        const originalInfo: OriginalFileInfo = JSON.parse(headerJson);
+
+        // Extract file content (after header)
+        const fileContent = payloadArray.slice(4 + headerLength);
+        const blob = new Blob([fileContent], {type: originalInfo.type});
+
+        return {blob, originalInfo};
+    }
+
+    // Legacy v1 format: original info was in metadata (for backwards compatibility)
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const legacyMetadata = metadata as any;
+    if (legacyMetadata.original) {
+        return {
+            blob: new Blob([decryptedPayload], {type: legacyMetadata.original.type}),
+            originalInfo: legacyMetadata.original,
+        };
+    }
+
+    // Fallback: unknown format, return as binary
+    return {
+        blob: new Blob([decryptedPayload], {type: 'application/octet-stream'}),
+        originalInfo: {
+            name: 'decrypted_file',
+            type: 'application/octet-stream',
+            size: decryptedPayload.byteLength,
+        },
+    };
 }
 
 /**
@@ -223,14 +301,14 @@ export function createEncryptedFilesProps(
  * @param metadata - The encryption metadata
  * @param privateKey - The recipient's private CryptoKey
  * @param sessionId - The session ID for decryption
- * @returns Decrypted blob and blob URL
+ * @returns Decrypted blob, blob URL, and original file info
  */
 export async function fetchAndDecryptFile(
     fileUrl: string,
     metadata: EncryptedFileMetadata,
     privateKey: CryptoKey,
     sessionId: string,
-): Promise<{blob: Blob; blobUrl: string}> {
+): Promise<{blob: Blob; blobUrl: string; originalInfo: OriginalFileInfo}> {
     // Fetch the encrypted file
     const response = await fetch(fileUrl, {
         credentials: 'include',
@@ -242,28 +320,28 @@ export async function fetchAndDecryptFile(
 
     const encryptedBlob = await response.blob();
 
-    // Decrypt the file
-    const decryptedBlob = await decryptFile(encryptedBlob, metadata, privateKey, sessionId);
+    // Decrypt the file (returns blob and original info)
+    const {blob, originalInfo} = await decryptFile(encryptedBlob, metadata, privateKey, sessionId);
 
     // Create blob URL
-    const blobUrl = URL.createObjectURL(decryptedBlob);
+    const blobUrl = URL.createObjectURL(blob);
 
-    return {blob: decryptedBlob, blobUrl};
+    return {blob, blobUrl, originalInfo};
 }
 
 /**
  * Creates a File object from a Blob with proper naming.
  * Useful for displaying decrypted files.
  * @param blob - The blob to convert
- * @param metadata - The encryption metadata containing original file info
+ * @param originalInfo - The original file info extracted after decryption
  * @returns A File object with original name
  */
 export function createFileFromDecryptedBlob(
     blob: Blob,
-    metadata: EncryptedFileMetadata,
+    originalInfo: OriginalFileInfo,
 ): File {
-    return new File([blob], metadata.original.name, {
-        type: metadata.original.type,
+    return new File([blob], originalInfo.name, {
+        type: originalInfo.type,
     });
 }
 

@@ -6,7 +6,7 @@ import {combineReducers} from 'redux';
 import {UserTypes} from 'mattermost-redux/action_types';
 
 import {ActionTypes} from 'utils/constants';
-import type {EncryptedFileMetadata} from 'utils/encryption/file';
+import type {EncryptedFileMetadata, OriginalFileInfo} from 'utils/encryption/file';
 
 import type {GenericAction} from 'mattermost-redux/types/actions';
 
@@ -25,8 +25,11 @@ export interface EncryptedFilesState {
     // Error messages for failed decryptions
     errors: Record<string, string>;
 
-    // Cache of encryption metadata (extracted from post.props)
+    // Cache of encryption metadata (extracted from post.props - does NOT contain original file info)
     metadata: Record<string, EncryptedFileMetadata>;
+
+    // Original file info (name, type, size) - only available AFTER successful decryption
+    originalInfo: Record<string, OriginalFileInfo>;
 }
 
 function keyError(state: string | null = null, action: GenericAction): string | null {
@@ -211,6 +214,33 @@ function metadata(state: Record<string, EncryptedFileMetadata> = {}, action: Gen
     }
 }
 
+// Original file info - ONLY populated after successful decryption
+// This ensures users without decryption keys cannot see file metadata
+function originalInfo(state: Record<string, OriginalFileInfo> = {}, action: GenericAction): Record<string, OriginalFileInfo> {
+    switch (action.type) {
+    case ActionTypes.ENCRYPTED_FILE_ORIGINAL_INFO_RECEIVED:
+        return {
+            ...state,
+            [action.fileId]: action.originalInfo,
+        };
+    case ActionTypes.ENCRYPTED_FILE_CLEANUP: {
+        const fileIds = action.fileIds as string[];
+        if (!fileIds || fileIds.length === 0) {
+            return state;
+        }
+        const newState = {...state};
+        for (const fileId of fileIds) {
+            delete newState[fileId];
+        }
+        return newState;
+    }
+    case UserTypes.LOGOUT_SUCCESS:
+        return {};
+    default:
+        return state;
+    }
+}
+
 // Combine the encrypted files reducers into a single encryptedFiles object
 const encryptedFiles = combineReducers({
     decryptedUrls,
@@ -218,6 +248,7 @@ const encryptedFiles = combineReducers({
     status,
     errors,
     metadata,
+    originalInfo,
 });
 
 export default combineReducers({
