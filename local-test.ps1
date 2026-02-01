@@ -185,21 +185,21 @@ function Get-FeatureFlagsJson {
     Parses feature_flags.go to extract default feature flags and returns JSON.
     #>
     param(
-        [int]$Indent = 2
+        [int]$IndentSpaces = 2
     )
 
     $featureFlagsFile = Join-Path $SCRIPT_DIR "server\public\model\feature_flags.go"
-    $flags = @{}
+    $flags = [ordered]@{}
 
     if (Test-Path $featureFlagsFile) {
         $content = Get-Content $featureFlagsFile -Raw
 
         # Parse featureFlagDefaults map: "FlagName": true,
         $pattern = '"(\w+)":\s*true'
-        $matches = [regex]::Matches($content, $pattern)
+        $regexMatches = [regex]::Matches($content, $pattern)
 
-        foreach ($match in $matches) {
-            $flagName = $match.Groups[1].Value
+        foreach ($m in $regexMatches) {
+            $flagName = $m.Groups[1].Value
             $flags[$flagName] = $true
         }
 
@@ -214,21 +214,21 @@ function Get-FeatureFlagsJson {
     }
 
     # Build JSON
-    $indent = " " * $Indent
-    $lines = @()
-    $sortedKeys = $flags.Keys | Sort-Object
-    $lastKey = $sortedKeys[-1]
+    $indentStr = " " * $IndentSpaces
+    $sortedKeys = @($flags.Keys | Sort-Object)
+    $jsonLines = [System.Collections.ArrayList]::new()
 
-    foreach ($key in $sortedKeys) {
-        $comma = if ($key -eq $lastKey) { "" } else { "," }
-        $lines += "${indent}  `"$key`": true$comma"
+    [void]$jsonLines.Add("${indentStr}`"FeatureFlags`": {")
+
+    for ($i = 0; $i -lt $sortedKeys.Count; $i++) {
+        $key = $sortedKeys[$i]
+        $comma = if ($i -eq $sortedKeys.Count - 1) { "" } else { "," }
+        [void]$jsonLines.Add("${indentStr}  `"$key`": true$comma")
     }
 
-    $json = "${indent}`"FeatureFlags`": {`n"
-    $json += ($lines -join "`n")
-    $json += "`n${indent}}"
+    [void]$jsonLines.Add("${indentStr}}")
 
-    return $json
+    return ($jsonLines -join "`n")
 }
 
 # ============================================================================
