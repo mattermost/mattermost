@@ -538,7 +538,8 @@ $featureFlagsJson,
 }
 "@
     $configPath = Join-Path $WORK_DIR "config.json"
-    $configContent | Out-File $configPath -Encoding UTF8
+    # Write without BOM (Go's JSON parser doesn't like BOM)
+    [System.IO.File]::WriteAllText($configPath, $configContent)
     Log "Config file created: $configPath"
 
     Log ""
@@ -800,7 +801,8 @@ $featureFlagsJson,
   "MattermostExtendedSettings": {}
 }
 "@
-    $configContent | Out-File $configPath -Encoding UTF8
+    # Write without BOM (Go's JSON parser doesn't like BOM)
+    [System.IO.File]::WriteAllText($configPath, $configContent)
 
     Log ""
     Log-Success "Config reset to clean local settings."
