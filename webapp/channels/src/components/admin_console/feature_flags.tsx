@@ -247,17 +247,17 @@ const FlagCard = styled.div<{isEnabled: boolean; isModified: boolean}>`
     align-items: center;
     justify-content: space-between;
     padding: 16px 20px;
-    background: ${({isModified}) => isModified ? 'rgba(var(--button-bg-rgb), 0.04)' : 'var(--center-channel-bg)'};
+    background: ${({isModified}) => isModified ? 'rgba(138, 43, 226, 0.04)' : 'var(--center-channel-bg)'};
     border: 1px solid rgba(var(--center-channel-color-rgb), 0.08);
     border-radius: 8px;
     transition: all 0.15s ease;
     border-left: 4px solid ${({isModified, isEnabled}) =>
-        isModified ? 'var(--button-bg)' :
+        isModified ? '#8A2BE2' :
             isEnabled ? 'var(--online-indicator)' :
                 'rgba(var(--center-channel-color-rgb), 0.16)'};
 
     &:hover {
-        background: ${({isModified}) => isModified ? 'rgba(var(--button-bg-rgb), 0.08)' : 'rgba(var(--center-channel-color-rgb), 0.04)'};
+        background: ${({isModified}) => isModified ? 'rgba(138, 43, 226, 0.08)' : 'rgba(var(--center-channel-color-rgb), 0.04)'};
         box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
     }
 `;
@@ -299,8 +299,8 @@ const UnsavedBadge = styled.span`
     font-size: 11px;
     font-weight: 500;
     border-radius: 10px;
-    background: rgba(var(--button-bg-rgb), 0.12);
-    color: var(--button-bg);
+    background: rgba(138, 43, 226, 0.12);
+    color: #8A2BE2;
 `;
 
 const ToggleSwitch = styled.label`
@@ -560,7 +560,7 @@ const FeatureFlags: React.FC<Props> = ({config, patchConfig, disabled = false}) 
                         {'Changed'}
                     </StatItem>
                     {stats.pending > 0 && (
-                        <StatItem style={{color: 'var(--button-bg)'}}>
+                        <StatItem style={{color: '#8A2BE2'}}>
                             <strong>{stats.pending}</strong>
                             {'Unsaved'}
                         </StatItem>
