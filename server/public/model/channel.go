@@ -76,6 +76,39 @@ func (c ChannelBannerInfo) Value() (driver.Value, error) {
 	return string(j), nil
 }
 
+// ChannelProps is a map type for channel properties that implements
+// sql.Scanner and driver.Valuer for database serialization.
+type ChannelProps map[string]any
+
+func (cp *ChannelProps) Scan(value any) error {
+	if value == nil {
+		return nil
+	}
+
+	b, ok := value.([]byte)
+	if !ok {
+		str, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("expected []byte or string, got %T", value)
+		}
+		b = []byte(str)
+	}
+
+	return json.Unmarshal(b, cp)
+}
+
+func (cp ChannelProps) Value() (driver.Value, error) {
+	if cp == nil || len(cp) == 0 {
+		return nil, nil
+	}
+
+	j, err := json.Marshal(cp)
+	if err != nil {
+		return nil, err
+	}
+	return string(j), nil
+}
+
 type Channel struct {
 	Id                  string             `json:"id"`
 	CreateAt            int64              `json:"create_at"`
@@ -92,7 +125,7 @@ type Channel struct {
 	ExtraUpdateAt       int64              `json:"extra_update_at"`
 	CreatorId           string             `json:"creator_id"`
 	SchemeId            *string            `json:"scheme_id"`
-	Props               map[string]any     `json:"props"`
+	Props               ChannelProps       `json:"props"`
 	GroupConstrained    *bool              `json:"group_constrained"`
 	AutoTranslation     bool               `json:"autotranslation"`
 	Shared              *bool              `json:"shared"`
@@ -152,7 +185,7 @@ type ChannelPatch struct {
 	Purpose          *string            `json:"purpose"`
 	GroupConstrained *bool              `json:"group_constrained"`
 	BannerInfo       *ChannelBannerInfo `json:"banner_info"`
-	Props            *map[string]any    `json:"props"`
+	Props            *ChannelProps      `json:"props"`
 }
 
 func (c *ChannelPatch) Auditable() map[string]any {
@@ -408,7 +441,7 @@ func (o *Channel) Patch(patch *ChannelPatch) {
 
 	if patch.Props != nil {
 		if o.Props == nil {
-			o.Props = make(map[string]any)
+			o.Props = make(ChannelProps)
 		}
 		for k, v := range *patch.Props {
 			o.Props[k] = v
@@ -418,7 +451,7 @@ func (o *Channel) Patch(patch *ChannelPatch) {
 
 func (o *Channel) MakeNonNil() {
 	if o.Props == nil {
-		o.Props = make(map[string]any)
+		o.Props = make(ChannelProps)
 	}
 }
 

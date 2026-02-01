@@ -1184,6 +1184,12 @@ $sidebarOpacityAnimationDuration: 0.15s;
         font-size: 18px;
     }
 
+    .SidebarChannel .SidebarLink > .sidebar-channel-icon {
+        display: flex;
+        margin: 0 6px 0 -2px;
+        font-size: 18px;
+    }
+
     .SidebarChannelLinkLabel_wrapper,
     .SidebarChannelLinkLabel_wrapper > div {
         display: flex;
