@@ -7,13 +7,26 @@ on:
     paths:
       - server/build/Dockerfile.buildenv
       - server/build/Dockerfile.buildenv-fips
+      - server/.go-version
+      - .nvmrc
       - .github/workflows/build-server-image.yml
   pull_request:
     paths:
       - server/build/Dockerfile.buildenv
       - server/build/Dockerfile.buildenv-fips
+      - server/.go-version
+      - .nvmrc
       - .github/workflows/build-server-image.yml
   workflow_dispatch:
+    inputs:
+      GO_VERSION:
+        description: 'Go version (e.g., 1.24.11). Leave empty to read from server/.go-version'
+        required: false
+        type: string
+      NODE_VERSION:
+        description: 'Node version (e.g., 20.11). Leave empty to read from .nvmrc'
+        required: false
+        type: string
 
 env:
   CHAINCTL_IDENTITY: ee399b4c72dd4e58e3d617f78fc47b74733c9557/922f2d48307d6f5f
@@ -30,6 +43,20 @@ jobs:
       - name: buildenv/checkout-repo
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
 
+      - name: buildenv/read-versions-from-files
+        id: versions
+        run: |
+          GO_VERSION="${{ inputs.GO_VERSION }}"
+          NODE_VERSION="${{ inputs.NODE_VERSION }}"
+          if [ -z "$GO_VERSION" ]; then
+            GO_VERSION=$(cat server/.go-version | tr -d '[:space:]')
+          fi
+          if [ -z "$NODE_VERSION" ]; then
+            NODE_VERSION=$(cat .nvmrc | tr -d '[:space:]')
+          fi
+          echo "GO_VERSION=${GO_VERSION}" >> "${GITHUB_OUTPUT}"
+          echo "NODE_VERSION=${NODE_VERSION}" >> "${GITHUB_OUTPUT}"
+
       - name: buildenv/docker-login
         uses: docker/login-action@74a5d142397b4f367a81961eba4e8cd7edddf772 # v3.4.0
         with:
@@ -41,6 +68,9 @@ jobs:
         with:
           provenance: false
           file: server/build/Dockerfile.buildenv
+          build-args: |
+            GO_VERSION=${{ steps.versions.outputs.GO_VERSION }}
+            NODE_VERSION=${{ steps.versions.outputs.NODE_VERSION }}
           load: true
           push: false
           pull: false
@@ -50,22 +80,21 @@ jobs:
         run: |
           docker run --rm mattermost/mattermost-build-server:test /bin/sh -c "go version && node --version"
 
-      - name: buildenv/calculate-golang-version
-        id: go
-        run: |
-          GO_VERSION=$(docker run --rm mattermost/mattermost-build-server:test go version | awk '{print $3}' | sed 's/go//')
-          echo "GO_VERSION=${GO_VERSION}" >> "${GITHUB_OUTPUT}"
-
       - name: buildenv/push
-        if: github.ref == 'refs/heads/master'
+        if: github.ref == 'refs/heads/master' || github.event_name == 'workflow_dispatch'
         uses: docker/build-push-action@1dc73863535b631f98b2378be8619f83b136f4a0 # v6.17.0
         with:
           provenance: false
           file: server/build/Dockerfile.buildenv
+          build-args: |
+            GO_VERSION=${{ steps.versions.outputs.GO_VERSION }}
+            NODE_VERSION=${{ steps.versions.outputs.NODE_VERSION }}
           load: false
           push: true
           pull: true
-          tags: mattermost/mattermost-build-server:${{ steps.go.outputs.GO_VERSION }}
+          tags: |
+            mattermost/mattermost-build-server:go-${{ steps.versions.outputs.GO_VERSION }}-node-${{ steps.versions.outputs.NODE_VERSION }}
+            mattermost/mattermost-build-server:go-${{ steps.versions.outputs.GO_VERSION }}
 
   build-image-fips:
     runs-on: ubuntu-22.04
@@ -73,8 +102,23 @@ jobs:
       - uses: chainguard-dev/setup-chainctl@f4ed65b781b048c44d4f033ae854c025c5531c19 # v0.3.2
         with:
           identity: ${{ env.CHAINCTL_IDENTITY }}
+
       - name: buildenv/checkout-repo
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+
+      - name: buildenv/read-versions-from-files
+        id: versions
+        run: |
+          GO_VERSION="${{ inputs.GO_VERSION }}"
+          NODE_VERSION="${{ inputs.NODE_VERSION }}"
+          if [ -z "$GO_VERSION" ]; then
+            GO_VERSION=$(cat server/.go-version | tr -d '[:space:]')
+          fi
+          if [ -z "$NODE_VERSION" ]; then
+            NODE_VERSION=$(cat .nvmrc | tr -d '[:space:]')
+          fi
+          echo "GO_VERSION=${GO_VERSION}" >> "${GITHUB_OUTPUT}"
+          echo "NODE_VERSION=${NODE_VERSION}" >> "${GITHUB_OUTPUT}"
 
       - name: buildenv/docker-login
         uses: docker/login-action@74a5d142397b4f367a81961eba4e8cd7edddf772 # v3.4.0
@@ -87,6 +131,9 @@ jobs:
         with:
           provenance: false
           file: server/build/Dockerfile.buildenv-fips
+          build-args: |
+            GO_VERSION=${{ steps.versions.outputs.GO_VERSION }}
+            NODE_VERSION=${{ steps.versions.outputs.NODE_VERSION }}
           load: true
           push: false
           pull: false
@@ -96,19 +143,18 @@ jobs:
         run: |
           docker run --rm --entrypoint bash mattermost/mattermost-build-server-fips:test -c "go version && node --version"
 
-      - name: buildenv/calculate-golang-version
-        id: go
-        run: |
-          GO_VERSION=$(docker run --rm --entrypoint bash mattermost/mattermost-build-server-fips:test -c "go version" | awk '{print $3}' | sed 's/go//')
-          echo "GO_VERSION=${GO_VERSION}" >> "${GITHUB_OUTPUT}"
-
       - name: buildenv/push
-        if: github.ref == 'refs/heads/master'
+        if: github.ref == 'refs/heads/master' || github.event_name == 'workflow_dispatch'
         uses: docker/build-push-action@1dc73863535b631f98b2378be8619f83b136f4a0 # v6.17.0
         with:
           provenance: false
           file: server/build/Dockerfile.buildenv-fips
+          build-args: |
+            GO_VERSION=${{ steps.versions.outputs.GO_VERSION }}
+            NODE_VERSION=${{ steps.versions.outputs.NODE_VERSION }}
           load: false
           push: true
           pull: true
-          tags: mattermost/mattermost-build-server-fips:${{ steps.go.outputs.GO_VERSION }}
+          tags: |
+            mattermost/mattermost-build-server-fips:go-${{ steps.versions.outputs.GO_VERSION }}-node-${{ steps.versions.outputs.NODE_VERSION }}
+            mattermost/mattermost-build-server-fips:go-${{ steps.versions.outputs.GO_VERSION }}
