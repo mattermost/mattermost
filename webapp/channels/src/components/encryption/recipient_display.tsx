@@ -91,7 +91,7 @@ function RecipientDisplay({channelId, currentUserId, visible}: Props) {
                     ) : (
                         <FormattedMessage
                             id='encryption.recipient_display.no_recipients'
-                            defaultMessage='No other users with active encryption'
+                            defaultMessage='-'
                         />
                     )}
                 </div>
