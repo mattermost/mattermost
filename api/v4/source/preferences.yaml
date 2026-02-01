@@ -19,7 +19,7 @@
             type: string
       responses:
         "200":
-          description: User preferences retrieval successful
+          description: User preferences retrieved successfully
           content:
             application/json:
               schema:
@@ -63,7 +63,7 @@
               maxItems: 100
       responses:
         "200":
-          description: User preferences saved successful
+          description: User preferences saved successfully
           content:
             application/json:
               schema:
@@ -108,7 +108,7 @@
               maxItems: 100
       responses:
         "200":
-          description: User preferences saved successful
+          description: User preferences saved successfully
           content:
             application/json:
               schema:
