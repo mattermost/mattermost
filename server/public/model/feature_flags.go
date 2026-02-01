@@ -34,6 +34,8 @@ type FeatureFlags struct {
 	// AppsEnabled toggles the Apps framework functionalities both in server and client side
 	AppsEnabled bool
 
+	CustomChannelIcons bool
+
 	PermalinkPreviews bool
 
 	NormalizeLdapDNs bool
@@ -99,6 +101,7 @@ func (f *FeatureFlags) SetDefaults() {
 	f.EnableSyncAllUsersForRemoteCluster = false
 	f.EnableSharedChannelsPlugins = true
 	f.AppsEnabled = false
+	f.CustomChannelIcons = false
 	f.NormalizeLdapDNs = false
 	f.DeprecateCloudFree = false
 	f.WysiwygEditor = false

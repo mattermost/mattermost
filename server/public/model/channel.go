@@ -152,6 +152,7 @@ type ChannelPatch struct {
 	Purpose          *string            `json:"purpose"`
 	GroupConstrained *bool              `json:"group_constrained"`
 	BannerInfo       *ChannelBannerInfo `json:"banner_info"`
+	Props            *map[string]any    `json:"props"`
 }
 
 func (c *ChannelPatch) Auditable() map[string]any {
@@ -159,6 +160,7 @@ func (c *ChannelPatch) Auditable() map[string]any {
 		"header":            c.Header,
 		"group_constrained": c.GroupConstrained,
 		"purpose":           c.Purpose,
+		"props":             c.Props,
 	}
 }
 
@@ -401,6 +403,15 @@ func (o *Channel) Patch(patch *ChannelPatch) {
 
 		if patch.BannerInfo.BackgroundColor != nil {
 			o.BannerInfo.BackgroundColor = patch.BannerInfo.BackgroundColor
+		}
+	}
+
+	if patch.Props != nil {
+		if o.Props == nil {
+			o.Props = make(map[string]any)
+		}
+		for k, v := range *patch.Props {
+			o.Props[k] = v
 		}
 	}
 }
