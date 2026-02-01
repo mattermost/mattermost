@@ -359,6 +359,21 @@ export default function FileAttachment(props: Props) {
                     />
                 </a>
             );
+        } else if (isEncrypted) {
+            // Encrypted file without thumbnail (non-image) - show file icon based on decrypted type
+            fileThumbnail = (
+                <a
+                    aria-label={ariaLabelImage}
+                    className='post-image__thumbnail'
+                    href='#'
+                    onClick={onAttachmentClick}
+                >
+                    <FileThumbnail
+                        fileInfo={displayFileInfo}
+                        disablePreview={true}
+                    />
+                </a>
+            );
         } else {
             fileThumbnail = (
                 <a
@@ -367,7 +382,7 @@ export default function FileAttachment(props: Props) {
                     href='#'
                     onClick={onAttachmentClick}
                 >
-                    {loaded && !props.disableThumbnail && !isEncrypted ? (
+                    {loaded && !props.disableThumbnail ? (
                         <FileThumbnail
                             fileInfo={fileInfo}
                             disablePreview={props.disablePreview}

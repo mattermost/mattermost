@@ -8,4 +8,43 @@
             border-radius: 0;
         }
     }
+
+    // Encrypted file placeholder in modal
+    &--encrypted {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        min-width: 300px;
+        min-height: 200px;
+        background: rgba(var(--encrypted-color), 0.08);
+        border: 2px dashed rgba(var(--encrypted-color), 0.4);
+        border-radius: 8px;
+        cursor: pointer;
+        transition: all 0.2s ease;
+
+        &:hover {
+            background: rgba(var(--encrypted-color), 0.12);
+            border-color: rgba(var(--encrypted-color), 0.6);
+        }
+    }
+
+    &__encrypted-placeholder {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 16px;
+        padding: 32px;
+        text-align: center;
+    }
+
+    &__encrypted-text {
+        font-size: 16px;
+        font-weight: 600;
+        color: rgba(var(--encrypted-color), 1);
+    }
+
+    &__encrypted-error {
+        font-size: 13px;
+        color: rgba(var(--center-channel-color-rgb), 0.6);
+    }
 }

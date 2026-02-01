@@ -177,6 +177,9 @@ export default function SingleImageView(props: Props) {
         </button>
     );
 
+    // For encrypted files without decryption, show generic name
+    const displayName = isEncrypted && !originalFileInfo ? 'Encrypted file' : displayFileInfo.name;
+
     const fileHeader = (
         <div
             className={classNames('image-header', {
@@ -189,13 +192,14 @@ export default function SingleImageView(props: Props) {
                     data-testid='image-name'
                     className={classNames('image-name', {
                         'compact-display': compactDisplay,
+                        'image-name--encrypted': isEncrypted && !originalFileInfo,
                     })}
                 >
                     <div
                         id='image-name-text'
                         onClick={handleImageClick}
                     >
-                        {displayFileInfo.name}
+                        {displayName}
                     </div>
                 </div>
             )}
@@ -255,7 +259,7 @@ export default function SingleImageView(props: Props) {
                                     color={'rgba(var(--encrypted-color), 1)'}
                                 />
                                 <span className='encrypted-image-placeholder__text'>
-                                    {decryptionStatus === 'decrypting' ? 'Decrypting...' : 'Encrypted image'}
+                                    {decryptionStatus === 'decrypting' ? 'Decrypting...' : 'Encrypted file'}
                                 </span>
                                 {decryptionStatus === 'failed' && (
                                     <span className='encrypted-image-placeholder__error'>
