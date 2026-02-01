@@ -3,7 +3,7 @@
 
 import classNames from 'classnames';
 import React from 'react';
-import {FormattedMessage} from 'react-intl';
+import {FormattedMessage, useIntl} from 'react-intl';
 
 import type {Post} from '@mattermost/types/posts';
 import type {UserProfile} from '@mattermost/types/users';
@@ -12,6 +12,7 @@ import {General} from 'mattermost-redux/constants';
 import {ensureString} from 'mattermost-redux/utils/post_utils';
 
 import FileAttachmentListContainer from 'components/file_attachment_list';
+import PostHeaderTranslateIcon from 'components/post/post_header_translate_icon';
 import PriorityLabel from 'components/post_priority/post_priority_label';
 import AiGeneratedIndicator from 'components/post_view/ai_generated_indicator/ai_generated_indicator';
 import PostAttachmentOpenGraph from 'components/post_view/post_attachment_opengraph';
@@ -20,6 +21,7 @@ import Timestamp from 'components/timestamp';
 import UserProfileComponent from 'components/user_profile';
 
 import * as PostUtils from 'utils/post_utils';
+import {getPostTranslation} from 'utils/post_utils';
 
 import PreviewPostAvatar from './avatar/avatar';
 
@@ -43,11 +45,12 @@ export type Props = OwnProps & {
     actions: {
         toggleEmbedVisibility: (id: string) => void;
     };
+    isChannelAutotranslated: boolean;
 };
 
 const PostMessagePreview = (props: Props) => {
-    const {currentTeamUrl, channelDisplayName, user, previewPost, metadata, isEmbedVisible, compactDisplay, preventClickAction, previewFooterMessage, handleFileDropdownOpened, isPostPriorityEnabled, overrideGenerateFileDownloadUrl, disableActions} = props;
-
+    const {currentTeamUrl, channelDisplayName, user, previewPost, metadata, isEmbedVisible, compactDisplay, preventClickAction, previewFooterMessage, handleFileDropdownOpened, isPostPriorityEnabled, overrideGenerateFileDownloadUrl, disableActions, isChannelAutotranslated} = props;
+    const {locale} = useIntl();
     const toggleEmbedVisibility = () => {
         if (previewPost) {
             props.actions.toggleEmbedVisibility(previewPost.id);
@@ -116,6 +119,8 @@ const PostMessagePreview = (props: Props) => {
 
     const overwriteName = ensureString(previewPost.props?.override_username);
 
+    const translation = getPostTranslation(previewPost, locale);
+
     return (
         <PostAttachmentContainer
             className='permalink'
@@ -171,12 +176,21 @@ const PostMessagePreview = (props: Props) => {
                                 postAuthorId={previewPost.user_id}
                             />
                         )}
+                        {isChannelAutotranslated && (
+                            <PostHeaderTranslateIcon
+                                postId={previewPost.id}
+                                translationState={translation?.state}
+                                postType={previewPost.type}
+                            />
+                        )}
                     </div>
                 </div>
                 <PostMessageView
                     post={previewPost}
                     overflowType='ellipsis'
                     maxHeight={105}
+                    userLanguage={locale}
+                    isChannelAutotranslated={isChannelAutotranslated}
                 />
                 {urlPreview}
                 {fileAttachmentPreview}

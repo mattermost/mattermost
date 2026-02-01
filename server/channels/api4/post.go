@@ -282,7 +282,31 @@ func getPostsForChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 	etag := ""
 
 	if since > 0 {
-		list, err = c.App.GetPostsSince(c.AppContext, model.GetPostsSinceOptions{ChannelId: channelId, Time: since, SkipFetchThreads: skipFetchThreads, CollapsedThreads: collapsedThreads, CollapsedThreadsExtended: collapsedThreadsExtended, UserId: c.AppContext.Session().UserId})
+		options := model.GetPostsSinceOptions{
+			ChannelId:                channelId,
+			Time:                     since,
+			SkipFetchThreads:         skipFetchThreads,
+			CollapsedThreads:         collapsedThreads,
+			CollapsedThreadsExtended: collapsedThreadsExtended,
+			UserId:                   c.AppContext.Session().UserId,
+		}
+		if c.App.AutoTranslation() != nil && c.App.AutoTranslation().IsFeatureAvailable() {
+			member, getMemberErr := c.App.GetChannelMember(c.AppContext, channelId, c.AppContext.Session().UserId)
+			if getMemberErr != nil {
+				c.Err = getMemberErr
+				return
+			}
+			if member.AutoTranslation {
+				options.AutotranslationEnabled = true
+				user, getUserErr := c.App.GetUser(c.AppContext.Session().UserId)
+				if getUserErr != nil {
+					c.Err = getUserErr
+					return
+				}
+				options.Language = user.Locale
+			}
+		}
+		list, err = c.App.GetPostsSince(c.AppContext, options)
 	} else if afterPost != "" {
 		etag = c.App.GetPostsEtag(channelId, collapsedThreads)
 

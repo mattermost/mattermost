@@ -56,6 +56,7 @@ describe('PostComponent', () => {
             openModal: jest.fn(),
             closeModal: jest.fn(),
         },
+        isChannelAutotranslated: false,
     };
 
     describe('reactions', () => {

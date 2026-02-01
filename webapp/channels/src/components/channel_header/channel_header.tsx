@@ -10,6 +10,7 @@ import type {WrappedComponentProps} from 'react-intl';
 import CustomStatusEmoji from 'components/custom_status/custom_status_emoji';
 import CustomStatusText from 'components/custom_status/custom_status_text';
 import Timestamp from 'components/timestamp';
+import Tag from 'components/widgets/tag/tag';
 import WithTooltip from 'components/with_tooltip';
 
 import CallButton from 'plugins/call_button';
@@ -159,6 +160,25 @@ class ChannelHeader extends React.PureComponent<Props> {
                         />
                     </span>
                 </span>
+            );
+        }
+
+        let autotranslationMessage: ReactNode = '';
+        if (this.props.isChannelAutotranslated) {
+            autotranslationMessage = (
+                <WithTooltip
+                    title={this.props.intl.formatMessage({id: 'channel_header.autotranslationMessage.tooltip.title', defaultMessage: 'Auto-translation is enabled'})}
+                    hint={this.props.intl.formatMessage({id: 'channel_header.autotranslationMessage.tooltip.hint', defaultMessage: 'This channel is being automatically translated to your language'})}
+                >
+                    <div className='autotranslation-header'>
+                        <Tag
+                            text={this.props.intl.formatMessage({id: 'channel_header.autotranslationMessage', defaultMessage: 'Auto-translated'})}
+                            icon={'translate'}
+                            size='xs'
+                            variant='default'
+                        />
+                    </div>
+                </WithTooltip>
             );
         }
 
@@ -385,6 +405,7 @@ class ChannelHeader extends React.PureComponent<Props> {
                                 >
                                     {dmHeaderTextStatus}
                                     {hasGuestsText}
+                                    {autotranslationMessage}
                                     <ChannelHeaderText
                                         teamId={teamId}
                                         channel={channel}
