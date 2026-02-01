@@ -9,6 +9,8 @@ type MattermostExtendedSettings struct {
 	EnableEncryption *bool `access:"mattermost_extended"`
 	// AdminModeOnly restricts encryption to system administrators only.
 	AdminModeOnly *bool `access:"mattermost_extended"`
+	// EnableCustomChannelIcons allows users to set custom icons for channels.
+	EnableCustomChannelIcons *bool `access:"mattermost_extended"`
 }
 
 // SetDefaults applies the default settings to the struct.
@@ -19,5 +21,9 @@ func (s *MattermostExtendedSettings) SetDefaults() {
 
 	if s.AdminModeOnly == nil {
 		s.AdminModeOnly = NewPointer(false)
+	}
+
+	if s.EnableCustomChannelIcons == nil {
+		s.EnableCustomChannelIcons = NewPointer(false)
 	}
 }

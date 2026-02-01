@@ -11,7 +11,7 @@ import type {ServerError} from '@mattermost/types/errors';
 import {patchChannel, updateChannelPrivacy} from 'mattermost-redux/actions/channels';
 import {General} from 'mattermost-redux/constants';
 import Permissions from 'mattermost-redux/constants/permissions';
-import {getFeatureFlagValue} from 'mattermost-redux/selectors/entities/general';
+import {getConfig} from 'mattermost-redux/selectors/entities/general';
 import {haveIChannelPermission} from 'mattermost-redux/selectors/entities/roles';
 
 import {
@@ -67,7 +67,7 @@ function ChannelSettingsInfoTab({
         haveIChannelPermission(state, channel.team_id, channel.id, channelPropertiesPermission),
     );
 
-    const customChannelIconsEnabled = useSelector((state: GlobalState) => getFeatureFlagValue(state, 'CustomChannelIcons') === 'true');
+    const customChannelIconsEnabled = useSelector((state: GlobalState) => getConfig(state)?.EnableCustomChannelIcons === 'true');
 
     // Constants
     const HEADER_MAX_LENGTH = 1024;

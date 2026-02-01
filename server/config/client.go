@@ -170,6 +170,10 @@ func GenerateClientConfig(c *model.Config, telemetryID string, license *model.Li
 	props["WranglerMoveThreadFromDirectMessageChannelEnable"] = strconv.FormatBool(*c.WranglerSettings.MoveThreadFromDirectMessageChannelEnable)
 	props["WranglerMoveThreadFromGroupMessageChannelEnable"] = strconv.FormatBool(*c.WranglerSettings.MoveThreadFromGroupMessageChannelEnable)
 
+	// Mattermost Extended settings
+	props["EnableEncryption"] = strconv.FormatBool(*c.MattermostExtendedSettings.EnableEncryption)
+	props["EnableCustomChannelIcons"] = strconv.FormatBool(*c.MattermostExtendedSettings.EnableCustomChannelIcons)
+
 	if license != nil {
 		props["ExperimentalEnableAuthenticationTransfer"] = strconv.FormatBool(*c.ServiceSettings.ExperimentalEnableAuthenticationTransfer)
 

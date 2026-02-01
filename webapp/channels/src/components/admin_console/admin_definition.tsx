@@ -6388,6 +6388,23 @@ const AdminDefinition: AdminDefinitionType = {
                     ],
                 },
             },
+            customization: {
+                url: 'mattermost_extended/customization',
+                title: defineMessage({id: 'admin.sidebar.customization', defaultMessage: 'Customization'}),
+                schema: {
+                    id: 'MattermostExtendedCustomization',
+                    name: defineMessage({id: 'admin.mattermost_extended.customization.title', defaultMessage: 'Customization'}),
+                    settings: [
+                        {
+                            type: 'bool',
+                            key: 'MattermostExtendedSettings.EnableCustomChannelIcons',
+                            label: defineMessage({id: 'admin.mattermost_extended.enableCustomChannelIcons.title', defaultMessage: 'Enable Custom Channel Icons:'}),
+                            help_text: defineMessage({id: 'admin.mattermost_extended.enableCustomChannelIcons.desc', defaultMessage: 'When true, users can set custom icons for channels from the Channel Settings modal. Icons are displayed in the sidebar and channel mentions.'}),
+                            help_text_markdown: false,
+                        },
+                    ],
+                },
+            },
         },
     },
 };

@@ -69,6 +69,8 @@ export type ClientConfig = {
     EnableCustomTermsOfService: string;
     EnableDeveloper: string;
     EnableDiagnostics: string;
+    EnableEncryption: string;
+    EnableCustomChannelIcons: string;
     EnableDesktopLandingPage: 'true' | 'false';
     EnableEmailBatching: string;
     EnableEmailInvitations: string;
