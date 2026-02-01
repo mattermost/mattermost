@@ -7,7 +7,9 @@ import {useSelector} from 'react-redux';
 
 import {LockOutlineIcon} from '@mattermost/compass-icons/components';
 
+import {getTeammateNameDisplaySetting} from 'mattermost-redux/selectors/entities/preferences';
 import {getUser} from 'mattermost-redux/selectors/entities/users';
+import {displayUsername} from 'mattermost-redux/utils/user_utils';
 import type {GlobalState} from 'types/store';
 
 import {getChannelEncryptionInfo} from 'utils/encryption';
@@ -134,12 +136,13 @@ type RecipientNameProps = {
 
 function RecipientName({userId, isLast}: RecipientNameProps) {
     const user = useSelector((state: GlobalState) => getUser(state, userId));
+    const teammateNameDisplay = useSelector(getTeammateNameDisplaySetting);
 
-    const displayName = user?.username || userId;
+    const name = displayUsername(user, teammateNameDisplay, false) || user?.username || userId;
 
     return (
         <span className='recipient-name'>
-            {'@'}{displayName}{!isLast && ', '}
+            {name}{!isLast && ', '}
         </span>
     );
 }
