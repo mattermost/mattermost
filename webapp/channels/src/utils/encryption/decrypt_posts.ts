@@ -8,7 +8,7 @@
 
 import type {Post, PostList} from '@mattermost/types/posts';
 
-import {decryptMessageHook} from './message_hooks';
+import {decryptMessageHook, getCachedPlaintext} from './message_hooks';
 import {isEncryptedMessage} from './hybrid';
 
 /**
@@ -24,6 +24,21 @@ export async function decryptPostsInList(posts: PostList, userId: string): Promi
     await Promise.all(
         Object.entries(posts.posts).map(async ([postId, post]) => {
             if (isEncryptedMessage(post.message)) {
+                // Check if this is a message we just sent - use cached plaintext for instant display
+                const cachedPlaintext = getCachedPlaintext(post.message);
+                if (cachedPlaintext !== null) {
+                    console.log('[decryptPostsInList] Using cached plaintext for post:', postId);
+                    decryptedPosts[postId] = {
+                        ...post,
+                        message: cachedPlaintext,
+                        props: {
+                            ...post.props,
+                            encryption_status: 'decrypted',
+                        },
+                    };
+                    return;
+                }
+
                 console.log('[decryptPostsInList] Decrypting post:', postId);
                 try {
                     const result = await decryptMessageHook(post, userId);

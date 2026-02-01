@@ -67,6 +67,7 @@ export {
     decryptMessageHook,
     isEncryptionFailed,
     getPostEncryptionStatus,
+    getCachedPlaintext,
 } from './message_hooks';
 
 // Decryption hook for components

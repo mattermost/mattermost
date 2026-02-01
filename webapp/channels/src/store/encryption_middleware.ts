@@ -4,7 +4,13 @@ import {decryptPostsInList} from 'utils/encryption/decrypt_posts';
 import {isEncryptedMessage} from 'utils/encryption/hybrid';
 import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
 
-const BATCH_ACTION_TYPE = 'BATCHING_REDUCER.BATCH';
+// Batch action types - redux-batched-actions uses different type names
+const BATCH_ACTION_TYPES = new Set([
+    'BATCHING_REDUCER.BATCH',
+    'BATCH_CREATE_POST_INIT',  // Optimistic post when sending
+    'BATCH_CREATE_POST',       // Server response after sending
+    'BATCH_CREATE_POST_FAILED',
+]);
 
 const POST_ACTION_TYPES = new Set([
     PostTypes.RECEIVED_POSTS,
@@ -69,8 +75,9 @@ export function createEncryptionMiddleware(): Middleware {
         const userId = getCurrentUserId(state);
 
         // Handle batch actions - process each action in the payload
-        if (action.type === BATCH_ACTION_TYPE && Array.isArray(action.payload)) {
-            console.log('[EncryptionMiddleware] Processing batch action with', action.payload.length, 'actions');
+        if (BATCH_ACTION_TYPES.has(action.type) && Array.isArray(action.payload)) {
+            const actionTypes = action.payload.map((a: AnyAction) => a.type);
+            console.log('[EncryptionMiddleware] Processing batch action with', action.payload.length, 'actions:', actionTypes);
             for (const innerAction of action.payload) {
                 if (POST_ACTION_TYPES.has(innerAction.type)) {
                     console.log('[EncryptionMiddleware] Found post action in batch:', innerAction.type);
@@ -80,6 +87,11 @@ export function createEncryptionMiddleware(): Middleware {
         } else if (POST_ACTION_TYPES.has(action.type)) {
             console.log('[EncryptionMiddleware] Intercepted action:', action.type);
             await decryptActionData(action, userId);
+        } else {
+            // Log all other actions to see what we might be missing
+            if (action.type && action.type.includes('POST')) {
+                console.log('[EncryptionMiddleware] Unhandled POST action:', action.type);
+            }
         }
 
         return next(action);

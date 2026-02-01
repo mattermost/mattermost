@@ -25,6 +25,64 @@ import {
 } from './session';
 
 /**
+ * Cache for recently sent messages.
+ * Maps encrypted message string -> original plaintext.
+ * This allows instant display of our own messages without async decryption.
+ */
+const sentMessageCache = new Map<string, string>();
+const CACHE_MAX_SIZE = 100;
+const CACHE_TTL_MS = 60000; // 1 minute
+
+interface CacheEntry {
+    plaintext: string;
+    timestamp: number;
+}
+
+const sentMessageCacheWithTTL = new Map<string, CacheEntry>();
+
+function addToSentCache(encryptedMessage: string, plaintext: string): void {
+    // Clean old entries
+    const now = Date.now();
+    for (const [key, entry] of sentMessageCacheWithTTL.entries()) {
+        if (now - entry.timestamp > CACHE_TTL_MS) {
+            sentMessageCacheWithTTL.delete(key);
+        }
+    }
+
+    // Limit cache size
+    if (sentMessageCacheWithTTL.size >= CACHE_MAX_SIZE) {
+        const firstKey = sentMessageCacheWithTTL.keys().next().value;
+        if (firstKey) {
+            sentMessageCacheWithTTL.delete(firstKey);
+        }
+    }
+
+    sentMessageCacheWithTTL.set(encryptedMessage, {plaintext, timestamp: now});
+}
+
+/**
+ * Get cached plaintext for an encrypted message we sent.
+ * Returns null if not in cache.
+ */
+export function getCachedPlaintext(encryptedMessage: string): string | null {
+    const entry = sentMessageCacheWithTTL.get(encryptedMessage);
+    if (!entry) {
+        console.log('[getCachedPlaintext] Cache miss, cache size:', sentMessageCacheWithTTL.size, 'message length:', encryptedMessage.length);
+        return null;
+    }
+
+    // Check TTL
+    if (Date.now() - entry.timestamp > CACHE_TTL_MS) {
+        sentMessageCacheWithTTL.delete(encryptedMessage);
+        console.log('[getCachedPlaintext] Cache entry expired');
+        return null;
+    }
+
+    console.log('[getCachedPlaintext] Cache HIT!');
+    return entry.plaintext;
+}
+
+/**
  * Hook to encrypt a message before it's posted.
  * Called by the MessageWillBePosted hook system.
  */
@@ -58,6 +116,9 @@ export async function encryptMessageHook(
     }
 
     try {
+        // Store original plaintext before encrypting
+        const originalPlaintext = post.message;
+
         // Encrypt the message
         const encryptedPayload = await encryptMessage(
             post.message,
@@ -67,6 +128,11 @@ export async function encryptMessageHook(
 
         // Format as encrypted message string
         const encryptedMessageString = formatEncryptedMessage(encryptedPayload);
+
+        // Cache the plaintext so we can instantly display our own message
+        // without waiting for async decryption when it comes back from server
+        console.log('[encryptMessageHook] Caching plaintext for encrypted message, length:', encryptedMessageString.length);
+        addToSentCache(encryptedMessageString, originalPlaintext);
 
         // Return modified post with encrypted message
         return {
