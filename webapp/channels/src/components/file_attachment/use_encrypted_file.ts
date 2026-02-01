@@ -32,7 +32,7 @@ export interface UseEncryptedFileResult {
     thumbnailUrl: string | undefined;
 
     /** Current decryption status */
-    status: 'idle' | 'decrypting' | 'decrypted' | 'failed' | undefined;
+    status: 'pending' | 'idle' | 'decrypting' | 'decrypted' | 'failed' | undefined;
 
     /** Error message if decryption failed */
     error: string | undefined;
@@ -82,7 +82,7 @@ export function useEncryptedFile(
     // 3. OR filename matching encrypted pattern (encrypted_*.penc)
     const isEncryptedByMime = isEncryptedFile(fileInfo);
     const hasEncryptionMetadata = metadata !== undefined && metadata !== null;
-    const isEncryptedByName = fileInfo?.name?.startsWith('encrypted_') && fileInfo?.name?.endsWith('.penc');
+    const isEncryptedByName = Boolean(fileInfo?.name?.startsWith('encrypted_') && fileInfo?.name?.endsWith('.penc'));
     const isEncrypted = isEncryptedByMime || hasEncryptionMetadata || isEncryptedByName;
 
     // Manual decrypt function

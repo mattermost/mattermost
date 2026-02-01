@@ -8,7 +8,7 @@ import {UserTypes} from 'mattermost-redux/action_types';
 import {ActionTypes} from 'utils/constants';
 import type {EncryptedFileMetadata, OriginalFileInfo} from 'utils/encryption/file';
 
-import type {GenericAction} from 'mattermost-redux/types/actions';
+import type {MMAction} from 'types/store';
 
 export type FileDecryptionStatus = 'pending' | 'decrypting' | 'decrypted' | 'failed';
 
@@ -32,7 +32,7 @@ export interface EncryptedFilesState {
     originalInfo: Record<string, OriginalFileInfo>;
 }
 
-function keyError(state: string | null = null, action: GenericAction): string | null {
+function keyError(state: string | null = null, action: MMAction): string | null {
     switch (action.type) {
     case ActionTypes.ENCRYPTION_KEY_ERROR:
         return action.error;
@@ -44,7 +44,7 @@ function keyError(state: string | null = null, action: GenericAction): string | 
     }
 }
 
-function decryptedUrls(state: Record<string, string> = {}, action: GenericAction): Record<string, string> {
+function decryptedUrls(state: Record<string, string> = {}, action: MMAction): Record<string, string> {
     switch (action.type) {
     case ActionTypes.ENCRYPTED_FILE_DECRYPTED:
         return {
@@ -78,7 +78,7 @@ function decryptedUrls(state: Record<string, string> = {}, action: GenericAction
     }
 }
 
-function thumbnailUrls(state: Record<string, string> = {}, action: GenericAction): Record<string, string> {
+function thumbnailUrls(state: Record<string, string> = {}, action: MMAction): Record<string, string> {
     switch (action.type) {
     case ActionTypes.ENCRYPTED_FILE_THUMBNAIL_GENERATED:
         return {
@@ -110,7 +110,7 @@ function thumbnailUrls(state: Record<string, string> = {}, action: GenericAction
     }
 }
 
-function status(state: Record<string, FileDecryptionStatus> = {}, action: GenericAction): Record<string, FileDecryptionStatus> {
+function status(state: Record<string, FileDecryptionStatus> = {}, action: MMAction): Record<string, FileDecryptionStatus> {
     switch (action.type) {
     case ActionTypes.ENCRYPTED_FILE_METADATA_RECEIVED:
         // Only set pending if not already being processed
@@ -154,7 +154,7 @@ function status(state: Record<string, FileDecryptionStatus> = {}, action: Generi
     }
 }
 
-function errors(state: Record<string, string> = {}, action: GenericAction): Record<string, string> {
+function errors(state: Record<string, string> = {}, action: MMAction): Record<string, string> {
     switch (action.type) {
     case ActionTypes.ENCRYPTED_FILE_DECRYPTION_FAILED:
         return {
@@ -189,7 +189,7 @@ function errors(state: Record<string, string> = {}, action: GenericAction): Reco
     }
 }
 
-function metadata(state: Record<string, EncryptedFileMetadata> = {}, action: GenericAction): Record<string, EncryptedFileMetadata> {
+function metadata(state: Record<string, EncryptedFileMetadata> = {}, action: MMAction): Record<string, EncryptedFileMetadata> {
     switch (action.type) {
     case ActionTypes.ENCRYPTED_FILE_METADATA_RECEIVED:
         return {
@@ -216,7 +216,7 @@ function metadata(state: Record<string, EncryptedFileMetadata> = {}, action: Gen
 
 // Original file info - ONLY populated after successful decryption
 // This ensures users without decryption keys cannot see file metadata
-function originalInfo(state: Record<string, OriginalFileInfo> = {}, action: GenericAction): Record<string, OriginalFileInfo> {
+function originalInfo(state: Record<string, OriginalFileInfo> = {}, action: MMAction): Record<string, OriginalFileInfo> {
     switch (action.type) {
     case ActionTypes.ENCRYPTED_FILE_ORIGINAL_INFO_RECEIVED:
         return {
