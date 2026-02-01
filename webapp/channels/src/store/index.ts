@@ -17,6 +17,7 @@ import {cleanLocalStorage} from 'actions/storage';
 import {clearUserCookie} from 'actions/views/cookie';
 import appReducers from 'reducers';
 import {getBasePath} from 'selectors/general';
+import {createEncryptionMiddleware} from './encryption_middleware';
 
 import type {GlobalState} from 'types/store';
 
@@ -35,6 +36,7 @@ export default function configureStore(preloadedState?: DeepPartial<GlobalState>
     const store = configureServiceStore({
         appReducers: reducers,
         preloadedState,
+        userMiddleware: [createEncryptionMiddleware()],
     });
 
     localForage.ready().then(() => {

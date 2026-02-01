@@ -29,10 +29,12 @@ import serviceReducers from '../reducers';
 export default function configureStore<S extends GlobalState>({
     appReducers,
     preloadedState,
+    userMiddleware = [],
 }: {
     appReducers: Record<string, Reducer>;
-    getAppReducers: () => Record<string, Reducer>;
+    getAppReducers?: () => Record<string, Reducer>;
     preloadedState: Partial<S>;
+    userMiddleware?: any[];
 }): Store {
     const baseState = {
         ...initialState,
@@ -52,6 +54,7 @@ export default function configureStore<S extends GlobalState>({
         // part of Redux state itself. At the moment, this is so that I can attach let DataLoaders dispatch actions.
         // If you want to make use of this, talk to me first since I want to know more.
         thunkWithExtraArgument({loaders: {}}),
+        ...userMiddleware,
     );
 
     const enhancers = composeEnhancers(middleware);
