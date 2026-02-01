@@ -75,7 +75,8 @@ jobs:
       SERVER: "${{ steps.generate.outputs.SERVER }}"
       ENABLED_DOCKER_SERVICES: "${{ steps.generate.outputs.ENABLED_DOCKER_SERVICES }}"
       TEST_FILTER_CYPRESS: "${{ steps.generate.outputs.TEST_FILTER_CYPRESS }}"
-      TEST_FILTER_PLAYWRIGHT: "tests"
+      TEST_FILTER_PLAYWRIGHT: "tests --grep-invert @team_edition"
+      TEST_FILTER_PLAYWRIGHT_TEAM: "tests --grep '@team_edition|@entry_tier'"
       BUILD_ID: "${{ steps.generate.outputs.BUILD_ID }}"
       TM4J_ENABLE: "${{ steps.generate.outputs.TM4J_ENABLE }}"
       REPORT_TYPE: "${{ steps.generate.outputs.REPORT_TYPE }}"
@@ -247,7 +248,7 @@ jobs:
           E2E test run is starting for commit \`${COMMIT_SHA}\`${MM_ENV:+, with \`MM_ENV=$MM_ENV\`}${MM_SERVICE_OVERRIDES:+, Cypress service overrides \`$MM_SERVICE_OVERRIDES\`}.
           To check the run progress:
           - Cypress: ${RUN_CYPRESS:+look for commit status \`$STATUS_CHECK_CONTEXT\` or the access the [Automation Dashboard Cycle URL]($CYCLE_URL)}$([ -n "${RUN_CYPRESS:-}" ] || echo -n "will not run").
-          - Playwright: ${RUN_PLAYWRIGHT:+look for commit status \`$STATUS_CHECK_CONTEXT-playwright\`}$([ -n "${RUN_PLAYWRIGHT:-}" ] || echo -n "will not run").
+          - Playwright: ${RUN_PLAYWRIGHT:+look for commit status \`$STATUS_CHECK_CONTEXT-playwright\` and \`$STATUS_CHECK_CONTEXT-playwright-team\`}$([ -n "${RUN_PLAYWRIGHT:-}" ] || echo -n "will not run").
           
           You can also look at the [E2E test's Workflow Run URL]($WORKFLOW_RUN_URL) (run ID \`${{ github.run_id }}\`).
           EOF
@@ -322,6 +323,38 @@ jobs:
       AWS_ACCESS_KEY_ID: "${{ secrets.CYPRESS_AWS_ACCESS_KEY_ID }}"
       AWS_SECRET_ACCESS_KEY: "${{ secrets.CYPRESS_AWS_SECRET_ACCESS_KEY }}"
 
+  e2e-fulltest-playwright-team:
+    needs:
+      - generate-test-variables
+    uses: ./.github/workflows/e2e-tests-ci-template.yml
+    if: ${{ inputs.RUN_PLAYWRIGHT == 'true' }}
+    with:
+      commit_sha: "${{ needs.generate-test-variables.outputs.commit_sha }}"
+      status_check_context: "${{ needs.generate-test-variables.outputs.status_check_context }}-playwright-team"
+      workers_number: "1"
+      testcase_failure_fatal: "${{ needs.generate-test-variables.outputs.TESTCASE_FAILURE_FATAL == 'true' }}"
+      run_preflight_checks: false
+      enable_reporting: true
+      SERVER: "${{ needs.generate-test-variables.outputs.SERVER }}"
+      SERVER_IMAGE: "${{ needs.generate-test-variables.outputs.SERVER_IMAGE }}"
+      TEST: "playwright"
+      TEST_FILTER: "${{ needs.generate-test-variables.outputs.TEST_FILTER_PLAYWRIGHT_TEAM }}"
+      MM_ENV: "${{ inputs.MM_ENV || '' }}"
+      BRANCH: "${{ needs.generate-test-variables.outputs.BRANCH }}"
+      BUILD_ID: "${{ needs.generate-test-variables.outputs.BUILD_ID }}-team"
+      REPORT_TYPE: "${{ needs.generate-test-variables.outputs.REPORT_TYPE }}"
+      ROLLING_RELEASE_commit_sha: "${{ needs.generate-test-variables.outputs.ROLLING_RELEASE_commit_sha }}"
+      ROLLING_RELEASE_SERVER_IMAGE: "${{ needs.generate-test-variables.outputs.ROLLING_RELEASE_SERVER_IMAGE }}"
+      PR_NUMBER: "${{ inputs.PR_NUMBER }}"
+    secrets:
+      MM_LICENSE: ""
+      PUSH_NOTIFICATION_SERVER: "${{ secrets.MM_E2E_PUSH_NOTIFICATION_SERVER }}"
+      REPORT_WEBHOOK_URL: "${{ secrets.MM_E2E_REPORT_WEBHOOK_URL }}"
+      CWS_URL: "${{ needs.generate-test-variables.outputs.SERVER == 'cloud' && secrets.MM_E2E_CWS_URL || '' }}"
+      CWS_EXTRA_HTTP_HEADERS: "${{ needs.generate-test-variables.outputs.SERVER == 'cloud' && secrets.MM_E2E_CWS_EXTRA_HTTP_HEADERS || '' }}"
+      AWS_ACCESS_KEY_ID: "${{ secrets.CYPRESS_AWS_ACCESS_KEY_ID }}"
+      AWS_SECRET_ACCESS_KEY: "${{ secrets.CYPRESS_AWS_SECRET_ACCESS_KEY }}"
+
   notify-user:
     runs-on: ubuntu-24.04
     if: always()
@@ -329,6 +362,7 @@ jobs:
       - generate-test-variables
       - e2e-fulltest-cypress
       - e2e-fulltest-playwright
+      - e2e-fulltest-playwright-team
     permissions:
       issues: write
       pull-requests: write
@@ -346,6 +380,7 @@ jobs:
       RUN_CYPRESS: "${{inputs.RUN_CYPRESS == 'true' || ''}}"
       RUN_PLAYWRIGHT: "${{inputs.RUN_PLAYWRIGHT == 'true' || ''}}"
       PLAYWRIGHT_REPORT_URL: "${{ needs.e2e-fulltest-playwright.outputs.playwright_report_url }}"
+      PLAYWRIGHT_TEAM_REPORT_URL: "${{ needs.e2e-fulltest-playwright-team.outputs.playwright_report_url }}"
     steps:
       - name: ci/notify-user-test-completion
         run: |
@@ -355,6 +390,7 @@ jobs:
           Results summary:
           - Cypress: ${RUN_CYPRESS:+pass rate is \`${{ needs.e2e-fulltest-cypress.outputs.pass_rate || 'unknown' }}\` (see [Automation Dashboard]($CYCLE_URL) and commit status check \`$STATUS_CHECK_CONTEXT\`)}$([ -n "${RUN_CYPRESS:-}" ] || echo -n "did not run").
           - Playwright: ${RUN_PLAYWRIGHT:+pass rate is \`${{ needs.e2e-fulltest-playwright.outputs.pass_rate || 'unknown' }}\` (see [Playwright Report URL]($PLAYWRIGHT_REPORT_URL) and commit status check \`$STATUS_CHECK_CONTEXT-playwright\`)}$([ -n "${RUN_PLAYWRIGHT:-}" ] || echo -n "did not run").
+          - Playwright (Team): ${RUN_PLAYWRIGHT:+pass rate is \`${{ needs.e2e-fulltest-playwright-team.outputs.pass_rate || 'unknown' }}\` (see [Playwright Report URL]($PLAYWRIGHT_TEAM_REPORT_URL) and commit status check \`$STATUS_CHECK_CONTEXT-playwright-team\`)}$([ -n "${RUN_PLAYWRIGHT:-}" ] || echo -n "did not run").
           
           The run summary artifacts are available in the corresponding [Workflow Run]($WORKFLOW_RUN_URL).
           EOF

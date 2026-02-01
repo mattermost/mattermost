@@ -3,6 +3,12 @@ set -e -u -o pipefail
 cd "$(dirname "$0")"
 . .e2erc
 
+# Test cycle generation is only applicable to Cypress (uses Automation Dashboard)
+if [ "$TEST" != "cypress" ]; then
+  mme2e_log "Test cycle generation is only applicable to Cypress. Skipping for TEST=$TEST."
+  exit 0
+fi
+
 TEST_ENV_FILE=".env.$TEST"
 
 mme2e_log "Loading variables from $TEST_ENV_FILE"

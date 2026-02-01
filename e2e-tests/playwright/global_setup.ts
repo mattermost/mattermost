@@ -1,9 +1,16 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {baseGlobalSetup, testConfig} from '@mattermost/playwright-lib';
+import {baseGlobalSetup, startTestEnvironment, stopTestEnvironment, testConfig} from '@mattermost/playwright-lib';
 
 async function globalSetup() {
+    // Start testcontainers if enabled (PW_TC=true)
+    // Returns null if not enabled, otherwise starts environment and sets PW_BASE_URL
+    const env = await startTestEnvironment();
+    if (env) {
+        testConfig.baseURL = env.getServerUrl();
+    }
+
     try {
         await baseGlobalSetup();
     } catch (error: unknown) {
@@ -14,8 +21,10 @@ async function globalSetup() {
         );
     }
 
-    return function () {
-        // placeholder for teardown setup
+    // Return teardown function
+    return async function globalTeardown() {
+        // Stop testcontainers if enabled (PW_TC=true)
+        await stopTestEnvironment();
     };
 }
 

@@ -14,3 +14,7 @@ test/.eslintcache
 # build
 dist
 *.tsbuildinfo
+
+# testcontainers output files
+.env.tc
+.tc.out

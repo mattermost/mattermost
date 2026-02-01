@@ -3,6 +3,7 @@
 
 import os from 'node:os';
 
+import chalk from 'chalk';
 import {expect, test} from '@playwright/test';
 import {PluginManifest} from '@mattermost/types/plugins';
 
@@ -38,10 +39,18 @@ export async function shouldRunInLinux() {
 
 export async function ensureLicense() {
     const {adminClient} = await getAdminClient();
+    const config = await adminClient.getClientConfig();
+
+    // Skip trial license request for team edition (not enterprise-ready)
+    const isEnterpriseReady = config.BuildEnterpriseReady === 'true';
+    if (!isEnterpriseReady) {
+        // Team edition cannot have a license, just return without error
+        return;
+    }
+
     let license = await adminClient.getClientLicenseOld();
 
     if (license?.IsLicensed !== 'true') {
-        const config = await adminClient.getClientConfig();
         expect(
             config.ServiceEnvironment === 'dev',
             'The trial license request fails in the local development environment. Please manually upload the test license.',
@@ -75,11 +84,98 @@ export async function requestTrialLicense() {
     }
 }
 
-export async function skipIfNoLicense() {
+export type LicenseSkuShortName = '' | 'entry' | 'professional' | 'enterprise' | 'advanced';
+export type ServerEdition = 'team' | 'enterprise';
+
+export async function skipIfNoLicense(...skuShortNames: LicenseSkuShortName[]) {
     const {adminClient} = await getAdminClient();
+    const config = await adminClient.getClientConfig();
+
+    // Team edition (not enterprise-ready) can never have a license
+    const isEnterpriseReady = config.BuildEnterpriseReady === 'true';
+    if (!isEnterpriseReady) {
+        test.skip(true, 'Skipping test - server is Team Edition (not enterprise-ready)');
+        return;
+    }
+
     const license = await adminClient.getClientLicenseOld();
 
-    test.skip(license.IsLicensed === 'false', 'Skipping test - server not licensed');
+    const isLicensed = license?.IsLicensed === 'true';
+    const matchesSku =
+        skuShortNames.length === 0 || skuShortNames.includes(license?.SkuShortName as LicenseSkuShortName);
+
+    test.skip(
+        !isLicensed || !matchesSku,
+        skuShortNames.length > 0
+            ? `Skipping test - server not licensed for ${skuShortNames.join(', ')} SKU`
+            : 'Skipping test - server not licensed',
+    );
+}
+
+export async function requireLicense(...skuShortNames: LicenseSkuShortName[]) {
+    const {adminClient} = await getAdminClient();
+    const config = await adminClient.getClientConfig();
+
+    // Team edition (not enterprise-ready) can never have a license
+    const isEnterpriseReady = config.BuildEnterpriseReady === 'true';
+    if (!isEnterpriseReady) {
+        // eslint-disable-next-line no-console
+        console.log(chalk.yellow('^ Warning: Requires license but server is Team Edition (not enterprise-ready)'));
+        return;
+    }
+
+    const license = await adminClient.getClientLicenseOld();
+
+    const isLicensed = license?.IsLicensed === 'true';
+    const matchesSku =
+        skuShortNames.length === 0 || skuShortNames.includes(license?.SkuShortName as LicenseSkuShortName);
+
+    if (!isLicensed || !matchesSku) {
+        const actualSku = license?.SkuShortName || 'unknown';
+        const message =
+            skuShortNames.length > 0
+                ? `^ Warning: Requires license (${skuShortNames.join(', ')}) but got ${actualSku}`
+                : '^ Warning: Requires server license';
+        // eslint-disable-next-line no-console
+        console.log(chalk.yellow(message));
+    }
+}
+
+export async function requireNoLicense() {
+    const {adminClient} = await getAdminClient();
+    const config = await adminClient.getClientConfig();
+
+    // Team edition (not enterprise-ready) can never have a license
+    const isEnterpriseReady = config.BuildEnterpriseReady === 'true';
+    if (!isEnterpriseReady) {
+        return;
+    }
+
+    const license = await adminClient.getClientLicenseOld();
+    const isLicensed = license?.IsLicensed === 'true';
+
+    if (isLicensed) {
+        const skuShortName = license?.SkuShortName || 'unknown';
+        // eslint-disable-next-line no-console
+        console.log(chalk.yellow(`^ Warning: Requires no license but server is licensed (${skuShortName})`));
+    }
+}
+
+export async function requireEdition(edition: ServerEdition) {
+    const {adminClient} = await getAdminClient();
+    const config = await adminClient.getClientConfig();
+
+    const isEnterpriseReady = config.BuildEnterpriseReady === 'true';
+    const actualEdition: ServerEdition = isEnterpriseReady ? 'enterprise' : 'team';
+
+    if (actualEdition !== edition) {
+        // eslint-disable-next-line no-console
+        console.log(chalk.yellow(`^ Warning: Requires ${edition} edition but server is ${actualEdition} edition`));
+    }
+}
+
+export async function requireTeamEdition() {
+    await requireEdition('team');
 }
 
 export async function skipIfFeatureFlagNotSet(name: string, value: string | boolean) {
