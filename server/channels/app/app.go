@@ -162,6 +162,10 @@ func (a *App) PropertyService() *properties.PropertyService {
 	return a.Srv().propertyService
 }
 
+func (a *App) PropertyAccessService() *PropertyAccessService {
+	return a.Srv().propertyAccessService
+}
+
 func (a *App) UpdateExpiredDNDStatuses() ([]*model.Status, error) {
 	return a.Srv().Store().Status().UpdateExpiredDNDStatuses()
 }
