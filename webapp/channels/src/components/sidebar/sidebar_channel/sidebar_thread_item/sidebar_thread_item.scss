@@ -1,110 +1,35 @@
+// Thread items inherit SidebarChannel styling, we just add indentation and custom icon
+
 .SidebarThreadItem {
-    list-style: none;
-    margin: 0;
-    padding: 0;
-
+    // Indent threads under their parent channel
     .SidebarLink {
-        position: relative;
+        padding-left: 40px;
+    }
+
+    // Discord-style thread icon using CSS mask
+    .SidebarChannelIcon {
         display: flex;
-        height: 32px;
-        padding: 0 16px 0 40px; // Extra indent to show hierarchy under channel
+        width: 16px;
+        height: 16px;
+        flex-shrink: 0;
         align-items: center;
-        border-radius: 4px;
-        margin: 0 8px;
-        color: rgba(var(--sidebar-text-rgb), 0.72);
-        text-decoration: none;
-        cursor: pointer;
-        gap: 6px;
+        justify-content: center;
 
-        &:hover {
-            background: rgba(var(--sidebar-text-rgb), 0.08);
-        }
-
-        // Active state - matches regular channel styling
-        &.active {
-            background: rgba(var(--sidebar-text-rgb), 0.08);
-
-            .SidebarChannelLinkLabel {
-                color: var(--sidebar-text);
-            }
-
-            .icon .icon-discord-thread {
-                background-color: var(--sidebar-text);
-            }
-
-            // Active indicator bar on left
-            &::before {
-                position: absolute;
-                top: 0;
-                left: -2px;
-                width: 4px;
-                height: 100%;
-                border-radius: 4px;
-                background: var(--sidebar-text-active-border);
-                content: '';
-            }
-        }
-
-        &.unread-title {
-            color: var(--sidebar-text);
-
-            .SidebarChannelLinkLabel {
-                color: var(--sidebar-unread-text);
-                font-weight: 600;
-            }
-
-            .icon .icon-discord-thread {
-                background-color: var(--sidebar-text);
-            }
-        }
-
-        .icon {
-            display: flex;
-            flex-shrink: 0;
-            align-items: center;
-            justify-content: center;
-            min-width: 16px;
-            min-height: 16px;
-
-            // Discord-style thread icon using CSS mask
-            .icon-discord-thread {
-                background-color: rgba(var(--sidebar-text-rgb), 0.56);
-                mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath d='M5 4h9M2 6l3 2-3 2M8 8h6M5 12h9' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' fill='none'/%3E%3C/svg%3E");
-                mask-repeat: no-repeat;
-                mask-position: center;
-                mask-size: contain;
-                width: 16px;
-                height: 16px;
-                display: inline-block;
-            }
-        }
-
-        .SidebarChannelLinkLabel_wrapper {
-            display: flex;
-            overflow: hidden;
-            flex: 1;
-            min-width: 0;
-        }
-
-        .SidebarChannelLinkLabel {
-            overflow: hidden;
-            font-size: 14px;
-            line-height: 20px;
-            text-overflow: ellipsis;
-            white-space: nowrap;
-        }
-
-        // Badge styling (from ChannelMentionBadge)
-        .badge {
-            flex-shrink: 0;
-            margin-left: auto;
+        .icon-discord-thread {
+            display: inline-block;
+            width: 16px;
+            height: 16px;
+            background-color: rgba(var(--sidebar-text-rgb), 0.56);
+            mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath d='M5 4h9M2 6l3 2-3 2M8 8h6M5 12h9' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' fill='none'/%3E%3C/svg%3E");
+            mask-position: center;
+            mask-repeat: no-repeat;
+            mask-size: contain;
         }
     }
-}
 
-// Container for thread list under a channel
-.SidebarChannel__threads {
-    list-style: none;
-    margin: 0;
-    padding: 0 0 4px 0;
+    // When active or unread, brighten the icon
+    &.active .SidebarChannelIcon .icon-discord-thread,
+    &.unread .SidebarChannelIcon .icon-discord-thread {
+        background-color: var(--sidebar-text);
+    }
 }

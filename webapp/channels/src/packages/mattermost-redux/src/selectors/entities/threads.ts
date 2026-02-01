@@ -189,9 +189,9 @@ export const getFollowedThreadsInChannel: (
     getThreadsInChannel,
     getAllPosts,
     (threads, posts) => {
-        return threads
-            .filter((thread) => thread.is_following)
-            .sort((a, b) => {
+        return threads.
+            filter((thread) => thread.is_following).
+            sort((a, b) => {
                 // Sort alphabetically by post message
                 const postA = posts[a.id];
                 const postB = posts[b.id];

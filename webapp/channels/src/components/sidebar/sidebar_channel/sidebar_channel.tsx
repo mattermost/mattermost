@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import classNames from 'classnames';
-import React, {useState} from 'react';
+import React, {useState, Fragment} from 'react';
 import type {AnimationEvent, ReactNode} from 'react';
 import {Draggable} from 'react-beautiful-dnd';
 import {FormattedMessage} from 'react-intl';
@@ -91,16 +91,15 @@ function SidebarChannel({
         );
     }
 
-    const threadList = (show && followedThreads && followedThreads.length > 0) ? (
-        <ul className='SidebarChannel__threads'>
-            {followedThreads.map((thread) => (
-                <SidebarThreadItem
-                    key={thread.id}
-                    thread={thread}
-                    currentTeamName={currentTeamName}
-                />
-            ))}
-        </ul>
+    // Render threads as separate list items (siblings to the channel)
+    const threadItems = (show && followedThreads && followedThreads.length > 0) ? (
+        followedThreads.map((thread) => (
+            <SidebarThreadItem
+                key={thread.id}
+                thread={thread}
+                currentTeamName={currentTeamName}
+            />
+        ))
     ) : null;
 
     if (isDraggable) {
@@ -118,58 +117,62 @@ function SidebarChannel({
         }
 
         return (
-            <Draggable
-                draggableId={channel.id}
-                index={channelIndex}
-            >
-                {(provided, snapshot) => {
-                    return (
-                        <li
-                            draggable='false'
-                            ref={setRef(provided.innerRef)}
-                            className={classNames('SidebarChannel', {
-                                collapsed: isCollapsed(),
-                                expanded: !isCollapsed(),
-                                unread: isUnread,
-                                active: isCurrentChannel,
-                                dragging: snapshot.isDragging,
-                                selectedDragging: isChannelSelected && draggingState.state && draggingState.id !== channel.id,
-                                fadeOnDrop: snapshot.isDropAnimating && snapshot.draggingOver && autoSortedCategoryIds.has(snapshot.draggingOver),
-                                noFloat: isAutoSortedCategory && !snapshot.isDragging,
-                            })}
-                            {...provided.draggableProps}
-                            {...provided.dragHandleProps}
-                            onAnimationStart={handleAnimationStart}
-                            onAnimationEnd={handleAnimationEnd}
-                            role='listitem'
-                            tabIndex={-1}
-                        >
-                            {component}
-                            {threadList}
-                            {selectedCount}
-                        </li>
-                    );
-                }}
-            </Draggable>
+            <>
+                <Draggable
+                    draggableId={channel.id}
+                    index={channelIndex}
+                >
+                    {(provided, snapshot) => {
+                        return (
+                            <li
+                                draggable='false'
+                                ref={setRef(provided.innerRef)}
+                                className={classNames('SidebarChannel', {
+                                    collapsed: isCollapsed(),
+                                    expanded: !isCollapsed(),
+                                    unread: isUnread,
+                                    active: isCurrentChannel,
+                                    dragging: snapshot.isDragging,
+                                    selectedDragging: isChannelSelected && draggingState.state && draggingState.id !== channel.id,
+                                    fadeOnDrop: snapshot.isDropAnimating && snapshot.draggingOver && autoSortedCategoryIds.has(snapshot.draggingOver),
+                                    noFloat: isAutoSortedCategory && !snapshot.isDragging,
+                                })}
+                                {...provided.draggableProps}
+                                {...provided.dragHandleProps}
+                                onAnimationStart={handleAnimationStart}
+                                onAnimationEnd={handleAnimationEnd}
+                                role='listitem'
+                                tabIndex={-1}
+                            >
+                                {component}
+                                {selectedCount}
+                            </li>
+                        );
+                    }}
+                </Draggable>
+                {threadItems}
+            </>
         );
     }
 
     return (
-        <li
-            ref={setRef()}
-            className={classNames('SidebarChannel', {
-                collapsed: isCollapsed(),
-                expanded: !isCollapsed(),
-                unread: isUnread,
-                active: isCurrentChannel,
-            })}
-            onAnimationStart={handleAnimationStart}
-            onAnimationEnd={handleAnimationEnd}
-            role='listitem'
-        >
-            {component}
-            {threadList}
-        </li>
+        <>
+            <li
+                ref={setRef()}
+                className={classNames('SidebarChannel', {
+                    collapsed: isCollapsed(),
+                    expanded: !isCollapsed(),
+                    unread: isUnread,
+                    active: isCurrentChannel,
+                })}
+                onAnimationStart={handleAnimationStart}
+                onAnimationEnd={handleAnimationEnd}
+                role='listitem'
+            >
+                {component}
+            </li>
+            {threadItems}
+        </>
     );
 }
 

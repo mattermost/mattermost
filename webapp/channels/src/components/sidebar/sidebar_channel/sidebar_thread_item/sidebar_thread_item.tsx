@@ -29,28 +29,36 @@ function cleanMessageForDisplay(message: string): string {
     }
 
     // Remove markdown formatting
-    let cleaned = message
+    let cleaned = message.
+
         // Remove code blocks
-        .replace(/```[\s\S]*?```/g, '[code]')
-        .replace(/`[^`]+`/g, '[code]')
+        replace(/```[\s\S]*?```/g, '[code]').
+        replace(/`[^`]+`/g, '[code]').
+
         // Remove links but keep text
-        .replace(/\[([^\]]+)\]\([^)]+\)/g, '$1')
+        replace(/\[([^\]]+)\]\([^)]+\)/g, '$1').
+
         // Remove images
-        .replace(/!\[[^\]]*\]\([^)]+\)/g, '[image]')
+        replace(/!\[[^\]]*\]\([^)]+\)/g, '[image]').
+
         // Remove bold/italic
-        .replace(/\*\*([^*]+)\*\*/g, '$1')
-        .replace(/\*([^*]+)\*/g, '$1')
-        .replace(/__([^_]+)__/g, '$1')
-        .replace(/_([^_]+)_/g, '$1')
+        replace(/\*\*([^*]+)\*\*/g, '$1').
+        replace(/\*([^*]+)\*/g, '$1').
+        replace(/__([^_]+)__/g, '$1').
+        replace(/_([^_]+)_/g, '$1').
+
         // Remove headers
-        .replace(/^#+\s+/gm, '')
+        replace(/^#+\s+/gm, '').
+
         // Remove blockquotes
-        .replace(/^>\s+/gm, '')
+        replace(/^>\s+/gm, '').
+
         // Remove horizontal rules
-        .replace(/^---+$/gm, '')
+        replace(/^---+$/gm, '').
+
         // Collapse whitespace
-        .replace(/\s+/g, ' ')
-        .trim();
+        replace(/\s+/g, ' ').
+        trim();
 
     // Truncate if too long (CSS handles overflow but this helps with very long messages)
     if (cleaned.length > 100) {
@@ -73,8 +81,9 @@ const SidebarThreadItem = ({
     const link = `/${currentTeamName}/thread/${thread.id}`;
 
     // Check if this thread is currently active via route match
-    const match = useRouteMatch<{threadIdentifier?: string}>(`/${currentTeamName}/thread/:threadIdentifier`);
-    const isActive = match?.params.threadIdentifier === thread.id;
+    // Use a pattern that matches the route definition in center_channel.tsx
+    const match = useRouteMatch<{team?: string; threadIdentifier?: string}>('/:team/thread/:threadIdentifier');
+    const isActive = Boolean(match && match.params.threadIdentifier === thread.id);
 
     // Clean and format the label using the full post message
     const rawMessage = post?.message || '';
@@ -83,16 +92,21 @@ const SidebarThreadItem = ({
     const hasUnread = (thread.unread_replies || 0) > 0 || (thread.unread_mentions || 0) > 0;
 
     return (
-        <li className='SidebarThreadItem'>
+        <li
+            className={classNames('SidebarChannel', 'SidebarThreadItem', {
+                active: isActive,
+                unread: hasUnread,
+            })}
+            role='listitem'
+        >
             <Link
                 className={classNames('SidebarLink', {
-                    active: isActive,
                     'unread-title': hasUnread,
                 })}
                 to={link}
                 id={`sidebarThread_${thread.id}`}
             >
-                <span className='icon'>
+                <span className='SidebarChannelIcon'>
                     <span className='icon-discord-thread'/>
                 </span>
                 <div className='SidebarChannelLinkLabel_wrapper'>
