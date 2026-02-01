@@ -112,6 +112,10 @@
 
                 &:hover {
                     background: rgba(var(--center-channel-color-rgb), 0.08);
+
+                    .ThreadView__header-edit-icon {
+                        opacity: 1;
+                    }
                 }
             }
         }
@@ -121,10 +125,6 @@
             opacity: 0;
             transition: opacity 0.15s ease;
             color: rgba(var(--center-channel-color-rgb), 0.56);
-
-            .ThreadView__header-text--editable:hover & {
-                opacity: 1;
-            }
         }
 
         .ThreadView__header-name-input {
