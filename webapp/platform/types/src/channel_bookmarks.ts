@@ -5,7 +5,7 @@ import type {Channel} from './channels';
 import type {FileInfo} from './files';
 import type {IDMappedObjects} from './utilities';
 
-type ChannelBookmarkType = 'link' | 'file';
+type ChannelBookmarkType = 'link' | 'file' | 'command';
 
 export type ChannelBookmark = {
     id: string;
@@ -24,6 +24,7 @@ export type ChannelBookmark = {
     type: ChannelBookmarkType;
     original_id?: string;
     parent_id?: string;
+    command?: string;
 }
 
 export type ChannelBookmarkCreate = {
@@ -37,6 +38,9 @@ export type ChannelBookmarkCreate = {
 } | {
     type: 'file';
     file_id: string;
+} | {
+    type: 'command';
+    command: string;
 })
 
 export type ChannelBookmarkPatch = {
@@ -46,6 +50,7 @@ export type ChannelBookmarkPatch = {
     link_url?: string;
     image_url?: string;
     emoji?: string;
+    command?: string;
 }
 
 export type UpdateChannelBookmarkResponse = {

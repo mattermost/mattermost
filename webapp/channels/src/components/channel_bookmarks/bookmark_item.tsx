@@ -4,6 +4,7 @@
 import type {AnchorHTMLAttributes} from 'react';
 import React, {cloneElement, forwardRef, useRef} from 'react';
 import type {DraggableProvided} from 'react-beautiful-dnd';
+import {FormattedMessage} from 'react-intl';
 import {useDispatch, useSelector} from 'react-redux';
 import {Link} from 'react-router-dom';
 import styled, {css} from 'styled-components';
@@ -12,13 +13,16 @@ import type {ChannelBookmark} from '@mattermost/types/channel_bookmarks';
 import type {FileInfo} from '@mattermost/types/files';
 import type {Post} from '@mattermost/types/posts';
 
+import {getChannel} from 'mattermost-redux/selectors/entities/channels';
 import {getFile} from 'mattermost-redux/selectors/entities/files';
 import {getFileDownloadUrl} from 'mattermost-redux/utils/file_utils';
 
+import {executeCommand} from 'actions/command';
 import {openModal} from 'actions/views/modals';
 
 import ExternalLink from 'components/external_link';
 import FilePreviewModal from 'components/file_preview_modal';
+import WithTooltip from 'components/with_tooltip';
 
 import {ModalIdentifiers} from 'utils/constants';
 import {getSiteURL, shouldOpenInNewTab} from 'utils/url';
@@ -32,24 +36,17 @@ const useBookmarkLink = (bookmark: ChannelBookmark) => {
     const linkRef = useRef<HTMLAnchorElement>(null);
     const dispatch = useDispatch();
     const fileInfo: FileInfo | undefined = useSelector((state: GlobalState) => (bookmark?.file_id && getFile(state, bookmark.file_id)) || undefined);
+    const channel = useSelector((state: GlobalState) => getChannel(state, bookmark.channel_id));
 
     const open = () => {
-        linkRef.current?.click();
-    };
-
-    const handleOpenFile = (e: React.MouseEvent<HTMLAnchorElement>) => {
-        e.preventDefault();
-
-        if (fileInfo) {
-            dispatch(openModal({
-                modalId: ModalIdentifiers.FILE_PREVIEW_MODAL,
-                dialogType: FilePreviewModal,
-                dialogProps: {
-                    post: {user_id: bookmark.owner_id, channel_id: bookmark.channel_id} as Post,
-                    fileInfos: [fileInfo],
-                    startIndex: 0,
-                },
+        if (bookmark.type === 'command' && bookmark.command) {
+            dispatch(executeCommand(bookmark.command, {
+                channel_id: bookmark.channel_id,
+                team_id: channel?.team_id || '',
+                root_id: '',
             }));
+        } else {
+            linkRef.current?.click();
         }
     };
 
@@ -61,7 +58,8 @@ const useBookmarkLink = (bookmark: ChannelBookmark) => {
             fileInfo={fileInfo}
         />
     );
-    let link;
+    let link = <Label>{bookmark.display_name}</Label>;
+    let title;
 
     if (bookmark.type === 'link' && bookmark.link_url) {
         link = (
@@ -71,10 +69,26 @@ const useBookmarkLink = (bookmark: ChannelBookmark) => {
                 isFile={false}
             >
                 {icon}
-                <Label>{bookmark.display_name}</Label>
+                {link}
             </DynamicLink>
         );
     } else if (bookmark.type === 'file' && bookmark.file_id) {
+        const handleOpenFile = (e: React.MouseEvent<HTMLAnchorElement>) => {
+            e.preventDefault();
+
+            if (fileInfo) {
+                dispatch(openModal({
+                    modalId: ModalIdentifiers.FILE_PREVIEW_MODAL,
+                    dialogType: FilePreviewModal,
+                    dialogProps: {
+                        post: {user_id: bookmark.owner_id, channel_id: bookmark.channel_id} as Post,
+                        fileInfos: [fileInfo],
+                        startIndex: 0,
+                    },
+                }));
+            }
+        };
+
         link = (
             <DynamicLink
                 href={getFileDownloadUrl(bookmark.file_id)}
@@ -83,16 +97,45 @@ const useBookmarkLink = (bookmark: ChannelBookmark) => {
                 isFile={true}
             >
                 {icon}
-                <Label>{bookmark.display_name}</Label>
+                {link}
             </DynamicLink>
+        );
+    } else if (bookmark.type === 'command' && bookmark.command) {
+        const handleCommandClick = (e: React.MouseEvent<HTMLAnchorElement>) => {
+            e.preventDefault();
+            dispatch(executeCommand(bookmark.command!, {
+                channel_id: bookmark.channel_id,
+                team_id: channel?.team_id || '',
+                root_id: '',
+            }));
+        };
+
+        link = (
+            <DynamicLink
+                href='#'
+                onClick={handleCommandClick}
+                ref={linkRef}
+                isFile={false}
+            >
+                {icon}
+                {link}
+            </DynamicLink>
+        );
+        title = (
+            <FormattedMessage
+                id='channel_bookmarks.command.run.tooltip'
+                defaultMessage='Run {command}'
+                values={{command: bookmark.command || ''}}
+            />
         );
     }
 
     return {
         link,
+        title,
         icon,
         open,
-    } as const;
+    };
 };
 
 type Props = {
@@ -102,7 +145,17 @@ type Props = {
     disableInteractions: boolean;
 };
 const BookmarkItem = (({bookmark, drag, disableInteractions}: Props) => {
-    const {link, open} = useBookmarkLink(bookmark);
+    const {link: undraggableLink, open, title} = useBookmarkLink(bookmark);
+
+    let link = cloneElement(undraggableLink, {...drag.dragHandleProps, role: 'link'});
+
+    if (title) {
+        link = (
+            <WithTooltip title={title}>
+                {link}
+            </WithTooltip>
+        );
+    }
 
     return (
         <Chip
@@ -110,7 +163,7 @@ const BookmarkItem = (({bookmark, drag, disableInteractions}: Props) => {
             {...drag.draggableProps}
             $disableInteractions={disableInteractions}
         >
-            {link && cloneElement(link, {...drag.dragHandleProps, role: 'link'})}
+            {link}
             <BookmarkItemDotMenu
                 bookmark={bookmark}
                 open={open}
