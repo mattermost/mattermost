@@ -32,6 +32,8 @@ import (
 	"github.com/mattermost/mattermost/server/v8/channels/testlib"
 	"github.com/mattermost/mattermost/server/v8/channels/utils"
 	"github.com/mattermost/mattermost/server/v8/channels/utils/testutils"
+
+	einterfacesmocks "github.com/mattermost/mattermost/server/v8/einterfaces/mocks"
 )
 
 // Helper to enable feature with license
@@ -2346,6 +2348,16 @@ func TestGetPostsForChannel(t *testing.T) {
 	time.Sleep(300 * time.Millisecond)
 
 	post4 := th.CreatePost(t)
+	err := th.Store.AutoTranslation().Save(&model.Translation{
+		ObjectID:   post1.Id,
+		ObjectType: model.TranslationObjectTypePost,
+		Lang:       "en",
+		Text:       "test",
+		State:      model.TranslationStateReady,
+		Provider:   "agents",
+		Type:       model.TranslationTypeString,
+	})
+	require.NoError(t, err)
 
 	th.TestForAllClients(t, func(t *testing.T, c *model.Client4) {
 		posts, resp, err := c.GetPostsForChannel(context.Background(), th.BasicChannel.Id, 0, 60, "", false, false)
@@ -2410,6 +2422,55 @@ func TestGetPostsForChannel(t *testing.T) {
 		_, resp, err = c.GetPostsForChannel(context.Background(), "junk", 0, 60, "", false, false)
 		require.Error(t, err)
 		CheckBadRequestStatus(t, resp)
+	})
+
+	th.TestForAllClients(t, func(t *testing.T, c *model.Client4) {
+		if c == th.LocalClient {
+			t.Skip("Local client does not support auto-translation")
+			return
+		}
+		// We get the translation for the post1 in order to have the correct
+		// update at.
+		post1Translation, err := th.Store.AutoTranslation().Get(post1.Id, "en")
+		require.NoError(t, err)
+
+		enterpriseMock := einterfacesmocks.AutoTranslationInterface{}
+		enterpriseMock.On("IsFeatureAvailable").Return(true)
+		enterpriseMock.On("IsChannelEnabled", mock.Anything).Return(true, nil)
+		enterpriseMock.On("IsUserEnabled", mock.Anything, mock.Anything).Return(true, nil)
+		enterpriseMock.On("GetUserLanguage", mock.Anything, mock.Anything).Return("en", nil)
+		enterpriseMock.On("Translate", mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return("test", nil)
+		enterpriseMock.On("GetBatch", mock.Anything, mock.Anything).Return(map[string]*model.Translation{post1.Id: post1Translation}, nil)
+
+		originalAutoTranslation := th.Server.AutoTranslation
+		defer func() {
+			th.Server.AutoTranslation = originalAutoTranslation
+		}()
+		th.Server.AutoTranslation = &enterpriseMock
+
+		posts, _, err := c.GetPostsSince(context.Background(), th.BasicChannel.Id, since, false)
+		require.NoError(t, err)
+		require.Len(t, posts.Posts, 3, "should return 3 posts")
+
+		// "since" query to return empty NextPostId and PrevPostId
+		require.Equal(t, "", posts.NextPostId, "should return an empty NextPostId")
+		require.Equal(t, "", posts.PrevPostId, "should return an empty PrevPostId")
+
+		found := make([]bool, 3)
+		for _, p := range posts.Posts {
+			require.LessOrEqual(t, since, p.UpdateAt, "bad create at for post returned")
+
+			if p.Id == post4.Id {
+				found[0] = true
+			} else if p.Id == post5.Id {
+				found[1] = true
+			} else if p.Id == post1.Id {
+				found[2] = true
+			}
+		}
+		for _, f := range found {
+			require.True(t, f, "missing post")
+		}
 	})
 
 	_, resp, err := client.GetPostsForChannel(context.Background(), model.NewId(), 0, 60, "", false, false)

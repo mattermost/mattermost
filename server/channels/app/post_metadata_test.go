@@ -34,13 +34,15 @@ import (
 	"github.com/mattermost/mattermost/server/v8/channels/app/platform"
 	"github.com/mattermost/mattermost/server/v8/channels/utils/testutils"
 	"github.com/mattermost/mattermost/server/v8/platform/services/imageproxy"
+
+	einterfacesmocks "github.com/mattermost/mattermost/server/v8/einterfaces/mocks"
 )
 
 func TestPreparePostListForClient(t *testing.T) {
 	mainHelper.Parallel(t)
 	// Most of this logic is covered by TestPreparePostForClient, so this just tests handling of multiple posts
 
-	th := Setup(t)
+	th := Setup(t).InitBasic(t)
 
 	postList := model.NewPostList()
 	for range 5 {
@@ -64,6 +66,87 @@ func TestPreparePostListForClient(t *testing.T) {
 		for _, clientPost := range clientPostList.Posts {
 			assert.NotNil(t, clientPost.Metadata, "should've populated metadata for each post")
 		}
+	})
+
+	t.Run("auto-translation", func(t *testing.T) {
+		post1, _, appErr := th.App.CreatePost(th.Context, &model.Post{
+			UserId:    th.BasicUser.Id,
+			ChannelId: th.BasicChannel.Id,
+			Message:   "hello world",
+		}, th.BasicChannel, model.CreatePostFlags{SetOnline: true})
+		require.Nil(t, appErr)
+
+		post2, _, appErr := th.App.CreatePost(th.Context, &model.Post{
+			UserId:    th.BasicUser.Id,
+			ChannelId: th.BasicChannel.Id,
+			Message:   "hello world",
+		}, th.BasicChannel, model.CreatePostFlags{SetOnline: true})
+		require.Nil(t, appErr)
+
+		post3, _, appErr := th.App.CreatePost(th.Context, &model.Post{
+			UserId:    th.BasicUser.Id,
+			ChannelId: th.BasicChannel.Id,
+			Message:   "hello world",
+		}, th.BasicChannel, model.CreatePostFlags{SetOnline: true})
+		require.Nil(t, appErr)
+
+		err := th.Store.AutoTranslation().Save(&model.Translation{
+			ObjectID:   post1.Id,
+			ObjectType: model.TranslationObjectTypePost,
+			Lang:       "en",
+			Text:       "test",
+			State:      model.TranslationStateReady,
+			Provider:   "agents",
+			Type:       model.TranslationTypeString,
+		})
+		require.NoError(t, err)
+
+		post1Translation, err := th.Store.AutoTranslation().Get(post1.Id, "en")
+		require.NoError(t, err)
+
+		err = th.Store.AutoTranslation().Save(&model.Translation{
+			ObjectID:   post2.Id,
+			ObjectType: model.TranslationObjectTypePost,
+			Lang:       "en",
+			Text:       "test",
+			State:      model.TranslationStateReady,
+			Provider:   "agents",
+			Type:       model.TranslationTypeString,
+		})
+		require.NoError(t, err)
+
+		post2Translation, err := th.Store.AutoTranslation().Get(post1.Id, "en")
+		require.NoError(t, err)
+
+		autotranslationPostList := &model.PostList{}
+		autotranslationPostList.AddPost(post1)
+		autotranslationPostList.AddPost(post2)
+		autotranslationPostList.AddPost(post3)
+
+		enterpriseMock := einterfacesmocks.AutoTranslationInterface{}
+		enterpriseMock.On("IsFeatureAvailable").Return(true)
+		enterpriseMock.On("IsChannelEnabled", mock.Anything).Return(true, nil)
+		enterpriseMock.On("IsUserEnabled", mock.Anything, mock.Anything).Return(true, nil)
+		enterpriseMock.On("GetUserLanguage", mock.Anything, mock.Anything).Return("en", nil)
+		enterpriseMock.On("Translate", mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return("test", nil)
+		enterpriseMock.On("GetBatch", mock.Anything, mock.Anything).Return(map[string]*model.Translation{
+			post1.Id: post1Translation,
+			post2.Id: post2Translation,
+		}, nil)
+
+		originalAutoTranslation := th.Server.AutoTranslation
+		defer func() {
+			th.Server.AutoTranslation = originalAutoTranslation
+		}()
+		th.Server.AutoTranslation = &enterpriseMock
+
+		clientPosts := th.App.PreparePostListForClient(th.Context, autotranslationPostList)
+		require.Equal(t, "ready", clientPosts.Posts[post1.Id].Metadata.Translations["en"].State)
+		require.Equal(t, clientPosts.Posts[post1.Id].UpdateAt, post1Translation.UpdateAt)
+		require.Equal(t, "ready", clientPosts.Posts[post2.Id].Metadata.Translations["en"].State)
+		require.Equal(t, clientPosts.Posts[post2.Id].UpdateAt, post2Translation.UpdateAt)
+		require.Nil(t, clientPosts.Posts[post3.Id].Metadata.Translations["en"])
+		require.Equal(t, clientPosts.Posts[post3.Id].UpdateAt, post3.UpdateAt)
 	})
 }
 
