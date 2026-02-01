@@ -4,9 +4,13 @@
 import type {Channel} from '@mattermost/types/channels';
 import type {CommandArgs} from '@mattermost/types/integrations';
 import type {Post} from '@mattermost/types/posts';
+import {PostPriority} from '@mattermost/types/posts';
+
+import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
 
 import type {ActionFuncAsync} from 'types/store';
 import type {DesktopNotificationArgs} from 'types/store/plugins';
+import {encryptMessageHook, decryptMessageHook, isEncryptedMessage} from 'utils/encryption';
 
 import type {NewPostMessageProps} from './new_post';
 
@@ -17,24 +21,37 @@ import type {NewPostMessageProps} from './new_post';
 export function runMessageWillBePostedHooks(originalPost: Post): ActionFuncAsync<Post> {
     return async (dispatch, getState) => {
         const hooks = getState().plugins.components.MessageWillBePosted;
-        if (!hooks || hooks.length === 0) {
-            return {data: originalPost};
-        }
 
         let post = originalPost;
 
-        for (const hook of hooks) {
-            const result = await hook.hook?.(post); // eslint-disable-line no-await-in-loop
+        if (hooks && hooks.length > 0) {
+            for (const hook of hooks) {
+                const result = await hook.hook?.(post); // eslint-disable-line no-await-in-loop
 
-            if (result) {
-                if ('error' in result) {
-                    return {
-                        error: result.error,
-                    };
+                if (result) {
+                    if ('error' in result) {
+                        return {
+                            error: result.error,
+                        };
+                    }
+
+                    post = result.post;
                 }
-
-                post = result.post;
             }
+        }
+
+        // Native encryption for encrypted priority posts (mattermost-extended)
+        if (post.metadata?.priority?.priority === PostPriority.ENCRYPTED) {
+            const userId = getCurrentUserId(getState());
+            const encryptResult = await encryptMessageHook(post, userId);
+            if ('error' in encryptResult) {
+                return {
+                    error: {
+                        message: encryptResult.error,
+                    },
+                };
+            }
+            post = encryptResult.post;
         }
 
         return {data: post};
@@ -48,12 +65,25 @@ export function runMessageWillBePostedHooks(originalPost: Post): ActionFuncAsync
  */
 export function runMessageWillBeReceivedHooks(originalPost: Post): ActionFuncAsync<Post> {
     return async (dispatch, getState) => {
-        const hooks = getState().plugins.components.MessageWillBeReceived;
-        if (!hooks || hooks.length === 0) {
-            return {data: originalPost};
-        }
+        const state = getState();
+        const currentUserId = getCurrentUserId(state);
 
         let post = originalPost;
+
+        // Native decryption for encrypted messages (mattermost-extended)
+        if (isEncryptedMessage(post.message)) {
+            try {
+                const result = await decryptMessageHook(post, currentUserId);
+                post = result.post;
+            } catch (error) {
+                console.error('Failed to decrypt message:', error);
+            }
+        }
+
+        const hooks = getState().plugins.components.MessageWillBeReceived;
+        if (!hooks || hooks.length === 0) {
+            return {data: post};
+        }
 
         for (const hook of hooks) {
             const result = await hook.hook?.(post); // eslint-disable-line no-await-in-loop
@@ -105,23 +135,72 @@ export function runSlashCommandWillBePostedHooks(originalMessage: string, origin
 export function runMessageWillBeUpdatedHooks(newPost: Partial<Post>, oldPost: Post): ActionFuncAsync<Partial<Post>> {
     return async (dispatch, getState) => {
         const hooks = getState().plugins.components.MessageWillBeUpdated;
-        if (!hooks || hooks.length === 0) {
-            return {data: newPost};
-        }
 
         let post = newPost;
 
-        for (const hook of hooks) {
-            const result = await hook.hook?.(post, oldPost); // eslint-disable-line no-await-in-loop
+        if (hooks && hooks.length > 0) {
+            for (const hook of hooks) {
+                const result = await hook.hook?.(post, oldPost); // eslint-disable-line no-await-in-loop
 
-            if (result) {
-                if ('error' in result) {
-                    return {
-                        error: result.error,
-                    };
+                if (result) {
+                    if ('error' in result) {
+                        return {
+                            error: result.error,
+                        };
+                    }
+
+                    post = result.post;
                 }
+            }
+        }
 
-                post = result.post;
+        // Native encryption for encrypted priority posts (mattermost-extended)
+        // We check if either the new version has encrypted priority,
+        // OR if the old version was encrypted and we are not explicitly changing priority.
+        const isEncrypted = post.metadata?.priority?.priority === PostPriority.ENCRYPTED ||
+            (oldPost?.metadata?.priority?.priority === PostPriority.ENCRYPTED && !post.metadata?.priority);
+
+        if (isEncrypted) {
+            const state = getState();
+            const userId = getCurrentUserId(state);
+
+            // Ensure priority is set in the updated post if it was missing but old post had it
+            if (!post.metadata?.priority) {
+                post.metadata = {
+                    ...post.metadata,
+                    priority: {
+                        priority: PostPriority.ENCRYPTED,
+                    },
+                };
+            }
+
+            // In edit mode, we might only have changed fields.
+            // Encryption needs the full message and channel_id.
+            const encryptionPost = {
+                ...oldPost,
+                ...post,
+            } as Post;
+
+            const encryptResult = await encryptMessageHook(encryptionPost, userId);
+            if ('error' in encryptResult) {
+                return {
+                    error: {
+                        message: encryptResult.error,
+                    },
+                };
+            }
+
+            // We only want to patch the fields that were returned by the encryption hook
+            post = {
+                ...post,
+                message: encryptResult.post.message,
+            };
+
+            // Clear decryption props if present
+            if (post.props) {
+                post.props = {...post.props};
+                delete post.props.encryption_status;
+                delete post.props.encrypted_by;
             }
         }
 

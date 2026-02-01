@@ -1,85 +1,74 @@
 # Message Interception - Processing Posts Before Rendering
 
-This document explains how to intercept and process messages BEFORE they are rendered in the UI. This is critical for features like encryption, content filtering, or message transformation.
+This document explains how to intercept and process messages BEFORE they are rendered in the UI or sent to the server. This is critical for features like encryption, content filtering, or message transformation.
 
 ## Overview
 
-Mattermost posts enter Redux through several paths. To ensure posts are processed before rendering, you must intercept them at the Redux middleware layer.
+Mattermost posts enter the system through several paths. To ensure posts are processed before rendering or sending, you must intercept them at the Redux layer using either **Hooks** (for active user actions) or **Middleware** (for bulk loading/background updates).
 
-## Post Entry Points
+## Interception via Hooks
+
+The most common way to process messages is using the hook system in `webapp/channels/src/actions/hooks.ts`.
 
 ### 1. WebSocket (Incoming Messages from Others)
 
 When another user sends a message, it arrives via WebSocket:
 
 ```
-WebSocket → handleNewPost() → completePostReceive() → dispatch(RECEIVED_NEW_POST)
+WebSocket → handleNewPost() → completePostReceive() → runMessageWillBeReceivedHooks() → dispatch(RECEIVED_NEW_POST)
 ```
 
 **File:** `webapp/channels/src/actions/new_post.ts`
 
-The `completePostReceive` function is the ideal place to process incoming WebSocket posts:
-
-```typescript
-export function completePostReceive(post: Post, ...): ActionFuncAsync<boolean> {
-    return async (dispatch, getState) => {
-        // Process the post BEFORE dispatching
-        let processedPost = post;
-        if (needsProcessing(post)) {
-            processedPost = await processPost(post);
-        }
-
-        // Now dispatch with processed post
-        dispatch(batchActions([
-            PostActions.receivedNewPost(processedPost, ...),
-            ...
-        ]));
-    };
-}
-```
+The `runMessageWillBeReceivedHooks` function handles decryption for incoming messages before they are added to the Redux store.
 
 ### 2. Sending Messages (Your Own Posts)
 
-When YOU send a message, it goes through optimistic updates:
+When YOU send a message:
 
 ```
-User submits → createPost() → dispatch(BATCH_CREATE_POST_INIT) → Server → dispatch(BATCH_CREATE_POST)
+User submits → onSubmit() → submitPost() → runMessageWillBePostedHooks() → dispatch(CREATE_POST)
 ```
 
-**File:** `webapp/channels/src/packages/mattermost-redux/src/actions/posts.ts`
+**Files:**
+- `webapp/channels/src/actions/views/create_comment.tsx` (Logic)
+- `webapp/channels/src/actions/hooks.ts` (`runMessageWillBePostedHooks`)
 
-**Critical Batch Action Types:**
-- `BATCH_CREATE_POST_INIT` - Optimistic post (shows immediately)
-- `BATCH_CREATE_POST` - Server response
-- `BATCH_CREATE_POST_FAILED` - Error case
+This is where messages are encrypted before being sent to the server.
 
-### 3. Loading Posts (Page Load, Scrolling)
+### 3. Editing Messages
 
-When posts are loaded from the API:
+When you edit an existing message:
 
 ```
-getPosts() → Client4.getPosts() → dispatch(RECEIVED_POSTS)
+User saves edit → editPost() → runMessageWillBeUpdatedHooks() → PostActions.editPost()
 ```
 
-These come through various action types:
-- `RECEIVED_POSTS`
-- `RECEIVED_POSTS_SINCE`
-- `RECEIVED_POSTS_BEFORE`
-- `RECEIVED_POSTS_AFTER`
-- `RECEIVED_POSTS_IN_CHANNEL`
-- `RECEIVED_POSTS_IN_THREAD`
-- `RECEIVED_NEW_POST`
-- `RECEIVED_POST`
+**Files:**
+- `webapp/channels/src/actions/views/posts.js` (`editPost` wrapper)
+- `webapp/channels/src/actions/hooks.ts` (`runMessageWillBeUpdatedHooks`)
 
-## Redux Middleware Approach
+**Note:** This is a critical point for ensuring edited content is encrypted before being sent to the server.
 
-The most reliable way to intercept ALL posts is via Redux middleware.
+### 4. Forwarding Messages
+
+When you forward a post:
+
+```
+User forwards → forwardPost() → runMessageWillBePostedHooks() → PostActions.createPost()
+```
+
+**File:** `webapp/channels/src/actions/views/posts.js`
+
+## Interception via Redux Middleware
+
+Redux middleware is used to intercept posts during bulk loading (page load, scrolling, search) or when they are updated in the background.
 
 **File:** `webapp/channels/src/store/encryption_middleware.ts`
 
-### Key Batch Action Types
+### Key Action Types
 
-When `batchActions(actions, 'NAME')` is called, the action type becomes the NAME:
+Middleware should watch for both direct post actions and batched actions:
 
 ```typescript
 const BATCH_ACTION_TYPES = new Set([
@@ -88,12 +77,6 @@ const BATCH_ACTION_TYPES = new Set([
     'BATCH_CREATE_POST',            // Server response after sending
     'BATCH_CREATE_POST_FAILED',     // Failed post
 ]);
-```
-
-### Post Action Types
-
-```typescript
-import {PostTypes} from 'mattermost-redux/action_types';
 
 const POST_ACTION_TYPES = new Set([
     PostTypes.RECEIVED_POSTS,
@@ -107,152 +90,41 @@ const POST_ACTION_TYPES = new Set([
 ]);
 ```
 
-### Middleware Template
+### Implementation Details
+
+The implementation in `encryption_middleware.ts` uses a `processingQueue` to ensure that asynchronous decryptions do not interleave, which prevents race conditions in the UI.
 
 ```typescript
-import type {AnyAction, Middleware} from 'redux';
-import {PostTypes} from 'mattermost-redux/action_types';
+let processingQueue: Promise<unknown> = Promise.resolve();
 
-const BATCH_ACTION_TYPES = new Set([
-    'BATCHING_REDUCER.BATCH',
-    'BATCH_CREATE_POST_INIT',
-    'BATCH_CREATE_POST',
-]);
+export function createEncryptionMiddleware(): Middleware {
+    return (store) => (next) => (action) => {
+        // ... check if action needs processing ...
 
-const POST_ACTION_TYPES = new Set([
-    PostTypes.RECEIVED_POSTS,
-    PostTypes.RECEIVED_NEW_POST,
-    PostTypes.RECEIVED_POST,
-    // ... other types as needed
-]);
+        const processAction = async () => {
+            // ... process action data (e.g., decrypt) ...
+            return next(action);
+        };
 
-async function processPost(post: Post): Promise<Post> {
-    // Your processing logic here
-    return post;
-}
-
-async function processActionData(action: AnyAction): Promise<void> {
-    if (!action.data) return;
-
-    if (action.data.posts) {
-        // PostList - multiple posts
-        const posts = action.data.posts;
-        for (const id in posts) {
-            posts[id] = await processPost(posts[id]);
-        }
-    } else if (action.data.id && action.data.message) {
-        // Single post
-        action.data = await processPost(action.data);
-    }
-}
-
-export function createProcessingMiddleware(): Middleware {
-    return (store) => (next) => async (action) => {
-        // Handle batch actions
-        if (BATCH_ACTION_TYPES.has(action.type) && Array.isArray(action.payload)) {
-            for (const innerAction of action.payload) {
-                if (POST_ACTION_TYPES.has(innerAction.type)) {
-                    await processActionData(innerAction);
-                }
-            }
-        }
-        // Handle direct post actions
-        else if (POST_ACTION_TYPES.has(action.type)) {
-            await processActionData(action);
-        }
-
-        // IMPORTANT: Only call next() AFTER processing is complete
-        return next(action);
+        processingQueue = processingQueue.then(processAction, processAction);
+        return processingQueue;
     };
-}
-```
-
-### Registering Middleware
-
-**File:** `webapp/channels/src/store/index.ts`
-
-```typescript
-import {createProcessingMiddleware} from './processing_middleware';
-
-// In configureStore:
-const store = configureServiceStore({
-    appReducers: reducers,
-    preloadedState,
-    userMiddleware: [createProcessingMiddleware()],
-});
-```
-
-**File:** `webapp/channels/src/packages/mattermost-redux/src/store/configureStore.ts`
-
-The `configureStore` function accepts `userMiddleware`:
-
-```typescript
-export default function configureStore<S extends GlobalState>({
-    appReducers,
-    preloadedState,
-    userMiddleware = [],
-}: {
-    appReducers: Record<string, Reducer>;
-    preloadedState: Partial<S>;
-    userMiddleware?: any[];
-}): Store {
-    const middleware = applyMiddleware(
-        thunkWithExtraArgument({loaders: {}}),
-        ...userMiddleware,  // Your middleware goes here
-    );
-    // ...
 }
 ```
 
 ## Avoiding Flash of Unprocessed Content
 
-To prevent users from seeing unprocessed content:
+To prevent users from seeing unprocessed (e.g., encrypted) content:
 
-1. **Process synchronously when possible** - If you can cache results, check cache first (synchronous) before async processing.
-
-2. **Await before next()** - The middleware must complete processing BEFORE calling `next(action)`.
-
-3. **Handle ALL entry points** - Posts come through multiple batch action types. Missing one causes flash.
-
-4. **Cache sent messages** - For your own sent messages, cache the processed version when sending so it's instantly available when the optimistic post is dispatched.
+1. **Process synchronously when possible** - Check local caches before falling back to async processing.
+2. **Await before next()** - Middleware MUST complete processing before calling `next(action)`.
+3. **Handle ALL entry points** - Ensure both hooks and middleware are implemented. Missing `editPost` or a specific `RECEIVED_POSTS_*` type will cause flashes of raw content.
+4. **Use processingQueue** - Prevent interleaved dispatches by serializing async operations in the middleware.
 
 ## Data Structures
 
 ### PostList (multiple posts)
-
-```typescript
-interface PostList {
-    posts: Record<string, Post>;
-    order: string[];
-    next_post_id?: string;
-    prev_post_id?: string;
-}
-```
-
-Actions with PostList in `action.data`: `RECEIVED_POSTS`, `RECEIVED_POSTS_*`
+Found in `RECEIVED_POSTS`, `RECEIVED_POSTS_*`. Data is at `action.data`.
 
 ### Single Post
-
-```typescript
-interface Post {
-    id: string;
-    message: string;
-    user_id: string;
-    channel_id: string;
-    // ... other fields
-}
-```
-
-Actions with single Post in `action.data`: `RECEIVED_POST`, `RECEIVED_NEW_POST`
-
-## Debugging
-
-Add logging to see all actions:
-
-```typescript
-if (action.type && action.type.includes('POST')) {
-    console.log('[Middleware] Action:', action.type, action);
-}
-```
-
-This will show any POST-related actions you might be missing.
+Found in `RECEIVED_POST`, `RECEIVED_NEW_POST`. Data is at `action.data`.

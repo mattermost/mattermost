@@ -30,7 +30,6 @@ import {runMessageWillBePostedHooks, runSlashCommandWillBePostedHooks} from 'act
 import * as PostActions from 'actions/post_actions';
 import {createSchedulePostFromDraft} from 'actions/post_actions';
 import {isBurnOnReadEnabled} from 'selectors/burn_on_read';
-import {encryptMessageHook} from 'utils/encryption';
 
 import EmojiMap from 'utils/emoji_map';
 import {containsAtChannel, groupsMentionedInText} from 'utils/post_utils';
@@ -98,15 +97,6 @@ export function submitPost(
         }
 
         post = hookResult.data!;
-
-        // Native encryption for encrypted priority posts (mattermost-extended)
-        if (post.metadata?.priority?.priority === PostPriority.ENCRYPTED) {
-            const encryptResult = await encryptMessageHook(post, userId);
-            if ('error' in encryptResult) {
-                return {error: new Error(encryptResult.error)};
-            }
-            post = encryptResult.post;
-        }
 
         if (schedulingInfo) {
             const scheduledPost = scheduledPostFromPost(post, schedulingInfo);

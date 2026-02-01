@@ -7,6 +7,7 @@ import {Permissions} from 'mattermost-redux/constants';
 import {getLicense} from 'mattermost-redux/selectors/entities/general';
 import {getAssociatedGroupsForReferenceByMention} from 'mattermost-redux/selectors/entities/groups';
 import {isCustomGroupsEnabled} from 'mattermost-redux/selectors/entities/preferences';
+import {getPost} from 'mattermost-redux/selectors/entities/posts';
 import {haveIChannelPermission, haveICurrentChannelPermission} from 'mattermost-redux/selectors/entities/roles';
 import {getCurrentTeam} from 'mattermost-redux/selectors/entities/teams';
 import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
@@ -18,11 +19,25 @@ import {containsAtChannel, groupsMentionedInText} from 'utils/post_utils';
 import {getSiteURL} from 'utils/url';
 import {getTimestamp} from 'utils/utils';
 
-import {runMessageWillBePostedHooks} from '../hooks';
+import {runMessageWillBePostedHooks, runMessageWillBeUpdatedHooks} from '../hooks';
 
 export function editPost(post) {
-    return async (dispatch) => {
-        const result = await dispatch(PostActions.editPost(post));
+    return async (dispatch, getState) => {
+        const state = getState();
+
+        let updatedPost = post;
+
+        // Run hooks for message update
+        const oldPost = getPost(state, post.id);
+        if (oldPost) {
+            const hookResult = await dispatch(runMessageWillBeUpdatedHooks(updatedPost, oldPost));
+            if (hookResult.error) {
+                return hookResult;
+            }
+            updatedPost = hookResult.data;
+        }
+
+        const result = await dispatch(PostActions.editPost(updatedPost));
 
         // Send to error bar if it's an edit post error about time limit.
         if (result.error && result.error.server_error_id === 'api.post.update_post.permissions_time_limit.app_error') {

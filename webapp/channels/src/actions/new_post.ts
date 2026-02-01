@@ -30,7 +30,8 @@ import {isThreadOpen, makeGetThreadLastViewedAt} from 'selectors/views/threads';
 
 import WebSocketClient from 'client/web_websocket_client';
 import {ActionTypes} from 'utils/constants';
-import {isEncryptedMessage, decryptMessageHook} from 'utils/encryption';
+
+import {runMessageWillBeReceivedHooks} from './hooks';
 
 import type {DispatchFunc, GetStateFunc, ActionFunc, ActionFuncAsync} from 'types/store';
 
@@ -52,18 +53,10 @@ export type NewPostMessageProps = {
 export function completePostReceive(post: Post, websocketMessageProps: NewPostMessageProps, fetchedChannelMember?: boolean): ActionFuncAsync<boolean> {
     return async (dispatch, getState) => {
         const state = getState();
-        const currentUserId = getCurrentUserId(state);
 
         // Decrypt encrypted messages (mattermost-extended)
-        let processedPost = post;
-        if (isEncryptedMessage(post.message)) {
-            try {
-                const result = await decryptMessageHook(post, currentUserId);
-                processedPost = result.post;
-            } catch (error) {
-                console.error('Failed to decrypt message:', error);
-            }
-        }
+        const hookResult = await dispatch(runMessageWillBeReceivedHooks(post));
+        const processedPost = hookResult.data!;
 
         const rootPost = PostSelectors.getPost(state, processedPost.root_id);
         const isPostFromCurrentChannel = processedPost.channel_id === getCurrentChannelId(state);
