@@ -129,6 +129,23 @@
             color: rgba(var(--center-channel-color-rgb), 0.64);
         }
     }
+
+    .encrypted-placeholder-button {
+        flex-shrink: 0;
+        padding: 6px 12px;
+        font-size: 12px;
+        background: rgba(var(--encrypted-color), 1);
+        border: none;
+        border-radius: 4px;
+        color: var(--encrypted-text-color);
+        font-weight: 600;
+        cursor: pointer;
+        transition: background 0.15s ease;
+
+        &:hover {
+            background: rgba(var(--encrypted-color), 0.85);
+        }
+    }
 }
 
 // Lock button in formatting bar (toggle mode)

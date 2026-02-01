@@ -13,11 +13,13 @@ import {isPostEphemeral} from 'mattermost-redux/utils/post_utils';
 
 import store from 'stores/redux_store';
 
+import EncryptedPlaceholder from 'components/encryption/encrypted_placeholder';
 import PostMarkdown from 'components/post_markdown';
 import ShowMore from 'components/post_view/show_more';
 import type {AttachmentTextOverflowType} from 'components/post_view/show_more/show_more';
 
 import Pluggable from 'plugins/pluggable';
+import {isEncryptionFailed, getPostEncryptionStatus} from 'utils/encryption/message_hooks';
 import {PostTypes} from 'utils/constants';
 import type {TextFormattingOptions} from 'utils/text_formatting';
 import * as Utils from 'utils/utils';
@@ -123,6 +125,16 @@ export default class PostMessageView extends React.PureComponent<Props, State> {
 
         if (post.state === Posts.POST_DELETED) {
             return this.renderDeletedPost();
+        }
+
+        // Check if this is an encrypted message that failed to decrypt
+        if (isEncryptionFailed(post)) {
+            const encryptionStatus = getPostEncryptionStatus(post);
+            return (
+                <EncryptedPlaceholder
+                    status={encryptionStatus as 'no_keys' | 'no_access' | 'decrypt_error'}
+                />
+            );
         }
 
         if (!enableFormatting) {
