@@ -11,7 +11,7 @@ import {DotsVerticalIcon} from '@mattermost/compass-icons/components';
 import type {UserThread, UserThreadSynthetic} from '@mattermost/types/threads';
 
 import {getChannelStats} from 'mattermost-redux/actions/channels';
-import {getThreadsForCurrentTeam, setThreadFollow} from 'mattermost-redux/actions/threads';
+import {getThread as fetchThread, getThreadsForCurrentTeam, setThreadFollow} from 'mattermost-redux/actions/threads';
 import {makeGetChannel, getAllChannelStats} from 'mattermost-redux/selectors/entities/channels';
 import {getConfig} from 'mattermost-redux/selectors/entities/general';
 import {getPost} from 'mattermost-redux/selectors/entities/posts';
@@ -151,17 +151,18 @@ const ThreadView = () => {
         };
     }, [dispatch, currentTeamId, threadIdentifier]);
 
-    // Load threads if not already loaded
+    // Load thread if not already loaded
     useEffect(() => {
-        if (!thread && threadIdentifier) {
+        if (!thread && threadIdentifier && currentUserId && currentTeamId) {
             setIsLoading(true);
-            dispatch(getThreadsForCurrentTeam({unread: false})).then(() => {
+            // Fetch the specific thread by ID
+            dispatch(fetchThread(currentUserId, currentTeamId, threadIdentifier)).finally(() => {
                 setIsLoading(false);
             });
-        } else {
+        } else if (thread) {
             setIsLoading(false);
         }
-    }, [dispatch, thread, threadIdentifier]);
+    }, [dispatch, thread, threadIdentifier, currentUserId, currentTeamId]);
 
     // Fetch channel stats for pinned posts count (ThreadsInSidebar feature)
     useEffect(() => {
@@ -261,7 +262,7 @@ const ThreadView = () => {
 
     // Render enhanced header when ThreadsInSidebar is enabled
     const renderHeading = () => {
-        if (isThreadsInSidebarEnabled && threadName) {
+        if (isThreadsInSidebarEnabled) {
             return (
                 <>
                     <Button
@@ -273,7 +274,7 @@ const ThreadView = () => {
                     <div className='ThreadView__header-title'>
                         <h3 className='ThreadView__header-name'>
                             <span className='icon-discord-thread ThreadView__header-icon'/>
-                            <span className='ThreadView__header-text'>{threadName}</span>
+                            <span className='ThreadView__header-text'>{threadName || formatMessage({id: 'threading.header.heading', defaultMessage: 'Thread'})}</span>
                         </h3>
                         <div className='ThreadView__header-icons'>
                             {participantIds.length > 0 && (

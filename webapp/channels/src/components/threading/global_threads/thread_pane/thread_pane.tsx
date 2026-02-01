@@ -187,7 +187,7 @@ const ThreadPane = ({
 
     // Render enhanced header when ThreadsInSidebar is enabled
     const renderHeading = () => {
-        if (isThreadsInSidebarEnabled && threadName) {
+        if (isThreadsInSidebarEnabled) {
             return (
                 <>
                     <Button
@@ -199,7 +199,7 @@ const ThreadPane = ({
                     <div className='ThreadPane__header-title'>
                         <h3 className='ThreadPane__header-name'>
                             <span className='icon-discord-thread ThreadPane__header-icon'/>
-                            <span className='ThreadPane__header-text'>{threadName}</span>
+                            <span className='ThreadPane__header-text'>{threadName || formatMessage({id: 'threading.header.heading', defaultMessage: 'Thread'})}</span>
                         </h3>
                         <div className='ThreadPane__header-icons'>
                             {participantIds.length > 0 && (
