@@ -489,9 +489,9 @@ const FeatureFlags: React.FC<Props> = ({config, patchConfig, disabled = false}) 
         setServerError(null);
 
         try {
-            // Only send the flags that were actually changed
+            // Send ALL feature flags to prevent server from clearing unmentioned ones
             const result = await patchConfig({
-                FeatureFlags: changedFlags,
+                FeatureFlags: localFlags,
             });
 
             if (result.error) {
@@ -505,7 +505,7 @@ const FeatureFlags: React.FC<Props> = ({config, patchConfig, disabled = false}) 
         } finally {
             setSaving(false);
         }
-    }, [changedFlags, patchConfig]);
+    }, [changedFlags, localFlags, patchConfig]);
 
     return (
         <Container className='wrapper--admin'>
