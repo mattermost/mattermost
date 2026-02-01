@@ -54,7 +54,12 @@ export default class FilePreview extends React.PureComponent<Props> {
                 className += ' file-preview--encrypted';
             }
             let previewImage;
-            if (type === FileTypes.SVG && this.props.enableSVGs) {
+
+            // For encrypted files, always show lock icon (server can't generate thumbnails for encrypted content)
+            if (isEncrypted) {
+                className += ' custom-file';
+                previewImage = <div className='file-icon file-icon--encrypted icon-lock-outline'/>;
+            } else if (type === FileTypes.SVG && this.props.enableSVGs) {
                 previewImage = (
                     <img
                         alt={'file preview'}

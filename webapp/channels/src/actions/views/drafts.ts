@@ -6,6 +6,7 @@ import {batchActions} from 'redux-batched-actions';
 import type {Draft as ServerDraft} from '@mattermost/types/drafts';
 import type {FileInfo} from '@mattermost/types/files';
 import type {PostMetadata, PostPriorityMetadata} from '@mattermost/types/posts';
+import {PostPriority} from '@mattermost/types/posts';
 import type {UserProfile} from '@mattermost/types/users';
 
 import {Client4} from 'mattermost-redux/client';
@@ -18,6 +19,21 @@ import {getConnectionId} from 'selectors/general';
 import {getGlobalItem} from 'selectors/storage';
 
 import {ActionTypes, StoragePrefixes} from 'utils/constants';
+import {
+    encryptMessage,
+    decryptMessage,
+    formatEncryptedMessage,
+    parseEncryptedMessage,
+    isEncryptedMessage,
+} from 'utils/encryption/hybrid';
+import {
+    ensureEncryptionKeys,
+    getChannelRecipientKeys,
+    getCurrentPrivateKey,
+    isEncryptionInitialized,
+    getSessionId,
+} from 'utils/encryption/session';
+import {getPublicKeyJwk} from 'utils/encryption/storage';
 
 import type {ActionFunc, ActionFuncAsync, GlobalState} from 'types/store';
 import type {PostDraft} from 'types/store/draft';
@@ -40,7 +56,8 @@ export function getDrafts(teamId: string): ActionFuncAsync<boolean> {
 
         let serverDrafts: Draft[] = [];
         try {
-            serverDrafts = (await Client4.getUserDrafts(teamId)).map((draft) => transformServerDraft(draft));
+            const drafts = await Client4.getUserDrafts(teamId);
+            serverDrafts = await Promise.all(drafts.map((draft) => transformServerDraft(draft)));
         } catch (error) {
             return {data: false, error};
         }
@@ -116,8 +133,39 @@ export function updateDraft(key: string, value: PostDraft|null, rootId = '', sav
     };
 }
 
-function upsertDraft(draft: PostDraft, userId: UserProfile['id'], rootId = '', connectionId: string) {
+async function upsertDraft(draft: PostDraft, userId: UserProfile['id'], rootId = '', connectionId: string) {
     const fileIds = draft.fileInfos.map((file) => file.id);
+    let message = draft.message;
+
+    if (draft.metadata?.priority?.priority === PostPriority.ENCRYPTED) {
+        try {
+            await ensureEncryptionKeys();
+            const sessionKeys = await getChannelRecipientKeys(draft.channelId);
+
+            // Add sender's own session key so they can decrypt their own messages
+            const senderSessionId = getSessionId();
+            const senderPublicKey = getPublicKeyJwk();
+            if (senderSessionId && senderPublicKey) {
+                sessionKeys.push({
+                    userId,
+                    sessionId: senderSessionId,
+                    publicKey: senderPublicKey,
+                });
+            }
+
+            if (sessionKeys.length > 0) {
+                const encryptedPayload = await encryptMessage(
+                    message,
+                    sessionKeys.map((k) => ({sessionId: k.sessionId, publicKey: k.publicKey})),
+                    userId,
+                );
+                message = formatEncryptedMessage(encryptedPayload);
+            }
+        } catch (error) {
+            console.warn('Failed to encrypt draft:', error);
+        }
+    }
+
     const newDraft = {
         create_at: draft.createAt || 0,
         update_at: draft.updateAt || 0,
@@ -125,7 +173,7 @@ function upsertDraft(draft: PostDraft, userId: UserProfile['id'], rootId = '', c
         user_id: userId,
         channel_id: draft.channelId,
         root_id: draft.rootId || rootId,
-        message: draft.message,
+        message,
         type: draft.type,
         props: draft.props,
         file_ids: fileIds,
@@ -153,7 +201,7 @@ export function setGlobalDraftSource(key: string, isRemote: boolean) {
     };
 }
 
-export function transformServerDraft(draft: ServerDraft): Draft {
+export async function transformServerDraft(draft: ServerDraft): Promise<Draft> {
     let key: Draft['key'] = `${StoragePrefixes.DRAFT}${draft.channel_id}`;
 
     if (draft.root_id !== '') {
@@ -170,11 +218,29 @@ export function transformServerDraft(draft: ServerDraft): Draft {
         metadata.priority = draft.priority;
     }
 
+    let message = draft.message;
+    if (isEncryptedMessage(message)) {
+        try {
+            if (isEncryptionInitialized()) {
+                const sessionId = getSessionId();
+                const privateKey = await getCurrentPrivateKey();
+                if (sessionId && privateKey) {
+                    const payload = parseEncryptedMessage(message);
+                    if (payload && payload.keys[sessionId]) {
+                        message = await decryptMessage(payload, privateKey, sessionId);
+                    }
+                }
+            }
+        } catch (error) {
+            console.warn('Failed to decrypt draft:', error);
+        }
+    }
+
     return {
         key,
         timestamp: new Date(draft.update_at),
         value: {
-            message: draft.message,
+            message,
             fileInfos,
             props: draft.props,
             uploadsInProgress: [],

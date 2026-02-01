@@ -35,7 +35,13 @@ export default class FileProgressPreview extends React.PureComponent<Props> {
             percent = fileInfo.percent ? fileInfo.percent : 0;
             const percentTxt = ` (${percent.toFixed(0)}%)`;
             const fileType = getFileTypeFromMime(fileInfo.type || '');
-            previewImage = <div className={'file-icon ' + Utils.getIconClassName(fileType)}/>;
+
+            // For encrypted files, show lock icon
+            if (fileInfo.type === ENCRYPTED_FILE_MIME_TYPE) {
+                previewImage = <div className='file-icon file-icon--encrypted icon-lock-outline'/>;
+            } else {
+                previewImage = <div className={'file-icon ' + Utils.getIconClassName(fileType)}/>;
+            }
 
             fileNameComponent = (
                 <>

@@ -1829,7 +1829,7 @@ function handlePostAcknowledgementRemoved(msg) {
 function handleUpsertDraftEvent(msg) {
     return async (doDispatch) => {
         const draft = JSON.parse(msg.data.draft);
-        const {key, value} = transformServerDraft(draft);
+        const {key, value} = await transformServerDraft(draft);
         value.show = true;
 
         doDispatch(setGlobalDraft(key, value, true));
@@ -1881,7 +1881,7 @@ function handleDeleteScheduledPostEvent(msg) {
 function handleDeleteDraftEvent(msg) {
     return async (doDispatch) => {
         const draft = JSON.parse(msg.data.draft);
-        const {key} = transformServerDraft(draft);
+        const {key} = await transformServerDraft(draft);
 
         doDispatch(setGlobalItem(key, {
             message: '',
