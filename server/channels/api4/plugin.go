@@ -16,6 +16,7 @@ import (
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
+	"github.com/mattermost/mattermost/server/v8/channels/utils/fileutils"
 )
 
 const (
@@ -409,6 +410,16 @@ func parseMarketplacePluginFilter(u *url.URL) (*model.MarketplacePluginFilter, e
 }
 
 func installPlugin(c *Context, w http.ResponseWriter, plugin io.ReadSeeker, force bool) {
+	conflict, err := fileutils.CheckDirectoryConflict(*c.App.Config().PluginSettings.Directory, *c.App.Config().ImportSettings.Directory)
+	if err != nil {
+		c.Err = model.NewAppError("installPlugin", "api.plugin.install.check_directory.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		return
+	}
+	if conflict {
+		c.Err = model.NewAppError("installPlugin", "api.plugin.install.directory_conflict.app_error", nil, "", http.StatusForbidden)
+		return
+	}
+
 	manifest, appErr := c.App.InstallPlugin(plugin, force)
 	if appErr != nil {
 		c.Err = appErr
