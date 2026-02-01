@@ -50,6 +50,21 @@
 .encrypted-priority-tag {
     background-color: rgba(var(--encrypted-color), 1) !important;
     color: var(--encrypted-text-color) !important;
+
+    // Clickable state when user doesn't have keys
+    &.encrypted-priority-tag--clickable {
+        cursor: pointer;
+        transition: background-color 0.15s ease, transform 0.1s ease;
+
+        &:hover {
+            background-color: rgba(var(--encrypted-color), 0.85) !important;
+            transform: scale(1.02);
+        }
+
+        &:active {
+            transform: scale(0.98);
+        }
+    }
 }
 
 // Recipient display below the editor
@@ -145,6 +160,27 @@
         &:hover {
             background: rgba(var(--encrypted-color), 0.85);
         }
+
+        &:disabled {
+            opacity: 0.7;
+            cursor: not-allowed;
+        }
+    }
+
+    // Clickable state for no_keys status
+    &.encrypted-placeholder--clickable {
+        cursor: pointer;
+        transition: background 0.15s ease, border-color 0.15s ease;
+
+        &:hover {
+            background: rgba(var(--encrypted-color), 0.1);
+            border-color: rgba(var(--encrypted-color), 0.3);
+        }
+
+        &:focus {
+            outline: 2px solid rgba(var(--encrypted-color), 0.5);
+            outline-offset: 2px;
+        }
     }
 }
 
@@ -158,4 +194,11 @@
             background: rgba(var(--encrypted-color), 0.25) !important;
         }
     }
+}
+
+// Text editor cell outline when encryption is active
+.AdvancedTextEditor__cell.AdvancedTextEditor__cell--encrypted {
+    outline: 2px solid rgba(var(--encrypted-color), 1);
+    outline-offset: -2px;
+    border-radius: 4px;
 }

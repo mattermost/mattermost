@@ -617,7 +617,11 @@ function PostComponent(props: Props) {
 
     let priority;
     if (post.metadata?.priority && props.isPostPriorityEnabled && post.state !== Posts.POST_DELETED) {
-        priority = <span className='d-flex'><PriorityLabel priority={post.metadata.priority.priority}/></span>;
+        // Hide ENCRYPTED badge in compact mode (it's indicated by the purple left border)
+        const isEncryptedOnly = post.metadata.priority.priority === PostPriority.ENCRYPTED;
+        if (!props.compactDisplay || !isEncryptedOnly) {
+            priority = <span className='d-flex'><PriorityLabel priority={post.metadata.priority.priority}/></span>;
+        }
     }
 
     // Burn-on-Read badge logic

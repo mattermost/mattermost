@@ -787,12 +787,26 @@ const AdvancedTextEditor = ({
                         data-a11y-sort-order='2'
                         aria-label={ariaLabel}
                         tabIndex={-1}
-                        className='AdvancedTextEditor__cell a11y__region'
+                        className={classNames('AdvancedTextEditor__cell a11y__region', {
+                            'AdvancedTextEditor__cell--encrypted': isEncrypted,
+                        })}
                     >
-                        {!isInEditMode && (priorityLabels || burnOnReadLabels) && (
+                        {/* Don't show priority labels when encrypted - the recipient display is sufficient */}
+                        {!isInEditMode && !isEncrypted && (priorityLabels || burnOnReadLabels) && (
                             <div className='AdvancedTextEditor__labels'>
                                 <UnifiedLabelsWrapper
                                     priorityLabels={priorityLabels}
+                                    burnOnReadLabels={burnOnReadLabels}
+                                    onRemoveAll={handleRemoveAllLabels}
+                                    canRemove={!showPreview}
+                                />
+                            </div>
+                        )}
+                        {/* Show only burn-on-read labels when encrypted (not priority labels) */}
+                        {!isInEditMode && isEncrypted && burnOnReadLabels && (
+                            <div className='AdvancedTextEditor__labels'>
+                                <UnifiedLabelsWrapper
+                                    priorityLabels={null}
                                     burnOnReadLabels={burnOnReadLabels}
                                     onRemoveAll={handleRemoveAllLabels}
                                     canRemove={!showPreview}

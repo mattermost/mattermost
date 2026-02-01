@@ -19,7 +19,9 @@ import ShowMore from 'components/post_view/show_more';
 import type {AttachmentTextOverflowType} from 'components/post_view/show_more/show_more';
 
 import Pluggable from 'plugins/pluggable';
+import {isEncryptedMessage} from 'utils/encryption/hybrid';
 import {isEncryptionFailed, getPostEncryptionStatus} from 'utils/encryption/message_hooks';
+import {isEncryptionInitialized} from 'utils/encryption/session';
 import {PostTypes} from 'utils/constants';
 import type {TextFormattingOptions} from 'utils/text_formatting';
 import * as Utils from 'utils/utils';
@@ -133,6 +135,18 @@ export default class PostMessageView extends React.PureComponent<Props, State> {
             return (
                 <EncryptedPlaceholder
                     status={encryptionStatus as 'no_keys' | 'no_access' | 'decrypt_error'}
+                />
+            );
+        }
+
+        // Check if this is a raw encrypted message that hasn't been decrypted
+        // This can happen for posts loaded from API (not via WebSocket)
+        if (isEncryptedMessage(post.message)) {
+            // Determine appropriate status based on whether user has keys
+            const status = isEncryptionInitialized() ? 'no_access' : 'no_keys';
+            return (
+                <EncryptedPlaceholder
+                    status={status}
                 />
             );
         }
