@@ -90,6 +90,7 @@ import BurnOnReadSVG from './feature_discovery/features/images/burn_on_read_svg'
 import IntuneMAMSvg from './feature_discovery/features/images/intune_mam_svg';
 import UserAttributesFeatureDiscovery from './feature_discovery/features/user_attributes';
 import FeatureFlags, {messages as featureFlagsMessages} from './feature_flags';
+import MattermostExtendedFeatures, {messages as mattermostExtendedFeaturesMessages} from './mattermost_extended_features';
 import GroupDetails from './group_settings/group_details';
 import GroupSettings from './group_settings/group_settings';
 import IPFiltering from './ip_filtering';
@@ -6361,40 +6362,13 @@ const AdminDefinition: AdminDefinitionType = {
         subsections: {
             features: {
                 url: 'mattermost_extended/features',
-                title: defineMessage({id: 'admin.sidebar.features', defaultMessage: 'Features'}),
+                title: mattermostExtendedFeaturesMessages.title,
+                searchableStrings: [
+                    mattermostExtendedFeaturesMessages.title,
+                ],
                 schema: {
                     id: 'MattermostExtendedFeatures',
-                    name: defineMessage({id: 'admin.mattermost_extended.features.title', defaultMessage: 'Features'}),
-                    settings: [
-                        {
-                            type: 'bool',
-                            key: 'FeatureFlags.Encryption',
-                            label: defineMessage({id: 'admin.mattermost_extended.enableEncryption.title', defaultMessage: 'Enable End-to-End Encryption:'}),
-                            help_text: defineMessage({id: 'admin.mattermost_extended.enableEncryption.desc', defaultMessage: 'When true, users can send encrypted messages that can only be read by intended recipients. Messages are encrypted client-side using RSA-OAEP + AES-GCM hybrid encryption.'}),
-                            help_text_markdown: false,
-                        },
-                        {
-                            type: 'bool',
-                            key: 'FeatureFlags.CustomChannelIcons',
-                            label: defineMessage({id: 'admin.mattermost_extended.enableCustomChannelIcons.title', defaultMessage: 'Enable Custom Channel Icons:'}),
-                            help_text: defineMessage({id: 'admin.mattermost_extended.enableCustomChannelIcons.desc', defaultMessage: 'When true, users can set custom icons for channels from the Channel Settings modal. Icons are displayed in the sidebar and channel mentions.'}),
-                            help_text_markdown: false,
-                        },
-                        {
-                            type: 'bool',
-                            key: 'FeatureFlags.HideDeletedMessagePlaceholder',
-                            label: defineMessage({id: 'admin.mattermost_extended.hideDeletedMessagePlaceholder.title', defaultMessage: 'Hide Deleted Message Placeholder:'}),
-                            help_text: defineMessage({id: 'admin.mattermost_extended.hideDeletedMessagePlaceholder.desc', defaultMessage: 'When true, the "Message deleted" placeholder will be hidden when a message is deleted.'}),
-                            help_text_markdown: false,
-                        },
-                        {
-                            type: 'bool',
-                            key: 'FeatureFlags.ThreadsInSidebar',
-                            label: defineMessage({id: 'admin.mattermost_extended.threadsInSidebar.title', defaultMessage: 'Show Threads in Sidebar:'}),
-                            help_text: defineMessage({id: 'admin.mattermost_extended.threadsInSidebar.desc', defaultMessage: 'When true, followed threads are displayed under their parent channels in the sidebar instead of only in the Threads view.'}),
-                            help_text_markdown: false,
-                        },
-                    ],
+                    component: MattermostExtendedFeatures,
                 },
             },
             // Hidden until settings are added (empty sections look broken)

@@ -16,6 +16,7 @@ import FormError from 'components/form_error';
 
 export const messages = defineMessages({
     title: {id: 'admin.feature_flags.title', defaultMessage: 'Feature Flags'},
+    mattermostExtendedTitle: {id: 'admin.mattermost_extended.features.title', defaultMessage: 'Features'},
 });
 
 // Metadata for each feature flag - descriptions and default values
@@ -156,6 +157,18 @@ const FLAG_METADATA: Record<string, {description: string; defaultValue: boolean}
         description: 'When enabled, deleted messages immediately disappear instead of showing "(message deleted)"',
         defaultValue: false,
     },
+    Encryption: {
+        description: 'Enable end-to-end encryption for messages using RSA-OAEP + AES-GCM hybrid encryption',
+        defaultValue: false,
+    },
+    ThreadsInSidebar: {
+        description: 'Display followed threads under their parent channels in the sidebar instead of only in Threads view',
+        defaultValue: false,
+    },
+    CustomThreadNames: {
+        description: 'Allow users to set custom names for threads from the thread header',
+        defaultValue: false,
+    },
 };
 
 // Styled components
@@ -292,6 +305,28 @@ const OverrideBadge = styled.span`
     color: #8A2BE2;
 `;
 
+const EnabledBadge = styled.span`
+    display: inline-block;
+    padding: 2px 8px;
+    margin-left: 8px;
+    font-size: 11px;
+    font-weight: 500;
+    border-radius: 10px;
+    background: rgba(61, 204, 145, 0.12);
+    color: var(--online-indicator);
+`;
+
+const DisabledBadge = styled.span`
+    display: inline-block;
+    padding: 2px 8px;
+    margin-left: 8px;
+    font-size: 11px;
+    font-weight: 500;
+    border-radius: 10px;
+    background: rgba(var(--center-channel-color-rgb), 0.08);
+    color: rgba(var(--center-channel-color-rgb), 0.56);
+`;
+
 const UnsavedBadge = styled.span`
     display: inline-block;
     padding: 2px 8px;
@@ -364,6 +399,10 @@ type Props = {
     config: AdminConfig;
     patchConfig: (config: DeepPartial<AdminConfig>) => Promise<ActionResult>;
     disabled?: boolean;
+    allowedFlags?: string[];
+    title?: React.ReactNode;
+    introBanner?: React.ReactNode;
+    showStatusBadge?: boolean; // Show "enabled"/"disabled" instead of "override"
 };
 
 type FilterType = 'all' | 'enabled' | 'disabled' | 'default' | 'modified';
@@ -379,7 +418,7 @@ function toBool(value: string | boolean | undefined): boolean {
     return false;
 }
 
-const FeatureFlags: React.FC<Props> = ({config, patchConfig, disabled = false}) => {
+const FeatureFlags: React.FC<Props> = ({config, patchConfig, disabled = false, allowedFlags, title, introBanner, showStatusBadge = false}) => {
     const [searchTerm, setSearchTerm] = useState('');
     const [filter, setFilter] = useState<FilterType>('all');
 
@@ -389,12 +428,16 @@ const FeatureFlags: React.FC<Props> = ({config, patchConfig, disabled = false}) 
         if (config.FeatureFlags) {
             for (const [key, value] of Object.entries(config.FeatureFlags)) {
                 if (key !== 'TestFeature') { // Skip string-only flags
+                    // If allowedFlags is provided, only include those flags
+                    if (allowedFlags && !allowedFlags.includes(key)) {
+                        continue;
+                    }
                     flags[key] = toBool(value);
                 }
             }
         }
         return flags;
-    }, [config.FeatureFlags]);
+    }, [config.FeatureFlags, allowedFlags]);
 
     const [localFlags, setLocalFlags] = useState<Record<string, boolean>>(initialFlags);
     const [saving, setSaving] = useState(false);
@@ -489,9 +532,20 @@ const FeatureFlags: React.FC<Props> = ({config, patchConfig, disabled = false}) 
         setServerError(null);
 
         try {
-            // Send ALL feature flags to prevent server from clearing unmentioned ones
+            // Merge local changes with all existing flags to prevent clearing unmentioned ones
+            const allFlags: Record<string, boolean> = {};
+            if (config.FeatureFlags) {
+                for (const [key, value] of Object.entries(config.FeatureFlags)) {
+                    if (key !== 'TestFeature') {
+                        allFlags[key] = toBool(value);
+                    }
+                }
+            }
+            // Apply our local changes on top
+            const mergedFlags = {...allFlags, ...localFlags};
+
             const result = await patchConfig({
-                FeatureFlags: localFlags,
+                FeatureFlags: mergedFlags,
             });
 
             if (result.error) {
@@ -505,21 +559,23 @@ const FeatureFlags: React.FC<Props> = ({config, patchConfig, disabled = false}) 
         } finally {
             setSaving(false);
         }
-    }, [changedFlags, localFlags, patchConfig]);
+    }, [changedFlags, localFlags, patchConfig, config.FeatureFlags]);
 
     return (
         <Container className='wrapper--admin'>
             <AdminHeader>
-                <FormattedMessage {...messages.title}/>
+                {title || <FormattedMessage {...messages.title}/>}
             </AdminHeader>
 
             <ContentWrapper>
                 <div className='banner info'>
                     <div className='banner__content'>
-                        <FormattedMessage
-                            id='admin.feature_flags.introBanner'
-                            defaultMessage='Feature flags control experimental and beta features. Changes take effect after saving. Some flags may require a server restart.'
-                        />
+                        {introBanner || (
+                            <FormattedMessage
+                                id='admin.feature_flags.introBanner'
+                                defaultMessage='Feature flags control experimental and beta features. Changes take effect after saving. Some flags may require a server restart.'
+                            />
+                        )}
                     </div>
                 </div>
 
@@ -590,7 +646,13 @@ const FeatureFlags: React.FC<Props> = ({config, patchConfig, disabled = false}) 
                                         {flag.isModified && (
                                             <UnsavedBadge>{'unsaved'}</UnsavedBadge>
                                         )}
-                                        {!flag.isModified && flag.value !== flag.defaultValue && (
+                                        {!flag.isModified && showStatusBadge && flag.value && (
+                                            <EnabledBadge>{'enabled'}</EnabledBadge>
+                                        )}
+                                        {!flag.isModified && showStatusBadge && !flag.value && (
+                                            <DisabledBadge>{'disabled'}</DisabledBadge>
+                                        )}
+                                        {!flag.isModified && !showStatusBadge && flag.value !== flag.defaultValue && (
                                             <OverrideBadge>{'override'}</OverrideBadge>
                                         )}
                                     </FlagName>
