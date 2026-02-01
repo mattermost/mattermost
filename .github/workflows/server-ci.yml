@@ -12,7 +12,6 @@ on:
   pull_request:
     paths:
       - "server/**"
-      - "e2e-tests/**"
       - ".github/workflows/server-ci.yml"
       - ".github/workflows/server-test-template.yml"
       - ".github/workflows/mmctl-test-template.yml"

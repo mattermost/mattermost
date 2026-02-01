@@ -20,6 +20,10 @@ on:
       pr_number:
         type: string
         required: false
+      server_image_tag:
+        type: string
+        required: false
+        description: "Server image tag (e.g., master or short SHA)"
     secrets:
       MM_LICENSE:
         required: false
@@ -37,36 +41,29 @@ on:
         required: false
 
 jobs:
-  shell-check:
-    runs-on: ubuntu-24.04
-    defaults:
-      run:
-        working-directory: e2e-tests
-    steps:
-      - name: ci/checkout-repo
-        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
-        with:
-          ref: ${{ inputs.commit_sha }}
-          fetch-depth: 0
-      - name: ci/shell-check
-        run: make check-shell
-
   generate-build-variables:
     runs-on: ubuntu-24.04
     outputs:
       branch: "${{ steps.build-vars.outputs.branch }}"
       build_id: "${{ steps.build-vars.outputs.build_id }}"
-      server_image: "${{ steps.build-vars.outputs.server_image }}"
+      server_image_tag: "${{ steps.build-vars.outputs.server_image_tag }}"
     steps:
       - name: ci/generate-build-variables
         id: build-vars
         env:
           COMMIT_SHA: ${{ inputs.commit_sha }}
           PR_NUMBER: ${{ inputs.pr_number }}
+          INPUT_SERVER_IMAGE_TAG: ${{ inputs.server_image_tag }}
           RUN_ID: ${{ github.run_id }}
           RUN_ATTEMPT: ${{ github.run_attempt }}
         run: |
-          SERVER_IMAGE_TAG="${COMMIT_SHA::7}"
+          # Use provided server_image_tag or derive from commit SHA
+          if [ -n "$INPUT_SERVER_IMAGE_TAG" ]; then
+            SERVER_IMAGE_TAG="$INPUT_SERVER_IMAGE_TAG"
+          else
+            SERVER_IMAGE_TAG="${COMMIT_SHA::7}"
+          fi
+          echo "server_image_tag=${SERVER_IMAGE_TAG}" >> $GITHUB_OUTPUT
 
           # Generate branch name
           if [ -n "$PR_NUMBER" ]; then
@@ -78,12 +75,8 @@ jobs:
           # Generate build ID
           echo "build_id=${RUN_ID}_${RUN_ATTEMPT}-${SERVER_IMAGE_TAG}-cypress-onprem-ent" >> $GITHUB_OUTPUT
 
-          # Generate server image
-          echo "server_image=mattermostdevelopment/mattermost-enterprise-edition:${SERVER_IMAGE_TAG}" >> $GITHUB_OUTPUT
-
   cypress-smoke:
     needs:
-      - shell-check
       - generate-build-variables
     uses: ./.github/workflows/e2e-tests-cypress-template.yml
     with:
@@ -95,9 +88,9 @@ jobs:
       commit_sha: ${{ inputs.commit_sha }}
       branch: ${{ needs.generate-build-variables.outputs.branch }}
       build_id: ${{ needs.generate-build-variables.outputs.build_id }}
-      server_image: ${{ needs.generate-build-variables.outputs.server_image }}
+      server_image_tag: ${{ needs.generate-build-variables.outputs.server_image_tag }}
       server: ${{ inputs.server }}
-      context_name: "E2E Tests/cypress-smoke"
+      context_name: "E2E Tests / cypress-smoke"
     secrets:
       MM_LICENSE: ${{ secrets.MM_LICENSE }}
       AUTOMATION_DASHBOARD_URL: ${{ secrets.AUTOMATION_DASHBOARD_URL }}
@@ -110,7 +103,7 @@ jobs:
     needs:
       - cypress-smoke
       - generate-build-variables
-    if: needs.cypress-smoke.outputs.smoke_passed == 'true'
+    if: needs.cypress-smoke.outputs.failed == '0'
     uses: ./.github/workflows/e2e-tests-cypress-template.yml
     with:
       test_type: full
@@ -121,13 +114,12 @@ jobs:
       commit_sha: ${{ inputs.commit_sha }}
       branch: ${{ needs.generate-build-variables.outputs.branch }}
       build_id: ${{ needs.generate-build-variables.outputs.build_id }}
-      server_image: ${{ needs.generate-build-variables.outputs.server_image }}
+      server_image_tag: ${{ needs.generate-build-variables.outputs.server_image_tag }}
       server: ${{ inputs.server }}
       enable_reporting: ${{ inputs.enable_reporting }}
       report_type: ${{ inputs.report_type }}
       pr_number: ${{ inputs.pr_number }}
-      context_name: "E2E Tests/cypress-full"
-      check_ad_cycle: true
+      context_name: "E2E Tests / cypress-full"
     secrets:
       MM_LICENSE: ${{ secrets.MM_LICENSE }}
       AUTOMATION_DASHBOARD_URL: ${{ secrets.AUTOMATION_DASHBOARD_URL }}
