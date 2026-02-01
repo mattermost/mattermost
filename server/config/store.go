@@ -73,7 +73,7 @@ func NewStoreFromBacking(backingStore BackingStore, customDefaults *model.Config
 		backingStore:         backingStore,
 		configCustomDefaults: customDefaults,
 		readOnly:             readOnly,
-		readOnlyFF:           true,
+		readOnlyFF:           false, // Allow feature flag writes for self-hosted installs
 	}
 
 	if err := store.Load(); err != nil {

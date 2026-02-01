@@ -21,7 +21,10 @@ func (ps *PlatformService) SetupFeatureFlags() {
 	splitConfigured := splitKey != ""
 	syncFeatureFlags := splitConfigured && ps.IsLeader()
 
-	ps.configStore.SetReadOnlyFF(!splitConfigured)
+	// For self-hosted installs (no SplitKey), feature flags should be writable via config.
+	// For cloud installs with Split.io, flags are still writable but get overwritten by sync.
+	// Setting readOnlyFF to false in both cases allows local configuration.
+	ps.configStore.SetReadOnlyFF(false)
 
 	if syncFeatureFlags {
 		if err := ps.startFeatureFlagUpdateJob(); err != nil {
