@@ -2477,6 +2477,20 @@ export default class Client4 {
         );
     };
 
+    addThreadFollowers = (threadId: string, userIds: string[]) => {
+        return this.doFetch<StatusOK>(
+            `${this.getPostRoute(threadId)}/thread/followers`,
+            {method: 'post', body: JSON.stringify(userIds)},
+        );
+    };
+
+    removeThreadFollower = (threadId: string, userId: string) => {
+        return this.doFetch<StatusOK>(
+            `${this.getPostRoute(threadId)}/thread/followers/${userId}`,
+            {method: 'delete'},
+        );
+    };
+
     markPostAsUnread = (userId: string, postId: string) => {
         return this.doFetch<ChannelUnread>(
             `${this.getUserRoute(userId)}/posts/${postId}/set_unread`,

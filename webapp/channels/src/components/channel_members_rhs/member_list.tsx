@@ -40,6 +40,7 @@ export interface Props {
     openDirectMessage: (user: UserProfile) => void;
     fetchRemoteClusterInfo: (remoteId: string, forceRefresh?: boolean) => void;
     loadMore: () => void;
+    onRemoveMember?: (userId: string) => void;
 }
 
 const MemberList = ({
@@ -52,6 +53,7 @@ const MemberList = ({
     openDirectMessage,
     fetchRemoteClusterInfo,
     loadMore,
+    onRemoveMember,
 }: Props) => {
     const infiniteLoaderRef = useRef<InfiniteLoader | null>(null);
     const variableSizeListRef = useRef<VariableSizeList | null>(null);
@@ -109,7 +111,7 @@ const MemberList = ({
                             totalUsers={members.filter((l) => l.type === ListItemType.Member).length}
                             member={member}
                             editing={editing}
-                            actions={{openDirectMessage, fetchRemoteClusterInfo}}
+                            actions={{openDirectMessage, fetchRemoteClusterInfo, onRemoveMember}}
                         />
                     </div>
                 );

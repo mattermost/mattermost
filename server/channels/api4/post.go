@@ -29,6 +29,8 @@ func (api *API) InitPost() {
 	api.BaseRoutes.Post.Handle("/edit_history", api.APISessionRequired(getEditHistoryForPost)).Methods(http.MethodGet)
 	api.BaseRoutes.Post.Handle("/thread", api.APISessionRequired(getPostThread)).Methods(http.MethodGet)
 	api.BaseRoutes.Post.Handle("/thread/followers", api.APISessionRequired(getThreadFollowers)).Methods(http.MethodGet)
+	api.BaseRoutes.Post.Handle("/thread/followers", api.APISessionRequired(addThreadFollowers)).Methods(http.MethodPost)
+	api.BaseRoutes.Post.Handle("/thread/followers/{user_id:[A-Za-z0-9]+}", api.APISessionRequired(removeThreadFollower)).Methods(http.MethodDelete)
 	api.BaseRoutes.Post.Handle("/thread/pinned", api.APISessionRequired(getThreadPinnedPosts)).Methods(http.MethodGet)
 	api.BaseRoutes.Post.Handle("/info", api.APISessionRequired(getPostInfo)).Methods(http.MethodGet)
 	api.BaseRoutes.Post.Handle("/files/info", api.APISessionRequired(getFileInfosForPost)).Methods(http.MethodGet)
@@ -1627,4 +1629,72 @@ func getThreadPinnedPosts(c *Context, w http.ResponseWriter, r *http.Request) {
 	if err := posts.EncodeJSON(w); err != nil {
 		c.Logger.Warn("Error while writing response", mlog.Err(err))
 	}
+}
+
+func addThreadFollowers(c *Context, w http.ResponseWriter, r *http.Request) {
+	c.RequirePostId()
+	if c.Err != nil {
+		return
+	}
+
+	var userIds []string
+	if jsonErr := json.NewDecoder(r.Body).Decode(&userIds); jsonErr != nil {
+		c.SetInvalidParamWithErr("user_ids", jsonErr)
+		return
+	}
+
+	if len(userIds) == 0 {
+		c.SetInvalidParam("user_ids")
+		return
+	}
+
+	// Verify the post exists and user has access
+	post, err := c.App.GetPostIfAuthorized(c.AppContext, c.Params.PostId, c.AppContext.Session(), false)
+	if err != nil {
+		c.Err = err
+		return
+	}
+
+	// Verify this is a root post (thread)
+	if post.RootId != "" {
+		c.SetInvalidURLParam("post_id")
+		return
+	}
+
+	// Add each user as a follower
+	for _, userId := range userIds {
+		if err := c.App.AddThreadFollower(c.AppContext, c.Params.PostId, userId); err != nil {
+			c.Err = err
+			return
+		}
+	}
+
+	ReturnStatusOK(w)
+}
+
+func removeThreadFollower(c *Context, w http.ResponseWriter, r *http.Request) {
+	c.RequirePostId().RequireUserId()
+	if c.Err != nil {
+		return
+	}
+
+	// Verify the post exists and user has access
+	post, err := c.App.GetPostIfAuthorized(c.AppContext, c.Params.PostId, c.AppContext.Session(), false)
+	if err != nil {
+		c.Err = err
+		return
+	}
+
+	// Verify this is a root post (thread)
+	if post.RootId != "" {
+		c.SetInvalidURLParam("post_id")
+		return
+	}
+
+	if err := c.App.RemoveThreadFollower(c.AppContext, c.Params.PostId, c.Params.UserId); err != nil {
+		c.Err = err
+		return
+	}
+
+	ReturnStatusOK(w)
 }

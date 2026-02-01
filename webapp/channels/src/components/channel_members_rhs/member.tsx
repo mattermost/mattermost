@@ -30,6 +30,7 @@ interface Props {
     actions: {
         openDirectMessage: (user: UserProfile) => void;
         fetchRemoteClusterInfo: (remoteId: string, forceRefresh?: boolean) => void;
+        onRemoveMember?: (userId: string) => void;
     };
 }
 
@@ -131,6 +132,21 @@ const Member = ({channel, member, index, totalUsers, editing, actions}: Props) =
                             />
                         }
                     />
+                )}
+                {!member.membership && editing && actions.onRemoveMember && (
+                    <WithTooltip
+                        title={formatMessage({
+                            id: 'channel_members_rhs.member.remove',
+                            defaultMessage: 'Remove',
+                        })}
+                    >
+                        <button
+                            className='channel-members-rhs__remove-member'
+                            onClick={() => actions.onRemoveMember!(member.user.id)}
+                        >
+                            <i className='icon icon-trash-can-outline'/>
+                        </button>
+                    </WithTooltip>
                 )}
             </div>
             {!editing && (

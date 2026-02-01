@@ -2989,6 +2989,94 @@ func (a *App) GetPinnedPostsForThread(threadID string) (*model.PostList, *model.
 	return posts, nil
 }
 
+// AddThreadFollower adds a user as a follower to a thread
+func (a *App) AddThreadFollower(rctx request.CTX, threadID, userID string) *model.AppError {
+	// Get thread to find teamID
+	thread, err := a.Srv().Store().Thread().Get(threadID)
+	if err != nil {
+		return model.NewAppError("AddThreadFollower", "app.user.add_thread_follower.get_thread.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+	if thread == nil {
+		return model.NewAppError("AddThreadFollower", "app.user.add_thread_follower.thread_not_found.app_error", nil, "", http.StatusNotFound)
+	}
+
+	// Get the root post to find the channel and team
+	post, appErr := a.GetSinglePost(rctx, threadID, false)
+	if appErr != nil {
+		return appErr
+	}
+
+	channel, appErr := a.GetChannel(rctx, post.ChannelId)
+	if appErr != nil {
+		return appErr
+	}
+
+	opts := store.ThreadMembershipOpts{
+		Following:             true,
+		IncrementMentions:     false,
+		UpdateFollowing:       true,
+		UpdateViewedTimestamp: true,
+		UpdateParticipants:    false,
+	}
+	_, err = a.Srv().Store().Thread().MaintainMembership(userID, threadID, opts)
+	if err != nil {
+		return model.NewAppError("AddThreadFollower", "app.user.add_thread_follower.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+
+	// Send websocket event
+	message := model.NewWebSocketEvent(model.WebsocketEventThreadFollowChanged, channel.TeamId, "", userID, nil, "")
+	message.Add("thread_id", threadID)
+	message.Add("state", true)
+	message.Add("reply_count", thread.ReplyCount)
+	a.Publish(message)
+
+	return nil
+}
+
+// RemoveThreadFollower removes a user as a follower from a thread
+func (a *App) RemoveThreadFollower(rctx request.CTX, threadID, userID string) *model.AppError {
+	// Get thread to find teamID
+	thread, err := a.Srv().Store().Thread().Get(threadID)
+	if err != nil {
+		return model.NewAppError("RemoveThreadFollower", "app.user.remove_thread_follower.get_thread.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+	if thread == nil {
+		return model.NewAppError("RemoveThreadFollower", "app.user.remove_thread_follower.thread_not_found.app_error", nil, "", http.StatusNotFound)
+	}
+
+	// Get the root post to find the channel and team
+	post, appErr := a.GetSinglePost(rctx, threadID, false)
+	if appErr != nil {
+		return appErr
+	}
+
+	channel, appErr := a.GetChannel(rctx, post.ChannelId)
+	if appErr != nil {
+		return appErr
+	}
+
+	opts := store.ThreadMembershipOpts{
+		Following:             false,
+		IncrementMentions:     false,
+		UpdateFollowing:       true,
+		UpdateViewedTimestamp: false,
+		UpdateParticipants:    false,
+	}
+	_, err = a.Srv().Store().Thread().MaintainMembership(userID, threadID, opts)
+	if err != nil {
+		return model.NewAppError("RemoveThreadFollower", "app.user.remove_thread_follower.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+
+	// Send websocket event
+	message := model.NewWebSocketEvent(model.WebsocketEventThreadFollowChanged, channel.TeamId, "", userID, nil, "")
+	message.Add("thread_id", threadID)
+	message.Add("state", false)
+	message.Add("reply_count", thread.ReplyCount)
+	a.Publish(message)
+
+	return nil
+}
+
 func (a *App) UpdateThreadsReadForUser(userID, teamID string) *model.AppError {
 	nErr := a.Srv().Store().Thread().MarkAllAsReadByTeam(userID, teamID)
 	if nErr != nil {

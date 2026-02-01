@@ -5,6 +5,7 @@ import {connect} from 'react-redux';
 import {bindActionCreators} from 'redux';
 import type {AnyAction, Dispatch} from 'redux';
 
+import {fetchRemoteClusterInfo} from 'mattermost-redux/actions/shared_channels';
 import {getPost} from 'mattermost-redux/selectors/entities/posts';
 import {getCurrentTeam} from 'mattermost-redux/selectors/entities/teams';
 
@@ -65,12 +66,14 @@ function mapStateToProps(state: GlobalState) {
     const threadId = getThreadFollowersThreadId(state);
     const rootPost = threadId ? getPost(state, threadId) : null;
     const threadName = rootPost ? cleanMessageForDisplay(rootPost.message) : '';
+    const channelId = rootPost?.channel_id || '';
     const team = getCurrentTeam(state);
     const teamUrl = team ? `/${team.name}` : '';
     const previousRhsState = getPreviousRhsState(state);
 
     return {
         threadId,
+        channelId,
         threadName,
         canGoBack: Boolean(previousRhsState),
         teamUrl,
@@ -84,6 +87,7 @@ function mapDispatchToProps(dispatch: Dispatch<AnyAction>) {
             openDirectChannelToUserId,
             closeRightHandSide,
             goBack,
+            fetchRemoteClusterInfo,
         }, dispatch),
     };
 }

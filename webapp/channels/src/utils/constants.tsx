@@ -496,6 +496,7 @@ export const ModalIdentifiers = {
     ATTRIBUTE_MODAL_SAML: 'attribute_modal_saml',
     FLAG_POST: 'flag_post',
     REMOVE_FLAGGED_POST: 'remove_flagged_post',
+    THREAD_INVITE: 'thread_invite',
 };
 
 export const UserStatuses = {
