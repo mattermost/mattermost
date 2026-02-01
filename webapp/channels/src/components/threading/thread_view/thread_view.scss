@@ -110,7 +110,11 @@
             display: flex;
             flex-shrink: 0;
             align-items: center;
-            gap: 4px;
+            gap: 8px;
+
+            .Avatars {
+                margin-right: 4px;
+            }
 
             .channel-header__icon {
                 display: flex;

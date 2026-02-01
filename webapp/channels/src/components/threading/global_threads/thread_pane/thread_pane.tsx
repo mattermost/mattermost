@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import classNames from 'classnames';
-import React, {memo, useCallback} from 'react';
+import React, {memo, useCallback, useEffect, useMemo} from 'react';
 import type {ReactNode} from 'react';
 import {useIntl} from 'react-intl';
 import {useSelector, useDispatch} from 'react-redux';
@@ -10,12 +10,14 @@ import {useSelector, useDispatch} from 'react-redux';
 import {DotsVerticalIcon} from '@mattermost/compass-icons/components';
 import type {UserThread, UserThreadSynthetic} from '@mattermost/types/threads';
 
+import {getChannelStats} from 'mattermost-redux/actions/channels';
 import {setThreadFollow} from 'mattermost-redux/actions/threads';
 import {makeGetChannel, getAllChannelStats} from 'mattermost-redux/selectors/entities/channels';
 import {getConfig} from 'mattermost-redux/selectors/entities/general';
 import {getPost, makeGetPostsForThread} from 'mattermost-redux/selectors/entities/posts';
 
-import {showPinnedPosts, showChannelMembers, closeRightHandSide} from 'actions/views/rhs';
+import {showPinnedPosts, closeRightHandSide} from 'actions/views/rhs';
+import Avatars from 'components/widgets/users/avatars';
 import {focusPost} from 'components/permalink_view/actions';
 import HeaderIconWrapper from 'components/channel_header/components/header_icon_wrapper';
 import PopoutButton from 'components/popout_button';
@@ -74,8 +76,8 @@ function cleanMessageForDisplay(message: string): string {
         trim();
 
     // Truncate if too long
-    if (cleaned.length > 60) {
-        cleaned = cleaned.substring(0, 60) + '...';
+    if (cleaned.length > 30) {
+        cleaned = cleaned.substring(0, 30) + '...';
     }
 
     return cleaned;
@@ -122,13 +124,25 @@ const ThreadPane = ({
     const config = useSelector(getConfig);
     const isThreadsInSidebarEnabled = (config as Record<string, string>)?.FeatureFlagThreadsInSidebar === 'true';
 
-    // Channel stats for pins and members count
+    // Channel stats for pins count
     const channelStats = useSelector((state: GlobalState) => getAllChannelStats(state)[channelId]);
     const pinnedPostsCount = channelStats?.pinnedpost_count || 0;
-    const memberCount = channelStats?.member_count || 0;
+
+    // Thread participants
+    const participantIds = useMemo(() => {
+        const participants = (thread as UserThread)?.participants || [];
+        return participants.map(({id}) => id).reverse();
+    }, [(thread as UserThread)?.participants]);
 
     // RHS state for active button styling
     const rhsState = useSelector(getRhsState);
+
+    // Fetch channel stats for pinned posts count (ThreadsInSidebar feature)
+    useEffect(() => {
+        if (isThreadsInSidebarEnabled && channelId) {
+            dispatch(getChannelStats(channelId));
+        }
+    }, [dispatch, isThreadsInSidebarEnabled, channelId]);
 
     const selectHandler = useCallback(() => select(), [select]);
     let unreadTimestamp = post.edit_at || post.create_at;
@@ -163,23 +177,12 @@ const ThreadPane = ({
         }
     }, [dispatch, channelId, rhsState]);
 
-    const showChannelMembersHandler = useCallback(() => {
-        if (rhsState === RHSStates.CHANNEL_MEMBERS) {
-            dispatch(closeRightHandSide());
-        } else {
-            dispatch(showChannelMembers(channelId));
-        }
-    }, [dispatch, channelId, rhsState]);
-
     // Get thread name from root post message
     const threadName = post ? cleanMessageForDisplay(post.message) : '';
 
-    // Pinned and Members button classes (ThreadsInSidebar feature)
+    // Pinned button class (ThreadsInSidebar feature)
     const pinnedIconClass = classNames('channel-header__icon channel-header__icon--wide channel-header__icon--left btn btn-icon btn-xs', {
         'channel-header__icon--active': rhsState === RHSStates.PIN,
-    });
-    const membersIconClass = classNames('member-rhs__trigger channel-header__icon channel-header__icon--wide channel-header__icon--left btn btn-icon btn-xs', {
-        'channel-header__icon--active': rhsState === RHSStates.CHANNEL_MEMBERS,
     });
 
     // Render enhanced header when ThreadsInSidebar is enabled
@@ -199,23 +202,12 @@ const ThreadPane = ({
                             <span className='ThreadPane__header-text'>{threadName}</span>
                         </h3>
                         <div className='ThreadPane__header-icons'>
-                            <HeaderIconWrapper
-                                tooltip={formatMessage({id: 'channel_header.channelMembers', defaultMessage: 'Members'})}
-                                buttonClass={membersIconClass}
-                                buttonId={'threadPaneMembersButton'}
-                                onClick={showChannelMembersHandler}
-                            >
-                                <i
-                                    aria-hidden='true'
-                                    className='icon icon-account-outline channel-header__members'
+                            {participantIds.length > 0 && (
+                                <Avatars
+                                    userIds={participantIds}
+                                    size='xs'
                                 />
-                                <span
-                                    id='threadPaneMemberCountText'
-                                    className='icon__text'
-                                >
-                                    {memberCount || '-'}
-                                </span>
-                            </HeaderIconWrapper>
+                            )}
                             {pinnedPostsCount > 0 && (
                                 <HeaderIconWrapper
                                     buttonClass={pinnedIconClass}

@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import classNames from 'classnames';
-import React, {memo, useCallback, useEffect, useState} from 'react';
+import React, {memo, useCallback, useEffect, useMemo, useState} from 'react';
 import {useIntl} from 'react-intl';
 import {useSelector, useDispatch} from 'react-redux';
 import {useRouteMatch, useHistory} from 'react-router-dom';
@@ -10,6 +10,7 @@ import {useRouteMatch, useHistory} from 'react-router-dom';
 import {DotsVerticalIcon} from '@mattermost/compass-icons/components';
 import type {UserThread, UserThreadSynthetic} from '@mattermost/types/threads';
 
+import {getChannelStats} from 'mattermost-redux/actions/channels';
 import {getThreadsForCurrentTeam, setThreadFollow} from 'mattermost-redux/actions/threads';
 import {makeGetChannel, getAllChannelStats} from 'mattermost-redux/selectors/entities/channels';
 import {getConfig} from 'mattermost-redux/selectors/entities/general';
@@ -21,12 +22,13 @@ import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
 import {clearLastUnreadChannel} from 'actions/global_actions';
 import {loadProfilesForSidebar} from 'actions/user_actions';
 import {selectLhsItem} from 'actions/views/lhs';
-import {suppressRHS, unsuppressRHS, showPinnedPosts, showChannelMembers, closeRightHandSide} from 'actions/views/rhs';
+import {suppressRHS, unsuppressRHS, showPinnedPosts, closeRightHandSide} from 'actions/views/rhs';
 import {setSelectedThreadId} from 'actions/views/threads';
 import {focusPost} from 'components/permalink_view/actions';
 import ChatIllustration from 'components/common/svg_images_components/chat_illustration';
 import HeaderIconWrapper from 'components/channel_header/components/header_icon_wrapper';
 import LoadingScreen from 'components/loading_screen';
+import Avatars from 'components/widgets/users/avatars';
 import NoResultsIndicator from 'components/no_results_indicator';
 import PopoutButton from 'components/popout_button';
 import Header from 'components/widgets/header';
@@ -85,8 +87,8 @@ function cleanMessageForDisplay(message: string): string {
         trim();
 
     // Truncate if too long
-    if (cleaned.length > 60) {
-        cleaned = cleaned.substring(0, 60) + '...';
+    if (cleaned.length > 30) {
+        cleaned = cleaned.substring(0, 30) + '...';
     }
 
     return cleaned;
@@ -115,11 +117,16 @@ const ThreadView = () => {
     const config = useSelector(getConfig);
     const isThreadsInSidebarEnabled = (config as Record<string, string>)?.FeatureFlagThreadsInSidebar === 'true';
 
-    // Channel stats for pins and members count
+    // Channel stats for pins count
     const channelId = thread?.post?.channel_id || rootPost?.channel_id;
     const channelStats = useSelector((state: GlobalState) => channelId ? getAllChannelStats(state)[channelId] : undefined);
     const pinnedPostsCount = channelStats?.pinnedpost_count || 0;
-    const memberCount = channelStats?.member_count || 0;
+
+    // Thread participants
+    const participantIds = useMemo(() => {
+        const participants = (thread as UserThread)?.participants || [];
+        return participants.map(({id}) => id).reverse();
+    }, [(thread as UserThread)?.participants]);
 
     // RHS state for active button styling
     const rhsState = useSelector(getRhsState);
@@ -155,6 +162,13 @@ const ThreadView = () => {
             setIsLoading(false);
         }
     }, [dispatch, thread, threadIdentifier]);
+
+    // Fetch channel stats for pinned posts count (ThreadsInSidebar feature)
+    useEffect(() => {
+        if (isThreadsInSidebarEnabled && channelId) {
+            dispatch(getChannelStats(channelId));
+        }
+    }, [dispatch, isThreadsInSidebarEnabled, channelId]);
 
     const goBack = useCallback(() => {
         // Go to the parent channel
@@ -192,16 +206,6 @@ const ThreadView = () => {
                 dispatch(closeRightHandSide());
             } else {
                 dispatch(showPinnedPosts(channelId));
-            }
-        }
-    }, [dispatch, channelId, rhsState]);
-
-    const showChannelMembersHandler = useCallback(() => {
-        if (channelId) {
-            if (rhsState === RHSStates.CHANNEL_MEMBERS) {
-                dispatch(closeRightHandSide());
-            } else {
-                dispatch(showChannelMembers(channelId));
             }
         }
     }, [dispatch, channelId, rhsState]);
@@ -250,12 +254,9 @@ const ThreadView = () => {
     const hasUnreads = isFollowing && Boolean((thread as UserThread).unread_replies || (thread as UserThread).unread_mentions);
     const unreadTimestamp = rootPost.edit_at || rootPost.create_at;
 
-    // Pinned and Members button classes (ThreadsInSidebar feature)
+    // Pinned button class (ThreadsInSidebar feature)
     const pinnedIconClass = classNames('channel-header__icon channel-header__icon--wide channel-header__icon--left btn btn-icon btn-xs', {
         'channel-header__icon--active': rhsState === RHSStates.PIN,
-    });
-    const membersIconClass = classNames('member-rhs__trigger channel-header__icon channel-header__icon--wide channel-header__icon--left btn btn-icon btn-xs', {
-        'channel-header__icon--active': rhsState === RHSStates.CHANNEL_MEMBERS,
     });
 
     // Render enhanced header when ThreadsInSidebar is enabled
@@ -275,23 +276,12 @@ const ThreadView = () => {
                             <span className='ThreadView__header-text'>{threadName}</span>
                         </h3>
                         <div className='ThreadView__header-icons'>
-                            <HeaderIconWrapper
-                                tooltip={formatMessage({id: 'channel_header.channelMembers', defaultMessage: 'Members'})}
-                                buttonClass={membersIconClass}
-                                buttonId={'threadHeaderMembersButton'}
-                                onClick={showChannelMembersHandler}
-                            >
-                                <i
-                                    aria-hidden='true'
-                                    className='icon icon-account-outline channel-header__members'
+                            {participantIds.length > 0 && (
+                                <Avatars
+                                    userIds={participantIds}
+                                    size='xs'
                                 />
-                                <span
-                                    id='threadMemberCountText'
-                                    className='icon__text'
-                                >
-                                    {memberCount || '-'}
-                                </span>
-                            </HeaderIconWrapper>
+                            )}
                             {pinnedPostsCount > 0 && (
                                 <HeaderIconWrapper
                                     buttonClass={pinnedIconClass}

@@ -1,6 +1,7 @@
 // Thread items inherit SidebarChannel styling, we just add indentation and custom icon
+// Use #SidebarContainer for specificity to override base sidebar styles
 
-.SidebarThreadItem {
+#SidebarContainer .SidebarThreadItem {
     // Indent threads under their parent channel
     .SidebarLink {
         padding-left: 29px;
