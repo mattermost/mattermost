@@ -9,7 +9,7 @@ import type {Channel} from '@mattermost/types/channels';
 import type {ActionResult} from 'mattermost-redux/types/actions';
 
 import type {Props} from 'components/browse_channels/browse_channels';
-import BrowseChannels, {Filter} from 'components/browse_channels/browse_channels';
+import BrowseChannels, {Filter, Sort} from 'components/browse_channels/browse_channels';
 import SearchableChannelList from 'components/searchable_channel_list';
 
 import {getHistory} from 'utils/browser_history';
@@ -116,6 +116,7 @@ describe('components/BrowseChannels', () => {
         channels: [TestHelper.getChannelMock({})],
         archivedChannels: [archivedChannel],
         privateChannels: [privateChannel],
+        directMessageChannels: [],
         currentUserId: 'user-1',
         teamId: 'team_1',
         teamName: 'team_name',
@@ -127,6 +128,7 @@ describe('components/BrowseChannels', () => {
                 user_id: 'user-1',
             }),
         },
+        channelMembers: {},
         actions: {
             getChannels: jest.fn(channelActions.getChannels),
             getArchivedChannels: jest.fn(channelActions.getArchivedChannels),
@@ -137,6 +139,7 @@ describe('components/BrowseChannels', () => {
             closeRightHandSide: jest.fn(),
             setGlobalItem: jest.fn(),
             getChannelsMemberCount: jest.fn(),
+            getChannelMembers: jest.fn(),
         },
     };
 
@@ -150,6 +153,8 @@ describe('components/BrowseChannels', () => {
         expect(wrapper.state('search')).toEqual(false);
         expect(wrapper.state('serverError')).toBeNull();
         expect(wrapper.state('searching')).toEqual(false);
+        expect(wrapper.state('sort')).toEqual(Sort.Recommended);
+        expect(wrapper.state('filter')).toEqual(Filter.All);
 
         // on componentDidMount
         expect(wrapper.instance().props.actions.getChannels).toHaveBeenCalledTimes(1);
@@ -486,6 +491,329 @@ describe('components/BrowseChannels', () => {
         process.nextTick(() => {
             expect(wrapper.state('searchedChannels')).toEqual([searchResults.data[0], searchResults.data[1], searchResults.data[2]]);
             done();
+        });
+    });
+
+    describe('Sorting functionality', () => {
+        test('should change sort state when changeSort is called', () => {
+            const wrapper = shallow<BrowseChannels>(
+                <BrowseChannels {...baseProps}/>,
+            );
+
+            expect(wrapper.state('sort')).toEqual(Sort.Recommended);
+
+            wrapper.instance().changeSort(Sort.AtoZ);
+            expect(wrapper.state('sort')).toEqual(Sort.AtoZ);
+
+            wrapper.instance().changeSort(Sort.Newest);
+            expect(wrapper.state('sort')).toEqual(Sort.Newest);
+        });
+
+        test('should extract DM user IDs from directMessageChannels', () => {
+            const dmChannels = [
+                TestHelper.getChannelMock({
+                    id: 'dm-1',
+                    type: 'D',
+                    name: 'user1__user2',
+                    teammate_id: 'user-dm-1',
+                }),
+                TestHelper.getChannelMock({
+                    id: 'dm-2',
+                    type: 'D',
+                    name: 'user1__user3',
+                    teammate_id: 'user-dm-2',
+                }),
+            ];
+
+            const props = {
+                ...baseProps,
+                directMessageChannels: dmChannels,
+            };
+
+            const wrapper = shallow<BrowseChannels>(
+                <BrowseChannels {...props}/>,
+            );
+
+            const dmUserIds = wrapper.instance().getDMUserIds();
+            expect(dmUserIds.size).toBe(2);
+            expect(dmUserIds.has('user-dm-1')).toBe(true);
+            expect(dmUserIds.has('user-dm-2')).toBe(true);
+        });
+
+        test('should count DM contacts in a channel', () => {
+            const channelMembers = {
+                'channel-1': {
+                    'user-dm-1': {user_id: 'user-dm-1'},
+                    'user-dm-2': {user_id: 'user-dm-2'},
+                    'user-other': {user_id: 'user-other'},
+                },
+                'channel-2': {
+                    'user-dm-1': {user_id: 'user-dm-1'},
+                    'user-other': {user_id: 'user-other'},
+                },
+            };
+
+            const props = {
+                ...baseProps,
+                channelMembers,
+            };
+
+            const wrapper = shallow<BrowseChannels>(
+                <BrowseChannels {...props}/>,
+            );
+
+            const dmUserIds = new Set(['user-dm-1', 'user-dm-2']);
+            const count1 = wrapper.instance().countDMContactsInChannel('channel-1', dmUserIds);
+            const count2 = wrapper.instance().countDMContactsInChannel('channel-2', dmUserIds);
+
+            expect(count1).toBe(2);
+            expect(count2).toBe(1);
+        });
+
+        test('should sort channels A to Z', () => {
+            const channels = [
+                TestHelper.getChannelMock({id: 'c1', display_name: 'Zebra Channel'}),
+                TestHelper.getChannelMock({id: 'c2', display_name: 'Alpha Channel'}),
+                TestHelper.getChannelMock({id: 'c3', display_name: 'Beta Channel'}),
+            ];
+
+            const props = {
+                ...baseProps,
+                channels,
+            };
+
+            const wrapper = shallow<BrowseChannels>(
+                <BrowseChannels {...props}/>,
+            );
+
+            const sorted = wrapper.instance().sortChannels(channels, Sort.AtoZ);
+            expect(sorted[0].display_name).toBe('Alpha Channel');
+            expect(sorted[1].display_name).toBe('Beta Channel');
+            expect(sorted[2].display_name).toBe('Zebra Channel');
+        });
+
+        test('should sort channels Z to A', () => {
+            const channels = [
+                TestHelper.getChannelMock({id: 'c1', display_name: 'Alpha Channel'}),
+                TestHelper.getChannelMock({id: 'c2', display_name: 'Zebra Channel'}),
+                TestHelper.getChannelMock({id: 'c3', display_name: 'Beta Channel'}),
+            ];
+
+            const props = {
+                ...baseProps,
+                channels,
+            };
+
+            const wrapper = shallow<BrowseChannels>(
+                <BrowseChannels {...props}/>,
+            );
+
+            const sorted = wrapper.instance().sortChannels(channels, Sort.ZtoA);
+            expect(sorted[0].display_name).toBe('Zebra Channel');
+            expect(sorted[1].display_name).toBe('Beta Channel');
+            expect(sorted[2].display_name).toBe('Alpha Channel');
+        });
+
+        test('should sort channels by newest first', () => {
+            const channels = [
+                TestHelper.getChannelMock({id: 'c1', display_name: 'Old Channel', create_at: 1000}),
+                TestHelper.getChannelMock({id: 'c2', display_name: 'New Channel', create_at: 3000}),
+                TestHelper.getChannelMock({id: 'c3', display_name: 'Medium Channel', create_at: 2000}),
+            ];
+
+            const props = {
+                ...baseProps,
+                channels,
+            };
+
+            const wrapper = shallow<BrowseChannels>(
+                <BrowseChannels {...props}/>,
+            );
+
+            const sorted = wrapper.instance().sortChannels(channels, Sort.Newest);
+            expect(sorted[0].display_name).toBe('New Channel');
+            expect(sorted[1].display_name).toBe('Medium Channel');
+            expect(sorted[2].display_name).toBe('Old Channel');
+        });
+
+        test('should sort channels by newest with alphabetical tie-breaker', () => {
+            const channels = [
+                TestHelper.getChannelMock({id: 'c1', display_name: 'Zebra Channel', create_at: 1000}),
+                TestHelper.getChannelMock({id: 'c2', display_name: 'Alpha Channel', create_at: 1000}),
+            ];
+
+            const props = {
+                ...baseProps,
+                channels,
+            };
+
+            const wrapper = shallow<BrowseChannels>(
+                <BrowseChannels {...props}/>,
+            );
+
+            const sorted = wrapper.instance().sortChannels(channels, Sort.Newest);
+            expect(sorted[0].display_name).toBe('Alpha Channel');
+            expect(sorted[1].display_name).toBe('Zebra Channel');
+        });
+
+        test('should sort channels by most members', () => {
+            const channels = [
+                TestHelper.getChannelMock({id: 'c1', display_name: 'Small Channel'}),
+                TestHelper.getChannelMock({id: 'c2', display_name: 'Large Channel'}),
+                TestHelper.getChannelMock({id: 'c3', display_name: 'Medium Channel'}),
+            ];
+
+            const channelsMemberCount = {
+                'c1': 10,
+                'c2': 100,
+                'c3': 50,
+            };
+
+            const props = {
+                ...baseProps,
+                channels,
+                channelsMemberCount,
+            };
+
+            const wrapper = shallow<BrowseChannels>(
+                <BrowseChannels {...props}/>,
+            );
+
+            const sorted = wrapper.instance().sortChannels(channels, Sort.MostMembers);
+            expect(sorted[0].display_name).toBe('Large Channel');
+            expect(sorted[1].display_name).toBe('Medium Channel');
+            expect(sorted[2].display_name).toBe('Small Channel');
+        });
+
+        test('should sort channels by most members with alphabetical tie-breaker', () => {
+            const channels = [
+                TestHelper.getChannelMock({id: 'c1', display_name: 'Zebra Channel'}),
+                TestHelper.getChannelMock({id: 'c2', display_name: 'Alpha Channel'}),
+            ];
+
+            const channelsMemberCount = {
+                'c1': 50,
+                'c2': 50,
+            };
+
+            const props = {
+                ...baseProps,
+                channels,
+                channelsMemberCount,
+            };
+
+            const wrapper = shallow<BrowseChannels>(
+                <BrowseChannels {...props}/>,
+            );
+
+            const sorted = wrapper.instance().sortChannels(channels, Sort.MostMembers);
+            expect(sorted[0].display_name).toBe('Alpha Channel');
+            expect(sorted[1].display_name).toBe('Zebra Channel');
+        });
+
+        test('should sort channels by recommendation (DM contacts)', () => {
+            const channels = [
+                TestHelper.getChannelMock({id: 'c1', display_name: 'No DM Contacts', last_post_at: 3000}),
+                TestHelper.getChannelMock({id: 'c2', display_name: 'Two DM Contacts', last_post_at: 2000}),
+                TestHelper.getChannelMock({id: 'c3', display_name: 'One DM Contact', last_post_at: 1000}),
+            ];
+
+            const dmChannels = [
+                TestHelper.getChannelMock({id: 'dm-1', type: 'D', teammate_id: 'user-dm-1'}),
+                TestHelper.getChannelMock({id: 'dm-2', type: 'D', teammate_id: 'user-dm-2'}),
+            ];
+
+            const channelMembers = {
+                'c1': {},
+                'c2': {
+                    'user-dm-1': {user_id: 'user-dm-1'},
+                    'user-dm-2': {user_id: 'user-dm-2'},
+                },
+                'c3': {
+                    'user-dm-1': {user_id: 'user-dm-1'},
+                },
+            };
+
+            const props = {
+                ...baseProps,
+                channels,
+                directMessageChannels: dmChannels,
+                channelMembers,
+            };
+
+            const wrapper = shallow<BrowseChannels>(
+                <BrowseChannels {...props}/>,
+            );
+
+            const sorted = wrapper.instance().sortChannels(channels, Sort.Recommended);
+            expect(sorted[0].display_name).toBe('Two DM Contacts');
+            expect(sorted[1].display_name).toBe('One DM Contact');
+            expect(sorted[2].display_name).toBe('No DM Contacts');
+        });
+
+        test('should sort channels by recommendation with recent activity tie-breaker', () => {
+            const channels = [
+                TestHelper.getChannelMock({id: 'c1', display_name: 'Old Activity', last_post_at: 1000}),
+                TestHelper.getChannelMock({id: 'c2', display_name: 'Recent Activity', last_post_at: 3000}),
+            ];
+
+            const dmChannels = [
+                TestHelper.getChannelMock({id: 'dm-1', type: 'D', teammate_id: 'user-dm-1'}),
+            ];
+
+            const channelMembers = {
+                'c1': {'user-dm-1': {user_id: 'user-dm-1'}},
+                'c2': {'user-dm-1': {user_id: 'user-dm-1'}},
+            };
+
+            const props = {
+                ...baseProps,
+                channels,
+                directMessageChannels: dmChannels,
+                channelMembers,
+            };
+
+            const wrapper = shallow<BrowseChannels>(
+                <BrowseChannels {...props}/>,
+            );
+
+            const sorted = wrapper.instance().sortChannels(channels, Sort.Recommended);
+            expect(sorted[0].display_name).toBe('Recent Activity');
+            expect(sorted[1].display_name).toBe('Old Activity');
+        });
+
+        test('should apply sorting to active channels', () => {
+            const channels = [
+                TestHelper.getChannelMock({id: 'c1', display_name: 'Zebra Channel'}),
+                TestHelper.getChannelMock({id: 'c2', display_name: 'Alpha Channel'}),
+                TestHelper.getChannelMock({id: 'c3', display_name: 'Beta Channel'}),
+            ];
+
+            const props = {
+                ...baseProps,
+                channels,
+            };
+
+            const wrapper = shallow<BrowseChannels>(
+                <BrowseChannels {...props}/>,
+            );
+
+            wrapper.setState({sort: Sort.AtoZ});
+            const activeChannels = wrapper.instance().getActiveChannels();
+
+            expect(activeChannels[0].display_name).toBe('Alpha Channel');
+            expect(activeChannels[1].display_name).toBe('Beta Channel');
+            expect(activeChannels[2].display_name).toBe('Zebra Channel');
+        });
+
+        test('should pass sort prop to SearchableChannelList', () => {
+            const wrapper = shallow<BrowseChannels>(
+                <BrowseChannels {...baseProps}/>,
+            );
+
+            wrapper.setState({sort: Sort.Newest});
+            const searchList = wrapper.find(SearchableChannelList);
+            expect(searchList.props().sort).toEqual(Sort.Newest);
         });
     });
 });

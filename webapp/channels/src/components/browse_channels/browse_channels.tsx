@@ -7,6 +7,7 @@ import {FormattedMessage} from 'react-intl';
 
 import {GenericModal} from '@mattermost/components';
 import type {Channel, ChannelMembership, ChannelSearchOpts, ChannelsWithTotalCount} from '@mattermost/types/channels';
+import type {UserProfile} from '@mattermost/types/users';
 import type {RelationOneToOne} from '@mattermost/types/utilities';
 
 import Permissions from 'mattermost-redux/constants/permissions';
@@ -37,7 +38,16 @@ export enum Filter {
     Archived = 'Archived',
 }
 
+export enum Sort {
+    Recommended = 'Recommended',
+    Newest = 'Newest',
+    MostMembers = 'MostMembers',
+    AtoZ = 'AtoZ',
+    ZtoA = 'ZtoA',
+}
+
 export type FilterType = keyof typeof Filter;
+export type SortType = keyof typeof Sort;
 
 type Actions = {
     getChannels: (teamId: string, page: number, perPage: number) => Promise<ActionResult<Channel[]>>;
@@ -53,12 +63,14 @@ type Actions = {
     setGlobalItem: (name: string, value: string) => void;
     closeRightHandSide: () => void;
     getChannelsMemberCount: (channelIds: string[]) => Promise<ActionResult>;
+    getChannelMembers: (channelId: string) => Promise<ActionResult>;
 }
 
 export type Props = {
     channels: Channel[];
     archivedChannels: Channel[];
     privateChannels: Channel[];
+    directMessageChannels: Channel[];
     currentUserId: string;
     teamId: string;
     teamName?: string;
@@ -68,12 +80,14 @@ export type Props = {
     rhsState?: RhsState;
     rhsOpen?: boolean;
     channelsMemberCount?: Record<string, number>;
+    channelMembers: RelationOneToOne<Channel, Record<string, ChannelMembership>>;
     actions: Actions;
 }
 
 type State = {
     loading: boolean;
     filter: FilterType;
+    sort: SortType;
     search: boolean;
     searchedChannels: Channel[];
     serverError: React.ReactNode | string;
@@ -93,6 +107,7 @@ export default class BrowseChannels extends React.PureComponent<Props, State> {
         this.state = {
             loading: true,
             filter: Filter.All,
+            sort: Sort.Recommended,
             search: false,
             searchedChannels: [],
             serverError: null,
@@ -250,9 +265,72 @@ export default class BrowseChannels extends React.PureComponent<Props, State> {
         this.setState({filter});
     };
 
+    changeSort = (sort: SortType) => {
+        // search again when switching sort to update search results
+        this.search(this.state.searchTerm);
+        this.setState({sort});
+    };
+
     isMemberOfChannel(channelId: string) {
         return this.props.myChannelMemberships[channelId];
     }
+
+    /**
+     * Get user IDs from Direct Message channels
+     */
+    getDMUserIds = (): Set<string> => {
+        const {directMessageChannels} = this.props;
+        const dmUserIds = new Set<string>();
+
+        directMessageChannels.forEach(dmChannel => {
+            if (dmChannel.teammate_id) {
+                dmUserIds.add(dmChannel.teammate_id);
+            } 
+        });
+
+        return dmUserIds;
+    };
+
+    /**
+     * Count how many DM contacts are members of a specific channel
+     */
+    countDMContactsInChannel = (channelId: string, dmUserIds: Set<string>): number => {
+        const members = this.props.channelMembers[channelId] || {};
+        return Object.keys(members).filter(userId => dmUserIds.has(userId)).length;
+    };
+
+    /**
+     * Sort channels by recommendation (DM contacts priority)
+     */
+    getSortedChannelsByRecommendation = (channels: Channel[]): Channel[] => {
+        const dmUserIds = this.getDMUserIds();
+
+        return channels.sort((a, b) => {
+            // Count DM contacts in each channel
+            const dmContactsA = this.countDMContactsInChannel(a.id, dmUserIds);
+            const dmContactsB = this.countDMContactsInChannel(b.id, dmUserIds);
+
+            // Primary sort: DM contact count (descending)
+            if (dmContactsA !== dmContactsB) {
+                return dmContactsB - dmContactsA;
+            }
+
+            // Secondary sort: Recent activity (descending)
+            if (a.last_post_at !== b.last_post_at) {
+                return b.last_post_at - a.last_post_at;
+            }
+
+            // Tertiary sort: Member count (descending - more active channels first)
+            const memberCountA = this.props.channelsMemberCount?.[a.id] || 0;
+            const memberCountB = this.props.channelsMemberCount?.[b.id] || 0;
+            if (memberCountA !== memberCountB) {
+                return memberCountB - memberCountA;
+            }
+
+            // Final tie breaker: Alphabetical by display name
+            return a.display_name.toLowerCase().localeCompare(b.display_name.toLowerCase());
+        });
+    };
 
     handleShowJoinedChannelsPreference = (shouldHideJoinedChannels: boolean) => {
         // search again when switching channels to update search results
@@ -262,11 +340,54 @@ export default class BrowseChannels extends React.PureComponent<Props, State> {
 
     getChannelsWithoutJoined = (channelList: Channel[]) => channelList.filter((channel) => !this.isMemberOfChannel(channel.id));
 
+    sortChannels = (channels: Channel[], sortType: SortType): Channel[] => {
+        switch (sortType) {
+        case Sort.AtoZ:
+            // Sort A-Z by display name (case insensitive)
+            return [...channels].sort((a, b) =>
+                a.display_name.toLowerCase().localeCompare(b.display_name.toLowerCase())
+            );
+        case Sort.ZtoA:
+            // Sort Z-A by display name (case insensitive)
+            return [...channels].sort((a, b) =>
+                b.display_name.toLowerCase().localeCompare(a.display_name.toLowerCase())
+            );
+        case Sort.Newest:
+            // Sort by creation date (newest first), with A-Z as tie breaker
+            return [...channels].sort((a, b) => {
+                // Primary sort: creation date (descending - newest first)
+                if (a.create_at !== b.create_at) {
+                    return b.create_at - a.create_at;
+                }
+
+                // Tie breaker: A-Z by display name (ascending)
+                return a.display_name.toLowerCase().localeCompare(b.display_name.toLowerCase());
+            });
+        case Sort.MostMembers:
+            // Sort by member count (highest first), with A-Z as tie breaker
+            return [...channels].sort((a, b) => {
+                const memberCountA = this.props.channelsMemberCount?.[a.id] || 0;
+                const memberCountB = this.props.channelsMemberCount?.[b.id] || 0;
+
+                // Primary sort: member count (descending)
+                if (memberCountA !== memberCountB) {
+                    return memberCountB - memberCountA;
+                }
+
+                // Tie breaker: A-Z by display name (ascending)
+                return a.display_name.toLowerCase().localeCompare(b.display_name.toLowerCase());
+            });
+        case Sort.Recommended:
+        default:
+            return this.getSortedChannelsByRecommendation(channels);
+        }
+    };
+
     getActiveChannels = () => {
         const {channels, archivedChannels, shouldHideJoinedChannels, privateChannels} = this.props;
-        const {search, searchedChannels, filter} = this.state;
+        const {search, searchedChannels, filter, sort} = this.state;
 
-        const allChannels = channels.concat(privateChannels).sort((a, b) => a.display_name.localeCompare(b.display_name));
+        const allChannels = channels.concat(privateChannels);
         const allChannelsWithoutJoined = this.getChannelsWithoutJoined(allChannels);
         const publicChannelsWithoutJoined = this.getChannelsWithoutJoined(channels);
         const archivedChannelsWithoutJoined = this.getChannelsWithoutJoined(archivedChannels);
@@ -279,11 +400,15 @@ export default class BrowseChannels extends React.PureComponent<Props, State> {
             [Filter.Public]: shouldHideJoinedChannels ? publicChannelsWithoutJoined : channels,
         };
 
+        let activeChannels;
         if (search) {
-            return searchedChannels;
+            activeChannels = searchedChannels;
+        } else {
+            activeChannels = filterOptions[filter] || filterOptions[Filter.All];
         }
 
-        return filterOptions[filter] || filterOptions[Filter.All];
+        // Apply sorting
+        return this.sortChannels(activeChannels, sort);
     };
 
     render() {
@@ -347,6 +472,8 @@ export default class BrowseChannels extends React.PureComponent<Props, State> {
                     loading={search ? searching : channelsRequestStarted}
                     changeFilter={this.changeFilter}
                     filter={this.state.filter}
+                    changeSort={this.changeSort}
+                    sort={this.state.sort}
                     myChannelMemberships={this.props.myChannelMemberships}
                     closeModal={this.props.actions.closeModal}
                     hideJoinedChannelsPreference={this.handleShowJoinedChannelsPreference}
