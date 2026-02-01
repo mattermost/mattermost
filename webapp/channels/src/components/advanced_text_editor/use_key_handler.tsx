@@ -158,6 +158,22 @@ const useKeyHandler = (
         }
 
         if ((Keyboard.isKeyPressed(e, KeyCodes.PAGE_UP) || Keyboard.isKeyPressed(e, KeyCodes.PAGE_DOWN))) {
+            const textbox = textboxRef.current?.getInputBox();
+
+            const hasScrollableContent = textbox && textbox.scrollHeight > textbox.clientHeight;
+
+            if (hasScrollableContent) {
+                const isPageUp = Keyboard.isKeyPressed(e, KeyCodes.PAGE_UP);
+                const isPageDown = Keyboard.isKeyPressed(e, KeyCodes.PAGE_DOWN);
+
+                const canScrollUp = textbox.scrollTop > 0;
+                const canScrollDown = textbox.scrollTop + textbox.clientHeight < textbox.scrollHeight;
+
+                if ((isPageUp && canScrollUp) || (isPageDown && canScrollDown)) {
+                    return;
+                }
+            }
+
             // Moving the focus to the post list will cause the post list to scroll as if it already had focus
             // before the key was pressed
             if (location === Locations.CENTER) {
