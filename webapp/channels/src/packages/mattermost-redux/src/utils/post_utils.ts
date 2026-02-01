@@ -238,6 +238,11 @@ export function shouldUpdatePost(receivedPost: Post, storedPost?: Post): boolean
             return true;
         }
 
+        if (storedPost.props?.encryption_status !== receivedPost.props?.encryption_status) {
+            // Encryption status has changed (e.g. from undefined to 'decrypted')
+            return true;
+        }
+
         // The stored post is the same as the one we've received
         return false;
     }

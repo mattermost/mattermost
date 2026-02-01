@@ -139,13 +139,11 @@ export default class PostMessageView extends React.PureComponent<Props, State> {
             );
         }
 
-        // Check if this is a raw encrypted message that hasn't been decrypted yet
-        // This can happen for posts loaded from API (not via WebSocket)
-        // The useDecryptPost hook in the wrapper will trigger decryption
+        // Check if this is a raw encrypted message that hasn't been decrypted
+        // This shouldn't normally happen since posts are decrypted before entering Redux,
+        // but handle it as a fallback (e.g., for optimistic posts before server response)
         if (isEncryptedMessage(post.message)) {
-            // Show decrypting status if user has keys (decryption is in progress)
-            // Show no_keys if user doesn't have keys initialized
-            const status = isEncryptionInitialized() ? 'decrypting' : 'no_keys';
+            const status = isEncryptionInitialized() ? 'no_access' : 'no_keys';
             return (
                 <EncryptedPlaceholder
                     status={status}

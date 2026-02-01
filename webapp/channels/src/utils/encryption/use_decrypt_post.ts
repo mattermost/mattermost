@@ -54,15 +54,27 @@ export function useDecryptPost(post: Post, userId: string): void {
         postIdRef.current = post.id;
 
         const attemptDecryption = async () => {
+            console.log('[Hook] Starting decryption for post:', post.id);
             try {
                 const result = await decryptMessageHook(post, userId);
 
-                // Only dispatch if the post was modified (decrypted or marked with status)
-                if (result.post !== post) {
+                console.log('[Hook] decryptMessageHook returned, status:', result.post.props?.encryption_status);
+                console.log('[Hook] Post ID:', result.post.id);
+                console.log('[Hook] Message after decryption (first 100 chars):', result.post.message.substring(0, 100));
+
+                // Always dispatch the result - it will have updated props
+                if (result.post.props?.encryption_status) {
+                    console.log('[Hook] Dispatching updated post with status:', result.post.props.encryption_status);
+                    console.log('[Hook] Full post being dispatched:', JSON.stringify(result.post, null, 2).substring(0, 500));
                     dispatch(receivedPost(result.post));
+
+                    // Mark as failed if not decrypted successfully
+                    if (result.post.props.encryption_status !== 'decrypted') {
+                        failedPosts.add(post.id);
+                    }
                 }
             } catch (error) {
-                console.error('Failed to decrypt post:', post.id, error);
+                console.error('[Hook] Unexpected error decrypting post:', post.id, error);
                 // Mark as failed to avoid retry loops
                 failedPosts.add(post.id);
 

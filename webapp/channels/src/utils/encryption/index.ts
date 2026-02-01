@@ -74,3 +74,9 @@ export {
     useDecryptPost,
     clearDecryptionCache,
 } from './use_decrypt_post';
+
+// Bulk decryption for API responses
+export {
+    decryptPostsInList,
+    decryptPost,
+} from './decrypt_posts';

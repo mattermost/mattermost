@@ -40,6 +40,9 @@ import {isCombinedUserActivityPost} from 'mattermost-redux/utils/post_list';
 
 import {logError, LogErrorBarMode} from './errors';
 
+// Mattermost Extended: Import decryption utilities
+import {decryptPostsInList} from 'utils/encryption/decrypt_posts';
+
 // receivedPost should be dispatched after a single post from the server. This typically happens when an existing post
 // is updated.
 export function receivedPost(post: Post, crtEnabled?: boolean) {
@@ -638,6 +641,7 @@ export function getPostThread(rootId: string, fetchThreads = true, lastUpdateAt 
         const state = getState();
         const collapsedThreadsEnabled = isCollapsedThreadsEnabled(state);
         const enabledUserStatuses = getIsUserStatusesConfigEnabled(state);
+        const userId = getCurrentUserId(state);
 
         let posts;
         const options: FetchPaginatedThreadOptions = {
@@ -654,6 +658,13 @@ export function getPostThread(rootId: string, fetchThreads = true, lastUpdateAt 
             forceLogoutIfNecessary(error, dispatch, getState);
             dispatch(logError(error));
             return {error};
+        }
+
+        // Mattermost Extended: Decrypt encrypted posts before storing in Redux
+        try {
+            posts = await decryptPostsInList(posts, userId);
+        } catch (error) {
+            console.error('[getPostThread] Failed to decrypt posts:', error);
         }
 
         dispatch(batchActions([
@@ -710,13 +721,22 @@ export function getNewestPostThread(rootId: string): ActionFuncAsync {
 export function getPosts(channelId: string, page = 0, perPage = Posts.POST_CHUNK_SIZE, fetchThreads = true, collapsedThreadsExtended = false): ActionFuncAsync<PostList> {
     return async (dispatch, getState) => {
         let posts;
-        const collapsedThreadsEnabled = isCollapsedThreadsEnabled(getState());
+        const state = getState();
+        const collapsedThreadsEnabled = isCollapsedThreadsEnabled(state);
+        const userId = getCurrentUserId(state);
         try {
             posts = await Client4.getPosts(channelId, page, perPage, fetchThreads, collapsedThreadsEnabled, collapsedThreadsExtended);
         } catch (error) {
             forceLogoutIfNecessary(error, dispatch, getState);
             dispatch(logError(error));
             return {error};
+        }
+
+        // Mattermost Extended: Decrypt encrypted posts before storing in Redux
+        try {
+            posts = await decryptPostsInList(posts, userId);
+        } catch (error) {
+            console.error('[getPosts] Failed to decrypt posts:', error);
         }
 
         dispatch(batchActions([
@@ -749,6 +769,17 @@ export function getPostsUnread(channelId: string, fetchThreads = true, collapsed
             dispatch(logError(error));
             return {error};
         }
+
+        // Mattermost Extended: Decrypt encrypted posts before storing in Redux
+        try {
+            posts = await decryptPostsInList(posts, userId);
+            if (recentPosts) {
+                recentPosts = await decryptPostsInList(recentPosts, userId);
+            }
+        } catch (error) {
+            console.error('[getPostsUnread] Failed to decrypt posts:', error);
+        }
+
         const actions: AnyAction[] = [
             {
                 type: PostTypes.RECEIVED_POSTS,
@@ -773,14 +804,23 @@ export function getPostsUnread(channelId: string, fetchThreads = true, collapsed
 
 export function getPostsSince(channelId: string, since: number, fetchThreads = true, collapsedThreadsExtended = false): ActionFuncAsync<PostList> {
     return async (dispatch, getState) => {
+        const state = getState();
+        const userId = getCurrentUserId(state);
         let posts;
         try {
-            const collapsedThreadsEnabled = isCollapsedThreadsEnabled(getState());
+            const collapsedThreadsEnabled = isCollapsedThreadsEnabled(state);
             posts = await Client4.getPostsSince(channelId, since, fetchThreads, collapsedThreadsEnabled, collapsedThreadsExtended);
         } catch (error) {
             forceLogoutIfNecessary(error, dispatch, getState);
             dispatch(logError(error));
             return {error};
+        }
+
+        // Mattermost Extended: Decrypt encrypted posts before storing in Redux
+        try {
+            posts = await decryptPostsInList(posts, userId);
+        } catch (error) {
+            console.error('[getPostsSince] Failed to decrypt posts:', error);
         }
 
         dispatch(batchActions([
@@ -795,14 +835,23 @@ export function getPostsSince(channelId: string, since: number, fetchThreads = t
 
 export function getPostsBefore(channelId: string, postId: string, page = 0, perPage = Posts.POST_CHUNK_SIZE, fetchThreads = true, collapsedThreadsExtended = false): ActionFuncAsync<PostList> {
     return async (dispatch, getState) => {
+        const state = getState();
+        const userId = getCurrentUserId(state);
         let posts;
         try {
-            const collapsedThreadsEnabled = isCollapsedThreadsEnabled(getState());
+            const collapsedThreadsEnabled = isCollapsedThreadsEnabled(state);
             posts = await Client4.getPostsBefore(channelId, postId, page, perPage, fetchThreads, collapsedThreadsEnabled, collapsedThreadsExtended);
         } catch (error) {
             forceLogoutIfNecessary(error, dispatch, getState);
             dispatch(logError(error));
             return {error};
+        }
+
+        // Mattermost Extended: Decrypt encrypted posts before storing in Redux
+        try {
+            posts = await decryptPostsInList(posts, userId);
+        } catch (error) {
+            console.error('[getPostsBefore] Failed to decrypt posts:', error);
         }
 
         dispatch(batchActions([
@@ -817,14 +866,23 @@ export function getPostsBefore(channelId: string, postId: string, page = 0, perP
 
 export function getPostsAfter(channelId: string, postId: string, page = 0, perPage = Posts.POST_CHUNK_SIZE, fetchThreads = true, collapsedThreadsExtended = false): ActionFuncAsync<PostList> {
     return async (dispatch, getState) => {
+        const state = getState();
+        const userId = getCurrentUserId(state);
         let posts;
         try {
-            const collapsedThreadsEnabled = isCollapsedThreadsEnabled(getState());
+            const collapsedThreadsEnabled = isCollapsedThreadsEnabled(state);
             posts = await Client4.getPostsAfter(channelId, postId, page, perPage, fetchThreads, collapsedThreadsEnabled, collapsedThreadsExtended);
         } catch (error) {
             forceLogoutIfNecessary(error, dispatch, getState);
             dispatch(logError(error));
             return {error};
+        }
+
+        // Mattermost Extended: Decrypt encrypted posts before storing in Redux
+        try {
+            posts = await decryptPostsInList(posts, userId);
+        } catch (error) {
+            console.error('[getPostsAfter] Failed to decrypt posts:', error);
         }
 
         dispatch(batchActions([
@@ -839,12 +897,14 @@ export function getPostsAfter(channelId: string, postId: string, page = 0, perPa
 
 export function getPostsAround(channelId: string, postId: string, perPage = Posts.POST_CHUNK_SIZE / 2, fetchThreads = true, collapsedThreadsExtended = false): ActionFuncAsync<PostList> {
     return async (dispatch, getState) => {
+        const state = getState();
+        const userId = getCurrentUserId(state);
         let after;
         let thread;
         let before;
 
         try {
-            const collapsedThreadsEnabled = isCollapsedThreadsEnabled(getState());
+            const collapsedThreadsEnabled = isCollapsedThreadsEnabled(state);
             [after, thread, before] = await Promise.all([
                 Client4.getPostsAfter(channelId, postId, 0, perPage, fetchThreads, collapsedThreadsEnabled, collapsedThreadsExtended),
                 Client4.getPostThread(postId, fetchThreads, collapsedThreadsEnabled, collapsedThreadsExtended),
@@ -854,6 +914,17 @@ export function getPostsAround(channelId: string, postId: string, perPage = Post
             forceLogoutIfNecessary(error, dispatch, getState);
             dispatch(logError(error));
             return {error};
+        }
+
+        // Mattermost Extended: Decrypt encrypted posts before storing in Redux
+        try {
+            [after, thread, before] = await Promise.all([
+                decryptPostsInList(after, userId),
+                decryptPostsInList(thread, userId),
+                decryptPostsInList(before, userId),
+            ]);
+        } catch (error) {
+            console.error('[getPostsAround] Failed to decrypt posts:', error);
         }
 
         // Dispatch a combined post list so that the order is correct for postsInChannel

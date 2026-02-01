@@ -650,5 +650,16 @@ describe('PostUtils', () => {
             delete (storedPostSansMetadata as any).metadata;
             expect(shouldUpdatePost(post, storedPostSansMetadata)).toBe(true);
         });
+
+        it('should return true for same posts with encryption_status changed', () => {
+            const post = {
+                ...storedPost,
+                props: {
+                    ...storedPost.props,
+                    encryption_status: 'decrypted',
+                },
+            };
+            expect(shouldUpdatePost(post, storedPost)).toBe(true);
+        });
     });
 });
