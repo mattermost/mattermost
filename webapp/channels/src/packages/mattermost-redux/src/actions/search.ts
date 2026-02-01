@@ -297,6 +297,42 @@ export function getPinnedPosts(channelId: string): ActionFuncAsync {
     };
 }
 
+export function getThreadPinnedPosts(threadId: string): ActionFuncAsync {
+    return async (dispatch, getState) => {
+        dispatch({type: SearchTypes.SEARCH_PINNED_POSTS_REQUEST});
+
+        let result;
+        try {
+            result = await Client4.getThreadPinnedPosts(threadId);
+
+            const profilesAndStatuses = getMentionsAndStatusesForPosts(result.posts, dispatch, getState);
+            const missingChannels = dispatch(getMissingChannelsFromPosts(result.posts));
+            const arr = [profilesAndStatuses, missingChannels];
+            await Promise.all(arr);
+        } catch (error) {
+            forceLogoutIfNecessary(error, dispatch, getState);
+            dispatch({type: SearchTypes.SEARCH_PINNED_POSTS_FAILURE, error});
+            return {error};
+        }
+
+        dispatch(batchActions([
+            {
+                type: SearchTypes.RECEIVED_SEARCH_PINNED_POSTS,
+                data: {
+                    pinned: result,
+                    threadId,
+                },
+            },
+            receivedPosts(result),
+            {
+                type: SearchTypes.SEARCH_PINNED_POSTS_SUCCESS,
+            },
+        ], 'SEARCH_THREAD_PINNED_POSTS_BATCH'));
+
+        return {data: result};
+    };
+}
+
 export default {
     clearSearch,
     searchPosts,

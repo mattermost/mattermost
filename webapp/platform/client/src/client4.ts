@@ -2463,6 +2463,20 @@ export default class Client4 {
         );
     };
 
+    getThreadPinnedPosts = (threadId: string) => {
+        return this.doFetch<PostList>(
+            `${this.getPostRoute(threadId)}/thread/pinned`,
+            {method: 'get'},
+        );
+    };
+
+    getThreadFollowers = (threadId: string) => {
+        return this.doFetch<UserProfile[]>(
+            `${this.getPostRoute(threadId)}/thread/followers`,
+            {method: 'get'},
+        );
+    };
+
     markPostAsUnread = (userId: string, postId: string) => {
         return this.doFetch<ChannelUnread>(
             `${this.getUserRoute(userId)}/posts/${postId}/set_unread`,

@@ -423,6 +423,20 @@ function shouldFocusRHS(state = false, action: MMAction) {
     }
 }
 
+// Track when we're showing pinned posts for a specific thread (vs channel)
+function pinnedPostsThreadId(state = '', action: MMAction) {
+    switch (action.type) {
+    case ActionTypes.UPDATE_RHS_STATE:
+        // When showing thread pinned posts, threadId will be set
+        // When showing channel pinned posts or other states, it will be empty
+        return action.threadId ?? '';
+    case UserTypes.LOGOUT_SUCCESS:
+        return '';
+    default:
+        return state;
+    }
+}
+
 export default combineReducers({
     selectedPostId,
     selectedPostFocussedAt,
@@ -446,4 +460,5 @@ export default combineReducers({
     isMenuOpen,
     editChannelMembers,
     shouldFocusRHS,
+    pinnedPostsThreadId,
 });

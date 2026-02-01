@@ -525,6 +525,31 @@ func (s *SqlThreadStore) GetThreadFollowers(threadID string, fetchOnlyActive boo
 	return users, nil
 }
 
+func (s *SqlThreadStore) GetPinnedPostsForThread(threadID string) (*model.PostList, error) {
+	pl := model.NewPostList()
+
+	query := s.getQueryBuilder().
+		Select(postSliceColumns()...).
+		Column("(SELECT count(Posts.Id) FROM Posts WHERE Posts.RootId = (CASE WHEN p.RootId = '' THEN p.Id ELSE p.RootId END) AND Posts.DeleteAt = 0) as ReplyCount").
+		From("Posts p").
+		Where(sq.Eq{
+			"IsPinned": true,
+			"RootId":   threadID,
+			"DeleteAt": 0,
+		}).
+		OrderBy("CreateAt ASC")
+
+	posts := []*model.Post{}
+	if err := s.GetReplica().SelectBuilder(&posts, query); err != nil {
+		return nil, errors.Wrapf(err, "failed to get pinned posts for thread id=%s", threadID)
+	}
+	for _, post := range posts {
+		pl.AddPost(post)
+		pl.AddOrder(post.Id)
+	}
+	return pl, nil
+}
+
 func (s *SqlThreadStore) GetThreadMembershipsForExport(postID string) ([]*model.ThreadMembershipForExport, error) {
 	members := []*model.ThreadMembershipForExport{}
 

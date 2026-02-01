@@ -28,6 +28,8 @@ func (api *API) InitPost() {
 	api.BaseRoutes.Posts.Handle("/ephemeral", api.APISessionRequired(createEphemeralPost)).Methods(http.MethodPost)
 	api.BaseRoutes.Post.Handle("/edit_history", api.APISessionRequired(getEditHistoryForPost)).Methods(http.MethodGet)
 	api.BaseRoutes.Post.Handle("/thread", api.APISessionRequired(getPostThread)).Methods(http.MethodGet)
+	api.BaseRoutes.Post.Handle("/thread/followers", api.APISessionRequired(getThreadFollowers)).Methods(http.MethodGet)
+	api.BaseRoutes.Post.Handle("/thread/pinned", api.APISessionRequired(getThreadPinnedPosts)).Methods(http.MethodGet)
 	api.BaseRoutes.Post.Handle("/info", api.APISessionRequired(getPostInfo)).Methods(http.MethodGet)
 	api.BaseRoutes.Post.Handle("/files/info", api.APISessionRequired(getFileInfosForPost)).Methods(http.MethodGet)
 	api.BaseRoutes.PostsForChannel.Handle("", api.APISessionRequired(getPostsForChannel)).Methods(http.MethodGet)
@@ -1565,4 +1567,64 @@ func burnPost(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	auditRec.Success()
 	ReturnStatusOK(w)
+}
+
+func getThreadFollowers(c *Context, w http.ResponseWriter, r *http.Request) {
+	c.RequirePostId()
+	if c.Err != nil {
+		return
+	}
+
+	// Verify the post exists and user has access
+	post, err := c.App.GetPostIfAuthorized(c.AppContext, c.Params.PostId, c.AppContext.Session(), false)
+	if err != nil {
+		c.Err = err
+		return
+	}
+
+	// Verify this is a root post (thread)
+	if post.RootId != "" {
+		c.SetInvalidURLParam("post_id")
+		return
+	}
+
+	users, err := c.App.GetThreadFollowers(c.AppContext, c.Params.PostId)
+	if err != nil {
+		c.Err = err
+		return
+	}
+
+	if err := json.NewEncoder(w).Encode(users); err != nil {
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
+	}
+}
+
+func getThreadPinnedPosts(c *Context, w http.ResponseWriter, r *http.Request) {
+	c.RequirePostId()
+	if c.Err != nil {
+		return
+	}
+
+	// Verify the post exists and user has access
+	post, err := c.App.GetPostIfAuthorized(c.AppContext, c.Params.PostId, c.AppContext.Session(), false)
+	if err != nil {
+		c.Err = err
+		return
+	}
+
+	// Verify this is a root post (thread)
+	if post.RootId != "" {
+		c.SetInvalidURLParam("post_id")
+		return
+	}
+
+	posts, err := c.App.GetPinnedPostsForThread(c.Params.PostId)
+	if err != nil {
+		c.Err = err
+		return
+	}
+
+	if err := posts.EncodeJSON(w); err != nil {
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
+	}
 }

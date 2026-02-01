@@ -231,6 +231,36 @@ func (_m *ThreadStore) GetThreadFollowers(threadID string, fetchOnlyActive bool)
 	return r0, r1
 }
 
+// GetPinnedPostsForThread provides a mock function with given fields: threadID
+func (_m *ThreadStore) GetPinnedPostsForThread(threadID string) (*model.PostList, error) {
+	ret := _m.Called(threadID)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetPinnedPostsForThread")
+	}
+
+	var r0 *model.PostList
+	var r1 error
+	if rf, ok := ret.Get(0).(func(string) (*model.PostList, error)); ok {
+		return rf(threadID)
+	}
+	if rf, ok := ret.Get(0).(func(string) *model.PostList); ok {
+		r0 = rf(threadID)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.PostList)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(string) error); ok {
+		r1 = rf(threadID)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // GetThreadForUser provides a mock function with given fields: rctx, threadMembership, extended, postPriorityIsEnabled
 func (_m *ThreadStore) GetThreadForUser(rctx request.CTX, threadMembership *model.ThreadMembership, extended bool, postPriorityIsEnabled bool) (*model.ThreadResponse, error) {
 	ret := _m.Called(rctx, threadMembership, extended, postPriorityIsEnabled)

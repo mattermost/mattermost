@@ -14,6 +14,7 @@ import {
     clearSearch,
     getFlaggedPosts,
     getPinnedPosts,
+    getThreadPinnedPosts,
     searchPostsWithParams,
     searchFilesWithParams,
 } from 'mattermost-redux/actions/search';
@@ -374,6 +375,49 @@ export function showPinnedPosts(channelId?: string): ActionFuncAsync<boolean> {
         });
 
         const results = await dispatch(getPinnedPosts(channelId || currentChannelId));
+
+        let data;
+        if ('data' in results) {
+            data = results.data;
+        }
+
+        dispatch(batchActions([
+            {
+                type: SearchTypes.RECEIVED_SEARCH_POSTS,
+                data,
+            },
+            {
+                type: SearchTypes.RECEIVED_SEARCH_TERM,
+                data: {
+                    teamId,
+                    terms: null,
+                    isOrSearch: false,
+                },
+            },
+        ]));
+
+        return {data: true};
+    };
+}
+
+export function showThreadPinnedPosts(threadId: string, channelId: string): ActionFuncAsync<boolean> {
+    return async (dispatch, getState) => {
+        const state = getState();
+        const teamId = getCurrentTeamId(state);
+
+        let previousRhsState = getRhsState(state);
+        if (previousRhsState === RHSStates.PIN) {
+            previousRhsState = getPreviousRhsState(state);
+        }
+        dispatch({
+            type: ActionTypes.UPDATE_RHS_STATE,
+            channelId,
+            threadId,
+            state: RHSStates.PIN,
+            previousRhsState,
+        });
+
+        const results = await dispatch(getThreadPinnedPosts(threadId));
 
         let data;
         if ('data' in results) {

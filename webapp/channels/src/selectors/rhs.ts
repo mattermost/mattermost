@@ -164,6 +164,10 @@ export function getIsSearchingPinnedPost(state: GlobalState): boolean {
     return state.views.rhs.isSearchingPinnedPost;
 }
 
+export function getPinnedPostsThreadId(state: GlobalState): string {
+    return state.views.rhs.pinnedPostsThreadId;
+}
+
 export function getIsSearchGettingMore(state: GlobalState): boolean {
     return state.entities.search.isSearchGettingMore;
 }

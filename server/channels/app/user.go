@@ -2956,6 +2956,39 @@ func (a *App) GetThreadForUser(rctx request.CTX, threadMembership *model.ThreadM
 	return thread, nil
 }
 
+// GetThreadFollowers returns the list of users following a thread
+func (a *App) GetThreadFollowers(rctx request.CTX, threadID string) ([]*model.User, *model.AppError) {
+	userIDs, err := a.Srv().Store().Thread().GetThreadFollowers(threadID, true)
+	if err != nil {
+		return nil, model.NewAppError("GetThreadFollowers", "app.user.get_thread_followers.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+
+	if len(userIDs) == 0 {
+		return []*model.User{}, nil
+	}
+
+	users, err := a.Srv().Store().User().GetProfileByIds(rctx, userIDs, &store.UserGetByIdsOpts{}, true)
+	if err != nil {
+		return nil, model.NewAppError("GetThreadFollowers", "app.user.get_thread_followers.get_profiles.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+
+	a.sanitizeProfiles(users, false)
+	return users, nil
+}
+
+// GetPinnedPostsForThread returns pinned posts within a thread (replies to the root post that are pinned)
+func (a *App) GetPinnedPostsForThread(threadID string) (*model.PostList, *model.AppError) {
+	posts, err := a.Srv().Store().Thread().GetPinnedPostsForThread(threadID)
+	if err != nil {
+		return nil, model.NewAppError("GetPinnedPostsForThread", "app.user.get_pinned_posts_for_thread.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+
+	for _, post := range posts.Posts {
+		post.SanitizeProps()
+	}
+	return posts, nil
+}
+
 func (a *App) UpdateThreadsReadForUser(userID, teamID string) *model.AppError {
 	nErr := a.Srv().Store().Thread().MarkAllAsReadByTeam(userID, teamID)
 	if nErr != nil {
