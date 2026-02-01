@@ -372,6 +372,26 @@ func (_m *Store) Emoji() store.EmojiStore {
 	return r0
 }
 
+// EncryptionSessionKey provides a mock function with no fields
+func (_m *Store) EncryptionSessionKey() store.EncryptionSessionKeyStore {
+	ret := _m.Called()
+
+	if len(ret) == 0 {
+		panic("no return value specified for EncryptionSessionKey")
+	}
+
+	var r0 store.EncryptionSessionKeyStore
+	if rf, ok := ret.Get(0).(func() store.EncryptionSessionKeyStore); ok {
+		r0 = rf()
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(store.EncryptionSessionKeyStore)
+		}
+	}
+
+	return r0
+}
+
 // FileInfo provides a mock function with no fields
 func (_m *Store) FileInfo() store.FileInfoStore {
 	ret := _m.Called()
