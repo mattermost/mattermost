@@ -14,7 +14,7 @@ type MattermostExtendedSettings struct {
 // SetDefaults applies the default settings to the struct.
 func (s *MattermostExtendedSettings) SetDefaults() {
 	if s.EnableEncryption == nil {
-		s.EnableEncryption = NewPointer(true)
+		s.EnableEncryption = NewPointer(false)
 	}
 
 	if s.AdminModeOnly == nil {
