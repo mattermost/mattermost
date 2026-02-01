@@ -55,14 +55,15 @@ export const ChannelMentionSuggestion = React.forwardRef<HTMLLIElement, Suggesti
     } else {
         let iconClass;
         let iconLabel;
+        const customIcon = channel?.props?.custom_icon;
         if (channel?.type === Constants.OPEN_CHANNEL) {
-            iconClass = 'icon-globe';
+            iconClass = customIcon ? `icon-${customIcon}` : 'icon-globe';
             iconLabel = formatMessage({
                 id: 'suggestion.public_channel',
                 defaultMessage: 'Public channel',
             });
         } else {
-            iconClass = 'icon-lock-outline';
+            iconClass = customIcon ? `icon-${customIcon}` : 'icon-lock-outline';
             iconLabel = formatMessage({
                 id: 'suggestion.private_channel',
                 defaultMessage: 'Private channel',

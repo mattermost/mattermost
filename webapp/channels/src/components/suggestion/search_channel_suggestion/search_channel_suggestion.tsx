@@ -47,10 +47,11 @@ function itemToName(item: Channel, currentUserId: string): {icon: React.ReactEle
     }
 
     if (item.type === Constants.OPEN_CHANNEL) {
+        const iconClass = item.props?.custom_icon ? `icon-${item.props.custom_icon}` : 'icon-globe';
         return {
             icon: (
                 <span className='suggestion-list__icon suggestion-list__icon--large'>
-                    <i className='icon icon--standard icon--no-spacing icon-globe'/>
+                    <i className={`icon icon--standard icon--no-spacing ${iconClass}`}/>
                 </span>
             ),
             name: item.display_name,
@@ -59,10 +60,11 @@ function itemToName(item: Channel, currentUserId: string): {icon: React.ReactEle
     }
 
     if (item.type === Constants.PRIVATE_CHANNEL) {
+        const iconClass = item.props?.custom_icon ? `icon-${item.props.custom_icon}` : 'icon-lock-outline';
         return {
             icon: (
                 <span className='suggestion-list__icon suggestion-list__icon--large'>
-                    <i className='icon icon--standard icon--no-spacing icon-lock-outline'/>
+                    <i className={`icon icon--standard icon--no-spacing ${iconClass}`}/>
                 </span>
             ),
             name: item.display_name,

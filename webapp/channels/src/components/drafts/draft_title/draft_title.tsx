@@ -70,10 +70,11 @@ function DraftTitle({
         );
     }
 
-    let icon = <i className='icon icon-globe'/>;
+    const customIcon = channel.props?.custom_icon;
+    let icon = <i className={`icon icon-${customIcon || 'globe'}`}/>;
 
     if (channel.type === Constants.PRIVATE_CHANNEL) {
-        icon = <i className='icon icon-lock-outline'/>;
+        icon = <i className={`icon icon-${customIcon || 'lock-outline'}`}/>;
     }
 
     if (channel.type === Constants.DM_CHANNEL && teammate) {

@@ -212,6 +212,7 @@ export const SwitchChannelSuggestion = React.forwardRef<HTMLLIElement, Props>(({
             </span>
         );
     } else if (channel.type === Constants.OPEN_CHANNEL) {
+        const customIcon = isRealChannel(channel) ? channel.props?.custom_icon : undefined;
         icon = (
             <span
                 id={ids.channelType}
@@ -221,10 +222,11 @@ export const SwitchChannelSuggestion = React.forwardRef<HTMLLIElement, Props>(({
                     defaultMessage: 'Public channel',
                 })}
             >
-                <i className='icon icon-globe'/>
+                <i className={`icon icon-${customIcon || 'globe'}`}/>
             </span>
         );
     } else if (channel.type === Constants.PRIVATE_CHANNEL) {
+        const customIcon = isRealChannel(channel) ? channel.props?.custom_icon : undefined;
         icon = (
             <span
                 id={ids.channelType}
@@ -234,7 +236,7 @@ export const SwitchChannelSuggestion = React.forwardRef<HTMLLIElement, Props>(({
                     defaultMessage: 'Private channel',
                 })}
             >
-                <i className='icon icon-lock-outline'/>
+                <i className={`icon icon-${customIcon || 'lock-outline'}`}/>
             </span>
         );
     } else if (channel.type === Constants.THREADS) {

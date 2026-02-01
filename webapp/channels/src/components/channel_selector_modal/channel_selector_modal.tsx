@@ -180,9 +180,9 @@ export class ChannelSelectorModal extends React.PureComponent<Props, State> {
                 >
                     <div className='channel-info-block'>
                         {option.type === Constants.PRIVATE_CHANNEL &&
-                            <i className='icon icon-lock-outline'/>}
+                            <i className={`icon icon-${option.props?.custom_icon || 'lock-outline'}`}/>}
                         {option.type === Constants.OPEN_CHANNEL &&
-                            <i className='icon icon-globe'/>}
+                            <i className={`icon icon-${option.props?.custom_icon || 'globe'}`}/>}
                         <span className='channel-name'>{option.display_name}</span>
                         <span className='team-name'>{'(' + option.team_display_name + ')'}</span>
                     </div>

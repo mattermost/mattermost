@@ -58,9 +58,10 @@ const SearchChannelWithPermissionsSuggestion = React.forwardRef<HTMLLIElement, S
             />
         );
     } else if (channel.type === Constants.OPEN_CHANNEL) {
+        const customIcon = channel.props?.custom_icon;
         icon = (
             <i
-                className='icon icon--no-spacing icon-globe'
+                className={`icon icon--no-spacing icon-${customIcon || 'globe'}`}
                 aria-label={formatMessage({
                     id: 'suggestion.public_channel',
                     defaultMessage: 'Public channel',
@@ -68,9 +69,10 @@ const SearchChannelWithPermissionsSuggestion = React.forwardRef<HTMLLIElement, S
             />
         );
     } else if (channel.type === Constants.PRIVATE_CHANNEL) {
+        const customIcon = channel.props?.custom_icon;
         icon = (
             <i
-                className='icon icon--no-spacing icon-lock-outline'
+                className={`icon icon--no-spacing icon-${customIcon || 'lock-outline'}`}
                 aria-label={formatMessage({
                     id: 'suggestion.private_channel',
                     defaultMessage: 'Private channel',

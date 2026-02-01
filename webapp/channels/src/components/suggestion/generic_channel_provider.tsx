@@ -20,13 +20,14 @@ const GenericChannelSuggestion = React.forwardRef<HTMLLIElement, SuggestionProps
 
     const channelName = item.display_name;
     const purpose = item.purpose;
+    const customIcon = item.props?.custom_icon;
 
     const icon = (
         <span
             className='suggestion-list__icon suggestion-list__icon--large'
             aria-hidden={true}
         >
-            <i className='icon icon--standard icon--no-spacing icon-globe'/>
+            <i className={`icon icon--standard icon--no-spacing icon-${customIcon || 'globe'}`}/>
         </span>
     );
 
