@@ -171,7 +171,7 @@ func GenerateClientConfig(c *model.Config, telemetryID string, license *model.Li
 	props["WranglerMoveThreadFromGroupMessageChannelEnable"] = strconv.FormatBool(*c.WranglerSettings.MoveThreadFromGroupMessageChannelEnable)
 
 	// Mattermost Extended settings
-	props["EnableEncryption"] = strconv.FormatBool(*c.MattermostExtendedSettings.EnableEncryption)
+	props["EnableEncryption"] = strconv.FormatBool(c.FeatureFlags.Encryption)
 	// EnableCustomChannelIcons now uses feature flag: FeatureFlagCustomChannelIcons
 
 	if license != nil {

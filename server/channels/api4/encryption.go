@@ -24,22 +24,12 @@ func (api *API) InitEncryption() {
 func getEncryptionStatus(c *Context, w http.ResponseWriter, r *http.Request) {
 	config := c.App.Config()
 	sessionId := c.AppContext.Session().Id
-	userId := c.AppContext.Session().UserId
 
 	// Check if encryption is enabled
-	enabled := config.MattermostExtendedSettings.EnableEncryption != nil && *config.MattermostExtendedSettings.EnableEncryption
+	enabled := config.FeatureFlags.Encryption
 
-	// Check if user can encrypt (admin mode check)
+	// Check if user can encrypt
 	canEncrypt := enabled
-	if enabled && config.MattermostExtendedSettings.AdminModeOnly != nil && *config.MattermostExtendedSettings.AdminModeOnly {
-		// Check if user is admin
-		user, err := c.App.GetUser(userId)
-		if err != nil {
-			c.Err = err
-			return
-		}
-		canEncrypt = user.IsSystemAdmin()
-	}
 
 	// Check if current session has a key registered
 	hasKey := false
@@ -112,22 +102,9 @@ func registerPublicKey(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	// Check if encryption is enabled
 	config := c.App.Config()
-	if config.MattermostExtendedSettings.EnableEncryption == nil || !*config.MattermostExtendedSettings.EnableEncryption {
+	if !config.FeatureFlags.Encryption {
 		c.Err = model.NewAppError("registerPublicKey", "api.encryption.disabled", nil, "", http.StatusForbidden)
 		return
-	}
-
-	// Check admin mode
-	if config.MattermostExtendedSettings.AdminModeOnly != nil && *config.MattermostExtendedSettings.AdminModeOnly {
-		user, err := c.App.GetUser(userId)
-		if err != nil {
-			c.Err = err
-			return
-		}
-		if !user.IsSystemAdmin() {
-			c.Err = model.NewAppError("registerPublicKey", "api.encryption.admin_only", nil, "", http.StatusForbidden)
-			return
-		}
 	}
 
 	// Save the public key for this session

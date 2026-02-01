@@ -42,7 +42,7 @@ type EncryptionPublicKeysRequest struct {
 // EncryptionStatus represents the encryption status for the current user.
 type EncryptionStatus struct {
 	Enabled    bool `json:"enabled"`     // Whether encryption is enabled in config
-	CanEncrypt bool `json:"can_encrypt"` // Whether current user can encrypt (admin check if AdminModeOnly)
+	CanEncrypt bool `json:"can_encrypt"` // Whether current user can encrypt
 	HasKey     bool `json:"has_key"`     // Whether current session has a registered key
 }
 

@@ -80,7 +80,10 @@ const RESOURCE_KEYS = {
         MOBILE_SECURITY: 'environment.mobile_security',
     },
     MATTERMOST_EXTENDED: {
-        ENCRYPTION: 'mattermost_extended.encryption',
+        FEATURES: 'mattermost_extended.features',
+        POSTS: 'mattermost_extended.posts',
+        THREADS: 'mattermost_extended.threads',
+        BUG_FIXES: 'mattermost_extended.bug_fixes',
     },
 };
 
@@ -142,7 +145,10 @@ const TableKeys = [
     'experimental.features',
     'experimental.feature_flags',
     'experimental.bleve',
-    'mattermost_extended.encryption'
+    'mattermost_extended.features',
+    'mattermost_extended.posts',
+    'mattermost_extended.threads',
+    'mattermost_extended.bug_fixes'
 ];
 
 function check(obj) {

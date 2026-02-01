@@ -6351,9 +6351,6 @@ const AdminDefinition: AdminDefinitionType = {
         },
     },
     mattermost_extended: {
-        isHidden: it.any(
-            it.not(it.userHasReadPermissionOnResource(RESOURCE_KEYS.MATTERMOST_EXTENDED.ENCRYPTION)),
-        ),
         icon: (
             <ShieldOutlineIcon
                 size={16}
@@ -6362,37 +6359,20 @@ const AdminDefinition: AdminDefinitionType = {
         ),
         sectionTitle: defineMessage({id: 'admin.sidebar.mattermost_extended', defaultMessage: 'Mattermost Extended'}),
         subsections: {
-            encryption: {
-                url: 'mattermost_extended/encryption',
-                title: defineMessage({id: 'admin.sidebar.encryption', defaultMessage: 'Message Encryption'}),
+            features: {
+                url: 'mattermost_extended/features',
+                title: defineMessage({id: 'admin.sidebar.features', defaultMessage: 'Features'}),
                 schema: {
-                    id: 'MattermostExtendedSettings',
-                    name: defineMessage({id: 'admin.mattermost_extended.encryption.title', defaultMessage: 'Message Encryption'}),
+                    id: 'MattermostExtendedFeatures',
+                    name: defineMessage({id: 'admin.mattermost_extended.features.title', defaultMessage: 'Features'}),
                     settings: [
                         {
                             type: 'bool',
-                            key: 'MattermostExtendedSettings.EnableEncryption',
+                            key: 'FeatureFlags.Encryption',
                             label: defineMessage({id: 'admin.mattermost_extended.enableEncryption.title', defaultMessage: 'Enable End-to-End Encryption:'}),
                             help_text: defineMessage({id: 'admin.mattermost_extended.enableEncryption.desc', defaultMessage: 'When true, users can send encrypted messages that can only be read by intended recipients. Messages are encrypted client-side using RSA-OAEP + AES-GCM hybrid encryption.'}),
                             help_text_markdown: false,
                         },
-                        {
-                            type: 'bool',
-                            key: 'MattermostExtendedSettings.AdminModeOnly',
-                            label: defineMessage({id: 'admin.mattermost_extended.adminModeOnly.title', defaultMessage: 'Admin-Only Mode:'}),
-                            help_text: defineMessage({id: 'admin.mattermost_extended.adminModeOnly.desc', defaultMessage: 'When true, only system administrators can send encrypted messages. Regular users can still receive and decrypt messages sent to them.'}),
-                            help_text_markdown: false,
-                        },
-                    ],
-                },
-            },
-            customization: {
-                url: 'mattermost_extended/customization',
-                title: defineMessage({id: 'admin.sidebar.channel_icons', defaultMessage: 'Channel Icons'}),
-                schema: {
-                    id: 'MattermostExtendedCustomization',
-                    name: defineMessage({id: 'admin.mattermost_extended.channel_icons.title', defaultMessage: 'Channel Icons'}),
-                    settings: [
                         {
                             type: 'bool',
                             key: 'FeatureFlags.CustomChannelIcons',
@@ -6400,16 +6380,6 @@ const AdminDefinition: AdminDefinitionType = {
                             help_text: defineMessage({id: 'admin.mattermost_extended.enableCustomChannelIcons.desc', defaultMessage: 'When true, users can set custom icons for channels from the Channel Settings modal. Icons are displayed in the sidebar and channel mentions.'}),
                             help_text_markdown: false,
                         },
-                    ],
-                },
-            },
-            posts: {
-                url: 'mattermost_extended/posts',
-                title: defineMessage({id: 'admin.sidebar.posts', defaultMessage: 'Posts'}),
-                schema: {
-                    id: 'MattermostExtendedPosts',
-                    name: defineMessage({id: 'admin.mattermost_extended.posts.title', defaultMessage: 'Posts'}),
-                    settings: [
                         {
                             type: 'bool',
                             key: 'FeatureFlags.HideDeletedMessagePlaceholder',
@@ -6417,7 +6387,45 @@ const AdminDefinition: AdminDefinitionType = {
                             help_text: defineMessage({id: 'admin.mattermost_extended.hideDeletedMessagePlaceholder.desc', defaultMessage: 'When true, the "Message deleted" placeholder will be hidden when a message is deleted.'}),
                             help_text_markdown: false,
                         },
+                        {
+                            type: 'bool',
+                            key: 'FeatureFlags.ThreadsInSidebar',
+                            label: defineMessage({id: 'admin.mattermost_extended.threadsInSidebar.title', defaultMessage: 'Show Threads in Sidebar:'}),
+                            help_text: defineMessage({id: 'admin.mattermost_extended.threadsInSidebar.desc', defaultMessage: 'When true, followed threads are displayed under their parent channels in the sidebar instead of only in the Threads view.'}),
+                            help_text_markdown: false,
+                        },
                     ],
+                },
+            },
+            // Hidden until settings are added (empty sections look broken)
+            posts: {
+                url: 'mattermost_extended/posts',
+                title: defineMessage({id: 'admin.sidebar.posts', defaultMessage: 'Posts'}),
+                isHidden: () => true, // Remove when settings are added
+                schema: {
+                    id: 'MattermostExtendedPosts',
+                    name: defineMessage({id: 'admin.mattermost_extended.posts.title', defaultMessage: 'Posts'}),
+                    settings: [],
+                },
+            },
+            threads: {
+                url: 'mattermost_extended/threads',
+                title: defineMessage({id: 'admin.sidebar.threads', defaultMessage: 'Threads'}),
+                isHidden: () => true, // Remove when settings are added
+                schema: {
+                    id: 'MattermostExtendedThreads',
+                    name: defineMessage({id: 'admin.mattermost_extended.threads.title', defaultMessage: 'Threads'}),
+                    settings: [],
+                },
+            },
+            bug_fixes: {
+                url: 'mattermost_extended/bug_fixes',
+                title: defineMessage({id: 'admin.sidebar.bug_fixes', defaultMessage: 'Bug Fixes'}),
+                isHidden: () => true, // Remove when settings are added
+                schema: {
+                    id: 'MattermostExtendedBugFixes',
+                    name: defineMessage({id: 'admin.mattermost_extended.bug_fixes.title', defaultMessage: 'Bug Fixes'}),
+                    settings: [],
                 },
             },
         },

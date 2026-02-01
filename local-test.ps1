@@ -466,9 +466,10 @@ function Invoke-Setup {
     "Directory": "$workDirUnix/data/plugins",
     "ClientDirectory": "$workDirUnix/data/client/plugins"
   },
+  "FeatureFlags": {
+    "Encryption": true
+  },
   "MattermostExtendedSettings": {
-    "EnableEncryption": true,
-    "AdminModeOnly": false
   }
 }
 "@
@@ -730,10 +731,10 @@ function Invoke-FixConfig {
     "ShowEmailAddress": true,
     "ShowFullName": true
   },
-  "MattermostExtendedSettings": {
-    "EnableEncryption": true,
-    "AdminModeOnly": false
-  }
+  "FeatureFlags": {
+    "Encryption": true
+  },
+  "MattermostExtendedSettings": {}
 }
 "@
     $configContent | Out-File $configPath -Encoding UTF8

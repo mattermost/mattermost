@@ -97,6 +97,9 @@ type FeatureFlags struct {
 	// When enabled, deleted messages immediately disappear for all users
 	// instead of showing a "(message deleted)" placeholder
 	HideDeletedMessagePlaceholder bool
+
+	// Enable end-to-end encryption for messages
+	Encryption bool
 }
 
 // featureFlagDefaults defines the default value for each boolean feature flag.
