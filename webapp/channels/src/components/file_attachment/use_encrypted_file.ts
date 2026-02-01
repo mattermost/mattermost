@@ -97,8 +97,10 @@ export function useEncryptedFile(
         }
     }, [autoDecrypt, isEncrypted, decryptedUrl, status, decrypt]);
 
-    // Get original file info from metadata
-    const originalFileInfo = metadata?.original;
+    // Get original file info from metadata ONLY after successful decryption
+    // This prevents leaking file info (name, type, size) to users without decryption keys
+    // Before decryption, components should show a generic "Encrypted file" placeholder
+    const originalFileInfo = status === 'decrypted' ? metadata?.original : undefined;
 
     return {
         isEncrypted,
