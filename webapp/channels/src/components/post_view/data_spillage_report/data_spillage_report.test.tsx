@@ -96,6 +96,17 @@ describe('components/post_view/data_spillage_report/DataSpillageReport', () => {
                     [reportedPostTeam.id]: reportedPostTeam,
                 },
             },
+            contentFlagging: {
+                flaggedPosts: {
+                    [reportedPost.id]: reportedPost,
+                },
+                channels: {
+                    [reportedPostChannel.id]: reportedPostChannel,
+                },
+                teams: {
+                    [reportedPostTeam.id]: reportedPostTeam,
+                },
+            },
         },
     };
 
