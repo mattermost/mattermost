@@ -8,10 +8,14 @@ import {useDispatch, useSelector} from 'react-redux';
 import type {PreferenceType} from '@mattermost/types/preferences';
 
 import {savePreferences} from 'mattermost-redux/actions/preferences';
+import {getAdminAnalytics} from 'mattermost-redux/selectors/entities/admin';
 import {isCurrentLicenseCloud} from 'mattermost-redux/selectors/entities/cloud';
 import {getLicense} from 'mattermost-redux/selectors/entities/general';
 import {getOverageBannerPreferences} from 'mattermost-redux/selectors/entities/preferences';
-import {getCurrentUser, isCurrentUserSystemAdmin} from 'mattermost-redux/selectors/entities/users';
+import {
+    getCurrentUser,
+    isCurrentUserSystemAdmin,
+} from 'mattermost-redux/selectors/entities/users';
 
 import AnnouncementBar from 'components/announcement_bar/default_announcement_bar';
 import {useExpandOverageUsersCheck} from 'components/common/hooks/useExpandOverageUsersCheck';
@@ -20,30 +24,35 @@ import useOpenSalesLink from 'components/common/hooks/useOpenSalesLink';
 import {StatTypes, Preferences, AnnouncementBarTypes} from 'utils/constants';
 import {calculateOverageUserActivated} from 'utils/overage_team';
 
-import type {GlobalState} from 'types/store';
-
 import './overage_users_banner.scss';
 
 type AdminHasDismissedItArgs = {
     preferenceName: string;
     overagePreferences: PreferenceType[];
-}
-
-const adminHasDismissed = ({preferenceName, overagePreferences}: AdminHasDismissedItArgs): boolean => {
-    return overagePreferences.find((value) => value.name === preferenceName) !== undefined;
 };
 
-const OverageUsersBanner = () => {
+function adminHasDismissed({
+    preferenceName,
+    overagePreferences,
+}: AdminHasDismissedItArgs): boolean {
+    return overagePreferences.some((pref) => pref.name === preferenceName);
+}
+
+function OverageUsersBanner(): React.ReactElement | null {
     const [openContactSales] = useOpenSalesLink();
     const dispatch = useDispatch();
-    const stats = useSelector((state: GlobalState) => state.entities.admin.analytics) || {};
+
+    const stats = useSelector(getAdminAnalytics);
     const isAdmin = useSelector(isCurrentUserSystemAdmin);
     const license = useSelector(getLicense);
-    const seatsPurchased = parseInt(license.Users, 10);
     const isCloud = useSelector(isCurrentLicenseCloud);
-    const currentUser = useSelector((state: GlobalState) => getCurrentUser(state));
+    const currentUser = useSelector(getCurrentUser);
     const overagePreferences = useSelector(getOverageBannerPreferences);
-    const activeUsers = ((stats || {})[StatTypes.TOTAL_USERS]) as number || 0;
+    const {cta} = useExpandOverageUsersCheck();
+
+    const seatsPurchased = parseInt(license?.Users ?? '0', 10);
+    const activeUsers = (stats?.[StatTypes.TOTAL_USERS] as number) || 0;
+
     const {
         isBetween5PercerntAnd10PercentPurchasedSeats,
         isOver10PercerntPurchasedSeats,
@@ -51,34 +60,39 @@ const OverageUsersBanner = () => {
         activeUsers,
         seatsPurchased,
     });
+
     const prefixPreferences = isOver10PercerntPurchasedSeats ? 'error' : 'warn';
-    const prefixLicenseId = (license.Id || '').substring(0, 8);
+    const prefixLicenseId = license?.Id?.substring(0, 8) ?? '';
     const preferenceName = `${prefixPreferences}_overage_seats_${prefixLicenseId}`;
 
     const overageByUsers = activeUsers - seatsPurchased;
-
-    const isOverageState = overageByUsers > 0 && (isBetween5PercerntAnd10PercentPurchasedSeats || isOver10PercerntPurchasedSeats);
+    const isOverageState =
+        overageByUsers > 0 &&
+        (isBetween5PercerntAnd10PercentPurchasedSeats ||
+            isOver10PercerntPurchasedSeats);
     const hasPermission = isAdmin && isOverageState && !isCloud;
-    const {
-        cta,
-    } = useExpandOverageUsersCheck();
 
-    const handleClose = () => {
-        dispatch(savePreferences(currentUser.id, [{
-            category: Preferences.OVERAGE_USERS_BANNER,
-            name: preferenceName,
-            user_id: currentUser.id,
-            value: 'Overage users banner watched',
-        }]));
+    const handleClose = (): void => {
+        if (currentUser?.id) {
+            dispatch(
+                savePreferences(currentUser.id, [
+                    {
+                        category: Preferences.OVERAGE_USERS_BANNER,
+                        name: preferenceName,
+                        user_id: currentUser.id,
+                        value: 'Overage users banner watched',
+                    },
+                ]),
+            );
+        }
     };
 
-    const handleContactSalesClick = (e: React.MouseEvent<HTMLButtonElement, MouseEvent>) => {
+    const handleContactSalesClick = (
+        e: React.MouseEvent<HTMLButtonElement, MouseEvent>,
+    ): void => {
         e.preventDefault();
-
         openContactSales();
     };
-
-    const handleClick = handleContactSalesClick;
 
     if (!hasPermission || adminHasDismissed({overagePreferences, preferenceName})) {
         return null;
@@ -91,13 +105,16 @@ const OverageUsersBanner = () => {
             values={{
                 seats: overageByUsers,
             }}
-        />);
+        />
+    );
 
     return (
         <AnnouncementBar
-            type={isBetween5PercerntAnd10PercentPurchasedSeats ? AnnouncementBarTypes.ADVISOR : AnnouncementBarTypes.CRITICAL}
+            type={
+                isBetween5PercerntAnd10PercentPurchasedSeats ? AnnouncementBarTypes.ADVISOR : AnnouncementBarTypes.CRITICAL
+            }
             showCloseButton={true}
-            onButtonClick={handleClick}
+            onButtonClick={handleContactSalesClick}
             modalButtonText={cta}
             message={message}
             showLinkAsButton={true}
@@ -106,6 +123,6 @@ const OverageUsersBanner = () => {
             handleClose={handleClose}
         />
     );
-};
+}
 
 export default OverageUsersBanner;

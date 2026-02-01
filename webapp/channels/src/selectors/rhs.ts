@@ -76,6 +76,20 @@ function getRealSelectedPost(state: GlobalState) {
     return state.entities.posts.posts[getSelectedPostId(state)];
 }
 
+// Stable empty post object to prevent unnecessary re-renders (frozen to prevent mutations)
+const EMPTY_SELECTED_POST: FakePost = Object.freeze({
+    id: '',
+    exists: false,
+    type: PostTypes.FAKE_PARENT_DELETED as PostType,
+    message: '',
+    channel_id: '',
+    user_id: '',
+    reply_count: 0,
+}) as FakePost;
+
+// Cache for fake posts by selectedPostId to maintain stable references
+const fakePostCache = new Map<string, FakePost>();
+
 export const getSelectedPost = createSelector(
     'getSelectedPost',
     getSelectedPostId,
@@ -92,8 +106,20 @@ export const getSelectedPost = createSelector(
             return selectedPost;
         }
 
+        // Return stable empty post if no post is selected
+        if (!selectedPostId) {
+            return EMPTY_SELECTED_POST;
+        }
+
+        // Check cache for existing fake post with same ID
+        const cacheKey = `${selectedPostId}-${selectedPostChannelId}-${currentUserId}`;
+        let cachedPost = fakePostCache.get(cacheKey);
+        if (cachedPost) {
+            return cachedPost;
+        }
+
         // If there is no root post found, assume it has been deleted by data retention policy, and create a fake one.
-        return {
+        cachedPost = {
             id: selectedPostId,
             exists: false,
             type: PostTypes.FAKE_PARENT_DELETED as PostType,
@@ -106,6 +132,17 @@ export const getSelectedPost = createSelector(
             user_id: currentUserId,
             reply_count: 0,
         };
+
+        // Cache the fake post (limit cache size to prevent memory leaks)
+        if (fakePostCache.size >= 100) {
+            const firstKey = fakePostCache.keys().next().value;
+            if (firstKey) {
+                fakePostCache.delete(firstKey);
+            }
+        }
+        fakePostCache.set(cacheKey, cachedPost);
+
+        return cachedPost;
     },
 );
 

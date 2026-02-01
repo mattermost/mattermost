@@ -56,6 +56,23 @@ export function makeGetMentionKeysForPost(): (
     );
 }
 
+// Stable empty array to prevent new reference on each selector call
+const EMPTY_PLUGIN_HOOKS: never[] = [];
+
+// Memoized selector for plugin hooks to prevent unnecessary re-renders
+const getPluginMessageWillFormat = createSelector(
+    'getPluginMessageWillFormat',
+    (state: GlobalState) => state.plugins.components.MessageWillFormat,
+    (hooks) => hooks ?? EMPTY_PLUGIN_HOOKS,
+);
+
+// Memoized selector for plugin tooltips
+const getHasPluginTooltips = createSelector(
+    'getHasPluginTooltips',
+    (state: GlobalState) => state.plugins.components.LinkTooltip,
+    (tooltips) => Boolean(tooltips),
+);
+
 function makeMapStateToProps() {
     const getMentionKeysForPost = makeGetMentionKeysForPost();
 
@@ -72,8 +89,8 @@ function makeMapStateToProps() {
         return {
             channel,
             currentTeam,
-            pluginHooks: state.plugins.components.MessageWillFormat,
-            hasPluginTooltips: Boolean(state.plugins.components.LinkTooltip),
+            pluginHooks: getPluginMessageWillFormat(state),
+            hasPluginTooltips: getHasPluginTooltips(state),
             isUserCanManageMembers: channel && canManageMembers(state, channel),
             mentionKeys: getMentionKeysForPost(state, ownProps.post, channel),
             highlightKeys: getHighlightWithoutNotificationKeys(state),
