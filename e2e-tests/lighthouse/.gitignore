@@ -1,0 +1,23 @@
+# Dependencies
+node_modules/
+
+# Results and reports
+results/
+
+# Storage state (auth sessions)
+storage_state/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Debug logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
