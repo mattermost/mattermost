@@ -90,7 +90,9 @@ export function useEncryptedFile(
         if (!fileId || !isEncrypted) {
             return null;
         }
-        return dispatch(decryptEncryptedFile(fileId, postId));
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const result = await (dispatch as any)(decryptEncryptedFile(fileId, postId));
+        return result as string | null;
     }, [dispatch, fileId, isEncrypted, postId]);
 
     // Auto-decrypt on mount if enabled
