@@ -8,6 +8,7 @@ import type {AnyAction, Dispatch} from 'redux';
 import {fetchRemoteClusterInfo} from 'mattermost-redux/actions/shared_channels';
 import {getPost} from 'mattermost-redux/selectors/entities/posts';
 import {getCurrentTeam} from 'mattermost-redux/selectors/entities/teams';
+import {getThread} from 'mattermost-redux/selectors/entities/threads';
 
 import {openDirectChannelToUserId} from 'actions/channel_actions';
 import {openModal} from 'actions/views/modals';
@@ -22,7 +23,8 @@ import ThreadFollowersRHS from './thread_followers_rhs';
 function mapStateToProps(state: GlobalState) {
     const threadId = getThreadFollowersThreadId(state);
     const rootPost = threadId ? getPost(state, threadId) : null;
-    const threadName = rootPost ? cleanMessageForDisplay(rootPost.message, 30) : '';
+    const thread = getThread(state, threadId);
+    const threadName = thread?.props?.custom_name || (rootPost ? cleanMessageForDisplay(rootPost.message, 30) : '');
     const channelId = rootPost?.channel_id || '';
     const team = getCurrentTeam(state);
     const teamUrl = team ? `/${team.name}` : '';
