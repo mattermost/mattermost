@@ -617,9 +617,10 @@ function PostComponent(props: Props) {
 
     let priority;
     if (post.metadata?.priority && props.isPostPriorityEnabled && post.state !== Posts.POST_DELETED) {
-        // Hide ENCRYPTED badge in compact mode (it's indicated by the purple left border)
+        // Hide ENCRYPTED badge in compact mode or consecutive posts (indicated by purple left border)
         const isEncryptedOnly = post.metadata.priority.priority === PostPriority.ENCRYPTED;
-        if (!props.compactDisplay || !isEncryptedOnly) {
+        const isCompactedPost = props.compactDisplay || props.isConsecutivePost;
+        if (!isCompactedPost || !isEncryptedOnly) {
             priority = <span className='d-flex'><PriorityLabel priority={post.metadata.priority.priority}/></span>;
         }
     }
