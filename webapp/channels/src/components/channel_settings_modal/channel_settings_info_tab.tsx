@@ -11,7 +11,6 @@ import type {ServerError} from '@mattermost/types/errors';
 import {patchChannel, updateChannelPrivacy} from 'mattermost-redux/actions/channels';
 import {General} from 'mattermost-redux/constants';
 import Permissions from 'mattermost-redux/constants/permissions';
-import {getConfig} from 'mattermost-redux/selectors/entities/general';
 import {haveIChannelPermission} from 'mattermost-redux/selectors/entities/roles';
 
 import {
@@ -25,7 +24,6 @@ import {
 
 import ConvertConfirmModal from 'components/admin_console/team_channel_settings/convert_confirm_modal';
 import ChannelNameFormField from 'components/channel_name_form_field/channel_name_form_field';
-import ChannelIconSelector from './channel_icon_selector';
 import type {TextboxElement} from 'components/textbox';
 import AdvancedTextbox from 'components/widgets/advanced_textbox/advanced_textbox';
 import SaveChangesPanel, {type SaveChangesPanelState} from 'components/widgets/modals/components/save_changes_panel';
@@ -67,8 +65,6 @@ function ChannelSettingsInfoTab({
         haveIChannelPermission(state, channel.team_id, channel.id, channelPropertiesPermission),
     );
 
-    const customChannelIconsEnabled = useSelector((state: GlobalState) => getConfig(state)?.FeatureFlagCustomChannelIcons === 'true');
-
     // Constants
     const HEADER_MAX_LENGTH = 1024;
 
@@ -86,7 +82,6 @@ function ChannelSettingsInfoTab({
     const [channelPurpose, setChannelPurpose] = useState(channel.purpose ?? '');
     const [channelHeader, setChannelHeader] = useState(channel?.header ?? '');
     const [channelType, setChannelType] = useState<ChannelType>(channel?.type as ChannelType ?? Constants.OPEN_CHANNEL as ChannelType);
-    const [customIcon, setCustomIcon] = useState(channel.props?.custom_icon || '');
 
     // UI Feedback: errors, states
     const [formError, setFormError] = useState('');
@@ -115,12 +110,11 @@ function ChannelSettingsInfoTab({
             channelUrl.trim() !== channel.name ||
             channelPurpose.trim() !== channel.purpose ||
             channelHeader.trim() !== channel.header ||
-            channelType !== channel.type ||
-            customIcon !== (channel.props?.custom_icon || '')
+            channelType !== channel.type
         ) : false;
 
         setAreThereUnsavedChanges?.(unsavedChanges);
-    }, [channel, displayName, channelUrl, channelPurpose, channelHeader, channelType, customIcon, setAreThereUnsavedChanges]);
+    }, [channel, displayName, channelUrl, channelPurpose, channelHeader, channelType, setAreThereUnsavedChanges]);
 
     const handleURLChange = useCallback((newURL: string) => {
         if (internalUrlError) {
@@ -241,10 +235,6 @@ function ChannelSettingsInfoTab({
             name: channelUrl.trim(),
             purpose: channelPurpose.trim(),
             header: channelHeader.trim(),
-            props: {
-                ...channel.props,
-                custom_icon: customIcon,
-            },
         };
 
         const {data, error} = await dispatch(patchChannel(channel.id, updated));
@@ -259,11 +249,8 @@ function ChannelSettingsInfoTab({
         setChannelURL(data?.name ?? updated.name);
         setChannelPurpose(data?.purpose ?? updated.purpose);
         setChannelHeader(data?.header ?? updated.header);
-        // We don't update customIcon here because it's not in the returned data top-level fields usually,
-        // but patchChannel should return the updated channel.
-        // If data.props is returned we could sync it, but for now assuming it's fine as we just saved it.
         return true;
-    }, [channel, displayName, channelUrl, channelPurpose, channelHeader, channelType, customIcon, setFormError, handleServerError]);
+    }, [channel, displayName, channelUrl, channelPurpose, channelHeader, channelType, setFormError, handleServerError]);
 
     // Handle save changes panel actions
     const handleSaveChanges = useCallback(async () => {
@@ -304,7 +291,6 @@ function ChannelSettingsInfoTab({
         setChannelPurpose(channel?.purpose ?? '');
         setChannelHeader(channel?.header ?? '');
         setChannelType(channel?.type as ChannelType ?? Constants.OPEN_CHANNEL as ChannelType);
-        setCustomIcon(channel.props?.custom_icon || '');
 
         // Clear errors
         setUrlError('');
@@ -332,12 +318,11 @@ function ChannelSettingsInfoTab({
             channelUrl.trim() !== channel.name ||
             channelPurpose.trim() !== channel.purpose ||
             channelHeader.trim() !== channel.header ||
-            channelType !== channel.type ||
-            customIcon !== (channel.props?.custom_icon || '')
+            channelType !== channel.type
         ) : false;
 
         return unsavedChanges || saveChangesPanelState === 'saved';
-    }, [channel, displayName, channelUrl, channelPurpose, channelHeader, channelType, customIcon, saveChangesPanelState]);
+    }, [channel, displayName, channelUrl, channelPurpose, channelHeader, channelType, saveChangesPanelState]);
 
     return (
         <div className='ChannelSettingsModal__infoTab'>
@@ -381,19 +366,6 @@ function ChannelSettingsInfoTab({
                 readOnly={!canManageChannelProperties}
                 isEditingExistingChannel={true}
             />
-
-            {customChannelIconsEnabled && (
-                <div className='ChannelSettingsModal__section'>
-                    <div className='ChannelSettingsModal__infoTabTitle'>
-                        {formatMessage({id: 'channel_settings.channel_info_tab.icon', defaultMessage: 'Channel Icon'})}
-                    </div>
-                    <ChannelIconSelector
-                        selectedIcon={customIcon}
-                        onSelectIcon={setCustomIcon}
-                        disabled={!canManageChannelProperties}
-                    />
-                </div>
-            )}
 
             {/* Channel Type Section*/}
             <PublicPrivateSelector
