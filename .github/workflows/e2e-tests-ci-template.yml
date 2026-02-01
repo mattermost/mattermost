@@ -127,13 +127,13 @@ jobs:
     steps:
       - name: ci/checkout-repo
         if: "${{ inputs.run_preflight_checks }}"
-        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
         with:
           ref: ${{ inputs.commit_sha }}
           fetch-depth: 0
       - name: ci/setup-node
         if: "${{ inputs.run_preflight_checks }}"
-        uses: actions/setup-node@395ad3262231945c25e8478fd5baf05154b1d79f # v6.1.0
+        uses: actions/setup-node@6044e13b5dc448c55e2357c09f80417699197238 # v6.2.0
         id: setup_node
         with:
           node-version-file: ".nvmrc"
@@ -158,13 +158,13 @@ jobs:
     steps:
       - name: ci/checkout-repo
         if: "${{ inputs.run_preflight_checks }}"
-        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
         with:
           ref: ${{ inputs.commit_sha }}
           fetch-depth: 0
       - name: ci/setup-node
         if: "${{ inputs.run_preflight_checks }}"
-        uses: actions/setup-node@395ad3262231945c25e8478fd5baf05154b1d79f # v6.1.0
+        uses: actions/setup-node@6044e13b5dc448c55e2357c09f80417699197238 # v6.2.0
         id: setup_node
         with:
           node-version-file: ".nvmrc"
@@ -195,7 +195,7 @@ jobs:
     steps:
       - name: ci/checkout-repo
         if: "${{ inputs.run_preflight_checks }}"
-        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
         with:
           ref: ${{ inputs.commit_sha }}
           fetch-depth: 0
@@ -215,7 +215,7 @@ jobs:
       node-cache-dependency-path: "${{ steps.generate.outputs.node-cache-dependency-path }}"
     steps:
       - name: ci/checkout-repo
-        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
         with:
           ref: ${{ inputs.commit_sha }}
           fetch-depth: 0
@@ -241,12 +241,12 @@ jobs:
       status_check_url: "${{ steps.e2e-test-gencycle.outputs.status_check_url }}"
     steps:
       - name: ci/checkout-repo
-        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
         with:
           ref: ${{ inputs.commit_sha }}
           fetch-depth: 0
       - name: ci/setup-node
-        uses: actions/setup-node@395ad3262231945c25e8478fd5baf05154b1d79f # v6.1.0
+        uses: actions/setup-node@6044e13b5dc448c55e2357c09f80417699197238 # v6.2.0
         id: setup_node
         with:
           node-version-file: ".nvmrc"
@@ -319,7 +319,7 @@ jobs:
       ROLLING_RELEASE_SERVER_IMAGE: "${{ inputs.ROLLING_RELEASE_SERVER_IMAGE }}"
     steps:
       - name: ci/checkout-repo
-        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
         with:
           ref: ${{ inputs.commit_sha }}
           fetch-depth: 0
@@ -333,7 +333,7 @@ jobs:
           ln -sfn /usr/local/opt/docker-compose/bin/docker-compose ~/.docker/cli-plugins/docker-compose
           sudo ln -sf $HOME/.colima/default/docker.sock /var/run/docker.sock
       - name: ci/setup-node
-        uses: actions/setup-node@395ad3262231945c25e8478fd5baf05154b1d79f # v6.1.0
+        uses: actions/setup-node@6044e13b5dc448c55e2357c09f80417699197238 # v6.2.0
         id: setup_node
         with:
           node-version-file: ".nvmrc"
@@ -366,7 +366,7 @@ jobs:
           make
           make cloud-teardown
       - name: ci/e2e-test-store-results
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6.0.0
         if: always()
         with:
           name: e2e-test-results-${{ inputs.TEST }}-${{ matrix.os }}-${{ matrix.worker_index }}
@@ -393,18 +393,18 @@ jobs:
       playwright_report_url: "${{ steps.upload-to-s3.outputs.report_url }}"
     steps:
       - name: ci/checkout-repo
-        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
         with:
           ref: ${{ inputs.commit_sha }}
           fetch-depth: 0
       - name: ci/download-artifacts
-        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
+        uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131 # v7.0.0
         with:
           pattern: e2e-test-results-${{ inputs.TEST }}-*
           path: e2e-tests/${{ inputs.TEST }}/
           merge-multiple: true
       - name: ci/upload-report-global
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6.0.0
         with:
           name: e2e-test-results-${{ inputs.TEST }}
           path: |
@@ -412,7 +412,7 @@ jobs:
             e2e-tests/${{ inputs.TEST }}/results/
       - name: ci/setup-node
         if: "${{ inputs.enable_reporting }}"
-        uses: actions/setup-node@395ad3262231945c25e8478fd5baf05154b1d79f # v6.1.0
+        uses: actions/setup-node@6044e13b5dc448c55e2357c09f80417699197238 # v6.2.0
         id: setup_node
         with:
           node-version-file: ".nvmrc"
@@ -437,7 +437,7 @@ jobs:
       # The results dir may have been modified as part of the reporting: re-upload
       - name: ci/upload-report-global
         if: "${{ inputs.enable_reporting }}"
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6.0.0
         with:
           name: e2e-test-results-${{ inputs.TEST }}
           path: |
@@ -448,7 +448,7 @@ jobs:
       # Configure AWS credentials
       - name: ci/aws-configure
         if: (inputs.TEST == 'playwright')
-        uses: aws-actions/configure-aws-credentials@v4.2.0
+        uses: aws-actions/configure-aws-credentials@v5.1.1
         with:
           aws-region: us-east-1
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}

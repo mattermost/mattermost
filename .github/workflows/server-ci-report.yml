@@ -16,7 +16,7 @@ jobs:
       REPORT_MATRIX: ${{ steps.report.outputs.REPORT_MATRIX }}
     steps:
       - name: report/download-artifacts-from-PR-workflow
-        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
+        uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131 # v7.0.0
         with:
           run-id: ${{ github.event.workflow_run.id }}
           github-token: ${{ github.token }}
@@ -69,7 +69,7 @@ jobs:
       matrix: ${{ fromJson(needs.generate-report-matrix.outputs.REPORT_MATRIX) }}
     steps:
       - name: report/download-artifacts-from-PR-workflow
-        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
+        uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131 # v7.0.0
         with:
           run-id: ${{ github.event.workflow_run.id }}
           github-token: ${{ github.token }}
@@ -95,7 +95,7 @@ jobs:
           fi
       - name: Publish test report
         id: report
-        uses: mikepenz/action-junit-report@cf701569b05ccdd861a76b8607a66d76f6fd4857 # v5.5.1
+        uses: mikepenz/action-junit-report@a294a61c909bd8a4b563024a2faa28897fd53ebc # v6.1.0
         with:
           report_paths: ${{ matrix.test.artifact }}/report.xml
           check_name: ${{ matrix.test.name }} (Results)
@@ -108,7 +108,7 @@ jobs:
           check_annotations: true
 
       - name: Report retried tests (pull request)
-        uses: actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea # v7.0.1
+        uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd # v8.0.0
         if: ${{ steps.report.outputs.flaky_summary != '<table><tr><th>Test</th><th>Retries</th></tr></table>' && github.event.workflow_run.event == 'pull_request' }}
         env:
           TEST_NAME: "${{ matrix.test.name }}"
