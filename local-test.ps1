@@ -167,6 +167,71 @@ if (!$WORK_DIR) {
 "  PG_DATABASE: $PG_DATABASE" | Out-File $LOG_FILE -Append -Encoding UTF8
 
 # ============================================================================
+# Feature Flags - Parsed from Go source
+# ============================================================================
+
+# Custom flags we want enabled for local testing (not in upstream defaults)
+$CUSTOM_FEATURE_FLAGS = @(
+    "Encryption",
+    "CustomChannelIcons",
+    "HideDeletedMessagePlaceholder",
+    "ThreadsInSidebar",
+    "CustomThreadNames"
+)
+
+function Get-FeatureFlagsJson {
+    <#
+    .SYNOPSIS
+    Parses feature_flags.go to extract default feature flags and returns JSON.
+    #>
+    param(
+        [int]$Indent = 2
+    )
+
+    $featureFlagsFile = Join-Path $SCRIPT_DIR "server\public\model\feature_flags.go"
+    $flags = @{}
+
+    if (Test-Path $featureFlagsFile) {
+        $content = Get-Content $featureFlagsFile -Raw
+
+        # Parse featureFlagDefaults map: "FlagName": true,
+        $pattern = '"(\w+)":\s*true'
+        $matches = [regex]::Matches($content, $pattern)
+
+        foreach ($match in $matches) {
+            $flagName = $match.Groups[1].Value
+            $flags[$flagName] = $true
+        }
+
+        "Parsed $($flags.Count) default feature flags from feature_flags.go" | Out-File $LOG_FILE -Append -Encoding UTF8
+    } else {
+        Log-Warning "feature_flags.go not found, using empty defaults"
+    }
+
+    # Add custom flags for local testing
+    foreach ($flag in $CUSTOM_FEATURE_FLAGS) {
+        $flags[$flag] = $true
+    }
+
+    # Build JSON
+    $indent = " " * $Indent
+    $lines = @()
+    $sortedKeys = $flags.Keys | Sort-Object
+    $lastKey = $sortedKeys[-1]
+
+    foreach ($key in $sortedKeys) {
+        $comma = if ($key -eq $lastKey) { "" } else { "," }
+        $lines += "${indent}  `"$key`": true$comma"
+    }
+
+    $json = "${indent}`"FeatureFlags`": {`n"
+    $json += ($lines -join "`n")
+    $json += "`n${indent}}"
+
+    return $json
+}
+
+# ============================================================================
 # Command Functions
 # ============================================================================
 
@@ -443,6 +508,7 @@ function Invoke-Setup {
     # [5/5] Create config file
     Log "[5/5] Creating config file..."
     $workDirUnix = $WORK_DIR -replace "\\", "/"
+    $featureFlagsJson = Get-FeatureFlagsJson -Indent 2
     $configContent = @"
 {
   "ServiceSettings": {
@@ -466,27 +532,7 @@ function Invoke-Setup {
     "Directory": "$workDirUnix/data/plugins",
     "ClientDirectory": "$workDirUnix/data/client/plugins"
   },
-  "FeatureFlags": {
-    "EnableSharedChannelsPlugins": true,
-    "OnboardingTourTips": true,
-    "StreamlinedMarketplace": true,
-    "ChannelBookmarks": true,
-    "WebSocketEventScope": true,
-    "NotificationMonitoring": true,
-    "ExperimentalAuditSettingsSystemConsoleUI": true,
-    "CustomProfileAttributes": true,
-    "AttributeBasedAccessControl": true,
-    "ContentFlagging": true,
-    "InteractiveDialogAppsForm": true,
-    "EnableMattermostEntry": true,
-    "MobileSSOCodeExchange": true,
-    "BurnOnRead": true,
-    "Encryption": true,
-    "CustomChannelIcons": true,
-    "HideDeletedMessagePlaceholder": true,
-    "ThreadsInSidebar": true,
-    "CustomThreadNames": true
-  },
+$featureFlagsJson,
   "MattermostExtendedSettings": {
   }
 }
@@ -690,6 +736,7 @@ function Invoke-FixConfig {
 
     # Create clean local config
     $workDirUnix = $WORK_DIR -replace "\\", "/"
+    $featureFlagsJson = Get-FeatureFlagsJson -Indent 2
     $configContent = @"
 {
   "ServiceSettings": {
@@ -749,27 +796,7 @@ function Invoke-FixConfig {
     "ShowEmailAddress": true,
     "ShowFullName": true
   },
-  "FeatureFlags": {
-    "EnableSharedChannelsPlugins": true,
-    "OnboardingTourTips": true,
-    "StreamlinedMarketplace": true,
-    "ChannelBookmarks": true,
-    "WebSocketEventScope": true,
-    "NotificationMonitoring": true,
-    "ExperimentalAuditSettingsSystemConsoleUI": true,
-    "CustomProfileAttributes": true,
-    "AttributeBasedAccessControl": true,
-    "ContentFlagging": true,
-    "InteractiveDialogAppsForm": true,
-    "EnableMattermostEntry": true,
-    "MobileSSOCodeExchange": true,
-    "BurnOnRead": true,
-    "Encryption": true,
-    "CustomChannelIcons": true,
-    "HideDeletedMessagePlaceholder": true,
-    "ThreadsInSidebar": true,
-    "CustomThreadNames": true
-  },
+$featureFlagsJson,
   "MattermostExtendedSettings": {}
 }
 "@
