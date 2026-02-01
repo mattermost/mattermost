@@ -1,0 +1,20 @@
+{
+  "root": true,
+  "extends": [
+    "plugin:@mattermost/react"
+  ],
+  "plugins": [
+    "formatjs",
+    "no-only-tests"
+  ],
+  "rules": {
+  },
+  "overrides": [
+    {
+      "files": ["*.test.*", "src/tests/**"],
+      "rules": {
+        "no-only-tests/no-only-tests": ["error", {"focus": ["only", "skip"]}]
+      }
+    }
+  ]
+}

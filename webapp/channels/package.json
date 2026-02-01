@@ -12,6 +12,7 @@
     "@guyplusplus/turndown-plugin-gfm": "1.0.7",
     "@mattermost/client": "11.4.0",
     "@mattermost/desktop-api": "6.0.0-1",
+    "@mattermost/shared": "11.4.0",
     "@mattermost/types": "11.4.0",
     "@mui/base": "5.0.0-alpha.127",
     "@mui/material": "5.11.16",

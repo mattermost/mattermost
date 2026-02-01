@@ -701,10 +701,8 @@ class TestHelper {
         return {
             name: '',
             category: 'recent',
-            image: '',
             short_name: '',
             short_names: [],
-            batch: 0,
             unified: '',
             ...override,
         };
