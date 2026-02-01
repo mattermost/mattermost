@@ -51,6 +51,7 @@ type Client interface {
 	GetGroupsByChannel(ctx context.Context, channelID string, groupOpts model.GroupSearchOpts) ([]*model.GroupWithSchemeAdmin, int, *model.Response, error)
 	GetGroupsByTeam(ctx context.Context, teamID string, groupOpts model.GroupSearchOpts) ([]*model.GroupWithSchemeAdmin, int, *model.Response, error)
 	RestoreGroup(ctx context.Context, groupID string, etag string) (*model.Group, *model.Response, error)
+	GetOldClientLicense(ctx context.Context, etag string) (map[string]string, *model.Response, error)
 	UploadLicenseFile(ctx context.Context, data []byte) (*model.Response, error)
 	RemoveLicenseFile(ctx context.Context) (*model.Response, error)
 	GetLogs(ctx context.Context, page, perPage int) ([]string, *model.Response, error)
