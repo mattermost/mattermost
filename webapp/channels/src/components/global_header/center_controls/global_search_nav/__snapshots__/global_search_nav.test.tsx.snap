@@ -1,63 +1,45 @@
 // Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
 
 exports[`components/GlobalSearchNav should match snapshot with active flagged posts 1`] = `
-<ContextProvider
-  value={
-    Object {
-      "getServerState": undefined,
-      "identityFunctionCheck": "once",
-      "stabilityCheck": "once",
-      "store": Object {
-        "clearActions": [Function],
-        "dispatch": [Function],
-        "getActions": [Function],
-        "getState": [Function],
-        "replaceReducer": [Function],
-        "subscribe": [Function],
-      },
-      "subscription": Object {
-        "addNestedSub": [Function],
-        "getListeners": [Function],
-        "handleChangeWrapper": [Function],
-        "isSubscribed": [Function],
-        "notifyNestedSubs": [Function],
-        "trySubscribe": [Function],
-        "tryUnsubscribe": [Function],
-      },
-    }
-  }
->
-  <GlobalSearchNav />
-</ContextProvider>
+<div>
+  <div
+    class="GlobalSearchNav"
+  >
+    <div
+      aria-expanded="false"
+      aria-haspopup="dialog"
+      class="NewSearchContainer-gTjiWW elvyVy a11y__region"
+      id="searchFormContainer"
+      role="button"
+      tabindex="0"
+    >
+      <i
+        class="icon icon-magnify"
+      />
+      Search
+    </div>
+  </div>
+</div>
 `;
 
 exports[`components/GlobalSearchNav should match snapshot with active mentions posts 1`] = `
-<ContextProvider
-  value={
-    Object {
-      "getServerState": undefined,
-      "identityFunctionCheck": "once",
-      "stabilityCheck": "once",
-      "store": Object {
-        "clearActions": [Function],
-        "dispatch": [Function],
-        "getActions": [Function],
-        "getState": [Function],
-        "replaceReducer": [Function],
-        "subscribe": [Function],
-      },
-      "subscription": Object {
-        "addNestedSub": [Function],
-        "getListeners": [Function],
-        "handleChangeWrapper": [Function],
-        "isSubscribed": [Function],
-        "notifyNestedSubs": [Function],
-        "trySubscribe": [Function],
-        "tryUnsubscribe": [Function],
-      },
-    }
-  }
->
-  <GlobalSearchNav />
-</ContextProvider>
+<div>
+  <div
+    class="GlobalSearchNav"
+  >
+    <div
+      aria-expanded="false"
+      aria-haspopup="dialog"
+      class="NewSearchContainer-gTjiWW elvyVy a11y__region"
+      id="searchFormContainer"
+      role="button"
+      tabindex="0"
+    >
+      <i
+        class="icon icon-magnify"
+      />
+      Search
+    </div>
+  </div>
+</div>
 `;
