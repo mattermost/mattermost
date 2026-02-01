@@ -33,8 +33,13 @@ function RecipientDisplay({channelId, currentUserId, visible}: Props) {
             return;
         }
 
+        let isInitialFetch = true;
+
         const fetchRecipients = async () => {
-            setLoading(true);
+            // Only show loading spinner on initial fetch, not refreshes
+            if (isInitialFetch) {
+                setLoading(true);
+            }
             try {
                 const info = await getChannelEncryptionInfo(channelId, currentUserId);
                 setRecipients(info.recipients);
@@ -42,11 +47,24 @@ function RecipientDisplay({channelId, currentUserId, visible}: Props) {
             } catch (error) {
                 console.error('Failed to fetch channel encryption info:', error);
             } finally {
-                setLoading(false);
+                if (isInitialFetch) {
+                    setLoading(false);
+                    isInitialFetch = false;
+                }
             }
         };
 
+        // Initial fetch
         fetchRecipients();
+
+        // Refresh every 5 seconds while visible to catch new key registrations
+        const intervalId = setInterval(() => {
+            fetchRecipients();
+        }, 5000);
+
+        return () => {
+            clearInterval(intervalId);
+        };
     }, [channelId, currentUserId, visible]);
 
     if (!visible) {

@@ -18,7 +18,7 @@ import PaymentAnnouncementBar from './payment_announcement_bar';
 import PostHistoryLimitBanner from './post_history_limit_banner';
 import AutoStartTrialModal from './show_start_trial_modal/show_start_trial_modal';
 import ShowThreeDaysLeftTrialModal from './show_tree_days_left_trial_modal/show_three_days_left_trial_modal';
-import {KeypairPromptController} from 'components/encryption';
+import {KeypairPromptController, EncryptionKeyErrorBar} from 'components/encryption';
 import TextDismissableBar from './text_dismissable_bar';
 import UsersLimitsAnnouncementBar from './users_limits_announcement_bar';
 import VersionBar from './version_bar';
@@ -122,6 +122,7 @@ class AnnouncementBarController extends React.PureComponent<Props> {
                 {this.props.license?.Cloud !== 'true' && <OverageUsersBanner/>}
                 <PostHistoryLimitBanner/>
                 <KeypairPromptController/>
+                <EncryptionKeyErrorBar/>
                 {autoStartTrialModal}
                 <ShowThreeDaysLeftTrialModal/>
                 <VersionBar/>

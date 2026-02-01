@@ -248,6 +248,9 @@ export const ActionTypes = keyMirror({
     MODAL_OPEN: null,
     MODAL_CLOSE: null,
 
+    ENCRYPTION_KEY_ERROR: null,
+    ENCRYPTION_KEY_ERROR_CLEAR: null,
+
     SELECT_CHANNEL_WITH_MEMBER: null,
     SET_LAST_UNREAD_CHANNEL: null,
     UPDATE_CHANNEL_LAST_VIEWED_AT: null,

@@ -9,7 +9,8 @@ import {getBool} from 'mattermost-redux/selectors/entities/preferences';
 import {getCurrentUser} from 'mattermost-redux/selectors/entities/users';
 
 import {openModal} from 'actions/views/modals';
-import {isEncryptionInitialized, ensureEncryptionKeys, checkEncryptionStatus} from 'utils/encryption/session';
+import {setEncryptionKeyError} from 'actions/views/encryption';
+import {ensureEncryptionKeys, checkEncryptionStatus} from 'utils/encryption/session';
 import {ModalIdentifiers, Preferences} from 'utils/constants';
 
 import type {GlobalState} from 'types/store';
@@ -25,7 +26,15 @@ const KeypairPromptController = () => {
         if (dontShowAgain) {
             saveDismissPreference();
         }
-        await ensureEncryptionKeys();
+        try {
+            await ensureEncryptionKeys();
+        } catch (error) {
+            // Show error bar so user can retry
+            dispatch(setEncryptionKeyError(
+                error instanceof Error ? error.message : 'Failed to register encryption keys',
+            ));
+            throw error; // Re-throw so modal can show inline error too
+        }
     };
 
     const handleDismiss = (dontShowAgain: boolean) => {
@@ -50,11 +59,13 @@ const KeypairPromptController = () => {
 
     useEffect(() => {
         const checkStatus = async () => {
-            if (!currentUser || wasDismissed || isEncryptionInitialized()) {
+            if (!currentUser || wasDismissed) {
                 return;
             }
 
             try {
+                // Always check server status - don't rely only on local sessionStorage
+                // This handles the case where local keys exist but server registration failed
                 const status = await checkEncryptionStatus();
                 if (status.enabled && !status.has_key) {
                     dispatch(openModal({

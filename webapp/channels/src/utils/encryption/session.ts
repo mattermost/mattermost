@@ -15,9 +15,12 @@ import {clearDecryptionCache} from './use_decrypt_post';
 let initializationPromise: Promise<void> | null = null;
 
 /**
- * Ensures encryption keys are available for the current session.
+ * Ensures encryption keys are available for the current session AND registered with server.
  * If no keys exist, generates them and registers the public key with the server.
+ * If local keys exist but server doesn't have them, re-registers the local key.
  * This is called automatically on first encrypted message send.
+ *
+ * @throws Error if key registration fails - caller should handle and notify user
  */
 export async function ensureEncryptionKeys(): Promise<void> {
     // Return existing promise if initialization is in progress
@@ -25,14 +28,39 @@ export async function ensureEncryptionKeys(): Promise<void> {
         return initializationPromise;
     }
 
-    // If keys already exist, nothing to do
-    if (hasEncryptionKeys()) {
-        return Promise.resolve();
-    }
-
     // Start initialization
     initializationPromise = (async () => {
         try {
+            // Check if we have local keys
+            if (hasEncryptionKeys()) {
+                // Local keys exist - verify server has them too
+                const status = await getEncryptionStatus();
+                if (status.has_key) {
+                    // Server has our key, we're good
+                    return;
+                }
+
+                // Server doesn't have our key - re-register the existing local key
+                console.log('[ensureEncryptionKeys] Local keys exist but server missing key, re-registering...');
+                const existingPublicKey = getPublicKeyJwk();
+                if (existingPublicKey) {
+                    try {
+                        await registerPublicKey(existingPublicKey);
+                        console.log('[ensureEncryptionKeys] Re-registered existing key with server');
+                        return;
+                    } catch (error) {
+                        console.error('[ensureEncryptionKeys] Failed to re-register key:', error);
+                        // Clear local keys since they're out of sync with server
+                        clearEncryptionKeys();
+                        throw new Error('Failed to register encryption key with server. Please try again.');
+                    }
+                }
+
+                // Couldn't get local public key, clear and regenerate
+                console.log('[ensureEncryptionKeys] Could not get local public key, regenerating...');
+                clearEncryptionKeys();
+            }
+
             // Generate new key pair
             const keyPair = await generateKeyPair();
 
@@ -41,7 +69,15 @@ export async function ensureEncryptionKeys(): Promise<void> {
 
             // Export and register public key with server
             const publicKeyJwk = await exportPublicKey(keyPair.publicKey);
-            await registerPublicKey(publicKeyJwk);
+            try {
+                await registerPublicKey(publicKeyJwk);
+                console.log('[ensureEncryptionKeys] Generated and registered new keypair');
+            } catch (error) {
+                console.error('[ensureEncryptionKeys] Failed to register new key:', error);
+                // Clear local keys since registration failed
+                clearEncryptionKeys();
+                throw new Error('Failed to register encryption key with server. Please try again.');
+            }
         } finally {
             initializationPromise = null;
         }

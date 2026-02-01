@@ -4,14 +4,14 @@
 import React, {useState} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 
-import {LockOutlineIcon} from '@mattermost/compass-icons/components';
+import {LockOutlineIcon, AlertOutlineIcon} from '@mattermost/compass-icons/components';
 import {GenericModal} from '@mattermost/components';
 
 import './keypair_prompt_modal.scss';
 
 type Props = {
     onExited: () => void;
-    onConfirm: (dontShowAgain: boolean) => void;
+    onConfirm: (dontShowAgain: boolean) => Promise<void>;
     onDismiss: (dontShowAgain: boolean) => void;
 }
 
@@ -19,10 +19,20 @@ const KeypairPromptModal = ({onExited, onConfirm, onDismiss}: Props) => {
     const {formatMessage} = useIntl();
     const [dontShowAgain, setDontShowAgain] = useState(false);
     const [show, setShow] = useState(true);
+    const [isGenerating, setIsGenerating] = useState(false);
+    const [error, setError] = useState<string | null>(null);
 
-    const handleConfirm = () => {
-        setShow(false);
-        onConfirm(dontShowAgain);
+    const handleConfirm = async () => {
+        setIsGenerating(true);
+        setError(null);
+        try {
+            await onConfirm(dontShowAgain);
+            setShow(false);
+        } catch (err) {
+            setError(err instanceof Error ? err.message : 'Failed to generate encryption keys. Please try again.');
+        } finally {
+            setIsGenerating(false);
+        }
     };
 
     const handleCancel = () => {
@@ -60,6 +70,7 @@ const KeypairPromptModal = ({onExited, onConfirm, onDismiss}: Props) => {
                     type='button'
                     className='btn btn-tertiary'
                     onClick={handleCancel}
+                    disabled={isGenerating}
                 >
                     {formatMessage({id: 'encryption.keypair_prompt.dismiss', defaultMessage: 'Dismiss'})}
                 </button>
@@ -67,8 +78,11 @@ const KeypairPromptModal = ({onExited, onConfirm, onDismiss}: Props) => {
                     type='button'
                     className='btn btn-primary'
                     onClick={handleConfirm}
+                    disabled={isGenerating}
                 >
-                    {formatMessage({id: 'encryption.keypair_prompt.confirm', defaultMessage: 'Generate Keys'})}
+                    {isGenerating ?
+                        formatMessage({id: 'encryption.keypair_prompt.generating', defaultMessage: 'Generating...'}) :
+                        formatMessage({id: 'encryption.keypair_prompt.confirm', defaultMessage: 'Generate Keys'})}
                 </button>
             </div>
         </div>
@@ -92,6 +106,12 @@ const KeypairPromptModal = ({onExited, onConfirm, onDismiss}: Props) => {
                         defaultMessage='Generate your encryption keys to enable end-to-end encryption for your messages. This ensures that only you and your recipients can read your conversations.'
                     />
                 </p>
+                {error && (
+                    <div className='KeypairPromptModal__error'>
+                        <AlertOutlineIcon size={16}/>
+                        <span>{error}</span>
+                    </div>
+                )}
             </div>
         </GenericModal>
     );

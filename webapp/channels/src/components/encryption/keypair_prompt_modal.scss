@@ -50,6 +50,24 @@
         color: rgba(var(--center-channel-color-rgb), 0.72);
     }
 
+    .KeypairPromptModal__error {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        margin-top: 16px;
+        padding: 12px 16px;
+        background: rgba(var(--error-text-color-rgb, 210, 75, 78), 0.1);
+        border: 1px solid rgba(var(--error-text-color-rgb, 210, 75, 78), 0.3);
+        border-radius: 4px;
+        color: rgb(var(--error-text-color-rgb, 210, 75, 78));
+        font-size: 13px;
+        text-align: left;
+
+        svg {
+            flex-shrink: 0;
+        }
+    }
+
     // Footer styling - checkbox left, buttons right
     .modal-footer {
         display: flex;
