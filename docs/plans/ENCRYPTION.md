@@ -28,8 +28,10 @@ Based on user preferences:
    - Private keys stored in `sessionStorage` (cleared on logout/tab close)
    - Keys generated per-session, not persisted
    - When logged out or session ends: no decryption possible
-   - No "set up keys" prompt - keys auto-generate on first encrypted send
+   - Keypair prompt modal shown when user has no keys registered
    - Message for non-recipients: "🔒 Encrypted - You do not have permission to view this"
+   - **Key Registration Verification**: Client verifies server has the key, not just local storage
+   - **Error Recovery**: If registration fails, error banner with retry button is shown
 
 5. **Visible Recipient List**: Transparency
    - When encryption mode is enabled, show list of recipients who can decrypt
@@ -168,15 +170,49 @@ Add lock icon button with toggle behavior:
 - Shows recipient display below editor when enabled
 - Syncs state with priority picker (both show same encryption state)
 
-### 3.2 Auto Key Generation
+### 3.2 Key Generation and Registration
 
 **File: `webapp/channels/src/utils/encryption/session.ts`**
 
-Keys are generated automatically (no modal needed):
-- On first encrypted message send, generate RSA keypair
-- Store private key in `sessionStorage` (session-only)
-- Register public key with server
-- Keys cleared when session ends (logout, tab close)
+The `ensureEncryptionKeys()` function handles key lifecycle:
+
+1. **Check local keys exist** - Look in `sessionStorage`
+2. **Verify server has key** - Call `/api/v4/encryption/status` to check `has_key`
+3. **Handle mismatches**:
+   - If local keys exist but server doesn't have them → re-register existing key
+   - If registration fails → clear local keys, throw error with user-friendly message
+4. **Generate new keys** if none exist:
+   - Generate RSA-4096 keypair using Web Crypto API
+   - Store in `sessionStorage` (session-only, cleared on tab close)
+   - Register public key with server
+   - If registration fails → clear local keys, throw error
+
+**Critical: Server verification prevents "orphaned keys"** where local keys exist but server doesn't know about them (e.g., if registration failed silently).
+
+### 3.2.1 Logout Clears Encryption Session
+
+**File: `webapp/channels/src/actions/global_actions.tsx`**
+
+On logout, `clearEncryptionSession()` is called to:
+- Remove private/public keys from `sessionStorage`
+- Clear decryption cache
+
+This ensures each login session gets fresh keys, and old encrypted messages become unreadable after logout (by design - maximum security).
+
+### 3.2.2 Error Handling with Banner
+
+**Files:**
+- `webapp/channels/src/components/encryption/encryption_error_bar.tsx`
+- `webapp/channels/src/actions/views/encryption.ts`
+- `webapp/channels/src/reducers/views/encryption.ts`
+
+When key registration fails:
+1. Error is stored in Redux: `state.views.encryption.keyError`
+2. `EncryptionKeyErrorBar` component shows critical banner at top of screen
+3. Banner includes "Retry" button to attempt registration again
+4. Banner persists until dismissed or retry succeeds
+
+This provides clear feedback when encryption setup fails, rather than silent failure.
 
 ### 3.3 Recipient Display
 
@@ -186,8 +222,9 @@ Shows who can decrypt the message (displayed below editor when encryption enable
 - Format: "🔒 Sending encrypted to: @user1, @user2, @user3..."
 - Lists all channel members who have active sessions (public keys registered)
 - **Excludes current user** from the list (you don't need to see yourself)
-- If some members don't have keys: "⚠️ @user4 won't be able to view this (no active session)"
+- If some members don't have keys: "⚠️ X member(s) without active encryption will not see this message"
 - Provides transparency about exactly who will receive decrypted content
+- **Auto-refreshes every 5 seconds** while visible to catch new key registrations
 
 ### 3.4 Access Denied Placeholder
 
@@ -515,9 +552,14 @@ psql mattermost_local < postgresql.dump
 | `webapp/channels/src/components/advanced_text_editor/formatting_bar/` | Add Lock toggle button |
 | `webapp/channels/src/actions/hooks.ts` | Add encryption hook |
 | `webapp/channels/src/actions/new_post.ts` | Wire receive hook |
+| `webapp/channels/src/actions/global_actions.tsx` | Clear encryption session on logout |
+| `webapp/channels/src/actions/views/encryption.ts` | NEW - Redux actions for encryption error state |
+| `webapp/channels/src/reducers/views/encryption.ts` | NEW - Redux reducer for encryption error state |
 | `webapp/channels/src/components/admin_console/admin_definition.tsx` | Add MM Extended section |
 | `webapp/channels/src/utils/encryption/` | NEW - Crypto utilities (keypair, hybrid, storage, api, session, file_crypto) |
-| `webapp/channels/src/components/encryption/` | NEW - UI (recipient_display, encrypted_placeholder, styles) |
+| `webapp/channels/src/components/encryption/` | NEW - UI (recipient_display, encrypted_placeholder, keypair_prompt, encryption_error_bar) |
+| `webapp/channels/src/components/announcement_bar/announcement_bar_controller.tsx` | Add KeypairPromptController and EncryptionKeyErrorBar |
+| `webapp/channels/src/utils/constants.tsx` | Add ENCRYPTION_KEY_ERROR action types |
 
 ---
 
@@ -528,13 +570,24 @@ psql mattermost_local < postgresql.dump
 3. **Run tests**: `make test` (add encryption unit tests)
 4. **Manual testing**:
    - Enable encryption in System Console
-   - Generate keypair
+   - Generate keypair via modal prompt
    - Send encrypted message
    - Verify badge appears
    - Verify decryption works
-   - Test with user without keys (access denied)
+   - Test with user without keys (access denied placeholder)
    - Test encrypted attachment upload/download
    - Test Lock button and Priority picker both work
+   - **Session-based key testing**:
+     - User 1 logs in, generates keys, sends encrypted message
+     - User 2 logs in, generates keys → recipient display updates within 5 seconds
+     - User 2 can decrypt User 1's new messages
+     - User 1 logs out → encryption keys cleared
+     - User 1 logs back in → cannot decrypt old messages (new keypair)
+   - **Error handling testing**:
+     - Simulate failed key registration (e.g., network error)
+     - Verify error banner appears with "Retry" button
+     - Click Retry → verify registration succeeds and banner disappears
+     - Verify modal shows inline error on failure
 
 ---
 
