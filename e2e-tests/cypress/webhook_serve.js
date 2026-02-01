@@ -302,6 +302,9 @@ function onDateTimeDialogRequest(req, res) {
         case 'relative':
             dialog = webhookUtils.getRelativeDateDialog(body.trigger_id, webhookBaseUrl);
             break;
+        case 'timezone-manual':
+            dialog = webhookUtils.getTimezoneManualDialog(body.trigger_id, webhookBaseUrl);
+            break;
         default:
             // Default to basic datetime dialog for backward compatibility
             dialog = webhookUtils.getBasicDateTimeDialog(body.trigger_id, webhookBaseUrl);

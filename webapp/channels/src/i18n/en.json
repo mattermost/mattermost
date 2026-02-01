@@ -4187,6 +4187,7 @@
   "date_separator.tomorrow": "Tomorrow",
   "date_separator.yesterday": "Yesterday",
   "datetime.date": "Date",
+  "datetime.select_date": "Select date",
   "datetime.time": "Time",
   "datetime.today": "today",
   "datetime.yesterday": "yesterday",
