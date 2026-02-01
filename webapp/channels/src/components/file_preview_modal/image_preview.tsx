@@ -29,8 +29,12 @@ export default function ImagePreview({fileInfo, canDownloadFiles, postId}: Props
         isEncrypted,
         fileUrl: decryptedFileUrl,
         status: decryptionStatus,
+        error: decryptionError,
         decrypt,
     } = useEncryptedFile(fileInfo, postId, true); // autoDecrypt=true
+
+    const hasFailed = decryptionStatus === 'failed';
+    const noPermission = hasFailed && decryptionError?.includes('no key');
 
     let fileUrl;
     let previewUrl;
@@ -52,9 +56,6 @@ export default function ImagePreview({fileInfo, canDownloadFiles, postId}: Props
         return (
             <div
                 className='image_preview image_preview--encrypted'
-                onClick={decrypt}
-                role='button'
-                tabIndex={0}
             >
                 <div className='image_preview__encrypted-placeholder'>
                     <LockOutlineIcon
@@ -64,9 +65,9 @@ export default function ImagePreview({fileInfo, canDownloadFiles, postId}: Props
                     <span className='image_preview__encrypted-text'>
                         {decryptionStatus === 'decrypting' ? 'Decrypting...' : 'Encrypted file'}
                     </span>
-                    {decryptionStatus === 'failed' && (
+                    {hasFailed && (
                         <span className='image_preview__encrypted-error'>
-                            Click to retry
+                            {noPermission ? 'You do not have permission' : 'Decryption failed'}
                         </span>
                     )}
                 </div>

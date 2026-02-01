@@ -80,13 +80,15 @@ export default function FileAttachment(props: Props) {
     const pluginItemsVisible = usePluginVisibilityInSharedChannel(props.currentChannel?.id);
 
     // Check if file is encrypted and get decryption status (mattermost-extended)
+    // autoDecrypt=true means it will automatically attempt decryption on mount
     const {
         isEncrypted,
         status: decryptionStatus,
+        error: decryptionError,
         originalFileInfo,
         thumbnailUrl: decryptedThumbnailUrl,
         decrypt,
-    } = useEncryptedFile(props.fileInfo, props.postId);
+    } = useEncryptedFile(props.fileInfo, props.postId, true);
 
     // For encrypted files, use the decrypted metadata for display
     // This prevents leaking original filename/type to users without keys
@@ -315,8 +317,16 @@ export default function FileAttachment(props: Props) {
     const {compactDisplay} = props;
     const fileInfo = displayFileInfo;
 
-    // For encrypted files without decrypted metadata, show placeholder
-    const showEncryptedPlaceholder = isEncrypted && !originalFileInfo;
+    // For encrypted files, determine what to show based on decryption state
+    // - decrypted: show normal file (no special styling)
+    // - decrypting: show "Decrypting..." placeholder
+    // - failed: show "No permission" or error message
+    // - pending/idle: show "Encrypted file" placeholder (auto-decrypt should kick in)
+    const isDecrypted = decryptionStatus === 'decrypted' && originalFileInfo;
+    const isDecrypting = decryptionStatus === 'decrypting';
+    const hasFailed = decryptionStatus === 'failed';
+    const noPermission = hasFailed && decryptionError?.includes('no key');
+    const showEncryptedPlaceholder = isEncrypted && !isDecrypted;
 
     let fileThumbnail;
     let fileDetail;
@@ -408,13 +418,41 @@ export default function FileAttachment(props: Props) {
         }
 
         if (showEncryptedPlaceholder) {
-            // Show encrypted placeholder message
+            // Show encrypted placeholder message based on decryption state
+            let statusMessage;
+            if (isDecrypting) {
+                statusMessage = (
+                    <FormattedMessage
+                        id='file_attachment.decrypting'
+                        defaultMessage='Decrypting...'
+                    />
+                );
+            } else if (noPermission) {
+                statusMessage = (
+                    <FormattedMessage
+                        id='file_attachment.no_permission'
+                        defaultMessage='You do not have permission'
+                    />
+                );
+            } else if (hasFailed) {
+                statusMessage = (
+                    <FormattedMessage
+                        id='file_attachment.decryption_failed'
+                        defaultMessage='Decryption failed'
+                    />
+                );
+            } else {
+                statusMessage = (
+                    <FormattedMessage
+                        id='file_attachment.decrypting'
+                        defaultMessage='Decrypting...'
+                    />
+                );
+            }
+
             fileDetail = (
                 <div
                     className='post-image__detail_wrapper'
-                    onClick={decrypt}
-                    role='button'
-                    tabIndex={0}
                 >
                     <div className='post-image__detail'>
                         <span className='post-image__name post-image__name--encrypted'>
@@ -424,10 +462,7 @@ export default function FileAttachment(props: Props) {
                             />
                         </span>
                         <span className='post-image__encrypted-hint'>
-                            <FormattedMessage
-                                id='file_attachment.click_to_decrypt'
-                                defaultMessage='Click to decrypt'
-                            />
+                            {statusMessage}
                         </span>
                     </div>
                 </div>
@@ -530,9 +565,10 @@ export default function FileAttachment(props: Props) {
                     'post-image__column',
                     {'keep-open': keepOpen},
                     {'post-image__column--archived': fileInfo.archived},
-                    {'post-image__column--encrypted': isEncrypted},
-                    {'post-image__column--decrypting': isEncrypted && decryptionStatus === 'decrypting'},
-                    {'post-image__column--failed': isEncrypted && decryptionStatus === 'failed'},
+                    // Only show encrypted styling when showing placeholder, not after decryption
+                    {'post-image__column--encrypted': showEncryptedPlaceholder},
+                    {'post-image__column--decrypting': isDecrypting},
+                    {'post-image__column--failed': hasFailed},
                     {'post-image__column--compact': compactDisplay},
                 ])}
             >

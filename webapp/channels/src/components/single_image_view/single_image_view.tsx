@@ -50,9 +50,15 @@ export default function SingleImageView(props: Props) {
         fileUrl: decryptedFileUrl,
         thumbnailUrl: decryptedThumbnailUrl,
         status: decryptionStatus,
+        error: decryptionError,
         originalFileInfo,
         decrypt,
     } = useEncryptedFile(fileInfo, postId, true); // autoDecrypt=true for images
+
+    // Determine decryption state for display
+    const isDecrypted = decryptionStatus === 'decrypted' && decryptedFileUrl;
+    const hasFailed = decryptionStatus === 'failed';
+    const noPermission = hasFailed && decryptionError?.includes('no key');
 
     // Update dimensions when fileInfo changes
     useEffect(() => {
@@ -261,11 +267,9 @@ export default function SingleImageView(props: Props) {
                                 <span className='encrypted-image-placeholder__text'>
                                     {decryptionStatus === 'decrypting' ? 'Decrypting...' : 'Encrypted file'}
                                 </span>
-                                {decryptionStatus === 'failed' && (
-                                    <span className='encrypted-image-placeholder__error'>
-                                        Click to retry
-                                    </span>
-                                )}
+                                <span className='encrypted-image-placeholder__error'>
+                                    {noPermission ? 'You do not have permission' : hasFailed ? 'Decryption failed' : ''}
+                                </span>
                             </div>
                         </div>
                     )}
@@ -276,7 +280,7 @@ export default function SingleImageView(props: Props) {
 
     return (
         <div
-            className={classNames('file-view--single', permalinkClass, {'file-view--encrypted': isEncrypted})}
+            className={classNames('file-view--single', permalinkClass)}
         >
             <div
                 className='file__image'
