@@ -16,7 +16,7 @@ import {makeGetChannel} from 'mattermost-redux/selectors/entities/channels';
 import {getConfig} from 'mattermost-redux/selectors/entities/general';
 import {getPost, makeGetPostsForThread} from 'mattermost-redux/selectors/entities/posts';
 
-import {showThreadPinnedPosts, closeRightHandSide} from 'actions/views/rhs';
+import {showThreadPinnedPosts, showThreadFollowers, closeRightHandSide} from 'actions/views/rhs';
 import {focusPost} from 'components/permalink_view/actions';
 import HeaderIconWrapper from 'components/channel_header/components/header_icon_wrapper';
 import PopoutButton from 'components/popout_button';
@@ -26,7 +26,7 @@ import WithTooltip from 'components/with_tooltip';
 import {RHSStates} from 'utils/constants';
 import {popoutThread} from 'utils/popouts/popout_windows';
 
-import {getRhsState, getPinnedPostsThreadId} from 'selectors/rhs';
+import {getRhsState, getPinnedPostsThreadId, getThreadFollowersThreadId} from 'selectors/rhs';
 
 import type {GlobalState} from 'types/store';
 
@@ -132,6 +132,7 @@ const ThreadPane = ({
     // RHS state for active button styling
     const rhsState = useSelector(getRhsState);
     const pinnedPostsThreadId = useSelector(getPinnedPostsThreadId);
+    const threadFollowersThreadId = useSelector(getThreadFollowersThreadId);
 
     // Fetch thread followers and pinned posts count (ThreadsInSidebar feature)
     useEffect(() => {
@@ -186,6 +187,16 @@ const ThreadPane = ({
         }
     }, [dispatch, channelId, threadId, rhsState, pinnedPostsThreadId]);
 
+    // Handlers for Followers button (ThreadsInSidebar feature)
+    const showThreadFollowersHandler = useCallback(() => {
+        // Check if we're already showing followers for this thread
+        if (rhsState === RHSStates.THREAD_FOLLOWERS && threadFollowersThreadId === threadId) {
+            dispatch(closeRightHandSide());
+        } else {
+            dispatch(showThreadFollowers(threadId, channelId));
+        }
+    }, [dispatch, channelId, threadId, rhsState, threadFollowersThreadId]);
+
     // Get thread name from root post message
     const threadName = post ? cleanMessageForDisplay(post.message) : '';
 
@@ -195,7 +206,9 @@ const ThreadPane = ({
     });
 
     // Members button class
-    const membersIconClass = classNames('channel-header__icon channel-header__icon--wide channel-header__icon--left btn btn-icon btn-xs');
+    const membersIconClass = classNames('channel-header__icon channel-header__icon--wide channel-header__icon--left btn btn-icon btn-xs', {
+        'channel-header__icon--active': rhsState === RHSStates.THREAD_FOLLOWERS && threadFollowersThreadId === threadId,
+    });
 
     // Render enhanced header when ThreadsInSidebar is enabled
     const renderHeading = () => {
@@ -218,7 +231,7 @@ const ThreadPane = ({
                                 <HeaderIconWrapper
                                     buttonClass={membersIconClass}
                                     buttonId={'threadPaneMembersButton'}
-                                    onClick={() => {/* TODO: Show thread followers panel */}}
+                                    onClick={showThreadFollowersHandler}
                                     tooltip={formatMessage({id: 'threading.header.followers', defaultMessage: 'Thread followers'})}
                                 >
                                     <i

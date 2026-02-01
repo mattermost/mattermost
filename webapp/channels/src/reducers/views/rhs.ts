@@ -116,6 +116,7 @@ function selectedChannelId(state = '', action: MMAction) {
             RHSStates.CHANNEL_INFO,
             RHSStates.CHANNEL_MEMBERS,
             RHSStates.EDIT_HISTORY,
+            RHSStates.THREAD_FOLLOWERS,
         ].includes(action.state)) {
             return action.channelId;
         }
@@ -437,6 +438,21 @@ function pinnedPostsThreadId(state = '', action: MMAction) {
     }
 }
 
+// Track when we're showing followers for a specific thread
+function threadFollowersThreadId(state = '', action: MMAction) {
+    switch (action.type) {
+    case ActionTypes.UPDATE_RHS_STATE:
+        if (action.state === RHSStates.THREAD_FOLLOWERS) {
+            return action.threadId ?? '';
+        }
+        return '';
+    case UserTypes.LOGOUT_SUCCESS:
+        return '';
+    default:
+        return state;
+    }
+}
+
 export default combineReducers({
     selectedPostId,
     selectedPostFocussedAt,
@@ -461,4 +477,5 @@ export default combineReducers({
     editChannelMembers,
     shouldFocusRHS,
     pinnedPostsThreadId,
+    threadFollowersThreadId,
 });

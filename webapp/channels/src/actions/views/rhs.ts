@@ -533,6 +533,26 @@ export function showChannelInfo(channelId: string) {
     };
 }
 
+export function showThreadFollowers(threadId: string, channelId: string): ActionFuncAsync<boolean> {
+    return async (dispatch, getState) => {
+        const state = getState();
+
+        let previousRhsState = getRhsState(state);
+        if (previousRhsState === RHSStates.THREAD_FOLLOWERS) {
+            previousRhsState = getPreviousRhsState(state);
+        }
+        dispatch({
+            type: ActionTypes.UPDATE_RHS_STATE,
+            channelId,
+            threadId,
+            state: RHSStates.THREAD_FOLLOWERS,
+            previousRhsState,
+        });
+
+        return {data: true};
+    };
+}
+
 export function closeRightHandSide(): ActionFunc {
     return (dispatch) => {
         const actionsBatch: AnyAction[] = [

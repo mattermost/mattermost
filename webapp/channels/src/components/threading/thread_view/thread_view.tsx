@@ -22,7 +22,7 @@ import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
 import {clearLastUnreadChannel} from 'actions/global_actions';
 import {loadProfilesForSidebar} from 'actions/user_actions';
 import {selectLhsItem} from 'actions/views/lhs';
-import {suppressRHS, unsuppressRHS, showThreadPinnedPosts, closeRightHandSide} from 'actions/views/rhs';
+import {suppressRHS, unsuppressRHS, showThreadPinnedPosts, showThreadFollowers, closeRightHandSide} from 'actions/views/rhs';
 import {setSelectedThreadId} from 'actions/views/threads';
 import {focusPost} from 'components/permalink_view/actions';
 import ChatIllustration from 'components/common/svg_images_components/chat_illustration';
@@ -36,7 +36,7 @@ import WithTooltip from 'components/with_tooltip';
 import {RHSStates} from 'utils/constants';
 import {popoutThread} from 'utils/popouts/popout_windows';
 
-import {getRhsState, getPinnedPostsThreadId} from 'selectors/rhs';
+import {getRhsState, getPinnedPostsThreadId, getThreadFollowersThreadId} from 'selectors/rhs';
 
 import type {GlobalState} from 'types/store';
 import {LhsItemType, LhsPage} from 'types/store/lhs';
@@ -127,6 +127,7 @@ const ThreadView = () => {
     // RHS state for active button styling
     const rhsState = useSelector(getRhsState);
     const pinnedPostsThreadId = useSelector(getPinnedPostsThreadId);
+    const threadFollowersThreadId = useSelector(getThreadFollowersThreadId);
 
     const [isLoading, setIsLoading] = useState(!thread);
 
@@ -221,6 +222,18 @@ const ThreadView = () => {
         }
     }, [dispatch, channelId, threadIdentifier, rhsState, pinnedPostsThreadId]);
 
+    // Handlers for Followers button (ThreadsInSidebar feature)
+    const showThreadFollowersHandler = useCallback(() => {
+        if (channelId && threadIdentifier) {
+            // Check if we're already showing followers for this thread
+            if (rhsState === RHSStates.THREAD_FOLLOWERS && threadFollowersThreadId === threadIdentifier) {
+                dispatch(closeRightHandSide());
+            } else {
+                dispatch(showThreadFollowers(threadIdentifier, channelId));
+            }
+        }
+    }, [dispatch, channelId, threadIdentifier, rhsState, threadFollowersThreadId]);
+
     // Get thread name from root post message
     const threadName = rootPost ? cleanMessageForDisplay(rootPost.message) : '';
 
@@ -271,7 +284,9 @@ const ThreadView = () => {
     });
 
     // Members button class
-    const membersIconClass = classNames('channel-header__icon channel-header__icon--wide channel-header__icon--left btn btn-icon btn-xs');
+    const membersIconClass = classNames('channel-header__icon channel-header__icon--wide channel-header__icon--left btn btn-icon btn-xs', {
+        'channel-header__icon--active': rhsState === RHSStates.THREAD_FOLLOWERS && threadFollowersThreadId === threadIdentifier,
+    });
 
     // Render enhanced header when ThreadsInSidebar is enabled
     const renderHeading = () => {
@@ -294,7 +309,7 @@ const ThreadView = () => {
                                 <HeaderIconWrapper
                                     buttonClass={membersIconClass}
                                     buttonId={'threadHeaderMembersButton'}
-                                    onClick={() => {/* TODO: Show thread followers panel */}}
+                                    onClick={showThreadFollowersHandler}
                                     tooltip={formatMessage({id: 'threading.header.followers', defaultMessage: 'Thread followers'})}
                                 >
                                     <i

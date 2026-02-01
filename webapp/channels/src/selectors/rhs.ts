@@ -168,6 +168,10 @@ export function getPinnedPostsThreadId(state: GlobalState): string {
     return state.views.rhs.pinnedPostsThreadId;
 }
 
+export function getThreadFollowersThreadId(state: GlobalState): string {
+    return state.views.rhs.threadFollowersThreadId;
+}
+
 export function getIsSearchGettingMore(state: GlobalState): boolean {
     return state.entities.search.isSearchGettingMore;
 }

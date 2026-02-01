@@ -10,6 +10,7 @@ import type {Team} from '@mattermost/types/teams';
 
 import ChannelInfoRhs from 'components/channel_info_rhs';
 import ChannelMembersRhs from 'components/channel_members_rhs';
+import ThreadFollowersRhs from 'components/thread_followers_rhs';
 import FileUploadOverlay from 'components/file_upload_overlay';
 import {DropOverlayIdRHS} from 'components/file_upload_overlay/file_upload_overlay';
 import LoadingScreen from 'components/loading_screen';
@@ -42,6 +43,7 @@ export type Props = {
     isChannelFiles: boolean;
     isChannelInfo: boolean;
     isChannelMembers: boolean;
+    isThreadFollowers: boolean;
     isPluginView: boolean;
     isPostEditHistory: boolean;
     previousRhsState: RhsState;
@@ -98,6 +100,7 @@ export default class SidebarRight extends React.PureComponent<Props, State> {
             isChannelFiles: this.props.isChannelFiles,
             isChannelInfo: this.props.isChannelInfo,
             isChannelMembers: this.props.isChannelMembers,
+            isThreadFollowers: this.props.isThreadFollowers,
             isPostEditHistory: this.props.isPostEditHistory,
             selectedPostId: this.props.selectedPostId,
             selectedPostCardId: this.props.selectedPostCardId,
@@ -150,6 +153,7 @@ export default class SidebarRight extends React.PureComponent<Props, State> {
             (this.props.isChannelFiles !== prevProps.isChannelFiles) ||
             (this.props.isChannelInfo !== prevProps.isChannelInfo) ||
             (this.props.isChannelMembers !== prevProps.isChannelMembers) ||
+            (this.props.isThreadFollowers !== prevProps.isThreadFollowers) ||
             (this.props.isPostEditHistory !== prevProps.isPostEditHistory) ||
             (this.props.rhsChannel?.id !== prevProps.rhsChannel?.id) ||
             (this.props.teamId !== prevProps.teamId)
@@ -306,6 +310,8 @@ export default class SidebarRight extends React.PureComponent<Props, State> {
         } else if (isChannelMembers) {
             currentChannelNeeded = true;
             content = <ChannelMembersRhs/>;
+        } else if (this.props.isThreadFollowers) {
+            content = <ThreadFollowersRhs/>;
         } else if (isPostEditHistory) {
             content = <PostEditHistory/>;
         }
