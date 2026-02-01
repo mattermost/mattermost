@@ -249,7 +249,7 @@ export async function decryptFile(
 }
 
 /**
- * Checks if a file is encrypted based on its MIME type.
+ * Checks if a file is encrypted based on its MIME type or cached metadata.
  * @param fileInfo - The FileInfo object to check
  * @returns true if the file is encrypted
  */
@@ -257,7 +257,22 @@ export function isEncryptedFile(fileInfo: FileInfo | undefined): boolean {
     if (!fileInfo) {
         return false;
     }
-    return fileInfo.mime_type === ENCRYPTED_FILE_MIME_TYPE;
+
+    // Check MIME type first (for files from server with correct type)
+    if (fileInfo.mime_type === ENCRYPTED_FILE_MIME_TYPE) {
+        return true;
+    }
+
+    // Check cached metadata (for files just uploaded where server may not preserve mime_type)
+    // Import dynamically to avoid circular dependency
+    // eslint-disable-next-line @typescript-eslint/no-var-requires, global-require
+    const {getCachedFileMetadata} = require('./file_hooks');
+    const cachedMetadata = getCachedFileMetadata(fileInfo.id);
+    if (cachedMetadata) {
+        return true;
+    }
+
+    return false;
 }
 
 /**
