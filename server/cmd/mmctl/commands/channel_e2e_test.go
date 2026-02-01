@@ -673,4 +673,41 @@ func (s *MmctlE2ETestSuite) TestMoveChannelCmd() {
 		s.Require().Len(printer.GetLines(), 0)
 		s.Require().Len(printer.GetErrorLines(), 0)
 	})
+
+	s.RunForSystemAdminAndLocal("Move channel with auto add users flag", func(c client.Client) {
+		printer.Clean()
+
+		s.SetupTestHelper().InitBasic()
+		testTeamName := api4.GenerateTestTeamName()
+		var team *model.Team
+		team, appErr := s.th.App.CreateTeam(s.th.Context, &model.Team{
+			Name:        testTeamName,
+			DisplayName: "dName_" + testTeamName,
+			Type:        model.TeamOpen,
+		})
+		s.Require().Nil(appErr)
+
+		user, appErr := s.th.App.CreateUser(s.th.Context, &model.User{Email: s.th.GenerateTestEmail(), Username: model.NewUsername(), Password: model.NewId()})
+		s.Require().Nil(appErr)
+
+		_, _, appErr = s.th.App.AddUserToTeam(s.th.Context, s.th.BasicTeam.Id, user.Id, "")
+		s.Require().Nil(appErr)
+
+		channel, appErr = s.th.App.CreateChannel(s.th.Context, &model.Channel{
+			TeamId:      s.th.BasicTeam.Id,
+			Name:        initChannelName,
+			DisplayName: "dName_" + initChannelName,
+			Type:        model.ChannelTypeOpen,
+		}, false)
+		s.Require().Nil(appErr)
+
+		args := []string{team.Id, channel.Id}
+		cmd := &cobra.Command{}
+		cmd.Flags().Bool("auto-add-users", true, "")
+
+		err := moveChannelCmdF(c, cmd, args)
+		s.Require().NoError(err)
+		s.Require().Len(printer.GetLines(), 0)
+		s.Require().Len(printer.GetErrorLines(), 0)
+	})
 }
