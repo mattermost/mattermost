@@ -16,6 +16,7 @@ import type {ApplyMarkdownOptions, MarkdownMode} from 'utils/markdown/apply_mark
 
 import FormattingIcon, {IconContainer} from './formatting_icon';
 import {useFormattingBarControls} from './hooks';
+import Link from './link';
 
 export const Separator = styled.div`
     display: block;
@@ -146,6 +147,8 @@ const FormattingBar = (props: FormattingBarProps): JSX.Element => {
     const [showHiddenControls, setShowHiddenControls] = useState(false);
     const formattingBarRef = useRef<HTMLDivElement>(null);
     const {controls, hiddenControls, wideMode} = useFormattingBarControls(formattingBarRef);
+    const [isLinkModalOpen, setIsLinkModalOpen] = useState(false);
+    const [selection, setSelection] = useState<{start?: number; end?: number; text: string}>({text: ''});
 
     const {formatMessage} = useIntl();
     const HiddenControlsButtonAriaLabel = formatMessage({id: 'accessibility.button.hidden_controls_button', defaultMessage: 'show hidden formatting options'});
@@ -187,7 +190,7 @@ const FormattingBar = (props: FormattingBarProps): JSX.Element => {
         // get the current selection values and return early (doing nothing) when we don't get valid values
         const {start, end} = getCurrentSelection();
 
-        if (start === null || end === null) {
+        if (start === null || start === undefined || end === null || end === undefined) {
             return;
         }
 
@@ -216,6 +219,34 @@ const FormattingBar = (props: FormattingBarProps): JSX.Element => {
 
     const showSeparators = wideMode === 'wide';
 
+    const handleLinkModalToggle = (isOpen: boolean) => {
+        if (isOpen) {
+            const {start, end} = getCurrentSelection();
+            const message = getCurrentMessage();
+            const text = (start !== undefined && end !== undefined) ? message.substring(start, end) : '';
+
+            setSelection({start, end, text});
+        }
+        setIsLinkModalOpen(isOpen);
+    };
+
+    const handleLinkApply = ({text, link}: {text: string; link: string}) => {
+        const {start, end} = selection;
+
+        if (start === undefined || end === undefined) {
+            return;
+        }
+
+        applyMarkdown({
+            markdownMode: 'link',
+            selectionStart: start,
+            selectionEnd: end,
+            message: getCurrentMessage(),
+            url: link,
+            text,
+        });
+    };
+
     return (
         <FormattingBarContainer
             ref={formattingBarRef}
@@ -230,7 +261,17 @@ const FormattingBar = (props: FormattingBarProps): JSX.Element => {
                             onClick={makeFormattingHandler(mode)}
                             disabled={disableControls}
                         />
-                        {mode === 'heading' && showSeparators && <Separator/>}
+                        {mode === 'heading' && (
+                            <>
+                                {showSeparators && <Separator/>}
+                                <Link
+                                    onToggle={handleLinkModalToggle}
+                                    isMenuOpen={isLinkModalOpen}
+                                    selectionText={selection.text}
+                                    onApply={handleLinkApply}
+                                />
+                            </>
+                        )}
                     </React.Fragment>
                 );
             })}
