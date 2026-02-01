@@ -273,6 +273,14 @@ function ThreadItem({
                     </ThreadMenu>
                 </div>
 
+                {/* Show custom thread name if set */}
+                {thread.props?.custom_name && (
+                    <div className='ThreadItem__custom-name'>
+                        <span className='icon-discord-thread ThreadItem__custom-name-icon'/>
+                        <span className='ThreadItem__custom-name-text'>{thread.props.custom_name}</span>
+                    </div>
+                )}
+
                 {/* The strange interaction here where we need a click/keydown handler messes with the ESLint rules, so we just disable it */}
                 {/*eslint-disable-next-line jsx-a11y/no-static-element-interactions*/}
                 <div

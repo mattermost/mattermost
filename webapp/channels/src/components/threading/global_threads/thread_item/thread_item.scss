@@ -127,6 +127,28 @@
         }
     }
 
+    &__custom-name {
+        display: flex;
+        align-items: center;
+        margin: 0 0 4px;
+        font-size: 14px;
+        font-weight: 600;
+        gap: 4px;
+        color: var(--center-channel-color);
+    }
+
+    &__custom-name-icon {
+        flex-shrink: 0;
+        color: rgba(var(--center-channel-color-rgb), 0.64);
+        font-size: 14px;
+    }
+
+    &__custom-name-text {
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
     div.preview {
         height: 40px;
         margin: 0 0 10px;

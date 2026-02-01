@@ -368,6 +368,7 @@ type ThreadStore interface {
 	SaveMultipleMemberships(memberships []*model.ThreadMembership) ([]*model.ThreadMembership, error)
 	MaintainMultipleFromImport(memberships []*model.ThreadMembership) ([]*model.ThreadMembership, error)
 	UpdateTeamIdForChannelThreads(channelId, teamId string) error
+	PatchThread(threadId string, patch *model.ThreadPatch) (*model.Thread, error)
 }
 
 type PostStore interface {

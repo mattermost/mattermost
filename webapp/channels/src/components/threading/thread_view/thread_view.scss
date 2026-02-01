@@ -104,6 +104,46 @@
             overflow: hidden;
             text-overflow: ellipsis;
             white-space: nowrap;
+
+            &--editable {
+                cursor: pointer;
+                border-radius: 4px;
+                padding: 2px 4px;
+
+                &:hover {
+                    background: rgba(var(--center-channel-color-rgb), 0.08);
+                }
+            }
+        }
+
+        .ThreadView__header-edit-icon {
+            margin-left: 4px;
+            opacity: 0;
+            transition: opacity 0.15s ease;
+            color: rgba(var(--center-channel-color-rgb), 0.56);
+
+            .ThreadView__header-text--editable:hover & {
+                opacity: 1;
+            }
+        }
+
+        .ThreadView__header-name-input {
+            flex: 1;
+            min-width: 100px;
+            max-width: 300px;
+            padding: 2px 8px;
+            border: 1px solid var(--button-bg);
+            border-radius: 4px;
+            background: var(--center-channel-bg);
+            color: var(--center-channel-color);
+            font-size: 16px;
+            font-weight: 600;
+            outline: none;
+
+            &::placeholder {
+                color: rgba(var(--center-channel-color-rgb), 0.5);
+                font-weight: 400;
+            }
         }
 
         .ThreadView__header-icons {

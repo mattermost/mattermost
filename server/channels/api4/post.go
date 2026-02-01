@@ -28,6 +28,7 @@ func (api *API) InitPost() {
 	api.BaseRoutes.Posts.Handle("/ephemeral", api.APISessionRequired(createEphemeralPost)).Methods(http.MethodPost)
 	api.BaseRoutes.Post.Handle("/edit_history", api.APISessionRequired(getEditHistoryForPost)).Methods(http.MethodGet)
 	api.BaseRoutes.Post.Handle("/thread", api.APISessionRequired(getPostThread)).Methods(http.MethodGet)
+	api.BaseRoutes.Post.Handle("/thread", api.APISessionRequired(patchThread)).Methods(http.MethodPatch)
 	api.BaseRoutes.Post.Handle("/thread/followers", api.APISessionRequired(getThreadFollowers)).Methods(http.MethodGet)
 	api.BaseRoutes.Post.Handle("/thread/followers", api.APISessionRequired(addThreadFollowers)).Methods(http.MethodPost)
 	api.BaseRoutes.Post.Handle("/thread/followers/{user_id:[A-Za-z0-9]+}", api.APISessionRequired(removeThreadFollower)).Methods(http.MethodDelete)
@@ -1569,6 +1570,54 @@ func burnPost(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	auditRec.Success()
 	ReturnStatusOK(w)
+}
+
+func patchThread(c *Context, w http.ResponseWriter, r *http.Request) {
+	c.RequirePostId()
+	if c.Err != nil {
+		return
+	}
+
+	// Check feature flag
+	if !c.App.Config().FeatureFlags.CustomThreadNames {
+		c.Err = model.NewAppError("patchThread", "api.thread.patch_thread.feature_disabled.app_error", nil, "", http.StatusNotImplemented)
+		return
+	}
+
+	var patch model.ThreadPatch
+	if jsonErr := json.NewDecoder(r.Body).Decode(&patch); jsonErr != nil {
+		c.SetInvalidParamWithErr("thread_patch", jsonErr)
+		return
+	}
+
+	// Get the post to verify it's a root post (has no RootId)
+	post, appErr := c.App.GetSinglePost(c.AppContext, c.Params.PostId, false)
+	if appErr != nil {
+		c.Err = appErr
+		return
+	}
+
+	if post.RootId != "" {
+		c.Err = model.NewAppError("patchThread", "api.thread.patch_thread.not_root_post.app_error", nil, "", http.StatusBadRequest)
+		return
+	}
+
+	// Check the user has permission to the channel
+	if !c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), post.ChannelId, model.PermissionReadChannel) {
+		c.SetPermissionError(model.PermissionReadChannel)
+		return
+	}
+
+	// Patch the thread
+	thread, appErr := c.App.PatchThread(c.AppContext, c.Params.PostId, &patch)
+	if appErr != nil {
+		c.Err = appErr
+		return
+	}
+
+	if err := json.NewEncoder(w).Encode(thread); err != nil {
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
+	}
 }
 
 func getThreadFollowers(c *Context, w http.ResponseWriter, r *http.Request) {

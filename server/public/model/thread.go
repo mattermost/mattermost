@@ -3,7 +3,45 @@
 
 package model
 
-import "net/http"
+import (
+	"database/sql/driver"
+	"encoding/json"
+	"fmt"
+	"net/http"
+)
+
+// ThreadProps is a map type for thread properties that implements
+// sql.Scanner and driver.Valuer for database serialization.
+type ThreadProps map[string]any
+
+func (tp *ThreadProps) Scan(value any) error {
+	if value == nil {
+		return nil
+	}
+
+	b, ok := value.([]byte)
+	if !ok {
+		str, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("expected []byte or string, got %T", value)
+		}
+		b = []byte(str)
+	}
+
+	return json.Unmarshal(b, tp)
+}
+
+func (tp ThreadProps) Value() (driver.Value, error) {
+	if tp == nil || len(tp) == 0 {
+		return nil, nil
+	}
+
+	j, err := json.Marshal(tp)
+	if err != nil {
+		return nil, err
+	}
+	return string(j), nil
+}
 
 // Thread tracks the metadata associated with a root post and its reply posts.
 //
@@ -32,19 +70,23 @@ type Thread struct {
 	// TeamId is a denormalized copy of the Channel's teamId. In the database, it's
 	// named ThreadTeamId to avoid introducing a query conflict with older server versions.
 	TeamId string `json:"team_id"`
+
+	// Props is a map of custom properties for this thread (e.g., custom_name).
+	Props ThreadProps `json:"props"`
 }
 
 type ThreadResponse struct {
-	PostId         string  `json:"id"`
-	ReplyCount     int64   `json:"reply_count"`
-	LastReplyAt    int64   `json:"last_reply_at"`
-	LastViewedAt   int64   `json:"last_viewed_at"`
-	Participants   []*User `json:"participants"`
-	Post           *Post   `json:"post"`
-	UnreadReplies  int64   `json:"unread_replies"`
-	UnreadMentions int64   `json:"unread_mentions"`
-	IsUrgent       bool    `json:"is_urgent"`
-	DeleteAt       int64   `json:"delete_at"`
+	PostId         string      `json:"id"`
+	ReplyCount     int64       `json:"reply_count"`
+	LastReplyAt    int64       `json:"last_reply_at"`
+	LastViewedAt   int64       `json:"last_viewed_at"`
+	Participants   []*User     `json:"participants"`
+	Post           *Post       `json:"post"`
+	UnreadReplies  int64       `json:"unread_replies"`
+	UnreadMentions int64       `json:"unread_mentions"`
+	IsUrgent       bool        `json:"is_urgent"`
+	DeleteAt       int64       `json:"delete_at"`
+	Props          ThreadProps `json:"props,omitempty"`
 }
 
 type Threads struct {
@@ -147,4 +189,40 @@ type ThreadMembershipForExport struct {
 	Username       string `json:"user_name"`
 	LastViewed     int64  `json:"last_viewed"`
 	UnreadMentions int64  `json:"unread_mentions"`
+}
+
+// ThreadPatch is used to patch a thread's properties.
+type ThreadPatch struct {
+	Props *ThreadProps `json:"props"`
+}
+
+// Patch applies the given patch to the thread.
+func (o *Thread) Patch(patch *ThreadPatch) {
+	if patch.Props != nil {
+		o.Props = *patch.Props
+	}
+}
+
+// MakeNonNil ensures the Props map is initialized.
+func (o *Thread) MakeNonNil() {
+	if o.Props == nil {
+		o.Props = make(ThreadProps)
+	}
+}
+
+// AddProp adds a property to the thread's Props map.
+func (o *Thread) AddProp(key string, value any) {
+	o.MakeNonNil()
+	o.Props[key] = value
+}
+
+// GetCustomName returns the custom name for this thread, if set.
+func (o *Thread) GetCustomName() string {
+	if o.Props == nil {
+		return ""
+	}
+	if name, ok := o.Props["custom_name"].(string); ok {
+		return name
+	}
+	return ""
 }

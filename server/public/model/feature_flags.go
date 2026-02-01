@@ -39,6 +39,9 @@ type FeatureFlags struct {
 	// Enable displaying followed threads under their parent channels in the sidebar
 	ThreadsInSidebar bool
 
+	// Enable custom names for threads (users can rename threads)
+	CustomThreadNames bool
+
 	PermalinkPreviews bool
 
 	NormalizeLdapDNs bool

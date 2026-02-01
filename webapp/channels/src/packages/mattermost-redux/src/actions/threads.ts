@@ -461,3 +461,28 @@ export function decrementThreadCounts(post: ExtendedPost): ActionFunc {
         return {data: true};
     };
 }
+
+export function patchThread(threadId: string, patch: {props?: {custom_name?: string; [key: string]: unknown}}): ActionFuncAsync {
+    return async (dispatch, getState) => {
+        let thread;
+        try {
+            thread = await Client4.patchThread(threadId, patch);
+        } catch (error) {
+            forceLogoutIfNecessary(error, dispatch, getState);
+            dispatch(logError(error));
+            return {error};
+        }
+
+        if (thread && patch.props) {
+            dispatch({
+                type: ThreadTypes.UPDATE_THREAD_PROPS,
+                data: {
+                    id: threadId,
+                    props: patch.props,
+                },
+            });
+        }
+
+        return {data: thread};
+    };
+}

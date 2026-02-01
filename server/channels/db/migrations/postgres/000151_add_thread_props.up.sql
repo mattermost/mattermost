@@ -1,0 +1,1 @@
+ALTER TABLE threads ADD COLUMN IF NOT EXISTS props jsonb;

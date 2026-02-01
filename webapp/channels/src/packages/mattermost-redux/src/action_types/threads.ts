@@ -12,4 +12,5 @@ export default keyMirror({
     ALL_TEAM_THREADS_READ: null,
     DECREMENT_THREAD_COUNTS: null,
     RECEIVED_THREAD_COUNTS: null,
+    UPDATE_THREAD_PROPS: null,
 });

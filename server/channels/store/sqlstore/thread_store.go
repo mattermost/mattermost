@@ -31,6 +31,7 @@ type JoinedThread struct {
 	ThreadDeleteAt int64
 	TeamId         string
 	IsUrgent       bool
+	Props          model.ThreadProps
 	model.Post
 }
 
@@ -53,6 +54,7 @@ func (thread *JoinedThread) toThreadResponse(users map[string]*model.User) *mode
 		Post:           thread.Post.ToNilIfInvalid(),
 		DeleteAt:       thread.ThreadDeleteAt,
 		IsUrgent:       thread.IsUrgent,
+		Props:          thread.Props,
 	}
 }
 
@@ -90,6 +92,7 @@ func (s *SqlThreadStore) initializeQueries() {
 			"Threads.Participants",
 			"COALESCE(Threads.ThreadDeleteAt, 0) AS DeleteAt",
 			"COALESCE(Threads.ThreadTeamId, '') AS TeamId",
+			"Threads.Props",
 		).
 		From("Threads")
 
@@ -102,6 +105,7 @@ func (s *SqlThreadStore) initializeQueries() {
 			"Threads.Participants",
 			"COALESCE(Threads.ThreadDeleteAt, 0) AS ThreadDeleteAt",
 			"COALESCE(Threads.ThreadTeamId, '') AS TeamId",
+			"Threads.Props",
 		).
 		From("Threads")
 }
@@ -1185,4 +1189,32 @@ func (s *SqlThreadStore) UpdateTeamIdForChannelThreads(channelId, teamId string)
 	}
 
 	return nil
+}
+
+// PatchThread updates a thread's properties.
+func (s *SqlThreadStore) PatchThread(threadId string, patch *model.ThreadPatch) (*model.Thread, error) {
+	// Get the existing thread
+	thread, err := s.Get(threadId)
+	if err != nil {
+		return nil, err
+	}
+	if thread == nil {
+		return nil, store.NewErrNotFound("Thread", threadId)
+	}
+
+	// Apply the patch
+	thread.Patch(patch)
+
+	// Update the database
+	query := s.getQueryBuilder().
+		Update("Threads").
+		Set("Props", thread.Props).
+		Where(sq.Eq{"PostId": threadId})
+
+	_, err = s.GetMaster().ExecBuilder(query)
+	if err != nil {
+		return nil, errors.Wrapf(err, "failed to patch thread with id=%s", threadId)
+	}
+
+	return thread, nil
 }

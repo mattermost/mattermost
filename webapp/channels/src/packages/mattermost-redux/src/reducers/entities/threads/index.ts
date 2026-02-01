@@ -80,6 +80,21 @@ export const threadsReducer = (state: ThreadsState['threads'] = {}, action: MMRe
             },
         };
     }
+    case ThreadTypes.UPDATE_THREAD_PROPS: {
+        const {id, props} = action.data;
+
+        if (!state[id]) {
+            return state;
+        }
+
+        return {
+            ...state,
+            [id]: {
+                ...state[id],
+                props,
+            },
+        };
+    }
     case PostTypes.RECEIVED_NEW_POST: {
         const post: Post = action.data;
         const thread: UserThread | undefined = state[post.root_id];

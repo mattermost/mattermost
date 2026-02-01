@@ -623,6 +623,36 @@ func (_m *ThreadStore) MarkAsRead(userID string, threadID string, timestamp int6
 	return r0
 }
 
+// PatchThread provides a mock function with given fields: threadId, patch
+func (_m *ThreadStore) PatchThread(threadId string, patch *model.ThreadPatch) (*model.Thread, error) {
+	ret := _m.Called(threadId, patch)
+
+	if len(ret) == 0 {
+		panic("no return value specified for PatchThread")
+	}
+
+	var r0 *model.Thread
+	var r1 error
+	if rf, ok := ret.Get(0).(func(string, *model.ThreadPatch) (*model.Thread, error)); ok {
+		return rf(threadId, patch)
+	}
+	if rf, ok := ret.Get(0).(func(string, *model.ThreadPatch) *model.Thread); ok {
+		r0 = rf(threadId, patch)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.Thread)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(string, *model.ThreadPatch) error); ok {
+		r1 = rf(threadId, patch)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // PermanentDeleteBatchForRetentionPolicies provides a mock function with given fields: retentionPolicyBatchConfigs, cursor
 func (_m *ThreadStore) PermanentDeleteBatchForRetentionPolicies(retentionPolicyBatchConfigs model.RetentionPolicyBatchConfigs, cursor model.RetentionPolicyCursor) (int64, model.RetentionPolicyCursor, error) {
 	ret := _m.Called(retentionPolicyBatchConfigs, cursor)

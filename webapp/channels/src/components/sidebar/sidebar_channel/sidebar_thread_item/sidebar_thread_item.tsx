@@ -85,9 +85,10 @@ const SidebarThreadItem = ({
     const match = useRouteMatch<{team?: string; threadIdentifier?: string}>('/:team/thread/:threadIdentifier');
     const isActive = Boolean(match && match.params.threadIdentifier === thread.id);
 
-    // Clean and format the label using the full post message
+    // Use custom thread name if set, otherwise use cleaned post message
+    const customName = thread.props?.custom_name;
     const rawMessage = post?.message || '';
-    const label = cleanMessageForDisplay(rawMessage) || formatMessage({id: 'threading.thread', defaultMessage: 'Thread'});
+    const label = customName || cleanMessageForDisplay(rawMessage) || formatMessage({id: 'threading.thread', defaultMessage: 'Thread'});
 
     const hasUnread = (thread.unread_replies || 0) > 0 || (thread.unread_mentions || 0) > 0;
 

@@ -22,6 +22,10 @@ export type UserThread = {
     is_following: boolean;
     is_urgent?: boolean;
     type?: UserThreadType;
+    props?: {
+        custom_name?: string;
+        [key: string]: unknown;
+    };
 
     // TODO consider flattening, removing post from UserThreads in-store
     /**
@@ -44,6 +48,28 @@ export function threadIsSynthetic(thread: UserThread | UserThreadSynthetic): thr
 }
 
 export type UserThreadWithPost = UserThread & {post: Post};
+
+// Thread is the server-side thread model (returned by PATCH /api/v4/posts/{post_id}/thread)
+export type Thread = {
+    id: string;
+    channel_id: string;
+    reply_count: number;
+    last_reply_at: number;
+    participants: string[];
+    delete_at: number;
+    team_id: string;
+    props?: {
+        custom_name?: string;
+        [key: string]: unknown;
+    };
+};
+
+export type ThreadPatch = {
+    props?: {
+        custom_name?: string;
+        [key: string]: unknown;
+    };
+};
 
 export type UserThreadList = {
     total: number;

@@ -2956,6 +2956,21 @@ func (a *App) GetThreadForUser(rctx request.CTX, threadMembership *model.ThreadM
 	return thread, nil
 }
 
+// PatchThread updates a thread's properties (e.g., custom name)
+func (a *App) PatchThread(rctx request.CTX, threadId string, patch *model.ThreadPatch) (*model.Thread, *model.AppError) {
+	thread, nErr := a.Srv().Store().Thread().PatchThread(threadId, patch)
+	if nErr != nil {
+		var nfErr *store.ErrNotFound
+		switch {
+		case errors.As(nErr, &nfErr):
+			return nil, model.NewAppError("PatchThread", "app.thread.patch_thread.not_found", nil, "", http.StatusNotFound)
+		default:
+			return nil, model.NewAppError("PatchThread", "app.thread.patch_thread.app_error", nil, "", http.StatusInternalServerError).Wrap(nErr)
+		}
+	}
+	return thread, nil
+}
+
 // GetThreadFollowers returns the list of users following a thread
 func (a *App) GetThreadFollowers(rctx request.CTX, threadID string) ([]*model.User, *model.AppError) {
 	userIDs, err := a.Srv().Store().Thread().GetThreadFollowers(threadID, true)

@@ -143,7 +143,7 @@ import type {
     NotPagedTeamSearchOpts,
 } from '@mattermost/types/teams';
 import type {TermsOfService} from '@mattermost/types/terms_of_service';
-import type {UserThreadList, UserThread, UserThreadWithPost} from '@mattermost/types/threads';
+import type {UserThreadList, UserThread, UserThreadWithPost, Thread, ThreadPatch} from '@mattermost/types/threads';
 import type {
     AuthChangeResponse,
     UserAccessToken,
@@ -2488,6 +2488,13 @@ export default class Client4 {
         return this.doFetch<StatusOK>(
             `${this.getPostRoute(threadId)}/thread/followers/${userId}`,
             {method: 'delete'},
+        );
+    };
+
+    patchThread = (threadId: string, patch: ThreadPatch) => {
+        return this.doFetch<Thread>(
+            `${this.getPostRoute(threadId)}/thread`,
+            {method: 'patch', body: JSON.stringify(patch)},
         );
     };
 
