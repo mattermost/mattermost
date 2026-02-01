@@ -467,7 +467,25 @@ function Invoke-Setup {
     "ClientDirectory": "$workDirUnix/data/client/plugins"
   },
   "FeatureFlags": {
-    "Encryption": true
+    "EnableSharedChannelsPlugins": true,
+    "OnboardingTourTips": true,
+    "StreamlinedMarketplace": true,
+    "ChannelBookmarks": true,
+    "WebSocketEventScope": true,
+    "NotificationMonitoring": true,
+    "ExperimentalAuditSettingsSystemConsoleUI": true,
+    "CustomProfileAttributes": true,
+    "AttributeBasedAccessControl": true,
+    "ContentFlagging": true,
+    "InteractiveDialogAppsForm": true,
+    "EnableMattermostEntry": true,
+    "MobileSSOCodeExchange": true,
+    "BurnOnRead": true,
+    "Encryption": true,
+    "CustomChannelIcons": true,
+    "HideDeletedMessagePlaceholder": true,
+    "ThreadsInSidebar": true,
+    "CustomThreadNames": true
   },
   "MattermostExtendedSettings": {
   }
@@ -732,7 +750,25 @@ function Invoke-FixConfig {
     "ShowFullName": true
   },
   "FeatureFlags": {
-    "Encryption": true
+    "EnableSharedChannelsPlugins": true,
+    "OnboardingTourTips": true,
+    "StreamlinedMarketplace": true,
+    "ChannelBookmarks": true,
+    "WebSocketEventScope": true,
+    "NotificationMonitoring": true,
+    "ExperimentalAuditSettingsSystemConsoleUI": true,
+    "CustomProfileAttributes": true,
+    "AttributeBasedAccessControl": true,
+    "ContentFlagging": true,
+    "InteractiveDialogAppsForm": true,
+    "EnableMattermostEntry": true,
+    "MobileSSOCodeExchange": true,
+    "BurnOnRead": true,
+    "Encryption": true,
+    "CustomChannelIcons": true,
+    "HideDeletedMessagePlaceholder": true,
+    "ThreadsInSidebar": true,
+    "CustomThreadNames": true
   },
   "MattermostExtendedSettings": {}
 }
