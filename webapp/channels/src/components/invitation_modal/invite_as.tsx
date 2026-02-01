@@ -5,7 +5,6 @@ import React, {useEffect} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 import {useSelector, useDispatch} from 'react-redux';
 
-import {getPrevTrialLicense} from 'mattermost-redux/actions/admin';
 import {getSubscriptionProduct, checkHadPriorTrial} from 'mattermost-redux/selectors/entities/cloud';
 import {getConfig, getLicense} from 'mattermost-redux/selectors/entities/general';
 import {isCurrentUserSystemAdmin} from 'mattermost-redux/selectors/entities/users';
@@ -22,6 +21,7 @@ import {CloudProducts, LicenseSkus, ModalIdentifiers, MattermostFeatures} from '
 import type {GlobalState} from 'types/store';
 
 import './invite_as.scss';
+import {tryGetPrevTrialLicense} from 'actions/license';
 
 export const InviteType = {
     MEMBER: 'MEMBER',
@@ -43,7 +43,7 @@ export default function InviteAs(props: Props) {
     const dispatch = useDispatch();
 
     useEffect(() => {
-        dispatch(getPrevTrialLicense());
+        dispatch(tryGetPrevTrialLicense());
     }, []);
 
     const subscription = useSelector((state: GlobalState) => state.entities.cloud.subscription);
