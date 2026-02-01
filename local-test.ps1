@@ -913,6 +913,53 @@ function Invoke-S3Sync {
     Log ""
 }
 
+function Invoke-Migrate {
+    param(
+        [string]$SubCommand = "status"
+    )
+
+    Log ""
+    Log "=== Database Migrations ==="
+    Log ""
+
+    # Check PostgreSQL is running
+    $pgRunning = docker ps --filter "name=$PG_CONTAINER" --format "{{.Names}}" 2>$null
+    if (!$pgRunning) {
+        Log "Starting PostgreSQL..."
+        docker start $PG_CONTAINER 2>$null | Out-Null
+        Start-Sleep -Seconds 2
+    }
+
+    switch ($SubCommand.ToLower()) {
+        "status" {
+            Log "Recent migrations:"
+            $result = docker exec $PG_CONTAINER psql -U $PG_USER -d $PG_DATABASE -c "SELECT version, name FROM db_migrations ORDER BY version DESC LIMIT 10;" 2>&1
+            $result | ForEach-Object { Log $_ }
+        }
+        "reset-encryption" {
+            Log "Resetting encryption session keys migration (149)..."
+
+            # Drop the table
+            $result = docker exec $PG_CONTAINER psql -U $PG_USER -d $PG_DATABASE -c "DROP TABLE IF EXISTS encryptionsessionkeys;" 2>&1
+            $result | ForEach-Object { Log $_ }
+
+            # Remove migration record
+            $result = docker exec $PG_CONTAINER psql -U $PG_USER -d $PG_DATABASE -c "DELETE FROM db_migrations WHERE version = 149;" 2>&1
+            $result | ForEach-Object { Log $_ }
+
+            Log-Success "Migration 149 reset. It will be re-applied on next server start."
+        }
+        default {
+            Log "Usage: ./local-test.ps1 migrate [status|reset-encryption]"
+            Log ""
+            Log "Commands:"
+            Log "  status           - Show recent migrations"
+            Log "  reset-encryption - Reset encryption session keys table (migration 149)"
+        }
+    }
+    Log ""
+}
+
 function Invoke-All {
     Log ""
     Log "=== Running Full Setup and Build ==="

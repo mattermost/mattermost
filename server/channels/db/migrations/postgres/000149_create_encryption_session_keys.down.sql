@@ -1,1 +1,1 @@
-DROP TABLE IF EXISTS EncryptionSessionKeys;
+DROP TABLE IF EXISTS encryptionsessionkeys;

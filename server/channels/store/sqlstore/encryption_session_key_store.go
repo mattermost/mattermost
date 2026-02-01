@@ -33,11 +33,11 @@ func (s *SqlEncryptionSessionKeyStore) Save(key *model.EncryptionSessionKey) err
 
 	// Upsert: insert or replace
 	query := `
-		INSERT INTO EncryptionSessionKeys (SessionId, UserId, PublicKey, CreateAt)
-		VALUES (?, ?, ?, ?)
-		ON CONFLICT (SessionId) DO UPDATE SET
-			PublicKey = EXCLUDED.PublicKey,
-			CreateAt = EXCLUDED.CreateAt
+		INSERT INTO encryptionsessionkeys (sessionid, userid, publickey, createat)
+		VALUES ($1, $2, $3, $4)
+		ON CONFLICT (sessionid) DO UPDATE SET
+			publickey = EXCLUDED.publickey,
+			createat = EXCLUDED.createat
 	`
 
 	if _, err := s.GetMaster().Exec(query, key.SessionId, key.UserId, key.PublicKey, key.CreateAt); err != nil {
@@ -52,9 +52,9 @@ func (s *SqlEncryptionSessionKeyStore) GetBySession(sessionId string) (*model.En
 	var key model.EncryptionSessionKey
 
 	query, args, err := s.getQueryBuilder().
-		Select("SessionId", "UserId", "PublicKey", "CreateAt").
-		From("EncryptionSessionKeys").
-		Where(sq.Eq{"SessionId": sessionId}).
+		Select("sessionid", "userid", "publickey", "createat").
+		From("encryptionsessionkeys").
+		Where(sq.Eq{"sessionid": sessionId}).
 		ToSql()
 	if err != nil {
 		return nil, errors.Wrap(err, "encryption_session_key_get_by_session_tosql")
@@ -75,9 +75,9 @@ func (s *SqlEncryptionSessionKeyStore) GetByUser(userId string) ([]*model.Encryp
 	var keys []*model.EncryptionSessionKey
 
 	query, args, err := s.getQueryBuilder().
-		Select("SessionId", "UserId", "PublicKey", "CreateAt").
-		From("EncryptionSessionKeys").
-		Where(sq.Eq{"UserId": userId}).
+		Select("sessionid", "userid", "publickey", "createat").
+		From("encryptionsessionkeys").
+		Where(sq.Eq{"userid": userId}).
 		ToSql()
 	if err != nil {
 		return nil, errors.Wrap(err, "encryption_session_key_get_by_user_tosql")
@@ -99,9 +99,9 @@ func (s *SqlEncryptionSessionKeyStore) GetByUsers(userIds []string) ([]*model.En
 	var keys []*model.EncryptionSessionKey
 
 	query, args, err := s.getQueryBuilder().
-		Select("SessionId", "UserId", "PublicKey", "CreateAt").
-		From("EncryptionSessionKeys").
-		Where(sq.Eq{"UserId": userIds}).
+		Select("sessionid", "userid", "publickey", "createat").
+		From("encryptionsessionkeys").
+		Where(sq.Eq{"userid": userIds}).
 		ToSql()
 	if err != nil {
 		return nil, errors.Wrap(err, "encryption_session_key_get_by_users_tosql")
@@ -117,8 +117,8 @@ func (s *SqlEncryptionSessionKeyStore) GetByUsers(userIds []string) ([]*model.En
 // DeleteBySession removes the encryption key for a specific session.
 func (s *SqlEncryptionSessionKeyStore) DeleteBySession(sessionId string) error {
 	query, args, err := s.getQueryBuilder().
-		Delete("EncryptionSessionKeys").
-		Where(sq.Eq{"SessionId": sessionId}).
+		Delete("encryptionsessionkeys").
+		Where(sq.Eq{"sessionid": sessionId}).
 		ToSql()
 	if err != nil {
 		return errors.Wrap(err, "encryption_session_key_delete_by_session_tosql")
@@ -134,8 +134,8 @@ func (s *SqlEncryptionSessionKeyStore) DeleteBySession(sessionId string) error {
 // DeleteByUser removes all encryption keys for a user.
 func (s *SqlEncryptionSessionKeyStore) DeleteByUser(userId string) error {
 	query, args, err := s.getQueryBuilder().
-		Delete("EncryptionSessionKeys").
-		Where(sq.Eq{"UserId": userId}).
+		Delete("encryptionsessionkeys").
+		Where(sq.Eq{"userid": userId}).
 		ToSql()
 	if err != nil {
 		return errors.Wrap(err, "encryption_session_key_delete_by_user_tosql")
@@ -151,8 +151,8 @@ func (s *SqlEncryptionSessionKeyStore) DeleteByUser(userId string) error {
 // DeleteExpired removes encryption keys for sessions that no longer exist.
 func (s *SqlEncryptionSessionKeyStore) DeleteExpired() error {
 	query := `
-		DELETE FROM EncryptionSessionKeys
-		WHERE SessionId NOT IN (SELECT Id FROM Sessions)
+		DELETE FROM encryptionsessionkeys
+		WHERE sessionid NOT IN (SELECT id FROM sessions)
 	`
 
 	if _, err := s.GetMaster().Exec(query); err != nil {

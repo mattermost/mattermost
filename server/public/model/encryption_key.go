@@ -13,10 +13,10 @@ const (
 // EncryptionSessionKey represents a public encryption key tied to a specific session.
 // Each user can have multiple keys (one per active session/device).
 type EncryptionSessionKey struct {
-	SessionId string `json:"session_id" db:"SessionId"` // Primary key, references Sessions.Id
-	UserId    string `json:"user_id" db:"UserId"`       // For quick lookup
-	PublicKey string `json:"public_key" db:"PublicKey"` // JWK format
-	CreateAt  int64  `json:"create_at" db:"CreateAt"`
+	SessionId string `json:"session_id" db:"sessionid"` // Primary key, references Sessions.Id
+	UserId    string `json:"user_id" db:"userid"`       // For quick lookup
+	PublicKey string `json:"public_key" db:"publickey"` // JWK format
+	CreateAt  int64  `json:"create_at" db:"createat"`
 }
 
 // EncryptionPublicKey represents a user's public encryption key (API response format).

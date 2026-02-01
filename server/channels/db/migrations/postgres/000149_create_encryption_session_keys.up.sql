@@ -1,8 +1,8 @@
-CREATE TABLE IF NOT EXISTS EncryptionSessionKeys (
-    SessionId VARCHAR(26) PRIMARY KEY,
-    UserId VARCHAR(26) NOT NULL,
-    PublicKey TEXT NOT NULL,
-    CreateAt BIGINT NOT NULL
+CREATE TABLE IF NOT EXISTS encryptionsessionkeys (
+    sessionid VARCHAR(26) PRIMARY KEY,
+    userid VARCHAR(26) NOT NULL,
+    publickey TEXT NOT NULL,
+    createat BIGINT NOT NULL
 );
 
-CREATE INDEX IF NOT EXISTS idx_encryption_session_keys_user_id ON EncryptionSessionKeys(UserId);
+CREATE INDEX IF NOT EXISTS idx_encryptionsessionkeys_userid ON encryptionsessionkeys(userid);
