@@ -804,10 +804,10 @@ func (s *TimerLayerAutoTranslationStore) ClearCaches() {
 	}
 }
 
-func (s *TimerLayerAutoTranslationStore) Get(objectID string, dstLang string) (*model.Translation, error) {
+func (s *TimerLayerAutoTranslationStore) Get(objectType string, objectID string, dstLang string) (*model.Translation, error) {
 	start := time.Now()
 
-	result, err := s.AutoTranslationStore.Get(objectID, dstLang)
+	result, err := s.AutoTranslationStore.Get(objectType, objectID, dstLang)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
 	if s.Root.Metrics != nil {
@@ -852,10 +852,10 @@ func (s *TimerLayerAutoTranslationStore) GetAllByStatePage(state model.Translati
 	return result, err
 }
 
-func (s *TimerLayerAutoTranslationStore) GetAllForObject(objectID string) ([]*model.Translation, error) {
+func (s *TimerLayerAutoTranslationStore) GetAllForObject(objectType string, objectID string) ([]*model.Translation, error) {
 	start := time.Now()
 
-	result, err := s.AutoTranslationStore.GetAllForObject(objectID)
+	result, err := s.AutoTranslationStore.GetAllForObject(objectType, objectID)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
 	if s.Root.Metrics != nil {
@@ -868,10 +868,10 @@ func (s *TimerLayerAutoTranslationStore) GetAllForObject(objectID string) ([]*mo
 	return result, err
 }
 
-func (s *TimerLayerAutoTranslationStore) GetBatch(objectIDs []string, dstLang string) (map[string]*model.Translation, error) {
+func (s *TimerLayerAutoTranslationStore) GetBatch(objectType string, objectIDs []string, dstLang string) (map[string]*model.Translation, error) {
 	start := time.Now()
 
-	result, err := s.AutoTranslationStore.GetBatch(objectIDs, dstLang)
+	result, err := s.AutoTranslationStore.GetBatch(objectType, objectIDs, dstLang)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
 	if s.Root.Metrics != nil {

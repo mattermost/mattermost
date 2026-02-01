@@ -19,9 +19,9 @@ func (_m *AutoTranslationStore) ClearCaches() {
 	_m.Called()
 }
 
-// Get provides a mock function with given fields: objectID, dstLang
-func (_m *AutoTranslationStore) Get(objectID string, dstLang string) (*model.Translation, error) {
-	ret := _m.Called(objectID, dstLang)
+// Get provides a mock function with given fields: objectType, objectID, dstLang
+func (_m *AutoTranslationStore) Get(objectType string, objectID string, dstLang string) (*model.Translation, error) {
+	ret := _m.Called(objectType, objectID, dstLang)
 
 	if len(ret) == 0 {
 		panic("no return value specified for Get")
@@ -29,19 +29,19 @@ func (_m *AutoTranslationStore) Get(objectID string, dstLang string) (*model.Tra
 
 	var r0 *model.Translation
 	var r1 error
-	if rf, ok := ret.Get(0).(func(string, string) (*model.Translation, error)); ok {
-		return rf(objectID, dstLang)
+	if rf, ok := ret.Get(0).(func(string, string, string) (*model.Translation, error)); ok {
+		return rf(objectType, objectID, dstLang)
 	}
-	if rf, ok := ret.Get(0).(func(string, string) *model.Translation); ok {
-		r0 = rf(objectID, dstLang)
+	if rf, ok := ret.Get(0).(func(string, string, string) *model.Translation); ok {
+		r0 = rf(objectType, objectID, dstLang)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*model.Translation)
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func(string, string) error); ok {
-		r1 = rf(objectID, dstLang)
+	if rf, ok := ret.Get(1).(func(string, string, string) error); ok {
+		r1 = rf(objectType, objectID, dstLang)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -109,9 +109,9 @@ func (_m *AutoTranslationStore) GetAllByStatePage(state model.TranslationState, 
 	return r0, r1
 }
 
-// GetAllForObject provides a mock function with given fields: objectID
-func (_m *AutoTranslationStore) GetAllForObject(objectID string) ([]*model.Translation, error) {
-	ret := _m.Called(objectID)
+// GetAllForObject provides a mock function with given fields: objectType, objectID
+func (_m *AutoTranslationStore) GetAllForObject(objectType string, objectID string) ([]*model.Translation, error) {
+	ret := _m.Called(objectType, objectID)
 
 	if len(ret) == 0 {
 		panic("no return value specified for GetAllForObject")
@@ -119,19 +119,19 @@ func (_m *AutoTranslationStore) GetAllForObject(objectID string) ([]*model.Trans
 
 	var r0 []*model.Translation
 	var r1 error
-	if rf, ok := ret.Get(0).(func(string) ([]*model.Translation, error)); ok {
-		return rf(objectID)
+	if rf, ok := ret.Get(0).(func(string, string) ([]*model.Translation, error)); ok {
+		return rf(objectType, objectID)
 	}
-	if rf, ok := ret.Get(0).(func(string) []*model.Translation); ok {
-		r0 = rf(objectID)
+	if rf, ok := ret.Get(0).(func(string, string) []*model.Translation); ok {
+		r0 = rf(objectType, objectID)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).([]*model.Translation)
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func(string) error); ok {
-		r1 = rf(objectID)
+	if rf, ok := ret.Get(1).(func(string, string) error); ok {
+		r1 = rf(objectType, objectID)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -139,9 +139,9 @@ func (_m *AutoTranslationStore) GetAllForObject(objectID string) ([]*model.Trans
 	return r0, r1
 }
 
-// GetBatch provides a mock function with given fields: objectIDs, dstLang
-func (_m *AutoTranslationStore) GetBatch(objectIDs []string, dstLang string) (map[string]*model.Translation, error) {
-	ret := _m.Called(objectIDs, dstLang)
+// GetBatch provides a mock function with given fields: objectType, objectIDs, dstLang
+func (_m *AutoTranslationStore) GetBatch(objectType string, objectIDs []string, dstLang string) (map[string]*model.Translation, error) {
+	ret := _m.Called(objectType, objectIDs, dstLang)
 
 	if len(ret) == 0 {
 		panic("no return value specified for GetBatch")
@@ -149,19 +149,19 @@ func (_m *AutoTranslationStore) GetBatch(objectIDs []string, dstLang string) (ma
 
 	var r0 map[string]*model.Translation
 	var r1 error
-	if rf, ok := ret.Get(0).(func([]string, string) (map[string]*model.Translation, error)); ok {
-		return rf(objectIDs, dstLang)
+	if rf, ok := ret.Get(0).(func(string, []string, string) (map[string]*model.Translation, error)); ok {
+		return rf(objectType, objectIDs, dstLang)
 	}
-	if rf, ok := ret.Get(0).(func([]string, string) map[string]*model.Translation); ok {
-		r0 = rf(objectIDs, dstLang)
+	if rf, ok := ret.Get(0).(func(string, []string, string) map[string]*model.Translation); ok {
+		r0 = rf(objectType, objectIDs, dstLang)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(map[string]*model.Translation)
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func([]string, string) error); ok {
-		r1 = rf(objectIDs, dstLang)
+	if rf, ok := ret.Get(1).(func(string, []string, string) error); ok {
+		r1 = rf(objectType, objectIDs, dstLang)
 	} else {
 		r1 = ret.Error(1)
 	}

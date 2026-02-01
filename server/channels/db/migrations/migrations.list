@@ -297,3 +297,5 @@ channels/db/migrations/postgres/000149_create_recaps.down.sql
 channels/db/migrations/postgres/000149_create_recaps.up.sql
 channels/db/migrations/postgres/000150_add_translation_state.down.sql
 channels/db/migrations/postgres/000150_add_translation_state.up.sql
+channels/db/migrations/postgres/000151_translations_primary_key_change.down.sql
+channels/db/migrations/postgres/000151_translations_primary_key_change.up.sql
