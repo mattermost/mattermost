@@ -3745,6 +3745,15 @@ func (c *Client4) GetFlaggingConfiguration(ctx context.Context) (*ContentFlaggin
 	return DecodeJSONFromResponse[*ContentFlaggingReportingConfig](r)
 }
 
+func (c *Client4) GetFlaggingConfigurationForTeam(ctx context.Context, teamId string) (*ContentFlaggingReportingConfig, *Response, error) {
+	r, err := c.DoAPIGet(ctx, c.contentFlaggingRoute()+"/flag/config?team_id="+teamId, "")
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+	return DecodeJSONFromResponse[*ContentFlaggingReportingConfig](r)
+}
+
 func (c *Client4) GetTeamPostFlaggingFeatureStatus(ctx context.Context, teamId string) (map[string]bool, *Response, error) {
 	r, err := c.doAPIGet(ctx, c.contentFlaggingRoute().Join("team", teamId, "status"), "")
 	if err != nil {
@@ -3791,6 +3800,26 @@ func (c *Client4) SearchContentFlaggingReviewers(ctx context.Context, teamID, te
 
 	defer closeBody(r)
 	return DecodeJSONFromResponse[[]*User](r)
+}
+
+func (c *Client4) RemoveFlaggedPost(ctx context.Context, postId string, actionRequest *FlagContentActionRequest) (*Response, error) {
+	r, err := c.DoAPIPutJSON(ctx, fmt.Sprintf("%s/post/%s/remove", c.contentFlaggingRoute(), postId), actionRequest)
+	if err != nil {
+		return BuildResponse(r), err
+	}
+
+	defer closeBody(r)
+	return BuildResponse(r), nil
+}
+
+func (c *Client4) KeepFlaggedPost(ctx context.Context, postId string, actionRequest *FlagContentActionRequest) (*Response, error) {
+	r, err := c.DoAPIPutJSON(ctx, fmt.Sprintf("%s/post/%s/keep", c.contentFlaggingRoute(), postId), actionRequest)
+	if err != nil {
+		return BuildResponse(r), err
+	}
+
+	defer closeBody(r)
+	return BuildResponse(r), nil
 }
 
 // SearchFiles returns any posts with matching terms string.
