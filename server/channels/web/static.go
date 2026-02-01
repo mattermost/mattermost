@@ -90,6 +90,13 @@ func root(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	subpath, _ := utils.GetSubpathFromConfig(c.App.Srv().Config())
+	if updatedContents, err := utils.UpdateRootHTMLContent(string(contents), subpath); err == nil {
+		contents = []byte(updatedContents)
+	} else {
+		c.Logger.Warn("Failed to update root.html content", mlog.Err(err))
+	}
+
 	titleTemplate := "<title>%s</title>"
 	originalHTML := fmt.Sprintf(titleTemplate, html.EscapeString(model.TeamSettingsDefaultSiteName))
 	modifiedHTML := getOpenGraphMetaTags(c)

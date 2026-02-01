@@ -83,8 +83,8 @@ func UpdateAssetsSubpathInDir(subpath, directory string) error {
 	newPath := path.Join(subpath, "static") + "/"
 
 	// Update the root.html file
-	if err := updateRootFile(string(oldRootHTML), rootHTMLPath, alreadyRewritten, pathToReplace, newPath, subpath); err != nil {
-		return fmt.Errorf("failed to update root.html: %w", err)
+	if err := updateRootFile(string(oldRootHTML), rootHTMLPath, subpath); err != nil {
+		mlog.Warn("Failed to update root.html, will serve from memory", mlog.Err(err))
 	}
 
 	// Update the manifest.json and *.css files
@@ -95,12 +95,50 @@ func UpdateAssetsSubpathInDir(subpath, directory string) error {
 	return nil
 }
 
-func updateRootFile(oldRootHTML string, rootHTMLPath string, alreadyRewritten bool, pathToReplace, newPath, subpath string) error {
+func updateRootFile(oldRootHTML string, rootHTMLPath string, subpath string) error {
+	newRootHTML, err := UpdateRootHTMLContent(oldRootHTML, subpath)
+	if err != nil {
+		return err
+	}
+
+	if newRootHTML == oldRootHTML {
+		mlog.Debug("No need to rewrite unmodified root.html")
+		return nil
+	}
+
+	mlog.Debug("Rewriting root.html")
+	// Write out the updated root.html.
+	if err := os.WriteFile(rootHTMLPath, []byte(newRootHTML), 0); err != nil {
+		return errors.Wrapf(err, "failed to update root.html with subpath %s", subpath)
+	}
+
+	return nil
+}
+
+// UpdateRootHTMLContent updates the content of root.html to use the given subpath.
+func UpdateRootHTMLContent(oldRootHTML, subpath string) (string, error) {
+	if subpath == "" {
+		subpath = "/"
+	}
+
+	oldSubpath := "/"
+
+	// Determine if a previous subpath had already been rewritten into the assets.
+	reWebpackPublicPathScript := regexp.MustCompile("window.publicPath='([^']+/)static/'")
+	alreadyRewritten := false
+	if matches := reWebpackPublicPathScript.FindStringSubmatch(oldRootHTML); matches != nil {
+		oldSubpath = matches[1]
+		alreadyRewritten = true
+	}
+
+	pathToReplace := path.Join(oldSubpath, "static") + "/"
+	newPath := path.Join(subpath, "static") + "/"
+
 	newRootHTML := oldRootHTML
 
 	reCSP := regexp.MustCompile(`<meta http-equiv="Content-Security-Policy" content="script-src 'self'([^"]*)">`)
 	if results := reCSP.FindAllString(newRootHTML, -1); len(results) == 0 {
-		return fmt.Errorf("failed to find 'Content-Security-Policy' meta tag to rewrite")
+		return "", fmt.Errorf("failed to find 'Content-Security-Policy' meta tag to rewrite")
 	}
 
 	newRootHTML = reCSP.ReplaceAllLiteralString(newRootHTML, fmt.Sprintf(
@@ -124,18 +162,7 @@ func updateRootFile(oldRootHTML string, rootHTMLPath string, alreadyRewritten bo
 		newRootHTML = publicPathInWindowsScriptRegex.ReplaceAllLiteralString(newRootHTML, fmt.Sprintf("<script id=\"publicPathInWindowScript\">%s</script>", subpathScript))
 	}
 
-	if newRootHTML == oldRootHTML {
-		mlog.Debug("No need to rewrite unmodified root.html", mlog.String("from_subpath", pathToReplace), mlog.String("to_subpath", newPath))
-		return nil
-	}
-
-	mlog.Debug("Rewriting root.html", mlog.String("from_subpath", pathToReplace), mlog.String("to_subpath", newPath))
-	// Write out the updated root.html.
-	if err := os.WriteFile(rootHTMLPath, []byte(newRootHTML), 0); err != nil {
-		return errors.Wrapf(err, "failed to update root.html with subpath %s", subpath)
-	}
-
-	return nil
+	return newRootHTML, nil
 }
 
 func updateManifestAndCSSFiles(staticDir, pathToReplace, newPath, subpath string) error {
