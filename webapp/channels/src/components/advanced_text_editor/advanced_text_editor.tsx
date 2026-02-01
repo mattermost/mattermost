@@ -344,6 +344,7 @@ const AdvancedTextEditor = ({
     const {
         labels: priorityLabels,
         additionalControl: priorityAdditionalControl,
+        encryptionControl: priorityEncryptionControl,
         isValidPersistentNotifications,
         onSubmitCheck: prioritySubmitCheck,
     } = usePriority(draft, handleDraftChange, focusTextbox, showPreview, false);
@@ -685,11 +686,12 @@ const AdvancedTextEditor = ({
     const ariaLabel = loginSuccessfulLabel ? `${loginSuccessfulLabel} ${ariaLabelMessageInput}` : ariaLabelMessageInput;
 
     const additionalControls = useMemo(() => [
+        !isInEditMode && priorityEncryptionControl,
         !isInEditMode && priorityAdditionalControl,
         aiRewriteEnabled && aiRewriteAdditionalControl,
         !isInEditMode && burnOnReadAdditionalControl,
         ...(pluginItems || []),
-    ].filter(Boolean), [pluginItems, priorityAdditionalControl, aiRewriteAdditionalControl, isInEditMode, aiRewriteEnabled, burnOnReadAdditionalControl]);
+    ].filter(Boolean), [pluginItems, priorityEncryptionControl, priorityAdditionalControl, aiRewriteAdditionalControl, isInEditMode, aiRewriteEnabled, burnOnReadAdditionalControl]);
 
     const formattingBar = (
         <AutoHeightSwitcher

@@ -1,9 +1,12 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import classNames from 'classnames';
 import React, {useCallback, useMemo} from 'react';
+import {useIntl} from 'react-intl';
 import {useDispatch, useSelector} from 'react-redux';
 
+import {LockOutlineIcon} from '@mattermost/compass-icons/components';
 import type {Channel} from '@mattermost/types/channels';
 import type {PostPriorityMetadata} from '@mattermost/types/posts';
 import {PostPriority} from '@mattermost/types/posts';
@@ -14,8 +17,10 @@ import {getUser} from 'mattermost-redux/selectors/entities/users';
 
 import {openModal} from 'actions/views/modals';
 
+import {IconContainer} from 'components/advanced_text_editor/formatting_bar/formatting_icon';
 import PersistNotificationConfirmModal from 'components/persist_notification_confirm_modal';
 import PostPriorityPicker from 'components/post_priority/post_priority_picker';
+import WithTooltip from 'components/with_tooltip';
 
 import Constants, {ModalIdentifiers} from 'utils/constants';
 import {hasRequestedPersistentNotifications, mentionsMinusSpecialMentionsInText, specialMentionsInText} from 'utils/post_utils';
@@ -32,6 +37,7 @@ const usePriority = (
     shouldShowPreview: boolean,
     showIndividualCloseButton = true,
 ) => {
+    const {formatMessage} = useIntl();
     const dispatch = useDispatch();
     const rootId = draft.rootId;
     const channelId = draft.channelId;
@@ -110,6 +116,21 @@ const usePriority = (
         focusTextbox(true);
     }, [focusTextbox]);
 
+    const handleEncryptionToggle = useCallback(() => {
+        const isEncrypted = draft.metadata?.priority?.priority === PostPriority.ENCRYPTED;
+        if (isEncrypted) {
+            handlePostPriorityApply({
+                ...draft.metadata?.priority,
+                priority: '',
+            } as PostPriorityMetadata);
+        } else {
+            handlePostPriorityApply({
+                ...draft.metadata?.priority,
+                priority: PostPriority.ENCRYPTED,
+            } as PostPriorityMetadata);
+        }
+    }, [draft.metadata?.priority, handlePostPriorityApply]);
+
     const handleRemovePriority = useCallback(() => {
         handlePostPriorityApply();
     }, [handlePostPriorityApply]);
@@ -164,9 +185,30 @@ const usePriority = (
             />
         ), [rootId, isPostPriorityEnabled, draft.metadata?.priority, handlePostPriorityApply, handlePostPriorityHide, shouldShowPreview]);
 
+    const encryptionControl = useMemo(() =>
+        !rootId && isPostPriorityEnabled && (
+            <WithTooltip
+                key='encryption-toggle'
+                title={formatMessage({id: 'post_priority.encryption.toggle', defaultMessage: 'Toggle encryption'})}
+            >
+                <IconContainer
+                    className={classNames('encryption-toggle-button', {active: draft.metadata?.priority?.priority === PostPriority.ENCRYPTED})}
+                    onClick={handleEncryptionToggle}
+                    disabled={shouldShowPreview}
+                    type='button'
+                >
+                    <LockOutlineIcon
+                        size={18}
+                        color='currentColor'
+                    />
+                </IconContainer>
+            </WithTooltip>
+        ), [rootId, isPostPriorityEnabled, formatMessage, draft.metadata?.priority?.priority, handleEncryptionToggle, shouldShowPreview]);
+
     return {
         labels,
         additionalControl,
+        encryptionControl,
         isValidPersistentNotifications,
         onSubmitCheck,
         handleRemovePriority,
