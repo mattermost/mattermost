@@ -60,6 +60,7 @@ describe('FileAttachment', () => {
         enablePublicLink: false,
         pluginMenuItems: [],
         currentChannel: TestHelper.getChannelMock(),
+        isFileRejected: false,
         handleFileDropdownOpened: jest.fn(() => null),
         actions: {
             openModal: jest.fn(),
