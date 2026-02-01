@@ -7,6 +7,7 @@ import (
 	"context"
 
 	"github.com/mattermost/mattermost/server/public/model"
+	ejobs "github.com/mattermost/mattermost/server/v8/einterfaces/jobs"
 )
 
 // AutoTranslationInterface defines the enterprise advanced auto-translation functionality.
@@ -75,4 +76,12 @@ type AutoTranslationInterface interface {
 
 	// Shutdown gracefully shuts down the auto-translation service.
 	Shutdown() error
+
+	// MakeWorker creates a worker for the autotranslation recovery sweep job.
+	// The worker picks up stuck translations and re-queues them for processing.
+	MakeWorker() model.Worker
+
+	// MakeScheduler creates a scheduler for the autotranslation recovery sweep job.
+	// The scheduler runs periodically to detect stuck translations.
+	MakeScheduler() ejobs.Scheduler
 }
