@@ -3,6 +3,8 @@
 
 import type {GlobalState} from '@mattermost/types/store';
 
+import {FLAGGED_POSTS_PER_PAGE} from 'mattermost-redux/constants/flagged_posts';
+
 import {zeroStateLimitedViews} from '../reducers/entities/posts';
 
 const state: GlobalState = {
@@ -233,6 +235,14 @@ const state: GlobalState = {
             byChannelOrThreadId: {},
         },
         contentFlagging: {},
+        flaggedPosts: {
+            postIds: [],
+            page: 0,
+            perPage: FLAGGED_POSTS_PER_PAGE,
+            isEnd: false,
+            isLoading: false,
+            isLoadingMore: false,
+        },
     },
     errors: [],
     requests: {
