@@ -35,7 +35,7 @@ func TestCustomStatus(t *testing.T) {
 	require.Equal(t, cs, csSaved)
 
 	err = th.App.RemoveCustomStatus(th.Context, user.Id)
-	require.Nil(t, err, "failed to to clear custom status %v", err)
+	require.Nil(t, err, "failed to clear custom status %v", err)
 
 	var csClear *model.CustomStatus
 	csSaved, err = th.App.GetCustomStatus(user.Id)
