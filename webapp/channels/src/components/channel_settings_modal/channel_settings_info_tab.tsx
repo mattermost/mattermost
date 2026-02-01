@@ -67,7 +67,7 @@ function ChannelSettingsInfoTab({
         haveIChannelPermission(state, channel.team_id, channel.id, channelPropertiesPermission),
     );
 
-    const customChannelIconsEnabled = useSelector((state: GlobalState) => getConfig(state)?.EnableCustomChannelIcons === 'true');
+    const customChannelIconsEnabled = useSelector((state: GlobalState) => getConfig(state)?.FeatureFlagCustomChannelIcons === 'true');
 
     // Constants
     const HEADER_MAX_LENGTH = 1024;

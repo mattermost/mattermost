@@ -6395,7 +6395,7 @@ const AdminDefinition: AdminDefinitionType = {
                     settings: [
                         {
                             type: 'bool',
-                            key: 'MattermostExtendedSettings.EnableCustomChannelIcons',
+                            key: 'FeatureFlags.CustomChannelIcons',
                             label: defineMessage({id: 'admin.mattermost_extended.enableCustomChannelIcons.title', defaultMessage: 'Enable Custom Channel Icons:'}),
                             help_text: defineMessage({id: 'admin.mattermost_extended.enableCustomChannelIcons.desc', defaultMessage: 'When true, users can set custom icons for channels from the Channel Settings modal. Icons are displayed in the sidebar and channel mentions.'}),
                             help_text_markdown: false,
