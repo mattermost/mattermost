@@ -55,6 +55,7 @@ export default function PriorityLabel({
                 icon={'lock-outline'}
                 text={formatMessage({id: 'post_priority.priority.encrypted', defaultMessage: 'Encrypted'})}
                 uppercase={true}
+                className='encrypted-priority-tag'
                 data-testid='post-priority-label'
             />
         );
