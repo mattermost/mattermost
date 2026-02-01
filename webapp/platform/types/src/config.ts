@@ -70,7 +70,6 @@ export type ClientConfig = {
     EnableDeveloper: string;
     EnableDiagnostics: string;
     EnableEncryption: string;
-    EnableCustomChannelIcons: string;
     EnableDesktopLandingPage: 'true' | 'false';
     EnableEmailBatching: string;
     EnableEmailInvitations: string;
@@ -134,6 +133,7 @@ export type ClientConfig = {
     FeatureFlagInteractiveDialogAppsForm: string;
     FeatureFlagContentFlagging: string;
     FeatureFlagThreadsInSidebar: string;
+    FeatureFlagCustomChannelIcons: string;
 
     ForgotPasswordLink: string;
     GiphySdkKey: string;

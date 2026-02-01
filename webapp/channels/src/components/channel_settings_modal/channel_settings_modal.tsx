@@ -13,7 +13,7 @@ import type {Channel} from '@mattermost/types/channels';
 
 import Permissions from 'mattermost-redux/constants/permissions';
 import {getChannel} from 'mattermost-redux/selectors/entities/channels';
-import {getLicense} from 'mattermost-redux/selectors/entities/general';
+import {getConfig, getLicense} from 'mattermost-redux/selectors/entities/general';
 import {haveIChannelPermission} from 'mattermost-redux/selectors/entities/roles';
 
 import {
@@ -31,6 +31,7 @@ import type {GlobalState} from 'types/store';
 import ChannelSettingsAccessRulesTab from './channel_settings_access_rules_tab';
 import ChannelSettingsArchiveTab from './channel_settings_archive_tab';
 import ChannelSettingsConfigurationTab from './channel_settings_configuration_tab';
+import ChannelSettingsIconTab from './channel_settings_icon_tab';
 import ChannelSettingsInfoTab from './channel_settings_info_tab';
 
 import './channel_settings_modal.scss';
@@ -47,6 +48,7 @@ type ChannelSettingsModalProps = {
 
 enum ChannelSettingsTabs {
     INFO = 'info',
+    ICON = 'icon',
     ACCESS_RULES = 'access_rules',
     CONFIGURATION = 'configuration',
     ARCHIVE = 'archive',
@@ -83,6 +85,8 @@ function ChannelSettingsModal({channelId, isOpen, onExited, focusOriginElement}:
     );
 
     const channelAdminABACControlEnabled = useSelector(isChannelAccessControlEnabled);
+
+    const customChannelIconsEnabled = useSelector((state: GlobalState) => getConfig(state)?.FeatureFlagCustomChannelIcons === 'true');
 
     const shouldShowAccessRulesTab = channelAdminABACControlEnabled && canManageChannelAccessRules && channel.type === Constants.PRIVATE_CHANNEL && !channel.group_constrained;
 
@@ -164,6 +168,8 @@ function ChannelSettingsModal({channelId, isOpen, onExited, focusOriginElement}:
         switch (activeTab) {
         case ChannelSettingsTabs.INFO:
             return renderInfoTab();
+        case ChannelSettingsTabs.ICON:
+            return renderIconTab();
         case ChannelSettingsTabs.ACCESS_RULES:
             return renderAccessRulesTab();
         case ChannelSettingsTabs.CONFIGURATION:
@@ -178,6 +184,16 @@ function ChannelSettingsModal({channelId, isOpen, onExited, focusOriginElement}:
     const renderInfoTab = () => {
         return (
             <ChannelSettingsInfoTab
+                channel={channel}
+                setAreThereUnsavedChanges={setAreThereUnsavedChanges}
+                showTabSwitchError={showTabSwitchError}
+            />
+        );
+    };
+
+    const renderIconTab = () => {
+        return (
+            <ChannelSettingsIconTab
                 channel={channel}
                 setAreThereUnsavedChanges={setAreThereUnsavedChanges}
                 showTabSwitchError={showTabSwitchError}
@@ -221,6 +237,13 @@ function ChannelSettingsModal({channelId, isOpen, onExited, focusOriginElement}:
             uiName: formatMessage({id: 'channel_settings.tab.info', defaultMessage: 'Info'}),
             icon: 'icon icon-information-outline',
             iconTitle: formatMessage({id: 'generic_icons.info', defaultMessage: 'Info Icon'}),
+        },
+        {
+            name: ChannelSettingsTabs.ICON,
+            uiName: formatMessage({id: 'channel_settings.tab.icon', defaultMessage: 'Channel Icon'}),
+            icon: 'icon icon-palette-outline',
+            iconTitle: formatMessage({id: 'generic_icons.icon', defaultMessage: 'Icon'}),
+            display: customChannelIconsEnabled,
         },
         {
             name: ChannelSettingsTabs.ACCESS_RULES,
