@@ -9,9 +9,23 @@ Key Requirements
 
 1. Feature flag DiscordReplies wraps ALL logic
 2. Text content remains as blockquote + link + ping (graceful degradation when disabled)
-3. "Reply" button becomes "Add to Reply Queue", "Create Thread" becomes separate option
-4. Click-to-reply setting repurposes "Click to open threads"
-5. Proper message interception - no DOM manipulation
+3. **Reply button is OVERRIDDEN** - stays in same position, but now adds post to pending reply queue
+4. **New "Create Thread" button is ADDED** - does what Reply used to do (opens thread in RHS)
+5. Click-to-reply setting repurposes "Click to open threads"
+6. Proper message interception - no DOM manipulation
+
+---
+
+## Reply Button Behavior Change (CRITICAL)
+
+When `DiscordReplies` feature flag is enabled:
+
+| Button | Position | Behavior |
+|--------|----------|----------|
+| **Reply** | SAME as before (existing location) | **CHANGED**: Adds post to pending reply queue |
+| **Create Thread** | NEW button added to menu | Does what Reply used to do: opens thread in RHS |
+
+**Important**: The Reply button stays exactly where it is - we're only changing what it does when clicked. Users will find the button where they expect it. The Create Thread button uses the custom SVG icon from the plugin (see Implementation Reference).
 
 ---
 Implementation Strategy
@@ -129,12 +143,13 @@ File: webapp/channels/src/components/post_view/post_message_view/post_message_vi
 ---
 Phase 5: Reply Button Behavior
 
-5.1 Change Reply Action
+5.1 Override Reply Button + Add Create Thread Button
 
 File: webapp/channels/src/components/dot_menu/dot_menu.tsx
-- When DiscordReplies enabled:
-- "Reply" → calls addPendingReply(postId) instead of opening thread
-- Add new "Create Thread" menu item that opens thread RHS
+When DiscordReplies feature flag is enabled:
+- **Reply button (OVERRIDE)**: Keep in SAME POSITION, change action to `addPendingReply(postId)`
+- **Create Thread button (NEW)**: Add new menu item that opens thread in RHS (old Reply behavior)
+  - Use the Thread SVG icon from plugin (see "Thread Button SVG Icon" in Implementation Reference)
 
 File: webapp/channels/src/components/post_view/post_actions/
 - Modify quick action reply button (CommentIcon)
@@ -257,11 +272,27 @@ interface ReplyData {
 
 Quote Format
 
-// Format: >[@username](permalink): content
+**CRITICAL**: The `@username` is wrapped as a Markdown hyperlink that points to the **ORIGINAL MESSAGE** being replied to (the post's permalink URL). This is the key mechanism:
+
+Format: `>[@username](URL_TO_ORIGINAL_MESSAGE): content`
+
+This serves multiple purposes:
+1. **Detection**: The pattern `>[@username](url containing /pl/):` identifies discord replies
+2. **Navigation**: Clicking the @mention in the quote navigates to the original message
+3. **Fallback**: When feature is disabled, it still renders as a functional clickable blockquote
+
+Example output:
+>[@johndoe](https://chat.example.com/team/pl/abc123): Hello world
+>[@janedoe](https://chat.example.com/team/pl/def456): Another reply
+
+User's actual message here
+
 function generateQuoteText(replies: ReplyData[]): string {
     const quoteLines: string[] = [];
     for (const reply of replies) {
-        const permalink = getPostPermalink(reply.post_id);
+        // CRITICAL: The @mention is hyperlinked to the ORIGINAL MESSAGE being replied to
+        // This URL is the post's permalink - clicking it navigates to that message
+        const permalink = getPostPermalink(reply.post_id);  // e.g., https://chat.example.com/team/pl/abc123
         const content = formatMediaPreview(reply.text, reply.has_image, reply.has_video, MAX_PREVIEW_LENGTH);
         quoteLines.push(`>[@${reply.username}](${permalink}): ${content}`);
     }
@@ -537,9 +568,10 @@ CSS Styling Reference
     display: none !important;
 }
 
-Thread Button SVG Icon
+Thread Button SVG Icon (for NEW "Create Thread" button)
 
-// Create Thread icon (list with chevron)
+// This SVG icon is used for the NEW "Create Thread" button
+// which does what the old Reply button used to do (opens thread in RHS)
 React.createElement('svg', {
     width: '18',
     height: '18',
