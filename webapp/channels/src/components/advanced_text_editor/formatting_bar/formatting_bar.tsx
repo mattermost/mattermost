@@ -130,6 +130,8 @@ interface FormattingBarProps {
      * e.g: message priority picker
      */
     additionalControls?: React.ReactNodeArray;
+
+    openLinkModal: () => void;
 }
 
 const DEFAULT_MIN_MODE_X_COORD = 55;
@@ -183,6 +185,15 @@ const FormattingBar = (props: FormattingBarProps): JSX.Element => {
         if (disableControls) {
             return;
         }
+        if (mode === 'link') {
+        props.openLinkModal();
+        
+        // If hidden controls are open, close them after opening the modal
+        if (showHiddenControls) {
+            setShowHiddenControls(false); // Set to FALSE to close
+        }
+        return; 
+    }
 
         // get the current selection values and return early (doing nothing) when we don't get valid values
         const {start, end} = getCurrentSelection();
