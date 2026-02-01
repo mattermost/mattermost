@@ -7,7 +7,9 @@ import type {Dispatch} from 'redux';
 
 import type {GlobalState} from '@mattermost/types/store';
 
+import {getAgents} from 'mattermost-redux/actions/agents';
 import Permissions from 'mattermost-redux/constants/permissions';
+import {getDefaultAgent} from 'mattermost-redux/selectors/entities/agents';
 import {getConfig, getLicense} from 'mattermost-redux/selectors/entities/general';
 import {getAssociatedGroupsForReference} from 'mattermost-redux/selectors/entities/groups';
 import {makeGetProfilesForThread} from 'mattermost-redux/selectors/entities/posts';
@@ -47,6 +49,7 @@ const makeMapStateToProps = () => {
             autocompleteGroups,
             priorityProfiles: getProfilesForThread(state, ownProps.rootId ?? ''),
             delayChannelAutocomplete: getConfig(state).DelayChannelAutocomplete === 'true',
+            defaultAgent: getDefaultAgent(state),
         };
     };
 };
@@ -56,6 +59,7 @@ const mapDispatchToProps = (dispatch: Dispatch) => ({
         autocompleteUsersInChannel,
         autocompleteChannels,
         searchAssociatedGroupsForReference,
+        fetchAgents: getAgents,
     }, dispatch),
 });
 
