@@ -34,6 +34,7 @@ import AutoHeightSwitcher from 'components/common/auto_height_switcher';
 import useDidUpdate from 'components/common/hooks/useDidUpdate';
 import useGetAgentsBridgeEnabled from 'components/common/hooks/useGetAgentsBridgeEnabled';
 import DeletePostModal from 'components/delete_post_modal';
+import RecipientDisplay from 'components/encryption/recipient_display';
 import {
     DropOverlayIdCreateComment,
     DropOverlayIdCreatePost,
@@ -345,6 +346,7 @@ const AdvancedTextEditor = ({
         labels: priorityLabels,
         additionalControl: priorityAdditionalControl,
         encryptionControl: priorityEncryptionControl,
+        isEncrypted,
         isValidPersistentNotifications,
         onSubmitCheck: prioritySubmitCheck,
     } = usePriority(draft, handleDraftChange, focusTextbox, showPreview, false);
@@ -797,8 +799,13 @@ const AdvancedTextEditor = ({
                                 />
                             </div>
                         )}
+                        <RecipientDisplay
+                            channelId={channelId}
+                            currentUserId={currentUserId}
+                            visible={isEncrypted && !showPreview}
+                        />
                         <Textbox
-                            hasLabels={isInEditMode ? false : Boolean(priorityLabels || burnOnReadLabels)}
+                            hasLabels={isInEditMode ? false : Boolean(priorityLabels || burnOnReadLabels || isEncrypted)}
                             suggestionList={location === Locations.RHS_COMMENT ? RhsSuggestionList : SuggestionList}
                             onChange={handleChange}
                             onKeyPress={postMsgKeyPress}

@@ -205,10 +205,13 @@ const usePriority = (
             </WithTooltip>
         ), [rootId, isPostPriorityEnabled, formatMessage, draft.metadata?.priority?.priority, handleEncryptionToggle, shouldShowPreview]);
 
+    const isEncrypted = draft.metadata?.priority?.priority === PostPriority.ENCRYPTED;
+
     return {
         labels,
         additionalControl,
         encryptionControl,
+        isEncrypted,
         isValidPersistentNotifications,
         onSubmitCheck,
         handleRemovePriority,
