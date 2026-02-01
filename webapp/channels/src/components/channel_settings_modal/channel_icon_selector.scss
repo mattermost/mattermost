@@ -1,0 +1,196 @@
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
+
+.ChannelIconSelector {
+    position: relative;
+    margin-top: 8px;
+
+    &__preview {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    &__previewButton {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 8px 12px;
+        border: 1px solid rgba(var(--center-channel-color-rgb), 0.16);
+        border-radius: 4px;
+        background: var(--center-channel-bg);
+        cursor: pointer;
+        font-size: 14px;
+        color: var(--center-channel-color);
+        transition: border-color 0.15s ease;
+
+        &:hover:not(:disabled) {
+            border-color: rgba(var(--center-channel-color-rgb), 0.32);
+        }
+
+        &:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .icon {
+            font-size: 18px;
+        }
+
+        .icon-chevron-down,
+        .icon-chevron-up {
+            font-size: 14px;
+            opacity: 0.64;
+        }
+    }
+
+    &__previewLabel {
+        min-width: 60px;
+        text-transform: capitalize;
+    }
+
+    &__clearButton {
+        padding: 4px;
+        color: rgba(var(--center-channel-color-rgb), 0.56);
+        cursor: pointer;
+
+        &:hover {
+            color: var(--error-text);
+        }
+
+        .icon {
+            font-size: 16px;
+        }
+    }
+
+    &__dropdown {
+        position: absolute;
+        top: 100%;
+        left: 0;
+        z-index: 100;
+        margin-top: 4px;
+        padding: 12px;
+        min-width: 320px;
+        max-width: 400px;
+        max-height: 400px;
+        overflow: hidden;
+        display: flex;
+        flex-direction: column;
+        background: var(--center-channel-bg);
+        border: 1px solid rgba(var(--center-channel-color-rgb), 0.16);
+        border-radius: 8px;
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+    }
+
+    &__search {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 8px 12px;
+        margin-bottom: 8px;
+        border: 1px solid rgba(var(--center-channel-color-rgb), 0.16);
+        border-radius: 4px;
+        background: rgba(var(--center-channel-color-rgb), 0.04);
+
+        .icon {
+            font-size: 16px;
+            color: rgba(var(--center-channel-color-rgb), 0.56);
+        }
+
+        input {
+            flex: 1;
+            border: none;
+            background: transparent;
+            font-size: 14px;
+            color: var(--center-channel-color);
+            outline: none;
+
+            &::placeholder {
+                color: rgba(var(--center-channel-color-rgb), 0.56);
+            }
+        }
+
+        button {
+            padding: 2px;
+            color: rgba(var(--center-channel-color-rgb), 0.56);
+
+            &:hover {
+                color: var(--center-channel-color);
+            }
+        }
+    }
+
+    &__categories {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 4px;
+        margin-bottom: 8px;
+        padding-bottom: 8px;
+        border-bottom: 1px solid rgba(var(--center-channel-color-rgb), 0.08);
+    }
+
+    &__categoryButton {
+        padding: 4px 8px;
+        font-size: 12px;
+        border: 1px solid transparent;
+        border-radius: 12px;
+        background: rgba(var(--center-channel-color-rgb), 0.08);
+        color: rgba(var(--center-channel-color-rgb), 0.72);
+        cursor: pointer;
+        transition: all 0.15s ease;
+
+        &:hover {
+            background: rgba(var(--center-channel-color-rgb), 0.16);
+        }
+
+        &.active {
+            background: rgba(var(--button-bg-rgb), 0.12);
+            color: var(--button-bg);
+            border-color: var(--button-bg);
+        }
+    }
+
+    &__icons {
+        display: grid;
+        grid-template-columns: repeat(8, 1fr);
+        gap: 4px;
+        overflow-y: auto;
+        max-height: 240px;
+        padding-right: 4px;
+    }
+
+    &__iconButton {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 36px;
+        height: 36px;
+        border: 1px solid transparent;
+        border-radius: 4px;
+        background: transparent;
+        color: var(--center-channel-color);
+        cursor: pointer;
+        transition: all 0.15s ease;
+
+        .icon {
+            font-size: 20px;
+        }
+
+        &:hover {
+            background: rgba(var(--center-channel-color-rgb), 0.08);
+        }
+
+        &.selected {
+            background: rgba(var(--button-bg-rgb), 0.12);
+            border-color: var(--button-bg);
+            color: var(--button-bg);
+        }
+    }
+
+    &__noResults {
+        padding: 24px;
+        text-align: center;
+        color: rgba(var(--center-channel-color-rgb), 0.56);
+        font-size: 14px;
+    }
+}
