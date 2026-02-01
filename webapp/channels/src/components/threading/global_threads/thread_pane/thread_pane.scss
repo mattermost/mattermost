@@ -104,42 +104,17 @@
             display: flex;
             flex-shrink: 0;
             align-items: center;
-            gap: 8px;
 
             .Avatars {
                 margin-right: 4px;
             }
+        }
 
-            .channel-header__icon {
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                padding: 0 8px;
-                border-radius: 4px;
-                color: rgba(var(--center-channel-color-rgb), 0.64);
-                font-size: 14px;
-                height: 28px;
-                gap: 4px;
-
-                &:hover {
-                    background: rgba(var(--center-channel-color-rgb), 0.08);
-                    color: rgba(var(--center-channel-color-rgb), 0.72);
-                }
-
-                &--active {
-                    background: rgba(var(--button-bg-rgb), 0.08);
-                    color: var(--button-bg);
-                }
-
-                .icon {
-                    font-size: 16px;
-                }
-
-                .icon__text {
-                    font-size: 12px;
-                    font-weight: 600;
-                }
-            }
+        // Match channel header icon styles exactly
+        .channel-header__icons .channel-header__icon--wide {
+            width: auto;
+            min-width: unset;
+            padding: 0 6px;
         }
     }
 
