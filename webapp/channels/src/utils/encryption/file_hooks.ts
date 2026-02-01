@@ -67,7 +67,7 @@ function cleanExpiredEntries(): void {
  */
 export function cacheFileEncryptionMetadataByClientId(clientId: string, metadata: EncryptedFileMetadata): void {
     cleanExpiredEntries();
-    console.log('[cacheFileEncryptionMetadataByClientId] Caching metadata for clientId:', clientId, 'original name:', metadata.original.name);
+    console.log('[cacheFileEncryptionMetadataByClientId] Caching metadata for clientId:', clientId, '(v' + metadata.v + ')');
     metadataCacheWithTTL.set(clientId, {
         metadata,
         timestamp: Date.now(),
@@ -148,7 +148,7 @@ export function getCachedFileMetadata(id: string): EncryptedFileMetadata | null 
         return null;
     }
 
-    console.log('[getCachedFileMetadata] Found metadata for:', id, 'original name:', entry.metadata.original.name);
+    console.log('[getCachedFileMetadata] Found metadata for:', id, '(v' + entry.metadata.v + ')');
     return entry.metadata;
 }
 
@@ -247,7 +247,7 @@ export function attachFileEncryptionMetadata(
         console.log('[attachFileEncryptionMetadata] Checking file:', fileInfo.id, fileInfo.name);
         const metadata = getCachedFileMetadata(fileInfo.id);
         if (metadata) {
-            console.log('[attachFileEncryptionMetadata] Found metadata for file:', fileInfo.id, metadata.original.name);
+            console.log('[attachFileEncryptionMetadata] Found metadata for file:', fileInfo.id, '(v' + metadata.v + ')');
             encryptedFilesProps[fileInfo.id] = metadata;
             hasEncryptedFiles = true;
         } else {
