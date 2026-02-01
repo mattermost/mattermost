@@ -107,7 +107,7 @@
         - reactions
       summary: Bulk get the reaction for posts
       description: |
-        Get a list of reactions made by all users to a given post.
+        Get a list of reactions made by all users to the given posts.
         ##### Permissions
         Must have `read_channel` permission for the channel the post is in.
 
