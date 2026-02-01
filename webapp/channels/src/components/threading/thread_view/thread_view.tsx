@@ -11,7 +11,8 @@ import {DotsVerticalIcon} from '@mattermost/compass-icons/components';
 import type {UserThread, UserThreadSynthetic} from '@mattermost/types/threads';
 
 import {getThreadsForCurrentTeam, setThreadFollow} from 'mattermost-redux/actions/threads';
-import {makeGetChannel} from 'mattermost-redux/selectors/entities/channels';
+import {makeGetChannel, getAllChannelStats} from 'mattermost-redux/selectors/entities/channels';
+import {getConfig} from 'mattermost-redux/selectors/entities/general';
 import {getPost} from 'mattermost-redux/selectors/entities/posts';
 import {getCurrentTeamId, getCurrentTeam} from 'mattermost-redux/selectors/entities/teams';
 import {getThread} from 'mattermost-redux/selectors/entities/threads';
@@ -20,17 +21,21 @@ import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
 import {clearLastUnreadChannel} from 'actions/global_actions';
 import {loadProfilesForSidebar} from 'actions/user_actions';
 import {selectLhsItem} from 'actions/views/lhs';
-import {suppressRHS, unsuppressRHS} from 'actions/views/rhs';
+import {suppressRHS, unsuppressRHS, showPinnedPosts, showChannelMembers, closeRightHandSide} from 'actions/views/rhs';
 import {setSelectedThreadId} from 'actions/views/threads';
 import {focusPost} from 'components/permalink_view/actions';
 import ChatIllustration from 'components/common/svg_images_components/chat_illustration';
+import HeaderIconWrapper from 'components/channel_header/components/header_icon_wrapper';
 import LoadingScreen from 'components/loading_screen';
 import NoResultsIndicator from 'components/no_results_indicator';
 import PopoutButton from 'components/popout_button';
 import Header from 'components/widgets/header';
 import WithTooltip from 'components/with_tooltip';
 
+import {RHSStates} from 'utils/constants';
 import {popoutThread} from 'utils/popouts/popout_windows';
+
+import {getRhsState} from 'selectors/rhs';
 
 import type {GlobalState} from 'types/store';
 import {LhsItemType, LhsPage} from 'types/store/lhs';
@@ -41,6 +46,51 @@ import ThreadMenu from '../global_threads/thread_menu';
 import ThreadViewer from '../thread_viewer';
 
 import './thread_view.scss';
+
+// Clean up message text for display in header (same as sidebar_thread_item)
+function cleanMessageForDisplay(message: string): string {
+    if (!message) {
+        return '';
+    }
+
+    let cleaned = message.
+
+        // Remove code blocks
+        replace(/```[\s\S]*?```/g, '[code]').
+        replace(/`[^`]+`/g, '[code]').
+
+        // Remove links but keep text
+        replace(/\[([^\]]+)\]\([^)]+\)/g, '$1').
+
+        // Remove images
+        replace(/!\[[^\]]*\]\([^)]+\)/g, '[image]').
+
+        // Remove bold/italic
+        replace(/\*\*([^*]+)\*\*/g, '$1').
+        replace(/\*([^*]+)\*/g, '$1').
+        replace(/__([^_]+)__/g, '$1').
+        replace(/_([^_]+)_/g, '$1').
+
+        // Remove headers
+        replace(/^#+\s+/gm, '').
+
+        // Remove blockquotes
+        replace(/^>\s+/gm, '').
+
+        // Remove horizontal rules
+        replace(/^---+$/gm, '').
+
+        // Collapse whitespace
+        replace(/\s+/g, ' ').
+        trim();
+
+    // Truncate if too long
+    if (cleaned.length > 60) {
+        cleaned = cleaned.substring(0, 60) + '...';
+    }
+
+    return cleaned;
+}
 
 const getChannel = makeGetChannel();
 
@@ -60,6 +110,19 @@ const ThreadView = () => {
         const channelId = thread?.post?.channel_id || rootPost?.channel_id;
         return channelId ? getChannel(state, channelId) : undefined;
     });
+
+    // ThreadsInSidebar feature flag check
+    const config = useSelector(getConfig);
+    const isThreadsInSidebarEnabled = (config as Record<string, string>)?.FeatureFlagThreadsInSidebar === 'true';
+
+    // Channel stats for pins and members count
+    const channelId = thread?.post?.channel_id || rootPost?.channel_id;
+    const channelStats = useSelector((state: GlobalState) => channelId ? getAllChannelStats(state)[channelId] : undefined);
+    const pinnedPostsCount = channelStats?.pinnedpost_count || 0;
+    const memberCount = channelStats?.member_count || 0;
+
+    // RHS state for active button styling
+    const rhsState = useSelector(getRhsState);
 
     const [isLoading, setIsLoading] = useState(!thread);
 
@@ -122,6 +185,30 @@ const ThreadView = () => {
         }
     }, [threadIdentifier, currentTeam, intl, dispatch, currentUserId]);
 
+    // Handlers for Pins and Members buttons (ThreadsInSidebar feature)
+    const showPinnedPostsHandler = useCallback(() => {
+        if (channelId) {
+            if (rhsState === RHSStates.PIN) {
+                dispatch(closeRightHandSide());
+            } else {
+                dispatch(showPinnedPosts(channelId));
+            }
+        }
+    }, [dispatch, channelId, rhsState]);
+
+    const showChannelMembersHandler = useCallback(() => {
+        if (channelId) {
+            if (rhsState === RHSStates.CHANNEL_MEMBERS) {
+                dispatch(closeRightHandSide());
+            } else {
+                dispatch(showChannelMembers(channelId));
+            }
+        }
+    }, [dispatch, channelId, rhsState]);
+
+    // Get thread name from root post message
+    const threadName = rootPost ? cleanMessageForDisplay(rootPost.message) : '';
+
     // Loading state
     if (isLoading) {
         return (
@@ -163,6 +250,101 @@ const ThreadView = () => {
     const hasUnreads = isFollowing && Boolean((thread as UserThread).unread_replies || (thread as UserThread).unread_mentions);
     const unreadTimestamp = rootPost.edit_at || rootPost.create_at;
 
+    // Pinned and Members button classes (ThreadsInSidebar feature)
+    const pinnedIconClass = classNames('channel-header__icon channel-header__icon--wide channel-header__icon--left btn btn-icon btn-xs', {
+        'channel-header__icon--active': rhsState === RHSStates.PIN,
+    });
+    const membersIconClass = classNames('member-rhs__trigger channel-header__icon channel-header__icon--wide channel-header__icon--left btn btn-icon btn-xs', {
+        'channel-header__icon--active': rhsState === RHSStates.CHANNEL_MEMBERS,
+    });
+
+    // Render enhanced header when ThreadsInSidebar is enabled
+    const renderHeading = () => {
+        if (isThreadsInSidebarEnabled && threadName) {
+            return (
+                <>
+                    <Button
+                        className='Button___icon Button___large back'
+                        onClick={goBack}
+                    >
+                        <i className='icon icon-arrow-back-ios'/>
+                    </Button>
+                    <div className='ThreadView__header-title'>
+                        <h3 className='ThreadView__header-name'>
+                            <span className='icon-discord-thread ThreadView__header-icon'/>
+                            <span className='ThreadView__header-text'>{threadName}</span>
+                        </h3>
+                        <div className='ThreadView__header-icons'>
+                            <HeaderIconWrapper
+                                tooltip={formatMessage({id: 'channel_header.channelMembers', defaultMessage: 'Members'})}
+                                buttonClass={membersIconClass}
+                                buttonId={'threadHeaderMembersButton'}
+                                onClick={showChannelMembersHandler}
+                            >
+                                <i
+                                    aria-hidden='true'
+                                    className='icon icon-account-outline channel-header__members'
+                                />
+                                <span
+                                    id='threadMemberCountText'
+                                    className='icon__text'
+                                >
+                                    {memberCount || '-'}
+                                </span>
+                            </HeaderIconWrapper>
+                            {pinnedPostsCount > 0 && (
+                                <HeaderIconWrapper
+                                    buttonClass={pinnedIconClass}
+                                    buttonId={'threadHeaderPinButton'}
+                                    onClick={showPinnedPostsHandler}
+                                    tooltip={formatMessage({id: 'channel_header.pinnedPosts', defaultMessage: 'Pinned messages'})}
+                                >
+                                    <i
+                                        aria-hidden='true'
+                                        className='icon icon-pin-outline channel-header__pin'
+                                    />
+                                    <span
+                                        id='threadPinnedPostCountText'
+                                        className='icon__text'
+                                    >
+                                        {pinnedPostsCount}
+                                    </span>
+                                </HeaderIconWrapper>
+                            )}
+                        </div>
+                    </div>
+                </>
+            );
+        }
+
+        // Default header when feature is disabled
+        return (
+            <>
+                <Button
+                    className='Button___icon Button___large back'
+                    onClick={goBack}
+                >
+                    <i className='icon icon-arrow-back-ios'/>
+                </Button>
+                <h3>
+                    <span className='separated'>
+                        {formatMessage({
+                            id: 'threading.header.heading',
+                            defaultMessage: 'Thread',
+                        })}
+                    </span>
+                    <Button
+                        className='separated'
+                        allowTextOverflow={true}
+                        onClick={goToInChannel}
+                    >
+                        {channel?.display_name}
+                    </Button>
+                </h3>
+            </>
+        );
+    };
+
     return (
         <div
             id='app-content'
@@ -171,31 +353,7 @@ const ThreadView = () => {
             <div className='ThreadView__pane'>
                 <Header
                     className='ThreadView__header'
-                    heading={(
-                        <>
-                            <Button
-                                className='Button___icon Button___large back'
-                                onClick={goBack}
-                            >
-                                <i className='icon icon-arrow-back-ios'/>
-                            </Button>
-                            <h3>
-                                <span className='separated'>
-                                    {formatMessage({
-                                        id: 'threading.header.heading',
-                                        defaultMessage: 'Thread',
-                                    })}
-                                </span>
-                                <Button
-                                    className='separated'
-                                    allowTextOverflow={true}
-                                    onClick={goToInChannel}
-                                >
-                                    {channel?.display_name}
-                                </Button>
-                            </h3>
-                        </>
-                    )}
+                    heading={renderHeading()}
                     right={(
                         <>
                             <FollowButton

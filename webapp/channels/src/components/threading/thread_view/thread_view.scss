@@ -73,6 +73,76 @@
                 font-size: 18px;
             }
         }
+
+        // Channel-like header styles (ThreadsInSidebar feature)
+        .ThreadView__header-title {
+            display: flex;
+            overflow: hidden;
+            flex: 1;
+            align-items: center;
+            min-width: 0;
+            gap: 8px;
+        }
+
+        .ThreadView__header-name {
+            display: flex;
+            overflow: hidden;
+            align-items: center;
+            margin: 0;
+            font-size: 16px;
+            font-weight: 600;
+            gap: 6px;
+        }
+
+        .ThreadView__header-icon {
+            flex-shrink: 0;
+            color: rgba(var(--center-channel-color-rgb), 0.64);
+            font-size: 18px;
+        }
+
+        .ThreadView__header-text {
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .ThreadView__header-icons {
+            display: flex;
+            flex-shrink: 0;
+            align-items: center;
+            gap: 4px;
+
+            .channel-header__icon {
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                padding: 0 8px;
+                border-radius: 4px;
+                color: rgba(var(--center-channel-color-rgb), 0.64);
+                font-size: 14px;
+                height: 28px;
+                gap: 4px;
+
+                &:hover {
+                    background: rgba(var(--center-channel-color-rgb), 0.08);
+                    color: rgba(var(--center-channel-color-rgb), 0.72);
+                }
+
+                &--active {
+                    background: rgba(var(--button-bg-rgb), 0.08);
+                    color: var(--button-bg);
+                }
+
+                .icon {
+                    font-size: 16px;
+                }
+
+                .icon__text {
+                    font-size: 12px;
+                    font-weight: 600;
+                }
+            }
+        }
     }
 
     .ThreadViewer {
