@@ -3,17 +3,23 @@
 
 /**
  * Clean up message text for display as thread name.
- * Removes markdown formatting and returns only the first line, truncated.
+ * Extracts and cleans only the first line of the message.
  */
 export function cleanMessageForDisplay(message: string, maxLength = 50): string {
     if (!message) {
         return '';
     }
 
-    let cleaned = message.
+    // Get first line BEFORE any other processing
+    const firstLine = message.split('\n')[0].trim();
 
-        // Remove code blocks
-        replace(/```[\s\S]*?```/g, '[code]').
+    if (!firstLine) {
+        return '';
+    }
+
+    const cleaned = firstLine.
+
+        // Remove code blocks (inline only since we're on first line)
         replace(/`[^`]+`/g, '[code]').
 
         // Remove links but keep text
@@ -29,25 +35,19 @@ export function cleanMessageForDisplay(message: string, maxLength = 50): string 
         replace(/_([^_]+)_/g, '$1').
 
         // Remove headers
-        replace(/^#+\s+/gm, '').
+        replace(/^#+\s+/, '').
 
         // Remove blockquotes
-        replace(/^>\s+/gm, '').
-
-        // Remove horizontal rules
-        replace(/^---+$/gm, '').
+        replace(/^>\s+/, '').
 
         // Collapse whitespace
         replace(/\s+/g, ' ').
         trim();
 
-    // Get first line only
-    const firstLine = cleaned.split('\n')[0];
-
     // Truncate if too long
-    if (firstLine.length > maxLength) {
-        return firstLine.substring(0, maxLength) + '...';
+    if (cleaned.length > maxLength) {
+        return cleaned.substring(0, maxLength) + '...';
     }
 
-    return firstLine;
+    return cleaned;
 }
