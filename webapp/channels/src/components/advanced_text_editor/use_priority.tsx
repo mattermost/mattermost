@@ -16,6 +16,7 @@ import {isPostPriorityEnabled as isPostPriorityEnabledSelector} from 'mattermost
 import {getUser} from 'mattermost-redux/selectors/entities/users';
 
 import {openModal} from 'actions/views/modals';
+import {isEncryptionEnabled as isEncryptionEnabledSelector} from 'selectors/general';
 
 import {IconContainer} from 'components/advanced_text_editor/formatting_bar/formatting_icon';
 import PersistNotificationConfirmModal from 'components/persist_notification_confirm_modal';
@@ -43,6 +44,7 @@ const usePriority = (
     const channelId = draft.channelId;
 
     const isPostPriorityEnabled = useSelector(isPostPriorityEnabledSelector);
+    const isEncryptionEnabled = useSelector(isEncryptionEnabledSelector);
     const channelType = useSelector((state: GlobalState) => getChannel(state, channelId)?.type || 'O');
     const channelTeammateUsername = useSelector((state: GlobalState) => {
         const channel = getChannel(state, channelId);
@@ -186,7 +188,7 @@ const usePriority = (
         ), [rootId, isPostPriorityEnabled, draft.metadata?.priority, handlePostPriorityApply, handlePostPriorityHide, shouldShowPreview]);
 
     const encryptionControl = useMemo(() =>
-        !rootId && isPostPriorityEnabled && (
+        !rootId && isEncryptionEnabled && (
             <WithTooltip
                 key='encryption-toggle'
                 title={formatMessage({id: 'post_priority.encryption.toggle', defaultMessage: 'Toggle encryption'})}
@@ -203,7 +205,7 @@ const usePriority = (
                     />
                 </IconContainer>
             </WithTooltip>
-        ), [rootId, isPostPriorityEnabled, formatMessage, draft.metadata?.priority?.priority, handleEncryptionToggle, shouldShowPreview]);
+        ), [rootId, isEncryptionEnabled, formatMessage, draft.metadata?.priority?.priority, handleEncryptionToggle, shouldShowPreview]);
 
     const isEncrypted = draft.metadata?.priority?.priority === PostPriority.ENCRYPTED;
 

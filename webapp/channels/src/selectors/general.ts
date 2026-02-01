@@ -39,3 +39,12 @@ export function isChannelAccessControlEnabled(state: GlobalState): boolean {
     return accessControlSettings.EnableAttributeBasedAccessControl &&
            accessControlSettings.EnableChannelScopeAccessControl;
 }
+
+/**
+ * Checks if end-to-end encryption is enabled on the server.
+ * This controls whether the encryption toggle appears in the message composer.
+ */
+export function isEncryptionEnabled(state: GlobalState): boolean {
+    const config = getConfig(state);
+    return config?.EnableEncryption === 'true';
+}

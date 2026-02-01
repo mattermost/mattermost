@@ -465,6 +465,10 @@ function Invoke-Setup {
     "EnableUploads": true,
     "Directory": "$workDirUnix/data/plugins",
     "ClientDirectory": "$workDirUnix/data/client/plugins"
+  },
+  "MattermostExtendedSettings": {
+    "EnableEncryption": true,
+    "AdminModeOnly": false
   }
 }
 "@
@@ -725,6 +729,10 @@ function Invoke-FixConfig {
   "PrivacySettings": {
     "ShowEmailAddress": true,
     "ShowFullName": true
+  },
+  "MattermostExtendedSettings": {
+    "EnableEncryption": true,
+    "AdminModeOnly": false
   }
 }
 "@
