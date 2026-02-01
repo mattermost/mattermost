@@ -123,13 +123,7 @@ export function decryptEncryptedFile(fileId: string, postId?: string): ThunkActi
             return null;
         }
 
-        // Check if file is actually encrypted
-        if (!isEncryptedFile(fileInfo)) {
-            console.log('[decryptEncryptedFile] File is not encrypted:', fileId);
-            return null;
-        }
-
-        // Get encryption metadata
+        // Get encryption metadata first - it's the most reliable indicator
         let metadata = getEncryptedFileMetadata(state, fileId);
 
         // If metadata not in state, try to get from post props
@@ -141,6 +135,24 @@ export function decryptEncryptedFile(fileId: string, postId?: string): ThunkActi
                     dispatch(encryptedFileMetadataReceived(fileId, metadata));
                 }
             }
+        }
+
+        // Check if file is actually encrypted using multiple indicators:
+        // 1. MIME type is application/x-penc
+        // 2. Has encryption metadata in Redux
+        // 3. Filename matches encrypted pattern
+        const isEncryptedByMime = isEncryptedFile(fileInfo);
+        const hasEncryptionMetadata = metadata !== undefined && metadata !== null;
+        const isEncryptedByName = Boolean(fileInfo?.name?.startsWith('encrypted_') && fileInfo?.name?.endsWith('.penc'));
+        const isEncrypted = isEncryptedByMime || hasEncryptionMetadata || isEncryptedByName;
+
+        if (!isEncrypted) {
+            console.log('[decryptEncryptedFile] File is not encrypted:', fileId, {
+                mime: fileInfo.mime_type,
+                name: fileInfo.name,
+                hasMetadata: hasEncryptionMetadata,
+            });
+            return null;
         }
 
         if (!metadata) {
