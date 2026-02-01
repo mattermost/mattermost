@@ -20,9 +20,10 @@ import {
     ensureEncryptionKeys,
     getChannelRecipientKeys,
     getCurrentPrivateKey,
-    getCurrentPublicKey,
     isEncryptionInitialized,
+    getSessionId,
 } from './session';
+import {getPublicKeyJwk} from './storage';
 
 /**
  * Cache for recently sent messages.
@@ -102,16 +103,21 @@ export async function encryptMessageHook(
         return {error: 'Failed to initialize encryption keys'};
     }
 
-    // Get recipient keys for the channel
-    const recipientKeys = await getChannelRecipientKeys(post.channel_id);
+    // Get all session keys for channel members
+    const sessionKeys = await getChannelRecipientKeys(post.channel_id);
 
-    // Add sender's own key so they can decrypt their own messages
-    const senderPublicKey = await getCurrentPublicKey();
-    if (senderPublicKey) {
-        recipientKeys[senderId] = senderPublicKey;
+    // Add sender's own session key so they can decrypt their own messages
+    const senderSessionId = getSessionId();
+    const senderPublicKey = getPublicKeyJwk();
+    if (senderSessionId && senderPublicKey) {
+        sessionKeys.push({
+            userId: senderId,
+            sessionId: senderSessionId,
+            publicKey: senderPublicKey,
+        });
     }
 
-    if (Object.keys(recipientKeys).length === 0) {
+    if (sessionKeys.length === 0) {
         return {error: 'No recipients with encryption keys found'};
     }
 
@@ -119,10 +125,10 @@ export async function encryptMessageHook(
         // Store original plaintext before encrypting
         const originalPlaintext = post.message;
 
-        // Encrypt the message
+        // Encrypt the message for all session keys
         const encryptedPayload = await encryptMessage(
             post.message,
-            recipientKeys,
+            sessionKeys.map((k) => ({sessionId: k.sessionId, publicKey: k.publicKey})),
             senderId,
         );
 
@@ -153,7 +159,7 @@ export async function encryptMessageHook(
  */
 export async function decryptMessageHook(
     post: Post,
-    userId: string,
+    _userId: string, // userId param kept for API compatibility but not used (we use sessionId now)
 ): Promise<{post: Post}> {
     // Check if this is an encrypted message
     if (!isEncryptedMessage(post.message)) {
@@ -167,6 +173,20 @@ export async function decryptMessageHook(
             post: {
                 ...post,
                 // Keep the encrypted message but add metadata to indicate decryption failed
+                props: {
+                    ...post.props,
+                    encryption_status: 'no_keys',
+                },
+            },
+        };
+    }
+
+    // Get our session ID for looking up the encrypted key
+    const sessionId = getSessionId();
+    if (!sessionId) {
+        return {
+            post: {
+                ...post,
                 props: {
                     ...post.props,
                     encryption_status: 'no_keys',
@@ -194,8 +214,8 @@ export async function decryptMessageHook(
             return {post};
         }
 
-        // Check if user has access to decrypt
-        if (!payload.keys[userId]) {
+        // Check if our session has access to decrypt
+        if (!payload.keys[sessionId]) {
             return {
                 post: {
                     ...post,
@@ -207,8 +227,8 @@ export async function decryptMessageHook(
             };
         }
 
-        // Decrypt the message
-        const decryptedMessage = await decryptMessage(payload, privateKey, userId);
+        // Decrypt the message using our session ID
+        const decryptedMessage = await decryptMessage(payload, privateKey, sessionId);
 
         return {
             post: {

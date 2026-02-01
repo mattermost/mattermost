@@ -10,10 +10,21 @@ const (
 	PreferenceNamePublicKey      = "public_key"
 )
 
-// EncryptionPublicKey represents a user's public encryption key.
+// EncryptionSessionKey represents a public encryption key tied to a specific session.
+// Each user can have multiple keys (one per active session/device).
+type EncryptionSessionKey struct {
+	SessionId string `json:"session_id" db:"SessionId"` // Primary key, references Sessions.Id
+	UserId    string `json:"user_id" db:"UserId"`       // For quick lookup
+	PublicKey string `json:"public_key" db:"PublicKey"` // JWK format
+	CreateAt  int64  `json:"create_at" db:"CreateAt"`
+}
+
+// EncryptionPublicKey represents a user's public encryption key (API response format).
+// When a user has multiple sessions, multiple keys will be returned for that user.
 type EncryptionPublicKey struct {
 	UserId    string `json:"user_id"`
-	PublicKey string `json:"public_key"` // JWK format
+	SessionId string `json:"session_id,omitempty"` // Session this key belongs to
+	PublicKey string `json:"public_key"`           // JWK format
 	CreateAt  int64  `json:"create_at"`
 	UpdateAt  int64  `json:"update_at"`
 }
@@ -32,7 +43,32 @@ type EncryptionPublicKeysRequest struct {
 type EncryptionStatus struct {
 	Enabled    bool `json:"enabled"`     // Whether encryption is enabled in config
 	CanEncrypt bool `json:"can_encrypt"` // Whether current user can encrypt (admin check if AdminModeOnly)
-	HasKey     bool `json:"has_key"`     // Whether current user has registered a public key
+	HasKey     bool `json:"has_key"`     // Whether current session has a registered key
+}
+
+// PreSave prepares the EncryptionSessionKey for saving.
+func (k *EncryptionSessionKey) PreSave() {
+	if k.CreateAt == 0 {
+		k.CreateAt = GetMillis()
+	}
+}
+
+// IsValid validates the EncryptionSessionKey.
+func (k *EncryptionSessionKey) IsValid() *AppError {
+	if !IsValidId(k.SessionId) {
+		return NewAppError("EncryptionSessionKey.IsValid", "model.encryption_key.is_valid.session_id.app_error", nil, "", http.StatusBadRequest)
+	}
+	if !IsValidId(k.UserId) {
+		return NewAppError("EncryptionSessionKey.IsValid", "model.encryption_key.is_valid.user_id.app_error", nil, "", http.StatusBadRequest)
+	}
+	if k.PublicKey == "" {
+		return NewAppError("EncryptionSessionKey.IsValid", "model.encryption_key.is_valid.public_key.app_error", nil, "", http.StatusBadRequest)
+	}
+	// Basic validation - JWK should be JSON
+	if len(k.PublicKey) < 10 || k.PublicKey[0] != '{' {
+		return NewAppError("EncryptionSessionKey.IsValid", "model.encryption_key.is_valid.public_key_format.app_error", nil, "", http.StatusBadRequest)
+	}
+	return nil
 }
 
 func (r *EncryptionPublicKeyRequest) IsValid() *AppError {

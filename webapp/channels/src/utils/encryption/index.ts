@@ -27,7 +27,7 @@ export {
     arrayBufferToBase64,
     base64ToArrayBuffer,
 } from './hybrid';
-export type {EncryptedPayload} from './hybrid';
+export type {EncryptedPayload, SessionKey} from './hybrid';
 
 // Session storage
 export {
@@ -37,6 +37,7 @@ export {
     getPublicKeyJwk,
     hasEncryptionKeys,
     clearEncryptionKeys,
+    storeSessionId,
 } from './storage';
 
 // API utilities
@@ -59,7 +60,9 @@ export {
     clearEncryptionSession,
     getChannelRecipientKeys,
     getChannelEncryptionInfo,
+    getSessionId,
 } from './session';
+export type {SessionKeyInfo} from './session';
 
 // Message hooks
 export {

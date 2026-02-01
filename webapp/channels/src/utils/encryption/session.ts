@@ -7,10 +7,12 @@
  */
 
 import {generateKeyPair, exportPublicKey} from './keypair';
-import {storeKeyPair, hasEncryptionKeys, getPublicKeyJwk, clearEncryptionKeys, getPrivateKey} from './storage';
+import {storeKeyPair, hasEncryptionKeys, getPublicKeyJwk, clearEncryptionKeys, getPrivateKey, storeSessionId, getSessionId} from './storage';
 import {registerPublicKey, getEncryptionStatus, getChannelMemberKeys} from './api';
 import type {EncryptionStatus, EncryptionPublicKey} from './api';
 import {clearDecryptionCache} from './use_decrypt_post';
+
+export {getSessionId} from './storage';
 
 let initializationPromise: Promise<void> | null = null;
 
@@ -45,7 +47,11 @@ export async function ensureEncryptionKeys(): Promise<void> {
                 const existingPublicKey = getPublicKeyJwk();
                 if (existingPublicKey) {
                     try {
-                        await registerPublicKey(existingPublicKey);
+                        const response = await registerPublicKey(existingPublicKey);
+                        // Store the session ID for decryption lookup
+                        if (response.session_id) {
+                            storeSessionId(response.session_id);
+                        }
                         console.log('[ensureEncryptionKeys] Re-registered existing key with server');
                         return;
                     } catch (error) {
@@ -70,7 +76,11 @@ export async function ensureEncryptionKeys(): Promise<void> {
             // Export and register public key with server
             const publicKeyJwk = await exportPublicKey(keyPair.publicKey);
             try {
-                await registerPublicKey(publicKeyJwk);
+                const response = await registerPublicKey(publicKeyJwk);
+                // Store the session ID for decryption lookup
+                if (response.session_id) {
+                    storeSessionId(response.session_id);
+                }
                 console.log('[ensureEncryptionKeys] Generated and registered new keypair');
             } catch (error) {
                 console.error('[ensureEncryptionKeys] Failed to register new key:', error);
@@ -124,28 +134,43 @@ export function clearEncryptionSession(): void {
 }
 
 /**
- * Gets public keys for all channel members who have active encryption sessions.
- * @param channelId - The channel ID
- * @returns Map of userId -> public key JWK
+ * Session key info for encryption - includes session ID for multi-device support.
  */
-export async function getChannelRecipientKeys(channelId: string): Promise<Record<string, string>> {
+export interface SessionKeyInfo {
+    userId: string;
+    sessionId: string;
+    publicKey: string;
+}
+
+/**
+ * Gets ALL public keys for all channel members who have active encryption sessions.
+ * Each user can have multiple keys (one per active session/device).
+ * @param channelId - The channel ID
+ * @returns Array of session keys (may have multiple entries per user)
+ */
+export async function getChannelRecipientKeys(channelId: string): Promise<SessionKeyInfo[]> {
     const keys = await getChannelMemberKeys(channelId);
-    const keyMap: Record<string, string> = {};
+    const sessionKeys: SessionKeyInfo[] = [];
 
     for (const key of keys) {
-        if (key.public_key) {
-            keyMap[key.user_id] = key.public_key;
+        if (key.public_key && key.session_id) {
+            sessionKeys.push({
+                userId: key.user_id,
+                sessionId: key.session_id,
+                publicKey: key.public_key,
+            });
         }
     }
 
-    return keyMap;
+    return sessionKeys;
 }
 
 /**
  * Gets information about which channel members can receive encrypted messages.
+ * Returns UNIQUE users (deduplicated) for display purposes.
  * @param channelId - The channel ID
  * @param currentUserId - The current user's ID (to exclude from list)
- * @returns Object with recipients array and users without keys
+ * @returns Object with unique recipients and users without keys
  */
 export async function getChannelEncryptionInfo(
     channelId: string,
@@ -156,20 +181,28 @@ export async function getChannelEncryptionInfo(
 }> {
     const keys = await getChannelMemberKeys(channelId);
 
-    // Filter out current user and separate users with/without keys
-    const recipients: EncryptionPublicKey[] = [];
-    const usersWithoutKeys: string[] = [];
+    // Track unique users with keys
+    const usersWithKeysSet = new Set<string>();
+    const uniqueRecipients: EncryptionPublicKey[] = [];
 
     for (const key of keys) {
         if (key.user_id === currentUserId) {
             continue;
         }
         if (key.public_key) {
-            recipients.push(key);
-        } else {
-            usersWithoutKeys.push(key.user_id);
+            // Only add each user once (they may have multiple session keys)
+            if (!usersWithKeysSet.has(key.user_id)) {
+                usersWithKeysSet.add(key.user_id);
+                uniqueRecipients.push(key);
+            }
         }
     }
 
-    return {recipients, usersWithoutKeys};
+    // Note: usersWithoutKeys is harder to determine now since the API only returns
+    // users who HAVE keys. We'd need a separate call to get channel members.
+    // For now, return empty array - the warning about missing users won't show.
+    // TODO: Implement proper user enumeration if needed.
+    const usersWithoutKeys: string[] = [];
+
+    return {recipients: uniqueRecipients, usersWithoutKeys};
 }

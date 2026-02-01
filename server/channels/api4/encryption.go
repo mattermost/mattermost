@@ -9,6 +9,7 @@ import (
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
+	"github.com/mattermost/mattermost/server/v8/channels/store"
 )
 
 func (api *API) InitEncryption() {
@@ -19,9 +20,10 @@ func (api *API) InitEncryption() {
 	api.BaseRoutes.Encryption.Handle("/channel/{channel_id:[A-Za-z0-9]+}/keys", api.APISessionRequired(getChannelMemberKeys)).Methods(http.MethodGet)
 }
 
-// getEncryptionStatus returns the encryption status for the current user
+// getEncryptionStatus returns the encryption status for the current session
 func getEncryptionStatus(c *Context, w http.ResponseWriter, r *http.Request) {
 	config := c.App.Config()
+	sessionId := c.AppContext.Session().Id
 	userId := c.AppContext.Session().UserId
 
 	// Check if encryption is enabled
@@ -39,16 +41,11 @@ func getEncryptionStatus(c *Context, w http.ResponseWriter, r *http.Request) {
 		canEncrypt = user.IsSystemAdmin()
 	}
 
-	// Check if user has a public key registered
+	// Check if current session has a key registered
 	hasKey := false
-	preferences, err := c.App.GetPreferencesForUser(c.AppContext, userId)
+	_, err := c.App.Srv().Store().EncryptionSessionKey().GetBySession(sessionId)
 	if err == nil {
-		for _, pref := range preferences {
-			if pref.Category == model.PreferenceCategoryEncryption && pref.Name == model.PreferenceNamePublicKey {
-				hasKey = pref.Value != ""
-				break
-			}
-		}
+		hasKey = true
 	}
 
 	status := &model.EncryptionStatus{
@@ -62,27 +59,34 @@ func getEncryptionStatus(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-// getMyPublicKey returns the current user's public encryption key
+// getMyPublicKey returns the current session's public encryption key
 func getMyPublicKey(c *Context, w http.ResponseWriter, r *http.Request) {
+	sessionId := c.AppContext.Session().Id
 	userId := c.AppContext.Session().UserId
 
-	preferences, err := c.App.GetPreferencesForUser(c.AppContext, userId)
+	key, err := c.App.Srv().Store().EncryptionSessionKey().GetBySession(sessionId)
 	if err != nil {
-		c.Err = err
+		// Return empty key if not found (not an error)
+		if _, ok := err.(*store.ErrNotFound); ok {
+			response := &model.EncryptionPublicKey{
+				UserId:    userId,
+				SessionId: sessionId,
+				PublicKey: "",
+			}
+			if err := json.NewEncoder(w).Encode(response); err != nil {
+				c.Logger.Warn("Error while writing response", mlog.Err(err))
+			}
+			return
+		}
+		c.Err = model.NewAppError("getMyPublicKey", "api.encryption.get_key.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		return
 	}
 
-	var publicKey string
-	for _, pref := range preferences {
-		if pref.Category == model.PreferenceCategoryEncryption && pref.Name == model.PreferenceNamePublicKey {
-			publicKey = pref.Value
-			break
-		}
-	}
-
 	response := &model.EncryptionPublicKey{
-		UserId:    userId,
-		PublicKey: publicKey,
+		UserId:    key.UserId,
+		SessionId: key.SessionId,
+		PublicKey: key.PublicKey,
+		CreateAt:  key.CreateAt,
 	}
 
 	if err := json.NewEncoder(w).Encode(response); err != nil {
@@ -90,7 +94,7 @@ func getMyPublicKey(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-// registerPublicKey registers or updates the current user's public encryption key
+// registerPublicKey registers or updates the current session's public encryption key
 func registerPublicKey(c *Context, w http.ResponseWriter, r *http.Request) {
 	var req model.EncryptionPublicKeyRequest
 	if jsonErr := json.NewDecoder(r.Body).Decode(&req); jsonErr != nil {
@@ -103,6 +107,7 @@ func registerPublicKey(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	sessionId := c.AppContext.Session().Id
 	userId := c.AppContext.Session().UserId
 
 	// Check if encryption is enabled
@@ -125,24 +130,23 @@ func registerPublicKey(c *Context, w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	// Save the public key as a preference
-	preference := model.Preference{
-		UserId:   userId,
-		Category: model.PreferenceCategoryEncryption,
-		Name:     model.PreferenceNamePublicKey,
-		Value:    req.PublicKey,
+	// Save the public key for this session
+	sessionKey := &model.EncryptionSessionKey{
+		SessionId: sessionId,
+		UserId:    userId,
+		PublicKey: req.PublicKey,
 	}
 
-	if err := c.App.UpdatePreferences(c.AppContext, userId, model.Preferences{preference}); err != nil {
-		c.Err = err
+	if err := c.App.Srv().Store().EncryptionSessionKey().Save(sessionKey); err != nil {
+		c.Err = model.NewAppError("registerPublicKey", "api.encryption.save_key.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		return
 	}
 
 	response := &model.EncryptionPublicKey{
 		UserId:    userId,
+		SessionId: sessionId,
 		PublicKey: req.PublicKey,
-		CreateAt:  model.GetMillis(),
-		UpdateAt:  model.GetMillis(),
+		CreateAt:  sessionKey.CreateAt,
 	}
 
 	w.WriteHeader(http.StatusCreated)
@@ -152,6 +156,7 @@ func registerPublicKey(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 // getPublicKeysByUserIds returns public keys for the specified user IDs
+// Returns ALL keys for each user (one per active session)
 func getPublicKeysByUserIds(c *Context, w http.ResponseWriter, r *http.Request) {
 	var req model.EncryptionPublicKeysRequest
 	if jsonErr := json.NewDecoder(r.Body).Decode(&req); jsonErr != nil {
@@ -164,25 +169,22 @@ func getPublicKeysByUserIds(c *Context, w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	// Get preferences for all users
-	keys := make([]*model.EncryptionPublicKey, 0, len(req.UserIds))
+	// Get all keys for the specified users
+	sessionKeys, err := c.App.Srv().Store().EncryptionSessionKey().GetByUsers(req.UserIds)
+	if err != nil {
+		c.Err = model.NewAppError("getPublicKeysByUserIds", "api.encryption.get_keys.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		return
+	}
 
-	for _, userId := range req.UserIds {
-		preferences, err := c.App.GetPreferencesForUser(c.AppContext, userId)
-		if err != nil {
-			// Skip users that don't exist or have errors
-			continue
-		}
-
-		for _, pref := range preferences {
-			if pref.Category == model.PreferenceCategoryEncryption && pref.Name == model.PreferenceNamePublicKey && pref.Value != "" {
-				keys = append(keys, &model.EncryptionPublicKey{
-					UserId:    userId,
-					PublicKey: pref.Value,
-				})
-				break
-			}
-		}
+	// Convert to response format
+	keys := make([]*model.EncryptionPublicKey, 0, len(sessionKeys))
+	for _, sk := range sessionKeys {
+		keys = append(keys, &model.EncryptionPublicKey{
+			UserId:    sk.UserId,
+			SessionId: sk.SessionId,
+			PublicKey: sk.PublicKey,
+			CreateAt:  sk.CreateAt,
+		})
 	}
 
 	if err := json.NewEncoder(w).Encode(keys); err != nil {
@@ -191,6 +193,7 @@ func getPublicKeysByUserIds(c *Context, w http.ResponseWriter, r *http.Request) 
 }
 
 // getChannelMemberKeys returns public keys for all members of a channel
+// Returns ALL keys for each user (one per active session)
 func getChannelMemberKeys(c *Context, w http.ResponseWriter, r *http.Request) {
 	c.RequireChannelId()
 	if c.Err != nil {
@@ -212,24 +215,28 @@ func getChannelMemberKeys(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Get public keys for all members
-	keys := make([]*model.EncryptionPublicKey, 0, len(members))
-
+	// Collect all user IDs
+	userIds := make([]string, 0, len(members))
 	for _, member := range members {
-		preferences, prefErr := c.App.GetPreferencesForUser(c.AppContext, member.UserId)
-		if prefErr != nil {
-			continue
-		}
+		userIds = append(userIds, member.UserId)
+	}
 
-		for _, pref := range preferences {
-			if pref.Category == model.PreferenceCategoryEncryption && pref.Name == model.PreferenceNamePublicKey && pref.Value != "" {
-				keys = append(keys, &model.EncryptionPublicKey{
-					UserId:    member.UserId,
-					PublicKey: pref.Value,
-				})
-				break
-			}
-		}
+	// Get all keys for channel members
+	sessionKeys, storeErr := c.App.Srv().Store().EncryptionSessionKey().GetByUsers(userIds)
+	if storeErr != nil {
+		c.Err = model.NewAppError("getChannelMemberKeys", "api.encryption.get_keys.app_error", nil, "", http.StatusInternalServerError).Wrap(storeErr)
+		return
+	}
+
+	// Convert to response format
+	keys := make([]*model.EncryptionPublicKey, 0, len(sessionKeys))
+	for _, sk := range sessionKeys {
+		keys = append(keys, &model.EncryptionPublicKey{
+			UserId:    sk.UserId,
+			SessionId: sk.SessionId,
+			PublicKey: sk.PublicKey,
+			CreateAt:  sk.CreateAt,
+		})
 	}
 
 	if err := json.NewEncoder(w).Encode(keys); err != nil {

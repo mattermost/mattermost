@@ -24,14 +24,17 @@ Based on user preferences:
    - Visual indicator (purple highlight) when active
    - Both formatting bar button and priority dropdown do the same thing
 
-4. **Session-Based Keys**: Maximum security
+4. **Per-Session Keys with Multi-Device Support**: Maximum security + usability
    - Private keys stored in `sessionStorage` (cleared on logout/tab close)
-   - Keys generated per-session, not persisted
-   - When logged out or session ends: no decryption possible
-   - Keypair prompt modal shown when user has no keys registered
+   - Keys generated automatically per-session on login (no popup)
+   - Server stores keys per session ID in `EncryptionSessionKeys` table
+   - **Multi-device support**: Each user can have multiple active sessions (desktop, mobile, multiple browsers)
+   - Messages encrypted for ALL active session keys of each recipient
+   - When logged out or session ends: that session's key is removed, but other sessions still work
    - Message for non-recipients: "🔒 Encrypted - You do not have permission to view this"
-   - **Key Registration Verification**: Client verifies server has the key, not just local storage
+   - **Key Registration Verification**: Client verifies server has the key for current session
    - **Error Recovery**: If registration fails, error banner with retry button is shown
+   - **Session cleanup**: Keys are automatically deleted when sessions expire or are revoked
 
 5. **Visible Recipient List**: Transparency
    - When encryption mode is enabled, show list of recipients who can decrypt

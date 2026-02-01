@@ -16,9 +16,14 @@ const IV_LENGTH = 12; // 96 bits for AES-GCM
 export interface EncryptedPayload {
     iv: string; // Base64 encoded 12-byte IV
     ct: string; // Base64 encoded AES ciphertext
-    keys: Record<string, string>; // userId -> Base64 RSA-encrypted AES key
+    keys: Record<string, string>; // sessionId -> Base64 RSA-encrypted AES key
     sender: string; // Sender's user ID
     v: number; // Version number
+}
+
+export interface SessionKey {
+    sessionId: string;
+    publicKey: string;
 }
 
 /**
@@ -65,14 +70,15 @@ export function base64ToArrayBuffer(base64: string): ArrayBuffer {
 
 /**
  * Encrypts a message for multiple recipients using hybrid encryption.
+ * Supports multi-device: each user can have multiple session keys.
  * @param message - The plaintext message to encrypt
- * @param recipientKeys - Map of userId -> public key JWK string
+ * @param sessionKeys - Array of session keys (sessionId + publicKey)
  * @param senderId - The sender's user ID
  * @returns The encrypted payload
  */
 export async function encryptMessage(
     message: string,
-    recipientKeys: Record<string, string>,
+    sessionKeys: SessionKey[],
     senderId: string,
 ): Promise<EncryptedPayload> {
     // Generate a random AES key for this message
@@ -91,16 +97,16 @@ export async function encryptMessage(
         messageData,
     );
 
-    // Encrypt the AES key for each recipient using their public key
+    // Encrypt the AES key for each session using their public key
     const encryptedKeys: Record<string, string> = {};
-    for (const [userId, publicKeyJwk] of Object.entries(recipientKeys)) {
+    for (const {sessionId, publicKey: publicKeyJwk} of sessionKeys) {
         try {
             const publicKey = await importPublicKey(publicKeyJwk);
             const encryptedAesKey = await rsaEncrypt(publicKey, rawAesKey);
-            encryptedKeys[userId] = arrayBufferToBase64(encryptedAesKey);
+            encryptedKeys[sessionId] = arrayBufferToBase64(encryptedAesKey);
         } catch (error) {
-            // Skip users whose keys can't be imported
-            console.warn(`Failed to encrypt for user ${userId}:`, error);
+            // Skip sessions whose keys can't be imported
+            console.warn(`Failed to encrypt for session ${sessionId}:`, error);
         }
     }
 
@@ -117,18 +123,18 @@ export async function encryptMessage(
  * Decrypts a message using the recipient's private key.
  * @param payload - The encrypted payload
  * @param privateKey - The recipient's private CryptoKey
- * @param userId - The user's ID to find their encrypted key
+ * @param sessionId - The session ID to find the encrypted key for
  * @returns The decrypted plaintext message
  */
 export async function decryptMessage(
     payload: EncryptedPayload,
     privateKey: CryptoKey,
-    userId: string,
+    sessionId: string,
 ): Promise<string> {
-    // Find the encrypted AES key for this user
-    const encryptedAesKeyBase64 = payload.keys[userId];
+    // Find the encrypted AES key for this session
+    const encryptedAesKeyBase64 = payload.keys[sessionId];
     if (!encryptedAesKeyBase64) {
-        throw new Error('No encrypted key found for this user');
+        throw new Error('No encrypted key found for this session');
     }
 
     // Decrypt the AES key using RSA

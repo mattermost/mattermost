@@ -100,6 +100,7 @@ type Store interface {
 	ContentFlagging() ContentFlaggingStore
 	ReadReceipt() ReadReceiptStore
 	TemporaryPost() TemporaryPostStore
+	EncryptionSessionKey() EncryptionSessionKeyStore
 }
 
 type RetentionPolicyStore interface {
@@ -1202,6 +1203,25 @@ type TemporaryPostStore interface {
 	Get(rctx request.CTX, id string) (*model.TemporaryPost, error)
 	Delete(rctx request.CTX, id string) error
 	GetExpiredPosts(rctx request.CTX) ([]string, error)
+}
+
+// EncryptionSessionKeyStore manages encryption keys tied to user sessions.
+// Each user can have multiple keys (one per active session/device).
+type EncryptionSessionKeyStore interface {
+	// Save stores an encryption key for a session. Replaces existing key if present.
+	Save(key *model.EncryptionSessionKey) error
+	// GetBySession returns the encryption key for a specific session.
+	GetBySession(sessionId string) (*model.EncryptionSessionKey, error)
+	// GetByUser returns all encryption keys for a user (one per active session).
+	GetByUser(userId string) ([]*model.EncryptionSessionKey, error)
+	// GetByUsers returns all encryption keys for multiple users.
+	GetByUsers(userIds []string) ([]*model.EncryptionSessionKey, error)
+	// DeleteBySession removes the encryption key for a specific session.
+	DeleteBySession(sessionId string) error
+	// DeleteByUser removes all encryption keys for a user.
+	DeleteByUser(userId string) error
+	// DeleteExpired removes encryption keys for sessions that no longer exist.
+	DeleteExpired() error
 }
 
 // ChannelSearchOpts contains options for searching channels.

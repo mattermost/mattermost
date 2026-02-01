@@ -1,89 +1,76 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {useEffect} from 'react';
+import {useEffect, useRef} from 'react';
 import {useSelector, useDispatch} from 'react-redux';
 
-import {savePreferences} from 'mattermost-redux/actions/preferences';
-import {getBool} from 'mattermost-redux/selectors/entities/preferences';
 import {getCurrentUser} from 'mattermost-redux/selectors/entities/users';
 
-import {openModal} from 'actions/views/modals';
 import {setEncryptionKeyError} from 'actions/views/encryption';
 import {ensureEncryptionKeys, checkEncryptionStatus} from 'utils/encryption/session';
-import {ModalIdentifiers, Preferences} from 'utils/constants';
 
 import type {GlobalState} from 'types/store';
 
-import KeypairPromptModal from './keypair_prompt_modal';
-
+/**
+ * Controller that automatically generates encryption keys when a user logs in.
+ * Keys are generated per-session and registered with the server.
+ * No popup is shown - key generation happens silently in the background.
+ */
 const KeypairPromptController = () => {
     const dispatch = useDispatch();
     const currentUser = useSelector((state: GlobalState) => getCurrentUser(state));
-    const wasDismissed = useSelector((state: GlobalState) => getBool(state, Preferences.CATEGORY_ENCRYPTION, Preferences.NAME_ENCRYPTION_KEYPAIR_MODAL_DISMISSED));
-
-    const handleConfirm = async (dontShowAgain: boolean) => {
-        if (dontShowAgain) {
-            saveDismissPreference();
-        }
-        try {
-            await ensureEncryptionKeys();
-        } catch (error) {
-            // Show error bar so user can retry
-            dispatch(setEncryptionKeyError(
-                error instanceof Error ? error.message : 'Failed to register encryption keys',
-            ));
-            throw error; // Re-throw so modal can show inline error too
-        }
-    };
-
-    const handleDismiss = (dontShowAgain: boolean) => {
-        if (dontShowAgain) {
-            saveDismissPreference();
-        }
-    };
-
-    const saveDismissPreference = () => {
-        if (!currentUser) {
-            return;
-        }
-        dispatch(savePreferences(currentUser.id, [
-            {
-                category: Preferences.CATEGORY_ENCRYPTION,
-                user_id: currentUser.id,
-                name: Preferences.NAME_ENCRYPTION_KEYPAIR_MODAL_DISMISSED,
-                value: 'true',
-            },
-        ]));
-    };
+    const hasAttemptedRef = useRef(false);
 
     useEffect(() => {
-        const checkStatus = async () => {
-            if (!currentUser || wasDismissed) {
+        const autoGenerateKeys = async () => {
+            if (!currentUser) {
+                return;
+            }
+
+            // Only attempt once per session to avoid infinite loops on error
+            if (hasAttemptedRef.current) {
                 return;
             }
 
             try {
-                // Always check server status - don't rely only on local sessionStorage
-                // This handles the case where local keys exist but server registration failed
+                // Check if encryption is enabled and we need to generate keys
                 const status = await checkEncryptionStatus();
-                if (status.enabled && !status.has_key) {
-                    dispatch(openModal({
-                        modalId: ModalIdentifiers.KEYPAIR_PROMPT_MODAL,
-                        dialogType: KeypairPromptModal,
-                        dialogProps: {
-                            onConfirm: handleConfirm,
-                            onDismiss: handleDismiss,
-                        },
-                    }));
+
+                if (!status.enabled) {
+                    // Encryption not enabled, nothing to do
+                    return;
                 }
+
+                if (status.has_key) {
+                    // Already have a key for this session, nothing to do
+                    return;
+                }
+
+                // Mark that we've attempted key generation
+                hasAttemptedRef.current = true;
+
+                console.log('[KeypairPromptController] Auto-generating encryption keys for session');
+
+                // Auto-generate and register keys
+                await ensureEncryptionKeys();
+
+                console.log('[KeypairPromptController] Successfully generated and registered encryption keys');
             } catch (error) {
-                // Ignore errors, we'll try again on next mount/update
+                console.error('[KeypairPromptController] Failed to auto-generate encryption keys:', error);
+                // Show error bar so user knows something went wrong
+                dispatch(setEncryptionKeyError(
+                    error instanceof Error ? error.message : 'Failed to register encryption keys',
+                ));
             }
         };
 
-        checkStatus();
-    }, [currentUser, wasDismissed]);
+        autoGenerateKeys();
+    }, [currentUser, dispatch]);
+
+    // Reset the attempt flag when user changes (logs out and back in)
+    useEffect(() => {
+        hasAttemptedRef.current = false;
+    }, [currentUser?.id]);
 
     return null;
 };

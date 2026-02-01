@@ -9,6 +9,7 @@ import {Client4} from 'mattermost-redux/client';
 
 export interface EncryptionPublicKey {
     user_id: string;
+    session_id?: string; // Session this key belongs to (for per-session keys)
     public_key: string;
     create_at?: number;
     update_at?: number;

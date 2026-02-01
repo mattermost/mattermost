@@ -11,6 +11,7 @@ import {importPrivateKey, importPublicKey, exportPrivateKey, exportPublicKey} fr
 
 const PRIVATE_KEY_STORAGE_KEY = 'mm_encryption_private_key';
 const PUBLIC_KEY_STORAGE_KEY = 'mm_encryption_public_key';
+const SESSION_ID_STORAGE_KEY = 'mm_encryption_session_id';
 
 /**
  * Stores the key pair in sessionStorage.
@@ -82,4 +83,21 @@ export function hasEncryptionKeys(): boolean {
 export function clearEncryptionKeys(): void {
     sessionStorage.removeItem(PRIVATE_KEY_STORAGE_KEY);
     sessionStorage.removeItem(PUBLIC_KEY_STORAGE_KEY);
+    sessionStorage.removeItem(SESSION_ID_STORAGE_KEY);
+}
+
+/**
+ * Stores the session ID for this encryption session.
+ * @param sessionId - The Mattermost session ID
+ */
+export function storeSessionId(sessionId: string): void {
+    sessionStorage.setItem(SESSION_ID_STORAGE_KEY, sessionId);
+}
+
+/**
+ * Retrieves the session ID for this encryption session.
+ * @returns The session ID or null if not stored
+ */
+export function getSessionId(): string | null {
+    return sessionStorage.getItem(SESSION_ID_STORAGE_KEY);
 }

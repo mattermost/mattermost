@@ -114,6 +114,7 @@ type SqlStoreStores struct {
 	ContentFlagging            store.ContentFlaggingStore
 	readReceipt                store.ReadReceiptStore
 	temporaryPost              store.TemporaryPostStore
+	encryptionSessionKey       store.EncryptionSessionKeyStore
 }
 
 type SqlStore struct {
@@ -267,6 +268,7 @@ func New(settings model.SqlSettings, logger mlog.LoggerIFace, metrics einterface
 	store.stores.ContentFlagging = newContentFlaggingStore(store)
 	store.stores.readReceipt = newSqlReadReceiptStore(store, metrics)
 	store.stores.temporaryPost = newSqlTemporaryPostStore(store, metrics)
+	store.stores.encryptionSessionKey = newSqlEncryptionSessionKeyStore(store)
 
 	store.stores.preference.(*SqlPreferenceStore).deleteUnusedFeatures()
 
@@ -892,6 +894,10 @@ func (ss *SqlStore) ReadReceipt() store.ReadReceiptStore {
 
 func (ss *SqlStore) TemporaryPost() store.TemporaryPostStore {
 	return ss.stores.temporaryPost
+}
+
+func (ss *SqlStore) EncryptionSessionKey() store.EncryptionSessionKeyStore {
+	return ss.stores.encryptionSessionKey
 }
 
 func (ss *SqlStore) DropAllTables() {
