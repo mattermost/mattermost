@@ -112,6 +112,7 @@ linters:
           channels/store/localcachelayer/webhook_layer_test.go|\
           channels/store/retrylayer/retrylayer_test.go|\
           channels/store/searchtest/channel_layer.go|\
+          channels/store/searchtest/cjk_plugins.go|\
           channels/store/searchtest/file_info_layer.go|\
           channels/store/searchtest/helper.go|\
           channels/store/searchtest/post_layer.go|\
