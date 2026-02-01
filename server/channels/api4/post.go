@@ -315,10 +315,6 @@ func getPostsForChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 	if err := clientPostList.EncodeJSON(w); err != nil {
 		c.Logger.Warn("Error while writing response", mlog.Err(err))
 	}
-
-	// Update user activity when fetching posts (aggressive status tracking)
-	c.App.Srv().Platform().UpdateLastActivityAtIfNeeded(*c.AppContext.Session())
-	c.App.Srv().Platform().SetStatusOnline(c.AppContext.Session().UserId, false)
 }
 
 func getPostsForChannelAroundLastUnread(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -392,10 +388,6 @@ func getPostsForChannelAroundLastUnread(c *Context, w http.ResponseWriter, r *ht
 	if err := clientPostList.EncodeJSON(w); err != nil {
 		c.Logger.Warn("Error while writing response", mlog.Err(err))
 	}
-
-	// Update user activity when fetching posts (aggressive status tracking)
-	c.App.Srv().Platform().UpdateLastActivityAtIfNeeded(*c.AppContext.Session())
-	c.App.Srv().Platform().SetStatusOnline(c.AppContext.Session().UserId, false)
 }
 
 func getFlaggedPostsForUser(c *Context, w http.ResponseWriter, r *http.Request) {

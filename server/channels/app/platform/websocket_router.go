@@ -112,14 +112,6 @@ func (wr *WebSocketRouter) ServeWebSocket(conn *WebConn, r *model.WebSocketReque
 		return
 	}
 
-	// Update user activity for all authenticated WebSocket messages (aggressive status tracking)
-	if session := conn.GetSession(); session != nil && session.UserId != "" {
-		conn.Platform.Go(func() {
-			conn.Platform.SetStatusOnline(session.UserId, false)
-			conn.Platform.UpdateLastActivityAtIfNeeded(*session)
-		})
-	}
-
 	handler, ok := wr.handlers[r.Action]
 	if !ok {
 		err := model.NewAppError("ServeWebSocket", "api.web_socket_router.bad_action.app_error", nil, "", http.StatusInternalServerError)

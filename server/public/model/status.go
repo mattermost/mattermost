@@ -15,8 +15,8 @@ const (
 	StatusDnd            = "dnd"
 	StatusOnline         = "online"
 	StatusCacheSize      = SessionCacheSize
-	StatusChannelTimeout = 20000 // 20 seconds
-	StatusMinUpdateTime  = 5000  // 5 seconds (reduced from 2 minutes for aggressive real-time status updates)
+	StatusChannelTimeout = 20000  // 20 seconds
+	StatusMinUpdateTime  = 120000 // 2 minutes
 
 	// DNDExpiryInterval is how often the job to expire temporary DND statuses runs.
 	DNDExpiryInterval = 1 * time.Minute

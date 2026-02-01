@@ -355,12 +355,6 @@ func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		h.HandleFunc(c, w, r)
 	}
 
-	// Update user activity for all authenticated requests (aggressive status tracking)
-	if c.Err == nil && c.AppContext.Session() != nil && c.AppContext.Session().UserId != "" && !h.IsStatic {
-		c.App.Srv().Platform().UpdateLastActivityAtIfNeeded(*c.AppContext.Session())
-		c.App.Srv().Platform().SetStatusOnline(c.AppContext.Session().UserId, false)
-	}
-
 	// Handle errors that have occurred
 	if c.Err != nil {
 		h.handleContextError(c, w, r)

@@ -103,9 +103,6 @@ func (a *App) SaveReactionForPost(rctx request.CTX, reaction *model.Reaction) (*
 	// The post is always modified since the UpdateAt always changes
 	a.Srv().Store().Post().InvalidateLastPostTimeCache(channel.Id)
 
-	// Update user activity when adding a reaction (ensures DND/manual status users get LastActivityAt updated)
-	a.Srv().Platform().SetStatusOnline(reaction.UserId, false)
-
 	pluginContext := pluginContext(rctx)
 	a.Srv().Go(func() {
 		a.ch.RunMultiHook(func(hooks plugin.Hooks, _ *model.Manifest) bool {
@@ -186,9 +183,6 @@ func (a *App) DeleteReactionForPost(rctx request.CTX, reaction *model.Reaction) 
 
 	// The post is always modified since the UpdateAt always changes
 	a.Srv().Store().Post().InvalidateLastPostTimeCache(channel.Id)
-
-	// Update user activity when removing a reaction (ensures DND/manual status users get LastActivityAt updated)
-	a.Srv().Platform().SetStatusOnline(reaction.UserId, false)
 
 	pluginContext := pluginContext(rctx)
 	a.Srv().Go(func() {
