@@ -11,10 +11,11 @@
 }
 
 // Encrypted posts get a subtle purple background tint
+// Using box-shadow instead of border-left to avoid shifting content
 .post[data-priority="encrypted"],
 .post.post--encrypted {
     background: rgba(var(--encrypted-color), 0.04);
-    border-left: 3px solid rgba(var(--encrypted-color), 1);
+    box-shadow: inset 3px 0 0 rgba(var(--encrypted-color), 1);
 
     &:hover {
         background: rgba(var(--encrypted-color), 0.08);
@@ -24,7 +25,7 @@
 // In compact mode, maintain the styling
 .post--compact.post--encrypted {
     background: rgba(var(--encrypted-color), 0.04);
-    border-left: 3px solid rgba(var(--encrypted-color), 1);
+    box-shadow: inset 3px 0 0 rgba(var(--encrypted-color), 1);
 }
 
 // Encrypted priority badge (purple with lock icon)
