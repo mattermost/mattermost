@@ -118,24 +118,28 @@ export enum PostPriority {
 }
 ```
 
-**Automatic Un-Compaction (No Extra Code Needed):**
+**Encrypted Messages Compact Normally:**
 
-When a post has `metadata.priority.priority` set to any value (including `'encrypted'`), Mattermost automatically treats it as a non-consecutive post. This is handled in `webapp/channels/src/components/post/index.tsx`:
+Unlike `urgent` and `important` priorities, encrypted messages should compact like regular messages. When two encrypted messages are sent consecutively by the same user, the second one should appear in compact form (no avatar, reduced header).
+
+This requires a special case in `webapp/channels/src/components/post/index.tsx`:
 
 ```typescript
-// Line 82 - posts with priority are never consecutive
-if (previousPost && post && !post.metadata?.priority?.priority) {
-    consecutivePost = areConsecutivePostsBySameUser(post, previousPost);
+// Line 82 - posts with priority are never consecutive, EXCEPT encrypted
+if (previousPost && post) {
+    // Encrypted priority should still allow consecutive posts
+    const hasPriorityButNotEncrypted = post.metadata?.priority?.priority &&
+        post.metadata.priority.priority !== PostPriority.ENCRYPTED;
+    if (!hasPriorityButNotEncrypted) {
+        consecutivePost = areConsecutivePostsBySameUser(post, previousPost);
+    }
 }
 ```
 
-This means encrypted posts will always show:
-- Full post header with username
-- User avatar/profile picture
-- Timestamp
-- Not merged with previous posts from the same user
-
-No additional changes needed for un-compaction - it's automatic when priority is set.
+This means encrypted posts will:
+- Compact normally when consecutive from the same user
+- Still show the encrypted badge and purple styling
+- Allow for natural conversation flow in encrypted channels
 
 ### 2.3 Modify Priority Picker
 

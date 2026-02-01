@@ -8,6 +8,7 @@ import type {Dispatch} from 'redux';
 
 import type {Emoji} from '@mattermost/types/emojis';
 import type {Post} from '@mattermost/types/posts';
+import {PostPriority} from '@mattermost/types/posts';
 
 import {savePreferences} from 'mattermost-redux/actions/preferences';
 import {General, Preferences as ReduxPreferences} from 'mattermost-redux/constants';
@@ -79,8 +80,13 @@ function isConsecutivePost(state: GlobalState, ownProps: OwnProps) {
 
     let consecutivePost = false;
 
-    if (previousPost && post && !post.metadata?.priority?.priority) {
-        consecutivePost = areConsecutivePostsBySameUser(post, previousPost);
+    if (previousPost && post) {
+        // Encrypted priority should still allow consecutive posts (unlike urgent/important)
+        const hasPriorityButNotEncrypted = post.metadata?.priority?.priority &&
+            post.metadata.priority.priority !== PostPriority.ENCRYPTED;
+        if (!hasPriorityButNotEncrypted) {
+            consecutivePost = areConsecutivePostsBySameUser(post, previousPost);
+        }
     }
     return consecutivePost;
 }
