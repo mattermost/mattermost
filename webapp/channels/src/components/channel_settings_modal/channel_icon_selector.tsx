@@ -206,6 +206,29 @@ export default function ChannelIconSelector({
                             ))
                         )}
                     </div>
+
+                    <div className='ChannelIconSelector__customInput'>
+                        <label>
+                            {formatMessage({id: 'channel_icon_selector.custom', defaultMessage: 'Custom icon name:'})}
+                        </label>
+                        <div className='ChannelIconSelector__customInputRow'>
+                            <input
+                                type='text'
+                                placeholder={formatMessage({id: 'channel_icon_selector.custom_placeholder', defaultMessage: 'e.g., rocket, trophy, etc.'})}
+                                value={selectedIcon && !ALL_ICONS.includes(selectedIcon) ? selectedIcon : ''}
+                                onChange={(e) => onSelectIcon(e.target.value.trim())}
+                            />
+                            {selectedIcon && !ALL_ICONS.includes(selectedIcon) && (
+                                <i className={`icon icon-${selectedIcon} ChannelIconSelector__customPreview`}/>
+                            )}
+                        </div>
+                        <span className='ChannelIconSelector__customHint'>
+                            {formatMessage({
+                                id: 'channel_icon_selector.custom_hint',
+                                defaultMessage: 'Enter any compass-icons name. See all icons at materialdesignicons.com',
+                            })}
+                        </span>
+                    </div>
                 </div>
             )}
         </div>
