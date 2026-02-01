@@ -100,6 +100,51 @@
             white-space: nowrap;
         }
 
+        .ThreadPane__header-name--editable .ThreadPane__header-text {
+            cursor: pointer;
+            border-radius: 4px;
+            padding: 2px 4px;
+
+            &:hover {
+                background: rgba(var(--center-channel-color-rgb), 0.08);
+
+                .ThreadPane__header-edit-icon {
+                    opacity: 1;
+                }
+            }
+        }
+
+        .ThreadPane__header-edit-icon {
+            margin-left: 4px;
+            opacity: 0;
+            font-size: 14px;
+            color: rgba(var(--center-channel-color-rgb), 0.56);
+            transition: opacity 0.15s ease;
+        }
+
+        .ThreadPane__header-name-input {
+            flex: 1;
+            min-width: 100px;
+            padding: 4px 8px;
+            border: 1px solid rgba(var(--center-channel-color-rgb), 0.16);
+            border-radius: 4px;
+            background: var(--center-channel-bg);
+            color: var(--center-channel-color);
+            font-size: 16px;
+            font-weight: 600;
+            outline: none;
+
+            &:focus {
+                border-color: var(--button-bg);
+                box-shadow: 0 0 0 2px rgba(var(--button-bg-rgb), 0.16);
+            }
+
+            &::placeholder {
+                color: rgba(var(--center-channel-color-rgb), 0.5);
+                font-weight: 400;
+            }
+        }
+
         .ThreadPane__header-icons {
             display: flex;
             flex-shrink: 0;
