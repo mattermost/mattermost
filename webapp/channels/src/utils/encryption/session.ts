@@ -10,6 +10,7 @@ import {generateKeyPair, exportPublicKey} from './keypair';
 import {storeKeyPair, hasEncryptionKeys, getPublicKeyJwk, clearEncryptionKeys, getPrivateKey} from './storage';
 import {registerPublicKey, getEncryptionStatus, getChannelMemberKeys} from './api';
 import type {EncryptionStatus, EncryptionPublicKey} from './api';
+import {clearDecryptionCache} from './use_decrypt_post';
 
 let initializationPromise: Promise<void> | null = null;
 
@@ -79,10 +80,11 @@ export function isEncryptionInitialized(): boolean {
 }
 
 /**
- * Clears encryption keys (called on logout).
+ * Clears encryption keys and decryption cache (called on logout).
  */
 export function clearEncryptionSession(): void {
     clearEncryptionKeys();
+    clearDecryptionCache();
 }
 
 /**

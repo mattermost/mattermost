@@ -68,3 +68,9 @@ export {
     isEncryptionFailed,
     getPostEncryptionStatus,
 } from './message_hooks';
+
+// Decryption hook for components
+export {
+    useDecryptPost,
+    clearDecryptionCache,
+} from './use_decrypt_post';

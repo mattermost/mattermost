@@ -13,7 +13,7 @@ import {ensureEncryptionKeys} from 'utils/encryption/session';
 
 import KeypairPromptModal from './keypair_prompt_modal';
 
-type EncryptionStatus = 'no_keys' | 'no_access' | 'decrypt_error';
+type EncryptionStatus = 'no_keys' | 'no_access' | 'decrypt_error' | 'decrypting';
 
 interface Props {
     status?: EncryptionStatus;
@@ -76,6 +76,13 @@ function EncryptedPlaceholder({status = 'no_access'}: Props) {
                 <FormattedMessage
                     id='encryption.placeholder.decrypt_error'
                     defaultMessage='Unable to decrypt this message'
+                />
+            );
+        case 'decrypting':
+            return (
+                <FormattedMessage
+                    id='encryption.placeholder.decrypting'
+                    defaultMessage='Decrypting...'
                 />
             );
         case 'no_access':
