@@ -64,6 +64,7 @@ const (
 	GenerateSupportDataID                     = 45
 	OnSAMLLoginID                             = 46
 	EmailNotificationWillBeSentID             = 47
+	UserWillJoinTeamID                        = 48
 	TotalHooksID                              = iota
 )
 
@@ -213,6 +214,12 @@ type Hooks interface {
 	//
 	// Minimum server version: 5.2
 	UserHasLeftChannel(c *Context, channelMember *model.ChannelMember, actor *model.User)
+
+	// UserWillJoinTeam is invoked before a user joins a team. Returning a non-empty string will reject the team join.
+	// If actor is not nil, the user is being added to the team by the actor.
+	//
+	// Minimum server version: 10.11
+	UserWillJoinTeam(c *Context, team *model.Team, user *model.User, actor *model.User) string
 
 	// UserHasJoinedTeam is invoked after the membership has been committed to the database.
 	// If actor is not nil, the user was added to the team by the actor.
