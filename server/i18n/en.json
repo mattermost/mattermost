@@ -1262,10 +1262,6 @@
     "translation": "Could not find the specified channel. Please use the [channel handle](https://docs.mattermost.com/messaging/managing-channels.html#naming-a-channel) to identify channels."
   },
   {
-    "id": "api.command_mute.not_member.error",
-    "translation": "Could not mute channel {{.Channel}} as you are not a member."
-  },
-  {
     "id": "api.command_mute.success_mute",
     "translation": "You will not receive notifications for {{.Channel}} until channel mute is turned off."
   },
@@ -4561,6 +4557,10 @@
   {
     "id": "api.user.oauth_to_email.not_available.app_error",
     "translation": "Authentication Transfer not configured or available on this server."
+  },
+  {
+    "id": "api.user.oauth_to_email.not_oauth_user.app_error",
+    "translation": "Unable to switch to email authentication because user is not using OAuth or SAML authentication."
   },
   {
     "id": "api.user.patch_user.login_provider_attribute_set.app_error",

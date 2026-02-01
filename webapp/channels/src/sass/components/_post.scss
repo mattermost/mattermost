@@ -851,10 +851,15 @@
         .post__header,
         .post-preview__header {
             display: flex;
+            overflow: visible;
             width: auto;
             max-height: 22px;
             padding: 0;
             margin-bottom: 0;
+        }
+
+        .badges-wrapper {
+            margin-right: 5px;
         }
 
         .post__body {

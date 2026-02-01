@@ -487,55 +487,62 @@ func testGetDraftsForUser(t *testing.T, rctx request.CTX, ss store.Store) {
 		Id: model.NewId(),
 	}
 
-	channel := &model.Channel{
-		Id: model.NewId(),
+	newDraftForUser := func(t *testing.T, user *model.User) *model.Draft {
+		t.Helper()
+
+		channel := &model.Channel{
+			Id: model.NewId(),
+		}
+		member := &model.ChannelMember{
+			ChannelId:   channel.Id,
+			UserId:      user.Id,
+			NotifyProps: model.GetDefaultChannelNotifyProps(),
+		}
+		_, err := ss.Channel().SaveMember(rctx, member)
+		require.NoError(t, err)
+
+		draft := &model.Draft{
+			UserId:    user.Id,
+			ChannelId: channel.Id,
+			Message:   "draft post",
+		}
+		insertedDraft, err := ss.Draft().Upsert(draft)
+		require.NoError(t, err)
+
+		return insertedDraft
 	}
-	channel2 := &model.Channel{
-		Id: model.NewId(),
-	}
-
-	member1 := &model.ChannelMember{
-		ChannelId:   channel.Id,
-		UserId:      user.Id,
-		NotifyProps: model.GetDefaultChannelNotifyProps(),
-	}
-
-	member2 := &model.ChannelMember{
-		ChannelId:   channel2.Id,
-		UserId:      user.Id,
-		NotifyProps: model.GetDefaultChannelNotifyProps(),
-	}
-
-	_, err := ss.Channel().SaveMember(rctx, member1)
-	require.NoError(t, err)
-
-	_, err = ss.Channel().SaveMember(rctx, member2)
-	require.NoError(t, err)
-
-	draft1 := &model.Draft{
-		UserId:    user.Id,
-		ChannelId: channel.Id,
-		Message:   "draft1",
-	}
-
-	draft2 := &model.Draft{
-		UserId:    user.Id,
-		ChannelId: channel2.Id,
-		Message:   "draft2",
-	}
-
-	_, err = ss.Draft().Upsert(draft1)
-	require.NoError(t, err)
-
-	_, err = ss.Draft().Upsert(draft2)
-	require.NoError(t, err)
 
 	t.Run("get drafts", func(t *testing.T) {
+		t.Cleanup(func() { clearDrafts(t, rctx, ss) })
+
+		draft1 := newDraftForUser(t, user)
+		draft2 := newDraftForUser(t, user)
+
 		draftResp, err := ss.Draft().GetDraftsForUser(user.Id, "")
 		assert.NoError(t, err)
 		assert.Len(t, draftResp, 2)
 
 		assert.ElementsMatch(t, []*model.Draft{draft1, draft2}, draftResp)
+	})
+
+	t.Run("get drafts with Type NULL", func(t *testing.T) {
+		t.Cleanup(func() { clearDrafts(t, rctx, ss) })
+
+		draft := newDraftForUser(t, user)
+
+		// Draft().Upsert() correctly handles empty types, so we need to
+		// manually set Type to NULL
+		query := "UPDATE Drafts SET Type = NULL WHERE UserId = $1"
+		_, err := ss.GetInternalMasterDB().Exec(query, user.Id)
+		require.NoError(t, err)
+
+		draftResp, err := ss.Draft().GetDraftsForUser(user.Id, "")
+		assert.NoError(t, err)
+		assert.Len(t, draftResp, 1)
+
+		assert.ElementsMatch(t, []*model.Draft{draft}, draftResp)
+
+		clearDrafts(t, rctx, ss)
 	})
 }
 

@@ -232,7 +232,7 @@ func (s *SqlDraftStore) GetDraftsForUser(userID, teamID string) ([]*model.Draft,
 			"Drafts.FileIds",
 			"Drafts.Props",
 			"Drafts.Priority",
-			"Drafts.Type",
+			"COALESCE(Drafts.Type, '') AS Type",
 		).
 		From("Drafts").
 		InnerJoin("ChannelMembers ON ChannelMembers.ChannelId = Drafts.ChannelId").

@@ -4723,16 +4723,24 @@ export default class Client4 {
         );
     };
 
-    getAIRewrittenMessage = (agentId: string, message: string, action?: string, customPrompt?: string) => {
-        return this.doFetch<{rewritten_text: string}>(
+    getAIRewrittenMessage = (agentId: string, message: string, action?: string, customPrompt?: string, rootId?: string) => {
+        const body: {agent_id: string; message: string; action?: string; custom_prompt?: string; root_id?: string} = {
+            agent_id: agentId,
+            message,
+        };
+        if (action) {
+            body.action = action;
+        }
+        if (customPrompt) {
+            body.custom_prompt = customPrompt;
+        }
+        if (rootId) {
+            body.root_id = rootId;
+        }
+        return this.doFetch<{rewritten_text: string; changes_made: string[]}>(
             `${this.getPostsRoute()}/rewrite`,
-            {method: 'post', body: JSON.stringify({agent_id: agentId, message, action, custom_prompt: customPrompt})},
-        ).then((response) => {
-            if (!response || typeof response.rewritten_text === 'undefined') {
-                throw new Error('Invalid response from rewrite API: missing rewritten_text field');
-            }
-            return response.rewritten_text;
-        });
+            {method: 'post', body: JSON.stringify(body)},
+        ).then((response) => response.rewritten_text);
     };
 
     extractImageText = (

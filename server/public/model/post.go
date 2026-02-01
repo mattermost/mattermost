@@ -1252,6 +1252,7 @@ type RewriteRequest struct {
 	Message      string        `json:"message"`
 	Action       RewriteAction `json:"action"`
 	CustomPrompt string        `json:"custom_prompt,omitempty"`
+	RootID       string        `json:"root_id,omitempty"`
 }
 
 type RewriteResponse struct {

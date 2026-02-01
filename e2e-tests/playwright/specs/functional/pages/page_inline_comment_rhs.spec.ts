@@ -57,7 +57,10 @@ test.describe('Page Inline Comment via RHS', () => {
             await editButton.click();
 
             // # Wait for the editor to load
-            await page.waitForSelector('[data-testid="wiki-page-editor"]', {state: 'visible', timeout: HIERARCHY_TIMEOUT});
+            await page.waitForSelector('[data-testid="wiki-page-editor"]', {
+                state: 'visible',
+                timeout: HIERARCHY_TIMEOUT,
+            });
             const editor = page.locator('[data-testid="tiptap-editor-content"] .ProseMirror').first();
             await expect(editor).toBeVisible();
 
@@ -119,7 +122,10 @@ test.describe('Page Inline Comment via RHS', () => {
             await editButton.click();
 
             // # Select text and open RHS
-            await page.waitForSelector('[data-testid="wiki-page-editor"]', {state: 'visible', timeout: HIERARCHY_TIMEOUT});
+            await page.waitForSelector('[data-testid="wiki-page-editor"]', {
+                state: 'visible',
+                timeout: HIERARCHY_TIMEOUT,
+            });
             const editor = page.locator('[data-testid="tiptap-editor-content"] .ProseMirror').first();
             await expect(editor).toBeVisible();
             const paragraph = editor.locator('p').first();
