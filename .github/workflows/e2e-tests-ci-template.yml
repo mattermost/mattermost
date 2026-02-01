@@ -341,6 +341,7 @@ jobs:
           TM4J_API_KEY: "${{ secrets.REPORT_TM4J_API_KEY }}"
           TEST_CYCLE_LINK_PREFIX: "${{ secrets.REPORT_TM4J_TEST_CYCLE_LINK_PREFIX }}"
         run: |
+          echo "DEBUG: TYPE=${TYPE}, PR_NUMBER=${PR_NUMBER:-<not set>}"
           make report
       # The results dir may have been modified as part of the reporting: re-upload
       - name: ci/upload-report-global

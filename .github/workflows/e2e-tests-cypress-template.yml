@@ -38,7 +38,8 @@ on:
       build_id:
         type: string
         required: true
-      server_image:
+      server_image_tag:
+        description: "Server image tag (e.g., master or short SHA)"
         type: string
         required: true
       server:
@@ -57,12 +58,6 @@ on:
       pr_number:
         type: string
         required: false
-      check_ad_cycle:
-        description: "Check automation dashboard cycle for results"
-        type: boolean
-        required: false
-        default: false
-
       # Commit status configuration
       context_name:
         description: "GitHub commit status context name"
@@ -76,9 +71,6 @@ on:
       failed:
         description: "Number of failed tests"
         value: ${{ jobs.report.outputs.failed }}
-      smoke_passed:
-        description: "Whether smoke tests passed (for gating full tests)"
-        value: ${{ jobs.report.outputs.smoke_passed }}
       status_check_url:
         description: "URL to test results"
         value: ${{ jobs.generate-test-cycle.outputs.status_check_url }}
@@ -99,6 +91,9 @@ on:
       CWS_EXTRA_HTTP_HEADERS:
         required: false
 
+env:
+  SERVER_IMAGE: "mattermostdevelopment/mattermost-enterprise-edition:${{ inputs.server_image_tag }}"
+
 jobs:
   update-initial-status:
     runs-on: ubuntu-24.04
@@ -111,7 +106,7 @@ jobs:
           repository_full_name: ${{ github.repository }}
           commit_sha: ${{ inputs.commit_sha }}
           context: ${{ inputs.context_name }}
-          description: "Cypress ${{ inputs.test_type }} tests"
+          description: "with image tag: ${{ inputs.server_image_tag }}"
           status: pending
 
   generate-test-cycle:
@@ -175,7 +170,6 @@ jobs:
       AUTOMATION_DASHBOARD_URL: "${{ secrets.AUTOMATION_DASHBOARD_URL }}"
       AUTOMATION_DASHBOARD_TOKEN: "${{ secrets.AUTOMATION_DASHBOARD_TOKEN }}"
       SERVER: "${{ inputs.server }}"
-      SERVER_IMAGE: "${{ inputs.server_image }}"
       MM_LICENSE: "${{ secrets.MM_LICENSE }}"
       ENABLED_DOCKER_SERVICES: "${{ inputs.enabled_docker_services }}"
       TEST: cypress
@@ -215,15 +209,54 @@ jobs:
             e2e-tests/cypress/results/
           retention-days: 5
 
-  retest-failed:
+  calculate-results:
+    runs-on: ubuntu-24.04
+    needs:
+      - generate-test-cycle
+      - run-tests
+    if: always() && needs.generate-test-cycle.result == 'success'
+    outputs:
+      passed: ${{ steps.calculate.outputs.passed }}
+      failed: ${{ steps.calculate.outputs.failed }}
+      pending: ${{ steps.calculate.outputs.pending }}
+      total_specs: ${{ steps.calculate.outputs.total_specs }}
+      failed_specs: ${{ steps.calculate.outputs.failed_specs }}
+      failed_specs_count: ${{ steps.calculate.outputs.failed_specs_count }}
+      failed_tests: ${{ steps.calculate.outputs.failed_tests }}
+      commit_status_message: ${{ steps.calculate.outputs.commit_status_message }}
+      total: ${{ steps.calculate.outputs.total }}
+      pass_rate: ${{ steps.calculate.outputs.pass_rate }}
+      color: ${{ steps.calculate.outputs.color }}
+    steps:
+      - name: ci/checkout-repo
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          ref: ${{ inputs.commit_sha }}
+          fetch-depth: 0
+      - name: ci/download-results
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
+        with:
+          pattern: cypress-${{ inputs.test_type }}-results-*
+          path: e2e-tests/cypress/
+          merge-multiple: true
+      - name: ci/calculate
+        id: calculate
+        uses: ./.github/actions/calculate-cypress-results
+        with:
+          original-results-path: e2e-tests/cypress/results
+
+  run-failed-tests:
     runs-on: ubuntu-24.04
     timeout-minutes: ${{ fromJSON(inputs.timeout_minutes) }}
     needs:
       - generate-test-cycle
       - run-tests
-    if: always() && needs.generate-test-cycle.result == 'success' && needs.run-tests.result == 'failure'
-    outputs:
-      retest_passed: ${{ steps.check-retest.outputs.passed }}
+      - calculate-results
+    if: >-
+      always() &&
+      needs.calculate-results.result == 'success' &&
+      needs.calculate-results.outputs.failed != '0' &&
+      fromJSON(needs.calculate-results.outputs.failed_specs_count) <= 20
     defaults:
       run:
         working-directory: e2e-tests
@@ -231,7 +264,6 @@ jobs:
       AUTOMATION_DASHBOARD_URL: "${{ secrets.AUTOMATION_DASHBOARD_URL }}"
       AUTOMATION_DASHBOARD_TOKEN: "${{ secrets.AUTOMATION_DASHBOARD_TOKEN }}"
       SERVER: "${{ inputs.server }}"
-      SERVER_IMAGE: "${{ inputs.server_image }}"
       MM_LICENSE: "${{ secrets.MM_LICENSE }}"
       ENABLED_DOCKER_SERVICES: "${{ inputs.enabled_docker_services }}"
       TEST: cypress
@@ -252,62 +284,16 @@ jobs:
           node-version-file: ".nvmrc"
           cache: npm
           cache-dependency-path: "e2e-tests/cypress/package-lock.json"
-      - name: ci/download-results
-        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
-        with:
-          pattern: cypress-${{ inputs.test_type }}-results-*
-          path: e2e-tests/cypress/
-          merge-multiple: true
-      - name: ci/extract-failed-tests
-        id: failed-tests
-        run: |
-          # Extract failed spec files from mochawesome results
-          FAILED_FILES=""
-          for file in cypress/results/*.json; do
-            if [ -f "$file" ]; then
-              SPECS=$(jq -r '
-                .results[]? |
-                select(.suites[]?.tests[]?.state == "failed") |
-                .file
-              ' "$file" 2>/dev/null)
-              FAILED_FILES="${FAILED_FILES} ${SPECS}"
-            fi
-          done
-          FAILED_FILES=$(echo "$FAILED_FILES" | tr ' ' '\n' | grep -v '^$' | sort -u | tr '\n' ',' | sed 's/,$//')
-
-          if [ -z "$FAILED_FILES" ]; then
-            echo "No failed tests found"
-            echo "has_failed=false" >> $GITHUB_OUTPUT
-          else
-            echo "Failed spec files: $FAILED_FILES"
-            echo "has_failed=true" >> $GITHUB_OUTPUT
-            echo "failed_files=$FAILED_FILES" >> $GITHUB_OUTPUT
-          fi
-      - name: ci/rerun-failed-tests
-        if: steps.failed-tests.outputs.has_failed == 'true'
+      - name: ci/run-failed-specs
         env:
-          FAILED_FILES: ${{ steps.failed-tests.outputs.failed_files }}
+          SPEC_FILES: ${{ needs.calculate-results.outputs.failed_specs }}
         run: |
+          echo "Retesting failed specs: $SPEC_FILES"
           make cloud-init
-          cd cypress
-          npm ci
-          npx cypress run --spec "$FAILED_FILES" || true
+          make start-server run-specs
       - name: ci/cloud-teardown
         if: always()
         run: make cloud-teardown
-      - name: ci/check-retest-results
-        id: check-retest
-        run: |
-          if [ -f "cypress/results/summary.json" ]; then
-            FAILED=$(jq '.failed // 0' cypress/results/summary.json)
-            if [ "$FAILED" = "0" ]; then
-              echo "passed=true" >> $GITHUB_OUTPUT
-            else
-              echo "passed=false" >> $GITHUB_OUTPUT
-            fi
-          else
-            echo "passed=false" >> $GITHUB_OUTPUT
-          fi
       - name: ci/upload-retest-results
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         if: always()
@@ -323,13 +309,13 @@ jobs:
     needs:
       - generate-test-cycle
       - run-tests
-      - retest-failed
-    if: always() && needs.generate-test-cycle.result == 'success'
+      - calculate-results
+      - run-failed-tests
+    if: always() && needs.calculate-results.result == 'success'
     outputs:
-      passed: "${{ steps.calculate-results.outputs.passed }}"
-      failed: "${{ steps.calculate-results.outputs.failed }}"
-      smoke_passed: "${{ steps.calculate-results.outputs.smoke_passed }}"
-      commit_status_message: "${{ steps.calculate-results.outputs.commit_status_message }}"
+      passed: "${{ steps.final-results.outputs.passed }}"
+      failed: "${{ steps.final-results.outputs.failed }}"
+      commit_status_message: "${{ steps.final-results.outputs.commit_status_message }}"
     defaults:
       run:
         working-directory: e2e-tests
@@ -345,40 +331,98 @@ jobs:
           node-version-file: ".nvmrc"
           cache: npm
           cache-dependency-path: "e2e-tests/cypress/package-lock.json"
-      - name: ci/download-results
+
+      # PATH A: run-failed-tests was skipped (no failures to retest)
+      - name: ci/download-results-path-a
+        if: needs.run-failed-tests.result == 'skipped'
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
+        with:
+          pattern: cypress-${{ inputs.test_type }}-results-*
+          path: e2e-tests/cypress/
+          merge-multiple: true
+      - name: ci/use-previous-calculation
+        if: needs.run-failed-tests.result == 'skipped'
+        id: use-previous
+        run: |
+          echo "passed=${{ needs.calculate-results.outputs.passed }}" >> $GITHUB_OUTPUT
+          echo "failed=${{ needs.calculate-results.outputs.failed }}" >> $GITHUB_OUTPUT
+          echo "pending=${{ needs.calculate-results.outputs.pending }}" >> $GITHUB_OUTPUT
+          echo "total_specs=${{ needs.calculate-results.outputs.total_specs }}" >> $GITHUB_OUTPUT
+          echo "failed_specs=${{ needs.calculate-results.outputs.failed_specs }}" >> $GITHUB_OUTPUT
+          echo "failed_specs_count=${{ needs.calculate-results.outputs.failed_specs_count }}" >> $GITHUB_OUTPUT
+          echo "commit_status_message=${{ needs.calculate-results.outputs.commit_status_message }}" >> $GITHUB_OUTPUT
+          echo "total=${{ needs.calculate-results.outputs.total }}" >> $GITHUB_OUTPUT
+          echo "pass_rate=${{ needs.calculate-results.outputs.pass_rate }}" >> $GITHUB_OUTPUT
+          echo "color=${{ needs.calculate-results.outputs.color }}" >> $GITHUB_OUTPUT
+          {
+            echo "failed_tests<<EOF"
+            echo "${{ needs.calculate-results.outputs.failed_tests }}"
+            echo "EOF"
+          } >> $GITHUB_OUTPUT
+
+      # PATH B: run-failed-tests ran, need to merge and recalculate
+      - name: ci/download-original-results
+        if: needs.run-failed-tests.result != 'skipped'
         uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
         with:
           pattern: cypress-${{ inputs.test_type }}-results-*
           path: e2e-tests/cypress/
           merge-multiple: true
       - name: ci/download-retest-results
-        if: needs.retest-failed.result == 'success'
+        if: needs.run-failed-tests.result != 'skipped'
         uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
-        continue-on-error: true
         with:
           name: cypress-${{ inputs.test_type }}-retest-results
           path: e2e-tests/cypress/retest-results/
-      - name: ci/merge-retest-results
-        if: needs.retest-failed.result == 'success'
-        run: |
-          # If retest results exist and passed, use them for final status
-          if [ -f "cypress/retest-results/results/summary.json" ]; then
-            RETEST_FAILED=$(jq '.failed // 0' cypress/retest-results/results/summary.json 2>/dev/null || echo "1")
-            ORIGINAL_FAILED=$(jq '.failed // 0' cypress/results/summary.json 2>/dev/null || echo "0")
-            ORIGINAL_PASSED=$(jq '.passed // 0' cypress/results/summary.json 2>/dev/null || echo "0")
+      - name: ci/calculate-results
+        if: needs.run-failed-tests.result != 'skipped'
+        id: recalculate
+        uses: ./.github/actions/calculate-cypress-results
+        with:
+          original-results-path: e2e-tests/cypress/results
+          retest-results-path: e2e-tests/cypress/retest-results/results
 
-            if [ "$RETEST_FAILED" = "0" ]; then
-              echo "Retest passed - updating results to show flaky tests"
-              # Calculate flaky count (tests that failed initially but passed on retest)
-              FLAKY_COUNT=$ORIGINAL_FAILED
-              NEW_PASSED=$((ORIGINAL_PASSED + FLAKY_COUNT))
-              # Update summary.json with flaky info
-              jq --argjson passed "$NEW_PASSED" --argjson flaky "$FLAKY_COUNT" \
-                '.passed = $passed | .failed = 0 | .flaky = $flaky' \
-                cypress/results/summary.json > cypress/results/summary.json.tmp
-              mv cypress/results/summary.json.tmp cypress/results/summary.json
-            fi
+      # Set final outputs from either path
+      - name: ci/set-final-results
+        id: final-results
+        env:
+          USE_PREVIOUS_FAILED_TESTS: ${{ steps.use-previous.outputs.failed_tests }}
+          RECALCULATE_FAILED_TESTS: ${{ steps.recalculate.outputs.failed_tests }}
+        run: |
+          if [ "${{ needs.run-failed-tests.result }}" == "skipped" ]; then
+            echo "passed=${{ steps.use-previous.outputs.passed }}" >> $GITHUB_OUTPUT
+            echo "failed=${{ steps.use-previous.outputs.failed }}" >> $GITHUB_OUTPUT
+            echo "pending=${{ steps.use-previous.outputs.pending }}" >> $GITHUB_OUTPUT
+            echo "total_specs=${{ steps.use-previous.outputs.total_specs }}" >> $GITHUB_OUTPUT
+            echo "failed_specs=${{ steps.use-previous.outputs.failed_specs }}" >> $GITHUB_OUTPUT
+            echo "failed_specs_count=${{ steps.use-previous.outputs.failed_specs_count }}" >> $GITHUB_OUTPUT
+            echo "commit_status_message=${{ steps.use-previous.outputs.commit_status_message }}" >> $GITHUB_OUTPUT
+            echo "total=${{ steps.use-previous.outputs.total }}" >> $GITHUB_OUTPUT
+            echo "pass_rate=${{ steps.use-previous.outputs.pass_rate }}" >> $GITHUB_OUTPUT
+            echo "color=${{ steps.use-previous.outputs.color }}" >> $GITHUB_OUTPUT
+            {
+              echo "failed_tests<<EOF"
+              echo "$USE_PREVIOUS_FAILED_TESTS"
+              echo "EOF"
+            } >> $GITHUB_OUTPUT
+          else
+            echo "passed=${{ steps.recalculate.outputs.passed }}" >> $GITHUB_OUTPUT
+            echo "failed=${{ steps.recalculate.outputs.failed }}" >> $GITHUB_OUTPUT
+            echo "pending=${{ steps.recalculate.outputs.pending }}" >> $GITHUB_OUTPUT
+            echo "total_specs=${{ steps.recalculate.outputs.total_specs }}" >> $GITHUB_OUTPUT
+            echo "failed_specs=${{ steps.recalculate.outputs.failed_specs }}" >> $GITHUB_OUTPUT
+            echo "failed_specs_count=${{ steps.recalculate.outputs.failed_specs_count }}" >> $GITHUB_OUTPUT
+            echo "commit_status_message=${{ steps.recalculate.outputs.commit_status_message }}" >> $GITHUB_OUTPUT
+            echo "total=${{ steps.recalculate.outputs.total }}" >> $GITHUB_OUTPUT
+            echo "pass_rate=${{ steps.recalculate.outputs.pass_rate }}" >> $GITHUB_OUTPUT
+            echo "color=${{ steps.recalculate.outputs.color }}" >> $GITHUB_OUTPUT
+            {
+              echo "failed_tests<<EOF"
+              echo "$RECALCULATE_FAILED_TESTS"
+              echo "EOF"
+            } >> $GITHUB_OUTPUT
           fi
+
       - name: ci/upload-combined-results
         if: inputs.workers > 1
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
@@ -388,95 +432,93 @@ jobs:
             e2e-tests/cypress/logs/
             e2e-tests/cypress/results/
       - name: ci/publish-report
-        if: inputs.enable_reporting
+        if: inputs.enable_reporting && env.REPORT_WEBHOOK_URL != ''
         env:
-          TYPE: "${{ inputs.report_type }}"
-          TEST: cypress
-          SERVER: "${{ inputs.server }}"
-          SERVER_IMAGE: "${{ inputs.server_image }}"
-          AUTOMATION_DASHBOARD_URL: "${{ secrets.AUTOMATION_DASHBOARD_URL }}"
-          WEBHOOK_URL: "${{ secrets.REPORT_WEBHOOK_URL }}"
-          BRANCH: "${{ inputs.branch }}-${{ inputs.test_type }}"
-          BUILD_ID: "${{ inputs.build_id }}"
-          PR_NUMBER: "${{ inputs.pr_number }}"
-        run: make report
-      - name: ci/calculate-results
-        id: calculate-results
-        uses: ./.github/actions/calculate-e2e-test-results
-        with:
-          results_path: e2e-tests/cypress/results
-          check_ad_cycle: "${{ inputs.check_ad_cycle }}"
-      - name: ci/comment-failed-tests
-        if: steps.calculate-results.outputs.failed != '0' && inputs.pr_number != ''
-        env:
-          GH_TOKEN: ${{ github.token }}
-          PR_NUMBER: ${{ inputs.pr_number }}
-          STATUS_CHECK_URL: ${{ needs.generate-test-cycle.outputs.status_check_url }}
+          REPORT_WEBHOOK_URL: ${{ secrets.REPORT_WEBHOOK_URL }}
+          PASS_RATE: ${{ steps.final-results.outputs.pass_rate }}
+          PASSED: ${{ steps.final-results.outputs.passed }}
+          TOTAL: ${{ steps.final-results.outputs.total }}
+          TOTAL_SPECS: ${{ steps.final-results.outputs.total_specs }}
+          COLOR: ${{ steps.final-results.outputs.color }}
+          REPORT_URL: ${{ needs.generate-test-cycle.outputs.status_check_url }}
           TEST_TYPE: ${{ inputs.test_type }}
-          FAILED_COUNT: ${{ steps.calculate-results.outputs.failed }}
+          PR_NUMBER: ${{ inputs.pr_number }}
         run: |
-          # Extract failed tests from mochawesome results
-          FAILED_TESTS=""
-          for file in cypress/results/*.json; do
-            if [ -f "$file" ]; then
-              TESTS=$(jq -r '
-                .results[]?.suites[]?.tests[]? |
-                select(.state == "failed") |
-                "| `\(.title | gsub("`"; "\\`") | gsub("\\|"; "\\|"))` | `\(.file // "unknown")` |"
-              ' "$file" 2>/dev/null)
-              FAILED_TESTS="${FAILED_TESTS}${TESTS}"
-            fi
-          done
+          # Capitalize test type
+          TEST_TYPE_CAP=$(echo "$TEST_TYPE" | sed 's/.*/\u&/')
 
-          # Count total and limit to 10 entries
-          TOTAL_LINES=$(echo "$FAILED_TESTS" | grep -c '^|' || echo "0")
-          FAILED_TESTS=$(echo "$FAILED_TESTS" | head -10)
-
-          if [ -z "$FAILED_TESTS" ]; then
-            FAILED_TESTS="| Unable to parse failed tests | - |"
-          elif [ "$TOTAL_LINES" -gt 10 ]; then
-            REMAINING=$((TOTAL_LINES - 10))
-            FAILED_TESTS="${FAILED_TESTS}
-          | _...and ${REMAINING} more failed tests_ | |"
-          fi
-
-          # Build comment body with collapsible section
-          COMMENT_BODY=$(cat <<EOF
-          ## E2E Test Failures
-
-          <details>
-          <summary>Cypress ${TEST_TYPE}: ${FAILED_COUNT} failed</summary>
-
-          | Test | File |
-          |------|------|
-          ${FAILED_TESTS}
-
-          </details>
-
-          ---
-          [View Full Report](${STATUS_CHECK_URL})
+          # Build payload with attachments
+          PAYLOAD=$(cat <<EOF
+          {
+            "username": "E2E Test",
+            "icon_url": "https://mattermost.com/wp-content/uploads/2022/02/icon_WS.png",
+            "attachments": [{
+              "color": "${COLOR}",
+              "text": "**Results - Cypress ${TEST_TYPE_CAP} Tests**\n\n:open-pull-request: [mattermost-pr-${PR_NUMBER}](https://github.com/${{ github.repository }}/pull/${PR_NUMBER})\n:docker: \`${{ env.SERVER_IMAGE }}\`\n${PASS_RATE}% (${PASSED}/${TOTAL}) in ${TOTAL_SPECS} spec files | [full report](${REPORT_URL})"
+            }]
+          }
           EOF
           )
 
-          # Check for existing comment and update, or create new
-          EXISTING_COMMENT=$(gh api repos/${{ github.repository }}/issues/${PR_NUMBER}/comments \
-            --jq '.[] | select(.body | startswith("## E2E Test Failures")) | .id' | head -1)
+          # Send to webhook
+          curl -X POST -H "Content-Type: application/json" -d "$PAYLOAD" "$REPORT_WEBHOOK_URL"
+      - name: ci/write-job-summary
+        if: always()
+        env:
+          STATUS_CHECK_URL: ${{ needs.generate-test-cycle.outputs.status_check_url }}
+          TEST_TYPE: ${{ inputs.test_type }}
+          PASSED: ${{ steps.final-results.outputs.passed }}
+          FAILED: ${{ steps.final-results.outputs.failed }}
+          PENDING: ${{ steps.final-results.outputs.pending }}
+          TOTAL_SPECS: ${{ steps.final-results.outputs.total_specs }}
+          FAILED_SPECS_COUNT: ${{ steps.final-results.outputs.failed_specs_count }}
+          FAILED_SPECS: ${{ steps.final-results.outputs.failed_specs }}
+          COMMIT_STATUS_MESSAGE: ${{ steps.final-results.outputs.commit_status_message }}
+          FAILED_TESTS: ${{ steps.final-results.outputs.failed_tests }}
+        run: |
+          {
+            echo "## E2E Test Results - Cypress ${TEST_TYPE}"
+            echo ""
 
-          if [ -n "$EXISTING_COMMENT" ]; then
-            gh api repos/${{ github.repository }}/issues/comments/${EXISTING_COMMENT} \
-              -X PATCH -f body="$COMMENT_BODY"
-          else
-            gh pr comment ${PR_NUMBER} --body "$COMMENT_BODY"
-          fi
+            if [ "$FAILED" = "0" ]; then
+              echo "All tests passed: **${PASSED} passed**"
+            else
+              echo "<details>"
+              echo "<summary>${FAILED} failed, ${PASSED} passed</summary>"
+              echo ""
+              echo "| Test | File |"
+              echo "|------|------|"
+              echo "${FAILED_TESTS}"
+              echo "</details>"
+            fi
+
+            echo ""
+            echo "### Calculation Outputs"
+            echo ""
+            echo "| Output | Value |"
+            echo "|--------|-------|"
+            echo "| passed | ${PASSED} |"
+            echo "| failed | ${FAILED} |"
+            echo "| pending | ${PENDING} |"
+            echo "| total_specs | ${TOTAL_SPECS} |"
+            echo "| failed_specs_count | ${FAILED_SPECS_COUNT} |"
+            echo "| commit_status_message | ${COMMIT_STATUS_MESSAGE} |"
+            echo "| failed_specs | ${FAILED_SPECS:-none} |"
+
+            echo ""
+            echo "---"
+            echo "[View Full Report](${STATUS_CHECK_URL})"
+          } >> $GITHUB_STEP_SUMMARY
       - name: ci/assert-results
         run: |
-          [ "${{ steps.calculate-results.outputs.failed }}" = "0" ]
+          [ "${{ steps.final-results.outputs.failed }}" = "0" ]
 
   update-success-status:
     runs-on: ubuntu-24.04
-    if: always() && needs.report.result == 'success' && needs.generate-test-cycle.result == 'success'
+    if: always() && needs.report.result == 'success' && needs.calculate-results.result == 'success'
     needs:
       - generate-test-cycle
+      - calculate-results
       - report
     steps:
       - uses: mattermost/actions/delivery/update-commit-status@f324ac89b05cc3511cb06e60642ac2fb829f0a63
@@ -486,15 +528,16 @@ jobs:
           repository_full_name: ${{ github.repository }}
           commit_sha: ${{ inputs.commit_sha }}
           context: ${{ inputs.context_name }}
-          description: "${{ needs.report.outputs.commit_status_message || format('{0} tests passed ({1} passed)', inputs.test_type, needs.report.outputs.passed) }}"
+          description: "${{ needs.report.outputs.commit_status_message }} with image tag: ${{ inputs.server_image_tag }}"
           status: success
           target_url: ${{ needs.generate-test-cycle.outputs.status_check_url }}
 
   update-failure-status:
     runs-on: ubuntu-24.04
-    if: always() && (needs.report.result != 'success' || needs.generate-test-cycle.result != 'success')
+    if: always() && (needs.report.result != 'success' || needs.calculate-results.result != 'success')
     needs:
       - generate-test-cycle
+      - calculate-results
       - report
     steps:
       - uses: mattermost/actions/delivery/update-commit-status@f324ac89b05cc3511cb06e60642ac2fb829f0a63
@@ -504,6 +547,6 @@ jobs:
           repository_full_name: ${{ github.repository }}
           commit_sha: ${{ inputs.commit_sha }}
           context: ${{ inputs.context_name }}
-          description: "${{ needs.report.outputs.commit_status_message || format('{0} tests failed ({1} failed)', inputs.test_type, needs.report.outputs.failed) }}"
+          description: "${{ needs.report.outputs.commit_status_message }} with image tag: ${{ inputs.server_image_tag }}"
           status: failure
           target_url: ${{ needs.generate-test-cycle.outputs.status_check_url }}
