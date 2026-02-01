@@ -6,6 +6,7 @@ import {useSelector} from 'react-redux';
 
 import type {ServerError} from '@mattermost/types/errors';
 import type {FileInfo} from '@mattermost/types/files';
+import {PostPriority} from '@mattermost/types/posts';
 
 import {sortFileInfos} from 'mattermost-redux/utils/file_utils';
 
@@ -160,6 +161,9 @@ const useUploadFiles = (
         postType = isThreadView ? 'thread' : 'comment';
     }
 
+    // Check if encryption is currently enabled for this draft (mattermost-extended)
+    const isEncryptionEnabled = draft.metadata?.priority?.priority === PostPriority.ENCRYPTED;
+
     const fileUploadJSX = isDisabled ? null : (
         <FileUpload
             ref={fileUploadRef}
@@ -173,6 +177,7 @@ const useUploadFiles = (
             rootId={postId}
             channelId={channelId}
             postType={postType}
+            encryptFiles={isEncryptionEnabled}
         />
     );
 

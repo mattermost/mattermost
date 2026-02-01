@@ -27,6 +27,11 @@ import WithTooltip from 'components/with_tooltip';
 import Constants from 'utils/constants';
 import DelayedAction from 'utils/delayed_action';
 import dragster from 'utils/dragster';
+import {
+    encryptFileForChannel,
+    cacheFileEncryptionMetadataByClientId,
+    mapClientIdToFileId,
+} from 'utils/encryption';
 import {cmdOrCtrlPressed, isKeyPressed} from 'utils/keyboard';
 import {hasPlainText, createFileFromClipboardDataItem} from 'utils/paste';
 import {
@@ -158,6 +163,17 @@ export type Props = {
     centerChannelPostBeingEdited: boolean;
     rhsPostBeingEdited: boolean;
 
+    /**
+     * Whether to encrypt files before upload (mattermost-extended)
+     * When true, files will be encrypted using hybrid encryption before being sent to server
+     */
+    encryptFiles?: boolean;
+
+    /**
+     * Current user ID for encryption (mattermost-extended)
+     */
+    currentUserId?: string;
+
     actions: {
 
         /**
@@ -253,6 +269,15 @@ export class FileUpload extends PureComponent<Props, State> {
 
     fileUploadSuccess = (data: FileUploadResponse, channelId: string, currentRootId: string) => {
         if (data) {
+            // Map clientIds to fileIds for encrypted file metadata lookup (mattermost-extended)
+            for (let j = 0; j < data.client_ids.length; j++) {
+                const clientId = data.client_ids[j];
+                const fileId = data.file_infos[j]?.id;
+                if (clientId && fileId) {
+                    mapClientIdToFileId(clientId, fileId);
+                }
+            }
+
             this.props.onFileUpload(data.file_infos, data.client_ids, channelId, currentRootId);
 
             const requests = Object.assign({}, this.state.requests);
@@ -296,8 +321,8 @@ export class FileUpload extends PureComponent<Props, State> {
         }
     };
 
-    uploadFiles = (sortedFiles: File[]) => {
-        const {channelId, rootId} = this.props;
+    uploadFiles = async (sortedFiles: File[]) => {
+        const {channelId, rootId, encryptFiles} = this.props;
 
         const uploadsRemaining = Constants.MAX_UPLOAD_FILES - this.props.fileCount;
         let numUploads = 0;
@@ -319,10 +344,43 @@ export class FileUpload extends PureComponent<Props, State> {
             // generate a unique id that can be used by other components to refer back to this upload
             const clientId = generateId();
 
+            let fileToUpload = sortedFiles[i];
+            let fileName = sortedFiles[i].name;
+            let fileType = sortedFiles[i].type;
+
+            // Encrypt file if encryption is enabled (mattermost-extended)
+            if (encryptFiles && this.props.currentUserId) {
+                try {
+                    const {encryptedFile, metadata} = await encryptFileForChannel(
+                        sortedFiles[i],
+                        channelId,
+                        this.props.currentUserId,
+                    );
+
+                    // Cache the metadata using clientId (will be mapped to fileId on upload success)
+                    cacheFileEncryptionMetadataByClientId(clientId, metadata);
+
+                    // Use the encrypted file for upload
+                    fileToUpload = encryptedFile;
+                    fileType = encryptedFile.type;
+
+                    console.log('[FileUpload] Encrypted file:', fileName, 'clientId:', clientId);
+                } catch (error) {
+                    console.error('[FileUpload] Failed to encrypt file:', error);
+                    this.props.onUploadError(
+                        `Failed to encrypt file "${fileName}": ${error instanceof Error ? error.message : 'Unknown error'}`,
+                        clientId,
+                        channelId,
+                        rootId || '',
+                    );
+                    continue;
+                }
+            }
+
             const request = this.props.actions.uploadFile({
-                file: sortedFiles[i],
-                name: sortedFiles[i].name,
-                type: sortedFiles[i].type,
+                file: fileToUpload,
+                name: fileName,
+                type: fileType,
                 rootId: rootId || '',
                 channelId,
                 clientId,

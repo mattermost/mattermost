@@ -2,10 +2,10 @@
 // See LICENSE.txt for license information.
 
 import classNames from 'classnames';
-import React, {useRef, useState, useEffect} from 'react';
+import React, {useRef, useState, useEffect, useMemo} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 
-import {ArchiveOutlineIcon} from '@mattermost/compass-icons/components';
+import {ArchiveOutlineIcon, LockOutlineIcon} from '@mattermost/compass-icons/components';
 import type {FileInfo} from '@mattermost/types/files';
 
 import {getFileThumbnailUrl, getFileUrl} from 'mattermost-redux/utils/file_utils';
@@ -17,7 +17,7 @@ import MenuWrapper from 'components/widgets/menu/menu_wrapper';
 import WithTooltip from 'components/with_tooltip';
 
 import {Constants, FileTypes, ModalIdentifiers} from 'utils/constants';
-import {trimFilename} from 'utils/file_utils';
+import {trimFilename, getFileExtensionFromType} from 'utils/file_utils';
 import {
     fileSizeToString,
     getFileType,
@@ -27,6 +27,7 @@ import {
 import ArchivedTooltip from './archived_tooltip';
 import FileThumbnail from './file_thumbnail';
 import FilenameOverlay from './filename_overlay';
+import {useEncryptedFile} from './use_encrypted_file';
 
 import type {PropsFromRedux} from './index';
 
@@ -56,6 +57,11 @@ type Props = PropsFromRedux & {
     disableThumbnail?: boolean;
     disableActions?: boolean;
     overrideGenerateFileDownloadUrl?: (fileId: string) => string;
+
+    /*
+    * Post ID for fetching encryption metadata (mattermost-extended)
+    */
+    postId?: string;
 };
 
 export default function FileAttachment(props: Props) {
@@ -73,6 +79,36 @@ export default function FileAttachment(props: Props) {
 
     const pluginItemsVisible = usePluginVisibilityInSharedChannel(props.currentChannel?.id);
 
+    // Check if file is encrypted and get decryption status (mattermost-extended)
+    const {
+        isEncrypted,
+        status: decryptionStatus,
+        originalFileInfo,
+        thumbnailUrl: decryptedThumbnailUrl,
+        decrypt,
+    } = useEncryptedFile(props.fileInfo, props.postId);
+
+    // For encrypted files, use the decrypted metadata for display
+    // This prevents leaking original filename/type to users without keys
+    const displayFileInfo = useMemo(() => {
+        if (!isEncrypted || !originalFileInfo) {
+            return props.fileInfo;
+        }
+
+        // Extract extension from original filename or mime type
+        const originalName = originalFileInfo.name;
+        const lastDot = originalName.lastIndexOf('.');
+        const extension = lastDot > 0 ? originalName.substring(lastDot + 1) : getFileExtensionFromType(originalFileInfo.type);
+
+        return {
+            ...props.fileInfo,
+            name: originalFileInfo.name,
+            extension,
+            size: originalFileInfo.size,
+            mime_type: originalFileInfo.type,
+        };
+    }, [props.fileInfo, isEncrypted, originalFileInfo]);
+
     const handleImageLoaded = () => {
         if (mounted.current) {
             setLoaded(true);
@@ -80,12 +116,23 @@ export default function FileAttachment(props: Props) {
     };
 
     const loadFiles = () => {
-        const fileInfo = props.fileInfo;
+        const fileInfo = displayFileInfo;
         if (fileInfo.archived) {
             // if archived, file preview will not be accessible anyway.
             // So skip trying to load.
             return;
         }
+
+        // Don't load server thumbnails for encrypted files - they're encrypted blobs
+        if (isEncrypted) {
+            // For encrypted files, we need to decrypt first to show thumbnail
+            // The thumbnail will be generated client-side after decryption
+            if (decryptedThumbnailUrl) {
+                setLoaded(true);
+            }
+            return;
+        }
+
         const fileType = getFileType(fileInfo.extension);
 
         if (!props.disableThumbnail) {
@@ -110,7 +157,7 @@ export default function FileAttachment(props: Props) {
         if (!loaded && props.fileInfo.id) {
             loadFiles();
         }
-    }, [props.fileInfo.id, loaded]);
+    }, [props.fileInfo.id, loaded, decryptedThumbnailUrl]);
 
     useEffect(() => {
         return () => {
@@ -119,10 +166,10 @@ export default function FileAttachment(props: Props) {
     }, []);
 
     useEffect(() => {
-        if (props.fileInfo.id) {
+        if (props.fileInfo.id && !isEncrypted) {
             setLoaded(getFileType(props.fileInfo.extension) !== FileTypes.IMAGE && !(props.enableSVGs && props.fileInfo.extension === FileTypes.SVG));
         }
-    }, [props.fileInfo.extension, props.fileInfo.id, props.enableSVGs]);
+    }, [props.fileInfo.extension, props.fileInfo.id, props.enableSVGs, isEncrypted]);
 
     const onAttachmentClick = (e: React.MouseEvent<HTMLElement, MouseEvent>) => {
         e.preventDefault();
@@ -265,34 +312,75 @@ export default function FileAttachment(props: Props) {
         );
     };
 
-    const {compactDisplay, fileInfo} = props;
+    const {compactDisplay} = props;
+    const fileInfo = displayFileInfo;
+
+    // For encrypted files without decrypted metadata, show placeholder
+    const showEncryptedPlaceholder = isEncrypted && !originalFileInfo;
 
     let fileThumbnail;
     let fileDetail;
     let fileActions;
-    const ariaLabelImage = `${formatMessage({id: 'file_attachment.thumbnail', defaultMessage: 'file thumbnail'})} ${fileInfo.name}`.toLowerCase();
+    const ariaLabelImage = showEncryptedPlaceholder
+        ? formatMessage({id: 'file_attachment.encrypted_file', defaultMessage: 'Encrypted file'})
+        : `${formatMessage({id: 'file_attachment.thumbnail', defaultMessage: 'file thumbnail'})} ${fileInfo.name}`.toLowerCase();
 
     if (!compactDisplay) {
-        fileThumbnail = (
-            <a
-                aria-label={ariaLabelImage}
-                className='post-image__thumbnail'
-                href='#'
-                onClick={onAttachmentClick}
-            >
-                {loaded && !props.disableThumbnail ? (
-                    <FileThumbnail
-                        fileInfo={fileInfo}
-                        disablePreview={props.disablePreview}
+        if (showEncryptedPlaceholder) {
+            // Show lock icon for encrypted files we can't decrypt
+            fileThumbnail = (
+                <div
+                    className='post-image__thumbnail post-image__thumbnail--encrypted'
+                    onClick={decrypt}
+                    role='button'
+                    tabIndex={0}
+                >
+                    <LockOutlineIcon
+                        size={48}
+                        color={'rgba(var(--encrypted-color), 1)'}
                     />
-                ) : (
-                    <FileThumbnail
-                        fileInfo={props.fileInfo}
-                        disablePreview={true}
+                </div>
+            );
+        } else if (isEncrypted && decryptedThumbnailUrl) {
+            // Show decrypted thumbnail for encrypted images
+            fileThumbnail = (
+                <a
+                    aria-label={ariaLabelImage}
+                    className='post-image__thumbnail'
+                    href='#'
+                    onClick={onAttachmentClick}
+                >
+                    <div
+                        className='post-image normal'
+                        style={{
+                            backgroundImage: `url(${decryptedThumbnailUrl})`,
+                            backgroundSize: 'cover',
+                        }}
                     />
-                )}
-            </a>
-        );
+                </a>
+            );
+        } else {
+            fileThumbnail = (
+                <a
+                    aria-label={ariaLabelImage}
+                    className='post-image__thumbnail'
+                    href='#'
+                    onClick={onAttachmentClick}
+                >
+                    {loaded && !props.disableThumbnail && !isEncrypted ? (
+                        <FileThumbnail
+                            fileInfo={fileInfo}
+                            disablePreview={props.disablePreview}
+                        />
+                    ) : (
+                        <FileThumbnail
+                            fileInfo={fileInfo}
+                            disablePreview={true}
+                        />
+                    )}
+                </a>
+            );
+        }
 
         if (fileInfo.archived) {
             fileThumbnail = (
@@ -304,41 +392,68 @@ export default function FileAttachment(props: Props) {
             );
         }
 
-        fileDetail = (
-            <div
-                className='post-image__detail_wrapper'
-                onClick={onAttachmentClick}
-            >
-                <div className='post-image__detail'>
-                    <span
-                        className={classNames('post-image__name', {
-                            'post-image__name--archived': fileInfo.archived,
-                        })}
-                    >
-                        {fileInfo.name}
-                    </span>
-                    {fileInfo.archived ? <span className={'post-image__archived'}>
-
-                        <FormattedMessage
-                            id='workspace_limits.archived_file.archived'
-                            defaultMessage='This file is archived'
-                        />
-                    </span> : <>
-                        <span className='post-image__type'>{fileInfo.extension.toUpperCase()}</span>
-                        <span className='post-image__size'>{fileSizeToString(fileInfo.size)}</span>
-                    </>
-                    }
+        if (showEncryptedPlaceholder) {
+            // Show encrypted placeholder message
+            fileDetail = (
+                <div
+                    className='post-image__detail_wrapper'
+                    onClick={decrypt}
+                    role='button'
+                    tabIndex={0}
+                >
+                    <div className='post-image__detail'>
+                        <span className='post-image__name post-image__name--encrypted'>
+                            <FormattedMessage
+                                id='file_attachment.encrypted_file'
+                                defaultMessage='Encrypted file'
+                            />
+                        </span>
+                        <span className='post-image__encrypted-hint'>
+                            <FormattedMessage
+                                id='file_attachment.click_to_decrypt'
+                                defaultMessage='Click to decrypt'
+                            />
+                        </span>
+                    </div>
                 </div>
-            </div>
-        );
+            );
+        } else {
+            fileDetail = (
+                <div
+                    className='post-image__detail_wrapper'
+                    onClick={onAttachmentClick}
+                >
+                    <div className='post-image__detail'>
+                        <span
+                            className={classNames('post-image__name', {
+                                'post-image__name--archived': fileInfo.archived,
+                            })}
+                        >
+                            {fileInfo.name}
+                        </span>
+                        {fileInfo.archived ? <span className={'post-image__archived'}>
 
-        if (!fileInfo.archived && !props.disableActions) {
+                            <FormattedMessage
+                                id='workspace_limits.archived_file.archived'
+                                defaultMessage='This file is archived'
+                            />
+                        </span> : <>
+                            <span className='post-image__type'>{fileInfo.extension?.toUpperCase()}</span>
+                            <span className='post-image__size'>{fileSizeToString(fileInfo.size)}</span>
+                        </>
+                        }
+                    </div>
+                </div>
+            );
+        }
+
+        if (!fileInfo.archived && !props.disableActions && !showEncryptedPlaceholder) {
             fileActions = renderFileMenuItems();
         }
     }
 
     let filenameOverlay;
-    if (props.canDownloadFiles && !fileInfo.archived) {
+    if (props.canDownloadFiles && !fileInfo.archived && !showEncryptedPlaceholder) {
         filenameOverlay = (
             <FilenameOverlay
                 fileInfo={fileInfo}
@@ -373,6 +488,21 @@ export default function FileAttachment(props: Props) {
                     })}
                 </span>
             </span>);
+    } else if (showEncryptedPlaceholder && compactDisplay) {
+        fileThumbnail = (
+            <LockOutlineIcon
+                size={16}
+                color={'rgba(var(--encrypted-color), 1)'}
+            />
+        );
+        filenameOverlay = (
+            <span className='post-image__encrypted-name'>
+                <FormattedMessage
+                    id='file_attachment.encrypted_file_compact'
+                    defaultMessage='Encrypted file'
+                />
+            </span>
+        );
     }
 
     return (
@@ -385,6 +515,10 @@ export default function FileAttachment(props: Props) {
                     'post-image__column',
                     {'keep-open': keepOpen},
                     {'post-image__column--archived': fileInfo.archived},
+                    {'post-image__column--encrypted': isEncrypted},
+                    {'post-image__column--decrypting': isEncrypted && decryptionStatus === 'decrypting'},
+                    {'post-image__column--failed': isEncrypted && decryptionStatus === 'failed'},
+                    {'post-image__column--compact': compactDisplay},
                 ])}
             >
                 {fileThumbnail}

@@ -2,17 +2,19 @@
 // See LICENSE.txt for license information.
 
 import classNames from 'classnames';
-import React from 'react';
-import type {KeyboardEvent, MouseEvent} from 'react';
+import React, {useState, useEffect, useCallback, useMemo} from 'react';
 
+import {LockOutlineIcon} from '@mattermost/compass-icons/components';
 import type {FileInfo} from '@mattermost/types/files';
 
 import {getFilePreviewUrl, getFileUrl} from 'mattermost-redux/utils/file_utils';
 
 import FilePreviewModal from 'components/file_preview_modal';
 import SizeAwareImage from 'components/size_aware_image';
+import {useEncryptedFile} from 'components/file_attachment/use_encrypted_file';
 
 import {FileTypes, ModalIdentifiers} from 'utils/constants';
+import {getFileExtensionFromType} from 'utils/file_utils';
 import {
     getFileType,
 } from 'utils/utils';
@@ -33,226 +35,278 @@ export interface Props extends PropsFromRedux {
     disableActions?: boolean;
 }
 
-type State = {
-    loaded: boolean;
-    dimensions: {
-        width: number;
-        height: number;
-    };
-}
+export default function SingleImageView(props: Props) {
+    const {fileInfo, compactDisplay, isInPermalink, postId} = props;
 
-export default class SingleImageView extends React.PureComponent<Props, State> {
-    private mounted = false;
-    static defaultProps = {
-        compactDisplay: false,
-    };
+    const [loaded, setLoaded] = useState(false);
+    const [dimensions, setDimensions] = useState({
+        width: fileInfo?.width || 0,
+        height: fileInfo?.height || 0,
+    });
 
-    constructor(props: Props) {
-        super(props);
-        this.state = {
-            loaded: false,
-            dimensions: {
-                width: props.fileInfo?.width || 0,
-                height: props.fileInfo?.height || 0,
-            },
-        };
-    }
+    // Check if file is encrypted and get decryption info (mattermost-extended)
+    const {
+        isEncrypted,
+        fileUrl: decryptedFileUrl,
+        thumbnailUrl: decryptedThumbnailUrl,
+        status: decryptionStatus,
+        originalFileInfo,
+        decrypt,
+    } = useEncryptedFile(fileInfo, postId, true); // autoDecrypt=true for images
 
-    componentDidMount() {
-        this.mounted = true;
-    }
-
-    static getDerivedStateFromProps(props: Props, state: State) {
-        if ((props.fileInfo?.width !== state.dimensions.width) || props.fileInfo.height !== state.dimensions.height) {
-            return {
-                dimensions: {
-                    width: props.fileInfo?.width,
-                    height: props.fileInfo?.height,
-                },
-            };
+    // Update dimensions when fileInfo changes
+    useEffect(() => {
+        if (fileInfo?.width !== dimensions.width || fileInfo?.height !== dimensions.height) {
+            setDimensions({
+                width: fileInfo?.width || 0,
+                height: fileInfo?.height || 0,
+            });
         }
-        return null;
-    }
+    }, [fileInfo?.width, fileInfo?.height]);
 
-    componentWillUnmount() {
-        this.mounted = false;
-    }
+    const imageLoaded = useCallback(() => {
+        setLoaded(true);
+    }, []);
 
-    imageLoaded = () => {
-        if (this.mounted) {
-            this.setState({loaded: true});
-        }
-    };
-
-    handleImageClick = (e: (KeyboardEvent<HTMLImageElement> | MouseEvent<HTMLDivElement | HTMLImageElement>)) => {
+    const handleImageClick = useCallback((e: React.KeyboardEvent | React.MouseEvent) => {
         e.preventDefault();
 
-        this.props.actions.openModal({
+        // For encrypted files, use decrypted info in modal
+        const modalFileInfo = isEncrypted && originalFileInfo ? {
+            ...fileInfo,
+            name: originalFileInfo.name,
+            extension: originalFileInfo.name.split('.').pop() || getFileExtensionFromType(originalFileInfo.type),
+            mime_type: originalFileInfo.type,
+            size: originalFileInfo.size,
+        } : fileInfo;
+
+        props.actions.openModal({
             modalId: ModalIdentifiers.FILE_PREVIEW_MODAL,
             dialogType: FilePreviewModal,
             dialogProps: {
-                fileInfos: [this.props.fileInfo],
-                postId: this.props.postId,
+                fileInfos: [modalFileInfo],
+                postId: props.postId,
                 startIndex: 0,
             },
         });
-    };
+    }, [fileInfo, isEncrypted, originalFileInfo, postId, props.actions]);
 
-    toggleEmbedVisibility = (e: React.MouseEvent) => {
-        // stopping propagation to avoid accidentally closing edit history
-        // section when clicking on image collapse/expand button.
+    const toggleEmbedVisibility = useCallback((e: React.MouseEvent) => {
         e.stopPropagation();
-        this.props.actions.toggleEmbedVisibility(this.props.postId);
-    };
+        props.actions.toggleEmbedVisibility(props.postId);
+    }, [props.actions, props.postId]);
 
-    getFilePublicLink = () => {
-        return this.props.actions.getFilePublicLink(this.props.fileInfo.id);
-    };
+    const getFilePublicLink = useCallback(() => {
+        return props.actions.getFilePublicLink(fileInfo.id);
+    }, [props.actions, fileInfo.id]);
 
-    render() {
-        const {fileInfo, compactDisplay, isInPermalink} = this.props;
-        const {
-            loaded,
-        } = this.state;
-
-        if (fileInfo === undefined) {
-            return <></>;
+    // Get display info - use decrypted metadata for encrypted files
+    const displayFileInfo = useMemo(() => {
+        if (!isEncrypted || !originalFileInfo) {
+            return fileInfo;
         }
+        const ext = originalFileInfo.name.split('.').pop() || getFileExtensionFromType(originalFileInfo.type);
+        return {
+            ...fileInfo,
+            name: originalFileInfo.name,
+            extension: ext,
+            mime_type: originalFileInfo.type,
+            size: originalFileInfo.size,
+        };
+    }, [fileInfo, isEncrypted, originalFileInfo]);
 
+    // Determine URLs to use
+    const {fileURL, previewURL} = useMemo(() => {
+        if (isEncrypted) {
+            // For encrypted files, use decrypted blob URLs
+            const decryptedUrl = decryptedFileUrl || '';
+            const decryptedPreview = decryptedThumbnailUrl || decryptedUrl;
+            return {
+                fileURL: decryptedUrl,
+                previewURL: decryptedPreview,
+            };
+        }
+        // Normal files use server URLs
         const {has_preview_image: hasPreviewImage, id} = fileInfo;
-        const fileURL = getFileUrl(id);
-        const previewURL = hasPreviewImage ? getFilePreviewUrl(id) : fileURL;
+        const normalFileUrl = getFileUrl(id);
+        const normalPreviewUrl = hasPreviewImage ? getFilePreviewUrl(id) : normalFileUrl;
+        return {
+            fileURL: normalFileUrl,
+            previewURL: normalPreviewUrl,
+        };
+    }, [fileInfo, isEncrypted, decryptedFileUrl, decryptedThumbnailUrl]);
 
-        const previewHeight = fileInfo.height;
-        const previewWidth = fileInfo.width;
+    if (fileInfo === undefined) {
+        return <></>;
+    }
 
-        const hasDisproportionateHeight = previewHeight / previewWidth > DISPROPORTIONATE_HEIGHT_RATIO;
-        let minPreviewClass = '';
-        if (
-            (previewWidth < PREVIEW_IMAGE_MIN_DIMENSION ||
-            previewHeight < PREVIEW_IMAGE_MIN_DIMENSION) && !hasDisproportionateHeight
-        ) {
-            minPreviewClass = 'min-preview ';
+    const previewHeight = displayFileInfo.height || fileInfo.height;
+    const previewWidth = displayFileInfo.width || fileInfo.width;
 
-            if (previewHeight > previewWidth) {
-                minPreviewClass += 'min-preview--portrait ';
-            }
+    const hasDisproportionateHeight = previewHeight / previewWidth > DISPROPORTIONATE_HEIGHT_RATIO;
+    let minPreviewClass = '';
+    if (
+        (previewWidth < PREVIEW_IMAGE_MIN_DIMENSION ||
+        previewHeight < PREVIEW_IMAGE_MIN_DIMENSION) && !hasDisproportionateHeight
+    ) {
+        minPreviewClass = 'min-preview ';
+
+        if (previewHeight > previewWidth) {
+            minPreviewClass += 'min-preview--portrait ';
         }
+    }
 
-        // Add compact display class to image class if in compact mode
-        if (compactDisplay) {
-            minPreviewClass += ' compact-display';
-        }
+    if (compactDisplay) {
+        minPreviewClass += ' compact-display';
+    }
 
-        const toggle = (
-            <button
-                key='toggle'
-                className='style--none single-image-view__toggle'
-                data-expanded={this.props.isEmbedVisible}
-                aria-label='Toggle Embed Visibility'
-                onClick={this.toggleEmbedVisibility}
-            >
-                <span
-                    className={classNames('icon', {
-                        'icon-menu-down': this.props.isEmbedVisible,
-                        'icon-menu-right': !this.props.isEmbedVisible,
-                    })}
-                />
-            </button>
-        );
-
-        const fileHeader = (
-            <div
-                className={classNames('image-header', {
-                    'image-header--expanded': this.props.isEmbedVisible,
+    const toggle = (
+        <button
+            key='toggle'
+            className='style--none single-image-view__toggle'
+            data-expanded={props.isEmbedVisible}
+            aria-label='Toggle Embed Visibility'
+            onClick={toggleEmbedVisibility}
+        >
+            <span
+                className={classNames('icon', {
+                    'icon-menu-down': props.isEmbedVisible,
+                    'icon-menu-right': !props.isEmbedVisible,
                 })}
-            >
-                {toggle}
-                {!this.props.isEmbedVisible && (
+            />
+        </button>
+    );
+
+    const fileHeader = (
+        <div
+            className={classNames('image-header', {
+                'image-header--expanded': props.isEmbedVisible,
+            })}
+        >
+            {toggle}
+            {!props.isEmbedVisible && (
+                <div
+                    data-testid='image-name'
+                    className={classNames('image-name', {
+                        'compact-display': compactDisplay,
+                    })}
+                >
                     <div
-                        data-testid='image-name'
-                        className={classNames('image-name', {
-                            'compact-display': compactDisplay,
-                        })}
+                        id='image-name-text'
+                        onClick={handleImageClick}
                     >
-                        <div
-                            id='image-name-text'
-                            onClick={this.handleImageClick}
-                        >
-                            {fileInfo.name}
-                        </div>
+                        {displayFileInfo.name}
                     </div>
-                )}
-            </div>
-        );
+                </div>
+            )}
+        </div>
+    );
 
-        let fadeInClass = '';
-        let permalinkClass = '';
+    let fadeInClass = '';
+    let permalinkClass = '';
 
-        const fileType = getFileType(fileInfo.extension);
-        let styleIfSvgWithDimensions = {};
-        let imageContainerStyle = {};
-        let svgClass = '';
-        if (fileType === FileTypes.SVG) {
-            svgClass = 'svg';
-            if (this.state.dimensions.height) {
-                styleIfSvgWithDimensions = {
-                    width: '100%',
-                };
-            } else {
-                imageContainerStyle = {
-                    height: 350,
-                    maxWidth: '100%',
-                };
-            }
+    const fileType = getFileType(displayFileInfo.extension);
+    let styleIfSvgWithDimensions = {};
+    let imageContainerStyle = {};
+    let svgClass = '';
+    if (fileType === FileTypes.SVG) {
+        svgClass = 'svg';
+        if (dimensions.height) {
+            styleIfSvgWithDimensions = {
+                width: '100%',
+            };
+        } else {
+            imageContainerStyle = {
+                height: 350,
+                maxWidth: '100%',
+            };
         }
+    }
 
-        if (loaded) {
-            fadeInClass = 'image-fade-in';
-        }
+    if (loaded) {
+        fadeInClass = 'image-fade-in';
+    }
 
-        if (isInPermalink) {
-            permalinkClass = 'image-permalink';
-        }
+    if (isInPermalink) {
+        permalinkClass = 'image-permalink';
+    }
 
+    // Show encrypted placeholder if file is encrypted but not yet decrypted
+    const showEncryptedPlaceholder = isEncrypted && !decryptedFileUrl;
+
+    // Render encrypted placeholder while decrypting
+    if (showEncryptedPlaceholder) {
         return (
             <div
-                className={classNames('file-view--single', permalinkClass)}
+                className={classNames('file-view--single', permalinkClass, 'file-view--encrypted')}
             >
-                <div
-                    className='file__image'
-                >
+                <div className='file__image'>
                     {fileHeader}
-                    {this.props.isEmbedVisible &&
-                    <div
-                        className={classNames('image-container', permalinkClass)}
-                        style={imageContainerStyle}
-                    >
+                    {props.isEmbedVisible && (
                         <div
-                            className={classNames('image-loaded', fadeInClass, svgClass)}
-                            style={styleIfSvgWithDimensions}
+                            className={classNames('image-container', 'image-container--encrypted', permalinkClass)}
+                            onClick={decrypt}
+                            role='button'
+                            tabIndex={0}
                         >
-                            <div className={classNames(permalinkClass)}>
-                                <SizeAwareImage
-                                    onClick={this.handleImageClick}
-                                    className={classNames(minPreviewClass, permalinkClass)}
-                                    src={previewURL}
-                                    dimensions={this.state.dimensions}
-                                    fileInfo={this.props.fileInfo}
-                                    fileURL={fileURL}
-                                    onImageLoaded={this.imageLoaded}
-                                    showLoader={this.props.isEmbedVisible}
-                                    handleSmallImageContainer={true}
-                                    enablePublicLink={this.props.enablePublicLink}
-                                    getFilePublicLink={this.getFilePublicLink}
-                                    hideUtilities={this.props.disableActions}
+                            <div className='encrypted-image-placeholder'>
+                                <LockOutlineIcon
+                                    size={48}
+                                    color={'rgba(var(--encrypted-color), 1)'}
                                 />
+                                <span className='encrypted-image-placeholder__text'>
+                                    {decryptionStatus === 'decrypting' ? 'Decrypting...' : 'Encrypted image'}
+                                </span>
+                                {decryptionStatus === 'failed' && (
+                                    <span className='encrypted-image-placeholder__error'>
+                                        Click to retry
+                                    </span>
+                                )}
                             </div>
                         </div>
-                    </div>
-                    }
+                    )}
                 </div>
             </div>
         );
     }
+
+    return (
+        <div
+            className={classNames('file-view--single', permalinkClass, {'file-view--encrypted': isEncrypted})}
+        >
+            <div
+                className='file__image'
+            >
+                {fileHeader}
+                {props.isEmbedVisible &&
+                <div
+                    className={classNames('image-container', permalinkClass)}
+                    style={imageContainerStyle}
+                >
+                    <div
+                        className={classNames('image-loaded', fadeInClass, svgClass)}
+                        style={styleIfSvgWithDimensions}
+                    >
+                        <div className={classNames(permalinkClass)}>
+                            <SizeAwareImage
+                                onClick={handleImageClick}
+                                className={classNames(minPreviewClass, permalinkClass)}
+                                src={previewURL}
+                                dimensions={dimensions}
+                                fileInfo={displayFileInfo}
+                                fileURL={fileURL}
+                                onImageLoaded={imageLoaded}
+                                showLoader={props.isEmbedVisible}
+                                handleSmallImageContainer={true}
+                                enablePublicLink={!isEncrypted && props.enablePublicLink}
+                                getFilePublicLink={getFilePublicLink}
+                                hideUtilities={props.disableActions}
+                            />
+                        </div>
+                    </div>
+                </div>
+                }
+            </div>
+        </div>
+    );
 }

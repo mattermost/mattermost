@@ -84,3 +84,30 @@ export {
     decryptPostsInList,
     decryptPost,
 } from './decrypt_posts';
+
+// File encryption
+export {
+    encryptFile,
+    decryptFile,
+    isEncryptedFile,
+    getEncryptedFileMetadata,
+    createEncryptedFilesProps,
+    fetchAndDecryptFile,
+    createFileFromDecryptedBlob,
+    generateThumbnail,
+    ENCRYPTED_FILE_MIME_TYPE,
+} from './file';
+export type {EncryptedFileMetadata, EncryptedFileResult} from './file';
+
+// File encryption hooks
+export {
+    encryptFileForChannel,
+    attachFileEncryptionMetadata,
+    cacheFileEncryptionMetadata,
+    cacheFileEncryptionMetadataByClientId,
+    mapClientIdToFileId,
+    getCachedFileMetadata,
+    clearCachedFileMetadata,
+    hasEncryptedFiles,
+    getEncryptedFileCount,
+} from './file_hooks';

@@ -134,3 +134,68 @@ export function getOrientationStyles(orientation: number) {
     } = exif2css(orientation);
     return {transform, transformOrigin};
 }
+
+/**
+ * Gets a file extension from a MIME type.
+ * Used for encrypted files where we need to derive extension from the original MIME type.
+ */
+export function getFileExtensionFromType(mimeType: string): string {
+    const mimeToExt: Record<string, string> = {
+        'image/jpeg': 'jpg',
+        'image/png': 'png',
+        'image/gif': 'gif',
+        'image/webp': 'webp',
+        'image/svg+xml': 'svg',
+        'image/bmp': 'bmp',
+        'image/tiff': 'tiff',
+        'video/mp4': 'mp4',
+        'video/webm': 'webm',
+        'video/quicktime': 'mov',
+        'video/x-msvideo': 'avi',
+        'audio/mpeg': 'mp3',
+        'audio/wav': 'wav',
+        'audio/ogg': 'ogg',
+        'audio/webm': 'weba',
+        'application/pdf': 'pdf',
+        'application/zip': 'zip',
+        'application/x-zip-compressed': 'zip',
+        'application/x-rar-compressed': 'rar',
+        'application/x-7z-compressed': '7z',
+        'application/x-tar': 'tar',
+        'application/gzip': 'gz',
+        'application/json': 'json',
+        'application/xml': 'xml',
+        'text/plain': 'txt',
+        'text/html': 'html',
+        'text/css': 'css',
+        'text/javascript': 'js',
+        'text/csv': 'csv',
+        'application/vnd.ms-excel': 'xls',
+        'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet': 'xlsx',
+        'application/msword': 'doc',
+        'application/vnd.openxmlformats-officedocument.wordprocessingml.document': 'docx',
+        'application/vnd.ms-powerpoint': 'ppt',
+        'application/vnd.openxmlformats-officedocument.presentationml.presentation': 'pptx',
+    };
+
+    const extension = mimeToExt[mimeType];
+    if (extension) {
+        return extension;
+    }
+
+    // Try to extract from mime type suffix (e.g., "application/x-something" -> "something")
+    const parts = mimeType.split('/');
+    if (parts.length === 2) {
+        const suffix = parts[1];
+        // Remove common prefixes
+        if (suffix.startsWith('x-')) {
+            return suffix.substring(2);
+        }
+        if (suffix.startsWith('vnd.')) {
+            return '';
+        }
+        return suffix;
+    }
+
+    return '';
+}

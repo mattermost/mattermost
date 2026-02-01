@@ -10,7 +10,7 @@ import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
 
 import type {ActionFuncAsync} from 'types/store';
 import type {DesktopNotificationArgs} from 'types/store/plugins';
-import {encryptMessageHook, decryptMessageHook, isEncryptedMessage} from 'utils/encryption';
+import {encryptMessageHook, decryptMessageHook, isEncryptedMessage, attachFileEncryptionMetadata} from 'utils/encryption';
 
 import type {NewPostMessageProps} from './new_post';
 

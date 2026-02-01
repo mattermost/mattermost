@@ -8,11 +8,28 @@ import type {Team} from '@mattermost/types/teams';
 import type {UserThread} from '@mattermost/types/threads';
 import type {RelationOneToOne} from '@mattermost/types/utilities';
 
+import type {EncryptedFileMetadata} from 'utils/encryption/file';
+
 import type {I18nState} from './i18n';
 import type {LhsViewState} from './lhs';
 import type {RhsViewState} from './rhs';
 
 import type {DraggingState} from '.';
+
+export type FileDecryptionStatus = 'pending' | 'decrypting' | 'decrypted' | 'failed';
+
+export interface EncryptedFilesState {
+    decryptedUrls: Record<string, string>;
+    thumbnailUrls: Record<string, string>;
+    status: Record<string, FileDecryptionStatus>;
+    errors: Record<string, string>;
+    metadata: Record<string, EncryptedFileMetadata>;
+}
+
+export interface EncryptionViewState {
+    keyError: string | null;
+    encryptedFiles: EncryptedFilesState;
+}
 
 export type ModalFilters = {
     roles?: string[];
@@ -224,4 +241,6 @@ export type ViewsState = {
         shouldShowPreviewOnChannelSettingsHeaderModal: boolean;
         shouldShowPreviewOnChannelSettingsPurposeModal: boolean;
     };
+
+    encryption: EncryptionViewState;
 };

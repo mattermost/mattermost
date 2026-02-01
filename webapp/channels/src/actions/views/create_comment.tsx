@@ -32,6 +32,7 @@ import {createSchedulePostFromDraft} from 'actions/post_actions';
 import {isBurnOnReadEnabled} from 'selectors/burn_on_read';
 
 import EmojiMap from 'utils/emoji_map';
+import {attachFileEncryptionMetadata} from 'utils/encryption';
 import {containsAtChannel, groupsMentionedInText} from 'utils/post_utils';
 import * as Utils from 'utils/utils';
 
@@ -97,6 +98,13 @@ export function submitPost(
         }
 
         post = hookResult.data!;
+
+        // Attach file encryption metadata for any files that were encrypted at upload time (mattermost-extended)
+        // Note: File encryption is determined at upload time (based on priority toggle state then),
+        // independent of the message's final encryption state at send time.
+        if (draft.fileInfos?.length > 0) {
+            post = attachFileEncryptionMetadata(post, draft.fileInfos);
+        }
 
         if (schedulingInfo) {
             const scheduledPost = scheduledPostFromPost(post, schedulingInfo);

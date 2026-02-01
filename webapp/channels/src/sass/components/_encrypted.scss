@@ -203,3 +203,204 @@
     outline-offset: -2px;
     border-radius: 4px;
 }
+
+// Encrypted file attachment styling
+// Visual indicator that a specific file was uploaded with encryption enabled
+.post-image__column.post-image__column--encrypted {
+    position: relative;
+    border: 2px solid rgba(var(--encrypted-color), 0.6);
+    border-radius: 6px;
+    background: rgba(var(--encrypted-color), 0.04);
+
+    &:hover {
+        border-color: rgba(var(--encrypted-color), 0.8);
+        background: rgba(var(--encrypted-color), 0.08);
+    }
+
+    // Small lock icon badge in the corner
+    &::after {
+        content: '';
+        position: absolute;
+        top: 4px;
+        right: 4px;
+        width: 18px;
+        height: 18px;
+        background: rgba(var(--encrypted-color), 1);
+        border-radius: 4px;
+        mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M12 17a2 2 0 0 0 2-2a2 2 0 0 0-2-2a2 2 0 0 0-2 2a2 2 0 0 0 2 2m6-9a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V10a2 2 0 0 1 2-2h1V6a5 5 0 0 1 5-5a5 5 0 0 1 5 5v2h1m-6-5a3 3 0 0 0-3 3v2h6V6a3 3 0 0 0-3-3z'/%3E%3C/svg%3E");
+        mask-size: contain;
+        mask-repeat: no-repeat;
+        mask-position: center;
+        -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M12 17a2 2 0 0 0 2-2a2 2 0 0 0-2-2a2 2 0 0 0-2 2a2 2 0 0 0 2 2m6-9a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V10a2 2 0 0 1 2-2h1V6a5 5 0 0 1 5-5a5 5 0 0 1 5 5v2h1m-6-5a3 3 0 0 0-3 3v2h6V6a3 3 0 0 0-3-3z'/%3E%3C/svg%3E");
+        -webkit-mask-size: contain;
+        -webkit-mask-repeat: no-repeat;
+        -webkit-mask-position: center;
+        z-index: 1;
+    }
+}
+
+// Compact display mode for encrypted files
+.post-image__column--compact.post-image__column--encrypted {
+    border-width: 1px;
+    padding-left: 4px;
+
+    &::after {
+        width: 14px;
+        height: 14px;
+        top: 2px;
+        right: 2px;
+    }
+}
+
+// Encrypted file decryption states
+.post-image__column--encrypted {
+    // Decrypting state - subtle pulse animation
+    &.post-image__column--decrypting {
+        animation: encrypted-file-pulse 1.5s ease-in-out infinite;
+    }
+
+    // Failed state - red tint
+    &.post-image__column--failed {
+        border-color: rgba(var(--semantic-color-danger), 0.6);
+        background: rgba(var(--semantic-color-danger), 0.04);
+
+        &::after {
+            background: rgba(var(--semantic-color-danger), 1);
+        }
+    }
+}
+
+@keyframes encrypted-file-pulse {
+    0%, 100% {
+        border-color: rgba(var(--encrypted-color), 0.4);
+    }
+    50% {
+        border-color: rgba(var(--encrypted-color), 0.8);
+    }
+}
+
+// File preview in compose box (upload preview)
+.file-preview__container .file-preview--encrypted {
+    border: 2px solid rgba(var(--encrypted-color), 0.6);
+    border-radius: 6px;
+    position: relative;
+
+    &::before {
+        content: '';
+        position: absolute;
+        top: 2px;
+        right: 2px;
+        width: 16px;
+        height: 16px;
+        background: rgba(var(--encrypted-color), 1);
+        border-radius: 3px;
+        mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M12 17a2 2 0 0 0 2-2a2 2 0 0 0-2-2a2 2 0 0 0-2 2a2 2 0 0 0 2 2m6-9a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V10a2 2 0 0 1 2-2h1V6a5 5 0 0 1 5-5a5 5 0 0 1 5 5v2h1m-6-5a3 3 0 0 0-3 3v2h6V6a3 3 0 0 0-3-3z'/%3E%3C/svg%3E");
+        mask-size: contain;
+        -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M12 17a2 2 0 0 0 2-2a2 2 0 0 0-2-2a2 2 0 0 0-2 2a2 2 0 0 0 2 2m6-9a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V10a2 2 0 0 1 2-2h1V6a5 5 0 0 1 5-5a5 5 0 0 1 5 5v2h1m-6-5a3 3 0 0 0-3 3v2h6V6a3 3 0 0 0-3-3z'/%3E%3C/svg%3E");
+        -webkit-mask-size: contain;
+        z-index: 5;
+    }
+}
+
+// Encrypted single image view placeholder
+.file-view--encrypted {
+    .image-container--encrypted {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 200px;
+        background: rgba(var(--encrypted-color), 0.06);
+        border: 2px solid rgba(var(--encrypted-color), 0.3);
+        border-radius: 8px;
+        cursor: pointer;
+        transition: all 0.2s ease;
+
+        &:hover {
+            background: rgba(var(--encrypted-color), 0.1);
+            border-color: rgba(var(--encrypted-color), 0.5);
+        }
+    }
+
+    .encrypted-image-placeholder {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 12px;
+        padding: 24px;
+        text-align: center;
+
+        &__text {
+            font-size: 14px;
+            font-weight: 600;
+            color: rgba(var(--encrypted-color), 1);
+        }
+
+        &__error {
+            font-size: 12px;
+            color: rgba(var(--center-channel-color-rgb), 0.6);
+        }
+    }
+
+    // Decrypted image with purple border indicator
+    &.file-view--single:not(:has(.image-container--encrypted)) {
+        .image-container {
+            border: 2px solid rgba(var(--encrypted-color), 0.4);
+            border-radius: 8px;
+            position: relative;
+
+            // Lock badge on decrypted images
+            &::after {
+                content: '';
+                position: absolute;
+                top: 8px;
+                right: 8px;
+                width: 24px;
+                height: 24px;
+                background: rgba(var(--encrypted-color), 0.9);
+                border-radius: 4px;
+                mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M12 17a2 2 0 0 0 2-2a2 2 0 0 0-2-2a2 2 0 0 0-2 2a2 2 0 0 0 2 2m6-9a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V10a2 2 0 0 1 2-2h1V6a5 5 0 0 1 5-5a5 5 0 0 1 5 5v2h1m-6-5a3 3 0 0 0-3 3v2h6V6a3 3 0 0 0-3-3z'/%3E%3C/svg%3E");
+                mask-size: 16px;
+                mask-position: center;
+                mask-repeat: no-repeat;
+                -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M12 17a2 2 0 0 0 2-2a2 2 0 0 0-2-2a2 2 0 0 0-2 2a2 2 0 0 0 2 2m6-9a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V10a2 2 0 0 1 2-2h1V6a5 5 0 0 1 5-5a5 5 0 0 1 5 5v2h1m-6-5a3 3 0 0 0-3 3v2h6V6a3 3 0 0 0-3-3z'/%3E%3C/svg%3E");
+                -webkit-mask-size: 16px;
+                -webkit-mask-position: center;
+                -webkit-mask-repeat: no-repeat;
+                z-index: 10;
+            }
+        }
+    }
+}
+
+// Encrypted file name styling
+.post-image__name--encrypted {
+    color: rgba(var(--encrypted-color), 1) !important;
+    font-style: italic;
+}
+
+.post-image__encrypted-hint {
+    font-size: 11px;
+    color: rgba(var(--center-channel-color-rgb), 0.5);
+}
+
+.post-image__encrypted-name {
+    color: rgba(var(--encrypted-color), 1);
+    font-style: italic;
+}
+
+// Encrypted thumbnail placeholder
+.post-image__thumbnail--encrypted {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(var(--encrypted-color), 0.08);
+    border: 1px dashed rgba(var(--encrypted-color), 0.4);
+    border-radius: 4px;
+    cursor: pointer;
+    min-height: 50px;
+    min-width: 50px;
+
+    &:hover {
+        background: rgba(var(--encrypted-color), 0.15);
+    }
+}

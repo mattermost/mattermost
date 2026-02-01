@@ -8,6 +8,7 @@ import {FormattedMessage} from 'react-intl';
 import FilenameOverlay from 'components/file_attachment/filename_overlay';
 
 import {getFileTypeFromMime} from 'utils/file_utils';
+import {ENCRYPTED_FILE_MIME_TYPE} from 'utils/encryption/file';
 import * as Utils from 'utils/utils';
 
 import type {FilePreviewInfo} from './file_preview';
@@ -73,11 +74,16 @@ export default class FileProgressPreview extends React.PureComponent<Props> {
             }
         }
 
+        const isEncrypted = fileInfo?.type === ENCRYPTED_FILE_MIME_TYPE;
+        const className = isEncrypted
+            ? 'file-preview post-image__column file-preview--encrypted'
+            : 'file-preview post-image__column';
+
         return (
             <div
                 ref={clientId}
                 key={clientId}
-                className='file-preview post-image__column'
+                className={className}
                 data-client-id={clientId}
             >
                 <div className='post-image__thumbnail'>

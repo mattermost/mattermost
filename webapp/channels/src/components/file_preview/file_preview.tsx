@@ -11,6 +11,7 @@ import {getFileThumbnailUrl, getFileUrl} from 'mattermost-redux/utils/file_utils
 import FilenameOverlay from 'components/file_attachment/filename_overlay';
 
 import Constants, {FileTypes} from 'utils/constants';
+import {isEncryptedFile} from 'utils/encryption/file';
 import * as Utils from 'utils/utils';
 
 import FileProgressPreview from './file_progress_preview';
@@ -46,8 +47,12 @@ export default class FilePreview extends React.PureComponent<Props> {
 
         this.props.fileInfos.forEach((info) => {
             const type = Utils.getFileType(info.extension);
+            const isEncrypted = isEncryptedFile(info);
 
             let className = 'file-preview post-image__column';
+            if (isEncrypted) {
+                className += ' file-preview--encrypted';
+            }
             let previewImage;
             if (type === FileTypes.SVG && this.props.enableSVGs) {
                 previewImage = (
