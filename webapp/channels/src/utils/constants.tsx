@@ -445,7 +445,6 @@ export const ModalIdentifiers = {
     DOWNGRADE_MODAL: 'downgrade_modal',
     PURCHASE_IN_PROGRESS: 'purchase_in_progress',
     DELETE_WORKSPACE: 'delete_workspace',
-    KEYPAIR_PROMPT_MODAL: 'keypair_prompt_modal',
     FEEDBACK: 'feedback',
     DELETE_WORKSPACE_PROGRESS: 'delete_workspace_progress',
     DELETE_WORKSPACE_RESULT: 'delete_workspace_result',
