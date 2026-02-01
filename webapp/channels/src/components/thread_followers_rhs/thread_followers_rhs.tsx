@@ -173,8 +173,15 @@ export default function ThreadFollowersRHS({
             ),
         });
 
+        // Sort followers alphabetically by display name
+        const sortedFollowers = [...followers].sort((a, b) => {
+            const nameA = displayUsername(a, teammateNameDisplaySetting).toLowerCase();
+            const nameB = displayUsername(b, teammateNameDisplaySetting).toLowerCase();
+            return nameA.localeCompare(nameB);
+        });
+
         // Add each follower
-        followers.forEach((user) => {
+        sortedFollowers.forEach((user) => {
             const member: ChannelMember = {
                 user,
                 status: userStatuses[user.id],
