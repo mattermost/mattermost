@@ -45,6 +45,7 @@ import WebSocketClient from 'client/web_websocket_client';
 import {getHistory} from 'utils/browser_history';
 import {ActionTypes, PostTypes, RHSStates, ModalIdentifiers, PreviousViewedTypes} from 'utils/constants';
 import DesktopApp from 'utils/desktop_api';
+import {clearEncryptionSession} from 'utils/encryption/session';
 import {filterAndSortTeamsByDisplayName} from 'utils/team_utils';
 import * as Utils from 'utils/utils';
 
@@ -246,6 +247,10 @@ export function emitUserLoggedOutEvent(redirectTo = '/', shouldSignalLogout = tr
     if (userAction) {
         LocalStorageStore.setWasLoggedIn(false);
     }
+
+    // Clear encryption keys from sessionStorage to ensure new session gets new keys.
+    // This must happen before logout completes to maintain session-based encryption security.
+    clearEncryptionSession();
 
     dispatch(logout()).then(() => {
         if (shouldSignalLogout) {
