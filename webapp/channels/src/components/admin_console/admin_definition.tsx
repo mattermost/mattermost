@@ -6390,16 +6390,33 @@ const AdminDefinition: AdminDefinitionType = {
             },
             customization: {
                 url: 'mattermost_extended/customization',
-                title: defineMessage({id: 'admin.sidebar.customization', defaultMessage: 'Customization'}),
+                title: defineMessage({id: 'admin.sidebar.channel_icons', defaultMessage: 'Channel Icons'}),
                 schema: {
                     id: 'MattermostExtendedCustomization',
-                    name: defineMessage({id: 'admin.mattermost_extended.customization.title', defaultMessage: 'Customization'}),
+                    name: defineMessage({id: 'admin.mattermost_extended.channel_icons.title', defaultMessage: 'Channel Icons'}),
                     settings: [
                         {
                             type: 'bool',
                             key: 'MattermostExtendedSettings.EnableCustomChannelIcons',
                             label: defineMessage({id: 'admin.mattermost_extended.enableCustomChannelIcons.title', defaultMessage: 'Enable Custom Channel Icons:'}),
                             help_text: defineMessage({id: 'admin.mattermost_extended.enableCustomChannelIcons.desc', defaultMessage: 'When true, users can set custom icons for channels from the Channel Settings modal. Icons are displayed in the sidebar and channel mentions.'}),
+                            help_text_markdown: false,
+                        },
+                    ],
+                },
+            },
+            posts: {
+                url: 'mattermost_extended/posts',
+                title: defineMessage({id: 'admin.sidebar.posts', defaultMessage: 'Posts'}),
+                schema: {
+                    id: 'MattermostExtendedPosts',
+                    name: defineMessage({id: 'admin.mattermost_extended.posts.title', defaultMessage: 'Posts'}),
+                    settings: [
+                        {
+                            type: 'bool',
+                            key: 'FeatureFlags.HideDeletedMessagePlaceholder',
+                            label: defineMessage({id: 'admin.mattermost_extended.hideDeletedMessagePlaceholder.title', defaultMessage: 'Hide Deleted Message Placeholder:'}),
+                            help_text: defineMessage({id: 'admin.mattermost_extended.hideDeletedMessagePlaceholder.desc', defaultMessage: 'When true, the "Message deleted" placeholder will be hidden when a message is deleted.'}),
                             help_text_markdown: false,
                         },
                     ],
