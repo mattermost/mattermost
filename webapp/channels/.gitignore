@@ -24,3 +24,7 @@ Session.vim
 *~
 .eslintcache
 .stylelintcache
+
+# Compiled encryption utilities
+src/utils/encryption/*.js
+src/utils/encryption/*.d.ts
