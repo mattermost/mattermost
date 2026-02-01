@@ -3,7 +3,7 @@
 .SidebarThreadItem {
     // Indent threads under their parent channel
     .SidebarLink {
-        padding-left: 40px;
+        padding-left: 29px;
     }
 
     // Discord-style thread icon using CSS mask
@@ -14,6 +14,7 @@
         flex-shrink: 0;
         align-items: center;
         justify-content: center;
+        margin-right: 6px;
 
         .icon-discord-thread {
             display: inline-block;
