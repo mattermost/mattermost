@@ -29,21 +29,17 @@ type Props = {
 // unlike the plugin which injects as a separate list item. This means we need to
 // extend the connector further down to reach the avatar in post__content below.
 function ConnectorSVG({position, height = 18}: {position: 'single' | 'first' | 'middle' | 'last'; height?: number}) {
-    // Extension to reach from preview down to avatar center in post__content
-    const EXTENSION = 22;
-
     // Calculated anchor points
     const x = 0;
     const curveR = 6;
     const midY = height / 2;
-    const extendedBottom = height + EXTENSION; // For single/last - extend past container
     const endX = 22; // Horizontal line endpoint - tested to align with reply avatar
 
     let d: string;
     switch (position) {
     case 'single':
-        // Only one reply: curved corner, vertical extends down to avatar
-        d = `M ${x} ${extendedBottom} L ${x} ${midY + curveR} Q ${x} ${midY}, ${x + curveR} ${midY} L ${endX} ${midY}`;
+        // Only one reply: curved corner from bottom up to horizontal line
+        d = `M ${x} ${height} L ${x} ${midY + curveR} Q ${x} ${midY}, ${x + curveR} ${midY} L ${endX} ${midY}`;
         break;
     case 'first':
         // Top of multiple: curved corner, vertical continues to next connector
@@ -54,8 +50,8 @@ function ConnectorSVG({position, height = 18}: {position: 'single' | 'first' | '
         d = `M ${x} 0 L ${x} ${height} M ${x} ${midY} L ${endX} ${midY}`;
         break;
     case 'last':
-        // Last: T-junction, vertical extends down to avatar
-        d = `M ${x} 0 L ${x} ${extendedBottom} M ${x} ${midY} L ${endX} ${midY}`;
+        // Last: T-junction, vertical to bottom
+        d = `M ${x} 0 L ${x} ${height} M ${x} ${midY} L ${endX} ${midY}`;
         break;
     }
 
