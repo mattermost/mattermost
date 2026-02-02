@@ -68,6 +68,22 @@ Inline reply previews with curved connector lines, similar to Discord's reply sy
 
 ---
 
+### Chat Sounds
+
+Customizable sound effects for message and reaction events, inspired by Guilded.
+
+<!-- SCREENSHOT: Sounds settings tab showing volume slider and sound toggles -->
+<p align="center">
+  <img src="docs/assets/screenshot-sounds-placeholder.png" alt="Chat Sounds Settings" width="500">
+</p>
+
+- Master volume control with per-sound toggles
+- Sounds for: message sent, reactions, DMs, mentions, and more
+- Preview buttons to test each sound
+- Throttled playback to prevent audio spam
+
+---
+
 ### Custom Channel Icons
 
 Channels can have custom icons instead of the default globe/lock icons.
@@ -118,6 +134,7 @@ When enabled, deleted messages disappear immediately instead of showing "(messag
 |---------|---------------------|---------|
 | End-to-End Encryption | `MM_FEATUREFLAGS_ENCRYPTION` | Off |
 | Discord-Style Replies | `MM_FEATUREFLAGS_DISCORDREPLIES` | Off |
+| Chat Sounds | `MM_FEATUREFLAGS_GUILDEDSOUNDS` | Off |
 | Custom Channel Icons | `MM_FEATUREFLAGS_CUSTOMCHANNELICONS` | Off |
 | Custom Thread Names | `MM_FEATUREFLAGS_CUSTOMTHREADNAMES` | Off |
 | Threads in Sidebar | `MM_FEATUREFLAGS_THREADSINSIDEBAR` | Off |

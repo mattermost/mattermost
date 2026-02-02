@@ -9,6 +9,7 @@ Complete documentation for all Mattermost Extended features and tweaks.
 ### Feature Flags (Major Features)
 - [End-to-End Encryption](#end-to-end-encryption)
 - [Discord-Style Replies](#discord-style-replies)
+- [Chat Sounds](#chat-sounds)
 - [Custom Channel Icons](#custom-channel-icons)
 - [Custom Thread Names](#custom-thread-names)
 - [Threads in Sidebar](#threads-in-sidebar)
@@ -174,6 +175,82 @@ When a post contains Discord replies, it includes:
 | State management | `webapp/channels/src/actions/views/discord_replies.ts` |
 | Quote stripping | `webapp/channels/src/components/post_view/post_message_view/post_message_view.tsx` |
 | Button override | `webapp/channels/src/components/post/post_options.tsx` |
+
+---
+
+## Chat Sounds
+
+**Feature Flag:** `GuildedSounds`
+**Environment Variable:** `MM_FEATUREFLAGS_GUILDEDSOUNDS=true`
+
+### Overview
+
+Customizable sound effects for various chat interactions, inspired by Guilded. When enabled, a new "Sounds" tab appears in user settings where users can control volume and toggle individual sounds.
+
+### Available Sounds
+
+| Sound | Trigger | Default |
+|-------|---------|---------|
+| **Message Sent** | When you send a message | On |
+| **Reaction** | When you add a reaction | On |
+| **Reaction Received** | When someone reacts to your post | On |
+| **Message Received** | When a new message arrives in a channel | Off |
+| **Direct Message** | When you receive a DM | On |
+| **Mention** | When you are @mentioned | On |
+
+### Settings UI
+
+The Sounds tab appears in **Settings** (between Sidebar and Advanced) when the feature flag is enabled:
+
+```
+Sounds Settings
+├── Master Volume Slider (0-100%)
+└── Sound Toggles:
+    ├── Message Sent        [toggle] [▶ Preview]
+    ├── Reaction            [toggle] [▶ Preview]
+    ├── Reaction Received   [toggle] [▶ Preview]
+    ├── Message Received    [toggle] [▶ Preview]
+    ├── Direct Message      [toggle] [▶ Preview]
+    └── Mention             [toggle] [▶ Preview]
+```
+
+### Throttling
+
+Sounds are throttled to prevent audio spam:
+
+| Sound | Throttle Interval |
+|-------|-------------------|
+| Message Sent | 500ms |
+| Reaction | 500ms |
+| Reaction Received | 2000ms |
+| Message Received | 1000ms |
+| Direct Message | 3000ms |
+| Mention | 3000ms |
+
+### User Preferences
+
+Sound settings are stored as user preferences:
+
+| Preference | Category | Description |
+|------------|----------|-------------|
+| `enabled` | `guilded_sounds` | Master toggle |
+| `volume` | `guilded_sounds` | Volume level (0-100) |
+| `message_sent` | `guilded_sounds` | Message sent sound toggle |
+| `reaction_apply` | `guilded_sounds` | Reaction sound toggle |
+| `reaction_received` | `guilded_sounds` | Reaction received toggle |
+| `message_received` | `guilded_sounds` | Message received toggle |
+| `dm_received` | `guilded_sounds` | DM sound toggle |
+| `mention_received` | `guilded_sounds` | Mention sound toggle |
+
+### Key Files
+
+| Purpose | File |
+|---------|------|
+| Feature flag | `server/public/model/feature_flags.go` |
+| Sound utility | `webapp/channels/src/utils/guilded_sounds.tsx` |
+| Settings component | `webapp/channels/src/components/user_settings/sounds/user_settings_sounds.tsx` |
+| Sound triggers | `webapp/channels/src/actions/post_actions.ts`, `new_post.ts`, `websocket_actions.jsx` |
+| Sound files | `webapp/channels/src/sounds/guilded_*.mp3` |
 
 ---
 
@@ -350,6 +427,7 @@ Feature flags are used for **major features** that gate significant functionalit
 |------|---------------------|---------|-------------|
 | `Encryption` | `MM_FEATUREFLAGS_ENCRYPTION` | `false` | E2E encryption |
 | `DiscordReplies` | `MM_FEATUREFLAGS_DISCORDREPLIES` | `false` | Discord-style inline replies |
+| `GuildedSounds` | `MM_FEATUREFLAGS_GUILDEDSOUNDS` | `false` | Customizable chat sounds |
 | `CustomChannelIcons` | `MM_FEATUREFLAGS_CUSTOMCHANNELICONS` | `false` | Custom channel icons |
 | `CustomThreadNames` | `MM_FEATUREFLAGS_CUSTOMTHREADNAMES` | `false` | Rename threads |
 | `ThreadsInSidebar` | `MM_FEATUREFLAGS_THREADSINSIDEBAR` | `false` | Show threads under channels |
@@ -380,6 +458,7 @@ Environment="MM_FEATUREFLAGS_ENCRYPTION=true"
   "FeatureFlags": {
     "Encryption": true,
     "DiscordReplies": true,
+    "GuildedSounds": true,
     "CustomChannelIcons": true,
     "CustomThreadNames": true,
     "ThreadsInSidebar": true
@@ -441,7 +520,7 @@ Environment="MM_MATTERMOSTEXTENDEDSETTINGS_POSTS_HIDEDELETEDMESSAGEPLACEHOLDER=t
 Features currently in development:
 
 - **Read Receipts** - See who has read your messages
-- **Guilded Sounds** - Custom notification sounds
+- **Error Log Dashboard** - Real-time error monitoring for admins
 
 ---
 
