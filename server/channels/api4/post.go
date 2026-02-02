@@ -1727,6 +1727,12 @@ func rewriteMessage(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Validate root_id if provided
+	if req.RootID != "" && !model.IsValidId(req.RootID) {
+		c.SetInvalidParam("root_id")
+		return
+	}
+
 	// Call app layer to handle business logic
 	response, appErr := c.App.RewriteMessage(
 		c.AppContext,
@@ -1734,6 +1740,7 @@ func rewriteMessage(c *Context, w http.ResponseWriter, r *http.Request) {
 		req.Message,
 		req.Action,
 		req.CustomPrompt,
+		req.RootID,
 	)
 	if appErr != nil {
 		c.Err = appErr

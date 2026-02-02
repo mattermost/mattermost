@@ -238,6 +238,16 @@ export default class PluginRegistry {
     });
 
     /**
+     * Register a component to render in the channel header next to the pinned posts button.
+     * This component will be rendered in the left icon section of the channel header, unlike registerChannelHeaderButtonAction which
+     * renders in the right plugin section or App Bar.
+     * Accepts a React component. Returns a unique identifier.
+     */
+    registerChannelHeaderIcon = reArg(['component'], ({component}: DPluginComponentProp) => {
+        return dispatchPluginComponentAction('ChannelHeaderIcon', this.id, component);
+    });
+
+    /**
      * Add a button to the channel header. If there are more than one buttons registered by any
      * plugin, a dropdown menu is created to contain all the plugin buttons.
      * Accepts the following:

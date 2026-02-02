@@ -1,13 +1,11 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {screen, waitFor} from '@testing-library/react';
-import userEvent from '@testing-library/user-event';
 import React from 'react';
 
 import {AppCallResponseTypes} from 'mattermost-redux/constants/apps';
 
-import {renderWithContext} from 'tests/react_testing_utils';
+import {renderWithContext, screen, waitFor, userEvent} from 'tests/react_testing_utils';
 
 import {AppsForm} from './apps_form_component';
 import type {Props} from './apps_form_component';
@@ -70,10 +68,6 @@ describe('AppsFormComponent', () => {
             ],
         },
     };
-
-    afterEach(() => {
-        jest.clearAllMocks();
-    });
 
     test('should render form with title, header, fields and initial values', () => {
         renderWithContext(
