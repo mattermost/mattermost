@@ -1,11 +1,9 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {screen} from '@testing-library/react';
-import userEvent from '@testing-library/user-event';
 import React from 'react';
 
-import {renderWithContext} from 'tests/react_testing_utils';
+import {renderWithContext, screen, userEvent} from 'tests/react_testing_utils';
 import {TestHelper} from 'utils/test_helper';
 
 import ChannelSettingsConfigurationTab from './channel_settings_configuration_tab';
@@ -66,10 +64,6 @@ const baseProps = {
 };
 
 describe('ChannelSettingsConfigurationTab', () => {
-    beforeEach(() => {
-        jest.clearAllMocks();
-    });
-
     it('should render with the correct initial values when banner is disabled', () => {
         renderWithContext(<ChannelSettingsConfigurationTab {...baseProps}/>);
 
