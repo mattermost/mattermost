@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import React, {useCallback, useMemo, useState} from 'react';
-import {defineMessages, FormattedMessage} from 'react-intl';
+import {defineMessage, defineMessages, FormattedMessage} from 'react-intl';
 import {Link} from 'react-router-dom';
 
 import type {AutoTranslationSettings} from '@mattermost/types/config';
@@ -15,6 +15,7 @@ import {
     SectionContent,
     SectionHeader,
 } from 'components/admin_console/system_properties/controls';
+import TextSetting from 'components/admin_console/text_setting';
 import useGetAgentsBridgeEnabled from 'components/common/hooks/useGetAgentsBridgeEnabled';
 import Toggle from 'components/toggle';
 
@@ -53,6 +54,12 @@ export default function AutoTranslation(props: SystemConsoleCustomSettingsCompon
         return settings;
     });
 
+    // Track timeout input separately to allow intermediate invalid states while typing
+    const [timeoutInputValue, setTimeoutInputValue] = useState<string>(
+        String(autoTranslationSettings.TimeoutMs || 5000),
+    );
+    const [timeoutError, setTimeoutError] = useState<string>('');
+
     const handleChange = useCallback((id: string, value: AutoTranslationSettings[keyof AutoTranslationSettings] | string[]) => {
         const updatedSettings = {
             ...autoTranslationSettings,
@@ -61,6 +68,22 @@ export default function AutoTranslation(props: SystemConsoleCustomSettingsCompon
         setAutoTranslationSettings(updatedSettings);
         props.onChange(props.id, updatedSettings);
     }, [props, autoTranslationSettings]);
+
+    const handleTimeoutChange = useCallback((id: string, value: string) => {
+        setTimeoutInputValue(value);
+
+        const numValue = parseInt(value, 10);
+        if (value === '' || isNaN(numValue) || numValue <= 0) {
+            setTimeoutError('Timeout must be a positive number');
+
+            // Propagate 0 so backend validation will reject the save
+            handleChange(id, 0);
+            return;
+        }
+
+        setTimeoutError('');
+        handleChange(id, numValue);
+    }, [handleChange]);
 
     const handleToggle = useCallback(() => {
         const newValue = !autoTranslationSettings.Enable;
@@ -234,6 +257,32 @@ export default function AutoTranslation(props: SystemConsoleCustomSettingsCompon
                     onChange={handleChange}
                     disabled={props.disabled || props.setByEnv}
                     setByEnv={props.setByEnv}
+                />
+                <TextSetting
+                    id='TimeoutMs'
+                    label={
+                        <FormattedMessage
+                            id='admin.site.localization.autoTranslationTimeoutTitle'
+                            defaultMessage='Translation timeout (ms):'
+                        />
+                    }
+                    placeholder={defineMessage({
+                        id: 'admin.site.localization.autoTranslationTimeoutPlaceholder',
+                        defaultMessage: 'e.g.: 5000',
+                    })}
+                    helpText={timeoutError ? (
+                        <span className='autotranslation-error error-message'>{timeoutError}</span>
+                    ) : (
+                        <FormattedMessage
+                            id='admin.site.localization.autoTranslationTimeoutDescription'
+                            defaultMessage='Maximum time in milliseconds to wait for a translation response. Default is 5000ms (5 seconds).'
+                        />
+                    )}
+                    type='number'
+                    value={timeoutInputValue}
+                    setByEnv={props.setByEnv}
+                    onChange={handleTimeoutChange}
+                    disabled={props.disabled}
                 />
                 <BooleanSetting
                     id='RestrictDMAndGM'
