@@ -7351,6 +7351,106 @@
     "translation": "Prepackged plugin version could not be parsed."
   },
   {
+    "id": "app.property.count_fields_for_group.app_error",
+    "translation": "Unable to count property fields for group."
+  },
+  {
+    "id": "app.property.count_fields_for_target.app_error",
+    "translation": "Unable to count property fields for target."
+  },
+  {
+    "id": "app.property.create_field.app_error",
+    "translation": "Unable to create property field."
+  },
+  {
+    "id": "app.property.create_value.app_error",
+    "translation": "Unable to create property value."
+  },
+  {
+    "id": "app.property.create_values.app_error",
+    "translation": "Unable to create property values."
+  },
+  {
+    "id": "app.property.delete_field.app_error",
+    "translation": "Unable to delete property field."
+  },
+  {
+    "id": "app.property.delete_value.app_error",
+    "translation": "Unable to delete property value."
+  },
+  {
+    "id": "app.property.delete_values_for_field.app_error",
+    "translation": "Unable to delete property values for field."
+  },
+  {
+    "id": "app.property.delete_values_for_target.app_error",
+    "translation": "Unable to delete property values for target."
+  },
+  {
+    "id": "app.property.get_field.app_error",
+    "translation": "Unable to get property field."
+  },
+  {
+    "id": "app.property.get_field_by_name.app_error",
+    "translation": "Unable to get property field by name."
+  },
+  {
+    "id": "app.property.get_fields.app_error",
+    "translation": "Unable to get property fields."
+  },
+  {
+    "id": "app.property.get_group.app_error",
+    "translation": "Unable to get property group."
+  },
+  {
+    "id": "app.property.get_value.app_error",
+    "translation": "Unable to get property value."
+  },
+  {
+    "id": "app.property.get_values.app_error",
+    "translation": "Unable to get property values."
+  },
+  {
+    "id": "app.property.invalid_input.app_error",
+    "translation": "Invalid input provided."
+  },
+  {
+    "id": "app.property.register_group.app_error",
+    "translation": "Unable to register property group."
+  },
+  {
+    "id": "app.property.search_fields.app_error",
+    "translation": "Unable to search property fields."
+  },
+  {
+    "id": "app.property.search_values.app_error",
+    "translation": "Unable to search property values."
+  },
+  {
+    "id": "app.property.update_field.app_error",
+    "translation": "Unable to update property field."
+  },
+  {
+    "id": "app.property.update_fields.app_error",
+    "translation": "Unable to update property fields."
+  },
+  {
+    "id": "app.property.update_value.app_error",
+    "translation": "Unable to update property value."
+  },
+  {
+    "id": "app.property.update_values.app_error",
+    "translation": "Unable to update property values."
+  },
+  {
+    "id": "app.property.upsert_value.app_error",
+    "translation": "Unable to upsert property value."
+  },
+  {
+    "id": "app.property.upsert_values.app_error",
+    "translation": "Unable to upsert property values."
+  },
+  {
     "id": "app.reaction.bulk_get_for_post_ids.app_error",
     "translation": "Unable to get reactions for post."
   },

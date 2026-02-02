@@ -3396,7 +3396,7 @@ func TestPluginAPICreatePropertyField(t *testing.T) {
 		created, err = api.CreatePropertyField(nil)
 		require.Error(t, err) // Should fail when given nil input
 		assert.Nil(t, created)
-		assert.Contains(t, err.Error(), "invalid input: property field parameter is required")
+		assert.Contains(t, err.Error(), "property field is required")
 	})
 }
 
