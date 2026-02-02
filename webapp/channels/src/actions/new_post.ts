@@ -109,19 +109,10 @@ export function completePostReceive(post: Post, websocketMessageProps: NewPostMe
             WebSocketClient.acknowledgePostedNotification(processedPost.id, status, reason, data);
         }
 
-        // Play Guilded sounds for received messages (only for messages from other users)
+        // Play Guilded sound for received messages (only for messages from other users, when no desktop notification was sent)
+        // DM/mention sounds are only played via desktop notifications (notification_actions.tsx)
         if (processedPost.user_id !== currentUserId && status !== 'sent') {
-            const channel = getChannel(state, processedPost.channel_id);
-            const mentions = websocketMessageProps.mentions ? JSON.parse(websocketMessageProps.mentions) : [];
-            const isMention = mentions.includes(currentUserId);
-            const isDM = channel?.type === Constants.DM_CHANNEL;
-            const isGM = channel?.type === Constants.GM_CHANNEL;
-
-            if (isMention && isGuildedSoundTypeEnabled(getState, 'mention_received')) {
-                playGuildedSound(getState, 'mention_received');
-            } else if ((isDM || isGM) && isGuildedSoundTypeEnabled(getState, 'dm_received')) {
-                playGuildedSound(getState, 'dm_received');
-            } else if (isGuildedSoundTypeEnabled(getState, 'message_received')) {
+            if (isGuildedSoundTypeEnabled(getState, 'message_received')) {
                 playGuildedSound(getState, 'message_received');
             }
         }
