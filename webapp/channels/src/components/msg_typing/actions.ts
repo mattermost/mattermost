@@ -10,7 +10,7 @@ import {getConfig, isPerformanceDebuggingEnabled} from 'mattermost-redux/selecto
 import {getBool} from 'mattermost-redux/selectors/entities/preferences';
 import {getCurrentUserId, getStatusForUserId} from 'mattermost-redux/selectors/entities/users';
 
-import {isGuildedSoundTypeEnabled, playGuildedSound} from 'utils/guilded_sounds';
+import {isGuildedSoundTypeEnabled, playTypingSound, stopTypingSound} from 'utils/guilded_sounds';
 
 import type {ActionFuncAsync, ThunkActionFunc} from 'types/store';
 
@@ -44,7 +44,7 @@ export function userStartedTyping(userId: string, channelId: string, rootId: str
 
         // Play typing sound when someone else starts typing
         if (userId !== currentUserId && isGuildedSoundTypeEnabled(getState, 'typing')) {
-            playGuildedSound(getState, 'typing');
+            playTypingSound(getState);
         }
 
         // Ideally this followup loading would be done by someone else
@@ -79,13 +79,23 @@ function fillInMissingInfo(userId: string): ActionFuncAsync {
     };
 }
 
-export function userStoppedTyping(userId: string, channelId: string, rootId: string, now: number) {
-    return {
-        type: WebsocketEvents.STOP_TYPING,
-        data: {
-            id: channelId + rootId,
-            userId,
-            now,
-        },
+export function userStoppedTyping(userId: string, channelId: string, rootId: string, now: number): ThunkActionFunc<void> {
+    return (dispatch, getState) => {
+        const state = getState();
+        const currentUserId = getCurrentUserId(state);
+
+        // Stop typing sound when someone else stops typing
+        if (userId !== currentUserId) {
+            stopTypingSound();
+        }
+
+        dispatch({
+            type: WebsocketEvents.STOP_TYPING,
+            data: {
+                id: channelId + rootId,
+                userId,
+                now,
+            },
+        });
     };
 }

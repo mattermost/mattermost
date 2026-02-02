@@ -113,8 +113,7 @@ export function completePostReceive(post: Post, websocketMessageProps: NewPostMe
         // - Message is from another user
         // - No desktop notification was sent (DM/mention sounds play via notification_actions.tsx)
         // - User is viewing the channel where the message was posted
-        // - Window is active (user is focused on the app)
-        if (processedPost.user_id !== currentUserId && status !== 'sent' && isPostFromCurrentChannel && window.isActive) {
+        if (processedPost.user_id !== currentUserId && status !== 'sent' && isPostFromCurrentChannel) {
             if (isGuildedSoundTypeEnabled(getState, 'message_received')) {
                 playGuildedSound(getState, 'message_received');
             }

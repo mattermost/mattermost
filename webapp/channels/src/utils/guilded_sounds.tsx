@@ -122,6 +122,9 @@ const lastPlayTimes: Record<SoundEventType, number> = {
 // Global volume (0.0 - 1.0), default 100%
 let globalVolume = 1.0;
 
+// Track typing sound so it can be stopped
+let typingAudio: HTMLAudioElement | null = null;
+
 /**
  * Set the global volume for all sounds
  * @param volume Volume level between 0.0 and 1.0
@@ -263,4 +266,55 @@ export function playGuildedSound(getState: () => GlobalState, soundType: SoundEv
 export function previewGuildedSound(soundType: SoundEventType): void {
     const soundId = DEFAULT_SOUNDS[soundType];
     previewSound(soundId);
+}
+
+/**
+ * Play the typing sound (can be stopped with stopTypingSound)
+ */
+export function playTypingSound(getState: () => GlobalState): void {
+    const soundId = getSoundForEvent(getState, 'typing');
+    if (soundId === 'none') {
+        return;
+    }
+
+    const now = Date.now();
+    const lastPlay = lastPlayTimes.typing;
+    const throttleInterval = THROTTLE_INTERVALS.typing;
+
+    // Check throttle
+    if (now - lastPlay < throttleInterval) {
+        return;
+    }
+
+    // Update last play time
+    lastPlayTimes.typing = now;
+
+    // Stop any existing typing sound
+    stopTypingSound();
+
+    const soundInfo = ALL_SOUNDS.get(soundId);
+    if (!soundInfo || !soundInfo.file) {
+        return;
+    }
+
+    try {
+        typingAudio = new Audio(soundInfo.file);
+        typingAudio.volume = globalVolume;
+        typingAudio.play().catch(() => {
+            // Audio play can fail due to autoplay policies
+        });
+    } catch {
+        // Ignore audio creation errors
+    }
+}
+
+/**
+ * Stop the typing sound if it's playing
+ */
+export function stopTypingSound(): void {
+    if (typingAudio) {
+        typingAudio.pause();
+        typingAudio.currentTime = 0;
+        typingAudio = null;
+    }
 }
