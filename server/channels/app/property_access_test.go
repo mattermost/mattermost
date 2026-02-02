@@ -14,7 +14,6 @@ import (
 
 func TestGetPropertyFieldReadAccess(t *testing.T) {
 	th := Setup(t)
-
 	pas := th.App.PropertyAccessService()
 
 	// Register the CPA group
@@ -339,9 +338,9 @@ func TestGetPropertyFieldReadAccess(t *testing.T) {
 			Type:       model.PropertyFieldTypeSelect,
 			TargetType: "user",
 			Attrs: model.StringInterface{
-				model.PropertyAttrsAccessMode:       model.PropertyAccessModeSourceOnly,
-				model.PropertyAttrsProtected:        true,
-				model.PropertyAttrsSourcePluginID:   pluginID1,
+				model.PropertyAttrsAccessMode:     model.PropertyAccessModeSourceOnly,
+				model.PropertyAttrsProtected:      true,
+				model.PropertyAttrsSourcePluginID: pluginID1,
 				model.PropertyFieldAttributeOptions: []any{
 					map[string]any{"id": "opt1", "value": "Secret Option 1"},
 					map[string]any{"id": "opt2", "value": "Secret Option 2"},
