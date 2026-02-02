@@ -74,7 +74,7 @@ const SidebarThreadItem = ({
                 {hasUnread && (
                     <ChannelMentionBadge
                         unreadMentions={thread.unread_mentions || 0}
-                        hasUrgent={false}
+                        hasUrgent={thread.is_urgent ?? false}
                     />
                 )}
             </Link>
