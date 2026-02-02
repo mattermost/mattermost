@@ -113,8 +113,25 @@ export function completePostReceive(post: Post, websocketMessageProps: NewPostMe
         // - Message is from another user
         // - No desktop notification was sent (DM/mention sounds play via notification_actions.tsx)
         // - User is viewing the channel where the message was posted
-        if (processedPost.user_id !== currentUserId && status !== 'sent' && isPostFromCurrentChannel) {
-            if (isGuildedSoundTypeEnabled(getState, 'message_received')) {
+        // - Window is active (user is focused on the app)
+        const isFromOtherUser = processedPost.user_id !== currentUserId;
+        const noNotificationSent = status !== 'sent';
+        const windowActive = window.isActive;
+        const soundEnabled = isGuildedSoundTypeEnabled(getState, 'message_received');
+
+        // Debug logging - remove after fixing
+        console.log('[GuildedSounds] message_received check:', {
+            isFromOtherUser,
+            noNotificationSent,
+            status,
+            isPostFromCurrentChannel,
+            windowActive,
+            soundEnabled,
+            willPlay: isFromOtherUser && noNotificationSent && isPostFromCurrentChannel && windowActive && soundEnabled,
+        });
+
+        if (isFromOtherUser && noNotificationSent && isPostFromCurrentChannel && windowActive) {
+            if (soundEnabled) {
                 playGuildedSound(getState, 'message_received');
             }
         }
