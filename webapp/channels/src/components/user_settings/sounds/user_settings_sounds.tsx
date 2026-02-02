@@ -179,6 +179,11 @@ function UserSettingsSounds(props: Props): JSX.Element {
     const handleSoundChange = useCallback(async (prefKey: string, soundId: SoundId) => {
         setSoundSelections((prev) => ({...prev, [prefKey]: soundId}));
 
+        // Preview the sound when selected
+        if (soundId !== 'none') {
+            previewSound(soundId);
+        }
+
         const preferences: PreferenceType[] = [{
             user_id: currentUserId,
             category: Preferences.CATEGORY_GUILDED_SOUNDS,
