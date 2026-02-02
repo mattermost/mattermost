@@ -2849,7 +2849,6 @@
   "admin.site.fileSharingDownloads": "File Sharing and Downloads",
   "admin.site.localization": "Localisation",
   "admin.site.localization.autoTranslationInfo": "Auto-translation must also be enabled in each channel where it's needed.",
-  "admin.site.localization.autoTranslationInfoSecondary": "When multiple languages are detected, users will be prompted to enable auto-translation. [Learn more](https://docs.mattermost.com/).",
   "admin.site.localization.autoTranslationProviderDescription": "<strong>NOTE:</strong> If using external translation services (e.g. cloud based),{br}message data may be processed outside of your environment.",
   "admin.site.localization.autoTranslationProviderLibreTranslateAPIKeyDescription": "If your LibreTranslate server requires an API key, enter it here. Otherwise, leave this field blank. View <link>LibreTranslate docs</link> for API Key management.",
   "admin.site.localization.autoTranslationProviderLibreTranslateAPIKeyExample": "Enter LibreTranslate API Key",

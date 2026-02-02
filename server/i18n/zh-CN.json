@@ -788,10 +788,6 @@
     "translation": "无法找到指定的频道。请使用[频道识别](https://docs.mattermost.com/messaging/managing-channels.html#naming-a-channel) 以分辨频道。"
   },
   {
-    "id": "api.command_mute.not_member.error",
-    "translation": "无法静音频道 {{.Channel}} 因为您不是成员。"
-  },
-  {
     "id": "api.command_mute.success_mute",
     "translation": "您将不会收到 {{.Channel}} 的通知直到取消频道静音。"
   },
@@ -10494,10 +10490,6 @@
     "translation": "无法从频道取消分配访问控制策略。"
   },
   {
-    "id": "app.pap.update_access_control_policy_active.app_error",
-    "translation": "无法更改访问控制策略的活跃状态。"
-  },
-  {
     "id": "app.pdp.access_evaluation.app_error",
     "translation": "评估访问控制策略失败。"
   },
@@ -11086,18 +11078,6 @@
     "translation": "不支持的自动翻译服务提供商。"
   },
   {
-    "id": "model.config.is_valid.autotranslation.timeouts.fetch.app_error",
-    "translation": "自动翻译设置的获取超时无效。必须为正数。"
-  },
-  {
-    "id": "model.config.is_valid.autotranslation.timeouts.new_post.app_error",
-    "translation": "自动翻译设置的新消息超时无效。必须为正数。"
-  },
-  {
-    "id": "model.config.is_valid.autotranslation.timeouts.notification.app_error",
-    "translation": "自动翻译设置的通知超时无效。必须为正数。"
-  },
-  {
     "id": "api.command.move_command.creator_no_permission.app_error",
     "translation": "没有移动命令的权限"
   },
@@ -11600,65 +11580,5 @@
   {
     "id": "model.post.query_params.invalid_time_field",
     "translation": "无效的时间字段。"
-  },
-  {
-    "id": "store.sql_autotranslation.channel_not_found",
-    "translation": "未找到频道。"
-  },
-  {
-    "id": "store.sql_autotranslation.get.app_error",
-    "translation": "无法获取翻译。"
-  },
-  {
-    "id": "store.sql_autotranslation.get_active_languages.app_error",
-    "translation": "无法获取可用语言。"
-  },
-  {
-    "id": "store.sql_autotranslation.get_channel_enabled.app_error",
-    "translation": "无法获取频道自动翻译启用状态。"
-  },
-  {
-    "id": "store.sql_autotranslation.get_user_enabled.app_error",
-    "translation": "无法获取用户自动翻译启用状态。"
-  },
-  {
-    "id": "store.sql_autotranslation.get_user_language.app_error",
-    "translation": "无法获取用户语言。"
-  },
-  {
-    "id": "store.sql_autotranslation.is_channel_enabled.app_error",
-    "translation": "无法获取频道自动翻译启用状态。"
-  },
-  {
-    "id": "store.sql_autotranslation.member_not_found",
-    "translation": "未找到成员。"
-  },
-  {
-    "id": "store.sql_autotranslation.meta_json.app_error",
-    "translation": "解析翻译元数据 JSON 失败。"
-  },
-  {
-    "id": "store.sql_autotranslation.query_build_error",
-    "translation": "构建查询失败。"
-  },
-  {
-    "id": "store.sql_autotranslation.save.app_error",
-    "translation": "无法保存翻译内容。"
-  },
-  {
-    "id": "store.sql_autotranslation.save.invalid_translation",
-    "translation": "翻译校验失败。翻译对象无效。"
-  },
-  {
-    "id": "store.sql_autotranslation.save.meta_json.app_error",
-    "translation": "序列化翻译元数据至 JSON 失败。"
-  },
-  {
-    "id": "store.sql_autotranslation.set_channel_enabled.app_error",
-    "translation": "无法设置频道自动翻译启用状态。"
-  },
-  {
-    "id": "store.sql_autotranslation.set_user_enabled.app_error",
-    "translation": "无法设置用户自动翻译启用状态。"
   }
 ]
