@@ -162,6 +162,36 @@
     }
 }
 
+// Sound selection dropdown
+.guilded-sounds-select {
+    padding: 6px 28px 6px 10px;
+    font-size: 13px;
+    border: 1px solid rgba(var(--center-channel-color-rgb), 0.16);
+    border-radius: 4px;
+    background-color: var(--center-channel-bg);
+    color: var(--center-channel-color);
+    cursor: pointer;
+    min-width: 180px;
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%2363676b' d='M3.5 4.5L6 7l2.5-2.5'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 8px center;
+
+    &:hover {
+        border-color: rgba(var(--center-channel-color-rgb), 0.32);
+    }
+
+    &:focus {
+        border-color: var(--button-bg);
+        outline: none;
+    }
+
+    option {
+        background-color: var(--center-channel-bg);
+        color: var(--center-channel-color);
+    }
+}
+
 // Preview button
 .guilded-sounds-preview-btn {
     display: flex;
@@ -183,6 +213,16 @@
 
     &:active {
         background: rgba(var(--center-channel-color-rgb), 0.16);
+    }
+
+    &:disabled {
+        opacity: 0.4;
+        cursor: not-allowed;
+
+        &:hover {
+            background: transparent;
+            color: rgba(var(--center-channel-color-rgb), 0.72);
+        }
     }
 
     .icon {

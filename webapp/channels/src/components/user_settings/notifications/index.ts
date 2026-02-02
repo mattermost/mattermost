@@ -39,6 +39,7 @@ const mapStateToProps = (state: GlobalState, props: OwnProps) => {
         isCallsRingingEnabled: isCallsEnabled(state, '0.17.0') && isCallsRingingEnabledOnServer(state),
         isEnterpriseOrCloudOrSKUStarterFree: isEnterpriseOrCloudOrSKUStarterFree(license, subscriptionProduct, isEnterpriseReady),
         isEnterpriseReady,
+        isGuildedSoundsEnabled: config.FeatureFlagGuildedSounds === 'true',
     };
 };
 

@@ -118,11 +118,11 @@ export function completePostReceive(post: Post, websocketMessageProps: NewPostMe
             const isGM = channel?.type === Constants.GM_CHANNEL;
 
             if (isMention && isGuildedSoundTypeEnabled(getState, 'mention_received')) {
-                playGuildedSound('mention_received');
+                playGuildedSound(getState, 'mention_received');
             } else if ((isDM || isGM) && isGuildedSoundTypeEnabled(getState, 'dm_received')) {
-                playGuildedSound('dm_received');
+                playGuildedSound(getState, 'dm_received');
             } else if (isGuildedSoundTypeEnabled(getState, 'message_received')) {
-                playGuildedSound('message_received');
+                playGuildedSound(getState, 'message_received');
             }
         }
 

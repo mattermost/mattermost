@@ -1059,22 +1059,27 @@ class NotificationsTab extends React.PureComponent<Props, State> {
                         pushThreads={this.state.pushThreads}
                         desktopAndMobileSettingsDifferent={this.state.desktopAndMobileSettingsDifferent}
                     />
-                    <div className='divider-light'/>
-                    <DesktopNotificationSoundsSettings
-                        active={this.props.activeSection === UserSettingsNotificationSections.DESKTOP_NOTIFICATION_SOUND}
-                        updateSection={this.handleUpdateSection}
-                        onSubmit={this.handleSubmit}
-                        onCancel={this.handleCancel}
-                        saving={this.state.isSaving}
-                        error={this.state.serverError}
-                        setParentState={this.setStateValue}
-                        areAllSectionsInactive={areAllSectionsInactive}
-                        desktopSound={this.state.desktopSound}
-                        desktopNotificationSound={this.state.desktopNotificationSound}
-                        isCallsRingingEnabled={this.props.isCallsRingingEnabled}
-                        callsDesktopSound={this.state.callsDesktopSound}
-                        callsNotificationSound={this.state.callsNotificationSound}
-                    />
+                    {/* Hide desktop notification sounds when GuildedSounds is enabled - sounds are configured in the Sounds tab */}
+                    {!this.props.isGuildedSoundsEnabled && (
+                        <>
+                            <div className='divider-light'/>
+                            <DesktopNotificationSoundsSettings
+                                active={this.props.activeSection === UserSettingsNotificationSections.DESKTOP_NOTIFICATION_SOUND}
+                                updateSection={this.handleUpdateSection}
+                                onSubmit={this.handleSubmit}
+                                onCancel={this.handleCancel}
+                                saving={this.state.isSaving}
+                                error={this.state.serverError}
+                                setParentState={this.setStateValue}
+                                areAllSectionsInactive={areAllSectionsInactive}
+                                desktopSound={this.state.desktopSound}
+                                desktopNotificationSound={this.state.desktopNotificationSound}
+                                isCallsRingingEnabled={this.props.isCallsRingingEnabled}
+                                callsDesktopSound={this.state.callsDesktopSound}
+                                callsNotificationSound={this.state.callsNotificationSound}
+                            />
+                        </>
+                    )}
                     <div className='divider-light'/>
                     <EmailNotificationSetting
                         active={this.props.activeSection === UserSettingsNotificationSections.EMAIL}

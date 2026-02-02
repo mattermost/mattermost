@@ -29,6 +29,7 @@ import Constants, {NotificationLevels, UserStatuses, IgnoreChannelMentions, Desk
 import DesktopApp from 'utils/desktop_api';
 import {stripMarkdown, formatWithRenderer} from 'utils/markdown';
 import MentionableRenderer from 'utils/markdown/mentionable_renderer';
+import {isGuildedSoundsEnabled, playSoundForEvent} from 'utils/guilded_sounds';
 import {DesktopNotificationSounds, ding} from 'utils/notification_sounds';
 import {showNotification} from 'utils/notifications';
 import {cjkrPattern, escapeRegex} from 'utils/text_formatting';
@@ -166,7 +167,24 @@ export function sendDesktopNotification(post: Post, msgProps: NewPostMessageProp
 
         //Don't add extra sounds on native desktop clients
         if (desktopSoundEnabled && !isDesktopApp() && !isMobileApp()) {
-            ding(soundName);
+            // Use Guilded sounds when enabled, with context-aware sound selection
+            if (isGuildedSoundsEnabled(getState)) {
+                const mentions = msgProps.mentions ? JSON.parse(msgProps.mentions) : [];
+                const isMention = user && mentions.includes(user.id);
+                const isDM = channel.type === Constants.DM_CHANNEL;
+                const isGM = channel.type === Constants.GM_CHANNEL;
+
+                if (isMention) {
+                    playSoundForEvent(getState, 'mention_received');
+                } else if (isDM || isGM) {
+                    playSoundForEvent(getState, 'dm_received');
+                } else {
+                    playSoundForEvent(getState, 'message_received');
+                }
+            } else {
+                // Fall back to old notification sound system
+                ding(soundName);
+            }
         }
 
         return result;

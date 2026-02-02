@@ -153,7 +153,7 @@ export function createPost(
 
         // Play Guilded message sent sound
         if (isGuildedSoundTypeEnabled(getState, 'message_sent')) {
-            playGuildedSound('message_sent');
+            playGuildedSound(getState, 'message_sent');
         }
 
         if (!options?.keepDraft) {
@@ -270,7 +270,7 @@ export function addReaction(postId: string, emojiName: string): ActionFuncAsync<
 
         // Play Guilded reaction sound on success
         if (!result.error && isGuildedSoundTypeEnabled(getState, 'reaction_apply')) {
-            playGuildedSound('reaction_apply');
+            playGuildedSound(getState, 'reaction_apply');
         }
 
         return result;

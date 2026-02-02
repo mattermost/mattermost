@@ -1374,7 +1374,7 @@ function handleReactionAddedEvent(msg) {
     const post = getPost(state, reaction.post_id);
     if (post && post.user_id === currentUserId && reaction.user_id !== currentUserId) {
         if (isGuildedSoundTypeEnabled(getState, 'reaction_received')) {
-            playGuildedSound('reaction_received');
+            playGuildedSound(getState, 'reaction_received');
         }
     }
 }

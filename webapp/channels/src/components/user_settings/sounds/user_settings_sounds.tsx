@@ -17,8 +17,11 @@ import SettingMobileHeader from '../headers/setting_mobile_header';
 import {Preferences} from 'utils/constants';
 import {
     setGuildedSoundsVolume,
-    previewGuildedSound,
-    type GuildedSoundType,
+    previewSound,
+    getSoundOptions,
+    DEFAULT_SOUNDS,
+    type SoundEventType,
+    type SoundId,
 } from 'utils/guilded_sounds';
 
 import type {GlobalState} from 'types/store';
@@ -26,7 +29,7 @@ import type {GlobalState} from 'types/store';
 import './user_settings_sounds.scss';
 
 interface SoundSetting {
-    type: GuildedSoundType;
+    type: SoundEventType;
     prefKey: string;
     titleId: string;
     titleDefault: string;
@@ -99,46 +102,62 @@ function UserSettingsSounds(props: Props): JSX.Element {
     const currentUserId = useSelector(getCurrentUserId);
 
     // Get preferences from Redux
-    const masterEnabled = useSelector((state: GlobalState) =>
-        get(state, Preferences.CATEGORY_GUILDED_SOUNDS, Preferences.GUILDED_SOUNDS_ENABLED, 'true'),
-    );
     const volumePref = useSelector((state: GlobalState) =>
-        get(state, Preferences.CATEGORY_GUILDED_SOUNDS, Preferences.GUILDED_SOUNDS_VOLUME, '50'),
+        get(state, Preferences.CATEGORY_GUILDED_SOUNDS, Preferences.GUILDED_SOUNDS_VOLUME, '100'),
     );
 
     // Get individual sound preferences
     const soundPrefs = useSelector((state: GlobalState) => {
         const prefs: Record<string, string> = {};
         for (const setting of SOUND_SETTINGS) {
-            prefs[setting.prefKey] = get(state, Preferences.CATEGORY_GUILDED_SOUNDS, setting.prefKey, 'true');
+            const defaultSound = DEFAULT_SOUNDS[setting.type];
+            prefs[setting.prefKey] = get(state, Preferences.CATEGORY_GUILDED_SOUNDS, setting.prefKey, defaultSound);
         }
         return prefs;
     });
 
     // Local state for editing
-    const [volume, setVolume] = useState(parseInt(volumePref, 10) || 50);
-    const [soundStates, setSoundStates] = useState<Record<string, boolean>>(() => {
-        const states: Record<string, boolean> = {};
+    const [volume, setVolume] = useState(parseInt(volumePref, 10) || 100);
+    const [soundSelections, setSoundSelections] = useState<Record<string, SoundId>>(() => {
+        const selections: Record<string, SoundId> = {};
         for (const setting of SOUND_SETTINGS) {
-            states[setting.prefKey] = soundPrefs[setting.prefKey] === 'true';
+            const prefValue = soundPrefs[setting.prefKey];
+            // Handle legacy boolean preferences
+            if (prefValue === 'true') {
+                selections[setting.prefKey] = DEFAULT_SOUNDS[setting.type];
+            } else if (prefValue === 'false') {
+                selections[setting.prefKey] = 'none';
+            } else {
+                selections[setting.prefKey] = prefValue as SoundId;
+            }
         }
-        return states;
+        return selections;
     });
+
+    const soundOptions = getSoundOptions();
 
     // Sync volume with preference when it changes
     useEffect(() => {
-        const vol = parseInt(volumePref, 10) || 50;
+        const vol = parseInt(volumePref, 10) || 100;
         setVolume(vol);
         setGuildedSoundsVolume(vol / 100);
     }, [volumePref]);
 
-    // Sync sound states with preferences when they change
+    // Sync sound selections with preferences when they change
     useEffect(() => {
-        const states: Record<string, boolean> = {};
+        const selections: Record<string, SoundId> = {};
         for (const setting of SOUND_SETTINGS) {
-            states[setting.prefKey] = soundPrefs[setting.prefKey] === 'true';
+            const prefValue = soundPrefs[setting.prefKey];
+            // Handle legacy boolean preferences
+            if (prefValue === 'true') {
+                selections[setting.prefKey] = DEFAULT_SOUNDS[setting.type];
+            } else if (prefValue === 'false') {
+                selections[setting.prefKey] = 'none';
+            } else {
+                selections[setting.prefKey] = prefValue as SoundId;
+            }
         }
-        setSoundStates(states);
+        setSoundSelections(selections);
     }, [soundPrefs]);
 
     const handleVolumeChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
@@ -157,23 +176,23 @@ function UserSettingsSounds(props: Props): JSX.Element {
         await dispatch(savePreferences(currentUserId, preferences));
     }, [currentUserId, dispatch, volume]);
 
-    const handleSoundToggle = useCallback(async (prefKey: string, enabled: boolean) => {
-        setSoundStates((prev) => ({...prev, [prefKey]: enabled}));
+    const handleSoundChange = useCallback(async (prefKey: string, soundId: SoundId) => {
+        setSoundSelections((prev) => ({...prev, [prefKey]: soundId}));
 
         const preferences: PreferenceType[] = [{
             user_id: currentUserId,
             category: Preferences.CATEGORY_GUILDED_SOUNDS,
             name: prefKey,
-            value: enabled.toString(),
+            value: soundId,
         }];
         await dispatch(savePreferences(currentUserId, preferences));
     }, [currentUserId, dispatch]);
 
-    const handlePreview = useCallback((soundType: GuildedSoundType) => {
-        previewGuildedSound(soundType);
+    const handlePreview = useCallback((soundId: SoundId) => {
+        if (soundId !== 'none') {
+            previewSound(soundId);
+        }
     }, []);
-
-    const isMasterEnabled = masterEnabled === 'true';
 
     return (
         <div
@@ -266,19 +285,25 @@ function UserSettingsSounds(props: Props): JSX.Element {
                                 </div>
                             </div>
                             <div className='guilded-sounds-item-controls'>
-                                <label className='guilded-sounds-toggle'>
-                                    <input
-                                        type='checkbox'
-                                        checked={soundStates[setting.prefKey]}
-                                        onChange={(e) => handleSoundToggle(setting.prefKey, e.target.checked)}
-                                        disabled={!isMasterEnabled}
-                                    />
-                                    <span className='guilded-sounds-toggle-slider'/>
-                                </label>
+                                <select
+                                    className='guilded-sounds-select'
+                                    value={soundSelections[setting.prefKey] || DEFAULT_SOUNDS[setting.type]}
+                                    onChange={(e) => handleSoundChange(setting.prefKey, e.target.value as SoundId)}
+                                >
+                                    {soundOptions.map((option) => (
+                                        <option
+                                            key={option.value}
+                                            value={option.value}
+                                        >
+                                            {option.label}
+                                        </option>
+                                    ))}
+                                </select>
                                 <button
                                     type='button'
                                     className='guilded-sounds-preview-btn'
-                                    onClick={() => handlePreview(setting.type)}
+                                    onClick={() => handlePreview(soundSelections[setting.prefKey] || DEFAULT_SOUNDS[setting.type])}
+                                    disabled={soundSelections[setting.prefKey] === 'none'}
                                     title={formatMessage({id: 'user.settings.sounds.preview', defaultMessage: 'Preview'})}
                                 >
                                     <i className='icon icon-play'/>
