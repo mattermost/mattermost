@@ -78,7 +78,13 @@ func setupTestHelper(dbStore store.Store, sqlStore *sqlstore.SqlStore, sqlSettin
 	*memoryConfig.LogSettings.ConsoleLevel = mlog.LvlStdLog.Name
 	*memoryConfig.AnnouncementSettings.AdminNoticesEnabled = false
 	*memoryConfig.AnnouncementSettings.UserNoticesEnabled = false
-	*memoryConfig.LogSettings.FileLocation = filepath.Join(tempWorkspace, "logs", "mattermost.log")
+	// Use a subdirectory within the logging root (from MM_LOG_PATH or default)
+	// to ensure the path is within the allowed logging root for security validation.
+	// Each test gets its own subdirectory based on the tempWorkspace name for isolation.
+	testLogsDir := filepath.Join(config.GetLogRootPath(), filepath.Base(tempWorkspace))
+	err = os.MkdirAll(testLogsDir, 0700)
+	require.NoError(tb, err, "failed to create test logs directory")
+	*memoryConfig.LogSettings.FileLocation = testLogsDir
 	if updateConfig != nil {
 		updateConfig(memoryConfig)
 	}
