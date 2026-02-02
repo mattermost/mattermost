@@ -169,13 +169,32 @@ export function sendDesktopNotification(post: Post, msgProps: NewPostMessageProp
         const result = dispatch(notifyMe(argsAfterHooks.title, argsAfterHooks.body, channel.id, teamId, argsAfterHooks.silent, argsAfterHooks.soundName, argsAfterHooks.url));
 
         //Don't add extra sounds on native desktop clients
-        if (desktopSoundEnabled && !isDesktopApp() && !isMobileApp()) {
+        const isDesktop = isDesktopApp();
+        const isMobile = isMobileApp();
+
+        // Debug logging - remove after fixing
+        console.log('[GuildedSounds] notification sound check:', {
+            desktopSoundEnabled,
+            isDesktop,
+            isMobile,
+            useGuildedSounds,
+            willPlaySound: desktopSoundEnabled && !isDesktop && !isMobile,
+        });
+
+        if (desktopSoundEnabled && !isDesktop && !isMobile) {
             // Use Guilded sounds when enabled, with context-aware sound selection
             if (useGuildedSounds) {
                 const mentions = msgProps.mentions ? JSON.parse(msgProps.mentions) : [];
                 const isMention = user && mentions.includes(user.id);
                 const isDM = channel.type === Constants.DM_CHANNEL;
                 const isGM = channel.type === Constants.GM_CHANNEL;
+
+                console.log('[GuildedSounds] playing notification sound:', {
+                    isMention,
+                    isDM,
+                    isGM,
+                    soundType: isMention ? 'mention_received' : (isDM || isGM) ? 'dm_received' : 'message_received',
+                });
 
                 if (isMention) {
                     playSoundForEvent(getState, 'mention_received');
