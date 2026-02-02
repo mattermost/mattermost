@@ -279,19 +279,18 @@ func getPostsForChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	var language string
-	if since == 0 && isMember && channel.AutoTranslation {
-		// channelMember, err := c.App.GetChannelMember(c.AppContext, channelId, c.AppContext.Session().UserId)
-		// if err != nil {
-		// 	c.Err = err
-		// 	return
-		// }
-		// if channelMember.AutoTranslation
-
-		user, err := c.App.GetUser(c.AppContext.Session().UserId)
-
-		// Use no language if there is any error
-		if err == nil {
-			language = user.Locale
+	if since == 0 && isMember && c.App.AutoTranslation() != nil {
+		enabled, appErr := c.App.AutoTranslation().IsUserEnabled(channelId, c.AppContext.Session().UserId)
+		if appErr != nil {
+			c.Err = appErr
+			return
+		}
+		if enabled {
+			language, appErr = c.App.AutoTranslation().GetUserLanguage(c.AppContext.Session().UserId, channelId)
+			if appErr != nil {
+				c.Err = appErr
+				return
+			}
 		}
 	}
 
@@ -404,13 +403,21 @@ func getPostsForChannelAroundLastUnread(c *Context, w http.ResponseWriter, r *ht
 	etag := ""
 	if len(postList.Order) == 0 {
 		var language string
-		if channel.AutoTranslation {
-			// TODO: We should check the channel membership object here too
-			user, err := c.App.GetUser(c.AppContext.Session().UserId)
-			if err == nil {
-				language = user.Locale
+		if c.App.AutoTranslation() != nil {
+			enabled, appErr := c.App.AutoTranslation().IsUserEnabled(channelId, c.AppContext.Session().UserId)
+			if appErr != nil {
+				c.Err = appErr
+				return
+			}
+			if enabled {
+				language, appErr = c.App.AutoTranslation().GetUserLanguage(c.AppContext.Session().UserId, channelId)
+				if appErr != nil {
+					c.Err = appErr
+					return
+				}
 			}
 		}
+
 		etag = c.App.GetPostsEtag(channelId, language, collapsedThreads)
 
 		if c.HandleEtag(etag, "Get Posts", w, r) {
