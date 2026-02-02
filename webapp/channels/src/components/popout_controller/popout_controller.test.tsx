@@ -89,8 +89,6 @@ const baseRouteProps: RouteComponentProps = {
 
 describe('PopoutController', () => {
     beforeEach(() => {
-        jest.clearAllMocks();
-
         // Reset document.body classes
         document.body.className = '';
 
