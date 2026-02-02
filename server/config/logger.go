@@ -206,6 +206,11 @@ func WarnIfLogPathsOutsideRoot(cfg *model.Config) {
 		validateAdvancedLoggingConfig(cfg.LogSettings.AdvancedLoggingJSON, "LogSettings.AdvancedLoggingJSON", loggingRoot)
 	}
 
+	// Check NotificationLogSettings.AdvancedLoggingJSON
+	if !utils.IsEmptyJSON(cfg.NotificationLogSettings.AdvancedLoggingJSON) {
+		validateAdvancedLoggingConfig(cfg.NotificationLogSettings.AdvancedLoggingJSON, "NotificationLogSettings.AdvancedLoggingJSON", loggingRoot)
+	}
+
 	// Check ExperimentalAuditSettings.AdvancedLoggingJSON
 	if !utils.IsEmptyJSON(cfg.ExperimentalAuditSettings.AdvancedLoggingJSON) {
 		validateAdvancedLoggingConfig(cfg.ExperimentalAuditSettings.AdvancedLoggingJSON, "ExperimentalAuditSettings.AdvancedLoggingJSON", loggingRoot)
