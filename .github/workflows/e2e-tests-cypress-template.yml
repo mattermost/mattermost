@@ -27,7 +27,6 @@ on:
         type: string
         required: false
         default: "postgres inbucket"
-
       # Common build variables
       commit_sha:
         type: string
@@ -192,13 +191,48 @@ jobs:
           node-version-file: ".nvmrc"
           cache: npm
           cache-dependency-path: "e2e-tests/cypress/package-lock.json"
-      - name: ci/run-tests
+      - name: ci/setup-testcontainers
+        working-directory: e2e-tests/testcontainers
+        # Only testcontainers packages need npm install (native modules can't be bundled)
+        run: npm ci --ignore-scripts --omit=dev
+      - name: ci/start-server
+        id: start-server
+        working-directory: e2e-tests/testcontainers
+        env:
+          TC_SERVER_IMAGE: ${{ env.SERVER_IMAGE }}
+          TC_DEPENDENCIES: ${{ inputs.enabled_docker_services }}
+          MM_LICENSE: ${{ secrets.MM_LICENSE }}
         run: |
-          make cloud-init
-          make
-      - name: ci/cloud-teardown
+          # Convert space-separated dependencies to comma-separated
+          DEPS=$(echo "$TC_DEPENDENCIES" | tr ' ' ',')
+
+          # Start testcontainers environment (using bundled CLI)
+          node dist/cli.js start --detach --admin -D "$DEPS" -o .tc.out
+
+          # Export server URL from testcontainers JSON output
+          SERVER_URL=$(jq -r '.mattermost.url' .tc.out/latest/.tc.docker.json)
+          echo "SERVER_URL=$SERVER_URL" >> $GITHUB_OUTPUT
+          echo "Server started at: $SERVER_URL"
+      - name: ci/run-tests
+        working-directory: e2e-tests/cypress
+        env:
+          MM_SERVICESETTINGS_SITEURL: ${{ steps.start-server.outputs.SERVER_URL }}
+          AUTOMATION_DASHBOARD_URL: ${{ secrets.AUTOMATION_DASHBOARD_URL }}
+          AUTOMATION_DASHBOARD_TOKEN: ${{ secrets.AUTOMATION_DASHBOARD_TOKEN }}
+          CYPRESS_pushNotificationServer: ${{ secrets.PUSH_NOTIFICATION_SERVER }}
+          CWS_URL: ${{ secrets.CWS_URL }}
+          CWS_EXTRA_HTTP_HEADERS: ${{ secrets.CWS_EXTRA_HTTP_HEADERS }}
+          REPO: mattermost
+          BRANCH: ${{ inputs.branch }}-${{ inputs.test_type }}
+          BUILD_ID: ${{ inputs.build_id }}
+          CI_BASE_URL: ${{ inputs.test_type }}-test-${{ matrix.worker_index }}
+        run: |
+          npm ci
+          node run_test_cycle.js
+      - name: ci/stop-server
         if: always()
-        run: make cloud-teardown
+        working-directory: e2e-tests/testcontainers
+        run: node dist/cli.js stop
       - name: ci/upload-results
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         if: always()
@@ -284,16 +318,54 @@ jobs:
           node-version-file: ".nvmrc"
           cache: npm
           cache-dependency-path: "e2e-tests/cypress/package-lock.json"
+      - name: ci/setup-testcontainers
+        working-directory: e2e-tests/testcontainers
+        # Only testcontainers packages need npm install (native modules can't be bundled)
+        run: npm ci --ignore-scripts --omit=dev
+      - name: ci/start-server
+        id: start-server
+        working-directory: e2e-tests/testcontainers
+        env:
+          TC_SERVER_IMAGE: ${{ env.SERVER_IMAGE }}
+          TC_DEPENDENCIES: ${{ inputs.enabled_docker_services }}
+          MM_LICENSE: ${{ secrets.MM_LICENSE }}
+        run: |
+          # Convert space-separated dependencies to comma-separated
+          DEPS=$(echo "$TC_DEPENDENCIES" | tr ' ' ',')
+
+          # Start testcontainers environment (using bundled CLI)
+          node dist/cli.js start --detach --admin -D "$DEPS" -o .tc.out
+
+          # Export server URL from testcontainers JSON output
+          SERVER_URL=$(jq -r '.mattermost.url' .tc.out/latest/.tc.docker.json)
+          echo "SERVER_URL=$SERVER_URL" >> $GITHUB_OUTPUT
+          echo "Server started at: $SERVER_URL"
       - name: ci/run-failed-specs
+        working-directory: e2e-tests/cypress
         env:
           SPEC_FILES: ${{ needs.calculate-results.outputs.failed_specs }}
+          MM_SERVICESETTINGS_SITEURL: ${{ steps.start-server.outputs.SERVER_URL }}
+          CYPRESS_pushNotificationServer: ${{ secrets.PUSH_NOTIFICATION_SERVER }}
+          CWS_URL: ${{ secrets.CWS_URL }}
+          CWS_EXTRA_HTTP_HEADERS: ${{ secrets.CWS_EXTRA_HTTP_HEADERS }}
         run: |
           echo "Retesting failed specs: $SPEC_FILES"
-          make cloud-init
-          make start-server run-specs
-      - name: ci/cloud-teardown
+          npm ci
+
+          # Initialize report directories
+          rm -rf logs results
+          mkdir -p logs results/junit results/mochawesome-report/json/tests
+          echo '<?xml version="1.0" encoding="UTF-8"?>' > results/junit/empty.xml
+
+          # Run cypress with specific spec files
+          npx cypress run \
+            --spec "$SPEC_FILES" \
+            --reporter cypress-multi-reporters \
+            --reporter-options configFile=reporter-config.json || true
+      - name: ci/stop-server
         if: always()
-        run: make cloud-teardown
+        working-directory: e2e-tests/testcontainers
+        run: node dist/cli.js stop
       - name: ci/upload-retest-results
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         if: always()

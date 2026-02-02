@@ -14,7 +14,7 @@
     "prettier:fix": "prettier --write .",
     "check": "npm run lint && npm run prettier && npm run tsc && npm run lint:test-docs",
     "test": "npm run build && cross-env PW_SNAPSHOT_ENABLE=true playwright test",
-    "test:local": "./scripts/run-with-local-server.sh",
+    "test:local": "./script/run-with-local-server.sh",
     "test:smoke": "npm run build && playwright test --grep @smoke --project=chrome --retries=1",
     "test:ci": "npm run build && cross-env PW_SNAPSHOT_ENABLE=true playwright test --grep-invert @visual --project=chrome",
     "test:team": "npm run build && cross-env TC_EDITION=team PW_SNAPSHOT_ENABLE=true playwright test --grep '@team_edition' --project=chrome",

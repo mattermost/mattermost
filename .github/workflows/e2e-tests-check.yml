@@ -34,7 +34,31 @@ jobs:
         working-directory: e2e-tests/cypress
         run: npm run check
 
-      # Playwright check
+      # Testcontainers check (must run before Playwright since playwright-lib depends on it)
+      - name: ci/check-testcontainers-changes
+        id: tc-changes
+        run: |
+          if git diff --name-only ${{ github.event.pull_request.base.sha }} ${{ github.event.pull_request.head.sha }} | grep -q "^e2e-tests/testcontainers/"; then
+            echo "changed=true" >> $GITHUB_OUTPUT
+          else
+            echo "changed=false" >> $GITHUB_OUTPUT
+          fi
+      - name: ci/testcontainers/npm-install
+        working-directory: e2e-tests/testcontainers
+        run: npm ci
+      - name: ci/testcontainers/npm-check
+        if: steps.tc-changes.outputs.changed == 'true'
+        working-directory: e2e-tests/testcontainers
+        run: npm run check
+      - name: ci/testcontainers/npm-build
+        working-directory: e2e-tests/testcontainers
+        run: npm run build
+      - name: ci/testcontainers/npm-publish-dry-run
+        if: steps.tc-changes.outputs.changed == 'true'
+        working-directory: e2e-tests/testcontainers
+        run: npm publish --dry-run
+
+      # Playwright check (depends on testcontainers being built)
       - name: ci/get-webapp-node-modules
         working-directory: webapp
         run: make node_modules

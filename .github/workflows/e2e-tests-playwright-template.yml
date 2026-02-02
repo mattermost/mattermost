@@ -128,13 +128,19 @@ jobs:
       - name: ci/get-webapp-node-modules
         working-directory: webapp
         run: make node_modules
+      - name: ci/playwright-install
+        working-directory: e2e-tests/playwright
+        run: npm ci
       - name: ci/run-tests
+        working-directory: e2e-tests/playwright
+        env:
+          PW_TC: "true"
+          TC_SERVER_IMAGE: ${{ env.SERVER_IMAGE }}
+          MM_LICENSE: ${{ secrets.MM_LICENSE }}
         run: |
-          make cloud-init
-          make
-      - name: ci/cloud-teardown
-        if: always()
-        run: make cloud-teardown
+          # Convert space-separated to comma-separated for testcontainers
+          export TC_DEPENDENCIES=$(echo "${{ inputs.enabled_docker_services }}" | tr ' ' ',')
+          npm run test:ci -- ${{ inputs.test_filter }}
       - name: ci/upload-results
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         if: always()
@@ -217,16 +223,23 @@ jobs:
       - name: ci/get-webapp-node-modules
         working-directory: webapp
         run: make node_modules
+      - name: ci/playwright-install
+        working-directory: e2e-tests/playwright
+        run: npm ci
       - name: ci/run-failed-specs
+        working-directory: e2e-tests/playwright
         env:
           SPEC_FILES: ${{ needs.calculate-results.outputs.failed_specs }}
+          PW_TC: "true"
+          TC_SERVER_IMAGE: ${{ env.SERVER_IMAGE }}
+          MM_LICENSE: ${{ secrets.MM_LICENSE }}
         run: |
           echo "Retesting failed specs: $SPEC_FILES"
-          make cloud-init
-          make start-server run-specs
-      - name: ci/cloud-teardown
-        if: always()
-        run: make cloud-teardown
+          # Convert space-separated to comma-separated for testcontainers
+          export TC_DEPENDENCIES=$(echo "${{ inputs.enabled_docker_services }}" | tr ' ' ',')
+          # Convert comma-separated to space-separated for playwright
+          SPEC_ARGS=$(echo "$SPEC_FILES" | tr ',' ' ')
+          npm run test:ci -- $SPEC_ARGS
       - name: ci/upload-retest-results
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         if: always()

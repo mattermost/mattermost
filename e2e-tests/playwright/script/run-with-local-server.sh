@@ -3,8 +3,8 @@
 # See LICENSE.txt for license information.
 
 # Script to run Playwright tests with a local Mattermost server using testcontainers for services.
-# Usage: ./scripts/run-with-local-server.sh [playwright-args]
-#        ./scripts/run-with-local-server.sh --stop  # Stop running services
+# Usage: ./script/run-with-local-server.sh [playwright-args]
+#        ./script/run-with-local-server.sh --stop  # Stop running services
 
 set -e
 
