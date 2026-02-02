@@ -2564,13 +2564,13 @@ func TestGetPostsForChannel(t *testing.T) {
 	t.Run("Language selection with AutoTranslation enabled", func(t *testing.T) {
 		// Create a channel with AutoTranslation enabled
 		channel := th.CreatePublicChannel(t)
-		appErr := th.App.Srv().Store().AutoTranslation().SetChannelEnabled(channel.Id, true)
-		require.Nil(t, appErr)
+		err := th.App.Srv().Store().AutoTranslation().SetChannelEnabled(channel.Id, true)
+		require.NoError(t, err)
 
 		// Update user locale
 		user := th.BasicUser
 		user.Locale = "es"
-		_, appErr = th.App.UpdateUser(th.Context, user, false)
+		_, appErr := th.App.UpdateUser(th.Context, user, false)
 		require.Nil(t, appErr)
 
 		// Create a post in the channel
@@ -2596,8 +2596,8 @@ func TestGetPostsForChannel(t *testing.T) {
 
 		// Test: When channel.AutoTranslation is false, language should not be set
 		channel2 := th.CreatePublicChannel(t)
-		appErr = th.App.Srv().Store().AutoTranslation().SetChannelEnabled(channel2.Id, false)
-		require.Nil(t, appErr)
+		err = th.App.Srv().Store().AutoTranslation().SetChannelEnabled(channel2.Id, false)
+		require.NoError(t, err)
 		th.CreatePostWithClient(t, th.Client, channel2)
 
 		channel2, appErr = th.App.GetChannel(th.Context, channel2.Id)
@@ -3395,8 +3395,8 @@ func TestGetPostsForChannelAroundLastUnread(t *testing.T) {
 	t.Run("Language selection with AutoTranslation enabled", func(t *testing.T) {
 		// Create a channel with AutoTranslation enabled
 		channel := th.CreatePublicChannel(t)
-		appErr := th.App.Srv().Store().AutoTranslation().SetChannelEnabled(channel.Id, true)
-		require.Nil(t, appErr)
+		err = th.App.Srv().Store().AutoTranslation().SetChannelEnabled(channel.Id, true)
+		require.NoError(t, err)
 
 		// Add user to channel
 		_, _, err = client.AddChannelMember(context.Background(), channel.Id, userId)
@@ -3405,7 +3405,7 @@ func TestGetPostsForChannelAroundLastUnread(t *testing.T) {
 		// Update user locale
 		user := th.BasicUser
 		user.Locale = "fr"
-		_, appErr = th.App.UpdateUser(th.Context, user, false)
+		_, appErr := th.App.UpdateUser(th.Context, user, false)
 		require.Nil(t, appErr)
 
 		// Refresh channel to get updated AutoTranslation field
@@ -3454,8 +3454,8 @@ func TestGetPostsForChannelAroundLastUnread(t *testing.T) {
 
 		// Test: When channel.AutoTranslation is false, language should not be set
 		channel2 := th.CreatePublicChannel(t)
-		appErr = th.App.Srv().Store().AutoTranslation().SetChannelEnabled(channel2.Id, false)
-		require.Nil(t, err)
+		err = th.App.Srv().Store().AutoTranslation().SetChannelEnabled(channel2.Id, false)
+		require.NoError(t, err)
 
 		_, _, err = client.AddChannelMember(context.Background(), channel2.Id, userId)
 		require.NoError(t, err)
