@@ -292,7 +292,7 @@
         }
 
         &--delete:hover {
-            background: rgba(var(--error-text-color-rgb, 210, 75, 78), 0.12);
+            background: rgba(var(--error-text-color-rgb), 0.12);
             color: var(--error-text);
         }
     }

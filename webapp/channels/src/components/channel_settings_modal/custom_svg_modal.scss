@@ -138,7 +138,7 @@
         padding: 8px 12px;
         font-size: 13px;
         color: var(--error-text);
-        background: rgba(var(--error-text-color-rgb, 210, 75, 78), 0.08);
+        background: rgba(var(--error-text-color-rgb), 0.08);
         border-radius: 4px;
 
         .icon {
