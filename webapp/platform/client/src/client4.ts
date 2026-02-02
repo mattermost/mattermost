@@ -4430,10 +4430,23 @@ export default class Client4 {
         );
     };
 
-    getAIRewrittenMessage = (agentId: string, message: string, action?: string, customPrompt?: string) => {
+    getAIRewrittenMessage = (agentId: string, message: string, action?: string, customPrompt?: string, rootId?: string) => {
+        const body: {agent_id: string; message: string; action?: string; custom_prompt?: string; root_id?: string} = {
+            agent_id: agentId,
+            message,
+        };
+        if (action) {
+            body.action = action;
+        }
+        if (customPrompt) {
+            body.custom_prompt = customPrompt;
+        }
+        if (rootId) {
+            body.root_id = rootId;
+        }
         return this.doFetch<{rewritten_text: string; changes_made: string[]}>(
             `${this.getPostsRoute()}/rewrite`,
-            {method: 'post', body: JSON.stringify({agent_id: agentId, message, action, custom_prompt: customPrompt})},
+            {method: 'post', body: JSON.stringify(body)},
         ).then((response) => response.rewritten_text);
     };
 
