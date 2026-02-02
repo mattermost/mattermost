@@ -264,7 +264,6 @@ jobs:
       status_check_context: "${{ needs.generate-test-variables.outputs.status_check_context }}"
       workers_number: "${{ needs.generate-test-variables.outputs.workers_number }}"
       testcase_failure_fatal: "${{ needs.generate-test-variables.outputs.TESTCASE_FAILURE_FATAL == 'true' }}"
-      run_preflight_checks: false
       enable_reporting: true
       SERVER: "${{ needs.generate-test-variables.outputs.SERVER }}"
       SERVER_IMAGE: "${{ needs.generate-test-variables.outputs.SERVER_IMAGE }}"
@@ -301,7 +300,6 @@ jobs:
       status_check_context: "${{ needs.generate-test-variables.outputs.status_check_context }}-playwright"
       workers_number: "1"
       testcase_failure_fatal: "${{ needs.generate-test-variables.outputs.TESTCASE_FAILURE_FATAL == 'true' }}"
-      run_preflight_checks: false
       enable_reporting: true
       SERVER: "${{ needs.generate-test-variables.outputs.SERVER }}"
       SERVER_IMAGE: "${{ needs.generate-test-variables.outputs.SERVER_IMAGE }}"

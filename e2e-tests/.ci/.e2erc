@@ -97,6 +97,8 @@ export CI_BASE_URL_DEFAULT="localhost"
 case "${TEST:-$TEST_DEFAULT}" in
   cypress )
     export TEST_FILTER_DEFAULT='--stage=@prod --group=@smoke' ;;
+  playwright )
+    export TEST_FILTER_DEFAULT='--grep @smoke' ;;
   * )
     export TEST_FILTER_DEFAULT='' ;;
 esac
