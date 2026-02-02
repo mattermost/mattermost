@@ -98,14 +98,15 @@ const soundEventToPreferenceKey: Record<SoundEventType, string> = {
 };
 
 // Throttle intervals in milliseconds for each sound event type
+// Low values allow sounds to play in rapid succession (overlapping)
 const THROTTLE_INTERVALS: Record<SoundEventType, number> = {
-    message_sent: 500,
-    reaction_apply: 500,
-    reaction_received: 2000,
-    message_received: 1000,
-    dm_received: 3000,
-    mention_received: 3000,
-    typing: 3000,
+    message_sent: 100,
+    reaction_apply: 100,
+    reaction_received: 100,
+    message_received: 100,
+    dm_received: 100,
+    mention_received: 100,
+    typing: 3000, // Keep typing throttled to avoid spam
 };
 
 // Track last play time for each sound event type
