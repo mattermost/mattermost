@@ -96,13 +96,7 @@ const AdminConsole = (props: Props) => {
         props.actions.selectTeam('');
         document.body.classList.add('console__body');
         document.getElementById('root')?.classList.add('console__root');
-
-        // Apply user's theme if SystemConsoleTheming is enabled, otherwise use default light theme
-        if (props.systemConsoleThemingEnabled) {
-            applyTheme(props.currentTheme);
-        } else {
-            resetTheme();
-        }
+        resetTheme();
 
         return () => {
             document.body.classList.remove('console__body');
@@ -113,6 +107,40 @@ const AdminConsole = (props: Props) => {
             props.actions.setAdminConsoleUsersManagementTableProperties();
         };
     }, []);
+
+    // Apply dark mode CSS filter when enabled
+    useEffect(() => {
+        const adminConsole = document.querySelector('.admin-console') as HTMLElement;
+        const navbar = document.querySelector('.backstage-navbar') as HTMLElement;
+
+        if (props.systemConsoleDarkModeEnabled) {
+            if (adminConsole) {
+                adminConsole.style.filter = 'invert(0.9) hue-rotate(180deg)';
+                adminConsole.style.background = '#fff';
+            }
+            if (navbar) {
+                navbar.style.filter = 'invert(0.9) hue-rotate(180deg)';
+            }
+        } else {
+            if (adminConsole) {
+                adminConsole.style.filter = '';
+                adminConsole.style.background = '';
+            }
+            if (navbar) {
+                navbar.style.filter = '';
+            }
+        }
+
+        return () => {
+            if (adminConsole) {
+                adminConsole.style.filter = '';
+                adminConsole.style.background = '';
+            }
+            if (navbar) {
+                navbar.style.filter = '';
+            }
+        };
+    }, [props.systemConsoleDarkModeEnabled]);
 
     const handleSearchChange = (searchTerm: string) => {
         setSearch(searchTerm);

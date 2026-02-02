@@ -177,8 +177,8 @@ const FLAG_METADATA: Record<string, {description: string; defaultValue: boolean}
         description: 'Enable error log dashboard for system admins to monitor API and JavaScript errors in real-time',
         defaultValue: false,
     },
-    SystemConsoleTheming: {
-        description: 'Make the System Console use your theme preference instead of the default light theme',
+    SystemConsoleDarkMode: {
+        description: 'Apply dark mode to the System Console using CSS filters',
         defaultValue: false,
     },
     SystemConsoleHideEnterprise: {

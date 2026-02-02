@@ -24,7 +24,7 @@ const MATTERMOST_EXTENDED_FLAGS = [
     'GuildedSounds',
     'DiscordReplies',
     'ErrorLogDashboard',
-    'SystemConsoleTheming',
+    'SystemConsoleDarkMode',
     'SystemConsoleHideEnterprise',
     'SystemConsoleIcons',
 ];
