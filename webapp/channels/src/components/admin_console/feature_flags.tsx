@@ -189,6 +189,10 @@ const FLAG_METADATA: Record<string, {description: string; defaultValue: boolean}
         description: 'Show icons next to each subsection in the System Console sidebar for better visual navigation',
         defaultValue: false,
     },
+    SuppressEnterpriseUpgradeChecks: {
+        description: 'Suppress enterprise upgrade API calls that spam 403 errors on Team Edition builds',
+        defaultValue: true,
+    },
 };
 
 // Styled components

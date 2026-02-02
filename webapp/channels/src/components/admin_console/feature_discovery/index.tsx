@@ -41,6 +41,7 @@ function mapStateToProps(state: GlobalState) {
         hadPrevCloudTrial: hasPriorTrial,
         isPaidSubscription: isCloud && license?.SkuShortName !== LicenseSkus.Starter && !isCloudTrial,
         customer,
+        suppressEnterpriseUpgradeChecks: config?.FeatureFlagSuppressEnterpriseUpgradeChecks === 'true',
     };
 }
 

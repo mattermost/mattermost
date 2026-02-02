@@ -45,6 +45,7 @@ type Props = {
     isDisabled: boolean;
     prevTrialLicense: ClientLicense;
     environmentConfig: Partial<EnvironmentConfig>;
+    suppressEnterpriseUpgradeChecks?: boolean;
     actions: {
         getLicenseConfig: () => void;
         uploadLicense: (file: File) => Promise<ActionResult>;
@@ -116,15 +117,21 @@ export default class LicenseSettings extends React.PureComponent<Props, State> {
     }
 
     componentDidMount() {
-        if (this.props.enterpriseReady) {
-            this.props.actions.getPrevTrialLicense();
+        // Skip enterprise upgrade checks if suppressed (on by default for Team Edition)
+        if (!this.props.suppressEnterpriseUpgradeChecks) {
+            if (this.props.enterpriseReady) {
+                this.props.actions.getPrevTrialLicense();
+            } else {
+                this.props.actions.isAllowedToUpgradeToEnterprise().then(({error}) => {
+                    this.setState({upgradeDisabled: Boolean(error?.message), upgradeError: error?.message});
+                    if (!error?.message) {
+                        this.reloadPercentage();
+                    }
+                });
+            }
         } else {
-            this.props.actions.isAllowedToUpgradeToEnterprise().then(({error}) => {
-                this.setState({upgradeDisabled: Boolean(error?.message), upgradeError: error?.message});
-                if (!error?.message) {
-                    this.reloadPercentage();
-                }
-            });
+            // When suppressed, assume upgrade is disabled (Team Edition without enterprise binary)
+            this.setState({upgradeDisabled: true});
         }
         this.props.actions.getLicenseConfig();
         this.props.actions.getFilteredUsersStats({include_bots: false, include_deleted: false});

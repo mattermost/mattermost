@@ -51,6 +51,7 @@ type Props = {
     isPaidSubscription: boolean;
     customer?: CloudCustomer;
     showSkuTag?: boolean;
+    suppressEnterpriseUpgradeChecks?: boolean;
 }
 
 type State = {
@@ -71,7 +72,10 @@ export default class FeatureDiscovery extends React.PureComponent<Props, State> 
     }
 
     componentDidMount() {
-        this.props.actions.getPrevTrialLicense();
+        // Skip enterprise upgrade checks if suppressed (on by default for Team Edition)
+        if (!this.props.suppressEnterpriseUpgradeChecks) {
+            this.props.actions.getPrevTrialLicense();
+        }
     }
 
     contactSalesFunc = () => {

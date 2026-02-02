@@ -27,6 +27,7 @@ const MATTERMOST_EXTENDED_FLAGS = [
     'SystemConsoleDarkMode',
     'SystemConsoleHideEnterprise',
     'SystemConsoleIcons',
+    'SuppressEnterpriseUpgradeChecks',
 ];
 
 type Props = {

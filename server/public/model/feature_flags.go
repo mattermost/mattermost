@@ -117,6 +117,9 @@ type FeatureFlags struct {
 
 	// Add icons in front of every section in System Console
 	SystemConsoleIcons bool
+
+	// Suppress enterprise upgrade API calls that spam 403 errors on Team Edition
+	SuppressEnterpriseUpgradeChecks bool
 }
 
 // featureFlagDefaults defines the default value for each boolean feature flag.
@@ -137,6 +140,7 @@ var featureFlagDefaults = map[string]bool{
 	"EnableMattermostEntry":                    true,
 	"MobileSSOCodeExchange":                    true,
 	"BurnOnRead":                               true,
+	"SuppressEnterpriseUpgradeChecks":          true,
 	// All other boolean flags default to false (not listed)
 }
 

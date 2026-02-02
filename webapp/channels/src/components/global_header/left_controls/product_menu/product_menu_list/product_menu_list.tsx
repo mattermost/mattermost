@@ -16,7 +16,10 @@ import {
 import type {UserProfile} from '@mattermost/types/users';
 
 import {Permissions} from 'mattermost-redux/constants';
+import {getConfig} from 'mattermost-redux/selectors/entities/general';
 import {isCurrentUserSystemAdmin} from 'mattermost-redux/selectors/entities/users';
+
+import type {GlobalState} from 'types/store';
 
 import AboutBuildModal from 'components/about_build_modal';
 import {VisitSystemConsoleTour} from 'components/onboarding_tasks';
@@ -88,10 +91,14 @@ const ProductMenuList = (props: Props): JSX.Element | null => {
     } = props;
     const {formatMessage} = useIntl();
     const isAdmin = useSelector(isCurrentUserSystemAdmin);
+    const suppressEnterpriseChecks = useSelector((state: GlobalState) => getConfig(state)?.FeatureFlagSuppressEnterpriseUpgradeChecks === 'true');
 
     useEffect(() => {
-        props.actions.getPrevTrialLicense();
-    }, []);
+        // Skip enterprise upgrade checks if suppressed (on by default for Team Edition)
+        if (!suppressEnterpriseChecks) {
+            props.actions.getPrevTrialLicense();
+        }
+    }, [suppressEnterpriseChecks]);
 
     if (!currentUser) {
         return null;
