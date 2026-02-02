@@ -3,16 +3,13 @@
 
 import React, {useState, useMemo, useCallback, useEffect} from 'react';
 import {useIntl} from 'react-intl';
-import {useSelector} from 'react-redux';
-
-import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
 
 import type {CustomSvg} from './icon_libraries/custom_svgs';
 import {
-    getCustomSvgs,
-    addCustomSvg,
-    updateCustomSvg,
-    deleteCustomSvg,
+    getCustomSvgsFromServer,
+    addCustomSvgToServer,
+    updateCustomSvgOnServer,
+    deleteCustomSvgFromServer,
     decodeSvgFromBase64,
     sanitizeSvg,
     normalizeSvgColors,
@@ -107,7 +104,6 @@ export default function ChannelIconSelector({
     disabled = false,
 }: Props) {
     const {formatMessage} = useIntl();
-    const userId = useSelector(getCurrentUserId);
     const [isOpen, setIsOpen] = useState(false);
     const [searchTerm, setSearchTerm] = useState('');
     const [activeCategory, setActiveCategory] = useState<string | null>(null);
@@ -115,19 +111,30 @@ export default function ChannelIconSelector({
     const [showCustomSvgModal, setShowCustomSvgModal] = useState(false);
     const [editingCustomSvg, setEditingCustomSvg] = useState<CustomSvg | undefined>(undefined);
 
-    // Load custom SVGs when component mounts or userId changes
+    // Load custom SVGs from server when component mounts
     useEffect(() => {
-        if (userId) {
-            setCustomSvgs(getCustomSvgs(userId));
-        }
-    }, [userId]);
+        const loadCustomSvgs = async () => {
+            try {
+                const svgs = await getCustomSvgsFromServer();
+                setCustomSvgs(svgs);
+            } catch (error) {
+                // eslint-disable-next-line no-console
+                console.error('Failed to load custom SVGs:', error);
+            }
+        };
+        loadCustomSvgs();
+    }, []);
 
-    // Refresh custom SVGs
-    const refreshCustomSvgs = useCallback(() => {
-        if (userId) {
-            setCustomSvgs(getCustomSvgs(userId));
+    // Refresh custom SVGs from server
+    const refreshCustomSvgs = useCallback(async () => {
+        try {
+            const svgs = await getCustomSvgsFromServer();
+            setCustomSvgs(svgs);
+        } catch (error) {
+            // eslint-disable-next-line no-console
+            console.error('Failed to refresh custom SVGs:', error);
         }
-    }, [userId]);
+    }, []);
 
     // Check if the selected icon is a custom SVG (svg:base64 format)
     // Try to match against our custom SVG library by comparing base64 content
@@ -216,41 +223,47 @@ export default function ChannelIconSelector({
         setShowCustomSvgModal(true);
     }, []);
 
-    const handleDeleteCustomSvg = useCallback((svg: CustomSvg, e: React.MouseEvent) => {
+    const handleDeleteCustomSvg = useCallback(async (svg: CustomSvg, e: React.MouseEvent) => {
         e.stopPropagation();
-        if (userId && window.confirm(formatMessage({id: 'channel_icon_selector.confirm_delete', defaultMessage: 'Delete "{name}"?'}, {name: svg.name}))) {
-            deleteCustomSvg(userId, svg.id);
-            refreshCustomSvgs();
+        if (window.confirm(formatMessage({id: 'channel_icon_selector.confirm_delete', defaultMessage: 'Delete "{name}"?'}, {name: svg.name}))) {
+            try {
+                await deleteCustomSvgFromServer(svg.id);
+                await refreshCustomSvgs();
 
-            // Clear selection if the deleted SVG was selected
-            if (selectedCustomSvg?.id === svg.id) {
-                onSelectIcon('');
+                // Clear selection if the deleted SVG was selected
+                if (selectedCustomSvg?.id === svg.id) {
+                    onSelectIcon('');
+                }
+            } catch (error) {
+                // eslint-disable-next-line no-console
+                console.error('Failed to delete custom SVG:', error);
             }
         }
-    }, [userId, formatMessage, refreshCustomSvgs, selectedCustomSvg, onSelectIcon]);
+    }, [formatMessage, refreshCustomSvgs, selectedCustomSvg, onSelectIcon]);
 
-    const handleSaveCustomSvg = useCallback((data: {name: string; svg: string; normalizeColor: boolean}) => {
-        if (!userId) {
-            return;
-        }
+    const handleSaveCustomSvg = useCallback(async (data: {name: string; svg: string; normalizeColor: boolean}) => {
+        try {
+            if (editingCustomSvg) {
+                await updateCustomSvgOnServer(editingCustomSvg.id, data);
+                await refreshCustomSvgs();
+            } else {
+                const newSvg = await addCustomSvgToServer(data);
+                await refreshCustomSvgs();
 
-        if (editingCustomSvg) {
-            updateCustomSvg(userId, editingCustomSvg.id, data);
-            refreshCustomSvgs();
-        } else {
-            const newSvg = addCustomSvg(userId, data);
-            refreshCustomSvgs();
-
-            // Auto-select the newly created SVG using svg:base64 format
-            let processedSvg = decodeSvgFromBase64(newSvg.svg);
-            processedSvg = sanitizeSvg(processedSvg);
-            if (newSvg.normalizeColor) {
-                processedSvg = normalizeSvgColors(processedSvg);
+                // Auto-select the newly created SVG using svg:base64 format
+                let processedSvg = decodeSvgFromBase64(newSvg.svg);
+                processedSvg = sanitizeSvg(processedSvg);
+                if (newSvg.normalizeColor) {
+                    processedSvg = normalizeSvgColors(processedSvg);
+                }
+                const base64 = encodeSvgToBase64(processedSvg);
+                onSelectIcon(formatIconValue('svg', base64));
             }
-            const base64 = encodeSvgToBase64(processedSvg);
-            onSelectIcon(formatIconValue('svg', base64));
+        } catch (error) {
+            // eslint-disable-next-line no-console
+            console.error('Failed to save custom SVG:', error);
         }
-    }, [userId, editingCustomSvg, refreshCustomSvgs, onSelectIcon]);
+    }, [editingCustomSvg, refreshCustomSvgs, onSelectIcon]);
 
     const categoryNames: Record<string, string> = {
         general: formatMessage({id: 'channel_icon_selector.category.general', defaultMessage: 'General'}),
