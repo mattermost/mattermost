@@ -55,9 +55,8 @@ func (s *SqlAutoTranslationStore) IsUserEnabled(userID, channelID string) (bool,
 	query := s.getQueryBuilder().
 		Select("cm.AutoTranslation").
 		From("ChannelMembers cm").
-		Join("Channels c ON cm.Channelid = c.id").
 		Where(sq.Eq{"cm.UserId": userID, "cm.ChannelId": channelID}).
-		Where("c.AutoTranslation = true")
+		Where("cm.AutoTranslation = true")
 
 	var enabled bool
 	if err := s.GetReplica().GetBuilder(&enabled, query); err != nil {
