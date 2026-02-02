@@ -310,7 +310,8 @@ export function playTypingSound(getState: () => GlobalState): void {
 }
 
 /**
- * Stop the typing sound if it's playing
+ * Stop the typing sound if it's playing and reset throttle
+ * so a new typing session can play the sound again
  */
 export function stopTypingSound(): void {
     if (typingAudio) {
@@ -318,4 +319,6 @@ export function stopTypingSound(): void {
         typingAudio.currentTime = 0;
         typingAudio = null;
     }
+    // Reset throttle so next typing event can play immediately
+    lastPlayTimes.typing = 0;
 }
