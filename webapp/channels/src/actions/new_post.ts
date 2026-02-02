@@ -109,9 +109,12 @@ export function completePostReceive(post: Post, websocketMessageProps: NewPostMe
             WebSocketClient.acknowledgePostedNotification(processedPost.id, status, reason, data);
         }
 
-        // Play Guilded sound for received messages (only for messages from other users, when no desktop notification was sent)
-        // DM/mention sounds are only played via desktop notifications (notification_actions.tsx)
-        if (processedPost.user_id !== currentUserId && status !== 'sent') {
+        // Play Guilded sound for received messages only when:
+        // - Message is from another user
+        // - No desktop notification was sent (DM/mention sounds play via notification_actions.tsx)
+        // - User is viewing the channel where the message was posted
+        // - Window is active (user is focused on the app)
+        if (processedPost.user_id !== currentUserId && status !== 'sent' && isPostFromCurrentChannel && window.isActive) {
             if (isGuildedSoundTypeEnabled(getState, 'message_received')) {
                 playGuildedSound(getState, 'message_received');
             }
