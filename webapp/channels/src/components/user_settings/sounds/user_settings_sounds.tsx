@@ -41,10 +41,18 @@ const SOUND_SETTINGS: SoundSetting[] = [
     {
         type: 'message_sent',
         prefKey: Preferences.GUILDED_SOUNDS_MESSAGE_SENT,
-        titleId: 'user.settings.sounds.message.title',
-        titleDefault: 'Message',
-        descId: 'user.settings.sounds.message.desc',
-        descDefault: 'Play a sound when sending or receiving messages',
+        titleId: 'user.settings.sounds.messageSent.title',
+        titleDefault: 'Message Sent',
+        descId: 'user.settings.sounds.messageSent.desc',
+        descDefault: 'Play a sound when you send a message',
+    },
+    {
+        type: 'message_received',
+        prefKey: Preferences.GUILDED_SOUNDS_MESSAGE_RECEIVED,
+        titleId: 'user.settings.sounds.messageReceived.title',
+        titleDefault: 'Message Received',
+        descId: 'user.settings.sounds.messageReceived.desc',
+        descDefault: 'Play a sound when you receive a message in the active channel',
     },
     {
         type: 'reaction_apply',
@@ -177,17 +185,6 @@ function UserSettingsSounds(props: Props): JSX.Element {
             name: prefKey,
             value: soundId,
         }];
-
-        // Message setting applies to both sent and received
-        if (prefKey === Preferences.GUILDED_SOUNDS_MESSAGE_SENT) {
-            setSoundSelections((prev) => ({...prev, [Preferences.GUILDED_SOUNDS_MESSAGE_RECEIVED]: soundId}));
-            preferences.push({
-                user_id: currentUserId,
-                category: Preferences.CATEGORY_GUILDED_SOUNDS,
-                name: Preferences.GUILDED_SOUNDS_MESSAGE_RECEIVED,
-                value: soundId,
-            });
-        }
 
         await dispatch(savePreferences(currentUserId, preferences));
     }, [currentUserId, dispatch]);
