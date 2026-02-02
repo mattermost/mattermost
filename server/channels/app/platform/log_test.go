@@ -121,9 +121,19 @@ func TestGetNotificationLogFile(t *testing.T) {
 	dir, err := os.MkdirTemp("", "")
 	require.NoError(t, err)
 	t.Cleanup(func() {
+		// Disable file target before cleaning up to avoid a race between
+		// removing the directory and the file getting written again.
+		th.Service.UpdateConfig(func(cfg *model.Config) {
+			*cfg.NotificationLogSettings.EnableFile = false
+		})
+		th.Service.NotificationsLogger().Flush()
+
 		err = os.RemoveAll(dir)
 		assert.NoError(t, err)
 	})
+
+	// Set MM_LOG_PATH to allow log file reads from our temp directory
+	t.Setenv("MM_LOG_PATH", dir)
 
 	// Enable notifications file but point to an empty directory to get an error trying to read the file
 	th.Service.UpdateConfig(func(cfg *model.Config) {
@@ -148,6 +158,33 @@ func TestGetNotificationLogFile(t *testing.T) {
 	require.NotNil(t, fileData)
 	assert.Equal(t, "notifications.log", fileData.Filename)
 	assert.Positive(t, len(fileData.Body))
+
+	// Test path validation: FileLocation outside MM_LOG_PATH should be blocked
+	t.Run("path validation prevents reading files outside log directory", func(t *testing.T) {
+		// Create a directory outside the allowed log root
+		outsideDir, err := os.MkdirTemp("", "outside")
+		require.NoError(t, err)
+		t.Cleanup(func() {
+			err = os.RemoveAll(outsideDir)
+			require.NoError(t, err)
+		})
+
+		// Create a file that would be read if validation fails
+		outsideLogLocation := config.GetNotificationsLogFileLocation(outsideDir)
+		err = os.WriteFile(outsideLogLocation, []byte("secret data"), 0644)
+		require.NoError(t, err)
+
+		// Set FileLocation to the outside directory (MM_LOG_PATH is still set to 'dir')
+		th.Service.UpdateConfig(func(cfg *model.Config) {
+			*cfg.NotificationLogSettings.FileLocation = outsideDir
+		})
+
+		// Should be blocked by path validation
+		fileData, err = th.Service.GetNotificationLogFile(th.Context)
+		assert.Nil(t, fileData)
+		assert.Error(t, err)
+		assert.Contains(t, err.Error(), "outside allowed logging directory")
+	})
 }
 
 func TestGetAdvancedLogs(t *testing.T) {
@@ -276,9 +313,10 @@ func TestGetAdvancedLogs(t *testing.T) {
 		require.NotNil(t, notifFile)
 		testlib.AssertLog(t, bytes.NewBuffer(notifFile.Body), mlog.LvlInfo.Name, "Some Notification")
 	})
-	// Disable AdvancedLoggingJSON
+	// Disable AdvancedLoggingJSON for all log settings
 	th.Service.UpdateConfig(func(c *model.Config) {
 		c.LogSettings.AdvancedLoggingJSON = nil
+		c.NotificationLogSettings.AdvancedLoggingJSON = nil
 	})
 	t.Run("No logs returned when AdvancedLoggingJSON is empty", func(t *testing.T) {
 		// Confirm no logs get returned

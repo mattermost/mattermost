@@ -113,6 +113,7 @@ func setupTestHelper(tb testing.TB, dbStore store.Store, sqlSettings *model.SqlS
 	err = os.MkdirAll(testLogsDir, 0700)
 	require.NoError(tb, err, "failed to create test logs directory")
 	*memoryConfig.LogSettings.FileLocation = testLogsDir
+	*memoryConfig.NotificationLogSettings.FileLocation = testLogsDir
 	*memoryConfig.AnnouncementSettings.AdminNoticesEnabled = false
 	*memoryConfig.AnnouncementSettings.UserNoticesEnabled = false
 	*memoryConfig.PluginSettings.AutomaticPrepackagedPlugins = false
