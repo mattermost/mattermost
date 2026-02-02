@@ -13,6 +13,7 @@ import {
     renderWithContext,
     screen,
     userEvent,
+    fireEvent,
 } from 'tests/react_testing_utils';
 import Constants, {ModalIdentifiers} from 'utils/constants';
 
