@@ -6359,6 +6359,7 @@ const AdminDefinition: AdminDefinitionType = {
             />
         ),
         sectionTitle: defineMessage({id: 'admin.sidebar.mattermost_extended', defaultMessage: 'Mattermost Extended'}),
+        isHidden: it.not(it.userHasReadPermissionOnResource(RESOURCE_KEYS.EXPERIMENTAL.FEATURE_FLAGS)),
         subsections: {
             features: {
                 url: 'mattermost_extended/features',

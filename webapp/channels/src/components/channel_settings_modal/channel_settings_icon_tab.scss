@@ -3,8 +3,11 @@
     display: flex;
     flex-direction: column;
     gap: 20px;
+    height: 100%;
+    overflow: hidden;
 
     &__header {
+        flex-shrink: 0;
         margin-bottom: 8px;
     }
 
@@ -21,6 +24,7 @@
     }
 
     &__preview {
+        flex-shrink: 0;
         display: flex;
         align-items: center;
         gap: 16px;
@@ -72,6 +76,7 @@
     }
 
     &__libraryTabs {
+        flex-shrink: 0;
         display: flex;
         gap: 8px;
         flex-wrap: wrap;
@@ -97,12 +102,30 @@
             border-color: var(--button-bg);
             color: var(--button-color);
         }
+
+        &__count {
+            margin-left: 4px;
+            opacity: 0.7;
+            font-weight: 400;
+        }
     }
 
     &__libraryContent {
         display: flex;
         flex-direction: column;
-        gap: 16px;
+        flex: 1;
+        min-height: 0;
+        overflow: hidden;
+    }
+
+    // Sticky search area
+    &__searchArea {
+        flex-shrink: 0;
+        position: sticky;
+        top: 0;
+        z-index: 10;
+        background: var(--center-channel-bg);
+        padding-bottom: 12px;
     }
 
     &__search {
@@ -142,21 +165,82 @@
         }
     }
 
+    &__searchOptions {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        margin-top: 8px;
+        font-size: 12px;
+        color: rgba(var(--center-channel-color-rgb), 0.72);
+
+        label {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            cursor: pointer;
+
+            input[type="checkbox"] {
+                margin: 0;
+            }
+        }
+    }
+
+    &__searchHint {
+        margin-top: 4px;
+        font-size: 11px;
+        color: rgba(var(--center-channel-color-rgb), 0.56);
+        font-style: italic;
+    }
+
+    // Horizontal scrollable categories
     &__categories {
+        flex-shrink: 0;
         display: flex;
         gap: 8px;
-        flex-wrap: wrap;
+        overflow-x: auto;
+        overflow-y: hidden;
+        padding: 4px 0 12px;
+        margin: 0 -4px;
+        padding-left: 4px;
+        padding-right: 4px;
+
+        // Hide scrollbar but keep functionality
+        scrollbar-width: thin;
+        scrollbar-color: rgba(var(--center-channel-color-rgb), 0.2) transparent;
+
+        &::-webkit-scrollbar {
+            height: 4px;
+        }
+
+        &::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        &::-webkit-scrollbar-thumb {
+            background: rgba(var(--center-channel-color-rgb), 0.2);
+            border-radius: 2px;
+        }
+
+        &::-webkit-scrollbar-thumb:hover {
+            background: rgba(var(--center-channel-color-rgb), 0.3);
+        }
     }
 
     &__categoryButton {
-        padding: 4px 12px;
+        flex-shrink: 0;
+        display: flex;
+        align-items: center;
+        gap: 4px;
+        padding: 6px 12px;
         border: 1px solid rgba(var(--center-channel-color-rgb), 0.16);
-        border-radius: 12px;
+        border-radius: 16px;
         background: transparent;
         font-size: 12px;
+        font-weight: 500;
         color: rgba(var(--center-channel-color-rgb), 0.72);
         cursor: pointer;
         transition: all 0.15s ease;
+        white-space: nowrap;
 
         &:hover {
             background: rgba(var(--center-channel-color-rgb), 0.08);
@@ -164,29 +248,58 @@
         }
 
         &.active {
-            background: rgba(var(--button-bg-rgb), 0.08);
+            background: rgba(var(--button-bg-rgb), 0.12);
             border-color: var(--button-bg);
             color: var(--button-bg);
         }
+
+        // Highlighted when search matches this category's tag
+        &.highlighted {
+            background: rgba(var(--online-indicator-rgb), 0.12);
+            border-color: var(--online-indicator);
+            color: var(--online-indicator);
+            animation: pulse-highlight 1.5s ease-in-out infinite;
+        }
+
+        &__count {
+            font-size: 11px;
+            opacity: 0.7;
+            font-weight: 400;
+        }
+    }
+
+    @keyframes pulse-highlight {
+        0%, 100% {
+            box-shadow: 0 0 0 0 rgba(var(--online-indicator-rgb), 0.4);
+        }
+        50% {
+            box-shadow: 0 0 0 4px rgba(var(--online-indicator-rgb), 0);
+        }
+    }
+
+    // Scrollable icons grid
+    &__iconsContainer {
+        flex: 1;
+        min-height: 0;
+        overflow-y: auto;
+        padding: 4px;
+        margin: 0 -4px;
     }
 
     &__iconsGrid {
         display: grid;
-        grid-template-columns: repeat(auto-fill, minmax(40px, 1fr));
+        grid-template-columns: repeat(auto-fill, minmax(44px, 1fr));
         gap: 8px;
-        max-height: 320px;
-        overflow-y: auto;
-        padding: 4px;
     }
 
     &__iconButton {
         display: flex;
         align-items: center;
         justify-content: center;
-        width: 40px;
-        height: 40px;
+        width: 44px;
+        height: 44px;
         border: 1px solid transparent;
-        border-radius: 4px;
+        border-radius: 6px;
         background: transparent;
         color: var(--center-channel-color);
         cursor: pointer;
@@ -204,14 +317,14 @@
         }
 
         svg {
-            width: 20px;
-            height: 20px;
+            width: 22px;
+            height: 22px;
         }
     }
 
     &__noResults {
         grid-column: 1 / -1;
-        padding: 24px;
+        padding: 32px;
         text-align: center;
         color: rgba(var(--center-channel-color-rgb), 0.56);
         font-size: 14px;
@@ -221,8 +334,8 @@
         display: flex;
         align-items: center;
         justify-content: center;
-        width: 20px;
-        height: 20px;
+        width: 22px;
+        height: 22px;
         font-size: 14px;
         color: rgba(var(--center-channel-color-rgb), 0.56);
     }
@@ -237,6 +350,8 @@
         display: flex;
         flex-direction: column;
         gap: 12px;
+        flex: 1;
+        overflow-y: auto;
     }
 
     &__customDescription {
@@ -307,6 +422,83 @@
         svg {
             max-width: 100%;
             max-height: 100%;
+            // Normalize SVG colors to inherit from parent
+            fill: currentColor;
+
+            path, circle, rect, polygon, polyline, line, ellipse {
+                fill: inherit;
+                stroke: inherit;
+            }
+        }
+    }
+
+    // Loading state
+    &__loading {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 48px;
+        color: rgba(var(--center-channel-color-rgb), 0.56);
+    }
+
+    // Result info
+    &__resultInfo {
+        padding: 8px 0;
+        font-size: 12px;
+        color: rgba(var(--center-channel-color-rgb), 0.56);
+
+        strong {
+            color: var(--center-channel-color);
+        }
+
+        &__matchType {
+            margin-left: 4px;
+            padding: 2px 6px;
+            background: rgba(var(--button-bg-rgb), 0.1);
+            border-radius: 4px;
+            font-size: 10px;
+            color: var(--button-bg);
+        }
+    }
+}
+
+// Sidebar icon styles
+.sidebar-channel-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+
+    svg {
+        display: block;
+    }
+}
+
+// MDI and Simple Icons (filled path icons)
+.sidebar-channel-icon--mdi,
+.sidebar-channel-icon--simple {
+    svg {
+        fill: currentColor;
+    }
+}
+
+// Lucide, Tabler, and Feather Icons (stroke-based icons)
+.sidebar-channel-icon--lucide,
+.sidebar-channel-icon--tabler,
+.sidebar-channel-icon--feather {
+    svg {
+        fill: none;
+        stroke: currentColor;
+    }
+}
+
+// Normalize custom SVGs in sidebar
+.sidebar-channel-icon--custom {
+    svg {
+        fill: currentColor;
+
+        path, circle, rect, polygon, polyline, line, ellipse {
+            fill: currentColor !important;
+            stroke: none !important;
         }
     }
 }

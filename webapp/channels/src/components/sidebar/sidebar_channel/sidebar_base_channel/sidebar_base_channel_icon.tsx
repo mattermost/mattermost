@@ -8,6 +8,9 @@ import type {ChannelType} from '@mattermost/types/channels';
 import {
     getMdiIconPath,
     getLucideIconPaths,
+    getTablerIconPaths,
+    getFeatherIconSvg,
+    getSimpleIconPath,
     parseIconValue,
 } from 'components/channel_settings_modal/icon_libraries';
 
@@ -67,6 +70,78 @@ function LucideSidebarIcon({name}: {name: string}) {
     );
 }
 
+// Render Tabler icon (stroke-based, similar to Lucide)
+function TablerSidebarIcon({name}: {name: string}) {
+    const paths = getTablerIconPaths(name);
+    if (!paths) {
+        return <i className='icon icon-globe'/>;
+    }
+    return (
+        <i className='icon sidebar-channel-icon sidebar-channel-icon--tabler'>
+            <svg
+                viewBox='0 0 24 24'
+                width='18'
+                height='18'
+                fill='none'
+                stroke='currentColor'
+                strokeWidth='2'
+                strokeLinecap='round'
+                strokeLinejoin='round'
+            >
+                {paths.map((d, i) => (
+                    <path
+                        key={i}
+                        d={d}
+                    />
+                ))}
+            </svg>
+        </i>
+    );
+}
+
+// Render Feather icon (SVG content string)
+function FeatherSidebarIcon({name}: {name: string}) {
+    const svgContent = getFeatherIconSvg(name);
+    if (!svgContent) {
+        return <i className='icon icon-globe'/>;
+    }
+    return (
+        <i className='icon sidebar-channel-icon sidebar-channel-icon--feather'>
+            <svg
+                viewBox='0 0 24 24'
+                width='18'
+                height='18'
+                fill='none'
+                stroke='currentColor'
+                strokeWidth='2'
+                strokeLinecap='round'
+                strokeLinejoin='round'
+                dangerouslySetInnerHTML={{__html: svgContent}}
+            />
+        </i>
+    );
+}
+
+// Render Simple (brand) icon (filled path)
+function SimpleSidebarIcon({name}: {name: string}) {
+    const path = getSimpleIconPath(name);
+    if (!path) {
+        return <i className='icon icon-globe'/>;
+    }
+    return (
+        <i className='icon sidebar-channel-icon sidebar-channel-icon--simple'>
+            <svg
+                viewBox='0 0 24 24'
+                width='18'
+                height='18'
+                fill='currentColor'
+            >
+                <path d={path}/>
+            </svg>
+        </i>
+    );
+}
+
 // Render custom SVG from base64
 function CustomSvgSidebarIcon({base64}: {base64: string}) {
     try {
@@ -101,6 +176,18 @@ const SidebarBaseChannelIcon = ({
 
         if (format === 'lucide' && name) {
             return <LucideSidebarIcon name={name}/>;
+        }
+
+        if (format === 'tabler' && name) {
+            return <TablerSidebarIcon name={name}/>;
+        }
+
+        if (format === 'feather' && name) {
+            return <FeatherSidebarIcon name={name}/>;
+        }
+
+        if (format === 'simple' && name) {
+            return <SimpleSidebarIcon name={name}/>;
         }
 
         if (format === 'svg' && name) {

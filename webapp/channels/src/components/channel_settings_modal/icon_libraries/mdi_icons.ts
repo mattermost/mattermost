@@ -1,537 +1,291 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {
-    mdiAccount,
-    mdiAccountGroup,
-    mdiAccountMultiple,
-    mdiAlert,
-    mdiAlertCircle,
-    mdiApi,
-    mdiArchive,
-    mdiArrowRight,
-    mdiAt,
-    mdiBell,
-    mdiBellRing,
-    mdiBook,
-    mdiBookmark,
-    mdiBriefcase,
-    mdiBug,
-    mdiBullhorn,
-    mdiCalendar,
-    mdiCamera,
-    mdiCart,
-    mdiCat,
-    mdiChartBar,
-    mdiChartLine,
-    mdiChat,
-    mdiCheck,
-    mdiCheckCircle,
-    mdiChevronRight,
-    mdiClipboard,
-    mdiClock,
-    mdiClose,
-    mdiCloud,
-    mdiCodeBraces,
-    mdiCodeTags,
-    mdiCog,
-    mdiComment,
-    mdiConsole,
-    mdiCreditCard,
-    mdiCube,
-    mdiDatabase,
-    mdiDog,
-    mdiDotsHorizontal,
-    mdiDownload,
-    mdiEarth,
-    mdiEmail,
-    mdiEmoticon,
-    mdiEmoticonHappy,
-    mdiEye,
-    mdiFile,
-    mdiFileDocument,
-    mdiFilter,
-    mdiFire,
-    mdiFlag,
-    mdiFlash,
-    mdiFlask,
-    mdiFlower,
-    mdiFolder,
-    mdiForum,
-    mdiGamepad,
-    mdiGift,
-    mdiGithub,
-    mdiGlasses,
-    mdiHammer,
-    mdiHandshake,
-    mdiHeart,
-    mdiHelp,
-    mdiHelpCircle,
-    mdiHistory,
-    mdiHome,
-    mdiImage,
-    mdiInformation,
-    mdiKey,
-    mdiLaptop,
-    mdiLeaf,
-    mdiLightbulb,
-    mdiLightningBolt,
-    mdiLink,
-    mdiLock,
-    mdiMagnify,
-    mdiMap,
-    mdiMapMarker,
-    mdiMedal,
-    mdiMenu,
-    mdiMessage,
-    mdiMessageText,
-    mdiMicrophone,
-    mdiMinus,
-    mdiMonitor,
-    mdiMovie,
-    mdiMusic,
-    mdiNewspaper,
-    mdiOfficeBuilding,
-    mdiPackage,
-    mdiPalette,
-    mdiPaperclip,
-    mdiPaw,
-    mdiPencil,
-    mdiPhone,
-    mdiPin,
-    mdiPlay,
-    mdiPlus,
-    mdiPlusCircle,
-    mdiPodcast,
-    mdiPoll,
-    mdiPresentation,
-    mdiPrinter,
-    mdiPuzzle,
-    mdiRadio,
-    mdiRefresh,
-    mdiRocket,
-    mdiRss,
-    mdiSafe,
-    mdiSchool,
-    mdiSecurity,
-    mdiSend,
-    mdiServer,
-    mdiShare,
-    mdiShield,
-    mdiShopping,
-    mdiStar,
-    mdiStore,
-    mdiSync,
-    mdiTable,
-    mdiTag,
-    mdiTarget,
-    mdiTelevision,
-    mdiTestTube,
-    mdiText,
-    mdiThumbUp,
-    mdiTicket,
-    mdiTimer,
-    mdiTools,
-    mdiTrashCan,
-    mdiTree,
-    mdiTrendingUp,
-    mdiTrophy,
-    mdiTruck,
-    mdiTune,
-    mdiUmbrella,
-    mdiUpload,
-    mdiVideo,
-    mdiVolumeHigh,
-    mdiWallet,
-    mdiWater,
-    mdiWeatherCloudy,
-    mdiWeatherLightning,
-    mdiWeatherSunny,
-    mdiWeb,
-    mdiWeight,
-    mdiWifi,
-    mdiWrench,
-    mdiYoutube,
-} from '@mdi/js';
+// Material Design Icons - All 7400+ icons from @mdi/js
+// https://materialdesignicons.com - Apache 2.0 / MIT License
 
-import type {IconLibrary} from './types';
+import * as mdiIcons from '@mdi/js';
 
-// Map of icon names to their SVG paths
-const MDI_ICON_MAP: Record<string, string> = {
-    'account': mdiAccount,
-    'account-group': mdiAccountGroup,
-    'account-multiple': mdiAccountMultiple,
-    'alert': mdiAlert,
-    'alert-circle': mdiAlertCircle,
-    'api': mdiApi,
-    'archive': mdiArchive,
-    'arrow-right': mdiArrowRight,
-    'at': mdiAt,
-    'bell': mdiBell,
-    'bell-ring': mdiBellRing,
-    'book': mdiBook,
-    'bookmark': mdiBookmark,
-    'briefcase': mdiBriefcase,
-    'bug': mdiBug,
-    'bullhorn': mdiBullhorn,
-    'calendar': mdiCalendar,
-    'camera': mdiCamera,
-    'cart': mdiCart,
-    'cat': mdiCat,
-    'chart-bar': mdiChartBar,
-    'chart-line': mdiChartLine,
-    'chat': mdiChat,
-    'check': mdiCheck,
-    'check-circle': mdiCheckCircle,
-    'chevron-right': mdiChevronRight,
-    'clipboard': mdiClipboard,
-    'clock': mdiClock,
-    'close': mdiClose,
-    'cloud': mdiCloud,
-    'code-tags': mdiCodeTags,
-    'code-braces': mdiCodeBraces,
-    'cog': mdiCog,
-    'comment': mdiComment,
-    'console': mdiConsole,
-    'credit-card': mdiCreditCard,
-    'cube': mdiCube,
-    'database': mdiDatabase,
-    'dog': mdiDog,
-    'dots-horizontal': mdiDotsHorizontal,
-    'download': mdiDownload,
-    'earth': mdiEarth,
-    'email': mdiEmail,
-    'emoticon': mdiEmoticon,
-    'emoticon-happy': mdiEmoticonHappy,
-    'eye': mdiEye,
-    'file': mdiFile,
-    'file-document': mdiFileDocument,
-    'filter': mdiFilter,
-    'fire': mdiFire,
-    'flag': mdiFlag,
-    'flash': mdiFlash,
-    'flask': mdiFlask,
-    'flower': mdiFlower,
-    'folder': mdiFolder,
-    'forum': mdiForum,
-    'gamepad': mdiGamepad,
-    'gift': mdiGift,
-    'github': mdiGithub,
-    'glasses': mdiGlasses,
-    'web': mdiWeb,
-    'hammer': mdiHammer,
-    'handshake': mdiHandshake,
-    'heart': mdiHeart,
-    'help': mdiHelp,
-    'help-circle': mdiHelpCircle,
-    'history': mdiHistory,
-    'home': mdiHome,
-    'image': mdiImage,
-    'information': mdiInformation,
-    'key': mdiKey,
-    'laptop': mdiLaptop,
-    'leaf': mdiLeaf,
-    'lightbulb': mdiLightbulb,
-    'lightning-bolt': mdiLightningBolt,
-    'link': mdiLink,
-    'lock': mdiLock,
-    'magnify': mdiMagnify,
-    'map': mdiMap,
-    'map-marker': mdiMapMarker,
-    'medal': mdiMedal,
-    'menu': mdiMenu,
-    'message': mdiMessage,
-    'message-text': mdiMessageText,
-    'microphone': mdiMicrophone,
-    'minus': mdiMinus,
-    'monitor': mdiMonitor,
-    'movie': mdiMovie,
-    'music': mdiMusic,
-    'newspaper': mdiNewspaper,
-    'office-building': mdiOfficeBuilding,
-    'package': mdiPackage,
-    'palette': mdiPalette,
-    'paperclip': mdiPaperclip,
-    'paw': mdiPaw,
-    'pencil': mdiPencil,
-    'phone': mdiPhone,
-    'pin': mdiPin,
-    'play': mdiPlay,
-    'plus': mdiPlus,
-    'plus-circle': mdiPlusCircle,
-    'podcast': mdiPodcast,
-    'poll': mdiPoll,
-    'presentation': mdiPresentation,
-    'printer': mdiPrinter,
-    'puzzle': mdiPuzzle,
-    'radio': mdiRadio,
-    'refresh': mdiRefresh,
-    'rocket': mdiRocket,
-    'rss': mdiRss,
-    'safe': mdiSafe,
-    'school': mdiSchool,
-    'security': mdiSecurity,
-    'send': mdiSend,
-    'server': mdiServer,
-    'share': mdiShare,
-    'shield': mdiShield,
-    'shopping': mdiShopping,
-    'star': mdiStar,
-    'store': mdiStore,
-    'sync': mdiSync,
-    'table': mdiTable,
-    'tag': mdiTag,
-    'target': mdiTarget,
-    'television': mdiTelevision,
-    'test-tube': mdiTestTube,
-    'text': mdiText,
-    'thumb-up': mdiThumbUp,
-    'ticket': mdiTicket,
-    'timer': mdiTimer,
-    'tools': mdiTools,
-    'trash-can': mdiTrashCan,
-    'tree': mdiTree,
-    'trending-up': mdiTrendingUp,
-    'trophy': mdiTrophy,
-    'truck': mdiTruck,
-    'tune': mdiTune,
-    'umbrella': mdiUmbrella,
-    'upload': mdiUpload,
-    'video': mdiVideo,
-    'volume-high': mdiVolumeHigh,
-    'wallet': mdiWallet,
-    'water': mdiWater,
-    'weather-cloudy': mdiWeatherCloudy,
-    'weather-lightning': mdiWeatherLightning,
-    'weather-sunny': mdiWeatherSunny,
-    'weight': mdiWeight,
-    'wifi': mdiWifi,
-    'wrench': mdiWrench,
-    'youtube': mdiYoutube,
-};
+import type {
+    IconLibrary,
+    IconCategory,
+    IconMetadata,
+    SearchResult,
+    SearchOptions,
+    SearchField,
+} from './types';
+import {DEFAULT_SEARCH_OPTIONS, matchesSearch} from './types';
+
+// Convert mdiIconName to icon-name (e.g., mdiAccountAlert -> account-alert)
+function mdiNameToIconName(mdiName: string): string {
+    return mdiName
+        .replace(/^mdi/, '')
+        .replace(/([a-z])([A-Z])/g, '$1-$2')
+        .toLowerCase();
+}
+
+// Build the icon map from all mdi exports
+const MDI_ICON_MAP: Record<string, string> = {};
+const ALL_MDI_ICONS: string[] = [];
+const MDI_METADATA: Record<string, IconMetadata> = {};
+
+for (const [key, value] of Object.entries(mdiIcons)) {
+    if (key.startsWith('mdi') && typeof value === 'string') {
+        const iconName = mdiNameToIconName(key);
+        MDI_ICON_MAP[iconName] = value;
+        ALL_MDI_ICONS.push(iconName);
+
+        // Generate metadata from icon name
+        // Split name into searchable parts (e.g., "account-alert" -> ["account", "alert"])
+        const nameParts = iconName.split('-');
+
+        // Generate tags from name patterns
+        const tags: string[] = [];
+        if (iconName.includes('account') || iconName.includes('user') || iconName.includes('human')) {
+            tags.push('Account / User');
+        }
+        if (iconName.includes('alert') || iconName.includes('error') || iconName.includes('warning')) {
+            tags.push('Alert / Error');
+        }
+        if (iconName.includes('arrow') || iconName.includes('chevron')) {
+            tags.push('Arrow');
+        }
+        if (iconName.includes('music') || iconName.includes('audio') || iconName.includes('volume') || iconName.includes('speaker')) {
+            tags.push('Audio');
+        }
+        if (iconName.includes('github') || iconName.includes('google') || iconName.includes('facebook') ||
+            iconName.includes('twitter') || iconName.includes('discord') || iconName.includes('youtube')) {
+            tags.push('Brand / Logo');
+        }
+        if (iconName.includes('calendar') || iconName.includes('clock') || iconName.includes('time')) {
+            tags.push('Date / Time');
+        }
+        if (iconName.includes('code') || iconName.includes('console') || iconName.includes('terminal') ||
+            iconName.includes('database') || iconName.includes('server') || iconName.includes('git')) {
+            tags.push('Developer / Languages');
+        }
+        if (iconName.includes('laptop') || iconName.includes('phone') || iconName.includes('tablet') ||
+            iconName.includes('computer') || iconName.includes('monitor')) {
+            tags.push('Device / Tech');
+        }
+        if (iconName.includes('file') || iconName.includes('folder') || iconName.includes('document')) {
+            tags.push('Files / Folders');
+        }
+        if (iconName.includes('food') || iconName.includes('pizza') || iconName.includes('coffee') ||
+            iconName.includes('drink') || iconName.includes('cup')) {
+            tags.push('Food / Drink');
+        }
+        if (iconName.includes('game') || iconName.includes('controller') || iconName.includes('dice') ||
+            iconName.includes('chess') || iconName.includes('puzzle')) {
+            tags.push('Gaming / RPG');
+        }
+        if (iconName.includes('heart') || iconName.includes('medical') || iconName.includes('hospital') ||
+            iconName.includes('pill') || iconName.includes('health')) {
+            tags.push('Health / Beauty');
+        }
+        if (iconName.includes('home') || iconName.includes('house') || iconName.includes('building')) {
+            tags.push('Home Automation');
+        }
+        if (iconName.includes('lock') || iconName.includes('key') || iconName.includes('shield') ||
+            iconName.includes('security')) {
+            tags.push('Lock');
+        }
+        if (iconName.includes('map') || iconName.includes('location') || iconName.includes('pin') ||
+            iconName.includes('earth') || iconName.includes('globe')) {
+            tags.push('Navigation');
+        }
+        if (iconName.includes('weather') || iconName.includes('sun') || iconName.includes('cloud') ||
+            iconName.includes('rain') || iconName.includes('snow')) {
+            tags.push('Weather');
+        }
+        if (iconName.includes('video') || iconName.includes('movie') || iconName.includes('camera') ||
+            iconName.includes('film')) {
+            tags.push('Video / Movie');
+        }
+        if (iconName.includes('message') || iconName.includes('chat') || iconName.includes('comment') ||
+            iconName.includes('email') || iconName.includes('phone') || iconName.includes('bell')) {
+            tags.push('Communication');
+        }
+        if (iconName.includes('cart') || iconName.includes('shop') || iconName.includes('store') ||
+            iconName.includes('basket') || iconName.includes('credit')) {
+            tags.push('Shopping');
+        }
+        if (iconName.includes('car') || iconName.includes('bus') || iconName.includes('train') ||
+            iconName.includes('airplane') || iconName.includes('plane') || iconName.includes('truck')) {
+            tags.push('Transportation');
+        }
+        if (iconName.includes('wrench') || iconName.includes('hammer') || iconName.includes('tool') ||
+            iconName.includes('cog') || iconName.includes('settings')) {
+            tags.push('Hardware / Tools');
+        }
+
+        MDI_METADATA[iconName] = {
+            name: iconName,
+            tags,
+            aliases: nameParts.filter((p) => p.length > 2), // Use name parts as pseudo-aliases
+        };
+    }
+}
+
+ALL_MDI_ICONS.sort();
 
 export function getMdiIconPath(name: string): string | undefined {
     return MDI_ICON_MAP[name];
 }
 
+export function getMdiIconMetadata(name: string): IconMetadata | undefined {
+    return MDI_METADATA[name];
+}
+
+export function getAllMdiIconNames(): string[] {
+    return ALL_MDI_ICONS;
+}
+
+// Search implementation
+function searchMdi(query: string, options?: Partial<SearchOptions>): SearchResult[] {
+    const opts: SearchOptions = {...DEFAULT_SEARCH_OPTIONS, ...options};
+    const results: SearchResult[] = [];
+    const q = query.trim();
+
+    if (!q) {
+        return results;
+    }
+
+    for (const name of ALL_MDI_ICONS) {
+        if (results.length >= (opts.limit || 100)) {
+            break;
+        }
+
+        const metadata = MDI_METADATA[name];
+        if (!metadata) {
+            continue;
+        }
+
+        const match = matchesSearch(metadata, q, opts);
+        if (match.matched && match.field && match.value) {
+            results.push({
+                library: 'mdi',
+                name,
+                matchedField: match.field,
+                matchedValue: match.value,
+            });
+        }
+    }
+
+    return results;
+}
+
+// Build categories dynamically
+function buildCategories(): IconCategory[] {
+    const categoryMap: Record<string, string[]> = {
+        'account': [],
+        'alert': [],
+        'arrow': [],
+        'audio': [],
+        'brand': [],
+        'calendar': [],
+        'chat': [],
+        'code': [],
+        'device': [],
+        'file': [],
+        'food': [],
+        'gaming': [],
+        'health': [],
+        'home': [],
+        'map': [],
+        'media': [],
+        'nature': [],
+        'security': [],
+        'shape': [],
+        'shopping': [],
+        'social': [],
+        'sport': [],
+        'tools': [],
+        'transport': [],
+    };
+
+    const categoryFilters: Record<string, (name: string) => boolean> = {
+        'account': (n) => n.includes('account') || n.includes('user') || n.includes('human') || n.includes('face'),
+        'alert': (n) => n.includes('alert') || n.includes('error') || n.includes('warning'),
+        'arrow': (n) => n.includes('arrow') || n.includes('chevron') || n.includes('navigation'),
+        'audio': (n) => n.includes('music') || n.includes('audio') || n.includes('volume') || n.includes('speaker') || n.includes('microphone'),
+        'brand': (n) => n.includes('github') || n.includes('google') || n.includes('facebook') || n.includes('twitter') || n.includes('discord') || n.includes('youtube') || n.includes('slack') || n.includes('steam'),
+        'calendar': (n) => n.includes('calendar') || n.includes('clock') || n.includes('timer') || n.includes('time'),
+        'chat': (n) => n.includes('chat') || n.includes('message') || n.includes('comment') || n.includes('forum') || n.includes('email') || n.includes('bell'),
+        'code': (n) => n.includes('code') || n.includes('console') || n.includes('terminal') || n.includes('bug') || n.includes('git') || n.includes('database') || n.includes('server'),
+        'device': (n) => n.includes('laptop') || n.includes('desktop') || n.includes('monitor') || n.includes('phone') || n.includes('tablet') || n.includes('computer'),
+        'file': (n) => n.includes('file') || n.includes('folder') || n.includes('document'),
+        'food': (n) => n.includes('food') || n.includes('pizza') || n.includes('coffee') || n.includes('beer') || n.includes('cup') || n.includes('glass'),
+        'gaming': (n) => n.includes('gamepad') || n.includes('controller') || n.includes('game') || n.includes('dice') || n.includes('chess') || n.includes('puzzle') || n.includes('sword'),
+        'health': (n) => n.includes('heart') || n.includes('medical') || n.includes('hospital') || n.includes('pill') || n.includes('health'),
+        'home': (n) => n.includes('home') || n.includes('house') || n.includes('building') || n.includes('office'),
+        'map': (n) => n.includes('map') || n.includes('earth') || n.includes('globe') || n.includes('location') || n.includes('pin') || n.includes('compass'),
+        'media': (n) => n.includes('video') || n.includes('movie') || n.includes('camera') || n.includes('image') || n.includes('photo') || n.includes('play'),
+        'nature': (n) => n.includes('weather') || n.includes('sun') || n.includes('moon') || n.includes('cloud') || n.includes('tree') || n.includes('leaf') || n.includes('flower') || n.includes('water'),
+        'security': (n) => n.includes('lock') || n.includes('key') || n.includes('shield') || n.includes('security') || n.includes('safe'),
+        'shape': (n) => n.includes('circle') || n.includes('square') || n.includes('triangle') || n.includes('rectangle') || n.includes('hexagon') || n.includes('star'),
+        'shopping': (n) => n.includes('cart') || n.includes('shop') || n.includes('store') || n.includes('basket') || n.includes('credit') || n.includes('wallet'),
+        'social': (n) => n.includes('thumb') || n.includes('like') || n.includes('share') || n.includes('bookmark') || n.includes('emoticon'),
+        'sport': (n) => n.includes('basketball') || n.includes('football') || n.includes('soccer') || n.includes('tennis') || n.includes('golf') || n.includes('run') || n.includes('bike'),
+        'tools': (n) => n.includes('wrench') || n.includes('hammer') || n.includes('screwdriver') || n.includes('tool') || n.includes('cog') || n.includes('settings'),
+        'transport': (n) => n.includes('car') || n.includes('bus') || n.includes('train') || n.includes('airplane') || n.includes('plane') || n.includes('truck') || n.includes('rocket'),
+    };
+
+    const categoryNames: Record<string, string> = {
+        'account': 'Account / User',
+        'alert': 'Alert / Error',
+        'arrow': 'Arrow / Navigation',
+        'audio': 'Audio / Music',
+        'brand': 'Brand / Logo',
+        'calendar': 'Calendar / Date',
+        'chat': 'Chat / Communication',
+        'code': 'Code / Development',
+        'device': 'Device / Tech',
+        'file': 'Files / Folders',
+        'food': 'Food / Drink',
+        'gaming': 'Gaming',
+        'health': 'Health / Medical',
+        'home': 'Home / Building',
+        'map': 'Map / Places',
+        'media': 'Media / Video',
+        'nature': 'Nature / Weather',
+        'security': 'Security / Lock',
+        'shape': 'Shapes',
+        'shopping': 'Shopping / Commerce',
+        'social': 'Social / People',
+        'sport': 'Sport / Fitness',
+        'tools': 'Tools / Hardware',
+        'transport': 'Transportation',
+    };
+
+    // Populate categories
+    for (const name of ALL_MDI_ICONS) {
+        for (const [catId, filter] of Object.entries(categoryFilters)) {
+            if (filter(name) && categoryMap[catId].length < 100) {
+                categoryMap[catId].push(name);
+            }
+        }
+    }
+
+    return Object.entries(categoryMap)
+        .filter(([_, icons]) => icons.length > 0)
+        .map(([id, iconNames]) => ({
+            id,
+            name: categoryNames[id] || id,
+            iconNames,
+        }));
+}
+
+const MDI_CATEGORIES = buildCategories();
+
 export const mdiLibrary: IconLibrary = {
     id: 'mdi',
     name: 'Material Design',
     prefix: 'mdi:',
-    categories: [
-        {
-            id: 'general',
-            name: 'General',
-            icons: [
-                {name: 'web', path: mdiWeb},
-                {name: 'earth', path: mdiEarth},
-                {name: 'star', path: mdiStar},
-                {name: 'heart', path: mdiHeart},
-                {name: 'bookmark', path: mdiBookmark},
-                {name: 'flag', path: mdiFlag},
-                {name: 'fire', path: mdiFire},
-                {name: 'lightning-bolt', path: mdiLightningBolt},
-                {name: 'flash', path: mdiFlash},
-                {name: 'flash', path: mdiFlash},
-                {name: 'lock', path: mdiLock},
-                {name: 'key', path: mdiKey},
-                {name: 'eye', path: mdiEye},
-                {name: 'link', path: mdiLink},
-                {name: 'pin', path: mdiPin},
-                {name: 'tag', path: mdiTag},
-            ],
-        },
-        {
-            id: 'communication',
-            name: 'Communication',
-            icons: [
-                {name: 'message', path: mdiMessage},
-                {name: 'message-text', path: mdiMessageText},
-                {name: 'chat', path: mdiChat},
-                {name: 'comment', path: mdiComment},
-                {name: 'forum', path: mdiForum},
-                {name: 'email', path: mdiEmail},
-                {name: 'at', path: mdiAt},
-                {name: 'phone', path: mdiPhone},
-                {name: 'bell', path: mdiBell},
-                {name: 'bell-ring', path: mdiBellRing},
-                {name: 'bullhorn', path: mdiBullhorn},
-                {name: 'send', path: mdiSend},
-                {name: 'share', path: mdiShare},
-                {name: 'rss', path: mdiRss},
-                {name: 'podcast', path: mdiPodcast},
-                {name: 'radio', path: mdiRadio},
-            ],
-        },
-        {
-            id: 'work',
-            name: 'Work & Business',
-            icons: [
-                {name: 'briefcase', path: mdiBriefcase},
-                {name: 'office-building', path: mdiOfficeBuilding},
-                {name: 'calendar', path: mdiCalendar},
-                {name: 'clock', path: mdiClock},
-                {name: 'timer', path: mdiTimer},
-                {name: 'clipboard', path: mdiClipboard},
-                {name: 'file', path: mdiFile},
-                {name: 'file-document', path: mdiFileDocument},
-                {name: 'folder', path: mdiFolder},
-                {name: 'chart-bar', path: mdiChartBar},
-                {name: 'chart-line', path: mdiChartLine},
-                {name: 'trending-up', path: mdiTrendingUp},
-                {name: 'poll', path: mdiPoll},
-                {name: 'presentation', path: mdiPresentation},
-                {name: 'target', path: mdiTarget},
-                {name: 'trophy', path: mdiTrophy},
-                {name: 'medal', path: mdiMedal},
-                {name: 'handshake', path: mdiHandshake},
-            ],
-        },
-        {
-            id: 'development',
-            name: 'Development',
-            icons: [
-                {name: 'code-tags', path: mdiCodeTags},
-                {name: 'code-tags', path: mdiCodeTags},
-                {name: 'code-braces', path: mdiCodeBraces},
-                {name: 'console', path: mdiConsole},
-                {name: 'api', path: mdiApi},
-                {name: 'database', path: mdiDatabase},
-                {name: 'server', path: mdiServer},
-                {name: 'bug', path: mdiBug},
-                {name: 'flask', path: mdiFlask},
-                {name: 'test-tube', path: mdiTestTube},
-                {name: 'cog', path: mdiCog},
-                {name: 'tune', path: mdiTune},
-                {name: 'wrench', path: mdiWrench},
-                {name: 'hammer', path: mdiHammer},
-                {name: 'tools', path: mdiTools},
-                {name: 'github', path: mdiGithub},
-                {name: 'web', path: mdiWeb},
-                {name: 'rocket', path: mdiRocket},
-            ],
-        },
-        {
-            id: 'media',
-            name: 'Media & Entertainment',
-            icons: [
-                {name: 'image', path: mdiImage},
-                {name: 'camera', path: mdiCamera},
-                {name: 'video', path: mdiVideo},
-                {name: 'movie', path: mdiMovie},
-                {name: 'music', path: mdiMusic},
-                {name: 'microphone', path: mdiMicrophone},
-                {name: 'volume-high', path: mdiVolumeHigh},
-                {name: 'play', path: mdiPlay},
-                {name: 'gamepad', path: mdiGamepad},
-                {name: 'television', path: mdiTelevision},
-                {name: 'youtube', path: mdiYoutube},
-                {name: 'newspaper', path: mdiNewspaper},
-                {name: 'book', path: mdiBook},
-            ],
-        },
-        {
-            id: 'people',
-            name: 'People & Social',
-            icons: [
-                {name: 'account', path: mdiAccount},
-                {name: 'account-multiple', path: mdiAccountMultiple},
-                {name: 'account-group', path: mdiAccountGroup},
-                {name: 'emoticon', path: mdiEmoticon},
-                {name: 'emoticon-happy', path: mdiEmoticonHappy},
-                {name: 'thumb-up', path: mdiThumbUp},
-            ],
-        },
-        {
-            id: 'nature',
-            name: 'Nature & Animals',
-            icons: [
-                {name: 'leaf', path: mdiLeaf},
-                {name: 'flower', path: mdiFlower},
-                {name: 'tree', path: mdiTree},
-                {name: 'water', path: mdiWater},
-                {name: 'weather-sunny', path: mdiWeatherSunny},
-                {name: 'weather-cloudy', path: mdiWeatherCloudy},
-                {name: 'weather-lightning', path: mdiWeatherLightning},
-                {name: 'paw', path: mdiPaw},
-                {name: 'cat', path: mdiCat},
-                {name: 'dog', path: mdiDog},
-            ],
-        },
-        {
-            id: 'objects',
-            name: 'Objects',
-            icons: [
-                {name: 'lightbulb', path: mdiLightbulb},
-                {name: 'gift', path: mdiGift},
-                {name: 'cube', path: mdiCube},
-                {name: 'puzzle', path: mdiPuzzle},
-                {name: 'palette', path: mdiPalette},
-                {name: 'pencil', path: mdiPencil},
-                {name: 'glasses', path: mdiGlasses},
-                {name: 'umbrella', path: mdiUmbrella},
-                {name: 'package', path: mdiPackage},
-                {name: 'ticket', path: mdiTicket},
-                {name: 'credit-card', path: mdiCreditCard},
-                {name: 'wallet', path: mdiWallet},
-            ],
-        },
-        {
-            id: 'places',
-            name: 'Places & Travel',
-            icons: [
-                {name: 'home', path: mdiHome},
-                {name: 'store', path: mdiStore},
-                {name: 'school', path: mdiSchool},
-                {name: 'map', path: mdiMap},
-                {name: 'map-marker', path: mdiMapMarker},
-                {name: 'truck', path: mdiTruck},
-                {name: 'cloud', path: mdiCloud},
-            ],
-        },
-        {
-            id: 'devices',
-            name: 'Devices & Tech',
-            icons: [
-                {name: 'laptop', path: mdiLaptop},
-                {name: 'laptop', path: mdiLaptop},
-                {name: 'monitor', path: mdiMonitor},
-                {name: 'printer', path: mdiPrinter},
-                {name: 'wifi', path: mdiWifi},
-                {name: 'download', path: mdiDownload},
-                {name: 'upload', path: mdiUpload},
-                {name: 'refresh', path: mdiRefresh},
-                {name: 'sync', path: mdiSync},
-            ],
-        },
-        {
-            id: 'symbols',
-            name: 'Symbols',
-            icons: [
-                {name: 'check', path: mdiCheck},
-                {name: 'check-circle', path: mdiCheckCircle},
-                {name: 'close', path: mdiClose},
-                {name: 'plus', path: mdiPlus},
-                {name: 'plus-circle', path: mdiPlusCircle},
-                {name: 'minus', path: mdiMinus},
-                {name: 'alert', path: mdiAlert},
-                {name: 'alert-circle', path: mdiAlertCircle},
-                {name: 'information', path: mdiInformation},
-                {name: 'help', path: mdiHelp},
-                {name: 'help-circle', path: mdiHelpCircle},
-                {name: 'magnify', path: mdiMagnify},
-                {name: 'filter', path: mdiFilter},
-                {name: 'menu', path: mdiMenu},
-                {name: 'dots-horizontal', path: mdiDotsHorizontal},
-                {name: 'chevron-right', path: mdiChevronRight},
-                {name: 'arrow-right', path: mdiArrowRight},
-                {name: 'shield', path: mdiShield},
-                {name: 'security', path: mdiSecurity},
-                {name: 'safe', path: mdiSafe},
-                {name: 'archive', path: mdiArchive},
-                {name: 'trash-can', path: mdiTrashCan},
-                {name: 'history', path: mdiHistory},
-            ],
-        },
-    ],
+    iconCount: ALL_MDI_ICONS.length,
+    categories: MDI_CATEGORIES,
+    getIconPath: getMdiIconPath,
+    getIconMetadata: getMdiIconMetadata,
+    getAllIconNames: getAllMdiIconNames,
+    search: searchMdi,
 };
