@@ -19,6 +19,7 @@ export interface EncryptionStatus {
     enabled: boolean;
     can_encrypt: boolean;
     has_key: boolean;
+    session_id: string; // Current Mattermost session ID (for key storage)
 }
 
 /**

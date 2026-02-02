@@ -29,7 +29,7 @@ export {
 } from './hybrid';
 export type {EncryptedPayload, SessionKey} from './hybrid';
 
-// Session storage
+// Session storage (v2: localStorage-based, keyed by Mattermost session)
 export {
     storeKeyPair,
     getPrivateKey,
@@ -37,7 +37,11 @@ export {
     getPublicKeyJwk,
     hasEncryptionKeys,
     clearEncryptionKeys,
+    clearAllEncryptionKeys,
     storeSessionId,
+    migrateFromV1,
+    cleanupStaleKeys,
+    getAllStoredSessionIds,
 } from './storage';
 
 // API utilities
@@ -58,6 +62,7 @@ export {
     getCurrentPrivateKey,
     isEncryptionInitialized,
     clearEncryptionSession,
+    clearAllEncryptionData,
     getChannelRecipientKeys,
     getChannelEncryptionInfo,
     getSessionId,

@@ -41,9 +41,10 @@ type EncryptionPublicKeysRequest struct {
 
 // EncryptionStatus represents the encryption status for the current user.
 type EncryptionStatus struct {
-	Enabled    bool `json:"enabled"`     // Whether encryption is enabled in config
-	CanEncrypt bool `json:"can_encrypt"` // Whether current user can encrypt
-	HasKey     bool `json:"has_key"`     // Whether current session has a registered key
+	Enabled    bool   `json:"enabled"`     // Whether encryption is enabled in config
+	CanEncrypt bool   `json:"can_encrypt"` // Whether current user can encrypt
+	HasKey     bool   `json:"has_key"`     // Whether current session has a registered key
+	SessionId  string `json:"session_id"`  // Current Mattermost session ID (for key storage)
 }
 
 // PreSave prepares the EncryptionSessionKey for saving.

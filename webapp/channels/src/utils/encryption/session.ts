@@ -2,12 +2,27 @@
 // See LICENSE.txt for license information.
 
 /**
- * Session management for encryption.
- * Handles automatic key generation and registration on first encrypted send.
+ * Encryption v2: Session management for login session-based encryption.
+ *
+ * Key changes from v1:
+ * - Keys are stored in localStorage, keyed by Mattermost session ID
+ * - Keys persist across browser restarts as long as login session is valid
+ * - Migration from v1 format happens automatically on first load
  */
 
 import {generateKeyPair, exportPublicKey} from './keypair';
-import {storeKeyPair, hasEncryptionKeys, getPublicKeyJwk, clearEncryptionKeys, getPrivateKey, storeSessionId, getSessionId} from './storage';
+import {
+    storeKeyPair,
+    hasEncryptionKeys,
+    getPublicKeyJwk,
+    clearEncryptionKeys,
+    clearAllEncryptionKeys,
+    getPrivateKey,
+    storeSessionId,
+    getSessionId,
+    migrateFromV1,
+    cleanupStaleKeys,
+} from './storage';
 import {registerPublicKey, getEncryptionStatus, getChannelMemberKeys} from './api';
 import type {EncryptionStatus, EncryptionPublicKey} from './api';
 import {clearDecryptionCache} from './use_decrypt_post';
@@ -15,12 +30,19 @@ import {clearDecryptionCache} from './use_decrypt_post';
 export {getSessionId} from './storage';
 
 let initializationPromise: Promise<void> | null = null;
+let migrationAttempted = false;
 
 /**
- * Ensures encryption keys are available for the current session AND registered with server.
- * If no keys exist, generates them and registers the public key with the server.
- * If local keys exist but server doesn't have them, re-registers the local key.
- * This is called automatically on first encrypted message send.
+ * Ensures encryption keys are available for the current Mattermost session.
+ *
+ * v2 Flow:
+ * 1. Run v1 migration if needed (one-time, preserves keys from sessionStorage)
+ * 2. Clean up stale keys from old sessions
+ * 3. Get current Mattermost session ID from server
+ * 4. Check if we have keys in localStorage for this session
+ * 5. If yes and server has them too → done
+ * 6. If yes but server doesn't → re-register
+ * 7. If no → generate new keys
  *
  * @throws Error if key registration fails - caller should handle and notify user
  */
@@ -33,59 +55,74 @@ export async function ensureEncryptionKeys(): Promise<void> {
     // Start initialization
     initializationPromise = (async () => {
         try {
-            // Check if we have local keys
-            if (hasEncryptionKeys()) {
-                // Local keys exist - verify server has them too
-                const status = await getEncryptionStatus();
+            // Step 1: Run v1 migration (one-time)
+            if (!migrationAttempted) {
+                migrationAttempted = true;
+                const migrated = migrateFromV1();
+                if (migrated) {
+                    console.log('[ensureEncryptionKeys] Migrated keys from v1 format');
+                }
+
+                // Clean up stale keys from old sessions
+                cleanupStaleKeys();
+            }
+
+            // Step 2: Get current session info from server
+            const status = await getEncryptionStatus();
+            const currentSessionId = status.session_id;
+
+            if (!currentSessionId) {
+                throw new Error('Could not determine Mattermost session ID');
+            }
+
+            // Store the session ID reference for quick lookup
+            storeSessionId(currentSessionId);
+
+            // Step 3: Check if we have keys for this session in localStorage
+            if (hasEncryptionKeys(currentSessionId)) {
+                // Keys exist locally - verify server has them too
                 if (status.has_key) {
-                    // Server has our key, we're good
+                    console.log('[ensureEncryptionKeys] Restored existing keys for session:', currentSessionId);
                     return;
                 }
 
                 // Server doesn't have our key - re-register the existing local key
                 console.log('[ensureEncryptionKeys] Local keys exist but server missing key, re-registering...');
-                const existingPublicKey = getPublicKeyJwk();
+                const existingPublicKey = getPublicKeyJwk(currentSessionId);
                 if (existingPublicKey) {
                     try {
-                        const response = await registerPublicKey(existingPublicKey);
-                        // Store the session ID for decryption lookup
-                        if (response.session_id) {
-                            storeSessionId(response.session_id);
-                        }
+                        await registerPublicKey(existingPublicKey);
                         console.log('[ensureEncryptionKeys] Re-registered existing key with server');
                         return;
                     } catch (error) {
                         console.error('[ensureEncryptionKeys] Failed to re-register key:', error);
                         // Clear local keys since they're out of sync with server
-                        clearEncryptionKeys();
+                        clearEncryptionKeys(currentSessionId);
                         throw new Error('Failed to register encryption key with server. Please try again.');
                     }
                 }
 
                 // Couldn't get local public key, clear and regenerate
                 console.log('[ensureEncryptionKeys] Could not get local public key, regenerating...');
-                clearEncryptionKeys();
+                clearEncryptionKeys(currentSessionId);
             }
 
-            // Generate new key pair
+            // Step 4: Generate new key pair for this session
+            console.log('[ensureEncryptionKeys] Generating new keys for session:', currentSessionId);
             const keyPair = await generateKeyPair();
 
-            // Store in sessionStorage
-            await storeKeyPair(keyPair);
+            // Store in localStorage (keyed by session ID)
+            await storeKeyPair(currentSessionId, keyPair);
 
-            // Export and register public key with server
+            // Register public key with server
             const publicKeyJwk = await exportPublicKey(keyPair.publicKey);
             try {
-                const response = await registerPublicKey(publicKeyJwk);
-                // Store the session ID for decryption lookup
-                if (response.session_id) {
-                    storeSessionId(response.session_id);
-                }
+                await registerPublicKey(publicKeyJwk);
                 console.log('[ensureEncryptionKeys] Generated and registered new keypair');
             } catch (error) {
                 console.error('[ensureEncryptionKeys] Failed to register new key:', error);
                 // Clear local keys since registration failed
-                clearEncryptionKeys();
+                clearEncryptionKeys(currentSessionId);
                 throw new Error('Failed to register encryption key with server. Please try again.');
             }
         } finally {
@@ -126,10 +163,20 @@ export function isEncryptionInitialized(): boolean {
 }
 
 /**
- * Clears encryption keys and decryption cache (called on logout).
+ * Clears encryption keys and decryption cache for the current session.
+ * Called on logout.
  */
 export function clearEncryptionSession(): void {
     clearEncryptionKeys();
+    clearDecryptionCache();
+}
+
+/**
+ * Clears ALL encryption keys and decryption cache.
+ * Called on full logout or data clear.
+ */
+export function clearAllEncryptionData(): void {
+    clearAllEncryptionKeys();
     clearDecryptionCache();
 }
 
