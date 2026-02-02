@@ -6,6 +6,7 @@ import type {ConnectedProps} from 'react-redux';
 
 import {getCurrentChannelId, makeGetChannel, makeGetChannelUnreadCount} from 'mattermost-redux/selectors/entities/channels';
 import {getConfig} from 'mattermost-redux/selectors/entities/general';
+import {isCollapsedThreadsEnabled} from 'mattermost-redux/selectors/entities/preferences';
 import {getCurrentTeam} from 'mattermost-redux/selectors/entities/teams';
 import {getFollowedThreadsInChannel} from 'mattermost-redux/selectors/entities/threads';
 
@@ -41,10 +42,12 @@ function makeMapStateToProps() {
 
         const unreadCount = getUnreadCount(state, channel?.id || '');
 
-        // Only fetch followed threads if ThreadsInSidebar feature flag is enabled
+        // Only fetch followed threads if ThreadsInSidebar feature flag is enabled AND Collapsed Reply Threads is enabled
+        // (The /thread/:id route only exists when CRT is enabled)
         const config = getConfig(state);
         const isThreadsInSidebarEnabled = (config as Record<string, string>)?.FeatureFlagThreadsInSidebar === 'true';
-        const followedThreads = (isThreadsInSidebarEnabled && channel) ? getFollowedThreadsInChannel(state, channel.id) : [];
+        const isCRTEnabled = isCollapsedThreadsEnabled(state);
+        const followedThreads = (isThreadsInSidebarEnabled && isCRTEnabled && channel) ? getFollowedThreadsInChannel(state, channel.id) : [];
 
         return {
             channel,
