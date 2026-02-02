@@ -11682,5 +11682,45 @@
   {
     "id": "app.recap.update.app_error",
     "translation": "Nie udało się zaktualizować podsumowania."
+  },
+  {
+    "id": "ent.autotranslation.add_task.missing_object_id",
+    "translation": "Zadanie tłumaczenia musi zawierać identyfikator obiektu."
+  },
+  {
+    "id": "ent.autotranslation.add_task.missing_object_type",
+    "translation": "Zadanie tłumaczenia musi zawierać typ obiektu."
+  },
+  {
+    "id": "ent.autotranslation.add_task.nil_task",
+    "translation": "Zadanie tłumaczenia nie może mieć wartości null."
+  },
+  {
+    "id": "ent.autotranslation.create_translation_failed",
+    "translation": "Nie udało się utworzyć tłumaczenia."
+  },
+  {
+    "id": "ent.autotranslation.detect_language.nil_context",
+    "translation": "Kontekst jest niezbędny do wykrywania języka."
+  },
+  {
+    "id": "ent.autotranslation.detect_language.text_too_large",
+    "translation": "Tekst przekracza maksymalny rozmiar dla wykrywania języka."
+  },
+  {
+    "id": "ent.autotranslation.detect_remote.error",
+    "translation": "Nie udało się wykryć języka przy użyciu dostawcy tłumaczeń."
+  },
+  {
+    "id": "ent.autotranslation.extract_content.mask_error",
+    "translation": "Nie udało się zamaskować zawartości do tłumaczenia."
+  },
+  {
+    "id": "ent.autotranslation.extract_post.nil_post",
+    "translation": "Obiekt Post nie może mieć wartości null."
+  },
+  {
+    "id": "ent.autotranslation.feature_unavailable",
+    "translation": "Automatyczne tłumaczenie nie jest dostępne. Skontaktuj się z administratorem systemu, aby Aktualizuj licencję korporacyjną."
   }
 ]
