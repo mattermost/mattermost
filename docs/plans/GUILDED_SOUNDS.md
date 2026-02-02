@@ -2,7 +2,7 @@ GuildedSounds Feature Implementation Plan
 
 Overview
 
-Add Guilded-style sounds for various user interactions, controlled by a feature flag and user preferences.
+Add Guilded-style sounds for various user interactions, with a new "Sounds" settings category where users can enable/disable sounds and adjust volume.
 
 Sound Files
 
@@ -49,13 +49,8 @@ New file: webapp/channels/src/utils/guilded_sounds.tsx
 
 // Imports
 import guilded_message_sent from 'sounds/guilded_message_sent.mp3';
-import guilded_reaction_apply from 'sounds/guilded_reaction_apply.mp3';
-import guilded_reaction_received from 'sounds/guilded_reaction_received.mp3';
-import guilded_message_received from 'sounds/guilded_message_received.mp3';
-import guilded_dm_received from 'sounds/guilded_dm_received.mp3';
-import guilded_mention_received from 'sounds/guilded_mention_received.mp3';
+// ... etc
 
-// Sound types
 export type GuildedSoundType =
     | 'message_sent'
     | 'reaction_apply'
@@ -67,9 +62,6 @@ export type GuildedSoundType =
 // Sound map
 const guildedSounds = new Map([...]);
 
-// Throttle state per sound type
-const throttleState = new Map<GuildedSoundType, number>();
-
 // Throttle intervals (ms)
 const THROTTLE = {
     message_sent: 500,
@@ -80,14 +72,17 @@ const THROTTLE = {
     mention_received: 3000,
 };
 
-// Main play function with throttling
+// Global volume (0.0 - 1.0)
+let globalVolume = 0.5;
+export function setGuildedSoundsVolume(volume: number): void;
+export function getGuildedSoundsVolume(): number;
+
+// Play with throttling and volume
 export function playGuildedSound(type: GuildedSoundType): void;
 
-// Convenience functions
-export function playMessageSentSound(): void;
-export function playReactionApplySound(): void;
-export function playReactionReceivedSound(): void;
-export function playMessageReceivedSound(type: 'channel' | 'dm' | 'mention'): void;
+// Helper to check if enabled
+export function isGuildedSoundsEnabled(getState: () => GlobalState): boolean;
+export function isGuildedSoundTypeEnabled(getState: () => GlobalState, type: GuildedSoundType): boolean;
 
 4. Preference Constants
 
@@ -95,30 +90,75 @@ File: webapp/channels/src/utils/constants.tsx (in Preferences object, around lin
 // Add Guilded Sounds preferences
 CATEGORY_GUILDED_SOUNDS: 'guilded_sounds',
 GUILDED_SOUNDS_ENABLED: 'enabled',
+GUILDED_SOUNDS_VOLUME: 'volume',
 GUILDED_SOUNDS_MESSAGE_SENT: 'message_sent',
 GUILDED_SOUNDS_REACTION_APPLY: 'reaction_apply',
 GUILDED_SOUNDS_REACTION_RECEIVED: 'reaction_received',
 GUILDED_SOUNDS_MESSAGE_RECEIVED: 'message_received',
+GUILDED_SOUNDS_DM_RECEIVED: 'dm_received',
+GUILDED_SOUNDS_MENTION_RECEIVED: 'mention_received',
 
-5. User Settings Component
+5. New "Sounds" Settings Tab
 
-New file: webapp/channels/src/components/user_settings/notifications/guilded_sounds_setting/index.tsx
+Add a new top-level settings tab between "Sidebar" and "Advanced".
 
-Settings structure:
-- Master toggle: "Enable Guilded Sounds"
-- When enabled, show individual toggles:
-- "Message sent sound" (default: on)
-- "Reaction sound" (default: on)
-- "Reaction received sound" (default: on)
-- "Message received sound" (default: off - to avoid noise)
+File: webapp/channels/src/components/user_settings/modal/user_settings_modal.tsx
 
-Preview buttons to test each sound.
+In getUserSettingsTabs() (line ~260), add after sidebar tab:
+// Only show if feature flag is enabled
+{
+    name: 'sounds',
+    uiName: formatMessage({id: 'user.settings.modal.sounds', defaultMessage: 'Sounds'}),
+    icon: 'icon icon-volume-high',
+    iconTitle: formatMessage({id: 'user.settings.sounds.icon', defaultMessage: 'Sounds Settings Icon'}),
+},
 
-6. Integrate Settings into Notifications Panel
+Note: This tab should only appear when FeatureFlagGuildedSounds === 'true'. We'll need to pass config to the modal or filter tabs.
 
-File: webapp/channels/src/components/user_settings/notifications/user_settings_notifications.tsx
-- Import GuildedSoundsSettings
-- Add section after desktop notification sounds (only if feature flag enabled)
+File: webapp/channels/src/components/user_settings/index.tsx
+
+Add import and case:
+import SoundsTab from './sounds';
+
+// In the function, add:
+} else if (props.activeTab === 'sounds') {
+    return (
+        <div>
+            <SoundsTab
+                user={props.user}
+                activeSection={props.activeSection}
+                updateSection={props.updateSection}
+                closeModal={props.closeModal}
+                collapseModal={props.collapseModal}
+            />
+        </div>
+    );
+}
+
+6. Sounds Tab Component
+
+New directory: webapp/channels/src/components/user_settings/sounds/
+
+New file: webapp/channels/src/components/user_settings/sounds/index.ts
+export {default} from './user_settings_sounds';
+
+New file: webapp/channels/src/components/user_settings/sounds/user_settings_sounds.tsx
+
+Structure:
+Sounds Settings
+├── Master Volume Slider (0-100%)
+├── Sound Toggles Section:
+│   ├── Message Sent Sound [toggle] [preview]
+│   ├── Reaction Sound [toggle] [preview]
+│   ├── Reaction Received Sound [toggle] [preview]
+│   ├── Message Received Sound [toggle] [preview]
+│   ├── DM Received Sound [toggle] [preview]
+│   └── Mention Sound [toggle] [preview]
+
+Each setting:
+- Toggle on/off
+- Preview button to test the sound
+- Uses preferences to persist
 
 7. Sound Trigger Integration
 
@@ -126,92 +166,149 @@ File: webapp/channels/src/actions/post_actions.ts
 
 In createPost (after line 151):
 // After: const result = await dispatch(PostActions.createPost(post, files, afterSubmit));
-// Add Guilded sound for message sent
-if (isGuildedSoundsEnabled(getState)) {
-    playMessageSentSound();
+if (isGuildedSoundTypeEnabled(getState, 'message_sent')) {
+    playGuildedSound('message_sent');
 }
 
 In addReaction (after line 263):
 // After: const result = await dispatch(PostActions.addReaction(postId, emojiName));
-// Add Guilded sound for reaction apply
-if (isGuildedSoundsEnabled(getState) && !result.error) {
-    playReactionApplySound();
+if (!result.error && isGuildedSoundTypeEnabled(getState, 'reaction_apply')) {
+    playGuildedSound('reaction_apply');
 }
 
 File: webapp/channels/src/actions/websocket_actions.jsx
 
 In handleReactionAddedEvent (around line 1360):
-// After dispatching RECEIVED_REACTION, check if it's on current user's post
 const currentUserId = getCurrentUserId(getState());
 const post = getPost(getState(), reaction.post_id);
 if (post && post.user_id === currentUserId && reaction.user_id !== currentUserId) {
-    if (isGuildedSoundsEnabled(getState)) {
-        playReactionReceivedSound();
+    if (isGuildedSoundTypeEnabled(getState, 'reaction_received')) {
+        playGuildedSound('reaction_received');
     }
 }
 
 File: webapp/channels/src/actions/new_post.ts
 
 In completePostReceive (around line 103):
-- After notification logic, play received sound based on message type
-- Skip if standard notification sound already played (check result.status)
+// After sendDesktopNotification - play guilded sound based on message type
+// Only if notification didn't play (to avoid double sounds)
+const state = getState();
+if (status !== 'sent') {
+    // Determine message type
+    const channel = getChannel(state, post.channel_id);
+    const isDM = channel?.type === Constants.DM_CHANNEL;
+    const mentions = msgProps.mentions ? JSON.parse(msgProps.mentions) : [];
+    const isMention = mentions.includes(currentUserId);
 
-// After sendDesktopNotification
-if (isGuildedSoundsEnabled(getState) && status !== 'sent') {
-    // Notification didn't play its sound, play guilded sound
-    if (isDM) playMessageReceivedSound('dm');
-    else if (isMention) playMessageReceivedSound('mention');
-    else playMessageReceivedSound('channel');
+    if (isMention && isGuildedSoundTypeEnabled(() => state, 'mention_received')) {
+        playGuildedSound('mention_received');
+    } else if (isDM && isGuildedSoundTypeEnabled(() => state, 'dm_received')) {
+        playGuildedSound('dm_received');
+    } else if (isGuildedSoundTypeEnabled(() => state, 'message_received')) {
+        playGuildedSound('message_received');
+    }
 }
 
-8. Helper to Check Feature Flag + Preference
+8. Conditional Tab Display
 
-Add to: webapp/channels/src/utils/guilded_sounds.tsx
-export function isGuildedSoundsEnabled(getState: () => GlobalState): boolean {
-    const state = getState();
-    const config = getConfig(state);
-    if (config.FeatureFlagGuildedSounds !== 'true') return false;
+File: webapp/channels/src/components/user_settings/modal/user_settings_modal.tsx
 
-    const enabled = getBool(state, Preferences.CATEGORY_GUILDED_SOUNDS, Preferences.GUILDED_SOUNDS_ENABLED, true);
-    return enabled;
-}
+Need to pass config and filter tabs based on feature flags:
 
-export function isGuildedSoundTypeEnabled(getState: () => GlobalState, type: GuildedSoundType): boolean {
-    if (!isGuildedSoundsEnabled(getState)) return false;
-    const state = getState();
-    // Check individual toggle (default true for most, false for message_received)
-    const defaultValue = type === 'message_received' ? false : true;
-    return getBool(state, Preferences.CATEGORY_GUILDED_SOUNDS, type, defaultValue);
-}
+Option A: Connect modal to Redux for config
+Option B: Filter tabs in getUserSettingsTabs() based on global config
+
+Preferred: Option B - Use getConfig from store at render time.
+
+getUserSettingsTabs = () => {
+    const {formatMessage} = this.props.intl;
+    const config = getConfig(store.getState()); // Import store
+
+    const tabs = [
+        { name: 'notifications', ... },
+        { name: 'display', ... },
+        { name: 'sidebar', ... },
+    ];
+
+    // Add Sounds tab if feature flag enabled
+    if (config.FeatureFlagGuildedSounds === 'true') {
+        tabs.push({
+            name: 'sounds',
+            uiName: formatMessage({id: 'user.settings.modal.sounds', defaultMessage: 'Sounds'}),
+            icon: 'icon icon-volume-high',
+            iconTitle: formatMessage({id: 'user.settings.sounds.icon', defaultMessage: 'Sounds Settings Icon'}),
+        });
+    }
+
+    tabs.push({ name: 'advanced', ... });
+
+    return tabs;
+};
 
 Files to Create
 
-1. webapp/channels/src/utils/guilded_sounds.tsx - Sound utility
-2. webapp/channels/src/components/user_settings/notifications/guilded_sounds_setting/index.tsx - Settings UI
-3. 6 MP3 files in webapp/channels/src/sounds/
+1. webapp/channels/src/utils/guilded_sounds.tsx - Sound utility with volume control
+2. webapp/channels/src/components/user_settings/sounds/index.ts - Export
+3. webapp/channels/src/components/user_settings/sounds/user_settings_sounds.tsx - Main component
+4. 6 MP3 files in webapp/channels/src/sounds/
 
 Files to Modify
 
 1. server/public/model/feature_flags.go - Add GuildedSounds flag
 2. webapp/channels/src/utils/constants.tsx - Add preference constants
-3. webapp/channels/src/actions/post_actions.ts - Message sent + reaction apply sounds
-4. webapp/channels/src/actions/websocket_actions.jsx - Reaction received sound
-5. webapp/channels/src/actions/new_post.ts - Message/DM/mention received sounds
-6. webapp/channels/src/components/user_settings/notifications/user_settings_notifications.tsx - Add settings section
-7. webapp/channels/src/components/admin_console/mattermost_extended_features.tsx - Add to admin UI
-8. webapp/channels/src/components/admin_console/feature_flags.tsx - Add flag metadata
+3. webapp/channels/src/components/user_settings/index.tsx - Add sounds tab case
+4. webapp/channels/src/components/user_settings/modal/user_settings_modal.tsx - Add sounds to tab list
+5. webapp/channels/src/actions/post_actions.ts - Message sent + reaction apply sounds
+6. webapp/channels/src/actions/websocket_actions.jsx - Reaction received sound
+7. webapp/channels/src/actions/new_post.ts - Message/DM/mention received sounds
+8. webapp/channels/src/components/admin_console/mattermost_extended_features.tsx - Add to admin UI
+9. webapp/channels/src/components/admin_console/feature_flags.tsx - Add flag metadata
+
+Settings UI Mockup
+
+┌─────────────────────────────────────────────────────────────┐
+│ Sounds                                                       │
+├─────────────────────────────────────────────────────────────┤
+│                                                              │
+│ Master Volume                                                │
+│ ├────────────────●───────────────┤ 50%                      │
+│                                                              │
+│ ─────────────────────────────────────────────────────────── │
+│                                                              │
+│ Sound Effects                                                │
+│                                                              │
+│ Message Sent                          [●] On    [▶ Preview] │
+│ Play a sound when you send a message                        │
+│                                                              │
+│ Reaction                              [●] On    [▶ Preview] │
+│ Play a sound when you add a reaction                        │
+│                                                              │
+│ Reaction Received                     [●] On    [▶ Preview] │
+│ Play a sound when someone reacts to your post               │
+│                                                              │
+│ Message Received                      [○] Off   [▶ Preview] │
+│ Play a sound when a new message arrives in a channel        │
+│                                                              │
+│ Direct Message                        [●] On    [▶ Preview] │
+│ Play a sound when you receive a direct message              │
+│                                                              │
+│ Mention                               [●] On    [▶ Preview] │
+│ Play a sound when you are @mentioned                        │
+│                                                              │
+└─────────────────────────────────────────────────────────────┘
 
 Verification
 
-1. Enable feature flag in System Console → Mattermost Extended → Features
-2. Go to Settings → Notifications → Guilded Sounds
-3. Enable sounds and test each:
+1. Enable feature flag in System Console → Mattermost Extended → Features → GuildedSounds
+2. Verify "Sounds" tab appears in Settings (between Sidebar and Advanced)
+3. Go to Settings → Sounds
+4. Test volume slider - sounds should play at adjusted volume
+5. Test each sound toggle and preview:
 - Send a message → hear sent sound
 - Add a reaction → hear reaction sound
 - Have another user react to your post → hear received sound
 - Receive a message in a channel → hear received sound (if enabled)
 - Receive a DM → hear DM sound
 - Get @mentioned → hear mention sound
-4. Disable individual sounds and verify they don't play
-5. Disable master toggle and verify none play
-6. Disable feature flag and verify settings don't appear
+6. Disable individual sounds and verify they don't play
+7. Disable feature flag and verify Sounds tab disappears
