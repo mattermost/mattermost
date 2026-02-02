@@ -179,7 +179,7 @@ const FLAG_METADATA: Record<string, {description: string; defaultValue: boolean}
     },
     SystemConsoleDarkMode: {
         description: 'Apply dark mode to the System Console using CSS filters',
-        defaultValue: false,
+        defaultValue: true,
     },
     SystemConsoleHideEnterprise: {
         description: 'Hide enterprise-only features from System Console that require a license to use',
