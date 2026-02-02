@@ -255,7 +255,9 @@ class AdminSidebar extends React.PureComponent<Props, State> {
                 map((plugin) => {
                     // Use a generic dash icon for all plugins
                     const pluginIcon = iconsEnabled ? (
-                        <span style={{display: 'inline-block', width: '16px', marginRight: '6px', opacity: 0.6}}>—</span>
+                        <span style={{display: 'inline-block', width: '14px', height: '14px', marginRight: '6px', position: 'relative'}}>
+                            <span style={{position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', width: '8px', height: '3px', backgroundColor: 'currentColor', opacity: 0.6, borderRadius: '1px'}}/>
+                        </span>
                     ) : undefined;
                     return (
                         <AdminSidebarSection
