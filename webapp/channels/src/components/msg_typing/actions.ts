@@ -10,6 +10,8 @@ import {getConfig, isPerformanceDebuggingEnabled} from 'mattermost-redux/selecto
 import {getBool} from 'mattermost-redux/selectors/entities/preferences';
 import {getCurrentUserId, getStatusForUserId} from 'mattermost-redux/selectors/entities/users';
 
+import {isGuildedSoundTypeEnabled, playGuildedSound} from 'utils/guilded_sounds';
+
 import type {ActionFuncAsync, ThunkActionFunc} from 'types/store';
 
 function getTimeBetweenTypingEvents(state: GlobalState) {
@@ -29,6 +31,8 @@ export function userStartedTyping(userId: string, channelId: string, rootId: str
             return;
         }
 
+        const currentUserId = getCurrentUserId(state);
+
         dispatch({
             type: WebsocketEvents.TYPING,
             data: {
@@ -37,6 +41,11 @@ export function userStartedTyping(userId: string, channelId: string, rootId: str
                 now,
             },
         });
+
+        // Play typing sound when someone else starts typing
+        if (userId !== currentUserId && isGuildedSoundTypeEnabled(getState, 'typing')) {
+            playGuildedSound(getState, 'typing');
+        }
 
         // Ideally this followup loading would be done by someone else
         dispatch(fillInMissingInfo(userId));

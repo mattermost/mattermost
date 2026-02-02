@@ -14,6 +14,7 @@ import guilded_reaction_apply from 'sounds/guilded_reaction_apply.mp3';
 import guilded_reaction_received from 'sounds/guilded_reaction_received.mp3';
 import guilded_dm_received from 'sounds/guilded_dm_received.mp3';
 import guilded_mention_received from 'sounds/guilded_mention_received.mp3';
+import guilded_typing from 'sounds/guilded_typing.mp3';
 
 // Import notification sounds
 import bing from 'sounds/bing.mp3';
@@ -30,7 +31,8 @@ export type SoundEventType =
     | 'reaction_received'
     | 'message_received'
     | 'dm_received'
-    | 'mention_received';
+    | 'mention_received'
+    | 'typing';
 
 // All available sound IDs
 export type SoundId =
@@ -40,6 +42,7 @@ export type SoundId =
     | 'guilded_reaction_received'
     | 'guilded_dm_received'
     | 'guilded_mention_received'
+    | 'guilded_typing'
     | 'bing'
     | 'crackle'
     | 'down'
@@ -55,6 +58,7 @@ export const ALL_SOUNDS: Map<SoundId, {file: string | null; label: string}> = ne
     ['guilded_reaction_received', {file: guilded_reaction_received, label: 'Guilded - Reaction Received'}],
     ['guilded_dm_received', {file: guilded_dm_received, label: 'Guilded - DM Received'}],
     ['guilded_mention_received', {file: guilded_mention_received, label: 'Guilded - Mention'}],
+    ['guilded_typing', {file: guilded_typing, label: 'Guilded - Typing'}],
     ['bing', {file: bing, label: 'Bing'}],
     ['crackle', {file: crackle, label: 'Crackle'}],
     ['down', {file: down, label: 'Down'}],
@@ -79,6 +83,7 @@ export const DEFAULT_SOUNDS: Record<SoundEventType, SoundId> = {
     message_received: 'guilded_message',
     dm_received: 'guilded_dm_received',
     mention_received: 'guilded_mention_received',
+    typing: 'guilded_typing',
 };
 
 // Map sound event types to their preference keys
@@ -89,6 +94,7 @@ const soundEventToPreferenceKey: Record<SoundEventType, string> = {
     message_received: Preferences.GUILDED_SOUNDS_MESSAGE_RECEIVED,
     dm_received: Preferences.GUILDED_SOUNDS_DM_RECEIVED,
     mention_received: Preferences.GUILDED_SOUNDS_MENTION_RECEIVED,
+    typing: Preferences.GUILDED_SOUNDS_TYPING,
 };
 
 // Throttle intervals in milliseconds for each sound event type
@@ -99,6 +105,7 @@ const THROTTLE_INTERVALS: Record<SoundEventType, number> = {
     message_received: 1000,
     dm_received: 3000,
     mention_received: 3000,
+    typing: 3000,
 };
 
 // Track last play time for each sound event type
@@ -109,6 +116,7 @@ const lastPlayTimes: Record<SoundEventType, number> = {
     message_received: 0,
     dm_received: 0,
     mention_received: 0,
+    typing: 0,
 };
 
 // Global volume (0.0 - 1.0), default 100%

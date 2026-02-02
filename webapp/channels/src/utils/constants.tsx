@@ -115,6 +115,7 @@ export const Preferences = {
     GUILDED_SOUNDS_MESSAGE_RECEIVED: 'message_received',
     GUILDED_SOUNDS_DM_RECEIVED: 'dm_received',
     GUILDED_SOUNDS_MENTION_RECEIVED: 'mention_received',
+    GUILDED_SOUNDS_TYPING: 'typing',
 
     CATEGORY_NOTIFICATIONS: 'notifications',
     EMAIL_INTERVAL: 'email_interval',

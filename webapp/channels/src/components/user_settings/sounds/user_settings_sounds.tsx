@@ -86,6 +86,14 @@ const SOUND_SETTINGS: SoundSetting[] = [
         descId: 'user.settings.sounds.mentionReceived.desc',
         descDefault: 'Play a sound when you receive an @mention notification',
     },
+    {
+        type: 'typing',
+        prefKey: Preferences.GUILDED_SOUNDS_TYPING,
+        titleId: 'user.settings.sounds.typing.title',
+        titleDefault: 'Typing',
+        descId: 'user.settings.sounds.typing.desc',
+        descDefault: 'Play a sound when someone starts typing',
+    },
 ];
 
 export interface Props {
