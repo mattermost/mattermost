@@ -2348,7 +2348,7 @@ func TestGetPostsForChannel(t *testing.T) {
 	time.Sleep(300 * time.Millisecond)
 
 	post4 := th.CreatePost(t)
-	err := th.Store.AutoTranslation().Save(&model.Translation{
+	saveErr := th.Store.AutoTranslation().Save(&model.Translation{
 		ObjectID:   post1.Id,
 		ObjectType: model.TranslationObjectTypePost,
 		Lang:       "en",
@@ -2357,7 +2357,7 @@ func TestGetPostsForChannel(t *testing.T) {
 		Provider:   "agents",
 		Type:       model.TranslationTypeString,
 	})
-	require.NoError(t, err)
+	require.NoError(t, saveErr)
 
 	th.TestForAllClients(t, func(t *testing.T, c *model.Client4) {
 		posts, resp, err := c.GetPostsForChannel(context.Background(), th.BasicChannel.Id, 0, 60, "", false, false)
