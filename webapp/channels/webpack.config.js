@@ -137,6 +137,10 @@ var config = {
 
             // This alias restricts single version of styled components across all packages
             'styled-components': path.resolve(__dirname, '..', 'node_modules', 'styled-components'),
+
+            // Fix @tabler/icons JSON imports (package exports field redirects to ./icons/*)
+            '@tabler/icons/tabler-nodes-outline': path.resolve(__dirname, '..', 'node_modules', '@tabler', 'icons', 'tabler-nodes-outline.json'),
+            '@tabler/icons/icons': path.resolve(__dirname, '..', 'node_modules', '@tabler', 'icons', 'icons.json'),
         },
         extensions: ['.ts', '.tsx', '.js', '.jsx'],
         fallback: {

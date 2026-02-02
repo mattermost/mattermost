@@ -23,7 +23,7 @@ export type IconCategory = {
     iconNames: string[]; // Just names, paths looked up on demand
 };
 
-export type IconLibraryId = 'mdi' | 'lucide' | 'tabler' | 'feather' | 'simple';
+export type IconLibraryId = 'mdi' | 'lucide' | 'tabler' | 'feather' | 'simple' | 'fontawesome';
 
 // What fields can be searched
 export type SearchField = 'name' | 'tags' | 'aliases';
@@ -83,6 +83,9 @@ export function parseIconValue(value: string): {format: IconFormat; name: string
     }
     if (value.startsWith('simple:')) {
         return {format: 'simple', name: value.slice(7)};
+    }
+    if (value.startsWith('fontawesome:')) {
+        return {format: 'fontawesome', name: value.slice(12)};
     }
     if (value.startsWith('svg:')) {
         return {format: 'svg', name: value.slice(4)};

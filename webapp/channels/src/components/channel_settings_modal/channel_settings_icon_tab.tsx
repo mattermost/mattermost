@@ -1,11 +1,13 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {useCallback, useState, useEffect, useMemo, useRef} from 'react';
+import React, {useCallback, useState, useEffect, useMemo} from 'react';
 import {useIntl} from 'react-intl';
-import {useDispatch} from 'react-redux';
+import {useDispatch, useSelector} from 'react-redux';
 
 import type {Channel} from '@mattermost/types/channels';
+
+import {getMyChannels} from 'mattermost-redux/selectors/entities/channels';
 import type {ServerError} from '@mattermost/types/errors';
 
 import {patchChannel} from 'mattermost-redux/actions/channels';
@@ -22,6 +24,7 @@ import {
     getTablerIconPaths,
     getFeatherIconSvg,
     getSimpleIconPath,
+    getFontAwesomeIconPath,
     parseIconValue,
     formatIconValue,
     getTotalIconCount,
@@ -153,6 +156,24 @@ function SimpleIcon({name, size = 22}: {name: string; size?: number}) {
     );
 }
 
+// Component to render Font Awesome icons (filled path, 512x512 viewBox)
+function FontAwesomeIcon({name, size = 22}: {name: string; size?: number}) {
+    const path = getFontAwesomeIconPath(name);
+    if (!path) {
+        return <span className='ChannelSettingsIconTab__unknownIcon'>?</span>;
+    }
+    return (
+        <svg
+            viewBox='0 0 512 512'
+            width={size}
+            height={size}
+            fill='currentColor'
+        >
+            <path d={path}/>
+        </svg>
+    );
+}
+
 // Component to render custom SVG from base64
 function CustomSvgIcon({base64, size = 22}: {base64: string; size?: number}) {
     try {
@@ -192,6 +213,8 @@ function LibraryIcon({library, name, size = 22}: {library: IconLibraryId; name: 
         return <TablerIcon name={name} size={size}/>;
     case 'feather':
         return <FeatherIcon name={name} size={size}/>;
+    case 'fontawesome':
+        return <FontAwesomeIcon name={name} size={size}/>;
     case 'simple':
         return <SimpleIcon name={name} size={size}/>;
     default:
@@ -231,6 +254,10 @@ function IconPreview({value, size = 24}: {value: string; size?: number}) {
         return <SimpleIcon name={name} size={size}/>;
     }
 
+    if (format === 'fontawesome') {
+        return <FontAwesomeIcon name={name} size={size}/>;
+    }
+
     if (format === 'svg') {
         return <CustomSvgIcon base64={name} size={size}/>;
     }
@@ -245,7 +272,20 @@ export default function ChannelSettingsIconTab({
 }: Props) {
     const {formatMessage} = useIntl();
     const dispatch = useDispatch();
-    const categoriesRef = useRef<HTMLDivElement>(null);
+
+    // Get all channels to find existing custom SVGs
+    const allMyChannels = useSelector(getMyChannels);
+
+    // Filter channels that have custom SVG icons (excluding current channel)
+    const channelsWithCustomSvg = useMemo(() => {
+        return allMyChannels.filter((ch) => {
+            if (ch.id === channel.id) {
+                return false;
+            }
+            const customIcon = ch.props?.custom_icon;
+            return customIcon && typeof customIcon === 'string' && customIcon.startsWith('svg:');
+        });
+    }, [allMyChannels, channel.id]);
 
     // Current icon value (with prefix)
     const [customIcon, setCustomIcon] = useState(channel.props?.custom_icon || '');
@@ -468,22 +508,38 @@ export default function ChannelSettingsIconTab({
 
     const hasErrors = Boolean(formError) || Boolean(showTabSwitchError);
 
+    // Example icons for each library (showing a recognizable icon from each to show aesthetic)
+    // Note: icon names vary by library (e.g., Lucide/FA use "house", others use "home")
+    const libraryExampleIcons: Record<string, {library: IconLibraryId; name: string} | null> = {
+        'all': null, // No example for "All" tab
+        'mdi': {library: 'mdi', name: 'home'},
+        'lucide': {library: 'lucide', name: 'house'},
+        'tabler': {library: 'tabler', name: 'home'},
+        'feather': {library: 'feather', name: 'home'},
+        'fontawesome': {library: 'fontawesome', name: 'house'},
+        'simple': {library: 'simple', name: 'github'},
+        'custom': null, // No example for "Custom SVG" tab
+    };
+
     // Library tabs with counts
-    const libraryTabs: {id: LibraryTab; label: string; count: number}[] = [
+    const libraryTabs: {id: LibraryTab; label: string; count: number; exampleIcon: {library: IconLibraryId; name: string} | null}[] = [
         {
             id: 'all',
             label: formatMessage({id: 'channel_settings_icon_tab.library.all', defaultMessage: 'All'}),
             count: getTotalIconCount(),
+            exampleIcon: null,
         },
         ...iconLibraries.map((lib) => ({
             id: lib.id as LibraryTab,
             label: lib.name,
             count: lib.iconCount,
+            exampleIcon: libraryExampleIcons[lib.id] || null,
         })),
         {
             id: 'custom',
             label: formatMessage({id: 'channel_settings_icon_tab.library.custom', defaultMessage: 'Custom SVG'}),
-            count: 0,
+            count: channelsWithCustomSvg.length,
+            exampleIcon: null,
         },
     ];
 
@@ -538,6 +594,15 @@ export default function ChannelSettingsIconTab({
                             setActiveCategory(null);
                         }}
                     >
+                        {tab.exampleIcon && (
+                            <span className='ChannelSettingsIconTab__libraryTab__icon'>
+                                <LibraryIcon
+                                    library={tab.exampleIcon.library}
+                                    name={tab.exampleIcon.name}
+                                    size={14}
+                                />
+                            </span>
+                        )}
                         {tab.label}
                         {tab.count > 0 && (
                             <span className='ChannelSettingsIconTab__libraryTab__count'>
@@ -620,12 +685,9 @@ export default function ChannelSettingsIconTab({
                         )}
                     </div>
 
-                    {/* Horizontal scrollable categories */}
+                    {/* Category filter buttons */}
                     {currentLibrary && !searchTerm && (
-                        <div
-                            ref={categoriesRef}
-                            className='ChannelSettingsIconTab__categories'
-                        >
+                        <div className='ChannelSettingsIconTab__categories'>
                             <button
                                 type='button'
                                 className={`ChannelSettingsIconTab__categoryButton ${activeCategory === null ? 'active' : ''}`}
@@ -708,6 +770,40 @@ export default function ChannelSettingsIconTab({
             {/* Custom SVG tab content */}
             {activeLibrary === 'custom' && (
                 <div className='ChannelSettingsIconTab__customContent'>
+                    {/* Existing custom SVGs from other channels */}
+                    {channelsWithCustomSvg.length > 0 && (
+                        <div className='ChannelSettingsIconTab__existingCustomSection'>
+                            <div className='ChannelSettingsIconTab__existingCustomLabel'>
+                                {formatMessage({
+                                    id: 'channel_settings_icon_tab.existing_custom_label',
+                                    defaultMessage: 'Custom icons from other channels:',
+                                })}
+                            </div>
+                            <div className='ChannelSettingsIconTab__existingCustomGrid'>
+                                {channelsWithCustomSvg.map((ch) => {
+                                    const iconValue = ch.props?.custom_icon as string;
+                                    const base64 = iconValue.substring(4); // Remove 'svg:' prefix
+                                    const isSelected = customIcon === iconValue;
+                                    return (
+                                        <button
+                                            key={ch.id}
+                                            type='button'
+                                            className={`ChannelSettingsIconTab__iconButton ${isSelected ? 'selected' : ''}`}
+                                            onClick={() => handleIconSelect('svg', base64)}
+                                            title={ch.display_name || ch.name}
+                                            aria-label={ch.display_name || ch.name}
+                                        >
+                                            <CustomSvgIcon
+                                                base64={base64}
+                                                size={22}
+                                            />
+                                        </button>
+                                    );
+                                })}
+                            </div>
+                        </div>
+                    )}
+
                     <div className='ChannelSettingsIconTab__customDescription'>
                         {formatMessage({
                             id: 'channel_settings_icon_tab.custom_description',
@@ -779,4 +875,4 @@ export default function ChannelSettingsIconTab({
 }
 
 // Export icon components for use in sidebar
-export {MdiIcon, LucideIcon, TablerIcon, FeatherIcon, SimpleIcon, CustomSvgIcon, IconPreview};
+export {MdiIcon, LucideIcon, TablerIcon, FeatherIcon, SimpleIcon, FontAwesomeIcon, CustomSvgIcon, IconPreview};

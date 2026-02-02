@@ -7,12 +7,14 @@ export {lucideLibrary, getLucideIconPaths, getLucideIconMetadata, getAllLucideIc
 export {tablerLibrary, getTablerIconPaths, getTablerIconMetadata, getAllTablerIconNames} from './tabler_icons';
 export {featherLibrary, getFeatherIconSvg, getFeatherIconMetadata, getAllFeatherIconNames} from './feather_icons';
 export {simpleLibrary, getSimpleIconPath, getSimpleIconMetadata, getAllSimpleIconNames} from './simple_icons';
+export {fontawesomeLibrary, getFontAwesomeIconPath, getFontAwesomeIconMetadata, getAllFontAwesomeIconNames} from './fontawesome_icons';
 
 import {mdiLibrary} from './mdi_icons';
 import {lucideLibrary} from './lucide_icons';
 import {tablerLibrary} from './tabler_icons';
 import {featherLibrary} from './feather_icons';
 import {simpleLibrary} from './simple_icons';
+import {fontawesomeLibrary} from './fontawesome_icons';
 import type {IconLibrary, IconLibraryId, SearchResult, SearchOptions, SearchField} from './types';
 import {DEFAULT_SEARCH_OPTIONS} from './types';
 
@@ -22,6 +24,7 @@ export const iconLibraries: IconLibrary[] = [
     lucideLibrary,
     tablerLibrary,
     featherLibrary,
+    fontawesomeLibrary,
     simpleLibrary,
 ];
 

@@ -16,10 +16,11 @@ import {DEFAULT_SEARCH_OPTIONS, matchesSearch} from './types';
 // Type for Tabler node structure
 type TablerNode = [string, Record<string, string>];
 
-// Use require for JSON imports to avoid TypeScript module resolution issues
+// Use direct path to bypass @tabler/icons exports field which redirects to ./icons/*
+// The JSON files are at the package root but not properly exported
 /* eslint-disable @typescript-eslint/no-var-requires */
-const tablerNodes = require('@tabler/icons/tabler-nodes-outline.json') as Record<string, TablerNode[]>;
-const tablerMeta = require('@tabler/icons/icons.json') as Record<string, {category?: string; tags?: (string | number)[]}>;
+const tablerNodes = require('@tabler/icons/tabler-nodes-outline') as Record<string, TablerNode[]>;
+const tablerMeta = require('@tabler/icons/icons') as Record<string, {category?: string; tags?: (string | number)[]}>;
 /* eslint-enable @typescript-eslint/no-var-requires */
 
 // Build the icon data map

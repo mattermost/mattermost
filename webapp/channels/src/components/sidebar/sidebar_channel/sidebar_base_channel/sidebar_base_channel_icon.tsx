@@ -11,6 +11,7 @@ import {
     getTablerIconPaths,
     getFeatherIconSvg,
     getSimpleIconPath,
+    getFontAwesomeIconPath,
     parseIconValue,
 } from 'components/channel_settings_modal/icon_libraries';
 
@@ -142,6 +143,26 @@ function SimpleSidebarIcon({name}: {name: string}) {
     );
 }
 
+// Render Font Awesome icon (filled path, 512x512 viewBox)
+function FontAwesomeSidebarIcon({name}: {name: string}) {
+    const path = getFontAwesomeIconPath(name);
+    if (!path) {
+        return <i className='icon icon-globe'/>;
+    }
+    return (
+        <i className='icon sidebar-channel-icon sidebar-channel-icon--fontawesome'>
+            <svg
+                viewBox='0 0 512 512'
+                width='18'
+                height='18'
+                fill='currentColor'
+            >
+                <path d={path}/>
+            </svg>
+        </i>
+    );
+}
+
 // Render custom SVG from base64
 function CustomSvgSidebarIcon({base64}: {base64: string}) {
     try {
@@ -188,6 +209,10 @@ const SidebarBaseChannelIcon = ({
 
         if (format === 'simple' && name) {
             return <SimpleSidebarIcon name={name}/>;
+        }
+
+        if (format === 'fontawesome' && name) {
+            return <FontAwesomeSidebarIcon name={name}/>;
         }
 
         if (format === 'svg' && name) {

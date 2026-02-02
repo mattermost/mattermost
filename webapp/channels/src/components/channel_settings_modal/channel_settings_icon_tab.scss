@@ -1,36 +1,37 @@
 .ChannelSettingsIconTab {
-    padding: 24px;
+    padding: 20px;
     display: flex;
     flex-direction: column;
-    gap: 20px;
     height: 100%;
     overflow: hidden;
 
     &__header {
         flex-shrink: 0;
-        margin-bottom: 8px;
+        margin-bottom: 12px;
     }
 
     &__title {
-        font-size: 16px;
+        font-size: 15px;
         font-weight: 600;
         color: var(--center-channel-color);
-        margin-bottom: 8px;
+        margin-bottom: 4px;
     }
 
     &__description {
-        font-size: 14px;
+        font-size: 13px;
         color: rgba(var(--center-channel-color-rgb), 0.72);
     }
 
+    // Compact preview row
     &__preview {
         flex-shrink: 0;
         display: flex;
         align-items: center;
-        gap: 16px;
-        padding: 16px;
+        gap: 12px;
+        padding: 10px 12px;
+        margin-bottom: 12px;
         background: rgba(var(--center-channel-color-rgb), 0.04);
-        border-radius: 8px;
+        border-radius: 6px;
         border: 1px solid rgba(var(--center-channel-color-rgb), 0.08);
     }
 
@@ -38,25 +39,26 @@
         display: flex;
         align-items: center;
         justify-content: center;
-        width: 48px;
-        height: 48px;
+        width: 36px;
+        height: 36px;
         background: var(--center-channel-bg);
-        border-radius: 8px;
+        border-radius: 6px;
         color: var(--center-channel-color);
 
         i {
-            font-size: 24px;
+            font-size: 20px;
         }
     }
 
     &__previewInfo {
         display: flex;
-        flex-direction: column;
-        gap: 4px;
+        align-items: center;
+        gap: 12px;
+        flex: 1;
     }
 
     &__previewLabel {
-        font-size: 14px;
+        font-size: 13px;
         font-weight: 500;
         color: var(--center-channel-color);
         word-break: break-all;
@@ -75,19 +77,24 @@
         }
     }
 
+    // Compact library tabs - wrapping
     &__libraryTabs {
         flex-shrink: 0;
         display: flex;
-        gap: 8px;
+        gap: 6px;
         flex-wrap: wrap;
+        margin-bottom: 12px;
     }
 
     &__libraryTab {
-        padding: 8px 16px;
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        padding: 5px 10px;
         border: 1px solid rgba(var(--center-channel-color-rgb), 0.16);
-        border-radius: 16px;
+        border-radius: 14px;
         background: transparent;
-        font-size: 13px;
+        font-size: 12px;
         font-weight: 500;
         color: var(--center-channel-color);
         cursor: pointer;
@@ -103,50 +110,62 @@
             color: var(--button-color);
         }
 
+        &__icon {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 14px;
+            height: 14px;
+            opacity: 0.8;
+
+            svg {
+                width: 14px;
+                height: 14px;
+            }
+        }
+
         &__count {
-            margin-left: 4px;
+            margin-left: 3px;
             opacity: 0.7;
             font-weight: 400;
+            font-size: 11px;
         }
     }
 
+    // Main scrollable content area
     &__libraryContent {
         display: flex;
         flex-direction: column;
         flex: 1;
         min-height: 0;
-        overflow: hidden;
+        overflow-y: auto;
     }
 
-    // Sticky search area
+    // Search bar
     &__searchArea {
         flex-shrink: 0;
-        position: sticky;
-        top: 0;
-        z-index: 10;
-        background: var(--center-channel-bg);
-        padding-bottom: 12px;
+        margin-bottom: 10px;
     }
 
     &__search {
         display: flex;
         align-items: center;
         gap: 8px;
-        padding: 8px 12px;
+        padding: 6px 10px;
         background: rgba(var(--center-channel-color-rgb), 0.04);
         border: 1px solid rgba(var(--center-channel-color-rgb), 0.16);
         border-radius: 4px;
 
         i {
             color: rgba(var(--center-channel-color-rgb), 0.56);
-            font-size: 18px;
+            font-size: 16px;
         }
 
         input {
             flex: 1;
             border: none;
             background: transparent;
-            font-size: 14px;
+            font-size: 13px;
             color: var(--center-channel-color);
             outline: none;
 
@@ -160,7 +179,7 @@
             line-height: 1;
 
             i {
-                font-size: 16px;
+                font-size: 14px;
             }
         }
     }
@@ -168,19 +187,21 @@
     &__searchOptions {
         display: flex;
         align-items: center;
-        gap: 12px;
-        margin-top: 8px;
-        font-size: 12px;
+        gap: 10px;
+        margin-top: 6px;
+        font-size: 11px;
         color: rgba(var(--center-channel-color-rgb), 0.72);
 
         label {
             display: flex;
             align-items: center;
-            gap: 4px;
+            gap: 3px;
             cursor: pointer;
 
             input[type="checkbox"] {
                 margin: 0;
+                width: 12px;
+                height: 12px;
             }
         }
     }
@@ -192,55 +213,27 @@
         font-style: italic;
     }
 
-    // Horizontal scrollable categories
+    // Categories - wrapping, not horizontal scroll
     &__categories {
-        flex-shrink: 0;
         display: flex;
-        gap: 8px;
-        overflow-x: auto;
-        overflow-y: hidden;
-        padding: 4px 0 12px;
-        margin: 0 -4px;
-        padding-left: 4px;
-        padding-right: 4px;
-
-        // Hide scrollbar but keep functionality
-        scrollbar-width: thin;
-        scrollbar-color: rgba(var(--center-channel-color-rgb), 0.2) transparent;
-
-        &::-webkit-scrollbar {
-            height: 4px;
-        }
-
-        &::-webkit-scrollbar-track {
-            background: transparent;
-        }
-
-        &::-webkit-scrollbar-thumb {
-            background: rgba(var(--center-channel-color-rgb), 0.2);
-            border-radius: 2px;
-        }
-
-        &::-webkit-scrollbar-thumb:hover {
-            background: rgba(var(--center-channel-color-rgb), 0.3);
-        }
+        flex-wrap: wrap;
+        gap: 5px;
+        margin-bottom: 10px;
     }
 
     &__categoryButton {
-        flex-shrink: 0;
-        display: flex;
+        display: inline-flex;
         align-items: center;
-        gap: 4px;
-        padding: 6px 12px;
-        border: 1px solid rgba(var(--center-channel-color-rgb), 0.16);
-        border-radius: 16px;
+        gap: 3px;
+        padding: 4px 8px;
+        border: 1px solid rgba(var(--center-channel-color-rgb), 0.12);
+        border-radius: 12px;
         background: transparent;
-        font-size: 12px;
+        font-size: 11px;
         font-weight: 500;
         color: rgba(var(--center-channel-color-rgb), 0.72);
         cursor: pointer;
         transition: all 0.15s ease;
-        white-space: nowrap;
 
         &:hover {
             background: rgba(var(--center-channel-color-rgb), 0.08);
@@ -253,51 +246,37 @@
             color: var(--button-bg);
         }
 
-        // Highlighted when search matches this category's tag
         &.highlighted {
             background: rgba(var(--online-indicator-rgb), 0.12);
             border-color: var(--online-indicator);
             color: var(--online-indicator);
-            animation: pulse-highlight 1.5s ease-in-out infinite;
         }
 
         &__count {
-            font-size: 11px;
+            font-size: 10px;
             opacity: 0.7;
             font-weight: 400;
         }
     }
 
-    @keyframes pulse-highlight {
-        0%, 100% {
-            box-shadow: 0 0 0 0 rgba(var(--online-indicator-rgb), 0.4);
-        }
-        50% {
-            box-shadow: 0 0 0 4px rgba(var(--online-indicator-rgb), 0);
-        }
-    }
-
-    // Scrollable icons grid
+    // Icons grid
     &__iconsContainer {
         flex: 1;
         min-height: 0;
-        overflow-y: auto;
-        padding: 4px;
-        margin: 0 -4px;
     }
 
     &__iconsGrid {
         display: grid;
-        grid-template-columns: repeat(auto-fill, minmax(44px, 1fr));
-        gap: 8px;
+        grid-template-columns: repeat(auto-fill, minmax(40px, 1fr));
+        gap: 6px;
     }
 
     &__iconButton {
         display: flex;
         align-items: center;
         justify-content: center;
-        width: 44px;
-        height: 44px;
+        width: 40px;
+        height: 40px;
         border: 1px solid transparent;
         border-radius: 6px;
         background: transparent;
@@ -317,55 +296,78 @@
         }
 
         svg {
-            width: 22px;
-            height: 22px;
+            width: 20px;
+            height: 20px;
         }
     }
 
     &__noResults {
         grid-column: 1 / -1;
-        padding: 32px;
+        padding: 24px;
         text-align: center;
         color: rgba(var(--center-channel-color-rgb), 0.56);
-        font-size: 14px;
+        font-size: 13px;
     }
 
     &__unknownIcon {
         display: flex;
         align-items: center;
         justify-content: center;
-        width: 22px;
-        height: 22px;
-        font-size: 14px;
+        width: 20px;
+        height: 20px;
+        font-size: 12px;
         color: rgba(var(--center-channel-color-rgb), 0.56);
     }
 
     &__defaultIcon {
         i {
-            font-size: 24px;
+            font-size: 20px;
         }
     }
 
+    // Custom SVG content
     &__customContent {
         display: flex;
         flex-direction: column;
-        gap: 12px;
+        gap: 10px;
         flex: 1;
         overflow-y: auto;
     }
 
+    // Existing custom SVGs from other channels
+    &__existingCustomSection {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        padding-bottom: 12px;
+        margin-bottom: 4px;
+        border-bottom: 1px solid rgba(var(--center-channel-color-rgb), 0.12);
+    }
+
+    &__existingCustomLabel {
+        font-size: 12px;
+        font-weight: 500;
+        color: rgba(var(--center-channel-color-rgb), 0.72);
+    }
+
+    &__existingCustomGrid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(40px, 1fr));
+        gap: 6px;
+    }
+
     &__customDescription {
-        font-size: 13px;
+        font-size: 12px;
         color: rgba(var(--center-channel-color-rgb), 0.72);
     }
 
     &__customTextarea {
         width: 100%;
-        padding: 12px;
+        padding: 10px;
         border: 1px solid rgba(var(--center-channel-color-rgb), 0.16);
         border-radius: 4px;
         background: var(--center-channel-bg);
-        font-size: 13px;
+        font-size: 12px;
         font-family: monospace;
         color: var(--center-channel-color);
         resize: vertical;
@@ -381,18 +383,18 @@
     }
 
     &__customError {
-        font-size: 12px;
+        font-size: 11px;
         color: var(--error-text);
     }
 
     &__customPreview {
         display: flex;
         align-items: center;
-        gap: 12px;
+        gap: 10px;
     }
 
     &__customPreviewLabel {
-        font-size: 13px;
+        font-size: 12px;
         color: rgba(var(--center-channel-color-rgb), 0.72);
     }
 
@@ -400,8 +402,8 @@
         display: flex;
         align-items: center;
         justify-content: center;
-        width: 32px;
-        height: 32px;
+        width: 28px;
+        height: 28px;
         color: var(--center-channel-color);
 
         svg {
@@ -422,7 +424,6 @@
         svg {
             max-width: 100%;
             max-height: 100%;
-            // Normalize SVG colors to inherit from parent
             fill: currentColor;
 
             path, circle, rect, polygon, polyline, line, ellipse {
@@ -432,32 +433,21 @@
         }
     }
 
-    // Loading state
     &__loading {
         display: flex;
         align-items: center;
         justify-content: center;
-        padding: 48px;
+        padding: 32px;
         color: rgba(var(--center-channel-color-rgb), 0.56);
     }
 
-    // Result info
     &__resultInfo {
-        padding: 8px 0;
-        font-size: 12px;
+        padding: 6px 0;
+        font-size: 11px;
         color: rgba(var(--center-channel-color-rgb), 0.56);
 
         strong {
             color: var(--center-channel-color);
-        }
-
-        &__matchType {
-            margin-left: 4px;
-            padding: 2px 6px;
-            background: rgba(var(--button-bg-rgb), 0.1);
-            border-radius: 4px;
-            font-size: 10px;
-            color: var(--button-bg);
         }
     }
 }
@@ -473,15 +463,14 @@
     }
 }
 
-// MDI and Simple Icons (filled path icons)
 .sidebar-channel-icon--mdi,
-.sidebar-channel-icon--simple {
+.sidebar-channel-icon--simple,
+.sidebar-channel-icon--fontawesome {
     svg {
         fill: currentColor;
     }
 }
 
-// Lucide, Tabler, and Feather Icons (stroke-based icons)
 .sidebar-channel-icon--lucide,
 .sidebar-channel-icon--tabler,
 .sidebar-channel-icon--feather {
@@ -491,7 +480,6 @@
     }
 }
 
-// Normalize custom SVGs in sidebar
 .sidebar-channel-icon--custom {
     svg {
         fill: currentColor;

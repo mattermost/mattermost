@@ -20,6 +20,8 @@
     "gen-lang-imports": "node scripts/gen_lang_imports.mjs"
   },
   "dependencies": {
+    "@fortawesome/free-regular-svg-icons": "7.1.0",
+    "@fortawesome/free-solid-svg-icons": "7.1.0",
     "@mattermost/compass-icons": "0.1.52",
     "styled-components": "6.3.8",
     "typescript": "5.6.3"
