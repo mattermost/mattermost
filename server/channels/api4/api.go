@@ -167,6 +167,9 @@ type Routes struct {
 	LLMServices *mux.Router // 'api/v4/llmservices'
 
 	Encryption *mux.Router // 'api/v4/encryption'
+
+	CustomChannelIcons *mux.Router // 'api/v4/custom_channel_icons'
+	CustomChannelIcon  *mux.Router // 'api/v4/custom_channel_icons/{icon_id:[A-Za-z0-9]+}'
 }
 
 type API struct {
@@ -319,6 +322,8 @@ func Init(srv *app.Server) (*API, error) {
 	api.BaseRoutes.Agents = api.BaseRoutes.APIRoot.PathPrefix("/agents").Subrouter()
 	api.BaseRoutes.LLMServices = api.BaseRoutes.APIRoot.PathPrefix("/llmservices").Subrouter()
 	api.BaseRoutes.Encryption = api.BaseRoutes.APIRoot.PathPrefix("/encryption").Subrouter()
+	api.BaseRoutes.CustomChannelIcons = api.BaseRoutes.APIRoot.PathPrefix("/custom_channel_icons").Subrouter()
+	api.BaseRoutes.CustomChannelIcon = api.BaseRoutes.CustomChannelIcons.PathPrefix("/{icon_id:[A-Za-z0-9]+}").Subrouter()
 
 	api.InitUser()
 	api.InitBot()
@@ -375,6 +380,7 @@ func Init(srv *app.Server) (*API, error) {
 	api.InitContentFlagging()
 	api.InitAgents()
 	api.InitEncryption()
+	api.InitCustomChannelIcon()
 
 	// If we allow testing then listen for manual testing URL hits
 	if *srv.Config().ServiceSettings.EnableTesting {

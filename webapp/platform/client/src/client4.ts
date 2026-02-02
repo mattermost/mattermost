@@ -57,6 +57,7 @@ import type {
     LdapSettings, ContentFlaggingSettings,
 } from '@mattermost/types/config';
 import type {ContentFlaggingConfig} from '@mattermost/types/content_flagging';
+import type {CustomChannelIcon, CustomChannelIconCreate, CustomChannelIconPatch} from '@mattermost/types/custom_channel_icons';
 import type {
     DataRetentionCustomPolicies,
     CreateDataRetentionCustomPolicy,
@@ -434,6 +435,14 @@ export default class Client4 {
 
     getEmojiRoute(emojiId: string) {
         return `${this.getEmojisRoute()}/${emojiId}`;
+    }
+
+    getCustomChannelIconsRoute() {
+        return `${this.getBaseRoute()}/custom_channel_icons`;
+    }
+
+    getCustomChannelIconRoute(iconId: string) {
+        return `${this.getCustomChannelIconsRoute()}/${iconId}`;
     }
 
     getBrandRoute() {
@@ -3196,6 +3205,43 @@ export default class Client4 {
         return this.doFetch<CustomEmoji[]>(
             `${this.getEmojisRoute()}/autocomplete${buildQueryString({name})}`,
             {method: 'get'},
+        );
+    };
+
+    // Custom Channel Icons
+
+    getCustomChannelIcons = () => {
+        return this.doFetch<CustomChannelIcon[]>(
+            `${this.getCustomChannelIconsRoute()}`,
+            {method: 'get'},
+        );
+    };
+
+    getCustomChannelIcon = (iconId: string) => {
+        return this.doFetch<CustomChannelIcon>(
+            `${this.getCustomChannelIconRoute(iconId)}`,
+            {method: 'get'},
+        );
+    };
+
+    createCustomChannelIcon = (icon: CustomChannelIconCreate) => {
+        return this.doFetch<CustomChannelIcon>(
+            `${this.getCustomChannelIconsRoute()}`,
+            {method: 'post', body: JSON.stringify(icon)},
+        );
+    };
+
+    updateCustomChannelIcon = (iconId: string, patch: CustomChannelIconPatch) => {
+        return this.doFetch<CustomChannelIcon>(
+            `${this.getCustomChannelIconRoute(iconId)}`,
+            {method: 'put', body: JSON.stringify(patch)},
+        );
+    };
+
+    deleteCustomChannelIcon = (iconId: string) => {
+        return this.doFetch<StatusOK>(
+            `${this.getCustomChannelIconRoute(iconId)}`,
+            {method: 'delete'},
         );
     };
 

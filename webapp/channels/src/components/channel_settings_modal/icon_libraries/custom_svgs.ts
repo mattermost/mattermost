@@ -1,7 +1,11 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-// Custom SVG definition
+import type {CustomChannelIcon} from '@mattermost/types/custom_channel_icons';
+
+import {Client4} from 'mattermost-redux/client';
+
+// Custom SVG definition (for local storage fallback)
 export type CustomSvg = {
     id: string;
     name: string;
@@ -10,7 +14,7 @@ export type CustomSvg = {
     createdAt: number;
 };
 
-// Storage key prefix
+// Storage key prefix for localStorage fallback
 const STORAGE_KEY_PREFIX = 'mattermost_custom_svgs_';
 
 // Get storage key for current user
@@ -23,7 +27,18 @@ export function generateCustomSvgId(): string {
     return `custom_${Date.now()}_${Math.random().toString(36).slice(2, 9)}`;
 }
 
-// Get all custom SVGs for a user
+// Convert server icon to local CustomSvg format
+function serverIconToCustomSvg(icon: CustomChannelIcon): CustomSvg {
+    return {
+        id: icon.id,
+        name: icon.name,
+        svg: icon.svg,
+        normalizeColor: icon.normalize_color,
+        createdAt: icon.create_at,
+    };
+}
+
+// Get all custom SVGs for a user (localStorage fallback)
 export function getCustomSvgs(userId: string): CustomSvg[] {
     try {
         const data = localStorage.getItem(getStorageKey(userId));
@@ -36,10 +51,32 @@ export function getCustomSvgs(userId: string): CustomSvg[] {
     }
 }
 
-// Get a specific custom SVG by ID
+// Get all custom SVGs from server
+export async function getCustomSvgsFromServer(): Promise<CustomSvg[]> {
+    try {
+        const icons = await Client4.getCustomChannelIcons();
+        return icons.map(serverIconToCustomSvg);
+    } catch (error) {
+        // eslint-disable-next-line no-console
+        console.error('Failed to fetch custom SVGs from server:', error);
+        return [];
+    }
+}
+
+// Get a specific custom SVG by ID (localStorage fallback)
 export function getCustomSvgById(userId: string, id: string): CustomSvg | undefined {
     const svgs = getCustomSvgs(userId);
     return svgs.find((svg) => svg.id === id);
+}
+
+// Get a specific custom SVG by ID from server
+export async function getCustomSvgByIdFromServer(id: string): Promise<CustomSvg | undefined> {
+    try {
+        const icon = await Client4.getCustomChannelIcon(id);
+        return serverIconToCustomSvg(icon);
+    } catch {
+        return undefined;
+    }
 }
 
 // Get a custom SVG by name (for display purposes)
@@ -48,7 +85,7 @@ export function getCustomSvgByName(userId: string, name: string): CustomSvg | un
     return svgs.find((svg) => svg.name.toLowerCase() === name.toLowerCase());
 }
 
-// Save all custom SVGs for a user
+// Save all custom SVGs for a user (localStorage fallback)
 export function saveCustomSvgs(userId: string, svgs: CustomSvg[]): void {
     try {
         localStorage.setItem(getStorageKey(userId), JSON.stringify(svgs));
@@ -58,7 +95,7 @@ export function saveCustomSvgs(userId: string, svgs: CustomSvg[]): void {
     }
 }
 
-// Add a new custom SVG
+// Add a new custom SVG (localStorage fallback)
 export function addCustomSvg(userId: string, svg: Omit<CustomSvg, 'id' | 'createdAt'>): CustomSvg {
     const svgs = getCustomSvgs(userId);
     const newSvg: CustomSvg = {
@@ -71,7 +108,17 @@ export function addCustomSvg(userId: string, svg: Omit<CustomSvg, 'id' | 'create
     return newSvg;
 }
 
-// Update an existing custom SVG
+// Add a new custom SVG to server
+export async function addCustomSvgToServer(svg: Omit<CustomSvg, 'id' | 'createdAt'>): Promise<CustomSvg> {
+    const icon = await Client4.createCustomChannelIcon({
+        name: svg.name,
+        svg: svg.svg,
+        normalize_color: svg.normalizeColor,
+    });
+    return serverIconToCustomSvg(icon);
+}
+
+// Update an existing custom SVG (localStorage fallback)
 export function updateCustomSvg(userId: string, id: string, updates: Partial<Omit<CustomSvg, 'id' | 'createdAt'>>): CustomSvg | undefined {
     const svgs = getCustomSvgs(userId);
     const index = svgs.findIndex((svg) => svg.id === id);
@@ -83,7 +130,17 @@ export function updateCustomSvg(userId: string, id: string, updates: Partial<Omi
     return svgs[index];
 }
 
-// Delete a custom SVG
+// Update a custom SVG on server
+export async function updateCustomSvgOnServer(id: string, updates: Partial<Omit<CustomSvg, 'id' | 'createdAt'>>): Promise<CustomSvg> {
+    const icon = await Client4.updateCustomChannelIcon(id, {
+        name: updates.name,
+        svg: updates.svg,
+        normalize_color: updates.normalizeColor,
+    });
+    return serverIconToCustomSvg(icon);
+}
+
+// Delete a custom SVG (localStorage fallback)
 export function deleteCustomSvg(userId: string, id: string): boolean {
     const svgs = getCustomSvgs(userId);
     const index = svgs.findIndex((svg) => svg.id === id);
@@ -93,6 +150,62 @@ export function deleteCustomSvg(userId: string, id: string): boolean {
     svgs.splice(index, 1);
     saveCustomSvgs(userId, svgs);
     return true;
+}
+
+// Delete a custom SVG from server
+export async function deleteCustomSvgFromServer(id: string): Promise<boolean> {
+    try {
+        await Client4.deleteCustomChannelIcon(id);
+        return true;
+    } catch {
+        return false;
+    }
+}
+
+// Migrate localStorage icons to server (admin only)
+export async function migrateLocalStorageToServer(userId: string): Promise<{migrated: number; errors: number}> {
+    const localSvgs = getCustomSvgs(userId);
+    let migrated = 0;
+    let errors = 0;
+
+    // Get existing server icons to avoid duplicates
+    let serverSvgs: CustomSvg[] = [];
+    try {
+        serverSvgs = await getCustomSvgsFromServer();
+    } catch {
+        // Continue with migration even if we can't fetch server icons
+    }
+
+    const serverNames = new Set(serverSvgs.map((svg) => svg.name.toLowerCase()));
+
+    for (const localSvg of localSvgs) {
+        // Skip if already exists on server (by name)
+        if (serverNames.has(localSvg.name.toLowerCase())) {
+            continue;
+        }
+
+        try {
+            await addCustomSvgToServer({
+                name: localSvg.name,
+                svg: localSvg.svg,
+                normalizeColor: localSvg.normalizeColor,
+            });
+            migrated++;
+        } catch {
+            errors++;
+        }
+    }
+
+    // Clear localStorage after successful migration
+    if (migrated > 0 && errors === 0) {
+        try {
+            localStorage.removeItem(getStorageKey(userId));
+        } catch {
+            // Ignore
+        }
+    }
+
+    return {migrated, errors};
 }
 
 // Normalize SVG colors (replace fill/stroke with currentColor)

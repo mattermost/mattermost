@@ -101,6 +101,7 @@ type Store interface {
 	ReadReceipt() ReadReceiptStore
 	TemporaryPost() TemporaryPostStore
 	EncryptionSessionKey() EncryptionSessionKeyStore
+	CustomChannelIcon() CustomChannelIconStore
 }
 
 type RetentionPolicyStore interface {
@@ -1224,6 +1225,24 @@ type EncryptionSessionKeyStore interface {
 	DeleteByUser(userId string) error
 	// DeleteExpired removes encryption keys for sessions that no longer exist.
 	DeleteExpired() error
+}
+
+// CustomChannelIconStore manages custom SVG icons for channels.
+type CustomChannelIconStore interface {
+	// Save stores a new custom channel icon.
+	Save(icon *model.CustomChannelIcon) (*model.CustomChannelIcon, error)
+	// Update updates an existing custom channel icon.
+	Update(icon *model.CustomChannelIcon) (*model.CustomChannelIcon, error)
+	// Get returns a custom channel icon by ID.
+	Get(id string) (*model.CustomChannelIcon, error)
+	// GetByName returns a custom channel icon by name.
+	GetByName(name string) (*model.CustomChannelIcon, error)
+	// GetAll returns all custom channel icons (excluding deleted).
+	GetAll() ([]*model.CustomChannelIcon, error)
+	// Delete soft-deletes a custom channel icon.
+	Delete(id string, deleteAt int64) error
+	// Search searches for custom channel icons by name.
+	Search(term string, limit int) ([]*model.CustomChannelIcon, error)
 }
 
 // ChannelSearchOpts contains options for searching channels.

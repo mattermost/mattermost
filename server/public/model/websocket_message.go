@@ -102,6 +102,9 @@ const (
 	WebsocketEventPostRevealed                        WebsocketEventType = "post_revealed"
 	WebsocketEventPostBurned                          WebsocketEventType = "post_burned"
 	WebsocketEventBurnOnReadAllRevealed               WebsocketEventType = "burn_on_read_all_revealed"
+	WebsocketEventCustomChannelIconAdded              WebsocketEventType = "custom_channel_icon_added"
+	WebsocketEventCustomChannelIconUpdated            WebsocketEventType = "custom_channel_icon_updated"
+	WebsocketEventCustomChannelIconDeleted            WebsocketEventType = "custom_channel_icon_deleted"
 
 	WebSocketMsgTypeResponse = "response"
 	WebSocketMsgTypeEvent    = "event"

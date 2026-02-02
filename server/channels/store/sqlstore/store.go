@@ -115,6 +115,7 @@ type SqlStoreStores struct {
 	readReceipt                store.ReadReceiptStore
 	temporaryPost              store.TemporaryPostStore
 	encryptionSessionKey       store.EncryptionSessionKeyStore
+	customChannelIcon          store.CustomChannelIconStore
 }
 
 type SqlStore struct {
@@ -269,6 +270,7 @@ func New(settings model.SqlSettings, logger mlog.LoggerIFace, metrics einterface
 	store.stores.readReceipt = newSqlReadReceiptStore(store, metrics)
 	store.stores.temporaryPost = newSqlTemporaryPostStore(store, metrics)
 	store.stores.encryptionSessionKey = newSqlEncryptionSessionKeyStore(store)
+	store.stores.customChannelIcon = newSqlCustomChannelIconStore(store)
 
 	store.stores.preference.(*SqlPreferenceStore).deleteUnusedFeatures()
 
@@ -898,6 +900,10 @@ func (ss *SqlStore) TemporaryPost() store.TemporaryPostStore {
 
 func (ss *SqlStore) EncryptionSessionKey() store.EncryptionSessionKeyStore {
 	return ss.stores.encryptionSessionKey
+}
+
+func (ss *SqlStore) CustomChannelIcon() store.CustomChannelIconStore {
+	return ss.stores.customChannelIcon
 }
 
 func (ss *SqlStore) DropAllTables() {
