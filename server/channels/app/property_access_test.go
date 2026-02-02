@@ -950,6 +950,11 @@ func TestDeletePropertyField_WriteAccessControl(t *testing.T) {
 	})
 
 	t.Run("denies non-source plugin deleting protected field", func(t *testing.T) {
+		pas := th.App.PropertyAccessService()
+		pas.setPluginCheckerForTests(func(pluginID string) bool {
+			return pluginID == "plugin1"
+		})
+
 		field := &model.PropertyField{
 			GroupID: groupID,
 			Name:    "Protected",
@@ -958,10 +963,10 @@ func TestDeletePropertyField_WriteAccessControl(t *testing.T) {
 				model.PropertyAttrsProtected: true,
 			},
 		}
-		created, err := th.App.PropertyAccessService().CreatePropertyFieldForPlugin("plugin1", field)
+		created, err := pas.CreatePropertyFieldForPlugin("plugin1", field)
 		require.NoError(t, err)
 
-		err = th.App.PropertyAccessService().DeletePropertyField("plugin2", groupID, created.ID)
+		err = pas.DeletePropertyField("plugin2", groupID, created.ID)
 		require.Error(t, err)
 		assert.Contains(t, err.Error(), "protected")
 	})
@@ -2062,5 +2067,100 @@ func TestCreatePropertyValues_WriteAccessControl(t *testing.T) {
 		})
 		require.NoError(t, err)
 		assert.Empty(t, results3)
+	})
+}
+
+func TestDeletePropertyField_OrphanedFieldDeletion(t *testing.T) {
+	th := Setup(t)
+
+	groupID := model.NewId()
+	pas := th.App.PropertyAccessService()
+
+	t.Run("allows deletion of orphaned protected field when plugin is uninstalled", func(t *testing.T) {
+		pas.setPluginCheckerForTests(func(pluginID string) bool {
+			return false
+		})
+
+		field := &model.PropertyField{
+			GroupID: groupID,
+			Name:    "Orphaned Protected Field",
+			Type:    model.PropertyFieldTypeText,
+			Attrs: model.StringInterface{
+				model.PropertyAttrsProtected: true,
+			},
+		}
+		created, err := pas.CreatePropertyFieldForPlugin("removed-plugin", field)
+		require.NoError(t, err)
+
+		err = pas.DeletePropertyField("admin-user", groupID, created.ID)
+		require.NoError(t, err)
+	})
+
+	t.Run("blocks deletion of protected field when plugin is still installed", func(t *testing.T) {
+		pas.setPluginCheckerForTests(func(pluginID string) bool {
+			return pluginID == "installed-plugin"
+		})
+
+		field := &model.PropertyField{
+			GroupID: groupID,
+			Name:    "Active Protected Field",
+			Type:    model.PropertyFieldTypeText,
+			Attrs: model.StringInterface{
+				model.PropertyAttrsProtected: true,
+			},
+		}
+		created, err := pas.CreatePropertyFieldForPlugin("installed-plugin", field)
+		require.NoError(t, err)
+
+		err = pas.DeletePropertyField("admin-user", groupID, created.ID)
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "protected")
+		assert.Contains(t, err.Error(), "installed-plugin")
+
+		err = pas.DeletePropertyField("installed-plugin", groupID, created.ID)
+		require.NoError(t, err)
+	})
+
+	t.Run("blocks update of orphaned protected field even when plugin is uninstalled", func(t *testing.T) {
+		pas.setPluginCheckerForTests(func(pluginID string) bool {
+			return false
+		})
+
+		field := &model.PropertyField{
+			GroupID: groupID,
+			Name:    "Orphaned Field For Update",
+			Type:    model.PropertyFieldTypeText,
+			Attrs: model.StringInterface{
+				model.PropertyAttrsProtected: true,
+			},
+		}
+		created, err := pas.CreatePropertyFieldForPlugin("removed-plugin", field)
+		require.NoError(t, err)
+
+		created.Name = "Updated Orphaned Field"
+		updated, err := pas.UpdatePropertyField("admin-user", groupID, created)
+		require.Error(t, err)
+		assert.Nil(t, updated)
+		assert.Contains(t, err.Error(), "protected")
+	})
+
+	t.Run("allows deletion of protected field without source_plugin_id", func(t *testing.T) {
+		pas.setPluginCheckerForTests(func(pluginID string) bool {
+			return true
+		})
+
+		field := &model.PropertyField{
+			GroupID: groupID,
+			Name:    "Protected No Source",
+			Type:    model.PropertyFieldTypeText,
+			Attrs: model.StringInterface{
+				model.PropertyAttrsProtected: true,
+			},
+		}
+		created, err := pas.CreatePropertyField("", field)
+		require.NoError(t, err)
+
+		err = pas.DeletePropertyField("admin-user", groupID, created.ID)
+		require.NoError(t, err)
 	})
 }
