@@ -615,7 +615,7 @@ const AdminDefinition: AdminDefinitionType = {
             system_roles: {
                 url: 'user_management/system_roles',
                 title: defineMessage({id: 'admin.sidebar.systemRoles', defaultMessage: 'Delegated Granular Administration'}),
-                icon: <AccountCogOutlineIcon size={14} color={'currentColor'}/>,
+                icon: <CogOutlineIcon size={14} color={'currentColor'}/>,
                 isHidden: it.any(
                     it.not(it.licensedForFeature('LDAPGroups')),
                     it.licensedForSku(LicenseSkus.Entry),
@@ -632,7 +632,7 @@ const AdminDefinition: AdminDefinitionType = {
                 url: 'user_management/system_roles',
                 isDiscovery: true,
                 title: defineMessage({id: 'admin.sidebar.systemRoles', defaultMessage: 'Delegated Granular Administration'}),
-                icon: <AccountCogOutlineIcon size={14} color={'currentColor'}/>,
+                icon: <CogOutlineIcon size={14} color={'currentColor'}/>,
                 isHidden: it.any(
                     it.licensedForFeature('LDAPGroups'),
                 ),
@@ -834,7 +834,7 @@ const AdminDefinition: AdminDefinitionType = {
             web_server: {
                 url: 'environment/web_server',
                 title: defineMessage({id: 'admin.sidebar.webServer', defaultMessage: 'Web Server'}),
-                icon: <WebIcon size={14} color={'currentColor'}/>,
+                icon: <GlobeIcon size={14} color={'currentColor'}/>,
                 isHidden: it.any(
                     it.configIsTrue('ExperimentalSettings', 'RestrictSystemAdmin'),
                     it.not(it.userHasReadPermissionOnResource(RESOURCE_KEYS.ENVIRONMENT.WEB_SERVER)),
@@ -1058,7 +1058,7 @@ const AdminDefinition: AdminDefinitionType = {
             database: {
                 url: 'environment/database',
                 title: defineMessage({id: 'admin.sidebar.database', defaultMessage: 'Database'}),
-                icon: <DatabaseOutlineIcon size={14} color={'currentColor'}/>,
+                icon: <ServerOutlineIcon size={14} color={'currentColor'}/>,
                 searchableStrings: databaseSearchableStrings,
                 isHidden: it.any(
                     it.cloudLicensed,
@@ -1706,7 +1706,7 @@ const AdminDefinition: AdminDefinitionType = {
             high_availability: {
                 url: 'environment/high_availability',
                 title: defineMessage({id: 'admin.sidebar.highAvailability', defaultMessage: 'High Availability'}),
-                icon: <ServerNetworkIcon size={14} color={'currentColor'}/>,
+                icon: <ServerVariantIcon size={14} color={'currentColor'}/>,
                 isHidden: it.any(
                     it.not(it.licensedForFeature('Cluster')),
                     it.configIsTrue('ExperimentalSettings', 'RestrictSystemAdmin'),
@@ -1722,7 +1722,7 @@ const AdminDefinition: AdminDefinitionType = {
             cache_settings: {
                 url: 'environment/cache_settings',
                 title: adminDefinitionMessages.cache_settings_title,
-                icon: <DatabaseOutlineIcon size={14} color={'currentColor'}/>,
+                icon: <ServerOutlineIcon size={14} color={'currentColor'}/>,
                 isHidden: it.any(
                     it.not(it.licensedForFeature('Cluster')),
                     it.configIsTrue('ExperimentalSettings', 'RestrictSystemAdmin'),
@@ -1818,7 +1818,7 @@ const AdminDefinition: AdminDefinitionType = {
             rate_limiting: {
                 url: 'environment/rate_limiting',
                 title: defineMessage({id: 'admin.sidebar.rateLimiting', defaultMessage: 'Rate Limiting'}),
-                icon: <SpeedometerIcon size={14} color={'currentColor'}/>,
+                icon: <ChartLineIcon size={14} color={'currentColor'}/>,
                 isHidden: it.any(
                     it.configIsTrue('ExperimentalSettings', 'RestrictSystemAdmin'),
                     it.not(it.userHasReadPermissionOnResource(RESOURCE_KEYS.ENVIRONMENT.RATE_LIMITING)),
@@ -5827,7 +5827,7 @@ const AdminDefinition: AdminDefinitionType = {
                 url: 'integrations/cors',
                 title: defineMessage({id: 'admin.sidebar.cors', defaultMessage: 'CORS'}),
                 icon: (
-                    <WebIcon
+                    <GlobeIcon
                         size={14}
                         color={'currentColor'}
                     />
