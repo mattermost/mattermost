@@ -786,10 +786,6 @@
     "translation": "找不到指定的頻道。請用[頻道代號](https://docs.mattermost.com/messaging/managing-channels.html#naming-a-channel)找出頻道。"
   },
   {
-    "id": "api.command_mute.not_member.error",
-    "translation": "由於不是頻道成員，無法對頻道 {{.Channel}} 靜音。"
-  },
-  {
     "id": "api.command_mute.success_mute",
     "translation": "直到頻道靜音關閉為止，將不會收到來自 {{.Channel}} 的通知。"
   },

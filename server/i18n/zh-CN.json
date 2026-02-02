@@ -788,10 +788,6 @@
     "translation": "无法找到指定的频道。请使用[频道识别](https://docs.mattermost.com/messaging/managing-channels.html#naming-a-channel) 以分辨频道。"
   },
   {
-    "id": "api.command_mute.not_member.error",
-    "translation": "无法静音频道 {{.Channel}} 因为您不是成员。"
-  },
-  {
     "id": "api.command_mute.success_mute",
     "translation": "您将不会收到 {{.Channel}} 的通知直到取消频道静音。"
   },
@@ -11080,10 +11076,6 @@
   {
     "id": "model.config.is_valid.autotranslation.provider.unsupported.app_error",
     "translation": "不支持的自动翻译服务提供商。"
-  },
-  {
-    "id": "model.config.is_valid.autotranslation.timeouts.notification.app_error",
-    "translation": "自动翻译设置的通知超时无效。必须为正数。"
   },
   {
     "id": "api.command.move_command.creator_no_permission.app_error",

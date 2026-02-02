@@ -5911,10 +5911,6 @@
     "translation": "Du kommer inte ta emot notifieringar om {{.Channel}} tills tyst kanal är avaktiverad."
   },
   {
-    "id": "api.command_mute.not_member.error",
-    "translation": "Kunde inte tysta kanalen {{.Channel}} eftersom du inte är medlem."
-  },
-  {
     "id": "api.command_mute.no_channel.error",
     "translation": "Hittar ej den utpekade kanalen. Använd [channel handle](https://docs.mattermost.com/messaging/managing-channels.html#naming-a-channel) för att identifiera kanaler."
   },
@@ -11046,10 +11042,6 @@
   {
     "id": "model.config.is_valid.autotranslation.provider.unsupported.app_error",
     "translation": "Leverantören av autotranslation stöds inte."
-  },
-  {
-    "id": "model.config.is_valid.autotranslation.timeouts.notification.app_error",
-    "translation": "Tidsgränsen för avisering av autotranslation är ogiltig. Måste vara ett positivt tal."
   },
   {
     "id": "model.oauth.validate_grant.credentials.app_error",

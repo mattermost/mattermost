@@ -6370,10 +6370,6 @@
     "translation": "You will not receive notifications for {{.Channel}} until channel mute is turned off."
   },
   {
-    "id": "api.command_mute.not_member.error",
-    "translation": "Could not mute channel {{.Channel}} as you are not a member."
-  },
-  {
     "id": "api.command_mute.no_channel.error",
     "translation": "Could not find the specified channel. Please use the [channel handle](https://docs.mattermost.com/messaging/managing-channels.html#naming-a-channel) to identify channels."
   },
@@ -11035,10 +11031,6 @@
   {
     "id": "model.config.is_valid.autotranslation.provider.unsupported.app_error",
     "translation": "Unsupported autotranslation provider."
-  },
-  {
-    "id": "model.config.is_valid.autotranslation.timeouts.notification.app_error",
-    "translation": "Invalid notification timeout for autotranslation settings. Must be a positive number."
   },
   {
     "id": "model.config.is_valid.client_side_cert_enable.app_error",

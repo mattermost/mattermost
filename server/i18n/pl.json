@@ -792,10 +792,6 @@
     "translation": "Nie można znaleźć określonego kanału. Użyj [uchwytu kanału](https://docs.mattermost.com/messaging/managing-channels.html#naming-a-channel), aby zidentyfikować kanały."
   },
   {
-    "id": "api.command_mute.not_member.error",
-    "translation": "Nie można wyciszyć kanału {{.Channel}} jeśli nie jesteś jego członkiem."
-  },
-  {
     "id": "api.command_mute.success_mute",
     "translation": "Nie będziesz otrzymywać powiadomień o kanale {{.Channel}}, dopóki wyciszenie kanału jest wyłączone."
   },
@@ -10990,10 +10986,6 @@
   {
     "id": "model.config.is_valid.autotranslation.provider.unsupported.app_error",
     "translation": "Nieobsługiwany dostawca autotranslacji."
-  },
-  {
-    "id": "model.config.is_valid.autotranslation.timeouts.notification.app_error",
-    "translation": "Nieprawidłowy limit czasu powiadomienia dla ustawień autotranslacji. Musi być liczbą dodatnią."
   },
   {
     "id": "api.channel.get_channel.flagged_post_mismatch.app_error",

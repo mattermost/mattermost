@@ -788,10 +788,6 @@
     "translation": "지정한 채널을 찾을 수 없습니다. 채널을 식별하려면 [채널 핸들](https://docs.mattermost.com/messaging/managing-channels.html#naming-a-channel)을 사용하세요."
   },
   {
-    "id": "api.command_mute.not_member.error",
-    "translation": "사용자가 채널 회원이 아니기 때문에 {{.Channel}} 채널 음소거할 수 없습니다."
-  },
-  {
     "id": "api.command_mute.success_mute",
     "translation": "채널 음소거가 해제될 때까지{{.Channel}}에 대한 알림을 받지 않습니다."
   },

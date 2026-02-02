@@ -8180,10 +8180,6 @@
     "translation": "Вы не будзеце атрымліваць апавяшчэнні для {{.Channel}}, пакуль адключаны гук канала."
   },
   {
-    "id": "api.command_mute.not_member.error",
-    "translation": "Немагчыма адключыць гук у канале {{.Channel}}, бо вы не з'яўляецеся яго ўдзельнікам."
-  },
-  {
     "id": "api.command_mute.no_channel.error",
     "translation": "Немагчыма знайсці ўказаны канал. Калі ласка, выкарыстоўвайце [ідэнтыфікатар канала](https://docs.mattermost.com/messaging/managing-channels.html#naming-a-channel), каб ідэнтыфікаваць каналы."
   },
@@ -10946,10 +10942,6 @@
   {
     "id": "model.config.is_valid.autotranslation.provider.unsupported.app_error",
     "translation": "Непадтрымоўваны пастаўшчык аўтаматычнага перакладу."
-  },
-  {
-    "id": "model.config.is_valid.autotranslation.timeouts.notification.app_error",
-    "translation": "Несапраўдны час чакання апавяшчэння для налад аўтаматычнага перакладу. Павінна быць станоўчым лікам."
   },
   {
     "id": "api.channel.get_channel.flagged_post_mismatch.app_error",

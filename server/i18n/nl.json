@@ -790,10 +790,6 @@
     "translation": "Kan het opgegeven kanaal niet vinden. Gebruik de [kanaalaanduiding](https://docs.mattermost.com/messaging/managing-channels.html#naming-a-channel) om kanalen aan te duiden."
   },
   {
-    "id": "api.command_mute.not_member.error",
-    "translation": "Kan het kanaal {{.Channel}} niet dempen omdat je geen lid bent."
-  },
-  {
     "id": "api.command_mute.success_mute",
     "translation": "Je zal geen meldingen ontvangen voor {{.Channel}} tot het dempen van het kanaal is uitgeschakeld."
   },
@@ -10998,10 +10994,6 @@
   {
     "id": "model.config.is_valid.autotranslation.provider.unsupported.app_error",
     "translation": "Niet-ondersteunde provider voor automatische vertalingen."
-  },
-  {
-    "id": "model.config.is_valid.autotranslation.timeouts.notification.app_error",
-    "translation": "Ongeldige melding timeout voor automatische vertalingen. Moet een positief getal zijn. Moet een positief getal zijn."
   },
   {
     "id": "api.channel.get_channel.flagged_post_mismatch.app_error",
