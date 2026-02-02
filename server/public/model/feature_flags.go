@@ -105,6 +105,9 @@ type FeatureFlags struct {
 
 	// Enable Discord-style replies with inline quote previews
 	DiscordReplies bool
+
+	// Enable error log dashboard for system admins
+	ErrorLogDashboard bool
 }
 
 // featureFlagDefaults defines the default value for each boolean feature flag.

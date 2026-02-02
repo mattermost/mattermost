@@ -4905,6 +4905,42 @@ export default class Client4 {
             {method: 'get'},
         );
     };
+
+    // Error Log Routes
+
+    getErrorLogsRoute = () => {
+        return `${this.getBaseRoute()}/errors`;
+    };
+
+    reportError = (error: {
+        type: string;
+        message: string;
+        stack?: string;
+        url?: string;
+        line?: number;
+        column?: number;
+        component_stack?: string;
+        extra?: string;
+    }) => {
+        return this.doFetch<StatusOK>(
+            this.getErrorLogsRoute(),
+            {method: 'post', body: JSON.stringify(error)},
+        );
+    };
+
+    getErrorLogs = () => {
+        return this.doFetch<{errors: any[]; stats: {total: number; api: number; js: number}}>(
+            this.getErrorLogsRoute(),
+            {method: 'get'},
+        );
+    };
+
+    clearErrorLogs = () => {
+        return this.doFetch<StatusOK>(
+            this.getErrorLogsRoute(),
+            {method: 'delete'},
+        );
+    };
 }
 
 export function parseAndMergeNestedHeaders(originalHeaders: any) {

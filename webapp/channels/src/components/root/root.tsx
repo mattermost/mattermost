@@ -29,6 +29,7 @@ import webSocketClient from 'client/web_websocket_client';
 import {initializePlugins} from 'plugins';
 import 'utils/a11y_controller_instance';
 import {expirationScheduler} from 'utils/burn_on_read_expiration_scheduler';
+import {initErrorReporter} from 'utils/error_reporter';
 import {PageLoadContext, SCHEDULED_POST_URL_SUFFIX} from 'utils/constants';
 import DesktopApp from 'utils/desktop_api';
 import {EmojiIndicesByAlias} from 'utils/emoji';
@@ -281,6 +282,9 @@ export default class Root extends React.PureComponent<Props, State> {
 
         // Initialize burn-on-read expiration scheduler
         expirationScheduler.initialize(this.props.dispatch);
+
+        // Initialize global error reporter for the Error Log Dashboard
+        initErrorReporter();
 
         // Force logout of all tabs if one tab is logged out
         window.addEventListener('storage', this.handleLogoutLoginSignal);

@@ -23,6 +23,7 @@ const MATTERMOST_EXTENDED_FLAGS = [
     'CustomThreadNames',
     'GuildedSounds',
     'DiscordReplies',
+    'ErrorLogDashboard',
 ];
 
 type Props = {

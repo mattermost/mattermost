@@ -117,6 +117,9 @@ type PlatformService struct {
 	forceEnableRedis bool
 
 	pdpService einterfaces.PolicyDecisionPointInterface
+
+	// Error log buffer for storing client and API errors
+	errorLogBuffer *ErrorLogBuffer
 }
 
 type HookRunner interface {
@@ -142,6 +145,7 @@ func New(sc ServiceConfig, options ...Option) (*PlatformService, error) {
 		statusUpdateChan:          make(chan *model.Status, statusUpdateBufferSize),
 		statusUpdateExitSignal:    make(chan struct{}),
 		statusUpdateDoneSignal:    make(chan struct{}),
+		errorLogBuffer:            NewErrorLogBuffer(ErrorLogBufferSize),
 	}
 
 	// Assume the first user account has not been created yet. A call to the DB will later check if this is really the case.

@@ -173,6 +173,10 @@ const FLAG_METADATA: Record<string, {description: string; defaultValue: boolean}
         description: 'Enable Discord-style inline replies with quote previews instead of thread-based replies',
         defaultValue: false,
     },
+    ErrorLogDashboard: {
+        description: 'Enable error log dashboard for system admins to monitor API and JavaScript errors in real-time',
+        defaultValue: false,
+    },
 };
 
 // Styled components
