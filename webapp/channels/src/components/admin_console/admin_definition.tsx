@@ -2525,6 +2525,13 @@ const AdminDefinition: AdminDefinitionType = {
                             help_text: defineMessage({id: 'admin.customization.enableDesktopLandingPageDesc', defaultMessage: 'Whether or not to prompt a user to use the Desktop App when they first use Mattermost.'}),
                             isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.SITE.CUSTOMIZATION)),
                         },
+                        {
+                            type: 'text',
+                            key: 'ServiceSettings.MinimumDesktopAppVersion',
+                            label: defineMessage({id: 'admin.customization.minimumDesktopAppVersionTitle', defaultMessage: 'Minimum Desktop App Version:'}),
+                            help_text: defineMessage({id: 'admin.customization.minimumDesktopAppVersionDesc', defaultMessage: 'The minimum version of the Mattermost Desktop App required to access this server. Must be a valid semantic version (e.g. 5.0.0). Leave blank to allow any version.'}),
+                            isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.SITE.CUSTOMIZATION)),
+                        },
                     ],
                 },
             },

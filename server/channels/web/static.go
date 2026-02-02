@@ -73,6 +73,23 @@ func root(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	minDesktopVersion := ""
+	if c.App.Srv().Config().ServiceSettings.MinimumDesktopAppVersion != nil {
+		minDesktopVersion = *c.App.Srv().Config().ServiceSettings.MinimumDesktopAppVersion
+	}
+	if !CheckDesktopAppCompatibility(r.UserAgent(), minDesktopVersion) {
+		w.Header().Set("Cache-Control", "no-store")
+		data := renderUnsupportedDesktopApp(c.AppContext)
+
+		err := c.App.Srv().TemplatesContainer().Render(w, "unsupported_desktop_app", data)
+		if err != nil {
+			c.Logger.Error("Failed to render template", mlog.Err(err))
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+		return
+	}
+
 	if IsAPICall(c.App, r) {
 		Handle404(c.App, w, r)
 		return

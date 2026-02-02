@@ -148,6 +148,18 @@ func TestServiceSettingsIsValid(t *testing.T) {
 			},
 			ExpectError: false,
 		},
+		"MinimumDesktopAppVersion valid": {
+			ServiceSettings: ServiceSettings{
+				MinimumDesktopAppVersion: NewPointer("5.0.0"),
+			},
+			ExpectError: false,
+		},
+		"MinimumDesktopAppVersion invalid": {
+			ServiceSettings: ServiceSettings{
+				MinimumDesktopAppVersion: NewPointer("not-a-version"),
+			},
+			ExpectError: true,
+		},
 	} {
 		t.Run(name, func(t *testing.T) {
 			test.ServiceSettings.SetDefaults(false)

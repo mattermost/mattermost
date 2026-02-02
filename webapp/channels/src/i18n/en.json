@@ -823,6 +823,8 @@
   "admin.customization.enableCustomEmojiTitle": "Enable Custom Emoji:",
   "admin.customization.enableDesktopLandingPageDesc": "Whether or not to prompt a user to use the Desktop App when they first use Mattermost.",
   "admin.customization.enableDesktopLandingPageTitle": "Enable Desktop App Landing Page:",
+  "admin.customization.minimumDesktopAppVersionDesc": "The minimum version of the Mattermost Desktop App required to access this server. Must be a valid semantic version (e.g. 5.0.0). Leave blank to allow any version.",
+  "admin.customization.minimumDesktopAppVersionTitle": "Minimum Desktop App Version:",
   "admin.customization.enableEmojiPickerDesc": "The emoji picker allows users to select emoji to add as reactions or use in messages. Enabling the emoji picker with a large number of custom emoji may slow down performance.",
   "admin.customization.enableEmojiPickerTitle": "Enable Emoji Picker:",
   "admin.customization.enableGifPickerDesc": "Allows users to select GIFs from the emoji picker.",

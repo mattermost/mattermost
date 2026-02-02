@@ -156,3 +156,14 @@ func renderSystemBrowserEdge(rctx request.CTX, r *http.Request) SystemBrowser {
 		rctx.T("web.error.unsupported_browser.system_browser_make_default"),
 	}
 }
+
+func renderUnsupportedDesktopApp(rctx request.CTX) templates.Data {
+	return templates.Data{
+		Props: map[string]any{
+			"TitleString":    rctx.T("web.error.unsupported_desktop_app.title"),
+			"MessageString":  rctx.T("web.error.unsupported_desktop_app.message"),
+			"DownloadString": rctx.T("web.error.unsupported_desktop_app.download"),
+			"DownloadLink":   "https://mattermost.com/pl/download-apps",
+		},
+	}
+}

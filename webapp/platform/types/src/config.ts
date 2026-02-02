@@ -158,6 +158,7 @@ export type ClientConfig = {
     MaxFileSize: string;
     MaxPostSize: string;
     MaxNotificationsPerChannel: string;
+    MinimumDesktopAppVersion: string;
     MinimumHashtagLength: string;
     NoAccounts: string;
     GitLabButtonText: string;
@@ -379,6 +380,7 @@ export type ServiceSettings = {
     EnableCrossTeamSearch: boolean;
     EnablePostSearch: boolean;
     EnableFileSearch: boolean;
+    MinimumDesktopAppVersion: string;
     MinimumHashtagLength: number;
     EnableUserTypingMessages: boolean;
     EnableChannelViewedMessages: boolean;

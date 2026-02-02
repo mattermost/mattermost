@@ -10257,6 +10257,10 @@
     "translation": "Invalid max URL length for service settings. Must be a whole number greater than zero."
   },
   {
+    "id": "model.config.is_valid.minimum_desktop_app_version.app_error",
+    "translation": "Invalid minimum desktop app version for service settings. Must be a valid semantic version (e.g. 5.0.0)."
+  },
+  {
     "id": "model.config.is_valid.max_users.app_error",
     "translation": "Invalid maximum users per team for team settings. Must be a positive number."
   },
@@ -11751,6 +11755,18 @@
   {
     "id": "web.error.unsupported_browser.system_browser_or",
     "translation": "or"
+  },
+  {
+    "id": "web.error.unsupported_desktop_app.title",
+    "translation": "Desktop app update required"
+  },
+  {
+    "id": "web.error.unsupported_desktop_app.message",
+    "translation": "Your Mattermost desktop app version is no longer supported. Please update to the latest version to access this server."
+  },
+  {
+    "id": "web.error.unsupported_desktop_app.download",
+    "translation": "Download latest version"
   },
   {
     "id": "web.get_access_token.internal_saving.app_error",

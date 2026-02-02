@@ -1,0 +1,78 @@
+{{define "unsupported_desktop_app"}}
+    <!DOCTYPE html>
+    <html>
+        <head>
+            <style>
+                body {
+                    overflow: hidden;
+                }
+                .content {
+                    height: 540px;
+                    width: 100%;
+                    position: absolute;
+                    top: 50%;
+                    margin-top: -270px;
+                }
+                .title {
+                    height: 55px;
+                    color: #3D3C40;
+                    font-family: "Open Sans";
+                    font-size: 40px;
+                    font-weight: 600;
+                    letter-spacing: -0.2px;
+                    line-height: 55px;
+                    text-align: center;
+                }
+                .message {
+                    height: 52px;
+                    color: #3D3C40;
+                    font-family: "Open Sans";
+                    font-size: 20px;
+                    line-height: 26px;
+                    text-align: center;
+                    padding-top: 24px;
+                }
+                .download-container {
+                    width: 100%;
+                    padding-top: 40px;
+                    text-align: center;
+                }
+                .download-button {
+                    display: inline-block;
+                    height: 36px;
+                    padding: 8px 16px;
+                    border: 0;
+                    border-radius: 4px;
+                    background-color: #145DBF;
+                    color: #FFFFFF;
+                    font-family: "Open Sans";
+                    font-size: 14px;
+                    line-height: 20px;
+                    text-decoration: none;
+                    cursor: pointer;
+                }
+                .download-button:hover {
+                    text-decoration: none;
+                    color: #FFFFFF;
+                }
+            </style>
+            <link
+                href='https://fonts.googleapis.com/css?family=Open+Sans&display=swap'
+                rel='stylesheet'
+            />
+        </head>
+        <body>
+            <div class='content'>
+                <div class='title'>
+                    {{.Props.TitleString}}
+                </div>
+                <div class='message'>
+                    {{.Props.MessageString}}
+                </div>
+                <div class='download-container'>
+                    <a class='download-button' href='{{.Props.DownloadLink}}' target='_blank' rel='noopener noreferrer'>{{.Props.DownloadString}}</a>
+                </div>
+            </div>
+        </body>
+    </html>
+{{end}}

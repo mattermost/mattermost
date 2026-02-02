@@ -475,3 +475,27 @@ func TestCheckClientCompatability(t *testing.T) {
 		})
 	}
 }
+
+func TestCheckDesktopAppCompatibility(t *testing.T) {
+	tests := []struct {
+		name       string
+		userAgent  string
+		minVersion string
+		want       bool
+	}{
+		{"blank min version allows all", "Mattermost/5.0.0", "", true},
+		{"desktop app at min version", "Mattermost/5.0.0", "5.0.0", true},
+		{"desktop app above min version", "Mattermost/5.1.0", "5.0.0", true},
+		{"desktop app below min version", "Mattermost/4.9.0", "5.0.0", false},
+		{"browser user agent not checked", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) Chrome/120.0.0", "5.0.0", true},
+		{"desktop app version at start of UA", "Mattermost/5.3.1 Chrome/110.0.5481.177", "5.0.0", true},
+		{"desktop app version at end of UA", "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 Chrome/126.0.6478.127 Electron/31.2.1 Safari/537.36 Mattermost/5.9.0", "5.0.0", true},
+		{"desktop app old version rejected", "Mattermost/3.7.1 Chrome/56.0.2924.87 Electron/1.6.11 Safari/537.36", "5.0.0", false},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got := CheckDesktopAppCompatibility(tt.userAgent, tt.minVersion)
+			require.Equalf(t, tt.want, got, "CheckDesktopAppCompatibility(%q, %q)", tt.userAgent, tt.minVersion)
+		})
+	}
+}
