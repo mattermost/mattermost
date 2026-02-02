@@ -33,7 +33,6 @@ export default function CustomSvgModal({
     const {formatMessage} = useIntl();
     const [name, setName] = useState('');
     const [svgInput, setSvgInput] = useState('');
-    const [normalizeColor, setNormalizeColor] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [previewSvg, setPreviewSvg] = useState<string | null>(null);
     const fileInputRef = useRef<HTMLInputElement>(null);
@@ -44,12 +43,10 @@ export default function CustomSvgModal({
             if (editingSvg) {
                 setName(editingSvg.name);
                 setSvgInput(decodeSvgFromBase64(editingSvg.svg));
-                setNormalizeColor(editingSvg.normalizeColor);
                 setPreviewSvg(decodeSvgFromBase64(editingSvg.svg));
             } else {
                 setName('');
                 setSvgInput('');
-                setNormalizeColor(true);
                 setPreviewSvg(null);
             }
             setError(null);
@@ -130,30 +127,40 @@ export default function CustomSvgModal({
             return;
         }
 
+        // Always sanitize and normalize colors
         let processedSvg = sanitizeSvg(svgInput);
-        if (normalizeColor) {
-            processedSvg = normalizeSvgColors(processedSvg);
-        }
+        processedSvg = normalizeSvgColors(processedSvg);
 
         onSave({
             name: name.trim(),
             svg: encodeSvgToBase64(processedSvg),
-            normalizeColor,
+            normalizeColor: true, // Always true
         });
 
         onClose();
-    }, [name, svgInput, normalizeColor, onSave, onClose]);
+    }, [name, svgInput, onSave, onClose]);
 
-    // Get preview SVG with color normalization applied
+    // Get preview SVG with color normalization applied (always normalized)
     const getDisplaySvg = useCallback(() => {
         if (!previewSvg) {
             return null;
         }
-        return normalizeColor ? normalizeSvgColors(previewSvg) : previewSvg;
-    }, [previewSvg, normalizeColor]);
+        return normalizeSvgColors(previewSvg);
+    }, [previewSvg]);
 
     const displaySvg = getDisplaySvg();
     const viewBox = displaySvg ? extractSvgViewBox(displaySvg) : null;
+
+    // Generate the SVG HTML with proper size
+    const getSvgHtml = (size: number) => {
+        if (!displaySvg) {
+            return '';
+        }
+        return displaySvg.replace(
+            /<svg/,
+            `<svg width="${size}" height="${size}"` + (viewBox ? '' : ' viewBox="0 0 24 24"'),
+        );
+    };
 
     return (
         <Modal
@@ -222,23 +229,6 @@ export default function CustomSvgModal({
                         />
                     </div>
 
-                    <div className='CustomSvgModal__field CustomSvgModal__checkbox'>
-                        <label>
-                            <input
-                                type='checkbox'
-                                checked={normalizeColor}
-                                onChange={(e) => setNormalizeColor(e.target.checked)}
-                            />
-                            {formatMessage({id: 'custom_svg_modal.normalize_color', defaultMessage: 'Normalize colors'})}
-                        </label>
-                        <span className='CustomSvgModal__hint'>
-                            {formatMessage({
-                                id: 'custom_svg_modal.normalize_color_hint',
-                                defaultMessage: 'Replace fill/stroke colors with currentColor so the icon inherits the text color. Disable to keep original colors.',
-                            })}
-                        </span>
-                    </div>
-
                     {error && (
                         <div className='CustomSvgModal__error'>
                             <i className='icon icon-alert-circle-outline'/>
@@ -251,43 +241,19 @@ export default function CustomSvgModal({
                             <label>
                                 {formatMessage({id: 'custom_svg_modal.preview', defaultMessage: 'Preview'})}
                             </label>
-                            <div className='CustomSvgModal__previewRow'>
-                                <div className='CustomSvgModal__previewBox CustomSvgModal__previewBox--light'>
+                            <div className='CustomSvgModal__previewChannel'>
+                                <div className='CustomSvgModal__previewChannelItem'>
                                     <i
-                                        className='icon sidebar-channel-icon'
-                                        dangerouslySetInnerHTML={{
-                                            __html: displaySvg.replace(
-                                                /<svg/,
-                                                '<svg width="24" height="24"' + (viewBox ? '' : ' viewBox="0 0 24 24"'),
-                                            ),
-                                        }}
+                                        className='CustomSvgModal__previewChannelIcon'
+                                        dangerouslySetInnerHTML={{__html: getSvgHtml(18)}}
                                     />
-                                </div>
-                                <div className='CustomSvgModal__previewBox CustomSvgModal__previewBox--dark'>
-                                    <i
-                                        className='icon sidebar-channel-icon'
-                                        dangerouslySetInnerHTML={{
-                                            __html: displaySvg.replace(
-                                                /<svg/,
-                                                '<svg width="24" height="24"' + (viewBox ? '' : ' viewBox="0 0 24 24"'),
-                                            ),
-                                        }}
-                                    />
-                                </div>
-                                <div className='CustomSvgModal__previewBox CustomSvgModal__previewBox--small'>
-                                    <i
-                                        className='icon sidebar-channel-icon'
-                                        dangerouslySetInnerHTML={{
-                                            __html: displaySvg.replace(
-                                                /<svg/,
-                                                '<svg width="18" height="18"' + (viewBox ? '' : ' viewBox="0 0 24 24"'),
-                                            ),
-                                        }}
-                                    />
-                                    <span className='CustomSvgModal__previewLabel'>
-                                        {formatMessage({id: 'custom_svg_modal.sidebar_size', defaultMessage: 'Sidebar size'})}
+                                    <span className='CustomSvgModal__previewChannelName'>
+                                        {name || 'channel-name'}
                                     </span>
                                 </div>
+                                <span className='CustomSvgModal__previewChannelHint'>
+                                    {formatMessage({id: 'custom_svg_modal.preview_hint', defaultMessage: 'How it will appear in the sidebar'})}
+                                </span>
                             </div>
                         </div>
                     )}

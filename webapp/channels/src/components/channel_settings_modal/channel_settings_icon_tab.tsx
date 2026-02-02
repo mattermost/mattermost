@@ -7,7 +7,7 @@ import {useDispatch, useSelector} from 'react-redux';
 
 import type {Channel} from '@mattermost/types/channels';
 
-import {getMyChannels} from 'mattermost-redux/selectors/entities/channels';
+import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
 import type {ServerError} from '@mattermost/types/errors';
 
 import {patchChannel} from 'mattermost-redux/actions/channels';
@@ -28,12 +28,22 @@ import {
     parseIconValue,
     formatIconValue,
     getTotalIconCount,
+    getCustomSvgs,
+    addCustomSvg,
+    updateCustomSvg,
+    deleteCustomSvg,
+    decodeSvgFromBase64,
+    sanitizeSvg,
+    normalizeSvgColors,
+    encodeSvgToBase64,
+    type CustomSvg,
     type IconLibrary,
     type IconLibraryId,
     type IconFormat,
     type SearchField,
     type SearchResult,
 } from './icon_libraries';
+import CustomSvgModal from './custom_svg_modal';
 
 import './channel_settings_icon_tab.scss';
 
@@ -202,6 +212,29 @@ function CustomSvgIcon({base64, size = 22}: {base64: string; size?: number}) {
     }
 }
 
+// Component to render custom SVG from storage (CustomSvg object)
+function CustomSvgIconFromStorage({svg, size = 22}: {svg: CustomSvg; size?: number}) {
+    try {
+        let svgContent = decodeSvgFromBase64(svg.svg);
+        svgContent = sanitizeSvg(svgContent);
+        if (svg.normalizeColor) {
+            svgContent = normalizeSvgColors(svgContent);
+        }
+
+        // Add size to SVG
+        svgContent = svgContent.replace(/<svg/, `<svg width="${size}" height="${size}"`);
+
+        return (
+            <span
+                className='ChannelSettingsIconTab__customSvgIcon'
+                dangerouslySetInnerHTML={{__html: svgContent}}
+            />
+        );
+    } catch {
+        return <span className='ChannelSettingsIconTab__unknownIcon'>?</span>;
+    }
+}
+
 // Render icon based on library type
 function LibraryIcon({library, name, size = 22}: {library: IconLibraryId; name: string; size?: number}) {
     switch (library) {
@@ -273,20 +306,6 @@ export default function ChannelSettingsIconTab({
     const {formatMessage} = useIntl();
     const dispatch = useDispatch();
 
-    // Get all channels to find existing custom SVGs
-    const allMyChannels = useSelector(getMyChannels);
-
-    // Filter channels that have custom SVG icons (excluding current channel)
-    const channelsWithCustomSvg = useMemo(() => {
-        return allMyChannels.filter((ch) => {
-            if (ch.id === channel.id) {
-                return false;
-            }
-            const customIcon = ch.props?.custom_icon;
-            return customIcon && typeof customIcon === 'string' && customIcon.startsWith('svg:');
-        });
-    }, [allMyChannels, channel.id]);
-
     // Current icon value (with prefix)
     const [customIcon, setCustomIcon] = useState(channel.props?.custom_icon || '');
 
@@ -294,8 +313,12 @@ export default function ChannelSettingsIconTab({
     const [activeLibrary, setActiveLibrary] = useState<LibraryTab>('mdi');
     const [searchTerm, setSearchTerm] = useState('');
     const [activeCategory, setActiveCategory] = useState<string | null>(null);
-    const [customSvgInput, setCustomSvgInput] = useState('');
-    const [customSvgError, setCustomSvgError] = useState('');
+
+    // Custom SVG state
+    const userId = useSelector(getCurrentUserId);
+    const [customSvgs, setCustomSvgs] = useState<CustomSvg[]>([]);
+    const [showCustomSvgModal, setShowCustomSvgModal] = useState(false);
+    const [editingCustomSvg, setEditingCustomSvg] = useState<CustomSvg | undefined>(undefined);
 
     // Search options
     const [searchFields, setSearchFields] = useState<SearchField[]>(['name', 'tags', 'aliases']);
@@ -393,6 +416,20 @@ export default function ChannelSettingsIconTab({
         setAreThereUnsavedChanges?.(hasChanges);
     }, [channel, customIcon, setAreThereUnsavedChanges]);
 
+    // Load custom SVGs when component mounts or userId changes
+    useEffect(() => {
+        if (userId) {
+            setCustomSvgs(getCustomSvgs(userId));
+        }
+    }, [userId]);
+
+    // Refresh custom SVGs
+    const refreshCustomSvgs = useCallback(() => {
+        if (userId) {
+            setCustomSvgs(getCustomSvgs(userId));
+        }
+    }, [userId]);
+
     // Handle icon selection
     const handleIconSelect = useCallback((format: IconFormat, name: string) => {
         const value = formatIconValue(format, name);
@@ -422,40 +459,126 @@ export default function ChannelSettingsIconTab({
         });
     }, []);
 
-    // Validate and apply custom SVG
-    const handleApplyCustomSvg = useCallback(() => {
-        const svgContent = customSvgInput.trim();
-        if (!svgContent) {
-            setCustomSvgError(formatMessage({
-                id: 'channel_settings_icon_tab.custom_svg.empty',
-                defaultMessage: 'Please enter SVG content',
-            }));
+    // Custom SVG modal handlers
+    const handleAddCustomSvg = useCallback(() => {
+        setEditingCustomSvg(undefined);
+        setShowCustomSvgModal(true);
+    }, []);
+
+    const handleEditCustomSvg = useCallback((svg: CustomSvg) => {
+        setEditingCustomSvg(svg);
+        setShowCustomSvgModal(true);
+    }, []);
+
+    const handleDeleteCustomSvg = useCallback((svg: CustomSvg) => {
+        if (userId && window.confirm(formatMessage({id: 'channel_settings_icon_tab.confirm_delete', defaultMessage: 'Delete "{name}"?'}, {name: svg.name}))) {
+            deleteCustomSvg(userId, svg.id);
+            refreshCustomSvgs();
+
+            // Clear selection if the deleted SVG was selected
+            const currentParsed = parseIconValue(customIcon);
+            if (currentParsed.format === 'svg') {
+                // Check if the current icon matches this SVG
+                let processedSvg = decodeSvgFromBase64(svg.svg);
+                processedSvg = sanitizeSvg(processedSvg);
+                if (svg.normalizeColor) {
+                    processedSvg = normalizeSvgColors(processedSvg);
+                }
+                const processedBase64 = encodeSvgToBase64(processedSvg);
+                if (currentParsed.name === processedBase64) {
+                    handleClearIcon();
+                }
+            }
+        }
+    }, [userId, formatMessage, refreshCustomSvgs, customIcon, handleClearIcon]);
+
+    const handleSaveCustomSvg = useCallback((data: {name: string; svg: string; normalizeColor: boolean}) => {
+        if (!userId) {
             return;
         }
 
-        // Basic SVG validation
-        if (!svgContent.includes('<svg') || !svgContent.includes('</svg>')) {
-            setCustomSvgError(formatMessage({
-                id: 'channel_settings_icon_tab.custom_svg.invalid',
-                defaultMessage: 'Invalid SVG format. Must contain <svg> tags.',
-            }));
-            return;
-        }
+        if (editingCustomSvg) {
+            updateCustomSvg(userId, editingCustomSvg.id, data);
+            refreshCustomSvgs();
+        } else {
+            const newSvg = addCustomSvg(userId, data);
+            refreshCustomSvgs();
 
-        // Check size limit (10KB base64)
-        const base64 = btoa(svgContent);
-        if (base64.length > 10240) {
-            setCustomSvgError(formatMessage({
-                id: 'channel_settings_icon_tab.custom_svg.too_large',
-                defaultMessage: 'SVG is too large. Maximum size is 10KB.',
-            }));
-            return;
+            // Auto-select the newly created SVG using svg:base64 format
+            let processedSvg = decodeSvgFromBase64(newSvg.svg);
+            processedSvg = sanitizeSvg(processedSvg);
+            if (newSvg.normalizeColor) {
+                processedSvg = normalizeSvgColors(processedSvg);
+            }
+            const base64 = encodeSvgToBase64(processedSvg);
+            handleIconSelect('svg', base64);
         }
+    }, [userId, editingCustomSvg, refreshCustomSvgs, handleIconSelect]);
 
-        setCustomSvgError('');
+    const handleSelectCustomSvg = useCallback((svg: CustomSvg) => {
+        // Process the SVG and store as svg:base64 format for portability
+        let processedSvg = decodeSvgFromBase64(svg.svg);
+        processedSvg = sanitizeSvg(processedSvg);
+        if (svg.normalizeColor) {
+            processedSvg = normalizeSvgColors(processedSvg);
+        }
+        const base64 = encodeSvgToBase64(processedSvg);
         handleIconSelect('svg', base64);
-        setCustomSvgInput('');
-    }, [customSvgInput, formatMessage, handleIconSelect]);
+    }, [handleIconSelect]);
+
+    // Check if a custom SVG is currently selected
+    const getSelectedCustomSvgId = useCallback(() => {
+        const parsed = parseIconValue(customIcon);
+        if (parsed.format === 'svg' && parsed.name) {
+            // Try to find a matching custom SVG by comparing base64 content
+            const matchingSvg = customSvgs.find((svg) => {
+                let processedSvg = decodeSvgFromBase64(svg.svg);
+                processedSvg = sanitizeSvg(processedSvg);
+                if (svg.normalizeColor) {
+                    processedSvg = normalizeSvgColors(processedSvg);
+                }
+                const processedBase64 = encodeSvgToBase64(processedSvg);
+                return processedBase64 === parsed.name;
+            });
+            return matchingSvg?.id;
+        }
+        return undefined;
+    }, [customIcon, customSvgs]);
+
+    const selectedCustomSvgId = getSelectedCustomSvgId();
+
+    // Get display name for current icon (custom SVG name if available, otherwise parsed name)
+    const getIconDisplayName = useCallback(() => {
+        if (!customIcon) {
+            return null;
+        }
+
+        const parsed = parseIconValue(customIcon);
+
+        // If it's a custom SVG, try to find the name from our saved SVGs
+        if (parsed.format === 'svg' && parsed.name) {
+            const matchingSvg = customSvgs.find((svg) => {
+                let processedSvg = decodeSvgFromBase64(svg.svg);
+                processedSvg = sanitizeSvg(processedSvg);
+                if (svg.normalizeColor) {
+                    processedSvg = normalizeSvgColors(processedSvg);
+                }
+                const processedBase64 = encodeSvgToBase64(processedSvg);
+                return processedBase64 === parsed.name;
+            });
+
+            if (matchingSvg) {
+                return matchingSvg.name;
+            }
+
+            // No matching saved SVG, show truncated base64 to indicate it's a custom SVG
+            const truncated = parsed.name.length > 20 ? parsed.name.substring(0, 20) + '...' : parsed.name;
+            return `svg:${truncated}`;
+        }
+
+        // For library icons, show format:name
+        return `${parsed.format}:${parsed.name}`;
+    }, [customIcon, customSvgs]);
 
     // Handle save
     const handleSave = useCallback(async (): Promise<boolean> => {
@@ -538,7 +661,7 @@ export default function ChannelSettingsIconTab({
         {
             id: 'custom',
             label: formatMessage({id: 'channel_settings_icon_tab.library.custom', defaultMessage: 'Custom SVG'}),
-            count: channelsWithCustomSvg.length,
+            count: customSvgs.length,
             exampleIcon: null,
         },
     ];
@@ -564,7 +687,7 @@ export default function ChannelSettingsIconTab({
                 </div>
                 <div className='ChannelSettingsIconTab__previewInfo'>
                     <div className='ChannelSettingsIconTab__previewLabel'>
-                        {customIcon ? parseIconValue(customIcon).name : formatMessage({
+                        {customIcon ? getIconDisplayName() : formatMessage({
                             id: 'channel_settings_icon_tab.default',
                             defaultMessage: 'Default',
                         })}
@@ -770,85 +893,94 @@ export default function ChannelSettingsIconTab({
             {/* Custom SVG tab content */}
             {activeLibrary === 'custom' && (
                 <div className='ChannelSettingsIconTab__customContent'>
-                    {/* Existing custom SVGs from other channels */}
-                    {channelsWithCustomSvg.length > 0 && (
-                        <div className='ChannelSettingsIconTab__existingCustomSection'>
-                            <div className='ChannelSettingsIconTab__existingCustomLabel'>
+                    {customSvgs.length > 0 ? (
+                        <>
+                            <div className='ChannelSettingsIconTab__customDescription'>
                                 {formatMessage({
-                                    id: 'channel_settings_icon_tab.existing_custom_label',
-                                    defaultMessage: 'Custom icons from other channels:',
+                                    id: 'channel_settings_icon_tab.custom_description_new',
+                                    defaultMessage: 'Select from your saved custom SVGs or add a new one.',
                                 })}
                             </div>
-                            <div className='ChannelSettingsIconTab__existingCustomGrid'>
-                                {channelsWithCustomSvg.map((ch) => {
-                                    const iconValue = ch.props?.custom_icon as string;
-                                    const base64 = iconValue.substring(4); // Remove 'svg:' prefix
-                                    const isSelected = customIcon === iconValue;
+                            <div className='ChannelSettingsIconTab__customSvgGrid'>
+                                {customSvgs.map((svg) => {
+                                    const isSelected = selectedCustomSvgId === svg.id;
                                     return (
-                                        <button
-                                            key={ch.id}
-                                            type='button'
-                                            className={`ChannelSettingsIconTab__iconButton ${isSelected ? 'selected' : ''}`}
-                                            onClick={() => handleIconSelect('svg', base64)}
-                                            title={ch.display_name || ch.name}
-                                            aria-label={ch.display_name || ch.name}
+                                        <div
+                                            key={svg.id}
+                                            className={`ChannelSettingsIconTab__customSvgItem ${isSelected ? 'selected' : ''}`}
                                         >
-                                            <CustomSvgIcon
-                                                base64={base64}
-                                                size={22}
-                                            />
-                                        </button>
+                                            <button
+                                                type='button'
+                                                className='ChannelSettingsIconTab__customSvgButton'
+                                                onClick={() => handleSelectCustomSvg(svg)}
+                                                title={svg.name}
+                                                aria-label={svg.name}
+                                            >
+                                                <CustomSvgIconFromStorage svg={svg} size={28}/>
+                                            </button>
+                                            <div className='ChannelSettingsIconTab__customSvgName'>
+                                                {svg.name}
+                                            </div>
+                                            <div className='ChannelSettingsIconTab__customSvgActions'>
+                                                <button
+                                                    type='button'
+                                                    className='ChannelSettingsIconTab__customSvgAction'
+                                                    onClick={() => handleEditCustomSvg(svg)}
+                                                    title={formatMessage({id: 'channel_settings_icon_tab.edit', defaultMessage: 'Edit'})}
+                                                >
+                                                    <i className='icon icon-pencil-outline'/>
+                                                </button>
+                                                <button
+                                                    type='button'
+                                                    className='ChannelSettingsIconTab__customSvgAction ChannelSettingsIconTab__customSvgAction--delete'
+                                                    onClick={() => handleDeleteCustomSvg(svg)}
+                                                    title={formatMessage({id: 'channel_settings_icon_tab.delete', defaultMessage: 'Delete'})}
+                                                >
+                                                    <i className='icon icon-trash-can-outline'/>
+                                                </button>
+                                            </div>
+                                        </div>
                                     );
                                 })}
+                                {/* Add new SVG button in grid */}
+                                <button
+                                    type='button'
+                                    className='ChannelSettingsIconTab__addCustomSvgInGrid'
+                                    onClick={handleAddCustomSvg}
+                                    title={formatMessage({id: 'channel_settings_icon_tab.add_custom_svg', defaultMessage: 'Add custom SVG'})}
+                                >
+                                    <i className='icon icon-plus'/>
+                                </button>
                             </div>
+                        </>
+                    ) : (
+                        <div className='ChannelSettingsIconTab__customEmptyState'>
+                            <i className='icon icon-vector-square'/>
+                            <p>{formatMessage({id: 'channel_settings_icon_tab.no_custom_svgs', defaultMessage: 'No custom SVGs yet'})}</p>
+                            <span>{formatMessage({id: 'channel_settings_icon_tab.add_svg_description', defaultMessage: 'Add your own SVG icons to use as channel icons'})}</span>
+                            <button
+                                type='button'
+                                className='ChannelSettingsIconTab__addCustomSvgButton btn btn-primary'
+                                onClick={handleAddCustomSvg}
+                            >
+                                <i className='icon icon-plus'/>
+                                {formatMessage({id: 'channel_settings_icon_tab.add_custom_svg', defaultMessage: 'Add Custom SVG'})}
+                            </button>
                         </div>
                     )}
-
-                    <div className='ChannelSettingsIconTab__customDescription'>
-                        {formatMessage({
-                            id: 'channel_settings_icon_tab.custom_description',
-                            defaultMessage: 'Paste your SVG code below. The SVG will be sanitized for security and colors will be normalized.',
-                        })}
-                    </div>
-                    <textarea
-                        className='ChannelSettingsIconTab__customTextarea'
-                        placeholder={formatMessage({
-                            id: 'channel_settings_icon_tab.custom_placeholder',
-                            defaultMessage: '<svg viewBox="0 0 24 24">...</svg>',
-                        })}
-                        value={customSvgInput}
-                        onChange={(e) => {
-                            setCustomSvgInput(e.target.value);
-                            setCustomSvgError('');
-                        }}
-                        rows={6}
-                    />
-                    {customSvgError && (
-                        <div className='ChannelSettingsIconTab__customError'>
-                            {customSvgError}
-                        </div>
-                    )}
-                    {customSvgInput && (
-                        <div className='ChannelSettingsIconTab__customPreview'>
-                            <span className='ChannelSettingsIconTab__customPreviewLabel'>
-                                {formatMessage({id: 'channel_settings_icon_tab.preview', defaultMessage: 'Preview:'})}
-                            </span>
-                            <span
-                                className='ChannelSettingsIconTab__customPreviewIcon'
-                                dangerouslySetInnerHTML={{__html: customSvgInput}}
-                            />
-                        </div>
-                    )}
-                    <button
-                        type='button'
-                        className='ChannelSettingsIconTab__customApplyButton btn btn-primary'
-                        onClick={handleApplyCustomSvg}
-                        disabled={!customSvgInput.trim()}
-                    >
-                        {formatMessage({id: 'channel_settings_icon_tab.apply', defaultMessage: 'Apply Icon'})}
-                    </button>
                 </div>
             )}
+
+            {/* Custom SVG Modal */}
+            <CustomSvgModal
+                show={showCustomSvgModal}
+                onClose={() => {
+                    setShowCustomSvgModal(false);
+                    setEditingCustomSvg(undefined);
+                }}
+                onSave={handleSaveCustomSvg}
+                editingSvg={editingCustomSvg}
+            />
 
             {/* Save changes panel */}
             {shouldShowPanel && (

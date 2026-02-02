@@ -210,4 +210,46 @@
         color: rgba(var(--center-channel-color-rgb), 0.56);
         text-align: center;
     }
+
+    &__previewChannel {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+    }
+
+    &__previewChannelItem {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 6px 10px;
+        background: rgba(var(--center-channel-color-rgb), 0.04);
+        border-radius: 4px;
+        color: var(--center-channel-color);
+    }
+
+    &__previewChannelIcon {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+
+        svg {
+            display: block;
+            fill: currentColor;
+        }
+    }
+
+    &__previewChannelName {
+        font-size: 14px;
+        font-weight: 500;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    &__previewChannelHint {
+        font-size: 11px;
+        color: rgba(var(--center-channel-color-rgb), 0.56);
+        font-style: italic;
+    }
 }
