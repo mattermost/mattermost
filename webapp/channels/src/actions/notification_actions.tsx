@@ -200,14 +200,15 @@ export function sendDesktopNotification(post: Post, msgProps: NewPostMessageProp
                     isNotificationSound,
                     canPlayInactive,
                     shouldPlayGuildedSound,
-                    soundType: isMention ? 'mention_received' : (isDM || isGM) ? 'dm_received' : 'message_received',
+                    soundType: (isDM || isGM) ? 'dm_received' : isMention ? 'mention_received' : 'message_received',
                 });
 
                 if (shouldPlayGuildedSound) {
-                    if (isMention) {
-                        playSoundForEvent(getState, 'mention_received');
-                    } else if (isDM || isGM) {
+                    // DM/GM takes priority over mention (DMs can also contain mentions)
+                    if (isDM || isGM) {
                         playSoundForEvent(getState, 'dm_received');
+                    } else if (isMention) {
+                        playSoundForEvent(getState, 'mention_received');
                     } else {
                         playSoundForEvent(getState, 'message_received');
                     }

@@ -42,8 +42,8 @@ export function userStartedTyping(userId: string, channelId: string, rootId: str
             },
         });
 
-        // Play typing sound when someone else starts typing
-        if (userId !== currentUserId && isGuildedSoundTypeEnabled(getState, 'typing')) {
+        // Play typing sound when someone else starts typing (only when window is active)
+        if (userId !== currentUserId && window.isActive && isGuildedSoundTypeEnabled(getState, 'typing')) {
             playTypingSound(getState);
         }
 
