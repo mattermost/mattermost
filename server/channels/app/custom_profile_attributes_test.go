@@ -783,8 +783,11 @@ func TestGetCPAValue(t *testing.T) {
 			Value:      json.RawMessage(`"Value"`),
 		}
 		propertyValue, err := th.App.PropertyAccessService().CreatePropertyValue(anonymousCallerId, propertyValue)
-		require.Error(t, err)
-		require.Nil(t, propertyValue)
+		require.NoError(t, err)
+
+		pv, appErr := th.App.GetCPAValue(anonymousCallerId, propertyValue.ID)
+		require.NotNil(t, appErr)
+		require.Nil(t, pv)
 	})
 
 	t.Run("should succeed if id exists", func(t *testing.T) {
