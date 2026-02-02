@@ -96,6 +96,10 @@ export function getRelativeChannelURL(teamName: string, channelName: string): st
 }
 
 export function isUrlSafe(url: string): boolean {
+    if (!url) {
+        return false;
+    }
+
     let unescaped: string;
 
     try {

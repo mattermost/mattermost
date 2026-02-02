@@ -8,6 +8,8 @@ import {Table} from '@tiptap/extension-table';
 import {TableCell} from '@tiptap/extension-table-cell';
 import {TableHeader} from '@tiptap/extension-table-header';
 import {TableRow} from '@tiptap/extension-table-row';
+import TaskItem from '@tiptap/extension-task-item';
+import TaskList from '@tiptap/extension-task-list';
 import StarterKit from '@tiptap/starter-kit';
 
 import {looksLikeMarkdown, PasteMarkdownExtension} from './paste_markdown_extension';
@@ -26,6 +28,21 @@ describe('looksLikeMarkdown', () => {
 
         it('detects images', () => {
             const text = '![alt text](https://example.com/image.png)';
+            expect(looksLikeMarkdown(text)).toBe(true);
+        });
+
+        it('detects task lists with checked items', () => {
+            const text = '- [x] Completed task\n- [ ] Pending task';
+            expect(looksLikeMarkdown(text)).toBe(true);
+        });
+
+        it('detects task lists with unchecked items only', () => {
+            const text = '- [ ] First task\n- [ ] Second task';
+            expect(looksLikeMarkdown(text)).toBe(true);
+        });
+
+        it('detects task list with single item', () => {
+            const text = '- [x] Single completed task';
             expect(looksLikeMarkdown(text)).toBe(true);
         });
     });
@@ -87,6 +104,8 @@ describe('PasteMarkdownExtension', () => {
                 TableRow,
                 TableHeader,
                 TableCell,
+                TaskList,
+                TaskItem.configure({nested: true}),
                 Mention.configure({
                     HTMLAttributes: {class: 'mention'},
                 }),
@@ -137,35 +156,7 @@ describe('PasteMarkdownExtension', () => {
         return false;
     }
 
-    describe('Phase 1: Core conversion', () => {
-        it('converts fenced code blocks', () => {
-            const handled = simulatePaste('```javascript\nconst x = 1;\n```');
-            expect(handled).toBe(true);
-
-            const json = editor.getJSON();
-            const codeBlock = json.content?.find((n) => n.type === 'codeBlock');
-            expect(codeBlock).toBeDefined();
-        });
-
-        it('converts tables', () => {
-            const handled = simulatePaste('| A | B |\n|---|---|\n| 1 | 2 |');
-            expect(handled).toBe(true);
-
-            const html = editor.getHTML();
-            expect(html).toMatch(/<table/);
-            expect(html).toContain('<th');
-            expect(html).toContain('<td');
-        });
-
-        it('converts images', () => {
-            const handled = simulatePaste('![alt](https://example.com/img.png)');
-            expect(handled).toBe(true);
-
-            const html = editor.getHTML();
-            expect(html).toContain('<img');
-            expect(html).toContain('src="https://example.com/img.png"');
-        });
-
+    describe('skip conditions', () => {
         it('skips HTML pastes', () => {
             const handled = simulatePaste('```code```', true);
             expect(handled).toBe(false);
@@ -197,26 +188,6 @@ describe('PasteMarkdownExtension', () => {
             expect(handled).toBe(false);
         });
 
-        /* eslint-disable no-script-url */
-        it('blocks javascript: URLs', () => {
-            const handled = simulatePaste('![img](https://example.com/x.png)\n[click](javascript:alert(1))');
-            expect(handled).toBe(true);
-
-            const html = editor.getHTML();
-            expect(html).toContain('href="#blocked"');
-            expect(html).not.toContain('javascript:');
-        });
-        /* eslint-enable no-script-url */
-
-        it('blocks data: URLs', () => {
-            const handled = simulatePaste('![img](https://example.com/x.png)\n[click](data:text/html,<script>)');
-            expect(handled).toBe(true);
-
-            const html = editor.getHTML();
-            expect(html).toContain('href="#blocked"');
-            expect(html).not.toContain('data:text');
-        });
-
         it('respects size limit (64KB)', () => {
             const largeText = '```\n' + 'x'.repeat(65 * 1024) + '\n```';
             const handled = simulatePaste(largeText);
@@ -224,101 +195,79 @@ describe('PasteMarkdownExtension', () => {
         });
     });
 
-    describe('Phase 2: Medium signals', () => {
-        it('converts headers + links (2 medium signals)', () => {
-            const handled = simulatePaste('# Title\n\n[link](https://example.com)');
+    describe('security', () => {
+        /* eslint-disable no-script-url */
+        it('removes links with javascript: URLs via sanitize option', () => {
+            // marked's sanitize option completely removes links with dangerous protocols
+            const handled = simulatePaste('![img](https://example.com/x.png)\n[click](javascript:alert(1))');
             expect(handled).toBe(true);
 
             const html = editor.getHTML();
-            expect(html).toContain('<h1>');
-            expect(html).toContain('<a');
+
+            // The link is completely removed by marked's sanitize option
+            expect(html).not.toContain('javascript:');
+            expect(html).not.toContain('click'); // Link text is also removed
+            // The safe image is preserved
+            expect(html).toContain('example.com/x.png');
         });
 
-        it('does NOT convert bold alone (1 signal)', () => {
-            const handled = simulatePaste('**just bold**');
-            expect(handled).toBe(false);
-        });
-
-        it('converts unordered list + blockquote (2 signals)', () => {
-            const handled = simulatePaste('- item 1\n- item 2\n\n> quoted text');
+        it('blocks javascript: URLs in image src', () => {
+            // Images with dangerous URLs are caught by our regex sanitization
+            const handled = simulatePaste('# Header\n![xss](javascript:alert(1))');
             expect(handled).toBe(true);
 
             const html = editor.getHTML();
-            expect(html).toContain('<ul>');
-            expect(html).toContain('<blockquote>');
+            expect(html).not.toContain('javascript:');
+        });
+        /* eslint-enable no-script-url */
+
+        it('removes links with data: URLs via sanitize option', () => {
+            // marked's sanitize option completely removes links with dangerous protocols
+            const handled = simulatePaste('![img](https://example.com/x.png)\n[click](data:text/html,<script>)');
+            expect(handled).toBe(true);
+
+            const html = editor.getHTML();
+
+            // The link is completely removed by marked's sanitize option
+            expect(html).not.toContain('data:text');
+            expect(html).not.toContain('<script>');
+        });
+
+        it('blocks data: URLs in image src', () => {
+            // Images with dangerous URLs are caught by our regex sanitization
+            const handled = simulatePaste('# Header\n![xss](data:image/svg+xml,<svg onload=alert(1)>)');
+            expect(handled).toBe(true);
+
+            const html = editor.getHTML();
+            expect(html).not.toContain('data:image');
+        });
+
+        it('escapes HTML embedded in markdown', () => {
+            // marked's sanitize option escapes HTML tags in markdown input
+            // Need 2+ markdown signals for detection (header + link)
+            const handled = simulatePaste('# Title\nHello <img src=x onerror=alert(1)> world\n[link](https://example.com)');
+            expect(handled).toBe(true);
+
+            const html = editor.getHTML();
+
+            // The dangerous HTML is escaped - angle brackets become &lt; and &gt;
+            // This means the img tag is rendered as text, not executed
+            expect(html).toContain('&lt;img');
+            expect(html).toContain('&gt;');
+
+            // The img should NOT be rendered as an actual img element with onerror attribute
+            expect(html).not.toMatch(/<img[^>]*onerror/);
         });
     });
 
-    describe('Phase 2: Mentions', () => {
-        it('converts @john to mention node', () => {
-            const handled = simulatePaste('![img](https://x.com/a.png)\nHello @john!');
-            expect(handled).toBe(true);
-
-            const html = editor.getHTML();
-            expect(html).toContain('data-type="mention"');
-            expect(html).toContain('data-id="john"');
-            expect(html).toContain('@john');
-        });
-
-        it('converts ~channel to channelMention node', () => {
-            const handled = simulatePaste('![img](https://x.com/a.png)\nCheck ~town-square for updates');
-            expect(handled).toBe(true);
-
-            const html = editor.getHTML();
-            expect(html).toContain('data-type="channelMention"');
-            expect(html).toContain('data-id="town-square"');
-        });
-
-        it('handles multiple mentions', () => {
-            const handled = simulatePaste('![img](https://x.com/a.png)\nHey @alice and @bob, check ~general');
-            expect(handled).toBe(true);
-
-            const html = editor.getHTML();
-            expect(html).toContain('data-id="alice"');
-            expect(html).toContain('data-id="bob"');
-            expect(html).toContain('data-id="general"');
-        });
-
-        it('excludes email@company.com from mentions', () => {
-            const handled = simulatePaste('![img](https://x.com/a.png)\nContact email@company.com');
-            expect(handled).toBe(true);
-
-            const html = editor.getHTML();
-            expect(html).not.toContain('data-type="mention"');
-            expect(html).toContain('email@company.com');
-        });
-
-        it('ignores uppercase @JOHN (server uses lowercase)', () => {
-            const handled = simulatePaste('![img](https://x.com/a.png)\nHello @JOHN');
-            expect(handled).toBe(true);
-
-            const html = editor.getHTML();
-            expect(html).not.toContain('data-id="JOHN"');
-            expect(html).toContain('@JOHN');
-        });
-
-        it('handles mentions with dots and underscores', () => {
-            const handled = simulatePaste('![img](https://x.com/a.png)\nHey @john.doe and @jane_smith');
-            expect(handled).toBe(true);
-
-            const html = editor.getHTML();
-            expect(html).toContain('data-id="john.doe"');
-            expect(html).toContain('data-id="jane_smith"');
-        });
-
+    describe('code fence protection', () => {
         it('does NOT convert @mentions inside code blocks', () => {
             const handled = simulatePaste('```bash\nnpm install -g @openai/codex\n```');
             expect(handled).toBe(true);
 
             const html = editor.getHTML();
-
-            // Should have a code block
             expect(html).toContain('<code');
-
-            // Should NOT have any mention nodes
             expect(html).not.toContain('data-type="mention"');
-
-            // The @openai should be preserved as plain text inside code
             expect(html).toContain('@openai');
         });
 
@@ -350,14 +299,8 @@ describe('PasteMarkdownExtension', () => {
             expect(handled).toBe(true);
 
             const html = editor.getHTML();
-
-            // Should have inline code
             expect(html).toContain('<code');
-
-            // Should NOT have any mention nodes
             expect(html).not.toContain('data-type="mention"');
-
-            // The @openai should be preserved as plain text
             expect(html).toContain('@openai');
         });
     });

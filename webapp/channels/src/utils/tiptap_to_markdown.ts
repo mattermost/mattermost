@@ -39,47 +39,25 @@ function getExportSchema(): Schema {
         return cachedSchema;
     }
 
+    // Schema for export only - parseDOM rules not needed since we use Node.fromJSON()
     cachedSchema = new Schema({
         nodes: {
             doc: {content: 'block+'},
             text: {group: 'inline'},
-            paragraph: {
-                content: 'inline*',
-                group: 'block',
-                parseDOM: [{tag: 'p'}],
-            },
+            paragraph: {content: 'inline*', group: 'block'},
             heading: {
                 attrs: {level: {default: 1}},
                 content: 'inline*',
                 group: 'block',
-                parseDOM: [
-                    {tag: 'h1', attrs: {level: 1}},
-                    {tag: 'h2', attrs: {level: 2}},
-                    {tag: 'h3', attrs: {level: 3}},
-                    {tag: 'h4', attrs: {level: 4}},
-                    {tag: 'h5', attrs: {level: 5}},
-                    {tag: 'h6', attrs: {level: 6}},
-                ],
             },
-            bulletList: {
-                content: 'listItem+',
-                group: 'block',
-                parseDOM: [{tag: 'ul'}],
-            },
+            bulletList: {content: 'listItem+', group: 'block'},
             orderedList: {
                 attrs: {start: {default: 1}},
                 content: 'listItem+',
                 group: 'block',
-                parseDOM: [{tag: 'ol'}],
             },
-            listItem: {
-                content: 'paragraph block*',
-                parseDOM: [{tag: 'li'}],
-            },
-            taskList: {
-                content: 'taskItem+',
-                group: 'block',
-            },
+            listItem: {content: 'paragraph block*'},
+            taskList: {content: 'taskItem+', group: 'block'},
             taskItem: {
                 attrs: {checked: {default: false}},
                 content: 'paragraph block*',
@@ -90,28 +68,15 @@ function getExportSchema(): Schema {
                 marks: '',
                 group: 'block',
                 code: true,
-                parseDOM: [{tag: 'pre'}],
             },
-            blockquote: {
-                content: 'block+',
-                group: 'block',
-                parseDOM: [{tag: 'blockquote'}],
-            },
+            blockquote: {content: 'block+', group: 'block'},
             callout: {
                 attrs: {type: {default: 'info'}},
                 content: 'block+',
                 group: 'block',
             },
-            horizontalRule: {
-                group: 'block',
-                parseDOM: [{tag: 'hr'}],
-            },
-            hardBreak: {
-                inline: true,
-                group: 'inline',
-                selectable: false,
-                parseDOM: [{tag: 'br'}],
-            },
+            horizontalRule: {group: 'block'},
+            hardBreak: {inline: true, group: 'inline', selectable: false},
             image: {
                 inline: true,
                 attrs: {
@@ -122,7 +87,6 @@ function getExportSchema(): Schema {
                 },
                 group: 'inline',
                 draggable: true,
-                parseDOM: [{tag: 'img'}],
             },
             imageResize: {
                 inline: true,
@@ -156,65 +120,42 @@ function getExportSchema(): Schema {
                 group: 'block',
                 atom: true,
             },
-            table: {
-                content: 'tableRow+',
-                group: 'block',
-                tableRole: 'table',
-                parseDOM: [{tag: 'table'}],
-            },
-            tableRow: {
-                content: '(tableCell | tableHeader)+',
-                tableRole: 'row',
-                parseDOM: [{tag: 'tr'}],
-            },
+            table: {content: 'tableRow+', group: 'block', tableRole: 'table'},
+            tableRow: {content: '(tableCell | tableHeader)+', tableRole: 'row'},
             tableCell: {
                 content: 'block+',
-                attrs: {
-                    colspan: {default: 1},
-                    rowspan: {default: 1},
-                },
+                attrs: {colspan: {default: 1}, rowspan: {default: 1}},
                 tableRole: 'cell',
-                parseDOM: [{tag: 'td'}],
             },
             tableHeader: {
                 content: 'block+',
-                attrs: {
-                    colspan: {default: 1},
-                    rowspan: {default: 1},
-                },
+                attrs: {colspan: {default: 1}, rowspan: {default: 1}},
                 tableRole: 'header_cell',
-                parseDOM: [{tag: 'th'}],
             },
             mention: {
-                attrs: {
-                    id: {default: null},
-                    label: {default: null},
-                },
+                attrs: {id: {default: null}, label: {default: null}},
+                group: 'inline',
+                inline: true,
+                atom: true,
+            },
+            channelMention: {
+                attrs: {id: {default: null}, label: {default: null}},
                 group: 'inline',
                 inline: true,
                 atom: true,
             },
         },
         marks: {
-            bold: {
-                parseDOM: [{tag: 'strong'}, {tag: 'b'}],
-            },
-            italic: {
-                parseDOM: [{tag: 'em'}, {tag: 'i'}],
-            },
-            code: {
-                parseDOM: [{tag: 'code'}],
-            },
-            strike: {
-                parseDOM: [{tag: 's'}, {tag: 'strike'}],
-            },
+            bold: {},
+            italic: {},
+            code: {},
+            strike: {},
             link: {
                 attrs: {
                     href: {},
                     target: {default: null},
                     title: {default: null},
                 },
-                parseDOM: [{tag: 'a[href]'}],
             },
 
             // textStyle is used for font color/size/family - stripped in markdown export
@@ -224,15 +165,11 @@ function getExportSchema(): Schema {
                     fontSize: {default: null},
                     fontFamily: {default: null},
                 },
-                parseDOM: [{tag: 'span'}],
             },
 
             // commentAnchor is used for inline comments - stripped in markdown export
             commentAnchor: {
-                attrs: {
-                    anchorId: {default: null},
-                },
-                parseDOM: [{tag: 'span[id]'}],
+                attrs: {anchorId: {default: null}},
             },
         },
     });
@@ -448,13 +385,24 @@ function createSerializer(fileRefs: FileRef[], preserveFileUrls = false) {
             },
             table: (state, node) => {
                 // Render table with GFM format
+                // Table cells contain block content (paragraphs), but we need to render
+                // the inline content only to keep each row on a single line
                 let isFirstRow = true;
                 node.forEach((row) => {
                     if (row.type.name === 'tableRow') {
                         state.write('|');
                         row.forEach((cell) => {
                             state.write(' ');
-                            state.renderInline(cell);
+
+                            // Render only the inline content of the first paragraph in the cell
+                            // This avoids adding newlines from paragraph block serialization
+                            const firstChild = cell.firstChild;
+                            if (firstChild && firstChild.type.name === 'paragraph') {
+                                state.renderInline(firstChild);
+                            } else if (firstChild) {
+                                // Fallback: render whatever content is there
+                                state.renderInline(cell);
+                            }
                             state.write(' |');
                         });
                         state.write('\n');
@@ -490,8 +438,14 @@ function createSerializer(fileRefs: FileRef[], preserveFileUrls = false) {
                 state.renderContent(node);
             },
             mention: (state, node) => {
+                // Don't escape mention identifiers - they're atomic, not free-form text
                 const label = (node.attrs.label as string) || (node.attrs.id as string) || '';
-                state.write(`@${escapeMarkdownText(label)}`);
+                state.write(`@${label}`);
+            },
+            channelMention: (state, node) => {
+                // Don't escape channel mention identifiers - they're atomic, not free-form text
+                const label = (node.attrs.label as string) || (node.attrs.id as string) || '';
+                state.write(`~${label}`);
             },
         },
         {
@@ -552,5 +506,5 @@ export function tiptapToMarkdown(
     return {markdown, files: fileRefs};
 }
 
-// Export schema getter for testing
-export {getExportSchema};
+// Export helpers for testing
+export {getExportSchema, sanitizeCodeLanguage, sanitizeFilename, escapeMarkdownText, extractFileId, getFileExtension};

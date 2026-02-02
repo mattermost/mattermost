@@ -14,6 +14,7 @@ const STRONG_SIGNALS = [
     /```[\s\S]+?```/, // fenced code blocks
     /^\|.+\|[\s\n]*\|[-:]+/m, // tables
     /!\[.*?\]\(.+?\)/, // images
+    /^[-*+]\s+\[[ xX]\]\s+/m, // task lists (e.g., - [x] or - [ ])
 ];
 
 // Medium signals - need 2+ matches
@@ -156,6 +157,38 @@ function postprocessMentions(inputHtml: string, mentions: MentionPlaceholder[]):
 }
 
 /**
+ * Convert task list HTML from marked's format to TipTap's expected format.
+ *
+ * marked outputs: <ul><li>[x] Task text</li><li>[ ] Another task</li></ul>
+ * TipTap expects: <ul data-type="taskList"><li data-type="taskItem" data-checked="true">Task text</li>...</ul>
+ */
+export function convertTaskListsToTipTapFormat(inputHtml: string): string {
+    // Match <li> elements that start with [x] or [ ] (task list items)
+    // Pattern: <li> followed by optional whitespace, then [x] or [ ], then content, then </li>
+    const taskItemRegex = /<li>\s*\[([ xX])\]\s*([\s\S]*?)<\/li>/g;
+
+    let result = inputHtml;
+    let hasTaskItems = false;
+
+    // First pass: convert task list items
+    result = result.replace(taskItemRegex, (_, checkChar, content) => {
+        hasTaskItems = true;
+        const isChecked = checkChar.toLowerCase() === 'x';
+        return `<li data-type="taskItem" data-checked="${isChecked}">${content.trim()}</li>`;
+    });
+
+    // Second pass: if we found task items, mark their parent <ul> as taskList
+    // This handles the case where a <ul> contains task items
+    if (hasTaskItems) {
+        // Find <ul> tags that contain taskItem li elements and add data-type="taskList"
+        result = result.replace(/<ul>([\s\S]*?<li data-type="taskItem"[\s\S]*?)<\/ul>/g,
+            '<ul data-type="taskList">$1</ul>');
+    }
+
+    return result;
+}
+
+/**
  * TipTap extension for pasting markdown as rich content.
  *
  * When plain text markdown is pasted:
@@ -211,12 +244,25 @@ export const PasteMarkdownExtension = Extension.create({
                             // Pre-process mentions
                             const {text: processedText, mentions} = preprocessMentions(text);
 
-                            // Convert markdown to HTML
-                            let html = marked(processedText) as string;
+                            // Convert markdown to HTML with sanitization to prevent XSS
+                            let html = marked(processedText, {sanitize: true, gfm: true}) as string;
 
-                            // Block dangerous URL protocols using the existing isUrlSafe utility
-                            html = html.replace(/href="([^"]*)"/g, (match, url) => {
-                                return isUrlSafe(url) ? match : 'href="#blocked"';
+                            // Convert code block language class prefix from marked to TipTap format
+                            // marked outputs: <pre><code class="lang-bash">
+                            // TipTap expects: <pre><code class="language-bash">
+                            html = html.replace(
+                                /<code class="lang-([^"]+)">/g,
+                                '<code class="language-$1">',
+                            );
+
+                            // Convert task lists from marked format to TipTap format
+                            // marked outputs: <li>[x] text</li>
+                            // TipTap expects: <li data-type="taskItem" data-checked="true">text</li>
+                            html = convertTaskListsToTipTapFormat(html);
+
+                            // Block dangerous URL protocols in both href and src attributes
+                            html = html.replace(/(href|src)="([^"]*)"/g, (match, attr, url) => {
+                                return isUrlSafe(url) ? match : `${attr}="#blocked"`;
                             });
 
                             // Post-process mentions
