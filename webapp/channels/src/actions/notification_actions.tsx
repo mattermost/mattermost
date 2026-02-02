@@ -171,18 +171,10 @@ export function sendDesktopNotification(post: Post, msgProps: NewPostMessageProp
         //Don't add extra sounds on native desktop clients (unless using GuildedSounds)
         const isDesktop = isDesktopApp();
         const isMobile = isMobileApp();
+        const windowActive = window.isActive;
 
         // GuildedSounds handles its own audio, so we play even on desktop app
         const shouldPlaySound = desktopSoundEnabled && !isMobile && (useGuildedSounds || !isDesktop);
-
-        // Debug logging - remove after fixing
-        console.log('[GuildedSounds] notification sound check:', {
-            desktopSoundEnabled,
-            isDesktop,
-            isMobile,
-            useGuildedSounds,
-            shouldPlaySound,
-        });
 
         if (shouldPlaySound) {
             // Use Guilded sounds when enabled, with context-aware sound selection
@@ -192,19 +184,33 @@ export function sendDesktopNotification(post: Post, msgProps: NewPostMessageProp
                 const isDM = channel.type === Constants.DM_CHANNEL;
                 const isGM = channel.type === Constants.GM_CHANNEL;
 
-                console.log('[GuildedSounds] playing notification sound:', {
+                // Only play DM/mention sounds when window is inactive (unless on desktop app)
+                // Other sounds require active window
+                const isNotificationSound = isMention || isDM || isGM;
+                const canPlayInactive = isDesktop && isNotificationSound;
+                const shouldPlayGuildedSound = windowActive || canPlayInactive;
+
+                // Debug logging - remove after fixing
+                console.log('[GuildedSounds] notification sound check:', {
+                    windowActive,
+                    isDesktop,
                     isMention,
                     isDM,
                     isGM,
+                    isNotificationSound,
+                    canPlayInactive,
+                    shouldPlayGuildedSound,
                     soundType: isMention ? 'mention_received' : (isDM || isGM) ? 'dm_received' : 'message_received',
                 });
 
-                if (isMention) {
-                    playSoundForEvent(getState, 'mention_received');
-                } else if (isDM || isGM) {
-                    playSoundForEvent(getState, 'dm_received');
-                } else {
-                    playSoundForEvent(getState, 'message_received');
+                if (shouldPlayGuildedSound) {
+                    if (isMention) {
+                        playSoundForEvent(getState, 'mention_received');
+                    } else if (isDM || isGM) {
+                        playSoundForEvent(getState, 'dm_received');
+                    } else {
+                        playSoundForEvent(getState, 'message_received');
+                    }
                 }
             } else {
                 // Fall back to old notification sound system
