@@ -110,6 +110,7 @@ export type Props = {
         savePreferences: (userId: string, preferences: Array<{category: string; user_id: string; name: string; value: string}>) => void;
         openModal: <P>(modalData: ModalData<P>) => void;
         closeModal: (modalId: string) => void;
+        addPendingReply: (postId: string) => boolean;
     };
     timestampProps?: Partial<TimestampProps>;
     shouldHighlight?: boolean;
@@ -133,6 +134,7 @@ export type Props = {
     shouldDisplayBurnOnReadConcealed?: boolean;
     burnOnReadDurationMinutes: number;
     burnOnReadSkipConfirmation?: boolean;
+    discordRepliesEnabled?: boolean;
 };
 
 function PostComponent(props: Props) {
@@ -375,7 +377,12 @@ function PostComponent(props: Props) {
             props.location === Locations.CENTER &&
             !props.isPostBeingEdited
         ) {
-            props.actions.selectPost(post);
+            // When Discord replies is enabled, clicking adds to pending replies instead of opening thread
+            if (props.discordRepliesEnabled) {
+                props.actions.addPendingReply(post.id);
+            } else {
+                props.actions.selectPost(post);
+            }
         }
 
         if (e.altKey) {
@@ -388,6 +395,7 @@ function PostComponent(props: Props) {
         isSystemMessage,
         props.channelIsArchived,
         props.clickToReply,
+        props.discordRepliesEnabled,
         props.actions,
         props.location,
         props.isPostBeingEdited,

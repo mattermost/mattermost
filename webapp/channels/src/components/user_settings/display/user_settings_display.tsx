@@ -120,6 +120,7 @@ type Props = OwnProps & {
     lastActiveDisplay: boolean;
     lastActiveTimeEnabled: boolean;
     renderEmoticonsAsEmoji: string;
+    discordRepliesEnabled: boolean;
     actions: {
         savePreferences: (userId: string, preferences: PreferenceType[]) => void;
         autoUpdateTimezone: (deviceTimezone: string) => void;
@@ -981,12 +982,16 @@ export default class UserSettingsDisplay extends React.PureComponent<Props, Stat
             });
         }
 
+        // When Discord replies is enabled, this becomes "Click to reply" instead of "Click to open threads"
         const clickToReply = this.createSection({
             section: Preferences.CLICK_TO_REPLY,
             display: 'clickToReply',
             value: this.state.clickToReply,
             defaultDisplay: 'true',
-            title: defineMessage({
+            title: this.props.discordRepliesEnabled ? defineMessage({
+                id: 'user.settings.display.clickToReplyDiscord',
+                defaultMessage: 'Click to reply',
+            }) : defineMessage({
                 id: 'user.settings.display.clickToReply',
                 defaultMessage: 'Click to open threads',
             }),
@@ -1008,7 +1013,10 @@ export default class UserSettingsDisplay extends React.PureComponent<Props, Stat
                     }),
                 },
             },
-            description: defineMessage({
+            description: this.props.discordRepliesEnabled ? defineMessage({
+                id: 'user.settings.display.clickToReplyDiscordDescription',
+                defaultMessage: 'When enabled, click anywhere on a message to add it to your reply queue.',
+            }) : defineMessage({
                 id: 'user.settings.display.clickToReplyDescription',
                 defaultMessage: 'When enabled, click anywhere on a message to open the reply thread.',
             }),

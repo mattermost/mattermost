@@ -90,6 +90,7 @@ export function makeMapStateToProps() {
             emojiPickerEnabled,
             lastActiveDisplay,
             lastActiveTimeEnabled,
+            discordRepliesEnabled: config?.FeatureFlagDiscordReplies === 'true',
         };
     };
 }

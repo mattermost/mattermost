@@ -27,6 +27,7 @@ import {getCurrentUserId, getUser} from 'mattermost-redux/selectors/entities/use
 import {burnPostNow} from 'actions/burn_on_read_deletion';
 import {revealBurnOnReadPost} from 'actions/burn_on_read_posts';
 import {markPostAsUnread, emitShortcutReactToLastPostFrom} from 'actions/post_actions';
+import {addPendingReply} from 'actions/views/discord_replies';
 import {openModal, closeModal} from 'actions/views/modals';
 import {closeRightHandSide, selectPost, setRhsExpanded, selectPostCard, selectPostFromRightHandSideSearch} from 'actions/views/rhs';
 import {getBurnOnReadDurationMinutes} from 'selectors/burn_on_read';
@@ -84,7 +85,13 @@ function isConsecutivePost(state: GlobalState, ownProps: OwnProps) {
         // Encrypted priority should still allow consecutive posts (unlike urgent/important)
         const hasPriorityButNotEncrypted = post.metadata?.priority?.priority &&
             post.metadata.priority.priority !== PostPriority.ENCRYPTED;
-        if (!hasPriorityButNotEncrypted) {
+
+        // Discord reply posts should never be compacted - they have reply previews that need to show
+        const hasDiscordReplies = post.props?.discord_replies &&
+            Array.isArray(post.props.discord_replies) &&
+            post.props.discord_replies.length > 0;
+
+        if (!hasPriorityButNotEncrypted && !hasDiscordReplies) {
             consecutivePost = areConsecutivePostsBySameUser(post, previousPost);
         }
     }
@@ -233,6 +240,7 @@ function makeMapStateToProps() {
             burnOnReadDurationMinutes: getBurnOnReadDurationMinutes(state),
             burnOnReadSkipConfirmation: getBool(state, ReduxPreferences.CATEGORY_BURN_ON_READ, ReduxPreferences.BURN_ON_READ_SKIP_CONFIRMATION, false),
             isBurnOnReadPost: isPostBurnOnRead,
+            discordRepliesEnabled: config?.FeatureFlagDiscordReplies === 'true',
         };
     };
 }
@@ -253,6 +261,7 @@ function mapDispatchToProps(dispatch: Dispatch) {
             savePreferences,
             openModal,
             closeModal,
+            addPendingReply,
         }, dispatch),
     };
 }

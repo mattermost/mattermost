@@ -4,13 +4,15 @@
 import classnames from 'classnames';
 import React, {useCallback, useEffect, useRef, useState} from 'react';
 import type {ReactNode} from 'react';
-import {FormattedMessage} from 'react-intl';
+import {FormattedMessage, useIntl} from 'react-intl';
 
 import type {Emoji} from '@mattermost/types/emojis';
 import type {Post} from '@mattermost/types/posts';
 
 import {Posts} from 'mattermost-redux/constants/index';
 import {isPostEphemeral} from 'mattermost-redux/utils/post_utils';
+
+import {ForumOutlineIcon} from '@mattermost/compass-icons/components';
 
 import ActionsMenu from 'components/actions_menu';
 import CommentIcon from 'components/common/comment_icon';
@@ -19,6 +21,7 @@ import DotMenu from 'components/dot_menu';
 import PostFlagIcon from 'components/post_view/post_flag_icon';
 import PostReaction from 'components/post_view/post_reaction';
 import PostRecentReactions from 'components/post_view/post_recent_reactions';
+import WithTooltip from 'components/with_tooltip';
 
 import {Locations, Constants} from 'utils/constants';
 import {isSystemMessage, fromAutoResponder} from 'utils/post_utils';
@@ -57,12 +60,15 @@ type Props = {
     pluginActions: PostActionComponent[];
     isBurnOnReadPost?: boolean;
     shouldDisplayBurnOnReadConcealed?: boolean;
+    discordRepliesEnabled?: boolean;
     actions: {
         emitShortcutReactToLastPostFrom: (emittedFrom: 'CENTER' | 'RHS_ROOT' | 'NO_WHERE') => void;
+        addPendingReply?: (postId: string) => boolean;
     };
 };
 
 const PostOptions = (props: Props): JSX.Element => {
+    const intl = useIntl();
     const [showEmojiPicker, setShowEmojiPicker] = useState(false);
     const [showDotMenu, setShowDotMenu] = useState(false);
     const [showActionsMenu, setShowActionsMenu] = useState(false);
@@ -71,6 +77,13 @@ const PostOptions = (props: Props): JSX.Element => {
         setShowEmojiPicker(show);
         props.handleDropdownOpened!(show);
     }, [props.handleDropdownOpened]);
+
+    // Handler for Discord replies - adds post to pending replies queue
+    const handleDiscordReply = useCallback((e: React.MouseEvent) => {
+        e.preventDefault();
+        e.stopPropagation();
+        props.actions.addPendingReply?.(props.post.id);
+    }, [props.actions, props.post.id]);
 
     const lastEmittedFrom = useRef(props.shortcutReactToLastPostEmittedFrom);
     useEffect(() => {
@@ -128,16 +141,47 @@ const PostOptions = (props: Props): JSX.Element => {
             props.isFirstReply) && props.location === Locations.CENTER));
     const commentIconExtraClass = isMobileView ? '' : 'pull-right';
 
+    // When Discord replies is enabled, clicking Reply adds to pending replies queue
+    // We also show a separate "Create Thread" button for the original behavior
+    const replyClickHandler = props.discordRepliesEnabled ? handleDiscordReply : props.handleCommentClick;
+
     let commentIcon;
     if (showCommentIcon) {
         commentIcon = (
             <li>
                 <CommentIcon
-                    handleCommentClick={props.handleCommentClick}
+                    handleCommentClick={replyClickHandler}
                     postId={post.id}
                     extraClass={commentIconExtraClass}
-                    commentCount={props.collapsedThreadsEnabled ? 0 : props.replyCount}
+                    commentCount={props.discordRepliesEnabled ? 0 : (props.collapsedThreadsEnabled ? 0 : props.replyCount)}
                 />
+            </li>
+        );
+    }
+
+    // Create Thread icon - shown when Discord replies is enabled to provide access to original thread behavior
+    const createThreadTitle = intl.formatMessage({
+        id: 'post_info.create_thread.tooltip',
+        defaultMessage: 'Create Thread',
+    });
+
+    let createThreadIcon: ReactNode = null;
+    if (props.discordRepliesEnabled && showCommentIcon) {
+        createThreadIcon = (
+            <li>
+                <WithTooltip title={createThreadTitle}>
+                    <button
+                        id={`${props.location}_createThreadIcon_${post.id}`}
+                        aria-label={createThreadTitle.toLowerCase()}
+                        className={`post-menu__item ${commentIconExtraClass}`}
+                        onClick={props.handleCommentClick}
+                    >
+                        <ForumOutlineIcon
+                            size={18}
+                            className='icon'
+                        />
+                    </button>
+                </WithTooltip>
             </li>
         );
     }
@@ -303,6 +347,7 @@ const PostOptions = (props: Props): JSX.Element => {
                 {pluginItems}
                 {actionsMenu}
                 {commentIcon}
+                {createThreadIcon}
                 {(collapsedThreadsEnabled || showRecentlyUsedReactions) && dotMenu}
             </ul>
         );
