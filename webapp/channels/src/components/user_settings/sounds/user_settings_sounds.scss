@@ -1,0 +1,191 @@
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
+
+.guilded-sounds-section {
+    padding: 16px 20px;
+}
+
+.guilded-sounds-section-title {
+    font-size: 14px;
+    font-weight: 600;
+    color: rgba(var(--center-channel-color-rgb), 0.9);
+    margin-bottom: 16px;
+}
+
+.guilded-sounds-label {
+    display: block;
+    font-size: 14px;
+    font-weight: 600;
+    color: rgba(var(--center-channel-color-rgb), 0.9);
+    margin-bottom: 8px;
+}
+
+.guilded-sounds-volume {
+    margin-bottom: 8px;
+}
+
+.guilded-sounds-volume-control {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.guilded-sounds-slider {
+    flex: 1;
+    height: 4px;
+    appearance: none;
+    background: rgba(var(--center-channel-color-rgb), 0.16);
+    border-radius: 2px;
+    cursor: pointer;
+
+    &::-webkit-slider-thumb {
+        appearance: none;
+        width: 16px;
+        height: 16px;
+        border-radius: 50%;
+        background: var(--button-bg);
+        cursor: pointer;
+        transition: transform 0.1s ease;
+
+        &:hover {
+            transform: scale(1.1);
+        }
+    }
+
+    &::-moz-range-thumb {
+        width: 16px;
+        height: 16px;
+        border: none;
+        border-radius: 50%;
+        background: var(--button-bg);
+        cursor: pointer;
+        transition: transform 0.1s ease;
+
+        &:hover {
+            transform: scale(1.1);
+        }
+    }
+}
+
+.guilded-sounds-volume-value {
+    min-width: 40px;
+    font-size: 14px;
+    color: rgba(var(--center-channel-color-rgb), 0.72);
+    text-align: right;
+}
+
+.guilded-sounds-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 0;
+    border-bottom: 1px solid rgba(var(--center-channel-color-rgb), 0.08);
+
+    &:last-child {
+        border-bottom: none;
+    }
+}
+
+.guilded-sounds-item-info {
+    flex: 1;
+    min-width: 0;
+}
+
+.guilded-sounds-item-title {
+    font-size: 14px;
+    font-weight: 600;
+    color: rgba(var(--center-channel-color-rgb), 0.9);
+    margin-bottom: 2px;
+}
+
+.guilded-sounds-item-desc {
+    font-size: 12px;
+    color: rgba(var(--center-channel-color-rgb), 0.56);
+}
+
+.guilded-sounds-item-controls {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-left: 16px;
+}
+
+// Toggle switch
+.guilded-sounds-toggle {
+    position: relative;
+    display: inline-block;
+    width: 40px;
+    height: 24px;
+
+    input {
+        opacity: 0;
+        width: 0;
+        height: 0;
+
+        &:checked + .guilded-sounds-toggle-slider {
+            background-color: var(--button-bg);
+        }
+
+        &:checked + .guilded-sounds-toggle-slider::before {
+            transform: translateX(16px);
+        }
+
+        &:disabled + .guilded-sounds-toggle-slider {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+    }
+}
+
+.guilded-sounds-toggle-slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(var(--center-channel-color-rgb), 0.24);
+    transition: 0.2s;
+    border-radius: 24px;
+
+    &::before {
+        position: absolute;
+        content: '';
+        height: 18px;
+        width: 18px;
+        left: 3px;
+        bottom: 3px;
+        background-color: white;
+        transition: 0.2s;
+        border-radius: 50%;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+    }
+}
+
+// Preview button
+.guilded-sounds-preview-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    border: 1px solid rgba(var(--center-channel-color-rgb), 0.16);
+    border-radius: 4px;
+    background: transparent;
+    color: rgba(var(--center-channel-color-rgb), 0.72);
+    cursor: pointer;
+    transition: all 0.1s ease;
+
+    &:hover {
+        background: rgba(var(--center-channel-color-rgb), 0.08);
+        color: var(--center-channel-color);
+    }
+
+    &:active {
+        background: rgba(var(--center-channel-color-rgb), 0.16);
+    }
+
+    .icon {
+        font-size: 16px;
+    }
+}

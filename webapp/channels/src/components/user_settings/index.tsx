@@ -15,6 +15,7 @@ import NotificationsTab from './notifications';
 import PluginTab from './plugin';
 import SecurityTab from './security';
 import SidebarTab from './sidebar';
+import SoundsTab from './sounds';
 
 export type Props = {
     user: UserProfile;
@@ -97,6 +98,17 @@ export default function UserSettings(props: Props) {
                     adminMode={props.adminMode}
                     userId={props.user.id}
                     userPreferences={props.userPreferences}
+                />
+            </div>
+        );
+    } else if (props.activeTab === 'sounds') {
+        return (
+            <div>
+                <SoundsTab
+                    activeSection={props.activeSection}
+                    updateSection={props.updateSection}
+                    closeModal={props.closeModal}
+                    collapseModal={props.collapseModal}
                 />
             </div>
         );

@@ -47,6 +47,7 @@ import {
     StoragePrefixes,
 } from 'utils/constants';
 import {matchEmoticons} from 'utils/emoticons';
+import {isGuildedSoundTypeEnabled, playGuildedSound} from 'utils/guilded_sounds';
 import {makeGetIsReactionAlreadyAddedToPost, makeGetUniqueEmojiNameReactionsForPost} from 'utils/post_utils';
 
 import type {
@@ -145,10 +146,15 @@ export function createPost(
     afterSubmit?: (response: SubmitPostReturnType) => void,
     options?: OnSubmitOptions,
 ): ActionFuncAsync<PostActions.CreatePostReturnType> {
-    return async (dispatch) => {
+    return async (dispatch, getState) => {
         dispatch(addRecentEmojisForMessage(post.message));
 
         const result = await dispatch(PostActions.createPost(post, files, afterSubmit));
+
+        // Play Guilded message sent sound
+        if (isGuildedSoundTypeEnabled(getState, 'message_sent')) {
+            playGuildedSound('message_sent');
+        }
 
         if (!options?.keepDraft) {
             const isEncrypted = post.metadata?.priority?.priority === PostPriority.ENCRYPTED;
@@ -261,6 +267,12 @@ export function addReaction(postId: string, emojiName: string): ActionFuncAsync<
 
         dispatch(addRecentEmoji(emojiName));
         const result = await dispatch(PostActions.addReaction(postId, emojiName));
+
+        // Play Guilded reaction sound on success
+        if (!result.error && isGuildedSoundTypeEnabled(getState, 'reaction_apply')) {
+            playGuildedSound('reaction_apply');
+        }
+
         return result;
     };
 }

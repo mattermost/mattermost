@@ -131,6 +131,7 @@ import WebSocketClient from 'client/web_websocket_client';
 import {loadPlugin, loadPluginsIfNecessary, removePlugin} from 'plugins';
 import {getHistory} from 'utils/browser_history';
 import {ActionTypes, Constants, AnnouncementBarMessages, SocketEvents, UserStatuses, ModalIdentifiers, PageLoadContext} from 'utils/constants';
+import {isGuildedSoundTypeEnabled, playGuildedSound} from 'utils/guilded_sounds';
 import {getSiteURL} from 'utils/url';
 
 import {temporarilySetPageLoadContext} from './telemetry_actions';
@@ -1366,6 +1367,16 @@ function handleReactionAddedEvent(msg) {
         type: PostTypes.RECEIVED_REACTION,
         data: reaction,
     });
+
+    // Play Guilded reaction received sound when someone else reacts to current user's post
+    const state = getState();
+    const currentUserId = getCurrentUserId(state);
+    const post = getPost(state, reaction.post_id);
+    if (post && post.user_id === currentUserId && reaction.user_id !== currentUserId) {
+        if (isGuildedSoundTypeEnabled(getState, 'reaction_received')) {
+            playGuildedSound('reaction_received');
+        }
+    }
 }
 
 function setConnectionId(connectionId) {

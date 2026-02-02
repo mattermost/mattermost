@@ -99,6 +99,9 @@ type FeatureFlags struct {
 
 	// Enable end-to-end encryption for messages
 	Encryption bool
+
+	// Enable Guilded-style sounds for message/reaction interactions
+	GuildedSounds bool
 }
 
 // featureFlagDefaults defines the default value for each boolean feature flag.

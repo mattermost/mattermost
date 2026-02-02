@@ -21,6 +21,7 @@ const MATTERMOST_EXTENDED_FLAGS = [
     'CustomChannelIcons',
     'ThreadsInSidebar',
     'CustomThreadNames',
+    'GuildedSounds',
 ];
 
 type Props = {

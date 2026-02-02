@@ -25,6 +25,9 @@ import {stopTryNotificationRing} from 'utils/notification_sounds';
 import {isValidUrl} from 'utils/url';
 import {getDisplayName} from 'utils/utils';
 
+import store from 'stores/redux_store';
+import {getConfig} from 'mattermost-redux/selectors/entities/general';
+
 import type {PluginConfiguration} from 'types/plugins/user_settings';
 
 import './user_settings_modal.scss';
@@ -259,7 +262,9 @@ class UserSettingsModal extends React.PureComponent<Props, State> {
 
     getUserSettingsTabs = () => {
         const {formatMessage} = this.props.intl;
-        return [
+        const config = getConfig(store.getState());
+
+        const tabs = [
             {
                 name: 'notifications',
                 uiName: formatMessage({id: 'user.settings.modal.notifications', defaultMessage: 'Notifications'}),
@@ -278,13 +283,26 @@ class UserSettingsModal extends React.PureComponent<Props, State> {
                 icon: 'icon icon-dock-left',
                 iconTitle: formatMessage({id: 'user.settings.sidebar.icon', defaultMessage: 'Sidebar Settings Icon'}),
             },
-            {
-                name: 'advanced',
-                uiName: formatMessage({id: 'user.settings.modal.advanced', defaultMessage: 'Advanced'}),
-                icon: 'icon icon-tune',
-                iconTitle: formatMessage({id: 'user.settings.advance.icon', defaultMessage: 'Advanced Settings Icon'}),
-            },
         ];
+
+        // Add Sounds tab if GuildedSounds feature flag is enabled
+        if (config.FeatureFlagGuildedSounds === 'true') {
+            tabs.push({
+                name: 'sounds',
+                uiName: formatMessage({id: 'user.settings.modal.sounds', defaultMessage: 'Sounds'}),
+                icon: 'icon icon-volume-high',
+                iconTitle: formatMessage({id: 'user.settings.sounds.icon', defaultMessage: 'Sounds Settings Icon'}),
+            });
+        }
+
+        tabs.push({
+            name: 'advanced',
+            uiName: formatMessage({id: 'user.settings.modal.advanced', defaultMessage: 'Advanced'}),
+            icon: 'icon icon-tune',
+            iconTitle: formatMessage({id: 'user.settings.advance.icon', defaultMessage: 'Advanced Settings Icon'}),
+        });
+
+        return tabs;
     };
 
     getProfileSettingsTab = () => {

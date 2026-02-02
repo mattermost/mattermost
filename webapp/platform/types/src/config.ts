@@ -134,6 +134,7 @@ export type ClientConfig = {
     FeatureFlagContentFlagging: string;
     FeatureFlagThreadsInSidebar: string;
     FeatureFlagCustomChannelIcons: string;
+    FeatureFlagGuildedSounds: string;
 
     ForgotPasswordLink: string;
     GiphySdkKey: string;

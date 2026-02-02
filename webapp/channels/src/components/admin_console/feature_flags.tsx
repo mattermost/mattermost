@@ -165,6 +165,10 @@ const FLAG_METADATA: Record<string, {description: string; defaultValue: boolean}
         description: 'Allow users to set custom names for threads from the thread header',
         defaultValue: false,
     },
+    GuildedSounds: {
+        description: 'Enable Guilded-style sounds for message/reaction interactions',
+        defaultValue: false,
+    },
 };
 
 // Styled components

@@ -104,6 +104,18 @@ export const Preferences = {
     CATEGORY_THEME: 'theme',
     CATEGORY_ENCRYPTION: 'encryption',
     NAME_ENCRYPTION_KEYPAIR_MODAL_DISMISSED: 'keypair_modal_dismissed',
+
+    // Guilded Sounds preferences
+    CATEGORY_GUILDED_SOUNDS: 'guilded_sounds',
+    GUILDED_SOUNDS_ENABLED: 'enabled',
+    GUILDED_SOUNDS_VOLUME: 'volume',
+    GUILDED_SOUNDS_MESSAGE_SENT: 'message_sent',
+    GUILDED_SOUNDS_REACTION_APPLY: 'reaction_apply',
+    GUILDED_SOUNDS_REACTION_RECEIVED: 'reaction_received',
+    GUILDED_SOUNDS_MESSAGE_RECEIVED: 'message_received',
+    GUILDED_SOUNDS_DM_RECEIVED: 'dm_received',
+    GUILDED_SOUNDS_MENTION_RECEIVED: 'mention_received',
+
     CATEGORY_NOTIFICATIONS: 'notifications',
     EMAIL_INTERVAL: 'email_interval',
     INTERVAL_IMMEDIATE: 30, // "immediate" is a 30 second interval

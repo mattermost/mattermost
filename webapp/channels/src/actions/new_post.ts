@@ -13,7 +13,7 @@ import {
     markChannelAsViewedOnServer,
 } from 'mattermost-redux/actions/channels';
 import * as PostActions from 'mattermost-redux/actions/posts';
-import {getCurrentChannelId, isManuallyUnread} from 'mattermost-redux/selectors/entities/channels';
+import {getCurrentChannelId, getChannel, isManuallyUnread} from 'mattermost-redux/selectors/entities/channels';
 import * as PostSelectors from 'mattermost-redux/selectors/entities/posts';
 import {isCollapsedThreadsEnabled} from 'mattermost-redux/selectors/entities/preferences';
 import {getThread} from 'mattermost-redux/selectors/entities/threads';
@@ -29,7 +29,8 @@ import {updateThreadLastOpened} from 'actions/views/threads';
 import {isThreadOpen, makeGetThreadLastViewedAt} from 'selectors/views/threads';
 
 import WebSocketClient from 'client/web_websocket_client';
-import {ActionTypes} from 'utils/constants';
+import {ActionTypes, Constants} from 'utils/constants';
+import {isGuildedSoundTypeEnabled, playGuildedSound} from 'utils/guilded_sounds';
 
 import {runMessageWillBeReceivedHooks} from './hooks';
 
@@ -83,6 +84,7 @@ export function completePostReceive(post: Post, websocketMessageProps: NewPostMe
 
         const collapsedThreadsEnabled = isCollapsedThreadsEnabled(state);
         const isCRTReply = collapsedThreadsEnabled && processedPost.root_id;
+        const currentUserId = getCurrentUserId(state);
 
         actions.push(
             PostActions.receivedNewPost(processedPost, collapsedThreadsEnabled),
@@ -105,6 +107,23 @@ export function completePostReceive(post: Post, websocketMessageProps: NewPostMe
         // Only ACK for posts that require it
         if (websocketMessageProps.should_ack) {
             WebSocketClient.acknowledgePostedNotification(processedPost.id, status, reason, data);
+        }
+
+        // Play Guilded sounds for received messages (only for messages from other users)
+        if (processedPost.user_id !== currentUserId && status !== 'sent') {
+            const channel = getChannel(state, processedPost.channel_id);
+            const mentions = websocketMessageProps.mentions ? JSON.parse(websocketMessageProps.mentions) : [];
+            const isMention = mentions.includes(currentUserId);
+            const isDM = channel?.type === Constants.DM_CHANNEL;
+            const isGM = channel?.type === Constants.GM_CHANNEL;
+
+            if (isMention && isGuildedSoundTypeEnabled(getState, 'mention_received')) {
+                playGuildedSound('mention_received');
+            } else if ((isDM || isGM) && isGuildedSoundTypeEnabled(getState, 'dm_received')) {
+                playGuildedSound('dm_received');
+            } else if (isGuildedSoundTypeEnabled(getState, 'message_received')) {
+                playGuildedSound('message_received');
+            }
         }
 
         return {data: true};
