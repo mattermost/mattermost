@@ -9,7 +9,7 @@ import * as modalActions from 'actions/views/modals';
 import {WithTestMenuContext} from 'components/menu/menu_context_test';
 import MoreDirectChannels from 'components/more_direct_channels';
 
-import {renderWithContext, screen, fireEvent} from 'tests/react_testing_utils';
+import {renderWithContext, screen, userEvent} from 'tests/react_testing_utils';
 import {ModalIdentifiers} from 'utils/constants';
 
 import AddGroupMembers from './add_group_members';
@@ -35,7 +35,7 @@ describe('components/ChannelHeaderMenu/MenuItems/AddGroupMembers', () => {
         expect(menuItem).toBeInTheDocument(); // Check if text "Add Members" renders
     });
 
-    test('dispatches openModal action on click', () => {
+    test('dispatches openModal action on click', async () => {
         renderWithContext(
             <WithTestMenuContext>
                 <AddGroupMembers/>
@@ -44,7 +44,7 @@ describe('components/ChannelHeaderMenu/MenuItems/AddGroupMembers', () => {
 
         const menuItem = screen.getByText('Add Members');
         expect(menuItem).toBeInTheDocument(); // Check if text "Add Members" renders
-        fireEvent.click(menuItem); // Simulate click on the menu item
+        await userEvent.click(menuItem); // Simulate click on the menu item
 
         expect(useDispatch).toHaveBeenCalledTimes(1); // Ensure dispatch was called
         expect(modalActions.openModal).toHaveBeenCalledTimes(1);

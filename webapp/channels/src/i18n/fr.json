@@ -3793,7 +3793,6 @@
   "navbar_dropdown.viewMembers": "Voir les membres",
   "newChannelWithBoard.tutorialTip.description": "Pour accéder rapidement au tableau que vous venez de créer, cliquez sur l'icône des Tableaux dans la barre d'application. Vous pouvez voir les tableaux liés à ce canal dans la barre latérale droite et en ouvrir un en vue complète.",
   "newChannelWithBoard.tutorialTip.title": "Accédez aux tableaux liés depuis la barre d’applications",
-  "newsletter_optin.checkmark.text": "<span>Je souhaite recevoir les mises à jour de sécurité de Mattermost via la newsletter.</span> En m'abonnant, j'accepte de recevoir des emails de Mattermost avec des mises à jour produits, des promotions et des nouvelles de l'entreprise. J'ai lu la <a>Politique de confidentialité</a> et je comprends que je peux <aa>me désabonner</aa> à tout moment",
   "next_steps_view.welcomeToMattermost": "Bienvenue dans Mattermost",
   "no_results.Files.subtitle": "Vérifiez l'orthographe ou essayez une autre recherche.",
   "no_results.Files.title": "Aucun résultat de fichier pour \"{searchTerm}\"",

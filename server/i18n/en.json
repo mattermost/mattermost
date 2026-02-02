@@ -1262,10 +1262,6 @@
     "translation": "Could not find the specified channel. Please use the [channel handle](https://docs.mattermost.com/messaging/managing-channels.html#naming-a-channel) to identify channels."
   },
   {
-    "id": "api.command_mute.not_member.error",
-    "translation": "Could not mute channel {{.Channel}} as you are not a member."
-  },
-  {
     "id": "api.command_mute.success_mute",
     "translation": "You will not receive notifications for {{.Channel}} until channel mute is turned off."
   },
@@ -4515,6 +4511,10 @@
     "translation": "Authentication Transfer not configured or available on this server."
   },
   {
+    "id": "api.user.oauth_to_email.not_oauth_user.app_error",
+    "translation": "Unable to switch to email authentication because user is not using OAuth or SAML authentication."
+  },
+  {
     "id": "api.user.patch_user.login_provider_attribute_set.app_error",
     "translation": "Field '{{.Field}}' must be set through user's login provider."
   },
@@ -6917,10 +6917,6 @@
   {
     "id": "app.pap.update_access_control_policies_active.app_error",
     "translation": "Could not update active status of access control policies."
-  },
-  {
-    "id": "app.pap.update_access_control_policy_active.app_error",
-    "translation": "Could not change active status of access control policy."
   },
   {
     "id": "app.pdp.access_evaluation.app_error",
@@ -9909,20 +9905,8 @@
     "translation": "Unsupported autotranslation provider."
   },
   {
-    "id": "model.config.is_valid.autotranslation.timeouts.long.app_error",
-    "translation": "Invalid long timeout for autotranslation settings. Must be a positive number."
-  },
-  {
-    "id": "model.config.is_valid.autotranslation.timeouts.medium.app_error",
-    "translation": "Invalid medium timeout for autotranslation settings. Must be a positive number."
-  },
-  {
-    "id": "model.config.is_valid.autotranslation.timeouts.notification.app_error",
-    "translation": "Invalid notification timeout for autotranslation settings. Must be a positive number."
-  },
-  {
-    "id": "model.config.is_valid.autotranslation.timeouts.short.app_error",
-    "translation": "Invalid short timeout for autotranslation settings. Must be a positive number."
+    "id": "model.config.is_valid.autotranslation.timeout.app_error",
+    "translation": "Invalid timeout for autotranslation settings. Must be a positive number."
   },
   {
     "id": "model.config.is_valid.cache_type.app_error",
