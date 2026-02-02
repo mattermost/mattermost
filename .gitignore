@@ -45,6 +45,17 @@ e2e-tests/playwright/specs/**/*-window.png
 e2e-tests/playwright/specs/accessibility/**/*-snapshots
 e2e-tests/playwright/.eslintcache
 
+# Autonomous testing system (SECURITY: contains sensitive data)
+e2e-tests/playwright/autonomous/
+e2e-tests/playwright/autonomous_knowledge.db*
+e2e-tests/playwright/.autonomous-kb/
+e2e-tests/playwright/lib/src/autonomous/screenshots/
+*.autonomous.db
+*.autonomous.db-wal
+*.autonomous.db-shm
+.encryption-key
+*/.encryption-key
+
 # ignore temporary added configuration for pgloader
 server/tests/temp.load
 

@@ -16,6 +16,15 @@
         "noEmit": true,
         "baseUrl": "."
     },
-    "include": ["./**/*"],
-    "exclude": ["node_modules", "playwright-report", "lib"]
+    "include": [
+        "specs/**/*",
+        "support/**/*",
+        "script/**/*",
+        "utils/**/*",
+        "*.ts",
+        "*.config.ts",
+        "lib/src/spec-bridge.ts",
+        "lib/src/autonomous/**/*"
+    ],
+    "exclude": ["node_modules", "playwright-report"]
 }

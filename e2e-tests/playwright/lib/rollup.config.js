@@ -18,7 +18,9 @@ export default {
     plugins: [
         typescript(),
         copy({
-            targets: [{src: 'src/asset/**/*', dest: 'dist/asset'}], // Copy assets to dist/
+            targets: [
+                {src: 'src/asset/**/*', dest: 'dist/asset'}, // Copy assets to dist/
+            ],
         }),
     ],
     external: [
@@ -33,10 +35,18 @@ export default {
         'node:path',
         'node:fs',
         'node:os',
+        // Also include unprefixed Node.js built-ins
+        'fs',
+        'path',
+        'crypto',
         'mime-types',
         'uuid',
         'async-wait-until',
         'chalk',
         'deepmerge',
+        'pdf-parse',
+        'marked',
+        'openai',
+        '@anthropic-ai/sdk',
     ],
 };

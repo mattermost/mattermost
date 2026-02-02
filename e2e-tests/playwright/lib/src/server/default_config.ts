@@ -18,22 +18,27 @@ import {
 import {testConfig} from '@/test_config';
 
 export function getOnPremServerConfig(): AdminConfig {
-    return merge<AdminConfig>(defaultServerConfig, onPremServerConfig() as AdminConfig);
+    return merge<AdminConfig>(defaultServerConfig as unknown as AdminConfig, onPremServerConfig() as AdminConfig);
 }
 
 export function mergeWithOnPremServerConfig(overrides: Partial<AdminConfig>): AdminConfig {
     return merge<AdminConfig>(getOnPremServerConfig(), overrides);
 }
 
+// Extended types to allow additional properties not yet in @mattermost/types
+type ExtendedServiceSettings = Partial<ServiceSettings> & Record<string, unknown>;
+type ExtendedExperimentalSettings = Partial<ExperimentalSettings> & Record<string, unknown>;
+
 type TestAdminConfig = {
     ClusterSettings: Partial<ClusterSettings>;
     EmailSettings: Partial<EmailSettings>;
-    ExperimentalSettings: Partial<ExperimentalSettings>;
+    ExperimentalSettings: ExtendedExperimentalSettings;
     LogSettings: Partial<LogSettings>;
     PasswordSettings: Partial<PasswordSettings>;
     PluginSettings: Partial<PluginSettings>;
-    ServiceSettings: Partial<ServiceSettings>;
+    ServiceSettings: ExtendedServiceSettings;
     TeamSettings: Partial<TeamSettings>;
+    [key: string]: unknown;
 };
 
 // On-prem setting that is different from the default
@@ -87,7 +92,8 @@ const onPremServerConfig = (): Partial<TestAdminConfig> => {
 
 // Should be based only from the generated default config from ./server via "make config-reset"
 // Based on v11.3 server
-const defaultServerConfig: AdminConfig = {
+// Use type assertion to allow additional properties not yet in @mattermost/types
+const defaultServerConfig = {
     ServiceSettings: {
         SiteURL: '',
         WebsocketURL: '',
