@@ -68,6 +68,10 @@ func (pas *PropertyAccessService) GetPropertyGroup(name string) (*model.Property
 // CreatePropertyField creates a new property field.
 // This method rejects any attempt to set source_plugin_id - only plugins can set this via CreatePropertyFieldForPlugin.
 func (pas *PropertyAccessService) CreatePropertyField(callerID string, field *model.PropertyField) (*model.PropertyField, error) {
+	if !groupHasAccessRestrictions(field.GroupID) {
+		return pas.propertyService.CreatePropertyField(field)
+	}
+
 	// Reject if source_plugin_id is set to a non-empty value - only plugins can set this via CreatePropertyFieldForPlugin
 	if pas.getSourcePluginID(field) != "" {
 		return nil, fmt.Errorf("CreatePropertyField: source_plugin_id cannot be set directly, it is only set automatically for plugin-created fields")
@@ -94,6 +98,10 @@ func (pas *PropertyAccessService) CreatePropertyField(callerID string, field *mo
 // This method automatically sets the source_plugin_id to the provided pluginID.
 // Only use this method when creating fields through the Plugin API.
 func (pas *PropertyAccessService) CreatePropertyFieldForPlugin(pluginID string, field *model.PropertyField) (*model.PropertyField, error) {
+	if !groupHasAccessRestrictions(field.GroupID) {
+		return pas.propertyService.CreatePropertyField(field)
+	}
+
 	if pluginID == "" {
 		return nil, fmt.Errorf("CreatePropertyFieldForPlugin: pluginID is required")
 	}
@@ -121,6 +129,10 @@ func (pas *PropertyAccessService) CreatePropertyFieldForPlugin(pluginID string, 
 // GetPropertyField retrieves a property field by group and field ID.
 // Field details are filtered based on the caller's access permissions.
 func (pas *PropertyAccessService) GetPropertyField(callerID string, groupID, id string) (*model.PropertyField, error) {
+	if !groupHasAccessRestrictions(groupID) {
+		return pas.propertyService.GetPropertyField(groupID, id)
+	}
+
 	field, err := pas.propertyService.GetPropertyField(groupID, id)
 	if err != nil {
 		return nil, fmt.Errorf("GetPropertyField: %w", err)
@@ -132,6 +144,10 @@ func (pas *PropertyAccessService) GetPropertyField(callerID string, groupID, id 
 // GetPropertyFields retrieves multiple property fields by their IDs.
 // Field details are filtered based on the caller's access permissions.
 func (pas *PropertyAccessService) GetPropertyFields(callerID string, groupID string, ids []string) ([]*model.PropertyField, error) {
+	if !groupHasAccessRestrictions(groupID) {
+		return pas.propertyService.GetPropertyFields(groupID, ids)
+	}
+
 	fields, err := pas.propertyService.GetPropertyFields(groupID, ids)
 	if err != nil {
 		return nil, fmt.Errorf("GetPropertyFields: %w", err)
@@ -143,6 +159,10 @@ func (pas *PropertyAccessService) GetPropertyFields(callerID string, groupID str
 // GetPropertyFieldByName retrieves a property field by name.
 // Field details are filtered based on the caller's access permissions.
 func (pas *PropertyAccessService) GetPropertyFieldByName(callerID string, groupID, targetID, name string) (*model.PropertyField, error) {
+	if !groupHasAccessRestrictions(groupID) {
+		return pas.propertyService.GetPropertyFieldByName(groupID, targetID, name)
+	}
+
 	field, err := pas.propertyService.GetPropertyFieldByName(groupID, targetID, name)
 	if err != nil {
 		return nil, fmt.Errorf("GetPropertyFieldByName: %w", err)
@@ -174,6 +194,10 @@ func (pas *PropertyAccessService) CountAllPropertyFieldsForTarget(groupID, targe
 // SearchPropertyFields searches for property fields based on the given options.
 // Field details are filtered based on the caller's access permissions.
 func (pas *PropertyAccessService) SearchPropertyFields(callerID string, groupID string, opts model.PropertyFieldSearchOpts) ([]*model.PropertyField, error) {
+	if !groupHasAccessRestrictions(groupID) {
+		return pas.propertyService.SearchPropertyFields(groupID, opts)
+	}
+
 	fields, err := pas.propertyService.SearchPropertyFields(groupID, opts)
 	if err != nil {
 		return nil, fmt.Errorf("SearchPropertyFields: %w", err)
@@ -185,6 +209,10 @@ func (pas *PropertyAccessService) SearchPropertyFields(callerID string, groupID 
 // UpdatePropertyField updates a property field.
 // Checks write access and ensures source_plugin_id is not changed.
 func (pas *PropertyAccessService) UpdatePropertyField(callerID string, groupID string, field *model.PropertyField) (*model.PropertyField, error) {
+	if !groupHasAccessRestrictions(groupID) {
+		return pas.propertyService.UpdatePropertyField(groupID, field)
+	}
+
 	// Get existing field to check access
 	existingField, existsErr := pas.propertyService.GetPropertyField(groupID, field.ID)
 	if existsErr != nil {
@@ -216,6 +244,10 @@ func (pas *PropertyAccessService) UpdatePropertyField(callerID string, groupID s
 // UpdatePropertyFields updates multiple property fields.
 // Checks write access for all fields atomically before updating any.
 func (pas *PropertyAccessService) UpdatePropertyFields(callerID string, groupID string, fields []*model.PropertyField) ([]*model.PropertyField, error) {
+	if !groupHasAccessRestrictions(groupID) {
+		return pas.propertyService.UpdatePropertyFields(groupID, fields)
+	}
+
 	if len(fields) == 0 {
 		return fields, nil
 	}
@@ -272,6 +304,10 @@ func (pas *PropertyAccessService) UpdatePropertyFields(callerID string, groupID 
 // DeletePropertyField deletes a property field and all its values.
 // Checks write access before allowing deletion.
 func (pas *PropertyAccessService) DeletePropertyField(callerID string, groupID, id string) error {
+	if !groupHasAccessRestrictions(groupID) {
+		return pas.propertyService.DeletePropertyField(groupID, id)
+	}
+
 	// Get existing field to check access
 	existingField, err := pas.propertyService.GetPropertyField(groupID, id)
 	if err != nil {
@@ -294,6 +330,10 @@ func (pas *PropertyAccessService) DeletePropertyField(callerID string, groupID, 
 // CreatePropertyValue creates a new property value.
 // Checks write access before allowing the creation.
 func (pas *PropertyAccessService) CreatePropertyValue(callerID string, value *model.PropertyValue) (*model.PropertyValue, error) {
+	if !groupHasAccessRestrictions(value.GroupID) {
+		return pas.propertyService.CreatePropertyValue(value)
+	}
+
 	// Get the associated field to check access
 	field, err := pas.propertyService.GetPropertyField(value.GroupID, value.FieldID)
 	if err != nil {
@@ -315,6 +355,17 @@ func (pas *PropertyAccessService) CreatePropertyValue(callerID string, value *mo
 // CreatePropertyValues creates multiple property values.
 // Checks write access for all fields atomically before creating any values.
 func (pas *PropertyAccessService) CreatePropertyValues(callerID string, values []*model.PropertyValue) ([]*model.PropertyValue, error) {
+	shouldApplyAccessControl := false
+	for _, value := range values {
+		if groupHasAccessRestrictions(value.GroupID) {
+			shouldApplyAccessControl = true
+			break
+		}
+	}
+	if !shouldApplyAccessControl {
+		return pas.propertyService.CreatePropertyValues(values)
+	}
+
 	fieldMap, err := pas.getFieldsForValues(values)
 	if err != nil {
 		return nil, fmt.Errorf("CreatePropertyValues: %w", err)
@@ -343,6 +394,10 @@ func (pas *PropertyAccessService) CreatePropertyValues(callerID string, values [
 // GetPropertyValue retrieves a property value by ID.
 // Returns (nil, nil) if the value exists but the caller doesn't have access.
 func (pas *PropertyAccessService) GetPropertyValue(callerID string, groupID, id string) (*model.PropertyValue, error) {
+	if !groupHasAccessRestrictions(groupID) {
+		return pas.propertyService.GetPropertyValue(groupID, id)
+	}
+
 	value, err := pas.propertyService.GetPropertyValue(groupID, id)
 	if err != nil {
 		return nil, fmt.Errorf("GetPropertyValue: %w", err)
@@ -365,6 +420,10 @@ func (pas *PropertyAccessService) GetPropertyValue(callerID string, groupID, id 
 // GetPropertyValues retrieves multiple property values by their IDs.
 // Values the caller doesn't have access to are silently filtered out.
 func (pas *PropertyAccessService) GetPropertyValues(callerID string, groupID string, ids []string) ([]*model.PropertyValue, error) {
+	if !groupHasAccessRestrictions(groupID) {
+		return pas.propertyService.GetPropertyValues(groupID, ids)
+	}
+
 	values, err := pas.propertyService.GetPropertyValues(groupID, ids)
 	if err != nil {
 		return nil, fmt.Errorf("GetPropertyValues: %w", err)
@@ -381,6 +440,10 @@ func (pas *PropertyAccessService) GetPropertyValues(callerID string, groupID str
 // SearchPropertyValues searches for property values based on the given options.
 // Values the caller doesn't have access to are silently filtered out.
 func (pas *PropertyAccessService) SearchPropertyValues(callerID string, groupID string, opts model.PropertyValueSearchOpts) ([]*model.PropertyValue, error) {
+	if !groupHasAccessRestrictions(groupID) {
+		return pas.propertyService.SearchPropertyValues(groupID, opts)
+	}
+
 	values, err := pas.propertyService.SearchPropertyValues(groupID, opts)
 	if err != nil {
 		return nil, fmt.Errorf("SearchPropertyValues: %w", err)
@@ -397,6 +460,10 @@ func (pas *PropertyAccessService) SearchPropertyValues(callerID string, groupID 
 // UpdatePropertyValue updates a property value.
 // Checks write access before allowing the update.
 func (pas *PropertyAccessService) UpdatePropertyValue(callerID string, groupID string, value *model.PropertyValue) (*model.PropertyValue, error) {
+	if !groupHasAccessRestrictions(groupID) {
+		return pas.propertyService.UpdatePropertyValue(groupID, value)
+	}
+
 	// Get the associated field to check access
 	field, err := pas.propertyService.GetPropertyField(groupID, value.FieldID)
 	if err != nil {
@@ -418,6 +485,17 @@ func (pas *PropertyAccessService) UpdatePropertyValue(callerID string, groupID s
 // UpdatePropertyValues updates multiple property values.
 // Checks write access for all fields atomically before updating any values.
 func (pas *PropertyAccessService) UpdatePropertyValues(callerID string, groupID string, values []*model.PropertyValue) ([]*model.PropertyValue, error) {
+	shouldApplyAccessControl := false
+	for _, value := range values {
+		if groupHasAccessRestrictions(value.GroupID) {
+			shouldApplyAccessControl = true
+			break
+		}
+	}
+	if !shouldApplyAccessControl {
+		return pas.propertyService.UpdatePropertyValues(groupID, values)
+	}
+
 	if len(values) == 0 {
 		return values, nil
 	}
@@ -450,6 +528,10 @@ func (pas *PropertyAccessService) UpdatePropertyValues(callerID string, groupID 
 // UpsertPropertyValue creates or updates a property value.
 // Checks write access before allowing the upsert.
 func (pas *PropertyAccessService) UpsertPropertyValue(callerID string, value *model.PropertyValue) (*model.PropertyValue, error) {
+	if !groupHasAccessRestrictions(value.GroupID) {
+		return pas.propertyService.UpsertPropertyValue(value)
+	}
+
 	// Get the associated field to check access
 	field, err := pas.propertyService.GetPropertyField(value.GroupID, value.FieldID)
 	if err != nil {
@@ -471,6 +553,17 @@ func (pas *PropertyAccessService) UpsertPropertyValue(callerID string, value *mo
 // UpsertPropertyValues creates or updates multiple property values.
 // Checks write access for all fields atomically before upserting any values.
 func (pas *PropertyAccessService) UpsertPropertyValues(callerID string, values []*model.PropertyValue) ([]*model.PropertyValue, error) {
+	shouldApplyAccessControl := false
+	for _, value := range values {
+		if groupHasAccessRestrictions(value.GroupID) {
+			shouldApplyAccessControl = true
+			break
+		}
+	}
+	if !shouldApplyAccessControl {
+		return pas.propertyService.UpsertPropertyValues(values)
+	}
+
 	if len(values) == 0 {
 		return values, nil
 	}
@@ -503,6 +596,10 @@ func (pas *PropertyAccessService) UpsertPropertyValues(callerID string, values [
 // DeletePropertyValue deletes a property value.
 // Checks write access before allowing deletion.
 func (pas *PropertyAccessService) DeletePropertyValue(callerID string, groupID, id string) error {
+	if !groupHasAccessRestrictions(groupID) {
+		return pas.propertyService.DeletePropertyValue(groupID, id)
+	}
+
 	// Get the value to find its field ID
 	value, err := pas.propertyService.GetPropertyValue(groupID, id)
 	if err != nil {
@@ -530,6 +627,10 @@ func (pas *PropertyAccessService) DeletePropertyValue(callerID string, groupID, 
 // DeletePropertyValuesForTarget deletes all property values for a specific target.
 // Checks write access for all affected fields atomically before deleting.
 func (pas *PropertyAccessService) DeletePropertyValuesForTarget(callerID string, groupID string, targetType string, targetID string) error {
+	if !groupHasAccessRestrictions(groupID) {
+		return pas.propertyService.DeletePropertyValuesForTarget(groupID, targetType, targetID)
+	}
+
 	// Collect unique field IDs across all values without loading all values into memory
 	fieldIDs := make(map[string]struct{})
 	var cursor model.PropertyValueSearchCursor
@@ -608,6 +709,10 @@ func (pas *PropertyAccessService) DeletePropertyValuesForTarget(callerID string,
 // DeletePropertyValuesForField deletes all property values for a specific field.
 // Checks write access before allowing deletion.
 func (pas *PropertyAccessService) DeletePropertyValuesForField(callerID string, groupID, fieldID string) error {
+	if !groupHasAccessRestrictions(groupID) {
+		return pas.propertyService.DeletePropertyValuesForField(groupID, fieldID)
+	}
+
 	// Get the field to check access
 	field, err := pas.propertyService.GetPropertyField(groupID, fieldID)
 	if err != nil {
@@ -1078,4 +1183,8 @@ func (pas *PropertyAccessService) applyValueReadAccessControl(values []*model.Pr
 	}
 
 	return filtered, nil
+}
+
+func groupHasAccessRestrictions(groupId string) bool {
+	return cpaGroupID != "" && groupId == cpaGroupID
 }
