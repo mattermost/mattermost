@@ -7,7 +7,7 @@
   },
   "scripts": {
     "postinstall": "patch-package && npm run postinstall --workspaces --if-present",
-    "build": "echo \"node scripts/build.mjs\"",
+    "build": "node scripts/build.mjs",
     "run": "node scripts/run.mjs",
     "dev-server": "node scripts/dev-server.mjs",
     "test": "npm run test --workspaces --if-present",
