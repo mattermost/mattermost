@@ -432,31 +432,36 @@ function Show-Help {
     Log "Usage: ./local-test.ps1 [command]"
     Log ""
     Log "Commands:"
-    Log "  setup      - First-time setup (extract backup, create containers)"
-    Log "  start      - Start the local Mattermost server"
-    Log "  stop       - Stop all containers"
-    Log "  status     - Show container status"
-    Log "  logs       - View Mattermost server logs"
-    Log "  psql       - Open PostgreSQL shell"
-    Log "  clean      - Remove all test data and containers"
-    Log "  build      - Build server binary for testing"
-    Log "  webapp     - Build webapp from source and copy to test dir"
-    Log "  webapp-dev - Run webapp in dev mode with hot reload (for debugging)"
-    Log "  dev        - Alias for webapp-dev"
-    Log "  docker     - Run using official Docker image (simpler, no code changes)"
-    Log "  fix-config - Reset config.json to clean local settings"
-    Log "  kill       - Kill the running Mattermost server process"
-    Log "  s3-sync    - Download S3 storage files (uploads, plugins, etc.)"
-    Log "  all        - Run everything: kill, setup, build, webapp, start"
+    Log "  setup       - First-time setup (extract backup, create containers)"
+    Log "  start       - Start server only (requires binary to exist)"
+    Log "  start-build - Start server, auto-build if binary missing"
+    Log "  stop        - Stop all containers"
+    Log "  status      - Show container status"
+    Log "  logs        - View Mattermost server logs"
+    Log "  psql        - Open PostgreSQL shell"
+    Log "  clean       - Remove all test data and containers"
+    Log "  build       - Build server binary for testing"
+    Log "  webapp      - Build webapp from source and copy to test dir"
+    Log "  dev         - Run webapp in dev mode with hot reload"
+    Log "  docker      - Run using official Docker image (simpler, no code changes)"
+    Log "  fix-config  - Reset config.json to clean local settings"
+    Log "  kill        - Kill the running Mattermost server process"
+    Log "  s3-sync     - Download S3 storage files (uploads, plugins, etc.)"
+    Log "  all         - Dev setup: kill, setup, build server only, start"
+    Log "  all-build   - Full setup: kill, setup, build server + webapp, start"
     Log ""
     Log "Configuration:"
     Log "  Edit local-test.config with your backup path and settings"
     Log ""
-    Log "Recommended workflow for testing code changes:"
-    Log "  1. ./local-test.ps1 setup     (first time only)"
-    Log "  2. ./local-test.ps1 build     (build server with your changes)"
-    Log "  3. ./local-test.ps1 webapp    (build webapp with your changes)"
-    Log "  4. ./local-test.ps1 start     (run and test)"
+    Log "Workflows:"
+    Log ""
+    Log "  Hot reload development (recommended):"
+    Log "    Terminal 1: ./local-test.ps1 all        (backend only)"
+    Log "    Terminal 2: ./local-test.ps1 dev        (webpack dev server)"
+    Log "    Browser:    http://localhost:9005       (webapp with hot reload)"
+    Log ""
+    Log "  Production-like testing (built webapp):"
+    Log "    ./local-test.ps1 all-build"
     Log ""
     Log "Log file: $LOG_FILE"
     Log ""
@@ -1269,6 +1274,45 @@ function Invoke-Start {
     # Check if binary exists
     $binaryPath = Join-Path $WORK_DIR "mattermost.exe"
     if (!(Test-Path $binaryPath)) {
+        Log-Error "Server binary not found: $binaryPath"
+        Log "Run './local-test.ps1 build' first, or use './local-test.ps1 start-build'"
+        exit 1
+    }
+
+    # Check if config exists
+    $configPath = Join-Path $WORK_DIR "config.json"
+    if (!(Test-Path $configPath)) {
+        Log-Error "Config not found: $configPath"
+        Log "Run './local-test.ps1 setup' first"
+        exit 1
+    }
+
+    Log "Starting server on http://localhost:$MM_PORT"
+    Log "Press Ctrl+C to stop"
+    Log ""
+
+    Push-Location $WORK_DIR
+
+    # Run server and capture output to log
+    & $binaryPath server --config $configPath 2>&1 | ForEach-Object {
+        $_ | Out-File $LOG_FILE -Append -Encoding UTF8
+        Write-Host $_
+    }
+
+    Pop-Location
+}
+
+function Invoke-StartBuild {
+    Log ""
+    Log "=== Starting Local Mattermost (with auto-build) ==="
+    Log ""
+
+    # Start PostgreSQL if not running
+    docker start $PG_CONTAINER 2>$null | Out-Null
+
+    # Check if binary exists, build if not
+    $binaryPath = Join-Path $WORK_DIR "mattermost.exe"
+    if (!(Test-Path $binaryPath)) {
         Log "Server binary not found. Building..."
         Invoke-Build
     }
@@ -1477,10 +1521,15 @@ function Invoke-Migrate {
 }
 
 function Invoke-All {
+    param(
+        [switch]$BuildWebapp
+    )
+
     $allStartTime = Get-Date
+    $modeLabel = if ($BuildWebapp) { "Full Build" } else { "Dev Setup (server only)" }
 
     # Log to file
-    "Starting full setup and build..." | Out-File $LOG_FILE -Append -Encoding UTF8
+    "Starting $modeLabel..." | Out-File $LOG_FILE -Append -Encoding UTF8
 
     # Shared state for tracking progress
     $script:AllState = @{
@@ -1491,6 +1540,7 @@ function Invoke-All {
         WebappStage = ""
         UserCount = 0
         Error = $null
+        BuildWebapp = $BuildWebapp
     }
 
     # Path variables
@@ -1506,7 +1556,8 @@ function Invoke-All {
         # =====================================================================
         # SPECTRE CONSOLE VERSION - Nice progress display
         # =====================================================================
-        Write-SpectreRule "Mattermost Local Test - Full Setup" -Color "Blue"
+        $title = if ($BuildWebapp) { "Mattermost Local Test - Full Build" } else { "Mattermost Local Test - Dev Setup" }
+        Write-SpectreRule $title -Color "Blue"
         Write-Host ""
 
         Invoke-SpectreCommandWithProgress -ScriptBlock {
@@ -1520,8 +1571,8 @@ function Invoke-All {
             $taskRestore = $ctx.AddTask("[blue]Restore database[/]")
             $taskConfig = $ctx.AddTask("[blue]Setup config[/]")
             $taskGo = $ctx.AddTask("[green]Go build[/]")
-            $taskWebapp = $ctx.AddTask("[green]Webapp build[/]")
-            $taskCopy = $ctx.AddTask("[blue]Copy webapp[/]")
+            $taskWebapp = if ($script:AllState.BuildWebapp) { $ctx.AddTask("[green]Webapp build[/]") } else { $null }
+            $taskCopy = if ($script:AllState.BuildWebapp) { $ctx.AddTask("[blue]Copy webapp[/]") } else { $null }
 
             # Task 1: Kill server
             $taskKill.StartTask()
@@ -1559,7 +1610,7 @@ function Invoke-All {
 
             # Start parallel build jobs
             $taskGo.StartTask()
-            $taskWebapp.StartTask()
+            if ($taskWebapp) { $taskWebapp.StartTask() }
 
             $goBuildJob = Start-Job -ScriptBlock {
                 param($serverDir, $outputPath)
@@ -1568,25 +1619,28 @@ function Invoke-All {
                 @{ Success = ($LASTEXITCODE -eq 0); Output = $result; ExitCode = $LASTEXITCODE }
             } -ArgumentList $serverDir, $outputPath
 
-            $webappBuildJob = Start-Job -ScriptBlock {
-                param($webappDir)
-                Set-Location $webappDir
-                $env:NODE_OPTIONS = "--max-old-space-size=8192"
-                $output = @()
-                $output += "=== npm install ==="
-                $installResult = & npm install --force --legacy-peer-deps 2>&1
-                $output += $installResult
-                if ($LASTEXITCODE -ne 0) {
-                    return @{ Success = $false; Output = $output; Stage = "npm install"; ExitCode = $LASTEXITCODE }
-                }
-                $output += ""; $output += "=== npm run build ==="
-                $buildResult = & npm run build 2>&1
-                $output += $buildResult
-                if ($LASTEXITCODE -ne 0) {
-                    return @{ Success = $false; Output = $output; Stage = "npm build"; ExitCode = $LASTEXITCODE }
-                }
-                @{ Success = $true; Output = $output; Stage = "complete"; ExitCode = 0 }
-            } -ArgumentList $webappDir
+            $webappBuildJob = $null
+            if ($script:AllState.BuildWebapp) {
+                $webappBuildJob = Start-Job -ScriptBlock {
+                    param($webappDir)
+                    Set-Location $webappDir
+                    $env:NODE_OPTIONS = "--max-old-space-size=8192"
+                    $output = @()
+                    $output += "=== npm install ==="
+                    $installResult = & npm install --force --legacy-peer-deps 2>&1
+                    $output += $installResult
+                    if ($LASTEXITCODE -ne 0) {
+                        return @{ Success = $false; Output = $output; Stage = "npm install"; ExitCode = $LASTEXITCODE }
+                    }
+                    $output += ""; $output += "=== npm run build ==="
+                    $buildResult = & npm run build 2>&1
+                    $output += $buildResult
+                    if ($LASTEXITCODE -ne 0) {
+                        return @{ Success = $false; Output = $output; Stage = "npm build"; ExitCode = $LASTEXITCODE }
+                    }
+                    @{ Success = $true; Output = $output; Stage = "complete"; ExitCode = 0 }
+                } -ArgumentList $webappDir
+            }
 
             # Task 4: Extract backup (while builds run)
             $taskExtract.StartTask()
@@ -1684,37 +1738,48 @@ function Invoke-All {
             $taskConfig.Increment(100)
 
             # Wait for builds with progress updates
-            while ($goBuildJob.State -ne 'Completed' -or $webappBuildJob.State -ne 'Completed') {
+            $waitForWebapp = $script:AllState.BuildWebapp -and $webappBuildJob
+            while ($goBuildJob.State -ne 'Completed' -or ($waitForWebapp -and $webappBuildJob.State -ne 'Completed')) {
                 if ($goBuildJob.State -eq 'Completed' -and $taskGo.Value -lt 100) { $taskGo.Increment(100 - $taskGo.Value) }
                 elseif ($taskGo.Value -lt 95) { $taskGo.Increment(2) }
-                if ($webappBuildJob.State -eq 'Completed' -and $taskWebapp.Value -lt 100) { $taskWebapp.Increment(100 - $taskWebapp.Value) }
-                elseif ($taskWebapp.Value -lt 95) { $taskWebapp.Increment(1) }
+                if ($waitForWebapp) {
+                    if ($webappBuildJob.State -eq 'Completed' -and $taskWebapp.Value -lt 100) { $taskWebapp.Increment(100 - $taskWebapp.Value) }
+                    elseif ($taskWebapp.Value -lt 95) { $taskWebapp.Increment(1) }
+                }
                 Start-Sleep -Milliseconds 500
             }
             $taskGo.Increment(100 - $taskGo.Value)
-            $taskWebapp.Increment(100 - $taskWebapp.Value)
+            if ($taskWebapp) { $taskWebapp.Increment(100 - $taskWebapp.Value) }
 
             # Get build results
             $goResult = Receive-Job $goBuildJob
-            $webappResult = Receive-Job $webappBuildJob
             $script:AllState.GoSuccess = $goResult.Success
             $script:AllState.GoOutput = $goResult.Output
-            $script:AllState.WebappSuccess = $webappResult.Success
-            $script:AllState.WebappOutput = $webappResult.Output
-            $script:AllState.WebappStage = $webappResult.Stage
             $goResult.Output | Out-File $LOG_FILE -Append -Encoding UTF8
-            $webappResult.Output | Out-File $LOG_FILE -Append -Encoding UTF8
-            Remove-Job $goBuildJob, $webappBuildJob -Force
+            Remove-Job $goBuildJob -Force
 
-            # Task 9: Copy webapp
-            $taskCopy.StartTask()
-            if ($script:AllState.WebappSuccess) {
-                if (Test-Path $clientDir) { Remove-Item -Path $clientDir -Recurse -Force }
-                $distDir = Join-Path $webappDir "channels\dist"
-                Copy-Item -Path $distDir -Destination $clientDir -Recurse -Force
-                "Webapp copied" | Out-File $LOG_FILE -Append -Encoding UTF8
+            if ($webappBuildJob) {
+                $webappResult = Receive-Job $webappBuildJob
+                $script:AllState.WebappSuccess = $webappResult.Success
+                $script:AllState.WebappOutput = $webappResult.Output
+                $script:AllState.WebappStage = $webappResult.Stage
+                $webappResult.Output | Out-File $LOG_FILE -Append -Encoding UTF8
+                Remove-Job $webappBuildJob -Force
+
+                # Copy webapp
+                if ($taskCopy) {
+                    $taskCopy.StartTask()
+                    if ($script:AllState.WebappSuccess) {
+                        if (Test-Path $clientDir) { Remove-Item -Path $clientDir -Recurse -Force }
+                        $distDir = Join-Path $webappDir "channels\dist"
+                        Copy-Item -Path $distDir -Destination $clientDir -Recurse -Force
+                        "Webapp copied" | Out-File $LOG_FILE -Append -Encoding UTF8
+                    }
+                    $taskCopy.Increment(100)
+                }
+            } else {
+                $script:AllState.WebappSuccess = $true  # Not building, mark as success
             }
-            $taskCopy.Increment(100)
         }
 
         Write-Host ""
@@ -1729,7 +1794,7 @@ function Invoke-All {
             $script:AllState.GoOutput | Select-Object -Last 20 | ForEach-Object { Write-Host $_ -ForegroundColor Red }
             exit 1
         }
-        if (-not $script:AllState.WebappSuccess) {
+        if ($script:AllState.BuildWebapp -and -not $script:AllState.WebappSuccess) {
             Log-Error "Webapp build failed at $($script:AllState.WebappStage):"
             $script:AllState.WebappOutput | Select-Object -Last 20 | ForEach-Object { Write-Host $_ -ForegroundColor Red }
             exit 1
@@ -1740,7 +1805,8 @@ function Invoke-All {
         # FALLBACK VERSION - Simple text output
         # =====================================================================
         Write-Host ""
-        Write-Host "=== Mattermost Local Test - Full Setup ===" -ForegroundColor Cyan
+        $title = if ($BuildWebapp) { "=== Mattermost Local Test - Full Build ===" } else { "=== Mattermost Local Test - Dev Setup ===" }
+        Write-Host $title -ForegroundColor Cyan
         Write-Host ""
 
         # Simple task display
@@ -1771,7 +1837,8 @@ function Invoke-All {
         $dockerArgs = @("run", "-d", "--name", $PG_CONTAINER, "-e", "POSTGRES_USER=$PG_USER", "-e", "POSTGRES_PASSWORD=$PG_PASSWORD", "-e", "POSTGRES_DB=$PG_DATABASE", "-p", "${PG_PORT}:5432", "-v", "${pgDataPath}:/var/lib/postgresql/data", "postgres:15-alpine")
         & docker @dockerArgs 2>&1 | Out-Null
 
-        Show-Task "Starting parallel builds..." "running"
+        $buildLabel = if ($BuildWebapp) { "Starting builds (Go + Webapp)..." } else { "Building Go server..." }
+        Show-Task $buildLabel "running"
         $goBuildJob = Start-Job -ScriptBlock {
             param($serverDir, $outputPath)
             Set-Location $serverDir
@@ -1779,19 +1846,22 @@ function Invoke-All {
             @{ Success = ($LASTEXITCODE -eq 0); Output = $result }
         } -ArgumentList $serverDir, $outputPath
 
-        $webappBuildJob = Start-Job -ScriptBlock {
-            param($webappDir)
-            Set-Location $webappDir
-            $env:NODE_OPTIONS = "--max-old-space-size=8192"
-            $output = @()
-            $installResult = & npm install --force --legacy-peer-deps 2>&1
-            $output += $installResult
-            if ($LASTEXITCODE -ne 0) { return @{ Success = $false; Output = $output; Stage = "npm install" } }
-            $buildResult = & npm run build 2>&1
-            $output += $buildResult
-            if ($LASTEXITCODE -ne 0) { return @{ Success = $false; Output = $output; Stage = "npm build" } }
-            @{ Success = $true; Output = $output; Stage = "complete" }
-        } -ArgumentList $webappDir
+        $webappBuildJob = $null
+        if ($BuildWebapp) {
+            $webappBuildJob = Start-Job -ScriptBlock {
+                param($webappDir)
+                Set-Location $webappDir
+                $env:NODE_OPTIONS = "--max-old-space-size=8192"
+                $output = @()
+                $installResult = & npm install --force --legacy-peer-deps 2>&1
+                $output += $installResult
+                if ($LASTEXITCODE -ne 0) { return @{ Success = $false; Output = $output; Stage = "npm install" } }
+                $buildResult = & npm run build 2>&1
+                $output += $buildResult
+                if ($LASTEXITCODE -ne 0) { return @{ Success = $false; Output = $output; Stage = "npm build" } }
+                @{ Success = $true; Output = $output; Stage = "complete" }
+            } -ArgumentList $webappDir
+        }
 
         Show-Task "Extract backup" "running"
         $dumpFile = Join-Path $backupDir "postgresqldump"
@@ -1841,24 +1911,34 @@ function Invoke-All {
         [System.IO.File]::WriteAllText($configPath, ($config | ConvertTo-Json -Depth 10))
 
         Write-Host "  Waiting for builds..." -ForegroundColor DarkGray
-        while ($goBuildJob.State -ne 'Completed' -or $webappBuildJob.State -ne 'Completed') {
-            $goStatus = if ($goBuildJob.State -eq 'Completed') { "Done" } else { "..." }
-            $webappStatus = if ($webappBuildJob.State -eq 'Completed') { "Done" } else { "..." }
-            Write-Host "`r    Go: $goStatus | Webapp: $webappStatus    " -NoNewline
-            Start-Sleep -Seconds 2
+        if ($BuildWebapp -and $webappBuildJob) {
+            while ($goBuildJob.State -ne 'Completed' -or $webappBuildJob.State -ne 'Completed') {
+                $goStatus = if ($goBuildJob.State -eq 'Completed') { "Done" } else { "..." }
+                $webappStatus = if ($webappBuildJob.State -eq 'Completed') { "Done" } else { "..." }
+                Write-Host "`r    Go: $goStatus | Webapp: $webappStatus    " -NoNewline
+                Start-Sleep -Seconds 2
+            }
+        } else {
+            while ($goBuildJob.State -ne 'Completed') {
+                Write-Host "`r    Go: ...    " -NoNewline
+                Start-Sleep -Seconds 2
+            }
         }
         Write-Host ""
 
         $goResult = Receive-Job $goBuildJob
-        $webappResult = Receive-Job $webappBuildJob
-        Remove-Job $goBuildJob, $webappBuildJob -Force
-
+        Remove-Job $goBuildJob -Force
         if (-not $goResult.Success) { Log-Error "Go build failed"; $goResult.Output | Select-Object -Last 10 | ForEach-Object { Write-Host $_ }; exit 1 }
-        if (-not $webappResult.Success) { Log-Error "Webapp build failed at $($webappResult.Stage)"; $webappResult.Output | Select-Object -Last 10 | ForEach-Object { Write-Host $_ }; exit 1 }
 
-        Show-Task "Copy webapp" "running"
-        if (Test-Path $clientDir) { Remove-Item -Path $clientDir -Recurse -Force }
-        Copy-Item -Path (Join-Path $webappDir "channels\dist") -Destination $clientDir -Recurse -Force
+        if ($BuildWebapp -and $webappBuildJob) {
+            $webappResult = Receive-Job $webappBuildJob
+            Remove-Job $webappBuildJob -Force
+            if (-not $webappResult.Success) { Log-Error "Webapp build failed at $($webappResult.Stage)"; $webappResult.Output | Select-Object -Last 10 | ForEach-Object { Write-Host $_ }; exit 1 }
+
+            Show-Task "Copy webapp" "running"
+            if (Test-Path $clientDir) { Remove-Item -Path $clientDir -Recurse -Force }
+            Copy-Item -Path (Join-Path $webappDir "channels\dist") -Destination $clientDir -Recurse -Force
+        }
     }
 
     # Summary
@@ -1870,6 +1950,13 @@ function Invoke-All {
 
     # Start server
     Write-Host "Starting server on http://localhost:$MM_PORT" -ForegroundColor Cyan
+    if (-not $BuildWebapp) {
+        Write-Host ""
+        Write-Host "For hot reload, run in another terminal:" -ForegroundColor Yellow
+        Write-Host "  ./local-test.ps1 dev" -ForegroundColor Yellow
+        Write-Host "Then open http://localhost:9005" -ForegroundColor Yellow
+    }
+    Write-Host ""
     Write-Host "Press Ctrl+C to stop"
     Write-Host ""
 
@@ -1892,24 +1979,26 @@ $script:OriginalDirectory = Get-Location
 
 try {
     switch ($Command.ToLower()) {
-        "help"       { Show-Help }
-        "setup"      { Invoke-Setup }
-        "build"      { Invoke-Build }
-        "webapp"     { Invoke-Webapp }
-        "webapp-dev" { Invoke-WebappDev }
-        "dev"        { Invoke-WebappDev }
-        "docker"     { Invoke-Docker }
-        "fix-config" { Invoke-FixConfig }
-        "start"      { Invoke-Start }
-        "stop"       { Invoke-Stop }
-        "kill"       { Invoke-Kill }
-        "status"     { Invoke-Status }
-        "logs"       { Invoke-Logs }
-        "psql"       { Invoke-Psql }
-        "clean"      { Invoke-Clean }
-        "s3-sync"    { Invoke-S3Sync }
-        "all"        { Invoke-All }
-        default      {
+        "help"        { Show-Help }
+        "setup"       { Invoke-Setup }
+        "build"       { Invoke-Build }
+        "webapp"      { Invoke-Webapp }
+        "webapp-dev"  { Invoke-WebappDev }
+        "dev"         { Invoke-WebappDev }
+        "docker"      { Invoke-Docker }
+        "fix-config"  { Invoke-FixConfig }
+        "start"       { Invoke-Start }
+        "start-build" { Invoke-StartBuild }
+        "stop"        { Invoke-Stop }
+        "kill"        { Invoke-Kill }
+        "status"      { Invoke-Status }
+        "logs"        { Invoke-Logs }
+        "psql"        { Invoke-Psql }
+        "clean"       { Invoke-Clean }
+        "s3-sync"     { Invoke-S3Sync }
+        "all"         { Invoke-All }
+        "all-build"   { Invoke-All -BuildWebapp }
+        default       {
             Log-Error "Unknown command: $Command"
             Show-Help
         }
