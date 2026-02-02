@@ -30,6 +30,7 @@ Welcome to the Mattermost Extended documentation.
 |----------|-------------|
 | [Encryption](plans/ENCRYPTION.md) | E2E encryption implementation |
 | [Encrypted Attachments](ENCRYPTED_ATTACHMENTS.md) | File encryption architecture |
+| [Discord Replies](plans/DISCORD_REPLIES.md) | Discord-style inline replies |
 
 ---
 
@@ -37,8 +38,9 @@ Welcome to the Mattermost Extended documentation.
 
 | Document | Description |
 |----------|-------------|
-| [Discord Replies](plans/DISCORD_REPLIES.md) | Discord-style replies (planned) |
 | [Local Test Plan](plans/LOCAL_TEST_PLAN.md) | Local testing infrastructure |
+| [Guilded Sounds](plans/GUILDED_SOUNDS.md) | Custom notification sounds (planned) |
+| [Error Log Dashboard](plans/ERROR_LOG_DASHBOARD.md) | Real-time error monitoring (planned) |
 
 ---
 

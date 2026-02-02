@@ -52,6 +52,22 @@ Client-side encryption using RSA-4096 + AES-256-GCM. Messages and files are encr
 
 ---
 
+### Discord-Style Replies
+
+Inline reply previews with curved connector lines, similar to Discord's reply system.
+
+<!-- SCREENSHOT: Message with Discord-style reply preview showing avatar, username, and message snippet -->
+<p align="center">
+  <img src="docs/assets/screenshot-discord-replies-placeholder.png" alt="Discord-Style Replies" width="600">
+</p>
+
+- Click Reply to queue posts, then send a message to reply to all at once
+- Visual connector lines link replies to the original post
+- Graceful degradation: replies appear as clickable blockquotes when disabled
+- Click any reply preview to jump to the original message
+
+---
+
 ### Custom Channel Icons
 
 Channels can have custom icons instead of the default globe/lock icons.
@@ -101,6 +117,7 @@ When enabled, deleted messages disappear immediately instead of showing "(messag
 | Feature | Environment Variable | Default |
 |---------|---------------------|---------|
 | End-to-End Encryption | `MM_FEATUREFLAGS_ENCRYPTION` | Off |
+| Discord-Style Replies | `MM_FEATUREFLAGS_DISCORDREPLIES` | Off |
 | Custom Channel Icons | `MM_FEATUREFLAGS_CUSTOMCHANNELICONS` | Off |
 | Custom Thread Names | `MM_FEATUREFLAGS_CUSTOMTHREADNAMES` | Off |
 | Threads in Sidebar | `MM_FEATUREFLAGS_THREADSINSIDEBAR` | Off |

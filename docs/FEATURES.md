@@ -8,6 +8,7 @@ Complete documentation for all Mattermost Extended features and tweaks.
 
 ### Feature Flags (Major Features)
 - [End-to-End Encryption](#end-to-end-encryption)
+- [Discord-Style Replies](#discord-style-replies)
 - [Custom Channel Icons](#custom-channel-icons)
 - [Custom Thread Names](#custom-thread-names)
 - [Threads in Sidebar](#threads-in-sidebar)
@@ -90,6 +91,89 @@ Files are encrypted client-side before upload:
 | `/api/v4/encryption/publickey` | POST | Register a public key |
 | `/api/v4/encryption/publickeys` | POST | Bulk fetch keys by user IDs |
 | `/api/v4/encryption/channel/{id}/keys` | GET | Get all channel member keys |
+
+---
+
+## Discord-Style Replies
+
+**Feature Flag:** `DiscordReplies`
+**Environment Variable:** `MM_FEATUREFLAGS_DISCORDREPLIES=true`
+
+### Overview
+
+Discord-style replies bring inline reply previews with visual connector lines to Mattermost. Instead of opening a thread, clicking Reply queues messages for inline responses that appear above your message with curved connector lines linking to the original content.
+
+### How It Works
+
+1. **Reply Queuing**: Click the Reply button to add a post to your pending replies queue (instead of opening a thread)
+2. **Send Message**: Type your message and send - the reply quotes are automatically prepended
+3. **Visual Preview**: Reply previews render above your post with connector lines
+4. **Graceful Degradation**: When disabled, replies appear as functional Markdown blockquotes
+
+### Reply Format
+
+Messages are stored with special Markdown that works even when the feature is disabled:
+
+```markdown
+>[@username](https://chat.example.com/team/pl/abc123): Original message preview
+
+Your reply message here
+```
+
+### Visual Elements
+
+| Element | Description |
+|---------|-------------|
+| **Reply Preview** | Shows avatar, username, and truncated message |
+| **Connector Lines** | Curved SVG lines link preview to your post |
+| **Pending Bar** | Shows queued replies above text editor |
+| **Jump to Original** | Click any reply preview to navigate to original message |
+
+### UI Changes
+
+| Element | Normal Behavior | With DiscordReplies |
+|---------|----------------|---------------------|
+| **Reply Button** | Opens thread in RHS | Adds post to pending queue |
+| **Create Thread** | N/A | New button for original thread behavior |
+| **Click to Reply** | "Click to open threads" setting | Renamed to "Click to reply" |
+
+### Post Metadata
+
+When a post contains Discord replies, it includes:
+
+```json
+{
+  "props": {
+    "discord_replies": [
+      {
+        "post_id": "abc123",
+        "user_id": "user1",
+        "username": "johndoe",
+        "nickname": "John",
+        "text": "Original message preview...",
+        "has_image": false,
+        "has_video": false
+      }
+    ]
+  },
+  "metadata": {
+    "priority": {
+      "priority": "discord_reply"
+    }
+  }
+}
+```
+
+### Key Files
+
+| Purpose | File |
+|---------|------|
+| Feature flag | `server/public/model/feature_flags.go` |
+| Message interception | `webapp/channels/src/actions/hooks.ts` |
+| Reply preview component | `webapp/channels/src/components/post/discord_reply_preview/` |
+| State management | `webapp/channels/src/actions/views/discord_replies.ts` |
+| Quote stripping | `webapp/channels/src/components/post_view/post_message_view/post_message_view.tsx` |
+| Button override | `webapp/channels/src/components/post/post_options.tsx` |
 
 ---
 
@@ -265,6 +349,7 @@ Feature flags are used for **major features** that gate significant functionalit
 | Flag | Environment Variable | Default | Description |
 |------|---------------------|---------|-------------|
 | `Encryption` | `MM_FEATUREFLAGS_ENCRYPTION` | `false` | E2E encryption |
+| `DiscordReplies` | `MM_FEATUREFLAGS_DISCORDREPLIES` | `false` | Discord-style inline replies |
 | `CustomChannelIcons` | `MM_FEATUREFLAGS_CUSTOMCHANNELICONS` | `false` | Custom channel icons |
 | `CustomThreadNames` | `MM_FEATUREFLAGS_CUSTOMTHREADNAMES` | `false` | Rename threads |
 | `ThreadsInSidebar` | `MM_FEATUREFLAGS_THREADSINSIDEBAR` | `false` | Show threads under channels |
@@ -294,6 +379,7 @@ Environment="MM_FEATUREFLAGS_ENCRYPTION=true"
 {
   "FeatureFlags": {
     "Encryption": true,
+    "DiscordReplies": true,
     "CustomChannelIcons": true,
     "CustomThreadNames": true,
     "ThreadsInSidebar": true
@@ -354,8 +440,8 @@ Environment="MM_MATTERMOSTEXTENDEDSETTINGS_POSTS_HIDEDELETEDMESSAGEPLACEHOLDER=t
 
 Features currently in development:
 
-- **Discord-Style Replies** - Inline reply previews with connector lines
 - **Read Receipts** - See who has read your messages
+- **Guilded Sounds** - Custom notification sounds
 
 ---
 
