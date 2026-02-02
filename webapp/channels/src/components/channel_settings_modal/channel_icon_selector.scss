@@ -148,6 +148,30 @@
             color: var(--button-bg);
             border-color: var(--button-bg);
         }
+
+        &--custom {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+
+            .icon {
+                font-size: 12px;
+            }
+        }
+    }
+
+    &__categoryCount {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-width: 16px;
+        height: 16px;
+        padding: 0 4px;
+        font-size: 10px;
+        font-weight: 600;
+        border-radius: 8px;
+        background: rgba(var(--center-channel-color-rgb), 0.16);
+        color: rgba(var(--center-channel-color-rgb), 0.72);
     }
 
     &__icons {
@@ -192,6 +216,161 @@
         text-align: center;
         color: rgba(var(--center-channel-color-rgb), 0.56);
         font-size: 14px;
+        grid-column: 1 / -1;
+    }
+
+    &__sectionHeader {
+        grid-column: 1 / -1;
+        padding: 8px 0 4px;
+        font-size: 11px;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        color: rgba(var(--center-channel-color-rgb), 0.56);
+        border-top: 1px solid rgba(var(--center-channel-color-rgb), 0.08);
+        margin-top: 4px;
+
+        &:first-child {
+            border-top: none;
+            margin-top: 0;
+            padding-top: 0;
+        }
+    }
+
+    &__customSvgItem {
+        position: relative;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+
+        &.selected .ChannelIconSelector__iconButton {
+            background: rgba(var(--button-bg-rgb), 0.12);
+            border-color: var(--button-bg);
+            color: var(--button-bg);
+        }
+
+        &:hover .ChannelIconSelector__customSvgActions {
+            opacity: 1;
+        }
+    }
+
+    &__customSvgActions {
+        position: absolute;
+        bottom: -4px;
+        left: 50%;
+        transform: translateX(-50%);
+        display: flex;
+        gap: 2px;
+        opacity: 0;
+        transition: opacity 0.15s ease;
+        background: var(--center-channel-bg);
+        border-radius: 4px;
+        padding: 2px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.12);
+    }
+
+    &__customSvgAction {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 18px;
+        height: 18px;
+        border: none;
+        border-radius: 2px;
+        background: transparent;
+        color: rgba(var(--center-channel-color-rgb), 0.56);
+        cursor: pointer;
+        padding: 0;
+
+        .icon {
+            font-size: 12px;
+        }
+
+        &:hover {
+            background: rgba(var(--center-channel-color-rgb), 0.08);
+            color: var(--center-channel-color);
+        }
+
+        &--delete:hover {
+            background: rgba(var(--error-text-color-rgb, 210, 75, 78), 0.12);
+            color: var(--error-text);
+        }
+    }
+
+    &__addCustomSvg {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 36px;
+        height: 36px;
+        border: 2px dashed rgba(var(--center-channel-color-rgb), 0.24);
+        border-radius: 4px;
+        background: transparent;
+        color: rgba(var(--center-channel-color-rgb), 0.48);
+        cursor: pointer;
+        transition: all 0.15s ease;
+
+        .icon {
+            font-size: 16px;
+        }
+
+        &:hover {
+            border-color: var(--button-bg);
+            color: var(--button-bg);
+            background: rgba(var(--button-bg-rgb), 0.08);
+        }
+    }
+
+    &__emptyCustom {
+        grid-column: 1 / -1;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        padding: 32px 24px;
+        text-align: center;
+        color: rgba(var(--center-channel-color-rgb), 0.56);
+
+        > .icon {
+            font-size: 40px;
+            margin-bottom: 12px;
+            opacity: 0.4;
+        }
+
+        p {
+            margin: 0 0 4px;
+            font-size: 15px;
+            font-weight: 600;
+            color: rgba(var(--center-channel-color-rgb), 0.72);
+        }
+
+        span {
+            font-size: 13px;
+            margin-bottom: 16px;
+        }
+    }
+
+    &__addCustomSvgButton {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        padding: 8px 16px;
+        font-size: 13px;
+        font-weight: 500;
+        border: none;
+        border-radius: 4px;
+        background: var(--button-bg);
+        color: var(--button-color);
+        cursor: pointer;
+        transition: opacity 0.15s ease;
+
+        .icon {
+            font-size: 16px;
+        }
+
+        &:hover {
+            opacity: 0.9;
+        }
     }
 
     &__customInput {

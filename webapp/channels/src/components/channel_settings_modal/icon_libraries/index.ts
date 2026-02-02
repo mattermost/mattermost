@@ -2,6 +2,7 @@
 // See LICENSE.txt for license information.
 
 export * from './types';
+export * from './custom_svgs';
 export {mdiLibrary, getMdiIconPath, getMdiIconMetadata, getAllMdiIconNames} from './mdi_icons';
 export {lucideLibrary, getLucideIconPaths, getLucideIconMetadata, getAllLucideIconNames} from './lucide_icons';
 export {tablerLibrary, getTablerIconPaths, getTablerIconMetadata, getAllTablerIconNames} from './tabler_icons';

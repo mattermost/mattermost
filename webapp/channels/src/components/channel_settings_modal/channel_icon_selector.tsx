@@ -1,8 +1,25 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {useState, useMemo, useCallback} from 'react';
+import React, {useState, useMemo, useCallback, useEffect} from 'react';
 import {useIntl} from 'react-intl';
+import {useSelector} from 'react-redux';
+
+import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
+
+import type {CustomSvg} from './icon_libraries/custom_svgs';
+import {
+    getCustomSvgs,
+    addCustomSvg,
+    updateCustomSvg,
+    deleteCustomSvg,
+    decodeSvgFromBase64,
+    sanitizeSvg,
+    normalizeSvgColors,
+    encodeSvgToBase64,
+} from './icon_libraries/custom_svgs';
+import {parseIconValue, formatIconValue} from './icon_libraries/types';
+import CustomSvgModal from './custom_svg_modal';
 
 import './channel_icon_selector.scss';
 
@@ -56,10 +73,32 @@ const CHANNEL_ICONS: Record<string, string[]> = {
 // Flatten all icons for search
 const ALL_ICONS = Object.values(CHANNEL_ICONS).flat();
 
+// Special category ID for custom SVGs
+const CUSTOM_SVG_CATEGORY = 'custom_svg';
+
 type Props = {
     selectedIcon: string;
     onSelectIcon: (icon: string) => void;
     disabled?: boolean;
+}
+
+// Component to render a custom SVG icon in the selector
+function CustomSvgIcon({svg, size = 20}: {svg: CustomSvg; size?: number}) {
+    const rawSvg = decodeSvgFromBase64(svg.svg);
+    let displaySvg = sanitizeSvg(rawSvg);
+    if (svg.normalizeColor) {
+        displaySvg = normalizeSvgColors(displaySvg);
+    }
+
+    // Add size to SVG
+    displaySvg = displaySvg.replace(/<svg/, `<svg width="${size}" height="${size}"`);
+
+    return (
+        <i
+            className='icon sidebar-channel-icon sidebar-channel-icon--custom'
+            dangerouslySetInnerHTML={{__html: displaySvg}}
+        />
+    );
 }
 
 export default function ChannelIconSelector({
@@ -68,11 +107,53 @@ export default function ChannelIconSelector({
     disabled = false,
 }: Props) {
     const {formatMessage} = useIntl();
+    const userId = useSelector(getCurrentUserId);
     const [isOpen, setIsOpen] = useState(false);
     const [searchTerm, setSearchTerm] = useState('');
     const [activeCategory, setActiveCategory] = useState<string | null>(null);
+    const [customSvgs, setCustomSvgs] = useState<CustomSvg[]>([]);
+    const [showCustomSvgModal, setShowCustomSvgModal] = useState(false);
+    const [editingCustomSvg, setEditingCustomSvg] = useState<CustomSvg | undefined>(undefined);
 
+    // Load custom SVGs when component mounts or userId changes
+    useEffect(() => {
+        if (userId) {
+            setCustomSvgs(getCustomSvgs(userId));
+        }
+    }, [userId]);
+
+    // Refresh custom SVGs
+    const refreshCustomSvgs = useCallback(() => {
+        if (userId) {
+            setCustomSvgs(getCustomSvgs(userId));
+        }
+    }, [userId]);
+
+    // Check if the selected icon is a custom SVG (svg:base64 format)
+    // Try to match against our custom SVG library by comparing base64 content
+    const selectedCustomSvg = useMemo(() => {
+        const parsed = parseIconValue(selectedIcon);
+        if (parsed.format === 'svg' && parsed.name) {
+            // Try to find a matching custom SVG by comparing base64 content
+            return customSvgs.find((svg) => {
+                // Get the processed base64 that would be stored
+                let processedSvg = decodeSvgFromBase64(svg.svg);
+                processedSvg = sanitizeSvg(processedSvg);
+                if (svg.normalizeColor) {
+                    processedSvg = normalizeSvgColors(processedSvg);
+                }
+                const processedBase64 = encodeSvgToBase64(processedSvg);
+                return processedBase64 === parsed.name;
+            });
+        }
+        return undefined;
+    }, [selectedIcon, customSvgs]);
+
+    // Filter icons based on search term and active category
     const filteredIcons = useMemo(() => {
+        if (activeCategory === CUSTOM_SVG_CATEGORY) {
+            return [];
+        }
         if (!searchTerm.trim()) {
             if (activeCategory) {
                 return CHANNEL_ICONS[activeCategory] || [];
@@ -83,6 +164,18 @@ export default function ChannelIconSelector({
         return ALL_ICONS.filter((icon) => icon.toLowerCase().includes(term));
     }, [searchTerm, activeCategory]);
 
+    // Filter custom SVGs based on search term
+    const filteredCustomSvgs = useMemo(() => {
+        if (!searchTerm.trim()) {
+            if (activeCategory === CUSTOM_SVG_CATEGORY || activeCategory === null) {
+                return customSvgs;
+            }
+            return [];
+        }
+        const term = searchTerm.toLowerCase();
+        return customSvgs.filter((svg) => svg.name.toLowerCase().includes(term));
+    }, [searchTerm, activeCategory, customSvgs]);
+
     const handleIconClick = useCallback((icon: string) => {
         onSelectIcon(icon === selectedIcon ? '' : icon);
         setIsOpen(false);
@@ -90,9 +183,74 @@ export default function ChannelIconSelector({
         setActiveCategory(null);
     }, [selectedIcon, onSelectIcon]);
 
+    const handleCustomSvgClick = useCallback((svg: CustomSvg) => {
+        // Process the SVG and store as svg:base64 format for portability
+        let processedSvg = decodeSvgFromBase64(svg.svg);
+        processedSvg = sanitizeSvg(processedSvg);
+        if (svg.normalizeColor) {
+            processedSvg = normalizeSvgColors(processedSvg);
+        }
+        const base64 = encodeSvgToBase64(processedSvg);
+        const value = formatIconValue('svg', base64);
+
+        // Toggle off if clicking the same icon
+        const isCurrentlySelected = selectedCustomSvg?.id === svg.id;
+        onSelectIcon(isCurrentlySelected ? '' : value);
+        setIsOpen(false);
+        setSearchTerm('');
+        setActiveCategory(null);
+    }, [selectedCustomSvg, onSelectIcon]);
+
     const handleClearIcon = useCallback(() => {
         onSelectIcon('');
     }, [onSelectIcon]);
+
+    const handleAddCustomSvg = useCallback(() => {
+        setEditingCustomSvg(undefined);
+        setShowCustomSvgModal(true);
+    }, []);
+
+    const handleEditCustomSvg = useCallback((svg: CustomSvg, e: React.MouseEvent) => {
+        e.stopPropagation();
+        setEditingCustomSvg(svg);
+        setShowCustomSvgModal(true);
+    }, []);
+
+    const handleDeleteCustomSvg = useCallback((svg: CustomSvg, e: React.MouseEvent) => {
+        e.stopPropagation();
+        if (userId && window.confirm(formatMessage({id: 'channel_icon_selector.confirm_delete', defaultMessage: 'Delete "{name}"?'}, {name: svg.name}))) {
+            deleteCustomSvg(userId, svg.id);
+            refreshCustomSvgs();
+
+            // Clear selection if the deleted SVG was selected
+            if (selectedCustomSvg?.id === svg.id) {
+                onSelectIcon('');
+            }
+        }
+    }, [userId, formatMessage, refreshCustomSvgs, selectedCustomSvg, onSelectIcon]);
+
+    const handleSaveCustomSvg = useCallback((data: {name: string; svg: string; normalizeColor: boolean}) => {
+        if (!userId) {
+            return;
+        }
+
+        if (editingCustomSvg) {
+            updateCustomSvg(userId, editingCustomSvg.id, data);
+            refreshCustomSvgs();
+        } else {
+            const newSvg = addCustomSvg(userId, data);
+            refreshCustomSvgs();
+
+            // Auto-select the newly created SVG using svg:base64 format
+            let processedSvg = decodeSvgFromBase64(newSvg.svg);
+            processedSvg = sanitizeSvg(processedSvg);
+            if (newSvg.normalizeColor) {
+                processedSvg = normalizeSvgColors(processedSvg);
+            }
+            const base64 = encodeSvgToBase64(processedSvg);
+            onSelectIcon(formatIconValue('svg', base64));
+        }
+    }, [userId, editingCustomSvg, refreshCustomSvgs, onSelectIcon]);
 
     const categoryNames: Record<string, string> = {
         general: formatMessage({id: 'channel_icon_selector.category.general', defaultMessage: 'General'}),
@@ -105,6 +263,53 @@ export default function ChannelIconSelector({
         nature: formatMessage({id: 'channel_icon_selector.category.nature', defaultMessage: 'Nature'}),
         people: formatMessage({id: 'channel_icon_selector.category.people', defaultMessage: 'People'}),
         symbols: formatMessage({id: 'channel_icon_selector.category.symbols', defaultMessage: 'Symbols'}),
+        [CUSTOM_SVG_CATEGORY]: formatMessage({id: 'channel_icon_selector.category.custom_svg', defaultMessage: 'Custom SVG'}),
+    };
+
+    // Get display label for the selected icon
+    const getSelectedLabel = () => {
+        if (selectedCustomSvg) {
+            return selectedCustomSvg.name;
+        }
+        if (selectedIcon) {
+            const parsed = parseIconValue(selectedIcon);
+            if (parsed.format === 'svg') {
+                return formatMessage({id: 'channel_icon_selector.custom_svg_label', defaultMessage: 'Custom SVG'});
+            }
+            if (parsed.format !== 'none') {
+                return parsed.name;
+            }
+            return selectedIcon;
+        }
+        return formatMessage({id: 'channel_icon_selector.default', defaultMessage: 'Default'});
+    };
+
+    // Render the preview icon
+    const renderPreviewIcon = () => {
+        if (selectedCustomSvg) {
+            return <CustomSvgIcon svg={selectedCustomSvg}/>;
+        }
+        if (selectedIcon) {
+            const parsed = parseIconValue(selectedIcon);
+            // Handle svg:base64 format (custom SVG not in library)
+            if (parsed.format === 'svg' && parsed.name) {
+                try {
+                    let svgContent = decodeSvgFromBase64(parsed.name);
+                    svgContent = sanitizeSvg(svgContent);
+                    svgContent = svgContent.replace(/<svg/, '<svg width="20" height="20"');
+                    return (
+                        <i
+                            className='icon sidebar-channel-icon sidebar-channel-icon--custom'
+                            dangerouslySetInnerHTML={{__html: svgContent}}
+                        />
+                    );
+                } catch {
+                    return <i className='icon icon-globe'/>;
+                }
+            }
+            return <i className={`icon icon-${selectedIcon}`}/>;
+        }
+        return <i className='icon icon-globe'/>;
     };
 
     return (
@@ -117,13 +322,9 @@ export default function ChannelIconSelector({
                     disabled={disabled}
                     aria-label={formatMessage({id: 'channel_icon_selector.select', defaultMessage: 'Select channel icon'})}
                 >
-                    {selectedIcon ? (
-                        <i className={`icon icon-${selectedIcon}`}/>
-                    ) : (
-                        <i className='icon icon-globe'/>
-                    )}
+                    {renderPreviewIcon()}
                     <span className='ChannelIconSelector__previewLabel'>
-                        {selectedIcon || formatMessage({id: 'channel_icon_selector.default', defaultMessage: 'Default'})}
+                        {getSelectedLabel()}
                     </span>
                     <i className={`icon icon-chevron-${isOpen ? 'up' : 'down'}`}/>
                 </button>
@@ -183,11 +384,89 @@ export default function ChannelIconSelector({
                                     {categoryNames[category]}
                                 </button>
                             ))}
+                            <button
+                                type='button'
+                                className={`ChannelIconSelector__categoryButton ChannelIconSelector__categoryButton--custom ${activeCategory === CUSTOM_SVG_CATEGORY ? 'active' : ''}`}
+                                onClick={() => setActiveCategory(CUSTOM_SVG_CATEGORY)}
+                            >
+                                <i className='icon icon-vector-square'/>
+                                {categoryNames[CUSTOM_SVG_CATEGORY]}
+                                {customSvgs.length > 0 && (
+                                    <span className='ChannelIconSelector__categoryCount'>
+                                        {customSvgs.length}
+                                    </span>
+                                )}
+                            </button>
                         </div>
                     )}
 
                     <div className='ChannelIconSelector__icons'>
-                        {filteredIcons.length === 0 ? (
+                        {/* Show custom SVGs if in custom category or searching */}
+                        {(activeCategory === CUSTOM_SVG_CATEGORY || activeCategory === null || searchTerm) && filteredCustomSvgs.length > 0 && (
+                            <>
+                                {(activeCategory === null && !searchTerm) && (
+                                    <div className='ChannelIconSelector__sectionHeader'>
+                                        {formatMessage({id: 'channel_icon_selector.custom_svgs', defaultMessage: 'Custom SVGs'})}
+                                    </div>
+                                )}
+                                {filteredCustomSvgs.map((svg) => (
+                                    <div
+                                        key={svg.id}
+                                        className={`ChannelIconSelector__customSvgItem ${selectedCustomSvg?.id === svg.id ? 'selected' : ''}`}
+                                    >
+                                        <button
+                                            type='button'
+                                            className='ChannelIconSelector__iconButton'
+                                            onClick={() => handleCustomSvgClick(svg)}
+                                            title={svg.name}
+                                            aria-label={svg.name}
+                                        >
+                                            <CustomSvgIcon svg={svg}/>
+                                        </button>
+                                        <div className='ChannelIconSelector__customSvgActions'>
+                                            <button
+                                                type='button'
+                                                className='ChannelIconSelector__customSvgAction'
+                                                onClick={(e) => handleEditCustomSvg(svg, e)}
+                                                title={formatMessage({id: 'channel_icon_selector.edit', defaultMessage: 'Edit'})}
+                                            >
+                                                <i className='icon icon-pencil-outline'/>
+                                            </button>
+                                            <button
+                                                type='button'
+                                                className='ChannelIconSelector__customSvgAction ChannelIconSelector__customSvgAction--delete'
+                                                onClick={(e) => handleDeleteCustomSvg(svg, e)}
+                                                title={formatMessage({id: 'channel_icon_selector.delete', defaultMessage: 'Delete'})}
+                                            >
+                                                <i className='icon icon-trash-can-outline'/>
+                                            </button>
+                                        </div>
+                                    </div>
+                                ))}
+                            </>
+                        )}
+
+                        {/* Add new custom SVG button */}
+                        {(activeCategory === CUSTOM_SVG_CATEGORY || activeCategory === null) && !searchTerm && (
+                            <button
+                                type='button'
+                                className='ChannelIconSelector__addCustomSvg'
+                                onClick={handleAddCustomSvg}
+                                title={formatMessage({id: 'channel_icon_selector.add_custom_svg', defaultMessage: 'Add custom SVG'})}
+                            >
+                                <i className='icon icon-plus'/>
+                            </button>
+                        )}
+
+                        {/* Section divider if showing both custom and regular icons */}
+                        {activeCategory === null && !searchTerm && filteredCustomSvgs.length > 0 && (
+                            <div className='ChannelIconSelector__sectionHeader'>
+                                {formatMessage({id: 'channel_icon_selector.built_in_icons', defaultMessage: 'Built-in Icons'})}
+                            </div>
+                        )}
+
+                        {/* Regular icons */}
+                        {filteredIcons.length === 0 && filteredCustomSvgs.length === 0 && activeCategory !== CUSTOM_SVG_CATEGORY ? (
                             <div className='ChannelIconSelector__noResults'>
                                 {formatMessage({id: 'channel_icon_selector.no_results', defaultMessage: 'No icons found'})}
                             </div>
@@ -205,32 +484,62 @@ export default function ChannelIconSelector({
                                 </button>
                             ))
                         )}
+
+                        {/* Empty state for custom SVG category */}
+                        {activeCategory === CUSTOM_SVG_CATEGORY && customSvgs.length === 0 && (
+                            <div className='ChannelIconSelector__emptyCustom'>
+                                <i className='icon icon-vector-square'/>
+                                <p>{formatMessage({id: 'channel_icon_selector.no_custom_svgs', defaultMessage: 'No custom SVGs yet'})}</p>
+                                <span>{formatMessage({id: 'channel_icon_selector.add_svg_description', defaultMessage: 'Add your own SVG icons to use as channel icons'})}</span>
+                                <button
+                                    type='button'
+                                    className='ChannelIconSelector__addCustomSvgButton'
+                                    onClick={handleAddCustomSvg}
+                                >
+                                    <i className='icon icon-plus'/>
+                                    {formatMessage({id: 'channel_icon_selector.add_svg_button', defaultMessage: 'Add Custom SVG'})}
+                                </button>
+                            </div>
+                        )}
                     </div>
 
-                    <div className='ChannelIconSelector__customInput'>
-                        <label>
-                            {formatMessage({id: 'channel_icon_selector.custom', defaultMessage: 'Custom icon name:'})}
-                        </label>
-                        <div className='ChannelIconSelector__customInputRow'>
-                            <input
-                                type='text'
-                                placeholder={formatMessage({id: 'channel_icon_selector.custom_placeholder', defaultMessage: 'e.g., rocket, trophy, etc.'})}
-                                value={selectedIcon && !ALL_ICONS.includes(selectedIcon) ? selectedIcon : ''}
-                                onChange={(e) => onSelectIcon(e.target.value.trim())}
-                            />
-                            {selectedIcon && !ALL_ICONS.includes(selectedIcon) && (
-                                <i className={`icon icon-${selectedIcon} ChannelIconSelector__customPreview`}/>
-                            )}
+                    {/* Hide custom icon name input when viewing Custom SVG category */}
+                    {activeCategory !== CUSTOM_SVG_CATEGORY && (
+                        <div className='ChannelIconSelector__customInput'>
+                            <label>
+                                {formatMessage({id: 'channel_icon_selector.custom', defaultMessage: 'Custom icon name:'})}
+                            </label>
+                            <div className='ChannelIconSelector__customInputRow'>
+                                <input
+                                    type='text'
+                                    placeholder={formatMessage({id: 'channel_icon_selector.custom_placeholder', defaultMessage: 'e.g., rocket, trophy, etc.'})}
+                                    value={selectedIcon && !ALL_ICONS.includes(selectedIcon) && !selectedCustomSvg ? selectedIcon : ''}
+                                    onChange={(e) => onSelectIcon(e.target.value.trim())}
+                                />
+                                {selectedIcon && !ALL_ICONS.includes(selectedIcon) && !selectedCustomSvg && (
+                                    <i className={`icon icon-${selectedIcon} ChannelIconSelector__customPreview`}/>
+                                )}
+                            </div>
+                            <span className='ChannelIconSelector__customHint'>
+                                {formatMessage({
+                                    id: 'channel_icon_selector.custom_hint',
+                                    defaultMessage: 'Enter any compass-icons name. See all icons at materialdesignicons.com',
+                                })}
+                            </span>
                         </div>
-                        <span className='ChannelIconSelector__customHint'>
-                            {formatMessage({
-                                id: 'channel_icon_selector.custom_hint',
-                                defaultMessage: 'Enter any compass-icons name. See all icons at materialdesignicons.com',
-                            })}
-                        </span>
-                    </div>
+                    )}
                 </div>
             )}
+
+            <CustomSvgModal
+                show={showCustomSvgModal}
+                onClose={() => {
+                    setShowCustomSvgModal(false);
+                    setEditingCustomSvg(undefined);
+                }}
+                onSave={handleSaveCustomSvg}
+                editingSvg={editingCustomSvg}
+            />
         </div>
     );
 }

@@ -1,0 +1,213 @@
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
+
+.CustomSvgModal {
+    .modal-dialog {
+        max-width: 520px;
+    }
+
+    .modal-header {
+        padding: 20px 24px 16px;
+        border-bottom: 1px solid rgba(var(--center-channel-color-rgb), 0.08);
+
+        .modal-title {
+            font-size: 18px;
+            font-weight: 600;
+        }
+    }
+
+    .modal-body {
+        padding: 20px 24px;
+    }
+
+    .modal-footer {
+        padding: 16px 24px;
+        border-top: 1px solid rgba(var(--center-channel-color-rgb), 0.08);
+        display: flex;
+        justify-content: flex-end;
+        gap: 8px;
+    }
+
+    &__form {
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+    }
+
+    &__field {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+
+        > label {
+            font-size: 12px;
+            font-weight: 600;
+            color: rgba(var(--center-channel-color-rgb), 0.72);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        input[type='text'],
+        textarea {
+            padding: 8px 12px;
+            font-size: 14px;
+            border: 1px solid rgba(var(--center-channel-color-rgb), 0.16);
+            border-radius: 4px;
+            background: var(--center-channel-bg);
+            color: var(--center-channel-color);
+            transition: border-color 0.15s ease;
+
+            &:focus {
+                border-color: var(--button-bg);
+                outline: none;
+            }
+
+            &::placeholder {
+                color: rgba(var(--center-channel-color-rgb), 0.48);
+            }
+        }
+
+        textarea {
+            font-family: monospace;
+            font-size: 12px;
+            resize: vertical;
+            min-height: 120px;
+        }
+    }
+
+    &__checkbox {
+        flex-direction: row;
+        flex-wrap: wrap;
+        align-items: center;
+
+        > label {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 14px;
+            font-weight: 400;
+            text-transform: none;
+            letter-spacing: normal;
+            color: var(--center-channel-color);
+            cursor: pointer;
+
+            input[type='checkbox'] {
+                width: 16px;
+                height: 16px;
+                cursor: pointer;
+            }
+        }
+
+        .CustomSvgModal__hint {
+            flex-basis: 100%;
+            margin-left: 24px;
+        }
+    }
+
+    &__hint {
+        font-size: 12px;
+        color: rgba(var(--center-channel-color-rgb), 0.56);
+    }
+
+    &__uploadRow {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        margin-bottom: 8px;
+
+        .btn {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+
+            .icon {
+                font-size: 16px;
+            }
+        }
+    }
+
+    &__or {
+        font-size: 12px;
+        color: rgba(var(--center-channel-color-rgb), 0.48);
+    }
+
+    &__error {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 8px 12px;
+        font-size: 13px;
+        color: var(--error-text);
+        background: rgba(var(--error-text-color-rgb, 210, 75, 78), 0.08);
+        border-radius: 4px;
+
+        .icon {
+            font-size: 16px;
+        }
+    }
+
+    &__preview {
+        > label {
+            display: block;
+            margin-bottom: 8px;
+            font-size: 12px;
+            font-weight: 600;
+            color: rgba(var(--center-channel-color-rgb), 0.72);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+    }
+
+    &__previewRow {
+        display: flex;
+        gap: 12px;
+        align-items: flex-start;
+    }
+
+    &__previewBox {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 4px;
+        width: 60px;
+        height: 60px;
+        border-radius: 8px;
+        border: 1px solid rgba(var(--center-channel-color-rgb), 0.08);
+
+        &--light {
+            background: #fff;
+            color: #1e325c;
+        }
+
+        &--dark {
+            background: #1e325c;
+            color: #fff;
+        }
+
+        &--small {
+            height: auto;
+            width: auto;
+            padding: 8px 12px;
+            flex-direction: column;
+            background: rgba(var(--center-channel-color-rgb), 0.04);
+            color: var(--center-channel-color);
+        }
+
+        .icon {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+
+            svg {
+                display: block;
+            }
+        }
+    }
+
+    &__previewLabel {
+        font-size: 10px;
+        color: rgba(var(--center-channel-color-rgb), 0.56);
+        text-align: center;
+    }
+}

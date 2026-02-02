@@ -2,8 +2,11 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
+import {useSelector} from 'react-redux';
 
 import type {ChannelType} from '@mattermost/types/channels';
+
+import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
 
 import {
     getMdiIconPath,
@@ -13,6 +16,10 @@ import {
     getSimpleIconPath,
     getFontAwesomeIconPath,
     parseIconValue,
+    getCustomSvgById,
+    decodeSvgFromBase64,
+    sanitizeSvg,
+    normalizeSvgColors,
 } from 'components/channel_settings_modal/icon_libraries';
 
 import Constants from 'utils/constants';
@@ -163,7 +170,7 @@ function FontAwesomeSidebarIcon({name}: {name: string}) {
     );
 }
 
-// Render custom SVG from base64
+// Render custom SVG from base64 (legacy format: svg:base64)
 function CustomSvgSidebarIcon({base64}: {base64: string}) {
     try {
         const svgContent = atob(base64);
@@ -184,10 +191,41 @@ function CustomSvgSidebarIcon({base64}: {base64: string}) {
     }
 }
 
+// Render registered custom SVG from user storage (customsvg:id)
+function RegisteredCustomSvgSidebarIcon({userId, svgId}: {userId: string; svgId: string}) {
+    const customSvg = getCustomSvgById(userId, svgId);
+    if (!customSvg) {
+        return <i className='icon icon-globe'/>;
+    }
+
+    try {
+        let svgContent = decodeSvgFromBase64(customSvg.svg);
+        svgContent = sanitizeSvg(svgContent);
+
+        if (customSvg.normalizeColor) {
+            svgContent = normalizeSvgColors(svgContent);
+        }
+
+        // Add size attributes
+        svgContent = svgContent.replace(/<svg/, '<svg width="18" height="18"');
+
+        return (
+            <i
+                className='icon sidebar-channel-icon sidebar-channel-icon--custom'
+                dangerouslySetInnerHTML={{__html: svgContent}}
+            />
+        );
+    } catch {
+        return <i className='icon icon-globe'/>;
+    }
+}
+
 const SidebarBaseChannelIcon = ({
     channelType,
     customIcon,
 }: Props) => {
+    const userId = useSelector(getCurrentUserId);
+
     if (customIcon) {
         const {format, name} = parseIconValue(customIcon);
 
@@ -213,6 +251,10 @@ const SidebarBaseChannelIcon = ({
 
         if (format === 'fontawesome' && name) {
             return <FontAwesomeSidebarIcon name={name}/>;
+        }
+
+        if (format === 'customsvg' && name && userId) {
+            return <RegisteredCustomSvgSidebarIcon userId={userId} svgId={name}/>;
         }
 
         if (format === 'svg' && name) {

@@ -63,7 +63,7 @@ export type IconLibrary = {
     search: (query: string, options?: Partial<SearchOptions>) => SearchResult[];
 };
 
-export type IconFormat = IconLibraryId | 'svg' | 'none';
+export type IconFormat = IconLibraryId | 'svg' | 'customsvg' | 'none';
 
 export function parseIconValue(value: string): {format: IconFormat; name: string} {
     if (!value) {
@@ -87,6 +87,9 @@ export function parseIconValue(value: string): {format: IconFormat; name: string
     if (value.startsWith('fontawesome:')) {
         return {format: 'fontawesome', name: value.slice(12)};
     }
+    if (value.startsWith('customsvg:')) {
+        return {format: 'customsvg', name: value.slice(10)};
+    }
     if (value.startsWith('svg:')) {
         return {format: 'svg', name: value.slice(4)};
     }
@@ -99,6 +102,9 @@ export function formatIconValue(format: IconFormat, name: string): string {
     }
     if (format === 'svg') {
         return `svg:${name}`;
+    }
+    if (format === 'customsvg') {
+        return `customsvg:${name}`;
     }
     return `${format}:${name}`;
 }
