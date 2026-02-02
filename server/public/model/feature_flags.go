@@ -102,6 +102,9 @@ type FeatureFlags struct {
 
 	// Enable Guilded-style sounds for message/reaction interactions
 	GuildedSounds bool
+
+	// Enable Discord-style replies with inline quote previews
+	DiscordReplies bool
 }
 
 // featureFlagDefaults defines the default value for each boolean feature flag.

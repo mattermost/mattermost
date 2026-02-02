@@ -34,6 +34,7 @@ import {
     setEditingPost,
     markPostAsUnread,
 } from 'actions/post_actions';
+import {addPendingReply} from 'actions/views/discord_replies';
 import {openModal, closeModal} from 'actions/views/modals';
 import {isBurnOnReadPost, isThisPostBurnOnReadPost, shouldDisplayConcealedPlaceholder} from 'selectors/burn_on_read_posts';
 import {makeCanWrangler} from 'selectors/posts';
@@ -143,6 +144,7 @@ function makeMapStateToProps() {
             canFlagContent,
             isBurnOnReadPost: isBoRPost,
             isUnrevealedBurnOnReadPost: shouldDisplayConcealedPlaceholder(state, post.id),
+            discordRepliesEnabled: config?.FeatureFlagDiscordReplies === 'true',
         };
     };
 }
@@ -161,6 +163,7 @@ function mapDispatchToProps(dispatch: Dispatch) {
             setThreadFollow,
             burnPostNow,
             savePreferences,
+            addPendingReply,
         }, dispatch),
     };
 }

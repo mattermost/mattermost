@@ -23,6 +23,7 @@ import {
     PinOutlineIcon,
     ReplyOutlineIcon,
     TrashCanOutlineIcon,
+    ForumOutlineIcon,
 } from '@mattermost/compass-icons/components';
 import type {Post} from '@mattermost/types/posts';
 import type {UserThread} from '@mattermost/types/threads';
@@ -149,6 +150,11 @@ type Props = {
          */
         savePreferences: (userId: string, preferences: Array<{category: string; user_id: string; name: string; value: string}>) => void;
 
+        /**
+         * Function to add a post to the pending replies queue (Discord replies)
+         */
+        addPendingReply: (postId: string) => boolean;
+
     }; // TechDebt: Made non-mandatory while converting to typescript
 
     canEdit: boolean;
@@ -161,6 +167,7 @@ type Props = {
     threadReplyCount?: number;
     isBurnOnReadPost: boolean;
     isUnrevealedBurnOnReadPost: boolean;
+    discordRepliesEnabled?: boolean;
 }
 
 type State = {
@@ -375,6 +382,16 @@ export class DotMenuClass extends React.PureComponent<Props, State> {
     };
 
     handleCommentClick = (e: ChangeEvent) => {
+        // When Discord replies is enabled, add to pending replies instead of opening thread
+        if (this.props.discordRepliesEnabled) {
+            this.props.actions.addPendingReply(this.props.post.id);
+            return;
+        }
+        this.props.handleCommentClick?.(e);
+    };
+
+    handleCreateThread = (e: ChangeEvent) => {
+        // This opens the thread in RHS (original Reply behavior)
         this.props.handleCommentClick?.(e);
     };
 
@@ -391,7 +408,12 @@ export class DotMenuClass extends React.PureComponent<Props, State> {
         case Keyboard.isKeyPressed(event, Constants.KeyCodes.R):
             if (this.props.canReply) {
                 forceCloseMenu();
-                this.handleCommentClick(event);
+                // When Discord replies is enabled, R adds to pending replies
+                if (this.props.discordRepliesEnabled) {
+                    this.props.actions.addPendingReply(this.props.post.id);
+                } else {
+                    this.handleCommentClick(event);
+                }
             }
             break;
 
@@ -598,6 +620,20 @@ export class DotMenuClass extends React.PureComponent<Props, State> {
                         leadingElement={<ReplyOutlineIcon size={18}/>}
                         trailingElements={<ShortcutKey shortcutKey='R'/>}
                         onClick={this.handleCommentClick}
+                    />
+                }
+                {this.props.canReply && this.props.discordRepliesEnabled &&
+                    <Menu.Item
+                        id={`create_thread_${this.props.post.id}`}
+                        data-testid={`create_thread_${this.props.post.id}`}
+                        labels={
+                            <FormattedMessage
+                                id='post_info.create_thread'
+                                defaultMessage='Create Thread'
+                            />
+                        }
+                        leadingElement={<ForumOutlineIcon size={18}/>}
+                        onClick={this.handleCreateThread}
                     />
                 }
                 {this.props.canForward &&

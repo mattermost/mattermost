@@ -6,11 +6,15 @@ import type {CommandArgs} from '@mattermost/types/integrations';
 import type {Post} from '@mattermost/types/posts';
 import {PostPriority} from '@mattermost/types/posts';
 
+import {getConfig} from 'mattermost-redux/selectors/entities/general';
 import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
 
 import type {ActionFuncAsync} from 'types/store';
 import type {DesktopNotificationArgs} from 'types/store/plugins';
 import {encryptMessageHook, decryptMessageHook, isEncryptedMessage, attachFileEncryptionMetadata} from 'utils/encryption';
+
+import {getPendingReplies} from 'selectors/views/discord_replies';
+import {clearPendingReplies, generateQuoteText} from './views/discord_replies';
 
 import type {NewPostMessageProps} from './new_post';
 
@@ -37,6 +41,39 @@ export function runMessageWillBePostedHooks(originalPost: Post): ActionFuncAsync
 
                     post = result.post;
                 }
+            }
+        }
+
+        // Discord Replies - prepend quote text and add metadata (mattermost-extended)
+        const state = getState();
+        const config = getConfig(state);
+        const discordRepliesEnabled = config?.FeatureFlagDiscordReplies === 'true';
+
+        if (discordRepliesEnabled) {
+            const pendingReplies = getPendingReplies(state);
+
+            if (pendingReplies.length > 0) {
+                // Generate quote text
+                const quoteText = dispatch(generateQuoteText()) as string;
+
+                // Prepend quote text to message
+                post = {
+                    ...post,
+                    message: quoteText + post.message,
+                    props: {
+                        ...post.props,
+                        discord_replies: pendingReplies,
+                    },
+                    metadata: {
+                        ...post.metadata,
+                        priority: {
+                            priority: PostPriority.DISCORD_REPLY,
+                        },
+                    },
+                };
+
+                // Clear pending replies after adding to post
+                dispatch(clearPendingReplies());
             }
         }
 

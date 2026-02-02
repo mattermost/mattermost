@@ -22,6 +22,7 @@ const MATTERMOST_EXTENDED_FLAGS = [
     'ThreadsInSidebar',
     'CustomThreadNames',
     'GuildedSounds',
+    'DiscordReplies',
 ];
 
 type Props = {

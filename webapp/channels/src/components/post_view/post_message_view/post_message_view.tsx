@@ -170,6 +170,35 @@ export default class PostMessageView extends React.PureComponent<Props, State> {
         }
 
         let message = post.message;
+
+        // Strip Discord reply quote lines if this post has discord_replies metadata
+        // These quotes are displayed by the DiscordReplyPreview component instead
+        const hasDiscordReplies = post.props?.discord_replies && Array.isArray(post.props.discord_replies) && post.props.discord_replies.length > 0;
+        if (hasDiscordReplies) {
+            // Remove quote lines at the start of the message
+            // Format: >[@username](permalink): text
+            const lines = message.split('\n');
+            let startIndex = 0;
+            for (let i = 0; i < lines.length; i++) {
+                const line = lines[i];
+                // Check if line matches Discord reply quote format
+                if (line.startsWith('>[@') && line.includes('](') && line.includes('):')) {
+                    startIndex = i + 1;
+                } else if (line.trim() === '') {
+                    // Empty line after quotes - skip it too
+                    if (startIndex > 0 && startIndex === i) {
+                        startIndex = i + 1;
+                    }
+                } else {
+                    // Non-quote line found, stop stripping
+                    break;
+                }
+            }
+            if (startIndex > 0) {
+                message = lines.slice(startIndex).join('\n');
+            }
+        }
+
         const isEphemeral = isPostEphemeral(post);
         if (compactDisplay && isEphemeral) {
             const visibleMessage = Utils.localizeMessage({id: 'post_info.message.visible.compact', defaultMessage: ' (Only visible to you)'});

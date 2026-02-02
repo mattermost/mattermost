@@ -28,6 +28,7 @@ import {getSelectedPostFocussedAt} from 'selectors/rhs';
 import {connectionErrorCount} from 'selectors/views/system';
 import LocalStorageStore from 'stores/local_storage_store';
 
+import PendingRepliesBar from 'components/advanced_text_editor/pending_replies_bar';
 import PostBoxIndicator from 'components/advanced_text_editor/post_box_indicator/post_box_indicator';
 import {makeAsyncComponent} from 'components/async_load';
 import AutoHeightSwitcher from 'components/common/auto_height_switcher';
@@ -756,6 +757,9 @@ const AdvancedTextEditor = ({
                     location={location}
                     postId={rootId}
                 />
+            )}
+            {!isInEditMode && location === Locations.CENTER && (
+                <PendingRepliesBar/>
             )}
             <div
                 className={classNames('AdvancedTextEditor', {

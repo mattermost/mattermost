@@ -1,0 +1,138 @@
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
+
+.discord-reply-preview {
+    overflow: visible;
+    position: relative;
+    z-index: 10;
+    margin-bottom: -6px; // Pull closer to post below so reply is right above username
+}
+
+// Mirrors .post__content
+.discord-reply-content {
+    display: flex;
+    padding: 0 8px 0 5px;
+    margin: 0 auto;
+    padding-left: 1.5em;
+    padding-right: 0.5em;
+    overflow: visible;
+}
+
+// Mirrors .post__img - same 53px width
+.discord-reply-img {
+    width: 53px;
+    padding-right: 10px;
+    display: flex;
+    justify-content: flex-start;
+    align-items: stretch;
+    position: relative;
+    overflow: visible;
+}
+
+// Connector column - positioned at center of avatar area
+.discord-reply-connectors {
+    display: flex;
+    flex-direction: column;
+    position: absolute;
+    // Center of avatar: 53px - 10px padding - 16px (half of 32px avatar) = 27px from left
+    left: 27px;
+    top: 0;
+    bottom: 0;
+    overflow: visible;
+}
+
+// Individual connector wrapper for each reply - height matches reply item
+.discord-reply-connector {
+    height: 18px;
+    box-sizing: border-box;
+    position: relative;
+    z-index: 10;
+
+    &.connector-first,
+    &.connector-single {
+        height: 18px;
+    }
+
+    svg {
+        position: absolute;
+        left: 0;
+        top: 0;
+        overflow: visible;
+    }
+}
+
+// Mirrors the div after post__img
+.discord-reply-body {
+    display: flex;
+    flex-direction: column;
+    padding-left: 0;
+    min-width: 0;
+    flex: 1;
+}
+
+.discord-reply-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 1rem;
+    color: rgba(var(--center-channel-color-rgb), 0.56);
+    cursor: pointer;
+    line-height: 1.2;
+    height: 18px;
+    margin-left: 6px;
+
+    &:hover {
+        .discord-reply-username,
+        .discord-reply-text {
+            color: rgba(var(--center-channel-color-rgb), 1);
+        }
+    }
+}
+
+.discord-reply-avatar {
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    flex-shrink: 0;
+    object-fit: cover;
+}
+
+.discord-reply-avatar-fallback {
+    background-color: var(--button-bg, #166de0);
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 11px;
+    font-weight: 600;
+}
+
+.discord-reply-username {
+    font-weight: 600;
+    color: rgba(var(--center-channel-color-rgb), 0.64);
+    flex-shrink: 0;
+    transition: color 0.1s;
+}
+
+.discord-reply-text {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    max-width: 400px;
+    transition: color 0.1s;
+}
+
+// Post highlight animation when jumping to a post
+.post--highlight {
+    animation: discord-reply-highlight 2s ease-out;
+}
+
+@keyframes discord-reply-highlight {
+    0% {
+        background-color: rgba(var(--button-bg-rgb), 0.2);
+    }
+
+    100% {
+        background-color: transparent;
+    }
+}

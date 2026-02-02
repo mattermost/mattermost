@@ -357,6 +357,11 @@ export const ActionTypes = keyMirror({
 
     SET_READOUT: 'SET_READOUT',
     CLEAR_READOUT: 'CLEAR_READOUT',
+
+    // Discord Replies
+    DISCORD_REPLY_ADD_PENDING: null,
+    DISCORD_REPLY_REMOVE_PENDING: null,
+    DISCORD_REPLY_CLEAR_PENDING: null,
 });
 
 export const PostRequestTypes = keyMirror({

@@ -112,6 +112,7 @@ export enum PostPriority {
     URGENT = 'urgent',
     IMPORTANT = 'important',
     ENCRYPTED = 'encrypted',
+    DISCORD_REPLY = 'discord_reply',
 }
 
 export type PostList = {

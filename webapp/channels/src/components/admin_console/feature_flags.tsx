@@ -169,6 +169,10 @@ const FLAG_METADATA: Record<string, {description: string; defaultValue: boolean}
         description: 'Enable Guilded-style sounds for message/reaction interactions',
         defaultValue: false,
     },
+    DiscordReplies: {
+        description: 'Enable Discord-style inline replies with quote previews instead of thread-based replies',
+        defaultValue: false,
+    },
 };
 
 // Styled components

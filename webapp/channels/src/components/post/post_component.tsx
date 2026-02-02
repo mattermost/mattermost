@@ -54,6 +54,7 @@ import {makeIsEligibleForClick} from 'utils/utils';
 import type {ModalData} from 'types/actions';
 import type {PostActionComponent, PostPluginComponent} from 'types/store/plugins';
 
+import DiscordReplyPreview from './discord_reply_preview';
 import {withPostErrorBoundary} from './post_error_boundary';
 import PostOptions from './post_options';
 import PostUserProfile from './user_profile';
@@ -731,6 +732,7 @@ function PostComponent(props: Props) {
                         }
                     </div>
                 }
+                <DiscordReplyPreview post={post}/>
                 <PostPreHeader
                     isFlagged={props.isFlagged}
                     isPinned={post.is_pinned}

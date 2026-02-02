@@ -1,0 +1,88 @@
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
+
+.discord-pending-replies {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 12px;
+    background: rgba(var(--center-channel-color-rgb), 0.08);
+    border-radius: 4px 4px 0 0;
+    font-size: 0.85rem;
+    color: rgba(var(--center-channel-color-rgb), 0.72);
+    margin: 0 16px;
+
+    .pending-label {
+        color: rgba(var(--center-channel-color-rgb), 0.56);
+        font-size: 0.95rem;
+        flex-shrink: 0;
+    }
+
+    .pending-targets {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        flex: 1;
+        overflow: hidden;
+        flex-wrap: wrap;
+    }
+
+    .pending-reply-chip {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        background-color: rgba(var(--center-channel-color-rgb), 0.12);
+        border: 1px solid rgba(var(--center-channel-color-rgb), 0.2);
+        border-radius: 12px;
+        padding: 2px 6px 2px 10px;
+    }
+
+    .pending-username {
+        font-weight: 600;
+        color: rgba(var(--center-channel-color-rgb), 0.9);
+    }
+
+    .pending-chip-remove {
+        background: none;
+        border: none;
+        cursor: pointer;
+        padding: 0;
+        width: 16px;
+        height: 16px;
+        color: rgba(var(--center-channel-color-rgb), 0.5);
+        font-size: 14px;
+        line-height: 1;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+
+        &:hover {
+            background: rgba(var(--center-channel-color-rgb), 0.15);
+            color: rgba(var(--center-channel-color-rgb), 0.9);
+        }
+    }
+
+    .pending-close {
+        background: none;
+        border: none;
+        cursor: pointer;
+        padding: 4px;
+        margin: -4px;
+        margin-left: auto;
+        color: rgba(var(--center-channel-color-rgb), 0.56);
+        font-size: 18px;
+        line-height: 1;
+        border-radius: 4px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+
+        &:hover {
+            background: rgba(var(--center-channel-color-rgb), 0.08);
+            color: rgba(var(--center-channel-color-rgb), 0.9);
+        }
+    }
+}

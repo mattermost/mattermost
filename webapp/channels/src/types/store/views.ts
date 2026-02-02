@@ -9,6 +9,7 @@ import type {UserThread} from '@mattermost/types/threads';
 import type {RelationOneToOne} from '@mattermost/types/utilities';
 
 import type {EncryptedFileMetadata, OriginalFileInfo} from 'utils/encryption/file';
+import type {DiscordReplyData} from 'reducers/views/discord_replies';
 
 import type {I18nState} from './i18n';
 import type {LhsViewState} from './lhs';
@@ -245,4 +246,8 @@ export type ViewsState = {
     };
 
     encryption: EncryptionViewState;
+
+    discordReplies: {
+        pendingReplies: DiscordReplyData[];
+    };
 };
