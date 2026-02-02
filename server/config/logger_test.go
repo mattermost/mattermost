@@ -17,40 +17,57 @@ import (
 )
 
 func TestMloggerConfigFromAuditConfig(t *testing.T) {
-	auditSettings := model.ExperimentalAuditSettings{
-		FileEnabled:      model.NewPointer(true),
-		FileName:         model.NewPointer("audit.log"),
-		FileMaxSizeMB:    model.NewPointer(20),
-		FileMaxAgeDays:   model.NewPointer(1),
-		FileMaxBackups:   model.NewPointer(5),
-		FileCompress:     model.NewPointer(true),
-		FileMaxQueueSize: model.NewPointer(5000),
-	}
+	t.Run("uses audit settings values", func(t *testing.T) {
+		auditSettings := model.ExperimentalAuditSettings{
+			FileEnabled:      model.NewPointer(true),
+			FileName:         model.NewPointer("audit.log"),
+			FileMaxSizeMB:    model.NewPointer(20),
+			FileMaxAgeDays:   model.NewPointer(1),
+			FileMaxBackups:   model.NewPointer(5),
+			FileCompress:     model.NewPointer(true),
+			FileMaxQueueSize: model.NewPointer(5000),
+		}
 
-	t.Run("validate default audit settings", func(t *testing.T) {
 		cfg, err := MloggerConfigFromAuditConfig(auditSettings, nil)
-		require.NoError(t, err, "audit config should not error")
-		require.Len(t, cfg, 1, "default audit config should have one target")
+		require.NoError(t, err)
+		require.Len(t, cfg, 1)
 
 		targetCfg := cfg["_defAudit"]
 
-		// check general
-		assert.Equal(t, targetCfg.Type, "file")
-		assert.Equal(t, targetCfg.Format, "json")
-		assert.ElementsMatch(t, targetCfg.Levels, []mlog.Level{mlog.LvlAuditAPI, mlog.LvlAuditContent, mlog.LvlAuditPerms, mlog.LvlAuditCLI})
+		// check target config
+		assert.Equal(t, "file", targetCfg.Type)
+		assert.Equal(t, "json", targetCfg.Format)
+		assert.Equal(t, 5000, targetCfg.MaxQueueSize)
+		assert.ElementsMatch(t, []mlog.Level{mlog.LvlAuditAPI, mlog.LvlAuditContent, mlog.LvlAuditPerms, mlog.LvlAuditCLI}, targetCfg.Levels)
 
 		// check format options
-		optionsExpected := map[string]any{
+		var formatOptions map[string]any
+		err = json.Unmarshal(targetCfg.FormatOptions, &formatOptions)
+		require.NoError(t, err)
+		assert.Equal(t, map[string]any{
 			"disable_timestamp":  false,
 			"disable_msg":        true,
 			"disable_stacktrace": true,
 			"disable_level":      true,
+		}, formatOptions)
+
+		// check file options
+		var fileOptions struct {
+			Filename   string `json:"filename"`
+			MaxSize    int    `json:"max_size"`
+			MaxAge     int    `json:"max_age"`
+			MaxBackups int    `json:"max_backups"`
+			Compress   bool   `json:"compress"`
 		}
-		var optionsReceived map[string]any
-		err = json.Unmarshal(targetCfg.FormatOptions, &optionsReceived)
-		require.NoError(t, err, "unmarshal should not fail")
-		assert.Equal(t, optionsExpected, optionsReceived)
+		err = json.Unmarshal(targetCfg.Options, &fileOptions)
+		require.NoError(t, err)
+		assert.Equal(t, "audit.log", fileOptions.Filename)
+		assert.Equal(t, 20, fileOptions.MaxSize)
+		assert.Equal(t, 1, fileOptions.MaxAge)
+		assert.Equal(t, 5, fileOptions.MaxBackups)
+		assert.True(t, fileOptions.Compress)
 	})
+
 }
 
 func TestGetLogRootPath(t *testing.T) {
