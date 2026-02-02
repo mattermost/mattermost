@@ -937,9 +937,18 @@ function Invoke-WebappDev {
         Pop-Location
     }
 
+    # Separate log file for webapp output
+    $WEBAPP_LOG = Join-Path $SCRIPT_DIR "webapp.log"
+
+    # Initialize webapp log file
+    "=" * 80 | Out-File $WEBAPP_LOG -Encoding UTF8
+    "Webapp dev server started: $(Get-Date -Format 'yyyy-MM-dd HH:mm:ss')" | Out-File $WEBAPP_LOG -Append -Encoding UTF8
+    "=" * 80 | Out-File $WEBAPP_LOG -Append -Encoding UTF8
+
     Log "Starting development server..."
     Log "The webapp will proxy API requests to http://localhost:$MM_PORT"
     Log ""
+    Log "Console output logged to: $WEBAPP_LOG"
     Log "Press Ctrl+C to stop"
     Log ""
 
@@ -949,7 +958,7 @@ function Invoke-WebappDev {
     # Run the dev server - it will show full React error messages
     # Note: The script is "dev-server" not "dev" (webpack serve --mode development)
     & npm run dev-server 2>&1 | ForEach-Object {
-        $_ | Out-File $LOG_FILE -Append -Encoding UTF8
+        $_ | Out-File $WEBAPP_LOG -Append -Encoding UTF8
         Write-Host $_
     }
 
