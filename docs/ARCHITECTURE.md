@@ -11,7 +11,7 @@ Technical architecture and design decisions for Mattermost Extended.
 - [Server Architecture](#server-architecture)
 - [Webapp Architecture](#webapp-architecture)
 - [Database Schema](#database-schema)
-- [Feature Flag System](#feature-flag-system)
+- [Configuration System](#configuration-system)
 - [Encryption Architecture](#encryption-architecture)
 
 ---
@@ -23,7 +23,7 @@ Mattermost Extended is a fork of Mattermost v11.3.0 with custom features added o
 ### Key Principles
 
 1. **Minimal Upstream Modifications** - Add new files rather than modifying existing ones when possible
-2. **Feature Flags for Everything** - All custom features can be toggled without redeployment
+2. **Configurable Everything** - All features and tweaks can be toggled without redeployment
 3. **Client-Side Security** - Encryption happens in the browser, never on the server
 4. **Graceful Degradation** - Features work independently; disabling one doesn't break others
 
@@ -81,9 +81,10 @@ server/
 │           └── encryption_session_key_store.go  # NEW: Key storage
 ├── public/
 │   ├── model/
-│   │   ├── feature_flags.go    # Modified: Added custom flags
-│   │   ├── encryption_key.go   # NEW: Encryption models
-│   │   └── thread.go           # Modified: Added Props field
+│   │   ├── feature_flags.go                  # Modified: Added custom flags
+│   │   ├── mattermost_extended_settings.go   # NEW: Tweaks configuration
+│   │   ├── encryption_key.go                 # NEW: Encryption models
+│   │   └── thread.go                         # Modified: Added Props field
 │   └── plugin/
 │       └── api.go              # Modified: Plugin API extensions
 └── config/
@@ -214,9 +215,19 @@ Channel props already exists; we use it for `custom_icon`.
 
 ---
 
-## Feature Flag System
+## Configuration System
 
-### Server-Side Definition
+Mattermost Extended uses a three-tier configuration system:
+
+1. **Feature Flags** - Major features that gate significant functionality
+2. **Settings** - Configuration options for feature-flagged features (future)
+3. **Tweaks** - Simple behavioral changes without feature flag dependencies
+
+### Feature Flags
+
+Feature flags are used for **major features** that require significant code and affect core behavior.
+
+#### Server-Side Definition
 
 ```go
 // server/public/model/feature_flags.go
@@ -224,18 +235,17 @@ type FeatureFlags struct {
     // ... upstream flags ...
 
     // Custom flags
-    Encryption                     bool
-    CustomChannelIcons             bool
-    CustomThreadNames              bool
-    ThreadsInSidebar               bool
-    HideDeletedMessagePlaceholder  bool
+    Encryption         bool
+    CustomChannelIcons bool
+    CustomThreadNames  bool
+    ThreadsInSidebar   bool
 }
 ```
 
-### Client-Side Access
+#### Client-Side Access
 
 ```typescript
-// Feature flags are exposed via config
+// Feature flags are exposed via config with FeatureFlag prefix
 const config = getConfig(state);
 
 if (config.FeatureFlagEncryption === 'true') {
@@ -243,13 +253,50 @@ if (config.FeatureFlagEncryption === 'true') {
 }
 ```
 
-### Admin Console Integration
+### Tweaks
 
-The admin console dynamically reads feature flags and generates toggle UI:
+Tweaks are **simple modifications** that don't require a full feature flag. They're organized by section.
+
+#### Server-Side Definition
+
+```go
+// server/public/model/mattermost_extended_settings.go
+type MattermostExtendedSettings struct {
+    Posts    MattermostExtendedPostsSettings
+    Channels MattermostExtendedChannelsSettings
+}
+
+type MattermostExtendedPostsSettings struct {
+    HideDeletedMessagePlaceholder *bool
+}
+
+type MattermostExtendedChannelsSettings struct {
+    SidebarChannelSettings *bool
+}
+```
+
+#### Client-Side Access
 
 ```typescript
-// webapp/channels/src/components/admin_console/mattermost_extended_features.tsx
-// Renders toggles for each custom feature flag
+// Tweaks are exposed via config with MattermostExtended prefix
+const config = getConfig(state);
+
+if (config.MattermostExtendedHideDeletedMessagePlaceholder === 'true') {
+  // Tweak enabled
+}
+```
+
+### Admin Console Integration
+
+The admin console renders toggles for both feature flags and tweaks:
+
+```
+Mattermost Extended (System Console)
+├── Features    → mattermost_extended_features.tsx (feature flags)
+├── Posts       → admin_definition.tsx (tweaks)
+├── Channels    → admin_definition.tsx (tweaks)
+├── Threads     → (future tweaks)
+└── Bug Fixes   → (future tweaks)
 ```
 
 ---
@@ -326,12 +373,14 @@ Message
 - Logout clears keys (stored in sessionStorage)
 - Multiple devices work independently
 
-### Why Feature Flags?
+### Why Configuration Toggles?
 
-- Deploy once, enable features gradually
+Feature flags and tweaks provide:
+- Deploy once, enable features/tweaks gradually
 - Easy rollback without redeployment
 - Per-environment configuration
 - A/B testing capability
+- Clear separation between major features (flags) and simple modifications (tweaks)
 
 ---
 

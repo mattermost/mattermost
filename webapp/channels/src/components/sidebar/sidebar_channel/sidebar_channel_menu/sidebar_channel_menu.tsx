@@ -14,10 +14,12 @@ import {
     AccountPlusOutlineIcon,
     DotsVerticalIcon,
     ExitToAppIcon,
+    CogOutlineIcon,
 } from '@mattermost/compass-icons/components';
 
 import ChannelInviteModal from 'components/channel_invite_modal';
 import ChannelMoveToSubmenu from 'components/channel_move_to_sub_menu';
+import ChannelSettingsModal from 'components/channel_settings_modal/channel_settings_modal';
 import * as Menu from 'components/menu';
 
 import Constants, {ModalIdentifiers} from 'utils/constants';
@@ -45,6 +47,8 @@ const SidebarChannelMenu = ({
     unfavoriteChannel,
     unmuteChannel,
     channelLeaveHandler,
+    sidebarChannelSettingsEnabled,
+    canAccessChannelSettings,
 }: Props) => {
     const isLeaving = useRef(false);
 
@@ -237,6 +241,38 @@ const SidebarChannelMenu = ({
         );
     }
 
+    // Channel Settings menu item (only for public/private channels, not DMs/GMs)
+    let channelSettingsMenuItem: JSX.Element | null = null;
+    if (sidebarChannelSettingsEnabled &&
+        canAccessChannelSettings &&
+        (channel.type === Constants.OPEN_CHANNEL || channel.type === Constants.PRIVATE_CHANNEL)) {
+        function handleOpenChannelSettings() {
+            openModal({
+                modalId: ModalIdentifiers.CHANNEL_SETTINGS,
+                dialogType: ChannelSettingsModal,
+                dialogProps: {
+                    channelId: channel.id,
+                    focusOriginElement: `SidebarChannelMenu-Button-${channel.id}`,
+                    isOpen: true,
+                },
+            });
+        }
+
+        channelSettingsMenuItem = (
+            <Menu.Item
+                id={`channelSettings-${channel.id}`}
+                onClick={handleOpenChannelSettings}
+                leadingElement={<CogOutlineIcon size={18}/>}
+                labels={(
+                    <FormattedMessage
+                        id='sidebar_left.sidebar_channel_menu.channelSettings'
+                        defaultMessage='Channel Settings'
+                    />
+                )}
+            />
+        );
+    }
+
     let leaveChannelMenuItem: JSX.Element | null = null;
     if (channel.name !== Constants.DEFAULT_CHANNEL) {
         let leaveChannelText = (
@@ -306,7 +342,8 @@ const SidebarChannelMenu = ({
             {(copyLinkMenuItem || addMembersMenuItem) && <Menu.Separator/>}
             {copyLinkMenuItem}
             {addMembersMenuItem}
-            {leaveChannelMenuItem && <Menu.Separator/>}
+            {(channelSettingsMenuItem || leaveChannelMenuItem) && <Menu.Separator/>}
+            {channelSettingsMenuItem}
             {leaveChannelMenuItem}
         </Menu.Container>
     );

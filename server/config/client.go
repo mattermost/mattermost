@@ -174,6 +174,10 @@ func GenerateClientConfig(c *model.Config, telemetryID string, license *model.Li
 	props["EnableEncryption"] = strconv.FormatBool(c.FeatureFlags.Encryption)
 	// EnableCustomChannelIcons now uses feature flag: FeatureFlagCustomChannelIcons
 
+	// Mattermost Extended Tweaks
+	props["MattermostExtendedHideDeletedMessagePlaceholder"] = strconv.FormatBool(*c.MattermostExtendedSettings.Posts.HideDeletedMessagePlaceholder)
+	props["MattermostExtendedSidebarChannelSettings"] = strconv.FormatBool(*c.MattermostExtendedSettings.Channels.SidebarChannelSettings)
+
 	if license != nil {
 		props["ExperimentalEnableAuthenticationTransfer"] = strconv.FormatBool(*c.ServiceSettings.ExperimentalEnableAuthenticationTransfer)
 

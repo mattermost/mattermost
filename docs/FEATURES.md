@@ -1,17 +1,24 @@
 # Features Guide
 
-Complete documentation for all Mattermost Extended features.
+Complete documentation for all Mattermost Extended features and tweaks.
 
 ---
 
 ## Table of Contents
 
+### Feature Flags (Major Features)
 - [End-to-End Encryption](#end-to-end-encryption)
 - [Custom Channel Icons](#custom-channel-icons)
 - [Custom Thread Names](#custom-thread-names)
 - [Threads in Sidebar](#threads-in-sidebar)
+
+### Tweaks (Simple Modifications)
 - [Hide Deleted Message Placeholders](#hide-deleted-message-placeholders)
+- [Sidebar Channel Settings Menu](#sidebar-channel-settings-menu)
+
+### Reference
 - [Feature Flags Reference](#feature-flags-reference)
+- [Tweaks Reference](#tweaks-reference)
 
 ---
 
@@ -201,8 +208,9 @@ Display followed threads directly under their parent channels in the sidebar, el
 
 ## Hide Deleted Message Placeholders
 
-**Feature Flag:** `HideDeletedMessagePlaceholder`
-**Environment Variable:** `MM_FEATUREFLAGS_HIDEDELETEDMESSAGEPLACEHOLDER=true`
+**Type:** Tweak (Posts)
+**Config Key:** `MattermostExtendedSettings.Posts.HideDeletedMessagePlaceholder`
+**Environment Variable:** `MM_MATTERMOSTEXTENDEDSETTINGS_POSTS_HIDEDELETEDMESSAGEPLACEHOLDER=true`
 
 ### Overview
 
@@ -223,7 +231,34 @@ When enabled, deleted messages immediately disappear for all users instead of sh
 
 ---
 
+## Sidebar Channel Settings Menu
+
+**Type:** Tweak (Channels)
+**Config Key:** `MattermostExtendedSettings.Channels.SidebarChannelSettings`
+**Environment Variable:** `MM_MATTERMOSTEXTENDEDSETTINGS_CHANNELS_SIDEBARCHANNELSETTINGS=true`
+
+### Overview
+
+Adds a "Channel Settings" menu item to the sidebar channel right-click menu for quick access to channel configuration.
+
+### How It Works
+
+1. Right-click (or click the "..." menu) on any channel in the sidebar
+2. The "Channel Settings" option appears above "Leave Channel"
+3. Only visible for public and private channels (not DMs/GMs)
+4. Only visible to users with permission to access channel settings
+
+### Use Cases
+
+- Quick access to channel settings without opening channel header
+- Faster workflow for channel administrators
+- Convenient for managing channel properties
+
+---
+
 ## Feature Flags Reference
+
+Feature flags are used for **major features** that gate significant functionality.
 
 ### All Feature Flags
 
@@ -233,16 +268,15 @@ When enabled, deleted messages immediately disappear for all users instead of sh
 | `CustomChannelIcons` | `MM_FEATUREFLAGS_CUSTOMCHANNELICONS` | `false` | Custom channel icons |
 | `CustomThreadNames` | `MM_FEATUREFLAGS_CUSTOMTHREADNAMES` | `false` | Rename threads |
 | `ThreadsInSidebar` | `MM_FEATUREFLAGS_THREADSINSIDEBAR` | `false` | Show threads under channels |
-| `HideDeletedMessagePlaceholder` | `MM_FEATUREFLAGS_HIDEDELETEDMESSAGEPLACEHOLDER` | `false` | Clean deletions |
 
-### Enabling via System Console
+### Enabling Feature Flags via System Console
 
 1. Go to **System Console**
 2. Navigate to **Mattermost Extended > Features**
 3. Toggle the desired features
 4. Save changes
 
-### Enabling via Environment Variables
+### Enabling Feature Flags via Environment Variables
 
 ```bash
 # Docker / docker-compose
@@ -254,7 +288,7 @@ environment:
 Environment="MM_FEATUREFLAGS_ENCRYPTION=true"
 ```
 
-### Enabling via config.json
+### Enabling Feature Flags via config.json
 
 ```json
 {
@@ -262,8 +296,54 @@ Environment="MM_FEATUREFLAGS_ENCRYPTION=true"
     "Encryption": true,
     "CustomChannelIcons": true,
     "CustomThreadNames": true,
-    "ThreadsInSidebar": true,
-    "HideDeletedMessagePlaceholder": true
+    "ThreadsInSidebar": true
+  }
+}
+```
+
+---
+
+## Tweaks Reference
+
+Tweaks are **simple modifications** that don't require a full feature flag. They're organized by section (Posts, Channels, etc.).
+
+### All Tweaks
+
+| Section | Tweak | Environment Variable | Default | Description |
+|---------|-------|---------------------|---------|-------------|
+| Posts | `HideDeletedMessagePlaceholder` | `MM_MATTERMOSTEXTENDEDSETTINGS_POSTS_HIDEDELETEDMESSAGEPLACEHOLDER` | `false` | Clean deletions |
+| Channels | `SidebarChannelSettings` | `MM_MATTERMOSTEXTENDEDSETTINGS_CHANNELS_SIDEBARCHANNELSETTINGS` | `false` | Channel settings in sidebar menu |
+
+### Enabling Tweaks via System Console
+
+1. Go to **System Console**
+2. Navigate to **Mattermost Extended > [Section]** (e.g., Posts, Channels)
+3. Toggle the desired tweaks
+4. Save changes
+
+### Enabling Tweaks via Environment Variables
+
+```bash
+# Docker / docker-compose
+environment:
+  - MM_MATTERMOSTEXTENDEDSETTINGS_POSTS_HIDEDELETEDMESSAGEPLACEHOLDER=true
+  - MM_MATTERMOSTEXTENDEDSETTINGS_CHANNELS_SIDEBARCHANNELSETTINGS=true
+
+# Systemd service
+Environment="MM_MATTERMOSTEXTENDEDSETTINGS_POSTS_HIDEDELETEDMESSAGEPLACEHOLDER=true"
+```
+
+### Enabling Tweaks via config.json
+
+```json
+{
+  "MattermostExtendedSettings": {
+    "Posts": {
+      "HideDeletedMessagePlaceholder": true
+    },
+    "Channels": {
+      "SidebarChannelSettings": true
+    }
   }
 }
 ```

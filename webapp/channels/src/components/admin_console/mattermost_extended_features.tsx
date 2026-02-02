@@ -19,7 +19,6 @@ export const messages = defineMessages({
 const MATTERMOST_EXTENDED_FLAGS = [
     'Encryption',
     'CustomChannelIcons',
-    'HideDeletedMessagePlaceholder',
     'ThreadsInSidebar',
     'CustomThreadNames',
 ];

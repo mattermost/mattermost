@@ -192,6 +192,8 @@ S3_SECRET_KEY=your-secret-key
 
 ### Adding a New Feature Flag
 
+Use feature flags for **major features** that gate significant functionality.
+
 1. **Add to server model:**
    ```go
    // server/public/model/feature_flags.go
@@ -201,30 +203,92 @@ S3_SECRET_KEY=your-secret-key
    }
    ```
 
-2. **Add to admin console:**
+2. **Add to feature flags list:**
    ```typescript
-   // webapp/channels/src/components/admin_console/admin_definition.tsx
-   // In mattermost_extended.subsections.features.schema.settings:
-   {
-       type: 'bool',
-       key: 'FeatureFlags.MyNewFeature',
-       label: defineMessage({...}),
-       help_text: defineMessage({...}),
-   }
+   // webapp/channels/src/components/admin_console/mattermost_extended_features.tsx
+   const MATTERMOST_EXTENDED_FLAGS = [
+       // ... existing flags ...
+       'MyNewFeature',
+   ];
    ```
 
-3. **Use in server code:**
+3. **Add metadata:**
+   ```typescript
+   // webapp/channels/src/components/admin_console/feature_flags.tsx
+   // In FLAG_METADATA:
+   MyNewFeature: {
+       description: 'Description of what this does',
+       defaultValue: false,
+   },
+   ```
+
+4. **Use in server code:**
    ```go
    if a.Config().FeatureFlags.MyNewFeature {
        // Feature enabled
    }
    ```
 
-4. **Use in webapp code:**
+5. **Use in webapp code:**
    ```typescript
    const config = getConfig(state);
    if (config.FeatureFlagMyNewFeature === 'true') {
        // Feature enabled
+   }
+   ```
+
+### Adding a New Tweak
+
+Use tweaks for **simple modifications** that don't need a full feature flag.
+
+1. **Add to server model:**
+   ```go
+   // server/public/model/mattermost_extended_settings.go
+   // In the appropriate section struct (Posts, Channels, etc.):
+   type MattermostExtendedPostsSettings struct {
+       // ... existing tweaks ...
+       MyNewTweak *bool
+   }
+
+   // Add default in SetDefaults():
+   func (s *MattermostExtendedPostsSettings) SetDefaults() {
+       if s.MyNewTweak == nil {
+           s.MyNewTweak = NewPointer(false)
+       }
+   }
+   ```
+
+2. **Expose to client:**
+   ```go
+   // server/config/client.go
+   // In GenerateClientConfig():
+   props["MattermostExtendedMyNewTweak"] = strconv.FormatBool(*c.MattermostExtendedSettings.Posts.MyNewTweak)
+   ```
+
+3. **Add to admin console:**
+   ```typescript
+   // webapp/channels/src/components/admin_console/admin_definition.tsx
+   // In the appropriate mattermost_extended subsection (posts, channels, etc.):
+   {
+       type: 'bool',
+       key: 'MattermostExtendedSettings.Posts.MyNewTweak',
+       label: defineMessage({...}),
+       help_text: defineMessage({...}),
+   }
+   ```
+
+4. **Use in server code:**
+   ```go
+   if *a.Config().MattermostExtendedSettings.Posts.MyNewTweak {
+       // Tweak enabled
+   }
+   ```
+
+5. **Use in webapp code:**
+   ```typescript
+   const config = getConfig(state);
+   if (config.MattermostExtendedMyNewTweak === 'true') {
+       // Tweak enabled
    }
    ```
 
@@ -237,6 +301,7 @@ S3_SECRET_KEY=your-secret-key
 | Path | Purpose |
 |------|---------|
 | `server/public/model/feature_flags.go` | Feature flag definitions |
+| `server/public/model/mattermost_extended_settings.go` | Tweaks configuration |
 | `server/public/model/encryption_key.go` | Encryption data models |
 | `server/channels/api4/encryption.go` | Encryption API endpoints |
 | `server/channels/store/sqlstore/encryption_session_key_store.go` | Key storage |

@@ -10,6 +10,7 @@ import {favoriteChannel, unfavoriteChannel, readMultipleChannels} from 'mattermo
 import Permissions from 'mattermost-redux/constants/permissions';
 import {isFavoriteChannel} from 'mattermost-redux/selectors/entities/channels';
 import {getMyChannelMemberships, getCurrentUserId} from 'mattermost-redux/selectors/entities/common';
+import {getConfig} from 'mattermost-redux/selectors/entities/general';
 import {haveIChannelPermission} from 'mattermost-redux/selectors/entities/roles';
 import {getCurrentTeam} from 'mattermost-redux/selectors/entities/teams';
 import {isChannelMuted} from 'mattermost-redux/utils/channel_utils';
@@ -17,6 +18,7 @@ import {isChannelMuted} from 'mattermost-redux/utils/channel_utils';
 import {unmuteChannel, muteChannel} from 'actions/channel_actions';
 import {markMostRecentPostInChannelAsUnread} from 'actions/post_actions';
 import {openModal} from 'actions/views/modals';
+import {canAccessChannelSettings} from 'selectors/views/channel_settings';
 
 import {getSiteURL} from 'utils/url';
 
@@ -35,6 +37,7 @@ export type OwnProps = {
 function mapStateToProps(state: GlobalState, ownProps: OwnProps) {
     const member = getMyChannelMemberships(state)[ownProps.channel.id];
     const currentTeam = getCurrentTeam(state);
+    const config = getConfig(state);
 
     let managePublicChannelMembers = false;
     let managePrivateChannelMembers = false;
@@ -44,6 +47,10 @@ function mapStateToProps(state: GlobalState, ownProps: OwnProps) {
         managePrivateChannelMembers = haveIChannelPermission(state, currentTeam.id, ownProps.channel.id, Permissions.MANAGE_PRIVATE_CHANNEL_MEMBERS);
     }
 
+    // Check if sidebar channel settings tweak is enabled and user can access channel settings
+    const sidebarChannelSettingsEnabled = config.MattermostExtendedSidebarChannelSettings === 'true';
+    const canAccessSettings = canAccessChannelSettings(state, ownProps.channel.id);
+
     return {
         currentUserId: getCurrentUserId(state),
         isFavorite: isFavoriteChannel(state, ownProps.channel.id),
@@ -51,6 +58,8 @@ function mapStateToProps(state: GlobalState, ownProps: OwnProps) {
         channelLink: `${getSiteURL()}${ownProps.channelLink}`,
         managePublicChannelMembers,
         managePrivateChannelMembers,
+        sidebarChannelSettingsEnabled,
+        canAccessChannelSettings: canAccessSettings,
     };
 }
 

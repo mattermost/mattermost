@@ -6372,15 +6372,38 @@ const AdminDefinition: AdminDefinitionType = {
                     component: MattermostExtendedFeatures,
                 },
             },
-            // Hidden until settings are added (empty sections look broken)
+            // Posts tweaks
             posts: {
                 url: 'mattermost_extended/posts',
                 title: defineMessage({id: 'admin.sidebar.posts', defaultMessage: 'Posts'}),
-                isHidden: () => true, // Remove when settings are added
                 schema: {
                     id: 'MattermostExtendedPosts',
                     name: defineMessage({id: 'admin.mattermost_extended.posts.title', defaultMessage: 'Posts'}),
-                    settings: [],
+                    settings: [
+                        {
+                            type: 'bool',
+                            key: 'MattermostExtendedSettings.Posts.HideDeletedMessagePlaceholder',
+                            label: defineMessage({id: 'admin.mattermost_extended.posts.hideDeletedPlaceholder.title', defaultMessage: 'Hide Deleted Message Placeholder:'}),
+                            help_text: defineMessage({id: 'admin.mattermost_extended.posts.hideDeletedPlaceholder.desc', defaultMessage: 'When enabled, deleted messages immediately disappear for all users instead of showing a "(message deleted)" placeholder.'}),
+                        },
+                    ],
+                },
+            },
+            // Channels tweaks
+            channels: {
+                url: 'mattermost_extended/channels',
+                title: defineMessage({id: 'admin.sidebar.channels', defaultMessage: 'Channels'}),
+                schema: {
+                    id: 'MattermostExtendedChannels',
+                    name: defineMessage({id: 'admin.mattermost_extended.channels.title', defaultMessage: 'Channels'}),
+                    settings: [
+                        {
+                            type: 'bool',
+                            key: 'MattermostExtendedSettings.Channels.SidebarChannelSettings',
+                            label: defineMessage({id: 'admin.mattermost_extended.channels.sidebarChannelSettings.title', defaultMessage: 'Sidebar Channel Settings Menu:'}),
+                            help_text: defineMessage({id: 'admin.mattermost_extended.channels.sidebarChannelSettings.desc', defaultMessage: 'When enabled, adds a "Channel Settings" menu item to the sidebar channel right-click menu for quick access to channel settings. Only visible to users with permission to access channel settings.'}),
+                        },
+                    ],
                 },
             },
             threads: {

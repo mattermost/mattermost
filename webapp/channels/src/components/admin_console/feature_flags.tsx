@@ -153,10 +153,6 @@ const FLAG_METADATA: Record<string, {description: string; defaultValue: boolean}
         description: 'Enable AI plugin bridge functionality',
         defaultValue: false,
     },
-    HideDeletedMessagePlaceholder: {
-        description: 'When enabled, deleted messages immediately disappear instead of showing "(message deleted)"',
-        defaultValue: false,
-    },
     Encryption: {
         description: 'Enable end-to-end encryption for messages using RSA-OAEP + AES-GCM hybrid encryption',
         defaultValue: false,

@@ -97,10 +97,6 @@ type FeatureFlags struct {
 	// FEATURE_FLAG_REMOVAL: EnableAIPluginBridge
 	EnableAIPluginBridge bool
 
-	// When enabled, deleted messages immediately disappear for all users
-	// instead of showing a "(message deleted)" placeholder
-	HideDeletedMessagePlaceholder bool
-
 	// Enable end-to-end encryption for messages
 	Encryption bool
 }

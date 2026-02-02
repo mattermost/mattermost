@@ -855,9 +855,9 @@ async function handlePostDeleteEvent(msg) {
         dispatch(decrementThreadCounts(post));
     }
 
-    // When HideDeletedMessagePlaceholder is enabled, immediately remove the post
+    // When HideDeletedMessagePlaceholder tweak is enabled, immediately remove the post
     // instead of showing "(message deleted)" placeholder
-    if (config.FeatureFlagHideDeletedMessagePlaceholder === 'true') {
+    if (config.MattermostExtendedHideDeletedMessagePlaceholder === 'true') {
         dispatch(postRemoved(post));
     } else {
         dispatch(postDeleted(post));
