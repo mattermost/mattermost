@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import classNames from 'classnames';
-import React from 'react';
+import React, {isValidElement} from 'react';
 
 import BlockableLink from 'components/admin_console/blockable_link';
 
@@ -59,7 +59,8 @@ const AdminSidebarSection = ({name, title, action, children = [], definitionKey,
         </span>
     );
     const sidebarItemSafeId = createSafeId(name);
-    const iconElem = icon && (
+    // Only render icon if it's a valid React element (prevents React error #130 from plugins with malformed icons)
+    const iconElem = icon && isValidElement(icon) && (
         <span className={`${className}-icon`}>
             {icon}
         </span>

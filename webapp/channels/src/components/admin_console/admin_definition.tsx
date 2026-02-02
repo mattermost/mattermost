@@ -7,7 +7,7 @@ import React from 'react';
 import {FormattedMessage, defineMessage, defineMessages} from 'react-intl';
 import {Link} from 'react-router-dom';
 
-import {AccountMultipleOutlineIcon, AlertCircleOutlineIcon, BugOutlineIcon, ChartBarIcon, CogOutlineIcon, CreditCardOutlineIcon, FlaskOutlineIcon, FormatListBulletedIcon, ForumOutlineIcon, InformationOutlineIcon, MessageTextOutlineIcon, PoundIcon, PowerPlugOutlineIcon, ServerVariantIcon, ShieldOutlineIcon, SitemapIcon, TableLargeIcon, ToggleSwitchOutlineIcon} from '@mattermost/compass-icons/components';
+import {AccountMultipleOutlineIcon, AlertCircleOutlineIcon, ChartBarIcon, CogOutlineIcon, CreditCardOutlineIcon, FlaskOutlineIcon, FormatListBulletedIcon, ForumOutlineIcon, HammerIcon, InformationOutlineIcon, MessageTextOutlineIcon, PoundIcon, PowerPlugOutlineIcon, ServerVariantIcon, ShieldOutlineIcon, SitemapIcon, TableLargeIcon, TuneIcon} from '@mattermost/compass-icons/components';
 
 import {Posts} from 'mattermost-redux/constants';
 import {RESOURCE_KEYS} from 'mattermost-redux/constants/permissions_sysconsole';
@@ -6368,7 +6368,7 @@ const AdminDefinition: AdminDefinitionType = {
                 searchableStrings: [
                     mattermostExtendedFeaturesMessages.title,
                 ],
-                icon: <ToggleSwitchOutlineIcon size={14} color={'currentColor'}/>,
+                icon: <TuneIcon size={14} color={'currentColor'}/>,
                 schema: {
                     id: 'MattermostExtendedFeatures',
                     component: MattermostExtendedFeatures,
@@ -6437,7 +6437,7 @@ const AdminDefinition: AdminDefinitionType = {
             bug_fixes: {
                 url: 'mattermost_extended/bug_fixes',
                 title: defineMessage({id: 'admin.sidebar.bug_fixes', defaultMessage: 'Bug Fixes'}),
-                icon: <BugOutlineIcon size={14} color={'currentColor'}/>,
+                icon: <HammerIcon size={14} color={'currentColor'}/>,
                 isHidden: () => true, // Remove when settings are added
                 schema: {
                     id: 'MattermostExtendedBugFixes',

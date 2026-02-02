@@ -18,9 +18,11 @@ type Props = {
 
 const AdminSidebarCategory = ({icon, title, action, children, definitionKey, name, parentLink = '', sectionClass}: Props) => {
     let link = parentLink;
+    // Only render icon if it's a valid React element (prevents React error #130 from malformed icons)
+    const iconElem = isValidElement(icon) ? <span className='category-icon'>{icon}</span> : null;
     let titleDiv = (
         <div className='category-title category-title--active'>
-            <span className='category-icon'>{icon}</span>
+            {iconElem}
             <span className='category-title__text'>
                 {title}
             </span>
