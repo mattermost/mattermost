@@ -1,24 +1,29 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+// Discord Reply Preview
+// Note: Unlike the plugin which injects as a separate list item, our native
+// implementation renders INSIDE the post component, before post__content.
+// The connector extends down past our container to reach the avatar below.
+
 .discord-reply-preview {
     overflow: visible;
     position: relative;
     z-index: 10;
-    margin-bottom: -6px; // Pull closer to post below so reply is right above username
+    margin-bottom: 0;
+    transform: translateY(-4px); // Lift preview up to align connector with avatar below
 }
 
-// Mirrors .post__content
+// Mirrors .post__content layout
 .discord-reply-content {
     display: flex;
-    padding: 0 8px 0 5px;
+    padding: 0 10px 0 0;
     margin: 0 auto;
-    padding-left: 1.5em;
-    padding-right: 0.5em;
+    padding-left: 5px;
     overflow: visible;
 }
 
-// Mirrors .post__img - same 53px width
+// Mirrors .post__img - same 53px width to align with avatar column
 .discord-reply-img {
     width: 53px;
     padding-right: 10px;
@@ -79,7 +84,7 @@
     cursor: pointer;
     line-height: 1.2;
     height: 18px;
-    margin-left: 6px;
+    margin-left: 0;
 
     &:hover {
         .discord-reply-username,

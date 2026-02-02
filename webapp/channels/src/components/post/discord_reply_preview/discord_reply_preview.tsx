@@ -25,35 +25,37 @@ type Props = {
 };
 
 // Create SVG connector for reply lines
+// Note: Our preview is rendered INSIDE the post component (before post__content),
+// unlike the plugin which injects as a separate list item. This means we need to
+// extend the connector further down to reach the avatar in post__content below.
 function ConnectorSVG({position, height = 18}: {position: 'single' | 'first' | 'middle' | 'last'; height?: number}) {
-    // Layout constants (matching CSS)
-    const IMG_COL_WIDTH = 53;
-    const CONNECTOR_LEFT = 27;
-    const GAP = 3;
-    const ITEM_SHIFT = 6;
-    const H_GAP = 1;
-    const V_GAP = 2;
+    // Extension to reach from preview down to avatar center in post__content
+    const EXTENSION = 22;
 
     // Calculated anchor points
     const x = 0;
     const curveR = 6;
     const midY = height / 2;
-    const bottomY = height - V_GAP;
-    const endX = IMG_COL_WIDTH - CONNECTOR_LEFT - GAP + ITEM_SHIFT - H_GAP;
+    const extendedBottom = height + EXTENSION; // For single/last - extend past container
+    const endX = 22; // Horizontal line endpoint - tested to align with reply avatar
 
     let d: string;
     switch (position) {
     case 'single':
-        d = `M ${x} ${bottomY} L ${x} ${midY + curveR} Q ${x} ${midY}, ${x + curveR} ${midY} L ${endX} ${midY}`;
+        // Only one reply: curved corner, vertical extends down to avatar
+        d = `M ${x} ${extendedBottom} L ${x} ${midY + curveR} Q ${x} ${midY}, ${x + curveR} ${midY} L ${endX} ${midY}`;
         break;
     case 'first':
+        // Top of multiple: curved corner, vertical continues to next connector
         d = `M ${x} ${height} L ${x} ${midY + curveR} Q ${x} ${midY}, ${x + curveR} ${midY} L ${endX} ${midY}`;
         break;
     case 'middle':
+        // Middle: straight T-junction (vertical through + horizontal branch)
         d = `M ${x} 0 L ${x} ${height} M ${x} ${midY} L ${endX} ${midY}`;
         break;
     case 'last':
-        d = `M ${x} 0 L ${x} ${bottomY} M ${x} ${midY} L ${endX} ${midY}`;
+        // Last: T-junction, vertical extends down to avatar
+        d = `M ${x} 0 L ${x} ${extendedBottom} M ${x} ${midY} L ${endX} ${midY}`;
         break;
     }
 

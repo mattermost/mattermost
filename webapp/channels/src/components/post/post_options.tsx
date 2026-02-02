@@ -12,8 +12,6 @@ import type {Post} from '@mattermost/types/posts';
 import {Posts} from 'mattermost-redux/constants/index';
 import {isPostEphemeral} from 'mattermost-redux/utils/post_utils';
 
-import {ForumOutlineIcon} from '@mattermost/compass-icons/components';
-
 import ActionsMenu from 'components/actions_menu';
 import CommentIcon from 'components/common/comment_icon';
 import {usePluginVisibilityInSharedChannel} from 'components/common/hooks/usePluginVisibilityInSharedChannel';
@@ -21,6 +19,7 @@ import DotMenu from 'components/dot_menu';
 import PostFlagIcon from 'components/post_view/post_flag_icon';
 import PostReaction from 'components/post_view/post_reaction';
 import PostRecentReactions from 'components/post_view/post_recent_reactions';
+import DiscordThreadIcon from 'components/widgets/icons/discord_thread_icon';
 import WithTooltip from 'components/with_tooltip';
 
 import {Locations, Constants} from 'utils/constants';
@@ -176,7 +175,7 @@ const PostOptions = (props: Props): JSX.Element => {
                         className={`post-menu__item ${commentIconExtraClass}`}
                         onClick={props.handleCommentClick}
                     >
-                        <ForumOutlineIcon
+                        <DiscordThreadIcon
                             size={18}
                             className='icon'
                         />
@@ -346,8 +345,8 @@ const PostOptions = (props: Props): JSX.Element => {
                 {flagIcon}
                 {pluginItems}
                 {actionsMenu}
-                {commentIcon}
                 {createThreadIcon}
+                {commentIcon}
                 {(collapsedThreadsEnabled || showRecentlyUsedReactions) && dotMenu}
             </ul>
         );
