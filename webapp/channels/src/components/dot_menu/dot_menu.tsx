@@ -807,21 +807,6 @@ export class DotMenuClass extends React.PureComponent<Props, State> {
                         onClick={this.handleEditMenuItemActivated}
                     />
                 }
-                {showDelete &&
-                    <Menu.Item
-                        id={`delete_post_${this.props.post.id}`}
-                        data-testid={`delete_post_${this.props.post.id}`}
-                        leadingElement={<TrashCanOutlineIcon size={18}/>}
-                        trailingElements={<span>{'delete'}</span>}
-                        labels={
-                            <FormattedMessage
-                                id='post_info.del'
-                                defaultMessage='Delete'
-                            />}
-                        onClick={this.handleDeleteMenuItemActivated}
-                        isDestructive={true}
-                    />
-                }
                 {
                     showFlagContent &&
                     <Menu.Item
@@ -836,6 +821,21 @@ export class DotMenuClass extends React.PureComponent<Props, State> {
                             />
                         }
                         onClick={this.handleFlagPostMenuItemClicked}
+                        isDestructive={true}
+                    />
+                }
+                {showDelete &&
+                    <Menu.Item
+                        id={`delete_post_${this.props.post.id}`}
+                        data-testid={`delete_post_${this.props.post.id}`}
+                        leadingElement={<TrashCanOutlineIcon size={18}/>}
+                        trailingElements={<span>{'delete'}</span>}
+                        labels={
+                            <FormattedMessage
+                                id='post_info.del'
+                                defaultMessage='Delete'
+                            />}
+                        onClick={this.handleDeleteMenuItemActivated}
                         isDestructive={true}
                     />
                 }

@@ -790,10 +790,6 @@
     "translation": "Kan het opgegeven kanaal niet vinden. Gebruik de [kanaalaanduiding](https://docs.mattermost.com/messaging/managing-channels.html#naming-a-channel) om kanalen aan te duiden."
   },
   {
-    "id": "api.command_mute.not_member.error",
-    "translation": "Kan het kanaal {{.Channel}} niet dempen omdat je geen lid bent."
-  },
-  {
     "id": "api.command_mute.success_mute",
     "translation": "Je zal geen meldingen ontvangen voor {{.Channel}} tot het dempen van het kanaal is uitgeschakeld."
   },
@@ -10524,10 +10520,6 @@
     "translation": "Kan toegangscontrolebeleid niet weghalen van de kanalen."
   },
   {
-    "id": "app.pap.update_access_control_policy_active.app_error",
-    "translation": "Kon de actieve status van het toegangscontrolebeleid niet wijzigen."
-  },
-  {
     "id": "ent.access_control.sync_job.app_error",
     "translation": "Fout bij het uitvoeren van de sync taak voor toegangscontrole."
   },
@@ -11004,18 +10996,6 @@
     "translation": "Niet-ondersteunde provider voor automatische vertalingen."
   },
   {
-    "id": "model.config.is_valid.autotranslation.timeouts.fetch.app_error",
-    "translation": "Ongeldige fetch timeout voor instellingen voor automatische vertalingen. Moet een positief getal zijn."
-  },
-  {
-    "id": "model.config.is_valid.autotranslation.timeouts.new_post.app_error",
-    "translation": "Ongeldige time-out voor nieuwe berichten bij instellingen voor automatische vertalingen. Moet een positief getal zijn."
-  },
-  {
-    "id": "model.config.is_valid.autotranslation.timeouts.notification.app_error",
-    "translation": "Ongeldige melding timeout voor automatische vertalingen. Moet een positief getal zijn. Moet een positief getal zijn."
-  },
-  {
     "id": "api.channel.get_channel.flagged_post_mismatch.app_error",
     "translation": "Kanaal ID komt niet overeen met het kanaal ID van het gemarkeerde bericht."
   },
@@ -11438,66 +11418,6 @@
   {
     "id": "model.post.query_params.invalid_time_field",
     "translation": "Ongeldig tijdveld."
-  },
-  {
-    "id": "store.sql_autotranslation.channel_not_found",
-    "translation": "Kanaal niet gevonden."
-  },
-  {
-    "id": "store.sql_autotranslation.get.app_error",
-    "translation": "Kan geen vertaling ophalen."
-  },
-  {
-    "id": "store.sql_autotranslation.get_active_languages.app_error",
-    "translation": "Kan de actieve talen niet ophalen."
-  },
-  {
-    "id": "store.sql_autotranslation.get_channel_enabled.app_error",
-    "translation": "Kan automatische vertalingsstatus van het kanaal niet ophalen."
-  },
-  {
-    "id": "store.sql_autotranslation.get_user_enabled.app_error",
-    "translation": "Kan automatische vertalingsstatus voor de gebruiker niet ophalen."
-  },
-  {
-    "id": "store.sql_autotranslation.get_user_language.app_error",
-    "translation": "Kan de taal van de gebruiker niet ophalen."
-  },
-  {
-    "id": "store.sql_autotranslation.is_channel_enabled.app_error",
-    "translation": "Kan automatische vertalingsstatus van het kanaal niet ophalen."
-  },
-  {
-    "id": "store.sql_autotranslation.member_not_found",
-    "translation": "Lid niet gevonden."
-  },
-  {
-    "id": "store.sql_autotranslation.meta_json.app_error",
-    "translation": "Fout bij het verwerken van de JSON vertaalmetagegevens."
-  },
-  {
-    "id": "store.sql_autotranslation.query_build_error",
-    "translation": "Fout bij het maken van de query."
-  },
-  {
-    "id": "store.sql_autotranslation.save.app_error",
-    "translation": "Fout bij het bewaren van de vertaling."
-  },
-  {
-    "id": "store.sql_autotranslation.save.invalid_translation",
-    "translation": "Vertaalvalidatie mislukt. Het vertaalobject is ongeldig."
-  },
-  {
-    "id": "store.sql_autotranslation.save.meta_json.app_error",
-    "translation": "Het serialiseren van vertaalmetagegevens naar JSON is mislukt."
-  },
-  {
-    "id": "store.sql_autotranslation.set_channel_enabled.app_error",
-    "translation": "Kan automatische vertaling van het kanaal niet inschakelen."
-  },
-  {
-    "id": "store.sql_autotranslation.set_user_enabled.app_error",
-    "translation": "Kan automatische vertaling voor de gebruiker niet instellen."
   },
   {
     "id": "api.post.burn_post.user_not_in_channel.app_error",
