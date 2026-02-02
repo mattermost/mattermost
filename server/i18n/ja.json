@@ -8554,10 +8554,6 @@
     "translation": "{{.Backend}} のCAファイルを開くことができませんでした"
   },
   {
-    "id": "api.server.cws.health_check.app_error",
-    "translation": "CWSサーバーは使用できません。"
-  },
-  {
     "id": "app.group.username_conflict",
     "translation": "ユーザー名 \"{{.Username}}\" のユーザーは既に存在します。"
   },

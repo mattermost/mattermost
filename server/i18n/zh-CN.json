@@ -8354,10 +8354,6 @@
     "translation": "打开市场"
   },
   {
-    "id": "api.server.cws.health_check.app_error",
-    "translation": "CWS 服务器不可用。"
-  },
-  {
     "id": "api.drafts.disabled.app_error",
     "translation": "草稿功能已被禁用。"
   },

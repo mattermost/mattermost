@@ -7760,10 +7760,6 @@
     "translation": "Interakce s portálem uživatelské podpory Mattermostu byly vypnuty systémovým administrátorem."
   },
   {
-    "id": "api.server.cws.health_check.app_error",
-    "translation": "CWS Server není k dispozici."
-  },
-  {
     "id": "api.team.invite_guests_to_channels.disabled.error",
     "translation": "Účty návštěvníků jsou zakázané"
   },

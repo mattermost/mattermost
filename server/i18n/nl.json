@@ -8562,10 +8562,6 @@
     "translation": "Kon het CA-bestand voor {{.Backend}} niet openen"
   },
   {
-    "id": "api.server.cws.health_check.app_error",
-    "translation": "CWS Server is niet beschikbaar."
-  },
-  {
     "id": "api.config.update_config.translations.app_error",
     "translation": "Fout bij het bijwerken van de serververtalingen."
   },
