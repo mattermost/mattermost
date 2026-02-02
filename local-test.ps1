@@ -289,7 +289,8 @@ function Get-FeatureFlagsFromBackup {
         "Encryption",
         "CustomChannelIcons",
         "ThreadsInSidebar",
-        "CustomThreadNames"
+        "CustomThreadNames",
+        "ErrorLogDashboard"
     )
     foreach ($flag in $customFlags) {
         $flags[$flag] = $true
@@ -298,21 +299,77 @@ function Get-FeatureFlagsFromBackup {
     return $flags
 }
 
+function Get-MattermostExtendedSettingsFromDatabase {
+    <#
+    .SYNOPSIS
+    Queries the configurations table in the database for MattermostExtendedSettings.
+    Returns $null if not available or on error.
+    #>
+
+    # Check if PostgreSQL is running
+    $pgRunning = docker ps --filter "name=$PG_CONTAINER" --format "{{.Names}}" 2>$null
+    if (!$pgRunning) {
+        return $null
+    }
+
+    try {
+        # Query the configurations table for the latest config
+        $query = "SELECT value FROM configurations ORDER BY id DESC LIMIT 1;"
+        $result = docker exec $PG_CONTAINER psql -U $PG_USER -d $PG_DATABASE -t -c $query 2>$null
+
+        if ($result) {
+            $configJson = ($result -join "").Trim()
+            if ($configJson) {
+                $dbConfig = $configJson | ConvertFrom-Json
+                if ($dbConfig.PSObject.Properties['MattermostExtendedSettings']) {
+                    "Loaded MattermostExtendedSettings from database" | Out-File $LOG_FILE -Append -Encoding UTF8
+                    return $dbConfig.MattermostExtendedSettings
+                }
+            }
+        }
+    } catch {
+        "Failed to query database for MattermostExtendedSettings: $_" | Out-File $LOG_FILE -Append -Encoding UTF8
+    }
+
+    return $null
+}
+
 function Get-MattermostExtendedSettingsFromBackup {
     <#
     .SYNOPSIS
-    Gets MattermostExtendedSettings from production config.
-    Returns empty object if not found.
+    Gets MattermostExtendedSettings from database first, then backup config, then defaults.
+    Returns default settings with our tweaks enabled if not found anywhere.
     #>
     param(
         [Parameter(Mandatory=$false)]
-        $BackupConfig
+        $BackupConfig,
+        [switch]$TryDatabase
     )
 
+    # Try database first (most authoritative source)
+    if ($TryDatabase) {
+        $dbSettings = Get-MattermostExtendedSettingsFromDatabase
+        if ($dbSettings) {
+            return $dbSettings
+        }
+    }
+
+    # Try backup config file
     if ($BackupConfig -and $BackupConfig.PSObject.Properties['MattermostExtendedSettings']) {
+        "Found MattermostExtendedSettings in backup config" | Out-File $LOG_FILE -Append -Encoding UTF8
         return $BackupConfig.MattermostExtendedSettings
     }
-    return $null
+
+    # Return default settings with our custom tweaks enabled for local testing
+    "MattermostExtendedSettings not found, using defaults with tweaks enabled" | Out-File $LOG_FILE -Append -Encoding UTF8
+    return [ordered]@{
+        'Posts' = [ordered]@{
+            'HideDeletedMessagePlaceholder' = $true
+        }
+        'Channels' = [ordered]@{
+            'SidebarChannelSettings' = $true
+        }
+    }
 }
 
 function Get-PluginSettingsFromBackup {
@@ -740,13 +797,9 @@ function Invoke-Setup {
     $featureFlags = Get-FeatureFlagsFromBackup -BackupConfig $backupConfig -TryDatabase
     $config['FeatureFlags'] = $featureFlags
 
-    # MattermostExtendedSettings - from backup or empty
-    $extSettings = Get-MattermostExtendedSettingsFromBackup -BackupConfig $backupConfig
-    if ($extSettings) {
-        $config['MattermostExtendedSettings'] = $extSettings
-    } else {
-        $config['MattermostExtendedSettings'] = [ordered]@{}
-    }
+    # MattermostExtendedSettings - from database, backup, or defaults
+    $extSettings = Get-MattermostExtendedSettingsFromBackup -BackupConfig $backupConfig -TryDatabase
+    $config['MattermostExtendedSettings'] = $extSettings
 
     # Write config as JSON
     $configPath = Join-Path $WORK_DIR "config.json"
@@ -767,9 +820,23 @@ function Invoke-Setup {
             }
         }
     }
+    # Count extended settings
+    $extSettingsDesc = @()
+    if ($extSettings.PSObject.Properties['Posts'] -and $extSettings.Posts.PSObject.Properties['HideDeletedMessagePlaceholder'] -and $extSettings.Posts.HideDeletedMessagePlaceholder -eq $true) {
+        $extSettingsDesc += "HideDeletedPlaceholder"
+    }
+    if ($extSettings.PSObject.Properties['Channels'] -and $extSettings.Channels.PSObject.Properties['SidebarChannelSettings'] -and $extSettings.Channels.SidebarChannelSettings -eq $true) {
+        $extSettingsDesc += "SidebarChannelSettings"
+    }
+
     Log "Config file created: $configPath"
     Log "  - Plugin configs: $pluginCount, Enabled plugins: $enabledCount"
-    Log "  - Feature flags: $($featureFlags.Count)"
+    Log "  - Feature flags: $($featureFlags.Count) ($(($featureFlags.Keys | Sort-Object) -join ', '))"
+    if ($extSettingsDesc.Count -gt 0) {
+        Log "  - Extended tweaks: $($extSettingsDesc -join ', ')"
+    } else {
+        Log "  - Extended tweaks: (none enabled)"
+    }
 
     Log ""
     Log-Success "=== Setup Complete ==="
@@ -1076,13 +1143,9 @@ function Invoke-FixConfig {
     $featureFlags = Get-FeatureFlagsFromBackup -BackupConfig $backupConfig -TryDatabase
     $config['FeatureFlags'] = $featureFlags
 
-    # MattermostExtendedSettings - from backup or empty
-    $extSettings = Get-MattermostExtendedSettingsFromBackup -BackupConfig $backupConfig
-    if ($extSettings) {
-        $config['MattermostExtendedSettings'] = $extSettings
-    } else {
-        $config['MattermostExtendedSettings'] = [ordered]@{}
-    }
+    # MattermostExtendedSettings - from database, backup, or defaults
+    $extSettings = Get-MattermostExtendedSettingsFromBackup -BackupConfig $backupConfig -TryDatabase
+    $config['MattermostExtendedSettings'] = $extSettings
 
     # Write config as JSON
     $configJson = $config | ConvertTo-Json -Depth 10
@@ -1102,6 +1165,15 @@ function Invoke-FixConfig {
         }
     }
 
+    # Count extended settings
+    $extSettingsDesc = @()
+    if ($extSettings.PSObject.Properties['Posts'] -and $extSettings.Posts.PSObject.Properties['HideDeletedMessagePlaceholder'] -and $extSettings.Posts.HideDeletedMessagePlaceholder -eq $true) {
+        $extSettingsDesc += "HideDeletedPlaceholder"
+    }
+    if ($extSettings.PSObject.Properties['Channels'] -and $extSettings.Channels.PSObject.Properties['SidebarChannelSettings'] -and $extSettings.Channels.SidebarChannelSettings -eq $true) {
+        $extSettingsDesc += "SidebarChannelSettings"
+    }
+
     Log ""
     Log-Success "Config reset to clean local settings with production plugin configs."
     Log ""
@@ -1109,7 +1181,12 @@ function Invoke-FixConfig {
     Log "  - Database: postgres://${PG_USER}:****@localhost:${PG_PORT}/${PG_DATABASE}"
     Log "  - Data dir: $WORK_DIR\data"
     Log "  - Plugin configs: $pluginCount, Enabled plugins: $enabledCount"
-    Log "  - Feature flags: $($featureFlags.Count)"
+    Log "  - Feature flags: $($featureFlags.Count) ($(($featureFlags.Keys | Sort-Object) -join ', '))"
+    if ($extSettingsDesc.Count -gt 0) {
+        Log "  - Extended tweaks: $($extSettingsDesc -join ', ')"
+    } else {
+        Log "  - Extended tweaks: (none enabled)"
+    }
     Log "  - Email verification disabled"
     Log "  - Rate limiting disabled"
     Log ""
