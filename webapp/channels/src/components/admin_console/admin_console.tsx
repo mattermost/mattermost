@@ -96,7 +96,13 @@ const AdminConsole = (props: Props) => {
         props.actions.selectTeam('');
         document.body.classList.add('console__body');
         document.getElementById('root')?.classList.add('console__root');
-        resetTheme();
+
+        // Apply user's theme if SystemConsoleTheming is enabled, otherwise use default light theme
+        if (props.systemConsoleThemingEnabled) {
+            applyTheme(props.currentTheme);
+        } else {
+            resetTheme();
+        }
 
         return () => {
             document.body.classList.remove('console__body');

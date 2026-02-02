@@ -32,6 +32,8 @@ type ErrorLog = {
     method?: string;
     component_stack?: string;
     extra?: string;
+    request_payload?: string;
+    response_body?: string;
 };
 
 type ErrorLogStats = {
@@ -45,6 +47,305 @@ type Props = {
     patchConfig: (config: DeepPartial<AdminConfig>) => Promise<ActionResult>;
 };
 
+// SVG Icons
+const IconChart = () => (
+    <svg
+        width='20'
+        height='20'
+        viewBox='0 0 24 24'
+        fill='none'
+        stroke='currentColor'
+        strokeWidth='2'
+        strokeLinecap='round'
+        strokeLinejoin='round'
+    >
+        <line
+            x1='18'
+            y1='20'
+            x2='18'
+            y2='10'
+        />
+        <line
+            x1='12'
+            y1='20'
+            x2='12'
+            y2='4'
+        />
+        <line
+            x1='6'
+            y1='20'
+            x2='6'
+            y2='14'
+        />
+    </svg>
+);
+
+const IconAPI = () => (
+    <svg
+        width='20'
+        height='20'
+        viewBox='0 0 24 24'
+        fill='none'
+        stroke='currentColor'
+        strokeWidth='2'
+        strokeLinecap='round'
+        strokeLinejoin='round'
+    >
+        <circle
+            cx='12'
+            cy='12'
+            r='10'
+        />
+        <line
+            x1='2'
+            y1='12'
+            x2='22'
+            y2='12'
+        />
+        <path d='M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z'/>
+    </svg>
+);
+
+const IconJS = () => (
+    <svg
+        width='20'
+        height='20'
+        viewBox='0 0 24 24'
+        fill='none'
+        stroke='currentColor'
+        strokeWidth='2'
+        strokeLinecap='round'
+        strokeLinejoin='round'
+    >
+        <polygon points='13 2 3 14 12 14 11 22 21 10 12 10 13 2'/>
+    </svg>
+);
+
+const IconTrash = () => (
+    <svg
+        width='16'
+        height='16'
+        viewBox='0 0 24 24'
+        fill='none'
+        stroke='currentColor'
+        strokeWidth='2'
+        strokeLinecap='round'
+        strokeLinejoin='round'
+    >
+        <polyline points='3 6 5 6 21 6'/>
+        <path d='M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2'/>
+    </svg>
+);
+
+const IconDownload = () => (
+    <svg
+        width='16'
+        height='16'
+        viewBox='0 0 24 24'
+        fill='none'
+        stroke='currentColor'
+        strokeWidth='2'
+        strokeLinecap='round'
+        strokeLinejoin='round'
+    >
+        <path d='M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4'/>
+        <polyline points='7 10 12 15 17 10'/>
+        <line
+            x1='12'
+            y1='15'
+            x2='12'
+            y2='3'
+        />
+    </svg>
+);
+
+const IconCopy = () => (
+    <svg
+        width='14'
+        height='14'
+        viewBox='0 0 24 24'
+        fill='none'
+        stroke='currentColor'
+        strokeWidth='2'
+        strokeLinecap='round'
+        strokeLinejoin='round'
+    >
+        <rect
+            x='9'
+            y='9'
+            width='13'
+            height='13'
+            rx='2'
+            ry='2'
+        />
+        <path d='M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1'/>
+    </svg>
+);
+
+const IconCheck = () => (
+    <svg
+        width='16'
+        height='16'
+        viewBox='0 0 24 24'
+        fill='none'
+        stroke='currentColor'
+        strokeWidth='2'
+        strokeLinecap='round'
+        strokeLinejoin='round'
+    >
+        <polyline points='20 6 9 17 4 12'/>
+    </svg>
+);
+
+const IconChevronRight = () => (
+    <svg
+        width='16'
+        height='16'
+        viewBox='0 0 24 24'
+        fill='none'
+        stroke='currentColor'
+        strokeWidth='2'
+        strokeLinecap='round'
+        strokeLinejoin='round'
+    >
+        <polyline points='9 18 15 12 9 6'/>
+    </svg>
+);
+
+const IconUser = () => (
+    <svg
+        width='16'
+        height='16'
+        viewBox='0 0 24 24'
+        fill='none'
+        stroke='currentColor'
+        strokeWidth='2'
+        strokeLinecap='round'
+        strokeLinejoin='round'
+    >
+        <path d='M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2'/>
+        <circle
+            cx='12'
+            cy='7'
+            r='4'
+        />
+    </svg>
+);
+
+const IconLink = () => (
+    <svg
+        width='16'
+        height='16'
+        viewBox='0 0 24 24'
+        fill='none'
+        stroke='currentColor'
+        strokeWidth='2'
+        strokeLinecap='round'
+        strokeLinejoin='round'
+    >
+        <path d='M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71'/>
+        <path d='M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71'/>
+    </svg>
+);
+
+const IconBrowser = () => (
+    <svg
+        width='16'
+        height='16'
+        viewBox='0 0 24 24'
+        fill='none'
+        stroke='currentColor'
+        strokeWidth='2'
+        strokeLinecap='round'
+        strokeLinejoin='round'
+    >
+        <circle
+            cx='12'
+            cy='12'
+            r='10'
+        />
+        <line
+            x1='2'
+            y1='12'
+            x2='22'
+            y2='12'
+        />
+        <path d='M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z'/>
+    </svg>
+);
+
+const IconSearch = () => (
+    <svg
+        width='16'
+        height='16'
+        viewBox='0 0 24 24'
+        fill='none'
+        stroke='currentColor'
+        strokeWidth='2'
+        strokeLinecap='round'
+        strokeLinejoin='round'
+    >
+        <circle
+            cx='11'
+            cy='11'
+            r='8'
+        />
+        <line
+            x1='21'
+            y1='21'
+            x2='16.65'
+            y2='16.65'
+        />
+    </svg>
+);
+
+const IconAlertCircle = () => (
+    <svg
+        width='14'
+        height='14'
+        viewBox='0 0 24 24'
+        fill='none'
+        stroke='currentColor'
+        strokeWidth='2'
+        strokeLinecap='round'
+        strokeLinejoin='round'
+    >
+        <circle
+            cx='12'
+            cy='12'
+            r='10'
+        />
+        <line
+            x1='12'
+            y1='8'
+            x2='12'
+            y2='12'
+        />
+        <line
+            x1='12'
+            y1='16'
+            x2='12.01'
+            y2='16'
+        />
+    </svg>
+);
+
+const IconCheckCircle = () => (
+    <svg
+        width='16'
+        height='16'
+        viewBox='0 0 24 24'
+        fill='none'
+        stroke='currentColor'
+        strokeWidth='2'
+        strokeLinecap='round'
+        strokeLinejoin='round'
+    >
+        <path d='M22 11.08V12a10 10 0 1 1-5.93-9.14'/>
+        <polyline points='22 4 12 14.01 9 11.01'/>
+    </svg>
+);
+
 const ErrorLogDashboard: React.FC<Props> = ({config, patchConfig}) => {
     const intl = useIntl();
     const [errors, setErrors] = useState<ErrorLog[]>([]);
@@ -53,6 +354,7 @@ const ErrorLogDashboard: React.FC<Props> = ({config, patchConfig}) => {
     const [filter, setFilter] = useState<'all' | 'api' | 'js'>('all');
     const [search, setSearch] = useState('');
     const [expandedStacks, setExpandedStacks] = useState<Set<string>>(new Set());
+    const [copiedId, setCopiedId] = useState<string | null>(null);
 
     const isEnabled = config.FeatureFlags?.ErrorLogDashboard === true;
 
@@ -103,8 +405,10 @@ const ErrorLogDashboard: React.FC<Props> = ({config, patchConfig}) => {
 
     const handleToggleFeature = async () => {
         try {
+            // IMPORTANT: Spread existing FeatureFlags to avoid overwriting other flags
             await patchConfig({
                 FeatureFlags: {
+                    ...config.FeatureFlags,
                     ErrorLogDashboard: !isEnabled,
                 },
             });
@@ -130,6 +434,41 @@ const ErrorLogDashboard: React.FC<Props> = ({config, patchConfig}) => {
         }
     };
 
+    const handleExport = () => {
+        const exportData = {
+            exported_at: new Date().toISOString(),
+            stats,
+            errors: filteredErrors.map((error) => ({
+                id: error.id,
+                type: error.type,
+                timestamp: new Date(error.create_at).toISOString(),
+                message: error.message,
+                user: error.username || null,
+                url: error.url || null,
+                user_agent: error.user_agent || null,
+                ...(error.type === 'api' ? {
+                    endpoint: error.endpoint || null,
+                    method: error.method || null,
+                    status_code: error.status_code || null,
+                    request_payload: error.request_payload ? tryParseJSON(error.request_payload) : null,
+                    response_body: error.response_body ? tryParseJSON(error.response_body) : null,
+                } : {}),
+                stack: error.stack || null,
+                component_stack: error.component_stack || null,
+            })),
+        };
+
+        const blob = new Blob([JSON.stringify(exportData, null, 2)], {type: 'application/json'});
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `mattermost-errors-${new Date().toISOString().slice(0, 10)}.json`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+    };
+
     const toggleStack = (id: string) => {
         setExpandedStacks((prev) => {
             const next = new Set(prev);
@@ -142,6 +481,57 @@ const ErrorLogDashboard: React.FC<Props> = ({config, patchConfig}) => {
         });
     };
 
+    const copyError = async (error: ErrorLog) => {
+        const text = formatErrorForCopy(error);
+        try {
+            await navigator.clipboard.writeText(text);
+            setCopiedId(error.id);
+            setTimeout(() => setCopiedId(null), 2000);
+        } catch (e) {
+            console.error('Failed to copy:', e);
+        }
+    };
+
+    const formatErrorForCopy = (error: ErrorLog): string => {
+        const lines = [
+            `Type: ${error.type === 'api' ? 'API Error' : 'JavaScript Error'}`,
+            `Time: ${new Date(error.create_at).toISOString()}`,
+            `Message: ${error.message}`,
+        ];
+
+        if (error.username) {
+            lines.push(`User: ${error.username}`);
+        }
+        if (error.url) {
+            lines.push(`URL: ${error.url}`);
+        }
+        if (error.type === 'api') {
+            if (error.method && error.endpoint) {
+                lines.push(`Endpoint: ${error.method} ${error.endpoint}`);
+            }
+            if (error.status_code) {
+                lines.push(`Status Code: ${error.status_code}`);
+            }
+            if (error.request_payload) {
+                lines.push(`\nRequest Payload:\n${error.request_payload}`);
+            }
+            if (error.response_body) {
+                lines.push(`\nResponse Body:\n${error.response_body}`);
+            }
+        }
+        if (error.stack) {
+            lines.push(`\nStack Trace:\n${error.stack}`);
+        }
+        if (error.component_stack) {
+            lines.push(`\nComponent Stack:\n${error.component_stack}`);
+        }
+        if (error.user_agent) {
+            lines.push(`\nUser Agent: ${error.user_agent}`);
+        }
+
+        return lines.join('\n');
+    };
+
     const formatRelativeTime = (timestamp: number) => {
         const now = Date.now();
         const diff = now - timestamp;
@@ -151,15 +541,15 @@ const ErrorLogDashboard: React.FC<Props> = ({config, patchConfig}) => {
         const days = Math.floor(hours / 24);
 
         if (seconds < 60) {
-            return intl.formatMessage({id: 'admin.error_log.time.seconds', defaultMessage: '{count} seconds ago'}, {count: seconds});
+            return intl.formatMessage({id: 'admin.error_log.time.seconds', defaultMessage: '{count}s ago'}, {count: seconds});
         }
         if (minutes < 60) {
-            return intl.formatMessage({id: 'admin.error_log.time.minutes', defaultMessage: '{count} minutes ago'}, {count: minutes});
+            return intl.formatMessage({id: 'admin.error_log.time.minutes', defaultMessage: '{count}m ago'}, {count: minutes});
         }
         if (hours < 24) {
-            return intl.formatMessage({id: 'admin.error_log.time.hours', defaultMessage: '{count} hours ago'}, {count: hours});
+            return intl.formatMessage({id: 'admin.error_log.time.hours', defaultMessage: '{count}h ago'}, {count: hours});
         }
-        return intl.formatMessage({id: 'admin.error_log.time.days', defaultMessage: '{count} days ago'}, {count: days});
+        return intl.formatMessage({id: 'admin.error_log.time.days', defaultMessage: '{count}d ago'}, {count: days});
     };
 
     const filteredErrors = errors.filter((error) => {
@@ -172,7 +562,9 @@ const ErrorLogDashboard: React.FC<Props> = ({config, patchConfig}) => {
                 error.message.toLowerCase().includes(searchLower) ||
                 error.username?.toLowerCase().includes(searchLower) ||
                 error.url?.toLowerCase().includes(searchLower) ||
-                error.stack?.toLowerCase().includes(searchLower)
+                error.stack?.toLowerCase().includes(searchLower) ||
+                error.request_payload?.toLowerCase().includes(searchLower) ||
+                error.response_body?.toLowerCase().includes(searchLower)
             );
         }
         return true;
@@ -191,7 +583,7 @@ const ErrorLogDashboard: React.FC<Props> = ({config, patchConfig}) => {
                 <div className='admin-console__wrapper'>
                     <div className='ErrorLogDashboard__promotional'>
                         <div className='ErrorLogDashboard__promotional__icon'>
-                            <i className='icon icon-magnify'/>
+                            <IconSearch/>
                         </div>
                         <h3>
                             <FormattedMessage
@@ -207,28 +599,28 @@ const ErrorLogDashboard: React.FC<Props> = ({config, patchConfig}) => {
                         </p>
                         <ul className='ErrorLogDashboard__promotional__features'>
                             <li>
-                                <i className='icon icon-check'/>
+                                <IconCheckCircle/>
                                 <FormattedMessage
                                     id='admin.error_log.promo.feature1'
                                     defaultMessage='Real-time error streaming via WebSocket'
                                 />
                             </li>
                             <li>
-                                <i className='icon icon-check'/>
+                                <IconCheckCircle/>
                                 <FormattedMessage
                                     id='admin.error_log.promo.feature2'
                                     defaultMessage='Filter by error type, user, or search term'
                                 />
                             </li>
                             <li>
-                                <i className='icon icon-check'/>
+                                <IconCheckCircle/>
                                 <FormattedMessage
                                     id='admin.error_log.promo.feature3'
-                                    defaultMessage='Expandable stack traces'
+                                    defaultMessage='View request payloads and response bodies'
                                 />
                             </li>
                             <li>
-                                <i className='icon icon-check'/>
+                                <IconCheckCircle/>
                                 <FormattedMessage
                                     id='admin.error_log.promo.feature4'
                                     defaultMessage='No database storage - lightweight in-memory buffer'
@@ -283,11 +675,22 @@ const ErrorLogDashboard: React.FC<Props> = ({config, patchConfig}) => {
                             </button>
                         </div>
                         <button
+                            className='btn btn-tertiary'
+                            onClick={handleExport}
+                            disabled={filteredErrors.length === 0}
+                        >
+                            <IconDownload/>
+                            <FormattedMessage
+                                id='admin.error_log.export'
+                                defaultMessage='Export JSON'
+                            />
+                        </button>
+                        <button
                             className='btn btn-danger'
                             onClick={handleClearAll}
                             disabled={errors.length === 0}
                         >
-                            <i className='icon icon-delete-outline'/>
+                            <IconTrash/>
                             <FormattedMessage
                                 id='admin.error_log.clear_all'
                                 defaultMessage='Clear All'
@@ -300,7 +703,7 @@ const ErrorLogDashboard: React.FC<Props> = ({config, patchConfig}) => {
                 <div className='ErrorLogDashboard__stats'>
                     <div className='ErrorLogDashboard__stat-card'>
                         <div className='ErrorLogDashboard__stat-card__icon ErrorLogDashboard__stat-card__icon--total'>
-                            <i className='icon icon-chart-bar'/>
+                            <IconChart/>
                         </div>
                         <div className='ErrorLogDashboard__stat-card__value'>{stats.total}</div>
                         <div className='ErrorLogDashboard__stat-card__label'>
@@ -312,7 +715,7 @@ const ErrorLogDashboard: React.FC<Props> = ({config, patchConfig}) => {
                     </div>
                     <div className='ErrorLogDashboard__stat-card'>
                         <div className='ErrorLogDashboard__stat-card__icon ErrorLogDashboard__stat-card__icon--api'>
-                            <i className='icon icon-web'/>
+                            <IconAPI/>
                         </div>
                         <div className='ErrorLogDashboard__stat-card__value'>{stats.api}</div>
                         <div className='ErrorLogDashboard__stat-card__label'>
@@ -324,7 +727,7 @@ const ErrorLogDashboard: React.FC<Props> = ({config, patchConfig}) => {
                     </div>
                     <div className='ErrorLogDashboard__stat-card'>
                         <div className='ErrorLogDashboard__stat-card__icon ErrorLogDashboard__stat-card__icon--js'>
-                            <i className='icon icon-lightning-bolt'/>
+                            <IconJS/>
                         </div>
                         <div className='ErrorLogDashboard__stat-card__value'>{stats.js}</div>
                         <div className='ErrorLogDashboard__stat-card__label'>
@@ -385,7 +788,7 @@ const ErrorLogDashboard: React.FC<Props> = ({config, patchConfig}) => {
                         </button>
                     </div>
                     <div className='ErrorLogDashboard__filters__search'>
-                        <i className='icon icon-magnify'/>
+                        <IconSearch/>
                         <input
                             type='text'
                             placeholder={intl.formatMessage({id: 'admin.error_log.search', defaultMessage: 'Search errors...'})}
@@ -406,7 +809,7 @@ const ErrorLogDashboard: React.FC<Props> = ({config, patchConfig}) => {
                 ) : filteredErrors.length === 0 ? (
                     <div className='ErrorLogDashboard__empty'>
                         <div className='ErrorLogDashboard__empty__icon'>
-                            {'✨'}
+                            <IconCheckCircle/>
                         </div>
                         <h4>
                             <FormattedMessage
@@ -417,7 +820,7 @@ const ErrorLogDashboard: React.FC<Props> = ({config, patchConfig}) => {
                         <p>
                             <FormattedMessage
                                 id='admin.error_log.empty.description'
-                                defaultMessage='Errors will appear here in real-time as they occur. Your users are having a good day!'
+                                defaultMessage='Errors will appear here in real-time as they occur.'
                             />
                         </p>
                     </div>
@@ -430,7 +833,7 @@ const ErrorLogDashboard: React.FC<Props> = ({config, patchConfig}) => {
                             >
                                 <div className='ErrorLogDashboard__error-card__header'>
                                     <span className={`ErrorLogDashboard__error-card__badge ErrorLogDashboard__error-card__badge--${error.type}`}>
-                                        <i className={`icon icon-${error.type === 'api' ? 'alert-circle-outline' : 'lightning-bolt'}`}/>
+                                        {error.type === 'api' ? <IconAlertCircle/> : <IconJS/>}
                                         {error.type === 'api' ? (
                                             <FormattedMessage
                                                 id='admin.error_log.type.api'
@@ -443,16 +846,26 @@ const ErrorLogDashboard: React.FC<Props> = ({config, patchConfig}) => {
                                             />
                                         )}
                                     </span>
-                                    <span className='ErrorLogDashboard__error-card__time'>
-                                        {formatRelativeTime(error.create_at)}
-                                    </span>
+                                    <div className='ErrorLogDashboard__error-card__header-right'>
+                                        <button
+                                            className='ErrorLogDashboard__error-card__copy-btn'
+                                            onClick={() => copyError(error)}
+                                            title={intl.formatMessage({id: 'admin.error_log.copy', defaultMessage: 'Copy error details'})}
+                                        >
+                                            {copiedId === error.id ? <IconCheck/> : <IconCopy/>}
+                                        </button>
+                                        <span className='ErrorLogDashboard__error-card__time'>
+                                            {formatRelativeTime(error.create_at)}
+                                        </span>
+                                    </div>
                                 </div>
 
                                 {error.type === 'api' && error.endpoint && (
-                                    <div className='ErrorLogDashboard__error-card__message'>
-                                        {error.method} {error.endpoint}
+                                    <div className='ErrorLogDashboard__error-card__endpoint'>
+                                        <span className='ErrorLogDashboard__error-card__method'>{error.method}</span>
+                                        {error.endpoint}
                                         {error.status_code && (
-                                            <span style={{marginLeft: 8, opacity: 0.7}}>
+                                            <span className='ErrorLogDashboard__error-card__status'>
                                                 {error.status_code}
                                             </span>
                                         )}
@@ -466,23 +879,49 @@ const ErrorLogDashboard: React.FC<Props> = ({config, patchConfig}) => {
                                 <div className='ErrorLogDashboard__error-card__meta'>
                                     {error.username && (
                                         <span className='ErrorLogDashboard__error-card__meta__item'>
-                                            <i className='icon icon-account-outline'/>
+                                            <IconUser/>
                                             {error.username}
                                         </span>
                                     )}
                                     {error.url && (
                                         <span className='ErrorLogDashboard__error-card__meta__item'>
-                                            <i className='icon icon-map-marker-outline'/>
+                                            <IconLink/>
                                             {error.url}
                                         </span>
                                     )}
                                     {error.user_agent && (
                                         <span className='ErrorLogDashboard__error-card__meta__item'>
-                                            <i className='icon icon-web'/>
+                                            <IconBrowser/>
                                             {extractBrowserInfo(error.user_agent)}
                                         </span>
                                     )}
                                 </div>
+
+                                {/* API Error Details: Request Payload and Response */}
+                                {error.type === 'api' && (error.request_payload || error.response_body) && (
+                                    <div className='ErrorLogDashboard__error-card__api-details'>
+                                        {error.request_payload && (
+                                            <div className='ErrorLogDashboard__error-card__api-section'>
+                                                <div className='ErrorLogDashboard__error-card__api-section__title'>
+                                                    Request Payload
+                                                </div>
+                                                <pre className='ErrorLogDashboard__error-card__api-section__content'>
+                                                    {error.request_payload}
+                                                </pre>
+                                            </div>
+                                        )}
+                                        {error.response_body && (
+                                            <div className='ErrorLogDashboard__error-card__api-section'>
+                                                <div className='ErrorLogDashboard__error-card__api-section__title'>
+                                                    Response Body
+                                                </div>
+                                                <pre className='ErrorLogDashboard__error-card__api-section__content'>
+                                                    {error.response_body}
+                                                </pre>
+                                            </div>
+                                        )}
+                                    </div>
+                                )}
 
                                 {error.stack && (
                                     <>
@@ -490,7 +929,9 @@ const ErrorLogDashboard: React.FC<Props> = ({config, patchConfig}) => {
                                             className='ErrorLogDashboard__error-card__stack-toggle'
                                             onClick={() => toggleStack(error.id)}
                                         >
-                                            <i className={`icon icon-chevron-right ${expandedStacks.has(error.id) ? 'expanded' : ''}`}/>
+                                            <span className={`ErrorLogDashboard__error-card__stack-toggle__icon ${expandedStacks.has(error.id) ? 'expanded' : ''}`}>
+                                                <IconChevronRight/>
+                                            </span>
                                             <FormattedMessage
                                                 id='admin.error_log.stack_trace'
                                                 defaultMessage='Stack Trace'
@@ -537,6 +978,15 @@ function extractBrowserInfo(userAgent: string): string {
         return `Edge ${match?.[1] || ''}`;
     }
     return userAgent.slice(0, 30) + '...';
+}
+
+// Helper to parse JSON strings for export (returns parsed object or original string)
+function tryParseJSON(str: string): unknown {
+    try {
+        return JSON.parse(str);
+    } catch {
+        return str;
+    }
 }
 
 export default ErrorLogDashboard;

@@ -19,6 +19,8 @@ type ErrorLog struct {
 	Method         string `json:"method,omitempty"`          // For API errors
 	ComponentStack string `json:"component_stack,omitempty"` // For React errors
 	Extra          string `json:"extra,omitempty"`           // JSON metadata
+	RequestPayload string `json:"request_payload,omitempty"` // Request body for API errors
+	ResponseBody   string `json:"response_body,omitempty"`   // Response body for API errors
 }
 
 // ErrorLogType constants
@@ -37,6 +39,8 @@ type ErrorLogReport struct {
 	Column         int    `json:"column,omitempty"`
 	ComponentStack string `json:"component_stack,omitempty"`
 	Extra          string `json:"extra,omitempty"`
+	RequestPayload string `json:"request_payload,omitempty"`
+	ResponseBody   string `json:"response_body,omitempty"`
 }
 
 // IsValid validates the ErrorLogReport.

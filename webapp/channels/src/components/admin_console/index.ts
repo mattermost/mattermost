@@ -52,6 +52,7 @@ function mapStateToProps(state: GlobalState) {
         cloud: state.entities.cloud,
         team,
         currentTheme: getTheme(state),
+        systemConsoleThemingEnabled: generalConfig.FeatureFlagSystemConsoleTheming === 'true',
     };
 }
 

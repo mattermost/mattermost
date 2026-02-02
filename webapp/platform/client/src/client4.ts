@@ -4523,6 +4523,11 @@ export default class Client4 {
             console.error(msg); // eslint-disable-line no-console
         }
 
+        // Report API errors (but not for the error reporting endpoint itself)
+        if (!url.includes('/errors')) {
+            this.reportAPIErrorInternal(url, options, response.status, msg, data);
+        }
+
         throw new ClientError(this.getUrl(), {
             message: msg,
             server_error_id: data.id,
@@ -4912,6 +4917,55 @@ export default class Client4 {
         return `${this.getBaseRoute()}/errors`;
     };
 
+    // Internal method to report API errors from doFetch
+    private reportAPIErrorInternal = (url: string, options: Options, statusCode: number, message: string, responseData: unknown) => {
+        // Only report if error logging is likely enabled (we can't check config here)
+        // The server will reject if the feature is disabled
+
+        let requestPayload = '';
+        try {
+            if (options.body) {
+                requestPayload = typeof options.body === 'string' ?
+                    options.body.slice(0, 5000) :
+                    JSON.stringify(options.body, null, 2).slice(0, 5000);
+            }
+        } catch {
+            requestPayload = '[Unable to serialize request payload]';
+        }
+
+        let responseBody = '';
+        try {
+            if (responseData !== undefined) {
+                responseBody = typeof responseData === 'string' ?
+                    responseData.slice(0, 5000) :
+                    JSON.stringify(responseData, null, 2).slice(0, 5000);
+            }
+        } catch {
+            responseBody = '[Unable to serialize response body]';
+        }
+
+        // Fire and forget - don't await and don't care about errors
+        this.doFetch<StatusOK>(
+            this.getErrorLogsRoute(),
+            {
+                method: 'post',
+                body: JSON.stringify({
+                    type: 'api',
+                    message,
+                    url,
+                    extra: JSON.stringify({
+                        method: options.method || 'get',
+                        status_code: statusCode,
+                    }),
+                    request_payload: requestPayload,
+                    response_body: responseBody,
+                }),
+            },
+        ).catch(() => {
+            // Silently ignore errors from error reporting
+        });
+    };
+
     reportError = (error: {
         type: string;
         message: string;
@@ -4921,6 +4975,8 @@ export default class Client4 {
         column?: number;
         component_stack?: string;
         extra?: string;
+        request_payload?: string;
+        response_body?: string;
     }) => {
         return this.doFetch<StatusOK>(
             this.getErrorLogsRoute(),

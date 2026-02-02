@@ -108,6 +108,9 @@ type FeatureFlags struct {
 
 	// Enable error log dashboard for system admins
 	ErrorLogDashboard bool
+
+	// Make the System Console use the user's theme preference instead of the default light theme
+	SystemConsoleTheming bool
 }
 
 // featureFlagDefaults defines the default value for each boolean feature flag.

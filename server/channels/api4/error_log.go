@@ -62,6 +62,23 @@ func reportError(c *Context, w http.ResponseWriter, r *http.Request) {
 		UserAgent:      r.Header.Get("User-Agent"),
 		ComponentStack: report.ComponentStack,
 		Extra:          report.Extra,
+		RequestPayload: report.RequestPayload,
+		ResponseBody:   report.ResponseBody,
+	}
+
+	// Parse extra data for API errors to extract method and status_code
+	if report.Type == model.ErrorLogTypeAPI && report.Extra != "" {
+		var extra map[string]any
+		if err := json.Unmarshal([]byte(report.Extra), &extra); err == nil {
+			if method, ok := extra["method"].(string); ok {
+				errorLog.Method = method
+			}
+			if statusCode, ok := extra["status_code"].(float64); ok {
+				errorLog.StatusCode = int(statusCode)
+			}
+		}
+		// Use URL as endpoint for API errors
+		errorLog.Endpoint = report.Url
 	}
 
 	// Log the error
