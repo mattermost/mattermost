@@ -181,6 +181,14 @@ const FLAG_METADATA: Record<string, {description: string; defaultValue: boolean}
         description: 'Make the System Console use your theme preference instead of the default light theme',
         defaultValue: false,
     },
+    SystemConsoleHideEnterprise: {
+        description: 'Hide enterprise-only features from System Console that require a license to use',
+        defaultValue: false,
+    },
+    SystemConsoleIcons: {
+        description: 'Show icons next to each subsection in the System Console sidebar for better visual navigation',
+        defaultValue: false,
+    },
 };
 
 // Styled components

@@ -111,6 +111,12 @@ type FeatureFlags struct {
 
 	// Make the System Console use the user's theme preference instead of the default light theme
 	SystemConsoleTheming bool
+
+	// Hide enterprise-only features from System Console since they can't be used without enterprise license
+	SystemConsoleHideEnterprise bool
+
+	// Add icons in front of every section in System Console
+	SystemConsoleIcons bool
 }
 
 // featureFlagDefaults defines the default value for each boolean feature flag.

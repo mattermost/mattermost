@@ -47,6 +47,8 @@ function mapStateToProps(state: GlobalState) {
         cloud: state.entities.cloud,
         showTaskList,
         subscriptionProduct,
+        hideEnterpriseEnabled: config.FeatureFlagSystemConsoleHideEnterprise === 'true',
+        iconsEnabled: config.FeatureFlagSystemConsoleIcons === 'true',
     };
 }
 

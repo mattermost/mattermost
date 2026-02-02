@@ -150,7 +150,7 @@ class AdminSidebar extends React.PureComponent<Props, State> {
     };
 
     renderRootMenu = (definition: typeof AdminDefinition) => {
-        const {config, license, buildEnterpriseReady, consoleAccess, cloud, subscriptionProduct} = this.props;
+        const {config, license, buildEnterpriseReady, consoleAccess, cloud, subscriptionProduct, hideEnterpriseEnabled, iconsEnabled} = this.props;
         const sidebarSections: JSX.Element[] = [];
         Object.entries(definition).forEach(([key, section]) => {
             let isSectionHidden = false;
@@ -161,6 +161,11 @@ class AdminSidebar extends React.PureComponent<Props, State> {
                 const sidebarItems: JSX.Element[] = [];
                 Object.entries(section.subsections).forEach(([subKey, item]) => {
                     if (!item.title) {
+                        return;
+                    }
+
+                    // Hide enterprise subsections (those with restrictedIndicator) if feature flag is enabled
+                    if (hideEnterpriseEnabled && item.restrictedIndicator) {
                         return;
                     }
 
@@ -188,6 +193,7 @@ class AdminSidebar extends React.PureComponent<Props, State> {
                             definitionKey={subDefinitionKey}
                             name={item.url}
                             restrictedIndicator={item.restrictedIndicator?.shouldDisplay(license, subscriptionProduct) ? item.restrictedIndicator.value(cloud) : undefined}
+                            icon={iconsEnabled ? item.icon : undefined}
                             title={typeof item.title === 'string' ? item.title : (
                                 <FormattedMessage
                                     {...item.title}
@@ -235,7 +241,7 @@ class AdminSidebar extends React.PureComponent<Props, State> {
     };
 
     renderPluginsMenu = () => {
-        const {config, plugins} = this.props;
+        const {config, plugins, iconsEnabled} = this.props;
         if (config.PluginSettings?.Enable && plugins) {
             return Object.values(plugins).sort((a, b) => {
                 const nameCompare = a.name.localeCompare(b.name);
@@ -247,11 +253,16 @@ class AdminSidebar extends React.PureComponent<Props, State> {
             }).
                 filter((plugin) => this.state.sections === null || this.isPluginPresentInSections(plugin)).
                 map((plugin) => {
+                    // Use a generic dash icon for all plugins
+                    const pluginIcon = iconsEnabled ? (
+                        <span style={{display: 'inline-block', width: '16px', marginRight: '6px', opacity: 0.6}}>—</span>
+                    ) : undefined;
                     return (
                         <AdminSidebarSection
                             key={'customplugin' + plugin.id}
                             name={'plugins/plugin_' + plugin.id}
                             title={plugin.name}
+                            icon={pluginIcon}
                         />
                     );
                 });

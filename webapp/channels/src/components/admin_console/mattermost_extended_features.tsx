@@ -25,6 +25,8 @@ const MATTERMOST_EXTENDED_FLAGS = [
     'DiscordReplies',
     'ErrorLogDashboard',
     'SystemConsoleTheming',
+    'SystemConsoleHideEnterprise',
+    'SystemConsoleIcons',
 ];
 
 type Props = {

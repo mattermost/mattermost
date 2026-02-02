@@ -212,6 +212,7 @@ export type AdminDefinitionSubSection = {
     isDisabled?: Check;
     schema: AdminDefinitionSubSectionSchema;
     restrictedIndicator?: RestrictedIndicatorType;
+    icon?: JSX.Element;
 }
 
 export type AdminDefinitionSection = {

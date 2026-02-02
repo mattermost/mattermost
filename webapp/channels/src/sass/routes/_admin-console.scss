@@ -811,6 +811,19 @@
         }
     }
 
+    .sidebar-section-icon {
+        display: inline-flex;
+        width: 16px;
+        margin-right: 6px;
+        color: inherit;
+        opacity: 0.7;
+
+        svg {
+            width: 14px;
+            height: 14px;
+        }
+    }
+
     .sidebar-subsection-title {
         padding: 6px 35px 6px 30px;
 

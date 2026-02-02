@@ -7,7 +7,7 @@ import React from 'react';
 import {FormattedMessage, defineMessage, defineMessages} from 'react-intl';
 import {Link} from 'react-router-dom';
 
-import {AccountMultipleOutlineIcon, ChartBarIcon, CogOutlineIcon, CreditCardOutlineIcon, FlaskOutlineIcon, FormatListBulletedIcon, InformationOutlineIcon, PowerPlugOutlineIcon, ServerVariantIcon, ShieldOutlineIcon, SitemapIcon, TableLargeIcon} from '@mattermost/compass-icons/components';
+import {AccountMultipleOutlineIcon, AlertCircleOutlineIcon, BugOutlineIcon, ChartBarIcon, CogOutlineIcon, CreditCardOutlineIcon, FlaskOutlineIcon, FormatListBulletedIcon, ForumOutlineIcon, InformationOutlineIcon, MessageTextOutlineIcon, PoundIcon, PowerPlugOutlineIcon, ServerVariantIcon, ShieldOutlineIcon, SitemapIcon, TableLargeIcon, ToggleSwitchOutlineIcon} from '@mattermost/compass-icons/components';
 
 import {Posts} from 'mattermost-redux/constants';
 import {RESOURCE_KEYS} from 'mattermost-redux/constants/permissions_sysconsole';
@@ -6368,6 +6368,7 @@ const AdminDefinition: AdminDefinitionType = {
                 searchableStrings: [
                     mattermostExtendedFeaturesMessages.title,
                 ],
+                icon: <ToggleSwitchOutlineIcon size={14} color={'currentColor'}/>,
                 schema: {
                     id: 'MattermostExtendedFeatures',
                     component: MattermostExtendedFeatures,
@@ -6380,6 +6381,7 @@ const AdminDefinition: AdminDefinitionType = {
                 searchableStrings: [
                     defineMessage({id: 'admin.sidebar.error_logs', defaultMessage: 'Error Logs'}),
                 ],
+                icon: <AlertCircleOutlineIcon size={14} color={'currentColor'}/>,
                 schema: {
                     id: 'ErrorLogDashboard',
                     component: ErrorLogDashboard,
@@ -6389,6 +6391,7 @@ const AdminDefinition: AdminDefinitionType = {
             posts: {
                 url: 'mattermost_extended/posts',
                 title: defineMessage({id: 'admin.sidebar.posts', defaultMessage: 'Posts'}),
+                icon: <MessageTextOutlineIcon size={14} color={'currentColor'}/>,
                 schema: {
                     id: 'MattermostExtendedPosts',
                     name: defineMessage({id: 'admin.mattermost_extended.posts.title', defaultMessage: 'Posts'}),
@@ -6406,6 +6409,7 @@ const AdminDefinition: AdminDefinitionType = {
             channels: {
                 url: 'mattermost_extended/channels',
                 title: defineMessage({id: 'admin.sidebar.channels', defaultMessage: 'Channels'}),
+                icon: <PoundIcon size={14} color={'currentColor'}/>,
                 schema: {
                     id: 'MattermostExtendedChannels',
                     name: defineMessage({id: 'admin.mattermost_extended.channels.title', defaultMessage: 'Channels'}),
@@ -6422,6 +6426,7 @@ const AdminDefinition: AdminDefinitionType = {
             threads: {
                 url: 'mattermost_extended/threads',
                 title: defineMessage({id: 'admin.sidebar.threads', defaultMessage: 'Threads'}),
+                icon: <ForumOutlineIcon size={14} color={'currentColor'}/>,
                 isHidden: () => true, // Remove when settings are added
                 schema: {
                     id: 'MattermostExtendedThreads',
@@ -6432,6 +6437,7 @@ const AdminDefinition: AdminDefinitionType = {
             bug_fixes: {
                 url: 'mattermost_extended/bug_fixes',
                 title: defineMessage({id: 'admin.sidebar.bug_fixes', defaultMessage: 'Bug Fixes'}),
+                icon: <BugOutlineIcon size={14} color={'currentColor'}/>,
                 isHidden: () => true, // Remove when settings are added
                 schema: {
                     id: 'MattermostExtendedBugFixes',
