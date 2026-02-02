@@ -12,10 +12,6 @@
         "noEmit": true,
         "baseUrl": "."
     },
-    "include": [
-        "autonomous-cli.ts",
-        "lib/src/spec-bridge.ts",
-        "lib/src/autonomous/**/*"
-    ],
+    "include": ["autonomous-cli.ts", "lib/src/spec-bridge.ts", "lib/src/autonomous/**/*"],
     "exclude": ["node_modules"]
 }

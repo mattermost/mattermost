@@ -145,6 +145,7 @@ export class OllamaProvider implements LLMProvider {
      * Ollama does not support vision by default
      * This method throws an error to help users understand the limitation
      */
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     async analyzeImage(images: ImageInput[], prompt: string, options?: GenerateOptions): Promise<LLMResponse> {
         throw new UnsupportedCapabilityError(this.name, 'vision');
     }
@@ -218,7 +219,11 @@ export class OllamaProvider implements LLMProvider {
         };
     }
 
-    private updateStats(usage: {inputTokens: number; outputTokens: number; totalTokens: number}, responseTime: number, cost: number): void {
+    private updateStats(
+        usage: {inputTokens: number; outputTokens: number; totalTokens: number},
+        responseTime: number,
+        cost: number,
+    ): void {
         this.stats.requestCount++;
         this.stats.totalInputTokens += usage.inputTokens;
         this.stats.totalOutputTokens += usage.outputTokens;
@@ -247,7 +252,8 @@ export class OllamaProvider implements LLMProvider {
         } catch (error) {
             return {
                 healthy: false,
-                message: `Ollama not accessible: ${error instanceof Error ? error.message : String(error)}. ` +
+                message:
+                    `Ollama not accessible: ${error instanceof Error ? error.message : String(error)}. ` +
                     'Make sure Ollama is installed and running (ollama serve)',
             };
         }
@@ -290,11 +296,9 @@ export async function checkOllamaSetup(): Promise<{
             installed: true,
             running: health.healthy,
             modelAvailable: models.length > 0,
-            setupInstructions: health.healthy
-                ? 'Ollama is ready to use!'
-                : 'Run: ollama serve',
+            setupInstructions: health.healthy ? 'Ollama is ready to use!' : 'Run: ollama serve',
         };
-    } catch (error) {
+    } catch {
         return {
             installed: false,
             running: false,

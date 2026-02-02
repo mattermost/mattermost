@@ -18,7 +18,7 @@ import {test, expect} from '@mattermost/playwright-lib';
 test('seed', async ({pw}) => {
     // Standard Mattermost test setup
     const {user} = await pw.initSetup();
-    const {page, channelsPage} = await pw.testBrowser.login(user);
+    const {channelsPage} = await pw.testBrowser.login(user);
 
     // Navigate to the main channels page
     await channelsPage.goto();
@@ -44,7 +44,7 @@ test.describe('Agent Seed Tests', () => {
     test('authenticated session ready', async ({pw}) => {
         // This test verifies the authenticated session is working
         const {user} = await pw.initSetup();
-        const {page, channelsPage} = await pw.testBrowser.login(user);
+        const {channelsPage} = await pw.testBrowser.login(user);
 
         await channelsPage.goto();
         await channelsPage.toBeVisible();

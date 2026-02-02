@@ -36,11 +36,7 @@ export {SpecificationParser} from './spec_parser';
 export type {SpecSummary, SpecificationCache} from './spec_parser';
 
 // LLM Providers
-export {
-    LLMProviderFactory,
-    OllamaProvider,
-    AnthropicProvider,
-} from './llm';
+export {LLMProviderFactory, OllamaProvider, AnthropicProvider} from './llm';
 
 export type {
     LLMProvider,

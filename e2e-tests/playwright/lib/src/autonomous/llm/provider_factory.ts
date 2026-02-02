@@ -13,7 +13,7 @@ import type {
     ProviderConfig,
     ProviderUsageStats,
 } from './provider_interface';
-import {LLMProviderError, UnsupportedCapabilityError} from './provider_interface';
+import {UnsupportedCapabilityError} from './provider_interface';
 
 /**
  * LLM Provider Factory
@@ -123,15 +123,16 @@ export class LLMProviderFactory {
         const health = await ollama.checkHealth();
 
         if (health.healthy) {
+            // eslint-disable-next-line no-console
             console.log('Auto-detected Ollama provider (free, local)');
             return ollama;
         }
 
         throw new Error(
             'No LLM provider available. Please either:\n' +
-            '1. Install Ollama: curl -fsSL https://ollama.com/install.sh | sh\n' +
-            '2. Set ANTHROPIC_API_KEY environment variable\n' +
-            '3. Set LLM_PROVIDER environment variable',
+                '1. Install Ollama: curl -fsSL https://ollama.com/install.sh | sh\n' +
+                '2. Set ANTHROPIC_API_KEY environment variable\n' +
+                '3. Set LLM_PROVIDER environment variable',
         );
     }
 
@@ -236,6 +237,7 @@ class HybridProvider implements LLMProvider {
 
     async generateText(prompt: string, options?: GenerateOptions): Promise<LLMResponse> {
         // Use primary for text generation (free)
+        // eslint-disable-next-line no-console
         console.log(`[Hybrid] Using ${this.primary.name} for text generation`);
         return await this.primary.generateText(prompt, options);
     }
@@ -245,7 +247,10 @@ class HybridProvider implements LLMProvider {
         if (this.useFallbackFor.has('vision')) {
             // Use fallback if primary doesn't support vision
             if (!this.primary.capabilities.vision) {
-                console.log(`[Hybrid] Using ${this.fallback.name} for vision analysis (primary doesn't support vision)`);
+                // eslint-disable-next-line no-console
+                console.log(
+                    `[Hybrid] Using ${this.fallback.name} for vision analysis (primary doesn't support vision)`,
+                );
                 if (!this.fallback.analyzeImage) {
                     throw new UnsupportedCapabilityError(this.name, 'vision');
                 }
@@ -255,6 +260,7 @@ class HybridProvider implements LLMProvider {
 
         // Try primary first
         if (this.primary.analyzeImage) {
+            // eslint-disable-next-line no-console
             console.log(`[Hybrid] Using ${this.primary.name} for vision analysis`);
             return await this.primary.analyzeImage(images, prompt, options);
         }
@@ -268,6 +274,7 @@ class HybridProvider implements LLMProvider {
             throw new UnsupportedCapabilityError(this.primary.name, 'streaming');
         }
 
+        // eslint-disable-next-line no-console
         console.log(`[Hybrid] Using ${this.primary.name} for streaming`);
         yield* this.primary.streamText(prompt, options);
     }

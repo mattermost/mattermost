@@ -111,6 +111,7 @@ export class SpecBridge {
      * @returns Conversion result with paths and metadata
      */
     async convertToPlaywrightSpecs(inputPath: string, outputDir?: string): Promise<ConversionResult> {
+        /* eslint-disable no-console */
         const targetDir = outputDir || this.outputDir;
         const warnings: string[] = [];
 
@@ -166,6 +167,7 @@ export class SpecBridge {
 
         console.log(`Converted ${specs.length} feature(s) with ${totalScenarios} scenario(s)`);
 
+        /* eslint-enable no-console */
         return {
             specPaths,
             features: specs,
@@ -276,7 +278,9 @@ export class SpecBridge {
     /**
      * Validate a specification file
      */
-    async validateSpec(inputPath: string): Promise<{valid: boolean; errors: string[]; features: number; scenarios: number}> {
+    async validateSpec(
+        inputPath: string,
+    ): Promise<{valid: boolean; errors: string[]; features: number; scenarios: number}> {
         const specs = await this.parser.parse(inputPath, 'file');
         const allErrors: string[] = [];
         let totalScenarios = 0;

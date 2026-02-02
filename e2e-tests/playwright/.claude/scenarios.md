@@ -9,18 +9,19 @@
 ## Instructions for @playwright-test-planner
 
 These scenarios were extracted from the PDF specification. Your task is to:
+
 1. Review these base scenarios and understand the feature requirements
 2. Explore additional edge cases and user flows around these scenarios
 3. Expand test coverage considering Mattermost framework conventions:
-   - Use Page Object Model patterns from `support/ui/pages/`
-   - Follow naming conventions (kebab-case for files, PascalCase for classes)
-   - Leverage existing components (ChannelsPage, AdminConsole, etc.)
+    - Use Page Object Model patterns from `support/ui/pages/`
+    - Follow naming conventions (kebab-case for files, PascalCase for classes)
+    - Leverage existing components (ChannelsPage, AdminConsole, etc.)
 4. Generate comprehensive test plans that include:
-   - Happy path scenarios
-   - Error handling scenarios
-   - Accessibility considerations
-   - Multi-language support testing (if applicable)
-   - Permission-based scenarios (different user roles)
+    - Happy path scenarios
+    - Error handling scenarios
+    - Accessibility considerations
+    - Multi-language support testing (if applicable)
+    - Permission-based scenarios (different user roles)
 
 ---
 

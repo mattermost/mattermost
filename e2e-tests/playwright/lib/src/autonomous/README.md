@@ -31,6 +31,7 @@ PDF/MD/JSON Specs → SpecificationParser → Playwright Markdown → Playwright
 ```
 
 **Key Benefits:**
+
 - ~200 lines of custom code (down from ~5000)
 - Production-ready test healing via Playwright's built-in agents
 - Verified test generation (Playwright agents compile and test)
@@ -48,6 +49,7 @@ ANTHROPIC_API_KEY=sk-ant-... AUTONOMOUS_ALLOW_PDF_UPLOAD=true \
 ```
 
 **What the system extracts:**
+
 - ✅ Feature names and descriptions
 - ✅ Business scenarios (Given-When-Then format)
 - ✅ Acceptance criteria
@@ -55,6 +57,7 @@ ANTHROPIC_API_KEY=sk-ant-... AUTONOMOUS_ALLOW_PDF_UPLOAD=true \
 - ✅ Related metadata
 
 **Requirements:**
+
 - Vision-capable LLM (Claude) for PDF parsing
 - PDF must contain readable text (not scanned images without OCR)
 - Set `AUTONOMOUS_ALLOW_PDF_UPLOAD=true` to consent to sending PDF to LLM
@@ -72,17 +75,21 @@ Human-readable specs with embedded screenshots and Given-When-Then scenarios.
 **Target URLs**: `/channels/*`, `/messages/*`
 
 ## Description
+
 Users can quickly insert emojis with an improved picker.
 
 ## Business Scenarios
 
 ### Scenario 1: Open Emoji Picker
+
 **Priority**: Must-have
+
 - **Given**: User is composing a message
 - **When**: User clicks the emoji icon
 - **Then**: Emoji picker opens within 500ms
 
 ## Acceptance Criteria
+
 - Picker opens in < 500ms
 - Search updates instantly
 ```
@@ -93,21 +100,18 @@ Structured format for programmatic spec generation.
 
 ```json
 {
-  "feature": "Message Reactions",
-  "priority": "high",
-  "scenarios": [
-    {
-      "name": "User adds reaction to message",
-      "given": "User sees a message in channel",
-      "when": "User clicks reaction icon and selects emoji",
-      "then": "Emoji reaction appears under message",
-      "priority": "must-have"
-    }
-  ],
-  "acceptanceCriteria": [
-    "Reactions appear within 1 second",
-    "Count updates in real-time"
-  ]
+    "feature": "Message Reactions",
+    "priority": "high",
+    "scenarios": [
+        {
+            "name": "User adds reaction to message",
+            "given": "User sees a message in channel",
+            "when": "User clicks reaction icon and selects emoji",
+            "then": "Emoji reaction appears under message",
+            "priority": "must-have"
+        }
+    ],
+    "acceptanceCriteria": ["Reactions appear within 1 second", "Count updates in real-time"]
 }
 ```
 
@@ -203,17 +207,18 @@ console.log(`Total scenarios: ${result.totalScenarios}`);
 
 ## Environment Variables
 
-| Variable | Description | Required |
-|----------|-------------|----------|
-| `ANTHROPIC_API_KEY` | Anthropic API key for PDF parsing | For PDFs |
-| `AUTONOMOUS_ALLOW_PDF_UPLOAD` | Consent to send PDF to LLM | For PDFs |
-| `OLLAMA_BASE_URL` | Ollama API URL (default: http://localhost:11434) | For Ollama |
+| Variable                      | Description                                      | Required   |
+| ----------------------------- | ------------------------------------------------ | ---------- |
+| `ANTHROPIC_API_KEY`           | Anthropic API key for PDF parsing                | For PDFs   |
+| `AUTONOMOUS_ALLOW_PDF_UPLOAD` | Consent to send PDF to LLM                       | For PDFs   |
+| `OLLAMA_BASE_URL`             | Ollama API URL (default: http://localhost:11434) | For Ollama |
 
 ## Security
 
 When using PDF parsing, the document is sent to an external LLM provider.
 
 **Ensure your PDF does NOT contain:**
+
 - Internal API keys or credentials
 - Sensitive architecture details
 - Production URLs or IP addresses
@@ -223,6 +228,7 @@ When using PDF parsing, the document is sent to an external LLM provider.
 See [SECURITY.md](./SECURITY.md) for more details.
 
 **What was kept:**
+
 - `spec_parser.ts` - PDF/MD/JSON parsing (8.5/10 quality)
 - `llm/` - LLM providers for PDF extraction
 - `types.ts` - Type definitions

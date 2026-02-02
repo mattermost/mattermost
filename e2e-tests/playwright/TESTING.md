@@ -4,8 +4,8 @@
 
 1. **Mattermost server running** at `http://localhost:8065` (or configure different URL in `.env`)
 2. **LLM Provider** - Choose one:
-   - **Ollama (FREE, Local)** - Recommended for testing
-   - **Anthropic Claude (Premium)** - Best quality, requires API key
+    - **Ollama (FREE, Local)** - Recommended for testing
+    - **Anthropic Claude (Premium)** - Best quality, requires API key
 
 ## Option 1: Quick Test (Easiest)
 
@@ -17,6 +17,7 @@ cd /Users/yasserkhan/Documents/mattermost/mattermost/e2e-tests/playwright
 ```
 
 The script will:
+
 - Check your environment
 - Ask for your PDF specification path (optional)
 - Run 1 test cycle
@@ -83,37 +84,43 @@ npx tsx lib/src/autonomous/cli.ts \
 ## What Happens During a Test Cycle
 
 ### Phase 1: Crawl (UI Discovery)
+
 - Navigates to your Mattermost server
 - Discovers interactive elements (buttons, links, inputs)
 - Captures screenshots and accessibility trees
 - Stores discovered states in knowledge base
 
 ### Phase 2: Analyze (AI Understanding)
+
 - LLM analyzes each discovered UI state
 - If PDF spec provided:
-  - Compares actual UI against spec screenshots
-  - Identifies which features are implemented
-  - Calculates match confidence
+    - Compares actual UI against spec screenshots
+    - Identifies which features are implemented
+    - Calculates match confidence
 
 ### Phase 3: Generate (Test Creation)
+
 - Creates executable Playwright tests
 - Tests saved to `specs/autonomous/`
 - Each test includes:
-  - Clear test objectives
-  - Proper assertions
-  - Accessibility-first selectors
+    - Clear test objectives
+    - Proper assertions
+    - Accessibility-first selectors
 
 ### Phase 4: Execute (Run Tests)
+
 - Runs generated tests
 - Captures results and screenshots
 - Identifies failures
 
 ### Phase 5: Heal (Self-Repair)
+
 - Analyzes test failures
 - Distinguishes bugs from UI changes
 - Attempts to auto-fix selector issues
 
 ### Phase 6: Report
+
 - Saves cycle report to knowledge base
 - Shows summary statistics
 - Lists discovered issues
@@ -176,16 +183,19 @@ Cycle Summary:
 ## Viewing Results
 
 ### Knowledge Base Location
+
 ```
 /Users/yasserkhan/Documents/mattermost/mattermost/e2e-tests/playwright/autonomous/knowledge.db
 ```
 
 ### Generated Tests Location
+
 ```
 /Users/yasserkhan/Documents/mattermost/mattermost/e2e-tests/playwright/specs/autonomous/
 ```
 
 ### Screenshots Location
+
 ```
 /Users/yasserkhan/Documents/mattermost/mattermost/e2e-tests/playwright/autonomous/screenshots/
 ```
@@ -196,12 +206,12 @@ In another terminal, you can check system health:
 
 ```typescript
 // Create check-health.ts
-import { Orchestrator } from './lib/src/autonomous/orchestrator';
+import {Orchestrator} from './lib/src/autonomous/orchestrator';
 
 const orchestrator = new Orchestrator({
     baseUrl: 'http://localhost:8065',
-    credentials: { username: 'sysadmin', password: 'Sys@dmin-sample1' },
-    llmProvider: { type: 'ollama' }
+    credentials: {username: 'sysadmin', password: 'Sys@dmin-sample1'},
+    llmProvider: {type: 'ollama'},
 });
 
 const health = await orchestrator.healthCheck();
@@ -211,6 +221,7 @@ console.log(JSON.stringify(health, null, 2));
 ## Troubleshooting
 
 ### "Ollama is not running"
+
 ```bash
 # Install Ollama (if not installed)
 curl -fsSL https://ollama.com/install.sh | sh
@@ -220,21 +231,25 @@ ollama serve
 ```
 
 ### "Model not found"
+
 ```bash
 ollama pull deepseek-r1:7b
 ```
 
 ### "Mattermost server not accessible"
+
 - Check if server is running: `curl http://localhost:8065/api/v4/system/ping`
 - Verify credentials in `.env`
 - Check firewall settings
 
 ### "Database locked"
+
 - Only one orchestrator instance can run at a time
 - Check for zombie processes: `ps aux | grep autonomous`
 - Kill if needed: `pkill -f autonomous`
 
 ### TypeScript errors
+
 ```bash
 # Rebuild TypeScript
 cd e2e-tests/playwright
@@ -244,6 +259,7 @@ npx tsc --build lib/tsconfig.json
 ## Advanced Usage
 
 ### Parallel Execution (3x faster)
+
 ```bash
 npx tsx lib/src/autonomous/cli.ts \
   --parallel-contexts 3 \
@@ -251,6 +267,7 @@ npx tsx lib/src/autonomous/cli.ts \
 ```
 
 ### Continuous Mode (Run forever)
+
 ```bash
 npx tsx lib/src/autonomous/cli.ts \
   --continuous \
@@ -258,12 +275,14 @@ npx tsx lib/src/autonomous/cli.ts \
 ```
 
 ### Focus Mode (Test specific area)
+
 ```bash
 npx tsx lib/src/autonomous/cli.ts \
   --focus "test the emoji picker and reactions"
 ```
 
 ### Spec-Only Mode (Only test what's in spec)
+
 ```bash
 npx tsx lib/src/autonomous/cli.ts \
   --spec specs/features/messaging.pdf \

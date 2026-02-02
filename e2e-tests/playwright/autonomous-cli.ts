@@ -2,6 +2,9 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+/* eslint-disable no-console */
+// Console output is expected for CLI tools
+
 /**
  * Autonomous Testing CLI
  *
@@ -19,7 +22,7 @@
 
 import {existsSync, readFileSync, writeFileSync, mkdirSync, readdirSync} from 'fs';
 import {resolve, join, basename, dirname} from 'path';
-import {execSync, spawn, spawnSync} from 'child_process';
+import {spawnSync} from 'child_process';
 
 import {config, getBaseUrl, getCredentials} from './autonomous-config';
 
@@ -85,7 +88,6 @@ function parseArgs(): ParsedArgs {
  * Validate that a path does not contain directory traversal sequences
  */
 function isPathSafe(filePath: string): boolean {
-    const normalized = resolve(filePath);
     // Check for directory traversal patterns
     if (filePath.includes('..')) {
         return false;
@@ -208,13 +210,6 @@ ENVIRONMENT:
 // UI EXPLORATION (using Playwright accessibility tree)
 // =============================================================================
 
-interface ExploreOptions {
-    headless?: boolean;
-    login?: {
-        username: string;
-        password: string;
-    };
-}
 
 /**
  * Cookie structure required by Playwright's storageState
@@ -277,7 +272,7 @@ async function loginViaAPI(
     // Fetch user's teams to get default team
     const teamsResponse = await fetch(`${baseUrl}/api/v4/users/me/teams`, {
         headers: {
-            'Authorization': `Bearer ${token}`,
+            Authorization: `Bearer ${token}`,
         },
     });
 
@@ -441,11 +436,7 @@ async function generateWithUIContext(parsedArgs: ParsedArgs): Promise<string> {
  */
 function extractFeatureFromSpec(specContent: string): string {
     // Look for feature name patterns
-    const patterns = [
-        /Feature:\s*(.+?)(?:\n|$)/i,
-        /^#\s*(.+?)(?:\n|$)/m,
-        /name['":\s]+(.+?)(?:['"\n,}])/i,
-    ];
+    const patterns = [/Feature:\s*(.+?)(?:\n|$)/i, /^#\s*(.+?)(?:\n|$)/m, /name['":\s]+(.+?)(?:['"\n,}])/i];
 
     for (const pattern of patterns) {
         const match = specContent.match(pattern);
@@ -471,10 +462,7 @@ interface OrganicExploreOptions {
  * Organically explore UI by clicking relevant links and discovering pages
  * Uses BFS to explore pages based on feature hints
  */
-async function exploreOrganically(
-    baseUrl: string,
-    options: OrganicExploreOptions
-): Promise<string> {
+async function exploreOrganically(baseUrl: string, options: OrganicExploreOptions): Promise<string> {
     const playwright = await import('playwright');
     const verbose = options.verbose ?? false;
     const maxDepth = options.maxDepth ?? 2;
@@ -505,7 +493,7 @@ async function exploreOrganically(
         const {cookies, localStorage, defaultTeam} = await loginViaAPI(
             baseUrl,
             options.login.username,
-            options.login.password
+            options.login.password,
         );
         console.log(`  ✓ Got default team: ${defaultTeam}`);
 
@@ -532,11 +520,16 @@ async function exploreOrganically(
         console.log(`  ✓ Starting exploration from: ${page.url()}`);
 
         // Track what we've seen
-        const discoveries: Array<{url: string; depth: number; title: string; elements: any[]; text: string; interactions: string[]}> = [];
+        const discoveries: Array<{
+            url: string;
+            depth: number;
+            title: string;
+            elements: any[];
+            text: string;
+            interactions: string[];
+        }> = [];
         const visited = new Set<string>();
-        const queue: Array<{url: string; depth: number}> = [
-            {url: page.url(), depth: 0}
-        ];
+        const queue: Array<{url: string; depth: number}> = [{url: page.url(), depth: 0}];
 
         // BFS exploration
         while (queue.length > 0 && discoveries.length < maxPages) {
@@ -582,13 +575,16 @@ async function exploreOrganically(
 
         console.log(`  ✓ Explored ${discoveries.length} pages`);
 
-        return JSON.stringify({
-            teamName: defaultTeam,
-            startUrl,
-            featureContext: options.featureHints,
-            discoveries,
-        }, null, 2);
-
+        return JSON.stringify(
+            {
+                teamName: defaultTeam,
+                startUrl,
+                featureContext: options.featureHints,
+                discoveries,
+            },
+            null,
+            2,
+        );
     } catch (error) {
         await browser.close();
         throw error;
@@ -598,27 +594,22 @@ async function exploreOrganically(
 /**
  * Helper to find relevant links on current page based on feature hints
  */
-async function findRelevantLinks(
-    page: any,
-    featureHints: string
-): Promise<Array<{href: string; text: string}>> {
+async function findRelevantLinks(page: any, featureHints: string): Promise<Array<{href: string; text: string}>> {
     const links = await page.locator('a[href^="/"], button[data-href]').all();
     const relevant: Array<{href: string; text: string}> = [];
     const hints = featureHints.toLowerCase().split(/\s+/);
 
-    for (const link of links.slice(0, 50)) { // Limit to first 50 links
+    for (const link of links.slice(0, 50)) {
+        // Limit to first 50 links
         try {
             const text = await link.textContent({timeout: 1000});
-            const href = await link.getAttribute('href') ||
-                        await link.getAttribute('data-href');
+            const href = (await link.getAttribute('href')) || (await link.getAttribute('data-href'));
 
             if (!href || !text) continue;
 
             // Check if link is relevant to feature
             const combined = `${text} ${href}`.toLowerCase();
-            const isRelevant = hints.some(hint =>
-                hint.length > 3 && combined.includes(hint)
-            );
+            const isRelevant = hints.some((hint) => hint.length > 3 && combined.includes(hint));
 
             if (isRelevant) {
                 // Make href absolute using URL API for safety
@@ -637,7 +628,7 @@ async function findRelevantLinks(
 
                 relevant.push({href: absoluteHref, text: text.trim()});
             }
-        } catch (e) {
+        } catch {
             // Skip this link
         }
     }
@@ -648,13 +639,25 @@ async function findRelevantLinks(
 /**
  * Capture a detailed snapshot of the current page
  */
-async function capturePageSnapshot(page: any, featureHints: string): Promise<{title: string; elements: any[]; text: string; interactions: string[]}> {
+async function capturePageSnapshot(
+    page: any,
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    featureHints: string,
+): Promise<{title: string; elements: any[]; text: string; interactions: string[]}> {
     const title = await page.title();
 
     // Get interactive elements with test IDs and aria labels
     const elements = await page.evaluate(() => {
-        const results: Array<{tag: string; text: string; role: string; testId?: string; ariaLabel?: string; className?: string}> = [];
-        const selectors = 'button, a, input, select, textarea, [role="button"], [role="link"], [role="menuitem"], [role="tab"], [data-testid], .post, .post-message, [class*="translate"], [class*="language"]';
+        const results: Array<{
+            tag: string;
+            text: string;
+            role: string;
+            testId?: string;
+            ariaLabel?: string;
+            className?: string;
+        }> = [];
+        const selectors =
+            'button, a, input, select, textarea, [role="button"], [role="link"], [role="menuitem"], [role="tab"], [data-testid], .post, .post-message, [class*="translate"], [class*="language"]';
 
         document.querySelectorAll(selectors).forEach((el) => {
             const text = (el as HTMLElement).innerText?.slice(0, 100) || '';
@@ -738,8 +741,16 @@ async function getRepoContext(): Promise<string> {
     // Include page object definitions
     const pageObjects = [
         {path: 'lib/src/ui/pages/channels.ts', name: 'ChannelsPage', lines: 200},
-        {path: 'lib/src/ui/components/channels/channel_settings/channel_settings_modal.ts', name: 'ChannelSettingsModal', lines: 100},
-        {path: 'lib/src/ui/components/channels/channel_settings/configuration_settings.ts', name: 'ConfigurationSettings', lines: 100},
+        {
+            path: 'lib/src/ui/components/channels/channel_settings/channel_settings_modal.ts',
+            name: 'ChannelSettingsModal',
+            lines: 100,
+        },
+        {
+            path: 'lib/src/ui/components/channels/channel_settings/configuration_settings.ts',
+            name: 'ConfigurationSettings',
+            lines: 100,
+        },
     ];
 
     for (const {path, name, lines} of pageObjects) {
@@ -802,7 +813,7 @@ function buildFullContextPrompt(options: {
         if (existsSync(scenariosPath)) {
             plannedScenarios = readFileSync(scenariosPath, 'utf-8');
         }
-    } catch (e) {
+    } catch {
         // Scenarios file doesn't exist, continue without it
     }
 
@@ -958,7 +969,10 @@ interface RunTestsOptions {
     verbose?: boolean;
 }
 
-async function runTests(testPath: string, options: RunTestsOptions = {}): Promise<{passed: boolean; output: string; failedTests: string[]}> {
+async function runTests(
+    testPath: string,
+    options: RunTestsOptions = {},
+): Promise<{passed: boolean; output: string; failedTests: string[]}> {
     console.log(`\n▶️  Running tests: ${testPath}`);
 
     // Get the directory where this CLI script is located
@@ -1137,8 +1151,6 @@ async function commandGenerate(parsedArgs: ParsedArgs): Promise<void> {
         .replace(/^_|_$/g, '')
         .slice(0, 50); // Limit length
 
-    // Generate timestamp for unique naming
-    const timestamp = new Date().toISOString().slice(0, 10).replace(/-/g, '');
     const targetDir = outputDir || `specs/functional/ai-assisted/${featureSlug}`;
     const targetFile = join(targetDir, `${featureSlug}.spec.ts`);
 
@@ -1223,9 +1235,7 @@ function extractFeatureNameFromSpec(specFile?: string): string | undefined {
 
     // Try to extract meaningful name from common spec naming patterns
     // e.g., "DES-UX Specs- Auto-translation MVP" -> "auto_translation"
-    const patterns = [
-        /(?:spec[s]?[-_:\s]*)?(.+?)(?:[-_\s]+(?:mvp|v\d|spec|test))?$/i,
-    ];
+    const patterns = [/(?:spec[s]?[-_:\s]*)?(.+?)(?:[-_\s]+(?:mvp|v\d|spec|test))?$/i];
 
     for (const pattern of patterns) {
         const match = baseName.match(pattern);
@@ -1432,19 +1442,24 @@ ${data.featureContext || 'General exploration'}
 
 ## Discovered Pages
 
-${data.discoveries.map((d: any, i: number) => `
+${data.discoveries
+    .map(
+        (d: any, i: number) => `
 ### Page ${i + 1}: ${d.title || 'Unknown'}
 - **URL**: ${d.url}
 - **Depth**: ${d.depth}
 - **Interactive Elements**: ${d.elements.length}
 
 #### Key Elements
-${d.elements.slice(0, 20).map((el: any) =>
-    `- **${el.role}**: ${el.text || el.ariaLabel || el.testId || 'unlabeled'}`
-).join('\n')}
+${d.elements
+    .slice(0, 20)
+    .map((el: any) => `- **${el.role}**: ${el.text || el.ariaLabel || el.testId || 'unlabeled'}`)
+    .join('\n')}
 
 ${d.interactions && d.interactions.length > 0 ? `#### Interactions Discovered\n${d.interactions.join('\n')}` : ''}
-`).join('\n---\n')}
+`,
+    )
+    .join('\n---\n')}
 
 ## Next Steps
 
@@ -1487,7 +1502,9 @@ async function commandPlanFromPDF(parsedArgs: ParsedArgs): Promise<void> {
         process.exit(1);
     }
 
-    console.log(`   ✓ Extracted ${features.length} feature(s) with ${features.reduce((sum, f) => sum + f.scenarios.length, 0)} scenario(s)`);
+    console.log(
+        `   ✓ Extracted ${features.length} feature(s) with ${features.reduce((sum, f) => sum + f.scenarios.length, 0)} scenario(s)`,
+    );
 
     // Step 2: Save scenarios to .claude/scenarios.md for @planner
     console.log('\nStep 2/3: Saving scenarios for @playwright-test-planner...');

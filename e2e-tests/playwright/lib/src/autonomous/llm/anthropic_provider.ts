@@ -151,7 +151,11 @@ export class AnthropicProvider implements LLMProvider {
             // Add each image
             for (const image of images) {
                 // Support both mimeType (PDFs) and mediaType (images) for backward compatibility
-                const mediaType = (image.mimeType || image.mediaType || 'image/png') as 'image/png' | 'image/jpeg' | 'image/webp' | 'image/gif';
+                const mediaType = (image.mimeType || image.mediaType || 'image/png') as
+                    | 'image/png'
+                    | 'image/jpeg'
+                    | 'image/webp'
+                    | 'image/gif';
                 const data = image.data || image.base64 || '';
 
                 content.push({
@@ -348,7 +352,8 @@ export class AnthropicProvider implements LLMProvider {
         } catch (error) {
             return {
                 healthy: false,
-                message: `Anthropic API error: ${error instanceof Error ? error.message : String(error)}. ` +
+                message:
+                    `Anthropic API error: ${error instanceof Error ? error.message : String(error)}. ` +
                     'Check your API key and model name.',
             };
         }

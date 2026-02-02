@@ -412,14 +412,8 @@ export class LLMProviderError extends Error {
  * Error thrown when a required capability is not supported
  */
 export class UnsupportedCapabilityError extends LLMProviderError {
-    constructor(
-        provider: string,
-        capability: string,
-    ) {
-        super(
-            `Provider '${provider}' does not support capability: ${capability}`,
-            provider,
-        );
+    constructor(provider: string, capability: string) {
+        super(`Provider '${provider}' does not support capability: ${capability}`, provider);
         this.name = 'UnsupportedCapabilityError';
     }
 }

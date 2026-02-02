@@ -4,7 +4,8 @@
 import {readFileSync, existsSync} from 'fs';
 import {join, dirname} from 'path';
 import {createHash} from 'crypto';
-import {marked, type Token, type Tokens} from 'marked';
+
+import {marked, type Tokens} from 'marked';
 
 import type {LLMProvider} from './llm';
 import type {BusinessScenario, FeatureSpecification, SpecScreenshot} from './types';
@@ -297,7 +298,9 @@ export class SpecificationParser {
 
             return specs;
         } catch (error) {
-            throw new Error(`Failed to parse JSON specification: ${error instanceof Error ? error.message : String(error)}`);
+            throw new Error(
+                `Failed to parse JSON specification: ${error instanceof Error ? error.message : String(error)}`,
+            );
         }
     }
 
@@ -319,6 +322,8 @@ export class SpecificationParser {
      * - Screenshots/mockups for visual comparison
      */
     private async parsePDF(pdfPath: string): Promise<FeatureSpecification[]> {
+        /* eslint-disable no-console */
+        // Console output is expected for PDF parsing progress
         console.log(`📄 Parsing PDF specification: ${pdfPath}`);
 
         // Read PDF file first to calculate hash
@@ -345,8 +350,8 @@ export class SpecificationParser {
         if (!this.llmProvider.capabilities.vision) {
             throw new Error(
                 'PDF parsing requires a vision-capable LLM provider (e.g., Anthropic Claude). ' +
-                'Current provider does not support vision. ' +
-                'Use --llm-provider anthropic or --llm-provider hybrid',
+                    'Current provider does not support vision. ' +
+                    'Use --llm-provider anthropic or --llm-provider hybrid',
             );
         }
 
@@ -489,12 +494,15 @@ ${pdfText}
 
             // Remove markdown code blocks if present (handle various formats)
             // Try multiple patterns to be more robust
-            let jsonMatch = jsonText.match(/```(?:json)?\s*([\s\S]+?)\s*```/);
+            const jsonMatch = jsonText.match(/```(?:json)?\s*([\s\S]+?)\s*```/);
             if (jsonMatch) {
                 jsonText = jsonMatch[1].trim();
             } else if (jsonText.startsWith('```')) {
                 // Fallback: remove all triple backticks
-                jsonText = jsonText.replace(/```[^\n]*\n?/g, '').replace(/```\s*$/g, '').trim();
+                jsonText = jsonText
+                    .replace(/```[^\n]*\n?/g, '')
+                    .replace(/```\s*$/g, '')
+                    .trim();
             }
 
             let data;
@@ -525,7 +533,7 @@ ${pdfText}
                 try {
                     data = JSON.parse(repairedJson);
                     console.log('✓ JSON repair successful!');
-                } catch (repairError) {
+                } catch {
                     // If repair failed, ask LLM to fix it
                     console.log('JSON repair failed, requesting LLM to fix the JSON...');
                     const fixPrompt = `
@@ -549,7 +557,10 @@ Return the corrected JSON:`.trim();
                     if (fixedMatch) {
                         fixedJson = fixedMatch[1].trim();
                     } else if (fixedJson.startsWith('```')) {
-                        fixedJson = fixedJson.replace(/```[^\n]*\n?/g, '').replace(/```\s*$/g, '').trim();
+                        fixedJson = fixedJson
+                            .replace(/```[^\n]*\n?/g, '')
+                            .replace(/```\s*$/g, '')
+                            .trim();
                     }
 
                     try {
@@ -615,6 +626,7 @@ Return the corrected JSON:`.trim();
                 }
             }
 
+            /* eslint-enable no-console */
             return specs;
         } catch (error) {
             if (error instanceof Error && error.message.includes('vision')) {
@@ -623,8 +635,8 @@ Return the corrected JSON:`.trim();
 
             throw new Error(
                 `Failed to parse PDF specification: ${error instanceof Error ? error.message : String(error)}. ` +
-                'Ensure the PDF contains readable text and images. ' +
-                'For scanned PDFs, ensure they have been OCR processed.',
+                    'Ensure the PDF contains readable text and images. ' +
+                    'For scanned PDFs, ensure they have been OCR processed.',
             );
         }
     }
@@ -669,12 +681,15 @@ Respond with valid JSON in this format:
             // Extract JSON from response (might have markdown code blocks)
             let jsonText = response.text.trim();
             // Try multiple patterns to be more robust
-            let jsonMatch = jsonText.match(/```(?:json)?\s*([\s\S]+?)\s*```/);
+            const jsonMatch = jsonText.match(/```(?:json)?\s*([\s\S]+?)\s*```/);
             if (jsonMatch) {
                 jsonText = jsonMatch[1].trim();
             } else if (jsonText.startsWith('```')) {
                 // Fallback: remove all triple backticks
-                jsonText = jsonText.replace(/```[^\n]*\n?/g, '').replace(/```\s*$/g, '').trim();
+                jsonText = jsonText
+                    .replace(/```[^\n]*\n?/g, '')
+                    .replace(/```\s*$/g, '')
+                    .trim();
             }
 
             const data = JSON.parse(jsonText);
@@ -701,7 +716,9 @@ Respond with valid JSON in this format:
                 },
             ];
         } catch (error) {
-            throw new Error(`Failed to parse focus string with LLM: ${error instanceof Error ? error.message : String(error)}`);
+            throw new Error(
+                `Failed to parse focus string with LLM: ${error instanceof Error ? error.message : String(error)}`,
+            );
         }
     }
 
@@ -773,9 +790,11 @@ Respond with valid JSON in this format:
                         const imageData = readFileSync(screenshot.path);
                         screenshot.data = imageData.toString('base64');
                     } else {
+                        // eslint-disable-next-line no-console
                         console.warn(`Screenshot not found: ${screenshot.path}`);
                     }
                 } catch (error) {
+                    // eslint-disable-next-line no-console
                     console.warn(`Failed to load screenshot ${screenshot.path}:`, error);
                 }
             }
@@ -791,11 +810,6 @@ Respond with valid JSON in this format:
         if (!spec.name || spec.name.trim().length === 0) {
             errors.push('Feature name is required');
         }
-
-        // targetUrls are optional - PDF specs describe behavior, not routes
-        // if (spec.targetUrls.length === 0) {
-        //     errors.push('At least one target URL is required');
-        // }
 
         if (spec.scenarios.length === 0) {
             errors.push('At least one scenario is required');

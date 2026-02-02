@@ -226,5 +226,10 @@ export interface GeneratedTest {
     /**
      * Generation method
      */
-    generatedBy: 'playwright-planner' | 'playwright-generator' | 'manual' | 'autonomous-system' | 'spec-driven-generator';
+    generatedBy:
+        | 'playwright-planner'
+        | 'playwright-generator'
+        | 'manual'
+        | 'autonomous-system'
+        | 'spec-driven-generator';
 }
