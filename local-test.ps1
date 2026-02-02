@@ -25,6 +25,19 @@ param(
 
 $ErrorActionPreference = "Stop"
 
+# Enable UTF-8 for Spectre Console and suppress encoding warning
+$OutputEncoding = [console]::InputEncoding = [console]::OutputEncoding = [System.Text.UTF8Encoding]::new()
+$env:IgnoreSpectreEncoding = $true
+
+# Try to import PwshSpectreConsole for nice progress display
+$script:HasSpectre = $false
+try {
+    Import-Module PwshSpectreConsole -ErrorAction Stop
+    $script:HasSpectre = $true
+} catch {
+    # Module not installed, will use fallback display
+}
+
 # Script directory and log file
 $SCRIPT_DIR = $PSScriptRoot
 $LOG_FILE = Join-Path $SCRIPT_DIR "local-test.log"
@@ -419,20 +432,22 @@ function Show-Help {
     Log "Usage: ./local-test.ps1 [command]"
     Log ""
     Log "Commands:"
-    Log "  setup     - First-time setup (extract backup, create containers)"
-    Log "  start     - Start the local Mattermost server"
-    Log "  stop      - Stop all containers"
-    Log "  status    - Show container status"
-    Log "  logs      - View Mattermost server logs"
-    Log "  psql      - Open PostgreSQL shell"
-    Log "  clean     - Remove all test data and containers"
-    Log "  build     - Build server binary for testing"
-    Log "  webapp    - Build webapp from source and copy to test dir"
-    Log "  docker    - Run using official Docker image (simpler, no code changes)"
+    Log "  setup      - First-time setup (extract backup, create containers)"
+    Log "  start      - Start the local Mattermost server"
+    Log "  stop       - Stop all containers"
+    Log "  status     - Show container status"
+    Log "  logs       - View Mattermost server logs"
+    Log "  psql       - Open PostgreSQL shell"
+    Log "  clean      - Remove all test data and containers"
+    Log "  build      - Build server binary for testing"
+    Log "  webapp     - Build webapp from source and copy to test dir"
+    Log "  webapp-dev - Run webapp in dev mode with hot reload (for debugging)"
+    Log "  dev        - Alias for webapp-dev"
+    Log "  docker     - Run using official Docker image (simpler, no code changes)"
     Log "  fix-config - Reset config.json to clean local settings"
-    Log "  kill      - Kill the running Mattermost server process"
-    Log "  s3-sync   - Download S3 storage files (uploads, plugins, etc.)"
-    Log "  all       - Run everything: kill, setup, build, webapp, start"
+    Log "  kill       - Kill the running Mattermost server process"
+    Log "  s3-sync    - Download S3 storage files (uploads, plugins, etc.)"
+    Log "  all        - Run everything: kill, setup, build, webapp, start"
     Log ""
     Log "Configuration:"
     Log "  Edit local-test.config with your backup path and settings"
@@ -883,6 +898,57 @@ function Invoke-Build {
     }
 
     Log-Success "Build complete: $outputPath"
+}
+
+function Invoke-WebappDev {
+    Log ""
+    Log "=== Starting Webapp in Development Mode ==="
+    Log ""
+    Log "This runs the webapp with hot reloading and FULL error messages."
+    Log "Useful for debugging React errors like #130."
+    Log ""
+
+    # Check Node.js version
+    $nodeVersion = node --version 2>$null
+    if (!$nodeVersion) {
+        Log-Error "Node.js is not installed."
+        exit 1
+    }
+
+    $webappDir = Join-Path $SCRIPT_DIR "webapp\channels"
+
+    # Check if node_modules exists
+    $nodeModules = Join-Path $webappDir "node_modules"
+    if (!(Test-Path $nodeModules)) {
+        Log "node_modules not found. Running npm install first..."
+        Push-Location (Join-Path $SCRIPT_DIR "webapp")
+        $env:NODE_OPTIONS = "--max-old-space-size=8192"
+        $result = & npm install --force --legacy-peer-deps 2>&1
+        if ($LASTEXITCODE -ne 0) {
+            Log-Error "npm install failed"
+            Pop-Location
+            exit 1
+        }
+        Pop-Location
+    }
+
+    Log "Starting development server..."
+    Log "The webapp will proxy API requests to http://localhost:$MM_PORT"
+    Log ""
+    Log "Press Ctrl+C to stop"
+    Log ""
+
+    Push-Location $webappDir
+    $env:NODE_OPTIONS = "--max-old-space-size=8192"
+
+    # Run the dev server - it will show full React error messages
+    # Note: The script is "dev-server" not "dev" (webpack serve --mode development)
+    & npm run dev-server 2>&1 | ForEach-Object {
+        $_ | Out-File $LOG_FILE -Append -Encoding UTF8
+        Write-Host $_
+    }
+
+    Pop-Location
 }
 
 function Invoke-Webapp {
@@ -1411,375 +1477,405 @@ function Invoke-Migrate {
 }
 
 function Invoke-All {
-    Log ""
-    Log "=== Running Full Setup and Build (Optimized) ==="
-    Log ""
-    Log "Running parallel operations for faster builds..."
-    Log ""
-
     $allStartTime = Get-Date
 
-    # Step 1: Kill any running server (quick)
-    Log "[Step 1] Killing any running server..."
-    $process = Get-Process -Name "mattermost" -ErrorAction SilentlyContinue
-    if ($process) {
-        Stop-Process -Name "mattermost" -Force
-        Log "Mattermost server killed."
+    # Log to file
+    "Starting full setup and build..." | Out-File $LOG_FILE -Append -Encoding UTF8
+
+    # Shared state for tracking progress
+    $script:AllState = @{
+        GoSuccess = $null
+        GoOutput = @()
+        WebappSuccess = $null
+        WebappOutput = @()
+        WebappStage = ""
+        UserCount = 0
+        Error = $null
     }
 
-    # Step 2: Clean database container (quick)
-    Log "[Step 2] Cleaning database container..."
-    docker rm -f $PG_CONTAINER 2>$null | Out-Null
-    $pgDataPath = Join-Path $WORK_DIR "pgdata"
-    if (Test-Path $pgDataPath) {
-        Remove-Item -Path $pgDataPath -Recurse -Force
-    }
-
-    # Ensure work directory exists
-    if (!(Test-Path $WORK_DIR)) {
-        New-Item -ItemType Directory -Path $WORK_DIR -Force | Out-Null
-    }
-
-    # Check Docker is running
-    $dockerCheck = docker info 2>&1
-    if ($LASTEXITCODE -ne 0) {
-        Log-Error "Docker is not running. Please start Docker Desktop."
-        exit 1
-    }
-
-    # Step 3: Start PostgreSQL container (runs in background while we do other work)
-    Log "[Step 3] Starting PostgreSQL container (background)..."
-    $dockerArgs = @(
-        "run", "-d",
-        "--name", $PG_CONTAINER,
-        "-e", "POSTGRES_USER=$PG_USER",
-        "-e", "POSTGRES_PASSWORD=$PG_PASSWORD",
-        "-e", "POSTGRES_DB=$PG_DATABASE",
-        "-p", "${PG_PORT}:5432",
-        "-v", "${pgDataPath}:/var/lib/postgresql/data",
-        "postgres:15-alpine"
-    )
-    $result = & docker @dockerArgs 2>&1
-    if ($LASTEXITCODE -ne 0) {
-        Log-Error "Failed to create PostgreSQL container"
-        exit 1
-    }
-
-    # Step 4: Start parallel builds while PostgreSQL initializes
-    Log "[Step 4] Starting parallel builds..."
-    Log "  - Go server build (background job)"
-    Log "  - Webapp npm install + build (background job)"
-    Log ""
-
+    # Path variables
     $serverDir = Join-Path $SCRIPT_DIR "server"
     $webappDir = Join-Path $SCRIPT_DIR "webapp"
     $outputPath = Join-Path $WORK_DIR "mattermost.exe"
     $clientDir = Join-Path $WORK_DIR "client"
-
-    # Start Go build as background job
-    $goBuildJob = Start-Job -ScriptBlock {
-        param($serverDir, $outputPath)
-        Set-Location $serverDir
-        $result = & go build -o $outputPath ./cmd/mattermost 2>&1
-        @{
-            Success = ($LASTEXITCODE -eq 0)
-            Output = $result
-            ExitCode = $LASTEXITCODE
-        }
-    } -ArgumentList $serverDir, $outputPath
-
-    # Start webapp build as background job
-    $webappBuildJob = Start-Job -ScriptBlock {
-        param($webappDir, $clientDir)
-        Set-Location $webappDir
-        $env:NODE_OPTIONS = "--max-old-space-size=8192"
-
-        $output = @()
-
-        # npm install
-        $output += "=== npm install ==="
-        $installResult = & npm install --force --legacy-peer-deps 2>&1
-        $output += $installResult
-        if ($LASTEXITCODE -ne 0) {
-            return @{
-                Success = $false
-                Output = $output
-                Stage = "npm install"
-                ExitCode = $LASTEXITCODE
-            }
-        }
-
-        # npm build
-        $output += ""
-        $output += "=== npm run build ==="
-        $buildResult = & npm run build 2>&1
-        $output += $buildResult
-        if ($LASTEXITCODE -ne 0) {
-            return @{
-                Success = $false
-                Output = $output
-                Stage = "npm build"
-                ExitCode = $LASTEXITCODE
-            }
-        }
-
-        @{
-            Success = $true
-            Output = $output
-            Stage = "complete"
-            ExitCode = 0
-        }
-    } -ArgumentList $webappDir, $clientDir
-
-    # Step 5: While builds run, extract backup and wait for PostgreSQL
-    Log "[Step 5] Extracting backup (while builds run in background)..."
+    $pgDataPath = Join-Path $WORK_DIR "pgdata"
     $backupDir = Join-Path $WORK_DIR "backup"
-    $dumpFile = Join-Path $backupDir "postgresqldump"
+    $dataDir = Join-Path $WORK_DIR "data"
 
-    if (!(Test-Path $backupDir) -or !(Test-Path $dumpFile)) {
-        if (Test-Path $backupDir) {
-            Remove-Item -Path $backupDir -Recurse -Force
-        }
-        New-Item -ItemType Directory -Path $backupDir -Force | Out-Null
+    if ($script:HasSpectre) {
+        # =====================================================================
+        # SPECTRE CONSOLE VERSION - Nice progress display
+        # =====================================================================
+        Write-SpectreRule "Mattermost Local Test - Full Setup" -Color "Blue"
+        Write-Host ""
 
-        $sevenZipPath = $null
-        $sevenZipCmd = Get-Command 7z -ErrorAction SilentlyContinue
-        if ($sevenZipCmd) {
-            $sevenZipPath = "7z"
-        } elseif (Test-Path "C:\Program Files\7-Zip\7z.exe") {
-            $sevenZipPath = "C:\Program Files\7-Zip\7z.exe"
+        Invoke-SpectreCommandWithProgress -ScriptBlock {
+            param([Spectre.Console.ProgressContext]$ctx)
+
+            # Create all tasks upfront
+            $taskKill = $ctx.AddTask("[blue]Kill server[/]")
+            $taskClean = $ctx.AddTask("[blue]Clean database[/]")
+            $taskPostgres = $ctx.AddTask("[blue]Start PostgreSQL[/]")
+            $taskExtract = $ctx.AddTask("[blue]Extract backup[/]")
+            $taskRestore = $ctx.AddTask("[blue]Restore database[/]")
+            $taskConfig = $ctx.AddTask("[blue]Setup config[/]")
+            $taskGo = $ctx.AddTask("[green]Go build[/]")
+            $taskWebapp = $ctx.AddTask("[green]Webapp build[/]")
+            $taskCopy = $ctx.AddTask("[blue]Copy webapp[/]")
+
+            # Task 1: Kill server
+            $taskKill.StartTask()
+            $process = Get-Process -Name "mattermost" -ErrorAction SilentlyContinue
+            if ($process) { Stop-Process -Name "mattermost" -Force }
+            "Killed mattermost process" | Out-File $LOG_FILE -Append -Encoding UTF8
+            $taskKill.Increment(100)
+
+            # Task 2: Clean database
+            $taskClean.StartTask()
+            docker rm -f $PG_CONTAINER 2>$null | Out-Null
+            if (Test-Path $pgDataPath) { Remove-Item -Path $pgDataPath -Recurse -Force }
+            if (!(Test-Path $WORK_DIR)) { New-Item -ItemType Directory -Path $WORK_DIR -Force | Out-Null }
+            "Cleaned database container" | Out-File $LOG_FILE -Append -Encoding UTF8
+            $taskClean.Increment(100)
+
+            # Check Docker
+            $dockerCheck = docker info 2>&1
+            if ($LASTEXITCODE -ne 0) {
+                $script:AllState.Error = "Docker is not running"
+                return
+            }
+
+            # Task 3: Start PostgreSQL (don't wait yet)
+            $taskPostgres.StartTask()
+            $dockerArgs = @(
+                "run", "-d", "--name", $PG_CONTAINER,
+                "-e", "POSTGRES_USER=$PG_USER", "-e", "POSTGRES_PASSWORD=$PG_PASSWORD",
+                "-e", "POSTGRES_DB=$PG_DATABASE", "-p", "${PG_PORT}:5432",
+                "-v", "${pgDataPath}:/var/lib/postgresql/data", "postgres:15-alpine"
+            )
+            $result = & docker @dockerArgs 2>&1
+            "Started PostgreSQL container" | Out-File $LOG_FILE -Append -Encoding UTF8
+            $taskPostgres.Increment(50)
+
+            # Start parallel build jobs
+            $taskGo.StartTask()
+            $taskWebapp.StartTask()
+
+            $goBuildJob = Start-Job -ScriptBlock {
+                param($serverDir, $outputPath)
+                Set-Location $serverDir
+                $result = & go build -o $outputPath ./cmd/mattermost 2>&1
+                @{ Success = ($LASTEXITCODE -eq 0); Output = $result; ExitCode = $LASTEXITCODE }
+            } -ArgumentList $serverDir, $outputPath
+
+            $webappBuildJob = Start-Job -ScriptBlock {
+                param($webappDir)
+                Set-Location $webappDir
+                $env:NODE_OPTIONS = "--max-old-space-size=8192"
+                $output = @()
+                $output += "=== npm install ==="
+                $installResult = & npm install --force --legacy-peer-deps 2>&1
+                $output += $installResult
+                if ($LASTEXITCODE -ne 0) {
+                    return @{ Success = $false; Output = $output; Stage = "npm install"; ExitCode = $LASTEXITCODE }
+                }
+                $output += ""; $output += "=== npm run build ==="
+                $buildResult = & npm run build 2>&1
+                $output += $buildResult
+                if ($LASTEXITCODE -ne 0) {
+                    return @{ Success = $false; Output = $output; Stage = "npm build"; ExitCode = $LASTEXITCODE }
+                }
+                @{ Success = $true; Output = $output; Stage = "complete"; ExitCode = 0 }
+            } -ArgumentList $webappDir
+
+            # Task 4: Extract backup (while builds run)
+            $taskExtract.StartTask()
+            $dumpFile = Join-Path $backupDir "postgresqldump"
+            if (!(Test-Path $backupDir) -or !(Test-Path $dumpFile)) {
+                if (Test-Path $backupDir) { Remove-Item -Path $backupDir -Recurse -Force }
+                New-Item -ItemType Directory -Path $backupDir -Force | Out-Null
+                $sevenZipPath = $null
+                $sevenZipCmd = Get-Command 7z -ErrorAction SilentlyContinue
+                if ($sevenZipCmd) { $sevenZipPath = "7z" }
+                elseif (Test-Path "C:\Program Files\7-Zip\7z.exe") { $sevenZipPath = "C:\Program Files\7-Zip\7z.exe" }
+                if ($sevenZipPath) {
+                    & $sevenZipPath x $BACKUP_PATH -so 2>$null | & $sevenZipPath x -si -ttar -o"$backupDir" 2>&1 | Out-Null
+                } else {
+                    & tar -xzf $BACKUP_PATH -C $backupDir 2>&1 | Out-Null
+                }
+                "Extracted backup" | Out-File $LOG_FILE -Append -Encoding UTF8
+            } else {
+                "Backup already extracted" | Out-File $LOG_FILE -Append -Encoding UTF8
+            }
+            $taskExtract.Increment(100)
+
+            # Wait for PostgreSQL
+            $maxAttempts = 30; $attempt = 0
+            do {
+                Start-Sleep -Seconds 1; $attempt++
+                docker exec $PG_CONTAINER pg_isready -U $PG_USER 2>$null | Out-Null
+            } while ($LASTEXITCODE -ne 0 -and $attempt -lt $maxAttempts)
+            $attempt = 0
+            do {
+                Start-Sleep -Seconds 1; $attempt++
+                docker exec $PG_CONTAINER psql -U $PG_USER -d $PG_DATABASE -c "SELECT 1" 2>$null | Out-Null
+            } while ($LASTEXITCODE -ne 0 -and $attempt -lt 10)
+            "PostgreSQL ready" | Out-File $LOG_FILE -Append -Encoding UTF8
+            $taskPostgres.Increment(50)
+
+            # Task 5: Restore database
+            $taskRestore.StartTask()
+            $sqlDump = Join-Path $backupDir "postgresqldump"
+            if (Test-Path $sqlDump) {
+                Get-Content $sqlDump -Raw | docker exec -i $PG_CONTAINER psql -U $PG_USER -d $PG_DATABASE 2>&1 | Out-Null
+                $userCountResult = docker exec $PG_CONTAINER psql -U $PG_USER -d $PG_DATABASE -t -c "SELECT COUNT(*) FROM users" 2>$null
+                if ($userCountResult) {
+                    $userCountStr = ($userCountResult -join "").Trim()
+                    if ($userCountStr -match '^\d+$') { $script:AllState.UserCount = [int]$userCountStr }
+                }
+                "Database restored ($($script:AllState.UserCount) users)" | Out-File $LOG_FILE -Append -Encoding UTF8
+                if ($script:AllState.UserCount -gt 0) {
+                    Reset-Passwords | Out-Null
+                    "Passwords reset" | Out-File $LOG_FILE -Append -Encoding UTF8
+                }
+            }
+            $taskRestore.Increment(100)
+
+            # Task 6: Setup config
+            $taskConfig.StartTask()
+            $backupDataDir = Join-Path $backupDir "data"
+            if (Test-Path $backupDataDir) {
+                Copy-Item -Path "$backupDataDir\*" -Destination $dataDir -Recurse -Force -ErrorAction SilentlyContinue
+            } elseif (!(Test-Path $dataDir)) {
+                New-Item -ItemType Directory -Path $dataDir -Force | Out-Null
+            }
+            $pluginsDir = Join-Path $dataDir "plugins"
+            $clientPluginsDir = Join-Path $dataDir "client\plugins"
+            if (!(Test-Path $pluginsDir)) { New-Item -ItemType Directory -Path $pluginsDir -Force | Out-Null }
+            if (!(Test-Path $clientPluginsDir)) { New-Item -ItemType Directory -Path $clientPluginsDir -Force | Out-Null }
+
+            # Build config
+            $backupConfig = Get-BackupConfig
+            $workDirUnix = $WORK_DIR -replace "\\", "/"
+            $config = [ordered]@{}
+            $config['ServiceSettings'] = [ordered]@{ 'SiteURL' = "http://localhost:$MM_PORT"; 'ListenAddress' = ":$MM_PORT"; 'EnableDeveloper' = $true; 'EnableTesting' = $false; 'AllowCorsFrom' = '*'; 'EnableLocalMode' = $false }
+            if ($backupConfig -and $backupConfig.PSObject.Properties['TeamSettings']) { $config['TeamSettings'] = $backupConfig.TeamSettings }
+            else { $config['TeamSettings'] = [ordered]@{ 'SiteName' = 'Mattermost Local Test'; 'EnableUserCreation' = $true; 'EnableOpenServer' = $true; 'EnableCustomUserStatuses' = $true; 'EnableLastActiveTime' = $true } }
+            $config['SqlSettings'] = [ordered]@{ 'DriverName' = 'postgres'; 'DataSource' = "postgres://${PG_USER}:${PG_PASSWORD}@localhost:${PG_PORT}/${PG_DATABASE}?sslmode=disable"; 'DataSourceReplicas' = @(); 'MaxIdleConns' = 20; 'MaxOpenConns' = 300 }
+            $config['FileSettings'] = [ordered]@{ 'DriverName' = 'local'; 'Directory' = "$workDirUnix/data"; 'EnableFileAttachments' = $true; 'EnablePublicLink' = $true }
+            $config['LogSettings'] = [ordered]@{ 'EnableConsole' = $true; 'ConsoleLevel' = 'DEBUG'; 'ConsoleJson' = $false; 'EnableFile' = $true; 'FileLevel' = 'INFO'; 'FileJson' = $false; 'FileLocation' = "$workDirUnix" }
+            $prodPluginSettings = Get-PluginSettingsFromBackup -BackupConfig $backupConfig
+            $config['PluginSettings'] = [ordered]@{ 'Enable' = $true; 'EnableUploads' = $true; 'Directory' = "$workDirUnix/data/plugins"; 'ClientDirectory' = "$workDirUnix/data/client/plugins" }
+            if ($prodPluginSettings) {
+                if ($prodPluginSettings.PSObject.Properties['Plugins']) { $config['PluginSettings']['Plugins'] = $prodPluginSettings.Plugins }
+                if ($prodPluginSettings.PSObject.Properties['PluginStates']) { $config['PluginSettings']['PluginStates'] = $prodPluginSettings.PluginStates }
+            }
+            $config['EmailSettings'] = [ordered]@{ 'EnableSignUpWithEmail' = $true; 'EnableSignInWithEmail' = $true; 'EnableSignInWithUsername' = $true; 'SendEmailNotifications' = $false; 'RequireEmailVerification' = $false }
+            $config['RateLimitSettings'] = [ordered]@{ 'Enable' = $false }
+            if ($backupConfig -and $backupConfig.PSObject.Properties['PrivacySettings']) { $config['PrivacySettings'] = $backupConfig.PrivacySettings }
+            else { $config['PrivacySettings'] = [ordered]@{ 'ShowEmailAddress' = $true; 'ShowFullName' = $true } }
+            $featureFlags = Get-FeatureFlagsFromBackup -BackupConfig $backupConfig -TryDatabase
+            $config['FeatureFlags'] = $featureFlags
+            $extSettings = Get-MattermostExtendedSettingsFromBackup -BackupConfig $backupConfig -TryDatabase
+            $config['MattermostExtendedSettings'] = $extSettings
+            $configPath = Join-Path $WORK_DIR "config.json"
+            [System.IO.File]::WriteAllText($configPath, ($config | ConvertTo-Json -Depth 10))
+            "Config created" | Out-File $LOG_FILE -Append -Encoding UTF8
+            $taskConfig.Increment(100)
+
+            # Wait for builds with progress updates
+            while ($goBuildJob.State -ne 'Completed' -or $webappBuildJob.State -ne 'Completed') {
+                if ($goBuildJob.State -eq 'Completed' -and $taskGo.Value -lt 100) { $taskGo.Increment(100 - $taskGo.Value) }
+                elseif ($taskGo.Value -lt 95) { $taskGo.Increment(2) }
+                if ($webappBuildJob.State -eq 'Completed' -and $taskWebapp.Value -lt 100) { $taskWebapp.Increment(100 - $taskWebapp.Value) }
+                elseif ($taskWebapp.Value -lt 95) { $taskWebapp.Increment(1) }
+                Start-Sleep -Milliseconds 500
+            }
+            $taskGo.Increment(100 - $taskGo.Value)
+            $taskWebapp.Increment(100 - $taskWebapp.Value)
+
+            # Get build results
+            $goResult = Receive-Job $goBuildJob
+            $webappResult = Receive-Job $webappBuildJob
+            $script:AllState.GoSuccess = $goResult.Success
+            $script:AllState.GoOutput = $goResult.Output
+            $script:AllState.WebappSuccess = $webappResult.Success
+            $script:AllState.WebappOutput = $webappResult.Output
+            $script:AllState.WebappStage = $webappResult.Stage
+            $goResult.Output | Out-File $LOG_FILE -Append -Encoding UTF8
+            $webappResult.Output | Out-File $LOG_FILE -Append -Encoding UTF8
+            Remove-Job $goBuildJob, $webappBuildJob -Force
+
+            # Task 9: Copy webapp
+            $taskCopy.StartTask()
+            if ($script:AllState.WebappSuccess) {
+                if (Test-Path $clientDir) { Remove-Item -Path $clientDir -Recurse -Force }
+                $distDir = Join-Path $webappDir "channels\dist"
+                Copy-Item -Path $distDir -Destination $clientDir -Recurse -Force
+                "Webapp copied" | Out-File $LOG_FILE -Append -Encoding UTF8
+            }
+            $taskCopy.Increment(100)
         }
 
-        if ($sevenZipPath) {
-            $result = & $sevenZipPath x $BACKUP_PATH -so 2>$null | & $sevenZipPath x -si -ttar -o"$backupDir" 2>&1
-        } else {
-            $result = & tar -xzf $BACKUP_PATH -C $backupDir 2>&1
-        }
-        if ($LASTEXITCODE -ne 0) {
-            Log-Error "Failed to extract backup"
-            Stop-Job $goBuildJob, $webappBuildJob -ErrorAction SilentlyContinue
-            Remove-Job $goBuildJob, $webappBuildJob -Force -ErrorAction SilentlyContinue
+        Write-Host ""
+
+        # Check for errors
+        if ($script:AllState.Error) {
+            Log-Error $script:AllState.Error
             exit 1
         }
-        Log "Backup extracted."
-    } else {
-        Log "Backup already extracted, skipping."
-    }
-
-    # Wait for PostgreSQL to be ready
-    Log "Waiting for PostgreSQL..."
-    $maxAttempts = 30
-    $attempt = 0
-    do {
-        Start-Sleep -Seconds 1
-        $attempt++
-        $pgReady = docker exec $PG_CONTAINER pg_isready -U $PG_USER 2>$null
-    } while ($LASTEXITCODE -ne 0 -and $attempt -lt $maxAttempts)
-
-    if ($LASTEXITCODE -ne 0) {
-        Log-Error "PostgreSQL failed to start"
-        Stop-Job $goBuildJob, $webappBuildJob -ErrorAction SilentlyContinue
-        Remove-Job $goBuildJob, $webappBuildJob -Force -ErrorAction SilentlyContinue
-        exit 1
-    }
-
-    # Wait for database creation
-    $attempt = 0
-    do {
-        Start-Sleep -Seconds 1
-        $attempt++
-        $dbExists = docker exec $PG_CONTAINER psql -U $PG_USER -d $PG_DATABASE -c "SELECT 1" 2>$null
-    } while ($LASTEXITCODE -ne 0 -and $attempt -lt 10)
-    Log-Success "PostgreSQL ready."
-
-    # Step 6: Restore database (while builds continue)
-    Log "[Step 6] Restoring database (builds still running)..."
-    $sqlDump = Join-Path $backupDir "postgresqldump"
-    if (Test-Path $sqlDump) {
-        $result = Get-Content $sqlDump -Raw | docker exec -i $PG_CONTAINER psql -U $PG_USER -d $PG_DATABASE 2>&1
-
-        $userCountResult = docker exec $PG_CONTAINER psql -U $PG_USER -d $PG_DATABASE -t -c "SELECT COUNT(*) FROM users" 2>$null
-        $userCount = 0
-        if ($userCountResult) {
-            $userCountStr = ($userCountResult -join "").Trim()
-            if ($userCountStr -match '^\d+$') {
-                $userCount = [int]$userCountStr
-            }
+        if (-not $script:AllState.GoSuccess) {
+            Log-Error "Go build failed:"
+            $script:AllState.GoOutput | Select-Object -Last 20 | ForEach-Object { Write-Host $_ -ForegroundColor Red }
+            exit 1
         }
-        Log "Database restored ($userCount users)."
+        if (-not $script:AllState.WebappSuccess) {
+            Log-Error "Webapp build failed at $($script:AllState.WebappStage):"
+            $script:AllState.WebappOutput | Select-Object -Last 20 | ForEach-Object { Write-Host $_ -ForegroundColor Red }
+            exit 1
+        }
 
-        if ($userCount -gt 0) {
-            Log "Resetting passwords to 'test'..."
+    } else {
+        # =====================================================================
+        # FALLBACK VERSION - Simple text output
+        # =====================================================================
+        Write-Host ""
+        Write-Host "=== Mattermost Local Test - Full Setup ===" -ForegroundColor Cyan
+        Write-Host ""
+
+        # Simple task display
+        function Show-Task { param([string]$Name, [string]$Status, [ConsoleColor]$Color = "White")
+            Write-Host "  " -NoNewline
+            switch ($Status) {
+                "pending"  { Write-Host "[ ]" -NoNewline -ForegroundColor DarkGray }
+                "running"  { Write-Host "[*]" -NoNewline -ForegroundColor Yellow }
+                "done"     { Write-Host "[+]" -NoNewline -ForegroundColor Green }
+                "failed"   { Write-Host "[X]" -NoNewline -ForegroundColor Red }
+            }
+            Write-Host " $Name" -ForegroundColor $Color
+        }
+
+        Show-Task "Kill server" "running"
+        $process = Get-Process -Name "mattermost" -ErrorAction SilentlyContinue
+        if ($process) { Stop-Process -Name "mattermost" -Force }
+
+        Show-Task "Clean database" "running"
+        docker rm -f $PG_CONTAINER 2>$null | Out-Null
+        if (Test-Path $pgDataPath) { Remove-Item -Path $pgDataPath -Recurse -Force }
+        if (!(Test-Path $WORK_DIR)) { New-Item -ItemType Directory -Path $WORK_DIR -Force | Out-Null }
+
+        $dockerCheck = docker info 2>&1
+        if ($LASTEXITCODE -ne 0) { Log-Error "Docker is not running"; exit 1 }
+
+        Show-Task "Start PostgreSQL" "running"
+        $dockerArgs = @("run", "-d", "--name", $PG_CONTAINER, "-e", "POSTGRES_USER=$PG_USER", "-e", "POSTGRES_PASSWORD=$PG_PASSWORD", "-e", "POSTGRES_DB=$PG_DATABASE", "-p", "${PG_PORT}:5432", "-v", "${pgDataPath}:/var/lib/postgresql/data", "postgres:15-alpine")
+        & docker @dockerArgs 2>&1 | Out-Null
+
+        Show-Task "Starting parallel builds..." "running"
+        $goBuildJob = Start-Job -ScriptBlock {
+            param($serverDir, $outputPath)
+            Set-Location $serverDir
+            $result = & go build -o $outputPath ./cmd/mattermost 2>&1
+            @{ Success = ($LASTEXITCODE -eq 0); Output = $result }
+        } -ArgumentList $serverDir, $outputPath
+
+        $webappBuildJob = Start-Job -ScriptBlock {
+            param($webappDir)
+            Set-Location $webappDir
+            $env:NODE_OPTIONS = "--max-old-space-size=8192"
+            $output = @()
+            $installResult = & npm install --force --legacy-peer-deps 2>&1
+            $output += $installResult
+            if ($LASTEXITCODE -ne 0) { return @{ Success = $false; Output = $output; Stage = "npm install" } }
+            $buildResult = & npm run build 2>&1
+            $output += $buildResult
+            if ($LASTEXITCODE -ne 0) { return @{ Success = $false; Output = $output; Stage = "npm build" } }
+            @{ Success = $true; Output = $output; Stage = "complete" }
+        } -ArgumentList $webappDir
+
+        Show-Task "Extract backup" "running"
+        $dumpFile = Join-Path $backupDir "postgresqldump"
+        if (!(Test-Path $backupDir) -or !(Test-Path $dumpFile)) {
+            if (Test-Path $backupDir) { Remove-Item -Path $backupDir -Recurse -Force }
+            New-Item -ItemType Directory -Path $backupDir -Force | Out-Null
+            $sevenZipPath = if (Get-Command 7z -ErrorAction SilentlyContinue) { "7z" } elseif (Test-Path "C:\Program Files\7-Zip\7z.exe") { "C:\Program Files\7-Zip\7z.exe" } else { $null }
+            if ($sevenZipPath) { & $sevenZipPath x $BACKUP_PATH -so 2>$null | & $sevenZipPath x -si -ttar -o"$backupDir" 2>&1 | Out-Null }
+            else { & tar -xzf $BACKUP_PATH -C $backupDir 2>&1 | Out-Null }
+        }
+
+        Write-Host "  Waiting for PostgreSQL..." -ForegroundColor DarkGray
+        $maxAttempts = 30; $attempt = 0
+        do { Start-Sleep -Seconds 1; $attempt++; docker exec $PG_CONTAINER pg_isready -U $PG_USER 2>$null | Out-Null } while ($LASTEXITCODE -ne 0 -and $attempt -lt $maxAttempts)
+        $attempt = 0
+        do { Start-Sleep -Seconds 1; $attempt++; docker exec $PG_CONTAINER psql -U $PG_USER -d $PG_DATABASE -c "SELECT 1" 2>$null | Out-Null } while ($LASTEXITCODE -ne 0 -and $attempt -lt 10)
+
+        Show-Task "Restore database" "running"
+        $sqlDump = Join-Path $backupDir "postgresqldump"
+        if (Test-Path $sqlDump) {
+            Get-Content $sqlDump -Raw | docker exec -i $PG_CONTAINER psql -U $PG_USER -d $PG_DATABASE 2>&1 | Out-Null
             Reset-Passwords | Out-Null
         }
-    }
 
-    # Step 7: Copy data files and create config
-    Log "[Step 7] Setting up data files and config..."
-    $backupDataDir = Join-Path $backupDir "data"
-    $dataDir = Join-Path $WORK_DIR "data"
-    if (Test-Path $backupDataDir) {
-        Copy-Item -Path "$backupDataDir\*" -Destination $dataDir -Recurse -Force -ErrorAction SilentlyContinue
-    } else {
-        if (!(Test-Path $dataDir)) {
-            New-Item -ItemType Directory -Path $dataDir -Force | Out-Null
-        }
-    }
+        Show-Task "Setup config" "running"
+        $backupDataDir = Join-Path $backupDir "data"
+        if (Test-Path $backupDataDir) { Copy-Item -Path "$backupDataDir\*" -Destination $dataDir -Recurse -Force -ErrorAction SilentlyContinue }
+        elseif (!(Test-Path $dataDir)) { New-Item -ItemType Directory -Path $dataDir -Force | Out-Null }
+        $pluginsDir = Join-Path $dataDir "plugins"; $clientPluginsDir = Join-Path $dataDir "client\plugins"
+        if (!(Test-Path $pluginsDir)) { New-Item -ItemType Directory -Path $pluginsDir -Force | Out-Null }
+        if (!(Test-Path $clientPluginsDir)) { New-Item -ItemType Directory -Path $clientPluginsDir -Force | Out-Null }
 
-    # Ensure plugin directories exist
-    $pluginsDir = Join-Path $dataDir "plugins"
-    $clientPluginsDir = Join-Path $dataDir "client\plugins"
-    if (!(Test-Path $pluginsDir)) { New-Item -ItemType Directory -Path $pluginsDir -Force | Out-Null }
-    if (!(Test-Path $clientPluginsDir)) { New-Item -ItemType Directory -Path $clientPluginsDir -Force | Out-Null }
+        $backupConfig = Get-BackupConfig; $workDirUnix = $WORK_DIR -replace "\\", "/"
+        $config = [ordered]@{}
+        $config['ServiceSettings'] = [ordered]@{ 'SiteURL' = "http://localhost:$MM_PORT"; 'ListenAddress' = ":$MM_PORT"; 'EnableDeveloper' = $true; 'EnableTesting' = $false; 'AllowCorsFrom' = '*'; 'EnableLocalMode' = $false }
+        if ($backupConfig -and $backupConfig.PSObject.Properties['TeamSettings']) { $config['TeamSettings'] = $backupConfig.TeamSettings }
+        else { $config['TeamSettings'] = [ordered]@{ 'SiteName' = 'Mattermost Local Test'; 'EnableUserCreation' = $true; 'EnableOpenServer' = $true } }
+        $config['SqlSettings'] = [ordered]@{ 'DriverName' = 'postgres'; 'DataSource' = "postgres://${PG_USER}:${PG_PASSWORD}@localhost:${PG_PORT}/${PG_DATABASE}?sslmode=disable"; 'DataSourceReplicas' = @() }
+        $config['FileSettings'] = [ordered]@{ 'DriverName' = 'local'; 'Directory' = "$workDirUnix/data" }
+        $config['LogSettings'] = [ordered]@{ 'EnableConsole' = $true; 'ConsoleLevel' = 'DEBUG'; 'ConsoleJson' = $false; 'EnableFile' = $true; 'FileLevel' = 'INFO'; 'FileLocation' = "$workDirUnix" }
+        $config['PluginSettings'] = [ordered]@{ 'Enable' = $true; 'EnableUploads' = $true; 'Directory' = "$workDirUnix/data/plugins"; 'ClientDirectory' = "$workDirUnix/data/client/plugins" }
+        $config['EmailSettings'] = [ordered]@{ 'SendEmailNotifications' = $false; 'RequireEmailVerification' = $false }
+        $config['RateLimitSettings'] = [ordered]@{ 'Enable' = $false }
+        $featureFlags = Get-FeatureFlagsFromBackup -BackupConfig $backupConfig -TryDatabase; $config['FeatureFlags'] = $featureFlags
+        $extSettings = Get-MattermostExtendedSettingsFromBackup -BackupConfig $backupConfig -TryDatabase; $config['MattermostExtendedSettings'] = $extSettings
+        $configPath = Join-Path $WORK_DIR "config.json"
+        [System.IO.File]::WriteAllText($configPath, ($config | ConvertTo-Json -Depth 10))
 
-    # Create config
-    $backupConfig = Get-BackupConfig
-    $workDirUnix = $WORK_DIR -replace "\\", "/"
-    $config = [ordered]@{}
-    $config['ServiceSettings'] = [ordered]@{
-        'SiteURL' = "http://localhost:$MM_PORT"
-        'ListenAddress' = ":$MM_PORT"
-        'EnableDeveloper' = $true
-        'EnableTesting' = $false
-        'AllowCorsFrom' = '*'
-        'EnableLocalMode' = $false
-    }
-    if ($backupConfig -and $backupConfig.PSObject.Properties['TeamSettings']) {
-        $config['TeamSettings'] = $backupConfig.TeamSettings
-    } else {
-        $config['TeamSettings'] = [ordered]@{
-            'SiteName' = 'Mattermost Local Test'
-            'EnableUserCreation' = $true
-            'EnableOpenServer' = $true
-            'EnableCustomUserStatuses' = $true
-            'EnableLastActiveTime' = $true
-        }
-    }
-    $config['SqlSettings'] = [ordered]@{
-        'DriverName' = 'postgres'
-        'DataSource' = "postgres://${PG_USER}:${PG_PASSWORD}@localhost:${PG_PORT}/${PG_DATABASE}?sslmode=disable"
-        'DataSourceReplicas' = @()
-        'MaxIdleConns' = 20
-        'MaxOpenConns' = 300
-    }
-    $config['FileSettings'] = [ordered]@{
-        'DriverName' = 'local'
-        'Directory' = "$workDirUnix/data"
-        'EnableFileAttachments' = $true
-        'EnablePublicLink' = $true
-    }
-    $config['LogSettings'] = [ordered]@{
-        'EnableConsole' = $true
-        'ConsoleLevel' = 'DEBUG'
-        'ConsoleJson' = $false
-        'EnableFile' = $true
-        'FileLevel' = 'INFO'
-        'FileJson' = $false
-        'FileLocation' = "$workDirUnix"
-    }
-    $prodPluginSettings = Get-PluginSettingsFromBackup -BackupConfig $backupConfig
-    $config['PluginSettings'] = [ordered]@{
-        'Enable' = $true
-        'EnableUploads' = $true
-        'Directory' = "$workDirUnix/data/plugins"
-        'ClientDirectory' = "$workDirUnix/data/client/plugins"
-    }
-    if ($prodPluginSettings) {
-        if ($prodPluginSettings.PSObject.Properties['Plugins']) { $config['PluginSettings']['Plugins'] = $prodPluginSettings.Plugins }
-        if ($prodPluginSettings.PSObject.Properties['PluginStates']) { $config['PluginSettings']['PluginStates'] = $prodPluginSettings.PluginStates }
-        if ($prodPluginSettings.PSObject.Properties['EnableMarketplace']) { $config['PluginSettings']['EnableMarketplace'] = $prodPluginSettings.EnableMarketplace }
-        if ($prodPluginSettings.PSObject.Properties['EnableRemoteMarketplace']) { $config['PluginSettings']['EnableRemoteMarketplace'] = $prodPluginSettings.EnableRemoteMarketplace }
-        if ($prodPluginSettings.PSObject.Properties['RequirePluginSignature']) { $config['PluginSettings']['RequirePluginSignature'] = $prodPluginSettings.RequirePluginSignature }
-    }
-    $config['EmailSettings'] = [ordered]@{
-        'EnableSignUpWithEmail' = $true
-        'EnableSignInWithEmail' = $true
-        'EnableSignInWithUsername' = $true
-        'SendEmailNotifications' = $false
-        'RequireEmailVerification' = $false
-    }
-    $config['RateLimitSettings'] = [ordered]@{ 'Enable' = $false }
-    if ($backupConfig -and $backupConfig.PSObject.Properties['PrivacySettings']) {
-        $config['PrivacySettings'] = $backupConfig.PrivacySettings
-    } else {
-        $config['PrivacySettings'] = [ordered]@{ 'ShowEmailAddress' = $true; 'ShowFullName' = $true }
-    }
-    $featureFlags = Get-FeatureFlagsFromBackup -BackupConfig $backupConfig -TryDatabase
-    $config['FeatureFlags'] = $featureFlags
-    $extSettings = Get-MattermostExtendedSettingsFromBackup -BackupConfig $backupConfig -TryDatabase
-    $config['MattermostExtendedSettings'] = $extSettings
-
-    $configPath = Join-Path $WORK_DIR "config.json"
-    $configJson = $config | ConvertTo-Json -Depth 10
-    [System.IO.File]::WriteAllText($configPath, $configJson)
-    Log "Config created."
-
-    # Step 8: Wait for builds to complete
-    Log "[Step 8] Waiting for builds to complete..."
-
-    # Show progress while waiting
-    $jobsComplete = $false
-    while (-not $jobsComplete) {
-        $goState = $goBuildJob.State
-        $webappState = $webappBuildJob.State
-
-        if ($goState -eq 'Completed' -and $webappState -eq 'Completed') {
-            $jobsComplete = $true
-        } else {
-            $goStatus = if ($goState -eq 'Completed') { "Done" } else { "Building..." }
-            $webappStatus = if ($webappState -eq 'Completed') { "Done" } else { "Building..." }
-            Write-Host "`r  Go: $goStatus | Webapp: $webappStatus    " -NoNewline
+        Write-Host "  Waiting for builds..." -ForegroundColor DarkGray
+        while ($goBuildJob.State -ne 'Completed' -or $webappBuildJob.State -ne 'Completed') {
+            $goStatus = if ($goBuildJob.State -eq 'Completed') { "Done" } else { "..." }
+            $webappStatus = if ($webappBuildJob.State -eq 'Completed') { "Done" } else { "..." }
+            Write-Host "`r    Go: $goStatus | Webapp: $webappStatus    " -NoNewline
             Start-Sleep -Seconds 2
         }
-    }
-    Write-Host ""
+        Write-Host ""
 
-    # Check Go build result
-    $goResult = Receive-Job $goBuildJob
-    if (-not $goResult.Success) {
-        Log-Error "Go build failed:"
-        $goResult.Output | ForEach-Object { Log $_ }
+        $goResult = Receive-Job $goBuildJob
+        $webappResult = Receive-Job $webappBuildJob
         Remove-Job $goBuildJob, $webappBuildJob -Force
-        exit 1
-    }
-    Log-Success "Go build complete."
 
-    # Check webapp build result
-    $webappResult = Receive-Job $webappBuildJob
-    if (-not $webappResult.Success) {
-        Log-Error "Webapp build failed at $($webappResult.Stage):"
-        $webappResult.Output | Select-Object -Last 50 | ForEach-Object { Log $_ }
-        Remove-Job $goBuildJob, $webappBuildJob -Force
-        exit 1
-    }
-    Log-Success "Webapp build complete."
+        if (-not $goResult.Success) { Log-Error "Go build failed"; $goResult.Output | Select-Object -Last 10 | ForEach-Object { Write-Host $_ }; exit 1 }
+        if (-not $webappResult.Success) { Log-Error "Webapp build failed at $($webappResult.Stage)"; $webappResult.Output | Select-Object -Last 10 | ForEach-Object { Write-Host $_ }; exit 1 }
 
-    # Clean up jobs
-    Remove-Job $goBuildJob, $webappBuildJob -Force
-
-    # Copy webapp dist to client directory
-    Log "Copying webapp to test directory..."
-    if (Test-Path $clientDir) {
-        Remove-Item -Path $clientDir -Recurse -Force
+        Show-Task "Copy webapp" "running"
+        if (Test-Path $clientDir) { Remove-Item -Path $clientDir -Recurse -Force }
+        Copy-Item -Path (Join-Path $webappDir "channels\dist") -Destination $clientDir -Recurse -Force
     }
-    $distDir = Join-Path $webappDir "channels\dist"
-    Copy-Item -Path $distDir -Destination $clientDir -Recurse -Force
 
     # Summary
     $allEndTime = Get-Date
     $totalDuration = $allEndTime - $allStartTime
-    Log ""
-    Log-Success "=== All Setup Complete in $($totalDuration.ToString('mm\:ss')) ==="
-    Log ""
+    Write-Host ""
+    Write-Host "Setup complete in $($totalDuration.ToString('mm\:ss'))" -ForegroundColor Green
+    Write-Host ""
 
-    # Step 9: Start server
-    Log "[Step 9] Starting server..."
-    Log "Server running on http://localhost:$MM_PORT"
-    Log "Press Ctrl+C to stop"
-    Log ""
+    # Start server
+    Write-Host "Starting server on http://localhost:$MM_PORT" -ForegroundColor Cyan
+    Write-Host "Press Ctrl+C to stop"
+    Write-Host ""
 
     Push-Location $WORK_DIR
     $binaryPath = Join-Path $WORK_DIR "mattermost.exe"
+    $configPath = Join-Path $WORK_DIR "config.json"
     & $binaryPath server --config $configPath 2>&1 | ForEach-Object {
         $_ | Out-File $LOG_FILE -Append -Encoding UTF8
         Write-Host $_
@@ -1800,6 +1896,8 @@ try {
         "setup"      { Invoke-Setup }
         "build"      { Invoke-Build }
         "webapp"     { Invoke-Webapp }
+        "webapp-dev" { Invoke-WebappDev }
+        "dev"        { Invoke-WebappDev }
         "docker"     { Invoke-Docker }
         "fix-config" { Invoke-FixConfig }
         "start"      { Invoke-Start }
