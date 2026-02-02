@@ -41,10 +41,10 @@ const SOUND_SETTINGS: SoundSetting[] = [
     {
         type: 'message_sent',
         prefKey: Preferences.GUILDED_SOUNDS_MESSAGE_SENT,
-        titleId: 'user.settings.sounds.messageSent.title',
-        titleDefault: 'Message Sent',
-        descId: 'user.settings.sounds.messageSent.desc',
-        descDefault: 'Play a sound when you send a message',
+        titleId: 'user.settings.sounds.message.title',
+        titleDefault: 'Message',
+        descId: 'user.settings.sounds.message.desc',
+        descDefault: 'Play a sound when sending or receiving messages',
     },
     {
         type: 'reaction_apply',
@@ -63,20 +63,12 @@ const SOUND_SETTINGS: SoundSetting[] = [
         descDefault: 'Play a sound when someone reacts to your post',
     },
     {
-        type: 'message_received',
-        prefKey: Preferences.GUILDED_SOUNDS_MESSAGE_RECEIVED,
-        titleId: 'user.settings.sounds.messageReceived.title',
-        titleDefault: 'Message Received',
-        descId: 'user.settings.sounds.messageReceived.desc',
-        descDefault: 'Play a sound when a new message arrives in a channel',
-    },
-    {
         type: 'dm_received',
         prefKey: Preferences.GUILDED_SOUNDS_DM_RECEIVED,
         titleId: 'user.settings.sounds.dmReceived.title',
         titleDefault: 'Direct Message',
         descId: 'user.settings.sounds.dmReceived.desc',
-        descDefault: 'Play a sound when you receive a direct message',
+        descDefault: 'Play a sound when you receive a direct message notification',
     },
     {
         type: 'mention_received',
@@ -84,7 +76,7 @@ const SOUND_SETTINGS: SoundSetting[] = [
         titleId: 'user.settings.sounds.mentionReceived.title',
         titleDefault: 'Mention',
         descId: 'user.settings.sounds.mentionReceived.desc',
-        descDefault: 'Play a sound when you are @mentioned',
+        descDefault: 'Play a sound when you receive an @mention notification',
     },
 ];
 
@@ -185,6 +177,18 @@ function UserSettingsSounds(props: Props): JSX.Element {
             name: prefKey,
             value: soundId,
         }];
+
+        // Message setting applies to both sent and received
+        if (prefKey === Preferences.GUILDED_SOUNDS_MESSAGE_SENT) {
+            setSoundSelections((prev) => ({...prev, [Preferences.GUILDED_SOUNDS_MESSAGE_RECEIVED]: soundId}));
+            preferences.push({
+                user_id: currentUserId,
+                category: Preferences.CATEGORY_GUILDED_SOUNDS,
+                name: Preferences.GUILDED_SOUNDS_MESSAGE_RECEIVED,
+                value: soundId,
+            });
+        }
+
         await dispatch(savePreferences(currentUserId, preferences));
     }, [currentUserId, dispatch]);
 

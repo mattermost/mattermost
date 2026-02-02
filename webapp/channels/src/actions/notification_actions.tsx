@@ -145,7 +145,10 @@ export function sendDesktopNotification(post: Post, msgProps: NewPostMessageProp
         const url = isCrtReply ? getPermalinkURL(updatedState, teamId, post.id) : getChannelURL(updatedState, channel, teamId);
 
         // Allow plugins to change the notification, or re-enable a notification
-        const args: NotificationHooksArgs = {title, body, silent: !desktopSoundEnabled, soundName, url, notify: true};
+        // When GuildedSounds is enabled, set silent: true so the browser doesn't play its default sound
+        // (our code will play the appropriate Guilded sound instead)
+        const useGuildedSounds = isGuildedSoundsEnabled(getState);
+        const args: NotificationHooksArgs = {title, body, silent: !desktopSoundEnabled || useGuildedSounds, soundName, url, notify: true};
 
         // TODO verify the type of the desktop hook.
         // The channel may not be complete at this moment
@@ -168,7 +171,7 @@ export function sendDesktopNotification(post: Post, msgProps: NewPostMessageProp
         //Don't add extra sounds on native desktop clients
         if (desktopSoundEnabled && !isDesktopApp() && !isMobileApp()) {
             // Use Guilded sounds when enabled, with context-aware sound selection
-            if (isGuildedSoundsEnabled(getState)) {
+            if (useGuildedSounds) {
                 const mentions = msgProps.mentions ? JSON.parse(msgProps.mentions) : [];
                 const isMention = user && mentions.includes(user.id);
                 const isDM = channel.type === Constants.DM_CHANNEL;

@@ -9,10 +9,9 @@ import {Preferences} from 'utils/constants';
 import type {GlobalState} from 'types/store';
 
 // Import Guilded sounds
-import guilded_message_sent from 'sounds/guilded_message_sent.mp3';
+import guilded_message from 'sounds/guilded_message_received.mp3';
 import guilded_reaction_apply from 'sounds/guilded_reaction_apply.mp3';
 import guilded_reaction_received from 'sounds/guilded_reaction_received.mp3';
-import guilded_message_received from 'sounds/guilded_message_received.mp3';
 import guilded_dm_received from 'sounds/guilded_dm_received.mp3';
 import guilded_mention_received from 'sounds/guilded_mention_received.mp3';
 
@@ -36,10 +35,9 @@ export type SoundEventType =
 // All available sound IDs
 export type SoundId =
     | 'none'
-    | 'guilded_message_sent'
+    | 'guilded_message'
     | 'guilded_reaction_apply'
     | 'guilded_reaction_received'
-    | 'guilded_message_received'
     | 'guilded_dm_received'
     | 'guilded_mention_received'
     | 'bing'
@@ -52,10 +50,9 @@ export type SoundId =
 // Map of all available sounds
 export const ALL_SOUNDS: Map<SoundId, {file: string | null; label: string}> = new Map([
     ['none', {file: null, label: 'None'}],
-    ['guilded_message_sent', {file: guilded_message_sent, label: 'Guilded - Message Sent'}],
+    ['guilded_message', {file: guilded_message, label: 'Guilded - Message'}],
     ['guilded_reaction_apply', {file: guilded_reaction_apply, label: 'Guilded - Reaction'}],
     ['guilded_reaction_received', {file: guilded_reaction_received, label: 'Guilded - Reaction Received'}],
-    ['guilded_message_received', {file: guilded_message_received, label: 'Guilded - Message Received'}],
     ['guilded_dm_received', {file: guilded_dm_received, label: 'Guilded - DM Received'}],
     ['guilded_mention_received', {file: guilded_mention_received, label: 'Guilded - Mention'}],
     ['bing', {file: bing, label: 'Bing'}],
@@ -76,10 +73,10 @@ export function getSoundOptions(): Array<{value: SoundId; label: string}> {
 
 // Default sounds for each event type
 export const DEFAULT_SOUNDS: Record<SoundEventType, SoundId> = {
-    message_sent: 'guilded_message_sent',
+    message_sent: 'guilded_message',
     reaction_apply: 'guilded_reaction_apply',
     reaction_received: 'guilded_reaction_received',
-    message_received: 'guilded_message_received',
+    message_received: 'guilded_message',
     dm_received: 'guilded_dm_received',
     mention_received: 'guilded_mention_received',
 };

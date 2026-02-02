@@ -17,8 +17,7 @@ import crackle from 'sounds/crackle.mp3';
 import down from 'sounds/down.mp3';
 import guilded_dm_received from 'sounds/guilded_dm_received.mp3';
 import guilded_mention_received from 'sounds/guilded_mention_received.mp3';
-import guilded_message_received from 'sounds/guilded_message_received.mp3';
-import guilded_message_sent from 'sounds/guilded_message_sent.mp3';
+import guilded_message from 'sounds/guilded_message_received.mp3';
 import guilded_reaction_apply from 'sounds/guilded_reaction_apply.mp3';
 import guilded_reaction_received from 'sounds/guilded_reaction_received.mp3';
 import hello from 'sounds/hello.mp3';
@@ -34,8 +33,7 @@ export const DesktopNotificationSounds = {
     DOWN: 'Down',
     GUILDED_DM_RECEIVED: 'Guilded - DM',
     GUILDED_MENTION: 'Guilded - Mention',
-    GUILDED_MESSAGE_RECEIVED: 'Guilded - Message',
-    GUILDED_MESSAGE_SENT: 'Guilded - Sent',
+    GUILDED_MESSAGE: 'Guilded - Message',
     GUILDED_REACTION: 'Guilded - Reaction',
     GUILDED_REACTION_RECEIVED: 'Guilded - Reaction Received',
     HELLO: 'Hello',
@@ -49,8 +47,7 @@ export const notificationSounds = new Map<string, string>([
     [DesktopNotificationSounds.DOWN, down],
     [DesktopNotificationSounds.GUILDED_DM_RECEIVED, guilded_dm_received],
     [DesktopNotificationSounds.GUILDED_MENTION, guilded_mention_received],
-    [DesktopNotificationSounds.GUILDED_MESSAGE_RECEIVED, guilded_message_received],
-    [DesktopNotificationSounds.GUILDED_MESSAGE_SENT, guilded_message_sent],
+    [DesktopNotificationSounds.GUILDED_MESSAGE, guilded_message],
     [DesktopNotificationSounds.GUILDED_REACTION, guilded_reaction_apply],
     [DesktopNotificationSounds.GUILDED_REACTION_RECEIVED, guilded_reaction_received],
     [DesktopNotificationSounds.HELLO, hello],
@@ -101,20 +98,12 @@ export const optionsOfMessageNotificationSoundsSelect: SelectOption[] = notifica
                 defaultMessage: 'Guilded - Mention',
             }),
         };
-    } else if (soundName === DesktopNotificationSounds.GUILDED_MESSAGE_RECEIVED) {
+    } else if (soundName === DesktopNotificationSounds.GUILDED_MESSAGE) {
         return {
             value: soundName,
             label: defineMessage({
                 id: 'user.settings.notifications.desktopNotificationSound.soundGuildedMessage',
                 defaultMessage: 'Guilded - Message',
-            }),
-        };
-    } else if (soundName === DesktopNotificationSounds.GUILDED_MESSAGE_SENT) {
-        return {
-            value: soundName,
-            label: defineMessage({
-                id: 'user.settings.notifications.desktopNotificationSound.soundGuildedSent',
-                defaultMessage: 'Guilded - Sent',
             }),
         };
     } else if (soundName === DesktopNotificationSounds.GUILDED_REACTION) {
