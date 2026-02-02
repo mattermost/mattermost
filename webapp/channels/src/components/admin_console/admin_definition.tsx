@@ -7,7 +7,56 @@ import React from 'react';
 import {FormattedMessage, defineMessage, defineMessages} from 'react-intl';
 import {Link} from 'react-router-dom';
 
-import {AccountMultipleOutlineIcon, AlertCircleOutlineIcon, ChartBarIcon, CogOutlineIcon, CreditCardOutlineIcon, FlaskOutlineIcon, FormatListBulletedIcon, ForumOutlineIcon, HammerIcon, InformationOutlineIcon, MessageTextOutlineIcon, PoundIcon, PowerPlugOutlineIcon, ServerVariantIcon, ShieldOutlineIcon, SitemapIcon, TableLargeIcon, TuneIcon} from '@mattermost/compass-icons/components';
+import {
+    AccountMultipleOutlineIcon,
+    AccountOutlineIcon,
+    AccountPlusOutlineIcon,
+    AlertCircleOutlineIcon,
+    AppsIcon,
+    ArchiveOutlineIcon,
+    BellOutlineIcon,
+    BellRingOutlineIcon,
+    BullhornOutlineIcon,
+    ChartBarIcon,
+    ChartLineIcon,
+    ClockOutlineIcon,
+    CodeTagsIcon,
+    CogOutlineIcon,
+    CreditCardOutlineIcon,
+    CurrencyUsdIcon,
+    EmailOutlineIcon,
+    EmoticonOutlineIcon,
+    ExportVariantIcon,
+    FileGenericOutlineIcon,
+    FileGifIcon,
+    FileTextOutlineIcon,
+    FlagOutlineIcon,
+    FlaskOutlineIcon,
+    FolderOutlineIcon,
+    FormatListBulletedIcon,
+    ForumOutlineIcon,
+    GlobeIcon,
+    HammerIcon,
+    ImageOutlineIcon,
+    InformationOutlineIcon,
+    KeyVariantIcon,
+    LinkVariantIcon,
+    LockOutlineIcon,
+    MagnifyIcon,
+    MessageTextOutlineIcon,
+    PaletteOutlineIcon,
+    PoundIcon,
+    PowerPlugOutlineIcon,
+    RobotHappyIcon,
+    ServerOutlineIcon,
+    ServerVariantIcon,
+    ShieldAlertOutlineIcon,
+    ShieldOutlineIcon,
+    SitemapIcon,
+    TableLargeIcon,
+    TextBoxOutlineIcon,
+    TuneIcon,
+} from '@mattermost/compass-icons/components';
 
 import {Posts} from 'mattermost-redux/constants';
 import {RESOURCE_KEYS} from 'mattermost-redux/constants/permissions_sysconsole';
@@ -260,6 +309,7 @@ const AdminDefinition: AdminDefinitionType = {
                 searchableStrings: licenseSettingsSearchableStrings,
                 isHidden: it.not(it.userHasReadPermissionOnResource(RESOURCE_KEYS.ABOUT.EDITION_AND_LICENSE)),
                 isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.ABOUT.EDITION_AND_LICENSE)),
+                icon: <InformationOutlineIcon size={14} color={'currentColor'}/>,
                 schema: {
                     id: 'LicenseSettings',
                     component: LicenseSettings,
@@ -281,6 +331,7 @@ const AdminDefinition: AdminDefinitionType = {
                 url: 'billing/subscription',
                 title: defineMessage({id: 'admin.sidebar.subscription', defaultMessage: 'Subscription'}),
                 searchableStrings: billingSubscriptionSearchableStrings,
+                icon: <CurrencyUsdIcon size={14} color={'currentColor'}/>,
                 schema: {
                     id: 'BillingSubscriptions',
                     component: BillingSubscriptions,
@@ -294,6 +345,7 @@ const AdminDefinition: AdminDefinitionType = {
                 url: 'billing/billing_history',
                 title: defineMessage({id: 'admin.sidebar.billing_history', defaultMessage: 'Billing History'}),
                 searchableStrings: billingHistorySearchableStrings,
+                icon: <ClockOutlineIcon size={14} color={'currentColor'}/>,
                 schema: {
                     id: 'BillingHistory',
                     component: BillingHistory,
@@ -305,6 +357,7 @@ const AdminDefinition: AdminDefinitionType = {
                 url: 'billing/company_info',
                 title: defineMessage({id: 'admin.sidebar.company_info', defaultMessage: 'Company Information'}),
                 searchableStrings: billingCompanyInfoSearchableStrings,
+                icon: <GlobeIcon size={14} color={'currentColor'}/>,
                 schema: {
                     id: 'CompanyInfo',
                     component: CompanyInfo,
@@ -340,6 +393,7 @@ const AdminDefinition: AdminDefinitionType = {
             workspace_optimization: {
                 url: 'reporting/workspace_optimization',
                 title: defineMessage({id: 'admin.sidebar.workspaceOptimization', defaultMessage: 'Workspace Optimization'}),
+                icon: <ChartLineIcon size={14} color={'currentColor'}/>,
                 schema: {
                     id: 'WorkspaceOptimizationDashboard',
                     component: WorkspaceOptimizationDashboard,
@@ -351,6 +405,7 @@ const AdminDefinition: AdminDefinitionType = {
                 url: 'reporting/system_analytics',
                 title: defineMessage({id: 'admin.sidebar.siteStatistics', defaultMessage: 'Site Statistics'}),
                 searchableStrings: systemAnalyticsSearchableStrings,
+                icon: <ChartBarIcon size={14} color={'currentColor'}/>,
                 schema: {
                     id: 'SystemAnalytics',
                     component: SystemAnalytics,
@@ -362,6 +417,7 @@ const AdminDefinition: AdminDefinitionType = {
                 url: 'reporting/team_statistics',
                 title: defineMessage({id: 'admin.sidebar.teamStatistics', defaultMessage: 'Team Statistics'}),
                 searchableStrings: teamAnalyticsSearchableStrings,
+                icon: <AccountMultipleOutlineIcon size={14} color={'currentColor'}/>,
                 schema: {
                     id: 'TeamAnalytics',
                     component: TeamAnalytics,
@@ -372,6 +428,7 @@ const AdminDefinition: AdminDefinitionType = {
             server_logs: {
                 url: 'reporting/server_logs',
                 title: defineMessage({id: 'admin.sidebar.logs', defaultMessage: 'Server Logs'}),
+                icon: <FileTextOutlineIcon size={14} color={'currentColor'}/>,
                 isHidden: it.any(
                     it.configIsTrue('ExperimentalSettings', 'RestrictSystemAdmin'),
                     it.not(it.userHasReadPermissionOnResource(RESOURCE_KEYS.REPORTING.SERVER_LOGS)),
@@ -399,6 +456,7 @@ const AdminDefinition: AdminDefinitionType = {
                 url: 'user_management/users',
                 title: defineMessage({id: 'admin.sidebar.users', defaultMessage: 'Users'}),
                 searchableStrings: systemUsersSearchableStrings,
+                icon: <AccountOutlineIcon size={14} color={'currentColor'}/>,
                 isHidden: it.not(it.userHasReadPermissionOnResource(RESOURCE_KEYS.USER_MANAGEMENT.USERS)),
                 schema: {
                     id: 'SystemUsers',
@@ -425,6 +483,7 @@ const AdminDefinition: AdminDefinitionType = {
             groups: {
                 url: 'user_management/groups',
                 title: defineMessage({id: 'admin.sidebar.groups', defaultMessage: 'Groups'}),
+                icon: <AccountMultipleOutlineIcon size={14} color={'currentColor'}/>,
                 isHidden: it.any(
                     it.not(it.licensedForFeature('LDAPGroups')),
                     it.not(it.userHasReadPermissionOnResource(RESOURCE_KEYS.USER_MANAGEMENT.GROUPS)),
@@ -440,6 +499,7 @@ const AdminDefinition: AdminDefinitionType = {
                 url: 'user_management/groups',
                 isDiscovery: true,
                 title: defineMessage({id: 'admin.sidebar.groups', defaultMessage: 'Groups'}),
+                icon: <AccountMultipleOutlineIcon size={14} color={'currentColor'}/>,
                 isHidden: it.any(
                     it.licensedForFeature('LDAPGroups'),
                 ),
@@ -469,6 +529,7 @@ const AdminDefinition: AdminDefinitionType = {
             teams: {
                 url: 'user_management/teams',
                 title: defineMessage({id: 'admin.sidebar.teams', defaultMessage: 'Teams'}),
+                icon: <AccountMultipleOutlineIcon size={14} color={'currentColor'}/>,
                 isHidden: it.any(
                     it.not(it.userHasReadPermissionOnResource(RESOURCE_KEYS.USER_MANAGEMENT.TEAMS)),
                 ),
@@ -489,6 +550,7 @@ const AdminDefinition: AdminDefinitionType = {
             channel: {
                 url: 'user_management/channels',
                 title: defineMessage({id: 'admin.sidebar.channels', defaultMessage: 'Channels'}),
+                icon: <PoundIcon size={14} color={'currentColor'}/>,
                 isHidden: it.not(it.userHasReadPermissionOnResource(RESOURCE_KEYS.USER_MANAGEMENT.CHANNELS)),
                 isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.USER_MANAGEMENT.CHANNELS)),
                 schema: {
@@ -527,6 +589,7 @@ const AdminDefinition: AdminDefinitionType = {
                 url: 'user_management/permissions/',
                 title: defineMessage({id: 'admin.sidebar.permissions', defaultMessage: 'Permissions'}),
                 searchableStrings: PermissionSchemeSearchableStrings,
+                icon: <KeyVariantIcon size={14} color={'currentColor'}/>,
                 isHidden: it.any(
                     it.not(it.userHasReadPermissionOnResource(RESOURCE_KEYS.USER_MANAGEMENT.PERMISSIONS)),
                 ),
@@ -552,6 +615,7 @@ const AdminDefinition: AdminDefinitionType = {
             system_roles: {
                 url: 'user_management/system_roles',
                 title: defineMessage({id: 'admin.sidebar.systemRoles', defaultMessage: 'Delegated Granular Administration'}),
+                icon: <AccountCogOutlineIcon size={14} color={'currentColor'}/>,
                 isHidden: it.any(
                     it.not(it.licensedForFeature('LDAPGroups')),
                     it.licensedForSku(LicenseSkus.Entry),
@@ -568,6 +632,7 @@ const AdminDefinition: AdminDefinitionType = {
                 url: 'user_management/system_roles',
                 isDiscovery: true,
                 title: defineMessage({id: 'admin.sidebar.systemRoles', defaultMessage: 'Delegated Granular Administration'}),
+                icon: <AccountCogOutlineIcon size={14} color={'currentColor'}/>,
                 isHidden: it.any(
                     it.licensedForFeature('LDAPGroups'),
                 ),
@@ -601,6 +666,7 @@ const AdminDefinition: AdminDefinitionType = {
                 url: 'system_attributes/user_attributes',
                 title: defineMessage({id: 'admin.sidebar.user_attributes', defaultMessage: 'User Attributes'}),
                 searchableStrings: systemPropertiesSearchableStrings,
+                icon: <AccountOutlineIcon size={14} color={'currentColor'}/>,
                 isHidden: it.not(it.all(
                     it.minLicenseTier(LicenseSkus.Enterprise),
                     it.configIsTrue('FeatureFlags', 'CustomProfileAttributes'),
@@ -614,6 +680,7 @@ const AdminDefinition: AdminDefinitionType = {
                 url: 'system_attributes/user_attributes',
                 isDiscovery: true,
                 title: defineMessage({id: 'admin.sidebar.user_attributes', defaultMessage: 'User Attributes'}),
+                icon: <AccountOutlineIcon size={14} color={'currentColor'}/>,
                 isHidden: it.any(
                     it.minLicenseTier(LicenseSkus.Enterprise),
                     it.configIsFalse('FeatureFlags', 'CustomProfileAttributes'),
@@ -665,6 +732,7 @@ const AdminDefinition: AdminDefinitionType = {
             attribute_based_access_control: {
                 url: 'system_attributes/attribute_based_access_control',
                 title: defineMessage({id: 'admin.sidebar.attributeBasedAccessControl', defaultMessage: 'Attribute-Based Access'}),
+                icon: <ShieldOutlineIcon size={14} color={'currentColor'}/>,
                 isHidden: it.any(
                     it.not(it.minLicenseTier(LicenseSkus.EnterpriseAdvanced)),
                     it.not(it.userHasReadPermissionOnResource(RESOURCE_KEYS.USER_MANAGEMENT.SYSTEM_ROLES)),
@@ -732,6 +800,7 @@ const AdminDefinition: AdminDefinitionType = {
                 url: 'system_attributes/attribute_based_access_control',
                 isDiscovery: true,
                 title: defineMessage({id: 'admin.sidebar.attributeBasedAccessControl', defaultMessage: 'Attribute-Based Access'}),
+                icon: <ShieldOutlineIcon size={14} color={'currentColor'}/>,
                 isHidden: it.any(
                     it.minLicenseTier(LicenseSkus.EnterpriseAdvanced),
                     it.configIsFalse('FeatureFlags', 'AttributeBasedAccessControl'),
@@ -765,6 +834,7 @@ const AdminDefinition: AdminDefinitionType = {
             web_server: {
                 url: 'environment/web_server',
                 title: defineMessage({id: 'admin.sidebar.webServer', defaultMessage: 'Web Server'}),
+                icon: <WebIcon size={14} color={'currentColor'}/>,
                 isHidden: it.any(
                     it.configIsTrue('ExperimentalSettings', 'RestrictSystemAdmin'),
                     it.not(it.userHasReadPermissionOnResource(RESOURCE_KEYS.ENVIRONMENT.WEB_SERVER)),
@@ -988,6 +1058,7 @@ const AdminDefinition: AdminDefinitionType = {
             database: {
                 url: 'environment/database',
                 title: defineMessage({id: 'admin.sidebar.database', defaultMessage: 'Database'}),
+                icon: <DatabaseOutlineIcon size={14} color={'currentColor'}/>,
                 searchableStrings: databaseSearchableStrings,
                 isHidden: it.any(
                     it.cloudLicensed,
@@ -1003,6 +1074,7 @@ const AdminDefinition: AdminDefinitionType = {
             elasticsearch: {
                 url: 'environment/elasticsearch',
                 title: defineMessage({id: 'admin.sidebar.elasticsearch', defaultMessage: 'Elasticsearch'}),
+                icon: <MagnifyIcon size={14} color={'currentColor'}/>,
                 isHidden: it.any(
                     it.not(it.licensedForFeature('Elasticsearch')),
                     it.configIsTrue('ExperimentalSettings', 'RestrictSystemAdmin'),
@@ -1018,6 +1090,7 @@ const AdminDefinition: AdminDefinitionType = {
             storage: {
                 url: 'environment/file_storage',
                 title: defineMessage({id: 'admin.sidebar.fileStorage', defaultMessage: 'File Storage'}),
+                icon: <FolderOutlineIcon size={14} color={'currentColor'}/>,
                 isHidden: it.any(
                     it.configIsTrue('ExperimentalSettings', 'RestrictSystemAdmin'),
                     it.not(it.userHasReadPermissionOnResource(RESOURCE_KEYS.ENVIRONMENT.FILE_STORAGE)),
@@ -1241,6 +1314,7 @@ const AdminDefinition: AdminDefinitionType = {
             export_storage: {
                 url: 'environment/export_storage',
                 title: defineMessage({id: 'admin.sidebar.exportStorage', defaultMessage: 'Export Storage'}),
+                icon: <ExportVariantIcon size={14} color={'currentColor'}/>,
                 isHidden: it.any(
                     it.not(it.licensedForFeature('Cloud')),
                     it.not(it.minLicenseTier(LicenseSkus.Enterprise)),
@@ -1437,6 +1511,7 @@ const AdminDefinition: AdminDefinitionType = {
             image_proxy: {
                 url: 'environment/image_proxy',
                 title: defineMessage({id: 'admin.sidebar.imageProxy', defaultMessage: 'Image Proxy'}),
+                icon: <ImageOutlineIcon size={14} color={'currentColor'}/>,
                 isHidden: it.any(
                     it.not(it.userHasReadPermissionOnResource(RESOURCE_KEYS.ENVIRONMENT.IMAGE_PROXY)),
                     it.configIsTrue('ExperimentalSettings', 'RestrictSystemAdmin'),
@@ -1511,6 +1586,7 @@ const AdminDefinition: AdminDefinitionType = {
             smtp: {
                 url: 'environment/smtp',
                 title: defineMessage({id: 'admin.sidebar.smtp', defaultMessage: 'SMTP'}),
+                icon: <EmailOutlineIcon size={14} color={'currentColor'}/>,
                 isHidden: it.any(
                     it.configIsTrue('ExperimentalSettings', 'RestrictSystemAdmin'),
                     it.not(it.userHasReadPermissionOnResource(RESOURCE_KEYS.ENVIRONMENT.SMTP)),
@@ -1616,6 +1692,7 @@ const AdminDefinition: AdminDefinitionType = {
                 url: 'environment/push_notification_server',
                 title: defineMessage({id: 'admin.sidebar.pushNotificationServer', defaultMessage: 'Push Notification Server'}),
                 searchableStrings: pushSearchableStrings,
+                icon: <BellRingOutlineIcon size={14} color={'currentColor'}/>,
                 isHidden: it.any(
                     it.configIsTrue('ExperimentalSettings', 'RestrictSystemAdmin'),
                     it.not(it.userHasReadPermissionOnResource(RESOURCE_KEYS.ENVIRONMENT.PUSH_NOTIFICATION_SERVER)),
@@ -1629,6 +1706,7 @@ const AdminDefinition: AdminDefinitionType = {
             high_availability: {
                 url: 'environment/high_availability',
                 title: defineMessage({id: 'admin.sidebar.highAvailability', defaultMessage: 'High Availability'}),
+                icon: <ServerNetworkIcon size={14} color={'currentColor'}/>,
                 isHidden: it.any(
                     it.not(it.licensedForFeature('Cluster')),
                     it.configIsTrue('ExperimentalSettings', 'RestrictSystemAdmin'),
@@ -1644,6 +1722,7 @@ const AdminDefinition: AdminDefinitionType = {
             cache_settings: {
                 url: 'environment/cache_settings',
                 title: adminDefinitionMessages.cache_settings_title,
+                icon: <DatabaseOutlineIcon size={14} color={'currentColor'}/>,
                 isHidden: it.any(
                     it.not(it.licensedForFeature('Cluster')),
                     it.configIsTrue('ExperimentalSettings', 'RestrictSystemAdmin'),
@@ -1739,6 +1818,7 @@ const AdminDefinition: AdminDefinitionType = {
             rate_limiting: {
                 url: 'environment/rate_limiting',
                 title: defineMessage({id: 'admin.sidebar.rateLimiting', defaultMessage: 'Rate Limiting'}),
+                icon: <SpeedometerIcon size={14} color={'currentColor'}/>,
                 isHidden: it.any(
                     it.configIsTrue('ExperimentalSettings', 'RestrictSystemAdmin'),
                     it.not(it.userHasReadPermissionOnResource(RESOURCE_KEYS.ENVIRONMENT.RATE_LIMITING)),
@@ -1831,6 +1911,7 @@ const AdminDefinition: AdminDefinitionType = {
             logging: {
                 url: 'environment/logging',
                 title: defineMessage({id: 'admin.sidebar.logging', defaultMessage: 'Logging'}),
+                icon: <FileTextOutlineIcon size={14} color={'currentColor'}/>,
                 isHidden: it.any(
                     it.configIsTrue('ExperimentalSettings', 'RestrictSystemAdmin'),
                     it.not(it.userHasReadPermissionOnResource(RESOURCE_KEYS.ENVIRONMENT.LOGGING)),
@@ -1990,6 +2071,7 @@ const AdminDefinition: AdminDefinitionType = {
             session_lengths: {
                 url: 'environment/session_lengths',
                 title: defineMessage({id: 'admin.sidebar.sessionLengths', defaultMessage: 'Session Lengths'}),
+                icon: <ClockOutlineIcon size={14} color={'currentColor'}/>,
                 isHidden: it.any(
                     it.configIsTrue('ExperimentalSettings', 'RestrictSystemAdmin'),
                     it.not(it.userHasReadPermissionOnResource(RESOURCE_KEYS.ENVIRONMENT.SESSION_LENGTHS)),
@@ -2004,6 +2086,7 @@ const AdminDefinition: AdminDefinitionType = {
             metrics: {
                 url: 'environment/performance_monitoring',
                 title: defineMessage({id: 'admin.sidebar.metrics', defaultMessage: 'Performance Monitoring'}),
+                icon: <ChartLineIcon size={14} color={'currentColor'}/>,
                 isHidden: it.any(
                     it.configIsTrue('ExperimentalSettings', 'RestrictSystemAdmin'),
                     it.not(it.userHasReadPermissionOnResource(RESOURCE_KEYS.ENVIRONMENT.PERFORMANCE_MONITORING)),
@@ -2074,6 +2157,7 @@ const AdminDefinition: AdminDefinitionType = {
             developer: {
                 url: 'environment/developer',
                 title: defineMessage({id: 'admin.sidebar.developer', defaultMessage: 'Developer'}),
+                icon: <CodeTagsIcon size={14} color={'currentColor'}/>,
                 isHidden: it.any(
                     it.configIsTrue('ExperimentalSettings', 'RestrictSystemAdmin'),
                     it.not(it.userHasReadPermissionOnResource(RESOURCE_KEYS.ENVIRONMENT.DEVELOPER)),
@@ -2129,6 +2213,12 @@ const AdminDefinition: AdminDefinitionType = {
             mobile_security: {
                 url: 'environment/mobile_security',
                 title: defineMessage({id: 'admin.sidebar.mobileSecurity', defaultMessage: 'Mobile Security'}),
+                icon: (
+                    <ShieldAlertOutlineIcon
+                        size={14}
+                        color={'currentColor'}
+                    />
+                ),
                 isHidden: it.any(
                     it.not(it.userHasReadPermissionOnResource(RESOURCE_KEYS.ENVIRONMENT.MOBILE_SECURITY)),
                     it.not(it.minLicenseTier(LicenseSkus.Enterprise)),
@@ -2277,6 +2367,12 @@ const AdminDefinition: AdminDefinitionType = {
                 url: 'environment/mobile_security_feature_discovery',
                 isDiscovery: true,
                 title: defineMessage({id: 'admin.sidebar.mobileSecurity', defaultMessage: 'Mobile Security'}),
+                icon: (
+                    <ShieldAlertOutlineIcon
+                        size={14}
+                        color={'currentColor'}
+                    />
+                ),
                 isHidden: it.any(
                     it.not(it.userHasReadPermissionOnResource(RESOURCE_KEYS.ENVIRONMENT.MOBILE_SECURITY)),
                     it.minLicenseTier(LicenseSkus.Enterprise),
@@ -2310,6 +2406,12 @@ const AdminDefinition: AdminDefinitionType = {
             customization: {
                 url: 'site_config/customization',
                 title: defineMessage({id: 'admin.sidebar.customization', defaultMessage: 'Customization'}),
+                icon: (
+                    <PaletteOutlineIcon
+                        size={14}
+                        color={'currentColor'}
+                    />
+                ),
                 isHidden: it.not(it.userHasReadPermissionOnResource(RESOURCE_KEYS.SITE.CUSTOMIZATION)),
                 schema: {
                     id: 'Customization',
@@ -2533,6 +2635,12 @@ const AdminDefinition: AdminDefinitionType = {
             localization: {
                 url: 'site_config/localization',
                 title: defineMessage({id: 'admin.sidebar.localization', defaultMessage: 'Localization'}),
+                icon: (
+                    <GlobeIcon
+                        size={14}
+                        color={'currentColor'}
+                    />
+                ),
                 isHidden: it.not(it.userHasReadPermissionOnResource(RESOURCE_KEYS.SITE.LOCALIZATION)),
                 searchableStrings: localizationSearchableStrings.concat(autoTranslationSearchableStrings),
                 schema: {
@@ -2573,6 +2681,12 @@ const AdminDefinition: AdminDefinitionType = {
             users_and_teams: {
                 url: 'site_config/users_and_teams',
                 title: defineMessage({id: 'admin.sidebar.usersAndTeams', defaultMessage: 'Users and Teams'}),
+                icon: (
+                    <AccountMultipleOutlineIcon
+                        size={14}
+                        color={'currentColor'}
+                    />
+                ),
                 isHidden: it.not(it.userHasReadPermissionOnResource(RESOURCE_KEYS.SITE.USERS_AND_TEAMS)),
                 schema: {
                     id: 'UserAndTeamsSettings',
@@ -2710,6 +2824,12 @@ const AdminDefinition: AdminDefinitionType = {
             notifications: {
                 url: 'environment/notifications',
                 title: defineMessage({id: 'admin.sidebar.notifications', defaultMessage: 'Notifications'}),
+                icon: (
+                    <BellOutlineIcon
+                        size={14}
+                        color={'currentColor'}
+                    />
+                ),
                 isHidden: it.not(it.userHasReadPermissionOnResource(RESOURCE_KEYS.SITE.NOTIFICATIONS)),
                 schema: {
                     id: 'notifications',
@@ -2895,6 +3015,12 @@ const AdminDefinition: AdminDefinitionType = {
             announcement_banner: {
                 url: 'site_config/announcement_banner',
                 title: defineMessage({id: 'admin.sidebar.announcement', defaultMessage: 'System-wide Notifications'}),
+                icon: (
+                    <BullhornOutlineIcon
+                        size={14}
+                        color={'currentColor'}
+                    />
+                ),
                 isHidden: it.any(
                     it.not(it.licensedForFeature('Announcement')),
                     it.not(it.userHasReadPermissionOnResource(RESOURCE_KEYS.SITE.ANNOUNCEMENT_BANNER)),
@@ -2956,6 +3082,12 @@ const AdminDefinition: AdminDefinitionType = {
                 url: 'site_config/announcement_banner',
                 isDiscovery: true,
                 title: defineMessage({id: 'admin.sidebar.announcement', defaultMessage: 'System-wide Notifications'}),
+                icon: (
+                    <BullhornOutlineIcon
+                        size={14}
+                        color={'currentColor'}
+                    />
+                ),
                 isHidden: it.any(
                     it.licensedForFeature('Announcement'),
                 ),
@@ -2976,6 +3108,12 @@ const AdminDefinition: AdminDefinitionType = {
             emoji: {
                 url: 'site_config/emoji',
                 title: defineMessage({id: 'admin.sidebar.emoji', defaultMessage: 'Emoji'}),
+                icon: (
+                    <EmoticonOutlineIcon
+                        size={14}
+                        color={'currentColor'}
+                    />
+                ),
                 isHidden: it.not(it.userHasReadPermissionOnResource(RESOURCE_KEYS.SITE.EMOJI)),
                 schema: {
                     id: 'EmojiSettings',
@@ -3001,6 +3139,12 @@ const AdminDefinition: AdminDefinitionType = {
             posts: {
                 url: 'site_config/posts',
                 title: defineMessage({id: 'admin.sidebar.posts', defaultMessage: 'Posts'}),
+                icon: (
+                    <MessageTextOutlineIcon
+                        size={14}
+                        color={'currentColor'}
+                    />
+                ),
                 isHidden: it.not(it.userHasReadPermissionOnResource(RESOURCE_KEYS.SITE.POSTS)),
                 schema: {
                     id: 'PostSettings',
@@ -3483,6 +3627,12 @@ const AdminDefinition: AdminDefinitionType = {
             content_flagging: {
                 url: 'site_config/content_flagging',
                 title: defineMessage({id: 'admin.sidebar.contentFlagging', defaultMessage: 'Content Flagging'}),
+                icon: (
+                    <FlagOutlineIcon
+                        size={14}
+                        color={'currentColor'}
+                    />
+                ),
                 isHidden: it.any(
                     it.not(it.minLicenseTier(LicenseSkus.EnterpriseAdvanced)),
                     it.not(it.userHasReadPermissionOnResource(RESOURCE_KEYS.USER_MANAGEMENT.SYSTEM_ROLES)),
@@ -3498,6 +3648,12 @@ const AdminDefinition: AdminDefinitionType = {
             wrangler: {
                 url: 'site_config/wrangler',
                 title: defineMessage({id: 'admin.sidebar.move_thread', defaultMessage: 'Move Thread (Beta)'}),
+                icon: (
+                    <ForumOutlineIcon
+                        size={14}
+                        color={'currentColor'}
+                    />
+                ),
                 isHidden: it.any(it.not(it.userHasReadPermissionOnResource(RESOURCE_KEYS.SITE.POSTS)), it.configIsFalse('FeatureFlags', 'MoveThreadsEnabled'), it.not(it.licensed)),
                 schema: {
                     id: 'WranglerSettings',
@@ -3567,6 +3723,12 @@ const AdminDefinition: AdminDefinitionType = {
             file_sharing_downloads: {
                 url: 'site_config/file_sharing_downloads',
                 title: defineMessage({id: 'admin.sidebar.fileSharingDownloads', defaultMessage: 'File Sharing and Downloads'}),
+                icon: (
+                    <FileGenericOutlineIcon
+                        size={14}
+                        color={'currentColor'}
+                    />
+                ),
                 isHidden: it.any(
                     it.not(it.userHasReadPermissionOnResource(RESOURCE_KEYS.SITE.FILE_SHARING_AND_DOWNLOADS)),
                 ),
@@ -3603,6 +3765,12 @@ const AdminDefinition: AdminDefinitionType = {
             public_links: {
                 url: 'site_config/public_links',
                 title: defineMessage({id: 'admin.sidebar.publicLinks', defaultMessage: 'Public Links'}),
+                icon: (
+                    <LinkVariantIcon
+                        size={14}
+                        color={'currentColor'}
+                    />
+                ),
                 isHidden: it.any(
                     it.configIsTrue('ExperimentalSettings', 'RestrictSystemAdmin'),
                     it.not(it.userHasReadPermissionOnResource(RESOURCE_KEYS.SITE.PUBLIC_LINKS)),
@@ -3631,6 +3799,12 @@ const AdminDefinition: AdminDefinitionType = {
             notices: {
                 url: 'site_config/notices',
                 title: defineMessage({id: 'admin.sidebar.notices', defaultMessage: 'Notices'}),
+                icon: (
+                    <InformationOutlineIcon
+                        size={14}
+                        color={'currentColor'}
+                    />
+                ),
                 isHidden: it.not(it.userHasReadPermissionOnResource(RESOURCE_KEYS.SITE.NOTICES)),
                 schema: {
                     id: 'NoticesSettings',
@@ -3678,6 +3852,12 @@ const AdminDefinition: AdminDefinitionType = {
             ip_filtering: {
                 url: 'site_config/ip_filtering',
                 title: adminDefinitionMessages.ip_filtering_title,
+                icon: (
+                    <ShieldOutlineIcon
+                        size={14}
+                        color={'currentColor'}
+                    />
+                ),
                 isHidden: it.not(it.all(it.configIsTrue('FeatureFlags', 'CloudIPFiltering'), it.minLicenseTier(LicenseSkus.Enterprise))),
                 isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.SITE.IP_FILTERING)),
                 searchableStrings: [adminDefinitionMessages.ip_filtering_title],
@@ -3701,6 +3881,12 @@ const AdminDefinition: AdminDefinitionType = {
             secure_connections: {
                 url: 'site_config/secure_connections',
                 title: defineMessage({id: 'admin.sidebar.secureConnections', defaultMessage: 'Connected Workspaces'}),
+                icon: (
+                    <LinkVariantIcon
+                        size={14}
+                        color={'currentColor'}
+                    />
+                ),
                 searchableStrings: secureConnectionsSearchableStrings,
                 isHidden: it.not(it.all(
                     it.configIsTrue('ConnectedWorkspacesSettings', 'EnableSharedChannels'),
@@ -3727,6 +3913,12 @@ const AdminDefinition: AdminDefinitionType = {
             signup: {
                 url: 'authentication/signup',
                 title: defineMessage({id: 'admin.sidebar.signup', defaultMessage: 'Signup'}),
+                icon: (
+                    <AccountPlusOutlineIcon
+                        size={14}
+                        color={'currentColor'}
+                    />
+                ),
                 isHidden: it.not(it.userHasReadPermissionOnResource(RESOURCE_KEYS.AUTHENTICATION.SIGNUP)),
                 schema: {
                     id: 'SignupSettings',
@@ -3794,6 +3986,12 @@ const AdminDefinition: AdminDefinitionType = {
             email: {
                 url: 'authentication/email',
                 title: defineMessage({id: 'admin.sidebar.email', defaultMessage: 'Email'}),
+                icon: (
+                    <EmailOutlineIcon
+                        size={14}
+                        color={'currentColor'}
+                    />
+                ),
                 isHidden: it.not(it.userHasReadPermissionOnResource(RESOURCE_KEYS.AUTHENTICATION.EMAIL)),
                 schema: {
                     id: 'EmailSettings',
@@ -3834,6 +4032,12 @@ const AdminDefinition: AdminDefinitionType = {
             password: {
                 url: 'authentication/password',
                 title: defineMessage({id: 'admin.sidebar.password', defaultMessage: 'Password'}),
+                icon: (
+                    <KeyVariantIcon
+                        size={14}
+                        color={'currentColor'}
+                    />
+                ),
                 searchableStrings: passwordSearchableStrings,
                 isHidden: it.not(it.userHasReadPermissionOnResource(RESOURCE_KEYS.AUTHENTICATION.PASSWORD)),
                 isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.AUTHENTICATION.PASSWORD)),
@@ -3845,6 +4049,12 @@ const AdminDefinition: AdminDefinitionType = {
             mfa: {
                 url: 'authentication/mfa',
                 title: defineMessage({id: 'admin.sidebar.mfa', defaultMessage: 'MFA'}),
+                icon: (
+                    <ShieldAlertOutlineIcon
+                        size={14}
+                        color={'currentColor'}
+                    />
+                ),
                 isHidden: it.not(it.userHasReadPermissionOnResource(RESOURCE_KEYS.AUTHENTICATION.MFA)),
                 schema: {
                     id: 'ServiceSettings',
@@ -3900,6 +4110,12 @@ const AdminDefinition: AdminDefinitionType = {
             ldap: {
                 url: 'authentication/ldap',
                 title: defineMessage({id: 'admin.sidebar.ldap', defaultMessage: 'AD/LDAP'}),
+                icon: (
+                    <ServerVariantIcon
+                        size={14}
+                        color={'currentColor'}
+                    />
+                ),
                 isHidden: it.any(
                     it.not(it.licensedForFeature('LDAP')),
                     it.not(it.userHasReadPermissionOnResource(RESOURCE_KEYS.AUTHENTICATION.LDAP)),
@@ -3913,6 +4129,12 @@ const AdminDefinition: AdminDefinitionType = {
                 url: 'authentication/ldap',
                 isDiscovery: true,
                 title: defineMessage({id: 'admin.sidebar.ldap', defaultMessage: 'AD/LDAP'}),
+                icon: (
+                    <ServerVariantIcon
+                        size={14}
+                        color={'currentColor'}
+                    />
+                ),
                 isHidden: it.any(
                     it.licensedForFeature('LDAP'),
                 ),
@@ -3933,6 +4155,12 @@ const AdminDefinition: AdminDefinitionType = {
             saml: {
                 url: 'authentication/saml',
                 title: defineMessage({id: 'admin.sidebar.saml', defaultMessage: 'SAML 2.0'}),
+                icon: (
+                    <ShieldOutlineIcon
+                        size={14}
+                        color={'currentColor'}
+                    />
+                ),
                 isHidden: it.any(
                     it.not(it.licensedForFeature('SAML')),
                     it.not(it.userHasReadPermissionOnResource(RESOURCE_KEYS.AUTHENTICATION.SAML)),
@@ -4390,6 +4618,12 @@ const AdminDefinition: AdminDefinitionType = {
                 url: 'authentication/saml',
                 isDiscovery: true,
                 title: defineMessage({id: 'admin.sidebar.saml', defaultMessage: 'SAML 2.0'}),
+                icon: (
+                    <ShieldOutlineIcon
+                        size={14}
+                        color={'currentColor'}
+                    />
+                ),
                 isHidden: it.any(
                     it.licensedForFeature('SAML'),
                 ),
@@ -4410,6 +4644,12 @@ const AdminDefinition: AdminDefinitionType = {
             oauth: {
                 url: 'authentication/oauth',
                 title: defineMessage({id: 'admin.sidebar.oauth', defaultMessage: 'OAuth 2.0'}),
+                icon: (
+                    <LockOutlineIcon
+                        size={14}
+                        color={'currentColor'}
+                    />
+                ),
                 isHidden: it.any(
                     it.any(
                         it.not(it.licensed),
@@ -4741,6 +4981,12 @@ const AdminDefinition: AdminDefinitionType = {
             openid: {
                 url: 'authentication/openid',
                 title: defineMessage({id: 'admin.sidebar.openid', defaultMessage: 'OpenID Connect'}),
+                icon: (
+                    <AccountOutlineIcon
+                        size={14}
+                        color={'currentColor'}
+                    />
+                ),
                 isHidden: it.any(
                     it.all(it.not(it.licensedForFeature('OpenId')), it.not(it.cloudLicensed)),
                     it.not(it.userHasReadPermissionOnResource(RESOURCE_KEYS.AUTHENTICATION.OPENID)),
@@ -5083,6 +5329,12 @@ const AdminDefinition: AdminDefinitionType = {
                 url: 'authentication/openid',
                 isDiscovery: true,
                 title: defineMessage({id: 'admin.sidebar.openid', defaultMessage: 'OpenID Connect'}),
+                icon: (
+                    <AccountOutlineIcon
+                        size={14}
+                        color={'currentColor'}
+                    />
+                ),
                 isHidden: it.any(
                     it.any(it.licensedForFeature('OpenId'), it.cloudLicensed),
                 ),
@@ -5104,6 +5356,12 @@ const AdminDefinition: AdminDefinitionType = {
                 url: 'authentication/gitlab',
                 isDiscovery: true,
                 title: defineMessage({id: 'admin.sidebar.gitlab', defaultMessage: 'GitLab'}),
+                icon: (
+                    <CodeTagsIcon
+                        size={14}
+                        color={'currentColor'}
+                    />
+                ),
                 isHidden: it.any(
                     it.licensedForFeature('OpenId'),
                 ),
@@ -5124,6 +5382,12 @@ const AdminDefinition: AdminDefinitionType = {
             guest_access: {
                 url: 'authentication/guest_access',
                 title: defineMessage({id: 'admin.sidebar.guest_access', defaultMessage: 'Guest Access'}),
+                icon: (
+                    <AccountOutlineIcon
+                        size={14}
+                        color={'currentColor'}
+                    />
+                ),
                 searchableStrings: magicLinkSearchableStrings,
                 isHidden: it.any(
                     it.not(it.licensedForFeature('GuestAccounts')),
@@ -5213,6 +5477,12 @@ const AdminDefinition: AdminDefinitionType = {
                 isDiscovery: true,
                 url: 'authentication/guest_access',
                 title: defineMessage({id: 'admin.sidebar.guest_access', defaultMessage: 'Guest Access'}),
+                icon: (
+                    <AccountOutlineIcon
+                        size={14}
+                        color={'currentColor'}
+                    />
+                ),
                 isHidden: it.any(
                     it.licensedForFeature('GuestAccounts'),
                 ),
@@ -5246,6 +5516,12 @@ const AdminDefinition: AdminDefinitionType = {
             plugin_management: {
                 url: 'plugins/plugin_management',
                 title: defineMessage({id: 'admin.plugins.pluginManagement', defaultMessage: 'Plugin Management'}),
+                icon: (
+                    <AppsIcon
+                        size={14}
+                        color={'currentColor'}
+                    />
+                ),
                 searchableStrings: pluginManagementSearchableStrings,
                 isDisabled: it.not(it.userHasWritePermissionOnResource('plugins')),
                 schema: {
@@ -5277,6 +5553,12 @@ const AdminDefinition: AdminDefinitionType = {
             integration_management: {
                 url: 'integrations/integration_management',
                 title: defineMessage({id: 'admin.integrations.integrationManagement', defaultMessage: 'Integration Management'}),
+                icon: (
+                    <SitemapIcon
+                        size={14}
+                        color={'currentColor'}
+                    />
+                ),
                 isHidden: it.all(
                     it.not(it.userHasReadPermissionOnResource(RESOURCE_KEYS.INTEGRATIONS.INTEGRATION_MANAGEMENT)),
                 ),
@@ -5463,6 +5745,12 @@ const AdminDefinition: AdminDefinitionType = {
             bot_accounts: {
                 url: 'integrations/bot_accounts',
                 title: defineMessage({id: 'admin.integrations.botAccounts', defaultMessage: 'Bot Accounts'}),
+                icon: (
+                    <RobotHappyIcon
+                        size={14}
+                        color={'currentColor'}
+                    />
+                ),
                 isHidden: it.all(
                     it.not(it.userHasReadPermissionOnResource(RESOURCE_KEYS.INTEGRATIONS.BOT_ACCOUNTS)),
                 ),
@@ -5512,6 +5800,12 @@ const AdminDefinition: AdminDefinitionType = {
             gif: {
                 url: 'integrations/gif',
                 title: defineMessage({id: 'admin.sidebar.gif', defaultMessage: 'GIF'}),
+                icon: (
+                    <FileGifIcon
+                        size={14}
+                        color={'currentColor'}
+                    />
+                ),
                 isHidden: it.all(
                     it.not(it.userHasReadPermissionOnResource(RESOURCE_KEYS.INTEGRATIONS.GIF)),
                 ),
@@ -5532,6 +5826,12 @@ const AdminDefinition: AdminDefinitionType = {
             cors: {
                 url: 'integrations/cors',
                 title: defineMessage({id: 'admin.sidebar.cors', defaultMessage: 'CORS'}),
+                icon: (
+                    <WebIcon
+                        size={14}
+                        color={'currentColor'}
+                    />
+                ),
                 isHidden: it.any(
                     it.configIsTrue('ExperimentalSettings', 'RestrictSystemAdmin'),
                     it.not(it.userHasReadPermissionOnResource(RESOURCE_KEYS.INTEGRATIONS.CORS)),
@@ -5576,6 +5876,12 @@ const AdminDefinition: AdminDefinitionType = {
             embedding: {
                 url: 'integrations/embedding',
                 title: defineMessage({id: 'admin.sidebar.embedding', defaultMessage: 'Embedding'}),
+                icon: (
+                    <CodeTagsIcon
+                        size={14}
+                        color={'currentColor'}
+                    />
+                ),
                 isHidden: it.not(it.userHasReadPermissionOnResource(RESOURCE_KEYS.INTEGRATIONS.CORS)),
                 schema: {
                     id: 'EmbeddingSettings',
@@ -5645,6 +5951,12 @@ const AdminDefinition: AdminDefinitionType = {
             data_retention: {
                 url: 'compliance/data_retention_settings',
                 title: defineMessage({id: 'admin.sidebar.dataRetentionSettingsPolicies', defaultMessage: 'Data Retention Policies'}),
+                icon: (
+                    <ArchiveOutlineIcon
+                        size={14}
+                        color={'currentColor'}
+                    />
+                ),
                 searchableStrings: [
                     adminDefinitionMessages.data_retention_title,
                     ...dataRetentionSearchableStrings,
@@ -5664,6 +5976,12 @@ const AdminDefinition: AdminDefinitionType = {
                 url: 'compliance/data_retention',
                 isDiscovery: true,
                 title: defineMessage({id: 'admin.sidebar.dataRetentionPolicy', defaultMessage: 'Data Retention Policy'}),
+                icon: (
+                    <ArchiveOutlineIcon
+                        size={14}
+                        color={'currentColor'}
+                    />
+                ),
                 isHidden: it.any(
                     it.licensedForFeature('DataRetention'),
                 ),
@@ -5684,6 +6002,12 @@ const AdminDefinition: AdminDefinitionType = {
             message_export: {
                 url: 'compliance/export',
                 title: defineMessage({id: 'admin.sidebar.complianceExport', defaultMessage: 'Compliance Export'}),
+                icon: (
+                    <ExportVariantIcon
+                        size={14}
+                        color={'currentColor'}
+                    />
+                ),
                 searchableStrings: messageExportSearchableStrings,
                 isHidden: it.any(
                     it.not(it.licensedForFeature('MessageExport')),
@@ -5700,6 +6024,12 @@ const AdminDefinition: AdminDefinitionType = {
                 isDiscovery: true,
                 url: 'compliance/export',
                 title: defineMessage({id: 'admin.sidebar.complianceExport', defaultMessage: 'Compliance Export'}),
+                icon: (
+                    <ExportVariantIcon
+                        size={14}
+                        color={'currentColor'}
+                    />
+                ),
                 isHidden: it.any(
                     it.licensedForFeature('MessageExport'),
                 ),
@@ -5720,6 +6050,12 @@ const AdminDefinition: AdminDefinitionType = {
             audits: {
                 url: 'compliance/monitoring',
                 title: defineMessage({id: 'admin.sidebar.complianceMonitoring', defaultMessage: 'Compliance Monitoring'}),
+                icon: (
+                    <TextBoxOutlineIcon
+                        size={14}
+                        color={'currentColor'}
+                    />
+                ),
                 isHidden: it.any(
                     it.not(it.licensedForFeature('Compliance')),
                     it.not(it.userHasReadPermissionOnResource(RESOURCE_KEYS.COMPLIANCE.COMPLIANCE_MONITORING)),
@@ -5794,6 +6130,12 @@ const AdminDefinition: AdminDefinitionType = {
             audit_logging: {
                 url: 'compliance/audit_logging',
                 title: defineMessage({id: 'admin.sidebar.audit_logging_experimental', defaultMessage: 'Audit Logging'}),
+                icon: (
+                    <FileTextOutlineIcon
+                        size={14}
+                        color={'currentColor'}
+                    />
+                ),
                 isHidden: it.any(
                     it.not(it.userHasReadPermissionOnResource(RESOURCE_KEYS.EXPERIMENTAL.FEATURES)),
                     it.configIsFalse('FeatureFlags', 'ExperimentalAuditSettingsSystemConsoleUI'),
@@ -5938,6 +6280,12 @@ const AdminDefinition: AdminDefinitionType = {
             custom_terms_of_service: {
                 url: 'compliance/custom_terms_of_service',
                 title: defineMessage({id: 'admin.sidebar.customTermsOfService', defaultMessage: 'Custom Terms of Service'}),
+                icon: (
+                    <TextBoxOutlineIcon
+                        size={14}
+                        color={'currentColor'}
+                    />
+                ),
                 searchableStrings: customTermsOfServiceSearchableStrings,
                 isHidden: it.any(
                     it.not(it.licensedForFeature('CustomTermsOfService')),
@@ -5954,6 +6302,12 @@ const AdminDefinition: AdminDefinitionType = {
                 url: 'compliance/custom_terms_of_service',
                 isDiscovery: true,
                 title: defineMessage({id: 'admin.sidebar.customTermsOfService', defaultMessage: 'Custom Terms of Service'}),
+                icon: (
+                    <TextBoxOutlineIcon
+                        size={14}
+                        color={'currentColor'}
+                    />
+                ),
                 isHidden: it.any(
                     it.licensedForFeature('CustomTermsOfService'),
                 ),
@@ -5986,6 +6340,12 @@ const AdminDefinition: AdminDefinitionType = {
             experimental_features: {
                 url: 'experimental/features',
                 title: defineMessage({id: 'admin.sidebar.experimentalFeatures', defaultMessage: 'Features'}),
+                icon: (
+                    <FlaskOutlineIcon
+                        size={14}
+                        color={'currentColor'}
+                    />
+                ),
                 isHidden: it.not(it.userHasReadPermissionOnResource(RESOURCE_KEYS.EXPERIMENTAL.FEATURES)),
                 schema: {
                     id: 'ExperimentalSettings',
@@ -6340,6 +6700,12 @@ const AdminDefinition: AdminDefinitionType = {
             feature_flags: {
                 url: 'experimental/feature_flags',
                 title: featureFlagsMessages.title,
+                icon: (
+                    <FlagOutlineIcon
+                        size={14}
+                        color={'currentColor'}
+                    />
+                ),
                 isHidden: it.not(it.userHasReadPermissionOnResource(RESOURCE_KEYS.EXPERIMENTAL.FEATURE_FLAGS)),
                 isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.EXPERIMENTAL.FEATURE_FLAGS)),
                 searchableStrings: [
