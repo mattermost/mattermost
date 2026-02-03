@@ -911,13 +911,24 @@ const ErrorLogDashboard: React.FC<Props> = ({config, patchConfig}) => {
         return true;
     });
 
-    // Calculate muted count based on current filter tab
-    const mutedCount = errors.filter((error) => {
-        if (filter !== 'all' && error.type !== filter) {
-            return false;
+    // Calculate muted count based on current filter tab and view mode
+    const mutedCount = React.useMemo(() => {
+        const mutedErrors = errors.filter((error) => {
+            if (filter !== 'all' && error.type !== filter) {
+                return false;
+            }
+            return isErrorMuted(error);
+        });
+
+        if (viewMode === 'grouped') {
+            // In grouped view, count unique error messages (groups), not individual errors
+            const uniqueMessages = new Set(mutedErrors.map((e) => e.message.trim().toLowerCase()));
+            return uniqueMessages.size;
         }
-        return isErrorMuted(error);
-    }).length;
+
+        // In list view, count individual errors
+        return mutedErrors.length;
+    }, [errors, filter, viewMode, isErrorMuted]);
 
     // Calculate visible stats from base filtered (excludes type filter so counts stay constant)
     const visibleStats = {
