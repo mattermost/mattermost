@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-import type {MultiValueProps} from 'react-select/dist/declarations/src/components/MultiValue';
+import type {MultiValueProps} from 'react-select';
 
 import {renderWithContext, screen, userEvent} from 'tests/react_testing_utils';
 
