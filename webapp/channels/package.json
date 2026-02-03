@@ -185,7 +185,7 @@
     "test:watch": "cross-env TZ=Etc/UTC LC_ALL=en_US.UTF-8 LANG=en_US.UTF-8 jest --watch",
     "test:updatesnapshot": "cross-env TZ=Etc/UTC LC_ALL=en_US.UTF-8 LANG=en_US.UTF-8 jest --updateSnapshot",
     "test:debug": "cross-env TZ=Etc/UTC LC_ALL=en_US.UTF-8 LANG=en_US.UTF-8 jest --forceExit --detectOpenHandles --verbose",
-    "test-ci": "echo HARRISON && ls platform/shared/dist && cross-env TZ=Etc/UTC LC_ALL=en_US.UTF-8 LANG=en_US.UTF-8 jest --ci --maxWorkers=100% --forceExit --detectOpenHandles --logHeapUsage --coverage",
+    "test-ci": "echo HARRISON && ls ../platform/shared/dist && cross-env TZ=Etc/UTC LC_ALL=en_US.UTF-8 LANG=en_US.UTF-8 jest --ci --maxWorkers=100% --forceExit --detectOpenHandles --logHeapUsage --coverage",
     "clean": "rm -rf dist node_modules .eslintcache .stylelintcache tsconfig.tsbuildinfo",
     "stats": "cross-env NODE_ENV=production webpack --profile --json > webpack_stats.json",
     "i18n-extract": "formatjs extract 'src/**/*.{js,jsx,ts,tsx}' --additional-function-names localizeMessage --ignore 'src/**/*.d.ts' --ignore 'src/**/*.test.{js,jsx,ts,tsx}' --out-file src/i18n/en.json --format scripts/formatter.js --id-interpolation-pattern '[sha512:contenthash:base64:6]' --preserve-whitespace",
