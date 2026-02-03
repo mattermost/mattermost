@@ -67,7 +67,6 @@ func TestMloggerConfigFromAuditConfig(t *testing.T) {
 		assert.Equal(t, 5, fileOptions.MaxBackups)
 		assert.True(t, fileOptions.Compress)
 	})
-
 }
 
 func TestGetLogRootPath(t *testing.T) {
