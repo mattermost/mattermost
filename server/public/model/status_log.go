@@ -5,20 +5,21 @@ package model
 
 // StatusLog represents a status change or activity event for debugging and monitoring.
 type StatusLog struct {
-	Id           string `json:"id"`
-	CreateAt     int64  `json:"create_at"`
-	UserID       string `json:"user_id"`
-	Username     string `json:"username"`
-	OldStatus    string `json:"old_status"`
-	NewStatus    string `json:"new_status"`
-	Reason       string `json:"reason"`        // e.g., "window_focus", "heartbeat", "inactivity", "manual", "offline_prevented"
-	WindowActive bool   `json:"window_active"` // Whether the window was active at the time
-	ChannelID    string `json:"channel_id,omitempty"`
-	Device       string `json:"device,omitempty"` // Client type: "web", "desktop", "mobile", "api", "unknown"
-	LogType      string `json:"log_type"`         // "status_change" or "activity"
-	Trigger      string `json:"trigger,omitempty"` // Human-readable trigger for activity logs (e.g., "Window Active", "Loaded #general")
-	Manual       bool   `json:"manual"`           // Whether this status change was triggered by manual user action (vs automatic)
-	Source       string `json:"source,omitempty"` // Code location that triggered this log (e.g., "SetStatusOnline", "UpdateActivityFromHeartbeat")
+	Id             string `json:"id" db:"id"`
+	CreateAt       int64  `json:"create_at" db:"createat"`
+	UserID         string `json:"user_id" db:"userid"`
+	Username       string `json:"username" db:"username"`
+	OldStatus      string `json:"old_status" db:"oldstatus"`
+	NewStatus      string `json:"new_status" db:"newstatus"`
+	Reason         string `json:"reason" db:"reason"`                   // e.g., "window_focus", "heartbeat", "inactivity", "manual", "offline_prevented"
+	WindowActive   bool   `json:"window_active" db:"windowactive"`      // Whether the window was active at the time
+	ChannelID      string `json:"channel_id,omitempty" db:"channelid"`
+	Device         string `json:"device,omitempty" db:"device"`         // Client type: "web", "desktop", "mobile", "api", "unknown"
+	LogType        string `json:"log_type" db:"logtype"`                // "status_change" or "activity"
+	Trigger        string `json:"trigger,omitempty" db:"trigger"`       // Human-readable trigger for activity logs (e.g., "Window Active", "Loaded #general")
+	Manual         bool   `json:"manual" db:"manual"`                   // Whether this status change was triggered by manual user action (vs automatic)
+	Source         string `json:"source,omitempty" db:"source"`         // Code location that triggered this log (e.g., "SetStatusOnline", "UpdateActivityFromHeartbeat")
+	LastActivityAt int64  `json:"last_activity_at,omitempty" db:"lastactivityat"` // The LastActivityAt timestamp that was set (for debugging time jumps)
 }
 
 // StatusLogType constants

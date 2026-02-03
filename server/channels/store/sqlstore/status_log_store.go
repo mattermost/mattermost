@@ -40,6 +40,7 @@ func (s *SqlStatusLogStore) Save(log *model.StatusLog) error {
 			"trigger",
 			"manual",
 			"source",
+			"lastactivityat",
 		).
 		Values(
 			log.Id,
@@ -56,6 +57,7 @@ func (s *SqlStatusLogStore) Save(log *model.StatusLog) error {
 			log.Trigger,
 			log.Manual,
 			log.Source,
+			log.LastActivityAt,
 		)
 
 	if _, err := s.GetMaster().ExecBuilder(query); err != nil {
@@ -83,6 +85,7 @@ func (s *SqlStatusLogStore) Get(options model.StatusLogGetOptions) ([]*model.Sta
 			"trigger",
 			"manual",
 			"source",
+			"lastactivityat",
 		).
 		From("statuslogs").
 		OrderBy("createat DESC")

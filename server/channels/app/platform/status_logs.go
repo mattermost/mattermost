@@ -77,7 +77,8 @@ func (ps *PlatformService) LogStatusChange(userID, username, oldStatus, newStatu
 // This tracks what triggers keep users active.
 // The source parameter identifies which function triggered this log (e.g., "UpdateActivityFromHeartbeat").
 // The channelType parameter is the channel type (e.g., "O", "P", "D", "G") used to format display names.
-func (ps *PlatformService) LogActivityUpdate(userID, username, currentStatus, device string, windowActive bool, channelID, channelName, channelType, trigger, source string) {
+// The lastActivityAt parameter is the timestamp that was set (for debugging time jumps).
+func (ps *PlatformService) LogActivityUpdate(userID, username, currentStatus, device string, windowActive bool, channelID, channelName, channelType, trigger, source string, lastActivityAt int64) {
 	// Only log if status logs are enabled
 	if !*ps.Config().MattermostExtendedSettings.Statuses.EnableStatusLogs {
 		return
@@ -113,6 +114,10 @@ func (ps *PlatformService) LogActivityUpdate(userID, username, currentStatus, de
 		if channelDisplay != "" {
 			displayTrigger = "Active Channel set to " + channelDisplay
 		}
+	case model.StatusLogTriggerSendMessage:
+		if channelDisplay != "" {
+			displayTrigger = "Sent message in " + channelDisplay
+		}
 	case model.StatusLogTriggerWindowInactive:
 		// Include the inactivity timeout in the trigger
 		inactivityMinutes := *ps.Config().MattermostExtendedSettings.Statuses.InactivityTimeoutMinutes
@@ -120,19 +125,20 @@ func (ps *PlatformService) LogActivityUpdate(userID, username, currentStatus, de
 	}
 
 	statusLog := &model.StatusLog{
-		Id:           model.NewId(),
-		CreateAt:     model.GetMillis(),
-		UserID:       userID,
-		Username:     username,
-		OldStatus:    currentStatus, // Same status for activity logs
-		NewStatus:    currentStatus,
-		Reason:       model.StatusLogReasonHeartbeat,
-		WindowActive: windowActive,
-		ChannelID:    channelID,
-		Device:       device,
-		LogType:      model.StatusLogTypeActivity,
-		Trigger:      displayTrigger,
-		Source:       source,
+		Id:             model.NewId(),
+		CreateAt:       model.GetMillis(),
+		UserID:         userID,
+		Username:       username,
+		OldStatus:      currentStatus, // Same status for activity logs
+		NewStatus:      currentStatus,
+		Reason:         model.StatusLogReasonHeartbeat,
+		WindowActive:   windowActive,
+		ChannelID:      channelID,
+		Device:         device,
+		LogType:        model.StatusLogTypeActivity,
+		Trigger:        displayTrigger,
+		Source:         source,
+		LastActivityAt: lastActivityAt,
 	}
 
 	// Save to database

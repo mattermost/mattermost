@@ -79,91 +79,6 @@
         }
     }
 
-    &__stats {
-        display: grid;
-        grid-template-columns: repeat(5, 1fr);
-        gap: 16px;
-        margin-bottom: 24px;
-    }
-
-    &__stat-card {
-        background: var(--center-channel-bg);
-        border: 1px solid rgba(var(--center-channel-color-rgb), 0.08);
-        border-radius: 8px;
-        padding: 16px;
-        transition: all 0.15s ease;
-
-        &--clickable {
-            cursor: pointer;
-
-            &:hover {
-                border-color: rgba(var(--button-bg-rgb), 0.3);
-                box-shadow: 0 2px 8px rgba(var(--center-channel-color-rgb), 0.08);
-            }
-        }
-
-        &--selected {
-            border-color: var(--button-bg);
-            box-shadow: 0 0 0 1px var(--button-bg);
-
-            &:hover {
-                border-color: var(--button-bg);
-            }
-        }
-
-        &__icon {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            width: 36px;
-            height: 36px;
-            border-radius: 8px;
-            margin-bottom: 10px;
-
-            &--total {
-                background: rgba(var(--button-bg-rgb), 0.1);
-                color: var(--button-bg);
-            }
-
-            &--online {
-                background: rgba(var(--online-indicator-rgb), 0.1);
-                color: var(--online-indicator);
-            }
-
-            &--away {
-                background: rgba(var(--away-indicator-rgb), 0.1);
-                color: var(--away-indicator);
-            }
-
-            &--dnd {
-                background: rgba(var(--dnd-indicator-rgb), 0.1);
-                color: var(--dnd-indicator);
-            }
-
-            &--offline {
-                background: rgba(var(--center-channel-color-rgb), 0.1);
-                color: rgba(var(--center-channel-color-rgb), 0.56);
-            }
-        }
-
-        &__value {
-            font-size: 28px;
-            font-weight: 700;
-            margin-bottom: 4px;
-        }
-
-        &__total {
-            font-size: 16px;
-            font-weight: 400;
-            color: rgba(var(--center-channel-color-rgb), 0.48);
-        }
-
-        &__label {
-            font-size: 13px;
-            color: rgba(var(--center-channel-color-rgb), 0.64);
-        }
-    }
-
     &__connection {
         display: flex;
         align-items: center;
@@ -473,9 +388,9 @@
             display: inline-flex;
             align-items: center;
             gap: 4px;
-            padding: 4px 8px;
-            background: rgba(var(--button-bg-rgb), 0.1);
-            color: var(--button-bg);
+            padding: 4px 8px 4px 10px;
+            background: var(--button-bg);
+            color: var(--button-color);
             border-radius: 12px;
             font-size: 12px;
             font-weight: 500;
@@ -483,7 +398,7 @@
             svg {
                 width: 12px;
                 height: 12px;
-                opacity: 0.72;
+                opacity: 0.8;
             }
 
             button {
@@ -494,15 +409,15 @@
                 height: 16px;
                 margin-left: 2px;
                 border: none;
-                background: transparent;
+                background: rgba(255, 255, 255, 0.2);
                 cursor: pointer;
                 border-radius: 50%;
-                color: var(--button-bg);
-                opacity: 0.64;
+                color: var(--button-color);
+                opacity: 0.9;
 
                 &:hover {
                     opacity: 1;
-                    background: rgba(var(--button-bg-rgb), 0.1);
+                    background: rgba(255, 255, 255, 0.3);
                 }
 
                 svg {
@@ -615,24 +530,23 @@
         }
 
         &__type-badge {
-            display: flex;
+            display: inline-flex;
             align-items: center;
-            gap: 4px;
-            padding: 2px 8px;
-            border-radius: 4px;
-            font-size: 11px;
-            font-weight: 600;
-            text-transform: uppercase;
-            letter-spacing: 0.3px;
+            gap: 5px;
+            padding: 3px 10px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 500;
 
             svg {
                 width: 12px;
                 height: 12px;
+                flex-shrink: 0;
             }
 
             &.status {
-                background: rgba(var(--button-bg-rgb), 0.1);
-                color: var(--button-bg);
+                background: rgba(var(--away-indicator-rgb), 0.1);
+                color: var(--away-indicator);
             }
 
             &.activity {
@@ -785,6 +699,23 @@
             border-radius: 4px;
             font-size: 11px;
             font-family: monospace;
+        }
+
+        &__last-activity {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            padding: 2px 8px;
+            background: rgba(var(--button-bg-rgb), 0.1);
+            color: var(--button-bg);
+            border-radius: 4px;
+            font-size: 11px;
+            font-weight: 500;
+
+            svg {
+                width: 12px;
+                height: 12px;
+            }
         }
     }
 

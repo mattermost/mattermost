@@ -281,7 +281,7 @@ func (ps *PlatformService) SetStatusLastActivityAt(userID string, activityAt int
 	if user, userErr := ps.Store.User().Get(context.Background(), userID); userErr == nil {
 		username = user.Username
 	}
-	ps.LogActivityUpdate(userID, username, status.Status, model.StatusLogDeviceUnknown, false, "", "", "", model.StatusLogTriggerSetActivity, "SetStatusLastActivityAt")
+	ps.LogActivityUpdate(userID, username, status.Status, model.StatusLogDeviceUnknown, false, "", "", "", model.StatusLogTriggerSetActivity, "SetStatusLastActivityAt", activityAt)
 }
 
 func (ps *PlatformService) UpdateLastActivityAtIfNeeded(session model.Session) {
@@ -313,7 +313,7 @@ func (ps *PlatformService) UpdateLastActivityAtIfNeeded(session model.Session) {
 	if user, userErr := ps.Store.User().Get(context.Background(), session.UserId); userErr == nil {
 		username = user.Username
 	}
-	ps.LogActivityUpdate(session.UserId, username, currentStatus, model.StatusLogDeviceUnknown, false, "", "", "", model.StatusLogTriggerWebSocket, "UpdateLastActivityAtIfNeeded")
+	ps.LogActivityUpdate(session.UserId, username, currentStatus, model.StatusLogDeviceUnknown, false, "", "", "", model.StatusLogTriggerWebSocket, "UpdateLastActivityAtIfNeeded", now)
 }
 
 // UpdateActivityFromManualAction updates LastActivityAt and potentially sets the user
@@ -458,7 +458,7 @@ func (ps *PlatformService) UpdateActivityFromManualAction(userID string, channel
 				}
 			}
 		}
-		ps.LogActivityUpdate(userID, username, status.Status, model.StatusLogDeviceUnknown, true, channelID, channelName, channelType, trigger, "UpdateActivityFromManualAction")
+		ps.LogActivityUpdate(userID, username, status.Status, model.StatusLogDeviceUnknown, true, channelID, channelName, channelType, trigger, "UpdateActivityFromManualAction", status.LastActivityAt)
 	}
 
 	// Broadcast status change if status changed
@@ -589,7 +589,7 @@ func (ps *PlatformService) SetStatusOnline(userID string, manual bool) {
 			if user, userErr := ps.Store.User().Get(context.Background(), userID); userErr == nil {
 				username = user.Username
 			}
-			ps.LogActivityUpdate(userID, username, model.StatusOnline, model.StatusLogDeviceUnknown, true, "", "", "", model.StatusLogTriggerHeartbeat, "SetStatusOnline")
+			ps.LogActivityUpdate(userID, username, model.StatusOnline, model.StatusLogDeviceUnknown, true, "", "", "", model.StatusLogTriggerHeartbeat, "SetStatusOnline", status.LastActivityAt)
 		}
 		if ps.sharedChannelService != nil {
 			ps.sharedChannelService.NotifyUserStatusChanged(status)
@@ -1145,7 +1145,7 @@ func (ps *PlatformService) UpdateActivityFromHeartbeat(userID string, windowActi
 		}
 
 		if trigger != "" {
-			ps.LogActivityUpdate(userID, username, status.Status, model.StatusLogDeviceUnknown, windowActive, channelID, channelName, channelType, trigger, "UpdateActivityFromHeartbeat")
+			ps.LogActivityUpdate(userID, username, status.Status, model.StatusLogDeviceUnknown, windowActive, channelID, channelName, channelType, trigger, "UpdateActivityFromHeartbeat", status.LastActivityAt)
 		}
 	}
 

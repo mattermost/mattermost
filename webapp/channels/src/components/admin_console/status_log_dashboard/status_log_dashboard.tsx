@@ -33,6 +33,7 @@ type StatusLog = {
     trigger?: string; // Human-readable trigger for activity logs
     manual?: boolean; // Whether this status change was triggered by manual user action (vs automatic)
     source?: string; // Code location that triggered this log (e.g., "SetStatusOnline")
+    last_activity_at?: number; // The LastActivityAt timestamp that was set (for debugging time jumps)
 };
 
 type StatusLogStats = {
@@ -49,128 +50,6 @@ type Props = {
 };
 
 // SVG Icons
-const IconChart = () => (
-    <svg
-        width='20'
-        height='20'
-        viewBox='0 0 24 24'
-        fill='none'
-        stroke='currentColor'
-        strokeWidth='2'
-        strokeLinecap='round'
-        strokeLinejoin='round'
-    >
-        <line
-            x1='18'
-            y1='20'
-            x2='18'
-            y2='10'
-        />
-        <line
-            x1='12'
-            y1='20'
-            x2='12'
-            y2='4'
-        />
-        <line
-            x1='6'
-            y1='20'
-            x2='6'
-            y2='14'
-        />
-    </svg>
-);
-
-const IconOnline = () => (
-    <svg
-        width='20'
-        height='20'
-        viewBox='0 0 24 24'
-        fill='none'
-        stroke='currentColor'
-        strokeWidth='2'
-        strokeLinecap='round'
-        strokeLinejoin='round'
-    >
-        <circle
-            cx='12'
-            cy='12'
-            r='10'
-        />
-        <polyline points='12 6 12 12 16 14'/>
-    </svg>
-);
-
-const IconAway = () => (
-    <svg
-        width='20'
-        height='20'
-        viewBox='0 0 24 24'
-        fill='none'
-        stroke='currentColor'
-        strokeWidth='2'
-        strokeLinecap='round'
-        strokeLinejoin='round'
-    >
-        <circle
-            cx='12'
-            cy='12'
-            r='10'
-        />
-        <path d='M12 6v6'/>
-    </svg>
-);
-
-const IconDnd = () => (
-    <svg
-        width='20'
-        height='20'
-        viewBox='0 0 24 24'
-        fill='none'
-        stroke='currentColor'
-        strokeWidth='2'
-        strokeLinecap='round'
-        strokeLinejoin='round'
-    >
-        <circle
-            cx='12'
-            cy='12'
-            r='10'
-        />
-        <line
-            x1='8'
-            y1='12'
-            x2='16'
-            y2='12'
-        />
-    </svg>
-);
-
-const IconOffline = () => (
-    <svg
-        width='20'
-        height='20'
-        viewBox='0 0 24 24'
-        fill='none'
-        stroke='currentColor'
-        strokeWidth='2'
-        strokeLinecap='round'
-        strokeLinejoin='round'
-    >
-        <circle
-            cx='12'
-            cy='12'
-            r='10'
-        />
-        <line
-            x1='4.93'
-            y1='4.93'
-            x2='19.07'
-            y2='19.07'
-        />
-    </svg>
-);
-
 const IconTrash = () => (
     <svg
         width='16'
@@ -800,6 +679,7 @@ const StatusLogDashboard: React.FC<Props> = ({config, patchConfig}) => {
                     channel_id: log.channel_id || null,
                     manual: log.manual || false,
                     source: log.source || null,
+                    last_activity_at: log.last_activity_at ? new Date(log.last_activity_at).toISOString() : null,
                 })),
             };
 
@@ -858,6 +738,10 @@ const StatusLogDashboard: React.FC<Props> = ({config, patchConfig}) => {
             lines.push(`Source: ${log.source}`);
         }
 
+        if (log.last_activity_at && log.last_activity_at > 0) {
+            lines.push(`LastActivityAt: ${new Date(log.last_activity_at).toISOString()}`);
+        }
+
         return lines.join('\n');
     };
 
@@ -879,6 +763,18 @@ const StatusLogDashboard: React.FC<Props> = ({config, patchConfig}) => {
             return intl.formatMessage({id: 'admin.status_log.time.hours', defaultMessage: '{count}h ago'}, {count: hours});
         }
         return intl.formatMessage({id: 'admin.status_log.time.days', defaultMessage: '{count}d ago'}, {count: days});
+    };
+
+    // Format timestamp in user's timezone (for LastActivityAt display)
+    const formatTimestamp = (timestamp: number) => {
+        const date = new Date(timestamp);
+        return date.toLocaleString(undefined, {
+            month: 'short',
+            day: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit',
+            second: '2-digit',
+        });
     };
 
     const getReasonLabel = (reason: string): string => {
@@ -1010,43 +906,6 @@ const StatusLogDashboard: React.FC<Props> = ({config, patchConfig}) => {
             return true;
         });
     }, [logs, filter, logTypeFilter, userFilter, timePeriodFilter, search, getTimePeriodCutoff]);
-
-    // Calculate visible stats (only counts status changes, not activity logs)
-    const visibleStats = useMemo(() => {
-        const timeCutoff = getTimePeriodCutoff(timePeriodFilter);
-
-        const baseFiltered = logs.filter((log) => {
-            // Exclude activity logs from stats - they don't represent status changes
-            if (log.log_type === 'activity') {
-                return false;
-            }
-            // Apply time filter
-            if (timeCutoff > 0 && log.create_at < timeCutoff) {
-                return false;
-            }
-            // Apply user filter
-            if (userFilter !== 'all' && log.username !== userFilter) {
-                return false;
-            }
-            // Apply search filter
-            if (search) {
-                const searchLower = search.toLowerCase();
-                return (
-                    log.username.toLowerCase().includes(searchLower) ||
-                    log.reason.toLowerCase().includes(searchLower)
-                );
-            }
-            return true;
-        });
-
-        return {
-            total: baseFiltered.length,
-            online: baseFiltered.filter((l) => l.new_status === 'online').length,
-            away: baseFiltered.filter((l) => l.new_status === 'away').length,
-            dnd: baseFiltered.filter((l) => l.new_status === 'dnd').length,
-            offline: baseFiltered.filter((l) => l.new_status === 'offline').length,
-        };
-    }, [logs, search, userFilter, timePeriodFilter, getTimePeriodCutoff]);
 
     // Calculate log type counts (considering active filters except log type filter itself)
     const logTypeCounts = useMemo(() => {
@@ -1247,100 +1106,6 @@ const StatusLogDashboard: React.FC<Props> = ({config, patchConfig}) => {
                                 defaultMessage='Clear All'
                             />
                         </button>
-                    </div>
-                </div>
-
-                {/* Stats Cards - clickable to filter */}
-                <div className='StatusLogDashboard__stats'>
-                    <div
-                        className={`StatusLogDashboard__stat-card StatusLogDashboard__stat-card--clickable ${filter === 'all' ? 'StatusLogDashboard__stat-card--selected' : ''}`}
-                        onClick={() => setFilter('all')}
-                    >
-                        <div className='StatusLogDashboard__stat-card__icon StatusLogDashboard__stat-card__icon--total'>
-                            <IconChart/>
-                        </div>
-                        <div className='StatusLogDashboard__stat-card__value'>
-                            {visibleStats.total}
-                            {visibleStats.total !== stats.total && (
-                                <span className='StatusLogDashboard__stat-card__total'>
-                                    {' / '}{stats.total}
-                                </span>
-                            )}
-                        </div>
-                        <div className='StatusLogDashboard__stat-card__label'>
-                            <FormattedMessage
-                                id='admin.status_log.stat.total'
-                                defaultMessage='All Changes'
-                            />
-                        </div>
-                    </div>
-                    <div
-                        className={`StatusLogDashboard__stat-card StatusLogDashboard__stat-card--clickable ${filter === 'online' ? 'StatusLogDashboard__stat-card--selected' : ''}`}
-                        onClick={() => setFilter('online')}
-                    >
-                        <div className='StatusLogDashboard__stat-card__icon StatusLogDashboard__stat-card__icon--online'>
-                            <IconOnline/>
-                        </div>
-                        <div className='StatusLogDashboard__stat-card__value'>
-                            {visibleStats.online}
-                        </div>
-                        <div className='StatusLogDashboard__stat-card__label'>
-                            <FormattedMessage
-                                id='admin.status_log.stat.online'
-                                defaultMessage='Online'
-                            />
-                        </div>
-                    </div>
-                    <div
-                        className={`StatusLogDashboard__stat-card StatusLogDashboard__stat-card--clickable ${filter === 'away' ? 'StatusLogDashboard__stat-card--selected' : ''}`}
-                        onClick={() => setFilter('away')}
-                    >
-                        <div className='StatusLogDashboard__stat-card__icon StatusLogDashboard__stat-card__icon--away'>
-                            <IconAway/>
-                        </div>
-                        <div className='StatusLogDashboard__stat-card__value'>
-                            {visibleStats.away}
-                        </div>
-                        <div className='StatusLogDashboard__stat-card__label'>
-                            <FormattedMessage
-                                id='admin.status_log.stat.away'
-                                defaultMessage='Away'
-                            />
-                        </div>
-                    </div>
-                    <div
-                        className={`StatusLogDashboard__stat-card StatusLogDashboard__stat-card--clickable ${filter === 'dnd' ? 'StatusLogDashboard__stat-card--selected' : ''}`}
-                        onClick={() => setFilter('dnd')}
-                    >
-                        <div className='StatusLogDashboard__stat-card__icon StatusLogDashboard__stat-card__icon--dnd'>
-                            <IconDnd/>
-                        </div>
-                        <div className='StatusLogDashboard__stat-card__value'>
-                            {visibleStats.dnd}
-                        </div>
-                        <div className='StatusLogDashboard__stat-card__label'>
-                            <FormattedMessage
-                                id='admin.status_log.stat.dnd'
-                                defaultMessage='DND'
-                            />
-                        </div>
-                    </div>
-                    <div
-                        className={`StatusLogDashboard__stat-card StatusLogDashboard__stat-card--clickable ${filter === 'offline' ? 'StatusLogDashboard__stat-card--selected' : ''}`}
-                        onClick={() => setFilter('offline')}
-                    >
-                        <div className='StatusLogDashboard__stat-card__icon StatusLogDashboard__stat-card__icon--offline'>
-                            <IconOffline/>
-                        </div>
-                        <div className='StatusLogDashboard__stat-card__value'>
-                            {visibleStats.offline}
-                        </div>
-                        <div className='StatusLogDashboard__stat-card__label'>
-                            <FormattedMessage
-                                id='admin.status_log.stat.offline'
-                                defaultMessage='Offline'
-                            />
-                        </div>
                     </div>
                 </div>
 
@@ -1733,6 +1498,16 @@ const StatusLogDashboard: React.FC<Props> = ({config, patchConfig}) => {
                                         {log.source && (
                                             <span className='StatusLogDashboard__log-card__source'>
                                                 {log.source}
+                                            </span>
+                                        )}
+                                        {log.last_activity_at && log.last_activity_at > 0 && (
+                                            <span className='StatusLogDashboard__log-card__last-activity'>
+                                                <IconClock/>
+                                                <FormattedMessage
+                                                    id='admin.status_log.last_activity_at'
+                                                    defaultMessage='LastActivityAt: {time}'
+                                                    values={{time: formatTimestamp(log.last_activity_at)}}
+                                                />
                                             </span>
                                         )}
                                     </div>
