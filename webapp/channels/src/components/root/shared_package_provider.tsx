@@ -2,11 +2,16 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
+import {useSelector} from 'react-redux';
 
 import {SharedProvider} from '@mattermost/shared/context';
 import type {Emoji} from '@mattermost/types/emojis';
 
 import {getEmojiImageUrl} from 'mattermost-redux/utils/emoji_utils';
+
+import {getEmojiMap} from 'selectors/emojis';
+
+import type {GlobalState} from 'types/store';
 
 export interface SharedPackageProviderProps {
     children: React.ReactNode;
@@ -14,10 +19,24 @@ export interface SharedPackageProviderProps {
 
 export default function SharedPackageProvider({children}: SharedPackageProviderProps) {
     return (
-        <SharedProvider useEmojiUrl={useEmojiUrl}>
+        <SharedProvider
+            useEmojiByName={useEmojiByName}
+            useEmojiUrl={useEmojiUrl}
+        >
             {children}
         </SharedProvider>
     );
+}
+
+function useEmojiByName(name: string) {
+    // This isn't defined for use elsewhere because makeUseEntity currently needs additional logic for handling emojis
+    const emojiMap = useSelector((state: GlobalState) => getEmojiMap(state));
+
+    if (!name) {
+        return undefined;
+    }
+
+    return emojiMap.get(name);
 }
 
 function useEmojiUrl(emoji?: Emoji) {

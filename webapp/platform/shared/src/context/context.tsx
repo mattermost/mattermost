@@ -8,6 +8,7 @@ import type {Emoji} from '@mattermost/types/emojis';
 /* eslint-disable no-underscore-dangle */
 
 export interface SharedContextValue {
+    useEmojiByName: (name: string) => Emoji | undefined;
     useEmojiUrl: (emoji?: Emoji) => string;
 }
 
@@ -27,19 +28,19 @@ export const SharedContext = window?.__MATTERMOST_SHARED_CONTEXT__ ?? (
 );
 SharedContext.displayName = 'MattermostSharedContext';
 
-export interface SharedProviderProps {
+export interface SharedProviderProps extends SharedContextValue {
     children?: React.ReactNode;
-
-    useEmojiUrl: (emoji?: Emoji) => string;
 }
 
 export function SharedProvider({
     children,
+    useEmojiByName,
     useEmojiUrl,
 }: SharedProviderProps) {
     const contextValue = useMemo(() => ({
+        useEmojiByName,
         useEmojiUrl,
-    }), [useEmojiUrl]);
+    }), [useEmojiByName, useEmojiUrl]);
 
     return <SharedContext.Provider value={contextValue}>{children}</SharedContext.Provider>;
 }

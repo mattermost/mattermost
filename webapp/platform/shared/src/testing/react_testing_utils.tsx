@@ -18,8 +18,6 @@ export type FullContextOptions = {
 export const renderWithContext = (
     component: React.ReactElement,
 
-    // initialState: DeepPartial<GlobalState> = {},
-
     partialOptions?: FullContextOptions,
 ) => {
     const options = {
@@ -55,7 +53,6 @@ export const renderWithContext = (
 export const renderHookWithContext = <TProps, TResult>(
     callback: (props: TProps) => TResult,
 
-    // initialState: DeepPartial<GlobalState> = {},
     partialOptions?: FullContextOptions,
 ) => {
     const options = {

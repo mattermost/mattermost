@@ -1,21 +1,10 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-/*
-Notes:
-- To avoid having the shared package know about mattermost-redux yet, I changed the props of this to take an Emoji
-  instead of taking the emoji's name and a URL because that caused problems when Maria did the same migration during
-  the build event.
-- While I tried to limit the other changes, I changed the way that the component is defined to use a plain function
-  to ensure it has a display name, its props to use an interface since that seems like it's considered a best practice,
-  and I removed memo from this component since it's simple and because neither RN or react-spectrum use it.
-*/
-
 import type {KeyboardEvent, MouseEvent} from 'react';
 import React from 'react';
 
-import {isSystemEmoji, type Emoji as EmojiType} from '@mattermost/types/emojis';
-
+import {useEmojiByName} from '../../context/useEmojiByName';
 import {useEmojiUrl} from '../../context/useEmojiUrl';
 
 import './emoji.css';
@@ -23,7 +12,7 @@ import './emoji.css';
 const emptyEmojiStyle = {};
 
 export interface EmojiProps {
-    emoji?: EmojiType;
+    emojiName: string;
     size?: number;
     emojiStyle?: React.CSSProperties;
 
@@ -32,19 +21,17 @@ export interface EmojiProps {
 }
 
 export function Emoji({
-    emoji,
+    emojiName,
     emojiStyle = emptyEmojiStyle,
     size = 16,
     onClick,
 }: EmojiProps) {
+    const emoji = useEmojiByName(emojiName);
     const emojiImageUrl = useEmojiUrl(emoji);
 
     if (!emoji || !emojiImageUrl) {
         return null;
     }
-
-    // TODO this duplicates getEmojiName from mattermost-redux/utils/emoji_utils
-    const emojiName = isSystemEmoji(emoji) ? emoji.short_name : emoji.name;
 
     return (
         <span
