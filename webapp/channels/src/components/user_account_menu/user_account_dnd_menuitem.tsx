@@ -62,6 +62,26 @@ export default function UserAccountDndMenuItem(props: Props) {
         }
     }
 
+    // Handler for clicking the main DND row - sets DND indefinitely
+    function handleDoNotClear() {
+        if (props.shouldConfirmBeforeStatusChange) {
+            dispatch(openModal({
+                modalId: ModalIdentifiers.RESET_STATUS,
+                dialogType: ResetStatusModal,
+                dialogProps: {
+                    newStatus: UserStatuses.DND,
+                },
+            }));
+            return;
+        }
+
+        dispatch(setStatus({
+            user_id: props.userId,
+            status: UserStatuses.DND,
+            dnd_end_time: moment(0).utc().unix(),
+        }));
+    }
+
     function handleSubMenuItemClick(event: MouseEvent<HTMLLIElement> | KeyboardEvent<HTMLLIElement>) {
         if (props.shouldConfirmBeforeStatusChange) {
             dispatch(openModal({
