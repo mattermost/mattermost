@@ -212,20 +212,34 @@ const getPublishedDraftTimestamps = (state: GlobalState): Record<string, number>
     return state.entities.wikiPages?.publishedDraftTimestamps || {};
 };
 
+// Get deleted draft timestamps from wiki pages state
+export const getDeletedDraftTimestamps = (state: GlobalState): Record<string, number> => {
+    return state.entities.wikiPages?.deletedDraftTimestamps || {};
+};
+
 /**
- * Get unpublished drafts for a wiki, filtering out recently published drafts.
+ * Get unpublished drafts for a wiki, filtering out recently published and deleted drafts.
  * When a draft is published, it gets added to publishedDraftTimestamps to prevent
  * the draft from appearing in the tree momentarily before being fully removed from storage.
+ * When a draft is deleted, it gets added to deletedDraftTimestamps to prevent stale
+ * refetches (e.g., during HA reconnects) from restoring the draft.
  */
 export const getUnpublishedPageDraftsForWiki: (state: GlobalState, wikiId: string) => PostDraft[] = createSelector(
     'getUnpublishedPageDraftsForWiki',
     getPageDraftsForWiki,
     getPublishedDraftTimestamps,
-    (allDrafts, publishedDraftTimestamps): PostDraft[] => {
+    getDeletedDraftTimestamps,
+    (allDrafts, publishedDraftTimestamps, deletedDraftTimestamps): PostDraft[] => {
         return allDrafts.filter((draft) => {
             const draftId = draft.rootId;
             const isPublished = Boolean(publishedDraftTimestamps[draftId]);
-            return !isPublished;
+
+            // Use same logic as fetchPageDraftsForWiki: allow draft if it was updated AFTER deletion
+            // (meaning it's a new draft created after the old one was deleted)
+            const deletedAt = deletedDraftTimestamps[draftId];
+            const isDeleted = deletedAt && (!draft.updateAt || draft.updateAt <= deletedAt);
+
+            return !isPublished && !isDeleted;
         });
     },
 );

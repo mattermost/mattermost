@@ -215,6 +215,49 @@ function publishedDraftTimestamps(state: Record<string, number> = {}, action: An
     }
 }
 
+function deletedDraftTimestamps(state: Record<string, number> = {}, action: AnyAction): Record<string, number> {
+    switch (action.type) {
+    case WikiTypes.DRAFT_DELETION_RECORDED: {
+        const {draftId, deletedAt} = action.data;
+
+        const existingTimestamp = state[draftId] || 0;
+        if (deletedAt <= existingTimestamp) {
+            return state;
+        }
+
+        return {
+            ...state,
+            [draftId]: deletedAt,
+        };
+    }
+    case WikiTypes.DRAFT_DELETION_REVERTED: {
+        // API delete failed - remove tombstone so draft can be shown again
+        const {draftId} = action.data;
+        if (!state[draftId]) {
+            return state;
+        }
+        const {[draftId]: _, ...rest} = state;
+        return rest;
+    }
+    case WikiTypes.CLEANUP_DELETED_DRAFT_TIMESTAMPS: {
+        const {staleThreshold} = action.data;
+        const nextState: Record<string, number> = {};
+
+        Object.entries(state).forEach(([draftId, timestamp]) => {
+            if (timestamp > staleThreshold) {
+                nextState[draftId] = timestamp;
+            }
+        });
+
+        return nextState;
+    }
+    case UserTypes.LOGOUT_SUCCESS:
+        return {};
+    default:
+        return state;
+    }
+}
+
 export default combineReducers({
 
     // mapping of wiki id to array of page ids
@@ -231,6 +274,9 @@ export default combineReducers({
 
     // timestamps of recently published drafts (for deduplication)
     publishedDraftTimestamps,
+
+    // timestamps of recently deleted drafts (prevents stale refetch from restoring them)
+    deletedDraftTimestamps,
 });
 
 export type WikiPagesState = ReturnType<ReturnType<typeof combineReducers>>;

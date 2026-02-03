@@ -236,6 +236,7 @@ const state: GlobalState = {
         wikiPages: {
             byWiki: {},
             publishedDraftTimestamps: {},
+            deletedDraftTimestamps: {},
             lastPagesInvalidated: {},
             lastDraftsInvalidated: {},
             statusField: null,

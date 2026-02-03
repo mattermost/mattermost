@@ -294,10 +294,14 @@
             }
         }
 
+        img {
+            border: 1px solid rgba(var(--center-channel-color-rgb), 0.24);
+            border-radius: 4px;
+        }
+
         img.wiki-image {
             max-width: 100%;
             height: auto;
-            border-radius: 4px;
             margin: 1em 0;
         }
 

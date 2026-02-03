@@ -15,6 +15,7 @@ describe('wiki_pages reducer', () => {
         lastDraftsInvalidated: {},
         statusField: null,
         publishedDraftTimestamps: {},
+        deletedDraftTimestamps: {},
     };
 
     const wikiId = 'wiki123';
@@ -471,6 +472,222 @@ describe('wiki_pages reducer', () => {
         });
     });
 
+    describe('DRAFT_DELETION_RECORDED', () => {
+        test('should store deletion timestamp', () => {
+            const draftId = 'draft123';
+            const deletedAt = 1700000000000;
+            const action = {
+                type: WikiTypes.DRAFT_DELETION_RECORDED,
+                data: {draftId, deletedAt},
+            };
+
+            const nextState = wikiPagesReducer(initialState, action);
+
+            expect(nextState.deletedDraftTimestamps[draftId]).toBe(deletedAt);
+        });
+
+        test('should preserve existing timestamps when adding new one', () => {
+            const existingDraftId = 'existing-draft';
+            const existingTimestamp = 1600000000000;
+            const stateWithTimestamp = {
+                ...initialState,
+                deletedDraftTimestamps: {
+                    [existingDraftId]: existingTimestamp,
+                },
+            };
+
+            const newDraftId = 'draft456';
+            const newTimestamp = 1700000000000;
+            const action = {
+                type: WikiTypes.DRAFT_DELETION_RECORDED,
+                data: {draftId: newDraftId, deletedAt: newTimestamp},
+            };
+
+            const nextState = wikiPagesReducer(stateWithTimestamp, action);
+
+            expect(nextState.deletedDraftTimestamps[existingDraftId]).toBe(existingTimestamp);
+            expect(nextState.deletedDraftTimestamps[newDraftId]).toBe(newTimestamp);
+        });
+
+        test('should not update if new timestamp is older than existing (idempotent)', () => {
+            const draftId = 'draft123';
+            const existingTimestamp = 1700000000000;
+            const stateWithTimestamp = {
+                ...initialState,
+                deletedDraftTimestamps: {
+                    [draftId]: existingTimestamp,
+                },
+            };
+
+            const olderTimestamp = 1600000000000;
+            const action = {
+                type: WikiTypes.DRAFT_DELETION_RECORDED,
+                data: {draftId, deletedAt: olderTimestamp},
+            };
+
+            const nextState = wikiPagesReducer(stateWithTimestamp, action);
+
+            expect(nextState.deletedDraftTimestamps[draftId]).toBe(existingTimestamp);
+
+            // State reference should not change since nothing was updated
+            expect(nextState).toBe(stateWithTimestamp);
+        });
+
+        test('should update if new timestamp is newer than existing', () => {
+            const draftId = 'draft123';
+            const existingTimestamp = 1600000000000;
+            const stateWithTimestamp = {
+                ...initialState,
+                deletedDraftTimestamps: {
+                    [draftId]: existingTimestamp,
+                },
+            };
+
+            const newerTimestamp = 1700000000000;
+            const action = {
+                type: WikiTypes.DRAFT_DELETION_RECORDED,
+                data: {draftId, deletedAt: newerTimestamp},
+            };
+
+            const nextState = wikiPagesReducer(stateWithTimestamp, action);
+
+            expect(nextState.deletedDraftTimestamps[draftId]).toBe(newerTimestamp);
+        });
+    });
+
+    describe('DRAFT_DELETION_REVERTED', () => {
+        test('should remove tombstone when API delete fails', () => {
+            const draftId = 'draft123';
+            const stateWithTimestamp = {
+                ...initialState,
+                deletedDraftTimestamps: {
+                    [draftId]: 1700000000000,
+                },
+            };
+
+            const action = {
+                type: WikiTypes.DRAFT_DELETION_REVERTED,
+                data: {draftId},
+            };
+
+            const nextState = wikiPagesReducer(stateWithTimestamp, action);
+
+            expect(nextState.deletedDraftTimestamps[draftId]).toBeUndefined();
+        });
+
+        test('should preserve other tombstones when reverting one', () => {
+            const draftId1 = 'draft1';
+            const draftId2 = 'draft2';
+            const stateWithTimestamps = {
+                ...initialState,
+                deletedDraftTimestamps: {
+                    [draftId1]: 1700000000000,
+                    [draftId2]: 1700000001000,
+                },
+            };
+
+            const action = {
+                type: WikiTypes.DRAFT_DELETION_REVERTED,
+                data: {draftId: draftId1},
+            };
+
+            const nextState = wikiPagesReducer(stateWithTimestamps, action);
+
+            expect(nextState.deletedDraftTimestamps[draftId1]).toBeUndefined();
+            expect(nextState.deletedDraftTimestamps[draftId2]).toBe(1700000001000);
+        });
+
+        test('should return same state if tombstone does not exist', () => {
+            const action = {
+                type: WikiTypes.DRAFT_DELETION_REVERTED,
+                data: {draftId: 'non-existent-draft'},
+            };
+
+            const nextState = wikiPagesReducer(initialState, action);
+
+            expect(nextState).toBe(initialState);
+        });
+    });
+
+    describe('CLEANUP_DELETED_DRAFT_TIMESTAMPS', () => {
+        test('should remove entries older than staleThreshold', () => {
+            const oldDraftId = 'old-draft';
+            const newDraftId = 'new-draft';
+            const oldTimestamp = 1600000000000;
+            const newTimestamp = 1700000000000;
+            const staleThreshold = 1650000000000;
+
+            const stateWithTimestamps = {
+                ...initialState,
+                deletedDraftTimestamps: {
+                    [oldDraftId]: oldTimestamp,
+                    [newDraftId]: newTimestamp,
+                },
+            };
+
+            const action = {
+                type: WikiTypes.CLEANUP_DELETED_DRAFT_TIMESTAMPS,
+                data: {staleThreshold},
+            };
+
+            const nextState = wikiPagesReducer(stateWithTimestamps, action);
+
+            expect(nextState.deletedDraftTimestamps[oldDraftId]).toBeUndefined();
+            expect(nextState.deletedDraftTimestamps[newDraftId]).toBe(newTimestamp);
+        });
+
+        test('should keep entries newer than staleThreshold', () => {
+            const draftId1 = 'draft1';
+            const draftId2 = 'draft2';
+            const timestamp1 = 1700000000000;
+            const timestamp2 = 1700000001000;
+            const staleThreshold = 1600000000000;
+
+            const stateWithTimestamps = {
+                ...initialState,
+                deletedDraftTimestamps: {
+                    [draftId1]: timestamp1,
+                    [draftId2]: timestamp2,
+                },
+            };
+
+            const action = {
+                type: WikiTypes.CLEANUP_DELETED_DRAFT_TIMESTAMPS,
+                data: {staleThreshold},
+            };
+
+            const nextState = wikiPagesReducer(stateWithTimestamps, action);
+
+            expect(nextState.deletedDraftTimestamps[draftId1]).toBe(timestamp1);
+            expect(nextState.deletedDraftTimestamps[draftId2]).toBe(timestamp2);
+        });
+
+        test('should remove all entries when all are stale', () => {
+            const draftId1 = 'draft1';
+            const draftId2 = 'draft2';
+            const timestamp1 = 1600000000000;
+            const timestamp2 = 1600000001000;
+            const staleThreshold = 1700000000000;
+
+            const stateWithTimestamps = {
+                ...initialState,
+                deletedDraftTimestamps: {
+                    [draftId1]: timestamp1,
+                    [draftId2]: timestamp2,
+                },
+            };
+
+            const action = {
+                type: WikiTypes.CLEANUP_DELETED_DRAFT_TIMESTAMPS,
+                data: {staleThreshold},
+            };
+
+            const nextState = wikiPagesReducer(stateWithTimestamps, action);
+
+            expect(Object.keys(nextState.deletedDraftTimestamps)).toHaveLength(0);
+        });
+    });
+
     describe('Single Source of Truth', () => {
         test('should not have pageSummaries cache', () => {
             expect(initialState).not.toHaveProperty('pageSummaries');
@@ -480,10 +697,11 @@ describe('wiki_pages reducer', () => {
             expect(initialState).not.toHaveProperty('fullPages');
         });
 
-        test('should only store metadata (byWiki, publishedDraftTimestamps, etc)', () => {
+        test('should only store metadata (byWiki, publishedDraftTimestamps, deletedDraftTimestamps, etc)', () => {
             const stateKeys = Object.keys(initialState);
             expect(stateKeys).toContain('byWiki');
             expect(stateKeys).toContain('publishedDraftTimestamps');
+            expect(stateKeys).toContain('deletedDraftTimestamps');
             expect(stateKeys).not.toContain('pageSummaries');
             expect(stateKeys).not.toContain('fullPages');
         });

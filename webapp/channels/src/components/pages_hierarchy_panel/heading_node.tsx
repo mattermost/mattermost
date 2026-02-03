@@ -1,9 +1,11 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {useCallback} from 'react';
+import React, {useCallback, useEffect, useRef, useState} from 'react';
 import {useIntl} from 'react-intl';
 import {useHistory} from 'react-router-dom';
+
+import WithTooltip from 'components/with_tooltip';
 
 import {scrollToHeading} from 'utils/page_outline';
 import type {Heading} from 'utils/page_outline';
@@ -24,7 +26,26 @@ const HeadingNode: React.FC<HeadingNodeProps> = ({heading, pageId, currentPageId
     const {formatMessage} = useIntl();
     const history = useHistory();
 
+    const [isTextTruncated, setIsTextTruncated] = useState(false);
+    const textRef = useRef<HTMLSpanElement>(null);
+
     const paddingLeft = ((heading.level - 1) * 12) + 18;
+
+    useEffect(() => {
+        const checkTruncation = () => {
+            const el = textRef.current;
+            if (!el) {
+                return;
+            }
+            setIsTextTruncated(el.scrollWidth > el.clientWidth);
+        };
+
+        checkTruncation();
+        window.addEventListener('resize', checkTruncation);
+        return () => {
+            window.removeEventListener('resize', checkTruncation);
+        };
+    }, [heading.text]);
 
     const handleClick = useCallback((e: React.MouseEvent) => {
         e.stopPropagation();
@@ -57,7 +78,17 @@ const HeadingNode: React.FC<HeadingNodeProps> = ({heading, pageId, currentPageId
                     {level: heading.level, text: heading.text},
                 )}
             >
-                <span className='HeadingNode__text'>{heading.text}</span>
+                <WithTooltip
+                    title={heading.text}
+                    disabled={!isTextTruncated}
+                >
+                    <span
+                        ref={textRef}
+                        className='HeadingNode__text'
+                    >
+                        {heading.text}
+                    </span>
+                </WithTooltip>
             </button>
         </div>
     );

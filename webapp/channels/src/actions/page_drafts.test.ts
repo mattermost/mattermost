@@ -302,12 +302,54 @@ describe('page_drafts actions', () => {
             const action = removePageDraft(wikiId, pageId);
             await action(dispatch, getState, undefined);
 
-            // Check that batch actions includes DELETED_DRAFT
-            const batchCall = dispatch.mock.calls[0][0];
+            // First dispatch is DRAFT_DELETION_RECORDED (recorded before API call)
+            const deletionRecordedCall = dispatch.mock.calls[0][0];
+            expect(deletionRecordedCall.type).toBe(WikiTypes.DRAFT_DELETION_RECORDED);
+            expect(deletionRecordedCall.data.draftId).toBe(pageId);
+            expect(typeof deletionRecordedCall.data.deletedAt).toBe('number');
+
+            // Second dispatch is batch actions including DELETED_DRAFT
+            const batchCall = dispatch.mock.calls[1][0];
             expect(batchCall.payload).toContainEqual({
                 type: WikiTypes.DELETED_DRAFT,
                 data: {id: pageId, wikiId, userId},
             });
+        });
+
+        test('should revert tombstone and return error when server delete fails', async () => {
+            const mockError = {message: 'Server error'};
+            const dispatchedActions: any[] = [];
+            const dispatch: jest.Mock = jest.fn((action) => {
+                if (typeof action === 'function') {
+                    return action(dispatch, jest.fn(() => createMockState({syncEnabled: true})), undefined);
+                }
+                dispatchedActions.push(action);
+                return action;
+            });
+            const getState = jest.fn(() => createMockState({syncEnabled: true})) as any;
+
+            mockRemoveGlobalItem.mockReturnValue({type: 'REMOVE_GLOBAL_ITEM'} as any);
+            mockWikiDeletePageDraft.mockReturnValue(() => Promise.resolve({error: mockError}) as any);
+
+            const action = removePageDraft(wikiId, pageId);
+            const result = await action(dispatch, getState, undefined);
+
+            // Should return error
+            expect(result.data).toBe(false);
+            expect(result.error).toBe(mockError);
+
+            // Should dispatch DRAFT_DELETION_RECORDED first
+            const recordedAction = dispatchedActions.find((a) => a.type === WikiTypes.DRAFT_DELETION_RECORDED);
+            expect(recordedAction).toBeDefined();
+            expect(recordedAction.data.draftId).toBe(pageId);
+
+            // Should dispatch DRAFT_DELETION_REVERTED when API fails
+            const revertedAction = dispatchedActions.find((a) => a.type === WikiTypes.DRAFT_DELETION_REVERTED);
+            expect(revertedAction).toBeDefined();
+            expect(revertedAction.data.draftId).toBe(pageId);
+
+            // Should NOT remove from local storage when API fails
+            expect(mockRemoveGlobalItem).not.toHaveBeenCalled();
         });
     });
 

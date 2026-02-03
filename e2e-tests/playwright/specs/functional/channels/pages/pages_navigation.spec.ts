@@ -8,11 +8,13 @@ import {
     createChildPageThroughContextMenu,
     createTestChannel,
     buildWikiPageUrl,
+    buildChannelUrl,
     getHierarchyPanel,
     getPageViewerContent,
     getBreadcrumb,
     getBreadcrumbWikiName,
     getBreadcrumbLinks,
+    deletePageThroughUI,
     SHORT_WAIT,
     AUTOSAVE_WAIT,
     ELEMENT_TIMEOUT,
@@ -460,3 +462,101 @@ test('toggles fullscreen mode and accesses comments', {tag: '@pages'}, async ({p
         expect(bodyClassListEscaped).not.toContain('fullscreen-mode');
     }).toPass({timeout: SHORT_WAIT});
 });
+
+/**
+ * @objective Verify clicking page link in Messages channel shows error after page is deleted
+ *
+ * When a page is created/updated, a system notification post appears in the Messages channel
+ * with a link to the page. If the page is deleted, clicking that link should show an error
+ * or redirect, not open the deleted page.
+ */
+test(
+    'shows error when clicking link to deleted page in Messages channel',
+    {tag: '@pages'},
+    async ({pw, sharedPagesSetup}) => {
+        const {team, user, adminClient} = sharedPagesSetup;
+        const channel = await createTestChannel(adminClient, team.id, uniqueName('Test Channel'));
+
+        const {page, channelsPage} = await loginAndNavigateToChannel(pw, user, team.name, channel.name);
+
+        // # Create wiki and page through UI
+        const wiki = await createWikiThroughUI(page, uniqueName('Link Test Wiki'));
+        const pageTitle = 'Page To Delete For Link Test';
+        await createPageThroughUI(page, pageTitle, 'Content for link test');
+
+        // # Navigate to Messages tab to see the system notification post
+        await page.goto(buildChannelUrl(pw.url, team.name, channel.name));
+        await channelsPage.toBeVisible();
+        await page.waitForLoadState('networkidle');
+
+        // * Verify the system post about page creation appears in the channel
+        // Message format: "@username created Page Title in the Wiki Name wiki tab"
+        const channelFeed = page.locator('#postListContent');
+        await expect(channelFeed).toContainText(`created ${pageTitle}`, {timeout: HIERARCHY_TIMEOUT});
+
+        // # Find the link to the page in the system notification post
+        const pageLink = channelFeed.locator(`a:has-text("${pageTitle}")`).first();
+        await expect(pageLink).toBeVisible({timeout: ELEMENT_TIMEOUT});
+
+        // # Get the page link URL for later verification
+        const pageLinkHref = await pageLink.getAttribute('href');
+        expect(pageLinkHref).toBeTruthy();
+
+        // # Navigate back to wiki and delete the page
+        const wikiTab = page.getByRole('tab', {name: wiki.title});
+        await expect(wikiTab).toBeVisible({timeout: ELEMENT_TIMEOUT});
+        await wikiTab.click();
+        await page.waitForLoadState('networkidle');
+
+        // # Wait for hierarchy panel to load
+        const hierarchyPanel = getHierarchyPanel(page);
+        await expect(hierarchyPanel).toBeVisible({timeout: HIERARCHY_TIMEOUT});
+
+        // # Delete the page through UI
+        await deletePageThroughUI(page, pageTitle);
+
+        // * Verify page no longer appears in hierarchy
+        await expect(hierarchyPanel).not.toContainText(pageTitle, {timeout: WEBSOCKET_WAIT});
+
+        // # Navigate back to Messages channel
+        await page.goto(buildChannelUrl(pw.url, team.name, channel.name));
+        await channelsPage.toBeVisible();
+        await page.waitForLoadState('networkidle');
+
+        // # Click the link to the deleted page in the system notification post
+        const pageLinkAfterDelete = channelFeed.locator(`a:has-text("${pageTitle}")`).first();
+        await expect(pageLinkAfterDelete).toBeVisible({timeout: ELEMENT_TIMEOUT});
+        await pageLinkAfterDelete.click();
+        await page.waitForLoadState('networkidle');
+
+        // * Verify either:
+        // 1. Error message shown (page not found, deleted, etc.), OR
+        // 2. Redirected away from the deleted page URL, OR
+        // 3. Not showing the deleted page content
+        const currentUrl = page.url();
+        const errorMessage = page.locator('text=/not found|page.*not.*exist|deleted|404|error/i').first();
+        const deletedPageContent = page.locator('text="Content for link test"').first();
+
+        // The page should NOT display the deleted content
+        const showsDeletedContent = await deletedPageContent.isVisible().catch(() => false);
+        const showsError = await errorMessage.isVisible().catch(() => false);
+        const wasRedirected = pageLinkHref && !currentUrl.includes(pageLinkHref.split('/').pop()!);
+
+        // At least one of these conditions should be true:
+        // - Shows an error message
+        // - Was redirected away from the deleted page
+        // - Does NOT show the deleted page content
+        const handledCorrectly = showsError || wasRedirected || !showsDeletedContent;
+
+        expect(handledCorrectly).toBe(true);
+
+        // If the deleted content is somehow visible, fail with a descriptive message
+        if (showsDeletedContent) {
+            throw new Error(
+                `Bug: Clicking link to deleted page "${pageTitle}" still shows the deleted page content. ` +
+                    `Expected: error message, redirect, or empty state. ` +
+                    `URL: ${currentUrl}`,
+            );
+        }
+    },
+);

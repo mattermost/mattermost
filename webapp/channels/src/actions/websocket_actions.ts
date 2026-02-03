@@ -680,9 +680,23 @@ export function handleEvent(msg: WebSocketMessage) {
     }
     case SocketEvents.PAGE_DRAFT_DELETED: {
         // Handle active editors notification when page draft is deleted
-        const deletedDraftData = msg.data as {page_id?: string; user_id?: string};
+        const deletedDraftData = msg.data as {page_id?: string; user_id?: string; deleted_at?: number};
         if (deletedDraftData.page_id && deletedDraftData.user_id) {
             dispatch(handleActiveEditorDraftDeleted(deletedDraftData.page_id, deletedDraftData.user_id));
+
+            // Record deletion timestamp ONLY for current user's drafts (HA race condition fix)
+            // We only want to prevent the current user's deleted draft from reappearing due to stale refetch.
+            // Other users' draft deletions should not affect our local draft filtering.
+            const currentUserId = getCurrentUserId(getState());
+            if (deletedDraftData.user_id === currentUserId) {
+                dispatch({
+                    type: WikiTypes.DRAFT_DELETION_RECORDED,
+                    data: {
+                        draftId: deletedDraftData.page_id,
+                        deletedAt: deletedDraftData.deleted_at || Date.now(),
+                    },
+                });
+            }
         }
         break;
     }

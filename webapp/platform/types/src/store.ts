@@ -109,6 +109,7 @@ export type GlobalState = {
             lastDraftsInvalidated: Record<string, number>;
             statusField: SelectPropertyField | null;
             publishedDraftTimestamps: Record<string, number>;
+            deletedDraftTimestamps: Record<string, number>;
         };
         wikis: {
             byChannel: Record<string, string[]>;

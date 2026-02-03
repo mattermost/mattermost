@@ -135,13 +135,26 @@ export function fetchPageDraftsForWiki(wikiId: string): ActionFuncAsync<PostDraf
         const state = getState();
         const currentUserId = getCurrentUserId(state);
 
+        // Get deleted draft timestamps to filter out recently deleted drafts (HA race condition fix)
+        const deletedDraftTimestamps = state.entities.wikiPages?.deletedDraftTimestamps || {};
+
         let serverDrafts: LocalPageDraft[] = [];
         if (syncedDraftsAreAllowedAndEnabled(state)) {
             // Delegate to Redux layer for the API call
             const result = await dispatch(WikiActions.getPageDraftsForWiki(wikiId));
             if (!result.error && result.data) {
                 const serverDraftsRaw = result.data as ServerPageDraft[];
-                serverDrafts = serverDraftsRaw.map((draft) => transformPageServerDraft(draft, wikiId, draft.page_id, currentUserId));
+                serverDrafts = serverDraftsRaw.
+
+                    // Filter out recently deleted drafts
+                    filter((draft) => {
+                        const deletedAt = deletedDraftTimestamps[draft.page_id];
+
+                        // Keep draft only if it wasn't deleted, or if it was updated AFTER deletion
+                        // (meaning it's a new draft created after the old one was deleted)
+                        return !deletedAt || draft.update_at > deletedAt;
+                    }).
+                    map((draft) => transformPageServerDraft(draft, wikiId, draft.page_id, currentUserId));
             }
         }
 
@@ -154,11 +167,17 @@ export function fetchPageDraftsForWiki(wikiId: string): ActionFuncAsync<PostDraf
                 const storedDraft = state.storage.storage[key];
                 if (storedDraft && storedDraft.value) {
                     const draft = storedDraft.value as PostDraft;
-                    localDrafts.push({
-                        key,
-                        timestamp: new Date(draft.updateAt || 0),
-                        value: draft,
-                    });
+                    const draftId = draft.rootId;
+
+                    // Filter out recently deleted drafts from local storage too
+                    const deletedAt = deletedDraftTimestamps[draftId];
+                    if (!deletedAt || (draft.updateAt && draft.updateAt > deletedAt)) {
+                        localDrafts.push({
+                            key,
+                            timestamp: new Date(draft.updateAt || 0),
+                            value: draft,
+                        });
+                    }
                 }
             }
         });
@@ -190,14 +209,26 @@ export function removePageDraft(wikiId: string, pageId: string): ActionFuncAsync
         const currentUserId = getCurrentUserId(state);
         const key = makePageDraftKey(wikiId, pageId, currentUserId);
 
-        // Delete from server first (if sync is enabled) - delegate to Redux layer
+        // Record deletion timestamp FIRST (before API call)
+        // This prevents any concurrent refetch from restoring the draft (HA race condition fix)
+        const deletedAt = Date.now();
+        dispatch({
+            type: WikiTypes.DRAFT_DELETION_RECORDED,
+            data: {draftId: pageId, deletedAt},
+        });
+
+        // Delete from server (if sync is enabled) - delegate to Redux layer
         if (syncedDraftsAreAllowedAndEnabled(state)) {
             const result = await dispatch(WikiActions.deletePageDraft(wikiId, pageId));
 
-            // Log error but continue - still remove from local storage
-            // to prevent the draft from being stuck in UI
             if (result.error) {
+                // API delete failed - revert tombstone so draft can be shown again
+                dispatch({
+                    type: WikiTypes.DRAFT_DELETION_REVERTED,
+                    data: {draftId: pageId},
+                });
                 dispatch(logError(result.error));
+                return {data: false, error: result.error};
             }
         }
 
@@ -220,5 +251,20 @@ export function clearPageDraft(wikiId: string, pageId: string): ActionFuncAsync<
 export function syncPageDraftsWithServer(wikiId: string): ActionFuncAsync<boolean> {
     return async (dispatch) => {
         return dispatch(getDrafts(wikiId));
+    };
+}
+
+const DELETED_DRAFT_RETENTION_MS = 5 * 60 * 1000; // 5 minutes
+
+export function cleanupDeletedDraftTimestamps(): ActionFuncAsync<boolean> {
+    return async (dispatch) => {
+        const staleThreshold = Date.now() - DELETED_DRAFT_RETENTION_MS;
+
+        dispatch({
+            type: WikiTypes.CLEANUP_DELETED_DRAFT_TIMESTAMPS,
+            data: {staleThreshold},
+        });
+
+        return {data: true};
     };
 }

@@ -4,6 +4,7 @@
 import {useEffect, useRef} from 'react';
 import {useDispatch} from 'react-redux';
 
+import {cleanupDeletedDraftTimestamps} from 'actions/page_drafts';
 import {cleanupPublishedDraftTimestamps} from 'actions/pages';
 
 const CLEANUP_INTERVAL_MS = 60000;
@@ -15,6 +16,7 @@ export function usePublishedDraftCleanup() {
     useEffect(() => {
         cleanupIntervalRef.current = setInterval(() => {
             dispatch(cleanupPublishedDraftTimestamps());
+            dispatch(cleanupDeletedDraftTimestamps());
         }, CLEANUP_INTERVAL_MS);
 
         return () => {

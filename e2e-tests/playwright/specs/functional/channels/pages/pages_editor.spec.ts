@@ -719,7 +719,7 @@ test('opens page link modal with Ctrl+L keyboard shortcut', {tag: '@pages'}, asy
 
     // * Verify modal opens via keyboard shortcut
     await expect(linkModal).toBeVisible({timeout: ELEMENT_TIMEOUT});
-    await expect(linkModal).toContainText('Link to a page');
+    await expect(linkModal).toContainText('Insert link');
 });
 
 /**

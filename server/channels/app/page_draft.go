@@ -741,10 +741,12 @@ func (a *App) BroadcastPageDraftUpdated(channelId string, draft *model.PageDraft
 
 // BroadcastPageDraftDeleted broadcasts a draft deletion to all clients with access to the channel.
 // This notifies other users that an editor has stopped editing.
+// Includes deleted_at timestamp to help clients prevent stale refetch from restoring the draft (HA race condition fix).
 func (a *App) BroadcastPageDraftDeleted(channelId, pageId, userId string) {
 	message := model.NewWebSocketEvent(model.WebsocketEventPageDraftDeleted, "", channelId, "", nil, "")
 	message.Add("page_id", pageId)
 	message.Add("user_id", userId)
+	message.Add("deleted_at", model.GetMillis())
 	message.SetBroadcast(&model.WebsocketBroadcast{
 		ChannelId:           channelId,
 		ReliableClusterSend: true,

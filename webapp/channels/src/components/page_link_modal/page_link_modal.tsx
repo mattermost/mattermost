@@ -48,6 +48,16 @@ const PageLinkModal = ({
     const linkTextInputRef = useRef<HTMLInputElement>(null);
     const urlInputRef = useRef<HTMLInputElement>(null);
 
+    useEffect(() => {
+        setLinkText(initialLinkText || '');
+        setSearchQuery('');
+        setSelectedIndex(0);
+        setIsConfirming(false);
+        setUrlInput('');
+        setUrlError('');
+        setMode('page');
+    }, [initialLinkText]);
+
     const filteredPages = useMemo(() => {
         return pages.filter((page) => {
             const title = getPageTitle(page, untitledText);
