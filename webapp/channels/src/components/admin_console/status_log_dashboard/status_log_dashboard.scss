@@ -405,19 +405,17 @@
                 display: flex;
                 align-items: center;
                 justify-content: center;
-                width: 16px;
-                height: 16px;
-                margin-left: 2px;
+                width: 14px;
+                height: 14px;
+                margin-left: 4px;
+                padding: 0;
                 border: none;
-                background: rgba(255, 255, 255, 0.2);
+                background: none;
                 cursor: pointer;
-                border-radius: 50%;
-                color: var(--button-color);
-                opacity: 0.9;
+                color: rgba(0, 0, 0, 0.6);
 
                 &:hover {
-                    opacity: 1;
-                    background: rgba(255, 255, 255, 0.3);
+                    color: rgba(0, 0, 0, 0.9);
                 }
 
                 svg {
@@ -544,7 +542,7 @@
                 flex-shrink: 0;
             }
 
-            &.status {
+            &.status-change {
                 background: rgba(var(--away-indicator-rgb), 0.1);
                 color: var(--away-indicator);
             }

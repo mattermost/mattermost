@@ -766,15 +766,22 @@ const StatusLogDashboard: React.FC<Props> = ({config, patchConfig}) => {
     };
 
     // Format timestamp in user's timezone (for LastActivityAt display)
-    const formatTimestamp = (timestamp: number) => {
-        const date = new Date(timestamp);
-        return date.toLocaleString(undefined, {
-            month: 'short',
-            day: 'numeric',
-            hour: '2-digit',
-            minute: '2-digit',
-            second: '2-digit',
-        });
+    const formatTimestamp = (timestamp: number): string => {
+        if (!timestamp || timestamp <= 0) {
+            return 'N/A';
+        }
+        try {
+            const date = new Date(timestamp);
+            return date.toLocaleString(undefined, {
+                month: 'short',
+                day: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit',
+                second: '2-digit',
+            });
+        } catch {
+            return 'Invalid';
+        }
     };
 
     const getReasonLabel = (reason: string): string => {
@@ -1424,7 +1431,7 @@ const StatusLogDashboard: React.FC<Props> = ({config, patchConfig}) => {
                                             )}
                                         </div>
                                         <div className='StatusLogDashboard__log-card__header-right'>
-                                            <span className={`StatusLogDashboard__log-card__type-badge ${isActivity ? 'activity' : 'status'}`}>
+                                            <span className={`StatusLogDashboard__log-card__type-badge ${isActivity ? 'activity' : 'status-change'}`}>
                                                 {isActivity ? (
                                                     <>
                                                         <IconActivity/>
@@ -1500,7 +1507,7 @@ const StatusLogDashboard: React.FC<Props> = ({config, patchConfig}) => {
                                                 {log.source}
                                             </span>
                                         )}
-                                        {log.last_activity_at && log.last_activity_at > 0 && (
+                                        {typeof log.last_activity_at === 'number' && log.last_activity_at > 0 && (
                                             <span className='StatusLogDashboard__log-card__last-activity'>
                                                 <IconClock/>
                                                 <FormattedMessage
