@@ -3741,10 +3741,6 @@
     "translation": "Et saa ilmoituksia kanavalta {{.Channel}} ennen kuin mykistys on otettu pois päältä."
   },
   {
-    "id": "api.command_mute.not_member.error",
-    "translation": "Ei voitu mykistää kanavaa {{.Channel}} koska et ole sen jäsen."
-  },
-  {
     "id": "api.command_mute.no_channel.error",
     "translation": "Kanavaa ei löydetty. Käytä [kanavan tunnistetta](https://about.mattermost.com/default-channel-handle-documentation) sen määrittämiseen."
   },
