@@ -4,6 +4,7 @@
 package platform
 
 import (
+	"context"
 	"encoding/json"
 	"errors"
 	"net/http"
@@ -349,6 +350,17 @@ func (ps *PlatformService) SetStatusOnline(userID string, manual bool) {
 
 	if broadcast {
 		ps.BroadcastStatus(status)
+
+		// Log the status change
+		username := ""
+		if user, userErr := ps.Store.User().Get(context.Background(), userID); userErr == nil {
+			username = user.Username
+		}
+		reason := model.StatusLogReasonManual
+		if !manual {
+			reason = model.StatusLogReasonConnect
+		}
+		ps.LogStatusChange(userID, username, oldStatus, model.StatusOnline, reason, true, "")
 	}
 }
 
@@ -357,13 +369,30 @@ func (ps *PlatformService) SetStatusOffline(userID string, manual bool, force bo
 		return
 	}
 
+	oldStatus := model.StatusOnline // default if we can't get it
 	status, err := ps.GetStatus(userID)
 	if err != nil {
 		ps.Log().Warn("Error getting status. Setting it to offline forcefully.", mlog.String("user_id", userID), mlog.Err(err))
-	} else if !force && status.Manual && !manual {
-		return // manually set status always overrides non-manual one
+	} else {
+		oldStatus = status.Status
+		if !force && status.Manual && !manual {
+			return // manually set status always overrides non-manual one
+		}
 	}
 	ps._setStatusOfflineAndNotify(userID, manual)
+
+	// Log the status change
+	if oldStatus != model.StatusOffline {
+		username := ""
+		if user, userErr := ps.Store.User().Get(context.Background(), userID); userErr == nil {
+			username = user.Username
+		}
+		reason := model.StatusLogReasonManual
+		if !manual {
+			reason = model.StatusLogReasonDisconnect
+		}
+		ps.LogStatusChange(userID, username, oldStatus, model.StatusOffline, reason, false, "")
+	}
 }
 
 func (ps *PlatformService) _setStatusOfflineAndNotify(userID string, manual bool) {
@@ -381,12 +410,16 @@ func (ps *PlatformService) QueueSetStatusOffline(userID string, manual bool) {
 		return
 	}
 
+	oldStatus := model.StatusOnline // default if we can't get it
 	status, err := ps.GetStatus(userID)
 	if err != nil {
 		ps.Log().Warn("Error getting status. Setting it to offline forcefully.", mlog.String("user_id", userID), mlog.Err(err))
-	} else if status.Manual && !manual {
-		// Force will be false here, so no need to add another variable.
-		return // manually set status always overrides non-manual one
+	} else {
+		oldStatus = status.Status
+		if status.Manual && !manual {
+			// Force will be false here, so no need to add another variable.
+			return // manually set status always overrides non-manual one
+		}
 	}
 
 	status = &model.Status{
@@ -404,6 +437,19 @@ func (ps *PlatformService) QueueSetStatusOffline(userID string, manual bool) {
 		// Channel is full, fall back to direct update
 		ps.Log().Warn("Status update channel is full. Falling back to direct update")
 		ps._setStatusOfflineAndNotify(userID, manual)
+	}
+
+	// Log the status change (logged when queued, actual update may be slightly delayed)
+	if oldStatus != model.StatusOffline {
+		username := ""
+		if user, userErr := ps.Store.User().Get(context.Background(), userID); userErr == nil {
+			username = user.Username
+		}
+		reason := model.StatusLogReasonManual
+		if !manual {
+			reason = model.StatusLogReasonDisconnect
+		}
+		ps.LogStatusChange(userID, username, oldStatus, model.StatusOffline, reason, false, "")
 	}
 }
 
@@ -497,6 +543,7 @@ func (ps *PlatformService) SetStatusAwayIfNeeded(userID string, manual bool) {
 		}
 	}
 
+	oldStatus := status.Status
 	status.Status = model.StatusAway
 	status.Manual = manual
 	status.ActiveChannel = ""
@@ -504,6 +551,19 @@ func (ps *PlatformService) SetStatusAwayIfNeeded(userID string, manual bool) {
 	ps.SaveAndBroadcastStatus(status)
 	if ps.sharedChannelService != nil {
 		ps.sharedChannelService.NotifyUserStatusChanged(status)
+	}
+
+	// Log the status change
+	if oldStatus != model.StatusAway {
+		username := ""
+		if user, userErr := ps.Store.User().Get(context.Background(), userID); userErr == nil {
+			username = user.Username
+		}
+		reason := model.StatusLogReasonManual
+		if !manual {
+			reason = model.StatusLogReasonInactivity
+		}
+		ps.LogStatusChange(userID, username, oldStatus, model.StatusAway, reason, false, "")
 	}
 }
 
@@ -520,6 +580,7 @@ func (ps *PlatformService) SetStatusDoNotDisturbTimed(userID string, endtime int
 		status = &model.Status{UserId: userID, Status: model.StatusOffline, Manual: false, LastActivityAt: 0, ActiveChannel: ""}
 	}
 
+	oldStatus := status.Status
 	status.PrevStatus = status.Status
 	status.Status = model.StatusDnd
 	status.Manual = true
@@ -529,6 +590,15 @@ func (ps *PlatformService) SetStatusDoNotDisturbTimed(userID string, endtime int
 	ps.SaveAndBroadcastStatus(status)
 	if ps.sharedChannelService != nil {
 		ps.sharedChannelService.NotifyUserStatusChanged(status)
+	}
+
+	// Log the status change
+	if oldStatus != model.StatusDnd {
+		username := ""
+		if user, userErr := ps.Store.User().Get(context.Background(), userID); userErr == nil {
+			username = user.Username
+		}
+		ps.LogStatusChange(userID, username, oldStatus, model.StatusDnd, model.StatusLogReasonManual, true, "")
 	}
 }
 
@@ -556,12 +626,22 @@ func (ps *PlatformService) SetStatusDoNotDisturb(userID string) {
 		status = &model.Status{UserId: userID, Status: model.StatusOffline, Manual: false, LastActivityAt: 0, ActiveChannel: ""}
 	}
 
+	oldStatus := status.Status
 	status.Status = model.StatusDnd
 	status.Manual = true
 
 	ps.SaveAndBroadcastStatus(status)
 	if ps.sharedChannelService != nil {
 		ps.sharedChannelService.NotifyUserStatusChanged(status)
+	}
+
+	// Log the status change
+	if oldStatus != model.StatusDnd {
+		username := ""
+		if user, userErr := ps.Store.User().Get(context.Background(), userID); userErr == nil {
+			username = user.Username
+		}
+		ps.LogStatusChange(userID, username, oldStatus, model.StatusDnd, model.StatusLogReasonManual, true, "")
 	}
 }
 
@@ -576,6 +656,7 @@ func (ps *PlatformService) SetStatusOutOfOffice(userID string) {
 		status = &model.Status{UserId: userID, Status: model.StatusOutOfOffice, Manual: false, LastActivityAt: 0, ActiveChannel: ""}
 	}
 
+	oldStatus := status.Status
 	status.Status = model.StatusOutOfOffice
 	status.Manual = true
 
@@ -583,8 +664,124 @@ func (ps *PlatformService) SetStatusOutOfOffice(userID string) {
 	if ps.sharedChannelService != nil {
 		ps.sharedChannelService.NotifyUserStatusChanged(status)
 	}
+
+	// Log the status change
+	if oldStatus != model.StatusOutOfOffice {
+		username := ""
+		if user, userErr := ps.Store.User().Get(context.Background(), userID); userErr == nil {
+			username = user.Username
+		}
+		ps.LogStatusChange(userID, username, oldStatus, model.StatusOutOfOffice, model.StatusLogReasonManual, true, "")
+	}
 }
 
 func (ps *PlatformService) isUserAway(lastActivityAt int64) bool {
 	return model.GetMillis()-lastActivityAt >= *ps.Config().TeamSettings.UserStatusAwayTimeout*1000
+}
+
+// UpdateActivityFromHeartbeat processes a heartbeat from the client and updates
+// the user's LastActivityAt and status accordingly. This is used for accurate
+// status tracking when the AccurateStatuses feature flag is enabled.
+func (ps *PlatformService) UpdateActivityFromHeartbeat(userID string, windowActive bool, channelID string) {
+	if !*ps.Config().ServiceSettings.EnableUserStatuses {
+		return
+	}
+
+	now := model.GetMillis()
+
+	status, err := ps.GetStatus(userID)
+	if err != nil {
+		// User doesn't have a status yet, create one
+		status = &model.Status{
+			UserId:         userID,
+			Status:         model.StatusOnline,
+			Manual:         false,
+			LastActivityAt: now,
+			ActiveChannel:  channelID,
+		}
+	}
+
+	oldStatus := status.Status
+
+	// Always update LastActivityAt on heartbeat (this is the main purpose of AccurateStatuses)
+	status.LastActivityAt = now
+	status.ActiveChannel = channelID
+
+	// Determine new status based on window state and feature flags
+	newStatus := status.Status
+
+	// Handle NoOffline: If user is offline but window is active, set them online
+	if ps.Config().FeatureFlags.NoOffline && status.Status == model.StatusOffline && windowActive {
+		newStatus = model.StatusOnline
+		status.Manual = false
+	}
+
+	// Handle AccurateStatuses: Window focus affects status
+	if status.Status != model.StatusDnd && status.Status != model.StatusOutOfOffice {
+		// Don't change DND or Out of Office - these are manual statuses
+		if !status.Manual {
+			// Only auto-adjust non-manual statuses
+			if windowActive {
+				// Window is active - user should be online
+				if status.Status == model.StatusAway || status.Status == model.StatusOffline {
+					newStatus = model.StatusOnline
+				}
+			} else {
+				// Window is not active - check inactivity timeout
+				inactivityTimeout := int64(*ps.Config().MattermostExtendedSettings.Statuses.InactivityTimeoutMinutes) * 60 * 1000
+				if status.Status == model.StatusOnline && inactivityTimeout > 0 {
+					// We consider the user inactive if their window is not active
+					// The heartbeat itself indicates they have the app open, but inactive window = away
+					newStatus = model.StatusAway
+				}
+			}
+		}
+	}
+
+	statusChanged := oldStatus != newStatus
+	if statusChanged {
+		status.Status = newStatus
+	}
+
+	// Log the status change if logging is enabled
+	if statusChanged {
+		reason := model.StatusLogReasonHeartbeat
+		if windowActive && oldStatus == model.StatusAway {
+			reason = model.StatusLogReasonWindowFocus
+		} else if !windowActive && newStatus == model.StatusAway {
+			reason = model.StatusLogReasonInactivity
+		} else if ps.Config().FeatureFlags.NoOffline && oldStatus == model.StatusOffline {
+			reason = model.StatusLogReasonOfflinePrevented
+		}
+
+		// Get username for logging
+		username := ""
+		if user, userErr := ps.Store.User().Get(context.Background(), userID); userErr == nil {
+			username = user.Username
+		}
+
+		ps.LogStatusChange(userID, username, oldStatus, newStatus, reason, windowActive, channelID)
+	}
+
+	// Save the status update
+	ps.AddStatusCache(status)
+
+	// Save to database - always update LastActivityAt
+	if statusChanged {
+		if dbErr := ps.Store.Status().SaveOrUpdate(status); dbErr != nil {
+			ps.Log().Warn("Failed to save status from heartbeat", mlog.String("user_id", userID), mlog.Err(dbErr))
+		}
+	} else {
+		if dbErr := ps.Store.Status().UpdateLastActivityAt(userID, now); dbErr != nil {
+			ps.Log().Warn("Failed to update LastActivityAt from heartbeat", mlog.String("user_id", userID), mlog.Err(dbErr))
+		}
+	}
+
+	// Broadcast status change if status changed
+	if statusChanged {
+		ps.BroadcastStatus(status)
+		if ps.sharedChannelService != nil {
+			ps.sharedChannelService.NotifyUserStatusChanged(status)
+		}
+	}
 }

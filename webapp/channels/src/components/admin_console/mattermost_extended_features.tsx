@@ -33,6 +33,8 @@ const MATTERMOST_EXTENDED_FLAGS = [
     'ImageCaptions',
     'VideoEmbed',
     'VideoLinkEmbed',
+    'AccurateStatuses',
+    'NoOffline',
 ];
 
 type Props = {

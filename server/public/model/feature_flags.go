@@ -135,6 +135,12 @@ type FeatureFlags struct {
 
 	// Detect video URLs in text and embed players
 	VideoLinkEmbed bool
+
+	// Enable accurate status tracking with heartbeat-based LastActivityAt updates
+	AccurateStatuses bool
+
+	// Prevent users from being/staying offline when they show activity
+	NoOffline bool
 }
 
 // featureFlagDefaults defines the default value for each boolean feature flag.

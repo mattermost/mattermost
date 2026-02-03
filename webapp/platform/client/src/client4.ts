@@ -4997,6 +4997,26 @@ export default class Client4 {
             {method: 'delete'},
         );
     };
+
+    // Status Log Routes
+
+    getStatusLogsRoute = () => {
+        return `${this.getBaseRoute()}/status_logs`;
+    };
+
+    getStatusLogs = () => {
+        return this.doFetch<{logs: any[]; stats: {total: number; online: number; away: number; dnd: number; offline: number}}>(
+            this.getStatusLogsRoute(),
+            {method: 'get'},
+        );
+    };
+
+    clearStatusLogs = () => {
+        return this.doFetch<StatusOK>(
+            this.getStatusLogsRoute(),
+            {method: 'delete'},
+        );
+    };
 }
 
 export function parseAndMergeNestedHeaders(originalHeaders: any) {

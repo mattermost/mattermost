@@ -141,6 +141,7 @@ import UserAttributesFeatureDiscovery from './feature_discovery/features/user_at
 import FeatureFlags, {messages as featureFlagsMessages} from './feature_flags';
 import MattermostExtendedFeatures, {messages as mattermostExtendedFeaturesMessages} from './mattermost_extended_features';
 import ErrorLogDashboard from './error_log_dashboard';
+import StatusLogDashboard from './status_log_dashboard';
 import GroupDetails from './group_settings/group_details';
 import GroupSettings from './group_settings/group_settings';
 import IPFiltering from './ip_filtering';
@@ -6751,6 +6752,61 @@ const AdminDefinition: AdminDefinitionType = {
                 schema: {
                     id: 'ErrorLogDashboard',
                     component: ErrorLogDashboard,
+                },
+            },
+            // Statuses settings and Status Log Dashboard
+            statuses: {
+                url: 'mattermost_extended/statuses',
+                title: defineMessage({id: 'admin.sidebar.statuses', defaultMessage: 'Statuses'}),
+                searchableStrings: [
+                    defineMessage({id: 'admin.sidebar.statuses', defaultMessage: 'Statuses'}),
+                ],
+                icon: <ClockOutlineIcon size={14} color={'currentColor'}/>,
+                schema: {
+                    id: 'MattermostExtendedStatuses',
+                    name: defineMessage({id: 'admin.mattermost_extended.statuses.title', defaultMessage: 'Statuses'}),
+                    settings: [
+                        {
+                            type: 'number',
+                            key: 'MattermostExtendedSettings.Statuses.InactivityTimeoutMinutes',
+                            label: defineMessage({id: 'admin.mattermost_extended.statuses.inactivityTimeout.title', defaultMessage: 'Inactivity Timeout (minutes):'}),
+                            help_text: defineMessage({id: 'admin.mattermost_extended.statuses.inactivityTimeout.desc', defaultMessage: 'Time in minutes before a user is automatically set to Away status when their window is inactive. Requires AccurateStatuses feature flag.'}),
+                            placeholder: defineMessage({id: 'admin.mattermost_extended.statuses.inactivityTimeout.placeholder', defaultMessage: 'E.g. 5'}),
+                        },
+                        {
+                            type: 'number',
+                            key: 'MattermostExtendedSettings.Statuses.HeartbeatIntervalSeconds',
+                            label: defineMessage({id: 'admin.mattermost_extended.statuses.heartbeatInterval.title', defaultMessage: 'Heartbeat Interval (seconds):'}),
+                            help_text: defineMessage({id: 'admin.mattermost_extended.statuses.heartbeatInterval.desc', defaultMessage: 'How often the client sends heartbeat messages for activity tracking. Lower values = more accurate but more traffic. Requires AccurateStatuses feature flag.'}),
+                            placeholder: defineMessage({id: 'admin.mattermost_extended.statuses.heartbeatInterval.placeholder', defaultMessage: 'E.g. 30'}),
+                        },
+                        {
+                            type: 'bool',
+                            key: 'MattermostExtendedSettings.Statuses.EnableStatusLogs',
+                            label: defineMessage({id: 'admin.mattermost_extended.statuses.enableStatusLogs.title', defaultMessage: 'Enable Status Logs:'}),
+                            help_text: defineMessage({id: 'admin.mattermost_extended.statuses.enableStatusLogs.desc', defaultMessage: 'When enabled, status changes are logged to an in-memory buffer and displayed in the Status Logs dashboard below. Useful for debugging status tracking issues.'}),
+                        },
+                        {
+                            type: 'number',
+                            key: 'MattermostExtendedSettings.Statuses.MaxStatusLogs',
+                            label: defineMessage({id: 'admin.mattermost_extended.statuses.maxStatusLogs.title', defaultMessage: 'Max Status Logs:'}),
+                            help_text: defineMessage({id: 'admin.mattermost_extended.statuses.maxStatusLogs.desc', defaultMessage: 'Maximum number of status logs to keep in memory. Older logs are discarded when the limit is reached.'}),
+                            placeholder: defineMessage({id: 'admin.mattermost_extended.statuses.maxStatusLogs.placeholder', defaultMessage: 'E.g. 500'}),
+                        },
+                    ],
+                },
+            },
+            // Status Log Dashboard
+            status_logs: {
+                url: 'mattermost_extended/status_logs',
+                title: defineMessage({id: 'admin.sidebar.status_logs', defaultMessage: 'Status Logs'}),
+                searchableStrings: [
+                    defineMessage({id: 'admin.sidebar.status_logs', defaultMessage: 'Status Logs'}),
+                ],
+                icon: <ChartLineIcon size={14} color={'currentColor'}/>,
+                schema: {
+                    id: 'StatusLogDashboard',
+                    component: StatusLogDashboard,
                 },
             },
             // Media settings (for media display feature flags)

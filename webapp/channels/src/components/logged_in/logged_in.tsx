@@ -16,6 +16,7 @@ import WebSocketClient from 'client/web_websocket_client';
 import Constants from 'utils/constants';
 import DesktopApp from 'utils/desktop_api';
 import {isKeyPressed} from 'utils/keyboard';
+import {initStatusHeartbeat, stopStatusHeartbeat, updateHeartbeatChannelId} from 'utils/status_heartbeat';
 import {getBrowserTimezone} from 'utils/timezone';
 import {isAndroid, isIos} from 'utils/user_agent';
 import {doesCookieContainsMMUserId} from 'utils/utils';
@@ -35,6 +36,8 @@ export type Props = {
     children?: React.ReactNode;
     mfaRequired: boolean;
     customProfileAttributesEnabled: boolean;
+    accurateStatusesEnabled: boolean;
+    heartbeatIntervalSeconds: number;
     actions: {
         autoUpdateTimezone: (deviceTimezone: string) => void;
         getChannelURLAction: (channelId: string, teamId: string, url: string) => void;
@@ -115,16 +118,31 @@ export default class LoggedIn extends React.PureComponent<Props> {
             BrowserStore.signalLogin();
             DesktopApp.signalLogin();
         }
+
+        // Initialize status heartbeat if AccurateStatuses feature is enabled
+        if (this.props.accurateStatusesEnabled) {
+            initStatusHeartbeat(this.props.heartbeatIntervalSeconds);
+        }
     }
 
     public componentWillUnmount(): void {
         WebSocketActions.close();
+
+        // Stop status heartbeat
+        stopStatusHeartbeat();
 
         window.removeEventListener('keydown', this.handleBackSpace);
         window.removeEventListener('focus', this.onFocusListener);
         window.removeEventListener('blur', this.onBlurListener);
 
         this.cleanupDesktopListeners?.();
+    }
+
+    public componentDidUpdate(prevProps: Props): void {
+        // Update heartbeat channel ID when channel changes
+        if (this.props.currentChannelId && this.props.currentChannelId !== prevProps.currentChannelId) {
+            updateHeartbeatChannelId(this.props.currentChannelId);
+        }
     }
 
     public render(): React.ReactNode {

@@ -8,6 +8,7 @@ import type {Dispatch} from 'redux';
 
 import {Client4} from 'mattermost-redux/client';
 import {Preferences} from 'mattermost-redux/constants';
+import {getFeatureFlagValue} from 'mattermost-redux/selectors/entities/general';
 import {get} from 'mattermost-redux/selectors/entities/preferences';
 import {getCurrentTimezone} from 'mattermost-redux/selectors/entities/timezone';
 import {getCurrentUser, getStatusForUserId} from 'mattermost-redux/selectors/entities/users';
@@ -42,6 +43,7 @@ function makeMapStateToProps() {
             isCustomStatusExpired: isCustomStatusExpired(state, customStatus),
             isCustomStatusEnabled: isCustomStatusEnabled(state),
             timezone: getCurrentTimezone(state),
+            isNoOfflineEnabled: getFeatureFlagValue(state, 'NoOffline') === 'true',
         };
     };
 }

@@ -120,6 +120,9 @@ type PlatformService struct {
 
 	// Error log buffer for storing client and API errors
 	errorLogBuffer *ErrorLogBuffer
+
+	// Status log buffer for storing status change events
+	statusLogBuffer *StatusLogBuffer
 }
 
 type HookRunner interface {
@@ -146,6 +149,7 @@ func New(sc ServiceConfig, options ...Option) (*PlatformService, error) {
 		statusUpdateExitSignal:    make(chan struct{}),
 		statusUpdateDoneSignal:    make(chan struct{}),
 		errorLogBuffer:            NewErrorLogBuffer(ErrorLogBufferSize),
+		statusLogBuffer:           NewStatusLogBuffer(DefaultStatusLogBufferSize),
 	}
 
 	// Assume the first user account has not been created yet. A call to the DB will later check if this is really the case.

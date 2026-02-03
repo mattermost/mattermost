@@ -185,6 +185,11 @@ func GenerateClientConfig(c *model.Config, telemetryID string, license *model.Li
 	props["MattermostExtendedMediaMaxVideoHeight"] = strconv.Itoa(*c.MattermostExtendedSettings.Media.MaxVideoHeight)
 	props["MattermostExtendedMediaMaxVideoWidth"] = strconv.Itoa(*c.MattermostExtendedSettings.Media.MaxVideoWidth)
 
+	// Mattermost Extended Statuses Settings
+	props["MattermostExtendedStatusesInactivityTimeoutMinutes"] = strconv.Itoa(*c.MattermostExtendedSettings.Statuses.InactivityTimeoutMinutes)
+	props["MattermostExtendedStatusesHeartbeatIntervalSeconds"] = strconv.Itoa(*c.MattermostExtendedSettings.Statuses.HeartbeatIntervalSeconds)
+	props["MattermostExtendedStatusesEnableStatusLogs"] = strconv.FormatBool(*c.MattermostExtendedSettings.Statuses.EnableStatusLogs)
+
 	if license != nil {
 		props["ExperimentalEnableAuthenticationTransfer"] = strconv.FormatBool(*c.ServiceSettings.ExperimentalEnableAuthenticationTransfer)
 

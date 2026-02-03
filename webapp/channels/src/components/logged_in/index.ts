@@ -23,6 +23,11 @@ import type {ThunkActionFunc, GlobalState} from 'types/store';
 
 import LoggedIn from './logged_in';
 
+// Helper function to get Mattermost Extended config values
+function getMattermostExtendedConfigValue(config: ReturnType<typeof getConfig>, key: string, defaultValue: string = ''): string {
+    return (config as Record<string, string | undefined>)[key] ?? defaultValue;
+}
+
 type Props = {
     match: {
         url: string;
@@ -35,6 +40,10 @@ export function mapStateToProps(state: GlobalState, ownProps: Props) {
     const showTermsOfService = shouldShowTermsOfService(state);
     const currentChannelId = getCurrentChannelId(state);
 
+    // AccurateStatuses feature flag and settings
+    const accurateStatusesEnabled = getFeatureFlagValue(state, 'AccurateStatuses') === 'true';
+    const heartbeatIntervalSeconds = parseInt(getMattermostExtendedConfigValue(config, 'MattermostExtendedStatusesHeartbeatIntervalSeconds', '30'), 10);
+
     return {
         currentUser: getCurrentUser(state),
         currentChannelId,
@@ -42,6 +51,8 @@ export function mapStateToProps(state: GlobalState, ownProps: Props) {
         mfaRequired: checkIfMFARequired(getCurrentUser(state), license, config, ownProps.match.url),
         showTermsOfService,
         customProfileAttributesEnabled: isEnterpriseLicense(license) && getFeatureFlagValue(state, 'CustomProfileAttributes') === 'true',
+        accurateStatusesEnabled,
+        heartbeatIntervalSeconds,
     };
 }
 

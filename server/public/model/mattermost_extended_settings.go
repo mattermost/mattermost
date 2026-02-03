@@ -14,6 +14,9 @@ type MattermostExtendedSettings struct {
 
 	// Media section - settings for media display features
 	Media MattermostExtendedMediaSettings
+
+	// Statuses section - settings for accurate status tracking
+	Statuses MattermostExtendedStatusesSettings
 }
 
 // MattermostExtendedPostsSettings contains tweaks for posts/messages behavior.
@@ -48,11 +51,27 @@ type MattermostExtendedMediaSettings struct {
 	MaxVideoWidth *int
 }
 
+// MattermostExtendedStatusesSettings contains settings for accurate status tracking.
+type MattermostExtendedStatusesSettings struct {
+	// Minutes of inactivity before setting user to Away (default: 5)
+	InactivityTimeoutMinutes *int
+
+	// How often the client sends heartbeat messages in seconds (default: 30)
+	HeartbeatIntervalSeconds *int
+
+	// Enable status change logging for the dashboard (default: false)
+	EnableStatusLogs *bool
+
+	// Maximum number of status logs to keep in memory (default: 500)
+	MaxStatusLogs *int
+}
+
 // SetDefaults applies the default settings to the struct.
 func (s *MattermostExtendedSettings) SetDefaults() {
 	s.Posts.SetDefaults()
 	s.Channels.SetDefaults()
 	s.Media.SetDefaults()
+	s.Statuses.SetDefaults()
 }
 
 // SetDefaults for Posts settings
@@ -85,5 +104,21 @@ func (s *MattermostExtendedMediaSettings) SetDefaults() {
 	}
 	if s.MaxVideoWidth == nil {
 		s.MaxVideoWidth = NewPointer(480)
+	}
+}
+
+// SetDefaults for Statuses settings
+func (s *MattermostExtendedStatusesSettings) SetDefaults() {
+	if s.InactivityTimeoutMinutes == nil {
+		s.InactivityTimeoutMinutes = NewPointer(5)
+	}
+	if s.HeartbeatIntervalSeconds == nil {
+		s.HeartbeatIntervalSeconds = NewPointer(30)
+	}
+	if s.EnableStatusLogs == nil {
+		s.EnableStatusLogs = NewPointer(false)
+	}
+	if s.MaxStatusLogs == nil {
+		s.MaxStatusLogs = NewPointer(500)
 	}
 }

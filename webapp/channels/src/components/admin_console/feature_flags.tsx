@@ -213,6 +213,14 @@ const FLAG_METADATA: Record<string, {description: string; defaultValue: boolean}
         description: 'Detect video URLs in text and embed video players below links',
         defaultValue: false,
     },
+    AccurateStatuses: {
+        description: 'Enable accurate LastActivityAt tracking via WebSocket heartbeats and enforce Away status after inactivity timeout',
+        defaultValue: false,
+    },
+    NoOffline: {
+        description: 'Prevent users from being or staying offline when they show activity. Hides Offline option from status menu',
+        defaultValue: false,
+    },
 };
 
 // Styled components

@@ -106,6 +106,35 @@ func (wr *WebSocketRouter) ServeWebSocket(conn *WebConn, r *model.WebSocketReque
 		return
 	}
 
+	// Handle activity heartbeat for accurate status tracking
+	if r.Action == "activity_heartbeat" {
+		// Only process if AccurateStatuses feature is enabled
+		if conn.Platform.Config().FeatureFlags.AccurateStatuses {
+			windowActive := false
+			if wa, ok := r.Data["window_active"].(bool); ok {
+				windowActive = wa
+			}
+
+			channelID := ""
+			if chID, ok := r.Data["channel_id"].(string); ok {
+				channelID = chID
+			}
+
+			// Process the heartbeat asynchronously
+			conn.Platform.Go(func() {
+				conn.Platform.UpdateActivityFromHeartbeat(conn.UserId, windowActive, channelID)
+			})
+		}
+
+		resp := model.NewWebSocketResponse(model.StatusOk, r.Seq, nil)
+		hub := conn.Platform.GetHubForUserId(conn.UserId)
+		if hub == nil {
+			return
+		}
+		hub.SendMessage(conn, resp)
+		return
+	}
+
 	if !conn.IsAuthenticated() {
 		err := model.NewAppError("ServeWebSocket", "api.web_socket_router.not_authenticated.app_error", nil, "", http.StatusUnauthorized)
 		returnWebSocketError(conn.Platform, conn, r, err)
