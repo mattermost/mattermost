@@ -15,6 +15,7 @@ export type Tab = {
     uiName: string;
     newGroup?: boolean;
     display?: boolean; // Controls whether the tab is displayed, defaults to true
+    category?: string; // Optional category header to display above this tab
 }
 
 export type Props = {
@@ -97,7 +98,7 @@ export default class SettingsSidebar extends React.PureComponent<Props> {
         }
     };
 
-    private renderTab(tab: Tab) {
+    private renderTab(tab: Tab, showCategory?: boolean) {
         const key = `${tab.name}_li`;
         const isActive = this.props.activeTab === tab.name;
 
@@ -119,9 +120,24 @@ export default class SettingsSidebar extends React.PureComponent<Props> {
             );
         }
 
+        // Render category header if this tab starts a new category
+        const categoryHeader = showCategory && tab.category ? (
+            <>
+                <hr/>
+                <div
+                    role='heading'
+                    className='header'
+                    aria-level={3}
+                >
+                    {tab.category}
+                </div>
+            </>
+        ) : null;
+
         return (
             <React.Fragment key={key}>
-                {tab.newGroup && <hr/>}
+                {categoryHeader}
+                {!categoryHeader && tab.newGroup && <hr/>}
                 <button
                     data-testid={`${tab.name}-tab-button`}
                     ref={(element: HTMLButtonElement) => {
@@ -152,8 +168,13 @@ export default class SettingsSidebar extends React.PureComponent<Props> {
         // Filter regular tabs and plugin tabs separately for rendering
         const visibleTabs = this.props.tabs.filter((tab) => tab.display !== false);
 
-        // Map regular tabs
-        const tabList = visibleTabs.map((tab) => this.renderTab(tab));
+        // Map regular tabs, tracking category changes
+        let lastCategory: string | undefined;
+        const tabList = visibleTabs.map((tab) => {
+            const showCategory = tab.category !== undefined && tab.category !== lastCategory;
+            lastCategory = tab.category;
+            return this.renderTab(tab, showCategory);
+        });
 
         let pluginTabList: React.ReactNode;
         if (this.props.pluginTabs?.length) {

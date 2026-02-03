@@ -9,6 +9,8 @@ import type {GlobalState} from 'types/store';
 
 import SettingsSidebar from './settings_sidebar';
 
+export type {Tab} from './settings_sidebar';
+
 function mapStateToProps(state: GlobalState) {
     return {
         isMobileView: getIsMobileView(state),

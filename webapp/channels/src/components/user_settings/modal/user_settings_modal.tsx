@@ -263,7 +263,57 @@ class UserSettingsModal extends React.PureComponent<Props, State> {
     getUserSettingsTabs = () => {
         const {formatMessage} = this.props.intl;
         const config = getConfig(store.getState());
+        const settingsResorted = config.FeatureFlagSettingsResorted === 'true';
 
+        // When SettingsResorted is enabled, organize tabs into categories
+        if (settingsResorted) {
+            const tabs = [
+                {
+                    name: 'notifications',
+                    uiName: formatMessage({id: 'user.settings.modal.notifications', defaultMessage: 'Notifications'}),
+                    icon: 'icon icon-bell-outline',
+                    iconTitle: formatMessage({id: 'user.settings.notifications.icon', defaultMessage: 'Notification Settings Icon'}),
+                    category: formatMessage({id: 'user.settings.category.communication', defaultMessage: 'COMMUNICATION'}),
+                },
+                {
+                    name: 'display',
+                    uiName: formatMessage({id: 'user.settings.modal.display', defaultMessage: 'Display'}),
+                    icon: 'icon icon-eye-outline',
+                    iconTitle: formatMessage({id: 'user.settings.display.icon', defaultMessage: 'Display Settings Icon'}),
+                    category: formatMessage({id: 'user.settings.category.appearance', defaultMessage: 'APPEARANCE'}),
+                },
+                {
+                    name: 'sidebar',
+                    uiName: formatMessage({id: 'user.settings.modal.sidebar', defaultMessage: 'Sidebar'}),
+                    icon: 'icon icon-dock-left',
+                    iconTitle: formatMessage({id: 'user.settings.sidebar.icon', defaultMessage: 'Sidebar Settings Icon'}),
+                    category: formatMessage({id: 'user.settings.category.appearance', defaultMessage: 'APPEARANCE'}),
+                },
+            ];
+
+            // Add Sounds tab if GuildedSounds feature flag is enabled
+            if (config.FeatureFlagGuildedSounds === 'true') {
+                tabs.push({
+                    name: 'sounds',
+                    uiName: formatMessage({id: 'user.settings.modal.sounds', defaultMessage: 'Sounds'}),
+                    icon: 'icon icon-volume-high',
+                    iconTitle: formatMessage({id: 'user.settings.sounds.icon', defaultMessage: 'Sounds Settings Icon'}),
+                    category: formatMessage({id: 'user.settings.category.appearance', defaultMessage: 'APPEARANCE'}),
+                });
+            }
+
+            tabs.push({
+                name: 'advanced',
+                uiName: formatMessage({id: 'user.settings.modal.advanced', defaultMessage: 'Advanced'}),
+                icon: 'icon icon-tune',
+                iconTitle: formatMessage({id: 'user.settings.advance.icon', defaultMessage: 'Advanced Settings Icon'}),
+                category: formatMessage({id: 'user.settings.category.advanced', defaultMessage: 'ADVANCED'}),
+            });
+
+            return tabs;
+        }
+
+        // Default tabs without categories
         const tabs = [
             {
                 name: 'notifications',
