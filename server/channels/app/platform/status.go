@@ -483,6 +483,12 @@ func (ps *PlatformService) SetStatusOnline(userID string, manual bool) {
 			if err := ps.Store.Status().UpdateLastActivityAt(status.UserId, status.LastActivityAt); err != nil {
 				mlog.Error("Failed to save status", mlog.String("user_id", userID), mlog.Err(err), mlog.String("user_id", userID))
 			}
+			// Log the activity update (user already online, just refreshing LastActivityAt)
+			username := ""
+			if user, userErr := ps.Store.User().Get(context.Background(), userID); userErr == nil {
+				username = user.Username
+			}
+			ps.LogActivityUpdate(userID, username, model.StatusOnline, model.StatusLogDeviceUnknown, true, "", "", model.StatusLogTriggerHeartbeat)
 		}
 		if ps.sharedChannelService != nil {
 			ps.sharedChannelService.NotifyUserStatusChanged(status)
