@@ -130,7 +130,14 @@ function makeMapStateToProps() {
             timezone: getCurrentTimezone(state),
             isMilitaryTime,
             canMove: channel && !isBoRPost ? canWrangler(state, channel.type, threadReplyCount) : false,
-            canReply: !systemMessage && !isBoRPost && ownProps.location === Locations.CENTER,
+            canReply: !systemMessage && !isBoRPost && (
+                ownProps.location === Locations.CENTER ||
+                // When DiscordReplies is enabled, allow Reply in threads too (adds to pending replies)
+                (config?.FeatureFlagDiscordReplies === 'true' && (
+                    ownProps.location === Locations.RHS_ROOT ||
+                    ownProps.location === Locations.RHS_COMMENT
+                ))
+            ),
             canForward: !systemMessage && !isBoRPost,
             canFollowThread: !systemMessage && !isBoRPost && collapsedThreads && (
                 !ownProps.location ||

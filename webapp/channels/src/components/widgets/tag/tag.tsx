@@ -23,7 +23,9 @@ type Props = {
     className?: string;
 };
 
-type TagWrapperProps = Required<Pick<Props, 'uppercase'>>;
+type TagWrapperProps = {
+    $uppercase: boolean;
+};
 
 const TagWrapper = styled.div<TagWrapperProps>`
     appearance: none;
@@ -43,8 +45,8 @@ const TagWrapper = styled.div<TagWrapperProps>`
     font-family: 'Open Sans', sans-serif;
     font-weight: 600;
     line-height: 16px;
-    ${({uppercase}) => (
-        uppercase ? css`
+    ${({$uppercase}) => (
+        $uppercase ? css`
             letter-spacing: 0.02em;
             text-transform: uppercase;
         ` : css`
@@ -158,7 +160,7 @@ const Tag = ({
         <TagWrapper
             {...rest}
             as={element}
-            uppercase={uppercase}
+            $uppercase={uppercase}
             onClick={onClick}
             className={classNames('Tag', {[`Tag--${variant}`]: variant, [`Tag--${size}`]: size}, className)}
         >
