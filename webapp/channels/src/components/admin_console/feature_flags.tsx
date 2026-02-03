@@ -225,6 +225,10 @@ const FLAG_METADATA: Record<string, {description: string; defaultValue: boolean}
         description: 'Discord-style YouTube embeds with a card layout, red accent bar, and no collapse button',
         defaultValue: false,
     },
+    SettingsResorted: {
+        description: 'Reorganize user settings into more intuitive categories with icons (Time & Date, Teammates, etc.)',
+        defaultValue: false,
+    },
 };
 
 // Styled components
