@@ -2834,8 +2834,34 @@ func (a *App) SetActiveChannel(rctx request.CTX, userID string, channelID string
 
 	a.Srv().Platform().AddStatusCache(status)
 
-	if status.Status != oldStatus {
+	statusChanged := status.Status != oldStatus
+	if statusChanged {
 		a.Srv().Platform().BroadcastStatus(status)
+	}
+
+	// Log the status change or activity update
+	username := ""
+	if user, userErr := a.Srv().Store().User().Get(rctx.Context(), userID); userErr == nil {
+		username = user.Username
+	}
+	channelName := ""
+	if channelID != "" {
+		if channel, chanErr := a.Srv().Store().Channel().Get(channelID, false); chanErr == nil {
+			channelName = channel.DisplayName
+			if channelName == "" {
+				channelName = channel.Name
+			}
+		}
+	}
+
+	if statusChanged {
+		a.Srv().Platform().LogStatusChange(userID, username, oldStatus, status.Status, model.StatusLogTriggerActiveChannel, model.StatusLogDeviceUnknown, true, channelID)
+	} else {
+		trigger := model.StatusLogTriggerActiveChannel
+		if channelName != "" {
+			trigger = "Loaded #" + channelName
+		}
+		a.Srv().Platform().LogActivityUpdate(userID, username, status.Status, model.StatusLogDeviceUnknown, true, channelID, channelName, trigger)
 	}
 
 	return nil

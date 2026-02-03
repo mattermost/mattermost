@@ -274,6 +274,13 @@ func (ps *PlatformService) SetStatusLastActivityAt(userID string, activityAt int
 	if ps.sharedChannelService != nil {
 		ps.sharedChannelService.NotifyUserStatusChanged(status)
 	}
+
+	// Log the activity update
+	username := ""
+	if user, userErr := ps.Store.User().Get(context.Background(), userID); userErr == nil {
+		username = user.Username
+	}
+	ps.LogActivityUpdate(userID, username, status.Status, model.StatusLogDeviceUnknown, false, "", "", model.StatusLogTriggerSetActivity)
 }
 
 func (ps *PlatformService) UpdateLastActivityAtIfNeeded(session model.Session) {
@@ -293,6 +300,19 @@ func (ps *PlatformService) UpdateLastActivityAtIfNeeded(session model.Session) {
 	if err := ps.AddSessionToCache(&session); err != nil {
 		ps.Log().Warn("Failed to add session to cache", mlog.String("user_id", session.UserId), mlog.String("session_id", session.Id), mlog.Err(err))
 	}
+
+	// Log the activity update (session activity from WebSocket messages)
+	// Get current status for logging
+	status, statusErr := ps.GetStatus(session.UserId)
+	currentStatus := model.StatusOffline
+	if statusErr == nil && status != nil {
+		currentStatus = status.Status
+	}
+	username := ""
+	if user, userErr := ps.Store.User().Get(context.Background(), session.UserId); userErr == nil {
+		username = user.Username
+	}
+	ps.LogActivityUpdate(session.UserId, username, currentStatus, model.StatusLogDeviceUnknown, false, "", "", model.StatusLogTriggerWebSocket)
 }
 
 func (ps *PlatformService) SetStatusOnline(userID string, manual bool) {
@@ -698,6 +718,12 @@ func (ps *PlatformService) isUserAway(lastActivityAt int64) bool {
 // UpdateActivityFromHeartbeat processes a heartbeat from the client and updates
 // the user's LastActivityAt and status accordingly. This is used for accurate
 // status tracking when the AccurateStatuses feature flag is enabled.
+//
+// Logic:
+// 1. If window is active OR channel changed → This is manual activity → Update LastActivityAt
+// 2. If user is Away/Offline and has manual activity → Set to Online (except DND)
+// 3. If user is Online and has been inactive (no manual activity) for X minutes → Set to Away
+// 4. If user is DND and has been inactive for Y minutes → Set to Offline
 func (ps *PlatformService) UpdateActivityFromHeartbeat(userID string, windowActive bool, channelID string) {
 	if !*ps.Config().ServiceSettings.EnableUserStatuses {
 		return
@@ -718,36 +744,64 @@ func (ps *PlatformService) UpdateActivityFromHeartbeat(userID string, windowActi
 	}
 
 	oldStatus := status.Status
+	oldLastActivityAt := status.LastActivityAt
 
-	// Always update LastActivityAt on heartbeat (this is the main purpose of AccurateStatuses)
-	status.LastActivityAt = now
-	status.ActiveChannel = channelID
+	// Determine if this heartbeat represents manual activity
+	// Manual activity = window is active OR user switched to a different channel
+	channelChanged := channelID != "" && channelID != status.ActiveChannel
+	isManualActivity := windowActive || channelChanged
 
-	// Determine new status based on window state and feature flags
-	newStatus := status.Status
-
-	// Handle NoOffline: If user is offline but window is active, set them online
-	if ps.Config().FeatureFlags.NoOffline && status.Status == model.StatusOffline && windowActive {
-		newStatus = model.StatusOnline
-		status.Manual = false
+	// Only update LastActivityAt on manual activity (this is the key fix!)
+	if isManualActivity {
+		status.LastActivityAt = now
 	}
 
-	// Handle AccurateStatuses: Window focus affects status
-	if status.Status != model.StatusDnd && status.Status != model.StatusOutOfOffice {
-		// Don't change DND or Out of Office - these are manual statuses
+	// Update active channel if provided
+	if channelID != "" {
+		status.ActiveChannel = channelID
+	}
+
+	// Calculate inactivity timeouts
+	inactivityTimeout := int64(*ps.Config().MattermostExtendedSettings.Statuses.InactivityTimeoutMinutes) * 60 * 1000
+	dndInactivityTimeout := int64(*ps.Config().MattermostExtendedSettings.Statuses.DNDInactivityTimeoutMinutes) * 60 * 1000
+	timeSinceLastActivity := now - status.LastActivityAt
+
+	// Determine new status based on activity and feature flags
+	newStatus := status.Status
+
+	// Handle DND users: Check DND inactivity timeout
+	if status.Status == model.StatusDnd {
+		// DND users can be set to Offline after extended inactivity
+		if dndInactivityTimeout > 0 && timeSinceLastActivity >= dndInactivityTimeout {
+			newStatus = model.StatusOffline
+			status.Manual = false
+		}
+		// Note: DND users are NOT automatically set back to Online on activity
+		// They must manually change their status
+	} else if status.Status == model.StatusOutOfOffice {
+		// Out of Office is similar to DND - it's a manual status that shouldn't auto-change
+		// (no automatic offline timeout for OOO)
+	} else {
+		// Handle non-DND, non-OOO statuses
+
+		// NoOffline feature: If user is offline but showing manual activity, set them online
+		if ps.Config().FeatureFlags.NoOffline && status.Status == model.StatusOffline && isManualActivity {
+			newStatus = model.StatusOnline
+			status.Manual = false
+		}
+
+		// AccurateStatuses: Handle status transitions based on activity
 		if !status.Manual {
 			// Only auto-adjust non-manual statuses
-			if windowActive {
-				// Window is active - user should be online
+			if isManualActivity {
+				// Manual activity detected - user should be online
 				if status.Status == model.StatusAway || status.Status == model.StatusOffline {
 					newStatus = model.StatusOnline
 				}
 			} else {
-				// Window is not active - check inactivity timeout
-				inactivityTimeout := int64(*ps.Config().MattermostExtendedSettings.Statuses.InactivityTimeoutMinutes) * 60 * 1000
-				if status.Status == model.StatusOnline && inactivityTimeout > 0 {
-					// We consider the user inactive if their window is not active
-					// The heartbeat itself indicates they have the app open, but inactive window = away
+				// No manual activity in this heartbeat
+				// Check if enough time has passed since last activity to set Away
+				if status.Status == model.StatusOnline && inactivityTimeout > 0 && timeSinceLastActivity >= inactivityTimeout {
 					newStatus = model.StatusAway
 				}
 			}
@@ -762,12 +816,14 @@ func (ps *PlatformService) UpdateActivityFromHeartbeat(userID string, windowActi
 	// Log the status change if logging is enabled
 	if statusChanged {
 		reason := model.StatusLogReasonHeartbeat
-		if windowActive && oldStatus == model.StatusAway {
+		if isManualActivity && oldStatus == model.StatusAway {
 			reason = model.StatusLogReasonWindowFocus
-		} else if !windowActive && newStatus == model.StatusAway {
+		} else if !isManualActivity && newStatus == model.StatusAway {
 			reason = model.StatusLogReasonInactivity
 		} else if ps.Config().FeatureFlags.NoOffline && oldStatus == model.StatusOffline {
 			reason = model.StatusLogReasonOfflinePrevented
+		} else if oldStatus == model.StatusDnd && newStatus == model.StatusOffline {
+			reason = model.StatusLogReasonDNDExpired
 		}
 
 		// Get username for logging
@@ -783,26 +839,29 @@ func (ps *PlatformService) UpdateActivityFromHeartbeat(userID string, windowActi
 	// Save the status update
 	ps.AddStatusCache(status)
 
-	// Save to database - always update LastActivityAt
+	// Only save to database if something changed (status or LastActivityAt)
+	lastActivityAtChanged := status.LastActivityAt != oldLastActivityAt
 	if statusChanged {
 		if dbErr := ps.Store.Status().SaveOrUpdate(status); dbErr != nil {
 			ps.Log().Warn("Failed to save status from heartbeat", mlog.String("user_id", userID), mlog.Err(dbErr))
 		}
-	} else {
-		if dbErr := ps.Store.Status().UpdateLastActivityAt(userID, now); dbErr != nil {
+	} else if lastActivityAtChanged {
+		if dbErr := ps.Store.Status().UpdateLastActivityAt(userID, status.LastActivityAt); dbErr != nil {
 			ps.Log().Warn("Failed to update LastActivityAt from heartbeat", mlog.String("user_id", userID), mlog.Err(dbErr))
 		}
+	}
 
-		// Log activity update (no status change) for AccurateStatuses dashboard
+	// Log activity update (for status dashboard) only if there was manual activity
+	if isManualActivity && !statusChanged {
 		username := ""
 		if user, userErr := ps.Store.User().Get(context.Background(), userID); userErr == nil {
 			username = user.Username
 		}
 
-		// Determine trigger based on window state and channel
+		// Determine trigger based on what activity was detected
 		var trigger string
 		var channelName string
-		if channelID != "" {
+		if channelChanged {
 			trigger = model.StatusLogTriggerChannelView
 			// Try to get channel name for display
 			if channel, chanErr := ps.Store.Channel().Get(channelID, false); chanErr == nil {
@@ -813,11 +872,11 @@ func (ps *PlatformService) UpdateActivityFromHeartbeat(userID string, windowActi
 			}
 		} else if windowActive {
 			trigger = model.StatusLogTriggerWindowActive
-		} else {
-			trigger = model.StatusLogTriggerHeartbeat
 		}
 
-		ps.LogActivityUpdate(userID, username, status.Status, model.StatusLogDeviceUnknown, windowActive, channelID, channelName, trigger)
+		if trigger != "" {
+			ps.LogActivityUpdate(userID, username, status.Status, model.StatusLogDeviceUnknown, windowActive, channelID, channelName, trigger)
+		}
 	}
 
 	// Broadcast status change if status changed

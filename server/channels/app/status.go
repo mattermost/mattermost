@@ -78,6 +78,13 @@ func (a *App) UpdateDNDStatusOfUsers() {
 		if scs != nil {
 			scs.NotifyUserStatusChanged(statuses[i])
 		}
+
+		// Log the status change from DND expiration
+		username := ""
+		if user, userErr := a.Srv().Store().User().Get(request.EmptyContext(mlog.NewLogger()).Context(), statuses[i].UserId); userErr == nil {
+			username = user.Username
+		}
+		a.Srv().Platform().LogStatusChange(statuses[i].UserId, username, model.StatusDnd, statuses[i].Status, model.StatusLogReasonDNDExpired, model.StatusLogDeviceUnknown, false, "")
 	}
 }
 

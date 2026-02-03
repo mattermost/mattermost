@@ -156,10 +156,7 @@ func (b *StatusLogBuffer) Resize(newCapacity int) {
 
 // LogStatusChange adds a status change to the buffer and broadcasts it via WebSocket.
 func (ps *PlatformService) LogStatusChange(userID, username, oldStatus, newStatus, reason, device string, windowActive bool, channelID string) {
-	// Only log if AccurateStatuses feature is enabled AND status logs are enabled
-	if !ps.Config().FeatureFlags.AccurateStatuses {
-		return
-	}
+	// Only log if status logs are enabled
 	if !*ps.Config().MattermostExtendedSettings.Statuses.EnableStatusLogs {
 		return
 	}
@@ -208,12 +205,9 @@ func (ps *PlatformService) LogStatusChange(userID, username, oldStatus, newStatu
 }
 
 // LogActivityUpdate logs an activity update (LastActivityAt change) without status change.
-// This is used by AccurateStatuses to track what triggers keep users active.
+// This tracks what triggers keep users active.
 func (ps *PlatformService) LogActivityUpdate(userID, username, currentStatus, device string, windowActive bool, channelID, channelName, trigger string) {
-	// Only log if AccurateStatuses feature is enabled AND status logs are enabled
-	if !ps.Config().FeatureFlags.AccurateStatuses {
-		return
-	}
+	// Only log if status logs are enabled
 	if !*ps.Config().MattermostExtendedSettings.Statuses.EnableStatusLogs {
 		return
 	}

@@ -6793,6 +6793,13 @@ const AdminDefinition: AdminDefinitionType = {
                             help_text: defineMessage({id: 'admin.mattermost_extended.statuses.maxStatusLogs.desc', defaultMessage: 'Maximum number of status logs to keep in memory. Older logs are discarded when the limit is reached.'}),
                             placeholder: defineMessage({id: 'admin.mattermost_extended.statuses.maxStatusLogs.placeholder', defaultMessage: 'E.g. 500'}),
                         },
+                        {
+                            type: 'number',
+                            key: 'MattermostExtendedSettings.Statuses.DNDInactivityTimeoutMinutes',
+                            label: defineMessage({id: 'admin.mattermost_extended.statuses.dndInactivityTimeout.title', defaultMessage: 'DND Inactivity Timeout (minutes):'}),
+                            help_text: defineMessage({id: 'admin.mattermost_extended.statuses.dndInactivityTimeout.desc', defaultMessage: 'Time in minutes before a Do Not Disturb user is automatically set to Offline status when inactive. Set to 0 to disable (DND users will never automatically go offline). Requires AccurateStatuses feature flag.'}),
+                            placeholder: defineMessage({id: 'admin.mattermost_extended.statuses.dndInactivityTimeout.placeholder', defaultMessage: 'E.g. 30'}),
+                        },
                     ],
                 },
             },

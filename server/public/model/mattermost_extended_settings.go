@@ -64,6 +64,10 @@ type MattermostExtendedStatusesSettings struct {
 
 	// Maximum number of status logs to keep in memory (default: 500)
 	MaxStatusLogs *int
+
+	// Minutes of inactivity before setting DND users to Offline (default: 30)
+	// Set to 0 to disable (DND users never automatically go offline)
+	DNDInactivityTimeoutMinutes *int
 }
 
 // SetDefaults applies the default settings to the struct.
@@ -120,5 +124,8 @@ func (s *MattermostExtendedStatusesSettings) SetDefaults() {
 	}
 	if s.MaxStatusLogs == nil {
 		s.MaxStatusLogs = NewPointer(500)
+	}
+	if s.DNDInactivityTimeoutMinutes == nil {
+		s.DNDInactivityTimeoutMinutes = NewPointer(30)
 	}
 }

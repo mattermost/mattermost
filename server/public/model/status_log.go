@@ -43,6 +43,7 @@ const (
 	StatusLogReasonOfflinePrevented = "offline_prevented"
 	StatusLogReasonDisconnect       = "disconnect"
 	StatusLogReasonConnect          = "connect"
+	StatusLogReasonDNDExpired       = "dnd_inactivity"
 )
 
 // StatusLogTrigger constants for activity logs
@@ -51,4 +52,7 @@ const (
 	StatusLogTriggerWindowInactive = "Window Inactive"
 	StatusLogTriggerHeartbeat      = "Heartbeat"
 	StatusLogTriggerChannelView    = "Channel View"
+	StatusLogTriggerWebSocket      = "WebSocket Message"
+	StatusLogTriggerSetActivity    = "Set Activity"
+	StatusLogTriggerActiveChannel  = "Active Channel"
 )
