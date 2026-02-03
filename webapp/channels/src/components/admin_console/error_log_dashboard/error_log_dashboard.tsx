@@ -591,7 +591,7 @@ const ErrorLogDashboard: React.FC<Props> = ({config, patchConfig}) => {
     const [showMutedManager, setShowMutedManager] = useState(false);
     const [newMutePattern, setNewMutePattern] = useState('');
     const [showMutedErrors, setShowMutedErrors] = useState(false);
-    const [viewMode, setViewMode] = useState<ViewMode>('list');
+    const [viewMode, setViewMode] = useState<ViewMode>('grouped');
     const [expandedGroups, setExpandedGroups] = useState<Set<string>>(new Set());
 
     const isEnabled = config.FeatureFlags?.ErrorLogDashboard === true;
@@ -1193,18 +1193,18 @@ const ErrorLogDashboard: React.FC<Props> = ({config, patchConfig}) => {
                         {/* View Mode Toggle */}
                         <div className='ErrorLogDashboard__filters__view-toggle'>
                             <button
-                                className={`ErrorLogDashboard__filters__view-btn ${viewMode === 'list' ? 'ErrorLogDashboard__filters__view-btn--active' : ''}`}
-                                onClick={() => setViewMode('list')}
-                                title={intl.formatMessage({id: 'admin.error_log.view.list', defaultMessage: 'List View'})}
-                            >
-                                <IconList/>
-                            </button>
-                            <button
                                 className={`ErrorLogDashboard__filters__view-btn ${viewMode === 'grouped' ? 'ErrorLogDashboard__filters__view-btn--active' : ''}`}
                                 onClick={() => setViewMode('grouped')}
                                 title={intl.formatMessage({id: 'admin.error_log.view.grouped', defaultMessage: 'Grouped View'})}
                             >
                                 <IconLayers/>
+                            </button>
+                            <button
+                                className={`ErrorLogDashboard__filters__view-btn ${viewMode === 'list' ? 'ErrorLogDashboard__filters__view-btn--active' : ''}`}
+                                onClick={() => setViewMode('list')}
+                                title={intl.formatMessage({id: 'admin.error_log.view.list', defaultMessage: 'List View'})}
+                            >
+                                <IconList/>
                             </button>
                         </div>
 
