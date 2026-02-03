@@ -6,7 +6,7 @@
     "npm": "^10 || ^11"
   },
   "scripts": {
-    "postinstall": "patch-package && npm run postinstall --workspace platform/types --workspace platform/client --workspace platform/components --workspace platform/shared",
+    "postinstall": "patch-package && npm run build --workspace platform/types --workspace platform/client --workspace platform/components --workspace platform/shared",
     "build": "node scripts/build.mjs",
     "run": "node scripts/run.mjs",
     "dev-server": "node scripts/dev-server.mjs",

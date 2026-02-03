@@ -93,7 +93,6 @@
     }
   },
   "scripts": {
-    "postinstall": "npm run build",
     "build": "parcel build --no-optimize",
     "check": "npm run check:eslint && npm run check:stylelint",
     "check:eslint": "eslint --ext .js,.jsx,.tsx,.ts ./src --quiet",
