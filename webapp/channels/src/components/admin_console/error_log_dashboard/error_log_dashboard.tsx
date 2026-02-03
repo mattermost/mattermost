@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {useCallback, useEffect, useState} from 'react';
+import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 
 import type {AdminConfig} from '@mattermost/types/config';
@@ -426,6 +426,129 @@ const IconPlus = () => (
     </svg>
 );
 
+const IconList = () => (
+    <svg
+        width='16'
+        height='16'
+        viewBox='0 0 24 24'
+        fill='none'
+        stroke='currentColor'
+        strokeWidth='2'
+        strokeLinecap='round'
+        strokeLinejoin='round'
+    >
+        <line
+            x1='8'
+            y1='6'
+            x2='21'
+            y2='6'
+        />
+        <line
+            x1='8'
+            y1='12'
+            x2='21'
+            y2='12'
+        />
+        <line
+            x1='8'
+            y1='18'
+            x2='21'
+            y2='18'
+        />
+        <line
+            x1='3'
+            y1='6'
+            x2='3.01'
+            y2='6'
+        />
+        <line
+            x1='3'
+            y1='12'
+            x2='3.01'
+            y2='12'
+        />
+        <line
+            x1='3'
+            y1='18'
+            x2='3.01'
+            y2='18'
+        />
+    </svg>
+);
+
+const IconLayers = () => (
+    <svg
+        width='16'
+        height='16'
+        viewBox='0 0 24 24'
+        fill='none'
+        stroke='currentColor'
+        strokeWidth='2'
+        strokeLinecap='round'
+        strokeLinejoin='round'
+    >
+        <polygon points='12 2 2 7 12 12 22 7 12 2'/>
+        <polyline points='2 17 12 22 22 17'/>
+        <polyline points='2 12 12 17 22 12'/>
+    </svg>
+);
+
+const IconEye = () => (
+    <svg
+        width='16'
+        height='16'
+        viewBox='0 0 24 24'
+        fill='none'
+        stroke='currentColor'
+        strokeWidth='2'
+        strokeLinecap='round'
+        strokeLinejoin='round'
+    >
+        <path d='M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z'/>
+        <circle
+            cx='12'
+            cy='12'
+            r='3'
+        />
+    </svg>
+);
+
+const IconEyeOff = () => (
+    <svg
+        width='16'
+        height='16'
+        viewBox='0 0 24 24'
+        fill='none'
+        stroke='currentColor'
+        strokeWidth='2'
+        strokeLinecap='round'
+        strokeLinejoin='round'
+    >
+        <path d='M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24'/>
+        <line
+            x1='1'
+            y1='1'
+            x2='23'
+            y2='23'
+        />
+    </svg>
+);
+
+const IconChevronDown = () => (
+    <svg
+        width='16'
+        height='16'
+        viewBox='0 0 24 24'
+        fill='none'
+        stroke='currentColor'
+        strokeWidth='2'
+        strokeLinecap='round'
+        strokeLinejoin='round'
+    >
+        <polyline points='6 9 12 15 18 9'/>
+    </svg>
+);
+
 // LocalStorage key for muted patterns
 const MUTED_PATTERNS_KEY = 'errorLogDashboard_mutedPatterns';
 
@@ -442,6 +565,19 @@ const saveMutedPatterns = (patterns: string[]) => {
     localStorage.setItem(MUTED_PATTERNS_KEY, JSON.stringify(patterns));
 };
 
+// View mode for error list
+type ViewMode = 'list' | 'grouped';
+
+// Grouped error type
+type GroupedError = {
+    message: string;
+    type: 'api' | 'js';
+    count: number;
+    errors: ErrorLog[];
+    latestError: ErrorLog;
+    users: Set<string>;
+};
+
 const ErrorLogDashboard: React.FC<Props> = ({config, patchConfig}) => {
     const intl = useIntl();
     const [errors, setErrors] = useState<ErrorLog[]>([]);
@@ -454,6 +590,9 @@ const ErrorLogDashboard: React.FC<Props> = ({config, patchConfig}) => {
     const [mutedPatterns, setMutedPatterns] = useState<string[]>(loadMutedPatterns);
     const [showMutedManager, setShowMutedManager] = useState(false);
     const [newMutePattern, setNewMutePattern] = useState('');
+    const [showMutedErrors, setShowMutedErrors] = useState(false);
+    const [viewMode, setViewMode] = useState<ViewMode>('list');
+    const [expandedGroups, setExpandedGroups] = useState<Set<string>>(new Set());
 
     const isEnabled = config.FeatureFlags?.ErrorLogDashboard === true;
 
@@ -714,12 +853,10 @@ const ErrorLogDashboard: React.FC<Props> = ({config, patchConfig}) => {
         return intl.formatMessage({id: 'admin.error_log.time.days', defaultMessage: '{count}d ago'}, {count: days});
     };
 
-    const filteredErrors = errors.filter((error) => {
-        // Filter by muted patterns first
-        if (isErrorMuted(error)) {
-            return false;
-        }
-        if (filter !== 'all' && error.type !== filter) {
+    // First filter by muted/search (for stats - doesn't include type filter)
+    const baseFilteredErrors = errors.filter((error) => {
+        // Filter by muted patterns (unless showMutedErrors is enabled)
+        if (!showMutedErrors && isErrorMuted(error)) {
             return false;
         }
         if (search) {
@@ -736,7 +873,80 @@ const ErrorLogDashboard: React.FC<Props> = ({config, patchConfig}) => {
         return true;
     });
 
-    const mutedCount = errors.filter(isErrorMuted).length;
+    // Then filter by type for display
+    const filteredErrors = baseFilteredErrors.filter((error) => {
+        if (filter !== 'all' && error.type !== filter) {
+            return false;
+        }
+        return true;
+    });
+
+    // Calculate muted count based on current filter tab
+    const mutedCount = errors.filter((error) => {
+        if (filter !== 'all' && error.type !== filter) {
+            return false;
+        }
+        return isErrorMuted(error);
+    }).length;
+
+    // Calculate visible stats from base filtered (excludes type filter so counts stay constant)
+    const visibleStats = {
+        total: baseFilteredErrors.length,
+        api: baseFilteredErrors.filter((e) => e.type === 'api').length,
+        js: baseFilteredErrors.filter((e) => e.type === 'js').length,
+    };
+
+    // Group errors by message for grouped view
+    const groupedErrors = React.useMemo(() => {
+        const groups = new Map<string, GroupedError>();
+
+        filteredErrors.forEach((error) => {
+            // Create a key from the message (normalized)
+            const key = error.message.trim().toLowerCase();
+
+            if (groups.has(key)) {
+                const group = groups.get(key)!;
+                group.count++;
+                group.errors.push(error);
+                if (error.username) {
+                    group.users.add(error.username);
+                }
+                // Keep track of the latest error
+                if (error.create_at > group.latestError.create_at) {
+                    group.latestError = error;
+                }
+            } else {
+                const users = new Set<string>();
+                if (error.username) {
+                    users.add(error.username);
+                }
+                groups.set(key, {
+                    message: error.message,
+                    type: error.type,
+                    count: 1,
+                    errors: [error],
+                    latestError: error,
+                    users,
+                });
+            }
+        });
+
+        // Convert to array and sort by latest occurrence
+        return Array.from(groups.values()).sort((a, b) => b.latestError.create_at - a.latestError.create_at);
+    }, [filteredErrors]);
+
+    const toggleGroup = (message: string) => {
+        setExpandedGroups((prev) => {
+            const next = new Set(prev);
+            const key = message.trim().toLowerCase();
+            if (next.has(key)) {
+                next.delete(key);
+            } else {
+                next.add(key);
+            }
+            return next;
+        });
+    };
 
     // Promotional card when feature is disabled
     if (!isEnabled) {
@@ -867,25 +1077,53 @@ const ErrorLogDashboard: React.FC<Props> = ({config, patchConfig}) => {
                     </div>
                 </div>
 
-                {/* Stats Cards */}
+                {/* Stats Cards - clickable to filter */}
                 <div className='ErrorLogDashboard__stats'>
-                    <div className='ErrorLogDashboard__stat-card'>
+                    <div
+                        className={`ErrorLogDashboard__stat-card ErrorLogDashboard__stat-card--clickable ${filter === 'all' ? 'ErrorLogDashboard__stat-card--selected' : ''}`}
+                        onClick={() => setFilter('all')}
+                    >
                         <div className='ErrorLogDashboard__stat-card__icon ErrorLogDashboard__stat-card__icon--total'>
                             <IconChart/>
                         </div>
-                        <div className='ErrorLogDashboard__stat-card__value'>{stats.total}</div>
+                        <div className='ErrorLogDashboard__stat-card__value'>
+                            {visibleStats.total}
+                            {visibleStats.total !== stats.total && (
+                                <span className='ErrorLogDashboard__stat-card__total'>
+                                    {' / '}{stats.total}
+                                </span>
+                            )}
+                        </div>
                         <div className='ErrorLogDashboard__stat-card__label'>
                             <FormattedMessage
                                 id='admin.error_log.stat.total'
-                                defaultMessage='Total Errors'
+                                defaultMessage='All Errors'
                             />
+                            {visibleStats.total !== stats.total && (
+                                <span className='ErrorLogDashboard__stat-card__sublabel'>
+                                    <FormattedMessage
+                                        id='admin.error_log.stat.visible'
+                                        defaultMessage=' (visible / total)'
+                                    />
+                                </span>
+                            )}
                         </div>
                     </div>
-                    <div className='ErrorLogDashboard__stat-card'>
+                    <div
+                        className={`ErrorLogDashboard__stat-card ErrorLogDashboard__stat-card--clickable ${filter === 'api' ? 'ErrorLogDashboard__stat-card--selected' : ''}`}
+                        onClick={() => setFilter('api')}
+                    >
                         <div className='ErrorLogDashboard__stat-card__icon ErrorLogDashboard__stat-card__icon--api'>
                             <IconAPI/>
                         </div>
-                        <div className='ErrorLogDashboard__stat-card__value'>{stats.api}</div>
+                        <div className='ErrorLogDashboard__stat-card__value'>
+                            {visibleStats.api}
+                            {visibleStats.api !== stats.api && (
+                                <span className='ErrorLogDashboard__stat-card__total'>
+                                    {' / '}{stats.api}
+                                </span>
+                            )}
+                        </div>
                         <div className='ErrorLogDashboard__stat-card__label'>
                             <FormattedMessage
                                 id='admin.error_log.stat.api'
@@ -893,11 +1131,21 @@ const ErrorLogDashboard: React.FC<Props> = ({config, patchConfig}) => {
                             />
                         </div>
                     </div>
-                    <div className='ErrorLogDashboard__stat-card'>
+                    <div
+                        className={`ErrorLogDashboard__stat-card ErrorLogDashboard__stat-card--clickable ${filter === 'js' ? 'ErrorLogDashboard__stat-card--selected' : ''}`}
+                        onClick={() => setFilter('js')}
+                    >
                         <div className='ErrorLogDashboard__stat-card__icon ErrorLogDashboard__stat-card__icon--js'>
                             <IconJS/>
                         </div>
-                        <div className='ErrorLogDashboard__stat-card__value'>{stats.js}</div>
+                        <div className='ErrorLogDashboard__stat-card__value'>
+                            {visibleStats.js}
+                            {visibleStats.js !== stats.js && (
+                                <span className='ErrorLogDashboard__stat-card__total'>
+                                    {' / '}{stats.js}
+                                </span>
+                            )}
+                        </div>
                         <div className='ErrorLogDashboard__stat-card__label'>
                             <FormattedMessage
                                 id='admin.error_log.stat.js'
@@ -926,36 +1174,55 @@ const ErrorLogDashboard: React.FC<Props> = ({config, patchConfig}) => {
 
                 {/* Filters */}
                 <div className='ErrorLogDashboard__filters'>
-                    <div className='ErrorLogDashboard__filters__type-buttons'>
-                        <button
-                            className={`ErrorLogDashboard__filters__type-button ${filter === 'all' ? 'ErrorLogDashboard__filters__type-button--active' : ''}`}
-                            onClick={() => setFilter('all')}
-                        >
-                            <FormattedMessage
-                                id='admin.error_log.filter.all'
-                                defaultMessage='All'
-                            />
-                        </button>
-                        <button
-                            className={`ErrorLogDashboard__filters__type-button ${filter === 'api' ? 'ErrorLogDashboard__filters__type-button--active' : ''}`}
-                            onClick={() => setFilter('api')}
-                        >
-                            <FormattedMessage
-                                id='admin.error_log.filter.api'
-                                defaultMessage='API'
-                            />
-                        </button>
-                        <button
-                            className={`ErrorLogDashboard__filters__type-button ${filter === 'js' ? 'ErrorLogDashboard__filters__type-button--active' : ''}`}
-                            onClick={() => setFilter('js')}
-                        >
-                            <FormattedMessage
-                                id='admin.error_log.filter.js'
-                                defaultMessage='JS'
-                            />
-                        </button>
-                    </div>
                     <div className='ErrorLogDashboard__filters__right'>
+                        {/* View Mode Toggle */}
+                        <div className='ErrorLogDashboard__filters__view-toggle'>
+                            <button
+                                className={`ErrorLogDashboard__filters__view-btn ${viewMode === 'list' ? 'ErrorLogDashboard__filters__view-btn--active' : ''}`}
+                                onClick={() => setViewMode('list')}
+                                title={intl.formatMessage({id: 'admin.error_log.view.list', defaultMessage: 'List View'})}
+                            >
+                                <IconList/>
+                            </button>
+                            <button
+                                className={`ErrorLogDashboard__filters__view-btn ${viewMode === 'grouped' ? 'ErrorLogDashboard__filters__view-btn--active' : ''}`}
+                                onClick={() => setViewMode('grouped')}
+                                title={intl.formatMessage({id: 'admin.error_log.view.grouped', defaultMessage: 'Grouped View'})}
+                            >
+                                <IconLayers/>
+                            </button>
+                        </div>
+
+                        {/* Show Hidden Toggle */}
+                        {mutedCount > 0 && (
+                            <button
+                                className={`ErrorLogDashboard__filters__show-hidden-btn ${showMutedErrors ? 'ErrorLogDashboard__filters__show-hidden-btn--active' : ''}`}
+                                onClick={() => setShowMutedErrors(!showMutedErrors)}
+                                title={intl.formatMessage({
+                                    id: showMutedErrors ? 'admin.error_log.hide_muted' : 'admin.error_log.show_muted',
+                                    defaultMessage: showMutedErrors ? 'Hide muted errors' : 'Show muted errors',
+                                })}
+                            >
+                                {showMutedErrors ? <IconEyeOff/> : <IconEye/>}
+                                <span>
+                                    {showMutedErrors ? (
+                                        <FormattedMessage
+                                            id='admin.error_log.showing_hidden'
+                                            defaultMessage='Showing {count} hidden'
+                                            values={{count: mutedCount}}
+                                        />
+                                    ) : (
+                                        <FormattedMessage
+                                            id='admin.error_log.hidden_count'
+                                            defaultMessage='{count} hidden'
+                                            values={{count: mutedCount}}
+                                        />
+                                    )}
+                                </span>
+                            </button>
+                        )}
+
+                        {/* Muted Patterns Manager */}
                         <button
                             className={`ErrorLogDashboard__filters__mute-btn ${showMutedManager ? 'ErrorLogDashboard__filters__mute-btn--active' : ''}`}
                             onClick={() => setShowMutedManager(!showMutedManager)}
@@ -965,15 +1232,6 @@ const ErrorLogDashboard: React.FC<Props> = ({config, patchConfig}) => {
                             {mutedPatterns.length > 0 && (
                                 <span className='ErrorLogDashboard__filters__mute-count'>
                                     {mutedPatterns.length}
-                                </span>
-                            )}
-                            {mutedCount > 0 && (
-                                <span className='ErrorLogDashboard__filters__muted-errors'>
-                                    <FormattedMessage
-                                        id='admin.error_log.muted_hidden'
-                                        defaultMessage='({count} hidden)'
-                                        values={{count: mutedCount}}
-                                    />
                                 </span>
                             )}
                         </button>
@@ -1087,36 +1345,288 @@ const ErrorLogDashboard: React.FC<Props> = ({config, patchConfig}) => {
                             />
                         </p>
                     </div>
+                ) : viewMode === 'grouped' ? (
+                    <div className='ErrorLogDashboard__list'>
+                        {groupedErrors.map((group) => {
+                            const isExpanded = expandedGroups.has(group.message.trim().toLowerCase());
+                            const isMuted = isErrorMuted(group.latestError);
+                            return (
+                                <div
+                                    key={group.message}
+                                    className={`ErrorLogDashboard__group-card ${isMuted ? 'ErrorLogDashboard__group-card--muted' : ''}`}
+                                >
+                                    <div
+                                        className='ErrorLogDashboard__group-card__header'
+                                        onClick={() => toggleGroup(group.message)}
+                                    >
+                                        <div className='ErrorLogDashboard__group-card__header-left'>
+                                            <span className={`ErrorLogDashboard__group-card__expand ${isExpanded ? 'expanded' : ''}`}>
+                                                <IconChevronDown/>
+                                            </span>
+                                            <span className={`ErrorLogDashboard__error-card__badge ErrorLogDashboard__error-card__badge--${group.type}`}>
+                                                {group.type === 'api' ? <IconAlertCircle/> : <IconJS/>}
+                                                {group.type === 'api' ? 'API' : 'JS'}
+                                            </span>
+                                            <span className='ErrorLogDashboard__group-card__count'>
+                                                <FormattedMessage
+                                                    id='admin.error_log.group.count'
+                                                    defaultMessage='{count} {count, plural, one {occurrence} other {occurrences}}'
+                                                    values={{count: group.count}}
+                                                />
+                                            </span>
+                                            {group.users.size > 0 && (
+                                                <span className='ErrorLogDashboard__group-card__users'>
+                                                    <IconUser/>
+                                                    <FormattedMessage
+                                                        id='admin.error_log.group.users'
+                                                        defaultMessage='{count} {count, plural, one {user} other {users}}'
+                                                        values={{count: group.users.size}}
+                                                    />
+                                                </span>
+                                            )}
+                                            {isMuted && (
+                                                <span className='ErrorLogDashboard__group-card__muted-badge'>
+                                                    <IconVolumeX/>
+                                                    <FormattedMessage
+                                                        id='admin.error_log.muted'
+                                                        defaultMessage='Muted'
+                                                    />
+                                                </span>
+                                            )}
+                                        </div>
+                                        <div className='ErrorLogDashboard__group-card__header-right'>
+                                            <button
+                                                className='ErrorLogDashboard__error-card__action-btn'
+                                                onClick={(e) => {
+                                                    e.stopPropagation();
+                                                    muteError(group.latestError);
+                                                }}
+                                                title={intl.formatMessage({id: 'admin.error_log.mute_similar', defaultMessage: 'Mute similar errors'})}
+                                            >
+                                                <IconVolumeX/>
+                                            </button>
+                                            <button
+                                                className='ErrorLogDashboard__error-card__action-btn'
+                                                onClick={(e) => {
+                                                    e.stopPropagation();
+                                                    exportSingleError(group.latestError);
+                                                }}
+                                                title={intl.formatMessage({id: 'admin.error_log.export_single', defaultMessage: 'Export as JSON'})}
+                                            >
+                                                <IconDownload/>
+                                            </button>
+                                            <button
+                                                className='ErrorLogDashboard__error-card__action-btn'
+                                                onClick={(e) => {
+                                                    e.stopPropagation();
+                                                    copyError(group.latestError);
+                                                }}
+                                                title={intl.formatMessage({id: 'admin.error_log.copy', defaultMessage: 'Copy error details'})}
+                                            >
+                                                {copiedId === group.latestError.id ? <IconCheck/> : <IconCopy/>}
+                                            </button>
+                                            <span className='ErrorLogDashboard__error-card__time'>
+                                                {formatRelativeTime(group.latestError.create_at)}
+                                            </span>
+                                        </div>
+                                    </div>
+                                    <div className='ErrorLogDashboard__error-card__message'>
+                                        {group.message}
+                                    </div>
+                                    {isExpanded && (
+                                        <div className='ErrorLogDashboard__group-card__errors'>
+                                            {group.errors.map((error) => (
+                                                <div
+                                                    key={error.id}
+                                                    className='ErrorLogDashboard__error-card ErrorLogDashboard__error-card--nested'
+                                                >
+                                                    <div className='ErrorLogDashboard__error-card__header'>
+                                                        <div className='ErrorLogDashboard__error-card__header-left'>
+                                                            <span className={`ErrorLogDashboard__error-card__badge ErrorLogDashboard__error-card__badge--${error.type}`}>
+                                                                {error.type === 'api' ? <IconAlertCircle/> : <IconJS/>}
+                                                                {error.type === 'api' ? (
+                                                                    <FormattedMessage
+                                                                        id='admin.error_log.type.api'
+                                                                        defaultMessage='API Error'
+                                                                    />
+                                                                ) : (
+                                                                    <FormattedMessage
+                                                                        id='admin.error_log.type.js'
+                                                                        defaultMessage='JavaScript Error'
+                                                                    />
+                                                                )}
+                                                            </span>
+                                                        </div>
+                                                        <div className='ErrorLogDashboard__error-card__header-right'>
+                                                            <button
+                                                                className='ErrorLogDashboard__error-card__action-btn'
+                                                                onClick={() => exportSingleError(error)}
+                                                                title={intl.formatMessage({id: 'admin.error_log.export_single', defaultMessage: 'Export as JSON'})}
+                                                            >
+                                                                <IconDownload/>
+                                                            </button>
+                                                            <button
+                                                                className='ErrorLogDashboard__error-card__action-btn'
+                                                                onClick={() => copyError(error)}
+                                                                title={intl.formatMessage({id: 'admin.error_log.copy', defaultMessage: 'Copy error details'})}
+                                                            >
+                                                                {copiedId === error.id ? <IconCheck/> : <IconCopy/>}
+                                                            </button>
+                                                            <span className='ErrorLogDashboard__error-card__time'>
+                                                                {formatRelativeTime(error.create_at)}
+                                                            </span>
+                                                        </div>
+                                                    </div>
+
+                                                    {error.type === 'api' && error.endpoint && (
+                                                        <div className='ErrorLogDashboard__error-card__endpoint'>
+                                                            <span className='ErrorLogDashboard__error-card__method'>{error.method}</span>
+                                                            {error.endpoint}
+                                                            {error.status_code && (
+                                                                <span className='ErrorLogDashboard__error-card__status'>
+                                                                    {error.status_code}
+                                                                </span>
+                                                            )}
+                                                        </div>
+                                                    )}
+
+                                                    <div className='ErrorLogDashboard__error-card__message'>
+                                                        {error.message}
+                                                    </div>
+
+                                                    <div className='ErrorLogDashboard__error-card__meta'>
+                                                        {error.username && (
+                                                            <span className='ErrorLogDashboard__error-card__meta__item ErrorLogDashboard__error-card__meta__item--user'>
+                                                                {error.user_id ? (
+                                                                    <ProfilePicture
+                                                                        src={Client4.getProfilePictureUrl(error.user_id, 0)}
+                                                                        size='xs'
+                                                                        username={error.username}
+                                                                    />
+                                                                ) : (
+                                                                    <IconUser/>
+                                                                )}
+                                                                {error.username}
+                                                            </span>
+                                                        )}
+                                                        {error.url && (
+                                                            <span className='ErrorLogDashboard__error-card__meta__item'>
+                                                                <IconLink/>
+                                                                {error.url}
+                                                            </span>
+                                                        )}
+                                                        {error.user_agent && (
+                                                            <span className='ErrorLogDashboard__error-card__meta__item'>
+                                                                <IconBrowser/>
+                                                                {extractBrowserInfo(error.user_agent)}
+                                                            </span>
+                                                        )}
+                                                    </div>
+
+                                                    {/* API Error Details: Request Payload and Response */}
+                                                    {error.type === 'api' && (error.request_payload || error.response_body) && (
+                                                        <div className='ErrorLogDashboard__error-card__api-details'>
+                                                            {error.request_payload && (
+                                                                <div className='ErrorLogDashboard__error-card__api-section'>
+                                                                    <div className='ErrorLogDashboard__error-card__api-section__title'>
+                                                                        Request Payload
+                                                                    </div>
+                                                                    <pre className='ErrorLogDashboard__error-card__api-section__content'>
+                                                                        {error.request_payload}
+                                                                    </pre>
+                                                                </div>
+                                                            )}
+                                                            {error.response_body && (
+                                                                <div className='ErrorLogDashboard__error-card__api-section'>
+                                                                    <div className='ErrorLogDashboard__error-card__api-section__title'>
+                                                                        Response Body
+                                                                    </div>
+                                                                    <pre className='ErrorLogDashboard__error-card__api-section__content'>
+                                                                        {error.response_body}
+                                                                    </pre>
+                                                                </div>
+                                                            )}
+                                                        </div>
+                                                    )}
+
+                                                    {error.stack && (
+                                                        <>
+                                                            <button
+                                                                className='ErrorLogDashboard__error-card__stack-toggle'
+                                                                onClick={() => toggleStack(error.id)}
+                                                            >
+                                                                <span className={`ErrorLogDashboard__error-card__stack-toggle__icon ${expandedStacks.has(error.id) ? 'expanded' : ''}`}>
+                                                                    <IconChevronRight/>
+                                                                </span>
+                                                                <FormattedMessage
+                                                                    id='admin.error_log.stack_trace'
+                                                                    defaultMessage='Stack Trace'
+                                                                />
+                                                            </button>
+                                                            {expandedStacks.has(error.id) && (
+                                                                <div className='ErrorLogDashboard__error-card__stack'>
+                                                                    {error.stack}
+                                                                    {error.component_stack && (
+                                                                        <>
+                                                                            {'\n\nComponent Stack:\n'}
+                                                                            {error.component_stack}
+                                                                        </>
+                                                                    )}
+                                                                </div>
+                                                            )}
+                                                        </>
+                                                    )}
+                                                </div>
+                                            ))}
+                                        </div>
+                                    )}
+                                </div>
+                            );
+                        })}
+                    </div>
                 ) : (
                     <div className='ErrorLogDashboard__list'>
-                        {filteredErrors.map((error) => (
-                            <div
-                                key={error.id}
-                                className='ErrorLogDashboard__error-card'
-                            >
-                                <div className='ErrorLogDashboard__error-card__header'>
-                                    <span className={`ErrorLogDashboard__error-card__badge ErrorLogDashboard__error-card__badge--${error.type}`}>
-                                        {error.type === 'api' ? <IconAlertCircle/> : <IconJS/>}
-                                        {error.type === 'api' ? (
-                                            <FormattedMessage
-                                                id='admin.error_log.type.api'
-                                                defaultMessage='API Error'
-                                            />
-                                        ) : (
-                                            <FormattedMessage
-                                                id='admin.error_log.type.js'
-                                                defaultMessage='JavaScript Error'
-                                            />
-                                        )}
-                                    </span>
-                                    <div className='ErrorLogDashboard__error-card__header-right'>
-                                        <button
-                                            className='ErrorLogDashboard__error-card__action-btn'
-                                            onClick={() => muteError(error)}
-                                            title={intl.formatMessage({id: 'admin.error_log.mute_similar', defaultMessage: 'Mute similar errors'})}
-                                        >
-                                            <IconVolumeX/>
-                                        </button>
+                        {filteredErrors.map((error) => {
+                            const isMuted = isErrorMuted(error);
+                            return (
+                                <div
+                                    key={error.id}
+                                    className={`ErrorLogDashboard__error-card ${isMuted ? 'ErrorLogDashboard__error-card--muted' : ''}`}
+                                >
+                                    <div className='ErrorLogDashboard__error-card__header'>
+                                        <div className='ErrorLogDashboard__error-card__header-left'>
+                                            <span className={`ErrorLogDashboard__error-card__badge ErrorLogDashboard__error-card__badge--${error.type}`}>
+                                                {error.type === 'api' ? <IconAlertCircle/> : <IconJS/>}
+                                                {error.type === 'api' ? (
+                                                    <FormattedMessage
+                                                        id='admin.error_log.type.api'
+                                                        defaultMessage='API Error'
+                                                    />
+                                                ) : (
+                                                    <FormattedMessage
+                                                        id='admin.error_log.type.js'
+                                                        defaultMessage='JavaScript Error'
+                                                    />
+                                                )}
+                                            </span>
+                                            {isMuted && (
+                                                <span className='ErrorLogDashboard__error-card__muted-badge'>
+                                                    <IconVolumeX/>
+                                                    <FormattedMessage
+                                                        id='admin.error_log.muted'
+                                                        defaultMessage='Muted'
+                                                    />
+                                                </span>
+                                            )}
+                                        </div>
+                                        <div className='ErrorLogDashboard__error-card__header-right'>
+                                            <button
+                                                className='ErrorLogDashboard__error-card__action-btn'
+                                                onClick={() => muteError(error)}
+                                                title={intl.formatMessage({id: 'admin.error_log.mute_similar', defaultMessage: 'Mute similar errors'})}
+                                            >
+                                                <IconVolumeX/>
+                                            </button>
                                         <button
                                             className='ErrorLogDashboard__error-card__action-btn'
                                             onClick={() => exportSingleError(error)}
@@ -1236,7 +1746,8 @@ const ErrorLogDashboard: React.FC<Props> = ({config, patchConfig}) => {
                                     </>
                                 )}
                             </div>
-                        ))}
+                        );
+                        })}
                     </div>
                 )}
             </div>
