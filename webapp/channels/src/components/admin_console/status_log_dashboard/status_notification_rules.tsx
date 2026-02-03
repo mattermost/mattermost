@@ -180,11 +180,12 @@ const StatusNotificationRules: React.FC<Props> = ({isEnabled}) => {
         try {
             setLoading(true);
             const fetchedRules = await Client4.getStatusNotificationRules();
-            setRules(fetchedRules);
+            const rulesArray = fetchedRules || [];
+            setRules(rulesArray);
 
             // Cache user information for display
             const userIds = new Set<string>();
-            fetchedRules.forEach((rule) => {
+            rulesArray.forEach((rule) => {
                 userIds.add(rule.watched_user_id);
                 userIds.add(rule.recipient_user_id);
             });
@@ -192,7 +193,7 @@ const StatusNotificationRules: React.FC<Props> = ({isEnabled}) => {
             if (userIds.size > 0) {
                 const users = await Client4.getProfilesByIds([...userIds]);
                 const cache: Record<string, UserProfile> = {};
-                users.forEach((user) => {
+                (users || []).forEach((user) => {
                     cache[user.id] = user;
                 });
                 setUserCache(cache);

@@ -224,6 +224,11 @@ func getStatusNotificationRules(c *Context, w http.ResponseWriter, r *http.Reque
 		return
 	}
 
+	// Ensure we return an empty array instead of null
+	if rules == nil {
+		rules = []*model.StatusNotificationRule{}
+	}
+
 	if err := json.NewEncoder(w).Encode(rules); err != nil {
 		c.Logger.Warn("Error while writing response", mlog.Err(err))
 	}
