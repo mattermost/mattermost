@@ -2827,7 +2827,14 @@ func (a *App) SetActiveChannel(rctx request.CTX, userID string, channelID string
 		oldStatus = status.Status
 		status.ActiveChannel = channelID
 		if !status.Manual && channelID != "" {
-			status.Status = model.StatusOnline
+			// If user was DND but went offline due to inactivity, restore DND instead of Online
+			if status.Status == model.StatusOffline && status.PrevStatus == model.StatusDnd {
+				status.Status = model.StatusDnd
+				status.Manual = true
+				status.PrevStatus = ""
+			} else {
+				status.Status = model.StatusOnline
+			}
 		}
 		status.LastActivityAt = model.GetMillis()
 	}

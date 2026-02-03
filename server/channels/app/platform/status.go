@@ -369,7 +369,14 @@ func (ps *PlatformService) UpdateActivityFromManualAction(userID string, channel
 	if status.Status != model.StatusDnd && status.Status != model.StatusOutOfOffice {
 		if !status.Manual {
 			if status.Status == model.StatusAway || status.Status == model.StatusOffline {
-				newStatus = model.StatusOnline
+				// If user was DND but went offline due to inactivity, restore DND instead of Online
+				if status.Status == model.StatusOffline && status.PrevStatus == model.StatusDnd {
+					newStatus = model.StatusDnd
+					status.Manual = true
+					status.PrevStatus = ""
+				} else {
+					newStatus = model.StatusOnline
+				}
 				statusChanged = true
 				status.Status = newStatus
 			}
@@ -504,6 +511,35 @@ func (ps *PlatformService) SetOnlineIfNoOffline(userID string, channelID string,
 	// Only act on Away or Offline users
 	// Don't touch DND or Out of Office statuses
 	if status.Status != model.StatusAway && status.Status != model.StatusOffline {
+		return
+	}
+
+	// If user was DND but went offline due to inactivity, restore DND instead of Online
+	if status.Status == model.StatusOffline && status.PrevStatus == model.StatusDnd {
+		oldStatus := status.Status
+		status.Status = model.StatusDnd
+		status.Manual = true
+		status.PrevStatus = ""
+		status.LastActivityAt = model.GetMillis()
+		if channelID != "" {
+			status.ActiveChannel = channelID
+		}
+
+		ps.AddStatusCache(status)
+		if dbErr := ps.Store.Status().SaveOrUpdate(status); dbErr != nil {
+			ps.Log().Warn("Failed to save status from NoOffline DND restore", mlog.String("user_id", userID), mlog.Err(dbErr))
+		}
+
+		username := ""
+		if user, userErr := ps.Store.User().Get(context.Background(), userID); userErr == nil {
+			username = user.Username
+		}
+		ps.LogStatusChange(userID, username, oldStatus, model.StatusDnd, model.StatusLogReasonDNDRestored, model.StatusLogDeviceUnknown, true, channelID, false, "SetOnlineIfNoOffline/"+trigger)
+
+		ps.BroadcastStatus(status)
+		if ps.sharedChannelService != nil {
+			ps.sharedChannelService.NotifyUserStatusChanged(status)
+		}
 		return
 	}
 
