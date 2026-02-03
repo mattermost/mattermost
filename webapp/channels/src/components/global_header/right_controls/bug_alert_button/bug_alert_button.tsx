@@ -43,6 +43,8 @@ type ErrorLogStats = {
 
 // Key for dismissed errors in localStorage
 const DISMISSED_ERRORS_KEY = 'bugAlertButton_dismissedErrors';
+// Key for muted patterns (shared with ErrorLogDashboard)
+const MUTED_PATTERNS_KEY = 'errorLogDashboard_mutedPatterns';
 
 const loadDismissedErrors = (): Set<string> => {
     try {
@@ -55,6 +57,15 @@ const loadDismissedErrors = (): Set<string> => {
 
 const saveDismissedErrors = (dismissed: Set<string>) => {
     localStorage.setItem(DISMISSED_ERRORS_KEY, JSON.stringify([...dismissed]));
+};
+
+const loadMutedPatterns = (): string[] => {
+    try {
+        const stored = localStorage.getItem(MUTED_PATTERNS_KEY);
+        return stored ? JSON.parse(stored) : [];
+    } catch {
+        return [];
+    }
 };
 
 const BadgeContainer = styled.div`
@@ -87,10 +98,19 @@ const BugAlertButton: React.FC = () => {
     const [errors, setErrors] = useState<ErrorLog[]>([]);
     const [stats, setStats] = useState<ErrorLogStats>({total: 0, api: 0, js: 0});
     const [dismissedErrors, setDismissedErrors] = useState<Set<string>>(loadDismissedErrors);
+    const [mutedPatterns, setMutedPatterns] = useState<string[]>(loadMutedPatterns);
     const [isOpen, setIsOpen] = useState(false);
     const containerRef = useRef<HTMLDivElement>(null);
 
     const isEnabled = config.FeatureFlagErrorLogDashboard === 'true';
+
+    // Check if an error matches any muted pattern
+    const isErrorMuted = useCallback((error: ErrorLog): boolean => {
+        return mutedPatterns.some((pattern) =>
+            error.message.toLowerCase().includes(pattern.toLowerCase()) ||
+            (error.endpoint && error.endpoint.toLowerCase().includes(pattern.toLowerCase())),
+        );
+    }, [mutedPatterns]);
 
     // Load errors on mount and when feature becomes enabled
     const loadErrors = useCallback(async () => {
@@ -135,6 +155,13 @@ const BugAlertButton: React.FC = () => {
         };
     }, [isEnabled, isAdmin]);
 
+    // Refresh muted patterns when dropdown opens (in case they changed in ErrorLogDashboard)
+    useEffect(() => {
+        if (isOpen) {
+            setMutedPatterns(loadMutedPatterns());
+        }
+    }, [isOpen]);
+
     // Close dropdown when clicking outside
     useEffect(() => {
         const handleClickOutside = (event: MouseEvent) => {
@@ -165,9 +192,16 @@ const BugAlertButton: React.FC = () => {
         return null;
     }
 
-    // Filter out dismissed errors
-    const visibleErrors = errors.filter((error) => !dismissedErrors.has(error.id));
+    // Filter out dismissed and muted errors
+    const visibleErrors = errors.filter((error) => !dismissedErrors.has(error.id) && !isErrorMuted(error));
     const errorCount = visibleErrors.length;
+
+    // Calculate filtered stats (excluding muted errors)
+    const filteredStats = {
+        total: errors.filter((error) => !isErrorMuted(error)).length,
+        api: errors.filter((error) => error.type === 'api' && !isErrorMuted(error)).length,
+        js: errors.filter((error) => error.type === 'js' && !isErrorMuted(error)).length,
+    };
 
     const handleToggle = () => {
         setIsOpen(!isOpen);
@@ -220,7 +254,7 @@ const BugAlertButton: React.FC = () => {
         <FormattedMessage
             id='bug_alert.tooltip'
             defaultMessage='Error Logs ({count})'
-            values={{count: stats.total}}
+            values={{count: filteredStats.total}}
         />
     );
 
@@ -261,10 +295,10 @@ const BugAlertButton: React.FC = () => {
                         </span>
                         <span className='BugAlertDropdown__stats'>
                             <span className='BugAlertDropdown__stat BugAlertDropdown__stat--api'>
-                                {stats.api} API
+                                {filteredStats.api} API
                             </span>
                             <span className='BugAlertDropdown__stat BugAlertDropdown__stat--js'>
-                                {stats.js} JS
+                                {filteredStats.js} JS
                             </span>
                         </span>
                     </div>
