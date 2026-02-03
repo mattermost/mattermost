@@ -633,6 +633,7 @@ const StatusLogDashboard: React.FC<Props> = ({config, patchConfig}) => {
     const [logs, setLogs] = useState<StatusLog[]>([]);
     const [stats, setStats] = useState<StatusLogStats>({total: 0, online: 0, away: 0, dnd: 0, offline: 0});
     const [loading, setLoading] = useState(true);
+    const [loadingMore, setLoadingMore] = useState(false);
     const [filter, setFilter] = useState<StatusFilter>('all');
     const [logTypeFilter, setLogTypeFilter] = useState<LogTypeFilter>('all');
     const [userFilter, setUserFilter] = useState<string>('all');
@@ -640,28 +641,52 @@ const StatusLogDashboard: React.FC<Props> = ({config, patchConfig}) => {
     const [search, setSearch] = useState('');
     const [copiedId, setCopiedId] = useState<string | null>(null);
     const [showFilters, setShowFilters] = useState(false);
+    const [currentPage, setCurrentPage] = useState(0);
+    const [hasMore, setHasMore] = useState(false);
+    const [totalCount, setTotalCount] = useState(0);
+    const perPage = 100;
 
     const isEnabled = config.MattermostExtendedSettings?.Statuses?.EnableStatusLogs === true;
 
-    const loadLogs = useCallback(async () => {
+    const loadLogs = useCallback(async (page = 0, append = false) => {
         if (!isEnabled) {
             setLoading(false);
             return;
         }
 
+        if (append) {
+            setLoadingMore(true);
+        } else {
+            setLoading(true);
+        }
+
         try {
-            const response = await Client4.getStatusLogs();
-            setLogs(response.logs || []);
+            const response = await Client4.getStatusLogs({page, perPage});
+            if (append) {
+                setLogs((prev) => [...prev, ...(response.logs || [])]);
+            } else {
+                setLogs(response.logs || []);
+            }
             setStats(response.stats || {total: 0, online: 0, away: 0, dnd: 0, offline: 0});
+            setHasMore(response.has_more || false);
+            setTotalCount(response.total_count || 0);
+            setCurrentPage(page);
         } catch (e) {
             console.error('Failed to load status logs:', e);
         } finally {
             setLoading(false);
+            setLoadingMore(false);
         }
-    }, [isEnabled]);
+    }, [isEnabled, perPage]);
+
+    const loadMore = useCallback(() => {
+        if (!loadingMore && hasMore) {
+            loadLogs(currentPage + 1, true);
+        }
+    }, [loadLogs, currentPage, loadingMore, hasMore]);
 
     useEffect(() => {
-        loadLogs();
+        loadLogs(0, false);
     }, [loadLogs]);
 
     // WebSocket handler for real-time updates
@@ -673,7 +698,9 @@ const StatusLogDashboard: React.FC<Props> = ({config, patchConfig}) => {
         const handleWebSocketEvent = (msg: {event: string; data: {status_log: StatusLog}}) => {
             if (msg.event === 'status_log' && msg.data?.status_log) {
                 const log = msg.data.status_log;
-                setLogs((prev) => [log, ...prev].slice(0, 1000));
+                // Add to beginning, don't slice to allow all loaded logs to remain
+                setLogs((prev) => [log, ...prev]);
+                setTotalCount((prev) => prev + 1);
 
                 // Only update stats for status change logs, not activity logs
                 if (log.log_type !== 'activity') {
@@ -724,52 +751,70 @@ const StatusLogDashboard: React.FC<Props> = ({config, patchConfig}) => {
             await Client4.clearStatusLogs();
             setLogs([]);
             setStats({total: 0, online: 0, away: 0, dnd: 0, offline: 0});
+            setTotalCount(0);
+            setHasMore(false);
+            setCurrentPage(0);
         } catch (e) {
             console.error('Failed to clear status logs:', e);
         }
     };
 
-    const handleExport = () => {
-        const exportData = {
-            exported_at: new Date().toISOString(),
-            filters: {
-                status: filter,
-                log_type: logTypeFilter,
-                user: userFilter,
-                time_period: timePeriodFilter,
-                search: search || null,
-            },
-            stats: {
-                visible: filteredLogs.length,
-                total: logs.length,
-            },
-            logs: filteredLogs.map((log) => ({
-                id: log.id,
-                timestamp: new Date(log.create_at).toISOString(),
-                log_type: log.log_type || 'status_change',
-                user_id: log.user_id,
-                username: log.username,
-                old_status: log.old_status,
-                new_status: log.new_status,
-                reason: log.reason,
-                trigger: log.trigger || null,
-                device: log.device || 'unknown',
-                window_active: log.window_active,
-                channel_id: log.channel_id || null,
-                manual: log.manual || false,
-                source: log.source || null,
-            })),
-        };
+    const handleExport = async () => {
+        try {
+            // Build export options based on current filters
+            const exportOptions: {logType?: string; since?: number} = {};
+            if (logTypeFilter !== 'all') {
+                exportOptions.logType = logTypeFilter;
+            }
+            if (timePeriodFilter !== 'all') {
+                const cutoff = getTimePeriodCutoff(timePeriodFilter);
+                if (cutoff > 0) {
+                    exportOptions.since = cutoff;
+                }
+            }
 
-        const blob = new Blob([JSON.stringify(exportData, null, 2)], {type: 'application/json'});
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = `mattermost-status-logs-${new Date().toISOString().slice(0, 10)}.json`;
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-        URL.revokeObjectURL(url);
+            const response = await Client4.exportStatusLogs(exportOptions);
+            const exportData = {
+                exported_at: new Date(response.exported_at).toISOString(),
+                filters: {
+                    status: filter,
+                    log_type: logTypeFilter,
+                    user: userFilter,
+                    time_period: timePeriodFilter,
+                    search: search || null,
+                },
+                stats: response.stats,
+                total_count: response.total_count,
+                logs: response.logs.map((log: StatusLog) => ({
+                    id: log.id,
+                    timestamp: new Date(log.create_at).toISOString(),
+                    log_type: log.log_type || 'status_change',
+                    user_id: log.user_id,
+                    username: log.username,
+                    old_status: log.old_status,
+                    new_status: log.new_status,
+                    reason: log.reason,
+                    trigger: log.trigger || null,
+                    device: log.device || 'unknown',
+                    window_active: log.window_active,
+                    channel_id: log.channel_id || null,
+                    manual: log.manual || false,
+                    source: log.source || null,
+                })),
+            };
+
+            const blob = new Blob([JSON.stringify(exportData, null, 2)], {type: 'application/json'});
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `mattermost-status-logs-${new Date().toISOString().slice(0, 10)}.json`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        } catch (e) {
+            console.error('Failed to export status logs:', e);
+        }
     };
 
     const copyLog = async (log: StatusLog) => {
@@ -1144,7 +1189,7 @@ const StatusLogDashboard: React.FC<Props> = ({config, patchConfig}) => {
                                 <IconCheckCircle/>
                                 <FormattedMessage
                                     id='admin.status_log.promo.feature4'
-                                    defaultMessage='No database storage - lightweight in-memory buffer'
+                                    defaultMessage='Persistent database storage with configurable retention'
                                 />
                             </li>
                         </ul>
@@ -1528,10 +1573,11 @@ const StatusLogDashboard: React.FC<Props> = ({config, patchConfig}) => {
                     <div className='StatusLogDashboard__filters__results'>
                         <FormattedMessage
                             id='admin.status_log.filter.results'
-                            defaultMessage='Showing {count} of {total} logs'
+                            defaultMessage='Showing {count} of {total} logs (loaded {loaded})'
                             values={{
                                 count: filteredLogs.length,
-                                total: logs.length,
+                                total: totalCount,
+                                loaded: logs.length,
                             }}
                         />
                     </div>
@@ -1693,6 +1739,31 @@ const StatusLogDashboard: React.FC<Props> = ({config, patchConfig}) => {
                                 </div>
                             );
                         })}
+                        {hasMore && (
+                            <div className='StatusLogDashboard__load-more'>
+                                <button
+                                    className='btn btn-tertiary'
+                                    onClick={loadMore}
+                                    disabled={loadingMore}
+                                >
+                                    {loadingMore ? (
+                                        <FormattedMessage
+                                            id='admin.status_log.loading_more'
+                                            defaultMessage='Loading...'
+                                        />
+                                    ) : (
+                                        <FormattedMessage
+                                            id='admin.status_log.load_more'
+                                            defaultMessage='Load More ({loaded} of {total})'
+                                            values={{
+                                                loaded: logs.length,
+                                                total: totalCount,
+                                            }}
+                                        />
+                                    )}
+                                </button>
+                            </div>
+                        )}
                     </div>
                 )}
             </div>

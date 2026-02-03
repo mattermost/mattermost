@@ -5004,11 +5004,45 @@ export default class Client4 {
         return `${this.getBaseRoute()}/status_logs`;
     };
 
-    getStatusLogs = () => {
-        return this.doFetch<{logs: any[]; stats: {total: number; online: number; away: number; dnd: number; offline: number}}>(
-            this.getStatusLogsRoute(),
-            {method: 'get'},
-        );
+    getStatusLogs = (options?: {
+        page?: number;
+        perPage?: number;
+        userId?: string;
+        logType?: string;
+        since?: number;
+        until?: number;
+    }) => {
+        const params = new URLSearchParams();
+        if (options?.page !== undefined) {
+            params.append('page', String(options.page));
+        }
+        if (options?.perPage !== undefined) {
+            params.append('per_page', String(options.perPage));
+        }
+        if (options?.userId) {
+            params.append('user_id', options.userId);
+        }
+        if (options?.logType) {
+            params.append('log_type', options.logType);
+        }
+        if (options?.since) {
+            params.append('since', String(options.since));
+        }
+        if (options?.until) {
+            params.append('until', String(options.until));
+        }
+
+        const queryString = params.toString();
+        const url = queryString ? `${this.getStatusLogsRoute()}?${queryString}` : this.getStatusLogsRoute();
+
+        return this.doFetch<{
+            logs: any[];
+            stats: {total: number; online: number; away: number; dnd: number; offline: number};
+            total_count: number;
+            page: number;
+            per_page: number;
+            has_more: boolean;
+        }>(url, {method: 'get'});
     };
 
     clearStatusLogs = () => {
@@ -5016,6 +5050,37 @@ export default class Client4 {
             this.getStatusLogsRoute(),
             {method: 'delete'},
         );
+    };
+
+    exportStatusLogs = (options?: {
+        userId?: string;
+        logType?: string;
+        since?: number;
+        until?: number;
+    }) => {
+        const params = new URLSearchParams();
+        if (options?.userId) {
+            params.append('user_id', options.userId);
+        }
+        if (options?.logType) {
+            params.append('log_type', options.logType);
+        }
+        if (options?.since) {
+            params.append('since', String(options.since));
+        }
+        if (options?.until) {
+            params.append('until', String(options.until));
+        }
+
+        const queryString = params.toString();
+        const url = queryString ? `${this.getStatusLogsRoute()}/export?${queryString}` : `${this.getStatusLogsRoute()}/export`;
+
+        return this.doFetch<{
+            logs: any[];
+            stats: {total: number; online: number; away: number; dnd: number; offline: number};
+            total_count: number;
+            exported_at: number;
+        }>(url, {method: 'get'});
     };
 }
 

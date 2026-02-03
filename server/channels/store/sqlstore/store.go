@@ -116,6 +116,7 @@ type SqlStoreStores struct {
 	temporaryPost              store.TemporaryPostStore
 	encryptionSessionKey       store.EncryptionSessionKeyStore
 	customChannelIcon          store.CustomChannelIconStore
+	statusLog                  store.StatusLogStore
 }
 
 type SqlStore struct {
@@ -271,6 +272,7 @@ func New(settings model.SqlSettings, logger mlog.LoggerIFace, metrics einterface
 	store.stores.temporaryPost = newSqlTemporaryPostStore(store, metrics)
 	store.stores.encryptionSessionKey = newSqlEncryptionSessionKeyStore(store)
 	store.stores.customChannelIcon = newSqlCustomChannelIconStore(store)
+	store.stores.statusLog = newSqlStatusLogStore(store)
 
 	store.stores.preference.(*SqlPreferenceStore).deleteUnusedFeatures()
 
@@ -904,6 +906,10 @@ func (ss *SqlStore) EncryptionSessionKey() store.EncryptionSessionKeyStore {
 
 func (ss *SqlStore) CustomChannelIcon() store.CustomChannelIconStore {
 	return ss.stores.customChannelIcon
+}
+
+func (ss *SqlStore) StatusLog() store.StatusLogStore {
+	return ss.stores.statusLog
 }
 
 func (ss *SqlStore) DropAllTables() {

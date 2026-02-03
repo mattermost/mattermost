@@ -102,6 +102,7 @@ type Store interface {
 	TemporaryPost() TemporaryPostStore
 	EncryptionSessionKey() EncryptionSessionKeyStore
 	CustomChannelIcon() CustomChannelIconStore
+	StatusLog() StatusLogStore
 }
 
 type RetentionPolicyStore interface {
@@ -1243,6 +1244,23 @@ type CustomChannelIconStore interface {
 	Delete(id string, deleteAt int64) error
 	// Search searches for custom channel icons by name.
 	Search(term string, limit int) ([]*model.CustomChannelIcon, error)
+}
+
+// StatusLogStore manages status log entries for monitoring user status changes.
+type StatusLogStore interface {
+	// Save stores a new status log entry.
+	Save(log *model.StatusLog) error
+	// Get retrieves status logs with filtering and pagination.
+	// Options: UserID, LogType, Since (timestamp), Page, PerPage
+	Get(options model.StatusLogGetOptions) ([]*model.StatusLog, error)
+	// GetCount returns the total count of logs matching the filter options.
+	GetCount(options model.StatusLogGetOptions) (int64, error)
+	// GetStats returns statistics about status changes (counts by status type).
+	GetStats(options model.StatusLogGetOptions) (map[string]int64, error)
+	// DeleteOlderThan removes all logs older than the given timestamp.
+	DeleteOlderThan(timestamp int64) (int64, error)
+	// DeleteAll removes all status logs.
+	DeleteAll() error
 }
 
 // ChannelSearchOpts contains options for searching channels.

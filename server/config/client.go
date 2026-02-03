@@ -190,6 +190,7 @@ func GenerateClientConfig(c *model.Config, telemetryID string, license *model.Li
 	props["MattermostExtendedStatusesHeartbeatIntervalSeconds"] = strconv.Itoa(*c.MattermostExtendedSettings.Statuses.HeartbeatIntervalSeconds)
 	props["MattermostExtendedStatusesEnableStatusLogs"] = strconv.FormatBool(*c.MattermostExtendedSettings.Statuses.EnableStatusLogs)
 	props["MattermostExtendedStatusesDNDInactivityTimeoutMinutes"] = strconv.Itoa(*c.MattermostExtendedSettings.Statuses.DNDInactivityTimeoutMinutes)
+	props["MattermostExtendedStatusesStatusLogRetentionDays"] = strconv.Itoa(*c.MattermostExtendedSettings.Statuses.StatusLogRetentionDays)
 
 	if license != nil {
 		props["ExperimentalEnableAuthenticationTransfer"] = strconv.FormatBool(*c.ServiceSettings.ExperimentalEnableAuthenticationTransfer)

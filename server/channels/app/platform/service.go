@@ -120,9 +120,6 @@ type PlatformService struct {
 
 	// Error log buffer for storing client and API errors
 	errorLogBuffer *ErrorLogBuffer
-
-	// Status log buffer for storing status change events
-	statusLogBuffer *StatusLogBuffer
 }
 
 type HookRunner interface {
@@ -149,7 +146,6 @@ func New(sc ServiceConfig, options ...Option) (*PlatformService, error) {
 		statusUpdateExitSignal:    make(chan struct{}),
 		statusUpdateDoneSignal:    make(chan struct{}),
 		errorLogBuffer:            NewErrorLogBuffer(ErrorLogBufferSize),
-		statusLogBuffer:           NewStatusLogBuffer(DefaultStatusLogBufferSize),
 	}
 
 	// Assume the first user account has not been created yet. A call to the DB will later check if this is really the case.
@@ -432,6 +428,9 @@ func (ps *PlatformService) Start(broadcastHooks map[string]BroadcastHook) error 
 	// Start the status update processor.
 	// Must be done before hub start.
 	go ps.processStatusUpdates()
+
+	// Start the status log cleanup routine (runs hourly)
+	go ps.statusLogCleanupLoop()
 
 	ps.hubStart(broadcastHooks)
 

@@ -1227,6 +1227,26 @@ func (_m *Store) Status() store.StatusStore {
 	return r0
 }
 
+// StatusLog provides a mock function with no fields
+func (_m *Store) StatusLog() store.StatusLogStore {
+	ret := _m.Called()
+
+	if len(ret) == 0 {
+		panic("no return value specified for StatusLog")
+	}
+
+	var r0 store.StatusLogStore
+	if rf, ok := ret.Get(0).(func() store.StatusLogStore); ok {
+		r0 = rf()
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(store.StatusLogStore)
+		}
+	}
+
+	return r0
+}
+
 // System provides a mock function with no fields
 func (_m *Store) System() store.SystemStore {
 	ret := _m.Called()

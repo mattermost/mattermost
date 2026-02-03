@@ -62,12 +62,17 @@ type MattermostExtendedStatusesSettings struct {
 	// Enable status change logging for the dashboard (default: false)
 	EnableStatusLogs *bool
 
-	// Maximum number of status logs to keep in memory (default: 500)
+	// Maximum number of status logs to keep in memory (deprecated, kept for config compatibility)
+	// Status logs are now stored in the database with retention-based cleanup.
 	MaxStatusLogs *int
 
 	// Minutes of inactivity before setting DND users to Offline (default: 30)
 	// Set to 0 to disable (DND users never automatically go offline)
 	DNDInactivityTimeoutMinutes *int
+
+	// Number of days to retain status logs in the database (default: 7)
+	// Set to 0 to disable automatic cleanup (logs kept forever)
+	StatusLogRetentionDays *int
 }
 
 // SetDefaults applies the default settings to the struct.
@@ -127,5 +132,8 @@ func (s *MattermostExtendedStatusesSettings) SetDefaults() {
 	}
 	if s.DNDInactivityTimeoutMinutes == nil {
 		s.DNDInactivityTimeoutMinutes = NewPointer(30)
+	}
+	if s.StatusLogRetentionDays == nil {
+		s.StatusLogRetentionDays = NewPointer(7)
 	}
 }

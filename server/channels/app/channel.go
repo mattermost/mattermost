@@ -2853,6 +2853,36 @@ func (a *App) SetActiveChannel(rctx request.CTX, userID string, channelID string
 				channelName = channel.Name
 			}
 			channelType = string(channel.Type)
+
+			// For DM channels, resolve the other user's username
+			if channel.Type == model.ChannelTypeDirect {
+				otherUserID1, otherUserID2 := channel.GetBothUsersForDM()
+				otherUserID := otherUserID1
+				if otherUserID1 == userID {
+					otherUserID = otherUserID2
+				}
+				if otherUserID != "" {
+					if otherUser, otherUserErr := a.Srv().Store().User().Get(rctx.Context(), otherUserID); otherUserErr == nil {
+						channelName = otherUser.Username
+					}
+				}
+			} else if channel.Type == model.ChannelTypeGroup && channel.DisplayName == "" {
+				// For GM channels without a display name, build one from members
+				opts := model.ChannelMembersGetOptions{ChannelID: channelID, Offset: 0, Limit: 100}
+				if members, membersErr := a.Srv().Store().Channel().GetMembers(opts); membersErr == nil {
+					var usernames []string
+					for _, member := range members {
+						if member.UserId != userID {
+							if memberUser, memberUserErr := a.Srv().Store().User().Get(rctx.Context(), member.UserId); memberUserErr == nil {
+								usernames = append(usernames, memberUser.Username)
+							}
+						}
+					}
+					if len(usernames) > 0 {
+						channelName = strings.Join(usernames, ", ")
+					}
+				}
+			}
 		}
 	}
 

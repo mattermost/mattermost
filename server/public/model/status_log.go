@@ -61,3 +61,19 @@ const (
 	StatusLogTriggerSendMessage    = "Send Message"
 	StatusLogTriggerFetchHistory   = "Fetch History"
 )
+
+// StatusLogGetOptions contains options for retrieving status logs.
+type StatusLogGetOptions struct {
+	// UserID filters logs by user ID (optional).
+	UserID string
+	// LogType filters by log type: "status_change" or "activity" (optional).
+	LogType string
+	// Since filters logs created after this timestamp in milliseconds (optional).
+	Since int64
+	// Until filters logs created before this timestamp in milliseconds (optional).
+	Until int64
+	// Page is the page number for pagination (0-indexed).
+	Page int
+	// PerPage is the number of results per page.
+	PerPage int
+}

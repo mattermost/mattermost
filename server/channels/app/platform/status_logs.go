@@ -5,157 +5,18 @@ package platform
 
 import (
 	"fmt"
-	"sync"
+	"time"
 
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/mlog"
 )
 
 const (
-	// DefaultStatusLogBufferSize is the default maximum number of status logs to keep in memory
-	DefaultStatusLogBufferSize = 500
+	// StatusLogCleanupInterval is how often the status log cleanup runs
+	StatusLogCleanupInterval = 1 * time.Hour
 )
 
-// StatusLogBuffer is a thread-safe ring buffer for storing status logs.
-type StatusLogBuffer struct {
-	mu       sync.RWMutex
-	buffer   []*model.StatusLog
-	head     int
-	count    int
-	capacity int
-}
-
-// NewStatusLogBuffer creates a new status log buffer.
-func NewStatusLogBuffer(capacity int) *StatusLogBuffer {
-	if capacity <= 0 {
-		capacity = DefaultStatusLogBufferSize
-	}
-	return &StatusLogBuffer{
-		buffer:   make([]*model.StatusLog, capacity),
-		capacity: capacity,
-	}
-}
-
-// Add adds a status log to the buffer.
-// If the buffer is full, the oldest log is replaced.
-func (b *StatusLogBuffer) Add(statusLog *model.StatusLog) {
-	b.mu.Lock()
-	defer b.mu.Unlock()
-
-	b.buffer[b.head] = statusLog
-	b.head = (b.head + 1) % b.capacity
-	if b.count < b.capacity {
-		b.count++
-	}
-}
-
-// GetAll returns all status logs in the buffer, newest first.
-func (b *StatusLogBuffer) GetAll() []*model.StatusLog {
-	b.mu.RLock()
-	defer b.mu.RUnlock()
-
-	if b.count == 0 {
-		return []*model.StatusLog{}
-	}
-
-	result := make([]*model.StatusLog, b.count)
-	for i := 0; i < b.count; i++ {
-		// Calculate index to get logs in reverse chronological order
-		idx := (b.head - 1 - i + b.capacity) % b.capacity
-		result[i] = b.buffer[idx]
-	}
-	return result
-}
-
-// Clear removes all status logs from the buffer.
-func (b *StatusLogBuffer) Clear() {
-	b.mu.Lock()
-	defer b.mu.Unlock()
-
-	b.buffer = make([]*model.StatusLog, b.capacity)
-	b.head = 0
-	b.count = 0
-}
-
-// Count returns the number of logs in the buffer.
-func (b *StatusLogBuffer) Count() int {
-	b.mu.RLock()
-	defer b.mu.RUnlock()
-	return b.count
-}
-
-// GetStats returns statistics about status changes in the buffer.
-// Only counts status_change logs, not activity logs.
-func (b *StatusLogBuffer) GetStats() map[string]int {
-	b.mu.RLock()
-	defer b.mu.RUnlock()
-
-	stats := map[string]int{
-		"total":   0,
-		"online":  0,
-		"away":    0,
-		"dnd":     0,
-		"offline": 0,
-	}
-
-	for i := 0; i < b.count; i++ {
-		idx := (b.head - 1 - i + b.capacity) % b.capacity
-		if b.buffer[idx] != nil {
-			// Skip activity logs - only count actual status changes
-			if b.buffer[idx].LogType == model.StatusLogTypeActivity {
-				continue
-			}
-			stats["total"]++
-			switch b.buffer[idx].NewStatus {
-			case model.StatusOnline:
-				stats["online"]++
-			case model.StatusAway:
-				stats["away"]++
-			case model.StatusDnd:
-				stats["dnd"]++
-			case model.StatusOffline:
-				stats["offline"]++
-			}
-		}
-	}
-
-	return stats
-}
-
-// Resize changes the capacity of the buffer.
-// If the new capacity is smaller, oldest entries may be lost.
-func (b *StatusLogBuffer) Resize(newCapacity int) {
-	if newCapacity <= 0 {
-		newCapacity = DefaultStatusLogBufferSize
-	}
-
-	b.mu.Lock()
-	defer b.mu.Unlock()
-
-	// Get all existing logs
-	existingLogs := make([]*model.StatusLog, b.count)
-	for i := 0; i < b.count; i++ {
-		idx := (b.head - 1 - i + b.capacity) % b.capacity
-		existingLogs[i] = b.buffer[idx]
-	}
-
-	// Create new buffer
-	b.buffer = make([]*model.StatusLog, newCapacity)
-	b.capacity = newCapacity
-
-	// Copy logs back (newest first, but we need to add them in order)
-	copyCount := min(b.count, newCapacity)
-	b.count = 0
-	b.head = 0
-
-	// Add logs back in chronological order (oldest first)
-	for i := copyCount - 1; i >= 0; i-- {
-		b.buffer[b.head] = existingLogs[i]
-		b.head = (b.head + 1) % b.capacity
-		b.count++
-	}
-}
-
-// LogStatusChange adds a status change to the buffer and broadcasts it via WebSocket.
+// LogStatusChange saves a status change to the database and broadcasts it via WebSocket.
 // The source parameter identifies which function triggered this log (e.g., "SetStatusOnline").
 func (ps *PlatformService) LogStatusChange(userID, username, oldStatus, newStatus, reason, device string, windowActive bool, channelID string, manual bool, source string) {
 	// Only log if status logs are enabled
@@ -200,8 +61,10 @@ func (ps *PlatformService) LogStatusChange(userID, username, oldStatus, newStatu
 		Source:       source,
 	}
 
-	// Add to buffer
-	ps.statusLogBuffer.Add(statusLog)
+	// Save to database
+	if err := ps.Store.StatusLog().Save(statusLog); err != nil {
+		ps.logger.Warn("Failed to save status log to database", mlog.Err(err))
+	}
 
 	// Broadcast to admins via WebSocket
 	event := model.NewWebSocketEvent(model.WebsocketEventStatusLog, "", "", "", nil, "")
@@ -272,8 +135,10 @@ func (ps *PlatformService) LogActivityUpdate(userID, username, currentStatus, de
 		Source:       source,
 	}
 
-	// Add to buffer
-	ps.statusLogBuffer.Add(statusLog)
+	// Save to database
+	if err := ps.Store.StatusLog().Save(statusLog); err != nil {
+		ps.logger.Warn("Failed to save activity log to database", mlog.Err(err))
+	}
 
 	// Broadcast to admins via WebSocket
 	event := model.NewWebSocketEvent(model.WebsocketEventStatusLog, "", "", "", nil, "")
@@ -282,23 +147,111 @@ func (ps *PlatformService) LogActivityUpdate(userID, username, currentStatus, de
 	ps.Publish(event)
 }
 
-// GetStatusLogs returns all status logs from the buffer.
+// GetStatusLogs returns status logs from the database with default pagination.
 func (ps *PlatformService) GetStatusLogs() []*model.StatusLog {
-	return ps.statusLogBuffer.GetAll()
+	return ps.GetStatusLogsWithOptions(model.StatusLogGetOptions{
+		Page:    0,
+		PerPage: 500, // Default page size for backward compatibility
+	})
 }
 
-// ClearStatusLogs clears all status logs from the buffer.
+// GetStatusLogsWithOptions returns status logs from the database with custom options.
+func (ps *PlatformService) GetStatusLogsWithOptions(options model.StatusLogGetOptions) []*model.StatusLog {
+	logs, err := ps.Store.StatusLog().Get(options)
+	if err != nil {
+		ps.logger.Warn("Failed to get status logs from database", mlog.Err(err))
+		return []*model.StatusLog{}
+	}
+	return logs
+}
+
+// GetStatusLogCount returns the total count of status logs matching the options.
+func (ps *PlatformService) GetStatusLogCount(options model.StatusLogGetOptions) int64 {
+	count, err := ps.Store.StatusLog().GetCount(options)
+	if err != nil {
+		ps.logger.Warn("Failed to get status log count from database", mlog.Err(err))
+		return 0
+	}
+	return count
+}
+
+// ClearStatusLogs clears all status logs from the database.
 func (ps *PlatformService) ClearStatusLogs() {
-	ps.statusLogBuffer.Clear()
+	if err := ps.Store.StatusLog().DeleteAll(); err != nil {
+		ps.logger.Warn("Failed to clear status logs from database", mlog.Err(err))
+	}
 }
 
 // GetStatusLogStats returns statistics about the status logs.
 func (ps *PlatformService) GetStatusLogStats() map[string]int {
-	return ps.statusLogBuffer.GetStats()
+	return ps.GetStatusLogStatsWithOptions(model.StatusLogGetOptions{})
 }
 
-// ResizeStatusLogBuffer resizes the status log buffer to the configured size.
-func (ps *PlatformService) ResizeStatusLogBuffer() {
-	maxLogs := *ps.Config().MattermostExtendedSettings.Statuses.MaxStatusLogs
-	ps.statusLogBuffer.Resize(maxLogs)
+// GetStatusLogStatsWithOptions returns statistics about the status logs with custom options.
+func (ps *PlatformService) GetStatusLogStatsWithOptions(options model.StatusLogGetOptions) map[string]int {
+	stats, err := ps.Store.StatusLog().GetStats(options)
+	if err != nil {
+		ps.logger.Warn("Failed to get status log stats from database", mlog.Err(err))
+		return map[string]int{
+			"total":   0,
+			"online":  0,
+			"away":    0,
+			"dnd":     0,
+			"offline": 0,
+		}
+	}
+
+	// Convert int64 to int for backward compatibility
+	return map[string]int{
+		"total":   int(stats["total"]),
+		"online":  int(stats["online"]),
+		"away":    int(stats["away"]),
+		"dnd":     int(stats["dnd"]),
+		"offline": int(stats["offline"]),
+	}
+}
+
+// CleanupOldStatusLogs removes status logs older than the retention period.
+// This should be called periodically (e.g., once per hour).
+func (ps *PlatformService) CleanupOldStatusLogs() {
+	// Get retention days from config (default to 7 days if not set)
+	retentionDays := *ps.Config().MattermostExtendedSettings.Statuses.StatusLogRetentionDays
+	if retentionDays <= 0 {
+		// Retention disabled, don't delete anything
+		return
+	}
+
+	// Calculate cutoff timestamp
+	cutoffTime := model.GetMillis() - int64(retentionDays*24*60*60*1000)
+
+	deleted, err := ps.Store.StatusLog().DeleteOlderThan(cutoffTime)
+	if err != nil {
+		ps.logger.Warn("Failed to cleanup old status logs", mlog.Err(err))
+		return
+	}
+
+	if deleted > 0 {
+		ps.logger.Info("Cleaned up old status logs",
+			mlog.Int("deleted_count", deleted),
+			mlog.Int("retention_days", retentionDays))
+	}
+}
+
+// statusLogCleanupLoop runs periodically to clean up old status logs based on retention settings.
+func (ps *PlatformService) statusLogCleanupLoop() {
+	ticker := time.NewTicker(StatusLogCleanupInterval)
+	defer ticker.Stop()
+
+	// Run initial cleanup on startup (after a short delay to ensure DB is ready)
+	time.Sleep(30 * time.Second)
+	ps.CleanupOldStatusLogs()
+
+	for {
+		select {
+		case <-ticker.C:
+			ps.CleanupOldStatusLogs()
+		case <-ps.goroutineExitSignal:
+			return
+		}
+	}
 }
