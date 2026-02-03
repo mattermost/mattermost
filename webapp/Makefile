@@ -89,8 +89,6 @@ ifeq ($(CI),false)
 else
 	# This runs in CI with NODE_ENV=production which skips devDependencies without this flag
 	npm ci --include=dev
-	echo HARRISON
-	ls platform/shared/dist
 endif
 
 	touch $@
