@@ -3492,10 +3492,6 @@
     "translation": "No rebràs notificacions per {{.Channel}} mentrestant el canal estigui silenciat."
   },
   {
-    "id": "api.command_mute.not_member.error",
-    "translation": "No s'ha pogut silenciar el canal {{.Channel}} perquè no ets membre."
-  },
-  {
     "id": "api.command_mute.no_channel.error",
     "translation": "No s'ha pogut trobar el canal especificat. Utilitza l'[identificador del canal](https://about.mattermost.com/default-channel-handle-documentation) per identificar canals."
   },

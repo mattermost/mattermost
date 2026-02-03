@@ -3,13 +3,20 @@
 
 import React, {useEffect, useState} from 'react';
 import {useIntl} from 'react-intl';
+import {useDispatch, useSelector} from 'react-redux';
 import styled from 'styled-components';
 
 import type {Channel, ChannelStats} from '@mattermost/types/channels';
 
+import {openModal} from 'actions/views/modals';
+import {canAccessChannelSettings} from 'selectors/views/channel_settings';
+
+import ChannelSettingsModal from 'components/channel_settings_modal/channel_settings_modal';
 import LoadingSpinner from 'components/widgets/loading/loading_spinner';
 
-import {Constants} from 'utils/constants';
+import {Constants, ModalIdentifiers} from 'utils/constants';
+
+import type {GlobalState} from 'types/store';
 
 const MenuContainer = styled.nav`
     display: flex;
@@ -116,6 +123,7 @@ interface MenuProps {
 
 export default function Menu(props: MenuProps) {
     const {formatMessage} = useIntl();
+    const dispatch = useDispatch();
     const {
         channel,
         channelStats,
@@ -128,7 +136,9 @@ export default function Menu(props: MenuProps) {
 
     const showNotificationPreferences = channel.type !== Constants.DM_CHANNEL && !isArchived;
     const showMembers = channel.type !== Constants.DM_CHANNEL;
+    const showChannelSettings = channel.type !== Constants.DM_CHANNEL && channel.type !== Constants.GM_CHANNEL && !isArchived;
     const fileCount = channelStats?.files_count >= 0 ? channelStats?.files_count : 0;
+    const canAccessSettings = useSelector((state: GlobalState) => canAccessChannelSettings(state, channel.id));
 
     useEffect(() => {
         actions.getChannelStats(channel.id, true).then(() => {
@@ -139,6 +149,20 @@ export default function Menu(props: MenuProps) {
         };
     }, [channel.id]);
 
+    const openChannelSettings = () => {
+        dispatch(
+            openModal({
+                modalId: ModalIdentifiers.CHANNEL_SETTINGS,
+                dialogType: ChannelSettingsModal,
+                dialogProps: {
+                    channelId: channel.id,
+                    focusOriginElement: 'channelInfoRHSChannelSettings',
+                    isOpen: true,
+                },
+            }),
+        );
+    };
+
     return (
         <MenuContainer
             className={className}
@@ -148,6 +172,17 @@ export default function Menu(props: MenuProps) {
                 defaultMessage: 'Channel Info Actions',
             })}
         >
+            {showChannelSettings && canAccessSettings && (
+                <MenuItem
+                    id='channelInfoRHSChannelSettings'
+                    icon={<i className='icon icon-cog-outline'/>}
+                    text={formatMessage({
+                        id: 'channel_header.channel_settings',
+                        defaultMessage: 'Channel Settings',
+                    })}
+                    onClick={openChannelSettings}
+                />
+            )}
             {showNotificationPreferences && (
                 <MenuItem
                     id='channelInfoRHSNotificationSettings'
