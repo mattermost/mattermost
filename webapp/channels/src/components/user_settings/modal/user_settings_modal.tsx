@@ -301,13 +301,13 @@ class UserSettingsModal extends React.PureComponent<Props, State> {
                 {
                     name: 'display_channel',
                     uiName: formatMessage({id: 'user.settings.modal.channel', defaultMessage: 'Channel'}),
-                    icon: 'icon icon-globe',
+                    icon: 'icon icon-forum-outline',
                     iconTitle: formatMessage({id: 'user.settings.channel.icon', defaultMessage: 'Channel Settings Icon'}),
                 },
                 {
                     name: 'display_language',
                     uiName: formatMessage({id: 'user.settings.modal.language', defaultMessage: 'Language'}),
-                    icon: 'icon icon-translate',
+                    icon: 'icon icon-globe',
                     iconTitle: formatMessage({id: 'user.settings.language.icon', defaultMessage: 'Language Settings Icon'}),
                 },
                 {
