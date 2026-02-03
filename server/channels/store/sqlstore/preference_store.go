@@ -282,6 +282,36 @@ func (s SqlPreferenceStore) CleanupFlagsBatch(limit int64) (int64, error) {
 	return rowsAffected, nil
 }
 
+// GetDistinctPreferences returns all unique category:name pairs from the preferences table,
+// filtered to user-facing categories only (display_settings, notifications, advanced_settings, sidebar_settings).
+func (s SqlPreferenceStore) GetDistinctPreferences() ([]model.PreferenceKey, error) {
+	// User-facing categories that can be overridden by admins
+	userFacingCategories := []string{
+		model.PreferenceCategoryDisplaySettings,
+		model.PreferenceCategoryNotifications,
+		model.PreferenceCategoryAdvancedSettings,
+		model.PreferenceCategorySidebarSettings,
+	}
+
+	query := s.getQueryBuilder().
+		Select("DISTINCT Category", "Name").
+		From("Preferences").
+		Where(sq.Eq{"Category": userFacingCategories}).
+		OrderBy("Category", "Name")
+
+	queryString, args, err := query.ToSql()
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to build query for distinct preferences")
+	}
+
+	var keys []model.PreferenceKey
+	if err := s.GetReplica().Select(&keys, queryString, args...); err != nil {
+		return nil, errors.Wrap(err, "failed to get distinct preferences")
+	}
+
+	return keys, nil
+}
+
 // Delete preference for limit_visible_dms_gms where their value is greater than "40" or less than "1"
 func (s SqlPreferenceStore) DeleteInvalidVisibleDmsGms() (int64, error) {
 	var queryString string

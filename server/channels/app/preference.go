@@ -18,7 +18,35 @@ func (a *App) GetPreferencesForUser(rctx request.CTX, userID string) (model.Pref
 	if err != nil {
 		return nil, model.NewAppError("GetPreferencesForUser", "app.preference.get_all.app_error", nil, "", http.StatusBadRequest).Wrap(err)
 	}
-	return preferences, nil
+	return a.applyPreferenceOverrides(preferences), nil
+}
+
+// applyPreferenceOverrides applies admin-enforced preference overrides to the given preferences.
+// This ensures users always see the admin-enforced values for overridden settings.
+func (a *App) applyPreferenceOverrides(preferences model.Preferences) model.Preferences {
+	overrides := a.Config().MattermostExtendedSettings.Preferences.Overrides
+	if len(overrides) == 0 {
+		return preferences
+	}
+
+	for i, pref := range preferences {
+		key := pref.Category + ":" + pref.Name
+		if enforcedValue, ok := overrides[key]; ok {
+			preferences[i].Value = enforcedValue
+		}
+	}
+	return preferences
+}
+
+// isPreferenceOverridden checks if a preference is admin-enforced.
+func (a *App) isPreferenceOverridden(category, name string) bool {
+	overrides := a.Config().MattermostExtendedSettings.Preferences.Overrides
+	if len(overrides) == 0 {
+		return false
+	}
+	key := category + ":" + name
+	_, isOverridden := overrides[key]
+	return isOverridden
 }
 
 func (a *App) GetPreferenceByCategoryForUser(rctx request.CTX, userID string, category string) (model.Preferences, *model.AppError) {
@@ -30,7 +58,7 @@ func (a *App) GetPreferenceByCategoryForUser(rctx request.CTX, userID string, ca
 		err := model.NewAppError("GetPreferenceByCategoryForUser", "api.preference.preferences_category.get.app_error", nil, "", http.StatusNotFound)
 		return nil, err
 	}
-	return preferences, nil
+	return a.applyPreferenceOverrides(preferences), nil
 }
 
 func (a *App) GetPreferenceByCategoryAndNameForUser(rctx request.CTX, userID string, category string, preferenceName string) (*model.Preference, *model.AppError) {
@@ -38,6 +66,16 @@ func (a *App) GetPreferenceByCategoryAndNameForUser(rctx request.CTX, userID str
 	if err != nil {
 		return nil, model.NewAppError("GetPreferenceByCategoryAndNameForUser", "app.preference.get.app_error", nil, "", http.StatusBadRequest).Wrap(err)
 	}
+
+	// Apply override if this preference is admin-enforced
+	overrides := a.Config().MattermostExtendedSettings.Preferences.Overrides
+	if len(overrides) > 0 {
+		key := category + ":" + preferenceName
+		if enforcedValue, ok := overrides[key]; ok {
+			res.Value = enforcedValue
+		}
+	}
+
 	return res, nil
 }
 
@@ -46,6 +84,19 @@ func (a *App) UpdatePreferences(rctx request.CTX, userID string, preferences mod
 		if userID != preference.UserId {
 			return model.NewAppError("savePreferences", "api.preference.update_preferences.set.app_error", nil,
 				"userId="+userID+", preference.UserId="+preference.UserId, http.StatusForbidden)
+		}
+	}
+
+	// Block updates to admin-enforced preferences
+	overrides := a.Config().MattermostExtendedSettings.Preferences.Overrides
+	if len(overrides) > 0 {
+		for _, pref := range preferences {
+			key := pref.Category + ":" + pref.Name
+			if _, isOverridden := overrides[key]; isOverridden {
+				return model.NewAppError("UpdatePreferences", "api.preference.update_preferences.admin_enforced.app_error",
+					map[string]any{"Category": pref.Category, "Name": pref.Name},
+					"preference is admin-enforced", http.StatusForbidden)
+			}
 		}
 	}
 
@@ -95,6 +146,19 @@ func (a *App) DeletePreferences(rctx request.CTX, userID string, preferences mod
 		}
 	}
 
+	// Block deletion of admin-enforced preferences
+	overrides := a.Config().MattermostExtendedSettings.Preferences.Overrides
+	if len(overrides) > 0 {
+		for _, pref := range preferences {
+			key := pref.Category + ":" + pref.Name
+			if _, isOverridden := overrides[key]; isOverridden {
+				return model.NewAppError("DeletePreferences", "api.preference.delete_preferences.admin_enforced.app_error",
+					map[string]any{"Category": pref.Category, "Name": pref.Name},
+					"preference is admin-enforced", http.StatusForbidden)
+			}
+		}
+	}
+
 	for _, preference := range preferences {
 		if err := a.Srv().Store().Preference().Delete(userID, preference.Category, preference.Name); err != nil {
 			return model.NewAppError("DeletePreferences", "app.preference.delete.app_error", nil, "", http.StatusBadRequest).Wrap(err)
@@ -118,4 +182,15 @@ func (a *App) DeletePreferences(rctx request.CTX, userID string, preferences mod
 	a.Publish(message)
 
 	return nil
+}
+
+// GetDistinctPreferences returns all unique preference keys (category:name pairs) from the database.
+// This is used by the admin panel to discover available preferences for override configuration.
+// Requires system admin permission.
+func (a *App) GetDistinctPreferences() ([]model.PreferenceKey, *model.AppError) {
+	keys, err := a.Srv().Store().Preference().GetDistinctPreferences()
+	if err != nil {
+		return nil, model.NewAppError("GetDistinctPreferences", "app.preference.get_distinct.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+	return keys, nil
 }

@@ -242,6 +242,36 @@ func (_m *PreferenceStore) GetCategory(userID string, category string) (model.Pr
 	return r0, r1
 }
 
+// GetDistinctPreferences provides a mock function with no fields
+func (_m *PreferenceStore) GetDistinctPreferences() ([]model.PreferenceKey, error) {
+	ret := _m.Called()
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetDistinctPreferences")
+	}
+
+	var r0 []model.PreferenceKey
+	var r1 error
+	if rf, ok := ret.Get(0).(func() ([]model.PreferenceKey, error)); ok {
+		return rf()
+	}
+	if rf, ok := ret.Get(0).(func() []model.PreferenceKey); ok {
+		r0 = rf()
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]model.PreferenceKey)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func() error); ok {
+		r1 = rf()
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // GetCategoryAndName provides a mock function with given fields: category, name
 func (_m *PreferenceStore) GetCategoryAndName(category string, name string) (model.Preferences, error) {
 	ret := _m.Called(category, name)

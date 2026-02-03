@@ -142,6 +142,7 @@ import FeatureFlags, {messages as featureFlagsMessages} from './feature_flags';
 import MattermostExtendedFeatures, {messages as mattermostExtendedFeaturesMessages} from './mattermost_extended_features';
 import ErrorLogDashboard from './error_log_dashboard';
 import StatusLogDashboard from './status_log_dashboard';
+import PreferenceOverridesDashboard from './preference_overrides';
 import GroupDetails from './group_settings/group_details';
 import GroupSettings from './group_settings/group_settings';
 import IPFiltering from './ip_filtering';
@@ -6739,6 +6740,19 @@ const AdminDefinition: AdminDefinitionType = {
                 schema: {
                     id: 'MattermostExtendedFeatures',
                     component: MattermostExtendedFeatures,
+                },
+            },
+            // User Preferences - Admin overrides for user settings
+            user_preferences: {
+                url: 'mattermost_extended/user_preferences',
+                title: defineMessage({id: 'admin.sidebar.user_preferences', defaultMessage: 'User Preferences'}),
+                searchableStrings: [
+                    defineMessage({id: 'admin.sidebar.user_preferences', defaultMessage: 'User Preferences'}),
+                ],
+                icon: <AccountOutlineIcon size={14} color={'currentColor'}/>,
+                schema: {
+                    id: 'PreferenceOverridesDashboard',
+                    component: PreferenceOverridesDashboard,
                 },
             },
             // Error Log Dashboard

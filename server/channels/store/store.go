@@ -696,6 +696,9 @@ type PreferenceStore interface {
 	DeleteOrphanedRows(limit int) (deleted int64, err error)
 	CleanupFlagsBatch(limit int64) (int64, error)
 	DeleteInvalidVisibleDmsGms() (int64, error)
+	// GetDistinctPreferences returns all unique category:name pairs from the preferences table,
+	// filtered to user-facing categories only (display_settings, notifications, etc.)
+	GetDistinctPreferences() ([]model.PreferenceKey, error)
 }
 
 type LicenseStore interface {

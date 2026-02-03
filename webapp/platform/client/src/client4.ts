@@ -2721,6 +2721,18 @@ export default class Client4 {
         );
     };
 
+    /**
+     * Get all distinct preference keys from the database.
+     * Used by admin panel for preference override configuration.
+     * Requires system admin permission.
+     */
+    getDistinctPreferences = () => {
+        return this.doFetch<Array<{category: string; name: string}>>(
+            `${this.getPreferencesRoute('me')}/discover`,
+            {method: 'get'},
+        );
+    };
+
     // General Routes
 
     ping = (getServerStatus: boolean, deviceId?: string) => {

@@ -193,6 +193,14 @@ func GenerateClientConfig(c *model.Config, telemetryID string, license *model.Li
 	props["MattermostExtendedStatusesDNDInactivityTimeoutMinutes"] = strconv.Itoa(*c.MattermostExtendedSettings.Statuses.DNDInactivityTimeoutMinutes)
 	props["MattermostExtendedStatusesStatusLogRetentionDays"] = strconv.Itoa(*c.MattermostExtendedSettings.Statuses.StatusLogRetentionDays)
 
+	// Mattermost Extended Preference Overrides
+	// Expose the keys of overridden preferences so the client can hide them from user settings
+	overrideKeys := make([]string, 0, len(c.MattermostExtendedSettings.Preferences.Overrides))
+	for key := range c.MattermostExtendedSettings.Preferences.Overrides {
+		overrideKeys = append(overrideKeys, key)
+	}
+	props["MattermostExtendedPreferenceOverrideKeys"] = strings.Join(overrideKeys, ",")
+
 	if license != nil {
 		props["ExperimentalEnableAuthenticationTransfer"] = strconv.FormatBool(*c.ServiceSettings.ExperimentalEnableAuthenticationTransfer)
 

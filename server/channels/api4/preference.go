@@ -17,6 +17,7 @@ func (api *API) InitPreference() {
 	api.BaseRoutes.Preferences.Handle("", api.APISessionRequired(getPreferences)).Methods(http.MethodGet)
 	api.BaseRoutes.Preferences.Handle("", api.APISessionRequired(updatePreferences)).Methods(http.MethodPut)
 	api.BaseRoutes.Preferences.Handle("/delete", api.APISessionRequired(deletePreferences)).Methods(http.MethodPost)
+	api.BaseRoutes.Preferences.Handle("/discover", api.APISessionRequired(getDistinctPreferences)).Methods(http.MethodGet)
 	api.BaseRoutes.Preferences.Handle("/{category:[A-Za-z0-9_]+}", api.APISessionRequired(getPreferencesByCategory)).Methods(http.MethodGet)
 	api.BaseRoutes.Preferences.Handle("/{category:[A-Za-z0-9_]+}/name/{preference_name:[A-Za-z0-9_]+}", api.APISessionRequired(getPreferenceByCategoryAndName)).Methods(http.MethodGet)
 }
@@ -180,4 +181,24 @@ func deletePreferences(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	auditRec.Success()
 	ReturnStatusOK(w)
+}
+
+// getDistinctPreferences returns all unique preference keys (category:name pairs) from the database.
+// This endpoint is used by the admin panel to discover available preferences for override configuration.
+// Requires system admin permission.
+func getDistinctPreferences(c *Context, w http.ResponseWriter, r *http.Request) {
+	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageSystem) {
+		c.SetPermissionError(model.PermissionManageSystem)
+		return
+	}
+
+	keys, err := c.App.GetDistinctPreferences()
+	if err != nil {
+		c.Err = err
+		return
+	}
+
+	if err := json.NewEncoder(w).Encode(keys); err != nil {
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
+	}
 }

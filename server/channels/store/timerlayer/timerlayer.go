@@ -7657,6 +7657,22 @@ func (s *TimerLayerPreferenceStore) GetCategoryAndName(category string, name str
 	return result, err
 }
 
+func (s *TimerLayerPreferenceStore) GetDistinctPreferences() ([]model.PreferenceKey, error) {
+	start := time.Now()
+
+	result, err := s.PreferenceStore.GetDistinctPreferences()
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("PreferenceStore.GetDistinctPreferences", success, elapsed)
+	}
+	return result, err
+}
+
 func (s *TimerLayerPreferenceStore) PermanentDeleteByUser(userID string) error {
 	start := time.Now()
 

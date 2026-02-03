@@ -17,6 +17,9 @@ type MattermostExtendedSettings struct {
 
 	// Statuses section - settings for accurate status tracking
 	Statuses MattermostExtendedStatusesSettings
+
+	// Preferences section - admin overrides for user preferences
+	Preferences MattermostExtendedPreferencesSettings
 }
 
 // MattermostExtendedPostsSettings contains tweaks for posts/messages behavior.
@@ -78,12 +81,21 @@ type MattermostExtendedStatusesSettings struct {
 	StatusLogRetentionDays *int
 }
 
+// MattermostExtendedPreferencesSettings contains settings for admin preference overrides.
+type MattermostExtendedPreferencesSettings struct {
+	// Overrides is a map of "category:name" to enforced value.
+	// When a preference is in this map, users see the enforced value and cannot change it.
+	// Example: {"display_settings:use_military_time": "true"} forces 24-hour clock for all users.
+	Overrides map[string]string
+}
+
 // SetDefaults applies the default settings to the struct.
 func (s *MattermostExtendedSettings) SetDefaults() {
 	s.Posts.SetDefaults()
 	s.Channels.SetDefaults()
 	s.Media.SetDefaults()
 	s.Statuses.SetDefaults()
+	s.Preferences.SetDefaults()
 }
 
 // SetDefaults for Posts settings
@@ -141,5 +153,12 @@ func (s *MattermostExtendedStatusesSettings) SetDefaults() {
 	}
 	if s.StatusLogRetentionDays == nil {
 		s.StatusLogRetentionDays = NewPointer(7)
+	}
+}
+
+// SetDefaults for Preferences settings
+func (s *MattermostExtendedPreferencesSettings) SetDefaults() {
+	if s.Overrides == nil {
+		s.Overrides = make(map[string]string)
 	}
 }

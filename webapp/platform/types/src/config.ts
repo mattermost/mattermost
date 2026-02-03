@@ -138,6 +138,9 @@ export type ClientConfig = {
     FeatureFlagSuppressEnterpriseUpgradeChecks: string;
     FeatureFlagSettingsResorted: string;
 
+    // Mattermost Extended Settings
+    MattermostExtendedPreferenceOverrideKeys: string;
+
     ForgotPasswordLink: string;
     GiphySdkKey: string;
     GoogleDeveloperKey: string;
@@ -1044,6 +1047,45 @@ export type ContentFlaggingSettings = {
     AdditionalSettings: ContentFlaggingAdditionalSettings;
 }
 
+// Mattermost Extended Settings types
+export type MattermostExtendedPostsSettings = {
+    HideDeletedMessagePlaceholder: boolean;
+};
+
+export type MattermostExtendedChannelsSettings = {
+    SidebarChannelSettings: boolean;
+};
+
+export type MattermostExtendedMediaSettings = {
+    MaxImageHeight: number;
+    MaxImageWidth: number;
+    CaptionFontSize: number;
+    MaxVideoHeight: number;
+    MaxVideoWidth: number;
+    MatchRemoteUserHourIconSize: boolean;
+};
+
+export type MattermostExtendedStatusesSettings = {
+    InactivityTimeoutMinutes: number;
+    HeartbeatIntervalSeconds: number;
+    EnableStatusLogs: boolean;
+    MaxStatusLogs: number;
+    DNDInactivityTimeoutMinutes: number;
+    StatusLogRetentionDays: number;
+};
+
+export type MattermostExtendedPreferencesSettings = {
+    Overrides: Record<string, string>;
+};
+
+export type MattermostExtendedSettings = {
+    Posts: MattermostExtendedPostsSettings;
+    Channels: MattermostExtendedChannelsSettings;
+    Media: MattermostExtendedMediaSettings;
+    Statuses: MattermostExtendedStatusesSettings;
+    Preferences: MattermostExtendedPreferencesSettings;
+};
+
 export type AdminConfig = {
     ServiceSettings: ServiceSettings;
     TeamSettings: TeamSettings;
@@ -1091,6 +1133,7 @@ export type AdminConfig = {
     AccessControlSettings: AccessControlSettings;
     ContentFlaggingSettings: ContentFlaggingSettings;
     AutoTranslationSettings: AutoTranslationSettings;
+    MattermostExtendedSettings: MattermostExtendedSettings;
 };
 
 export type ReplicaLagSetting = {
