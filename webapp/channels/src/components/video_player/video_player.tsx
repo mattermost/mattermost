@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {useCallback, useRef, useState} from 'react';
+import React, {useCallback, useState} from 'react';
 import classNames from 'classnames';
 
 import type {FileInfo} from '@mattermost/types/files';
@@ -21,24 +21,22 @@ export interface Props extends PropsFromRedux {
     postId: string;
     index?: number;
     maxHeight?: number;
+    maxWidth?: number;
     compactDisplay?: boolean;
-    handleImageClick?: (index: number) => void;
 }
 
 export default function VideoPlayer(props: Props) {
-    // Use maxHeight prop if provided, otherwise use defaultMaxHeight from config
-    const {fileInfo, postId, index = 0, compactDisplay, defaultMaxHeight} = props;
+    // Use maxHeight/maxWidth props if provided, otherwise use defaults from config
+    const {fileInfo, postId, compactDisplay, defaultMaxHeight, defaultMaxWidth} = props;
     const maxHeight = props.maxHeight ?? defaultMaxHeight ?? 350;
-    const videoRef = useRef<HTMLVideoElement>(null);
+    const maxWidth = props.maxWidth ?? defaultMaxWidth ?? 480;
     const [hasError, setHasError] = useState(false);
 
     const handleClick = useCallback((e: React.MouseEvent) => {
-        // Don't prevent default - allow native video controls to work
-        if (props.handleImageClick) {
-            e.preventDefault();
-            props.handleImageClick(index);
-        }
-    }, [props.handleImageClick, index]);
+        // Don't open modal on click - let native video controls handle play/pause
+        // The video element's controls attribute handles all interaction
+        e.stopPropagation();
+    }, []);
 
     const handleDoubleClick = useCallback((e: React.MouseEvent) => {
         e.preventDefault();
@@ -70,6 +68,11 @@ export default function VideoPlayer(props: Props) {
     const mimeType = fileInfo.mime_type || 'video/mp4';
     const filename = fileInfo.name || 'video';
 
+    // Container style with max width
+    const containerStyle: React.CSSProperties = {
+        maxWidth: `${maxWidth}px`,
+    };
+
     // Calculate aspect ratio if dimensions are available
     let videoStyle: React.CSSProperties = {
         maxHeight: `${maxHeight}px`,
@@ -86,7 +89,10 @@ export default function VideoPlayer(props: Props) {
 
     if (hasError) {
         return (
-            <div className={classNames('video-player-container', {'compact-display': compactDisplay})}>
+            <div
+                className={classNames('video-player-container', {'compact-display': compactDisplay})}
+                style={containerStyle}
+            >
                 <div className='video-player-error'>
                     <span className='video-player-error__text'>{'Unable to load video'}</span>
                     <button
@@ -102,9 +108,11 @@ export default function VideoPlayer(props: Props) {
     }
 
     return (
-        <div className={classNames('video-player-container', {'compact-display': compactDisplay})}>
+        <div
+            className={classNames('video-player-container', {'compact-display': compactDisplay})}
+            style={containerStyle}
+        >
             <video
-                ref={videoRef}
                 className='video-player'
                 controls={true}
                 preload='metadata'

@@ -61,7 +61,6 @@ export default function FileAttachmentList(props: Props) {
                     index={0}
                     maxHeight={maxVideoHeight}
                     compactDisplay={compactDisplay}
-                    handleImageClick={handleImageClick}
                 />
             );
         }
@@ -134,42 +133,54 @@ export default function FileAttachmentList(props: Props) {
                 />,
             );
 
-            // Add non-image files
-            for (let i = 0; i < nonImageFiles.length; i++) {
-                const fileInfo = nonImageFiles[i];
+            // Separate videos from other non-image files
+            const videoFiles = nonImageFiles.filter((f) => getFileType(f.extension) === FileTypes.VIDEO && !f.archived);
+            const otherFiles = nonImageFiles.filter((f) => getFileType(f.extension) !== FileTypes.VIDEO || f.archived);
+
+            // Add other non-image files (not videos)
+            for (let i = 0; i < otherFiles.length; i++) {
+                const fileInfo = otherFiles[i];
                 const originalIndex = sortedFileInfos.indexOf(fileInfo);
                 const isDeleted = fileInfo.delete_at > 0;
-                const fileType = getFileType(fileInfo.extension);
 
-                // Use VideoPlayer for video files if VideoEmbed is enabled
-                if (videoEmbedEnabled && fileType === FileTypes.VIDEO) {
+                postFiles.push(
+                    <FileAttachment
+                        key={fileInfo.id}
+                        fileInfo={fileInfo}
+                        index={originalIndex}
+                        handleImageClick={handleImageClick}
+                        compactDisplay={compactDisplay}
+                        handleFileDropdownOpened={props.handleFileDropdownOpened}
+                        preventDownload={props.disableDownload}
+                        disableActions={props.disableActions}
+                        disableThumbnail={isDeleted}
+                        disablePreview={isDeleted}
+                        overrideGenerateFileDownloadUrl={props.overrideGenerateFileDownloadUrl}
+                        postId={props.post.id}
+                    />,
+                );
+            }
+
+            // Add videos on their own lines (wrapped in a full-width container)
+            if (videoEmbedEnabled && videoFiles.length > 0) {
+                for (let i = 0; i < videoFiles.length; i++) {
+                    const fileInfo = videoFiles[i];
+                    const originalIndex = sortedFileInfos.indexOf(fileInfo);
+
                     postFiles.push(
-                        <VideoPlayer
-                            key={fileInfo.id}
-                            fileInfo={fileInfo}
-                            postId={props.post.id}
-                            index={originalIndex}
-                            maxHeight={maxVideoHeight}
-                            compactDisplay={compactDisplay}
-                            handleImageClick={handleImageClick}
-                        />,
-                    );
-                } else {
-                    postFiles.push(
-                        <FileAttachment
-                            key={fileInfo.id}
-                            fileInfo={fileInfo}
-                            index={originalIndex}
-                            handleImageClick={handleImageClick}
-                            compactDisplay={compactDisplay}
-                            handleFileDropdownOpened={props.handleFileDropdownOpened}
-                            preventDownload={props.disableDownload}
-                            disableActions={props.disableActions}
-                            disableThumbnail={isDeleted}
-                            disablePreview={isDeleted}
-                            overrideGenerateFileDownloadUrl={props.overrideGenerateFileDownloadUrl}
-                            postId={props.post.id}
-                        />,
+                        <div
+                            key={`video-wrapper-${fileInfo.id}`}
+                            className='video-player-row'
+                            style={{width: '100%', clear: 'both'}}
+                        >
+                            <VideoPlayer
+                                fileInfo={fileInfo}
+                                postId={props.post.id}
+                                index={originalIndex}
+                                maxHeight={maxVideoHeight}
+                                compactDisplay={compactDisplay}
+                            />
+                        </div>,
                     );
                 }
             }
@@ -194,17 +205,22 @@ export default function FileAttachmentList(props: Props) {
             const fileType = getFileType(fileInfo.extension);
 
             // Use VideoPlayer for video files if VideoEmbed is enabled
+            // Wrap in full-width container so videos go on their own line
             if (videoEmbedEnabled && fileType === FileTypes.VIDEO && !fileInfo.archived) {
                 postFiles.push(
-                    <VideoPlayer
-                        key={fileInfo.id}
-                        fileInfo={fileInfo}
-                        postId={props.post.id}
-                        index={i}
-                        maxHeight={maxVideoHeight}
-                        compactDisplay={compactDisplay}
-                        handleImageClick={handleImageClick}
-                    />,
+                    <div
+                        key={`video-wrapper-${fileInfo.id}`}
+                        className='video-player-row'
+                        style={{width: '100%', clear: 'both'}}
+                    >
+                        <VideoPlayer
+                            fileInfo={fileInfo}
+                            postId={props.post.id}
+                            index={i}
+                            maxHeight={maxVideoHeight}
+                            compactDisplay={compactDisplay}
+                        />
+                    </div>,
                 );
             } else {
                 postFiles.push(

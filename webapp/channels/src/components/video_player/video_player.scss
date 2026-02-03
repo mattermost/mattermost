@@ -5,7 +5,8 @@
     display: flex;
     flex-direction: column;
     margin: 8px 0;
-    max-width: 100%;
+    min-width: 280px;
+    width: fit-content;
 
     &.compact-display {
         margin: 4px 0;

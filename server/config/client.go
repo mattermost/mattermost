@@ -183,6 +183,7 @@ func GenerateClientConfig(c *model.Config, telemetryID string, license *model.Li
 	props["MattermostExtendedMediaMaxImageWidth"] = strconv.Itoa(*c.MattermostExtendedSettings.Media.MaxImageWidth)
 	props["MattermostExtendedMediaCaptionFontSize"] = strconv.Itoa(*c.MattermostExtendedSettings.Media.CaptionFontSize)
 	props["MattermostExtendedMediaMaxVideoHeight"] = strconv.Itoa(*c.MattermostExtendedSettings.Media.MaxVideoHeight)
+	props["MattermostExtendedMediaMaxVideoWidth"] = strconv.Itoa(*c.MattermostExtendedSettings.Media.MaxVideoWidth)
 
 	if license != nil {
 		props["ExperimentalEnableAuthenticationTransfer"] = strconv.FormatBool(*c.ServiceSettings.ExperimentalEnableAuthenticationTransfer)

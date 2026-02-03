@@ -43,6 +43,9 @@ type MattermostExtendedMediaSettings struct {
 
 	// Maximum video height in pixels for embedded video players
 	MaxVideoHeight *int
+
+	// Maximum video width in pixels for embedded video players
+	MaxVideoWidth *int
 }
 
 // SetDefaults applies the default settings to the struct.
@@ -79,5 +82,8 @@ func (s *MattermostExtendedMediaSettings) SetDefaults() {
 	}
 	if s.MaxVideoHeight == nil {
 		s.MaxVideoHeight = NewPointer(350)
+	}
+	if s.MaxVideoWidth == nil {
+		s.MaxVideoWidth = NewPointer(480)
 	}
 }

@@ -6790,6 +6790,13 @@ const AdminDefinition: AdminDefinitionType = {
                             help_text: defineMessage({id: 'admin.mattermost_extended.media.maxVideoHeight.desc', defaultMessage: 'Maximum height for embedded video players when VideoEmbed or VideoLinkEmbed feature flags are enabled.'}),
                             placeholder: defineMessage({id: 'admin.mattermost_extended.media.maxVideoHeight.placeholder', defaultMessage: 'E.g. 350'}),
                         },
+                        {
+                            type: 'number',
+                            key: 'MattermostExtendedSettings.Media.MaxVideoWidth',
+                            label: defineMessage({id: 'admin.mattermost_extended.media.maxVideoWidth.title', defaultMessage: 'Max Video Width (pixels):'}),
+                            help_text: defineMessage({id: 'admin.mattermost_extended.media.maxVideoWidth.desc', defaultMessage: 'Maximum width for embedded video players when VideoEmbed or VideoLinkEmbed feature flags are enabled.'}),
+                            placeholder: defineMessage({id: 'admin.mattermost_extended.media.maxVideoWidth.placeholder', defaultMessage: 'E.g. 480'}),
+                        },
                     ],
                 },
             },

@@ -20,6 +20,8 @@ function mapStateToProps(state: GlobalState) {
     return {
         // Default maxHeight from config, can be overridden by passing maxHeight prop
         defaultMaxHeight: parseInt(config.MattermostExtendedMediaMaxVideoHeight || '350', 10),
+        // Default maxWidth from config, can be overridden by passing maxWidth prop
+        defaultMaxWidth: parseInt(config.MattermostExtendedMediaMaxVideoWidth || '480', 10),
     };
 }
 
