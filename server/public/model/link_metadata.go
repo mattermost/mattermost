@@ -9,6 +9,8 @@ import (
 	"fmt"
 	"hash/fnv"
 	"net/http"
+	"net/url"
+	"strings"
 	"time"
 	"unicode/utf8"
 
@@ -65,7 +67,8 @@ func firstNImages(images []*image.Image, maxImages int) []*image.Image {
 
 // TruncateOpenGraph ensure OpenGraph metadata doesn't grow too big by
 // shortening strings, trimming fields and reducing the number of
-// images.
+// images. It also filters out SVG images as a defense-in-depth measure
+// to prevent DoS attacks via malicious SVG content.
 func TruncateOpenGraph(ogdata *opengraph.OpenGraph) *opengraph.OpenGraph {
 	if ogdata != nil {
 		empty := &opengraph.OpenGraph{}
@@ -78,11 +81,51 @@ func TruncateOpenGraph(ogdata *opengraph.OpenGraph) *opengraph.OpenGraph {
 		ogdata.Determiner = empty.Determiner
 		ogdata.Locale = empty.Locale
 		ogdata.LocalesAlternate = empty.LocalesAlternate
-		ogdata.Images = firstNImages(ogdata.Images, LinkMetadataMaxImages)
+		ogdata.Images = filterNonSVGImages(firstNImages(ogdata.Images, LinkMetadataMaxImages))
 		ogdata.Audios = empty.Audios
 		ogdata.Videos = empty.Videos
 	}
 	return ogdata
+}
+
+// filterNonSVGImages removes SVG images from the list as a defense-in-depth measure.
+// SVG images can contain malicious content that crashes browsers when rendered.
+func filterNonSVGImages(images []*image.Image) []*image.Image {
+	if len(images) == 0 {
+		return images
+	}
+
+	filtered := make([]*image.Image, 0, len(images))
+	for _, img := range images {
+		if img == nil {
+			continue
+		}
+		// Filter by URL extension
+		if IsSVGImageURL(img.URL) || IsSVGImageURL(img.SecureURL) {
+			continue
+		}
+		// Filter by declared MIME type
+		if img.Type == "image/svg+xml" {
+			continue
+		}
+		filtered = append(filtered, img)
+	}
+	return filtered
+}
+
+// IsSVGImageURL checks if a URL points to an SVG image based on file extension.
+// This is used to filter SVG images from OpenGraph metadata to prevent DoS attacks
+// via malicious SVG content that can crash browsers when rendered in link previews.
+func IsSVGImageURL(imageURL string) bool {
+	if imageURL == "" {
+		return false
+	}
+	parsed, err := url.Parse(imageURL)
+	if err != nil {
+		return false
+	}
+	path := strings.ToLower(parsed.Path)
+	return strings.HasSuffix(path, ".svg") || strings.HasSuffix(path, ".svgz")
 }
 
 func (o *LinkMetadata) PreSave() {

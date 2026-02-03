@@ -479,6 +479,15 @@ func (a *App) getImagesForPost(rctx request.CTX, post *model.Post, imageURLs []s
 					continue
 				}
 
+				// Skip SVG images as a defense-in-depth measure to prevent
+				// DoS attacks via malicious SVG content that can crash browsers.
+				if model.IsSVGImageURL(imageURL) {
+					rctx.Logger().Debug("Skipping SVG image from OpenGraph embed",
+						mlog.String("post_id", post.Id),
+						mlog.String("image_url", imageURL))
+					continue
+				}
+
 				imageURLs = append(imageURLs, imageURL)
 			}
 		}
@@ -686,8 +695,8 @@ func (a *App) getImagesInMessageAttachments(rctx request.CTX, post *model.Post) 
 	return images
 }
 
-func looksLikeAPermalink(url, siteURL string) bool {
-	path, hasPrefix := strings.CutPrefix(strings.TrimSpace(url), siteURL)
+func looksLikeAPermalink(urlStr, siteURL string) bool {
+	path, hasPrefix := strings.CutPrefix(strings.TrimSpace(urlStr), siteURL)
 	if !hasPrefix {
 		return false
 	}

@@ -14,6 +14,7 @@ import (
 	"github.com/pkg/errors"
 	"golang.org/x/net/html/charset"
 
+	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/v8/channels/app/oembed"
 )
@@ -61,6 +62,10 @@ func (a *App) parseOpenGraphMetadata(requestURL string, body io.Reader, contentT
 	makeOpenGraphURLsAbsolute(og, requestURL)
 
 	openGraphDecodeHTMLEntities(og)
+
+	// Filter out SVG images to prevent DoS attacks via malicious SVG content
+	// that can crash browsers when rendered in link previews.
+	og = filterSVGImagesFromOpenGraph(og)
 
 	// If image proxy enabled modify open graph data to feed though proxy
 	if toProxyURL := a.ImageProxyAdder(); toProxyURL != nil {
@@ -143,6 +148,43 @@ func openGraphDataWithProxyAddedToImageURLs(ogdata *opengraph.OpenGraph, toProxy
 	return ogdata
 }
 
+// filterSVGImagesFromOpenGraph removes SVG images from OpenGraph metadata.
+// SVG images are filtered because they can contain malicious content that crashes
+// browsers when rendered in link previews (CVE: DoS via malicious SVG in OpenGraph).
+// See: https://issues.chromium.org/issues/40057345
+func filterSVGImagesFromOpenGraph(og *opengraph.OpenGraph) *opengraph.OpenGraph {
+	if og == nil || len(og.Images) == 0 {
+		return og
+	}
+
+	filteredImages := make([]*ogImage.Image, 0, len(og.Images))
+	for _, img := range og.Images {
+		if img == nil {
+			continue
+		}
+
+		// Check both URL and SecureURL for SVG
+		if model.IsSVGImageURL(img.URL) || model.IsSVGImageURL(img.SecureURL) {
+			mlog.Debug("Filtering SVG image from OpenGraph metadata",
+				mlog.String("url", img.URL),
+				mlog.String("secure_url", img.SecureURL))
+			continue
+		}
+
+		// Check if the MIME type indicates SVG
+		if img.Type == "image/svg+xml" {
+			mlog.Debug("Filtering SVG image from OpenGraph metadata by type",
+				mlog.String("type", img.Type))
+			continue
+		}
+
+		filteredImages = append(filteredImages, img)
+	}
+
+	og.Images = filteredImages
+	return og
+}
+
 func openGraphDecodeHTMLEntities(og *opengraph.OpenGraph) {
 	og.Title = html.UnescapeString(og.Title)
 	og.Description = html.UnescapeString(og.Description)
@@ -168,6 +210,10 @@ func (a *App) parseOpenGraphFromOEmbed(requestURL string, body io.Reader) (*open
 			Height: uint64(oEmbedResponse.ThumbnailHeight),
 		})
 	}
+
+	// Filter out SVG images to prevent DoS attacks via malicious SVG content
+	// that can crash browsers when rendered in link previews.
+	og = filterSVGImagesFromOpenGraph(og)
 
 	if toProxyURL := a.ImageProxyAdder(); toProxyURL != nil {
 		og = openGraphDataWithProxyAddedToImageURLs(og, toProxyURL)
