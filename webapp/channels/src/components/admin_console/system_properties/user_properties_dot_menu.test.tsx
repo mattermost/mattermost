@@ -28,7 +28,8 @@ describe('UserPropertyDotMenu', () => {
             visibility: 'when_set',
             value_type: '',
         },
-    };
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    } as any;
 
     const updateField = jest.fn();
     const deleteField = jest.fn();

@@ -8,7 +8,7 @@ import {FormattedMessage, useIntl} from 'react-intl';
 import styled from 'styled-components';
 
 import {PlusIcon} from '@mattermost/compass-icons/components';
-import {supportsOptions, type UserPropertyField} from '@mattermost/types/properties';
+import {supportsOptions, type PropertyField, type UserPropertyField} from '@mattermost/types/properties';
 import {collectionToArray} from '@mattermost/types/utilities';
 
 import LoadingScreen from 'components/loading_screen';
@@ -16,12 +16,12 @@ import LoadingScreen from 'components/loading_screen';
 import Constants from 'utils/constants';
 
 import {DangerText, BorderlessInput, LinkButton} from './controls';
+import PropertyValuesInput from './property_values_input';
 import type {SectionHook} from './section_utils';
 import DotMenu from './user_properties_dot_menu';
 import SelectType from './user_properties_type_menu';
 import type {UserPropertyFields} from './user_properties_utils';
 import {isCreatePending, useUserPropertyFields, ValidationWarningNameRequired, ValidationWarningNameTaken, ValidationWarningNameUnique} from './user_properties_utils';
-import UserPropertyValues from './user_properties_values';
 
 import {AdminConsoleListTable} from '../list_table';
 
@@ -39,7 +39,7 @@ export const useUserPropertiesTable = (): SectionHook => {
     const canCreate = nonDeletedCount < Constants.MAX_CUSTOM_ATTRIBUTES;
 
     const create = () => {
-        itemOps.create();
+        itemOps.create(undefined);
     };
 
     const save = async () => {
@@ -90,6 +90,7 @@ export const useUserPropertiesTable = (): SectionHook => {
 type Props = {
     data: UserPropertyFields;
     canCreate: boolean;
+    createField: (field: UserPropertyField) => void;
 }
 
 export function UserPropertiesTable({
@@ -99,10 +100,11 @@ export function UserPropertiesTable({
     updateField,
     deleteField,
     reorderField,
-}: Props & FieldActions) {
+}: Props & Omit<FieldActions, 'createField'>) {
     const {formatMessage} = useIntl();
     const data = collectionToArray(collection);
     const col = createColumnHelper<UserPropertyField>();
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const columns = useMemo<Array<ColumnDef<UserPropertyField, any>>>(() => {
         return [
             col.accessor('name', {
@@ -157,6 +159,7 @@ export function UserPropertiesTable({
                                 label={formatMessage({id: 'admin.system_properties.user_properties.table.property_name.input.name', defaultMessage: 'Attribute Name'})}
                                 deleted={toDelete}
                                 testid='property-field-input'
+                                // eslint-disable-next-line jsx-a11y/no-autofocus
                                 autoFocus={isCreatePending(row.original) && !supportsOptions(row.original)}
                                 setValue={(value: string) => {
                                     updateField({...row.original, name: value.trim()});
@@ -206,10 +209,9 @@ export function UserPropertiesTable({
                 ),
                 cell: ({row}) => (
                     <>
-                        <UserPropertyValues
+                        <PropertyValuesInput
                             field={row.original}
-                            updateField={updateField}
-                            autoFocus={isCreatePending(row.original) && supportsOptions(row.original)}
+                            updateField={updateField as (field: PropertyField) => void}
                         />
                     </>
                 ),
@@ -244,7 +246,7 @@ export function UserPropertiesTable({
                 enableSorting: false,
             }),
         ];
-    }, [createField, updateField, deleteField, collection.warnings, canCreate]);
+    }, [col, formatMessage, createField, updateField, deleteField, collection.warnings, canCreate]);
 
     const table = useReactTable({
         data,
@@ -265,9 +267,20 @@ export function UserPropertiesTable({
     });
 
     return (
-        <TableWrapper>
-            <AdminConsoleListTable<UserPropertyField> table={table}/>
-        </TableWrapper>
+        <>
+            <TableWrapper>
+                <AdminConsoleListTable<UserPropertyField> table={table}/>
+            </TableWrapper>
+            {canCreate && (
+                <LinkButton onClick={() => createField(undefined as unknown as UserPropertyField)}>
+                    <PlusIcon size={16}/>
+                    <FormattedMessage
+                        id='admin.system_properties.user_properties.add_property'
+                        defaultMessage='Add attribute'
+                    />
+                </LinkButton>
+            )}
+        </>
     );
 }
 
@@ -368,6 +381,7 @@ const EditCell = (props: EditCellProps) => {
                 $deleted={props.deleted}
                 $strong={props.strong}
                 maxLength={props.maxLength}
+                // eslint-disable-next-line jsx-a11y/no-autofocus
                 autoFocus={props.autoFocus}
                 onFocus={(e) => {
                     if (props.autoFocus) {
