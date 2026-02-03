@@ -121,12 +121,6 @@ const AdminConsole = (props: Props) => {
         };
     }, [props.systemConsoleDarkModeEnabled]);
 
-    // Dark mode styles for admin console wrapper
-    const darkModeStyle: React.CSSProperties = props.systemConsoleDarkModeEnabled ? {
-        filter: 'invert(0.9) hue-rotate(180deg)',
-        background: '#fff',
-    } : {};
-
     const handleSearchChange = (searchTerm: string) => {
         setSearch(searchTerm);
     };
@@ -265,10 +259,9 @@ const AdminConsole = (props: Props) => {
             <BackstageNavbar team={props.team}/>
             <AdminSidebar onSearchChange={handleSearchChange}/>
             <div
-                className='admin-console__wrapper admin-console'
+                className={`admin-console__wrapper admin-console${props.systemConsoleDarkModeEnabled ? ' admin-console--dark-mode' : ''}`}
                 id='adminConsoleWrapper'
                 ref={handleFocusScroller}
-                style={darkModeStyle}
             >
                 <SearchKeywordMarking
                     keyword={search}

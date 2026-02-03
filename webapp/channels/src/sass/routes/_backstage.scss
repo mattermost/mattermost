@@ -620,5 +620,29 @@
 body.admin-console-dark-mode {
     .backstage-navbar {
         filter: invert(0.9) hue-rotate(180deg);
+
+        // Re-invert images to display them correctly
+        img,
+        svg,
+        video,
+        canvas,
+        [style*="background-image"] {
+            filter: invert(1) hue-rotate(180deg);
+        }
+    }
+}
+
+// Dark mode for admin console wrapper
+.admin-console--dark-mode {
+    filter: invert(0.9) hue-rotate(180deg);
+    background: #fff;
+
+    // Re-invert images to display them correctly
+    img,
+    svg,
+    video,
+    canvas,
+    [style*="background-image"] {
+        filter: invert(1) hue-rotate(180deg);
     }
 }
