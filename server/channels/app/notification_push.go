@@ -390,6 +390,32 @@ func (a *App) UpdateMobileAppBadge(userID string) {
 	}
 }
 
+// sendStatusNotificationPush sends a push notification to the specified user
+// for a status change or activity event of a watched user.
+// This is called by the platform service via a callback when notification rules are triggered.
+func (a *App) sendStatusNotificationPush(recipientUserID, watchedUsername, message string) {
+	rctx := request.EmptyContext(a.Log())
+
+	// Build a simple push notification message
+	msg := &model.PushNotification{
+		Type:       model.PushTypeMessage,
+		Version:    model.PushMessageV2,
+		Message:    message,
+		SenderName: "Status Alert",
+		ServerId:   a.ServerId(),
+		Category:   "", // No reply category for status alerts
+		Sound:      model.PushSoundNone,
+	}
+
+	// Send to all sessions for the recipient
+	if err := a.sendPushNotificationToAllSessions(rctx, msg, recipientUserID, ""); err != nil {
+		rctx.Logger().Warn("Failed to send status notification push",
+			mlog.String("recipient_user_id", recipientUserID),
+			mlog.String("watched_username", watchedUsername),
+			mlog.Err(err))
+	}
+}
+
 func (s *Server) createPushNotificationsHub(rctx request.CTX) {
 	buffer := *s.platform.Config().EmailSettings.PushNotificationBuffer
 	hub := PushNotificationsHub{
@@ -695,6 +721,12 @@ func doesNotifyPropsAllowPushNotification(user *model.User, channelNotifyProps m
 func doesStatusAllowPushNotification(userNotifyProps model.StringMap, status *model.Status, channelID string, isCRT bool) model.NotificationReason {
 	// If User status is DND or OOO return false right away
 	if status.Status == model.StatusDnd || status.Status == model.StatusOutOfOffice {
+		return model.NotificationReasonUserStatus
+	}
+
+	// If user was DND but went offline due to inactivity (PrevStatus == dnd),
+	// still block push notifications - they haven't changed their DND intent
+	if status.Status == model.StatusOffline && status.PrevStatus == model.StatusDnd {
 		return model.NotificationReasonUserStatus
 	}
 

@@ -117,6 +117,7 @@ type SqlStoreStores struct {
 	encryptionSessionKey       store.EncryptionSessionKeyStore
 	customChannelIcon          store.CustomChannelIconStore
 	statusLog                  store.StatusLogStore
+	statusNotificationRule     store.StatusNotificationRuleStore
 }
 
 type SqlStore struct {
@@ -273,6 +274,7 @@ func New(settings model.SqlSettings, logger mlog.LoggerIFace, metrics einterface
 	store.stores.encryptionSessionKey = newSqlEncryptionSessionKeyStore(store)
 	store.stores.customChannelIcon = newSqlCustomChannelIconStore(store)
 	store.stores.statusLog = newSqlStatusLogStore(store)
+	store.stores.statusNotificationRule = newSqlStatusNotificationRuleStore(store)
 
 	store.stores.preference.(*SqlPreferenceStore).deleteUnusedFeatures()
 
@@ -910,6 +912,10 @@ func (ss *SqlStore) CustomChannelIcon() store.CustomChannelIconStore {
 
 func (ss *SqlStore) StatusLog() store.StatusLogStore {
 	return ss.stores.statusLog
+}
+
+func (ss *SqlStore) StatusNotificationRule() store.StatusNotificationRuleStore {
+	return ss.stores.statusNotificationRule
 }
 
 func (ss *SqlStore) DropAllTables() {

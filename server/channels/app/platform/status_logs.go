@@ -5,6 +5,7 @@ package platform
 
 import (
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/mattermost/mattermost/server/public/model"
@@ -71,6 +72,9 @@ func (ps *PlatformService) LogStatusChange(userID, username, oldStatus, newStatu
 	event.Add("status_log", statusLog)
 	event.GetBroadcast().ContainsSensitiveData = true // Admin-only
 	ps.Publish(event)
+
+	// Check notification rules and send push notifications
+	ps.processStatusNotificationRules(statusLog)
 }
 
 // LogActivityUpdate logs an activity update (LastActivityAt change) without status change.
@@ -151,6 +155,9 @@ func (ps *PlatformService) LogActivityUpdate(userID, username, currentStatus, de
 	event.Add("status_log", statusLog)
 	event.GetBroadcast().ContainsSensitiveData = true // Admin-only
 	ps.Publish(event)
+
+	// Check notification rules and send push notifications
+	ps.processStatusNotificationRules(statusLog)
 }
 
 // GetStatusLogs returns status logs from the database with default pagination.
@@ -260,4 +267,116 @@ func (ps *PlatformService) statusLogCleanupLoop() {
 			return
 		}
 	}
+}
+
+// processStatusNotificationRules checks notification rules for the given status log
+// and sends push notifications to recipients whose rules match.
+func (ps *PlatformService) processStatusNotificationRules(log *model.StatusLog) {
+	// Skip if status logs are not enabled (rules won't work without logging anyway)
+	if !*ps.Config().MattermostExtendedSettings.Statuses.EnableStatusLogs {
+		return
+	}
+
+	// Skip if push notification callback is not set
+	if ps.sendStatusNotificationPushFunc == nil {
+		return
+	}
+
+	// Get all enabled rules for the watched user
+	rules, err := ps.Store.StatusNotificationRule().GetByWatchedUser(log.UserID)
+	if err != nil {
+		ps.logger.Warn("Failed to get notification rules for user",
+			mlog.String("user_id", log.UserID),
+			mlog.Err(err))
+		return
+	}
+
+	if len(rules) == 0 {
+		return
+	}
+
+	// Process each rule asynchronously
+	ps.Go(func() {
+		for _, rule := range rules {
+			if !rule.Enabled || rule.DeleteAt > 0 {
+				continue
+			}
+
+			// Check if the log matches the rule's event filters
+			if !rule.MatchesLog(log) {
+				continue
+			}
+
+			// Build the notification message
+			message := ps.buildStatusNotificationMessage(log)
+			if message == "" {
+				continue
+			}
+
+			// Send the push notification
+			ps.sendStatusNotificationPushFunc(rule.RecipientUserID, log.Username, message)
+
+			ps.logger.Debug("Sent status notification push",
+				mlog.String("rule_id", rule.Id),
+				mlog.String("rule_name", rule.Name),
+				mlog.String("watched_user", log.Username),
+				mlog.String("recipient_user_id", rule.RecipientUserID),
+				mlog.String("log_type", log.LogType),
+				mlog.String("message", message))
+		}
+	})
+}
+
+// buildStatusNotificationMessage creates a human-readable message for a status log event.
+func (ps *PlatformService) buildStatusNotificationMessage(log *model.StatusLog) string {
+	switch log.LogType {
+	case model.StatusLogTypeStatusChange:
+		return ps.buildStatusChangeMessage(log)
+	case model.StatusLogTypeActivity:
+		return ps.buildActivityMessage(log)
+	default:
+		return ""
+	}
+}
+
+// buildStatusChangeMessage creates a message for status change events.
+func (ps *PlatformService) buildStatusChangeMessage(log *model.StatusLog) string {
+	switch log.NewStatus {
+	case model.StatusOnline:
+		return fmt.Sprintf("%s is now online", log.Username)
+	case model.StatusAway:
+		return fmt.Sprintf("%s is now away", log.Username)
+	case model.StatusDnd:
+		return fmt.Sprintf("%s is now on Do Not Disturb", log.Username)
+	case model.StatusOffline:
+		return fmt.Sprintf("%s is now offline", log.Username)
+	default:
+		return fmt.Sprintf("%s changed status to %s", log.Username, log.NewStatus)
+	}
+}
+
+// buildActivityMessage creates a message for activity events.
+func (ps *PlatformService) buildActivityMessage(log *model.StatusLog) string {
+	trigger := log.Trigger
+
+	// Handle specific activity types
+	if strings.Contains(trigger, "Sent message") {
+		return fmt.Sprintf("%s sent a message", log.Username)
+	}
+
+	if strings.Contains(trigger, "Loaded ") {
+		// Extract channel name from trigger like "Loaded #general"
+		return fmt.Sprintf("%s viewed a channel", log.Username)
+	}
+
+	if log.Reason == model.StatusLogReasonWindowFocus {
+		return fmt.Sprintf("%s is active", log.Username)
+	}
+
+	// Fallback: use the trigger directly
+	if trigger != "" {
+		return fmt.Sprintf("%s: %s", log.Username, trigger)
+	}
+
+	return fmt.Sprintf("%s had activity", log.Username)
 }

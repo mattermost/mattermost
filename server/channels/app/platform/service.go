@@ -120,6 +120,10 @@ type PlatformService struct {
 
 	// Error log buffer for storing client and API errors
 	errorLogBuffer *ErrorLogBuffer
+
+	// Callback for sending status notification push alerts
+	// This is set by the App layer to allow the platform service to send push notifications
+	sendStatusNotificationPushFunc func(recipientUserID, watchedUsername, message string)
 }
 
 type HookRunner interface {
@@ -582,6 +586,13 @@ func (ps *PlatformService) GetSharedChannelService() SharedChannelServiceIFace {
 
 func (ps *PlatformService) SetPluginsEnvironment(runner HookRunner) {
 	ps.pluginEnv = runner
+}
+
+// SetStatusNotificationPushFunc sets the callback function for sending status notification push alerts.
+// This is called by the App layer during initialization to allow the platform service
+// to send push notifications when status notification rules are triggered.
+func (ps *PlatformService) SetStatusNotificationPushFunc(fn func(recipientUserID, watchedUsername, message string)) {
+	ps.sendStatusNotificationPushFunc = fn
 }
 
 // GetPluginStatuses meant to be used by cluster implementation

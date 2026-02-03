@@ -321,6 +321,9 @@ func NewServer(options ...Option) (*Server, error) {
 
 	s.createPushNotificationsHub(request.EmptyContext(s.Log()))
 
+	// Set up status notification push callback
+	s.setupStatusNotificationPushCallback(app)
+
 	if err2 := i18n.InitTranslations(*s.platform.Config().LocalizationSettings.DefaultServerLocale, *s.platform.Config().LocalizationSettings.DefaultClientLocale); err2 != nil {
 		return nil, errors.Wrapf(err2, "unable to load Mattermost translation files")
 	}
@@ -540,6 +543,14 @@ func (s *Server) AppOptions() []AppOption {
 	return []AppOption{
 		ServerConnector(s.Channels()),
 	}
+}
+
+// setupStatusNotificationPushCallback configures the callback function
+// that the platform service uses to send push notifications for status alerts.
+func (s *Server) setupStatusNotificationPushCallback(app *App) {
+	s.platform.SetStatusNotificationPushFunc(func(recipientUserID, watchedUsername, message string) {
+		app.sendStatusNotificationPush(recipientUserID, watchedUsername, message)
+	})
 }
 
 func (s *Server) Channels() *Channels {

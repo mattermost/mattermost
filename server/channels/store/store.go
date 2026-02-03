@@ -103,6 +103,7 @@ type Store interface {
 	EncryptionSessionKey() EncryptionSessionKeyStore
 	CustomChannelIcon() CustomChannelIconStore
 	StatusLog() StatusLogStore
+	StatusNotificationRule() StatusNotificationRuleStore
 }
 
 type RetentionPolicyStore interface {
@@ -1261,6 +1262,23 @@ type StatusLogStore interface {
 	DeleteOlderThan(timestamp int64) (int64, error)
 	// DeleteAll removes all status logs.
 	DeleteAll() error
+}
+
+// StatusNotificationRuleStore manages notification rules for status changes.
+type StatusNotificationRuleStore interface {
+	// Save stores a new notification rule.
+	Save(rule *model.StatusNotificationRule) (*model.StatusNotificationRule, error)
+	// Update updates an existing notification rule.
+	Update(rule *model.StatusNotificationRule) (*model.StatusNotificationRule, error)
+	// Get retrieves a notification rule by ID.
+	Get(id string) (*model.StatusNotificationRule, error)
+	// GetAll retrieves all notification rules (excluding deleted).
+	GetAll() ([]*model.StatusNotificationRule, error)
+	// GetByWatchedUser retrieves all enabled, non-deleted rules for a specific watched user.
+	// This is the critical query for performance when checking rules on status changes.
+	GetByWatchedUser(userID string) ([]*model.StatusNotificationRule, error)
+	// Delete soft-deletes a notification rule.
+	Delete(id string) error
 }
 
 // ChannelSearchOpts contains options for searching channels.

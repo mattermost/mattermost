@@ -503,6 +503,17 @@ func (c *Context) RequireReportId() *Context {
 	return c
 }
 
+func (c *Context) RequireRuleId() *Context {
+	if c.Err != nil {
+		return c
+	}
+
+	if !model.IsValidId(c.Params.RuleId) {
+		c.SetInvalidURLParam("rule_id")
+	}
+	return c
+}
+
 func (c *Context) RequireEmojiId() *Context {
 	if c.Err != nil {
 		return c

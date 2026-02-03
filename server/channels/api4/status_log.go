@@ -26,6 +26,22 @@ func (api *API) InitStatusLog() {
 
 	// GET /api/v4/status_logs/export - Export status logs as JSON (system admin only)
 	api.BaseRoutes.APIRoot.Handle("/status_logs/export", api.APISessionRequired(exportStatusLogs)).Methods(http.MethodGet)
+
+	// Notification Rules API
+	// GET /api/v4/status_logs/notification_rules - Get all notification rules
+	api.BaseRoutes.APIRoot.Handle("/status_logs/notification_rules", api.APISessionRequired(getStatusNotificationRules)).Methods(http.MethodGet)
+
+	// POST /api/v4/status_logs/notification_rules - Create a notification rule
+	api.BaseRoutes.APIRoot.Handle("/status_logs/notification_rules", api.APISessionRequired(createStatusNotificationRule)).Methods(http.MethodPost)
+
+	// GET /api/v4/status_logs/notification_rules/{rule_id} - Get a notification rule
+	api.BaseRoutes.APIRoot.Handle("/status_logs/notification_rules/{rule_id:[A-Za-z0-9]+}", api.APISessionRequired(getStatusNotificationRule)).Methods(http.MethodGet)
+
+	// PUT /api/v4/status_logs/notification_rules/{rule_id} - Update a notification rule
+	api.BaseRoutes.APIRoot.Handle("/status_logs/notification_rules/{rule_id:[A-Za-z0-9]+}", api.APISessionRequired(updateStatusNotificationRule)).Methods(http.MethodPut)
+
+	// DELETE /api/v4/status_logs/notification_rules/{rule_id} - Delete a notification rule
+	api.BaseRoutes.APIRoot.Handle("/status_logs/notification_rules/{rule_id:[A-Za-z0-9]+}", api.APISessionRequired(deleteStatusNotificationRule)).Methods(http.MethodDelete)
 }
 
 // getStatusLogs handles GET /api/v4/status_logs
@@ -184,4 +200,190 @@ func exportStatusLogs(c *Context, w http.ResponseWriter, r *http.Request) {
 	if err := json.NewEncoder(w).Encode(response); err != nil {
 		c.Logger.Warn("Error while writing export response", mlog.Err(err))
 	}
+}
+
+// getStatusNotificationRules handles GET /api/v4/status_logs/notification_rules
+// Returns all notification rules (non-deleted)
+// System admin only
+func getStatusNotificationRules(c *Context, w http.ResponseWriter, r *http.Request) {
+	// Check if status logging is enabled (rules depend on status logging)
+	if !*c.App.Config().MattermostExtendedSettings.Statuses.EnableStatusLogs {
+		c.Err = model.NewAppError("getStatusNotificationRules", "api.status_log.disabled", nil, "", http.StatusForbidden)
+		return
+	}
+
+	// Check permission - system admin only
+	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageSystem) {
+		c.SetPermissionError(model.PermissionManageSystem)
+		return
+	}
+
+	rules, err := c.App.Srv().Store().StatusNotificationRule().GetAll()
+	if err != nil {
+		c.Err = model.NewAppError("getStatusNotificationRules", "api.status_notification_rule.get_all.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		return
+	}
+
+	if err := json.NewEncoder(w).Encode(rules); err != nil {
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
+	}
+}
+
+// createStatusNotificationRule handles POST /api/v4/status_logs/notification_rules
+// Creates a new notification rule
+// System admin only
+func createStatusNotificationRule(c *Context, w http.ResponseWriter, r *http.Request) {
+	// Check if status logging is enabled
+	if !*c.App.Config().MattermostExtendedSettings.Statuses.EnableStatusLogs {
+		c.Err = model.NewAppError("createStatusNotificationRule", "api.status_log.disabled", nil, "", http.StatusForbidden)
+		return
+	}
+
+	// Check permission - system admin only
+	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageSystem) {
+		c.SetPermissionError(model.PermissionManageSystem)
+		return
+	}
+
+	var rule model.StatusNotificationRule
+	if err := json.NewDecoder(r.Body).Decode(&rule); err != nil {
+		c.Err = model.NewAppError("createStatusNotificationRule", "api.status_notification_rule.decode.app_error", nil, "", http.StatusBadRequest).Wrap(err)
+		return
+	}
+
+	// Set the creator to the current user
+	rule.CreatedBy = c.AppContext.Session().UserId
+
+	// Validate watched user and recipient exist
+	if _, appErr := c.App.GetUser(rule.WatchedUserID); appErr != nil {
+		c.Err = model.NewAppError("createStatusNotificationRule", "api.status_notification_rule.watched_user_not_found.app_error", nil, "", http.StatusBadRequest)
+		return
+	}
+	if _, appErr := c.App.GetUser(rule.RecipientUserID); appErr != nil {
+		c.Err = model.NewAppError("createStatusNotificationRule", "api.status_notification_rule.recipient_not_found.app_error", nil, "", http.StatusBadRequest)
+		return
+	}
+
+	savedRule, err := c.App.Srv().Store().StatusNotificationRule().Save(&rule)
+	if err != nil {
+		c.Err = model.NewAppError("createStatusNotificationRule", "api.status_notification_rule.save.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		return
+	}
+
+	w.WriteHeader(http.StatusCreated)
+	if err := json.NewEncoder(w).Encode(savedRule); err != nil {
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
+	}
+}
+
+// getStatusNotificationRule handles GET /api/v4/status_logs/notification_rules/{rule_id}
+// Returns a single notification rule
+// System admin only
+func getStatusNotificationRule(c *Context, w http.ResponseWriter, r *http.Request) {
+	// Check if status logging is enabled
+	if !*c.App.Config().MattermostExtendedSettings.Statuses.EnableStatusLogs {
+		c.Err = model.NewAppError("getStatusNotificationRule", "api.status_log.disabled", nil, "", http.StatusForbidden)
+		return
+	}
+
+	// Check permission - system admin only
+	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageSystem) {
+		c.SetPermissionError(model.PermissionManageSystem)
+		return
+	}
+
+	c.RequireRuleId()
+	if c.Err != nil {
+		return
+	}
+
+	rule, err := c.App.Srv().Store().StatusNotificationRule().Get(c.Params.RuleId)
+	if err != nil {
+		c.Err = model.NewAppError("getStatusNotificationRule", "api.status_notification_rule.get.app_error", nil, "", http.StatusNotFound).Wrap(err)
+		return
+	}
+
+	if err := json.NewEncoder(w).Encode(rule); err != nil {
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
+	}
+}
+
+// updateStatusNotificationRule handles PUT /api/v4/status_logs/notification_rules/{rule_id}
+// Updates a notification rule
+// System admin only
+func updateStatusNotificationRule(c *Context, w http.ResponseWriter, r *http.Request) {
+	// Check if status logging is enabled
+	if !*c.App.Config().MattermostExtendedSettings.Statuses.EnableStatusLogs {
+		c.Err = model.NewAppError("updateStatusNotificationRule", "api.status_log.disabled", nil, "", http.StatusForbidden)
+		return
+	}
+
+	// Check permission - system admin only
+	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageSystem) {
+		c.SetPermissionError(model.PermissionManageSystem)
+		return
+	}
+
+	c.RequireRuleId()
+	if c.Err != nil {
+		return
+	}
+
+	var rule model.StatusNotificationRule
+	if err := json.NewDecoder(r.Body).Decode(&rule); err != nil {
+		c.Err = model.NewAppError("updateStatusNotificationRule", "api.status_notification_rule.decode.app_error", nil, "", http.StatusBadRequest).Wrap(err)
+		return
+	}
+
+	// Ensure the ID matches the URL parameter
+	rule.Id = c.Params.RuleId
+
+	// Validate watched user and recipient exist
+	if _, appErr := c.App.GetUser(rule.WatchedUserID); appErr != nil {
+		c.Err = model.NewAppError("updateStatusNotificationRule", "api.status_notification_rule.watched_user_not_found.app_error", nil, "", http.StatusBadRequest)
+		return
+	}
+	if _, appErr := c.App.GetUser(rule.RecipientUserID); appErr != nil {
+		c.Err = model.NewAppError("updateStatusNotificationRule", "api.status_notification_rule.recipient_not_found.app_error", nil, "", http.StatusBadRequest)
+		return
+	}
+
+	updatedRule, err := c.App.Srv().Store().StatusNotificationRule().Update(&rule)
+	if err != nil {
+		c.Err = model.NewAppError("updateStatusNotificationRule", "api.status_notification_rule.update.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		return
+	}
+
+	if err := json.NewEncoder(w).Encode(updatedRule); err != nil {
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
+	}
+}
+
+// deleteStatusNotificationRule handles DELETE /api/v4/status_logs/notification_rules/{rule_id}
+// Soft-deletes a notification rule
+// System admin only
+func deleteStatusNotificationRule(c *Context, w http.ResponseWriter, r *http.Request) {
+	// Check if status logging is enabled
+	if !*c.App.Config().MattermostExtendedSettings.Statuses.EnableStatusLogs {
+		c.Err = model.NewAppError("deleteStatusNotificationRule", "api.status_log.disabled", nil, "", http.StatusForbidden)
+		return
+	}
+
+	// Check permission - system admin only
+	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageSystem) {
+		c.SetPermissionError(model.PermissionManageSystem)
+		return
+	}
+
+	c.RequireRuleId()
+	if c.Err != nil {
+		return
+	}
+
+	if err := c.App.Srv().Store().StatusNotificationRule().Delete(c.Params.RuleId); err != nil {
+		c.Err = model.NewAppError("deleteStatusNotificationRule", "api.status_notification_rule.delete.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		return
+	}
+
+	ReturnStatusOK(w)
 }

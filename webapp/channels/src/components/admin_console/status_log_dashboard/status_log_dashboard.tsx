@@ -16,7 +16,10 @@ import webSocketClient from 'client/web_websocket_client';
 import ProfilePicture from 'components/profile_picture';
 import AdminHeader from 'components/widgets/admin_console/admin_header';
 
+import StatusNotificationRules from './status_notification_rules';
+
 import './status_log_dashboard.scss';
+import './status_notification_rules.scss';
 
 type StatusLog = {
     id: string;
@@ -1548,6 +1551,9 @@ const StatusLogDashboard: React.FC<Props> = ({config, patchConfig}) => {
                         )}
                     </div>
                 )}
+
+                {/* Push Notification Rules Section */}
+                <StatusNotificationRules isEnabled={isEnabled}/>
             </div>
         </div>
     );

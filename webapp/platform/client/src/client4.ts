@@ -58,6 +58,7 @@ import type {
 } from '@mattermost/types/config';
 import type {ContentFlaggingConfig} from '@mattermost/types/content_flagging';
 import type {CustomChannelIcon, CustomChannelIconCreate, CustomChannelIconPatch} from '@mattermost/types/custom_channel_icons';
+import type {StatusNotificationRule} from '@mattermost/types/status_notification_rules';
 import type {
     DataRetentionCustomPolicies,
     CreateDataRetentionCustomPolicy,
@@ -5081,6 +5082,51 @@ export default class Client4 {
             total_count: number;
             exported_at: number;
         }>(url, {method: 'get'});
+    };
+
+    // Status Notification Rules Routes
+
+    getStatusNotificationRulesRoute = () => {
+        return `${this.getStatusLogsRoute()}/notification_rules`;
+    };
+
+    getStatusNotificationRuleRoute = (ruleId: string) => {
+        return `${this.getStatusNotificationRulesRoute()}/${ruleId}`;
+    };
+
+    getStatusNotificationRules = () => {
+        return this.doFetch<StatusNotificationRule[]>(
+            this.getStatusNotificationRulesRoute(),
+            {method: 'get'},
+        );
+    };
+
+    createStatusNotificationRule = (rule: Partial<StatusNotificationRule>) => {
+        return this.doFetch<StatusNotificationRule>(
+            this.getStatusNotificationRulesRoute(),
+            {method: 'post', body: JSON.stringify(rule)},
+        );
+    };
+
+    getStatusNotificationRule = (ruleId: string) => {
+        return this.doFetch<StatusNotificationRule>(
+            this.getStatusNotificationRuleRoute(ruleId),
+            {method: 'get'},
+        );
+    };
+
+    updateStatusNotificationRule = (rule: StatusNotificationRule) => {
+        return this.doFetch<StatusNotificationRule>(
+            this.getStatusNotificationRuleRoute(rule.id),
+            {method: 'put', body: JSON.stringify(rule)},
+        );
+    };
+
+    deleteStatusNotificationRule = (ruleId: string) => {
+        return this.doFetch<StatusOK>(
+            this.getStatusNotificationRuleRoute(ruleId),
+            {method: 'delete'},
+        );
     };
 }
 
