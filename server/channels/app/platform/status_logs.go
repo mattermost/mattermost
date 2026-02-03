@@ -7,7 +7,6 @@ import (
 	"sync"
 
 	"github.com/mattermost/mattermost/server/public/model"
-	"github.com/mattermost/mattermost/server/public/shared/mlog"
 )
 
 const (
@@ -84,12 +83,13 @@ func (b *StatusLogBuffer) Count() int {
 }
 
 // GetStats returns statistics about status changes in the buffer.
+// Only counts status_change logs, not activity logs.
 func (b *StatusLogBuffer) GetStats() map[string]int {
 	b.mu.RLock()
 	defer b.mu.RUnlock()
 
 	stats := map[string]int{
-		"total":   b.count,
+		"total":   0,
 		"online":  0,
 		"away":    0,
 		"dnd":     0,
@@ -99,6 +99,11 @@ func (b *StatusLogBuffer) GetStats() map[string]int {
 	for i := 0; i < b.count; i++ {
 		idx := (b.head - 1 - i + b.capacity) % b.capacity
 		if b.buffer[idx] != nil {
+			// Skip activity logs - only count actual status changes
+			if b.buffer[idx].LogType == model.StatusLogTypeActivity {
+				continue
+			}
+			stats["total"]++
 			switch b.buffer[idx].NewStatus {
 			case model.StatusOnline:
 				stats["online"]++

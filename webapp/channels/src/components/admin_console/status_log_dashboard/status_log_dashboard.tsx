@@ -342,6 +342,67 @@ const IconActivity = () => (
     </svg>
 );
 
+const IconFilter = () => (
+    <svg
+        width='16'
+        height='16'
+        viewBox='0 0 24 24'
+        fill='none'
+        stroke='currentColor'
+        strokeWidth='2'
+        strokeLinecap='round'
+        strokeLinejoin='round'
+    >
+        <polygon points='22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3'/>
+    </svg>
+);
+
+const IconX = () => (
+    <svg
+        width='14'
+        height='14'
+        viewBox='0 0 24 24'
+        fill='none'
+        stroke='currentColor'
+        strokeWidth='2'
+        strokeLinecap='round'
+        strokeLinejoin='round'
+    >
+        <line
+            x1='18'
+            y1='6'
+            x2='6'
+            y2='18'
+        />
+        <line
+            x1='6'
+            y1='6'
+            x2='18'
+            y2='18'
+        />
+    </svg>
+);
+
+const IconClock = () => (
+    <svg
+        width='14'
+        height='14'
+        viewBox='0 0 24 24'
+        fill='none'
+        stroke='currentColor'
+        strokeWidth='2'
+        strokeLinecap='round'
+        strokeLinejoin='round'
+    >
+        <circle
+            cx='12'
+            cy='12'
+            r='10'
+        />
+        <polyline points='12 6 12 12 16 14'/>
+    </svg>
+);
+
 const IconStatusChange = () => (
     <svg
         width='14'
@@ -522,6 +583,9 @@ type StatusFilter = 'all' | 'online' | 'away' | 'dnd' | 'offline';
 // Filter type for log type
 type LogTypeFilter = 'all' | 'status_change' | 'activity';
 
+// Filter type for time period
+type TimePeriodFilter = 'all' | '5m' | '15m' | '1h' | '6h' | '24h';
+
 const StatusLogDashboard: React.FC<Props> = ({config, patchConfig}) => {
     const intl = useIntl();
     const [logs, setLogs] = useState<StatusLog[]>([]);
@@ -529,8 +593,11 @@ const StatusLogDashboard: React.FC<Props> = ({config, patchConfig}) => {
     const [loading, setLoading] = useState(true);
     const [filter, setFilter] = useState<StatusFilter>('all');
     const [logTypeFilter, setLogTypeFilter] = useState<LogTypeFilter>('all');
+    const [userFilter, setUserFilter] = useState<string>('all');
+    const [timePeriodFilter, setTimePeriodFilter] = useState<TimePeriodFilter>('all');
     const [search, setSearch] = useState('');
     const [copiedId, setCopiedId] = useState<string | null>(null);
+    const [showFilters, setShowFilters] = useState(false);
 
     const isEnabled = config.MattermostExtendedSettings?.Statuses?.EnableStatusLogs === true;
 
@@ -623,20 +690,27 @@ const StatusLogDashboard: React.FC<Props> = ({config, patchConfig}) => {
     const handleExport = () => {
         const exportData = {
             exported_at: new Date().toISOString(),
-            filter: filter,
-            search: search || null,
+            filters: {
+                status: filter,
+                log_type: logTypeFilter,
+                user: userFilter,
+                time_period: timePeriodFilter,
+                search: search || null,
+            },
             stats: {
                 visible: filteredLogs.length,
-                total: stats.total,
+                total: logs.length,
             },
             logs: filteredLogs.map((log) => ({
                 id: log.id,
                 timestamp: new Date(log.create_at).toISOString(),
+                log_type: log.log_type || 'status_change',
                 user_id: log.user_id,
                 username: log.username,
                 old_status: log.old_status,
                 new_status: log.new_status,
                 reason: log.reason,
+                trigger: log.trigger || null,
                 device: log.device || 'unknown',
                 window_active: log.window_active,
                 channel_id: log.channel_id || null,
@@ -767,9 +841,54 @@ const StatusLogDashboard: React.FC<Props> = ({config, patchConfig}) => {
         }
     };
 
+    // Get unique usernames for user filter dropdown
+    const uniqueUsers = useMemo(() => {
+        const users = new Set<string>();
+        logs.forEach((log) => {
+            if (log.username) {
+                users.add(log.username);
+            }
+        });
+        return Array.from(users).sort();
+    }, [logs]);
+
+    // Get time period cutoff in milliseconds
+    const getTimePeriodCutoff = useCallback((period: TimePeriodFilter): number => {
+        if (period === 'all') {
+            return 0;
+        }
+        const now = Date.now();
+        switch (period) {
+        case '5m':
+            return now - (5 * 60 * 1000);
+        case '15m':
+            return now - (15 * 60 * 1000);
+        case '1h':
+            return now - (60 * 60 * 1000);
+        case '6h':
+            return now - (6 * 60 * 60 * 1000);
+        case '24h':
+            return now - (24 * 60 * 60 * 1000);
+        default:
+            return 0;
+        }
+    }, []);
+
     // Filter logs
     const filteredLogs = useMemo(() => {
+        const timeCutoff = getTimePeriodCutoff(timePeriodFilter);
+
         return logs.filter((log) => {
+            // Filter by time period
+            if (timeCutoff > 0 && log.create_at < timeCutoff) {
+                return false;
+            }
+
+            // Filter by user
+            if (userFilter !== 'all' && log.username !== userFilter) {
+                return false;
+            }
+
             // Filter by log type
             if (logTypeFilter !== 'all') {
                 const logType = log.log_type || 'status_change'; // Default to status_change for older logs
@@ -796,11 +915,26 @@ const StatusLogDashboard: React.FC<Props> = ({config, patchConfig}) => {
             }
             return true;
         });
-    }, [logs, filter, logTypeFilter, search]);
+    }, [logs, filter, logTypeFilter, userFilter, timePeriodFilter, search, getTimePeriodCutoff]);
 
-    // Calculate visible stats
+    // Calculate visible stats (only counts status changes, not activity logs)
     const visibleStats = useMemo(() => {
+        const timeCutoff = getTimePeriodCutoff(timePeriodFilter);
+
         const baseFiltered = logs.filter((log) => {
+            // Exclude activity logs from stats - they don't represent status changes
+            if (log.log_type === 'activity') {
+                return false;
+            }
+            // Apply time filter
+            if (timeCutoff > 0 && log.create_at < timeCutoff) {
+                return false;
+            }
+            // Apply user filter
+            if (userFilter !== 'all' && log.username !== userFilter) {
+                return false;
+            }
+            // Apply search filter
             if (search) {
                 const searchLower = search.toLowerCase();
                 return (
@@ -818,7 +952,95 @@ const StatusLogDashboard: React.FC<Props> = ({config, patchConfig}) => {
             dnd: baseFiltered.filter((l) => l.new_status === 'dnd').length,
             offline: baseFiltered.filter((l) => l.new_status === 'offline').length,
         };
-    }, [logs, search]);
+    }, [logs, search, userFilter, timePeriodFilter, getTimePeriodCutoff]);
+
+    // Calculate log type counts (considering active filters except log type filter itself)
+    const logTypeCounts = useMemo(() => {
+        const timeCutoff = getTimePeriodCutoff(timePeriodFilter);
+
+        const baseFiltered = logs.filter((log) => {
+            // Apply time filter
+            if (timeCutoff > 0 && log.create_at < timeCutoff) {
+                return false;
+            }
+            // Apply user filter
+            if (userFilter !== 'all' && log.username !== userFilter) {
+                return false;
+            }
+            // Apply status filter
+            if (filter !== 'all' && log.new_status !== filter) {
+                return false;
+            }
+            // Apply search filter
+            if (search) {
+                const searchLower = search.toLowerCase();
+                return (
+                    log.username.toLowerCase().includes(searchLower) ||
+                    log.reason.toLowerCase().includes(searchLower) ||
+                    log.old_status.toLowerCase().includes(searchLower) ||
+                    log.new_status.toLowerCase().includes(searchLower) ||
+                    (log.trigger && log.trigger.toLowerCase().includes(searchLower))
+                );
+            }
+            return true;
+        });
+
+        const statusChanges = baseFiltered.filter((l) => l.log_type !== 'activity').length;
+        const activity = baseFiltered.filter((l) => l.log_type === 'activity').length;
+        return {
+            total: baseFiltered.length,
+            statusChanges,
+            activity,
+        };
+    }, [logs, userFilter, timePeriodFilter, filter, search, getTimePeriodCutoff]);
+
+    // Count active filters (excluding 'all' values)
+    const activeFilterCount = useMemo(() => {
+        let count = 0;
+        if (filter !== 'all') {
+            count++;
+        }
+        if (logTypeFilter !== 'all') {
+            count++;
+        }
+        if (userFilter !== 'all') {
+            count++;
+        }
+        if (timePeriodFilter !== 'all') {
+            count++;
+        }
+        if (search) {
+            count++;
+        }
+        return count;
+    }, [filter, logTypeFilter, userFilter, timePeriodFilter, search]);
+
+    // Clear all filters
+    const clearAllFilters = () => {
+        setFilter('all');
+        setLogTypeFilter('all');
+        setUserFilter('all');
+        setTimePeriodFilter('all');
+        setSearch('');
+    };
+
+    // Get time period label
+    const getTimePeriodLabel = (period: TimePeriodFilter): string => {
+        switch (period) {
+        case '5m':
+            return intl.formatMessage({id: 'admin.status_log.filter.time.5m', defaultMessage: 'Last 5 minutes'});
+        case '15m':
+            return intl.formatMessage({id: 'admin.status_log.filter.time.15m', defaultMessage: 'Last 15 minutes'});
+        case '1h':
+            return intl.formatMessage({id: 'admin.status_log.filter.time.1h', defaultMessage: 'Last hour'});
+        case '6h':
+            return intl.formatMessage({id: 'admin.status_log.filter.time.6h', defaultMessage: 'Last 6 hours'});
+        case '24h':
+            return intl.formatMessage({id: 'admin.status_log.filter.time.24h', defaultMessage: 'Last 24 hours'});
+        default:
+            return intl.formatMessage({id: 'admin.status_log.filter.time.all', defaultMessage: 'All time'});
+        }
+    };
 
     // Promotional card when feature is disabled
     if (!isEnabled) {
@@ -1047,37 +1269,149 @@ const StatusLogDashboard: React.FC<Props> = ({config, patchConfig}) => {
 
                 {/* Filters */}
                 <div className='StatusLogDashboard__filters'>
-                    <div className='StatusLogDashboard__filters__log-type'>
-                        <button
-                            className={`StatusLogDashboard__filters__log-type-btn ${logTypeFilter === 'all' ? 'active' : ''}`}
-                            onClick={() => setLogTypeFilter('all')}
-                        >
-                            <FormattedMessage
-                                id='admin.status_log.filter.all_logs'
-                                defaultMessage='All Logs'
-                            />
-                        </button>
-                        <button
-                            className={`StatusLogDashboard__filters__log-type-btn ${logTypeFilter === 'status_change' ? 'active' : ''}`}
-                            onClick={() => setLogTypeFilter('status_change')}
-                        >
-                            <IconStatusChange/>
-                            <FormattedMessage
-                                id='admin.status_log.filter.status_changes'
-                                defaultMessage='Status Changes'
-                            />
-                        </button>
-                        <button
-                            className={`StatusLogDashboard__filters__log-type-btn ${logTypeFilter === 'activity' ? 'active' : ''}`}
-                            onClick={() => setLogTypeFilter('activity')}
-                        >
-                            <IconActivity/>
-                            <FormattedMessage
-                                id='admin.status_log.filter.activity'
-                                defaultMessage='Activity'
-                            />
-                        </button>
+                    <div className='StatusLogDashboard__filters__row'>
+                        <div className='StatusLogDashboard__filters__log-type'>
+                            <button
+                                className={`StatusLogDashboard__filters__log-type-btn ${logTypeFilter === 'all' ? 'active' : ''}`}
+                                onClick={() => setLogTypeFilter('all')}
+                            >
+                                <FormattedMessage
+                                    id='admin.status_log.filter.all_logs'
+                                    defaultMessage='All Logs'
+                                />
+                                <span className='StatusLogDashboard__filters__count'>{logTypeCounts.total}</span>
+                            </button>
+                            <button
+                                className={`StatusLogDashboard__filters__log-type-btn ${logTypeFilter === 'status_change' ? 'active' : ''}`}
+                                onClick={() => setLogTypeFilter('status_change')}
+                            >
+                                <IconStatusChange/>
+                                <FormattedMessage
+                                    id='admin.status_log.filter.status_changes'
+                                    defaultMessage='Status Changes'
+                                />
+                                <span className='StatusLogDashboard__filters__count'>{logTypeCounts.statusChanges}</span>
+                            </button>
+                            <button
+                                className={`StatusLogDashboard__filters__log-type-btn ${logTypeFilter === 'activity' ? 'active' : ''}`}
+                                onClick={() => setLogTypeFilter('activity')}
+                            >
+                                <IconActivity/>
+                                <FormattedMessage
+                                    id='admin.status_log.filter.activity'
+                                    defaultMessage='Activity'
+                                />
+                                <span className='StatusLogDashboard__filters__count'>{logTypeCounts.activity}</span>
+                            </button>
+                        </div>
+                        <div className='StatusLogDashboard__filters__actions'>
+                            <button
+                                className={`StatusLogDashboard__filters__toggle-btn ${showFilters ? 'active' : ''} ${activeFilterCount > 0 ? 'has-filters' : ''}`}
+                                onClick={() => setShowFilters(!showFilters)}
+                            >
+                                <IconFilter/>
+                                <FormattedMessage
+                                    id='admin.status_log.filter.filters'
+                                    defaultMessage='Filters'
+                                />
+                                {activeFilterCount > 0 && (
+                                    <span className='StatusLogDashboard__filters__badge'>{activeFilterCount}</span>
+                                )}
+                            </button>
+                            {activeFilterCount > 0 && (
+                                <button
+                                    className='StatusLogDashboard__filters__clear-btn'
+                                    onClick={clearAllFilters}
+                                >
+                                    <IconX/>
+                                    <FormattedMessage
+                                        id='admin.status_log.filter.clear'
+                                        defaultMessage='Clear'
+                                    />
+                                </button>
+                            )}
+                        </div>
                     </div>
+
+                    {/* Expanded filter panel */}
+                    {showFilters && (
+                        <div className='StatusLogDashboard__filters__panel'>
+                            <div className='StatusLogDashboard__filters__group'>
+                                <label>
+                                    <IconUser/>
+                                    <FormattedMessage
+                                        id='admin.status_log.filter.user'
+                                        defaultMessage='User'
+                                    />
+                                </label>
+                                <select
+                                    value={userFilter}
+                                    onChange={(e) => setUserFilter(e.target.value)}
+                                >
+                                    <option value='all'>
+                                        {intl.formatMessage({id: 'admin.status_log.filter.all_users', defaultMessage: 'All users'})}
+                                    </option>
+                                    {uniqueUsers.map((username) => (
+                                        <option
+                                            key={username}
+                                            value={username}
+                                        >
+                                            {username}
+                                        </option>
+                                    ))}
+                                </select>
+                            </div>
+                            <div className='StatusLogDashboard__filters__group'>
+                                <label>
+                                    <IconClock/>
+                                    <FormattedMessage
+                                        id='admin.status_log.filter.time_period'
+                                        defaultMessage='Time Period'
+                                    />
+                                </label>
+                                <select
+                                    value={timePeriodFilter}
+                                    onChange={(e) => setTimePeriodFilter(e.target.value as TimePeriodFilter)}
+                                >
+                                    <option value='all'>{getTimePeriodLabel('all')}</option>
+                                    <option value='5m'>{getTimePeriodLabel('5m')}</option>
+                                    <option value='15m'>{getTimePeriodLabel('15m')}</option>
+                                    <option value='1h'>{getTimePeriodLabel('1h')}</option>
+                                    <option value='6h'>{getTimePeriodLabel('6h')}</option>
+                                    <option value='24h'>{getTimePeriodLabel('24h')}</option>
+                                </select>
+                            </div>
+                            <div className='StatusLogDashboard__filters__group'>
+                                <label>
+                                    <FormattedMessage
+                                        id='admin.status_log.filter.status'
+                                        defaultMessage='Status'
+                                    />
+                                </label>
+                                <select
+                                    value={filter}
+                                    onChange={(e) => setFilter(e.target.value as StatusFilter)}
+                                >
+                                    <option value='all'>
+                                        {intl.formatMessage({id: 'admin.status_log.filter.all_statuses', defaultMessage: 'All statuses'})}
+                                    </option>
+                                    <option value='online'>
+                                        {intl.formatMessage({id: 'admin.status_log.filter.online', defaultMessage: 'Online'})}
+                                    </option>
+                                    <option value='away'>
+                                        {intl.formatMessage({id: 'admin.status_log.filter.away', defaultMessage: 'Away'})}
+                                    </option>
+                                    <option value='dnd'>
+                                        {intl.formatMessage({id: 'admin.status_log.filter.dnd', defaultMessage: 'Do Not Disturb'})}
+                                    </option>
+                                    <option value='offline'>
+                                        {intl.formatMessage({id: 'admin.status_log.filter.offline', defaultMessage: 'Offline'})}
+                                    </option>
+                                </select>
+                            </div>
+                        </div>
+                    )}
+
                     <div className='StatusLogDashboard__filters__search'>
                         <IconSearch/>
                         <input
@@ -1085,6 +1419,71 @@ const StatusLogDashboard: React.FC<Props> = ({config, patchConfig}) => {
                             placeholder={intl.formatMessage({id: 'admin.status_log.search', defaultMessage: 'Search by username, reason, or trigger...'})}
                             value={search}
                             onChange={(e) => setSearch(e.target.value)}
+                        />
+                        {search && (
+                            <button
+                                className='StatusLogDashboard__filters__search-clear'
+                                onClick={() => setSearch('')}
+                            >
+                                <IconX/>
+                            </button>
+                        )}
+                    </div>
+
+                    {/* Active filters display */}
+                    {activeFilterCount > 0 && (
+                        <div className='StatusLogDashboard__filters__active'>
+                            <span className='StatusLogDashboard__filters__active-label'>
+                                <FormattedMessage
+                                    id='admin.status_log.filter.active_filters'
+                                    defaultMessage='Active filters:'
+                                />
+                            </span>
+                            {userFilter !== 'all' && (
+                                <span className='StatusLogDashboard__filters__chip'>
+                                    <IconUser/>
+                                    {userFilter}
+                                    <button onClick={() => setUserFilter('all')}><IconX/></button>
+                                </span>
+                            )}
+                            {timePeriodFilter !== 'all' && (
+                                <span className='StatusLogDashboard__filters__chip'>
+                                    <IconClock/>
+                                    {getTimePeriodLabel(timePeriodFilter)}
+                                    <button onClick={() => setTimePeriodFilter('all')}><IconX/></button>
+                                </span>
+                            )}
+                            {filter !== 'all' && (
+                                <span className='StatusLogDashboard__filters__chip'>
+                                    {filter}
+                                    <button onClick={() => setFilter('all')}><IconX/></button>
+                                </span>
+                            )}
+                            {logTypeFilter !== 'all' && (
+                                <span className='StatusLogDashboard__filters__chip'>
+                                    {logTypeFilter === 'activity' ? 'Activity' : 'Status Changes'}
+                                    <button onClick={() => setLogTypeFilter('all')}><IconX/></button>
+                                </span>
+                            )}
+                            {search && (
+                                <span className='StatusLogDashboard__filters__chip'>
+                                    <IconSearch/>
+                                    "{search}"
+                                    <button onClick={() => setSearch('')}><IconX/></button>
+                                </span>
+                            )}
+                        </div>
+                    )}
+
+                    {/* Results count */}
+                    <div className='StatusLogDashboard__filters__results'>
+                        <FormattedMessage
+                            id='admin.status_log.filter.results'
+                            defaultMessage='Showing {count} of {total} logs'
+                            values={{
+                                count: filteredLogs.length,
+                                total: logs.length,
+                            }}
                         />
                     </div>
                 </div>
