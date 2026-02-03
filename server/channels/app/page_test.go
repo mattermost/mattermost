@@ -376,6 +376,55 @@ func TestDeletePage(t *testing.T) {
 		require.Nil(t, err)
 		require.Empty(t, childAfter.PageParentId, "Child should be reparented to root after parent deletion")
 	})
+
+	t.Run("deleting page cleans up thread entries for inline page comments", func(t *testing.T) {
+		// Create a page
+		page, err := th.App.CreatePage(th.Context, th.BasicChannel.Id, "Page with Comments", "", "", th.BasicUser.Id, "", "")
+		require.Nil(t, err)
+
+		// Create an INLINE comment on the page (with anchor - this creates a Thread entry)
+		// Only inline comments (with inlineAnchor) create Thread entries
+		// Regular comments use page's RootId and don't create separate threads
+		inlineAnchor := map[string]any{
+			"nodeId": "heading-123",
+			"type":   "heading",
+		}
+		comment, appErr := th.App.CreatePageComment(sessionCtx, page.Id, "Test inline comment on page", inlineAnchor, "", nil, nil)
+		require.Nil(t, appErr)
+		require.NotNil(t, comment)
+		require.Empty(t, comment.RootId, "Inline comments should have empty RootId")
+
+		// Verify Thread entry exists for the comment
+		thread, storeErr := th.App.Srv().Store().Thread().Get(comment.Id)
+		require.NoError(t, storeErr, "Thread should exist for page comment")
+		require.NotNil(t, thread)
+		require.Equal(t, comment.Id, thread.PostId)
+
+		// Verify ThreadMembership exists for the user
+		membership, storeErr := th.App.Srv().Store().Thread().GetMembershipForUser(th.BasicUser.Id, comment.Id)
+		require.NoError(t, storeErr, "ThreadMembership should exist for comment author")
+		require.NotNil(t, membership)
+
+		// Delete the page
+		pageToDelete, err := th.App.GetPage(sessionCtx, page.Id)
+		require.Nil(t, err)
+		err = th.App.DeletePage(sessionCtx, pageToDelete, "")
+		require.Nil(t, err)
+
+		// Verify Thread entry is cleaned up
+		// Note: Thread.Get() returns (nil, nil) when thread doesn't exist
+		threadAfter, storeErr := th.App.Srv().Store().Thread().Get(comment.Id)
+		require.NoError(t, storeErr)
+		require.Nil(t, threadAfter, "Thread should not exist after page deletion")
+
+		// Verify ThreadMembership is cleaned up
+		// Note: GetMembershipForUser returns ErrNotFound when membership doesn't exist
+		membershipAfter, storeErr := th.App.Srv().Store().Thread().GetMembershipForUser(th.BasicUser.Id, comment.Id)
+		require.Error(t, storeErr, "ThreadMembership should be deleted when page is deleted")
+		var nfErr *store.ErrNotFound
+		require.ErrorAs(t, storeErr, &nfErr, "Should return NotFound error for deleted ThreadMembership")
+		require.Nil(t, membershipAfter)
+	})
 }
 
 func TestRestorePage(t *testing.T) {

@@ -132,37 +132,79 @@ Cypress.Commands.add('apiCreatePageHierarchy', apiCreatePageHierarchy);
 /**
  * Save a page draft.
  * @param {string} wikiId - The wiki ID
- * @param {string} draftId - The draft ID (use page ID or 'new' for new pages)
+ * @param {string} pageId - The page ID. Use valid 26-char ID for existing pages, or empty/'new' to create a new draft.
  * @param {string} content - Draft content (TipTap JSON string)
  * @param {string} title - Draft title (optional)
- * @param {string} pageId - Associated page ID (optional)
  * @returns {any} `out.draft` as page draft object
  *
  * @example
- *   cy.apiSavePageDraft(wikiId, 'new', '{"type":"doc","content":[]}', 'Draft Title').then(({draft}) => {
+ *   // Update existing page draft
+ *   cy.apiSavePageDraft(wikiId, existingPageId, '{"type":"doc","content":[]}', 'Draft Title').then(({draft}) => {
  *       // do something with draft
+ *   });
+ *
+ *   // Create new page draft
+ *   cy.apiSavePageDraft(wikiId, '', '{"type":"doc","content":[]}', 'New Draft').then(({draft}) => {
+ *       // draft.page_id contains the server-generated ID
  *   });
  */
 function apiSavePageDraft(
     wikiId: string,
-    draftId: string,
+    pageId: string,
     content: string,
     title = '',
-    pageId = '',
 ): ChainableT<{draft: any}> {
+    // Check if this is a valid 26-char Mattermost ID
+    const isValidId = pageId.length === 26 && /^[a-z0-9]+$/i.test(pageId);
+
+    if (isValidId) {
+        // Update existing draft via PUT
+        return cy.request({
+            headers: {'X-Requested-With': 'XMLHttpRequest'},
+            url: `/api/v4/wikis/${wikiId}/drafts/${pageId}`,
+            method: 'PUT',
+            body: {
+                content,
+                title,
+                props: null,
+            },
+        }).then((response) => {
+            expect(response.status).to.equal(200);
+            return cy.wrap({draft: response.body});
+        });
+    }
+
+    // Create new draft via POST
     return cy.request({
         headers: {'X-Requested-With': 'XMLHttpRequest'},
-        url: `/api/v4/wikis/${wikiId}/drafts/${draftId}`,
-        method: 'PUT',
+        url: `/api/v4/wikis/${wikiId}/drafts`,
+        method: 'POST',
         body: {
-            content,
             title,
-            page_id: pageId,
-            props: null,
+            page_parent_id: '',
         },
     }).then((response) => {
-        expect(response.status).to.equal(200);
-        return cy.wrap({draft: response.body});
+        expect(response.status).to.equal(201);
+        const draft = response.body;
+
+        // If content was provided, update the draft with content
+        if (content && content !== '{"type":"doc","content":[]}') {
+            return cy.request({
+                headers: {'X-Requested-With': 'XMLHttpRequest'},
+                url: `/api/v4/wikis/${wikiId}/drafts/${draft.page_id}`,
+                method: 'PUT',
+                body: {
+                    content,
+                    title,
+                    props: null,
+                },
+            }).then((updateResponse) => {
+                expect(updateResponse.status).to.equal(200);
+                return cy.wrap({draft: updateResponse.body});
+            });
+        }
+
+        return cy.wrap({draft});
     });
 }
 
@@ -246,7 +288,7 @@ declare global {
             apiCreateWiki(channelId: string, title: string, description?: string): ChainableT<{wiki: any}>;
             apiCreatePage(wikiId: string, title: string, content: string, pageParentId?: string): ChainableT<{page: any}>;
             apiCreatePageHierarchy(wikiId: string, depth?: number, childrenPerLevel?: number): ChainableT<{pages: any[]; rootPage: any}>;
-            apiSavePageDraft(wikiId: string, draftId: string, content: string, title?: string, pageId?: string): ChainableT<{draft: any}>;
+            apiSavePageDraft(wikiId: string, pageId: string, content: string, title?: string): ChainableT<{draft: any}>;
             apiGetWikiPages(wikiId: string): ChainableT<{pages: any[]; duration: number}>;
             apiGetPage(wikiId: string, pageId: string): ChainableT<{page: any; duration: number}>;
             apiDeletePage(wikiId: string, pageId: string): Chainable;

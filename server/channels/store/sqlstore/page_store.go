@@ -318,6 +318,32 @@ func (s *SqlPageStore) DeletePage(pageID string, deleteByID string, newParentID 
 			return errors.Wrap(err, "failed to delete page drafts metadata")
 		}
 
+		// Get all page comment IDs for thread cleanup (before soft-deleting them)
+		commentIDsSubquery := s.getQueryBuilder().
+			Select("Id").
+			From("Posts").
+			Where(sq.And{
+				sq.Expr("Props->>'page_id' = ?", pageID),
+				sq.Eq{"Type": model.PostTypePageComment},
+			})
+
+		subquerySQL, subqueryArgs, err := commentIDsSubquery.ToSql()
+		if err != nil {
+			return errors.Wrap(err, "failed to build comment IDs subquery")
+		}
+
+		// Delete ThreadMemberships for page comments (must happen before Thread deletion)
+		deleteThreadMembershipsSQL := "DELETE FROM ThreadMemberships WHERE PostId IN (" + subquerySQL + ")"
+		if _, err = transaction.Exec(deleteThreadMembershipsSQL, subqueryArgs...); err != nil {
+			return errors.Wrap(err, "failed to delete ThreadMemberships for page comments")
+		}
+
+		// Delete Threads for page comments
+		deleteThreadsSQL := "DELETE FROM Threads WHERE PostId IN (" + subquerySQL + ")"
+		if _, err = transaction.Exec(deleteThreadsSQL, subqueryArgs...); err != nil {
+			return errors.Wrap(err, "failed to delete Threads for page comments")
+		}
+
 		// Delete comments (may not exist, which is OK)
 		deleteCommentsQuery := s.getQueryBuilder().
 			Update("Posts").
@@ -330,7 +356,7 @@ func (s *SqlPageStore) DeletePage(pageID string, deleteByID string, newParentID 
 				sq.Eq{"DeleteAt": 0},
 			})
 
-		if _, err := transaction.ExecBuilder(deleteCommentsQuery); err != nil {
+		if _, err = transaction.ExecBuilder(deleteCommentsQuery); err != nil {
 			return errors.Wrap(err, "failed to delete page comments")
 		}
 

@@ -182,7 +182,6 @@ describe('Wiki > Page Load Performance', () => {
             testPage.id,
             updatedContent,
             'Updated Title',
-            testPage.id,
         ).then(() => {
             // # Fetch fresh page state to get current update_at timestamp
             cy.apiGetPage(testWiki.id, testPage.id).then(({page}) => {
