@@ -440,6 +440,9 @@ if (targetIsDevServer) {
         devtool: 'eval-cheap-module-source-map',
         devServer: {
             liveReload: true,
+            client: {
+                overlay: false,
+            },
             proxy: [
                 {
                     context: '/api',
