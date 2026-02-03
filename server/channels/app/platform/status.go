@@ -360,7 +360,11 @@ func (ps *PlatformService) SetStatusOnline(userID string, manual bool) {
 		if !manual {
 			reason = model.StatusLogReasonConnect
 		}
-		ps.LogStatusChange(userID, username, oldStatus, model.StatusOnline, reason, true, "")
+		device := model.StatusLogDeviceUnknown
+		if manual {
+			device = model.StatusLogDeviceAPI
+		}
+		ps.LogStatusChange(userID, username, oldStatus, model.StatusOnline, reason, device, true, "")
 	}
 }
 
@@ -391,7 +395,11 @@ func (ps *PlatformService) SetStatusOffline(userID string, manual bool, force bo
 		if !manual {
 			reason = model.StatusLogReasonDisconnect
 		}
-		ps.LogStatusChange(userID, username, oldStatus, model.StatusOffline, reason, false, "")
+		device := model.StatusLogDeviceUnknown
+		if manual {
+			device = model.StatusLogDeviceAPI
+		}
+		ps.LogStatusChange(userID, username, oldStatus, model.StatusOffline, reason, device, false, "")
 	}
 }
 
@@ -449,7 +457,11 @@ func (ps *PlatformService) QueueSetStatusOffline(userID string, manual bool) {
 		if !manual {
 			reason = model.StatusLogReasonDisconnect
 		}
-		ps.LogStatusChange(userID, username, oldStatus, model.StatusOffline, reason, false, "")
+		device := model.StatusLogDeviceUnknown
+		if manual {
+			device = model.StatusLogDeviceAPI
+		}
+		ps.LogStatusChange(userID, username, oldStatus, model.StatusOffline, reason, device, false, "")
 	}
 }
 
@@ -563,7 +575,11 @@ func (ps *PlatformService) SetStatusAwayIfNeeded(userID string, manual bool) {
 		if !manual {
 			reason = model.StatusLogReasonInactivity
 		}
-		ps.LogStatusChange(userID, username, oldStatus, model.StatusAway, reason, false, "")
+		device := model.StatusLogDeviceUnknown
+		if manual {
+			device = model.StatusLogDeviceAPI
+		}
+		ps.LogStatusChange(userID, username, oldStatus, model.StatusAway, reason, device, false, "")
 	}
 }
 
@@ -598,7 +614,7 @@ func (ps *PlatformService) SetStatusDoNotDisturbTimed(userID string, endtime int
 		if user, userErr := ps.Store.User().Get(context.Background(), userID); userErr == nil {
 			username = user.Username
 		}
-		ps.LogStatusChange(userID, username, oldStatus, model.StatusDnd, model.StatusLogReasonManual, true, "")
+		ps.LogStatusChange(userID, username, oldStatus, model.StatusDnd, model.StatusLogReasonManual, model.StatusLogDeviceAPI, true, "")
 	}
 }
 
@@ -641,7 +657,7 @@ func (ps *PlatformService) SetStatusDoNotDisturb(userID string) {
 		if user, userErr := ps.Store.User().Get(context.Background(), userID); userErr == nil {
 			username = user.Username
 		}
-		ps.LogStatusChange(userID, username, oldStatus, model.StatusDnd, model.StatusLogReasonManual, true, "")
+		ps.LogStatusChange(userID, username, oldStatus, model.StatusDnd, model.StatusLogReasonManual, model.StatusLogDeviceAPI, true, "")
 	}
 }
 
@@ -671,7 +687,7 @@ func (ps *PlatformService) SetStatusOutOfOffice(userID string) {
 		if user, userErr := ps.Store.User().Get(context.Background(), userID); userErr == nil {
 			username = user.Username
 		}
-		ps.LogStatusChange(userID, username, oldStatus, model.StatusOutOfOffice, model.StatusLogReasonManual, true, "")
+		ps.LogStatusChange(userID, username, oldStatus, model.StatusOutOfOffice, model.StatusLogReasonManual, model.StatusLogDeviceAPI, true, "")
 	}
 }
 
@@ -760,7 +776,8 @@ func (ps *PlatformService) UpdateActivityFromHeartbeat(userID string, windowActi
 			username = user.Username
 		}
 
-		ps.LogStatusChange(userID, username, oldStatus, newStatus, reason, windowActive, channelID)
+		// Device will be "unknown" here - heartbeat doesn't carry device info yet
+		ps.LogStatusChange(userID, username, oldStatus, newStatus, reason, model.StatusLogDeviceUnknown, windowActive, channelID)
 	}
 
 	// Save the status update
@@ -775,6 +792,32 @@ func (ps *PlatformService) UpdateActivityFromHeartbeat(userID string, windowActi
 		if dbErr := ps.Store.Status().UpdateLastActivityAt(userID, now); dbErr != nil {
 			ps.Log().Warn("Failed to update LastActivityAt from heartbeat", mlog.String("user_id", userID), mlog.Err(dbErr))
 		}
+
+		// Log activity update (no status change) for AccurateStatuses dashboard
+		username := ""
+		if user, userErr := ps.Store.User().Get(context.Background(), userID); userErr == nil {
+			username = user.Username
+		}
+
+		// Determine trigger based on window state and channel
+		var trigger string
+		var channelName string
+		if channelID != "" {
+			trigger = model.StatusLogTriggerChannelView
+			// Try to get channel name for display
+			if channel, chanErr := ps.Store.Channel().Get(channelID, false); chanErr == nil {
+				channelName = channel.DisplayName
+				if channelName == "" {
+					channelName = channel.Name
+				}
+			}
+		} else if windowActive {
+			trigger = model.StatusLogTriggerWindowActive
+		} else {
+			trigger = model.StatusLogTriggerHeartbeat
+		}
+
+		ps.LogActivityUpdate(userID, username, status.Status, model.StatusLogDeviceUnknown, windowActive, channelID, channelName, trigger)
 	}
 
 	// Broadcast status change if status changed

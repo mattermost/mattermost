@@ -150,27 +150,31 @@ func (b *StatusLogBuffer) Resize(newCapacity int) {
 }
 
 // LogStatusChange adds a status change to the buffer and broadcasts it via WebSocket.
-func (ps *PlatformService) LogStatusChange(userID, username, oldStatus, newStatus, reason string, windowActive bool, channelID string) {
-	// Debug: Log entry into function
-	accurateStatusesEnabled := ps.Config().FeatureFlags.AccurateStatuses
-	statusLogsEnabled := *ps.Config().MattermostExtendedSettings.Statuses.EnableStatusLogs
-
-	ps.Log().Debug("LogStatusChange called",
-		mlog.String("user_id", userID),
-		mlog.String("old_status", oldStatus),
-		mlog.String("new_status", newStatus),
-		mlog.Bool("accurate_statuses_enabled", accurateStatusesEnabled),
-		mlog.Bool("status_logs_enabled", statusLogsEnabled),
-	)
-
+func (ps *PlatformService) LogStatusChange(userID, username, oldStatus, newStatus, reason, device string, windowActive bool, channelID string) {
 	// Only log if AccurateStatuses feature is enabled AND status logs are enabled
-	if !accurateStatusesEnabled {
-		ps.Log().Debug("LogStatusChange skipped: AccurateStatuses disabled")
+	if !ps.Config().FeatureFlags.AccurateStatuses {
 		return
 	}
-	if !statusLogsEnabled {
-		ps.Log().Debug("LogStatusChange skipped: EnableStatusLogs disabled")
+	if !*ps.Config().MattermostExtendedSettings.Statuses.EnableStatusLogs {
 		return
+	}
+
+	// Default device to unknown if empty
+	if device == "" {
+		device = model.StatusLogDeviceUnknown
+	}
+
+	// Generate trigger text based on reason
+	var trigger string
+	switch reason {
+	case model.StatusLogReasonWindowFocus:
+		trigger = model.StatusLogTriggerWindowActive
+	case model.StatusLogReasonInactivity:
+		trigger = model.StatusLogTriggerWindowInactive
+	case model.StatusLogReasonHeartbeat:
+		trigger = model.StatusLogTriggerHeartbeat
+	default:
+		trigger = ""
 	}
 
 	statusLog := &model.StatusLog{
@@ -183,6 +187,9 @@ func (ps *PlatformService) LogStatusChange(userID, username, oldStatus, newStatu
 		Reason:       reason,
 		WindowActive: windowActive,
 		ChannelID:    channelID,
+		Device:       device,
+		LogType:      model.StatusLogTypeStatusChange,
+		Trigger:      trigger,
 	}
 
 	// Add to buffer
@@ -193,15 +200,53 @@ func (ps *PlatformService) LogStatusChange(userID, username, oldStatus, newStatu
 	event.Add("status_log", statusLog)
 	event.GetBroadcast().ContainsSensitiveData = true // Admin-only
 	ps.Publish(event)
+}
 
-	ps.Log().Debug("Status change logged",
-		mlog.String("user_id", userID),
-		mlog.String("username", username),
-		mlog.String("old_status", oldStatus),
-		mlog.String("new_status", newStatus),
-		mlog.String("reason", reason),
-		mlog.Bool("window_active", windowActive),
-	)
+// LogActivityUpdate logs an activity update (LastActivityAt change) without status change.
+// This is used by AccurateStatuses to track what triggers keep users active.
+func (ps *PlatformService) LogActivityUpdate(userID, username, currentStatus, device string, windowActive bool, channelID, channelName, trigger string) {
+	// Only log if AccurateStatuses feature is enabled AND status logs are enabled
+	if !ps.Config().FeatureFlags.AccurateStatuses {
+		return
+	}
+	if !*ps.Config().MattermostExtendedSettings.Statuses.EnableStatusLogs {
+		return
+	}
+
+	// Default device to unknown if empty
+	if device == "" {
+		device = model.StatusLogDeviceUnknown
+	}
+
+	// Build trigger string with channel name if provided
+	displayTrigger := trigger
+	if channelName != "" && trigger == model.StatusLogTriggerChannelView {
+		displayTrigger = "Loaded #" + channelName
+	}
+
+	statusLog := &model.StatusLog{
+		Id:           model.NewId(),
+		CreateAt:     model.GetMillis(),
+		UserID:       userID,
+		Username:     username,
+		OldStatus:    currentStatus, // Same status for activity logs
+		NewStatus:    currentStatus,
+		Reason:       model.StatusLogReasonHeartbeat,
+		WindowActive: windowActive,
+		ChannelID:    channelID,
+		Device:       device,
+		LogType:      model.StatusLogTypeActivity,
+		Trigger:      displayTrigger,
+	}
+
+	// Add to buffer
+	ps.statusLogBuffer.Add(statusLog)
+
+	// Broadcast to admins via WebSocket
+	event := model.NewWebSocketEvent(model.WebsocketEventStatusLog, "", "", "", nil, "")
+	event.Add("status_log", statusLog)
+	event.GetBroadcast().ContainsSensitiveData = true // Admin-only
+	ps.Publish(event)
 }
 
 // GetStatusLogs returns all status logs from the buffer.

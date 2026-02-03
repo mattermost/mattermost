@@ -28,6 +28,9 @@ type StatusLog = {
     reason: string;
     window_active: boolean;
     channel_id?: string;
+    device?: string;
+    log_type?: string; // "status_change" or "activity"
+    trigger?: string; // Human-readable trigger for activity logs
 };
 
 type StatusLogStats = {
@@ -324,6 +327,37 @@ const IconArrowRight = () => (
     </svg>
 );
 
+const IconActivity = () => (
+    <svg
+        width='14'
+        height='14'
+        viewBox='0 0 24 24'
+        fill='none'
+        stroke='currentColor'
+        strokeWidth='2'
+        strokeLinecap='round'
+        strokeLinejoin='round'
+    >
+        <polyline points='22 12 18 12 15 21 9 3 6 12 2 12'/>
+    </svg>
+);
+
+const IconStatusChange = () => (
+    <svg
+        width='14'
+        height='14'
+        viewBox='0 0 24 24'
+        fill='none'
+        stroke='currentColor'
+        strokeWidth='2'
+        strokeLinecap='round'
+        strokeLinejoin='round'
+    >
+        <path d='M21 12a9 9 0 11-6.219-8.56'/>
+        <polyline points='21 3 21 9 15 9'/>
+    </svg>
+);
+
 const IconWindow = () => (
     <svg
         width='14'
@@ -352,8 +386,141 @@ const IconWindow = () => (
     </svg>
 );
 
+const IconDesktop = () => (
+    <svg
+        width='14'
+        height='14'
+        viewBox='0 0 24 24'
+        fill='none'
+        stroke='currentColor'
+        strokeWidth='2'
+        strokeLinecap='round'
+        strokeLinejoin='round'
+    >
+        <rect
+            x='2'
+            y='3'
+            width='20'
+            height='14'
+            rx='2'
+            ry='2'
+        />
+        <line
+            x1='8'
+            y1='21'
+            x2='16'
+            y2='21'
+        />
+        <line
+            x1='12'
+            y1='17'
+            x2='12'
+            y2='21'
+        />
+    </svg>
+);
+
+const IconMobile = () => (
+    <svg
+        width='14'
+        height='14'
+        viewBox='0 0 24 24'
+        fill='none'
+        stroke='currentColor'
+        strokeWidth='2'
+        strokeLinecap='round'
+        strokeLinejoin='round'
+    >
+        <rect
+            x='5'
+            y='2'
+            width='14'
+            height='20'
+            rx='2'
+            ry='2'
+        />
+        <line
+            x1='12'
+            y1='18'
+            x2='12.01'
+            y2='18'
+        />
+    </svg>
+);
+
+const IconGlobe = () => (
+    <svg
+        width='14'
+        height='14'
+        viewBox='0 0 24 24'
+        fill='none'
+        stroke='currentColor'
+        strokeWidth='2'
+        strokeLinecap='round'
+        strokeLinejoin='round'
+    >
+        <circle
+            cx='12'
+            cy='12'
+            r='10'
+        />
+        <line
+            x1='2'
+            y1='12'
+            x2='22'
+            y2='12'
+        />
+        <path d='M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z'/>
+    </svg>
+);
+
+const IconApi = () => (
+    <svg
+        width='14'
+        height='14'
+        viewBox='0 0 24 24'
+        fill='none'
+        stroke='currentColor'
+        strokeWidth='2'
+        strokeLinecap='round'
+        strokeLinejoin='round'
+    >
+        <polyline points='16 18 22 12 16 6'/>
+        <polyline points='8 6 2 12 8 18'/>
+    </svg>
+);
+
+const IconQuestion = () => (
+    <svg
+        width='14'
+        height='14'
+        viewBox='0 0 24 24'
+        fill='none'
+        stroke='currentColor'
+        strokeWidth='2'
+        strokeLinecap='round'
+        strokeLinejoin='round'
+    >
+        <circle
+            cx='12'
+            cy='12'
+            r='10'
+        />
+        <path d='M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3'/>
+        <line
+            x1='12'
+            y1='17'
+            x2='12.01'
+            y2='17'
+        />
+    </svg>
+);
+
 // Filter type for status
 type StatusFilter = 'all' | 'online' | 'away' | 'dnd' | 'offline';
+
+// Filter type for log type
+type LogTypeFilter = 'all' | 'status_change' | 'activity';
 
 const StatusLogDashboard: React.FC<Props> = ({config, patchConfig}) => {
     const intl = useIntl();
@@ -361,6 +528,7 @@ const StatusLogDashboard: React.FC<Props> = ({config, patchConfig}) => {
     const [stats, setStats] = useState<StatusLogStats>({total: 0, online: 0, away: 0, dnd: 0, offline: 0});
     const [loading, setLoading] = useState(true);
     const [filter, setFilter] = useState<StatusFilter>('all');
+    const [logTypeFilter, setLogTypeFilter] = useState<LogTypeFilter>('all');
     const [search, setSearch] = useState('');
     const [copiedId, setCopiedId] = useState<string | null>(null);
 
@@ -393,16 +561,21 @@ const StatusLogDashboard: React.FC<Props> = ({config, patchConfig}) => {
             return;
         }
 
-        const handleWebSocketEvent = (msg: {event: string; data: {log: StatusLog}}) => {
-            if (msg.event === 'status_logged' && msg.data?.log) {
-                setLogs((prev) => [msg.data.log, ...prev].slice(0, 1000));
-                setStats((prev) => ({
-                    total: prev.total + 1,
-                    online: prev.online + (msg.data.log.new_status === 'online' ? 1 : 0),
-                    away: prev.away + (msg.data.log.new_status === 'away' ? 1 : 0),
-                    dnd: prev.dnd + (msg.data.log.new_status === 'dnd' ? 1 : 0),
-                    offline: prev.offline + (msg.data.log.new_status === 'offline' ? 1 : 0),
-                }));
+        const handleWebSocketEvent = (msg: {event: string; data: {status_log: StatusLog}}) => {
+            if (msg.event === 'status_log' && msg.data?.status_log) {
+                const log = msg.data.status_log;
+                setLogs((prev) => [log, ...prev].slice(0, 1000));
+
+                // Only update stats for status change logs, not activity logs
+                if (log.log_type !== 'activity') {
+                    setStats((prev) => ({
+                        total: prev.total + 1,
+                        online: prev.online + (log.new_status === 'online' ? 1 : 0),
+                        away: prev.away + (log.new_status === 'away' ? 1 : 0),
+                        dnd: prev.dnd + (log.new_status === 'dnd' ? 1 : 0),
+                        offline: prev.offline + (log.new_status === 'offline' ? 1 : 0),
+                    }));
+                }
             }
         };
 
@@ -464,6 +637,7 @@ const StatusLogDashboard: React.FC<Props> = ({config, patchConfig}) => {
                 old_status: log.old_status,
                 new_status: log.new_status,
                 reason: log.reason,
+                device: log.device || 'unknown',
                 window_active: log.window_active,
                 channel_id: log.channel_id || null,
             })),
@@ -492,13 +666,25 @@ const StatusLogDashboard: React.FC<Props> = ({config, patchConfig}) => {
     };
 
     const formatLogForCopy = (log: StatusLog): string => {
+        const isActivity = log.log_type === 'activity';
         const lines = [
             `Time: ${new Date(log.create_at).toISOString()}`,
+            `Type: ${isActivity ? 'Activity' : 'Status Change'}`,
             `User: ${log.username}`,
-            `Status Change: ${log.old_status} -> ${log.new_status}`,
-            `Reason: ${log.reason}`,
-            `Window Active: ${log.window_active ? 'Yes' : 'No'}`,
         ];
+
+        if (isActivity) {
+            lines.push(`Status: ${log.new_status}`);
+            if (log.trigger) {
+                lines.push(`Trigger: ${log.trigger}`);
+            }
+        } else {
+            lines.push(`Status Change: ${log.old_status} -> ${log.new_status}`);
+            lines.push(`Reason: ${log.reason}`);
+        }
+
+        lines.push(`Device: ${getDeviceLabel(log.device)}`);
+        lines.push(`Window Active: ${log.window_active ? 'Yes' : 'No'}`);
 
         if (log.channel_id) {
             lines.push(`Channel ID: ${log.channel_id}`);
@@ -540,6 +726,32 @@ const StatusLogDashboard: React.FC<Props> = ({config, patchConfig}) => {
         return reasonLabels[reason] || reason;
     };
 
+    const getDeviceIcon = (device?: string) => {
+        switch (device) {
+        case 'web':
+            return <IconGlobe/>;
+        case 'desktop':
+            return <IconDesktop/>;
+        case 'mobile':
+            return <IconMobile/>;
+        case 'api':
+            return <IconApi/>;
+        default:
+            return <IconQuestion/>;
+        }
+    };
+
+    const getDeviceLabel = (device?: string): string => {
+        const deviceLabels: Record<string, string> = {
+            web: 'Web',
+            desktop: 'Desktop',
+            mobile: 'Mobile',
+            api: 'API',
+            unknown: 'Unknown',
+        };
+        return deviceLabels[device || 'unknown'] || device || 'Unknown';
+    };
+
     const getStatusColor = (status: string): string => {
         switch (status) {
         case 'online':
@@ -558,7 +770,15 @@ const StatusLogDashboard: React.FC<Props> = ({config, patchConfig}) => {
     // Filter logs
     const filteredLogs = useMemo(() => {
         return logs.filter((log) => {
-            // Filter by status type
+            // Filter by log type
+            if (logTypeFilter !== 'all') {
+                const logType = log.log_type || 'status_change'; // Default to status_change for older logs
+                if (logType !== logTypeFilter) {
+                    return false;
+                }
+            }
+
+            // Filter by status type (only applies to status_change logs or when viewing all)
             if (filter !== 'all' && log.new_status !== filter) {
                 return false;
             }
@@ -570,12 +790,13 @@ const StatusLogDashboard: React.FC<Props> = ({config, patchConfig}) => {
                     log.username.toLowerCase().includes(searchLower) ||
                     log.reason.toLowerCase().includes(searchLower) ||
                     log.old_status.toLowerCase().includes(searchLower) ||
-                    log.new_status.toLowerCase().includes(searchLower)
+                    log.new_status.toLowerCase().includes(searchLower) ||
+                    (log.trigger && log.trigger.toLowerCase().includes(searchLower))
                 );
             }
             return true;
         });
-    }, [logs, filter, search]);
+    }, [logs, filter, logTypeFilter, search]);
 
     // Calculate visible stats
     const visibleStats = useMemo(() => {
@@ -826,11 +1047,42 @@ const StatusLogDashboard: React.FC<Props> = ({config, patchConfig}) => {
 
                 {/* Filters */}
                 <div className='StatusLogDashboard__filters'>
+                    <div className='StatusLogDashboard__filters__log-type'>
+                        <button
+                            className={`StatusLogDashboard__filters__log-type-btn ${logTypeFilter === 'all' ? 'active' : ''}`}
+                            onClick={() => setLogTypeFilter('all')}
+                        >
+                            <FormattedMessage
+                                id='admin.status_log.filter.all_logs'
+                                defaultMessage='All Logs'
+                            />
+                        </button>
+                        <button
+                            className={`StatusLogDashboard__filters__log-type-btn ${logTypeFilter === 'status_change' ? 'active' : ''}`}
+                            onClick={() => setLogTypeFilter('status_change')}
+                        >
+                            <IconStatusChange/>
+                            <FormattedMessage
+                                id='admin.status_log.filter.status_changes'
+                                defaultMessage='Status Changes'
+                            />
+                        </button>
+                        <button
+                            className={`StatusLogDashboard__filters__log-type-btn ${logTypeFilter === 'activity' ? 'active' : ''}`}
+                            onClick={() => setLogTypeFilter('activity')}
+                        >
+                            <IconActivity/>
+                            <FormattedMessage
+                                id='admin.status_log.filter.activity'
+                                defaultMessage='Activity'
+                            />
+                        </button>
+                    </div>
                     <div className='StatusLogDashboard__filters__search'>
                         <IconSearch/>
                         <input
                             type='text'
-                            placeholder={intl.formatMessage({id: 'admin.status_log.search', defaultMessage: 'Search by username or reason...'})}
+                            placeholder={intl.formatMessage({id: 'admin.status_log.search', defaultMessage: 'Search by username, reason, or trigger...'})}
                             value={search}
                             onChange={(e) => setSearch(e.target.value)}
                         />
@@ -865,71 +1117,113 @@ const StatusLogDashboard: React.FC<Props> = ({config, patchConfig}) => {
                     </div>
                 ) : (
                     <div className='StatusLogDashboard__list'>
-                        {filteredLogs.map((log) => (
-                            <div
-                                key={log.id}
-                                className='StatusLogDashboard__log-card'
-                            >
-                                <div className='StatusLogDashboard__log-card__header'>
-                                    <div className='StatusLogDashboard__log-card__header-left'>
-                                        <span className='StatusLogDashboard__log-card__user'>
-                                            {log.user_id ? (
-                                                <ProfilePicture
-                                                    src={Client4.getProfilePictureUrl(log.user_id, 0)}
-                                                    size='sm'
-                                                    username={log.username}
+                        {filteredLogs.map((log) => {
+                            const isActivity = log.log_type === 'activity';
+                            return (
+                                <div
+                                    key={log.id}
+                                    className={`StatusLogDashboard__log-card ${isActivity ? 'StatusLogDashboard__log-card--activity' : ''}`}
+                                >
+                                    <div className='StatusLogDashboard__log-card__header'>
+                                        <div className='StatusLogDashboard__log-card__header-left'>
+                                            <span className='StatusLogDashboard__log-card__user'>
+                                                {log.user_id ? (
+                                                    <ProfilePicture
+                                                        src={Client4.getProfilePictureUrl(log.user_id, 0)}
+                                                        size='sm'
+                                                        username={log.username}
+                                                    />
+                                                ) : (
+                                                    <IconUser/>
+                                                )}
+                                                <span className='StatusLogDashboard__log-card__username'>
+                                                    {log.username}
+                                                </span>
+                                            </span>
+                                            {isActivity ? (
+                                                <span className='StatusLogDashboard__log-card__activity-info'>
+                                                    <span className={`StatusLogDashboard__log-card__status StatusLogDashboard__log-card__status--${getStatusColor(log.new_status)}`}>
+                                                        {log.new_status}
+                                                    </span>
+                                                    {log.trigger && (
+                                                        <span className='StatusLogDashboard__log-card__trigger'>
+                                                            <IconActivity/>
+                                                            {log.trigger}
+                                                        </span>
+                                                    )}
+                                                </span>
+                                            ) : (
+                                                <span className='StatusLogDashboard__log-card__status-change'>
+                                                    <span className={`StatusLogDashboard__log-card__status StatusLogDashboard__log-card__status--${getStatusColor(log.old_status)}`}>
+                                                        {log.old_status}
+                                                    </span>
+                                                    <IconArrowRight/>
+                                                    <span className={`StatusLogDashboard__log-card__status StatusLogDashboard__log-card__status--${getStatusColor(log.new_status)}`}>
+                                                        {log.new_status}
+                                                    </span>
+                                                </span>
+                                            )}
+                                        </div>
+                                        <div className='StatusLogDashboard__log-card__header-right'>
+                                            <span className={`StatusLogDashboard__log-card__type-badge ${isActivity ? 'activity' : 'status'}`}>
+                                                {isActivity ? (
+                                                    <>
+                                                        <IconActivity/>
+                                                        <FormattedMessage
+                                                            id='admin.status_log.type.activity'
+                                                            defaultMessage='Activity'
+                                                        />
+                                                    </>
+                                                ) : (
+                                                    <>
+                                                        <IconStatusChange/>
+                                                        <FormattedMessage
+                                                            id='admin.status_log.type.status_change'
+                                                            defaultMessage='Status'
+                                                        />
+                                                    </>
+                                                )}
+                                            </span>
+                                            <button
+                                                className='StatusLogDashboard__log-card__action-btn'
+                                                onClick={() => copyLog(log)}
+                                                title={intl.formatMessage({id: 'admin.status_log.copy', defaultMessage: 'Copy log details'})}
+                                            >
+                                                {copiedId === log.id ? <IconCheck/> : <IconCopy/>}
+                                            </button>
+                                            <span className='StatusLogDashboard__log-card__time'>
+                                                {formatRelativeTime(log.create_at)}
+                                            </span>
+                                        </div>
+                                    </div>
+                                    <div className='StatusLogDashboard__log-card__meta'>
+                                        {!isActivity && (
+                                            <span className='StatusLogDashboard__log-card__reason'>
+                                                {getReasonLabel(log.reason)}
+                                            </span>
+                                        )}
+                                        <span className='StatusLogDashboard__log-card__device'>
+                                            {getDeviceIcon(log.device)}
+                                            {getDeviceLabel(log.device)}
+                                        </span>
+                                        <span className={`StatusLogDashboard__log-card__window ${log.window_active ? 'active' : 'inactive'}`}>
+                                            <IconWindow/>
+                                            {log.window_active ? (
+                                                <FormattedMessage
+                                                    id='admin.status_log.window_active'
+                                                    defaultMessage='Window Active'
                                                 />
                                             ) : (
-                                                <IconUser/>
+                                                <FormattedMessage
+                                                    id='admin.status_log.window_inactive'
+                                                    defaultMessage='Window Inactive'
+                                                />
                                             )}
-                                            <span className='StatusLogDashboard__log-card__username'>
-                                                {log.username}
-                                            </span>
-                                        </span>
-                                        <span className='StatusLogDashboard__log-card__status-change'>
-                                            <span className={`StatusLogDashboard__log-card__status StatusLogDashboard__log-card__status--${getStatusColor(log.old_status)}`}>
-                                                {log.old_status}
-                                            </span>
-                                            <IconArrowRight/>
-                                            <span className={`StatusLogDashboard__log-card__status StatusLogDashboard__log-card__status--${getStatusColor(log.new_status)}`}>
-                                                {log.new_status}
-                                            </span>
-                                        </span>
-                                    </div>
-                                    <div className='StatusLogDashboard__log-card__header-right'>
-                                        <button
-                                            className='StatusLogDashboard__log-card__action-btn'
-                                            onClick={() => copyLog(log)}
-                                            title={intl.formatMessage({id: 'admin.status_log.copy', defaultMessage: 'Copy log details'})}
-                                        >
-                                            {copiedId === log.id ? <IconCheck/> : <IconCopy/>}
-                                        </button>
-                                        <span className='StatusLogDashboard__log-card__time'>
-                                            {formatRelativeTime(log.create_at)}
                                         </span>
                                     </div>
                                 </div>
-                                <div className='StatusLogDashboard__log-card__meta'>
-                                    <span className='StatusLogDashboard__log-card__reason'>
-                                        {getReasonLabel(log.reason)}
-                                    </span>
-                                    <span className={`StatusLogDashboard__log-card__window ${log.window_active ? 'active' : 'inactive'}`}>
-                                        <IconWindow/>
-                                        {log.window_active ? (
-                                            <FormattedMessage
-                                                id='admin.status_log.window_active'
-                                                defaultMessage='Window Active'
-                                            />
-                                        ) : (
-                                            <FormattedMessage
-                                                id='admin.status_log.window_inactive'
-                                                defaultMessage='Window Inactive'
-                                            />
-                                        )}
-                                    </span>
-                                </div>
-                            </div>
-                        ))}
+                            );
+                        })}
                     </div>
                 )}
             </div>
