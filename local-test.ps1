@@ -447,6 +447,7 @@ function Show-Help {
     Log "  docker      - Run using official Docker image (simpler, no code changes)"
     Log "  fix-config  - Reset config.json to clean local settings"
     Log "  kill        - Kill the running Mattermost server process"
+    Log "  restart     - Quick restart: kill, build, start"
     Log "  s3-sync     - Download S3 storage files (uploads, plugins, etc.)"
     Log "  all         - Dev setup: kill, setup, build server only, start"
     Log "  all-build   - Full setup: kill, setup, build server + webapp, start"
@@ -1359,6 +1360,36 @@ function Invoke-StartBuild {
     Pop-Location
 }
 
+function Invoke-Restart {
+    Log ""
+    Log "=== Restarting Local Mattermost ==="
+    Log ""
+
+    Invoke-Kill
+
+    # Run build and wait for completion
+    $binaryPath = Join-Path $WORK_DIR "mattermost.exe"
+    $buildStartTime = Get-Date
+
+    Invoke-Build
+
+    # Verify build completed successfully
+    if (!(Test-Path $binaryPath)) {
+        Log-Error "Build failed - binary not found"
+        exit 1
+    }
+
+    $binaryTime = (Get-Item $binaryPath).LastWriteTime
+    if ($binaryTime -lt $buildStartTime) {
+        Log-Error "Build may have failed - binary was not updated"
+        exit 1
+    }
+
+    Log ""
+    Log "Build verified, starting server..."
+    Invoke-Start
+}
+
 function Invoke-Stop {
     Log ""
     Log "=== Stopping Local Test Environment ==="
@@ -2017,6 +2048,7 @@ try {
         "start-build" { Invoke-StartBuild }
         "stop"        { Invoke-Stop }
         "kill"        { Invoke-Kill }
+        "restart"     { Invoke-Restart }
         "status"      { Invoke-Status }
         "logs"        { Invoke-Logs }
         "psql"        { Invoke-Psql }
