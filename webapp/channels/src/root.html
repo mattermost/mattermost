@@ -38,6 +38,7 @@
     <%= require('html-loader!./components/initial_loading_screen/initial_loading_screen_template.html').default %>
     <div id='root'></div>
     <div id='root-portal'></div>
+    <div id='preloadOverlay' style="position:fixed;top:0;left:0;width:100vw;height:100vh;background-color:#1e325c;z-index:99;pointer-events:none;"></div>
     <%= require('html-loader!./components/no_script/no_script_template.html').default %>
 </body>
 </html>

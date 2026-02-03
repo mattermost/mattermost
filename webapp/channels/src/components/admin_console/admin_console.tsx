@@ -108,39 +108,24 @@ const AdminConsole = (props: Props) => {
         };
     }, []);
 
-    // Apply dark mode CSS filter when enabled
+    // Apply dark mode CSS filter to navbar (handled via body class for timing reliability)
     useEffect(() => {
-        const adminConsole = document.querySelector('.admin-console') as HTMLElement;
-        const navbar = document.querySelector('.backstage-navbar') as HTMLElement;
-
         if (props.systemConsoleDarkModeEnabled) {
-            if (adminConsole) {
-                adminConsole.style.filter = 'invert(0.9) hue-rotate(180deg)';
-                adminConsole.style.background = '#fff';
-            }
-            if (navbar) {
-                navbar.style.filter = 'invert(0.9) hue-rotate(180deg)';
-            }
+            document.body.classList.add('admin-console-dark-mode');
         } else {
-            if (adminConsole) {
-                adminConsole.style.filter = '';
-                adminConsole.style.background = '';
-            }
-            if (navbar) {
-                navbar.style.filter = '';
-            }
+            document.body.classList.remove('admin-console-dark-mode');
         }
 
         return () => {
-            if (adminConsole) {
-                adminConsole.style.filter = '';
-                adminConsole.style.background = '';
-            }
-            if (navbar) {
-                navbar.style.filter = '';
-            }
+            document.body.classList.remove('admin-console-dark-mode');
         };
     }, [props.systemConsoleDarkModeEnabled]);
+
+    // Dark mode styles for admin console wrapper
+    const darkModeStyle: React.CSSProperties = props.systemConsoleDarkModeEnabled ? {
+        filter: 'invert(0.9) hue-rotate(180deg)',
+        background: '#fff',
+    } : {};
 
     const handleSearchChange = (searchTerm: string) => {
         setSearch(searchTerm);
@@ -283,6 +268,7 @@ const AdminConsole = (props: Props) => {
                 className='admin-console__wrapper admin-console'
                 id='adminConsoleWrapper'
                 ref={handleFocusScroller}
+                style={darkModeStyle}
             >
                 <SearchKeywordMarking
                     keyword={search}

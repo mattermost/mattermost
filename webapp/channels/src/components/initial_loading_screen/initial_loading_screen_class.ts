@@ -95,6 +95,12 @@ export class InitialLoadingScreenClass {
             this.loadingAnimationElement = null;
         }
 
+        // Remove the preload overlay that prevents white flash
+        const preloadOverlay = document.getElementById('preloadOverlay');
+        if (preloadOverlay) {
+            preloadOverlay.remove();
+        }
+
         this.isLoading = null;
     }
 

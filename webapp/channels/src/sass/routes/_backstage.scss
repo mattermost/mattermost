@@ -615,3 +615,10 @@
         height: 30px;
     }
 }
+
+// Dark mode for System Console - applied via body class
+body.admin-console-dark-mode {
+    .backstage-navbar {
+        filter: invert(0.9) hue-rotate(180deg);
+    }
+}

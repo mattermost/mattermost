@@ -7,10 +7,10 @@ body {
 }
 
 .LoadingScreen {
-    --background-color: #f4f4f6;
-    --background-color-highlight: #ffffff;
-    --stipple-color: #1e325c;
-    --stipple-opacity: 0.08;
+    --background-color: #1e325c;
+    --background-color-highlight: #28427b;
+    --stipple-color: #14213e;
+    --stipple-opacity: 0.8;
     position: absolute;
     z-index: 100;
     top: 0px;

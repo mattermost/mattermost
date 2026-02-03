@@ -706,14 +706,21 @@ const ErrorLogDashboard: React.FC<Props> = ({config, patchConfig}) => {
 
         const exportData = viewMode === 'grouped' ? {
             ...baseExport,
-            groups: groupedErrors.map((group) => ({
-                message: group.message,
-                type: group.type,
-                count: group.count,
-                users: Array.from(group.users),
-                latest_timestamp: new Date(group.latestError.create_at).toISOString(),
-                errors: group.errors.map(formatError),
-            })),
+            groups: groupedErrors.map((group) => {
+                const groupKey = group.message.trim().toLowerCase();
+                const isExpanded = expandedGroups.has(groupKey);
+
+                return {
+                    message: group.message,
+                    type: group.type,
+                    count: group.count,
+                    users: Array.from(group.users),
+                    latest_timestamp: new Date(group.latestError.create_at).toISOString(),
+                    // Only include all errors if the group is expanded, otherwise just the latest
+                    errors: isExpanded ? group.errors.map(formatError) : [formatError(group.latestError)],
+                    expanded: isExpanded,
+                };
+            }),
         } : {
             ...baseExport,
             errors: filteredErrors.map(formatError),

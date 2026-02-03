@@ -7,6 +7,27 @@ import {Client4} from 'mattermost-redux/client';
 const ERROR_REPORT_DEBOUNCE_MS = 1000;
 const recentErrors = new Map<string, number>();
 
+// Queue for errors that occur before we're ready to report
+const pendingErrors: Array<{
+    type: string;
+    message: string;
+    stack?: string;
+    url?: string;
+    line?: number;
+    column?: number;
+    component_stack?: string;
+    extra?: string;
+    request_payload?: string;
+    response_body?: string;
+}> = [];
+
+// Track if we've successfully reported at least once (meaning we're authenticated)
+let hasSuccessfullyReported = false;
+let isProcessingQueue = false;
+
+// Maximum pending errors to queue (to prevent memory issues)
+const MAX_PENDING_ERRORS = 50;
+
 function shouldReportError(errorKey: string): boolean {
     const now = Date.now();
     const lastReport = recentErrors.get(errorKey);
@@ -30,6 +51,42 @@ function shouldReportError(errorKey: string): boolean {
     return true;
 }
 
+// Check if Client4 is properly configured and ready
+function isClientReady(): boolean {
+    try {
+        const url = Client4.getUrl();
+        return Boolean(url && url.length > 0);
+    } catch {
+        return false;
+    }
+}
+
+// Process any pending errors in the queue
+async function processPendingErrors() {
+    if (isProcessingQueue || pendingErrors.length === 0) {
+        return;
+    }
+
+    isProcessingQueue = true;
+
+    // Process errors one at a time
+    while (pendingErrors.length > 0) {
+        const error = pendingErrors.shift();
+        if (error) {
+            try {
+                await Client4.reportError(error);
+                hasSuccessfullyReported = true;
+            } catch {
+                // If we fail, put it back and stop processing
+                pendingErrors.unshift(error);
+                break;
+            }
+        }
+    }
+
+    isProcessingQueue = false;
+}
+
 async function reportError(error: {
     type: string;
     message: string;
@@ -43,42 +100,52 @@ async function reportError(error: {
     response_body?: string;
 }) {
     try {
-        // eslint-disable-next-line no-console
-        console.log('[ErrorReporter] reportError called:', error.type, error.message?.slice(0, 100));
-
         // Create a key to deduplicate errors
         const errorKey = `${error.type}:${error.message}:${error.stack?.slice(0, 200) || ''}`;
 
         if (!shouldReportError(errorKey)) {
-            // eslint-disable-next-line no-console
-            console.log('[ErrorReporter] Debounced, skipping');
             return;
         }
 
-        // eslint-disable-next-line no-console
-        console.log('[ErrorReporter] Sending to server...');
+        // Check if Client4 is ready
+        if (!isClientReady()) {
+            if (pendingErrors.length < MAX_PENDING_ERRORS) {
+                pendingErrors.push(error);
+            }
+            return;
+        }
+
         await Client4.reportError(error);
-        // eslint-disable-next-line no-console
-        console.log('[ErrorReporter] Sent successfully');
-    } catch (e) {
-        // Silently fail - don't want error reporting to cause errors
-        console.warn('[ErrorReporter] Failed to report error:', e);
+        hasSuccessfullyReported = true;
+
+        // If we have queued errors, try to process them now
+        if (pendingErrors.length > 0) {
+            processPendingErrors();
+        }
+    } catch {
+        // If we've never successfully reported, queue the error for retry
+        if (!hasSuccessfullyReported && pendingErrors.length < MAX_PENDING_ERRORS) {
+            pendingErrors.push(error);
+        }
     }
 }
 
 export function initErrorReporter() {
-    // eslint-disable-next-line no-console
-    console.log('[ErrorReporter] Initializing error reporter...');
+    // Periodically try to process queued errors (in case auth completes later)
+    const processInterval = setInterval(() => {
+        if (pendingErrors.length > 0 && isClientReady()) {
+            processPendingErrors();
+        }
+        // Stop checking once we've successfully reported and queue is empty
+        if (hasSuccessfullyReported && pendingErrors.length === 0) {
+            clearInterval(processInterval);
+        }
+    }, 5000); // Check every 5 seconds
 
     // Global error handler for uncaught errors
     window.addEventListener('error', (event) => {
-        // eslint-disable-next-line no-console
-        console.log('[ErrorReporter] window.error event:', event.message, 'filename:', event.filename);
-
         // Ignore errors from extensions or external scripts
         if (event.filename && !event.filename.includes(window.location.origin)) {
-            // eslint-disable-next-line no-console
-            console.log('[ErrorReporter] Ignoring external script error');
             return;
         }
 
@@ -94,9 +161,6 @@ export function initErrorReporter() {
 
     // Unhandled promise rejection handler
     window.addEventListener('unhandledrejection', (event) => {
-        // eslint-disable-next-line no-console
-        console.log('[ErrorReporter] unhandledrejection event:', event.reason);
-
         const reason = event.reason;
         let message = 'Unhandled promise rejection';
         let stack = '';
@@ -140,9 +204,6 @@ export function initErrorReporter() {
 
         // Only report if it looks like a real error (not just logging)
         if (message.toLowerCase().includes('error') || args.some((arg) => arg instanceof Error)) {
-            // eslint-disable-next-line no-console
-            console.log('[ErrorReporter] console.error captured:', message.slice(0, 100));
-
             const error = args.find((arg) => arg instanceof Error) as Error | undefined;
             reportError({
                 type: 'js',
@@ -152,9 +213,11 @@ export function initErrorReporter() {
             });
         }
     };
+}
 
-    // eslint-disable-next-line no-console
-    console.log('[ErrorReporter] Error reporter initialized');
+// Call this when user authentication completes to flush queued errors
+export function onAuthenticationComplete() {
+    processPendingErrors();
 }
 
 // Export for manual error reporting (e.g., from React Error Boundaries)
@@ -166,6 +229,22 @@ export function reportReactError(error: Error, componentStack: string) {
         url: window.location.href,
         component_stack: componentStack,
     });
+}
+
+// Test function that can be called from the console to verify error reporting works
+// Usage: window.testErrorReporter()
+export function testErrorReporter() {
+    reportError({
+        type: 'js',
+        message: 'Test error from testErrorReporter() - ' + new Date().toISOString(),
+        stack: new Error().stack || '',
+        url: window.location.href,
+    });
+}
+
+// Expose test function globally for console access
+if (typeof window !== 'undefined') {
+    (window as any).testErrorReporter = testErrorReporter;
 }
 
 export function reportAPIError(

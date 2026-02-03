@@ -29,7 +29,7 @@ import webSocketClient from 'client/web_websocket_client';
 import {initializePlugins} from 'plugins';
 import 'utils/a11y_controller_instance';
 import {expirationScheduler} from 'utils/burn_on_read_expiration_scheduler';
-import {initErrorReporter} from 'utils/error_reporter';
+import {initErrorReporter, onAuthenticationComplete} from 'utils/error_reporter';
 import {PageLoadContext, SCHEDULED_POST_URL_SUFFIX} from 'utils/constants';
 import DesktopApp from 'utils/desktop_api';
 import {EmojiIndicesByAlias} from 'utils/emoji';
@@ -60,7 +60,7 @@ const DoVerifyEmail = makeAsyncComponent('DoVerifyEmail', lazy(() => import('com
 const ClaimController = makeAsyncComponent('ClaimController', lazy(() => import('components/claim')));
 const TermsOfService = makeAsyncComponent('TermsOfService', lazy(() => import('components/terms_of_service')));
 const LinkingLandingPage = makeAsyncComponent('LinkingLandingPage', lazy(() => import('components/linking_landing_page')));
-const AdminConsole = makeAsyncComponent('AdminConsole', lazy(() => import('components/admin_console')));
+const AdminConsole = makeAsyncComponent('AdminConsole', lazy(() => import('components/admin_console')), <div style={{position: 'fixed', top: 0, left: 0, width: '100vw', height: '100vh', backgroundColor: '#1e325c', zIndex: 99}}/>);
 const SelectTeam = makeAsyncComponent('SelectTeam', lazy(() => import('components/select_team')));
 const Authorize = makeAsyncComponent('Authorize', lazy(() => import('components/authorize')));
 const CreateTeam = makeAsyncComponent('CreateTeam', lazy(() => import('components/create_team')));
@@ -255,6 +255,11 @@ export default class Root extends React.PureComponent<Props, State> {
                 } else if (this.props.noAccounts) {
                     this.props.history.push('/signup_user_complete');
                 }
+            }
+
+            // Notify error reporter that authentication is complete so it can flush queued errors
+            if (isMeRequested) {
+                onAuthenticationComplete();
             }
 
             this.onConfigLoaded();
