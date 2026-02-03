@@ -175,7 +175,8 @@
     &__footer {
         position: relative;
         display: flex;
-        flex-direction: column;
+        flex-direction: row;
+        justify-content: space-between;
         padding: 0 24px;
         font-size: 12px;
 

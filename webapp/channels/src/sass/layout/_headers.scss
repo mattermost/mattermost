@@ -338,7 +338,7 @@
         }
 
         .channel-header-archived-icon {
-            opacity: 0.5;
+            opacity: 0.64;
         }
 
         > a {
@@ -943,7 +943,13 @@
 
 .channel-header-archived-icon {
     position: relative;
-    top: 2px;
+    top: -1px;
     margin-right: 5px;
     fill: var(--center-channel-color);
+}
+
+// Specific styling for archive icon in search results context
+.search-channel__archived .channel-header-archived-icon {
+    top: 2px;
+    margin-left: 4px;
 }

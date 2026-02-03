@@ -25,10 +25,6 @@ const mockGetVisualAST = getVisualAST as jest.MockedFunction<typeof getVisualAST
 const mockSearchUsersForExpression = searchUsersForExpression as jest.MockedFunction<typeof searchUsersForExpression>;
 
 describe('useChannelAccessControlActions', () => {
-    beforeEach(() => {
-        jest.clearAllMocks();
-    });
-
     test('should have correct action imports', () => {
         // Test that the required actions are imported and mocked correctly
         expect(getAccessControlFields).toBeDefined();

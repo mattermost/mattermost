@@ -86,7 +86,7 @@ const onPremServerConfig = (): Partial<TestAdminConfig> => {
 };
 
 // Should be based only from the generated default config from ./server via "make config-reset"
-// Based on v11.0 server
+// Based on v11.3 server
 const defaultServerConfig: AdminConfig = {
     ServiceSettings: {
         SiteURL: '',
@@ -110,6 +110,7 @@ const defaultServerConfig: AdminConfig = {
         MaximumLoginAttempts: 10,
         GoroutineHealthThreshold: -1,
         EnableOAuthServiceProvider: true,
+        EnableDynamicClientRegistration: false,
         EnableIncomingWebhooks: true,
         EnableOutgoingWebhooks: true,
         EnableOutgoingOAuthConnections: false,
@@ -187,6 +188,10 @@ const defaultServerConfig: AdminConfig = {
         PersistentNotificationIntervalMinutes: 5,
         PersistentNotificationMaxCount: 6,
         PersistentNotificationMaxRecipients: 5,
+        EnableBurnOnRead: true,
+        BurnOnReadDurationSeconds: 600,
+        BurnOnReadMaximumTimeToLiveSeconds: 604800,
+        BurnOnReadSchedulerFrequencySeconds: 600,
         EnableAPIChannelDeletion: false,
         EnableLocalMode: false,
         LocalModeSocketLocation: '/var/tmp/mattermost_local.socket',
@@ -599,6 +604,7 @@ const defaultServerConfig: AdminConfig = {
         ClientSideUserIds: [],
     },
     ExperimentalSettings: {
+        ClientSideCertEnable: false,
         LinkMetadataTimeoutMilliseconds: 5000,
         RestrictSystemAdmin: false,
         EnableSharedChannels: false,
@@ -765,12 +771,14 @@ const defaultServerConfig: AdminConfig = {
         ExperimentalAuditSettingsSystemConsoleUI: true,
         CustomProfileAttributes: true,
         AttributeBasedAccessControl: true,
-        ContentFlagging: false,
+        ContentFlagging: true,
         InteractiveDialogAppsForm: true,
         EnableMattermostEntry: true,
-        ChannelAdminManageABACRules: false,
         MobileSSOCodeExchange: true,
         AutoTranslation: false,
+        BurnOnRead: true,
+        EnableAIPluginBridge: false,
+        EnableAIRecaps: false,
     },
     ImportSettings: {
         Directory: './import',
@@ -840,10 +848,11 @@ const defaultServerConfig: AdminConfig = {
             URL: '',
             APIKey: '',
         },
-        TimeoutMs: {
-            NewPost: 800,
-            Fetch: 2000,
-            Notification: 300,
+        TargetLanguages: ['en'],
+        Workers: 4,
+        TimeoutMs: 5000,
+        Agents: {
+            LLMServiceID: '',
         },
     },
 };
