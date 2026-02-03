@@ -38,8 +38,8 @@ func getStatusLogs(c *Context, w http.ResponseWriter, r *http.Request) {
 	stats := c.App.Srv().Platform().GetStatusLogStats()
 
 	response := map[string]any{
-		"status_logs": logs,
-		"stats":       stats,
+		"logs":  logs,
+		"stats": stats,
 	}
 
 	if err := json.NewEncoder(w).Encode(response); err != nil {
