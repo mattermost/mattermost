@@ -284,6 +284,7 @@ func (s SqlPreferenceStore) CleanupFlagsBatch(limit int64) (int64, error) {
 
 // GetDistinctPreferences returns all unique category:name pairs from the preferences table,
 // filtered to user-facing categories only (display_settings, notifications, advanced_settings, sidebar_settings).
+// It also includes the distinct values for each preference (up to 20 unique values per preference).
 func (s SqlPreferenceStore) GetDistinctPreferences() ([]model.PreferenceKey, error) {
 	// User-facing categories that can be overridden by admins
 	userFacingCategories := []string{
@@ -293,6 +294,7 @@ func (s SqlPreferenceStore) GetDistinctPreferences() ([]model.PreferenceKey, err
 		model.PreferenceCategorySidebarSettings,
 	}
 
+	// First, get all distinct category:name pairs
 	query := s.getQueryBuilder().
 		Select("DISTINCT Category", "Name").
 		From("Preferences").
@@ -307,6 +309,31 @@ func (s SqlPreferenceStore) GetDistinctPreferences() ([]model.PreferenceKey, err
 	var keys []model.PreferenceKey
 	if err := s.GetReplica().Select(&keys, queryString, args...); err != nil {
 		return nil, errors.Wrap(err, "failed to get distinct preferences")
+	}
+
+	// Now, for each preference, get distinct values (limit to 20 to avoid huge responses)
+	for i := range keys {
+		valuesQuery := s.getQueryBuilder().
+			Select("DISTINCT Value").
+			From("Preferences").
+			Where(sq.Eq{"Category": keys[i].Category}).
+			Where(sq.Eq{"Name": keys[i].Name}).
+			OrderBy("Value").
+			Limit(20)
+
+		valuesQueryString, valuesArgs, err := valuesQuery.ToSql()
+		if err != nil {
+			// If we can't get values, just continue without them
+			continue
+		}
+
+		var values []string
+		if err := s.GetReplica().Select(&values, valuesQueryString, valuesArgs...); err != nil {
+			// If we can't get values, just continue without them
+			continue
+		}
+
+		keys[i].Values = values
 	}
 
 	return keys, nil

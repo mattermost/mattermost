@@ -18,6 +18,7 @@ import './preference_overrides_dashboard.scss';
 type PreferenceKey = {
     category: string;
     name: string;
+    values?: string[];
 };
 
 type Props = {
@@ -226,52 +227,51 @@ const PreferenceOverridesDashboard: React.FC<Props> = ({config, patchConfig}) =>
         loadPreferences();
     }, [loadPreferences]);
 
-    // Build a map of unique values per preference from the database
-    // This helps us offer meaningful options for non-boolean preferences
-    const preferenceValues = useMemo(() => {
-        // For now, we'll use common known values for specific preferences
-        // In the future, we could query the database for distinct values
-        const knownValues: Record<string, Array<{value: string; label: string}>> = {
-            // Display settings
-            'display_settings:channel_display_mode': [
-                {value: 'full', label: 'Full width'},
-                {value: 'centered', label: 'Fixed width, centered'},
-            ],
-            'display_settings:message_display': [
-                {value: 'clean', label: 'Standard'},
-                {value: 'compact', label: 'Compact'},
-            ],
-            'display_settings:name_format': [
-                {value: 'username', label: 'Show username'},
-                {value: 'nickname_full_name', label: 'Show nickname, otherwise full name'},
-                {value: 'full_name', label: 'Show full name'},
-            ],
-            'display_settings:collapsed_reply_threads': [
-                {value: 'on', label: 'On'},
-                {value: 'off', label: 'Off'},
-            ],
-            // Notifications
-            'notifications:email_interval': [
-                {value: '30', label: 'Immediately'},
-                {value: '900', label: 'Every 15 minutes'},
-                {value: '3600', label: 'Every hour'},
-                {value: '0', label: 'Never'},
-            ],
-            // Advanced settings
-            'advanced_settings:unread_scroll_position': [
-                {value: 'start_from_left_off', label: 'Start where I left off'},
-                {value: 'start_from_newest', label: 'Start at newest message'},
-            ],
-            // Sidebar settings
-            'sidebar_settings:limit_visible_dms_gms': [
-                {value: '10', label: '10'},
-                {value: '15', label: '15'},
-                {value: '20', label: '20'},
-                {value: '40', label: '40'},
-            ],
-        };
-        return knownValues;
-    }, []);
+    // Build a map of values per preference from the API response
+    // The API returns distinct values found in the database for each preference
+    const preferenceValuesMap = useMemo(() => {
+        const valuesMap: Record<string, string[]> = {};
+        availablePreferences.forEach((pref) => {
+            if (pref.values && pref.values.length > 0) {
+                const key = `${pref.category}:${pref.name}`;
+                valuesMap[key] = pref.values;
+            }
+        });
+        return valuesMap;
+    }, [availablePreferences]);
+
+    // Friendly labels for known values (optional enhancement)
+    const valueLabelMap: Record<string, string> = {
+        // Channel display
+        full: 'Full width',
+        centered: 'Fixed width, centered',
+        // Message display
+        clean: 'Standard',
+        compact: 'Compact',
+        // Name format
+        username: 'Show username',
+        nickname_full_name: 'Show nickname, otherwise full name',
+        full_name: 'Show full name',
+        // Collapsed threads
+        on: 'On',
+        off: 'Off',
+        // Email interval
+        '30': 'Immediately',
+        '900': 'Every 15 minutes',
+        '3600': 'Every hour',
+        '0': 'Never',
+        // Unread scroll position
+        start_from_left_off: 'Start where I left off',
+        start_from_newest: 'Start at newest message',
+        // Boolean values
+        true: 'On',
+        false: 'Off',
+    };
+
+    // Get a friendly label for a value
+    const getValueLabel = (value: string): string => {
+        return valueLabelMap[value] || toTitleCase(value);
+    };
 
     // Group preferences by category
     const groupedPreferences = useMemo(() => {
@@ -301,9 +301,14 @@ const PreferenceOverridesDashboard: React.FC<Props> = ({config, patchConfig}) =>
     const getPreferenceOptions = (category: string, name: string): Array<{value: string; label: string}> | null => {
         const key = `${category}:${name}`;
 
-        // Check for known specific values first
-        if (preferenceValues[key]) {
-            return preferenceValues[key];
+        // Check if we have values from the database
+        const dbValues = preferenceValuesMap[key];
+        if (dbValues && dbValues.length > 0 && dbValues.length <= 10) {
+            // Use database values if there are a reasonable number (1-10)
+            return dbValues.map((value) => ({
+                value,
+                label: getValueLabel(value),
+            }));
         }
 
         // If it looks like a boolean, return boolean options

@@ -127,11 +127,13 @@ type Preference struct {
 
 type Preferences []Preference
 
-// PreferenceKey represents a unique preference identifier (category + name).
-// Used for discovering available preferences in the database.
+// PreferenceKey represents a unique preference identifier (category + name)
+// along with the distinct values found in the database.
+// Used for discovering available preferences and their possible values.
 type PreferenceKey struct {
-	Category string `json:"category"`
-	Name     string `json:"name"`
+	Category string   `json:"category"`
+	Name     string   `json:"name"`
+	Values   []string `json:"values,omitempty"`
 }
 
 func (o *Preference) IsValid() *AppError {
