@@ -100,6 +100,7 @@ describe('components/user_settings/display/UserSettingsDisplay', () => {
         emojiPickerEnabled: true,
         clickToReply: '',
         lastActiveTimeEnabled: true,
+        settingsResorted: false,
     };
 
     let store: ReturnType<typeof configureStore>;

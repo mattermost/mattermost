@@ -92,6 +92,7 @@ export function makeMapStateToProps() {
             lastActiveDisplay,
             lastActiveTimeEnabled,
             discordRepliesEnabled: config?.FeatureFlagDiscordReplies === 'true',
+            settingsResorted: config?.FeatureFlagSettingsResorted === 'true',
         };
     };
 }

@@ -5,9 +5,16 @@
 
 import deepEqual from 'fast-deep-equal';
 import React from 'react';
-import type {MessageDescriptor} from 'react-intl';
-import {FormattedMessage, defineMessage} from 'react-intl';
+import type {MessageDescriptor, IntlShape} from 'react-intl';
+import {FormattedMessage, defineMessage, injectIntl} from 'react-intl';
 import type {Timezone} from 'timezones.json';
+
+import {
+    AccountMultipleOutlineIcon,
+    ClockOutlineIcon,
+    ForumOutlineIcon,
+    MessageTextOutlineIcon,
+} from '@mattermost/compass-icons/components';
 
 import type {PreferencesType, PreferenceType} from '@mattermost/types/preferences';
 import type {UserProfile, UserTimezone} from '@mattermost/types/users';
@@ -17,6 +24,31 @@ import type {ActionResult} from 'mattermost-redux/types/actions';
 import SettingItem from 'components/setting_item';
 import SettingItemMax from 'components/setting_item_max';
 import ThemeSetting from 'components/user_settings/display/user_settings_theme';
+
+// Section header component for grouped settings
+type SectionHeaderProps = {
+    icon: React.ReactNode;
+    title: React.ReactNode;
+};
+
+const SectionHeader = ({icon, title}: SectionHeaderProps) => (
+    <div
+        style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '8px',
+            padding: '16px 20px 8px',
+            fontSize: '12px',
+            fontWeight: 600,
+            textTransform: 'uppercase',
+            color: 'rgba(var(--center-channel-color-rgb), 0.64)',
+            letterSpacing: '0.5px',
+        }}
+    >
+        <span style={{display: 'flex', alignItems: 'center'}}>{icon}</span>
+        {title}
+    </div>
+);
 
 import {getLanguageInfo} from 'i18n/i18n';
 import type {Language} from 'i18n/i18n';
@@ -123,6 +155,7 @@ type Props = OwnProps & {
     lastActiveTimeEnabled: boolean;
     renderEmoticonsAsEmoji: string;
     discordRepliesEnabled: boolean;
+    settingsResorted: boolean;
     actions: {
         savePreferences: (userId: string, preferences: PreferenceType[]) => void;
         autoUpdateTimezone: (deviceTimezone: string) => void;
@@ -1253,21 +1286,68 @@ export default class UserSettingsDisplay extends React.PureComponent<Props, Stat
                     />
                     <div className='divider-dark first'/>
                     {themeSection}
-                    {collapsedReplyThreads}
-                    {clockSection}
-                    {alwaysShowRemoteUserHourSection}
-                    {teammateNameDisplaySection}
-                    {availabilityStatusOnPostsSection}
-                    {lastActiveSection}
-                    {timezoneSelection}
-                    {linkPreviewSection}
-                    {collapseSection}
-                    {messageDisplaySection}
-                    {clickToReply}
-                    {channelDisplayModeSection}
-                    {oneClickReactionsOnPostsSection}
-                    {renderEmoticonsAsEmojiSection}
-                    {languagesSection}
+                    {this.props.settingsResorted ? (
+                        <>
+                            {/* Time & Date Section */}
+                            <SectionHeader
+                                icon={<ClockOutlineIcon size={14}/>}
+                                title={<FormattedMessage id='user.settings.display.section.timeDate' defaultMessage='Time & Date'/>}
+                            />
+                            {clockSection}
+                            {timezoneSelection}
+                            {alwaysShowRemoteUserHourSection}
+
+                            {/* Teammates Section */}
+                            <SectionHeader
+                                icon={<AccountMultipleOutlineIcon size={14}/>}
+                                title={<FormattedMessage id='user.settings.display.section.teammates' defaultMessage='Teammates'/>}
+                            />
+                            {teammateNameDisplaySection}
+                            {availabilityStatusOnPostsSection}
+                            {lastActiveSection}
+
+                            {/* Messages Section */}
+                            <SectionHeader
+                                icon={<MessageTextOutlineIcon size={14}/>}
+                                title={<FormattedMessage id='user.settings.display.section.messages' defaultMessage='Messages'/>}
+                            />
+                            {messageDisplaySection}
+                            {clickToReply}
+                            {linkPreviewSection}
+                            {collapseSection}
+                            {oneClickReactionsOnPostsSection}
+                            {renderEmoticonsAsEmojiSection}
+
+                            {/* Channel Section */}
+                            <SectionHeader
+                                icon={<ForumOutlineIcon size={14}/>}
+                                title={<FormattedMessage id='user.settings.display.section.channel' defaultMessage='Channel'/>}
+                            />
+                            {channelDisplayModeSection}
+                            {collapsedReplyThreads}
+
+                            {/* Language */}
+                            {languagesSection}
+                        </>
+                    ) : (
+                        <>
+                            {collapsedReplyThreads}
+                            {clockSection}
+                            {alwaysShowRemoteUserHourSection}
+                            {teammateNameDisplaySection}
+                            {availabilityStatusOnPostsSection}
+                            {lastActiveSection}
+                            {timezoneSelection}
+                            {linkPreviewSection}
+                            {collapseSection}
+                            {messageDisplaySection}
+                            {clickToReply}
+                            {channelDisplayModeSection}
+                            {oneClickReactionsOnPostsSection}
+                            {renderEmoticonsAsEmojiSection}
+                            {languagesSection}
+                        </>
+                    )}
                 </div>
             </div>
         );
