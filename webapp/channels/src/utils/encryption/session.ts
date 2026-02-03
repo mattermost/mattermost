@@ -157,9 +157,44 @@ export async function getCurrentPrivateKey(): Promise<CryptoKey | null> {
 
 /**
  * Checks if the current session has encryption keys initialized.
+ * This is a SYNC check - only checks sessionStorage cache.
+ * For a full check that restores from server, use ensureSessionIdRestored().
  */
 export function isEncryptionInitialized(): boolean {
     return hasEncryptionKeys();
+}
+
+/**
+ * Restores the session ID from the server if sessionStorage cache is empty.
+ * This handles the case where sessionStorage was cleared but localStorage keys still exist.
+ *
+ * @returns The session ID if keys are available, null otherwise
+ */
+export async function ensureSessionIdRestored(): Promise<string | null> {
+    // Fast path: sessionStorage has the session ID and we have keys for it
+    const cachedSessionId = getSessionId();
+    if (cachedSessionId && hasEncryptionKeys(cachedSessionId)) {
+        return cachedSessionId;
+    }
+
+    // Slow path: ask server for current session ID
+    try {
+        const status = await getEncryptionStatus();
+        if (status.session_id) {
+            // Restore the sessionStorage cache
+            storeSessionId(status.session_id);
+
+            // Check if we have keys for this session in localStorage
+            if (hasEncryptionKeys(status.session_id)) {
+                console.log('[ensureSessionIdRestored] Restored session reference:', status.session_id);
+                return status.session_id;
+            }
+        }
+    } catch (e) {
+        console.error('[ensureSessionIdRestored] Failed to get session from server:', e);
+    }
+
+    return null;
 }
 
 /**

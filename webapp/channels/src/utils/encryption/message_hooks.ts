@@ -20,10 +20,9 @@ import {
     ensureEncryptionKeys,
     getChannelRecipientKeys,
     getCurrentPrivateKey,
-    isEncryptionInitialized,
-    getSessionId,
+    ensureSessionIdRestored,
 } from './session';
-import {getPublicKeyJwk} from './storage';
+import {getPublicKeyJwk, getSessionId} from './storage';
 
 /**
  * Cache for recently sent messages.
@@ -166,24 +165,11 @@ export async function decryptMessageHook(
         return {post};
     }
 
-    // Check if we have decryption keys
-    if (!isEncryptionInitialized()) {
-        // User doesn't have keys, return post with placeholder indicator
-        return {
-            post: {
-                ...post,
-                // Keep the encrypted message but add metadata to indicate decryption failed
-                props: {
-                    ...post.props,
-                    encryption_status: 'no_keys',
-                },
-            },
-        };
-    }
-
-    // Get our session ID for looking up the encrypted key
-    const sessionId = getSessionId();
+    // Restore session ID from server if sessionStorage was cleared.
+    // This handles browser restarts where sessionStorage is lost but localStorage keys remain.
+    const sessionId = await ensureSessionIdRestored();
     if (!sessionId) {
+        // No valid session/keys found
         return {
             post: {
                 ...post,
