@@ -3,7 +3,6 @@
 
 import moment from 'moment';
 import React, {useMemo} from 'react';
-import type {MouseEvent, KeyboardEvent} from 'react';
 import {FormattedDate, FormattedMessage, FormattedTime, useIntl} from 'react-intl';
 import {useDispatch, useSelector} from 'react-redux';
 
@@ -62,7 +61,10 @@ export default function UserAccountDndMenuItem(props: Props) {
         }
     }
 
-    function handleSubMenuItemClick(event: MouseEvent<HTMLLIElement> | KeyboardEvent<HTMLLIElement>) {
+    // Create individual handlers for each DND duration option.
+    // This avoids relying on event.currentTarget.id which doesn't work reliably
+    // when the event is cloned and deferred by the Menu.Item component.
+    function setDndStatus(durationMinutes: number | 'tomorrow' | 'indefinite') {
         if (props.shouldConfirmBeforeStatusChange) {
             dispatch(openModal({
                 modalId: ModalIdentifiers.RESET_STATUS,
@@ -74,31 +76,15 @@ export default function UserAccountDndMenuItem(props: Props) {
             return;
         }
 
-        const {currentTarget: {id}} = event;
-
         const currentDate = getCurrentMomentForTimezone(props.timezone);
+        let endTime: moment.Moment;
 
-        let endTime = currentDate;
-        switch (id) {
-        case DND_SUB_MENU_ITEMS_IDS.DO_NOT_CLEAR:
+        if (durationMinutes === 'indefinite') {
             endTime = moment(0);
-            break;
-        case DND_SUB_MENU_ITEMS_IDS.THIRTY_MINUTES:
-            // add 30 minutes in current time
-            endTime = currentDate.add(30, 'minutes');
-            break;
-        case DND_SUB_MENU_ITEMS_IDS.ONE_HOUR:
-            // add 1 hour in current time
-            endTime = currentDate.add(1, 'hour');
-            break;
-        case DND_SUB_MENU_ITEMS_IDS.TWO_HOURS:
-            // add 2 hours in current time
-            endTime = currentDate.add(2, 'hours');
-            break;
-        case DND_SUB_MENU_ITEMS_IDS.TOMORROW:
-            // set to next day 9 in the morning
+        } else if (durationMinutes === 'tomorrow') {
             endTime = currentDate.add(1, 'day').set({hour: 9, minute: 0});
-            break;
+        } else {
+            endTime = currentDate.add(durationMinutes, 'minutes');
         }
 
         dispatch(setStatus({
@@ -107,6 +93,12 @@ export default function UserAccountDndMenuItem(props: Props) {
             dnd_end_time: endTime.utc().unix(),
         }));
     }
+
+    const handleDoNotClear = () => setDndStatus('indefinite');
+    const handleThirtyMinutes = () => setDndStatus(30);
+    const handleOneHour = () => setDndStatus(60);
+    const handleTwoHours = () => setDndStatus(120);
+    const handleTomorrow = () => setDndStatus('tomorrow');
 
     const trailingElement = useMemo(() => {
         if (props.isStatusDnd) {
@@ -219,7 +211,7 @@ export default function UserAccountDndMenuItem(props: Props) {
                         defaultMessage="Don't clear"
                     />
                 }
-                onClick={handleSubMenuItemClick}
+                onClick={handleDoNotClear}
             />
             <Menu.Item
                 id={DND_SUB_MENU_ITEMS_IDS.THIRTY_MINUTES}
@@ -229,7 +221,7 @@ export default function UserAccountDndMenuItem(props: Props) {
                         defaultMessage='30 mins'
                     />
                 }
-                onClick={handleSubMenuItemClick}
+                onClick={handleThirtyMinutes}
             />
             <Menu.Item
                 id={DND_SUB_MENU_ITEMS_IDS.ONE_HOUR}
@@ -239,7 +231,7 @@ export default function UserAccountDndMenuItem(props: Props) {
                         defaultMessage='1 hour'
                     />
                 }
-                onClick={handleSubMenuItemClick}
+                onClick={handleOneHour}
             />
             <Menu.Item
                 id={DND_SUB_MENU_ITEMS_IDS.TWO_HOURS}
@@ -249,7 +241,7 @@ export default function UserAccountDndMenuItem(props: Props) {
                         defaultMessage='2 hours'
                     />
                 }
-                onClick={handleSubMenuItemClick}
+                onClick={handleTwoHours}
             />
             <Menu.Item
                 id={DND_SUB_MENU_ITEMS_IDS.TOMORROW}
@@ -282,7 +274,7 @@ export default function UserAccountDndMenuItem(props: Props) {
                         }}
                     />
                 }
-                onClick={handleSubMenuItemClick}
+                onClick={handleTomorrow}
             />
             <Menu.Item
                 labels={
