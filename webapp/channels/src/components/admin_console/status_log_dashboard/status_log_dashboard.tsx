@@ -14,6 +14,7 @@ import {Client4} from 'mattermost-redux/client';
 import webSocketClient from 'client/web_websocket_client';
 
 import ProfilePicture from 'components/profile_picture';
+import Timestamp from 'components/timestamp';
 import AdminHeader from 'components/widgets/admin_console/admin_header';
 
 import StatusNotificationRules from './status_notification_rules';
@@ -772,7 +773,7 @@ const StatusLogDashboard: React.FC<Props> = ({config, patchConfig}) => {
         return intl.formatMessage({id: 'admin.status_log.time.days', defaultMessage: '{count}d ago'}, {count: days});
     };
 
-    // Format timestamp in user's timezone (for LastActivityAt display)
+    // Format timestamp in user's timezone (for LastActivityAt display in copy and tooltip)
     const formatTimestamp = (timestamp: number): string => {
         if (!timestamp || timestamp <= 0) {
             return 'N/A';
@@ -790,6 +791,9 @@ const StatusLogDashboard: React.FC<Props> = ({config, patchConfig}) => {
             return 'Invalid';
         }
     };
+
+    // Units for LastActivityAt timestamp display (same as Last Online in profile popover)
+    const lastActivityTimestampUnits = ['now', 'minute', 'hour', 'day'];
 
     const getReasonLabel = (reason: string): string => {
         const reasonLabels: Record<string, string> = {
@@ -1556,12 +1560,24 @@ const StatusLogDashboard: React.FC<Props> = ({config, patchConfig}) => {
                                             </span>
                                         )}
                                         {typeof log.last_activity_at === 'number' && log.last_activity_at > 0 && (
-                                            <span className='StatusLogDashboard__log-card__last-activity'>
+                                            <span
+                                                className='StatusLogDashboard__log-card__last-activity'
+                                                title={formatTimestamp(log.last_activity_at)}
+                                            >
                                                 <IconClock/>
                                                 <FormattedMessage
-                                                    id='admin.status_log.last_activity_at'
-                                                    defaultMessage='LastActivityAt: {time}'
-                                                    values={{time: formatTimestamp(log.last_activity_at)}}
+                                                    id='admin.status_log.last_activity_label'
+                                                    defaultMessage='Last active: {time}'
+                                                    values={{
+                                                        time: (
+                                                            <Timestamp
+                                                                value={log.last_activity_at}
+                                                                units={lastActivityTimestampUnits}
+                                                                useTime={false}
+                                                                style='short'
+                                                            />
+                                                        ),
+                                                    }}
                                                 />
                                             </span>
                                         )}
