@@ -147,6 +147,12 @@ type FeatureFlags struct {
 
 	// Reorganize user settings into more intuitive categories with icons
 	SettingsResorted bool
+
+	// Refactor user preferences to use shared definitions (required for PreferenceOverridesDashboard)
+	PreferencesRevamp bool
+
+	// Enable admin preference overrides dashboard (requires PreferencesRevamp)
+	PreferenceOverridesDashboard bool
 }
 
 // featureFlagDefaults defines the default value for each boolean feature flag.

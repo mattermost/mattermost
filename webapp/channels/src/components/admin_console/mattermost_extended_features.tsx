@@ -37,6 +37,8 @@ const MATTERMOST_EXTENDED_FLAGS = [
     'NoOffline',
     'EmbedYoutube',
     'SettingsResorted',
+    'PreferencesRevamp',
+    'PreferenceOverridesDashboard',
 ];
 
 type Props = {

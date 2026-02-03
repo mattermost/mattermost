@@ -13,7 +13,13 @@ import {Client4} from 'mattermost-redux/client';
 
 import AdminHeader from 'components/widgets/admin_console/admin_header';
 
-import {getPreferenceDefinition} from 'utils/preference_definitions';
+import {
+    getPreferenceDefinition,
+    getPreferenceGroup,
+    PREFERENCE_GROUP_INFO,
+    PreferenceGroups,
+} from 'utils/preference_definitions';
+import type {PreferenceGroup} from 'utils/preference_definitions';
 
 import './preference_overrides_dashboard.scss';
 
@@ -159,6 +165,42 @@ const IconRefresh = () => (
     </svg>
 );
 
+const IconCheckCircle = () => (
+    <svg
+        width='16'
+        height='16'
+        viewBox='0 0 24 24'
+        fill='none'
+        stroke='currentColor'
+        strokeWidth='2'
+        strokeLinecap='round'
+        strokeLinejoin='round'
+    >
+        <path d='M22 11.08V12a10 10 0 1 1-5.93-9.14'/>
+        <polyline points='22 4 12 14.01 9 11.01'/>
+    </svg>
+);
+
+const IconSettings = () => (
+    <svg
+        width='20'
+        height='20'
+        viewBox='0 0 24 24'
+        fill='none'
+        stroke='currentColor'
+        strokeWidth='2'
+        strokeLinecap='round'
+        strokeLinejoin='round'
+    >
+        <circle
+            cx='12'
+            cy='12'
+            r='3'
+        />
+        <path d='M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z'/>
+    </svg>
+);
+
 const PreferenceOverridesDashboard: React.FC<Props> = ({config, patchConfig}) => {
     const intl = useIntl();
     const [availablePreferences, setAvailablePreferences] = useState<PreferenceKey[]>([]);
@@ -171,6 +213,13 @@ const PreferenceOverridesDashboard: React.FC<Props> = ({config, patchConfig}) =>
     const [overrides, setOverrides] = useState<Record<string, string>>({});
     const [hasChanges, setHasChanges] = useState(false);
 
+    // Check if features are enabled
+    // PreferencesRevamp is required for the shared definitions
+    // PreferenceOverridesDashboard enables this admin dashboard
+    const preferencesRevampEnabled = config.FeatureFlags?.PreferencesRevamp === true;
+    const dashboardEnabled = config.FeatureFlags?.PreferenceOverridesDashboard === true;
+    const isEnabled = preferencesRevampEnabled && dashboardEnabled;
+
     // Load current overrides from config
     useEffect(() => {
         const currentOverrides = config.MattermostExtendedSettings?.Preferences?.Overrides || {};
@@ -179,6 +228,10 @@ const PreferenceOverridesDashboard: React.FC<Props> = ({config, patchConfig}) =>
 
     // Load available preferences from database
     const loadPreferences = useCallback(async () => {
+        if (!isEnabled) {
+            setLoading(false);
+            return;
+        }
         setLoading(true);
         setError(null);
         try {
@@ -193,14 +246,84 @@ const PreferenceOverridesDashboard: React.FC<Props> = ({config, patchConfig}) =>
         } finally {
             setLoading(false);
         }
-    }, [intl]);
+    }, [intl, isEnabled]);
 
     useEffect(() => {
         loadPreferences();
     }, [loadPreferences]);
 
-    // Group preferences by category
+    // Toggle feature on/off
+    const handleToggleFeature = async () => {
+        try {
+            // IMPORTANT: Spread existing FeatureFlags to avoid overwriting other flags
+            // Enable both PreferencesRevamp (required) and PreferenceOverridesDashboard
+            await patchConfig({
+                FeatureFlags: {
+                    ...config.FeatureFlags,
+                    PreferencesRevamp: !isEnabled ? true : config.FeatureFlags?.PreferencesRevamp,
+                    PreferenceOverridesDashboard: !isEnabled,
+                },
+            });
+        } catch (e) {
+            console.error('Failed to toggle feature:', e);
+        }
+    };
+
+    // Check if SettingsResorted feature flag is enabled
+    const settingsResorted = config.FeatureFlags?.SettingsResorted === true;
+
+    // Group preferences - by SettingsResorted group when enabled, otherwise by category
     const groupedPreferences = useMemo(() => {
+        if (settingsResorted) {
+            // Group by SettingsResorted groups
+            const groups: Record<PreferenceGroup, PreferenceKey[]> = {
+                [PreferenceGroups.TIME_DATE]: [],
+                [PreferenceGroups.TEAMMATES]: [],
+                [PreferenceGroups.MESSAGES]: [],
+                [PreferenceGroups.CHANNEL]: [],
+                [PreferenceGroups.NOTIFICATIONS]: [],
+                [PreferenceGroups.ADVANCED]: [],
+                [PreferenceGroups.SIDEBAR]: [],
+                [PreferenceGroups.THEME]: [],
+                [PreferenceGroups.LANGUAGE]: [],
+            };
+
+            availablePreferences.forEach((pref) => {
+                const group = getPreferenceGroup(pref.category, pref.name);
+                if (group && groups[group]) {
+                    groups[group].push(pref);
+                } else {
+                    // Unknown preferences go to advanced
+                    groups[PreferenceGroups.ADVANCED].push(pref);
+                }
+            });
+
+            // Sort preferences within each group by their defined order
+            Object.keys(groups).forEach((group) => {
+                groups[group as PreferenceGroup].sort((a, b) => {
+                    const defA = getPreferenceDefinition(a.category, a.name);
+                    const defB = getPreferenceDefinition(b.category, b.name);
+                    const orderA = defA?.order ?? 999;
+                    const orderB = defB?.order ?? 999;
+                    return orderA - orderB;
+                });
+            });
+
+            // Filter out empty groups and return as array sorted by group order
+            return Object.entries(groups)
+                .filter(([_, prefs]) => prefs.length > 0)
+                .sort(([groupA], [groupB]) => {
+                    const orderA = PREFERENCE_GROUP_INFO[groupA as PreferenceGroup]?.order ?? 999;
+                    const orderB = PREFERENCE_GROUP_INFO[groupB as PreferenceGroup]?.order ?? 999;
+                    return orderA - orderB;
+                })
+                .reduce((acc, [group, prefs]) => {
+                    acc[group] = prefs;
+                    return acc;
+                }, {} as Record<string, PreferenceKey[]>);
+        }
+
+        // Default: group by category
         const groups: Record<string, PreferenceKey[]> = {};
         availablePreferences.forEach((pref) => {
             if (!groups[pref.category]) {
@@ -215,7 +338,7 @@ const PreferenceOverridesDashboard: React.FC<Props> = ({config, patchConfig}) =>
         });
 
         return groups;
-    }, [availablePreferences]);
+    }, [availablePreferences, settingsResorted]);
 
     // Check if a preference is currently overridden
     const isOverridden = (category: string, name: string): boolean => {
@@ -327,6 +450,86 @@ const PreferenceOverridesDashboard: React.FC<Props> = ({config, patchConfig}) =>
     // Count active overrides
     const activeOverrideCount = Object.keys(overrides).length;
 
+    // Promotional view when feature is disabled
+    if (!isEnabled) {
+        return (
+            <div className='wrapper--fixed PreferenceOverridesDashboard'>
+                <AdminHeader>
+                    <FormattedMessage
+                        id='admin.sidebar.user_preferences'
+                        defaultMessage='User Preferences'
+                    />
+                </AdminHeader>
+                <div className='admin-console__wrapper'>
+                    <div className='PreferenceOverridesDashboard__promotional'>
+                        <div className='PreferenceOverridesDashboard__promotional__icon'>
+                            <IconSettings/>
+                        </div>
+                        <h3>
+                            <FormattedMessage
+                                id='admin.preference_overrides.promo.title'
+                                defaultMessage='Preference Overrides'
+                            />
+                        </h3>
+                        <p>
+                            <FormattedMessage
+                                id='admin.preference_overrides.promo.description'
+                                defaultMessage='Take control of user preferences across your workspace. Override settings for all users and enforce consistent configurations.'
+                            />
+                        </p>
+                        <ul className='PreferenceOverridesDashboard__promotional__features'>
+                            <li>
+                                <IconCheckCircle/>
+                                <FormattedMessage
+                                    id='admin.preference_overrides.promo.feature1'
+                                    defaultMessage='Enforce display settings like clock format and message display'
+                                />
+                            </li>
+                            <li>
+                                <IconCheckCircle/>
+                                <FormattedMessage
+                                    id='admin.preference_overrides.promo.feature2'
+                                    defaultMessage='Control notification preferences for all users'
+                                />
+                            </li>
+                            <li>
+                                <IconCheckCircle/>
+                                <FormattedMessage
+                                    id='admin.preference_overrides.promo.feature3'
+                                    defaultMessage='Overridden settings are hidden from users automatically'
+                                />
+                            </li>
+                            <li>
+                                <IconCheckCircle/>
+                                <FormattedMessage
+                                    id='admin.preference_overrides.promo.feature4'
+                                    defaultMessage='Discover all preferences in use across your workspace'
+                                />
+                            </li>
+                        </ul>
+                        <button
+                            className='btn btn-primary'
+                            onClick={handleToggleFeature}
+                        >
+                            <FormattedMessage
+                                id='admin.preference_overrides.enable'
+                                defaultMessage='Enable Preference Overrides Dashboard'
+                            />
+                        </button>
+                        {!preferencesRevampEnabled && (
+                            <p className='PreferenceOverridesDashboard__promotional__note'>
+                                <FormattedMessage
+                                    id='admin.preference_overrides.promo.note'
+                                    defaultMessage='This will also enable the Preferences Revamp feature flag.'
+                                />
+                            </p>
+                        )}
+                    </div>
+                </div>
+            </div>
+        );
+    }
+
     return (
         <div className='wrapper--fixed PreferenceOverridesDashboard'>
             <AdminHeader>
@@ -437,7 +640,13 @@ const PreferenceOverridesDashboard: React.FC<Props> = ({config, patchConfig}) =>
                                 className='PreferenceOverridesDashboard__category'
                             >
                                 <div className='PreferenceOverridesDashboard__category-header'>
-                                    <h3>{toTitleCase(category)}</h3>
+                                    <h3>
+                                        {settingsResorted && PREFERENCE_GROUP_INFO[category as PreferenceGroup] ? (
+                                            intl.formatMessage(PREFERENCE_GROUP_INFO[category as PreferenceGroup].title)
+                                        ) : (
+                                            toTitleCase(category)
+                                        )}
+                                    </h3>
                                     <span className='PreferenceOverridesDashboard__category-count'>
                                         {prefs.filter((p) => isOverridden(p.category, p.name)).length} / {prefs.length}
                                     </span>

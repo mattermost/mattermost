@@ -10,6 +10,66 @@
 import {defineMessage} from 'react-intl';
 import type {MessageDescriptor} from 'react-intl';
 
+/**
+ * Groups for SettingsResorted feature flag.
+ * When enabled, preferences are organized into these logical groups.
+ */
+export const PreferenceGroups = {
+    THEME: 'theme',
+    TIME_DATE: 'time_date',
+    TEAMMATES: 'teammates',
+    MESSAGES: 'messages',
+    CHANNEL: 'channel',
+    LANGUAGE: 'language',
+    NOTIFICATIONS: 'notifications',
+    ADVANCED: 'advanced',
+    SIDEBAR: 'sidebar',
+} as const;
+
+export type PreferenceGroup = typeof PreferenceGroups[keyof typeof PreferenceGroups];
+
+/**
+ * Group metadata for display in admin panel
+ */
+export const PREFERENCE_GROUP_INFO: Record<PreferenceGroup, {title: MessageDescriptor; order: number}> = {
+    [PreferenceGroups.THEME]: {
+        title: defineMessage({id: 'user.settings.display.section.theme', defaultMessage: 'Theme'}),
+        order: 0,
+    },
+    [PreferenceGroups.TIME_DATE]: {
+        title: defineMessage({id: 'user.settings.display.section.timeDate', defaultMessage: 'Time & Date'}),
+        order: 1,
+    },
+    [PreferenceGroups.TEAMMATES]: {
+        title: defineMessage({id: 'user.settings.display.section.teammates', defaultMessage: 'Teammates'}),
+        order: 2,
+    },
+    [PreferenceGroups.MESSAGES]: {
+        title: defineMessage({id: 'user.settings.display.section.messages', defaultMessage: 'Messages'}),
+        order: 3,
+    },
+    [PreferenceGroups.CHANNEL]: {
+        title: defineMessage({id: 'user.settings.display.section.channel', defaultMessage: 'Channel'}),
+        order: 4,
+    },
+    [PreferenceGroups.LANGUAGE]: {
+        title: defineMessage({id: 'user.settings.display.section.language', defaultMessage: 'Language'}),
+        order: 5,
+    },
+    [PreferenceGroups.NOTIFICATIONS]: {
+        title: defineMessage({id: 'user.settings.notifications.title', defaultMessage: 'Notifications'}),
+        order: 6,
+    },
+    [PreferenceGroups.ADVANCED]: {
+        title: defineMessage({id: 'user.settings.advance.title', defaultMessage: 'Advanced'}),
+        order: 7,
+    },
+    [PreferenceGroups.SIDEBAR]: {
+        title: defineMessage({id: 'user.settings.sidebar.title', defaultMessage: 'Sidebar'}),
+        order: 8,
+    },
+};
+
 // Re-export constants for preference names
 export const PreferenceNames = {
     // Display settings
@@ -56,6 +116,10 @@ export type PreferenceDefinition = {
     description: MessageDescriptor;
     options: PreferenceOption[];
     defaultValue: string;
+    /** Group for SettingsResorted organization */
+    group: PreferenceGroup;
+    /** Order within the group (lower = higher priority) */
+    order: number;
 };
 
 /**
@@ -63,7 +127,7 @@ export type PreferenceDefinition = {
  * The key format is "category:name" to match the database storage format.
  */
 export const PREFERENCE_DEFINITIONS: Record<string, PreferenceDefinition> = {
-    // Display Settings
+    // Time & Date Group
     'display_settings:use_military_time': {
         category: 'display_settings',
         name: 'use_military_time',
@@ -92,8 +156,11 @@ export const PREFERENCE_DEFINITIONS: Record<string, PreferenceDefinition> = {
             },
         ],
         defaultValue: 'false',
+        group: PreferenceGroups.TIME_DATE,
+        order: 0,
     },
 
+    // Channel Group
     'display_settings:channel_display_mode': {
         category: 'display_settings',
         name: 'channel_display_mode',
@@ -122,8 +189,11 @@ export const PREFERENCE_DEFINITIONS: Record<string, PreferenceDefinition> = {
             },
         ],
         defaultValue: 'full',
+        group: PreferenceGroups.CHANNEL,
+        order: 0,
     },
 
+    // Messages Group
     'display_settings:message_display': {
         category: 'display_settings',
         name: 'message_display',
@@ -152,6 +222,8 @@ export const PREFERENCE_DEFINITIONS: Record<string, PreferenceDefinition> = {
             },
         ],
         defaultValue: 'clean',
+        group: PreferenceGroups.MESSAGES,
+        order: 0,
     },
 
     'display_settings:collapse_previews': {
@@ -182,6 +254,8 @@ export const PREFERENCE_DEFINITIONS: Record<string, PreferenceDefinition> = {
             },
         ],
         defaultValue: 'false',
+        group: PreferenceGroups.MESSAGES,
+        order: 3,
     },
 
     'display_settings:link_preview_display': {
@@ -212,6 +286,8 @@ export const PREFERENCE_DEFINITIONS: Record<string, PreferenceDefinition> = {
             },
         ],
         defaultValue: 'true',
+        group: PreferenceGroups.MESSAGES,
+        order: 2,
     },
 
     'display_settings:colorize_usernames': {
@@ -242,8 +318,11 @@ export const PREFERENCE_DEFINITIONS: Record<string, PreferenceDefinition> = {
             },
         ],
         defaultValue: 'false',
+        group: PreferenceGroups.MESSAGES,
+        order: 6,
     },
 
+    // Teammates Group
     'display_settings:name_format': {
         category: 'display_settings',
         name: 'name_format',
@@ -279,6 +358,8 @@ export const PREFERENCE_DEFINITIONS: Record<string, PreferenceDefinition> = {
             },
         ],
         defaultValue: 'username',
+        group: PreferenceGroups.TEAMMATES,
+        order: 0,
     },
 
     'display_settings:availability_status_on_posts': {
@@ -309,6 +390,8 @@ export const PREFERENCE_DEFINITIONS: Record<string, PreferenceDefinition> = {
             },
         ],
         defaultValue: 'true',
+        group: PreferenceGroups.TEAMMATES,
+        order: 1,
     },
 
     'display_settings:collapsed_reply_threads': {
@@ -339,6 +422,8 @@ export const PREFERENCE_DEFINITIONS: Record<string, PreferenceDefinition> = {
             },
         ],
         defaultValue: 'off',
+        group: PreferenceGroups.CHANNEL,
+        order: 1,
     },
 
     'display_settings:click_to_reply': {
@@ -369,6 +454,8 @@ export const PREFERENCE_DEFINITIONS: Record<string, PreferenceDefinition> = {
             },
         ],
         defaultValue: 'true',
+        group: PreferenceGroups.MESSAGES,
+        order: 1,
     },
 
     'display_settings:one_click_reactions_enabled': {
@@ -399,6 +486,8 @@ export const PREFERENCE_DEFINITIONS: Record<string, PreferenceDefinition> = {
             },
         ],
         defaultValue: 'true',
+        group: PreferenceGroups.MESSAGES,
+        order: 4,
     },
 
     'display_settings:always_show_remote_user_hour': {
@@ -429,6 +518,8 @@ export const PREFERENCE_DEFINITIONS: Record<string, PreferenceDefinition> = {
             },
         ],
         defaultValue: 'false',
+        group: PreferenceGroups.TIME_DATE,
+        order: 1,
     },
 
     'display_settings:render_emoticons_as_emoji': {
@@ -459,6 +550,8 @@ export const PREFERENCE_DEFINITIONS: Record<string, PreferenceDefinition> = {
             },
         ],
         defaultValue: 'true',
+        group: PreferenceGroups.MESSAGES,
+        order: 5,
     },
 
     // Notification Settings
@@ -504,6 +597,8 @@ export const PREFERENCE_DEFINITIONS: Record<string, PreferenceDefinition> = {
             },
         ],
         defaultValue: '30',
+        group: PreferenceGroups.NOTIFICATIONS,
+        order: 0,
     },
 
     // Advanced Settings
@@ -535,6 +630,8 @@ export const PREFERENCE_DEFINITIONS: Record<string, PreferenceDefinition> = {
             },
         ],
         defaultValue: 'true',
+        group: PreferenceGroups.ADVANCED,
+        order: 0,
     },
 
     'advanced_settings:send_on_ctrl_enter': {
@@ -565,6 +662,8 @@ export const PREFERENCE_DEFINITIONS: Record<string, PreferenceDefinition> = {
             },
         ],
         defaultValue: 'false',
+        group: PreferenceGroups.ADVANCED,
+        order: 1,
     },
 
     'advanced_settings:code_block_ctrl_enter': {
@@ -595,6 +694,8 @@ export const PREFERENCE_DEFINITIONS: Record<string, PreferenceDefinition> = {
             },
         ],
         defaultValue: 'true',
+        group: PreferenceGroups.ADVANCED,
+        order: 2,
     },
 
     'advanced_settings:join_leave': {
@@ -625,6 +726,8 @@ export const PREFERENCE_DEFINITIONS: Record<string, PreferenceDefinition> = {
             },
         ],
         defaultValue: 'true',
+        group: PreferenceGroups.ADVANCED,
+        order: 3,
     },
 
     'advanced_settings:sync_drafts': {
@@ -655,6 +758,8 @@ export const PREFERENCE_DEFINITIONS: Record<string, PreferenceDefinition> = {
             },
         ],
         defaultValue: 'true',
+        group: PreferenceGroups.ADVANCED,
+        order: 4,
     },
 
     'advanced_settings:unread_scroll_position': {
@@ -685,6 +790,8 @@ export const PREFERENCE_DEFINITIONS: Record<string, PreferenceDefinition> = {
             },
         ],
         defaultValue: 'start_from_left_off',
+        group: PreferenceGroups.ADVANCED,
+        order: 5,
     },
 
     // Sidebar Settings
@@ -716,6 +823,8 @@ export const PREFERENCE_DEFINITIONS: Record<string, PreferenceDefinition> = {
             },
         ],
         defaultValue: 'true',
+        group: PreferenceGroups.SIDEBAR,
+        order: 0,
     },
 
     'sidebar_settings:limit_visible_dms_gms': {
@@ -736,6 +845,8 @@ export const PREFERENCE_DEFINITIONS: Record<string, PreferenceDefinition> = {
             {value: '40', label: defineMessage({id: 'user.settings.sidebar.limitVisibleDmsGms.40', defaultMessage: '40'})},
         ],
         defaultValue: '20',
+        group: PreferenceGroups.SIDEBAR,
+        order: 1,
     },
 };
 
@@ -758,4 +869,47 @@ export function getPreferenceDefinitionsByCategory(category: string): Preference
  */
 export function hasPreferenceDefinition(category: string, name: string): boolean {
     return `${category}:${name}` in PREFERENCE_DEFINITIONS;
+}
+
+/**
+ * Get all preference definitions grouped by their SettingsResorted group.
+ * Returns groups sorted by group order, with preferences within each group sorted by their order.
+ */
+export function getPreferenceDefinitionsGrouped(): Array<{
+    group: PreferenceGroup;
+    groupInfo: {title: MessageDescriptor; order: number};
+    preferences: PreferenceDefinition[];
+}> {
+    const grouped = new Map<PreferenceGroup, PreferenceDefinition[]>();
+
+    // Group preferences
+    Object.values(PREFERENCE_DEFINITIONS).forEach((def) => {
+        const existing = grouped.get(def.group) || [];
+        existing.push(def);
+        grouped.set(def.group, existing);
+    });
+
+    // Sort preferences within each group by order
+    grouped.forEach((prefs) => {
+        prefs.sort((a, b) => a.order - b.order);
+    });
+
+    // Convert to array and sort groups by group order
+    const result = Array.from(grouped.entries()).map(([group, preferences]) => ({
+        group,
+        groupInfo: PREFERENCE_GROUP_INFO[group],
+        preferences,
+    }));
+
+    result.sort((a, b) => a.groupInfo.order - b.groupInfo.order);
+
+    return result;
+}
+
+/**
+ * Get the group for a preference by category and name.
+ */
+export function getPreferenceGroup(category: string, name: string): PreferenceGroup | undefined {
+    const def = getPreferenceDefinition(category, name);
+    return def?.group;
 }

@@ -229,6 +229,14 @@ const FLAG_METADATA: Record<string, {description: string; defaultValue: boolean}
         description: 'Reorganize user settings into more intuitive categories with icons (Time & Date, Teammates, etc.)',
         defaultValue: false,
     },
+    PreferencesRevamp: {
+        description: 'Refactor user preferences to use shared definitions file (required for PreferenceOverridesDashboard)',
+        defaultValue: false,
+    },
+    PreferenceOverridesDashboard: {
+        description: 'Enable admin preference overrides dashboard to enforce user preferences (requires PreferencesRevamp)',
+        defaultValue: false,
+    },
 };
 
 // Styled components

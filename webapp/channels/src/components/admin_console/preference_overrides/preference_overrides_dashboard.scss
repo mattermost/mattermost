@@ -312,4 +312,68 @@
             cursor: not-allowed;
         }
     }
+
+    // Promotional view when feature is disabled
+    &__promotional {
+        background: var(--center-channel-bg);
+        border: 1px solid rgba(var(--center-channel-color-rgb), 0.08);
+        border-radius: 8px;
+        padding: 48px;
+        text-align: center;
+        margin-top: 24px;
+
+        &__icon {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 16px;
+
+            svg {
+                width: 48px;
+                height: 48px;
+                color: var(--button-bg);
+            }
+        }
+
+        h3 {
+            margin: 0 0 12px;
+            font-size: 20px;
+            font-weight: 600;
+        }
+
+        p {
+            margin: 0 0 24px;
+            color: rgba(var(--center-channel-color-rgb), 0.72);
+            max-width: 500px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        &__features {
+            text-align: left;
+            max-width: 450px;
+            margin: 0 auto 24px;
+            list-style: none;
+            padding: 0;
+
+            li {
+                display: flex;
+                align-items: center;
+                gap: 8px;
+                margin-bottom: 8px;
+                color: rgba(var(--center-channel-color-rgb), 0.72);
+
+                svg {
+                    flex-shrink: 0;
+                    color: var(--online-indicator);
+                }
+            }
+        }
+
+        &__note {
+            margin-top: 12px;
+            font-size: 12px;
+            color: rgba(var(--center-channel-color-rgb), 0.56);
+            font-style: italic;
+        }
+    }
 }
