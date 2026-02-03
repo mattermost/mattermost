@@ -13,6 +13,7 @@ import {Client4} from 'mattermost-redux/client';
 
 import webSocketClient from 'client/web_websocket_client';
 
+import ProfilePicture from 'components/profile_picture';
 import AdminHeader from 'components/widgets/admin_console/admin_header';
 
 import './error_log_dashboard.scss';
@@ -346,6 +347,101 @@ const IconCheckCircle = () => (
     </svg>
 );
 
+const IconVolumeX = () => (
+    <svg
+        width='16'
+        height='16'
+        viewBox='0 0 24 24'
+        fill='none'
+        stroke='currentColor'
+        strokeWidth='2'
+        strokeLinecap='round'
+        strokeLinejoin='round'
+    >
+        <polygon points='11 5 6 9 2 9 2 15 6 15 11 19 11 5'/>
+        <line
+            x1='23'
+            y1='9'
+            x2='17'
+            y2='15'
+        />
+        <line
+            x1='17'
+            y1='9'
+            x2='23'
+            y2='15'
+        />
+    </svg>
+);
+
+const IconX = () => (
+    <svg
+        width='14'
+        height='14'
+        viewBox='0 0 24 24'
+        fill='none'
+        stroke='currentColor'
+        strokeWidth='2'
+        strokeLinecap='round'
+        strokeLinejoin='round'
+    >
+        <line
+            x1='18'
+            y1='6'
+            x2='6'
+            y2='18'
+        />
+        <line
+            x1='6'
+            y1='6'
+            x2='18'
+            y2='18'
+        />
+    </svg>
+);
+
+const IconPlus = () => (
+    <svg
+        width='16'
+        height='16'
+        viewBox='0 0 24 24'
+        fill='none'
+        stroke='currentColor'
+        strokeWidth='2'
+        strokeLinecap='round'
+        strokeLinejoin='round'
+    >
+        <line
+            x1='12'
+            y1='5'
+            x2='12'
+            y2='19'
+        />
+        <line
+            x1='5'
+            y1='12'
+            x2='19'
+            y2='12'
+        />
+    </svg>
+);
+
+// LocalStorage key for muted patterns
+const MUTED_PATTERNS_KEY = 'errorLogDashboard_mutedPatterns';
+
+const loadMutedPatterns = (): string[] => {
+    try {
+        const stored = localStorage.getItem(MUTED_PATTERNS_KEY);
+        return stored ? JSON.parse(stored) : [];
+    } catch {
+        return [];
+    }
+};
+
+const saveMutedPatterns = (patterns: string[]) => {
+    localStorage.setItem(MUTED_PATTERNS_KEY, JSON.stringify(patterns));
+};
+
 const ErrorLogDashboard: React.FC<Props> = ({config, patchConfig}) => {
     const intl = useIntl();
     const [errors, setErrors] = useState<ErrorLog[]>([]);
@@ -355,6 +451,9 @@ const ErrorLogDashboard: React.FC<Props> = ({config, patchConfig}) => {
     const [search, setSearch] = useState('');
     const [expandedStacks, setExpandedStacks] = useState<Set<string>>(new Set());
     const [copiedId, setCopiedId] = useState<string | null>(null);
+    const [mutedPatterns, setMutedPatterns] = useState<string[]>(loadMutedPatterns);
+    const [showMutedManager, setShowMutedManager] = useState(false);
+    const [newMutePattern, setNewMutePattern] = useState('');
 
     const isEnabled = config.FeatureFlags?.ErrorLogDashboard === true;
 
@@ -492,6 +591,69 @@ const ErrorLogDashboard: React.FC<Props> = ({config, patchConfig}) => {
         }
     };
 
+    const exportSingleError = (error: ErrorLog) => {
+        const exportData = {
+            exported_at: new Date().toISOString(),
+            error: {
+                id: error.id,
+                type: error.type,
+                timestamp: new Date(error.create_at).toISOString(),
+                message: error.message,
+                user: error.username || null,
+                user_id: error.user_id || null,
+                url: error.url || null,
+                user_agent: error.user_agent || null,
+                ...(error.type === 'api' ? {
+                    endpoint: error.endpoint || null,
+                    method: error.method || null,
+                    status_code: error.status_code || null,
+                    request_payload: error.request_payload ? tryParseJSON(error.request_payload) : null,
+                    response_body: error.response_body ? tryParseJSON(error.response_body) : null,
+                } : {}),
+                stack: error.stack || null,
+                component_stack: error.component_stack || null,
+            },
+        };
+
+        const blob = new Blob([JSON.stringify(exportData, null, 2)], {type: 'application/json'});
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `error-${error.id.slice(0, 8)}-${new Date().toISOString().slice(0, 10)}.json`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+    };
+
+    const addMutedPattern = (pattern: string) => {
+        if (pattern.trim() && !mutedPatterns.includes(pattern.trim())) {
+            const newPatterns = [...mutedPatterns, pattern.trim()];
+            setMutedPatterns(newPatterns);
+            saveMutedPatterns(newPatterns);
+        }
+        setNewMutePattern('');
+    };
+
+    const removeMutedPattern = (pattern: string) => {
+        const newPatterns = mutedPatterns.filter((p) => p !== pattern);
+        setMutedPatterns(newPatterns);
+        saveMutedPatterns(newPatterns);
+    };
+
+    const muteError = (error: ErrorLog) => {
+        // Create a pattern from the error message (first 50 chars or full message if shorter)
+        const pattern = error.message.length > 50 ? error.message.slice(0, 50) : error.message;
+        addMutedPattern(pattern);
+    };
+
+    const isErrorMuted = (error: ErrorLog): boolean => {
+        return mutedPatterns.some((pattern) =>
+            error.message.toLowerCase().includes(pattern.toLowerCase()) ||
+            (error.endpoint && error.endpoint.toLowerCase().includes(pattern.toLowerCase())),
+        );
+    };
+
     const formatErrorForCopy = (error: ErrorLog): string => {
         const lines = [
             `Type: ${error.type === 'api' ? 'API Error' : 'JavaScript Error'}`,
@@ -553,6 +715,10 @@ const ErrorLogDashboard: React.FC<Props> = ({config, patchConfig}) => {
     };
 
     const filteredErrors = errors.filter((error) => {
+        // Filter by muted patterns first
+        if (isErrorMuted(error)) {
+            return false;
+        }
         if (filter !== 'all' && error.type !== filter) {
             return false;
         }
@@ -569,6 +735,8 @@ const ErrorLogDashboard: React.FC<Props> = ({config, patchConfig}) => {
         }
         return true;
     });
+
+    const mutedCount = errors.filter(isErrorMuted).length;
 
     // Promotional card when feature is disabled
     if (!isEnabled) {
@@ -787,16 +955,111 @@ const ErrorLogDashboard: React.FC<Props> = ({config, patchConfig}) => {
                             />
                         </button>
                     </div>
-                    <div className='ErrorLogDashboard__filters__search'>
-                        <IconSearch/>
-                        <input
-                            type='text'
-                            placeholder={intl.formatMessage({id: 'admin.error_log.search', defaultMessage: 'Search errors...'})}
-                            value={search}
-                            onChange={(e) => setSearch(e.target.value)}
-                        />
+                    <div className='ErrorLogDashboard__filters__right'>
+                        <button
+                            className={`ErrorLogDashboard__filters__mute-btn ${showMutedManager ? 'ErrorLogDashboard__filters__mute-btn--active' : ''}`}
+                            onClick={() => setShowMutedManager(!showMutedManager)}
+                            title={intl.formatMessage({id: 'admin.error_log.muted_patterns', defaultMessage: 'Muted Patterns'})}
+                        >
+                            <IconVolumeX/>
+                            {mutedPatterns.length > 0 && (
+                                <span className='ErrorLogDashboard__filters__mute-count'>
+                                    {mutedPatterns.length}
+                                </span>
+                            )}
+                            {mutedCount > 0 && (
+                                <span className='ErrorLogDashboard__filters__muted-errors'>
+                                    <FormattedMessage
+                                        id='admin.error_log.muted_hidden'
+                                        defaultMessage='({count} hidden)'
+                                        values={{count: mutedCount}}
+                                    />
+                                </span>
+                            )}
+                        </button>
+                        <div className='ErrorLogDashboard__filters__search'>
+                            <IconSearch/>
+                            <input
+                                type='text'
+                                placeholder={intl.formatMessage({id: 'admin.error_log.search', defaultMessage: 'Search errors...'})}
+                                value={search}
+                                onChange={(e) => setSearch(e.target.value)}
+                            />
+                        </div>
                     </div>
                 </div>
+
+                {/* Muted Patterns Manager */}
+                {showMutedManager && (
+                    <div className='ErrorLogDashboard__muted-manager'>
+                        <div className='ErrorLogDashboard__muted-manager__header'>
+                            <h4>
+                                <FormattedMessage
+                                    id='admin.error_log.muted_patterns_title'
+                                    defaultMessage='Muted Patterns'
+                                />
+                            </h4>
+                            <span className='ErrorLogDashboard__muted-manager__desc'>
+                                <FormattedMessage
+                                    id='admin.error_log.muted_patterns_desc'
+                                    defaultMessage='Errors matching these patterns will be hidden'
+                                />
+                            </span>
+                        </div>
+                        <div className='ErrorLogDashboard__muted-manager__add'>
+                            <input
+                                type='text'
+                                placeholder={intl.formatMessage({id: 'admin.error_log.add_pattern', defaultMessage: 'Add pattern to mute...'})}
+                                value={newMutePattern}
+                                onChange={(e) => setNewMutePattern(e.target.value)}
+                                onKeyDown={(e) => {
+                                    if (e.key === 'Enter') {
+                                        addMutedPattern(newMutePattern);
+                                    }
+                                }}
+                            />
+                            <button
+                                className='btn btn-primary btn-sm'
+                                onClick={() => addMutedPattern(newMutePattern)}
+                                disabled={!newMutePattern.trim()}
+                            >
+                                <IconPlus/>
+                                <FormattedMessage
+                                    id='admin.error_log.add'
+                                    defaultMessage='Add'
+                                />
+                            </button>
+                        </div>
+                        {mutedPatterns.length === 0 ? (
+                            <div className='ErrorLogDashboard__muted-manager__empty'>
+                                <FormattedMessage
+                                    id='admin.error_log.no_muted_patterns'
+                                    defaultMessage='No muted patterns. Click "Mute similar" on any error to add one.'
+                                />
+                            </div>
+                        ) : (
+                            <div className='ErrorLogDashboard__muted-manager__list'>
+                                {mutedPatterns.map((pattern) => (
+                                    <div
+                                        key={pattern}
+                                        className='ErrorLogDashboard__muted-manager__item'
+                                    >
+                                        <span className='ErrorLogDashboard__muted-manager__pattern'>
+                                            {pattern}
+                                        </span>
+                                        <button
+                                            className='ErrorLogDashboard__muted-manager__remove'
+                                            onClick={() => removeMutedPattern(pattern)}
+                                            title={intl.formatMessage({id: 'admin.error_log.remove_pattern', defaultMessage: 'Remove pattern'})}
+                                        >
+                                            <IconX/>
+                                        </button>
+                                    </div>
+                                ))}
+                            </div>
+                        )}
+                    </div>
+                )}
 
                 {/* Error List */}
                 {loading ? (
@@ -848,7 +1111,21 @@ const ErrorLogDashboard: React.FC<Props> = ({config, patchConfig}) => {
                                     </span>
                                     <div className='ErrorLogDashboard__error-card__header-right'>
                                         <button
-                                            className='ErrorLogDashboard__error-card__copy-btn'
+                                            className='ErrorLogDashboard__error-card__action-btn'
+                                            onClick={() => muteError(error)}
+                                            title={intl.formatMessage({id: 'admin.error_log.mute_similar', defaultMessage: 'Mute similar errors'})}
+                                        >
+                                            <IconVolumeX/>
+                                        </button>
+                                        <button
+                                            className='ErrorLogDashboard__error-card__action-btn'
+                                            onClick={() => exportSingleError(error)}
+                                            title={intl.formatMessage({id: 'admin.error_log.export_single', defaultMessage: 'Export as JSON'})}
+                                        >
+                                            <IconDownload/>
+                                        </button>
+                                        <button
+                                            className='ErrorLogDashboard__error-card__action-btn'
                                             onClick={() => copyError(error)}
                                             title={intl.formatMessage({id: 'admin.error_log.copy', defaultMessage: 'Copy error details'})}
                                         >
@@ -878,8 +1155,16 @@ const ErrorLogDashboard: React.FC<Props> = ({config, patchConfig}) => {
 
                                 <div className='ErrorLogDashboard__error-card__meta'>
                                     {error.username && (
-                                        <span className='ErrorLogDashboard__error-card__meta__item'>
-                                            <IconUser/>
+                                        <span className='ErrorLogDashboard__error-card__meta__item ErrorLogDashboard__error-card__meta__item--user'>
+                                            {error.user_id ? (
+                                                <ProfilePicture
+                                                    src={Client4.getProfilePictureUrl(error.user_id, 0)}
+                                                    size='xs'
+                                                    username={error.username}
+                                                />
+                                            ) : (
+                                                <IconUser/>
+                                            )}
                                             {error.username}
                                         </span>
                                     )}

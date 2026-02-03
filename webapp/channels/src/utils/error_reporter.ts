@@ -43,25 +43,42 @@ async function reportError(error: {
     response_body?: string;
 }) {
     try {
+        // eslint-disable-next-line no-console
+        console.log('[ErrorReporter] reportError called:', error.type, error.message?.slice(0, 100));
+
         // Create a key to deduplicate errors
         const errorKey = `${error.type}:${error.message}:${error.stack?.slice(0, 200) || ''}`;
 
         if (!shouldReportError(errorKey)) {
+            // eslint-disable-next-line no-console
+            console.log('[ErrorReporter] Debounced, skipping');
             return;
         }
 
+        // eslint-disable-next-line no-console
+        console.log('[ErrorReporter] Sending to server...');
         await Client4.reportError(error);
+        // eslint-disable-next-line no-console
+        console.log('[ErrorReporter] Sent successfully');
     } catch (e) {
         // Silently fail - don't want error reporting to cause errors
-        console.warn('Failed to report error:', e);
+        console.warn('[ErrorReporter] Failed to report error:', e);
     }
 }
 
 export function initErrorReporter() {
+    // eslint-disable-next-line no-console
+    console.log('[ErrorReporter] Initializing error reporter...');
+
     // Global error handler for uncaught errors
     window.addEventListener('error', (event) => {
+        // eslint-disable-next-line no-console
+        console.log('[ErrorReporter] window.error event:', event.message, 'filename:', event.filename);
+
         // Ignore errors from extensions or external scripts
         if (event.filename && !event.filename.includes(window.location.origin)) {
+            // eslint-disable-next-line no-console
+            console.log('[ErrorReporter] Ignoring external script error');
             return;
         }
 
@@ -77,6 +94,9 @@ export function initErrorReporter() {
 
     // Unhandled promise rejection handler
     window.addEventListener('unhandledrejection', (event) => {
+        // eslint-disable-next-line no-console
+        console.log('[ErrorReporter] unhandledrejection event:', event.reason);
+
         const reason = event.reason;
         let message = 'Unhandled promise rejection';
         let stack = '';
@@ -120,6 +140,9 @@ export function initErrorReporter() {
 
         // Only report if it looks like a real error (not just logging)
         if (message.toLowerCase().includes('error') || args.some((arg) => arg instanceof Error)) {
+            // eslint-disable-next-line no-console
+            console.log('[ErrorReporter] console.error captured:', message.slice(0, 100));
+
             const error = args.find((arg) => arg instanceof Error) as Error | undefined;
             reportError({
                 type: 'js',
@@ -129,6 +152,9 @@ export function initErrorReporter() {
             });
         }
     };
+
+    // eslint-disable-next-line no-console
+    console.log('[ErrorReporter] Error reporter initialized');
 }
 
 // Export for manual error reporting (e.g., from React Error Boundaries)
