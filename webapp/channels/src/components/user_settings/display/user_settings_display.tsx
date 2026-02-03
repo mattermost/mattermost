@@ -113,10 +113,14 @@ type SectionProps ={
     onSubmit?: () => void;
 }
 
+// Display modes for split tabs when SettingsResorted is enabled
+export type DisplayMode = 'all' | 'theme' | 'time' | 'teammates' | 'messages' | 'channel' | 'language';
+
 export type OwnProps = {
     user: UserProfile;
     adminMode?: boolean;
     userPreferences?: PreferencesType;
+    displayMode?: DisplayMode; // When set, only show settings for this mode
 }
 
 type Props = OwnProps & {
@@ -1258,36 +1262,77 @@ export default class UserSettingsDisplay extends React.PureComponent<Props, Stat
             </div>
         );
 
-        return (
-            <div
-                id='displaySettings'
-                aria-labelledby='displayButton'
-                role='tabpanel'
-            >
-                <SettingMobileHeader
-                    closeModal={this.props.closeModal}
-                    collapseModal={this.props.collapseModal}
-                    text={
-                        <FormattedMessage
-                            id='user.settings.display.title'
-                            defaultMessage='Display Settings'
-                        />
-                    }
-                />
-                <div className='user-settings'>
-                    <SettingDesktopHeader
-                        id='displaySettingsTitle'
-                        text={
-                            <FormattedMessage
-                                id='user.settings.display.title'
-                                defaultMessage='Display Settings'
-                            />
-                        }
-                    />
-                    <div className='divider-dark first'/>
-                    {themeSection}
-                    {this.props.settingsResorted ? (
+        // Get header title based on display mode
+        const getHeaderTitle = (): React.ReactNode => {
+            const {displayMode} = this.props;
+            switch (displayMode) {
+            case 'theme':
+                return <FormattedMessage id='user.settings.display.theme.title' defaultMessage='Theme'/>;
+            case 'time':
+                return <FormattedMessage id='user.settings.display.timeDate.title' defaultMessage='Time & Date'/>;
+            case 'teammates':
+                return <FormattedMessage id='user.settings.display.teammates.title' defaultMessage='Teammates'/>;
+            case 'messages':
+                return <FormattedMessage id='user.settings.display.messages.title' defaultMessage='Messages'/>;
+            case 'channel':
+                return <FormattedMessage id='user.settings.display.channel.title' defaultMessage='Channel'/>;
+            case 'language':
+                return <FormattedMessage id='user.settings.display.language.title' defaultMessage='Language'/>;
+            default:
+                return <FormattedMessage id='user.settings.display.title' defaultMessage='Display Settings'/>;
+            }
+        };
+
+        // Render sections based on display mode
+        const renderSections = (): React.ReactNode => {
+            const {displayMode} = this.props;
+
+            // When displayMode is set (split tabs), show only that section's settings
+            switch (displayMode) {
+            case 'theme':
+                return themeSection;
+            case 'time':
+                return (
+                    <>
+                        {clockSection}
+                        {timezoneSelection}
+                        {alwaysShowRemoteUserHourSection}
+                    </>
+                );
+            case 'teammates':
+                return (
+                    <>
+                        {teammateNameDisplaySection}
+                        {availabilityStatusOnPostsSection}
+                        {lastActiveSection}
+                    </>
+                );
+            case 'messages':
+                return (
+                    <>
+                        {messageDisplaySection}
+                        {clickToReply}
+                        {linkPreviewSection}
+                        {collapseSection}
+                        {oneClickReactionsOnPostsSection}
+                        {renderEmoticonsAsEmojiSection}
+                    </>
+                );
+            case 'channel':
+                return (
+                    <>
+                        {channelDisplayModeSection}
+                        {collapsedReplyThreads}
+                    </>
+                );
+            case 'language':
+                return languagesSection;
+            default:
+                // Original combined display - show all sections
+                if (this.props.settingsResorted) {
+                    return (
                         <>
+                            {themeSection}
                             {/* Time & Date Section */}
                             <SectionHeader
                                 icon={<ClockOutlineIcon size={14}/>}
@@ -1329,25 +1374,51 @@ export default class UserSettingsDisplay extends React.PureComponent<Props, Stat
                             {/* Language */}
                             {languagesSection}
                         </>
-                    ) : (
-                        <>
-                            {collapsedReplyThreads}
-                            {clockSection}
-                            {alwaysShowRemoteUserHourSection}
-                            {teammateNameDisplaySection}
-                            {availabilityStatusOnPostsSection}
-                            {lastActiveSection}
-                            {timezoneSelection}
-                            {linkPreviewSection}
-                            {collapseSection}
-                            {messageDisplaySection}
-                            {clickToReply}
-                            {channelDisplayModeSection}
-                            {oneClickReactionsOnPostsSection}
-                            {renderEmoticonsAsEmojiSection}
-                            {languagesSection}
-                        </>
-                    )}
+                    );
+                }
+                return (
+                    <>
+                        {themeSection}
+                        {collapsedReplyThreads}
+                        {clockSection}
+                        {alwaysShowRemoteUserHourSection}
+                        {teammateNameDisplaySection}
+                        {availabilityStatusOnPostsSection}
+                        {lastActiveSection}
+                        {timezoneSelection}
+                        {linkPreviewSection}
+                        {collapseSection}
+                        {messageDisplaySection}
+                        {clickToReply}
+                        {channelDisplayModeSection}
+                        {oneClickReactionsOnPostsSection}
+                        {renderEmoticonsAsEmojiSection}
+                        {languagesSection}
+                    </>
+                );
+            }
+        };
+
+        const headerTitle = getHeaderTitle();
+
+        return (
+            <div
+                id='displaySettings'
+                aria-labelledby='displayButton'
+                role='tabpanel'
+            >
+                <SettingMobileHeader
+                    closeModal={this.props.closeModal}
+                    collapseModal={this.props.collapseModal}
+                    text={headerTitle}
+                />
+                <div className='user-settings'>
+                    <SettingDesktopHeader
+                        id='displaySettingsTitle'
+                        text={headerTitle}
+                    />
+                    <div className='divider-dark first'/>
+                    {renderSections()}
                 </div>
             </div>
         );

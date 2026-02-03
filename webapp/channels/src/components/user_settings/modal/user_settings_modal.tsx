@@ -265,7 +265,7 @@ class UserSettingsModal extends React.PureComponent<Props, State> {
         const config = getConfig(store.getState());
         const settingsResorted = config.FeatureFlagSettingsResorted === 'true';
 
-        // When SettingsResorted is enabled, organize tabs into categories
+        // When SettingsResorted is enabled, split Display into separate tabs
         if (settingsResorted) {
             const tabs = [
                 {
@@ -273,21 +273,48 @@ class UserSettingsModal extends React.PureComponent<Props, State> {
                     uiName: formatMessage({id: 'user.settings.modal.notifications', defaultMessage: 'Notifications'}),
                     icon: 'icon icon-bell-outline',
                     iconTitle: formatMessage({id: 'user.settings.notifications.icon', defaultMessage: 'Notification Settings Icon'}),
-                    category: formatMessage({id: 'user.settings.category.communication', defaultMessage: 'COMMUNICATION'}),
                 },
                 {
-                    name: 'display',
-                    uiName: formatMessage({id: 'user.settings.modal.display', defaultMessage: 'Display'}),
-                    icon: 'icon icon-eye-outline',
-                    iconTitle: formatMessage({id: 'user.settings.display.icon', defaultMessage: 'Display Settings Icon'}),
-                    category: formatMessage({id: 'user.settings.category.appearance', defaultMessage: 'APPEARANCE'}),
+                    name: 'display_theme',
+                    uiName: formatMessage({id: 'user.settings.modal.theme', defaultMessage: 'Theme'}),
+                    icon: 'icon icon-palette-outline',
+                    iconTitle: formatMessage({id: 'user.settings.theme.icon', defaultMessage: 'Theme Settings Icon'}),
+                },
+                {
+                    name: 'display_time',
+                    uiName: formatMessage({id: 'user.settings.modal.timeDate', defaultMessage: 'Time & Date'}),
+                    icon: 'icon icon-clock-outline',
+                    iconTitle: formatMessage({id: 'user.settings.timeDate.icon', defaultMessage: 'Time & Date Settings Icon'}),
+                },
+                {
+                    name: 'display_teammates',
+                    uiName: formatMessage({id: 'user.settings.modal.teammates', defaultMessage: 'Teammates'}),
+                    icon: 'icon icon-account-multiple-outline',
+                    iconTitle: formatMessage({id: 'user.settings.teammates.icon', defaultMessage: 'Teammates Settings Icon'}),
+                },
+                {
+                    name: 'display_messages',
+                    uiName: formatMessage({id: 'user.settings.modal.messages', defaultMessage: 'Messages'}),
+                    icon: 'icon icon-message-text-outline',
+                    iconTitle: formatMessage({id: 'user.settings.messages.icon', defaultMessage: 'Messages Settings Icon'}),
+                },
+                {
+                    name: 'display_channel',
+                    uiName: formatMessage({id: 'user.settings.modal.channel', defaultMessage: 'Channel'}),
+                    icon: 'icon icon-globe',
+                    iconTitle: formatMessage({id: 'user.settings.channel.icon', defaultMessage: 'Channel Settings Icon'}),
+                },
+                {
+                    name: 'display_language',
+                    uiName: formatMessage({id: 'user.settings.modal.language', defaultMessage: 'Language'}),
+                    icon: 'icon icon-translate',
+                    iconTitle: formatMessage({id: 'user.settings.language.icon', defaultMessage: 'Language Settings Icon'}),
                 },
                 {
                     name: 'sidebar',
                     uiName: formatMessage({id: 'user.settings.modal.sidebar', defaultMessage: 'Sidebar'}),
                     icon: 'icon icon-dock-left',
                     iconTitle: formatMessage({id: 'user.settings.sidebar.icon', defaultMessage: 'Sidebar Settings Icon'}),
-                    category: formatMessage({id: 'user.settings.category.appearance', defaultMessage: 'APPEARANCE'}),
                 },
             ];
 
@@ -298,7 +325,6 @@ class UserSettingsModal extends React.PureComponent<Props, State> {
                     uiName: formatMessage({id: 'user.settings.modal.sounds', defaultMessage: 'Sounds'}),
                     icon: 'icon icon-volume-high',
                     iconTitle: formatMessage({id: 'user.settings.sounds.icon', defaultMessage: 'Sounds Settings Icon'}),
-                    category: formatMessage({id: 'user.settings.category.appearance', defaultMessage: 'APPEARANCE'}),
                 });
             }
 
@@ -307,13 +333,12 @@ class UserSettingsModal extends React.PureComponent<Props, State> {
                 uiName: formatMessage({id: 'user.settings.modal.advanced', defaultMessage: 'Advanced'}),
                 icon: 'icon icon-tune',
                 iconTitle: formatMessage({id: 'user.settings.advance.icon', defaultMessage: 'Advanced Settings Icon'}),
-                category: formatMessage({id: 'user.settings.category.advanced', defaultMessage: 'ADVANCED'}),
             });
 
             return tabs;
         }
 
-        // Default tabs without categories
+        // Default tabs without splitting Display
         const tabs = [
             {
                 name: 'notifications',

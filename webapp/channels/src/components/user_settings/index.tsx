@@ -10,6 +10,7 @@ import type {PluginConfiguration} from 'types/plugins/user_settings';
 
 import AdvancedTab from './advanced';
 import DisplayTab from './display';
+import type {DisplayMode} from './display/user_settings_display';
 import GeneralTab from './general';
 import NotificationsTab from './notifications';
 import PluginTab from './plugin';
@@ -29,6 +30,16 @@ export type Props = {
     pluginSettings: {[tabName: string]: PluginConfiguration};
     userPreferences?: PreferencesType;
     adminMode?: boolean;
+};
+
+// Map split display tabs to their display modes
+const DISPLAY_TAB_MODES: Record<string, DisplayMode> = {
+    display_theme: 'theme',
+    display_time: 'time',
+    display_teammates: 'teammates',
+    display_messages: 'messages',
+    display_channel: 'channel',
+    display_language: 'language',
 };
 
 export default function UserSettings(props: Props) {
@@ -84,6 +95,23 @@ export default function UserSettings(props: Props) {
                     setRequireConfirm={props.setRequireConfirm}
                     adminMode={props.adminMode}
                     userPreferences={props.userPreferences}
+                />
+            </div>
+        );
+    } else if (props.activeTab && DISPLAY_TAB_MODES[props.activeTab]) {
+        // Split display tabs (when SettingsResorted is enabled)
+        return (
+            <div>
+                <DisplayTab
+                    user={props.user}
+                    activeSection={props.activeSection}
+                    updateSection={props.updateSection}
+                    closeModal={props.closeModal}
+                    collapseModal={props.collapseModal}
+                    setRequireConfirm={props.setRequireConfirm}
+                    adminMode={props.adminMode}
+                    userPreferences={props.userPreferences}
+                    displayMode={DISPLAY_TAB_MODES[props.activeTab]}
                 />
             </div>
         );
