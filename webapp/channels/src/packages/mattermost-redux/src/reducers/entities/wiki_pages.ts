@@ -236,8 +236,9 @@ function deletedDraftTimestamps(state: Record<string, number> = {}, action: AnyA
         if (!state[draftId]) {
             return state;
         }
-        const {[draftId]: _, ...rest} = state;
-        return rest;
+        const nextState = {...state};
+        delete nextState[draftId];
+        return nextState;
     }
     case WikiTypes.CLEANUP_DELETED_DRAFT_TIMESTAMPS: {
         const {staleThreshold} = action.data;

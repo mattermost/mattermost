@@ -2787,6 +2787,7 @@ type AutoTranslationSettings struct {
 	Enable          *bool                           `access:"site_localization,cloud_restrictable"`
 	Provider        *string                         `access:"site_localization,cloud_restrictable"`
 	TargetLanguages *[]string                       `access:"site_localization,cloud_restrictable"`
+	Workers         *int                            `access:"site_localization,cloud_restrictable"`
 	TimeoutMs       *int                            `access:"site_localization,cloud_restrictable"`
 	LibreTranslate  *LibreTranslateProviderSettings `access:"site_localization,cloud_restrictable"`
 	Agents          *AgentsProviderSettings         `access:"site_localization,cloud_restrictable"`
@@ -2813,6 +2814,10 @@ func (s *AutoTranslationSettings) SetDefaults() {
 
 	if s.TargetLanguages == nil {
 		s.TargetLanguages = &[]string{"en"}
+	}
+
+	if s.Workers == nil {
+		s.Workers = NewPointer(4)
 	}
 
 	if s.TimeoutMs == nil {
@@ -4833,6 +4838,11 @@ func (s *AutoTranslationSettings) isValid() *AppError {
 	// Validate timeout if set (must be positive)
 	if s.TimeoutMs != nil && *s.TimeoutMs <= 0 {
 		return NewAppError("Config.IsValid", "model.config.is_valid.autotranslation.timeout.app_error", nil, "", http.StatusBadRequest)
+	}
+
+	// Validate workers if set (must be between 1 and 32)
+	if s.Workers != nil && (*s.Workers < 1 || *s.Workers > 32) {
+		return NewAppError("Config.IsValid", "model.config.is_valid.autotranslation.workers.app_error", nil, "", http.StatusBadRequest)
 	}
 
 	return nil

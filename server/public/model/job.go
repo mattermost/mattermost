@@ -49,6 +49,7 @@ const (
 	JobTypeDeleteExpiredPosts            = "delete_expired_posts"
 	JobTypeWikiExport                    = "wiki_export"
 	JobTypeWikiImport                    = "wiki_import"
+	JobTypeAutoTranslationRecovery       = "autotranslation_recovery"
 
 	JobStatusPending         = "pending"
 	JobStatusInProgress      = "in_progress"
