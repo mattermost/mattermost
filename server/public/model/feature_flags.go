@@ -141,6 +141,9 @@ type FeatureFlags struct {
 
 	// Prevent users from being/staying offline when they show activity
 	NoOffline bool
+
+	// Discord-style YouTube embeds (card with red bar, no collapse button)
+	EmbedYoutube bool
 }
 
 // featureFlagDefaults defines the default value for each boolean feature flag.

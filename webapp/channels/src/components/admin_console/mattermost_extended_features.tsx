@@ -35,6 +35,7 @@ const MATTERMOST_EXTENDED_FLAGS = [
     'VideoLinkEmbed',
     'AccurateStatuses',
     'NoOffline',
+    'EmbedYoutube',
 ];
 
 type Props = {

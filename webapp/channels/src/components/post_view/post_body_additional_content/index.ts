@@ -6,6 +6,7 @@ import {bindActionCreators} from 'redux';
 import type {Dispatch} from 'redux';
 
 import {appsEnabled} from 'mattermost-redux/selectors/entities/apps';
+import {getConfig} from 'mattermost-redux/selectors/entities/general';
 
 import {toggleEmbedVisibility} from 'actions/post_actions';
 import {isEmbedVisible} from 'selectors/posts';
@@ -17,11 +18,14 @@ import type {
     Props,
 } from './post_body_additional_content';
 
-function mapStateToProps(state: GlobalState, ownProps: Omit<Props, 'appsEnabled' | 'actions'>) {
+function mapStateToProps(state: GlobalState, ownProps: Omit<Props, 'appsEnabled' | 'actions' | 'embedYoutubeEnabled'>) {
+    const config = getConfig(state);
+
     return {
         isEmbedVisible: isEmbedVisible(state, ownProps.post.id),
         pluginPostWillRenderEmbedComponents: state.plugins.components.PostWillRenderEmbedComponent,
         appsEnabled: appsEnabled(state),
+        embedYoutubeEnabled: config.FeatureFlagEmbedYoutube === 'true',
     };
 }
 

@@ -221,6 +221,10 @@ const FLAG_METADATA: Record<string, {description: string; defaultValue: boolean}
         description: 'Prevent users from being or staying offline when they show activity. Hides Offline option from status menu',
         defaultValue: false,
     },
+    EmbedYoutube: {
+        description: 'Discord-style YouTube embeds with a card layout, red accent bar, and no collapse button',
+        defaultValue: false,
+    },
 };
 
 // Styled components

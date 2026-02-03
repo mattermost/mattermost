@@ -1,0 +1,137 @@
+// Discord-style YouTube embed
+.YoutubeVideoDiscord {
+    position: relative;
+    display: flex;
+    width: 100%;
+    max-width: 432px;
+    margin: 5px 0;
+    background-color: rgba(var(--center-channel-color-rgb), 0.04);
+    border-radius: 4px;
+    overflow: hidden;
+
+    // Red accent bar on the left (YouTube brand color)
+    &::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 4px;
+        height: 100%;
+        background-color: #ff0000;
+        border-radius: 4px 0 0 4px;
+    }
+
+    &__content {
+        display: flex;
+        flex-direction: column;
+        padding: 12px 16px 12px 12px;
+        margin-left: 4px;
+        width: 100%;
+    }
+
+    &__header {
+        display: flex;
+        align-items: center;
+        margin-bottom: 4px;
+    }
+
+    &__source {
+        color: rgba(var(--center-channel-color-rgb), 0.64);
+        font-size: 12px;
+        font-weight: 400;
+        line-height: 16px;
+    }
+
+    &__title {
+        display: -webkit-box;
+        overflow: hidden;
+        color: var(--link-color);
+        font-size: 14px;
+        font-weight: 600;
+        line-height: 20px;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        margin-bottom: 8px;
+        text-decoration: none;
+
+        &:hover {
+            text-decoration: underline;
+        }
+    }
+
+    &__media {
+        position: relative;
+        width: 100%;
+        border-radius: 4px;
+        overflow: hidden;
+    }
+
+    &__thumbnail {
+        position: relative;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        aspect-ratio: 16 / 9;
+        background-color: rgba(var(--center-channel-color-rgb), 0.08);
+
+        img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        &:hover .YoutubeVideoDiscord__play-button {
+            opacity: 1;
+        }
+
+        &:focus {
+            outline: 2px solid var(--button-bg);
+            outline-offset: 2px;
+        }
+
+        &:focus:not(:focus-visible) {
+            outline: none;
+        }
+    }
+
+    &__play-button {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        opacity: 0.85;
+        transition: opacity 0.15s ease;
+        pointer-events: none;
+
+        svg {
+            display: block;
+        }
+    }
+
+    &__play-bg {
+        fill: #212121;
+        fill-opacity: 0.8;
+    }
+
+    &__play-icon {
+        fill: #fff;
+    }
+
+    &__player {
+        width: 100%;
+        aspect-ratio: 16 / 9;
+        background-color: #000;
+
+        iframe {
+            width: 100%;
+            height: 100%;
+            border: none;
+        }
+    }
+}
+
+// Dark theme adjustments
+.theme--dark .YoutubeVideoDiscord {
+    background-color: rgba(var(--center-channel-color-rgb), 0.06);
+}

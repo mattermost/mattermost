@@ -16,6 +16,7 @@ import PostAttachmentOpenGraph from 'components/post_view/post_attachment_opengr
 import PostImage from 'components/post_view/post_image';
 import PostMessagePreview from 'components/post_view/post_message_preview';
 import YoutubeVideo from 'components/youtube_video';
+import YoutubeVideoDiscord from 'components/youtube_video/youtube_video_discord_index';
 
 import webSocketClient from 'client/web_websocket_client';
 import type {TextFormattingOptions} from 'utils/text_formatting';
@@ -31,6 +32,7 @@ export type Props = {
     isEmbedVisible?: boolean;
     options?: Partial<TextFormattingOptions>;
     appsEnabled: boolean;
+    embedYoutubeEnabled?: boolean;
     handleFileDropdownOpened?: (open: boolean) => void;
     actions: {
         toggleEmbedVisibility: (id: string) => void;
@@ -53,6 +55,11 @@ export default class PostBodyAdditionalContent extends React.PureComponent<Props
             if (c.match(embed)) {
                 return Boolean(c.toggleable);
             }
+        }
+
+        // Discord-style YouTube embeds don't have a toggle
+        if (embed.type === 'opengraph' && YoutubeVideo.isYoutubeLink(embed.url) && this.props.embedYoutubeEnabled) {
+            return false;
         }
 
         return embed.type === 'image' || (embed.type === 'opengraph' && YoutubeVideo.isYoutubeLink(embed.url));
@@ -100,6 +107,17 @@ export default class PostBodyAdditionalContent extends React.PureComponent<Props
 
         case 'opengraph':
             if (YoutubeVideo.isYoutubeLink(embed.url)) {
+                // Discord-style YouTube embed (always visible, no toggle)
+                if (this.props.embedYoutubeEnabled) {
+                    return (
+                        <YoutubeVideoDiscord
+                            postId={this.props.post.id}
+                            link={embed.url}
+                        />
+                    );
+                }
+
+                // Original style (with toggle)
                 if (!this.props.isEmbedVisible) {
                     return null;
                 }
