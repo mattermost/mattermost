@@ -7,6 +7,7 @@ import {CloudTypes} from 'mattermost-redux/action_types';
 import {getCloudCustomer, getCloudProducts, getCloudSubscription, getInvoices} from 'mattermost-redux/actions/cloud';
 import {Client4} from 'mattermost-redux/client';
 import {getCloudErrors} from 'mattermost-redux/selectors/entities/cloud';
+import {getConfig} from 'mattermost-redux/selectors/entities/general';
 
 import type {ActionFunc, ThunkActionFunc} from 'types/store';
 
@@ -22,7 +23,11 @@ export function getInstallation() {
 }
 
 export function validateBusinessEmail(email = '') {
-    return async () => {
+    return async (_dispatch: unknown, getState: () => unknown) => {
+        const config = getConfig(getState() as Parameters<typeof getConfig>[0]);
+        if (config?.FeatureFlagSuppressEnterpriseUpgradeChecks === 'true') {
+            return true; // Skip validation when enterprise checks are suppressed
+        }
         try {
             const res = await Client4.validateBusinessEmail(email);
             return res.data.is_valid;
@@ -33,7 +38,11 @@ export function validateBusinessEmail(email = '') {
 }
 
 export function validateWorkspaceBusinessEmail() {
-    return async () => {
+    return async (_dispatch: unknown, getState: () => unknown) => {
+        const config = getConfig(getState() as Parameters<typeof getConfig>[0]);
+        if (config?.FeatureFlagSuppressEnterpriseUpgradeChecks === 'true') {
+            return true; // Skip validation when enterprise checks are suppressed
+        }
         try {
             const res = await Client4.validateWorkspaceBusinessEmail();
             return res.data.is_valid;

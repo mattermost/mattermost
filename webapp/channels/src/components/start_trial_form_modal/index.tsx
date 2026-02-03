@@ -104,7 +104,7 @@ function StartTrialFormModal(props: Props): JSX.Element | null {
             setBusinessEmailError(undefined);
             return;
         }
-        const isBusinessEmail = await validateBusinessEmail(email)();
+        const isBusinessEmail = await dispatch(validateBusinessEmail(email));
 
         if (isBusinessEmail) {
             setBusinessEmailError(undefined);
