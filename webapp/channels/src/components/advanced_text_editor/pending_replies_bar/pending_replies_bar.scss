@@ -10,7 +10,7 @@
     border-radius: 4px 4px 0 0;
     font-size: 0.85rem;
     color: rgba(var(--center-channel-color-rgb), 0.72);
-    margin: 0 16px;
+    margin: 0 24px;  // Match AdvancedTextEditor padding
 
     .pending-label {
         color: rgba(var(--center-channel-color-rgb), 0.56);
@@ -83,6 +83,16 @@
         &:hover {
             background: rgba(var(--center-channel-color-rgb), 0.08);
             color: rgba(var(--center-channel-color-rgb), 0.9);
+        }
+    }
+}
+
+// Match AdvancedTextEditor responsive behavior
+@media screen and (max-width: 768px) {
+    #post-create {
+        .discord-pending-replies {
+            margin: 0;
+            border-radius: 0;
         }
     }
 }
