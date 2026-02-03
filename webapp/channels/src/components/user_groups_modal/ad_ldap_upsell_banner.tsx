@@ -10,7 +10,7 @@ import type {GlobalState} from '@mattermost/types/store';
 
 import {getPrevTrialLicense} from 'mattermost-redux/actions/admin';
 import {checkHadPriorTrial, isCurrentLicenseCloud, getSubscriptionProduct as selectSubscriptionProduct} from 'mattermost-redux/selectors/entities/cloud';
-import {getLicense} from 'mattermost-redux/selectors/entities/general';
+import {getConfig, getLicense} from 'mattermost-redux/selectors/entities/general';
 import {getCurrentUser} from 'mattermost-redux/selectors/entities/users';
 import {isAdmin} from 'mattermost-redux/utils/user_utils';
 
@@ -27,10 +27,15 @@ function ADLDAPUpsellBanner() {
     const dispatch = useDispatch();
     const {formatMessage} = useIntl();
     const [openSalesLink] = useOpenSalesLink();
+    const config = useSelector(getConfig);
+    const suppressEnterpriseChecks = config?.FeatureFlagSuppressEnterpriseUpgradeChecks === 'true';
 
     useEffect(() => {
-        dispatch(getPrevTrialLicense());
-    }, []);
+        // Skip enterprise upgrade checks if suppressed (on by default for Team Edition)
+        if (!suppressEnterpriseChecks) {
+            dispatch(getPrevTrialLicense());
+        }
+    }, [suppressEnterpriseChecks]);
 
     const isAdminUser = isAdmin(useSelector(getCurrentUser).roles);
     const isCloud = useSelector(isCurrentLicenseCloud);

@@ -9,7 +9,7 @@ import {useSelector, useDispatch} from 'react-redux';
 import {GenericModal} from '@mattermost/components';
 
 import {getPrevTrialLicense} from 'mattermost-redux/actions/admin';
-import {getLicense} from 'mattermost-redux/selectors/entities/general';
+import {getConfig, getLicense} from 'mattermost-redux/selectors/entities/general';
 import {isCurrentUserSystemAdmin} from 'mattermost-redux/selectors/entities/users';
 
 import {closeModal} from 'actions/views/modals';
@@ -53,10 +53,15 @@ const FeatureRestrictedModal = ({
 }: FeatureRestrictedModalProps) => {
     const {formatMessage} = useIntl();
     const dispatch = useDispatch();
+    const config = useSelector(getConfig);
+    const suppressEnterpriseChecks = config?.FeatureFlagSuppressEnterpriseUpgradeChecks === 'true';
 
     useEffect(() => {
-        dispatch(getPrevTrialLicense());
-    }, []);
+        // Skip enterprise upgrade checks if suppressed (on by default for Team Edition)
+        if (!suppressEnterpriseChecks) {
+            dispatch(getPrevTrialLicense());
+        }
+    }, [suppressEnterpriseChecks]);
 
     const prevTrialLicense = useSelector((state: GlobalState) => state.entities.admin.prevTrialLicense);
     const hasSelfHostedPriorTrial = prevTrialLicense.IsLicensed === 'true';

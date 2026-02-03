@@ -41,15 +41,19 @@ export default function InviteAs(props: Props) {
     const {formatMessage} = useIntl();
     const license = useSelector(getLicense);
     const dispatch = useDispatch();
+    const config = useSelector(getConfig);
+    const suppressEnterpriseChecks = config?.FeatureFlagSuppressEnterpriseUpgradeChecks === 'true';
 
     useEffect(() => {
-        dispatch(getPrevTrialLicense());
-    }, []);
+        // Skip enterprise upgrade checks if suppressed (on by default for Team Edition)
+        if (!suppressEnterpriseChecks) {
+            dispatch(getPrevTrialLicense());
+        }
+    }, [suppressEnterpriseChecks]);
 
     const subscription = useSelector((state: GlobalState) => state.entities.cloud.subscription);
     const subscriptionProduct = useSelector(getSubscriptionProduct);
     const isSystemAdmin = useSelector(isCurrentUserSystemAdmin);
-    const config = useSelector(getConfig);
 
     const isCloudStarter = subscriptionProduct?.sku === CloudProducts.STARTER;
     const isEnterpriseReady = config.BuildEnterpriseReady === 'true';

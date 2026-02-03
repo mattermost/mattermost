@@ -132,13 +132,18 @@ const OnBoardingTaskList = (): JSX.Element | null => {
     const license = useSelector(getLicense);
     const isCloud = license?.Cloud === 'true';
     const isCloudPreview = subscription?.is_cloud_preview === true;
+    const config = useSelector(getConfig);
+    const suppressEnterpriseChecks = config?.FeatureFlagSuppressEnterpriseUpgradeChecks === 'true';
 
     useEffect(() => {
-        dispatch(getPrevTrialLicense());
+        // Skip enterprise upgrade checks if suppressed (on by default for Team Edition)
+        if (!suppressEnterpriseChecks) {
+            dispatch(getPrevTrialLicense());
+        }
         if (!hasPreferences) {
             dispatch(getMyPreferences());
         }
-    }, []);
+    }, [suppressEnterpriseChecks]);
 
     const open = useSelector(((state: GlobalState) => getBool(state, OnboardingTaskCategory, OnboardingTaskList.ONBOARDING_TASK_LIST_OPEN)));
     const [trigger, setTrigger] = useState<HTMLButtonElement | null>(null);

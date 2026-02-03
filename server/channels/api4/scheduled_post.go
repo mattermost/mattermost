@@ -99,6 +99,15 @@ func createSchedulePost(c *Context, w http.ResponseWriter, r *http.Request) {
 func getTeamScheduledPosts(c *Context, w http.ResponseWriter, r *http.Request) {
 	requireScheduledPostsEnabled(c)
 	if c.Err != nil {
+		// When enterprise upgrade checks are suppressed (Team Edition), return empty results for license errors
+		if c.App.Config().FeatureFlags.SuppressEnterpriseUpgradeChecks && c.Err.Id == "api.scheduled_posts.license_error" {
+			c.Err = nil // Clear the error
+			response := map[string][]*model.ScheduledPost{}
+			if err := json.NewEncoder(w).Encode(response); err != nil {
+				c.Logger.Warn("Error while writing response", mlog.Err(err))
+			}
+			return
+		}
 		return
 	}
 

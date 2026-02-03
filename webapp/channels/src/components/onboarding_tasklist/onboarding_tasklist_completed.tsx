@@ -10,7 +10,7 @@ import styled from 'styled-components';
 import type {GlobalState} from '@mattermost/types/store';
 
 import {getPrevTrialLicense} from 'mattermost-redux/actions/admin';
-import {getLicense} from 'mattermost-redux/selectors/entities/general';
+import {getConfig, getLicense} from 'mattermost-redux/selectors/entities/general';
 
 import ExternalLink from 'components/external_link';
 import StartTrialBtn from 'components/learn_more_trial_modal/start_trial_btn';
@@ -129,10 +129,15 @@ const Completed = (props: Props): JSX.Element => {
     const {dismissAction} = props;
 
     const dispatch = useDispatch();
+    const config = useSelector(getConfig);
+    const suppressEnterpriseChecks = config?.FeatureFlagSuppressEnterpriseUpgradeChecks === 'true';
 
     useEffect(() => {
-        dispatch(getPrevTrialLicense());
-    }, []);
+        // Skip enterprise upgrade checks if suppressed (on by default for Team Edition)
+        if (!suppressEnterpriseChecks) {
+            dispatch(getPrevTrialLicense());
+        }
+    }, [suppressEnterpriseChecks]);
 
     const prevTrialLicense = useSelector((state: GlobalState) => state.entities.admin.prevTrialLicense);
     const license = useSelector(getLicense);

@@ -27,6 +27,13 @@ func (api *API) InitCustomProfileAttributes() {
 
 func listCPAFields(c *Context, w http.ResponseWriter, r *http.Request) {
 	if !model.MinimumEnterpriseLicense(c.App.Channels().License()) {
+		// When enterprise upgrade checks are suppressed (Team Edition), return empty array instead of error
+		if c.App.Config().FeatureFlags.SuppressEnterpriseUpgradeChecks {
+			if err := json.NewEncoder(w).Encode([]*model.CPAField{}); err != nil {
+				c.Logger.Warn("Error while writing response", mlog.Err(err))
+			}
+			return
+		}
 		c.Err = model.NewAppError("Api4.listCPAFields", "api.custom_profile_attributes.license_error", nil, "", http.StatusForbidden)
 		return
 	}

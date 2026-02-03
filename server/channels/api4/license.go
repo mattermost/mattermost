@@ -236,6 +236,14 @@ func requestTrialLicense(c *Context, w http.ResponseWriter, r *http.Request) {
 
 func getPrevTrialLicense(c *Context, w http.ResponseWriter, r *http.Request) {
 	if c.App.Srv().Platform().LicenseManager() == nil {
+		// When enterprise upgrade checks are suppressed (Team Edition), return empty license instead of error
+		if c.App.Config().FeatureFlags.SuppressEnterpriseUpgradeChecks {
+			w.Header().Set("Content-Type", "application/json")
+			if _, err := w.Write([]byte("{}")); err != nil {
+				c.Logger.Warn("Error while writing response", mlog.Err(err))
+			}
+			return
+		}
 		c.Err = model.NewAppError("getPrevTrialLicense", "api.license.upgrade_needed.app_error", nil, "", http.StatusForbidden)
 		return
 	}
