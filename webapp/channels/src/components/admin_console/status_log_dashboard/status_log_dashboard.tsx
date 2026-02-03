@@ -31,6 +31,8 @@ type StatusLog = {
     device?: string;
     log_type?: string; // "status_change" or "activity"
     trigger?: string; // Human-readable trigger for activity logs
+    manual?: boolean; // Whether this status change was triggered by manual user action (vs automatic)
+    source?: string; // Code location that triggered this log (e.g., "SetStatusOnline")
 };
 
 type StatusLogStats = {
@@ -577,6 +579,46 @@ const IconQuestion = () => (
     </svg>
 );
 
+const IconManual = () => (
+    <svg
+        width='14'
+        height='14'
+        viewBox='0 0 24 24'
+        fill='none'
+        stroke='currentColor'
+        strokeWidth='2'
+        strokeLinecap='round'
+        strokeLinejoin='round'
+    >
+        <path d='M12 2a10 10 0 1 0 10 10H12V2z'/>
+        <circle
+            cx='12'
+            cy='12'
+            r='4'
+        />
+    </svg>
+);
+
+const IconAuto = () => (
+    <svg
+        width='14'
+        height='14'
+        viewBox='0 0 24 24'
+        fill='none'
+        stroke='currentColor'
+        strokeWidth='2'
+        strokeLinecap='round'
+        strokeLinejoin='round'
+    >
+        <circle
+            cx='12'
+            cy='12'
+            r='10'
+        />
+        <path d='M12 6v6l4 2'/>
+    </svg>
+);
+
 // Filter type for status
 type StatusFilter = 'all' | 'online' | 'away' | 'dnd' | 'offline';
 
@@ -714,6 +756,8 @@ const StatusLogDashboard: React.FC<Props> = ({config, patchConfig}) => {
                 device: log.device || 'unknown',
                 window_active: log.window_active,
                 channel_id: log.channel_id || null,
+                manual: log.manual || false,
+                source: log.source || null,
             })),
         };
 
@@ -755,6 +799,7 @@ const StatusLogDashboard: React.FC<Props> = ({config, patchConfig}) => {
         } else {
             lines.push(`Status Change: ${log.old_status} -> ${log.new_status}`);
             lines.push(`Reason: ${log.reason}`);
+            lines.push(`Manual: ${log.manual ? 'Yes' : 'No'}`);
         }
 
         lines.push(`Device: ${getDeviceLabel(log.device)}`);
@@ -762,6 +807,10 @@ const StatusLogDashboard: React.FC<Props> = ({config, patchConfig}) => {
 
         if (log.channel_id) {
             lines.push(`Channel ID: ${log.channel_id}`);
+        }
+
+        if (log.source) {
+            lines.push(`Source: ${log.source}`);
         }
 
         return lines.join('\n');
@@ -1601,6 +1650,22 @@ const StatusLogDashboard: React.FC<Props> = ({config, patchConfig}) => {
                                                 {getReasonLabel(log.reason)}
                                             </span>
                                         )}
+                                        {!isActivity && (
+                                            <span className={`StatusLogDashboard__log-card__manual-badge ${log.manual ? 'manual' : 'auto'}`}>
+                                                {log.manual ? <IconManual/> : <IconAuto/>}
+                                                {log.manual ? (
+                                                    <FormattedMessage
+                                                        id='admin.status_log.manual'
+                                                        defaultMessage='Manual'
+                                                    />
+                                                ) : (
+                                                    <FormattedMessage
+                                                        id='admin.status_log.auto'
+                                                        defaultMessage='Auto'
+                                                    />
+                                                )}
+                                            </span>
+                                        )}
                                         <span className='StatusLogDashboard__log-card__device'>
                                             {getDeviceIcon(log.device)}
                                             {getDeviceLabel(log.device)}
@@ -1619,6 +1684,11 @@ const StatusLogDashboard: React.FC<Props> = ({config, patchConfig}) => {
                                                 />
                                             )}
                                         </span>
+                                        {log.source && (
+                                            <span className='StatusLogDashboard__log-card__source'>
+                                                {log.source}
+                                            </span>
+                                        )}
                                     </div>
                                 </div>
                             );

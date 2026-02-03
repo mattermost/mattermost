@@ -280,7 +280,7 @@ func (ps *PlatformService) SetStatusLastActivityAt(userID string, activityAt int
 	if user, userErr := ps.Store.User().Get(context.Background(), userID); userErr == nil {
 		username = user.Username
 	}
-	ps.LogActivityUpdate(userID, username, status.Status, model.StatusLogDeviceUnknown, false, "", "", model.StatusLogTriggerSetActivity)
+	ps.LogActivityUpdate(userID, username, status.Status, model.StatusLogDeviceUnknown, false, "", "", "", model.StatusLogTriggerSetActivity, "SetStatusLastActivityAt")
 }
 
 func (ps *PlatformService) UpdateLastActivityAtIfNeeded(session model.Session) {
@@ -312,7 +312,7 @@ func (ps *PlatformService) UpdateLastActivityAtIfNeeded(session model.Session) {
 	if user, userErr := ps.Store.User().Get(context.Background(), session.UserId); userErr == nil {
 		username = user.Username
 	}
-	ps.LogActivityUpdate(session.UserId, username, currentStatus, model.StatusLogDeviceUnknown, false, "", "", model.StatusLogTriggerWebSocket)
+	ps.LogActivityUpdate(session.UserId, username, currentStatus, model.StatusLogDeviceUnknown, false, "", "", "", model.StatusLogTriggerWebSocket, "UpdateLastActivityAtIfNeeded")
 }
 
 // UpdateActivityFromManualAction updates LastActivityAt and potentially sets the user
@@ -408,7 +408,8 @@ func (ps *PlatformService) UpdateActivityFromManualAction(userID string, channel
 		if ps.Config().FeatureFlags.NoOffline && oldStatus == model.StatusOffline {
 			reason = model.StatusLogReasonOfflinePrevented
 		}
-		ps.LogStatusChange(userID, username, oldStatus, newStatus, reason, model.StatusLogDeviceUnknown, true, channelID)
+		// This is NOT a manual status change - it's automatic from user activity (e.g., sending message, marking unread)
+		ps.LogStatusChange(userID, username, oldStatus, newStatus, reason, model.StatusLogDeviceUnknown, true, channelID, false, "UpdateActivityFromManualAction")
 	} else {
 		// Log activity update (no status change)
 		username := ""
@@ -416,15 +417,17 @@ func (ps *PlatformService) UpdateActivityFromManualAction(userID string, channel
 			username = user.Username
 		}
 		var channelName string
+		var channelType string
 		if channelID != "" {
 			if channel, chanErr := ps.Store.Channel().Get(channelID, false); chanErr == nil {
 				channelName = channel.DisplayName
 				if channelName == "" {
 					channelName = channel.Name
 				}
+				channelType = string(channel.Type)
 			}
 		}
-		ps.LogActivityUpdate(userID, username, status.Status, model.StatusLogDeviceUnknown, true, channelID, channelName, trigger)
+		ps.LogActivityUpdate(userID, username, status.Status, model.StatusLogDeviceUnknown, true, channelID, channelName, channelType, trigger, "UpdateActivityFromManualAction")
 	}
 
 	// Broadcast status change if status changed
@@ -488,7 +491,7 @@ func (ps *PlatformService) SetStatusOnline(userID string, manual bool) {
 			if user, userErr := ps.Store.User().Get(context.Background(), userID); userErr == nil {
 				username = user.Username
 			}
-			ps.LogActivityUpdate(userID, username, model.StatusOnline, model.StatusLogDeviceUnknown, true, "", "", model.StatusLogTriggerHeartbeat)
+			ps.LogActivityUpdate(userID, username, model.StatusOnline, model.StatusLogDeviceUnknown, true, "", "", "", model.StatusLogTriggerHeartbeat, "SetStatusOnline")
 		}
 		if ps.sharedChannelService != nil {
 			ps.sharedChannelService.NotifyUserStatusChanged(status)
@@ -511,7 +514,8 @@ func (ps *PlatformService) SetStatusOnline(userID string, manual bool) {
 		if manual {
 			device = model.StatusLogDeviceAPI
 		}
-		ps.LogStatusChange(userID, username, oldStatus, model.StatusOnline, reason, device, true, "")
+		// manual=true means user explicitly set their status to Online
+		ps.LogStatusChange(userID, username, oldStatus, model.StatusOnline, reason, device, true, "", manual, "SetStatusOnline")
 	}
 }
 
@@ -546,7 +550,8 @@ func (ps *PlatformService) SetStatusOffline(userID string, manual bool, force bo
 		if manual {
 			device = model.StatusLogDeviceAPI
 		}
-		ps.LogStatusChange(userID, username, oldStatus, model.StatusOffline, reason, device, false, "")
+		// manual=true means user explicitly set their status to Offline
+		ps.LogStatusChange(userID, username, oldStatus, model.StatusOffline, reason, device, false, "", manual, "SetStatusOffline")
 	}
 }
 
@@ -608,7 +613,8 @@ func (ps *PlatformService) QueueSetStatusOffline(userID string, manual bool) {
 		if manual {
 			device = model.StatusLogDeviceAPI
 		}
-		ps.LogStatusChange(userID, username, oldStatus, model.StatusOffline, reason, device, false, "")
+		// manual=true means user explicitly set their status to Offline
+		ps.LogStatusChange(userID, username, oldStatus, model.StatusOffline, reason, device, false, "", manual, "QueueSetStatusOffline")
 	}
 }
 
@@ -726,7 +732,8 @@ func (ps *PlatformService) SetStatusAwayIfNeeded(userID string, manual bool) {
 		if manual {
 			device = model.StatusLogDeviceAPI
 		}
-		ps.LogStatusChange(userID, username, oldStatus, model.StatusAway, reason, device, false, "")
+		// manual=true means user explicitly set their status to Away
+		ps.LogStatusChange(userID, username, oldStatus, model.StatusAway, reason, device, false, "", manual, "SetStatusAwayIfNeeded")
 	}
 }
 
@@ -761,7 +768,8 @@ func (ps *PlatformService) SetStatusDoNotDisturbTimed(userID string, endtime int
 		if user, userErr := ps.Store.User().Get(context.Background(), userID); userErr == nil {
 			username = user.Username
 		}
-		ps.LogStatusChange(userID, username, oldStatus, model.StatusDnd, model.StatusLogReasonManual, model.StatusLogDeviceAPI, true, "")
+		// DND timed is always a manual user action
+		ps.LogStatusChange(userID, username, oldStatus, model.StatusDnd, model.StatusLogReasonManual, model.StatusLogDeviceAPI, true, "", true, "SetStatusDoNotDisturbTimed")
 	}
 }
 
@@ -804,7 +812,8 @@ func (ps *PlatformService) SetStatusDoNotDisturb(userID string) {
 		if user, userErr := ps.Store.User().Get(context.Background(), userID); userErr == nil {
 			username = user.Username
 		}
-		ps.LogStatusChange(userID, username, oldStatus, model.StatusDnd, model.StatusLogReasonManual, model.StatusLogDeviceAPI, true, "")
+		// DND is always a manual user action
+		ps.LogStatusChange(userID, username, oldStatus, model.StatusDnd, model.StatusLogReasonManual, model.StatusLogDeviceAPI, true, "", true, "SetStatusDoNotDisturb")
 	}
 }
 
@@ -834,7 +843,8 @@ func (ps *PlatformService) SetStatusOutOfOffice(userID string) {
 		if user, userErr := ps.Store.User().Get(context.Background(), userID); userErr == nil {
 			username = user.Username
 		}
-		ps.LogStatusChange(userID, username, oldStatus, model.StatusOutOfOffice, model.StatusLogReasonManual, model.StatusLogDeviceAPI, true, "")
+		// Out of Office is always a manual user action
+		ps.LogStatusChange(userID, username, oldStatus, model.StatusOutOfOffice, model.StatusLogReasonManual, model.StatusLogDeviceAPI, true, "", true, "SetStatusOutOfOffice")
 	}
 }
 
@@ -962,7 +972,8 @@ func (ps *PlatformService) UpdateActivityFromHeartbeat(userID string, windowActi
 		}
 
 		// Device will be "unknown" here - heartbeat doesn't carry device info yet
-		ps.LogStatusChange(userID, username, oldStatus, newStatus, reason, model.StatusLogDeviceUnknown, windowActive, channelID)
+		// This is NOT a manual status change - it's automatic from heartbeat activity
+		ps.LogStatusChange(userID, username, oldStatus, newStatus, reason, model.StatusLogDeviceUnknown, windowActive, channelID, false, "UpdateActivityFromHeartbeat")
 	}
 
 	// Save the status update
@@ -990,6 +1001,7 @@ func (ps *PlatformService) UpdateActivityFromHeartbeat(userID string, windowActi
 		// Determine trigger based on what activity was detected
 		var trigger string
 		var channelName string
+		var channelType string
 		if channelChanged {
 			trigger = model.StatusLogTriggerChannelView
 			// Try to get channel name for display
@@ -998,13 +1010,14 @@ func (ps *PlatformService) UpdateActivityFromHeartbeat(userID string, windowActi
 				if channelName == "" {
 					channelName = channel.Name
 				}
+				channelType = string(channel.Type)
 			}
 		} else if windowActive {
 			trigger = model.StatusLogTriggerWindowActive
 		}
 
 		if trigger != "" {
-			ps.LogActivityUpdate(userID, username, status.Status, model.StatusLogDeviceUnknown, windowActive, channelID, channelName, trigger)
+			ps.LogActivityUpdate(userID, username, status.Status, model.StatusLogDeviceUnknown, windowActive, channelID, channelName, channelType, trigger, "UpdateActivityFromHeartbeat")
 		}
 	}
 

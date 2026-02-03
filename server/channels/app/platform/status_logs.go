@@ -4,6 +4,7 @@
 package platform
 
 import (
+	"fmt"
 	"sync"
 
 	"github.com/mattermost/mattermost/server/public/model"
@@ -155,7 +156,8 @@ func (b *StatusLogBuffer) Resize(newCapacity int) {
 }
 
 // LogStatusChange adds a status change to the buffer and broadcasts it via WebSocket.
-func (ps *PlatformService) LogStatusChange(userID, username, oldStatus, newStatus, reason, device string, windowActive bool, channelID string) {
+// The source parameter identifies which function triggered this log (e.g., "SetStatusOnline").
+func (ps *PlatformService) LogStatusChange(userID, username, oldStatus, newStatus, reason, device string, windowActive bool, channelID string, manual bool, source string) {
 	// Only log if status logs are enabled
 	if !*ps.Config().MattermostExtendedSettings.Statuses.EnableStatusLogs {
 		return
@@ -172,7 +174,9 @@ func (ps *PlatformService) LogStatusChange(userID, username, oldStatus, newStatu
 	case model.StatusLogReasonWindowFocus:
 		trigger = model.StatusLogTriggerWindowActive
 	case model.StatusLogReasonInactivity:
-		trigger = model.StatusLogTriggerWindowInactive
+		// Include the inactivity timeout in the trigger
+		inactivityMinutes := *ps.Config().MattermostExtendedSettings.Statuses.InactivityTimeoutMinutes
+		trigger = fmt.Sprintf("Window Inactive for %dm", inactivityMinutes)
 	case model.StatusLogReasonHeartbeat:
 		trigger = model.StatusLogTriggerHeartbeat
 	default:
@@ -192,6 +196,8 @@ func (ps *PlatformService) LogStatusChange(userID, username, oldStatus, newStatu
 		Device:       device,
 		LogType:      model.StatusLogTypeStatusChange,
 		Trigger:      trigger,
+		Manual:       manual,
+		Source:       source,
 	}
 
 	// Add to buffer
@@ -206,7 +212,9 @@ func (ps *PlatformService) LogStatusChange(userID, username, oldStatus, newStatu
 
 // LogActivityUpdate logs an activity update (LastActivityAt change) without status change.
 // This tracks what triggers keep users active.
-func (ps *PlatformService) LogActivityUpdate(userID, username, currentStatus, device string, windowActive bool, channelID, channelName, trigger string) {
+// The source parameter identifies which function triggered this log (e.g., "UpdateActivityFromHeartbeat").
+// The channelType parameter is the channel type (e.g., "O", "P", "D", "G") used to format display names.
+func (ps *PlatformService) LogActivityUpdate(userID, username, currentStatus, device string, windowActive bool, channelID, channelName, channelType, trigger, source string) {
 	// Only log if status logs are enabled
 	if !*ps.Config().MattermostExtendedSettings.Statuses.EnableStatusLogs {
 		return
@@ -217,10 +225,35 @@ func (ps *PlatformService) LogActivityUpdate(userID, username, currentStatus, de
 		device = model.StatusLogDeviceUnknown
 	}
 
+	// Format channel display based on type (# for channels, @ for DMs)
+	channelDisplay := ""
+	if channelName != "" {
+		if channelType == string(model.ChannelTypeDirect) || channelType == string(model.ChannelTypeGroup) {
+			channelDisplay = "@" + channelName
+		} else {
+			channelDisplay = "#" + channelName
+		}
+	}
+
 	// Build trigger string with channel name if provided
 	displayTrigger := trigger
-	if channelName != "" && trigger == model.StatusLogTriggerChannelView {
-		displayTrigger = "Loaded #" + channelName
+	switch trigger {
+	case model.StatusLogTriggerChannelView:
+		if channelDisplay != "" {
+			displayTrigger = "Loaded " + channelDisplay
+		}
+	case model.StatusLogTriggerFetchHistory:
+		if channelDisplay != "" {
+			displayTrigger = "Fetched history of " + channelDisplay
+		}
+	case model.StatusLogTriggerActiveChannel:
+		if channelDisplay != "" {
+			displayTrigger = "Active Channel set to " + channelDisplay
+		}
+	case model.StatusLogTriggerWindowInactive:
+		// Include the inactivity timeout in the trigger
+		inactivityMinutes := *ps.Config().MattermostExtendedSettings.Statuses.InactivityTimeoutMinutes
+		displayTrigger = fmt.Sprintf("Window Inactive for %dm", inactivityMinutes)
 	}
 
 	statusLog := &model.StatusLog{
@@ -236,6 +269,7 @@ func (ps *PlatformService) LogActivityUpdate(userID, username, currentStatus, de
 		Device:       device,
 		LogType:      model.StatusLogTypeActivity,
 		Trigger:      displayTrigger,
+		Source:       source,
 	}
 
 	// Add to buffer

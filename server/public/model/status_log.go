@@ -17,6 +17,8 @@ type StatusLog struct {
 	Device       string `json:"device,omitempty"` // Client type: "web", "desktop", "mobile", "api", "unknown"
 	LogType      string `json:"log_type"`         // "status_change" or "activity"
 	Trigger      string `json:"trigger,omitempty"` // Human-readable trigger for activity logs (e.g., "Window Active", "Loaded #general")
+	Manual       bool   `json:"manual"`           // Whether this status change was triggered by manual user action (vs automatic)
+	Source       string `json:"source,omitempty"` // Code location that triggered this log (e.g., "SetStatusOnline", "UpdateActivityFromHeartbeat")
 }
 
 // StatusLogType constants

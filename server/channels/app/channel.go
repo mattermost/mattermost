@@ -2845,23 +2845,22 @@ func (a *App) SetActiveChannel(rctx request.CTX, userID string, channelID string
 		username = user.Username
 	}
 	channelName := ""
+	channelType := ""
 	if channelID != "" {
 		if channel, chanErr := a.Srv().Store().Channel().Get(channelID, false); chanErr == nil {
 			channelName = channel.DisplayName
 			if channelName == "" {
 				channelName = channel.Name
 			}
+			channelType = string(channel.Type)
 		}
 	}
 
 	if statusChanged {
-		a.Srv().Platform().LogStatusChange(userID, username, oldStatus, status.Status, model.StatusLogTriggerActiveChannel, model.StatusLogDeviceUnknown, true, channelID)
+		// This is NOT a manual status change - it's automatic from viewing a channel
+		a.Srv().Platform().LogStatusChange(userID, username, oldStatus, status.Status, model.StatusLogTriggerActiveChannel, model.StatusLogDeviceUnknown, true, channelID, false, "SetActiveChannel")
 	} else {
-		trigger := model.StatusLogTriggerActiveChannel
-		if channelName != "" {
-			trigger = "Loaded #" + channelName
-		}
-		a.Srv().Platform().LogActivityUpdate(userID, username, status.Status, model.StatusLogDeviceUnknown, true, channelID, channelName, trigger)
+		a.Srv().Platform().LogActivityUpdate(userID, username, status.Status, model.StatusLogDeviceUnknown, true, channelID, channelName, channelType, model.StatusLogTriggerActiveChannel, "SetActiveChannel")
 	}
 
 	return nil
