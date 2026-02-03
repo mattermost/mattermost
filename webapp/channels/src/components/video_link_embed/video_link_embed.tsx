@@ -14,14 +14,27 @@ export interface Props {
 }
 
 export function isVideoUrl(url: string): boolean {
-    const urlLower = url.toLowerCase();
-    return VIDEO_EXTENSIONS.some((ext) => urlLower.endsWith(ext));
+    try {
+        // Parse URL to extract pathname without query string
+        const urlObj = new URL(url);
+        const pathLower = urlObj.pathname.toLowerCase();
+        return VIDEO_EXTENSIONS.some((ext) => pathLower.endsWith(ext));
+    } catch {
+        // If URL parsing fails, fall back to simple check
+        const urlLower = url.toLowerCase();
+        // Remove query string if present
+        const pathPart = urlLower.split('?')[0];
+        return VIDEO_EXTENSIONS.some((ext) => pathPart.endsWith(ext));
+    }
 }
 
 export function isVideoLinkText(text: string): boolean {
-    // Check if the link text matches the video link pattern (▶️Video or similar)
-    const trimmed = text.trim();
-    return trimmed === '▶️Video' || trimmed === '▶️ Video' || trimmed === '▶Video';
+    // Check if the link text is just "Video" (with optional prefix like emoji)
+    // Since we already validate the URL is a video, we can be lenient here
+    const trimmed = text.trim().toLowerCase();
+
+    // Match if text ends with "video" and is short (to avoid matching sentences)
+    return trimmed.endsWith('video') && trimmed.length <= 20;
 }
 
 export default function VideoLinkEmbed(props: Props) {

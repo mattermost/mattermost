@@ -129,22 +129,9 @@ export default function messageHtmlToComponent(html: string, options: Options = 
         },
     ];
 
-    if (options.hasPluginTooltips) {
-        processingInstructions.push({
-            replaceChildren: false,
-            shouldProcessNode: (node: any) => node.type === 'tag' && node.name === 'a' && node.attribs.href,
-            processNode: (node: any, children: any) => {
-                return (
-                    <PluginLinkTooltip nodeAttributes={convertPropsToReactStandard(node.attribs)}>
-                        {children}
-                    </PluginLinkTooltip>
-                );
-            },
-        });
-    }
-
     // Mattermost Extended - Video Link Embed
     // Check for links with "▶️Video" text that point to video files
+    // MUST come before hasPluginTooltips since that matches all anchor tags
     if (options.videoLinkEmbedEnabled) {
         processingInstructions.push({
             replaceChildren: false,
@@ -160,21 +147,28 @@ export default function messageHtmlToComponent(html: string, options: Options = 
                 const textContent = getNodeTextContent(node);
                 return isVideoLinkText(textContent);
             },
-            processNode: (node: any, children: any) => {
+            processNode: (node: any) => {
                 const href = node.attribs.href;
                 return (
-                    <React.Fragment key={`video-link-${href}`}>
-                        <a
-                            {...convertPropsToReactStandard(node.attribs)}
-                            className='theme markdown__link'
-                        >
-                            {children}
-                        </a>
-                        <VideoLinkEmbed
-                            href={href}
-                            maxHeight={options.maxVideoHeight}
-                        />
-                    </React.Fragment>
+                    <VideoLinkEmbed
+                        key={`video-link-${href}`}
+                        href={href}
+                        maxHeight={options.maxVideoHeight}
+                    />
+                );
+            },
+        });
+    }
+
+    if (options.hasPluginTooltips) {
+        processingInstructions.push({
+            replaceChildren: false,
+            shouldProcessNode: (node: any) => node.type === 'tag' && node.name === 'a' && node.attribs.href,
+            processNode: (node: any, children: any) => {
+                return (
+                    <PluginLinkTooltip nodeAttributes={convertPropsToReactStandard(node.attribs)}>
+                        {children}
+                    </PluginLinkTooltip>
                 );
             },
         });
