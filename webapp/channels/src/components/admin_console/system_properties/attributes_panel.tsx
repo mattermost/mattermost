@@ -1,28 +1,29 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import type {MessageDescriptor} from 'react-intl';
-import {FormattedMessage} from 'react-intl';
 import React, {useEffect, useMemo} from 'react';
+import type {MessageDescriptor} from 'react-intl';
+import {FormattedMessage, useIntl} from 'react-intl';
 import {useDispatch} from 'react-redux';
+
+import type {ClientError} from '@mattermost/client';
+import type {PropertyField} from '@mattermost/types/properties';
+import type {IDMappedCollection, RelationOneToOne} from '@mattermost/types/utilities';
+import {collectionAddItem, collectionFromArray, collectionReplaceItem, collectionToArray} from '@mattermost/types/utilities';
+
+import {insertWithoutDuplicates} from 'mattermost-redux/utils/array_utils';
 
 import {setNavigationBlocked} from 'actions/admin_actions';
 
-import AdminHeader from 'components/widgets/admin_console/admin_header';
-
-import type {PropertyField} from '@mattermost/types/properties';
-import type {IDMappedCollection} from '@mattermost/types/utilities';
-import type {ClientError} from '@mattermost/client';
-import {collectionFromArray, collectionReplaceItem, collectionToArray} from '@mattermost/types/utilities';
-
 import LoadingScreen from 'components/loading_screen';
+import AdminHeader from 'components/widgets/admin_console/admin_header';
 
 import Constants from 'utils/constants';
 
 import {AdminSection, AdminWrapper, DangerText, SectionContent, SectionHeader, SectionHeading} from './controls';
-import type {SectionHook} from './section_utils';
 import {useThing, usePendingThing, BatchProcessingError} from './section_utils';
 import type {CollectionIO} from './section_utils';
+
 import SaveChangesPanel from '../save_changes_panel';
 
 export type PropertyFieldConfig<T extends PropertyField = PropertyField> = {
@@ -56,43 +57,34 @@ type AttributesPanelProps<T extends PropertyField = PropertyField> = {
 };
 
 export function useAttributesPanel<T extends PropertyField = PropertyField>(
-    config: PropertyFieldConfig<T>
+    config: PropertyFieldConfig<T>,
 ): [IDMappedCollection<T>, CollectionIO<T>, ReturnType<typeof usePendingThing<IDMappedCollection<T>, BatchProcessingError<ClientError>>>[1], ReturnType<typeof useThing<IDMappedCollection<T>>>[1]] {
     const [fieldCollection, readIO] = useThing<IDMappedCollection<T>>(useMemo(() => ({
         get: async () => {
             const data = await config.getFields();
-            const sorted = data.sort((a, b) => ((a.attrs as any)?.sort_order ?? 0) - ((b.attrs as any)?.sort_order ?? 0));
+            const sorted = data.sort((a, b) => {
+                const aOrder = (a.attrs as {sort_order?: number})?.sort_order ?? 0;
+                const bOrder = (b.attrs as {sort_order?: number})?.sort_order ?? 0;
+                return aOrder - bOrder;
+            });
             return collectionFromArray(sorted);
         },
         select: () => undefined,
         opts: {forceInitialGet: true},
-    }), [config]), collectionFromArray([]));
+    }), [config]), collectionFromArray([]) as unknown as IDMappedCollection<T>);
 
     const [pendingCollection, pendingIO] = usePendingThing<IDMappedCollection<T>, BatchProcessingError<ClientError>>(
         fieldCollection,
         useMemo(() => ({
             commit: async (collection: IDMappedCollection<T>, prevCollection: IDMappedCollection<T>) => {
-                console.log('[useAttributesPanel] commit called');
-                console.log('[useAttributesPanel] collection:', collection);
-                console.log('[useAttributesPanel] prevCollection:', prevCollection);
-                
                 const process = collectionToArray(collection).reduce<{
                     create: T[];
                     edit: T[];
                     delete: T[];
                 }>((ops, item) => {
-                    const prevItem = prevCollection.data[item.id];
+                    const prevItem = prevCollection.data[item.id as keyof typeof prevCollection.data];
                     const isSameReference = item === prevItem;
-                    
-                    console.log(`[useAttributesPanel] Processing item ${item.id}:`, {
-                        isSameReference,
-                        hasPrevItem: !!prevItem,
-                        isCreatePending: config.isCreatePending(item),
-                        isDeletePending: config.isDeletePending(item),
-                        itemName: (item as any).name,
-                        prevItemName: prevItem ? (prevItem as any).name : undefined,
-                    });
-                    
+
                     // don't process unchanged items
                     if (isSameReference) {
                         return ops;
@@ -109,97 +101,101 @@ export function useAttributesPanel<T extends PropertyField = PropertyField>(
 
                     return ops;
                 }, {delete: [], edit: [], create: []});
-                
-                console.log('[useAttributesPanel] process operations:', process);
 
                 const next: IDMappedCollection<T> = {
                     data: {...collection.data},
                     order: [...collection.order],
-                    errors: {},
                 };
 
                 // Delete
-                console.log('[useAttributesPanel] Processing deletes:', process.delete.length);
                 await Promise.all(process.delete.map(async ({id}) => {
-                    return config.deleteField(id)
-                        .then(() => {
-                            console.log('[useAttributesPanel] Delete succeeded for:', id);
+                    return config.deleteField(id).
+                        then(() => {
                             Reflect.deleteProperty(next.data, id);
                             next.order = next.order.filter((orderId) => orderId !== id);
-                        })
-                        .catch((reason: ClientError) => {
-                            console.error('[useAttributesPanel] Delete failed for:', id, reason);
+                        }).
+                        catch((reason: ClientError) => {
+                            if (!next.errors) {
+                                next.errors = {} as RelationOneToOne<T, Error>;
+                            }
                             next.errors = {...next.errors, [id]: reason};
                         });
                 }));
 
                 // Update
-                console.log('[useAttributesPanel] Processing updates:', process.edit.length);
                 await Promise.all(process.edit.map(async (pendingItem) => {
                     const {id, ...patch} = pendingItem;
                     const preparedPatch = config.prepareFieldForPatch ? config.prepareFieldForPatch(patch) : patch;
-                    console.log('[useAttributesPanel] Updating field:', id, preparedPatch);
-                    return config.patchField(id, preparedPatch)
-                        .then((nextItem) => {
-                            console.log('[useAttributesPanel] Update succeeded for:', id, nextItem);
+                    return config.patchField(id, preparedPatch).
+                        then((nextItem) => {
                             next.data[id] = nextItem;
-                        })
-                        .catch((reason: ClientError) => {
-                            console.error('[useAttributesPanel] Update failed for:', id, reason);
+                        }).
+                        catch((reason: ClientError) => {
+                            if (!next.errors) {
+                                next.errors = {} as RelationOneToOne<T, Error>;
+                            }
                             next.errors = {...next.errors, [id]: reason};
                         });
                 }));
 
                 // Create
-                console.log('[useAttributesPanel] Processing creates:', process.create.length);
                 await Promise.all(process.create.map(async (pendingItem) => {
                     const {id, ...patch} = pendingItem;
                     const preparedPatch = config.prepareFieldForCreate ? config.prepareFieldForCreate(patch) : patch;
-                    console.log('[useAttributesPanel] Creating field:', id, preparedPatch);
-                    return config.createField(preparedPatch)
-                        .then((nextItem) => {
-                            console.log('[useAttributesPanel] Create succeeded, new id:', nextItem.id);
+                    return config.createField(preparedPatch).
+                        then((nextItem) => {
                             // Replace temporary id with real id
                             Reflect.deleteProperty(next.data, id);
                             next.data[nextItem.id] = nextItem;
-                            next.order = next.order.map((orderId) => orderId === id ? nextItem.id : orderId);
-                        })
-                        .catch((reason: ClientError) => {
-                            console.error('[useAttributesPanel] Create failed for:', id, reason);
+                            next.order = next.order.map((orderId) => (orderId === id ? nextItem.id : orderId));
+                        }).
+                        catch((reason: ClientError) => {
+                            if (!next.errors) {
+                                next.errors = {} as RelationOneToOne<T, Error>;
+                            }
                             next.errors = {...next.errors, [id]: reason};
                         });
                 }));
 
-                console.log('[useAttributesPanel] Commit complete, errors:', Object.keys(next.errors).length);
-                if (Object.keys(next.errors).length > 0) {
-                    console.error('[useAttributesPanel] Throwing BatchProcessingError with errors:', next.errors);
+                if (next.errors && Object.keys(next.errors).length > 0) {
                     throw new BatchProcessingError<ClientError>('error processing operations', {cause: next.errors});
                 }
 
-                // Remove errors property if empty (like original implementation)
-                Reflect.deleteProperty(next, 'errors');
-
-                console.log('[useAttributesPanel] Returning successful result:', next);
                 return next;
             },
-        }), [config])
+        }), [config]),
     );
 
     const itemOps: CollectionIO<T> = useMemo(() => ({
         create: (patch?: Partial<T>) => {
-            const newField = {
-                id: `temp_${Date.now()}`,
-                name: '',
-                type: 'text' as const,
-                group_id: config.group_id,
-                attrs: {},
-                ...patch,
-            } as T;
+            // Ensure create_at and delete_at are always 0 for new fields, even if patch contains them
+            // Extract and ignore timestamp/user fields from patch to ensure they're always set correctly
+            const patchWithoutTimestamps = patch ? Object.fromEntries(
+                Object.entries(patch).filter(([key]) =>
+                    !['create_at', 'delete_at', 'update_at', 'created_by', 'updated_by', 'id'].includes(key),
+                ),
+            ) : {};
             pendingIO.apply((current) => {
-                const next = {...current};
-                next.data[newField.id] = newField;
-                next.order = [...next.order, newField.id];
-                return next;
+                // Calculate sort_order based on number of non-deleted items
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                const nonDeletedCount = Object.values(current.data).filter((f: any) => f.delete_at === 0).length;
+                const newField = {
+                    id: `temp_${Date.now()}`,
+                    name: '',
+                    type: 'text' as const,
+                    group_id: config.group_id,
+                    create_at: 0,
+                    delete_at: 0,
+                    update_at: 0,
+                    created_by: '',
+                    updated_by: '',
+                    attrs: {
+                        ...(patchWithoutTimestamps.attrs || {}),
+                        sort_order: nonDeletedCount,
+                    },
+                    ...patchWithoutTimestamps,
+                } as T;
+                return collectionAddItem(current, newField);
             });
         },
         update: (field: T) => {
@@ -227,19 +223,39 @@ export function useAttributesPanel<T extends PropertyField = PropertyField>(
         },
         reorder: (field: T, nextOrder: number) => {
             pendingIO.apply((current) => {
-                const next = {...current};
-                const updatedField = {
-                    ...field,
-                    attrs: {
-                        ...(field.attrs || {}),
-                        sort_order: nextOrder,
-                    },
-                };
-                next.data[field.id] = updatedField as T;
-                return next;
+                // Update the order array using insertWithoutDuplicates
+                const nextOrderArray = insertWithoutDuplicates(current.order, field.id, nextOrder);
+
+                // If order didn't change, return early
+                if (nextOrderArray === current.order) {
+                    return current;
+                }
+
+                // Recalculate sort_order for all items based on their position in the order array
+                const items = collectionToArray(current);
+                const nextItems = items.reduce<T[]>((changedItems, item) => {
+                    const itemCurrentOrder = (item.attrs as {sort_order?: number})?.sort_order ?? 0;
+                    const itemNextOrder = nextOrderArray.indexOf(item.id);
+
+                    // Only update items whose sort_order actually changed
+                    if (itemNextOrder !== itemCurrentOrder) {
+                        changedItems.push({
+                            ...item,
+                            attrs: {
+                                ...(item.attrs || {}),
+                                sort_order: itemNextOrder,
+                            },
+                        } as T);
+                    }
+
+                    return changedItems;
+                }, []);
+
+                // Update both the order array and all affected items
+                return collectionReplaceItem({...current, order: nextOrderArray}, ...nextItems);
             });
         },
-    }), [config.group_id, config.isCreatePending, pendingIO]);
+    }), [config, pendingIO]);
 
     return [pendingCollection, itemOps, pendingIO, readIO];
 }
@@ -254,34 +270,25 @@ export function AttributesPanel<T extends PropertyField = PropertyField>({
     pageTitle,
 }: AttributesPanelProps<T>) {
     const dispatch = useDispatch();
+    const {formatMessage} = useIntl();
     const [fieldCollection, itemOps, pendingIO, readIO] = useAttributesPanel(fieldConfig);
-    const nonDeletedCount = Object.values(fieldCollection.data).filter((f) => (f as any).delete_at === 0).length;
+    const nonDeletedCount = (Object.values(fieldCollection.data) as T[]).filter((f) => f.delete_at === 0).length;
     const canCreate = nonDeletedCount < maxFields;
 
     const handleSave = () => {
-        console.log('[AttributesPanel] handleSave called');
-        console.log('[AttributesPanel] pendingIO.hasChanges:', pendingIO.hasChanges);
-        console.log('[AttributesPanel] pendingIO.saving:', pendingIO.saving);
-        console.log('[AttributesPanel] fieldCollection:', fieldCollection);
-        
         pendingIO.commit().then((newData) => {
-            console.log('[AttributesPanel] commit resolved, newData:', newData);
             if (newData) {
                 // Check if there are any errors (errors property should be removed if empty)
                 const hasErrors = newData.errors && Object.keys(newData.errors).length > 0;
-                if (!hasErrors) {
-                    console.log('[AttributesPanel] Setting new data, no errors');
-                    // Reconcile - zero pending changes
-                    readIO.setData(newData);
-                } else {
-                    console.log('[AttributesPanel] Commit returned with errors:', newData.errors);
+                if (hasErrors) {
+                    return;
                 }
-            } else {
-                console.log('[AttributesPanel] Commit returned no data');
+
+                // Reconcile - zero pending changes
+                readIO.setData(newData);
             }
-        }).catch((error) => {
+        }).catch(() => {
             // Error is already handled by pendingIO.error
-            console.error('[AttributesPanel] Error saving attributes:', error);
         });
     };
 
@@ -293,7 +300,7 @@ export function AttributesPanel<T extends PropertyField = PropertyField>({
     const hasWarnings = fieldCollection.warnings && Object.keys(fieldCollection.warnings).length > 0;
     const isValid = !hasWarnings;
 
-    const content = pendingIO.loading ? (
+    const content = readIO.loading ? (
         <LoadingScreen/>
     ) : (
         <>
@@ -302,7 +309,12 @@ export function AttributesPanel<T extends PropertyField = PropertyField>({
                 canCreate,
                 createField: itemOps.create!,
                 updateField: itemOps.update!,
-                deleteField: itemOps.delete!,
+                deleteField: (id: string) => {
+                    if (itemOps.delete) {
+                        // TypeScript can't infer which overload, so we cast
+                        (itemOps.delete as (id: string) => void)(id);
+                    }
+                },
                 reorderField: itemOps.reorder!,
             })}
         </>
@@ -343,7 +355,7 @@ export function AttributesPanel<T extends PropertyField = PropertyField>({
                         defaultMessage='There was an error while saving the configuration'
                     />
                 ) : undefined}
-                savingMessage={<FormattedMessage id='admin.system_properties.details.saving_changes' defaultMessage='Saving configuration…'/>}
+                savingMessage={formatMessage({id: 'admin.system_properties.details.saving_changes', defaultMessage: 'Saving configuration…'})}
                 isDisabled={pendingIO.saving || !pendingIO.hasChanges || !isValid}
             />
         </div>

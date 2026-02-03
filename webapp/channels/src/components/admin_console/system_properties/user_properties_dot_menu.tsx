@@ -124,7 +124,18 @@ const DotMenu = ({
             defaultMessage: '{fieldName} (copy)',
         }, {fieldName: field.name});
 
-        createField({...field, attrs: {...field.attrs}, name});
+        // Create a new field with a new ID and reset create_at/delete_at to mark it as pending
+        createField({
+            ...field,
+            id: `temp_${Date.now()}`,
+            name,
+            attrs: {...field.attrs},
+            create_at: 0,
+            delete_at: 0,
+            update_at: 0,
+            created_by: '',
+            updated_by: '',
+        });
     };
 
     const handleDelete = () => {

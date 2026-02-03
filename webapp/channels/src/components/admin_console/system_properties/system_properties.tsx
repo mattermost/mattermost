@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-import {FormattedMessage, defineMessages} from 'react-intl';
+import {defineMessages} from 'react-intl';
 
 import type {UserPropertyField} from '@mattermost/types/properties';
 
@@ -12,13 +12,10 @@ import {UserPropertiesTable} from './user_properties_table';
 
 import type {SearchableStrings} from '../types';
 
-type Props = {
-    disabled: boolean;
-}
-
-export default function SystemProperties(props: Props) {
+export default function SystemProperties() {
     return (
         <AttributesPanel<UserPropertyField>
+            group_id={userPropertyFieldConfig.group_id}
             title={{
                 id: 'admin.system_properties.user_properties.title',
                 defaultMessage: 'Configure user attributes',
