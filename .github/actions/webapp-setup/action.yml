@@ -29,7 +29,7 @@ runs:
           webapp/platform/components/dist
           webapp/platform/shared/dist
           webapp/platform/types/lib
-        key: platform-builds-${{ runner.os }}-${{ hashFiles('webapp/platform/types/src/**', 'webapp/platform/client/src/**', 'webapp/platform/components/src/**', 'webapp/platform/shared/src/**') }}-1
+        key: platform-builds-${{ runner.os }}-${{ hashFiles('webapp/platform/types/src/**', 'webapp/platform/client/src/**', 'webapp/platform/components/src/**', 'webapp/platform/shared/src/**')-1 }}
     - name: ci/get-node-modules
       if: steps.cache-node-modules.outputs.cache-hit != 'true'
       shell: bash
