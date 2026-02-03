@@ -28,6 +28,11 @@ const MATTERMOST_EXTENDED_FLAGS = [
     'SystemConsoleHideEnterprise',
     'SystemConsoleIcons',
     'SuppressEnterpriseUpgradeChecks',
+    'ImageMulti',
+    'ImageSmaller',
+    'ImageCaptions',
+    'VideoEmbed',
+    'VideoLinkEmbed',
 ];
 
 type Props = {

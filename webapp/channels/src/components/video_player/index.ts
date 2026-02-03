@@ -2,28 +2,24 @@
 // See LICENSE.txt for license information.
 
 import {connect} from 'react-redux';
+import type {ConnectedProps} from 'react-redux';
 import {bindActionCreators} from 'redux';
 import type {Dispatch} from 'redux';
 
 import {getConfig} from 'mattermost-redux/selectors/entities/general';
-import {getPost} from 'mattermost-redux/selectors/entities/posts';
 
 import {openModal} from 'actions/views/modals';
 
 import type {GlobalState} from 'types/store';
 
-import MarkdownImage from './markdown_image';
-import type {Props} from './markdown_image';
+import VideoPlayer from './video_player';
 
-function mapStateToProps(state: GlobalState, ownProps: Props) {
-    const post = getPost(state, ownProps.postId);
-    const isUnsafeLinksPost = post?.props?.unsafe_links === 'true';
+function mapStateToProps(state: GlobalState) {
     const config = getConfig(state);
 
     return {
-        isUnsafeLinksPost,
-        imageCaptionsEnabled: config.FeatureFlagImageCaptions === 'true',
-        captionFontSize: parseInt(config.MattermostExtendedMediaCaptionFontSize || '12', 10),
+        // Default maxHeight from config, can be overridden by passing maxHeight prop
+        defaultMaxHeight: parseInt(config.MattermostExtendedMediaMaxVideoHeight || '350', 10),
     };
 }
 
@@ -37,4 +33,6 @@ function mapDispatchToProps(dispatch: Dispatch) {
 
 const connector = connect(mapStateToProps, mapDispatchToProps);
 
-export default connector(MarkdownImage);
+export type PropsFromRedux = ConnectedProps<typeof connector>;
+
+export default connector(VideoPlayer);

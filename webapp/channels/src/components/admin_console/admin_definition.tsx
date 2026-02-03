@@ -6753,6 +6753,46 @@ const AdminDefinition: AdminDefinitionType = {
                     component: ErrorLogDashboard,
                 },
             },
+            // Media settings (for media display feature flags)
+            media: {
+                url: 'mattermost_extended/media',
+                title: defineMessage({id: 'admin.sidebar.media', defaultMessage: 'Media'}),
+                icon: <ImageOutlineIcon size={14} color={'currentColor'}/>,
+                schema: {
+                    id: 'MattermostExtendedMedia',
+                    name: defineMessage({id: 'admin.mattermost_extended.media.title', defaultMessage: 'Media'}),
+                    settings: [
+                        {
+                            type: 'number',
+                            key: 'MattermostExtendedSettings.Media.MaxImageHeight',
+                            label: defineMessage({id: 'admin.mattermost_extended.media.maxImageHeight.title', defaultMessage: 'Max Image Height (pixels):'}),
+                            help_text: defineMessage({id: 'admin.mattermost_extended.media.maxImageHeight.desc', defaultMessage: 'Maximum height for images when ImageSmaller feature flag is enabled. Set to 0 for no limit.'}),
+                            placeholder: defineMessage({id: 'admin.mattermost_extended.media.maxImageHeight.placeholder', defaultMessage: 'E.g. 400'}),
+                        },
+                        {
+                            type: 'number',
+                            key: 'MattermostExtendedSettings.Media.MaxImageWidth',
+                            label: defineMessage({id: 'admin.mattermost_extended.media.maxImageWidth.title', defaultMessage: 'Max Image Width (pixels):'}),
+                            help_text: defineMessage({id: 'admin.mattermost_extended.media.maxImageWidth.desc', defaultMessage: 'Maximum width for images when ImageSmaller feature flag is enabled. Set to 0 for no limit.'}),
+                            placeholder: defineMessage({id: 'admin.mattermost_extended.media.maxImageWidth.placeholder', defaultMessage: 'E.g. 500'}),
+                        },
+                        {
+                            type: 'number',
+                            key: 'MattermostExtendedSettings.Media.CaptionFontSize',
+                            label: defineMessage({id: 'admin.mattermost_extended.media.captionFontSize.title', defaultMessage: 'Caption Font Size (pixels):'}),
+                            help_text: defineMessage({id: 'admin.mattermost_extended.media.captionFontSize.desc', defaultMessage: 'Font size for image captions when ImageCaptions feature flag is enabled.'}),
+                            placeholder: defineMessage({id: 'admin.mattermost_extended.media.captionFontSize.placeholder', defaultMessage: 'E.g. 12'}),
+                        },
+                        {
+                            type: 'number',
+                            key: 'MattermostExtendedSettings.Media.MaxVideoHeight',
+                            label: defineMessage({id: 'admin.mattermost_extended.media.maxVideoHeight.title', defaultMessage: 'Max Video Height (pixels):'}),
+                            help_text: defineMessage({id: 'admin.mattermost_extended.media.maxVideoHeight.desc', defaultMessage: 'Maximum height for embedded video players when VideoEmbed or VideoLinkEmbed feature flags are enabled.'}),
+                            placeholder: defineMessage({id: 'admin.mattermost_extended.media.maxVideoHeight.placeholder', defaultMessage: 'E.g. 350'}),
+                        },
+                    ],
+                },
+            },
             // Posts tweaks
             posts: {
                 url: 'mattermost_extended/posts',

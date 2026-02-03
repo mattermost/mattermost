@@ -178,6 +178,12 @@ func GenerateClientConfig(c *model.Config, telemetryID string, license *model.Li
 	props["MattermostExtendedHideDeletedMessagePlaceholder"] = strconv.FormatBool(*c.MattermostExtendedSettings.Posts.HideDeletedMessagePlaceholder)
 	props["MattermostExtendedSidebarChannelSettings"] = strconv.FormatBool(*c.MattermostExtendedSettings.Channels.SidebarChannelSettings)
 
+	// Mattermost Extended Media Settings
+	props["MattermostExtendedMediaMaxImageHeight"] = strconv.Itoa(*c.MattermostExtendedSettings.Media.MaxImageHeight)
+	props["MattermostExtendedMediaMaxImageWidth"] = strconv.Itoa(*c.MattermostExtendedSettings.Media.MaxImageWidth)
+	props["MattermostExtendedMediaCaptionFontSize"] = strconv.Itoa(*c.MattermostExtendedSettings.Media.CaptionFontSize)
+	props["MattermostExtendedMediaMaxVideoHeight"] = strconv.Itoa(*c.MattermostExtendedSettings.Media.MaxVideoHeight)
+
 	if license != nil {
 		props["ExperimentalEnableAuthenticationTransfer"] = strconv.FormatBool(*c.ServiceSettings.ExperimentalEnableAuthenticationTransfer)
 

@@ -37,6 +37,10 @@ export type Props = {
     };
     hideUtilities?: boolean;
     isUnsafeLinksPost: boolean;
+
+    // Mattermost Extended - Image Captions feature flag
+    imageCaptionsEnabled?: boolean;
+    captionFontSize?: number;
 };
 
 type State = {
@@ -224,6 +228,27 @@ export default class MarkdownImage extends PureComponent<Props, State> {
                             >
                                 {imageElement}
                             </MarkdownImageExpand>
+                        );
+                    }
+
+                    // Mattermost Extended - Image Captions
+                    // If ImageCaptions feature flag is enabled and title is present, wrap in container with caption
+                    const {imageCaptionsEnabled, captionFontSize} = this.props;
+                    if (imageCaptionsEnabled && title) {
+                        const captionStyle: React.CSSProperties = {
+                            fontSize: captionFontSize ? `${captionFontSize}px` : '12px',
+                        };
+                        return (
+                            <div className='markdown-image-caption-wrapper'>
+                                {imageElement}
+                                <span
+                                    className='markdown-image-caption'
+                                    style={captionStyle}
+                                >
+                                    {'> '}
+                                    {title}
+                                </span>
+                            </div>
                         );
                     }
 

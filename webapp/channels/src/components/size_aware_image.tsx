@@ -93,6 +93,16 @@ export type Props = WrappedComponentProps & {
     * Prevents display of utility buttons when image in a location that makes them inappropriate
     */
     hideUtilities?: boolean;
+
+    /**
+    * Maximum height for the image (in pixels). Used with ImageSmaller feature flag.
+    */
+    maxHeight?: number;
+
+    /**
+    * Maximum width for the image (in pixels). Used with ImageSmaller feature flag.
+    */
+    maxWidth?: number;
 }
 
 type State = {
@@ -213,6 +223,8 @@ export class SizeAwareImage extends React.PureComponent<Props, State> {
         Reflect.deleteProperty(props, 'hideUtilities');
         Reflect.deleteProperty(props, 'getFilePublicLink');
         Reflect.deleteProperty(props, 'intl');
+        Reflect.deleteProperty(props, 'maxHeight');
+        Reflect.deleteProperty(props, 'maxWidth');
 
         let ariaLabelImage = intl.formatMessage({id: 'file_attachment.thumbnail', defaultMessage: 'file thumbnail'});
         if (fileInfo) {
@@ -221,11 +233,32 @@ export class SizeAwareImage extends React.PureComponent<Props, State> {
 
         const fileType = getFileType(fileInfo?.extension ?? '');
 
-        let conditionalSVGStyleAttribute;
+        let imageStyle: React.CSSProperties | undefined;
         if (fileType === FileTypes.SVG) {
-            conditionalSVGStyleAttribute = {
+            imageStyle = {
                 width: dimensions?.width || MIN_IMAGE_SIZE,
                 height: 'auto',
+            };
+        }
+
+        // Apply max dimension constraints if provided (ImageSmaller feature flag)
+        const {maxHeight, maxWidth} = this.props;
+        if (maxHeight && maxHeight > 0) {
+            imageStyle = {
+                ...imageStyle,
+                maxHeight: `${maxHeight}px`,
+            };
+        }
+        if (maxWidth && maxWidth > 0) {
+            imageStyle = {
+                ...imageStyle,
+                maxWidth: `${maxWidth}px`,
+            };
+        }
+        if (maxHeight || maxWidth) {
+            imageStyle = {
+                ...imageStyle,
+                objectFit: 'contain',
             };
         }
 
@@ -243,7 +276,7 @@ export class SizeAwareImage extends React.PureComponent<Props, State> {
                 src={src}
                 onError={this.handleError}
                 onLoad={this.handleLoad}
-                style={conditionalSVGStyleAttribute}
+                style={imageStyle}
             />
         );
 

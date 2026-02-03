@@ -193,6 +193,26 @@ const FLAG_METADATA: Record<string, {description: string; defaultValue: boolean}
         description: 'Suppress enterprise upgrade API calls that spam 403 errors on Team Edition builds',
         defaultValue: true,
     },
+    ImageMulti: {
+        description: 'Display multiple images at full size instead of thumbnails',
+        defaultValue: false,
+    },
+    ImageSmaller: {
+        description: 'Enforce max height/width constraints on images (configure in Media settings)',
+        defaultValue: false,
+    },
+    ImageCaptions: {
+        description: 'Show captions below markdown images when title attribute is provided',
+        defaultValue: false,
+    },
+    VideoEmbed: {
+        description: 'Display inline video players for video file attachments',
+        defaultValue: false,
+    },
+    VideoLinkEmbed: {
+        description: 'Detect video URLs in text and embed video players below links',
+        defaultValue: false,
+    },
 };
 
 // Styled components

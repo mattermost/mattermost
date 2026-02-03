@@ -15,6 +15,7 @@ import MarkdownImage from 'components/markdown_image';
 import PluginLinkTooltip from 'components/plugin_link_tooltip';
 import PostEmoji from 'components/post_emoji';
 import PostEditedIndicator from 'components/post_view/post_edited_indicator';
+import VideoLinkEmbed, {isVideoUrl, isVideoLinkText} from 'components/video_link_embed';
 
 export type Options = Partial<{
     postId: string;
@@ -44,12 +45,32 @@ export type Options = Partial<{
      * users automatically for all posts.
      */
     fetchMissingUsers: boolean;
+
+    // Mattermost Extended - Video Link Embed feature flag
+    videoLinkEmbedEnabled: boolean;
+    maxVideoHeight: number;
 }>
 
 type ProcessingInstruction = {
     replaceChildren: boolean;
     shouldProcessNode: (node: any) => boolean;
     processNode: (node: any, children?: any, index?: number) => any;
+}
+
+/**
+ * Helper function to extract text content from an HTML node tree
+ */
+function getNodeTextContent(node: any): string {
+    if (!node) {
+        return '';
+    }
+    if (node.type === 'text') {
+        return node.data || '';
+    }
+    if (node.children && node.children.length > 0) {
+        return node.children.map(getNodeTextContent).join('');
+    }
+    return '';
 }
 
 /*
@@ -117,6 +138,43 @@ export default function messageHtmlToComponent(html: string, options: Options = 
                     <PluginLinkTooltip nodeAttributes={convertPropsToReactStandard(node.attribs)}>
                         {children}
                     </PluginLinkTooltip>
+                );
+            },
+        });
+    }
+
+    // Mattermost Extended - Video Link Embed
+    // Check for links with "▶️Video" text that point to video files
+    if (options.videoLinkEmbedEnabled) {
+        processingInstructions.push({
+            replaceChildren: false,
+            shouldProcessNode: (node: any) => {
+                if (node.type !== 'tag' || node.name !== 'a' || !node.attribs.href) {
+                    return false;
+                }
+                // Check if the href is a video URL
+                if (!isVideoUrl(node.attribs.href)) {
+                    return false;
+                }
+                // Get the text content of the link
+                const textContent = getNodeTextContent(node);
+                return isVideoLinkText(textContent);
+            },
+            processNode: (node: any, children: any) => {
+                const href = node.attribs.href;
+                return (
+                    <React.Fragment key={`video-link-${href}`}>
+                        <a
+                            {...convertPropsToReactStandard(node.attribs)}
+                            className='theme markdown__link'
+                        >
+                            {children}
+                        </a>
+                        <VideoLinkEmbed
+                            href={href}
+                            maxHeight={options.maxVideoHeight}
+                        />
+                    </React.Fragment>
                 );
             },
         });

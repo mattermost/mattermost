@@ -66,12 +66,18 @@ function makeMapStateToProps() {
             fileCount = ownProps.post.filenames.length;
         }
 
+        const config = getConfig(state);
+
         return {
-            enableSVGs: getConfig(state).EnableSVGs === 'true',
+            enableSVGs: config.EnableSVGs === 'true',
             fileInfos,
             fileCount,
             isEmbedVisible: isEmbedVisible(state, ownProps.post.id),
             locale: getCurrentLocale(state),
+            // Media display feature flags
+            imageMultiEnabled: config.FeatureFlagImageMulti === 'true',
+            videoEmbedEnabled: config.FeatureFlagVideoEmbed === 'true',
+            maxVideoHeight: parseInt(config.MattermostExtendedMediaMaxVideoHeight || '350', 10),
         };
     };
 }

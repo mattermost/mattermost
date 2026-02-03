@@ -57,6 +57,9 @@ function makeMapStateToProps() {
             minimumHashtagLength: parseInt(config.MinimumHashtagLength || '', 10),
             emojiMap: getEmojiMap(state),
             channelId,
+            // Mattermost Extended - Video Link Embed feature flag
+            videoLinkEmbedEnabled: config.FeatureFlagVideoLinkEmbed === 'true',
+            maxVideoHeight: parseInt(config.MattermostExtendedMediaMaxVideoHeight || '350', 10),
         };
     };
 }

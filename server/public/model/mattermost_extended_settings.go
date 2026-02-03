@@ -11,6 +11,9 @@ type MattermostExtendedSettings struct {
 
 	// Channels section - tweaks related to channels
 	Channels MattermostExtendedChannelsSettings
+
+	// Media section - settings for media display features
+	Media MattermostExtendedMediaSettings
 }
 
 // MattermostExtendedPostsSettings contains tweaks for posts/messages behavior.
@@ -27,10 +30,26 @@ type MattermostExtendedChannelsSettings struct {
 	SidebarChannelSettings *bool
 }
 
+// MattermostExtendedMediaSettings contains settings for media display features.
+type MattermostExtendedMediaSettings struct {
+	// Maximum image height in pixels (used when ImageSmaller feature flag is enabled)
+	MaxImageHeight *int
+
+	// Maximum image width in pixels (used when ImageSmaller feature flag is enabled)
+	MaxImageWidth *int
+
+	// Caption font size in pixels (used when ImageCaptions feature flag is enabled)
+	CaptionFontSize *int
+
+	// Maximum video height in pixels for embedded video players
+	MaxVideoHeight *int
+}
+
 // SetDefaults applies the default settings to the struct.
 func (s *MattermostExtendedSettings) SetDefaults() {
 	s.Posts.SetDefaults()
 	s.Channels.SetDefaults()
+	s.Media.SetDefaults()
 }
 
 // SetDefaults for Posts settings
@@ -44,5 +63,21 @@ func (s *MattermostExtendedPostsSettings) SetDefaults() {
 func (s *MattermostExtendedChannelsSettings) SetDefaults() {
 	if s.SidebarChannelSettings == nil {
 		s.SidebarChannelSettings = NewPointer(false)
+	}
+}
+
+// SetDefaults for Media settings
+func (s *MattermostExtendedMediaSettings) SetDefaults() {
+	if s.MaxImageHeight == nil {
+		s.MaxImageHeight = NewPointer(400)
+	}
+	if s.MaxImageWidth == nil {
+		s.MaxImageWidth = NewPointer(500)
+	}
+	if s.CaptionFontSize == nil {
+		s.CaptionFontSize = NewPointer(12)
+	}
+	if s.MaxVideoHeight == nil {
+		s.MaxVideoHeight = NewPointer(350)
 	}
 }

@@ -120,6 +120,21 @@ type FeatureFlags struct {
 
 	// Suppress enterprise upgrade API calls that spam 403 errors on Team Edition
 	SuppressEnterpriseUpgradeChecks bool
+
+	// Display multiple images at full size instead of thumbnails
+	ImageMulti bool
+
+	// Enforce max height/width on images
+	ImageSmaller bool
+
+	// Show captions below images (from title attribute in markdown)
+	ImageCaptions bool
+
+	// Inline video players for video attachments
+	VideoEmbed bool
+
+	// Detect video URLs in text and embed players
+	VideoLinkEmbed bool
 }
 
 // featureFlagDefaults defines the default value for each boolean feature flag.

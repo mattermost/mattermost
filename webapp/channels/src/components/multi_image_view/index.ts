@@ -2,28 +2,26 @@
 // See LICENSE.txt for license information.
 
 import {connect} from 'react-redux';
+import type {ConnectedProps} from 'react-redux';
 import {bindActionCreators} from 'redux';
 import type {Dispatch} from 'redux';
 
 import {getConfig} from 'mattermost-redux/selectors/entities/general';
-import {getPost} from 'mattermost-redux/selectors/entities/posts';
 
 import {openModal} from 'actions/views/modals';
 
 import type {GlobalState} from 'types/store';
 
-import MarkdownImage from './markdown_image';
-import type {Props} from './markdown_image';
+import MultiImageView from './multi_image_view';
 
-function mapStateToProps(state: GlobalState, ownProps: Props) {
-    const post = getPost(state, ownProps.postId);
-    const isUnsafeLinksPost = post?.props?.unsafe_links === 'true';
+function mapStateToProps(state: GlobalState) {
     const config = getConfig(state);
+    const imageSmallerEnabled = config.FeatureFlagImageSmaller === 'true';
 
     return {
-        isUnsafeLinksPost,
-        imageCaptionsEnabled: config.FeatureFlagImageCaptions === 'true',
-        captionFontSize: parseInt(config.MattermostExtendedMediaCaptionFontSize || '12', 10),
+        // Only pass max dimensions if ImageSmaller is enabled
+        maxImageHeight: imageSmallerEnabled ? parseInt(config.MattermostExtendedMediaMaxImageHeight || '400', 10) : 0,
+        maxImageWidth: imageSmallerEnabled ? parseInt(config.MattermostExtendedMediaMaxImageWidth || '500', 10) : 0,
     };
 }
 
@@ -37,4 +35,6 @@ function mapDispatchToProps(dispatch: Dispatch) {
 
 const connector = connect(mapStateToProps, mapDispatchToProps);
 
-export default connector(MarkdownImage);
+export type PropsFromRedux = ConnectedProps<typeof connector>;
+
+export default connector(MultiImageView);

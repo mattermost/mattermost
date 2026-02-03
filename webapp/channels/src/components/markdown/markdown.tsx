@@ -109,6 +109,8 @@ function Markdown({
     team,
     minimumHashtagLength,
     managedResourcePaths,
+    videoLinkEmbedEnabled,
+    maxVideoHeight,
 }: Props) {
     if (message === '' || !enableFormatting) {
         return (
@@ -152,6 +154,9 @@ function Markdown({
         editedAt,
         atSumOfMembersMentions: options?.atSumOfMembersMentions,
         atPlanMentions: options?.atPlanMentions,
+        // Mattermost Extended - Video Link Embed
+        videoLinkEmbedEnabled,
+        maxVideoHeight,
     });
 }
 
