@@ -541,7 +541,7 @@ func TestExportDMandGMPost(t *testing.T) {
 		Message:   "aa" + model.NewId() + "a",
 		UserId:    th1.BasicUser.Id,
 	}
-	_, appErr := th1.App.CreatePost(th1.Context, p1, dmChannel, model.CreatePostFlags{SetOnline: true})
+	_, _, appErr := th1.App.CreatePost(th1.Context, p1, dmChannel, model.CreatePostFlags{SetOnline: true})
 	require.Nil(t, appErr)
 
 	p2 := &model.Post{
@@ -549,7 +549,7 @@ func TestExportDMandGMPost(t *testing.T) {
 		Message:   "bb" + model.NewId() + "a",
 		UserId:    th1.BasicUser.Id,
 	}
-	_, appErr = th1.App.CreatePost(th1.Context, p2, dmChannel, model.CreatePostFlags{SetOnline: true})
+	_, _, appErr = th1.App.CreatePost(th1.Context, p2, dmChannel, model.CreatePostFlags{SetOnline: true})
 	require.Nil(t, appErr)
 
 	// GM posts
@@ -558,7 +558,7 @@ func TestExportDMandGMPost(t *testing.T) {
 		Message:   "cc" + model.NewId() + "a",
 		UserId:    th1.BasicUser.Id,
 	}
-	_, appErr = th1.App.CreatePost(th1.Context, p3, gmChannel, model.CreatePostFlags{SetOnline: true})
+	_, _, appErr = th1.App.CreatePost(th1.Context, p3, gmChannel, model.CreatePostFlags{SetOnline: true})
 	require.Nil(t, appErr)
 
 	p4 := &model.Post{
@@ -566,7 +566,7 @@ func TestExportDMandGMPost(t *testing.T) {
 		Message:   "dd" + model.NewId() + "a",
 		UserId:    th1.BasicUser.Id,
 	}
-	_, appErr = th1.App.CreatePost(th1.Context, p4, gmChannel, model.CreatePostFlags{SetOnline: true})
+	_, _, appErr = th1.App.CreatePost(th1.Context, p4, gmChannel, model.CreatePostFlags{SetOnline: true})
 	require.Nil(t, appErr)
 
 	posts, err := th1.App.Srv().Store().Post().GetDirectPostParentsForExportAfter(1000, "0000000", false)
@@ -628,7 +628,7 @@ func TestExportPostWithProps(t *testing.T) {
 		},
 		UserId: th1.BasicUser.Id,
 	}
-	_, appErr := th1.App.CreatePost(th1.Context, p1, dmChannel, model.CreatePostFlags{SetOnline: true})
+	_, _, appErr := th1.App.CreatePost(th1.Context, p1, dmChannel, model.CreatePostFlags{SetOnline: true})
 	require.Nil(t, appErr)
 
 	p2 := &model.Post{
@@ -639,7 +639,7 @@ func TestExportPostWithProps(t *testing.T) {
 		},
 		UserId: th1.BasicUser.Id,
 	}
-	_, appErr = th1.App.CreatePost(th1.Context, p2, gmChannel, model.CreatePostFlags{SetOnline: true})
+	_, _, appErr = th1.App.CreatePost(th1.Context, p2, gmChannel, model.CreatePostFlags{SetOnline: true})
 	require.Nil(t, appErr)
 
 	posts, err := th1.App.Srv().Store().Post().GetDirectPostParentsForExportAfter(1000, "0000000", false)
@@ -1047,7 +1047,7 @@ func TestBuildPostReplies(t *testing.T) {
 			fileIDs = append(fileIDs, info.Id)
 		}
 
-		post, err := th.App.CreatePost(th.Context, &model.Post{UserId: th.BasicUser.Id, ChannelId: th.BasicChannel.Id, RootId: rootID, FileIds: fileIDs}, th.BasicChannel, model.CreatePostFlags{SetOnline: true})
+		post, _, err := th.App.CreatePost(th.Context, &model.Post{UserId: th.BasicUser.Id, ChannelId: th.BasicChannel.Id, RootId: rootID, FileIds: fileIDs}, th.BasicChannel, model.CreatePostFlags{SetOnline: true})
 		require.Nil(t, err)
 
 		return post
@@ -1597,7 +1597,7 @@ func TestExportDeactivatedUserDMs(t *testing.T) {
 		Message:   initialMessage,
 		UserId:    th1.BasicUser.Id,
 	}
-	initialPostCreated, appErr := th1.App.CreatePost(th1.Context, initialPost, dmChannel, model.CreatePostFlags{SetOnline: true})
+	initialPostCreated, _, appErr := th1.App.CreatePost(th1.Context, initialPost, dmChannel, model.CreatePostFlags{SetOnline: true})
 	require.Nil(t, appErr)
 
 	// 2. Have user2 reply with TWO types of replies:
@@ -1610,7 +1610,7 @@ func TestExportDeactivatedUserDMs(t *testing.T) {
 		UserId:    user2.Id,
 		RootId:    initialPostCreated.Id, // This makes it a threaded reply
 	}
-	_, appErr = th1.App.CreatePost(th1.Context, threadedReply, dmChannel, model.CreatePostFlags{SetOnline: true})
+	_, _, appErr = th1.App.CreatePost(th1.Context, threadedReply, dmChannel, model.CreatePostFlags{SetOnline: true})
 	require.Nil(t, appErr)
 
 	// 2b. User2 sends a standalone reply (NOT in a thread)
@@ -1621,7 +1621,7 @@ func TestExportDeactivatedUserDMs(t *testing.T) {
 		UserId:    user2.Id,
 		// No RootId, making it a standalone message, not a thread reply
 	}
-	_, appErr = th1.App.CreatePost(th1.Context, nonThreadedReply, dmChannel, model.CreatePostFlags{SetOnline: true})
+	_, _, appErr = th1.App.CreatePost(th1.Context, nonThreadedReply, dmChannel, model.CreatePostFlags{SetOnline: true})
 	require.Nil(t, appErr)
 
 	// 3. Now deactivate user2

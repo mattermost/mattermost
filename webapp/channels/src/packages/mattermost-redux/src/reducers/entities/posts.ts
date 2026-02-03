@@ -20,7 +20,7 @@ import type {
 } from '@mattermost/types/utilities';
 
 import type {MMReduxAction} from 'mattermost-redux/action_types';
-import {ChannelTypes, PostTypes, UserTypes, ThreadTypes, CloudTypes, LimitsTypes} from 'mattermost-redux/action_types';
+import {ChannelTypes, PostTypes, UserTypes, ThreadTypes, CloudTypes, LimitsTypes, TeamTypes} from 'mattermost-redux/action_types';
 import {Posts} from 'mattermost-redux/constants';
 import {PostTypes as PostTypeConstants} from 'mattermost-redux/constants/posts';
 import {comparePosts, isPermalink, shouldUpdatePost} from 'mattermost-redux/utils/post_utils';
@@ -155,6 +155,52 @@ export function nextPostsReplies(state: {[x in Post['id']]: number} = {}, action
     default:
         return state;
     }
+}
+
+// Helper function to remove posts and permalink embeds for a set of channel IDs.
+function removePostsAndEmbedsForChannels(state: IDMappedObjects<Post>, channelIds: Set<string>): IDMappedObjects<Post> {
+    let postModified = false;
+    const nextState = {...state};
+
+    for (const post of Object.values(state)) {
+        // Remove posts from the channels
+        if (channelIds.has(post.channel_id)) {
+            Reflect.deleteProperty(nextState, post.id);
+            postModified = true;
+            continue;
+        }
+
+        // Remove permalink embeds referencing those channels (matches server behavior)
+        if (post.metadata?.embeds?.length) {
+            const newEmbeds: PostEmbed[] = [];
+            let embedRemoved = false;
+
+            for (const embed of post.metadata.embeds) {
+                if (embed.type === 'permalink' && embed.data && channelIds.has((embed.data as PostPreviewMetadata).channel_id)) {
+                    embedRemoved = true;
+                } else {
+                    newEmbeds.push(embed);
+                }
+            }
+
+            if (embedRemoved) {
+                nextState[post.id] = {
+                    ...nextState[post.id],
+                    metadata: {
+                        ...nextState[post.id].metadata,
+                        embeds: newEmbeds,
+                    },
+                };
+                postModified = true;
+            }
+        }
+    }
+
+    if (!postModified) {
+        return state;
+    }
+
+    return nextState;
 }
 
 export function handlePosts(state: IDMappedObjects<Post> = {}, action: MMReduxAction) {
@@ -363,24 +409,15 @@ export function handlePosts(state: IDMappedObjects<Post> = {}, action: MMReduxAc
 
     case ChannelTypes.LEAVE_CHANNEL: {
         const channelId = action.data.id;
+        return removePostsAndEmbedsForChannels(state, new Set([channelId]));
+    }
 
-        let postDeleted = false;
-
-        // Remove any posts from the channel left by the user
-        const nextState = {...state};
-        for (const post of Object.values(state)) {
-            if (post.channel_id === channelId) {
-                Reflect.deleteProperty(nextState, post.id);
-                postDeleted = true;
-            }
-        }
-
-        if (!postDeleted) {
-            // Nothing changed
+    case TeamTypes.LEAVE_TEAM: {
+        const channelIds: string[] = action.data.channelIds || [];
+        if (channelIds.length === 0) {
             return state;
         }
-
-        return nextState;
+        return removePostsAndEmbedsForChannels(state, new Set(channelIds));
     }
 
     case ThreadTypes.FOLLOW_CHANGED_THREAD: {

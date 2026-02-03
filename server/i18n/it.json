@@ -788,10 +788,6 @@
     "translation": "Impossibile trovare il canale specificato. Usare [channel handle](https://docs.mattermost.com/messaging/managing-channels.html#naming-a-channel) per identificare i canali."
   },
   {
-    "id": "api.command_mute.not_member.error",
-    "translation": "Impossibile silenziare il canale {{.Channel}}, non ne sei membro."
-  },
-  {
     "id": "api.command_mute.success_mute",
     "translation": "Non riceverai ulteriori notifiche per {{.Channel}} fino a quando sarà silenziato."
   },

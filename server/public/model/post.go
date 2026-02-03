@@ -64,7 +64,7 @@ const (
 	PostFilenamesMaxRunes = 4000
 	PostHashtagsMaxRunes  = 1000
 	PostMessageMaxRunesV1 = 4000
-	PostMessageMaxBytesV2 = 65535                     // Maximum size of a TEXT column in MySQL
+	PostMessageMaxBytesV2 = 65535
 	PostMessageMaxRunesV2 = PostMessageMaxBytesV2 / 4 // Assume a worst-case representation
 
 	// Reporting API constants
@@ -1188,14 +1188,15 @@ type RewriteRequest struct {
 	Message      string        `json:"message"`
 	Action       RewriteAction `json:"action"`
 	CustomPrompt string        `json:"custom_prompt,omitempty"`
+	RootID       string        `json:"root_id,omitempty"`
 }
 
 type RewriteResponse struct {
 	RewrittenText string `json:"rewritten_text"`
 }
 
-const RewriteSystemPrompt = `You are a JSON API that rewrites text. Your response must be valid JSON only. 
-Return this exact format: {"rewritten_text":"content"}. 
+const RewriteSystemPrompt = `You are a JSON API that rewrites text. Your response must be valid JSON only.
+Return this exact format: {"rewritten_text":"content"}.
 Do not use markdown, code blocks, or any formatting. Start with { and end with }.`
 
 // ReportPostOptionsCursor contains cursor information for pagination.
