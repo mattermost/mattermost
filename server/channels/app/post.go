@@ -91,6 +91,11 @@ func (a *App) CreatePostAsUser(rctx request.CTX, post *model.Post, currentSessio
 		}
 	}
 
+	// Track this as manual activity for AccurateStatuses (if setOnline is true)
+	if setOnline && !fromWebhook && !fromBot {
+		a.UpdateActivityFromManualAction(post.UserId, post.ChannelId, model.StatusLogTriggerSendMessage)
+	}
+
 	return rp, nil
 }
 

@@ -1062,6 +1062,10 @@ func setPostUnread(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.Err = err
 		return
 	}
+
+	// Track this as manual activity for AccurateStatuses
+	c.App.UpdateActivityFromManualAction(c.Params.UserId, state.ChannelId, model.StatusLogTriggerMarkUnread)
+
 	if err := json.NewEncoder(w).Encode(state); err != nil {
 		c.Logger.Warn("Error while writing response", mlog.Err(err))
 	}

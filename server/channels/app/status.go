@@ -4,6 +4,7 @@
 package app
 
 import (
+	"context"
 	"encoding/json"
 	"net/http"
 
@@ -62,6 +63,12 @@ func (a *App) GetStatus(userID string) (*model.Status, *model.AppError) {
 	return a.Srv().Platform().GetStatus(userID)
 }
 
+// UpdateActivityFromManualAction updates LastActivityAt and potentially sets the user
+// to Online status when they perform a manual action (e.g., marking messages as unread).
+func (a *App) UpdateActivityFromManualAction(userID string, channelID string, trigger string) {
+	a.Srv().Platform().UpdateActivityFromManualAction(userID, channelID, trigger)
+}
+
 // UpdateDNDStatusOfUsers is a recurring task which is started when server starts
 // which unsets dnd status of users if needed and saves and broadcasts it
 func (a *App) UpdateDNDStatusOfUsers() {
@@ -81,7 +88,7 @@ func (a *App) UpdateDNDStatusOfUsers() {
 
 		// Log the status change from DND expiration
 		username := ""
-		if user, userErr := a.Srv().Store().User().Get(request.EmptyContext(mlog.NewLogger()).Context(), statuses[i].UserId); userErr == nil {
+		if user, userErr := a.Srv().Store().User().Get(context.Background(), statuses[i].UserId); userErr == nil {
 			username = user.Username
 		}
 		a.Srv().Platform().LogStatusChange(statuses[i].UserId, username, model.StatusDnd, statuses[i].Status, model.StatusLogReasonDNDExpired, model.StatusLogDeviceUnknown, false, "")

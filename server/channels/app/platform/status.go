@@ -315,6 +315,127 @@ func (ps *PlatformService) UpdateLastActivityAtIfNeeded(session model.Session) {
 	ps.LogActivityUpdate(session.UserId, username, currentStatus, model.StatusLogDeviceUnknown, false, "", "", model.StatusLogTriggerWebSocket)
 }
 
+// UpdateActivityFromManualAction updates LastActivityAt and potentially sets the user
+// to Online status when they perform a manual action (e.g., marking messages as unread,
+// sending a message, etc.). This is used when AccurateStatuses is enabled to ensure
+// manual actions are properly tracked.
+//
+// Unlike SetStatusOnline, this function:
+// - Always updates LastActivityAt
+// - Only changes status if user is Away or Offline (not DND or OOO)
+// - Respects manually set statuses (won't change if status.Manual is true)
+func (ps *PlatformService) UpdateActivityFromManualAction(userID string, channelID string, trigger string) {
+	if !*ps.Config().ServiceSettings.EnableUserStatuses {
+		return
+	}
+
+	// Only process if AccurateStatuses feature is enabled
+	if !ps.Config().FeatureFlags.AccurateStatuses {
+		return
+	}
+
+	now := model.GetMillis()
+
+	status, err := ps.GetStatus(userID)
+	if err != nil {
+		// User doesn't have a status yet, create one
+		status = &model.Status{
+			UserId:         userID,
+			Status:         model.StatusOnline,
+			Manual:         false,
+			LastActivityAt: now,
+			ActiveChannel:  channelID,
+		}
+	}
+
+	oldStatus := status.Status
+	oldLastActivityAt := status.LastActivityAt
+
+	// Always update LastActivityAt on manual action
+	status.LastActivityAt = now
+	if channelID != "" {
+		status.ActiveChannel = channelID
+	}
+
+	// Determine if we should change status to Online
+	newStatus := status.Status
+	statusChanged := false
+
+	// Only auto-set to Online if:
+	// 1. User is currently Away or Offline
+	// 2. User's status is NOT manually set
+	// 3. User is NOT in DND or Out of Office mode
+	if status.Status != model.StatusDnd && status.Status != model.StatusOutOfOffice {
+		if !status.Manual {
+			if status.Status == model.StatusAway || status.Status == model.StatusOffline {
+				newStatus = model.StatusOnline
+				statusChanged = true
+				status.Status = newStatus
+			}
+		}
+	}
+
+	// Handle NoOffline: If user is offline, set them online (even if manual)
+	if ps.Config().FeatureFlags.NoOffline && oldStatus == model.StatusOffline {
+		newStatus = model.StatusOnline
+		statusChanged = true
+		status.Status = newStatus
+		status.Manual = false
+	}
+
+	// Save the status update
+	ps.AddStatusCache(status)
+
+	// Save to database
+	lastActivityAtChanged := status.LastActivityAt != oldLastActivityAt
+	if statusChanged {
+		if dbErr := ps.Store.Status().SaveOrUpdate(status); dbErr != nil {
+			ps.Log().Warn("Failed to save status from manual action", mlog.String("user_id", userID), mlog.Err(dbErr))
+		}
+	} else if lastActivityAtChanged {
+		if dbErr := ps.Store.Status().UpdateLastActivityAt(userID, status.LastActivityAt); dbErr != nil {
+			ps.Log().Warn("Failed to update LastActivityAt from manual action", mlog.String("user_id", userID), mlog.Err(dbErr))
+		}
+	}
+
+	// Log the status change
+	if statusChanged {
+		username := ""
+		if user, userErr := ps.Store.User().Get(context.Background(), userID); userErr == nil {
+			username = user.Username
+		}
+		reason := model.StatusLogReasonManual
+		if ps.Config().FeatureFlags.NoOffline && oldStatus == model.StatusOffline {
+			reason = model.StatusLogReasonOfflinePrevented
+		}
+		ps.LogStatusChange(userID, username, oldStatus, newStatus, reason, model.StatusLogDeviceUnknown, true, channelID)
+	} else {
+		// Log activity update (no status change)
+		username := ""
+		if user, userErr := ps.Store.User().Get(context.Background(), userID); userErr == nil {
+			username = user.Username
+		}
+		var channelName string
+		if channelID != "" {
+			if channel, chanErr := ps.Store.Channel().Get(channelID, false); chanErr == nil {
+				channelName = channel.DisplayName
+				if channelName == "" {
+					channelName = channel.Name
+				}
+			}
+		}
+		ps.LogActivityUpdate(userID, username, status.Status, model.StatusLogDeviceUnknown, true, channelID, channelName, trigger)
+	}
+
+	// Broadcast status change if status changed
+	if statusChanged {
+		ps.BroadcastStatus(status)
+		if ps.sharedChannelService != nil {
+			ps.sharedChannelService.NotifyUserStatusChanged(status)
+		}
+	}
+}
+
 func (ps *PlatformService) SetStatusOnline(userID string, manual bool) {
 	if !*ps.Config().ServiceSettings.EnableUserStatuses {
 		return

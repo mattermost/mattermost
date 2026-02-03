@@ -55,4 +55,6 @@ const (
 	StatusLogTriggerWebSocket      = "WebSocket Message"
 	StatusLogTriggerSetActivity    = "Set Activity"
 	StatusLogTriggerActiveChannel  = "Active Channel"
+	StatusLogTriggerMarkUnread     = "Mark Unread"
+	StatusLogTriggerSendMessage    = "Send Message"
 )
