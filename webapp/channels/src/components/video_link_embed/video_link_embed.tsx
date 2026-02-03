@@ -55,8 +55,8 @@ export default function VideoLinkEmbed(props: Props) {
 
     if (hasError) {
         return (
-            <div className='video-link-embed-container'>
-                <div className='video-link-embed-error'>
+            <span className='video-link-embed-container'>
+                <span className='video-link-embed-error'>
                     <span className='video-link-embed-error__text'>{'Unable to load video'}</span>
                     <button
                         className='video-link-embed-error__download'
@@ -64,8 +64,8 @@ export default function VideoLinkEmbed(props: Props) {
                     >
                         {'Download'}
                     </button>
-                </div>
-            </div>
+                </span>
+            </span>
         );
     }
 
@@ -75,7 +75,7 @@ export default function VideoLinkEmbed(props: Props) {
     };
 
     return (
-        <div className='video-link-embed-container'>
+        <span className='video-link-embed-container'>
             <video
                 ref={videoRef}
                 className='video-link-embed'
@@ -95,6 +95,6 @@ export default function VideoLinkEmbed(props: Props) {
                     {`Download ${filename}`}
                 </a>
             </video>
-        </div>
+        </span>
     );
 }
