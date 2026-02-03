@@ -71,13 +71,16 @@ func (s *SqlEncryptionSessionKeyStore) GetBySession(sessionId string) (*model.En
 }
 
 // GetByUser returns all encryption keys for a user (one per active session).
+// Only returns keys for sessions that still exist (not expired/revoked).
 func (s *SqlEncryptionSessionKeyStore) GetByUser(userId string) ([]*model.EncryptionSessionKey, error) {
 	var keys []*model.EncryptionSessionKey
 
+	// Join with sessions table to only return keys for active sessions
 	query, args, err := s.getQueryBuilder().
-		Select("sessionid", "userid", "publickey", "createat").
-		From("encryptionsessionkeys").
-		Where(sq.Eq{"userid": userId}).
+		Select("e.sessionid", "e.userid", "e.publickey", "e.createat").
+		From("encryptionsessionkeys e").
+		InnerJoin("sessions s ON e.sessionid = s.id").
+		Where(sq.Eq{"e.userid": userId}).
 		ToSql()
 	if err != nil {
 		return nil, errors.Wrap(err, "encryption_session_key_get_by_user_tosql")
@@ -91,6 +94,7 @@ func (s *SqlEncryptionSessionKeyStore) GetByUser(userId string) ([]*model.Encryp
 }
 
 // GetByUsers returns all encryption keys for multiple users.
+// Only returns keys for sessions that still exist (not expired/revoked).
 func (s *SqlEncryptionSessionKeyStore) GetByUsers(userIds []string) ([]*model.EncryptionSessionKey, error) {
 	if len(userIds) == 0 {
 		return []*model.EncryptionSessionKey{}, nil
@@ -98,10 +102,12 @@ func (s *SqlEncryptionSessionKeyStore) GetByUsers(userIds []string) ([]*model.En
 
 	var keys []*model.EncryptionSessionKey
 
+	// Join with sessions table to only return keys for active sessions
 	query, args, err := s.getQueryBuilder().
-		Select("sessionid", "userid", "publickey", "createat").
-		From("encryptionsessionkeys").
-		Where(sq.Eq{"userid": userIds}).
+		Select("e.sessionid", "e.userid", "e.publickey", "e.createat").
+		From("encryptionsessionkeys e").
+		InnerJoin("sessions s ON e.sessionid = s.id").
+		Where(sq.Eq{"e.userid": userIds}).
 		ToSql()
 	if err != nil {
 		return nil, errors.Wrap(err, "encryption_session_key_get_by_users_tosql")
