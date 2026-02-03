@@ -414,6 +414,30 @@ func (a *App) CreatePost(rctx request.CTX, post *model.Post, channel *model.Chan
 	// so we just return the one that was passed with post
 	rpost = a.PreparePostForClient(rctx, rpost, &model.PreparePostForClientOpts{IsEditPost: true})
 
+	// Initialize translations for the post before sending WebSocket events
+	// This ensures translation metadata is included in the 'posted' event
+	// Check if auto-translation is available before making database calls
+	if a.AutoTranslation() != nil && a.AutoTranslation().IsFeatureAvailable() {
+		enabled, atErr := a.AutoTranslation().IsChannelEnabled(rpost.ChannelId)
+		if atErr == nil && enabled {
+			_, translateErr := a.AutoTranslation().Translate(rctx.Context(), model.TranslationObjectTypePost, rpost.Id, rpost.ChannelId, rpost.UserId, rpost)
+			if translateErr != nil {
+				var notAvailErr *model.ErrAutoTranslationNotAvailable
+				if errors.As(translateErr, &notAvailErr) {
+					// Feature not available - log at debug level and continue
+					rctx.Logger().Debug("Auto-translation feature not available", mlog.String("post_id", rpost.Id), mlog.Err(translateErr))
+				} else if translateErr.Id == "ent.autotranslation.no_translatable_content" {
+					// No translatable content (only URLs/mentions) - this is expected, don't log
+				} else {
+					// Unexpected error - log at warn level but don't fail post creation
+					rctx.Logger().Warn("Failed to translate post", mlog.String("post_id", rpost.Id), mlog.Err(translateErr))
+				}
+			}
+		} else if atErr != nil {
+			rctx.Logger().Warn("Failed to check if channel is enabled for auto-translation", mlog.String("channel_id", rpost.ChannelId), mlog.Err(atErr))
+		}
+	}
+
 	a.applyPostWillBeConsumedHook(&rpost)
 
 	if rpost.RootId != "" {
@@ -617,14 +641,6 @@ func (a *App) handlePostEvents(rctx request.CTX, post *model.Post, user *model.U
 
 	if _, err := a.SendNotifications(rctx, post, team, channel, user, parentPostList, setOnline); err != nil {
 		return err
-	}
-
-	// Send initial read receipt counts for burn-on-read posts
-	if post.Type == model.PostTypeBurnOnRead {
-		// No revealing user yet (post just created), send empty string
-		if err := a.publishPostRevealedEventToAuthor(rctx, post, "", ""); err != nil {
-			rctx.Logger().Error("Failed to publish initial burn-on-read read receipt event", mlog.String("post_id", post.Id), mlog.Err(err))
-		}
 	}
 
 	if post.Type != model.PostTypeAutoResponder { // don't respond to an auto-responder
@@ -888,6 +904,30 @@ func (a *App) UpdatePost(rctx request.CTX, receivedUpdatedPost *model.Post, upda
 	rpost, nErr = a.addPostPreviewProp(rctx, rpost)
 	if nErr != nil {
 		return nil, false, model.NewAppError("UpdatePost", "app.post.update.app_error", nil, "", http.StatusInternalServerError).Wrap(nErr)
+	}
+
+	// Re-translate post if content changed
+	// Our updated Translate() function detects content changes via NormHash comparison
+	// and automatically re-initializes translations for all configured languages
+	if a.AutoTranslation() != nil && a.AutoTranslation().IsFeatureAvailable() {
+		enabled, atErr := a.AutoTranslation().IsChannelEnabled(rpost.ChannelId)
+		if atErr == nil && enabled {
+			_, translateErr := a.AutoTranslation().Translate(rctx.Context(), model.TranslationObjectTypePost, rpost.Id, rpost.ChannelId, rpost.UserId, rpost)
+			if translateErr != nil {
+				var notAvailErr *model.ErrAutoTranslationNotAvailable
+				if errors.As(translateErr, &notAvailErr) {
+					// Feature not available - log at debug level and continue
+					rctx.Logger().Debug("Auto-translation feature not available for edited post", mlog.String("post_id", rpost.Id), mlog.Err(translateErr))
+				} else if translateErr.Id == "ent.autotranslation.no_translatable_content" {
+					// No translatable content (only URLs/mentions) - this is expected, don't log
+				} else {
+					// Unexpected error - log at warn level but don't fail post update
+					rctx.Logger().Warn("Failed to translate edited post", mlog.String("post_id", rpost.Id), mlog.Err(translateErr))
+				}
+			}
+		} else if atErr != nil {
+			rctx.Logger().Warn("Failed to check if channel is enabled for auto-translation", mlog.String("channel_id", rpost.ChannelId), mlog.Err(atErr))
+		}
 	}
 
 	message := model.NewWebSocketEvent(model.WebsocketEventPostEdited, "", rpost.ChannelId, "", nil, "")
@@ -2908,18 +2948,20 @@ func (a *App) PermanentDeletePost(rctx request.CTX, postID, deleteByID string) *
 		return model.NewAppError("DeletePost", "app.post.get.app_error", nil, "", http.StatusBadRequest).Wrap(err)
 	}
 
+	postHasFiles := len(post.FileIds) > 0
+
 	// If the post is a burn-on-read post, we should get the original post contents
 	if post.Type == model.PostTypeBurnOnRead {
-		tmpPost, appErr := a.getBurnOnReadPost(rctx, post)
+		revealedPost, appErr := a.getBurnOnReadPost(rctx, post)
 		if appErr != nil {
 			rctx.Logger().Warn("Failed to get burn-on-read post", mlog.Err(appErr))
 		}
-		if tmpPost != nil {
-			post = tmpPost
+		if revealedPost != nil {
+			postHasFiles = len(revealedPost.FileIds) > 0
 		}
 	}
 
-	if len(post.FileIds) > 0 {
+	if postHasFiles {
 		appErr := a.PermanentDeleteFilesByPost(rctx, post.Id)
 		if appErr != nil {
 			return appErr
@@ -3039,14 +3081,27 @@ func (a *App) RewriteMessage(
 	message string,
 	action model.RewriteAction,
 	customPrompt string,
+	rootID string,
 ) (*model.RewriteResponse, *model.AppError) {
-	userPrompt := getRewritePromptForAction(action, message, customPrompt)
+	// Build thread context if rootID is provided
+	var threadContext string
+	if rootID != "" {
+		context, appErr := a.buildThreadContextForRewrite(rctx, rootID)
+		if appErr != nil {
+			// Log error but continue without context rather than failing the rewrite
+			rctx.Logger().Warn("Failed to build thread context for rewrite", mlog.String("root_id", rootID), mlog.Err(appErr))
+		} else {
+			threadContext = context
+		}
+	}
+
+	userPrompt := getRewritePromptForAction(action, message, customPrompt, threadContext)
 	if userPrompt == "" {
 		return nil, model.NewAppError("RewriteMessage", "app.post.rewrite.invalid_action", nil, fmt.Sprintf("invalid action: %s", action), 400)
 	}
 
 	// Prepare completion request in the format expected by the client
-	client := a.getBridgeClient(rctx.Session().UserId)
+	client := a.GetBridgeClient(rctx.Session().UserId)
 	completionRequest := agentclient.CompletionRequest{
 		Posts: []agentclient.Post{
 			{Role: "system", Message: model.RewriteSystemPrompt},
@@ -3071,38 +3126,156 @@ func (a *App) RewriteMessage(
 	return &response, nil
 }
 
-// getRewritePromptForAction returns the appropriate prompt and system prompt for the given rewrite action
-func getRewritePromptForAction(action model.RewriteAction, message string, customPrompt string) string {
-	if message == "" {
-		return fmt.Sprintf(`Write according to these instructions: %s`, customPrompt)
+// buildThreadContextForRewrite builds context from root post + last 10 posts in the thread
+func (a *App) buildThreadContextForRewrite(rctx request.CTX, rootID string) (string, *model.AppError) {
+	const maxContextPosts = 10
+
+	// Get the thread posts
+	postList, appErr := a.GetPostThread(rctx, rootID, model.GetPostsOptions{}, rctx.Session().UserId)
+	if appErr != nil {
+		return "", appErr
 	}
 
-	switch action {
-	case model.RewriteActionCustom:
-		return fmt.Sprintf(`%s
+	if postList == nil || len(postList.Posts) == 0 {
+		return "", nil
+	}
+
+	// Get root post
+	rootPost, ok := postList.Posts[rootID]
+	if !ok {
+		return "", nil
+	}
+
+	// Skip if root post is a system post or deleted
+	if strings.HasPrefix(rootPost.Type, model.PostSystemMessagePrefix) || rootPost.DeleteAt > 0 {
+		return "", nil
+	}
+
+	// Collect reply posts, filtering out system posts and deleted posts
+	var replies []*model.Post
+	for _, postID := range postList.Order {
+		if postID == rootID {
+			continue // Skip root post
+		}
+		post, ok := postList.Posts[postID]
+		if !ok {
+			continue
+		}
+		// Skip system posts
+		if strings.HasPrefix(post.Type, model.PostSystemMessagePrefix) {
+			continue
+		}
+		// Skip deleted posts
+		if post.DeleteAt > 0 {
+			continue
+		}
+		replies = append(replies, post)
+	}
+
+	// Get last maxContextPosts replies
+	var contextReplies []*model.Post
+	startIdx := 0
+	if len(replies) > maxContextPosts {
+		startIdx = len(replies) - maxContextPosts
+	}
+	contextReplies = replies[startIdx:]
+
+	// Get user profiles for all posts in context
+	userIDs := []string{rootPost.UserId}
+	for _, reply := range contextReplies {
+		userIDs = append(userIDs, reply.UserId)
+	}
+	slices.Sort(userIDs)
+	userIDs = slices.Compact(userIDs)
+
+	users, appErr := a.GetUsersByIds(rctx, userIDs, &store.UserGetByIdsOpts{})
+	if appErr != nil {
+		return "", appErr
+	}
+
+	userMap := make(map[string]string, len(users))
+	for _, user := range users {
+		userMap[user.Id] = user.Username
+	}
+
+	// Build context string
+	var contextBuilder strings.Builder
+	contextBuilder.WriteString("Thread context:\n")
+
+	rootUsername := userMap[rootPost.UserId]
+	if rootUsername == "" {
+		rootUsername = "Unknown"
+	}
+	contextBuilder.WriteString(fmt.Sprintf("Root post (%s): %s\n", rootUsername, rootPost.Message))
+
+	if len(contextReplies) > 0 {
+		contextBuilder.WriteString("\nRecent replies:\n")
+		for _, reply := range contextReplies {
+			username := userMap[reply.UserId]
+			if username == "" {
+				username = "Unknown"
+			}
+			contextBuilder.WriteString(fmt.Sprintf("- %s: %s\n", username, reply.Message))
+		}
+	}
+
+	return contextBuilder.String(), nil
+}
+
+// getRewritePromptForAction returns the appropriate prompt and system prompt for the given rewrite action
+func getRewritePromptForAction(action model.RewriteAction, message string, customPrompt string, threadContext string) string {
+	var actionPrompt string
+
+	if message == "" {
+		actionPrompt = fmt.Sprintf(`Write according to these instructions: %s`, customPrompt)
+	} else {
+		switch action {
+		case model.RewriteActionCustom:
+			actionPrompt = fmt.Sprintf(`%s
 
 %s`, customPrompt, message)
 
-	case model.RewriteActionShorten:
-		return fmt.Sprintf(`Make this up to 2 to 3 times shorter: %s`, message)
+		case model.RewriteActionShorten:
+			actionPrompt = fmt.Sprintf(`Make this up to 2 to 3 times shorter: %s`, message)
 
-	case model.RewriteActionElaborate:
-		return fmt.Sprintf(`Make this up to 2 to 3 times longer, using Markdown if necessary: %s`, message)
+		case model.RewriteActionElaborate:
+			actionPrompt = fmt.Sprintf(`Make this up to 2 to 3 times longer, using Markdown if necessary: %s`, message)
 
-	case model.RewriteActionImproveWriting:
-		return fmt.Sprintf(`Improve this writing, using Markdown if necessary: %s`, message)
+		case model.RewriteActionImproveWriting:
+			actionPrompt = fmt.Sprintf(`Improve this writing, using Markdown if necessary: %s`, message)
 
-	case model.RewriteActionFixSpelling:
-		return fmt.Sprintf(`Fix spelling and grammar: %s`, message)
+		case model.RewriteActionFixSpelling:
+			actionPrompt = fmt.Sprintf(`Fix spelling and grammar: %s`, message)
 
-	case model.RewriteActionSimplify:
-		return fmt.Sprintf(`Simplify this: %s`, message)
+		case model.RewriteActionSimplify:
+			actionPrompt = fmt.Sprintf(`Simplify this: %s`, message)
 
-	case model.RewriteActionSummarize:
-		return fmt.Sprintf(`Summarize this, using Markdown if necessary: %s`, message)
+		case model.RewriteActionSummarize:
+			actionPrompt = fmt.Sprintf(`Summarize this, using Markdown if necessary: %s`, message)
+
+		default:
+			// Invalid action - return empty string to trigger validation error
+			return ""
+		}
 	}
 
-	return ""
+	// If no action prompt was generated, return empty string
+	if actionPrompt == "" {
+		return ""
+	}
+
+	// Build final prompt with thread context if available
+	if threadContext != "" {
+		var promptBuilder strings.Builder
+		promptBuilder.WriteString("=== THREAD CONTEXT (for reference only) ===\n")
+		promptBuilder.WriteString(threadContext)
+		promptBuilder.WriteString("\n\n=== REWRITE TASK ===\n")
+		promptBuilder.WriteString(actionPrompt)
+		promptBuilder.WriteString("\n\nRewrite the message considering the thread context above.")
+		return promptBuilder.String()
+	}
+
+	return actionPrompt
 }
 
 // RevealPost reveals a burn-on-read post for a specific user, creating a read receipt

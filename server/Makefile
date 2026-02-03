@@ -1,4 +1,4 @@
-.PHONY: build package run stop run-client run-server run-node run-haserver stop-haserver stop-client stop-server restart restart-server restart-client restart-haserver start-docker update-docker clean-dist clean nuke check-style check-client-style check-server-style check-unit-tests test dist run-client-tests setup-run-client-tests cleanup-run-client-tests test-client build-linux build-osx build-windows package-prep package-linux package-osx package-windows internal-test-web-client vet run-server-for-web-client-tests diff-config prepackaged-plugins prepackaged-binaries test-server test-server-ee test-server-quick test-server-race test-mmctl-unit test-mmctl-e2e test-mmctl test-mmctl-coverage mmctl-build mmctl-docs new-migration migrations-extract test-public mocks-public
+.PHONY: build package run stop run-client run-server run-node run-haserver stop-haserver stop-client stop-server restart restart-server restart-client restart-haserver start-docker update-docker clean-dist clean nuke check-style check-client-style check-server-style check-unit-tests test dist run-client-tests setup-run-client-tests cleanup-run-client-tests test-client build-linux build-osx build-freebsd build-windows package-prep package-linux package-osx package-windows internal-test-web-client vet run-server-for-web-client-tests diff-config prepackaged-plugins prepackaged-binaries test-server test-server-ee test-server-quick test-server-race test-mmctl-unit test-mmctl-e2e test-mmctl test-mmctl-coverage mmctl-build mmctl-docs new-migration migrations-extract test-public mocks-public
 
 ROOT := $(dir $(abspath $(lastword $(MAKEFILE_LIST))))
 
@@ -142,6 +142,8 @@ DIST_PATH_LIN_AMD64=$(DIST_ROOT)/linux_amd64/mattermost
 DIST_PATH_LIN_ARM64=$(DIST_ROOT)/linux_arm64/mattermost
 DIST_PATH_OSX_AMD64=$(DIST_ROOT)/darwin_amd64/mattermost
 DIST_PATH_OSX_ARM64=$(DIST_ROOT)/darwin_arm64/mattermost
+DIST_PATH_FREEBSD_AMD64=$(DIST_ROOT)/freebsd_amd64/mattermost
+DIST_PATH_FREEBSD_ARM64=$(DIST_ROOT)/freebsd_arm64/mattermost
 DIST_PATH_WIN=$(DIST_ROOT)/windows/mattermost
 
 # Packages lists
@@ -156,14 +158,14 @@ PLUGIN_PACKAGES += mattermost-plugin-calls-v1.11.0
 PLUGIN_PACKAGES += mattermost-plugin-github-v2.5.0
 PLUGIN_PACKAGES += mattermost-plugin-gitlab-v1.12.0
 PLUGIN_PACKAGES += mattermost-plugin-jira-v4.5.1
-PLUGIN_PACKAGES += mattermost-plugin-playbooks-v2.6.1
+PLUGIN_PACKAGES += mattermost-plugin-playbooks-v2.7.0
 PLUGIN_PACKAGES += mattermost-plugin-servicenow-v2.4.0
 PLUGIN_PACKAGES += mattermost-plugin-zoom-v1.11.0
 PLUGIN_PACKAGES += mattermost-plugin-agents-v1.7.2
 PLUGIN_PACKAGES += mattermost-plugin-boards-v9.2.2
 PLUGIN_PACKAGES += mattermost-plugin-user-survey-v1.1.1
 PLUGIN_PACKAGES += mattermost-plugin-mscalendar-v1.5.0
-PLUGIN_PACKAGES += mattermost-plugin-msteams-meetings-v2.3.0
+PLUGIN_PACKAGES += mattermost-plugin-msteams-meetings-v2.4.0
 PLUGIN_PACKAGES += mattermost-plugin-metrics-v0.7.0
 PLUGIN_PACKAGES += mattermost-plugin-channel-export-v1.3.0
 
@@ -172,9 +174,9 @@ PLUGIN_PACKAGES += mattermost-plugin-channel-export-v1.3.0
 # download the package from to work. This will no longer be needed when we unify
 # the way we pre-package FIPS and non-FIPS plugins.
 ifeq ($(FIPS_ENABLED),true)
-	PLUGIN_PACKAGES  = mattermost-plugin-playbooks-v2.6.1%2B0e01d28-fips
+	PLUGIN_PACKAGES  = mattermost-plugin-playbooks-v2.6.2%2Bb8f2bd9-fips
 	PLUGIN_PACKAGES += mattermost-plugin-agents-v1.7.2%2B866e2dd-fips
-	PLUGIN_PACKAGES += mattermost-plugin-boards-v9.2.1%2Bdf49b26-fips
+	PLUGIN_PACKAGES += mattermost-plugin-boards-v9.2.2%2B4282c63-fips
 endif
 
 EE_PACKAGES=$(shell $(GO) list $(BUILD_ENTERPRISE_DIR)/...)
@@ -418,7 +420,7 @@ ifneq ($(IGNORE_GO_WORK_IF_EXISTS),true)
 	$(GO) work use .
 	$(GO) work use ./public
 ifeq ($(BUILD_ENTERPRISE_READY),true)
-	$(GO) work use ../../enterprise
+	$(GO) work use $(BUILD_ENTERPRISE_DIR)
 endif
 endif
 
