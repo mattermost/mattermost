@@ -3100,11 +3100,23 @@ func (a *App) RewriteMessage(
 		return nil, model.NewAppError("RewriteMessage", "app.post.rewrite.invalid_action", nil, fmt.Sprintf("invalid action: %s", action), 400)
 	}
 
+	userLocale := ""
+	if session := rctx.Session(); session != nil && session.UserId != "" {
+		user, appErr := a.GetUser(session.UserId)
+		if appErr == nil {
+			userLocale = user.Locale
+		} else {
+			rctx.Logger().Warn("Failed to get user for rewrite locale", mlog.Err(appErr), mlog.String("user_id", session.UserId))
+		}
+	}
+
+	systemPrompt := buildRewriteSystemPrompt(userLocale)
+
 	// Prepare completion request in the format expected by the client
 	client := a.GetBridgeClient(rctx.Session().UserId)
 	completionRequest := agentclient.CompletionRequest{
 		Posts: []agentclient.Post{
-			{Role: "system", Message: model.RewriteSystemPrompt},
+			{Role: "system", Message: systemPrompt},
 			{Role: "user", Message: userPrompt},
 		},
 	}
@@ -3276,6 +3288,17 @@ func getRewritePromptForAction(action model.RewriteAction, message string, custo
 	}
 
 	return actionPrompt
+}
+
+func buildRewriteSystemPrompt(userLocale string) string {
+	locale := strings.TrimSpace(userLocale)
+	if locale == "" {
+		return model.RewriteSystemPrompt
+	}
+
+	return fmt.Sprintf(`%s
+
+User locale: %s. Preserve locale-specific spelling, grammar, and formatting. Keep locale identifiers (like %s) unchanged. Do not translate between locales.`, model.RewriteSystemPrompt, locale, locale)
 }
 
 // RevealPost reveals a burn-on-read post for a specific user, creating a read receipt
