@@ -47,6 +47,7 @@ const (
 	StatusLogReasonDisconnect       = "disconnect"
 	StatusLogReasonConnect          = "connect"
 	StatusLogReasonDNDExpired       = "dnd_inactivity"
+	StatusLogReasonDNDRestored      = "dnd_restored"
 )
 
 // StatusLogTrigger constants for activity logs

@@ -558,6 +558,38 @@ func (ps *PlatformService) SetStatusOnline(userID string, manual bool) {
 			return // manually set status always overrides non-manual one
 		}
 
+		// Check if user was DND before going offline (due to inactivity timeout)
+		// If so, restore their DND status instead of setting to Online
+		// Only applies when AccurateStatuses feature is enabled
+		if ps.Config().FeatureFlags.AccurateStatuses && status.Status == model.StatusOffline && status.PrevStatus == model.StatusDnd && !manual {
+			oldStatus = status.Status
+			oldTime = status.LastActivityAt
+			oldManual = status.Manual
+
+			status.Status = model.StatusDnd
+			status.Manual = true
+			status.PrevStatus = ""
+			status.LastActivityAt = model.GetMillis()
+			broadcast = true
+
+			ps.AddStatusCache(status)
+			if err := ps.Store.Status().SaveOrUpdate(status); err != nil {
+				mlog.Warn("Failed to save status", mlog.String("user_id", userID), mlog.Err(err))
+			}
+			if ps.sharedChannelService != nil {
+				ps.sharedChannelService.NotifyUserStatusChanged(status)
+			}
+			ps.BroadcastStatus(status)
+
+			// Log the DND restoration
+			username := ""
+			if user, userErr := ps.Store.User().Get(context.Background(), userID); userErr == nil {
+				username = user.Username
+			}
+			ps.LogStatusChange(userID, username, oldStatus, model.StatusDnd, model.StatusLogReasonDNDRestored, model.StatusLogDeviceUnknown, true, "", false, "SetStatusOnline")
+			return
+		}
+
 		if status.Status != model.StatusOnline {
 			broadcast = true
 		}
@@ -1010,11 +1042,20 @@ func (ps *PlatformService) UpdateActivityFromHeartbeat(userID string, windowActi
 	if status.Status == model.StatusDnd {
 		// DND users can be set to Offline after extended inactivity
 		if dndInactivityTimeout > 0 && timeSinceLastActivity >= dndInactivityTimeout {
+			// Save PrevStatus so we can restore DND when user returns
+			// and block notifications while they appear offline
+			status.PrevStatus = model.StatusDnd
 			newStatus = model.StatusOffline
 			status.Manual = false
 		}
 		// Note: DND users are NOT automatically set back to Online on activity
 		// They must manually change their status
+	} else if status.Status == model.StatusOffline && status.PrevStatus == model.StatusDnd && isManualActivity {
+		// User was DND, went offline due to inactivity, and is now active again
+		// Restore their DND status
+		newStatus = model.StatusDnd
+		status.Manual = true
+		status.PrevStatus = ""
 	} else if status.Status == model.StatusOutOfOffice {
 		// Out of Office is similar to DND - it's a manual status that shouldn't auto-change
 		// (no automatic offline timeout for OOO)
@@ -1061,6 +1102,8 @@ func (ps *PlatformService) UpdateActivityFromHeartbeat(userID string, windowActi
 			reason = model.StatusLogReasonOfflinePrevented
 		} else if oldStatus == model.StatusDnd && newStatus == model.StatusOffline {
 			reason = model.StatusLogReasonDNDExpired
+		} else if oldStatus == model.StatusOffline && newStatus == model.StatusDnd {
+			reason = model.StatusLogReasonDNDRestored
 		}
 
 		// Get username for logging
