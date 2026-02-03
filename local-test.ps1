@@ -38,9 +38,10 @@ try {
     # Module not installed, will use fallback display
 }
 
-# Script directory and log file
+# Script directory and log files
 $SCRIPT_DIR = $PSScriptRoot
 $LOG_FILE = Join-Path $SCRIPT_DIR "local-test.log"
+$SERVER_LOG = Join-Path $SCRIPT_DIR "server.log"
 $CONFIG_FILE = Join-Path $SCRIPT_DIR "local-test.config"
 
 # Initialize log file with timestamp (clears previous log)
@@ -1299,12 +1300,20 @@ function Invoke-Start {
     Log "Starting server on http://localhost:$MM_PORT"
     Log "Press Ctrl+C to stop"
     Log ""
+    Log "Server output logged to: $SERVER_LOG"
+    Log ""
+
+    # Initialize server log file
+    "=" * 80 | Out-File $SERVER_LOG -Encoding UTF8
+    "Server started: $(Get-Date -Format 'yyyy-MM-dd HH:mm:ss')" | Out-File $SERVER_LOG -Append -Encoding UTF8
+    "Command: $binaryPath server --config $configPath" | Out-File $SERVER_LOG -Append -Encoding UTF8
+    "=" * 80 | Out-File $SERVER_LOG -Append -Encoding UTF8
 
     Push-Location $WORK_DIR
 
-    # Run server and capture output to log
+    # Run server and capture output to server log
     & $binaryPath server --config $configPath 2>&1 | ForEach-Object {
-        $_ | Out-File $LOG_FILE -Append -Encoding UTF8
+        $_ | Out-File $SERVER_LOG -Append -Encoding UTF8
         Write-Host $_
     }
 
@@ -1329,13 +1338,21 @@ function Invoke-StartBuild {
     Log "Starting server on http://localhost:$MM_PORT"
     Log "Press Ctrl+C to stop"
     Log ""
+    Log "Server output logged to: $SERVER_LOG"
+    Log ""
 
     Push-Location $WORK_DIR
     $configPath = Join-Path $WORK_DIR "config.json"
 
-    # Run server and capture output to log
+    # Initialize server log file
+    "=" * 80 | Out-File $SERVER_LOG -Encoding UTF8
+    "Server started: $(Get-Date -Format 'yyyy-MM-dd HH:mm:ss')" | Out-File $SERVER_LOG -Append -Encoding UTF8
+    "Command: $binaryPath server --config $configPath" | Out-File $SERVER_LOG -Append -Encoding UTF8
+    "=" * 80 | Out-File $SERVER_LOG -Append -Encoding UTF8
+
+    # Run server and capture output to server log
     & $binaryPath server --config $configPath 2>&1 | ForEach-Object {
-        $_ | Out-File $LOG_FILE -Append -Encoding UTF8
+        $_ | Out-File $SERVER_LOG -Append -Encoding UTF8
         Write-Host $_
     }
 
