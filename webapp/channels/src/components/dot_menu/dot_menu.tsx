@@ -623,6 +623,8 @@ export class DotMenuClass extends React.PureComponent<Props, State> {
                     />
                 }
                 {this.props.canReply && this.props.discordRepliesEnabled &&
+                    // Only show Create Thread in CENTER - not in threads (RHS_ROOT/RHS_COMMENT)
+                    this.props.location === Locations.CENTER &&
                     <Menu.Item
                         id={`create_thread_${this.props.post.id}`}
                         data-testid={`create_thread_${this.props.post.id}`}

@@ -758,7 +758,7 @@ const AdvancedTextEditor = ({
                     postId={rootId}
                 />
             )}
-            {!isInEditMode && location === Locations.CENTER && (
+            {!isInEditMode && (
                 <PendingRepliesBar/>
             )}
             <div

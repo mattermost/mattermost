@@ -374,7 +374,10 @@ function PostComponent(props: Props) {
             props.clickToReply &&
             (fromAutoResponder || !isSystemMessage) &&
             isEligibleForClick(e) &&
-            props.location === Locations.CENTER &&
+            (props.location === Locations.CENTER ||
+                // When DiscordReplies is enabled, allow click-to-reply in threads too
+                (props.discordRepliesEnabled && (props.location === Locations.RHS_ROOT || props.location === Locations.RHS_COMMENT))
+            ) &&
             !props.isPostBeingEdited
         ) {
             // When Discord replies is enabled, clicking adds to pending replies instead of opening thread

@@ -137,7 +137,11 @@ const PostOptions = (props: Props): JSX.Element => {
     const isBurnOnReadPost = props.isBurnOnReadPost || false;
     const showCommentIcon = !isBurnOnReadPost && (isFromAutoResponder || (!systemMessage && (isMobileView ||
             hoverLocal || (!post.root_id && Boolean(props.hasReplies)) ||
-            props.isFirstReply) && props.location === Locations.CENTER));
+            props.isFirstReply) && (
+            props.location === Locations.CENTER ||
+            // When DiscordReplies is enabled, show Reply in threads too (adds to pending replies)
+            (props.discordRepliesEnabled && (props.location === Locations.RHS_ROOT || props.location === Locations.RHS_COMMENT))
+        )));
     const commentIconExtraClass = isMobileView ? '' : 'pull-right';
 
     // When Discord replies is enabled, clicking Reply adds to pending replies queue
@@ -165,7 +169,8 @@ const PostOptions = (props: Props): JSX.Element => {
     });
 
     let createThreadIcon: ReactNode = null;
-    if (props.discordRepliesEnabled && showCommentIcon) {
+    // Only show Create Thread in CENTER - not in threads (RHS_ROOT/RHS_COMMENT)
+    if (props.discordRepliesEnabled && showCommentIcon && props.location === Locations.CENTER) {
         createThreadIcon = (
             <li>
                 <WithTooltip title={createThreadTitle}>
