@@ -57,4 +57,5 @@ const (
 	StatusLogTriggerActiveChannel  = "Active Channel"
 	StatusLogTriggerMarkUnread     = "Mark Unread"
 	StatusLogTriggerSendMessage    = "Send Message"
+	StatusLogTriggerFetchHistory   = "Fetch History"
 )

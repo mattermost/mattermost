@@ -301,6 +301,14 @@ func getPostsForChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Track activity for AccurateStatuses when user actively scrolls to fetch history
+	// Only track when beforePost or afterPost is set (user scrolling), NOT for:
+	// - since > 0 (polling for new messages)
+	// - initial page load (no pagination params)
+	if beforePost != "" || afterPost != "" {
+		c.App.UpdateActivityFromManualAction(c.AppContext.Session().UserId, channelId, model.StatusLogTriggerFetchHistory)
+	}
+
 	if etag != "" {
 		w.Header().Set(model.HeaderEtagServer, etag)
 	}
