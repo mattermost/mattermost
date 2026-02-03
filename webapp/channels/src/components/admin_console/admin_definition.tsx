@@ -6860,6 +6860,12 @@ const AdminDefinition: AdminDefinitionType = {
                             help_text: defineMessage({id: 'admin.mattermost_extended.media.maxVideoWidth.desc', defaultMessage: 'Maximum width for embedded video players when VideoEmbed or VideoLinkEmbed feature flags are enabled.'}),
                             placeholder: defineMessage({id: 'admin.mattermost_extended.media.maxVideoWidth.placeholder', defaultMessage: 'E.g. 480'}),
                         },
+                        {
+                            type: 'bool',
+                            key: 'MattermostExtendedSettings.Media.MatchRemoteUserHourIconSize',
+                            label: defineMessage({id: 'admin.mattermost_extended.media.matchRemoteUserHourIconSize.title', defaultMessage: 'Match Remote User Hour Icon Size:'}),
+                            help_text: defineMessage({id: 'admin.mattermost_extended.media.matchRemoteUserHourIconSize.desc', defaultMessage: 'When enabled, the moon icon in the "The time for user is..." display matches the text size instead of being larger.'}),
+                        },
                     ],
                 },
             },

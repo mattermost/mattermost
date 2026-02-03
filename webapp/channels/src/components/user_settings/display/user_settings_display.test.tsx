@@ -91,6 +91,7 @@ describe('components/user_settings/display/UserSettingsDisplay', () => {
         colorizeUsernames: '',
         collapseDisplay: '',
         linkPreviewDisplay: '',
+        alwaysShowRemoteUserHour: '',
         globalHeaderDisplay: '',
         globalHeaderAllowed: true,
         lastActiveDisplay: true,
@@ -139,6 +140,12 @@ describe('components/user_settings/display/UserSettingsDisplay', () => {
 
     test('should match snapshot, clock section', () => {
         const props = {...requiredProps, activeSection: 'clock'};
+        const wrapper = shallow(<UserSettingsDisplay {...props}/>);
+        expect(wrapper).toMatchSnapshot();
+    });
+
+    test('should match snapshot, always show remote user hour section', () => {
+        const props = {...requiredProps, activeSection: 'alwaysShowRemoteUserHour'};
         const wrapper = shallow(<UserSettingsDisplay {...props}/>);
         expect(wrapper).toMatchSnapshot();
     });

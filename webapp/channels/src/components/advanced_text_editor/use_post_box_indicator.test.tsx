@@ -225,4 +225,27 @@ describe('useTimePostBoxIndicator', () => {
         expect(screen.queryByTitle('isBot')?.textContent).toBe('false');
         expect(screen.queryByTitle('showRemoteUserHour')?.textContent).toBe('true');
     });
+
+    it('should show remote hour indicator when alwaysShowRemoteUserHour is true, even if it is not late/early', () => {
+        const fakeLocal = DateTime.local(2025, 1, 1, 12, { // 12 PM is not late or early (6 AM - 10 PM)
+            zone: 'Asia/Kolkata',
+        });
+
+        DateTime.local = jest.fn(() => fakeLocal);
+
+        const state = getBaseState();
+        state.entities!.preferences = {
+            myPreferences: {
+                ['display_settings--always_show_remote_user_hour']: {
+                    category: 'display_settings',
+                    name: 'always_show_remote_user_hour',
+                    value: 'true',
+                },
+            },
+        };
+
+        const {result: {current}} = renderHookWithContext(() => useTimePostBoxIndicator('dm_channel_id'), state);
+
+        expect(current.showRemoteUserHour).toBe(true);
+    });
 });

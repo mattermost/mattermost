@@ -3,12 +3,17 @@
 
 import React from 'react';
 import {FormattedMessage} from 'react-intl';
+import {useSelector} from 'react-redux';
 import styled from 'styled-components';
 
 import type {UserTimezone} from '@mattermost/types/users';
 
+import {getConfig} from 'mattermost-redux/selectors/entities/general';
+
 import Moon from 'components/common/svg_images_components/moon_svg';
 import Timestamp from 'components/timestamp';
+
+import type {GlobalState} from 'types/store';
 
 const Container = styled.div`
     display: flex;
@@ -26,10 +31,10 @@ const Container = styled.div`
     }
 `;
 
-const Icon = styled(Moon)`
+const Icon = styled(Moon)<{$matchTextSize?: boolean}>`
     svg {
-        width: 16px;
-        height: 16px;
+        width: ${(props) => (props.$matchTextSize ? '12px' : '16px')};
+        height: ${(props) => (props.$matchTextSize ? '12px' : '16px')};
     }
     svg path {
         fill: rgba(var(--center-channel-color-rgb), 0.75);
@@ -44,9 +49,14 @@ type Props = {
 }
 
 const RemoteUserHour = ({displayName, timestamp, teammateTimezone}: Props) => {
+    const config = useSelector((state: GlobalState) => getConfig(state));
+    const matchIconSize = config.MattermostExtendedMediaMatchRemoteUserHourIconSize === 'true';
     return (
         <Container className='RemoteUserHour'>
-            <Icon className='icon moonIcon'/>
+            <Icon
+                className='icon moonIcon'
+                $matchTextSize={matchIconSize}
+            />
             <FormattedMessage
                 id='advanced_text_editor.remote_user_hour'
                 defaultMessage='The time for {user} is {time}'

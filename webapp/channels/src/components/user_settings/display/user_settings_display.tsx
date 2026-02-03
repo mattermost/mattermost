@@ -44,6 +44,7 @@ function getDisplayStateFromProps(props: Props) {
         collapseDisplay: props.collapseDisplay,
         collapsedReplyThreads: props.collapsedReplyThreads,
         linkPreviewDisplay: props.linkPreviewDisplay,
+        alwaysShowRemoteUserHour: props.alwaysShowRemoteUserHour,
         lastActiveDisplay: props.lastActiveDisplay.toString(),
         oneClickReactionsOnPosts: props.oneClickReactionsOnPosts,
         clickToReply: props.clickToReply,
@@ -114,6 +115,7 @@ type Props = OwnProps & {
     collapsedReplyThreadsAllowUserPreference: boolean;
     clickToReply: string;
     linkPreviewDisplay: string;
+    alwaysShowRemoteUserHour: string;
     oneClickReactionsOnPosts: string;
     emojiPickerEnabled: boolean;
     timezoneLabel: string;
@@ -141,6 +143,7 @@ type State = {
     collapseDisplay: string;
     collapsedReplyThreads: string;
     linkPreviewDisplay: string;
+    alwaysShowRemoteUserHour: string;
     lastActiveDisplay: string;
     oneClickReactionsOnPosts: string;
     clickToReply: string;
@@ -278,6 +281,12 @@ export default class UserSettingsDisplay extends React.PureComponent<Props, Stat
             name: Preferences.LINK_PREVIEW_DISPLAY,
             value: this.state.linkPreviewDisplay,
         };
+        const alwaysShowRemoteUserHourPreference = {
+            user_id: userId,
+            category: Preferences.CATEGORY_DISPLAY_SETTINGS,
+            name: Preferences.ALWAYS_SHOW_REMOTE_USER_HOUR,
+            value: this.state.alwaysShowRemoteUserHour,
+        };
         const oneClickReactionsOnPostsPreference = {
             user_id: userId,
             category: Preferences.CATEGORY_DISPLAY_SETTINGS,
@@ -301,6 +310,7 @@ export default class UserSettingsDisplay extends React.PureComponent<Props, Stat
             clickToReplyPreference,
             collapseDisplayPreference,
             linkPreviewDisplayPreference,
+            alwaysShowRemoteUserHourPreference,
             teammateNameDisplayPreference,
             availabilityStatusOnPostsPreference,
             oneClickReactionsOnPostsPreference,
@@ -778,6 +788,39 @@ export default class UserSettingsDisplay extends React.PureComponent<Props, Stat
             }),
         });
 
+        const alwaysShowRemoteUserHourSection = this.createSection({
+            section: 'alwaysShowRemoteUserHour',
+            display: 'alwaysShowRemoteUserHour',
+            value: this.state.alwaysShowRemoteUserHour,
+            defaultDisplay: Preferences.ALWAYS_SHOW_REMOTE_USER_HOUR_DEFAULT,
+            title: defineMessage({
+                id: 'user.settings.display.alwaysShowRemoteUserHourTitle',
+                defaultMessage: 'Teammate Time Display',
+            }),
+            firstOption: {
+                value: 'false',
+                radionButtonText: {
+                    label: defineMessage({
+                        id: 'user.settings.display.alwaysShowRemoteUserHourOff',
+                        defaultMessage: 'Only show when it is late or early for the teammate',
+                    }),
+                },
+            },
+            secondOption: {
+                value: 'true',
+                radionButtonText: {
+                    label: defineMessage({
+                        id: 'user.settings.display.alwaysShowRemoteUserHourOn',
+                        defaultMessage: 'Always show',
+                    }),
+                },
+            },
+            description: defineMessage({
+                id: 'user.settings.display.alwaysShowRemoteUserHourDescription',
+                defaultMessage: 'Select whether to always show the teammate\'s local time in Direct Messages, or only when it is outside of their normal working hours.',
+            }),
+        });
+
         const teammateNameDisplaySection = this.createSection({
             section: Preferences.NAME_NAME_FORMAT,
             display: 'teammateNameDisplay',
@@ -1212,6 +1255,7 @@ export default class UserSettingsDisplay extends React.PureComponent<Props, Stat
                     {themeSection}
                     {collapsedReplyThreads}
                     {clockSection}
+                    {alwaysShowRemoteUserHourSection}
                     {teammateNameDisplaySection}
                     {availabilityStatusOnPostsSection}
                     {lastActiveSection}

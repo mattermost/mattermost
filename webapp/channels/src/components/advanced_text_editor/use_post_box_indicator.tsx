@@ -11,13 +11,16 @@ import {getDirectChannel} from 'mattermost-redux/selectors/entities/channels';
 import {isScheduledPostsEnabled} from 'mattermost-redux/selectors/entities/scheduled_posts';
 import {getTimezoneForUserProfile, getCurrentTimezone} from 'mattermost-redux/selectors/entities/timezone';
 import {
+    get,
+} from 'mattermost-redux/selectors/entities/preferences';
+import {
     getCurrentUserId,
     getStatusForUserId,
     getUser,
     makeGetDisplayName,
 } from 'mattermost-redux/selectors/entities/users';
 
-import Constants, {UserStatuses} from 'utils/constants';
+import Constants, {UserStatuses, Preferences} from 'utils/constants';
 
 import type {GlobalState} from 'types/store';
 
@@ -62,6 +65,8 @@ function useTimePostBoxIndicator(channelId: string) {
     // current user timezone
     const userCurrentTimezone = useSelector((state: GlobalState) => getCurrentTimezone(state));
 
+    const alwaysShowRemoteUserHour = useSelector((state: GlobalState) => get(state, Preferences.CATEGORY_DISPLAY_SETTINGS, Preferences.ALWAYS_SHOW_REMOTE_USER_HOUR, Preferences.ALWAYS_SHOW_REMOTE_USER_HOUR_DEFAULT)) === 'true';
+
     const isBot = Boolean(isDM && teammate?.is_bot);
 
     // UseEffect to update the timestamp and the visibility for the time indicator
@@ -84,6 +89,7 @@ function useTimePostBoxIndicator(channelId: string) {
 
             const currentHour = teammateUserDate.hour;
             const showIndicator =
+                alwaysShowRemoteUserHour ||
                 currentHour >= Constants.REMOTE_USERS_HOUR_LIMIT_END_OF_THE_DAY ||
                 currentHour < Constants.REMOTE_USERS_HOUR_LIMIT_BEGINNING_OF_THE_DAY;
 
@@ -95,7 +101,7 @@ function useTimePostBoxIndicator(channelId: string) {
         const interval = setInterval(updateTime, MINUTE);
 
         return () => clearInterval(interval);
-    }, [teammateTimezone.useAutomaticTimezone, teammateTimezone.automaticTimezone, teammateTimezone.manualTimezone, isBot]);
+    }, [teammateTimezone.useAutomaticTimezone, teammateTimezone.automaticTimezone, teammateTimezone.manualTimezone, isBot, alwaysShowRemoteUserHour]);
 
     const isScheduledPostEnabledValue = useSelector(isScheduledPostsEnabled);
 

@@ -49,6 +49,9 @@ type MattermostExtendedMediaSettings struct {
 
 	// Maximum video width in pixels for embedded video players
 	MaxVideoWidth *int
+
+	// When enabled, the moon icon in the remote user time display matches the text size
+	MatchRemoteUserHourIconSize *bool
 }
 
 // MattermostExtendedStatusesSettings contains settings for accurate status tracking.
@@ -113,6 +116,9 @@ func (s *MattermostExtendedMediaSettings) SetDefaults() {
 	}
 	if s.MaxVideoWidth == nil {
 		s.MaxVideoWidth = NewPointer(480)
+	}
+	if s.MatchRemoteUserHourIconSize == nil {
+		s.MatchRemoteUserHourIconSize = NewPointer(true)
 	}
 }
 
