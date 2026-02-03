@@ -1918,6 +1918,10 @@
     "translation": "Invalid or expired session, please login again."
   },
   {
+    "id": "api.context.session_cookie_not_allowed.app_error",
+    "translation": "Cookie-based authentication is not allowed for this endpoint. Please use header-based authentication."
+  },
+  {
     "id": "api.context.token_provided.app_error",
     "translation": "Session is not OAuth but token was provided in the query string."
   },
