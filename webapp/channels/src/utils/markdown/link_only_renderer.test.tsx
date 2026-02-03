@@ -297,3 +297,44 @@ describe('formatWithRenderer | LinkOnlyRenderer', () => {
         expect(formatWithRenderer(testCase.inputText, linkOnlyRenderer)).toEqual(testCase.outputText);
     }));
 });
+
+describe('LinkOnlyRenderer Security', () => {
+    const linkOnlyRenderer = new LinkOnlyRenderer();
+
+    it('should keep script tags escaped to prevent XSS', () => {
+        const input = '<script>alert("xss")</script>';
+        const output = formatWithRenderer(input, linkOnlyRenderer);
+
+        // Script tags should remain escaped, not decoded
+        expect(output).not.toContain('<script>');
+        expect(output).toContain('&lt;script&gt;');
+    });
+
+    it('should keep img onerror escaped to prevent XSS', () => {
+        const input = '<img src="x" onerror="alert(1)">';
+        const output = formatWithRenderer(input, linkOnlyRenderer);
+
+        // Should remain escaped
+        expect(output).not.toContain('<img');
+        expect(output).toContain('&lt;img');
+    });
+
+    it('should keep encoded script tags escaped', () => {
+        // User tries to bypass by using entities
+        const input = '&lt;script&gt;alert("xss")&lt;/script&gt;';
+        const output = formatWithRenderer(input, linkOnlyRenderer);
+
+        // Should remain as entities, not decoded to actual tags
+        expect(output).not.toContain('<script>');
+        expect(output).toContain('&lt;script&gt;');
+    });
+
+    it('should keep HTML in link text escaped', () => {
+        const input = '[<script>evil</script>](http://example.com)';
+        const output = formatWithRenderer(input, linkOnlyRenderer);
+
+        // The link text should have escaped HTML
+        expect(output).not.toContain('<script>evil</script>');
+        expect(output).toContain('&lt;script&gt;');
+    });
+});

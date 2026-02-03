@@ -264,7 +264,7 @@ describe('stripMarkdown', () => {
         {
             description: 'text: multiple entities',
             inputText: '&amp;lt;',
-            outputText: '&lt;',
+            outputText: '<',
         },
 
         // Numeric entity decoding tests (decimal format &#DD;)
@@ -329,6 +329,46 @@ describe('stripMarkdown', () => {
             outputText: '!#()*',
         },
         {
+            description: 'numeric entity: &#34; (double quote)',
+            inputText: '&#34;quoted&#34;',
+            outputText: '"quoted"',
+        },
+        {
+            description: 'numeric entity: &#38; (ampersand)',
+            inputText: 'this &#38; that',
+            outputText: 'this & that',
+        },
+        {
+            description: 'numeric entity: &#59; (semicolon)',
+            inputText: 'statement&#59;',
+            outputText: 'statement;',
+        },
+        {
+            description: 'numeric entity: &#61; (equals sign)',
+            inputText: 'a &#61; b',
+            outputText: 'a = b',
+        },
+        {
+            description: 'numeric entity: &#63; (question mark)',
+            inputText: 'How are you&#63;',
+            outputText: 'How are you?',
+        },
+        {
+            description: 'numeric entity: &#64; (at sign)',
+            inputText: 'email&#64;example.com',
+            outputText: 'email@example.com',
+        },
+        {
+            description: 'numeric entity: &#94; (caret)',
+            inputText: 'x&#94;2',
+            outputText: 'x^2',
+        },
+        {
+            description: 'numeric entity: &#123; and &#125; (curly braces)',
+            inputText: '&#123;key: value&#125;',
+            outputText: '{key: value}',
+        },
+        {
             description: 'text: empty string',
             inputText: '',
             outputText: '',
@@ -361,9 +401,9 @@ describe('stripMarkdown', () => {
 });
 
 describe('RemoveMarkdown', () => {
-    test('should escape HTML entities in plain text', () => {
+    test('should decode HTML entities in plain text', () => {
         const input = 'This looks like html: <span>Mac & "cheese\'s"';
-        const expected = 'This looks like html: &lt;span&gt;Mac &amp; &quot;cheese&#39;s&quot;';
+        const expected = 'This looks like html: <span>Mac & "cheese\'s"';
 
         expect(formatWithRenderer(input, new RemoveMarkdown())).toBe(expected);
     });
@@ -380,5 +420,44 @@ describe('RemoveMarkdown', () => {
         const expected = 'This looks like html: &lt;span&gt;Mac &amp; &quot;cheese&#039;s&quot;';
 
         expect(formatWithRenderer(input, new RemoveMarkdown())).toBe(expected);
+    });
+});
+
+describe('RemoveMarkdown Security - Plain Text Context', () => {
+    // RemoveMarkdown is used for plain text contexts (notifications, search)
+    // where HTML is NOT rendered. Decoding entities is safe in this context.
+
+    test('should decode HTML entities for plain text display (notifications)', () => {
+        // In plain text contexts like push notifications, we WANT decoded text
+        // The text "<script>" will display as literal text, not execute
+        const input = '<script>alert("test")</script>';
+        const output = stripMarkdown(input);
+
+        // Entities are decoded because this is for plain text display
+        expect(output).toBe('<script>alert("test")</script>');
+    });
+
+    test('should decode numeric entities for plain text display', () => {
+        const input = '&#60;script&#62;alert&#40;1&#41;&#60;/script&#62;';
+        const output = stripMarkdown(input);
+
+        // In plain text context, this is safe - just displays as text
+        expect(output).toBe('<script>alert(1)</script>');
+    });
+
+    test('should decode named entities for plain text display', () => {
+        const input = '&lt;div&gt;Hello &amp; Welcome&lt;/div&gt;';
+        const output = stripMarkdown(input);
+
+        // Safe for notifications - displays as literal text
+        expect(output).toBe('<div>Hello & Welcome</div>');
+    });
+
+    test('should handle special characters in attachment titles', () => {
+        // This is the original issue - Google Calendar plugin attachments
+        const input = 'Meeting: Project Review &#40;Q1&#41; - 2:00 PM';
+        const output = stripMarkdown(input);
+
+        expect(output).toBe('Meeting: Project Review (Q1) - 2:00 PM');
     });
 });
