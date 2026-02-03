@@ -25,45 +25,29 @@ func (api *API) InitErrorLog() {
 // reportError handles POST /api/v4/errors
 // Any authenticated user can report errors from the client
 func reportError(c *Context, w http.ResponseWriter, r *http.Request) {
-	// Log all incoming error reports for debugging
-	userId := c.AppContext.Session().UserId
-	c.Logger.Debug("Error report received",
-		mlog.String("user_id", userId),
-		mlog.String("remote_addr", r.RemoteAddr),
-	)
-
 	// Check if feature is enabled
 	if !c.App.Config().FeatureFlags.ErrorLogDashboard {
-		c.Logger.Debug("Error report rejected: feature disabled")
 		c.Err = model.NewAppError("reportError", "api.error_log.disabled", nil, "", http.StatusForbidden)
 		return
 	}
 
 	var report model.ErrorLogReport
 	if jsonErr := json.NewDecoder(r.Body).Decode(&report); jsonErr != nil {
-		c.Logger.Debug("Error report rejected: invalid JSON", mlog.Err(jsonErr))
 		c.SetInvalidParamWithErr("error_report", jsonErr)
 		return
 	}
 
 	if appErr := report.IsValid(); appErr != nil {
-		c.Logger.Debug("Error report rejected: validation failed", mlog.Err(appErr))
 		c.Err = appErr
 		return
 	}
 
+	userId := c.AppContext.Session().UserId
 	user, err := c.App.GetUser(userId)
 	username := ""
 	if err == nil && user != nil {
 		username = user.Username
 	}
-
-	c.Logger.Info("Error report accepted",
-		mlog.String("user_id", userId),
-		mlog.String("username", username),
-		mlog.String("type", report.Type),
-		mlog.String("message", report.Message),
-	)
 
 	// Create the error log entry
 	errorLog := &model.ErrorLog{
