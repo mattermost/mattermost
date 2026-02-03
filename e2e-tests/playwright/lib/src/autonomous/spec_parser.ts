@@ -256,19 +256,46 @@ export class SpecificationParser {
      */
     private parseJSON(content: string, sourcePath: string): FeatureSpecification[] {
         try {
-            const data = JSON.parse(content);
+            let data: any;
+            try {
+                data = JSON.parse(content);
+            } catch (parseError) {
+                throw new Error(`Invalid JSON syntax: ${(parseError as Error).message}`);
+            }
+
+            if (!data) {
+                throw new Error('JSON is empty or null');
+            }
 
             // Support both single spec and array of specs
             const specsData = Array.isArray(data) ? data : [data];
 
-            const specs: FeatureSpecification[] = specsData.map((specData) => {
-                const scenarios: BusinessScenario[] = (specData.scenarios || []).map((s: any) => ({
-                    name: s.name,
-                    given: s.given,
-                    when: s.when,
-                    then: s.then,
-                    priority: s.priority || 'should-have',
-                }));
+            if (specsData.length === 0) {
+                throw new Error('No specifications found in JSON');
+            }
+
+            const specs: FeatureSpecification[] = specsData.map((specData, index) => {
+                // Validate required fields
+                if (!specData.name && !specData.feature) {
+                    throw new Error(`Specification ${index + 1} missing required "name" or "feature" field`);
+                }
+
+                if (!specData.scenarios || !Array.isArray(specData.scenarios)) {
+                    console.warn(`Specification "${specData.name || specData.feature}" has no scenarios`);
+                }
+
+                const scenarios: BusinessScenario[] = (specData.scenarios || []).map((s: any, sIndex: number) => {
+                    if (!s.name) {
+                        throw new Error(`Scenario ${sIndex + 1} in "${specData.name || specData.feature}" missing "name" field`);
+                    }
+                    return {
+                        name: s.name,
+                        given: s.given || '',
+                        when: s.when || '',
+                        then: s.then || '',
+                        priority: s.priority || 'should-have',
+                    };
+                });
 
                 const screenshots: SpecScreenshot[] = (specData.screenshots || []).map((s: any) => {
                     if (typeof s === 'string') {

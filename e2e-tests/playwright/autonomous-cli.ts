@@ -38,7 +38,7 @@ interface ParsedArgs {
     outputDir?: string;
     dryRun?: boolean;
     baseUrl?: string;
-    headless?: boolean; // Default is headed, use --headless to disable
+    headless?: boolean; // Default: false (headed mode with UI visible); --headless enables headless mode
     browser?: 'chrome' | 'chromium' | 'firefox' | 'webkit'; // Default is chrome
     project?: string; // Playwright project to use
     parallel?: boolean; // Run exploration/healing in parallel
@@ -260,6 +260,15 @@ async function loginViaAPI(
 
     // Get user data from response body
     const userData = await response.json();
+
+    if (!userData || typeof userData !== 'object') {
+        throw new Error('Login response body is not valid JSON object');
+    }
+
+    if (!userData.id || typeof userData.id !== 'string') {
+        throw new Error('Login response missing user ID - check API response format');
+    }
+
     const userId = userData.id;
 
     // Get token from response header
@@ -281,11 +290,21 @@ async function loginViaAPI(
     }
 
     const teams = await teamsResponse.json();
-    if (!teams || teams.length === 0) {
-        throw new Error('User has no teams');
+
+    if (!Array.isArray(teams)) {
+        throw new Error(`Teams response is not an array: ${typeof teams}`);
     }
 
-    const defaultTeam = teams[0].name; // First team is default
+    if (teams.length === 0) {
+        throw new Error('User has no teams - cannot determine default team');
+    }
+
+    const firstTeam = teams[0];
+    if (!firstTeam.name || typeof firstTeam.name !== 'string') {
+        throw new Error(`First team has invalid name property: ${JSON.stringify(firstTeam)}`);
+    }
+
+    const defaultTeam = firstTeam.name;
 
     // Node.js fetch doesn't expose Set-Cookie properly, so we get token from header
     // and construct cookies manually
@@ -381,6 +400,8 @@ async function generateWithUIContext(parsedArgs: ParsedArgs): Promise<string> {
     console.log(`  Feature hints: ${featureContext}`);
 
     let uiContext = '';
+    let explorationWarning = '';
+
     try {
         const snapshot = await exploreOrganically(baseUrl, {
             headless: parsedArgs.headless,
@@ -395,11 +416,24 @@ async function generateWithUIContext(parsedArgs: ParsedArgs): Promise<string> {
         console.log(`  ✓ Organic exploration complete`);
     } catch (e) {
         const error = e as Error;
-        console.log(`  ⚠️  Could not explore UI: ${error.message}`);
+
+        // Categorize the error for better UX
+        let suggestion = '';
+        if (error.message.includes('login') || error.message.includes('auth')) {
+            suggestion = 'Check MM_USERNAME and MM_PASSWORD environment variables';
+        } else if (error.message.includes('Chrome') || error.message.includes('browser')) {
+            suggestion = 'Ensure Google Chrome is installed and accessible';
+        } else if (error.message.includes('timeout')) {
+            suggestion = 'Check network connectivity and that server is running at ' + baseUrl;
+        }
+
+        explorationWarning = `UI exploration failed: ${error.message}${suggestion ? ` (${suggestion})` : ''}`;
+        console.log(`  ❌ ${explorationWarning}`);
+        console.log('  ⚠️  Continuing with repo patterns only - generated tests may be inaccurate');
+
         if (parsedArgs.verbose) {
             console.log(`  Stack: ${error.stack}`);
         }
-        console.log('  ℹ️  Continuing with repo patterns only');
     }
 
     // Step 3: Get repo context
@@ -704,16 +738,41 @@ async function processSpecFile(specFile: string): Promise<string> {
             throw new Error('Set AUTONOMOUS_ALLOW_PDF_UPLOAD=true for PDF specs');
         }
 
-        const {createAnthropicBridge} = await import('./lib/src/spec-bridge');
-        const bridge = createAnthropicBridge(process.env.ANTHROPIC_API_KEY!, 'specs');
-        const result = await bridge.convertToPlaywrightSpecs(resolvedPath);
+        try {
+            const {createAnthropicBridge} = await import('./lib/src/spec-bridge');
+            const bridge = createAnthropicBridge(process.env.ANTHROPIC_API_KEY!, 'specs');
 
-        return result.features
-            .map(
-                (f) =>
-                    `Feature: ${f.name}\n${f.description}\n\nScenarios:\n${f.scenarios.map((s) => `- ${s.name}: Given ${s.given}, When ${s.when}, Then ${s.then}`).join('\n')}`,
-            )
-            .join('\n\n');
+            if (!process.env.ANTHROPIC_API_KEY) {
+                throw new Error('ANTHROPIC_API_KEY environment variable is not set');
+            }
+
+            const result = await bridge.convertToPlaywrightSpecs(resolvedPath);
+
+            if (!result.features || result.features.length === 0) {
+                throw new Error('No features extracted from PDF - please check file content and format');
+            }
+
+            return result.features
+                .map(
+                    (f) =>
+                        `Feature: ${f.name}\n${f.description}\n\nScenarios:\n${f.scenarios.map((s) => `- ${s.name}: Given ${s.given}, When ${s.when}, Then ${s.then}`).join('\n')}`,
+                )
+                .join('\n\n');
+        } catch (error) {
+            const errorMsg = error instanceof Error ? error.message : String(error);
+
+            if (errorMsg.includes('API') || errorMsg.includes('authentication')) {
+                throw new Error(`PDF parsing API error: ${errorMsg}. Check ANTHROPIC_API_KEY configuration.`);
+            }
+            if (errorMsg.includes('timeout') || errorMsg.includes('time out')) {
+                throw new Error(`PDF parsing timed out. Try with a smaller PDF or check network connectivity.`);
+            }
+            if (errorMsg.includes('format') || errorMsg.includes('PDF')) {
+                throw new Error(`PDF format error: ${errorMsg}. Ensure file is a valid PDF.`);
+            }
+
+            throw new Error(`PDF conversion failed: ${errorMsg}`);
+        }
     }
 
     return readFileSync(resolvedPath, 'utf-8');
@@ -1172,6 +1231,14 @@ async function commandGenerate(parsedArgs: ParsedArgs): Promise<void> {
     }
 
     // Heal failing tests (up to 3 attempts)
+    interface HealingAttempt {
+        success: boolean;
+        attempt: number;
+        error?: Error;
+    }
+
+    const healingAttempts: HealingAttempt[] = [];
+
     for (let attempt = 1; attempt <= 3; attempt++) {
         console.log(`\n🔧 Step 6: Healing attempt ${attempt}/3...`);
 
@@ -1182,19 +1249,46 @@ async function commandGenerate(parsedArgs: ParsedArgs): Promise<void> {
             }
         }
 
+        let healingAttempt: HealingAttempt = {
+            success: false,
+            attempt,
+        };
+
         try {
             const healedCode = await healTests(targetDir, result.output);
+
+            if (!healedCode || healedCode.trim().length === 0) {
+                throw new Error('Healing produced empty code - LLM response may have been invalid');
+            }
+
+            // Validate file write before committing
             writeFileSync(targetFile, healedCode, 'utf-8');
             console.log(`  Updated: ${targetFile}`);
+            healingAttempt.success = true;
         } catch (healError) {
             const error = healError as Error;
-            console.log(`  ⚠️  Healing failed: ${error.message}`);
+
+            healingAttempt.error = error;
+
+            if (error.message.includes('EACCES') || error.message.includes('ENOENT')) {
+                console.log(`  ❌ File system error: Cannot write healed code: ${error.message}`);
+                console.log(`  💡 Check file permissions and disk space`);
+            } else if (error.message.includes('API') || error.message.includes('timeout')) {
+                console.log(`  ❌ LLM API error during healing: ${error.message}`);
+                console.log(`  💡 Check ANTHROPIC_API_KEY and network connectivity`);
+            } else {
+                console.log(`  ❌ Healing failed: ${error.message}`);
+            }
+
             if (verbose) {
                 console.log(`  Stack: ${error.stack}`);
             }
+
+            healingAttempts.push(healingAttempt);
             continue;
         }
 
+        // Only run tests if healing succeeded
         result = await runTests(targetDir, {
             headless: parsedArgs.headless,
             project: parsedArgs.project,
@@ -1205,10 +1299,21 @@ async function commandGenerate(parsedArgs: ParsedArgs): Promise<void> {
             console.log(`\n✅ Tests passed after ${attempt} healing attempt(s)!`);
             return;
         }
+
+        healingAttempts.push(healingAttempt);
     }
 
     console.log('\n⚠️  Tests still failing after 3 healing attempts.');
-    console.log('Manual intervention may be needed.');
+    console.log('\nHealing Summary:');
+    for (const attempt of healingAttempts) {
+        if (attempt.error) {
+            console.log(`  Attempt ${attempt.attempt}: FAILED - ${attempt.error.message}`);
+        } else if (attempt.success) {
+            console.log(`  Attempt ${attempt.attempt}: Healed but tests still failing`);
+        }
+    }
+
+    console.log('\nManual intervention may be needed.');
     console.log(`\nTest file: ${targetFile}`);
     console.log('\n--- Last Error Output ---');
     console.log(result.output.slice(0, 3000));
