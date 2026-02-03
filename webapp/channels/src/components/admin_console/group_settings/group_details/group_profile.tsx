@@ -2,15 +2,15 @@
 // See LICENSE.txt for license information.
 
 import React, {memo} from 'react';
+import type {MessageDescriptor} from 'react-intl';
 import {FormattedMessage} from 'react-intl';
 
 import MentionsIcon from 'components/widgets/icons/mentions_icon';
 
 type Props = {
     name?: string;
-    title: string;
-    titleDefault: string;
-    customID?: string;
+    title: MessageDescriptor;
+    customID: string;
     isDisabled?: boolean;
     showAtMention: boolean;
     onChange?: React.ChangeEventHandler<HTMLInputElement>;
@@ -19,7 +19,6 @@ type Props = {
 const GroupProfile = ({
     name,
     title,
-    titleDefault,
     customID,
     isDisabled,
     showAtMention,
@@ -30,11 +29,11 @@ const GroupProfile = ({
         id={customID}
     >
         <div className='group-profile-field form-group mb-0'>
-            <label className='control-label col-sm-4'>
-                <FormattedMessage
-                    id={title}
-                    defaultMessage={titleDefault}
-                />
+            <label
+                className='control-label col-sm-4'
+                htmlFor={customID + 'Input'}
+            >
+                <FormattedMessage {...title}/>
             </label>
             <div className='col-sm-8'>
                 <div className='icon-over-input'>
@@ -46,6 +45,7 @@ const GroupProfile = ({
                     )}
                 </div>
                 <input
+                    id={customID + 'Input'}
                     type='text'
                     className='form-control group-at-mention-input'
                     value={name}

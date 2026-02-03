@@ -7,11 +7,9 @@
 // Use element ID when selecting an element. Create one if none.
 // ***************************************************************
 
-// Stage: @prod
 // Group: @channels @toast
 
 import {getRandomId} from '../../../utils';
-
 import * as TIMEOUTS from '../../../fixtures/timeouts';
 
 import {
@@ -138,7 +136,7 @@ describe('Toast', () => {
             cy.uiClickSidebarItem(testChannelName);
 
             // # Scroll up so bottom is not visible
-            scrollUp();
+            scrollUpAndPostAMessage(otherUser, testChannelId, oldPostNumber);
 
             // # New message toast is present with expected number of messages
             cy.get('div.toast').should('be.visible');

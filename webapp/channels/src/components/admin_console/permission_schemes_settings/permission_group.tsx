@@ -13,6 +13,7 @@ import PermissionCheckbox from './permission_checkbox';
 import PermissionDescription from './permission_description';
 import PermissionRow from './permission_row';
 import type {AdditionalValues, Permission, Permissions} from './permissions_tree/types';
+import {groupRolesStrings} from './strings/groups';
 
 type Props = {
     id: string;
@@ -142,10 +143,11 @@ export default class PermissionGroup extends React.PureComponent<Props, State> {
         return true;
     };
 
-    renderPermission = (permission: string, additionalValues: AdditionalValues) => {
+    renderPermission = (permission: string, additionalValues: Record<string, any>) => {
         if (!this.isInScope(permission)) {
             return null;
         }
+
         const comesFromParent = this.fromParent(permission);
         const active = comesFromParent || this.props.role?.permissions?.indexOf(permission) !== -1;
         const inherited = comesFromParent ? this.props.parentRole : undefined;
@@ -279,6 +281,17 @@ export default class PermissionGroup extends React.PureComponent<Props, State> {
             classes += ' combined';
         }
         const additionalValuesProp = additionalValues?.[id] ? additionalValues[id] : undefined;
+        const name = groupRolesStrings[id] ? <FormattedMessage {...groupRolesStrings[id].name}/> : id;
+        let description: React.JSX.Element | string = '';
+        if (groupRolesStrings[id]) {
+            description = (
+                <FormattedMessage
+                    id={groupRolesStrings[id].description.id}
+                    defaultMessage={groupRolesStrings[id].description.defaultMessage}
+                    values={additionalValuesProp}
+                />
+            );
+        }
 
         return (
             <div className='permission-group'>
@@ -298,14 +311,14 @@ export default class PermissionGroup extends React.PureComponent<Props, State> {
                             id={`${uniqId}-checkbox`}
                         />
                         <span className='permission-name'>
-                            <FormattedMessage id={'admin.permissions.group.' + id + '.name'}/>
+                            {name}
                         </span>
                         <PermissionDescription
                             additionalValues={additionalValuesProp}
                             inherited={inherited}
                             id={id}
                             selectRow={this.props.selectRow}
-                            rowType='group'
+                            description={description}
                         />
                     </div>}
                 {!combined &&

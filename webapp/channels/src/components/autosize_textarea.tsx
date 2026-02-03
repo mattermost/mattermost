@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import type {ChangeEvent, FormEvent, HTMLProps} from 'react';
-import React, {useRef, useEffect, useCallback} from 'react';
+import React, {useRef, useEffect, useCallback, useState} from 'react';
 
 import type {Intersection} from '@mattermost/types/utilities';
 
@@ -25,19 +25,28 @@ const styles = {
         overflow: 'hidden',
     },
     reference: {
-        display: 'inline-block',
         height: 'auto',
         width: 'auto',
+        display: 'inline-block',
+        position: 'relative' as const,
+        transform: 'translateY(-100%)',
+        wordBreak: 'break-word' as const,
     },
     placeholder: {
         overflow: 'hidden',
         textOverflow: 'ellipsis',
-        opacity: 0.5,
+        opacity: 0.75,
         pointerEvents: 'none' as const,
         position: 'absolute' as const,
         whiteSpace: 'nowrap' as const,
         background: 'none',
         borderColor: 'transparent',
+    },
+    textArea: {
+        overflowY: 'hidden' as const,
+    },
+    textAreaWithScroll: {
+        overflowY: 'auto' as const,
     },
 };
 
@@ -61,6 +70,7 @@ const AutosizeTextarea = React.forwardRef<HTMLTextAreaElement, Props>(({
     const height = useRef(0);
     const textarea = useRef<HTMLTextAreaElement>();
     const referenceRef = useRef<HTMLDivElement>(null);
+    const [showScrollbar, setShowScrollbar] = useState(false);
 
     const recalculateHeight = () => {
         if (!referenceRef.current || !textarea.current) {
@@ -77,6 +87,9 @@ const AutosizeTextarea = React.forwardRef<HTMLTextAreaElement, Props>(({
             currentTextarea.style.height = `${scrollHeight}px`;
 
             height.current = scrollHeight;
+
+            // Only show scrollbar if content height exceeds 44px
+            setShowScrollbar(scrollHeight > 44);
 
             onHeightChange?.(scrollHeight, parseInt(style.maxHeight || '0', 10));
         }
@@ -124,21 +137,6 @@ const AutosizeTextarea = React.forwardRef<HTMLTextAreaElement, Props>(({
         heightProps.height = height.current;
     }
 
-    let textareaPlaceholder = null;
-    const placeholderAriaLabel = placeholder ? placeholder.toLowerCase() : '';
-    if (!value && !defaultValue) {
-        textareaPlaceholder = (
-            <div
-                {...otherProps}
-                id={`${id}_placeholder`}
-                data-testid={`${id}_placeholder`}
-                style={styles.placeholder}
-            >
-                {placeholder}
-            </div>
-        );
-    }
-
     let referenceValue = value || defaultValue;
     if (referenceValue?.endsWith('\n')) {
         // In a div, the browser doesn't always count characters at the end of a line when measuring the dimensions
@@ -152,22 +150,22 @@ const AutosizeTextarea = React.forwardRef<HTMLTextAreaElement, Props>(({
     }
 
     return (
-        <div>
-            {textareaPlaceholder}
+        <div >
             <textarea
                 ref={setTextareaRef}
                 data-testid={id}
                 id={id}
                 {...heightProps}
                 {...otherProps}
+                placeholder={placeholder}
                 role='textbox'
-                aria-label={placeholderAriaLabel}
                 dir='auto'
                 disabled={disabled}
                 onChange={onChange}
                 onInput={onInput}
                 value={value}
                 defaultValue={defaultValue}
+                style={showScrollbar ? styles.textAreaWithScroll : styles.textArea}
             />
             <div style={styles.container}>
                 <div

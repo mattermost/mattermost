@@ -95,7 +95,7 @@ func TestService_sendProfileImageToRemote(t *testing.T) {
 
 	user := &model.User{
 		Id:       model.NewId(),
-		RemoteId: model.NewString(rc.RemoteId),
+		RemoteId: model.NewPointer(rc.RemoteId),
 	}
 
 	provider := testImageProvider{}
@@ -159,8 +159,8 @@ func (tip testImageProvider) GetProfileImage(user *model.User) ([]byte, bool, *m
 	img := image.NewRGBA(image.Rectangle{image.Point{0, 0}, image.Point{imageWidth, imageHeight}})
 	red := color.RGBA{255, 50, 50, 0xff}
 
-	for x := 0; x < imageWidth; x++ {
-		for y := 0; y < imageHeight; y++ {
+	for x := range imageWidth {
+		for y := range imageHeight {
 			img.Set(x, y, red)
 		}
 	}

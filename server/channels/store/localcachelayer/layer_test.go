@@ -4,7 +4,6 @@
 package localcachelayer
 
 import (
-	"os"
 	"sync"
 	"testing"
 
@@ -14,6 +13,10 @@ import (
 	"github.com/mattermost/mattermost/server/v8/channels/store"
 	"github.com/mattermost/mattermost/server/v8/channels/store/sqlstore"
 	"github.com/mattermost/mattermost/server/v8/channels/store/storetest"
+	"github.com/mattermost/mattermost/server/v8/channels/testlib"
+	"github.com/mattermost/mattermost/server/v8/platform/services/cache"
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 	"golang.org/x/sync/errgroup"
 )
 
@@ -29,7 +32,7 @@ var storeTypes []*storeType
 func newStoreType(name, driver string) *storeType {
 	return &storeType{
 		Name:        name,
-		SqlSettings: storetest.MakeSqlSettings(driver, false),
+		SqlSettings: storetest.MakeSqlSettings(driver),
 	}
 }
 
@@ -41,7 +44,6 @@ func StoreTest(t *testing.T, f func(*testing.T, request.CTX, store.Store)) {
 		}
 	}()
 	for _, st := range storeTypes {
-		st := st
 		rctx := request.TestContext(t)
 
 		t.Run(st.Name, func(t *testing.T) {
@@ -61,7 +63,6 @@ func StoreTestWithSqlStore(t *testing.T, f func(*testing.T, request.CTX, store.S
 		}
 	}()
 	for _, st := range storeTypes {
-		st := st
 		rctx := request.TestContext(t)
 
 		t.Run(st.Name, func(t *testing.T) {
@@ -78,19 +79,7 @@ func initStores(logger mlog.LoggerIFace) {
 		return
 	}
 
-	// In CI, we already run the entire test suite for both mysql and postgres in parallel.
-	// So we just run the tests for the current database set.
-	if os.Getenv("IS_CI") == "true" {
-		switch os.Getenv("MM_SQLSETTINGS_DRIVERNAME") {
-		case "mysql":
-			storeTypes = append(storeTypes, newStoreType("LocalCache+MySQL", model.DatabaseDriverMysql))
-		case "postgres":
-			storeTypes = append(storeTypes, newStoreType("LocalCache+PostgreSQL", model.DatabaseDriverPostgres))
-		}
-	} else {
-		storeTypes = append(storeTypes, newStoreType("LocalCache+MySQL", model.DatabaseDriverMysql),
-			newStoreType("LocalCache+PostgreSQL", model.DatabaseDriverPostgres))
-	}
+	storeTypes = append(storeTypes, newStoreType("LocalCache+PostgreSQL", model.DatabaseDriverPostgres))
 
 	defer func() {
 		if err := recover(); err != nil {
@@ -100,15 +89,14 @@ func initStores(logger mlog.LoggerIFace) {
 	}()
 	var eg errgroup.Group
 	for _, st := range storeTypes {
-		st := st
 		eg.Go(func() error {
 			var err error
 
-			st.SqlStore, err = sqlstore.New(*st.SqlSettings, logger, nil)
+			st.SqlStore, err = sqlstore.New(*st.SqlSettings, logger, nil, sqlstore.DisableMorphLogging())
 			if err != nil {
 				return err
 			}
-			st.Store, err = NewLocalCacheLayer(st.SqlStore, nil, nil, getMockCacheProvider())
+			st.Store, err = NewLocalCacheLayer(st.SqlStore, nil, nil, cache.NewProvider(), logger)
 			if err != nil {
 				return err
 			}
@@ -133,7 +121,6 @@ func tearDownStores() {
 		var wg sync.WaitGroup
 		wg.Add(len(storeTypes))
 		for _, st := range storeTypes {
-			st := st
 			go func() {
 				if st.Store != nil {
 					st.Store.Close()
@@ -146,4 +133,35 @@ func tearDownStores() {
 		}
 		wg.Wait()
 	})
+}
+
+func TestClearCacheCluster(t *testing.T) {
+	cluster := &testlib.FakeClusterInterface{}
+	lc := &LocalCacheStore{
+		cluster: cluster,
+	}
+
+	c := cache.NewLRU(&cache.CacheOptions{
+		Size:                   10,
+		Name:                   "test",
+		InvalidateClusterEvent: model.ClusterEventInvalidateCacheForRoles,
+	})
+
+	lc.doClearCacheCluster(c)
+	assert.Len(t, cluster.GetMessages(), 1)
+	expectedMsg := &model.ClusterMessage{
+		Event:    model.ClusterEventInvalidateCacheForRoles,
+		SendType: model.ClusterSendBestEffort,
+		Data:     clearCacheMessageData,
+	}
+	require.Equal(t, expectedMsg, cluster.GetMessages()[0])
+
+	c = cache.NewLRU(&cache.CacheOptions{
+		Size:                   10,
+		Name:                   "test",
+		InvalidateClusterEvent: model.ClusterEventNone,
+	})
+
+	lc.doClearCacheCluster(c)
+	assert.Len(t, cluster.GetMessages(), 1)
 }

@@ -85,13 +85,11 @@ describe('Move Thread', () => {
             return cy.apiCreateGroupChannel([user1.id, user2.id, user3.id]);
         }).then(({channel}) => {
             gmChannel = channel;
-            console.log('this one');
 
             // # Create a private channel to Move Thread to
             return cy.apiCreateChannel(testTeam.id, 'private', 'Private');
         }).then(({channel}) => {
             privateChannel = channel;
-            console.log('no, this one');
 
             // # Create a second channel to Move Thread to
             return cy.apiCreateChannel(testTeam.id, 'movethread', 'Move Thread');
@@ -100,6 +98,15 @@ describe('Move Thread', () => {
 
             // # Got to Test channel
             cy.visit(`/${testTeam.name}/channels/${testChannel.name}`);
+        });
+    });
+
+    afterEach(() => {
+        // # Close any open modals to prevent test pollution
+        cy.get('body').then(($body) => {
+            if ($body.find('.modal.in').length > 0) {
+                cy.get('body').type('{esc}');
+            }
         });
     });
 
@@ -225,6 +232,9 @@ describe('Move Thread', () => {
 
             // * Assert Notification is shown
             cy.findByTestId('notification-text').should('be.visible').should('contain.text', 'Moving this thread changes who has access');
+
+            // # Click confirm to close the modal and complete the move
+            cy.get('.GenericModal__button.confirm').click();
         });
     };
 });

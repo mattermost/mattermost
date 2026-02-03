@@ -9,12 +9,9 @@ import (
 	"os/user"
 	"path/filepath"
 	"strings"
-	"sync"
 
 	"github.com/pkg/errors"
 	"github.com/spf13/viper"
-
-	"github.com/mattermost/mattermost/server/v8/cmd/mmctl/printer"
 )
 
 const (
@@ -27,8 +24,6 @@ const (
 	configParent     = "mmctl"
 	xdgConfigHomeVar = "$XDG_CONFIG_HOME"
 )
-
-var once sync.Once
 
 type Credentials struct {
 	Name        string `json:"name"`
@@ -60,37 +55,7 @@ func getDefaultConfigHomePath() string {
 	return filepath.Join(currentUser.HomeDir, ".config")
 }
 
-func resolveLegacyConfigFilePath() string {
-	configPath := viper.GetString("config-path")
-	// We use the .mmctl file name (hidden) if the config is in $HOME directory.
-	// If we were using other directory (e.g. XDG_CONFIG_HOME) we go with mmctl file name.
-	switch configPath {
-	case "$HOME":
-		res := strings.Replace(configPath, userHomeVar, currentUser.HomeDir, 1)
-		return filepath.Join(res, ".mmctl")
-	case currentUser.HomeDir:
-		return filepath.Join(configPath, ".mmctl")
-	default:
-		return filepath.Join(configPath, "mmctl")
-	}
-}
-
 func resolveConfigFilePath() string {
-	// we warn users that config-path is deprecated
-	suppressWarnings := viper.GetBool("suppress-warnings")
-
-	if viper.IsSet("config-path") {
-		if !suppressWarnings {
-			once.Do(func() {
-				printer.PrintWarning("Since mmctl v6 we have been deprecated the --config-path and started to use --config flag instead.\n" +
-					"Please use --config flag to set config file. (note that --config-path was pointing to a directory)\n\n" +
-					"After moving your config file to new directory, please unset the --config-path flag or MMCTL_CONFIG_PATH environment variable.\n")
-			})
-		}
-
-		return resolveLegacyConfigFilePath()
-	}
-
 	// resolve env vars if there are any
 	fpath := strings.Replace(viper.GetString("config"), userHomeVar, currentUser.HomeDir, 1)
 

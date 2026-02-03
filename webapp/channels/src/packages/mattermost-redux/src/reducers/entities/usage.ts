@@ -3,8 +3,8 @@
 
 import type {CloudUsage} from '@mattermost/types/cloud';
 
+import type {MMReduxAction} from 'mattermost-redux/action_types';
 import {CloudTypes} from 'mattermost-redux/action_types';
-import type {GenericAction} from 'mattermost-redux/types/actions';
 
 const emptyUsage = {
     files: {
@@ -27,7 +27,7 @@ const emptyUsage = {
 };
 
 // represents the usage associated with this workspace
-export default function usage(state: CloudUsage = emptyUsage, action: GenericAction) {
+export default function usage(state: CloudUsage = emptyUsage, action: MMReduxAction) {
     switch (action.type) {
     case CloudTypes.RECEIVED_MESSAGES_USAGE: {
         return {

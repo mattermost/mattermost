@@ -16,8 +16,6 @@ var VersionCmd = &cobra.Command{
 }
 
 func init() {
-	VersionCmd.Flags().Bool("skip-server-start", false, "Skip the server initialization and return the Mattermost version without the DB version.")
-	VersionCmd.Flags().MarkDeprecated("skip-server-start", "This flag is not necessary anymore and the flag will be removed in the future releases. Consider removing it from your scripts.")
 	RootCmd.AddCommand(VersionCmd)
 }
 

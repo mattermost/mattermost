@@ -105,7 +105,7 @@ describe('components/post_view/MessageAttachment', () => {
         } as React.MouseEvent, []);
 
         expect(doPostActionWithCookie).toHaveBeenCalledTimes(1);
-        expect(doPostActionWithCookie).toBeCalledWith(props.postId, 'attr_some_value', 'attr_some_value');
+        expect(doPostActionWithCookie).toHaveBeenCalledWith(props.postId, 'attr_some_value', 'attr_some_value');
     });
 
     test('should call openModal when showModal is called', () => {
@@ -255,5 +255,138 @@ describe('components/post_view/MessageAttachment', () => {
 
         const wrapper = shallow(<MessageAttachment {...props}/>);
         expect(wrapper.find('.attachment')).toMatchSnapshot();
+    });
+
+    test('should handle action errors and display error message', (done) => {
+        const errorMessage = 'Action failed to execute';
+        const doPostActionWithCookie = jest.fn().mockResolvedValue({
+            error: {message: errorMessage},
+        });
+        const actionId = 'action_id_1';
+        const newAttachment = {
+            ...attachment,
+            actions: [{id: actionId, name: 'action_name_1', cookie: 'cookie-contents'}] as PostAction[],
+        };
+        const props = {...baseProps, actions: {doPostActionWithCookie, openModal: jest.fn()}, attachment: newAttachment};
+        const wrapper = shallow<MessageAttachment>(<MessageAttachment {...props}/>);
+
+        // Initially no error should be shown
+        expect(wrapper.find('.has-error')).toHaveLength(0);
+
+        // Trigger action
+        wrapper.instance().handleAction({
+            preventDefault: () => {},
+            currentTarget: {getAttribute: () => 'attr_value'} as any,
+        } as React.MouseEvent, []);
+
+        // Wait for promise to resolve
+        process.nextTick(() => {
+            // Update wrapper to get latest state
+            wrapper.update();
+
+            // Error should now be displayed
+            expect(wrapper.state('actionError')).toBe(errorMessage);
+            expect(wrapper.find('.has-error')).toHaveLength(1);
+            expect(wrapper.find('.control-label').text()).toBe(errorMessage);
+            done();
+        });
+    });
+
+    test('should handle promise rejection errors', (done) => {
+        const errorMessage = 'Network error occurred';
+        const doPostActionWithCookie = jest.fn().mockRejectedValue(new Error(errorMessage));
+        const actionId = 'action_id_1';
+        const newAttachment = {
+            ...attachment,
+            actions: [{id: actionId, name: 'action_name_1', cookie: 'cookie-contents'}] as PostAction[],
+        };
+        const props = {...baseProps, actions: {doPostActionWithCookie, openModal: jest.fn()}, attachment: newAttachment};
+        const wrapper = shallow<MessageAttachment>(<MessageAttachment {...props}/>);
+
+        // Initially no error should be shown
+        expect(wrapper.find('.has-error')).toHaveLength(0);
+
+        // Trigger action
+        wrapper.instance().handleAction({
+            preventDefault: () => {},
+            currentTarget: {getAttribute: () => 'attr_value'} as any,
+        } as React.MouseEvent, []);
+
+        // Wait for promise to reject and catch to execute
+        process.nextTick(() => {
+            // Update wrapper to get latest state
+            wrapper.update();
+
+            // Error should now be displayed
+            expect(wrapper.state('actionError')).toBe(errorMessage);
+            expect(wrapper.find('.has-error')).toHaveLength(1);
+            expect(wrapper.find('.control-label').text()).toBe(errorMessage);
+            done();
+        });
+    });
+
+    test('should clear previous errors when new action is triggered', (done) => {
+        const doPostActionWithCookie = jest.fn().mockResolvedValue({data: 'success'});
+        const actionId = 'action_id_1';
+        const newAttachment = {
+            ...attachment,
+            actions: [{id: actionId, name: 'action_name_1', cookie: 'cookie-contents'}] as PostAction[],
+        };
+        const props = {...baseProps, actions: {doPostActionWithCookie, openModal: jest.fn()}, attachment: newAttachment};
+        const wrapper = shallow<MessageAttachment>(<MessageAttachment {...props}/>);
+
+        // Set initial error state
+        wrapper.setState({actionError: 'Previous error'});
+        expect(wrapper.state('actionError')).toBe('Previous error');
+
+        // Trigger new action
+        wrapper.instance().handleAction({
+            preventDefault: () => {},
+            currentTarget: {getAttribute: () => 'attr_value'} as any,
+        } as React.MouseEvent, []);
+
+        // Wait for promise to resolve
+        process.nextTick(() => {
+            // Error should be cleared on successful action
+            expect(wrapper.state('actionError')).toBeNull();
+            done();
+        });
+    });
+
+    test('should render error message with default text when no error message provided', (done) => {
+        const doPostActionWithCookie = jest.fn().mockResolvedValue({
+            error: {}, // Error object without message
+        });
+        const actionId = 'action_id_1';
+        const newAttachment = {
+            ...attachment,
+            actions: [{id: actionId, name: 'action_name_1', cookie: 'cookie-contents'}] as PostAction[],
+        };
+        const props = {...baseProps, actions: {doPostActionWithCookie, openModal: jest.fn()}, attachment: newAttachment};
+        const wrapper = shallow<MessageAttachment>(<MessageAttachment {...props}/>);
+
+        // Trigger action
+        wrapper.instance().handleAction({
+            preventDefault: () => {},
+            currentTarget: {getAttribute: () => 'attr_value'} as any,
+        } as React.MouseEvent, []);
+
+        // Wait for promise to resolve
+        process.nextTick(() => {
+            // Update wrapper to get latest state
+            wrapper.update();
+
+            // Should show default error message as FormattedMessage component
+            const actionError = wrapper.state('actionError');
+            expect(actionError).not.toBeNull();
+            expect(React.isValidElement(actionError)).toBe(true);
+
+            // Verify FormattedMessage props
+            if (React.isValidElement(actionError)) {
+                expect(actionError.props.id).toBe('post.message_attachment.action_failed');
+                expect(actionError.props.defaultMessage).toBe('Action failed to execute');
+            }
+            done();
+        });
     });
 });

@@ -1,4 +1,4 @@
-// Jest Snapshot v1, https://goo.gl/fbAQLP
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
 
 exports[`components/threading/global_threads/thread_pane should match snapshot 1`] = `
 <div
@@ -36,8 +36,10 @@ exports[`components/threading/global_threads/thread_pane should match snapshot 1
     right={
       <React.Fragment>
         <Memo(FollowButton)
-          disabled={false}
           isFollowing={true}
+          onClick={[Function]}
+        />
+        <PopoutButton
           onClick={[Function]}
         />
         <Memo(ThreadMenu)
@@ -46,9 +48,8 @@ exports[`components/threading/global_threads/thread_pane should match snapshot 1
           threadId="1y8hpek81byspd4enyk9mp1ncw"
           unreadTimestamp={1611786714912}
         >
-          <SimpleTooltip
-            content="More Actions"
-            id="threadActionMenu"
+          <WithTooltip
+            title="More Actions"
           >
             <Memo(Button)
               className="Button___icon Button___large"
@@ -57,7 +58,7 @@ exports[`components/threading/global_threads/thread_pane should match snapshot 1
                 size={18}
               />
             </Memo(Button)>
-          </SimpleTooltip>
+          </WithTooltip>
         </Memo(ThreadMenu)>
       </React.Fragment>
     }

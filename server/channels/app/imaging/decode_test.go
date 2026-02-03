@@ -53,7 +53,9 @@ func TestDecoderDecode(t *testing.T) {
 		imgFile, err := os.Open(imgDir + "/test.png")
 		require.NoError(t, err)
 		require.NotNil(t, imgFile)
-		defer imgFile.Close()
+		defer func() {
+			require.NoError(t, imgFile.Close())
+		}()
 
 		img, format, err := d.Decode(imgFile)
 		require.NoError(t, err)
@@ -80,7 +82,10 @@ func TestDecoderDecode(t *testing.T) {
 			imgFile, err := os.Open(imgDir + "/test.png")
 			require.NoError(t, err)
 			require.NotNil(t, imgFile)
-			defer imgFile.Close()
+
+			defer func() {
+				require.NoError(t, imgFile.Close())
+			}()
 
 			img, format, err := d.Decode(imgFile)
 			require.NoError(t, err)
@@ -94,7 +99,10 @@ func TestDecoderDecode(t *testing.T) {
 			imgFile, err := os.Open(imgDir + "/test.png")
 			require.NoError(t, err)
 			require.NotNil(t, imgFile)
-			defer imgFile.Close()
+
+			defer func() {
+				require.NoError(t, imgFile.Close())
+			}()
 
 			img, format, err := d.Decode(imgFile)
 			require.NoError(t, err)
@@ -105,6 +113,20 @@ func TestDecoderDecode(t *testing.T) {
 		wg.Wait()
 		require.Empty(t, d.sem)
 	})
+}
+
+func TestPSDNotSupported(t *testing.T) {
+	// MM-67077: PSD preview support was removed due to memory vulnerability in oov/psd package
+	d, err := NewDecoder(DecoderOptions{})
+	require.NotNil(t, d)
+	require.NoError(t, err)
+
+	// PSD file header magic bytes: "8BPS" followed by version (0x0001 for PSD)
+	psdHeader := []byte("8BPS\x00\x01")
+	_, _, err = d.Decode(bytes.NewReader(psdHeader))
+
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "unknown format")
 }
 
 func TestDecoderDecodeMemBounded(t *testing.T) {
@@ -121,7 +143,10 @@ func TestDecoderDecodeMemBounded(t *testing.T) {
 		imgFile, err := os.Open(imgDir + "/test.png")
 		require.NoError(t, err)
 		require.NotNil(t, imgFile)
-		defer imgFile.Close()
+
+		defer func() {
+			require.NoError(t, imgFile.Close())
+		}()
 
 		var wg sync.WaitGroup
 		wg.Add(2)
@@ -131,11 +156,14 @@ func TestDecoderDecodeMemBounded(t *testing.T) {
 		go func() {
 			defer wg.Done()
 			img, format, release, err := d.DecodeMemBounded(imgFile)
-			lock.Lock()
-			imgFile.Seek(0, 0)
-			lock.Unlock()
 			require.NoError(t, err)
 			defer release()
+
+			lock.Lock()
+			_, err = imgFile.Seek(0, 0)
+			require.NoError(t, err)
+			lock.Unlock()
+
 			require.NotNil(t, img)
 			require.Equal(t, "png", format)
 			require.NotNil(t, release)
@@ -145,11 +173,14 @@ func TestDecoderDecodeMemBounded(t *testing.T) {
 		go func() {
 			defer wg.Done()
 			img, format, release, err := d.DecodeMemBounded(imgFile)
-			lock.Lock()
-			imgFile.Seek(0, 0)
-			lock.Unlock()
 			require.NoError(t, err)
 			defer release()
+
+			lock.Lock()
+			_, err = imgFile.Seek(0, 0)
+			require.NoError(t, err)
+			lock.Unlock()
+
 			require.NotNil(t, img)
 			require.Equal(t, "png", format)
 			require.NotNil(t, release)
@@ -207,7 +238,9 @@ func TestDecoderDecodeMemBounded(t *testing.T) {
 		imgFile, err := os.Open(imgDir + "/test.png")
 		require.NoError(t, err)
 		require.NotNil(t, imgFile)
-		defer imgFile.Close()
+		defer func() {
+			require.NoError(t, imgFile.Close())
+		}()
 
 		img, format, release, err := d.DecodeMemBounded(imgFile)
 		require.NoError(t, err)

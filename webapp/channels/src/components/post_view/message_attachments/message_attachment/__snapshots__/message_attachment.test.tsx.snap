@@ -1,4 +1,4 @@
-// Jest Snapshot v1, https://goo.gl/fbAQLP
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
 
 exports[`components/post_view/MessageAttachment should call actions.doPostActionWithCookie on handleAction 1`] = `
 <div
@@ -24,7 +24,7 @@ exports[`components/post_view/MessageAttachment should call actions.doPostAction
         }
       }
     >
-      <ExternalLink
+      <ForwardRef
         href="author_link"
         key="attachment__author-name"
         location="message_attachment"
@@ -41,17 +41,17 @@ exports[`components/post_view/MessageAttachment should call actions.doPostAction
         >
           author_name
         </span>
-      </ExternalLink>
+      </ForwardRef>
       <h1
         className="attachment__title"
       >
-        <ExternalLink
+        <ForwardRef
           className="attachment__title-link"
           href="title_link"
           location="message_attachment"
         >
           title
-        </ExternalLink>
+        </ForwardRef>
       </h1>
       <div>
         <div
@@ -101,21 +101,23 @@ exports[`components/post_view/MessageAttachment should call actions.doPostAction
               footer
             </span>
           </div>
-          <div
-            className="attachment-actions"
-          >
-            <Connect(ActionButton)
-              action={
-                Object {
-                  "cookie": "cookie-contents",
-                  "id": "action_id_1",
-                  "name": "action_name_1",
+          <div>
+            <div
+              className="attachment-actions"
+            >
+              <Connect(Component)
+                action={
+                  Object {
+                    "cookie": "cookie-contents",
+                    "id": "action_id_1",
+                    "name": "action_name_1",
+                  }
                 }
-              }
-              actionExecuting={false}
-              handleAction={[Function]}
-              key="action_id_1"
-            />
+                actionExecuting={false}
+                handleAction={[Function]}
+                key="action_id_1"
+              />
+            </div>
           </div>
         </div>
         <div
@@ -170,7 +172,7 @@ exports[`components/post_view/MessageAttachment should match snapshot 1`] = `
         }
       }
     >
-      <ExternalLink
+      <ForwardRef
         href="author_link"
         key="attachment__author-name"
         location="message_attachment"
@@ -187,17 +189,17 @@ exports[`components/post_view/MessageAttachment should match snapshot 1`] = `
         >
           author_name
         </span>
-      </ExternalLink>
+      </ForwardRef>
       <h1
         className="attachment__title"
       >
-        <ExternalLink
+        <ForwardRef
           className="attachment__title-link"
           href="title_link"
           location="message_attachment"
         >
           title
-        </ExternalLink>
+        </ForwardRef>
       </h1>
       <div>
         <div
@@ -312,7 +314,7 @@ exports[`components/post_view/MessageAttachment should match snapshot when no fo
         }
       }
     >
-      <ExternalLink
+      <ForwardRef
         href="author_link"
         key="attachment__author-name"
         location="message_attachment"
@@ -329,17 +331,17 @@ exports[`components/post_view/MessageAttachment should match snapshot when no fo
         >
           author_name
         </span>
-      </ExternalLink>
+      </ForwardRef>
       <h1
         className="attachment__title"
       >
-        <ExternalLink
+        <ForwardRef
           className="attachment__title-link"
           href="title_link"
           location="message_attachment"
         >
           title
-        </ExternalLink>
+        </ForwardRef>
       </h1>
       <div>
         <div
@@ -424,7 +426,7 @@ exports[`components/post_view/MessageAttachment should match snapshot when the a
           message="Do you like https://mattermost.com?"
           options={
             Object {
-              "autolinkedUrlSchemes": Array [],
+              "atMentions": false,
               "mentionHighlight": false,
               "renderer": LinkOnlyRenderer {
                 "options": Object {},
@@ -469,7 +471,7 @@ exports[`components/post_view/MessageAttachment should match snapshot when the a
           message="Do you like :pizza:?"
           options={
             Object {
-              "autolinkedUrlSchemes": Array [],
+              "atMentions": false,
               "mentionHighlight": false,
               "renderer": LinkOnlyRenderer {
                 "options": Object {},
@@ -514,7 +516,7 @@ exports[`components/post_view/MessageAttachment should match snapshot when the a
           message="Don't you like emojis?"
           options={
             Object {
-              "autolinkedUrlSchemes": Array [],
+              "atMentions": false,
               "mentionHighlight": false,
               "renderer": LinkOnlyRenderer {
                 "options": Object {},
@@ -559,7 +561,7 @@ exports[`components/post_view/MessageAttachment should match snapshot when the f
           message="footer"
           options={
             Object {
-              "autolinkedUrlSchemes": Array [],
+              "atMentions": false,
               "mentionHighlight": false,
               "renderer": LinkOnlyRenderer {
                 "options": Object {},
@@ -620,6 +622,7 @@ exports[`components/post_view/MessageAttachment should match value on getFieldsT
             message="title_1"
             options={
               Object {
+                "atMentions": false,
                 "markdown": false,
                 "mentionHighlight": false,
               }
@@ -654,6 +657,7 @@ exports[`components/post_view/MessageAttachment should match value on getFieldsT
             message="title_2"
             options={
               Object {
+                "atMentions": false,
                 "markdown": false,
                 "mentionHighlight": false,
               }
@@ -682,40 +686,42 @@ exports[`components/post_view/MessageAttachment should match value on getFieldsT
 exports[`components/post_view/MessageAttachment should match value on renderPostActions 1`] = `""`;
 
 exports[`components/post_view/MessageAttachment should match value on renderPostActions 2`] = `
-<div
-  className="attachment-actions"
->
-  <Memo(Connect(ActionButton))
-    action={
-      Object {
-        "id": "action_id_1",
-        "name": "action_name_1",
+<div>
+  <div
+    className="attachment-actions"
+  >
+    <Memo(Connect(Component))
+      action={
+        Object {
+          "id": "action_id_1",
+          "name": "action_name_1",
+        }
       }
-    }
-    actionExecuting={false}
-    handleAction={[Function]}
-  />
-  <Memo(Connect(ActionButton))
-    action={
-      Object {
-        "id": "action_id_2",
-        "name": "action_name_2",
+      actionExecuting={false}
+      handleAction={[Function]}
+    />
+    <Memo(Connect(Component))
+      action={
+        Object {
+          "id": "action_id_2",
+          "name": "action_name_2",
+        }
       }
-    }
-    actionExecuting={false}
-    handleAction={[Function]}
-  />
-  <Memo(Connect(ActionMenu))
-    action={
-      Object {
-        "data_source": "users",
-        "id": "action_id_3",
-        "name": "action_name_3",
-        "type": "select",
+      actionExecuting={false}
+      handleAction={[Function]}
+    />
+    <Memo(Connect(ActionMenu))
+      action={
+        Object {
+          "data_source": "users",
+          "id": "action_id_3",
+          "name": "action_name_3",
+          "type": "select",
+        }
       }
-    }
-    postId="post_id"
-  />
+      postId="post_id"
+    />
+  </div>
 </div>
 `;
 

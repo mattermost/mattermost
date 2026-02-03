@@ -54,7 +54,7 @@ describe('Guest Account - Guest User Invitation Flow', () => {
                 invitePeople(newUser.username, 1, newUser.username);
 
                 // * Verify the content and message in next screen
-                verifyInvitationError(newUser.username, testTeam, 'This person is already a member.');
+                verifyInvitationError(newUser.username, testTeam, 'This person is already a member of the workspace. Invite them as a member instead of a guest.');
             });
         });
     });
@@ -83,7 +83,7 @@ describe('Guest Account - Guest User Invitation Flow', () => {
             invitePeople(regularUser.email, 1, regularUser.username);
 
             // * Verify the content and message in next screen
-            verifyInvitationError(regularUser.username, testTeam, 'This person is already a member.');
+            verifyInvitationError(regularUser.username, testTeam, 'This person is already a member of the workspace. Invite them as a member instead of a guest.');
         });
     });
 
@@ -127,17 +127,16 @@ describe('Guest Account - Guest User Invitation Flow', () => {
             cy.visit('/admin_console/user_management/users');
 
             // # Search for User by username and select the option to update email
-            cy.get('#searchUsers').should('be.visible').type(guest.username);
+            cy.findByPlaceholderText('Search users').should('be.visible').type(guest.username).wait(TIMEOUTS.ONE_SEC);
 
             // # Click on the option to update email
-            cy.wait(TIMEOUTS.HALF_SEC);
-            cy.findByTestId('userListRow').find('.MenuWrapper a').should('be.visible').click();
-            cy.findByText('Update Email').should('be.visible').click();
+            cy.get('#systemUsersTable-cell-0_actionsColumn').click();
+            cy.findByText('Update email').should('be.visible').click();
 
             // * Update email outside whitelisted domain and verify error message
-            cy.findByTestId('resetEmailModal').should('be.visible').within(() => {
-                cy.findByTestId('resetEmailForm').should('be.visible').get('input').type(email);
-                cy.findByTestId('resetEmailButton').click();
+            cy.get('#resetEmailModal').should('be.visible').within(() => {
+                cy.get('input[type="email"]').type(email);
+                cy.get('button.btn-primary.confirm').click();
                 cy.get('.error').should('be.visible').and('have.text', 'The email you provided does not belong to an accepted domain for guest accounts. Please contact your administrator or sign up with a different email.');
                 cy.get('.close').click();
             });

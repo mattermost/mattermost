@@ -5,35 +5,36 @@ import {connect} from 'react-redux';
 import {bindActionCreators} from 'redux';
 import type {Dispatch} from 'redux';
 
+import type {PreferencesType} from '@mattermost/types/preferences';
+
 import {savePreferences} from 'mattermost-redux/actions/preferences';
 import {Preferences} from 'mattermost-redux/constants';
 import {getConfig} from 'mattermost-redux/selectors/entities/general';
-import {get as getPreference} from 'mattermost-redux/selectors/entities/preferences';
+import {get} from 'mattermost-redux/selectors/entities/preferences';
 import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
-import type {GenericAction} from 'mattermost-redux/types/actions.js';
 
 import type {GlobalState} from 'types/store';
 
 import JoinLeaveSection from './join_leave_section';
 
-export function mapStateToProps(state: GlobalState) {
+export type OwnProps = {
+    adminMode?: boolean;
+    userId: string;
+    userPreferences?: PreferencesType;
+}
+
+export function mapStateToProps(state: GlobalState, props: OwnProps) {
     const config = getConfig(state);
     const enableJoinLeaveMessage = config.EnableJoinLeaveMessageByDefault === 'true';
-
-    const joinLeave = getPreference(
-        state,
-        Preferences.CATEGORY_ADVANCED_SETTINGS,
-        Preferences.ADVANCED_FILTER_JOIN_LEAVE,
-        enableJoinLeaveMessage.toString(),
-    );
+    const userPreference = props.adminMode && props.userPreferences ? props.userPreferences : undefined;
 
     return {
-        currentUserId: getCurrentUserId(state),
-        joinLeave,
+        userId: props.adminMode ? props.userId : getCurrentUserId(state),
+        joinLeave: get(state, Preferences.CATEGORY_ADVANCED_SETTINGS, Preferences.ADVANCED_FILTER_JOIN_LEAVE, enableJoinLeaveMessage.toString(), userPreference),
     };
 }
 
-function mapDispatchToProps(dispatch: Dispatch<GenericAction>) {
+function mapDispatchToProps(dispatch: Dispatch) {
     return {
         actions: bindActionCreators({
             savePreferences,

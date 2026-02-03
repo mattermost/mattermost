@@ -8,8 +8,6 @@ import type {UserAutocomplete} from '@mattermost/types/autocomplete';
 import type {Channel} from '@mattermost/types/channels';
 import type {ServerError} from '@mattermost/types/errors';
 
-import type {ActionFunc} from 'mattermost-redux/types/actions';
-
 import type {SearchType} from 'types/store/rhs';
 
 export type SearchFilterType = 'all' | 'documents' | 'spreadsheets' | 'presentations' | 'code' | 'images' | 'audio' | 'video';
@@ -26,9 +24,9 @@ export type OwnProps = {
 
 export type StateProps = {
     isRhsExpanded: boolean;
-    isRhsOpen: boolean;
     isSearchingTerm: boolean;
     searchTerms: string;
+    searchTeam: string;
     searchType: SearchType;
     searchVisible: boolean;
     hideMobileSearchBarInRHS: boolean;
@@ -38,25 +36,25 @@ export type StateProps = {
     isChannelFiles: boolean;
     currentChannel?: Channel;
     isMobileView: boolean;
+    crossTeamSearchEnabled: boolean;
 }
 
 export type DispatchProps = {
     actions: {
         updateSearchTerms: (term: string) => Action;
+        updateSearchTeam: (teamId: string|null) => Action;
         updateSearchTermsForShortcut: () => void;
         updateSearchType: (searchType: string) => Action;
-        showSearchResults: (isMentionSearch: boolean) => Record<string, any>;
+        showSearchResults: (isMentionSearch: boolean) => unknown;
         showChannelFiles: (channelId: string) => void;
-        showMentions: () => void;
-        showFlaggedPosts: () => void;
         setRhsExpanded: (expanded: boolean) => Action;
         closeRightHandSide: () => void;
-        autocompleteChannelsForSearch: (term: string, success: (channels: Channel[]) => void, error: (err: ServerError) => void) => ActionFunc;
+        autocompleteChannelsForSearch: (term: string, teamId: string, success?: (channels: Channel[]) => void, error?: (err: ServerError) => void) => void;
         autocompleteUsersInTeam: (username: string) => Promise<UserAutocomplete>;
         updateRhsState: (rhsState: string) => void;
-        getMorePostsForSearch: () => ActionFunc;
+        getMorePostsForSearch: (teamId: string) => void;
         openRHSSearch: () => void;
-        getMoreFilesForSearch: () => ActionFunc;
+        getMoreFilesForSearch: (teamId: string) => void;
         filterFilesSearchByExt: (extensions: string[]) => void;
     };
 }

@@ -7,11 +7,9 @@ import type {Dispatch} from 'redux';
 
 import {getCloudSubscription} from 'mattermost-redux/actions/cloud';
 import {savePreferences} from 'mattermost-redux/actions/preferences';
-import {getConfig} from 'mattermost-redux/selectors/entities/admin';
 import {getLicense} from 'mattermost-redux/selectors/entities/general';
 import {makeGetCategory} from 'mattermost-redux/selectors/entities/preferences';
 import {getCurrentUser, isCurrentUserSystemAdmin} from 'mattermost-redux/selectors/entities/users';
-import type {GenericAction} from 'mattermost-redux/types/actions';
 
 import {openModal} from 'actions/views/modals';
 
@@ -22,14 +20,13 @@ import type {GlobalState} from 'types/store';
 
 import CloudTrialAnnouncementBar from './cloud_trial_announcement_bar';
 
-function mapStateToProps(state: GlobalState) {
-    const getCategory = makeGetCategory();
+const getCloudTrialBannerPreferences = makeGetCategory('getCloudTrialBannerPreferences', Preferences.CLOUD_TRIAL_BANNER);
 
+function mapStateToProps(state: GlobalState) {
     const subscription = state.entities.cloud.subscription;
     const isCloud = getLicense(state).Cloud === 'true';
     let isFreeTrial = false;
     let daysLeftOnTrial = 0;
-    const config = getConfig(state);
 
     if (isCloud && subscription?.is_free_trial === 'true') {
         isFreeTrial = true;
@@ -46,12 +43,11 @@ function mapStateToProps(state: GlobalState) {
         currentUser: getCurrentUser(state),
         isCloud,
         subscription,
-        preferences: getCategory(state, Preferences.CLOUD_TRIAL_BANNER),
-        reverseTrial: Boolean(config.FeatureFlags?.CloudReverseTrial),
+        preferences: getCloudTrialBannerPreferences(state),
     };
 }
 
-function mapDispatchToProps(dispatch: Dispatch<GenericAction>) {
+function mapDispatchToProps(dispatch: Dispatch) {
     return {
         actions: bindActionCreators(
             {

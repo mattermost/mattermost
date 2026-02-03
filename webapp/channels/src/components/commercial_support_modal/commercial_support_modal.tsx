@@ -1,16 +1,20 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import moment from 'moment';
 import React from 'react';
 import {Modal} from 'react-bootstrap';
 import {FormattedMessage} from 'react-intl';
+import {Link} from 'react-router-dom';
 
+import type {SupportPacketContent} from '@mattermost/types/admin';
 import type {UserProfile} from '@mattermost/types/users';
 
 import {Client4} from 'mattermost-redux/client';
 
 import AlertBanner from 'components/alert_banner';
-import FormattedMarkdownMessage from 'components/formatted_markdown_message';
+import ExternalLink from 'components/external_link';
+import LoadingSpinner from 'components/widgets/loading/loading_spinner';
 
 import './commercial_support_modal.scss';
 
@@ -26,20 +30,26 @@ type Props = {
     isCloud: boolean;
 
     currentUser: UserProfile;
+
+    packetContents: SupportPacketContent[];
 };
 
 type State = {
     show: boolean;
     showBannerWarning: boolean;
+    packetContents: SupportPacketContent[];
+    loading: boolean;
+    error?: string;
 };
 
 export default class CommercialSupportModal extends React.PureComponent<Props, State> {
     constructor(props: Props) {
         super(props);
-
         this.state = {
             show: true,
             showBannerWarning: props.showBannerWarning,
+            packetContents: props.packetContents,
+            loading: false,
         };
     }
 
@@ -59,6 +69,66 @@ export default class CommercialSupportModal extends React.PureComponent<Props, S
 
     hideBannerWarning = () => {
         this.updateBannerWarning(false);
+    };
+
+    updateCheckStatus = (index: number) => {
+        this.setState({
+            packetContents: this.state.packetContents.map((content, currentIndex) => (
+                (currentIndex === index && !content.mandatory) ? {...content, selected: !content.selected} : content
+            )),
+        });
+    };
+
+    genereateDownloadURLWithParams = (): string => {
+        const url = new URL(Client4.getSystemRoute() + '/support_packet');
+        this.state.packetContents.forEach((content) => {
+            if (content.id === 'basic.server.logs') {
+                url.searchParams.set('basic_server_logs', String(content.selected));
+            } else if (!content.mandatory && content.selected) {
+                url.searchParams.append('plugin_packets', content.id);
+            }
+        });
+        return url.toString();
+    };
+
+    extractFilename = (input: string | null): string => {
+        // construct the expected filename in case of an error in the header
+        const formattedDate = (moment(new Date())).format('YYYY-MM-DDTHH-mm');
+        const presumedFileName = `mm_support_packet_${formattedDate}.zip`;
+
+        if (input === null) {
+            return presumedFileName;
+        }
+
+        const regex = /filename\*?=["']?((?:\\.|[^"'\s])+)(?=["']?)/g;
+        const matches = regex.exec(input!);
+
+        return matches ? matches[1] : presumedFileName;
+    };
+
+    downloadSupportPacket = async () => {
+        this.setState({loading: true, error: undefined});
+        const res = await fetch(this.genereateDownloadURLWithParams(), {
+            method: 'GET',
+            headers: {'Content-Type': 'application/zip'},
+        });
+        if (!res.ok) {
+            const data = await res.json();
+            const error = data.message + ': ' + data.detailed_error;
+            this.setState({loading: false, error});
+            return;
+        }
+
+        const blob = await res.blob();
+        this.setState({loading: false});
+
+        const href = window.URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = href;
+        link.setAttribute('download', this.extractFilename(res.headers.get('content-disposition')));
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
     };
 
     render() {
@@ -84,35 +154,91 @@ export default class CommercialSupportModal extends React.PureComponent<Props, S
                 </Modal.Header>
                 <Modal.Body>
                     <div className='CommercialSupportModal'>
-                        <FormattedMarkdownMessage
-                            id='commercial_support.description'
-                            defaultMessage={'If you\'re experiencing issues, [submit a support ticket.](!{supportLink})\n \n**Download Support Packet**\n \nWe recommend that you download additional environment details about your Mattermost environment to help with troubleshooting. Once downloaded, attach the packet to your support ticket to share with our Customer Support team.'}
+                        <FormattedMessage
+                            id='commercial_support_modal.description'
+                            defaultMessage={'If you\'re experiencing issues, <supportLink>submit a support ticket</supportLink>. To help with troubleshooting, it\'s recommended to download the Support Packet below that includes more details about your Mattermost environment.'}
                             values={{
-                                supportLink,
+                                supportLink: (chunks) => (
+                                    <ExternalLink
+                                        href={supportLink}
+                                        location='commercialSupportModal'
+                                    >
+                                        {chunks}
+                                    </ExternalLink>
+                                ),
                             }}
                         />
-                        <a
-                            className='btn btn-primary DownloadSupportPacket'
-                            href={`${Client4.getBaseRoute()}/system/support_packet`}
-                            rel='noopener noreferrer'
-                        >
-                            <FormattedMessage
-                                id='commercial_support.download_support_packet'
-                                defaultMessage='Download Support Packet'
-                            />
-                        </a>
                         {showBannerWarning &&
                             <AlertBanner
                                 mode='info'
                                 message={
-                                    <FormattedMarkdownMessage
-                                        id='commercial_support.warning.banner'
-                                        defaultMessage='Before downloading the support packet, set **Output Logs to File** to **true** and set **File Log Level** to **DEBUG** [here](!/admin_console/environment/logging).'
+                                    <FormattedMessage
+                                        id='commercial_support_modal.warning.banner'
+                                        defaultMessage='Before downloading the Support Packet, set <strong>Output Logs to File</strong> to <strong>true</strong> and set <strong>File Log Level</strong> to <strong>DEBUG</strong> <debugLink>here</debugLink>.'
+                                        values={{
+                                            strong: (chunks) => <strong>{chunks}</strong>,
+                                            debugLink: (chunks) => <Link to='/admin_console/environment/logging'>{chunks}</Link>,
+                                        }}
                                     />
                                 }
                                 onDismiss={this.hideBannerWarning}
                             />
                         }
+                        <div className='CommercialSupportModal__packet_contents_download'>
+                            <strong>
+                                <FormattedMessage
+                                    id='commercial_support_modal.download_contents'
+                                    defaultMessage={'Select your Support Packet contents to download'}
+                                />
+                            </strong>
+                        </div>
+                        {this.state.packetContents.map((item, index) => (
+                            <div
+                                className='CommercialSupportModal__option'
+                                key={item.id}
+                            >
+                                <input
+                                    className='CommercialSupportModal__options__checkbox'
+                                    id={item.id}
+                                    name={item.id}
+                                    type='checkbox'
+                                    checked={item.selected}
+                                    disabled={item.mandatory}
+                                    onChange={() => this.updateCheckStatus(index)}
+                                />
+                                <FormattedMessage
+                                    id='mettormost.plugin.metrics.support.packet'
+                                    defaultMessage={item.label}
+                                >
+                                    {(text) => (
+                                        <label
+                                            className='CommercialSupportModal__options_checkbox_label'
+                                            htmlFor={item.id}
+                                        >
+                                            {text}
+                                        </label>)
+                                    }
+                                </FormattedMessage>
+                            </div>
+                        ))}
+                        <div className='CommercialSupportModal__download'>
+                            {this.state.error && (
+                                <div className='CommercialSupportModal__error'>
+                                    <span className='error-text'>{this.state.error}</span>
+                                </div>
+                            )}
+                            <a
+                                className='btn btn-primary DownloadSupportPacket'
+                                onClick={this.downloadSupportPacket}
+                                rel='noopener noreferrer'
+                            >
+                                { this.state.loading ? <LoadingSpinner/> : <i className='icon icon-download-outline'/> }
+                                <FormattedMessage
+                                    id='commercial_support.download_support_packet'
+                                    defaultMessage='Download Support Packet'
+                                />
+                            </a>
+                        </div>
                     </div>
                 </Modal.Body>
             </Modal>

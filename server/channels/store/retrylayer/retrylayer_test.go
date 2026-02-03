@@ -6,7 +6,6 @@ package retrylayer
 import (
 	"testing"
 
-	"github.com/go-sql-driver/mysql"
 	"github.com/lib/pq"
 	"github.com/pkg/errors"
 
@@ -20,6 +19,7 @@ func genStore() *mocks.Store {
 	mock.On("Bot").Return(&mocks.BotStore{})
 	mock.On("Channel").Return(&mocks.ChannelStore{})
 	mock.On("ChannelMemberHistory").Return(&mocks.ChannelMemberHistoryStore{})
+	mock.On("ChannelBookmark").Return(&mocks.ChannelBookmarkStore{})
 	mock.On("ClusterDiscovery").Return(&mocks.ClusterDiscoveryStore{})
 	mock.On("RemoteCluster").Return(&mocks.RemoteClusterStore{})
 	mock.On("Command").Return(&mocks.CommandStore{})
@@ -59,8 +59,19 @@ func genStore() *mocks.Store {
 	mock.On("PostPriority").Return(&mocks.PostPriorityStore{})
 	mock.On("PostAcknowledgement").Return(&mocks.PostAcknowledgementStore{})
 	mock.On("PostPersistentNotification").Return(&mocks.PostPersistentNotificationStore{})
-	mock.On("TrueUpReview").Return(&mocks.TrueUpReviewStore{})
 	mock.On("DesktopTokens").Return(&mocks.DesktopTokensStore{})
+	mock.On("ChannelBookmark").Return(&mocks.ChannelBookmarkStore{})
+	mock.On("ScheduledPost").Return(&mocks.ScheduledPostStore{})
+	mock.On("PropertyField").Return(&mocks.PropertyFieldStore{})
+	mock.On("PropertyGroup").Return(&mocks.PropertyGroupStore{})
+	mock.On("PropertyValue").Return(&mocks.PropertyValueStore{})
+	mock.On("AccessControlPolicy").Return(&mocks.AccessControlPolicyStore{})
+	mock.On("Attributes").Return(&mocks.AttributesStore{})
+	mock.On("AutoTranslation").Return(&mocks.AutoTranslationStore{})
+	mock.On("ContentFlagging").Return(&mocks.ContentFlaggingStore{})
+	mock.On("ReadReceipt").Return(&mocks.ReadReceiptStore{})
+	mock.On("Recap").Return(&mocks.RecapStore{})
+	mock.On("TemporaryPost").Return(&mocks.TemporaryPostStore{})
 	return mock
 }
 
@@ -78,26 +89,6 @@ func TestRetry(t *testing.T) {
 		mock := genStore()
 		mockBotStore := mock.Bot().(*mocks.BotStore)
 		mockBotStore.On("Get", "test", false).Return(&model.Bot{}, nil).Times(1)
-		mock.On("Bot").Return(&mockBotStore)
-		layer := New(mock)
-		layer.Bot().Get("test", false)
-		mockBotStore.AssertExpectations(t)
-	})
-	t.Run("on mysql repeatable error should retry", func(t *testing.T) {
-		mock := genStore()
-		mockBotStore := mock.Bot().(*mocks.BotStore)
-		mysqlErr := mysql.MySQLError{Number: uint16(1213), Message: "Deadlock"}
-		mockBotStore.On("Get", "test", false).Return(nil, errors.Wrap(&mysqlErr, "test-error")).Times(3)
-		mock.On("Bot").Return(&mockBotStore)
-		layer := New(mock)
-		layer.Bot().Get("test", false)
-		mockBotStore.AssertExpectations(t)
-	})
-	t.Run("on mysql not repeatable error should not retry", func(t *testing.T) {
-		mock := genStore()
-		mockBotStore := mock.Bot().(*mocks.BotStore)
-		mysqlErr := mysql.MySQLError{Number: uint16(1000), Message: "Not repeatable error"}
-		mockBotStore.On("Get", "test", false).Return(nil, errors.Wrap(&mysqlErr, "test-error")).Times(1)
 		mock.On("Bot").Return(&mockBotStore)
 		layer := New(mock)
 		layer.Bot().Get("test", false)

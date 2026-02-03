@@ -9,9 +9,7 @@ import type {IntlShape, MessageDescriptor} from 'react-intl';
 import type {Theme} from 'mattermost-redux/selectors/entities/preferences';
 import {setThemeDefaults} from 'mattermost-redux/utils/theme_utils';
 
-import OverlayTrigger from 'components/overlay_trigger';
-import type {BaseOverlayTrigger} from 'components/overlay_trigger';
-import Popover from 'components/widgets/popover';
+import WithTooltip from 'components/with_tooltip';
 
 import Constants from 'utils/constants';
 
@@ -130,11 +128,10 @@ type State = {
 
 export class CustomThemeChooser extends React.PureComponent<Props, State> {
     textareaRef: RefObject<HTMLTextAreaElement>;
-    sidebarStylesHeaderRef: RefObject<HTMLDivElement>;
-    centerChannelStylesHeaderRef: RefObject<HTMLDivElement>;
-    linkAndButtonStylesHeaderRef: RefObject<HTMLDivElement>;
+    sidebarStylesHeaderRef: RefObject<HTMLButtonElement>;
+    centerChannelStylesHeaderRef: RefObject<HTMLButtonElement>;
+    linkAndButtonStylesHeaderRef: RefObject<HTMLButtonElement>;
     sidebarStylesRef: RefObject<HTMLDivElement>;
-    headerOverlayRef: RefObject<BaseOverlayTrigger>;
     centerChannelStylesRef: RefObject<HTMLDivElement>;
     linkAndButtonStylesRef: RefObject<HTMLDivElement>;
 
@@ -145,7 +142,6 @@ export class CustomThemeChooser extends React.PureComponent<Props, State> {
         this.centerChannelStylesHeaderRef = createRef();
         this.linkAndButtonStylesHeaderRef = createRef();
         this.sidebarStylesRef = createRef();
-        this.headerOverlayRef = createRef();
         this.centerChannelStylesRef = createRef();
         this.linkAndButtonStylesRef = createRef();
 
@@ -164,7 +160,7 @@ export class CustomThemeChooser extends React.PureComponent<Props, State> {
                 [settingId]: color,
             };
 
-            // For backwards compatability
+            // For backwards compatibility
             if (settingId === 'mentionBg') {
                 newTheme.mentionBj = color;
             }
@@ -224,24 +220,33 @@ export class CustomThemeChooser extends React.PureComponent<Props, State> {
         this.textareaRef.current?.setSelectionRange(0, this.state.copyTheme.length);
     };
 
-    toggleSidebarStyles = (e: MouseEvent<HTMLDivElement>) => {
+    toggleSidebarStyles = (e: MouseEvent<HTMLButtonElement>) => {
         e.preventDefault();
 
         this.sidebarStylesHeaderRef.current?.classList.toggle('open');
+
+        const isAccordionOpen = this.sidebarStylesHeaderRef.current?.classList.contains('open');
+        this.sidebarStylesHeaderRef.current?.setAttribute('aria-expanded', `${isAccordionOpen}`);
         this.toggleSection(this.sidebarStylesRef.current);
     };
 
-    toggleCenterChannelStyles = (e: MouseEvent<HTMLDivElement>) => {
+    toggleCenterChannelStyles = (e: MouseEvent<HTMLButtonElement>) => {
         e.preventDefault();
 
         this.centerChannelStylesHeaderRef.current?.classList.toggle('open');
+
+        const isAccordionOpen = this.centerChannelStylesHeaderRef.current?.classList.contains('open');
+        this.centerChannelStylesHeaderRef.current?.setAttribute('aria-expanded', `${isAccordionOpen}`);
         this.toggleSection(this.centerChannelStylesRef.current);
     };
 
-    toggleLinkAndButtonStyles = (e: MouseEvent<HTMLDivElement>) => {
+    toggleLinkAndButtonStyles = (e: MouseEvent<HTMLButtonElement>) => {
         e.preventDefault();
 
         this.linkAndButtonStylesHeaderRef.current?.classList.toggle('open');
+
+        const isAccordionOpen = this.linkAndButtonStylesHeaderRef.current?.classList.contains('open');
+        this.linkAndButtonStylesHeaderRef.current?.setAttribute('aria-expanded', `${isAccordionOpen}`);
         this.toggleSection(this.linkAndButtonStylesRef.current);
     };
 
@@ -311,26 +316,15 @@ export class CustomThemeChooser extends React.PureComponent<Props, State> {
                     );
                 });
 
-                const popoverContent = (
-                    <Popover
-                        popoverStyle='info'
-                        id='code-popover'
-                        className='code-popover'
-                    >
-                        <img
-                            width='200'
-                            alt={'code theme image'}
-                            src={codeThemeURL}
-                        />
-                    </Popover>
-                );
-
                 centerChannelElements.push(
                     <div
                         className='col-sm-6 form-group'
                         key={'custom-theme-key' + index}
                     >
-                        <label className='custom-label'>
+                        <label
+                            className='custom-label'
+                            htmlFor='codeThemeSelect'
+                        >
                             <FormattedMessage {...messages[element.id]}/>
                         </label>
                         <div
@@ -345,10 +339,16 @@ export class CustomThemeChooser extends React.PureComponent<Props, State> {
                             >
                                 {codeThemeOptions}
                             </select>
-                            <OverlayTrigger
-                                placement='top'
-                                overlay={popoverContent}
-                                ref={this.headerOverlayRef}
+                            <WithTooltip
+                                title={
+                                    <div className='code-popover'>
+                                        <img
+                                            width='200'
+                                            alt={'code theme image'}
+                                            src={codeThemeURL}
+                                        />
+                                    </div>
+                                }
                             >
                                 <span className='input-group-addon'>
                                     <img
@@ -356,7 +356,7 @@ export class CustomThemeChooser extends React.PureComponent<Props, State> {
                                         src={codeThemeURL}
                                     />
                                 </span>
-                            </OverlayTrigger>
+                            </WithTooltip>
                         </div>
                     </div>,
                 );
@@ -413,10 +413,13 @@ export class CustomThemeChooser extends React.PureComponent<Props, State> {
 
         const pasteBox = (
             <div className='col-sm-12'>
-                <label className='custom-label'>
+                <label
+                    className='custom-label'
+                    htmlFor='pasteBox'
+                >
                     <FormattedMessage
                         id='user.settings.custom_theme.copyPaste'
-                        defaultMessage='Copy to share or paste theme colors here:'
+                        defaultMessage='Copy and paste to share theme colors:'
                     />
                 </label>
                 <textarea
@@ -454,91 +457,118 @@ export class CustomThemeChooser extends React.PureComponent<Props, State> {
         );
 
         return (
-            <div className='appearance-section pt-2'>
+            <div
+                id='customThemesSection'
+                className='appearance-section pt-2'
+                aria-labelledby='customThemes'
+            >
                 <div className='theme-elements row'>
-                    <div
-                        ref={this.sidebarStylesHeaderRef}
-                        id='sidebarStyles'
-                        className='theme-elements__header'
-                        onClick={this.toggleSidebarStyles}
-                    >
-                        <FormattedMessage
-                            id='user.settings.custom_theme.sidebarTitle'
-                            defaultMessage='Sidebar Styles'
-                        />
-                        <div className='header__icon'>
-                            <i
-                                className='fa fa-plus'
-                                title={intl.formatMessage({id: 'generic_icons.expand', defaultMessage: 'Expand Icon'})}
+                    <h4 className='theme-elements__header'>
+                        <button
+                            ref={this.sidebarStylesHeaderRef}
+                            id='sidebarStylesAccordion'
+                            onClick={this.toggleSidebarStyles}
+                            aria-expanded={false}
+                            aria-controls='sidebarStylesSection'
+                            className='theme-elements__header'
+                        >
+                            <FormattedMessage
+                                id='user.settings.custom_theme.sidebarTitle'
+                                defaultMessage='Sidebar Styles'
                             />
-                            <i
-                                className='fa fa-minus'
-                                title={intl.formatMessage({id: 'generic_icons.collapse', defaultMessage: 'Collapse Icon'})}
-                            />
-                        </div>
-                    </div>
+                            <div className='header__icon'>
+                                <i
+                                    className='fa fa-plus'
+                                    aria-hidden={true}
+                                    title={intl.formatMessage({id: 'generic_icons.expand', defaultMessage: 'Expand Icon'})}
+                                />
+                                <i
+                                    className='fa fa-minus'
+                                    aria-hidden={true}
+                                    title={intl.formatMessage({id: 'generic_icons.collapse', defaultMessage: 'Collapse Icon'})}
+                                />
+                            </div>
+                        </button>
+                    </h4>
                     <div
                         ref={this.sidebarStylesRef}
+                        id='sidebarStylesSection'
+                        aria-labelledby='sidebarStylesAccordion'
                         className='theme-elements__body'
                     >
                         {sidebarElements}
                     </div>
                 </div>
                 <div className='theme-elements row'>
-                    <div
-                        ref={this.centerChannelStylesHeaderRef}
-                        id='centerChannelStyles'
-                        className='theme-elements__header'
-                        onClick={this.toggleCenterChannelStyles}
-                    >
-                        <FormattedMessage
-                            id='user.settings.custom_theme.centerChannelTitle'
-                            defaultMessage='Center Channel Styles'
-                        />
-                        <div className='header__icon'>
-                            <i
-                                className='fa fa-plus'
-                                title={intl.formatMessage({id: 'generic_icons.expand', defaultMessage: 'Expand Icon'})}
+                    <h4 className='theme-elements__header'>
+                        <button
+                            ref={this.centerChannelStylesHeaderRef}
+                            id='centerChannelStylesAccordion'
+                            onClick={this.toggleCenterChannelStyles}
+                            aria-expanded={false}
+                            aria-controls='centerChannelStylesSection'
+                            className='theme-elements__header'
+                        >
+                            <FormattedMessage
+                                id='user.settings.custom_theme.centerChannelTitle'
+                                defaultMessage='Center Channel Styles'
                             />
-                            <i
-                                className='fa fa-minus'
-                                title={intl.formatMessage({id: 'generic_icons.collapse', defaultMessage: 'Collapse Icon'})}
-                            />
-                        </div>
-                    </div>
+                            <div className='header__icon'>
+                                <i
+                                    className='fa fa-plus'
+                                    aria-hidden={true}
+                                    title={intl.formatMessage({id: 'generic_icons.expand', defaultMessage: 'Expand Icon'})}
+                                />
+                                <i
+                                    className='fa fa-minus'
+                                    aria-hidden={true}
+                                    title={intl.formatMessage({id: 'generic_icons.collapse', defaultMessage: 'Collapse Icon'})}
+                                />
+                            </div>
+                        </button>
+                    </h4>
                     <div
                         ref={this.centerChannelStylesRef}
-                        id='centerChannelStyles'
+                        id='centerChannelStylesSection'
                         className='theme-elements__body'
+                        aria-labelledby='centerChannelStylesAccordion'
                     >
                         {centerChannelElements}
                     </div>
                 </div>
                 <div className='theme-elements row'>
-                    <div
-                        ref={this.linkAndButtonStylesHeaderRef}
-                        id='linkAndButtonsStyles'
-                        className='theme-elements__header'
-                        onClick={this.toggleLinkAndButtonStyles}
-                    >
-                        <FormattedMessage
-                            id='user.settings.custom_theme.linkButtonTitle'
-                            defaultMessage='Link and Button Styles'
-                        />
-                        <div className='header__icon'>
-                            <i
-                                className='fa fa-plus'
-                                title={intl.formatMessage({id: 'generic_icons.expand', defaultMessage: 'Expand Icon'})}
+                    <h4 className='theme-elements__header'>
+                        <button
+                            ref={this.linkAndButtonStylesHeaderRef}
+                            id='linkAndButtonsStylesAccordion'
+                            onClick={this.toggleLinkAndButtonStyles}
+                            aria-expanded={false}
+                            aria-controls='linkAndButtonsStylesSection'
+                            className='theme-elements__header'
+                        >
+                            <FormattedMessage
+                                id='user.settings.custom_theme.linkButtonTitle'
+                                defaultMessage='Link and Button Styles'
                             />
-                            <i
-                                className='fa fa-minus'
-                                title={intl.formatMessage({id: 'generic_icons.collapse', defaultMessage: 'Collapse Icon'})}
-                            />
-                        </div>
-                    </div>
+                            <div className='header__icon'>
+                                <i
+                                    className='fa fa-plus'
+                                    aria-hidden={true}
+                                    title={intl.formatMessage({id: 'generic_icons.expand', defaultMessage: 'Expand Icon'})}
+                                />
+                                <i
+                                    className='fa fa-minus'
+                                    aria-hidden={true}
+                                    title={intl.formatMessage({id: 'generic_icons.collapse', defaultMessage: 'Collapse Icon'})}
+                                />
+                            </div>
+                        </button>
+                    </h4>
                     <div
+                        id='linkAndButtonsStylesSection'
                         ref={this.linkAndButtonStylesRef}
                         className='theme-elements__body'
+                        aria-labelledby='linkAndButtonsStylesAccordion'
                     >
                         {linkAndButtonElements}
                     </div>

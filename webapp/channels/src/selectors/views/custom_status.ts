@@ -20,13 +20,21 @@ import {isDateWithinDaysRange, TimeInformation} from 'utils/utils';
 
 import type {GlobalState} from 'types/store';
 
-export function makeGetCustomStatus(): (state: GlobalState, userID?: string) => UserCustomStatus {
+export function makeGetCustomStatus(): (state: GlobalState, userID?: string) => UserCustomStatus | undefined {
     return createSelector(
         'makeGetCustomStatus',
         (state: GlobalState, userID?: string) => (userID ? getUser(state, userID) : getCurrentUser(state)),
         (user) => {
             const userProps = user?.props || {};
-            return userProps.customStatus ? JSON.parse(userProps.customStatus) : undefined;
+            let customStatus;
+            if (userProps.customStatus) {
+                try {
+                    customStatus = JSON.parse(userProps.customStatus);
+                } catch (error) {
+                    // do nothing if invalid, return undefined custom status.
+                }
+            }
+            return customStatus;
         },
     );
 }

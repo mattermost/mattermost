@@ -4,18 +4,20 @@
 package model
 
 import (
+	"bytes"
 	"crypto/rand"
 	"database/sql/driver"
 	"encoding/base32"
 	"encoding/json"
 	"fmt"
 	"io"
+	"maps"
 	"net"
-	"net/http"
 	"net/mail"
 	"net/url"
 	"os"
 	"regexp"
+	"slices"
 	"sort"
 	"strings"
 	"sync"
@@ -26,22 +28,27 @@ import (
 	"github.com/pkg/errors"
 
 	"github.com/mattermost/mattermost/server/public/shared/i18n"
+	"github.com/mattermost/mattermost/server/public/shared/mlog"
 )
 
 const (
-	LowercaseLetters = "abcdefghijklmnopqrstuvwxyz"
-	UppercaseLetters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
-	NUMBERS          = "0123456789"
-	SYMBOLS          = " !\"\\#$%&'()*+,-./:;<=>?@[]^_`|~"
-	BinaryParamKey   = "MM_BINARY_PARAMETERS"
-	NoTranslation    = "<untranslated>"
-	maxPropSizeBytes = 1024 * 1024
+	LowercaseLetters  = "abcdefghijklmnopqrstuvwxyz"
+	UppercaseLetters  = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+	NUMBERS           = "0123456789"
+	SYMBOLS           = " !\"\\#$%&'()*+,-./:;<=>?@[]^_`|~"
+	BinaryParamKey    = "MM_BINARY_PARAMETERS"
+	NoTranslation     = "<untranslated>"
+	maxPropSizeBytes  = 1024 * 1024
+	PayloadParseError = "api.payload.parse.error"
 )
 
 var ErrMaxPropSizeExceeded = fmt.Errorf("max prop size of %d exceeded", maxPropSizeBytes)
 
+//msgp:ignore StringInterface StringSet
 type StringInterface map[string]any
 type StringSet map[string]struct{}
+
+//msgp:tuple StringArray
 type StringArray []string
 
 func (ss StringSet) Has(val string) bool {
@@ -73,13 +80,7 @@ func (sa StringArray) Remove(input string) StringArray {
 }
 
 func (sa StringArray) Contains(input string) bool {
-	for index := range sa {
-		if sa[index] == input {
-			return true
-		}
-	}
-
-	return false
+	return slices.Contains(sa, input)
 }
 func (sa StringArray) Equals(input StringArray) bool {
 	if len(sa) != len(input) {
@@ -227,6 +228,7 @@ func AppErrorInit(t i18n.TranslateFunc) {
 	})
 }
 
+//msgp:ignore AppError
 type AppError struct {
 	Id              string `json:"id"`
 	Message         string `json:"message"`               // Message to be display to the end user without debugging information
@@ -234,7 +236,6 @@ type AppError struct {
 	RequestId       string `json:"request_id,omitempty"`  // The RequestId that's also set in the header
 	StatusCode      int    `json:"status_code,omitempty"` // The http status code
 	Where           string `json:"-"`                     // The function where it happened in the form of Struct.Func
-	IsOAuth         bool   `json:"is_oauth,omitempty"`    // Whether the error is OAuth specific
 	SkipTranslation bool   `json:"-"`                     // Whether translation for the error should be skipped.
 	params          map[string]any
 	wrapped         error
@@ -335,22 +336,29 @@ func (er *AppError) Wrap(err error) *AppError {
 	return er
 }
 
-// AppErrorFromJSON will decode the input and return an AppError
-func AppErrorFromJSON(data io.Reader) *AppError {
-	str := ""
-	bytes, rerr := io.ReadAll(data)
-	if rerr != nil {
-		str = rerr.Error()
-	} else {
-		str = string(bytes)
+func (er *AppError) WipeDetailed() {
+	er.wrapped = nil
+	er.DetailedError = ""
+}
+
+// AppErrorFromJSON will try to decode the input into an AppError.
+func AppErrorFromJSON(r io.Reader) error {
+	data, err := io.ReadAll(r)
+	if err != nil {
+		return err
 	}
 
-	decoder := json.NewDecoder(strings.NewReader(str))
 	var er AppError
-	err := decoder.Decode(&er)
+	err = json.NewDecoder(bytes.NewReader(data)).Decode(&er)
 	if err != nil {
-		return NewAppError("AppErrorFromJSON", "model.utils.decode_json.app_error", nil, "body: "+str, http.StatusInternalServerError).Wrap(err)
+		// If the request exceeded FileSettings.MaxFileSize a plain error gets returned. Convert it into an AppError.
+		if string(data) == "http: request body too large\n" {
+			return errors.New("The request was too large. Consider asking your System Admin to raise the FileSettings.MaxFileSize setting.")
+		}
+
+		return errors.Wrapf(err, "failed to decode JSON payload into AppError. Body: %s", string(data))
 	}
+
 	return &er
 }
 
@@ -362,7 +370,6 @@ func NewAppError(where string, id string, params map[string]any, details string,
 		Where:         where,
 		DetailedError: details,
 		StatusCode:    status,
-		IsOAuth:       false,
 	}
 	ap.Translate(translateFunc)
 	return ap
@@ -375,6 +382,11 @@ var encoding = base32.NewEncoding("ybndrfg8ejkmcpqxot1uwisza345h769").WithPaddin
 // without the padding.
 func NewId() string {
 	return encoding.EncodeToString(uuid.NewRandom())
+}
+
+// NewUsername is a NewId prefixed with a letter to make valid username
+func NewUsername() string {
+	return "a" + NewId()
 }
 
 // NewRandomTeamName is a NewId that will be a valid team name.
@@ -396,17 +408,17 @@ func NewRandomString(length int) string {
 
 // GetMillis is a convenience method to get milliseconds since epoch.
 func GetMillis() int64 {
-	return time.Now().UnixNano() / int64(time.Millisecond)
+	return GetMillisForTime(time.Now())
 }
 
 // GetMillisForTime is a convenience method to get milliseconds since epoch for provided Time.
 func GetMillisForTime(thisTime time.Time) int64 {
-	return thisTime.UnixNano() / int64(time.Millisecond)
+	return thisTime.UnixMilli()
 }
 
 // GetTimeForMillis is a convenience method to get time.Time for milliseconds since epoch.
 func GetTimeForMillis(millis int64) time.Time {
-	return time.Unix(0, millis*int64(time.Millisecond))
+	return time.UnixMilli(millis)
 }
 
 // PadDateStringZeros is a convenience method to pad 2 digit date parts with zeros to meet ISO 8601 format
@@ -437,9 +449,7 @@ func GetEndOfDayMillis(thisTime time.Time, timeZoneOffset int) int64 {
 
 func CopyStringMap(originalMap map[string]string) map[string]string {
 	copyMap := make(map[string]string, len(originalMap))
-	for k, v := range originalMap {
-		copyMap[k] = v
-	}
+	maps.Copy(copyMap, originalMap)
 	return copyMap
 }
 
@@ -484,15 +494,37 @@ func ArrayToJSON(objmap []string) string {
 	return string(b)
 }
 
+// Deprecated: ArrayFromJSON is deprecated,
+// use SortedArrayFromJSON or NonSortedArrayFromJSON instead
 func ArrayFromJSON(data io.Reader) []string {
 	var objmap []string
-
 	json.NewDecoder(data).Decode(&objmap)
 	if objmap == nil {
 		return make([]string, 0)
 	}
-
 	return objmap
+}
+
+func SortedArrayFromJSON(data io.Reader) ([]string, error) {
+	var obj []string
+	err := json.NewDecoder(data).Decode(&obj)
+	if err != nil || obj == nil {
+		return nil, err
+	}
+
+	// Remove duplicate IDs as it can bring a significant load to the database.
+	return RemoveDuplicateStrings(obj), nil
+}
+
+func NonSortedArrayFromJSON(data io.Reader) ([]string, error) {
+	var obj []string
+	err := json.NewDecoder(data).Decode(&obj)
+	if err != nil || obj == nil {
+		return nil, err
+	}
+
+	// Remove duplicate IDs, but don't sort.
+	return RemoveDuplicateStringsNonSort(obj), nil
 }
 
 func ArrayFromInterface(data any) []string {
@@ -526,6 +558,15 @@ func StringInterfaceFromJSON(data io.Reader) map[string]any {
 	}
 
 	return objmap
+}
+
+func StructFromJSONLimited[V any](data io.Reader, obj *V) error {
+	err := json.NewDecoder(data).Decode(&obj)
+	if err != nil || obj == nil {
+		return err
+	}
+
+	return nil
 }
 
 // ToJSON serializes an arbitrary data type to JSON, discarding the error.
@@ -573,18 +614,33 @@ func isLower(s string) bool {
 	return strings.ToLower(s) == s
 }
 
-func IsValidEmail(email string) bool {
-	if !isLower(email) {
+func IsValidEmail(input string) bool {
+	if !isLower(input) {
 		return false
 	}
 
-	if addr, err := mail.ParseAddress(email); err != nil {
+	if addr, err := mail.ParseAddress(input); err != nil {
 		return false
-	} else if addr.Name != "" {
-		// mail.ParseAddress accepts input of the form "Billy Bob <billy@example.com>" which we don't allow
+	} else if addr.Address != input {
+		// mail.ParseAddress accepts input of the form "Billy Bob <billy@example.com>" or "<billy@example.com>",
+		// which we don't allow. We compare the user input with the parsed addr.Address to ensure we only
+		// accept plain addresses like "billy@example.com"
+
+		// Log a warning for admins in case pre-existing users with emails like <billy@example.com>, which used
+		// to be valid before https://github.com/mattermost/mattermost/pull/29661, know how to deal with this
+		// error. We don't need to check for the case addr.Name != "", since that has always been rejected
+		if addr.Name == "" {
+			mlog.Warn("email seems to be enclosed in angle brackets, which is not valid; if this relates to an existing user, use the following mmctl command to modify their email: `mmctl user email \"<affecteduser@domain.com>\" affecteduser@domain.com`", mlog.String("email", input))
+		}
 		return false
 	}
 
+	// mail.ParseAddress accepts quoted strings for the address
+	// which can lead to sending to the wrong email address
+	// check for multiple '@' symbols and invalidate
+	if strings.Count(input, "@") > 1 {
+		return false
+	}
 	return true
 }
 
@@ -636,13 +692,14 @@ func IsValidAlphaNumHyphenUnderscorePlus(s string) bool {
 }
 
 func Etag(parts ...any) string {
-	etag := CurrentVersion
+	var etag strings.Builder
+	etag.WriteString(CurrentVersion)
 
 	for _, part := range parts {
-		etag += fmt.Sprintf(".%v", part)
+		etag.WriteString(fmt.Sprintf(".%v", part))
 	}
 
-	return etag
+	return etag.String()
 }
 
 var (
@@ -655,8 +712,8 @@ var (
 func ParseHashtags(text string) (string, string) {
 	words := strings.Fields(text)
 
-	hashtagString := ""
-	plainString := ""
+	var hashtagStringSb strings.Builder
+	var plainString strings.Builder
 	for _, word := range words {
 		// trim off surrounding punctuation
 		word = puncStart.ReplaceAllString(word, "")
@@ -666,11 +723,12 @@ func ParseHashtags(text string) (string, string) {
 		word = hashtagStart.ReplaceAllString(word, "#")
 
 		if validHashtag.MatchString(word) {
-			hashtagString += " " + word
+			hashtagStringSb.WriteString(" " + word)
 		} else {
-			plainString += " " + word
+			plainString.WriteString(" " + word)
 		}
 	}
+	hashtagString := hashtagStringSb.String()
 
 	if len(hashtagString) > 1000 {
 		hashtagString = hashtagString[:999]
@@ -682,7 +740,7 @@ func ParseHashtags(text string) (string, string) {
 		}
 	}
 
-	return strings.TrimSpace(hashtagString), strings.TrimSpace(plainString)
+	return strings.TrimSpace(hashtagString), strings.TrimSpace(plainString.String())
 }
 
 func ClearMentionTags(post string) string {
@@ -735,6 +793,20 @@ func RemoveDuplicateStrings(in []string) []string {
 		in[j] = in[i]
 	}
 	return in[:j+1]
+}
+
+// RemoveDuplicateStringsNonSort does a removal of duplicate
+// strings using a map.
+func RemoveDuplicateStringsNonSort(in []string) []string {
+	allKeys := make(map[string]bool)
+	list := []string{}
+	for _, item := range in {
+		if _, value := allKeys[item]; !value {
+			allKeys[item] = true
+			list = append(list, item)
+		}
+	}
+	return list
 }
 
 func GetPreferredTimezone(timezone StringMap) string {
@@ -792,4 +864,37 @@ func filterBlocklist(r rune) rune {
 
 func IsCloud() bool {
 	return os.Getenv("MM_CLOUD_INSTALLATION_ID") != ""
+}
+
+func SliceToMapKey(s ...string) map[string]any {
+	m := make(map[string]any)
+	for i := range s {
+		m[s[i]] = struct{}{}
+	}
+
+	if len(s) != len(m) {
+		panic("duplicate keys")
+	}
+
+	return m
+}
+
+// LimitRunes limits the number of runes in a string to the given maximum.
+// It returns the potentially truncated string and a boolean indicating whether truncation occurred.
+func LimitRunes(s string, maxRunes int) (string, bool) {
+	runes := []rune(s)
+	if len(runes) > maxRunes {
+		return string(runes[:maxRunes]), true
+	}
+
+	return s, false
+}
+
+// LimitBytes limits the number of bytes in a string to the given maximum.
+// It returns the potentially truncated string and a boolean indicating whether truncation occurred.
+func LimitBytes(s string, maxBytes int) (string, bool) {
+	if len(s) > maxBytes {
+		return s[:maxBytes], true
+	}
+	return s, false
 }

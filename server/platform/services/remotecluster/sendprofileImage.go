@@ -79,6 +79,13 @@ func (rcs *Service) sendProfileImage(task sendProfileImageTask) {
 }
 
 func (rcs *Service) sendProfileImageToRemote(timeout time.Duration, task sendProfileImageTask) error {
+	start := time.Now()
+	defer func() {
+		if metrics := rcs.server.GetMetrics(); metrics != nil {
+			metrics.ObserveSharedChannelsSyncSendStepDuration(task.rc.RemoteId, "ProfileImages", time.Since(start).Seconds())
+		}
+	}()
+
 	rcs.server.Log().Log(mlog.LvlRemoteClusterServiceDebug, "sending profile image to remote...",
 		mlog.String("remote", task.rc.DisplayName),
 		mlog.String("UserId", task.userID),

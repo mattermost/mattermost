@@ -1,16 +1,16 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-@import 'utils/mixins';
+@use 'utils/mixins';
 
 .external-login-button {
-    @include secondary-button;
-    @include button-medium;
+    @include mixins.secondary-button;
+    @include mixins.button-medium;
 
     min-width: 136px;
     flex: 1 1 0%;
     border-color: rgba(var(--center-channel-color-rgb), 0.16);
-    color: rgba(var(--center-channel-color-rgb), 0.72);
+    color: rgba(var(--center-channel-color-rgb), 0.75);
     text-decoration: none;
 
     &.direction-column {

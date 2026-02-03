@@ -16,7 +16,7 @@ describe('components/interactive_dialog/DialogElement', () => {
         type: 'text',
         maxLength: 100,
         actions: {
-            autocompleteChannels: jest.fn(),
+            autocompleteActiveChannels: jest.fn(),
             autocompleteUsers: jest.fn(),
         },
         onChange: jest.fn(),

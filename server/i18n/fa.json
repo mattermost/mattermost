@@ -244,10 +244,6 @@
     "translation": "شناسه اصلی نامعتبر است."
   },
   {
-    "id": "model.post.is_valid.msg.app_error",
-    "translation": "پیام نامعتبر است."
-  },
-  {
     "id": "model.post.is_valid.id.app_error",
     "translation": "شناسه نامعتبر است."
   },
@@ -1248,10 +1244,6 @@
     "translation": "یک یا چند پست به سایت راه دور {{.Remote}} تحویل داده نشد زیرا آفلاین است. پست(ها) زمانی که سایت آنلاین باشد تحویل داده می شود."
   },
   {
-    "id": "searchengine.bleve.disabled.error",
-    "translation": "خطا در پاکسازی شاخص های Bleve: موتور غیرفعال است"
-  },
-  {
     "id": "plugin_api.send_mail.missing_to",
     "translation": "آدرس TO موجود نیست."
   },
@@ -1382,10 +1374,6 @@
   {
     "id": "model.user.is_valid.pwd_lowercase.app_error",
     "translation": "رمز ورود شما باید حداقل شامل {{.Min}} نویسه باشد که حداقل از یک حرف کوچک تشکیل شده باشد."
-  },
-  {
-    "id": "model.user.is_valid.pwd.app_error",
-    "translation": "رمز ورود شما باید حداقل شامل {{.Min}} نویسه باشد."
   },
   {
     "id": "model.channel.is_valid.update_at.app_error",
@@ -1640,10 +1628,6 @@
     "translation": "مجوز شما از تأیید اعتبار SAML پشتیبانی نمی کند."
   },
   {
-    "id": "ent.saml.do_login.validate.app_error",
-    "translation": "هنگام تأیید پاسخ از طرف ارائه دهنده هویت ، خطایی روی داد. لطفا با سرپرست سیستم خود تماس بگیرید."
-  },
-  {
     "id": "ent.saml.do_login.parse.app_error",
     "translation": "هنگام تجزیه و تحلیل پاسخ از طرف ارائه دهنده هویت خطایی روی داد. لطفا با سرپرست سیستم خود تماس بگیرید."
   },
@@ -1660,10 +1644,6 @@
     "translation": "ما یک پاسخ خالی از ارائه دهنده هویت دریافت کرده است."
   },
   {
-    "id": "ent.saml.do_login.decrypt.app_error",
-    "translation": "ورود به سیستم SAML ناموفق بود زیرا هنگام رمزگشایی پاسخ از طرف ارائه دهنده هویت خطایی روی داد. لطفا با سرپرست سیستم خود تماس بگیرید."
-  },
-  {
     "id": "ent.saml.configure.not_encrypted_response.app_error",
     "translation": "ورود SAML ناموفق بود زیرا پاسخ Identity Provider رمزگذاری نشده است. لطفا با سرپرست سیستم خود تماس بگیرید."
   },
@@ -1672,16 +1652,8 @@
     "translation": "ورود SAML ناموفق بود زیرا کلید خصوصی ارائه دهنده خدمات یافت نشد. لطفا با سرپرست سیستم خود تماس بگیرید."
   },
   {
-    "id": "ent.saml.configure.load_idp_cert.app_error",
-    "translation": "پرونده گواهی عمومی ارائه دهنده هویت یافت نشد. لطفا با سرپرست سیستم خود تماس بگیرید."
-  },
-  {
     "id": "ent.saml.configure.encryption_not_enabled.app_error",
     "translation": "ورود SAML ناموفق بود زیرا رمزگذاری فعال نیست. لطفا با سرپرست سیستم خود تماس بگیرید."
-  },
-  {
-    "id": "ent.saml.build_request.encoding.app_error",
-    "translation": "هنگام رمزگذاری درخواست برای Identity Provider خطایی روی داد. لطفا با سرپرست سیستم خود تماس بگیرید."
   },
   {
     "id": "ent.saml.build_request.app_error",
@@ -1714,74 +1686,6 @@
   {
     "id": "ent.message_export.run_export.app_error",
     "translation": "داده صادرات پیام انتخاب نشد."
-  },
-  {
-    "id": "ent.message_export.global_relay_export.get_attachment_error",
-    "translation": "دریافت اطلاعات پرونده برای یک پست انجام نشد."
-  },
-  {
-    "id": "ent.message_export.global_relay_export.deliver.unable_to_open_zip_file_data.app_error",
-    "translation": "پرونده موقت صادرات باز نمی شود."
-  },
-  {
-    "id": "ent.message_export.global_relay_export.deliver.unable_to_open_email_file.app_error",
-    "translation": "دریافت ایمیل از پرونده موقت امکان پذیر نیست."
-  },
-  {
-    "id": "ent.message_export.global_relay_export.deliver.unable_to_get_file_info.app_error",
-    "translation": "نمی توان اطلاعات پرونده موقت صادرات را بدست آورد."
-  },
-  {
-    "id": "ent.message_export.global_relay_export.deliver.unable_to_connect_smtp_server.app_error",
-    "translation": "اتصال به سرور smtp امکان پذیر نیست"
-  },
-  {
-    "id": "ent.message_export.global_relay_export.deliver.to_address.app_error",
-    "translation": "نمی توان ایمیل را برای آدرس دهی تنظیم کرد."
-  },
-  {
-    "id": "ent.message_export.global_relay_export.deliver.parse_mail.app_error",
-    "translation": "خواندن اطلاعات ایمیل امکان پذیر نیست."
-  },
-  {
-    "id": "ent.message_export.global_relay_export.deliver.msg_data.app_error",
-    "translation": "نوشتن پیام ایمیل امکان پذیر نیست."
-  },
-  {
-    "id": "ent.message_export.global_relay_export.deliver.msg.app_error",
-    "translation": "پیام ایمیل قابل تنظیم نیست."
-  },
-  {
-    "id": "ent.message_export.global_relay_export.deliver.from_address.app_error",
-    "translation": "تنظیم ایمیل از آدرس امکان پذیر نیست."
-  },
-  {
-    "id": "ent.message_export.global_relay_export.deliver.close.app_error",
-    "translation": "تحویل ایمیل به Global Relay امکان پذیر نیست."
-  },
-  {
-    "id": "ent.message_export.global_relay.generate_email.app_error",
-    "translation": "تولید داده های فایل EML امکان پذیر نیست."
-  },
-  {
-    "id": "ent.message_export.global_relay.create_file_in_zip.app_error",
-    "translation": "ایجاد پرونده EML امکان پذیر نیست."
-  },
-  {
-    "id": "ent.message_export.global_relay.close_zip_file.app_error",
-    "translation": "پرونده zip بسته نمی شود."
-  },
-  {
-    "id": "ent.message_export.global_relay.attach_file.app_error",
-    "translation": "پیوست به صادرات رله جهانی امکان پذیر نیست."
-  },
-  {
-    "id": "ent.message_export.csv_export.get_attachment_error",
-    "translation": "دریافت اطلاعات پرونده برای یک پست انجام نشد."
-  },
-  {
-    "id": "ent.message_export.actiance_export.get_attachment_error",
-    "translation": "دریافت اطلاعات پرونده برای یک پست انجام نشد."
   },
   {
     "id": "ent.ldap_id_migrate.app_error",
@@ -1838,10 +1742,6 @@
   {
     "id": "ent.ldap.syncronize.get_all.app_error",
     "translation": "دسترسی به همه کاربران با استفاده از AD/LDAP امکان پذیر نیست."
-  },
-  {
-    "id": "ent.ldap.syncronize.delete_group_constained_memberships",
-    "translation": "خطای حذف عضویت تیم یا کانال"
   },
   {
     "id": "ent.ldap.save_user.username_exists.ldap_app_error",
@@ -1920,10 +1820,6 @@
     "translation": "مجوز شما از ID Loaded Push Notifications پشتیبانی نمی کند."
   },
   {
-    "id": "ent.get_users_in_channel_during",
-    "translation": "در دوره زمانی مشخص کاربران در کانال قرار نگرفتند."
-  },
-  {
     "id": "ent.elasticsearch.test_config.reenter_password",
     "translation": "URL یا نام کاربری جستجوی الاستیک سرور تغییر کرده است. برای آزمایش اتصال ، لطفاً رمز ورود جستجوی الاستیک را دوباره وارد کنید."
   },
@@ -1940,20 +1836,12 @@
     "translation": "جستجوی الاستیک از قبل متوقف شده است."
   },
   {
-    "id": "ent.elasticsearch.start.start_bulk_processor_failed.app_error",
-    "translation": "پردازنده انبوه جستجوی الاستیک راه اندازی نشد."
-  },
-  {
     "id": "ent.elasticsearch.start.parse_server_version.app_error",
     "translation": "تجزیه نسخه سرور جستجوی الاستیک انجام نشد."
   },
   {
     "id": "ent.elasticsearch.start.get_server_version.app_error",
     "translation": "نسخه سرور جستجوی الاستیک دریافت نشد."
-  },
-  {
-    "id": "ent.elasticsearch.start.create_bulk_processor_failed.app_error",
-    "translation": "پردازنده انبوه جستجوی الاستیک ایجاد نشد."
   },
   {
     "id": "ent.elasticsearch.search_users.unmarshall_user_failed",
@@ -2006,10 +1894,6 @@
   {
     "id": "ent.elasticsearch.refresh_indexes.refresh_failed",
     "translation": "شاخص های جستجوی الاستیک بازخوانی نشد"
-  },
-  {
-    "id": "ent.elasticsearch.purge_indexes.delete_failed",
-    "translation": "ایندکس Elasticsearch حذف نشد"
   },
   {
     "id": "ent.elasticsearch.post.get_posts_batch_for_indexing.error",
@@ -2336,18 +2220,6 @@
     "translation": "هنگام فعال کردن خوشه بندی ، امکان فعال سازی دسته ای ایمیل وجود ندارد."
   },
   {
-    "id": "model.config.is_valid.bleve_search.filename.app_error",
-    "translation": "Bleve IndexingDir باید تنظیم شود وقتی Bleve EnableIndexing روی true تنظیم شود"
-  },
-  {
-    "id": "model.config.is_valid.bleve_search.enable_searching.app_error",
-    "translation": "وقتی Bleve EnableSearching روی true تنظیم شد ، باید تنظیمات Indexing روی true باشد"
-  },
-  {
-    "id": "model.config.is_valid.bleve_search.enable_autocomplete.app_error",
-    "translation": "وقتی Bleve EnableAutocomplete روی true تنظیم می شود باید تنظیمات Indexing روی true باشد"
-  },
-  {
     "id": "app.import.validate_reaction_import_data.create_at_missing.error",
     "translation": "ویژگی مورد نیاز واکنش وجود ندارد: Creat_at."
   },
@@ -2646,10 +2518,6 @@
   {
     "id": "app.import.bulk_import.file_scan.error",
     "translation": "خطا در خواندن پرونده واردات داده."
-  },
-  {
-    "id": "app.import.attachment.read_file_data.error",
-    "translation": "در حین import کردن، پیوست فایل خوانده نشد."
   },
   {
     "id": "app.import.attachment.file_upload.error",
@@ -3028,14 +2896,6 @@
     "translation": "حساب های مهمان غیرفعال شده است"
   },
   {
-    "id": "api.user.login.client_side_cert.license.app_error",
-    "translation": "تلاش برای استفاده از ویژگی آزمایشی ClientSideCertEnable بدون مجوز معتبر شرکت."
-  },
-  {
-    "id": "api.user.login.client_side_cert.certificate.app_error",
-    "translation": "سعی در ورود به سیستم با استفاده از ویژگی آزمایشی ClientSideCert بدون ارائه گواهی معتبر است."
-  },
-  {
     "id": "api.user.login.bot_login_forbidden.app_error",
     "translation": "ورود بات ممنوع است."
   },
@@ -3304,72 +3164,8 @@
     "translation": "صادرات انطباق برای کار '{{.JobName}}' در '{{.FilePath}}' انجام نشد"
   },
   {
-    "id": "ent.compliance.run_export.template_watcher.appError",
-    "translation": "بارگیری الگوهای صادرات امکان پذیر نیست. لطفا دوباره تلاش کنید."
-  },
-  {
     "id": "ent.compliance.licence_disable.app_error",
     "translation": "عملکرد انطباق توسط مجوز فعلی غیرفعال شده است. لطفاً در مورد به روزرسانی مجوز شرکت خود با سرپرست سیستم خود تماس بگیرید."
-  },
-  {
-    "id": "ent.compliance.global_relay.rewind_temporary_file.appError",
-    "translation": "خواندن مجدد پرونده صادرات موقت رله جهانی امکان پذیر نیست."
-  },
-  {
-    "id": "ent.compliance.global_relay.open_temporary_file.appError",
-    "translation": "پرونده صادرات موقت باز نمی شود."
-  },
-  {
-    "id": "ent.compliance.global_relay.attachments_removed.appError",
-    "translation": "پرونده بارگذاری شده از صادرات رله جهانی حذف شد زیرا برای ارسال بسیار بزرگ بود."
-  },
-  {
-    "id": "ent.compliance.csv.zip.creation.appError",
-    "translation": "ایجاد پرونده صادرات zip امکان پذیر نیست."
-  },
-  {
-    "id": "ent.compliance.csv.write_file.appError",
-    "translation": "امکان نوشتن فایل csv وجود ندارد."
-  },
-  {
-    "id": "ent.compliance.csv.warning.appError",
-    "translation": "ایجاد پرونده هشدار امکان پذیر نیست."
-  },
-  {
-    "id": "ent.compliance.csv.post.export.appError",
-    "translation": "صادر کردن پست امکان پذیر نیست."
-  },
-  {
-    "id": "ent.compliance.csv.metadata.json.zipfile.appError",
-    "translation": "ایجاد فایل zip امکان پذیر نیست"
-  },
-  {
-    "id": "ent.compliance.csv.metadata.json.marshalling.appError",
-    "translation": "تبدیل فراداده به json امکان پذیر نیست."
-  },
-  {
-    "id": "ent.compliance.csv.metadata.export.appError",
-    "translation": "اضافه کردن پرونده فراداده به پرونده zip امکان پذیر نیست."
-  },
-  {
-    "id": "ent.compliance.csv.header.export.appError",
-    "translation": "افزودن سرصفحه به صادرات CSV امکان پذیر نیست."
-  },
-  {
-    "id": "ent.compliance.csv.file.creation.appError",
-    "translation": "ایجاد پرونده صادرات CSV موقت امکان پذیر نیست."
-  },
-  {
-    "id": "ent.compliance.csv.attachment.export.appError",
-    "translation": "پیوست به صادرات CSV اضافه نمی شود."
-  },
-  {
-    "id": "ent.compliance.csv.attachment.copy.appError",
-    "translation": "پیوست در پرونده zip کپی نمی شود."
-  },
-  {
-    "id": "ent.compliance.bad_export_type.appError",
-    "translation": "قالب خروجی ناشناخته {{.ExportType}}"
   },
   {
     "id": "ent.cluster.timeout.error",
@@ -3388,20 +3184,8 @@
     "translation": "پیکربندی خوشه برای id={{ .id }} تغییر کرده است. خوشه ممکن است ناپایدار شود و نیاز به راه اندازی مجدد باشد. برای اطمینان از پیکربندی صحیح خوشه ، باید بلافاصله یک راه اندازی مجدد را شروع کنید."
   },
   {
-    "id": "ent.cluster.404.app_error",
-    "translation": "نقطه پایانی API خوشه یافت نشد."
-  },
-  {
     "id": "ent.api.post.send_notifications_and_forget.push_image_only",
     "translation": " پرونده ای را ضمیمه کرد."
-  },
-  {
-    "id": "ent.actiance.export.write_file.appError",
-    "translation": "امکان نوشتن فایل export وجود ندارد."
-  },
-  {
-    "id": "ent.actiance.export.marshalToXml.appError",
-    "translation": "صادرات به XML قابل تبدیل نیست."
   },
   {
     "id": "ent.account_migration.get_saml_users_failed",
@@ -3430,162 +3214,6 @@
   {
     "id": "brand.save_brand_image.check_image_limits.app_error",
     "translation": "بررسی محدودیت های تصویر ناموفق بود. رزولوشن خیلی بالاست"
-  },
-  {
-    "id": "bleveengine.stop_user_index.error",
-    "translation": "ایندکس کاربر بسته نشد."
-  },
-  {
-    "id": "bleveengine.stop_post_index.error",
-    "translation": "ایندکس پست بسته نشد."
-  },
-  {
-    "id": "bleveengine.stop_file_index.error",
-    "translation": "فهرست فایل بسته نشد."
-  },
-  {
-    "id": "bleveengine.stop_channel_index.error",
-    "translation": "ایندکس کانال بسته نشد."
-  },
-  {
-    "id": "bleveengine.search_users_in_team.error",
-    "translation": "جستجوی کاربر کامل نشد."
-  },
-  {
-    "id": "bleveengine.search_users_in_channel.uchan.error",
-    "translation": "جستجوی کاربر کامل نشد."
-  },
-  {
-    "id": "bleveengine.search_users_in_channel.nuchan.error",
-    "translation": "جستجوی کاربر کامل نشد."
-  },
-  {
-    "id": "bleveengine.search_posts.error",
-    "translation": "جستجوی پست کامل نشد."
-  },
-  {
-    "id": "bleveengine.search_files.error",
-    "translation": "جستجوی فایل کامل نشد."
-  },
-  {
-    "id": "bleveengine.search_channels.error",
-    "translation": "جستجوی کانال کامل نشد."
-  },
-  {
-    "id": "bleveengine.purge_user_index.error",
-    "translation": "ایندکس های کاربرپاک نشدند."
-  },
-  {
-    "id": "bleveengine.purge_post_index.error",
-    "translation": "ایندکس های پست پاک نشدند."
-  },
-  {
-    "id": "bleveengine.purge_file_index.error",
-    "translation": "فهرست‌های فایل پاک نشد."
-  },
-  {
-    "id": "bleveengine.purge_channel_index.error",
-    "translation": "ایندکس های کانال پاک نشدند."
-  },
-  {
-    "id": "bleveengine.indexer.index_batch.nothing_left_to_index.error",
-    "translation": "سعی می شود وقتی تمام موجودیت ها تکمیل شد ، یک دسته جدید را ایندکس سازی کنید."
-  },
-  {
-    "id": "bleveengine.indexer.do_job.parse_start_time.error",
-    "translation": "کارگر ایندکس سازی Bleve در تجزیه زمان شروع موفق نشد.."
-  },
-  {
-    "id": "bleveengine.indexer.do_job.parse_end_time.error",
-    "translation": "کارگر ایندکس سازی Bleve در تجزیه زمان پایان موفق نشد."
-  },
-  {
-    "id": "bleveengine.indexer.do_job.get_oldest_entity.error",
-    "translation": "قدیمی ترین موجودیت (کاربر، کانال یا پست) را نمی توان از پایگاه داده بازیابی کرد."
-  },
-  {
-    "id": "bleveengine.indexer.do_job.engine_inactive",
-    "translation": "ایندکس Bleve اجرا نشد: موتور غیرفعال است."
-  },
-  {
-    "id": "bleveengine.indexer.do_job.bulk_index_users.batch_error",
-    "translation": "ایندکس دسته ای کاربرانجام نشد."
-  },
-  {
-    "id": "bleveengine.indexer.do_job.bulk_index_posts.batch_error",
-    "translation": "ایندکس دسته ای پست انجام نشد."
-  },
-  {
-    "id": "bleveengine.indexer.do_job.bulk_index_files.batch_error",
-    "translation": "فهرست بندی دسته ای فایل انجام نشد."
-  },
-  {
-    "id": "bleveengine.indexer.do_job.bulk_index_channels.batch_error",
-    "translation": "ایندکس دسته ای کانال انجام نشد."
-  },
-  {
-    "id": "bleveengine.index_user.error",
-    "translation": "ایندکس کاربرانجام نشد."
-  },
-  {
-    "id": "bleveengine.index_post.error",
-    "translation": "ایندکس پست انجام نشد."
-  },
-  {
-    "id": "bleveengine.index_file.error",
-    "translation": "فهرست کردن فایل انجام نشد."
-  },
-  {
-    "id": "bleveengine.index_channel.error",
-    "translation": "ایندکس کانال انجام نشد."
-  },
-  {
-    "id": "bleveengine.delete_user_posts.error",
-    "translation": "پست های کاربر حذف نشد"
-  },
-  {
-    "id": "bleveengine.delete_user_files.error",
-    "translation": "فایل های پست حذف نشد."
-  },
-  {
-    "id": "bleveengine.delete_user.error",
-    "translation": "کاربر حذف نشد."
-  },
-  {
-    "id": "bleveengine.delete_post.error",
-    "translation": "پست حذف نشد."
-  },
-  {
-    "id": "bleveengine.delete_files_batch.error",
-    "translation": "فایل ها حذف نشدند."
-  },
-  {
-    "id": "bleveengine.delete_file.error",
-    "translation": "فایل حذف نشد."
-  },
-  {
-    "id": "bleveengine.delete_channel_posts.error",
-    "translation": "پست های کانال حذف نشد"
-  },
-  {
-    "id": "bleveengine.delete_channel.error",
-    "translation": "کانال حذف نشد."
-  },
-  {
-    "id": "bleveengine.create_user_index.error",
-    "translation": "خطا در ایجاد ایندکس کاربر bleve."
-  },
-  {
-    "id": "bleveengine.create_post_index.error",
-    "translation": "خطا در ایجاد ایندکس پست bleve."
-  },
-  {
-    "id": "bleveengine.create_channel_index.error",
-    "translation": "خطا در ایجاد ایندکس کانال bleve."
-  },
-  {
-    "id": "bleveengine.already_started.error",
-    "translation": "Bleve قبلاً شروع شده است."
   },
   {
     "id": "app.webhooks.update_outgoing.app_error",
@@ -3772,10 +3400,6 @@
     "translation": "بررسی خالی بودن فروشگاه کاربر انجام نشد."
   },
   {
-    "id": "app.user.send_emails.app_error",
-    "translation": "هیچ ایمیلی با موفقیت ارسال نشد"
-  },
-  {
     "id": "app.team.get_by_invite_id.finding.app_error",
     "translation": "تیم موجود یافت نشد."
   },
@@ -3816,14 +3440,6 @@
     "translation": "تاریخ نصب تجزیه نشد."
   },
   {
-    "id": "app.system.warn_metric.store.app_error",
-    "translation": "مقدار برای {{.WarnMetricName}} ذخیره نشد"
-  },
-  {
-    "id": "app.system.warn_metric.bot_displayname",
-    "translation": "مشاور Mattermost"
-  },
-  {
     "id": "app.system.system_bot.bot_displayname",
     "translation": "سیستم"
   },
@@ -3840,10 +3456,6 @@
     "translation": "متغیر سیستم یافت نشد."
   },
   {
-    "id": "app.system.get.app_error",
-    "translation": "در پیدا کردن خصوصیات سیستم با خطایی روبرو شدیم."
-  },
-  {
     "id": "app.submit_interactive_dialog.json_error",
     "translation": "خطایی در رمزگذاری JSON برای گفتگوی تعاملی پیش آمد."
   },
@@ -3854,10 +3466,6 @@
   {
     "id": "app.status.get.app_error",
     "translation": "هنگام بازیابی وضعیت با خطا روبرو شد."
-  },
-  {
-    "id": "app.sharedchannel.dm_channel_creation.internal_error",
-    "translation": "هنگام ایجاد یک کانال به اشتراک گذاشته شده مستقیم با خطایی مواجه شد."
   },
   {
     "id": "app.session.update_device_id.app_error",
@@ -4056,10 +3664,6 @@
     "translation": "دریافت پست های کانال امکان پذیر نیست."
   },
   {
-    "id": "app.post.get_posts_batch_for_indexing.get.app_error",
-    "translation": "دریافت دسته ای از پست ها برای ایندکس سازی امکان پذیر نیست."
-  },
-  {
     "id": "app.post.get_posts_around.get.app_error",
     "translation": "دریافت پست های کانال امکان پذیر نیست."
   },
@@ -4078,10 +3682,6 @@
   {
     "id": "app.post.get_flagged_posts.app_error",
     "translation": "دریافت پست های پرچم دار امکان پذیر نیست."
-  },
-  {
-    "id": "app.post.get_files_batch_for_indexing.get.app_error",
-    "translation": "نمی توان دسته ای از فایل ها را برای نمایه سازی دریافت کرد."
   },
   {
     "id": "app.post.get_direct_posts.app_error",
@@ -4256,10 +3856,6 @@
     "translation": "دریافت وضعیت پلاگین از خوشه امکان پذیر نیست."
   },
   {
-    "id": "app.plugin.flag_managed.app_error",
-    "translation": "تنظیم پلاگین بصورت مدیریت شده توسط فروشگاه پرونده امکان پذیر نیست."
-  },
-  {
     "id": "app.plugin.filesystem.app_error",
     "translation": "خطای سیستم پرونده روبرو شد."
   },
@@ -4410,18 +4006,6 @@
   {
     "id": "app.notification.body.dm.subTitle",
     "translation": "زمانی که شما دور بودید، {{.SenderName}} یک پیام مستقیم جدید برای شما ارسال کرد."
-  },
-  {
-    "id": "app.license.generate_renewal_token.no_license",
-    "translation": "مجوزی وجود ندارد"
-  },
-  {
-    "id": "app.license.generate_renewal_token.bad_license",
-    "translation": "این نوع مجوز از تولید توکن تمدید، پشتیبانی نمی کند"
-  },
-  {
-    "id": "app.license.generate_renewal_token.app_error",
-    "translation": "ایجاد توکن تمدید جدید ناموفق بود."
   },
   {
     "id": "app.job.update.app_error",
@@ -4632,10 +4216,6 @@
     "translation": "بازگشایی نشد."
   },
   {
-    "id": "api.unable_to_read_file_from_backend",
-    "translation": "خطا در خواندن فایل از backend"
-  },
-  {
     "id": "api.unable_to_create_zip_file",
     "translation": "خطا در ایجاد فایل فشرده."
   },
@@ -4682,34 +4262,6 @@
   {
     "id": "api.templates.welcome_body.app_download_button",
     "translation": "دانلود"
-  },
-  {
-    "id": "api.templates.warn_metric_ack.subject",
-    "translation": "درخواست ارتباط با ما"
-  },
-  {
-    "id": "api.templates.warn_metric_ack.footer",
-    "translation": "اگر سوال دیگری دارید ، لطفا با support@mattermost.com تماس بگیرید"
-  },
-  {
-    "id": "api.templates.warn_metric_ack.body.site_url_header",
-    "translation": "آدرس سایت: "
-  },
-  {
-    "id": "api.templates.warn_metric_ack.body.registered_users_header",
-    "translation": "کل کاربران فعال: "
-  },
-  {
-    "id": "api.templates.warn_metric_ack.body.diagnostic_id_header",
-    "translation": "شناسه تشخیصی: "
-  },
-  {
-    "id": "api.templates.warn_metric_ack.body.contact_name_header",
-    "translation": "مخاطب: "
-  },
-  {
-    "id": "api.templates.warn_metric_ack.body.contact_email_header",
-    "translation": "ایمیل: "
   },
   {
     "id": "api.templates.verify_subject",
@@ -4812,10 +4364,6 @@
     "translation": "مجوز تجاری شما منقضی شده است و برخی از ویژگی ها ممکن است غیرفعال شوند. لطفا اشتراکتان را تمدید کنید."
   },
   {
-    "id": "api.templates.remove_expired_license.body.renew_button",
-    "translation": "اکنون مجوز را تمدید کنید"
-  },
-  {
     "id": "api.templates.questions_footer.title",
     "translation": "سوالات؟"
   },
@@ -4826,46 +4374,6 @@
   {
     "id": "api.templates.post_body.button",
     "translation": "مشاهده پیام"
-  },
-  {
-    "id": "api.templates.payment_failed_no_card.title",
-    "translation": "سررسید فاکتور Mattermost Cloud شماست"
-  },
-  {
-    "id": "api.templates.payment_failed_no_card.subject",
-    "translation": "پرداخت برای اشتراک Mattermost Cloud شما باید انجام شود"
-  },
-  {
-    "id": "api.templates.payment_failed_no_card.info3",
-    "translation": "برای بررسی فاکتور و افزودن روش پرداخت، اکنون پرداخت را انتخاب کنید."
-  },
-  {
-    "id": "api.templates.payment_failed_no_card.info1",
-    "translation": "فاکتور Mattermost Cloud شما برای آخرین دوره صورتحساب پردازش شده است. با این حال، ما جزئیات پرداخت شما را در پرونده نداریم."
-  },
-  {
-    "id": "api.templates.payment_failed_no_card.button",
-    "translation": "الان پرداخت کن"
-  },
-  {
-    "id": "api.templates.payment_failed.title",
-    "translation": "پرداخت ناموفق"
-  },
-  {
-    "id": "api.templates.payment_failed.subject",
-    "translation": "اقدام مورد نیاز: پرداخت برای Mattermost Cloud انجام نشد"
-  },
-  {
-    "id": "api.templates.payment_failed.info3",
-    "translation": "برای اطمینان از اشتراک بدون وقفه در Mattermost Cloud، لطفاً با موسسه مالی خود تماس بگیرید تا مشکل اساسی را برطرف کند یا اطلاعات پرداخت خود را به روز کنید. پس از به‌روزرسانی اطلاعات پرداخت، Mattermost تلاش می‌کند تا هرگونه موجودی معوق را تسویه کند."
-  },
-  {
-    "id": "api.templates.payment_failed.info2",
-    "translation": "آنها دلیل زیر را بیان کردند:"
-  },
-  {
-    "id": "api.templates.payment_failed.info1",
-    "translation": "موسسه مالی شما پرداختی از {{.CardBrand}} ****{{.LastFour}} مرتبط با فضای کاری Mattermost Cloud شما را رد کرد."
   },
   {
     "id": "api.templates.password_change_subject",
@@ -4904,20 +4412,12 @@
     "translation": "اشتراک Mattermost شما آماده تمدید است"
   },
   {
-    "id": "api.templates.license_up_for_renewal_subtitle_two",
-    "translation": "برای تمدید به حساب مشتری خود وارد شوید"
-  },
-  {
     "id": "api.templates.license_up_for_renewal_subtitle",
     "translation": "{{.UserName}}، اشتراک شما قرار است تا {{.Days}} روز دیگر منقضی شود. ما امیدواریم که همکاری تیمی منعطف و امنی را که Mattermost فعال می‌کند، تجربه کرده باشید. به زودی تمدید کنید تا مطمئن شوید که تیم شما همچنان از این مزایا بهره مند خواهد شد."
   },
   {
     "id": "api.templates.license_up_for_renewal_subject",
     "translation": "مجوز شما برای تمدید آماده شده است"
-  },
-  {
-    "id": "api.templates.license_up_for_renewal_renew_now",
-    "translation": "اکنون تمدید کنید"
   },
   {
     "id": "api.templates.invite_subject",
@@ -5034,10 +4534,6 @@
   {
     "id": "api.templates.deactivate_body.info",
     "translation": "شما حساب خود را در {{ .SiteURL }} غیرفعال کردید."
-  },
-  {
-    "id": "api.templates.copyright",
-    "translation": "© ۲۰۲۱ Mattermost, Inc. ۵۳۰ Lytton Avenue, طبقه دوم, Palo Alto, CA, ۹۴۳۰۱"
   },
   {
     "id": "api.templates.cloud_welcome_email.title",
@@ -5512,10 +5008,6 @@
     "translation": "دریافت کانال توسط شناسه امکان پذیر نیست."
   },
   {
-    "id": "app.channel.get_channels_batch_for_indexing.get.app_error",
-    "translation": "دریافت دسته کانالها برای ایندکس سازی امکان پذیر نیست."
-  },
-  {
     "id": "app.channel.get_channels.not_found.app_error",
     "translation": "هیچ کانال پیدا نشد."
   },
@@ -5620,10 +5112,6 @@
     "translation": "گرفتن ربات امکان پذیر نیست."
   },
   {
-    "id": "app.bot.get_warn_metrics_bot.empty_admin_list.app_error",
-    "translation": "لیست ادمین ها خالی است."
-  },
-  {
     "id": "app.bot.get_system_bot.empty_admin_list.app_error",
     "translation": "لیست ادمین ها خالی است."
   },
@@ -5692,10 +5180,6 @@
     "translation": "وب هوک در بین تیم ها به روز نمی شود."
   },
   {
-    "id": "api.webhook.incoming.error",
-    "translation": "رمزگشایی بارگیری چند بخشی از وب هوک امکان پذیر نیست."
-  },
-  {
     "id": "api.webhook.create_outgoing.triggers.app_error",
     "translation": "trigger_words یا channel_id باید تنظیم شوند."
   },
@@ -5730,14 +5214,6 @@
   {
     "id": "api.web_socket.connect.upgrade.app_error",
     "translation": "اتصال وب سوکت به روز نشد."
-  },
-  {
-    "id": "api.user.view_archived_channels.get_users_in_channel.app_error",
-    "translation": "نمی توان کاربران را برای یک کانال بایگانی شده بازیابی کرد"
-  },
-  {
-    "id": "api.user.view_archived_channels.get_posts_for_channel.app_error",
-    "translation": "نمی توان پست های یک کانال بایگانی شده را بازیابی کرد"
   },
   {
     "id": "api.user.verify_email.token_parse.error",
@@ -6088,234 +5564,6 @@
     "translation": "کاربر ادغام / Slack Bot با ایمیل {{.Email}} و رمز عبور {{.Password}} وارد شده است.\n"
   },
   {
-    "id": "api.server.warn_metric.number_of_teams_5.start_trial_notification_success.message",
-    "translation": "دوره آزمایشی تجاری شما اکنون فعال است. برای فعال کردن مجوزهای پیشرفته به ** سیستم کنسول> مدیریت کاربر> مجوزها ** بروید."
-  },
-  {
-    "id": "api.server.warn_metric.number_of_teams_5.start_trial.notification_body",
-    "translation": "سیستم Mattermost شما اکنون چندین تیم دارد. بسیاری از تیم ها روش ترجیحی خود را برای هماهنگی و همکاری دارند ، از جمله نحوه ایجاد کانال ها ، افرادی که می توانند از هم تیمی های جدید دعوت کنند و نحوه مدیریت ادغام ها. طرح های لغو تیم به شما امکان می دهد مجوزهای کاربر را در هر تیم برای نیازهای خاص آنها سفارشی کنید. \r\n\r\n [درباره استفاده از مجوزهای پیشرفته بیشتر بدانید](https://www.mattermost.com/docs-advanced-permissions-team-override/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=advanced-permissions-team-override)\r\n\r\n با کلیک روی شروع آزمایش ، من با [ارزیابی نرم افزار ](https://mattermost.com/software-evaluation-agreement/) ، [سیاست حفظ حریم خصوصی](https://mattermost.com/pl/privacy-policy/) ، و دریافت ایمیل های محصول موافقت می کنم ."
-  },
-  {
-    "id": "api.server.warn_metric.number_of_teams_5.notification_title",
-    "translation": "استفاده از مجوزهای پیشرفته"
-  },
-  {
-    "id": "api.server.warn_metric.number_of_teams_5.notification_body",
-    "translation": "سیستم Mattermost شما اکنون چندین تیم دارد. بسیاری از تیم ها روش ترجیحی خود را برای هماهنگی و همکاری دارند ، از جمله نحوه ایجاد کانال ها ، افرادی که می توانند از هم تیمی های جدید دعوت کنند و نحوه مدیریت ادغام ها. طرح های لغو تیم به شما امکان می دهد مجوزهای کاربر را در هر تیم برای تأمین نیازهای خاص آنها شخصی سازی کنید.\r\n\r\n [درباره استفاده از مجوزهای پیشرفته بیشتر بدانید](https://www.mattermost.com/docs-advanced-permissions-team-override/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=advanced-permissions-team-override).\r\n\r\n با کلیک روی تماس با ما ، اطلاعات خود را با Mattermost ، Inc به اشتراک خواهید گذاشت. [ بیشتر بیاموزید](https://mattermost.com/pl/default-admin-advisory)"
-  },
-  {
-    "id": "api.server.warn_metric.number_of_teams_5.contact_us.email_body",
-    "translation": "درخواست تماس Mattermost .من علاقه مندم درباره مجوزهای پیشرفته با برنامه های تیمی بیشتر بدانم.\n"
-  },
-  {
-    "id": "api.server.warn_metric.number_of_posts_2M.start_trial.notification_success.message",
-    "translation": "دوره آزمایشی تجاری شما اکنون فعال است. پس از داشتن سرور جستجوی الاستیک، برای پیکربندی جستجوی الاستیک به ** سیستم کنسول> محیط> جستجوی الاستیک** بروید."
-  },
-  {
-    "id": "api.server.warn_metric.number_of_posts_2M.start_trial.notification_body",
-    "translation": "سیستم Mattermost شما تعداد زیادی پیام دارد. جستجوی پیش فرض پایگاه داده Mattermost شروع به نشان دادن تخریب عملکرد در حدود 2.5 میلیون پست می کند. با بیش از 5 میلیون پست ، Elasticsearch می تواند با جستجو و موارد ذکر شده از مشکلات قابل توجه عملکرد ، مانند وقفه زمانی ، جلوگیری کند. برای کسب اطلاعات بیشتر با ما تماس بگیرید و به ما اطلاع دهید که چگونه می توانیم کمک کنیم. \n\n[درباره بهبود عملکرد بیشتر بدانید](https://www.mattermost.com/docs-elasticsearch/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=elasticsearch)\n\nبا کلیک روی شروع آزمایش ، من با [توافق نامه ارزیابی نرم افزار ](https://mattermost.com/software-evaluation-agreement/) ، [سیاست حفظ حریم خصوصی](https://mattermost.com/pl/privacy-policy/) ، و دریافت ایمیل های محصول موافقت می کنم ."
-  },
-  {
-    "id": "api.server.warn_metric.number_of_posts_2M.notification_title",
-    "translation": "بهبود عملکرد"
-  },
-  {
-    "id": "api.server.warn_metric.number_of_posts_2M.notification_body",
-    "translation": "سیستم Mattermost شما تعداد زیادی پیام دارد. جستجوی پیش فرض پایگاه داده Mattermost شروع به نشان دادن تخریب عملکرد در حدود 2.5 میلیون پست می کند. با بیش از 5 میلیون پست ، Elasticsearch می تواند با جستجو و موارد ذکر شده از مشکلات قابل توجه عملکرد ، مانند وقفه زمانی ، جلوگیری کند. برای کسب اطلاعات بیشتر با ما تماس بگیرید و به ما اطلاع دهید که چگونه می توانیم کمک کنیم.\r\n\r\n [درباره بهبود عملکرد بیشتر بدانید](https://www.mattermost.com/docs-elasticsearch/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=elasticsearch)\r\n\r\n با کلیک روی تماس با ما ، اطلاعات خود را با Mattermost ، Inc به اشتراک می گذارید [بیشتر بدانید](https://mattermost.com/pl/default-admin-advisory)"
-  },
-  {
-    "id": "api.server.warn_metric.number_of_posts_2M.contact_us.email_body",
-    "translation": "درخواست تماس Mattermost .من علاقه مندم در مورد بهبود عملکرد با Elasticsearch بیشتر بدانم.\n"
-  },
-  {
-    "id": "api.server.warn_metric.number_of_channels_50.start_trial.notification_success.message",
-    "translation": "دوره آزمایشی تجاری شما اکنون فعال است. برای فعال کردن مجوزهای پیشرفته به ** سیستم کنسول> مدیریت کاربر> مجوزها ** بروید."
-  },
-  {
-    "id": "api.server.warn_metric.number_of_channels_50.start_trial.notification_body",
-    "translation": "کانال ها به بهبود ارتباطات کمک می کنند ، اما با پیوستن کاربران در سراسر Mattermost و ایجاد کانال ها ، چالش سازماندهی سیستم افزایش می یابد. مجوزهای پیشرفته شما را قادر می سازد که کدام یک از کاربران یا نقشها می توانند اقدامات خاصی را انجام دهند ، از جمله مدیریت تنظیمات کانال و اعضای آن ، استفاده ازchannel یا @ اینجا برای برچسب گذاری گروههای گسترده ای از کاربران و ایجاد وب بوک های جدید. \r\n\r\n [بیاموزید اطلاعات بیشتر در مورد استفاده از مجوزهای پیشرفته](https://www.mattermost.com/docs-advanced-permissions/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=advanced-permissions)\r\n\r\n با کلیک روی شروع آزمایش ، من با [موافقت نامه ارزیابی نرم افزار ](https://mattermost.com/software-evaluation-agreement/) ، [سیاست حفظ حریم خصوصی](https://mattermost.com/pl/privacy-policy/) و دریافت ایمیل محصولات موافقت می کنم ."
-  },
-  {
-    "id": "api.server.warn_metric.number_of_channels_50.notification_title",
-    "translation": "استفاده از مجوزهای پیشرفته"
-  },
-  {
-    "id": "api.server.warn_metric.number_of_channels_50.notification_body",
-    "translation": "کانال ها به بهبود ارتباطات کمک می کنند ، اما با پیوستن کاربران در سراسر Mattermost و ایجاد کانال ها ، چالش سازماندهی سیستم افزایش می یابد. مجوزهای پیشرفته به شما امکان می دهد تا تعیین کنید کدام یک از کاربران یا نقش ها می توانند اقدامات خاصی را انجام دهند ، از جمله مدیریت تنظیمات کانال و اعضای آن ، استفاده ازchannel یا @ اینجا برای برچسب گذاری گروه های گسترده ای از کاربران و ایجاد وب بوک های جدید. \r\n\r\n [بیاموزید اطلاعات بیشتر در مورد استفاده از مجوزهای پیشرفته](https://www.mattermost.com/docs-advanced-permissions/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=advanced-permissions)\r\n\r\n با کلیک روی تماس با ما ، اطلاعات خود را با Mattermost، Inc به اشتراک خواهید گذاشت. [بیشتر بیاموزید](https://mattermost.com/pl/default-admin-advisory)"
-  },
-  {
-    "id": "api.server.warn_metric.number_of_channels_50.contact_us.email_body",
-    "translation": "درخواست تماس Mattermost .من علاقه مندم در مورد استفاده از مجوزهای پیشرفته با طرح های سیستم بیشتر بیاموزم.\n"
-  },
-  {
-    "id": "api.server.warn_metric.number_of_active_users_500.start_trial.notification_success.message",
-    "translation": "دوره آزمایشی تجاری شما اکنون فعال است. برای فعال کردن ویژگی های پیشرفته به سیستم کنسول بروید."
-  },
-  {
-    "id": "api.server.warn_metric.number_of_active_users_500.start_trial.notification_body",
-    "translation": "Mattermost اکیداً توصیه می کند که استقرار بیش از 500 کاربر از ویژگی هایی مانند مدیریت کاربر ، خوشه بندی سرور و نظارت بر عملکرد بهره مند شوند. برای کسب اطلاعات بیشتر با ما تماس بگیرید و به ما بگویید چگونه می توانیم کمک کنیم. \r\n\r\n با کلیک روی شروع آزمایش ، من با [توافق نامه ارزیابی نرم افزار](https://mattermost.com/software-evaluation-agreement/) ، [سیاست حفظ حریم خصوصی](https://mattermost.com/pl/privacy-policy/) ، و دریافت ایمیل های محصول موافقت می کنم ."
-  },
-  {
-    "id": "api.server.warn_metric.number_of_active_users_500.notification_title",
-    "translation": "مقیاس گذاری با Mattermost"
-  },
-  {
-    "id": "api.server.warn_metric.number_of_active_users_500.notification_body",
-    "translation": "Mattermost اکیداً توصیه می کند که استقرار بیش از 500 کاربر از ویژگی هایی مانند مدیریت کاربر ، خوشه بندی سرور و نظارت بر عملکرد بهره مند شوند. برای کسب اطلاعات بیشتر با ما تماس بگیرید و به ما بگویید چگونه می توانیم کمک کنیم.\r\n\r\n با کلیک روی 'تماس با ما' ، اطلاعات خود را با Mattermost ، Inc به اشتراک می گذارید [بیشتر بدانید](https://mattermost.com/pl/default-admin-advisory)"
-  },
-  {
-    "id": "api.server.warn_metric.number_of_active_users_500.contact_us.email_body",
-    "translation": "درخواست تماس Mattermost .تیم من اکنون 500 کاربر دارد و من نسخه Mattermost تجاری را در نظر دارم.\n"
-  },
-  {
-    "id": "api.server.warn_metric.number_of_active_users_300.start_trial.notification_title",
-    "translation": "کانال های اعلامیه فقط خواندنی"
-  },
-  {
-    "id": "api.server.warn_metric.number_of_active_users_300.start_trial.notification_success.message",
-    "translation": "دوره آزمایشی تجاری شما اکنون فعال است. یک کانال ایجاد کنید و به ** سیستم کنسول> مدیریت کاربر> کانالها ** بروید تا ارسال پست به سرپرستان کانال محدود شود."
-  },
-  {
-    "id": "api.server.warn_metric.number_of_active_users_300.start_trial.notification_body",
-    "translation": "با وجود مکالمات بسیار زیاد در Mattermost ، دانستن اینکه کجا باید به دنبال اطلاعات مهم بگردید چالش برانگیز است. اگر می خواهید پیامی را برای مخاطبان زیادی پخش کنید ، می توانید کانال های اعلامیه فقط خواندنی را تنظیم کنید که هر کسی می تواند به آنها بپیوندد اما فقط سرپرستان کانال می توانند پیام ارسال کنند. .\r\n\r\n [درباره ایجاد اعلامیه فقط خواندنی بیشتر بدانید](https://www.mattermost.com/docs-channel-moderation/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=channel-moderation)\r\n\r\n با کلیک روی شروع آزمایش ، من با[توافقنامه ارزیابی نرم افزار ](https://mattermost.com/software-evaluation-agreement/) ، [خط مشی رازداری](https://mattermost.com/pl/privacy-policy/) ، و دريافت نامه های الكترونیکی محصول موافقت می کنم ."
-  },
-  {
-    "id": "api.server.warn_metric.number_of_active_users_300.notification_body",
-    "translation": "با وجود مکالمات بسیار زیاد در Mattermost ، دانستن اینکه کجا باید به دنبال اطلاعات مهم بگردید چالش برانگیز است. اگر می خواهید پیامی را برای مخاطبان زیادی پخش کنید ، می توانید کانال های اعلامیه فقط خواندنی را تنظیم کنید که هر کسی می تواند به آنها بپیوندد اما فقط سرپرستان کانال می توانند پیام ارسال کنند. \r\n\r\n[درباره ایجاد اعلامیه فقط خواندنی بیشتر بدانید ](https://www.mattermost.com/docs-channel-moderation/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=channel-moderation)\r\n\r\n با کلیک روی تماس با ما ، شما به اشتراک گذاشتن اطلاعات خود با Mattermost، Inc [بیشتر بیاموزید](https://mattermost.com/pl/default-admin-advisory)"
-  },
-  {
-    "id": "api.server.warn_metric.number_of_active_users_300.contact_us.email_body",
-    "translation": "درخواست تماس Mattermost .من علاقه مندم در مورد ایجاد کانال های اعلامیه فقط خواندنی بیشتر بدانم.\n"
-  },
-  {
-    "id": "api.server.warn_metric.number_of_active_users_200.start_trial.notification_success.message",
-    "translation": "دوره آزمایشی تجاری شما اکنون فعال است. برای ادغام با ارائه دهنده SAML 2.0 خود به ** سیستم کنسول> احراز هویت> SAML 2.0 ** بروید."
-  },
-  {
-    "id": "api.server.warn_metric.number_of_active_users_200.start_trial.notification_body",
-    "translation": "سیستم Mattermost شما اکنون 200 کاربر دارد. هنگامی که Mattermost را با ارائه دهنده ورود به سیستم واحد سازمان خود متصل می کنید ، کاربران می توانند بدون نیاز به وارد کردن مجدد اعتبارنامه خود ، به Mattermost دسترسی پیدا کنند. ما به شما توصیه می کنیم ارائه دهنده SAML 2.0 خود را با سرور Mattermost خود ادغام کنید. [درباره ادغام با SAML 2.0 بیشتر بیاموزید](https://www.mattermost.com/docs-saml/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=saml)\r\n\r\n با کلیک بر روی شروع آزمایش ، من با [توافق نامه ارزیابی نرم افزار](https://mattermost.com/software-evaluation-agreement/)، [سیاست حفظ حریم خصوصی](https://mattermost.com/pl/privacy-policy/) ، و دریافت ایمیل های محصول موافقت میکنم."
-  },
-  {
-    "id": "api.server.warn_metric.number_of_active_users_200.notification_title",
-    "translation": "مقیاس گذاری با Mattermost"
-  },
-  {
-    "id": "api.server.warn_metric.number_of_active_users_200.notification_body",
-    "translation": "سیستم Mattermost شما اکنون 200 کاربر دارد. هنگامی که Mattermost را با ارائه دهنده ورود به سیستم واحد سازمان خود متصل می کنید ، کاربران می توانند بدون نیاز به وارد کردن مجدد اعتبارنامه خود ، به Mattermost دسترسی پیدا کنند. ما به شما توصیه می کنیم ارائه دهنده SAML 2.0 خود را با سرور Mattermost خود ادغام کنید. [درباره ادغام با SAML 2.0 بیشتر بیاموزید](https://www.mattermost.com/docs-saml/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=saml).\r\n\r\n با کلیک روی تماس با ما ، اطلاعات خود را با Mattermost، Inc به اشتراک می گذارید. [بیشتر بدانید](https://mattermost.com/pl/default-admin-advisory)"
-  },
-  {
-    "id": "api.server.warn_metric.number_of_active_users_200.contact_us.email_body",
-    "translation": "درخواست تماس Mattermost.تیم من اکنون 200 کاربر دارد و من نسخه Mattermost تجاری را در نظر دارم.\n"
-  },
-  {
-    "id": "api.server.warn_metric.number_of_active_users_100.start_trial.notification_success.message",
-    "translation": "دوره آزمایشی تجاری شما اکنون فعال است. برای ادغام سرویس AD/LDAP خود به ** سیستم کنسول> احراز هویت> AD/LDAP ** بروید."
-  },
-  {
-    "id": "api.server.warn_metric.number_of_active_users_100.start_trial.notification_body",
-    "translation": "سیستم Mattermost شما بیش از 100 کاربر دارد. با رشد پایگاه کاربری شما ، تهیه حساب های جدید می تواند زمانبر شود. ما به شما توصیه می کنیم Active Directory / LDAP سازمان خود را یکپارچه کنید ، این امکان را برای هرکسی که دارای حساب کاربری است امکان دسترسی به Mattermost را فراهم می کند. \r\n\r\n[درباره ادغام با AD / LDAP بیشتر بدانید](https://www.mattermost.com/docs-adldap/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=adldap)\r\n\r\n با کلیک روی شروع آزمایش ، من با [توافق نامه ارزیابی نرم افزار مهمترین](https://mattermost.com/software-evaluation-agreement/)، [سیاست حفظ حریم خصوصی](https://mattermost.com/pl/privacy-policy/) ، و دریافت ایمیل های محصول. موافقت میکنم."
-  },
-  {
-    "id": "api.server.warn_metric.number_of_active_users_100.notification_title",
-    "translation": "مقیاس گذاری با Mattermost"
-  },
-  {
-    "id": "api.server.warn_metric.number_of_active_users_100.notification_body",
-    "translation": "سیستم Mattermost شما بیش از 100 کاربر دارد. با رشد پایگاه کاربری شما ، تهیه حساب های جدید می تواند زمانبر شود. ما به شما توصیه می کنیم Active Directory /LDAP سازمان خود را یکپارچه کنید ، این امکان را برای هرکسی که دارای یک حساب کاربری است امکان دسترسی به Mattermost را فراهم می کند.\r\n\r\n[اطلاعات بیشتر](https://www.mattermost.com/docs-adldap/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=adldap)\r\n\r\n با کلیک روی تماس با ما اطلاعات Mattermost را به اشتراک میگذارید.[اطلاعات بیشتر](https://mattermost.com/pl/default-admin-advisory)"
-  },
-  {
-    "id": "api.server.warn_metric.number_of_active_users_100.contact_us.email_body",
-    "translation": "درخواست تماس Mattermost . تیم من اکنون 100 کاربر دارد و من نسخه Mattermost تجاری را در نظر دارم.\n"
-  },
-  {
-    "id": "api.server.warn_metric.mfa.start_trial_notification_success.message",
-    "translation": "دوره آزمایشی تجاری شما اکنون فعال است. برای اجرای احراز هویت چند عاملی ، به ** کنسول سیستم> احراز هویت> MFA ** بروید."
-  },
-  {
-    "id": "api.server.warn_metric.mfa.start_trial.notification_body",
-    "translation": "سیستم Mattermost شما احراز هویت چند عاملی را فعال کرده است ، به کاربران این امکان را می دهد تا حساب های خود را با استفاده از ابزارهای تأیید اعتبار اضافی فراتر از رمز عبور ، امن کنند. برای بهبود امنیت در سیستم می توانید از همه احراز هویت چند عاملی استفاده کنید. \r\n\r\n[درباره اعمال احراز هویت چند عاملی بیشتر بدانید](https://www.mattermost.com/docs-multi-factor-authentication/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=multi-factor-authentication)\r\n\r\n با کلیک روی شروع آزمایش ، من با [توافق نامه ارزیابی نرم افزار مهمترین](https://mattermost.com/software-evaluation-agreement/)موافقت می کنم ، [سیاست حفظ حریم خصوصی](https://mattermost.com/pl/privacy-policy/) ، و دریافت ایمیل های محصول."
-  },
-  {
-    "id": "api.server.warn_metric.mfa.notification_title",
-    "translation": "اجرای احراز هویت چند عاملی"
-  },
-  {
-    "id": "api.server.warn_metric.mfa.notification_body",
-    "translation": "سیستم Mattermost شما احراز هویت چند عاملی را فعال کرده است ، به کاربران این امکان را می دهد تا حساب های خود را با استفاده از ابزارهای تأیید اعتبار اضافی فراتر از رمز عبور ، امن کنند. برای بهبود امنیت در سیستم می توانید از همه احراز هویت چند عاملی استفاده کنید.\r\n\r\n [درباره اعمال احراز هویت چند عاملی بیشتر بدانید](https://www.mattermost.com/docs-multi-factor-authentication/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=multi-factor-authentication).\r\n\r\n با کلیک روی تماس با ما ، اطلاعات خود را با Mattermost، Inc به اشتراک می گذارید.[اطلاعات بیشتر](https://mattermost.com/pl/default-admin-advisory)"
-  },
-  {
-    "id": "api.server.warn_metric.mfa.contact_us.email_body",
-    "translation": "درخواست تماس Mattermost .من علاقه مندم در مورد اجرای احراز هویت چند عاملی بیشتر بدانم.\n"
-  },
-  {
-    "id": "api.server.warn_metric.email_us",
-    "translation": "ایمیل برای ما"
-  },
-  {
-    "id": "api.server.warn_metric.email_domain.start_trial_notification_success.message",
-    "translation": "دوره آزمایشی تجاری شما اکنون فعال است. برای فعال کردن حساب های مهمان به ** سیستم کنسول> تأیید اعتبار> دسترسی مهمان ** بروید."
-  },
-  {
-    "id": "api.server.warn_metric.email_domain.start_trial.notification_body",
-    "translation": "پروژه ها اغلب افراد را در داخل و خارج از سازمان درگیر می كنند. با حساب های مهمان ، می توانید شرکای خارجی را وارد سیستم Mattermost کنید و مشخص کنید که با چه کسانی می توانند کار کنند و چه چیزهایی را می توانند ببینند. \r\n\r\n[درباره فعال کردن حساب های مهمان بیشتر بدانید](https://www.mattermost.com/docs-guest-accounts/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=guest-accounts) \r\n\r\n با کلیک روی شروع آزمایش ، من با [توافق نامه ارزیابی نرم افزار مهمترین](https://mattermost.com/software-evaluation-agreement/) موافقت می کنم، [سیاست حفظ حریم خصوصی](https://mattermost.com/pl/privacy-policy/) ، و دریافت ایمیل های محصول."
-  },
-  {
-    "id": "api.server.warn_metric.email_domain.notification_title",
-    "translation": "ایجاد حساب های مهمان"
-  },
-  {
-    "id": "api.server.warn_metric.email_domain.notification_body",
-    "translation": "پروژه ها اغلب افراد را در داخل و خارج از سازمان درگیر می كنند. با حساب های مهمان ، می توانید شرکای خارجی را وارد سیستم Mattermost کنید و مشخص کنید که با چه کسانی می توانند کار کنند و چه چیزهایی را می توانند ببینند.\r\n\r\n [درباره فعال کردن حساب های مهمان بیشتر بدانید](https://www.mattermost.com/docs-guest-accounts/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=guest-accounts). \r\n\r\n با کلیک روی تماس با ما ، اطلاعات خود را با Mattermost، Inc به اشتراک خواهید گذاشت. [ بیشتر بیاموزید](https://mattermost.com/pl/default-admin-advisory)"
-  },
-  {
-    "id": "api.server.warn_metric.email_domain.contact_us.email_body",
-    "translation": "درخواست تماس با ما Mattermost. من علاقه مندم درباره استفاده از حساب های مهمان بیشتر بیاموزم.\n"
-  },
-  {
-    "id": "api.server.warn_metric.bot_response.start_trial_failure.message",
-    "translation": "مجوز آزمایشی بازیابی نمی شود. برای درخواست مجوز به https://mattermost.com/trial/ مراجعه کنید."
-  },
-  {
-    "id": "api.server.warn_metric.bot_response.notification_success.message",
-    "translation": "از اینکه با Mattermost تماس گرفتید متشکریم ما به زودی با شما در ارتباط خواهیم بود."
-  },
-  {
-    "id": "api.server.warn_metric.bot_response.notification_failure.message",
-    "translation": "پیام ارسال نشد."
-  },
-  {
-    "id": "api.server.warn_metric.bot_response.notification_failure.body",
-    "translation": "لطفا برای ما ایمیل بزنید."
-  },
-  {
-    "id": "api.server.warn_metric.bot_response.mailto_subject",
-    "translation": "درخواست ارتباط با ما"
-  },
-  {
-    "id": "api.server.warn_metric.bot_response.mailto_site_url_header",
-    "translation": "آدرس سایت: {{.SiteUrl}}"
-  },
-  {
-    "id": "api.server.warn_metric.bot_response.mailto_registered_users_header",
-    "translation": "کل کاربران فعال: {{.NoRegisteredUsers}}"
-  },
-  {
-    "id": "api.server.warn_metric.bot_response.mailto_footer",
-    "translation": "اگر س موارد دیگری نیاز دارید ، لطفا با support@mattermost.com تماس بگیرید"
-  },
-  {
-    "id": "api.server.warn_metric.bot_response.mailto_email_header",
-    "translation": "پست الکترونیک: {{.Email}}"
-  },
-  {
-    "id": "api.server.warn_metric.bot_response.mailto_diagnostic_id_header",
-    "translation": "شناسه تشخیصی: {{.DiagnosticId}}"
-  },
-  {
-    "id": "api.server.warn_metric.bot_response.mailto_contact_header",
-    "translation": "مخاطب: {{.Contact}}"
-  },
-  {
     "id": "api.server.start_server.starting.critical",
     "translation": "خطا هنگام راه اندازی سرور ، خطا: %v"
   },
@@ -6338,10 +5586,6 @@
   {
     "id": "api.server.license_up_for_renewal.error_sending_email",
     "translation": "مجوز برای ایمیل های تمدید ارسال نشد"
-  },
-  {
-    "id": "api.server.license_up_for_renewal.error_generating_link",
-    "translation": "لینک تمدید مجوز ایجاد نشد"
   },
   {
     "id": "api.scheme.patch_scheme.license.error",
@@ -6730,16 +5974,8 @@
     "translation": "ویژگی نیاز به ارتقاء به نسخه Enterprise دارد."
   },
   {
-    "id": "api.license.request_trial_license.fail_get_user_count.app_error",
-    "translation": "دریافت مجوز آزمایشی امکان پذیر نیست ، لطفاً دوباره امتحان کنید یا با support@mattermost.com تماس بگیرید. تعداد کاربران ثبت شده امکان پذیر نیست."
-  },
-  {
     "id": "api.license.request_trial_license.app_error",
     "translation": "دریافت مجوز آزمایشی امکان پذیر نیست ، لطفاً دوباره امتحان کنید یا با support@mattermost.com تماس بگیرید."
-  },
-  {
-    "id": "api.license.request_renewal_link.app_error",
-    "translation": "خطا در دریافت لینک تمدید مجوز"
   },
   {
     "id": "api.license.request-trial.can-start-trial.not-allowed",
@@ -7281,18 +6517,6 @@
     "translation": "کانال دریافت شغل دسته ای ایمیل پر بود. لطفاً EmailBatchingBufferSize را افزایش دهید."
   },
   {
-    "id": "api.email.send_warn_metric_ack.missing_server.app_error",
-    "translation": "سرور SMTP مورد نیاز است"
-  },
-  {
-    "id": "api.email.send_warn_metric_ack.invalid_warn_metric.app_error",
-    "translation": "معیار هشدار پیدا نشد."
-  },
-  {
-    "id": "api.email.send_warn_metric_ack.failure.app_error",
-    "translation": "عدم ارسال ایمیل تأیید مدیر"
-  },
-  {
     "id": "api.custom_status.set_custom_statuses.update.app_error",
     "translation": "وضعیت سفارشی به‌روزرسانی نشد. لطفاً وضعیت شکلک یا متن سفارشی یا هر دو را اضافه کنید."
   },
@@ -7415,10 +6639,6 @@
   {
     "id": "api.config.get_config.restricted_merge.app_error",
     "translation": "پیکربندی داده شده ادغام نشد."
-  },
-  {
-    "id": "api.config.client.old_format.app_error",
-    "translation": "قالب جدید برای پیکربندی سرویس گیرنده هنوز پشتیبانی نمی شود. لطفا format=old را در رشته جستجو مشخص کنید."
   },
   {
     "id": "api.command_shrug.name",
@@ -7721,10 +6941,6 @@
     "translation": "ارتباط امن"
   },
   {
-    "id": "api.command_mute.not_member.error",
-    "translation": "کانال {{.Channel}} بیصدا نمی شود زیرا عضو آن نیستید."
-  },
-  {
     "id": "api.command_mute.no_channel.error",
     "translation": "کانال مشخص شده یافت نشد. برای شناسایی کانال ها لطفاً از [هندل کانال](https://docs.mattermost.com/messaging/managing-channels.html#naming-a-channel) استفاده کنید."
   },
@@ -7955,10 +7171,6 @@
   {
     "id": "api.oauth.get_access_token.bad_grant.app_error",
     "translation": "invalid_request: بد grant_type."
-  },
-  {
-    "id": "api.oauth.get_access_token.bad_client_secret.app_error",
-    "translation": "invalid_request: گم شده client_secret."
   },
   {
     "id": "api.command_invite.channel.app_error",
@@ -8488,10 +7700,6 @@
     "translation": "%v کانال را ترک کرد."
   },
   {
-    "id": "api.channel.leave.last_member.app_error",
-    "translation": "شما تنها عضو باقیمانده هستید ، به جای خروج ، کانال خصوصی را حذف کنید."
-  },
-  {
     "id": "api.channel.leave.direct.app_error",
     "translation": "ترک کانال پیام مستقیم امکان پذیر نیست."
   },
@@ -8828,10 +8036,6 @@
     "translation": "دعوت از اتصال امن"
   },
   {
-    "id": "api.command_remote.incorrect_password.error",
-    "translation": "دعوت رمزگشایی نشد. رمز عبور نادرست یا دعوت نامه خراب است: {{.Error}}"
-  },
-  {
     "id": "api.command_remote.hint",
     "translation": "[action]"
   },
@@ -8922,5 +8126,9 @@
   {
     "id": "api.command_mute.success_mute",
     "translation": "تا زمانی که بیصدایی کانال خاموش نشود ، اعلانی برای {{.Channel}} دریافت نخواهید کرد."
+  },
+  {
+    "id": "api.acknowledgement.delete.archived_channel.app_error",
+    "translation": "شما نمی توانید یک تاییدیه را در یک کانال بایگانی شده حذف کنید."
   }
 ]

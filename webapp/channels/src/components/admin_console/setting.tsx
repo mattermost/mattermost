@@ -8,7 +8,7 @@ import SetByEnv from './set_by_env';
 export type Props = {
     inputId?: string;
     label: React.ReactNode;
-    children: React.ReactNode;
+    children?: React.ReactNode;
     helpText?: React.ReactNode;
     setByEnv?: boolean;
 }
@@ -25,7 +25,9 @@ const Settings = ({children, setByEnv, helpText, inputId, label}: Props) => {
             >
                 {label}
             </label>
-            <div className='col-sm-8'>
+            <div
+                className='col-sm-8'
+            >
                 {children}
                 <div
                     data-testid={inputId + 'help-text'}

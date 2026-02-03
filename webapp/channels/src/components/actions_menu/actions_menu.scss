@@ -1,34 +1,31 @@
 .visit-marketplace-text {
-    margin: 12px;
-    font-family: 'Open Sans';
-    font-size: 14px;
-    font-weight: 400;
-    line-height: 20px;
+    padding: 8px 16px 12px 16px;
     text-align: center;
 }
 
 .visit-marketplace {
-    top: 1px;
-    padding-top: 4px;
     padding-right: 16px;
-    padding-bottom: 16px;
+    padding-bottom: 8px;
     padding-left: 16px;
-    font-size: 12px;
-    text-align: center;
 }
 
 .visit-marketplace-button {
-    border-radius: 4px;
+    width: 100%;
+
+    .Menu {
+        padding: 8px 0;
+        text-align: left;
+    }
 }
 
-.visit-marketplace-button-text {
-    align-items: center;
-    font-size: 12px;
-    font-weight: 600;
-    line-height: 9px;
-}
-
-.visit-marketplace-button-icon {
-    margin-right: 5px;
-    font-size: 14.4px;
+.ActionsMenuEmptyPopover {
+    & .MuiPaper-root {
+        min-width: 114px;
+        max-width: 496px;
+        max-height: 80vh;
+        padding: 4px 0;
+        background-color: var(--center-channel-bg);
+        box-shadow: var(--elevation-4), 0 0 0 1px rgba(var(--center-channel-color-rgb), 0.12) inset;
+        margin-block-start: 4px;
+    }
 }

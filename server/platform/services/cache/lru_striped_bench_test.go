@@ -10,6 +10,7 @@ import (
 	"testing"
 
 	"github.com/cespare/xxhash/v2"
+	"github.com/stretchr/testify/require"
 
 	"github.com/mattermost/mattermost/server/v8/platform/services/cache"
 )
@@ -19,7 +20,7 @@ const (
 )
 
 func BenchmarkLRUStriped(b *testing.B) {
-	opts := cache.LRUOptions{
+	opts := cache.CacheOptions{
 		Name:                   "",
 		Size:                   128,
 		DefaultExpiry:          0,
@@ -27,23 +28,22 @@ func BenchmarkLRUStriped(b *testing.B) {
 		StripedBuckets:         runtime.NumCPU() - 1,
 	}
 
-	cache, err := cache.NewLRUStriped(opts)
-	if err != nil {
-		panic(err)
-	}
+	cache, err := cache.NewLRUStriped(&opts)
+	require.NoError(b, err)
+
 	// prepare keys and initial cache values and set routine
 	keys := make([]string, 0, m)
 	// bucketKeys is to demonstrate that splitted locks is working correctly
 	// by assigning one sequence of key for each bucket.
 	bucketKeys := make([][]string, opts.StripedBuckets)
-	for i := 0; i < m; i++ {
+	for i := range m {
 		key := fmt.Sprintf("%d-key-%d", i, i)
 		keys = append(keys, key)
 		bucketKey := xxhash.Sum64String(key) % uint64(opts.StripedBuckets)
 		bucketKeys[bucketKey] = append(bucketKeys[bucketKey], key)
 	}
 	for i := 0; i < opts.Size; i++ {
-		cache.Set(keys[i], "preflight")
+		cache.SetWithDefaultExpiry(keys[i], "preflight")
 	}
 
 	wgGet := &sync.WaitGroup{}
@@ -53,12 +53,12 @@ func BenchmarkLRUStriped(b *testing.B) {
 	stopSet := make(chan bool, 1)
 	set := func() {
 		defer wgSet.Done()
-		for i := 0; i < m; i++ {
+		for i := range m {
 			select {
 			case <-stopSet:
 				return
 			default:
-				_ = cache.Set(keys[i], "ignored")
+				_ = cache.SetWithDefaultExpiry(keys[i], "ignored")
 			}
 		}
 	}
@@ -66,14 +66,13 @@ func BenchmarkLRUStriped(b *testing.B) {
 	get := func(bucket int) {
 		defer wgGet.Done()
 		var out string
-		for i := 0; i < m; i++ {
+		for i := range m {
 			_ = cache.Get(bucketKeys[bucket][i%opts.Size], &out)
 		}
 	}
 
-	b.StopTimer()
-	b.ResetTimer()
-	for i := 0; i < b.N; i++ {
+	for b.Loop() {
+		b.StopTimer()
 		wgSet.Add(1)
 		go set()
 		for j := 0; j < opts.StripedBuckets; j++ {
@@ -83,9 +82,11 @@ func BenchmarkLRUStriped(b *testing.B) {
 
 		b.StartTimer()
 		wgGet.Wait()
-		b.StopTimer()
 
+		// Cleanup
+		b.StopTimer()
 		stopSet <- true
 		wgSet.Wait()
+		b.StartTimer()
 	}
 }

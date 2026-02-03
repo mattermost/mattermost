@@ -32,17 +32,17 @@ function makeMapStateToProps() {
     const getUnreadCount = makeGetChannelUnreadCount();
 
     return (state: GlobalState, ownProps: OwnProps) => {
-        const channel = getChannel(state, {id: ownProps.channelId});
+        const channel = getChannel(state, ownProps.channelId);
         const currentTeam = getCurrentTeam(state);
 
         const currentChannelId = getCurrentChannelId(state);
 
-        const unreadCount = getUnreadCount(state, channel.id);
+        const unreadCount = getUnreadCount(state, channel?.id || '');
 
         return {
             channel,
-            isCurrentChannel: channel.id === currentChannelId,
-            currentTeamName: currentTeam.name,
+            isCurrentChannel: channel?.id === currentChannelId,
+            currentTeamName: currentTeam?.name,
             unreadMentions: unreadCount.mentions,
             isUnread: unreadCount.showUnread,
             draggingState: getDraggingState(state),

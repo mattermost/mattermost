@@ -1,4 +1,4 @@
-// Jest Snapshot v1, https://goo.gl/fbAQLP
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
 
 exports[`components/integrations/AbstractOutgoingWebhook should match snapshot 1`] = `
 <div
@@ -163,7 +163,7 @@ exports[`components/integrations/AbstractOutgoingWebhook should match snapshot 1
         <div
           className="col-md-5 col-sm-8"
         >
-          <Connect(ChannelSelect)
+          <Connect(Component)
             onChange={[Function]}
             selectDm={false}
             selectOpen={true}
@@ -291,15 +291,15 @@ callbackUrl2.com
               id="add_outgoing_webhook.callbackUrls.help"
               values={
                 Object {
-                  "link": <ExternalLink
-                    href="https://mattermost.com/pl/configure-session-lengths"
+                  "link": <ForwardRef
+                    href="https://mattermost.com/pl/default-allow-untrusted-internal-connections"
                     location="abstract_outgoing_webhook"
                   >
                     <Memo(MemoizedFormattedMessage)
                       defaultMessage="trusted internal connection"
                       id="add_outgoing_webhook.callbackUrls.helpLinkText"
                     />
-                  </ExternalLink>,
+                  </ForwardRef>,
                 }
               }
             />
@@ -309,8 +309,7 @@ callbackUrl2.com
       <div
         className="backstage-form__footer"
       >
-        <FormError
-          error={null}
+        <Memo(FormError)
           errors={
             Array [
               "",
@@ -333,7 +332,12 @@ callbackUrl2.com
           id="saveWebhook"
           onClick={[Function]}
           spinning={false}
-          spinningText="Loading"
+          spinningText={
+            Object {
+              "defaultMessage": "Loading",
+              "id": "loading_id",
+            }
+          }
           type="submit"
         >
           <MemoizedFormattedMessage

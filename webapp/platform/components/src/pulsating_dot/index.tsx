@@ -3,7 +3,7 @@
 
 import React from 'react';
 
-import {Coords} from '../common/hooks/useMeasurePunchouts';
+import type {Coords} from '../common/hooks/useMeasurePunchouts';
 
 import './pulsating_dot.scss';
 

@@ -4,7 +4,7 @@
 import MuiMenuItem from '@mui/material/MenuItem';
 import type {MenuItemProps as MuiMenuItemProps} from '@mui/material/MenuItem';
 import {styled} from '@mui/material/styles';
-import {cloneDeep} from 'lodash';
+import cloneDeep from 'lodash/cloneDeep';
 import React, {
     Children,
     useContext,
@@ -13,7 +13,9 @@ import type {
     ReactElement,
     ReactNode,
     KeyboardEvent,
-    MouseEvent} from 'react';
+    MouseEvent,
+    AriaRole,
+} from 'react';
 import {useSelector} from 'react-redux';
 
 import {getIsMobileView} from 'selectors/views/browser';
@@ -79,11 +81,34 @@ export interface Props extends MuiMenuItemProps {
 
     onClick?: (event: MouseEvent<HTMLLIElement> | KeyboardEvent<HTMLLIElement>) => void;
 
+    role?: AriaRole;
+
+    forceCloseOnSelect?: boolean;
+
     /**
      * ONLY to support submenus. Avoid passing children to this component. Support for children is only added to support submenus.
      */
     children?: ReactNode;
 }
+
+/**
+ * The props for the first menu item to be passed in.
+ * @example
+ * <Menu.Container>
+ *     <WrapperOfMenuFirstItem/> <-- Container passes the props to the first item
+ *     <Menu.Item/>
+ * </Menu.Container>
+ */
+export type FirstMenuItemProps = Omit<
+Props,
+| 'onClick'
+| 'leadingElement'
+| 'labels'
+| 'trailingElements'
+| 'isDestructive'
+| 'isLabelsRowLayout'
+| 'children'
+>;
 
 /**
  * To be used as a child of Menu component.
@@ -112,6 +137,8 @@ export function MenuItem(props: Props) {
         isLabelsRowLayout,
         children,
         onClick,
+        role = 'menuitem',
+        forceCloseOnSelect = false,
         ...otherProps
     } = props;
 
@@ -122,19 +149,27 @@ export function MenuItem(props: Props) {
 
     function handleClick(event: MouseEvent<HTMLLIElement> | KeyboardEvent<HTMLLIElement>) {
         if (isCorrectKeyPressedOnMenuItem(event)) {
-            // close submenu first if it is open
-            if (subMenuContext.close) {
-                subMenuContext.close();
-            }
+            // If the menu item is a checkbox or radio button, we don't want to close the menu when it is clicked.
+            // unless forceCloseOnSelect is set to true.
+            // see https://www.w3.org/WAI/ARIA/apg/patterns/menubar/
+            if (isRoleCheckboxOrRadio(role) && !forceCloseOnSelect) {
+                event.stopPropagation();
+            } else {
+                // close submenu first if it is open
+                if (subMenuContext.close) {
+                    subMenuContext.close();
+                }
 
-            // And then close the menu
-            if (menuContext.close) {
-                menuContext.close();
+                // And then close the menu
+                if (menuContext.close) {
+                    menuContext.close();
+                }
             }
 
             if (onClick) {
-                if (isMobileView) {
-                    // If the menu is in mobile view, we execute the click event immediately.
+                // If the menu is in mobile view, we execute the click event immediately.
+                // If the menu item is a checkbox or radio button, we execute the click event immediately.
+                if (isMobileView || isRoleCheckboxOrRadio(role)) {
                     onClick(event);
                 } else {
                     // Clone the event since we delay the click handler until after the menu has closed.
@@ -149,7 +184,11 @@ export function MenuItem(props: Props) {
     }
 
     // When both primary and secondary labels are passed, we need to apply minor changes to the styling. Check below in styled component for more details.
-    const hasSecondaryLabel = labels && labels.props && labels.props.children && Children.count(labels.props.children) === 2;
+    // we count after converting to array as it removes falsy values from labels.props.children
+    const hasSecondaryLabel = labels &&
+        labels.props &&
+        labels.props.children &&
+        Children.count(Children.toArray(labels.props.children)) === 2;
 
     return (
         <MenuItemStyled
@@ -160,6 +199,7 @@ export function MenuItem(props: Props) {
             isLabelsRowLayout={isLabelsRowLayout}
             onClick={handleClick}
             onKeyDown={handleClick}
+            role={role}
             {...otherProps}
         >
             {leadingElement && <div className='leading-element'>{leadingElement}</div>}
@@ -176,7 +216,7 @@ interface MenuItemStyledProps extends MuiMenuItemProps {
     isLabelsRowLayout?: boolean;
 }
 
-const MenuItemStyled = styled(MuiMenuItem, {
+export const MenuItemStyled = styled(MuiMenuItem, {
     shouldForwardProp: (prop) => prop !== 'isDestructive' &&
         prop !== 'hasSecondaryLabel' && prop !== 'isLabelsRowLayout',
 })<MenuItemStyledProps>(
@@ -195,7 +235,6 @@ const MenuItemStyled = styled(MuiMenuItem, {
                 justifyContent: 'flex-start',
                 alignItems: hasOnlyPrimaryLabel || isLabelsRowLayout ? 'center' : 'flex-start',
                 minHeight: '36px',
-                maxHeight: '56px',
 
                 // aria expanded to add the active styling on parent sub menu item
                 '&.Mui-active, &[aria-expanded="true"]': {
@@ -227,10 +266,10 @@ const MenuItemStyled = styled(MuiMenuItem, {
                     width: '18px',
                     height: '18px',
                     marginInlineEnd: '10px',
-                    color: isRegular ? 'rgba(var(--center-channel-color-rgb), 0.56)' : 'var(--error-text)',
+                    color: isRegular ? 'rgba(var(--center-channel-color-rgb), 0.64)' : 'var(--error-text)',
                 },
                 '&:hover .leading-element': {
-                    color: isRegular ? 'rgba(var(--center-channel-color-rgb), 0.72)' : 'var(--button-color)',
+                    color: isRegular ? 'rgba(var(--center-channel-color-rgb), 0.8)' : 'var(--button-color)',
                 },
 
                 '&>.label-elements': {
@@ -249,7 +288,7 @@ const MenuItemStyled = styled(MuiMenuItem, {
 
                 '&>.label-elements>:last-child': {
                     fontSize: '12px',
-                    color: isRegular ? 'rgba(var(--center-channel-color-rgb), 0.56)' : 'var(--error-text)',
+                    color: isRegular ? 'rgba(var(--center-channel-color-rgb), 0.75)' : 'var(--error-text)',
                 },
                 '&:hover .label-elements>:last-child': {
                     color: isDestructive && 'var(--button-color)',
@@ -268,15 +307,15 @@ const MenuItemStyled = styled(MuiMenuItem, {
                     flexDirection: 'row',
                     flexWrap: 'nowrap',
                     justifyContent: 'flex-end',
-                    color: isRegular ? 'rgba(var(--center-channel-color-rgb), 0.56)' : 'var(--error-text)',
-                    gap: '4px',
+                    color: isRegular ? 'rgba(var(--center-channel-color-rgb), 0.75)' : 'var(--error-text)',
                     marginInlineStart: '24px',
+                    gap: '4px',
                     fontSize: '12px',
                     lineHeight: '16px',
                     alignItems: 'center',
                 },
                 '&:hover .trailing-elements': {
-                    color: isRegular ? 'rgba(var(--center-channel-color-rgb), 0.72)' : 'var(--button-color)',
+                    color: isRegular ? 'rgba(var(--center-channel-color-rgb), 0.75)' : 'var(--button-color)',
                 },
             },
         });
@@ -307,3 +346,8 @@ function isCorrectKeyPressedOnMenuItem(event: MouseEvent<HTMLLIElement> | Keyboa
 
     return false;
 }
+
+function isRoleCheckboxOrRadio(role: AriaRole) {
+    return role === 'menuitemcheckbox' || role === 'menuitemradio';
+}
+

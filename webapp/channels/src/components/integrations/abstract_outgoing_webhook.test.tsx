@@ -148,7 +148,6 @@ describe('components/integrations/AbstractOutgoingWebhook', () => {
 
         const selector = wrapper.find('#triggerWhen');
         selector.simulate('change', {target: {value: 1}});
-        console.log('selector: ', selector.debug());
         expect(wrapper.state('triggerWhen')).toBe(1);
     });
 
@@ -160,7 +159,7 @@ describe('components/integrations/AbstractOutgoingWebhook', () => {
             return jest.fn();
         }});
 
-        expect(action).toBeCalled();
+        expect(action).toHaveBeenCalled();
         expect(action).toHaveBeenCalledTimes(1);
     });
 });

@@ -17,6 +17,7 @@ export default function ReactionLimitReachedModal(props: {isAdmin: boolean; onEx
             values={{
                 link: (msg: React.ReactNode) => (
                     <ExternalLink
+                        location='reaction_limit_reached_modal'
                         href='https://mattermost.com/pl/configure-unique-emoji-reaction-limit'
                     >
                         {msg}

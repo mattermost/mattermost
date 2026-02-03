@@ -3,33 +3,37 @@
 
 import React from 'react';
 
-interface Props {
+import WithTooltip from 'components/with_tooltip';
+
+export interface Props {
+    children: React.ReactNode;
     name: string;
     imageUrl: string;
 }
-declare module 'react' {
-    interface HTMLAttributes<T> extends AriaAttributes, DOMAttributes<T> {
-        alt?: string;
-    }
-}
 
-const PostEmoji = ({name, imageUrl}: Props) => {
+const PostEmoji = ({children, name, imageUrl}: Props) => {
     const emojiText = `:${name}:`;
     const backgroundImageUrl = `url(${imageUrl})`;
 
     if (!imageUrl) {
-        return <>{emojiText}</>;
+        return <>{children}</>;
     }
 
     return (
-        <span
-            alt={emojiText}
-            className='emoticon'
+        <WithTooltip
             title={emojiText}
-            style={{backgroundImage: backgroundImageUrl}}
+            emoji={name}
+            isEmojiLarge={true}
         >
-            {emojiText}
-        </span>
+            <span
+                className='emoticon'
+                data-testid={`postEmoji.${emojiText}`}
+                style={{backgroundImage: backgroundImageUrl}}
+                aria-label={emojiText}
+            >
+                {children}
+            </span>
+        </WithTooltip>
     );
 };
 

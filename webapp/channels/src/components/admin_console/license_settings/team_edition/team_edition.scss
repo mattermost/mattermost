@@ -3,7 +3,7 @@
         text-align: center;
 
         svg {
-            margin: 0 auto;
+            margin: 0 auto 24px auto;
         }
     }
 
@@ -30,27 +30,44 @@
         }
 
         :last-child {
-            color: rgba(63, 69, 80, 0.72);
+            color: rgba(63, 69, 80, 0.64);
         }
     }
 
-    button {
+    button, a.btn {
         width: 100%;
-        margin: 5px auto;
         border-radius: 4px;
+        margin: 5px auto;
     }
 
     .upgrade-error {
         margin-top: 10px;
+
+        &.unsupported .form-group {
+            margin-bottom: 0;
+        }
     }
 }
 
 .TeamEditionLeftPanel {
-    .title {
-        color: #3f4350;
-        font-family: Metropolis;
+    &__Header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 8px;
+    }
+
+    &__Title {
+        display: flex;
+        align-items: center;
+        color: var(--center-channel-color);
+        font-family: 'Metropolis', sans-serif;
         font-size: 18px;
-        font-weight: 700;
-        line-height: 24px;
+        font-weight: 600;
+        gap: 8px;
+    }
+
+    &__LicenseNotices {
+        margin-top: 20px;
     }
 }

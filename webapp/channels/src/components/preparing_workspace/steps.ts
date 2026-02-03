@@ -20,81 +20,6 @@ export const Animations = {
     } as const,
 };
 
-export function mapStepToNextName(step: WizardStep): string {
-    switch (step) {
-    case WizardSteps.Organization:
-        return 'admin_onboarding_next_organization';
-    case WizardSteps.Plugins:
-        return 'admin_onboarding_next_plugins';
-    case WizardSteps.InviteMembers:
-        return 'admin_onboarding_next_invite_members';
-    case WizardSteps.LaunchingWorkspace:
-        return 'admin_onboarding_next_transitioning_out';
-    default:
-        return 'admin_onboarding_next_unknown';
-    }
-}
-
-export function mapStepToPrevious(step: WizardStep): string {
-    switch (step) {
-    case WizardSteps.Organization:
-        return 'admin_onboarding_previous_organization';
-    case WizardSteps.Plugins:
-        return 'admin_onboarding_previous_plugins';
-    case WizardSteps.InviteMembers:
-        return 'admin_onboarding_previous_invite_members';
-    case WizardSteps.LaunchingWorkspace:
-        return 'admin_onboarding_previous_transitioning_out';
-    default:
-        return 'admin_onboarding_previous_unknown';
-    }
-}
-
-export function mapStepToPageView(step: WizardStep): string {
-    switch (step) {
-    case WizardSteps.Organization:
-        return 'pageview_admin_onboarding_organization';
-    case WizardSteps.Plugins:
-        return 'pageview_admin_onboarding_plugins';
-    case WizardSteps.InviteMembers:
-        return 'pageview_admin_onboarding_invite_members';
-    case WizardSteps.LaunchingWorkspace:
-        return 'pageview_admin_onboarding_transitioning_out';
-    default:
-        return 'pageview_admin_onboarding_unknown';
-    }
-}
-
-export function mapStepToSubmitFail(step: WizardStep): string {
-    switch (step) {
-    case WizardSteps.Organization:
-        return 'admin_onboarding_organization_submit_fail';
-    case WizardSteps.Plugins:
-        return 'admin_onboarding_plugins_submit_fail';
-    case WizardSteps.InviteMembers:
-        return 'admin_onboarding_invite_members_submit_fail';
-    case WizardSteps.LaunchingWorkspace:
-        return 'admin_onboarding_transitioning_out_submit_fail';
-    default:
-        return 'admin_onboarding_unknown_submit_fail';
-    }
-}
-
-export function mapStepToSkipName(step: WizardStep): string {
-    switch (step) {
-    case WizardSteps.Organization:
-        return 'admin_onboarding_skip_organization';
-    case WizardSteps.Plugins:
-        return 'admin_onboarding_skip_plugins';
-    case WizardSteps.InviteMembers:
-        return 'admin_onboarding_skip_invite_members';
-    case WizardSteps.LaunchingWorkspace:
-        return 'admin_onboarding_skip_transitioning_out';
-    default:
-        return 'admin_onboarding_skip_unknown';
-    }
-}
-
 export type AnimationReason = typeof Animations['Reasons'][keyof typeof Animations['Reasons']];
 
 export type WizardStep = typeof WizardSteps[keyof typeof WizardSteps];
@@ -192,6 +117,5 @@ export type PreparingWorkspacePageProps = {
     skip?: () => void;
     previous?: React.ReactNode;
     show: boolean;
-    onPageView: () => void;
 }
 

@@ -5,21 +5,30 @@ import {connect} from 'react-redux';
 import type {ConnectedProps} from 'react-redux';
 import {withRouter} from 'react-router-dom';
 
-import {getCurrentChannel, getDirectTeammate} from 'mattermost-redux/selectors/entities/channels';
+import type {Channel} from '@mattermost/types/channels';
+
+import {fetchIsRestrictedDM} from 'mattermost-redux/actions/channels';
+import {
+    getCurrentChannel,
+    getMyChannelMembership,
+    isDeactivatedDirectChannel,
+} from 'mattermost-redux/selectors/entities/channels';
 import {getConfig, getLicense} from 'mattermost-redux/selectors/entities/general';
+import {getRoles} from 'mattermost-redux/selectors/entities/roles_helpers';
 import {getCurrentRelativeTeamUrl} from 'mattermost-redux/selectors/entities/teams';
 import {isFirstAdmin} from 'mattermost-redux/selectors/entities/users';
 
 import {goToLastViewedChannel} from 'actions/views/channel';
 
+import {getIsChannelBookmarksEnabled} from 'components/channel_bookmarks/utils';
+
 import type {GlobalState} from 'types/store';
 
 import ChannelView from './channel_view';
 
-function isDeactivatedChannel(state: GlobalState, channelId: string) {
-    const teammate = getDirectTeammate(state, channelId);
-
-    return Boolean(teammate && teammate.delete_at);
+function isMissingChannelRoles(state: GlobalState, channel?: Channel) {
+    const channelRoles = channel ? getMyChannelMembership(state, channel.id)?.roles || '' : '';
+    return !channelRoles.split(' ').some((v) => Boolean(getRoles(state)[v]));
 }
 
 function mapStateToProps(state: GlobalState) {
@@ -27,23 +36,30 @@ function mapStateToProps(state: GlobalState) {
 
     const config = getConfig(state);
 
-    const viewArchivedChannels = config.ExperimentalViewArchivedChannels === 'true';
     const enableOnboardingFlow = config.EnableOnboardingFlow === 'true';
+    const enableWebSocketEventScope = config.FeatureFlagWebSocketEventScope === 'true';
+
+    const missingChannelRole = isMissingChannelRoles(state, channel);
 
     return {
         channelId: channel ? channel.id : '',
-        deactivatedChannel: channel ? isDeactivatedChannel(state, channel.id) : false,
+        deactivatedChannel: channel ? isDeactivatedDirectChannel(state, channel.id) : false,
         enableOnboardingFlow,
         channelIsArchived: channel ? channel.delete_at !== 0 : false,
-        viewArchivedChannels,
         isCloud: getLicense(state).Cloud === 'true',
         teamUrl: getCurrentRelativeTeamUrl(state),
         isFirstAdmin: isFirstAdmin(state),
+        enableWebSocketEventScope,
+        canRestrictDirectMessage: config.RestrictDirectMessage === 'team' && (channel?.type === 'D' || channel?.type === 'G'),
+        restrictDirectMessage: channel ? state.entities.channels.restrictedDMs[channel.id] : false,
+        isChannelBookmarksEnabled: getIsChannelBookmarksEnabled(state),
+        missingChannelRole,
     };
 }
 
 const mapDispatchToProps = ({
     goToLastViewedChannel,
+    fetchIsRestrictedDM,
 });
 
 const connector = connect(mapStateToProps, mapDispatchToProps);

@@ -13,7 +13,7 @@ import (
 	"github.com/pkg/errors"
 
 	"github.com/mattermost/mattermost/server/public/model"
-	"github.com/mattermost/mattermost/server/v8/platform/services/httpservice"
+	"github.com/mattermost/mattermost/server/public/shared/httpservice"
 )
 
 // Client is the programmatic interface to the marketplace server API.
@@ -119,7 +119,10 @@ func closeBody(r *http.Response) {
 }
 
 func (c *Client) buildURL(urlPath string, args ...any) string {
-	return fmt.Sprintf("%s/%s", strings.TrimRight(c.address, "/"), strings.TrimLeft(fmt.Sprintf(urlPath, args...), "/"))
+	if len(args) > 0 {
+		urlPath = fmt.Sprintf(urlPath, args...)
+	}
+	return fmt.Sprintf("%s/%s", strings.TrimRight(c.address, "/"), strings.TrimLeft(urlPath, "/"))
 }
 
 func (c *Client) doGet(u string) (*http.Response, error) {

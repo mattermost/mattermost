@@ -1,6 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import noop from 'lodash/noop';
 import React from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 
@@ -34,7 +35,7 @@ function DeleteDraftModal({
             id={'drafts.confirm.delete.text'}
             defaultMessage={'Are you sure you want to delete this draft to <strong>{displayName}</strong>?'}
             values={{
-                strong: (chunk: string) => <strong>{chunk}</strong>,
+                strong: (chunk) => <strong>{chunk}</strong>,
                 displayName,
             }}
         />
@@ -43,12 +44,13 @@ function DeleteDraftModal({
     return (
         <GenericModal
             confirmButtonText={confirmButtonText}
-            handleCancel={() => {}}
+            handleCancel={noop}
             handleConfirm={onConfirm}
             modalHeaderText={title}
             onExited={onExited}
             compassDesign={true}
             isDeleteModal={true}
+            autoFocusConfirmButton={true}
         >
             {message}
         </GenericModal>

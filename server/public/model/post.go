@@ -4,63 +4,77 @@
 package model
 
 import (
+	"encoding/base64"
 	"encoding/json"
 	"errors"
 	"fmt"
 	"io"
+	"maps"
 	"net/http"
 	"regexp"
 	"sort"
+	"strconv"
 	"strings"
 	"sync"
 	"unicode/utf8"
 
+	"github.com/hashicorp/go-multierror"
 	"github.com/mattermost/mattermost/server/public/shared/markdown"
+	"github.com/mattermost/mattermost/server/public/shared/mlog"
 )
 
+type PostContextKey string
+
 const (
-	PostSystemMessagePrefix        = "system_"
-	PostTypeDefault                = ""
-	PostTypeSlackAttachment        = "slack_attachment"
-	PostTypeSystemGeneric          = "system_generic"
-	PostTypeJoinLeave              = "system_join_leave" // Deprecated, use PostJoinChannel or PostLeaveChannel instead
-	PostTypeJoinChannel            = "system_join_channel"
-	PostTypeGuestJoinChannel       = "system_guest_join_channel"
-	PostTypeLeaveChannel           = "system_leave_channel"
-	PostTypeJoinTeam               = "system_join_team"
-	PostTypeLeaveTeam              = "system_leave_team"
-	PostTypeAutoResponder          = "system_auto_responder"
-	PostTypeAddRemove              = "system_add_remove" // Deprecated, use PostAddToChannel or PostRemoveFromChannel instead
-	PostTypeAddToChannel           = "system_add_to_channel"
-	PostTypeAddGuestToChannel      = "system_add_guest_to_chan"
-	PostTypeRemoveFromChannel      = "system_remove_from_channel"
-	PostTypeMoveChannel            = "system_move_channel"
-	PostTypeAddToTeam              = "system_add_to_team"
-	PostTypeRemoveFromTeam         = "system_remove_from_team"
-	PostTypeHeaderChange           = "system_header_change"
-	PostTypeDisplaynameChange      = "system_displayname_change"
-	PostTypeConvertChannel         = "system_convert_channel"
-	PostTypePurposeChange          = "system_purpose_change"
-	PostTypeChannelDeleted         = "system_channel_deleted"
-	PostTypeChannelRestored        = "system_channel_restored"
-	PostTypeEphemeral              = "system_ephemeral"
-	PostTypeChangeChannelPrivacy   = "system_change_chan_privacy"
-	PostTypeWrangler               = "system_wrangler"
-	PostTypeGMConvertedToChannel   = "system_gm_to_channel"
-	PostTypeAddBotTeamsChannels    = "add_bot_teams_channels"
-	PostTypeSystemWarnMetricStatus = "warn_metric_status"
-	PostTypeMe                     = "me"
-	PostCustomTypePrefix           = "custom_"
-	PostTypeReminder               = "reminder"
+	PostSystemMessagePrefix      = "system_"
+	PostTypeDefault              = ""
+	PostTypeSlackAttachment      = "slack_attachment"
+	PostTypeSystemGeneric        = "system_generic"
+	PostTypeJoinLeave            = "system_join_leave" // Deprecated, use PostJoinChannel or PostLeaveChannel instead
+	PostTypeJoinChannel          = "system_join_channel"
+	PostTypeGuestJoinChannel     = "system_guest_join_channel"
+	PostTypeLeaveChannel         = "system_leave_channel"
+	PostTypeJoinTeam             = "system_join_team"
+	PostTypeLeaveTeam            = "system_leave_team"
+	PostTypeAutoResponder        = "system_auto_responder"
+	PostTypeAddRemove            = "system_add_remove" // Deprecated, use PostAddToChannel or PostRemoveFromChannel instead
+	PostTypeAddToChannel         = "system_add_to_channel"
+	PostTypeAddGuestToChannel    = "system_add_guest_to_chan"
+	PostTypeRemoveFromChannel    = "system_remove_from_channel"
+	PostTypeMoveChannel          = "system_move_channel"
+	PostTypeAddToTeam            = "system_add_to_team"
+	PostTypeRemoveFromTeam       = "system_remove_from_team"
+	PostTypeHeaderChange         = "system_header_change"
+	PostTypeDisplaynameChange    = "system_displayname_change"
+	PostTypeConvertChannel       = "system_convert_channel"
+	PostTypePurposeChange        = "system_purpose_change"
+	PostTypeChannelDeleted       = "system_channel_deleted"
+	PostTypeChannelRestored      = "system_channel_restored"
+	PostTypeEphemeral            = "system_ephemeral"
+	PostTypeChangeChannelPrivacy = "system_change_chan_privacy"
+	PostTypeWrangler             = "system_wrangler"
+	PostTypeGMConvertedToChannel = "system_gm_to_channel"
+	PostTypeAddBotTeamsChannels  = "add_bot_teams_channels"
+	PostTypeMe                   = "me"
+	PostCustomTypePrefix         = "custom_"
+	PostTypeReminder             = "reminder"
+	PostTypeBurnOnRead           = "burn_on_read"
 
 	PostFileidsMaxRunes   = 300
 	PostFilenamesMaxRunes = 4000
 	PostHashtagsMaxRunes  = 1000
 	PostMessageMaxRunesV1 = 4000
-	PostMessageMaxBytesV2 = 65535                     // Maximum size of a TEXT column in MySQL
+	PostMessageMaxBytesV2 = 65535
 	PostMessageMaxRunesV2 = PostMessageMaxBytesV2 / 4 // Assume a worst-case representation
-	PostPropsMaxRunes     = 800000
-	PostPropsMaxUserRunes = PostPropsMaxRunes - 40000 // Leave some room for system / pre-save modifications
+
+	// Reporting API constants
+	MaxReportingPerPage        = 1000 // Maximum number of posts that can be requested per page in reporting endpoints
+	ReportingTimeFieldCreateAt = "create_at"
+	ReportingTimeFieldUpdateAt = "update_at"
+	ReportingSortDirectionAsc  = "asc"
+	ReportingSortDirectionDesc = "desc"
+	PostPropsMaxRunes          = 800000
+	PostPropsMaxUserRunes      = PostPropsMaxRunes - 40000 // Leave some room for system / pre-save modifications
 
 	PropsAddChannelMember = "add_channel_member"
 
@@ -73,13 +87,25 @@ const (
 	PostPropsFromBot                  = "from_bot"
 	PostPropsFromOAuthApp             = "from_oauth_app"
 	PostPropsWebhookDisplayName       = "webhook_display_name"
+	PostPropsAttachments              = "attachments"
+	PostPropsFromPlugin               = "from_plugin"
 	PostPropsMentionHighlightDisabled = "mentionHighlightDisabled"
 	PostPropsGroupHighlightDisabled   = "disable_group_highlight"
 	PostPropsPreviewedPost            = "previewed_post"
+	PostPropsForceNotification        = "force_notification"
+	PostPropsChannelMentions          = "channel_mentions"
+	PostPropsUnsafeLinks              = "unsafe_links"
+	PostPropsAIGeneratedByUserID      = "ai_generated_by"
+	PostPropsAIGeneratedByUsername    = "ai_generated_by_username"
+	PostPropsExpireAt                 = "expire_at"
+	PostPropsReadDurationSeconds      = "read_duration"
 
-	PostPriorityUrgent               = "urgent"
-	PostPropsRequestedAck            = "requested_ack"
-	PostPropsPersistentNotifications = "persistent_notifications"
+	PostPriorityUrgent = "urgent"
+
+	DefaultExpirySeconds       = 60 * 60 * 24 * 7 // 7 days
+	DefaultReadDurationSeconds = 10 * 60          // 10 minutes
+
+	PostContextKeyIsScheduledPost PostContextKey = "isScheduledPost"
 )
 
 type Post struct {
@@ -105,7 +131,7 @@ type Post struct {
 	Props         StringInterface `json:"props"` // Deprecated: use GetProps()
 	Hashtags      string          `json:"hashtags"`
 	Filenames     StringArray     `json:"-"` // Deprecated, do not use this field any more
-	FileIds       StringArray     `json:"file_ids,omitempty"`
+	FileIds       StringArray     `json:"file_ids"`
 	PendingPostId string          `json:"pending_post_id"`
 	HasReactions  bool            `json:"has_reactions,omitempty"`
 	RemoteId      *string         `json:"remote_id,omitempty"`
@@ -118,13 +144,13 @@ type Post struct {
 	Metadata     *PostMetadata `json:"metadata,omitempty"`
 }
 
-func (o *Post) Auditable() map[string]interface{} {
+func (o *Post) Auditable() map[string]any {
 	var metaData map[string]any
 	if o.Metadata != nil {
 		metaData = o.Metadata.Auditable()
 	}
 
-	return map[string]interface{}{
+	return map[string]any{
 		"id":              o.Id,
 		"create_at":       o.CreateAt,
 		"update_at":       o.UpdateAt,
@@ -207,6 +233,21 @@ type SearchParameter struct {
 	IncludeDeletedChannels *bool   `json:"include_deleted_channels"`
 }
 
+func (sp SearchParameter) Auditable() map[string]any {
+	return map[string]any{
+		"terms":                    sp.Terms,
+		"is_or_search":             sp.IsOrSearch,
+		"time_zone_offset":         sp.TimeZoneOffset,
+		"page":                     sp.Page,
+		"per_page":                 sp.PerPage,
+		"include_deleted_channels": sp.IncludeDeletedChannels,
+	}
+}
+
+func (sp SearchParameter) LogClone() any {
+	return sp.Auditable()
+}
+
 type AnalyticsPostCountsOptions struct {
 	TeamId        string
 	BotsOnly      bool
@@ -221,8 +262,8 @@ func (o *PostPatch) WithRewrittenImageURLs(f func(string) string) *PostPatch {
 	return &pCopy
 }
 
-func (o *PostPatch) Auditable() map[string]interface{} {
-	return map[string]interface{}{
+func (o *PostPatch) Auditable() map[string]any {
+	return map[string]any{
 		"is_pinned":     o.IsPinned,
 		"props":         o.Props,
 		"file_ids":      o.FileIds,
@@ -236,17 +277,20 @@ type PostForExport struct {
 	ChannelName string
 	Username    string
 	ReplyCount  int
+	FlaggedBy   StringArray
 }
 
 type DirectPostForExport struct {
 	Post
 	User           string
 	ChannelMembers *[]string
+	FlaggedBy      StringArray
 }
 
 type ReplyForExport struct {
 	Post
-	Username string
+	Username  string
+	FlaggedBy StringArray
 }
 
 type PostForIndexing struct {
@@ -259,6 +303,22 @@ type FileForIndexing struct {
 	FileInfo
 	ChannelId string `json:"channel_id"`
 	Content   string `json:"content"`
+}
+
+// ShouldIndex tells if a file should be indexed or not.
+// index files which are-
+// a. not deleted
+// b. have an associated post ID, if no post ID, then,
+// b.i. the file should belong to the channel's bookmarks, as indicated by the "CreatorId" field.
+//
+// Files not passing this criteria will be deleted from ES index.
+// We're deleting those files from ES index instead of simply skipping them while fetching a batch of files
+// because existing ES indexes might have these files already indexed, so we need to remove them from index.
+func (file *FileForIndexing) ShouldIndex() bool {
+	// NOTE - this function is used in server as well as Enterprise code.
+	// Make sure to update public package dependency in both server and Enterprise code when
+	// updating the logic here and to test both places.
+	return file != nil && file.DeleteAt == 0 && (file.PostId != "" || file.CreatorId == BookmarkFileOwner)
 }
 
 // ShallowCopy is an utility function to shallow copy a Post to the given
@@ -295,7 +355,7 @@ func (o *Post) ShallowCopy(dst *Post) error {
 	dst.LastReplyAt = o.LastReplyAt
 	dst.Metadata = o.Metadata
 	if o.IsFollowing != nil {
-		dst.IsFollowing = NewBool(*o.IsFollowing)
+		dst.IsFollowing = NewPointer(*o.IsFollowing)
 	}
 	dst.RemoteId = o.RemoteId
 	return nil
@@ -320,6 +380,12 @@ func (o *Post) EncodeJSON(w io.Writer) error {
 	return json.NewEncoder(w).Encode(o)
 }
 
+type CreatePostFlags struct {
+	TriggerWebhooks   bool
+	SetOnline         bool
+	ForceNotification bool
+}
+
 type GetPostsSinceOptions struct {
 	UserId                   string
 	ChannelId                string
@@ -342,10 +408,11 @@ func (c GetPostsSinceForSyncCursor) IsEmpty() bool {
 }
 
 type GetPostsSinceForSyncOptions struct {
-	ChannelId       string
-	ExcludeRemoteId string
-	IncludeDeleted  bool
-	SinceCreateAt   bool // determines whether the cursor will be based on CreateAt or UpdateAt
+	ChannelId                         string
+	ExcludeRemoteId                   string
+	IncludeDeleted                    bool
+	SinceCreateAt                     bool // determines whether the cursor will be based on CreateAt or UpdateAt
+	ExcludeChannelMetadataSystemPosts bool // if true, exclude channel metadata system posts (header, display name, purpose changes)
 }
 
 type GetPostsOptions struct {
@@ -359,7 +426,9 @@ type GetPostsOptions struct {
 	CollapsedThreadsExtended bool
 	FromPost                 string // PostId after which to send the items
 	FromCreateAt             int64  // CreateAt after which to send the items
+	FromUpdateAt             int64  // UpdateAt after which to send the items. This cannot be used with FromCreateAt.
 	Direction                string // Only accepts up|down. Indicates the order in which to send the items.
+	UpdatesOnly              bool   // This flag is used to make the API work with the updateAt value.
 	IncludeDeleted           bool
 	IncludePostPriority      bool
 }
@@ -374,8 +443,11 @@ type PostCountOptions struct {
 	UsersPostsOnly     bool
 	// AllowFromCache looks up cache only when ExcludeDeleted and UsersPostsOnly are true and rest are falsy.
 	AllowFromCache bool
-	SincePostID    string
-	SinceUpdateAt  int64
+
+	// retrieves posts in the inclusive range: [SinceUpdateAt + LastPostId, UntilUpdateAt]
+	SincePostID   string
+	SinceUpdateAt int64
+	UntilUpdateAt int64
 }
 
 func (o *Post) Etag() string {
@@ -412,7 +484,8 @@ func (o *Post) IsValid(maxPostSize int) *AppError {
 	}
 
 	if utf8.RuneCountInString(o.Message) > maxPostSize {
-		return NewAppError("Post.IsValid", "model.post.is_valid.msg.app_error", nil, "id="+o.Id, http.StatusBadRequest)
+		return NewAppError("Post.IsValid", "model.post.is_valid.message_length.app_error",
+			map[string]any{"Length": utf8.RuneCountInString(o.Message), "MaxLength": maxPostSize}, "id="+o.Id, http.StatusBadRequest)
 	}
 
 	if utf8.RuneCountInString(o.Hashtags) > PostHashtagsMaxRunes {
@@ -446,11 +519,11 @@ func (o *Post) IsValid(maxPostSize int) *AppError {
 		PostTypeChannelRestored,
 		PostTypeChangeChannelPrivacy,
 		PostTypeAddBotTeamsChannels,
-		PostTypeSystemWarnMetricStatus,
 		PostTypeReminder,
 		PostTypeMe,
 		PostTypeWrangler,
-		PostTypeGMConvertedToChannel:
+		PostTypeGMConvertedToChannel,
+		PostTypeBurnOnRead:
 	default:
 		if !strings.HasPrefix(o.Type, PostCustomTypePrefix) {
 			return NewAppError("Post.IsValid", "model.post.is_valid.type.app_error", nil, "id="+o.Type, http.StatusBadRequest)
@@ -478,6 +551,7 @@ func (o *Post) SanitizeProps() {
 	}
 	membersToSanitize := []string{
 		PropsAddChannelMember,
+		PostPropsForceNotification,
 	}
 
 	for _, member := range membersToSanitize {
@@ -490,18 +564,28 @@ func (o *Post) SanitizeProps() {
 	}
 }
 
+// Remove any input data from the post object that is not user controlled
+func (o *Post) SanitizeInput() {
+	o.DeleteAt = 0
+	o.RemoteId = NewPointer("")
+
+	if o.Metadata != nil {
+		o.Metadata.Embeds = nil
+	}
+}
+
 func (o *Post) ContainsIntegrationsReservedProps() []string {
-	return containsIntegrationsReservedProps(o.GetProps())
+	return ContainsIntegrationsReservedProps(o.GetProps())
 }
 
 func (o *PostPatch) ContainsIntegrationsReservedProps() []string {
 	if o == nil || o.Props == nil {
 		return nil
 	}
-	return containsIntegrationsReservedProps(*o.Props)
+	return ContainsIntegrationsReservedProps(*o.Props)
 }
 
-func containsIntegrationsReservedProps(props StringInterface) []string {
+func ContainsIntegrationsReservedProps(props StringInterface) []string {
 	foundProps := []string{}
 
 	if props != nil {
@@ -567,9 +651,7 @@ func (o *Post) DelProp(key string) {
 	o.propsMu.Lock()
 	defer o.propsMu.Unlock()
 	propsCopy := make(map[string]any, len(o.Props)-1)
-	for k, v := range o.Props {
-		propsCopy[k] = v
-	}
+	maps.Copy(propsCopy, o.Props)
 	delete(propsCopy, key)
 	o.Props = propsCopy
 }
@@ -578,9 +660,7 @@ func (o *Post) AddProp(key string, value any) {
 	o.propsMu.Lock()
 	defer o.propsMu.Unlock()
 	propsCopy := make(map[string]any, len(o.Props)+1)
-	for k, v := range o.Props {
-		propsCopy[k] = v
-	}
+	maps.Copy(propsCopy, o.Props)
 	propsCopy[key] = value
 	o.Props = propsCopy
 }
@@ -601,6 +681,151 @@ func (o *Post) GetProp(key string) any {
 	o.propsMu.RLock()
 	defer o.propsMu.RUnlock()
 	return o.Props[key]
+}
+
+// ValidateProps checks all known props for validity.
+// Currently, it logs warnings for invalid props rather than returning an error.
+// In a future version, this will be updated to return errors for invalid props.
+func (o *Post) ValidateProps(logger mlog.LoggerIFace) {
+	if err := o.propsIsValid(); err != nil {
+		logger.Warn(
+			"Invalid post props. In a future version this will result in an error. Please update your integration to be compliant.",
+			mlog.String("post_id", o.Id),
+			mlog.Err(err),
+		)
+	}
+}
+
+func (o *Post) propsIsValid() error {
+	var multiErr *multierror.Error
+
+	props := o.GetProps()
+
+	// Check basic props validity
+	if props == nil {
+		return nil
+	}
+
+	if props[PostPropsAddedUserId] != nil {
+		if addedUserID, ok := props[PostPropsAddedUserId].(string); !ok {
+			multiErr = multierror.Append(multiErr, fmt.Errorf("added_user_id prop must be a string"))
+		} else if !IsValidId(addedUserID) {
+			multiErr = multierror.Append(multiErr, fmt.Errorf("added_user_id prop must be a valid user ID"))
+		}
+	}
+	if props[PostPropsDeleteBy] != nil {
+		if deleteByID, ok := props[PostPropsDeleteBy].(string); !ok {
+			multiErr = multierror.Append(multiErr, fmt.Errorf("delete_by prop must be a string"))
+		} else if !IsValidId(deleteByID) {
+			multiErr = multierror.Append(multiErr, fmt.Errorf("delete_by prop must be a valid user ID"))
+		}
+	}
+
+	// Validate integration props
+	if props[PostPropsOverrideIconURL] != nil {
+		if iconURL, ok := props[PostPropsOverrideIconURL].(string); !ok {
+			multiErr = multierror.Append(multiErr, fmt.Errorf("override_icon_url prop must be a string"))
+		} else if iconURL == "" || !IsValidHTTPURL(iconURL) {
+			multiErr = multierror.Append(multiErr, fmt.Errorf("override_icon_url prop must be a valid URL"))
+		}
+	}
+	if props[PostPropsOverrideIconEmoji] != nil {
+		if _, ok := props[PostPropsOverrideIconEmoji].(string); !ok {
+			multiErr = multierror.Append(multiErr, fmt.Errorf("override_icon_emoji prop must be a string"))
+		}
+	}
+	if props[PostPropsOverrideUsername] != nil {
+		if _, ok := props[PostPropsOverrideUsername].(string); !ok {
+			multiErr = multierror.Append(multiErr, fmt.Errorf("override_username prop must be a string"))
+		}
+	}
+	if props[PostPropsFromWebhook] != nil {
+		if fromWebhook, ok := props[PostPropsFromWebhook].(string); !ok {
+			multiErr = multierror.Append(multiErr, fmt.Errorf("from_webhook prop must be a string"))
+		} else if fromWebhook != "true" {
+			multiErr = multierror.Append(multiErr, fmt.Errorf("from_webhook prop must be \"true\""))
+		}
+	}
+	if props[PostPropsFromBot] != nil {
+		if fromBot, ok := props[PostPropsFromBot].(string); !ok {
+			multiErr = multierror.Append(multiErr, fmt.Errorf("from_bot prop must be a string"))
+		} else if fromBot != "true" {
+			multiErr = multierror.Append(multiErr, fmt.Errorf("from_bot prop must be \"true\""))
+		}
+	}
+	if props[PostPropsFromOAuthApp] != nil {
+		if fromOAuthApp, ok := props[PostPropsFromOAuthApp].(string); !ok {
+			multiErr = multierror.Append(multiErr, fmt.Errorf("from_oauth_app prop must be a string"))
+		} else if fromOAuthApp != "true" {
+			multiErr = multierror.Append(multiErr, fmt.Errorf("from_oauth_app prop must be \"true\""))
+		}
+	}
+	if props[PostPropsFromPlugin] != nil {
+		if fromPlugin, ok := props[PostPropsFromPlugin].(string); !ok {
+			multiErr = multierror.Append(multiErr, fmt.Errorf("from_plugin prop must be a string"))
+		} else if fromPlugin != "true" {
+			multiErr = multierror.Append(multiErr, fmt.Errorf("from_plugin prop must be \"true\""))
+		}
+	}
+	if props[PostPropsUnsafeLinks] != nil {
+		if unsafeLinks, ok := props[PostPropsUnsafeLinks].(string); !ok {
+			multiErr = multierror.Append(multiErr, fmt.Errorf("unsafe_links prop must be a string"))
+		} else if unsafeLinks != "true" {
+			multiErr = multierror.Append(multiErr, fmt.Errorf("unsafe_links prop must be \"true\""))
+		}
+	}
+	if props[PostPropsWebhookDisplayName] != nil {
+		if _, ok := props[PostPropsWebhookDisplayName].(string); !ok {
+			multiErr = multierror.Append(multiErr, fmt.Errorf("webhook_display_name prop must be a string"))
+		}
+	}
+
+	if props[PostPropsMentionHighlightDisabled] != nil {
+		if _, ok := props[PostPropsMentionHighlightDisabled].(bool); !ok {
+			multiErr = multierror.Append(multiErr, fmt.Errorf("mention_highlight_disabled prop must be a boolean"))
+		}
+	}
+	if props[PostPropsGroupHighlightDisabled] != nil {
+		if _, ok := props[PostPropsGroupHighlightDisabled].(bool); !ok {
+			multiErr = multierror.Append(multiErr, fmt.Errorf("disable_group_highlight prop must be a boolean"))
+		}
+	}
+
+	if props[PostPropsPreviewedPost] != nil {
+		if previewedPostID, ok := props[PostPropsPreviewedPost].(string); !ok {
+			multiErr = multierror.Append(multiErr, fmt.Errorf("previewed_post prop must be a string"))
+		} else if !IsValidId(previewedPostID) {
+			multiErr = multierror.Append(multiErr, fmt.Errorf("previewed_post prop must be a valid post ID"))
+		}
+	}
+
+	if props[PostPropsForceNotification] != nil {
+		if _, ok := props[PostPropsForceNotification].(bool); !ok {
+			multiErr = multierror.Append(multiErr, fmt.Errorf("force_notification prop must be a boolean"))
+		}
+	}
+
+	if props[PostPropsAIGeneratedByUserID] != nil {
+		if aiGenUserID, ok := props[PostPropsAIGeneratedByUserID].(string); !ok {
+			multiErr = multierror.Append(multiErr, fmt.Errorf("ai_generated_by prop must be a string"))
+		} else if !IsValidId(aiGenUserID) {
+			multiErr = multierror.Append(multiErr, fmt.Errorf("ai_generated_by prop must be a valid user ID"))
+		}
+	}
+
+	if props[PostPropsAIGeneratedByUsername] != nil {
+		if _, ok := props[PostPropsAIGeneratedByUsername].(string); !ok {
+			multiErr = multierror.Append(multiErr, fmt.Errorf("ai_generated_by_username prop must be a string"))
+		}
+	}
+
+	for i, a := range o.Attachments() {
+		if err := a.IsValid(); err != nil {
+			multiErr = multierror.Append(multiErr, multierror.Prefix(err, fmt.Sprintf("message attachtment at index %d is invalid:", i)))
+		}
+	}
+
+	return multiErr.ErrorOrNil()
 }
 
 func (o *Post) IsSystemMessage() bool {
@@ -692,11 +917,11 @@ func findAtChannelMention(message string) (mention string, found bool) {
 }
 
 func (o *Post) Attachments() []*SlackAttachment {
-	if attachments, ok := o.GetProp("attachments").([]*SlackAttachment); ok {
+	if attachments, ok := o.GetProp(PostPropsAttachments).([]*SlackAttachment); ok {
 		return attachments
 	}
 	var ret []*SlackAttachment
-	if attachments, ok := o.GetProp("attachments").([]any); ok {
+	if attachments, ok := o.GetProp(PostPropsAttachments).([]any); ok {
 		for _, attachment := range attachments {
 			if enc, err := json.Marshal(attachment); err == nil {
 				var decoded SlackAttachment
@@ -831,7 +1056,7 @@ func RewriteImageURLs(message string, f func(string) string) string {
 
 func (o *Post) IsFromOAuthBot() bool {
 	props := o.GetProps()
-	return props["from_webhook"] == "true" && props["override_username"] != ""
+	return props[PostPropsFromWebhook] == "true" && props[PostPropsOverrideUsername] != ""
 }
 
 func (o *Post) ToNilIfInvalid() *Post {
@@ -851,8 +1076,11 @@ func (o *Post) ForPlugin() *Post {
 }
 
 func (o *Post) GetPreviewPost() *PreviewPost {
+	if o.Metadata == nil {
+		return nil
+	}
 	for _, embed := range o.Metadata.Embeds {
-		if embed.Type == PostEmbedPermalink {
+		if embed != nil && embed.Type == PostEmbedPermalink {
 			if previewPost, ok := embed.Data.(*PreviewPost); ok {
 				return previewPost
 			}
@@ -897,6 +1125,10 @@ func (o *Post) IsUrgent() bool {
 		return false
 	}
 
+	if postPriority.Priority == nil {
+		return false
+	}
+
 	return *postPriority.Priority == PostPriorityUrgent
 }
 
@@ -906,4 +1138,209 @@ func (o *Post) CleanPost() *Post {
 	o.UpdateAt = 0
 	o.EditAt = 0
 	return o
+}
+
+type UpdatePostOptions struct {
+	SafeUpdate    bool
+	IsRestorePost bool
+}
+
+func DefaultUpdatePostOptions() *UpdatePostOptions {
+	return &UpdatePostOptions{
+		SafeUpdate:    false,
+		IsRestorePost: false,
+	}
+}
+
+type PreparePostForClientOpts struct {
+	IsNewPost       bool
+	IsEditPost      bool
+	IncludePriority bool
+	RetainContent   bool
+	IncludeDeleted  bool
+}
+
+// ReportPostOptions contains options for querying posts for reporting/compliance purposes
+type ReportPostOptions struct {
+	ChannelId          string `json:"channel_id"`
+	StartTime          int64  `json:"start_time,omitempty"`           // Optional: Start time for query range (unix timestamp in milliseconds)
+	TimeField          string `json:"time_field,omitempty"`           // "create_at" or "update_at" (default: "create_at")
+	SortDirection      string `json:"sort_direction,omitempty"`       // "asc" or "desc" (default: "asc")
+	PerPage            int    `json:"per_page,omitempty"`             // Number of posts per page (default: 100, max: MaxReportingPerPage)
+	IncludeDeleted     bool   `json:"include_deleted,omitempty"`      // Include deleted posts
+	ExcludeSystemPosts bool   `json:"exclude_system_posts,omitempty"` // Exclude all system posts (any type starting with "system_")
+	IncludeMetadata    bool   `json:"include_metadata,omitempty"`     // Include file info, reactions, etc.
+}
+type RewriteAction string
+
+const (
+	RewriteActionCustom         RewriteAction = "custom"
+	RewriteActionShorten        RewriteAction = "shorten"
+	RewriteActionElaborate      RewriteAction = "elaborate"
+	RewriteActionImproveWriting RewriteAction = "improve_writing"
+	RewriteActionFixSpelling    RewriteAction = "fix_spelling"
+	RewriteActionSimplify       RewriteAction = "simplify"
+	RewriteActionSummarize      RewriteAction = "summarize"
+)
+
+type RewriteRequest struct {
+	AgentID      string        `json:"agent_id"`
+	Message      string        `json:"message"`
+	Action       RewriteAction `json:"action"`
+	CustomPrompt string        `json:"custom_prompt,omitempty"`
+	RootID       string        `json:"root_id,omitempty"`
+}
+
+type RewriteResponse struct {
+	RewrittenText string `json:"rewritten_text"`
+}
+
+const RewriteSystemPrompt = `You are a JSON API that rewrites text. Your response must be valid JSON only.
+Return this exact format: {"rewritten_text":"content"}.
+Do not use markdown, code blocks, or any formatting. Start with { and end with }.`
+
+// ReportPostOptionsCursor contains cursor information for pagination.
+// The cursor is an opaque base64-encoded string that encodes all pagination state.
+// Clients should treat this as an opaque token and pass it back unchanged.
+//
+// Internal format (before base64 encoding):
+//
+//	v1: "version:channel_id:time_field:include_deleted:exclude_system_posts:sort_direction:timestamp:post_id"
+//
+// Field order (general to specific):
+// - version: Allows format evolution
+// - channel_id: Which channel to query (filter)
+// - time_field: Which timestamp column to use for ordering (filter/config)
+// - include_deleted: Whether to include deleted posts (filter)
+// - exclude_system_posts: Whether to exclude channel metadata system posts (filter)
+// - sort_direction: Query direction ASC vs DESC (filter/config)
+// - timestamp: The cursor position in time (pagination state)
+// - post_id: Tie-breaker for posts with identical timestamps (pagination state)
+//
+// Version history:
+// - v1: Initial format with all query-affecting parameters ordered general→specific, base64-encoded for opacity
+// ReportPostOptionsCursor contains the pagination cursor for posts reporting.
+//
+// The cursor is opaque and self-contained:
+// - It's base64-encoded and contains all query parameters (channel_id, time_field, sort_direction, etc.)
+// - When a cursor is provided, query parameters in the request body are IGNORED
+// - The cursor's embedded parameters take precedence over request body parameters
+// - This allows clients to keep sending the same parameters on every page without errors
+// - For the first page, omit the cursor field or set it to ""
+type ReportPostOptionsCursor struct {
+	Cursor string `json:"cursor,omitempty"` // Optional: Opaque base64-encoded cursor string (omit or use "" for first request)
+}
+
+// ReportPostListResponse contains the response for cursor-based post reporting queries
+type ReportPostListResponse struct {
+	Posts      []*Post                  `json:"posts"`
+	NextCursor *ReportPostOptionsCursor `json:"next_cursor,omitempty"` // nil if no more pages
+}
+
+// ReportPostQueryParams contains the fully resolved query parameters for the store layer.
+// This struct is used internally after cursor decoding and parameter resolution.
+// The store layer receives these concrete parameters and executes the query.
+type ReportPostQueryParams struct {
+	ChannelId          string // Required: Channel to query
+	CursorTime         int64  // Pagination cursor time position
+	CursorId           string // Pagination cursor ID for tie-breaking
+	TimeField          string // Resolved: "create_at" or "update_at"
+	SortDirection      string // Resolved: "asc" or "desc"
+	IncludeDeleted     bool   // Resolved: include deleted posts
+	ExcludeSystemPosts bool   // Resolved: exclude system posts
+	PerPage            int    // Number of posts per page (already validated)
+}
+
+// Validate validates the ReportPostQueryParams fields.
+// This should be called after parameter resolution (from cursor or options) and before passing to the store layer.
+// Note: PerPage is handled separately in the API layer (capped at 100-1000 range).
+func (q *ReportPostQueryParams) Validate() *AppError {
+	// Validate ChannelId
+	if !IsValidId(q.ChannelId) {
+		return NewAppError("ReportPostQueryParams.Validate", "model.post.query_params.invalid_channel_id", nil, "channel_id must be a valid 26-character ID", 400)
+	}
+
+	// Validate TimeField
+	if q.TimeField != ReportingTimeFieldCreateAt && q.TimeField != ReportingTimeFieldUpdateAt {
+		return NewAppError("ReportPostQueryParams.Validate", "model.post.query_params.invalid_time_field", nil, fmt.Sprintf("time_field must be %q or %q", ReportingTimeFieldCreateAt, ReportingTimeFieldUpdateAt), 400)
+	}
+
+	// Validate SortDirection
+	if q.SortDirection != ReportingSortDirectionAsc && q.SortDirection != ReportingSortDirectionDesc {
+		return NewAppError("ReportPostQueryParams.Validate", "model.post.query_params.invalid_sort_direction", nil, fmt.Sprintf("sort_direction must be %q or %q", ReportingSortDirectionAsc, ReportingSortDirectionDesc), 400)
+	}
+
+	// Validate CursorId - can be empty (first page) or must be a valid ID format (subsequent pages)
+	if q.CursorId != "" && !IsValidId(q.CursorId) {
+		return NewAppError("ReportPostQueryParams.Validate", "model.post.query_params.invalid_cursor_id", nil, "cursor_id must be a valid 26-character ID", 400)
+	}
+
+	// CursorTime is validated by the fact it's an int64
+	// PerPage is handled in API layer before calling Validate()
+	return nil
+}
+
+// EncodeReportPostCursor creates an opaque cursor string from pagination state.
+// The cursor encodes all query-affecting parameters to ensure consistency across pages.
+// The cursor is base64-encoded to ensure it's truly opaque and URL-safe.
+//
+// Internal format: "version:channel_id:time_field:include_deleted:exclude_system_posts:sort_direction:timestamp:post_id"
+// Example (before encoding): "1:abc123xyz:create_at:false:true:asc:1635724800000:post456def"
+func EncodeReportPostCursor(channelId string, timeField string, includeDeleted bool, excludeSystemPosts bool, sortDirection string, timestamp int64, postId string) string {
+	plainText := fmt.Sprintf("1:%s:%s:%t:%t:%s:%d:%s",
+		channelId,
+		timeField,
+		includeDeleted,
+		excludeSystemPosts,
+		sortDirection,
+		timestamp,
+		postId)
+	return base64.URLEncoding.EncodeToString([]byte(plainText))
+}
+
+// DecodeReportPostCursorV1 parses an opaque cursor string into query parameters.
+// Returns a partially populated ReportPostQueryParams (missing PerPage which comes from the request).
+func DecodeReportPostCursorV1(cursor string) (*ReportPostQueryParams, *AppError) {
+	decoded, err := base64.URLEncoding.DecodeString(cursor)
+	if err != nil {
+		return nil, NewAppError("DecodeReportPostCursorV1", "model.post.decode_cursor.invalid_base64", nil, err.Error(), 400)
+	}
+
+	parts := strings.Split(string(decoded), ":")
+	if len(parts) != 8 {
+		return nil, NewAppError("DecodeReportPostCursorV1", "model.post.decode_cursor.invalid_format", nil, fmt.Sprintf("expected 8 parts, got %d", len(parts)), 400)
+	}
+
+	version, err := strconv.Atoi(parts[0])
+	if err != nil {
+		return nil, NewAppError("DecodeReportPostCursorV1", "model.post.decode_cursor.invalid_version", nil, fmt.Sprintf("version must be an integer: %s", err.Error()), 400)
+	}
+	if version != 1 {
+		return nil, NewAppError("DecodeReportPostCursorV1", "model.post.decode_cursor.unsupported_version", nil, fmt.Sprintf("version %d", version), 400)
+	}
+
+	includeDeleted, err := strconv.ParseBool(parts[3])
+	if err != nil {
+		return nil, NewAppError("DecodeReportPostCursorV1", "model.post.decode_cursor.invalid_include_deleted", nil, fmt.Sprintf("include_deleted must be a boolean: %s", err.Error()), 400)
+	}
+
+	excludeSystemPosts, err := strconv.ParseBool(parts[4])
+	if err != nil {
+		return nil, NewAppError("DecodeReportPostCursorV1", "model.post.decode_cursor.invalid_exclude_system_posts", nil, fmt.Sprintf("exclude_system_posts must be a boolean: %s", err.Error()), 400)
+	}
+
+	timestamp, err := strconv.ParseInt(parts[6], 10, 64)
+	if err != nil {
+		return nil, NewAppError("DecodeReportPostCursorV1", "model.post.decode_cursor.invalid_timestamp", nil, fmt.Sprintf("timestamp must be an integer: %s", err.Error()), 400)
+	}
+
+	return &ReportPostQueryParams{
+		ChannelId:          parts[1],
+		CursorTime:         timestamp,
+		CursorId:           parts[7],
+		TimeField:          parts[2],
+		SortDirection:      parts[5],
+		IncludeDeleted:     includeDeleted,
+		ExcludeSystemPosts: excludeSystemPosts,
+	}, nil
 }

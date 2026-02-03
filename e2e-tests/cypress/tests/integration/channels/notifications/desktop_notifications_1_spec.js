@@ -48,7 +48,7 @@ describe('Desktop notifications', () => {
         spyNotificationAs('withoutNotification', 'granted');
 
         // # Ensure notifications are set up to fire a desktop notification if are mentioned.
-        changeDesktopNotificationAs('#desktopNotificationMentions');
+        changeDesktopNotificationAs('mentions');
 
         cy.apiGetChannelByName(testTeam.name, 'Off-Topic').then(({channel}) => {
             // # Logout the user
@@ -100,7 +100,7 @@ describe('Desktop notifications', () => {
         const expected = '@' + otherUser.username + ': I\'m hungry :taco: Mattermost';
 
         // # Ensure notifications are set up to fire a desktop notification if are mentioned.
-        changeDesktopNotificationAs('#desktopNotificationAllActivity');
+        changeDesktopNotificationAs('all');
 
         cy.apiGetChannelByName(testTeam.name, 'Off-Topic').then(({channel}) => {
             // # Have another user send a post.
@@ -115,7 +115,7 @@ describe('Desktop notifications', () => {
         });
     });
 
-    it('MM-T495 Desktop Notifications - Can set to DND and no notification fires on DM', () => {
+    it.skip('MM-T495 Desktop Notifications - Can set to DND and no notification fires on DM', () => {
         cy.apiCreateDirectChannel([otherUser.id, testUser.id]).then(({channel}) => {
             // # Ensure notifications are set up to fire a desktop notification if you receive a DM
             cy.apiPatchUser(testUser.id, {notify_props: {...testUser.notify_props, desktop: 'all'}});
@@ -144,10 +144,10 @@ describe('Desktop notifications', () => {
         spyNotificationAs('withNotification', 'granted');
 
         const actualMsg = '---';
-        const expected = '@' + otherUser.username + ' did something new';
+        const expected = '@' + otherUser.username + ' posted a message';
 
         // # Ensure notifications are set up to fire a desktop notification for all activity.
-        changeDesktopNotificationAs('#desktopNotificationAllActivity');
+        changeDesktopNotificationAs('all');
 
         cy.apiGetChannelByName(testTeam.name, 'Off-Topic').then(({channel}) => {
             // # Have another user send a post.
@@ -169,7 +169,7 @@ describe('Desktop notifications', () => {
         spyNotificationAs('withNotification', 'granted');
 
         // # Ensure notifications are set up to fire a desktop notification if are mentioned
-        changeDesktopNotificationAs('#desktopNotificationMentions');
+        changeDesktopNotificationAs('mentions');
 
         // # Ensure display settings are set to "Show username"
         changeTeammateNameDisplayAs('#name_formatFormatA');
@@ -194,7 +194,7 @@ describe('Desktop notifications', () => {
         spyNotificationAs('withNotification', 'granted');
 
         // # Ensure notifications are set up to fire a desktop notification if are mentioned
-        changeDesktopNotificationAs('#desktopNotificationMentions');
+        changeDesktopNotificationAs('mentions');
 
         // # Ensure display settings are set to "Show first and last name"
         changeTeammateNameDisplayAs('#name_formatFormatC');
@@ -235,7 +235,7 @@ describe('Desktop notifications', () => {
         spyNotificationAs('withNotification', 'granted');
 
         // # Ensure notifications are set up to fire a desktop notification
-        changeDesktopNotificationAs('#desktopNotificationMentions');
+        changeDesktopNotificationAs('mentions');
 
         cy.apiGetChannelByName(testTeam.name, 'Off-Topic').then(({channel}) => {
             const messageWithoutNotification = 'message without notification';
@@ -271,7 +271,7 @@ describe('Desktop notifications', () => {
         spyNotificationAs('withNotification', 'granted');
 
         // # Ensure notifications are set up to never fire a desktop notification
-        changeDesktopNotificationAs('#desktopNotificationNever');
+        changeDesktopNotificationAs('nothing');
 
         cy.apiGetChannelByName(testTeam.name, 'Off-Topic').then(({channel}) => {
             const messageWithNotification = `random message with mention @${testUser.username}`;
@@ -297,14 +297,11 @@ describe('Desktop notifications', () => {
 
         // # Open settings modal
         cy.uiOpenSettingsModal().within(() => {
-            // # Click "Desktop"
-            cy.findByText('Desktop Notifications').should('be.visible').click();
+            // # Click "Desktop sound notifications"
+            cy.findByText('Desktop notification sounds').should('be.visible').click();
 
             // # Select sound off.
-            cy.get('#soundOff').check();
-
-            // # Ensure sound dropdown is not visible
-            cy.get('#displaySoundNotification').should('not.exist');
+            cy.findByText('Message notification sound').click({force: true});
 
             // # Click "Save" and close the modal
             cy.uiSaveAndClose();

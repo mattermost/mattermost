@@ -15,7 +15,7 @@
     "strictNullChecks": true,
     "forceConsistentCasingInFileNames": true,
     "module": "es2020",
-    "moduleResolution": "node",
+    "moduleResolution": "bundler",
     "resolveJsonModule": true,
     "noEmit": true,
     "experimentalDecorators": true,
@@ -23,10 +23,14 @@
     "baseUrl": "./src",
     "useUnknownInCatchVariables": false,
     "composite": true,
+    "types": ["@testing-library/jest-dom"],
     "paths": {
         "mattermost-redux/*": ["packages/mattermost-redux/src/*"],
         "@mui/styled-engine": ["./node_modules/@mui/styled-engine-sc"],
-    }
+    },
+    "plugins": [{
+        "name": "typescript-eslint-language-service"
+    }]
   },
   "include": [
     "./src/**/*",

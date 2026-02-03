@@ -5,16 +5,16 @@ import classNames from 'classnames';
 import crypto from 'crypto';
 import React, {useEffect, useState} from 'react';
 import {FormattedMessage} from 'react-intl';
-import {useDispatch} from 'react-redux';
+import {useDispatch, useSelector} from 'react-redux';
 import {useHistory, useLocation} from 'react-router-dom';
 
-import type {UserProfile} from '@mattermost/types/users';
+import {getCurrentUser} from 'mattermost-redux/selectors/entities/users';
 
-import type {DispatchFunc} from 'mattermost-redux/types/actions';
-
+import {redirectUserToDefaultTeam} from 'actions/global_actions';
 import {loginWithDesktopToken} from 'actions/views/login';
 
 import DesktopApp from 'utils/desktop_api';
+import {isDesktopApp} from 'utils/user_agent';
 
 import './desktop_auth_token.scss';
 
@@ -31,17 +31,19 @@ enum DesktopAuthStatus {
 
 type Props = {
     href: string;
-    onLogin: (userProfile: UserProfile) => void;
+    onLogin: () => void;
 }
 
 const DesktopAuthToken: React.FC<Props> = ({href, onLogin}: Props) => {
-    const dispatch = useDispatch<DispatchFunc>();
+    const dispatch = useDispatch();
     const history = useHistory();
     const {search} = useLocation();
     const query = new URLSearchParams(search);
 
     const serverToken = query.get('server_token');
     const receivedClientToken = query.get('client_token');
+    const redirectTo = query.get('redirect_to');
+    const currentUser = useSelector(getCurrentUser);
     const storedClientToken = sessionStorage.getItem(DESKTOP_AUTH_PREFIX);
     const [status, setStatus] = useState(serverToken ? DesktopAuthStatus.LoggedIn : DesktopAuthStatus.None);
     const [showBottomMessage, setShowBottomMessage] = useState<boolean>();
@@ -53,7 +55,7 @@ const DesktopAuthToken: React.FC<Props> = ({href, onLogin}: Props) => {
         }
 
         sessionStorage.removeItem(DESKTOP_AUTH_PREFIX);
-        const {data: userProfile, error: loginError} = await dispatch(loginWithDesktopToken(serverToken));
+        const {error: loginError} = await dispatch(loginWithDesktopToken(serverToken));
 
         if (loginError && loginError.server_error_id && loginError.server_error_id.length !== 0) {
             setStatus(DesktopAuthStatus.Error);
@@ -61,7 +63,7 @@ const DesktopAuthToken: React.FC<Props> = ({href, onLogin}: Props) => {
         }
 
         setStatus(DesktopAuthStatus.LoggedIn);
-        await onLogin(userProfile as UserProfile);
+        await onLogin();
     };
 
     const openExternalLoginURL = async () => {
@@ -87,6 +89,16 @@ const DesktopAuthToken: React.FC<Props> = ({href, onLogin}: Props) => {
     };
 
     useEffect(() => {
+        if (currentUser) {
+            if (redirectTo && redirectTo.match(/^\/([^/]|$)/)) {
+                history.push(redirectTo);
+                return;
+            }
+            redirectUserToDefaultTeam();
+        }
+    }, []);
+
+    useEffect(() => {
         setShowBottomMessage(false);
 
         const timeout = setTimeout(() => {
@@ -102,7 +114,7 @@ const DesktopAuthToken: React.FC<Props> = ({href, onLogin}: Props) => {
         if (serverToken) {
             if (storedClientToken) {
                 tryDesktopLogin();
-            } else {
+            } else if (!isDesktopApp()) {
                 forwardToDesktopApp();
             }
             return;

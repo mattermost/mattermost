@@ -2,14 +2,15 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-import {FormattedMessage} from 'react-intl';
-import type {IntlShape} from 'react-intl';
+import {FormattedMessage, defineMessage} from 'react-intl';
+import type {IntlShape, MessageDescriptor} from 'react-intl';
 
 import {getModule} from 'module_registry';
 import Constants from 'utils/constants';
-import {t} from 'utils/i18n';
 import {latinise} from 'utils/latinise';
 import * as TextFormatting from 'utils/text_formatting';
+
+import {unescapeHtmlEntities} from './markdown/renderer';
 
 type WindowObject = {
     location: {
@@ -101,23 +102,28 @@ export function makeUrlSafe(url: string, defaultUrl = ''): string {
 }
 
 export function getScheme(url: string): string | null {
-    const match = (/([a-z0-9+.-]+):/i).exec(url);
+    const match = (/^!?([a-z0-9+.-]+):/i).exec(url);
 
     return match && match[1];
 }
 
-function formattedError(id: string, message: string, intl?: IntlShape): React.ReactElement | string {
+export function removeScheme(url: string) {
+    return url.replace(/^([a-z0-9+.-]+):\/\//i, '');
+}
+
+function formattedError(message: MessageDescriptor, intl?: IntlShape): React.ReactElement | string {
     if (intl) {
-        return intl.formatMessage({id, defaultMessage: message});
+        return intl.formatMessage(message);
     }
 
-    return (<span key={id}>
-        <FormattedMessage
-            id={id}
-            defaultMessage={message}
-        />
-        <br/>
-    </span>);
+    return (
+        <span key={message.id}>
+            <FormattedMessage
+                {...message}
+            />
+            <br/>
+        </span>
+    );
 }
 
 export function validateChannelUrl(url: string, intl?: IntlShape): Array<React.ReactElement | string> {
@@ -134,42 +140,108 @@ export function validateChannelUrl(url: string, intl?: IntlShape): Array<React.R
 
     if (cleanedURL !== url || !urlMatched || urlMatched[0] !== url || isDirectMessageFormat || urlLonger || urlShorter) {
         if (urlLonger) {
-            errors.push(formattedError(t('change_url.longer'), 'URLs must have at least 2 characters.', intl));
+            errors.push(formattedError(
+                defineMessage({
+                    id: 'change_url.longer',
+                    defaultMessage: 'URLs must have at least 1 character.',
+                }),
+                intl,
+            ));
         }
 
         if (urlShorter) {
-            errors.push(formattedError(t('change_url.shorter'), 'URLs must have maximum 64 characters.', intl));
+            errors.push(formattedError(
+                defineMessage({
+                    id: 'change_url.shorter',
+                    defaultMessage: 'URLs must have maximum 64 characters.',
+                }),
+                intl,
+            ));
         }
 
         if (url.match(/[^A-Za-z0-9-_]/)) {
-            errors.push(formattedError(t('change_url.noSpecialChars'), 'URLs cannot use special characters.', intl));
+            errors.push(formattedError(
+                defineMessage({
+                    id: 'change_url.noSpecialChars',
+                    defaultMessage: 'URLs cannot use special characters.',
+                }),
+                intl,
+            ));
         }
 
         if (isDirectMessageFormat) {
-            errors.push(formattedError(t('change_url.invalidDirectMessage'), 'User IDs are not allowed in channel URLs.', intl));
+            errors.push(formattedError(
+                defineMessage({
+                    id: 'change_url.invalidDirectMessage',
+                    defaultMessage: 'User IDs are not allowed in channel URLs.',
+                }),
+                intl,
+            ));
         }
 
         const startsWithoutLetter = url.charAt(0) === '-' || url.charAt(0) === '_';
         const endsWithoutLetter = url.length > 1 && (url.charAt(url.length - 1) === '-' || url.charAt(url.length - 1) === '_');
         if (startsWithoutLetter && endsWithoutLetter) {
-            errors.push(formattedError(t('change_url.startAndEndWithLetter'), 'URLs must start and end with a lowercase letter or number.', intl));
+            errors.push(formattedError(
+                defineMessage({
+                    id: 'change_url.startAndEndWithLetter',
+                    defaultMessage: 'URLs must start and end with a lowercase letter or number.',
+                }),
+                intl,
+            ));
         } else if (startsWithoutLetter) {
-            errors.push(formattedError(t('change_url.startWithLetter'), 'URLs must start with a lowercase letter or number.', intl));
+            errors.push(formattedError(
+                defineMessage({
+                    id: 'change_url.startWithLetter',
+                    defaultMessage: 'URLs must start with a lowercase letter or number.',
+                }),
+                intl,
+            ));
         } else if (endsWithoutLetter) {
-            errors.push(formattedError(t('change_url.endWithLetter'), 'URLs must end with a lowercase letter or number.', intl));
+            errors.push(formattedError(
+                defineMessage({
+                    id: 'change_url.endWithLetter',
+                    defaultMessage: 'URLs must end with a lowercase letter or number.',
+                }),
+                intl,
+            ));
         }
 
         // In case of error we don't detect
         if (errors.length === 0) {
-            errors.push(formattedError(t('change_url.invalidUrl'), 'Invalid URL', intl));
+            errors.push(formattedError(
+                defineMessage({
+                    id: 'change_url.invalidUrl',
+                    defaultMessage: 'Invalid URL',
+                }),
+                intl,
+            ));
         }
     }
 
     return errors;
 }
 
+// Returns true when the URL could possibly cause any external requests.
+// Currently returns false only for permalinks
+const permalinkPath = new RegExp('^/[0-9a-z_-]{1,64}/pl/[0-9a-z_-]{26}(\\?view=citation)?$');
+export function mightTriggerExternalRequest(url: string, siteURL?: string): boolean {
+    if (siteURL && siteURL !== '') {
+        let standardSiteURL = siteURL;
+        if (standardSiteURL[standardSiteURL.length - 1] === '/') {
+            standardSiteURL = standardSiteURL.substring(0, standardSiteURL.length - 1);
+        }
+        if (!url.startsWith(standardSiteURL)) {
+            return true;
+        }
+        const afterSiteURL = url.substring(standardSiteURL.length);
+        return !permalinkPath.test(afterSiteURL);
+    }
+    return true;
+}
+
 export function isInternalURL(url: string, siteURL?: string): boolean {
-    return url.startsWith(siteURL || '') || url.startsWith('/');
+    return url.startsWith(siteURL || '') || url.startsWith('/') || url.startsWith('#');
 }
 
 export function shouldOpenInNewTab(url: string, siteURL?: string, managedResourcePaths?: string[]): boolean {
@@ -206,6 +278,11 @@ export function isPermalinkURL(url: string): boolean {
     const regexp = new RegExp(`^(${siteURL})?/[a-z0-9]+([a-z\\-0-9]+|(__)?)[a-z0-9]+/pl/\\w+`, 'gu');
 
     return isInternalURL(url, siteURL) && (regexp.test(url));
+}
+
+export function isValidUrl(url = '') {
+    const regex = /^https?:\/\//i;
+    return regex.test(url);
 }
 
 export function isStringContainingUrl(text: string): boolean {
@@ -260,3 +337,37 @@ export function channelNameToUrl(channelName: string): UrlValidationCheck {
 
     return {url, error: false};
 }
+
+export function parseLink(href: string, defaultSecure = location.protocol === 'https:') {
+    let outHref = href;
+
+    if (!href.startsWith('/')) {
+        const scheme = getScheme(href);
+        if (!scheme) {
+            outHref = `${defaultSecure ? 'https' : 'http'}://${outHref}`;
+        }
+    }
+
+    if (!isUrlSafe(unescapeHtmlEntities(href))) {
+        return undefined;
+    }
+
+    return outHref;
+}
+
+export const validHttpUrl = (input: string) => {
+    const val = parseLink(input);
+
+    if (!val || !isValidUrl(val)) {
+        return null;
+    }
+
+    let url;
+    try {
+        url = new URL(val);
+    } catch {
+        return null;
+    }
+
+    return url;
+};

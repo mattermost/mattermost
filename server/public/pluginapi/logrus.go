@@ -33,7 +33,7 @@ func (lh *LogrusHook) Levels() []logrus.Level {
 
 // Fire proxies logrus entries through the plugin API at the appropriate level.
 func (lh *LogrusHook) Fire(entry *logrus.Entry) error {
-	fields := []interface{}{}
+	fields := []any{}
 	for key, value := range entry.Data {
 		fields = append(fields, key, fmt.Sprintf("%+v", value))
 	}

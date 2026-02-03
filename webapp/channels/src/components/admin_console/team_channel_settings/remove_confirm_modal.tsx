@@ -6,8 +6,6 @@ import {FormattedMessage} from 'react-intl';
 
 import ConfirmModal from 'components/confirm_modal';
 
-import {t} from 'utils/i18n';
-
 type Props = {
 
     /*
@@ -45,17 +43,24 @@ const RemoveConfirmModal = ({show, onConfirm, onCancel, inChannel, amount}: Prop
         />
     );
 
-    const messageId = inChannel ? t('admin.team_channel_settings.removeConfirmModal.messageChannel') : t('admin.team_channel_settings.removeConfirmModal.messageTeam');
-    const messageChannel = '{amount, number} {amount, plural, one {user} other {users}} will be removed. They are not in groups linked to this channel. Are you sure you wish to remove {amount, plural, one {this user} other {these users}}?';
-    const messageTeam = '{amount, number} {amount, plural, one {user} other {users}} will be removed. They are not in groups linked to this team. Are you sure you wish to remove {amount, plural, one {this user} other {these users}}?';
-
-    const message = (
-        <FormattedMessage
-            id={messageId}
-            defaultMessage={inChannel ? messageChannel : messageTeam}
-            values={{amount}}
-        />
-    );
+    let message;
+    if (inChannel) {
+        message = (
+            <FormattedMessage
+                id='admin.team_channel_settings.removeConfirmModal.messageChannel'
+                defaultMessage='{amount, number} {amount, plural, one {user} other {users}} will be removed. They are not in groups linked to this channel. Are you sure you wish to remove {amount, plural, one {this user} other {these users}}?'
+                values={{amount}}
+            />
+        );
+    } else {
+        message = (
+            <FormattedMessage
+                id='admin.team_channel_settings.removeConfirmModal.messageTeam'
+                defaultMessage='{amount, number} {amount, plural, one {user} other {users}} will be removed. They are not in groups linked to this team. Are you sure you wish to remove {amount, plural, one {this user} other {these users}}?'
+                values={{amount}}
+            />
+        );
+    }
 
     const buttonClass = 'btn btn-primary';
     const button = (

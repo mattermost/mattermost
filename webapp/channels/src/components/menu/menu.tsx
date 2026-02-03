@@ -2,6 +2,9 @@
 // See LICENSE.txt for license information.
 
 import MuiMenuList from '@mui/material/MenuList';
+import MuiPopover from '@mui/material/Popover';
+import type {PopoverOrigin} from '@mui/material/Popover';
+import classNames from 'classnames';
 import React, {
     useState,
     useEffect,
@@ -11,7 +14,6 @@ import type {
     ReactNode,
     MouseEvent,
     KeyboardEvent,
-    SyntheticEvent,
 } from 'react';
 import {useDispatch, useSelector} from 'react-redux';
 
@@ -23,52 +25,73 @@ import {openModal, closeModal} from 'actions/views/modals';
 import {getIsMobileView} from 'selectors/views/browser';
 
 import CompassDesignProvider from 'components/compass_design_provider';
-import OverlayTrigger from 'components/overlay_trigger';
-import Tooltip from 'components/tooltip';
+import WithTooltip from 'components/with_tooltip';
 
 import Constants, {A11yClassNames} from 'utils/constants';
 import {isKeyPressed} from 'utils/keyboard';
 
 import {MenuContext, useMenuContextValue} from './menu_context';
-import {MuiMenuStyled} from './menu_styled';
 
-const OVERLAY_TIME_DELAY = 500;
+import './menu.scss';
+
+export const ELEMENT_ID_FOR_MENU_BACKDROP = 'backdropForMenuComponent';
+
 const MENU_OPEN_ANIMATION_DURATION = 150;
 const MENU_CLOSE_ANIMATION_DURATION = 100;
 
 type MenuButtonProps = {
     id: string;
-    dateTestId?: string;
+    dataTestId?: string;
     'aria-label'?: string;
+    'aria-describedby'?: string;
     disabled?: boolean;
     class?: string;
+    as?: keyof JSX.IntrinsicElements;
     children: ReactNode;
 }
 
 type MenuButtonTooltipProps = {
-    id: string;
-    placement?: 'top' | 'bottom' | 'left' | 'right';
+    isVertical?: boolean;
     class?: string;
     text: string;
+    disabled?: boolean;
 }
 
 type MenuProps = {
-    id: string;
-    'aria-label'?: string;
 
     /**
-     * @warning Make the styling of your components such a way that they dont need this handler
+     * ID is mandatory as it is used in mobileWebview to open modal equivalent to menu
+     */
+    id: string;
+    'aria-label'?: string;
+    className?: string;
+    'aria-labelledby'?: string;
+
+    /**
+     * @warning Make the styling of your components such a way that they don't need this handler
      */
     onToggle?: (isOpen: boolean) => void;
     onKeyDown?: (event: KeyboardEvent<HTMLDivElement>, forceCloseMenu?: () => void) => void;
     width?: string;
+    isMenuOpen?: boolean;
 }
+
+const defaultAnchorOrigin = {vertical: 'bottom', horizontal: 'left'} as PopoverOrigin;
+const defaultTransformOrigin = {vertical: 'top', horizontal: 'left'} as PopoverOrigin;
 
 interface Props {
     menuButton: MenuButtonProps;
     menuButtonTooltip?: MenuButtonTooltipProps;
+    menuHeader?: ReactNode;
+    menuFooter?: ReactNode;
     menu: MenuProps;
-    children: ReactNode[];
+    children: ReactNode | ReactNode[];
+    closeMenuOnTab?: boolean;
+
+    // Use MUI Anchor Playgroup to try various anchorOrigin
+    // and transformOrigin values - https://mui.com/material-ui/react-popover/#anchor-playground
+    anchorOrigin?: PopoverOrigin;
+    transformOrigin?: PopoverOrigin;
 }
 
 /**
@@ -82,6 +105,7 @@ interface Props {
  * </Menu.Item>
  */
 export function Menu(props: Props) {
+    const {closeMenuOnTab = true} = props;
     const theme = useSelector(getTheme);
 
     const isMobileView = useSelector(getIsMobileView);
@@ -89,20 +113,17 @@ export function Menu(props: Props) {
     const dispatch = useDispatch();
 
     const [anchorElement, setAnchorElement] = useState<null | HTMLElement>(null);
-    const [disableAutoFocusItem, setDisableAutoFocusItem] = useState(false);
     const isMenuOpen = Boolean(anchorElement);
 
-    // Callback funtion handler called when menu is closed by escapeKeyDown, backdropClick or tabKeyDown
+    // Callback function handler called when menu is closed by escapeKeyDown, backdropClick or tabKeyDown
     function handleMenuClose(event: MouseEvent<HTMLDivElement>) {
         event.preventDefault();
         setAnchorElement(null);
-        setDisableAutoFocusItem(false);
     }
 
     // Handle function injected into menu items to close the menu
     const closeMenu = useCallback(() => {
         setAnchorElement(null);
-        setDisableAutoFocusItem(false);
     }, []);
 
     function handleMenuModalClose(modalId: MenuProps['id']) {
@@ -110,9 +131,9 @@ export function Menu(props: Props) {
         setAnchorElement(null);
     }
 
-    // Stop sythetic events from bubbling up to the parent
+    // Stop synthetic events from bubbling up to the parent
     // @see https://github.com/mui/material-ui/issues/32064
-    function handleMenuClick(e: MouseEvent<HTMLLIElement> | KeyboardEvent<HTMLLIElement>) {
+    function handleMenuClick(e: MouseEvent<HTMLDivElement> | KeyboardEvent<HTMLDivElement>) {
         e.stopPropagation();
     }
 
@@ -135,9 +156,16 @@ export function Menu(props: Props) {
             // This however is not the case for mouse events as they are handled/closed by menu item click handlers
             props.menu.onKeyDown(event, closeMenu);
         }
+
+        // To handle closing the menu when TAB is pressed by default.
+        // This is added as MUI popover component does not automatically close the menu when TAB is pressed.
+        // `closeMenuOnTab` is used in case if we want to opt out from closing the menu on TAB.
+        if (closeMenuOnTab && isKeyPressed(event, Constants.KeyCodes.TAB)) {
+            closeMenu();
+        }
     }
 
-    function handleMenuButtonClick(event: SyntheticEvent<HTMLButtonElement>) {
+    function handleMenuButtonClick(event: MouseEvent) {
         event.preventDefault();
         event.stopPropagation();
 
@@ -150,58 +178,51 @@ export function Menu(props: Props) {
                         menuButtonId: props.menuButton.id,
                         menuId: props.menu.id,
                         menuAriaLabel: props.menu?.['aria-label'] ?? '',
+                        className: props.menu.className,
                         onModalClose: handleMenuModalClose,
                         children: props.children,
                         onKeyDown: props.menu.onKeyDown,
+                        menuHeader: props.menuHeader,
+                        menuFooter: props.menuFooter,
                     },
                 }),
             );
         } else {
-            setAnchorElement(event.currentTarget);
+            setAnchorElement(event.currentTarget as HTMLElement);
         }
-    }
-
-    // Function to prevent focus-visible from being set on clicking menu items with the mouse
-    function handleMenuButtonMouseDown() {
-        setDisableAutoFocusItem(true);
     }
 
     // We construct the menu button so we can set onClick correctly here to support both web and mobile view
     function renderMenuButton() {
+        const MenuButtonComponent = props.menuButton?.as ?? 'button';
+
         const triggerElement = (
-            <button
+            <MenuButtonComponent
                 id={props.menuButton.id}
-                data-testid={props.menuButton.dateTestId}
+                data-testid={props.menuButton.dataTestId}
                 aria-controls={props.menu.id}
                 aria-haspopup={true}
                 aria-expanded={isMenuOpen}
                 disabled={props.menuButton?.disabled ?? false}
-                aria-label={props.menuButton?.['aria-label'] ?? ''}
+                aria-label={props.menuButton?.['aria-label']}
+                aria-describedby={props.menuButton?.['aria-describedby']}
                 className={props.menuButton?.class ?? ''}
                 onClick={handleMenuButtonClick}
-                onMouseDown={handleMenuButtonMouseDown}
             >
                 {props.menuButton.children}
-            </button>
+            </MenuButtonComponent>
         );
 
         if (props.menuButtonTooltip && props.menuButtonTooltip.text && !isMobileView) {
             return (
-                <OverlayTrigger
-                    delayShow={OVERLAY_TIME_DELAY}
-                    placement={props?.menuButtonTooltip?.placement ?? 'top'}
-                    overlay={
-                        <Tooltip
-                            id={props.menuButtonTooltip.id}
-                            className={props.menuButtonTooltip?.class ?? ''}
-                        >
-                            {props.menuButtonTooltip.text}
-                        </Tooltip>
-                    }
-                    disabled={isMenuOpen}
+                <WithTooltip
+                    title={props.menuButtonTooltip.text}
+                    isVertical={props.menuButtonTooltip?.isVertical ?? true}
+                    disabled={isMenuOpen || props.menuButton?.disabled}
+                    className={props.menuButtonTooltip.class}
                 >
                     {triggerElement}
-                </OverlayTrigger>
+                </WithTooltip>
             );
         }
 
@@ -214,6 +235,12 @@ export function Menu(props: Props) {
         }
     }, [isMenuOpen]);
 
+    useEffect(() => {
+        if (props.menu.isMenuOpen === false) {
+            setAnchorElement(null);
+        }
+    }, [props.menu.isMenuOpen]);
+
     const providerValue = useMenuContextValue(closeMenu, Boolean(anchorElement));
 
     if (isMobileView) {
@@ -225,20 +252,16 @@ export function Menu(props: Props) {
         <CompassDesignProvider theme={theme}>
             {renderMenuButton()}
             <MenuContext.Provider value={providerValue}>
-                <MuiMenuStyled
+                <MuiPopover
                     anchorEl={anchorElement}
                     open={isMenuOpen}
                     onClose={handleMenuClose}
                     onClick={handleMenuClick}
-                    onTransitionExited={providerValue.handleClosed}
                     onKeyDown={handleMenuKeyDown}
-                    className={A11yClassNames.POPUP}
-                    width={props.menu.width}
-                    disableAutoFocusItem={disableAutoFocusItem} // This is not anti-pattern, see handleMenuButtonMouseDown
-                    MenuListProps={{
-                        id: props.menu.id,
-                        'aria-label': props.menu?.['aria-label'] ?? '',
-                    }}
+                    className={classNames(A11yClassNames.POPUP, 'menu_menuStyled')}
+                    marginThreshold={0}
+                    anchorOrigin={props.anchorOrigin || defaultAnchorOrigin}
+                    transformOrigin={props.transformOrigin || defaultTransformOrigin}
                     TransitionProps={{
                         mountOnEnter: true,
                         unmountOnExit: true,
@@ -247,9 +270,30 @@ export function Menu(props: Props) {
                             exit: MENU_CLOSE_ANIMATION_DURATION,
                         },
                     }}
+                    slotProps={{
+                        backdrop: {
+                            id: ELEMENT_ID_FOR_MENU_BACKDROP,
+                        },
+                    }}
+                    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+                    // @ts-expect-error This exists in source code of mui, but its types are missing
+                    onTransitionExited={providerValue.handleClosed}
                 >
-                    {props.children}
-                </MuiMenuStyled>
+                    {props.menuHeader}
+                    <MuiMenuList
+                        id={props.menu.id}
+                        aria-label={props.menu?.['aria-label']}
+                        aria-labelledby={props.menu['aria-labelledby']}
+                        className={props.menu.className}
+                        style={{
+                            width: props.menu.width,
+                        }}
+                        autoFocusItem={isMenuOpen}
+                    >
+                        {props.children}
+                    </MuiMenuList>
+                    {props.menuFooter}
+                </MuiPopover>
             </MenuContext.Provider>
         </CompassDesignProvider>
     );
@@ -259,9 +303,12 @@ interface MenuModalProps {
     menuButtonId: MenuButtonProps['id'];
     menuId: MenuProps['id'];
     menuAriaLabel: MenuProps['aria-label'];
+    className: MenuProps['className'];
     onModalClose: (modalId: MenuProps['id']) => void;
     children: Props['children'];
     onKeyDown?: MenuProps['onKeyDown'];
+    menuHeader?: Props['menuHeader'];
+    menuFooter?: Props['menuFooter'];
 }
 
 function MenuModal(props: MenuModalProps) {
@@ -305,8 +352,11 @@ function MenuModal(props: MenuModalProps) {
                     component='div'
                     aria-labelledby={props.menuButtonId}
                     onClick={handleModalClickCapture}
+                    className={props.className}
                 >
+                    {props.menuHeader}
                     {props.children}
+                    {props.menuFooter}
                 </MuiMenuList>
             </GenericModal>
         </CompassDesignProvider>

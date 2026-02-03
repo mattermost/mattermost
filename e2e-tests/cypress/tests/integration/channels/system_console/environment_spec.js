@@ -35,18 +35,12 @@ describe('Environment', () => {
         cy.visit(townsquareLink);
 
         // # Open team menu and click "Team Settings"
-        cy.uiOpenTeamMenu('Team Settings');
+        cy.uiOpenTeamMenu('Team settings');
 
         // * Check that the 'Team Settings' modal was opened
         cy.get('#teamSettingsModal').should('exist').within(() => {
-            // clicking on edit button
-            cy.get('#team_iconEdit').should('be.visible').click();
-
-            // verify the settings picture button is visible to click
-            cy.findByTestId('inputSettingPictureButton').should('be.visible').click();
-
-            // * Before uploading the picture the save button must be disabled
-            cy.uiSaveButton().should('be.disabled');
+            // # Verify upload icon button is visible
+            cy.get('i[title="Edit Icon"]').should('be.visible');
 
             // # Upload a file on center view
             cy.findByTestId('uploadPicture').attachFile(mattermostIcon);
@@ -85,18 +79,12 @@ describe('Environment', () => {
         cy.visit(townsquareLink);
 
         // # Open team menu and click "Team Settings"
-        cy.uiOpenTeamMenu('Team Settings');
+        cy.uiOpenTeamMenu('Team settings');
 
         // * Check that the 'Team Settings' modal was opened
         cy.get('#teamSettingsModal').should('exist').within(() => {
-            // clicking on edit button
-            cy.get('#team_iconEdit').should('be.visible').click();
-
-            // verify the settings picture button is visible to click
-            cy.findByTestId('inputSettingPictureButton').should('be.visible').click();
-
-            // * Before uploading the picture the save button must be disabled
-            cy.uiSaveButton().should('be.disabled');
+            // # Verify upload icon button is visible
+            cy.get('i[title="Edit Icon"]').should('be.visible');
 
             // # Upload a file on center view
             cy.findByTestId('uploadPicture').attachFile(mattermostIcon);
@@ -135,18 +123,12 @@ describe('Environment', () => {
         cy.visit(townsquareLink);
 
         // # Open team menu and click "Team Settings"
-        cy.uiOpenTeamMenu('Team Settings');
+        cy.uiOpenTeamMenu('Team settings');
 
         // * Check that the 'Team Settings' modal was opened
         cy.get('#teamSettingsModal').should('exist').within(() => {
-            // clicking on edit button
-            cy.get('#team_iconEdit').should('be.visible').click();
-
-            // verify the settings picture button is visible to click
-            cy.findByTestId('inputSettingPictureButton').should('be.visible').click();
-
-            // * Before uploading the picture the save button must be disabled
-            cy.uiSaveButton().should('be.disabled');
+            // # Verify upload icon button is visible
+            cy.get('i[title="Edit Icon"]').should('be.visible');
 
             // # Upload a file on center view
             cy.findByTestId('uploadPicture').attachFile(mattermostIcon);

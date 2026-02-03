@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-import {FormattedMessage} from 'react-intl';
+import {FormattedMessage, defineMessages} from 'react-intl';
 
 import type {AdminConfig} from '@mattermost/types/config';
 
@@ -11,6 +11,10 @@ import AdminHeader from 'components/widgets/admin_console/admin_header';
 type Props = {
     config: AdminConfig;
 };
+
+export const messages = defineMessages({
+    title: {id: 'admin.feature_flags.title', defaultMessage: 'Feature Flags'},
+});
 
 const FeatureFlags: React.FC<Props> = (props: Props) => {
     const flags = props.config.FeatureFlags;
@@ -28,10 +32,7 @@ const FeatureFlags: React.FC<Props> = (props: Props) => {
     return (
         <div className='wrapper--admin'>
             <AdminHeader>
-                <FormattedMessage
-                    id='admin.feature_flags.title'
-                    defaultMessage='Features Flags'
-                />
+                <FormattedMessage {...messages.title}/>
             </AdminHeader>
             <div className='admin-console__wrapper'>
                 <div className='admin-logs-content admin-console__content'>
@@ -39,7 +40,7 @@ const FeatureFlags: React.FC<Props> = (props: Props) => {
                         <div className='banner__content'>
                             <FormattedMessage
                                 id='admin.feature_flags.introBanner'
-                                defaultMessage={'Feature flag values displayed here show the status of features enabled on this server. The values here are used only for troubleshooting by the Mattermost support team.'}
+                                defaultMessage={'The following feature flag values show the status of features enabled on this instance. The values are used for debugging purposes by the Mattermost support team.'}
                             />
                         </div>
                     </div>

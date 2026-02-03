@@ -1,32 +1,20 @@
-// Jest Snapshot v1, https://goo.gl/fbAQLP
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
 
 exports[`components/file_preview_modal/file_preview_modal_main_nav/FilePreviewModalMainNav should match snapshot with multiple files 1`] = `
 <div
   className="file_preview_modal_main_nav"
 >
-  <OverlayTrigger
-    defaultOverlayShown={false}
-    delayShow={400}
+  <WithTooltip
     key="previewArrowLeft"
-    overlay={
-      <Tooltip
-        id="close-icon-tooltip"
-      >
-        <Memo(MemoizedFormattedMessage)
-          defaultMessage="Close"
-          id="generic.close"
-        />
-      </Tooltip>
-    }
-    placement="bottom"
-    trigger={
-      Array [
-        "hover",
-        "focus",
-      ]
+    title={
+      <Memo(MemoizedFormattedMessage)
+        defaultMessage="Close"
+        id="generic.close"
+      />
     }
   >
     <button
+      aria-label="Previous file"
       className="file_preview_modal_main_nav__prev"
       id="previewArrowLeft"
       onClick={[MockFunction]}
@@ -35,8 +23,10 @@ exports[`components/file_preview_modal/file_preview_modal_main_nav/FilePreviewMo
         className="icon icon-chevron-left"
       />
     </button>
-  </OverlayTrigger>
+  </WithTooltip>
   <span
+    aria-atomic="true"
+    aria-live="polite"
     className="modal-bar-file-count"
   >
     <MemoizedFormattedMessage
@@ -50,29 +40,17 @@ exports[`components/file_preview_modal/file_preview_modal_main_nav/FilePreviewMo
       }
     />
   </span>
-  <OverlayTrigger
-    defaultOverlayShown={false}
-    delayShow={400}
+  <WithTooltip
     key="publicLink"
-    overlay={
-      <Tooltip
-        id="close-icon-tooltip"
-      >
-        <Memo(MemoizedFormattedMessage)
-          defaultMessage="Next"
-          id="generic.next"
-        />
-      </Tooltip>
-    }
-    placement="bottom"
-    trigger={
-      Array [
-        "hover",
-        "focus",
-      ]
+    title={
+      <Memo(MemoizedFormattedMessage)
+        defaultMessage="Next"
+        id="generic.next"
+      />
     }
   >
     <button
+      aria-label="Next file"
       className="file_preview_modal_main_nav__next"
       id="previewArrowRight"
       onClick={[MockFunction]}
@@ -81,6 +59,6 @@ exports[`components/file_preview_modal/file_preview_modal_main_nav/FilePreviewMo
         className="icon icon-chevron-right"
       />
     </button>
-  </OverlayTrigger>
+  </WithTooltip>
 </div>
 `;

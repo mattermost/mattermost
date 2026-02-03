@@ -208,10 +208,6 @@
     "translation": "No puedes abandonar un canal de mensaje directo."
   },
   {
-    "id": "api.channel.leave.last_member.app_error",
-    "translation": "Eres el último miembro que queda, intenta eliminar el Canal Privado en vez de salirte."
-  },
-  {
     "id": "api.channel.leave.left",
     "translation": "%v abandonó el canal."
   },
@@ -598,7 +594,7 @@
   {
     "id": "api.command_groupmsg.invalid_user.app_error",
     "translation": {
-      "many": "No se puede encontrar los usuarios: {{.Users}}",
+      "many": "No se pueden encontrar los usuarios: {{.Users}}",
       "one": "No se puede encontrar el usuario: {{.Users}}",
       "other": ""
     }
@@ -649,7 +645,7 @@
   },
   {
     "id": "api.command_invite.hint",
-    "translation": "@[usuario] ~[canal]"
+    "translation": "@[username] ~[channel]..."
   },
   {
     "id": "api.command_invite.missing_message.app_error",
@@ -657,7 +653,7 @@
   },
   {
     "id": "api.command_invite.missing_user.app_error",
-    "translation": "No se pudo encontrar el usuario. Puede que haya sido desactivado por el Administrador del Sistema."
+    "translation": "No se pudo encontrar al usuario {{.User}}. Puede que haya sido desactivado por el Administrador del Sistema."
   },
   {
     "id": "api.command_invite.name",
@@ -677,7 +673,11 @@
   },
   {
     "id": "api.command_invite.user_already_in_channel.app_error",
-    "translation": "{{.User}} ya está en el canal."
+    "translation": {
+      "many": "{{.User}} ya están en el canal.",
+      "one": "{{.User}} ya está en el canal.",
+      "other": ""
+    }
   },
   {
     "id": "api.command_invite_people.permission.app_error",
@@ -790,10 +790,6 @@
   {
     "id": "api.command_mute.no_channel.error",
     "translation": "No se encontró el canal especificado. Por favor utiliza el [identificador del canal](https://docs.mattermost.com/messaging/managing-channels.html#naming-a-channel) para identificar canales."
-  },
-  {
-    "id": "api.command_mute.not_member.error",
-    "translation": "No se pudo silenciar el canal {{.Channel}} porque no eres miembro."
   },
   {
     "id": "api.command_mute.success_mute",
@@ -924,10 +920,6 @@
     "translation": "npi"
   },
   {
-    "id": "api.config.client.old_format.app_error",
-    "translation": "Nuevo formato para la configuración del cliente no es compatible todavía. Por favor utiliza format=old en la cadena de consulta."
-  },
-  {
     "id": "api.context.404.app_error",
     "translation": "Lo sentimos, pero no pudimos encontrar la página."
   },
@@ -982,8 +974,8 @@
   {
     "id": "api.email_batching.send_batched_email_notification.subject",
     "translation": {
-      "many": "[{{.SiteName}}] Nuevas Notificaciones {{.Day}} {{.Month}}, {{.Year}}",
-      "one": "[{{.SiteName}}] Nueva Notificación {{.Day}} {{.Month}}, {{.Year}}",
+      "many": "[{{.SiteName}}] Nuevas Notificaciones del {{.Day}} {{.Month}}, {{.Year}}",
+      "one": "[{{.SiteName}}] Nueva Notificación del {{.Day}} {{.Month}}, {{.Year}}",
       "other": ""
     }
   },
@@ -1190,10 +1182,6 @@
   {
     "id": "api.oauth.get_access_token.bad_client_id.app_error",
     "translation": "invalid_request: Mal client_id."
-  },
-  {
-    "id": "api.oauth.get_access_token.bad_client_secret.app_error",
-    "translation": "invalid_request: Falta client_secret."
   },
   {
     "id": "api.oauth.get_access_token.bad_grant.app_error",
@@ -1729,7 +1717,7 @@
   },
   {
     "id": "api.team.update_restricted_domains.mismatch.app_error",
-    "translation": "La restricción del equipo a {{.Domain}} no está permitido por la configuración del sistema. Por favor contacta a un administrador del sistema."
+    "translation": "La configuración del sistema no permite limitar el equipo a {{ .Domain }}. Por favor, contacta con el administrador."
   },
   {
     "id": "api.team.update_team_scheme.license.error",
@@ -1885,7 +1873,7 @@
   },
   {
     "id": "api.templates.user_access_token_body.info",
-    "translation": "Un token de acceso personal ha sido agregado a tu cuenta en {{ .SiteURL}}. El mismo puede ser utilizado para acceder a {{.SiteName}} con tu cuenta."
+    "translation": "Un token de acceso personal ha sido agregado a tu cuenta en {{ .SiteURL }}. El mismo puede ser utilizado para acceder a {{.SiteName}} con tu cuenta."
   },
   {
     "id": "api.templates.user_access_token_body.title",
@@ -2080,14 +2068,6 @@
     "translation": "El inicio de sesión con un Bot está prohibido."
   },
   {
-    "id": "api.user.login.client_side_cert.certificate.app_error",
-    "translation": "Se ha intentado ingresar usando la característica experimental \"ClientSideCert\" sin proveer de un certificado válido."
-  },
-  {
-    "id": "api.user.login.client_side_cert.license.app_error",
-    "translation": "Se ha intentado utilizar la característica experimental \"ClientSideCert\" sin una licencia empresarial válida."
-  },
-  {
     "id": "api.user.login.inactive.app_error",
     "translation": "El inicio de sesión falló porque tu cuenta ha sido desactivada.  Por favor contacta a un administrador."
   },
@@ -2105,7 +2085,7 @@
   },
   {
     "id": "api.user.login_by_oauth.not_available.app_error",
-    "translation": "{{.Servicio}} SSO a través de OAuth 2.0 no está disponible en este servidor."
+    "translation": "{{.Service}} SSO a través de OAuth 2.0 no está disponible en este servidor."
   },
   {
     "id": "api.user.login_by_oauth.parse.app_error",
@@ -2261,7 +2241,7 @@
   },
   {
     "id": "api.web_socket.connect.upgrade.app_error",
-    "translation": "Falla al actualizar la conexión del websocket."
+    "translation": "URL bloqueada por restricción de CORS. URL: {{.BlockedOrigin}}"
   },
   {
     "id": "api.web_socket_router.bad_action.app_error",
@@ -2294,10 +2274,6 @@
   {
     "id": "api.webhook.create_outgoing.triggers.app_error",
     "translation": "Debe establecerse palabras que desencadenen una acción o un channel_id."
-  },
-  {
-    "id": "api.webhook.incoming.error",
-    "translation": "No se pudo codificar la carga del multipart en el webhook entrante."
   },
   {
     "id": "api.webhook.team_mismatch.app_error",
@@ -2853,11 +2829,11 @@
   },
   {
     "id": "app.notification.subject.group_message.full",
-    "translation": "[{{ .SiteName }}] Nuevo Mensaje de Grupo en {{ .TeamName}} el {{.Day}} {{.Month}}, {{.Year}}"
+    "translation": "[{{ .SiteName }}] Nuevo Mensaje de Grupo en {{ .ChannelName}} el {{.Day}} {{.Month}}, {{.Year}}"
   },
   {
     "id": "app.notification.subject.group_message.generic",
-    "translation": "[{{.SiteName}}] Nuevo Mensaje de Grupo el {{.Day}} {{.Month}}, {{.Year}}"
+    "translation": "[{{ .SiteName }}] Nuevo Mensaje de Grupo el {{.Day}} {{.Month}}, {{.Year}}"
   },
   {
     "id": "app.notification.subject.notification.full",
@@ -3000,60 +2976,8 @@
     "translation": "La Consola del Sistema es de sólo lectura cuando la Alta Disponibilidad es activada a menos que ReadOnlyConfig está inahibilitado en el archivo de configuración."
   },
   {
-    "id": "ent.compliance.bad_export_type.appError",
-    "translation": "Formato de salida desconocido {{.ExportType}}"
-  },
-  {
-    "id": "ent.compliance.csv.attachment.copy.appError",
-    "translation": "No se puedo copiar el adjunto en el fichero comprimido."
-  },
-  {
-    "id": "ent.compliance.csv.attachment.export.appError",
-    "translation": "No se pudo añadir el adjunto al fichero de exportación CSV."
-  },
-  {
-    "id": "ent.compliance.csv.file.creation.appError",
-    "translation": "No se puede crear un archivo temporal de exportación a CSV."
-  },
-  {
-    "id": "ent.compliance.csv.header.export.appError",
-    "translation": "No se pudo añadir la cabecera al fichero de exportación CSV."
-  },
-  {
-    "id": "ent.compliance.csv.metadata.export.appError",
-    "translation": "No se pudo añadir el fichero de metadatos al fichero comprimido."
-  },
-  {
-    "id": "ent.compliance.csv.metadata.json.marshalling.appError",
-    "translation": "No se puede convertir los metadatos a json."
-  },
-  {
-    "id": "ent.compliance.csv.post.export.appError",
-    "translation": "No se puede exportar un mensaje."
-  },
-  {
-    "id": "ent.compliance.csv.zip.creation.appError",
-    "translation": "No se puede crear el archivo de exportación zip."
-  },
-  {
-    "id": "ent.compliance.global_relay.attachments_removed.appError",
-    "translation": "El archivo cargado fue eliminado de la exportación Global Relay, ya que era demasiado grande para ser enviado."
-  },
-  {
-    "id": "ent.compliance.global_relay.open_temporary_file.appError",
-    "translation": "No se puede abrir el archivo temporal para exportación."
-  },
-  {
-    "id": "ent.compliance.global_relay.rewind_temporary_file.appError",
-    "translation": "No se puede re-leer del archivo de exportación temporal de Global Relay."
-  },
-  {
     "id": "ent.compliance.licence_disable.app_error",
     "translation": "La característica de Conformidad está inhabilitada para tu licencia actual. Por favor contacta a un administrador del sistema sobre como actualizar a una licencia empresarial."
-  },
-  {
-    "id": "ent.compliance.run_export.template_watcher.appError",
-    "translation": "No se pueden cargar las plantillas de exportación. Por favor, inténtelo de nuevo."
   },
   {
     "id": "ent.compliance.run_failed.error",
@@ -3065,31 +2989,31 @@
   },
   {
     "id": "ent.elasticsearch.aggregator_worker.create_index_job.error",
-    "translation": "El agregador trabajos de Elasticsearch no pudo crear el trabajo de indexación"
+    "translation": "El agregador trabajos de {{.Backend}} no pudo crear el trabajo de indexación"
   },
   {
     "id": "ent.elasticsearch.aggregator_worker.delete_indexes.error",
-    "translation": "El agregador trabajos de Elasticsearch no pudo eliminar los índices"
+    "translation": "El agregador trabajos de {{.Backend}} no pudo eliminar los índices"
   },
   {
     "id": "ent.elasticsearch.aggregator_worker.get_indexes.error",
-    "translation": "El agregador trabajos de Elasticsearch no pudo obtener los índices"
+    "translation": "El agregador trabajos de {{.Backend}} no pudo obtener los índices"
   },
   {
     "id": "ent.elasticsearch.aggregator_worker.index_job_failed.error",
-    "translation": "El agregador trabajos de Elasticsearch falló debido a que hay un trabajo indexación fallando"
+    "translation": "El agregador trabajos de {{.Backend}} falló debido a que hay un trabajo indexación fallando"
   },
   {
     "id": "ent.elasticsearch.create_client.connect_failed",
-    "translation": "La configuración del cliente de Elasticsearch falló"
+    "translation": "La configuración del cliente de {{.Backend}} falló"
   },
   {
     "id": "ent.elasticsearch.data_retention_delete_indexes.delete_index.error",
-    "translation": "No se pudo borrar el índice de ElasticSearch"
+    "translation": "No se pudo borrar el índice de {{.Backend}}"
   },
   {
     "id": "ent.elasticsearch.data_retention_delete_indexes.get_indexes.error",
-    "translation": "No se pudo obtener los índices de Elasticsearch"
+    "translation": "No se pudo obtener los índices de {{.Backend}}"
   },
   {
     "id": "ent.elasticsearch.delete_post.error",
@@ -3097,7 +3021,7 @@
   },
   {
     "id": "ent.elasticsearch.generic.disabled",
-    "translation": "La búsqueda con Elasticsearch está deshabilitada en este servidor"
+    "translation": "La búsqueda con {{.Backend}} está deshabilitada en este servidor"
   },
   {
     "id": "ent.elasticsearch.index_post.error",
@@ -3105,23 +3029,19 @@
   },
   {
     "id": "ent.elasticsearch.indexer.do_job.parse_end_time.error",
-    "translation": "El trabajo de Elasticsearch falló al analizar la hora de finalización"
+    "translation": "El trabajo de indexación en {{.Backend}} falló al analizar la hora de finalización"
   },
   {
     "id": "ent.elasticsearch.indexer.do_job.parse_start_time.error",
-    "translation": "El trabajo de Elasticsearch falló al analizar la hora de inicio"
+    "translation": "El trabajo de indexación en {{.Backend}} falló al analizar la hora de inicio"
   },
   {
     "id": "ent.elasticsearch.not_started.error",
-    "translation": "Elasticsearch no se ha iniciado"
-  },
-  {
-    "id": "ent.elasticsearch.purge_indexes.delete_failed",
-    "translation": "No se pudo borrar el índice de ElasticSearch"
+    "translation": "{{.Backend}} no se ha iniciado"
   },
   {
     "id": "ent.elasticsearch.search_posts.disabled",
-    "translation": "La búsqueda con Elasticsearch está deshabilitada en este servidor"
+    "translation": "La búsqueda con {{.Backend}} está deshabilitada en este servidor"
   },
   {
     "id": "ent.elasticsearch.search_posts.parse_matches_failed",
@@ -3136,20 +3056,12 @@
     "translation": "No pudo decodificar los resultados de búsqueda"
   },
   {
-    "id": "ent.elasticsearch.start.create_bulk_processor_failed.app_error",
-    "translation": "No se pudo crear el procesador a granel de Elasticsearch."
-  },
-  {
-    "id": "ent.elasticsearch.start.start_bulk_processor_failed.app_error",
-    "translation": "No se pudo iniciar procesador a granel de Elasticsearch."
-  },
-  {
     "id": "ent.elasticsearch.stop.already_stopped.app_error",
-    "translation": "Elasticsearch ya fue detenido."
+    "translation": "{{.Backend}} ya fue detenido."
   },
   {
     "id": "ent.elasticsearch.test_config.indexing_disabled.error",
-    "translation": "Elasticsearch está deshabilitado."
+    "translation": "{{.Backend}} está deshabilitado."
   },
   {
     "id": "ent.elasticsearch.test_config.license.error",
@@ -3244,58 +3156,6 @@
     "translation": "error al obtener los grupos del usuario"
   },
   {
-    "id": "ent.message_export.global_relay.attach_file.app_error",
-    "translation": "No se pudo añadir el adjunto al fichero de exportación de Global Relay."
-  },
-  {
-    "id": "ent.message_export.global_relay.close_zip_file.app_error",
-    "translation": "No se puede cerrar el archivo zip."
-  },
-  {
-    "id": "ent.message_export.global_relay.create_file_in_zip.app_error",
-    "translation": "No se puede crear el archivo eml."
-  },
-  {
-    "id": "ent.message_export.global_relay.generate_email.app_error",
-    "translation": "No se pudo generar los datos del archivo eml."
-  },
-  {
-    "id": "ent.message_export.global_relay_export.deliver.close.app_error",
-    "translation": "No se pudo entregar el correo electrónico a Global Relay."
-  },
-  {
-    "id": "ent.message_export.global_relay_export.deliver.from_address.app_error",
-    "translation": "No se puede establecer la dirección Desde para el correo electrónico."
-  },
-  {
-    "id": "ent.message_export.global_relay_export.deliver.msg.app_error",
-    "translation": "No se puede establecer el mensaje del correo electrónico."
-  },
-  {
-    "id": "ent.message_export.global_relay_export.deliver.msg_data.app_error",
-    "translation": "No se puede escribir el mensaje del correo electrónico."
-  },
-  {
-    "id": "ent.message_export.global_relay_export.deliver.parse_mail.app_error",
-    "translation": "No se puede leer la información del correo electrónico."
-  },
-  {
-    "id": "ent.message_export.global_relay_export.deliver.to_address.app_error",
-    "translation": "No se puede establecer la dirección Para del correo electrónico."
-  },
-  {
-    "id": "ent.message_export.global_relay_export.deliver.unable_to_get_file_info.app_error",
-    "translation": "No se puede obtener la información del archivo temporal de exportación."
-  },
-  {
-    "id": "ent.message_export.global_relay_export.deliver.unable_to_open_email_file.app_error",
-    "translation": "No se puede obtener el correo electrónico desde el archivo temporal."
-  },
-  {
-    "id": "ent.message_export.global_relay_export.deliver.unable_to_open_zip_file_data.app_error",
-    "translation": "No se puede abrir el archivo temporal de exportación."
-  },
-  {
     "id": "ent.migration.migratetoldap.duplicate_field",
     "translation": "No se pueden migrar los usuarios de AD/LDAP con el campo especificado. Se ha detectado un entrada duplicada. Por favor, elimina todos los duplicados e inténtalo de nuevo."
   },
@@ -3324,16 +3184,8 @@
     "translation": "Se ha producido un error mientras se inicia la solicitud al Proveedor de Identidad. Por favor, póngase en contacto con su Administrador del Sistema."
   },
   {
-    "id": "ent.saml.build_request.encoding.app_error",
-    "translation": "Se ha producido un error mientras se codificaba la solicitud para el Proveedor de Identidad. Por favor, póngase en contacto con su Administrador del Sistema."
-  },
-  {
     "id": "ent.saml.configure.encryption_not_enabled.app_error",
     "translation": "El inicio de sesión con SAML no tuvo éxito porque el cifrado no está habilitado. Por favor, póngase en contacto con su Administrador del Sistema."
-  },
-  {
-    "id": "ent.saml.configure.load_idp_cert.app_error",
-    "translation": "El archivo del Certificado Público del Proveedor de identidad no fue encontrado. Por favor, póngase en contacto con su Administrador del Sistema."
   },
   {
     "id": "ent.saml.configure.load_private_key.app_error",
@@ -3344,20 +3196,12 @@
     "translation": "El inicio de sesión con SAML no tuvo éxito porque la respuesta del Proveedor de Identidad está cifrada. Por favor, póngase en contacto con su Administrador del Sistema."
   },
   {
-    "id": "ent.saml.do_login.decrypt.app_error",
-    "translation": "El inicio de sesión con SAML no tuvo éxito porque se ha producido un error al descifrar la respuesta del Proveedor de Identidad. Por favor, póngase en contacto con su Administrador del Sistema."
-  },
-  {
     "id": "ent.saml.do_login.empty_response.app_error",
     "translation": "Hemos recibido una respuesta vacía desde el Proveedor de Identidad."
   },
   {
     "id": "ent.saml.do_login.parse.app_error",
     "translation": "Se ha producido un error al analizar la respuesta del Proveedor de Identidad. Por favor, póngase en contacto con su Administrador del Sistema."
-  },
-  {
-    "id": "ent.saml.do_login.validate.app_error",
-    "translation": "Se ha producido un error al validar la respuesta del Proveedor de Identidad. Por favor, póngase en contacto con su Administrador del Sistema."
   },
   {
     "id": "ent.saml.license_disable.app_error",
@@ -3377,7 +3221,7 @@
   },
   {
     "id": "interactive_message.decode_trigger_id.expired",
-    "translation": "El trigger ID para el diálogo interactivo ha expirado. Los trigger IDs tienen una duración máxima de {{.Seconds}} segundos."
+    "translation": "El trigger ID para el diálogo interactivo ha expirado. Los trigger IDs tienen una duración máxima de {{.Duration}}."
   },
   {
     "id": "interactive_message.decode_trigger_id.missing_data",
@@ -3741,7 +3585,7 @@
   },
   {
     "id": "model.config.is_valid.elastic_search.enable_searching.app_error",
-    "translation": "El valor de Elasticsearch IndexingEnabled debe ser verdadero cuando el valor de Elasticsearch SearchEnabled es verdadero"
+    "translation": "La configuración {{.EnableIndexing}} debe estar establecida en verdadero cuando {{.Searching}} está configurado como verdadero"
   },
   {
     "id": "model.config.is_valid.elastic_search.live_indexing_batch_size.app_error",
@@ -4129,7 +3973,7 @@
   },
   {
     "id": "model.incoming_hook.id.app_error",
-    "translation": "Id inválido."
+    "translation": "Id inválido: {{.Id}}."
   },
   {
     "id": "model.incoming_hook.parse_data.app_error",
@@ -4336,10 +4180,6 @@
     "translation": "Id inválido."
   },
   {
-    "id": "model.post.is_valid.msg.app_error",
-    "translation": "Mensaje no es válido."
-  },
-  {
     "id": "model.post.is_valid.original_id.app_error",
     "translation": "Id Original inválido."
   },
@@ -4466,10 +4306,6 @@
   {
     "id": "model.user.is_valid.email.app_error",
     "translation": "Por favor, ingresa una dirección válida de correo electrónico."
-  },
-  {
-    "id": "model.user.is_valid.pwd.app_error",
-    "translation": "La contraseña debe contener al menos {{.Min}} caracteres."
   },
   {
     "id": "model.user.is_valid.pwd_lowercase.app_error",
@@ -4657,7 +4493,7 @@
   },
   {
     "id": "web.incoming_webhook.channel_locked.app_error",
-    "translation": "Este webhook no tiene autorización para publicar en el canal solicitado."
+    "translation": "Este webhook no tiene autorización para publicar en el canal {{.channel_id}} solicitado"
   },
   {
     "id": "web.incoming_webhook.disabled.app_error",
@@ -4673,7 +4509,7 @@
   },
   {
     "id": "web.incoming_webhook.permissions.app_error",
-    "translation": "Permisos del canal inapropiados."
+    "translation": "El usuario {{.user}} no tiene los permisos apropiados para el canal {{.channel}}"
   },
   {
     "id": "web.incoming_webhook.split_props_length.app_error",
@@ -4685,7 +4521,7 @@
   },
   {
     "id": "web.incoming_webhook.user.app_error",
-    "translation": "No se encontró el usuario."
+    "translation": "No se encontró el usuario {{.user}}"
   },
   {
     "id": "api.license.request-trial.bad-request",
@@ -4816,10 +4652,6 @@
     "translation": "Obtén la última versión del navegador Chrome"
   },
   {
-    "id": "searchengine.bleve.disabled.error",
-    "translation": "Error al purgar los indices de Bleve: motor desactivado"
-  },
-  {
     "id": "plugin_api.bot_cant_create_bot",
     "translation": "Un usuario Bot no puede crear un usuario bot."
   },
@@ -4925,19 +4757,7 @@
   },
   {
     "id": "model.config.is_valid.elastic_search.enable_autocomplete.app_error",
-    "translation": "El valor de Elasticsearch EnabledIndexing debe ser verdadero cuando el valor de Elasticsearch EnabledAutocomplete es verdadero"
-  },
-  {
-    "id": "model.config.is_valid.bleve_search.filename.app_error",
-    "translation": "El valor de Bleve EnabledIndexing debe ser verdadero cuando el valor de Bleve IndexingDir es asignado"
-  },
-  {
-    "id": "model.config.is_valid.bleve_search.enable_searching.app_error",
-    "translation": "El valor de Bleve EnabledIndexing debe ser verdadero cuando el valor de Bleve EnabledSearch es verdadero"
-  },
-  {
-    "id": "model.config.is_valid.bleve_search.enable_autocomplete.app_error",
-    "translation": "El valor de Bleve EnabledIndexing debe ser verdadero cuando el valor de Bleve EnabledAutocomplete es verdadero"
+    "translation": "La configuración {{.EnableIndexing}} debe estar establecida en verdadero cuando {{.Autocomplete}} está configurado como verdadero"
   },
   {
     "id": "model.command.is_valid.autocomplete_data.app_error",
@@ -4981,139 +4801,15 @@
   },
   {
     "id": "ent.elasticsearch.create_template_users_if_not_exists.template_create_failed",
-    "translation": "No se pudo crear la plantilla Elasticsearch para los usuarios"
+    "translation": "No se pudo crear la plantilla {{.Backend}} para los usuarios"
   },
   {
     "id": "ent.elasticsearch.create_template_posts_if_not_exists.template_create_failed",
-    "translation": "No se pudo crear la plantilla Elasticsearch para los mensajes"
+    "translation": "No se pudo crear la plantilla {{.Backend}} para los mensajes"
   },
   {
     "id": "ent.elasticsearch.create_template_channels_if_not_exists.template_create_failed",
-    "translation": "No se pudo crear la plantilla Elasticsearch para los canales"
-  },
-  {
-    "id": "ent.compliance.csv.warning.appError",
-    "translation": "No se puede crear el archivo advertencia."
-  },
-  {
-    "id": "ent.compliance.csv.metadata.json.zipfile.appError",
-    "translation": "No se puede crear el archivo zip"
-  },
-  {
-    "id": "bleveengine.stop_user_index.error",
-    "translation": "Ocurrió un error al cerrar el indice de usuario."
-  },
-  {
-    "id": "bleveengine.stop_post_index.error",
-    "translation": "Ocurrió un error al cerrar el indice de mensaje."
-  },
-  {
-    "id": "bleveengine.stop_channel_index.error",
-    "translation": "Ocurrió un error al cerrar el indice de canal."
-  },
-  {
-    "id": "bleveengine.search_users_in_team.error",
-    "translation": "La búsqueda de Usuario no se pudo completar."
-  },
-  {
-    "id": "bleveengine.search_users_in_channel.uchan.error",
-    "translation": "La búsqueda de Usuario no se pudo completar."
-  },
-  {
-    "id": "bleveengine.search_users_in_channel.nuchan.error",
-    "translation": "La búsqueda de Usuario no se pudo completar."
-  },
-  {
-    "id": "bleveengine.search_posts.error",
-    "translation": "La búsqueda de Mensaje no se pudo completar."
-  },
-  {
-    "id": "bleveengine.search_channels.error",
-    "translation": "La búsqueda de Canal no se pudo completar."
-  },
-  {
-    "id": "bleveengine.purge_user_index.error",
-    "translation": "No pudo purgar los índices de usuario."
-  },
-  {
-    "id": "bleveengine.purge_post_index.error",
-    "translation": "No pudo purgar los índices de mensaje."
-  },
-  {
-    "id": "bleveengine.purge_channel_index.error",
-    "translation": "No pudo purgar los índices de canal."
-  },
-  {
-    "id": "bleveengine.indexer.index_batch.nothing_left_to_index.error",
-    "translation": "Tratando de indexar un nuevo lote cuando todas las entidades se han completado."
-  },
-  {
-    "id": "bleveengine.indexer.do_job.parse_start_time.error",
-    "translation": "El trabajo de Bleve falló al analizar la hora de inicio."
-  },
-  {
-    "id": "bleveengine.indexer.do_job.parse_end_time.error",
-    "translation": "El trabajo de Bleve falló al analizar la hora de finalización."
-  },
-  {
-    "id": "bleveengine.indexer.do_job.get_oldest_entity.error",
-    "translation": "La entidad más vieja (usuario, canal o poste), no podría ser recuperado de la base de datos."
-  },
-  {
-    "id": "bleveengine.indexer.do_job.engine_inactive",
-    "translation": "Falló la ejecución del trabajo de indexación de Bleve: motor inactivo."
-  },
-  {
-    "id": "bleveengine.indexer.do_job.bulk_index_users.batch_error",
-    "translation": "Error al indexar el lote de usuario."
-  },
-  {
-    "id": "bleveengine.indexer.do_job.bulk_index_posts.batch_error",
-    "translation": "Error al indexar el lote de mensaje."
-  },
-  {
-    "id": "bleveengine.indexer.do_job.bulk_index_channels.batch_error",
-    "translation": "Error al indexar el lote de canal."
-  },
-  {
-    "id": "bleveengine.index_user.error",
-    "translation": "Error al indexar el usuario."
-  },
-  {
-    "id": "bleveengine.index_post.error",
-    "translation": "Error al indexar el mensaje."
-  },
-  {
-    "id": "bleveengine.index_channel.error",
-    "translation": "Error al indexar el canal."
-  },
-  {
-    "id": "bleveengine.delete_user.error",
-    "translation": "Error al eliminar el usuario."
-  },
-  {
-    "id": "bleveengine.delete_post.error",
-    "translation": "Error al eliminar el mensaje."
-  },
-  {
-    "id": "bleveengine.delete_channel.error",
-    "translation": "Error al eliminar el canal."
-  },
-  {
-    "id": "bleveengine.create_user_index.error",
-    "translation": "Error al crear el índice de usuario en bleve."
-  },
-  {
-    "id": "bleveengine.create_post_index.error",
-    "translation": "Error al crear el índice de mensaje en bleve."
-  },
-  {
-    "id": "bleveengine.create_channel_index.error",
-    "translation": "Error al crear el índice de canal en bleve."
-  },
-  {
-    "id": "bleveengine.already_started.error",
-    "translation": "Bleve ya ha sido iniciado."
+    "translation": "No se pudo crear la plantilla {{.Backend}} para los canales"
   },
   {
     "id": "app.user_terms_of_service.save.app_error",
@@ -5242,10 +4938,6 @@
   {
     "id": "app.plugin.get_public_key.get_file.app_error",
     "translation": "Se ha producido un error al obtener la clave pública."
-  },
-  {
-    "id": "app.plugin.flag_managed.app_error",
-    "translation": "No se puede marcar el plugin como gestionado automáticamente por el almacenamiento de archivos."
   },
   {
     "id": "app.plugin.delete_public_key.delete.app_error",
@@ -5504,10 +5196,6 @@
     "translation": "Su licencia de la Enterprise Edition ha expirado y algunas características pueden estar desactivadas. Por favor, renueve su licencia ahora."
   },
   {
-    "id": "api.templates.remove_expired_license.body.renew_button",
-    "translation": "Renovar Licencia ahora"
-  },
-  {
     "id": "api.templates.invite_guest_subject",
     "translation": "[{{ .SiteName }}] {{ .SenderName }} te ha invitado a unirte al equipo {{ .TeamDisplayName }} como huésped"
   },
@@ -5597,7 +5285,7 @@
   },
   {
     "id": "api.post.check_for_out_of_channel_groups_mentions.message.multiple",
-    "translation": "@{{.Usernames}} y @{.LastUsername}} no fueron notificados por esta mención porque no se encuentran en este canal. Ellos no pueden ser agregados a este canal porque no son miembros de los grupos asociados. Para agregarlos a este canal, deben ser agregados a los grupos asociados."
+    "translation": "@{{.Usernames}} y @{{.LastUsername}} no fueron notificados por esta mención porque no se encuentran en este canal. Ellos no pueden ser agregados a este canal porque no son miembros de los grupos asociados. Para agregarlos a este canal, deben ser agregados a los grupos asociados."
   },
   {
     "id": "api.post.check_for_out_of_channel_group_users.message.none",
@@ -5649,7 +5337,7 @@
   },
   {
     "id": "api.command_invite.user_not_in_team.app_error",
-    "translation": "@{{.Username}} no es un miembro de este canal."
+    "translation": "Solo se puede agregar {{.Users}} a este canal una vez que sean miembros del equipo **{{.Team}}**."
   },
   {
     "id": "api.command.execute_command.format.app_error",
@@ -5776,20 +5464,16 @@
     "translation": "Superado el Límite del Tamaño. Intente comprobar el [tamaño máximo de página](https://docs.mattermost.com/deployment/sso-ldap.html#i-see-the-log-error-ldap-result-code-4-size-limit-exceeded)."
   },
   {
-    "id": "ent.ldap.syncronize.delete_group_constained_memberships",
-    "translation": "Error al eliminar el equipo o las membresias de los canales"
-  },
-  {
     "id": "ent.id_loaded.license_disable.app_error",
     "translation": "La licencia no incluye Carga de Notificaciones Push por ID."
   },
   {
     "id": "ent.elasticsearch.start.parse_server_version.app_error",
-    "translation": "Fallo al interpretar la versión del servidor de Elasticsearch."
+    "translation": "Fallo al interpretar la versión del servidor de {{.Backend}}."
   },
   {
     "id": "ent.elasticsearch.start.get_server_version.app_error",
-    "translation": "Fallo al intentar recuperar la versión del servidor de Elasticsearch."
+    "translation": "Fallo al intentar recuperar la versión del servidor de {{.Backend}}."
   },
   {
     "id": "ent.elasticsearch.search_users.unmarshall_user_failed",
@@ -5809,7 +5493,7 @@
   },
   {
     "id": "ent.elasticsearch.search_channels.disabled",
-    "translation": "La búsqueda con Elasticsearch está deshabilitada en este servidor"
+    "translation": "La búsqueda con {{.Backend}} está deshabilitada en este servidor"
   },
   {
     "id": "ent.elasticsearch.refresh_indexes.refresh_failed",
@@ -5842,14 +5526,6 @@
   {
     "id": "ent.cluster.json_encode.error",
     "translation": "Se produjo un error al ordenar la solicitud JSON"
-  },
-  {
-    "id": "bleveengine.delete_user_posts.error",
-    "translation": "Error al eliminar los mensajes del usuario"
-  },
-  {
-    "id": "bleveengine.delete_channel_posts.error",
-    "translation": "Error al eliminar los mensajes del canal"
   },
   {
     "id": "app.scheme.delete.app_error",
@@ -6144,10 +5820,6 @@
     "translation": "No se puede eliminar el token."
   },
   {
-    "id": "ent.get_users_in_channel_during",
-    "translation": "No se pudo obtener los usuarios del canal en el período de tiempo especificado."
-  },
-  {
     "id": "app.user_access_token.update_token_enable.app_error",
     "translation": "No se puede habilitar guardar token de acceso."
   },
@@ -6176,10 +5848,6 @@
     "translation": "No se puede eliminar el token de acceso personal."
   },
   {
-    "id": "api.email.send_warn_metric_ack.missing_server.app_error",
-    "translation": "El Servidor SMTP es necesario"
-  },
-  {
     "id": "ent.message_export.run_export.app_error",
     "translation": "Error al seleccionar los mensajes a exportar."
   },
@@ -6192,108 +5860,12 @@
     "translation": "Se ha detectado un error al recuperar los informes de conformidad."
   },
   {
-    "id": "app.system.warn_metric.store.app_error",
-    "translation": "Error al almacenar el valor para {{.WarnMetricName}}"
-  },
-  {
-    "id": "app.system.warn_metric.bot_displayname",
-    "translation": "Asesor de Mattermost"
-  },
-  {
     "id": "app.job.download_export_results_not_enabled",
     "translation": "DownloadExportResults en config.json es falso. Establezca esta configuración en verdadero para descargar los resultados de este trabajo."
   },
   {
     "id": "api.user.delete_user.not_enabled.app_error",
     "translation": "La función de eliminación permanente del usuario no está habilitada. Por favor, póngase en contacto con el administrador del sistema."
-  },
-  {
-    "id": "api.templates.warn_metric_ack.subject",
-    "translation": "Solicitud de Contacto de Mattermost"
-  },
-  {
-    "id": "api.templates.warn_metric_ack.footer",
-    "translation": "Si tiene alguna consulta adicional, comuníquese con support@mattermost.com"
-  },
-  {
-    "id": "api.templates.warn_metric_ack.body.site_url_header",
-    "translation": "URL del Sitio: "
-  },
-  {
-    "id": "api.templates.warn_metric_ack.body.registered_users_header",
-    "translation": "Total de usuarios activos: "
-  },
-  {
-    "id": "api.templates.warn_metric_ack.body.diagnostic_id_header",
-    "translation": "Id de Diagnostico: "
-  },
-  {
-    "id": "api.templates.warn_metric_ack.body.contact_name_header",
-    "translation": "Contacto: "
-  },
-  {
-    "id": "api.templates.warn_metric_ack.body.contact_email_header",
-    "translation": "Correo Electrónico: "
-  },
-  {
-    "id": "api.server.warn_metric.number_of_active_users_500.notification_title",
-    "translation": "Escalando con Mattermost"
-  },
-  {
-    "id": "api.server.warn_metric.number_of_active_users_500.notification_body",
-    "translation": "Mattermost recomienda encarecidamente que las implementaciones de más de 500 usuarios aprovechen funciones como la administración de usuarios, la agrupación de servidores y la supervisión del rendimiento. Contáctenos para obtener más información y háganos saber cómo podemos ayudar.\n\nAl hacer clic en Contáctenos, estará compartiendo su información con Mattermost, Inc. [Más información] (https://mattermost.com/pl/default-admin-advisory)"
-  },
-  {
-    "id": "api.server.warn_metric.number_of_active_users_200.notification_title",
-    "translation": "Escalando con Mattermost"
-  },
-  {
-    "id": "api.server.warn_metric.number_of_active_users_200.notification_body",
-    "translation": "Su sistema Mattermost ahora tiene 200 usuarios. Cuando conecta Mattermost con el proveedor de inicio de sesión único de su organización, los usuarios pueden acceder a Mattermost sin tener que volver a ingresar sus credenciales. Le recomendamos que integre su proveedor SAML 2.0 con su servidor Mattermost. [Obtenga más información sobre la integración con SAML 2.0] (https://www.mattermost.com/docs-saml/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=saml) .\n\nAl hacer clic en Contáctenos, estará compartiendo su información con Mattermost, Inc. [Más información] (https://mattermost.com/pl/default-admin-advisory)"
-  },
-  {
-    "id": "api.server.warn_metric.email_us",
-    "translation": "Envíanos un correo electrónico"
-  },
-  {
-    "id": "api.server.warn_metric.bot_response.notification_success.message",
-    "translation": "Gracias por contactar a Mattermost. Pronto nos pondremos en contacto contigo."
-  },
-  {
-    "id": "api.server.warn_metric.bot_response.notification_failure.message",
-    "translation": "El mensaje no pudo ser enviado."
-  },
-  {
-    "id": "api.server.warn_metric.bot_response.notification_failure.body",
-    "translation": "Por favor envíenos un correo electrónico."
-  },
-  {
-    "id": "api.server.warn_metric.bot_response.mailto_subject",
-    "translation": "Solicitud de contacto de Mattermost"
-  },
-  {
-    "id": "api.server.warn_metric.bot_response.mailto_site_url_header",
-    "translation": "URL del Sitio: {{.SiteUrl}}"
-  },
-  {
-    "id": "api.server.warn_metric.bot_response.mailto_registered_users_header",
-    "translation": "Total de usuarios activos: {{.NoRegisteredUsers}}"
-  },
-  {
-    "id": "api.server.warn_metric.bot_response.mailto_footer",
-    "translation": "Si tiene alguna consulta adicional, comuníquese con support@mattermost.com"
-  },
-  {
-    "id": "api.server.warn_metric.bot_response.mailto_email_header",
-    "translation": "Correo Electrónico: {{.Email}}"
-  },
-  {
-    "id": "api.server.warn_metric.bot_response.mailto_diagnostic_id_header",
-    "translation": "Id de Diagnostico: {{.DiagnosticId}}"
-  },
-  {
-    "id": "api.server.warn_metric.bot_response.mailto_contact_header",
-    "translation": "Contacto: {{.Contact}}"
   },
   {
     "id": "api.preference.update_preferences.update_sidebar.app_error",
@@ -6306,14 +5878,6 @@
   {
     "id": "api.job.unable_to_download_job",
     "translation": "No se puede descargar este trabajo"
-  },
-  {
-    "id": "api.email.send_warn_metric_ack.invalid_warn_metric.app_error",
-    "translation": "No se pudo encontrar métrica de advertencia."
-  },
-  {
-    "id": "api.email.send_warn_metric_ack.failure.app_error",
-    "translation": "Error al enviar correo electrónico al administrador"
   },
   {
     "id": "app.preference.save.updating.app_error",
@@ -6528,10 +6092,6 @@
     "translation": "No se puede encontrar la variable del sistema."
   },
   {
-    "id": "app.system.get.app_error",
-    "translation": "Encontramos un error buscando las propiedades del sistema."
-  },
-  {
     "id": "ent.user.complete_switch_with_oauth.blank_email.app_error",
     "translation": "No se puede completar el inicio de sesión con SAML con una dirección de correo electrónico vacía."
   },
@@ -6556,16 +6116,8 @@
     "translation": "El tiempo de espera del trabajo de sincronización AD/LDAP fue alcanzado."
   },
   {
-    "id": "ent.cluster.404.app_error",
-    "translation": "No se encontró el endpoint del API para el agrupamiento de servidores."
-  },
-  {
     "id": "ent.api.post.send_notifications_and_forget.push_image_only",
     "translation": " adjuntó un archivo."
-  },
-  {
-    "id": "ent.actiance.export.marshalToXml.appError",
-    "translation": "No se puede convertir la exportación a XML."
   },
   {
     "id": "api.upgrade_to_enterprise_status.signature.app_error",
@@ -6630,18 +6182,6 @@
   {
     "id": "app.job.get.app_error",
     "translation": "No se pudo obtener el trabajo."
-  },
-  {
-    "id": "ent.message_export.global_relay_export.get_attachment_error",
-    "translation": "Fallado para coger lima info para un poste."
-  },
-  {
-    "id": "ent.message_export.csv_export.get_attachment_error",
-    "translation": "Fallado para coger lima info para un poste."
-  },
-  {
-    "id": "ent.message_export.actiance_export.get_attachment_error",
-    "translation": "Fallado para coger lima info para un poste."
   },
   {
     "id": "app.file_info.save.app_error",
@@ -6996,10 +6536,6 @@
     "translation": "No se puede obtener de los miembros del canal."
   },
   {
-    "id": "app.channel.get_channels_batch_for_indexing.get.app_error",
-    "translation": "No se puede obtener los canales en lote para la indexación."
-  },
-  {
     "id": "app.channel.get_by_scheme.app_error",
     "translation": "No se puede obtener los canales para el esquema suministrado."
   },
@@ -7040,178 +6576,6 @@
     "translation": "Error interno durante nube api petición."
   },
   {
-    "id": "api.server.warn_metric.number_of_teams_5.start_trial_notification_success.message",
-    "translation": "Su prueba de Enterprise ahora está activa. Vaya a ** Consola del sistema> Administración de usuarios> Permisos ** para habilitar Permisos avanzados."
-  },
-  {
-    "id": "api.server.warn_metric.number_of_teams_5.start_trial.notification_body",
-    "translation": "Su sistema Mattermost ahora tiene varios equipos. Muchos equipos tienen su propia forma preferida de coordinarse y colaborar, incluida la forma en que se crean los canales, quién puede invitar a nuevos compañeros de equipo y cómo se gestionan las integraciones. Los esquemas de anulación de equipo le permiten personalizar los permisos de usuario dentro de cada equipo para satisfacer sus necesidades específicas.\n\n[Obtenga más información sobre el uso de permisos avanzados] (https://www.mattermost.com/docs-advanced-permissions-team-override/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=advanced-permissions-team-override)\n\nAl hacer clic en Iniciar prueba, acepto el [Acuerdo de evaluación de software de Mattermost] (https://mattermost.com/software-evaluation-agreement/), [Política de privacidad] (https://mattermost.com/pl/privacy-policy/) y recibir correos electrónicos de productos."
-  },
-  {
-    "id": "api.server.warn_metric.number_of_teams_5.notification_title",
-    "translation": "Usar permisos avanzados"
-  },
-  {
-    "id": "api.server.warn_metric.number_of_teams_5.notification_body",
-    "translation": "Su sistema Mattermost ahora tiene varios equipos. Muchos equipos tienen su propia forma preferida de coordinarse y colaborar, incluida la forma en que se crean los canales, quién puede invitar a nuevos compañeros de equipo y cómo se gestionan las integraciones. Los esquemas de anulación de equipo le permiten personalizar los permisos de usuario dentro de cada equipo para satisfacer sus necesidades específicas.\n\n[Más información sobre el uso de permisos avanzados] (https://www.mattermost.com/docs-advanced-permissions-team-override/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=advanced-permissions-team-override).\n\nAl hacer clic en Contáctenos, estará compartiendo su información con Mattermost, Inc. [Más información] (https://mattermost.com/pl/default-admin-advisory)"
-  },
-  {
-    "id": "api.server.warn_metric.number_of_teams_5.contact_us.email_body",
-    "translation": "Solicitud de contacto de Mattermost. Estoy interesado en obtener más información sobre los permisos avanzados con esquemas de equipo.\n"
-  },
-  {
-    "id": "api.server.warn_metric.number_of_posts_2M.start_trial.notification_success.message",
-    "translation": "Su prueba de Enterprise ahora está activa. Una vez que tenga un servidor Elasticsearch, vaya a ** Consola del sistema> Entorno> Elasticsearch ** para configurar Elasticsearch."
-  },
-  {
-    "id": "api.server.warn_metric.number_of_posts_2M.start_trial.notification_body",
-    "translation": "Su sistema Mattermost tiene una gran cantidad de mensajes. La búsqueda predeterminada de la base de datos de Mattermost comienza a mostrar una degradación del rendimiento en alrededor de 2,5 millones de publicaciones. Con más de 5 millones de publicaciones, Elasticsearch puede ayudar a evitar problemas de rendimiento importantes, como tiempos de espera, con búsquedas y menciones. Contáctenos para obtener más información y háganos saber cómo podemos ayudar.\n\n[Obtenga más información sobre cómo mejorar el rendimiento] (https://www.mattermost.com/docs-elasticsearch/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=elasticsearch)\n\nAl hacer clic en Iniciar prueba, acepto el [Acuerdo de evaluación de software de Mattermost] (https://mattermost.com/software-evaluation-agreement/), [Política de privacidad] (https://mattermost.com/pl/privacy-policy/) y recibir correos electrónicos de productos."
-  },
-  {
-    "id": "api.server.warn_metric.number_of_posts_2M.notification_title",
-    "translation": "Mejorando el rendimiento"
-  },
-  {
-    "id": "api.server.warn_metric.number_of_posts_2M.notification_body",
-    "translation": "Su sistema Mattermost tiene una gran cantidad de mensajes. La búsqueda predeterminada de la base de datos de Mattermost comienza a mostrar una degradación del rendimiento en alrededor de 2,5 millones de publicaciones. Con más de 5 millones de publicaciones, Elasticsearch puede ayudar a evitar problemas de rendimiento importantes, como tiempos de espera, con búsquedas y menciones. Contáctenos para obtener más información y háganos saber cómo podemos ayudar.\n\n[Obtenga más información sobre cómo mejorar el rendimiento] (https://www.mattermost.com/docs-elasticsearch/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=elasticsearch)\n\nAl hacer clic en Contáctenos, estará compartiendo su información con Mattermost, Inc. [Más información] (https://mattermost.com/pl/default-admin-advisory)"
-  },
-  {
-    "id": "api.server.warn_metric.number_of_posts_2M.contact_us.email_body",
-    "translation": "Solicitud de contacto de Mattermost. Estoy interesado en aprender más sobre cómo mejorar el rendimiento con Elasticsearch.\n"
-  },
-  {
-    "id": "api.server.warn_metric.number_of_channels_50.start_trial.notification_success.message",
-    "translation": "Su prueba de Enterprise ahora está activa. Vaya a ** Consola del sistema> Administración de usuarios> Permisos ** para habilitar Permisos avanzados."
-  },
-  {
-    "id": "api.server.warn_metric.number_of_channels_50.start_trial.notification_body",
-    "translation": "Los canales ayudan a mejorar la comunicación, pero con los usuarios de Mattermost que se unen y crean canales, el desafío de mantener el sistema organizado aumenta. Los permisos avanzados le permiten establecer qué usuarios o roles pueden realizar ciertas acciones, incluida la administración de la configuración y los miembros del canal, el uso de @channel o @here para etiquetar grupos amplios de usuarios y la creación de nuevos webhooks.\n\n[Obtenga más información sobre el uso de permisos avanzados] (https://www.mattermost.com/docs-advanced-permissions/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=advanced-permissions)\n\nAl hacer clic en Iniciar prueba, acepto el [Acuerdo de evaluación de software de Mattermost] (https://mattermost.com/software-evaluation-agreement/), [Política de privacidad] (https://mattermost.com/pl/privacy-policy/) y recibir correos electrónicos de productos."
-  },
-  {
-    "id": "api.server.warn_metric.number_of_channels_50.notification_title",
-    "translation": "Usar permisos avanzados"
-  },
-  {
-    "id": "api.server.warn_metric.number_of_channels_50.notification_body",
-    "translation": "Los canales ayudan a mejorar la comunicación, pero con los usuarios de Mattermost que se unen y crean canales, el desafío de mantener el sistema organizado aumenta. Los permisos avanzados le permiten establecer qué usuarios o roles pueden realizar ciertas acciones, incluida la administración de la configuración y los miembros del canal, el uso de @channel o @here para etiquetar grupos amplios de usuarios y la creación de nuevos webhooks.\n\n[Obtenga más información sobre el uso de permisos avanzados] (https://www.mattermost.com/docs-advanced-permissions/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=advanced-permissions)\n\nAl hacer clic en Contáctenos, estará compartiendo su información con Mattermost, Inc. [Más información] (https://mattermost.com/pl/default-admin-advisory)"
-  },
-  {
-    "id": "api.server.warn_metric.number_of_channels_50.contact_us.email_body",
-    "translation": "Solicitud de contacto de Mattermost. Estoy interesado en aprender más sobre el uso de permisos avanzados con esquemas del sistema.\n"
-  },
-  {
-    "id": "api.server.warn_metric.number_of_active_users_500.start_trial.notification_success.message",
-    "translation": "Su prueba de Enterprise ahora está activa. Vaya a la Consola del sistema para habilitar características avanzadas."
-  },
-  {
-    "id": "api.server.warn_metric.number_of_active_users_500.start_trial.notification_body",
-    "translation": "Mattermost recomienda encarecidamente que las implementaciones de más de 500 usuarios aprovechen funciones como la administración de usuarios, la agrupación de servidores y la supervisión del rendimiento. Contáctenos para obtener más información y háganos saber cómo podemos ayudar.\n\nAl hacer clic en Iniciar prueba, acepto el [Acuerdo de evaluación de software de Mattermost] (https://mattermost.com/software-evaluation-agreement/), [Política de privacidad] (https://mattermost.com/pl/privacy-policy/) y recibir correos electrónicos de productos."
-  },
-  {
-    "id": "api.server.warn_metric.number_of_active_users_500.contact_us.email_body",
-    "translation": "Solicitud de contacto de Mattermost. Mi equipo tiene ahora 500 usuarios y estoy considerando Mattermost Enterprise Edition.\n"
-  },
-  {
-    "id": "api.server.warn_metric.number_of_active_users_300.start_trial.notification_title",
-    "translation": "Canales de anuncios de solo lectura"
-  },
-  {
-    "id": "api.server.warn_metric.number_of_active_users_300.start_trial.notification_success.message",
-    "translation": "Su prueba de Enterprise ahora está activa. Cree un canal y vaya a ** Consola del sistema> Administración de usuarios> Canales ** para limitar la publicación a los administradores del canal."
-  },
-  {
-    "id": "api.server.warn_metric.number_of_active_users_300.start_trial.notification_body",
-    "translation": "Con tantas conversaciones ocurriendo en Mattermost, puede ser un desafío saber dónde buscar información importante. Si desea transmitir un mensaje a una gran audiencia, puede configurar canales de anuncios de solo lectura en los que cualquiera puede unirse, pero solo los administradores de canales pueden publicar mensajes.\n\n[Obtenga más información sobre cómo crear canales de anuncios de solo lectura] (https://www.mattermost.com/docs-channel-moderation/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=channel-moderation)\n\nAl hacer clic en Iniciar prueba, acepto el [Acuerdo de evaluación de software de Mattermost] (https://mattermost.com/software-evaluation-agreement/), [Política de privacidad] (https://mattermost.com/pl/privacy-policy/) y recibir correos electrónicos de productos."
-  },
-  {
-    "id": "api.server.warn_metric.number_of_active_users_300.notification_body",
-    "translation": "Con tantas conversaciones ocurriendo en Mattermost, puede ser un desafío saber dónde buscar información importante. Si desea transmitir un mensaje a una gran audiencia, puede configurar canales de anuncios de solo lectura en los que cualquiera puede unirse, pero solo los administradores de canales pueden publicar mensajes.\n\n[Obtenga más información sobre cómo crear canales de anuncios de solo lectura] (https://www.mattermost.com/docs-channel-moderation/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=channel-moderation)\n\nAl hacer clic en Contáctenos, estará compartiendo su información con Mattermost, Inc. [Más información] (https://mattermost.com/pl/default-admin-advisory)"
-  },
-  {
-    "id": "api.server.warn_metric.number_of_active_users_300.contact_us.email_body",
-    "translation": "Solicitud de contacto de Mattermost. Me interesa obtener más información sobre la creación de canales de anuncios de solo lectura.\n"
-  },
-  {
-    "id": "api.server.warn_metric.number_of_active_users_200.start_trial.notification_success.message",
-    "translation": "Su prueba de Enterprise ahora está activa. Vaya a ** Consola del sistema> Autenticación> SAML 2.0 ** para integrar con su proveedor de SAML 2.0."
-  },
-  {
-    "id": "api.server.warn_metric.number_of_active_users_200.start_trial.notification_body",
-    "translation": "Su sistema Mattermost ahora tiene 200 usuarios. Cuando conecta Mattermost con el proveedor de inicio de sesión único de su organización, los usuarios pueden acceder a Mattermost sin tener que volver a ingresar sus credenciales. Le recomendamos que integre su proveedor SAML 2.0 con su servidor Mattermost. [Obtenga más información sobre la integración con SAML 2.0] (https://www.mattermost.com/docs-saml/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=saml)\n\nAl hacer clic en Iniciar prueba, acepto el [Acuerdo de evaluación de software de Mattermost] (https://mattermost.com/software-evaluation-agreement/), [Política de privacidad] (https://mattermost.com/pl/privacy-policy/) y recibir correos electrónicos de productos."
-  },
-  {
-    "id": "api.server.warn_metric.number_of_active_users_200.contact_us.email_body",
-    "translation": "Solicitud de contacto de Mattermost. Mi equipo tiene ahora 200 usuarios y estoy considerando Mattermost Enterprise Edition.\n"
-  },
-  {
-    "id": "api.server.warn_metric.number_of_active_users_100.start_trial.notification_success.message",
-    "translation": "Su prueba de Enterprise ahora está activa. Vaya a ** Consola del sistema> Autenticación> AD/LDAP ** para integrar su servicio AD/LDAP."
-  },
-  {
-    "id": "api.server.warn_metric.number_of_active_users_100.start_trial.notification_body",
-    "translation": "Su sistema Mattermost tiene más de 100 usuarios. A medida que crece su base de usuarios, el aprovisionamiento de nuevas cuentas puede llevar mucho tiempo. Le recomendamos que integre el Active Directory/LDAP de su organización, lo que permitirá a cualquier persona con una cuenta acceder a Mattermost.\n\n[Obtenga más información sobre la integración con AD/LDAP] (https://www.mattermost.com/docs-adldap/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=adldap)\n\nAl hacer clic en Iniciar prueba, acepto el [Acuerdo de evaluación de software de Mattermost] (https://mattermost.com/software-evaluation-agreement/), [Política de privacidad] (https://mattermost.com/pl/privacy-policy/) y recibir correos electrónicos de productos."
-  },
-  {
-    "id": "api.server.warn_metric.number_of_active_users_100.notification_title",
-    "translation": "Escalando con Mattermost"
-  },
-  {
-    "id": "api.server.warn_metric.number_of_active_users_100.notification_body",
-    "translation": "Su sistema Mattermost tiene más de 100 usuarios. A medida que crece su base de usuarios, el aprovisionamiento de nuevas cuentas puede llevar mucho tiempo. Le recomendamos que integre el Active Directory/LDAP de su organización, lo que permitirá a cualquier persona con una cuenta acceder a Mattermost.\n\n[Obtenga más información sobre la integración con AD/LDAP] (https://www.mattermost.com/docs-adldap/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=adldap)\n\nAl hacer clic en Contáctenos, estará compartiendo su información con Mattermost, Inc. [Más información] (https://mattermost.com/pl/default-admin-advisory)"
-  },
-  {
-    "id": "api.server.warn_metric.number_of_active_users_100.contact_us.email_body",
-    "translation": "Solicitud de contacto con Mattermost. Mi equipo tiene ahora 100 usuarios y estoy considerando Mattermost Enterprise Edition.\n"
-  },
-  {
-    "id": "api.server.warn_metric.mfa.start_trial_notification_success.message",
-    "translation": "Su prueba de Enterprise ahora está activa. Vaya a ** Consola del sistema> Autenticación> MFA ** para aplicar la autenticación multifactor."
-  },
-  {
-    "id": "api.server.warn_metric.mfa.start_trial.notification_body",
-    "translation": "Su sistema Mattermost tiene habilitado el factor de autenticación múltiple, lo que brinda a los usuarios la opción de proteger sus cuentas con medios adicionales de autenticación más allá de una contraseña. Para mejorar la seguridad en todo el sistema, puede solicitar que todas las cuentas de Mattermost utilicen la autenticación multifactor.\n\n[Obtenga más información sobre cómo aplicar la autenticación multifactor] (https://www.mattermost.com/docs-multi-factor-authentication/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=multi-factor-authentication)\n\nAl hacer clic en Iniciar prueba, acepto el [Acuerdo de evaluación de software de Mattermost] (https://mattermost.com/software-evaluation-agreement/), [Política de privacidad] (https://mattermost.com/pl/privacy-policy/) y recibir correos electrónicos del producto."
-  },
-  {
-    "id": "api.server.warn_metric.mfa.notification_title",
-    "translation": "Hacer cumplir el Factor de Autenticación Múltiple"
-  },
-  {
-    "id": "api.server.warn_metric.mfa.notification_body",
-    "translation": "El sistema Mattermost tiene habilitado el factor de autenticación multiple, lo que permite a los usuarios asegurar sus cuentas más allá que por medio de la autenticación con contraseña. Para mejorar la seguridad a través del sistema puedes requerir que todas las cuentas de Mattermost utilicen el factor de autenticación multiple.\n\n[Aprende más sobre hacer cumplir el Factor de Autenticación Multiple](https://www.mattermost.com/docs-multi-factor-authentication/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=multi-factor-authentication). \n\nAl hacer click en Contáctanos, estarás compartiendo tu información con Mattermost, Inc. [Conoce más](https://mattermost.com/pl/default-admin-advisory)"
-  },
-  {
-    "id": "api.server.warn_metric.mfa.contact_us.email_body",
-    "translation": "Petición de contacto de Mattermost. Estoy interesado en aprender más acerca de hacer cumplir el Factor de Autenticación Multiple.\n"
-  },
-  {
-    "id": "api.server.warn_metric.email_domain.start_trial_notification_success.message",
-    "translation": "Su prueba de Enterprise ahora está activa. Vaya a ** Consola del sistema> Autenticación> Acceso de húesped ** para habilitar Cuentas de húesped."
-  },
-  {
-    "id": "api.server.warn_metric.email_domain.start_trial.notification_body",
-    "translation": "Los proyectos a menudo implican personas tanto internas como externas a una organización. Con Cuentas de Huésped, puedes traer socios externos a tu sistema Mattermost y especificar con quién pueden trabajar y qué pueden ver.\n\n[Aprende más sobre Cuentas de Huésped](https://www.mattermost.com/docs-guest-accounts/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=guest-accounts).\n\nAl hacer clic en Iniciar prueba, estás de acuerdo con el [Acuerdo de Evaluación del Software Mattermost](https://mattermost.com/software-evaluation-agreement/), [Política de privacidad](https://mattermost.com/pl/privacy-policy/), y recibir correos electrónicos del producto."
-  },
-  {
-    "id": "api.server.warn_metric.email_domain.notification_title",
-    "translation": "Creando cuentas de Huésped"
-  },
-  {
-    "id": "api.server.warn_metric.email_domain.notification_body",
-    "translation": "Los proyectos a menudo implican personas tanto internas como externas a una organización. Con Cuentas de Huésped, puedes traer socios externos a tu sistema Mattermost y especificar con quién pueden trabajar y qué pueden ver.\n\n[Aprende más sobre Cuentas de Huésped](https://www.mattermost.com/docs-guest-accounts/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=guest-accounts).\n\nAl hacer clic en Contáctanos, compartirás tu información con Mattermost, Inc. [Aprende más](https://mattermost.com/pl/default-admin-advisory)"
-  },
-  {
-    "id": "api.server.warn_metric.email_domain.contact_us.email_body",
-    "translation": "Petición de contacto de Mattermost. Estoy interesado en aprender más acerca del uso de Cuentas de Huésped.\n"
-  },
-  {
-    "id": "api.server.warn_metric.bot_response.start_trial_failure.message",
-    "translation": "No se pudo obtener la licencia de prueba. Visita https://mattermost.com/trial/ para solicitar una licencia."
-  },
-  {
-    "id": "api.license.request_trial_license.fail_get_user_count.app_error",
-    "translation": "No se puede obtener una licencia de prueba, vuelva a intentarlo o póngase en contacto con support@mattermost.com. No se puede obtener el número de usuarios registrados."
-  },
-  {
     "id": "ent.ldap.no.users.checkcertificate",
     "translation": "No se encontraron usuarios LDAP, verifique su filtro de usuario y certificados."
   },
@@ -7242,10 +6606,6 @@
   {
     "id": "app.post.get_posts_created_at.app_error",
     "translation": "No se puede obtener los mensajes del canal."
-  },
-  {
-    "id": "app.post.get_posts_batch_for_indexing.get.app_error",
-    "translation": "No se puede obtener los mensajes en lote para la indexación."
   },
   {
     "id": "app.post.get_posts.app_error",
@@ -7436,20 +6796,12 @@
     "translation": "Envíenos un correo electrónico en cualquier momento a "
   },
   {
-    "id": "api.templates.copyright",
-    "translation": "© 2021 Mattermost, Inc. 530 Lytton Avenue, Second floor, Palo Alto, CA, 94301"
-  },
-  {
     "id": "api.system.update_viewed_notices.failed",
     "translation": "Falló la actualización de los avisos vistos"
   },
   {
     "id": "api.roles.patch_roles.not_allowed_permission.error",
     "translation": "Uno o más de los siguientes permisos que está intentando añadir o eliminar no está permitido"
-  },
-  {
-    "id": "api.license.request_renewal_link.app_error",
-    "translation": "Error al obtener el enlace de renovación de la licencia"
   },
   {
     "id": "api.file.write_file.app_error",
@@ -7536,18 +6888,6 @@
     "translation": "error al seleccionar"
   },
   {
-    "id": "app.license.generate_renewal_token.no_license",
-    "translation": "No hay licencia presente"
-  },
-  {
-    "id": "app.license.generate_renewal_token.bad_license",
-    "translation": "Este tipo de licencia no soporta la generación de tokens de renovación"
-  },
-  {
-    "id": "app.license.generate_renewal_token.app_error",
-    "translation": "Falla al generar un nuevo token de renovación."
-  },
-  {
     "id": "app.insert_error",
     "translation": "error al insertar"
   },
@@ -7586,46 +6926,6 @@
   {
     "id": "api.user.get_authorization_code.endpoint.app_error",
     "translation": "Error al obtener el endpoint desde Documento de Descubrimiento."
-  },
-  {
-    "id": "api.templates.payment_failed_no_card.title",
-    "translation": "Su factura de Mattermost Cloud está por vencer"
-  },
-  {
-    "id": "api.templates.payment_failed_no_card.subject",
-    "translation": "El pago de su suscripción a Mattermost Cloud está pendiente"
-  },
-  {
-    "id": "api.templates.payment_failed_no_card.info3",
-    "translation": "Para revisar su factura y añadir un método de pago, seleccione Pagar ahora."
-  },
-  {
-    "id": "api.templates.payment_failed_no_card.info1",
-    "translation": "Su factura de Mattermost Cloud para el período de facturación más reciente ha sido procesada. Sin embargo, no tenemos los detalles de su pago guardados."
-  },
-  {
-    "id": "api.templates.payment_failed_no_card.button",
-    "translation": "Pagar ahora"
-  },
-  {
-    "id": "api.templates.payment_failed.title",
-    "translation": "El pago ha fallado"
-  },
-  {
-    "id": "api.templates.payment_failed.subject",
-    "translation": "Se requiere una acción: El pago de {{.Plan}} Mattermost Cloud no se ha realizado"
-  },
-  {
-    "id": "api.templates.payment_failed.info3",
-    "translation": "Para asegurar un acceso ininterrumpido a {{.Plan}} Mattermost Cloud, por favor, póngase en contacto con su institución financiera para resolver el problema subyacente o actualizar su información de pago. Una vez actualizada la información de pago, Mattermost intentará liquidar cualquier saldo pendiente."
-  },
-  {
-    "id": "api.templates.payment_failed.info2",
-    "translation": "Proporcionaron la siguiente razón:"
-  },
-  {
-    "id": "api.templates.payment_failed.info1",
-    "translation": "Su institución financiera rechazó un pago de su {{.CardBrand}} ****{{.LastFour}} asociado a su espacio de trabajo de Mattermost Cloud."
   },
   {
     "id": "api.oauth.redirecting_back",
@@ -7744,10 +7044,6 @@
     "translation": "No se puede crear un canal directo entre estos usuarios porque no comparten un equipo en común."
   },
   {
-    "id": "app.post.get_files_batch_for_indexing.get.app_error",
-    "translation": "No se puede obtener el lote de archivos para la indexación."
-  },
-  {
     "id": "app.notification.footer.title",
     "translation": "¿Quieres cambiar la configuración de las notificaciones?"
   },
@@ -7812,10 +7108,6 @@
     "translation": "Error al generar la contraseña."
   },
   {
-    "id": "app.import.attachment.read_file_data.error",
-    "translation": "No se ha podido leer el archivo adjunto durante la importación."
-  },
-  {
     "id": "app.export.zip_create.error",
     "translation": "No se ha podido añadir un fichero al archivo zip durante la exportación."
   },
@@ -7838,10 +7130,6 @@
   {
     "id": "app.export.export_attachment.copy_file.error",
     "translation": "Fallo al copiar el archivo durante la exportación."
-  },
-  {
-    "id": "app.bot.get_warn_metrics_bot.empty_admin_list.app_error",
-    "translation": "La lista de administradores está vacía."
   },
   {
     "id": "app.bot.get_system_bot.empty_admin_list.app_error",
@@ -7882,10 +7170,6 @@
   {
     "id": "api.unmarshal_error",
     "translation": "Error al procesar."
-  },
-  {
-    "id": "api.unable_to_read_file_from_backend",
-    "translation": "Error al leer el archivo desde el backend"
   },
   {
     "id": "api.unable_to_create_zip_file",
@@ -7952,20 +7236,12 @@
     "translation": "Su suscripción a Mattermost está pendiente de renovación"
   },
   {
-    "id": "api.templates.license_up_for_renewal_subtitle_two",
-    "translation": "Acceda a su cuenta de cliente para renovar"
-  },
-  {
     "id": "api.templates.license_up_for_renewal_subtitle",
     "translation": "{{.UserName}}, tu suscripción caduca en {{.Days}} días. Esperamos que esté experimentando la colaboración en equipo flexible y segura que permite Mattermost. Renueva pronto para asegurarte de que tu equipo pueda seguir disfrutando de estos beneficios."
   },
   {
     "id": "api.templates.license_up_for_renewal_subject",
     "translation": "Su licencia está pendiente de renovación"
-  },
-  {
-    "id": "api.templates.license_up_for_renewal_renew_now",
-    "translation": "Renovar ahora"
   },
   {
     "id": "api.templates.invite_body_guest.subTitle",
@@ -8090,10 +7366,6 @@
   {
     "id": "api.server.license_up_for_renewal.error_sending_email",
     "translation": "Fallo en el envío de correos electrónicos de renovación de licencias"
-  },
-  {
-    "id": "api.server.license_up_for_renewal.error_generating_link",
-    "translation": "No se ha podido generar el enlace de renovación de la licencia"
   },
   {
     "id": "api.remote_cluster.update_not_unique.app_error",
@@ -8349,7 +7621,7 @@
   },
   {
     "id": "api.command_share.check_channel_exist.error",
-    "translation": "Error al comprobar si el canal compartido existe: {{.Error}}"
+    "translation": "Error al comprobar si el canal compartido {{.ChannelID}} existe: {{.Error}}"
   },
   {
     "id": "api.command_share.channel_remote_id_not_exists",
@@ -8389,7 +7661,7 @@
   },
   {
     "id": "api.command_remote.remote_table_header",
-    "translation": "| Conexión segura | Nombre a mostrar | ID de la conexión | URL del Sitio | Invitación aceptada | En Linea | Último ping  |"
+    "translation": "| Conexión segura | Nombre a mostrar | ID de la conexión | URL del Sitio | Equipo predeterminado | Invitación aceptada | En Linea | Último ping | Eliminado |"
   },
   {
     "id": "api.command_remote.name.hint",
@@ -8434,10 +7706,6 @@
   {
     "id": "api.command_remote.invitation.help",
     "translation": "Invitación desde una conexión segura"
-  },
-  {
-    "id": "api.command_remote.incorrect_password.error",
-    "translation": "No se ha podido descifrar la invitación. Contraseña incorrecta o invitación corrupta: {{.Error}}"
   },
   {
     "id": "api.command_remote.hint",
@@ -8572,10 +7840,6 @@
     "translation": "Error"
   },
   {
-    "id": "ent.message_export.global_relay_export.deliver.unable_to_connect_smtp_server.app_error",
-    "translation": "No se puede conectar con el servidor smtp"
-  },
-  {
     "id": "ent.elasticsearch.search_files.unmarshall_file_failed",
     "translation": "No pudo decodificar los resultados de búsqueda"
   },
@@ -8585,7 +7849,7 @@
   },
   {
     "id": "ent.elasticsearch.search_files.disabled",
-    "translation": "La búsqueda de archivos en Elasticsearch está desactivada en este servidor"
+    "translation": "La búsqueda de archivos en {{.Backend}} está desactivada en este servidor"
   },
   {
     "id": "ent.elasticsearch.post.get_files_batch_for_indexing.error",
@@ -8609,7 +7873,7 @@
   },
   {
     "id": "ent.elasticsearch.create_template_file_info_if_not_exists.template_create_failed",
-    "translation": "Fallo al crear la plantilla de Elasticsearch para los archivos"
+    "translation": "Fallo al crear la plantilla de {{.Backend}} para los archivos"
   },
   {
     "id": "ent.data_retention.run_failed.error",
@@ -8624,60 +7888,8 @@
     "translation": "Se ha producido un error al realizar la operación solicitada."
   },
   {
-    "id": "ent.compliance.global_relay.write_file.appError",
-    "translation": "No se puede escribir el archivo de global relay."
-  },
-  {
-    "id": "ent.compliance.csv.write_file.appError",
-    "translation": "No se puede escribir el archivo csv."
-  },
-  {
-    "id": "ent.actiance.export.write_file.appError",
-    "translation": "No se puede escribir el archivo de exportación."
-  },
-  {
     "id": "brand.save_brand_image.check_image_limits.app_error",
     "translation": "La comprobación de los límites de la imagen ha fallado. La resolución es demasiado alta."
-  },
-  {
-    "id": "bleveengine.stop_file_index.error",
-    "translation": "Fallo al cerrar el índice de archivos."
-  },
-  {
-    "id": "bleveengine.search_files.error",
-    "translation": "No se ha podido completar la búsqueda de archivos."
-  },
-  {
-    "id": "bleveengine.purge_file_index.error",
-    "translation": "Fallo en la purga de índices de archivos."
-  },
-  {
-    "id": "bleveengine.indexer.do_job.bulk_index_files.batch_error",
-    "translation": "Fallo en la indexación del lote de archivos."
-  },
-  {
-    "id": "bleveengine.index_file.error",
-    "translation": "No se ha podido indexar el archivo."
-  },
-  {
-    "id": "bleveengine.delete_user_files.error",
-    "translation": "Fallo en la eliminación de los archivos del usuario."
-  },
-  {
-    "id": "bleveengine.delete_post_files.error",
-    "translation": "Fallo en la eliminación de los archivos del mensaje."
-  },
-  {
-    "id": "bleveengine.delete_files_batch.error",
-    "translation": "No se han podido eliminar los archivos."
-  },
-  {
-    "id": "bleveengine.delete_file.error",
-    "translation": "No se ha podido eliminar el archivo."
-  },
-  {
-    "id": "bleveengine.create_file_index.error",
-    "translation": "Error al crear el índice del archivo bleve."
   },
   {
     "id": "app.valid_password_generic.app_error",
@@ -8730,10 +7942,6 @@
   {
     "id": "app.user.store_is_empty.app_error",
     "translation": "Fallo al comprobar si el almacén de usuarios está vacío."
-  },
-  {
-    "id": "app.user.send_emails.app_error",
-    "translation": "No se ha enviado ningún correo electrónico con éxito"
   },
   {
     "id": "app.user.send_auto_response.app_error",
@@ -8840,10 +8048,6 @@
     "translation": "Sistema"
   },
   {
-    "id": "app.sharedchannel.dm_channel_creation.internal_error",
-    "translation": "Se ha producido un error al crear un canal directo compartido."
-  },
-  {
     "id": "app.post.marshal.app_error",
     "translation": "Error al procesar mensaje."
   },
@@ -8920,24 +8124,12 @@
     "translation": "No se pudo obtener todos los roles."
   },
   {
-    "id": "api.user.view_archived_channels.get_users_in_channel.app_error",
-    "translation": "No se pueden recuperar los usuarios de un canal archivado"
-  },
-  {
-    "id": "api.user.view_archived_channels.get_posts_for_channel.app_error",
-    "translation": "No se pueden recuperar los mensajes de un canal archivado"
-  },
-  {
     "id": "api.templates.invite_body.title.reminder",
     "translation": "Recordatorio"
   },
   {
     "id": "api.post.posts_by_ids.invalid_body.request_error",
     "translation": "El número de IDs de mensajes recibidos ha superado el tamaño máximo de {{.MaxLength}}"
-  },
-  {
-    "id": "api.license.request_renewal_link.cannot_renew_on_cws",
-    "translation": "No es posible renovar esta licencia en el portal"
   },
   {
     "id": "api.custom_status.set_custom_statuses.update.app_error",
@@ -8973,7 +8165,7 @@
   },
   {
     "id": "common.parse_error_int64",
-    "translation": " "
+    "translation": "Error al convertir el valor: {{.Value}} a int64"
   },
   {
     "id": "app.post.cloud.get.app_error",
@@ -9044,20 +8236,12 @@
     "translation": " "
   },
   {
-    "id": "model.config.is_valid.bleve_search.bulk_indexing_batch_size.app_error",
-    "translation": "El tamaño del lote de indexación masiva de Bleve debe ser al menos de {{.BatchSize}}."
-  },
-  {
     "id": "app.member_count",
     "translation": " "
   },
   {
     "id": "api.file.test_connection_s3_settings_nil.app_error",
     "translation": "Los ajustes de almacenamiento de archivos tienen valores sin asignar."
-  },
-  {
-    "id": "api.templates.cloud_upgrade_confirmation.subject",
-    "translation": " "
   },
   {
     "id": "api.elasticsearch.test_elasticsearch_settings_nil.app_error",
@@ -9073,7 +8257,7 @@
   },
   {
     "id": "api.templates.invite_team_and_channels_body.title",
-    "translation": " "
+    "translation": "{{ .SenderName }} te invitó a unirte a {{ .ChannelsLen }} canales del Equipo {{ .TeamDisplayName }}"
   },
   {
     "id": "model.channel.is_valid.1_or_more.app_error",
@@ -9112,10 +8296,6 @@
     "translation": "La inducción sólo puede ser completada por un Administrador del Sistema."
   },
   {
-    "id": "api.team.invite_members_to_team_and_channels.invalid_body_parsing.app_error",
-    "translation": "Error al analizar los datos del cuerpo."
-  },
-  {
     "id": "api.license_error",
     "translation": " "
   },
@@ -9129,15 +8309,11 @@
   },
   {
     "id": "api.templates.invite_team_and_channels_subject",
-    "translation": " "
+    "translation": "[{{ .SiteName }}] {{ .SenderName }} te ha invitado a participar en {{ .ChannelsLen }} canales del equipo {{ .TeamDisplayName }}"
   },
   {
     "id": "api.templates.invite_team_and_channel_body.title",
-    "translation": "{{ .SenderName }} te invitó a unirte al Canal {{ .ChannelName }} en el Equipo {{ .TeamDisplayName}}"
-  },
-  {
-    "id": "api.templates.cloud_upgrade_confirmation.title",
-    "translation": "¡Ahora estás actualizado!"
+    "translation": "{{ .SenderName }} te invitó a unirte al Canal {{ .ChannelName }} en el Equipo {{ .TeamDisplayName }}"
   },
   {
     "id": "app.user.update_thread_read_for_user_by_post.app_error",
@@ -9154,194 +8330,6 @@
   {
     "id": "api.user.authorize_oauth_user.saml_response_too_long.app_error",
     "translation": " "
-  },
-  {
-    "id": "app.cloud.get_subscription_delinquency_date.app_error",
-    "translation": "La suscripción no es morosa"
-  },
-  {
-    "id": "app.cloud.get_subscription.app_error",
-    "translation": "No se pudo recuperar la suscripción de la nube"
-  },
-  {
-    "id": "app.cloud.get_current_plan_name.app_error",
-    "translation": "No se puede obtener el nombre del plan actual"
-  },
-  {
-    "id": "app.cloud.get_cloud_products.app_error",
-    "translation": "No se pudieron obtener los productos de la nube"
-  },
-  {
-    "id": "api.templates.delinquency_90.title",
-    "translation": "Tu workspace Mattermost ha sido degradado"
-  },
-  {
-    "id": "api.templates.delinquency_90.subtitle3",
-    "translation": "Para desarchivar tus datos y mantener las características de pago, actualiza tu información de pago."
-  },
-  {
-    "id": "api.templates.delinquency_90.subtitle2",
-    "translation": "Además, tus datos pueden haber sido archivados debido a las limitaciones de Cloud Free."
-  },
-  {
-    "id": "api.templates.delinquency_90.subtitle1",
-    "translation": "Si usas características Cloud Professional o Enterprise para operaciones importantes de negocio, ya no estarán activas y experimentarás un rendimiento degradado."
-  },
-  {
-    "id": "api.templates.delinquency_90.subject",
-    "translation": "Tu workspace Mattermost Cloud ha sido degradado"
-  },
-  {
-    "id": "api.templates.delinquency_90.secondary_action_button",
-    "translation": "Ver Planes y Precios"
-  },
-  {
-    "id": "api.templates.delinquency_90.button",
-    "translation": "Actualizar pago"
-  },
-  {
-    "id": "api.templates.delinquency_75.title",
-    "translation": "Tu workspace será degradado en 15 días"
-  },
-  {
-    "id": "api.templates.delinquency_75.subtitle3",
-    "translation": "Actualiza ahora tu información de pago, o degrada a Cloud Free."
-  },
-  {
-    "id": "api.templates.delinquency_75.subtitle2",
-    "translation": "Tu espacio de trabajo será degradado a Cloud Free. Las características de tu {{.Plan}} serán bloqueadas y algunos de los datos de tu espacio de trabajo podrían ser archivados hasta que liquides completamente tu saldo pendiente."
-  },
-  {
-    "id": "api.templates.delinquency_75.subtitle1",
-    "translation": "Este es un aviso final de que no hemos recibido el pago por tu workspace Mattermost Cloud desde {{.DelinquencyDate}}"
-  },
-  {
-    "id": "api.templates.delinquency_75.subject",
-    "translation": "Tu {{.Plan}} Mattermost será degradado en 15 días"
-  },
-  {
-    "id": "api.templates.delinquency_75.downgrade_to_free",
-    "translation": "Degradar a Cloud Free"
-  },
-  {
-    "id": "api.templates.delinquency_75.button",
-    "translation": "Actualizar pago"
-  },
-  {
-    "id": "api.templates.delinquency_7.title",
-    "translation": "Tu pago no se completó"
-  },
-  {
-    "id": "api.templates.delinquency_7.subtitle2",
-    "translation": "Para mantener tu plan {{.Plan}} activo, por favor contacta a tu institución financiera tan pronto como sea posible, Luego, actualiza tus detalles de pago según sea necesario."
-  },
-  {
-    "id": "api.templates.delinquency_7.subtitle1",
-    "translation": "No pudimos procesar tu pago más reciente"
-  },
-  {
-    "id": "api.templates.delinquency_7.button",
-    "translation": "Actualizar pago"
-  },
-  {
-    "id": "api.templates.delinquency_60.title",
-    "translation": "Tu workspace Mattermost será degradado en 30 días"
-  },
-  {
-    "id": "api.templates.delinquency_60.subtitle3",
-    "translation": "Actualiza tu información de pago ahora o degrada a Cloud Free abajo."
-  },
-  {
-    "id": "api.templates.delinquency_60.subtitle2",
-    "translation": "Degradaremos tu workspace automáticamente en 30 días si no somos capaces de procesar tu pago."
-  },
-  {
-    "id": "api.templates.delinquency_60.subtitle1",
-    "translation": "Por favor actualiza pronto tu información de pago para procesar tus facturas pendientes."
-  },
-  {
-    "id": "api.templates.delinquency_60.subject",
-    "translation": "Acción requerida: El workspace será degradado en 30 días"
-  },
-  {
-    "id": "api.templates.delinquency_60.downgrade_to_free",
-    "translation": "Degradar a Cloud Free"
-  },
-  {
-    "id": "api.templates.delinquency_60.button",
-    "translation": "Actualizar pago"
-  },
-  {
-    "id": "api.templates.delinquency_45.title",
-    "translation": "Tu workspace será degradado pronto"
-  },
-  {
-    "id": "api.templates.delinquency_45.subtitle3",
-    "translation": "Actualiza la información de tu tarjeta de crédito ahora."
-  },
-  {
-    "id": "api.templates.delinquency_45.subtitle1",
-    "translation": "No fuimos capaces de cobrar el pago para las facturas con fecha {{.DelinquencyDate}}. Tu workspace está en riesgo de ser degradado."
-  },
-  {
-    "id": "api.templates.delinquency_45.subject",
-    "translation": "Aviso: Tu {{.Plan}} Mattermost será degradado pronto"
-  },
-  {
-    "id": "api.templates.delinquency_45.button",
-    "translation": "Actualizar pago"
-  },
-  {
-    "id": "api.templates.delinquency_30.title",
-    "translation": "Tu workspace será degradado pronto"
-  },
-  {
-    "id": "api.templates.delinquency_30.subtitle2",
-    "translation": "si no se toma ninguna medida, tu workspace será degradado y los siguientes datos serán archivados:"
-  },
-  {
-    "id": "api.templates.delinquency_30.subtitle1",
-    "translation": "Tienes tiempo para mantener activo tu {{.Plan}} Mattermost pero necesitarás resolver los problemas con tu método de pago."
-  },
-  {
-    "id": "api.templates.delinquency_30.subject",
-    "translation": "Actúa para mantener las característica de tu {{.Plan}} Mattermost"
-  },
-  {
-    "id": "api.templates.delinquency_30.limits_documentation",
-    "translation": "Ver toda la documentación de límites."
-  },
-  {
-    "id": "api.templates.delinquency_30.button",
-    "translation": "Actualizar pago"
-  },
-  {
-    "id": "api.templates.delinquency_30.bullet.message_history",
-    "translation": "Historial de mensajes"
-  },
-  {
-    "id": "api.templates.delinquency_30.bullet.files",
-    "translation": "Archivos"
-  },
-  {
-    "id": "api.templates.delinquency_14.title",
-    "translation": "Pago no recibido"
-  },
-  {
-    "id": "api.templates.delinquency_14.subtitle2",
-    "translation": "Por favor contacta a tu institución financiera para resolver cualquier problema. Luego, actualiza los detalles de pago como sean necesarios."
-  },
-  {
-    "id": "api.templates.delinquency_14.subtitle1",
-    "translation": "No pudimos realizar el cargo a la tarjeta de crédito que tenemos registrada. Por lo cual tu espacio de trabajo está en riesgo de ser degradado a Cloud Free."
-  },
-  {
-    "id": "api.templates.delinquency_14.subject",
-    "translation": "El pago está atrasado para tu Mattermost {{.Plan}}."
-  },
-  {
-    "id": "api.templates.delinquency_14.button",
-    "translation": "Actualizar pago"
   },
   {
     "id": "api.team.invite_guests_to_channels.license.error",
@@ -9365,15 +8353,11 @@
   },
   {
     "id": "api.command_help.success",
-    "translation": "Mattermost es una plataforma de código abierto para comunicación segura, colaboración, y orquestación de trabajo entre herramientas y equipos.\nMattermost contiene tres herramientas clave:\n\n**Channels** - Mantente conectado con tu equipo vía 1:1 y en por mensajes grupales.\n**[Playbooks](/playbooks)** - Construye y configura procesos repetibles para lograr resultados específicos y predecibles.\n**[Tableros](/boards)** - Administra proyectos y tareas en una estructura de tablero Kanban para ayudar a que tú equipo logre los hitos clave.\n\n[Ver documentación y guías]({{.HelpLink}})"
+    "translation": "Mattermost es una plataforma de código abierto para comunicación segura, colaboración, y orquestación de trabajo entre herramientas y equipos.\nMattermost contiene tres herramientas clave:\n\n**Canales** - Mantente conectado con tu equipo vía 1:1 y en por mensajes grupales.\n**[Playbooks](/playbooks)** - Construye y configura procesos repetibles para lograr resultados específicos y predecibles.\n\n[Ver documentación y guías]({{.HelpLink}})"
   },
   {
     "id": "app.cloud.trial_plan_bot_message",
     "translation": "los miembros {{.UsersNum}} del espacio de trabajo {{.WorkspaceName}} han solicitado comenzar la prueba Enterprise para acceder a: "
-  },
-  {
-    "id": "api.cloud.delinquency_email.missing_email_to_trigger",
-    "translation": "Campos faltantes requeridos para enviar el correo electrónico de morosidad."
   },
   {
     "id": "model.group.name.reserved_name.app_error",
@@ -9442,5 +8426,553 @@
   {
     "id": "api.admin.syncables_error",
     "translation": "Error al agregar usuario a grupo-equipos y grupo-canales"
+  },
+  {
+    "id": "api.acknowledgement.delete.archived_channel.app_error",
+    "translation": "No puedes quitar un reconocimiento de un canal archivado."
+  },
+  {
+    "id": "api.acknowledgement.delete.deadline.app_error",
+    "translation": "No puedes eliminar un reconocimiento después que han pasado 5 minutos."
+  },
+  {
+    "id": "api.channel.gm_to_channel_conversion.not_allowed_for_user.request_error",
+    "translation": "El usuario no tiene permitido convertir un mensaje grupal a canal privado"
+  },
+  {
+    "id": "api.channel.group_message.converted.to_private_channel",
+    "translation": "{{.ConvertedByUsername}} creó este canal desde un mensaje grupal con {{.GMMembers}}."
+  },
+  {
+    "id": "api.command_exportlink.desc",
+    "translation": "Genera un enlace para descargar una exportación."
+  },
+  {
+    "id": "api.command_exportlink.driver.app_error",
+    "translation": "EL controlador de almacenamiento de archivos no soporta la generación de enlaces."
+  },
+  {
+    "id": "api.command_exportlink.empty.app_error",
+    "translation": "No se ha encontrado archivo de exportación."
+  },
+  {
+    "id": "api.command_exportlink.hint",
+    "translation": "[job-id|nombre de archivo zip|{{.LatestMsg}}]"
+  },
+  {
+    "id": "api.command_exportlink.link.text",
+    "translation": "Puedes descargar tu archivo aquí: {{.Link}}\nEste enlace expirará en {{.Expiration}}."
+  },
+  {
+    "id": "api.command_exportlink.list.app_error",
+    "translation": "No se pudo recuperar la lista de exportación."
+  },
+  {
+    "id": "api.command_exportlink.name",
+    "translation": "exportlink"
+  },
+  {
+    "id": "api.command_exportlink.presign.app_error",
+    "translation": "No se pudo generar la url de prefirmado."
+  },
+  {
+    "id": "api.command_invite.user_already_in_channel.overflow",
+    "translation": "{{.FirstUser}} y otros {{.Others}} ya están en el canal."
+  },
+  {
+    "id": "api.channel.patch_update_channel.update_direct_or_group_messages_not_allowed.app_error",
+    "translation": "No tienes permitido actualizar el nombre, nombre para mostrar, y propósito de mensajes directos o grupales."
+  },
+  {
+    "id": "api.channel.update_channel.update_direct_or_group_messages_not_allowed.app_error",
+    "translation": "No tienes permitido actualizae el nombre, nombre para mostrar, yu propósito de mensajes directos o grupales."
+  },
+  {
+    "id": "api.command_invite.channel_constrained_user_denied",
+    "translation": "Este canal es administrado por grupos.  Este usuario no es parte de un grupo que esté sincronizado a este canal."
+  },
+  {
+    "id": "api.command_exportlink.invalid.app_error",
+    "translation": "No se pudo encontrar el archivo solicitado."
+  },
+  {
+    "id": "api.command_exportlink.permission.app_error",
+    "translation": "No tienes permisos suficientes para ejecutar este comando."
+  },
+  {
+    "id": "api.command_invite.successOverflow",
+    "translation": "{{.FirstUser}} y {{.Others}} añadidos al canal {{.Channel}}."
+  },
+  {
+    "id": "api.acknowledgement.save.archived_channel.app_error",
+    "translation": "No puedes guardar un acuse de recibo en un canal archivado."
+  },
+  {
+    "id": "api.command_invite.user_not_in_team.messageOverflow",
+    "translation": "Puedes añadir {{.FirstUser}} y otros {{.Others}} a este canal una vez que sean miembros del equipo **{{.Team}}**."
+  },
+  {
+    "id": "api.command_remote.confirm_invitation.error",
+    "translation": "No se pudo confirmar la invitación: {{.Error}}"
+  },
+  {
+    "id": "api.command_share.channel_not_shared.error",
+    "translation": "No se puede invitar remoto porque el canal {{.ChannelID}} no es compartido."
+  },
+  {
+    "id": "api.command_share.invite_remote_to_channel.error",
+    "translation": "No se puede invitar remoto al canal: {{.Error}}"
+  },
+  {
+    "id": "api.config.update_config.translations.app_error",
+    "translation": "No se pudo actualizar traducciones del servidor."
+  },
+  {
+    "id": "api.context.ip_filtering.apply_ip_filters.app_error",
+    "translation": "Ha ocurrido un error mientras se aplicaron los Filtros IP"
+  },
+  {
+    "id": "api.context.ip_filtering.get_ip_filters.app_error",
+    "translation": "Se ha producido un error al obtener los Filtros de IP"
+  },
+  {
+    "id": "api.context.ip_filtering.get_my_ip.failed",
+    "translation": "Ha ocurrido un error mientras se buscaba la dirección IP del cliente"
+  },
+  {
+    "id": "api.context.ip_filtering.not_available.app_error",
+    "translation": "El filtrado IP no está disponible en este servidor"
+  },
+  {
+    "id": "api.context.outgoing_oauth_connection.validate_connection_credentials.input_error",
+    "translation": "No se pudieron recuperar las credenciales con la conexión de configuración especificada."
+  },
+  {
+    "id": "api.drafts.disabled.app_error",
+    "translation": "La función de borradores está deshabilitada."
+  },
+  {
+    "id": "api.draft.create_draft.can_not_draft_to_deleted.error",
+    "translation": "No se puede guardar el borrador en el canal eliminado"
+  },
+  {
+    "id": "api.getUsersForReporting.invalid_active_filter",
+    "translation": "No se puede ocultar tanto usuarios activos como inactivos."
+  },
+  {
+    "id": "api.emoji.get_multiple_by_name_too_many.request_error",
+    "translation": "No se pueden obtener tantos emojis por nombre. Sólo {{.MaxNames}} emojis pueden ser solicitados de una vez."
+  },
+  {
+    "id": "api.getUsersForReporting.invalid_team_filter",
+    "translation": "Se proporcionó un id de equipo inválido."
+  },
+  {
+    "id": "api.getUsersForReporting.invalid_page_size",
+    "translation": "El tamaño de la página es inválido o demasiado grande."
+  },
+  {
+    "id": "api.payload.parse.error",
+    "translation": "Ha ocurrido un error al analizar el payload."
+  },
+  {
+    "id": "api.saml.invalid_email_token.app_error",
+    "translation": "email_token inválido"
+  },
+  {
+    "id": "api.post.post_priority.priority_post_not_allowed_for_user.request_error",
+    "translation": "El usuario no tiene permitido crear una publicación prioritaria o notificación persistente."
+  },
+  {
+    "id": "api.post.post_priority.urgent_persistent_notification_post.request_error",
+    "translation": "Las publicaciones de notificación persistente deben tener Prioridad Urgente."
+  },
+  {
+    "id": "api.server.cws.disabled",
+    "translation": "Las interacciones con el Portal de Cliente Mattermost han sido deshabilitadas por el administrador del sistema."
+  },
+  {
+    "id": "api.server.cws.needs_enterprise_edition",
+    "translation": "Servicio sólo disponible en Mattermost Enterprise edition"
+  },
+  {
+    "id": "api.post.post_priority.priority_post_only_allowed_for_root_post.request_error",
+    "translation": "Sólo las publicaciones raíz tienen permitidas tener prioridad."
+  },
+  {
+    "id": "api.server.cws.health_check.app_error",
+    "translation": "El servidor CWS no está disponible."
+  },
+  {
+    "id": "api.channel.bookmark.channel_bookmark.license.error",
+    "translation": "Tu licencia no soporta marcadores de canal."
+  },
+  {
+    "id": "api.channel.bookmark.create_channel_bookmark.direct_or_group_channels.forbidden.app_error",
+    "translation": "El usuario no tiene permitido crear un marcador de canal."
+  },
+  {
+    "id": "api.channel.bookmark.create_channel_bookmark.direct_or_group_channels_by_guests.forbidden.app_error",
+    "translation": "Error al crear el marcador de canal."
+  },
+  {
+    "id": "api.channel.bookmark.create_channel_bookmark.forbidden.app_error",
+    "translation": "Error al crear el marcador de canal."
+  },
+  {
+    "id": "api.channel.bookmark.delete_channel_bookmark.direct_or_group_channels.forbidden.app_error",
+    "translation": "Error al eliminar el marcador de canal."
+  },
+  {
+    "id": "api.channel.bookmark.create_channel_bookmark.deleted_channel.forbidden.app_error",
+    "translation": "No se pudo crear el marcador del canal."
+  },
+  {
+    "id": "api.channel.bookmark.delete_channel_bookmark.deleted_channel.forbidden.app_error",
+    "translation": "No se pudo eliminar el marcador del canal."
+  },
+  {
+    "id": "api.channel.bookmark.delete_channel_bookmark.direct_or_group_channels_by_guests.forbidden.app_error",
+    "translation": "No se pudo eliminar el marcador del canal."
+  },
+  {
+    "id": "api.channel.bookmark.delete_channel_bookmark.forbidden.app_error",
+    "translation": "No se pudo eliminar el marcador del canal."
+  },
+  {
+    "id": "api.channel.bookmark.update_channel_bookmark.deleted_channel.forbidden.app_error",
+    "translation": "No se pudo actualizar el marcador del canal."
+  },
+  {
+    "id": "api.channel.bookmark.update_channel_bookmark.direct_or_group_channels.forbidden.app_error",
+    "translation": "No se pudo actualizar el marcador del canal."
+  },
+  {
+    "id": "api.channel.bookmark.update_channel_bookmark.direct_or_group_channels_by_guests.forbidden.app_error",
+    "translation": "No se pudo actualizar el marcador del canal."
+  },
+  {
+    "id": "api.channel.bookmark.update_channel_bookmark.forbidden.app_error",
+    "translation": "No se pudo actualizar el marcador del canal."
+  },
+  {
+    "id": "api.channel.bookmark.update_channel_bookmark_sort_order.deleted_channel.forbidden.app_error",
+    "translation": "No se pudo actualizar el orden de clasificación del marcador del canal."
+  },
+  {
+    "id": "api.channel.bookmark.update_channel_bookmark_sort_order.direct_or_group_channels.forbidden.app_error",
+    "translation": "No se pudo actualizar el orden de clasificación del marcador del canal."
+  },
+  {
+    "id": "api.context.outgoing_oauth_connection.update_connection.app_error",
+    "translation": "Ocurrió un error al actualizar la conexión OAuth saliente."
+  },
+  {
+    "id": "api.channel.bookmark.update_channel_bookmark_sort_order.forbidden.app_error",
+    "translation": "No se pudo actualizar el orden de clasificación del marcador del canal."
+  },
+  {
+    "id": "api.channel.bookmark.update_channel_bookmark_sort_order.direct_or_group_channels_by_guests.forbidden.app_error",
+    "translation": "No se pudo actualizar el orden de clasificación del marcador del canal."
+  },
+  {
+    "id": "api.oauth.get_access_token.bad_request.app_error",
+    "translation": "invalid_request: Solicitud errónea."
+  },
+  {
+    "id": "api.context.get_session.app_error",
+    "translation": "Sesiones no encontradas."
+  },
+  {
+    "id": "api.filter_config_error",
+    "translation": "No se pudo filtrar la configuración."
+  },
+  {
+    "id": "api.license.request-trial.bad-request.business-email",
+    "translation": "Dirección de correo electrónico empresarial inválida para la prueba"
+  },
+  {
+    "id": "api.context.outgoing_oauth_connection.create_connection.app_error",
+    "translation": "Se produjo un error al crear la conexión OAuth saliente."
+  },
+  {
+    "id": "api.context.outgoing_oauth_connection.create_connection.input_error",
+    "translation": "Parámetros de entrada inválidos."
+  },
+  {
+    "id": "api.context.outgoing_oauth_connection.not_available.configuration_disabled",
+    "translation": "Las conexiones OAuth salientes no están disponibles en este servidor."
+  },
+  {
+    "id": "api.context.outgoing_oauth_connection.list_connections.app_error",
+    "translation": "Ocurrió un error al listar las conexiones OAuth salientes."
+  },
+  {
+    "id": "api.context.outgoing_oauth_connection.list_connections.input_error",
+    "translation": "Parámetros de entrada inválidos."
+  },
+  {
+    "id": "api.context.outgoing_oauth_connection.validate_connection_credentials.app_error",
+    "translation": "Ocurrió un error al validar las credenciales de conexión OAuth saliente."
+  },
+  {
+    "id": "api.context.outgoing_oauth_connection.update_connection.input_error",
+    "translation": "Parámetros de entrada inválidos."
+  },
+  {
+    "id": "api.custom_status.set_custom_statuses.emoji_not_found",
+    "translation": "No se pudo actualizar el estado personalizado. El emoji con el nombre especificado no existe."
+  },
+  {
+    "id": "api.emoji.upload.seek.app_error",
+    "translation": "No fue posible ubicar el principio del archivo."
+  },
+  {
+    "id": "api.channel.create_channel.missing_team_id.error",
+    "translation": "Falta team_id en el cuerpo de la solicitud"
+  },
+  {
+    "id": "api.channel.create_channel.missing_display_name.error",
+    "translation": "Falta display_name en el cuerpo de la solicitud"
+  },
+  {
+    "id": "api.context.request_body_too_large.app_error",
+    "translation": "No se puede procesar la solicitud. El cuerpo de la solicitud es demasiado grande."
+  },
+  {
+    "id": "api.file.zip_file_reader.app_error",
+    "translation": "No se pudo obtener un lector de archivos zip."
+  },
+  {
+    "id": "api.custom_profile_attributes.license_error",
+    "translation": "La licencia actual no permite Atributos de Perfil Personalizados."
+  },
+  {
+    "id": "api.error_no_organization_name_provided_for_self_hosted_onboarding",
+    "translation": "Error: no se ha indicado el nombre de la organización para la puesta en marcha en servidor propio."
+  },
+  {
+    "id": "api.get_site_url_error",
+    "translation": "No se pudo obtener la URL del sitio de la instancia"
+  },
+  {
+    "id": "api.channel.create_channel.direct_channel.remote_restricted.app_error",
+    "translation": "No se puede crear un canal directo con un usuario remoto"
+  },
+  {
+    "id": "api.channel.create_group.remote_restricted.app_error",
+    "translation": "No se puede crear una canal de grupo con usuarios remotos"
+  },
+  {
+    "id": "api.channel.update_channel_member_roles.guest.app_error",
+    "translation": "Actualización de miembro de canal inválida: Un invitado no puede ser promovido a miembro del equipo o administrador del equipo, primero debe ser promovido a usuario."
+  },
+  {
+    "id": "api.channel.update_channel_member_roles.user_and_guest.app_error",
+    "translation": "Actualización de miembro de canal no válida: Un invitado no puede ser establecido para un solo canal, un Administrador del Sistema debe promover o degradar usuarios a/desde invitados."
+  },
+  {
+    "id": "api.config.update.elasticsearch.autocomplete_cannot_be_enabled_error",
+    "translation": "El autocompletado de canales no se puede habilitar porque el esquema del índice de canales está desactualizado. Se recomienda regenerar el índice de canales. Consulta el registro de cambios de Mattermost para más información"
+  },
+  {
+    "id": "api.context.outgoing_oauth_connection.delete_connection.app_error",
+    "translation": "Se produjo un error al eliminar la conexión OAuth saliente."
+  },
+  {
+    "id": "api.license.add_license.copy.app_error",
+    "translation": "No se pudo copiar el contenido del archivo de licencia al búfer"
+  },
+  {
+    "id": "api.job.status.invalid",
+    "translation": "Estado establecido no válido"
+  },
+  {
+    "id": "api.job.unable_to_manage_job.incorrect_job_type",
+    "translation": "No tienes permiso para gestionar este tipo de tarea"
+  },
+  {
+    "id": "api.plugin.upload.file_too_large.app_error",
+    "translation": "El tamaño del plugin cargado excede el límite establecido. Este límite puede cambiarse en la Consola del Sistema en Almacenamiento de Archivos > Tamaño Máximo de Archivo"
+  },
+  {
+    "id": "api.command.execute_command.deleted.error",
+    "translation": "No es posible ejecutar comandos en un canal eliminado."
+  },
+  {
+    "id": "api.remote_cluster.create_invite_error",
+    "translation": "No se pudo crear la invitación al clúster remoto"
+  },
+  {
+    "id": "api.roles.get_multiple_by_name_too_many.request_error",
+    "translation": "No es posible obtener tantos roles por nombre. Solo se pueden solicitar {{.MaxNames}} roles a la vez."
+  },
+  {
+    "id": "api.system.logs.download_bytes_buffer.app_error",
+    "translation": "No se pudieron escribir los registros en el búfer"
+  },
+  {
+    "id": "api.remote_cluster.accept_invitation_error",
+    "translation": "No se pudo aceptar la invitación del clúster remoto"
+  },
+  {
+    "id": "api.scheduled_posts.feature_disabled",
+    "translation": "la función de publicaciones programadas está desactivada"
+  },
+  {
+    "id": "api.scheduled_posts.license_error",
+    "translation": "La función de publicaciones programadas requiere una licencia"
+  },
+  {
+    "id": "api.remote_cluster.generate_invite_cluster_is_confirmed",
+    "translation": "No se puede generar el código de invitación para un clúster confirmado"
+  },
+  {
+    "id": "api.remote_cluster.base64_decode_error",
+    "translation": "No se pudo decodificar la cadena base64"
+  },
+  {
+    "id": "api.remote_cluster.cluster_not_deleted",
+    "translation": "El clúster remoto no ha sido eliminado"
+  },
+  {
+    "id": "api.remote_cluster.encrypt_invite_error",
+    "translation": "No se pudo encriptar la invitación al clúster remoto utilizando la contraseña proporcionada"
+  },
+  {
+    "id": "api.remote_cluster.get.not_found",
+    "translation": "Clúster remoto no encontrado"
+  },
+  {
+    "id": "api.remote_cluster.invite_decrypt_error",
+    "translation": "No fue posible desencriptar la invitación al clúster remoto con la contraseña suministrada"
+  },
+  {
+    "id": "api.post.move_thread.disabled.app_error",
+    "translation": "El movimiento de hilos de conversación está deshabilitado"
+  },
+  {
+    "id": "api.post.post_priority.persistent_notification_validation_error.request_error",
+    "translation": "La validación de la notificación persistente ha fallado."
+  },
+  {
+    "id": "api.post.check_for_out_of_team_mentions.message.multiple",
+    "translation": "@{{.Usernames}} y @{{.LastUsername}} no fueron notificados por esta mención debido a que no pertenecen a este equipo."
+  },
+  {
+    "id": "api.post.delete_post.not_enabled.app_error",
+    "translation": "No es posible borrar la publicación, ya que ServiceSettings.EnableAPIPostDeletion no está activado."
+  },
+  {
+    "id": "api.post.move_thread.no_permission",
+    "translation": "No tienes permiso para mover este hilo de conversación."
+  },
+  {
+    "id": "api.post.post_priority.max_recipients_persistent_notification_post.request_error",
+    "translation": "La publicación de notificación persistente permite un máximo de {{.MaxRecipients}} destinatarios."
+  },
+  {
+    "id": "api.post.post_priority.min_recipients_persistent_notification_post.request_error",
+    "translation": "La publicación de notificación persistente debe tener al menos 1 destinatario."
+  },
+  {
+    "id": "api.server.hosted_signup_unavailable.error",
+    "translation": "Portal no disponible para registro de autoalojamiento."
+  },
+  {
+    "id": "api.system.logs.invalidFilter",
+    "translation": "Filtro de registros inválido"
+  },
+  {
+    "id": "api.team.update_team_member_roles.guest.app_error",
+    "translation": "Actualización de miembro de equipo inválida: Un usuario invitado no puede ser designado como miembro o administrador de equipo, es necesario promoverlo a usuario primero."
+  },
+  {
+    "id": "api.templates.ip_filters_changed.subTitle",
+    "translation": "@{{ .InitiatingUsername }} modificó la configuración de filtrado de IP para tu espacio de trabajo en la URL: {{ .SiteURL }}"
+  },
+  {
+    "id": "api.templates.ip_filters_changed.button",
+    "translation": "Revisar cambios"
+  },
+  {
+    "id": "api.post.deduplicate_create_post.cache_error",
+    "translation": "Error al guardar en caché la publicación después de eliminar duplicados de una solicitud de cliente repetida."
+  },
+  {
+    "id": "api.team.user.missing_account",
+    "translation": "No es posible encontrar el usuario."
+  },
+  {
+    "id": "api.team.update_team_member_roles.user_and_guest.app_error",
+    "translation": "Actualización de miembro de equipo no válida: Un invitado no puede ser asignado a un único equipo, un Administrador del Sistema debe promover o degradar usuarios a/desde invitados."
+  },
+  {
+    "id": "api.post.check_for_out_of_team_mentions.message.one",
+    "translation": "@{{.Username}} no fue notificado por esta mención porque no es miembro de este equipo."
+  },
+  {
+    "id": "api.shared_channel.get_shared_channel_remotes_error",
+    "translation": "No se pudieron obtener los remotos del canal compartido"
+  },
+  {
+    "id": "api.shared_channel.has_remote_error",
+    "translation": "No se pudo determinar si el canal está compartido con el remoto"
+  },
+  {
+    "id": "api.shared_channel.invite_remote_to_channel_error",
+    "translation": "No se pudo invitar remoto al canal"
+  },
+  {
+    "id": "api.shared_channel.uninvite_remote_to_channel_error",
+    "translation": "No se pudo anular la invitación de remoto al canal"
+  },
+  {
+    "id": "api.access_control_policy.get_channels.limit.app_error",
+    "translation": "El obtener el límite de canales no es válido"
+  },
+  {
+    "id": "api.channel.add_user.to.channel.rejected",
+    "translation": "El usuario no tiene los atributos requeridos para unirse al canal."
+  },
+  {
+    "id": "api.templates.ip_filters_changed.subject",
+    "translation": "CAmbios a los filtros IP de tu Workspace"
+  },
+  {
+    "id": "api.templates.ip_filters_changed.title",
+    "translation": "Cambios de filtrado IP para tu workspace"
+  },
+  {
+    "id": "api.templates.ip_filters_changed_footer.contact_support",
+    "translation": "Contacta a soporte"
+  },
+  {
+    "id": "api.templates.ip_filters_changed_footer.log_in_to_customer_portal",
+    "translation": "Inicia sesión en el portal de cliente para restablecer el filtrado de IP"
+  },
+  {
+    "id": "api.templates.ip_filters_changed_footer.send_an_email_to",
+    "translation": "Envía un email a {{ .InitiatingUserEmail }}"
+  },
+  {
+    "id": "api.templates.ip_filters_changed_footer.title",
+    "translation": "¿Tienes problemas accediendo a tu workspace?"
+  },
+  {
+    "id": "api.templates.license_up_for_renewal_contact_sales",
+    "translation": "Contacta a ventas"
+  },
+  {
+    "id": "api.user.get_profile_image_path.app_error",
+    "translation": "Error al revisar is un usuarrio tiene una imagen de perfil personalizada."
+  },
+  {
+    "id": "api.user.get_users.validation.app_error",
+    "translation": "Error al obtener roles durante la validación."
+  },
+  {
+    "id": "api.user.invalidate_password_recovery_tokens.error",
+    "translation": "No fue posible onbtener tokes por tipo cuando se invalidaban los tokens de recuperación de contraseña"
   }
 ]

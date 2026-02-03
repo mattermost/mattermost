@@ -55,6 +55,14 @@ describe('group configuration', () => {
         });
     });
 
+    it("MM-58840 Groups - can't navigate to invalid URL", () => {
+        // # Visit the invalid URL.
+        cy.visit('/admin_console/user_management/groups/invalid');
+
+        // * Verify that the user is seeing the listing (subroute not matched)
+        cy.findByText('AD/LDAP Groups').should('be.visible');
+    });
+
     describe('adding a team', () => {
         it('does not add a team without saving', () => {
             addGroupSyncable('team', () => {

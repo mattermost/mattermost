@@ -5,15 +5,11 @@ import React from 'react';
 import {FormattedMessage, injectIntl} from 'react-intl';
 import type {WrappedComponentProps} from 'react-intl';
 
-import IconButton from '@mattermost/compass-components/components/icon-button'; // eslint-disable-line no-restricted-imports
-
-import {trackEvent} from 'actions/telemetry_actions';
-
+import IconButton from 'components/global_header/header_icon_button';
 import KeyboardShortcutsModal from 'components/keyboard_shortcuts/keyboard_shortcuts_modal/keyboard_shortcuts_modal';
-import OverlayTrigger from 'components/overlay_trigger';
-import Tooltip from 'components/tooltip';
 import Menu from 'components/widgets/menu/menu';
 import MenuWrapper from 'components/widgets/menu/menu_wrapper';
+import WithTooltip from 'components/with_tooltip';
 
 import {ModalIdentifiers} from 'utils/constants';
 
@@ -23,11 +19,7 @@ const mattermostUserGuideLink = 'https://docs.mattermost.com/guides/use-mattermo
 const trainingResourcesLink = 'https://academy.mattermost.com/';
 const askTheCommunityUrl = 'https://mattermost.com/pl/default-ask-mattermost-community/';
 
-type Props = WrappedComponentProps & PropsFromRedux & {
-    location: {
-        pathname: string;
-    };
-}
+type Props = WrappedComponentProps & PropsFromRedux;
 
 type State = {
     buttonActive: boolean;
@@ -53,10 +45,6 @@ class UserGuideDropdown extends React.PureComponent<Props, State> {
         this.setState({
             buttonActive: menuActive,
         });
-    };
-
-    askTheCommunityClick = () => {
-        trackEvent('ui', 'help_ask_the_community');
     };
 
     renderDropdownItems = (): React.ReactNode => {
@@ -99,7 +87,6 @@ class UserGuideDropdown extends React.PureComponent<Props, State> {
                         iconClassName='icon-help'
                         url={askTheCommunityUrl}
                         text={intl.formatMessage({id: 'userGuideHelp.askTheCommunity', defaultMessage: 'Ask the community'})}
-                        onClick={this.askTheCommunityClick}
                     />
                 )}
                 {this.props.reportAProblemLink && (
@@ -123,16 +110,11 @@ class UserGuideDropdown extends React.PureComponent<Props, State> {
 
     render() {
         const {intl} = this.props;
-        const tooltip = (
-            <Tooltip
-                id='userGuideHelpTooltip'
-                className='hidden-xs'
-            >
-                <FormattedMessage
-                    id={'channel_header.userHelpGuide'}
-                    defaultMessage='Help'
-                />
-            </Tooltip>
+        const tooltipText = (
+            <FormattedMessage
+                id={'channel_header.userHelpGuide'}
+                defaultMessage='Help'
+            />
         );
 
         return (
@@ -141,28 +123,23 @@ class UserGuideDropdown extends React.PureComponent<Props, State> {
                 className='userGuideHelp'
                 onToggle={this.buttonToggleState}
             >
-                <OverlayTrigger
-                    delayShow={500}
-                    placement='bottom'
-                    overlay={this.state.buttonActive ? <></> : tooltip}
+                <WithTooltip
+                    title={tooltipText}
                 >
                     <IconButton
-                        size={'sm'}
                         icon={'help-circle-outline'}
                         onClick={() => {}} // icon button currently requires onclick ... needs to revisit
                         active={this.state.buttonActive}
-                        inverted={true}
-                        compact={true}
                         aria-controls='AddChannelDropdown'
                         aria-expanded={this.state.buttonActive}
                         aria-label={intl.formatMessage({id: 'channel_header.userHelpGuide', defaultMessage: 'Help'})}
                     />
-                </OverlayTrigger>
+                </WithTooltip>
                 <Menu
                     openLeft={false}
                     openUp={false}
                     id='AddChannelDropdown'
-                    ariaLabel={intl.formatMessage({id: 'sidebar_left.add_channel_dropdown.dropdownAriaLabel', defaultMessage: 'Add Channel Dropdown'})}
+                    ariaLabel={intl.formatMessage({id: 'channel_header.userHelpGuide', defaultMessage: 'Help'})}
                 >
                     {this.renderDropdownItems()}
                 </Menu>

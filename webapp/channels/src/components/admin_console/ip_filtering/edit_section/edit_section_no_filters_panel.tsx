@@ -12,10 +12,10 @@ type NoFiltersPanelProps = {
 
 const NoFiltersPanel = ({setShowAddModal}: NoFiltersPanelProps) => (
     <div className='NoFilters'>
-        <div>
+        <div className='Illustration'>
             <IPFilteringEarthSvg
-                width={149}
-                height={140}
+                width={132}
+                height={90}
             />
         </div>
         <div className='Title'>
@@ -27,12 +27,12 @@ const NoFiltersPanel = ({setShowAddModal}: NoFiltersPanelProps) => (
         <div className='Subtitle'>
             <FormattedMessage
                 id='admin.ip_filtering.any_ip_can_access_add_filter'
-                defaultMessage='Any IP can access your workspace. To limit access to selected IP Addresses, <add>Add a filter</add>'
+                defaultMessage='Any IP can access your workspace. To limit access to selected IP Addresses, <add>Add a filter</add>.'
                 values={{
                     add: (msg) => (
                         <div
                             onClick={() => setShowAddModal(true)}
-                            className='Button'
+                            className='btn btn-primary'
                         >
                             {msg}
                         </div>

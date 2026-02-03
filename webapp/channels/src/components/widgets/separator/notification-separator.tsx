@@ -5,7 +5,9 @@ import React from 'react';
 import './separator.scss';
 import './notification-separator.scss';
 
-type Props = React.PropsWithChildren<any>;
+type Props = {
+    children?: React.ReactNode;
+};
 
 const NotificationSeparator = ({children}: Props) => {
     return (

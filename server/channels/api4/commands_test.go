@@ -17,8 +17,8 @@ import (
 )
 
 func TestEchoCommand(t *testing.T) {
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
 
 	client := th.Client
 	channel1 := th.BasicChannel
@@ -33,7 +33,7 @@ func TestEchoCommand(t *testing.T) {
 	require.NoError(t, err)
 	require.NotNil(t, r1, "Echo command failed to execute")
 
-	time.Sleep(100 * time.Millisecond)
+	time.Sleep(time.Second)
 
 	p1, _, err := client.GetPostsForChannel(context.Background(), channel1.Id, 0, 2, "", false, false)
 	require.NoError(t, err)
@@ -41,22 +41,22 @@ func TestEchoCommand(t *testing.T) {
 }
 
 func TestGroupmsgCommands(t *testing.T) {
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
 
 	client := th.Client
 	team := th.BasicTeam
 	user1 := th.BasicUser
 	user2 := th.BasicUser2
-	user3 := th.CreateUser()
-	user4 := th.CreateUser()
-	user5 := th.CreateUser()
-	user6 := th.CreateUser()
-	user7 := th.CreateUser()
-	user8 := th.CreateUser()
-	user9 := th.CreateUser()
-	th.LinkUserToTeam(user3, team)
-	th.LinkUserToTeam(user4, team)
+	user3 := th.CreateUser(t)
+	user4 := th.CreateUser(t)
+	user5 := th.CreateUser(t)
+	user6 := th.CreateUser(t)
+	user7 := th.CreateUser(t)
+	user8 := th.CreateUser(t)
+	user9 := th.CreateUser(t)
+	th.LinkUserToTeam(t, user3, team)
+	th.LinkUserToTeam(t, user4, team)
 
 	rs1, _, err := client.ExecuteCommand(context.Background(), th.BasicChannel.Id, "/groupmsg "+user2.Username+","+user3.Username)
 	require.NoError(t, err)
@@ -89,8 +89,8 @@ func TestGroupmsgCommands(t *testing.T) {
 }
 
 func TestInvitePeopleCommand(t *testing.T) {
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
 
 	client := th.Client
 	channel := th.BasicChannel
@@ -110,8 +110,7 @@ func TestInvitePeopleCommand(t *testing.T) {
 
 // also used to test /open (see command_open_test.go)
 func testJoinCommands(t *testing.T, alias string) {
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 
 	client := th.Client
 	team := th.BasicTeam
@@ -167,12 +166,13 @@ func testJoinCommands(t *testing.T, alias string) {
 }
 
 func TestJoinCommands(t *testing.T) {
+	mainHelper.Parallel(t)
 	testJoinCommands(t, "join")
 }
 
 func TestLoadTestHelpCommands(t *testing.T) {
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
 
 	client := th.Client
 	channel := th.BasicChannel
@@ -187,13 +187,11 @@ func TestLoadTestHelpCommands(t *testing.T) {
 	rs, _, err := client.ExecuteCommand(context.Background(), channel.Id, "/test help")
 	require.NoError(t, err)
 	require.True(t, strings.Contains(rs.Text, "Mattermost testing commands to help"), rs.Text)
-
-	time.Sleep(2 * time.Second)
 }
 
 func TestLoadTestSetupCommands(t *testing.T) {
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
 
 	client := th.Client
 	channel := th.BasicChannel
@@ -208,13 +206,11 @@ func TestLoadTestSetupCommands(t *testing.T) {
 	rs, _, err := client.ExecuteCommand(context.Background(), channel.Id, "/test setup fuzz 1 1 1")
 	require.NoError(t, err)
 	require.Equal(t, "Created environment", rs.Text, rs.Text)
-
-	time.Sleep(2 * time.Second)
 }
 
 func TestLoadTestUsersCommands(t *testing.T) {
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
 
 	client := th.Client
 	channel := th.BasicChannel
@@ -229,13 +225,11 @@ func TestLoadTestUsersCommands(t *testing.T) {
 	rs, _, err := client.ExecuteCommand(context.Background(), channel.Id, "/test users fuzz 1 2")
 	require.NoError(t, err)
 	require.Equal(t, "Added users", rs.Text, rs.Text)
-
-	time.Sleep(2 * time.Second)
 }
 
 func TestLoadTestChannelsCommands(t *testing.T) {
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
 
 	client := th.Client
 	channel := th.BasicChannel
@@ -250,13 +244,11 @@ func TestLoadTestChannelsCommands(t *testing.T) {
 	rs, _, err := client.ExecuteCommand(context.Background(), channel.Id, "/test channels fuzz 1 2")
 	require.NoError(t, err)
 	require.Equal(t, "Added channels", rs.Text, rs.Text)
-
-	time.Sleep(2 * time.Second)
 }
 
 func TestLoadTestPostsCommands(t *testing.T) {
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
 
 	client := th.Client
 	channel := th.BasicChannel
@@ -271,13 +263,11 @@ func TestLoadTestPostsCommands(t *testing.T) {
 	rs, _, err := client.ExecuteCommand(context.Background(), channel.Id, "/test posts fuzz 2 3 2")
 	require.NoError(t, err)
 	require.Equal(t, "Added posts", rs.Text, rs.Text)
-
-	time.Sleep(2 * time.Second)
 }
 
 func TestLeaveCommands(t *testing.T) {
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
 
 	client := th.Client
 	team := th.BasicTeam
@@ -332,16 +322,16 @@ func TestLeaveCommands(t *testing.T) {
 }
 
 func TestLogoutTestCommand(t *testing.T) {
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
 
 	_, _, err := th.Client.ExecuteCommand(context.Background(), th.BasicChannel.Id, "/logout")
 	require.NoError(t, err)
 }
 
 func TestMeCommand(t *testing.T) {
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
 
 	client := th.Client
 	channel := th.BasicChannel
@@ -352,7 +342,7 @@ func TestMeCommand(t *testing.T) {
 	require.NoError(t, err)
 	require.NotNil(t, r1, "Command failed to execute")
 
-	time.Sleep(100 * time.Millisecond)
+	time.Sleep(time.Second)
 
 	p1, _, err := client.GetPostsForChannel(context.Background(), channel.Id, 0, 2, "", false, false)
 	require.NoError(t, err)
@@ -367,15 +357,15 @@ func TestMeCommand(t *testing.T) {
 }
 
 func TestMsgCommands(t *testing.T) {
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
 
 	client := th.Client
 	team := th.BasicTeam
 	user1 := th.BasicUser
 	user2 := th.BasicUser2
-	user3 := th.CreateUser()
-	th.LinkUserToTeam(user3, team)
+	user3 := th.CreateUser(t)
+	th.LinkUserToTeam(t, user3, team)
 
 	_, _, err := client.CreateDirectChannel(context.Background(), th.BasicUser.Id, user2.Id)
 	require.NoError(t, err)
@@ -414,36 +404,37 @@ func TestMsgCommands(t *testing.T) {
 }
 
 func TestOpenCommands(t *testing.T) {
+	mainHelper.Parallel(t)
 	testJoinCommands(t, "open")
 }
 
 func TestSearchCommand(t *testing.T) {
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
 
 	_, _, err := th.Client.ExecuteCommand(context.Background(), th.BasicChannel.Id, "/search")
 	require.NoError(t, err)
 }
 
 func TestSettingsCommand(t *testing.T) {
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
 
 	_, _, err := th.Client.ExecuteCommand(context.Background(), th.BasicChannel.Id, "/settings")
 	require.NoError(t, err)
 }
 
 func TestShortcutsCommand(t *testing.T) {
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
 
 	_, _, err := th.Client.ExecuteCommand(context.Background(), th.BasicChannel.Id, "/shortcuts")
 	require.NoError(t, err)
 }
 
 func TestShrugCommand(t *testing.T) {
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
 
 	client := th.Client
 	channel := th.BasicChannel
@@ -454,8 +445,7 @@ func TestShrugCommand(t *testing.T) {
 	require.NoError(t, err)
 	require.NotNil(t, r1, "Command failed to execute")
 
-	time.Sleep(100 * time.Millisecond)
-
+	time.Sleep(time.Second)
 	p1, _, err := client.GetPostsForChannel(context.Background(), channel.Id, 0, 2, "", false, false)
 	require.NoError(t, err)
 	require.Len(t, p1.Order, 2, "Command failed to send")
@@ -463,8 +453,8 @@ func TestShrugCommand(t *testing.T) {
 }
 
 func TestStatusCommands(t *testing.T) {
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
 
 	commandAndTest(t, th, "away")
 	commandAndTest(t, th, "offline")
@@ -480,8 +470,7 @@ func commandAndTest(t *testing.T, th *TestHelper, status string) {
 	require.NoError(t, err)
 	require.NotEqual(t, "Command failed to execute", r1)
 
-	time.Sleep(1000 * time.Millisecond)
-
+	time.Sleep(2 * time.Second)
 	rstatus, _, err := client.GetUserStatus(context.Background(), user.Id, "")
 	require.NoError(t, err)
 	require.Equal(t, status, rstatus.Status, "Error setting status")

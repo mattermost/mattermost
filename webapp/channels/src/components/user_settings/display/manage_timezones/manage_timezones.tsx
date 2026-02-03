@@ -4,7 +4,7 @@
 import React from 'react';
 import {FormattedMessage} from 'react-intl';
 import ReactSelect from 'react-select';
-import type {ValueType} from 'react-select';
+import type {OnChangeValue, StylesConfig} from 'react-select';
 import type {Timezone} from 'timezones.json';
 
 import type {UserProfile} from '@mattermost/types/users';
@@ -18,6 +18,7 @@ import {getBrowserTimezone} from 'utils/timezone';
 
 type Actions = {
     updateMe: (user: UserProfile) => Promise<ActionResult>;
+    patchUser: (user: UserProfile) => Promise<ActionResult>;
 }
 
 type Props = {
@@ -29,6 +30,7 @@ type Props = {
     timezones: Timezone[];
     timezoneLabel: string;
     actions: Actions;
+    adminMode?: boolean;
 }
 type SelectedOption = {
     value: string;
@@ -58,7 +60,7 @@ export default class ManageTimezones extends React.PureComponent<Props, State> {
         };
     }
 
-    onChange = (selectedOption: ValueType<SelectedOption>) => {
+    onChange = (selectedOption: OnChangeValue<SelectedOption, boolean>) => {
         if (selectedOption && 'value' in selectedOption) {
             this.setState({
                 manualTimezone: selectedOption.value,
@@ -97,7 +99,7 @@ export default class ManageTimezones extends React.PureComponent<Props, State> {
     };
 
     submitUser = () => {
-        const {user, actions} = this.props;
+        const {user} = this.props;
         const {useAutomaticTimezone, automaticTimezone, manualTimezone} = this.state;
 
         const timezone = {
@@ -111,7 +113,8 @@ export default class ManageTimezones extends React.PureComponent<Props, State> {
             timezone,
         };
 
-        actions.updateMe(updatedUser).
+        const action = this.props.adminMode ? this.props.actions.patchUser : this.props.actions.updateMe;
+        action(updatedUser).
             then((res) => {
                 if ('data' in res) {
                     this.props.updateSection('');
@@ -153,37 +156,61 @@ export default class ManageTimezones extends React.PureComponent<Props, State> {
         });
     };
 
-    handleManualTimezone = (e: React.ChangeEvent<HTMLSelectElement>) => {
-        this.setState({manualTimezone: e.target.value});
-    };
     render() {
         const {timezones} = this.props;
         const {useAutomaticTimezone} = this.state;
 
+        let index = 0;
+        let previousTimezone: Timezone;
+
         const timeOptions = this.props.timezones.map((timeObject) => {
+            if (timeObject.utc[index] === previousTimezone?.utc[index]) {
+                index++;
+            } else {
+                // It's safe to use the first item since consecutive timezones
+                // don't have the same 'utc' array.
+                index = index === 0 ? index : 0;
+            }
+
+            previousTimezone = timeObject;
+
+            // Some more context on why different 'utc' items are used can be found here.
+            // https://github.com/mattermost/mattermost/pull/29290#issuecomment-2478492626
             return {
-                value: timeObject.utc[0],
+                value: timeObject.utc[index],
                 label: timeObject.text,
             };
         });
+
         let serverError;
         if (this.state.serverError) {
             serverError = <label className='has-error'>{this.state.serverError}</label>;
         }
 
         const inputs = [];
+
+        // These are passed to the 'key' prop and should all be unique.
+        const inputId = {
+            automaticTimezoneInput: 1,
+            manualTimezoneInput: 2,
+            message: 3,
+        };
+
         const reactStyles = {
 
-            menuPortal: (provided: React.CSSProperties) => ({
+            menuPortal: (provided) => ({
                 ...provided,
                 zIndex: 9999,
             }),
 
-        };
+        } satisfies StylesConfig<SelectedOption, boolean>;
 
         const noTimezonesFromServer = timezones.length === 0;
         const automaticTimezoneInput = (
-            <div className='checkbox'>
+            <div
+                className='checkbox'
+                key={inputId.automaticTimezoneInput}
+            >
                 <label>
                     <input
                         id='automaticTimezoneInput'
@@ -204,6 +231,7 @@ export default class ManageTimezones extends React.PureComponent<Props, State> {
         const manualTimezoneInput = (
             <div
                 className='pt-2'
+                key={inputId.manualTimezoneInput}
             >
                 <ReactSelect
                     className='react-select react-select-top'
@@ -212,7 +240,7 @@ export default class ManageTimezones extends React.PureComponent<Props, State> {
                     menuPortalTarget={document.body}
                     styles={reactStyles}
                     options={timeOptions}
-                    clearable={false}
+                    isClearable={false}
                     onChange={this.onChange}
                     value={this.state.selectedOption}
                     aria-labelledby='changeInterfaceTimezoneLabel'
@@ -227,11 +255,11 @@ export default class ManageTimezones extends React.PureComponent<Props, State> {
         inputs.push(manualTimezoneInput);
 
         inputs.push(
-            <div>
+            <div key={inputId.message}>
                 <br/>
                 <FormattedMessage
                     id='user.settings.timezones.promote'
-                    defaultMessage='Select the time zone used for timestamps in the user interface and email notifications.'
+                    defaultMessage='Select the timezone used for timestamps in the user interface and email notifications.'
                 />
             </div>,
         );
@@ -245,11 +273,11 @@ export default class ManageTimezones extends React.PureComponent<Props, State> {
                     />
                 }
                 containerStyle='timezone-container'
-                width='medium'
                 submit={this.changeTimezone}
                 saving={this.state.isSaving}
                 inputs={inputs}
                 updateSection={this.props.updateSection}
+                disableEnterSubmit={true}
             />
         );
     }

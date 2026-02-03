@@ -7,6 +7,8 @@ import (
 	"net/url"
 	"testing"
 
+	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/v8/channels/utils/testutils"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -114,4 +116,72 @@ func TestGetUnproxiedImageURL(t *testing.T) {
 			assert.Equal(t, test.Expected, getUnproxiedImageURL(test.Input, siteURL))
 		})
 	}
+}
+
+func TestOnConfigChange(t *testing.T) {
+	t.Run("should switch between backends", func(t *testing.T) {
+		proxy := makeTestAtmosCamoProxy()
+
+		require.Equal(t, "https://mattermost.example.com", proxy.backend.(*AtmosCamoBackend).siteURL.String())
+
+		newConfig := proxy.ConfigService.Config().Clone()
+		newConfig.ImageProxySettings.ImageProxyType = model.NewPointer(model.ImageProxyTypeLocal)
+
+		proxy.ConfigService.(*testutils.StaticConfigService).UpdateConfig(newConfig)
+
+		require.Equal(t, "https://mattermost.example.com", proxy.backend.(*LocalBackend).baseURL.String())
+
+		newConfig = proxy.ConfigService.Config().Clone()
+		newConfig.ImageProxySettings.ImageProxyType = model.NewPointer(model.ImageProxyTypeAtmosCamo)
+
+		proxy.ConfigService.(*testutils.StaticConfigService).UpdateConfig(newConfig)
+
+		require.Equal(t, "https://mattermost.example.com", proxy.backend.(*AtmosCamoBackend).siteURL.String())
+	})
+
+	t.Run("for local proxy, should update site URL when that changes", func(t *testing.T) {
+		proxy := makeTestLocalProxy()
+
+		require.Equal(t, "https://mattermost.example.com", proxy.siteURL.String())
+		require.Equal(t, "https://mattermost.example.com", proxy.backend.(*LocalBackend).baseURL.String())
+
+		newConfig := proxy.ConfigService.Config().Clone()
+		newConfig.ServiceSettings.SiteURL = model.NewPointer("https://new.example.com")
+
+		proxy.ConfigService.(*testutils.StaticConfigService).UpdateConfig(newConfig)
+
+		require.Equal(t, "https://new.example.com", proxy.siteURL.String())
+		require.Equal(t, "https://new.example.com", proxy.backend.(*LocalBackend).baseURL.String())
+	})
+
+	t.Run("for atmos/camo proxy, should update site URL when that changes", func(t *testing.T) {
+		proxy := makeTestAtmosCamoProxy()
+
+		require.Equal(t, "https://mattermost.example.com", proxy.siteURL.String())
+		require.Equal(t, "https://mattermost.example.com", proxy.backend.(*AtmosCamoBackend).siteURL.String())
+
+		newConfig := proxy.ConfigService.Config().Clone()
+		newConfig.ServiceSettings.SiteURL = model.NewPointer("https://new.example.com")
+
+		proxy.ConfigService.(*testutils.StaticConfigService).UpdateConfig(newConfig)
+
+		require.Equal(t, "https://new.example.com", proxy.siteURL.String())
+		require.Equal(t, "https://new.example.com", proxy.backend.(*AtmosCamoBackend).siteURL.String())
+	})
+
+	t.Run("for atmos/camo proxy, should update additional options when those change", func(t *testing.T) {
+		proxy := makeTestAtmosCamoProxy()
+
+		require.Equal(t, "http://images.example.com", proxy.backend.(*AtmosCamoBackend).remoteURL.String())
+		// require.Equal(t, "7e5f3fab20b94782b43cdb022a66985ef28ba355df2c5d5da3c9a05e4b697bac", proxy.backend.(*AtmosCamoBackend).remoteOptions)
+
+		newConfig := proxy.ConfigService.Config().Clone()
+		newConfig.ImageProxySettings.RemoteImageProxyURL = model.NewPointer("https://new.example.com")
+		newConfig.ImageProxySettings.RemoteImageProxyOptions = model.NewPointer("some other random hash")
+
+		proxy.ConfigService.(*testutils.StaticConfigService).UpdateConfig(newConfig)
+
+		require.Equal(t, "https://new.example.com", proxy.backend.(*AtmosCamoBackend).remoteURL.String())
+		// require.Equal(t, "some other random hash", proxy.backend.(*AtmosCamoBackend).remoteOptions)
+	})
 }

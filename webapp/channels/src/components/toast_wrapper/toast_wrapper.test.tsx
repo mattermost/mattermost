@@ -1,7 +1,6 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {fireEvent, screen} from '@testing-library/react';
 import React from 'react';
 import type {ComponentProps} from 'react';
 
@@ -12,7 +11,7 @@ import {HINT_TOAST_TESTID} from 'components/hint-toast/hint_toast';
 import {SCROLL_TO_BOTTOM_DISMISS_BUTTON_TESTID, SCROLL_TO_BOTTOM_TOAST_TESTID} from 'components/scroll_to_bottom_toast/scroll_to_bottom_toast';
 
 import {shallowWithIntl} from 'tests/helpers/intl-test-helper';
-import {renderWithContext} from 'tests/react_testing_utils';
+import {renderWithContext, screen, userEvent} from 'tests/react_testing_utils';
 import {getHistory} from 'utils/browser_history';
 import {PostListRowListIds} from 'utils/constants';
 
@@ -85,7 +84,7 @@ describe('components/ToastWrapper', () => {
                     'post1',
                     'post2',
                     'post3',
-                    PostListRowListIds.START_OF_NEW_MESSAGES,
+                    PostListRowListIds.START_OF_NEW_MESSAGES + 1551711599000,
                     DATE_LINE + 1551711600000,
                     'post4',
                     'post5',
@@ -104,7 +103,7 @@ describe('components/ToastWrapper', () => {
                     'post1',
                     'post2',
                     'post3',
-                    PostListRowListIds.START_OF_NEW_MESSAGES,
+                    PostListRowListIds.START_OF_NEW_MESSAGES + 1551711599000,
                     DATE_LINE + 1551711600000,
                     'post4',
                     'post5',
@@ -162,7 +161,7 @@ describe('components/ToastWrapper', () => {
                     'post1',
                     'post2',
                     'post3',
-                    PostListRowListIds.START_OF_NEW_MESSAGES,
+                    PostListRowListIds.START_OF_NEW_MESSAGES + 1551711599000,
                     DATE_LINE + 1551711600000,
                     'post4',
                     'post5',
@@ -191,7 +190,7 @@ describe('components/ToastWrapper', () => {
                     'post1',
                     'post2',
                     'post3',
-                    PostListRowListIds.START_OF_NEW_MESSAGES,
+                    PostListRowListIds.START_OF_NEW_MESSAGES + 1551711599000,
                     DATE_LINE + 1551711600000,
                     'post4',
                     'post5',
@@ -247,7 +246,7 @@ describe('components/ToastWrapper', () => {
                     'post1',
                     'post2',
                     'post3',
-                    PostListRowListIds.START_OF_NEW_MESSAGES,
+                    PostListRowListIds.START_OF_NEW_MESSAGES + 1551711599000,
                     DATE_LINE + 1551711600000,
                     'post4',
                     'post5',
@@ -277,7 +276,7 @@ describe('components/ToastWrapper', () => {
                     'post1',
                     'post2',
                     'post3',
-                    PostListRowListIds.START_OF_NEW_MESSAGES,
+                    PostListRowListIds.START_OF_NEW_MESSAGES + 1551711599000,
                     DATE_LINE + 1551711600000,
                     'post4',
                     'post5',
@@ -312,7 +311,7 @@ describe('components/ToastWrapper', () => {
                     'post1',
                     'post2',
                     'post3',
-                    PostListRowListIds.START_OF_NEW_MESSAGES,
+                    PostListRowListIds.START_OF_NEW_MESSAGES + 1551711599000,
                     DATE_LINE + 1551711600000,
                     'post4',
                     'post5',
@@ -334,7 +333,7 @@ describe('components/ToastWrapper', () => {
                     'post1',
                     'post2',
                     'post3',
-                    PostListRowListIds.START_OF_NEW_MESSAGES,
+                    PostListRowListIds.START_OF_NEW_MESSAGES + 1551711599000,
                     DATE_LINE + 1551711600000,
                     'post4',
                     'post5',
@@ -356,7 +355,7 @@ describe('components/ToastWrapper', () => {
                     'post1',
                     'post2',
                     'post3',
-                    PostListRowListIds.START_OF_NEW_MESSAGES,
+                    PostListRowListIds.START_OF_NEW_MESSAGES + 1551711599000,
                     DATE_LINE + 1551711600000,
                     'post4',
                     'post5',
@@ -381,7 +380,7 @@ describe('components/ToastWrapper', () => {
                     'post1',
                     'post2',
                     'post3',
-                    PostListRowListIds.START_OF_NEW_MESSAGES,
+                    PostListRowListIds.START_OF_NEW_MESSAGES + 1551711599000,
                     DATE_LINE + 1551711600000,
                     'post4',
                     'post5',
@@ -403,7 +402,7 @@ describe('components/ToastWrapper', () => {
                     'post1',
                     'post2',
                     'post3',
-                    PostListRowListIds.START_OF_NEW_MESSAGES,
+                    PostListRowListIds.START_OF_NEW_MESSAGES + 1551711599000,
                     DATE_LINE + 1551711600000,
                     'post4',
                     'post5',
@@ -426,7 +425,7 @@ describe('components/ToastWrapper', () => {
                     'post1',
                     'post2',
                     'post3',
-                    PostListRowListIds.START_OF_NEW_MESSAGES,
+                    PostListRowListIds.START_OF_NEW_MESSAGES + 1551711599000,
                     DATE_LINE + 1551711600000,
                     'post4',
                     'post5',
@@ -464,7 +463,7 @@ describe('components/ToastWrapper', () => {
                 postListIds: [
                     'post2',
                     'post3',
-                    PostListRowListIds.START_OF_NEW_MESSAGES,
+                    PostListRowListIds.START_OF_NEW_MESSAGES + 1551711599000,
                     DATE_LINE + 1551711600000,
                     'post4',
                     'post5',
@@ -480,7 +479,7 @@ describe('components/ToastWrapper', () => {
                     'post1',
                     'post2',
                     'post3',
-                    PostListRowListIds.START_OF_NEW_MESSAGES,
+                    PostListRowListIds.START_OF_NEW_MESSAGES + 1551711599000,
                     DATE_LINE + 1551711600000,
                     'post4',
                     'post5',
@@ -497,7 +496,7 @@ describe('components/ToastWrapper', () => {
                     'post1',
                     'post2',
                     'post3',
-                    PostListRowListIds.START_OF_NEW_MESSAGES,
+                    PostListRowListIds.START_OF_NEW_MESSAGES + 1551711599000,
                     DATE_LINE + 1551711600000,
                     'post4',
                     'post5',
@@ -692,7 +691,7 @@ describe('components/ToastWrapper', () => {
             expect(hintToast).toBeInTheDocument();
         });
 
-        test('should call scrollToLatestMessages on click, and hide this toast (do not call dismiss function)', () => {
+        test('should call scrollToLatestMessages on click, and hide this toast (do not call dismiss function)', async () => {
             const props = {
                 ...baseProps,
                 showScrollToBottomToast: true,
@@ -700,7 +699,7 @@ describe('components/ToastWrapper', () => {
 
             renderWithContext(<ToastWrapper {...props}/>);
             const scrollToBottomToast = screen.getByTestId(SCROLL_TO_BOTTOM_TOAST_TESTID);
-            fireEvent.click(scrollToBottomToast);
+            await userEvent.click(scrollToBottomToast);
 
             expect(baseProps.scrollToLatestMessages).toHaveBeenCalledTimes(1);
 
@@ -709,7 +708,7 @@ describe('components/ToastWrapper', () => {
             expect(baseProps.hideScrollToBottomToast).toHaveBeenCalledTimes(1);
         });
 
-        test('should call the dismiss callback', () => {
+        test('should call the dismiss callback', async () => {
             const props = {
                 ...baseProps,
                 showScrollToBottomToast: true,
@@ -717,7 +716,7 @@ describe('components/ToastWrapper', () => {
 
             renderWithContext(<ToastWrapper {...props}/>);
             const scrollToBottomToastDismiss = screen.getByTestId(SCROLL_TO_BOTTOM_DISMISS_BUTTON_TESTID);
-            fireEvent.click(scrollToBottomToastDismiss);
+            await userEvent.click(scrollToBottomToastDismiss);
 
             expect(baseProps.onScrollToBottomToastDismiss).toHaveBeenCalledTimes(1);
         });

@@ -50,14 +50,14 @@ function verifyChannelSwitch(team, channel) {
     cy.get('#quickSwitchHint').should('be.visible').should('contain', 'Type to find a channel. Use UP/DOWN to browse, ENTER to select, ESC to dismiss.');
 
     // # Type channel display name on Channel switcher input
-    cy.findByRole('textbox', {name: 'quick switch input'}).type(channel.display_name);
+    cy.findByRole('combobox', {name: 'quick switch input'}).type(channel.display_name);
     cy.wait(TIMEOUTS.HALF_SEC);
 
     // * Suggestion list should be visible
     cy.get('#suggestionList').should('be.visible');
 
     // # Press enter
-    cy.findByRole('textbox', {name: 'quick switch input'}).type('{enter}');
+    cy.findByRole('combobox', {name: 'quick switch input'}).type('{enter}');
 
     // * Verify that it redirected into "channel-switcher" as selected channel
     cy.url().should('include', `/${team.name}/channels/${channel.name}`);

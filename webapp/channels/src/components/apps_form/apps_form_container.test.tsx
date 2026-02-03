@@ -13,7 +13,7 @@ import {RawAppsFormContainer} from './apps_form_container';
 describe('components/apps_form/AppsFormContainer', () => {
     const emojiMap = new EmojiMap(new Map());
 
-    const context = {
+    const appContext = {
         app_id: 'app',
         channel_id: 'channel',
         team_id: 'team',
@@ -51,7 +51,7 @@ describe('components/apps_form/AppsFormContainer', () => {
                 path: '/form_url',
             },
         },
-        context,
+        appContext,
         actions: {
             doAppSubmit: jest.fn().mockResolvedValue({}),
             doAppFetchForm: jest.fn(),

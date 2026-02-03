@@ -7,10 +7,13 @@ import type {IntlShape} from 'react-intl';
 
 import {SyncableType} from '@mattermost/types/groups';
 import type {Group, SyncablePatch} from '@mattermost/types/groups';
-import type {Team, TeamMembership} from '@mattermost/types/teams';
+import type {Team} from '@mattermost/types/teams';
+
+import type {ActionResult} from 'mattermost-redux/types/actions';
 
 import AddGroupsToTeamModal from 'components/add_groups_to_team_modal';
 import ConfirmModal from 'components/confirm_modal';
+import Nbsp from 'components/html_entities/nbsp';
 import ListModal, {DEFAULT_NUM_PER_PAGE} from 'components/list_modal';
 import DropdownIcon from 'components/widgets/icons/fa_dropdown_icon';
 import Menu from 'components/widgets/menu/menu';
@@ -26,24 +29,12 @@ type Props = {
     intl: IntlShape;
     team: Team;
     actions: {
-        getGroupsAssociatedToTeam: (teamID: string, q: string, page: number, perPage: number, filterAllowReference: boolean) => Promise<{
-            data: {
-                groups: Group[];
-                totalGroupCount: number;
-                teamID: string;
-            };
-        }>;
+        getGroupsAssociatedToTeam: (teamID: string, q: string, page: number, perPage: number, filterAllowReference: boolean) => Promise<ActionResult<{groups: Group[]; totalGroupCount: number}>>;
         closeModal: (modalId: string) => void;
         openModal: <P>(modalData: ModalData<P>) => void;
-        unlinkGroupSyncable: (groupID: string, syncableID: string, syncableType: SyncableType) => Promise<{
-            data: boolean;
-        }>;
-        patchGroupSyncable: (groupID: string, syncableID: string, syncableType: SyncableType, patch: Partial<SyncablePatch>) => Promise<{
-            data: boolean;
-        }>;
-        getMyTeamMembers: () => Promise<{
-            data: TeamMembership[];
-        }>;
+        unlinkGroupSyncable: (groupID: string, syncableID: string, syncableType: SyncableType) => Promise<ActionResult>;
+        patchGroupSyncable: (groupID: string, syncableID: string, syncableType: SyncableType, patch: Partial<SyncablePatch>) => Promise<ActionResult>;
+        getMyTeamMembers: () => void;
     };
 };
 
@@ -65,8 +56,8 @@ class TeamGroupsManageModal extends React.PureComponent<Props, State> {
         const {data} = await this.props.actions.getGroupsAssociatedToTeam(this.props.team.id, searchTerm, pageNumber, DEFAULT_NUM_PER_PAGE, true);
 
         return {
-            items: data.groups,
-            totalCount: data.totalGroupCount,
+            items: data!.groups,
+            totalCount: data!.totalGroupCount,
         };
     };
 
@@ -120,9 +111,19 @@ class TeamGroupsManageModal extends React.PureComponent<Props, State> {
     renderRow = (item: Group, listModal: ListModal) => {
         let title;
         if (item.scheme_admin) {
-            title = Utils.localizeMessage('team_members_dropdown.teamAdmins', 'Team Admins');
+            title = (
+                <FormattedMessage
+                    id='team_members_dropdown.teamAdmins'
+                    defaultMessage='Team Admins'
+                />
+            );
         } else {
-            title = Utils.localizeMessage('team_members_dropdown.teamMembers', 'Team Members');
+            title = (
+                <FormattedMessage
+                    id='team_members_dropdown.teamMembers'
+                    defaultMessage='Team Members'
+                />
+            );
         }
 
         return (
@@ -138,7 +139,10 @@ class TeamGroupsManageModal extends React.PureComponent<Props, State> {
                     height='32'
                 />
                 <div className='more-modal__details'>
-                    <div className='more-modal__name'>{item.display_name} {'-'} {'&nbsp;'}
+                    <div
+                        className='more-modal__name'
+                        data-testid='group-name'
+                    >{item.display_name} <Nbsp/> {'-'} <Nbsp/>
                         <span className='more-modal__name_count'>
                             <FormattedMessage
                                 id='numMembers'
@@ -157,27 +161,29 @@ class TeamGroupsManageModal extends React.PureComponent<Props, State> {
                             className='dropdown-toggle theme color--link style--none'
                             type='button'
                             aria-expanded='true'
+                            data-testid='menu-button'
                         >
                             <span>{title} </span>
                             <DropdownIcon/>
                         </button>
                         <Menu
                             openLeft={true}
-                            ariaLabel={Utils.localizeMessage('team_members_dropdown.menuAriaLabel', 'Change the role of a team member')}
+                            ariaLabel={Utils.localizeMessage({id: 'team_members_dropdown.menuAriaLabel', defaultMessage: 'Change the role of a team member'})}
                         >
                             <Menu.ItemAction
                                 show={!item.scheme_admin}
                                 onClick={() => this.setTeamMemberStatus(item, listModal, true)}
-                                text={Utils.localizeMessage('team_members_dropdown.makeTeamAdmins', 'Make Team Admins')}
+                                text={Utils.localizeMessage({id: 'team_members_dropdown.makeTeamAdmins', defaultMessage: 'Make Team Admins'})}
                             />
                             <Menu.ItemAction
                                 show={Boolean(item.scheme_admin)}
                                 onClick={() => this.setTeamMemberStatus(item, listModal, false)}
-                                text={Utils.localizeMessage('team_members_dropdown.makeTeamMembers', 'Make Team Members')}
+                                text={Utils.localizeMessage({id: 'team_members_dropdown.makeTeamMembers', defaultMessage: 'Make Team Members'})}
                             />
                             <Menu.ItemAction
+                                id='remove-group'
                                 onClick={() => this.onClickRemoveGroup(item, listModal)}
-                                text={Utils.localizeMessage('group_list_modal.removeGroupButton', 'Remove Group')}
+                                text={Utils.localizeMessage({id: 'group_list_modal.removeGroupButton', defaultMessage: 'Remove Group'})}
                             />
                         </Menu>
                     </MenuWrapper>
@@ -200,6 +206,7 @@ class TeamGroupsManageModal extends React.PureComponent<Props, State> {
                     onHide={this.onHide}
                     titleBarButtonText={formatMessage({id: 'group_list_modal.addGroupButton', defaultMessage: 'Add Groups'})}
                     titleBarButtonOnClick={this.titleButtonOnClick}
+                    data-testid='list-modal'
                 />
                 <ConfirmModal
                     show={this.state.showConfirmModal}
@@ -208,6 +215,7 @@ class TeamGroupsManageModal extends React.PureComponent<Props, State> {
                     confirmButtonText={formatMessage({id: 'remove_group_confirm_button', defaultMessage: 'Yes, Remove Group and {memberCount, plural, one {Member} other {Members}}'}, {memberCount})}
                     onConfirm={this.handleDeleteConfirmed}
                     onCancel={this.handleDeleteCanceled}
+                    id='confirm-modal'
                 />
             </>
         );

@@ -4,11 +4,12 @@
 import {combineReducers} from 'redux';
 
 import {UserTypes} from 'mattermost-redux/action_types';
-import type {GenericAction} from 'mattermost-redux/types/actions';
 
 import {ActionTypes} from 'utils/constants';
 
-function shouldShowPreviewOnCreateComment(state = false, action: GenericAction) {
+import type {MMAction} from 'types/store';
+
+function shouldShowPreviewOnCreateComment(state = false, action: MMAction) {
     switch (action.type) {
     case ActionTypes.SET_SHOW_PREVIEW_ON_CREATE_COMMENT:
         return action.showPreview;
@@ -20,7 +21,7 @@ function shouldShowPreviewOnCreateComment(state = false, action: GenericAction) 
     }
 }
 
-function shouldShowPreviewOnCreatePost(state = false, action: GenericAction) {
+function shouldShowPreviewOnCreatePost(state = false, action: MMAction) {
     switch (action.type) {
     case ActionTypes.SET_SHOW_PREVIEW_ON_CREATE_POST:
         return action.showPreview;
@@ -32,9 +33,33 @@ function shouldShowPreviewOnCreatePost(state = false, action: GenericAction) {
     }
 }
 
-function shouldShowPreviewOnEditChannelHeaderModal(state = false, action: GenericAction) {
+function shouldShowPreviewOnEditChannelHeaderModal(state = false, action: MMAction) {
     switch (action.type) {
     case ActionTypes.SET_SHOW_PREVIEW_ON_EDIT_CHANNEL_HEADER_MODAL:
+        return action.showPreview;
+
+    case UserTypes.LOGOUT_SUCCESS:
+        return false;
+    default:
+        return state;
+    }
+}
+
+function shouldShowPreviewOnChannelSettingsHeaderModal(state = false, action: MMAction) {
+    switch (action.type) {
+    case ActionTypes.SET_SHOW_PREVIEW_ON_CHANNEL_SETTINGS_HEADER_MODAL:
+        return action.showPreview;
+
+    case UserTypes.LOGOUT_SUCCESS:
+        return false;
+    default:
+        return state;
+    }
+}
+
+function shouldShowPreviewOnChannelSettingsPurposeModal(state = false, action: MMAction) {
+    switch (action.type) {
+    case ActionTypes.SET_SHOW_PREVIEW_ON_CHANNEL_SETTINGS_PURPOSE_MODAL:
         return action.showPreview;
 
     case UserTypes.LOGOUT_SUCCESS:
@@ -48,4 +73,6 @@ export default combineReducers({
     shouldShowPreviewOnCreateComment,
     shouldShowPreviewOnCreatePost,
     shouldShowPreviewOnEditChannelHeaderModal,
+    shouldShowPreviewOnChannelSettingsHeaderModal,
+    shouldShowPreviewOnChannelSettingsPurposeModal,
 });

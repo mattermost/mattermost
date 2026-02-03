@@ -2,27 +2,45 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-import {useIntl} from 'react-intl';
+import type {MouseEvent, KeyboardEvent} from 'react';
 
-import Contents from './contents';
+import CustomStatusEmoji from 'components/custom_status/custom_status_emoji';
+import CustomStatusModal from 'components/custom_status/custom_status_modal';
 
-export default function MobileSidebarHeader() {
-    const intl = useIntl();
-    const ariaLabel = intl.formatMessage({id: 'accessibility.sections.lhsHeader', defaultMessage: 'team menu region'});
+import {ModalIdentifiers} from 'utils/constants';
+
+import type {PropsFromRedux} from './index';
+import './mobile_sidebar_header.scss';
+
+type Props = PropsFromRedux;
+
+export default function MobileSidebarHeader(props: Props) {
+    if (!props.username) {
+        return null;
+    }
+
+    function handleCustomStatusEmojiClick(event: MouseEvent<HTMLSpanElement> | KeyboardEvent<HTMLSpanElement>) {
+        event.stopPropagation();
+
+        const customStatusInputModalData = {
+            modalId: ModalIdentifiers.CUSTOM_STATUS,
+            dialogType: CustomStatusModal,
+        };
+        props.openModal(customStatusInputModalData);
+    }
 
     return (
-        <div
-            id='lhsHeader'
-            aria-label={ariaLabel}
-            tabIndex={-1}
-            role='application'
-            className='SidebarHeader team__header theme a11y__region'
-            data-a11y-sort-order='5'
-        >
-            <div
-                className='d-flex'
-            >
-                <Contents/>
+        <div className='mobileSidebarHeader'>
+            <h1>{props.teamDisplayName}</h1>
+            <div className='mobileSidebarHeader__username'>
+                <span>{'@' + props.username}</span>
+                <CustomStatusEmoji
+                    showTooltip={false}
+                    emojiStyle={{
+                        verticalAlign: 'top',
+                    }}
+                    onClick={handleCustomStatusEmojiClick}
+                />
             </div>
         </div>
     );

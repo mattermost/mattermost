@@ -7,6 +7,7 @@ import {Preferences as ReduxPreferences} from 'mattermost-redux/constants';
 import {getCustomEmojisByName as selectCustomEmojisByName, getCustomEmojisEnabled} from 'mattermost-redux/selectors/entities/emojis';
 import {get} from 'mattermost-redux/selectors/entities/preferences';
 import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
+import {getEmojiName} from 'mattermost-redux/utils/emoji_utils';
 
 import {getEmojiMap, getRecentEmojisData, getRecentEmojisNames, isCustomEmojiEnabled} from 'selectors/emojis';
 import {isCustomStatusEnabled, makeGetCustomStatus} from 'selectors/views/custom_status';
@@ -68,15 +69,12 @@ export function addRecentEmojis(aliases) {
 
         let updatedRecentEmojis = [...recentEmojis];
         for (const alias of aliases) {
-            let name;
             const emoji = emojiMap.get(alias);
             if (!emoji) {
                 continue;
-            } else if (emoji.short_name) {
-                name = emoji.short_name;
-            } else {
-                name = emoji.name;
             }
+
+            const name = getEmojiName(emoji);
 
             const currentEmojiIndexInRecentList = updatedRecentEmojis.findIndex((recentEmoji) => recentEmoji.name === name);
             if (currentEmojiIndexInRecentList > -1) {

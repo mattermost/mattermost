@@ -3,8 +3,8 @@
     height: auto;
     max-height: 100%;
     border: 1px solid rgba(var(--center-channel-color-rgb), 0.08);
-    background: var(--center-channel-bg);
     border-radius: 4px;
+    background: var(--center-channel-bg);
     box-shadow: 0 2px 3px 0 rgba(0, 0, 0, 0.08);
 
     .TableSectionContent {
@@ -117,7 +117,12 @@
         justify-content: center;
         padding: 32px 20px;
 
+        .Illustration {
+            margin: 16px 0;
+        }
+
         .Title {
+            margin-bottom: 8px;
             color: var(--center-channel-color, #3f4350);
             font-family: Metropolis;
             font-size: 20px;
@@ -129,7 +134,7 @@
 
         .Subtitle {
             max-width: 320px;
-            margin-top: 8px;
+            margin-bottom: 8px;
             color: var(--center-channel-color-72, rgba(63, 67, 80, 0.72));
             font-family: Open Sans;
             font-size: 14px;
@@ -138,18 +143,8 @@
             line-height: 20px;
             text-align: center;
 
-            .Button {
-                display: inline;
-                height: 20px;
-                padding: 0;
-                background: none;
-                color: var(--link-color, #1c58d9);
-                font-family: Open Sans;
-                font-size: 14px;
-                font-style: normal;
-                font-weight: 400;
-                line-height: 20px;
-                text-align: center;
+            .btn-primary {
+                margin-top: 16px;
 
                 &:hover {
                     cursor: pointer;
@@ -225,8 +220,8 @@
                         justify-content: flex-start;
                         padding: 10px 16px;
                         border: none;
-                        background: #1c58d9;
                         border-radius: 4px;
+                        background: #1c58d9;
                         color: #fff;
                         gap: 10px;
                     }
@@ -239,8 +234,8 @@
                 justify-content: flex-start;
                 padding: 16px;
                 border: 1px solid var(--error-text-16, rgba(210, 75, 78, 0.16));
-                background: var(--error-text-8, rgba(210, 75, 78, 0.08));
                 border-radius: 4px;
+                background: var(--error-text-8, rgba(210, 75, 78, 0.08));
                 gap: 12px;
 
                 .Icon {

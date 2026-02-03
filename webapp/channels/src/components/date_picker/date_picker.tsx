@@ -10,7 +10,7 @@ import {
     useInteractions,
     FloatingFocusManager,
     useDismiss,
-} from '@floating-ui/react-dom-interactions';
+} from '@floating-ui/react';
 import type {Locale} from 'date-fns';
 import React, {useCallback, useEffect, useState} from 'react';
 import {DayPicker} from 'react-day-picker';
@@ -27,11 +27,14 @@ type Props = {
     isPopperOpen: boolean;
     locale: string;
     handlePopperOpenState: (isOpen: boolean) => void;
+    label?: string;
+    icon?: React.ReactNode;
+    value?: string;
 }
 
-const DatePicker = ({children, datePickerProps, isPopperOpen, handlePopperOpenState, locale}: Props) => {
+const DatePicker = ({children, datePickerProps, isPopperOpen, handlePopperOpenState, locale, label, icon, value}: Props) => {
     const [loadedLocales, setLoadedLocales] = useState<Record<string, Locale>>({});
-    const {x, y, reference, floating, strategy, context} = useFloating({
+    const {x, y, strategy, context, refs: {setReference, setFloating}} = useFloating({
         open: isPopperOpen,
         onOpenChange: () => handlePopperOpenState(false),
         placement: 'bottom-start',
@@ -66,13 +69,34 @@ const DatePicker = ({children, datePickerProps, isPopperOpen, handlePopperOpenSt
         );
     }, []);
 
+    const handleWrapperClick = useCallback((e: React.MouseEvent) => {
+        // Prevent click from bubbling up to parent elements
+        e.stopPropagation();
+
+        // Open the popper when clicking anywhere in the wrapper
+        handlePopperOpenState(true);
+    }, [handlePopperOpenState]);
+
     return (
-        <div>
+        <div className='date-picker__wrapper'>
             <div
-                ref={reference}
+                ref={setReference}
                 {...getReferenceProps()}
+                onClick={handleWrapperClick}
+                className={isPopperOpen ? 'date-time-input date-time-input--open' : 'date-time-input'}
+                role='button'
+                tabIndex={0}
+                onKeyDown={(e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                        e.preventDefault();
+                        handlePopperOpenState(true);
+                    }
+                }}
             >
-                {children}
+                {label && <span className='date-time-input__label'>{label}</span>}
+                {icon && <span className='date-time-input__icon'>{icon}</span>}
+                {value && <span className='date-time-input__value'>{value}</span>}
+                {!value && children}
             </div>
             {isPopperOpen && (
                 <FloatingFocusManager
@@ -81,7 +105,7 @@ const DatePicker = ({children, datePickerProps, isPopperOpen, handlePopperOpenSt
                     initialFocus={-1}
                 >
                     <div
-                        ref={floating}
+                        ref={setFloating}
                         style={{
                             position: strategy,
                             top: y ?? 0,
@@ -101,7 +125,6 @@ const DatePicker = ({children, datePickerProps, isPopperOpen, handlePopperOpenSt
                             }}
                         />
                     </div>
-
                 </FloatingFocusManager>
             )}
         </div>

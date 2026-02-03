@@ -47,14 +47,37 @@
 
         __Minimum server version__: 6.5
 
+        If "use_rest_semantics" is set to true in the query, the endpoint will not return
+        an error status code in the header if the request is somehow completed successfully.
+
+        __Minimum server version__: 9.6
+
         ##### Permissions
 
-        None.
+        None. Authentication is not required for this endpoint.
+
+        ##### Response Details
+
+        The response varies based on query parameters and authentication:
+
+        - **Basic response** (no parameters): Returns basic server information including
+          `status`, mobile app versions, and active search backend.
+
+        - **Enhanced response** (`get_server_status=true`): Additionally returns
+          `database_status` and `filestore_status` to verify backend connectivity.
+          Authentication is not required.
+
+        - **Admin response** (`get_server_status=true` with `manage_system` permission):
+          Additionally returns `root_status` indicating whether the server is running as root.
+          Requires authentication with `manage_system` permission.
       operationId: GetPing
       parameters:
         - name: get_server_status
           in: query
-          description: Check the status of the database and file storage as well
+          description: >
+            Check the status of the database and file storage as well.
+            When true, adds `database_status` and `filestore_status` to the response.
+            If authenticated with `manage_system` permission, also adds `root_status`.
           required: false
           schema:
             type: boolean
@@ -64,6 +87,12 @@
           required: false
           schema:
             type: string
+        - name: use_rest_semantics
+          in: query
+          description: Returns 200 status code even if the server status is unhealthy.
+          required: false
+          schema:
+            type: boolean
       responses:
         "200":
           description: Status of the system
@@ -211,6 +240,30 @@
           $ref: "#/components/responses/Forbidden"
         "500":
           $ref: "#/components/responses/InternalServerError"
+  /api/v4/notifications/test:
+    post:
+      tags:
+        - system
+      summary: Send a test notification
+      description: >
+        Send a test notification to make sure you have your notification settings
+        configured correctly.
+
+        ##### Permissions
+
+        Must be logged in.
+      operationId: TestNotification
+      responses:
+        "200":
+          description: Notification successfully sent
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StatusOK"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
   /api/v4/site_url/test:
     post:
       tags:
@@ -298,6 +351,27 @@
         ##### Permissions
         Must have `manage_system` permission.
       operationId: GetConfig
+      parameters:
+        - name: remove_masked
+          in: query
+          description: |
+            Remove masked values from the exported configuration.
+
+            __Minimum server version__: 10.4.0
+          required: false
+          schema:
+            type: boolean
+            default: false
+        - name: remove_defaults
+          in: query
+          description: |
+            Remove default values from the exported configuration.
+
+            __Minimum server version__: 10.4.0
+          required: false
+          schema:
+            type: string
+            default: false
       responses:
         "200":
           description: Configuration retrieval successful
@@ -377,20 +451,9 @@
         ##### Permissions
         No permission required.
       operationId: GetClientConfig
-      parameters:
-        - name: format
-          in: query
-          required: true
-          description: Must be `old`, other formats not implemented yet
-          schema:
-            type: string
       responses:
         "200":
           description: Configuration retrieval successful
-        "400":
-          $ref: "#/components/responses/BadRequest"
-        "501":
-          $ref: "#/components/responses/NotImplemented"
   /api/v4/config/environment:
     get:
       tags:
@@ -555,6 +618,37 @@
           $ref: "#/components/responses/BadRequest"
         "501":
           $ref: "#/components/responses/NotImplemented"
+  /api/v4/license/load_metric:
+    get:
+      tags:
+        - system
+      summary: Get license load metric
+      description: >
+        Get the current license load metric, calculated based on monthly active users
+        against the licensed user count. Returns a value of 0 when there is no license loaded or
+        the license doesn't have a user count.
+
+        __Minimum server version__: 10.8
+
+        ##### Permissions
+
+        Must be logged in.
+      operationId: GetLicenseLoadMetric
+      responses:
+        "200":
+          description: License load metric retrieval successful
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  load:
+                    type: integer
+                    description: Current license load metric as an integer
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
   /api/v4/license/renewal:
     get:
       tags:
@@ -1051,6 +1145,20 @@
         "403":
           $ref: "#/components/responses/Forbidden"
 
+  /api/v4/upgrade_to_enterprise/allowed:
+    get:
+      tags:
+        - system
+      summary: Check if the user is allowed to upgrade to Enterprise Edition
+      description: >
+        Check if the user is allowed to upgrade to Enterprise Edition
+      operationId: IsAllowedToUpgradeToEnterprise
+      responses:
+        "200":
+          description: User is allowed to upgrade to Enterprise Edition
+        "403":
+          $ref: "#/components/responses/Forbidden"
+
   /api/v4/restart:
     post:
       tags:
@@ -1073,122 +1181,6 @@
             application/json:
               schema:
                 $ref: "#/components/schemas/StatusOK"
-        "403":
-          $ref: "#/components/responses/Forbidden"
-
-  /api/v4/warn_metrics/status:
-    get:
-      tags:
-        - system
-      summary: Get the warn metrics status (enabled or disabled)
-      description: |
-        Get the status of a set of metrics (enabled or disabled) from the Systems table.
-
-        The returned JSON contains the metrics that we need to warn the admin on with regard
-        to their status (we return the ones whose status is "true", which means that they are
-        in a "warnable" state - e.g. a threshold has been crossed or some other condition has
-        been fulfilled).
-
-        __Minimum server version__: 5.26
-
-        ##### Permissions
-
-        Must have `manage_system` permission.
-      operationId: GetWarnMetricsStatus
-      responses:
-        "200":
-          description: Warn metrics retrieval was successful.
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/StatusOK"
-        "400":
-          $ref: "#/components/responses/BadRequest"
-        "401":
-          $ref: "#/components/responses/Unauthorized"
-        "403":
-          $ref: "#/components/responses/Forbidden"
-
-  /api/v4/warn_metrics/ack/{warn_metric_id}:
-    post:
-      tags:
-        - system
-      summary: Acknowledge a warning of a metric status
-      description: |
-        Acknowledge a warning for the warn_metric_id metric crossing a threshold (or some
-        similar condition being fulfilled) - attempts to send an ack email to
-        acknowledge@mattermost.com and sets the "ack" status for all the warn metrics in the system.
-
-        __Minimum server version__: 5.26
-
-        ##### Permissions
-
-        Must have `manage_system` permission.
-      operationId: SendWarnMetricAck
-      parameters:
-        - name: warn_metric_id
-          in: path
-          description: Warn Metric Id.
-          required: true
-          schema:
-            type: string
-      requestBody:
-        description: payload that contains the ack flag
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                forceAck:
-                  type: boolean
-                  description: Flag which determines if the ack for the metric warning should be directly stored (without trying to send email first) or not
-      responses:
-        "200":
-          description: The acknowledgement of the warning for the metric has been successful.
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/StatusOK"
-        "400":
-          $ref: "#/components/responses/BadRequest"
-        "401":
-          $ref: "#/components/responses/Unauthorized"
-        "403":
-          $ref: "#/components/responses/Forbidden"
-  /api/v4/warn_metrics/trial-license-ack/{warn_metric_id}:
-    post:
-      tags:
-        - system
-      summary: Request trial license and acknowledge a warning of a metric status
-      description: |
-        Request a trial license and acknowledge a warning for the warn_metric_id metric crossing a threshold (or some
-        similar condition being fulfilled) - sets the "ack" status for all the warn metrics in the system.
-
-        __Minimum server version__: 5.28
-
-        ##### Permissions
-
-        Must have `manage_system` permission.
-      operationId: SendTrialLicenseWarnMetricAck
-      parameters:
-        - name: warn_metric_id
-          in: path
-          description: Warn Metric Id.
-          required: true
-          schema:
-            type: string
-      responses:
-        "200":
-          description: The trial license request and the subsequent acknowledgement of the warning for the metric have been successful.
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/StatusOK"
-        "400":
-          $ref: "#/components/responses/BadRequest"
-        "401":
-          $ref: "#/components/responses/Unauthorized"
         "403":
           $ref: "#/components/responses/Forbidden"
   /api/v4/integrity:
@@ -1230,6 +1222,25 @@
         ##### License
         Requires either a E10 or E20 license.
       operationId: GenerateSupportPacket
+      parameters:
+        - name: basic_server_logs
+          in: query
+          description: |
+            Specifies whether the server should include or exclude log files. Default value is true.
+
+            __Minimum server version__: 9.8.0
+          required: false
+          schema:
+            type: boolean
+        - name: plugin_packets
+          in: query
+          description: |
+            Specifies plugin identifiers whose content should be included in the Support Packet.
+
+            __Minimum server version__: 9.8.0
+          required: false
+          schema:
+            type: string
       responses:
         "400":
           $ref: "#/components/responses/BadRequest"

@@ -36,44 +36,6 @@ function createSearchData(prefix: string) {
     });
 }
 
-function enableElasticSearch() {
-    // # Enable elastic search via the API
-    cy.apiUpdateConfig({
-        ElasticsearchSettings: {
-            EnableAutocomplete: true,
-            EnableIndexing: true,
-            EnableSearching: true,
-            Sniff: false,
-        },
-    } as Cypress.AdminConfig);
-
-    // # Navigate to the elastic search setting page
-    cy.visit('/admin_console/environment/elasticsearch');
-
-    // * Test the connection and verify that we are successful
-    cy.contains('button', 'Test Connection').click();
-    cy.get('.alert-success').should('have.text', 'Test successful. Configuration saved.');
-
-    // # Index so we are up to date
-    cy.contains('button', 'Index Now').click();
-
-    // # Small wait to ensure new row is added
-    cy.wait(TIMEOUTS.ONE_SEC).get('.job-table__table').find('tbody > tr').eq(0).as('firstRow');
-
-    // * Newest row should eventually result in Success
-    const checkFirstRow = () => {
-        return cy.get('@firstRow').then((el) => {
-            return el.find('.status-icon-success').length > 0;
-        });
-    };
-    const options = {
-        timeout: TIMEOUTS.TWO_MIN,
-        interval: TIMEOUTS.TWO_SEC,
-        errorMsg: 'Reindex did not succeed in time',
-    };
-    cy.waitUntil(checkFirstRow, options);
-}
-
 function getTestUsers(prefix = ''): Record<string, SimpleUser> {
     if (Cypress.env('searchTestUsers')) {
         return JSON.parse(Cypress.env('searchTestUsers'));
@@ -157,7 +119,7 @@ function getPostTextboxInput() {
 }
 
 function getQuickChannelSwitcherInput() {
-    cy.findByRole('textbox', {name: 'quick switch input'}).
+    cy.findByRole('combobox', {name: 'quick switch input'}).
         should('be.visible').
         as('input').
         clear();
@@ -196,7 +158,7 @@ function searchForChannel(name: string) {
     cy.typeCmdOrCtrl().type('k').wait(TIMEOUTS.ONE_SEC);
 
     // # Clear out and type in the name
-    cy.findByRole('textbox', {name: 'quick switch input'}).
+    cy.findByRole('combobox', {name: 'quick switch input'}).
         should('be.visible').
         as('input').
         clear().
@@ -211,14 +173,14 @@ function startAtMention(string: string) {
     cy.get('#suggestionList').should('be.visible');
 }
 
-function verifySuggestionAtPostTextbox(...expectedUsers: Cypress.UserProfile[]) {
+function verifySuggestionAtPostTextbox(...expectedUsers: SimpleUser[]) {
     expectedUsers.forEach((user) => {
         cy.wait(TIMEOUTS.HALF_SEC);
         cy.uiVerifyAtMentionSuggestion(user);
     });
 }
 
-function verifySuggestionAtChannelSwitcher(...expectedUsers: Cypress.UserProfile[]) {
+function verifySuggestionAtChannelSwitcher(...expectedUsers: SimpleUser[]) {
     expectedUsers.forEach((user) => {
         cy.findByTestId(user.username).
             should('be.visible').
@@ -244,13 +206,8 @@ function createChannel(channelType: string, teamId: string, userToAdd: Cypress.U
         if (userToAdd) {
             // # Get user profile by email
             return cy.apiGetUserByEmail(userToAdd.email).then(({user}) => {
-                // # Add user to team
-                cy.externalRequest({
-                    user: getAdminAccount(),
-                    method: 'post',
-                    path: `channels/${channel.id}/members`,
-                    data: {user_id: user.id},
-                }).then(() => {
+                // # Add user to channel
+                cy.externalAddUserToChannel(user.id, channel.id).then(() => {
                     // # Explicitly wait to give some time to index before searching
                     cy.wait(TIMEOUTS.TWO_SEC);
                     return cy.wrap(channel);
@@ -287,7 +244,6 @@ export {
     createPrivateChannel,
     createPublicChannel,
     createSearchData,
-    enableElasticSearch,
     getTestUsers,
     getPostTextboxInput,
     getQuickChannelSwitcherInput,

@@ -1,0 +1,9 @@
+- heading "Keywords that get highlighted (without notifications)" [level=4]
+- text: "Enter non case-sensitive keywords, press Tab or use commas to separate them: option , selected.Select is focused ,type to refine list, press Down to open the menu, press left to focus selected values"
+- log
+- combobox
+- text: These keywords will be shown to you with a highlight when anyone sends a message that includes them.
+- separator
+- alert
+- button "Save"
+- button "Cancel"

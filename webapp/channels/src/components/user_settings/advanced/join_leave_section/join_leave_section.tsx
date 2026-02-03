@@ -16,11 +16,12 @@ import type SettingItemMinComponent from 'components/setting_item_min';
 import {AdvancedSections} from 'utils/constants';
 import {a11yFocus} from 'utils/utils';
 
-type Props = {
+import type {OwnProps} from './index';
+
+type Props = OwnProps & {
     active: boolean;
     areAllSectionsInactive: boolean;
-    currentUserId: string;
-    joinLeave?: string;
+    joinLeave: string;
     onUpdateSection: (section?: string) => void;
     renderOnOffLabel: (label: string) => ReactNode;
     actions: {
@@ -29,7 +30,7 @@ type Props = {
 }
 
 type State = {
-    joinLeaveState?: string;
+    joinLeaveState: string;
     isSaving?: boolean;
     serverError?: string;
 }
@@ -73,9 +74,9 @@ export default class JoinLeaveSection extends React.PureComponent<Props, State> 
     };
 
     public handleSubmit = (): void => {
-        const {actions, currentUserId, onUpdateSection} = this.props;
-        const joinLeavePreference = {category: Preferences.CATEGORY_ADVANCED_SETTINGS, user_id: currentUserId, name: Preferences.ADVANCED_FILTER_JOIN_LEAVE, value: this.state.joinLeaveState};
-        actions.savePreferences(currentUserId, [joinLeavePreference]);
+        const {actions, userId, onUpdateSection} = this.props;
+        const joinLeavePreference = {category: Preferences.CATEGORY_ADVANCED_SETTINGS, user_id: userId, name: Preferences.ADVANCED_FILTER_JOIN_LEAVE, value: this.state.joinLeaveState};
+        actions.savePreferences(userId, [joinLeavePreference]);
 
         onUpdateSection();
     };

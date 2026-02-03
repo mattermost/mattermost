@@ -1,8 +1,6 @@
 $dropdown_input_index: 999999;
 
 .DropdownInput {
-    z-index: $dropdown_input_index;
-
     &.Input_container {
         margin-top: 20px;
     }

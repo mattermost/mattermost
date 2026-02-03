@@ -43,7 +43,7 @@ const initialState = {
 };
 
 jest.spyOn(redux, 'useSelector').mockImplementation((cb) => cb(initialState));
-jest.spyOn(redux, 'useDispatch').mockReturnValue((t) => t);
+jest.spyOn(redux, 'useDispatch').mockReturnValue((t: unknown) => t);
 
 describe('components/sidebar/sidebar_category/sidebar_category_menu', () => {
     const categoryId = 'test_category_id';

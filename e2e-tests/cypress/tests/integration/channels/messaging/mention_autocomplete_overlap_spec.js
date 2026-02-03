@@ -21,7 +21,7 @@ describe('Messaging', () => {
         });
     });
 
-    it('At-mention user autocomplete should open below the textbox in RHS when only one message is present -- KNOWN ISSUE: MM-45597', () => {
+    it('At-mention user autocomplete should open above the textbox in RHS when only one message is present', () => {
         // # Add a single message to center textbox
         cy.postMessage(MESSAGES.TINY);
 
@@ -36,8 +36,8 @@ describe('Messaging', () => {
 
         cy.uiGetReplyTextBox().then((replyTextbox) => {
             cy.get('#suggestionList').then((suggestionList) => {
-                // * Verify that the suggestion box opened below the textbox
-                expect(replyTextbox[0].getBoundingClientRect().top).to.be.lessThan(suggestionList[0].getBoundingClientRect().top);
+                // * Verify that the suggestion box opened above the textbox
+                expect(replyTextbox[0].getBoundingClientRect().top).to.be.greaterThan(suggestionList[0].getBoundingClientRect().top);
             });
         });
 

@@ -1,4 +1,4 @@
-// Jest Snapshot v1, https://goo.gl/fbAQLP
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
 
 exports[`admin_console/team_channel_settings/channel/ChannelDetails should match snapshot 1`] = `
 <div
@@ -50,12 +50,25 @@ exports[`admin_console/team_channel_settings/channel/ChannelDetails should match
         onToggleArchive={[Function]}
         team={
           Object {
+            "allow_open_invite": false,
+            "allowed_domains": "",
+            "company_name": "",
+            "create_at": 0,
+            "delete_at": 0,
+            "description": "",
             "display_name": "test",
+            "email": "",
+            "group_constrained": false,
+            "id": "team_id",
+            "invite_id": "",
+            "name": "DN",
+            "scheme_id": "id",
+            "type": "O",
+            "update_at": 0,
           }
         }
       />
-      <ConfirmModal
-        confirmButtonClass="btn btn-primary"
+      <Memo(ConfirmModal)
         confirmButtonText={
           <Memo(MemoizedFormattedMessage)
             defaultMessage="Save and Archive Channel"
@@ -64,11 +77,10 @@ exports[`admin_console/team_channel_settings/channel/ChannelDetails should match
         }
         message={
           <Memo(MemoizedFormattedMessage)
-            defaultMessage="Saving will archive the channel from the team and make its contents inaccessible for all users. Are you sure you wish to save and archive this channel?"
+            defaultMessage="Saving will archive the channel from the team and make it's contents inaccessible for all users. Are you sure you wish to save and archive this channel?"
             id="admin.channel_settings.channel_detail.archive_confirm.message"
           />
         }
-        modalClass=""
         onCancel={[Function]}
         onConfirm={[Function]}
         show={false}
@@ -110,13 +122,26 @@ exports[`admin_console/team_channel_settings/channel/ChannelDetails should match
         show={false}
         toPublic={true}
       />
+      <ChannelAccessRulesConfirmModal
+        autoSyncEnabled={false}
+        channelName="name"
+        isStacked={true}
+        onConfirm={[Function]}
+        onHide={[Function]}
+        show={false}
+        usersToAdd={Array []}
+        usersToRemove={Array []}
+      />
       <ChannelModes
+        abacSupported={true}
         groupsSupported={true}
         isDefault={false}
         isDisabled={false}
         isPublic={true}
         isSynced={false}
         onToggle={[Function]}
+        policyEnforced={false}
+        policyEnforcedToggleAvailable={true}
       />
       <ChannelGroups
         channel={
@@ -235,10 +260,8 @@ exports[`admin_console/team_channel_settings/channel/ChannelDetails should match
         isArchived={false}
         isDisabled={false}
         onToggleArchive={[Function]}
-        team={Object {}}
       />
-      <ConfirmModal
-        confirmButtonClass="btn btn-primary"
+      <Memo(ConfirmModal)
         confirmButtonText={
           <Memo(MemoizedFormattedMessage)
             defaultMessage="Save and Archive Channel"
@@ -247,11 +270,10 @@ exports[`admin_console/team_channel_settings/channel/ChannelDetails should match
         }
         message={
           <Memo(MemoizedFormattedMessage)
-            defaultMessage="Saving will archive the channel from the team and make its contents inaccessible for all users. Are you sure you wish to save and archive this channel?"
+            defaultMessage="Saving will archive the channel from the team and make it's contents inaccessible for all users. Are you sure you wish to save and archive this channel?"
             id="admin.channel_settings.channel_detail.archive_confirm.message"
           />
         }
-        modalClass=""
         onCancel={[Function]}
         onConfirm={[Function]}
         show={false}
@@ -293,13 +315,26 @@ exports[`admin_console/team_channel_settings/channel/ChannelDetails should match
         show={false}
         toPublic={true}
       />
+      <ChannelAccessRulesConfirmModal
+        autoSyncEnabled={false}
+        channelName="name"
+        isStacked={true}
+        onConfirm={[Function]}
+        onHide={[Function]}
+        show={false}
+        usersToAdd={Array []}
+        usersToRemove={Array []}
+      />
       <ChannelModes
+        abacSupported={true}
         groupsSupported={true}
         isDefault={false}
         isDisabled={false}
         isPublic={true}
         isSynced={false}
         onToggle={[Function]}
+        policyEnforced={false}
+        policyEnforcedToggleAvailable={true}
       />
       <ChannelGroups
         channel={
@@ -420,12 +455,25 @@ exports[`admin_console/team_channel_settings/channel/ChannelDetails should match
         onToggleArchive={[Function]}
         team={
           Object {
+            "allow_open_invite": false,
+            "allowed_domains": "",
+            "company_name": "",
+            "create_at": 0,
+            "delete_at": 0,
+            "description": "",
             "display_name": "test",
+            "email": "",
+            "group_constrained": false,
+            "id": "team_id",
+            "invite_id": "",
+            "name": "DN",
+            "scheme_id": "id",
+            "type": "O",
+            "update_at": 0,
           }
         }
       />
-      <ConfirmModal
-        confirmButtonClass="btn btn-primary"
+      <Memo(ConfirmModal)
         confirmButtonText={
           <Memo(MemoizedFormattedMessage)
             defaultMessage="Save and Archive Channel"
@@ -434,11 +482,10 @@ exports[`admin_console/team_channel_settings/channel/ChannelDetails should match
         }
         message={
           <Memo(MemoizedFormattedMessage)
-            defaultMessage="Saving will archive the channel from the team and make its contents inaccessible for all users. Are you sure you wish to save and archive this channel?"
+            defaultMessage="Saving will archive the channel from the team and make it's contents inaccessible for all users. Are you sure you wish to save and archive this channel?"
             id="admin.channel_settings.channel_detail.archive_confirm.message"
           />
         }
-        modalClass=""
         onCancel={[Function]}
         onConfirm={[Function]}
         show={false}
@@ -480,13 +527,26 @@ exports[`admin_console/team_channel_settings/channel/ChannelDetails should match
         show={false}
         toPublic={true}
       />
+      <ChannelAccessRulesConfirmModal
+        autoSyncEnabled={false}
+        channelName="name"
+        isStacked={true}
+        onConfirm={[Function]}
+        onHide={[Function]}
+        show={false}
+        usersToAdd={Array []}
+        usersToRemove={Array []}
+      />
       <ChannelModes
+        abacSupported={true}
         groupsSupported={false}
         isDefault={false}
         isDisabled={false}
         isPublic={true}
         isSynced={false}
         onToggle={[Function]}
+        policyEnforced={false}
+        policyEnforcedToggleAvailable={true}
       />
       <Connect(ChannelMembers)
         channelId="123"
@@ -557,10 +617,8 @@ exports[`admin_console/team_channel_settings/channel/ChannelDetails should match
         isArchived={false}
         isDisabled={false}
         onToggleArchive={[Function]}
-        team={Object {}}
       />
-      <ConfirmModal
-        confirmButtonClass="btn btn-primary"
+      <Memo(ConfirmModal)
         confirmButtonText={
           <Memo(MemoizedFormattedMessage)
             defaultMessage="Save and Archive Channel"
@@ -569,11 +627,10 @@ exports[`admin_console/team_channel_settings/channel/ChannelDetails should match
         }
         message={
           <Memo(MemoizedFormattedMessage)
-            defaultMessage="Saving will archive the channel from the team and make its contents inaccessible for all users. Are you sure you wish to save and archive this channel?"
+            defaultMessage="Saving will archive the channel from the team and make it's contents inaccessible for all users. Are you sure you wish to save and archive this channel?"
             id="admin.channel_settings.channel_detail.archive_confirm.message"
           />
         }
-        modalClass=""
         onCancel={[Function]}
         onConfirm={[Function]}
         show={false}
@@ -615,13 +672,26 @@ exports[`admin_console/team_channel_settings/channel/ChannelDetails should match
         show={false}
         toPublic={true}
       />
+      <ChannelAccessRulesConfirmModal
+        autoSyncEnabled={false}
+        channelName="name"
+        isStacked={true}
+        onConfirm={[Function]}
+        onHide={[Function]}
+        show={false}
+        usersToAdd={Array []}
+        usersToRemove={Array []}
+      />
       <ChannelModes
+        abacSupported={true}
         groupsSupported={false}
         isDefault={false}
         isDisabled={false}
         isPublic={true}
         isSynced={false}
         onToggle={[Function]}
+        policyEnforced={false}
+        policyEnforcedToggleAvailable={true}
       />
       <Connect(ChannelMembers)
         channelId="123"
@@ -694,12 +764,25 @@ exports[`admin_console/team_channel_settings/channel/ChannelDetails should match
         onToggleArchive={[Function]}
         team={
           Object {
+            "allow_open_invite": false,
+            "allowed_domains": "",
+            "company_name": "",
+            "create_at": 0,
+            "delete_at": 0,
+            "description": "",
             "display_name": "test",
+            "email": "",
+            "group_constrained": false,
+            "id": "team_id",
+            "invite_id": "",
+            "name": "DN",
+            "scheme_id": "id",
+            "type": "O",
+            "update_at": 0,
           }
         }
       />
-      <ConfirmModal
-        confirmButtonClass="btn btn-primary"
+      <Memo(ConfirmModal)
         confirmButtonText={
           <Memo(MemoizedFormattedMessage)
             defaultMessage="Save and Archive Channel"
@@ -708,11 +791,10 @@ exports[`admin_console/team_channel_settings/channel/ChannelDetails should match
         }
         message={
           <Memo(MemoizedFormattedMessage)
-            defaultMessage="Saving will archive the channel from the team and make its contents inaccessible for all users. Are you sure you wish to save and archive this channel?"
+            defaultMessage="Saving will archive the channel from the team and make it's contents inaccessible for all users. Are you sure you wish to save and archive this channel?"
             id="admin.channel_settings.channel_detail.archive_confirm.message"
           />
         }
-        modalClass=""
         onCancel={[Function]}
         onConfirm={[Function]}
         show={false}
@@ -754,13 +836,26 @@ exports[`admin_console/team_channel_settings/channel/ChannelDetails should match
         show={false}
         toPublic={true}
       />
+      <ChannelAccessRulesConfirmModal
+        autoSyncEnabled={false}
+        channelName="name"
+        isStacked={true}
+        onConfirm={[Function]}
+        onHide={[Function]}
+        show={false}
+        usersToAdd={Array []}
+        usersToRemove={Array []}
+      />
       <ChannelModes
+        abacSupported={false}
         groupsSupported={false}
         isDefault={false}
         isDisabled={false}
         isPublic={true}
         isSynced={false}
         onToggle={[Function]}
+        policyEnforced={false}
+        policyEnforcedToggleAvailable={true}
       />
       <Connect(ChannelMembers)
         channelId="123"
@@ -831,10 +926,8 @@ exports[`admin_console/team_channel_settings/channel/ChannelDetails should match
         isArchived={false}
         isDisabled={false}
         onToggleArchive={[Function]}
-        team={Object {}}
       />
-      <ConfirmModal
-        confirmButtonClass="btn btn-primary"
+      <Memo(ConfirmModal)
         confirmButtonText={
           <Memo(MemoizedFormattedMessage)
             defaultMessage="Save and Archive Channel"
@@ -843,11 +936,10 @@ exports[`admin_console/team_channel_settings/channel/ChannelDetails should match
         }
         message={
           <Memo(MemoizedFormattedMessage)
-            defaultMessage="Saving will archive the channel from the team and make its contents inaccessible for all users. Are you sure you wish to save and archive this channel?"
+            defaultMessage="Saving will archive the channel from the team and make it's contents inaccessible for all users. Are you sure you wish to save and archive this channel?"
             id="admin.channel_settings.channel_detail.archive_confirm.message"
           />
         }
-        modalClass=""
         onCancel={[Function]}
         onConfirm={[Function]}
         show={false}
@@ -889,13 +981,26 @@ exports[`admin_console/team_channel_settings/channel/ChannelDetails should match
         show={false}
         toPublic={true}
       />
+      <ChannelAccessRulesConfirmModal
+        autoSyncEnabled={false}
+        channelName="name"
+        isStacked={true}
+        onConfirm={[Function]}
+        onHide={[Function]}
+        show={false}
+        usersToAdd={Array []}
+        usersToRemove={Array []}
+      />
       <ChannelModes
+        abacSupported={false}
         groupsSupported={false}
         isDefault={false}
         isDisabled={false}
         isPublic={true}
         isSynced={false}
         onToggle={[Function]}
+        policyEnforced={false}
+        policyEnforcedToggleAvailable={true}
       />
       <Connect(ChannelMembers)
         channelId="123"

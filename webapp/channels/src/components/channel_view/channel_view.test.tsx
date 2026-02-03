@@ -20,10 +20,15 @@ describe('components/channel_view', () => {
         enableOnboardingFlow: true,
         teamUrl: '/team',
         channelIsArchived: false,
-        viewArchivedChannels: false,
         isCloud: false,
         goToLastViewedChannel: jest.fn(),
         isFirstAdmin: false,
+        enableWebSocketEventScope: false,
+        isChannelBookmarksEnabled: false,
+        missingChannelRole: false,
+        fetchIsRestrictedDM: jest.fn(),
+        canRestrictDirectMessage: false,
+        restrictDirectMessage: false,
     };
 
     it('Should match snapshot with base props', () => {
@@ -59,5 +64,18 @@ describe('components/channel_view', () => {
         expect(wrapper.state('focusedPostId')).toEqual('postid');
         wrapper.setProps({channelId: 'newChannelId', match: {url: '/team/channel/channelId/postId1', params: {postid: 'postid1'}}});
         expect(wrapper.state('focusedPostId')).toEqual('postid1');
+    });
+
+    it('should call fetchRecentMentions on componentDidUpdate', () => {
+        const wrapper = shallow(
+            <ChannelView
+                {...baseProps}
+                canRestrictDirectMessage={true}
+                restrictDirectMessage={undefined as any}
+            />,
+        );
+        const instance = wrapper.instance() as ChannelView;
+        wrapper.setProps({channelId: 'newChannelId'});
+        expect(instance.props.fetchIsRestrictedDM).toHaveBeenCalledTimes(1);
     });
 });

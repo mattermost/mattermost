@@ -4,24 +4,20 @@
 import classNames from 'classnames';
 import React, {useEffect, useState} from 'react';
 import type {RefObject} from 'react';
-import {FormattedDate, FormattedMessage, FormattedNumber, FormattedTime, useIntl} from 'react-intl';
-import {useSelector} from 'react-redux';
+import {FormattedDate, FormattedMessage, FormattedNumber, FormattedTime, defineMessage, defineMessages, useIntl} from 'react-intl';
 
 import type {ClientLicense} from '@mattermost/types/config';
 
 import {Client4} from 'mattermost-redux/client';
-import {getConfig} from 'mattermost-redux/selectors/entities/admin';
 
-import {trackEvent} from 'actions/telemetry_actions';
-import {getExpandSeatsLink} from 'selectors/cloud';
-
-import useCanSelfHostedExpand from 'components/common/hooks/useCanSelfHostedExpand';
-import useControlSelfHostedExpansionModal from 'components/common/hooks/useControlSelfHostedExpansionModal';
+import useGetFeatureFlagValue from 'components/common/hooks/useGetFeatureFlagValue';
 import useOpenPricingModal from 'components/common/hooks/useOpenPricingModal';
+import useOpenSalesLink from 'components/common/hooks/useOpenSalesLink';
+import ExternalLink from 'components/external_link';
 import Tag from 'components/widgets/tag/tag';
+import WithTooltip from 'components/with_tooltip';
 
-import {FileTypes, TELEMETRY_CATEGORIES} from 'utils/constants';
-import {useQuery} from 'utils/http_utils';
+import {FileTypes, LicenseLinks, LicenseSkus} from 'utils/constants';
 import {calculateOverageUserActivated} from 'utils/overage_team';
 import {getSkuDisplayName} from 'utils/subscription';
 import {getRemainingDaysFromFutureTimestamp, toTitleCase} from 'utils/utils';
@@ -42,7 +38,13 @@ export interface EnterpriseEditionProps {
     fileInputRef: RefObject<HTMLInputElement>;
     handleChange: () => void;
     statsActiveUsers: number;
+    isLicenseSetByEnvVar: boolean;
 }
+
+export const messages = defineMessages({
+    keyRemove: {id: 'admin.license.keyRemove', defaultMessage: 'Remove license and downgrade to Mattermost Free'},
+    keyRemoveEntry: {id: 'admin.license.keyRemoveEntry', defaultMessage: 'Remove license and downgrade to Mattermost Entry'},
+});
 
 const EnterpriseEditionLeftPanel = ({
     openEELicenseModal,
@@ -55,24 +57,13 @@ const EnterpriseEditionLeftPanel = ({
     fileInputRef,
     handleChange,
     statsActiveUsers,
+    isLicenseSetByEnvVar,
 }: EnterpriseEditionProps) => {
     const {formatMessage} = useIntl();
     const [unsanitizedLicense, setUnsanitizedLicense] = useState(license);
-    const openPricingModal = useOpenPricingModal();
-    const canExpand = useCanSelfHostedExpand();
-    const selfHostedExpansionModal = useControlSelfHostedExpansionModal({trackingLocation: 'license_settings_add_seats'});
-    const expandableLink = useSelector(getExpandSeatsLink);
-    const isSelfHostedPurchaseEnabled = useSelector(getConfig)?.ServiceSettings?.SelfHostedPurchase;
-
-    const query = useQuery();
-    const actionQueryParam = query.get('action');
-
-    useEffect(() => {
-        if (actionQueryParam === 'show_expansion_modal' && canExpand && isSelfHostedPurchaseEnabled) {
-            selfHostedExpansionModal.open();
-            query.set('action', '');
-        }
-    }, []);
+    const {openPricingModal, isAirGapped} = useOpenPricingModal();
+    const [openContactSales] = useOpenSalesLink();
+    const enableMattermostEntry = useGetFeatureFlagValue('EnableMattermostEntry');
 
     useEffect(() => {
         async function fetchUnSanitizedLicense() {
@@ -88,12 +79,13 @@ const EnterpriseEditionLeftPanel = ({
 
     const skuName = getSkuDisplayName(unsanitizedLicense.SkuShortName, unsanitizedLicense.IsGovSku === 'true');
     const expirationDays = getRemainingDaysFromFutureTimestamp(parseInt(unsanitizedLicense.ExpiresAt, 10));
+    const isEntrySku = unsanitizedLicense.SkuShortName === LicenseSkus.Entry;
 
-    const viewPlansButton = (
+    const viewPlansButton = isAirGapped ? null : (
         <button
             id='enterprise_edition_view_plans'
-            onClick={() => openPricingModal({trackingLocation: 'license_settings_view_plans'})}
-            className='btn btn-secondary PlanDetails__viewPlansButton'
+            onClick={openPricingModal}
+            className='btn btn-tertiary btn-sm PlanDetails__viewPlansButton'
         >
             {formatMessage({
                 id: 'workspace_limits.menu_limit.view_plans',
@@ -102,29 +94,100 @@ const EnterpriseEditionLeftPanel = ({
         </button>
     );
 
-    const handleClickAddSeats = () => {
-        trackEvent(TELEMETRY_CATEGORIES.SELF_HOSTED_EXPANSION, 'add_seats_clicked');
-        if (!isSelfHostedPurchaseEnabled || !canExpand) {
-            window.open(expandableLink(unsanitizedLicense.Id), '_blank');
-        } else {
-            selfHostedExpansionModal.open();
-        }
-    };
+    // For Entry SKU, render a simplified panel
+    if (isEntrySku) {
+        return (
+            <div
+                className='EnterpriseEditionLeftPanel'
+                data-testid='EnterpriseEditionLeftPanel'
+            >
+                <div className='EnterpriseEditionLeftPanel__Header'>
+                    <div>
+                        <div className='EnterpriseEditionLeftPanel__Title'>
+                            {`Mattermost ${getSkuDisplayName(unsanitizedLicense.SkuShortName, unsanitizedLicense.IsGovSku === 'true')}`}
+                        </div>
+                    </div>
+                    {viewPlansButton}
+                </div>
+                <div className='EnterpriseEditionLeftPanel__Subtitle'>
+                    <FormattedMessage
+                        id='admin.license.entryEdition.subtitle'
+                        defaultMessage='Entry offers Enterprise Advanced capabilities {limitsLink} designed to support evaluation.'
+                        values={{
+                            limitsLink: (
+                                <ExternalLink
+                                    href={LicenseLinks.ENTRY_LIMITS_INFO}
+                                    location='enterprise_edition_left_panel_entry'
+                                >
+                                    <FormattedMessage
+                                        id='admin.license.entryEdition.limits'
+                                        defaultMessage='with limits'
+                                    />
+                                </ExternalLink>
+                            ),
+                        }}
+                    />
+                </div>
+                <div className='have-license-section'>
+                    <h4 className='have-license-title'>
+                        <FormattedMessage
+                            id='admin.license.haveALicense'
+                            defaultMessage='Have a license?'
+                        />
+                    </h4>
+                    <p className='have-license-description'>
+                        <FormattedMessage
+                            id='admin.license.uploadLicenseToUnlock'
+                            defaultMessage='Upload your license here to unlock licensed features'
+                        />
+                    </p>
+                    <div className='upload-license-button-container'>
+                        <WithTooltip
+                            title={defineMessage({
+                                id: 'admin.license.setByEnvVar',
+                                defaultMessage: 'License location is set by environment variable',
+                            })}
+                            disabled={!isLicenseSetByEnvVar}
+                        >
+                            <button
+                                className='btn btn-primary upload-license-btn'
+                                onClick={() => fileInputRef.current?.click()}
+                                disabled={isLicenseSetByEnvVar}
+                            >
+                                <i className='icon icon-upload-outline'/>
+                                <FormattedMessage
+                                    id='admin.license.uploadLicense'
+                                    defaultMessage='Upload license'
+                                />
+                            </button>
+                        </WithTooltip>
+                        <input
+                            ref={fileInputRef}
+                            type='file'
+                            accept={FileTypes.LICENSE_EXTENSION}
+                            onChange={handleChange}
+                            style={{display: 'none'}}
+                        />
+                    </div>
+                </div>
+                <div className='license-notices'>
+                    {/* This notice should not be translated */}
+                    <p>
+                        {'This software is offered under a commercial license. See ENTERPRISE-EDITION-LICENSE.txt in your root install directory for details. See NOTICE.txt for information about open source software used in this system.'}
+                    </p>
+                </div>
+            </div>
+        );
+    }
 
     return (
         <div
             className='EnterpriseEditionLeftPanel'
             data-testid='EnterpriseEditionLeftPanel'
         >
-            <div className='EnterpriseEditionLeftPanel__Grid'>
+            <div className='EnterpriseEditionLeftPanel__Header'>
                 <div>
-                    <div className='pre-title'>
-                        <FormattedMessage
-                            id='admin.license.enterpriseEdition'
-                            defaultMessage='Enterprise Edition'
-                        />
-                    </div>
-                    <div className='title'>
+                    <div className='EnterpriseEditionLeftPanel__Title'>
                         {`Mattermost ${skuName}`}
                         {isTrialLicense && (
                             <Tag
@@ -141,27 +204,18 @@ const EnterpriseEditionLeftPanel = ({
                 </div>
                 {viewPlansButton}
             </div>
-            <div className='subtitle'>
-                <FormattedMessage
-                    id='admin.license.enterpriseEdition.subtitle'
-                    defaultMessage='This is an Enterprise Edition for the Mattermost {skuName} plan'
-                    values={{skuName}}
-                />
-            </div>
             <div className='licenseInformation'>
-                <div className='license-details-top'>
-                    <span className='title'>{'License details'}</span>
-                    {canExpand &&
-                        <button
-                            className='add-seats-button btn btn-primary'
-                            onClick={handleClickAddSeats}
-                        >
-                            <FormattedMessage
-                                id={'admin.license.enterpriseEdition.add.seats'}
-                                defaultMessage='+ Add seats'
-                            />
-                        </button>
-                    }
+                <div className='licenseInformation__Header'>
+                    <span className='licenseInformation__Title'>{'License details'}</span>
+                    <button
+                        className='btn btn-primary btn-sm add-seats-button '
+                        onClick={openContactSales}
+                    >
+                        <FormattedMessage
+                            id={'admin.license.enterpriseEdition.add.seats'}
+                            defaultMessage='+ Add seats'
+                        />
+                    </button>
                 </div>
                 {
                     renderLicenseContent(
@@ -175,10 +229,13 @@ const EnterpriseEditionLeftPanel = ({
                         handleChange,
                         statsActiveUsers,
                         expirationDays,
+                        isLicenseSetByEnvVar,
+                        enableMattermostEntry,
                     )
                 }
             </div>
             <div className='license-notices'>
+                {/* This notice should not be translated */}
                 {upgradedFromTE ? <>
                     <p>
                         {'When using Mattermost Enterprise Edition, the software is offered under a commercial license. See '}
@@ -189,7 +246,7 @@ const EnterpriseEditionLeftPanel = ({
                         >
                             {'here'}
                         </a>
-                        {' for “Enterprise Edition License” for details. '}
+                        {' for "Enterprise Edition License" for details. '}
                         {'See NOTICE.txt for information about open source software used in the system.'}
                     </p>
                 </> : <p>
@@ -271,6 +328,8 @@ const renderLicenseContent = (
     handleChange: () => void,
     statsActiveUsers: number,
     expirationDays: number,
+    isLicenseSetByEnvVar: boolean,
+    enableMattermostEntry: string | undefined,
 ) => {
     // Note: DO NOT LOCALISE THESE STRINGS. Legally we can not since the license is in English.
 
@@ -310,8 +369,8 @@ const renderLicenseContent = (
         <div className='licenseElements'>
             {licenseValues.map(renderLicenseValues(statsActiveUsers, parseInt(license.Users, 10), expirationDays))}
             <hr/>
-            {renderAddNewLicenseButton(fileInputRef, handleChange)}
-            {renderRemoveButton(handleRemove, isDisabled, removing)}
+            {renderAddNewLicenseButton(fileInputRef, handleChange, isLicenseSetByEnvVar)}
+            {renderRemoveButton(handleRemove, isDisabled, removing, enableMattermostEntry)}
         </div>
     );
 };
@@ -319,18 +378,28 @@ const renderLicenseContent = (
 const renderAddNewLicenseButton = (
     fileInputRef: RefObject<HTMLInputElement>,
     handleChange: () => void,
+    isLicenseSetByEnvVar: boolean,
 ) => {
     return (
         <>
-            <button
-                className='add-new-licence-btn'
-                onClick={() => fileInputRef.current?.click()}
+            <WithTooltip
+                title={defineMessage({
+                    id: 'admin.license.setByEnvVar',
+                    defaultMessage: 'License location is set by environment variable',
+                })}
+                disabled={!isLicenseSetByEnvVar}
             >
-                <FormattedMessage
-                    id='admin.license.keyAddNew'
-                    defaultMessage='Add a new license'
-                />
-            </button>
+                <button
+                    className={'btn btn-secondary'}
+                    onClick={() => fileInputRef.current?.click()}
+                    disabled={isLicenseSetByEnvVar}
+                >
+                    <FormattedMessage
+                        id='admin.license.keyAddNew'
+                        defaultMessage='Add a new license'
+                    />
+                </button>
+            </WithTooltip>
             <input
                 ref={fileInputRef}
                 type='file'
@@ -346,19 +415,23 @@ const renderRemoveButton = (
     handleRemove: (e: React.MouseEvent<HTMLButtonElement>) => Promise<void>,
     isDisabled: boolean,
     removing: boolean,
+    enableMattermostEntry: string | undefined,
 ) => {
-    let removeButtonText = (
-        <FormattedMessage
-            id='admin.license.keyRemove'
-            defaultMessage='Remove license and downgrade to Mattermost Free'
-        />
-    );
+    const isEntryEnabled = enableMattermostEntry === 'true';
+
+    let removeButtonText;
     if (removing) {
         removeButtonText = (
             <FormattedMessage
                 id='admin.license.removing'
                 defaultMessage='Removing License...'
             />
+        );
+    } else {
+        removeButtonText = isEntryEnabled ? (
+            <FormattedMessage {...messages.keyRemoveEntry}/>
+        ) : (
+            <FormattedMessage {...messages.keyRemove}/>
         );
     }
 

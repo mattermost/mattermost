@@ -1,6 +1,8 @@
 :root {
     // Default Hex values to be replaced by applyTheme()
     // these are define to prevent flashes of unstyled content
+    --icon-opacity: 0.64;
+    --icon-opacity-hover: 0.8;
     --away-indicator: #ffbc42;
     --away-indicator-dark: #c79e3f;
     --button-bg: #166de0;
@@ -28,8 +30,6 @@
     --sidebar-team-background: #0b428c;
     --secondary-blue: #22406d;
     --denim-button-bg: #1c58d9;
-    --denim-status-online: #3db887;
-    --denim-sidebar-active-border: #5d89ea;
     --title-color-indigo-500: #1e325c;
 
     // Default RGB values to be replaced by applyTheme() (do not add opacity mutations here)
@@ -59,13 +59,12 @@
     --error-box-background: 197, 67, 72;
     --sidebar-team-background-rgb: 11, 66, 140;
     --secondary-blue-rgb: 34, 64, 109;
-    --denim-status-online-rgb: 61, 184, 135;
     --denim-button-bg-rgb: 28, 88, 217;
     --title-color-indigo-500-rgb: 30, 50, 92;
 
     // offline indicator color stays the same in all themes, that's why it is separated from the other variables
     // the color specified here is the new hard-coded color from the compass design system
-    --offline-indicator: rgba(175, 179, 192, 0.64);
+    --offline-indicator: rgba(175, 179, 192, 0.75);
 
     // Elevation values used for box shadows.
     // Defined as CSS variables so that both sass and JS can use them.
@@ -75,6 +74,19 @@
     --elevation-4: 0 8px 24px 0 rgba(0, 0, 0, 0.12);
     --elevation-5: 0 12px 32px 0 rgba(0, 0, 0, 0.12);
     --elevation-6: 0 20px 32px 0 rgba(0, 0, 0, 0.12);
+
+    // Corner Radius variables
+    --radius-xs: 2px;
+    --radius-s: 4px;
+    --radius-m: 8px;
+    --radius-l: 12px;
+    --radius-xl: 16px;
+    --radius-full: 50%;
+
+    // Border variables
+    --border-default: solid 1px rgba(var(--center-channel-color-rgb), 0.12);
+    --border-light: solid 1px rgba(var(--center-channel-color-rgb), 0.08);
+    --border-dark: solid 1px rgba(var(--center-channel-color-rgb), 0.16);
 
     // Global Header variables
     --global-header-background: var(--sidebar-teambar-bg);
@@ -95,4 +107,13 @@
     --center-channel-text: var(--center-channel-color);
     // use --center-channel-color-rgb instead
     --center-channel-text-rgb: var(--center-channel-color-rgb);
+
+    //Colors used in svgs but not themed
+    --indigo-400: #28427B;
+    --indigo-300: #32539A;
+    --sand: #CCC4AE;
+    --neutral-0: #FFFFFF;
+    --neutral-900: #3F4350;
+    --neutral-1200: #090A0B;
+    --yellow-400: #FFBC1F;
 }

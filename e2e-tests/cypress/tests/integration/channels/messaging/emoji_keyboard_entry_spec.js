@@ -32,7 +32,7 @@ describe('MM-T154 Use keyboard navigation in emoji picker', () => {
             cy.get('#emojiPickerSearch').type(`{${dir}arrow}`);
 
             // * The first emoji in the "People" category should be selected
-            testSelectedIndex((idx) => expect(idx).to.equal(0));
+            testSelectedIndex((idx) => expect(idx).to.equal((dir === 'right') ? 1 : 0));
 
             // # Close emoji picker
             cy.get('#emojiPickerButton').click();
@@ -99,13 +99,13 @@ describe('MM-T154 Use keyboard navigation in emoji picker', () => {
             cy.uiGetPostTextBox().type('{enter}');
 
             // * Compare selected emoji with last post
-            cy.getLastPost().find('.emoticon').should('have.attr', 'title', selectedEmoji);
+            cy.getLastPost().find('.emoticon').should('have.attr', 'aria-label', selectedEmoji);
         });
     });
 });
 
 const testSelectedIndex = (done) => {
-    cy.get('.emoji-picker__item.selected').then((selectedEmoji) => {
+    cy.get('button.emoji-picker__item.selected').then((selectedEmoji) => {
         done(selectedEmoji.index());
     });
 };

@@ -2,23 +2,30 @@
 // See LICENSE.txt for license information.
 
 import classNames from 'classnames';
-import React, {useEffect} from 'react';
-import {useDispatch} from 'react-redux';
+import React, {lazy, useEffect} from 'react';
+import {useDispatch, useSelector} from 'react-redux';
 
-import type {DispatchFunc} from 'mattermost-redux/types/actions';
+import {cleanUpStatusAndProfileFetchingPoll} from 'mattermost-redux/actions/status_profile_polling';
+import {getIsUserStatusesConfigEnabled} from 'mattermost-redux/selectors/entities/common';
 
-import {loadStatusesForChannelAndSidebar} from 'actions/status_actions';
+import {addVisibleUsersInCurrentChannelAndSelfToStatusPoll} from 'actions/status_actions';
+import {getIsMobileView} from 'selectors/views/browser';
 
+import {makeAsyncComponent} from 'components/async_load';
 import CenterChannel from 'components/channel_layout/center_channel';
 import LoadingScreen from 'components/loading_screen';
-import ProductNoticesModal from 'components/product_notices_modal';
-import ResetStatusModal from 'components/reset_status_modal';
+import QueryParamActionController from 'components/query_param_actions/query_param_action_controller';
 import Sidebar from 'components/sidebar';
+import CRTPostsChannelResetWatcher from 'components/threading/channel_threads/posts_channel_reset_watcher';
 import UnreadsStatusHandler from 'components/unreads_status_handler';
 
 import Pluggable from 'plugins/pluggable';
 import {Constants} from 'utils/constants';
 import {isInternetExplorer, isEdge} from 'utils/user_agent';
+
+const ProductNoticesModal = makeAsyncComponent('ProductNoticesModal', lazy(() => import('components/product_notices_modal')));
+const ResetStatusModal = makeAsyncComponent('ResetStatusModal', lazy(() => import('components/reset_status_modal')));
+const MobileSidebarRight = makeAsyncComponent('MobileSidebarRight', lazy(() => import('components/mobile_sidebar_right')));
 
 const BODY_CLASS_FOR_CHANNEL = ['app__body', 'channel-view'];
 
@@ -27,30 +34,46 @@ type Props = {
 }
 
 export default function ChannelController(props: Props) {
-    const dispatch = useDispatch<DispatchFunc>();
+    const isMobileView = useSelector(getIsMobileView);
+    const enabledUserStatuses = useSelector(getIsUserStatusesConfigEnabled);
+    const dispatch = useDispatch();
 
     useEffect(() => {
         const isMsBrowser = isInternetExplorer() || isEdge();
-        const platform = window.navigator.platform;
+        const {navigator} = window;
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        // @ts-ignore
+        const platform = navigator?.userAgentData?.platform || navigator?.platform || 'unknown';
         document.body.classList.add(...getClassnamesForBody(platform, isMsBrowser));
 
         return () => {
             document.body.classList.remove(...BODY_CLASS_FOR_CHANNEL);
+
+            // This cleans up the status and profile setInterval of fetching poll we use to batch requests
+            // when fetching statuses and profiles for a list of users.
+            dispatch(cleanUpStatusAndProfileFetchingPoll());
         };
     }, []);
 
+    // Starts a regular interval to fetch statuses of users.
+    // see function "addVisibleUsersInCurrentChannelAndSelfToStatusPoll" for more details on which user's statuses are fetched.
     useEffect(() => {
-        const loadStatusesIntervalId = setInterval(() => {
-            dispatch(loadStatusesForChannelAndSidebar());
-        }, Constants.STATUS_INTERVAL);
+        let loadStatusesIntervalId: NodeJS.Timeout;
+        if (enabledUserStatuses) {
+            loadStatusesIntervalId = setInterval(() => {
+                dispatch(addVisibleUsersInCurrentChannelAndSelfToStatusPoll());
+            }, Constants.STATUS_INTERVAL);
+        }
 
         return () => {
             clearInterval(loadStatusesIntervalId);
         };
-    }, []);
+    }, [enabledUserStatuses]);
 
     return (
         <>
+            <CRTPostsChannelResetWatcher/>
+            <QueryParamActionController/>
             <Sidebar/>
             <div
                 id='channel_view'
@@ -65,6 +88,7 @@ export default function ChannelController(props: Props) {
                     <ResetStatusModal/>
                 </div>
             </div>
+            {isMobileView && <MobileSidebarRight/>}
         </>
     );
 }

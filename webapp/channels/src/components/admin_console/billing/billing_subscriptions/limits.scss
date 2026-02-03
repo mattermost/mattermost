@@ -1,8 +1,8 @@
-@import 'utils/variables';
-@import './mixins';
+@use 'utils/variables';
+@use 'mixins';
 
 .ProductLimitsPanel {
-    @include cloud-card;
+    @include mixins.cloud-card;
 
     &--left-panel {
         max-width: 568px;
@@ -14,7 +14,7 @@
     }
 
     &__title {
-        @include cloud-card-title;
+        @include mixins.cloud-card-title;
 
         padding-bottom: 8px;
     }
@@ -38,10 +38,10 @@
 
     .btn {
         padding: 11px 16px;
-        margin-right: 8px;
-        background: $primary-color;
         border-radius: 4px;
-        color: $white;
+        margin-right: 8px;
+        background: variables.$primary-color;
+        color: variables.$white;
         font-size: 12px;
         font-weight: bold;
         line-height: 9.5px;
@@ -54,8 +54,8 @@
         }
 
         &.btn-secondary {
-            background: rgba(var(--denim-button-bg-rgb), 0.08);
-            color: var(--denim-button-bg);
+            background: rgba(var(--button-bg-rgb), 0.08);
+            color: var(--button-bg);
         }
     }
 

@@ -9,6 +9,11 @@ import (
 	"github.com/vmihailenco/msgpack/v5"
 )
 
+const (
+	WebSocketRemoteAddr    = "remote_addr"
+	WebSocketXForwardedFor = "x_forwarded_for"
+)
+
 // WebSocketRequest represents a request made to the server through a websocket.
 type WebSocketRequest struct {
 	// Client-provided fields

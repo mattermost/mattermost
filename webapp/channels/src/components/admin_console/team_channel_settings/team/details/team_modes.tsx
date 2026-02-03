@@ -2,12 +2,10 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-import {FormattedMessage} from 'react-intl';
+import {FormattedMessage, defineMessage} from 'react-intl';
 
 import ExternalLink from 'components/external_link';
 import AdminPanel from 'components/widgets/admin_console/admin_panel';
-
-import {t} from 'utils/i18n';
 
 import LineSwitch from '../../line_switch';
 
@@ -38,7 +36,7 @@ const SyncGroupsToggle = ({syncChecked, allAllowedChecked, allowedDomainsChecked
                 id='admin.team_settings.team_details.syncGroupMembersDescr'
                 defaultMessage='When enabled, adding and removing users from groups will add or remove them from this team. The only way of inviting members to this team is by adding the groups they belong to. <link>Learn More</link>'
                 values={{
-                    link: (msg: string) => (
+                    link: (msg) => (
                         <ExternalLink
                             href='https://www.mattermost.com/pl/default-ldap-group-constrained-team-channel.html'
                             location='team_modes'
@@ -120,10 +118,8 @@ type TeamModesProps = Props & {
 export const TeamModes = ({allAllowedChecked, syncChecked, allowedDomains, allowedDomainsChecked, onToggle, isDisabled, isLicensedForLDAPGroups}: TeamModesProps) => (
     <AdminPanel
         id='team_manage'
-        titleId={t('admin.team_settings.team_detail.manageTitle')}
-        titleDefault='Team Management'
-        subtitleId={t('admin.team_settings.team_detail.manageDescription')}
-        subtitleDefault='Choose between inviting members manually or syncing members automatically from groups.'
+        title={defineMessage({id: 'admin.team_settings.team_detail.manageTitle', defaultMessage: 'Team Management'})}
+        subtitle={defineMessage({id: 'admin.team_settings.team_detail.manageDescription', defaultMessage: 'Choose between inviting members manually or syncing members automatically from groups.'})}
     >
         <div className='group-teams-and-channels'>
             <div className='group-teams-and-channels--body'>

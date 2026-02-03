@@ -2,25 +2,27 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-import {FormattedMessage} from 'react-intl';
+import {FormattedMessage, defineMessages} from 'react-intl';
+import {Link} from 'react-router-dom';
 
 import type {AdminConfig, ClientLicense} from '@mattermost/types/config';
 import type {TermsOfService} from '@mattermost/types/terms_of_service';
 
-import AdminSettings from 'components/admin_console/admin_settings';
-import type {BaseProps, BaseState} from 'components/admin_console/admin_settings';
+import type {ActionResult} from 'mattermost-redux/types/actions';
+
 import BooleanSetting from 'components/admin_console/boolean_setting';
+import OLDAdminSettings from 'components/admin_console/old_admin_settings';
+import type {BaseProps, BaseState} from 'components/admin_console/old_admin_settings';
 import SettingsGroup from 'components/admin_console/settings_group';
 import TextSetting from 'components/admin_console/text_setting';
-import FormattedMarkdownMessage from 'components/formatted_markdown_message';
 import LoadingScreen from 'components/loading_screen';
 
 import {Constants} from 'utils/constants';
 
 type Props = BaseProps & {
     actions: {
-        getTermsOfService: () => Promise<{data: TermsOfService}>;
-        createTermsOfService: (text: string) => Promise<{data: TermsOfService; error?: Error}>;
+        getTermsOfService: () => Promise<ActionResult<TermsOfService>>;
+        createTermsOfService: (text: string) => Promise<ActionResult<TermsOfService>>;
     };
     config: AdminConfig;
     license: ClientLicense;
@@ -29,7 +31,7 @@ type Props = BaseProps & {
     /*
      * Action to save config file
      */
-    updateConfig: () => void;
+    patchConfig: () => void;
 };
 
 type State = BaseState & {
@@ -44,7 +46,27 @@ type State = BaseState & {
     errorTooltip: boolean;
 }
 
-export default class CustomTermsOfServiceSettings extends AdminSettings<Props, State> {
+export const messages = defineMessages({
+    termsOfServiceTitle: {id: 'admin.support.termsOfServiceTitle', defaultMessage: 'Custom Terms of Service'},
+    enableTermsOfServiceTitle: {id: 'admin.support.enableTermsOfServiceTitle', defaultMessage: 'Enable Custom Terms of Service'},
+    termsOfServiceTextTitle: {id: 'admin.support.termsOfServiceTextTitle', defaultMessage: 'Custom Terms of Service Text'},
+    termsOfServiceTextHelp: {id: 'admin.support.termsOfServiceTextHelp', defaultMessage: 'Text that will appear in your custom Terms of Service. Supports Markdown-formatted text.'},
+    termsOfServiceReAcceptanceTitle: {id: 'admin.support.termsOfServiceReAcceptanceTitle', defaultMessage: 'Re-Acceptance Period'},
+    termsOfServiceReAcceptanceHelp: {id: 'admin.support.termsOfServiceReAcceptanceHelp', defaultMessage: 'The number of days before Terms of Service acceptance expires, and the terms must be re-accepted.'},
+    enableTermsOfServiceHelp: {id: 'admin.support.enableTermsOfServiceHelp', defaultMessage: 'When true, new users must accept the terms of service before accessing any Mattermost teams on desktop, web or mobile. Existing users must accept them after login or a page refresh. To update terms of service link displayed in account creation and login pages, go to <a>Site Configuration > Customization</a>'},
+});
+
+export const searchableStrings = [
+    messages.termsOfServiceTitle,
+    messages.enableTermsOfServiceTitle,
+    messages.enableTermsOfServiceHelp,
+    messages.termsOfServiceTextTitle,
+    messages.termsOfServiceTextHelp,
+    messages.termsOfServiceReAcceptanceTitle,
+    messages.termsOfServiceReAcceptanceHelp,
+];
+
+export default class CustomTermsOfServiceSettings extends OLDAdminSettings<Props, State> {
     constructor(props: Props) {
         super(props);
 
@@ -98,7 +120,7 @@ export default class CustomTermsOfServiceSettings extends AdminSettings<Props, S
         let config = JSON.parse(JSON.stringify(this.props.config));
         config = this.getConfigFromState(config);
 
-        const {data, error} = await this.props.updateConfig(config);
+        const {data, error} = await this.props.patchConfig(config);
 
         if (data) {
             this.setState(this.getStateFromConfig(data));
@@ -165,12 +187,7 @@ export default class CustomTermsOfServiceSettings extends AdminSettings<Props, S
     };
 
     renderTitle() {
-        return (
-            <FormattedMessage
-                id='admin.support.termsOfServiceTitle'
-                defaultMessage='Custom Terms of Service'
-            />
-        );
+        return (<FormattedMessage {...messages.termsOfServiceTitle}/>);
     }
 
     renderSettings = () => {
@@ -183,16 +200,13 @@ export default class CustomTermsOfServiceSettings extends AdminSettings<Props, S
                 <BooleanSetting
                     key={'customTermsOfServiceEnabled'}
                     id={'SupportSettings.CustomTermsOfServiceEnabled'}
-                    label={
-                        <FormattedMessage
-                            id='admin.support.enableTermsOfServiceTitle'
-                            defaultMessage='Enable Custom Terms of Service'
-                        />
-                    }
+                    label={<FormattedMessage {...messages.enableTermsOfServiceTitle}/>}
                     helpText={
-                        <FormattedMarkdownMessage
-                            id='admin.support.enableTermsOfServiceHelp'
-                            defaultMessage='When true, new users must accept the terms of service before accessing any Mattermost teams on desktop, web or mobile. Existing users must accept them after login or a page refresh.\n \nTo update terms of service link displayed in account creation and login pages, go to [Site Configuration > Customization](../site_config/customization).'
+                        <FormattedMessage
+                            {...messages.enableTermsOfServiceHelp}
+                            values={{
+                                a: (chunks) => <Link to='/admin_console/site_config/customization'>{chunks}</Link>,
+                            }}
                         />
                     }
                     value={Boolean(this.state.termsEnabled)}
@@ -204,18 +218,8 @@ export default class CustomTermsOfServiceSettings extends AdminSettings<Props, S
                     key={'customTermsOfServiceText'}
                     id={'SupportSettings.CustomTermsOfServiceText'}
                     type={'textarea'}
-                    label={
-                        <FormattedMessage
-                            id='admin.support.termsOfServiceTextTitle'
-                            defaultMessage='Custom Terms of Service Text'
-                        />
-                    }
-                    helpText={
-                        <FormattedMessage
-                            id='admin.support.termsOfServiceTextHelp'
-                            defaultMessage='Text that will appear in your custom Terms of Service. Supports Markdown-formatted text.'
-                        />
-                    }
+                    label={<FormattedMessage {...messages.termsOfServiceTextTitle}/>}
+                    helpText={<FormattedMessage {...messages.termsOfServiceTextHelp}/>}
                     onChange={this.handleTermsTextChange}
                     setByEnv={this.isSetByEnv('SupportSettings.CustomTermsOfServiceText')}
                     value={this.state.termsText}
@@ -226,18 +230,8 @@ export default class CustomTermsOfServiceSettings extends AdminSettings<Props, S
                     key={'customTermsOfServiceReAcceptancePeriod'}
                     id={'SupportSettings.CustomTermsOfServiceReAcceptancePeriod'}
                     type={'number'}
-                    label={
-                        <FormattedMessage
-                            id='admin.support.termsOfServiceReAcceptanceTitle'
-                            defaultMessage='Re-Acceptance Period:'
-                        />
-                    }
-                    helpText={
-                        <FormattedMessage
-                            id='admin.support.termsOfServiceReAcceptanceHelp'
-                            defaultMessage='The number of days before Terms of Service acceptance expires, and the terms must be re-accepted.'
-                        />
-                    }
+                    label={<FormattedMessage {...messages.termsOfServiceReAcceptanceTitle}/>}
+                    helpText={<FormattedMessage {...messages.termsOfServiceReAcceptanceHelp}/>}
                     value={this.state.reAcceptancePeriod || ''}
                     onChange={this.handleReAcceptancePeriodChange}
                     setByEnv={this.isSetByEnv('SupportSettings.CustomTermsOfServiceReAcceptancePeriod')}

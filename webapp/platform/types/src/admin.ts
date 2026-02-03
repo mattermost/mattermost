@@ -1,16 +1,17 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {Audit} from './audits';
-import {Compliance} from './compliance';
-import {AdminConfig, AllowedIPRange, ClientLicense, EnvironmentConfig} from './config';
-import {DataRetentionCustomPolicies} from './data_retention';
-import {MixedUnlinkedGroupRedux} from './groups';
-import {PluginRedux, PluginStatusRedux} from './plugins';
-import {SamlCertificateStatus, SamlMetadataResponse} from './saml';
-import {Team} from './teams';
-import {UserAccessToken, UserProfile} from './users';
-import {RelationOneToOne} from './utilities';
+import type {AccessControlPolicy} from './access_control';
+import type {Audit} from './audits';
+import type {Compliance} from './compliance';
+import type {AdminConfig, ClientLicense, EnvironmentConfig} from './config';
+import type {DataRetentionCustomPolicies} from './data_retention';
+import type {MixedUnlinkedGroupRedux} from './groups';
+import type {PluginRedux, PluginStatusRedux} from './plugins';
+import type {SamlCertificateStatus, SamlMetadataResponse} from './saml';
+import type {Team} from './teams';
+import type {UserAccessToken, UserProfile} from './users';
+import type {RelationOneToOne, IDMappedObjects} from './utilities';
 
 export enum LogLevelEnum {
     SILLY = 'silly',
@@ -41,6 +42,13 @@ export type LogFilter = {
     dateTo: LogDateTo;
 }
 
+export type LogFilterQuery = {
+    server_names: LogServerNames;
+    log_levels: LogLevels;
+    date_from: LogDateFrom;
+    date_to: LogDateTo;
+}
+
 export type AdminState = {
     logs: LogObject[];
     plainLogs: string[];
@@ -53,8 +61,8 @@ export type AdminState = {
     userAccessTokens: Record<string, UserAccessToken>;
     clusterInfo: ClusterInfo[];
     samlCertStatus?: SamlCertificateStatus;
-    analytics?: Record<string, number | AnalyticsRow[]>;
-    teamAnalytics?: RelationOneToOne<Team, Record<string, number | AnalyticsRow[]>>;
+    analytics: AnalyticsState;
+    teamAnalytics: RelationOneToOne<Team, AnalyticsState>;
     userAccessTokensByUser?: RelationOneToOne<UserProfile, Record<string, UserAccessToken>>;
     plugins?: Record<string, PluginRedux>;
     pluginStatuses?: Record<string, PluginStatusRedux>;
@@ -62,7 +70,34 @@ export type AdminState = {
     dataRetentionCustomPolicies: DataRetentionCustomPolicies;
     dataRetentionCustomPoliciesCount: number;
     prevTrialLicense: ClientLicense;
+    accessControlPolicies: IDMappedObjects<AccessControlPolicy>;
+    channelsForAccessControlPolicy: Record<string, string[]>;
 };
+
+export type AnalyticsState = {
+    POST_PER_DAY?: AnalyticsRow[];
+    BOT_POST_PER_DAY?: AnalyticsRow[];
+    USERS_WITH_POSTS_PER_DAY?: AnalyticsRow[];
+
+    TOTAL_PUBLIC_CHANNELS?: number;
+    TOTAL_PRIVATE_GROUPS?: number;
+    TOTAL_POSTS?: number;
+    TOTAL_USERS?: number;
+    TOTAL_INACTIVE_USERS?: number;
+    TOTAL_TEAMS?: number;
+    TOTAL_WEBSOCKET_CONNECTIONS?: number;
+    TOTAL_MASTER_DB_CONNECTIONS?: number;
+    TOTAL_READ_DB_CONNECTIONS?: number;
+    DAILY_ACTIVE_USERS?: number;
+    MONTHLY_ACTIVE_USERS?: number;
+    TOTAL_IHOOKS?: number;
+    TOTAL_OHOOKS?: number;
+    TOTAL_COMMANDS?: number;
+    TOTAL_SESSIONS?: number;
+    REGISTERED_USERS?: number;
+    TOTAL_FILE_COUNT?: number;
+    TOTAL_FILE_SIZE?: number;
+}
 
 export type ClusterInfo = {
     id: string;
@@ -82,14 +117,52 @@ export type IndexedPluginAnalyticsRow = {
     [key: string]: PluginAnalyticsRow;
 }
 
+export enum AnalyticsVisualizationType {
+    Count = 'count',
+    LineChart = 'line_chart',
+    DoughnutChart = 'doughnut_chart',
+}
+
 export type PluginAnalyticsRow = {
     id: string;
     name: React.ReactNode;
-    icon: string;
-    value: number;
+    icon?: string;
+    value: any;
+    visualizationType?: AnalyticsVisualizationType;
 };
 
 export type SchemaMigration = {
     version: number;
     name: string;
 };
+
+export type SupportPacketContent = {
+    id: string;
+    translation_id?: string;
+    label: string;
+    selected: boolean;
+    mandatory: boolean;
+}
+
+export type LdapSampleEntry = {
+    dn: string;
+    username?: string;
+    email?: string;
+    first_name?: string;
+    last_name?: string;
+    id?: string;
+    display_name?: string;
+    available_attributes?: Record<string, string>;
+};
+
+export type LdapDiagnosticResult = {
+    test_name: string;
+    test_value: string;
+    total_count: number;
+    entries_with_value: number;
+    message?: string;
+    error?: string;
+    sample_results: LdapSampleEntry[];
+};
+
+export type TestLdapFiltersResponse = LdapDiagnosticResult[];

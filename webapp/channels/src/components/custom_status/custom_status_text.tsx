@@ -6,21 +6,20 @@ import {useSelector} from 'react-redux';
 
 import {isCustomStatusEnabled} from 'selectors/views/custom_status';
 
-import OverlayTrigger from 'components/overlay_trigger';
-import Tooltip from 'components/tooltip';
-
-import Constants from 'utils/constants';
+import WithTooltip from 'components/with_tooltip';
 
 import type {GlobalState} from 'types/store';
 
 interface ComponentProps {
-    tooltipDirection?: 'top' | 'right' | 'bottom' | 'left';
-    text: string;
+    text?: string;
     className?: string;
 }
 
 const CustomStatusText = (props: ComponentProps) => {
-    const {tooltipDirection, text, className} = props;
+    const {
+        text = '',
+        className = '',
+    } = props;
     const customStatusEnabled = useSelector((state: GlobalState) => {
         return isCustomStatusEnabled(state);
     });
@@ -51,24 +50,12 @@ const CustomStatusText = (props: ComponentProps) => {
     }
 
     return (
-        <OverlayTrigger
-            delayShow={Constants.OVERLAY_TIME_DELAY}
-            placement={tooltipDirection}
-            overlay={
-                <Tooltip id='custom-status-tooltip'>
-                    {text}
-                </Tooltip>
-            }
+        <WithTooltip
+            title={text}
         >
             {customStatusTextComponent}
-        </OverlayTrigger>
+        </WithTooltip>
     );
-};
-
-CustomStatusText.defaultProps = {
-    tooltipDirection: 'bottom',
-    text: '',
-    className: '',
 };
 
 export default CustomStatusText;

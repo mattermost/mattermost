@@ -3,24 +3,19 @@
 
 import {connect} from 'react-redux';
 import {bindActionCreators} from 'redux';
-import type {Dispatch, ActionCreatorsMapObject} from 'redux';
+import type {Dispatch} from 'redux';
 
 import type {GlobalState} from '@mattermost/types/store';
 import type {UserProfile} from '@mattermost/types/users';
 
 import {getConfig, getLicense} from 'mattermost-redux/selectors/entities/general';
 import {getCurrentUser} from 'mattermost-redux/selectors/entities/users';
-import type {ActionFunc} from 'mattermost-redux/types/actions';
 
 import {deactivateMfa} from 'actions/views/mfa';
 
 import Constants from 'utils/constants';
 
 import MfaSection from './mfa_section';
-
-type Actions = {
-    deactivateMfa: () => Promise<{error?: {message: string}}>;
-}
 
 function mapStateToProps(state: GlobalState) {
     const license = getLicense(state);
@@ -44,7 +39,7 @@ function mapStateToProps(state: GlobalState) {
 
 function mapDispatchToProps(dispatch: Dispatch) {
     return {
-        actions: bindActionCreators<ActionCreatorsMapObject<ActionFunc>, Actions>({
+        actions: bindActionCreators({
             deactivateMfa,
         }, dispatch),
     };

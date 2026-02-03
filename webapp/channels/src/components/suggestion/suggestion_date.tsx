@@ -1,66 +1,64 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
+import React, {memo} from 'react';
 
 import Popover from 'components/widgets/popover';
 
+import type {SuggestionResults, SuggestionResultsUngrouped} from './suggestion_results';
+import {hasResults} from './suggestion_results';
+
 type SuggestionItem = {
-    key: string;
-    ref: string;
-    item: SuggestionItem;
-    term: string;
-    matchedPretext: string;
-    preventClose: () => void;
-    handleEscape: () => void;
-    isSelection: boolean;
-    onClick: (term: string, matchedPretext: string[], e?: React.MouseEvent<HTMLDivElement>) => boolean;
+    date: string;
+    label: string;
 }
 
 type Props = {
     onCompleteWord: (term: string, matchedPretext: string[], e?: React.MouseEvent<HTMLDivElement>) => boolean;
-    matchedPretext: string[];
-    items: SuggestionItem[];
-    terms: string[];
+    matchedPretext: string;
+    results: SuggestionResults<SuggestionItem>;
     preventClose: () => void;
     handleEscape: () => void;
-    components: Array<React.ComponentType<SuggestionItem>>;
 }
 
-export default class SuggestionDate extends React.PureComponent<Props> {
-    render() {
-        if (this.props.items.length === 0) {
-            return null;
-        }
+const SuggestionDate = ({
+    results,
+    matchedPretext,
+    onCompleteWord,
+    preventClose,
+    handleEscape,
+}: Props) => {
+    if (!hasResults(results)) {
+        return null;
+    }
 
-        const item = this.props.items[0];
-        const term = this.props.terms[0];
+    // This is safe to do because SearchDateProvider only returns ungrouped results
+    const ungroupedResults = results as SuggestionResultsUngrouped;
 
-        // ReactComponent names need to be upper case when used in JSX
-        const Component = this.props.components[0];
+    const item = ungroupedResults.items[0];
+    const term = ungroupedResults.terms[0];
 
-        const itemComponent = (
+    // ReactComponent names need to be upper case when used in JSX
+    const Component = ungroupedResults.components[0];
+
+    return (
+        <Popover
+            id='search-autocomplete__popover'
+            className='search-help-popover autocomplete visible'
+            placement='bottom'
+        >
             <Component
                 key={term}
-                ref={term}
-                item={item}
+                item={item as SuggestionItem}
                 term={term}
-                matchedPretext={this.props.matchedPretext[0]}
+                matchedPretext={matchedPretext}
                 isSelection={false}
-                onClick={this.props.onCompleteWord}
-                preventClose={this.props.preventClose}
-                handleEscape={this.props.handleEscape}
+                onClick={onCompleteWord}
+                preventClose={preventClose}
+                handleEscape={handleEscape}
             />
-        );
+        </Popover>
+    );
+};
 
-        return (
-            <Popover
-                id='search-autocomplete__popover'
-                className='search-help-popover autocomplete visible'
-                placement='bottom'
-            >
-                {itemComponent}
-            </Popover>
-        );
-    }
-}
+export default memo(SuggestionDate);

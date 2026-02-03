@@ -9,7 +9,6 @@ import type {Post} from '@mattermost/types/posts';
 
 import {SearchTypes} from 'mattermost-redux/action_types';
 import {getChannel} from 'mattermost-redux/actions/channels';
-import * as PostActions from 'mattermost-redux/actions/posts';
 import {getPostsByIds, getPost as fetchPost} from 'mattermost-redux/actions/posts';
 import {
     clearSearch,
@@ -19,45 +18,43 @@ import {
     searchFilesWithParams,
 } from 'mattermost-redux/actions/search';
 import {getCurrentChannelId, getCurrentChannelNameForSearchShortcut, getChannel as getChannelSelector} from 'mattermost-redux/selectors/entities/channels';
-import {getConfig} from 'mattermost-redux/selectors/entities/general';
-import {getPost} from 'mattermost-redux/selectors/entities/posts';
+import {getLatestInteractablePostId, getPost} from 'mattermost-redux/selectors/entities/posts';
 import {getCurrentTeamId} from 'mattermost-redux/selectors/entities/teams';
 import {getCurrentTimezone} from 'mattermost-redux/selectors/entities/timezone';
-import {getCurrentUser, getCurrentUserMentionKeys} from 'mattermost-redux/selectors/entities/users';
-import type {Action, ActionResult, DispatchFunc, GenericAction, GetStateFunc} from 'mattermost-redux/types/actions';
+import {getCurrentUserMentionKeys} from 'mattermost-redux/selectors/entities/users';
 
-import {trackEvent} from 'actions/telemetry_actions.jsx';
-import {getSearchTerms, getRhsState, getPluggableId, getFilesSearchExtFilter, getPreviousRhsState} from 'selectors/rhs';
+import {
+    getSearchType,
+    getSearchTerms,
+    getRhsState,
+    getPluggableId,
+    getFilesSearchExtFilter,
+    getPreviousRhsState,
+    getSearchTeam,
+} from 'selectors/rhs';
 
 import {SidebarSize} from 'components/resizable_sidebar/constants';
 
 import {ActionTypes, RHSStates, Constants} from 'utils/constants';
+import {Mark, Measure, measureAndReport} from 'utils/performance_telemetry';
 import {getBrowserUtcOffset, getUtcOffsetForTimeZone} from 'utils/timezone';
 
-import type {GlobalState} from 'types/store';
+import type {ActionFunc, ActionFuncAsync, ThunkActionFunc} from 'types/store';
 import type {RhsState} from 'types/store/rhs';
 
-function selectPostFromRightHandSideSearchWithPreviousState(post: Post, previousRhsState?: RhsState) {
-    return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
-        const postRootId = post.root_id || post.id;
-        await dispatch(PostActions.getPostThread(postRootId));
-        const state = getState() as GlobalState;
+function selectPostWithPreviousState(post: Post, previousRhsState?: RhsState): ActionFunc<boolean> {
+    return (dispatch, getState) => {
+        const state = getState();
 
-        dispatch({
-            type: ActionTypes.SELECT_POST,
-            postId: postRootId,
-            channelId: post.channel_id,
-            previousRhsState: previousRhsState || getRhsState(state),
-            timestamp: Date.now(),
-        });
+        dispatch(selectPost(post, previousRhsState || getRhsState(state)));
 
         return {data: true};
     };
 }
 
-function selectPostCardFromRightHandSideSearchWithPreviousState(post: Post, previousRhsState?: RhsState) {
-    return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
-        const state = getState() as GlobalState;
+function selectPostCardFromRightHandSideSearchWithPreviousState(post: Post, previousRhsState?: RhsState): ActionFuncAsync<boolean> {
+    return async (dispatch, getState) => {
+        const state = getState();
 
         dispatch({
             type: ActionTypes.SELECT_POST_CARD,
@@ -70,12 +67,12 @@ function selectPostCardFromRightHandSideSearchWithPreviousState(post: Post, prev
     };
 }
 
-export function updateRhsState(rhsState: string, channelId?: string, previousRhsState?: RhsState) {
-    return (dispatch: DispatchFunc, getState: GetStateFunc) => {
-        const action = {
+export function updateRhsState(rhsState: string, channelId?: string, previousRhsState?: RhsState): ActionFunc<boolean> {
+    return (dispatch, getState) => {
+        const action: AnyAction = {
             type: ActionTypes.UPDATE_RHS_STATE,
             state: rhsState,
-        } as GenericAction;
+        };
 
         if ([
             RHSStates.PIN,
@@ -105,9 +102,9 @@ export function openShowEditHistory(post: Post) {
     };
 }
 
-export function goBack() {
-    return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
-        const prevState = getPreviousRhsState(getState() as GlobalState);
+export function goBack(): ActionFuncAsync<boolean> {
+    return async (dispatch, getState) => {
+        const prevState = getPreviousRhsState(getState());
         const defaultTab = 'channel-info';
 
         dispatch({
@@ -120,17 +117,21 @@ export function goBack() {
 }
 
 export function selectPostFromRightHandSideSearch(post: Post) {
-    return selectPostFromRightHandSideSearchWithPreviousState(post);
+    return selectPostWithPreviousState(post);
 }
 
-export function selectPostCardFromRightHandSideSearch(post: Post) {
-    return selectPostCardFromRightHandSideSearchWithPreviousState(post);
-}
-
-export function selectPostFromRightHandSideSearchByPostId(postId: string) {
-    return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
+export function selectPostFromRightHandSideSearchByPostId(postId: string): ActionFuncAsync<boolean> {
+    return async (dispatch, getState) => {
         const post = getPost(getState(), postId);
-        return selectPostFromRightHandSideSearch(post)(dispatch, getState);
+        return dispatch(selectPostFromRightHandSideSearch(post));
+    };
+}
+
+export function replyToLatestPostInChannel(channelId: string): ActionFuncAsync<boolean> {
+    return async (dispatch, getState) => {
+        const state = getState();
+        const postId = getLatestInteractablePostId(state, channelId);
+        return dispatch(selectPostFromRightHandSideSearchByPostId(postId));
     };
 }
 
@@ -138,6 +139,13 @@ export function updateSearchTerms(terms: string) {
     return {
         type: ActionTypes.UPDATE_RHS_SEARCH_TERMS,
         terms,
+    };
+}
+
+export function updateSearchTeam(teamId: string | null) {
+    return {
+        type: ActionTypes.UPDATE_RHS_SEARCH_TEAM,
+        teamId,
     };
 }
 
@@ -170,8 +178,8 @@ export function setRhsSize(rhsSize?: SidebarSize) {
     };
 }
 
-export function updateSearchTermsForShortcut() {
-    return (dispatch: DispatchFunc, getState: GetStateFunc) => {
+export function updateSearchTermsForShortcut(): ThunkActionFunc<unknown> {
+    return (dispatch, getState) => {
         const currentChannelName = getCurrentChannelNameForSearchShortcut(getState());
         return dispatch(updateSearchTerms(`in:${currentChannelName} `));
     };
@@ -191,13 +199,17 @@ function updateSearchResultsTerms(terms: string) {
     };
 }
 
-export function performSearch(terms: string, isMentionSearch?: boolean) {
-    return (dispatch: DispatchFunc, getState: GetStateFunc) => {
+function updateSearchResultsType(searchType: string) {
+    return {
+        type: ActionTypes.UPDATE_RHS_SEARCH_RESULTS_TYPE,
+        searchType,
+    };
+}
+
+export function performSearch(terms: string, teamId: string, isMentionSearch?: boolean): ThunkActionFunc<unknown> {
+    return (dispatch, getState) => {
         let searchTerms = terms;
-        const teamId = getCurrentTeamId(getState());
-        const config = getConfig(getState());
-        const viewArchivedChannels = config.ExperimentalViewArchivedChannels === 'true';
-        const extensionsFilters = getFilesSearchExtFilter(getState() as GlobalState);
+        const extensionsFilters = getFilesSearchExtFilter(getState());
 
         const extensions = extensionsFilters?.map((ext) => `ext:${ext}`).join(' ');
         let termsWithExtensionsFilters = searchTerms;
@@ -206,17 +218,11 @@ export function performSearch(terms: string, isMentionSearch?: boolean) {
         }
 
         if (isMentionSearch) {
-            // Username should be quoted to allow specific search
-            // in case username is made with multiple words splitted by dashes or other symbols.
-            const user = getCurrentUser(getState());
+            // For mentions, perform a specific search by quoting all terms.
+            // This ensures terms split by dashes or other symbols are treated as a single unit.
             const termsArr = searchTerms.split(' ').filter((t) => Boolean(t && t.trim()));
-            const username = '@' + user.username;
-            const quotedUsername = `"${username}"`;
             for (let i = 0; i < termsArr.length; i++) {
-                if (termsArr[i] === username) {
-                    termsArr[i] = quotedUsername;
-                    break;
-                }
+                termsArr[i] = `"${termsArr[i]}"`;
             }
             searchTerms = termsArr.join(' ');
         }
@@ -224,36 +230,37 @@ export function performSearch(terms: string, isMentionSearch?: boolean) {
         // timezone offset in seconds
         const userCurrentTimezone = getCurrentTimezone(getState());
         const timezoneOffset = ((userCurrentTimezone && (userCurrentTimezone.length > 0)) ? getUtcOffsetForTimeZone(userCurrentTimezone) : getBrowserUtcOffset()) * 60;
-        const messagesPromise = dispatch(searchPostsWithParams(isMentionSearch ? '' : teamId, {terms: searchTerms, is_or_search: Boolean(isMentionSearch), include_deleted_channels: viewArchivedChannels, time_zone_offset: timezoneOffset, page: 0, per_page: 20}));
-        const filesPromise = dispatch(searchFilesWithParams(teamId, {terms: termsWithExtensionsFilters, is_or_search: Boolean(isMentionSearch), include_deleted_channels: viewArchivedChannels, time_zone_offset: timezoneOffset, page: 0, per_page: 20}));
+        const messagesPromise = dispatch(searchPostsWithParams(teamId, {terms: searchTerms, is_or_search: Boolean(isMentionSearch), include_deleted_channels: true, time_zone_offset: timezoneOffset, page: 0, per_page: 20}));
+        const filesPromise = dispatch(searchFilesWithParams(teamId, {terms: termsWithExtensionsFilters, is_or_search: Boolean(isMentionSearch), include_deleted_channels: true, time_zone_offset: timezoneOffset, page: 0, per_page: 20}));
         return Promise.all([filesPromise, messagesPromise]);
     };
 }
 
 export function filterFilesSearchByExt(extensions: string[]) {
-    return (dispatch: DispatchFunc) => {
-        dispatch({
-            type: ActionTypes.SET_FILES_FILTER_BY_EXT,
-            data: extensions,
-        });
-        return {data: true};
+    return {
+        type: ActionTypes.SET_FILES_FILTER_BY_EXT,
+        data: extensions,
     };
 }
 
-export function showSearchResults(isMentionSearch = false) {
-    return (dispatch: DispatchFunc, getState: GetStateFunc) => {
-        const state = getState() as GlobalState;
+export function showSearchResults(isMentionSearch = false): ThunkActionFunc<unknown> {
+    return (dispatch, getState) => {
+        const state = getState();
 
         const searchTerms = getSearchTerms(state);
+        let teamId = getSearchTeam(state);
+        const searchType = getSearchType(state);
 
         if (isMentionSearch) {
             dispatch(updateRhsState(RHSStates.MENTION));
+            teamId = '';
         } else {
             dispatch(updateRhsState(RHSStates.SEARCH));
         }
         dispatch(updateSearchResultsTerms(searchTerms));
+        dispatch(updateSearchResultsType(searchType));
 
-        return dispatch(performSearch(searchTerms));
+        return dispatch(performSearch(searchTerms, teamId));
     };
 }
 
@@ -265,9 +272,9 @@ export function showRHSPlugin(pluggableId: string) {
     };
 }
 
-export function showChannelMembers(channelId: string, inEditingMode = false) {
-    return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
-        const state = getState() as GlobalState;
+export function showChannelMembers(channelId: string, inEditingMode = false): ActionFuncAsync<boolean> {
+    return async (dispatch, getState) => {
+        const state = getState();
 
         if (inEditingMode) {
             await dispatch(setEditChannelMembers(true));
@@ -288,9 +295,9 @@ export function showChannelMembers(channelId: string, inEditingMode = false) {
     };
 }
 
-export function hideRHSPlugin(pluggableId: string) {
-    return (dispatch: DispatchFunc, getState: GetStateFunc) => {
-        const state = getState() as GlobalState;
+export function hideRHSPlugin(pluggableId: string): ActionFunc<boolean> {
+    return (dispatch, getState) => {
+        const state = getState();
 
         if (getPluggableId(state) === pluggableId) {
             dispatch(closeRightHandSide());
@@ -300,9 +307,9 @@ export function hideRHSPlugin(pluggableId: string) {
     };
 }
 
-export function toggleRHSPlugin(pluggableId: string) {
-    return (dispatch: DispatchFunc, getState: GetStateFunc) => {
-        const state = getState() as GlobalState;
+export function toggleRHSPlugin(pluggableId: string): ActionFunc<boolean> {
+    return (dispatch, getState) => {
+        const state = getState();
 
         if (getPluggableId(state) === pluggableId) {
             dispatch(hideRHSPlugin(pluggableId));
@@ -314,8 +321,8 @@ export function toggleRHSPlugin(pluggableId: string) {
     };
 }
 
-export function showFlaggedPosts() {
-    return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
+export function showFlaggedPosts(): ActionFuncAsync {
+    return async (dispatch, getState) => {
         const state = getState();
         const teamId = getCurrentTeamId(state);
 
@@ -325,7 +332,7 @@ export function showFlaggedPosts() {
         });
 
         const results = await dispatch(getFlaggedPosts());
-        let data: any;
+        let data;
         if ('data' in results) {
             data = results.data;
         }
@@ -349,9 +356,9 @@ export function showFlaggedPosts() {
     };
 }
 
-export function showPinnedPosts(channelId?: string) {
-    return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
-        const state = getState() as GlobalState;
+export function showPinnedPosts(channelId?: string): ActionFuncAsync<boolean> {
+    return async (dispatch, getState) => {
+        const state = getState();
         const currentChannelId = getCurrentChannelId(state);
         const teamId = getCurrentTeamId(state);
 
@@ -368,7 +375,7 @@ export function showPinnedPosts(channelId?: string) {
 
         const results = await dispatch(getPinnedPosts(channelId || currentChannelId));
 
-        let data: any;
+        let data;
         if ('data' in results) {
             data = results.data;
         }
@@ -392,10 +399,10 @@ export function showPinnedPosts(channelId?: string) {
     };
 }
 
-export function showChannelFiles(channelId: string) {
-    return async (dispatch: (action: Action, getState?: GetStateFunc | null) => Promise<ActionResult|[ActionResult, ActionResult]>, getState: GetStateFunc) => {
-        const state = getState() as GlobalState;
-        const teamId = getCurrentTeamId(state);
+export function showChannelFiles(channelId: string): ActionFuncAsync<boolean> {
+    return async (dispatch, getState) => {
+        const state = getState();
+        const teamId = getSearchTeam(state);
 
         let previousRhsState = getRhsState(state);
         if (previousRhsState === RHSStates.CHANNEL_FILES) {
@@ -409,7 +416,7 @@ export function showChannelFiles(channelId: string) {
         });
         dispatch(updateSearchType('files'));
 
-        const results = await dispatch(performSearch('channel:' + channelId));
+        const results = await dispatch(performSearch('channel:' + channelId, teamId));
         const fileData = results instanceof Array ? results[0].data : null;
         const missingPostIds: string[] = [];
 
@@ -450,17 +457,15 @@ export function showChannelFiles(channelId: string) {
     };
 }
 
-export function showMentions() {
-    return (dispatch: DispatchFunc, getState: GetStateFunc) => {
+export function showMentions(): ActionFunc<boolean> {
+    return (dispatch, getState) => {
         const termKeys = getCurrentUserMentionKeys(getState()).filter(({key}) => {
             return key !== '@channel' && key !== '@all' && key !== '@here';
         });
 
         const terms = termKeys.map(({key}) => key).join(' ').trim() + ' ';
 
-        trackEvent('api', 'api_posts_search_mention');
-
-        dispatch(performSearch(terms, true));
+        dispatch(performSearch(terms, '', true));
         dispatch(batchActions([
             {
                 type: ActionTypes.UPDATE_RHS_SEARCH_TERMS,
@@ -477,18 +482,15 @@ export function showMentions() {
 }
 
 export function showChannelInfo(channelId: string) {
-    return (dispatch: DispatchFunc) => {
-        dispatch({
-            type: ActionTypes.UPDATE_RHS_STATE,
-            channelId,
-            state: RHSStates.CHANNEL_INFO,
-        });
-        return {data: true};
+    return {
+        type: ActionTypes.UPDATE_RHS_STATE,
+        channelId,
+        state: RHSStates.CHANNEL_INFO,
     };
 }
 
-export function closeRightHandSide() {
-    return (dispatch: DispatchFunc) => {
+export function closeRightHandSide(): ActionFunc {
+    return (dispatch) => {
         const actionsBatch: AnyAction[] = [
             {
                 type: ActionTypes.UPDATE_RHS_STATE,
@@ -507,15 +509,15 @@ export function closeRightHandSide() {
     };
 }
 
-export const toggleMenu = () => (dispatch: DispatchFunc) => dispatch({
+export const toggleMenu = (): ThunkActionFunc<unknown> => (dispatch) => dispatch({
     type: ActionTypes.TOGGLE_RHS_MENU,
 });
 
-export const openMenu = () => (dispatch: DispatchFunc) => dispatch({
+export const openMenu = (): ThunkActionFunc<unknown> => (dispatch) => dispatch({
     type: ActionTypes.OPEN_RHS_MENU,
 });
 
-export const closeMenu = () => (dispatch: DispatchFunc) => dispatch({
+export const closeMenu = (): ThunkActionFunc<unknown> => (dispatch) => dispatch({
     type: ActionTypes.CLOSE_RHS_MENU,
 });
 
@@ -532,30 +534,23 @@ export function toggleRhsExpanded() {
     };
 }
 
-export function selectPostAndParentChannel(post: Post) {
-    return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
-        const channel = getChannelSelector(getState(), post.channel_id);
-        if (!channel) {
-            await dispatch(getChannel(post.channel_id));
-        }
-        return dispatch(selectPost(post));
-    };
-}
+export function selectPost(post: Post, previousRhsState?: RhsState) {
+    performance.mark(Mark.PostSelected);
 
-export function selectPost(post: Post) {
     return {
         type: ActionTypes.SELECT_POST,
         postId: post.root_id || post.id,
         channelId: post.channel_id,
+        previousRhsState,
         timestamp: Date.now(),
     };
 }
 
-export function selectPostById(postId: string) {
-    return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
+export function selectPostById(postId: string): ActionFuncAsync {
+    return async (dispatch, getState) => {
         const state = getState();
-        const post = getPost(state, postId) ?? (await dispatch(fetchPost(postId))).data;
-        if (post) {
+        const post: Post | undefined = getPost(state, postId) ?? (await dispatch(fetchPost(postId))).data;
+        if (post && post.state !== 'DELETED' && post.delete_at === 0) {
             const channel = getChannelSelector(state, post.channel_id);
             if (!channel) {
                 await dispatch(getChannel(post.channel_id));
@@ -582,8 +577,8 @@ export const debouncedClearHighlightReply = debounce((dispatch) => {
     return dispatch(clearHighlightReply);
 }, Constants.PERMALINK_FADEOUT);
 
-export function selectPostAndHighlight(post: Post) {
-    return (dispatch: DispatchFunc) => {
+export function selectPostAndHighlight(post: Post): ActionFunc {
+    return (dispatch) => {
         dispatch(batchActions([
             selectPost(post),
             highlightReply(post),
@@ -599,10 +594,11 @@ export function selectPostCard(post: Post) {
     return {type: ActionTypes.SELECT_POST_CARD, postId: post.id, channelId: post.channel_id};
 }
 
-export function openRHSSearch() {
-    return (dispatch: DispatchFunc) => {
+export function openRHSSearch(): ActionFunc {
+    return (dispatch) => {
         dispatch(clearSearch());
         dispatch(updateSearchTerms(''));
+        dispatch(updateSearchTeam(null));
         dispatch(updateSearchResultsTerms(''));
 
         dispatch(updateRhsState(RHSStates.SEARCH));
@@ -611,42 +607,42 @@ export function openRHSSearch() {
     };
 }
 
-export function openAtPrevious(previous: any) { // TODO Could not find the proper type. Seems to be in several props around
-    return (dispatch: DispatchFunc, getState: GetStateFunc) => {
+export function openAtPrevious(previous: any): ThunkActionFunc<unknown> {
+    return (dispatch, getState) => {
         if (!previous) {
-            return openRHSSearch()(dispatch);
+            return dispatch(openRHSSearch());
         }
 
         if (previous.isChannelInfo) {
             const currentChannelId = getCurrentChannelId(getState());
-            return showChannelInfo(currentChannelId)(dispatch);
+            return dispatch(showChannelInfo(currentChannelId));
         }
         if (previous.isChannelMembers) {
             const currentChannelId = getCurrentChannelId(getState());
-            return showChannelMembers(currentChannelId)(dispatch, getState);
+            return dispatch(showChannelMembers(currentChannelId));
         }
         if (previous.isMentionSearch) {
-            return showMentions()(dispatch, getState);
+            return dispatch(showMentions());
         }
         if (previous.isPinnedPosts) {
-            return showPinnedPosts()(dispatch, getState);
+            return dispatch(showPinnedPosts());
         }
         if (previous.isFlaggedPosts) {
-            return showFlaggedPosts()(dispatch, getState);
+            return dispatch(showFlaggedPosts());
         }
         if (previous.selectedPostId) {
             const post = getPost(getState(), previous.selectedPostId);
-            return post ? selectPostFromRightHandSideSearchWithPreviousState(post, previous.previousRhsState)(dispatch, getState) : openRHSSearch()(dispatch);
+            return post ? dispatch(selectPostWithPreviousState(post, previous.previousRhsState)) : dispatch(openRHSSearch());
         }
         if (previous.selectedPostCardId) {
             const post = getPost(getState(), previous.selectedPostCardId);
-            return post ? selectPostCardFromRightHandSideSearchWithPreviousState(post, previous.previousRhsState)(dispatch, getState) : openRHSSearch()(dispatch);
+            return post ? dispatch(selectPostCardFromRightHandSideSearchWithPreviousState(post, previous.previousRhsState)) : dispatch(openRHSSearch());
         }
         if (previous.searchVisible) {
-            return showSearchResults()(dispatch, getState);
+            return dispatch(showSearchResults());
         }
 
-        return openRHSSearch()(dispatch);
+        return dispatch(openRHSSearch());
     };
 }
 
@@ -658,12 +654,27 @@ export const unsuppressRHS = {
     type: ActionTypes.UNSUPPRESS_RHS,
 };
 
+export function focusedRHS() {
+    return {
+        type: ActionTypes.RHS_FOCUSED,
+    };
+}
+
 export function setEditChannelMembers(active: boolean) {
-    return (dispatch: DispatchFunc) => {
-        dispatch({
-            type: ActionTypes.SET_EDIT_CHANNEL_MEMBERS,
-            active,
+    return {
+        type: ActionTypes.SET_EDIT_CHANNEL_MEMBERS,
+        active,
+    };
+}
+
+export function measureRhsOpened() {
+    return () => {
+        measureAndReport({
+            name: Measure.RhsLoad,
+            startMark: Mark.PostSelected,
+            canFail: true,
         });
-        return {data: true};
+
+        performance.clearMarks(Mark.PostSelected);
     };
 }

@@ -3,14 +3,12 @@
 
 import {combineReducers} from 'redux';
 
-import {SelfHostedSignupProgress} from '@mattermost/types/cloud';
-import type {Product, Subscription, CloudCustomer, Invoice, Limits, LicenseSelfServeStatusReducer} from '@mattermost/types/cloud';
-import type {ValueOf} from '@mattermost/types/utilities';
+import type {Product, Subscription, CloudCustomer, Invoice, Limits} from '@mattermost/types/cloud';
 
+import type {MMReduxAction} from 'mattermost-redux/action_types';
 import {CloudTypes} from 'mattermost-redux/action_types';
-import type {GenericAction} from 'mattermost-redux/types/actions';
 
-export function subscription(state: Subscription | null = null, action: GenericAction) {
+export function subscription(state: Subscription | null = null, action: MMReduxAction) {
     switch (action.type) {
     case CloudTypes.RECEIVED_CLOUD_SUBSCRIPTION: {
         return action.data;
@@ -20,7 +18,7 @@ export function subscription(state: Subscription | null = null, action: GenericA
     }
 }
 
-function customer(state: CloudCustomer | null = null, action: GenericAction) {
+function customer(state: CloudCustomer | null = null, action: MMReduxAction) {
     switch (action.type) {
     case CloudTypes.RECEIVED_CLOUD_CUSTOMER: {
         return action.data;
@@ -30,32 +28,7 @@ function customer(state: CloudCustomer | null = null, action: GenericAction) {
     }
 }
 
-export function subscriptionStats(state: LicenseSelfServeStatusReducer | null = null, action: GenericAction): LicenseSelfServeStatusReducer | null {
-    switch (action.type) {
-    case CloudTypes.LICENSE_SELF_SERVE_STATS_REQUEST: {
-        return {
-            getRequestState: 'LOADING',
-            ...action.data,
-        };
-    }
-    case CloudTypes.RECEIVED_LICENSE_SELF_SERVE_STATS: {
-        return {
-            getRequestState: 'OK',
-            is_expandable: action.data,
-        };
-    }
-    case CloudTypes.LICENSE_SELF_SERVE_STATS_FAILED: {
-        return {
-            getRequestState: 'ERROR',
-            is_expandable: false,
-        };
-    }
-    default:
-        return state;
-    }
-}
-
-function products(state: Record<string, Product> | null = null, action: GenericAction) {
+function products(state: Record<string, Product> | null = null, action: MMReduxAction) {
     switch (action.type) {
     case CloudTypes.RECEIVED_CLOUD_PRODUCTS: {
         const productList: Product[] = action.data;
@@ -73,7 +46,7 @@ function products(state: Record<string, Product> | null = null, action: GenericA
     }
 }
 
-function invoices(state: Record<string, Invoice> | null = null, action: GenericAction) {
+function invoices(state: Record<string, Invoice> | null = null, action: MMReduxAction) {
     switch (action.type) {
     case CloudTypes.RECEIVED_CLOUD_INVOICES: {
         const invoiceList: Invoice[] = action.data;
@@ -95,11 +68,13 @@ export interface LimitsReducer {
     limits: Limits;
     limitsLoaded: boolean;
 }
+
 const emptyLimits = {
     limits: {},
     limitsLoaded: false,
 };
-export function limits(state: LimitsReducer = emptyLimits, action: GenericAction) {
+
+export function limits(state: LimitsReducer = emptyLimits, action: MMReduxAction) {
     switch (action.type) {
     case CloudTypes.RECEIVED_CLOUD_LIMITS: {
         return {
@@ -114,6 +89,7 @@ export function limits(state: LimitsReducer = emptyLimits, action: GenericAction
         return state;
     }
 }
+
 export interface ErrorsReducer {
     subscription?: true;
     products?: true;
@@ -123,7 +99,7 @@ export interface ErrorsReducer {
     trueUpReview?: true;
 }
 const emptyErrors = {};
-export function errors(state: ErrorsReducer = emptyErrors, action: GenericAction) {
+export function errors(state: ErrorsReducer = emptyErrors, action: MMReduxAction) {
     switch (action.type) {
     case CloudTypes.CLOUD_SUBSCRIPTION_FAILED: {
         return {...state, subscription: true};
@@ -198,25 +174,6 @@ export function errors(state: ErrorsReducer = emptyErrors, action: GenericAction
     }
     }
 }
-
-interface SelfHostedSignupReducer {
-    progress: ValueOf<typeof SelfHostedSignupProgress>;
-}
-const initialSelfHostedSignup = {
-    progress: SelfHostedSignupProgress.START,
-};
-function selfHostedSignup(state: SelfHostedSignupReducer = initialSelfHostedSignup, action: GenericAction): SelfHostedSignupReducer {
-    switch (action.type) {
-    case CloudTypes.RECEIVED_SELF_HOSTED_SIGNUP_PROGRESS:
-        return {
-            ...state,
-            progress: action.data,
-        };
-    default:
-        return state;
-    }
-}
-
 export default combineReducers({
 
     // represents the current cloud customer
@@ -236,10 +193,4 @@ export default combineReducers({
 
     // network errors, used to show errors in ui instead of blowing up and showing nothing
     errors,
-
-    // Subscription expansion status
-    subscriptionStats,
-
-    // state related to self-hosted workspaces purchasing a license not tied to a customer-web-server user.
-    selfHostedSignup,
 });

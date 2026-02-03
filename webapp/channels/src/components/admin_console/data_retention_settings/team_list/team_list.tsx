@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {debounce} from 'lodash';
+import debounce from 'lodash/debounce';
 import React from 'react';
 import {FormattedMessage} from 'react-intl';
 
@@ -26,13 +26,12 @@ type Props = {
     policyId?: string;
 
     onRemoveCallback: (user: Team) => void;
-    onAddCallback: (users: Team[]) => void;
     teamsToRemove: Record<string, Team>;
     teamsToAdd: Record<string, Team>;
 
     actions: {
-        searchTeams: (id: string, term: string, opts: TeamSearchOpts) => Promise<{ data: Team[] }>;
-        getDataRetentionCustomPolicyTeams: (id: string, page: number, perPage: number) => Promise<{ data: Team[] }>;
+        searchTeams: (id: string, term: string, opts: TeamSearchOpts) => Promise<ActionResult>;
+        getDataRetentionCustomPolicyTeams: (id: string, page: number, perPage: number) => Promise<ActionResult>;
         setTeamListSearch: (term: string) => ActionResult;
     };
 }
@@ -199,7 +198,10 @@ export default class TeamList extends React.PureComponent<Props, State> {
                             }}
                             href='#'
                         >
-                            {Utils.localizeMessage('admin.data_retention.custom_policy.teams.remove', 'Remove')}
+                            <FormattedMessage
+                                id='admin.data_retention.custom_policy.teams.remove'
+                                defaultMessage='Remove'
+                            />
                         </a>
                     ),
                 },
@@ -246,7 +248,6 @@ export default class TeamList extends React.PureComponent<Props, State> {
                     columns={columns}
                     rows={rows}
                     loading={this.state.loading}
-                    page={this.state.page}
                     nextPage={this.nextPage}
                     previousPage={this.previousPage}
                     startCount={startCount}

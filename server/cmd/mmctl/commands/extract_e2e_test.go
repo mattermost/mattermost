@@ -9,6 +9,7 @@ import (
 	"path/filepath"
 	"time"
 
+	"github.com/mattermost/mattermost/server/v8"
 	"github.com/mattermost/mattermost/server/v8/cmd/mmctl/client"
 	"github.com/mattermost/mattermost/server/v8/cmd/mmctl/printer"
 
@@ -17,10 +18,9 @@ import (
 )
 
 func (s *MmctlE2ETestSuite) TestExtractRunCmdF() {
-	s.SetupTestHelper().InitBasic()
-	serverPath := os.Getenv("MM_SERVER_PATH")
+	s.SetupTestHelper().InitBasic(s.T())
 	docName := "sample-doc.pdf"
-	docFilePath := filepath.Join(serverPath, "tests", docName)
+	docFilePath := filepath.Join(server.GetPackagePath(), "tests", docName)
 
 	s.Run("no permissions", func() {
 		printer.Clean()
@@ -69,7 +69,7 @@ func (s *MmctlE2ETestSuite) TestExtractRunCmdF() {
 }
 
 func (s *MmctlE2ETestSuite) TestExtractJobShowCmdF() {
-	s.SetupTestHelper().InitBasic()
+	s.SetupTestHelper().InitBasic(s.T())
 
 	job, appErr := s.th.App.CreateJob(s.th.Context, &model.Job{
 		Type: model.JobTypeExtractContent,
@@ -115,7 +115,7 @@ func (s *MmctlE2ETestSuite) TestExtractJobShowCmdF() {
 }
 
 func (s *MmctlE2ETestSuite) TestExtractJobListCmdF() {
-	s.SetupTestHelper().InitBasic()
+	s.SetupTestHelper().InitBasic(s.T())
 
 	s.Run("no permissions", func() {
 		printer.Clean()

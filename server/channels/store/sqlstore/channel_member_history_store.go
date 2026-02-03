@@ -17,12 +17,25 @@ import (
 
 type SqlChannelMemberHistoryStore struct {
 	*SqlStore
+
+	channelMemberHistoryQuery sq.SelectBuilder
 }
 
 func newSqlChannelMemberHistoryStore(sqlStore *SqlStore) store.ChannelMemberHistoryStore {
-	return &SqlChannelMemberHistoryStore{
+	s := &SqlChannelMemberHistoryStore{
 		SqlStore: sqlStore,
 	}
+
+	s.channelMemberHistoryQuery = s.getQueryBuilder().
+		Select(
+			"ChannelMemberHistory.ChannelId",
+			"ChannelMemberHistory.UserId",
+			"ChannelMemberHistory.JoinTime",
+			"ChannelMemberHistory.LeaveTime",
+		).
+		From("ChannelMemberHistory")
+
+	return s
 }
 
 func (s SqlChannelMemberHistoryStore) LogJoinEvent(userId string, channelId string, joinTime int64) error {
@@ -32,7 +45,7 @@ func (s SqlChannelMemberHistoryStore) LogJoinEvent(userId string, channelId stri
 		JoinTime:  joinTime,
 	}
 
-	if _, err := s.GetMasterX().NamedExec(`INSERT INTO ChannelMemberHistory
+	if _, err := s.GetMaster().NamedExec(`INSERT INTO ChannelMemberHistory
 		(UserId, ChannelId, JoinTime)
 		VALUES
 		(:UserId, :ChannelId, :JoinTime)`, channelMemberHistory); err != nil {
@@ -53,7 +66,7 @@ func (s SqlChannelMemberHistoryStore) LogLeaveEvent(userId string, channelId str
 	if err != nil {
 		return errors.Wrap(err, "channel_member_history_to_sql")
 	}
-	sqlResult, err := s.GetMasterX().Exec(query, params...)
+	sqlResult, err := s.GetMaster().Exec(query, params...)
 	if err != nil {
 		return errors.Wrapf(err, "LogLeaveEvent userId=%s channelId=%s leaveTime=%d", userId, channelId, leaveTime)
 	}
@@ -65,27 +78,77 @@ func (s SqlChannelMemberHistoryStore) LogLeaveEvent(userId string, channelId str
 	return nil
 }
 
-func (s SqlChannelMemberHistoryStore) GetUsersInChannelDuring(startTime int64, endTime int64, channelId string) ([]*model.ChannelMemberHistoryResult, error) {
+func (s SqlChannelMemberHistoryStore) GetChannelsWithActivityDuring(startTime int64, endTime int64) ([]string, error) {
+	// ChannelMemberHistory has been in production for long enough that we are assuming the export period
+	// starts after the ChannelMemberHistory table was first introduced
+	subqueryPosts := s.getSubQueryBuilder().
+		Select("p.ChannelId AS ChannelId").
+		Distinct().
+		From("Posts AS p").
+		Where(
+			sq.And{
+				sq.GtOrEq{"p.UpdateAt": startTime},
+				sq.LtOrEq{"p.UpdateAt": endTime},
+				sq.NotLike{"p.Type": "system_%"},
+			})
+
+	subqueryCMH := s.getSubQueryBuilder().
+		Select("cmh.ChannelId AS ChannelId").
+		Distinct().
+		From("ChannelMemberHistory AS cmh").
+		Where(
+			sq.Or{
+				sq.And{
+					sq.GtOrEq{"cmh.JoinTime": startTime},
+					sq.LtOrEq{"cmh.JoinTime": endTime},
+				},
+				sq.And{
+					sq.GtOrEq{"cmh.LeaveTime": startTime},
+					sq.LtOrEq{"cmh.LeaveTime": endTime},
+				},
+			})
+
+	unionExpr, args, err := sq.Expr("(? UNION ?) AS cm", subqueryPosts, subqueryCMH).ToSql()
+	if err != nil {
+		return nil, errors.Wrap(err, "GetChannelsWithActivityDuring unionExpr to sql")
+	}
+
+	query, _, err := s.getQueryBuilder().
+		Select("ChannelId").
+		From(unionExpr).ToSql()
+	if err != nil {
+		return nil, errors.Wrap(err, "GetChannelsWithActivityDuring query to sql")
+	}
+
+	channelIds := make([]string, 0)
+	if err := s.GetReplica().Select(&channelIds, query, args...); err != nil {
+		return nil, err
+	}
+
+	return channelIds, nil
+}
+
+func (s SqlChannelMemberHistoryStore) GetUsersInChannelDuring(startTime int64, endTime int64, channelIds []string) ([]*model.ChannelMemberHistoryResult, error) {
 	useChannelMemberHistory, err := s.hasDataAtOrBefore(startTime)
 	if err != nil {
-		return nil, errors.Wrapf(err, "hasDataAtOrBefore startTime=%d endTime=%d channelId=%s", startTime, endTime, channelId)
+		return nil, errors.Wrapf(err, "hasDataAtOrBefore startTime=%d endTime=%d channelId=%v", startTime, endTime, channelIds)
 	}
 
 	if useChannelMemberHistory {
 		// the export period starts after the ChannelMemberHistory table was first introduced, so we can use the
 		// data from it for our export
-		channelMemberHistories, err2 := s.getFromChannelMemberHistoryTable(startTime, endTime, channelId)
+		channelMemberHistories, err2 := s.getFromChannelMemberHistoryTable(startTime, endTime, channelIds)
 		if err2 != nil {
-			return nil, errors.Wrapf(err2, "getFromChannelMemberHistoryTable startTime=%d endTime=%d channelId=%s", startTime, endTime, channelId)
+			return nil, errors.Wrapf(err2, "getFromChannelMemberHistoryTable startTime=%d endTime=%d channelId=%v", startTime, endTime, channelIds)
 		}
 		return channelMemberHistories, nil
 	}
 	// the export period starts before the ChannelMemberHistory table was introduced, so we need to fake the
 	// data by assuming that anybody who has ever joined the channel in question was present during the export period.
 	// this may not always be true, but it's better than saying that somebody wasn't there when they were
-	channelMemberHistories, err := s.getFromChannelMembersTable(startTime, endTime, channelId)
+	channelMemberHistories, err := s.getFromChannelMembersTable(startTime, endTime, channelIds)
 	if err != nil {
-		return nil, errors.Wrapf(err, "getFromChannelMembersTable startTime=%d endTime=%d channelId=%s", startTime, endTime, channelId)
+		return nil, errors.Wrapf(err, "getFromChannelMembersTable startTime=%d endTime=%d channelId=%v", startTime, endTime, channelIds)
 	}
 	return channelMemberHistories, nil
 }
@@ -99,62 +162,66 @@ func (s SqlChannelMemberHistoryStore) hasDataAtOrBefore(time int64) (bool, error
 		return false, errors.Wrap(err, "channel_member_history_to_sql")
 	}
 	var result NullableCountResult
-	if err := s.GetReplicaX().Get(&result, query); err != nil {
+	if err := s.GetReplica().Get(&result, query); err != nil {
 		return false, err
 	} else if result.Min.Valid {
 		return result.Min.Int64 <= time, nil
-	} else {
-		// if the result was null, there are no rows in the table, so there is no data from before
-		return false, nil
 	}
+	// if the result was null, there are no rows in the table, so there is no data from before
+	return false, nil
 }
 
-func (s SqlChannelMemberHistoryStore) getFromChannelMemberHistoryTable(startTime int64, endTime int64, channelId string) ([]*model.ChannelMemberHistoryResult, error) {
-	query, args, err := s.getQueryBuilder().
-		Select(`cmh.*, u.Email AS "Email", u.Username, Bots.UserId IS NOT NULL AS IsBot, u.DeleteAt AS UserDeleteAt`).
-		From("ChannelMemberHistory cmh").
-		Join("Users u ON cmh.UserId = u.Id").
+func (s SqlChannelMemberHistoryStore) getFromChannelMemberHistoryTable(startTime int64, endTime int64, channelIds []string) ([]*model.ChannelMemberHistoryResult, error) {
+	query := s.channelMemberHistoryQuery.
+		Column("u.Email AS \"Email\"").
+		Column("u.Username").
+		Column("Bots.UserId IS NOT NULL AS IsBot").
+		Column("u.DeleteAt AS UserDeleteAt").
+		Join("Users u ON ChannelMemberHistory.UserId = u.Id").
 		LeftJoin("Bots ON Bots.UserId = u.Id").
 		Where(sq.And{
-			sq.Eq{"cmh.ChannelId": channelId},
-			sq.LtOrEq{"cmh.JoinTime": endTime},
+			sq.Eq{"ChannelMemberHistory.ChannelId": channelIds},
+			sq.LtOrEq{"ChannelMemberHistory.JoinTime": endTime},
 			sq.Or{
-				sq.Eq{"cmh.LeaveTime": nil},
-				sq.GtOrEq{"cmh.LeaveTime": startTime},
+				sq.Eq{"ChannelMemberHistory.LeaveTime": nil},
+				sq.GtOrEq{"ChannelMemberHistory.LeaveTime": startTime},
 			},
 		}).
-		OrderBy("cmh.JoinTime ASC").ToSql()
+		OrderBy("ChannelMemberHistory.JoinTime ASC")
+
+	queryString, args, err := query.ToSql()
 	if err != nil {
 		return nil, errors.Wrap(err, "channel_member_history_to_sql")
 	}
+
 	histories := []*model.ChannelMemberHistoryResult{}
-	if err := s.GetReplicaX().Select(&histories, query, args...); err != nil {
+	if err := s.GetReplica().Select(&histories, queryString, args...); err != nil {
 		return nil, err
 	}
 
 	return histories, nil
 }
 
-func (s SqlChannelMemberHistoryStore) getFromChannelMembersTable(startTime int64, endTime int64, channelId string) ([]*model.ChannelMemberHistoryResult, error) {
+func (s SqlChannelMemberHistoryStore) getFromChannelMembersTable(startTime int64, endTime int64, channelIds []string) ([]*model.ChannelMemberHistoryResult, error) {
 	query, args, err := s.getQueryBuilder().
 		Select(`ch.ChannelId, ch.UserId, u.Email AS "Email", u.Username, Bots.UserId IS NOT NULL AS IsBot, u.DeleteAt AS UserDeleteAt`).
 		Distinct().
 		From("ChannelMembers ch").
 		Join("Users u ON ch.UserId = u.id").
 		LeftJoin("Bots ON Bots.UserId = u.id").
-		Where(sq.Eq{"ch.ChannelId": channelId}).ToSql()
+		Where(sq.Eq{"ch.ChannelId": channelIds}).ToSql()
 	if err != nil {
 		return nil, errors.Wrap(err, "channel_member_history_to_sql")
 	}
 
 	histories := []*model.ChannelMemberHistoryResult{}
-	if err := s.GetReplicaX().Select(&histories, query, args...); err != nil {
+	if err := s.GetReplica().Select(&histories, query, args...); err != nil {
 		return nil, err
 	}
 	// we have to fill in the join/leave times, because that data doesn't exist in the channel members table
 	for _, channelMemberHistory := range histories {
 		channelMemberHistory.JoinTime = startTime
-		channelMemberHistory.LeaveTime = model.NewInt64(endTime)
+		channelMemberHistory.LeaveTime = model.NewPointer(endTime)
 	}
 	return histories, nil
 }
@@ -162,7 +229,7 @@ func (s SqlChannelMemberHistoryStore) getFromChannelMembersTable(startTime int64
 // PermanentDeleteBatchForRetentionPolicies deletes a batch of records which are affected by
 // the global or a granular retention policy.
 // See `genericPermanentDeleteBatchForRetentionPolicies` for details.
-func (s SqlChannelMemberHistoryStore) PermanentDeleteBatchForRetentionPolicies(now, globalPolicyEndTime, limit int64, cursor model.RetentionPolicyCursor) (int64, model.RetentionPolicyCursor, error) {
+func (s SqlChannelMemberHistoryStore) PermanentDeleteBatchForRetentionPolicies(retentionPolicyBatchConfigs model.RetentionPolicyBatchConfigs, cursor model.RetentionPolicyCursor) (int64, model.RetentionPolicyCursor, error) {
 	builder := s.getQueryBuilder().
 		Select("ChannelMemberHistory.ChannelId, ChannelMemberHistory.UserId, ChannelMemberHistory.JoinTime").
 		From("ChannelMemberHistory")
@@ -172,26 +239,23 @@ func (s SqlChannelMemberHistoryStore) PermanentDeleteBatchForRetentionPolicies(n
 		TimeColumn:          "LeaveTime",
 		PrimaryKeys:         []string{"ChannelId", "UserId", "JoinTime"},
 		ChannelIDTable:      "ChannelMemberHistory",
-		NowMillis:           now,
-		GlobalPolicyEndTime: globalPolicyEndTime,
-		Limit:               limit,
+		NowMillis:           retentionPolicyBatchConfigs.Now,
+		GlobalPolicyEndTime: retentionPolicyBatchConfigs.GlobalPolicyEndTime,
+		Limit:               retentionPolicyBatchConfigs.Limit,
 		StoreDeletedIds:     false,
 	}, s.SqlStore, cursor)
 }
 
 // DeleteOrphanedRows removes entries from ChannelMemberHistory when a corresponding channel no longer exists.
 func (s SqlChannelMemberHistoryStore) DeleteOrphanedRows(limit int) (deleted int64, err error) {
-	// We need the extra level of nesting to deal with MySQL's locking
 	const query = `
-	DELETE FROM ChannelMemberHistory WHERE (ChannelId, UserId, JoinTime) IN (
-		SELECT * FROM (
-			SELECT ChannelId, UserId, JoinTime FROM ChannelMemberHistory
-			LEFT JOIN Channels ON ChannelMemberHistory.ChannelId = Channels.Id
-			WHERE Channels.Id IS NULL
-			LIMIT ?
-		) AS A
+	DELETE FROM ChannelMemberHistory WHERE ctid IN (
+		SELECT ChannelMemberHistory.ctid FROM ChannelMemberHistory
+		LEFT JOIN Channels ON ChannelMemberHistory.ChannelId = Channels.Id
+		WHERE Channels.Id IS NULL
+		LIMIT $1
 	)`
-	result, err := s.GetMasterX().Exec(query, limit)
+	result, err := s.GetMaster().Exec(query, limit)
 	if err != nil {
 		return 0, err
 	}
@@ -200,43 +264,26 @@ func (s SqlChannelMemberHistoryStore) DeleteOrphanedRows(limit int) (deleted int
 }
 
 func (s SqlChannelMemberHistoryStore) PermanentDeleteBatch(endTime int64, limit int64) (int64, error) {
-	var (
-		query string
-		args  []any
-		err   error
-	)
-
-	if s.DriverName() == model.DatabaseDriverPostgres {
-		var innerSelect string
-		innerSelect, args, err = s.getQueryBuilder().
-			Select("ctid").
-			From("ChannelMemberHistory").
-			Where(sq.And{
-				sq.NotEq{"LeaveTime": nil},
-				sq.LtOrEq{"LeaveTime": endTime},
-			}).Limit(uint64(limit)).
-			ToSql()
-		if err != nil {
-			return 0, errors.Wrap(err, "channel_member_history_to_sql")
-		}
-		query, _, err = s.getQueryBuilder().
-			Delete("ChannelMemberHistory").
-			Where(fmt.Sprintf(
-				"ctid IN (%s)", innerSelect,
-			)).ToSql()
-	} else {
-		query, args, err = s.getQueryBuilder().
-			Delete("ChannelMemberHistory").
-			Where(sq.And{
-				sq.NotEq{"LeaveTime": nil},
-				sq.LtOrEq{"LeaveTime": endTime},
-			}).
-			Limit(uint64(limit)).ToSql()
-	}
+	innerSelect, args, err := s.getQueryBuilder().
+		Select("ctid").
+		From("ChannelMemberHistory").
+		Where(sq.And{
+			sq.NotEq{"LeaveTime": nil},
+			sq.LtOrEq{"LeaveTime": endTime},
+		}).Limit(uint64(limit)).
+		ToSql()
 	if err != nil {
 		return 0, errors.Wrap(err, "channel_member_history_to_sql")
 	}
-	sqlResult, err := s.GetMasterX().Exec(query, args...)
+	query, _, err := s.getQueryBuilder().
+		Delete("ChannelMemberHistory").
+		Where(fmt.Sprintf(
+			"ctid IN (%s)", innerSelect,
+		)).ToSql()
+	if err != nil {
+		return 0, errors.Wrap(err, "channel_member_history_to_sql")
+	}
+	sqlResult, err := s.GetMaster().Exec(query, args...)
 	if err != nil {
 		return 0, errors.Wrapf(err, "PermanentDeleteBatch endTime=%d limit=%d", endTime, limit)
 	}
@@ -261,7 +308,7 @@ func (s SqlChannelMemberHistoryStore) GetChannelsLeftSince(userID string, since 
 		return nil, errors.Wrap(err, "channel_member_history_to_sql")
 	}
 	channelIds := []string{}
-	err = s.GetReplicaX().Select(&channelIds, query, params...)
+	err = s.GetReplica().Select(&channelIds, query, params...)
 	if err != nil {
 		return nil, errors.Wrapf(err, "GetChannelsLeftSince userId=%s since=%d", userID, since)
 	}

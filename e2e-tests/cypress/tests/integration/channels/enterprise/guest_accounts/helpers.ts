@@ -16,7 +16,7 @@ export function changeGuestFeatureSettings(featureFlag = true, emailInvitation =
 
 export function invitePeople(typeText: string, resultsCount: number, verifyText: string, channelName = 'Town Square', clickInvite = true) {
     // # Open team menu and click 'Invite People'
-    cy.uiOpenTeamMenu('Invite People');
+    cy.uiOpenTeamMenu('Invite people');
 
     // # Click on the next icon to invite guest
     cy.findByTestId('inviteGuestLink').click();
@@ -86,8 +86,8 @@ export function verifyInvitationSuccess(user: string, team: Cypress.Team, succes
     cy.get('.InvitationModal').should('not.exist');
 }
 
-export function verifyGuest(userStatus = 'Guest ') {
+export function verifyGuest(userStatus = 'Guest') {
     // * Verify if Guest User is displayed
-    cy.findAllByTestId('userListRow').should('have.length', 1);
-    cy.findByTestId('userListRow').find('.MenuWrapper a').should('be.visible').and('have.text', userStatus);
+    cy.get('#systemUsersTable-cell-0_usernameColumn').parent().should('have.length', 1);
+    cy.get('#actionMenuButton-systemUsersTable-0').should('be.visible').and('have.text', userStatus);
 }

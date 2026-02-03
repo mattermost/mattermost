@@ -1,4 +1,4 @@
-@import '../../../../sass/utils/module';
+@use 'utils/variables';
 
 .Menu {
     .MenuItem {
@@ -25,8 +25,8 @@
 
         .MenuItem__compass-icon {
             margin: 4px -6px;
-            color: rgba(var(--center-channel-color-rgb), 0.56);
-            fill: rgba(var(--center-channel-color-rgb), 0.56);
+            color: rgba(var(--center-channel-color-rgb), 0.64);
+            fill: rgba(var(--center-channel-color-rgb), 0.64);
         }
 
         .MenuItem__compass-icon-dangerous {
@@ -34,7 +34,7 @@
         }
 
         .MenuItem__opacity {
-            opacity: 0.56;
+            opacity: 0.73;
         }
 
         span.icon {
@@ -46,15 +46,23 @@
             line-height: 16px;
         }
 
+        div.text{
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
         span.MenuItem__primary-text {
             display: inline-flex;
+            max-width: 100%;
+            align-items: center;
             padding: 5px 0;
             line-height: 22px;
-            white-space: normal;
+            white-space: nowrap;
         }
 
         span.MenuItem__text-color {
-            color: rgba(var(--center-channel-color-rgb), 0.56);
+            color: rgba(var(--center-channel-color-rgb), 0.75);
         }
 
         span.MenuItem__help-text {
@@ -63,7 +71,7 @@
             font-size: 12px;
             line-height: 16px;
             opacity: 0.7;
-            white-space: normal;
+            white-space: nowrap;
 
             @media (max-width: 768px) {
                 padding-left: 28px !important;
@@ -95,7 +103,7 @@
                 padding: 0 3px;
                 margin-right: 4px;
                 margin-bottom: 2px;
-                color: rgba(var(--center-channel-color-rgb), 0.72);
+                color: rgba(var(--center-channel-color-rgb), 0.64);
                 vertical-align: middle;
 
                 &::before {
@@ -155,8 +163,6 @@
             }
 
             .MenuItem__icon {
-                position: relative;
-                top: 4px;
                 display: inline-flex;
                 width: 20px;
                 height: 20px;
@@ -195,9 +201,9 @@
 
     .MenuCloudTrial {
         padding: 8px 12px;
+        border-radius: 4px;
         margin: 8px;
         margin-top: 0;
-        border-radius: 4px;
 
         &__free-trial {
             &__content-title {
@@ -211,7 +217,7 @@
 
                 &__icon-section {
                     margin-top: -2px;
-                    color: var(--denim-button-bg);
+                    color: var(--button-bg);
                     font-size: 18px;
                 }
             }
@@ -266,13 +272,13 @@
         }
 
         .icon-information-outline {
-            color: var(--denim-button-bg);
+            color: var(--button-bg);
             cursor: pointer;
         }
 
         a {
             // overriding 4 deep selector
-            color: var(--denim-button-bg) !important;
+            color: var(--button-bg) !important;
             font-weight: bold;
             text-decoration: none;
 
@@ -303,7 +309,7 @@
 
         &__usage-label {
             padding-left: 18px;
-            color: rgba(var(--center-channel-color-rgb), 0.56);
+            color: rgba(var(--center-channel-color-rgb), 0.75);
             font-size: 11px;
             font-weight: bold;
         }
@@ -313,12 +319,11 @@
         display: flex;
         flex-direction: column;
         align-items: flex-start;
-        padding: 8px;
-        padding-left: 16px;
-        margin: 8px;
-        margin-top: 0;
-        background-color: rgba(var(--button-bg-rgb), 0.04);
+        padding: 8px 20px;
         border-radius: 4px;
+        margin-top: 0;
+        font-size: 12px;
+        line-height: 16px;
 
         button {
             padding: 3px 0;
@@ -327,15 +332,22 @@
             color: var(--link-color);
             font-style: normal;
             font-weight: 600;
+
+            &:hover {
+                background: transparent;
+                text-decoration: underline;
+            }
         }
 
-        button:hover {
-            background-color: transparent;
-        }
-
-        .start_trial_content {
+        .editionText {
             position: relative;
             width: 100%;
+            a {
+                color: var(--link-color);
+                &:hover {
+                    background: none;
+                }
+            }
         }
     }
 }
@@ -351,7 +363,7 @@
 .SubMenu__icon-left {
     position: relative;
     top: 0;
-    color: rgba(var(--center-channel-color-rgb), 0.56);
+    color: rgba(var(--center-channel-color-rgb), 0.64);
     font-size: 19px;
 }
 
@@ -366,7 +378,7 @@
 
 .SubMenu__icon-right {
     padding-top: 3px;
-    color: rgba(var(--center-channel-color-rgb), 0.56);
+    color: rgba(var(--center-channel-color-rgb), 0.64);
     float: right;
     font-size: 19px;
 }
@@ -381,6 +393,6 @@
 }
 
 .MenuItem__divider {
-    border-top: $border-gray;
+    border-top: variables.$border-gray;
     margin: 8px 0;
 }

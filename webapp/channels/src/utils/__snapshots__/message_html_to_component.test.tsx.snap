@@ -1,4 +1,4 @@
-// Jest Snapshot v1, https://goo.gl/fbAQLP
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
 
 exports[`messageHtmlToComponent At mention 1`] = `
 <p>
@@ -11,7 +11,6 @@ exports[`messageHtmlToComponent At mention 1`] = `
       <Memo(Connect(Component))
         disableGroupHighlight={false}
         disableHighlight={false}
-        hasMention={true}
         mentionName="joram"
       >
         @joram
@@ -29,7 +28,6 @@ exports[`messageHtmlToComponent At mention 2`] = `
     <Memo(Connect(Component))
       disableGroupHighlight={false}
       disableHighlight={true}
-      hasMention={true}
       mentionName="joram"
     >
       @joram
@@ -46,7 +44,6 @@ exports[`messageHtmlToComponent At mention with group highlight disabled 1`] = `
     <Memo(Connect(Component))
       disableGroupHighlight={false}
       disableHighlight={false}
-      hasMention={true}
       mentionName="developers"
     >
       @developers
@@ -63,7 +60,6 @@ exports[`messageHtmlToComponent At mention with group highlight disabled 2`] = `
     <Memo(Connect(Component))
       disableGroupHighlight={true}
       disableHighlight={false}
-      hasMention={true}
       mentionName="developers"
     >
       @developers
@@ -118,6 +114,68 @@ exports[`messageHtmlToComponent Inline markdown image where image is link 1`] = 
 </div>
 `;
 
+exports[`messageHtmlToComponent Remote at mention 1`] = `
+<p>
+  <span
+    className="mention--highlight"
+  >
+    <span
+      data-mention="joram"
+    >
+      <Memo(Connect(Component))
+        disableGroupHighlight={false}
+        disableHighlight={false}
+        mentionName="joram"
+      >
+        @joram
+      </Memo(Connect(Component))>
+    </span>
+  </span>
+</p>
+`;
+
+exports[`messageHtmlToComponent Remote at mention 2`] = `
+<p>
+  <span
+    data-mention="joram"
+  >
+    <Memo(Connect(Component))
+      disableGroupHighlight={false}
+      disableHighlight={true}
+      mentionName="joram"
+    >
+      @joram
+    </Memo(Connect(Component))>
+  </span>
+</p>
+`;
+
+exports[`messageHtmlToComponent citation links should not render normal links as InlineEntityLink 1`] = `
+<p>
+  <a
+    className="theme markdown__link"
+    href="http://localhost:8065/team/pl/postid"
+    rel="noreferrer"
+    target="_blank"
+  >
+    post
+  </a>
+</p>
+`;
+
+exports[`messageHtmlToComponent citation links should render citation link using InlineEntityLink 1`] = `
+<p>
+  <InlineEntityLink
+    text={
+      Array [
+        "post",
+      ]
+    }
+    url="http://localhost:8065/team/pl/postid?view=citation"
+  />
+</p>
+`;
+
 exports[`messageHtmlToComponent html 1`] = `
 <CodeBlock
   code="<div>This is a html div</div>"
@@ -133,10 +191,10 @@ Array [
   </p>,
   "
 ",
-  <Memo(Connect(LatexBlock))
+  <Memo(Connect(Component))
     content="x^2 + y^2 = z^2"
   />,
-  <Memo(Connect(LatexBlock))
+  <Memo(Connect(Component))
     content="F_m - 2 = F_0 F_1 \\\\dots F_{m-1}"
   />,
   <p>
@@ -148,26 +206,18 @@ Array [
 exports[`messageHtmlToComponent link with enabled a tooltip plugin 1`] = `
 <p>
   lorem ipsum 
-  <a
-    className="theme markdown__link"
-    href="http://www.dolor.com"
-    rel="noreferrer"
-    target="_blank"
-  >
-    <LinkTooltip
-      attributes={
-        Object {
-          "class": "theme markdown__link",
-          "href": "http://www.dolor.com",
-          "rel": "noreferrer",
-          "target": "_blank",
-        }
+  <PluginLinkTooltip
+    nodeAttributes={
+      Object {
+        "className": "theme markdown__link",
+        "href": "http://www.dolor.com",
+        "rel": "noreferrer",
+        "target": "_blank",
       }
-      href="http://www.dolor.com"
-    >
-      www.dolor.com
-    </LinkTooltip>
-  </a>
+    }
+  >
+    www.dolor.com
+  </PluginLinkTooltip>
    sit amet
 </p>
 `;

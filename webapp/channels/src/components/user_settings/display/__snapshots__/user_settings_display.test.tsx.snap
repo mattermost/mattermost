@@ -1,68 +1,45 @@
-// Jest Snapshot v1, https://goo.gl/fbAQLP
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
 
 exports[`components/user_settings/display/UserSettingsDisplay should match snapshot, channel display mode section 1`] = `
 <div
+  aria-labelledby="displayButton"
   id="displaySettings"
+  role="tabpanel"
 >
-  <div
-    className="modal-header"
-  >
-    <button
-      aria-label="Close"
-      className="close"
-      data-dismiss="modal"
-      id="closeButton"
-      onClick={[MockFunction]}
-      type="button"
-    >
-      <span
-        aria-hidden="true"
-      >
-        ×
-      </span>
-    </button>
-    <h4
-      className="modal-title"
-    >
-      <div
-        className="modal-back"
-      >
-        <span
-          onClick={[MockFunction]}
-        >
-          <BackIcon />
-        </span>
-      </div>
-      <MemoizedFormattedMessage
+  <SettingMobileHeader
+    closeModal={[MockFunction]}
+    collapseModal={[MockFunction]}
+    text={
+      <Memo(MemoizedFormattedMessage)
         defaultMessage="Display Settings"
         id="user.settings.display.title"
       />
-    </h4>
-  </div>
+    }
+  />
   <div
     className="user-settings"
   >
-    <h3
-      className="tab-header"
+    <SettingDesktopHeader
       id="displaySettingsTitle"
-    >
-      <MemoizedFormattedMessage
-        defaultMessage="Display Settings"
-        id="user.settings.display.title"
-      />
-    </h3>
+      text={
+        <Memo(MemoizedFormattedMessage)
+          defaultMessage="Display Settings"
+          id="user.settings.display.title"
+        />
+      }
+    />
     <div
       className="divider-dark first"
     />
     <div>
-      <SettingItem
+      <Memo(SettingItem)
         active={false}
         areAllSectionsInactive={false}
         max={null}
         section="collapsed_reply_threads"
         title={
           <Memo(MemoizedFormattedMessage)
-            defaultMessage="Collapsed Reply Threads"
+            defaultMessage="Threaded Discussions"
             id="user.settings.display.collapsedReplyThreadsTitle"
           />
         }
@@ -73,7 +50,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <SettingItem
+      <Memo(SettingItem)
         active={false}
         areAllSectionsInactive={false}
         max={null}
@@ -91,7 +68,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <SettingItem
+      <Memo(SettingItem)
         active={false}
         areAllSectionsInactive={false}
         describe={
@@ -115,14 +92,14 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <SettingItem
+      <Memo(SettingItem)
         active={false}
         areAllSectionsInactive={false}
         max={null}
         section="availabilityStatus"
         title={
           <Memo(MemoizedFormattedMessage)
-            defaultMessage="Show user availability on posts"
+            defaultMessage="Show online availability on profile images"
             id="user.settings.display.availabilityStatusOnPostsTitle"
           />
         }
@@ -133,7 +110,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <SettingItem
+      <Memo(SettingItem)
         active={false}
         areAllSectionsInactive={false}
         describe={
@@ -157,7 +134,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <SettingItem
+      <Memo(SettingItem)
         active={false}
         areAllSectionsInactive={false}
         max={null}
@@ -175,7 +152,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <SettingItem
+      <Memo(SettingItem)
         active={false}
         areAllSectionsInactive={false}
         max={null}
@@ -193,7 +170,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <SettingItem
+      <Memo(SettingItem)
         active={false}
         areAllSectionsInactive={false}
         max={null}
@@ -211,7 +188,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <SettingItem
+      <Memo(SettingItem)
         active={false}
         areAllSectionsInactive={false}
         max={null}
@@ -229,14 +206,12 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <SettingItem
+      <Memo(SettingItem)
         active={true}
         areAllSectionsInactive={false}
         max={
-          <SettingItemMax
-            containerStyle=""
+          <Memo(SettingItemMax)
             extraInfo={null}
-            infoPosition="bottom"
             inputs={
               Array [
                 <fieldset>
@@ -295,7 +270,6 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
               ]
             }
             saving={false}
-            section=""
             submit={[Function]}
             title={
               <Memo(MemoizedFormattedMessage)
@@ -320,7 +294,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <SettingItem
+      <Memo(SettingItem)
         active={false}
         areAllSectionsInactive={false}
         max={null}
@@ -338,12 +312,54 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <SettingItem
+      <Memo(SettingItem)
+        active={false}
+        areAllSectionsInactive={false}
+        describe={
+          <Memo(MemoizedFormattedMessage)
+            defaultMessage="Off"
+            id="user.settings.advance.off"
+          />
+        }
+        max={
+          <Memo(Connect(RenderEmoticonsAsEmoji))
+            renderEmoticonsAsEmoji=""
+            updateSection={[Function]}
+            user={
+              Object {
+                "id": "user_id",
+                "locale": "en",
+                "timezone": Object {
+                  "automaticTimezone": "America/New_York",
+                  "manualTimezone": "",
+                  "useAutomaticTimezone": "true",
+                },
+                "username": "username",
+              }
+            }
+          />
+        }
+        section="renderEmoticonsAsEmoji"
+        title={
+          <Memo(MemoizedFormattedMessage)
+            defaultMessage="Render emoticons as emojis"
+            id="user.settings.display.renderEmoticonsAsEmojiTitle"
+          />
+        }
+        updateSection={[Function]}
+      />
+      <div
+        className="divider-dark"
+      />
+    </div>
+    <div>
+      <Memo(SettingItem)
         active={false}
         areAllSectionsInactive={false}
         describe="English (US)"
         max={
           <Memo(Connect(injectIntl(ManageLanguage)))
+            adminMode={false}
             locale="en"
             updateSection={[Function]}
             user={
@@ -379,67 +395,44 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
 
 exports[`components/user_settings/display/UserSettingsDisplay should match snapshot, clickToReply section 1`] = `
 <div
+  aria-labelledby="displayButton"
   id="displaySettings"
+  role="tabpanel"
 >
-  <div
-    className="modal-header"
-  >
-    <button
-      aria-label="Close"
-      className="close"
-      data-dismiss="modal"
-      id="closeButton"
-      onClick={[MockFunction]}
-      type="button"
-    >
-      <span
-        aria-hidden="true"
-      >
-        ×
-      </span>
-    </button>
-    <h4
-      className="modal-title"
-    >
-      <div
-        className="modal-back"
-      >
-        <span
-          onClick={[MockFunction]}
-        >
-          <BackIcon />
-        </span>
-      </div>
-      <MemoizedFormattedMessage
+  <SettingMobileHeader
+    closeModal={[MockFunction]}
+    collapseModal={[MockFunction]}
+    text={
+      <Memo(MemoizedFormattedMessage)
         defaultMessage="Display Settings"
         id="user.settings.display.title"
       />
-    </h4>
-  </div>
+    }
+  />
   <div
     className="user-settings"
   >
-    <h3
-      className="tab-header"
+    <SettingDesktopHeader
       id="displaySettingsTitle"
-    >
-      <MemoizedFormattedMessage
-        defaultMessage="Display Settings"
-        id="user.settings.display.title"
-      />
-    </h3>
+      text={
+        <Memo(MemoizedFormattedMessage)
+          defaultMessage="Display Settings"
+          id="user.settings.display.title"
+        />
+      }
+    />
     <div
       className="divider-dark first"
     />
     <div>
-      <SettingItem
+      <Memo(SettingItem)
         active={false}
         areAllSectionsInactive={false}
         max={null}
         section="collapsed_reply_threads"
         title={
           <Memo(MemoizedFormattedMessage)
-            defaultMessage="Collapsed Reply Threads"
+            defaultMessage="Threaded Discussions"
             id="user.settings.display.collapsedReplyThreadsTitle"
           />
         }
@@ -450,7 +443,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <SettingItem
+      <Memo(SettingItem)
         active={false}
         areAllSectionsInactive={false}
         max={null}
@@ -468,7 +461,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <SettingItem
+      <Memo(SettingItem)
         active={false}
         areAllSectionsInactive={false}
         describe={
@@ -492,14 +485,14 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <SettingItem
+      <Memo(SettingItem)
         active={false}
         areAllSectionsInactive={false}
         max={null}
         section="availabilityStatus"
         title={
           <Memo(MemoizedFormattedMessage)
-            defaultMessage="Show user availability on posts"
+            defaultMessage="Show online availability on profile images"
             id="user.settings.display.availabilityStatusOnPostsTitle"
           />
         }
@@ -510,7 +503,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <SettingItem
+      <Memo(SettingItem)
         active={false}
         areAllSectionsInactive={false}
         describe={
@@ -534,7 +527,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <SettingItem
+      <Memo(SettingItem)
         active={false}
         areAllSectionsInactive={false}
         max={null}
@@ -552,7 +545,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <SettingItem
+      <Memo(SettingItem)
         active={false}
         areAllSectionsInactive={false}
         max={null}
@@ -570,7 +563,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <SettingItem
+      <Memo(SettingItem)
         active={false}
         areAllSectionsInactive={false}
         max={null}
@@ -588,14 +581,12 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <SettingItem
+      <Memo(SettingItem)
         active={true}
         areAllSectionsInactive={false}
         max={
-          <SettingItemMax
-            containerStyle=""
+          <Memo(SettingItemMax)
             extraInfo={null}
-            infoPosition="bottom"
             inputs={
               Array [
                 <fieldset>
@@ -654,7 +645,6 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
               ]
             }
             saving={false}
-            section=""
             submit={[Function]}
             title={
               <Memo(MemoizedFormattedMessage)
@@ -679,7 +669,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <SettingItem
+      <Memo(SettingItem)
         active={false}
         areAllSectionsInactive={false}
         max={null}
@@ -697,7 +687,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <SettingItem
+      <Memo(SettingItem)
         active={false}
         areAllSectionsInactive={false}
         max={null}
@@ -715,12 +705,54 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <SettingItem
+      <Memo(SettingItem)
+        active={false}
+        areAllSectionsInactive={false}
+        describe={
+          <Memo(MemoizedFormattedMessage)
+            defaultMessage="Off"
+            id="user.settings.advance.off"
+          />
+        }
+        max={
+          <Memo(Connect(RenderEmoticonsAsEmoji))
+            renderEmoticonsAsEmoji=""
+            updateSection={[Function]}
+            user={
+              Object {
+                "id": "user_id",
+                "locale": "en",
+                "timezone": Object {
+                  "automaticTimezone": "America/New_York",
+                  "manualTimezone": "",
+                  "useAutomaticTimezone": "true",
+                },
+                "username": "username",
+              }
+            }
+          />
+        }
+        section="renderEmoticonsAsEmoji"
+        title={
+          <Memo(MemoizedFormattedMessage)
+            defaultMessage="Render emoticons as emojis"
+            id="user.settings.display.renderEmoticonsAsEmojiTitle"
+          />
+        }
+        updateSection={[Function]}
+      />
+      <div
+        className="divider-dark"
+      />
+    </div>
+    <div>
+      <Memo(SettingItem)
         active={false}
         areAllSectionsInactive={false}
         describe="English (US)"
         max={
           <Memo(Connect(injectIntl(ManageLanguage)))
+            adminMode={false}
             locale="en"
             updateSection={[Function]}
             user={
@@ -756,67 +788,44 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
 
 exports[`components/user_settings/display/UserSettingsDisplay should match snapshot, clock section 1`] = `
 <div
+  aria-labelledby="displayButton"
   id="displaySettings"
+  role="tabpanel"
 >
-  <div
-    className="modal-header"
-  >
-    <button
-      aria-label="Close"
-      className="close"
-      data-dismiss="modal"
-      id="closeButton"
-      onClick={[MockFunction]}
-      type="button"
-    >
-      <span
-        aria-hidden="true"
-      >
-        ×
-      </span>
-    </button>
-    <h4
-      className="modal-title"
-    >
-      <div
-        className="modal-back"
-      >
-        <span
-          onClick={[MockFunction]}
-        >
-          <BackIcon />
-        </span>
-      </div>
-      <MemoizedFormattedMessage
+  <SettingMobileHeader
+    closeModal={[MockFunction]}
+    collapseModal={[MockFunction]}
+    text={
+      <Memo(MemoizedFormattedMessage)
         defaultMessage="Display Settings"
         id="user.settings.display.title"
       />
-    </h4>
-  </div>
+    }
+  />
   <div
     className="user-settings"
   >
-    <h3
-      className="tab-header"
+    <SettingDesktopHeader
       id="displaySettingsTitle"
-    >
-      <MemoizedFormattedMessage
-        defaultMessage="Display Settings"
-        id="user.settings.display.title"
-      />
-    </h3>
+      text={
+        <Memo(MemoizedFormattedMessage)
+          defaultMessage="Display Settings"
+          id="user.settings.display.title"
+        />
+      }
+    />
     <div
       className="divider-dark first"
     />
     <div>
-      <SettingItem
+      <Memo(SettingItem)
         active={false}
         areAllSectionsInactive={false}
         max={null}
         section="collapsed_reply_threads"
         title={
           <Memo(MemoizedFormattedMessage)
-            defaultMessage="Collapsed Reply Threads"
+            defaultMessage="Threaded Discussions"
             id="user.settings.display.collapsedReplyThreadsTitle"
           />
         }
@@ -827,14 +836,12 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <SettingItem
+      <Memo(SettingItem)
         active={true}
         areAllSectionsInactive={false}
         max={
-          <SettingItemMax
-            containerStyle=""
+          <Memo(SettingItemMax)
             extraInfo={null}
-            infoPosition="bottom"
             inputs={
               Array [
                 <fieldset>
@@ -893,7 +900,6 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
               ]
             }
             saving={false}
-            section=""
             submit={[Function]}
             title={
               <Memo(MemoizedFormattedMessage)
@@ -918,7 +924,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <SettingItem
+      <Memo(SettingItem)
         active={false}
         areAllSectionsInactive={false}
         describe={
@@ -942,14 +948,14 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <SettingItem
+      <Memo(SettingItem)
         active={false}
         areAllSectionsInactive={false}
         max={null}
         section="availabilityStatus"
         title={
           <Memo(MemoizedFormattedMessage)
-            defaultMessage="Show user availability on posts"
+            defaultMessage="Show online availability on profile images"
             id="user.settings.display.availabilityStatusOnPostsTitle"
           />
         }
@@ -960,7 +966,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <SettingItem
+      <Memo(SettingItem)
         active={false}
         areAllSectionsInactive={false}
         describe={
@@ -984,7 +990,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <SettingItem
+      <Memo(SettingItem)
         active={false}
         areAllSectionsInactive={false}
         max={null}
@@ -1002,7 +1008,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <SettingItem
+      <Memo(SettingItem)
         active={false}
         areAllSectionsInactive={false}
         max={null}
@@ -1020,7 +1026,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <SettingItem
+      <Memo(SettingItem)
         active={false}
         areAllSectionsInactive={false}
         max={null}
@@ -1038,7 +1044,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <SettingItem
+      <Memo(SettingItem)
         active={false}
         areAllSectionsInactive={false}
         max={null}
@@ -1056,7 +1062,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <SettingItem
+      <Memo(SettingItem)
         active={false}
         areAllSectionsInactive={false}
         max={null}
@@ -1074,7 +1080,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <SettingItem
+      <Memo(SettingItem)
         active={false}
         areAllSectionsInactive={false}
         max={null}
@@ -1092,12 +1098,54 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <SettingItem
+      <Memo(SettingItem)
+        active={false}
+        areAllSectionsInactive={false}
+        describe={
+          <Memo(MemoizedFormattedMessage)
+            defaultMessage="Off"
+            id="user.settings.advance.off"
+          />
+        }
+        max={
+          <Memo(Connect(RenderEmoticonsAsEmoji))
+            renderEmoticonsAsEmoji=""
+            updateSection={[Function]}
+            user={
+              Object {
+                "id": "user_id",
+                "locale": "en",
+                "timezone": Object {
+                  "automaticTimezone": "America/New_York",
+                  "manualTimezone": "",
+                  "useAutomaticTimezone": "true",
+                },
+                "username": "username",
+              }
+            }
+          />
+        }
+        section="renderEmoticonsAsEmoji"
+        title={
+          <Memo(MemoizedFormattedMessage)
+            defaultMessage="Render emoticons as emojis"
+            id="user.settings.display.renderEmoticonsAsEmojiTitle"
+          />
+        }
+        updateSection={[Function]}
+      />
+      <div
+        className="divider-dark"
+      />
+    </div>
+    <div>
+      <Memo(SettingItem)
         active={false}
         areAllSectionsInactive={false}
         describe="English (US)"
         max={
           <Memo(Connect(injectIntl(ManageLanguage)))
+            adminMode={false}
             locale="en"
             updateSection={[Function]}
             user={
@@ -1133,67 +1181,44 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
 
 exports[`components/user_settings/display/UserSettingsDisplay should match snapshot, collapse section 1`] = `
 <div
+  aria-labelledby="displayButton"
   id="displaySettings"
+  role="tabpanel"
 >
-  <div
-    className="modal-header"
-  >
-    <button
-      aria-label="Close"
-      className="close"
-      data-dismiss="modal"
-      id="closeButton"
-      onClick={[MockFunction]}
-      type="button"
-    >
-      <span
-        aria-hidden="true"
-      >
-        ×
-      </span>
-    </button>
-    <h4
-      className="modal-title"
-    >
-      <div
-        className="modal-back"
-      >
-        <span
-          onClick={[MockFunction]}
-        >
-          <BackIcon />
-        </span>
-      </div>
-      <MemoizedFormattedMessage
+  <SettingMobileHeader
+    closeModal={[MockFunction]}
+    collapseModal={[MockFunction]}
+    text={
+      <Memo(MemoizedFormattedMessage)
         defaultMessage="Display Settings"
         id="user.settings.display.title"
       />
-    </h4>
-  </div>
+    }
+  />
   <div
     className="user-settings"
   >
-    <h3
-      className="tab-header"
+    <SettingDesktopHeader
       id="displaySettingsTitle"
-    >
-      <MemoizedFormattedMessage
-        defaultMessage="Display Settings"
-        id="user.settings.display.title"
-      />
-    </h3>
+      text={
+        <Memo(MemoizedFormattedMessage)
+          defaultMessage="Display Settings"
+          id="user.settings.display.title"
+        />
+      }
+    />
     <div
       className="divider-dark first"
     />
     <div>
-      <SettingItem
+      <Memo(SettingItem)
         active={false}
         areAllSectionsInactive={false}
         max={null}
         section="collapsed_reply_threads"
         title={
           <Memo(MemoizedFormattedMessage)
-            defaultMessage="Collapsed Reply Threads"
+            defaultMessage="Threaded Discussions"
             id="user.settings.display.collapsedReplyThreadsTitle"
           />
         }
@@ -1204,7 +1229,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <SettingItem
+      <Memo(SettingItem)
         active={false}
         areAllSectionsInactive={false}
         max={null}
@@ -1222,7 +1247,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <SettingItem
+      <Memo(SettingItem)
         active={false}
         areAllSectionsInactive={false}
         describe={
@@ -1246,14 +1271,14 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <SettingItem
+      <Memo(SettingItem)
         active={false}
         areAllSectionsInactive={false}
         max={null}
         section="availabilityStatus"
         title={
           <Memo(MemoizedFormattedMessage)
-            defaultMessage="Show user availability on posts"
+            defaultMessage="Show online availability on profile images"
             id="user.settings.display.availabilityStatusOnPostsTitle"
           />
         }
@@ -1264,7 +1289,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <SettingItem
+      <Memo(SettingItem)
         active={false}
         areAllSectionsInactive={false}
         describe={
@@ -1288,7 +1313,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <SettingItem
+      <Memo(SettingItem)
         active={false}
         areAllSectionsInactive={false}
         max={null}
@@ -1306,14 +1331,12 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <SettingItem
+      <Memo(SettingItem)
         active={true}
         areAllSectionsInactive={false}
         max={
-          <SettingItemMax
-            containerStyle=""
+          <Memo(SettingItemMax)
             extraInfo={null}
-            infoPosition="bottom"
             inputs={
               Array [
                 <fieldset>
@@ -1337,7 +1360,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
                         type="radio"
                       />
                       <Memo(MemoizedFormattedMessage)
-                        defaultMessage="On"
+                        defaultMessage="Expanded"
                         id="user.settings.display.collapseOn"
                       />
                     </label>
@@ -1355,7 +1378,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
                         type="radio"
                       />
                       <Memo(MemoizedFormattedMessage)
-                        defaultMessage="Off"
+                        defaultMessage="Collapsed"
                         id="user.settings.display.collapseOff"
                       />
                     </label>
@@ -1372,7 +1395,6 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
               ]
             }
             saving={false}
-            section=""
             submit={[Function]}
             title={
               <Memo(MemoizedFormattedMessage)
@@ -1397,7 +1419,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <SettingItem
+      <Memo(SettingItem)
         active={false}
         areAllSectionsInactive={false}
         max={null}
@@ -1415,7 +1437,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <SettingItem
+      <Memo(SettingItem)
         active={false}
         areAllSectionsInactive={false}
         max={null}
@@ -1433,7 +1455,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <SettingItem
+      <Memo(SettingItem)
         active={false}
         areAllSectionsInactive={false}
         max={null}
@@ -1451,7 +1473,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <SettingItem
+      <Memo(SettingItem)
         active={false}
         areAllSectionsInactive={false}
         max={null}
@@ -1469,12 +1491,54 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <SettingItem
+      <Memo(SettingItem)
+        active={false}
+        areAllSectionsInactive={false}
+        describe={
+          <Memo(MemoizedFormattedMessage)
+            defaultMessage="Off"
+            id="user.settings.advance.off"
+          />
+        }
+        max={
+          <Memo(Connect(RenderEmoticonsAsEmoji))
+            renderEmoticonsAsEmoji=""
+            updateSection={[Function]}
+            user={
+              Object {
+                "id": "user_id",
+                "locale": "en",
+                "timezone": Object {
+                  "automaticTimezone": "America/New_York",
+                  "manualTimezone": "",
+                  "useAutomaticTimezone": "true",
+                },
+                "username": "username",
+              }
+            }
+          />
+        }
+        section="renderEmoticonsAsEmoji"
+        title={
+          <Memo(MemoizedFormattedMessage)
+            defaultMessage="Render emoticons as emojis"
+            id="user.settings.display.renderEmoticonsAsEmojiTitle"
+          />
+        }
+        updateSection={[Function]}
+      />
+      <div
+        className="divider-dark"
+      />
+    </div>
+    <div>
+      <Memo(SettingItem)
         active={false}
         areAllSectionsInactive={false}
         describe="English (US)"
         max={
           <Memo(Connect(injectIntl(ManageLanguage)))
+            adminMode={false}
             locale="en"
             updateSection={[Function]}
             user={
@@ -1510,67 +1574,44 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
 
 exports[`components/user_settings/display/UserSettingsDisplay should match snapshot, languages section 1`] = `
 <div
+  aria-labelledby="displayButton"
   id="displaySettings"
+  role="tabpanel"
 >
-  <div
-    className="modal-header"
-  >
-    <button
-      aria-label="Close"
-      className="close"
-      data-dismiss="modal"
-      id="closeButton"
-      onClick={[MockFunction]}
-      type="button"
-    >
-      <span
-        aria-hidden="true"
-      >
-        ×
-      </span>
-    </button>
-    <h4
-      className="modal-title"
-    >
-      <div
-        className="modal-back"
-      >
-        <span
-          onClick={[MockFunction]}
-        >
-          <BackIcon />
-        </span>
-      </div>
-      <MemoizedFormattedMessage
+  <SettingMobileHeader
+    closeModal={[MockFunction]}
+    collapseModal={[MockFunction]}
+    text={
+      <Memo(MemoizedFormattedMessage)
         defaultMessage="Display Settings"
         id="user.settings.display.title"
       />
-    </h4>
-  </div>
+    }
+  />
   <div
     className="user-settings"
   >
-    <h3
-      className="tab-header"
+    <SettingDesktopHeader
       id="displaySettingsTitle"
-    >
-      <MemoizedFormattedMessage
-        defaultMessage="Display Settings"
-        id="user.settings.display.title"
-      />
-    </h3>
+      text={
+        <Memo(MemoizedFormattedMessage)
+          defaultMessage="Display Settings"
+          id="user.settings.display.title"
+        />
+      }
+    />
     <div
       className="divider-dark first"
     />
     <div>
-      <SettingItem
+      <Memo(SettingItem)
         active={false}
         areAllSectionsInactive={false}
         max={null}
         section="collapsed_reply_threads"
         title={
           <Memo(MemoizedFormattedMessage)
-            defaultMessage="Collapsed Reply Threads"
+            defaultMessage="Threaded Discussions"
             id="user.settings.display.collapsedReplyThreadsTitle"
           />
         }
@@ -1581,7 +1622,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <SettingItem
+      <Memo(SettingItem)
         active={false}
         areAllSectionsInactive={false}
         max={null}
@@ -1599,7 +1640,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <SettingItem
+      <Memo(SettingItem)
         active={false}
         areAllSectionsInactive={false}
         describe={
@@ -1623,14 +1664,14 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <SettingItem
+      <Memo(SettingItem)
         active={false}
         areAllSectionsInactive={false}
         max={null}
         section="availabilityStatus"
         title={
           <Memo(MemoizedFormattedMessage)
-            defaultMessage="Show user availability on posts"
+            defaultMessage="Show online availability on profile images"
             id="user.settings.display.availabilityStatusOnPostsTitle"
           />
         }
@@ -1641,7 +1682,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <SettingItem
+      <Memo(SettingItem)
         active={false}
         areAllSectionsInactive={false}
         describe={
@@ -1665,7 +1706,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <SettingItem
+      <Memo(SettingItem)
         active={false}
         areAllSectionsInactive={false}
         max={null}
@@ -1683,7 +1724,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <SettingItem
+      <Memo(SettingItem)
         active={false}
         areAllSectionsInactive={false}
         max={null}
@@ -1701,7 +1742,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <SettingItem
+      <Memo(SettingItem)
         active={false}
         areAllSectionsInactive={false}
         max={null}
@@ -1719,7 +1760,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <SettingItem
+      <Memo(SettingItem)
         active={false}
         areAllSectionsInactive={false}
         max={null}
@@ -1737,7 +1778,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <SettingItem
+      <Memo(SettingItem)
         active={false}
         areAllSectionsInactive={false}
         max={null}
@@ -1755,7 +1796,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <SettingItem
+      <Memo(SettingItem)
         active={false}
         areAllSectionsInactive={false}
         max={null}
@@ -1773,12 +1814,54 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <SettingItem
+      <Memo(SettingItem)
+        active={false}
+        areAllSectionsInactive={false}
+        describe={
+          <Memo(MemoizedFormattedMessage)
+            defaultMessage="Off"
+            id="user.settings.advance.off"
+          />
+        }
+        max={
+          <Memo(Connect(RenderEmoticonsAsEmoji))
+            renderEmoticonsAsEmoji=""
+            updateSection={[Function]}
+            user={
+              Object {
+                "id": "user_id",
+                "locale": "en",
+                "timezone": Object {
+                  "automaticTimezone": "America/New_York",
+                  "manualTimezone": "",
+                  "useAutomaticTimezone": "true",
+                },
+                "username": "username",
+              }
+            }
+          />
+        }
+        section="renderEmoticonsAsEmoji"
+        title={
+          <Memo(MemoizedFormattedMessage)
+            defaultMessage="Render emoticons as emojis"
+            id="user.settings.display.renderEmoticonsAsEmojiTitle"
+          />
+        }
+        updateSection={[Function]}
+      />
+      <div
+        className="divider-dark"
+      />
+    </div>
+    <div>
+      <Memo(SettingItem)
         active={true}
         areAllSectionsInactive={false}
         describe="English (US)"
         max={
           <Memo(Connect(injectIntl(ManageLanguage)))
+            adminMode={false}
             locale="en"
             updateSection={[Function]}
             user={
@@ -1814,67 +1897,44 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
 
 exports[`components/user_settings/display/UserSettingsDisplay should match snapshot, link preview section with EnableLinkPreviews is false 1`] = `
 <div
+  aria-labelledby="displayButton"
   id="displaySettings"
+  role="tabpanel"
 >
-  <div
-    className="modal-header"
-  >
-    <button
-      aria-label="Close"
-      className="close"
-      data-dismiss="modal"
-      id="closeButton"
-      onClick={[MockFunction]}
-      type="button"
-    >
-      <span
-        aria-hidden="true"
-      >
-        ×
-      </span>
-    </button>
-    <h4
-      className="modal-title"
-    >
-      <div
-        className="modal-back"
-      >
-        <span
-          onClick={[MockFunction]}
-        >
-          <BackIcon />
-        </span>
-      </div>
-      <MemoizedFormattedMessage
+  <SettingMobileHeader
+    closeModal={[MockFunction]}
+    collapseModal={[MockFunction]}
+    text={
+      <Memo(MemoizedFormattedMessage)
         defaultMessage="Display Settings"
         id="user.settings.display.title"
       />
-    </h4>
-  </div>
+    }
+  />
   <div
     className="user-settings"
   >
-    <h3
-      className="tab-header"
+    <SettingDesktopHeader
       id="displaySettingsTitle"
-    >
-      <MemoizedFormattedMessage
-        defaultMessage="Display Settings"
-        id="user.settings.display.title"
-      />
-    </h3>
+      text={
+        <Memo(MemoizedFormattedMessage)
+          defaultMessage="Display Settings"
+          id="user.settings.display.title"
+        />
+      }
+    />
     <div
       className="divider-dark first"
     />
     <div>
-      <SettingItem
+      <Memo(SettingItem)
         active={false}
         areAllSectionsInactive={false}
         max={null}
         section="collapsed_reply_threads"
         title={
           <Memo(MemoizedFormattedMessage)
-            defaultMessage="Collapsed Reply Threads"
+            defaultMessage="Threaded Discussions"
             id="user.settings.display.collapsedReplyThreadsTitle"
           />
         }
@@ -1885,7 +1945,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <SettingItem
+      <Memo(SettingItem)
         active={false}
         areAllSectionsInactive={false}
         max={null}
@@ -1903,7 +1963,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <SettingItem
+      <Memo(SettingItem)
         active={false}
         areAllSectionsInactive={false}
         describe={
@@ -1927,14 +1987,14 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <SettingItem
+      <Memo(SettingItem)
         active={false}
         areAllSectionsInactive={false}
         max={null}
         section="availabilityStatus"
         title={
           <Memo(MemoizedFormattedMessage)
-            defaultMessage="Show user availability on posts"
+            defaultMessage="Show online availability on profile images"
             id="user.settings.display.availabilityStatusOnPostsTitle"
           />
         }
@@ -1945,7 +2005,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <SettingItem
+      <Memo(SettingItem)
         active={false}
         areAllSectionsInactive={false}
         describe={
@@ -1969,7 +2029,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <SettingItem
+      <Memo(SettingItem)
         active={false}
         areAllSectionsInactive={false}
         max={null}
@@ -1987,7 +2047,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <SettingItem
+      <Memo(SettingItem)
         active={false}
         areAllSectionsInactive={false}
         max={null}
@@ -2005,7 +2065,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <SettingItem
+      <Memo(SettingItem)
         active={false}
         areAllSectionsInactive={false}
         max={null}
@@ -2023,7 +2083,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <SettingItem
+      <Memo(SettingItem)
         active={false}
         areAllSectionsInactive={false}
         max={null}
@@ -2041,7 +2101,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <SettingItem
+      <Memo(SettingItem)
         active={false}
         areAllSectionsInactive={false}
         max={null}
@@ -2059,12 +2119,54 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <SettingItem
+      <Memo(SettingItem)
+        active={false}
+        areAllSectionsInactive={false}
+        describe={
+          <Memo(MemoizedFormattedMessage)
+            defaultMessage="Off"
+            id="user.settings.advance.off"
+          />
+        }
+        max={
+          <Memo(Connect(RenderEmoticonsAsEmoji))
+            renderEmoticonsAsEmoji=""
+            updateSection={[Function]}
+            user={
+              Object {
+                "id": "user_id",
+                "locale": "en",
+                "timezone": Object {
+                  "automaticTimezone": "America/New_York",
+                  "manualTimezone": "",
+                  "useAutomaticTimezone": "true",
+                },
+                "username": "username",
+              }
+            }
+          />
+        }
+        section="renderEmoticonsAsEmoji"
+        title={
+          <Memo(MemoizedFormattedMessage)
+            defaultMessage="Render emoticons as emojis"
+            id="user.settings.display.renderEmoticonsAsEmojiTitle"
+          />
+        }
+        updateSection={[Function]}
+      />
+      <div
+        className="divider-dark"
+      />
+    </div>
+    <div>
+      <Memo(SettingItem)
         active={false}
         areAllSectionsInactive={false}
         describe="English (US)"
         max={
           <Memo(Connect(injectIntl(ManageLanguage)))
+            adminMode={false}
             locale="en"
             updateSection={[Function]}
             user={
@@ -2100,67 +2202,44 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
 
 exports[`components/user_settings/display/UserSettingsDisplay should match snapshot, link preview section with EnableLinkPreviews is true 1`] = `
 <div
+  aria-labelledby="displayButton"
   id="displaySettings"
+  role="tabpanel"
 >
-  <div
-    className="modal-header"
-  >
-    <button
-      aria-label="Close"
-      className="close"
-      data-dismiss="modal"
-      id="closeButton"
-      onClick={[MockFunction]}
-      type="button"
-    >
-      <span
-        aria-hidden="true"
-      >
-        ×
-      </span>
-    </button>
-    <h4
-      className="modal-title"
-    >
-      <div
-        className="modal-back"
-      >
-        <span
-          onClick={[MockFunction]}
-        >
-          <BackIcon />
-        </span>
-      </div>
-      <MemoizedFormattedMessage
+  <SettingMobileHeader
+    closeModal={[MockFunction]}
+    collapseModal={[MockFunction]}
+    text={
+      <Memo(MemoizedFormattedMessage)
         defaultMessage="Display Settings"
         id="user.settings.display.title"
       />
-    </h4>
-  </div>
+    }
+  />
   <div
     className="user-settings"
   >
-    <h3
-      className="tab-header"
+    <SettingDesktopHeader
       id="displaySettingsTitle"
-    >
-      <MemoizedFormattedMessage
-        defaultMessage="Display Settings"
-        id="user.settings.display.title"
-      />
-    </h3>
+      text={
+        <Memo(MemoizedFormattedMessage)
+          defaultMessage="Display Settings"
+          id="user.settings.display.title"
+        />
+      }
+    />
     <div
       className="divider-dark first"
     />
     <div>
-      <SettingItem
+      <Memo(SettingItem)
         active={false}
         areAllSectionsInactive={false}
         max={null}
         section="collapsed_reply_threads"
         title={
           <Memo(MemoizedFormattedMessage)
-            defaultMessage="Collapsed Reply Threads"
+            defaultMessage="Threaded Discussions"
             id="user.settings.display.collapsedReplyThreadsTitle"
           />
         }
@@ -2171,7 +2250,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <SettingItem
+      <Memo(SettingItem)
         active={false}
         areAllSectionsInactive={false}
         max={null}
@@ -2189,7 +2268,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <SettingItem
+      <Memo(SettingItem)
         active={false}
         areAllSectionsInactive={false}
         describe={
@@ -2213,14 +2292,14 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <SettingItem
+      <Memo(SettingItem)
         active={false}
         areAllSectionsInactive={false}
         max={null}
         section="availabilityStatus"
         title={
           <Memo(MemoizedFormattedMessage)
-            defaultMessage="Show user availability on posts"
+            defaultMessage="Show online availability on profile images"
             id="user.settings.display.availabilityStatusOnPostsTitle"
           />
         }
@@ -2231,7 +2310,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <SettingItem
+      <Memo(SettingItem)
         active={false}
         areAllSectionsInactive={false}
         describe={
@@ -2255,14 +2334,12 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <SettingItem
+      <Memo(SettingItem)
         active={true}
         areAllSectionsInactive={false}
         max={
-          <SettingItemMax
-            containerStyle=""
+          <Memo(SettingItemMax)
             extraInfo={null}
-            infoPosition="bottom"
             inputs={
               Array [
                 <fieldset>
@@ -2321,7 +2398,6 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
               ]
             }
             saving={false}
-            section=""
             submit={[Function]}
             title={
               <Memo(MemoizedFormattedMessage)
@@ -2346,7 +2422,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <SettingItem
+      <Memo(SettingItem)
         active={false}
         areAllSectionsInactive={false}
         max={null}
@@ -2364,7 +2440,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <SettingItem
+      <Memo(SettingItem)
         active={false}
         areAllSectionsInactive={false}
         max={null}
@@ -2382,7 +2458,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <SettingItem
+      <Memo(SettingItem)
         active={false}
         areAllSectionsInactive={false}
         max={null}
@@ -2400,7 +2476,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <SettingItem
+      <Memo(SettingItem)
         active={false}
         areAllSectionsInactive={false}
         max={null}
@@ -2418,7 +2494,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <SettingItem
+      <Memo(SettingItem)
         active={false}
         areAllSectionsInactive={false}
         max={null}
@@ -2436,12 +2512,54 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <SettingItem
+      <Memo(SettingItem)
+        active={false}
+        areAllSectionsInactive={false}
+        describe={
+          <Memo(MemoizedFormattedMessage)
+            defaultMessage="Off"
+            id="user.settings.advance.off"
+          />
+        }
+        max={
+          <Memo(Connect(RenderEmoticonsAsEmoji))
+            renderEmoticonsAsEmoji=""
+            updateSection={[Function]}
+            user={
+              Object {
+                "id": "user_id",
+                "locale": "en",
+                "timezone": Object {
+                  "automaticTimezone": "America/New_York",
+                  "manualTimezone": "",
+                  "useAutomaticTimezone": "true",
+                },
+                "username": "username",
+              }
+            }
+          />
+        }
+        section="renderEmoticonsAsEmoji"
+        title={
+          <Memo(MemoizedFormattedMessage)
+            defaultMessage="Render emoticons as emojis"
+            id="user.settings.display.renderEmoticonsAsEmojiTitle"
+          />
+        }
+        updateSection={[Function]}
+      />
+      <div
+        className="divider-dark"
+      />
+    </div>
+    <div>
+      <Memo(SettingItem)
         active={false}
         areAllSectionsInactive={false}
         describe="English (US)"
         max={
           <Memo(Connect(injectIntl(ManageLanguage)))
+            adminMode={false}
             locale="en"
             updateSection={[Function]}
             user={
@@ -2477,67 +2595,44 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
 
 exports[`components/user_settings/display/UserSettingsDisplay should match snapshot, message display section 1`] = `
 <div
+  aria-labelledby="displayButton"
   id="displaySettings"
+  role="tabpanel"
 >
-  <div
-    className="modal-header"
-  >
-    <button
-      aria-label="Close"
-      className="close"
-      data-dismiss="modal"
-      id="closeButton"
-      onClick={[MockFunction]}
-      type="button"
-    >
-      <span
-        aria-hidden="true"
-      >
-        ×
-      </span>
-    </button>
-    <h4
-      className="modal-title"
-    >
-      <div
-        className="modal-back"
-      >
-        <span
-          onClick={[MockFunction]}
-        >
-          <BackIcon />
-        </span>
-      </div>
-      <MemoizedFormattedMessage
+  <SettingMobileHeader
+    closeModal={[MockFunction]}
+    collapseModal={[MockFunction]}
+    text={
+      <Memo(MemoizedFormattedMessage)
         defaultMessage="Display Settings"
         id="user.settings.display.title"
       />
-    </h4>
-  </div>
+    }
+  />
   <div
     className="user-settings"
   >
-    <h3
-      className="tab-header"
+    <SettingDesktopHeader
       id="displaySettingsTitle"
-    >
-      <MemoizedFormattedMessage
-        defaultMessage="Display Settings"
-        id="user.settings.display.title"
-      />
-    </h3>
+      text={
+        <Memo(MemoizedFormattedMessage)
+          defaultMessage="Display Settings"
+          id="user.settings.display.title"
+        />
+      }
+    />
     <div
       className="divider-dark first"
     />
     <div>
-      <SettingItem
+      <Memo(SettingItem)
         active={false}
         areAllSectionsInactive={false}
         max={null}
         section="collapsed_reply_threads"
         title={
           <Memo(MemoizedFormattedMessage)
-            defaultMessage="Collapsed Reply Threads"
+            defaultMessage="Threaded Discussions"
             id="user.settings.display.collapsedReplyThreadsTitle"
           />
         }
@@ -2548,7 +2643,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <SettingItem
+      <Memo(SettingItem)
         active={false}
         areAllSectionsInactive={false}
         max={null}
@@ -2566,7 +2661,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <SettingItem
+      <Memo(SettingItem)
         active={false}
         areAllSectionsInactive={false}
         describe={
@@ -2590,14 +2685,14 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <SettingItem
+      <Memo(SettingItem)
         active={false}
         areAllSectionsInactive={false}
         max={null}
         section="availabilityStatus"
         title={
           <Memo(MemoizedFormattedMessage)
-            defaultMessage="Show user availability on posts"
+            defaultMessage="Show online availability on profile images"
             id="user.settings.display.availabilityStatusOnPostsTitle"
           />
         }
@@ -2608,7 +2703,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <SettingItem
+      <Memo(SettingItem)
         active={false}
         areAllSectionsInactive={false}
         describe={
@@ -2632,7 +2727,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <SettingItem
+      <Memo(SettingItem)
         active={false}
         areAllSectionsInactive={false}
         max={null}
@@ -2650,7 +2745,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <SettingItem
+      <Memo(SettingItem)
         active={false}
         areAllSectionsInactive={false}
         max={null}
@@ -2668,14 +2763,12 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <SettingItem
+      <Memo(SettingItem)
         active={true}
         areAllSectionsInactive={false}
         max={
-          <SettingItemMax
-            containerStyle=""
+          <Memo(SettingItemMax)
             extraInfo={null}
-            infoPosition="bottom"
             inputs={
               Array [
                 <fieldset>
@@ -2752,7 +2845,6 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
               ]
             }
             saving={false}
-            section=""
             submit={[Function]}
             title={
               <Memo(MemoizedFormattedMessage)
@@ -2777,7 +2869,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <SettingItem
+      <Memo(SettingItem)
         active={false}
         areAllSectionsInactive={false}
         max={null}
@@ -2795,7 +2887,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <SettingItem
+      <Memo(SettingItem)
         active={false}
         areAllSectionsInactive={false}
         max={null}
@@ -2813,7 +2905,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <SettingItem
+      <Memo(SettingItem)
         active={false}
         areAllSectionsInactive={false}
         max={null}
@@ -2831,12 +2923,54 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <SettingItem
+      <Memo(SettingItem)
+        active={false}
+        areAllSectionsInactive={false}
+        describe={
+          <Memo(MemoizedFormattedMessage)
+            defaultMessage="Off"
+            id="user.settings.advance.off"
+          />
+        }
+        max={
+          <Memo(Connect(RenderEmoticonsAsEmoji))
+            renderEmoticonsAsEmoji=""
+            updateSection={[Function]}
+            user={
+              Object {
+                "id": "user_id",
+                "locale": "en",
+                "timezone": Object {
+                  "automaticTimezone": "America/New_York",
+                  "manualTimezone": "",
+                  "useAutomaticTimezone": "true",
+                },
+                "username": "username",
+              }
+            }
+          />
+        }
+        section="renderEmoticonsAsEmoji"
+        title={
+          <Memo(MemoizedFormattedMessage)
+            defaultMessage="Render emoticons as emojis"
+            id="user.settings.display.renderEmoticonsAsEmojiTitle"
+          />
+        }
+        updateSection={[Function]}
+      />
+      <div
+        className="divider-dark"
+      />
+    </div>
+    <div>
+      <Memo(SettingItem)
         active={false}
         areAllSectionsInactive={false}
         describe="English (US)"
         max={
           <Memo(Connect(injectIntl(ManageLanguage)))
+            adminMode={false}
             locale="en"
             updateSection={[Function]}
             user={
@@ -2872,67 +3006,44 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
 
 exports[`components/user_settings/display/UserSettingsDisplay should match snapshot, no active section 1`] = `
 <div
+  aria-labelledby="displayButton"
   id="displaySettings"
+  role="tabpanel"
 >
-  <div
-    className="modal-header"
-  >
-    <button
-      aria-label="Close"
-      className="close"
-      data-dismiss="modal"
-      id="closeButton"
-      onClick={[MockFunction]}
-      type="button"
-    >
-      <span
-        aria-hidden="true"
-      >
-        ×
-      </span>
-    </button>
-    <h4
-      className="modal-title"
-    >
-      <div
-        className="modal-back"
-      >
-        <span
-          onClick={[MockFunction]}
-        >
-          <BackIcon />
-        </span>
-      </div>
-      <MemoizedFormattedMessage
+  <SettingMobileHeader
+    closeModal={[MockFunction]}
+    collapseModal={[MockFunction]}
+    text={
+      <Memo(MemoizedFormattedMessage)
         defaultMessage="Display Settings"
         id="user.settings.display.title"
       />
-    </h4>
-  </div>
+    }
+  />
   <div
     className="user-settings"
   >
-    <h3
-      className="tab-header"
+    <SettingDesktopHeader
       id="displaySettingsTitle"
-    >
-      <MemoizedFormattedMessage
-        defaultMessage="Display Settings"
-        id="user.settings.display.title"
-      />
-    </h3>
+      text={
+        <Memo(MemoizedFormattedMessage)
+          defaultMessage="Display Settings"
+          id="user.settings.display.title"
+        />
+      }
+    />
     <div
       className="divider-dark first"
     />
     <div>
-      <SettingItem
+      <Memo(SettingItem)
         active={false}
         areAllSectionsInactive={true}
         max={null}
         section="collapsed_reply_threads"
         title={
           <Memo(MemoizedFormattedMessage)
-            defaultMessage="Collapsed Reply Threads"
+            defaultMessage="Threaded Discussions"
             id="user.settings.display.collapsedReplyThreadsTitle"
           />
         }
@@ -2943,7 +3054,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <SettingItem
+      <Memo(SettingItem)
         active={false}
         areAllSectionsInactive={true}
         max={null}
@@ -2961,7 +3072,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <SettingItem
+      <Memo(SettingItem)
         active={false}
         areAllSectionsInactive={true}
         describe={
@@ -2985,14 +3096,14 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <SettingItem
+      <Memo(SettingItem)
         active={false}
         areAllSectionsInactive={true}
         max={null}
         section="availabilityStatus"
         title={
           <Memo(MemoizedFormattedMessage)
-            defaultMessage="Show user availability on posts"
+            defaultMessage="Show online availability on profile images"
             id="user.settings.display.availabilityStatusOnPostsTitle"
           />
         }
@@ -3003,7 +3114,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <SettingItem
+      <Memo(SettingItem)
         active={false}
         areAllSectionsInactive={true}
         describe={
@@ -3027,7 +3138,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <SettingItem
+      <Memo(SettingItem)
         active={false}
         areAllSectionsInactive={true}
         max={null}
@@ -3045,7 +3156,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <SettingItem
+      <Memo(SettingItem)
         active={false}
         areAllSectionsInactive={true}
         max={null}
@@ -3063,7 +3174,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <SettingItem
+      <Memo(SettingItem)
         active={false}
         areAllSectionsInactive={true}
         max={null}
@@ -3081,7 +3192,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <SettingItem
+      <Memo(SettingItem)
         active={false}
         areAllSectionsInactive={true}
         max={null}
@@ -3099,7 +3210,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <SettingItem
+      <Memo(SettingItem)
         active={false}
         areAllSectionsInactive={true}
         max={null}
@@ -3117,7 +3228,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <SettingItem
+      <Memo(SettingItem)
         active={false}
         areAllSectionsInactive={true}
         max={null}
@@ -3135,12 +3246,54 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <SettingItem
+      <Memo(SettingItem)
+        active={false}
+        areAllSectionsInactive={true}
+        describe={
+          <Memo(MemoizedFormattedMessage)
+            defaultMessage="Off"
+            id="user.settings.advance.off"
+          />
+        }
+        max={
+          <Memo(Connect(RenderEmoticonsAsEmoji))
+            renderEmoticonsAsEmoji=""
+            updateSection={[Function]}
+            user={
+              Object {
+                "id": "user_id",
+                "locale": "en",
+                "timezone": Object {
+                  "automaticTimezone": "America/New_York",
+                  "manualTimezone": "",
+                  "useAutomaticTimezone": "true",
+                },
+                "username": "username",
+              }
+            }
+          />
+        }
+        section="renderEmoticonsAsEmoji"
+        title={
+          <Memo(MemoizedFormattedMessage)
+            defaultMessage="Render emoticons as emojis"
+            id="user.settings.display.renderEmoticonsAsEmojiTitle"
+          />
+        }
+        updateSection={[Function]}
+      />
+      <div
+        className="divider-dark"
+      />
+    </div>
+    <div>
+      <Memo(SettingItem)
         active={false}
         areAllSectionsInactive={true}
         describe="English (US)"
         max={
           <Memo(Connect(injectIntl(ManageLanguage)))
+            adminMode={false}
             locale="en"
             updateSection={[Function]}
             user={
@@ -3176,67 +3329,44 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
 
 exports[`components/user_settings/display/UserSettingsDisplay should match snapshot, teammate name display section 1`] = `
 <div
+  aria-labelledby="displayButton"
   id="displaySettings"
+  role="tabpanel"
 >
-  <div
-    className="modal-header"
-  >
-    <button
-      aria-label="Close"
-      className="close"
-      data-dismiss="modal"
-      id="closeButton"
-      onClick={[MockFunction]}
-      type="button"
-    >
-      <span
-        aria-hidden="true"
-      >
-        ×
-      </span>
-    </button>
-    <h4
-      className="modal-title"
-    >
-      <div
-        className="modal-back"
-      >
-        <span
-          onClick={[MockFunction]}
-        >
-          <BackIcon />
-        </span>
-      </div>
-      <MemoizedFormattedMessage
+  <SettingMobileHeader
+    closeModal={[MockFunction]}
+    collapseModal={[MockFunction]}
+    text={
+      <Memo(MemoizedFormattedMessage)
         defaultMessage="Display Settings"
         id="user.settings.display.title"
       />
-    </h4>
-  </div>
+    }
+  />
   <div
     className="user-settings"
   >
-    <h3
-      className="tab-header"
+    <SettingDesktopHeader
       id="displaySettingsTitle"
-    >
-      <MemoizedFormattedMessage
-        defaultMessage="Display Settings"
-        id="user.settings.display.title"
-      />
-    </h3>
+      text={
+        <Memo(MemoizedFormattedMessage)
+          defaultMessage="Display Settings"
+          id="user.settings.display.title"
+        />
+      }
+    />
     <div
       className="divider-dark first"
     />
     <div>
-      <SettingItem
+      <Memo(SettingItem)
         active={false}
         areAllSectionsInactive={false}
         max={null}
         section="collapsed_reply_threads"
         title={
           <Memo(MemoizedFormattedMessage)
-            defaultMessage="Collapsed Reply Threads"
+            defaultMessage="Threaded Discussions"
             id="user.settings.display.collapsedReplyThreadsTitle"
           />
         }
@@ -3247,7 +3377,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <SettingItem
+      <Memo(SettingItem)
         active={false}
         areAllSectionsInactive={false}
         max={null}
@@ -3265,7 +3395,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <SettingItem
+      <Memo(SettingItem)
         active={false}
         areAllSectionsInactive={false}
         describe={
@@ -3289,14 +3419,14 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <SettingItem
+      <Memo(SettingItem)
         active={false}
         areAllSectionsInactive={false}
         max={null}
         section="availabilityStatus"
         title={
           <Memo(MemoizedFormattedMessage)
-            defaultMessage="Show user availability on posts"
+            defaultMessage="Show online availability on profile images"
             id="user.settings.display.availabilityStatusOnPostsTitle"
           />
         }
@@ -3307,7 +3437,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <SettingItem
+      <Memo(SettingItem)
         active={false}
         areAllSectionsInactive={false}
         describe={
@@ -3331,7 +3461,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <SettingItem
+      <Memo(SettingItem)
         active={false}
         areAllSectionsInactive={false}
         max={null}
@@ -3349,7 +3479,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <SettingItem
+      <Memo(SettingItem)
         active={false}
         areAllSectionsInactive={false}
         max={null}
@@ -3367,7 +3497,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <SettingItem
+      <Memo(SettingItem)
         active={false}
         areAllSectionsInactive={false}
         max={null}
@@ -3385,7 +3515,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <SettingItem
+      <Memo(SettingItem)
         active={false}
         areAllSectionsInactive={false}
         max={null}
@@ -3403,7 +3533,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <SettingItem
+      <Memo(SettingItem)
         active={false}
         areAllSectionsInactive={false}
         max={null}
@@ -3421,7 +3551,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <SettingItem
+      <Memo(SettingItem)
         active={false}
         areAllSectionsInactive={false}
         max={null}
@@ -3439,12 +3569,54 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <SettingItem
+      <Memo(SettingItem)
+        active={false}
+        areAllSectionsInactive={false}
+        describe={
+          <Memo(MemoizedFormattedMessage)
+            defaultMessage="Off"
+            id="user.settings.advance.off"
+          />
+        }
+        max={
+          <Memo(Connect(RenderEmoticonsAsEmoji))
+            renderEmoticonsAsEmoji=""
+            updateSection={[Function]}
+            user={
+              Object {
+                "id": "user_id",
+                "locale": "en",
+                "timezone": Object {
+                  "automaticTimezone": "America/New_York",
+                  "manualTimezone": "",
+                  "useAutomaticTimezone": "true",
+                },
+                "username": "username",
+              }
+            }
+          />
+        }
+        section="renderEmoticonsAsEmoji"
+        title={
+          <Memo(MemoizedFormattedMessage)
+            defaultMessage="Render emoticons as emojis"
+            id="user.settings.display.renderEmoticonsAsEmojiTitle"
+          />
+        }
+        updateSection={[Function]}
+      />
+      <div
+        className="divider-dark"
+      />
+    </div>
+    <div>
+      <Memo(SettingItem)
         active={false}
         areAllSectionsInactive={false}
         describe="English (US)"
         max={
           <Memo(Connect(injectIntl(ManageLanguage)))
+            adminMode={false}
             locale="en"
             updateSection={[Function]}
             user={
@@ -3480,67 +3652,44 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
 
 exports[`components/user_settings/display/UserSettingsDisplay should match snapshot, theme section with EnableThemeSelection is false 1`] = `
 <div
+  aria-labelledby="displayButton"
   id="displaySettings"
+  role="tabpanel"
 >
-  <div
-    className="modal-header"
-  >
-    <button
-      aria-label="Close"
-      className="close"
-      data-dismiss="modal"
-      id="closeButton"
-      onClick={[MockFunction]}
-      type="button"
-    >
-      <span
-        aria-hidden="true"
-      >
-        ×
-      </span>
-    </button>
-    <h4
-      className="modal-title"
-    >
-      <div
-        className="modal-back"
-      >
-        <span
-          onClick={[MockFunction]}
-        >
-          <BackIcon />
-        </span>
-      </div>
-      <MemoizedFormattedMessage
+  <SettingMobileHeader
+    closeModal={[MockFunction]}
+    collapseModal={[MockFunction]}
+    text={
+      <Memo(MemoizedFormattedMessage)
         defaultMessage="Display Settings"
         id="user.settings.display.title"
       />
-    </h4>
-  </div>
+    }
+  />
   <div
     className="user-settings"
   >
-    <h3
-      className="tab-header"
+    <SettingDesktopHeader
       id="displaySettingsTitle"
-    >
-      <MemoizedFormattedMessage
-        defaultMessage="Display Settings"
-        id="user.settings.display.title"
-      />
-    </h3>
+      text={
+        <Memo(MemoizedFormattedMessage)
+          defaultMessage="Display Settings"
+          id="user.settings.display.title"
+        />
+      }
+    />
     <div
       className="divider-dark first"
     />
     <div>
-      <SettingItem
+      <Memo(SettingItem)
         active={false}
         areAllSectionsInactive={false}
         max={null}
         section="collapsed_reply_threads"
         title={
           <Memo(MemoizedFormattedMessage)
-            defaultMessage="Collapsed Reply Threads"
+            defaultMessage="Threaded Discussions"
             id="user.settings.display.collapsedReplyThreadsTitle"
           />
         }
@@ -3551,7 +3700,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <SettingItem
+      <Memo(SettingItem)
         active={false}
         areAllSectionsInactive={false}
         max={null}
@@ -3569,7 +3718,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <SettingItem
+      <Memo(SettingItem)
         active={false}
         areAllSectionsInactive={false}
         describe={
@@ -3593,14 +3742,14 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <SettingItem
+      <Memo(SettingItem)
         active={false}
         areAllSectionsInactive={false}
         max={null}
         section="availabilityStatus"
         title={
           <Memo(MemoizedFormattedMessage)
-            defaultMessage="Show user availability on posts"
+            defaultMessage="Show online availability on profile images"
             id="user.settings.display.availabilityStatusOnPostsTitle"
           />
         }
@@ -3611,7 +3760,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <SettingItem
+      <Memo(SettingItem)
         active={false}
         areAllSectionsInactive={false}
         describe={
@@ -3635,7 +3784,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <SettingItem
+      <Memo(SettingItem)
         active={false}
         areAllSectionsInactive={false}
         max={null}
@@ -3653,7 +3802,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <SettingItem
+      <Memo(SettingItem)
         active={false}
         areAllSectionsInactive={false}
         max={null}
@@ -3671,7 +3820,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <SettingItem
+      <Memo(SettingItem)
         active={false}
         areAllSectionsInactive={false}
         max={null}
@@ -3689,7 +3838,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <SettingItem
+      <Memo(SettingItem)
         active={false}
         areAllSectionsInactive={false}
         max={null}
@@ -3707,7 +3856,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <SettingItem
+      <Memo(SettingItem)
         active={false}
         areAllSectionsInactive={false}
         max={null}
@@ -3725,7 +3874,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <SettingItem
+      <Memo(SettingItem)
         active={false}
         areAllSectionsInactive={false}
         max={null}
@@ -3743,12 +3892,54 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <SettingItem
+      <Memo(SettingItem)
+        active={false}
+        areAllSectionsInactive={false}
+        describe={
+          <Memo(MemoizedFormattedMessage)
+            defaultMessage="Off"
+            id="user.settings.advance.off"
+          />
+        }
+        max={
+          <Memo(Connect(RenderEmoticonsAsEmoji))
+            renderEmoticonsAsEmoji=""
+            updateSection={[Function]}
+            user={
+              Object {
+                "id": "user_id",
+                "locale": "en",
+                "timezone": Object {
+                  "automaticTimezone": "America/New_York",
+                  "manualTimezone": "",
+                  "useAutomaticTimezone": "true",
+                },
+                "username": "username",
+              }
+            }
+          />
+        }
+        section="renderEmoticonsAsEmoji"
+        title={
+          <Memo(MemoizedFormattedMessage)
+            defaultMessage="Render emoticons as emojis"
+            id="user.settings.display.renderEmoticonsAsEmojiTitle"
+          />
+        }
+        updateSection={[Function]}
+      />
+      <div
+        className="divider-dark"
+      />
+    </div>
+    <div>
+      <Memo(SettingItem)
         active={false}
         areAllSectionsInactive={false}
         describe="English (US)"
         max={
           <Memo(Connect(injectIntl(ManageLanguage)))
+            adminMode={false}
             locale="en"
             updateSection={[Function]}
             user={
@@ -3784,55 +3975,32 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
 
 exports[`components/user_settings/display/UserSettingsDisplay should match snapshot, theme section with EnableThemeSelection is true 1`] = `
 <div
+  aria-labelledby="displayButton"
   id="displaySettings"
+  role="tabpanel"
 >
-  <div
-    className="modal-header"
-  >
-    <button
-      aria-label="Close"
-      className="close"
-      data-dismiss="modal"
-      id="closeButton"
-      onClick={[MockFunction]}
-      type="button"
-    >
-      <span
-        aria-hidden="true"
-      >
-        ×
-      </span>
-    </button>
-    <h4
-      className="modal-title"
-    >
-      <div
-        className="modal-back"
-      >
-        <span
-          onClick={[MockFunction]}
-        >
-          <BackIcon />
-        </span>
-      </div>
-      <MemoizedFormattedMessage
+  <SettingMobileHeader
+    closeModal={[MockFunction]}
+    collapseModal={[MockFunction]}
+    text={
+      <Memo(MemoizedFormattedMessage)
         defaultMessage="Display Settings"
         id="user.settings.display.title"
       />
-    </h4>
-  </div>
+    }
+  />
   <div
     className="user-settings"
   >
-    <h3
-      className="tab-header"
+    <SettingDesktopHeader
       id="displaySettingsTitle"
-    >
-      <MemoizedFormattedMessage
-        defaultMessage="Display Settings"
-        id="user.settings.display.title"
-      />
-    </h3>
+      text={
+        <Memo(MemoizedFormattedMessage)
+          defaultMessage="Display Settings"
+          id="user.settings.display.title"
+        />
+      }
+    />
     <div
       className="divider-dark first"
     />
@@ -3841,7 +4009,6 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
         allowCustomThemes={true}
         areAllSectionsInactive={false}
         selected={true}
-        setEnforceFocus={[MockFunction]}
         setRequireConfirm={[MockFunction]}
         updateSection={[Function]}
       />
@@ -3850,14 +4017,14 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <SettingItem
+      <Memo(SettingItem)
         active={false}
         areAllSectionsInactive={false}
         max={null}
         section="collapsed_reply_threads"
         title={
           <Memo(MemoizedFormattedMessage)
-            defaultMessage="Collapsed Reply Threads"
+            defaultMessage="Threaded Discussions"
             id="user.settings.display.collapsedReplyThreadsTitle"
           />
         }
@@ -3868,7 +4035,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <SettingItem
+      <Memo(SettingItem)
         active={false}
         areAllSectionsInactive={false}
         max={null}
@@ -3886,7 +4053,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <SettingItem
+      <Memo(SettingItem)
         active={false}
         areAllSectionsInactive={false}
         describe={
@@ -3910,14 +4077,14 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <SettingItem
+      <Memo(SettingItem)
         active={false}
         areAllSectionsInactive={false}
         max={null}
         section="availabilityStatus"
         title={
           <Memo(MemoizedFormattedMessage)
-            defaultMessage="Show user availability on posts"
+            defaultMessage="Show online availability on profile images"
             id="user.settings.display.availabilityStatusOnPostsTitle"
           />
         }
@@ -3928,7 +4095,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <SettingItem
+      <Memo(SettingItem)
         active={false}
         areAllSectionsInactive={false}
         describe={
@@ -3952,7 +4119,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <SettingItem
+      <Memo(SettingItem)
         active={false}
         areAllSectionsInactive={false}
         max={null}
@@ -3970,7 +4137,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <SettingItem
+      <Memo(SettingItem)
         active={false}
         areAllSectionsInactive={false}
         max={null}
@@ -3988,7 +4155,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <SettingItem
+      <Memo(SettingItem)
         active={false}
         areAllSectionsInactive={false}
         max={null}
@@ -4006,7 +4173,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <SettingItem
+      <Memo(SettingItem)
         active={false}
         areAllSectionsInactive={false}
         max={null}
@@ -4024,7 +4191,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <SettingItem
+      <Memo(SettingItem)
         active={false}
         areAllSectionsInactive={false}
         max={null}
@@ -4042,7 +4209,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <SettingItem
+      <Memo(SettingItem)
         active={false}
         areAllSectionsInactive={false}
         max={null}
@@ -4060,12 +4227,54 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <SettingItem
+      <Memo(SettingItem)
+        active={false}
+        areAllSectionsInactive={false}
+        describe={
+          <Memo(MemoizedFormattedMessage)
+            defaultMessage="Off"
+            id="user.settings.advance.off"
+          />
+        }
+        max={
+          <Memo(Connect(RenderEmoticonsAsEmoji))
+            renderEmoticonsAsEmoji=""
+            updateSection={[Function]}
+            user={
+              Object {
+                "id": "user_id",
+                "locale": "en",
+                "timezone": Object {
+                  "automaticTimezone": "America/New_York",
+                  "manualTimezone": "",
+                  "useAutomaticTimezone": "true",
+                },
+                "username": "username",
+              }
+            }
+          />
+        }
+        section="renderEmoticonsAsEmoji"
+        title={
+          <Memo(MemoizedFormattedMessage)
+            defaultMessage="Render emoticons as emojis"
+            id="user.settings.display.renderEmoticonsAsEmojiTitle"
+          />
+        }
+        updateSection={[Function]}
+      />
+      <div
+        className="divider-dark"
+      />
+    </div>
+    <div>
+      <Memo(SettingItem)
         active={false}
         areAllSectionsInactive={false}
         describe="English (US)"
         max={
           <Memo(Connect(injectIntl(ManageLanguage)))
+            adminMode={false}
             locale="en"
             updateSection={[Function]}
             user={
@@ -4101,67 +4310,44 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
 
 exports[`components/user_settings/display/UserSettingsDisplay should match snapshot, timezone section 1`] = `
 <div
+  aria-labelledby="displayButton"
   id="displaySettings"
+  role="tabpanel"
 >
-  <div
-    className="modal-header"
-  >
-    <button
-      aria-label="Close"
-      className="close"
-      data-dismiss="modal"
-      id="closeButton"
-      onClick={[MockFunction]}
-      type="button"
-    >
-      <span
-        aria-hidden="true"
-      >
-        ×
-      </span>
-    </button>
-    <h4
-      className="modal-title"
-    >
-      <div
-        className="modal-back"
-      >
-        <span
-          onClick={[MockFunction]}
-        >
-          <BackIcon />
-        </span>
-      </div>
-      <MemoizedFormattedMessage
+  <SettingMobileHeader
+    closeModal={[MockFunction]}
+    collapseModal={[MockFunction]}
+    text={
+      <Memo(MemoizedFormattedMessage)
         defaultMessage="Display Settings"
         id="user.settings.display.title"
       />
-    </h4>
-  </div>
+    }
+  />
   <div
     className="user-settings"
   >
-    <h3
-      className="tab-header"
+    <SettingDesktopHeader
       id="displaySettingsTitle"
-    >
-      <MemoizedFormattedMessage
-        defaultMessage="Display Settings"
-        id="user.settings.display.title"
-      />
-    </h3>
+      text={
+        <Memo(MemoizedFormattedMessage)
+          defaultMessage="Display Settings"
+          id="user.settings.display.title"
+        />
+      }
+    />
     <div
       className="divider-dark first"
     />
     <div>
-      <SettingItem
+      <Memo(SettingItem)
         active={false}
         areAllSectionsInactive={false}
         max={null}
         section="collapsed_reply_threads"
         title={
           <Memo(MemoizedFormattedMessage)
-            defaultMessage="Collapsed Reply Threads"
+            defaultMessage="Threaded Discussions"
             id="user.settings.display.collapsedReplyThreadsTitle"
           />
         }
@@ -4172,7 +4358,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <SettingItem
+      <Memo(SettingItem)
         active={false}
         areAllSectionsInactive={false}
         max={null}
@@ -4190,7 +4376,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <SettingItem
+      <Memo(SettingItem)
         active={false}
         areAllSectionsInactive={false}
         describe={
@@ -4214,14 +4400,14 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <SettingItem
+      <Memo(SettingItem)
         active={false}
         areAllSectionsInactive={false}
         max={null}
         section="availabilityStatus"
         title={
           <Memo(MemoizedFormattedMessage)
-            defaultMessage="Show user availability on posts"
+            defaultMessage="Show online availability on profile images"
             id="user.settings.display.availabilityStatusOnPostsTitle"
           />
         }
@@ -4232,7 +4418,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <SettingItem
+      <Memo(SettingItem)
         active={false}
         areAllSectionsInactive={false}
         describe={
@@ -4256,7 +4442,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <SettingItem
+      <Memo(SettingItem)
         active={false}
         areAllSectionsInactive={false}
         max={null}
@@ -4274,7 +4460,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <SettingItem
+      <Memo(SettingItem)
         active={false}
         areAllSectionsInactive={false}
         max={null}
@@ -4292,7 +4478,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <SettingItem
+      <Memo(SettingItem)
         active={false}
         areAllSectionsInactive={false}
         max={null}
@@ -4310,7 +4496,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <SettingItem
+      <Memo(SettingItem)
         active={false}
         areAllSectionsInactive={false}
         max={null}
@@ -4328,7 +4514,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <SettingItem
+      <Memo(SettingItem)
         active={false}
         areAllSectionsInactive={false}
         max={null}
@@ -4346,7 +4532,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <SettingItem
+      <Memo(SettingItem)
         active={false}
         areAllSectionsInactive={false}
         max={null}
@@ -4364,12 +4550,54 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <SettingItem
+      <Memo(SettingItem)
+        active={false}
+        areAllSectionsInactive={false}
+        describe={
+          <Memo(MemoizedFormattedMessage)
+            defaultMessage="Off"
+            id="user.settings.advance.off"
+          />
+        }
+        max={
+          <Memo(Connect(RenderEmoticonsAsEmoji))
+            renderEmoticonsAsEmoji=""
+            updateSection={[Function]}
+            user={
+              Object {
+                "id": "user_id",
+                "locale": "en",
+                "timezone": Object {
+                  "automaticTimezone": "America/New_York",
+                  "manualTimezone": "",
+                  "useAutomaticTimezone": "true",
+                },
+                "username": "username",
+              }
+            }
+          />
+        }
+        section="renderEmoticonsAsEmoji"
+        title={
+          <Memo(MemoizedFormattedMessage)
+            defaultMessage="Render emoticons as emojis"
+            id="user.settings.display.renderEmoticonsAsEmojiTitle"
+          />
+        }
+        updateSection={[Function]}
+      />
+      <div
+        className="divider-dark"
+      />
+    </div>
+    <div>
+      <Memo(SettingItem)
         active={false}
         areAllSectionsInactive={false}
         describe="English (US)"
         max={
           <Memo(Connect(injectIntl(ManageLanguage)))
+            adminMode={false}
             locale="en"
             updateSection={[Function]}
             user={
@@ -4405,67 +4633,44 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
 
 exports[`components/user_settings/display/UserSettingsDisplay should not show last active section 1`] = `
 <div
+  aria-labelledby="displayButton"
   id="displaySettings"
+  role="tabpanel"
 >
-  <div
-    className="modal-header"
-  >
-    <button
-      aria-label="Close"
-      className="close"
-      data-dismiss="modal"
-      id="closeButton"
-      onClick={[MockFunction]}
-      type="button"
-    >
-      <span
-        aria-hidden="true"
-      >
-        ×
-      </span>
-    </button>
-    <h4
-      className="modal-title"
-    >
-      <div
-        className="modal-back"
-      >
-        <span
-          onClick={[MockFunction]}
-        >
-          <BackIcon />
-        </span>
-      </div>
-      <MemoizedFormattedMessage
+  <SettingMobileHeader
+    closeModal={[MockFunction]}
+    collapseModal={[MockFunction]}
+    text={
+      <Memo(MemoizedFormattedMessage)
         defaultMessage="Display Settings"
         id="user.settings.display.title"
       />
-    </h4>
-  </div>
+    }
+  />
   <div
     className="user-settings"
   >
-    <h3
-      className="tab-header"
+    <SettingDesktopHeader
       id="displaySettingsTitle"
-    >
-      <MemoizedFormattedMessage
-        defaultMessage="Display Settings"
-        id="user.settings.display.title"
-      />
-    </h3>
+      text={
+        <Memo(MemoizedFormattedMessage)
+          defaultMessage="Display Settings"
+          id="user.settings.display.title"
+        />
+      }
+    />
     <div
       className="divider-dark first"
     />
     <div>
-      <SettingItem
+      <Memo(SettingItem)
         active={false}
         areAllSectionsInactive={true}
         max={null}
         section="collapsed_reply_threads"
         title={
           <Memo(MemoizedFormattedMessage)
-            defaultMessage="Collapsed Reply Threads"
+            defaultMessage="Threaded Discussions"
             id="user.settings.display.collapsedReplyThreadsTitle"
           />
         }
@@ -4476,7 +4681,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should not show la
       />
     </div>
     <div>
-      <SettingItem
+      <Memo(SettingItem)
         active={false}
         areAllSectionsInactive={true}
         max={null}
@@ -4494,7 +4699,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should not show la
       />
     </div>
     <div>
-      <SettingItem
+      <Memo(SettingItem)
         active={false}
         areAllSectionsInactive={true}
         describe={
@@ -4518,14 +4723,14 @@ exports[`components/user_settings/display/UserSettingsDisplay should not show la
       />
     </div>
     <div>
-      <SettingItem
+      <Memo(SettingItem)
         active={false}
         areAllSectionsInactive={true}
         max={null}
         section="availabilityStatus"
         title={
           <Memo(MemoizedFormattedMessage)
-            defaultMessage="Show user availability on posts"
+            defaultMessage="Show online availability on profile images"
             id="user.settings.display.availabilityStatusOnPostsTitle"
           />
         }
@@ -4536,7 +4741,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should not show la
       />
     </div>
     <div>
-      <SettingItem
+      <Memo(SettingItem)
         active={false}
         areAllSectionsInactive={true}
         max={null}
@@ -4554,7 +4759,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should not show la
       />
     </div>
     <div>
-      <SettingItem
+      <Memo(SettingItem)
         active={false}
         areAllSectionsInactive={true}
         max={null}
@@ -4572,7 +4777,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should not show la
       />
     </div>
     <div>
-      <SettingItem
+      <Memo(SettingItem)
         active={false}
         areAllSectionsInactive={true}
         max={null}
@@ -4590,7 +4795,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should not show la
       />
     </div>
     <div>
-      <SettingItem
+      <Memo(SettingItem)
         active={false}
         areAllSectionsInactive={true}
         max={null}
@@ -4608,7 +4813,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should not show la
       />
     </div>
     <div>
-      <SettingItem
+      <Memo(SettingItem)
         active={false}
         areAllSectionsInactive={true}
         max={null}
@@ -4626,7 +4831,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should not show la
       />
     </div>
     <div>
-      <SettingItem
+      <Memo(SettingItem)
         active={false}
         areAllSectionsInactive={true}
         max={null}
@@ -4644,12 +4849,54 @@ exports[`components/user_settings/display/UserSettingsDisplay should not show la
       />
     </div>
     <div>
-      <SettingItem
+      <Memo(SettingItem)
+        active={false}
+        areAllSectionsInactive={true}
+        describe={
+          <Memo(MemoizedFormattedMessage)
+            defaultMessage="Off"
+            id="user.settings.advance.off"
+          />
+        }
+        max={
+          <Memo(Connect(RenderEmoticonsAsEmoji))
+            renderEmoticonsAsEmoji=""
+            updateSection={[Function]}
+            user={
+              Object {
+                "id": "user_id",
+                "locale": "en",
+                "timezone": Object {
+                  "automaticTimezone": "America/New_York",
+                  "manualTimezone": "",
+                  "useAutomaticTimezone": "true",
+                },
+                "username": "username",
+              }
+            }
+          />
+        }
+        section="renderEmoticonsAsEmoji"
+        title={
+          <Memo(MemoizedFormattedMessage)
+            defaultMessage="Render emoticons as emojis"
+            id="user.settings.display.renderEmoticonsAsEmojiTitle"
+          />
+        }
+        updateSection={[Function]}
+      />
+      <div
+        className="divider-dark"
+      />
+    </div>
+    <div>
+      <Memo(SettingItem)
         active={false}
         areAllSectionsInactive={true}
         describe="English (US)"
         max={
           <Memo(Connect(injectIntl(ManageLanguage)))
+            adminMode={false}
             locale="en"
             updateSection={[Function]}
             user={

@@ -1,9 +1,12 @@
-// Jest Snapshot v1, https://goo.gl/fbAQLP
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
 
 exports[`components/drafts/drafts_row should match snapshot for channel draft 1`] = `
 <ContextProvider
   value={
     Object {
+      "getServerState": undefined,
+      "identityFunctionCheck": "once",
+      "stabilityCheck": "once",
       "store": Object {
         "clearActions": [Function],
         "dispatch": [Function],
@@ -12,34 +15,22 @@ exports[`components/drafts/drafts_row should match snapshot for channel draft 1`
         "replaceReducer": [Function],
         "subscribe": [Function],
       },
-      "subscription": Subscription {
+      "subscription": Object {
+        "addNestedSub": [Function],
+        "getListeners": [Function],
         "handleChangeWrapper": [Function],
-        "listeners": Object {
-          "notify": [Function],
-        },
-        "onStateChange": [Function],
-        "parentSub": undefined,
-        "store": Object {
-          "clearActions": [Function],
-          "dispatch": [Function],
-          "getActions": [Function],
-          "getState": [Function],
-          "replaceReducer": [Function],
-          "subscribe": [Function],
-        },
-        "unsubscribe": null,
+        "isSubscribed": [Function],
+        "notifyNestedSubs": [Function],
+        "trySubscribe": [Function],
+        "tryUnsubscribe": [Function],
       },
     }
   }
 >
   <Memo(DraftRow)
     displayName="test"
-    draft={
-      Object {
-        "type": "channel",
-      }
-    }
     isRemote={false}
+    item={Object {}}
     status={Object {}}
     user={Object {}}
   />
@@ -50,6 +41,9 @@ exports[`components/drafts/drafts_row should match snapshot for thread draft 1`]
 <ContextProvider
   value={
     Object {
+      "getServerState": undefined,
+      "identityFunctionCheck": "once",
+      "stabilityCheck": "once",
       "store": Object {
         "clearActions": [Function],
         "dispatch": [Function],
@@ -58,22 +52,14 @@ exports[`components/drafts/drafts_row should match snapshot for thread draft 1`]
         "replaceReducer": [Function],
         "subscribe": [Function],
       },
-      "subscription": Subscription {
+      "subscription": Object {
+        "addNestedSub": [Function],
+        "getListeners": [Function],
         "handleChangeWrapper": [Function],
-        "listeners": Object {
-          "notify": [Function],
-        },
-        "onStateChange": [Function],
-        "parentSub": undefined,
-        "store": Object {
-          "clearActions": [Function],
-          "dispatch": [Function],
-          "getActions": [Function],
-          "getState": [Function],
-          "replaceReducer": [Function],
-          "subscribe": [Function],
-        },
-        "unsubscribe": null,
+        "isSubscribed": [Function],
+        "notifyNestedSubs": [Function],
+        "trySubscribe": [Function],
+        "tryUnsubscribe": [Function],
       },
     }
   }
@@ -82,10 +68,11 @@ exports[`components/drafts/drafts_row should match snapshot for thread draft 1`]
     displayName="test"
     draft={
       Object {
-        "type": "thread",
+        "rootId": "some_id",
       }
     }
     isRemote={false}
+    item={Object {}}
     status={Object {}}
     user={Object {}}
   />

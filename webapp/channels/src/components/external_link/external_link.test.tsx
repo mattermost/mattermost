@@ -1,13 +1,11 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {mount} from 'enzyme';
 import React from 'react';
-import {Provider} from 'react-redux';
-import type {DeepPartial} from 'redux';
+
+import type {DeepPartial} from '@mattermost/types/utilities';
 
 import {renderWithContext, screen} from 'tests/react_testing_utils';
-import mockStore from 'tests/test_store';
 
 import type {GlobalState} from 'types/store';
 
@@ -28,18 +26,23 @@ describe('components/external_link', () => {
         },
     };
 
-    it('should match snapshot', () => {
-        const store = mockStore(initialState);
-        const wrapper = mount(
-            <Provider store={store}>
-                <ExternalLink
-                    href='https://mattermost.com'
-
-                >{'Click Me'}</ExternalLink>
-            </Provider>,
+    it('should render external link with correct attributes', () => {
+        renderWithContext(
+            <ExternalLink
+                location='test'
+                href='https://mattermost.com'
+            >
+                {'Click Me'}
+            </ExternalLink>,
+            initialState,
         );
 
-        expect(wrapper).toMatchSnapshot();
+        const linkElement = screen.getByRole('link', {name: 'Click Me'});
+
+        expect(linkElement).toBeInTheDocument();
+        expect(linkElement).toHaveAttribute('target', '_blank');
+        expect(linkElement).toHaveAttribute('rel', 'noopener noreferrer');
+        expect(linkElement).toHaveAttribute('href', expect.stringContaining('https://mattermost.com'));
     });
 
     it('should attach parameters', () => {
@@ -56,7 +59,46 @@ describe('components/external_link', () => {
             },
         };
         renderWithContext(
-            <ExternalLink href='https://mattermost.com'>
+            <ExternalLink
+                location='test'
+                href='https://mattermost.com'
+            >
+                {'Click Me'}
+            </ExternalLink>,
+            state,
+        );
+
+        const linkElement = screen.getByRole('link', {name: 'Click Me'});
+
+        expect(linkElement).toHaveAttribute(
+            'href',
+            expect.stringMatching('utm_source=mattermost&utm_medium=in-product-cloud&utm_content=test&uid=currentUserId&sid='),
+        );
+    });
+
+    it('should use in-product-preview utm_medium for cloud preview workspaces', () => {
+        const state = {
+            ...initialState,
+            entities: {
+                ...initialState.entities,
+                general: {
+                    ...initialState?.entities?.general,
+                    config: {
+                        DiagnosticsEnabled: 'true',
+                    },
+                },
+                cloud: {
+                    subscription: {
+                        is_cloud_preview: true,
+                    },
+                },
+            },
+        };
+        renderWithContext(
+            <ExternalLink
+                location='test'
+                href='https://mattermost.com'
+            >
                 {'Click Me'}
             </ExternalLink>,
             state,
@@ -64,7 +106,7 @@ describe('components/external_link', () => {
 
         expect(screen.queryByText('Click Me')).toHaveAttribute(
             'href',
-            expect.stringMatching('utm_source=mattermost&utm_medium=in-product-cloud&utm_content=&uid=currentUserId&sid='),
+            expect.stringMatching('utm_medium=in-product-preview'),
         );
     });
 
@@ -82,7 +124,10 @@ describe('components/external_link', () => {
             },
         };
         renderWithContext(
-            <ExternalLink href='https://mattermost.com?test=true'>
+            <ExternalLink
+                location='test'
+                href='https://mattermost.com?test=true'
+            >
                 {'Click Me'}
             </ExternalLink>,
             state,
@@ -90,7 +135,7 @@ describe('components/external_link', () => {
 
         expect(screen.queryByText('Click Me')).toHaveAttribute(
             'href',
-            'https://mattermost.com?utm_source=mattermost&utm_medium=in-product-cloud&utm_content=&uid=currentUserId&sid=&test=true',
+            'https://mattermost.com/?utm_source=mattermost&utm_medium=in-product-cloud&utm_content=test&uid=currentUserId&sid=&edition=team&server_version=&test=true',
         );
     });
 
@@ -108,7 +153,10 @@ describe('components/external_link', () => {
             },
         };
         renderWithContext(
-            <ExternalLink href='https://google.com'>
+            <ExternalLink
+                location='test'
+                href='https://google.com'
+            >
                 {'Click Me'}
             </ExternalLink>,
             state,
@@ -138,6 +186,7 @@ describe('components/external_link', () => {
                 target='test'
                 rel='test'
                 href='https://google.com'
+                location='test'
             >{'Click Me'}</ExternalLink>,
             state,
         );
@@ -169,6 +218,7 @@ describe('components/external_link', () => {
         };
         renderWithContext(
             <ExternalLink
+                location='test'
                 href='https://mattermost.com#desktop'
             >
                 {'Click Me'}
@@ -178,7 +228,7 @@ describe('components/external_link', () => {
 
         expect(screen.queryByText('Click Me')).toHaveAttribute(
             'href',
-            'https://mattermost.com?utm_source=mattermost&utm_medium=in-product-cloud&utm_content=&uid=currentUserId&sid=#desktop',
+            'https://mattermost.com/?utm_source=mattermost&utm_medium=in-product-cloud&utm_content=test&uid=currentUserId&sid=&edition=team&server_version=#desktop',
         );
     });
 });

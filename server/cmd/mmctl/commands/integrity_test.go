@@ -28,8 +28,8 @@ func (s *MmctlUnitTestSuite) TestIntegrityCmd() {
 			ChildIdAttr:  "childIdAttr",
 			Records: []model.OrphanedRecord{
 				{
-					ParentId: model.NewString("parentId"),
-					ChildId:  model.NewString("childId"),
+					ParentId: model.NewPointer("parentId"),
+					ChildId:  model.NewPointer("childId"),
 				},
 			},
 		}
@@ -41,7 +41,7 @@ func (s *MmctlUnitTestSuite) TestIntegrityCmd() {
 		}
 		s.client.
 			EXPECT().
-			CheckIntegrity(context.Background()).
+			CheckIntegrity(context.TODO()).
 			Return(mockResults, &model.Response{}, nil).
 			Times(1)
 
@@ -59,7 +59,7 @@ func (s *MmctlUnitTestSuite) TestIntegrityCmd() {
 
 		s.client.
 			EXPECT().
-			CheckIntegrity(context.Background()).
+			CheckIntegrity(context.TODO()).
 			Return(nil, &model.Response{}, errors.New("mock error")).
 			Times(1)
 
@@ -82,8 +82,8 @@ func (s *MmctlUnitTestSuite) TestIntegrityCmd() {
 			ChildIdAttr:  "childIdAttr",
 			Records: []model.OrphanedRecord{
 				{
-					ParentId: model.NewString("parentId"),
-					ChildId:  model.NewString("childId"),
+					ParentId: model.NewPointer("parentId"),
+					ChildId:  model.NewPointer("childId"),
 				},
 			},
 		}
@@ -99,7 +99,7 @@ func (s *MmctlUnitTestSuite) TestIntegrityCmd() {
 		}
 		s.client.
 			EXPECT().
-			CheckIntegrity(context.Background()).
+			CheckIntegrity(context.TODO()).
 			Return(mockResults, &model.Response{}, nil).
 			Times(1)
 		var expected error

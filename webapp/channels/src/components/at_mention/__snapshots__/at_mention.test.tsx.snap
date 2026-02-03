@@ -1,434 +1,186 @@
-// Jest Snapshot v1, https://goo.gl/fbAQLP
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
 
 exports[`components/AtMention should match snapshot when mentioning a group followed by punctuation 1`] = `
-<Fragment>
-  <span>
-    <Overlay
-      animation={[Function]}
-      onHide={[Function]}
-      placement="right"
-      rootClose={true}
-      show={false}
-    >
-      <Connect(Component)
-        group={
-          Object {
-            "allow_reference": true,
-            "create_at": 1,
-            "delete_at": 0,
-            "description": "",
-            "display_name": "group_display_name",
-            "has_syncables": false,
-            "id": "qwerty1",
-            "member_count": 0,
-            "name": "developers",
-            "remote_id": "",
-            "scheme_admin": false,
-            "source": "",
-            "update_at": 1,
-          }
-        }
-        hide={[Function]}
-        returnFocus={[Function]}
-        showUserOverlay={[Function]}
-      />
-    </Overlay>
-    <Overlay
-      animation={[Function]}
-      onHide={[Function]}
-      placement="right"
-      rootClose={true}
-      show={false}
-    >
-      <span />
-    </Overlay>
+<div>
+  <span
+    aria-expanded="false"
+    aria-haspopup="dialog"
+  >
     <a
-      aria-haspopup="dialog"
-      className="group-mention-link"
-      onClick={[Function]}
-      onKeyDown={[Function]}
+      class="group-mention-link"
       role="button"
-      tabIndex={0}
+      tabindex="0"
     >
       @developers
     </a>
   </span>
   .
-</Fragment>
+</div>
 `;
 
 exports[`components/AtMention should match snapshot when mentioning a group that is allowed reference 1`] = `
-<Fragment>
-  <span>
-    <Overlay
-      animation={[Function]}
-      onHide={[Function]}
-      placement="right"
-      rootClose={true}
-      show={false}
-    >
-      <Connect(Component)
-        group={
-          Object {
-            "allow_reference": true,
-            "create_at": 1,
-            "delete_at": 0,
-            "description": "",
-            "display_name": "group_display_name",
-            "has_syncables": false,
-            "id": "qwerty1",
-            "member_count": 0,
-            "name": "developers",
-            "remote_id": "",
-            "scheme_admin": false,
-            "source": "",
-            "update_at": 1,
-          }
-        }
-        hide={[Function]}
-        returnFocus={[Function]}
-        showUserOverlay={[Function]}
-      />
-    </Overlay>
-    <Overlay
-      animation={[Function]}
-      onHide={[Function]}
-      placement="right"
-      rootClose={true}
-      show={false}
-    >
-      <span />
-    </Overlay>
+<div>
+  <span
+    aria-expanded="false"
+    aria-haspopup="dialog"
+  >
     <a
-      aria-haspopup="dialog"
-      className="group-mention-link"
-      onClick={[Function]}
-      onKeyDown={[Function]}
+      class="group-mention-link"
       role="button"
-      tabIndex={0}
+      tabindex="0"
     >
       @developers
     </a>
   </span>
-</Fragment>
+</div>
 `;
 
 exports[`components/AtMention should match snapshot when mentioning a group that is allowed reference with group highlight disabled 1`] = `
-<Fragment>
+<div>
   (at)-developers
-</Fragment>
+</div>
 `;
 
 exports[`components/AtMention should match snapshot when mentioning a group that is not allowed reference 1`] = `
-<Fragment>
+<div>
   (at)-marketing
-</Fragment>
+</div>
 `;
 
 exports[`components/AtMention should match snapshot when mentioning all 1`] = `
-<Fragment>
+<div>
   (at)-all
-</Fragment>
+</div>
 `;
 
 exports[`components/AtMention should match snapshot when mentioning all with mixed case 1`] = `
-<Fragment>
+<div>
   (at)-aLL
-</Fragment>
+</div>
 `;
 
 exports[`components/AtMention should match snapshot when mentioning current user 1`] = `
-<Fragment>
-  <span
-    className="mention--highlight"
+<div>
+  <button
+    aria-expanded="false"
+    aria-haspopup="dialog"
+    class="style--none mention--highlight"
   >
-    <Overlay
-      animation={[Function]}
-      onHide={[Function]}
-      placement="right"
-      rootClose={true}
-      show={false}
-    >
-      <Connect(injectIntl(ProfilePopover))
-        className="user-profile-popover"
-        hide={[Function]}
-        src="/api/v4/users/abc1/image"
-        userId="abc1"
-      />
-    </Overlay>
-    <Overlay
-      animation={[Function]}
-      onHide={[Function]}
-      placement="right"
-      rootClose={true}
-      show={false}
-    >
-      <span />
-    </Overlay>
-    <a
-      aria-haspopup="dialog"
-      className="mention-link"
-      onClick={[Function]}
-      onKeyDown={[Function]}
-      role="button"
-      tabIndex={0}
+    <span
+      class="mention-link"
     >
       @First Last
-    </a>
-  </span>
-</Fragment>
+    </span>
+  </button>
+</div>
 `;
 
 exports[`components/AtMention should match snapshot when mentioning user 1`] = `
-<Fragment>
-  <span>
-    <Overlay
-      animation={[Function]}
-      onHide={[Function]}
-      placement="right"
-      rootClose={true}
-      show={false}
-    >
-      <Connect(injectIntl(ProfilePopover))
-        className="user-profile-popover"
-        hide={[Function]}
-        src="/api/v4/users/abc2/image"
-        userId="abc2"
-      />
-    </Overlay>
-    <Overlay
-      animation={[Function]}
-      onHide={[Function]}
-      placement="right"
-      rootClose={true}
-      show={false}
-    >
-      <span />
-    </Overlay>
-    <a
-      aria-haspopup="dialog"
-      className="mention-link"
-      onClick={[Function]}
-      onKeyDown={[Function]}
-      role="button"
-      tabIndex={0}
+<div>
+  <button
+    aria-expanded="false"
+    aria-haspopup="dialog"
+    class="style--none"
+  >
+    <span
+      class="mention-link"
     >
       @Nick
-    </a>
-  </span>
-</Fragment>
+    </span>
+  </button>
+</div>
 `;
 
 exports[`components/AtMention should match snapshot when mentioning user containing and followed by punctuation 1`] = `
-<Fragment>
-  <span>
-    <Overlay
-      animation={[Function]}
-      onHide={[Function]}
-      placement="right"
-      rootClose={true}
-      show={false}
-    >
-      <Connect(injectIntl(ProfilePopover))
-        className="user-profile-popover"
-        hide={[Function]}
-        src="/api/v4/users/abc3/image"
-        userId="abc3"
-      />
-    </Overlay>
-    <Overlay
-      animation={[Function]}
-      onHide={[Function]}
-      placement="right"
-      rootClose={true}
-      show={false}
-    >
-      <span />
-    </Overlay>
-    <a
-      aria-haspopup="dialog"
-      className="mention-link"
-      onClick={[Function]}
-      onKeyDown={[Function]}
-      role="button"
-      tabIndex={0}
+<div>
+  <button
+    aria-expanded="false"
+    aria-haspopup="dialog"
+    class="style--none"
+  >
+    <span
+      class="mention-link"
     >
       @Dot Matrix
-    </a>
-  </span>
+    </span>
+  </button>
   .
-</Fragment>
+</div>
 `;
 
 exports[`components/AtMention should match snapshot when mentioning user containing punctuation 1`] = `
-<Fragment>
-  <span>
-    <Overlay
-      animation={[Function]}
-      onHide={[Function]}
-      placement="right"
-      rootClose={true}
-      show={false}
-    >
-      <Connect(injectIntl(ProfilePopover))
-        className="user-profile-popover"
-        hide={[Function]}
-        src="/api/v4/users/abc3/image"
-        userId="abc3"
-      />
-    </Overlay>
-    <Overlay
-      animation={[Function]}
-      onHide={[Function]}
-      placement="right"
-      rootClose={true}
-      show={false}
-    >
-      <span />
-    </Overlay>
-    <a
-      aria-haspopup="dialog"
-      className="mention-link"
-      onClick={[Function]}
-      onKeyDown={[Function]}
-      role="button"
-      tabIndex={0}
+<div>
+  <button
+    aria-expanded="false"
+    aria-haspopup="dialog"
+    class="style--none"
+  >
+    <span
+      class="mention-link"
     >
       @Dot Matrix
-    </a>
-  </span>
-</Fragment>
+    </span>
+  </button>
+</div>
 `;
 
 exports[`components/AtMention should match snapshot when mentioning user followed by punctuation 1`] = `
-<Fragment>
-  <span>
-    <Overlay
-      animation={[Function]}
-      onHide={[Function]}
-      placement="right"
-      rootClose={true}
-      show={false}
-    >
-      <Connect(injectIntl(ProfilePopover))
-        className="user-profile-popover"
-        hide={[Function]}
-        src="/api/v4/users/abc2/image"
-        userId="abc2"
-      />
-    </Overlay>
-    <Overlay
-      animation={[Function]}
-      onHide={[Function]}
-      placement="right"
-      rootClose={true}
-      show={false}
-    >
-      <span />
-    </Overlay>
-    <a
-      aria-haspopup="dialog"
-      className="mention-link"
-      onClick={[Function]}
-      onKeyDown={[Function]}
-      role="button"
-      tabIndex={0}
+<div>
+  <button
+    aria-expanded="false"
+    aria-haspopup="dialog"
+    class="style--none"
+  >
+    <span
+      class="mention-link"
     >
       @Nick
-    </a>
-  </span>
+    </span>
+  </button>
   ...
-</Fragment>
+</div>
 `;
 
 exports[`components/AtMention should match snapshot when mentioning user with different teammate name display setting 1`] = `
-<Fragment>
-  <span>
-    <Overlay
-      animation={[Function]}
-      onHide={[Function]}
-      placement="right"
-      rootClose={true}
-      show={false}
-    >
-      <Connect(injectIntl(ProfilePopover))
-        className="user-profile-popover"
-        hide={[Function]}
-        src="/api/v4/users/abc2/image"
-        userId="abc2"
-      />
-    </Overlay>
-    <Overlay
-      animation={[Function]}
-      onHide={[Function]}
-      placement="right"
-      rootClose={true}
-      show={false}
-    >
-      <span />
-    </Overlay>
-    <a
-      aria-haspopup="dialog"
-      className="mention-link"
-      onClick={[Function]}
-      onKeyDown={[Function]}
-      role="button"
-      tabIndex={0}
+<div>
+  <button
+    aria-expanded="false"
+    aria-haspopup="dialog"
+    class="style--none"
+  >
+    <span
+      class="mention-link"
     >
       @user1
-    </a>
-  </span>
-</Fragment>
+    </span>
+  </button>
+</div>
 `;
 
 exports[`components/AtMention should match snapshot when mentioning user with mixed case 1`] = `
-<Fragment>
-  <span>
-    <Overlay
-      animation={[Function]}
-      onHide={[Function]}
-      placement="right"
-      rootClose={true}
-      show={false}
-    >
-      <Connect(injectIntl(ProfilePopover))
-        className="user-profile-popover"
-        hide={[Function]}
-        src="/api/v4/users/abc2/image"
-        userId="abc2"
-      />
-    </Overlay>
-    <Overlay
-      animation={[Function]}
-      onHide={[Function]}
-      placement="right"
-      rootClose={true}
-      show={false}
-    >
-      <span />
-    </Overlay>
-    <a
-      aria-haspopup="dialog"
-      className="mention-link"
-      onClick={[Function]}
-      onKeyDown={[Function]}
-      role="button"
-      tabIndex={0}
+<div>
+  <button
+    aria-expanded="false"
+    aria-haspopup="dialog"
+    class="style--none"
+  >
+    <span
+      class="mention-link"
     >
       @Nick
-    </a>
-  </span>
-</Fragment>
+    </span>
+  </button>
+</div>
 `;
 
 exports[`components/AtMention should match snapshot when not mentioning a user 1`] = `
-<Fragment>
+<div>
   (at)-notauser
-</Fragment>
+</div>
 `;
 
 exports[`components/AtMention should match snapshot when not mentioning a user with mixed case 1`] = `
-<Fragment>
+<div>
   (at)-NOTAuser
-</Fragment>
+</div>
 `;

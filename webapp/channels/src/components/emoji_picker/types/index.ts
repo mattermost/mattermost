@@ -1,6 +1,8 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import type {MessageDescriptor} from 'react-intl';
+
 import type {EmojiCategory, Emoji, SystemEmoji, CustomEmoji} from '@mattermost/types/emojis';
 
 import type {
@@ -9,14 +11,14 @@ import type {
 } from 'components/emoji_picker/constants';
 
 export type Category = {
-    className: string;
-    emojiIds?: string[];
-    id: string;
-    message: string;
     name: EmojiCategory;
+    emojiIds?: string[];
+    label: MessageDescriptor;
+    iconClassName: string;
 };
 
 export type Categories = Record<EmojiCategory, Category>;
+export type ListedCategories = Omit<Categories, 'recent' | 'searchResults'> & Partial<Pick<Categories, 'recent'>>;
 
 export type CategoryOrEmojiRow = CategoryHeaderRow | EmojiRow;
 

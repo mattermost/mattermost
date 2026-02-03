@@ -1,7 +1,6 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import debounce from 'lodash/debounce';
 import React, {useState, useEffect, useRef} from 'react';
 import type {ChangeEvent} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
@@ -13,9 +12,7 @@ import type {Team} from '@mattermost/types/teams';
 import {getTeams} from 'mattermost-redux/actions/teams';
 import {getActiveTeamsList} from 'mattermost-redux/selectors/entities/teams';
 
-import {trackEvent} from 'actions/telemetry_actions';
-
-import OrganizationSVG from 'components/common/svg_images_components/organization-building_svg';
+import CompanySVG from 'components/common/svg_images_components/company_svg';
 import QuickInput from 'components/quick_input';
 
 import Constants from 'utils/constants';
@@ -35,14 +32,10 @@ type Props = PreparingWorkspacePageProps & {
     organization: Form['organization'];
     setOrganization: (organization: Form['organization']) => void;
     className?: string;
-    createTeam: (OrganizationName: string) => Promise<{error: string | null; newTeam: Team | null}>;
+    createTeam: (OrganizationName: string) => Promise<{error: string | null; newTeam: Team | null | undefined}>;
     updateTeam: (teamToUpdate: Team) => Promise<{error: string | null; updatedTeam: Team | null}>;
     setInviteId: (inviteId: string) => void;
 }
-
-const reportValidationError = debounce((error: string) => {
-    trackEvent('first_admin_setup', 'admin_onboarding_organization_submit_fail', {error});
-}, 700, {leading: false});
 
 const Organization = (props: Props) => {
     const {formatMessage} = useIntl();
@@ -52,8 +45,6 @@ const Organization = (props: Props) => {
     const inputRef = useRef<HTMLInputElement>();
     const validation = teamNameToUrl(props.organization || '');
     const teamApiError = useRef<typeof TeamApiError | null>(null);
-
-    useEffect(props.onPageView, []);
 
     const teams = useSelector(getActiveTeamsList);
     useEffect(() => {
@@ -90,7 +81,7 @@ const Organization = (props: Props) => {
 
         if (name) {
             const {error, newTeam} = await props.createTeam(name);
-            if (error !== null || newTeam === null) {
+            if (error !== null || newTeam == null) {
                 props.setInviteId('');
                 setApiCallError();
                 return;
@@ -123,11 +114,6 @@ const Organization = (props: Props) => {
         } else if (!validation.error && thereIsAlreadyATeam) {
             updateTeamNameFromOrgName();
         }
-
-        if (validation.error || teamApiError.current) {
-            reportValidationError(validation.error ? validation.error : teamApiError.current! as string);
-            return;
-        }
         props.next?.();
     };
 
@@ -147,7 +133,10 @@ const Organization = (props: Props) => {
                 <div className='Organization-right-col'>
                     <div className='Organization-form-wrapper'>
                         <div className='Organization__progress-path'>
-                            <OrganizationSVG/>
+                            <CompanySVG
+                                width={205}
+                                height={180}
+                            />
                             <PageLine
                                 style={{
                                     marginTop: '5px',

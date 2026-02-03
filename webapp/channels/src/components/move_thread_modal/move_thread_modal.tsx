@@ -5,7 +5,7 @@ import classNames from 'classnames';
 import React, {useCallback, useMemo, useRef, useState} from 'react';
 import {useIntl} from 'react-intl';
 import {useSelector} from 'react-redux';
-import type {ValueType} from 'react-select';
+import type {OnChangeValue} from 'react-select';
 
 import type {ClientError} from '@mattermost/client';
 import {GenericModal} from '@mattermost/components';
@@ -63,7 +63,7 @@ const preventActionOnPreview = (e: React.MouseEvent) => {
 const MoveThreadModal = ({onExited, post, actions}: Props) => {
     const {formatMessage} = useIntl();
 
-    const originalChannel = useSelector((state: GlobalState) => getChannel(state, {id: post.channel_id}));
+    const originalChannel = useSelector((state: GlobalState) => getChannel(state, post.channel_id));
     const currentTeam = useSelector(getCurrentTeam);
 
     const timeoutRef = useRef<NodeJS.Timeout | null>(null);
@@ -76,7 +76,7 @@ const MoveThreadModal = ({onExited, post, actions}: Props) => {
 
     const bodyRef = useRef<HTMLDivElement>();
 
-    const measuredRef = useCallback((node) => {
+    const measuredRef = useCallback((node: HTMLDivElement) => {
         if (node !== null) {
             bodyRef.current = node;
             setBodyHeight(node.getBoundingClientRect().height);
@@ -87,7 +87,7 @@ const MoveThreadModal = ({onExited, post, actions}: Props) => {
         onExited?.();
     }, [onExited]);
 
-    const handleChannelSelect = useCallback((channel: ValueType<ChannelOption>) => {
+    const handleChannelSelect = useCallback((channel: OnChangeValue<ChannelOption, boolean>) => {
         if (Array.isArray(channel)) {
             setSelectedChannel(channel[0]);
             return;
@@ -103,11 +103,11 @@ const MoveThreadModal = ({onExited, post, actions}: Props) => {
     const previewMetaData: PostPreviewMetadata = useMemo(() => ({
         post,
         post_id: post.id,
-        team_name: currentTeam.name,
-        channel_display_name: originalChannel.display_name,
-        channel_type: originalChannel.type,
-        channel_id: originalChannel.id,
-    }), [post, currentTeam.name, originalChannel.display_name, originalChannel.type, originalChannel.id]);
+        team_name: currentTeam?.name || '',
+        channel_display_name: originalChannel?.display_name || '',
+        channel_type: originalChannel?.type || 'O',
+        channel_id: originalChannel?.id || '',
+    }), [post, currentTeam?.name, originalChannel?.display_name, originalChannel?.type, originalChannel?.id]);
 
     const notificationText = formatMessage({
         id: 'move_thread_modal.notification.dm_or_gm',
@@ -180,7 +180,7 @@ const MoveThreadModal = ({onExited, post, actions}: Props) => {
         defaultMessage: 'Originally posted in ~{channelName}',
     },
     {
-        channelName: originalChannel.display_name,
+        channelName: originalChannel?.display_name || '',
     });
 
     return (

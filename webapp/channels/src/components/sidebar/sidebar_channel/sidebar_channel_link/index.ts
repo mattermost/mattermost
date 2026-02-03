@@ -7,11 +7,12 @@ import type {Dispatch} from 'redux';
 
 import type {Channel} from '@mattermost/types/channels';
 
+import {fetchChannelRemotes} from 'mattermost-redux/actions/shared_channels';
 import {makeGetChannelUnreadCount} from 'mattermost-redux/selectors/entities/channels';
 import {getCurrentUserId, getMyChannelMemberships} from 'mattermost-redux/selectors/entities/common';
 import {getConfig} from 'mattermost-redux/selectors/entities/general';
 import {getInt} from 'mattermost-redux/selectors/entities/preferences';
-import type {GenericAction} from 'mattermost-redux/types/actions';
+import {getRemoteNamesForChannel} from 'mattermost-redux/selectors/entities/shared_channels';
 import {isChannelMuted} from 'mattermost-redux/utils/channel_utils';
 
 import {markMostRecentPostInChannelAsUnread, unsetEditingPost} from 'actions/post_actions';
@@ -42,7 +43,6 @@ function makeMapStateToProps() {
     return (state: GlobalState, ownProps: OwnProps) => {
         const member = getMyChannelMemberships(state)[ownProps.channel.id];
         const unreadCount = getUnreadCount(state, ownProps.channel.id);
-        const firstChannelName = getFirstChannelName(state);
         const config = getConfig(state);
         const enableTutorial = config.EnableTutorial === 'true';
         const currentUserId = getCurrentUserId(state);
@@ -52,6 +52,10 @@ function makeMapStateToProps() {
         const isOnboardingFlowEnabled = config.EnableOnboardingFlow;
         const showChannelsTour = enableTutorial && tutorialStep === OnboardingTourSteps.CHANNELS_AND_DIRECT_MESSAGES;
         const showChannelsTutorialStep = showChannelsTour && channelTourTriggered && isOnboardingFlowEnabled === 'true';
+
+        const remoteNames = ownProps.channel?.shared ?
+            getRemoteNamesForChannel(state, ownProps.channel.id) : [];
+
         return {
             unreadMentions: unreadCount.mentions,
             unreadMsgs: unreadCount.messages,
@@ -59,15 +63,16 @@ function makeMapStateToProps() {
             isMuted: isChannelMuted(member),
             hasUrgent: unreadCount.hasUrgent,
             isChannelSelected: isChannelSelected(state, ownProps.channel.id),
-            firstChannelName: showChannelsTutorialStep ? firstChannelName : '',
+            firstChannelName: showChannelsTutorialStep ? getFirstChannelName(state) : '',
             showChannelsTutorialStep,
             rhsState: getRhsState(state),
             rhsOpen: getIsRhsOpen(state),
+            remoteNames,
         };
     };
 }
 
-function mapDispatchToProps(dispatch: Dispatch<GenericAction>) {
+function mapDispatchToProps(dispatch: Dispatch) {
     return {
         actions: bindActionCreators({
             markMostRecentPostInChannelAsUnread,
@@ -76,6 +81,7 @@ function mapDispatchToProps(dispatch: Dispatch<GenericAction>) {
             multiSelectChannelTo,
             multiSelectChannelAdd,
             closeRightHandSide,
+            fetchChannelRemotes,
         }, dispatch),
     };
 }

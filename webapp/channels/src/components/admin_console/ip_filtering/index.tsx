@@ -8,8 +8,6 @@ import {useDispatch} from 'react-redux';
 import {AlertOutlineIcon} from '@mattermost/compass-icons/components';
 import type {AllowedIPRange, FetchIPResponse} from '@mattermost/types/config';
 
-import type {DispatchFunc} from 'mattermost-redux/types/actions';
-
 import {applyIPFilters, getCurrentIP, getIPFilters} from 'actions/admin_actions';
 import {getInstallation} from 'actions/cloud';
 import {closeModal, openModal} from 'actions/views/modals';
@@ -25,12 +23,12 @@ import EnableSectionContent from './enable_section';
 import {isIPAddressInRanges} from './ip_filtering_utils';
 import SaveConfirmationModal from './save_confirmation_modal';
 
-import SaveChangesPanel from '../team_channel_settings/save_changes_panel';
+import SaveChangesPanel from '../save_changes_panel';
 
 import './ip_filtering.scss';
 
 const IPFiltering = () => {
-    const dispatch = useDispatch<DispatchFunc>();
+    const dispatch = useDispatch();
     const {formatMessage} = useIntl();
     const [ipFilters, setIpFilters] = useState<AllowedIPRange[] | null>(null);
     const [originalIpFilters, setOriginalIpFilters] = useState<AllowedIPRange[] | null>(null);
@@ -258,7 +256,7 @@ const IPFiltering = () => {
                     id={'admin.ip_filtering.no_filters_added'}
                     defaultMessage={'Are you sure you want to apply these IP filter changes? There are currently no filters added, so <strong>all IP addresses will have access to the workspace.</strong>'}
                     values={{
-                        strong: (content: string) => <strong>{content}</strong>,
+                        strong: (content) => <strong>{content}</strong>,
                     }}
                 />
             );
@@ -271,7 +269,7 @@ const IPFiltering = () => {
                     id={'admin.ip_filtering.turn_off_ip_filtering'}
                     defaultMessage={'Are you sure you want to turn off IP Filtering? <strong>All IP addresses will have access to the workspace.</strong>'}
                     values={{
-                        strong: (content: string) => <strong>{content}</strong>,
+                        strong: (content) => <strong>{content}</strong>,
                     }}
                 />
             );
@@ -284,7 +282,7 @@ const IPFiltering = () => {
                     id={'admin.ip_filtering.apply_ip_filter_changes_are_you_sure'}
                     defaultMessage={'Are you sure you want to apply these IP Filter changes? <strong>Users with IP addresses outside of the IP ranges provided will no longer have access to the workspace.</strong>'}
                     values={{
-                        strong: (content: string) => <strong>{content}</strong>,
+                        strong: (content) => <strong>{content}</strong>,
                     }}
                 />
             );

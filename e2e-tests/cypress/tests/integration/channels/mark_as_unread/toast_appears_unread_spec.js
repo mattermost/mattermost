@@ -7,8 +7,9 @@
 // - Use element ID when selecting an element. Create one if none.
 // ***************************************************************
 
-// Stage: @prod
 // Group: @channels @mark_as_unread
+
+import * as TIMEOUTS from '../../../fixtures/timeouts';
 
 import {markAsUnreadFromPost, switchToChannel} from './helpers';
 
@@ -33,7 +34,10 @@ describe('Verify unread toast appears after repeated manual marking post as unre
                     cy.visit(`/${team.name}/channels/${testChannel.name}`);
                     switchToChannel(offTopicChannel);
 
-                    cy.postMessageAs({
+                    // Ensure that the Off-Topic channel has loaded successfully, before posting messages in the other channel
+                    cy.get('#channelHeaderTitle').should('be.visible').and('contain.text', offTopicChannel.display_name);
+
+                    cy.wait(TIMEOUTS.ONE_SEC).postMessageAs({
                         sender: otherUser,
                         message: 'First message',
                         channelId: testChannel.id,

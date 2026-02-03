@@ -11,6 +11,7 @@
 
 describe('DND Status - Setting Your Own DND Status', () => {
     const dndTimes = [
+        'dndTime-dont_clear_menuitem',
         'dndTime-thirty_minutes_menuitem',
         'dndTime-one_hour_menuitem',
         'dndTime-two_hours_menuitem',
@@ -19,8 +20,6 @@ describe('DND Status - Setting Your Own DND Status', () => {
     ];
 
     before(() => {
-        cy.shouldHaveFeatureFlag('TimedDND', true);
-
         // # Login as test user and visit channel
         cy.apiInitSetup({loginAfter: true}).then(({team, channel}) => {
             cy.visit(`/${team.name}/channels/${channel.name}`);
@@ -29,7 +28,7 @@ describe('DND Status - Setting Your Own DND Status', () => {
 
     it('MM-8497_1 Set status DND with predefined end times', () => {
         // # Loop through all predefined end times and verify them
-        for (let i = 0; i < 4; i++) {
+        for (let i = 0; i < 5; i++) {
             // # Open status dropdown menu and hover over Do Not Disturb option
             openDndStatusSubMenu();
 
@@ -76,13 +75,13 @@ describe('DND Status - Setting Your Own DND Status', () => {
         cy.get(`.SubMenuItemContainer li#${dndTimes[4]}`).click();
 
         // # Click on DayPicker input field
-        cy.get('.DayPickerInput input').click();
+        cy.get('.dateTime__date .date-time-input').click();
 
         // * Verify that DayPicker overlay is visible
-        cy.get('.DayPickerInput-Overlay').should('be.visible');
+        cy.get('.date-picker__popper').should('be.visible');
 
         // # Click on tomorrow's day
-        cy.get('.DayPickerInput-Overlay').find('.DayPicker-Day--today').next('.DayPicker-Day').click();
+        cy.get('.date-picker__popper').find('.rdp-day_today').next('.rdp-day').click();
 
         // # Click 'Disable Notification' button
         cy.get('.DndModal__footer span').should('have.text', 'Disable Notifications').click();
@@ -104,13 +103,13 @@ describe('DND Status - Setting Your Own DND Status', () => {
         cy.get(`.SubMenuItemContainer li#${dndTimes[4]}`).click();
 
         // # Click on time picker input field
-        cy.get('.MenuWrapper .DndModal__input').click();
+        cy.get('.dateTime__time .date-time-input').click();
 
         // * Verify that time picker menu is visible
-        cy.get('ul.Menu__content.dropdown-menu').should('be.visible');
+        cy.get('#expiryTimeMenu').should('be.visible');
 
         // # Click on last time available in list
-        cy.get('ul.Menu__content.dropdown-menu').last('.MenuItem').click();
+        cy.get('#expiryTimeMenu li').last().click();
 
         // # Click 'Disable Notification' button
         cy.get('.DndModal__footer span').should('have.text', 'Disable Notifications').click();
@@ -132,22 +131,22 @@ describe('DND Status - Setting Your Own DND Status', () => {
         cy.get(`.SubMenuItemContainer li#${dndTimes[4]}`).click();
 
         // # Click on DayPicker input field
-        cy.get('.DayPickerInput input').click();
+        cy.get('.dateTime__date .date-time-input').click();
 
         // * Verify that DayPicker overlay is visible
-        cy.get('.DayPickerInput-Overlay').should('be.visible');
+        cy.get('.date-picker__popper').should('be.visible');
 
         // # Click on tomorrow's day
-        cy.get('.DayPickerInput-Overlay').find('.DayPicker-Day--today').next('.DayPicker-Day').click();
+        cy.get('.date-picker__popper').find('.rdp-day_today').next('.rdp-day').click();
 
         // # Click on time picker input field
-        cy.get('.MenuWrapper .DndModal__input').click();
+        cy.get('.dateTime__time .date-time-input').click();
 
         // * Verify that time picker menu is visible
-        cy.get('ul.Menu__content.dropdown-menu').should('be.visible');
+        cy.get('#expiryTimeMenu').should('be.visible');
 
         // # Click on last time available in list
-        cy.get('ul.Menu__content.dropdown-menu').last('.MenuItem').click();
+        cy.get('#expiryTimeMenu li').last().click();
 
         // # Click 'Disable Notification' button
         cy.get('.DndModal__footer span').should('have.text', 'Disable Notifications').click();

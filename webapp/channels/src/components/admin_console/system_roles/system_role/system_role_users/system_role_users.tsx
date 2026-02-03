@@ -2,11 +2,12 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-import {FormattedMessage} from 'react-intl';
+import {FormattedMessage, defineMessage} from 'react-intl';
 
-import type {ServerError} from '@mattermost/types/errors';
 import type {Role} from '@mattermost/types/roles';
 import type {UserProfile, UsersStats, GetFilteredUsersStatsOpts} from '@mattermost/types/users';
+
+import type {ActionResult} from 'mattermost-redux/types/actions';
 
 import DataGrid from 'components/admin_console/data_grid/data_grid';
 import UserGridName from 'components/admin_console/user_grid/user_grid_name';
@@ -16,7 +17,6 @@ import AdminPanel from 'components/widgets/admin_console/admin_panel';
 import Tag from 'components/widgets/tag/tag';
 
 import Constants, {ModalIdentifiers} from 'utils/constants';
-import {t} from 'utils/i18n';
 
 import AddUsersToRoleModal from '../add_users_to_role_modal';
 
@@ -30,13 +30,10 @@ export type Props = {
     onAddCallback: (users: UserProfile[]) => void;
     onRemoveCallback: (user: UserProfile) => void;
     actions: {
-        getFilteredUsersStats: (filters: GetFilteredUsersStatsOpts) => Promise<{
-            data?: UsersStats;
-            error?: ServerError;
-        }>;
-        getProfiles: (page?: number | undefined, perPage?: number | undefined, options?: any) => Promise<any>;
-        searchProfiles: (term: string, options: any) => Promise<any>;
-        setUserGridSearch: (term: string) => Promise<any>;
+        getFilteredUsersStats: (filters: GetFilteredUsersStatsOpts) => Promise<ActionResult<UsersStats>>;
+        getProfiles: (page?: number | undefined, perPage?: number | undefined, options?: any) => Promise<ActionResult>;
+        searchProfiles: (term: string, options: any) => Promise<ActionResult>;
+        setUserGridSearch: (term: string) => void;
     };
     readOnly?: boolean;
 }
@@ -239,17 +236,15 @@ export default class SystemRoleUsers extends React.PureComponent<Props, State> {
     };
 
     render() {
-        const {page, loading} = this.state;
+        const {loading} = this.state;
         const {term, role, usersToAdd, usersToRemove, readOnly} = this.props;
         const {startCount, endCount, total} = this.getPaginationProps();
         return (
 
             <AdminPanel
                 id='SystemRoleUsers'
-                titleId={t('admin.permissions.system_role_users.title')}
-                titleDefault='Assigned People'
-                subtitleId={t('admin.permissions.system_role_users.description')}
-                subtitleDefault='List of people assigned to this system role.'
+                title={defineMessage({id: 'admin.permissions.system_role_users.title', defaultMessage: 'Assigned People'})}
+                subtitle={defineMessage({id: 'admin.permissions.system_role_users.description', defaultMessage: 'List of people assigned to this system role.'})}
                 button={
                     <ToggleModalButton
                         id='addRoleMembers'
@@ -277,7 +272,6 @@ export default class SystemRoleUsers extends React.PureComponent<Props, State> {
                     columns={this.getColumns()}
                     nextPage={this.nextPage}
                     previousPage={this.previousPage}
-                    page={page}
                     startCount={startCount}
                     endCount={endCount}
                     loading={loading}

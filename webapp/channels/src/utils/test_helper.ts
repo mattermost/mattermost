@@ -319,7 +319,7 @@ export class TestHelper {
         return Object.assign({}, defaultOutgoingWebhook, override);
     }
 
-    public static getPostMock(override: Partial<Post> = {}): Post {
+    public static getPostMock(override: Omit<Partial<Post>, 'metadata'> & {metadata?: Partial<Post['metadata']>} = {}): Post {
         const defaultPost: Post = {
             edit_at: 0,
             original_id: '',
@@ -345,13 +345,22 @@ export class TestHelper {
             update_at: 0,
             user_id: 'user_id',
         };
-        return Object.assign({}, defaultPost, override);
+
+        return {
+            ...defaultPost,
+            ...override,
+            metadata: {
+                ...defaultPost.metadata,
+                ...override.metadata,
+            },
+        };
     }
 
     public static getFileInfoMock(override: Partial<FileInfo> = {}): FileInfo {
         const defaultFileInfo: FileInfo = {
             id: 'file_info_id',
             user_id: 'user_id',
+            channel_id: 'channel_id',
             create_at: 1,
             update_at: 1,
             delete_at: 1,
@@ -423,7 +432,7 @@ export class TestHelper {
             showTeamSidebar: false,
             showAppBar: false,
             wrapped: true,
-            publicComponent: null,
+            publicComponent: () => null,
         };
     }
 

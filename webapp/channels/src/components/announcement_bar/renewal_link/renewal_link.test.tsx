@@ -3,12 +3,10 @@
 
 import type {ReactWrapper} from 'enzyme';
 import React from 'react';
-import {act} from 'react-dom/test-utils';
 import {Provider} from 'react-redux';
 
-import {Client4} from 'mattermost-redux/client';
-
 import {mountWithIntl} from 'tests/helpers/intl-test-helper';
+import {act} from 'tests/react_testing_utils';
 import mockStore from 'tests/test_store';
 
 import RenewalLink from './renewal_link';
@@ -56,41 +54,9 @@ const actImmediate = (wrapper: ReactWrapper) =>
     );
 
 describe('components/RenewalLink', () => {
-    afterEach(() => {
-        jest.clearAllMocks();
-    });
-
-    const props = {
-        actions: {
-            openModal: jest.fn,
-        },
-    };
-
-    test('should show Renew now when a renewal link is successfully returned', async () => {
-        const getRenewalLinkSpy = jest.spyOn(Client4, 'getRenewalLink');
-        const promise = new Promise<{renewal_link: string}>((resolve) => {
-            resolve({
-                renewal_link: 'https://testrenewallink',
-            });
-        });
-        getRenewalLinkSpy.mockImplementation(() => promise);
+    test('should show Contact sales button', async () => {
         const store = mockStore(initialState);
-        const wrapper = mountWithIntl(<Provider store={store}><RenewalLink {...props}/></Provider>);
-
-        // wait for the promise to resolve and component to update
-        await actImmediate(wrapper);
-
-        expect(wrapper.find('.btn').text().includes('Renew license now')).toBe(true);
-    });
-
-    test('should show Contact sales when a renewal link is not returned', async () => {
-        const getRenewalLinkSpy = jest.spyOn(Client4, 'getRenewalLink');
-        const promise = new Promise<{renewal_link: string}>((resolve, reject) => {
-            reject(new Error('License cannot be renewed from portal'));
-        });
-        getRenewalLinkSpy.mockImplementation(() => promise);
-        const store = mockStore(initialState);
-        const wrapper = mountWithIntl(<Provider store={store}><RenewalLink {...props}/></Provider>);
+        const wrapper = mountWithIntl(<Provider store={store}><RenewalLink/></Provider>);
 
         // wait for the promise to resolve and component to update
         await actImmediate(wrapper);

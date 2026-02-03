@@ -1,0 +1,226 @@
+name: Web App CI
+on:
+  push:
+    branches:
+      - master
+      - release-*
+  pull_request:
+    paths:
+      - "webapp/**"
+      - ".github/workflows/webapp-ci.yml"
+      - ".github/actions/webapp-setup/**"
+
+concurrency:
+  group: ${{ github.event_name == 'pull_request' && format('{0}-{1}', github.workflow, github.ref) || github.run_id }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+jobs:
+  check-lint:
+    runs-on: ubuntu-24.04
+    defaults:
+      run:
+        working-directory: webapp
+    steps:
+      - name: ci/checkout-repo
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+      - name: ci/setup
+        uses: ./.github/actions/webapp-setup
+      - name: ci/lint
+        run: |
+          npm run check
+
+  check-i18n:
+    needs: check-lint
+    runs-on: ubuntu-24.04
+    defaults:
+      run:
+        working-directory: webapp
+    steps:
+      - name: ci/checkout-repo
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+      - name: ci/setup
+        uses: ./.github/actions/webapp-setup
+      - name: ci/i18n-extract
+        working-directory: webapp/channels
+        run: |
+          npm run i18n-extract:check
+
+  check-types:
+    needs: check-lint
+    runs-on: ubuntu-24.04
+    defaults:
+      run:
+        working-directory: webapp
+    steps:
+      - name: ci/checkout-repo
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+      - name: ci/setup
+        uses: ./.github/actions/webapp-setup
+      - name: ci/lint
+        run: |
+          npm run check-types
+
+  test-platform:
+    needs: check-lint
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    permissions:
+      checks: write
+      pull-requests: write
+    name: test (platform)
+    defaults:
+      run:
+        working-directory: webapp
+    steps:
+      - name: ci/checkout-repo
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+      - name: ci/setup
+        uses: ./.github/actions/webapp-setup
+      - name: ci/test
+        env:
+          NODE_OPTIONS: --max_old_space_size=5120
+        run: |
+          npm run test-ci --workspace=platform/client --workspace=platform/components -- --coverage
+      - name: ci/upload-coverage-artifact
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: coverage-platform
+          path: |
+            ./webapp/platform/client/coverage
+            ./webapp/platform/components/coverage
+          retention-days: 1
+
+  test-mattermost-redux:
+    needs: check-lint
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    permissions:
+      checks: write
+      pull-requests: write
+    name: test (mattermost-redux)
+    defaults:
+      run:
+        working-directory: webapp/channels
+    steps:
+      - name: ci/checkout-repo
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+      - name: ci/setup
+        uses: ./.github/actions/webapp-setup
+      - name: ci/test
+        env:
+          NODE_OPTIONS: --max_old_space_size=5120
+        run: |
+          npm run test-ci -- --config jest.config.mattermost-redux.js
+      - name: ci/upload-coverage-artifact
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: coverage-mattermost-redux
+          path: ./webapp/channels/coverage
+          retention-days: 1
+
+  test-channels:
+    needs: check-lint
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    permissions:
+      checks: write
+      pull-requests: write
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: [1, 2, 3, 4]
+    name: test (channels shard ${{ matrix.shard }}/4)
+    defaults:
+      run:
+        working-directory: webapp/channels
+    steps:
+      - name: ci/checkout-repo
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+      - name: ci/setup
+        uses: ./.github/actions/webapp-setup
+      - name: ci/test
+        env:
+          NODE_OPTIONS: --max_old_space_size=5120
+        run: |
+          npm run test-ci -- --config jest.config.channels.js --coverageDirectory=coverage/shard-${{ matrix.shard }} --shard=${{ matrix.shard }}/4
+      - name: ci/upload-coverage-artifact
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: coverage-channels-shard-${{ matrix.shard }}
+          path: ./webapp/channels/coverage/shard-${{ matrix.shard }}
+          retention-days: 1
+
+  upload-coverage:
+    runs-on: ubuntu-24.04
+    needs: [test-platform, test-mattermost-redux, test-channels]
+    if: ${{ github.event_name != 'pull_request' || !startsWith(github.event.pull_request.base.ref, 'release-') }}
+    defaults:
+      run:
+        working-directory: webapp/channels
+    steps:
+      - name: ci/checkout-repo
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+      - name: ci/setup
+        uses: ./.github/actions/webapp-setup
+      - name: ci/download-coverage-artifacts
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
+        with:
+          pattern: coverage-*
+          path: webapp/channels/coverage-artifacts
+          merge-multiple: false
+      - name: ci/merge-coverage
+        run: |
+          # Collect all coverage JSON files into coverage directory for nyc
+          mkdir -p coverage
+
+          # Copy channels shard coverage
+          for shard in 1 2 3 4; do
+            if [ -f "coverage-artifacts/coverage-channels-shard-${shard}/coverage-final.json" ]; then
+              cp "coverage-artifacts/coverage-channels-shard-${shard}/coverage-final.json" "coverage/channels-shard-${shard}.json"
+              echo "Copied channels shard ${shard} coverage"
+            fi
+          done
+
+          # Copy platform coverage
+          for pkg in client components; do
+            if [ -f "coverage-artifacts/coverage-platform/platform/${pkg}/coverage/coverage-final.json" ]; then
+              cp "coverage-artifacts/coverage-platform/platform/${pkg}/coverage/coverage-final.json" "coverage/platform-${pkg}.json"
+              echo "Copied platform/${pkg} coverage"
+            fi
+          done
+
+          # Copy mattermost-redux coverage
+          if [ -f "coverage-artifacts/coverage-mattermost-redux/coverage/coverage-final.json" ]; then
+            cp "coverage-artifacts/coverage-mattermost-redux/coverage/coverage-final.json" "coverage/mattermost-redux.json"
+            echo "Copied mattermost-redux coverage"
+          fi
+
+          # Merge all coverage using nyc
+          npx nyc merge coverage .nyc_output/merged-coverage.json
+          npx nyc report --reporter=text-summary --reporter=lcov --temp-dir .nyc_output --report-dir coverage/merged
+          echo "Coverage merged successfully"
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v5
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          disable_search: true
+          files: ./webapp/channels/coverage/merged/lcov.info
+
+  build:
+    needs: check-lint
+    runs-on: ubuntu-24.04
+    defaults:
+      run:
+        working-directory: webapp
+    steps:
+      - name: ci/checkout-repo
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+      - name: ci/setup
+        uses: ./.github/actions/webapp-setup
+      - name: ci/build
+        run: |
+          npm run build
+
+  # run-performance-bechmarks:
+  #   uses: ./.github/workflows/performance-benchmarks.yml
+  #   needs: build

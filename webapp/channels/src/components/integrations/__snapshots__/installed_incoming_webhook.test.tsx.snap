@@ -1,4 +1,4 @@
-// Jest Snapshot v1, https://goo.gl/fbAQLP
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
 
 exports[`components/integrations/InstalledIncomingWebhook should match snapshot 1`] = `
 <div
@@ -58,12 +58,20 @@ exports[`components/integrations/InstalledIncomingWebhook should match snapshot 
           id="installed_integrations.url"
           values={
             Object {
-              "url": "http://localhost:8065/hooks/9w96t4nhbfdiij64wfqors4i1r",
+              "url": <code>
+                http://localhost:8065/hooks/9w96t4nhbfdiij64wfqors4i1r
+              </code>,
             }
           }
         />
         <span>
           <Memo(CopyText)
+            label={
+              Object {
+                "defaultMessage": "Copy URL",
+                "id": "integrations.copy_url",
+              }
+            }
             value="http://localhost:8065/hooks/9w96t4nhbfdiij64wfqors4i1r"
           />
         </span>

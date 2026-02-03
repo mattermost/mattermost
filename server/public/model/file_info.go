@@ -53,14 +53,14 @@ type FileInfo struct {
 	Width           int     `json:"width,omitempty"`
 	Height          int     `json:"height,omitempty"`
 	HasPreviewImage bool    `json:"has_preview_image,omitempty"`
-	MiniPreview     *[]byte `json:"mini_preview"` // declared as *[]byte to avoid postgres/mysql differences in deserialization
+	MiniPreview     *[]byte `json:"mini_preview"` // pointer to distinguish NULL (no preview) from empty data
 	Content         string  `json:"-"`
 	RemoteId        *string `json:"remote_id"`
 	Archived        bool    `json:"archived"`
 }
 
-func (fi *FileInfo) Auditable() map[string]interface{} {
-	return map[string]interface{}{
+func (fi *FileInfo) Auditable() map[string]any {
+	return map[string]any{
 		"id":         fi.Id,
 		"creator_id": fi.CreatorId,
 		"post_id":    fi.PostId,
@@ -88,7 +88,7 @@ func (fi *FileInfo) PreSave() {
 	}
 
 	if fi.RemoteId == nil {
-		fi.RemoteId = NewString("")
+		fi.RemoteId = NewPointer("")
 	}
 }
 
@@ -97,7 +97,7 @@ func (fi *FileInfo) IsValid() *AppError {
 		return NewAppError("FileInfo.IsValid", "model.file_info.is_valid.id.app_error", nil, "", http.StatusBadRequest)
 	}
 
-	if !IsValidId(fi.CreatorId) && fi.CreatorId != "nouser" {
+	if !IsValidId(fi.CreatorId) && (fi.CreatorId != "nouser" && fi.CreatorId != BookmarkFileOwner) {
 		return NewAppError("FileInfo.IsValid", "model.file_info.is_valid.user_id.app_error", nil, "id="+fi.Id, http.StatusBadRequest)
 	}
 

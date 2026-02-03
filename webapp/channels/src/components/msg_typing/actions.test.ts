@@ -1,8 +1,9 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {WebSocketTypes} from 'mattermost-redux/action_types';
 import {getMissingProfilesByIds, getStatusesByIds} from 'mattermost-redux/actions/users';
-import {General, WebsocketEvents} from 'mattermost-redux/constants';
+import {General} from 'mattermost-redux/constants';
 
 import mergeObjects from 'packages/mattermost-redux/test/merge_objects';
 import configureStore from 'tests/test_store';
@@ -18,7 +19,9 @@ describe('handleUserTypingEvent', () => {
     const initialState = {
         entities: {
             general: {
-                config: {},
+                config: {
+                    EnableUserStatuses: 'true',
+                },
             },
             users: {
                 currentUserId: 'user',
@@ -37,8 +40,8 @@ describe('handleUserTypingEvent', () => {
 
         store.dispatch(userStartedTyping(userId, channelId, rootId, Date.now()));
 
-        expect(store.getActions().find((action) => action.type === WebsocketEvents.TYPING)).toMatchObject({
-            type: WebsocketEvents.TYPING,
+        expect(store.getActions().find((action) => action.type === WebSocketTypes.TYPING)).toMatchObject({
+            type: WebSocketTypes.TYPING,
             data: {
                 id: channelId + rootId,
                 userId,
@@ -79,6 +82,25 @@ describe('handleUserTypingEvent', () => {
         await Promise.resolve();
 
         expect(getStatusesByIds).toHaveBeenCalled();
+    });
+
+    test('should NOT load statuses for users if enableUserStatuses config is disabled', async () => {
+        const state = mergeObjects(initialState, {
+            entities: {
+                general: {
+                    config: {
+                        EnableUserStatuses: 'false',
+                    },
+                },
+            },
+        });
+        const store = configureStore(state);
+        store.dispatch(userStartedTyping(userId, channelId, rootId, Date.now()));
+
+        // Wait for side effects to resolve
+        await Promise.resolve();
+
+        expect(getStatusesByIds).not.toHaveBeenCalled();
     });
 
     test('should not load statuses for users that are online', async () => {

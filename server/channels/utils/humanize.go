@@ -14,12 +14,11 @@ func JoinList(items []string) string {
 		return ""
 	} else if len(items) == 1 {
 		return items[0]
-	} else {
-		return i18n.T(
-			"humanize.list_join",
-			map[string]any{
-				"OtherItems": strings.Join(items[:len(items)-1], ", "),
-				"LastItem":   items[len(items)-1],
-			})
 	}
+	return i18n.T(
+		"humanize.list_join",
+		map[string]any{
+			"OtherItems": strings.Join(items[:len(items)-1], ", "),
+			"LastItem":   items[len(items)-1],
+		})
 }

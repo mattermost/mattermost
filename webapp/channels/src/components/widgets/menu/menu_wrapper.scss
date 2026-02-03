@@ -1,10 +1,10 @@
-@import 'utils/module';
+@use 'utils/functions';
 
 .MenuWrapper {
     position: relative;
 
     *:first-child {
-        @include unselectable;
+        @include functions.unselectable;
     }
 }
 

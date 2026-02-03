@@ -10,6 +10,7 @@ import (
 	"strings"
 
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
 )
 
@@ -49,24 +50,24 @@ func (s LocalCachePostStore) ClearCaches() {
 	s.PostStore.ClearCaches()
 
 	if s.rootStore.metrics != nil {
-		s.rootStore.metrics.IncrementMemCacheInvalidationCounter("Last Post Time - Purge")
-		s.rootStore.metrics.IncrementMemCacheInvalidationCounter("Last Posts Cache - Purge")
-		s.rootStore.metrics.IncrementMemCacheInvalidationCounter("Posts Usage Cache - Purge")
+		s.rootStore.metrics.IncrementMemCacheInvalidationCounter(s.rootStore.lastPostTimeCache.Name())
+		s.rootStore.metrics.IncrementMemCacheInvalidationCounter(s.rootStore.postLastPostsCache.Name())
+		s.rootStore.metrics.IncrementMemCacheInvalidationCounter(s.rootStore.postsUsageCache.Name())
 	}
 }
 
 func (s LocalCachePostStore) InvalidateLastPostTimeCache(channelId string) {
-	s.rootStore.doInvalidateCacheCluster(s.rootStore.lastPostTimeCache, channelId)
+	s.rootStore.doInvalidateCacheCluster(s.rootStore.lastPostTimeCache, channelId, nil)
 
 	// Keys are "{channelid}{limit}" and caching only occurs on limits of 30 and 60
-	s.rootStore.doInvalidateCacheCluster(s.rootStore.postLastPostsCache, channelId+"30")
-	s.rootStore.doInvalidateCacheCluster(s.rootStore.postLastPostsCache, channelId+"60")
+	s.rootStore.doInvalidateCacheCluster(s.rootStore.postLastPostsCache, channelId+"30", nil)
+	s.rootStore.doInvalidateCacheCluster(s.rootStore.postLastPostsCache, channelId+"60", nil)
 
 	s.PostStore.InvalidateLastPostTimeCache(channelId)
 
 	if s.rootStore.metrics != nil {
-		s.rootStore.metrics.IncrementMemCacheInvalidationCounter("Last Post Time - Remove by Channel Id")
-		s.rootStore.metrics.IncrementMemCacheInvalidationCounter("Last Posts Cache - Remove by Channel Id")
+		s.rootStore.metrics.IncrementMemCacheInvalidationCounter(s.rootStore.lastPostTimeCache.Name())
+		s.rootStore.metrics.IncrementMemCacheInvalidationCounter(s.rootStore.postLastPostsCache.Name())
 	}
 }
 
@@ -89,7 +90,7 @@ func (s LocalCachePostStore) GetEtag(channelId string, allowFromCache, collapsed
 	return result
 }
 
-func (s LocalCachePostStore) GetPostsSince(options model.GetPostsSinceOptions, allowFromCache bool, sanitizeOptions map[string]bool) (*model.PostList, error) {
+func (s LocalCachePostStore) GetPostsSince(rctx request.CTX, options model.GetPostsSinceOptions, allowFromCache bool, sanitizeOptions map[string]bool) (*model.PostList, error) {
 	if allowFromCache {
 		// If the last post in the channel's time is less than or equal to the time we are getting posts since,
 		// we can safely return no posts.
@@ -100,7 +101,7 @@ func (s LocalCachePostStore) GetPostsSince(options model.GetPostsSinceOptions, a
 		}
 	}
 
-	list, err := s.PostStore.GetPostsSince(options, allowFromCache, sanitizeOptions)
+	list, err := s.PostStore.GetPostsSince(rctx, options, allowFromCache, sanitizeOptions)
 
 	latestUpdate := options.Time
 	if err == nil {
@@ -115,9 +116,9 @@ func (s LocalCachePostStore) GetPostsSince(options model.GetPostsSinceOptions, a
 	return list, err
 }
 
-func (s LocalCachePostStore) GetPosts(options model.GetPostsOptions, allowFromCache bool, sanitizeOptions map[string]bool) (*model.PostList, error) {
+func (s LocalCachePostStore) GetPosts(rctx request.CTX, options model.GetPostsOptions, allowFromCache bool, sanitizeOptions map[string]bool) (*model.PostList, error) {
 	if !allowFromCache {
-		return s.PostStore.GetPosts(options, allowFromCache, sanitizeOptions)
+		return s.PostStore.GetPosts(rctx, options, allowFromCache, sanitizeOptions)
 	}
 
 	offset := options.PerPage * options.Page
@@ -129,7 +130,7 @@ func (s LocalCachePostStore) GetPosts(options model.GetPostsOptions, allowFromCa
 		}
 	}
 
-	list, err := s.PostStore.GetPosts(options, false, sanitizeOptions)
+	list, err := s.PostStore.GetPosts(rctx, options, false, sanitizeOptions)
 	if err != nil {
 		return nil, err
 	}

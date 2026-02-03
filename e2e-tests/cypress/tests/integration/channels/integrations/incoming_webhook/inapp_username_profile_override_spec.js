@@ -7,7 +7,6 @@
 // - Use element ID when selecting an element. Create one if none.
 // ***************************************************************
 
-// Stage: @prod
 // Group: @channels @incoming_webhook
 
 import {getRandomId} from '../../../../utils';
@@ -160,7 +159,7 @@ function verifyLastPost(owner, username, iconUrl) {
 
 function verifyProfilePopover(owner, username, iconUrl) {
     // * Verify that the profile popover is shown
-    cy.get('#user-profile-popover').should('be.visible').within(() => {
+    cy.get('div.user-profile-popover').should('be.visible').within(() => {
         // * Verify username from payload
         cy.get('.user-profile-popover__heading').should('be.visible').and('have.text', username);
 

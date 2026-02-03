@@ -10,6 +10,7 @@ import type {Channel} from '@mattermost/types/channels';
 import type {ClientConfig, ClientLicense} from '@mattermost/types/config';
 import type {ServerError} from '@mattermost/types/errors';
 import type {Group} from '@mattermost/types/groups';
+import {isMessageAttachmentArray} from '@mattermost/types/message_attachments';
 import type {Post, PostPriorityMetadata} from '@mattermost/types/posts';
 import {PostPriority} from '@mattermost/types/posts';
 import type {Reaction} from '@mattermost/types/reactions';
@@ -21,8 +22,8 @@ import {createSelector} from 'mattermost-redux/selectors/create_selector';
 import {getChannel} from 'mattermost-redux/selectors/entities/channels';
 import {getConfig} from 'mattermost-redux/selectors/entities/general';
 import {getAllGroupsForReferenceByName} from 'mattermost-redux/selectors/entities/groups';
-import {makeGetReactionsForPost} from 'mattermost-redux/selectors/entities/posts';
-import {get, getTeammateNameDisplaySetting, isCollapsedThreadsEnabled} from 'mattermost-redux/selectors/entities/preferences';
+import {isPostFlagged, makeGetReactionsForPost} from 'mattermost-redux/selectors/entities/posts';
+import {getTeammateNameDisplaySetting, isCollapsedThreadsEnabled} from 'mattermost-redux/selectors/entities/preferences';
 import {haveIChannelPermission} from 'mattermost-redux/selectors/entities/roles';
 import {getCurrentTeamId, getTeam} from 'mattermost-redux/selectors/entities/teams';
 import {makeGetDisplayName, getCurrentUserId, getUser, getUsersByUsername} from 'mattermost-redux/selectors/entities/users';
@@ -36,7 +37,7 @@ import {displayUsername} from 'mattermost-redux/utils/user_utils';
 import {getEmojiMap} from 'selectors/emojis';
 import {getIsMobileView} from 'selectors/views/browser';
 
-import Constants, {PostListRowListIds, Preferences} from 'utils/constants';
+import Constants, {PostListRowListIds} from 'utils/constants';
 import * as Keyboard from 'utils/keyboard';
 import {formatWithRenderer} from 'utils/markdown';
 import MentionableRenderer from 'utils/markdown/mentionable_renderer';
@@ -59,7 +60,7 @@ export function fromAutoResponder(post: Post): boolean {
 }
 
 export function isFromWebhook(post: Post): boolean {
-    return post.props && post.props.from_webhook === 'true';
+    return post.props?.from_webhook === 'true';
 }
 
 export function isFromBot(post: Post): boolean {
@@ -95,7 +96,7 @@ export function getImageSrc(src: string, hasImageProxy = false): string {
     return src;
 }
 
-export function canDeletePost(state: GlobalState, post: Post, channel: Channel): boolean {
+export function canDeletePost(state: GlobalState, post: Post, channel?: Channel): boolean {
     if (post.type === Constants.PostTypes.FAKE_PARENT_DELETED) {
         return false;
     }
@@ -153,6 +154,11 @@ export function shouldShowActionsMenu(state: GlobalState, post: Post): boolean {
     }
 
     if (isSystemMessage(post)) {
+        return false;
+    }
+
+    // Hide plugin/app actions for burn-on-read posts
+    if (post.type === Constants.PostTypes.BURN_ON_READ) {
         return false;
     }
 
@@ -303,7 +309,7 @@ export function postMessageOnKeyPress(
     now = 0,
     lastChannelSwitchAt = 0,
     caretPosition = 0,
-): {allowSending: boolean; ignoreKeyPress?: boolean} {
+): {allowSending: boolean; ignoreKeyPress?: boolean; withClosedCodeBlock?: boolean; message?: string} {
     if (!event) {
         return {allowSending: false};
     }
@@ -339,6 +345,10 @@ export function postMessageOnKeyPress(
     }
 
     return {allowSending: false};
+}
+
+export function isServerError(err: unknown): err is ServerError {
+    return Boolean(err && typeof err === 'object' && 'server_error_id' in err);
 }
 
 export function isErrorInvalidSlashCommand(error: ServerError | null): boolean {
@@ -467,8 +477,8 @@ export function usePostAriaLabel(post: Post | undefined) {
         }
 
         const authorDisplayName = getDisplayName(state, post.user_id);
-        const reactions = getReactionsForPost(state, post?.id);
-        const isFlagged = get(state, Preferences.CATEGORY_FLAGGED_POST, post.id, null) != null;
+        const reactions = getReactionsForPost(state, post.id);
+        const isFlagged = isPostFlagged(state, post.id);
         const emojiMap = getEmojiMap(state);
         const mentions = getMentionsFromMessage(state, post);
         const teammateNameDisplaySetting = getTeammateNameDisplaySetting(state);
@@ -541,7 +551,7 @@ export function createAriaLabelForPost(post: Post, author: string, isFlagged: bo
     }
 
     let attachmentCount = 0;
-    if (post.props && post.props.attachments) {
+    if (isMessageAttachmentArray(post.props?.attachments)) {
         attachmentCount += post.props.attachments.length;
     }
     if (post.file_ids) {
@@ -626,20 +636,31 @@ export function splitMessageBasedOnTextSelection(selectionStart: number, selecti
     return {firstPiece, lastPiece};
 }
 
-export function getNewMessageIndex(postListIds: string[]): number {
-    return postListIds.findIndex(
-        (item) => item.indexOf(PostListRowListIds.START_OF_NEW_MESSAGES) === 0,
-    );
-}
-
 export function areConsecutivePostsBySameUser(post: Post, previousPost: Post): boolean {
     if (!(post && previousPost)) {
         return false;
     }
-    return post.user_id === previousPost.user_id && // The post is by the same user
-        post.create_at - previousPost.create_at <= Posts.POST_COLLAPSE_TIMEOUT && // And was within a short time period
-        !(post.props && post.props.from_webhook) && !(previousPost.props && previousPost.props.from_webhook) && // And neither is from a webhook
-        !isSystemMessage(post) && !isSystemMessage(previousPost); // And neither is a system message
+
+    const sameUser = post.user_id === previousPost.user_id;
+    const withinTimeWindow = post.create_at - previousPost.create_at <= Posts.POST_COLLAPSE_TIMEOUT;
+    const notFromWebhook = !(post.props && post.props.from_webhook) && !(previousPost.props && previousPost.props.from_webhook);
+    const notSystemMessage = !isSystemMessage(post) && !isSystemMessage(previousPost);
+    const sameAiGeneratedStatus = post.props?.ai_generated_by === previousPost.props?.ai_generated_by;
+    const notBoRMessage = post.type !== Constants.PostTypes.BURN_ON_READ && previousPost.type !== Constants.PostTypes.BURN_ON_READ; // And neither is a burn-on-read post
+
+    return sameUser &&
+        withinTimeWindow &&
+        notFromWebhook &&
+        notSystemMessage &&
+        sameAiGeneratedStatus &&
+        notBoRMessage;
+}
+
+// Checks if a post has valid AI-generated metadata
+export function hasAiGeneratedMetadata(post: Post): boolean {
+    return Boolean(post.props && post.props.ai_generated_by && post.props.ai_generated_by_username) &&
+        typeof post.props.ai_generated_by === 'string' &&
+        typeof post.props.ai_generated_by_username === 'string';
 }
 
 // Constructs the URL of a post.
@@ -651,8 +672,14 @@ export function areConsecutivePostsBySameUser(post: Post, previousPost: Post): b
 // Note: In the case of DM_CHANNEL, users must be fetched beforehand.
 export function getPostURL(state: GlobalState, post: Post): string {
     const channel = getChannel(state, post.channel_id);
+    if (!channel) {
+        return '';
+    }
     const currentUserId = getCurrentUserId(state);
     const team = getTeam(state, channel.team_id || getCurrentTeamId(state));
+    if (!team) {
+        return '';
+    }
 
     const postURI = isCollapsedThreadsEnabled(state) && isComment(post) ? '' : `/${post.id}`;
 
@@ -753,19 +780,32 @@ export function makeGetIsReactionAlreadyAddedToPost(): (state: GlobalState, post
     );
 }
 
-export function getMentionDetails(usersByUsername: Record<string, UserProfile | Group>, mentionName: string): UserProfile | Group | undefined {
+/**
+ * Given the text of an at-mention without the @, returns an array containing that text and every substring of it that
+ * can be made by removing trailing punctiuation.
+ *
+ * For example, getPotentialMentionsForName('username') returns ['username'] and
+ * getPotentialMentionsForName('username..') return ['username..', 'username.', 'username'].
+ */
+export function getPotentialMentionsForName(mentionName: string): string[] {
     let mentionNameToLowerCase = mentionName.toLowerCase();
 
-    while (mentionNameToLowerCase.length > 0) {
-        if (usersByUsername.hasOwnProperty(mentionNameToLowerCase)) {
-            return usersByUsername[mentionNameToLowerCase];
-        }
+    const potentialMentions = [mentionNameToLowerCase];
 
-        // Repeatedly trim off trailing punctuation in case this is at the end of a sentence
-        if ((/[._-]$/).test(mentionNameToLowerCase)) {
-            mentionNameToLowerCase = mentionNameToLowerCase.substring(0, mentionNameToLowerCase.length - 1);
-        } else {
-            break;
+    // Repeatedly trim off trailing punctuation in case this is at the end of a sentence
+    while (mentionNameToLowerCase.length > 0 && (/[._-]$/).test(mentionNameToLowerCase)) {
+        mentionNameToLowerCase = mentionNameToLowerCase.substring(0, mentionNameToLowerCase.length - 1);
+
+        potentialMentions.push(mentionNameToLowerCase);
+    }
+
+    return potentialMentions;
+}
+
+export function getMentionDetails<T extends UserProfile | Group>(entitiesByName: Record<string, T>, mentionName: string): T | undefined {
+    for (const potentialMention of getPotentialMentionsForName(mentionName)) {
+        if (Object.hasOwn(entitiesByName, potentialMention)) {
+            return entitiesByName[potentialMention];
         }
     }
 
@@ -779,11 +819,11 @@ export function getUserOrGroupFromMentionName(
     groupsDisabled?: boolean,
     getMention = getMentionDetails,
 ): [UserProfile?, Group?] {
-    const user = getMention(users, mentionName) as UserProfile | undefined;
+    const user = getMention(users, mentionName);
 
     // prioritizes user if user exists with the same name as a group.
     if (!user && !groupsDisabled) {
-        const group = getMention(groups, mentionName) as Group | undefined;
+        const group = getMention(groups, mentionName);
         if (group && !group.allow_reference) {
             return [undefined, undefined]; // remove group mention if not allowed to reference
         }

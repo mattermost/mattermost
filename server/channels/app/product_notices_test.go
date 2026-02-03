@@ -19,6 +19,7 @@ import (
 )
 
 func TestNoticeValidation(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := SetupWithStoreMock(t)
 	mockStore := th.App.Srv().Store().(*mocks.Store)
 	mockRoleStore := mocks.RoleStore{}
@@ -48,8 +49,6 @@ func TestNoticeValidation(t *testing.T) {
 		*cfg.AnnouncementSettings.AdminNoticesEnabled = true
 		*cfg.AnnouncementSettings.UserNoticesEnabled = true
 	})
-
-	defer th.TearDown()
 
 	type args struct {
 		client               model.NoticeClientType
@@ -248,7 +247,7 @@ func TestNoticeValidation(t *testing.T) {
 				userCount: 300,
 				notice: &model.ProductNotice{
 					Conditions: model.Conditions{
-						NumberOfUsers: model.NewInt64(400),
+						NumberOfUsers: model.NewPointer(int64(400)),
 					},
 				},
 			},
@@ -262,8 +261,8 @@ func TestNoticeValidation(t *testing.T) {
 				postCount: 2000,
 				notice: &model.ProductNotice{
 					Conditions: model.Conditions{
-						NumberOfUsers: model.NewInt64(400),
-						NumberOfPosts: model.NewInt64(3000),
+						NumberOfUsers: model.NewPointer(int64(400)),
+						NumberOfPosts: model.NewPointer(int64(3000)),
 					},
 				},
 			},
@@ -275,7 +274,7 @@ func TestNoticeValidation(t *testing.T) {
 			args: args{
 				notice: &model.ProductNotice{
 					Conditions: model.Conditions{
-						DisplayDate: model.NewString("> 2000-03-01T00:00:00Z <= 2999-04-01T00:00:00Z"),
+						DisplayDate: model.NewPointer("> 2000-03-01T00:00:00Z <= 2999-04-01T00:00:00Z"),
 					},
 				},
 			},
@@ -287,7 +286,7 @@ func TestNoticeValidation(t *testing.T) {
 			args: args{
 				notice: &model.ProductNotice{
 					Conditions: model.Conditions{
-						DisplayDate: model.NewString(fmt.Sprintf("= %sT00:00:00Z", time.Now().UTC().Format("2006-01-02"))),
+						DisplayDate: model.NewPointer(fmt.Sprintf("= %sT00:00:00Z", time.Now().UTC().Format("2006-01-02"))),
 					},
 				},
 			},
@@ -299,7 +298,7 @@ func TestNoticeValidation(t *testing.T) {
 			args: args{
 				notice: &model.ProductNotice{
 					Conditions: model.Conditions{
-						DisplayDate: model.NewString("> 2999-03-01T00:00:00Z <= 3000-04-01T00:00:00Z"),
+						DisplayDate: model.NewPointer("> 2999-03-01T00:00:00Z <= 3000-04-01T00:00:00Z"),
 					},
 				},
 			},
@@ -311,7 +310,7 @@ func TestNoticeValidation(t *testing.T) {
 			args: args{
 				notice: &model.ProductNotice{
 					Conditions: model.Conditions{
-						DisplayDate: model.NewString("> 2000 -03-01T00:00:00Z <= 2999-04-01T00:00:00Z"),
+						DisplayDate: model.NewPointer("> 2000 -03-01T00:00:00Z <= 2999-04-01T00:00:00Z"),
 					},
 				},
 			},
@@ -472,63 +471,10 @@ func TestNoticeValidation(t *testing.T) {
 			wantOk:  true,
 		},
 		{
-			name: "notice with deprecating an external dependency",
-			args: args{
-				dbmsName: "mysql",
-				dbmsVer:  "5.6",
-				notice: &model.ProductNotice{
-					Conditions: model.Conditions{
-						DeprecatingDependency: &model.ExternalDependency{
-							Name:           "mysql",
-							MinimumVersion: "5.7",
-						},
-					},
-				},
-			},
-			wantErr: false,
-			wantOk:  true,
-		},
-		{
-			name: "notice with deprecating an external dependency, on a future version",
-			args: args{
-				dbmsName:      "mysql",
-				dbmsVer:       "5.6",
-				serverVersion: "5.32.1",
-				notice: &model.ProductNotice{
-					Conditions: model.Conditions{
-						ServerVersion: []string{">=v5.33"},
-						DeprecatingDependency: &model.ExternalDependency{
-							Name:           "mysql",
-							MinimumVersion: "5.7",
-						},
-					},
-				},
-			},
-			wantErr: false,
-			wantOk:  false,
-		},
-		{
 			name: "notice on a deprecating dependency, server is all good",
 			args: args{
 				dbmsName: "postgres",
 				dbmsVer:  "10",
-				notice: &model.ProductNotice{
-					Conditions: model.Conditions{
-						DeprecatingDependency: &model.ExternalDependency{
-							Name:           "postgres",
-							MinimumVersion: "10",
-						},
-					},
-				},
-			},
-			wantErr: false,
-			wantOk:  false,
-		},
-		{
-			name: "notice on a deprecating dependency, server has different dbms",
-			args: args{
-				dbmsName: "mysql",
-				dbmsVer:  "5.7",
 				notice: &model.ProductNotice{
 					Conditions: model.Conditions{
 						DeprecatingDependency: &model.ExternalDependency{
@@ -566,18 +512,17 @@ func TestNoticeValidation(t *testing.T) {
 				clientVersion = "1.2.3"
 			}
 
-			model.CurrentVersion = tt.args.serverVersion
-			if model.CurrentVersion == "" {
-				model.CurrentVersion = "5.26.1"
-				defer func() {
-					model.CurrentVersion = ""
-				}()
+			serverVersion := tt.args.serverVersion
+			if serverVersion == "" {
+				serverVersion = "5.26.1"
 			}
+
 			if ok, err := noticeMatchesConditions(
 				th.App.Config(),
 				th.App.Srv().Store().Preference(),
 				"test",
 				tt.args.client,
+				serverVersion,
 				clientVersion,
 				tt.args.postCount,
 				tt.args.userCount,
@@ -600,8 +545,8 @@ func TestNoticeValidation(t *testing.T) {
 }
 
 func TestNoticeFetch(t *testing.T) {
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
 
 	notices := model.ProductNotices{model.ProductNotice{
 		Conditions: model.Conditions{},
@@ -619,7 +564,7 @@ func TestNoticeFetch(t *testing.T) {
 
 	notices2 := model.ProductNotices{model.ProductNotice{
 		Conditions: model.Conditions{
-			NumberOfPosts: model.NewInt64(99999),
+			NumberOfPosts: model.NewPointer(int64(99999)),
 		},
 		ID: "333",
 		LocalizedMessages: map[string]model.NoticeMessageInternal{
@@ -634,9 +579,11 @@ func TestNoticeFetch(t *testing.T) {
 	require.NoError(t, err)
 	server1 := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if strings.HasSuffix(r.URL.Path, "notices.json") {
-			w.Write(noticesBytes)
+			_, err = w.Write(noticesBytes)
+			require.NoError(t, err)
 		} else {
-			w.Write(noticesBytes2)
+			_, err = w.Write(noticesBytes2)
+			require.NoError(t, err)
 		}
 	}))
 	defer server1.Close()

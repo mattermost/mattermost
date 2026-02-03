@@ -23,12 +23,12 @@ var searchFileInfoStoreTests = []searchTest{
 	{
 		Name: "Should be able to search posts using pagination",
 		Fn:   testFileInfoSearchFileInfosWithPagination,
-		Tags: []string{EngineElasticSearch, EngineBleve},
+		Tags: []string{EngineElasticSearch},
 	},
 	{
 		Name: "Should be able to search for exact phrases in quotes",
 		Fn:   testFileInfoSearchExactPhraseInQuotes,
-		Tags: []string{EnginePostgres, EngineMySql, EngineElasticSearch},
+		Tags: []string{EnginePostgres, EngineElasticSearch},
 	},
 	{
 		Name: "Should be able to search for email addresses with or without quotes",
@@ -93,12 +93,12 @@ var searchFileInfoStoreTests = []searchTest{
 	{
 		Name: "Should be able to exclude messages that contain a search term",
 		Fn:   testFileInfoFilterFilesWithATerm,
-		Tags: []string{EngineMySql, EnginePostgres},
+		Tags: []string{EnginePostgres},
 	},
 	{
 		Name: "Should be able to search using boolean operators",
 		Fn:   testFileInfoSearchUsingBooleanOperators,
-		Tags: []string{EngineMySql, EnginePostgres, EngineElasticSearch},
+		Tags: []string{EnginePostgres, EngineElasticSearch},
 	},
 	{
 		Name: "Should be able to search with combined filters",
@@ -108,7 +108,7 @@ var searchFileInfoStoreTests = []searchTest{
 	{
 		Name: "Should be able to ignore stop words",
 		Fn:   testFileInfoSearchIgnoringStopWords,
-		Tags: []string{EngineMySql, EngineElasticSearch},
+		Tags: []string{EngineElasticSearch},
 	},
 	{
 		Name: "Should support search stemming",
@@ -139,12 +139,12 @@ var searchFileInfoStoreTests = []searchTest{
 	{
 		Name: "Should support terms with underscore",
 		Fn:   testFileInfoSupportTermsWithUnderscore,
-		Tags: []string{EngineMySql, EngineElasticSearch},
+		Tags: []string{EngineElasticSearch},
 	},
 	{
 		Name: "Should be able to search in deleted/archived channels",
 		Fn:   testFileInfoSearchInDeletedOrArchivedChannels,
-		Tags: []string{EngineMySql, EnginePostgres},
+		Tags: []string{EnginePostgres},
 	},
 	{
 		Name:        "Should be able to search terms with dashes",
@@ -161,7 +161,7 @@ var searchFileInfoStoreTests = []searchTest{
 	{
 		Name: "Should be able to search terms with underscores",
 		Fn:   testFileInfoSearchTermsWithUnderscores,
-		Tags: []string{EngineMySql, EngineElasticSearch},
+		Tags: []string{EngineElasticSearch},
 	},
 	{
 		Name: "Should be able to combine stemming and wildcards",
@@ -176,12 +176,32 @@ var searchFileInfoStoreTests = []searchTest{
 	{
 		Name: "Should not support slash as character separator",
 		Fn:   testFileInfoSlashShouldNotBeCharSeparator,
-		Tags: []string{EngineMySql, EngineElasticSearch},
+		Tags: []string{EngineElasticSearch},
 	},
 	{
 		Name: "Should be able to search emails without quoting them",
 		Fn:   testFileInfoSearchEmailsWithoutQuotes,
 		Tags: []string{EngineElasticSearch},
+	},
+	{
+		Name: "Should be removed from search index when deleted",
+		Fn:   testSearchFileDeletedPost,
+		Tags: []string{EngineAll},
+	},
+	{
+		Name: "Should not search files not attached to a post",
+		Fn:   testFileInfoSearchNoResultForPostlessFileInfos,
+		Tags: []string{EnginePostgres},
+	},
+	{
+		Name: "Should search files part of channel bookmarks",
+		Fn:   testFileInfoSearchShowChannelBookmarkFiles,
+		Tags: []string{EnginePostgres, EngineElasticSearch},
+	},
+	{
+		Name: "Should search files across teams",
+		Fn:   testFileInfoSearchAcrossTeams,
+		Tags: []string{EngineAll},
 	},
 }
 
@@ -1644,4 +1664,141 @@ func testFileInfoSearchEmailsWithoutQuotes(t *testing.T, th *SearchTestHelper) {
 
 	require.Len(t, results.FileInfos, 1)
 	th.checkFileInfoInSearchResults(t, p1.Id, results.FileInfos)
+}
+
+func testSearchFileDeletedPost(t *testing.T, th *SearchTestHelper) {
+	t.Run("Should not return file info for soft deleted post", func(t *testing.T) {
+		post, err := th.createPost(th.User.Id, th.ChannelBasic.Id, "deletedmessage", "", model.PostTypeDefault, 0, false)
+		require.NoError(t, err)
+
+		_, err = th.createFileInfo(th.User.Id, post.Id, post.ChannelId, "deletedmessage", "deletedmessage", "jpg", "image/jpeg", 0, 0)
+		require.NoError(t, err)
+
+		_, err = th.Store.FileInfo().DeleteForPost(th.Context, post.Id)
+		require.NoError(t, err)
+
+		params := &model.SearchParams{Terms: "deletedmessage"}
+		results, err := th.Store.FileInfo().Search(th.Context, []*model.SearchParams{params}, th.User.Id, th.Team.Id, 0, 20)
+		require.NoError(t, err)
+
+		require.Len(t, results.FileInfos, 0)
+	})
+
+	t.Run("Should not return file info for hard deleted post", func(t *testing.T) {
+		post, err := th.createPost(th.User.Id, th.ChannelBasic.Id, "deletedmessage", "", model.PostTypeDefault, 0, false)
+		require.NoError(t, err)
+
+		_, err = th.createFileInfo(th.User.Id, post.Id, post.ChannelId, "deletedmessage", "deletedmessage", "jpg", "image/jpeg", 0, 0)
+		require.NoError(t, err)
+
+		err = th.Store.FileInfo().PermanentDeleteForPost(th.Context, post.Id)
+		require.NoError(t, err)
+
+		params := &model.SearchParams{Terms: "deletedmessage"}
+		results, err := th.Store.FileInfo().Search(th.Context, []*model.SearchParams{params}, th.User.Id, th.Team.Id, 0, 20)
+		require.NoError(t, err)
+
+		require.Len(t, results.FileInfos, 0)
+	})
+}
+
+func testFileInfoSearchNoResultForPostlessFileInfos(t *testing.T, th *SearchTestHelper) {
+	_, err := th.createFileInfo(th.User.Id, "", th.ChannelBasic.Id, "message test@test.com", "message test@test.com", "jpg", "image/jpeg", 0, 0)
+	require.NoError(t, err)
+
+	defer th.deleteUserFileInfos(th.User.Id)
+
+	params := &model.SearchParams{
+		InChannels: []string{th.ChannelBasic.Id},
+	}
+	results, err := th.Store.FileInfo().Search(th.Context, []*model.SearchParams{params}, th.User.Id, th.Team.Id, 0, 20)
+	require.NoError(t, err)
+
+	require.Len(t, results.FileInfos, 0)
+}
+
+func testFileInfoSearchShowChannelBookmarkFiles(t *testing.T, th *SearchTestHelper) {
+	file, err := th.createFileInfo("bookmark", "", th.ChannelBasic.Id, "message test@test.com", "message test@test.com", "jpg", "image/jpeg", 0, 0)
+	require.NoError(t, err)
+
+	defer th.deleteUserFileInfos("bookmark")
+
+	params := &model.SearchParams{
+		InChannels: []string{th.ChannelBasic.Id},
+	}
+	results, err := th.Store.FileInfo().Search(th.Context, []*model.SearchParams{params}, th.User.Id, th.Team.Id, 0, 20)
+	require.NoError(t, err)
+
+	require.Len(t, results.FileInfos, 1)
+	require.Equal(t, "message test@test.com", results.FileInfos[file.Id].Name)
+}
+
+func testFileInfoSearchAcrossTeams(t *testing.T, th *SearchTestHelper) {
+	user1, err := th.createUser("user1", "user1", "user1", "user1")
+	require.NoError(t, err)
+	defer th.deleteUser(user1)
+
+	user2, err := th.createUser("user2", "user2", "user2", "user2")
+	require.NoError(t, err)
+	defer th.deleteUser(user2)
+
+	team1, err := th.createTeam("team1", "team1", model.TeamOpen)
+	require.NoError(t, err)
+	defer th.deleteTeam(team1)
+
+	team2, err := th.createTeam("team2", "team2", model.TeamOpen)
+	require.NoError(t, err)
+	defer th.deleteTeam(team2)
+
+	// user1 join both teams, user2 join team1
+	err = th.addUserToTeams(user1, []string{team1.Id, team2.Id})
+	require.NoError(t, err)
+	err = th.addUserToTeams(user2, []string{team1.Id})
+	require.NoError(t, err)
+
+	channel1, err := th.createChannel(team1.Id, "channel1", "channel1", "", model.ChannelTypeOpen, th.User, false)
+	require.NoError(t, err)
+	defer th.deleteChannel(channel1)
+
+	channel2, err := th.createChannel(team2.Id, "channel2", "channel2", "", model.ChannelTypeOpen, th.User, false)
+	require.NoError(t, err)
+	defer th.deleteChannel(channel2)
+
+	// user1 joins all channels, user2 joins channel1
+	err = th.addUserToChannels(user1, []string{channel1.Id, channel2.Id})
+	require.NoError(t, err)
+	err = th.addUserToChannels(user2, []string{channel1.Id})
+	require.NoError(t, err)
+
+	postInChannel1, err := th.createPost(user1.Id, channel1.Id, "message", "", model.PostTypeDefault, 0, false)
+	require.NoError(t, err)
+	defer th.deleteUserPosts(user1.Id)
+	postInChannel2, err := th.createPost(user1.Id, channel2.Id, "message", "", model.PostTypeDefault, 0, false)
+	require.NoError(t, err)
+	defer th.deleteUserPosts(user1.Id)
+
+	p1, err := th.createFileInfo(user1.Id, postInChannel1.Id, postInChannel1.ChannelId, "channel test filename", "channel contenttest filename", "jpg", "image/jpeg", 0, 0)
+	require.NoError(t, err)
+	defer th.deleteUserFileInfos(th.User.Id)
+	p2, err := th.createFileInfo(user1.Id, postInChannel2.Id, postInChannel2.ChannelId, "channel test filename", "channel contenttest filename", "jpg", "image/jpeg", 0, 0)
+	require.NoError(t, err)
+	defer th.deleteUserFileInfos(th.User.Id)
+
+	t.Run("user in all teams", func(t *testing.T) {
+		params := &model.SearchParams{Terms: "test"}
+		results, err := th.Store.FileInfo().Search(th.Context, []*model.SearchParams{params}, user1.Id, "", 0, 20)
+		require.NoError(t, err)
+
+		require.Len(t, results.FileInfos, 2)
+		th.checkFileInfoInSearchResults(t, p1.Id, results.FileInfos)
+		th.checkFileInfoInSearchResults(t, p2.Id, results.FileInfos)
+	})
+	t.Run("user in team1", func(t *testing.T) {
+		params := &model.SearchParams{Terms: "test"}
+		results, err := th.Store.FileInfo().Search(th.Context, []*model.SearchParams{params}, user2.Id, "", 0, 20)
+		require.NoError(t, err)
+
+		require.Len(t, results.FileInfos, 1)
+		th.checkFileInfoInSearchResults(t, p1.Id, results.FileInfos)
+	})
 }

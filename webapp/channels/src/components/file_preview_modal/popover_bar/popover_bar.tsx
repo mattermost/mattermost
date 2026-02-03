@@ -5,10 +5,9 @@ import debounce from 'lodash/debounce';
 import React from 'react';
 import {FormattedMessage} from 'react-intl';
 
-import OverlayTrigger from 'components/overlay_trigger';
-import Tooltip from 'components/tooltip';
+import WithTooltip from 'components/with_tooltip';
 
-import {Constants, ZoomSettings} from 'utils/constants';
+import {ZoomSettings} from 'utils/constants';
 
 export interface Props {
     scale?: number;
@@ -43,21 +42,17 @@ export default class PopoverBar extends React.PureComponent<Props> {
                 );
             }
             zoomControls.push(
-                <OverlayTrigger
-                    delayShow={Constants.OVERLAY_TIME_DELAY}
+                <WithTooltip
                     key='zoomOut'
-                    placement='top'
-                    overlay={
-                        <Tooltip id='zoom-out-icon-tooltip'>
-                            <FormattedMessage
-                                id='view_image.zoom_out'
-                                defaultMessage='Zoom Out'
-                            />
-                        </Tooltip>
+                    title={
+                        <FormattedMessage
+                            id='view_image.zoom_out'
+                            defaultMessage='Zoom Out'
+                        />
                     }
                 >
                     {zoomOutButton}
-                </OverlayTrigger>,
+                </WithTooltip>,
             );
 
             if (this.props.scale && this.props.scale > ZoomSettings.DEFAULT_SCALE) {
@@ -84,21 +79,17 @@ export default class PopoverBar extends React.PureComponent<Props> {
                 );
             }
             zoomControls.push(
-                <OverlayTrigger
-                    delayShow={Constants.OVERLAY_TIME_DELAY}
+                <WithTooltip
                     key='zoomReset'
-                    placement='top'
-                    overlay={
-                        <Tooltip id='zoom-reset-icon-tooltip'>
-                            <FormattedMessage
-                                id='view_image.zoom_reset'
-                                defaultMessage='Reset Zoom'
-                            />
-                        </Tooltip>
+                    title={
+                        <FormattedMessage
+                            id='view_image.zoom_reset'
+                            defaultMessage='Reset Zoom'
+                        />
                     }
                 >
                     {zoomResetButton}
-                </OverlayTrigger>,
+                </WithTooltip>,
             );
 
             if (this.props.scale && this.props.scale < ZoomSettings.MAX_SCALE) {
@@ -118,21 +109,17 @@ export default class PopoverBar extends React.PureComponent<Props> {
                 );
             }
             zoomControls.push(
-                <OverlayTrigger
-                    delayShow={Constants.OVERLAY_TIME_DELAY}
+                <WithTooltip
                     key='zoomIn'
-                    placement='top'
-                    overlay={
-                        <Tooltip id='zoom-in-icon-tooltip'>
-                            <FormattedMessage
-                                id='view_image.zoom_in'
-                                defaultMessage='Zoom In'
-                            />
-                        </Tooltip>
+                    title={
+                        <FormattedMessage
+                            id='view_image.zoom_in'
+                            defaultMessage='Zoom In'
+                        />
                     }
                 >
                     {zoomInButton}
-                </OverlayTrigger>,
+                </WithTooltip>,
             );
 
             wrappedZoomControls = (

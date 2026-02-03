@@ -1,51 +1,118 @@
-@import 'utils/variables';
+.SystemUserDetail {
+    .AdminUserCard__body {
+        .two-column-layout {
+            .field-row {
+                display: flex;
+                margin-bottom: 16px;
+                gap: 20px;
 
-.SystemUserDetail__field-label {
-    display: block;
-    margin-top: 12px;
-    margin-bottom: 4px;
-    font-size: 12px;
-    font-weight: bold;
-}
+                .field-column {
+                    min-width: 0; // Allow content to shrink
+                    flex: 1;
 
-.SystemUserDetail__input {
-    display: inline-block;
-    max-width: 320px;
-    height: 40px;
-}
+                    &.left {
+                        padding-right: 10px;
+                    }
 
-.SystemUserDetail .add-team-button {
-    position: relative;
-    margin-left: 10px;
-}
+                    &.right {
+                        padding-left: 10px;
+                    }
+                }
+            }
+        }
 
-.SystemUserDetail .team-btn__content {
-    opacity: 1;
-}
+        label {
+            display: block;
+            font-weight: unset;
 
-.SystemUserDetail__field-text {
-    vertical-align: middle;
-}
+            > span:nth-child(1) {
+                display: block;
+                margin-top: 12px;
+                margin-bottom: 6px;
+                font-size: 12px;
+                font-weight: bold;
+            }
 
-.SystemUserDetail__field-icon {
-    display: inline-block;
-    width: 16px;
-    height: 16px;
-    margin: 0 8px 0 0;
-    fill: rgba(61, 60, 64, 0.6);
-    vertical-align: middle;
-}
+            > span:nth-child(2) {
+                vertical-align: middle;
+            }
 
-.SystemUserDetail__error {
-    padding-top: 8px;
-    padding-left: 15px;
-}
+            input, select {
+                display: inline-block;
+                width: 100%;
+                max-width: 320px;
+            }
 
-.SystemUserDetail__actions-menu-icon svg {
-    width: 18px;
-    color: #333;
-}
+            select[multiple] {
+                min-height: 80px;
+            }
+        }
 
-.SystemUserDetail .MenuItem .SystemUserDetail__action-remove-team {
-    color: #8b0008;
+        .cpa-field {
+            position: relative;
+        }
+
+        .user-property-field-values__sync-indicator {
+            display: flex;
+            align-items: center;
+            margin-top: 4px;
+            color: rgba(var(--center-channel-color-rgb), 0.7);
+            font-size: 11px;
+            
+            svg {
+                width: 14px;
+                height: 14px;
+                margin-right: 6px;
+                fill: rgba(var(--center-channel-color-rgb), 0.5);
+            }
+        }
+
+        .auth-data-field {
+            padding-top: 20px;
+            border-top: 1px solid rgba(var(--center-channel-color-rgb), 0.1);
+            margin-top: 20px;
+        }
+
+        svg {
+            display: inline-block;
+            width: 16px;
+            height: 16px;
+            margin: 0 8px 0 0;
+            fill: rgba(var(--sys-color-sidebar-text-rgb), 0.6);
+        }
+    }
+
+    .teamlistLoading {
+        display: flex;
+        min-height: 20vh;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .AdminUserCard__footer {
+        .manageUserSettingsBtn {
+            margin-left: auto;
+            cursor: pointer;
+        }
+    }
+
+    // Mobile responsiveness for two-column layout
+    @media (max-width: 768px) {
+        .AdminUserCard__body {
+            .two-column-layout {
+                .field-row {
+                    flex-direction: column;
+                    gap: 0;
+
+                    .field-column {
+                        padding: 0;
+
+                        &.right {
+                            margin-top: 16px;
+                        }
+                    }
+                }
+            }
+        }
+    }
 }

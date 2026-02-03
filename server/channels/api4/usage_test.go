@@ -15,11 +15,12 @@ import (
 )
 
 func TestGetPostsUsage(t *testing.T) {
+	mainHelper.Parallel(t)
 	t.Run("unauthenticated users can not access", func(t *testing.T) {
 		th := Setup(t)
-		defer th.TearDown()
 
-		th.Client.Logout(context.Background())
+		_, err := th.Client.Logout(context.Background())
+		require.NoError(t, err)
 
 		usage, r, err := th.Client.GetPostsUsage(context.Background())
 		assert.Error(t, err)
@@ -28,11 +29,10 @@ func TestGetPostsUsage(t *testing.T) {
 	})
 
 	t.Run("good request returns response", func(t *testing.T) {
-		th := Setup(t).InitBasic()
-		defer th.TearDown()
+		th := Setup(t).InitBasic(t)
 
-		for i := 0; i < 14; i++ {
-			th.CreatePost()
+		for range 14 {
+			th.CreatePost(t)
 		}
 
 		total, err := th.Server.Store().Post().AnalyticsPostCount(&model.PostCountOptions{ExcludeDeleted: true})
@@ -53,11 +53,12 @@ func TestGetPostsUsage(t *testing.T) {
 }
 
 func TestGetStorageUsage(t *testing.T) {
+	mainHelper.Parallel(t)
 	t.Run("unauthenticated users cannot access", func(t *testing.T) {
 		th := Setup(t)
-		defer th.TearDown()
 
-		th.Client.Logout(context.Background())
+		_, err := th.Client.Logout(context.Background())
+		require.NoError(t, err)
 
 		usage, r, err := th.Client.GetStorageUsage(context.Background())
 		assert.Error(t, err)
@@ -67,11 +68,12 @@ func TestGetStorageUsage(t *testing.T) {
 }
 
 func TestGetTeamsUsage(t *testing.T) {
+	mainHelper.Parallel(t)
 	t.Run("unauthenticated users can not access", func(t *testing.T) {
 		th := Setup(t)
-		defer th.TearDown()
 
-		th.Client.Logout(context.Background())
+		_, err := th.Client.Logout(context.Background())
+		require.NoError(t, err)
 
 		usage, r, err := th.Client.GetTeamsUsage(context.Background())
 		assert.Error(t, err)
@@ -81,10 +83,9 @@ func TestGetTeamsUsage(t *testing.T) {
 
 	t.Run("good request returns response", func(t *testing.T) {
 		// Following calls create a total of 3 teams
-		th := Setup(t).InitBasic()
-		defer th.TearDown()
-		th.CreateTeam()
-		th.CreateTeam()
+		th := Setup(t).InitBasic(t)
+		th.CreateTeam(t)
+		th.CreateTeam(t)
 
 		usage, r, err := th.Client.GetTeamsUsage(context.Background())
 		assert.NoError(t, err)

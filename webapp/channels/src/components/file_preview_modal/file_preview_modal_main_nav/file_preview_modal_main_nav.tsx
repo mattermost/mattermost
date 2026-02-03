@@ -2,14 +2,11 @@
 // See LICENSE.txt for license information.
 
 import React, {memo} from 'react';
-import {FormattedMessage} from 'react-intl';
+import {FormattedMessage, useIntl} from 'react-intl';
 
 import './file_preview_modal_main_nav.scss';
 
-import OverlayTrigger from 'components/overlay_trigger';
-import Tooltip from 'components/tooltip';
-
-import Constants from 'utils/constants';
+import WithTooltip from 'components/with_tooltip';
 
 interface Props {
     fileIndex: number;
@@ -19,57 +16,56 @@ interface Props {
 }
 
 const FilePreviewModalMainNav: React.FC<Props> = (props: Props) => {
+    const {formatMessage} = useIntl();
     const leftArrow = (
-        <OverlayTrigger
-            delayShow={Constants.OVERLAY_TIME_DELAY}
+        <WithTooltip
             key='previewArrowLeft'
-            placement='bottom'
-            overlay={
-                <Tooltip id='close-icon-tooltip'>
-                    <FormattedMessage
-                        id='generic.close'
-                        defaultMessage='Close'
-                    />
-                </Tooltip>
+            title={
+                <FormattedMessage
+                    id='generic.close'
+                    defaultMessage='Close'
+                />
             }
         >
             <button
                 id='previewArrowLeft'
                 className='file_preview_modal_main_nav__prev'
                 onClick={props.handlePrev}
+                aria-label={formatMessage({id: 'file_preview_modal_main_nav.prevAriaLabel', defaultMessage: 'Previous file'})}
             >
                 <i className='icon icon-chevron-left'/>
             </button>
-        </OverlayTrigger>
+        </WithTooltip>
     );
 
     const rightArrow = (
-        <OverlayTrigger
-            delayShow={Constants.OVERLAY_TIME_DELAY}
+        <WithTooltip
             key='publicLink'
-            placement='bottom'
-            overlay={
-                <Tooltip id='close-icon-tooltip'>
-                    <FormattedMessage
-                        id='generic.next'
-                        defaultMessage='Next'
-                    />
-                </Tooltip>
+            title={
+                <FormattedMessage
+                    id='generic.next'
+                    defaultMessage='Next'
+                />
             }
         >
             <button
                 id='previewArrowRight'
                 className='file_preview_modal_main_nav__next'
                 onClick={props.handleNext}
+                aria-label={formatMessage({id: 'file_preview_modal_main_nav.nextAriaLabel', defaultMessage: 'Next file'})}
             >
                 <i className='icon icon-chevron-right'/>
             </button>
-        </OverlayTrigger>
+        </WithTooltip>
     );
     return (
         <div className='file_preview_modal_main_nav'>
             {leftArrow}
-            <span className='modal-bar-file-count'>
+            <span
+                className='modal-bar-file-count'
+                aria-live='polite'
+                aria-atomic='true'
+            >
                 <FormattedMessage
                     id='file_preview_modal_main_nav.file'
                     defaultMessage='{count, number} of {total, number}'

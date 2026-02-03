@@ -310,7 +310,7 @@ describe('threads', () => {
         expect(nextState.threadsInTeam.a).toBe(undefined);
     });
 
-    test('POST_REMOVED should remove the thread when root post', () => {
+    test.each([PostTypes.POST_REMOVED, PostTypes.POST_DELETED])('%s should remove the thread when root post', (action) => {
         const state = deepFreeze({
             threadsInTeam: {
                 a: ['t1', 't2', 't3'],
@@ -334,7 +334,7 @@ describe('threads', () => {
         });
 
         const nextState = threadsReducer(state, {
-            type: PostTypes.POST_REMOVED,
+            type: action,
             data: {id: 't2', root_id: ''},
         });
 
@@ -344,7 +344,7 @@ describe('threads', () => {
         expect(nextState.unreadThreadsInTeam.a).toEqual(['t1', 't3']);
     });
 
-    test('POST_REMOVED should remove the thread when root post from all teams', () => {
+    test.each([PostTypes.POST_REMOVED, PostTypes.POST_DELETED])('%s should remove the thread when root post from all teams', (action) => {
         const state = deepFreeze({
             threadsInTeam: {
                 a: ['t1', 't2', 't3'],
@@ -370,7 +370,7 @@ describe('threads', () => {
         });
 
         const nextState = threadsReducer(state, {
-            type: PostTypes.POST_REMOVED,
+            type: action,
             data: {id: 't2', root_id: ''},
         });
 
@@ -382,7 +382,7 @@ describe('threads', () => {
         expect(nextState.unreadThreadsInTeam.b).toEqual([]);
     });
 
-    test('POST_REMOVED should do nothing when not a root post', () => {
+    test.each([PostTypes.POST_REMOVED, PostTypes.POST_DELETED])('%s should do nothing when not a root post', (action) => {
         const state = deepFreeze({
             threadsInTeam: {
                 a: ['t1', 't2', 't3'],
@@ -406,7 +406,7 @@ describe('threads', () => {
         });
 
         const nextState = threadsReducer(state, {
-            type: PostTypes.POST_REMOVED,
+            type: action,
             data: {id: 't2', root_id: 't1'},
         });
 
@@ -416,7 +416,7 @@ describe('threads', () => {
         expect(nextState.unreadThreadsInTeam.a).toEqual(['t1', 't2', 't3']);
     });
 
-    test('POST_REMOVED should do nothing when post not exist', () => {
+    test.each([PostTypes.POST_REMOVED, PostTypes.POST_DELETED])('%s should do nothing when post not exist', (action) => {
         const state = deepFreeze({
             threadsInTeam: {
                 a: ['t1', 't2'],
@@ -437,7 +437,7 @@ describe('threads', () => {
         });
 
         const nextState = threadsReducer(state, {
-            type: PostTypes.POST_REMOVED,
+            type: action,
             data: {id: 't3', root_id: ''},
         });
 

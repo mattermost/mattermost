@@ -2,22 +2,19 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-import {Modal} from 'react-bootstrap';
-import {injectIntl} from 'react-intl';
-import type {IntlShape} from 'react-intl';
+import {defineMessages} from 'react-intl';
 
+import {GenericModal} from '@mattermost/components';
 import type {Channel} from '@mattermost/types/channels';
 import type {Team} from '@mattermost/types/teams';
 import type {UserProfile} from '@mattermost/types/users';
 
 import {debounce} from 'mattermost-redux/actions/helpers';
-import type {ActionFunc} from 'mattermost-redux/types/actions';
+import type {ActionResult} from 'mattermost-redux/types/actions';
 import deepFreeze from 'mattermost-redux/utils/deep_freeze';
 import {isEmail} from 'mattermost-redux/utils/helpers';
 
-import {trackEvent} from 'actions/telemetry_actions';
-
-import {getRoleForTrackFlow} from 'utils/utils';
+import {focusElement} from 'utils/a11y_utils';
 
 import {InviteType} from './invite_as';
 import InviteView, {initializeInviteState} from './invite_view';
@@ -33,34 +30,46 @@ import './invitation_modal.scss';
 // false means no backdrop
 type Backdrop = 'static' | boolean
 
+const messages = defineMessages({
+    notValidChannel: {
+        id: 'invitation-modal.confirm.not-valid-channel',
+        defaultMessage: 'Does not match a valid channel name.',
+    },
+    notValidUserOrEmail: {
+        id: 'invitation-modal.confirm.not-valid-user-or-email',
+        defaultMessage: 'Does not match a valid user or email.',
+    },
+});
+
 export type Props = {
     actions: {
-        searchChannels: (teamId: string, term: string) => ActionFunc;
+        searchChannels: (teamId: string, term: string) => Promise<ActionResult<Channel[]>>;
         regenerateTeamInviteId: (teamId: string) => void;
 
-        searchProfiles: (term: string, options?: Record<string, string>) => Promise<{data: UserProfile[]}>;
+        searchProfiles: (term: string, options?: Record<string, string>) => Promise<ActionResult<UserProfile[]>>;
         sendGuestsInvites: (
             currentTeamId: string,
             channels: Channel[],
             users: UserProfile[],
             emails: string[],
             message: string,
-        ) => Promise<{data: InviteResults}>;
+            guestMagicLink: boolean,
+        ) => Promise<ActionResult<InviteResults>>;
         sendMembersInvites: (
             teamId: string,
             users: UserProfile[],
             emails: string[]
-        ) => Promise<{data: InviteResults}>;
+        ) => Promise<ActionResult<InviteResults>>;
         sendMembersInvitesToChannels: (
             teamId: string,
             channels: Channel[],
             users: UserProfile[],
             emails: string[],
             message: string,
-        ) => Promise<{data: InviteResults}>;
+        ) => Promise<ActionResult<InviteResults>>;
     };
-    currentTeam: Team;
-    currentChannel: Channel;
+    currentTeam?: Team;
+    currentChannel?: Channel;
     townSquareDisplayName: string;
     invitableChannels: Channel[];
     emailInvitationsEnabled: boolean;
@@ -68,11 +77,12 @@ export type Props = {
     isCloud: boolean;
     canAddUsers: boolean;
     canInviteGuests: boolean;
-    intl: IntlShape;
+    canInviteGuestsWithMagicLink: boolean;
     onExited: () => void;
     channelToInvite?: Channel;
     initialValue?: string;
     inviteAsGuest?: boolean;
+    focusOriginElement?: string;
 }
 
 export const View = {
@@ -88,15 +98,17 @@ type State = {
     result: ResultState;
     termWithoutResults: string | null;
     show: boolean;
+    useGuestMagicLink: boolean;
 };
 
-export class InvitationModal extends React.PureComponent<Props, State> {
+export default class InvitationModal extends React.PureComponent<Props, State> {
     defaultState: State = deepFreeze({
         view: View.INVITE,
         termWithoutResults: null,
-        invite: initializeInviteState(this.props.initialValue || '', this.props.inviteAsGuest),
+        invite: initializeInviteState(this.props.initialValue || '', this.props.inviteAsGuest, this.props.canInviteGuestsWithMagicLink),
         result: defaultResultState,
         show: true,
+        useGuestMagicLink: false,
     });
     constructor(props: Props) {
         super(props);
@@ -118,6 +130,13 @@ export class InvitationModal extends React.PureComponent<Props, State> {
 
     handleHide = () => {
         this.setState({show: false});
+    };
+
+    handleExit = () => {
+        if (this.props.focusOriginElement) {
+            focusElement(this.props.focusOriginElement, true);
+        }
+        this.props.onExited?.();
     };
 
     toggleCustomMessage = () => {
@@ -158,13 +177,18 @@ export class InvitationModal extends React.PureComponent<Props, State> {
         }
     };
 
+    toggleGuestMagicLink = () => {
+        this.setState((state) => ({
+            ...state,
+            useGuestMagicLink: !state.useGuestMagicLink,
+        }));
+    };
+
     invite = async () => {
-        const roleForTrackFlow = getRoleForTrackFlow();
-        const inviteAs = this.state.invite.inviteType;
-        if (inviteAs === InviteType.MEMBER && this.props.isCloud) {
-            trackEvent('cloud_invite_users', 'click_send_invitations', {num_invitations: this.state.invite.usersEmails.length, ...roleForTrackFlow});
+        if (!this.props.currentTeam) {
+            return;
         }
-        trackEvent('invite_users', 'click_invite', roleForTrackFlow);
+        const inviteAs = this.state.invite.inviteType;
 
         const users: UserProfile[] = [];
         const emails: string[] = [];
@@ -186,10 +210,10 @@ export class InvitationModal extends React.PureComponent<Props, State> {
                     emails,
                     this.state.invite.customMessage.open ? this.state.invite.customMessage.message : '',
                 );
-                invites = result.data;
+                invites = result.data!;
             } else {
                 const result = await this.props.actions.sendMembersInvites(this.props.currentTeam.id, users, emails);
-                invites = result.data;
+                invites = result.data!;
             }
         } else if (inviteAs === InviteType.GUEST) {
             const result = await this.props.actions.sendGuestsInvites(
@@ -198,27 +222,22 @@ export class InvitationModal extends React.PureComponent<Props, State> {
                 users,
                 emails,
                 this.state.invite.customMessage.open ? this.state.invite.customMessage.message : '',
+                this.state.useGuestMagicLink,
             );
-            invites = result.data;
+            invites = result.data!;
         }
 
         if (this.state.invite.usersEmailsSearch !== '') {
             invites.notSent.push({
                 text: this.state.invite.usersEmailsSearch,
-                reason: this.props.intl.formatMessage({
-                    id: 'invitation-modal.confirm.not-valid-user-or-email',
-                    defaultMessage: 'Does not match a valid user or email.',
-                }),
+                reason: messages.notValidUserOrEmail,
             });
         }
 
         if (inviteAs === InviteType.GUEST && this.state.invite.inviteChannels.search !== '') {
             invites.notSent.push({
                 text: this.state.invite.inviteChannels.search,
-                reason: this.props.intl.formatMessage({
-                    id: 'invitation-modal.confirm.not-valid-channel',
-                    defaultMessage: 'Does not match a valid channel name.',
-                }),
+                reason: messages.notValidChannel,
             });
         }
 
@@ -246,17 +265,41 @@ export class InvitationModal extends React.PureComponent<Props, State> {
         }));
     };
 
-    debouncedSearchChannels = debounce((term) => this.props.actions.searchChannels(this.props.currentTeam.id, term), 150);
+    debouncedSearchChannels = debounce((term) => this.props.currentTeam && this.props.actions.searchChannels(this.props.currentTeam.id, term), 150);
+
+    // Filter channels based on the current invite type and search term
+    filterChannels = (channels: Channel[], isGuestInvite: boolean, searchTerm: string = '') => {
+        return channels.filter((channel) => {
+            // For guest invites, filter out policy_enforced channels
+            if (isGuestInvite && channel.policy_enforced) {
+                return false;
+            }
+
+            // If there's a search term, filter by name match
+            if (searchTerm) {
+                const lowerSearchTerm = searchTerm.toLowerCase();
+                return channel.display_name.toLowerCase().includes(lowerSearchTerm) ||
+                       channel.name.toLowerCase().includes(lowerSearchTerm);
+            }
+
+            return true;
+        });
+    };
 
     channelsLoader = async (value: string) => {
-        if (!value) {
-            return this.props.invitableChannels;
+        const isGuestInvite = this.state.invite.inviteType === InviteType.GUEST;
+
+        // If there's a search term, search the channels from the server
+        if (value) {
+            this.debouncedSearchChannels(value);
         }
 
-        this.debouncedSearchChannels(value);
-        return this.props.invitableChannels.filter((channel) => {
-            return channel.display_name.toLowerCase().startsWith(value.toLowerCase()) || channel.name.toLowerCase().startsWith(value.toLowerCase());
-        });
+        // Apply filtering to the channels
+        return this.filterChannels(
+            this.props.invitableChannels,
+            isGuestInvite,
+            value,
+        );
     };
 
     onChannelsChange = (channels: Channel[]) => {
@@ -287,9 +330,9 @@ export class InvitationModal extends React.PureComponent<Props, State> {
 
     debouncedSearchProfiles = debounce((term: string, callback: (users: UserProfile[]) => void) => {
         this.props.actions.searchProfiles(term).
-            then(({data}: {data: UserProfile[]}) => {
-                callback(data);
-                if (data.length === 0) {
+            then(({data}: ActionResult<UserProfile[]>) => {
+                callback(data!);
+                if (data!.length === 0) {
                     this.setState({termWithoutResults: term});
                 } else {
                     this.setState({termWithoutResults: null});
@@ -357,6 +400,10 @@ export class InvitationModal extends React.PureComponent<Props, State> {
     };
 
     render() {
+        if (!this.props.currentTeam) {
+            return null;
+        }
+
         let view = (
             <InviteView
                 setInviteAs={this.setInviteAs}
@@ -382,6 +429,8 @@ export class InvitationModal extends React.PureComponent<Props, State> {
                 footerClass='InvitationModal__footer'
                 onClose={this.handleHide}
                 channelToInvite={this.props.channelToInvite}
+                useGuestMagicLink={this.state.useGuestMagicLink}
+                toggleGuestMagicLink={this.toggleGuestMagicLink}
                 {...this.state.invite}
             />
         );
@@ -408,23 +457,21 @@ export class InvitationModal extends React.PureComponent<Props, State> {
         }
 
         return (
-            <Modal
+            <GenericModal
                 id='invitationModal'
-                data-testid='invitationModal'
-                dialogClassName='a11y__modal modal--overflow'
-                className='InvitationModal'
+                dataTestId='invitationModal'
+                className='InvitationModal a11y__modal modal--overflow'
                 show={this.state.show}
                 onHide={this.handleHide}
-                onExited={this.props.onExited}
-                role='dialog'
+                onExited={this.handleExit}
                 backdrop={this.getBackdrop()}
-                aria-modal='true'
-                aria-labelledby='invitation_modal_title'
+                ariaLabelledby='invitation_modal_title'
+                compassDesign={true}
+                showCloseButton={false}
+                showHeader={false}
             >
                 {view}
-            </Modal>
+            </GenericModal>
         );
     }
 }
-
-export default injectIntl(InvitationModal);

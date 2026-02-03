@@ -16,7 +16,6 @@ import useGetLimits from 'components/common/hooks/useGetLimits';
 import useGetUsage from 'components/common/hooks/useGetUsage';
 import useOpenPricingModal from 'components/common/hooks/useOpenPricingModal';
 import NotifyAdminCTA from 'components/notify_admin_cta/notify_admin_cta';
-import Tooltip from 'components/tooltip';
 
 import {CloudProducts, LicenseSkus, MattermostFeatures, Preferences} from 'utils/constants';
 import {asGBString} from 'utils/limits';
@@ -43,7 +42,7 @@ function FileLimitStickyBanner() {
 
     const usage = useGetUsage();
     const [cloudLimits] = useGetLimits();
-    const openPricingModal = useOpenPricingModal();
+    const {openPricingModal, isAirGapped} = useOpenPricingModal();
 
     const user = useSelector(getCurrentUser);
     const isAdmin = useSelector(isCurrentUserSystemAdmin);
@@ -105,7 +104,13 @@ function FileLimitStickyBanner() {
         />
     );
 
-    const adminMessage =
+    const adminMessage = isAirGapped ?
+        (
+            <FormattedMessage
+                id={'create_post.file_limit_sticky_banner.admin_message_airgapped'}
+                defaultMessage={'New uploads will automatically archive older files. To view them again, you can delete older files.'}
+            />
+        ) :
         (
             <FormattedMessage
                 id={'create_post.file_limit_sticky_banner.admin_message'}
@@ -117,7 +122,7 @@ function FileLimitStickyBanner() {
                                 onClick={
                                     (e) => {
                                         e.preventDefault();
-                                        openPricingModal({trackingLocation: 'file_limit_sticky_banner'});
+                                        openPricingModal();
                                     }
                                 }
                             >{chunks}</a>
@@ -127,7 +132,13 @@ function FileLimitStickyBanner() {
             />
         );
 
-    const nonAdminMessage =
+    const nonAdminMessage = isAirGapped ?
+        (
+            <FormattedMessage
+                id={'create_post.file_limit_sticky_banner.non_admin_message_airgapped'}
+                defaultMessage={'New uploads will automatically archive older files. To view them again, contact your admin.'}
+            />
+        ) :
         (
             <FormattedMessage
                 id={'create_post.file_limit_sticky_banner.non_admin_message'}
@@ -141,17 +152,10 @@ function FileLimitStickyBanner() {
                                 required_feature: MattermostFeatures.UNLIMITED_FILE_STORAGE,
                                 trial_notification: false,
                             }}
-                            callerInfo='file_limit_sticky_banner'
                         />),
                 }}
             />
         );
-
-    const tooltip = (
-        <Tooltip id='file_limit_banner_snooze'>
-            {formatMessage({id: 'create_post.file_limit_sticky_banner.snooze_tooltip', defaultMessage: 'Snooze for {snoozeDays} days'}, {snoozeDays: snoozeCoolOffDays})}
-        </Tooltip>
-    );
 
     return (
         <StyledDiv id='cloud_file_limit_banner'>
@@ -159,7 +163,7 @@ function FileLimitStickyBanner() {
                 mode={'warning'}
                 variant={'app'}
                 onDismiss={snoozeBanner}
-                closeBtnTooltip={tooltip}
+                closeBtnTooltip={formatMessage({id: 'create_post.file_limit_sticky_banner.snooze_tooltip', defaultMessage: 'Snooze for {snoozeDays} days'}, {snoozeDays: snoozeCoolOffDays})}
                 title={title}
                 message={isAdmin ? adminMessage : nonAdminMessage}
             />

@@ -11,6 +11,7 @@ import (
 )
 
 func TestIsKeywordMultibyte(t *testing.T) {
+	mainHelper.Parallel(t)
 	id1 := model.NewId()
 
 	for name, tc := range map[string]struct {
@@ -105,7 +106,7 @@ func TestIsKeywordMultibyte(t *testing.T) {
 			post := &model.Post{
 				Message: tc.Message,
 				Props: model.StringInterface{
-					"attachments": tc.Attachments,
+					model.PostPropsAttachments: tc.Attachments,
 				},
 			}
 
@@ -116,6 +117,7 @@ func TestIsKeywordMultibyte(t *testing.T) {
 }
 
 func TestCheckForMentionUsers(t *testing.T) {
+	mainHelper.Parallel(t)
 	id1 := model.NewId()
 	id2 := model.NewId()
 
@@ -213,6 +215,7 @@ func TestCheckForMentionUsers(t *testing.T) {
 }
 
 func TestCheckForMentionGroups(t *testing.T) {
+	mainHelper.Parallel(t)
 	groupID1 := model.NewId()
 	groupID2 := model.NewId()
 
@@ -229,24 +232,24 @@ func TestCheckForMentionGroups(t *testing.T) {
 		"No matching groups": {
 			Word: "nothing",
 			Groups: map[string]*model.Group{
-				groupID1: {Id: groupID1, Name: model.NewString("engineering")},
-				groupID2: {Id: groupID2, Name: model.NewString("developers")},
+				groupID1: {Id: groupID1, Name: model.NewPointer("engineering")},
+				groupID2: {Id: groupID2, Name: model.NewPointer("developers")},
 			},
 			Expected: &MentionResults{},
 		},
 		"matching group with no @": {
 			Word: "engineering",
 			Groups: map[string]*model.Group{
-				groupID1: {Id: groupID1, Name: model.NewString("engineering")},
-				groupID2: {Id: groupID2, Name: model.NewString("developers")},
+				groupID1: {Id: groupID1, Name: model.NewPointer("engineering")},
+				groupID2: {Id: groupID2, Name: model.NewPointer("developers")},
 			},
 			Expected: &MentionResults{},
 		},
 		"matching group with preceding @": {
 			Word: "@engineering",
 			Groups: map[string]*model.Group{
-				groupID1: {Id: groupID1, Name: model.NewString("engineering")},
-				groupID2: {Id: groupID2, Name: model.NewString("developers")},
+				groupID1: {Id: groupID1, Name: model.NewPointer("engineering")},
+				groupID2: {Id: groupID2, Name: model.NewPointer("developers")},
 			},
 			Expected: &MentionResults{
 				GroupMentions: map[string]MentionType{
@@ -257,8 +260,8 @@ func TestCheckForMentionGroups(t *testing.T) {
 		"matching upper case group with preceding @": {
 			Word: "@Engineering",
 			Groups: map[string]*model.Group{
-				groupID1: {Id: groupID1, Name: model.NewString("engineering")},
-				groupID2: {Id: groupID2, Name: model.NewString("developers")},
+				groupID1: {Id: groupID1, Name: model.NewPointer("engineering")},
+				groupID2: {Id: groupID2, Name: model.NewPointer("developers")},
 			},
 			Expected: &MentionResults{
 				GroupMentions: map[string]MentionType{
@@ -279,6 +282,7 @@ func TestCheckForMentionGroups(t *testing.T) {
 }
 
 func TestProcessText(t *testing.T) {
+	mainHelper.Parallel(t)
 	userID1 := model.NewId()
 
 	groupID1 := model.NewId()
@@ -294,8 +298,8 @@ func TestProcessText(t *testing.T) {
 			Text:     "hello user @user1",
 			Keywords: map[string][]string{"@user1": {userID1}},
 			Groups: map[string]*model.Group{
-				groupID1: {Id: groupID1, Name: model.NewString("engineering")},
-				groupID2: {Id: groupID2, Name: model.NewString("developers")},
+				groupID1: {Id: groupID1, Name: model.NewPointer("engineering")},
+				groupID2: {Id: groupID2, Name: model.NewPointer("developers")},
 			},
 			Expected: &MentionResults{
 				Mentions: map[string]MentionType{
@@ -307,8 +311,8 @@ func TestProcessText(t *testing.T) {
 			Text:     "hello user.@user1",
 			Keywords: map[string][]string{"@user1": {userID1}},
 			Groups: map[string]*model.Group{
-				groupID1: {Id: groupID1, Name: model.NewString("engineering")},
-				groupID2: {Id: groupID2, Name: model.NewString("developers")},
+				groupID1: {Id: groupID1, Name: model.NewPointer("engineering")},
+				groupID2: {Id: groupID2, Name: model.NewPointer("developers")},
 			},
 			Expected: &MentionResults{
 				Mentions: map[string]MentionType{
@@ -329,8 +333,8 @@ func TestProcessText(t *testing.T) {
 			Text:     "hello user:@user1",
 			Keywords: map[string][]string{"@user1": {userID1}},
 			Groups: map[string]*model.Group{
-				groupID1: {Id: groupID1, Name: model.NewString("engineering")},
-				groupID2: {Id: groupID2, Name: model.NewString("developers")},
+				groupID1: {Id: groupID1, Name: model.NewPointer("engineering")},
+				groupID2: {Id: groupID2, Name: model.NewPointer("developers")},
 			},
 			Expected: &MentionResults{
 				Mentions: map[string]MentionType{
@@ -342,8 +346,8 @@ func TestProcessText(t *testing.T) {
 			Text:     "hello all:@here",
 			Keywords: map[string][]string{},
 			Groups: map[string]*model.Group{
-				groupID1: {Id: groupID1, Name: model.NewString("engineering")},
-				groupID2: {Id: groupID2, Name: model.NewString("developers")},
+				groupID1: {Id: groupID1, Name: model.NewPointer("engineering")},
+				groupID2: {Id: groupID2, Name: model.NewPointer("developers")},
 			},
 			Expected: &MentionResults{
 				HereMentioned: true,
@@ -353,8 +357,8 @@ func TestProcessText(t *testing.T) {
 			Text:     "hello all-@all",
 			Keywords: map[string][]string{},
 			Groups: map[string]*model.Group{
-				groupID1: {Id: groupID1, Name: model.NewString("engineering")},
-				groupID2: {Id: groupID2, Name: model.NewString("developers")},
+				groupID1: {Id: groupID1, Name: model.NewPointer("engineering")},
+				groupID2: {Id: groupID2, Name: model.NewPointer("developers")},
 			},
 			Expected: &MentionResults{
 				AllMentioned: true,
@@ -364,8 +368,8 @@ func TestProcessText(t *testing.T) {
 			Text:     "hello channel.@channel",
 			Keywords: map[string][]string{},
 			Groups: map[string]*model.Group{
-				groupID1: {Id: groupID1, Name: model.NewString("engineering")},
-				groupID2: {Id: groupID2, Name: model.NewString("developers")},
+				groupID1: {Id: groupID1, Name: model.NewPointer("engineering")},
+				groupID2: {Id: groupID2, Name: model.NewPointer("developers")},
 			},
 			Expected: &MentionResults{
 				ChannelMentioned: true,
@@ -375,8 +379,8 @@ func TestProcessText(t *testing.T) {
 			Text:     "hello @potentialuser and @otherpotentialuser",
 			Keywords: map[string][]string{},
 			Groups: map[string]*model.Group{
-				groupID1: {Id: groupID1, Name: model.NewString("engineering")},
-				groupID2: {Id: groupID2, Name: model.NewString("developers")},
+				groupID1: {Id: groupID1, Name: model.NewPointer("engineering")},
+				groupID2: {Id: groupID2, Name: model.NewPointer("developers")},
 			},
 			Expected: &MentionResults{
 				OtherPotentialMentions: []string{"potentialuser", "otherpotentialuser"},
@@ -386,8 +390,8 @@ func TestProcessText(t *testing.T) {
 			Text:     "@user1, you can use @systembot to get help",
 			Keywords: map[string][]string{"@user1": {userID1}},
 			Groups: map[string]*model.Group{
-				groupID1: {Id: groupID1, Name: model.NewString("engineering")},
-				groupID2: {Id: groupID2, Name: model.NewString("developers")},
+				groupID1: {Id: groupID1, Name: model.NewPointer("engineering")},
+				groupID2: {Id: groupID2, Name: model.NewPointer("developers")},
 			},
 			Expected: &MentionResults{
 				Mentions: map[string]MentionType{
@@ -400,8 +404,8 @@ func TestProcessText(t *testing.T) {
 			Text:     "@engineering",
 			Keywords: map[string][]string{"@user1": {userID1}},
 			Groups: map[string]*model.Group{
-				groupID1: {Id: groupID1, Name: model.NewString("engineering")},
-				groupID2: {Id: groupID2, Name: model.NewString("developers")},
+				groupID1: {Id: groupID1, Name: model.NewPointer("engineering")},
+				groupID2: {Id: groupID2, Name: model.NewPointer("developers")},
 			},
 			Expected: &MentionResults{
 				GroupMentions: map[string]MentionType{groupID1: GroupMention},
@@ -411,8 +415,8 @@ func TestProcessText(t *testing.T) {
 			Text:     "@engineering @user1, you can use @systembot to get help from",
 			Keywords: map[string][]string{"@user1": {userID1}},
 			Groups: map[string]*model.Group{
-				groupID1: {Id: groupID1, Name: model.NewString("engineering")},
-				groupID2: {Id: groupID2, Name: model.NewString("developers")},
+				groupID1: {Id: groupID1, Name: model.NewPointer("engineering")},
+				groupID2: {Id: groupID2, Name: model.NewPointer("developers")},
 			},
 			Expected: &MentionResults{
 				Mentions: map[string]MentionType{

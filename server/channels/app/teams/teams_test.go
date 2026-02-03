@@ -14,7 +14,6 @@ import (
 
 func TestCreateTeam(t *testing.T) {
 	th := Setup(t)
-	defer th.TearDown()
 
 	id := model.NewId()
 	team := &model.Team{
@@ -24,16 +23,55 @@ func TestCreateTeam(t *testing.T) {
 		Type:        model.TeamOpen,
 	}
 
-	_, err := th.service.CreateTeam(team)
+	_, err := th.service.CreateTeam(th.Context, team)
 	require.NoError(t, err, "Should create a new team")
 
-	_, err = th.service.CreateTeam(team)
+	_, err = th.service.CreateTeam(th.Context, team)
 	require.Error(t, err, "Should not create a new team - team already exist")
+}
+
+func TestCreateTeamWithExperimentalDefaultChannels(t *testing.T) {
+	th := Setup(t)
+	th.UpdateConfig(func(cfg *model.Config) {
+		cfg.TeamSettings.ExperimentalDefaultChannels = []string{"channel-1", "channel-2"}
+	})
+
+	id := model.NewId()
+	team := &model.Team{
+		DisplayName: "dn_" + id,
+		Name:        "name" + id,
+		Email:       "success+" + id + "@simulator.amazonses.com",
+		Type:        model.TeamOpen,
+	}
+
+	_, err := th.service.CreateTeam(th.Context, team)
+	require.NoError(t, err, "Should create a new team")
+
+	createdTeam, err := th.service.GetTeam(team.Id)
+	require.NoError(t, err)
+	require.Equal(t, createdTeam.Name, "name"+id)
+
+	channels, err := th.service.channelStore.GetAll(team.Id)
+	require.NoError(t, err)
+	require.Len(t, channels, 3)
+
+	ch, err := th.service.channelStore.GetByName(team.Id, "town-square", false)
+	require.NoError(t, err)
+	require.NotNil(t, ch)
+
+	ch, err = th.service.channelStore.GetByName(team.Id, "channel-1", false)
+	require.NoError(t, err)
+	require.NotNil(t, ch)
+	require.Equal(t, ch.DisplayName, "channel-1")
+
+	ch, err = th.service.channelStore.GetByName(team.Id, "channel-2", false)
+	require.NoError(t, err)
+	require.NotNil(t, ch)
+	require.Equal(t, ch.DisplayName, "channel-2")
 }
 
 func TestJoinUserToTeam(t *testing.T) {
 	th := Setup(t)
-	defer th.TearDown()
 
 	id := model.NewId()
 	team := &model.Team{
@@ -43,7 +81,7 @@ func TestJoinUserToTeam(t *testing.T) {
 		Type:        model.TeamOpen,
 	}
 
-	_, err := th.service.CreateTeam(team)
+	_, err := th.service.CreateTeam(th.Context, team)
 	require.NoError(t, err, "Should create a new team")
 
 	maxUsersPerTeam := th.service.config().TeamSettings.MaxUsersPerTeam

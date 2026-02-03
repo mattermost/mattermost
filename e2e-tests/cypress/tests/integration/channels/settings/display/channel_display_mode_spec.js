@@ -43,7 +43,6 @@ describe('Settings > Display > Channel Display Mode', () => {
         cy.get('#channel_display_modeTitle').should('contain', 'Channel Display');
         cy.get('#channel_display_modeDesc').should('contain', 'Full width');
         cy.get('#channel_display_modeEdit').should('contain', 'Edit');
-        cy.get('#accountSettingsHeader > .close').should('be.visible');
     });
 
     it('should render in max setting view', () => {
@@ -59,7 +58,6 @@ describe('Settings > Display > Channel Display Mode', () => {
         cy.get('#channel_display_modeFormatB').should('be.visible');
         cy.get('#saveSetting').should('contain', 'Save');
         cy.get('#cancelSetting').should('contain', 'Cancel');
-        cy.get('#accountSettingsHeader > .close').should('be.visible');
     });
 
     it('MM-T296 change channel display mode setting to "Full width"', () => {

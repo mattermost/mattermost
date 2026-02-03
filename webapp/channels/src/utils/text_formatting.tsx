@@ -5,6 +5,7 @@ import emojiRegex from 'emoji-regex';
 import type {Renderer} from 'marked';
 
 import type {SystemEmoji} from '@mattermost/types/emojis';
+import {isRecordOf} from '@mattermost/types/utilities';
 
 import type {HighlightWithoutNotificationKey} from 'mattermost-redux/selectors/entities/users';
 
@@ -16,9 +17,15 @@ import * as Emoticons from './emoticons';
 import * as Markdown from './markdown';
 
 const punctuationRegex = /[^\p{L}\d]/u;
-const AT_MENTION_PATTERN = /(?:\B|\b_+)@([a-z0-9.\-_]+)/gi;
 const UNICODE_EMOJI_REGEX = emojiRegex();
 const htmlEmojiPattern = /^<p>\s*(?:<img class="emoticon"[^>]*>|<span data-emoticon[^>]*>[^<]*<\/span>\s*|<span class="emoticon emoticon--unicode">[^<]*<\/span>\s*)+<\/p>$/;
+
+const FORMAT_TOKEN_LIMIT = 1000;
+const FORMAT_TOKEN_LIMIT_ERROR = 'maximum number of tokens reached';
+
+export function isFormatTokenLimitError(error: unknown) {
+    return Boolean(error && typeof error === 'object' && 'message' in error && (error as Record<string, string>).message === FORMAT_TOKEN_LIMIT_ERROR);
+}
 
 // Performs formatting of user posts including highlighting mentions and search terms and converting urls, hashtags,
 // @mentions and ~channels to links by taking a user's message and returning a string of formatted html. Also takes
@@ -30,10 +37,27 @@ export type ChannelNamesMap = {
     } | string;
 };
 
-export type Tokens = Map<
-string,
-{ value: string; originalText: string; hashtag?: string }
->;
+export function isChannelNamesMap(v: unknown): v is ChannelNamesMap {
+    return isRecordOf(v, (e) => {
+        if (typeof e === 'string') {
+            return true;
+        }
+
+        if (typeof e !== 'object' || !e) {
+            return false;
+        }
+
+        if (!('display_name' in e) || typeof e.display_name !== 'string') {
+            return false;
+        }
+
+        if ('team_name' in e && typeof e.team_name !== 'string') {
+            return false;
+        }
+
+        return true;
+    });
+}
 
 export type SearchPattern = {
     pattern: RegExp;
@@ -51,7 +75,7 @@ export type Team = {
     display_name: string;
 };
 
-interface TextFormattingOptionsBase {
+export interface TextFormattingOptionsBase {
 
     /**
      * If specified, this word is highlighted in the resulting html.
@@ -151,13 +175,6 @@ interface TextFormattingOptionsBase {
     proxyImages: boolean;
 
     /**
-     * An array of url schemes that will be allowed for autolinking.
-     *
-     * Defaults to autolinking with any url scheme.
-     */
-    autolinkedUrlSchemes: string[];
-
-    /**
      * An array of paths on the server that are managed by another server. Any path provided will be treated as an
      * external link that will not by handled by react-router.
      *
@@ -198,9 +215,31 @@ interface TextFormattingOptionsBase {
      * Defaults to `false`.
      */
     atPlanMentions: boolean;
+
+    /**
+     * If true, the renderer will assume links are not safe.
+     *
+     * Defaults to `false`.
+     */
+    unsafeLinks: boolean;
+
+    /**
+     * Whether or not to render text emoticons (:D) as emojis
+     */
+    renderEmoticonsAsEmoji: boolean;
 }
 
 export type TextFormattingOptions = Partial<TextFormattingOptionsBase>;
+
+export class Tokens extends Map<string, {value: string; originalText: string; hashtag?: string}> {
+    set(key: string, value: {value: string; originalText: string; hashtag?: string}) {
+        super.set(key, value);
+        if (this.size > FORMAT_TOKEN_LIMIT) {
+            throw new Error(FORMAT_TOKEN_LIMIT_ERROR);
+        }
+        return this;
+    }
+}
 
 const DEFAULT_OPTIONS: TextFormattingOptions = {
     mentionHighlight: true,
@@ -215,6 +254,8 @@ const DEFAULT_OPTIONS: TextFormattingOptions = {
     proxyImages: false,
     editedAt: 0,
     postId: '',
+    unsafeLinks: false,
+    renderEmoticonsAsEmoji: true,
 };
 
 /**
@@ -232,9 +273,10 @@ const DEFAULT_OPTIONS: TextFormattingOptions = {
 * Hangul Compatibility Jamo: \u3130-\u318f
 * Cyrillic characters: \u0400-\u04ff, \u0500-\u052f
 * Additional CJK and Hangul compatibility characters: \u2de0-\u2dff
+* Thai characters: \u0e00-\u0e7f
 **/
 // eslint-disable-next-line no-misleading-character-class
-export const cjkrPattern = /[\u3000-\u303f\u3040-\u309f\u30a0-\u30ff\uff00-\uff9f\u4e00-\u9faf\u3400-\u4dbf\uac00-\ud7a3\u1100-\u11ff\u3130-\u318f\u0400-\u04ff\u0500-\u052f\u2de0-\u2dff]/;
+export const cjkrPattern = /[\u3000-\u303f\u3040-\u309f\u30a0-\u30ff\uff00-\uff9f\u4e00-\u9faf\u3400-\u4dbf\uac00-\ud7a3\u1100-\u11ff\u3130-\u318f\u0400-\u04ff\u0500-\u052f\u2de0-\u2dff\u0e00-\u0e7f]/;
 
 export function formatText(
     text: string,
@@ -328,57 +370,64 @@ export function formatText(
 export function doFormatText(text: string, options: TextFormattingOptions, emojiMap: EmojiMap): string {
     let output = text;
 
-    const tokens = new Map();
+    const tokens = new Tokens();
 
-    // replace important words and phrases with tokens
-    if (options.atMentions) {
-        output = autolinkAtMentions(output, tokens);
+    try {
+        // replace important words and phrases with tokens
+        if (options.atMentions) {
+            output = autolinkAtMentions(output, tokens);
+        }
+
+        if (options.atSumOfMembersMentions) {
+            output = autoLinkSumOfMembersMentions(output, tokens);
+        }
+
+        if (options.atPlanMentions) {
+            output = autoPlanMentions(output, tokens);
+        }
+
+        if (options.channelNamesMap) {
+            output = autolinkChannelMentions(
+                output,
+                tokens,
+                options.channelNamesMap,
+                options.team,
+            );
+        }
+
+        output = autolinkEmails(output, tokens);
+        output = autolinkHashtags(output, tokens, options.minimumHashtagLength);
+
+        if (!('emoticons' in options) || options.emoticons) {
+            output = Emoticons.handleEmoticons(output, tokens, options.renderEmoticonsAsEmoji);
+        }
+
+        if (options.searchPatterns) {
+            output = highlightSearchTerms(output, tokens, options.searchPatterns);
+        }
+
+        if (!('mentionHighlight' in options) || options.mentionHighlight) {
+            output = highlightCurrentMentions(output, tokens, options.mentionKeys);
+        }
+
+        if (options.highlightKeys && options.highlightKeys.length > 0) {
+            output = highlightWithoutNotificationKeywords(output, tokens, options.highlightKeys);
+        }
+
+        if (!('emoticons' in options) || options.emoticons) {
+            output = handleUnicodeEmoji(output, emojiMap, UNICODE_EMOJI_REGEX);
+        }
+
+        // reinsert tokens with formatted versions of the important words and phrases
+        output = replaceTokens(output, tokens) || text;
+        return output;
+    } catch (error) {
+        if (isFormatTokenLimitError(error)) {
+            return text;
+        }
+
+        throw error;
     }
-
-    if (options.atSumOfMembersMentions) {
-        output = autoLinkSumOfMembersMentions(output, tokens);
-    }
-
-    if (options.atPlanMentions) {
-        output = autoPlanMentions(output, tokens);
-    }
-
-    if (options.channelNamesMap) {
-        output = autolinkChannelMentions(
-            output,
-            tokens,
-            options.channelNamesMap,
-            options.team,
-        );
-    }
-
-    output = autolinkEmails(output, tokens);
-    output = autolinkHashtags(output, tokens, options.minimumHashtagLength);
-
-    if (!('emoticons' in options) || options.emoticons) {
-        output = Emoticons.handleEmoticons(output, tokens);
-    }
-
-    if (options.searchPatterns) {
-        output = highlightSearchTerms(output, tokens, options.searchPatterns);
-    }
-
-    if (!('mentionHighlight' in options) || options.mentionHighlight) {
-        output = highlightCurrentMentions(output, tokens, options.mentionKeys);
-    }
-
-    if (options.highlightKeys && options.highlightKeys.length > 0) {
-        output = highlightWithoutNotificationKeywords(output, tokens, options.highlightKeys);
-    }
-
-    if (!('emoticons' in options) || options.emoticons) {
-        output = handleUnicodeEmoji(output, emojiMap, UNICODE_EMOJI_REGEX);
-    }
-
-    // reinsert tokens with formatted versions of the important words and phrases
-    output = replaceTokens(output, tokens);
-
-    return output;
 }
 
 export function sanitizeHtml(text: string): string {
@@ -494,17 +543,17 @@ export function autolinkAtMentions(text: string, tokens: Tokens): string {
     );
 
     // handle all other mentions (supports trailing punctuation)
-    let match = output.match(AT_MENTION_PATTERN);
+    let match = output.match(Constants.MENTIONS_REGEX);
     while (match && match.length > 0) {
-        output = output.replace(AT_MENTION_PATTERN, replaceAtMentionWithToken);
-        match = output.match(AT_MENTION_PATTERN);
+        output = output.replace(Constants.MENTIONS_REGEX, replaceAtMentionWithToken);
+        match = output.match(Constants.MENTIONS_REGEX);
     }
 
     return output;
 }
 
 export function allAtMentions(text: string): string[] {
-    return text.match(Constants.SPECIAL_MENTIONS_REGEX && AT_MENTION_PATTERN) || [];
+    return text.match(Constants.SPECIAL_MENTIONS_REGEX && Constants.MENTIONS_REGEX) || [];
 }
 
 export function autolinkChannelMentions(
@@ -514,7 +563,7 @@ export function autolinkChannelMentions(
     team?: Team,
 ) {
     function channelMentionExists(c: string) {
-        return channelNamesMap.hasOwnProperty(c);
+        return Object.hasOwn(channelNamesMap, c);
     }
     function addToken(channelName: string, teamName: string, mention: string, displayName: string) {
         const index = tokens.size;
@@ -616,6 +665,10 @@ export function autolinkChannelMentions(
 
 export function escapeRegex(text?: string): string {
     return text?.replace(/[-/\\^$*+?.()|[\]{}]/g, '\\$&') || '';
+}
+
+export function escapeReplaceSpecialPatterns(text?: string): string {
+    return text?.replace(/[$]/g, '$$$$') || '';
 }
 
 const htmlEntities = {
@@ -1022,7 +1075,7 @@ export function replaceTokens(text: string, tokens: Tokens): string {
     for (let i = aliases.length - 1; i >= 0; i--) {
         const alias = aliases[i];
         const token = tokens.get(alias);
-        output = output.replace(alias, token ? token.value : '');
+        output = output.replace(alias, escapeReplaceSpecialPatterns(token?.value || ''));
     }
 
     return output;

@@ -7,6 +7,8 @@ import React from 'react';
 import type {Command} from '@mattermost/types/integrations';
 import type {Team} from '@mattermost/types/teams';
 
+import type {ActionResult} from 'mattermost-redux/types/actions';
+
 import EditCommand from 'components/integrations/edit_command/edit_command';
 
 import {TestHelper} from 'utils/test_helper';
@@ -14,8 +16,8 @@ import {TestHelper} from 'utils/test_helper';
 describe('components/integrations/EditCommand', () => {
     const getCustomTeamCommands = jest.fn(
         () => {
-            return new Promise<Command[]>((resolve) => {
-                process.nextTick(() => resolve([]));
+            return new Promise<ActionResult<Command[]>>((resolve) => {
+                process.nextTick(() => resolve({data: []}));
             });
         },
     );
@@ -140,7 +142,7 @@ describe('components/integrations/EditCommand', () => {
         instance.submitCommand = jest.fn();
         wrapper.instance().editCommand(commands.r5tpgt4iepf45jt768jz84djic);
 
-        expect(instance.handleConfirmModal).not.toBeCalled();
-        expect(instance.submitCommand).toBeCalled();
+        expect(instance.handleConfirmModal).not.toHaveBeenCalled();
+        expect(instance.submitCommand).toHaveBeenCalled();
     });
 });

@@ -8,8 +8,8 @@ import type {ComponentProps} from 'react';
 import type {UserThread} from '@mattermost/types/threads';
 
 import Timestamp from 'components/timestamp';
-import SimpleTooltip from 'components/widgets/simple_tooltip';
 import Avatars from 'components/widgets/users/avatars';
+import WithTooltip from 'components/with_tooltip';
 
 import {fakeDate} from 'tests/helpers/date';
 import {mockStore} from 'tests/test_store';
@@ -161,7 +161,7 @@ describe('components/threading/channel_threads/thread_footer', () => {
         );
 
         expect(wrapper).toMatchSnapshot();
-        expect(wrapper.find(SimpleTooltip).find('.dot-unreads').exists()).toBe(true);
+        expect(wrapper.find(WithTooltip).find('.dot-unreads').exists()).toBe(true);
     });
 
     test('should not show unread indicator if not following', () => {
@@ -176,7 +176,7 @@ describe('components/threading/channel_threads/thread_footer', () => {
             mountOptions,
         );
 
-        expect(wrapper.find(SimpleTooltip).find('.dot-unreads').exists()).toBe(false);
+        expect(wrapper.find(WithTooltip).find('.dot-unreads').exists()).toBe(false);
     });
 
     test('should have avatars', () => {

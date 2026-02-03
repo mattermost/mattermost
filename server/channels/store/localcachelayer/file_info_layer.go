@@ -5,6 +5,7 @@ package localcachelayer
 
 import (
 	"bytes"
+	"fmt"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
@@ -50,10 +51,45 @@ func (s LocalCacheFileInfoStore) GetForPost(postId string, readFromMaster, inclu
 	return fileInfos, nil
 }
 
+func (s LocalCacheFileInfoStore) GetByIds(ids []string, includeDeleted, allowFromCache bool) ([]*model.FileInfo, error) {
+	if !allowFromCache {
+		return s.FileInfoStore.GetByIds(ids, includeDeleted, allowFromCache)
+	}
+
+	var fileIdsToFetch []string
+	var fileInfos []*model.FileInfo
+
+	for _, fileId := range ids {
+		cacheKey := fmt.Sprintf("%s_%t", fileId, includeDeleted)
+
+		var fileInfo *model.FileInfo
+		if err := s.rootStore.doStandardReadCache(s.rootStore.fileInfoCache, cacheKey, &fileInfo); err == nil {
+			fileInfos = append(fileInfos, fileInfo)
+		} else {
+			fileIdsToFetch = append(fileIdsToFetch, fileId)
+		}
+	}
+
+	if len(fileIdsToFetch) > 0 {
+		fetchedFileInfos, err := s.FileInfoStore.GetByIds(fileIdsToFetch, includeDeleted, false)
+		if err != nil {
+			return nil, err
+		}
+
+		for _, fileInfo := range fetchedFileInfos {
+			cacheKey := fmt.Sprintf("%s_%t", fileInfo.Id, includeDeleted)
+			s.rootStore.doStandardAddToCache(s.rootStore.fileInfoCache, cacheKey, fileInfo)
+			fileInfos = append(fileInfos, fileInfo)
+		}
+	}
+
+	return fileInfos, nil
+}
+
 func (s LocalCacheFileInfoStore) ClearCaches() {
 	s.rootStore.fileInfoCache.Purge()
 	if s.rootStore.metrics != nil {
-		s.rootStore.metrics.IncrementMemCacheInvalidationCounter("File Info Cache - Purge")
+		s.rootStore.metrics.IncrementMemCacheInvalidationCounter(s.rootStore.fileInfoCache.Name())
 	}
 }
 
@@ -62,9 +98,9 @@ func (s LocalCacheFileInfoStore) InvalidateFileInfosForPostCache(postId string, 
 	if deleted {
 		cacheKey += "_deleted"
 	}
-	s.rootStore.doInvalidateCacheCluster(s.rootStore.fileInfoCache, cacheKey)
+	s.rootStore.doInvalidateCacheCluster(s.rootStore.fileInfoCache, cacheKey, nil)
 	if s.rootStore.metrics != nil {
-		s.rootStore.metrics.IncrementMemCacheInvalidationCounter("File Info Cache - Remove by PostId")
+		s.rootStore.metrics.IncrementMemCacheInvalidationCounter(s.rootStore.fileInfoCache.Name())
 	}
 }
 

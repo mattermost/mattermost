@@ -3,26 +3,25 @@
 
 import {connect} from 'react-redux';
 import {bindActionCreators} from 'redux';
-import type {ActionCreatorsMapObject, Dispatch} from 'redux';
+import type {Dispatch} from 'redux';
 
-import type {ActionFunc, GenericAction} from 'mattermost-redux/types/actions';
+import {getCurrentTimezone} from 'mattermost-redux/selectors/entities/timezone';
 
 import {doAppSubmit, doAppFetchForm, doAppLookup, postEphemeralCallResponseForContext} from 'actions/apps';
 
-import type {DoAppSubmit, DoAppFetchForm, DoAppLookup, PostEphemeralCallResponseForContext} from 'types/apps';
+import type {GlobalState} from 'types/store';
 
 import AppsFormContainer from './apps_form_container';
 
-type Actions = {
-    doAppSubmit: DoAppSubmit<any>;
-    doAppFetchForm: DoAppFetchForm<any>;
-    doAppLookup: DoAppLookup<any>;
-    postEphemeralCallResponseForContext: PostEphemeralCallResponseForContext;
-};
-
-function mapDispatchToProps(dispatch: Dispatch<GenericAction>) {
+function mapStateToProps(state: GlobalState) {
     return {
-        actions: bindActionCreators<ActionCreatorsMapObject<ActionFunc>, Actions>({
+        timezone: getCurrentTimezone(state),
+    };
+}
+
+function mapDispatchToProps(dispatch: Dispatch) {
+    return {
+        actions: bindActionCreators({
             doAppSubmit,
             doAppFetchForm,
             doAppLookup,
@@ -31,4 +30,4 @@ function mapDispatchToProps(dispatch: Dispatch<GenericAction>) {
     };
 }
 
-export default connect(null, mapDispatchToProps)(AppsFormContainer);
+export default connect(mapStateToProps, mapDispatchToProps)(AppsFormContainer);

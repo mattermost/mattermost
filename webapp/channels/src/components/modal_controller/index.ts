@@ -3,9 +3,7 @@
 
 import {connect} from 'react-redux';
 import {bindActionCreators} from 'redux';
-import type {ActionCreatorsMapObject, Dispatch} from 'redux';
-
-import type {Action, GenericAction} from 'mattermost-redux/types/actions.js';
+import type {Dispatch} from 'redux';
 
 import {closeModal} from 'actions/views/modals';
 
@@ -19,13 +17,9 @@ function mapStateToProps(state: GlobalState) {
     };
 }
 
-type Actions = {
-    closeModal: (modalId: string) => void;
-}
-
-function mapDispatchToProps(dispatch: Dispatch<GenericAction>) {
+function mapDispatchToProps(dispatch: Dispatch) {
     return {
-        actions: bindActionCreators<ActionCreatorsMapObject<Action>, Actions>({
+        actions: bindActionCreators({
             closeModal,
         }, dispatch),
     };

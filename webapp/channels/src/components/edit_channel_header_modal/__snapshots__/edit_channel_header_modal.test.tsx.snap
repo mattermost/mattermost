@@ -1,4 +1,4 @@
-// Jest Snapshot v1, https://goo.gl/fbAQLP
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
 
 exports[`components/EditChannelHeaderModal edit direct message channel 1`] = `
 <Modal
@@ -29,7 +29,7 @@ exports[`components/EditChannelHeaderModal edit direct message channel 1`] = `
   onKeyDown={[Function]}
   renderBackdrop={[Function]}
   restoreFocus={true}
-  role="dialog"
+  role="none"
   show={true}
 >
   <ModalHeader
@@ -53,19 +53,22 @@ exports[`components/EditChannelHeaderModal edit direct message channel 1`] = `
     componentClass="div"
   >
     <div>
-      <p>
+      <label
+        className="textarea-label"
+        htmlFor="edit_textbox"
+      >
         <MemoizedFormattedMessage
           defaultMessage="Edit the text appearing next to the channel name in the header."
           id="edit_channel_header_modal.description"
         />
-      </p>
+      </label>
       <div
         className="textarea-wrapper"
       >
         <Connect(Textbox)
           channelId="fake-id"
           characterLimit={1024}
-          createMessage="Edit the Channel Header..."
+          createMessage="Enter the Channel Header"
           handlePostError={[Function]}
           id="edit_textbox"
           onChange={[Function]}
@@ -84,8 +87,12 @@ exports[`components/EditChannelHeaderModal edit direct message channel 1`] = `
         <TextboxLinks
           hasExceededCharacterLimit={false}
           hasText={true}
-          isMarkdownPreviewEnabled={false}
-          previewMessageLink="Edit Header"
+          previewMessageLink={
+            <Memo(MemoizedFormattedMessage)
+              defaultMessage="Edit"
+              id="edit_channel_header_modal.previewHeader"
+            />
+          }
           showPreview={false}
           updatePreview={[Function]}
         />
@@ -150,7 +157,7 @@ exports[`components/EditChannelHeaderModal error with intl message 1`] = `
   onKeyDown={[Function]}
   renderBackdrop={[Function]}
   restoreFocus={true}
-  role="dialog"
+  role="none"
   show={true}
 >
   <ModalHeader
@@ -179,19 +186,22 @@ exports[`components/EditChannelHeaderModal error with intl message 1`] = `
     componentClass="div"
   >
     <div>
-      <p>
+      <label
+        className="textarea-label"
+        htmlFor="edit_textbox"
+      >
         <MemoizedFormattedMessage
           defaultMessage="Edit the text appearing next to the channel name in the header."
           id="edit_channel_header_modal.description"
         />
-      </p>
+      </label>
       <div
         className="textarea-wrapper"
       >
         <Connect(Textbox)
           channelId="fake-id"
           characterLimit={1024}
-          createMessage="Edit the Channel Header..."
+          createMessage="Enter the Channel Header"
           handlePostError={[Function]}
           id="edit_textbox"
           onChange={[Function]}
@@ -210,8 +220,12 @@ exports[`components/EditChannelHeaderModal error with intl message 1`] = `
         <TextboxLinks
           hasExceededCharacterLimit={false}
           hasText={true}
-          isMarkdownPreviewEnabled={false}
-          previewMessageLink="Edit Header"
+          previewMessageLink={
+            <Memo(MemoizedFormattedMessage)
+              defaultMessage="Edit"
+              id="edit_channel_header_modal.previewHeader"
+            />
+          }
           showPreview={false}
           updatePreview={[Function]}
         />
@@ -294,7 +308,7 @@ exports[`components/EditChannelHeaderModal error without intl message 1`] = `
   onKeyDown={[Function]}
   renderBackdrop={[Function]}
   restoreFocus={true}
-  role="dialog"
+  role="none"
   show={true}
 >
   <ModalHeader
@@ -323,19 +337,22 @@ exports[`components/EditChannelHeaderModal error without intl message 1`] = `
     componentClass="div"
   >
     <div>
-      <p>
+      <label
+        className="textarea-label"
+        htmlFor="edit_textbox"
+      >
         <MemoizedFormattedMessage
           defaultMessage="Edit the text appearing next to the channel name in the header."
           id="edit_channel_header_modal.description"
         />
-      </p>
+      </label>
       <div
         className="textarea-wrapper"
       >
         <Connect(Textbox)
           channelId="fake-id"
           characterLimit={1024}
-          createMessage="Edit the Channel Header..."
+          createMessage="Enter the Channel Header"
           handlePostError={[Function]}
           id="edit_textbox"
           onChange={[Function]}
@@ -354,8 +371,12 @@ exports[`components/EditChannelHeaderModal error without intl message 1`] = `
         <TextboxLinks
           hasExceededCharacterLimit={false}
           hasText={true}
-          isMarkdownPreviewEnabled={false}
-          previewMessageLink="Edit Header"
+          previewMessageLink={
+            <Memo(MemoizedFormattedMessage)
+              defaultMessage="Edit"
+              id="edit_channel_header_modal.previewHeader"
+            />
+          }
           showPreview={false}
           updatePreview={[Function]}
         />
@@ -430,7 +451,7 @@ exports[`components/EditChannelHeaderModal should match snapshot, init 1`] = `
   onKeyDown={[Function]}
   renderBackdrop={[Function]}
   restoreFocus={true}
-  role="dialog"
+  role="none"
   show={true}
 >
   <ModalHeader
@@ -459,19 +480,22 @@ exports[`components/EditChannelHeaderModal should match snapshot, init 1`] = `
     componentClass="div"
   >
     <div>
-      <p>
+      <label
+        className="textarea-label"
+        htmlFor="edit_textbox"
+      >
         <MemoizedFormattedMessage
           defaultMessage="Edit the text appearing next to the channel name in the header."
           id="edit_channel_header_modal.description"
         />
-      </p>
+      </label>
       <div
         className="textarea-wrapper"
       >
         <Connect(Textbox)
           channelId="fake-id"
           characterLimit={1024}
-          createMessage="Edit the Channel Header..."
+          createMessage="Enter the Channel Header"
           handlePostError={[Function]}
           id="edit_textbox"
           onChange={[Function]}
@@ -490,8 +514,12 @@ exports[`components/EditChannelHeaderModal should match snapshot, init 1`] = `
         <TextboxLinks
           hasExceededCharacterLimit={false}
           hasText={true}
-          isMarkdownPreviewEnabled={false}
-          previewMessageLink="Edit Header"
+          previewMessageLink={
+            <Memo(MemoizedFormattedMessage)
+              defaultMessage="Edit"
+              id="edit_channel_header_modal.previewHeader"
+            />
+          }
           showPreview={false}
           updatePreview={[Function]}
         />
@@ -556,7 +584,7 @@ exports[`components/EditChannelHeaderModal submitted 1`] = `
   onKeyDown={[Function]}
   renderBackdrop={[Function]}
   restoreFocus={true}
-  role="dialog"
+  role="none"
   show={true}
 >
   <ModalHeader
@@ -585,19 +613,22 @@ exports[`components/EditChannelHeaderModal submitted 1`] = `
     componentClass="div"
   >
     <div>
-      <p>
+      <label
+        className="textarea-label"
+        htmlFor="edit_textbox"
+      >
         <MemoizedFormattedMessage
           defaultMessage="Edit the text appearing next to the channel name in the header."
           id="edit_channel_header_modal.description"
         />
-      </p>
+      </label>
       <div
         className="textarea-wrapper"
       >
         <Connect(Textbox)
           channelId="fake-id"
           characterLimit={1024}
-          createMessage="Edit the Channel Header..."
+          createMessage="Enter the Channel Header"
           handlePostError={[Function]}
           id="edit_textbox"
           onChange={[Function]}
@@ -616,8 +647,12 @@ exports[`components/EditChannelHeaderModal submitted 1`] = `
         <TextboxLinks
           hasExceededCharacterLimit={false}
           hasText={true}
-          isMarkdownPreviewEnabled={false}
-          previewMessageLink="Edit Header"
+          previewMessageLink={
+            <Memo(MemoizedFormattedMessage)
+              defaultMessage="Edit"
+              id="edit_channel_header_modal.previewHeader"
+            />
+          }
           showPreview={false}
           updatePreview={[Function]}
         />

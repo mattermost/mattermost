@@ -2,16 +2,13 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-import {FormattedMessage} from 'react-intl';
+import {FormattedMessage, defineMessage} from 'react-intl';
 
-import type {ServerError} from '@mattermost/types/errors';
 import type {TeamMembership, Team} from '@mattermost/types/teams';
-import type {UserProfile, UsersStats, GetFilteredUsersStatsOpts} from '@mattermost/types/users';
+import type {UserProfile, GetFilteredUsersStatsOpts} from '@mattermost/types/users';
 
 import GeneralConstants from 'mattermost-redux/constants/general';
 import type {ActionResult} from 'mattermost-redux/types/actions';
-
-import {trackEvent} from 'actions/telemetry_actions.jsx';
 
 import AddUsersToTeamModal from 'components/add_users_to_team_modal';
 import type {FilterOptions} from 'components/admin_console/filter/filter';
@@ -21,11 +18,10 @@ import ToggleModalButton from 'components/toggle_modal_button';
 import AdminPanel from 'components/widgets/admin_console/admin_panel';
 
 import Constants, {ModalIdentifiers} from 'utils/constants';
-import {t} from 'utils/i18n';
 
 type Props = {
     teamId: string;
-    team: Team;
+    team?: Team;
     filters: GetFilteredUsersStatsOpts;
 
     users: UserProfile[];
@@ -44,21 +40,12 @@ type Props = {
     updateRole: (userId: string, schemeUser: boolean, schemeAdmin: boolean) => void;
 
     actions: {
-        getTeamStats: (teamId: string) => Promise<{
-            data: boolean;
-        }>;
-        loadProfilesAndReloadTeamMembers: (page: number, perPage: number, teamId?: string, options?: {[key: string]: any}) => Promise<{
-            data: boolean;
-        }>;
-        searchProfilesAndTeamMembers: (term: string, options?: {[key: string]: any}) => Promise<{
-            data: boolean;
-        }>;
-        getFilteredUsersStats: (filters: GetFilteredUsersStatsOpts) => Promise<{
-            data?: UsersStats;
-            error?: ServerError;
-        }>;
-        setUserGridSearch: (term: string) => ActionResult;
-        setUserGridFilters: (filters: GetFilteredUsersStatsOpts) => ActionResult;
+        getTeamStats: (teamId: string) => Promise<ActionResult>;
+        loadProfilesAndReloadTeamMembers: (page: number, perPage: number, teamId: string, options?: {[key: string]: any}) => Promise<ActionResult>;
+        searchProfilesAndTeamMembers: (term: string, options?: {[key: string]: any}) => Promise<ActionResult>;
+        getFilteredUsersStats: (filters: GetFilteredUsersStatsOpts) => Promise<ActionResult>;
+        setUserGridSearch: (term: string) => void;
+        setUserGridFilters: (filters: GetFilteredUsersStatsOpts) => void;
     };
 }
 
@@ -171,9 +158,6 @@ export default class TeamMembers extends React.PureComponent<Props, State> {
                 filters = {...filters, team_roles: teamRoles};
             }
 
-            [...systemRoles, ...teamRoles].forEach((role) => {
-                trackEvent('admin_team_config_page', `${role}_filter_applied_to_members_block`, {team_id: this.props.teamId});
-            });
             this.props.actions.setUserGridFilters(filters);
             this.props.actions.getFilteredUsersStats({in_team: this.props.teamId, include_bots: true, ...filters});
         } else {
@@ -251,10 +235,8 @@ export default class TeamMembers extends React.PureComponent<Props, State> {
         return (
             <AdminPanel
                 id='teamMembers'
-                titleId={t('admin.team_settings.team_detail.membersTitle')}
-                titleDefault='Members'
-                subtitleId={t('admin.team_settings.team_detail.membersDescription')}
-                subtitleDefault='A list of users who are currently in the team right now'
+                title={defineMessage({id: 'admin.team_settings.team_detail.membersTitle', defaultMessage: 'Members'})}
+                subtitle={defineMessage({id: 'admin.team_settings.team_detail.membersDescription', defaultMessage: 'A list of users who are currently in the team right now'})}
                 button={
                     <ToggleModalButton
                         id='addTeamMembers'

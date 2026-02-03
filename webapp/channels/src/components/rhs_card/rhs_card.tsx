@@ -1,16 +1,19 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import deepEqual from 'fast-deep-equal';
 import React from 'react';
 import type {ReactNode} from 'react';
-import Scrollbars from 'react-custom-scrollbars';
 import {FormattedMessage} from 'react-intl';
 import {Link} from 'react-router-dom';
 
 import type {Post} from '@mattermost/types/posts';
 
+import {ensureString} from 'mattermost-redux/utils/post_utils';
+
 import {emitCloseRightHandSide} from 'actions/global_actions';
 
+import Scrollbars from 'components/common/scrollbars';
 import Markdown from 'components/markdown';
 import PostProfilePicture from 'components/post_profile_picture';
 import RhsCardHeader from 'components/rhs_card_header';
@@ -35,33 +38,6 @@ type State = {
     isScrolling: boolean;
 };
 
-export function renderView(props: Props) {
-    return (
-        <div
-            {...props}
-            className='scrollbar--view'
-        />
-    );
-}
-
-export function renderThumbHorizontal(props: Props) {
-    return (
-        <div
-            {...props}
-            className='scrollbar--horizontal'
-        />
-    );
-}
-
-export function renderThumbVertical(props: Props) {
-    return (
-        <div
-            {...props}
-            className='scrollbar--vertical'
-        />
-    );
-}
-
 export default class RhsCard extends React.Component<Props, State> {
     scrollStopAction: DelayedAction;
 
@@ -80,6 +56,9 @@ export default class RhsCard extends React.Component<Props, State> {
     }
 
     shouldComponentUpdate(nextProps: Props, nextState: State) {
+        if (!deepEqual(nextProps.selected?.props?.card, this.props.selected?.props?.card)) {
+            return true;
+        }
         if (nextState.isScrolling !== this.state.isScrolling) {
             return true;
         }
@@ -116,15 +95,16 @@ export default class RhsCard extends React.Component<Props, State> {
         const {selected, pluginPostCardTypes, teamUrl} = this.props;
         const postType = selected.type;
         let content: ReactNode = null;
-        if (pluginPostCardTypes?.hasOwnProperty(postType)) {
+        if (pluginPostCardTypes && Object.hasOwn(pluginPostCardTypes, postType)) {
             const PluginComponent = pluginPostCardTypes[postType].component;
             content = <PluginComponent post={selected}/>;
         }
 
         if (!content) {
+            const message = ensureString(selected.props?.card);
             content = (
                 <div className='info-card'>
-                    <Markdown message={selected.props && selected.props.card}/>
+                    <Markdown message={message}/>
                 </div>
             );
         }
@@ -136,13 +116,14 @@ export default class RhsCard extends React.Component<Props, State> {
                 disablePopover={true}
             />
         );
-        if (selected.props.override_username && this.props.enablePostUsernameOverride) {
+        const overrideUsername = ensureString(selected.props.override_username);
+        if (overrideUsername && this.props.enablePostUsernameOverride) {
             user = (
                 <UserProfile
                     userId={selected.user_id}
                     hideStatus={true}
                     disablePopover={true}
-                    overwriteName={selected.props.override_username}
+                    overwriteName={overrideUsername}
                 />
             );
         }
@@ -157,15 +138,7 @@ export default class RhsCard extends React.Component<Props, State> {
         return (
             <div className='sidebar-right__body sidebar-right__card'>
                 <RhsCardHeader previousRhsState={this.props.previousRhsState}/>
-                <Scrollbars
-                    autoHide={true}
-                    autoHideTimeout={500}
-                    autoHideDuration={500}
-                    renderThumbHorizontal={renderThumbHorizontal}
-                    renderThumbVertical={renderThumbVertical}
-                    renderView={renderView}
-                    onScroll={this.handleScroll}
-                >
+                <Scrollbars onScroll={this.handleScroll}>
                     <div className='post-right__scroll'>
                         {content}
                         <div className='d-flex post-card--info'>

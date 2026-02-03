@@ -6,11 +6,15 @@ package app
 import (
 	"errors"
 	"net/http"
+	"path"
 	"strings"
 
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/public/shared/request"
+	"github.com/mattermost/mattermost/server/v8/channels/app/password/hashers"
 	"github.com/mattermost/mattermost/server/v8/channels/app/users"
+	"github.com/mattermost/mattermost/server/v8/channels/utils"
 	"github.com/mattermost/mattermost/server/v8/platform/shared/mfa"
 )
 
@@ -58,25 +62,83 @@ func (a *App) IsPasswordValid(rctx request.CTX, password string) *model.AppError
 	return nil
 }
 
-func (a *App) CheckPasswordAndAllCriteria(rctx request.CTX, user *model.User, password string, mfaToken string) *model.AppError {
-	if err := a.CheckUserPreflightAuthenticationCriteria(rctx, user, mfaToken); err != nil {
-		return err
+func (a *App) checkUserPassword(user *model.User, password string, invalidateCache bool) *model.AppError {
+	if user.Password == "" || password == "" {
+		return model.NewAppError("checkUserPassword", "api.user.check_user_password.invalid.app_error", nil, "user_id="+user.Id, http.StatusUnauthorized)
 	}
 
-	if err := users.CheckUserPassword(user, password); err != nil {
+	// Get the hasher and parsed PHC
+	hasher, phc, err := hashers.GetHasherFromPHCString(user.Password)
+	if err != nil {
+		return model.NewAppError("checkUserPassword", "api.user.check_user_password.invalid_hash.app_error", nil, "user_id="+user.Id, http.StatusUnauthorized)
+	}
+
+	// Compare the password using the hasher that generated it
+	err = hasher.CompareHashAndPassword(phc, password)
+	if err != nil && errors.Is(err, hashers.ErrMismatchedHashAndPassword) {
+		// Increment the number of failed password attempts in case of
+		// mismatched hash and password
 		if passErr := a.Srv().Store().User().UpdateFailedPasswordAttempts(user.Id, user.FailedAttempts+1); passErr != nil {
 			return model.NewAppError("CheckPasswordAndAllCriteria", "app.user.update_failed_pwd_attempts.app_error", nil, "", http.StatusInternalServerError).Wrap(passErr)
 		}
 
-		a.InvalidateCacheForUser(user.Id)
-
-		var invErr *users.ErrInvalidPassword
-		switch {
-		case errors.As(err, &invErr):
-			return model.NewAppError("checkUserPassword", "api.user.check_user_password.invalid.app_error", nil, "user_id="+user.Id, http.StatusUnauthorized).Wrap(err)
-		default:
-			return model.NewAppError("checkUserPassword", "app.valid_password_generic.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		if invalidateCache {
+			a.InvalidateCacheForUser(user.Id)
 		}
+
+		return model.NewAppError("checkUserPassword", "api.user.check_user_password.invalid.app_error", nil, "user_id="+user.Id, http.StatusUnauthorized).Wrap(err)
+	} else if err != nil {
+		return model.NewAppError("checkUserPassword", "app.valid_password_generic.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+
+	// Migrate the password if needed
+	if !hashers.IsLatestHasher(hasher) {
+		return a.migratePassword(user, password)
+	}
+
+	return nil
+}
+
+// migratePassword updates the database with the user's password hashed with the
+// latest hashing method. It assumes that the password has been already validated.
+func (a *App) migratePassword(user *model.User, password string) *model.AppError {
+	// Compute the new hash with the latest hashing method
+	newHash, err := hashers.Hash(password)
+	if err != nil {
+		return model.NewAppError("migratePassword", "app.user.check_user_password.failed_migration", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+
+	// Update the password
+	if err := a.Srv().Store().User().UpdatePassword(user.Id, newHash); err != nil {
+		return model.NewAppError("migratePassword", "app.user.check_user_password.failed_update", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+	a.InvalidateCacheForUser(user.Id)
+
+	return nil
+}
+
+func (a *App) CheckPasswordAndAllCriteria(rctx request.CTX, userID string, password string, mfaToken string) *model.AppError {
+	// MM-37585
+	// Use locks to avoid concurrently checking AND updating the failed login attempts.
+	a.ch.emailLoginAttemptsMut.Lock()
+	defer a.ch.emailLoginAttemptsMut.Unlock()
+
+	user, err := a.GetUser(userID)
+	if err != nil {
+		if err.Id != MissingAccountError {
+			err.StatusCode = http.StatusInternalServerError
+			return err
+		}
+		err.StatusCode = http.StatusBadRequest
+		return err
+	}
+
+	if err := a.CheckUserPreflightAuthenticationCriteria(rctx, user, mfaToken); err != nil {
+		return err
+	}
+
+	if err := a.checkUserPassword(user, password, false); err != nil {
+		return err
 	}
 
 	if err := a.CheckUserMfa(rctx, user, mfaToken); err != nil {
@@ -88,16 +150,12 @@ func (a *App) CheckPasswordAndAllCriteria(rctx request.CTX, user *model.User, pa
 			}
 		}
 
-		a.InvalidateCacheForUser(user.Id)
-
 		return err
 	}
 
 	if passErr := a.Srv().Store().User().UpdateFailedPasswordAttempts(user.Id, 0); passErr != nil {
 		return model.NewAppError("CheckPasswordAndAllCriteria", "app.user.update_failed_pwd_attempts.app_error", nil, "", http.StatusInternalServerError).Wrap(passErr)
 	}
-
-	a.InvalidateCacheForUser(user.Id)
 
 	if err := a.CheckUserPostflightAuthenticationCriteria(rctx, user); err != nil {
 		return err
@@ -112,20 +170,8 @@ func (a *App) DoubleCheckPassword(rctx request.CTX, user *model.User, password s
 		return err
 	}
 
-	if err := users.CheckUserPassword(user, password); err != nil {
-		if passErr := a.Srv().Store().User().UpdateFailedPasswordAttempts(user.Id, user.FailedAttempts+1); passErr != nil {
-			return model.NewAppError("DoubleCheckPassword", "app.user.update_failed_pwd_attempts.app_error", nil, "", http.StatusInternalServerError).Wrap(passErr)
-		}
-
-		a.InvalidateCacheForUser(user.Id)
-
-		var invErr *users.ErrInvalidPassword
-		switch {
-		case errors.As(err, &invErr):
-			return model.NewAppError("DoubleCheckPassword", "api.user.check_user_password.invalid.app_error", nil, "user_id="+user.Id, http.StatusUnauthorized).Wrap(err)
-		default:
-			return model.NewAppError("DoubleCheckPassword", "app.valid_password_generic.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
-		}
+	if err := a.checkUserPassword(user, password, true); err != nil {
+		return err
 	}
 
 	if passErr := a.Srv().Store().User().UpdateFailedPasswordAttempts(user.Id, 0); passErr != nil {
@@ -137,24 +183,84 @@ func (a *App) DoubleCheckPassword(rctx request.CTX, user *model.User, password s
 	return nil
 }
 
-func (a *App) checkLdapUserPasswordAndAllCriteria(rctx request.CTX, ldapId *string, password string, mfaToken string) (*model.User, *model.AppError) {
-	if a.Ldap() == nil || ldapId == nil {
+func (a *App) checkLdapUserPasswordAndAllCriteria(rctx request.CTX, user *model.User, password, mfaToken string) (*model.User, *model.AppError) {
+	// MM-37585: Use locks to avoid concurrently checking AND updating the failed login attempts.
+	a.ch.ldapLoginAttemptsMut.Lock()
+	defer a.ch.ldapLoginAttemptsMut.Unlock()
+
+	// We need to get the latest value of the user from the database after we acquire the lock. user is nil for first-time LDAP users.
+	if user.Id != "" {
+		var err *model.AppError
+		user, err = a.GetUser(user.Id)
+		if err != nil {
+			if err.Id != MissingAccountError {
+				err.StatusCode = http.StatusInternalServerError
+				return nil, err
+			}
+			err.StatusCode = http.StatusBadRequest
+			return nil, err
+		}
+	}
+
+	ldapID := user.AuthData
+
+	if a.Ldap() == nil || ldapID == nil {
 		err := model.NewAppError("doLdapAuthentication", "api.user.login_ldap.not_available.app_error", nil, "", http.StatusNotImplemented)
 		return nil, err
 	}
 
-	ldapUser, err := a.Ldap().DoLogin(rctx, *ldapId, password)
+	// First time LDAP users will not have a userID
+	if user.Id != "" {
+		if err := checkUserLoginAttempts(user, *a.Config().LdapSettings.MaximumLoginAttempts); err != nil {
+			return nil, err
+		}
+	}
+
+	ldapUser, err := a.Ldap().DoLogin(rctx, *ldapID, password)
 	if err != nil {
+		// If this is a new LDAP user, we need to get the user from the database because DoLogin will have created the user.
+		if user.Id == "" {
+			var getUserByAuthErr *model.AppError
+			ldapUser, getUserByAuthErr = a.GetUserByAuth(ldapID, model.UserAuthServiceLdap)
+			if getUserByAuthErr != nil {
+				return nil, getUserByAuthErr
+			}
+		} else {
+			ldapUser = user
+		}
+
+		// Log a info to make it easier to admin to spot that a user tried to log in with a legitimate user name.
+		if err.Id == "ent.ldap.do_login.invalid_password.app_error" {
+			rctx.Logger().LogM(mlog.MlvlLDAPInfo, "A user tried to sign in, which matched an LDAP account, but the password was incorrect.", mlog.String("ldap_id", *ldapID))
+
+			if passErr := a.Srv().Store().User().UpdateFailedPasswordAttempts(ldapUser.Id, ldapUser.FailedAttempts+1); passErr != nil {
+				return nil, model.NewAppError("CheckPasswordAndAllCriteria", "app.user.update_failed_pwd_attempts.app_error", nil, "", http.StatusInternalServerError).Wrap(passErr)
+			}
+		}
+
 		err.StatusCode = http.StatusUnauthorized
 		return nil, err
 	}
 
-	if err := a.CheckUserMfa(rctx, ldapUser, mfaToken); err != nil {
+	if err = a.CheckUserMfa(rctx, ldapUser, mfaToken); err != nil {
+		// If the mfaToken is not set, we assume the client used this as a pre-flight request to query the server
+		// about the MFA state of the user in question
+		if mfaToken != "" && ldapUser.Id != "" {
+			if passErr := a.Srv().Store().User().UpdateFailedPasswordAttempts(ldapUser.Id, ldapUser.FailedAttempts+1); passErr != nil {
+				return nil, model.NewAppError("CheckPasswordAndAllCriteria", "app.user.update_failed_pwd_attempts.app_error", nil, "", http.StatusInternalServerError).Wrap(passErr)
+			}
+		}
 		return nil, err
 	}
 
-	if err := checkUserNotDisabled(ldapUser); err != nil {
+	if err = checkUserNotDisabled(ldapUser); err != nil {
 		return nil, err
+	}
+
+	if ldapUser.FailedAttempts > 0 {
+		if passErr := a.Srv().Store().User().UpdateFailedPasswordAttempts(ldapUser.Id, 0); passErr != nil {
+			return nil, model.NewAppError("CheckPasswordAndAllCriteria", "app.user.update_failed_pwd_attempts.app_error", nil, "", http.StatusInternalServerError).Wrap(passErr)
+		}
 	}
 
 	// user successfully authenticated
@@ -206,7 +312,7 @@ func (a *App) CheckUserMfa(rctx request.CTX, user *model.User, token string) *mo
 		return model.NewAppError("CheckUserMfa", "mfa.mfa_disabled.app_error", nil, "", http.StatusNotImplemented)
 	}
 
-	ok, err := mfa.New(a.Srv().Store().User()).ValidateToken(user.MfaSecret, token)
+	ok, err := mfa.New(a.Srv().Store().User()).ValidateToken(user, token)
 	if err != nil {
 		return model.NewAppError("CheckUserMfa", "mfa.validate_token.authenticate.app_error", nil, "", http.StatusBadRequest).Wrap(err)
 	}
@@ -218,8 +324,60 @@ func (a *App) CheckUserMfa(rctx request.CTX, user *model.User, token string) *mo
 	return nil
 }
 
-func checkUserLoginAttempts(user *model.User, max int) *model.AppError {
-	if user.FailedAttempts >= max {
+func (a *App) MFARequired(rctx request.CTX) *model.AppError {
+	if license := a.Channels().License(); license == nil || !*license.Features.MFA || !*a.Config().ServiceSettings.EnableMultifactorAuthentication || !*a.Config().ServiceSettings.EnforceMultifactorAuthentication {
+		return nil
+	}
+
+	session := rctx.Session()
+	// Session cannot be nil or empty if MFA is to be enforced.
+	if session == nil || session.Id == "" {
+		return model.NewAppError("MfaRequired", "api.context.get_session.app_error", nil, "", http.StatusUnauthorized)
+	}
+
+	// OAuth integrations are excepted
+	if session.IsOAuth {
+		return nil
+	}
+
+	user, err := a.GetUser(session.UserId)
+	if err != nil {
+		return model.NewAppError("MfaRequired", "api.context.get_user.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+
+	if user.IsGuest() && !*a.Config().GuestAccountsSettings.EnforceMultifactorAuthentication {
+		return nil
+	}
+	// Only required for email and ldap accounts
+	if user.AuthService != "" &&
+		user.AuthService != model.UserAuthServiceEmail &&
+		user.AuthService != model.UserAuthServiceLdap {
+		return nil
+	}
+
+	// Special case to let user get themself
+	subpath, _ := utils.GetSubpathFromConfig(a.Config())
+	if rctx.Path() == path.Join(subpath, "/api/v4/users/me") {
+		return nil
+	}
+
+	// Bots are exempt
+	if user.IsBot {
+		return nil
+	}
+
+	if !user.MfaActive {
+		return model.NewAppError("MfaRequired", "api.context.mfa_required.app_error", nil, "", http.StatusForbidden)
+	}
+
+	return nil
+}
+
+func checkUserLoginAttempts(user *model.User, maxAttempts int) *model.AppError {
+	if user.FailedAttempts >= maxAttempts {
+		if user.AuthService == model.UserAuthServiceLdap {
+			return model.NewAppError("checkUserLoginAttempts", "api.user.check_user_login_attempts.too_many_ldap.app_error", nil, "user_id="+user.Id, http.StatusUnauthorized)
+		}
 		return model.NewAppError("checkUserLoginAttempts", "api.user.check_user_login_attempts.too_many.app_error", nil, "user_id="+user.Id, http.StatusUnauthorized)
 	}
 
@@ -250,7 +408,7 @@ func (a *App) authenticateUser(rctx request.CTX, user *model.User, password, mfa
 			return user, err
 		}
 
-		ldapUser, err := a.checkLdapUserPasswordAndAllCriteria(rctx, user.AuthData, password, mfaToken)
+		ldapUser, err := a.checkLdapUserPasswordAndAllCriteria(rctx, user, password, mfaToken)
 		if err != nil {
 			err.StatusCode = http.StatusUnauthorized
 			return user, err
@@ -269,7 +427,11 @@ func (a *App) authenticateUser(rctx request.CTX, user *model.User, password, mfa
 		return user, err
 	}
 
-	if err := a.CheckPasswordAndAllCriteria(rctx, user, password, mfaToken); err != nil {
+	if err := a.CheckPasswordAndAllCriteria(rctx, user.Id, password, mfaToken); err != nil {
+		if err.Id == "api.user.check_user_password.invalid.app_error" {
+			rctx.Logger().LogM(mlog.MlvlLDAPInfo, "A user tried to sign in, which matched a Mattermost account, but the password was incorrect.", mlog.String("username", user.Username))
+		}
+
 		err.StatusCode = http.StatusUnauthorized
 		return user, err
 	}

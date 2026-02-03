@@ -16,7 +16,6 @@ describe('admin_console/team_channel_settings/group/GroupList', () => {
             id: '123',
             display_name: 'DN',
             member_count: 3,
-
         })];
 
         const actions = {
@@ -26,16 +25,18 @@ describe('admin_console/team_channel_settings/group/GroupList', () => {
         const wrapper = shallow(
             <GroupList
                 data={testGroups}
+                groups={[]}
+                onGroupRemoved={jest.fn()}
+                isModeSync={false}
+                totalGroups={0}
                 onPageChangedCallback={jest.fn()}
                 total={testGroups.length}
-                emptyListTextId={'test'}
-                emptyListTextDefaultMessage={'test'}
                 actions={actions}
                 removeGroup={jest.fn()}
                 type='team'
                 setNewGroupRole={jest.fn()}
             />);
-        wrapper.setState({loading: false});
+
         expect(wrapper).toMatchSnapshot();
     });
 
@@ -55,16 +56,18 @@ describe('admin_console/team_channel_settings/group/GroupList', () => {
         const wrapper = shallow(
             <GroupList
                 data={testGroups}
+                groups={[]}
+                onGroupRemoved={jest.fn()}
+                isModeSync={false}
+                totalGroups={0}
                 onPageChangedCallback={jest.fn()}
                 total={30}
-                emptyListTextId={'test'}
-                emptyListTextDefaultMessage={'test'}
                 actions={actions}
                 type='team'
                 removeGroup={jest.fn()}
                 setNewGroupRole={jest.fn()}
             />);
-        wrapper.setState({loading: false});
+
         expect(wrapper).toMatchSnapshot();
     });
 });

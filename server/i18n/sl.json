@@ -248,10 +248,6 @@
     "translation": "Vaše geslo mora vsebovati vsaj {{.Min}} znakov, sestavljenih iz vsaj ene male črke."
   },
   {
-    "id": "model.user.is_valid.pwd.app_error",
-    "translation": "Vaše geslo mora vsebovati vsaj {{.Min}} znakov."
-  },
-  {
     "id": "model.user.is_valid.nickname.app_error",
     "translation": "Neveljavno uporabniško ime."
   },
@@ -402,10 +398,6 @@
   {
     "id": "model.post.is_valid.original_id.app_error",
     "translation": "Neveljaven original ID"
-  },
-  {
-    "id": "model.post.is_valid.msg.app_error",
-    "translation": "Neveljavno sporočilo"
   },
   {
     "id": "model.post.is_valid.id.app_error",
@@ -728,20 +720,12 @@
     "translation": "Vaša licenca ne podpira overjanja SAML."
   },
   {
-    "id": "ent.saml.do_login.validate.app_error",
-    "translation": "Pri preverjanju odgovora ponudnika identitete je prišlo do napake. Obrnite se na skrbnika sistema."
-  },
-  {
     "id": "ent.saml.do_login.parse.app_error",
     "translation": "Med razčlenjevanjem odgovora ponudnika identitete je prišlo do napake. Obrnite se na skrbnika sistema."
   },
   {
     "id": "ent.saml.do_login.empty_response.app_error",
     "translation": "Od ponudnika identitete smo prejeli prazen odgovor"
-  },
-  {
-    "id": "ent.saml.do_login.decrypt.app_error",
-    "translation": "Prijava SAML ni bila uspešna, ker je prišlo do napake pri dešifriranju odgovora ponudnika identitete. Obrnite se na skrbnika sistema."
   },
   {
     "id": "ent.saml.configure.not_encrypted_response.app_error",
@@ -752,16 +736,8 @@
     "translation": "Prijava SAML ni bila uspešna, ker zasebnega ključa ponudnika storitev ni bilo mogoče najti. Obrnite se na skrbnika sistema."
   },
   {
-    "id": "ent.saml.configure.load_idp_cert.app_error",
-    "translation": "Datoteke za javno potrdilo ponudnika identitete ni bilo mogoče najti. Obrnite se na skrbnika sistema."
-  },
-  {
     "id": "ent.saml.configure.encryption_not_enabled.app_error",
     "translation": "Prijava SAML ni bila uspešna, ker šifriranje ni omogočeno. Obrnite se na skrbnika sistema."
-  },
-  {
-    "id": "ent.saml.build_request.encoding.app_error",
-    "translation": "Med kodiranjem zahteve za ponudnika identitete je prišlo do napake. Obrnite se na skrbnika sistema."
   },
   {
     "id": "ent.saml.build_request.app_error",
@@ -790,54 +766,6 @@
   {
     "id": "ent.migration.migratetoldap.duplicate_field",
     "translation": "Uporabnikov AD / LDAP z navedenim poljem ni mogoče preseliti. Zaznan je bil podvojen vnos. Odstranite vsa dvojna besedila in poskusite znova."
-  },
-  {
-    "id": "ent.message_export.global_relay_export.deliver.unable_to_open_zip_file_data.app_error",
-    "translation": "Ni mogoče odpreti začasne datoteke za izvoz"
-  },
-  {
-    "id": "ent.message_export.global_relay_export.deliver.unable_to_open_email_file.app_error",
-    "translation": "E-poštnega sporočila iz začasne datoteke ni mogoče dobiti"
-  },
-  {
-    "id": "ent.message_export.global_relay_export.deliver.unable_to_get_file_info.app_error",
-    "translation": "Podatkov o izvozni začasni datoteki ni mogoče dobiti"
-  },
-  {
-    "id": "ent.message_export.global_relay_export.deliver.to_address.app_error",
-    "translation": "Ni mogoče nastaviti e-poštni Za naslov."
-  },
-  {
-    "id": "ent.message_export.global_relay_export.deliver.parse_mail.app_error",
-    "translation": "Ni možno prebrati informacij o e-pošti."
-  },
-  {
-    "id": "ent.message_export.global_relay_export.deliver.msg_data.app_error",
-    "translation": "E-poštnega sporočila ni mogoče napisati."
-  },
-  {
-    "id": "ent.message_export.global_relay_export.deliver.msg.app_error",
-    "translation": "E-poštnega sporočila ni mogoče nastaviti."
-  },
-  {
-    "id": "ent.message_export.global_relay_export.deliver.from_address.app_error",
-    "translation": "Ni mogoče nastaviti e-poštni Od naslov."
-  },
-  {
-    "id": "ent.message_export.global_relay.generate_email.app_error",
-    "translation": "Podatkov o datoteki eml ni mogoče ustvariti."
-  },
-  {
-    "id": "ent.message_export.global_relay.create_file_in_zip.app_error",
-    "translation": "Datoteke eml ni mogoče ustvariti."
-  },
-  {
-    "id": "ent.message_export.global_relay.close_zip_file.app_error",
-    "translation": "Datoteke zip ni mogoče zapreti."
-  },
-  {
-    "id": "ent.message_export.global_relay.attach_file.app_error",
-    "translation": "Priloge ni mogoče dodati izvozu CSV."
   },
   {
     "id": "ent.ldap_groups.reachable_groups_error",
@@ -980,10 +908,6 @@
     "translation": "Napaka pri pridobivanju Elasticsearch indeksov"
   },
   {
-    "id": "ent.elasticsearch.purge_indexes.delete_failed",
-    "translation": "Indeks Elasticsearch ni bil izbrisan"
-  },
-  {
     "id": "ent.elasticsearch.not_started.error",
     "translation": "Elasticsearch ni zagnan"
   },
@@ -1036,32 +960,8 @@
     "translation": "Izvoz skladnosti ni uspel za opravilo '{{.JobName}}' na '{{.FilePath}}'"
   },
   {
-    "id": "ent.compliance.run_export.template_watcher.appError",
-    "translation": "Ni možno naložiti predlog za izvoz. Prosim poizkusite ponovno."
-  },
-  {
     "id": "ent.compliance.licence_disable.app_error",
     "translation": "Funkcija skladnosti je onemogočena s trenutno licenco. O nadgradnji licence za podjetje se obrnite na skrbnika sistema."
-  },
-  {
-    "id": "ent.compliance.global_relay.open_temporary_file.appError",
-    "translation": "Začasne izvozne datoteke ni mogoče odpreti."
-  },
-  {
-    "id": "ent.compliance.global_relay.attachments_removed.appError",
-    "translation": "Naložena datoteka je bila odstranjena iz izvoza Global Relay, ker je bila prevelika za pošiljanje."
-  },
-  {
-    "id": "ent.compliance.csv.zip.creation.appError",
-    "translation": "Izvozne datoteke zip ni mogoče ustvariti."
-  },
-  {
-    "id": "ent.compliance.csv.warning.appError",
-    "translation": "Datoteke eml ni mogoče ustvariti."
-  },
-  {
-    "id": "ent.compliance.csv.post.export.appError",
-    "translation": "Objave ni mogoče izvoziti."
   },
   {
     "id": "app.scheme.save.invalid_scheme.app_error",
@@ -1090,38 +990,6 @@
   {
     "id": "store.sql_post.search.disabled",
     "translation": "Iskanje je bilo na tem strežniku onemogočeno. Obrnite se na skrbnika sistema."
-  },
-  {
-    "id": "ent.compliance.csv.metadata.json.zipfile.appError",
-    "translation": "Datoteke eml ni mogoče ustvariti."
-  },
-  {
-    "id": "ent.compliance.csv.metadata.json.marshalling.appError",
-    "translation": "Metapodatkov ni mogoče pretvoriti v json."
-  },
-  {
-    "id": "ent.compliance.csv.metadata.export.appError",
-    "translation": "Datoteke z metapodatki ni mogoče dodati v datoteko zip."
-  },
-  {
-    "id": "ent.compliance.csv.header.export.appError",
-    "translation": "Glave ni mogoče dodati izvozu CSV."
-  },
-  {
-    "id": "ent.compliance.csv.file.creation.appError",
-    "translation": "Ni mogoče ustvariti začasne izvozne datoteke CSV."
-  },
-  {
-    "id": "ent.compliance.csv.attachment.export.appError",
-    "translation": "Priloge ni mogoče dodati izvozu CSV."
-  },
-  {
-    "id": "ent.compliance.csv.attachment.copy.appError",
-    "translation": "Priloge ni mogoče kopirati v datoteko zip."
-  },
-  {
-    "id": "ent.compliance.bad_export_type.appError",
-    "translation": "Neznana izhodna oblika {{.ExportType}}"
   },
   {
     "id": "ent.cluster.save_config.error",
@@ -1154,50 +1022,6 @@
   {
     "id": "brand.save_brand_image.decode.app_error",
     "translation": "Podatkov o sliki ni mogoče dekodirati."
-  },
-  {
-    "id": "bleveengine.search_users_in_team.error",
-    "translation": "Iskanje ni bilo mogoče dokončati"
-  },
-  {
-    "id": "bleveengine.search_users_in_channel.uchan.error",
-    "translation": "Iskanje ni bilo mogoče dokončati"
-  },
-  {
-    "id": "bleveengine.search_users_in_channel.nuchan.error",
-    "translation": "Iskanje ni bilo mogoče dokončati"
-  },
-  {
-    "id": "bleveengine.search_posts.error",
-    "translation": "Iskanje ni bilo mogoče dokončati"
-  },
-  {
-    "id": "bleveengine.search_channels.error",
-    "translation": "Iskanje ni bilo mogoče dokončati"
-  },
-  {
-    "id": "bleveengine.index_user.error",
-    "translation": "Objave ni bilo mogoče indeksirati"
-  },
-  {
-    "id": "bleveengine.index_post.error",
-    "translation": "Objave ni bilo mogoče indeksirati"
-  },
-  {
-    "id": "bleveengine.index_channel.error",
-    "translation": "Posodobitev kanala ni uspela"
-  },
-  {
-    "id": "bleveengine.delete_user.error",
-    "translation": "Objave ni bilo mogoče izbrisati"
-  },
-  {
-    "id": "bleveengine.delete_post.error",
-    "translation": "Objave ni bilo mogoče izbrisati"
-  },
-  {
-    "id": "bleveengine.delete_channel.error",
-    "translation": "Posodobitev kanala ni uspela"
   },
   {
     "id": "app.user_access_token.invalid_or_missing",
@@ -1754,14 +1578,6 @@
   {
     "id": "api.user.login.guest_accounts.license.error",
     "translation": "vaša licenca ne podpira skupin ldap"
-  },
-  {
-    "id": "api.user.login.client_side_cert.license.app_error",
-    "translation": "Poskušali ste uporabiti poskusno funkcijo ClientSideCertEnable brez veljavne licence podjetja"
-  },
-  {
-    "id": "api.user.login.client_side_cert.certificate.app_error",
-    "translation": "Poskušali ste se prijaviti z eksperimentalno funkcijo ClientSideCert, ne da bi zagotovili veljaven certifikat"
   },
   {
     "id": "api.user.login.blank_pwd.app_error",
@@ -3094,10 +2910,6 @@
     "translation": "invalid_request: Slab grant_type"
   },
   {
-    "id": "api.oauth.get_access_token.bad_client_secret.app_error",
-    "translation": "invalid_request: Manjkajoči client_secret"
-  },
-  {
     "id": "api.oauth.get_access_token.bad_client_id.app_error",
     "translation": "invalid_request: Slab client_id"
   },
@@ -3651,10 +3463,6 @@
     "translation": "Strani ni mogoče najti."
   },
   {
-    "id": "api.config.client.old_format.app_error",
-    "translation": "Nov format konfiguracije klienta še ni podprt. Nastavi format=old v poizvedbi."
-  },
-  {
     "id": "api.command_shrug.name",
     "translation": "skomig"
   },
@@ -3781,10 +3589,6 @@
   {
     "id": "api.command_mute.success_mute",
     "translation": "Obvestil kanala {{.Channel}} ne boste prejemali dokler ne izključite utišanje kanala."
-  },
-  {
-    "id": "api.command_mute.not_member.error",
-    "translation": "Kanala {{.Channel}} ni mogoče utišati ker niste član kanala."
   },
   {
     "id": "api.command_mute.no_channel.error",
@@ -4436,10 +4240,6 @@
     "translation": "%v je zapustil kanal."
   },
   {
-    "id": "api.channel.leave.last_member.app_error",
-    "translation": "Zadnji si, poskusi odstraniti kanal Privatni kanal namesto zapuščanja."
-  },
-  {
     "id": "api.channel.leave.direct.app_error",
     "translation": "Ni mogoče zapustiti neposrednega kanala"
   },
@@ -4469,7 +4269,7 @@
   },
   {
     "id": "api.channel.delete_channel.cannot.app_error",
-    "translation": "Privzetega kanala ni mogoče izbrisati {{.Channel}}"
+    "translation": "Privzetega kanala ni mogoče izbrisati {{.Channel}}."
   },
   {
     "id": "api.channel.delete_channel.archived",

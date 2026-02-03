@@ -2,16 +2,21 @@
 // See LICENSE.txt for license information.
 
 import type {Group} from '@mattermost/types/groups';
+import {GroupSource, PluginGroupSourcePrefix} from '@mattermost/types/groups';
 
-import {getSuggestionsSplitByMultiple} from './user_utils';
+import {getSuggestionsSplitBy, getSuggestionsSplitByMultiple} from './user_utils';
 
 import {General} from '../constants';
+
+export function isSyncableSource(source: string): boolean {
+    return source.toLowerCase() === GroupSource.Ldap || source.toLowerCase().startsWith(PluginGroupSourcePrefix.Plugin);
+}
 
 export function filterGroupsMatchingTerm(groups: Group[], term: string): Group[] {
     const lowercasedTerm = term.toLowerCase();
     let trimmedTerm = lowercasedTerm;
     if (trimmedTerm.startsWith('@')) {
-        trimmedTerm = trimmedTerm.substr(1);
+        trimmedTerm = trimmedTerm.slice(1);
     }
 
     return groups.filter((group: Group) => {
@@ -22,10 +27,10 @@ export function filterGroupsMatchingTerm(groups: Group[], term: string): Group[]
         const groupSuggestions: string[] = [];
 
         const groupnameSuggestions = getSuggestionsSplitByMultiple((group.name || '').toLowerCase(), General.AUTOCOMPLETE_SPLIT_CHARACTERS);
-
         groupSuggestions.push(...groupnameSuggestions);
-        const displayname = (group.display_name || '').toLowerCase();
-        groupSuggestions.push(displayname);
+
+        const suggestions = getSuggestionsSplitBy(group.display_name.toLowerCase(), ' ');
+        groupSuggestions.push(...suggestions);
 
         return groupSuggestions.
             filter((suggestion) => suggestion !== '').

@@ -7,7 +7,6 @@
 // - Use element ID when selecting an element. Create one if none.
 // ***************************************************************
 
-// Stage: @prod
 // Group: @channels @enterprise @e20_only @not_cloud @system_console
 
 import * as TIMEOUTS from '../../../../fixtures/timeouts';
@@ -51,7 +50,7 @@ function verifyCanNavigate(testCase) {
 
     // * Verify that it redirects to the URL and matches with the header
     cy.url().should('include', testCase.url);
-    cy.get('.admin-console__header', {timeout: TIMEOUTS.ONE_MIN}).
+    cy.get(`${testCase.headerSelector || '.admin-console__header'}`, {timeout: TIMEOUTS.ONE_MIN}).
         should('be.visible').
         and(testCase.headerContains ? 'contain' : 'have.text', testCase.header);
 }

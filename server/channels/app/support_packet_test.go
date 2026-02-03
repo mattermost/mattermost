@@ -4,226 +4,770 @@
 package app
 
 import (
+	"bytes"
+	"encoding/json"
 	"errors"
 	"os"
+	"path/filepath"
 	"testing"
 
+	"github.com/goccy/go-yaml"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"gopkg.in/yaml.v2"
 
 	"github.com/mattermost/mattermost/server/public/model"
-	"github.com/mattermost/mattermost/server/v8/channels/app/platform"
-	fmocks "github.com/mattermost/mattermost/server/v8/platform/shared/filestore/mocks"
+	"github.com/mattermost/mattermost/server/public/shared/request"
+	smocks "github.com/mattermost/mattermost/server/v8/channels/store/storetest/mocks"
+	"github.com/mattermost/mattermost/server/v8/channels/utils/fileutils"
+	"github.com/mattermost/mattermost/server/v8/config"
 )
 
-func TestCreatePluginsFile(t *testing.T) {
+func TestGenerateSupportPacket(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t)
-	defer th.TearDown()
 
-	// Happy path where we have a plugins file with no err
-	fileData, err := th.App.createPluginsFile(th.Context)
-	require.NotNil(t, fileData)
-	assert.Equal(t, "plugins.json", fileData.Filename)
-	assert.Positive(t, len(fileData.Body))
-	assert.NoError(t, err)
+	err := th.App.SetPhase2PermissionsMigrationStatus(true)
+	require.NoError(t, err)
 
-	// Turn off plugins so we can get an error
-	th.App.UpdateConfig(func(cfg *model.Config) {
-		*cfg.PluginSettings.Enable = false
+	dir, err := os.MkdirTemp("", "")
+	require.NoError(t, err)
+	t.Cleanup(func() {
+		err = os.RemoveAll(dir)
+		assert.NoError(t, err)
 	})
 
-	// Plugins off in settings so no fileData and we get a warning instead
-	fileData, err = th.App.createPluginsFile(th.Context)
-	assert.Nil(t, fileData)
-	assert.ErrorContains(t, err, "failed to get plugin list for support package")
+	// Set MM_LOG_PATH to allow log file reads from our temp directory
+	t.Setenv("MM_LOG_PATH", dir)
+
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.LogSettings.FileLocation = dir
+	})
+
+	logLocation := config.GetLogFileLocation(dir)
+
+	genMockLogFiles := func() {
+		d1 := []byte("hello\ngo\n")
+		genErr := os.WriteFile(logLocation, d1, 0777)
+		require.NoError(t, genErr)
+	}
+	genMockLogFiles()
+
+	getFileNames := func(t *testing.T, fileDatas []model.FileData) []string {
+		var rFileNames []string
+		for _, fileData := range fileDatas {
+			require.NotNil(t, fileData)
+			assert.Positive(t, len(fileData.Body))
+
+			rFileNames = append(rFileNames, fileData.Filename)
+		}
+		return rFileNames
+	}
+
+	expectedFileNames := []string{
+		"metadata.yaml",
+		"stats.yaml",
+		"jobs.yaml",
+		"permissions.yaml",
+		"plugins.json",
+		"sanitized_config.json",
+		"diagnostics.yaml",
+		"cpu.prof",
+		"heap.prof",
+		"goroutines",
+	}
+
+	// database_schema.yaml is only generated for Postgres
+	if *th.App.Config().SqlSettings.DriverName == model.DatabaseDriverPostgres {
+		expectedFileNames = append(expectedFileNames, "database_schema.yaml")
+	}
+
+	expectedFileNamesWithLogs := append(expectedFileNames, "mattermost.log")
+
+	t.Run("generate Support Packet with logs", func(t *testing.T) {
+		fileDatas := th.App.GenerateSupportPacket(th.Context, &model.SupportPacketOptions{
+			IncludeLogs: true,
+		})
+		rFileNames := getFileNames(t, fileDatas)
+
+		assert.ElementsMatch(t, expectedFileNamesWithLogs, rFileNames)
+	})
+
+	t.Run("generate Support Packet without logs", func(t *testing.T) {
+		fileDatas := th.App.GenerateSupportPacket(th.Context, &model.SupportPacketOptions{
+			IncludeLogs: false,
+		})
+
+		rFileNames := getFileNames(t, fileDatas)
+
+		assert.ElementsMatch(t, expectedFileNames, rFileNames)
+	})
+
+	t.Run("remove the log files and ensure that warning.txt file is generated", func(t *testing.T) {
+		err = os.Remove(logLocation)
+		require.NoError(t, err)
+		t.Cleanup(genMockLogFiles)
+
+		fileDatas := th.App.GenerateSupportPacket(th.Context, &model.SupportPacketOptions{
+			IncludeLogs: true,
+		})
+		rFileNames := getFileNames(t, fileDatas)
+
+		assert.ElementsMatch(t, append(expectedFileNames, "warning.txt"), rFileNames)
+	})
+
+	t.Run("steps that generated an error should still return file data", func(t *testing.T) {
+		mockStore := smocks.Store{}
+
+		// Mock the post store to trigger an error
+		ps := &smocks.PostStore{}
+		ps.On("AnalyticsPostCount", &model.PostCountOptions{}).Return(int64(0), errors.New("all broken"))
+		ps.On("ClearCaches")
+		mockStore.On("Post").Return(ps)
+
+		mockStore.On("User").Return(th.App.Srv().Store().User())
+		mockStore.On("Channel").Return(th.App.Srv().Store().Channel())
+		mockStore.On("Post").Return(th.App.Srv().Store().Post())
+		mockStore.On("Team").Return(th.App.Srv().Store().Team())
+		mockStore.On("Job").Return(th.App.Srv().Store().Job())
+		mockStore.On("FileInfo").Return(th.App.Srv().Store().FileInfo())
+		mockStore.On("Webhook").Return(th.App.Srv().Store().Webhook())
+		mockStore.On("System").Return(th.App.Srv().Store().System())
+		mockStore.On("License").Return(th.App.Srv().Store().License())
+		mockStore.On("Command").Return(th.App.Srv().Store().Command())
+		mockStore.On("Role").Return(th.App.Srv().Store().Role())
+		mockStore.On("Scheme").Return(th.App.Srv().Store().Scheme())
+		mockStore.On("Close").Return(nil)
+		mockStore.On("GetDBSchemaVersion").Return(1, nil)
+		mockStore.On("GetDbVersion", false).Return("1.0.0", nil)
+		mockStore.On("TotalMasterDbConnections").Return(30)
+		mockStore.On("TotalReadDbConnections").Return(20)
+		mockStore.On("TotalSearchDbConnections").Return(10)
+		mockStore.On("GetSchemaDefinition").Return(&model.SupportPacketDatabaseSchema{
+			Tables: []model.DatabaseTable{},
+		}, nil)
+
+		oldStore := th.App.Srv().Store()
+		t.Cleanup(func() {
+			th.App.Srv().SetStore(oldStore)
+		})
+		th.App.Srv().SetStore(&mockStore)
+
+		fileDatas := th.App.GenerateSupportPacket(th.Context, &model.SupportPacketOptions{
+			IncludeLogs: false,
+		})
+		rFileNames := getFileNames(t, fileDatas)
+
+		assert.Contains(t, rFileNames, "warning.txt")
+		assert.Contains(t, rFileNames, "stats.yaml")
+		assert.ElementsMatch(t, append(expectedFileNames, "warning.txt"), rFileNames)
+	})
+
+	pluginID := "testplugin"
+	pluginCode := `
+		package main
+		import (
+			"github.com/mattermost/mattermost/server/public/plugin"
+			"github.com/mattermost/mattermost/server/public/model"
+		)
+
+		type TestPlugin struct {
+			plugin.MattermostPlugin
+		}
+
+		func (p *TestPlugin) GenerateSupportData(c *plugin.Context) ([]*model.FileData, error) {
+			return []*model.FileData{{
+				Filename: "testplugin/diagnostics.yaml",
+				Body:     []byte("foo"),
+			}}, nil
+		}
+
+		func main() {
+			plugin.ClientMain(&TestPlugin{})
+		}`
+
+	t.Run("Support Packet always contains plugin data if the plugin doesn't define the support_packet prop", func(t *testing.T) {
+		pluginManifest := `{"id": "testplugin", "server": {"executable": "backend.exe"}}`
+		setupPluginAPITest(t, pluginCode, pluginManifest, pluginID, th.App, th.Context)
+		t.Cleanup(func() {
+			appErr := th.App.ch.RemovePlugin(pluginID)
+			require.Nil(t, appErr)
+		})
+
+		fileDatas := th.App.GenerateSupportPacket(th.Context, &model.SupportPacketOptions{
+			IncludeLogs: false,
+		})
+		rFileNames := getFileNames(t, fileDatas)
+
+		assert.ElementsMatch(t, append(expectedFileNames, "testplugin/diagnostics.yaml"), rFileNames)
+	})
+
+	t.Run("Support Packet contains plugin data if the plugin defines the support_packet prop and it gets queried", func(t *testing.T) {
+		pluginManifest := `{"id": "testplugin", "server": {"executable": "backend.exe"}, "props": {"support_packet": "some text"}}`
+		setupPluginAPITest(t, pluginCode, pluginManifest, pluginID, th.App, th.Context)
+		t.Cleanup(func() {
+			appErr := th.App.ch.RemovePlugin(pluginID)
+			require.Nil(t, appErr)
+		})
+
+		fileDatas := th.App.GenerateSupportPacket(th.Context, &model.SupportPacketOptions{
+			IncludeLogs:   false,
+			PluginPackets: []string{pluginID},
+		})
+		rFileNames := getFileNames(t, fileDatas)
+
+		assert.ElementsMatch(t, append(expectedFileNames, "testplugin/diagnostics.yaml"), rFileNames)
+	})
+
+	t.Run("Support Packet doesn't contain plugin data if the plugin defines the support_packet prop and it doesn't get queried", func(t *testing.T) {
+		pluginManifest := `{"id": "testplugin", "server": {"executable": "backend.exe"}, "props": {"support_packet": "some text"}}`
+		setupPluginAPITest(t, pluginCode, pluginManifest, pluginID, th.App, th.Context)
+		t.Cleanup(func() {
+			appErr := th.App.ch.RemovePlugin(pluginID)
+			require.Nil(t, appErr)
+		})
+
+		fileDatas := th.App.GenerateSupportPacket(th.Context, &model.SupportPacketOptions{
+			IncludeLogs: false,
+		})
+		rFileNames := getFileNames(t, fileDatas)
+
+		assert.ElementsMatch(t, expectedFileNames, rFileNames)
+	})
+
+	t.Run("Plugin config values in the Support Packet are obfuscated, if the plugin marks them as secrets", func(t *testing.T) {
+		pluginManifest := `{"id": "testplugin", "server": {"executable": "backend.exe"}, "settings_schema": {"settings": [{"key": "foo", "type": "text"}, {"key": "bar", "type": "text", "secret": true}]}}`
+		setupPluginAPITest(t, pluginCode, pluginManifest, pluginID, th.App, th.Context)
+		t.Cleanup(func() {
+			appErr := th.App.ch.RemovePlugin(pluginID)
+			require.Nil(t, appErr)
+		})
+
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			cfg.PluginSettings.Plugins[pluginID] = map[string]any{
+				"foo": "foo_value",
+				"bar": "bar_value",
+			}
+		})
+
+		fileDatas := th.App.GenerateSupportPacket(th.Context, &model.SupportPacketOptions{
+			IncludeLogs: false,
+		})
+
+		found := false
+		for _, f := range fileDatas {
+			if f.Filename != "sanitized_config.json" {
+				continue
+			}
+
+			var config model.Config
+			err = json.Unmarshal(f.Body, &config)
+			require.NoError(t, err)
+
+			assert.Equal(t, "foo_value", config.PluginSettings.Plugins[pluginID]["foo"])
+			assert.Equal(t, model.FakeSetting, config.PluginSettings.Plugins[pluginID]["bar"])
+
+			found = true
+		}
+		assert.True(t, found)
+	})
 }
 
-func TestGenerateSupportPacketYaml(t *testing.T) {
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+func TestGetPluginsFile(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t)
 
-	licenseUsers := 100
-	license := model.NewTestLicense()
-	license.Features.Users = model.NewInt(licenseUsers)
-	th.App.Srv().SetLicense(license)
+	getJobList := func(t *testing.T) *model.SupportPacketPluginList {
+		t.Helper()
+
+		fileData, err := th.App.getPluginsFile(th.Context)
+		assert.NoError(t, err)
+		require.NotNil(t, fileData)
+		assert.Equal(t, "plugins.json", fileData.Filename)
+		assert.Positive(t, len(fileData.Body))
+
+		var pl model.SupportPacketPluginList
+		err = json.Unmarshal(fileData.Body, &pl)
+		require.NoError(t, err)
+
+		return &pl
+	}
+
+	t.Run("no errors if no plugins are installed", func(t *testing.T) {
+		pl := getJobList(t)
+		assert.Len(t, pl.Enabled, 0)
+		assert.Len(t, pl.Disabled, 0)
+	})
+
+	t.Run("two plugins are installed", func(t *testing.T) {
+		path, found := fileutils.FindDir("tests")
+		require.True(t, found, "tests directory not found")
+
+		bundle1, err := os.ReadFile(filepath.Join(path, "testplugin.tar.gz"))
+		require.NoError(t, err)
+		manifest1, appErr := th.App.InstallPlugin(bytes.NewReader(bundle1), false)
+		require.Nil(t, appErr)
+		require.Equal(t, "testplugin", manifest1.Id)
+		appErr = th.App.EnablePlugin(manifest1.Id)
+		require.Nil(t, appErr)
+
+		bundle2, err := os.ReadFile(filepath.Join(path, "testplugin2.tar.gz"))
+		require.NoError(t, err)
+		manifest2, appErr := th.App.InstallPlugin(bytes.NewReader(bundle2), false)
+		require.Nil(t, appErr)
+		require.Equal(t, "testplugin2", manifest2.Id)
+
+		pl := getJobList(t)
+		require.Len(t, pl.Enabled, 1)
+		assert.Equal(t, "testplugin", pl.Enabled[0].Id)
+		require.Len(t, pl.Disabled, 1)
+		assert.Equal(t, "testplugin2", pl.Disabled[0].Id)
+	})
+
+	t.Run("error if plugin are disabled", func(t *testing.T) {
+		// Turn off plugins so we can get an error
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.PluginSettings.Enable = false
+		})
+
+		// Plugins off in settings so no fileData and we get a warning instead
+		fileData, err := th.App.getPluginsFile(th.Context)
+		assert.Nil(t, fileData)
+		assert.ErrorContains(t, err, "failed to get plugin list for Support Packet")
+	})
+}
+
+func TestGetSupportPacketStats(t *testing.T) {
+	mainHelper.Parallel(t)
+
+	generateStats := func(t *testing.T, rctx request.CTX, a *App) *model.SupportPacketStats {
+		t.Helper()
+
+		require.NoError(t, a.Srv().Store().Post().RefreshPostStats())
+
+		fileData, err := a.getSupportPacketStats(rctx)
+		require.NotNil(t, fileData)
+		assert.Equal(t, "stats.yaml", fileData.Filename)
+		assert.Positive(t, len(fileData.Body))
+		assert.NoError(t, err)
+
+		var packet model.SupportPacketStats
+		err = yaml.Unmarshal(fileData.Body, &packet)
+		require.NoError(t, err)
+
+		return &packet
+	}
+
+	th := Setup(t)
+
+	t.Run("fresh server", func(t *testing.T) {
+		sp := generateStats(t, th.Context, th.App)
+
+		assert.Equal(t, int64(0), sp.RegisteredUsers)
+		assert.Equal(t, int64(0), sp.ActiveUsers)
+		assert.Equal(t, int64(0), sp.DailyActiveUsers)
+		assert.Equal(t, int64(0), sp.MonthlyActiveUsers)
+		assert.Equal(t, int64(0), sp.DeactivatedUsers)
+		assert.Equal(t, int64(0), sp.Guests)
+		assert.Equal(t, int64(0), sp.BotAccounts)
+		assert.Equal(t, int64(0), sp.Posts)
+		assert.Equal(t, int64(0), sp.Channels)
+		assert.Equal(t, int64(0), sp.Teams)
+		assert.Equal(t, int64(0), sp.SlashCommands)
+		assert.Equal(t, int64(0), sp.IncomingWebhooks)
+		assert.Equal(t, int64(0), sp.OutgoingWebhooks)
+	})
 
 	t.Run("Happy path", func(t *testing.T) {
-		// Happy path where we have a support packet yaml file without any warnings
+		var user *model.User
+		for range 4 {
+			user = th.CreateUser(t)
+		}
+		th.BasicUser = user
 
-		fileData, err := th.App.generateSupportPacketYaml(th.Context)
+		for range 3 {
+			deactivatedUser := th.CreateUser(t)
+			require.NotNil(t, deactivatedUser)
+			_, appErr := th.App.UpdateActive(th.Context, deactivatedUser, false)
+			require.Nil(t, appErr)
+		}
+
+		for range 2 {
+			guest := th.CreateGuest(t)
+			require.NotNil(t, guest)
+		}
+
+		th.CreateBot(t)
+
+		team := th.CreateTeam(t)
+		channel := th.CreateChannel(t, team)
+
+		for range 3 {
+			p := th.CreatePost(t, channel)
+			require.NotNil(t, p)
+		}
+
+		cmd, appErr := th.App.CreateCommand(&model.Command{
+			CreatorId: user.Id,
+			TeamId:    team.Id,
+			Trigger:   "test",
+			Method:    model.CommandMethodGet,
+			URL:       "http://nowhere.com/",
+		})
+		require.Nil(t, appErr)
+		require.NotNil(t, cmd)
+
+		webhookIn, appErr := th.App.CreateIncomingWebhookForChannel(user.Id, channel, &model.IncomingWebhook{ChannelId: channel.Id})
+		require.Nil(t, appErr)
+		require.NotNil(t, webhookIn)
+
+		webhookOut, appErr := th.App.CreateOutgoingWebhook(&model.OutgoingWebhook{
+			ChannelId:    channel.Id,
+			TeamId:       channel.TeamId,
+			CreatorId:    th.BasicUser.Id,
+			CallbackURLs: []string{"http://nowhere.com/"},
+		})
+		require.Nil(t, appErr)
+		require.NotNil(t, webhookOut)
+
+		sp := generateStats(t, th.Context, th.App)
+
+		assert.Equal(t, int64(9), sp.RegisteredUsers)
+		assert.Equal(t, int64(6), sp.ActiveUsers)
+		assert.Equal(t, int64(0), sp.DailyActiveUsers)
+		assert.Equal(t, int64(0), sp.MonthlyActiveUsers)
+		assert.Equal(t, int64(3), sp.DeactivatedUsers)
+		assert.Equal(t, int64(2), sp.Guests)
+		assert.Equal(t, int64(1), sp.BotAccounts)
+		assert.Equal(t, int64(4), sp.Posts)    // 1 from the bot creation and 3 created directly
+		assert.Equal(t, int64(3), sp.Channels) // 2 from the team creation and 1 created directly
+		assert.Equal(t, int64(1), sp.Teams)
+		assert.Equal(t, int64(1), sp.SlashCommands)
+		assert.Equal(t, int64(1), sp.IncomingWebhooks)
+		assert.Equal(t, int64(1), sp.OutgoingWebhooks)
+	})
+
+	t.Run("post count should be present if number of users extends AnalyticsSettings.MaxUsersForStatistics", func(t *testing.T) {
+		// Setup a new test helper
+		th := Setup(t).InitBasic(t)
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			cfg.AnalyticsSettings.MaxUsersForStatistics = model.NewPointer(1)
+		})
+
+		for range 5 {
+			p := th.CreatePost(t, th.BasicChannel)
+			require.NotNil(t, p)
+		}
+
+		// InitBasic(t) already creats 5 posts
+		sp := generateStats(t, th.Context, th.App)
+		assert.Equal(t, int64(10), sp.Posts)
+	})
+}
+
+func TestGetSupportPacketJobList(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t)
+
+	getJobList := func(t *testing.T) *model.SupportPacketJobList {
+		t.Helper()
+
+		fileData, err := th.App.getSupportPacketJobList(th.Context)
+		require.NoError(t, err)
 		require.NotNil(t, fileData)
-		assert.Equal(t, "support_packet.yaml", fileData.Filename)
+		assert.Equal(t, "jobs.yaml", fileData.Filename)
+		assert.Positive(t, len(fileData.Body))
+
+		var jobs model.SupportPacketJobList
+		err = yaml.Unmarshal(fileData.Body, &jobs)
+		require.NoError(t, err)
+
+		return &jobs
+	}
+
+	t.Run("no jobs run yet", func(t *testing.T) {
+		jobs := getJobList(t)
+
+		assert.Empty(t, jobs.LDAPSyncJobs)
+		assert.Empty(t, jobs.DataRetentionJobs)
+		assert.Empty(t, jobs.MessageExportJobs)
+		assert.Empty(t, jobs.ElasticPostIndexingJobs)
+		assert.Empty(t, jobs.ElasticPostAggregationJobs)
+		assert.Empty(t, jobs.MigrationJobs)
+	})
+
+	t.Run("jobs exist", func(t *testing.T) {
+		getJob := func(jobType string) *model.Job {
+			return &model.Job{
+				Id:             model.NewId(),
+				Type:           jobType,
+				Priority:       1,
+				CreateAt:       model.GetMillis() - 1,
+				StartAt:        model.GetMillis(),
+				LastActivityAt: model.GetMillis() + 1,
+				Status:         model.JobStatusPending,
+				Progress:       51,
+				Data:           model.StringMap{"key": "value"},
+			}
+		}
+		// Create some jobs
+		jobsToCreate := []*model.Job{
+			getJob(model.JobTypeLdapSync),
+			getJob(model.JobTypeDataRetention),
+			getJob(model.JobTypeMessageExport),
+			getJob(model.JobTypeElasticsearchPostIndexing),
+			getJob(model.JobTypeElasticsearchPostAggregation),
+			getJob(model.JobTypeMigrations),
+		}
+
+		var expectedJobs []*model.Job
+		for _, job := range jobsToCreate {
+			// Create the job using the store directly.
+			// Creating the job at the job service would error as the workers require enterprise code.
+			rJob, err := th.App.Srv().Store().Job().Save(job)
+			require.NoError(t, err)
+
+			expectedJobs = append(expectedJobs, rJob)
+		}
+
+		jobs := getJobList(t)
+
+		// Helper to verify job content matches
+		verifyJob := func(t *testing.T, expected, actual *model.Job) {
+			t.Helper()
+			assert.Equal(t, expected.Id, actual.Id)
+			assert.Equal(t, expected.Type, actual.Type)
+			assert.Equal(t, expected.Priority, actual.Priority)
+			assert.Equal(t, expected.CreateAt, actual.CreateAt)
+			assert.Equal(t, expected.StartAt, actual.StartAt)
+			assert.Equal(t, expected.LastActivityAt, actual.LastActivityAt)
+			assert.Equal(t, expected.Status, actual.Status)
+			assert.Equal(t, expected.Progress, actual.Progress)
+			assert.Equal(t, expected.Data, actual.Data)
+		}
+
+		// Verify LDAP sync jobs
+		require.Len(t, jobs.LDAPSyncJobs, 1, "Should have 1 LDAP sync job")
+		verifyJob(t, expectedJobs[0], jobs.LDAPSyncJobs[0])
+
+		// Verify data retention jobs
+		require.Len(t, jobs.DataRetentionJobs, 1, "Should have 1 data retention job")
+		verifyJob(t, expectedJobs[1], jobs.DataRetentionJobs[0])
+
+		// Verify message export jobs
+		require.Len(t, jobs.MessageExportJobs, 1, "Should have 1 message export job")
+		verifyJob(t, expectedJobs[2], jobs.MessageExportJobs[0])
+
+		// Verify elasticsearch post indexing jobs
+		require.Len(t, jobs.ElasticPostIndexingJobs, 1, "Should have 1 elasticsearch post indexing job")
+		verifyJob(t, expectedJobs[3], jobs.ElasticPostIndexingJobs[0])
+
+		// Verify elasticsearch post aggregation jobs
+		require.Len(t, jobs.ElasticPostAggregationJobs, 1, "Should have 1 elasticsearch post aggregation job")
+		verifyJob(t, expectedJobs[4], jobs.ElasticPostAggregationJobs[0])
+
+		// Verify migration jobs
+		require.Len(t, jobs.MigrationJobs, 1, "Should have 1 migration job")
+		verifyJob(t, expectedJobs[5], jobs.MigrationJobs[0])
+	})
+}
+
+func TestGetSupportPacketPermissionsInfo(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+
+	err := th.App.SetPhase2PermissionsMigrationStatus(true)
+	require.NoError(t, err)
+
+	generatePermissionInfo := func(t *testing.T) *model.SupportPacketPermissionInfo {
+		t.Helper()
+
+		fileData, err := th.App.getSupportPacketPermissionsInfo(th.Context)
+		require.NotNil(t, fileData)
+		assert.Equal(t, "permissions.yaml", fileData.Filename)
 		assert.Positive(t, len(fileData.Body))
 		assert.NoError(t, err)
-		var packet model.SupportPacket
-		require.NoError(t, yaml.Unmarshal(fileData.Body, &packet))
 
-		assert.Equal(t, 3, packet.ActiveUsers) // from InitBasic.
-		assert.Equal(t, licenseUsers, packet.LicenseSupportedUsers)
-		assert.Empty(t, packet.ClusterID)
-		assert.Equal(t, "local", packet.FileDriver)
-		assert.Equal(t, "OK", packet.FileStatus)
+		var permissions model.SupportPacketPermissionInfo
+		err = yaml.Unmarshal(fileData.Body, &permissions)
+		require.NoError(t, err)
+
+		return &permissions
+	}
+
+	t.Run("No custom permissions", func(t *testing.T) {
+		permissions := generatePermissionInfo(t)
+
+		assert.Len(t, permissions.Roles, 23)
+		assert.Empty(t, permissions.Schemes)
 	})
 
-	t.Run("filestore fails", func(t *testing.T) {
-		fb := &fmocks.FileBackend{}
-		platform.SetFileStore(fb)(th.Server.Platform())
-		fb.On("DriverName").Return("mock")
-		fb.On("TestConnection").Return(errors.New("all broken"))
+	scheme, appErr := th.App.CreateScheme(&model.Scheme{
+		Name:        "custom_scheme",
+		DisplayName: "Custom Scheme",
+		Scope:       model.SchemeScopeTeam,
+	})
+	require.Nil(t, appErr)
 
-		fileData, err := th.App.generateSupportPacketYaml(th.Context)
+	t.Run("with custom scheme", func(t *testing.T) {
+		permissions := generatePermissionInfo(t)
+
+		assert.Len(t, permissions.Roles, 33) // 23 default roles + 10 custom roles from the scheme
+		require.Len(t, permissions.Schemes, 1)
+		assert.Equal(t, scheme.Id, permissions.Schemes[0].Id)
+		assert.Equal(t, model.FakeSetting, permissions.Schemes[0].Name, "Name should be obfuscated")
+		assert.Equal(t, model.FakeSetting, permissions.Schemes[0].DisplayName, "DisplayName should be obfuscated")
+		assert.Equal(t, model.FakeSetting, permissions.Schemes[0].Description, "Description should be obfuscated")
+	})
+
+	t.Run("with custom role", func(t *testing.T) {
+		role, appErr := th.App.CreateRole(&model.Role{
+			Name:        "custom_role",
+			DisplayName: "Custom Role",
+		})
+		require.Nil(t, appErr)
+		t.Cleanup(func() {
+			_, appErr := th.App.DeleteRole(role.Id)
+			require.Nil(t, appErr)
+		})
+
+		permissions := generatePermissionInfo(t)
+
+		require.Len(t, permissions.Schemes, 1)
+		require.Len(t, permissions.Roles, 34) // 23 default roles + 10 custom roles from the scheme + 1 custom role
+		found := false
+		for _, r := range permissions.Roles {
+			// Confirm that sensitive fields are obfuscated
+			assert.Equal(t, model.FakeSetting, r.DisplayName, "DisplayName should be obfuscated")
+			assert.Equal(t, model.FakeSetting, r.Description, "Description should be obfuscated")
+
+			// Fine the custom role
+			if r.Id == role.Id {
+				assert.Equal(t, role.Name, r.Name)
+				assert.Equal(t, role.CreateAt, r.CreateAt)
+				assert.Equal(t, role.UpdateAt, r.UpdateAt)
+				assert.Equal(t, role.DeleteAt, r.DeleteAt)
+				assert.Equal(t, role.Permissions, r.Permissions)
+				assert.Equal(t, role.SchemeManaged, r.SchemeManaged)
+				assert.Equal(t, role.BuiltIn, r.BuiltIn)
+				found = true
+				break
+			}
+		}
+		assert.True(t, found)
+	})
+}
+
+func TestGetSupportPacketMetadata(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t)
+
+	t.Run("Happy path", func(t *testing.T) {
+		fileData, err := th.App.getSupportPacketMetadata(th.Context)
+		require.NoError(t, err)
 		require.NotNil(t, fileData)
-		assert.Equal(t, "support_packet.yaml", fileData.Filename)
+		assert.Equal(t, "metadata.yaml", fileData.Filename)
 		assert.Positive(t, len(fileData.Body))
+
+		metadate, err := model.ParsePacketMetadata(fileData.Body)
 		assert.NoError(t, err)
-		var packet model.SupportPacket
-		require.NoError(t, yaml.Unmarshal(fileData.Body, &packet))
-
-		assert.Equal(t, "mock", packet.FileDriver)
-		assert.Equal(t, "FAIL: all broken", packet.FileStatus)
+		require.NotNil(t, metadate)
+		assert.Equal(t, model.SupportPacketType, metadate.Type)
+		assert.Equal(t, model.CurrentVersion, metadate.ServerVersion)
+		assert.NotEmpty(t, metadate.ServerID)
+		assert.NotEmpty(t, metadate.GeneratedAt)
 	})
 }
 
-func TestGenerateSupportPacket(t *testing.T) {
+func TestGetSupportPacketDatabaseSchema(t *testing.T) {
 	th := Setup(t)
-	defer th.TearDown()
 
-	d1 := []byte("hello\ngo\n")
-	err := os.WriteFile("mattermost.log", d1, 0777)
+	// Mock store for testing
+	mockStore := &smocks.Store{}
+	originalStore := th.App.Srv().Store()
+	th.App.Srv().SetStore(mockStore)
+	defer th.App.Srv().SetStore(originalStore)
+	// Set up mock return for schema definition
+	mockStore.On("GetSchemaDefinition").Return(&model.SupportPacketDatabaseSchema{
+		Tables: []model.DatabaseTable{
+			{
+				Name: "users",
+				Columns: []model.DatabaseColumn{
+					{Name: "id", DataType: "varchar", IsNullable: false},
+					{Name: "username", DataType: "varchar", IsNullable: false},
+					{Name: "email", DataType: "varchar", IsNullable: false},
+				},
+			},
+			{
+				Name: "channels",
+				Columns: []model.DatabaseColumn{
+					{Name: "id", DataType: "varchar", IsNullable: false},
+					{Name: "name", DataType: "varchar", IsNullable: false},
+				},
+			},
+			{
+				Name: "teams",
+				Columns: []model.DatabaseColumn{
+					{Name: "id", DataType: "varchar", IsNullable: false},
+					{Name: "name", DataType: "varchar", IsNullable: false},
+				},
+			},
+			{
+				Name: "posts",
+				Columns: []model.DatabaseColumn{
+					{Name: "id", DataType: "varchar", IsNullable: false},
+					{Name: "message", DataType: "text", IsNullable: false},
+				},
+			},
+		},
+	}, nil)
+
+	// Test with Postgres
+	oldDriverName := *th.App.Config().SqlSettings.DriverName
+	*th.App.Config().SqlSettings.DriverName = model.DatabaseDriverPostgres
+	defer func() {
+		*th.App.Config().SqlSettings.DriverName = oldDriverName
+	}()
+
+	fileData, err := th.App.getSupportPacketDatabaseSchema(th.Context)
 	require.NoError(t, err)
-	err = os.WriteFile("notifications.log", d1, 0777)
-	require.NoError(t, err)
-
-	fileDatas := th.App.GenerateSupportPacket(th.Context)
-	var rFileNames []string
-	testFiles := []string{
-		"support_packet.yaml",
-		"plugins.json",
-		"sanitized_config.json",
-		"mattermost.log",
-		"notifications.log",
-		"cpu.prof",
-		"heap.prof",
-		"goroutines",
-	}
-	for _, fileData := range fileDatas {
-		require.NotNil(t, fileData)
-		assert.Positive(t, len(fileData.Body))
-
-		rFileNames = append(rFileNames, fileData.Filename)
-	}
-	assert.ElementsMatch(t, testFiles, rFileNames)
-
-	// Remove these two files and ensure that warning.txt file is generated
-	err = os.Remove("notifications.log")
-	require.NoError(t, err)
-	err = os.Remove("mattermost.log")
-	require.NoError(t, err)
-	fileDatas = th.App.GenerateSupportPacket(th.Context)
-	testFiles = []string{
-		"support_packet.yaml",
-		"plugins.json",
-		"sanitized_config.json",
-		"cpu.prof",
-		"heap.prof",
-		"warning.txt",
-		"goroutines",
-	}
-	rFileNames = nil
-	for _, fileData := range fileDatas {
-		require.NotNil(t, fileData)
-		assert.Positive(t, len(fileData.Body))
-
-		rFileNames = append(rFileNames, fileData.Filename)
-	}
-	assert.ElementsMatch(t, testFiles, rFileNames)
-}
-
-func TestGetNotificationsLog(t *testing.T) {
-	th := Setup(t)
-	defer th.TearDown()
-
-	// Disable notifications file to get an error
-	th.App.UpdateConfig(func(cfg *model.Config) {
-		*cfg.NotificationLogSettings.EnableFile = false
-	})
-
-	fileData, err := th.App.getNotificationsLog(th.Context)
-	assert.Nil(t, fileData)
-	assert.ErrorContains(t, err, "Unable to retrieve notifications.log because LogSettings: EnableFile is set to false")
-
-	// Enable notifications file but delete any notifications file to get an error trying to read the file
-	th.App.UpdateConfig(func(cfg *model.Config) {
-		*cfg.NotificationLogSettings.EnableFile = true
-	})
-
-	// If any previous notifications.log file, lets delete it
-	os.Remove("notifications.log")
-
-	fileData, err = th.App.getNotificationsLog(th.Context)
-	assert.Nil(t, fileData)
-	assert.ErrorContains(t, err, "failed read notifcation log file at path")
-
-	// Happy path where we have file and no error
-	d1 := []byte("hello\ngo\n")
-	err = os.WriteFile("notifications.log", d1, 0777)
-	defer os.Remove("notifications.log")
-	require.NoError(t, err)
-
-	fileData, err = th.App.getNotificationsLog(th.Context)
 	require.NotNil(t, fileData)
-	assert.Equal(t, "notifications.log", fileData.Filename)
+	assert.Equal(t, "database_schema.yaml", fileData.Filename)
 	assert.Positive(t, len(fileData.Body))
-	assert.NoError(t, err)
-}
 
-func TestGetMattermostLog(t *testing.T) {
-	th := Setup(t)
-	defer th.TearDown()
-
-	// disable mattermost log file setting in config so we should get an warning
-	th.App.UpdateConfig(func(cfg *model.Config) {
-		*cfg.LogSettings.EnableFile = false
-	})
-
-	fileData, err := th.App.getMattermostLog(th.Context)
-	assert.Nil(t, fileData)
-	assert.ErrorContains(t, err, "Unable to retrieve mattermost.log because LogSettings: EnableFile is set to false")
-
-	// We enable the setting but delete any mattermost log file
-	th.App.UpdateConfig(func(cfg *model.Config) {
-		*cfg.LogSettings.EnableFile = true
-	})
-
-	// If any previous mattermost.log file, lets delete it
-	os.Remove("mattermost.log")
-
-	fileData, err = th.App.getMattermostLog(th.Context)
-	assert.Nil(t, fileData)
-	assert.ErrorContains(t, err, "failed read mattermost log file at path mattermost.log")
-
-	// Happy path where we get a log file and no warning
-	d1 := []byte("hello\ngo\n")
-	err = os.WriteFile("mattermost.log", d1, 0777)
-	defer os.Remove("mattermost.log")
+	var schema model.SupportPacketDatabaseSchema
+	err = yaml.Unmarshal(fileData.Body, &schema)
 	require.NoError(t, err)
 
-	fileData, err = th.App.getMattermostLog(th.Context)
-	require.NotNil(t, fileData)
-	assert.Equal(t, "mattermost.log", fileData.Filename)
-	assert.Positive(t, len(fileData.Body))
-	assert.NoError(t, err)
-}
+	// Verify schema structure
+	assert.NotEmpty(t, schema.Tables)
 
-func TestCreateSanitizedConfigFile(t *testing.T) {
-	th := Setup(t)
-	defer th.TearDown()
+	// Verify that common tables are present
+	tableNames := make([]string, 0, len(schema.Tables))
+	for _, table := range schema.Tables {
+		tableNames = append(tableNames, table.Name)
+	}
 
-	// Happy path where we have a sanitized config file with no err
-	fileData, err := th.App.createSanitizedConfigFile(th.Context)
-	require.NotNil(t, fileData)
-	assert.Equal(t, "sanitized_config.json", fileData.Filename)
-	assert.Positive(t, len(fileData.Body))
-	assert.NoError(t, err)
+	// Verify some core tables
+	expectedTables := []string{"users", "channels", "teams", "posts"}
+	for _, expected := range expectedTables {
+		assert.Contains(t, tableNames, expected)
+	}
+
+	// Verify table structure
+	for _, table := range schema.Tables {
+		if table.Name == "users" {
+			// Check user table has key columns
+			columnNames := make([]string, 0, len(table.Columns))
+			for _, column := range table.Columns {
+				columnNames = append(columnNames, column.Name)
+			}
+
+			expectedColumns := []string{"id", "username", "email"}
+			for _, expected := range expectedColumns {
+				assert.Contains(t, columnNames, expected)
+			}
+
+			break
+		}
+	}
 }

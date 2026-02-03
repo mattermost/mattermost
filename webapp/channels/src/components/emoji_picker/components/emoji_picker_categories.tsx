@@ -70,13 +70,14 @@ function EmojiPickerCategories({
             id='emojiPickerCategories'
             className='emoji-picker__categories'
             onKeyDown={handleKeyDown}
+            data-testid='emojiPickerCategories'
         >
             {categoryNames.map((categoryName) => {
                 const category = categories[categoryName];
 
                 return (
                     <EmojiPickerCategory
-                        key={`${category.id}-${category.name}`}
+                        key={category.name}
                         category={category}
                         categoryRowIndex={calculateCategoryRowIndex(categories, categoryName as EmojiCategory)}
                         onClick={onClick}

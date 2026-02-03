@@ -1,4 +1,74 @@
-// Jest Snapshot v1, https://goo.gl/fbAQLP
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
+
+exports[`components/signup/Signup should match snapshot for all signup options enabled with EnableUserCreaton disabled 1`] = `
+<div
+  className="signup-body"
+>
+  <div
+    className="signup-body-content"
+  >
+    <div
+      className="signup-body-message with-alternate-link"
+    >
+      <h1
+        className="signup-body-message-title"
+      >
+        Let’s get started
+      </h1>
+      <p
+        className="signup-body-message-subtitle"
+      >
+        Create your Mattermost account to start collaborating with your team
+      </p>
+    </div>
+    <div
+      className="signup-body-action"
+    >
+      <AlternateLink
+        alternateLinkLabel="Log in"
+        alternateLinkPath="/login"
+        alternateMessage="Already have an account?"
+        className="signup-body-alternate-link"
+      />
+      <div
+        className="signup-body-card"
+      >
+        <div
+          className="signup-body-card-content"
+        >
+          <h2
+            className="signup-body-card-title"
+          >
+            Create your account with one of the following:
+          </h2>
+          <div
+            className="signup-body-card-form-login-options column"
+          >
+            <ExternalLoginButton
+              direction="column"
+              icon={<LockIcon />}
+              id="ldap"
+              key="ldap"
+              label="AD/LDAP Credentials"
+              onClick={[Function]}
+              url="/login?extra=create_ldap"
+            />
+            <ExternalLoginButton
+              direction="column"
+              icon={<LockIcon />}
+              id="saml"
+              key="saml"
+              label="SAML"
+              onClick={[Function]}
+              url="/login/sso/saml?action=signup"
+            />
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+`;
 
 exports[`components/signup/Signup should match snapshot for all signup options enabled with isLicensed disabled 1`] = `
 <div
@@ -20,11 +90,6 @@ exports[`components/signup/Signup should match snapshot for all signup options e
       >
         Create your Mattermost account to start collaborating with your team
       </p>
-      <div
-        className="signup-body-message-svg"
-      >
-        <Svg />
-      </div>
     </div>
     <div
       className="signup-body-action"
@@ -40,15 +105,13 @@ exports[`components/signup/Signup should match snapshot for all signup options e
       >
         <div
           className="signup-body-card-content"
-          onKeyDown={[Function]}
-          tabIndex={0}
         >
-          <p
+          <h2
             className="signup-body-card-title"
           >
             Create your account
-          </p>
-          <div
+          </h2>
+          <form
             className="signup-body-card-form"
           >
             <ForwardRef
@@ -58,7 +121,6 @@ exports[`components/signup/Signup should match snapshot for all signup options e
               disabled={false}
               inputSize="large"
               name="email"
-              onBlur={[Function]}
               onChange={[Function]}
               placeholder="Email address"
               type="text"
@@ -76,7 +138,6 @@ exports[`components/signup/Signup should match snapshot for all signup options e
               disabled={false}
               inputSize="large"
               name="name"
-              onBlur={[Function]}
               onChange={[Function]}
               placeholder="Choose a Username"
               type="text"
@@ -87,36 +148,35 @@ exports[`components/signup/Signup should match snapshot for all signup options e
               createMode={true}
               disabled={false}
               error=""
-              info="Must be 5-64 characters long."
+              info="Your password must be 5-72 characters long."
               inputSize="large"
-              onBlur={[Function]}
               onChange={[Function]}
               value=""
             />
-            <div
-              className="newsletter"
-            >
-              <span
-                className="interested"
-              >
-                Interested in receiving Mattermost security, product, promotions, and company updates updates via newsletter?
-              </span>
-              <span
-                className="link"
-              >
-                Sign up at 
-                <ExternalLink
-                  href="https://mattermost.com/security-updates/"
-                  key=".1"
-                  location="signup"
-                >
-                  https://mattermost.com/security-updates/
-                </ExternalLink>
-                .
-              </span>
-            </div>
+            <CheckInput
+              ariaLabel="Terms and privacy policy checkbox"
+              checked={false}
+              id="signup-body-card-form-check-terms-and-privacy"
+              name="terms"
+              onChange={[Function]}
+              text={
+                Array [
+                  "I agree to the ",
+                  <ForwardRef
+                    location="signup-terms-of-use"
+                  >
+                    Acceptable Use Policy
+                  </ForwardRef>,
+                  " and the ",
+                  <ForwardRef
+                    location="signup-privacy-policy"
+                  >
+                    Privacy Policy
+                  </ForwardRef>,
+                ]
+              }
+            />
             <SaveButton
-              btnClass=""
               defaultMessage="Create account"
               disabled={true}
               extraClasses="signup-body-card-form-button-submit large"
@@ -124,7 +184,7 @@ exports[`components/signup/Signup should match snapshot for all signup options e
               saving={false}
               savingMessage="Creating account…"
             />
-          </div>
+          </form>
           <div
             className="signup-body-card-form-divider"
           >
@@ -152,21 +212,6 @@ exports[`components/signup/Signup should match snapshot for all signup options e
               url="/oauth/gitlab/signup"
             />
           </div>
-          <p
-            className="signup-body-card-agreement"
-          >
-            <FormattedMarkdownMessage
-              defaultMessage="By proceeding to create your account and use {siteName}, you agree to our [Terms of Use]({TermsOfServiceLink}) and [Privacy Policy]({PrivacyPolicyLink}). If you do not agree, you cannot use {siteName}."
-              id="create_team.agreement"
-              values={
-                Object {
-                  "PrivacyPolicyLink": "!undefined",
-                  "TermsOfServiceLink": "!undefined",
-                  "siteName": "Mattermost",
-                }
-              }
-            />
-          </p>
         </div>
       </div>
     </div>
@@ -194,11 +239,6 @@ exports[`components/signup/Signup should match snapshot for all signup options e
       >
         Create your Mattermost account to start collaborating with your team
       </p>
-      <div
-        className="signup-body-message-svg"
-      >
-        <Svg />
-      </div>
     </div>
     <div
       className="signup-body-action"
@@ -214,15 +254,13 @@ exports[`components/signup/Signup should match snapshot for all signup options e
       >
         <div
           className="signup-body-card-content"
-          onKeyDown={[Function]}
-          tabIndex={0}
         >
-          <p
+          <h2
             className="signup-body-card-title"
           >
             Create your account
-          </p>
-          <div
+          </h2>
+          <form
             className="signup-body-card-form"
           >
             <ForwardRef
@@ -232,7 +270,6 @@ exports[`components/signup/Signup should match snapshot for all signup options e
               disabled={false}
               inputSize="large"
               name="email"
-              onBlur={[Function]}
               onChange={[Function]}
               placeholder="Email address"
               type="text"
@@ -250,7 +287,6 @@ exports[`components/signup/Signup should match snapshot for all signup options e
               disabled={false}
               inputSize="large"
               name="name"
-              onBlur={[Function]}
               onChange={[Function]}
               placeholder="Choose a Username"
               type="text"
@@ -261,36 +297,35 @@ exports[`components/signup/Signup should match snapshot for all signup options e
               createMode={true}
               disabled={false}
               error=""
-              info="Must be 5-64 characters long."
+              info="Your password must be 5-72 characters long."
               inputSize="large"
-              onBlur={[Function]}
               onChange={[Function]}
               value=""
             />
-            <div
-              className="newsletter"
-            >
-              <span
-                className="interested"
-              >
-                Interested in receiving Mattermost security, product, promotions, and company updates updates via newsletter?
-              </span>
-              <span
-                className="link"
-              >
-                Sign up at 
-                <ExternalLink
-                  href="https://mattermost.com/security-updates/"
-                  key=".1"
-                  location="signup"
-                >
-                  https://mattermost.com/security-updates/
-                </ExternalLink>
-                .
-              </span>
-            </div>
+            <CheckInput
+              ariaLabel="Terms and privacy policy checkbox"
+              checked={false}
+              id="signup-body-card-form-check-terms-and-privacy"
+              name="terms"
+              onChange={[Function]}
+              text={
+                Array [
+                  "I agree to the ",
+                  <ForwardRef
+                    location="signup-terms-of-use"
+                  >
+                    Acceptable Use Policy
+                  </ForwardRef>,
+                  " and the ",
+                  <ForwardRef
+                    location="signup-privacy-policy"
+                  >
+                    Privacy Policy
+                  </ForwardRef>,
+                ]
+              }
+            />
             <SaveButton
-              btnClass=""
               defaultMessage="Create account"
               disabled={true}
               extraClasses="signup-body-card-form-button-submit large"
@@ -298,7 +333,7 @@ exports[`components/signup/Signup should match snapshot for all signup options e
               saving={false}
               savingMessage="Creating account…"
             />
-          </div>
+          </form>
           <div
             className="signup-body-card-form-divider"
           >
@@ -334,10 +369,10 @@ exports[`components/signup/Signup should match snapshot for all signup options e
               url="/oauth/google/signup"
             />
             <ExternalLoginButton
-              icon={<LoginOffice365Icon />}
+              icon={<EntraIdIcon />}
               id="office365"
               key="office365"
-              label="Office 365"
+              label="Entra ID"
               onClick={[Function]}
               url="/oauth/office365/signup"
             />
@@ -372,21 +407,6 @@ exports[`components/signup/Signup should match snapshot for all signup options e
               url="/login/sso/saml?action=signup"
             />
           </div>
-          <p
-            className="signup-body-card-agreement"
-          >
-            <FormattedMarkdownMessage
-              defaultMessage="By proceeding to create your account and use {siteName}, you agree to our [Terms of Use]({TermsOfServiceLink}) and [Privacy Policy]({PrivacyPolicyLink}). If you do not agree, you cannot use {siteName}."
-              id="create_team.agreement"
-              values={
-                Object {
-                  "PrivacyPolicyLink": "!undefined",
-                  "TermsOfServiceLink": "!undefined",
-                  "siteName": "Mattermost",
-                }
-              }
-            />
-          </p>
         </div>
       </div>
     </div>

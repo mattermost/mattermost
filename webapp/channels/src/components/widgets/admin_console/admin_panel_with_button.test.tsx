@@ -1,8 +1,9 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {shallow} from 'enzyme';
 import React from 'react';
+
+import {renderWithContext, screen, userEvent} from 'tests/react_testing_utils';
 
 import AdminPanelWithButton from './admin_panel_with_button';
 
@@ -10,80 +11,72 @@ describe('components/widgets/admin_console/AdminPanelWithButton', () => {
     const defaultProps = {
         className: 'test-class-name',
         id: 'test-id',
-        titleId: 'test-title-id',
-        titleDefault: 'test-title-default',
-        subtitleId: 'test-subtitle-id',
-        subtitleDefault: 'test-subtitle-default',
+        title: {id: 'test-title-id', defaultMessage: 'test-title-default'},
+        subtitle: {
+            id: 'test-subtitle-id',
+            defaultMessage: 'test-subtitle-default',
+        },
         onButtonClick: jest.fn(),
-        buttonTextId: 'test-button-text-id',
-        buttonTextDefault: 'test-button-text-default',
+        buttonText: {
+            id: 'test-button-text-id',
+            defaultMessage: 'test-button-text-default',
+        },
         disabled: false,
     };
 
-    test('should match snapshot', () => {
-        const wrapper = shallow(
+    test('should render with button', () => {
+        const {container} = renderWithContext(
             <AdminPanelWithButton {...defaultProps}>
                 {'Test'}
             </AdminPanelWithButton>,
         );
-        expect(wrapper).toMatchInlineSnapshot(`
-            <AdminPanel
-              button={
-                <a
-                  className="btn btn-primary"
-                  data-testid="test-button-text-default"
-                  onClick={[MockFunction]}
-                >
-                  <Memo(MemoizedFormattedMessage)
-                    defaultMessage="test-button-text-default"
-                    id="test-button-text-id"
-                  />
-                </a>
-              }
-              className="AdminPanelWithButton test-class-name"
-              id="test-id"
-              subtitleDefault="test-subtitle-default"
-              subtitleId="test-subtitle-id"
-              titleDefault="test-title-default"
-              titleId="test-title-id"
-            >
-              Test
-            </AdminPanel>
-        `);
+
+        const panel = container.querySelector('#test-id');
+        expect(panel).toBeInTheDocument();
+        expect(panel).toHaveClass('AdminPanel', 'AdminPanelWithButton', 'test-class-name');
+
+        expect(screen.getByText('test-title-default')).toBeInTheDocument();
+        expect(screen.getByText('test-subtitle-default')).toBeInTheDocument();
+        expect(screen.getByText('Test')).toBeInTheDocument();
+
+        const button = screen.getByTestId('test-button-text-default');
+        expect(button).toBeInTheDocument();
+        expect(button).toHaveClass('btn', 'btn-primary');
+        expect(button).not.toHaveClass('disabled');
+        expect(screen.getByText('test-button-text-default')).toBeInTheDocument();
     });
 
-    test('should match snapshot when disabled', () => {
-        const wrapper = shallow(
+    test('should render disabled button when disabled prop is true', () => {
+        const onButtonClick = jest.fn();
+        renderWithContext(
             <AdminPanelWithButton
                 {...defaultProps}
                 disabled={true}
+                onButtonClick={onButtonClick}
             >
                 {'Test'}
             </AdminPanelWithButton>,
         );
-        expect(wrapper).toMatchInlineSnapshot(`
-            <AdminPanel
-              button={
-                <a
-                  className="btn btn-primary disabled"
-                  data-testid="test-button-text-default"
-                  onClick={[Function]}
-                >
-                  <Memo(MemoizedFormattedMessage)
-                    defaultMessage="test-button-text-default"
-                    id="test-button-text-id"
-                  />
-                </a>
-              }
-              className="AdminPanelWithButton test-class-name"
-              id="test-id"
-              subtitleDefault="test-subtitle-default"
-              subtitleId="test-subtitle-id"
-              titleDefault="test-title-default"
-              titleId="test-title-id"
+
+        const button = screen.getByTestId('test-button-text-default');
+        expect(button).toBeInTheDocument();
+        expect(button).toHaveClass('btn', 'btn-primary', 'disabled');
+    });
+
+    test('should call onButtonClick when button is clicked', async () => {
+        const onButtonClick = jest.fn();
+        renderWithContext(
+            <AdminPanelWithButton
+                {...defaultProps}
+                onButtonClick={onButtonClick}
             >
-              Test
-            </AdminPanel>
-        `);
+                {'Test'}
+            </AdminPanelWithButton>,
+        );
+
+        const button = screen.getByTestId('test-button-text-default');
+        await userEvent.click(button);
+
+        expect(onButtonClick).toHaveBeenCalledTimes(1);
     });
 });

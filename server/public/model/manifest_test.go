@@ -10,9 +10,9 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/goccy/go-yaml"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"gopkg.in/yaml.v2"
 )
 
 func TestIsValid(t *testing.T) {
@@ -65,6 +65,49 @@ func TestIsValid(t *testing.T) {
 						Default: "thedefault",
 					},
 				},
+				Sections: []*PluginSettingsSection{
+					{
+						Key:      "section1",
+						Title:    "section title",
+						Subtitle: "section subtitle",
+						Settings: []*PluginSetting{
+							{
+								Key:         "section1setting1",
+								DisplayName: "thedisplayname",
+								Type:        "custom",
+							},
+							{
+								Key:         "section1setting2",
+								DisplayName: "thedisplayname",
+								Type:        "custom",
+							},
+						},
+						Header: "section header",
+						Footer: "section footer",
+					},
+					{
+						Key: "section2",
+						Settings: []*PluginSetting{
+							{
+								Key:         "section2setting1",
+								DisplayName: "thedisplayname",
+								Type:        "custom",
+							},
+						},
+					},
+					{
+						Key:      "section3",
+						Custom:   true,
+						Fallback: true,
+						Settings: []*PluginSetting{
+							{
+								Key:         "section3setting1",
+								DisplayName: "thedisplayname",
+								Type:        "custom",
+							},
+						},
+					},
+				},
 			},
 		}, false},
 	}
@@ -96,6 +139,62 @@ func TestIsValidSettingsSchema(t *testing.T) {
 			err := tc.settingsSchema.isValid()
 			if tc.ExpectError {
 				assert.Error(t, err)
+			} else {
+				assert.NoError(t, err)
+			}
+		})
+	}
+}
+
+func TestPluginSettingsSectionIsValid(t *testing.T) {
+	for name, test := range map[string]struct {
+		Section       PluginSettingsSection
+		ExpectedError string
+	}{
+		"missing key": {
+			Section: PluginSettingsSection{
+				Settings: []*PluginSetting{
+					{
+						Type:        "custom",
+						Placeholder: "some Text",
+					},
+				},
+			},
+			ExpectedError: "invalid empty Key",
+		},
+		"invalid setting": {
+			Section: PluginSettingsSection{
+				Key: "sectionKey",
+				Settings: []*PluginSetting{
+					{
+						Type: "invalid",
+					},
+				},
+			},
+			ExpectedError: "invalid setting type: invalid",
+		},
+		"valid empty": {
+			Section: PluginSettingsSection{
+				Key:      "sectionKey",
+				Settings: []*PluginSetting{},
+			},
+		},
+		"valid": {
+			Section: PluginSettingsSection{
+				Key: "sectionKey",
+				Settings: []*PluginSetting{
+					{
+						Type:        "custom",
+						Placeholder: "some Text",
+					},
+				},
+			},
+		},
+	} {
+		t.Run(name, func(t *testing.T) {
+			err := test.Section.IsValid()
+			if test.ExpectedError != "" {
+				assert.EqualError(t, err, test.ExpectedError)
 			} else {
 				assert.NoError(t, err)
 			}
@@ -504,7 +603,6 @@ func TestManifestClientManifest(t *testing.T) {
 	assert.Equal(t, "/static/theid/theid_000102030405060708090a0b0c0d0e0f_bundle.js", sanitized.Webapp.BundlePath)
 	assert.Equal(t, manifest.Webapp.BundleHash, sanitized.Webapp.BundleHash)
 	assert.Equal(t, manifest.SettingsSchema, sanitized.SettingsSchema)
-	assert.Empty(t, sanitized.Name)
 	assert.Empty(t, sanitized.Description)
 	assert.Empty(t, sanitized.Server)
 

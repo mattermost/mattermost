@@ -7,16 +7,27 @@ import {FormattedMessage} from 'react-intl';
 import type {Post} from '@mattermost/types/posts';
 
 import {Posts} from 'mattermost-redux/constants';
+import {getChannel} from 'mattermost-redux/selectors/entities/channels';
 import type {Theme} from 'mattermost-redux/selectors/entities/preferences';
 import {isPostEphemeral} from 'mattermost-redux/utils/post_utils';
+
+import store from 'stores/redux_store';
 
 import PostMarkdown from 'components/post_markdown';
 import ShowMore from 'components/post_view/show_more';
 import type {AttachmentTextOverflowType} from 'components/post_view/show_more/show_more';
 
 import Pluggable from 'plugins/pluggable';
+import {PostTypes} from 'utils/constants';
 import type {TextFormattingOptions} from 'utils/text_formatting';
 import * as Utils from 'utils/utils';
+
+import type {PostPluginComponent} from 'types/store/plugins';
+
+// These posts types must not be rendered with the collapsible "Show More" container.
+const FULL_HEIGHT_POST_TYPES = new Set([
+    PostTypes.CUSTOM_DATA_SPILLAGE_REPORT,
+]);
 
 type Props = {
     post: Post; /* The post to render the message for */
@@ -24,14 +35,15 @@ type Props = {
     options?: TextFormattingOptions; /* Options specific to text formatting */
     compactDisplay?: boolean; /* Set to render post body compactly */
     isRHS?: boolean; /* Flags if the post_message_view is for the RHS (Reply). */
-    isRHSOpen?: boolean; /* Whether or not the RHS is visible */
-    isRHSExpanded?: boolean; /* Whether or not the RHS is expanded */
     theme: Theme; /* Logged in user's theme */
-    pluginPostTypes?: any; /* Post type components from plugins */
+    pluginPostTypes?: {
+        [postType: string]: PostPluginComponent;
+    }; /* Post type components from plugins */
     currentRelativeTeamUrl: string;
     overflowType?: AttachmentTextOverflowType;
     maxHeight?: number; /* The max height used by the show more component */
     showPostEditedIndicator?: boolean; /* Whether or not to render the post edited indicator */
+    sharedChannelsPluginsEnabled?: boolean;
 }
 
 type State = {
@@ -115,9 +127,9 @@ export default class PostMessageView extends React.PureComponent<Props, State> {
             return <span>{post.message}</span>;
         }
 
-        const postType = post.props && post.props.type ? post.props.type : post.type;
+        const postType = typeof post.props?.type === 'string' ? post.props.type : post.type;
 
-        if (pluginPostTypes && pluginPostTypes.hasOwnProperty(postType)) {
+        if (pluginPostTypes && Object.hasOwn(pluginPostTypes, postType)) {
             const PluginComponent = pluginPostTypes[postType].component;
             return (
                 <PluginComponent
@@ -132,21 +144,19 @@ export default class PostMessageView extends React.PureComponent<Props, State> {
         let message = post.message;
         const isEphemeral = isPostEphemeral(post);
         if (compactDisplay && isEphemeral) {
-            const visibleMessage = Utils.localizeMessage('post_info.message.visible.compact', ' (Only visible to you)');
+            const visibleMessage = Utils.localizeMessage({id: 'post_info.message.visible.compact', defaultMessage: ' (Only visible to you)'});
             message = message.concat(visibleMessage);
         }
 
         const id = isRHS ? `rhsPostMessageText_${post.id}` : `postMessageText_${post.id}`;
 
-        return (
-            <ShowMore
-                checkOverflow={this.state.checkOverflow}
-                text={message}
-                overflowType={overflowType}
-                maxHeight={maxHeight}
-            >
+        // Check if channel is shared
+        const channel = getChannel(store.getState(), post.channel_id);
+        const isSharedChannel = channel?.shared || false;
+
+        const body = (
+            <>
                 <div
-                    tabIndex={0}
                     id={id}
                     className='post-message__text'
                     dir='auto'
@@ -159,13 +169,31 @@ export default class PostMessageView extends React.PureComponent<Props, State> {
                         post={post}
                         channelId={post.channel_id}
                         showPostEditedIndicator={this.props.showPostEditedIndicator}
+                        isRHS={isRHS}
                     />
                 </div>
-                <Pluggable
-                    pluggableName='PostMessageAttachment'
-                    postId={post.id}
-                    onHeightChange={this.handleHeightReceived}
-                />
+                {(!isSharedChannel || this.props.sharedChannelsPluginsEnabled) && (
+                    <Pluggable
+                        pluggableName='PostMessageAttachment'
+                        postId={post.id}
+                        onHeightChange={this.handleHeightReceived}
+                    />
+                )}
+            </>
+        );
+
+        if (FULL_HEIGHT_POST_TYPES.has(postType)) {
+            return body;
+        }
+
+        return (
+            <ShowMore
+                checkOverflow={this.state.checkOverflow}
+                text={message}
+                overflowType={overflowType}
+                maxHeight={maxHeight}
+            >
+                {body}
             </ShowMore>
         );
     }

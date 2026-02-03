@@ -7,10 +7,10 @@
 // - Use element ID when selecting an element. Create one if none.
 // ***************************************************************
 
-// Stage: @prod
 // Group: @channels @system_console
 
 import * as TIMEOUTS from '../../../../fixtures/timeouts';
+import {getRandomId} from '../../../../utils';
 
 describe('Customization', () => {
     beforeEach(() => {
@@ -46,8 +46,8 @@ describe('Customization', () => {
         cy.url().should('include', '/login');
 
         // * Ensure Site Name and Description are shown the updated values in the login screen
-        cy.findByRole('link', {name: siteName}).should('be.visible');
-        cy.get('.login-body-card-title').should('have.text', siteDescription);
+        cy.get('div.header-main a').should('be.visible').should('have.text', siteName);
+        cy.get('p.login-body-card-title').should('have.text', siteDescription);
     });
 
     it('MM-T1025 - Site Name - Product Menu ➜ About and About Modal show custom name', () => {
@@ -156,6 +156,8 @@ describe('Customization', () => {
     });
 
     it('MM-T1029 - Custom branding text can render markdown text', () => {
+        const emojiText = getRandomId(3);
+
         // # Visit emoji system console page
         cy.visit('/admin_console/site_config/emoji');
         cy.get('.admin-console__header').should('be.visible').and('have.text', 'Emoji');
@@ -173,7 +175,7 @@ describe('Customization', () => {
         // * Ensure the form is visible
         cy.get('.backstage-form').should('be.visible').within(() => {
             // # Fill the emoji data
-            cy.get('input#name').clear().type('yay');
+            cy.get('input#name').clear().type(emojiText);
             cy.get('input#select-emoji').attachFile('mattermost-icon.png');
 
             // # Save emoji
@@ -189,7 +191,7 @@ describe('Customization', () => {
         cy.get('.admin-console__header').should('be.visible').and('have.text', 'Customization');
 
         // eslint-disable-next-line no-irregular-whitespace
-        const customBrandText = `​​​​:yay:
+        const customBrandText = `​​​​:${emojiText}:
 :smile:
 
 - This is a bullet point
@@ -199,7 +201,7 @@ describe('Customization', () => {
 ~~This has been strikethrough~~
 *This has been italicized*
 [This is a link to mattermost.com](https://mattermost.com)
-` + '`This is inline code`'; // eslint-disable-line no-useless-concat
+` + '`This is inline code`';
 
         // # Update custom brand text
         cy.findByTestId('TeamSettings.CustomBrandTextinput').clear().type(customBrandText);
@@ -214,12 +216,8 @@ describe('Customization', () => {
         cy.url().should('include', '/login');
 
         cy.get('.login-body-custom-branding-markdown').first().scrollIntoView().should('be.visible').within(() => {
-            // * Ensure custom emoji has been rendered
-            // ToDo: uncomment after fixing MM-12657
-            //cy.get('span.emoticon').should('have.attr', 'title', ':yay:');
-
             // * Ensure default emoji has been rendered
-            cy.get('span.emoticon').should('have.attr', 'title', ':smile:');
+            cy.get('span.emoticon').should('have.attr', 'alt', ':smile:');
 
             // * Ensure the list and two bullets have been rendered
             cy.get('ul.markdown__list').should('be.visible').within(() => {
@@ -306,7 +304,7 @@ describe('Customization', () => {
         cy.url().should('include', '/login');
 
         // * Ensure that the custom Site Name is shown
-        cy.findByRole('link', {name: siteName}).should('be.visible');
+        cy.get('div.header-main a').should('be.visible').should('have.text', siteName);
 
         // # Log back in as an administrator
         cy.apiAdminLogin();

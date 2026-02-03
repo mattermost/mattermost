@@ -3,14 +3,13 @@
 
 import {connect} from 'react-redux';
 import {bindActionCreators} from 'redux';
-import type {Dispatch, ActionCreatorsMapObject} from 'redux';
+import type {Dispatch} from 'redux';
 
 import type {GlobalState} from '@mattermost/types/store';
 
 import {deleteCommand, regenCommandToken} from 'mattermost-redux/actions/integrations';
 import {Permissions} from 'mattermost-redux/constants';
 import {haveITeamPermission} from 'mattermost-redux/selectors/entities/roles';
-import type {GenericAction, ActionResult, ActionFunc} from 'mattermost-redux/types/actions';
 
 import InstalledCommands from './installed_commands';
 
@@ -18,11 +17,6 @@ type Props = {
     team: {
         id: string;
     };
-}
-
-type Actions = {
-    regenCommandToken: (id: string) => Promise<ActionResult>;
-    deleteCommand: (id: string) => Promise<ActionResult>;
 }
 
 function mapStateToProps(state: GlobalState, ownProps: Props) {
@@ -33,9 +27,9 @@ function mapStateToProps(state: GlobalState, ownProps: Props) {
     };
 }
 
-function mapDispatchToProps(dispatch: Dispatch<GenericAction>) {
+function mapDispatchToProps(dispatch: Dispatch) {
     return {
-        actions: bindActionCreators<ActionCreatorsMapObject<ActionFunc>, Actions>({
+        actions: bindActionCreators({
             regenCommandToken,
             deleteCommand,
         }, dispatch),

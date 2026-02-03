@@ -8,6 +8,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"net/http"
 	"sync"
 
 	"github.com/mattermost/mattermost/server/public/model"
@@ -39,6 +40,10 @@ func (scs *Service) sendAttachmentForRemote(fi *model.FileInfo, post *model.Post
 	rcs := scs.server.GetRemoteClusterService()
 	if rcs == nil {
 		return fmt.Errorf("cannot update remote cluster for remote id %s; Remote Cluster Service not enabled", rc.RemoteId)
+	}
+
+	if rc.IsPlugin() {
+		return scs.sendAttachmentToPlugin(fi, post, rc)
 	}
 
 	us := &model.UploadSession{
@@ -120,11 +125,7 @@ func (scs *Service) sendAttachmentForRemote(fi *model.FileInfo, post *model.Post
 		}
 
 		// save file attachment record in SharedChannelAttachments table
-		sca := &model.SharedChannelAttachment{
-			FileId:   fi.Id,
-			RemoteId: rc.RemoteId,
-		}
-		if _, err2 := scs.server.GetStore().SharedChannel().UpsertAttachment(sca); err2 != nil {
+		if err2 := scs.saveSharedAttachment(&fi, rc); err2 != nil {
 			scs.server.Log().Log(mlog.LvlSharedChannelServiceError, "error saving SharedChannelAttachment",
 				mlog.String("remote", rc.DisplayName),
 				mlog.String("uploadId", usResp.Id),
@@ -140,6 +141,24 @@ func (scs *Service) sendAttachmentForRemote(fi *model.FileInfo, post *model.Post
 	})
 }
 
+// sendAttachmentToPlugin asynchronously sends a file attachment to a remote cluster.
+func (scs *Service) sendAttachmentToPlugin(fi *model.FileInfo, post *model.Post, rc *model.RemoteCluster) error {
+	if err := scs.app.OnSharedChannelsAttachmentSyncMsg(fi, post, rc); err != nil {
+		return fmt.Errorf("cannot send attachment to plugin %s: %w", rc.PluginID, err)
+	}
+	return scs.saveSharedAttachment(fi, rc)
+}
+
+// saveSharedAttachment saves the attachment in SharedChannelAttachments table.
+func (scs *Service) saveSharedAttachment(fi *model.FileInfo, rc *model.RemoteCluster) error {
+	sca := &model.SharedChannelAttachment{
+		FileId:   fi.Id,
+		RemoteId: rc.RemoteId,
+	}
+	_, err := scs.server.GetStore().SharedChannel().UpsertAttachment(sca)
+	return err
+}
+
 // onReceiveUploadCreate is called when a message requesting to create an upload session is received.  An upload session is
 // created and the id returned in the response.
 func (scs *Service) onReceiveUploadCreate(msg model.RemoteClusterMsg, rc *model.RemoteCluster, response *remotecluster.Response) error {
@@ -150,8 +169,32 @@ func (scs *Service) onReceiveUploadCreate(msg model.RemoteClusterMsg, rc *model.
 	}
 
 	// make sure channel is shared for the remote sender
-	if _, err := scs.server.GetStore().SharedChannel().GetRemoteByIds(us.ChannelId, rc.RemoteId); err != nil {
+	hasRemote, err := scs.server.GetStore().SharedChannel().HasRemote(us.ChannelId, rc.RemoteId)
+	if err != nil {
 		return fmt.Errorf("could not validate upload session for remote: %w", err)
+	}
+	if !hasRemote {
+		return model.NewAppError("createUpload", "api.upload.create.upload_channel_not_shared_with_remote.app_error", nil, "", http.StatusBadRequest)
+	}
+
+	// make sure file attachments are enabled
+	if scs.server.Config().FileSettings.EnableFileAttachments == nil || !*scs.server.Config().FileSettings.EnableFileAttachments {
+		return model.NewAppError("ReceiveUploadCreate",
+			"api.file.attachments.disabled.app_error",
+			nil, "", http.StatusNotImplemented)
+	}
+
+	// make sure the file size requested does not exceed local server config - MM server's regular
+	// upload code will ensure the actual bytes sent are within the upload session limit.
+	if scs.server.Config().FileSettings.MaxFileSize == nil || us.FileSize > *scs.server.Config().FileSettings.MaxFileSize {
+		return model.NewAppError("createUpload", "api.upload.create.upload_too_large.app_error",
+			map[string]any{"channelId": us.ChannelId}, "", http.StatusRequestEntityTooLarge)
+	}
+
+	// validate upload type for shared channels - only allow attachments
+	if us.Type != model.UploadTypeAttachment {
+		return model.NewAppError("onReceiveUploadCreate", "api.upload.invalid_type_for_shared_channel.app_error",
+			nil, "", http.StatusBadRequest)
 	}
 
 	us.RemoteId = rc.RemoteId // don't let remotes try to impersonate each other

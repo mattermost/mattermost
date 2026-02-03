@@ -5,8 +5,6 @@ import React, {useCallback, useEffect} from 'react';
 import {useIntl} from 'react-intl';
 import {useHistory} from 'react-router-dom';
 
-import {trackEvent} from 'actions/telemetry_actions';
-
 import AccessProblemSVG from 'components/common/svg_images_components/access_problem_svg';
 import type {CustomizeHeaderType} from 'components/header_footer_route/header_footer_route';
 
@@ -23,13 +21,8 @@ const AccessProblem = ({
     const history = useHistory();
 
     const handleHeaderBackButtonOnClick = useCallback(() => {
-        trackEvent('access_problem', 'click_back');
         history.goBack();
     }, [history]);
-
-    useEffect(() => {
-        trackEvent('signup', 'click_login_no_account__closed_server');
-    }, []);
 
     useEffect(() => {
         if (onCustomizeHeader) {
@@ -41,12 +34,15 @@ const AccessProblem = ({
 
     return (
         <div className='AccessProblem__body'>
-            <AccessProblemSVG/>
+            <AccessProblemSVG
+                width={320}
+                height={190}
+            />
             <div className='AccessProblem__title'>
-                {formatMessage({id: 'login.contact_admin.title'})}
+                {formatMessage({id: 'login.contact_admin.title', defaultMessage: 'Contact your workspace admin'})}
             </div>
             <div className='AccessProblem__description'>
-                {formatMessage({id: 'login.contact_admin.detail'})}
+                {formatMessage({id: 'login.contact_admin.detail', defaultMessage: "To access your team's workspace, contact your workspace admin. If you've been invited already, check your email inbox for a Mattermost workspace invite."})}
             </div>
         </div>
     );

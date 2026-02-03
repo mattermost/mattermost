@@ -42,7 +42,7 @@ func NewAutoUserCreator(a *app.App, client *model.Client4, team *model.Team) *Au
 }
 
 // Basic test team and user so you always know one
-func CreateBasicUser(a *app.App, client *model.Client4) error {
+func CreateBasicUser(rctx request.CTX, a *app.App, client *model.Client4) error {
 	found, _, _ := client.TeamExists(context.Background(), BTestTeamName, "")
 	if found {
 		return nil
@@ -62,7 +62,7 @@ func CreateBasicUser(a *app.App, client *model.Client4) error {
 	if err != nil {
 		return model.NewAppError("CreateBasicUser", "app.user.verify_email.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
-	if _, nErr := a.Srv().Store().Team().SaveMember(&model.TeamMember{TeamId: basicteam.Id, UserId: ruser.Id, CreateAt: model.GetMillis()}, *a.Config().TeamSettings.MaxUsersPerTeam); nErr != nil {
+	if _, nErr := a.Srv().Store().Team().SaveMember(rctx, &model.TeamMember{TeamId: basicteam.Id, UserId: ruser.Id, CreateAt: model.GetMillis()}, *a.Config().TeamSettings.MaxUsersPerTeam); nErr != nil {
 		var appErr *model.AppError
 		var conflictErr *store.ErrConflict
 		var limitExceededErr *store.ErrLimitExceeded
@@ -81,15 +81,15 @@ func CreateBasicUser(a *app.App, client *model.Client4) error {
 	return nil
 }
 
-func (cfg *AutoUserCreator) createRandomUser(c request.CTX) (*model.User, error) {
+func (cfg *AutoUserCreator) createRandomUser(rctx request.CTX) (*model.User, error) {
 	var userEmail string
 	var userName string
 	if cfg.Fuzzy {
 		userEmail = "success+" + model.NewId() + "@simulator.amazonses.com"
-		userName = utils.FuzzName()
+		userName = "a" + utils.FuzzName()
 	} else {
 		userEmail = "success+" + model.NewId() + "@simulator.amazonses.com"
-		userName = utils.RandomName(cfg.NameLength, cfg.NameCharset)
+		userName = "a" + utils.RandomName(cfg.NameLength, cfg.NameCharset)
 	}
 
 	user := &model.User{
@@ -99,7 +99,7 @@ func (cfg *AutoUserCreator) createRandomUser(c request.CTX) (*model.User, error)
 		CreateAt: cfg.JoinTime,
 	}
 
-	ruser, appErr := cfg.app.CreateUserWithInviteId(c, user, cfg.team.InviteId, "")
+	ruser, appErr := cfg.app.CreateUserWithInviteId(rctx, user, cfg.team.InviteId, "")
 	if appErr != nil {
 		return nil, appErr
 	}
@@ -122,12 +122,12 @@ func (cfg *AutoUserCreator) createRandomUser(c request.CTX) (*model.User, error)
 	}
 
 	if cfg.JoinTime != 0 {
-		teamMember, appErr := cfg.app.GetTeamMember(c, cfg.team.Id, ruser.Id)
+		teamMember, appErr := cfg.app.GetTeamMember(rctx, cfg.team.Id, ruser.Id)
 		if appErr != nil {
 			return nil, appErr
 		}
 		teamMember.CreateAt = cfg.JoinTime
-		_, err := cfg.app.Srv().Store().Team().UpdateMember(c, teamMember)
+		_, err := cfg.app.Srv().Store().Team().UpdateMember(rctx, teamMember)
 		if err != nil {
 			return nil, err
 		}
@@ -136,13 +136,13 @@ func (cfg *AutoUserCreator) createRandomUser(c request.CTX) (*model.User, error)
 	return ruser, nil
 }
 
-func (cfg *AutoUserCreator) CreateTestUsers(c request.CTX, num utils.Range) ([]*model.User, error) {
+func (cfg *AutoUserCreator) CreateTestUsers(rctx request.CTX, num utils.Range) ([]*model.User, error) {
 	numUsers := utils.RandIntFromRange(num)
 	users := make([]*model.User, numUsers)
 
-	for i := 0; i < numUsers; i++ {
+	for i := range numUsers {
 		var err error
-		users[i], err = cfg.createRandomUser(c)
+		users[i], err = cfg.createRandomUser(rctx)
 		if err != nil {
 			return nil, err
 		}

@@ -1,29 +1,25 @@
-// Jest Snapshot v1, https://goo.gl/fbAQLP
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
 
 exports[`ProductNoticesModal Match snapshot for single notice 1`] = `
 <GenericModal
   autoCloseOnCancelButton={false}
   autoCloseOnConfirmButton={true}
-  bodyPadding={true}
   cancelButtonText={null}
   className="productNotices"
+  compassDesign={true}
   confirmButtonText={
     <span>
       Download
     </span>
   }
-  enforceFocus={true}
   handleConfirm={[Function]}
   handleEnterKeyPress={[Function]}
-  id="genericModal"
-  keyboardEscape={true}
   modalHeaderText={
     <span>
       title
     </span>
   }
   onExited={[Function]}
-  show={true}
 >
   <span
     className="productNotices__helpText"
@@ -45,7 +41,6 @@ exports[`ProductNoticesModal Match snapshot for user notice 1`] = `
 <GenericModal
   autoCloseOnCancelButton={false}
   autoCloseOnConfirmButton={true}
-  bodyPadding={true}
   cancelButtonText={
     <React.Fragment>
       <Memo(PreviousIcon) />
@@ -56,25 +51,22 @@ exports[`ProductNoticesModal Match snapshot for user notice 1`] = `
     </React.Fragment>
   }
   className="productNotices"
+  compassDesign={true}
   confirmButtonText={
     <Memo(MemoizedFormattedMessage)
       defaultMessage="Done"
       id="generic.done"
     />
   }
-  enforceFocus={true}
   handleCancel={[Function]}
   handleConfirm={[Function]}
   handleEnterKeyPress={[Function]}
-  id="genericModal"
-  keyboardEscape={true}
   modalHeaderText={
     <span>
       title
     </span>
   }
   onExited={[Function]}
-  show={true}
 >
   <span
     className="productNotices__helpText"
@@ -83,15 +75,14 @@ exports[`ProductNoticesModal Match snapshot for user notice 1`] = `
       message="descr"
     />
   </span>
-  <ExternalLink
+  <ForwardRef
     className="GenericModal__button actionButton"
     href="http://download.com/path"
     id="actionButton"
     location="product_notices_modal"
-    onClick={[Function]}
   >
     Download
-  </ExternalLink>
+  </ForwardRef>
   <div
     className="productNotices__imageDiv"
   />
@@ -122,9 +113,9 @@ exports[`ProductNoticesModal Should match snapshot for system admin notice 1`] =
 <GenericModal
   autoCloseOnCancelButton={false}
   autoCloseOnConfirmButton={false}
-  bodyPadding={true}
   cancelButtonText={null}
   className="productNotices"
+  compassDesign={true}
   confirmButtonText={
     <React.Fragment>
       <Memo(MemoizedFormattedMessage)
@@ -134,18 +125,14 @@ exports[`ProductNoticesModal Should match snapshot for system admin notice 1`] =
       <Memo(NextIcon) />
     </React.Fragment>
   }
-  enforceFocus={true}
   handleConfirm={[Function]}
   handleEnterKeyPress={[Function]}
-  id="genericModal"
-  keyboardEscape={true}
   modalHeaderText={
     <span>
       for sysadmin
     </span>
   }
   onExited={[Function]}
-  show={true}
 >
   <span
     className="productNotices__helpText"
@@ -154,15 +141,14 @@ exports[`ProductNoticesModal Should match snapshot for system admin notice 1`] =
       message="your eyes only! [test](https://test.com)"
     />
   </span>
-  <ExternalLink
+  <ForwardRef
     className="GenericModal__button actionButton"
     href="http://download.com/path"
     id="actionButton"
     location="product_notices_modal"
-    onClick={[Function]}
   >
     Download
-  </ExternalLink>
+  </ForwardRef>
   <div
     className="productNotices__imageDiv"
   >

@@ -28,7 +28,7 @@ const MinSecondsBetweenRepeatViewings = 60 * 60
 var noticesCache = utils.RequestCache{}
 
 func noticeMatchesConditions(config *model.Config, preferences store.PreferenceStore, userID string,
-	client model.NoticeClientType, clientVersion string, postCount int64, userCount int64, isSystemAdmin bool,
+	client model.NoticeClientType, serverVersion, clientVersion string, postCount int64, userCount int64, isSystemAdmin bool,
 	isTeamAdmin bool, isCloud bool, sku, dbName, dbVer, searchEngineName, searchEngineVer string,
 	notice *model.ProductNotice) (bool, error) {
 	cnd := notice.Conditions
@@ -65,20 +65,20 @@ func noticeMatchesConditions(config *model.Config, preferences store.PreferenceS
 	if cnd.DisplayDate != nil {
 		y, m, d := time.Now().UTC().Date()
 		trunc := time.Date(y, m, d, 0, 0, 0, 0, time.UTC)
-		c, err2 := date_constraints.NewConstraint(*cnd.DisplayDate)
+		rctx, err2 := date_constraints.NewConstraint(*cnd.DisplayDate)
 		if err2 != nil {
 			return false, errors.Wrapf(err2, "Cannot parse date range %s", *cnd.DisplayDate)
 		}
-		if !c.Check(&trunc) {
+		if !rctx.Check(&trunc) {
 			return false, nil
 		}
 	}
 
 	// check if current server version is notice range
 	if !isCloud && cnd.ServerVersion != nil {
-		serverVersion, err := semver.NewVersion(model.CurrentVersion)
+		serverVersionSemver, err := semver.NewVersion(serverVersion)
 		if err != nil {
-			mlog.Warn("Version number is not in semver format", mlog.String("version_number", model.CurrentVersion))
+			mlog.Warn("Version number is not in semver format", mlog.String("version_number", serverVersion))
 			return false, nil
 		}
 		for _, v := range cnd.ServerVersion {
@@ -86,7 +86,7 @@ func noticeMatchesConditions(config *model.Config, preferences store.PreferenceS
 			if err != nil {
 				return false, errors.Wrapf(err, "Cannot parse version range %s", v)
 			}
-			if !c.Check(serverVersion) {
+			if !c.Check(serverVersionSemver) {
 				return false, nil
 			}
 		}
@@ -127,7 +127,7 @@ func noticeMatchesConditions(config *model.Config, preferences store.PreferenceS
 		}
 
 		switch cnd.DeprecatingDependency.Name {
-		case model.DatabaseDriverMysql, model.DatabaseDriverPostgres:
+		case model.DatabaseDriverPostgres:
 			if dbName != cnd.DeprecatingDependency.Name {
 				return false, nil
 			}
@@ -210,9 +210,9 @@ func validateConfigEntry(conf *model.Config, path string, expectedValue any) boo
 }
 
 // GetProductNotices is called from the frontend to fetch the product notices that are relevant to the caller
-func (a *App) GetProductNotices(c request.CTX, userID, teamID string, client model.NoticeClientType, clientVersion string, locale string) (model.NoticeMessages, *model.AppError) {
-	isSystemAdmin := a.SessionHasPermissionTo(*c.Session(), model.PermissionManageSystem)
-	isTeamAdmin := a.SessionHasPermissionToTeam(*c.Session(), teamID, model.PermissionManageTeam)
+func (a *App) GetProductNotices(rctx request.CTX, userID, teamID string, client model.NoticeClientType, clientVersion string, locale string) (model.NoticeMessages, *model.AppError) {
+	isSystemAdmin := a.SessionHasPermissionTo(*rctx.Session(), model.PermissionManageSystem)
+	isTeamAdmin := a.SessionHasPermissionToTeam(*rctx.Session(), teamID, model.PermissionManageTeam)
 
 	// check if notices for regular users are disabled
 	if !*a.Config().AnnouncementSettings.UserNoticesEnabled && !isSystemAdmin {
@@ -268,6 +268,7 @@ func (a *App) GetProductNotices(c request.CTX, userID, teamID string, client mod
 			a.Srv().Store().Preference(),
 			userID,
 			client,
+			model.CurrentVersion,
 			clientVersion,
 			a.ch.cachedPostCount,
 			a.ch.cachedUserCount,

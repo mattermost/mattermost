@@ -2,6 +2,7 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
+import {defineMessages} from 'react-intl';
 
 import type {IncomingWebhook} from '@mattermost/types/integrations';
 import type {Team} from '@mattermost/types/teams';
@@ -12,11 +13,21 @@ import AbstractIncomingWebhook from 'components/integrations/abstract_incoming_w
 import LoadingScreen from 'components/loading_screen';
 
 import {getHistory} from 'utils/browser_history';
-import {t} from 'utils/i18n';
 
-const HEADER = {id: t('integrations.edit'), defaultMessage: 'Edit'};
-const FOOTER = {id: t('update_incoming_webhook.update'), defaultMessage: 'Update'};
-const LOADING = {id: t('update_incoming_webhook.updating'), defaultMessage: 'Updating...'};
+const messages = defineMessages({
+    footer: {
+        id: 'update_incoming_webhook.update',
+        defaultMessage: 'Update',
+    },
+    header: {
+        id: 'integrations.edit',
+        defaultMessage: 'Edit',
+    },
+    loading: {
+        id: 'update_incoming_webhook.updating',
+        defaultMessage: 'Updating...',
+    },
+});
 
 type Props = {
 
@@ -50,6 +61,11 @@ type Props = {
      */
     enablePostIconOverride: boolean;
 
+    /**
+     * Whether the user can bypass the channel lock requirement.
+     */
+    canBypassChannelLock?: boolean;
+
     actions: {
 
         /**
@@ -65,7 +81,6 @@ type Props = {
 };
 
 type State = {
-    showConfirmModal: boolean;
     serverError: string;
 };
 
@@ -76,7 +91,6 @@ export default class EditIncomingWebhook extends React.PureComponent<Props, Stat
         super(props);
 
         this.state = {
-            showConfirmModal: false,
             serverError: '',
         };
     }
@@ -125,11 +139,12 @@ export default class EditIncomingWebhook extends React.PureComponent<Props, Stat
         return (
             <AbstractIncomingWebhook
                 team={this.props.team}
-                header={HEADER}
-                footer={FOOTER}
-                loading={LOADING}
+                header={messages.header}
+                footer={messages.footer}
+                loading={messages.loading}
                 enablePostUsernameOverride={this.props.enablePostUsernameOverride}
                 enablePostIconOverride={this.props.enablePostIconOverride}
+                canBypassChannelLock={this.props.canBypassChannelLock}
                 action={this.editIncomingHook}
                 serverError={this.state.serverError}
                 initialHook={this.props.hook}

@@ -1,4 +1,6 @@
-@charset "utf-8";
+@use "utils/functions";
+@use "utils/mixins";
+@use "utils/variables";
 
 .sidebar--right--width-holder {
     @media screen and (max-width: 768px) {
@@ -25,6 +27,10 @@
             }
         }
 
+        @media screen and (max-width: 400px) {
+            min-width: unset;
+        }
+
         @media screen and (min-width: 901px) {
             min-width: 304px;
             max-width: 400px;
@@ -42,25 +48,6 @@
     height: 100%;
     padding: 0;
     transform: translateX(100%);
-
-    &.is-open {
-        body:not(.layout-changing) & {
-            transition: width 0.25s 0s ease-in, z-index 0.25s 0s step-end;
-        }
-    }
-
-    &.expanded {
-        z-index: 13;
-        box-shadow: 0 8px 24px alpha-color($black, 0.24);
-
-        .sidebar-right__body {
-            overflow: hidden;
-        }
-
-        body:not(.layout-changing) & {
-            transition: width 0.25s 0s ease-in, z-index 0.15s 0.1s step-start;
-        }
-    }
 
     .sidebar-right__table {
         display: table;
@@ -92,8 +79,7 @@
         height: 100%;
         flex: 1 1 auto;
         flex-direction: column;
-        border-left: 1px solid rgba(var(--center-channel-color-rgb), 0.12);
-        background: v(center-channel-bg);
+        background: var(--center-channel-bg);
 
         .info-card {
             padding: 5px 15px 60px 15px;
@@ -111,7 +97,7 @@
         z-index: 5;
         width: 100%;
         height: 100%;
-        background-color: $yellow;
+        background-color: variables.$yellow;
         opacity: 0.1;
         pointer-events: none;
     }
@@ -136,23 +122,31 @@
 
     .sidebar--right__title {
         display: flex;
-        height: 2.4rem;
+        height: auto;
         flex: 1 1 auto;
+        align-items: center;
         padding: 0 1.6rem;
         font-family: Metropolis, sans-serif;
         font-size: 1.6rem;
         font-weight: 600;
+        line-height: 1;
 
-        @include clearfix;
+        @include mixins.clearfix;
+        h2 {
+            margin: 0;
+            font-family: inherit;
+            font-size: inherit;
+            font-weight: inherit;
+        }
     }
 
     .sidebar--right__title__channel {
         overflow: hidden;
         height: 2.4rem;
         padding: 0 8px;
-        border-left: 1px solid rgba(var(--center-channel-color-rgb), 0.16);
+        border-left: var(--border-light);
         margin: 0 0 0 8px;
-        color: rgba(var(--center-channel-color-rgb), 0.56);
+        color: rgba(var(--center-channel-color-rgb), 0.75);
         cursor: pointer;
         font-family: "Open Sans", sans-serif;
         font-size: 12px;
@@ -163,14 +157,14 @@
 
         &:hover {
             border-color: transparent;
-            background: rgba(var(--center-channel-color-rgb), 0.08);
             border-radius: 4px;
-            color: rgba(var(--center-channel-color-rgb), 0.72);
+            background: rgba(var(--center-channel-color-rgb), 0.08);
+            color: rgba(var(--center-channel-color-rgb), 0.75);
         }
 
         &:active {
             background: rgba(var(--button-bg-rgb), 0.08);
-            color: v(button-bg);
+            color: functions.v(button-bg);
         }
     }
 
@@ -178,9 +172,9 @@
         overflow: hidden;
         height: 2.4rem;
         padding: 0 8px;
-        border-left: 1px solid rgba(var(--center-channel-color-rgb), 0.16);
+        border-left: var(--border-default);
         margin: 0 0 0 8px;
-        color: rgba(var(--center-channel-color-rgb), 0.56);
+        color: rgba(var(--center-channel-color-rgb), 0.75);
         font-family: "Open Sans", sans-serif;
         font-size: 12px;
         font-weight: normal;
@@ -203,8 +197,7 @@
         align-items: center;
         justify-content: space-between;
         padding: 0 16px 0 0;
-        border-bottom: 1px solid rgba(var(--center-channel-color-rgb), 0.08);
-        background: rgba(var(--center-channel-color-rgb), 0.04);
+        border-bottom: var(--border-default);
         color: inherit;
         white-space: nowrap;
 
@@ -215,6 +208,7 @@
 
         .sidebar--right__back {
             margin-right: 4px !important;
+            margin-left: -8px !important;
         }
 
         .controls {
@@ -282,6 +276,8 @@
     height: 48px;
     align-items: center;
     justify-content: center;
+    border: none;
+    background: transparent;
     cursor: pointer;
     text-align: center;
     transform: translateX(0);
@@ -293,6 +289,29 @@
     }
 }
 
+#sidebar-right {
+    overflow: hidden;
+    height: 100%;
+    border-left: var(--border-default);
+    box-shadow: var(--elevation-2);
+
+    &.expanded {
+        position: absolute;
+        z-index: 20;
+        box-shadow: var(--elevation-4);
+
+        .sidebar-right__body {
+            overflow: hidden;
+        }
+    }
+
+    body:not(.layout-changing) & {
+        transition-duration: 250ms;
+        transition-property: width, z-index, box-shadow;
+        transition-timing-function: ease-in-out;
+    }
+}
+
 // global header style adjustments
 @media screen and (min-width: 769px) {
     // adjust RHS position and height
@@ -300,20 +319,14 @@
         // If this is changed, the interaction with the App Bar icons must be tested
         //(see .app-bar__icon in components/app_bar/app_bar.scss)
         z-index: 20;
-        top: 0;
+        box-shadow: var(--elevation-2);
 
         .sidebar-right-container {
             height: 100%;
         }
 
         .sidebar--right__header {
-            flex-basis: 63px;
-        }
-
-        .sidebar--right__title {
-            height: auto;
-            align-items: center;
-            line-height: 63px;
+            flex-basis: 56px;
         }
 
         // search bar container is now only for mobile

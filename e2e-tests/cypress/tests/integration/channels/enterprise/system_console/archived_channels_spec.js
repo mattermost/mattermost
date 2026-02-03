@@ -14,23 +14,24 @@ import * as TIMEOUTS from '../../../../fixtures/timeouts';
 
 describe('Archived channels', () => {
     let testChannel;
+    let testPrivateChannel;
 
     before(() => {
         cy.apiRequireLicense();
 
-        cy.apiUpdateConfig({
-            TeamSettings: {
-                ExperimentalViewArchivedChannels: true,
-            },
-        });
-
         cy.apiInitSetup({
             channelPrefix: {name: '000-archive', displayName: '000 Archive Test'},
-        }).then(({channel}) => {
+        }).then(({channel, team}) => {
             testChannel = channel;
 
-            // # Archive the channel
+            // # Archive the public channel
             cy.apiDeleteChannel(testChannel.id);
+
+            // # Create and archive a private channel with a prefix to ensure proper sorting
+            cy.apiCreateChannel(team.id, '000-private-archive', '000 Private Archive Test', 'P').then(({channel: privateChannel}) => {
+                testPrivateChannel = privateChannel;
+                cy.apiDeleteChannel(privateChannel.id);
+            });
         });
     });
 
@@ -61,7 +62,7 @@ describe('Archived channels', () => {
         cy.visit(`/admin_console/user_management/channels/${testChannel.id}`);
 
         // * Verify the Unarchive Channel button is visible
-        cy.get('button.ArchiveButton', {timeout: TIMEOUTS.ONE_MIN}).findByText('Unarchive Channel').should('be.visible');
+        cy.get('button.btn-secondary', {timeout: TIMEOUTS.TWO_SEC}).should('have.text', 'Unarchive Channel').should('be.visible').should('be.enabled');
 
         // * Verify that only one widget is visible
         cy.get('div.AdminPanel').should('be.visible').and('have.length', 1);
@@ -72,10 +73,10 @@ describe('Archived channels', () => {
         cy.visit(`/admin_console/user_management/channels/${testChannel.id}`);
 
         // # Click Unarchive Channel button
-        cy.get('button.ArchiveButton', {timeout: TIMEOUTS.ONE_MIN}).findAllByText('Unarchive Channel').click();
+        cy.get('button.btn-secondary', {timeout: TIMEOUTS.TWO_SEC}).findAllByText('Unarchive Channel').click();
 
         // * Verify the Archive Channel button is visible
-        cy.get('button.ArchiveButton', {timeout: TIMEOUTS.TWO_SEC}).findAllByText('Archive Channel').should('be.visible');
+        cy.get('button.btn-secondary.btn-danger', {timeout: TIMEOUTS.TWO_SEC}).findAllByText('Archive Channel').should('be.visible');
 
         // * Verify that the other widget appears
         cy.get('div.AdminPanel').should('be.visible').should('have.length', 5);
@@ -88,5 +89,27 @@ describe('Archived channels', () => {
         cy.apiGetChannel(testChannel.id).then(({channel}) => {
             expect(channel.delete_at).to.eq(0);
         });
+    });
+
+    it('display archive icon for public archived channels in channel list', () => {
+        // # Go to the channels list view
+        cy.visit('/admin_console/user_management/channels');
+
+        // * Verify the archived public channel is visible
+        cy.findByText(testChannel.display_name, {timeout: TIMEOUTS.ONE_MIN}).should('be.visible');
+
+        // * Verify the archive icon is displayed
+        cy.findByTestId(`${testChannel.name}-archive-icon`).should('be.visible');
+    });
+
+    it('display archive-lock icon for private archived channels in channel list', () => {
+        // # Go to the channels list view
+        cy.visit('/admin_console/user_management/channels');
+
+        // * Verify the archived private channel is visible
+        cy.findByText(testPrivateChannel.display_name, {timeout: TIMEOUTS.ONE_MIN}).should('be.visible');
+
+        // * Verify the archive icon is displayed for private channel
+        cy.findByTestId(`${testPrivateChannel.name}-archive-icon`).should('be.visible');
     });
 });

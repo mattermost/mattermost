@@ -1,11 +1,12 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-@import 'utils/mixins';
+@use 'utils/mixins';
 
 .login-body {
     display: flex;
     flex-direction: column;
+    padding-bottom: 32px;
     margin: auto;
 
     .login-body-action {
@@ -30,7 +31,7 @@
         justify-content: center;
 
         .login-body-message-subtitle {
-            color: rgba(var(--center-channel-color-rgb), 0.72);
+            color: rgba(var(--center-channel-color-rgb), 0.75);
             font-size: 18px;
             font-weight: 400;
             line-height: 28px;
@@ -43,7 +44,7 @@
             align-self: flex-start;
 
             .login-body-message-title {
-                padding-right: 48px;
+                padding-right: 24px;
                 color: var(--title-color-indigo-500);
                 font-family: Metropolis;
                 font-size: 80px;
@@ -80,8 +81,8 @@
                 .login-body-custom-branding-image {
                     max-height: 240px;
                     align-self: self-start;
-                    margin-bottom: 28px;
                     border-radius: 8px;
+                    margin-bottom: 28px;
                 }
             }
 
@@ -94,13 +95,13 @@
             width: 540px;
             box-sizing: border-box;
             border: 1px solid rgba(var(--center-channel-color-rgb), 0.08);
+            border-radius: 8px;
             margin-left: 60px;
             background-color: var(--center-channel-bg);
-            border-radius: 8px;
             box-shadow: var(--elevation-5);
 
             &.with-error {
-                @include shake-horizontally;
+                @include mixins.shake-horizontally;
             }
 
             .login-body-card-content {
@@ -143,13 +144,13 @@
                         margin-top: 17px;
 
                         a {
-                            @include link;
+                            @include mixins.link;
                         }
                     }
 
                     .login-body-card-form-button-submit {
-                        @include primary-button;
-                        @include button-large;
+                        @include mixins.primary-button;
+                        @include mixins.button-large;
 
                         width: 100%;
                         margin-top: 30px;
@@ -167,7 +168,7 @@
                     .login-body-card-form-divider-label {
                         padding: 0 10px;
                         background-color: var(--center-channel-bg);
-                        color: rgba(var(--center-channel-color-rgb), 0.56);
+                        color: rgba(var(--center-channel-color-rgb), 0.75);
                         font-size: 12px;
                         line-height: 0;
                     }
@@ -210,7 +211,7 @@
             p {
                 width: 100%;
                 margin: 0;
-                color: rgba(var(--center-channel-color-rgb), 0.72);
+                color: rgba(var(--center-channel-color-rgb), 0.75);
                 font-size: 18px;
                 font-weight: 400;
                 line-height: 28px;
@@ -229,7 +230,7 @@
         }
 
         .login-body-message .login-body-message-title {
-            padding-right: 110px;
+            padding-right: 80px;
             margin-top: 48px;
         }
     }
@@ -254,7 +255,7 @@
                 padding: 24px;
 
                 .login-body-message-title {
-                    padding-right: 180px;
+                    padding-right: 80px;
                     font-size: 64px;
                     line-height: 76px;
                 }
@@ -305,8 +306,13 @@
                     .login-body-card-content {
                         .login-body-card-title {
                             display: block;
+                            margin-bottom: 24px;
                             font-size: 32px;
                             line-height: 40px;
+
+                            &:has(+ .login-body-custom-branding-markdown){
+                                margin-bottom: 12px;
+                            }
                         }
 
                         .login-body-custom-branding-markdown,
@@ -339,7 +345,6 @@
                 padding: 24px;
 
                 .login-body-message-title {
-                    max-width: 271px;
                     padding-right: 0;
                     font-size: 45px;
                     line-height: 56px;

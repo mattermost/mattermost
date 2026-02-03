@@ -10,8 +10,7 @@ import type {PreferenceType} from '@mattermost/types/preferences';
 import type {UserProfile} from '@mattermost/types/users';
 
 import {Client4} from 'mattermost-redux/client';
-
-import {trackEvent} from 'actions/telemetry_actions';
+import type {ActionResult} from 'mattermost-redux/types/actions';
 
 import ProfilePicture from 'components/profile_picture';
 
@@ -29,8 +28,8 @@ type Props = {
     redirectChannel: string;
     active: boolean;
     actions: {
-        savePreferences: (userId: string, preferences: PreferenceType[]) => Promise<{data: boolean}>;
-        leaveDirectChannel: (channelId: string) => Promise<{data: boolean}>;
+        savePreferences: (userId: string, preferences: PreferenceType[]) => Promise<ActionResult>;
+        leaveDirectChannel: (channelId: string) => Promise<ActionResult>;
     };
 };
 
@@ -42,8 +41,6 @@ class SidebarDirectChannel extends React.PureComponent<Props> {
         const currentUserId = this.props.currentUserId;
         this.props.actions.savePreferences(currentUserId, [{user_id: currentUserId, category, name: id!, value: 'false'}]).then(callback);
         this.props.actions.leaveDirectChannel(this.props.channel.name);
-
-        trackEvent('ui', 'ui_direct_channel_x_button_clicked');
 
         if (this.props.active) {
             getHistory().push(`/${this.props.currentTeamName}/channels/${this.props.redirectChannel}`);
@@ -109,6 +106,7 @@ class SidebarDirectChannel extends React.PureComponent<Props> {
                 label={displayName}
                 channelLeaveHandler={this.handleLeaveChannel}
                 icon={this.getIcon()}
+                isSharedChannel={Boolean(teammate.remote_id)}
             />
         );
     }

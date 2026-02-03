@@ -28,8 +28,9 @@ describe('components/actions_menu/ActionsMenu on mobile view', () => {
     test('should match snapshot', () => {
         const baseProps: Omit<Props, 'intl'> = {
             post: TestHelper.getPostMock({id: 'post_id_1'}),
-            components: {},
             teamId: 'team_id_1',
+            handleDropdownOpened: jest.fn(),
+            isMenuOpen: true,
             actions: {
                 openModal: jest.fn(),
                 openAppsModal: jest.fn(),
@@ -42,6 +43,7 @@ describe('components/actions_menu/ActionsMenu on mobile view', () => {
             appsEnabled: false,
             isSysAdmin: true,
             canOpenMarketplace: false,
+            pluginMenuItemComponents: [],
         };
 
         const wrapper = shallow(

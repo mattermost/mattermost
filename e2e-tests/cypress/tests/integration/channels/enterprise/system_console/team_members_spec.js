@@ -41,6 +41,14 @@ describe('Team members test', () => {
         });
     });
 
+    it("MM-58840 Teams - can't navigate to invalid URL", () => {
+        // # Visit the invalid URL.
+        cy.visit('/admin_console/user_management/teams/invalid');
+
+        // * Verify that the user is seeing the listing (subroute not matched)
+        cy.findByText('Mattermost Teams').should('be.visible');
+    });
+
     it('MM-23938 - Team members block is only visible when team is not group synced', () => {
         // # Visit the team page
         cy.visit(`/admin_console/user_management/teams/${testTeam.id}`);

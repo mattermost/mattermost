@@ -13,16 +13,16 @@ import (
 )
 
 func TestLoadLicense(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t)
-	defer th.TearDown()
 
 	th.App.Srv().LoadLicense()
 	require.Nil(t, th.App.Srv().License(), "shouldn't have a valid license")
 }
 
 func TestSaveLicense(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t)
-	defer th.TearDown()
 
 	b1 := []byte("junk")
 
@@ -31,16 +31,16 @@ func TestSaveLicense(t *testing.T) {
 }
 
 func TestRemoveLicense(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t)
-	defer th.TearDown()
 
 	err := th.App.Srv().RemoveLicense()
 	require.Nil(t, err, "should have removed license")
 }
 
 func TestSetLicense(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t)
-	defer th.TearDown()
 
 	l1 := &model.License{}
 	l1.Features = &model.Features{}
@@ -60,8 +60,8 @@ func TestSetLicense(t *testing.T) {
 }
 
 func TestGetSanitizedClientLicense(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t)
-	defer th.TearDown()
 
 	setLicense(th, nil)
 
@@ -71,24 +71,6 @@ func TestGetSanitizedClientLicense(t *testing.T) {
 	assert.False(t, ok)
 	_, ok = m["SkuName"]
 	assert.False(t, ok)
-}
-
-func TestGenerateRenewalToken(t *testing.T) {
-	th := Setup(t)
-	defer th.TearDown()
-
-	t.Run("renewal token generated correctly", func(t *testing.T) {
-		setLicense(th, nil)
-		token, appErr := th.App.Srv().GenerateRenewalToken(JWTDefaultTokenExpiration)
-		require.Nil(t, appErr)
-		require.NotEmpty(t, token)
-	})
-
-	t.Run("return error if there is no active license", func(t *testing.T) {
-		th.App.Srv().SetLicense(nil)
-		_, appErr := th.App.Srv().GenerateRenewalToken(JWTDefaultTokenExpiration)
-		require.NotNil(t, appErr)
-	})
 }
 
 func setLicense(th *TestHelper, customer *model.Customer) {

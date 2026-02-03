@@ -1,10 +1,11 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {cloneDeep} from 'lodash';
+import cloneDeep from 'lodash/cloneDeep';
 
 import type {UserProfile} from '@mattermost/types/users';
 
+import {addUserIdsForStatusFetchingPoll} from 'mattermost-redux/actions/status_profile_polling';
 import {getStatusesByIds} from 'mattermost-redux/actions/users';
 import {Preferences} from 'mattermost-redux/constants';
 
@@ -12,10 +13,14 @@ import * as Actions from 'actions/status_actions';
 
 import mockStore from 'tests/test_store';
 
-import type {GlobalState} from 'types/store';
-
 jest.mock('mattermost-redux/actions/users', () => ({
     getStatusesByIds: jest.fn(() => {
+        return {type: ''};
+    }),
+}));
+
+jest.mock('mattermost-redux/actions/status_profile_polling', () => ({
+    addUserIdsForStatusFetchingPoll: jest.fn(() => {
         return {type: ''};
     }),
 }));
@@ -38,12 +43,13 @@ describe('actions/status_actions', () => {
                 currentChannelId: 'channel_id1',
                 channels: {channel_id1: {id: 'channel_id1', name: 'channel1', team_id: 'team_id1'}, channel_id2: {id: 'channel_id2', name: 'channel2', team_id: 'team_id1'}},
                 myMembers: {channel_id1: {channel_id: 'channel_id1', user_id: 'current_user_id'}},
-                channelsInTeam: {team_id1: ['channel_id1']},
+                channelsInTeam: {team_id1: new Set(['channel_id1'])},
             },
             general: {
                 config: {
                     EnableCustomEmoji: 'true',
                     EnableCustomUserStatuses: 'true',
+                    EnableUserStatuses: 'true',
                 },
             },
             teams: {
@@ -75,31 +81,32 @@ describe('actions/status_actions', () => {
                 },
             },
         },
-    } as unknown as GlobalState;
+    };
 
-    describe('loadStatusesForChannelAndSidebar', () => {
+    describe('addUserIdsForStatusAndProfileFetchingPoll', () => {
         test('load statuses with posts in channel and user in sidebar', () => {
             const state = cloneDeep(initialState);
             const testStore = mockStore(state);
-            testStore.dispatch(Actions.loadStatusesForChannelAndSidebar());
-            expect(getStatusesByIds).toHaveBeenCalledWith((expect as GreatExpectations).arrayContainingExactly(['current_user_id', 'user_id2', 'user_id3']));
+            testStore.dispatch(Actions.addVisibleUsersInCurrentChannelAndSelfToStatusPoll());
+            expect(addUserIdsForStatusFetchingPoll).toHaveBeenCalled();
+            expect(addUserIdsForStatusFetchingPoll).toHaveBeenCalledWith(['user_id2', 'user_id3', 'current_user_id']);
         });
 
         test('load statuses with empty channel and user in sidebar', () => {
             const state = cloneDeep(initialState);
             state.entities.channels.currentChannelId = 'channel_id2';
             const testStore = mockStore(state);
-            testStore.dispatch(Actions.loadStatusesForChannelAndSidebar());
-            expect(getStatusesByIds).toHaveBeenCalledWith((expect as GreatExpectations).arrayContainingExactly(['current_user_id', 'user_id3']));
+            testStore.dispatch(Actions.addVisibleUsersInCurrentChannelAndSelfToStatusPoll());
+            expect(addUserIdsForStatusFetchingPoll).toHaveBeenCalledWith(['user_id3', 'current_user_id']);
         });
 
-        test('load statuses with empty channel and no users in sidebar', () => {
+        test('load statuses with empty channel and no users in sidebar, should only fetch current user\'s status', () => {
             const state = cloneDeep(initialState);
             state.entities.channels.currentChannelId = 'channel_id2';
             state.entities.preferences.myPreferences = {};
             const testStore = mockStore(state);
-            testStore.dispatch(Actions.loadStatusesForChannelAndSidebar());
-            expect(getStatusesByIds).toHaveBeenCalledWith((expect as GreatExpectations).arrayContainingExactly(['current_user_id']));
+            testStore.dispatch(Actions.addVisibleUsersInCurrentChannelAndSelfToStatusPoll());
+            expect(addUserIdsForStatusFetchingPoll).toHaveBeenCalledWith(['current_user_id']);
         });
     });
 
@@ -122,33 +129,6 @@ describe('actions/status_actions', () => {
             const state = cloneDeep(initialState);
             const testStore = mockStore(state);
             testStore.dispatch(Actions.loadStatusesForProfilesList(null));
-            expect(getStatusesByIds).not.toHaveBeenCalled();
-        });
-    });
-
-    describe('loadStatusesForProfilesMap', () => {
-        test('load statuses for users map', () => {
-            const state = cloneDeep(initialState);
-            const testStore = mockStore(state);
-            testStore.dispatch(Actions.loadStatusesForProfilesMap({
-                user_id2: {id: 'user_id2', username: 'user2'} as UserProfile,
-                user_id3: {id: 'user_id3', username: 'user3'} as UserProfile,
-                user_id4: {id: 'user_id4', username: 'user4'} as UserProfile,
-            }));
-            expect(getStatusesByIds).toHaveBeenCalledWith((expect as GreatExpectations).arrayContainingExactly(['user_id2', 'user_id3', 'user_id4']));
-        });
-
-        test('load statuses for empty users map', () => {
-            const state = cloneDeep(initialState);
-            const testStore = mockStore(state);
-            testStore.dispatch(Actions.loadStatusesForProfilesMap({}));
-            expect(getStatusesByIds).not.toHaveBeenCalled();
-        });
-
-        test('load statuses for null users map', () => {
-            const state = cloneDeep(initialState);
-            const testStore = mockStore(state);
-            testStore.dispatch(Actions.loadStatusesForProfilesMap(null));
             expect(getStatusesByIds).not.toHaveBeenCalled();
         });
     });

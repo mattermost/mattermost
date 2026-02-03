@@ -4,6 +4,7 @@
 package filestore
 
 import (
+	"archive/zip"
 	"bytes"
 	"io"
 	"os"
@@ -256,4 +257,91 @@ func (b *LocalFileBackend) RemoveDirectory(path string) error {
 		return errors.Wrapf(err, "unable to remove the directory %s", path)
 	}
 	return nil
+}
+
+// ZipReader will create a zip of path. If path is a single file, it will zip the single file.
+// If deflate is true, the contents will be compressed. It will stream the zip to io.ReadCloser.
+func (b *LocalFileBackend) ZipReader(path string, deflate bool) (io.ReadCloser, error) {
+	deflateMethod := zip.Store
+	if deflate {
+		deflateMethod = zip.Deflate
+	}
+
+	fullPath := filepath.Join(b.directory, path)
+	baseInfo, err := os.Stat(fullPath)
+	if err != nil {
+		return nil, errors.Wrapf(err, "unable to stat path %s", path)
+	}
+
+	pr, pw := io.Pipe()
+
+	go func() {
+		defer pw.Close()
+
+		zipWriter := zip.NewWriter(pw)
+		defer zipWriter.Close()
+
+		err = filepath.Walk(fullPath, func(filePath string, info os.FileInfo, err error) error {
+			if err != nil {
+				return err
+			}
+
+			// Handle single file case
+			baseDir := fullPath
+			if !baseInfo.IsDir() {
+				baseDir = filepath.Dir(baseDir)
+			}
+
+			// Get the relative path from the base directory
+			relPath, err := filepath.Rel(baseDir, filePath)
+			if err != nil {
+				return errors.Wrapf(err, "unable to get relative path for %s", filePath)
+			}
+
+			// Skip the root directory itself
+			if relPath == "." {
+				return nil
+			}
+
+			// Create zip header
+			header, err := zip.FileInfoHeader(info)
+			if err != nil {
+				return errors.Wrapf(err, "unable to create zip header for %s", relPath)
+			}
+
+			// Ensure consistent forward slashes in paths
+			header.Name = filepath.ToSlash(relPath)
+
+			// Skip directories - we don't need to create entries for them
+			if info.IsDir() {
+				return nil
+			}
+
+			// Create file entry
+			header.Method = deflateMethod
+			header.SetMode(0644) // rw-r--r-- permissions
+			writer, err := zipWriter.CreateHeader(header)
+			if err != nil {
+				return errors.Wrapf(err, "unable to create zip entry for %s", relPath)
+			}
+
+			file, err := os.Open(filePath)
+			if err != nil {
+				return errors.Wrapf(err, "unable to open file %s", filePath)
+			}
+			defer file.Close()
+
+			if _, err := io.Copy(writer, file); err != nil {
+				return errors.Wrapf(err, "unable to copy file content for %s", relPath)
+			}
+
+			return nil
+		})
+
+		if err != nil {
+			pw.CloseWithError(errors.Wrap(err, "error walking directory"))
+		}
+	}()
+
+	return pr, nil
 }

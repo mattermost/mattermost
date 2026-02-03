@@ -1,117 +1,179 @@
-// Jest Snapshot v1, https://goo.gl/fbAQLP
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
 
 exports[`components/search_results/MessagesOrFilesSelector should match snapshot, on files selected 1`] = `
-<div
-  className="MessagesOrFilesSelector"
->
+<div>
   <div
-    className="buttons-container"
+    class="MessagesOrFilesSelector"
   >
-    <button
-      className="tab messages-tab"
-      onClick={[Function]}
-      onKeyDown={[Function]}
+    <div
+      aria-label="Messages or Files"
+      class="buttons-container"
+      role="tablist"
     >
-      <MemoizedFormattedMessage
-        defaultMessage="Messages"
-        id="search_bar.messages_tab"
-      />
-      <span
-        className="counter"
+      <button
+        aria-controls="messagesPanel"
+        aria-selected="false"
+        class="tab messages-tab"
+        id="messagesTab"
+        role="tab"
+        tabindex="-1"
       >
-        5
-      </span>
-    </button>
-    <button
-      className="active tab files-tab"
-      onClick={[Function]}
-      onKeyDown={[Function]}
+        Messages
+        <span
+          class="counter"
+        >
+          5
+        </span>
+      </button>
+      <button
+        aria-controls="filesPanel"
+        aria-selected="true"
+        class="active tab files-tab"
+        id="filesTab"
+        role="tab"
+        tabindex="0"
+      >
+        Files
+        <span
+          class="counter"
+        >
+          10
+        </span>
+      </button>
+    </div>
+    <div
+      class="FilesFilterMenu"
     >
-      <MemoizedFormattedMessage
-        defaultMessage="Files"
-        id="search_bar.files_tab"
-      />
-      <span
-        className="counter"
+      <div
+        class="MenuWrapper "
       >
-        10
-      </span>
-    </button>
+        <button
+          class="IconContainer-hXitkr fFJEfD action-icon dots-icon"
+          id="filesFilterButton"
+          type="button"
+        >
+          <i
+            class="icon-dot"
+          />
+          <svg
+            fill="currentColor"
+            height="18"
+            version="1.1"
+            viewBox="0 0 24 24"
+            width="18"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <path
+              d="M6,13H18V11H6M3,6V8H21V6M10,18H14V16H10V18Z"
+            />
+          </svg>
+        </button>
+      </div>
+    </div>
   </div>
-  <FilesFilterMenu
-    onFilter={[MockFunction]}
-    selectedFilter="code"
-  />
 </div>
 `;
 
 exports[`components/search_results/MessagesOrFilesSelector should match snapshot, on messages selected 1`] = `
-<div
-  className="MessagesOrFilesSelector"
->
+<div>
   <div
-    className="buttons-container"
+    class="MessagesOrFilesSelector"
   >
-    <button
-      className="active tab messages-tab"
-      onClick={[Function]}
-      onKeyDown={[Function]}
+    <div
+      aria-label="Messages or Files"
+      class="buttons-container"
+      role="tablist"
     >
-      <MemoizedFormattedMessage
-        defaultMessage="Messages"
-        id="search_bar.messages_tab"
-      />
-      <span
-        className="counter"
+      <button
+        aria-controls="messagesPanel"
+        aria-selected="true"
+        class="active tab messages-tab"
+        id="messagesTab"
+        role="tab"
+        tabindex="0"
       >
-        5
-      </span>
-    </button>
-    <button
-      className="tab files-tab"
-      onClick={[Function]}
-      onKeyDown={[Function]}
-    >
-      <MemoizedFormattedMessage
-        defaultMessage="Files"
-        id="search_bar.files_tab"
-      />
-      <span
-        className="counter"
+        Messages
+        <span
+          class="counter"
+        >
+          5
+        </span>
+      </button>
+      <button
+        aria-controls="filesPanel"
+        aria-selected="false"
+        class="tab files-tab"
+        id="filesTab"
+        role="tab"
+        tabindex="-1"
       >
-        10
-      </span>
-    </button>
+        Files
+        <span
+          class="counter"
+        >
+          10
+        </span>
+      </button>
+    </div>
   </div>
 </div>
 `;
 
 exports[`components/search_results/MessagesOrFilesSelector should match snapshot, without files tab 1`] = `
-<div
-  className="MessagesOrFilesSelector"
->
+<div>
   <div
-    className="buttons-container"
+    class="MessagesOrFilesSelector"
   >
-    <button
-      className="tab messages-tab"
-      onClick={[Function]}
-      onKeyDown={[Function]}
+    <div
+      aria-label="Messages or Files"
+      class="buttons-container"
+      role="tablist"
     >
-      <MemoizedFormattedMessage
-        defaultMessage="Messages"
-        id="search_bar.messages_tab"
-      />
-      <span
-        className="counter"
+      <button
+        aria-controls="messagesPanel"
+        aria-selected="false"
+        class="tab messages-tab"
+        id="messagesTab"
+        role="tab"
+        tabindex="-1"
       >
-        5
-      </span>
-    </button>
+        Messages
+        <span
+          class="counter"
+        >
+          5
+        </span>
+      </button>
+    </div>
+    <div
+      class="FilesFilterMenu"
+    >
+      <div
+        class="MenuWrapper "
+      >
+        <button
+          class="IconContainer-hXitkr fFJEfD action-icon dots-icon"
+          id="filesFilterButton"
+          type="button"
+        >
+          <i
+            class="icon-dot"
+          />
+          <svg
+            fill="currentColor"
+            height="18"
+            version="1.1"
+            viewBox="0 0 24 24"
+            width="18"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <path
+              d="M6,13H18V11H6M3,6V8H21V6M10,18H14V16H10V18Z"
+            />
+          </svg>
+        </button>
+      </div>
+    </div>
   </div>
-  <FilesFilterMenu
-    onFilter={[MockFunction]}
-    selectedFilter="code"
-  />
 </div>
 `;

@@ -13,7 +13,6 @@
 import * as TIMEOUTS from '../../../fixtures/timeouts';
 import {getAdminAccount} from '../../../support/env';
 import {getRandomId} from '../../../utils';
-
 import {inviteUserByEmail, verifyEmailInviteAndVisitLink, signupAndVerifyTutorial} from '../team_settings/helpers';
 
 describe('Onboarding', () => {
@@ -64,7 +63,7 @@ describe('Onboarding', () => {
         cy.reload();
 
         // # Open the 'Invite People' modal
-        cy.uiOpenTeamMenu('Invite People');
+        cy.uiOpenTeamMenu('Invite people');
 
         // # Wait half a second to ensure that the modal has been fully loaded
         cy.wait(TIMEOUTS.HALF_SEC);
@@ -92,7 +91,7 @@ describe('Onboarding', () => {
         cy.get('#name').should('be.visible').type(usernameTwo);
         cy.get('#password').should('be.visible').type(password);
 
-        // # Attempt to create an account by clicking on the 'Create Account' button
+        // # Attempt to create an account by clicking on the 'Create account' button
         cy.get('#createAccountButton').click();
 
         // * Ensure that since the invite was invalidated, the correct error message should be shown
@@ -100,7 +99,7 @@ describe('Onboarding', () => {
     });
 
     function inviteNewUser(email) {
-        cy.findByRole('textbox', {name: 'Add or Invite People'}).
+        cy.findByRole('textbox', {name: 'Invite People'}).
             typeWithForce(email).wait(TIMEOUTS.HALF_SEC).
             typeWithForce('{enter}');
         cy.findByTestId('inviteButton').click();

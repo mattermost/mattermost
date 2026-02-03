@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import {shallow} from 'enzyme';
-import {range} from 'lodash';
+import range from 'lodash/range';
 import React from 'react';
 
 import {TestHelper} from 'utils/test_helper';

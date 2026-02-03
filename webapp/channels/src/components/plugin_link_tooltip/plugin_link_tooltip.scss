@@ -1,0 +1,20 @@
+@use 'utils/variables';
+
+.plugin-link-tooltip-floating-overlay {
+    z-index: variables.$z-index-popover;
+}
+
+// This is as per UX guidelines what the container of the
+// plugin link tooltip should be, not included currently
+// as it will be a breaking change for the plugin's implemented
+//link tooltips with styling
+.plugin-link-tooltip-container {
+    border: 1px solid rgba(var(--center-channel-color-rgb), 0.16);
+    border-radius: 4px;
+    background: var(--center-channel-bg);
+    box-shadow: var(--elevation-4);
+
+    .plugin-link-tooltip-arrow {
+        fill: var(--center-channel-bg);
+    }
+}

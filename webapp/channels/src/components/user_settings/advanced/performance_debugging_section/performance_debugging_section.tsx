@@ -64,9 +64,6 @@ const PerformanceDebuggingSectionCollapsed = React.forwardRef<SettingItemMinComp
     if (props.disableClientPlugins) {
         settingsEnabled += 1;
     }
-    if (props.disableTelemetry) {
-        settingsEnabled += 1;
-    }
     if (props.disableTypingMessages) {
         settingsEnabled += 1;
     }
@@ -107,48 +104,42 @@ const PerformanceDebuggingSectionCollapsed = React.forwardRef<SettingItemMinComp
 
 function PerformanceDebuggingSectionExpanded(props: Props) {
     const [disableClientPlugins, setDisableClientPlugins] = useState(props.disableClientPlugins);
-    const [disableTelemetry, setDisableTelemetry] = useState(props.disableTelemetry);
     const [disableTypingMessages, setDisableTypingMessages] = useState(props.disableTypingMessages);
 
     const handleSubmit = useCallback(() => {
+        if (!props.userId) {
+            return;
+        }
+
         const preferences = [];
 
         if (disableClientPlugins !== props.disableClientPlugins) {
             preferences.push({
-                user_id: props.currentUserId,
+                user_id: props.userId,
                 category: Preferences.CATEGORY_PERFORMANCE_DEBUGGING,
                 name: Preferences.NAME_DISABLE_CLIENT_PLUGINS,
                 value: disableClientPlugins.toString(),
             });
         }
-        if (disableTelemetry !== props.disableTelemetry) {
-            preferences.push({
-                user_id: props.currentUserId,
-                category: Preferences.CATEGORY_PERFORMANCE_DEBUGGING,
-                name: Preferences.NAME_DISABLE_TELEMETRY,
-                value: disableTelemetry.toString(),
-            });
-        }
         if (disableTypingMessages !== props.disableTypingMessages) {
             preferences.push({
-                user_id: props.currentUserId,
+                user_id: props.userId,
                 category: Preferences.CATEGORY_PERFORMANCE_DEBUGGING,
                 name: Preferences.NAME_DISABLE_TYPING_MESSAGES,
                 value: disableTypingMessages.toString(),
             });
         }
 
-        if (preferences.length !== 0) {
-            props.savePreferences(props.currentUserId, preferences);
+        if (preferences.length !== 0 && props.userId) {
+            props.savePreferences(props.userId, preferences);
         }
 
         props.onUpdateSection('');
     }, [
-        props.currentUserId,
+        props.userId,
         props.onUpdateSection,
         props.savePreferences,
         disableClientPlugins,
-        disableTelemetry,
         disableTypingMessages,
     ]);
 
@@ -174,21 +165,6 @@ function PerformanceDebuggingSectionExpanded(props: Props) {
                             <FormattedMessage
                                 id='user.settings.advance.performance.disableClientPlugins'
                                 defaultMessage='Disable Client-side Plugins'
-                            />
-                        </label>
-                    </div>
-                    <div className='checkbox'>
-                        <label>
-                            <input
-                                type='checkbox'
-                                checked={disableTelemetry}
-                                onChange={(e) => {
-                                    setDisableTelemetry(e.target.checked);
-                                }}
-                            />
-                            <FormattedMessage
-                                id='user.settings.advance.performance.disableTelemetry'
-                                defaultMessage='Disable telemetry events sent from the client'
                             />
                         </label>
                     </div>

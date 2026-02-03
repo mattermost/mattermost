@@ -2,9 +2,9 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
+import {defineMessage} from 'react-intl';
 
 import {LicenseSkus} from 'utils/constants';
-import {t} from 'utils/i18n';
 
 import GuestAccessSVG from './images/guest_access_svg';
 
@@ -15,17 +15,18 @@ const GuestAccessFeatureDiscovery: React.FC = () => {
         <FeatureDiscovery
             featureName='guest_access'
             minimumSKURequiredForFeature={LicenseSkus.Professional}
-            titleID='admin.guest_access_feature_discovery.title'
-            titleDefault='Enable guest accounts with Mattermost Professional'
-            copyID='admin.guest_access_feature_discovery.copy'
-            copyDefault={'Collaborate with users outside of your organization while tightly controlling their access channels and team members.'}
+            title={defineMessage({
+                id: 'admin.guest_access_feature_discovery.title',
+                defaultMessage: 'Enable guest accounts with Mattermost Professional',
+            })}
+            copy={defineMessage({
+                id: 'admin.guest_access_feature_discovery.copy',
+                defaultMessage: 'Collaborate with users outside of your organization while tightly controlling their access channels and team members.',
+            })}
             learnMoreURL='https://docs.mattermost.com/deployment/guest-accounts.html'
             featureDiscoveryImage={<GuestAccessSVG/>}
         />
     );
 };
-
-t('admin.guest_access_feature_discovery.title');
-t('admin.guest_access_feature_discovery.copy');
 
 export default GuestAccessFeatureDiscovery;

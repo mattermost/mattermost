@@ -1,4 +1,4 @@
-@charset 'UTF-8';
+@use "utils/variables";
 
 .style--none {
     padding: 0;
@@ -21,14 +21,18 @@
     }
 }
 
+.btn-round {
+    border-radius: 50%;
+}
+
 button {
     .unread-badge {
         display: inline-block;
         width: 8px;
         height: 8px;
+        border-radius: var(--radius-full);
         margin: 0 0 0 40px;
         background: #f74343;
-        border-radius: 50%;
     }
 }
 
@@ -40,25 +44,29 @@ button {
     justify-content: center;
     padding: 0 20px;
     border: none;
-    border-radius: $border-rad * 2;
+    border-radius: var(--radius-s);
     font-size: 14px;
     font-weight: 600;
     gap: 8px;
     outline: none !important;
     transition: all 0.15s ease;
 
+    &.btn-round {
+        border-radius: 50%;
+    }
+
     &.btn-icon {
         width: 40px;
+        min-width: 40px;
         padding: 0;
         background-color: transparent;
-        color: rgba(var(--center-channel-color-rgb), 0.56);
+        color: rgba(var(--center-channel-color-rgb), var(--icon-opacity));
 
         &:hover {
             background-color: rgba(var(--center-channel-color-rgb), 0.08);
-            color: rgba(var(--center-channel-color-rgb), 0.72);
+            color: rgba(var(--center-channel-color-rgb), var(--icon-opacity-hover));
         }
 
-        &:focus,
         &:active {
             background-color: rgba(var(--button-bg-rgb), 0.08);
             color: rgba(var(--button-bg-rgb), 1);
@@ -70,8 +78,11 @@ button {
 
         &.btn-xs {
             width: 24px;
+            min-width: 24px;
             height: 24px;
             padding: 0;
+            font-size: 12px;
+            gap: 4px;
 
             &.btn-compact {
                 width: 20px;
@@ -85,8 +96,11 @@ button {
 
         &.btn-sm {
             width: 32px;
+            min-width: 32px;
             height: 32px;
             padding: 0;
+            font-size: 14px;
+            gap: 4px;
 
             &.btn-compact {
                 width: 28px;
@@ -123,7 +137,7 @@ button {
     }
 
     & + .btn {
-        margin-left: 8px !important;
+        margin-left: 8px;
     }
 
     &.btn-full {
@@ -143,7 +157,7 @@ button {
     &.btn-xs {
         height: 24px;
         padding: 0 10px;
-        font-size: 11px;
+        font-size: 12px;
         gap: 6px;
 
         i {
@@ -180,6 +194,7 @@ button {
     }
 
     &.btn-link {
+        height: initial;
         padding: 0;
         border: none;
         background: transparent;
@@ -215,6 +230,19 @@ button {
             color: rgba(var(--center-channel-color-rgb), 0.32) !important;
             opacity: 1;
         }
+
+        &.btn-success {
+            background-color: var(--online-indicator);
+            color: var(--button-color-rgb);
+
+            &:hover {
+                background-color: var(--online-indicator);
+            }
+
+            &:active {
+                background-color: var(--online-indicator);
+            }
+        }
     }
 
     &.btn-secondary {
@@ -239,6 +267,14 @@ button {
                 background-color: rgba(var(--error-text-color-rgb), 0.16);
                 color: var(--error-text);
             }
+        }
+
+        &:disabled,
+        &:disabled:hover,
+        &:disabled:active {
+            border-color: rgba(var(--center-channel-color-rgb), 0.32);
+            background: transparent;
+            color: rgba(var(--center-channel-color-rgb), 0.32) !important;
         }
 
         &:hover {
@@ -287,6 +323,20 @@ button {
             }
         }
     }
+    &.btn-tertiary.btn-inverted {
+        background-color: rgba(var(--sidebar-text-rgb), 0.12);
+        color: rgba(var(--sidebar-text-rgb), 1);
+
+        &:hover {
+            background-color: rgb(var(--sidebar-text-rgb), 0.16);
+        }
+
+        &:active,
+        &[aria-expanded="true"][aria-haspopup="true"] {
+            background-color: rgb(var(--sidebar-text-rgb), 0.24);
+            outline: none;
+        }
+    }
 
     &.btn-quaternary {
         background: transparent;
@@ -299,26 +349,39 @@ button {
         &:active {
             background-color: rgb(var(--button-bg-rgb), 0.12);
         }
+
+        &.btn-inverted {
+            color: rgb(var(--button-color-rgb));
+
+            &:hover {
+                background: rgba(var(--button-color-rgb), 0.12);
+            }
+
+            &:active,
+            &[aria-expanded="true"][aria-haspopup="true"] {
+                background-color: rgb(var(--button-color-rgb), 0.16);
+            }
+        }
     }
 
     &.btn-danger {
         background: var(--error-text);
-        color: $white;
+        color: variables.$white;
 
         .app__body & {
-            color: $white;
+            color: variables.$white;
 
             &:hover,
             &:focus,
             &:active {
-                color: $white;
+                color: variables.$white;
             }
         }
 
         &:hover,
         &:focus,
         &:active {
-            color: $white;
+            color: variables.$white;
         }
     }
 
@@ -330,8 +393,8 @@ button {
 
     &.btn-inactive {
         border-color: transparent;
-        background: $light-gray;
-        color: $white;
+        background: variables.$light-gray;
+        color: variables.$white;
     }
 
     .fa {
@@ -345,8 +408,4 @@ button {
             margin-left: 6px;
         }
     }
-}
-
-%btn-transition {
-    transition: all 0.15s ease;
 }

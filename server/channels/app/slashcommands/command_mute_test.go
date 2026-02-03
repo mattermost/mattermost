@@ -14,8 +14,7 @@ import (
 )
 
 func TestMuteCommandNoChannel(t *testing.T) {
-	th := setup(t).initBasic()
-	defer th.tearDown()
+	th := setup(t).initBasic(t)
 
 	if testing.Short() {
 		t.SkipNow()
@@ -41,8 +40,7 @@ func TestMuteCommandNoChannel(t *testing.T) {
 }
 
 func TestMuteCommandNoArgs(t *testing.T) {
-	th := setup(t).initBasic()
-	defer th.tearDown()
+	th := setup(t).initBasic(t)
 
 	channel1 := th.BasicChannel
 	channel1M, _ := th.App.GetChannelMember(th.Context, channel1.Id, th.BasicUser.Id)
@@ -71,8 +69,7 @@ func TestMuteCommandNoArgs(t *testing.T) {
 }
 
 func TestMuteCommandSpecificChannel(t *testing.T) {
-	th := setup(t).initBasic()
-	defer th.tearDown()
+	th := setup(t).initBasic(t)
 
 	if testing.Short() {
 		t.SkipNow()
@@ -116,8 +113,7 @@ func TestMuteCommandSpecificChannel(t *testing.T) {
 }
 
 func TestMuteCommandNotMember(t *testing.T) {
-	th := setup(t).initBasic()
-	defer th.tearDown()
+	th := setup(t).initBasic(t)
 
 	if testing.Short() {
 		t.SkipNow()
@@ -134,18 +130,18 @@ func TestMuteCommandNotMember(t *testing.T) {
 
 	cmd := &MuteProvider{}
 
-	// First mute the channel
+	// Muting a channel that the user is not a member of should return
+	// the same error as a non-existent channel to prevent channel enumeration
 	resp := cmd.DoCommand(th.App, th.Context, &model.CommandArgs{
 		T:         i18n.IdentityTfunc(),
 		ChannelId: channel1.Id,
 		UserId:    th.BasicUser.Id,
 	}, channel2.Name)
-	assert.Equal(t, "api.command_mute.not_member.error", resp.Text)
+	assert.Equal(t, "api.command_mute.error", resp.Text)
 }
 
 func TestMuteCommandNotChannel(t *testing.T) {
-	th := setup(t).initBasic()
-	defer th.tearDown()
+	th := setup(t).initBasic(t)
 
 	if testing.Short() {
 		t.SkipNow()
@@ -165,8 +161,7 @@ func TestMuteCommandNotChannel(t *testing.T) {
 }
 
 func TestMuteCommandDMChannel(t *testing.T) {
-	th := setup(t).initBasic()
-	defer th.tearDown()
+	th := setup(t).initBasic(t)
 
 	if testing.Short() {
 		t.SkipNow()

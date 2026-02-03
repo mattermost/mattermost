@@ -59,8 +59,8 @@ describe('Verify Guest User Identification in different screens', () => {
 
     it('MM-T1370 Verify Guest Badge in Channel Members dropdown and dialog', () => {
         // # Open Channel Members RHS
-        cy.get('#channelHeaderDropdownIcon').click();
-        cy.get('#channelManageMembers').click().wait(TIMEOUTS.HALF_SEC);
+        cy.get('#channelHeaderTitle').click();
+        cy.get('#channelMembers').click().wait(TIMEOUTS.HALF_SEC);
         cy.uiGetRHS().findByTestId(`memberline-${guestUser.id}`).within(($el) => {
             cy.wrap($el).get('.Tag').should('be.visible').should('have.text', 'GUEST');
         });
@@ -68,7 +68,7 @@ describe('Verify Guest User Identification in different screens', () => {
 
     it('Verify Guest Badge in Team Members dialog', () => {
         // # Open team menu and click 'View Members'
-        cy.uiOpenTeamMenu('View Members');
+        cy.uiOpenTeamMenu('View members');
 
         cy.get('#teamMembersModal').should('be.visible').within(($el) => {
             cy.wrap($el).findAllByTestId('userListItemDetails').each(($elChild) => {
@@ -106,9 +106,10 @@ describe('Verify Guest User Identification in different screens', () => {
         });
 
         // * Verify Guest Badge in Guest User's Profile Popover
-        cy.get('#user-profile-popover').should('be.visible').within(($el) => {
+        cy.get('div.user-profile-popover').should('be.visible').within(($el) => {
             cy.wrap($el).find('.GuestTag').should('be.visible').and('have.text', 'GUEST');
         });
+        cy.get('button.closeButtonRelativePosition').click();
 
         // # Close the profile popover
         cy.get('#channel-header').click();
@@ -132,7 +133,7 @@ describe('Verify Guest User Identification in different screens', () => {
         cy.uiOpenFindChannels();
 
         // # Type the guest user name on Channel switcher input
-        cy.findByRole('textbox', {name: 'quick switch input'}).type(guestUser.username).wait(TIMEOUTS.HALF_SEC);
+        cy.findByRole('combobox', {name: 'quick switch input'}).type(guestUser.username).wait(TIMEOUTS.HALF_SEC);
 
         // * Verify if Guest badge is displayed for the guest user in the Switch Channel Dialog
         cy.get('#suggestionList').should('be.visible');
@@ -141,7 +142,9 @@ describe('Verify Guest User Identification in different screens', () => {
         });
 
         // # Close Dialog
-        cy.get('#quickSwitchModalLabel > .close').click();
+        cy.get('#quickSwitchModal').within(() => {
+            cy.get('button.close[aria-label="Close"]').click();
+        });
     });
 
     it('MM-T1377 Verify Guest Badge in DM Search dialog', () => {
@@ -163,7 +166,7 @@ describe('Verify Guest User Identification in different screens', () => {
         // # Open a DM with Guest User
         cy.uiAddDirectMessage().click();
         cy.findByRole('dialog', {name: 'Direct Messages'}).should('be.visible').wait(TIMEOUTS.ONE_SEC);
-        cy.findByRole('textbox', {name: 'Search for people'}).
+        cy.findByRole('combobox', {name: 'Search for people'}).
             should('have.focused').
             typeWithForce(guestUser.username).
             wait(TIMEOUTS.ONE_SEC).
@@ -173,18 +176,18 @@ describe('Verify Guest User Identification in different screens', () => {
         // * Verify Guest Badge in DM header
         cy.get('#channelHeaderTitle').should('be.visible').find('.Tag').should('be.visible').and('have.text', 'GUEST');
         cy.get('#channelHeaderDescription').within(($el) => {
-            cy.wrap($el).find('.has-guest-header').should('be.visible').and('have.text', 'This channel has guests');
+            cy.wrap($el).find('.has-guest-header').should('be.visible').and('have.text', 'Channel has guests');
         });
 
         // # Open a GM with Guest User and Sysadmin
         cy.uiAddDirectMessage().click();
         cy.findByRole('dialog', {name: 'Direct Messages'}).should('be.visible').wait(TIMEOUTS.ONE_SEC);
-        cy.findByRole('textbox', {name: 'Search for people'}).
+        cy.findByRole('combobox', {name: 'Search for people'}).
             should('have.focused').
             typeWithForce(guestUser.username).
             wait(TIMEOUTS.ONE_SEC).
             typeWithForce('{enter}');
-        cy.findByRole('textbox', {name: 'Search for people'}).
+        cy.findByRole('combobox', {name: 'Search for people'}).
             should('have.focused').
             typeWithForce(admin.username).
             wait(TIMEOUTS.ONE_SEC).
@@ -211,15 +214,15 @@ describe('Verify Guest User Identification in different screens', () => {
 
     it('Verify Guest Badge not displayed in Search Autocomplete', () => {
         // # Search for the Guest User
-        cy.get('#searchBox').type('from:');
+        cy.uiGetSearchContainer().click();
+        cy.uiGetSearchBox().type('from:');
 
         // * Verify Guest Badge is not displayed at Search auto-complete
-        cy.get('#search-autocomplete__popover').should('be.visible');
         cy.contains('.suggestion-list__item', guestUser.username).scrollIntoView().should('be.visible').within(($el) => {
             cy.wrap($el).find('.Tag').should('not.exist');
         });
 
         // # Close and Clear the Search Autocomplete
-        cy.get('#searchFormContainer').find('.input-clear-x').click({force: true});
+        cy.findByTestId('searchBoxClose').click({force: true});
     });
 });

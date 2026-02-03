@@ -2,38 +2,32 @@
 // See LICENSE.txt for license information.
 
 import React, {memo, forwardRef, useMemo} from 'react';
+import {FormattedMessage} from 'react-intl';
 import {useSelector} from 'react-redux';
 
-import {ArchiveOutlineIcon} from '@mattermost/compass-icons/components';
-import type {Post} from '@mattermost/types/posts';
 import type {UserProfile} from '@mattermost/types/users';
 
-import {Posts} from 'mattermost-redux/constants';
 import {makeGetChannel} from 'mattermost-redux/selectors/entities/channels';
 import {getPost, getLimitedViews} from 'mattermost-redux/selectors/entities/posts';
 
 import AdvancedCreateComment from 'components/advanced_create_comment';
-import FormattedMarkdownMessage from 'components/formatted_markdown_message';
 import BasicSeparator from 'components/widgets/separator/basic-separator';
 
+import {getArchiveIconComponent} from 'utils/channel_utils';
 import Constants from 'utils/constants';
 
 import type {GlobalState} from 'types/store';
 
 type Props = {
-    focusOnMount: boolean;
     teammate?: UserProfile;
     threadId: string;
-    latestPostId: Post['id'];
     isThreadView?: boolean;
     placeholder?: string;
 };
 
 const CreateComment = forwardRef<HTMLDivElement, Props>(({
-    focusOnMount,
     teammate,
     threadId,
-    latestPostId,
     isThreadView,
     placeholder,
 }: Props, ref) => {
@@ -44,12 +38,11 @@ const CreateComment = forwardRef<HTMLDivElement, Props>(({
         if (threadIsLimited) {
             return null;
         }
-        return getChannel(state, {id: rootPost.channel_id});
+        return getChannel(state, rootPost.channel_id);
     });
     if (!channel || threadIsLimited) {
         return null;
     }
-    const rootDeleted = (rootPost as Post).state === Posts.POST_DELETED;
     const isFakeDeletedPost = rootPost.type === Constants.PostTypes.FAKE_PARENT_DELETED;
 
     const channelType = channel.type;
@@ -60,9 +53,12 @@ const CreateComment = forwardRef<HTMLDivElement, Props>(({
             <div
                 className='post-create-message'
             >
-                <FormattedMarkdownMessage
-                    id='create_post.deactivated'
-                    defaultMessage='You are viewing an archived channel with a **deactivated user**. New messages cannot be posted.'
+                <FormattedMessage
+                    id='createComment.threadFromDeactivatedUserMessage'
+                    defaultMessage='You are viewing an archived channel with a <strong>deactivated user</strong>. New messages cannot be posted.'
+                    values={{
+                        strong: (chunks) => <strong>{chunks}</strong>,
+                    }}
                 />
             </div>
         );
@@ -73,17 +69,21 @@ const CreateComment = forwardRef<HTMLDivElement, Props>(({
     }
 
     if (channelIsArchived) {
+        const ArchiveIcon = getArchiveIconComponent(channelType);
         return (
             <div className='channel-archived-warning__container'>
                 <BasicSeparator/>
                 <div className='channel-archived-warning__content'>
-                    <ArchiveOutlineIcon
+                    <ArchiveIcon
                         size={20}
-                        color={'rgba(var(--center-channel-color-rgb), 0.56)'}
+                        color={'rgba(var(--center-channel-color-rgb), 0.75)'}
                     />
-                    <FormattedMarkdownMessage
-                        id='threadFromArchivedChannelMessage'
-                        defaultMessage='You are viewing a thread from an **archived channel**. New messages cannot be posted.'
+                    <FormattedMessage
+                        id='createComment.threadFromArchivedChannelMessage'
+                        defaultMessage='You are viewing a thread from an <strong>archived channel</strong>. New messages cannot be posted.'
+                        values={{
+                            strong: (chunks) => <strong>{chunks}</strong>,
+                        }}
                     />
                 </div>
             </div>
@@ -98,10 +98,7 @@ const CreateComment = forwardRef<HTMLDivElement, Props>(({
         >
             <AdvancedCreateComment
                 placeholder={placeholder}
-                focusOnMount={focusOnMount}
                 channelId={channel.id}
-                latestPostId={latestPostId}
-                rootDeleted={rootDeleted}
                 rootId={threadId}
                 isThreadView={isThreadView}
             />

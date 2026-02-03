@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-/* eslint-disable no-await-in-loop, no-console */
+/* eslint-disable no-console */
 
 /*
  * This command, which is normally used in CI, runs Cypress test in full or partial
@@ -24,8 +24,6 @@
  *      - will run all the specs available from the Automation dashboard
  */
 
-const axios = require('axios');
-const axiosRetry = require('axios-retry');
 const chalk = require('chalk');
 const cypress = require('cypress');
 
@@ -39,10 +37,6 @@ const {writeJsonToFile} = require('./utils/report');
 const {MOCHAWESOME_REPORT_DIR, RESULTS_DIR} = require('./utils/constants');
 
 require('dotenv').config();
-axiosRetry(axios, {
-    retries: 5,
-    retryDelay: axiosRetry.exponentialDelay,
-});
 
 const {
     BRANCH,
@@ -63,6 +57,7 @@ async function runCypressTest(specExecution) {
         spec: specExecution.file,
         config: {
             screenshotsFolder: `${MOCHAWESOME_REPORT_DIR}/screenshots`,
+            videosFolder: `${MOCHAWESOME_REPORT_DIR}/videos`,
             trashAssetsBeforeRuns: false,
         },
         reporter: 'cypress-multi-reporters',
@@ -126,7 +121,7 @@ async function saveResult(specExecution, result, testIndex) {
     const testCases = [];
     for (let i = 0; i < tests.length; i++) {
         const test = tests[i];
-        const attempts = test.attempts[0];
+        const attempts = test.attempts.pop();
 
         const testCase = {
             title: test.title,
@@ -150,7 +145,7 @@ async function saveResult(specExecution, result, testIndex) {
         }
 
         if (attempts.screenshots && attempts.screenshots.length > 0) {
-            const path = test.attempts[0].screenshots[0].path;
+            const path = attempts.screenshots[0].path;
             const screenshotUrl = await uploadScreenshot(path, REPO, BRANCH, BUILD_ID);
             if (typeof screenshotUrl === 'string' && !screenshotUrl.error) {
                 testCase.screenshot = {url: screenshotUrl};

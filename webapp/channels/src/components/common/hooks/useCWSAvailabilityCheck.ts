@@ -1,24 +1,40 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {useEffect, useState} from 'react';
-import {useSelector} from 'react-redux';
+import {useEffect} from 'react';
+import {useDispatch, useSelector} from 'react-redux';
 
-import {Client4} from 'mattermost-redux/client';
-import {getConfig} from 'mattermost-redux/selectors/entities/general';
+import {checkCWSAvailability} from 'mattermost-redux/actions/general';
+import {getCWSAvailability} from 'mattermost-redux/selectors/entities/general';
 
-export default function useCWSAvailabilityCheck() {
-    const [canReachCWS, setCanReachCWS] = useState<boolean | undefined>(undefined);
-    const config = useSelector(getConfig);
-    const isEnterpriseReady = config.BuildEnterpriseReady === 'true';
+export enum CSWAvailabilityCheckTypes {
+    Available = 'available',
+    Unavailable = 'unavailable',
+    Pending = 'pending',
+    NotApplicable = 'not_applicable',
+}
+
+export default function useCWSAvailabilityCheck(): CSWAvailabilityCheckTypes {
+    const dispatch = useDispatch();
+    const cwsAvailability = useSelector(getCWSAvailability);
+
     useEffect(() => {
-        if (!isEnterpriseReady) {
-            return;
+        // Only check if we haven't checked yet (pending state)
+        if (cwsAvailability === 'pending') {
+            dispatch(checkCWSAvailability());
         }
-        Client4.cwsAvailabilityCheck().then(() => {
-            setCanReachCWS(true);
-        }).catch(() => setCanReachCWS(false));
-    }, [isEnterpriseReady]);
+    }, [dispatch, cwsAvailability]);
 
-    return canReachCWS;
+    // Convert the string to the enum value
+    switch (cwsAvailability) {
+    case 'available':
+        return CSWAvailabilityCheckTypes.Available;
+    case 'unavailable':
+        return CSWAvailabilityCheckTypes.Unavailable;
+    case 'not_applicable':
+        return CSWAvailabilityCheckTypes.NotApplicable;
+    case 'pending':
+    default:
+        return CSWAvailabilityCheckTypes.Pending;
+    }
 }

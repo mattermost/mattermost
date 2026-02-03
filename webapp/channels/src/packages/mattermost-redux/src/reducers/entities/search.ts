@@ -5,13 +5,12 @@ import {combineReducers} from 'redux';
 
 import type {Post} from '@mattermost/types/posts';
 import type {PreferenceType} from '@mattermost/types/preferences';
-import type {Search} from '@mattermost/types/search';
 
+import type {MMReduxAction} from 'mattermost-redux/action_types';
 import {PostTypes, PreferenceTypes, SearchTypes, UserTypes} from 'mattermost-redux/action_types';
 import {Preferences} from 'mattermost-redux/constants';
-import type {GenericAction} from 'mattermost-redux/types/actions';
 
-function results(state: string[] = [], action: GenericAction) {
+function results(state: string[] = [], action: MMReduxAction) {
     switch (action.type) {
     case SearchTypes.RECEIVED_SEARCH_POSTS: {
         if (action.isGettingMore) {
@@ -38,7 +37,7 @@ function results(state: string[] = [], action: GenericAction) {
     }
 }
 
-function fileResults(state: string[] = [], action: GenericAction) {
+function fileResults(state: string[] = [], action: MMReduxAction) {
     switch (action.type) {
     case SearchTypes.RECEIVED_SEARCH_FILES: {
         if (action.isGettingMore) {
@@ -55,7 +54,7 @@ function fileResults(state: string[] = [], action: GenericAction) {
     }
 }
 
-function matches(state: Record<string, string[]> = {}, action: GenericAction) {
+function matches(state: Record<string, string[]> = {}, action: MMReduxAction) {
     switch (action.type) {
     case SearchTypes.RECEIVED_SEARCH_POSTS:
         if (action.isGettingMore) {
@@ -80,7 +79,7 @@ function matches(state: Record<string, string[]> = {}, action: GenericAction) {
     }
 }
 
-function flagged(state: string[] = [], action: GenericAction) {
+function flagged(state: string[] = [], action: MMReduxAction) {
     switch (action.type) {
     case SearchTypes.RECEIVED_SEARCH_FLAGGED_POSTS: {
         return action.data.order;
@@ -161,7 +160,7 @@ function removePinnedPost(state: Record<string, string[]>, post: Post) {
     return state;
 }
 
-function pinned(state: Record<string, string[]> = {}, action: GenericAction) {
+function pinned(state: Record<string, string[]> = {}, action: MMReduxAction) {
     switch (action.type) {
     case SearchTypes.RECEIVED_SEARCH_PINNED_POSTS: {
         const {channelId, pinned: posts} = action.data;
@@ -196,16 +195,6 @@ function pinned(state: Record<string, string[]> = {}, action: GenericAction) {
 
         return removePinnedPost(state, action.data);
     }
-    case SearchTypes.REMOVE_SEARCH_PINNED_POSTS: {
-        const {channelId} = action.data;
-        const nextState = {...state};
-        if (nextState[channelId]) {
-            Reflect.deleteProperty(nextState, channelId);
-            return nextState;
-        }
-
-        return state;
-    }
     case UserTypes.LOGOUT_SUCCESS:
         return {};
 
@@ -214,57 +203,12 @@ function pinned(state: Record<string, string[]> = {}, action: GenericAction) {
     }
 }
 
-function recent(state: Record<string, Search[]> = {}, action: GenericAction) {
-    const {data, type} = action;
-
-    switch (type) {
+function current(state: any = {}, action: MMReduxAction) {
+    switch (action.type) {
     case SearchTypes.RECEIVED_SEARCH_TERM: {
         const nextState = {...state};
-        const {teamId, params} = data;
-        const {terms, isOrSearch} = params || {};
-        const team = [...(nextState[teamId] || [])];
-        const index = team.findIndex((r) => r.terms === terms);
-        if (index === -1) {
-            team.push({terms, isOrSearch});
-        } else {
-            team[index] = {terms, isOrSearch};
-        }
-        return {
-            ...nextState,
-            [teamId]: team,
-        };
-    }
-    case SearchTypes.REMOVE_SEARCH_TERM: {
-        const nextState = {...state};
-        const {teamId, terms} = data;
-        const team = [...(nextState[teamId] || [])];
-        const index = team.findIndex((r) => r.terms === terms);
-
-        if (index !== -1) {
-            team.splice(index, 1);
-
-            return {
-                ...nextState,
-                [teamId]: team,
-            };
-        }
-
-        return nextState;
-    }
-    case UserTypes.LOGOUT_SUCCESS:
-        return {};
-
-    default:
-        return state;
-    }
-}
-
-function current(state: any = {}, action: GenericAction) {
-    const {data, type} = action;
-    switch (type) {
-    case SearchTypes.RECEIVED_SEARCH_TERM: {
-        const nextState = {...state};
-        const {teamId, params, isEnd, isFilesEnd} = data;
+        const {params, isEnd, isFilesEnd} = action.data;
+        const teamId = action.data.teamId || 'ALL_TEAMS';
         return {
             ...nextState,
             [teamId]: {
@@ -282,7 +226,7 @@ function current(state: any = {}, action: GenericAction) {
     }
 }
 
-function isSearchingTerm(state = false, action: GenericAction) {
+function isSearchingTerm(state = false, action: MMReduxAction) {
     switch (action.type) {
     case SearchTypes.SEARCH_POSTS_REQUEST:
         return !action.isGettingMore;
@@ -293,7 +237,7 @@ function isSearchingTerm(state = false, action: GenericAction) {
     }
 }
 
-function isSearchGettingMore(state = false, action: GenericAction) {
+function isSearchGettingMore(state = false, action: MMReduxAction) {
     switch (action.type) {
     case SearchTypes.SEARCH_POSTS_REQUEST:
         return action.isGettingMore;
@@ -304,7 +248,7 @@ function isSearchGettingMore(state = false, action: GenericAction) {
     }
 }
 
-function isLimitedResults(state = -1, action: GenericAction): number {
+function isLimitedResults(state = -1, action: MMReduxAction): number {
     switch (action.type) {
     case SearchTypes.SEARCH_POSTS_REQUEST: {
         if (!action.isGettingMore) {
@@ -321,6 +265,32 @@ function isLimitedResults(state = -1, action: GenericAction): number {
     default: {
         return state;
     }
+    }
+}
+
+function truncationInfo(state = {posts: 0, files: 0}, action: MMReduxAction) {
+    switch (action.type) {
+    case SearchTypes.RECEIVED_SEARCH_TRUNCATION_INFO: {
+        const {firstInaccessiblePostTime, searchType} = action.data;
+        return {
+            ...state,
+            [searchType]: firstInaccessiblePostTime,
+        };
+    }
+    case SearchTypes.REMOVE_SEARCH_POSTS:
+        return {
+            ...state,
+            posts: 0,
+        };
+    case SearchTypes.REMOVE_SEARCH_FILES:
+        return {
+            ...state,
+            files: 0,
+        };
+    case UserTypes.LOGOUT_SUCCESS:
+        return {posts: 0, files: 0};
+    default:
+        return state;
     }
 }
 
@@ -341,10 +311,6 @@ export default combineReducers({
     // Object where every key is a post id mapping to an array of matched words in that post
     matches,
 
-    // Object where every key is a team composed with
-    // an object where the key is the term and the value indicates is "or" search
-    recent,
-
     // Object holding the current searches for every team
     current,
 
@@ -357,4 +323,7 @@ export default combineReducers({
     // Boolean true if the search returns results inaccessible because
     // they are beyond a cloud workspace's message limits.
     isLimitedResults,
+
+    // Object tracking truncation info for posts and files separately
+    truncationInfo,
 });

@@ -6,29 +6,27 @@ package api4
 import (
 	"encoding/json"
 	"net/http"
-	"strings"
 
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/mlog"
 )
 
 func (api *API) InitPermissions() {
-	api.BaseRoutes.Permissions.Handle("/ancillary", api.APISessionRequired(appendAncillaryPermissions)).Methods("GET")
+	api.BaseRoutes.Permissions.Handle("/ancillary", api.APISessionRequired(appendAncillaryPermissionsPost)).Methods(http.MethodPost)
 }
 
-func appendAncillaryPermissions(c *Context, w http.ResponseWriter, r *http.Request) {
-	keys, ok := r.URL.Query()["subsection_permissions"]
-
-	if !ok || len(keys[0]) < 1 {
-		c.SetInvalidURLParam("subsection_permissions")
+func appendAncillaryPermissionsPost(c *Context, w http.ResponseWriter, r *http.Request) {
+	permissions, err := model.NonSortedArrayFromJSON(r.Body)
+	if err != nil || len(permissions) < 1 {
+		c.Err = model.NewAppError("appendAncillaryPermissionsPost", model.PayloadParseError, nil, "", http.StatusBadRequest).Wrap(err)
 		return
 	}
-
-	permissions := strings.Split(keys[0], ",")
 	b, err := json.Marshal(model.AddAncillaryPermissions(permissions))
 	if err != nil {
 		c.SetJSONEncodingError(err)
 		return
 	}
-
-	w.Write(b)
+	if _, err := w.Write(b); err != nil {
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
+	}
 }

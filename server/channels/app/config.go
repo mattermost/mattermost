@@ -64,6 +64,10 @@ func (a *App) AddConfigListener(listener func(*model.Config, *model.Config)) str
 	return a.Srv().platform.AddConfigListener(listener)
 }
 
+func (a *App) AddLicenseListener(listener func(oldLicense, newLicense *model.License)) string {
+	return a.Srv().platform.AddLicenseListener(listener)
+}
+
 // Removes a listener function by the unique ID returned when AddConfigListener was called
 func (a *App) RemoveConfigListener(id string) {
 	a.Srv().platform.RemoveConfigListener(id)
@@ -210,9 +214,23 @@ func (a *App) GetConfigFile(name string) ([]byte, error) {
 // GetSanitizedConfig gets the configuration for a system admin without any secrets.
 func (a *App) GetSanitizedConfig() *model.Config {
 	cfg := a.Config().Clone()
-	cfg.Sanitize()
+
+	a.SanitizedConfig(cfg)
 
 	return cfg
+}
+
+// SanitizedConfig sanitizes a given configuration for a system admin without any secrets.
+func (a *App) SanitizedConfig(cfg *model.Config) {
+	manifests, err := a.getPluginManifests()
+	if err != nil {
+		// GetPluginManifests might error, e.g. when plugins are disabled.
+		// Sanitize all plugin settings in this case.
+		cfg.Sanitize(nil, nil)
+		return
+	}
+
+	cfg.Sanitize(manifests, nil)
 }
 
 // GetEnvironmentConfig returns a map of configuration keys whose values have been overridden by an environment variable.
@@ -231,13 +249,13 @@ func (a *App) HandleMessageExportConfig(cfg *model.Config, appCfg *model.Config)
 	// appropriate value. The rewriting occurs here to ensure it doesn't affect values written to the config file
 	// directly and not through the System Console UI.
 	if *cfg.MessageExportSettings.EnableExport != *appCfg.MessageExportSettings.EnableExport {
-		if *cfg.MessageExportSettings.EnableExport && *cfg.MessageExportSettings.ExportFromTimestamp == int64(0) {
+		if *cfg.MessageExportSettings.EnableExport && model.SafeDereference(cfg.MessageExportSettings.ExportFromTimestamp) == int64(0) {
 			// When the feature is toggled on, use the current timestamp as the start time for future exports.
-			cfg.MessageExportSettings.ExportFromTimestamp = model.NewInt64(model.GetMillis())
+			cfg.MessageExportSettings.ExportFromTimestamp = model.NewPointer(model.GetMillis())
 		} else if !*cfg.MessageExportSettings.EnableExport {
 			// When the feature is disabled, reset the timestamp so that the timestamp will be set if
 			// the feature is re-enabled from the System Console in future.
-			cfg.MessageExportSettings.ExportFromTimestamp = model.NewInt64(0)
+			cfg.MessageExportSettings.ExportFromTimestamp = model.NewPointer(int64(0))
 		}
 	}
 }

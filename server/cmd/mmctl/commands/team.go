@@ -18,8 +18,6 @@ import (
 	"github.com/spf13/cobra"
 )
 
-const APILimitMaximum = 200
-
 var TeamCmd = &cobra.Command{
 	Use:   "team",
 	Short: "Management of teams",
@@ -102,8 +100,6 @@ var ModifyTeamsCmd = &cobra.Command{
 func init() {
 	TeamCreateCmd.Flags().String("name", "", "Team Name")
 	TeamCreateCmd.Flags().String("display-name", "", "Team Display Name")
-	TeamCreateCmd.Flags().String("display_name", "", "")
-	_ = TeamCreateCmd.Flags().MarkDeprecated("display_name", "please use display-name instead")
 	TeamCreateCmd.Flags().Bool("private", false, "Create a private team.")
 	TeamCreateCmd.Flags().String("email", "", "Administrator Email (anyone with this email is automatically a team admin)")
 
@@ -115,9 +111,7 @@ func init() {
 
 	// Add flag declaration for RenameTeam
 	RenameTeamCmd.Flags().String("display-name", "", "Team Display Name")
-	// _ = RenameTeamCmd.MarkFlagRequired("display-name") // Uncomment this after fully deprecation of display_name
-	RenameTeamCmd.Flags().String("display_name", "", "")
-	_ = RenameTeamCmd.Flags().MarkDeprecated("display_name", "please use display-name instead")
+	_ = RenameTeamCmd.MarkFlagRequired("display-name")
 
 	TeamCmd.AddCommand(
 		TeamCreateCmd,
@@ -142,10 +136,7 @@ func createTeamCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 	}
 	displayname, errdn := cmd.Flags().GetString("display-name")
 	if errdn != nil || displayname == "" {
-		displayname, errdn = cmd.Flags().GetString("display_name")
-		if errdn != nil || displayname == "" {
-			return errors.New("display Name is required")
-		}
+		return errors.New("display-name is required")
 	}
 	email, _ := cmd.Flags().GetString("email")
 	useprivate, _ := cmd.Flags().GetBool("private")
@@ -180,6 +171,7 @@ func deleteTeam(c client.Client, team *model.Team) (*model.Response, error) {
 }
 
 func archiveTeamsCmdF(c client.Client, cmd *cobra.Command, args []string) error {
+	var result *multierror.Error
 	confirmFlag, _ := cmd.Flags().GetBool("confirm")
 	if !confirmFlag {
 		if err := getConfirmation("Are you sure you want to archive the specified teams?", true); err != nil {
@@ -191,22 +183,24 @@ func archiveTeamsCmdF(c client.Client, cmd *cobra.Command, args []string) error 
 	for i, team := range teams {
 		if team == nil {
 			printer.PrintError("Unable to find team '" + args[i] + "'")
+			result = multierror.Append(result, errors.New("Unable to find team '"+args[i]+"'"))
 			continue
 		}
 		if _, err := c.SoftDeleteTeam(context.TODO(), team.Id); err != nil {
 			printer.PrintError("Unable to archive team '" + team.Name + "' error: " + err.Error())
+			result = multierror.Append(result, errors.New("Unable to archive team '"+team.Name+"' error: "+err.Error()))
 		} else {
 			printer.PrintT("Archived team '{{.Name}}'", team)
 		}
 	}
 
-	return nil
+	return result.ErrorOrNil()
 }
 
 func listTeamsCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 	page := 0
 	for {
-		teams, _, err := c.GetAllTeams(context.TODO(), "", page, APILimitMaximum)
+		teams, _, err := c.GetAllTeams(context.TODO(), "", page, DefaultPageSize)
 		if err != nil {
 			return err
 		}
@@ -219,7 +213,7 @@ func listTeamsCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 			}
 		}
 
-		if len(teams) < APILimitMaximum {
+		if len(teams) < DefaultPageSize {
 			break
 		}
 
@@ -274,13 +268,9 @@ func removeDuplicatesAndSortTeams(teams []*model.Team) []*model.Team {
 func renameTeamCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 	oldTeamName := args[0]
 
-	newDisplayName, _ := cmd.Flags().GetString("display_name")
-
+	newDisplayName, _ := cmd.Flags().GetString("display-name")
 	if newDisplayName == "" {
-		newDisplayName, _ = cmd.Flags().GetString("display-name")
-	}
-	if newDisplayName == "" {
-		return errors.New("display name is required")
+		return errors.New("display-name is required")
 	}
 
 	team := getTeamFromTeamArg(c, oldTeamName)
@@ -336,6 +326,8 @@ func modifyTeamsCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 		return errors.New("must specify one of --private or --public")
 	}
 
+	var errs *multierror.Error
+
 	// I = invite only (private)
 	// O = open (public)
 	privacy := model.TeamInvite
@@ -346,17 +338,24 @@ func modifyTeamsCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 	teams := getTeamsFromTeamArgs(c, args)
 	for i, team := range teams {
 		if team == nil {
-			printer.PrintError("Unable to find team '" + args[i] + "'")
+			errs = multierror.Append(errs, errors.New("Unable to find team '"+args[i]+"'"))
 			continue
 		}
-		if updatedTeam, _, err := c.UpdateTeamPrivacy(context.TODO(), team.Id, privacy); err != nil {
-			printer.PrintError("Unable to modify team '" + team.Name + "' error: " + err.Error())
-		} else {
-			printer.PrintT("Modified team '{{.Name}}'", updatedTeam)
+
+		updatedTeam, _, err := c.UpdateTeamPrivacy(context.TODO(), team.Id, privacy)
+		if err != nil {
+			errs = multierror.Append(errs, errors.New("Unable to modify team '"+team.Name+"' error: "+err.Error()))
+			continue
 		}
+
+		printer.PrintT("Modified team '{{.Name}}'", updatedTeam)
 	}
 
-	return nil
+	for _, err := range errs.WrappedErrors() {
+		printer.PrintError(err.Error())
+	}
+
+	return errs.ErrorOrNil()
 }
 
 func restoreTeamsCmdF(c client.Client, cmd *cobra.Command, args []string) error {

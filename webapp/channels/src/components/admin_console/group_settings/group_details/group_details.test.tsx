@@ -1,7 +1,6 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {shallow} from 'enzyme';
 import React from 'react';
 
 import type {ChannelWithTeamData} from '@mattermost/types/channels';
@@ -10,6 +9,16 @@ import type {Team} from '@mattermost/types/teams';
 import type {UserProfile} from '@mattermost/types/users';
 
 import GroupDetails from 'components/admin_console/group_settings/group_details/group_details';
+
+import {shallowWithIntl} from 'tests/helpers/intl-test-helper';
+
+function getAnyInstance(wrapper: any) {
+    return wrapper.instance() as any;
+}
+
+function getAnyState(wrapper: any) {
+    return wrapper.state() as any;
+}
 
 describe('components/admin_console/group_settings/group_details/GroupDetails', () => {
     const defaultProps = {
@@ -48,27 +57,27 @@ describe('components/admin_console/group_settings/group_details/GroupDetails', (
     };
 
     test('should match snapshot, with everything closed', () => {
-        const wrapper = shallow(<GroupDetails {...defaultProps}/>);
+        const wrapper = shallowWithIntl(<GroupDetails {...defaultProps}/>);
         defaultProps.actions.getGroupSyncables.mockClear();
         expect(wrapper).toMatchSnapshot();
     });
 
     test('should match snapshot, with add team selector open', () => {
-        const wrapper = shallow(<GroupDetails {...defaultProps}/>);
+        const wrapper = shallowWithIntl(<GroupDetails {...defaultProps}/>);
         wrapper.setState({addTeamOpen: true});
         defaultProps.actions.getGroupSyncables.mockClear();
         expect(wrapper).toMatchSnapshot();
     });
 
     test('should match snapshot, with add channel selector open', () => {
-        const wrapper = shallow(<GroupDetails {...defaultProps}/>);
+        const wrapper = shallowWithIntl(<GroupDetails {...defaultProps}/>);
         wrapper.setState({addChannelOpen: true});
         defaultProps.actions.getGroupSyncables.mockClear();
         expect(wrapper).toMatchSnapshot();
     });
 
     test('should match snapshot, with loaded state', () => {
-        const wrapper = shallow(<GroupDetails {...defaultProps}/>);
+        const wrapper = shallowWithIntl(<GroupDetails {...defaultProps}/>);
         wrapper.setState({loading: false, loadingTeamsAndChannels: false});
         defaultProps.actions.getGroupSyncables.mockClear();
         expect(wrapper).toMatchSnapshot();
@@ -86,16 +95,16 @@ describe('components/admin_console/group_settings/group_details/GroupDetails', (
             patchGroupSyncable: jest.fn(),
             setNavigationBlocked: jest.fn(),
         };
-        shallow(
+        shallowWithIntl(
             <GroupDetails
                 {...defaultProps}
                 actions={actions}
             />,
         );
-        expect(actions.getGroupSyncables).toBeCalledWith('xxxxxxxxxxxxxxxxxxxxxxxxxx', 'team');
-        expect(actions.getGroupSyncables).toBeCalledWith('xxxxxxxxxxxxxxxxxxxxxxxxxx', 'channel');
-        expect(actions.getGroupSyncables).toBeCalledTimes(2);
-        expect(actions.getGroup).toBeCalledWith('xxxxxxxxxxxxxxxxxxxxxxxxxx');
+        expect(actions.getGroupSyncables).toHaveBeenCalledWith('xxxxxxxxxxxxxxxxxxxxxxxxxx', 'team');
+        expect(actions.getGroupSyncables).toHaveBeenCalledWith('xxxxxxxxxxxxxxxxxxxxxxxxxx', 'channel');
+        expect(actions.getGroupSyncables).toHaveBeenCalledTimes(2);
+        expect(actions.getGroup).toHaveBeenCalledWith('xxxxxxxxxxxxxxxxxxxxxxxxxx');
     });
 
     test('should set state for each channel when addChannels is called', async () => {
@@ -110,13 +119,13 @@ describe('components/admin_console/group_settings/group_details/GroupDetails', (
             patchGroupSyncable: jest.fn(),
             setNavigationBlocked: jest.fn(),
         };
-        const wrapper = shallow<GroupDetails>(
+        const wrapper = shallowWithIntl(
             <GroupDetails
                 {...defaultProps}
                 actions={actions}
             />,
         );
-        const instance = wrapper.instance();
+        const instance = getAnyInstance(wrapper);
         await instance.addChannels([
             {id: '11111111111111111111111111'} as ChannelWithTeamData,
             {id: '22222222222222222222222222'} as ChannelWithTeamData,
@@ -142,13 +151,13 @@ describe('components/admin_console/group_settings/group_details/GroupDetails', (
             patchGroupSyncable: jest.fn(),
             setNavigationBlocked: jest.fn(),
         };
-        const wrapper = shallow<GroupDetails>(
+        const wrapper = shallowWithIntl(
             <GroupDetails
                 {...defaultProps}
                 actions={actions}
             />,
         );
-        const instance = wrapper.instance();
+        const instance = getAnyInstance(wrapper);
         expect(instance.state.groupTeams?.length === 0);
         instance.addTeams([
             {id: '11111111111111111111111111'} as Team,
@@ -164,7 +173,7 @@ describe('components/admin_console/group_settings/group_details/GroupDetails', (
     });
 
     test('update name for null slug', async () => {
-        const wrapper = shallow<GroupDetails>(
+        const wrapper = shallowWithIntl(
             <GroupDetails
                 {...defaultProps}
                 group={{
@@ -174,12 +183,12 @@ describe('components/admin_console/group_settings/group_details/GroupDetails', (
             />,
         );
 
-        wrapper.instance().onMentionToggle(true);
-        expect(wrapper.state().groupMentionName).toBe('test-group');
+        getAnyInstance(wrapper).onMentionToggle(true);
+        expect(getAnyState(wrapper).groupMentionName).toBe('test-group');
     });
 
     test('update name for empty slug', async () => {
-        const wrapper = shallow<GroupDetails>(
+        const wrapper = shallowWithIntl(
             <GroupDetails
                 {...defaultProps}
                 group={{
@@ -190,12 +199,12 @@ describe('components/admin_console/group_settings/group_details/GroupDetails', (
             />,
         );
 
-        wrapper.instance().onMentionToggle(true);
-        expect(wrapper.state().groupMentionName).toBe('test-group');
+        getAnyInstance(wrapper).onMentionToggle(true);
+        expect(getAnyState(wrapper).groupMentionName).toBe('test-group');
     });
 
     test('Should not update name for slug', async () => {
-        const wrapper = shallow<GroupDetails>(
+        const wrapper = shallowWithIntl(
             <GroupDetails
                 {...defaultProps}
                 group={{
@@ -205,7 +214,53 @@ describe('components/admin_console/group_settings/group_details/GroupDetails', (
                 } as Group}
             />,
         );
-        wrapper.instance().onMentionToggle(true);
-        expect(wrapper.state().groupMentionName).toBe('any_name_at_all');
+        getAnyInstance(wrapper).onMentionToggle(true);
+        expect(getAnyState(wrapper).groupMentionName).toBe('any_name_at_all');
+    });
+
+    test('handleRolesToUpdate should only update scheme_admin and not auto_add', async () => {
+        const patchGroupSyncable = jest.fn().mockReturnValue(Promise.resolve({data: true}));
+        const actions = {
+            ...defaultProps.actions,
+            patchGroupSyncable,
+        };
+
+        const wrapper = shallowWithIntl(
+            <GroupDetails
+                {...defaultProps}
+                actions={actions}
+            />,
+        );
+
+        const instance = getAnyInstance(wrapper);
+        instance.setState({
+            rolesToChange: {
+                'team1/public-team': true,
+                'channel1/public-channel': false,
+            },
+        });
+
+        await instance.handleRolesToUpdate();
+
+        expect(patchGroupSyncable).toHaveBeenCalledTimes(2);
+        expect(patchGroupSyncable).toHaveBeenCalledWith(
+            'xxxxxxxxxxxxxxxxxxxxxxxxxx',
+            'team1',
+            'team',
+            {scheme_admin: true},
+        );
+        expect(patchGroupSyncable).toHaveBeenCalledWith(
+            'xxxxxxxxxxxxxxxxxxxxxxxxxx',
+            'channel1',
+            'channel',
+            {scheme_admin: false},
+        );
+
+        // Verify auto_add was not included in any of the patch calls
+        patchGroupSyncable.mock.calls.forEach((call) => {
+            expect(call[3]).not.toHaveProperty('auto_add');
+            expect(Object.keys(call[3]).length).toBe(1);
+            expect(Object.keys(call[3])[0]).toBe('scheme_admin');
+        });
     });
 });

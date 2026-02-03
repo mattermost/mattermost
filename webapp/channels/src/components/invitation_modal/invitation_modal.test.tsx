@@ -7,16 +7,17 @@ import {Provider} from 'react-redux';
 
 import type {Team} from '@mattermost/types/teams';
 
+import {General} from 'mattermost-redux/constants';
 import deepFreeze from 'mattermost-redux/utils/deep_freeze';
 
-import store from 'stores/redux_store';
-
-import {mountWithThemedIntl} from 'tests/helpers/themed-intl-test-helper';
+import {mountWithIntl} from 'tests/helpers/intl-test-helper';
+import {act} from 'tests/react_testing_utils';
+import mockStore from 'tests/test_store';
 import {SelfHostedProducts} from 'utils/constants';
 import {TestHelper} from 'utils/test_helper';
 import {generateId} from 'utils/utils';
 
-import InvitationModal, {View, InvitationModal as BaseInvitationModal} from './invitation_modal';
+import InvitationModal, {View} from './invitation_modal';
 import type {Props} from './invitation_modal';
 import InviteView from './invite_view';
 import NoPermissionsView from './no_permissions_view';
@@ -44,9 +45,12 @@ const defaultProps: Props = deepFreeze({
     isCloud: false,
     canAddUsers: true,
     canInviteGuests: true,
+    canInviteGuestsWithMagicLink: false,
     intl: {} as IntlShape,
     townSquareDisplayName: '',
     onExited: jest.fn(),
+    roleForTrackFlow: {started_by_role: General.SYSTEM_USER_ROLE},
+    focusOriginElement: 'elementId',
 });
 
 let props = defaultProps;
@@ -107,14 +111,14 @@ describe('InvitationModal', () => {
         },
     };
 
-    store.getState = () => (state);
+    const store = mockStore(state);
 
     beforeEach(() => {
         props = defaultProps;
     });
 
     it('shows invite view when view state is invite', () => {
-        const wrapper = mountWithThemedIntl(
+        const wrapper = mountWithIntl(
             <Provider store={store}>
                 <InvitationModal {...props}/>
             </Provider>,
@@ -123,14 +127,17 @@ describe('InvitationModal', () => {
     });
 
     it('shows result view when view state is result', () => {
-        const wrapper = mountWithThemedIntl(
+        const wrapper = mountWithIntl(
             <Provider store={store}>
                 <InvitationModal {...props}/>
             </Provider>,
         );
-        wrapper.find(BaseInvitationModal).at(0).setState({view: View.RESULT});
 
-        wrapper.update();
+        act(() => {
+            wrapper.find(InvitationModal).at(0).setState({view: View.RESULT});
+            wrapper.update();
+        });
+
         expect(wrapper.find(ResultView).length).toBe(1);
     });
 
@@ -140,12 +147,93 @@ describe('InvitationModal', () => {
             canAddUsers: false,
             canInviteGuests: false,
         };
-        const wrapper = mountWithThemedIntl(
+        const wrapper = mountWithIntl(
             <Provider store={store}>
                 <InvitationModal {...props}/>
             </Provider>,
         );
 
         expect(wrapper.find(NoPermissionsView).length).toBe(1);
+    });
+
+    it('filters out policy_enforced channels when inviting guests', async () => {
+        // Create test channels with and without policy_enforced flag
+        const regularChannel = TestHelper.getChannelMock({
+            id: 'regular-channel',
+            display_name: 'Regular Channel',
+            name: 'regular-channel',
+            policy_enforced: false,
+        });
+
+        const policyEnforcedChannel = TestHelper.getChannelMock({
+            id: 'policy-enforced-channel',
+            display_name: 'Policy Enforced Channel',
+            name: 'policy-enforced-channel',
+            policy_enforced: true,
+        });
+
+        props = {
+            ...props,
+            invitableChannels: [regularChannel, policyEnforcedChannel],
+        };
+
+        const wrapper = mountWithIntl(
+            <Provider store={store}>
+                <InvitationModal {...props}/>
+            </Provider>,
+        );
+
+        // Get the component instance with proper typing
+        const instance = wrapper.find(InvitationModal).instance() as InvitationModal;
+
+        // Set invite type to GUEST
+        act(() => {
+            instance.setState({
+                invite: {
+                    ...instance.state.invite,
+                    inviteType: 'GUEST',
+                },
+            });
+        });
+
+        // Call channelsLoader with empty search term
+        const guestChannels = await instance.channelsLoader('');
+
+        // Verify only non-policy-enforced channels are returned for guests
+        expect(guestChannels.length).toBe(1);
+        expect(guestChannels[0].id).toBe('regular-channel');
+
+        // Set invite type to MEMBER
+        act(() => {
+            instance.setState({
+                invite: {
+                    ...instance.state.invite,
+                    inviteType: 'MEMBER',
+                },
+            });
+        });
+
+        // Call channelsLoader with empty search term
+        const memberChannels = await instance.channelsLoader('');
+
+        // Verify all channels are returned for members
+        expect(memberChannels.length).toBe(2);
+
+        // Test with search term
+        act(() => {
+            instance.setState({
+                invite: {
+                    ...instance.state.invite,
+                    inviteType: 'GUEST',
+                },
+            });
+        });
+
+        // Call channelsLoader with search term that matches both channels
+        const guestChannelsWithSearch = await instance.channelsLoader('channel');
+
+        // Verify only non-policy-enforced channels are returned for guests
+        expect(guestChannelsWithSearch.length).toBe(1);
+        expect(guestChannelsWithSearch[0].id).toBe('regular-channel');
     });
 });

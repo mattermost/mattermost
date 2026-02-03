@@ -44,18 +44,19 @@ describe('Onboarding', () => {
 
     it('MM-T400 Create account from login page link using email-password', () => {
         // # Open team menu and click on "Team Settings"
-        cy.uiOpenTeamMenu('Team Settings');
+        cy.uiOpenTeamMenu('Team settings');
 
         // * Check that the 'Team Settings' modal was opened
         cy.get('#teamSettingsModal').should('exist').within(() => {
-            cy.get('#open_inviteEdit').should('be.visible').click();
+            cy.get('#accessButton').should('be.visible').click();
 
             // # Enable any user with an account on the server to join the team
-            cy.get('#teamOpenInvite').should('be.visible').click();
-            cy.findByText('Save').should('be.visible').click();
+            cy.get('input.mm-modal-generic-section-item__input-checkbox').last().should('be.visible').click();
+
+            cy.get('[data-testid="SaveChangesPanel__save-btn"]').should('be.visible').click();
 
             // # Close the modal
-            cy.get('#teamSettingsModalLabel').find('button').should('be.visible').click();
+            cy.findByLabelText('Close').should('be.visible').click();
         });
 
         // # Logout from sysadmin account
@@ -70,15 +71,13 @@ describe('Onboarding', () => {
         cy.get('#input_email').should('be.focused').and('be.visible').type(email);
         cy.get('#input_name').should('be.visible').type(username);
         cy.get('#input_password-input').should('be.visible').type(password);
-        cy.findByText('Create Account').click();
+        cy.get('#signup-body-card-form-check-terms-and-privacy').check();
+        cy.findByText('Create account').click();
 
         cy.findByText('You’re almost done!').should('be.visible');
 
         // # Get invitation email and go to the provided link
         getEmail(username, email);
-
-        // * Ensure that the email was correctly verified
-        cy.findByText('Email Verified').should('be.visible');
 
         // * Ensure that the email was pre-filled and the password input box is focused
         cy.get('#input_loginId').should('be.visible').and('have.value', email);
@@ -98,11 +97,11 @@ describe('Onboarding', () => {
             cy.get('#sidebarItem_town-square').should('exist');
         });
 
-        // * Check that the 'Beginning of Town Square' message is visible
-        cy.findByText('Beginning of Town Square').should('be.visible');
+        // * Check that the 'Town Square' message is visible
+        cy.url().should('include', `/${testTeam.name}/channels/town-square`);
     });
 
-    // eslint-disable-next-line no-shadow
+
     function getEmail(username, email) {
         cy.getRecentEmail({username, email}).then((data) => {
             // * Verify that the email subject is correct

@@ -55,24 +55,27 @@ describe('Team Settings', () => {
 
     it('MM-T385 Invite new user to closed team using email invite', () => {
         // # Open 'Team Settings' modal
-        cy.uiOpenTeamMenu('Team Settings');
+        cy.uiOpenTeamMenu('Team settings');
 
         // * Check that the 'Team Settings' modal was opened
         cy.get('#teamSettingsModal').should('exist').within(() => {
-            cy.get('#open_inviteDesc').should('have.text', 'No');
+            // # Go to Access section
+            cy.get('#accessButton').click();
 
-            // # Click on the 'Allow only users with a specific email domain to join this team' edit button
-            cy.get('#allowed_domainsEdit').should('be.visible').click();
+            cy.get('.access-allowed-domains-section').should('exist').within(() => {
+                // # Click on the 'Allow only users with a specific email domain to join this team' checkbox
+                cy.get('.mm-modal-generic-section-item__input-checkbox').should('not.be.checked').click();
+            });
 
             // * Verify that the '#allowedDomains' input field is empty
-            cy.get('#allowedDomains').should('be.empty');
+            cy.get('#allowedDomains').should('have.text', 'corp.mattermost.com, mattermost.com');
 
             // # Close the modal
             cy.get('#teamSettingsModalLabel').find('button').should('be.visible').click();
         });
 
         // # Open the 'Invite People' full screen modal
-        cy.uiOpenTeamMenu('Invite People');
+        cy.uiOpenTeamMenu('Invite people');
 
         // # Wait half a second to ensure that the modal has been fully loaded
         cy.wait(TIMEOUTS.HALF_SEC);
@@ -82,7 +85,7 @@ describe('Team Settings', () => {
             cy.get('.InviteAs').findByTestId('inviteMembersLink').click();
         }
 
-        cy.findByRole('textbox', {name: 'Add or Invite People'}).type(email, {force: true}).wait(TIMEOUTS.HALF_SEC).type('{enter}', {force: true});
+        cy.findByRole('combobox', {name: 'Invite People'}).type(email, {force: true}).wait(TIMEOUTS.HALF_SEC).type('{enter}', {force: true});
         cy.findByTestId('inviteButton').click();
 
         // # Wait for a while to ensure that email notification is sent and logout from sysadmin account
@@ -111,8 +114,11 @@ describe('Team Settings', () => {
         cy.wait(TIMEOUTS.HALF_SEC);
         cy.get('#input_password-input').type(password);
 
+        // # Check the terms and privacy checkbox
+        cy.get('#signup-body-card-form-check-terms-and-privacy').check();
+
         // # Attempt to create an account by clicking on the 'Create Account' button
-        cy.findByText('Create Account').click();
+        cy.findByText('Create account').click();
 
         // # Close the onboarding tutorial
         cy.uiCloseOnboardingTaskList();
@@ -120,7 +126,7 @@ describe('Team Settings', () => {
         // * Check that the display name of the team the user was invited to is being correctly displayed
         cy.uiGetLHSHeader().findByText(testTeam.display_name);
 
-        // * Check that the 'Beginning of Town Square' message is visible
-        cy.findByText('Beginning of Town Square').should('be.visible');
+        // * Check that the 'Town Square' channel title is visible
+        cy.get('h2.channel-intro__title').should('be.visible').should('have.text', 'Town Square');
     });
 });

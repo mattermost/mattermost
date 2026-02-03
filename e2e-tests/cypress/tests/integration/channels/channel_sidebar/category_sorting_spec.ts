@@ -22,11 +22,8 @@ describe('Category sorting', () => {
     });
 
     it('MM-T3916 Create Category character limit', () => {
-        // # Click on the sidebar menu dropdown
-        cy.uiGetLHSAddChannelButton().click();
-
-        // # Click on create category link
-        cy.findByText('Create new category').should('be.visible').click();
+        // # Click on the sidebar menu dropdown and select Create Category
+        cy.uiBrowseOrCreateChannel('Create new category');
 
         // # Add a name 26 characters in length e.g `abcdefghijklmnopqrstuvwxyz`
         cy.get('#editCategoryModal').should('be.visible').wait(TIMEOUTS.HALF_SEC).within(() => {
@@ -80,24 +77,24 @@ describe('Category sorting', () => {
     //     // # Create 15 channels and add them to a custom category
     //     for (let i = 0; i < 15; i++) {
     //         createChannelAndAddToCategory(categoryName);
-    //         cy.get('#SidebarContainer .scrollbar--view').scrollTo('bottom', {ensureScrollable: false});
+    //         cy.get('#SidebarContainer .simplebar-content-wrapper').scrollTo('bottom', {ensureScrollable: false});
     //     }
 
     //     // # Create 10 channels and add them to Favourites
     //     for (let i = 0; i < 10; i++) {
     //         createChannelAndAddToFavourites();
-    //         cy.get('#SidebarContainer .scrollbar--view').scrollTo('bottom', {ensureScrollable: false});
+    //         cy.get('#SidebarContainer .simplebar-content-wrapper').scrollTo('bottom', {ensureScrollable: false});
     //     }
 
     //     // # Scroll to the center of the channel list
-    //     cy.get('#SidebarContainer .scrollbar--view').scrollTo('center', {ensureScrollable: false});
+    //     cy.get('#SidebarContainer .simplebar-content-wrapper').scrollTo('center', {ensureScrollable: false});
 
     //     // * Verify that both the 'More Unreads' label and the category header are visible
     //     cy.get('#unreadIndicatorTop').should('be.visible');
     //     cy.get('#SidebarContainer .SidebarChannelGroupHeader:contains(FAVORITES)').should('be.visible');
 
     //     // # Scroll to the bottom of the list
-    //     cy.get('#SidebarContainer .scrollbar--view').scrollTo('bottom', {ensureScrollable: false});
+    //     cy.get('#SidebarContainer .simplebar-content-wrapper').scrollTo('bottom', {ensureScrollable: false});
 
     //     // * Verify that the 'More Unreads' label is still visible but the category is not
     //     cy.get('#unreadIndicatorTop').should('be.visible');

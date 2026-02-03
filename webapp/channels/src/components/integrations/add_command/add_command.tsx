@@ -3,7 +3,6 @@
 
 import React, {useState} from 'react';
 import {useIntl} from 'react-intl';
-import type {MessageDescriptor} from 'react-intl';
 import {useHistory} from 'react-router-dom';
 
 import type {Command} from '@mattermost/types/integrations';
@@ -25,16 +24,16 @@ export type Props = {
         /**
         * The function to call to add new command
         */
-        addCommand: (command: Command) => Promise<ActionResult>;
+        addCommand: (command: Command) => Promise<ActionResult<Command>>;
     };
 };
 
 const AddCommand = ({team, actions}: Props) => {
     const history = useHistory();
     const {formatMessage} = useIntl();
-    const headerMessage = formatMessage({id: ('integrations.add'), defaultMessage: 'Add'}) as MessageDescriptor;
-    const footerMessage = formatMessage({id: ('add_command.save'), defaultMessage: 'Save'}) as MessageDescriptor;
-    const loadingMessage = formatMessage({id: ('add_command.saving'), defaultMessage: 'Saving...'}) as MessageDescriptor;
+    const headerMessage = formatMessage({id: 'integrations.add', defaultMessage: 'Add'});
+    const footerMessage = formatMessage({id: 'add_command.save', defaultMessage: 'Save'});
+    const loadingMessage = formatMessage({id: 'add_command.saving', defaultMessage: 'Saving...'});
     const [serverError, setServerError] = useState('');
 
     const addCommand = async (command: Command) => {

@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {isEmpty} from 'lodash';
+import isEmpty from 'lodash/isEmpty';
 import React, {memo, useCallback, useEffect} from 'react';
 import type {PropsWithChildren} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
@@ -10,28 +10,21 @@ import {useDispatch, useSelector} from 'react-redux';
 import {PlaylistCheckIcon} from '@mattermost/compass-icons/components';
 import type {UserThread} from '@mattermost/types/threads';
 
-import {getThreads, markAllThreadsInTeamRead} from 'mattermost-redux/actions/threads';
-import {getInt} from 'mattermost-redux/selectors/entities/preferences';
+import {getThreadsForCurrentTeam, markAllThreadsInTeamRead} from 'mattermost-redux/actions/threads';
 import {getThreadCountsInCurrentTeam} from 'mattermost-redux/selectors/entities/threads';
 
-import {trackEvent} from 'actions/telemetry_actions';
 import {closeModal, openModal} from 'actions/views/modals';
-import {getIsMobileView} from 'selectors/views/browser';
 
 import NoResultsIndicator from 'components/no_results_indicator';
-import CRTListTutorialTip from 'components/tours/crt_tour/crt_list_tutorial_tip';
-import CRTUnreadTutorialTip from 'components/tours/crt_tour/crt_unread_tutorial_tip';
 import Header from 'components/widgets/header';
-import SimpleTooltip from 'components/widgets/simple_tooltip';
+import WithTooltip from 'components/with_tooltip';
 
-import {A11yClassNames, Constants, CrtTutorialSteps, ModalIdentifiers, Preferences} from 'utils/constants';
+import {A11yClassNames, Constants, ModalIdentifiers} from 'utils/constants';
 import * as Keyboard from 'utils/keyboard';
-
-import type {GlobalState} from 'types/store';
+import {a11yFocus, mod} from 'utils/utils';
 
 import VirtualizedThreadList from './virtualized_thread_list';
 
-import BalloonIllustration from '../../common/balloon_illustration';
 import Button from '../../common/button';
 import {useThreadRouting} from '../../hooks';
 import MarkAllThreadsAsReadModal from '../mark_all_threads_as_read_modal';
@@ -63,14 +56,10 @@ const ThreadList = ({
     unreadIds,
     ids,
 }: PropsWithChildren<Props>) => {
-    const isMobileView = useSelector(getIsMobileView);
     const unread = ThreadFilter.unread === currentFilter;
     const data = unread ? unreadIds : ids;
     const ref = React.useRef<HTMLDivElement>(null);
     const {currentTeamId, currentUserId, clear, select} = useThreadRouting();
-    const tipStep = useSelector((state: GlobalState) => getInt(state, Preferences.CRT_TUTORIAL_STEP, currentUserId));
-    const showListTutorialTip = tipStep === CrtTutorialSteps.LIST_POPOVER;
-    const showUnreadTutorialTip = tipStep === CrtTutorialSteps.UNREAD_POPOVER;
     const {formatMessage} = useIntl();
     const dispatch = useDispatch();
 
@@ -120,9 +109,7 @@ const ThreadList = ({
             }
         }
         select(data[threadIdToSelect]);
-
-        // hacky way to ensure the thread item loses focus.
-        ref.current?.focus();
+        e.preventDefault();
     }, [selectedThreadId, data]);
 
     useEffect(() => {
@@ -132,16 +119,7 @@ const ThreadList = ({
         };
     }, [handleKeyDown]);
 
-    const handleRead = useCallback(() => {
-        setFilter(ThreadFilter.none);
-    }, [setFilter]);
-
-    const handleUnread = useCallback(() => {
-        trackEvent('crt', 'filter_threads_by_unread');
-        setFilter(ThreadFilter.unread);
-    }, [setFilter]);
-
-    const handleLoadMoreItems = useCallback(async (startIndex) => {
+    const handleLoadMoreItems = useCallback(async (startIndex: number) => {
         setLoading(true);
         let before = data[startIndex - 1];
 
@@ -149,7 +127,7 @@ const ThreadList = ({
             before = data[startIndex - 2];
         }
 
-        await dispatch(getThreads(currentUserId, currentTeamId, {unread, perPage: Constants.THREADS_PAGE_SIZE, before}));
+        await dispatch(getThreadsForCurrentTeam({unread, before}));
 
         setLoading(false);
         setHasLoaded(true);
@@ -158,7 +136,6 @@ const ThreadList = ({
     }, [currentTeamId, data, unread, selectedThreadId]);
 
     const handleAllMarkedRead = useCallback(() => {
-        trackEvent('crt', 'mark_all_threads_read');
         dispatch(markAllThreadsInTeamRead(currentUserId, currentTeamId));
         if (currentFilter === ThreadFilter.unread) {
             clear();
@@ -187,6 +164,23 @@ const ThreadList = ({
         }));
     }, [handleAllMarkedRead]);
 
+    const {tabListProps, tabProps} = useTabs<ThreadFilter>({
+        activeTab: currentFilter,
+        setActiveTab: setFilter,
+        tabs: [
+            {
+                id: 'threads-list-filter-none',
+                name: ThreadFilter.none,
+                panelId: 'threads-list',
+            },
+            {
+                id: 'threads-list-filter-unread',
+                name: ThreadFilter.unread,
+                panelId: 'threads-list',
+            },
+        ],
+    });
+
     return (
         <div
             tabIndex={0}
@@ -197,16 +191,23 @@ const ThreadList = ({
             <Header
                 id={'tutorial-threads-mobile-header'}
                 heading={(
-                    <>
+                    <div
+                        className='tab-buttons-list'
+                        aria-label={formatMessage({
+                            id: 'threading.threadList.tabsLabel',
+                            defaultMessage: 'Filter visible threads',
+                        })}
+                        {...tabListProps}
+                    >
                         <div className={'tab-button-wrapper'}>
                             <Button
                                 className={'Button___large Margined'}
                                 isActive={currentFilter === ThreadFilter.none}
-                                onClick={handleRead}
+                                {...tabProps[0]}
                             >
                                 <FormattedMessage
-                                    id='threading.filters.allThreads'
-                                    defaultMessage='All your threads'
+                                    id='globalThreads.heading'
+                                    defaultMessage='Followed threads'
                                 />
                             </Button>
                         </div>
@@ -218,28 +219,30 @@ const ThreadList = ({
                                 className={'Button___large Margined'}
                                 isActive={currentFilter === ThreadFilter.unread}
                                 hasDot={someUnread}
-                                onClick={handleUnread}
+                                {...tabProps[1]}
                             >
                                 <FormattedMessage
                                     id='threading.filters.unreads'
                                     defaultMessage='Unreads'
                                 />
                             </Button>
-                            {showUnreadTutorialTip && <CRTUnreadTutorialTip/>}
                         </div>
-                    </>
+                    </div>
                 )}
                 right={(
                     <div className='right-anchor'>
-                        <SimpleTooltip
-                            id='threadListMarkRead'
-                            content={formatMessage({
+                        <WithTooltip
+                            title={formatMessage({
                                 id: 'threading.threadList.markRead',
-                                defaultMessage: 'Mark all as read',
+                                defaultMessage: 'Mark all threads as read',
                             })}
                         >
                             <Button
                                 id={'threads-list__mark-all-as-read'}
+                                aria-label={formatMessage({
+                                    id: 'threading.threadList.markRead',
+                                    defaultMessage: 'Mark all threads as read',
+                                })}
                                 className={'Button___large Button___icon'}
                                 onClick={handleOpenMarkAllAsReadModal}
                                 marginTop={true}
@@ -248,11 +251,13 @@ const ThreadList = ({
                                     <PlaylistCheckIcon size={18}/>
                                 </span>
                             </Button>
-                        </SimpleTooltip>
+                        </WithTooltip>
                     </div>
                 )}
             />
             <div
+                id='threads-list'
+                role='tabpanel'
                 className='threads'
                 data-testid={'threads_list'}
             >
@@ -265,14 +270,16 @@ const ThreadList = ({
                     isLoading={isLoading}
                     addNoMoreResultsItem={hasLoaded && !unread}
                 />
-                {showListTutorialTip && !isMobileView && <CRTListTutorialTip/>}
                 {unread && !someUnread && isEmpty(unreadIds) ? (
                     <NoResultsIndicator
                         expanded={true}
-                        iconGraphic={BalloonIllustration}
                         title={formatMessage({
                             id: 'globalThreads.threadList.noUnreadThreads',
                             defaultMessage: 'No unread threads',
+                        })}
+                        subtitle={formatMessage({
+                            id: 'globalThreads.threadList.noUnreadThreads.subtitle',
+                            defaultMessage: 'You\'re all caught up',
                         })}
                     />
                 ) : null}
@@ -280,4 +287,58 @@ const ThreadList = ({
         </div>
     );
 };
+
+function useTabs<TabName extends string>({
+    activeTab,
+    setActiveTab,
+    tabs,
+}: {
+    activeTab: TabName;
+    setActiveTab: (tab: TabName) => void;
+    tabs: Array<{
+        id: string;
+        name: TabName;
+        panelId: string;
+    }>;
+}): {
+        tabListProps: React.HTMLAttributes<HTMLElement>;
+        tabProps: Array<React.HTMLAttributes<HTMLElement>>;
+    } {
+    const handleKeyDown = useCallback((e: React.KeyboardEvent) => {
+        let delta = 0;
+        if (Keyboard.isKeyPressed(e, Constants.KeyCodes.RIGHT)) {
+            delta = 1;
+        } else if (Keyboard.isKeyPressed(e, Constants.KeyCodes.LEFT)) {
+            delta = -1;
+        }
+
+        if (delta === 0) {
+            return;
+        }
+
+        let index = tabs.findIndex((tab) => tab.name === activeTab);
+        index += delta;
+        index = mod(index, tabs.length);
+
+        setActiveTab(tabs[index].name);
+        a11yFocus(document.getElementById(tabs[index].id));
+    }, [activeTab, setActiveTab, tabs]);
+
+    return {
+        tabListProps: {
+            role: 'tablist',
+            'aria-orientation': 'horizontal',
+        },
+        tabProps: tabs.map((tab) => ({
+            id: tab.id,
+            role: 'tab',
+            onClick: () => setActiveTab(tab.name),
+            onKeyDown: handleKeyDown,
+            tabIndex: tab.name === activeTab ? 0 : -1,
+            'aria-controls': tab.panelId,
+            'aria-selected': activeTab === tab.name,
+        })),
+    };
+}
+
 export default memo(ThreadList);

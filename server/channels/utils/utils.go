@@ -9,12 +9,12 @@ import (
 	"net"
 	"net/http"
 	"net/url"
+	"slices"
 	"strings"
 
 	"github.com/pkg/errors"
 
 	"github.com/mattermost/mattermost/server/public/model"
-	pUtils "github.com/mattermost/mattermost/server/public/utils"
 )
 
 // RemoveStringFromSlice removes the first occurrence of a from slice.
@@ -32,7 +32,7 @@ func RemoveStringsFromSlice(slice []string, strings ...string) []string {
 	newSlice := []string{}
 
 	for _, item := range slice {
-		if !pUtils.Contains(strings, item) {
+		if !slices.Contains(strings, item) {
 			newSlice = append(newSlice, item)
 		}
 	}
@@ -85,6 +85,10 @@ func StringSliceDiff(a, b []string) []string {
 		}
 	}
 	return result
+}
+
+func RemoveElementFromSliceAtIndex[S ~[]E, E any](slice S, index int) S {
+	return slices.Delete(slice, index, index+1)
 }
 
 func GetIPAddress(r *http.Request, trustedProxyIPHeader []string) string {
@@ -184,17 +188,28 @@ func AppendQueryParamsToURL(baseURL string, params map[string]string) string {
 	return u.String()
 }
 
-// Validates RedirectURL passed during OAuth or SAML
-func IsValidWebAuthRedirectURL(config *model.Config, redirectURL string) bool {
+// ValidateWebAuthRedirectUrl validates a RedirectURL passed during OAuth or SAML.
+func ValidateWebAuthRedirectUrl(config *model.Config, redirectURL string) error {
 	u, err := url.Parse(redirectURL)
-	if err == nil && (u.Scheme == "http" || u.Scheme == "https") {
-		if config.ServiceSettings.SiteURL != nil {
-			siteURL := *config.ServiceSettings.SiteURL
-			return strings.Index(strings.ToLower(redirectURL), strings.ToLower(siteURL)) == 0
-		}
-		return false
+	if err != nil {
+		return errors.Wrap(err, "failed to parse redirect URL")
 	}
-	return true
+
+	if config.ServiceSettings.SiteURL == nil {
+		return errors.New("SiteURL is not configured")
+	}
+	siteURL, err := url.Parse(*config.ServiceSettings.SiteURL)
+	if err != nil {
+		return errors.Wrap(err, "failed to parse SiteURL from config")
+	}
+
+	if u.Scheme != siteURL.Scheme {
+		return errors.Errorf("redirect URL scheme %q does not match site URL scheme %q", u.Scheme, siteURL.Scheme)
+	}
+	if u.Host != siteURL.Host {
+		return errors.Errorf("redirect URL host %q does not match site URL host %q", u.Host, siteURL.Host)
+	}
+	return nil
 }
 
 // Validates Mobile Custom URL Scheme passed during OAuth or SAML
@@ -239,24 +254,11 @@ func RoundOffToZeroes(n float64) int64 {
 	return firstDigit * tens
 }
 
-func MinInt(a, b int) int {
-	if a < b {
-		return a
-	}
-	return b
-}
-func MaxInt(a, b int) int {
-	if a > b {
-		return a
-	}
-	return b
-}
-
 // RoundOffToZeroesResolution truncates off at most minResolution zero places.
 // It implicitly sets the lowest minResolution to 0.
 // e.g. 0 reports 1s, 1 reports 10s, 2 reports 100s, 3 reports 1000s
 func RoundOffToZeroesResolution(n float64, minResolution int) int64 {
-	resolution := MaxInt(0, minResolution)
+	resolution := max(0, minResolution)
 	if n >= -9 && n <= 9 {
 		if resolution == 0 {
 			return int64(n)
@@ -265,7 +267,7 @@ func RoundOffToZeroesResolution(n float64, minResolution int) int64 {
 	}
 
 	zeroes := int(math.Log10(math.Abs(n)))
-	resolution = MinInt(zeroes, resolution)
+	resolution = min(zeroes, resolution)
 	tens := int64(math.Pow10(resolution))
 	significantDigits := int64(n) / tens
 	return significantDigits * tens

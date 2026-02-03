@@ -40,9 +40,9 @@ describe('Selectors.Channels.getChannelsInCurrentTeam', () => {
         };
 
         const channelsInTeam = {
-            [team1.id]: [channel1.id, channel3.id],
-            [team2.id]: [channel2.id],
-            '': [channel4.id],
+            [team1.id]: new Set([channel1.id, channel3.id]),
+            [team2.id]: new Set([channel2.id]),
+            '': new Set([channel4.id]),
         };
 
         const testState = deepFreezeAndThrowOnMutation({
@@ -97,7 +97,7 @@ describe('Selectors.Channels.getChannelsInCurrentTeam', () => {
         };
 
         const channelsInTeam = {
-            [team1.id]: [channel1.id, channel2.id],
+            [team1.id]: new Set([channel1.id, channel2.id]),
         };
 
         const testStateDe = deepFreezeAndThrowOnMutation({
@@ -188,9 +188,9 @@ describe('Selectors.Channels.getMyChannels', () => {
     };
 
     const channelsInTeam = {
-        [team1.id]: [channel1.id, channel3.id],
-        [team2.id]: [channel2.id],
-        '': [channel4.id, channel5.id],
+        [team1.id]: new Set([channel1.id, channel3.id]),
+        [team2.id]: new Set([channel2.id]),
+        '': new Set([channel4.id, channel5.id]),
     };
 
     const myMembers = {
@@ -319,9 +319,9 @@ describe('Selectors.Channels.getOtherChannels', () => {
     };
 
     const channelsInTeam = {
-        [team1.id]: [channel1.id, channel3.id, channel5.id, channel6.id],
-        [team2.id]: [channel2.id],
-        '': [channel4.id],
+        [team1.id]: new Set([channel1.id, channel3.id, channel5.id, channel6.id]),
+        [team2.id]: new Set([channel2.id]),
+        '': new Set([channel4.id]),
     };
 
     const myMembers = {
@@ -481,13 +481,13 @@ describe('makeGetChannel', () => {
     test('should return non-DM/non-GM channels directly from the store', () => {
         const getChannel = Selectors.makeGetChannel();
 
-        expect(getChannel(testState, {id: channel1.id})).toBe(channel1);
+        expect(getChannel(testState, channel1.id)).toBe(channel1);
     });
 
     test('should return DMs with computed data added', () => {
         const getChannel = Selectors.makeGetChannel();
 
-        expect(getChannel(testState, {id: channel2.id})).toEqual({
+        expect(getChannel(testState, channel2.id)).toEqual({
             ...channel2,
             display_name: user2.username,
             status: 'offline',
@@ -498,7 +498,7 @@ describe('makeGetChannel', () => {
     test('should return GMs with computed data added', () => {
         const getChannel = Selectors.makeGetChannel();
 
-        expect(getChannel(testState, {id: channel3.id})).toEqual({
+        expect(getChannel(testState, channel3.id)).toEqual({
             ...channel3,
             display_name: [user2.username, user3.username].sort(sortUsernames).join(', '),
         });
@@ -625,8 +625,8 @@ describe('Selectors.Channels.getChannelsNameMapInCurrentTeam', () => {
     };
 
     const channelsInTeam = {
-        [team1.id]: [channel1.id, channel4.id],
-        [team2.id]: [channel2.id, channel3.id],
+        [team1.id]: new Set([channel1.id, channel4.id]),
+        [team2.id]: new Set([channel2.id, channel3.id]),
     };
 
     const testState = deepFreezeAndThrowOnMutation({
@@ -741,8 +741,8 @@ describe('Selectors.Channels.getChannelsNameMapInTeam', () => {
     };
 
     const channelsInTeam = {
-        [team1.id]: [channel1.id, channel4.id],
-        [team2.id]: [channel2.id, channel3.id],
+        [team1.id]: new Set([channel1.id, channel4.id]),
+        [team2.id]: new Set([channel2.id, channel3.id]),
     };
 
     const testState = deepFreezeAndThrowOnMutation({
@@ -796,8 +796,8 @@ describe('Selectors.Channels.getChannelNameToDisplayNameMap', () => {
                     channel4,
                 },
                 channelsInTeam: {
-                    [team1.id]: [channel1.id, channel2.id, channel3.id],
-                    [team2.id]: [channel4.id],
+                    [team1.id]: new Set([channel1.id, channel2.id, channel3.id]),
+                    [team2.id]: new Set([channel4.id]),
                 },
             },
             teams: {
@@ -913,7 +913,7 @@ describe('Selectors.Channels.getChannelNameToDisplayNameMap', () => {
                             newChannel,
                         },
                         channelsInTeam: {
-                            [team1.id]: [channel1.id, channel2.id, channel3.id, newChannel.id],
+                            [team1.id]: new Set([channel1.id, channel2.id, channel3.id, newChannel.id]),
                         },
                     },
                 },
@@ -980,8 +980,8 @@ describe('Selectors.Channels.getGroupChannels', () => {
     };
 
     const channelsInTeam = {
-        [team1.id]: [channel1.id, channel2.id],
-        '': [channel3.id, channel4.id, channel5.id],
+        [team1.id]: new Set([channel1.id, channel2.id]),
+        '': new Set([channel3.id, channel4.id, channel5.id]),
     };
 
     const testState = deepFreezeAndThrowOnMutation({
@@ -1028,10 +1028,9 @@ describe('Selectors.Channels.getChannelIdsInCurrentTeam', () => {
     const channel5 = TestHelper.fakeChannelWithId('');
 
     const channelsInTeam = {
-        [team1.id]: [channel1.id, channel2.id],
-        [team2.id]: [channel3.id, channel4.id],
-        // eslint-disable-next-line no-useless-computed-key
-        ['']: [channel5.id],
+        [team1.id]: new Set([channel1.id, channel2.id]),
+        [team2.id]: new Set([channel3.id, channel4.id]),
+        '': new Set([channel5.id]),
     };
 
     const testState = deepFreezeAndThrowOnMutation({
@@ -1055,10 +1054,10 @@ describe('Selectors.Channels.getChannelIdsInCurrentTeam', () => {
                     ...testState.entities.channels,
                     channelsInTeam: {
                         ...testState.entities.channels.channelsInTeam,
-                        [team2.id]: [
+                        [team2.id]: new Set([
                             ...testState.entities.channels.channelsInTeam[team2.id],
                             newChannel.id,
-                        ],
+                        ]),
                     },
                 },
             },
@@ -1085,10 +1084,9 @@ describe('Selectors.Channels.getChannelIdsForCurrentTeam', () => {
     const channel5 = TestHelper.fakeChannelWithId('');
 
     const channelsInTeam = {
-        [team1.id]: [channel1.id, channel2.id],
-        [team2.id]: [channel3.id, channel4.id],
-        // eslint-disable-next-line no-useless-computed-key
-        ['']: [channel5.id],
+        [team1.id]: new Set([channel1.id, channel2.id]),
+        [team2.id]: new Set([channel3.id, channel4.id]),
+        '': new Set([channel5.id]),
     };
 
     const testState = deepFreezeAndThrowOnMutation({
@@ -1112,10 +1110,10 @@ describe('Selectors.Channels.getChannelIdsForCurrentTeam', () => {
                     ...testState.entities.channels,
                     channelsInTeam: {
                         ...testState.entities.channels.channelsInTeam,
-                        [team2.id]: [
+                        [team2.id]: new Set([
                             ...testState.entities.channels.channelsInTeam[team2.id],
                             anotherChannel.id,
-                        ],
+                        ]),
                     },
                 },
             },
@@ -1273,8 +1271,8 @@ describe('Selectors.Channels.getChannelsWithUserProfiles', () => {
     };
 
     const channelsInTeam = {
-        [team1.id]: [channel1.id],
-        '': [channel2.id],
+        [team1.id]: new Set([channel1.id]),
+        '': new Set([channel2.id]),
     };
 
     const user1 = TestHelper.fakeUserWithId();
@@ -1333,7 +1331,7 @@ describe('Selectors.Channels.getChannelsWithUserProfiles', () => {
                         [unloadedChannel.id]: unloadedChannel,
                     },
                     channelsInTeam: {
-                        '': [channel2.id, unloadedChannel.id],
+                        '': new Set([channel2.id, unloadedChannel.id]),
                     },
                 },
             },
@@ -2006,7 +2004,7 @@ describe('Selectors.Channels.getUnreadStatusInCurrentTeam', () => {
     };
 
     const channelsInTeam = {
-        [team1.id]: [channel1.id, channel2.id],
+        [team1.id]: new Set([channel1.id, channel2.id]),
     };
 
     const testState = deepFreezeAndThrowOnMutation({
@@ -2191,7 +2189,7 @@ describe('Selectors.Channels.getUnreadStatus', () => {
     });
 
     it('get unreads', () => {
-        expect(Selectors.getUnreadStatus(testState)).toBe(69);
+        expect(Selectors.getUnreadStatus(testState)).toBe(5);
     });
 
     it('get unreads with a missing profile entity', () => {
@@ -2210,7 +2208,7 @@ describe('Selectors.Channels.getUnreadStatus', () => {
             },
         };
 
-        expect(Selectors.getUnreadStatus(newState)).toBe(69);
+        expect(Selectors.getUnreadStatus(newState)).toBe(5);
     });
 
     it('get unreads with a deactivated user', () => {
@@ -2232,7 +2230,7 @@ describe('Selectors.Channels.getUnreadStatus', () => {
                 },
             },
         };
-        expect(Selectors.getUnreadStatus(newState)).toBe(69);
+        expect(Selectors.getUnreadStatus(newState)).toBe(5);
     });
 
     it('get unreads with a deactivated channel', () => {
@@ -2255,17 +2253,44 @@ describe('Selectors.Channels.getUnreadStatus', () => {
             },
         };
 
-        expect(Selectors.getUnreadStatus(newState)).toBe(65);
+        expect(Selectors.getUnreadStatus(newState)).toBe(1);
+    });
+
+    it('should not count unreads and mentions from a muted channel', () => {
+        const mutedChannelId = channel2.id;
+        const newMyMembers = {
+            ...testState.entities.channels.myMembers,
+            [mutedChannelId]: {
+                ...testState.entities.channels.myMembers[mutedChannelId],
+                notify_props: {
+                    ...testState.entities.channels.myMembers[mutedChannelId].notify_props,
+                    mark_unread: 'mention',
+                },
+                mention_count: 3,
+                msg_count: 10,
+            },
+        };
+
+        const newState = {
+            ...testState,
+            entities: {
+                ...testState.entities,
+                channels: {
+                    ...testState.entities.channels,
+                    myMembers: newMyMembers,
+                },
+            },
+        };
+
+        expect(Selectors.getUnreadStatus(newState)).toBe(1);
     });
 });
 
 describe('Selectors.Channels.getUnreadStatus', () => {
     const team1 = {id: 'team1', delete_at: 0};
-    const team2 = {id: 'team2', delete_at: 0};
 
     const channelA = {id: 'channelA', name: 'channelA', team_id: 'team1', delete_at: 0};
     const channelB = {id: 'channelB', name: 'channelB', team_id: 'team1', delete_at: 0};
-    const channelC = {id: 'channelB', name: 'channelB', team_id: 'team2', delete_at: 0};
 
     const dmChannel = {id: 'dmChannel', name: 'user1__user2', team_id: '', delete_at: 0, type: General.DM_CHANNEL};
     const gmChannel = {id: 'gmChannel', name: 'gmChannel', team_id: 'team1', delete_at: 0, type: General.GM_CHANNEL};
@@ -2498,61 +2523,6 @@ describe('Selectors.Channels.getUnreadStatus', () => {
 
         expect(unreadMeta.isUnread).toBe(true); // gmChannel is unread
         expect(unreadMeta.unreadMentionCount).toBe(gmMember.mention_count);
-    });
-
-    test('should count mentions and messages for other teams from team members', () => {
-        const myMemberA = {mention_count: 2, msg_count: 3, notify_props: {mark_unread: 'all'}};
-        const myMemberC = {mention_count: 5, msg_count: 7, notify_props: {mark_unread: 'all'}};
-
-        const teamMember1 = {msg_count: 1, mention_count: 2};
-        const teamMember2 = {msg_count: 3, mention_count: 6};
-
-        const state = {
-            entities: {
-                general: {config: {}},
-                preferences: {
-                    myPreferences: {},
-                },
-                threads: {
-                    counts: {},
-                },
-                channels: {
-                    channels: {
-                        channelA,
-                        channelC,
-                    },
-                    messageCounts: {
-                        channelA: {total: 11},
-                        channelC: {total: 17},
-                    },
-                    myMembers: {
-                        channelA: myMemberA,
-                        channelC: myMemberC,
-                    },
-                },
-                teams: {
-                    currentTeamId: 'team1',
-                    myMembers: {
-                        team1: teamMember1,
-                        team2: teamMember2,
-                    },
-                    teams: {
-                        team1,
-                        team2,
-                    },
-                },
-                users: {
-                    currentUserId: 'user1',
-                    profiles: {},
-                },
-            },
-        } as unknown as GlobalState;
-
-        const unreadStatus = Selectors.getUnreadStatus(state);
-        const unreadMeta = Selectors.basicUnreadMeta(unreadStatus);
-
-        expect(unreadMeta.isUnread).toBe(true); // channelA and channelC are unread
-        expect(unreadMeta.unreadMentionCount).toBe(myMemberA.mention_count + teamMember2.mention_count);
     });
 });
 
@@ -3078,9 +3048,9 @@ describe('Selectors.Channels.getUnreadChannelIds', () => {
         };
 
         const channelsInTeam = {
-            [team1.id]: [channel1.id, channel3.id],
-            [team2.id]: [channel2.id],
-            '': [channel4.id],
+            [team1.id]: new Set([channel1.id, channel3.id]),
+            [team2.id]: new Set([channel2.id]),
+            '': new Set([channel4.id]),
         };
 
         const messageCounts = {
@@ -3152,9 +3122,9 @@ describe('Selectors.Channels.getUnreadChannelIds', () => {
         };
 
         const channelsInTeam = {
-            [team1.id]: [channel1.id, channel3.id],
-            [team2.id]: [channel2.id],
-            '': [channel4.id],
+            [team1.id]: new Set([channel1.id, channel3.id]),
+            [team2.id]: new Set([channel2.id]),
+            '': new Set([channel4.id]),
         };
 
         const messageCounts = {

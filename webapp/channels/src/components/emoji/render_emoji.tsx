@@ -2,6 +2,7 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
+import type {MouseEvent, KeyboardEvent} from 'react';
 import {useSelector} from 'react-redux';
 
 import {getEmojiImageUrl} from 'mattermost-redux/utils/emoji_utils';
@@ -10,14 +11,21 @@ import {getEmojiMap} from 'selectors/emojis';
 
 import type {GlobalState} from 'types/store';
 
+const emptyEmojiStyle = {};
+
 interface ComponentProps {
     emojiName: string;
     size?: number;
     emojiStyle?: React.CSSProperties;
-    onClick?: () => void;
+    onClick?: (event: MouseEvent<HTMLSpanElement> | KeyboardEvent<HTMLSpanElement>) => void;
 }
 
-const RenderEmoji = ({emojiName, emojiStyle, size, onClick}: ComponentProps) => {
+const RenderEmoji = ({
+    emojiName = '',
+    emojiStyle = emptyEmojiStyle,
+    size = 16,
+    onClick,
+}: ComponentProps) => {
     const emojiMap = useSelector((state: GlobalState) => getEmojiMap(state));
 
     if (!emojiName) {
@@ -50,12 +58,6 @@ const RenderEmoji = ({emojiName, emojiStyle, size, onClick}: ComponentProps) => 
             }}
         />
     );
-};
-
-RenderEmoji.defaultProps = {
-    emoji: '',
-    emojiStyle: {},
-    size: 16,
 };
 
 export default React.memo(RenderEmoji);

@@ -8,6 +8,7 @@ import (
 	"io"
 	"net/http"
 	"path/filepath"
+	"slices"
 
 	"github.com/pkg/errors"
 	"golang.org/x/crypto/openpgp"       //nolint:staticcheck
@@ -15,7 +16,6 @@ import (
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
-	pUtils "github.com/mattermost/mattermost/server/public/utils"
 
 	"github.com/mattermost/mattermost/server/v8/channels/utils"
 )
@@ -48,7 +48,7 @@ func (a *App) AddPublicKey(name string, key io.Reader) *model.AppError {
 	}
 
 	a.UpdateConfig(func(cfg *model.Config) {
-		if !pUtils.Contains(cfg.PluginSettings.SignaturePublicKeyFiles, name) {
+		if !slices.Contains(cfg.PluginSettings.SignaturePublicKeyFiles, name) {
 			cfg.PluginSettings.SignaturePublicKeyFiles = append(cfg.PluginSettings.SignaturePublicKeyFiles, name)
 		}
 	})
@@ -73,29 +73,36 @@ func (a *App) DeletePublicKey(name string) *model.AppError {
 	return nil
 }
 
-// VerifyPlugin checks that the given signature corresponds to the given plugin and matches a trusted certificate.
-func (a *App) VerifyPlugin(plugin, signature io.ReadSeeker) *model.AppError {
-	return a.ch.verifyPlugin(plugin, signature)
-}
-
-func (ch *Channels) verifyPlugin(plugin, signature io.ReadSeeker) *model.AppError {
+func (ch *Channels) verifyPlugin(logger *mlog.Logger, plugin, signature io.ReadSeeker) *model.AppError {
+	// First try verifying using the hard-coded public key.
 	if err := verifySignature(bytes.NewReader(mattermostPluginPublicKey), plugin, signature); err == nil {
+		logger.Debug("Plugin signature verified using hard-coded public key")
 		return nil
 	}
-	publicKeys := ch.cfgSvc.Config().PluginSettings.SignaturePublicKeyFiles
+
+	// If that fails, try any of the admin-configured public keys.
+	publicKeys := ch.srv.Config().PluginSettings.SignaturePublicKeyFiles
 	for _, pk := range publicKeys {
 		pkBytes, appErr := ch.srv.getPublicKey(pk)
 		if appErr != nil {
-			mlog.Warn("Unable to get public key for ", mlog.String("filename", pk))
+			logger.Warn("Unable to read configured signature public key file", mlog.String("public_key_path", pk))
 			continue
 		}
 		publicKey := bytes.NewReader(pkBytes)
-		plugin.Seek(0, 0)
-		signature.Seek(0, 0)
+		if _, err := plugin.Seek(0, io.SeekStart); err != nil {
+			logger.Warn("Unable to seek in public key reader for ", mlog.String("public_key_path", pk))
+			continue
+		}
+		if _, err := signature.Seek(0, io.SeekStart); err != nil {
+			logger.Warn("Unable to seek in signature for public key ", mlog.String("public_key_path", pk))
+			continue
+		}
 		if err := verifySignature(publicKey, plugin, signature); err == nil {
+			logger.Debug("Plugin signature verified using configured public key", mlog.String("public_key_path", pk))
 			return nil
 		}
 	}
+
 	return model.NewAppError("VerifyPlugin", "api.plugin.verify_plugin.app_error", nil, "", http.StatusInternalServerError)
 }
 

@@ -16,6 +16,7 @@ function mapStateToProps(state: GlobalState) {
     const enableOutgoingWebhooks = config.EnableOutgoingWebhooks === 'true';
     const enableCommands = config.EnableCommands === 'true';
     const enableOAuthServiceProvider = config.EnableOAuthServiceProvider === 'true';
+    const enableOutgoingOAuthConnections = config.EnableOutgoingOAuthConnections === 'true';
 
     return {
         siteName,
@@ -23,6 +24,7 @@ function mapStateToProps(state: GlobalState) {
         enableOutgoingWebhooks,
         enableCommands,
         enableOAuthServiceProvider,
+        enableOutgoingOAuthConnections,
     };
 }
 

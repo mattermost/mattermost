@@ -2,29 +2,23 @@
 // See LICENSE.txt for license information.
 
 import classNames from 'classnames';
-import {noop} from 'lodash';
+import noop from 'lodash/noop';
 import React, {useEffect, useState} from 'react';
-import {FormattedMessage} from 'react-intl';
-import {useDispatch, useSelector} from 'react-redux';
+import {FormattedMessage, defineMessage, useIntl} from 'react-intl';
+import {useSelector} from 'react-redux';
 
 import type {Team} from '@mattermost/types/teams';
 
 import {getLicense} from 'mattermost-redux/selectors/entities/general';
 
-import {openModal} from 'actions/views/modals';
-
 import useGetUsage from 'components/common/hooks/useGetUsage';
 import useGetUsageDeltas from 'components/common/hooks/useGetUsageDeltas';
-import FormattedMarkdownMessage from 'components/formatted_markdown_message';
-import OverlayTrigger from 'components/overlay_trigger';
-import PricingModal from 'components/pricing_modal';
-import Tooltip from 'components/tooltip';
+import useOpenPricingModal from 'components/common/hooks/useOpenPricingModal';
 import AdminPanel from 'components/widgets/admin_console/admin_panel';
 import TeamIcon from 'components/widgets/team_icon/team_icon';
+import WithTooltip from 'components/with_tooltip';
 
-import {ModalIdentifiers} from 'utils/constants';
-import {t} from 'utils/i18n';
-import {imageURLForTeam, localizeMessage} from 'utils/utils';
+import {imageURLForTeam} from 'utils/utils';
 
 import './team_profile.scss';
 
@@ -39,9 +33,10 @@ type Props = {
 export function TeamProfile({team, isArchived, onToggleArchive, isDisabled, saveNeeded}: Props) {
     const teamIconUrl = imageURLForTeam(team);
     const usageDeltas = useGetUsageDeltas();
-    const dispatch = useDispatch();
     const usage = useGetUsage();
     const license = useSelector(getLicense);
+    const intl = useIntl();
+    const {openPricingModal, isAirGapped} = useOpenPricingModal();
 
     const [overrideRestoreDisabled, setOverrideRestoreDisabled] = useState(false);
     const [restoreDisabled, setRestoreDisabled] = useState(usageDeltas.teams.teamsLoaded && usageDeltas.teams.active >= 0 && isArchived);
@@ -55,15 +50,9 @@ export function TeamProfile({team, isArchived, onToggleArchive, isDisabled, save
         return null;//
     }
 
-    let archiveBtnID: string;
-    let archiveBtnDefault: string;
-    if (isArchived) {
-        archiveBtnID = t('admin.team_settings.team_details.unarchiveTeam');
-        archiveBtnDefault = 'Unarchive Team';
-    } else {
-        archiveBtnID = t('admin.team_settings.team_details.archiveTeam');
-        archiveBtnDefault = 'Archive Team';
-    }
+    const archiveBtn = isArchived ?
+        defineMessage({id: 'admin.team_settings.team_details.unarchiveTeam', defaultMessage: 'Unarchive Team'}) :
+        defineMessage({id: 'admin.team_settings.team_details.archiveTeam', defaultMessage: 'Archive Team'});
 
     const toggleArchive = () => {
         setOverrideRestoreDisabled(true);
@@ -72,28 +61,10 @@ export function TeamProfile({team, isArchived, onToggleArchive, isDisabled, save
     const button = () => {
         if (restoreDisabled) {
             return (
-                <OverlayTrigger
-                    delay={400}
-                    placement='bottom'
-                    disabled={!restoreDisabled}
-                    overlay={
-                        <Tooltip id='sharedTooltip'>
-                            <div className={'tooltip-title'}>
-                                <FormattedMessage
-                                    id={'workspace_limits.teams_limit_reached.upgrade_to_unarchive'}
-                                    defaultMessage={'Upgrade to Unarchive'}
-                                />
-                            </div>
-                            <div className={'tooltip-body'}>
-                                <FormattedMessage
-                                    id={'workspace_limits.teams_limit_reached.tool_tip'}
-                                    defaultMessage={'You\'ve reached the team limit for your current plan. Consider upgrading to unarchive this team or archive your other teams'}
-                                />
-                            </div>
-                        </Tooltip>
-                    }
+                <WithTooltip
+                    title={intl.formatMessage({id: 'workspace_limits.teams_limit_reached.upgrade_to_unarchive', defaultMessage: 'Upgrade to Unarchive'})}
+                    hint={intl.formatMessage({id: 'workspace_limits.teams_limit_reached.tool_tip', defaultMessage: 'You\'ve reached the team limit for your current plan. Consider upgrading to unarchive this team or archive your other teams'})}
                 >
-                    {/* OverlayTrigger doesn't play nicely with `disabled` buttons, because the :hover events don't fire. This is a workaround to ensure the popover appears see: https://github.com/react-bootstrap/react-bootstrap/issues/1588*/}
                     <div
                         className={'disabled-overlay-wrapper'}
                     >
@@ -119,14 +90,10 @@ export function TeamProfile({team, isArchived, onToggleArchive, isDisabled, save
                             ) : (
                                 <i className='icon icon-archive-outline'/>
                             )}
-                            <FormattedMessage
-                                id={archiveBtnID}
-                                defaultMessage={archiveBtnDefault}
-                            />
+                            <FormattedMessage {...archiveBtn}/>
                         </button>
                     </div>
-                </OverlayTrigger>
-
+                </WithTooltip>
             );
         }
         return (
@@ -150,10 +117,7 @@ export function TeamProfile({team, isArchived, onToggleArchive, isDisabled, save
                 ) : (
                     <i className='icon icon-archive-outline'/>
                 )}
-                <FormattedMessage
-                    id={archiveBtnID}
-                    defaultMessage={archiveBtnDefault}
-                />
+                <FormattedMessage {...archiveBtn}/>
             </button>
         );
     };
@@ -161,10 +125,8 @@ export function TeamProfile({team, isArchived, onToggleArchive, isDisabled, save
     return (
         <AdminPanel
             id='team_profile'
-            titleId={t('admin.team_settings.team_detail.profileTitle')}
-            titleDefault='Team Profile'
-            subtitleId={t('admin.team_settings.team_detail.profileDescription')}
-            subtitleDefault='Summary of the team, including team name and description.'
+            title={defineMessage({id: 'admin.team_settings.team_detail.profileTitle', defaultMessage: 'Team Profile'})}
+            subtitle={defineMessage({id: 'admin.team_settings.team_detail.profileDescription', defaultMessage: 'Summary of the team, including team name and description.'})}
         >
 
             <div className='group-teams-and-channels'>
@@ -180,33 +142,34 @@ export function TeamProfile({team, isArchived, onToggleArchive, isDisabled, save
                         </div>
                         <div className='team-desc-col'>
                             <div className='row row-bottom-padding'>
-                                <FormattedMarkdownMessage
-                                    id='admin.team_settings.team_detail.teamName'
-                                    defaultMessage='**Team Name**:'
+                                <FormattedMessage
+                                    id='admin.teamSettings.teamDetail.teamName'
+                                    defaultMessage='<b>Team Name</b>:'
+                                    values={{
+                                        b: (chunks) => <b>{chunks}</b>,
+                                    }}
                                 />
                                 <br/>
                                 {team.display_name}
                             </div>
                             <div className='row'>
-                                <FormattedMarkdownMessage
-                                    id='admin.team_settings.team_detail.teamDescription'
-                                    defaultMessage='**Team Description**:'
+                                <FormattedMessage
+                                    id='admin.teamSettings.teamDetail.teamDescription'
+                                    defaultMessage='<b>Team Description</b>:'
+                                    values={{
+                                        b: (chunks) => <b>{chunks}</b>,
+                                    }}
                                 />
                                 <br/>
-                                {team.description || <span className='greyed-out'>{localizeMessage('admin.team_settings.team_detail.profileNoDescription', 'No team description added.')}</span>}
+                                {team.description || <span className='greyed-out'>{intl.formatMessage({id: 'admin.team_settings.team_detail.profileNoDescription', defaultMessage: 'No team description added.'})}</span>}
                             </div>
                         </div>
                     </div>
                     <div className='AdminChannelDetails_archiveContainer'>
                         {button()}
-                        {restoreDisabled &&
+                        {restoreDisabled && !isAirGapped &&
                             <button
-                                onClick={() => {
-                                    dispatch(openModal({
-                                        modalId: ModalIdentifiers.PRICING_MODAL,
-                                        dialogType: PricingModal,
-                                    }));
-                                }}
+                                onClick={openPricingModal}
                                 type='button'
                                 className={
                                     classNames(

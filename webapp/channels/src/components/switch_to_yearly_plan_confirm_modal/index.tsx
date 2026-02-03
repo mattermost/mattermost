@@ -7,15 +7,12 @@ import {useSelector, useDispatch} from 'react-redux';
 
 import {GenericModal} from '@mattermost/components';
 
-import type {DispatchFunc} from 'mattermost-redux/types/actions';
-
-import {trackEvent} from 'actions/telemetry_actions';
 import {closeModal} from 'actions/views/modals';
 import {isModalOpen} from 'selectors/views/modals';
 
 import Svg from 'components/common/svg_images_components/woman_credit_card_and_laptop_svg';
 
-import {ModalIdentifiers, TELEMETRY_CATEGORIES} from 'utils/constants';
+import {ModalIdentifiers} from 'utils/constants';
 
 import type {GlobalState} from 'types/store';
 
@@ -27,7 +24,7 @@ type Props = {
 }
 
 const SwitchToYearlyPlanConfirmModal: React.FC<Props> = (props: Props): JSX.Element | null => {
-    const dispatch = useDispatch<DispatchFunc>();
+    const dispatch = useDispatch();
     const {formatMessage} = useIntl();
 
     const show = useSelector((state: GlobalState) => isModalOpen(state, ModalIdentifiers.CONFIRM_SWITCH_TO_YEARLY));
@@ -41,10 +38,6 @@ const SwitchToYearlyPlanConfirmModal: React.FC<Props> = (props: Props): JSX.Elem
     };
 
     const handleClose = () => {
-        trackEvent(
-            TELEMETRY_CATEGORIES.CLOUD_ADMIN,
-            'confirm_switch_to_annual_click_close_modal',
-        );
         dispatch(closeModal(ModalIdentifiers.CONFIRM_SWITCH_TO_YEARLY));
     };
 
@@ -62,7 +55,7 @@ const SwitchToYearlyPlanConfirmModal: React.FC<Props> = (props: Props): JSX.Elem
         >
             <>
                 <div className='content-body'>
-                    <div className='alert-svg'>
+                    <div className='no-header__img'>
                         <Svg
                             width={300}
                             height={300}

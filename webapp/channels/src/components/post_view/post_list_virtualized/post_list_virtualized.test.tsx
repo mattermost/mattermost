@@ -1,13 +1,13 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import type {DynamicSizeList} from 'dynamic-virtualized-list';
 import {shallow} from 'enzyme';
 import React from 'react';
 import type {ComponentProps} from 'react';
 
 import {DATE_LINE} from 'mattermost-redux/utils/post_list';
 
+import type {DynamicVirtualizedList} from 'components/dynamic_virtualized_list';
 import PostListRow from 'components/post_view/post_list_row';
 
 import {PostListRowListIds, PostRequestTypes} from 'utils/constants';
@@ -51,7 +51,7 @@ describe('PostList', () => {
         'post3',
         DATE_LINE + 1551711600000,
         'post4',
-        PostListRowListIds.START_OF_NEW_MESSAGES,
+        PostListRowListIds.START_OF_NEW_MESSAGES + 1551711601000,
         'post5',
     ];
 
@@ -132,7 +132,7 @@ describe('PostList', () => {
             const scrollHeight = 1000;
             const clientHeight = 500;
 
-            instance.listRef = {current: {_getRangeToRender: () => [0, 70, 12, 1]} as unknown as DynamicSizeList};
+            instance.listRef = {current: {_getRangeToRender: () => [0, 70, 12, 1]} as unknown as DynamicVirtualizedList};
             instance.onScroll({
                 scrollDirection: 'forward',
                 scrollOffset,
@@ -152,7 +152,7 @@ describe('PostList', () => {
             const scrollHeight = 1000;
             const clientHeight = 500;
 
-            instance.listRef = {current: {_getRangeToRender: () => [0, 70, 12, 2]} as unknown as DynamicSizeList};
+            instance.listRef = {current: {_getRangeToRender: () => [0, 70, 12, 2]} as unknown as DynamicVirtualizedList};
             instance.onScroll({
                 scrollDirection: 'forward',
                 scrollOffset,
@@ -459,7 +459,7 @@ describe('PostList', () => {
             for (let i = 0; i < 120; i++) {
                 postListIds.push(`post${i}`);
             }
-            postListIds[65] = PostListRowListIds.START_OF_NEW_MESSAGES;
+            postListIds[65] = PostListRowListIds.START_OF_NEW_MESSAGES + 1551711601000;
 
             const props = {
                 ...baseProps,
@@ -506,7 +506,7 @@ describe('PostList', () => {
                     'post3',
                     DATE_LINE + 1551711600000,
                     'post4',
-                    PostListRowListIds.START_OF_NEW_MESSAGES,
+                    PostListRowListIds.START_OF_NEW_MESSAGES + 1551711601000,
                     'post5',
                 ],
             };
@@ -531,7 +531,7 @@ describe('PostList', () => {
                     'post3',
                     DATE_LINE + 1551711600000,
                     'post4',
-                    PostListRowListIds.START_OF_NEW_MESSAGES,
+                    PostListRowListIds.START_OF_NEW_MESSAGES + 1551711601000,
                     'post5',
                 ],
             };
@@ -614,7 +614,7 @@ describe('PostList', () => {
                 'post2',
                 'post3',
                 'post4',
-                PostListRowListIds.START_OF_NEW_MESSAGES,
+                PostListRowListIds.START_OF_NEW_MESSAGES + 1551711599000,
                 DATE_LINE + 1551711600000,
                 'post5',
             ];
@@ -637,7 +637,7 @@ describe('PostList', () => {
             'post2',
             'post3',
             'post4',
-            PostListRowListIds.START_OF_NEW_MESSAGES,
+            PostListRowListIds.START_OF_NEW_MESSAGES + 1551711601000,
             'post5',
         ];
 

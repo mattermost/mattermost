@@ -23,8 +23,11 @@
  *      - TM4J_FOLDER_ID=[folder_id], e.g. 847997
  *   For sending hooks to Mattermost channels
  *      - FULL_REPORT, WEBHOOK_URL and DIAGNOSTIC_WEBHOOK_URL
+ *      - If AUTOMATION_DASHBOARD_FRONTEND_URL is set, a link to the corresponding cycle will be included in the report message
  *   Test type
- *      - TYPE=[type], e.g. "MASTER", "PR", "RELEASE", "CLOUD"
+ *      - TYPE=[type]; valid values: "PR", "RELEASE", "MASTER", "MASTER_UNSTABLE", "CLOUD", "CLOUD_UNSTABLE", "NONE"
+ *   Server type
+ *      - SERVER_TYPE=[type]; used for the 'Test Server' field in the webhook. Any string representing the server type is valid, common values are "onprem" and "cloud"
  */
 
 const {merge} = require('mochawesome-merge');

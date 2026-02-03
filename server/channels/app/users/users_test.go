@@ -12,8 +12,7 @@ import (
 )
 
 func TestIsUsernameTaken(t *testing.T) {
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 
 	user := th.BasicUser
 	taken := th.service.IsUsernameTaken(user.Username)
@@ -34,10 +33,9 @@ func TestIsUsernameTaken(t *testing.T) {
 
 func TestFirstUserPromoted(t *testing.T) {
 	th := Setup(t)
-	defer th.TearDown()
 
-	user, err := th.service.CreateUser(&model.User{
-		Username: model.NewId(),
+	user, err := th.service.CreateUser(th.Context, &model.User{
+		Username: model.NewUsername(),
 		Password: model.NewId(),
 		Email:    "user@example.com",
 	}, UserCreateOptions{})
@@ -46,8 +44,8 @@ func TestFirstUserPromoted(t *testing.T) {
 
 	require.Equal(t, model.SystemAdminRoleId+" "+model.SystemUserRoleId, user.Roles)
 
-	user2, err := th.service.CreateUser(&model.User{
-		Username: model.NewId(),
+	user2, err := th.service.CreateUser(th.Context, &model.User{
+		Username: model.NewUsername(),
 		Password: model.NewId(),
 		Email:    "user2@example.com",
 	}, UserCreateOptions{})
@@ -56,19 +54,20 @@ func TestFirstUserPromoted(t *testing.T) {
 
 	require.Equal(t, model.SystemUserRoleId, user2.Roles)
 
-	th.dbStore.User().PermanentDelete(user.Id)
+	err = th.dbStore.User().PermanentDelete(th.Context, user.Id)
+	require.NoError(t, err)
 
 	b := &model.Bot{
 		UserId:   user2.Id,
 		OwnerId:  model.NewId(),
-		Username: model.NewId(),
+		Username: model.NewUsername(),
 	}
 
 	_, err = th.dbStore.Bot().Save(b)
 	require.NoError(t, err)
 
-	user3, err := th.service.CreateUser(&model.User{
-		Username: model.NewId(),
+	user3, err := th.service.CreateUser(th.Context, &model.User{
+		Username: model.NewUsername(),
 		Password: model.NewId(),
 		Email:    "user3@example.com",
 	}, UserCreateOptions{})
@@ -77,8 +76,8 @@ func TestFirstUserPromoted(t *testing.T) {
 
 	require.Equal(t, model.SystemAdminRoleId+" "+model.SystemUserRoleId, user3.Roles)
 
-	user4, err := th.service.CreateUser(&model.User{
-		Username: model.NewId(),
+	user4, err := th.service.CreateUser(th.Context, &model.User{
+		Username: model.NewUsername(),
 		Password: model.NewId(),
 		Email:    "user4@example.com",
 	}, UserCreateOptions{})

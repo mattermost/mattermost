@@ -24,6 +24,7 @@ describe('components/user_settings/display/manage_timezones/manage_timezones', (
         updateSection: jest.fn(),
         actions: {
             updateMe: jest.fn(() => Promise.resolve({})),
+            patchUser: jest.fn(() => Promise.resolve({})),
         },
     };
 

@@ -18,22 +18,40 @@ import {
     getPostIdsForCombinedUserActivityPost,
     isCombinedUserActivityPost,
     isDateLine,
+    makeAddDateSeparatorsForSearchResults,
     makeCombineUserActivityPosts,
     makeFilterPostsAndAddSeparators,
     makeGenerateCombinedPost,
     extractUserActivityData,
     START_OF_NEW_MESSAGES,
-    shouldShowJoinLeaveMessages,
 } from './post_list';
 
 import TestHelper from '../../test/test_helper';
 import {Posts, Preferences} from '../constants';
 
 describe('makeFilterPostsAndAddSeparators', () => {
+    const realDateNow = Date.now.bind(global.Date);
+
+    beforeEach(() => {
+        // Mock Date.now to return consistent values in tests
+        // Use a realistic timestamp (Jan 1, 2024) to avoid timezone calculation issues
+        global.Date.now = jest.fn(() => 1704067200000);
+    });
+
+    afterEach(() => {
+        // Restore original Date.now
+        global.Date.now = realDateNow;
+    });
+
     it('filter join/leave posts', () => {
         const filterPostsAndAddSeparators = makeFilterPostsAndAddSeparators();
         const time = Date.now();
         const today = new Date(time);
+
+        // Calculate expected date line after timezone adjustment
+        // pushPostDateIfNeeded adjusts by (currentOffset - userTimezoneOffset)
+        const currentOffset = today.getTimezoneOffset() * 60 * 1000;
+        const expectedDateLine = time + currentOffset; // UTC user has 0 offset
 
         let state = {
             entities: {
@@ -54,7 +72,7 @@ describe('makeFilterPostsAndAddSeparators', () => {
                 users: {
                     currentUserId: '1234',
                     profiles: {
-                        1234: {id: '1234', username: 'user'},
+                        1234: {id: '1234', username: 'user', timezone: {useAutomaticTimezone: 'false', manualTimezone: 'UTC'}},
                     },
                 },
             },
@@ -68,7 +86,7 @@ describe('makeFilterPostsAndAddSeparators', () => {
         expect(now).toEqual([
             '1002',
             '1001',
-            'date-' + today.getTime(),
+            'date-' + expectedDateLine,
         ]);
 
         // Show join/leave posts
@@ -94,7 +112,7 @@ describe('makeFilterPostsAndAddSeparators', () => {
         expect(now).toEqual([
             '1002',
             '1001',
-            'date-' + today.getTime(),
+            'date-' + expectedDateLine,
         ]);
 
         // Hide join/leave posts
@@ -119,7 +137,7 @@ describe('makeFilterPostsAndAddSeparators', () => {
         now = filterPostsAndAddSeparators(state, {postIds, lastViewedAt, indicateNewMessages});
         expect(now).toEqual([
             '1001',
-            'date-' + today.getTime(),
+            'date-' + expectedDateLine,
         ]);
 
         // always show join/leave posts for the current user
@@ -142,14 +160,151 @@ describe('makeFilterPostsAndAddSeparators', () => {
         expect(now).toEqual([
             '1002',
             '1001',
-            'date-' + today.getTime(),
+            'date-' + expectedDateLine,
         ]);
+    });
+
+    it('should filter out already-expired burn-on-read posts', () => {
+        const filterPostsAndAddSeparators = makeFilterPostsAndAddSeparators();
+        const now = Date.now();
+        const expiredTime = now - 60000; // 1 minute ago (expired)
+        const futureTime = now + 60000; // 1 minute from now (not expired)
+
+        const state = {
+            entities: {
+                general: {
+                    config: {
+                        EnableBurnOnRead: 'true',
+                    },
+                },
+                posts: {
+                    posts: {
+                        1001: {id: '1001', create_at: now, type: '', user_id: 'user1'},
+                        1002: {id: '1002', create_at: now + 1, type: Posts.POST_TYPES.BURN_ON_READ, metadata: {expire_at: expiredTime}, user_id: 'user2'},
+                        1003: {id: '1003', create_at: now + 2, type: Posts.POST_TYPES.BURN_ON_READ, metadata: {expire_at: futureTime}, user_id: 'user3'},
+                        1004: {id: '1004', create_at: now + 3, type: '', user_id: 'user4'},
+                    },
+                },
+                preferences: {
+                    myPreferences: {},
+                },
+                users: {
+                    currentUserId: '1234',
+                    profiles: {
+                        1234: {id: '1234', username: 'user', timezone: {useAutomaticTimezone: 'false', manualTimezone: 'UTC'}},
+                    },
+                },
+            },
+        } as unknown as GlobalState;
+
+        const postIds = ['1004', '1003', '1002', '1001'];
+        const lastViewedAt = Number.POSITIVE_INFINITY;
+        const indicateNewMessages = false;
+
+        const result = filterPostsAndAddSeparators(state, {postIds, lastViewedAt, indicateNewMessages});
+
+        // Should include: regular post 1004, non-expired burn post 1003, regular post 1001
+        // Should exclude: expired burn post 1002
+        expect(result).toContain('1001');
+        expect(result).toContain('1003');
+        expect(result).toContain('1004');
+        expect(result).not.toContain('1002');
+    });
+
+    it('should include burn-on-read posts without expire_at prop', () => {
+        const filterPostsAndAddSeparators = makeFilterPostsAndAddSeparators();
+        const now = Date.now();
+
+        const state = {
+            entities: {
+                general: {
+                    config: {
+                        EnableBurnOnRead: 'true',
+                    },
+                },
+                posts: {
+                    posts: {
+                        1001: {id: '1001', create_at: now, type: Posts.POST_TYPES.BURN_ON_READ, user_id: 'user1'},
+                        1002: {id: '1002', create_at: now + 1, type: Posts.POST_TYPES.BURN_ON_READ, user_id: 'user2'},
+                    },
+                },
+                preferences: {
+                    myPreferences: {},
+                },
+                users: {
+                    currentUserId: '1234',
+                    profiles: {
+                        1234: {id: '1234', username: 'user', timezone: {useAutomaticTimezone: 'false', manualTimezone: 'UTC'}},
+                    },
+                },
+            },
+        } as unknown as GlobalState;
+
+        const postIds = ['1002', '1001'];
+        const lastViewedAt = Number.POSITIVE_INFINITY;
+        const indicateNewMessages = false;
+
+        const result = filterPostsAndAddSeparators(state, {postIds, lastViewedAt, indicateNewMessages});
+
+        // Both posts should be included (no expire_at to filter on)
+        expect(result).toContain('1001');
+        expect(result).toContain('1002');
+    });
+
+    it('should filter out all burn-on-read posts when feature is disabled', () => {
+        const filterPostsAndAddSeparators = makeFilterPostsAndAddSeparators();
+        const now = Date.now();
+
+        const state = {
+            entities: {
+                general: {
+                    config: {
+                        EnableBurnOnRead: 'false',
+                    },
+                },
+                posts: {
+                    posts: {
+                        1001: {id: '1001', create_at: now, type: '', user_id: 'user1'},
+                        1002: {id: '1002', create_at: now + 1, type: Posts.POST_TYPES.BURN_ON_READ, user_id: 'user2'},
+                        1003: {id: '1003', create_at: now + 2, type: Posts.POST_TYPES.BURN_ON_READ, metadata: {expire_at: now + 60000}, user_id: 'user3'},
+                        1004: {id: '1004', create_at: now + 3, type: '', user_id: 'user4'},
+                    },
+                },
+                preferences: {
+                    myPreferences: {},
+                },
+                users: {
+                    currentUserId: '1234',
+                    profiles: {
+                        1234: {id: '1234', username: 'user', timezone: {useAutomaticTimezone: 'false', manualTimezone: 'UTC'}},
+                    },
+                },
+            },
+        } as unknown as GlobalState;
+
+        const postIds = ['1004', '1003', '1002', '1001'];
+        const lastViewedAt = Number.POSITIVE_INFINITY;
+        const indicateNewMessages = false;
+
+        const result = filterPostsAndAddSeparators(state, {postIds, lastViewedAt, indicateNewMessages});
+
+        // Feature flag only controls creation, not display
+        // Should include: regular posts (1001, 1004) AND unrevealed BoR post (1002)
+        // Should exclude: ONLY expired BoR posts
+        expect(result).toContain('1001');
+        expect(result).toContain('1004');
+        expect(result).toContain('1002'); // Unrevealed BoR post - SHOWS (feature flag doesn't affect display)
+        expect(result).toContain('1003'); // Revealed BoR post (not expired yet) - SHOWS
     });
 
     it('new messages indicator', () => {
         const filterPostsAndAddSeparators = makeFilterPostsAndAddSeparators();
         const time = Date.now();
         const today = new Date(time);
+
+        // Calculate expected date line after timezone adjustment
+        const currentOffset = today.getTimezoneOffset() * 60 * 1000;
+        const expectedDateLine = time + 1000 + currentOffset; // UTC user has 0 offset
 
         const state = {
             entities: {
@@ -169,7 +324,7 @@ describe('makeFilterPostsAndAddSeparators', () => {
                 users: {
                     currentUserId: '1234',
                     profiles: {
-                        1234: {id: '1234', username: 'user'},
+                        1234: {id: '1234', username: 'user', timezone: {useAutomaticTimezone: 'false', manualTimezone: 'UTC'}},
                     },
                 },
             },
@@ -183,7 +338,7 @@ describe('makeFilterPostsAndAddSeparators', () => {
             '1010',
             '1005',
             '1000',
-            'date-' + (today.getTime() + 1000),
+            'date-' + expectedDateLine,
         ]);
 
         now = filterPostsAndAddSeparators(state, {postIds, indicateNewMessages: true, lastViewedAt: 0});
@@ -191,7 +346,7 @@ describe('makeFilterPostsAndAddSeparators', () => {
             '1010',
             '1005',
             '1000',
-            'date-' + (today.getTime() + 1000),
+            'date-' + expectedDateLine,
         ]);
 
         now = filterPostsAndAddSeparators(state, {postIds, lastViewedAt: time + 999, indicateNewMessages: false});
@@ -199,7 +354,7 @@ describe('makeFilterPostsAndAddSeparators', () => {
             '1010',
             '1005',
             '1000',
-            'date-' + (today.getTime() + 1000),
+            'date-' + expectedDateLine,
         ]);
 
         // Show new messages indicator before all posts
@@ -208,8 +363,8 @@ describe('makeFilterPostsAndAddSeparators', () => {
             '1010',
             '1005',
             '1000',
-            START_OF_NEW_MESSAGES,
-            'date-' + (today.getTime() + 1000),
+            START_OF_NEW_MESSAGES + (time + 999),
+            'date-' + expectedDateLine,
         ]);
 
         // Show indicator between posts
@@ -217,18 +372,18 @@ describe('makeFilterPostsAndAddSeparators', () => {
         expect(now).toEqual([
             '1010',
             '1005',
-            START_OF_NEW_MESSAGES,
+            START_OF_NEW_MESSAGES + (time + 1003),
             '1000',
-            'date-' + (today.getTime() + 1000),
+            'date-' + expectedDateLine,
         ]);
 
         now = filterPostsAndAddSeparators(state, {postIds, lastViewedAt: time + 1006, indicateNewMessages: true});
         expect(now).toEqual([
             '1010',
-            START_OF_NEW_MESSAGES,
+            START_OF_NEW_MESSAGES + (time + 1006),
             '1005',
             '1000',
-            'date-' + (today.getTime() + 1000),
+            'date-' + expectedDateLine,
         ]);
 
         // Don't show indicator when all posts are read
@@ -237,243 +392,201 @@ describe('makeFilterPostsAndAddSeparators', () => {
             '1010',
             '1005',
             '1000',
-            'date-' + (today.getTime() + 1000),
+            'date-' + expectedDateLine,
         ]);
     });
+});
 
-    it('memoization', () => {
-        const filterPostsAndAddSeparators = makeFilterPostsAndAddSeparators();
+describe('makeAddDateSeparatorsForSearchResults', () => {
+    it('should add date separators for posts on different days', () => {
+        const addDateSeparatorsForSearchResults = makeAddDateSeparatorsForSearchResults();
         const time = Date.now();
         const today = new Date(time);
-        const tomorrow = new Date((24 * 60 * 60 * 1000) + today.getTime());
+        const yesterday = new Date(time - (24 * 60 * 60 * 1000));
+        const dayBeforeYesterday = new Date(time - (2 * 24 * 60 * 60 * 1000));
 
-        // Posts 7 hours apart so they should appear on multiple days
-        const initialPosts = {
-            1001: {id: '1001', create_at: time, type: ''},
-            1002: {id: '1002', create_at: time + 5, type: ''},
-            1003: {id: '1003', create_at: time + 10, type: ''},
-            1004: {id: '1004', create_at: tomorrow, type: ''},
-            1005: {id: '1005', create_at: tomorrow as any + 5, type: ''},
-            1006: {id: '1006', create_at: tomorrow as any + 10, type: Posts.POST_TYPES.JOIN_CHANNEL},
-        };
-        let state = {
+        const posts = [
+            TestHelper.getPostMock({id: 'post1', create_at: today.getTime()}),
+            TestHelper.getPostMock({id: 'post2', create_at: yesterday.getTime()}),
+            TestHelper.getPostMock({id: 'post3', create_at: dayBeforeYesterday.getTime()}),
+        ];
+        const state = {
             entities: {
-                general: {
-                    config: {},
-                },
-                posts: {
-                    posts: initialPosts,
-                },
-                preferences: {
-                    myPreferences: {
-                        [getPreferenceKey(Preferences.CATEGORY_ADVANCED_SETTINGS, Preferences.ADVANCED_FILTER_JOIN_LEAVE)]: {
-                            category: Preferences.CATEGORY_ADVANCED_SETTINGS,
-                            name: Preferences.ADVANCED_FILTER_JOIN_LEAVE,
-                            value: 'true',
-                        },
-                    },
-                },
                 users: {
                     currentUserId: '1234',
                     profiles: {
-                        1234: {id: '1234', username: 'user'},
+                        1234: {id: '1234', username: 'user', timezone: {useAutomaticTimezone: 'false', manualTimezone: 'UTC'}},
                     },
                 },
             },
         } as unknown as GlobalState;
 
-        let postIds = [
-            '1006',
-            '1004',
-            '1003',
-            '1001',
+        const result = addDateSeparatorsForSearchResults(state, posts);
+
+        expect(result).toHaveLength(6);
+        expect(result[0]).toBe('date-' + today.getTime());
+        expect(result[1]).toBe(posts[0]);
+        expect(result[2]).toBe('date-' + yesterday.getTime());
+        expect(result[3]).toBe(posts[1]);
+        expect(result[4]).toBe('date-' + dayBeforeYesterday.getTime());
+        expect(result[5]).toBe(posts[2]);
+    });
+
+    it('should not add date separators for posts on the same day', () => {
+        const addDateSeparatorsForSearchResults = makeAddDateSeparatorsForSearchResults();
+        const time = Date.now();
+        const today = new Date(time);
+
+        const posts = [
+            TestHelper.getPostMock({id: 'post1', create_at: today.getTime()}),
+            TestHelper.getPostMock({id: 'post2', create_at: today.getTime() + 1000}),
+            TestHelper.getPostMock({id: 'post3', create_at: today.getTime() + 2000}),
         ];
-        let lastViewedAt = initialPosts['1001'].create_at + 1;
-
-        let now = filterPostsAndAddSeparators(state, {postIds, lastViewedAt, indicateNewMessages: true});
-        expect(now).toEqual([
-            '1006',
-            '1004',
-            'date-' + tomorrow.getTime(),
-            '1003',
-            START_OF_NEW_MESSAGES,
-            '1001',
-            'date-' + today.getTime(),
-        ]);
-
-        // No changes
-        let prev = now;
-        now = filterPostsAndAddSeparators(state, {postIds, lastViewedAt, indicateNewMessages: true});
-        expect(now).toEqual(prev);
-        expect(now).toEqual([
-            '1006',
-            '1004',
-            'date-' + tomorrow.getTime(),
-            '1003',
-            START_OF_NEW_MESSAGES,
-            '1001',
-            'date-' + today.getTime(),
-        ]);
-
-        // lastViewedAt changed slightly
-        lastViewedAt = initialPosts['1001'].create_at + 2;
-
-        prev = now;
-        now = filterPostsAndAddSeparators(state, {postIds, lastViewedAt, indicateNewMessages: true});
-        expect(now).toEqual(prev);
-        expect(now).toEqual([
-            '1006',
-            '1004',
-            'date-' + tomorrow.getTime(),
-            '1003',
-            START_OF_NEW_MESSAGES,
-            '1001',
-            'date-' + today.getTime(),
-        ]);
-
-        // lastViewedAt changed a lot
-        lastViewedAt = initialPosts['1003'].create_at + 1;
-
-        prev = now;
-        now = filterPostsAndAddSeparators(state, {postIds, lastViewedAt, indicateNewMessages: true});
-        expect(now).not.toEqual(prev);
-        expect(now).toEqual([
-            '1006',
-            '1004',
-            START_OF_NEW_MESSAGES,
-            'date-' + tomorrow.getTime(),
-            '1003',
-            '1001',
-            'date-' + today.getTime(),
-        ]);
-
-        prev = now;
-        now = filterPostsAndAddSeparators(state, {postIds, lastViewedAt, indicateNewMessages: true});
-        expect(now).toEqual(prev);
-        expect(now).toEqual([
-            '1006',
-            '1004',
-            START_OF_NEW_MESSAGES,
-            'date-' + tomorrow.getTime(),
-            '1003',
-            '1001',
-            'date-' + today.getTime(),
-        ]);
-
-        // postIds changed, but still shallowly equal
-        postIds = [...postIds];
-
-        prev = now;
-        now = filterPostsAndAddSeparators(state, {postIds, lastViewedAt, indicateNewMessages: true});
-        expect(now).toEqual(prev);
-        expect(now).toEqual([
-            '1006',
-            '1004',
-            START_OF_NEW_MESSAGES,
-            'date-' + tomorrow.getTime(),
-            '1003',
-            '1001',
-            'date-' + today.getTime(),
-        ]);
-
-        // Post changed, not in postIds
-        state = {
-            ...state,
+        const state = {
             entities: {
-                ...state.entities,
-                posts: {
-                    ...state.entities.posts,
-                    posts: {
-                        ...state.entities.posts.posts,
-                        1007: {id: '1007', create_at: 7 * 60 * 60 * 7 * 1000},
+                users: {
+                    currentUserId: '1234',
+                    profiles: {
+                        1234: {id: '1234', username: 'user', timezone: {useAutomaticTimezone: 'false', manualTimezone: 'UTC'}},
                     },
                 },
             },
         } as unknown as GlobalState;
 
-        prev = now;
-        now = filterPostsAndAddSeparators(state, {postIds, lastViewedAt, indicateNewMessages: true});
-        expect(now).toEqual(prev);
-        expect(now).toEqual([
-            '1006',
-            '1004',
-            START_OF_NEW_MESSAGES,
-            'date-' + tomorrow.getTime(),
-            '1003',
-            '1001',
-            'date-' + today.getTime(),
-        ]);
+        const result = addDateSeparatorsForSearchResults(state, posts);
 
-        // Post changed, in postIds
-        state = {
-            ...state,
+        expect(result).toHaveLength(4);
+        expect(result[0]).toBe('date-' + today.getTime());
+        expect(result[1]).toBe(posts[0]);
+        expect(result[2]).toBe(posts[1]);
+        expect(result[3]).toBe(posts[2]);
+    });
+
+    it('should handle timezone conversion correctly', () => {
+        const addDateSeparatorsForSearchResults = makeAddDateSeparatorsForSearchResults();
+
+        const todayTimestamp = 1704067200000;
+        const todayTimestampInAmericaNewYork = 1704049200000;
+
+        const posts = [
+            TestHelper.getPostMock({id: 'post1', create_at: todayTimestampInAmericaNewYork}),
+            TestHelper.getPostMock({id: 'post2', create_at: todayTimestamp}),
+        ];
+        const state = {
             entities: {
-                ...state.entities,
-                posts: {
-                    ...state.entities.posts,
-                    posts: {
-                        ...state.entities.posts.posts,
-                        1006: {...state.entities.posts.posts['1006'], message: 'abcd'},
+                users: {
+                    currentUserId: '1234',
+                    profiles: {
+                        1234: {id: '1234', username: 'user', timezone: {useAutomaticTimezone: 'false', manualTimezone: 'America/New_York'}},
                     },
                 },
             },
-        };
+        } as unknown as GlobalState;
 
-        prev = now;
-        now = filterPostsAndAddSeparators(state, {postIds, lastViewedAt, indicateNewMessages: true});
-        expect(now).toEqual(prev);
-        expect(now).toEqual([
-            '1006',
-            '1004',
-            START_OF_NEW_MESSAGES,
-            'date-' + tomorrow.getTime(),
-            '1003',
-            '1001',
-            'date-' + today.getTime(),
-        ]);
+        const result = addDateSeparatorsForSearchResults(state, posts);
 
-        // Filter changed
-        state = {
-            ...state,
+        expect(result).toHaveLength(3);
+        expect(result[0]).toBe('date-1704031200000');
+        expect(result[1]).toBe(posts[0]);
+        expect(result[2]).toBe(posts[1]);
+    });
+
+    it('should handle posts with no timezone information', () => {
+        const addDateSeparatorsForSearchResults = makeAddDateSeparatorsForSearchResults();
+        const time = Date.now();
+        const today = new Date(time);
+        const yesterday = new Date(time - (24 * 60 * 60 * 1000));
+
+        const posts = [
+            TestHelper.getPostMock({id: 'post1', create_at: today.getTime()}),
+            TestHelper.getPostMock({id: 'post2', create_at: yesterday.getTime()}),
+        ];
+        const state = {
             entities: {
-                ...state.entities,
-                preferences: {
-                    ...state.entities.preferences,
-                    myPreferences: {
-                        ...state.entities.preferences.myPreferences,
-                        [getPreferenceKey(Preferences.CATEGORY_ADVANCED_SETTINGS, Preferences.ADVANCED_FILTER_JOIN_LEAVE)]: {
-                            category: Preferences.CATEGORY_ADVANCED_SETTINGS,
-                            name: Preferences.ADVANCED_FILTER_JOIN_LEAVE,
-                            value: 'false',
-                        },
-                    } as unknown as GlobalState['entities']['preferences']['myPreferences'],
+                users: {
+                    currentUserId: '1234',
+                    profiles: {
+                        1234: {id: '1234', username: 'user', timezone: {useAutomaticTimezone: 'false', manualTimezone: 'UTC'}},
+                    },
                 },
             },
-        };
+        } as unknown as GlobalState;
 
-        prev = now;
-        now = filterPostsAndAddSeparators(state, {postIds, lastViewedAt, indicateNewMessages: true});
-        expect(now).not.toEqual(prev);
-        expect(now).toEqual([
-            '1004',
-            START_OF_NEW_MESSAGES,
-            'date-' + tomorrow.getTime(),
-            '1003',
-            '1001',
-            'date-' + today.getTime(),
-        ]);
+        const result = addDateSeparatorsForSearchResults(state, posts);
 
-        prev = now;
-        now = filterPostsAndAddSeparators(state, {postIds, lastViewedAt, indicateNewMessages: true});
-        expect(now).toEqual(prev);
-        expect(now).toEqual([
-            '1004',
-            START_OF_NEW_MESSAGES,
-            'date-' + tomorrow.getTime(),
-            '1003',
-            '1001',
-            'date-' + today.getTime(),
-        ]);
+        expect(result).toHaveLength(4);
+        expect(result[0]).toBe('date-' + today.getTime());
+        expect(result[1]).toBe(posts[0]);
+        expect(result[2]).toBe('date-' + yesterday.getTime());
+        expect(result[3]).toBe(posts[1]);
+    });
+
+    it('should handle single post correctly', () => {
+        const addDateSeparatorsForSearchResults = makeAddDateSeparatorsForSearchResults();
+        const time = Date.now();
+        const today = new Date(time);
+
+        const posts = [
+            TestHelper.getPostMock({id: 'post1', create_at: today.getTime()}),
+        ];
+        const state = {
+            entities: {
+                users: {
+                    currentUserId: '1234',
+                    profiles: {
+                        1234: {id: '1234', username: 'user', timezone: {useAutomaticTimezone: 'false', manualTimezone: 'UTC'}},
+                    },
+                },
+            },
+        } as unknown as GlobalState;
+
+        const result = addDateSeparatorsForSearchResults(state, posts);
+
+        expect(result).toHaveLength(2);
+        expect(result[0]).toBe('date-' + today.getTime());
+        expect(result[1]).toBe(posts[0]);
+    });
+
+    it('should handle posts spanning multiple days correctly', () => {
+        const addDateSeparatorsForSearchResults = makeAddDateSeparatorsForSearchResults();
+        const time = Date.now();
+        const today = new Date(time);
+        const yesterday = new Date(time - (24 * 60 * 60 * 1000));
+        const dayBeforeYesterday = new Date(time - (2 * 24 * 60 * 60 * 1000));
+        const threeDaysAgo = new Date(time - (3 * 24 * 60 * 60 * 1000));
+
+        const posts = [
+            TestHelper.getPostMock({id: 'post1', create_at: today.getTime()}),
+            TestHelper.getPostMock({id: 'post2', create_at: today.getTime() + 1000}),
+            TestHelper.getPostMock({id: 'post3', create_at: yesterday.getTime()}),
+            TestHelper.getPostMock({id: 'post4', create_at: yesterday.getTime() + 1000}),
+            TestHelper.getPostMock({id: 'post5', create_at: dayBeforeYesterday.getTime()}),
+            TestHelper.getPostMock({id: 'post6', create_at: threeDaysAgo.getTime()}),
+        ];
+        const state = {
+            entities: {
+                users: {
+                    currentUserId: '1234',
+                    profiles: {
+                        1234: {id: '1234', username: 'user', timezone: {useAutomaticTimezone: 'false', manualTimezone: 'UTC'}},
+                    },
+                },
+            },
+        } as unknown as GlobalState;
+
+        const result = addDateSeparatorsForSearchResults(state, posts);
+
+        expect(result).toHaveLength(10);
+        expect(result[0]).toBe('date-' + today.getTime());
+        expect(result[1]).toBe(posts[0]);
+        expect(result[2]).toBe(posts[1]);
+        expect(result[3]).toBe('date-' + yesterday.getTime());
+        expect(result[4]).toBe(posts[2]);
+        expect(result[5]).toBe(posts[3]);
+        expect(result[6]).toBe('date-' + dayBeforeYesterday.getTime());
+        expect(result[7]).toBe(posts[4]);
+        expect(result[8]).toBe('date-' + threeDaysAgo.getTime());
+        expect(result[9]).toBe(posts[5]);
     });
 });
 
@@ -706,149 +819,6 @@ describe('makeCombineUserActivityPosts', () => {
 
         expect(result).toHaveLength(2);
     });
-
-    describe('memoization', () => {
-        const initialPostIds = ['post1', 'post2'];
-        const initialState = {
-            entities: {
-                posts: {
-                    posts: {
-                        post1: {id: 'post1', type: Posts.POST_TYPES.JOIN_CHANNEL},
-                        post2: {id: 'post2', type: Posts.POST_TYPES.JOIN_CHANNEL},
-                    },
-                },
-            },
-        } as unknown as GlobalState;
-
-        test('should not recalculate when nothing has changed', () => {
-            const combineUserActivityPosts = makeCombineUserActivityPosts();
-
-            expect(combineUserActivityPosts.recomputations()).toBe(0);
-
-            combineUserActivityPosts(initialState, initialPostIds);
-
-            expect(combineUserActivityPosts.recomputations()).toBe(1);
-
-            combineUserActivityPosts(initialState, initialPostIds);
-
-            expect(combineUserActivityPosts.recomputations()).toBe(1);
-        });
-
-        test('should recalculate when the post IDs change', () => {
-            const combineUserActivityPosts = makeCombineUserActivityPosts();
-
-            let postIds = initialPostIds;
-            combineUserActivityPosts(initialState, postIds);
-
-            expect(combineUserActivityPosts.recomputations()).toBe(1);
-
-            postIds = ['post1'];
-            combineUserActivityPosts(initialState, postIds);
-
-            expect(combineUserActivityPosts.recomputations()).toBe(2);
-        });
-
-        test('should not recalculate when an unrelated state change occurs', () => {
-            const combineUserActivityPosts = makeCombineUserActivityPosts();
-
-            let state = initialState;
-            combineUserActivityPosts(state, initialPostIds);
-
-            expect(combineUserActivityPosts.recomputations()).toBe(1);
-
-            state = {
-                ...state,
-                entities: {
-                    ...state.entities,
-                    posts: {
-                        ...state.entities.posts,
-                        selectedPostId: 'post2',
-                    },
-                },
-            };
-            combineUserActivityPosts(state, initialPostIds);
-
-            expect(combineUserActivityPosts.recomputations()).toBe(1);
-        });
-
-        test('should not recalculate if an unrelated post changes', () => {
-            const combineUserActivityPosts = makeCombineUserActivityPosts();
-
-            let state = initialState;
-            const initialResult = combineUserActivityPosts(state, initialPostIds);
-
-            expect(combineUserActivityPosts.recomputations()).toBe(1);
-
-            // An unrelated post changed
-            state = {
-                ...state,
-                entities: {
-                    ...state.entities,
-                    posts: {
-                        ...state.entities.posts,
-                        posts: {
-                            ...state.entities.posts.posts,
-                            post3: TestHelper.getPostMock({id: 'post3'}),
-                        },
-                    },
-                },
-            };
-            const result = combineUserActivityPosts(state, initialPostIds);
-
-            // The selector didn't recalculate so the result didn't change
-            expect(combineUserActivityPosts.recomputations()).toBe(1);
-            expect(result).toBe(initialResult);
-        });
-
-        test('should return the same result when a post changes in a way that doesn\'t affect the result', () => {
-            const combineUserActivityPosts = makeCombineUserActivityPosts();
-
-            let state = initialState;
-            const initialResult = combineUserActivityPosts(state, initialPostIds);
-
-            expect(combineUserActivityPosts.recomputations()).toBe(1);
-
-            // One of the posts was updated, but post type didn't change
-            state = {
-                ...state,
-                entities: {
-                    ...state.entities,
-                    posts: {
-                        ...state.entities.posts,
-                        posts: {
-                            ...state.entities.posts.posts,
-                            post2: {...state.entities.posts.posts.post2, update_at: 1234},
-                        },
-                    },
-                },
-            };
-            let result = combineUserActivityPosts(state, initialPostIds);
-
-            // The selector recalculated but is still returning the same array
-            expect(combineUserActivityPosts.recomputations()).toBe(2);
-            expect(result).toBe(initialResult);
-
-            // One of the posts changed type
-            state = {
-                ...state,
-                entities: {
-                    ...state.entities,
-                    posts: {
-                        ...state.entities.posts,
-                        posts: {
-                            ...state.entities.posts.posts,
-                            post2: {...state.entities.posts.posts.post2, type: ''},
-                        },
-                    },
-                },
-            };
-            result = combineUserActivityPosts(state, initialPostIds);
-
-            // The selector recalculated, and the result changed
-            expect(combineUserActivityPosts.recomputations()).toBe(3);
-            expect(result).not.toBe(initialResult);
-        });
-    });
 });
 
 describe('isDateLine', () => {
@@ -902,7 +872,7 @@ describe('getFirstPostId', () => {
     });
 
     test('should skip the new message line', () => {
-        expect(getFirstPostId([START_OF_NEW_MESSAGES, 'post2', 'post3', 'post4'])).toBe('post2');
+        expect(getFirstPostId([START_OF_NEW_MESSAGES + '1234', 'post2', 'post3', 'post4'])).toBe('post2');
     });
 });
 
@@ -920,7 +890,7 @@ describe('getLastPostId', () => {
     });
 
     test('should skip the new message line', () => {
-        expect(getLastPostId(['post2', 'post3', 'post4', START_OF_NEW_MESSAGES])).toBe('post4');
+        expect(getLastPostId(['post2', 'post3', 'post4', START_OF_NEW_MESSAGES + '1234'])).toBe('post4');
     });
 });
 
@@ -938,7 +908,7 @@ describe('getLastPostIndex', () => {
     });
 
     test('should skip the new message line and return index of last post', () => {
-        expect(getLastPostIndex(['post2', 'post3', 'post4', START_OF_NEW_MESSAGES])).toBe(2);
+        expect(getLastPostIndex(['post2', 'post3', 'post4', START_OF_NEW_MESSAGES + '1234'])).toBe(2);
     });
 });
 
@@ -1045,106 +1015,6 @@ describe('makeGenerateCombinedPost', () => {
             ],
             user_id: '',
             metadata: {},
-        });
-    });
-
-    describe('memoization', () => {
-        const initialState = {
-            entities: {
-                posts: {
-                    posts: {
-                        post1: {id: 'post1'},
-                        post2: {id: 'post2'},
-                    },
-                },
-            },
-        } as unknown as GlobalState;
-        const initialCombinedId = 'user-activity-post1_post2';
-
-        test('should not recalculate when called twice with the same ID', () => {
-            const generateCombinedPost = makeGenerateCombinedPost();
-
-            expect((generateCombinedPost as any).recomputations()).toBe(0);
-
-            generateCombinedPost(initialState, initialCombinedId);
-
-            expect((generateCombinedPost as any).recomputations()).toBe(1);
-
-            generateCombinedPost(initialState, initialCombinedId);
-
-            expect((generateCombinedPost as any).recomputations()).toBe(1);
-        });
-
-        test('should recalculate when called twice with different IDs', () => {
-            const generateCombinedPost = makeGenerateCombinedPost();
-
-            expect((generateCombinedPost as any).recomputations()).toBe(0);
-
-            let combinedId = initialCombinedId;
-            generateCombinedPost(initialState, combinedId);
-
-            expect((generateCombinedPost as any).recomputations()).toBe(1);
-
-            combinedId = 'user-activity-post2';
-            generateCombinedPost(initialState, combinedId);
-
-            expect((generateCombinedPost as any).recomputations()).toBe(2);
-        });
-
-        test('should not recalculate when a different post changes', () => {
-            const generateCombinedPost = makeGenerateCombinedPost();
-
-            expect((generateCombinedPost as any).recomputations()).toBe(0);
-
-            let state = initialState;
-            generateCombinedPost(state, initialCombinedId);
-
-            expect((generateCombinedPost as any).recomputations()).toBe(1);
-
-            state = {
-                ...state,
-                entities: {
-                    ...state.entities,
-                    posts: {
-                        ...state.entities.posts,
-                        posts: {
-                            ...state.entities.posts.posts,
-                            post3: TestHelper.getPostMock({id: 'post3'}),
-                        },
-                    },
-                },
-            };
-            generateCombinedPost(state, initialCombinedId);
-
-            expect((generateCombinedPost as any).recomputations()).toBe(2);
-        });
-
-        test('should recalculate when one of the included posts change', () => {
-            const generateCombinedPost = makeGenerateCombinedPost();
-
-            expect((generateCombinedPost as any).recomputations()).toBe(0);
-
-            let state = initialState;
-            generateCombinedPost(state, initialCombinedId);
-
-            expect((generateCombinedPost as any).recomputations()).toBe(1);
-
-            state = {
-                ...state,
-                entities: {
-                    ...state.entities,
-                    posts: {
-                        ...state.entities.posts,
-                        posts: {
-                            ...state.entities.posts.posts,
-                            post2: TestHelper.getPostMock({id: 'post2', update_at: 1234}),
-                        },
-                    },
-                },
-            };
-            generateCombinedPost(state, initialCombinedId);
-
-            expect((generateCombinedPost as any).recomputations()).toBe(2);
         });
     });
 });
@@ -1431,7 +1301,7 @@ describe('extractUserActivityData', () => {
 
 describe('combineUserActivityData', () => {
     it('combineUserActivitySystemPost returns null when systemPosts is an empty array', () => {
-        expect(combineUserActivitySystemPost([])).toBeNull();
+        expect(combineUserActivitySystemPost([])).toBeFalsy();
     });
     it('correctly combine different post types and actorIds by order', () => {
         const postAddToChannel1 = TestHelper.getPostMock({type: PostTypes.ADD_TO_CHANNEL, user_id: 'user_id_1', props: {addedUserId: 'added_user_id_1', addedUsername: 'added_username_1'}});
@@ -1680,97 +1550,5 @@ describe('combineUserActivityData', () => {
             ],
         };
         expect(combineUserActivitySystemPost(posts)).toEqual(expectedOutput);
-    });
-});
-
-describe('shouldShowJoinLeaveMessages', () => {
-    it('should default to true', () => {
-        const state = {
-            entities: {
-                general: {
-                    config: {
-                        EnableJoinLeaveMessageByDefault: 'true',
-                    },
-                },
-                preferences: {
-                    myPreferences: {},
-                },
-            },
-        } as unknown as GlobalState;
-
-        // Defaults to show post
-        const show = shouldShowJoinLeaveMessages(state);
-        expect(show).toEqual(true);
-    });
-
-    it('set config to false, return false', () => {
-        const state = {
-            entities: {
-                general: {
-                    config: {
-                        EnableJoinLeaveMessageByDefault: 'false',
-                    },
-                },
-                preferences: {
-                    myPreferences: {},
-                },
-            },
-        } as unknown as GlobalState;
-
-        // Defaults to show post
-        const show = shouldShowJoinLeaveMessages(state);
-        expect(show).toEqual(false);
-    });
-
-    it('if user preference, set default wont be used', () => {
-        const state = {
-            entities: {
-                general: {
-                    config: {
-                        EnableJoinLeaveMessageByDefault: 'false',
-                    },
-                },
-                preferences: {
-                    myPreferences: {
-                        [getPreferenceKey(Preferences.CATEGORY_ADVANCED_SETTINGS, Preferences.ADVANCED_FILTER_JOIN_LEAVE)]: {
-                            category: Preferences.CATEGORY_ADVANCED_SETTINGS,
-                            name: Preferences.ADVANCED_FILTER_JOIN_LEAVE,
-                            value: 'true',
-                        },
-
-                    },
-                },
-            },
-        } as unknown as GlobalState;
-
-        // Defaults to show post
-        const show = shouldShowJoinLeaveMessages(state);
-        expect(show).toEqual(true);
-    });
-
-    it('if user preference, set default wont be used', () => {
-        const state = {
-            entities: {
-                general: {
-                    config: {
-                        EnableJoinLeaveMessageByDefault: 'true',
-                    },
-                },
-                preferences: {
-                    myPreferences: {
-                        [getPreferenceKey(Preferences.CATEGORY_ADVANCED_SETTINGS, Preferences.ADVANCED_FILTER_JOIN_LEAVE)]: {
-                            category: Preferences.CATEGORY_ADVANCED_SETTINGS,
-                            name: Preferences.ADVANCED_FILTER_JOIN_LEAVE,
-                            value: 'false',
-                        },
-
-                    },
-                },
-            },
-        } as unknown as GlobalState;
-
-        // Defaults to show post
-        const show = shouldShowJoinLeaveMessages(state);
-        expect(show).toEqual(false);
     });
 });

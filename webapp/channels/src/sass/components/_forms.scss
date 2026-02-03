@@ -1,4 +1,7 @@
-@charset 'UTF-8';
+@use "utils/functions";
+@use "utils/variables";
+
+@use 'sass:color';
 
 .radio,
 .checkbox {
@@ -12,6 +15,30 @@
         label {
             padding: 0;
         }
+    }
+}
+
+.form-group {
+    max-width: 100%;
+
+    .control-label {
+        overflow: hidden;
+        padding-right: 5px;
+        text-overflow: ellipsis;
+    }
+
+    .setting-list & {
+        .control-label {
+            white-space: nowrap;
+        }
+    }
+
+    &.form-group--small {
+        margin-bottom: 10px;
+    }
+
+    &.pos-rel {
+        position: relative;
     }
 }
 
@@ -45,7 +72,7 @@
     }
 
     &.error {
-        color: darken($red, 20%);
+        color: color.adjust(variables.$red, $lightness: -20%);
     }
 }
 
@@ -65,7 +92,7 @@
             font-size: 1.05em;
             font-style: italic;
             font-weight: normal;
-            opacity: 0.6;
+            opacity: 0.73;
         }
     }
 
@@ -84,25 +111,18 @@
 
 .help-block {
     margin: 10px 0 0;
-    color: $dark-gray;
+    color: variables.$dark-gray;
     font-size: 0.95em;
 }
 
-.form-group {
-    max-width: 100%;
-
-    &.form-group--small {
-        margin-bottom: 10px;
-    }
-}
-
 .has-error {
+
     .help-block,
     .radio,
     .checkbox,
     .radio-inline,
     .checkbox-inline {
-        color: $red;
+        color: variables.$red;
     }
 
     .form__label {
@@ -116,7 +136,7 @@
     &.radio-inline,
     &.checkbox-inline {
         label {
-            color: $red;
+            color: variables.$red;
         }
     }
 }
@@ -146,7 +166,7 @@
         padding-right: 1px;
         margin-right: 6px;
 
-        & + span {
+        &+span {
             margin-right: 4px;
             font-weight: 600;
         }
@@ -162,10 +182,10 @@
 .app__body {
     .form-control {
         border-color: rgba(var(--center-channel-color-rgb), 0.16);
-        background: v(center-channel-bg);
         border-radius: 4px;
+        background: functions.v(center-channel-bg);
         box-shadow: none;
-        color: v(center-channel-color);
+        color: functions.v(center-channel-color);
 
         &:focus {
             border-color: rgba(var(--button-bg-rgb), 1);
@@ -185,14 +205,15 @@
         &::-moz-placeholder,
         &:-moz-placeholder {
             color: inherit !important;
-            opacity: 0.6;
+            opacity: 0.73;
         }
     }
 }
 
 .form-control[disabled],
 .form-control[readonly],
-fieldset[disabled] .form-control {
+fieldset[disabled] .form-control,
+.backstage-form .form-control[disabled] {
     background-color: #f9f9f9;
 }
 
@@ -202,6 +223,18 @@ input[type="checkbox"]:focus {
     outline: none;
 }
 
-.notification-sound-dropdown {
-    padding-top: 5px;
+.btn-file {
+    position: relative;
+    overflow: hidden;
+
+    .btn-file__input {
+        position: absolute;
+        top: 0;
+        right: 0;
+        padding: 0;
+        margin: 0;
+        cursor: pointer;
+        filter: alpha(opacity=0);
+        opacity: 0;
+    }
 }

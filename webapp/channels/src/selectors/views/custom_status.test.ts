@@ -14,7 +14,14 @@ import configureStore from 'store';
 import {TestHelper} from 'utils/test_helper';
 import {addTimeToTimestamp, TimeInformation} from 'utils/utils';
 
-jest.mock('mattermost-redux/selectors/entities/users');
+jest.mock('mattermost-redux/selectors/entities/users', () => {
+    const originalModule = jest.requireActual('mattermost-redux/selectors/entities/users');
+    return {
+        ...originalModule,
+        getCurrentUser: jest.fn(),
+        getUser: jest.fn(),
+    };
+});
 jest.mock('mattermost-redux/selectors/entities/general');
 jest.mock('mattermost-redux/selectors/entities/preferences');
 
@@ -36,6 +43,15 @@ describe('getCustomStatus', () => {
 
     it('should return undefined when user with given id has no custom status set', async () => {
         const store = await configureStore();
+        (UserSelectors.getUser as jest.Mock).mockReturnValue(user);
+        expect(getCustomStatus(store.getState(), user.id)).toBeUndefined();
+    });
+
+    it('should return undefined when user with invalid json for custom status set', async () => {
+        const store = await configureStore();
+        const newUser = {...user};
+        newUser.props.customStatus = 'not a JSON string';
+
         (UserSelectors.getUser as jest.Mock).mockReturnValue(user);
         expect(getCustomStatus(store.getState(), user.id)).toBeUndefined();
     });

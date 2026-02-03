@@ -12,9 +12,11 @@ import (
 	"net"
 	"net/mail"
 	"net/smtp"
+	"slices"
+	"strings"
 	"time"
 
-	"github.com/jaytaylor/html2text"
+	"code.sajari.com/docconv/v2"
 	"github.com/pkg/errors"
 	gomail "gopkg.in/mail.v2"
 
@@ -79,11 +81,8 @@ type authChooser struct {
 func (a *authChooser) Start(server *smtp.ServerInfo) (string, []byte, error) {
 	smtpAddress := a.config.ServerName + ":" + a.config.Port
 	a.Auth = LoginAuth(a.config.Username, a.config.Password, smtpAddress)
-	for _, method := range server.Auth {
-		if method == "PLAIN" {
-			a.Auth = smtp.PlainAuth("", a.config.Username, a.config.Password, a.config.ServerName+":"+a.config.Port)
-			break
-		}
+	if slices.Contains(server.Auth, "PLAIN") {
+		a.Auth = smtp.PlainAuth("", a.config.Username, a.config.Password, a.config.ServerName+":"+a.config.Port)
 	}
 	return a.Auth.Start(server)
 }
@@ -292,14 +291,13 @@ func sendMailUsingConfigAdvanced(mail mailData, config *SMTPConfig) error {
 const SendGridXSMTPAPIHeader = "X-SMTPAPI"
 
 func sendMail(c smtpClient, mail mailData, date time.Time, config *SMTPConfig) error {
-	mlog.Debug("sending mail", mlog.String("to", mail.smtpTo), mlog.String("subject", mail.subject))
+	mlog.Info("sending mail", mlog.String("to", mail.smtpTo), mlog.String("subject", mail.subject))
 
 	htmlMessage := mail.htmlBody
-
-	txtBody, err := html2text.FromString(mail.htmlBody)
+	text, _, err := docconv.ConvertHTML(strings.NewReader(htmlMessage), true)
 	if err != nil {
 		mlog.Warn("Unable to convert html body to text", mlog.Err(err))
-		txtBody = ""
+		text = ""
 	}
 
 	headers := map[string][]string{
@@ -347,7 +345,7 @@ func sendMail(c smtpClient, mail mailData, date time.Time, config *SMTPConfig) e
 	m := gomail.NewMessage(gomail.SetCharset("UTF-8"))
 	m.SetHeaders(headers)
 	m.SetDateHeader("Date", date)
-	m.SetBody("text/plain", txtBody)
+	m.SetBody("text/plain", text)
 	m.AddAlternative("text/html", htmlMessage)
 
 	for name, reader := range mail.embeddedFiles {

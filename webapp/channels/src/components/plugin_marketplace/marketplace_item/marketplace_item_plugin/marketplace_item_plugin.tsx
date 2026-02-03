@@ -3,7 +3,7 @@
 
 import classNames from 'classnames';
 import React from 'react';
-import {FormattedMessage} from 'react-intl';
+import {defineMessage, FormattedMessage} from 'react-intl';
 import {Link} from 'react-router-dom';
 import semver from 'semver';
 
@@ -12,10 +12,7 @@ import type {PluginStatusRedux} from '@mattermost/types/plugins';
 
 import ConfirmModal from 'components/confirm_modal';
 import ExternalLink from 'components/external_link';
-import FormattedMarkdownMessage from 'components/formatted_markdown_message';
 import LoadingWrapper from 'components/widgets/loading/loading_wrapper';
-
-import {localizeMessage} from 'utils/utils';
 
 import MarketplaceItem from '../marketplace_item';
 
@@ -124,7 +121,7 @@ export const UpdateConfirmationModal = ({show, name, version, installedVersion, 
         <p key='intro'>
             <FormattedMessage
                 id='marketplace_modal.list.update_confirmation.message.intro'
-                defaultMessage={`Are you sure you want to update the ${name} plugin to ${version}?`}
+                defaultMessage={'Are you sure you want to update the {name} plugin to {version}?'}
                 values={{name, version}}
             />
         </p>
@@ -133,10 +130,19 @@ export const UpdateConfirmationModal = ({show, name, version, installedVersion, 
     if (releaseNotesUrl) {
         messages.push(
             <p key='current'>
-                <FormattedMarkdownMessage
+                <FormattedMessage
                     id='marketplace_modal.list.update_confirmation.message.current_with_release_notes'
-                    defaultMessage='You currently have {installedVersion} installed. View the [release notes](!{releaseNotesUrl}) to learn about the changes included in this update.'
-                    values={{installedVersion, releaseNotesUrl}}
+                    defaultMessage='You currently have {installedVersion} installed. View the <a>release notes</a> to learn about the changes included in this update.'
+                    values={{
+                        installedVersion,
+                        a: (chunks) => (
+                            <ExternalLink
+                                href={releaseNotesUrl as string}
+                                location='plugin-marketplace'
+                            >
+                                {chunks}
+                            </ExternalLink>
+                        )}}
                 />
             </p>,
         );
@@ -145,7 +151,7 @@ export const UpdateConfirmationModal = ({show, name, version, installedVersion, 
             <p key='current'>
                 <FormattedMessage
                     id='marketplace_modal.list.update_confirmation.message.current'
-                    defaultMessage={`You currently have ${installedVersion} installed.`}
+                    defaultMessage={'You currently have {installedVersion} installed.'}
                     values={{installedVersion}}
                 />
             </p>,
@@ -167,10 +173,18 @@ export const UpdateConfirmationModal = ({show, name, version, installedVersion, 
                     className='alert alert-warning'
                     key='warning'
                 >
-                    <FormattedMarkdownMessage
+                    <FormattedMessage
                         id='marketplace_modal.list.update_confirmation.message.warning_major_version_with_release_notes'
-                        defaultMessage='This update may contain breaking changes. Consult the [release notes](!{releaseNotesUrl}) before upgrading.'
-                        values={{releaseNotesUrl}}
+                        defaultMessage='This update may contain breaking changes. Consult the <a>release notes</a> before upgrading.'
+                        values={{
+                            a: (chunks) => (
+                                <ExternalLink
+                                    href={releaseNotesUrl as string}
+                                    location='plugin-marketplace'
+                                >
+                                    {chunks}
+                                </ExternalLink>
+                            )}}
                     />
                 </p>,
             );
@@ -225,7 +239,6 @@ export type MarketplaceItemPluginProps = {
     pluginStatus?: PluginStatusRedux;
     error?: string;
     isDefaultMarketplace: boolean;
-    trackEvent: (category: string, event: string, props?: unknown) => void;
 
     actions: {
         installPlugin: (id: string) => void;
@@ -246,18 +259,6 @@ export default class MarketplaceItemPlugin extends React.PureComponent <Marketpl
         };
     }
 
-    trackEvent = (eventName: string, allowDetail = true): void => {
-        if (this.props.isDefaultMarketplace && allowDetail) {
-            this.props.trackEvent('plugins', eventName, {
-                plugin_id: this.props.id,
-                version: this.props.version,
-                installed_version: this.props.installedVersion,
-            });
-        } else {
-            this.props.trackEvent('plugins', eventName);
-        }
-    };
-
     showUpdateConfirmationModal = (): void => {
         this.setState({showUpdateConfirmationModal: true});
     };
@@ -267,19 +268,14 @@ export default class MarketplaceItemPlugin extends React.PureComponent <Marketpl
     };
 
     onInstall = (): void => {
-        this.trackEvent('ui_marketplace_download');
         this.props.actions.installPlugin(this.props.id);
     };
 
     onConfigure = (): void => {
-        this.trackEvent('ui_marketplace_configure', false);
-
         this.props.actions.closeMarketplaceModal();
     };
 
     onUpdate = (): void => {
-        this.trackEvent('ui_marketplace_download_update');
-
         this.hideUpdateConfirmationModal();
         this.props.actions.installPlugin(this.props.id);
     };
@@ -328,7 +324,7 @@ export default class MarketplaceItemPlugin extends React.PureComponent <Marketpl
             >
                 <LoadingWrapper
                     loading={this.props.installing}
-                    text={localizeMessage('marketplace_modal.installing', 'Installing...')}
+                    text={defineMessage({id: 'marketplace_modal.installing', defaultMessage: 'Installing...'})}
                 >
                     {actionButton}
                 </LoadingWrapper>

@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-import {FormattedMessage} from 'react-intl';
+import {FormattedMessage, injectIntl, type IntlShape} from 'react-intl';
 import {Route, Switch, Redirect} from 'react-router-dom';
 import type {RouteComponentProps} from 'react-router-dom';
 
@@ -21,12 +21,12 @@ export type Props = {
     /*
    * Object containing information on the current team, used to define BackButton's url
    */
-    currentTeam: Team;
+    currentTeam?: Team;
 
     /*
    * Object containing information on the current selected channel, used to define BackButton's url
    */
-    currentChannel: Channel;
+    currentChannel?: Channel;
 
     /*
     * String containing the custom branding's text
@@ -48,6 +48,7 @@ export type Props = {
     isCloud: boolean;
     isFreeTrial: boolean;
     usageDeltas: CloudUsage;
+    intl: IntlShape;
 };
 
 type State = {
@@ -55,7 +56,7 @@ type State = {
     wizard: string;
 };
 
-export default class CreateTeam extends React.PureComponent<Props & RouteComponentProps, State> {
+export class CreateTeam extends React.PureComponent<Props & RouteComponentProps, State> {
     public constructor(props: Props & RouteComponentProps) {
         super(props);
 
@@ -63,6 +64,16 @@ export default class CreateTeam extends React.PureComponent<Props & RouteCompone
             team: {},
             wizard: 'display_name',
         };
+    }
+
+    componentDidMount() {
+        const {formatMessage} = this.props.intl;
+        document.title = formatMessage({
+            id: 'create_team.pageTitle',
+            defaultMessage: 'Create a team - {siteName}',
+        }, {
+            siteName: this.props.siteName || 'Mattermost',
+        });
     }
 
     public updateParent = (state: State) => {
@@ -156,3 +167,5 @@ export default class CreateTeam extends React.PureComponent<Props & RouteCompone
         );
     }
 }
+
+export default injectIntl(CreateTeam);

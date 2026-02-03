@@ -5,6 +5,7 @@ package commands
 
 import (
 	"context"
+	"fmt"
 	"os"
 
 	"github.com/mattermost/mattermost/server/v8/cmd/mmctl/client"
@@ -94,6 +95,7 @@ func init() {
 
 func pluginAddCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 	force, _ := cmd.Flags().GetBool("force")
+	var multiErr *multierror.Error
 
 	for i, plugin := range args {
 		fileReader, err := os.Open(plugin)
@@ -109,13 +111,14 @@ func pluginAddCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 
 		if err != nil {
 			printer.PrintError("Unable to add plugin: " + args[i] + ". Error: " + err.Error())
+			multiErr = multierror.Append(multiErr, err)
 		} else {
 			printer.Print("Added plugin: " + plugin)
 		}
 		fileReader.Close()
 	}
 
-	return nil
+	return multiErr.ErrorOrNil()
 }
 
 func pluginInstallURLCmdF(c client.Client, cmd *cobra.Command, args []string) error {
@@ -136,39 +139,45 @@ func pluginInstallURLCmdF(c client.Client, cmd *cobra.Command, args []string) er
 }
 
 func pluginDeleteCmdF(c client.Client, cmd *cobra.Command, args []string) error {
+	var multiErr *multierror.Error
 	for _, plugin := range args {
 		if _, err := c.RemovePlugin(context.TODO(), plugin); err != nil {
 			printer.PrintError("Unable to delete plugin: " + plugin + ". Error: " + err.Error())
+			multiErr = multierror.Append(multiErr, fmt.Errorf("Unable to delete plugin. %w", err))
 		} else {
 			printer.Print("Deleted plugin: " + plugin)
 		}
 	}
 
-	return nil
+	return multiErr.ErrorOrNil()
 }
 
 func pluginEnableCmdF(c client.Client, cmd *cobra.Command, args []string) error {
+	var multiErr *multierror.Error
 	for _, plugin := range args {
 		if _, err := c.EnablePlugin(context.TODO(), plugin); err != nil {
 			printer.PrintError("Unable to enable plugin: " + plugin + ". Error: " + err.Error())
+			multiErr = multierror.Append(multiErr, err)
 		} else {
 			printer.Print("Enabled plugin: " + plugin)
 		}
 	}
 
-	return nil
+	return multiErr.ErrorOrNil()
 }
 
 func pluginDisableCmdF(c client.Client, cmd *cobra.Command, args []string) error {
+	var multiErr *multierror.Error
 	for _, plugin := range args {
 		if _, err := c.DisablePlugin(context.TODO(), plugin); err != nil {
 			printer.PrintError("Unable to disable plugin: " + plugin + ". Error: " + err.Error())
+			multiErr = multierror.Append(multiErr, err)
 		} else {
 			printer.Print("Disabled plugin: " + plugin)
 		}
 	}
 
-	return nil
+	return multiErr.ErrorOrNil()
 }
 
 func pluginListCmdF(c client.Client, cmd *cobra.Command, args []string) error {
@@ -187,6 +196,7 @@ func pluginListCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 			printer.PrintT("{{.Manifest.Id}}: {{.Manifest.Name}}, Version: {{.Manifest.Version}}", plugin)
 		}
 
+		printer.Print("")
 		printer.Print("Listing disabled plugins")
 		for _, plugin := range pluginsResp.Inactive {
 			printer.PrintT("{{.Manifest.Id}}: {{.Manifest.Name}}, Version: {{.Manifest.Version}}", plugin)

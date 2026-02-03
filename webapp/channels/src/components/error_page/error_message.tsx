@@ -2,10 +2,9 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-import {FormattedMessage} from 'react-intl';
+import {FormattedMessage, defineMessage} from 'react-intl';
 
 import {ErrorPageTypes} from 'utils/constants';
-import {t} from 'utils/i18n';
 
 import ErrorLink from './error_link';
 import CloudArchived from './messages/cloud_archived';
@@ -57,6 +56,16 @@ const ErrorMessage: React.FC<Props> = ({type, message, service, isGuest}: Props)
                     <FormattedMessage
                         id='permalink.error.access'
                         defaultMessage='Permalink belongs to a deleted message or to a channel to which you do not have access.'
+                    />
+                </p>
+            );
+            break;
+        case ErrorPageTypes.POST_NOT_FOUND:
+            errorMessage = (
+                <p>
+                    <FormattedMessage
+                        id='post.error.access'
+                        defaultMessage="The post you're requesting is private or does not exist."
                     />
                 </p>
             );
@@ -116,8 +125,10 @@ const ErrorMessage: React.FC<Props> = ({type, message, service, isGuest}: Props)
                                 link: (
                                     <ErrorLink
                                         url={'https://docs.mattermost.com/deployment/sso-google.html'}
-                                        messageId={t('error.oauth_missing_code.google.link')}
-                                        defaultMessage={'Google Apps'}
+                                        message={defineMessage({
+                                            id: 'error.oauth_missing_code.google.link',
+                                            defaultMessage: 'Google Apps',
+                                        })}
                                     />
                                 ),
                             }}
@@ -131,8 +142,10 @@ const ErrorMessage: React.FC<Props> = ({type, message, service, isGuest}: Props)
                                 link: (
                                     <ErrorLink
                                         url={'https://docs.mattermost.com/deployment/sso-office.html'}
-                                        messageId={t('error.oauth_missing_code.office365.link')}
-                                        defaultMessage={'Office 365'}
+                                        message={defineMessage({
+                                            id: 'error.oauth_missing_code.office365.link',
+                                            defaultMessage: 'Entra ID',
+                                        })}
                                     />
                                 ),
                             }}
@@ -146,8 +159,10 @@ const ErrorMessage: React.FC<Props> = ({type, message, service, isGuest}: Props)
                                 link: (
                                     <ErrorLink
                                         url={'https://docs.mattermost.com/deployment/sso-gitlab.html'}
-                                        messageId={t('error.oauth_missing_code.gitlab.link')}
-                                        defaultMessage={'GitLab'}
+                                        message={defineMessage({
+                                            id: 'error.oauth_missing_code.gitlab.link',
+                                            defaultMessage: 'GitLab',
+                                        })}
                                     />
                                 ),
                             }}
@@ -161,8 +176,10 @@ const ErrorMessage: React.FC<Props> = ({type, message, service, isGuest}: Props)
                                 link: (
                                     <ErrorLink
                                         url={'https://forum.mattermost.com/c/trouble-shoot'}
-                                        messageId={t('error.oauth_missing_code.forum.link')}
-                                        defaultMessage={'Troubleshooting forum'}
+                                        message={defineMessage({
+                                            id: 'error.oauth_missing_code.forum.link',
+                                            defaultMessage: 'Troubleshooting forum',
+                                        })}
                                     />
                                 ),
                             }}
@@ -189,6 +206,16 @@ const ErrorMessage: React.FC<Props> = ({type, message, service, isGuest}: Props)
             errorMessage = (
                 <p>
                     {message}
+                </p>
+            );
+            break;
+        case ErrorPageTypes.MAGIC_LINK_ALREADY_LOGGED_IN:
+            errorMessage = (
+                <p>
+                    <FormattedMessage
+                        id='error.magic_link_already_logged_in.message'
+                        defaultMessage='You are already logged in. Log out and try again.'
+                    />
                 </p>
             );
             break;

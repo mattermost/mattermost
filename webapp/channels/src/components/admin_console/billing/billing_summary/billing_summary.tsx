@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-import {FormattedDate, FormattedMessage, FormattedNumber} from 'react-intl';
+import {FormattedDate, FormattedMessage, FormattedNumber, defineMessages} from 'react-intl';
 import {useDispatch} from 'react-redux';
 
 import {CheckCircleOutlineIcon} from '@mattermost/compass-icons/components';
@@ -10,24 +10,34 @@ import type {Invoice, InvoiceLineItem, Product} from '@mattermost/types/cloud';
 
 import {Client4} from 'mattermost-redux/client';
 
-import {trackEvent} from 'actions/telemetry_actions';
 import {openModal} from 'actions/views/modals';
 
 import BlockableLink from 'components/admin_console/blockable_link';
 import CloudInvoicePreview from 'components/cloud_invoice_preview';
+import useOpenSalesLink from 'components/common/hooks/useOpenSalesLink';
 import EmptyBillingHistorySvg from 'components/common/svg_images_components/empty_billing_history_svg';
 import UpgradeSvg from 'components/common/svg_images_components/upgrade_svg';
 import ExternalLink from 'components/external_link';
-import OverlayTrigger from 'components/overlay_trigger';
-import Tooltip from 'components/tooltip';
+import WithTooltip from 'components/with_tooltip';
 
 import {BillingSchemes, CloudLinks, TrialPeriodDays, ModalIdentifiers} from 'utils/constants';
+
+const messages = defineMessages({
+    partialChargesTooltipTitle: {
+        id: 'admin.billing.subscriptions.billing_summary.lastInvoice.whatArePartialCharges',
+        defaultMessage: 'What are partial charges?',
+    },
+    partialChargesTooltipText: {
+        id: 'admin.billing.subscriptions.billing_summary.lastInvoice.whatArePartialCharges.message',
+        defaultMessage: 'Users who have not been enabled for the full duration of the month are charged at a prorated monthly rate.',
+    },
+});
 
 export const noBillingHistory = (
     <div className='BillingSummary__noBillingHistory'>
         <EmptyBillingHistorySvg
-            height={167}
-            width={234}
+            height={116}
+            width={152}
         />
         <div className='BillingSummary__noBillingHistory-title'>
             <FormattedMessage
@@ -44,8 +54,7 @@ export const noBillingHistory = (
         <ExternalLink
             location='billing_summary'
             href={CloudLinks.BILLING_DOCS}
-            className='BillingSummary__noBillingHistory-link'
-            onClick={() => trackEvent('cloud_admin', 'click_how_billing_works', {screen: 'subscriptions'})}
+            className='btn btn-primary BillingSummary__noBillingHistory-link'
         >
             <FormattedMessage
                 id='admin.billing.subscriptions.billing_summary.noBillingHistory.link'
@@ -55,107 +64,80 @@ export const noBillingHistory = (
     </div>
 );
 
-export const freeTrial = (onUpgradeMattermostCloud: (callerInfo: string) => void, daysLeftOnTrial: number, reverseTrial: boolean) => (
-    <div className='UpgradeMattermostCloud'>
-        <div className='UpgradeMattermostCloud__image'>
-            <UpgradeSvg
-                height={167}
-                width={234}
+type FreeTrialProps = {
+    daysLeftOnTrial: number;
+}
+
+export const FreeTrial = ({daysLeftOnTrial}: FreeTrialProps) => {
+    const [openSalesLink] = useOpenSalesLink();
+    return (
+        <div className='UpgradeMattermostCloud'>
+            <div className='UpgradeMattermostCloud__image'>
+                <UpgradeSvg
+                    height={167}
+                    width={234}
+                />
+            </div>
+            <div className='UpgradeMattermostCloud__title'>
+                {daysLeftOnTrial > TrialPeriodDays.TRIAL_1_DAY &&
+                    <FormattedMessage
+                        id='admin.billing.subscription.freeTrial.title'
+                        defaultMessage="You're currently on a free trial"
+                    />
+                }
+                {(daysLeftOnTrial === TrialPeriodDays.TRIAL_1_DAY || daysLeftOnTrial === TrialPeriodDays.TRIAL_0_DAYS) &&
+                    <FormattedMessage
+                        id='admin.billing.subscription.freeTrial.lastDay.title'
+                        defaultMessage={'Your free trial ends today'}
+                    />
+                }
+            </div>
+            <div className='UpgradeMattermostCloud__description'>
+                {daysLeftOnTrial > TrialPeriodDays.TRIAL_WARNING_THRESHOLD &&
+                    <FormattedMessage
+                        id='admin.billing.subscription.freeTrial.description'
+                        defaultMessage='Your free trial will expire in {daysLeftOnTrial} days. Contact Sales to continue after the trial ends.'
+                        values={{daysLeftOnTrial}}
+                    />
+                }
+                {(daysLeftOnTrial > TrialPeriodDays.TRIAL_1_DAY && daysLeftOnTrial <= TrialPeriodDays.TRIAL_WARNING_THRESHOLD) &&
+                    <FormattedMessage
+                        id='admin.billing.subscription.freeTrial.lessThan3Days.description'
+                        defaultMessage='Your free trial will end in {daysLeftOnTrial, number} {daysLeftOnTrial, plural, one {day} other {days}}. Contact Sales to continue enjoying the benefits of Cloud Professional.'
+                        values={{daysLeftOnTrial}}
+                    />
+                }
+                {(daysLeftOnTrial === TrialPeriodDays.TRIAL_1_DAY || daysLeftOnTrial === TrialPeriodDays.TRIAL_0_DAYS) &&
+                    <FormattedMessage
+                        id='admin.billing.subscription.freeTrial.lastDay.description'
+                        defaultMessage='Your free trial has ended. Contact Sales to continue enjoying the benefits of Cloud Professional.'
+                    />
+                }
+            </div>
+            <button
+                type='button'
+                onClick={() => openSalesLink()}
+                className='UpgradeMattermostCloud__upgradeButton btn btn-primary'
+            >
+                <FormattedMessage
+                    id='admin.billing.subscription.privateCloudCard.contactSales'
+                    defaultMessage='Contact Sales'
+                />
+
+            </button>
+        </div>);
+};
+
+export const getPaymentStatus = () => {
+    return (
+        <div className='BillingSummary__lastInvoice-headerStatus paid'>
+            <CheckCircleOutlineIcon/> {' '}
+            <FormattedMessage
+                id='admin.billing.subscriptions.billing_summary.lastInvoice.paid'
+                defaultMessage='Paid'
             />
         </div>
-        <div className='UpgradeMattermostCloud__title'>
-            {daysLeftOnTrial > TrialPeriodDays.TRIAL_1_DAY &&
-                <FormattedMessage
-                    id='admin.billing.subscription.freeTrial.title'
-                    defaultMessage={'You\'re currently on a free trial'}
-                />
-            }
-            {(daysLeftOnTrial === TrialPeriodDays.TRIAL_1_DAY || daysLeftOnTrial === TrialPeriodDays.TRIAL_0_DAYS) &&
-                <FormattedMessage
-                    id='admin.billing.subscription.freeTrial.lastDay.title'
-                    defaultMessage={'Your free trial ends today'}
-                />
-            }
-        </div>
-        <div className='UpgradeMattermostCloud__description'>
-            {daysLeftOnTrial > TrialPeriodDays.TRIAL_WARNING_THRESHOLD &&
-                <FormattedMessage
-                    id='admin.billing.subscription.freeTrial.description'
-                    defaultMessage='Your free trial will expire in {daysLeftOnTrial} days. Add your payment information to continue after the trial ends.'
-                    values={{daysLeftOnTrial}}
-                />
-            }
-            {(daysLeftOnTrial > TrialPeriodDays.TRIAL_1_DAY && daysLeftOnTrial <= TrialPeriodDays.TRIAL_WARNING_THRESHOLD) &&
-                <FormattedMessage
-                    id='admin.billing.subscription.freeTrial.lessThan3Days.description'
-                    defaultMessage='Your free trial will end in {daysLeftOnTrial, number} {daysLeftOnTrial, plural, one {day} other {days}}. Add payment information to continue enjoying the benefits of Cloud Professional.'
-                    values={{daysLeftOnTrial}}
-                />
-            }
-            {(daysLeftOnTrial === TrialPeriodDays.TRIAL_1_DAY || daysLeftOnTrial === TrialPeriodDays.TRIAL_0_DAYS) &&
-                <FormattedMessage
-                    id='admin.billing.subscription.freeTrial.lastDay.description'
-                    defaultMessage='Your free trial has ended. Add payment information to continue enjoying the benefits of Cloud Professional.'
-                />
-            }
-        </div>
-        <button
-            type='button'
-            onClick={() => onUpgradeMattermostCloud('billing_summary_free_trial_upgrade_button')}
-            className='UpgradeMattermostCloud__upgradeButton'
-        >
-            {
-                reverseTrial ? (
-                    <FormattedMessage
-                        id='admin.billing.subscription.cloudTrial.purchaseButton'
-                        defaultMessage='Purchase Now'
-                    />
-
-                ) : (
-                    <FormattedMessage
-                        id='admin.billing.subscription.cloudTrial.subscribeButton'
-                        defaultMessage='Upgrade Now'
-                    />
-                )
-
-            }
-        </button>
-    </div>
-);
-
-export const getPaymentStatus = (status: string) => {
-    switch (status.toLowerCase()) {
-    case 'failed':
-        return (
-            <div className='BillingSummary__lastInvoice-headerStatus failed'>
-                <FormattedMessage
-                    id='admin.billing.subscriptions.billing_summary.lastInvoice.failed'
-                    defaultMessage='Failed'
-                />
-                <i className='icon icon-alert-outline'/>
-            </div>
-        );
-    case 'paid':
-        return (
-            <div className='BillingSummary__lastInvoice-headerStatus paid'>
-                <FormattedMessage
-                    id='admin.billing.subscriptions.billing_summary.lastInvoice.paid'
-                    defaultMessage='Paid'
-                />
-                <CheckCircleOutlineIcon/>
-            </div>
-        );
-    default:
-        return (
-            <div className='BillingSummary__lastInvoice-headerStatus pending'>
-                <FormattedMessage
-                    id='admin.billing.subscriptions.billing_summary.lastInvoice.pending'
-                    defaultMessage='Pending'
-                />
-                <CheckCircleOutlineIcon/>
-            </div>
-        );
-    }
+    );
 };
 
 type InvoiceInfoProps = {
@@ -168,6 +150,7 @@ type InvoiceInfoProps = {
 
 export const InvoiceInfo = ({invoice, product, fullCharges, partialCharges, hasMore}: InvoiceInfoProps) => {
     const dispatch = useDispatch();
+
     const isUpcomingInvoice = invoice?.status.toLowerCase() === 'upcoming';
     const openInvoicePreview = () => {
         dispatch(
@@ -202,7 +185,7 @@ export const InvoiceInfo = ({invoice, product, fullCharges, partialCharges, hasM
                 <div className='BillingSummary__lastInvoice-headerTitle'>
                     {title()}
                 </div>
-                {getPaymentStatus(invoice.status)}
+                {getPaymentStatus()}
             </div>
             <div className='BillingSummary__lastInvoice-date'>
                 <FormattedDate
@@ -286,32 +269,12 @@ export const InvoiceInfo = ({invoice, product, fullCharges, partialCharges, hasM
                             id='admin.billing.subscriptions.billing_summary.lastInvoice.partialCharges'
                             defaultMessage='Partial charges'
                         />
-                        <OverlayTrigger
-                            delayShow={500}
-                            placement='bottom'
-                            overlay={
-                                <Tooltip
-                                    id='BillingSubscriptions__seatOverageTooltip'
-                                    className='BillingSubscriptions__tooltip BillingSubscriptions__tooltip-right'
-                                    positionLeft={390}
-                                >
-                                    <div className='BillingSubscriptions__tooltipTitle'>
-                                        <FormattedMessage
-                                            id='admin.billing.subscriptions.billing_summary.lastInvoice.whatArePartialCharges'
-                                            defaultMessage='What are partial charges?'
-                                        />
-                                    </div>
-                                    <div className='BillingSubscriptions__tooltipMessage'>
-                                        <FormattedMessage
-                                            id='admin.billing.subscriptions.billing_summary.lastInvoice.whatArePartialCharges.message'
-                                            defaultMessage='Users who have not been enabled for the full duration of the month are charged at a prorated monthly rate.'
-                                        />
-                                    </div>
-                                </Tooltip>
-                            }
+                        <WithTooltip
+                            title={messages.partialChargesTooltipTitle}
+                            hint={messages.partialChargesTooltipText}
                         >
                             <i className='icon-information-outline'/>
-                        </OverlayTrigger>
+                        </WithTooltip>
                     </div>
                     {partialCharges.map((charge: any) => (
                         <div

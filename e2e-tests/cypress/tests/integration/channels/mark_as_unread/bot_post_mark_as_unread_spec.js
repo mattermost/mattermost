@@ -7,7 +7,6 @@
 // - Use element ID when selecting an element. Create one if none.
 // ***************************************************************
 
-// Stage: @prod
 // Group: @channels @mark_as_unread
 
 import {beUnread} from '../../../support/assertions';

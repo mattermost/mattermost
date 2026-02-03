@@ -1,7 +1,8 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {capitalize as caps, isArray} from 'lodash';
+import caps from 'lodash/capitalize';
+import isArray from 'lodash/isArray';
 import type {Moment} from 'moment-timezone';
 import moment from 'moment-timezone';
 import React, {PureComponent} from 'react';

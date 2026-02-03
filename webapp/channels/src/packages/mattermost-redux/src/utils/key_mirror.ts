@@ -34,7 +34,7 @@ export default function keyMirror<T extends Record<string, unknown>>(obj: T): { 
 
     const ret: any = {};
     for (const key in obj) {
-        if (!obj.hasOwnProperty(key)) {
+        if (!Object.hasOwn(obj, key)) {
             continue;
         }
 

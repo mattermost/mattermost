@@ -10,6 +10,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/mock"
+	"github.com/stretchr/testify/require"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/request"
@@ -24,6 +25,7 @@ type TestHelper struct {
 	Context request.CTX
 	Service *PlatformService
 	Suite   SuiteIFace
+	Store   store.Store
 
 	BasicTeam    *model.Team
 	BasicUser    *model.User
@@ -32,20 +34,16 @@ type TestHelper struct {
 	// BasicPost    *model.Post
 
 	SystemAdminUser *model.User
+
+	runShutdown sync.Once
+
+	tempWorkspace string
 }
 
-var initBasicOnce sync.Once
-var userCache struct {
-	SystemAdminUser *model.User
-	BasicUser       *model.User
-	BasicUser2      *model.User
-}
-
-type mockSuite struct {
-}
+type mockSuite struct{}
 
 func (ms *mockSuite) SetStatusLastActivityAt(userID string, activityAt int64) {}
-func (ms *mockSuite) SetStatusOffline(userID string, manual bool)             {}
+func (ms *mockSuite) SetStatusOffline(userID string, manual bool, force bool) {}
 func (ms *mockSuite) IsUserAway(lastActivityAt int64) bool                    { return false }
 func (ms *mockSuite) SetStatusOnline(userID string, manual bool)              {}
 func (ms *mockSuite) UpdateLastActivityAtIfNeeded(session model.Session)      {}
@@ -54,64 +52,77 @@ func (ms *mockSuite) GetSession(token string) (*model.Session, *model.AppError) 
 	return &model.Session{}, nil
 }
 func (ms *mockSuite) RolesGrantPermission(roleNames []string, permissionId string) bool { return true }
-func (ms *mockSuite) UserCanSeeOtherUser(c request.CTX, userID string, otherUserId string) (bool, *model.AppError) {
+func (ms *mockSuite) UserCanSeeOtherUser(rctx request.CTX, userID string, otherUserId string) (bool, *model.AppError) {
 	return true, nil
+}
+
+func (ms *mockSuite) HasPermissionToReadChannel(rctx request.CTX, userID string, channel *model.Channel) (bool, bool) {
+	return true, true
+}
+
+func (ms *mockSuite) MFARequired(rctx request.CTX) *model.AppError {
+	return nil
+}
+
+func (ms *mockSuite) MakeAuditRecord(rctx request.CTX, event string, initialStatus string) *model.AuditRecord {
+	return &model.AuditRecord{
+		Status:    initialStatus,
+		EventName: event,
+	}
+}
+
+func (ms *mockSuite) LogAuditRec(rctx request.CTX, auditRec *model.AuditRecord, err error) {
+}
+
+func setupDBStore(tb testing.TB) (store.Store, *model.SqlSettings) {
+	var dbStore store.Store
+	var dbSettings *model.SqlSettings
+	if mainHelper.Options.RunParallel {
+		dbStore, _, dbSettings, _ = mainHelper.GetNewStores(tb)
+		tb.Cleanup(func() {
+			dbStore.Close()
+		})
+	} else {
+		dbStore = mainHelper.GetStore()
+		dbStore.DropAllTables()
+		dbStore.MarkSystemRanUnitTests()
+		dbSettings = mainHelper.Settings
+		mainHelper.PreloadMigrations()
+	}
+
+	return dbStore, dbSettings
 }
 
 func Setup(tb testing.TB, options ...Option) *TestHelper {
 	if testing.Short() {
 		tb.SkipNow()
 	}
-	dbStore := mainHelper.GetStore()
-	dbStore.DropAllTables()
-	dbStore.MarkSystemRanUnitTests()
-	mainHelper.PreloadMigrations()
 
-	return setupTestHelper(dbStore, false, true, tb, options...)
+	dbStore, dbSettings := setupDBStore(tb)
+
+	return setupTestHelper(dbStore, dbSettings, false, true, tb, options...)
 }
 
-func (th *TestHelper) InitBasic() *TestHelper {
-	// create users once and cache them because password hashing is slow
-	initBasicOnce.Do(func() {
-		th.SystemAdminUser = th.CreateAdmin()
-		userCache.SystemAdminUser = th.SystemAdminUser.DeepCopy()
+func (th *TestHelper) InitBasic(tb testing.TB) *TestHelper {
+	th.SystemAdminUser = th.CreateAdmin(tb)
 
-		th.BasicUser = th.CreateUserOrGuest(false)
-		userCache.BasicUser = th.BasicUser.DeepCopy()
+	th.BasicUser = th.CreateUserOrGuest(tb, false)
 
-		th.BasicUser2 = th.CreateUserOrGuest(false)
-		userCache.BasicUser2 = th.BasicUser2.DeepCopy()
-	})
-	// restore cached users
-	th.SystemAdminUser = userCache.SystemAdminUser.DeepCopy()
-	th.BasicUser = userCache.BasicUser.DeepCopy()
-	th.BasicUser2 = userCache.BasicUser2.DeepCopy()
+	th.BasicUser2 = th.CreateUserOrGuest(tb, false)
 
-	users := []*model.User{th.SystemAdminUser, th.BasicUser, th.BasicUser2}
-	mainHelper.GetSQLStore().User().InsertUsers(users)
+	th.BasicTeam = th.CreateTeam(tb)
 
-	th.BasicTeam = th.CreateTeam()
-
-	// th.LinkUserToTeam(th.BasicUser, th.BasicTeam)
-	// th.LinkUserToTeam(th.BasicUser2, th.BasicTeam)
-	th.BasicChannel = th.CreateChannel(th.BasicTeam)
-	// th.BasicPost = th.CreatePost(th.BasicChannel)
+	// th.LinkUserToTeam(t, th.BasicUser, th.BasicTeam)
+	// th.LinkUserToTeam(t, th.BasicUser2, th.BasicTeam)
+	th.BasicChannel = th.CreateChannel(tb, th.BasicTeam)
+	// th.BasicPost = th.CreatePost(t, th.BasicChannel)
 	return th
 }
 
 func SetupWithStoreMock(tb testing.TB, options ...Option) *TestHelper {
 	mockStore := testlib.GetMockStoreForSetupFunctions()
 	options = append(options, StoreOverride(mockStore))
-	th := setupTestHelper(mockStore, false, false, tb, options...)
-	statusMock := mocks.StatusStore{}
-	statusMock.On("UpdateExpiredDNDStatuses").Return([]*model.Status{}, nil)
-	statusMock.On("Get", "user1").Return(&model.Status{UserId: "user1", Status: model.StatusOnline}, nil)
-	statusMock.On("UpdateLastActivityAt", "user1", mock.Anything).Return(nil)
-	statusMock.On("SaveOrUpdate", mock.AnythingOfType("*model.Status")).Return(nil)
-	emptyMockStore := mocks.Store{}
-	emptyMockStore.On("Close").Return(nil)
-	emptyMockStore.On("Status").Return(&statusMock)
-	th.Service.Store = &emptyMockStore
+	th := setupTestHelper(mockStore, &model.SqlSettings{}, false, false, tb, options...)
 	return th
 }
 
@@ -119,27 +130,23 @@ func SetupWithCluster(tb testing.TB, cluster einterfaces.ClusterInterface) *Test
 	if testing.Short() {
 		tb.SkipNow()
 	}
-	dbStore := mainHelper.GetStore()
-	dbStore.DropAllTables()
-	dbStore.MarkSystemRanUnitTests()
-	mainHelper.PreloadMigrations()
 
-	th := setupTestHelper(dbStore, true, true, tb)
+	dbStore, dbSettings := setupDBStore(tb)
+
+	th := setupTestHelper(dbStore, dbSettings, true, true, tb)
 	th.Service.clusterIFace = cluster
 
 	return th
 }
 
-func setupTestHelper(dbStore store.Store, enterprise bool, includeCacheLayer bool, tb testing.TB, options ...Option) *TestHelper {
+func setupTestHelper(dbStore store.Store, dbSettings *model.SqlSettings, enterprise bool, includeCacheLayer bool, tb testing.TB, options ...Option) *TestHelper {
 	tempWorkspace, err := os.MkdirTemp("", "apptest")
-	if err != nil {
-		panic(err)
-	}
+	require.NoError(tb, err)
 
 	configStore := config.NewTestMemoryStore()
 
 	memoryConfig := configStore.Get()
-	memoryConfig.SqlSettings = *mainHelper.GetSQLSettings()
+	memoryConfig.SqlSettings = *dbSettings
 	*memoryConfig.PluginSettings.Directory = filepath.Join(tempWorkspace, "plugins")
 	*memoryConfig.PluginSettings.ClientDirectory = filepath.Join(tempWorkspace, "webapp")
 	*memoryConfig.PluginSettings.AutomaticPrepackagedPlugins = false
@@ -149,20 +156,37 @@ func setupTestHelper(dbStore store.Store, enterprise bool, includeCacheLayer boo
 	*memoryConfig.MetricsSettings.Enable = true
 	*memoryConfig.ServiceSettings.ListenAddress = "localhost:0"
 	*memoryConfig.MetricsSettings.ListenAddress = "localhost:0"
-	configStore.Set(memoryConfig)
+	_, _, err = configStore.Set(memoryConfig)
+	require.NoError(tb, err)
 
-	ps, err := New(ServiceConfig{
-		ConfigStore: configStore,
-		Store:       dbStore,
-	}, options...)
+	options = append(options, ConfigStore(configStore))
+
+	ps, err := New(
+		ServiceConfig{
+			Store: dbStore,
+		}, options...)
 	if err != nil {
-		panic(err)
+		require.NoError(tb, err)
 	}
 
 	th := &TestHelper{
-		Context: request.TestContext(tb),
-		Service: ps,
-		Suite:   &mockSuite{},
+		Context:       request.TestContext(tb),
+		Service:       ps,
+		Suite:         &mockSuite{},
+		Store:         dbStore,
+		tempWorkspace: tempWorkspace,
+	}
+
+	if _, ok := dbStore.(*mocks.Store); ok {
+		statusMock := mocks.StatusStore{}
+		statusMock.On("UpdateExpiredDNDStatuses").Return([]*model.Status{}, nil)
+		statusMock.On("Get", "user1").Return(&model.Status{UserId: "user1", Status: model.StatusOnline}, nil)
+		statusMock.On("UpdateLastActivityAt", "user1", mock.Anything).Return(nil)
+		statusMock.On("SaveOrUpdate", mock.AnythingOfType("*model.Status")).Return(nil)
+		emptyMockStore := mocks.Store{}
+		emptyMockStore.On("Close").Return(nil)
+		emptyMockStore.On("Status").Return(&statusMock)
+		th.Service.Store = &emptyMockStore
 	}
 
 	// Share same configuration with app.TestHelper
@@ -188,20 +212,33 @@ func setupTestHelper(dbStore store.Store, enterprise bool, includeCacheLayer boo
 	}
 
 	err = th.Service.Start(nil)
-	if err != nil {
-		panic(err)
-	}
+	require.NoError(tb, err)
+
+	tb.Cleanup(func() {
+		th.Shutdown(tb)
+	})
 
 	return th
 }
 
-func (th *TestHelper) TearDown() {
-	th.Service.ShutdownMetrics()
-	th.Service.Shutdown()
-	th.Service.ShutdownConfig()
+// Shutdown may be called by tests to manually shut down the [TestHelper].
+// If it's not called manually, it will get called automatically via [testing.TB.Cleanup].
+func (th *TestHelper) Shutdown(tb testing.TB) {
+	th.runShutdown.Do(func() {
+		err := th.Service.ShutdownMetrics()
+		require.NoError(tb, err)
+		err = th.Service.Shutdown()
+		require.NoError(tb, err)
+		err = th.Service.ShutdownConfig()
+		require.NoError(tb, err)
+		if th.tempWorkspace != "" {
+			err := os.RemoveAll(th.tempWorkspace)
+			require.NoError(tb, err)
+		}
+	})
 }
 
-func (th *TestHelper) CreateTeam() *model.Team {
+func (th *TestHelper) CreateTeam(tb testing.TB) *model.Team {
 	id := model.NewId()
 
 	team := &model.Team{
@@ -211,14 +248,13 @@ func (th *TestHelper) CreateTeam() *model.Team {
 		Type:        model.TeamOpen,
 	}
 
-	var err error
-	if team, err = th.Service.Store.Team().Save(team); err != nil {
-		panic(err)
-	}
+	team, err := th.Service.Store.Team().Save(team)
+	require.NoError(tb, err)
+
 	return team
 }
 
-func (th *TestHelper) CreateUserOrGuest(guest bool) *model.User {
+func (th *TestHelper) CreateUserOrGuest(tb testing.TB, guest bool) *model.User {
 	id := model.NewId()
 
 	user := &model.User{
@@ -230,16 +266,13 @@ func (th *TestHelper) CreateUserOrGuest(guest bool) *model.User {
 		Roles:         model.SystemUserRoleId,
 	}
 
-	var err error
-	user, err = th.Service.Store.User().Save(user)
-	if err != nil {
-		panic(err)
-	}
+	user, err := th.Service.Store.User().Save(th.Context, user)
+	require.NoError(tb, err)
 
 	return user
 }
 
-func (th *TestHelper) CreateAdmin() *model.User {
+func (th *TestHelper) CreateAdmin(tb testing.TB) *model.User {
 	id := model.NewId()
 
 	user := &model.User{
@@ -251,11 +284,8 @@ func (th *TestHelper) CreateAdmin() *model.User {
 		Roles:         model.SystemAdminRoleId + " " + model.SystemUserRoleId,
 	}
 
-	var err error
-	user, err = th.Service.Store.User().Save(user)
-	if err != nil {
-		panic(err)
-	}
+	user, err := th.Service.Store.User().Save(th.Context, user)
+	require.NoError(tb, err)
 
 	return user
 }
@@ -264,11 +294,11 @@ type ChannelOption func(*model.Channel)
 
 func WithShared(v bool) ChannelOption {
 	return func(channel *model.Channel) {
-		channel.Shared = model.NewBool(v)
+		channel.Shared = model.NewPointer(v)
 	}
 }
 
-func (th *TestHelper) CreateChannel(team *model.Team, options ...ChannelOption) *model.Channel {
+func (th *TestHelper) CreateChannel(tb testing.TB, team *model.Team, options ...ChannelOption) *model.Channel {
 	id := model.NewId()
 
 	channel := &model.Channel{
@@ -282,11 +312,8 @@ func (th *TestHelper) CreateChannel(team *model.Team, options ...ChannelOption) 
 		option(channel)
 	}
 
-	var err error
-	channel, err = th.Service.Store.Channel().Save(channel, 999)
-	if err != nil {
-		panic(err)
-	}
+	channel, err := th.Service.Store.Channel().Save(th.Context, channel, 999)
+	require.NoError(tb, err)
 
 	return channel
 }

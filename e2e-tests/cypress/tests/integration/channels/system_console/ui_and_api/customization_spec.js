@@ -36,7 +36,7 @@ describe('Customization', () => {
 
         cy.findByTestId('CustomBrandImage').should('be.visible').within(() => {
             // * Verify that setting is visible and matches text content
-            cy.get('label').should('be.visible').and('have.text', 'Custom Brand Image:');
+            cy.get('legend').should('be.visible').and('have.text', 'Custom Brand Image:');
 
             // * Verify that help setting is visible and matches text content
             const contents = 'Customize your user experience by adding a custom image to your login screen. Recommended maximum image size is less than 2 MB.';
@@ -138,7 +138,7 @@ describe('Customization', () => {
 
         cy.findByTestId('TeamSettings.EnableCustomBrand').should('be.visible').within(() => {
             // * Verify that setting is visible and matches text content
-            cy.get('label:first').should('be.visible').and('have.text', 'Enable Custom Branding: ');
+            cy.get('legend:contains("Enable Custom Branding: ")').should('be.visible');
 
             // * Verify that help setting is visible and matches text content
             const content = 'Enable custom branding to show an image of your choice, uploaded below, and some help text, written below, on the login page.';

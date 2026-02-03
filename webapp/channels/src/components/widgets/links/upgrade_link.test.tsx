@@ -1,53 +1,40 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {shallow} from 'enzyme';
 import React from 'react';
-import {Provider} from 'react-redux';
 
-import {mountWithIntl} from 'tests/helpers/intl-test-helper';
-import mockStore from 'tests/test_store';
+import {renderWithContext, screen, userEvent} from 'tests/react_testing_utils';
 
 import UpgradeLink from './upgrade_link';
 
-let trackEventCall = 0;
-
-jest.mock('actions/telemetry_actions.jsx', () => {
-    const original = jest.requireActual('actions/telemetry_actions.jsx');
-    return {
-        ...original,
-        trackEvent: () => {
-            trackEventCall = 1;
-        },
-    };
-});
-
 describe('components/widgets/links/UpgradeLink', () => {
-    const mockDispatch = jest.fn();
-    jest.mock('react-redux', () => ({
-        useDispatch: () => mockDispatch,
-    }));
-
     test('should match the snapshot on show', () => {
-        const store = mockStore({});
-        const wrapper = shallow(
-            <Provider store={store}><UpgradeLink/></Provider>,
-        );
-        expect(wrapper).toMatchSnapshot();
+        const {container} = renderWithContext(<UpgradeLink/>);
+
+        expect(container).toMatchSnapshot();
     });
 
-    test('should trigger telemetry call when button clicked', (done) => {
-        const store = mockStore({});
-        const wrapper = mountWithIntl(
-            <Provider store={store}><UpgradeLink telemetryInfo='testing'/></Provider>,
-        );
-        expect(wrapper.find('button').exists()).toEqual(true);
-        wrapper.find('button').simulate('click');
+    test('should open window when button clicked', async () => {
+        const mockWindowOpen = jest.fn();
+        global.window.open = mockWindowOpen;
 
-        setImmediate(() => {
-            expect(trackEventCall).toBe(1);
-            done();
+        renderWithContext(<UpgradeLink/>, {
+            entities: {
+                general: {},
+                cloud: {
+                    customer: {},
+                },
+                users: {
+                    profiles: {},
+                },
+            },
         });
-        expect(wrapper).toMatchSnapshot();
+
+        const button = screen.getByRole('button');
+        expect(button).toBeInTheDocument();
+
+        await userEvent.click(button);
+
+        expect(mockWindowOpen).toHaveBeenCalled();
     });
 });

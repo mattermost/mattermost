@@ -1,10 +1,10 @@
-@import 'utils/variables';
+@use 'utils/variables';
 
 .FeatureDiscovery {
     display: grid;
     padding: 20px;
-    background: $white;
     border-radius: 8px;
+    background: variables.$white;
     box-shadow: 0 2px 3px rgba(0, 0, 0, 0.08);
     font-family: Open Sans;
     font-style: normal;
@@ -20,7 +20,7 @@
 
 .FeatureDiscovery_copyWrapper,
 .FeatureDiscovery_imageWrapper {
-    padding: 20px;
+    padding: 20px 0 20px 20px; 
     grid-template-columns: repeat(2, 1fr);
 }
 
@@ -29,10 +29,10 @@
 }
 
 .FeatureDiscovery_title {
-    padding-bottom: 24px;
-    font-family: Metropolis, sans-serif;
-    font-size: 24px;
-    line-height: 32px;
+    padding-bottom: 16px;
+    font-family: Metropolis, sans-serif !important;
+    font-size: 20px;
+    line-height: 28px;
 }
 
 .FeatureDiscovery_copy {
@@ -41,43 +41,11 @@
     line-height: 20px;
 }
 
-.FeatureDiscovery .btn {
-    width: 160px;
-    height: 48px;
-    padding: 14px 0;
-    margin-right: 8px;
-    background: $primary-color;
-    border-radius: 4px;
-    color: $white;
-    font-size: 16px;
-    font-weight: 400;
-    line-height: 16px;
+.purchase-card {
+    display: flex;
+    gap: 8px;
 
-    &:focus,
-    &:active,
-    &:focus:active {
-        border-color: transparent;
-        outline: none;
-    }
-
-    &:disabled {
-        border-color: transparent;
-        background: $light-gray;
-        color: $dark-gray;
-    }
-
-    &.btn-inactive {
-        background: rgba(var(--center-channel-color-rgb), 0.08);
-        color: rgba(var(--center-channel-color-rgb), 0.56);
-    }
-
-    &.btn-secondary {
-        border: 1px solid $primary-color;
-        background: $white;
-        color: $primary-color;
-    }
-
-    &.btn-primary {
-        width: 190px;
+    .btn {
+        margin-left: 0;
     }
 }

@@ -24,9 +24,9 @@ type UserCreateOptions struct {
 }
 
 // CreateUser creates a user
-func (us *UserService) CreateUser(user *model.User, opts UserCreateOptions) (*model.User, error) {
+func (us *UserService) CreateUser(rctx request.CTX, user *model.User, opts UserCreateOptions) (*model.User, error) {
 	if opts.FromImport {
-		return us.createUser(user)
+		return us.createUser(rctx, user)
 	}
 
 	user.Roles = model.SystemUserRoleId
@@ -54,17 +54,17 @@ func (us *UserService) CreateUser(user *model.User, opts UserCreateOptions) (*mo
 		user.Locale = *us.config().LocalizationSettings.DefaultClientLocale
 	}
 
-	return us.createUser(user)
+	return us.createUser(rctx, user)
 }
 
-func (us *UserService) createUser(user *model.User) (*model.User, error) {
+func (us *UserService) createUser(rctx request.CTX, user *model.User) (*model.User, error) {
 	user.MakeNonNil()
 
 	if err := us.isPasswordValid(user.Password); user.AuthService == "" && err != nil {
 		return nil, err
 	}
 
-	ruser, err := us.store.Save(user)
+	ruser, err := us.store.Save(rctx, user)
 	if err != nil {
 		return nil, err
 	}
@@ -94,8 +94,8 @@ func (us *UserService) GetUser(userID string) (*model.User, error) {
 	return us.store.Get(context.Background(), userID)
 }
 
-func (us *UserService) GetUsers(userIDs []string) ([]*model.User, error) {
-	return us.store.GetMany(context.Background(), userIDs)
+func (us *UserService) GetUsers(rctx request.CTX, userIDs []string) ([]*model.User, error) {
+	return us.store.GetMany(rctx, userIDs)
 }
 
 func (us *UserService) GetUserByUsername(username string) (*model.User, error) {
@@ -135,10 +135,10 @@ func (us *UserService) GetUsersEtag(restrictionsHash string) string {
 	return fmt.Sprintf("%v.%v.%v.%v", us.store.GetEtagForAllProfiles(), us.config().PrivacySettings.ShowFullName, us.config().PrivacySettings.ShowEmailAddress, restrictionsHash)
 }
 
-func (us *UserService) GetUsersByIds(userIDs []string, options *store.UserGetByIdsOpts) ([]*model.User, error) {
+func (us *UserService) GetUsersByIds(rctx request.CTX, userIDs []string, options *store.UserGetByIdsOpts) ([]*model.User, error) {
 	allowFromCache := options.ViewRestrictions == nil
 
-	users, err := us.store.GetProfileByIds(context.Background(), userIDs, options, allowFromCache)
+	users, err := us.store.GetProfileByIds(rctx, userIDs, options, allowFromCache)
 	if err != nil {
 		return nil, err
 	}
@@ -208,6 +208,15 @@ func (us *UserService) UpdateUserNotifyProps(userID string, props map[string]str
 
 func (us *UserService) DeactivateAllGuests() ([]string, error) {
 	users, err := us.store.DeactivateGuests()
+	if err != nil {
+		return nil, err
+	}
+
+	return users, nil
+}
+
+func (us *UserService) DeactivateMagicLinkGuests() ([]string, error) {
+	users, err := us.store.DeactivateMagicLinkGuests()
 	if err != nil {
 		return nil, err
 	}

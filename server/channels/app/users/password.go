@@ -4,39 +4,10 @@
 package users
 
 import (
-	"errors"
 	"strings"
-
-	"golang.org/x/crypto/bcrypt"
 
 	"github.com/mattermost/mattermost/server/public/model"
 )
-
-func CheckUserPassword(user *model.User, password string) error {
-	if err := ComparePassword(user.Password, password); err != nil {
-		return NewErrInvalidPassword("")
-	}
-
-	return nil
-}
-
-// HashPassword generates a hash using the bcrypt.GenerateFromPassword
-func HashPassword(password string) string {
-	hash, err := bcrypt.GenerateFromPassword([]byte(password), 10)
-	if err != nil {
-		panic(err)
-	}
-
-	return string(hash)
-}
-
-func ComparePassword(hash string, password string) error {
-	if password == "" || hash == "" {
-		return errors.New("empty password or hash")
-	}
-
-	return bcrypt.CompareHashAndPassword([]byte(hash), []byte(password))
-}
 
 func (us *UserService) isPasswordValid(password string) error {
 	return IsPasswordValidWithSettings(password, &us.config().PasswordSettings)
@@ -47,41 +18,48 @@ func (us *UserService) isPasswordValid(password string) error {
 func IsPasswordValidWithSettings(password string, settings *model.PasswordSettings) error {
 	id := "model.user.is_valid.pwd"
 	isError := false
+	isMinMaxError := false
 
-	if len(password) < *settings.MinimumLength || len(password) > model.PasswordMaximumLength {
+	if len(password) < *settings.MinimumLength {
 		isError = true
+		isMinMaxError = true
+		id = id + "_min_length"
 	}
 
-	if *settings.Lowercase {
-		if !strings.ContainsAny(password, model.LowercaseLetters) {
-			isError = true
-		}
-
-		id = id + "_lowercase"
+	if len(password) > model.PasswordMaximumLength {
+		isError = true
+		isMinMaxError = true
+		id = id + "_max_length"
 	}
 
-	if *settings.Uppercase {
-		if !strings.ContainsAny(password, model.UppercaseLetters) {
-			isError = true
+	if !isMinMaxError {
+		if *settings.Lowercase {
+			if !strings.ContainsAny(password, model.LowercaseLetters) {
+				isError = true
+				id = id + "_lowercase"
+			}
 		}
 
-		id = id + "_uppercase"
-	}
-
-	if *settings.Number {
-		if !strings.ContainsAny(password, model.NUMBERS) {
-			isError = true
+		if *settings.Uppercase {
+			if !strings.ContainsAny(password, model.UppercaseLetters) {
+				isError = true
+				id = id + "_uppercase"
+			}
 		}
 
-		id = id + "_number"
-	}
-
-	if *settings.Symbol {
-		if !strings.ContainsAny(password, model.SYMBOLS) {
-			isError = true
+		if *settings.Number {
+			if !strings.ContainsAny(password, model.NUMBERS) {
+				isError = true
+				id = id + "_number"
+			}
 		}
 
-		id = id + "_symbol"
+		if *settings.Symbol {
+			if !strings.ContainsAny(password, model.SYMBOLS) {
+				isError = true
+				id = id + "_symbol"
+			}
+		}
 	}
 
 	if isError {

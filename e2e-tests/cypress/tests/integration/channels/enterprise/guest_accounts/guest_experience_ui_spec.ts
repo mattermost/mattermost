@@ -64,30 +64,33 @@ describe('Guest Account - Guest User Experience', () => {
 
         // * Verify reduced options in Team Menu
         const missingMainOptions = [
-            'Invite People',
-            'Team Settings',
-            'Manage Members',
-            'Join Another Team',
-            'Create a Team',
+            'Invite people',
+            'Team settings',
+            'Manage members',
+            'Join another team',
+            'Create a team',
         ];
         missingMainOptions.forEach((missingOption) => {
             cy.uiGetLHSTeamMenu().should('not.contain', missingOption);
         });
 
         const includeMainOptions = [
-            'View Members',
-            'Leave Team',
+            'View members',
+            'Leave team',
         ];
         includeMainOptions.forEach((includeOption) => {
             cy.uiGetLHSTeamMenu().findByText(includeOption);
         });
+
+        // # Close the main menu
+        cy.get('body').type('{esc}');
 
         // * Verify Reduced Options in LHS
         cy.uiGetLHSAddChannelButton().should('not.exist');
 
         // * Verify Guest Badge in Channel Header
         cy.get('#channelHeaderDescription').within(($el) => {
-            cy.wrap($el).find('.has-guest-header').should('be.visible').and('have.text', 'This channel has guests');
+            cy.wrap($el).find('.has-guest-header').should('be.visible').and('have.text', 'Channel has guests');
         });
 
         // * Verify list of Users in Direct Messages Dialog
@@ -108,9 +111,10 @@ describe('Guest Account - Guest User Experience', () => {
         });
 
         // * Verify Guest Badge in Guest User's Profile Popover
-        cy.get('#user-profile-popover').should('be.visible').within(($el) => {
+        cy.get('div.user-profile-popover').should('be.visible').within(($el) => {
             cy.wrap($el).find('.GuestTag').should('be.visible').and('have.text', 'GUEST');
         });
+        cy.get('button.closeButtonRelativePosition').click();
 
         // # Close the profile popover
         cy.get('#channel-header').click();
@@ -119,7 +123,7 @@ describe('Guest Account - Guest User Experience', () => {
         cy.uiGetLhsSection('CHANNELS').find('.SidebarChannel').should('have.length', 3);
 
         // * Verify list of Users a Guest User can see in Team Members dialog
-        cy.uiOpenTeamMenu('View Members');
+        cy.uiOpenTeamMenu('View members');
         cy.get('#searchableUserListTotal').should('be.visible').and('have.text', '1 - 2 members of 2 total');
     });
 
@@ -135,17 +139,18 @@ describe('Guest Account - Guest User Experience', () => {
         // * Verify options in team menu are changed
         cy.uiOpenTeamMenu();
         const includeOptions = [
-            'Invite People',
-            'View Members',
-            'Leave Team',
-            'Create a Team',
+            'Invite people',
+            'View members',
+            'Leave team',
+            'Create a team',
         ];
         includeOptions.forEach((option) => {
             cy.uiGetLHSTeamMenu().findByText(option);
         });
 
-        // # Close the main menu
-        cy.uiGetLHSHeader().click();
+        // Close the main menu with Escape key
+        cy.get('body').type('{esc}');
+        cy.uiGetLHSTeamMenu().should('not.exist');
 
         // * Verify Options in LHS are changed
         cy.uiGetLHSAddChannelButton();
@@ -168,9 +173,10 @@ describe('Guest Account - Guest User Experience', () => {
         });
 
         // * Verify Guest Badge is not displayed in User's Profile Popover
-        cy.get('#user-profile-popover').should('be.visible').within(($el) => {
+        cy.get('div.user-profile-popover').should('be.visible').within(($el) => {
             cy.wrap($el).find('.user-popover__role').should('not.exist');
         });
+        cy.get('button.closeButtonRelativePosition').click();
 
         // # Close the profile popover
         cy.get('#channel-header').click();

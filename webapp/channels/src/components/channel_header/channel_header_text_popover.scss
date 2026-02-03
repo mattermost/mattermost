@@ -1,0 +1,109 @@
+@use 'utils/variables';
+
+.channel-header-text-popover-floating-overlay {
+    z-index: variables.$z-index-popover;
+}
+
+.channel-header-text-popover {
+    min-width: 200px;
+    max-width: calc(100vw - 10px);
+    max-height: calc(100vh - 200px);
+    padding: 6px 8px;
+    border: 1px solid rgba(var(--center-channel-color-rgb), 0.16);
+    border-radius: var(--radius-s);
+    background: var(--center-channel-bg);
+    box-shadow: var(--elevation-4);
+    font-size: 12px;
+    overflow-y: auto;
+    word-break: break-word;
+
+    .markdown__list {
+        margin: 0;
+    }
+
+    .markdown-inline-img {
+        max-height: 18px;
+        border: 1px solid transparent;
+        border-radius: 2px;
+        margin: 2px;
+        cursor: pointer;
+
+        &--loading {
+            height: 18px;
+            visibility: hidden;
+        }
+
+        &--hover {
+            border: 1px solid transparent;
+
+            &:hover {
+                box-shadow: 0 2px 2px 0 rgba(variables.$black, 0.1), 0 2px 2px 0 rgba(variables.$black, 0.1);
+                transition: all 0.1s linear;
+            }
+        }
+
+        &--no-border {
+            border: unset;
+        }
+    }
+
+    div.markdown__paragraph-inline {
+        display: inline-block;
+    }
+
+    .broken-image {
+        max-height: 18px;
+        border-radius: unset;
+    }
+
+    .image-loaded-container {
+        display: inline-block;
+    }
+
+    .file-preview__button {
+        display: inline-block;
+
+        .markdown-inline-img {
+            margin: 0 2px;
+        }
+    }
+
+    .emoticon {
+        min-width: 18px;
+        height: 18px;
+        min-height: 18px;
+        vertical-align: text-top;
+    }
+
+    ul + p,
+    ol + p {
+        margin-top: 0.6em;
+    }
+
+    p + ul,
+    p + ol {
+        margin-top: 0.6em;
+    }
+
+    blockquote {
+        overflow: hidden;
+        padding: 0 0 0 20px;
+        font-size: 13px;
+        text-overflow: ellipsis;
+
+        &::before {
+            top: 0;
+            left: 2px;
+            font-size: 15px;
+        }
+    }
+
+    p {
+        white-space: pre-wrap;
+        word-break: normal;
+
+        &:last-child {
+            margin-bottom: 0;
+        }
+    }
+}

@@ -772,20 +772,12 @@
     "translation": "Lisensi Anda tidak mendukung autentikasi SAML."
   },
   {
-    "id": "ent.saml.do_login.validate.app_error",
-    "translation": "Terjadi kesalahan saat mengesahkan balasan dari Identity Provider. Silakan hubungi Administrator Sistem Anda."
-  },
-  {
     "id": "ent.saml.do_login.parse.app_error",
     "translation": "Terjadi kesalahan saat menerima balasan dari Identity Provider. Silakan hubungi Administrator Sistem Anda."
   },
   {
     "id": "ent.saml.do_login.empty_response.app_error",
     "translation": "Kami menerima balasan kosong dari Identity Provider"
-  },
-  {
-    "id": "ent.saml.do_login.decrypt.app_error",
-    "translation": "Masuk dengan SAML gagal karena terjadi kesalahan saat mendekripsi balasan dari Identity Provider. Silakan hubungi Administrator Sistem Anda."
   },
   {
     "id": "ent.saml.configure.not_encrypted_response.app_error",
@@ -796,16 +788,8 @@
     "translation": "Masuk dengan SAML gagal karena Kunci Privat Service Provider tidak ditemukan. Silakan hubungi Administrator Sistem Anda."
   },
   {
-    "id": "ent.saml.configure.load_idp_cert.app_error",
-    "translation": "Berkas Sertifikat Publik Identity Provider tidak dapat ditemukan. Silakan hubungi Administrator Sistem Anda."
-  },
-  {
     "id": "ent.saml.configure.encryption_not_enabled.app_error",
     "translation": "Masuk dengan SAML gagal karena enkripsi tidak diaktifkan. Silakan hubungi Administrator Sistem Anda."
-  },
-  {
-    "id": "ent.saml.build_request.encoding.app_error",
-    "translation": "Terjadi kesalahan saat membaca kode permintaan untuk Identity Provider. Silakan hubungi Administrator Sistem."
   },
   {
     "id": "ent.saml.build_request.app_error",
@@ -814,14 +798,6 @@
   {
     "id": "ent.saml.attribute.app_error",
     "translation": "Masuk dengan SAML gagal karena enkripsi tidak diaktifkan. Silakan hubungi Administrator Sistem Anda."
-  },
-  {
-    "id": "ent.message_export.global_relay.create_file_in_zip.app_error",
-    "translation": "Tidak dapat memuat kiriman"
-  },
-  {
-    "id": "ent.message_export.global_relay.close_zip_file.app_error",
-    "translation": "Tidak dapat memuat kiriman"
   },
   {
     "id": "ent.ldap.validate_guest_filter.app_error",
@@ -904,48 +880,12 @@
     "translation": "Fungsi LDAP dinonaktifkan oleh lisensi saat ini. Silakan hubungi administrator sistem untuk meningkatkan lisensi enterprise Anda."
   },
   {
-    "id": "ent.compliance.csv.zip.creation.appError",
-    "translation": "Tidak dapat memuat kiriman"
-  },
-  {
-    "id": "ent.compliance.csv.warning.appError",
-    "translation": "Tidak dapat memuat kiriman"
-  },
-  {
-    "id": "ent.compliance.csv.metadata.json.zipfile.appError",
-    "translation": "Tidak dapat memuat kiriman"
-  },
-  {
     "id": "ent.account_migration.get_saml_users_failed",
     "translation": "Tidak dapat memuat kiriman"
   },
   {
     "id": "ent.account_migration.get_all_failed",
     "translation": "Tidak dapat memuat kiriman"
-  },
-  {
-    "id": "bleveengine.index_user.error",
-    "translation": "Tidak dapat memuat kiriman"
-  },
-  {
-    "id": "bleveengine.index_post.error",
-    "translation": "Tidak dapat memuat kiriman"
-  },
-  {
-    "id": "bleveengine.index_channel.error",
-    "translation": "Tidak dapat memperoleh kanal"
-  },
-  {
-    "id": "bleveengine.delete_user.error",
-    "translation": "Tidak dapat memuat kiriman"
-  },
-  {
-    "id": "bleveengine.delete_post.error",
-    "translation": "Tidak dapat memuat kiriman"
-  },
-  {
-    "id": "bleveengine.delete_channel.error",
-    "translation": "Tidak dapat memperoleh kanal"
   },
   {
     "id": "app.submit_interactive_dialog.json_error",
@@ -1296,10 +1236,6 @@
     "translation": "Kata sandi Anda harus berjumlah paling sedikit {{.Min}} karakter, dan harus terdapat minimal satu huruf kecil."
   },
   {
-    "id": "model.user.is_valid.pwd.app_error",
-    "translation": "Kata sandi Anda harus berjumlah paling sedikit {{.Min}} karakter."
-  },
-  {
     "id": "model.user.is_valid.nickname.app_error",
     "translation": "Nama tidak valid"
   },
@@ -1458,10 +1394,6 @@
   {
     "id": "model.post.is_valid.original_id.app_error",
     "translation": "ID asli tidak valid"
-  },
-  {
-    "id": "model.post.is_valid.msg.app_error",
-    "translation": "Pesan tidak valid"
   },
   {
     "id": "model.post.is_valid.id.app_error",
@@ -1844,10 +1776,6 @@
   {
     "id": "api.context.404.app_error",
     "translation": "Maaf, tidak dapat menemukan halaman yang dimaksud"
-  },
-  {
-    "id": "api.config.client.old_format.app_error",
-    "translation": "Format baru untuk konfigurasi klien belum didukung. Harap tentukan ormat=old dalam string kueri."
   },
   {
     "id": "api.command_shrug.name",
@@ -2686,10 +2614,6 @@
     "translation": "%v telah keluar dari kanal."
   },
   {
-    "id": "api.channel.leave.last_member.app_error",
-    "translation": "Anda satu-satunya anggota yang tersisa, coba menghapus Kanal Pribadi daripada keluar."
-  },
-  {
     "id": "api.channel.leave.direct.app_error",
     "translation": "Tidak dapat keluar dari kanal pesan langsung"
   },
@@ -3108,10 +3032,6 @@
     "translation": "{{.ConvertedByUsername}} membuat saluran ini dari sebuah pesan grup dengan {{.GMMembers}}."
   },
   {
-    "id": "api.cloud.delinquency_email.missing_email_to_trigger",
-    "translation": "Kolom yang harus diisi tidak lengkap untuk mengirim email tunggakan."
-  },
-  {
     "id": "api.cloud.license_error",
     "translation": "Lisensi Anda tidak mendukung permintaan cloud."
   },
@@ -3306,10 +3226,6 @@
     "translation": "Tidak dapat menemukan saluran yang ditentukan. Silakan gunakan [pegangan saluran] (https://docs.mattermost.com/messaging/managing-channels.html#naming-a-channel) untuk mengidentifikasi saluran."
   },
   {
-    "id": "api.command_mute.not_member.error",
-    "translation": "Tidak dapat membisukan saluran {{.Channel}} karena Anda bukan anggota."
-  },
-  {
     "id": "api.command_mute.success_unmute",
     "translation": "{{.Channel}} tidak lagi dibisukan."
   },
@@ -3320,10 +3236,6 @@
   {
     "id": "api.command_remote.displayname.hint",
     "translation": "Nama tampilan untuk koneksi aman"
-  },
-  {
-    "id": "api.command_remote.incorrect_password.error",
-    "translation": "Tidak dapat mendekripsi undangan. Kata sandi salah atau undangan rusak: {{.Error}}"
   },
   {
     "id": "api.command_remote.invite_summary",

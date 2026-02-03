@@ -2,12 +2,13 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
+import type {MessageDescriptor} from 'react-intl';
+import {defineMessage} from 'react-intl';
 
 import type {Team, TeamMembership} from '@mattermost/types/teams';
 
 import type {ActionResult} from 'mattermost-redux/types/actions';
 
-import {t} from 'utils/i18n';
 import {filterAndSortTeamsByDisplayName} from 'utils/team_utils';
 
 import AbstractList from './abstract_list';
@@ -16,8 +17,10 @@ import type {TeamWithMembership} from './types';
 
 const headerLabels = [
     {
-        id: t('admin.systemUserDetail.teamList.header.name'),
-        default: 'Name',
+        label: defineMessage({
+            id: 'admin.systemUserDetail.teamList.header.name',
+            defaultMessage: 'Name',
+        }),
         style: {
             flexGrow: 1,
             minWidth: '284px',
@@ -25,15 +28,19 @@ const headerLabels = [
         },
     },
     {
-        id: t('admin.systemUserDetail.teamList.header.type'),
-        default: 'Type',
+        label: defineMessage({
+            id: 'admin.systemUserDetail.teamList.header.type',
+            defaultMessage: 'Type',
+        }),
         style: {
             width: '150px',
         },
     },
     {
-        id: t('admin.systemUserDetail.teamList.header.role'),
-        default: 'Role',
+        label: defineMessage({
+            id: 'admin.systemUserDetail.teamList.header.role',
+            defaultMessage: 'Role',
+        }),
         style: {
             width: '150px',
         },
@@ -48,11 +55,10 @@ const headerLabels = [
 type Props = {
     userId: string;
     locale: string;
-    emptyListTextId: string;
-    emptyListTextDefaultMessage: string;
+    emptyList: MessageDescriptor;
     actions: {
-        getTeamsData: (userId: string) => Promise<{data: Team[]}>;
-        getTeamMembersForUser: (userId: string) => Promise<{data: TeamMembership[]}>;
+        getTeamsData: (userId: string) => Promise<ActionResult<Team[]>>;
+        getTeamMembersForUser: (userId: string) => Promise<ActionResult<TeamMembership[]>>;
         removeUserFromTeam: (teamId: string, userId: string) => Promise<ActionResult>;
         updateTeamMemberSchemeRoles: (teamId: string, userId: string, isSchemeUser: boolean, isSchemeAdmin: boolean) => Promise<ActionResult>;
     };
@@ -68,8 +74,10 @@ type State = {
 
 export default class TeamList extends React.PureComponent<Props, State> {
     public static defaultProps = {
-        emptyListTextId: t('admin.team_settings.team_list.no_teams_found'),
-        emptyListTextDefaultMessage: 'No teams found',
+        emptyList: defineMessage({
+            id: 'admin.team_settings.team_list.no_teams_found',
+            defaultMessage: 'No teams found',
+        }),
         refreshTeams: false,
     };
 
@@ -103,9 +111,12 @@ export default class TeamList extends React.PureComponent<Props, State> {
     };
 
     // check this out
-    private mergeTeamsWithMemberships = (data: [{data: Team[]}, {data: TeamMembership[]}]): TeamWithMembership[] => {
+    private mergeTeamsWithMemberships = (data: [ActionResult<Team[]>, ActionResult<TeamMembership[]>]): TeamWithMembership[] => {
         const teams = data[0].data;
         const memberships = data[1].data;
+        if (!teams || !memberships) {
+            return [];
+        }
         let teamsWithMemberships = teams.map((object: Team) => {
             const results = memberships.filter((team: TeamMembership) => team.team_id === object.id);
             const team = {...object, ...results[0]};
@@ -142,32 +153,6 @@ export default class TeamList extends React.PureComponent<Props, State> {
         }
     };
 
-    public render(): JSX.Element {
-        let serverError = null;
-        if (this.state.serverError) {
-            serverError = (
-                <div className='SystemUserDetail__error has-error'>
-                    <label className='has-error control-label'>{this.state.serverError}</label>
-                </div>
-            );
-        }
-        return (
-            <React.Fragment>
-                <div>{serverError}</div>
-                <AbstractList
-                    headerLabels={headerLabels}
-                    renderRow={this.renderRow}
-                    total={this.state.teamsWithMemberships.length}
-                    data={this.state.teamsWithMemberships}
-                    actions={this.props.actions}
-                    emptyListTextId={this.props.emptyListTextId}
-                    emptyListTextDefaultMessage={this.props.emptyListTextDefaultMessage}
-                    userId={this.props.userId}
-                />
-            </React.Fragment>
-        );
-    }
-
     private renderRow = (item: TeamWithMembership): JSX.Element => {
         return (
             <TeamRow
@@ -180,4 +165,29 @@ export default class TeamList extends React.PureComponent<Props, State> {
             />
         );
     };
+
+    public render(): JSX.Element {
+        let serverError = null;
+        if (this.state.serverError) {
+            serverError = (
+                <div className='SystemUserDetail__error has-error'>
+                    <label className='has-error control-label'>{this.state.serverError}</label>
+                </div>
+            );
+        }
+        return (
+            <>
+                <div>{serverError}</div>
+                <AbstractList
+                    headerLabels={headerLabels}
+                    renderRow={this.renderRow}
+                    total={this.state.teamsWithMemberships.length}
+                    data={this.state.teamsWithMemberships}
+                    actions={this.props.actions}
+                    emptyList={this.props.emptyList}
+                    userId={this.props.userId}
+                />
+            </>
+        );
+    }
 }

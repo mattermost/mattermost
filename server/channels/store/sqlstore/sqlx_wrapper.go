@@ -17,9 +17,9 @@ import (
 
 	"github.com/jmoiron/sqlx"
 
-	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/v8/channels/store/storetest"
+	sq "github.com/mattermost/squirrel"
 )
 
 type StoreTestWrapper struct {
@@ -30,12 +30,16 @@ func NewStoreTestWrapper(orig *SqlStore) *StoreTestWrapper {
 	return &StoreTestWrapper{orig}
 }
 
-func (w *StoreTestWrapper) GetMasterX() storetest.SqlXExecutor {
-	return w.orig.GetMasterX()
+func (w *StoreTestWrapper) GetMaster() storetest.SqlXExecutor {
+	return w.orig.GetMaster()
 }
 
 func (w *StoreTestWrapper) DriverName() string {
 	return w.orig.DriverName()
+}
+
+func (w *StoreTestWrapper) GetQueryPlaceholder() sq.PlaceholderFormat {
+	return w.orig.getQueryPlaceholder()
 }
 
 type Builder interface {
@@ -58,9 +62,7 @@ type sqlxExecutor interface {
 	SelectBuilder(dest any, builder Builder) error
 }
 
-// namedParamRegex is used to capture all named parameters and convert them
-// to lowercase. This is necessary to be able to use a single query for both
-// Postgres and MySQL.
+// namedParamRegex is used to capture all named parameters and convert them to lowercase.
 // This will also lowercase any constant strings containing a :, but sqlx
 // will fail the query, so it won't be checked in inadvertently.
 var namedParamRegex = regexp.MustCompile(`:\w+`)
@@ -129,9 +131,7 @@ func (w *sqlxDBWrapper) GetBuilder(dest any, builder Builder) error {
 }
 
 func (w *sqlxDBWrapper) NamedExec(query string, arg any) (sql.Result, error) {
-	if w.DB.DriverName() == model.DatabaseDriverPostgres {
-		query = namedParamRegex.ReplaceAllStringFunc(query, strings.ToLower)
-	}
+	query = namedParamRegex.ReplaceAllStringFunc(query, strings.ToLower)
 	ctx, cancel := context.WithTimeout(context.Background(), w.queryTimeout)
 	defer cancel()
 
@@ -187,9 +187,7 @@ func (w *sqlxDBWrapper) ExecRaw(query string, args ...any) (sql.Result, error) {
 }
 
 func (w *sqlxDBWrapper) NamedQuery(query string, arg any) (*sqlx.Rows, error) {
-	if w.DB.DriverName() == model.DatabaseDriverPostgres {
-		query = namedParamRegex.ReplaceAllStringFunc(query, strings.ToLower)
-	}
+	query = namedParamRegex.ReplaceAllStringFunc(query, strings.ToLower)
 	ctx, cancel := context.WithTimeout(context.Background(), w.queryTimeout)
 	defer cancel()
 
@@ -227,7 +225,7 @@ func (w *sqlxDBWrapper) QueryX(query string, args ...any) (*sqlx.Rows, error) {
 		}(time.Now())
 	}
 
-	return w.checkErrWithRows(w.DB.QueryxContext(ctx, query, args))
+	return w.checkErrWithRows(w.DB.QueryxContext(ctx, query, args...))
 }
 
 func (w *sqlxDBWrapper) Select(dest any, query string, args ...any) error {
@@ -249,12 +247,16 @@ func (w *sqlxDBWrapper) SelectCtx(ctx context.Context, dest any, query string, a
 }
 
 func (w *sqlxDBWrapper) SelectBuilder(dest any, builder Builder) error {
+	return w.SelectBuilderCtx(context.Background(), dest, builder)
+}
+
+func (w *sqlxDBWrapper) SelectBuilderCtx(ctx context.Context, dest any, builder Builder) error {
 	query, args, err := builder.ToSql()
 	if err != nil {
 		return err
 	}
 
-	return w.Select(dest, query, args...)
+	return w.SelectCtx(ctx, dest, query, args...)
 }
 
 type sqlxTxWrapper struct {
@@ -339,9 +341,7 @@ func (w *sqlxTxWrapper) ExecRaw(query string, args ...any) (sql.Result, error) {
 }
 
 func (w *sqlxTxWrapper) NamedExec(query string, arg any) (sql.Result, error) {
-	if w.Tx.DriverName() == model.DatabaseDriverPostgres {
-		query = namedParamRegex.ReplaceAllStringFunc(query, strings.ToLower)
-	}
+	query = namedParamRegex.ReplaceAllStringFunc(query, strings.ToLower)
 	ctx, cancel := context.WithTimeout(context.Background(), w.queryTimeout)
 	defer cancel()
 
@@ -355,9 +355,7 @@ func (w *sqlxTxWrapper) NamedExec(query string, arg any) (sql.Result, error) {
 }
 
 func (w *sqlxTxWrapper) NamedQuery(query string, arg any) (*sqlx.Rows, error) {
-	if w.Tx.DriverName() == model.DatabaseDriverPostgres {
-		query = namedParamRegex.ReplaceAllStringFunc(query, strings.ToLower)
-	}
+	query = namedParamRegex.ReplaceAllStringFunc(query, strings.ToLower)
 	ctx, cancel := context.WithTimeout(context.Background(), w.queryTimeout)
 	defer cancel()
 
@@ -423,7 +421,7 @@ func (w *sqlxTxWrapper) QueryX(query string, args ...any) (*sqlx.Rows, error) {
 		}(time.Now())
 	}
 
-	return w.dbw.checkErrWithRows(w.Tx.QueryxContext(ctx, query, args))
+	return w.dbw.checkErrWithRows(w.Tx.QueryxContext(ctx, query, args...))
 }
 
 func (w *sqlxTxWrapper) Select(dest any, query string, args ...any) error {

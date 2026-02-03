@@ -8,8 +8,6 @@ import {bindActionCreators} from 'redux';
 import type {Dispatch} from 'redux';
 
 import {addPostReminder} from 'mattermost-redux/actions/posts';
-import {Preferences} from 'mattermost-redux/constants';
-import {getBool} from 'mattermost-redux/selectors/entities/preferences';
 import {getCurrentTimezone} from 'mattermost-redux/selectors/entities/timezone';
 import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
 
@@ -22,12 +20,10 @@ const PostReminderCustomTimePicker = makeAsyncComponent('PostReminderCustomTimeP
 function mapStateToProps(state: GlobalState) {
     const timezone = getCurrentTimezone(state);
     const userId = getCurrentUserId(state);
-    const isMilitaryTime = getBool(state, Preferences.CATEGORY_DISPLAY_SETTINGS, Preferences.USE_MILITARY_TIME, false);
 
     return {
         userId,
         timezone,
-        isMilitaryTime,
     };
 }
 

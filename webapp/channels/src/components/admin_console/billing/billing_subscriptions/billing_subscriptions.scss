@@ -1,5 +1,5 @@
-@import 'sass/utils/_mixins';
-@import './mixins';
+@use 'utils/_mixins' as utils-mixins;
+@use 'mixins';
 
 .BillingSubscriptions {
     .BillingSubscriptions__topWrapper {
@@ -9,10 +9,6 @@
     .AlertBanner {
         margin-bottom: 20px;
     }
-}
-
-#BillingSubscriptions__seatOverageTooltip {
-    margin-left: -5px;
 }
 
 .BillingSubscriptions__tooltip.tooltip {
@@ -40,8 +36,8 @@
         max-width: none;
         padding: 24px;
         border: 1px solid rgba(var(--sys-center-channel-color-rgb), 0.08);
-        background-color: var(--sys-center-channel-bg);
         border-radius: 4px;
+        background-color: var(--sys-center-channel-bg);
         box-shadow: 0 12px 32px rgba(0, 0, 0, 0.12);
         color: var(--sys-center-channel-color);
         opacity: 1;
@@ -65,18 +61,6 @@
             content: '';
         }
     }
-}
-
-.BillingSubscriptions__tooltipTitle {
-    font-size: 16px;
-    font-weight: 600;
-    line-height: 24px;
-}
-
-.BillingSubscriptions__tooltipMessage {
-    margin-top: 8px;
-    font-size: 14px;
-    line-height: 20px;
 }
 
 .UpgradeMattermostCloud {
@@ -107,37 +91,11 @@
 
 .UpgradeMattermostCloud__upgradeButton {
     width: 100%;
-    padding: 13px 0;
-    border: none;
     margin-top: 16px;
-    background: var(--button-bg);
-    border-radius: 4px;
-    box-shadow: inset 0 0 0 1px var(--sys-button-bg);
-    color: var(--button-color);
-    font-size: 14px;
-    font-weight: 600;
-    line-height: 14px;
-
-    &:hover:not(.disabled) {
-        background: linear-gradient(0deg, rgba(var(--center-channel-color-rgb), 0.16), rgba(var(--center-channel-color-rgb), 0.16)), var(--button-bg);
-    }
-
-    &:active {
-        background: linear-gradient(0deg, rgba(var(--center-channel-color-rgb), 0.32), rgba(var(--center-channel-color-rgb), 0.32)), var(--button-bg);
-    }
-
-    &:focus {
-        box-shadow: inset 0 0 0 2px var(--sidebar-text-active-border);
-    }
-
-    &.disabled {
-        background: rgba(var(--center-channel-color-rgb), 0.08);
-        color: rgba(var(--center-channel-color-rgb), 0.32);
-    }
 }
 
 .PrivateCloudCard {
-    @include cloud-card;
+    @include mixins.cloud-card;
 
     display: flex;
 
@@ -153,7 +111,7 @@
 }
 
 .PrivateCloudCard__text-title {
-    @include cloud-card-title;
+    @include mixins.cloud-card-title;
 }
 
 .PrivateCloudCard__text-description {
@@ -168,35 +126,10 @@
 }
 
 .PrivateCloudCard__actionButton {
-    display: block;
-
-    @include fit-content;
-
-    padding: 13px 20px;
-    border: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
     margin-top: 16px;
-    background: var(--sys-center-channel-bg);
-    border-radius: 4px;
-    box-shadow: inset 0 0 0 1px var(--sys-button-bg);
-    color: var(--sys-button-bg);
-    font-size: 14px;
-    font-weight: 600;
-    line-height: 14px;
-
-    &:hover:not(.disabled) {
-        background: rgba(var(--sys-button-bg-rgb), 0.04);
-        text-decoration: none;
-    }
-
-    &:active {
-        background: rgba(var(--sys-button-bg-rgb), 0.08);
-        text-decoration: none;
-    }
-
-    &:focus {
-        box-shadow: inset 0 0 0 2px var(--sys-button-bg);
-        text-decoration: none;
-    }
 }
 
 .cancelSubscriptionSection {
@@ -225,32 +158,5 @@
 
 .cancelSubscriptionSection__contactUs {
     display: block;
-
-    @include fit-content;
-
-    padding: 13px 20px;
     margin-top: 16px;
-    border-radius: 4px;
-    box-shadow: inset 0 0 0 1px var(--sys-dnd-indicator);
-    color: var(--sys-dnd-indicator);
-    font-size: 12px;
-    font-weight: 600;
-    line-height: 9.5px;
-
-    &:hover:not(.disabled) {
-        background: rgba(var(--sys-dnd-indicator-rgb), 0.04);
-        color: var(--sys-dnd-indicator);
-        text-decoration: none;
-    }
-
-    &:active {
-        background: rgba(var(--sys-dnd-indicator-rgb), 0.08);
-        text-decoration: none;
-    }
-
-    &:focus {
-        box-shadow: inset 0 0 0 2px var(--sys-dnd-indicator);
-        color: var(--sys-dnd-indicator);
-        text-decoration: none;
-    }
 }

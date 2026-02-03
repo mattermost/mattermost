@@ -1,161 +1,479 @@
-// Jest Snapshot v1, https://goo.gl/fbAQLP
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
 
 exports[`components/ColorInput should match snapshot, click on picker 1`] = `
-<div
-  className="color-input input-group"
->
-  <input
-    className="form-control"
-    data-testid="color-inputColorValue"
-    id="sidebarBg-inputColorValue"
-    maxLength={7}
-    onBlur={[Function]}
-    onChange={[Function]}
-    onFocus={[Function]}
-    onKeyDown={[Function]}
-    type="text"
-    value="#ffffff"
-  />
-  <span
-    className="input-group-addon color-pad"
-    id="sidebarBg-squareColorIcon"
-    onClick={[Function]}
-  >
-    <i
-      className="color-icon"
-      id="sidebarBg-squareColorIconValue"
-      style={
-        Object {
-          "backgroundColor": "#ffffff",
-        }
-      }
-    />
-  </span>
+<div>
   <div
-    className="color-popover"
-    id="sidebarBg-ChromePickerModal"
+    class="color-input input-group"
   >
-    <ColorPicker
-      color="#ffffff"
-      disableAlpha={true}
-      onChange={[Function]}
-      styles={Object {}}
-      width={225}
+    <input
+      class="form-control"
+      data-testid="color-inputColorValue"
+      id="sidebarBg-inputColorValue"
+      maxlength="7"
+      type="text"
+      value="#ffffff"
     />
+    <span
+      class="input-group-addon color-pad"
+      id="sidebarBg-squareColorIcon"
+    >
+      <i
+        class="color-icon"
+        id="sidebarBg-squareColorIconValue"
+        style="background-color: rgb(255, 255, 255);"
+      />
+    </span>
+    <div
+      class="color-popover"
+      id="sidebarBg-ChromePickerModal"
+    >
+      <div
+        class="chrome-picker "
+        style="width: 225px; background: rgb(255, 255, 255); border-radius: 2px; box-shadow: 0 0 2px rgba(0,0,0,.3), 0 4px 8px rgba(0,0,0,.3); box-sizing: initial; font-family: Menlo;"
+      >
+        <div
+          style="width: 100%; padding-bottom: 55%; position: relative; border-radius: 2px 2px 0 0; overflow: hidden;"
+        >
+          <div
+            style="position: absolute; top: 0px; right: 0px; bottom: 0px; left: 0px; background: rgb(255, 0, 0);"
+          >
+            <style>
+              
+          .saturation-white {
+            background: -webkit-linear-gradient(to right, #fff, rgba(255,255,255,0));
+            background: linear-gradient(to right, #fff, rgba(255,255,255,0));
+          }
+          .saturation-black {
+            background: -webkit-linear-gradient(to top, #000, rgba(0,0,0,0));
+            background: linear-gradient(to top, #000, rgba(0,0,0,0));
+          }
+        
+            </style>
+            <div
+              class="saturation-white"
+              style="position: absolute; top: 0px; right: 0px; bottom: 0px; left: 0px;"
+            >
+              <div
+                class="saturation-black"
+                style="position: absolute; top: 0px; right: 0px; bottom: 0px; left: 0px;"
+              />
+              <div
+                style="position: absolute; top: 0%; left: 0%; cursor: default;"
+              >
+                <div
+                  style="width: 12px; height: 12px; border-radius: 6px; box-shadow: inset 0 0 0 1px #fff; -webkit-transform: translate(-6px, -6px); transform: translate(-6px, -6px);"
+                />
+              </div>
+            </div>
+          </div>
+        </div>
+        <div
+          style="padding: 16px 16px 12px;"
+        >
+          <div
+            class="flexbox-fix"
+            style="display: flex;"
+          >
+            <div
+              style="width: 22px;"
+            >
+              <div
+                style="margin-top: 0px; width: 10px; height: 10px; border-radius: 8px; position: relative; overflow: hidden;"
+              >
+                <div
+                  style="position: absolute; top: 0px; right: 0px; bottom: 0px; left: 0px; border-radius: 8px; box-shadow: inset 0 0 0 1px rgba(0,0,0,.1); background: rgb(255, 255, 255); z-index: 2;"
+                />
+                <div
+                  style="position: absolute; top: 0px; right: 0px; bottom: 0px; left: 0px;"
+                />
+              </div>
+            </div>
+            <div
+              style="flex: 1 1 0%;"
+            >
+              <div
+                style="height: 10px; position: relative; margin-bottom: 0px;"
+              >
+                <div
+                  style="position: absolute; top: 0px; right: 0px; bottom: 0px; left: 0px;"
+                >
+                  <div
+                    class="hue-horizontal"
+                    style="padding: 0px 2px; position: relative; height: 100%;"
+                  >
+                    <style>
+                      
+            .hue-horizontal {
+              background: linear-gradient(to right, #f00 0%, #ff0 17%, #0f0
+                33%, #0ff 50%, #00f 67%, #f0f 83%, #f00 100%);
+              background: -webkit-linear-gradient(to right, #f00 0%, #ff0
+                17%, #0f0 33%, #0ff 50%, #00f 67%, #f0f 83%, #f00 100%);
+            }
+
+            .hue-vertical {
+              background: linear-gradient(to top, #f00 0%, #ff0 17%, #0f0 33%,
+                #0ff 50%, #00f 67%, #f0f 83%, #f00 100%);
+              background: -webkit-linear-gradient(to top, #f00 0%, #ff0 17%,
+                #0f0 33%, #0ff 50%, #00f 67%, #f0f 83%, #f00 100%);
+            }
+          
+                    </style>
+                    <div
+                      style="position: absolute; left: 0%;"
+                    >
+                      <div
+                        style="width: 12px; height: 12px; border-radius: 6px; -webkit-transform: translate(-6px, -1px); transform: translate(-6px, -1px); background-color: rgb(248, 248, 248); box-shadow: 0 1px 4px 0 rgba(0, 0, 0, 0.37);"
+                      />
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div
+                style="height: 10px; position: relative; display: none;"
+              >
+                <div
+                  style="position: absolute; top: 0px; right: 0px; bottom: 0px; left: 0px;"
+                >
+                  <div
+                    style="position: absolute; top: 0px; right: 0px; bottom: 0px; left: 0px; overflow: hidden;"
+                  >
+                    <div
+                      style="position: absolute; top: 0px; right: 0px; bottom: 0px; left: 0px;"
+                    />
+                  </div>
+                  <div
+                    style="position: absolute; top: 0px; right: 0px; bottom: 0px; left: 0px; background: linear-gradient(to right, rgba(255,255,255, 0) 0%, rgba(255,255,255, 1) 100%);"
+                  />
+                  <div
+                    style="position: relative; height: 100%; margin: 0px 3px;"
+                  >
+                    <div
+                      style="position: absolute; left: 100%;"
+                    >
+                      <div
+                        style="width: 12px; height: 12px; border-radius: 6px; -webkit-transform: translate(-6px, -1px); transform: translate(-6px, -1px); background-color: rgb(248, 248, 248); box-shadow: 0 1px 4px 0 rgba(0, 0, 0, 0.37);"
+                      />
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div
+            class="flexbox-fix"
+            style="padding-top: 16px; display: flex;"
+          >
+            <div
+              class="flexbox-fix"
+              style="flex: 1 1 0%; display: flex; margin-left: -6px;"
+            >
+              <div
+                style="padding-left: 6px; width: 100%;"
+              >
+                <div
+                  style="position: relative;"
+                >
+                  <input
+                    id="rc-editable-input-3"
+                    spellcheck="false"
+                    style="font-size: 11px; color: rgb(51, 51, 51); width: 100%; border-radius: 2px; box-shadow: inset 0 0 0 1px #dadada; height: 21px; text-align: center;"
+                    value="#FFFFFF"
+                  />
+                  <label
+                    for="rc-editable-input-3"
+                    style="text-transform: uppercase; font-size: 11px; line-height: 11px; color: rgb(150, 150, 150); text-align: center; display: block; margin-top: 12px;"
+                  >
+                    hex
+                  </label>
+                </div>
+              </div>
+            </div>
+            <div
+              style="width: 32px; text-align: right; position: relative;"
+            >
+              <div
+                style="margin-right: -4px; margin-top: 12px; cursor: pointer; position: relative;"
+              >
+                <svg
+                  style="fill: #333; width: 24px; height: 24px; border: 1px solid transparent; border-radius: 5px;"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    d="M12,18.17L8.83,15L7.42,16.41L12,21L16.59,16.41L15.17,15M12,5.83L15.17,9L16.58,7.59L12,3L7.41,7.59L8.83,9L12,5.83Z"
+                  />
+                </svg>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
 </div>
 `;
 
 exports[`components/ColorInput should match snapshot, init 1`] = `
-<div
-  className="color-input input-group"
->
-  <input
-    className="form-control"
-    data-testid="color-inputColorValue"
-    id="sidebarBg-inputColorValue"
-    maxLength={7}
-    onBlur={[Function]}
-    onChange={[Function]}
-    onFocus={[Function]}
-    onKeyDown={[Function]}
-    type="text"
-    value="#ffffff"
-  />
-  <span
-    className="input-group-addon color-pad"
-    id="sidebarBg-squareColorIcon"
-    onClick={[Function]}
+<div>
+  <div
+    class="color-input input-group"
   >
-    <i
-      className="color-icon"
-      id="sidebarBg-squareColorIconValue"
-      style={
-        Object {
-          "backgroundColor": "#ffffff",
-        }
-      }
+    <input
+      class="form-control"
+      data-testid="color-inputColorValue"
+      id="sidebarBg-inputColorValue"
+      maxlength="7"
+      type="text"
+      value="#ffffff"
     />
-  </span>
+    <span
+      class="input-group-addon color-pad"
+      id="sidebarBg-squareColorIcon"
+    >
+      <i
+        class="color-icon"
+        id="sidebarBg-squareColorIconValue"
+        style="background-color: rgb(255, 255, 255);"
+      />
+    </span>
+  </div>
 </div>
 `;
 
 exports[`components/ColorInput should match snapshot, opened 1`] = `
-<div
-  className="color-input input-group"
->
-  <input
-    className="form-control"
-    data-testid="color-inputColorValue"
-    id="sidebarBg-inputColorValue"
-    maxLength={7}
-    onBlur={[Function]}
-    onChange={[Function]}
-    onFocus={[Function]}
-    onKeyDown={[Function]}
-    type="text"
-    value="#ffffff"
-  />
-  <span
-    className="input-group-addon color-pad"
-    id="sidebarBg-squareColorIcon"
-    onClick={[Function]}
-  >
-    <i
-      className="color-icon"
-      id="sidebarBg-squareColorIconValue"
-      style={
-        Object {
-          "backgroundColor": "#ffffff",
-        }
-      }
-    />
-  </span>
+<div>
   <div
-    className="color-popover"
-    id="sidebarBg-ChromePickerModal"
+    class="color-input input-group"
   >
-    <ColorPicker
-      color="#ffffff"
-      disableAlpha={true}
-      onChange={[Function]}
-      styles={Object {}}
-      width={225}
+    <input
+      class="form-control"
+      data-testid="color-inputColorValue"
+      id="sidebarBg-inputColorValue"
+      maxlength="7"
+      type="text"
+      value="#ffffff"
     />
+    <span
+      class="input-group-addon color-pad"
+      id="sidebarBg-squareColorIcon"
+    >
+      <i
+        class="color-icon"
+        id="sidebarBg-squareColorIconValue"
+        style="background-color: rgb(255, 255, 255);"
+      />
+    </span>
+    <div
+      class="color-popover"
+      id="sidebarBg-ChromePickerModal"
+    >
+      <div
+        class="chrome-picker "
+        style="width: 225px; background: rgb(255, 255, 255); border-radius: 2px; box-shadow: 0 0 2px rgba(0,0,0,.3), 0 4px 8px rgba(0,0,0,.3); box-sizing: initial; font-family: Menlo;"
+      >
+        <div
+          style="width: 100%; padding-bottom: 55%; position: relative; border-radius: 2px 2px 0 0; overflow: hidden;"
+        >
+          <div
+            style="position: absolute; top: 0px; right: 0px; bottom: 0px; left: 0px; background: rgb(255, 0, 0);"
+          >
+            <style>
+              
+          .saturation-white {
+            background: -webkit-linear-gradient(to right, #fff, rgba(255,255,255,0));
+            background: linear-gradient(to right, #fff, rgba(255,255,255,0));
+          }
+          .saturation-black {
+            background: -webkit-linear-gradient(to top, #000, rgba(0,0,0,0));
+            background: linear-gradient(to top, #000, rgba(0,0,0,0));
+          }
+        
+            </style>
+            <div
+              class="saturation-white"
+              style="position: absolute; top: 0px; right: 0px; bottom: 0px; left: 0px;"
+            >
+              <div
+                class="saturation-black"
+                style="position: absolute; top: 0px; right: 0px; bottom: 0px; left: 0px;"
+              />
+              <div
+                style="position: absolute; top: 0%; left: 0%; cursor: default;"
+              >
+                <div
+                  style="width: 12px; height: 12px; border-radius: 6px; box-shadow: inset 0 0 0 1px #fff; -webkit-transform: translate(-6px, -6px); transform: translate(-6px, -6px);"
+                />
+              </div>
+            </div>
+          </div>
+        </div>
+        <div
+          style="padding: 16px 16px 12px;"
+        >
+          <div
+            class="flexbox-fix"
+            style="display: flex;"
+          >
+            <div
+              style="width: 22px;"
+            >
+              <div
+                style="margin-top: 0px; width: 10px; height: 10px; border-radius: 8px; position: relative; overflow: hidden;"
+              >
+                <div
+                  style="position: absolute; top: 0px; right: 0px; bottom: 0px; left: 0px; border-radius: 8px; box-shadow: inset 0 0 0 1px rgba(0,0,0,.1); background: rgb(255, 255, 255); z-index: 2;"
+                />
+                <div
+                  style="position: absolute; top: 0px; right: 0px; bottom: 0px; left: 0px;"
+                />
+              </div>
+            </div>
+            <div
+              style="flex: 1 1 0%;"
+            >
+              <div
+                style="height: 10px; position: relative; margin-bottom: 0px;"
+              >
+                <div
+                  style="position: absolute; top: 0px; right: 0px; bottom: 0px; left: 0px;"
+                >
+                  <div
+                    class="hue-horizontal"
+                    style="padding: 0px 2px; position: relative; height: 100%;"
+                  >
+                    <style>
+                      
+            .hue-horizontal {
+              background: linear-gradient(to right, #f00 0%, #ff0 17%, #0f0
+                33%, #0ff 50%, #00f 67%, #f0f 83%, #f00 100%);
+              background: -webkit-linear-gradient(to right, #f00 0%, #ff0
+                17%, #0f0 33%, #0ff 50%, #00f 67%, #f0f 83%, #f00 100%);
+            }
+
+            .hue-vertical {
+              background: linear-gradient(to top, #f00 0%, #ff0 17%, #0f0 33%,
+                #0ff 50%, #00f 67%, #f0f 83%, #f00 100%);
+              background: -webkit-linear-gradient(to top, #f00 0%, #ff0 17%,
+                #0f0 33%, #0ff 50%, #00f 67%, #f0f 83%, #f00 100%);
+            }
+          
+                    </style>
+                    <div
+                      style="position: absolute; left: 0%;"
+                    >
+                      <div
+                        style="width: 12px; height: 12px; border-radius: 6px; -webkit-transform: translate(-6px, -1px); transform: translate(-6px, -1px); background-color: rgb(248, 248, 248); box-shadow: 0 1px 4px 0 rgba(0, 0, 0, 0.37);"
+                      />
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div
+                style="height: 10px; position: relative; display: none;"
+              >
+                <div
+                  style="position: absolute; top: 0px; right: 0px; bottom: 0px; left: 0px;"
+                >
+                  <div
+                    style="position: absolute; top: 0px; right: 0px; bottom: 0px; left: 0px; overflow: hidden;"
+                  >
+                    <div
+                      style="position: absolute; top: 0px; right: 0px; bottom: 0px; left: 0px;"
+                    />
+                  </div>
+                  <div
+                    style="position: absolute; top: 0px; right: 0px; bottom: 0px; left: 0px; background: linear-gradient(to right, rgba(255,255,255, 0) 0%, rgba(255,255,255, 1) 100%);"
+                  />
+                  <div
+                    style="position: relative; height: 100%; margin: 0px 3px;"
+                  >
+                    <div
+                      style="position: absolute; left: 100%;"
+                    >
+                      <div
+                        style="width: 12px; height: 12px; border-radius: 6px; -webkit-transform: translate(-6px, -1px); transform: translate(-6px, -1px); background-color: rgb(248, 248, 248); box-shadow: 0 1px 4px 0 rgba(0, 0, 0, 0.37);"
+                      />
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div
+            class="flexbox-fix"
+            style="padding-top: 16px; display: flex;"
+          >
+            <div
+              class="flexbox-fix"
+              style="flex: 1 1 0%; display: flex; margin-left: -6px;"
+            >
+              <div
+                style="padding-left: 6px; width: 100%;"
+              >
+                <div
+                  style="position: relative;"
+                >
+                  <input
+                    id="rc-editable-input-1"
+                    spellcheck="false"
+                    style="font-size: 11px; color: rgb(51, 51, 51); width: 100%; border-radius: 2px; box-shadow: inset 0 0 0 1px #dadada; height: 21px; text-align: center;"
+                    value="#FFFFFF"
+                  />
+                  <label
+                    for="rc-editable-input-1"
+                    style="text-transform: uppercase; font-size: 11px; line-height: 11px; color: rgb(150, 150, 150); text-align: center; display: block; margin-top: 12px;"
+                  >
+                    hex
+                  </label>
+                </div>
+              </div>
+            </div>
+            <div
+              style="width: 32px; text-align: right; position: relative;"
+            >
+              <div
+                style="margin-right: -4px; margin-top: 12px; cursor: pointer; position: relative;"
+              >
+                <svg
+                  style="fill: #333; width: 24px; height: 24px; border: 1px solid transparent; border-radius: 5px;"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    d="M12,18.17L8.83,15L7.42,16.41L12,21L16.59,16.41L15.17,15M12,5.83L15.17,9L16.58,7.59L12,3L7.41,7.59L8.83,9L12,5.83Z"
+                  />
+                </svg>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
 </div>
 `;
 
 exports[`components/ColorInput should match snapshot, toggle picker 1`] = `
-<div
-  className="color-input input-group"
->
-  <input
-    className="form-control"
-    data-testid="color-inputColorValue"
-    id="sidebarBg-inputColorValue"
-    maxLength={7}
-    onBlur={[Function]}
-    onChange={[Function]}
-    onFocus={[Function]}
-    onKeyDown={[Function]}
-    type="text"
-    value="#ffffff"
-  />
-  <span
-    className="input-group-addon color-pad"
-    id="sidebarBg-squareColorIcon"
-    onClick={[Function]}
+<div>
+  <div
+    class="color-input input-group"
   >
-    <i
-      className="color-icon"
-      id="sidebarBg-squareColorIconValue"
-      style={
-        Object {
-          "backgroundColor": "#ffffff",
-        }
-      }
+    <input
+      class="form-control"
+      data-testid="color-inputColorValue"
+      id="sidebarBg-inputColorValue"
+      maxlength="7"
+      type="text"
+      value="#ffffff"
     />
-  </span>
+    <span
+      class="input-group-addon color-pad"
+      id="sidebarBg-squareColorIcon"
+    >
+      <i
+        class="color-icon"
+        id="sidebarBg-squareColorIconValue"
+        style="background-color: rgb(255, 255, 255);"
+      />
+    </span>
+  </div>
 </div>
 `;

@@ -5,14 +5,12 @@ import React from 'react';
 import {Button} from 'react-bootstrap';
 import {FormattedMessage} from 'react-intl';
 
-import type {ServerError} from '@mattermost/types/errors';
 import type {Team} from '@mattermost/types/teams';
 
-import {trackEvent} from 'actions/telemetry_actions.jsx';
+import type {ActionResult} from 'mattermost-redux/types/actions';
 
 import ExternalLink from 'components/external_link';
-import OverlayTrigger from 'components/overlay_trigger';
-import Tooltip from 'components/tooltip';
+import WithTooltip from 'components/with_tooltip';
 
 import logoImage from 'images/logo.png';
 import Constants from 'utils/constants';
@@ -44,12 +42,12 @@ type Props = {
         /*
          * Action creator to check if a team already exists
          */
-        checkIfTeamExists: (teamName: string) => Promise<{data: boolean}>;
+        checkIfTeamExists: (teamName: string) => Promise<ActionResult<boolean>>;
 
         /*
      * Action creator to create a new team
      */
-        createTeam: (team: Team) => Promise<{data: Team; error: ServerError}>;
+        createTeam: (team: Team) => Promise<ActionResult<Team>>;
     };
     history: {
         push(path: string): void;
@@ -57,9 +55,11 @@ type Props = {
 }
 
 export default class TeamUrl extends React.PureComponent<Props, State> {
+    teamURLInput: React.RefObject<HTMLInputElement>;
+
     constructor(props: Props) {
         super(props);
-
+        this.teamURLInput = React.createRef();
         this.state = {
             nameError: '',
             isLoading: false,
@@ -67,13 +67,8 @@ export default class TeamUrl extends React.PureComponent<Props, State> {
         };
     }
 
-    public componentDidMount() {
-        trackEvent('signup', 'signup_team_02_url');
-    }
-
     public submitBack = (e: React.MouseEvent<HTMLElement, MouseEvent>) => {
         e.preventDefault();
-        trackEvent('signup', 'click_back');
         const newState = this.props.state;
         newState.wizard = 'display_name';
         this.props.updateParent(newState);
@@ -81,7 +76,6 @@ export default class TeamUrl extends React.PureComponent<Props, State> {
 
     public submitNext = async (e: React.MouseEvent<Button, MouseEvent>) => {
         e.preventDefault();
-        trackEvent('signup', 'click_finish');
 
         const name = this.state.teamURL!.trim();
         const cleanedName = URL.cleanUpUrlable(name);
@@ -95,6 +89,7 @@ export default class TeamUrl extends React.PureComponent<Props, State> {
                     defaultMessage='This field is required'
                 />),
             });
+            this.teamURLInput.current?.focus();
             return;
         }
 
@@ -109,6 +104,7 @@ export default class TeamUrl extends React.PureComponent<Props, State> {
                     }}
                 />),
             });
+            this.teamURLInput.current?.focus();
             return;
         }
 
@@ -119,6 +115,7 @@ export default class TeamUrl extends React.PureComponent<Props, State> {
                     defaultMessage="Use only lower case letters, numbers and dashes. Must start with a letter and can't end in a dash."
                 />),
             });
+            this.teamURLInput.current?.focus();
             return;
         }
 
@@ -151,7 +148,7 @@ export default class TeamUrl extends React.PureComponent<Props, State> {
         teamSignup.team.type = 'O';
         teamSignup.team.name = name;
 
-        const checkIfTeamExistsData: { data: boolean } = await checkIfTeamExists(name);
+        const checkIfTeamExistsData = await checkIfTeamExists(name);
         const exists = checkIfTeamExistsData.data;
 
         if (exists) {
@@ -165,13 +162,12 @@ export default class TeamUrl extends React.PureComponent<Props, State> {
             return;
         }
 
-        const createTeamData: { data: Team; error: any } = await createTeam(teamSignup.team);
+        const createTeamData = await createTeam(teamSignup.team);
         const data = createTeamData.data;
         const error = createTeamData.error;
 
         if (data) {
             this.props.history.push('/' + data.name + '/channels/' + Constants.DEFAULT_CHANNEL);
-            trackEvent('signup', 'signup_team_03_complete');
         } else if (error) {
             this.setState({nameError: error.message});
             this.setState({isLoading: false});
@@ -191,14 +187,19 @@ export default class TeamUrl extends React.PureComponent<Props, State> {
         let nameError = null;
         let nameDivClass = 'form-group';
         if (this.state.nameError) {
-            nameError = <label className='control-label'>{this.state.nameError}</label>;
+            nameError = (
+                <label
+                    role='alert'
+                    className='control-label'
+                    id='teamURLInputError'
+                >
+                    {this.state.nameError}
+                </label>
+            );
             nameDivClass += ' has-error';
         }
 
         const title = `${URL.getSiteURL()}/`;
-        const urlTooltip = (
-            <Tooltip id='urlTooltip'>{title}</Tooltip>
-        );
 
         let finishMessage = (
             <FormattedMessage
@@ -224,29 +225,28 @@ export default class TeamUrl extends React.PureComponent<Props, State> {
                         className='signup-team-logo'
                         src={logoImage}
                     />
-                    <h5>
+                    <label htmlFor='teamURLInput'>
                         <FormattedMessage
                             id='create_team.team_url.teamUrl'
                             tagName='strong'
                             defaultMessage='Team URL'
                         />
-                    </h5>
+                    </label>
                     <div className={nameDivClass}>
                         <div className='row'>
                             <div className='col-sm-11'>
                                 <div className='input-group input-group--limit'>
-                                    <OverlayTrigger
-                                        delayShow={Constants.OVERLAY_TIME_DELAY}
-                                        placement='top'
-                                        overlay={urlTooltip}
+                                    <WithTooltip
+                                        title={title}
                                     >
                                         <span className='input-group-addon'>
                                             {title}
                                         </span>
-                                    </OverlayTrigger>
+                                    </WithTooltip>
                                     <input
                                         id='teamURLInput'
                                         type='text'
+                                        ref={this.teamURLInput}
                                         className='form-control'
                                         placeholder=''
                                         maxLength={128}
@@ -255,6 +255,7 @@ export default class TeamUrl extends React.PureComponent<Props, State> {
                                         onFocus={this.handleFocus}
                                         onChange={this.handleTeamURLInputChange}
                                         spellCheck='false'
+                                        aria-describedby='teamURLInputError'
                                     />
                                 </div>
                             </div>

@@ -1,56 +1,36 @@
-// Jest Snapshot v1, https://goo.gl/fbAQLP
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
 
 exports[`components/user_settings/display/UserSettingsDisplay should match snapshot, enable gitlab 1`] = `
-<div>
-  <div
-    className="modal-header"
-  >
-    <button
-      aria-label="Close"
-      className="close"
-      data-dismiss="modal"
-      onClick={[MockFunction]}
-      type="button"
-    >
-      <span
-        aria-hidden="true"
-      >
-        ×
-      </span>
-    </button>
-    <h4
-      className="modal-title"
-    >
-      <div
-        className="modal-back"
-      >
-        <i
-          className="fa fa-angle-left"
-          onClick={[MockFunction]}
-          title="Collapse Icon"
-        />
-      </div>
-      <MemoizedFormattedMessage
+<div
+  aria-labelledby="securityButton"
+  id="securitySettings"
+  role="tabpanel"
+>
+  <SettingMobileHeader
+    closeModal={[MockFunction]}
+    collapseModal={[MockFunction]}
+    text={
+      <Memo(MemoizedFormattedMessage)
         defaultMessage="Security Settings"
         id="user.settings.security.title"
       />
-    </h4>
-  </div>
+    }
+  />
   <div
     className="user-settings"
   >
-    <h3
-      className="tab-header"
-    >
-      <MemoizedFormattedMessage
-        defaultMessage="Security Settings"
-        id="user.settings.security.title"
-      />
-    </h3>
+    <SettingDesktopHeader
+      text={
+        <Memo(MemoizedFormattedMessage)
+          defaultMessage="Security Settings"
+          id="user.settings.security.title"
+        />
+      }
+    />
     <div
       className="divider-dark first"
     />
-    <SettingItem
+    <Memo(SettingItem)
       active={false}
       areAllSectionsInactive={false}
       max={null}
@@ -91,7 +71,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
     <div
       className="divider-light"
     />
-    <SettingItem
+    <Memo(SettingItem)
       active={false}
       areAllSectionsInactive={false}
       describe={
@@ -127,7 +107,8 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       modalId="access_history"
     >
       <i
-        className="fa fa-clock-o"
+        aria-hidden="true"
+        className="icon icon-clock-outline"
         title="Access History Icon"
       />
       <MemoizedFormattedMessage
@@ -140,7 +121,11 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       dialogType={
         Object {
           "$$typeof": Symbol(react.memo),
-          "WrappedComponent": [Function],
+          "WrappedComponent": Object {
+            "$$typeof": Symbol(react.memo),
+            "compare": null,
+            "type": [Function],
+          },
           "compare": null,
           "type": [Function],
         }
@@ -149,7 +134,8 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       modalId="activity_log"
     >
       <i
-        className="fa fa-clock-o"
+        aria-hidden="true"
+        className="icon icon-clock-outline"
         title="Active Sessions Icon"
       />
       <MemoizedFormattedMessage
@@ -162,56 +148,36 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
 `;
 
 exports[`components/user_settings/display/UserSettingsDisplay should match snapshot, enable google 1`] = `
-<div>
-  <div
-    className="modal-header"
-  >
-    <button
-      aria-label="Close"
-      className="close"
-      data-dismiss="modal"
-      onClick={[MockFunction]}
-      type="button"
-    >
-      <span
-        aria-hidden="true"
-      >
-        ×
-      </span>
-    </button>
-    <h4
-      className="modal-title"
-    >
-      <div
-        className="modal-back"
-      >
-        <i
-          className="fa fa-angle-left"
-          onClick={[MockFunction]}
-          title="Collapse Icon"
-        />
-      </div>
-      <MemoizedFormattedMessage
+<div
+  aria-labelledby="securityButton"
+  id="securitySettings"
+  role="tabpanel"
+>
+  <SettingMobileHeader
+    closeModal={[MockFunction]}
+    collapseModal={[MockFunction]}
+    text={
+      <Memo(MemoizedFormattedMessage)
         defaultMessage="Security Settings"
         id="user.settings.security.title"
       />
-    </h4>
-  </div>
+    }
+  />
   <div
     className="user-settings"
   >
-    <h3
-      className="tab-header"
-    >
-      <MemoizedFormattedMessage
-        defaultMessage="Security Settings"
-        id="user.settings.security.title"
-      />
-    </h3>
+    <SettingDesktopHeader
+      text={
+        <Memo(MemoizedFormattedMessage)
+          defaultMessage="Security Settings"
+          id="user.settings.security.title"
+        />
+      }
+    />
     <div
       className="divider-dark first"
     />
-    <SettingItem
+    <Memo(SettingItem)
       active={false}
       areAllSectionsInactive={false}
       max={null}
@@ -252,7 +218,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
     <div
       className="divider-light"
     />
-    <SettingItem
+    <Memo(SettingItem)
       active={false}
       areAllSectionsInactive={false}
       describe={
@@ -288,7 +254,8 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       modalId="access_history"
     >
       <i
-        className="fa fa-clock-o"
+        aria-hidden="true"
+        className="icon icon-clock-outline"
         title="Access History Icon"
       />
       <MemoizedFormattedMessage
@@ -301,7 +268,11 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       dialogType={
         Object {
           "$$typeof": Symbol(react.memo),
-          "WrappedComponent": [Function],
+          "WrappedComponent": Object {
+            "$$typeof": Symbol(react.memo),
+            "compare": null,
+            "type": [Function],
+          },
           "compare": null,
           "type": [Function],
         }
@@ -310,7 +281,8 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       modalId="activity_log"
     >
       <i
-        className="fa fa-clock-o"
+        aria-hidden="true"
+        className="icon icon-clock-outline"
         title="Active Sessions Icon"
       />
       <MemoizedFormattedMessage
@@ -323,56 +295,36 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
 `;
 
 exports[`components/user_settings/display/UserSettingsDisplay should match snapshot, enable office365 1`] = `
-<div>
-  <div
-    className="modal-header"
-  >
-    <button
-      aria-label="Close"
-      className="close"
-      data-dismiss="modal"
-      onClick={[MockFunction]}
-      type="button"
-    >
-      <span
-        aria-hidden="true"
-      >
-        ×
-      </span>
-    </button>
-    <h4
-      className="modal-title"
-    >
-      <div
-        className="modal-back"
-      >
-        <i
-          className="fa fa-angle-left"
-          onClick={[MockFunction]}
-          title="Collapse Icon"
-        />
-      </div>
-      <MemoizedFormattedMessage
+<div
+  aria-labelledby="securityButton"
+  id="securitySettings"
+  role="tabpanel"
+>
+  <SettingMobileHeader
+    closeModal={[MockFunction]}
+    collapseModal={[MockFunction]}
+    text={
+      <Memo(MemoizedFormattedMessage)
         defaultMessage="Security Settings"
         id="user.settings.security.title"
       />
-    </h4>
-  </div>
+    }
+  />
   <div
     className="user-settings"
   >
-    <h3
-      className="tab-header"
-    >
-      <MemoizedFormattedMessage
-        defaultMessage="Security Settings"
-        id="user.settings.security.title"
-      />
-    </h3>
+    <SettingDesktopHeader
+      text={
+        <Memo(MemoizedFormattedMessage)
+          defaultMessage="Security Settings"
+          id="user.settings.security.title"
+        />
+      }
+    />
     <div
       className="divider-dark first"
     />
-    <SettingItem
+    <Memo(SettingItem)
       active={false}
       areAllSectionsInactive={false}
       max={null}
@@ -413,7 +365,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
     <div
       className="divider-light"
     />
-    <SettingItem
+    <Memo(SettingItem)
       active={false}
       areAllSectionsInactive={false}
       describe={
@@ -449,7 +401,8 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       modalId="access_history"
     >
       <i
-        className="fa fa-clock-o"
+        aria-hidden="true"
+        className="icon icon-clock-outline"
         title="Access History Icon"
       />
       <MemoizedFormattedMessage
@@ -462,7 +415,11 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       dialogType={
         Object {
           "$$typeof": Symbol(react.memo),
-          "WrappedComponent": [Function],
+          "WrappedComponent": Object {
+            "$$typeof": Symbol(react.memo),
+            "compare": null,
+            "type": [Function],
+          },
           "compare": null,
           "type": [Function],
         }
@@ -471,7 +428,8 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       modalId="activity_log"
     >
       <i
-        className="fa fa-clock-o"
+        aria-hidden="true"
+        className="icon icon-clock-outline"
         title="Active Sessions Icon"
       />
       <MemoizedFormattedMessage
@@ -484,56 +442,36 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
 `;
 
 exports[`components/user_settings/display/UserSettingsDisplay should match snapshot, enable openID 1`] = `
-<div>
-  <div
-    className="modal-header"
-  >
-    <button
-      aria-label="Close"
-      className="close"
-      data-dismiss="modal"
-      onClick={[MockFunction]}
-      type="button"
-    >
-      <span
-        aria-hidden="true"
-      >
-        ×
-      </span>
-    </button>
-    <h4
-      className="modal-title"
-    >
-      <div
-        className="modal-back"
-      >
-        <i
-          className="fa fa-angle-left"
-          onClick={[MockFunction]}
-          title="Collapse Icon"
-        />
-      </div>
-      <MemoizedFormattedMessage
+<div
+  aria-labelledby="securityButton"
+  id="securitySettings"
+  role="tabpanel"
+>
+  <SettingMobileHeader
+    closeModal={[MockFunction]}
+    collapseModal={[MockFunction]}
+    text={
+      <Memo(MemoizedFormattedMessage)
         defaultMessage="Security Settings"
         id="user.settings.security.title"
       />
-    </h4>
-  </div>
+    }
+  />
   <div
     className="user-settings"
   >
-    <h3
-      className="tab-header"
-    >
-      <MemoizedFormattedMessage
-        defaultMessage="Security Settings"
-        id="user.settings.security.title"
-      />
-    </h3>
+    <SettingDesktopHeader
+      text={
+        <Memo(MemoizedFormattedMessage)
+          defaultMessage="Security Settings"
+          id="user.settings.security.title"
+        />
+      }
+    />
     <div
       className="divider-dark first"
     />
-    <SettingItem
+    <Memo(SettingItem)
       active={false}
       areAllSectionsInactive={false}
       max={null}
@@ -574,7 +512,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
     <div
       className="divider-light"
     />
-    <SettingItem
+    <Memo(SettingItem)
       active={false}
       areAllSectionsInactive={false}
       describe={
@@ -610,7 +548,8 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       modalId="access_history"
     >
       <i
-        className="fa fa-clock-o"
+        aria-hidden="true"
+        className="icon icon-clock-outline"
         title="Access History Icon"
       />
       <MemoizedFormattedMessage
@@ -623,7 +562,11 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       dialogType={
         Object {
           "$$typeof": Symbol(react.memo),
-          "WrappedComponent": [Function],
+          "WrappedComponent": Object {
+            "$$typeof": Symbol(react.memo),
+            "compare": null,
+            "type": [Function],
+          },
           "compare": null,
           "type": [Function],
         }
@@ -632,7 +575,156 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       modalId="activity_log"
     >
       <i
-        className="fa fa-clock-o"
+        aria-hidden="true"
+        className="icon icon-clock-outline"
+        title="Active Sessions Icon"
+      />
+      <MemoizedFormattedMessage
+        defaultMessage="View and Log Out of Active Sessions"
+        id="user.settings.security.logoutActiveSessions"
+      />
+    </ToggleModalButton>
+  </div>
+</div>
+`;
+
+exports[`components/user_settings/display/UserSettingsDisplay should match snapshot, to email 1`] = `
+<div
+  aria-labelledby="securityButton"
+  id="securitySettings"
+  role="tabpanel"
+>
+  <SettingMobileHeader
+    closeModal={[MockFunction]}
+    collapseModal={[MockFunction]}
+    text={
+      <Memo(MemoizedFormattedMessage)
+        defaultMessage="Security Settings"
+        id="user.settings.security.title"
+      />
+    }
+  />
+  <div
+    className="user-settings"
+  >
+    <SettingDesktopHeader
+      text={
+        <Memo(MemoizedFormattedMessage)
+          defaultMessage="Security Settings"
+          id="user.settings.security.title"
+        />
+      }
+    />
+    <div
+      className="divider-dark first"
+    />
+    <Memo(SettingItem)
+      active={false}
+      areAllSectionsInactive={false}
+      max={null}
+      section="password"
+      title={
+        <Memo(MemoizedFormattedMessage)
+          defaultMessage="Password"
+          id="user.settings.security.password"
+        />
+      }
+      updateSection={[Function]}
+    />
+    <div
+      className="divider-light"
+    />
+    <Connect(MfaSection)
+      active={false}
+      areAllSectionsInactive={false}
+      updateSection={[Function]}
+    />
+    <div
+      className="divider-light"
+    />
+    <div
+      className="divider-light"
+    />
+    <Connect(UserAccessTokenSection)
+      active={false}
+      areAllSectionsInactive={false}
+      setRequireConfirm={[MockFunction]}
+      updateSection={[Function]}
+      user={
+        Object {
+          "auth_service": "openid",
+          "id": "user_id",
+        }
+      }
+    />
+    <div
+      className="divider-light"
+    />
+    <Memo(SettingItem)
+      active={false}
+      areAllSectionsInactive={false}
+      describe={
+        <Memo(MemoizedFormattedMessage)
+          defaultMessage="OpenID"
+          id="user.settings.security.openid"
+        />
+      }
+      max={null}
+      section="signin"
+      title="Sign-in Method"
+      updateSection={[Function]}
+    />
+    <div
+      className="divider-dark"
+    />
+    <br />
+    <ToggleModalButton
+      className="security-links color--link"
+      dialogType={
+        Object {
+          "$$typeof": Symbol(react.memo),
+          "WrappedComponent": Object {
+            "$$typeof": Symbol(react.memo),
+            "compare": null,
+            "type": [Function],
+          },
+          "compare": null,
+          "type": [Function],
+        }
+      }
+      id="viewAccessHistory"
+      modalId="access_history"
+    >
+      <i
+        aria-hidden="true"
+        className="icon icon-clock-outline"
+        title="Access History Icon"
+      />
+      <MemoizedFormattedMessage
+        defaultMessage="View Access History"
+        id="user.settings.security.viewHistory"
+      />
+    </ToggleModalButton>
+    <ToggleModalButton
+      className="security-links color--link mt-2"
+      dialogType={
+        Object {
+          "$$typeof": Symbol(react.memo),
+          "WrappedComponent": Object {
+            "$$typeof": Symbol(react.memo),
+            "compare": null,
+            "type": [Function],
+          },
+          "compare": null,
+          "type": [Function],
+        }
+      }
+      id="viewAndLogOutOfActiveSessions"
+      modalId="activity_log"
+    >
+      <i
+        aria-hidden="true"
+        className="icon icon-clock-outline"
         title="Active Sessions Icon"
       />
       <MemoizedFormattedMessage

@@ -41,6 +41,10 @@ describe('Notifications', () => {
             // # Login as receiver and visit off-topic channel
             cy.apiLogin(receiver);
             cy.visit(`/${testTeam.name}/channels/${testChannel.name}`);
+
+            // # Wait for the page to fully load before continuing
+            cy.get('#channelHeaderDropdownButton').should('be.visible').and('have.text', testChannel.display_name);
+
             cy.get(`#sidebarItem_${otherChannel.name}`).click();
             cy.get('#sidebarItem_off-topic').click();
         });
@@ -171,7 +175,7 @@ describe('Notifications', () => {
     });
 
     it('MM-T184 Words that trigger mentions support Chinese', () => {
-        var customText = '番茄';
+        const customText = '番茄';
 
         // # Set Notification settings
         setNotificationSettings({first: false, username: false, shouts: false, custom: true, customText}, 'off-topic');
@@ -252,7 +256,7 @@ function setNotificationSettings(desiredSettings = {first: true, username: true,
     cy.findAllByText('Notifications').should('be.visible');
 
     // Open up 'Words that trigger mentions' sub-section
-    cy.findByText('Keywords That Trigger Notifications').
+    cy.findByText('Keywords that trigger notifications').
         scrollIntoView().
         click();
 
@@ -284,4 +288,5 @@ function setNotificationSettings(desiredSettings = {first: true, username: true,
 
     // # Navigate to a channel we are NOT going to post to
     cy.get(`#sidebarItem_${channelName}`).scrollIntoView().click({force: true});
+    cy.get('#loadingSpinner').should('not.exist');
 }

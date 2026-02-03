@@ -1,4 +1,4 @@
-// Jest Snapshot v1, https://goo.gl/fbAQLP
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
 
 exports[`admin_console/team_channel_settings/group/GroupList should match snapshot 1`] = `
 <AbstractList
@@ -26,16 +26,20 @@ exports[`admin_console/team_channel_settings/group/GroupList should match snapsh
       },
     ]
   }
-  emptyListTextDefaultMessage="test"
-  emptyListTextId="test"
+  emptyListText={
+    Object {
+      "defaultMessage": "No groups specified yet",
+      "id": "admin.team_channel_settings.group_list.no-groups",
+    }
+  }
+  groups={Array []}
   header={<Header />}
   noPadding={false}
+  onGroupRemoved={[MockFunction]}
   onPageChangedCallback={[MockFunction]}
-  removeGroup={[MockFunction]}
   renderRow={[Function]}
-  setNewGroupRole={[MockFunction]}
   total={1}
-  type="team"
+  totalGroups={0}
 />
 `;
 
@@ -500,15 +504,19 @@ exports[`admin_console/team_channel_settings/group/GroupList should match snapsh
       },
     ]
   }
-  emptyListTextDefaultMessage="test"
-  emptyListTextId="test"
+  emptyListText={
+    Object {
+      "defaultMessage": "No groups specified yet",
+      "id": "admin.team_channel_settings.group_list.no-groups",
+    }
+  }
+  groups={Array []}
   header={<Header />}
   noPadding={false}
+  onGroupRemoved={[MockFunction]}
   onPageChangedCallback={[MockFunction]}
-  removeGroup={[MockFunction]}
   renderRow={[Function]}
-  setNewGroupRole={[MockFunction]}
   total={30}
-  type="team"
+  totalGroups={0}
 />
 `;

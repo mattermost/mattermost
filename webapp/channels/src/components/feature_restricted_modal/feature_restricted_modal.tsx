@@ -9,16 +9,12 @@ import {useSelector, useDispatch} from 'react-redux';
 import {GenericModal} from '@mattermost/components';
 
 import {getPrevTrialLicense} from 'mattermost-redux/actions/admin';
-import {checkHadPriorTrial} from 'mattermost-redux/selectors/entities/cloud';
 import {getLicense} from 'mattermost-redux/selectors/entities/general';
-import {deprecateCloudFree} from 'mattermost-redux/selectors/entities/preferences';
 import {isCurrentUserSystemAdmin} from 'mattermost-redux/selectors/entities/users';
-import type {DispatchFunc} from 'mattermost-redux/types/actions';
 
 import {closeModal} from 'actions/views/modals';
 import {isModalOpen} from 'selectors/views/modals';
 
-import CloudStartTrialButton from 'components/cloud_start_trial/cloud_start_trial_btn';
 import {NotifyStatus} from 'components/common/hooks/useGetNotifyAdmin';
 import useOpenPricingModal from 'components/common/hooks/useOpenPricingModal';
 import ExternalLink from 'components/external_link';
@@ -39,7 +35,7 @@ type FeatureRestrictedModalProps = {
     messageAdminPostTrial?: string;
     titleEndUser?: string;
     messageEndUser?: string;
-    customSecondaryButton?: {msg: string; action: () => void};
+    customSecondaryButton?: { msg: string; action: () => void };
     feature?: string;
     minimumPlanRequiredForFeature?: string;
 }
@@ -56,28 +52,26 @@ const FeatureRestrictedModal = ({
     minimumPlanRequiredForFeature,
 }: FeatureRestrictedModalProps) => {
     const {formatMessage} = useIntl();
-    const dispatch = useDispatch<DispatchFunc>();
+    const dispatch = useDispatch();
 
     useEffect(() => {
         dispatch(getPrevTrialLicense());
     }, []);
 
-    const cloudFreeDeprecated = useSelector(deprecateCloudFree);
-    const hasCloudPriorTrial = useSelector(checkHadPriorTrial);
     const prevTrialLicense = useSelector((state: GlobalState) => state.entities.admin.prevTrialLicense);
     const hasSelfHostedPriorTrial = prevTrialLicense.IsLicensed === 'true';
 
-    const hasPriorTrial = hasCloudPriorTrial || hasSelfHostedPriorTrial;
+    const hasPriorTrial = hasSelfHostedPriorTrial;
     const isSystemAdmin = useSelector(isCurrentUserSystemAdmin);
     const show = useSelector((state: GlobalState) => isModalOpen(state, ModalIdentifiers.FEATURE_RESTRICTED_MODAL));
     const license = useSelector(getLicense);
     const isCloud = license?.Cloud === 'true';
-    const openPricingModal = useOpenPricingModal();
+    const {openPricingModal, isAirGapped} = useOpenPricingModal();
 
     const [notifyAdminBtnText, notifyAdmin, notifyRequestStatus] = useNotifyAdmin({
         ctaText: formatMessage({
             id: 'feature_restricted_modal.button.notify',
-            defaultMessage: 'Notify Admin',
+            defaultMessage: 'Notify admin',
         }),
     }, {
         required_feature: feature || '',
@@ -94,17 +88,17 @@ const FeatureRestrictedModal = ({
     };
 
     const handleViewPlansClick = (e: React.MouseEvent<HTMLButtonElement, MouseEvent>) => {
-        if (isSystemAdmin) {
-            openPricingModal({trackingLocation: 'feature_restricted_modal'});
+        if (isSystemAdmin && !isAirGapped) {
+            openPricingModal();
             dismissAction();
-        } else {
-            notifyAdmin(e, 'feature_restricted_modal');
+        } else if (!isSystemAdmin) {
+            notifyAdmin(e);
         }
     };
 
     const getTitle = () => {
         if (isSystemAdmin) {
-            return (hasPriorTrial || cloudFreeDeprecated) ? titleAdminPostTrial : titleAdminPreTrial;
+            return (hasPriorTrial) ? titleAdminPostTrial : titleAdminPreTrial;
         }
 
         return titleEndUser;
@@ -112,13 +106,13 @@ const FeatureRestrictedModal = ({
 
     const getMessage = () => {
         if (isSystemAdmin) {
-            return (hasPriorTrial || cloudFreeDeprecated) ? messageAdminPostTrial : messageAdminPreTrial;
+            return (hasPriorTrial) ? messageAdminPostTrial : messageAdminPreTrial;
         }
 
         return messageEndUser;
     };
 
-    const showStartTrial = isSystemAdmin && !hasPriorTrial && !cloudFreeDeprecated;
+    const showStartTrial = isSystemAdmin && !hasPriorTrial && !isCloud;
 
     // define what is the secondary button text and action, by default will be the View Plan button
     let secondaryBtnMsg = formatMessage({id: 'feature_restricted_modal.button.plans', defaultMessage: 'View plans'});
@@ -131,26 +125,16 @@ const FeatureRestrictedModal = ({
         secondaryBtnAction = customSecondaryButton.action;
     }
 
-    let trialBtn;
-    if (isCloud) {
-        trialBtn = (
-            <CloudStartTrialButton
-                extraClass='button-trial'
-                message={formatMessage({id: 'trial_btn.free.tryFreeFor30Days', defaultMessage: 'Start trial'})}
-                telemetryId={'start_cloud_trial_after_team_creation_restricted'}
-                onClick={dismissAction}
-            />
-        );
-    } else {
-        trialBtn = (
-            <StartTrialBtn
-                message={formatMessage({id: 'trial_btn.free.tryFreeFor30Days', defaultMessage: 'Start trial'})}
-                onClick={dismissAction}
-                telemetryId='start_self_hosted_trial_after_team_creation_restricted'
-                btnClass='btn btn-primary'
-                renderAsButton={true}
-            />);
-    }
+    // Hide view plans button for admins if air-gapped
+    const showSecondaryButton = !isAirGapped || !isSystemAdmin || customSecondaryButton;
+
+    const trialBtn = (
+        <StartTrialBtn
+            onClick={dismissAction}
+            btnClass='btn btn-primary'
+            renderAsButton={true}
+        />
+    );
 
     return (
         <GenericModal
@@ -168,7 +152,7 @@ const FeatureRestrictedModal = ({
                     <p className='FeatureRestrictedModal__terms'>
                         <FormattedMessage
                             id='feature_restricted_modal.agreement'
-                            defaultMessage='By selecting <highlight>Try free for {trialLength} days</highlight>, I agree to the <linkEvaluation>Mattermost Software and Services License Agreement</linkEvaluation>, <linkPrivacy>Privacy Policy</linkPrivacy>, and receiving product emails.'
+                            defaultMessage='By selecting <highlight>Try free for {trialLength} days</highlight>, I agree to the <linkEvaluation>Mattermost Software Evaluation Agreement</linkEvaluation>, <linkPrivacy>Privacy Policy</linkPrivacy>, and receiving product emails.'
                             values={{
                                 trialLength: FREEMIUM_TO_ENTERPRISE_TRIAL_LENGTH_DAYS,
                                 highlight: (msg: React.ReactNode) => (
@@ -195,14 +179,16 @@ const FeatureRestrictedModal = ({
                     </p>
                 )}
                 <div className={classNames('FeatureRestrictedModal__buttons', {single: !showStartTrial})}>
-                    <button
-                        id='button-plans'
-                        className='button-plans'
-                        onClick={secondaryBtnAction}
-                        disabled={notifyRequestStatus === NotifyStatus.AlreadyComplete}
-                    >
-                        {secondaryBtnMsg}
-                    </button>
+                    {showSecondaryButton && (
+                        <button
+                            id='button-plans'
+                            className='button-plans'
+                            onClick={secondaryBtnAction}
+                            disabled={notifyRequestStatus === NotifyStatus.AlreadyComplete}
+                        >
+                            {secondaryBtnMsg}
+                        </button>
+                    )}
                     {showStartTrial && (
                         trialBtn
                     )}

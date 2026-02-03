@@ -5,7 +5,6 @@ import classNames from 'classnames';
 import React from 'react';
 import {FormattedMessage} from 'react-intl';
 
-import type {CloudUsage, Limits} from '@mattermost/types/cloud';
 import type {Post} from '@mattermost/types/posts';
 import type {UserProfile} from '@mattermost/types/users';
 
@@ -23,7 +22,7 @@ import NewMessageSeparator from 'components/post_view/new_message_separator/new_
 import {PostListRowListIds, Locations} from 'utils/constants';
 import {isIdNotPost} from 'utils/post_utils';
 
-import type {PluginComponent} from 'types/store/plugins';
+import type {NewMessagesSeparatorActionComponent} from 'types/store/plugins';
 
 export type PostListRowProps = {
     listId: string;
@@ -51,16 +50,11 @@ export type PostListRowProps = {
      */
     loadingNewerPosts: boolean;
     loadingOlderPosts: boolean;
-
-    usage: CloudUsage;
-    limits: Limits;
-    limitsLoaded: boolean;
     exceededLimitChannelId?: string;
     firstInaccessiblePostTime?: number;
-    lastViewedAt: number;
     channelId: string;
 
-    newMessagesSeparatorActions: PluginComponent[];
+    newMessagesSeparatorActions: NewMessagesSeparatorActionComponent[];
 
     actions: {
 
@@ -120,17 +114,13 @@ export default class PostListRow extends React.PureComponent<PostListRowProps> {
                     separatorId={listId}
                     newMessagesSeparatorActions={this.props.newMessagesSeparatorActions}
                     channelId={this.props.channelId}
-                    lastViewedAt={this.props.lastViewedAt}
                 />
             );
         }
 
         if (this.props.exceededLimitChannelId) {
             return (
-                <CenterMessageLock
-                    channelId={this.props.exceededLimitChannelId}
-                    firstInaccessiblePostTime={this.props.firstInaccessiblePostTime}
-                />
+                <CenterMessageLock/>
             );
         }
 
@@ -148,7 +138,7 @@ export default class PostListRow extends React.PureComponent<PostListRowProps> {
                 >
                     <FormattedMessage
                         id='posts_view.loadMore'
-                        defaultMessage='Load More Messages'
+                        defaultMessage='Load more messages'
                     />
                 </button>
             );
@@ -187,6 +177,11 @@ export default class PostListRow extends React.PureComponent<PostListRowProps> {
                     {...postProps}
                 />
             );
+        }
+
+        // Don't render if post has been deleted/removed
+        if (!this.props.post) {
+            return null;
         }
 
         return (

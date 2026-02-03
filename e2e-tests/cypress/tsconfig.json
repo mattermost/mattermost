@@ -2,7 +2,7 @@
   "compilerOptions": {
     "target": "esnext",
     "lib": ["esnext", "dom"],
-    "types": ["cypress", "cypress-wait-until", "@testing-library/cypress", "node"],
+    "types": ["cypress", "cypress-wait-until", "cypress-real-events", "@testing-library/cypress", "node"],
     "esModuleInterop": true,
     "resolveJsonModule": true,
     "moduleResolution": "node",

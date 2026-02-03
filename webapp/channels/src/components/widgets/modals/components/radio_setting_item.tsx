@@ -1,9 +1,8 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import type {ReactNode} from 'react';
 import React from 'react';
-import type {MessageDescriptor} from 'react-intl';
-import {FormattedMessage} from 'react-intl';
 
 import type {BaseSettingItemProps} from './base_setting_item';
 import BaseSettingItem from './base_setting_item';
@@ -11,25 +10,28 @@ import BaseSettingItem from './base_setting_item';
 export type FieldsetRadio = {
     options: Array<{
         dataTestId?: string;
-        title: MessageDescriptor;
+        title: ReactNode;
         name: string;
         key: string;
         value: string;
-        suffix?: JSX.Element;
     }>;
 }
 
 type Props = BaseSettingItemProps & {
+    className?: string;
     inputFieldData: FieldsetRadio;
     inputFieldValue: string;
     handleChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
 }
+
 function RadioSettingItem({
     title,
     description,
+    className,
     inputFieldData,
     inputFieldValue,
     handleChange,
+    dataTestId,
 }: Props): JSX.Element {
     const fields = inputFieldData.options.map((option) => {
         return (
@@ -46,22 +48,25 @@ function RadioSettingItem({
                     value={option.value}
                     onChange={handleChange}
                 />
-                <FormattedMessage
-                    id={option.title.id}
-                    defaultMessage={option.title.defaultMessage}
-                />
-                {option.suffix}
+                {option.title}
             </label>
         );
     });
 
     const content = (
-        <fieldset className='mm-modal-generic-section-item__fieldset-radio'>
+        <fieldset
+            className='mm-modal-generic-section-item__fieldset-radio'
+        >
+            <legend className='hidden-label'>
+                {title}
+            </legend>
             {[...fields]}
         </fieldset>
     );
     return (
         <BaseSettingItem
+            dataTestId={dataTestId}
+            className={className}
             content={content}
             title={title}
             description={description}

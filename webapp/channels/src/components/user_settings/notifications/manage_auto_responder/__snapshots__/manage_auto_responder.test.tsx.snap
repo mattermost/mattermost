@@ -1,4 +1,4 @@
-// Jest Snapshot v1, https://goo.gl/fbAQLP
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
 
 exports[`components/user_settings/notifications/ManageAutoResponder should match snapshot, default disabled 1`] = `
 <ManageAutoResponder
@@ -10,9 +10,7 @@ exports[`components/user_settings/notifications/ManageAutoResponder should match
   submit={[MockFunction]}
   updateSection={[MockFunction]}
 >
-  <SettingItemMax
-    containerStyle=""
-    infoPosition="bottom"
+  <Memo(SettingItemMax)
     inputs={
       Array [
         <div
@@ -43,17 +41,15 @@ exports[`components/user_settings/notifications/ManageAutoResponder should match
       ]
     }
     saving={false}
-    section=""
     shiftEnter={true}
     submit={[MockFunction]}
     title={
       <Memo(MemoizedFormattedMessage)
-        defaultMessage="Automatic Direct Message Replies"
+        defaultMessage="Automatic direct message replies"
         id="user.settings.notifications.autoResponder"
       />
     }
     updateSection={[MockFunction]}
-    width="medium"
   >
     <section
       className="section-max form-horizontal "
@@ -63,16 +59,16 @@ exports[`components/user_settings/notifications/ManageAutoResponder should match
         id="settingTitle"
       >
         <FormattedMessage
-          defaultMessage="Automatic Direct Message Replies"
+          defaultMessage="Automatic direct message replies"
           id="user.settings.notifications.autoResponder"
         >
           <span>
-            Automatic Direct Message Replies
+            Automatic direct message replies
           </span>
         </FormattedMessage>
       </h4>
       <div
-        className="col-sm-10 col-sm-offset-2"
+        className="sectionContent col-sm-10 col-sm-offset-2"
       >
         <div
           className="setting-list"
@@ -121,24 +117,13 @@ exports[`components/user_settings/notifications/ManageAutoResponder should match
             className="setting-list-item"
           >
             <hr />
+            <div
+              role="alert"
+            />
             <SaveButton
-              btnClass=""
-              defaultMessage={
-                <Memo(MemoizedFormattedMessage)
-                  defaultMessage="Save"
-                  id="save_button.save"
-                />
-              }
               disabled={false}
-              extraClasses=""
               onClick={[Function]}
               saving={false}
-              savingMessage={
-                <Memo(MemoizedFormattedMessage)
-                  defaultMessage="Saving"
-                  id="save_button.saving"
-                />
-              }
             >
               <button
                 className="btn btn-primary "
@@ -172,6 +157,7 @@ exports[`components/user_settings/notifications/ManageAutoResponder should match
             </SaveButton>
             <button
               className="btn btn-tertiary"
+              data-testid="cancelButton"
               id="cancelSetting"
               onClick={[Function]}
             >
@@ -188,7 +174,7 @@ exports[`components/user_settings/notifications/ManageAutoResponder should match
         </div>
       </div>
     </section>
-  </SettingItemMax>
+  </Memo(SettingItemMax)>
 </ManageAutoResponder>
 `;
 
@@ -202,9 +188,7 @@ exports[`components/user_settings/notifications/ManageAutoResponder should match
   submit={[MockFunction]}
   updateSection={[MockFunction]}
 >
-  <SettingItemMax
-    containerStyle=""
-    infoPosition="bottom"
+  <Memo(SettingItemMax)
     inputs={
       Array [
         <div
@@ -230,15 +214,21 @@ exports[`components/user_settings/notifications/ManageAutoResponder should match
           <div
             className="pt-2"
           >
-            <textarea
+            <LocalizedPlaceholderTextarea
               className="form-control"
               id="autoResponderMessageInput"
               maxLength={200}
               onChange={[Function]}
-              placeholder="Message"
+              placeholder={
+                Object {
+                  "defaultMessage": "Message",
+                  "id": "user.settings.notifications.autoResponderPlaceholder",
+                }
+              }
               rows={5}
               style={
                 Object {
+                  "height": "auto",
                   "resize": "none",
                 }
               }
@@ -257,17 +247,15 @@ exports[`components/user_settings/notifications/ManageAutoResponder should match
       ]
     }
     saving={false}
-    section=""
     shiftEnter={true}
     submit={[MockFunction]}
     title={
       <Memo(MemoizedFormattedMessage)
-        defaultMessage="Automatic Direct Message Replies"
+        defaultMessage="Automatic direct message replies"
         id="user.settings.notifications.autoResponder"
       />
     }
     updateSection={[MockFunction]}
-    width="medium"
   >
     <section
       className="section-max form-horizontal "
@@ -277,16 +265,16 @@ exports[`components/user_settings/notifications/ManageAutoResponder should match
         id="settingTitle"
       >
         <FormattedMessage
-          defaultMessage="Automatic Direct Message Replies"
+          defaultMessage="Automatic direct message replies"
           id="user.settings.notifications.autoResponder"
         >
           <span>
-            Automatic Direct Message Replies
+            Automatic direct message replies
           </span>
         </FormattedMessage>
       </h4>
       <div
-        className="col-sm-10 col-sm-offset-2"
+        className="sectionContent col-sm-10 col-sm-offset-2"
       >
         <div
           className="setting-list"
@@ -324,20 +312,42 @@ exports[`components/user_settings/notifications/ManageAutoResponder should match
               <div
                 className="pt-2"
               >
-                <textarea
+                <LocalizedPlaceholderTextarea
                   className="form-control"
                   id="autoResponderMessageInput"
                   maxLength={200}
                   onChange={[Function]}
-                  placeholder="Message"
+                  placeholder={
+                    Object {
+                      "defaultMessage": "Message",
+                      "id": "user.settings.notifications.autoResponderPlaceholder",
+                    }
+                  }
                   rows={5}
                   style={
                     Object {
+                      "height": "auto",
                       "resize": "none",
                     }
                   }
                   value="Hello World!"
-                />
+                >
+                  <textarea
+                    className="form-control"
+                    id="autoResponderMessageInput"
+                    maxLength={200}
+                    onChange={[Function]}
+                    placeholder="Message"
+                    rows={5}
+                    style={
+                      Object {
+                        "height": "auto",
+                        "resize": "none",
+                      }
+                    }
+                    value="Hello World!"
+                  />
+                </LocalizedPlaceholderTextarea>
               </div>
             </div>
             <div
@@ -358,24 +368,13 @@ exports[`components/user_settings/notifications/ManageAutoResponder should match
             className="setting-list-item"
           >
             <hr />
+            <div
+              role="alert"
+            />
             <SaveButton
-              btnClass=""
-              defaultMessage={
-                <Memo(MemoizedFormattedMessage)
-                  defaultMessage="Save"
-                  id="save_button.save"
-                />
-              }
               disabled={false}
-              extraClasses=""
               onClick={[Function]}
               saving={false}
-              savingMessage={
-                <Memo(MemoizedFormattedMessage)
-                  defaultMessage="Saving"
-                  id="save_button.saving"
-                />
-              }
             >
               <button
                 className="btn btn-primary "
@@ -409,6 +408,7 @@ exports[`components/user_settings/notifications/ManageAutoResponder should match
             </SaveButton>
             <button
               className="btn btn-tertiary"
+              data-testid="cancelButton"
               id="cancelSetting"
               onClick={[Function]}
             >
@@ -425,6 +425,6 @@ exports[`components/user_settings/notifications/ManageAutoResponder should match
         </div>
       </div>
     </section>
-  </SettingItemMax>
+  </Memo(SettingItemMax)>
 </ManageAutoResponder>
 `;

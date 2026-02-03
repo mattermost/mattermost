@@ -4,13 +4,13 @@
 import type {ReactWrapper} from 'enzyme';
 import {mount, shallow} from 'enzyme';
 import React from 'react';
-import {act} from 'react-dom/test-utils';
 import {IntlProvider} from 'react-intl';
 
 import {General} from 'mattermost-redux/constants';
 
 import ManageTeamsModal from 'components/admin_console/manage_teams_modal/manage_teams_modal';
 
+import {act} from 'tests/react_testing_utils';
 import {TestHelper} from 'utils/test_helper';
 
 import ManageTeamsDropdown from './manage_teams_dropdown';
@@ -18,8 +18,8 @@ import ManageTeamsDropdown from './manage_teams_dropdown';
 describe('ManageTeamsModal', () => {
     const baseProps = {
         locale: General.DEFAULT_LOCALE,
-        onModalDismissed: jest.fn(),
-        show: true,
+        onHide: jest.fn(),
+        onExited: jest.fn(),
         user: TestHelper.getUserMock({
             id: 'currentUserId',
             last_picture_update: 1234,

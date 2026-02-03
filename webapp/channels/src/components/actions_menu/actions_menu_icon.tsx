@@ -11,6 +11,9 @@ type Props = {
 export function ActionsMenuIcon({name, dangerous}: Props) {
     const colorClass = dangerous ? 'MenuItem__compass-icon-dangerous' : 'MenuItem__compass-icon';
     return (
-        <span className={`${name} ${colorClass}`}/>
+        <span
+            className={`${name} ${colorClass}`}
+            aria-hidden={true}
+        />
     );
 }

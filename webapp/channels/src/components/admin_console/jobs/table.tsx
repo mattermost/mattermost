@@ -9,6 +9,9 @@ import type {Job, JobType} from '@mattermost/types/jobs';
 
 import type {ActionResult} from 'mattermost-redux/types/actions';
 
+import NextIcon from 'components/widgets/icons/fa_next_icon';
+import PreviousIcon from 'components/widgets/icons/fa_previous_icon';
+
 import {JobTypes} from 'utils/constants';
 
 import JobCancelButton from './job_cancel_button';
@@ -28,7 +31,11 @@ export type Props = {
     downloadExportResults?: boolean;
     className?: string;
     hideJobCreateButton?: boolean;
-    createJobButtonText: React.ReactElement;
+    createJobButtonText: React.ReactNode;
+    hideTable?: boolean;
+    jobData?: any;
+    onRowClick?: (job: Job) => void;
+    perPage?: number;
     actions: {
         getJobsByType: (jobType: JobType) => void;
         cancelJob: (jobId: string) => Promise<ActionResult>;
@@ -36,8 +43,19 @@ export type Props = {
     };
 }
 
-class JobTable extends React.PureComponent<Props> {
+type State = {
+    currentPage: number;
+}
+
+class JobTable extends React.PureComponent<Props, State> {
     interval: ReturnType<typeof setInterval>|null = null;
+
+    constructor(props: Props) {
+        super(props);
+        this.state = {
+            currentPage: 0,
+        };
+    }
 
     componentDidMount() {
         this.props.actions.getJobsByType(this.props.jobType);
@@ -75,30 +93,52 @@ class JobTable extends React.PureComponent<Props> {
         e.preventDefault();
         const job = {
             type: this.props.jobType,
+            data: this.props.jobData,
         };
 
         await this.props.actions.createJob(job);
         this.reload();
     };
 
+    handleNextPage = () => {
+        if (this.props.perPage) {
+            const totalPages = Math.ceil(this.props.jobs.length / this.props.perPage);
+            if (this.state.currentPage < totalPages) {
+                this.setState({currentPage: this.state.currentPage + 1});
+            }
+        }
+    };
+
+    handlePrevPage = () => {
+        if (this.state.currentPage > 0) {
+            this.setState({currentPage: this.state.currentPage - 1});
+        }
+    };
+
     render() {
+        const {perPage} = this.props;
+        const {currentPage} = this.state;
+
+        let paginatedJobs = this.props.jobs;
+        let startIndex = 0;
+        let endIndex = this.props.jobs.length;
+
+        if (perPage) {
+            startIndex = currentPage * perPage;
+            endIndex = Math.min(startIndex + perPage, this.props.jobs.length);
+            paginatedJobs = this.props.jobs.slice(startIndex, endIndex);
+        }
+
         const showFilesColumn = this.props.jobType === JobTypes.MESSAGE_EXPORT && this.props.downloadExportResults;
-        const items = this.props.jobs.map((job) => {
+        const hideDetailsColumn = this.props.jobType === JobTypes.ACCESS_CONTROL_SYNC;
+        const items = paginatedJobs.map((job) => {
             return (
                 <tr
                     key={job.id}
+                    onClick={this.props.onRowClick ? () => this.props.onRowClick!(job) : undefined}
+                    className={this.props.onRowClick ? 'clickable' : ''}
                 >
-                    <td className='cancel-button-field whitespace--nowrap text-center'>
-                        <JobCancelButton
-                            job={job}
-                            onClick={this.handleCancelJob}
-                            disabled={this.props.disabled}
-                        />
-                    </td>
                     <td className='whitespace--nowrap'><JobStatus job={job}/></td>
-                    {showFilesColumn &&
-                        <td className='whitespace--nowrap'><JobDownloadLink job={job}/></td>
-                    }
                     <td className='whitespace--nowrap'>
                         <JobFinishAt
                             status={job.status}
@@ -106,10 +146,67 @@ class JobTable extends React.PureComponent<Props> {
                         />
                     </td>
                     <td className='whitespace--nowrap'><JobRunLength job={job}/></td>
-                    <td>{this.getExtraInfoText(job)}</td>
+                    {showFilesColumn &&
+                        <td className='whitespace--nowrap'><JobDownloadLink job={job}/></td>
+                    }
+                    {!hideDetailsColumn && (
+                        <td>{this.getExtraInfoText(job)}</td>
+                    )}
+                    <td className='cancel-button-field whitespace--nowrap text-center'>
+                        <JobCancelButton
+                            job={job}
+                            onClick={this.handleCancelJob}
+                            disabled={this.props.disabled}
+                        />
+                    </td>
                 </tr>
             );
         });
+
+        const renderFooter = (): JSX.Element | null => {
+            let footer: JSX.Element | null = null;
+
+            if (perPage) {
+                const firstPage = startIndex <= 0;
+                const lastPage = endIndex >= this.props.jobs.length;
+
+                footer = (
+                    <div className='DataGrid_footer'>
+                        <div className='DataGrid_cell'>
+                            <FormattedMessage
+                                id='admin.data_grid.paginatorCount'
+                                defaultMessage='{startCount, number} - {endCount, number} of {total, number}'
+                                values={{
+                                    startCount: startIndex + 1,
+                                    endCount: endIndex,
+                                    total: this.props.jobs.length,
+                                }}
+                            />
+                            <button
+                                type='button'
+                                className={'btn btn-quaternary btn-icon btn-sm ml-2 prev ' + (firstPage ? 'disabled' : '')}
+                                onClick={this.handlePrevPage}
+                                disabled={firstPage}
+                                aria-label={'Previous page'}
+                            >
+                                <PreviousIcon/>
+                            </button>
+                            <button
+                                type='button'
+                                className={'btn btn-quaternary btn-icon btn-sm next ' + (lastPage ? 'disabled' : '')}
+                                onClick={this.handleNextPage}
+                                disabled={lastPage}
+                                aria-label={'Next page'}
+                            >
+                                <NextIcon/>
+                            </button>
+                        </div>
+                    </div>
+                );
+            }
+
+            return footer;
+        };
 
         return (
             <div className={classNames('JobTable', 'job-table__panel', this.props.className)}>
@@ -131,53 +228,61 @@ class JobTable extends React.PureComponent<Props> {
                         {this.props.createJobHelpText}
                     </div>
                 </div>
-                <div className='job-table__table'>
-                    <table
-                        className='table'
-                        data-testid='jobTable'
-                    >
-                        <thead>
-                            <tr>
-                                <th className='cancel-button-field'/>
-                                <th>
-                                    <FormattedMessage
-                                        id='admin.jobTable.headerStatus'
-                                        defaultMessage='Status'
-                                    />
-                                </th>
-                                {showFilesColumn &&
+                {
+                    !this.props.hideTable &&
+                    <div className='job-table__table'>
+                        <table
+                            className='table'
+                            data-testid='jobTable'
+                        >
+                            <thead>
+                                <tr>
+                                    <th>
+                                        <FormattedMessage
+                                            id='admin.jobTable.headerStatus'
+                                            defaultMessage='Status'
+                                        />
+                                    </th>
+                                    <th>
+                                        <FormattedMessage
+                                            id='admin.jobTable.headerFinishAt'
+                                            defaultMessage='Finish Time'
+                                        />
+                                    </th>
+                                    <th>
+                                        <FormattedMessage
+                                            id='admin.jobTable.headerRunTime'
+                                            defaultMessage='Run Time'
+                                        />
+                                    </th>
+                                    {showFilesColumn &&
                                     <th>
                                         <FormattedMessage
                                             id='admin.jobTable.headerFiles'
                                             defaultMessage='Files'
                                         />
                                     </th>
-                                }
-                                <th>
-                                    <FormattedMessage
-                                        id='admin.jobTable.headerFinishAt'
-                                        defaultMessage='Finish Time'
-                                    />
-                                </th>
-                                <th>
-                                    <FormattedMessage
-                                        id='admin.jobTable.headerRunTime'
-                                        defaultMessage='Run Time'
-                                    />
-                                </th>
-                                <th colSpan={3}>
-                                    <FormattedMessage
-                                        id='admin.jobTable.headerExtraInfo'
-                                        defaultMessage='Details'
-                                    />
-                                </th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {items}
-                        </tbody>
-                    </table>
-                </div>
+                                    }
+                                    {!hideDetailsColumn && (
+                                        <th colSpan={3}>
+                                            <FormattedMessage
+                                                id='admin.jobTable.headerExtraInfo'
+                                                defaultMessage='Details'
+                                            />
+                                        </th>
+                                    )}
+                                    <th className='cancel-button-field'/>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {items}
+                            </tbody>
+                        </table>
+                        {perPage && this.props.jobs.length > 0 && (
+                            renderFooter()
+                        )}
+                    </div>
+                }
             </div>
         );
     }

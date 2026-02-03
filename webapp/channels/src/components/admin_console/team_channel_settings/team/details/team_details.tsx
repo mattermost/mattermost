@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {cloneDeep} from 'lodash';
+import cloneDeep from 'lodash/cloneDeep';
 import React from 'react';
 import {FormattedMessage} from 'react-intl';
 
@@ -11,8 +11,6 @@ import type {Team} from '@mattermost/types/teams';
 import type {UserProfile} from '@mattermost/types/users';
 
 import type {ActionResult} from 'mattermost-redux/types/actions';
-
-import {trackEvent} from 'actions/telemetry_actions.jsx';
 
 import BlockableLink from 'components/admin_console/blockable_link';
 import ConfirmModal from 'components/confirm_modal';
@@ -26,13 +24,13 @@ import TeamMembers from './team_members/index';
 import {TeamModes} from './team_modes';
 import {TeamProfile} from './team_profile';
 
+import SaveChangesPanel from '../../../save_changes_panel';
 import {NeedDomainsError, NeedGroupsError, UsersWillBeRemovedError} from '../../errors';
 import RemoveConfirmModal from '../../remove_confirm_modal';
-import SaveChangesPanel from '../../save_changes_panel';
 
 export type Props = {
     teamID: string;
-    team: Team;
+    team?: Team;
     totalGroups: number;
     groups: Group[];
     allGroups: Record<string, Group>;
@@ -45,7 +43,7 @@ export type Props = {
         unlinkGroupSyncable: (groupId: string, syncableId: string, syncableType: SyncableType) => Promise<ActionResult>;
         membersMinusGroupMembers: (teamId: string, groupIds: string[], page?: number, perPage?: number) => Promise<ActionResult>;
         getGroups: (teamId: string, q?: string, page?: number, perPage?: number, filterAllowReference?: boolean) => Promise<ActionResult>;
-        patchTeam: (team: Team) => ActionResult;
+        patchTeam: (team: Team) => Promise<ActionResult>;
         patchGroupSyncable: (groupId: string, syncableId: string, syncableType: SyncableType, patch: Partial<SyncablePatch>) => Promise<ActionResult>;
         addUserToTeam: (teamId: string, userId: string) => Promise<ActionResult>;
         removeUserFromTeam: (teamId: string, userId: string) => Promise<ActionResult>;
@@ -90,10 +88,10 @@ export default class TeamDetails extends React.PureComponent<Props, State> {
         const team = props.team;
         this.state = {
             groups: props.groups,
-            syncChecked: Boolean(team.group_constrained),
-            allAllowedChecked: team.allow_open_invite,
-            allowedDomainsChecked: Boolean(team.allowed_domains && team.allowed_domains !== ''),
-            allowedDomains: team.allowed_domains || '',
+            syncChecked: Boolean(team?.group_constrained),
+            allAllowedChecked: Boolean(team?.allow_open_invite),
+            allowedDomainsChecked: Boolean(team?.allowed_domains),
+            allowedDomains: team?.allowed_domains || '',
             saving: false,
             showRemoveConfirmation: false,
             usersToRemoveCount: 0,
@@ -104,21 +102,21 @@ export default class TeamDetails extends React.PureComponent<Props, State> {
             saveNeeded: false,
             serverError: undefined,
             previousServerError: undefined,
-            isLocalArchived: team.delete_at > 0,
+            isLocalArchived: team ? team.delete_at > 0 : true,
             showArchiveConfirmModal: false,
         };
     }
 
     componentDidUpdate(prevProps: Props) {
         const {totalGroups, team} = this.props;
-        if (prevProps.team.id !== team.id || totalGroups !== prevProps.totalGroups) {
+        if (prevProps.team?.id !== team?.id || totalGroups !== prevProps.totalGroups) {
             this.setState({
                 totalGroups,
-                syncChecked: Boolean(team.group_constrained),
-                allAllowedChecked: team.allow_open_invite,
-                allowedDomainsChecked: Boolean(team.allowed_domains && team.allowed_domains !== ''),
-                allowedDomains: team.allowed_domains || '',
-                isLocalArchived: team.delete_at > 0,
+                syncChecked: Boolean(team?.group_constrained),
+                allAllowedChecked: Boolean(team?.allow_open_invite),
+                allowedDomainsChecked: Boolean(team?.allowed_domains),
+                allowedDomains: team?.allowed_domains || '',
+                isLocalArchived: team ? team.delete_at > 0 : true,
             });
         }
     }
@@ -141,12 +139,16 @@ export default class TeamDetails extends React.PureComponent<Props, State> {
     };
 
     handleSubmit = async () => {
+        const {team, groups: origGroups, teamID, actions} = this.props;
+        if (!team) {
+            return;
+        }
+
         this.setState({showRemoveConfirmation: false, saving: true});
         const {groups, allAllowedChecked, allowedDomainsChecked, allowedDomains, syncChecked, usersToAdd, usersToRemove, rolesToUpdate} = this.state;
 
         let serverError: JSX.Element | undefined;
 
-        const {team, groups: origGroups, teamID, actions} = this.props;
         if (this.teamToBeArchived()) {
             let saveNeeded = false;
             const result = await actions.deleteTeam(team.id);
@@ -176,38 +178,55 @@ export default class TeamDetails extends React.PureComponent<Props, State> {
             serverError = <NeedGroupsError/>;
             saveNeeded = true;
         } else {
-            const patchTeamPromise = actions.patchTeam({
-                ...team,
-                group_constrained: syncChecked,
-                allowed_domains: allowedDomainsChecked ? allowedDomains : '',
-                allow_open_invite: allAllowedChecked,
-            });
             const patchTeamSyncable = groups.
                 filter((g) => {
                     return origGroups.some((group) => group.id === g.id && group.scheme_admin !== g.scheme_admin);
                 }).
                 map((g) => actions.patchGroupSyncable(g.id, teamID, SyncableType.Team, {scheme_admin: g.scheme_admin}));
-            const unlink = origGroups.
-                filter((g) => {
-                    return !groups.some((group) => group.id === g.id);
-                }).
-                map((g) => actions.unlinkGroupSyncable(g.id, teamID, SyncableType.Team));
+
             const link = groups.
                 filter((g) => {
                     return !origGroups.some((group) => group.id === g.id);
                 }).
                 map((g) => actions.linkGroupSyncable(g.id, teamID, SyncableType.Team, {auto_add: true, scheme_admin: g.scheme_admin}));
-            const result = await Promise.all([patchTeamPromise, ...patchTeamSyncable, ...unlink, ...link]);
-            const resultWithError = result.find((r) => r.error);
-            if (resultWithError) {
-                serverError = <FormError error={resultWithError.error?.message}/>;
-            } else {
-                if (unlink.length > 0) {
-                    trackEvent('admin_team_config_page', 'groups_removed_from_team', {count: unlink.length, team_id: teamID});
+
+            // First execute patch and link operations
+            const groupResult = await Promise.all([...patchTeamSyncable, ...link]);
+            const groupResultWithError = groupResult.find((r) => r.error);
+
+            if (groupResultWithError) {
+                serverError = <FormError error={groupResultWithError.error?.message}/>;
+            }
+
+            // After group operations succeed, patch the team
+            const patchTeamResult = await actions.patchTeam({
+                ...team,
+                group_constrained: syncChecked,
+                allowed_domains: allowedDomainsChecked ? allowedDomains : '',
+                allow_open_invite: allAllowedChecked,
+            });
+
+            if (patchTeamResult.error) {
+                serverError = <FormError error={patchTeamResult.error?.message}/>;
+            }
+
+            // After patching the team, handle unlinking groups
+            const unlink = origGroups.
+                filter((g) => {
+                    return !groups.some((group) => group.id === g.id);
+                }).
+                map((g) => actions.unlinkGroupSyncable(g.id, teamID, SyncableType.Team));
+
+            let unlinkResultWithError: ActionResult | undefined;
+            if (unlink.length > 0) {
+                const unlinkResult = await Promise.all(unlink);
+                unlinkResultWithError = unlinkResult.find((r) => r.error);
+                if (unlinkResultWithError) {
+                    serverError = <FormError error={unlinkResultWithError.error?.message}/>;
                 }
-                if (link.length > 0) {
-                    trackEvent('admin_team_config_page', 'groups_added_to_team', {count: link.length, team_id: teamID});
-                }
+            }
+
+            if (!patchTeamResult.error && !groupResultWithError && !unlinkResultWithError) {
                 await actions.getGroups(teamID);
             }
         }
@@ -230,24 +249,16 @@ export default class TeamDetails extends React.PureComponent<Props, State> {
             if (addUserActions.length > 0) {
                 const result = await Promise.all(addUserActions);
                 const resultWithError = result.find((r) => r.error);
-                const count = result.filter((r) => r.data).length;
                 if (resultWithError) {
                     serverError = <FormError error={resultWithError.error?.message}/>;
-                }
-                if (count > 0) {
-                    trackEvent('admin_team_config_page', 'members_added_to_team', {count, team_id: teamID});
                 }
             }
 
             if (removeUserActions.length > 0) {
                 const result = await Promise.all(removeUserActions);
                 const resultWithError = result.find((r) => r.error);
-                const count = result.filter((r) => r.data).length;
                 if (resultWithError) {
                     serverError = <FormError error={resultWithError.error?.message}/>;
-                }
-                if (count > 0) {
-                    trackEvent('admin_team_config_page', 'members_removed_from_team', {count, team_id: teamID});
                 }
             }
 
@@ -265,24 +276,16 @@ export default class TeamDetails extends React.PureComponent<Props, State> {
             if (rolesToPromote.length > 0) {
                 const result = await Promise.all(rolesToPromote);
                 const resultWithError = result.find((r) => r.error);
-                const count = result.filter((r) => r.data).length;
                 if (resultWithError) {
                     serverError = <FormError error={resultWithError.error?.message}/>;
-                }
-                if (count > 0) {
-                    trackEvent('admin_team_config_page', 'members_elevated_to_team_admin', {count, team_id: teamID});
                 }
             }
 
             if (rolesToDemote.length > 0) {
                 const result = await Promise.all(rolesToDemote);
                 const resultWithError = result.find((r) => r.error);
-                const count = result.filter((r) => r.data).length;
                 if (resultWithError) {
                     serverError = <FormError error={resultWithError.error?.message}/>;
-                }
-                if (count > 0) {
-                    trackEvent('admin_team_config_page', 'admins_demoted_to_team_member', {count, team_id: teamID});
                 }
             }
         }
@@ -402,13 +405,13 @@ export default class TeamDetails extends React.PureComponent<Props, State> {
 
     teamToBeArchived = () => {
         const {isLocalArchived} = this.state;
-        const isServerArchived = this.props.team.delete_at !== 0;
+        const isServerArchived = this.props.team?.delete_at !== 0;
         return isLocalArchived && !isServerArchived;
     };
 
     teamToBeRestored = () => {
         const {isLocalArchived} = this.state;
-        const isServerArchived = this.props.team.delete_at !== 0;
+        const isServerArchived = this.props.team?.delete_at !== 0;
         return !isLocalArchived && isServerArchived;
     };
 
@@ -444,6 +447,11 @@ export default class TeamDetails extends React.PureComponent<Props, State> {
 
     render = () => {
         const {team, isLicensedForLDAPGroups} = this.props;
+
+        if (!team) {
+            return null;
+        }
+
         const {totalGroups, saving, saveNeeded, serverError, groups, allAllowedChecked, allowedDomainsChecked, allowedDomains, syncChecked, showRemoveConfirmation, usersToRemoveCount, isLocalArchived, showArchiveConfirmModal} = this.state;
         const missingGroup = (og: {id: string}) => !groups.find((g) => g.id === og.id);
         const removedGroups = this.props.groups.filter(missingGroup);
@@ -530,7 +538,7 @@ export default class TeamDetails extends React.PureComponent<Props, State> {
                             message={
                                 <FormattedMessage
                                     id='admin.team_settings.team_detail.archive_confirm.message'
-                                    defaultMessage='Saving will archive the team and make its contents inaccessible for all users. Are you sure you wish to save and archive this team?'
+                                    defaultMessage={'Archiving will remove the team from the user interface but it\'s contents remain in the database and may still be accessible with the API. Are you sure you wish to save and archive this team?'}
                                 />
                             }
                             confirmButtonText={

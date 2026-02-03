@@ -7,36 +7,17 @@ import {useIntl} from 'react-intl';
 import {useSelector, useDispatch} from 'react-redux';
 import {Link, useRouteMatch, useLocation, matchPath} from 'react-router-dom';
 
-import {PulsatingDot} from '@mattermost/components';
-
 import {getThreadCounts} from 'mattermost-redux/actions/threads';
-import {getInt, isCollapsedThreadsEnabled} from 'mattermost-redux/selectors/entities/preferences';
-import {
-    getThreadCountsInCurrentTeam, getThreadsInCurrentTeam,
-} from 'mattermost-redux/selectors/entities/threads';
+import {isCollapsedThreadsEnabled} from 'mattermost-redux/selectors/entities/preferences';
+import {getThreadCountsInCurrentTeam} from 'mattermost-redux/selectors/entities/threads';
 
-import {trackEvent} from 'actions/telemetry_actions';
-import {openModal} from 'actions/views/modals';
 import {closeRightHandSide} from 'actions/views/rhs';
 import {getIsRhsOpen, getRhsState} from 'selectors/rhs';
-import {isAnyModalOpen} from 'selectors/views/modals';
 
 import ChannelMentionBadge from 'components/sidebar/sidebar_channel/channel_mention_badge';
-import CollapsedReplyThreadsModal
-    from 'components/tours/crt_tour/collapsed_reply_threads_modal';
-import CRTWelcomeTutorialTip
-    from 'components/tours/crt_tour/crt_welcome_tutorial_tip';
 
-import Constants, {
-    CrtTutorialSteps,
-    CrtTutorialTriggerSteps,
-    ModalIdentifiers,
-    Preferences,
-    RHSStates,
-} from 'utils/constants';
-import {t} from 'utils/i18n';
-
-import type {GlobalState} from 'types/store';
+import {RHSStates} from 'utils/constants';
+import {Mark} from 'utils/performance_telemetry';
 
 import ThreadsIcon from './threads_icon';
 
@@ -56,25 +37,17 @@ const GlobalThreadsLink = () => {
 
     const counts = useSelector(getThreadCountsInCurrentTeam);
     const someUnreadThreads = counts?.total_unread_threads;
-    const appHaveOpenModal = useSelector(isAnyModalOpen);
-    const tipStep = useSelector((state: GlobalState) => getInt(state, Preferences.CRT_TUTORIAL_STEP, currentUserId, CrtTutorialSteps.WELCOME_POPOVER));
-    const crtTutorialTrigger = useSelector((state: GlobalState) => getInt(state, Preferences.CRT_TUTORIAL_TRIGGERED, currentUserId, Constants.CrtTutorialTriggerSteps.START));
-    const threads = useSelector(getThreadsInCurrentTeam);
-    const showTutorialTip = crtTutorialTrigger === CrtTutorialTriggerSteps.STARTED && tipStep === CrtTutorialSteps.WELCOME_POPOVER && threads.length >= 1;
-    const threadsCount = useSelector(getThreadCountsInCurrentTeam);
     const rhsOpen = useSelector(getIsRhsOpen);
     const rhsState = useSelector(getRhsState);
-    const showTutorialTrigger = isFeatureEnabled && crtTutorialTrigger === Constants.CrtTutorialTriggerSteps.START && !appHaveOpenModal && Boolean(threadsCount) && threadsCount.total >= 1;
-    const openThreads = useCallback((e) => {
+    const openThreads = useCallback((e: React.MouseEvent) => {
         e.stopPropagation();
-        trackEvent('crt', 'go_to_global_threads');
-        if (showTutorialTrigger) {
-            dispatch(openModal({modalId: ModalIdentifiers.COLLAPSED_REPLY_THREADS_MODAL, dialogType: CollapsedReplyThreadsModal, dialogProps: {}}));
-        }
+
+        performance.mark(Mark.GlobalThreadsLinkClicked);
+
         if (rhsOpen && rhsState === RHSStates.EDIT_HISTORY) {
             dispatch(closeRightHandSide());
         }
-    }, [showTutorialTrigger, threadsCount, threads, rhsOpen, rhsState]);
+    }, [rhsOpen, rhsState]);
 
     useEffect(() => {
         // load counts if necessary
@@ -113,7 +86,7 @@ const GlobalThreadsLink = () => {
                     </span>
                     <div className='SidebarChannelLinkLabel_wrapper'>
                         <span className='SidebarChannelLinkLabel sidebar-item__name'>
-                            {formatMessage({id: t('globalThreads.sidebarLink'), defaultMessage: 'Threads'})}
+                            {formatMessage({id: 'globalThreads.sidebarLink', defaultMessage: 'Threads'})}
                         </span>
                     </div>
                     {counts?.total_unread_mentions > 0 && (
@@ -122,9 +95,7 @@ const GlobalThreadsLink = () => {
                             hasUrgent={Boolean(counts?.total_unread_urgent_mentions)}
                         />
                     )}
-                    {showTutorialTrigger && <PulsatingDot/>}
                 </Link>
-                {showTutorialTip && <CRTWelcomeTutorialTip/>}
             </li>
         </ul>
     );

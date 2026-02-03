@@ -4,6 +4,7 @@
 import React, {useCallback, useEffect, useState} from 'react';
 import {useSelector} from 'react-redux';
 
+import {usePluginVisibilityInSharedChannel} from 'components/common/hooks/usePluginVisibilityInSharedChannel';
 import CopyButton from 'components/copy_button';
 
 import * as SyntaxHighlighting from 'utils/syntax_highlighting';
@@ -15,9 +16,10 @@ type Props = {
     code: string;
     language: string;
     searchedContent?: string;
+    channelId?: string;
 }
 
-const CodeBlock: React.FC<Props> = ({code, language, searchedContent}: Props) => {
+const CodeBlock: React.FC<Props> = ({code, language, searchedContent, channelId}: Props) => {
     const getUsedLanguage = useCallback(() => {
         let usedLanguage = language || '';
         usedLanguage = usedLanguage.toLowerCase();
@@ -61,16 +63,30 @@ const CodeBlock: React.FC<Props> = ({code, language, searchedContent}: Props) =>
     // search term highlighting and overlap them
     const [content, setContent] = useState(TextFormatting.sanitizeHtml(code));
     useEffect(() => {
-        SyntaxHighlighting.highlight(usedLanguage, code).then((content) => setContent(content));
+        let shouldSetContent = true;
+
+        SyntaxHighlighting.highlight(usedLanguage, code).then((content) => {
+            // Ensure the component is still mounted and that usedLanguage and code haven't changed to prevent two
+            // highlight calls from racing
+            if (shouldSetContent) {
+                setContent(content);
+            }
+        });
+
+        return () => {
+            shouldSetContent = false;
+        };
     }, [usedLanguage, code]);
 
     let htmlContent = content;
     if (searchedContent) {
-        htmlContent = `${searchedContent} ${content}`;
+        htmlContent = searchedContent + content;
     }
 
     const codeBlockActions = useSelector((state: GlobalState) => state.plugins.components.CodeBlockAction);
-    const pluginItems = codeBlockActions?.
+    const pluginItemsVisible = usePluginVisibilityInSharedChannel(channelId);
+
+    const pluginItems = pluginItemsVisible ? codeBlockActions?.
         map((item) => {
             if (!item.component) {
                 return null;
@@ -83,7 +99,7 @@ const CodeBlock: React.FC<Props> = ({code, language, searchedContent}: Props) =>
                     code={code}
                 />
             );
-        });
+        }) : [];
 
     return (
         <div className={className}>

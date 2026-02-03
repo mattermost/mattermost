@@ -3,9 +3,7 @@
 
 import {connect} from 'react-redux';
 import {bindActionCreators} from 'redux';
-import type {ActionCreatorsMapObject, Dispatch} from 'redux';
-
-import type {PostList} from '@mattermost/types/posts';
+import type {Dispatch} from 'redux';
 
 import {getCurrentChannelId, getUnreadChannels} from 'mattermost-redux/selectors/entities/channels';
 import {getMyChannelMemberships} from 'mattermost-redux/selectors/entities/common';
@@ -16,13 +14,8 @@ import {getCategoriesForCurrentTeam} from 'selectors/views/channel_sidebar';
 
 import type {GlobalState} from 'types/store';
 
-import {prefetchQueue, trackPreloadedChannels} from './actions';
+import {prefetchQueue} from './actions';
 import DataPrefetch from './data_prefetch';
-
-type Actions = {
-    prefetchChannelPosts: (channelId: string, delay?: number) => Promise<{data: PostList}>;
-    trackPreloadedChannels: (prefetchQueueObj: Record<string, string[]>) => void;
-};
 
 function isSidebarLoaded(state: GlobalState) {
     return getCategoriesForCurrentTeam(state).length > 0;
@@ -46,9 +39,8 @@ function mapStateToProps(state: GlobalState) {
 
 function mapDispatchToProps(dispatch: Dispatch) {
     return {
-        actions: bindActionCreators<ActionCreatorsMapObject, Actions>({
+        actions: bindActionCreators({
             prefetchChannelPosts,
-            trackPreloadedChannels,
         }, dispatch),
     };
 }

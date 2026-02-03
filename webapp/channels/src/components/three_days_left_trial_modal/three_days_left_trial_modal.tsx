@@ -7,8 +7,6 @@ import {useSelector, useDispatch} from 'react-redux';
 
 import {GenericModal} from '@mattermost/components';
 
-import type {DispatchFunc} from 'mattermost-redux/types/actions';
-
 import {closeModal} from 'actions/views/modals';
 import {isModalOpen} from 'selectors/views/modals';
 
@@ -35,9 +33,9 @@ type Props = {
 }
 
 function ThreeDaysLeftTrialModal(props: Props): JSX.Element | null {
-    const dispatch = useDispatch<DispatchFunc>();
+    const dispatch = useDispatch();
     const {formatMessage} = useIntl();
-    const openPricingModal = useOpenPricingModal();
+    const {openPricingModal, isAirGapped} = useOpenPricingModal();
     const show = useSelector((state: GlobalState) => isModalOpen(state, ModalIdentifiers.THREE_DAYS_LEFT_TRIAL_MODAL));
     const usage = useGetUsage();
     const [limits] = useGetLimits();
@@ -52,7 +50,7 @@ function ThreeDaysLeftTrialModal(props: Props): JSX.Element | null {
 
     const handleOpenPricingModal = async () => {
         await dispatch(closeModal(ModalIdentifiers.THREE_DAYS_LEFT_TRIAL_MODAL));
-        openPricingModal({trackingLocation: 'three_days_left_trial_modal'});
+        openPricingModal();
     };
 
     const buttonLabel = formatMessage({id: 'three_days_left_trial_modal.learnMore', defaultMessage: 'Learn more'});
@@ -60,8 +58,8 @@ function ThreeDaysLeftTrialModal(props: Props): JSX.Element | null {
     const steps: ThreeDaysLeftTrialCardProps[] = useMemo(() => [
         {
             id: 'useSso',
-            title: formatMessage({id: 'three_days_left_trial.modal.useSsoTitle', defaultMessage: 'Single Sign on (with OpenID, SAML, Google, 0365)'}),
-            description: formatMessage({id: 'three_days_left_trial.modal.useSsoDescription', defaultMessage: 'Collaborate with users outside of your organization while tightly controlling their access to channels and team members.'}),
+            title: formatMessage({id: 'three_days_left_trial.modal.useSsoTitle', defaultMessage: 'Use SSO (with OpenID, SAML, Google, O365)'}),
+            description: formatMessage({id: 'three_days_left_trial.modal.useSsoDescription', defaultMessage: 'Sign on quickly and easily with our SSO feature that works with OpenID, SAML, Google, and O365.'}),
             svgWrapperClassName: 'guestAccessSvg',
             svgElement: (
                 <GuestAccessSvg
@@ -89,7 +87,7 @@ function ThreeDaysLeftTrialModal(props: Props): JSX.Element | null {
         {
             id: 'systemConsole',
             title: formatMessage({id: 'three_days_left_trial.modal.systemConsoleTitle', defaultMessage: 'Provide controlled access to the System Console'}),
-            description: formatMessage({id: 'three_days_left_trial.modal.systemConsoleDescription', defaultMessage: 'Use System Roles to give designated users read and/or write access to select sections of System Console.'}),
+            description: formatMessage({id: 'three_days_left_trial.modal.systemConsoleDescription', defaultMessage: 'Assign customizable admin roles to give designated users read and/or write access to select sections of System Console.'}),
             svgWrapperClassName: 'personBoxSvg',
             svgElement: (
                 <SystemRolesSVG
@@ -140,7 +138,7 @@ function ThreeDaysLeftTrialModal(props: Props): JSX.Element | null {
 
     return (
         <GenericModal
-            className='ThreeDaysLeftTrialModal'
+            className='ThreeDaysLeftTrialModal three-days-left-generic-modal'
             id='threeDaysLeftTrialModal'
             onExited={handleOnClose}
             modalHeaderText={headerText}
@@ -153,14 +151,16 @@ function ThreeDaysLeftTrialModal(props: Props): JSX.Element | null {
                 {content}
             </div>
             <div className='divisory-line'/>
-            <div className='footer-content'>
-                <button
-                    onClick={handleOpenPricingModal}
-                    className='open-view-plans-modal-btn'
-                >
-                    {formatMessage({id: 'three_days_left_trial.modal.viewPlans', defaultMessage: 'View plan options'})}
-                </button>
-            </div>
+            {!isAirGapped && (
+                <div className='footer-content'>
+                    <button
+                        onClick={handleOpenPricingModal}
+                        className='open-view-plans-modal-btn'
+                    >
+                        {formatMessage({id: 'three_days_left_trial.modal.viewPlans', defaultMessage: 'View plan options'})}
+                    </button>
+                </div>
+            )}
         </GenericModal>
     );
 }

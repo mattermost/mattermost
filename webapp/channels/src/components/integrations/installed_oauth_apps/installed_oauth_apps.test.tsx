@@ -7,6 +7,8 @@ import React from 'react';
 import BackstageList from 'components/backstage/components/backstage_list';
 import InstalledOAuthApps from 'components/integrations/installed_oauth_apps/installed_oauth_apps';
 
+import {TestHelper} from 'utils/test_helper';
+
 describe('components/integrations/InstalledOAuthApps', () => {
     const oauthApps = {
         facxd9wpzpbpfp8pad78xj75pr: {
@@ -38,9 +40,9 @@ describe('components/integrations/InstalledOAuthApps', () => {
     };
 
     const baseProps = {
-        team: {
+        team: TestHelper.getTeamMock({
             name: 'test',
-        },
+        }),
         oauthApps,
         canManageOauth: true,
         actions: {

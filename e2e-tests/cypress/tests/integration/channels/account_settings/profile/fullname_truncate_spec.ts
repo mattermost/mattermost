@@ -60,16 +60,17 @@ describe('Profile > Profile Settings> Full Name', () => {
         cy.getLastPostId().then((postId) => {
             cy.get(`#post_${postId}`).should('be.visible');
             cy.get(`#post_${postId} img`).click();
-            cy.get('#user-profile-popover').should('be.visible');
+            cy.get('div.user-profile-popover').should('be.visible');
+            cy.get('button.closeButtonRelativePosition').click();
 
             // * Popover user name should show truncated to 'This Is a Long Name That Should Tr...'
-            cy.findByTestId(`popover-fullname-${firstUser.username}`).should('have.css', 'text-overflow', 'ellipsis');
+            cy.findByTestId(`popover-fullname-${firstUser.username}`).should('have.css', 'text-overflow', 'clip');
         });
     });
 
     it('MM-T2048 Empty full name: @ still displays before username', () => {
         // # Open any user list ("View Members", "Add Members", "Manage Members", ..)
-        cy.uiOpenTeamMenu('View Members');
+        cy.uiOpenTeamMenu('View members');
 
         // # Find a user who hasn't set their full name
         cy.get('.modal-title').should('be.visible');

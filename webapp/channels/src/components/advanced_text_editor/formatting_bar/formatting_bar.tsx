@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {useFloating, offset} from '@floating-ui/react-dom';
+import {useFloating, offset, useClick, useDismiss, useInteractions} from '@floating-ui/react';
 import classNames from 'classnames';
 import React, {memo, useCallback, useEffect, useRef, useState} from 'react';
 import {useIntl} from 'react-intl';
@@ -10,10 +10,12 @@ import styled from 'styled-components';
 
 import {DotsHorizontalIcon} from '@mattermost/compass-icons/components';
 
-import type {ApplyMarkdownOptions} from 'utils/markdown/apply_markdown';
+import WithTooltip from 'components/with_tooltip';
+
+import type {ApplyMarkdownOptions, MarkdownMode} from 'utils/markdown/apply_markdown';
 
 import FormattingIcon, {IconContainer} from './formatting_icon';
-import {useFormattingBarControls, useGetLatest} from './hooks';
+import {useFormattingBarControls} from './hooks';
 
 export const Separator = styled.div`
     display: block;
@@ -28,6 +30,7 @@ export const FormattingBarSpacer = styled.div`
     height: 48px;
     transition: height 0.25s ease;
     align-items: end;
+    background: var(--center-channel-bg);
 `;
 
 const FormattingBarContainer = styled.div`
@@ -147,38 +150,22 @@ const FormattingBar = (props: FormattingBarProps): JSX.Element => {
     const {formatMessage} = useIntl();
     const HiddenControlsButtonAriaLabel = formatMessage({id: 'accessibility.button.hidden_controls_button', defaultMessage: 'show hidden formatting options'});
 
-    const {x, y, reference, floating, strategy, update, refs: {reference: buttonRef, floating: floatingRef}} = useFloating<HTMLButtonElement>({
+    const {x, y, strategy, update, context, refs: {setReference, setFloating}} = useFloating<HTMLButtonElement>({
+        open: showHiddenControls,
+        onOpenChange: setShowHiddenControls,
         placement: 'top',
         middleware: [offset({mainAxis: 4})],
     });
 
-    // this little helper hook always returns the latest refs and does not mess with the popper placement calculation
-    const getLatest = useGetLatest({
-        showHiddenControls,
-        buttonRef,
-        floatingRef,
-    });
+    const click = useClick(context);
+    const {getReferenceProps: getClickReferenceProps, getFloatingProps: getClickFloatingProps} = useInteractions([
+        click,
+    ]);
 
-    useEffect(() => {
-        const handleClickOutside: EventListener = (event) => {
-            const {floatingRef, buttonRef} = getLatest();
-            const target = event.composedPath?.()?.[0] || event.target;
-            if (target instanceof Node) {
-                if (
-                    floatingRef !== null &&
-                    buttonRef !== null &&
-                    !floatingRef.current?.contains(target) &&
-                    !buttonRef.current?.contains(target)
-                ) {
-                    setShowHiddenControls(false);
-                }
-            }
-        };
-
-        document.addEventListener('mousedown', handleClickOutside);
-
-        return () => document.removeEventListener('mousedown', handleClickOutside);
-    }, [getLatest, setShowHiddenControls]);
+    const dismiss = useDismiss(context);
+    const {getReferenceProps: getDismissReferenceProps, getFloatingProps: getDismissFloatingProps} = useInteractions([
+        dismiss,
+    ]);
 
     useEffect(() => {
         update?.();
@@ -186,19 +173,12 @@ const FormattingBar = (props: FormattingBarProps): JSX.Element => {
 
     const hasHiddenControls = wideMode !== 'wide';
 
-    const toggleHiddenControls = useCallback((event?) => {
-        if (event) {
-            event.preventDefault();
-        }
-        setShowHiddenControls(!showHiddenControls);
-    }, [showHiddenControls]);
-
     /**
      * wrapping this factory in useCallback prevents it from constantly getting a new
      * function signature as if we would define it directly in the props of
      * the FormattingIcon component. This should improve render-performance
      */
-    const makeFormattingHandler = useCallback((mode) => () => {
+    const makeFormattingHandler = useCallback((mode: MarkdownMode) => () => {
         // if the formatting is disabled just return without doing anything
         if (disableControls) {
             return;
@@ -222,9 +202,9 @@ const FormattingBar = (props: FormattingBarProps): JSX.Element => {
 
         // if hidden controls are currently open close them
         if (showHiddenControls) {
-            toggleHiddenControls();
+            setShowHiddenControls(true);
         }
-    }, [getCurrentSelection, getCurrentMessage, applyMarkdown, showHiddenControls, toggleHiddenControls, disableControls]);
+    }, [getCurrentSelection, getCurrentMessage, applyMarkdown, showHiddenControls, disableControls]);
 
     const leftPosition = wideMode === 'min' ? (x ?? 0) + DEFAULT_MIN_MODE_X_COORD : x ?? 0;
 
@@ -237,7 +217,10 @@ const FormattingBar = (props: FormattingBarProps): JSX.Element => {
     const showSeparators = wideMode === 'wide';
 
     return (
-        <FormattingBarContainer ref={formattingBarRef}>
+        <FormattingBarContainer
+            ref={formattingBarRef}
+            data-testid='formattingBarContainer'
+        >
             {controls.map((mode) => {
                 return (
                     <React.Fragment key={mode}>
@@ -261,18 +244,28 @@ const FormattingBar = (props: FormattingBarProps): JSX.Element => {
 
             {hasHiddenControls && (
                 <>
-                    <IconContainer
-                        id={'HiddenControlsButton' + location}
-                        ref={reference}
-                        className={classNames({active: showHiddenControls})}
-                        onClick={toggleHiddenControls}
-                        aria-label={HiddenControlsButtonAriaLabel}
+                    <WithTooltip
+                        title={formatMessage({
+                            id: 'shortcuts.msgs.formatting_bar.more_formatting_options',
+                            defaultMessage: 'More formatting options',
+                        })}
+                        disabled={showHiddenControls}
                     >
-                        <DotsHorizontalIcon
-                            color={'currentColor'}
-                            size={18}
-                        />
-                    </IconContainer>
+                        <IconContainer
+                            id={'HiddenControlsButton' + location}
+                            ref={setReference}
+                            className={classNames({active: showHiddenControls})}
+                            aria-label={HiddenControlsButtonAriaLabel}
+                            type='button'
+                            {...getClickReferenceProps()}
+                            {...getDismissReferenceProps()}
+                        >
+                            <DotsHorizontalIcon
+                                color={'currentColor'}
+                                size={18}
+                            />
+                        </IconContainer>
+                    </WithTooltip>
                 </>
             )}
 
@@ -280,10 +273,13 @@ const FormattingBar = (props: FormattingBarProps): JSX.Element => {
                 timeout={250}
                 classNames='scale'
                 in={showHiddenControls}
+                unmountOnExit={true}
             >
                 <HiddenControlsContainer
-                    ref={floating}
+                    ref={setFloating}
                     style={hiddenControlsContainerStyles}
+                    {...getClickFloatingProps()}
+                    {...getDismissFloatingProps()}
                 >
                     {hiddenControls.map((mode) => {
                         return (

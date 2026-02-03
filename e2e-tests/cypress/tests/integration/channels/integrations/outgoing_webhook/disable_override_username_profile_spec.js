@@ -10,7 +10,6 @@
 // Group: @channels @outgoing_webhook
 
 import * as TIMEOUTS from '../../../../fixtures/timeouts';
-
 import {
     enableUsernameAndIconOverrideInt,
     enableUsernameAndIconOverride,

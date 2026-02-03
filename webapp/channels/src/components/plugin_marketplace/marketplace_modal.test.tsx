@@ -7,14 +7,11 @@ import React from 'react';
 import type {MarketplacePlugin} from '@mattermost/types/marketplace';
 import {AuthorType, ReleaseStage} from '@mattermost/types/marketplace';
 
-import type {ActionFunc} from 'mattermost-redux/types/actions';
-
 import {ModalIdentifiers} from 'utils/constants';
 
 import type {GlobalState} from 'types/store';
 
 import MarketplaceModal from './marketplace_modal';
-import type {OpenedFromType} from './marketplace_modal';
 import WebMarketplaceBanner from './web_marketplace_banner';
 
 let mockState: GlobalState;
@@ -22,7 +19,7 @@ let mockState: GlobalState;
 jest.mock('react-redux', () => ({
     ...jest.requireActual('react-redux') as typeof import('react-redux'),
     useSelector: (selector: (state: typeof mockState) => unknown) => selector(mockState),
-    useDispatch: jest.fn(() => (action: ActionFunc) => action),
+    useDispatch: jest.fn(() => (action: unknown) => action),
 }));
 
 describe('components/marketplace/', () => {
@@ -56,10 +53,6 @@ describe('components/marketplace/', () => {
             min_server_version: '5.14.0',
         },
         installed_version: '1.0.3',
-    };
-
-    const defaultProps = {
-        openedFrom: 'actions_menu' as OpenedFromType,
     };
 
     beforeEach(() => {
@@ -96,7 +89,7 @@ describe('components/marketplace/', () => {
 
     test('should render default', () => {
         const wrapper = shallow(
-            <MarketplaceModal {...defaultProps}/>,
+            <MarketplaceModal/>,
         );
 
         expect(wrapper.shallow()).toMatchSnapshot();
@@ -108,7 +101,7 @@ describe('components/marketplace/', () => {
         useStateSpy.mockImplementationOnce(() => [false, setState]);
 
         const wrapper = shallow(
-            <MarketplaceModal {...defaultProps}/>,
+            <MarketplaceModal/>,
         );
 
         wrapper.update();
@@ -126,7 +119,7 @@ describe('components/marketplace/', () => {
         ];
 
         const wrapper = shallow(
-            <MarketplaceModal {...defaultProps}/>,
+            <MarketplaceModal/>,
         );
 
         wrapper.update();
@@ -145,7 +138,7 @@ describe('components/marketplace/', () => {
         ];
 
         const wrapper = shallow(
-            <MarketplaceModal {...defaultProps}/>,
+            <MarketplaceModal/>,
         );
 
         wrapper.update();
@@ -159,7 +152,7 @@ describe('components/marketplace/', () => {
         useStateSpy.mockImplementation(() => [true, setState]);
 
         const wrapper = shallow(
-            <MarketplaceModal {...defaultProps}/>,
+            <MarketplaceModal/>,
         );
 
         wrapper.update();
@@ -180,7 +173,7 @@ describe('components/marketplace/', () => {
         (mockState.entities.general.config as any).FeatureFlagStreamlinedMarketplace = 'true';
 
         const wrapper = shallow(
-            <MarketplaceModal {...defaultProps}/>,
+            <MarketplaceModal/>,
         );
 
         wrapper.update();
@@ -201,7 +194,7 @@ describe('components/marketplace/', () => {
         mockState.entities.general.license.Cloud = 'true';
 
         const wrapper = shallow(
-            <MarketplaceModal {...defaultProps}/>,
+            <MarketplaceModal/>,
         );
 
         wrapper.update();

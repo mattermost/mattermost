@@ -1,4 +1,4 @@
-// Jest Snapshot v1, https://goo.gl/fbAQLP
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
 
 exports[`components/post_view/post_list_row should have class hideAnimation for NEWER_MESSAGES_LOADER if loadingNewerPosts is false 1`] = `
 <div
@@ -43,7 +43,7 @@ exports[`components/post_view/post_list_row should have class hideAnimation for 
 exports[`components/post_view/post_list_row should render channel intro message 1`] = `<Connect(ChannelIntroMessage) />`;
 
 exports[`components/post_view/post_list_row should render combined post 1`] = `
-<Connect(Connect(PostComponent))
+<Connect(Connect(ErrorBoundary(PostComponent)))
   combinedId="user-activity-1234-5678"
   isLastPost={false}
   location="CENTER"
@@ -66,7 +66,7 @@ exports[`components/post_view/post_list_row should render manual load messages t
   onClick={[MockFunction]}
 >
   <MemoizedFormattedMessage
-    defaultMessage="Load More Messages"
+    defaultMessage="Load more messages"
     id="posts_view.loadMore"
   />
 </button>
@@ -93,16 +93,15 @@ exports[`components/post_view/post_list_row should render more messages loading 
 `;
 
 exports[`components/post_view/post_list_row should render new messages line 1`] = `
-<NewMessageSeparator
+<Memo(NewMessageSeparator)
   channelId="channel_id_1"
-  lastViewedAt={0}
   newMessagesSeparatorActions={Array []}
-  separatorId="start-of-new-messages"
+  separatorId="start-of-new-messages-1553106600000"
 />
 `;
 
 exports[`components/post_view/post_list_row should render post 1`] = `
-<Connect(PostComponent)
+<Connect(ErrorBoundary(PostComponent))
   isLastPost={false}
   location="CENTER"
   post={

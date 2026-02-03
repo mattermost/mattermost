@@ -11,7 +11,7 @@
 
         .icon {
             svg {
-                fill: rgba(var(--sidebar-text-rgb), 0.6);
+                fill: rgba(var(--sidebar-text-rgb), 0.75);
                 vertical-align: middle;
             }
         }
@@ -19,6 +19,10 @@
         .badge {
             background: transparent;
             color: var(--sidebar-text);
+
+            .icon.icon-draft-indicator {
+                font-size: 14px !important;
+            }
         }
 
         &:hover {
@@ -29,8 +33,37 @@
                 visibility: visible;
             }
         }
+
+        #unreadMentions {
+            color: rgba(var(--sidebar-text-rgb), 0.64);
+            margin-inline: 0;
+
+            &:not(.urgent) {
+                padding-inline: 0;
+            }
+
+            &.scheduledPostBadge {
+                margin-left: 8px;
+                padding-block: 2px;
+
+                &.urgent {
+                    color: var(--sidebar-text);
+                }
+
+                .unreadMentions {
+                    position: relative;
+                    top: -0.5px;
+                }
+            }
+        }
+
+
+        &.active #unreadMentions {
+            color: var(--sidebar-text);
+        }
     }
 }
+
 
 // legacy
 .sidebar--left .SidebarDrafts {
@@ -43,7 +76,7 @@
         margin-top: 1px;
 
         svg {
-            fill: rgba(var(--sidebar-text-rgb), 0.6);
+            fill: rgba(var(--sidebar-text-rgb), 0.75);
         }
     }
 

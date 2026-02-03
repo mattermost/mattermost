@@ -1,8 +1,8 @@
-@import 'utils/variables';
-@import 'utils/mixins';
+@use 'utils/variables';
+@use 'utils/mixins';
 
 //  since the modal is kind of tall, this makes it look more aligned to the top and the content better distributed
-.GenericModal.modal-dialog {
+.three-days-left-generic-modal {
     margin-top: calc(40vh - 240px) !important;
 }
 
@@ -20,13 +20,13 @@
         padding-bottom: 24px !important;
 
         .header-subtitle-text {
-            color: rgba(var(--center-channel-color-rgb), 0.72);
+            color: rgba(var(--center-channel-color-rgb), 0.75);
             font-size: 12px;
             font-weight: 400;
             line-height: 16px;
         }
 
-        .content-container {
+        .main-wrapper {
             display: flex;
             flex-direction: column;
             margin-right: 24px;
@@ -75,7 +75,7 @@
                 margin: 24px 0;
 
                 .limits-title {
-                    color: rgba(var(--center-channel-color-rgb), 0.56);
+                    color: rgba(var(--center-channel-color-rgb), 0.75);
                     font-size: 10px;
                     font-weight: 700;
                     letter-spacing: 0.02em;
@@ -100,8 +100,8 @@
                 margin-top: 24px;
                 margin-left: auto;
 
-                @include primary-button;
-                @include button-medium;
+                @include mixins.primary-button;
+                @include mixins.button-medium;
 
                 &:focus-visible {
                     outline: none !important;

@@ -13,8 +13,8 @@ import (
 )
 
 func TestHealthCheckJob(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t)
-	defer th.TearDown()
 
 	tearDown, _, _ := SetAppEnvironmentWithPlugins(t, []string{
 		`
@@ -78,7 +78,8 @@ func TestHealthCheckJob(t *testing.T) {
 	require.Equal(t, model.PluginStateFailedToStayRunning, env.GetPluginState(id))
 
 	// Activated manually, plugin should stay active
-	env.Activate(id)
+	_, _, err = env.Activate(id)
+	require.NoError(t, err)
 	job.CheckPlugin(id)
 	bundles = env.Active()
 	require.Equal(t, 1, len(bundles))

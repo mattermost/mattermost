@@ -60,7 +60,7 @@ const ChannelId = styled.div`
     font-size: 11px;
     line-height: 16px;
     letter-spacing: 0.02em;
-    color: rgba(var(--center-channel-color-rgb), .64);
+    color: rgba(var(--center-channel-color-rgb), 0.75);
 `;
 
 interface Props {
@@ -89,7 +89,6 @@ const AboutAreaGM = ({channel, gmUsers, actions}: Props) => {
                                 userId={user.id}
                                 username={user.username}
                                 channelId={channel.id}
-                                popoverPlacement='left'
                             />
                         </ProfilePictureContainer>
                     ))}
@@ -99,7 +98,6 @@ const AboutAreaGM = ({channel, gmUsers, actions}: Props) => {
                         <React.Fragment key={user.id}>
                             <UserProfileElement
                                 userId={user.id}
-                                isRHS={true}
                                 channelId={channel.id}
                             />
                             {(i + 1 !== length) && (<span>{', '}</span>)}
@@ -122,6 +120,7 @@ const AboutAreaGM = ({channel, gmUsers, actions}: Props) => {
                     )}
                     editable={true}
                     onEdit={actions.editChannelHeader}
+                    editTooltip={formatMessage({id: 'channel_info_rhs.about_area.edit_channel_header', defaultMessage: 'Edit channel header'})}
                     emptyLabel={formatMessage({id: 'channel_info_rhs.about_area.add_channel_header', defaultMessage: 'Add a channel header'})}
                 />
             </ChannelHeader>

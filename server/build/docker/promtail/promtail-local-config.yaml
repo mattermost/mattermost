@@ -1,0 +1,46 @@
+server:
+  http_listen_port: 3180
+  grpc_listen_port: 0
+
+positions:
+  filename: /tmp/positions.yaml
+
+clients:
+  - url: http://loki:3100/loki/api/v1/push
+
+scrape_configs:
+  - job_name: mattermost
+    pipeline_stages:
+      - match:
+          selector: '{job="mattermost"}'
+          stages:
+            - json:
+                expressions:
+                  timestamp: timestamp
+                  level: level
+      - labels:
+          level:
+      - timestamp:
+          format: '2006-01-02 15:04:05.999 -07:00'
+          source: timestamp
+    static_configs:
+    - targets:
+        - localhost
+      labels:
+        job: mattermost
+        app: mattermost
+        __path__: /logs/*.log
+  # https://ruanbekker.medium.com/logging-with-docker-promtail-and-grafana-loki-d920fd790ca8
+  - job_name: docker
+    docker_sd_configs:
+      - host: unix:///var/run/docker.sock
+        refresh_interval: 5s
+    relabel_configs:
+      - source_labels: ['__meta_docker_container_name']
+        regex: '/(.*)'
+        target_label: 'container'
+      - source_labels: ['__meta_docker_container_log_stream']
+        target_label: 'logstream'
+    pipeline_stages:
+      - static_labels:
+          job: docker

@@ -1,4 +1,4 @@
-// Jest Snapshot v1, https://goo.gl/fbAQLP
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
 
 exports[`components/threading/common/thread_menu should match snapshot 1`] = `
 <MenuWrapper
@@ -10,9 +10,20 @@ exports[`components/threading/common/thread_menu should match snapshot 1`] = `
     test
   </button>
   <Menu
-    ariaLabel=""
+    ariaLabel="Actions"
     openLeft={true}
   >
+    <MenuItemAction
+      buttonClass="PopoutMenuItem"
+      icon={
+        <i
+          className="icon icon-dock-window"
+        />
+      }
+      onClick={[Function]}
+      show={true}
+      text="Open in new window"
+    />
     <MenuItemAction
       extraText="You will be notified about replies"
       onClick={[Function]}
@@ -53,9 +64,20 @@ exports[`components/threading/common/thread_menu should match snapshot after ope
     test
   </button>
   <Menu
-    ariaLabel=""
+    ariaLabel="Actions"
     openLeft={true}
   >
+    <MenuItemAction
+      buttonClass="PopoutMenuItem"
+      icon={
+        <i
+          className="icon icon-dock-window"
+        />
+      }
+      onClick={[Function]}
+      show={true}
+      text="Open in new window"
+    />
     <MenuItemAction
       extraText="You will be notified about replies"
       onClick={[Function]}

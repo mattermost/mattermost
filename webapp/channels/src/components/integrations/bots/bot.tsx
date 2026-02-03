@@ -84,14 +84,11 @@ type Props = {
         /**
         * Access token managment
         */
-        createUserAccessToken: (userId: string, description: string) => Promise<{
-            data: {token: string; description: string; id: string; is_active: boolean} | null;
-            error?: Error;
-        }>;
+        createUserAccessToken: (userId: string, description: string) => Promise<ActionResult<UserAccessToken>>;
 
-        revokeUserAccessToken: (tokenId: string) => Promise<{data: string; error?: Error}>;
-        enableUserAccessToken: (tokenId: string) => Promise<{data: string; error?: Error}>;
-        disableUserAccessToken: (tokenId: string) => Promise<{data: string; error?: Error}>;
+        revokeUserAccessToken: (tokenId: string) => Promise<ActionResult>;
+        enableUserAccessToken: (tokenId: string) => Promise<ActionResult>;
+        disableUserAccessToken: (tokenId: string) => Promise<ActionResult>;
     };
 
     /**
@@ -369,7 +366,10 @@ export default class Bot extends React.PureComponent<Props, State> {
                             onSubmit={this.handleCreateToken}
                         >
                             <div className='row'>
-                                <label className='col-sm-auto control-label'>
+                                <label
+                                    className='col-sm-auto control-label'
+                                    htmlFor='botToken'
+                                >
                                     <FormattedMessage
                                         id='user.settings.tokens.name'
                                         defaultMessage='Token Description: '
@@ -377,6 +377,7 @@ export default class Bot extends React.PureComponent<Props, State> {
                                 </label>
                                 <div className='col-sm-4'>
                                     <input
+                                        id='botToken'
                                         autoFocus={true}
                                         className='form-control form-sm'
                                         type='text'
@@ -525,6 +526,7 @@ export default class Bot extends React.PureComponent<Props, State> {
                             defaultMessage='Delete'
                         />
                     }
+                    modalClass='integrations-backstage-modal'
                     show={this.state.confirmingId !== ''}
                     onConfirm={this.revokeTokenConfirmed}
                     onCancel={this.closeConfirm}

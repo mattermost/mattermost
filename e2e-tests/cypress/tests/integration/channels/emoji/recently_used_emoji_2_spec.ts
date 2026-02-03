@@ -56,7 +56,7 @@ describe('Recent Emoji', () => {
             cy.findByText('Recently Used').should('exist').and('be.visible');
 
             // * Verify most recent one is the thumbsup emoji with default skin
-            cy.findAllByTestId('emojiItem').eq(0).find('img').should('have.attr', 'aria-label', '+1 emoji');
+            cy.findAllByTestId('emojiItem').eq(0).should('have.attr', 'aria-label', '+1 emoji');
 
             // # Open skin picker again to change the skin
             cy.findByAltText('emoji skin tone picker').should('exist').parent().click().wait(TIMEOUTS.ONE_SEC);
@@ -65,7 +65,7 @@ describe('Recent Emoji', () => {
             cy.findByTestId('skin-pick-1F3FF').should('exist').click();
 
             // * Verify most recent one is the same thumbsup emoji but now with a dark skin tone
-            cy.findAllByTestId('emojiItem').eq(0).find('img').should('have.attr', 'aria-label', '+1 dark skin tone emoji');
+            cy.findAllByTestId('emojiItem').eq(0).should('have.attr', 'aria-label', '+1 dark skin tone emoji');
         });
 
         // # Close emoji picker

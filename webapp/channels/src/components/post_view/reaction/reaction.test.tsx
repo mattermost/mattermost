@@ -6,11 +6,13 @@ import React from 'react';
 
 import type {Reaction as ReactionType} from '@mattermost/types/reactions';
 
-import Reaction from 'components/post_view/reaction/reaction';
+import {Reaction as ReactionClass} from 'components/post_view/reaction/reaction';
 
+import {getIntl} from 'utils/i18n';
 import {TestHelper} from 'utils/test_helper';
 
 describe('components/post_view/Reaction', () => {
+    const intl = getIntl();
     const post = TestHelper.getPostMock({
         id: 'post_id',
     });
@@ -30,12 +32,10 @@ describe('components/post_view/Reaction', () => {
         getMissingProfilesByIds: jest.fn(),
         removeReaction: jest.fn(),
     };
-    const currentUserId = 'user_id_1';
 
     const baseProps = {
         canAddReactions: true,
         canRemoveReactions: true,
-        currentUserId,
         post,
         currentUserReacted: false,
         emojiName,
@@ -43,10 +43,11 @@ describe('components/post_view/Reaction', () => {
         reactions,
         emojiImageUrl: 'emoji_image_url',
         actions,
+        intl,
     };
 
     test('should match snapshot', () => {
-        const wrapper = shallow<Reaction>(<Reaction {...baseProps}/>);
+        const wrapper = shallow<ReactionClass>(<ReactionClass {...baseProps}/>);
         expect(wrapper).toMatchSnapshot();
     });
 
@@ -66,36 +67,34 @@ describe('components/post_view/Reaction', () => {
             currentUserReacted: true,
             reactions: newReactions,
         };
-        const wrapper = shallow<Reaction>(<Reaction {...props}/>);
+        const wrapper = shallow<ReactionClass>(<ReactionClass {...props}/>);
         expect(wrapper).toMatchSnapshot();
     });
 
     test('should return null/empty if no emojiImageUrl', () => {
         const props = {...baseProps, emojiImageUrl: ''};
-        const wrapper = shallow<Reaction>(<Reaction {...props}/>);
+        const wrapper = shallow<ReactionClass>(<ReactionClass {...props}/>);
         expect(wrapper).toMatchSnapshot();
     });
 
     test('should apply read-only class if user does not have permission to add reaction', () => {
         const props = {...baseProps, canAddReactions: false};
-        const wrapper = shallow<Reaction>(<Reaction {...props}/>);
+        const wrapper = shallow<ReactionClass>(<ReactionClass {...props}/>);
         expect(wrapper).toMatchSnapshot();
     });
 
     test('should apply read-only class if user does not have permission to remove reaction', () => {
-        const newCurrentUserId = 'user_id_2';
         const props = {
             ...baseProps,
             canRemoveReactions: false,
-            currentUserId: newCurrentUserId,
             currentUserReacted: true,
         };
-        const wrapper = shallow<Reaction>(<Reaction {...props}/>);
+        const wrapper = shallow<ReactionClass>(<ReactionClass {...props}/>);
         expect(wrapper).toMatchSnapshot();
     });
 
     test('should have called actions.getMissingProfilesByIds when loadMissingProfiles is called', () => {
-        const wrapper = shallow<Reaction>(<Reaction {...baseProps}/>);
+        const wrapper = shallow<ReactionClass>(<ReactionClass {...baseProps}/>);
         wrapper.instance().loadMissingProfiles();
 
         expect(actions.getMissingProfilesByIds).toHaveBeenCalledTimes(1);

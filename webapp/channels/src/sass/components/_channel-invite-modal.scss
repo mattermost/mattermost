@@ -1,11 +1,9 @@
-@charset "UTF-8";
-
-@import 'utils/variables';
-@import 'utils/mixins';
+@use 'utils/variables';
+@use 'utils/mixins';
 
 .modal .channel-invite__content,
 .modal .user-groups-modal__content {
-    .multi-select__container {
+    .multi-select__container, .multi-select__error {
         height: auto;
         padding: 0 3.2rem;
     }
@@ -57,8 +55,8 @@
         height: auto;
         max-height: 272px;
         padding: 12px 0;
-        margin: -10px 0 0 24px;
         border-radius: 4px;
+        margin: -10px 0 0 24px;
         box-shadow: var(--elevation-4);
     }
 
@@ -102,8 +100,8 @@
                 height: 32px;
                 align-items: center;
                 justify-content: center;
-                background: rgba(var(--center-channel-color-rgb), 0.08);
                 border-radius: 30px;
+                background: rgba(var(--center-channel-color-rgb), 0.08);
             }
 
             .add-group-members {

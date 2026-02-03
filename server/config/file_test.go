@@ -37,7 +37,8 @@ func setupConfigFile(t *testing.T, cfg *model.Config) (string, func()) {
 		cfgData, err := marshalConfig(cfg)
 		require.NoError(t, err)
 
-		os.WriteFile(f.Name(), cfgData, 0644)
+		err = os.WriteFile(f.Name(), cfgData, 0644)
+		require.NoError(t, err)
 
 		name = f.Name()
 	}
@@ -94,7 +95,8 @@ func assertFileNotEqualsConfig(t *testing.T, expectedCfg *model.Config, path str
 }
 
 func TestFileStoreNew(t *testing.T) {
-	utils.TranslationsPreInit()
+	err := utils.TranslationsPreInit()
+	require.NoError(t, err)
 
 	t.Run("absolute path, initialization required", func(t *testing.T) {
 		path, tearDown := setupConfigFile(t, testConfig)
@@ -221,7 +223,8 @@ func TestFileStoreNew(t *testing.T) {
 		cfgData, err := marshalConfig(testConfig)
 		require.NoError(t, err)
 
-		os.WriteFile(path, cfgData, 0644)
+		err = os.WriteFile(path, cfgData, 0644)
+		require.NoError(t, err)
 
 		fs, err := NewFileStore(path, false)
 		require.NoError(t, err)
@@ -473,7 +476,7 @@ func TestFileStoreSet(t *testing.T) {
 		defer tearDown()
 
 		newCfg := &model.Config{}
-		newCfg.LdapSettings.BindPassword = model.NewString(model.FakeSetting)
+		newCfg.LdapSettings.BindPassword = model.NewPointer(model.FakeSetting)
 
 		_, newConfig, err := configStore.Set(newCfg)
 		require.NoError(t, err)
@@ -487,7 +490,7 @@ func TestFileStoreSet(t *testing.T) {
 		defer tearDown()
 
 		newCfg := &model.Config{}
-		newCfg.ServiceSettings.SiteURL = model.NewString("invalid")
+		newCfg.ServiceSettings.SiteURL = model.NewPointer("invalid")
 
 		_, _, err := configStore.Set(newCfg)
 		if assert.Error(t, err) {
@@ -503,7 +506,7 @@ func TestFileStoreSet(t *testing.T) {
 
 		newReadOnlyConfig := readOnlyConfig.Clone()
 		newReadOnlyConfig.ServiceSettings = model.ServiceSettings{
-			SiteURL: model.NewString("http://test"),
+			SiteURL: model.NewPointer("http://test"),
 		}
 		_, _, err := configStore.Set(newReadOnlyConfig)
 		if assert.Error(t, err) {
@@ -562,7 +565,7 @@ func TestFileStoreSet(t *testing.T) {
 		callback := func(oldCfg, newCfg *model.Config) {
 			require.NotEqual(t, oldCfg, newCfg)
 			expectedConfig := minimalConfig.Clone()
-			expectedConfig.ServiceSettings.SiteURL = model.NewString("http://override")
+			expectedConfig.ServiceSettings.SiteURL = model.NewPointer("http://override")
 			require.Equal(t, minimalConfig, oldCfg)
 			require.Equal(t, expectedConfig, newCfg)
 			called <- true
@@ -811,7 +814,8 @@ func TestFileStoreLoad(t *testing.T) {
 		cfgData, err := marshalConfig(invalidConfig)
 		require.NoError(t, err)
 
-		os.WriteFile(path, cfgData, 0644)
+		err = os.WriteFile(path, cfgData, 0644)
+		require.NoError(t, err)
 
 		err = fs.Load()
 		if assert.Error(t, err) {
@@ -907,7 +911,7 @@ func TestFileStoreLoad(t *testing.T) {
 		callback := func(oldCfg, newCfg *model.Config) {
 			require.NotEqual(t, oldCfg, newCfg)
 			expectedConfig := minimalConfig.Clone()
-			expectedConfig.ServiceSettings.SiteURL = model.NewString("http://override")
+			expectedConfig.ServiceSettings.SiteURL = model.NewPointer("http://override")
 			require.Equal(t, minimalConfig, oldCfg)
 			require.Equal(t, expectedConfig, newCfg)
 			called <- true
@@ -930,7 +934,7 @@ func TestFileStoreSave(t *testing.T) {
 
 	newCfg := &model.Config{
 		ServiceSettings: model.ServiceSettings{
-			SiteURL: model.NewString("http://new"),
+			SiteURL: model.NewPointer("http://new"),
 		},
 	}
 

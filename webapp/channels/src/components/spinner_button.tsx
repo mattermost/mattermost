@@ -3,13 +3,14 @@
 
 import React from 'react';
 import type {ReactNode} from 'react';
+import type {MessageDescriptor} from 'react-intl';
 
 import LoadingWrapper from 'components/widgets/loading/loading_wrapper';
 
 type Props = React.ButtonHTMLAttributes<HTMLButtonElement> & {
     children?: ReactNode;
     spinning: boolean;
-    spinningText: ReactNode;
+    spinningText: ReactNode | MessageDescriptor;
 }
 
 const SpinnerButton = ({

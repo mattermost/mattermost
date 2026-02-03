@@ -1,0 +1,166 @@
+.PolicyTable {
+    overflow: auto;
+
+    .DataGrid {
+        padding: 0;
+        background-color: rgba(var(--sys-white-rgb), 0.04);
+
+        &_search {
+            height: 4em;
+            border-bottom: none;
+        }
+
+        &_searchBar {
+            margin-left: 0 !important;
+        }
+
+        &_header {
+            padding-left: 12px;
+            font-size: 1em;
+            font-weight: 600;
+            
+            .DataGrid_cell {
+                display: flex;
+                
+                &[data-field="name"] {
+                    justify-content: flex-start;
+                }
+                
+                &[data-field="resources"] {
+                    display: flex;
+                    align-items: left;
+                    justify-content: flex-start;
+                }
+            }
+        }
+
+        .DataGrid_rows {
+            .DataGrid_row {
+                display: flex;
+                min-height: 40px;
+                padding-left: 12px !important;
+                border-left: none;
+                background-color: rgba(var(--sys-white-rgb), 0.04);
+                cursor: pointer;
+
+                &:hover {
+                    border-left: none;
+                    background-color: rgba(0, 0, 0, 0.05);
+                }
+
+                .policy-name {
+                    width: 100%;
+                    padding: 10px 0;
+                }
+
+                .policy-resources {
+                    width: 100%;
+                    padding: 10px 0;
+                    text-align: left;
+                }
+
+                .policy-actions {
+                    display: flex;
+                    width: 100%;
+                    justify-content: flex-end;
+                    padding-right: 8px;
+                }
+
+                .policy-menu-button {
+                    display: flex;
+                    width: 32px;
+                    height: 32px;
+                    align-items: center;
+                    justify-content: center;
+                    padding: 0;
+                    border: none;
+                    border-radius: 4px;
+                    background: transparent;
+                    color: rgba(var(--center-channel-color-rgb), 0.56);
+                    cursor: pointer;
+
+                    &:hover {
+                        background: rgba(var(--center-channel-color-rgb), 0.08);
+                        color: rgba(var(--center-channel-color-rgb), 0.72);
+                    }
+
+                    .icon {
+                        display: flex;
+                        align-items: center;
+                        justify-content: center;
+                        font-size: 18px;
+                        line-height: 18px;
+                    }
+                }
+            }
+        }
+
+        &_footer {
+            border-bottom: 0;
+        }
+    }
+
+    .policy-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 16px;
+        
+        &-text {
+            h1 {
+                margin-bottom: 8px;
+                font-size: 20px;
+                font-weight: 600;
+            }
+            
+            p {
+                margin: 0;
+                color: rgba(63, 67, 80, 0.72);
+            }
+        }
+        
+        .btn-primary {
+            display: flex;
+            align-items: center;
+            padding: 10px 16px;
+            gap: 8px;
+            
+            .icon {
+                font-size: 18px;
+            }
+        }
+    }
+
+    .action-wrapper {
+        display: flex;
+        justify-content: flex-end;
+        padding: 0 16px;
+
+        .icon-button {
+            display: flex;
+            width: 32px;
+            height: 32px;
+            align-items: center;
+            justify-content: center;
+            border: none;
+            border-radius: 4px;
+            background: transparent;
+            color: rgba(63, 67, 80, 0.72);
+            cursor: pointer;
+
+            &:hover {
+                background-color: rgba(63, 67, 80, 0.08);
+                color: rgba(63, 67, 80, 0.8);
+            }
+
+            .icon {
+                font-size: 18px;
+            }
+        }
+    }
+}
+
+.actions-column {
+    justify-content: flex-end !important;
+    text-align: right;
+}

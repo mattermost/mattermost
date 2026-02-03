@@ -44,11 +44,16 @@ describe('Keyboard Shortcuts', () => {
             // # Press Cmd/Ctrl-K to open "Switch Channels" modal
             cy.uiGetPostTextBox().cmdOrCtrlShortcut('K');
 
+            cy.waitUntil(() => cy.findByRole('listbox', {name: 'Suggestions'}).should('be.visible'));
+
             // # Click on the GM link to go to channel
             cy.get('.status--group').click();
 
             // * Check if channel intro message with usernames is visible
-            cy.findByText(/This is the start/).should('be.visible').contains(secondUser.username).contains(thirdUser.username);
+            cy.get('.channel-intro__text').contains('This is the start of your group message history with these teammates').
+                should('be.visible');
+
+            cy.get('.channel-intro__title').contains(secondUser.username).contains(thirdUser.username);
         });
     });
 });

@@ -5,12 +5,16 @@ import React from 'react';
 
 import type {Team} from '@mattermost/types/teams';
 
-import GeneralTab from 'components/team_general_tab';
+import AccessTab from './team_access_tab';
+import InfoTab from './team_info_tab';
 
 type Props = {
     activeTab: string;
-    activeSection: string;
-    updateSection: (section: string) => void;
+    hasChanges: boolean;
+    hasChangeTabError: boolean;
+    setHasChanges: (hasChanges: boolean) => void;
+    setHasChangeTabError: (hasChangesError: boolean) => void;
+    setJustSaved: (justSaved: boolean) => void;
     closeModal: () => void;
     collapseModal: () => void;
     team?: Team;
@@ -18,29 +22,47 @@ type Props = {
 
 const TeamSettings = ({
     activeTab = '',
-    activeSection = '',
-    updateSection,
     closeModal,
     collapseModal,
     team,
-}: Props): JSX.Element | null => {
+    hasChanges,
+    hasChangeTabError,
+    setHasChanges,
+    setHasChangeTabError,
+    setJustSaved,
+}: Props) => {
     if (!team) {
         return null;
     }
 
     let result;
     switch (activeTab) {
-    case 'general':
+    case 'info':
         result = (
-            <div>
-                <GeneralTab
-                    team={team}
-                    activeSection={activeSection}
-                    updateSection={updateSection}
-                    closeModal={closeModal}
-                    collapseModal={collapseModal}
-                />
-            </div>
+            <InfoTab
+                team={team}
+                hasChanges={hasChanges}
+                setHasChanges={setHasChanges}
+                hasChangeTabError={hasChangeTabError}
+                setHasChangeTabError={setHasChangeTabError}
+                setJustSaved={setJustSaved}
+                closeModal={closeModal}
+                collapseModal={collapseModal}
+            />
+        );
+        break;
+    case 'access':
+        result = (
+            <AccessTab
+                team={team}
+                hasChanges={hasChanges}
+                setHasChanges={setHasChanges}
+                hasChangeTabError={hasChangeTabError}
+                setHasChangeTabError={setHasChangeTabError}
+                setJustSaved={setJustSaved}
+                closeModal={closeModal}
+                collapseModal={collapseModal}
+            />
         );
         break;
     default:

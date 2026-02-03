@@ -1,7 +1,8 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {uniq, difference} from 'lodash';
+import difference from 'lodash/difference';
+import uniq from 'lodash/uniq';
 import React from 'react';
 import {FormattedMessage} from 'react-intl';
 
@@ -13,7 +14,7 @@ import Permissions from 'mattermost-redux/constants/permissions';
 import type {ActionResult} from 'mattermost-redux/types/actions';
 
 import BlockableLink from 'components/admin_console/blockable_link';
-import SaveChangesPanel from 'components/admin_console/team_channel_settings/save_changes_panel';
+import SaveChangesPanel from 'components/admin_console/save_changes_panel';
 import FormError from 'components/form_error';
 import AdminHeader from 'components/widgets/admin_console/admin_header';
 
@@ -26,6 +27,8 @@ import SystemRolePermissions from './system_role_permissions';
 import SystemRoleUsers from './system_role_users';
 import {writeAccess} from './types';
 import type {PermissionToUpdate, PermissionsToUpdate} from './types';
+
+import {rolesStrings} from '../strings';
 
 type Props = {
     role: Role;
@@ -241,7 +244,7 @@ export default class SystemRole extends React.PureComponent<Props, State> {
     render() {
         const {usersToAdd, usersToRemove, saving, saveNeeded, serverError, permissionsToUpdate, saveKey} = this.state;
         const {role, isDisabled, isLicensedForCloud} = this.props;
-        const defaultName = role.name.split('').map((r) => r.charAt(0).toUpperCase() + r.slice(1)).join(' ');
+        const name = rolesStrings[role.name] ? <FormattedMessage {...rolesStrings[role.name].name}/> : role.name;
         return (
             <div className='wrapper--fixed'>
                 <AdminHeader withBackButton={true}>
@@ -250,10 +253,7 @@ export default class SystemRole extends React.PureComponent<Props, State> {
                             to='/admin_console/user_management/system_roles'
                             className='fa fa-angle-left back'
                         />
-                        <FormattedMessage
-                            id={`admin.permissions.roles.${role.name}.name`}
-                            defaultMessage={defaultName}
-                        />
+                        {name}
                     </div>
                 </AdminHeader>
                 <div className='admin-console__wrapper'>

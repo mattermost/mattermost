@@ -1,4 +1,4 @@
-// Jest Snapshot v1, https://goo.gl/fbAQLP
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
 
 exports[`components/threading/ThreadViewer should match snapshot 1`] = `
 <Fragment>
@@ -9,30 +9,11 @@ exports[`components/threading/ThreadViewer should match snapshot 1`] = `
       className="post-right-comments-container"
     >
       <FileUploadOverlay
+        id="threadView"
         overlayType="right"
       />
       <DeferredRenderWrapper
-        channel={
-          Object {
-            "create_at": 0,
-            "creator_id": "",
-            "delete_at": 0,
-            "display_name": "",
-            "group_constrained": false,
-            "header": "",
-            "id": "channel_id",
-            "last_post_at": 0,
-            "last_root_post_at": 0,
-            "name": "",
-            "purpose": "",
-            "scheme_id": "",
-            "status": "",
-            "team_id": "team_id",
-            "teammate_id": "",
-            "type": "O",
-            "update_at": 0,
-          }
-        }
+        channelId="channel_id"
         isThreadView={false}
         key="id"
         onCardClick={[Function]}

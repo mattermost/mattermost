@@ -6,6 +6,8 @@ import React from 'react';
 import type {Post} from '@mattermost/types/posts';
 import type {UserProfile} from '@mattermost/types/users';
 
+import {ensureString} from 'mattermost-redux/utils/post_utils';
+
 import ProfilePicture from 'components/profile_picture';
 import MattermostLogo from 'components/widgets/icons/mattermost_logo';
 
@@ -18,12 +20,10 @@ type Props = {
     compactDisplay?: boolean;
     enablePostIconOverride: boolean;
     hasImageProxy: boolean;
-    isBusy?: boolean;
     post: Post;
     status?: string;
     user: UserProfile;
     isBot?: boolean;
-    postIconOverrideURL?: string;
     overwriteIcon?: string;
 }
 
@@ -55,12 +55,8 @@ export default class PostProfilePicture extends React.PureComponent<Props> {
     getPostIconURL = (defaultURL: string, fromAutoResponder: boolean, fromWebhook: boolean): string => {
         const {enablePostIconOverride, hasImageProxy, post} = this.props;
         const postProps = post.props;
-        let postIconOverrideURL = '';
-        let useUserIcon = '';
-        if (postProps) {
-            postIconOverrideURL = postProps.override_icon_url;
-            useUserIcon = postProps.use_user_icon;
-        }
+        const postIconOverrideURL = ensureString(postProps?.override_icon_url);
+        const useUserIcon = ensureString(postProps?.use_user_icon);
 
         if (this.props.compactDisplay) {
             return '';
@@ -81,7 +77,6 @@ export default class PostProfilePicture extends React.PureComponent<Props> {
         const {
             availabilityStatusOnPosts,
             compactDisplay,
-            isBusy,
             post,
             user,
             isBot,
@@ -95,20 +90,17 @@ export default class PostProfilePicture extends React.PureComponent<Props> {
         }
         const fromAutoResponder = PostUtils.fromAutoResponder(post);
 
-        const hasMention = !fromAutoResponder && !fromWebhook;
         const profileSrc = this.getProfilePictureURL();
         const src = this.getPostIconURL(profileSrc, fromAutoResponder, fromWebhook);
 
-        const overrideIconEmoji = post.props ? post.props.override_icon_emoji : '';
-        const overwriteName = post.props ? post.props.override_username : '';
-        const isEmoji = typeof overrideIconEmoji == 'string' && overrideIconEmoji !== '';
+        const overrideIconEmoji = ensureString(post.props.override_icon_emoji);
+        const overwriteName = ensureString(post.props?.override_username);
+        const isEmoji = overrideIconEmoji !== '';
         const status = this.getStatus(fromAutoResponder, fromWebhook, user);
 
         return (
             <ProfilePicture
-                hasMention={hasMention}
-                isBusy={isBusy}
-                size='md'
+                size={this.props.compactDisplay ? 'inherit' : 'md'}
                 src={src}
                 profileSrc={profileSrc}
                 isEmoji={isEmoji}

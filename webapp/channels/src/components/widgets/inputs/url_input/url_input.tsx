@@ -5,10 +5,8 @@ import classNames from 'classnames';
 import React, {useEffect, useState} from 'react';
 import {useIntl} from 'react-intl';
 
-import OverlayTrigger from 'components/overlay_trigger';
-import Tooltip from 'components/tooltip';
+import WithTooltip from 'components/with_tooltip';
 
-import Constants from 'utils/constants';
 import {getShortenedURL} from 'utils/url';
 
 import Input from '../input/input';
@@ -24,8 +22,8 @@ type URLInputProps = {
     shortenLength?: number;
     error?: string;
     className?: string;
-    onChange?: (event: React.ChangeEvent<HTMLInputElement>) => void;
-    onBlur?: (event: React.ChangeEvent<HTMLInputElement>) => void;
+    onChange?: (event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => void;
+    onBlur?: (event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => void;
 };
 
 function UrlInput({
@@ -55,7 +53,7 @@ function UrlInput({
     const isShortenedURL = shortenLength && fullURL.length > shortenLength;
     const hasError = Boolean(error);
 
-    const handleOnInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const handleOnInputChange = (event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
         event.preventDefault();
 
         if (onChange) {
@@ -63,7 +61,7 @@ function UrlInput({
         }
     };
 
-    const handleOnInputBlur = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const handleOnInputBlur = (event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
         event.preventDefault();
 
         setEditing(hasError);
@@ -72,13 +70,17 @@ function UrlInput({
             onBlur(event);
         }
     };
-
     const handleOnButtonClick = () => {
         if (!hasError) {
             setEditing(!editing);
         }
     };
 
+    const handlePropagateKeyDown = (event: React.KeyboardEvent<HTMLButtonElement>) => {
+        if (event.key === 'Enter') {
+            event.stopPropagation();
+        }
+    };
     const urlInputLabel = (
         <span
             className='url-input-label'
@@ -93,17 +95,12 @@ function UrlInput({
         <div className={classNames('url-input-main', className)}>
             <div className='url-input-container'>
                 {isShortenedURL ? (
-                    <OverlayTrigger
-                        delayShow={Constants.OVERLAY_TIME_DELAY}
-                        placement='top'
-                        overlay={(
-                            <Tooltip id='urlTooltip'>
-                                {fullURL}
-                            </Tooltip>
-                        )}
+                    <WithTooltip
+                        title={fullURL}
                     >
                         {urlInputLabel}
-                    </OverlayTrigger>
+                    </WithTooltip>
+
                 ) : (
                     urlInputLabel
                 )}
@@ -123,12 +120,14 @@ function UrlInput({
                         hasError={hasError}
                         onChange={handleOnInputChange}
                         onBlur={handleOnInputBlur}
+                        aria-describedby='url-input-error'
                     />
                 )}
                 <button
                     className={classNames('url-input-button', {disabled: hasError})}
                     disabled={hasError}
                     onClick={handleOnButtonClick}
+                    onKeyDown={handlePropagateKeyDown}
                 >
                     <span className='url-input-button-label'>
                         {editing ? formatMessage({id: 'url_input.buttonLabel.done', defaultMessage: 'Done'}) : formatMessage({id: 'url_input.buttonLabel.edit', defaultMessage: 'Edit'})}
@@ -138,7 +137,12 @@ function UrlInput({
             {error && (
                 <div className='url-input-error'>
                     <i className='icon icon-alert-outline'/>
-                    <span>{error}</span>
+                    <span
+                        id='url-input-error'
+                        role='alert'
+                    >
+                        {error}
+                    </span>
                 </div>
             )}
         </div>

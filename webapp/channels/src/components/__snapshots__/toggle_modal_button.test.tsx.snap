@@ -1,4 +1,4 @@
-// Jest Snapshot v1, https://goo.gl/fbAQLP
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
 
 exports[`components/ToggleModalButton component should match snapshot 1`] = `
 <ToggleModalButton
@@ -9,7 +9,7 @@ exports[`components/ToggleModalButton component should match snapshot 1`] = `
   role="menuitem"
 >
   <button
-    aria-label="Delete Channel dialog"
+    aria-label="Delete Channel"
     className="style--none "
     id="channelDelete"
     onClick={[Function]}

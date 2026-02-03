@@ -14,12 +14,6 @@ import * as TIMEOUTS from '../../../fixtures/timeouts';
 
 describe('Archived channels', () => {
     before(() => {
-        cy.apiUpdateConfig({
-            TeamSettings: {
-                ExperimentalViewArchivedChannels: true,
-            },
-        });
-
         // # Login as test user and visit created channel
         cy.apiInitSetup({loginAfter: true}).then(({team, channel}) => {
             cy.visit(`/${team.name}/channels/${channel.name}`);
@@ -64,7 +58,8 @@ describe('Archived channels', () => {
 
             // # Search for "Test archive reaction"
             cy.get('body').type('{esc}');
-            cy.get('#searchBox').should('be.visible').type(messageText).type('{enter}');
+            cy.uiGetSearchContainer().click();
+            cy.uiGetSearchBox().should('be.visible').type(messageText).type('{enter}');
 
             // # Click on post dot menu so we can check for reaction icon
             cy.clickPostDotMenu(postId, 'SEARCH');

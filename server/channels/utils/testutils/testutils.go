@@ -15,9 +15,22 @@ import (
 	"time"
 
 	"github.com/mattermost/mattermost/server/v8/channels/utils"
+	"github.com/stretchr/testify/assert"
 
 	"github.com/mattermost/mattermost/server/v8/channels/utils/fileutils"
 )
+
+// CollectTWithLogf adds Logf to assert.CollectT to make this pattern possible:
+//
+//	assert.EventuallyWithT(t, func(c *assert.CollectT) {
+//	    mockAPI.AssertExpectations(&testutils.CollectTWithLogf{CollectT: c})
+//	}, 5*time.Second, 100*time.Millisecond)
+type CollectTWithLogf struct {
+	*assert.CollectT
+}
+
+func (*CollectTWithLogf) Logf(string, ...any) {
+}
 
 func ReadTestFile(name string) ([]byte, error) {
 	path, _ := fileutils.FindDir("tests")

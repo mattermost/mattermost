@@ -8,7 +8,7 @@ import (
 )
 
 const (
-	SystemTelemetryId                      = "DiagnosticId"
+	SystemServerId                         = "DiagnosticId"
 	SystemRanUnitTests                     = "RanUnitTests"
 	SystemLastSecurityTime                 = "LastSecurityTime"
 	SystemActiveLicenseId                  = "ActiveLicenseId"
@@ -20,6 +20,7 @@ const (
 	SystemFirstAdminRole                   = "FirstAdminRole"
 	SystemFirstServerRunTimestampKey       = "FirstServerRunTimestamp"
 	SystemClusterEncryptionKey             = "ClusterEncryptionKey"
+	SystemPushProxyAuthToken               = "PushProxyAuthToken"
 	SystemUpgradedFromTeId                 = "UpgradedFromTE"
 	SystemWarnMetricNumberOfTeams5         = "warn_metric_number_of_teams_5"
 	SystemWarnMetricNumberOfChannels50     = "warn_metric_number_of_channels_50"
@@ -38,6 +39,7 @@ const (
 	SystemHostedPurchaseNeedsScreening     = "HostedPurchaseNeedsScreening"
 	AwsMeteringReportInterval              = 1
 	AwsMeteringDimensionUsageHrs           = "UsageHrs"
+	CloudRenewalEmail                      = "CloudRenewalEmail"
 )
 
 const (
@@ -77,157 +79,6 @@ type ServerBusyState struct {
 	ExpiresTS string `json:"expires_ts,omitempty"`
 }
 
-type SupportPacket struct {
-	/* Build information */
-
-	ServerOS           string `yaml:"server_os"`
-	ServerArchitecture string `yaml:"server_architecture"`
-	ServerVersion      string `yaml:"server_version"`
-	BuildHash          string `yaml:"build_hash,omitempty"`
-
-	/* DB */
-
-	DatabaseType          string `yaml:"database_type"`
-	DatabaseVersion       string `yaml:"database_version"`
-	DatabaseSchemaVersion string `yaml:"database_schema_version"`
-	WebsocketConnections  int    `yaml:"websocket_connections"`
-	MasterDbConnections   int    `yaml:"master_db_connections"`
-	ReplicaDbConnections  int    `yaml:"read_db_connections"`
-
-	/* Cluster */
-
-	ClusterID string `yaml:"cluster_id"`
-
-	/* File store */
-
-	FileDriver string `yaml:"file_driver"`
-	FileStatus string `yaml:"file_status"`
-
-	/* LDAP */
-
-	LdapVendorName    string `yaml:"ldap_vendor_name,omitempty"`
-	LdapVendorVersion string `yaml:"ldap_vendor_version,omitempty"`
-
-	/* Elastic Search */
-
-	ElasticServerVersion string   `yaml:"elastic_server_version,omitempty"`
-	ElasticServerPlugins []string `yaml:"elastic_server_plugins,omitempty"`
-
-	/* License */
-
-	LicenseTo             string `yaml:"license_to"`
-	LicenseSupportedUsers int    `yaml:"license_supported_users,omitempty"`
-	LicenseIsTrial        string `yaml:"license_is_trial,omitempty"`
-
-	/* Server stats */
-
-	ActiveUsers        int `yaml:"active_users"`
-	DailyActiveUsers   int `yaml:"daily_active_users"`
-	MonthlyActiveUsers int `yaml:"monthly_active_users"`
-	InactiveUserCount  int `yaml:"inactive_user_count"`
-	TotalPosts         int `yaml:"total_posts"`
-	TotalChannels      int `yaml:"total_channels"`
-	TotalTeams         int `yaml:"total_teams"`
-
-	/* Jobs */
-
-	DataRetentionJobs          []*Job `yaml:"data_retention_jobs"`
-	MessageExportJobs          []*Job `yaml:"message_export_jobs"`
-	ElasticPostIndexingJobs    []*Job `yaml:"elastic_post_indexing_jobs"`
-	ElasticPostAggregationJobs []*Job `yaml:"elastic_post_aggregation_jobs"`
-	BlevePostIndexingJobs      []*Job `yaml:"bleve_post_indexin_jobs"`
-	LdapSyncJobs               []*Job `yaml:"ldap_sync_jobs"`
-	MigrationJobs              []*Job `yaml:"migration_jobs"`
-	ComplianceJobs             []*Job `yaml:"compliance_jobs"`
-}
-
-type FileData struct {
-	Filename string
-	Body     []byte
-}
-
-var WarnMetricsTable = map[string]WarnMetric{
-	SystemWarnMetricMfa: {
-		Id:        SystemWarnMetricMfa,
-		Limit:     -1,
-		IsBotOnly: true,
-		IsRunOnce: true,
-	},
-	SystemWarnMetricEmailDomain: {
-		Id:        SystemWarnMetricEmailDomain,
-		Limit:     -1,
-		IsBotOnly: true,
-		IsRunOnce: true,
-	},
-	SystemWarnMetricNumberOfTeams5: {
-		Id:        SystemWarnMetricNumberOfTeams5,
-		Limit:     5,
-		IsBotOnly: true,
-		IsRunOnce: true,
-	},
-	SystemWarnMetricNumberOfChannels50: {
-		Id:        SystemWarnMetricNumberOfChannels50,
-		Limit:     50,
-		IsBotOnly: true,
-		IsRunOnce: true,
-	},
-	SystemWarnMetricNumberOfActiveUsers100: {
-		Id:        SystemWarnMetricNumberOfActiveUsers100,
-		Limit:     100,
-		IsBotOnly: true,
-		IsRunOnce: true,
-	},
-	SystemWarnMetricNumberOfActiveUsers200: {
-		Id:        SystemWarnMetricNumberOfActiveUsers200,
-		Limit:     200,
-		IsBotOnly: true,
-		IsRunOnce: true,
-	},
-	SystemWarnMetricNumberOfActiveUsers300: {
-		Id:        SystemWarnMetricNumberOfActiveUsers300,
-		Limit:     300,
-		IsBotOnly: true,
-		IsRunOnce: true,
-	},
-	SystemWarnMetricNumberOfActiveUsers500: {
-		Id:        SystemWarnMetricNumberOfActiveUsers500,
-		Limit:     500,
-		IsBotOnly: false,
-		IsRunOnce: true,
-	},
-	SystemWarnMetricNumberOfPosts2m: {
-		Id:        SystemWarnMetricNumberOfPosts2m,
-		Limit:     2000000,
-		IsBotOnly: false,
-		IsRunOnce: true,
-	},
-}
-
-type WarnMetric struct {
-	Id         string
-	Limit      int64
-	IsBotOnly  bool
-	IsRunOnce  bool
-	SkipAction bool
-}
-
-type WarnMetricDisplayTexts struct {
-	BotTitle          string
-	BotMessageBody    string
-	BotSuccessMessage string
-	EmailBody         string
-}
-type WarnMetricStatus struct {
-	Id          string `json:"id"`
-	Limit       int64  `json:"limit"`
-	Acked       bool   `json:"acked"`
-	StoreStatus string `json:"store_status,omitempty"`
-}
-
-type SendWarnMetricAck struct {
-	ForceAck bool `json:"forceAck"`
-}
-
 type AppliedMigration struct {
 	Version int    `json:"version"`
 	Name    string `json:"name"`
@@ -243,4 +94,15 @@ type LogFilter struct {
 type LogEntry struct {
 	Timestamp string
 	Level     string
+}
+
+// SystemPingOptions is the options for setting contents of the system ping
+// response.
+type SystemPingOptions struct {
+	// FullStatus allows server to set the detailed information about
+	// the system status.
+	FullStatus bool
+	// RestSemantics allows server to return 200 code even if the server
+	// status is unhealthy.
+	RESTSemantics bool
 }

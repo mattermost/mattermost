@@ -1,7 +1,7 @@
-// Jest Snapshot v1, https://goo.gl/fbAQLP
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
 
 exports[`components/sidebar/sidebar_channel/sidebar_direct_channel should match snapshot 1`] = `
-<Connect(SidebarChannelLink)
+<Connect(injectIntl(SidebarChannelLink))
   channel={
     Object {
       "create_at": 0,
@@ -24,16 +24,14 @@ exports[`components/sidebar/sidebar_channel/sidebar_direct_channel should match 
   channelLeaveHandler={[Function]}
   icon={
     <ProfilePicture
-      hasMention={false}
-      isEmoji={false}
       newStatusIcon={true}
-      popoverPlacement="right"
       size="xs"
       src="/api/v4/users/user_id/image"
       statusClass="DirectChannel__status-icon "
       wrapperClass="DirectChannel__profile-picture"
     />
   }
+  isSharedChannel={false}
   label="channel_display_name"
   link="/team_name/messages/@some-user"
   teammateId="user_id"
@@ -41,7 +39,7 @@ exports[`components/sidebar/sidebar_channel/sidebar_direct_channel should match 
 `;
 
 exports[`components/sidebar/sidebar_channel/sidebar_direct_channel should match snapshot if DM is with bot with custom icon 1`] = `
-<Connect(SidebarChannelLink)
+<Connect(injectIntl(SidebarChannelLink))
   channel={
     Object {
       "create_at": 0,
@@ -64,10 +62,7 @@ exports[`components/sidebar/sidebar_channel/sidebar_direct_channel should match 
   channelLeaveHandler={[Function]}
   icon={
     <ProfilePicture
-      hasMention={false}
-      isEmoji={false}
       newStatusIcon={true}
-      popoverPlacement="right"
       size="xs"
       src="/api/v4/users/user_id/image"
       status=""
@@ -75,6 +70,7 @@ exports[`components/sidebar/sidebar_channel/sidebar_direct_channel should match 
       wrapperClass="DirectChannel__profile-picture"
     />
   }
+  isSharedChannel={false}
   label="channel_display_name"
   link="/team_name/messages/@some-user"
   teammateId="user_id"
@@ -82,7 +78,7 @@ exports[`components/sidebar/sidebar_channel/sidebar_direct_channel should match 
 `;
 
 exports[`components/sidebar/sidebar_channel/sidebar_direct_channel should match snapshot if DM is with current user 1`] = `
-<Connect(SidebarChannelLink)
+<Connect(injectIntl(SidebarChannelLink))
   channel={
     Object {
       "create_at": 0,
@@ -105,16 +101,14 @@ exports[`components/sidebar/sidebar_channel/sidebar_direct_channel should match 
   channelLeaveHandler={[Function]}
   icon={
     <ProfilePicture
-      hasMention={false}
-      isEmoji={false}
       newStatusIcon={true}
-      popoverPlacement="right"
       size="xs"
       src="/api/v4/users/user_id/image"
       statusClass="DirectChannel__status-icon "
       wrapperClass="DirectChannel__profile-picture"
     />
   }
+  isSharedChannel={false}
   label="channel_display_name (you)"
   link="/team_name/messages/@some-user"
   teammateId="user_id"
@@ -122,7 +116,7 @@ exports[`components/sidebar/sidebar_channel/sidebar_direct_channel should match 
 `;
 
 exports[`components/sidebar/sidebar_channel/sidebar_direct_channel should match snapshot if DM is with deleted user 1`] = `
-<Connect(SidebarChannelLink)
+<Connect(injectIntl(SidebarChannelLink))
   channel={
     Object {
       "create_at": 0,
@@ -148,6 +142,7 @@ exports[`components/sidebar/sidebar_channel/sidebar_direct_channel should match 
       className="icon icon-archive-outline"
     />
   }
+  isSharedChannel={false}
   label="channel_display_name"
   link="/team_name/messages/@some-user"
   teammateId="user_id"

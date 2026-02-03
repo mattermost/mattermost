@@ -9,9 +9,9 @@ describe('group utils', () => {
     describe('filterGroupsMatchingTerm', () => {
         const groupA = {
             id: 'groupid1',
-            name: 'board-group',
+            name: 'board.group',
             description: 'group1 description',
-            display_name: 'board-group',
+            display_name: 'board.group',
             source: 'ldap',
             remote_id: 'group1',
             create_at: 1,
@@ -39,7 +39,7 @@ describe('group utils', () => {
         };
         const groupC = {
             id: 'groupid3',
-            name: 'software-engineers',
+            name: 'softwareengineers',
             description: 'group3 description',
             display_name: 'software engineers',
             source: 'ldap',
@@ -63,12 +63,16 @@ describe('group utils', () => {
         });
 
         it('should match by name', () => {
-            expect(filterGroupsMatchingTerm(groups, 'software-engineers')).toEqual([groupC]);
+            expect(filterGroupsMatchingTerm(groups, 'softwareengineers')).toEqual([groupC]);
         });
 
         it('should match by split part of the name', () => {
             expect(filterGroupsMatchingTerm(groups, 'group')).toEqual([groupA, groupB]);
             expect(filterGroupsMatchingTerm(groups, 'board')).toEqual([groupA]);
+        });
+
+        it('should match by split part of the display name', () => {
+            expect(filterGroupsMatchingTerm(groups, 'engineers')).toEqual([groupC]);
         });
 
         it('should match by display_name fully', () => {

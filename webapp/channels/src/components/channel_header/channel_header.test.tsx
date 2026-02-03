@@ -2,53 +2,59 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-import type {ComponentProps} from 'react';
 
 import type {ChannelType} from '@mattermost/types/channels';
 import type {UserCustomStatus} from '@mattermost/types/users';
 
-import ChannelHeader from 'components/channel_header/channel_header';
 import ChannelInfoButton from 'components/channel_header/channel_info_button';
-import Markdown from 'components/markdown';
-import GuestTag from 'components/widgets/tag/guest_tag';
 
+import type {MockIntl} from 'tests/helpers/intl-test-helper';
 import {shallowWithIntl} from 'tests/helpers/intl-test-helper';
 import Constants, {RHSStates} from 'utils/constants';
 import {TestHelper} from 'utils/test_helper';
 
+import ChannelHeader from './channel_header';
+import type {Props} from './channel_header';
+
 describe('components/ChannelHeader', () => {
-    const baseProps: ComponentProps<typeof ChannelHeader> = {
+    const baseProps: Props = {
         actions: {
-            favoriteChannel: jest.fn(),
-            unfavoriteChannel: jest.fn(),
             showPinnedPosts: jest.fn(),
             showChannelFiles: jest.fn(),
             closeRightHandSide: jest.fn(),
-            openModal: jest.fn(),
-            closeModal: jest.fn(),
             getCustomEmojisInText: jest.fn(),
             updateChannelNotifyProps: jest.fn(),
-            goToLastViewedChannel: jest.fn(),
             showChannelMembers: jest.fn(),
+            fetchChannelRemotes: jest.fn(),
         },
-        announcementBarCount: 1,
         teamId: 'team_id',
         channel: TestHelper.getChannelMock({}),
         channelMember: TestHelper.getChannelMembershipMock({}),
         currentUser: TestHelper.getUserMock({}),
-        teammateNameDisplaySetting: '',
-        currentRelativeTeamUrl: '',
         isCustomStatusEnabled: false,
         isCustomStatusExpired: false,
         isFileAttachmentsEnabled: true,
         lastActivityTimestamp: 1632146562846,
         isLastActiveEnabled: true,
+        memberCount: 2,
+        dmUser: undefined,
+        gmMembers: undefined,
+        rhsState: RHSStates.CHANNEL_INFO,
+        isChannelMuted: false,
+        hasGuests: false,
+        pinnedPostsCount: 0,
+        customStatus: undefined,
         timestampUnits: [
             'now',
             'minute',
             'hour',
         ],
         hideGuestTags: false,
+        remoteNames: [],
+        sharedChannelsPluginsEnabled: false,
+        intl: {
+            formatMessage: jest.fn(({id, defaultMessage}) => defaultMessage || id),
+        } as MockIntl,
     };
 
     const populatedProps = {
@@ -145,7 +151,7 @@ describe('components/ChannelHeader', () => {
     test('should render correct menu when muted', () => {
         const props = {
             ...populatedProps,
-            isMuted: true,
+            isChannelMuted: true,
         };
 
         const wrapper = shallowWithIntl(
@@ -157,7 +163,7 @@ describe('components/ChannelHeader', () => {
     test('should unmute the channel when mute icon is clicked', () => {
         const props = {
             ...populatedProps,
-            isMuted: true,
+            isChannelMuted: true,
         };
 
         const wrapper = shallowWithIntl(
@@ -232,30 +238,6 @@ describe('components/ChannelHeader', () => {
         expect(wrapper).toMatchSnapshot();
     });
 
-    test('should render bot description', () => {
-        const props = {
-            ...populatedProps,
-            channel: TestHelper.getChannelMock({
-                header: 'not the bot description',
-                type: Constants.DM_CHANNEL as ChannelType,
-            }),
-            dmUser: TestHelper.getUserMock({
-                id: 'user_id',
-                is_bot: true,
-                bot_description: 'the bot description',
-            }),
-        };
-
-        const wrapper = shallowWithIntl(
-            <ChannelHeader {...props}/>,
-        );
-        expect(wrapper.containsMatchingElement(
-            <Markdown
-                message={props.currentUser.bot_description}
-            />,
-        )).toEqual(true);
-    });
-
     test('should render the pinned icon with the pinned posts count', () => {
         const props = {
             ...populatedProps,
@@ -265,36 +247,6 @@ describe('components/ChannelHeader', () => {
             <ChannelHeader {...props}/>,
         );
         expect(wrapper).toMatchSnapshot();
-    });
-
-    test('should render the guest tags on gms', () => {
-        const props = {
-            ...populatedProps,
-            channel: TestHelper.getChannelMock({
-                header: 'test',
-                display_name: 'regular_user, guest_user',
-                type: Constants.GM_CHANNEL as ChannelType,
-            }),
-            gmMembers: [
-                TestHelper.getUserMock({
-                    id: 'user_id',
-                    username: 'regular_user',
-                    roles: 'system_user',
-                }),
-                TestHelper.getUserMock({
-                    id: 'guest_id',
-                    username: 'guest_user',
-                    roles: 'system_guest',
-                }),
-            ],
-        };
-
-        const wrapper = shallowWithIntl(
-            <ChannelHeader {...props}/>,
-        );
-        expect(wrapper.containsMatchingElement(
-            <GuestTag/>,
-        )).toEqual(true);
     });
 
     test('should render properly when custom status is set', () => {

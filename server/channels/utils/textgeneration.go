@@ -4,7 +4,9 @@
 package utils
 
 import (
-	"math/rand"
+	crand "crypto/rand"
+	"math/big"
+	mrand "math/rand"
 	"strings"
 )
 
@@ -467,10 +469,22 @@ Up to and hey without pill that this squid alas brusque on inventoried and sprea
 
 func RandString(l int, charset string) string {
 	ret := make([]byte, l)
-	for i := 0; i < l; i++ {
-		ret[i] = charset[rand.Intn(len(charset))]
+	for i := range l {
+		ret[i] = charset[mrand.Intn(len(charset))]
 	}
 	return string(ret)
+}
+
+func SecureRandString(n int) string {
+	charset := "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ!@#$%&*0123456789"
+
+	var str strings.Builder
+	for range n {
+		num, _ := crand.Int(crand.Reader, big.NewInt(int64(len(charset))))
+		str.WriteString(string(charset[num.Int64()]))
+	}
+
+	return str.String()
 }
 
 // func RandomEmail(length Range, charset string) string {
@@ -504,12 +518,12 @@ func RandomText(length Range, hashtags Range, mentions Range, users []string) st
 	startPosition := RandIntFromRange(Range{0, len(GibberishText) - textLength - 1})
 
 	words := strings.Split(GibberishText[startPosition:startPosition+textLength], " ")
-	for i := 0; i < numHashtags; i++ {
+	for range numHashtags {
 		randword := RandIntFromRange(Range{0, len(words) - 1})
 		words = append(words, " #"+words[randword])
 	}
 	if len(users) > 0 {
-		for i := 0; i < numMentions; i++ {
+		for range numMentions {
 			randuser := RandIntFromRange(Range{0, len(users) - 1})
 			words = append(words, " @"+users[randuser])
 		}
@@ -517,7 +531,7 @@ func RandomText(length Range, hashtags Range, mentions Range, users []string) st
 
 	// Shuffle the words
 	for i := range words {
-		j := rand.Intn(i + 1)
+		j := mrand.Intn(i + 1)
 		words[i], words[j] = words[j], words[i]
 	}
 

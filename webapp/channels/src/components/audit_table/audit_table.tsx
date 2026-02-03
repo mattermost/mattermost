@@ -2,29 +2,23 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-import {FormattedMessage, injectIntl} from 'react-intl';
-import type {IntlShape} from 'react-intl';
+import {FormattedMessage} from 'react-intl';
 
 import type {Audit} from '@mattermost/types/audits';
-import type {UserProfile} from '@mattermost/types/users';
-
-import type {ActionFunc} from 'mattermost-redux/types/actions';
 
 import FormatAudit from './format_audit';
 
 type Props = {
-    intl: IntlShape;
     audits: Audit[];
     showUserId?: boolean;
     showIp?: boolean;
     showSession?: boolean;
-    currentUser: UserProfile;
     actions: {
-        getMissingProfilesByIds: (userIds: string[]) => ActionFunc;
+        getMissingProfilesByIds: (userIds: string[]) => void;
     };
 };
 
-export class AuditTable extends React.PureComponent<Props> {
+export default class AuditTable extends React.PureComponent<Props> {
     componentDidMount() {
         const ids = this.props.audits.map((audit) => audit.user_id);
         this.props.actions.getMissingProfilesByIds(ids);
@@ -105,5 +99,3 @@ export class AuditTable extends React.PureComponent<Props> {
         );
     }
 }
-
-export default injectIntl(AuditTable);

@@ -21,6 +21,7 @@ const (
 	LinkMetadataTypeNone      LinkMetadataType = "none"
 	LinkMetadataTypeOpengraph LinkMetadataType = "opengraph"
 	LinkMetadataMaxImages     int              = 5
+	LinkMetadataMaxURLLength  int              = 2048 // Maximum URL length in LinkMetadata table
 )
 
 type LinkMetadataType string
@@ -93,6 +94,10 @@ func (o *LinkMetadata) IsValid() *AppError {
 		return NewAppError("LinkMetadata.IsValid", "model.link_metadata.is_valid.url.app_error", nil, "", http.StatusBadRequest)
 	}
 
+	if len(o.URL) > LinkMetadataMaxURLLength {
+		return NewAppError("LinkMetadata.IsValid", "model.link_metadata.is_valid.url_length.app_error", map[string]any{"MaxLength": LinkMetadataMaxURLLength, "Length": len(o.URL)}, "", http.StatusBadRequest)
+	}
+
 	if o.Timestamp == 0 || !isRoundedToNearestHour(o.Timestamp) {
 		return NewAppError("LinkMetadata.IsValid", "model.link_metadata.is_valid.timestamp.app_error", nil, "", http.StatusBadRequest)
 	}
@@ -131,10 +136,8 @@ func (o *LinkMetadata) DeserializeDataToConcreteType() error {
 	var b []byte
 	switch t := o.Data.(type) {
 	case []byte:
-		// MySQL uses a byte slice for JSON
 		b = t
 	case string:
-		// Postgres uses a string for JSON
 		b = []byte(t)
 	}
 

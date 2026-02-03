@@ -50,12 +50,6 @@ func RegisterJobsElasticsearchIndexerInterface(f func(*Server) ejobs.IndexerJobI
 	jobsElasticsearchIndexerInterface = f
 }
 
-var jobsElasticsearchFixChannelIndexInterface func(*Server) ejobs.ElasticsearchFixChannelIndexInterface
-
-func RegisterJobsElasticsearchFixChannelIndexInterface(f func(*Server) ejobs.ElasticsearchFixChannelIndexInterface) {
-	jobsElasticsearchFixChannelIndexInterface = f
-}
-
 var jobsLdapSyncInterface func(*App) ejobs.LdapSyncInterface
 
 func RegisterJobsLdapSyncInterface(f func(*App) ejobs.LdapSyncInterface) {
@@ -80,10 +74,10 @@ func RegisterCloudInterface(f func(*Server) einterfaces.CloudInterface) {
 	cloudInterface = f
 }
 
-var samlInterfaceNew func(*App) einterfaces.SamlInterface
+var samlInterface func(*App) einterfaces.SamlInterface
 
-func RegisterNewSamlInterface(f func(*App) einterfaces.SamlInterface) {
-	samlInterfaceNew = f
+func RegisterSamlInterface(f func(*App) einterfaces.SamlInterface) {
+	samlInterface = f
 }
 
 var notificationInterface func(*App) einterfaces.NotificationInterface
@@ -104,8 +98,41 @@ func RegisterIPFilteringInterface(f func(*App) einterfaces.IPFilteringInterface)
 	ipFilteringInterface = f
 }
 
+var accessControlServiceInterface func(*App) einterfaces.AccessControlServiceInterface
+
+func RegisterAccessControlServiceInterface(f func(*App) einterfaces.AccessControlServiceInterface) {
+	accessControlServiceInterface = f
+}
+
+var jobsAccessControlSyncJobInterface func(*Server) ejobs.AccessControlSyncJobInterface
+
+func RegisterJobsAccessControlSyncJobInterface(f func(*Server) ejobs.AccessControlSyncJobInterface) {
+	jobsAccessControlSyncJobInterface = f
+}
+
+var pushProxyInterface func(*App) einterfaces.PushProxyInterface
+
+func RegisterPushProxyInterface(f func(*App) einterfaces.PushProxyInterface) {
+	pushProxyInterface = f
+}
+
+var autoTranslationInterface func(*Server) einterfaces.AutoTranslationInterface
+
+func RegisterAutoTranslationInterface(f func(*Server) einterfaces.AutoTranslationInterface) {
+	autoTranslationInterface = f
+}
+
+var intuneInterface func(*App) einterfaces.IntuneInterface
+
+func RegisterIntuneInterface(f func(*App) einterfaces.IntuneInterface) {
+	intuneInterface = f
+}
+
 func (s *Server) initEnterprise() {
 	if cloudInterface != nil {
 		s.Cloud = cloudInterface(s)
+	}
+	if autoTranslationInterface != nil {
+		s.AutoTranslation = autoTranslationInterface(s)
 	}
 }

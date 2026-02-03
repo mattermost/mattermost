@@ -204,10 +204,6 @@
     "translation": "Бота не съществува."
   },
   {
-    "id": "searchengine.bleve.disabled.error",
-    "translation": "Грешка при прочистване на Bleve индекси: двигателят е забранен"
-  },
-  {
     "id": "plugin_api.send_mail.missing_to",
     "translation": "Липсващ адрес в 'До'."
   },
@@ -334,10 +330,6 @@
   {
     "id": "model.user.is_valid.pwd_lowercase.app_error",
     "translation": "Вашата парола трябва да съдържа най-малко {{.Min}} знака и поне една малка буква."
-  },
-  {
-    "id": "model.user.is_valid.pwd.app_error",
-    "translation": "Вашата парола трябва да съдържа най-малко {{.Min}} знака."
   },
   {
     "id": "model.user.is_valid.position.app_error",
@@ -904,18 +896,6 @@
     "translation": "Невъзможно е да се активира пакетирането по ел.поща, когато е активирано клъстеризирането."
   },
   {
-    "id": "model.config.is_valid.bleve_search.filename.app_error",
-    "translation": "Настройката Bleve IndexingDir трябва да бъде зададена, когато Bleve EnableIndexing е зададен на true"
-  },
-  {
-    "id": "model.config.is_valid.bleve_search.enable_searching.app_error",
-    "translation": "Настройката Bleve EnableIndexing трябва да бъде зададена на true, когато Bleve EnableSearching е зададено на true"
-  },
-  {
-    "id": "model.config.is_valid.bleve_search.enable_autocomplete.app_error",
-    "translation": "Настройката Bleve EnableIndexing трябва да бъде зададена на true, когато Bleve EnableAutocomplete е зададен на true"
-  },
-  {
     "id": "model.config.is_valid.atmos_camo_image_proxy_url.app_error",
     "translation": "Невалидно RemoteImageProxyURL за atmos/camo. Трябва да е настроен на вашия споделен ключ."
   },
@@ -1252,10 +1232,6 @@
     "translation": "Вашият лиценз не поддържа SAML удостоверяване."
   },
   {
-    "id": "ent.saml.do_login.validate.app_error",
-    "translation": "При проверката на отговора от доставчика на идентичност възникна грешка. Моля, свържете се със системния администратор."
-  },
-  {
     "id": "ent.saml.do_login.parse.app_error",
     "translation": "Възникна грешка при анализа на отговора от доставчика на идентичност. Моля, свържете се със системния администратор."
   },
@@ -1272,10 +1248,6 @@
     "translation": "Получихме празен отговор от доставчика на самоличност."
   },
   {
-    "id": "ent.saml.do_login.decrypt.app_error",
-    "translation": "Влизането в SAML не бе успешно, тъй като възникна грешка при дешифриране на отговора от доставчика на идентичност. Моля, свържете се със системния администратор."
-  },
-  {
     "id": "ent.saml.configure.not_encrypted_response.app_error",
     "translation": "Влизането в SAML не бе успешно, тъй като отговорът на доставчика на идентичност не е шифрован. Моля, свържете се със системния администратор."
   },
@@ -1284,16 +1256,8 @@
     "translation": "Влизането в SAML не бе успешно, тъй като частният ключ на доставчика на услуги не бе намерен. Моля, свържете се със системния администратор."
   },
   {
-    "id": "ent.saml.configure.load_idp_cert.app_error",
-    "translation": "Файла с публичния сертификат на доставчик на самоличност не бе намерен. Моля, свържете се със системния администратор."
-  },
-  {
     "id": "ent.saml.configure.encryption_not_enabled.app_error",
     "translation": "Влизането в SAML не бе успешно, тъй като криптирането не е активирано. Моля, свържете се със системния администратор."
-  },
-  {
-    "id": "ent.saml.build_request.encoding.app_error",
-    "translation": "Възникна грешка при кодирането на заявката за доставчика на идентичност. Моля, свържете се със системния администратор."
   },
   {
     "id": "ent.saml.build_request.app_error",
@@ -1326,38 +1290,6 @@
   {
     "id": "ent.message_export.run_export.app_error",
     "translation": "Неуспешно избиране на данни за износ на съобщения."
-  },
-  {
-    "id": "ent.message_export.global_relay_export.get_attachment_error",
-    "translation": "Неуспешно получаване на файлова информация за публикация."
-  },
-  {
-    "id": "ent.message_export.global_relay_export.deliver.unable_to_open_zip_file_data.app_error",
-    "translation": "Временният файл за износа не може да се отвори."
-  },
-  {
-    "id": "ent.message_export.global_relay_export.deliver.unable_to_open_email_file.app_error",
-    "translation": "Неуспешно получаване на ел.поща от временния файл."
-  },
-  {
-    "id": "ent.message_export.global_relay_export.deliver.unable_to_get_file_info.app_error",
-    "translation": "Не може да се получи информацията за временния файл за износ."
-  },
-  {
-    "id": "ent.message_export.global_relay_export.deliver.to_address.app_error",
-    "translation": "Неуспешно задаване на адреса за ел.поща."
-  },
-  {
-    "id": "ent.message_export.global_relay_export.deliver.parse_mail.app_error",
-    "translation": "Информацията за ел.поща не може да се прочете."
-  },
-  {
-    "id": "ent.message_export.global_relay_export.deliver.msg_data.app_error",
-    "translation": "Не мога да напиша съобщението за ел.поща."
-  },
-  {
-    "id": "ent.message_export.global_relay_export.deliver.msg.app_error",
-    "translation": "Неуспешно задаване на съобщението за ел.поща."
   },
   {
     "id": "model.user.is_valid.auth_data.app_error",
@@ -1530,10 +1462,6 @@
   {
     "id": "model.post.is_valid.original_id.app_error",
     "translation": "Невалиден оригинален id."
-  },
-  {
-    "id": "model.post.is_valid.msg.app_error",
-    "translation": "Невалидно съобщение."
   },
   {
     "id": "model.post.is_valid.id.app_error",
@@ -1720,38 +1648,6 @@
     "translation": "Невалидна стойност за create_at при качване на лиценз."
   },
   {
-    "id": "ent.message_export.global_relay_export.deliver.from_address.app_error",
-    "translation": "Не може да се зададе ел.поща от адреса."
-  },
-  {
-    "id": "ent.message_export.global_relay_export.deliver.close.app_error",
-    "translation": "Не може да се достави ел.поща до Global Relay."
-  },
-  {
-    "id": "ent.message_export.global_relay.generate_email.app_error",
-    "translation": "Неуспешно генериране данни за eml файлове."
-  },
-  {
-    "id": "ent.message_export.global_relay.create_file_in_zip.app_error",
-    "translation": "Неуспешно създаване eml файла."
-  },
-  {
-    "id": "ent.message_export.global_relay.close_zip_file.app_error",
-    "translation": "Неуспешно затваряне на Zip файла."
-  },
-  {
-    "id": "ent.message_export.global_relay.attach_file.app_error",
-    "translation": "Не може да се добави прикачен файл към Global Relay износа."
-  },
-  {
-    "id": "ent.message_export.csv_export.get_attachment_error",
-    "translation": "Неуспешно получаване на файлова информация за публикация."
-  },
-  {
-    "id": "ent.message_export.actiance_export.get_attachment_error",
-    "translation": "Неуспешно получаване на файлова информация за публикация."
-  },
-  {
     "id": "ent.ldap_id_migrate.app_error",
     "translation": "не може да мигрира."
   },
@@ -1806,10 +1702,6 @@
   {
     "id": "ent.ldap.syncronize.get_all.app_error",
     "translation": "Не могат да се получат всички потребители, използващи AD/LDAP."
-  },
-  {
-    "id": "ent.ldap.syncronize.delete_group_constained_memberships",
-    "translation": "грешка при изтриване на членство в екип или канал"
   },
   {
     "id": "ent.ldap.save_user.username_exists.ldap_app_error",
@@ -1888,10 +1780,6 @@
     "translation": "Лицензът ви не поддържа ID заредени изскачащи известия."
   },
   {
-    "id": "ent.get_users_in_channel_during",
-    "translation": "Неуспешно извличане на потребителите в канал през определен период от време."
-  },
-  {
     "id": "ent.elasticsearch.test_config.reenter_password",
     "translation": "URL адресът или потребителското име на Elasticsearch са променени. Моля, въведете отново паролата Elasticsearch, за да проверите връзката."
   },
@@ -1908,20 +1796,12 @@
     "translation": "Elasticsearch вече е спрян."
   },
   {
-    "id": "ent.elasticsearch.start.start_bulk_processor_failed.app_error",
-    "translation": "Неуспешно стартиране на групов процесор Elasticsearch."
-  },
-  {
     "id": "ent.elasticsearch.start.parse_server_version.app_error",
     "translation": "Неуспешен анализ на версията на сървъра Elasticsearch."
   },
   {
     "id": "ent.elasticsearch.start.get_server_version.app_error",
     "translation": "Неуспешно получаване версията на сървъра Elasticsearch."
-  },
-  {
-    "id": "ent.elasticsearch.start.create_bulk_processor_failed.app_error",
-    "translation": "Неуспешно създаване на групов процесор Elasticsearch."
   },
   {
     "id": "ent.elasticsearch.search_users.unmarshall_user_failed",
@@ -1962,10 +1842,6 @@
   {
     "id": "ent.elasticsearch.refresh_indexes.refresh_failed",
     "translation": "Неуспешно опресняване на индексите Elasticsearch"
-  },
-  {
-    "id": "ent.elasticsearch.purge_indexes.delete_failed",
-    "translation": "Неуспешно изтриване индекса на Elasticsearch"
   },
   {
     "id": "ent.elasticsearch.post.get_posts_batch_for_indexing.error",
@@ -2080,76 +1956,8 @@
     "translation": "Износа на съответствие не бе успешно за задачата '{{.JobName}}' в '{{.FilePath}}'"
   },
   {
-    "id": "ent.compliance.run_export.template_watcher.appError",
-    "translation": "Шаблоните за износ не могат да се заредят. Моля, опитайте отново."
-  },
-  {
     "id": "ent.compliance.licence_disable.app_error",
     "translation": "Функционалността на съответствието е деактивирана от текущия лиценз. Моля, свържете се със системния си администратор относно актуализацията на корпоративния ви лиценз."
-  },
-  {
-    "id": "ent.compliance.global_relay.write_file.appError",
-    "translation": "Неуспешно записване на global relay файла."
-  },
-  {
-    "id": "ent.compliance.global_relay.rewind_temporary_file.appError",
-    "translation": "Временния файл за износ на Global Relay не може да се прочете отново."
-  },
-  {
-    "id": "ent.compliance.global_relay.open_temporary_file.appError",
-    "translation": "Временният файл за износ не може да се отвори."
-  },
-  {
-    "id": "ent.compliance.global_relay.attachments_removed.appError",
-    "translation": "Каченият файл бе премахнат от износа на Global Relay, защото беше твърде голям за изпращане."
-  },
-  {
-    "id": "ent.compliance.csv.zip.creation.appError",
-    "translation": "Не може да се създаде ZIP файл за износ."
-  },
-  {
-    "id": "ent.compliance.csv.write_file.appError",
-    "translation": "Неуспешно записване на csv файла."
-  },
-  {
-    "id": "ent.compliance.csv.warning.appError",
-    "translation": "Невъзможно е да се създаде файлът с предупреждение."
-  },
-  {
-    "id": "ent.compliance.csv.post.export.appError",
-    "translation": "Не може да се експортира публикация."
-  },
-  {
-    "id": "ent.compliance.csv.metadata.json.zipfile.appError",
-    "translation": "Не може да се създаде zip файла"
-  },
-  {
-    "id": "ent.compliance.csv.metadata.json.marshalling.appError",
-    "translation": "Невъзможно е да се преобразуват метаданните в json."
-  },
-  {
-    "id": "ent.compliance.csv.metadata.export.appError",
-    "translation": "Не може да се добави файл с метаданни към zip файла."
-  },
-  {
-    "id": "ent.compliance.csv.header.export.appError",
-    "translation": "Не може да се добави заглавка към CSV износа."
-  },
-  {
-    "id": "ent.compliance.csv.file.creation.appError",
-    "translation": "Не може да се създаде временен CSV файл за износ."
-  },
-  {
-    "id": "ent.compliance.csv.attachment.export.appError",
-    "translation": "Не може да се добави прикачен файл към CSV износа."
-  },
-  {
-    "id": "ent.compliance.csv.attachment.copy.appError",
-    "translation": "Прикачването не може да се копира в zip файла."
-  },
-  {
-    "id": "ent.compliance.bad_export_type.appError",
-    "translation": "Неизвестен изходен формат {{.ExportType}}"
   },
   {
     "id": "ent.cluster.timeout.error",
@@ -2168,20 +1976,8 @@
     "translation": "Конфигурацията на клъстера се промени за id = {{.id}}. Клъстерът може да стане нестабилен и се изисква рестартиране. За да сте сигурни, че клъстерът е конфигуриран правилно, трябва незабавно да извършите допълнителен рестарт."
   },
   {
-    "id": "ent.cluster.404.app_error",
-    "translation": "Крайната точка на клъстер API не е намерена."
-  },
-  {
     "id": "ent.api.post.send_notifications_and_forget.push_image_only",
     "translation": " прикачи файл."
-  },
-  {
-    "id": "ent.actiance.export.write_file.appError",
-    "translation": "Неуспешно записване на износния файл."
-  },
-  {
-    "id": "ent.actiance.export.marshalToXml.appError",
-    "translation": "Невъзможно конвертиране на експорта в XML."
   },
   {
     "id": "ent.account_migration.get_saml_users_failed",
@@ -2206,130 +2002,6 @@
   {
     "id": "brand.save_brand_image.decode.app_error",
     "translation": "Данните от изображението не могат да бъдат декодирани."
-  },
-  {
-    "id": "bleveengine.stop_user_index.error",
-    "translation": "Индексът на потребители не бе затворен."
-  },
-  {
-    "id": "bleveengine.stop_post_index.error",
-    "translation": "Индексът на публикации не бе затворен."
-  },
-  {
-    "id": "bleveengine.stop_channel_index.error",
-    "translation": "Индексът на канала не бе затворен."
-  },
-  {
-    "id": "bleveengine.search_users_in_team.error",
-    "translation": "Потребителското търсене не завърши."
-  },
-  {
-    "id": "bleveengine.search_users_in_channel.uchan.error",
-    "translation": "Потребителското търсене не завърши."
-  },
-  {
-    "id": "bleveengine.search_users_in_channel.nuchan.error",
-    "translation": "Потребителското търсене не завърши."
-  },
-  {
-    "id": "bleveengine.search_posts.error",
-    "translation": "Търсенето на публикация не бе завършено."
-  },
-  {
-    "id": "bleveengine.search_channels.error",
-    "translation": "Търсенето на канала не бе завършено."
-  },
-  {
-    "id": "bleveengine.purge_user_index.error",
-    "translation": "Неуспешно прочистване на потребителски индекси."
-  },
-  {
-    "id": "bleveengine.purge_post_index.error",
-    "translation": "Неуспешно изчистване на индексите за пост."
-  },
-  {
-    "id": "bleveengine.purge_channel_index.error",
-    "translation": "Неуспешно прочистване на индексите на каналите."
-  },
-  {
-    "id": "bleveengine.indexer.index_batch.nothing_left_to_index.error",
-    "translation": "Опит за индексиране на нова партида, когато всички елементи са завършени."
-  },
-  {
-    "id": "bleveengine.indexer.do_job.parse_start_time.error",
-    "translation": "Работника по индексиране на Bleve не успя да анализира началното време."
-  },
-  {
-    "id": "bleveengine.indexer.do_job.parse_end_time.error",
-    "translation": "Работника по индексиране на Bleve не успя да анализира крайния час."
-  },
-  {
-    "id": "bleveengine.indexer.do_job.get_oldest_entity.error",
-    "translation": "Най-стария обект (потребител, канал или публикация) не може да бъде извлечен от базата данни."
-  },
-  {
-    "id": "bleveengine.indexer.do_job.engine_inactive",
-    "translation": "Неуспешно изпълнение на задачата за Bleve index: модула е неактивен."
-  },
-  {
-    "id": "bleveengine.indexer.do_job.bulk_index_users.batch_error",
-    "translation": "Пакетното индексиране на потребители не бе успешно."
-  },
-  {
-    "id": "bleveengine.indexer.do_job.bulk_index_posts.batch_error",
-    "translation": "Пакетното индексиране на публикации не бе успешно."
-  },
-  {
-    "id": "bleveengine.indexer.do_job.bulk_index_channels.batch_error",
-    "translation": "Неуспешно пакетно индексиране на канал."
-  },
-  {
-    "id": "bleveengine.index_user.error",
-    "translation": "Неуспешно индексиране на потребителя."
-  },
-  {
-    "id": "bleveengine.index_post.error",
-    "translation": "Индексирането на публикацията не бе успешно."
-  },
-  {
-    "id": "bleveengine.index_channel.error",
-    "translation": "Индексирането на канала не бе успешно."
-  },
-  {
-    "id": "bleveengine.delete_user_posts.error",
-    "translation": "Изтриването на потребителските публикации не бе успешно"
-  },
-  {
-    "id": "bleveengine.delete_user.error",
-    "translation": "Изтриването на потребителя не бе успешно."
-  },
-  {
-    "id": "bleveengine.delete_post.error",
-    "translation": "Изтриването на публикацията не бе успешно."
-  },
-  {
-    "id": "bleveengine.delete_channel_posts.error",
-    "translation": "Изтриването на публикациите на канала не бе успешно"
-  },
-  {
-    "id": "bleveengine.delete_channel.error",
-    "translation": "Изтриването на канала не бе успешно."
-  },
-  {
-    "id": "bleveengine.create_user_index.error",
-    "translation": "Грешка при създаването индекса на bleve потребители."
-  },
-  {
-    "id": "bleveengine.create_post_index.error",
-    "translation": "Грешка при създаването индекса на bleve публикации."
-  },
-  {
-    "id": "bleveengine.create_channel_index.error",
-    "translation": "Грешка при създаването на индекса на bleve канали."
-  },
-  {
-    "id": "bleveengine.already_started.error",
-    "translation": "Bleve вече е стартиран."
   },
   {
     "id": "app.webhooks.update_outgoing.app_error",
@@ -2412,14 +2084,6 @@
     "translation": "Неуспешна анализ на датата на инсталиране."
   },
   {
-    "id": "app.system.warn_metric.store.app_error",
-    "translation": "Не можа да се запази стойността за {{.WarnMetricName}}"
-  },
-  {
-    "id": "app.system.warn_metric.bot_displayname",
-    "translation": "Mattermost съветник"
-  },
-  {
     "id": "app.system.save.app_error",
     "translation": "Срещнахме грешка при запазването на системното свойство."
   },
@@ -2430,10 +2094,6 @@
   {
     "id": "app.system.get_by_name.app_error",
     "translation": "Не може да се намери системната променлива."
-  },
-  {
-    "id": "app.system.get.app_error",
-    "translation": "Срещнахме грешка при намирането на системните свойства."
   },
   {
     "id": "app.submit_interactive_dialog.json_error",
@@ -2704,10 +2364,6 @@
     "translation": "Не можаха да се получат публикациите за канала."
   },
   {
-    "id": "app.post.get_posts_batch_for_indexing.get.app_error",
-    "translation": "Не можаха да се получат публикациите за пакетно индексиране."
-  },
-  {
     "id": "app.post.get_posts_around.get.app_error",
     "translation": "Не може да се получат публикациите за канала."
   },
@@ -2900,10 +2556,6 @@
     "translation": "Не могат да се получат статусите на приставки от клъстера."
   },
   {
-    "id": "app.plugin.flag_managed.app_error",
-    "translation": "Не може да се зададе приставка, като управлявана от файловото хранилище."
-  },
-  {
     "id": "app.plugin.filesystem.app_error",
     "translation": "Възникна грешка във файловата система."
   },
@@ -2994,18 +2646,6 @@
   {
     "id": "app.notification.subject.direct.full",
     "translation": "[{{.SiteName}}] Ново директно съобщение от {{.SenderDisplayName}} на {{.Day}} {{.Month}}, {{.Year}}"
-  },
-  {
-    "id": "app.license.generate_renewal_token.no_license",
-    "translation": "Няма наличен лиценз"
-  },
-  {
-    "id": "app.license.generate_renewal_token.bad_license",
-    "translation": "Този тип лиценз не поддържа генериране на маркери за подновяване"
-  },
-  {
-    "id": "app.license.generate_renewal_token.app_error",
-    "translation": "Неуспешно генериране на нов маркер за подновяване."
   },
   {
     "id": "app.job.update.app_error",
@@ -3840,34 +3480,6 @@
     "translation": "За най-добро изживяване изтеглете приложенията за PC, Mac, iOS и Android."
   },
   {
-    "id": "api.templates.warn_metric_ack.subject",
-    "translation": "Mattermost Свържете се с нас"
-  },
-  {
-    "id": "api.templates.warn_metric_ack.footer",
-    "translation": "Ако имате някакви допълнителни запитвания, моля, свържете се с support@mattermost.com"
-  },
-  {
-    "id": "api.templates.warn_metric_ack.body.site_url_header",
-    "translation": "URL адрес на сайта: "
-  },
-  {
-    "id": "api.templates.warn_metric_ack.body.registered_users_header",
-    "translation": "Общо активни потребители: "
-  },
-  {
-    "id": "api.templates.warn_metric_ack.body.diagnostic_id_header",
-    "translation": "Диагностичен ID: "
-  },
-  {
-    "id": "api.templates.warn_metric_ack.body.contact_name_header",
-    "translation": "За контакти: "
-  },
-  {
-    "id": "api.templates.warn_metric_ack.body.contact_email_header",
-    "translation": "Електронна поща: "
-  },
-  {
     "id": "api.templates.verify_subject",
     "translation": "[{{.SiteName}}] Потвърждение на ел.поща"
   },
@@ -3944,52 +3556,8 @@
     "translation": "Корпоративния лиценз е изтекъл и някои функции може да бъдат забранени. Моля, подновете го."
   },
   {
-    "id": "api.templates.remove_expired_license.body.renew_button",
-    "translation": "Подновяване на лиценза"
-  },
-  {
     "id": "api.templates.post_body.button",
     "translation": "Преглед на съобщението"
-  },
-  {
-    "id": "api.templates.payment_failed_no_card.title",
-    "translation": "Вашата Mattermost Cloud фактура е дължима"
-  },
-  {
-    "id": "api.templates.payment_failed_no_card.subject",
-    "translation": "Плащането се дължи за вашия Mattermost Cloud абонамент"
-  },
-  {
-    "id": "api.templates.payment_failed_no_card.info3",
-    "translation": "За да прегледате фактурата си и да добавите начин на плащане, изберете Плати сега."
-  },
-  {
-    "id": "api.templates.payment_failed_no_card.info1",
-    "translation": "Вашата фактура за Mattermost Cloud за последния период на фактуриране е обработена. Ние обаче не разполагаме с вашите данни за плащане."
-  },
-  {
-    "id": "api.templates.payment_failed_no_card.button",
-    "translation": "Плати сега"
-  },
-  {
-    "id": "api.templates.payment_failed.title",
-    "translation": "Неуспешно плащане"
-  },
-  {
-    "id": "api.templates.payment_failed.subject",
-    "translation": "Изисква се действие: Неуспешно плащане за Mattermost Cloud"
-  },
-  {
-    "id": "api.templates.payment_failed.info3",
-    "translation": "За да осигурите непрекъснат абонамент за Mattermost Cloud, моля, свържете се с вашата финансова институция, за да отстраните проблема или актуализирайте данните си за плащане. След като се актуализира информацията за плащане, Mattermost ще се опита да уреди неплатеното салдо."
-  },
-  {
-    "id": "api.templates.payment_failed.info2",
-    "translation": "Посочена е следната причина:"
-  },
-  {
-    "id": "api.templates.payment_failed.info1",
-    "translation": "Вашата финансова институция отказа плащане от вашата {{.CardBrand}} **** {{.LastFour}}, свързана с вашето работно пространство в Mattermost Cloud."
   },
   {
     "id": "api.templates.password_change_subject",
@@ -4110,10 +3678,6 @@
   {
     "id": "api.templates.deactivate_body.info",
     "translation": "Деактивирахте профила си на {{.SiteURL}}."
-  },
-  {
-    "id": "api.templates.copyright",
-    "translation": "© 2021 Mattermost, Inc. 530 Lytton Avenue, втори етаж, Пало Алто, Калифорния, 94301"
   },
   {
     "id": "api.team.update_team_scheme.scheme_scope.error",
@@ -4670,10 +4234,6 @@
     "translation": "Невъзможно получаването на канали по ID."
   },
   {
-    "id": "app.channel.get_channels_batch_for_indexing.get.app_error",
-    "translation": "Не можа да се получи пакета с канали за индексиране."
-  },
-  {
     "id": "app.channel.get_channels.not_found.app_error",
     "translation": "Не бяха открити канали."
   },
@@ -4840,10 +4400,6 @@
   {
     "id": "api.webhook.team_mismatch.app_error",
     "translation": "Не може да се актуализира webhook между екипи."
-  },
-  {
-    "id": "api.webhook.incoming.error",
-    "translation": "Не може да се декодира тялото от много части на входящите webhook."
   },
   {
     "id": "api.webhook.create_outgoing.triggers.app_error",
@@ -5114,14 +4670,6 @@
     "translation": "Профилите за гости са забранени"
   },
   {
-    "id": "api.user.login.client_side_cert.license.app_error",
-    "translation": "Опит за използване на експерименталната функция ClientSideCertEnable без валиден корпоративен лиценз."
-  },
-  {
-    "id": "api.user.login.client_side_cert.certificate.app_error",
-    "translation": "Опитахте да влезете с помощта на експерименталната функция ClientSideCert, без да предоставите валиден сертификат."
-  },
-  {
     "id": "api.user.login.bot_login_forbidden.app_error",
     "translation": "Влизането на бот е забранено."
   },
@@ -5290,10 +4838,6 @@
     "translation": "invalid_request: Непавилен grant_type."
   },
   {
-    "id": "api.oauth.get_access_token.bad_client_secret.app_error",
-    "translation": "invalid_request: Липсващ client_secret."
-  },
-  {
     "id": "api.oauth.get_access_token.bad_client_id.app_error",
     "translation": "invalid_request: неправилен client_id."
   },
@@ -5318,16 +4862,8 @@
     "translation": "marshal грешка"
   },
   {
-    "id": "api.license.request_trial_license.fail_get_user_count.app_error",
-    "translation": "Не можете да получите пробен лиценз, моля, опитайте отново или се свържете със support@mattermost.com. Не може да се получи броят на регистрираните потребители."
-  },
-  {
     "id": "api.license.request_trial_license.app_error",
     "translation": "Не можете да получите пробен лиценз, моля опитайте отново или се свържете със support@mattermost.com."
-  },
-  {
-    "id": "api.license.request_renewal_link.app_error",
-    "translation": "Грешка при получаване на връзката за подновяване на лиценза"
   },
   {
     "id": "api.license.request-trial.bad-request.terms-not-accepted",
@@ -5617,18 +5153,6 @@
     "translation": "Приемният канал за пакетно получаване на ел.поща е пълен. Моля, увеличете размера на EmailBatchingBufferSize."
   },
   {
-    "id": "api.email.send_warn_metric_ack.missing_server.app_error",
-    "translation": "SMTP сървъра е задължителен"
-  },
-  {
-    "id": "api.email.send_warn_metric_ack.invalid_warn_metric.app_error",
-    "translation": "Не можа да намери warn metric."
-  },
-  {
-    "id": "api.email.send_warn_metric_ack.failure.app_error",
-    "translation": "Неуспешно изпращане на ел.поща за потвърждение от администратор"
-  },
-  {
     "id": "api.create_terms_of_service.empty_text.app_error",
     "translation": "Въведете текста на Вашите персонализирани условия за ползване."
   },
@@ -5703,10 +5227,6 @@
   {
     "id": "api.config.get_config.restricted_merge.app_error",
     "translation": "Неуспешно обединяване на зададената конфигурация."
-  },
-  {
-    "id": "api.config.client.old_format.app_error",
-    "translation": "Новия формат за клиентската конфигурация все още не се поддържа. Моля, посочете format = old в низа на заявката."
   },
   {
     "id": "api.command_shrug.name",
@@ -5839,10 +5359,6 @@
   {
     "id": "api.command_mute.success_mute",
     "translation": "Няма да получавате известия за канала {{.Channel}}, докато е заглушен."
-  },
-  {
-    "id": "api.command_mute.not_member.error",
-    "translation": "Не може да заглушите канала {{.Channel}} защото не сте член."
   },
   {
     "id": "api.command_mute.no_channel.error",
@@ -6648,234 +6164,6 @@
     "translation": "Интеграцията/Slack Bot потребителя с ел.поща {{.Email}} и парола {{.Password}} е внесен.\n"
   },
   {
-    "id": "api.server.warn_metric.number_of_teams_5.start_trial_notification_success.message",
-    "translation": "Пробната версия на Enterprise вече е активна. Отидете на **Системна конзола > Управление на потребители > Права**, за да активирате разширени права."
-  },
-  {
-    "id": "api.server.warn_metric.number_of_teams_5.start_trial.notification_body",
-    "translation": "Вашата система Mattermost вече има няколко екипа. Много отбори имат свой предпочитан начин за координация и сътрудничество, включително как се създават канали, кой може да покани нови съотборници и как се управляват интеграциите. Схемите за отмяна на екипа ви позволяват да персонализирате потребителските разрешения във всеки екип, за да отговорите на техните специфични нужди.\n\n[Научете повече за използването на разширени права](https://www.mattermost.com/docs-advanced-permissions-team-override/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=advanced-permissions-team-override).\n\nС натискането върху Старт пробна версия, аз се съгласявам с [Mattermost Споразумение за оценка на софтуера](https://mattermost.com/software-evaluation-agreement/), [политика за поверителност](https://mattermost.com/pl/privacy-policy/), и получаването на ел.поща за продукта."
-  },
-  {
-    "id": "api.server.warn_metric.number_of_teams_5.notification_title",
-    "translation": "Използване на разширени права"
-  },
-  {
-    "id": "api.server.warn_metric.number_of_teams_5.notification_body",
-    "translation": "Вашата система Mattermost вече има няколко екипа. Много отбори имат свой предпочитан начин за координация и сътрудничество, включително как се създават канали, кой може да покани нови съотборници и как се управляват интеграциите. Схемите за отмяна на екипа ви позволяват да персонализирате потребителските разрешения във всеки екип, за да отговорите на техните специфични нужди.\n\n[Научете повече за използването на разширени права](https://www.mattermost.com/docs-advanced-permissions-team-override/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=advanced-permissions-team-override).\n\nКато натиснете върху Свържете се с нас, ще споделите информацията си с Mattermost, Inc. [Виж още](https://mattermost.com/pl/default-admin-advisory)"
-  },
-  {
-    "id": "api.server.warn_metric.number_of_teams_5.contact_us.email_body",
-    "translation": "Mattermost свържете се с нас заявка. Интересно ми е да науча повече за разширени права чрез схеми за екип.\n"
-  },
-  {
-    "id": "api.server.warn_metric.number_of_posts_2M.start_trial.notification_success.message",
-    "translation": "Пробната версия на Enterprise вече е активна. След като имате Elasticsearch сървър, отидете на **System Console > Environment > Elasticsearch**, за да конфигурирате Elasticsearch."
-  },
-  {
-    "id": "api.server.warn_metric.number_of_posts_2M.start_trial.notification_body",
-    "translation": "Вашата система Mattermost има голям брой съобщения. Търсенето на база данни по подразбиране на Mattermost започва да показва влошаване на производителността при около 2,5 милиона публикации. При над 5 милиона публикации, Elasticsearch може да помогне да се избегнат значителни проблеми с производителността, като изчаквания при търсене и споменавания. Свържете се с нас, за да научите повече и да ни уведомите как можем да помогнем.\n\n[Научете повече за подобряване на производителността](https://www.mattermost.com/docs-elasticsearch/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=elasticsearch)\n\nС натискането върху Старт пробна версия, аз се съгласявам с [Mattermost Споразумение за оценка на софтуера](https://mattermost.com/software-evaluation-agreement/), [политика за поверителност](https://mattermost.com/pl/privacy-policy/), и получаването на ел.поща за продукта."
-  },
-  {
-    "id": "api.server.warn_metric.number_of_posts_2M.notification_title",
-    "translation": "Подобряване на производителността"
-  },
-  {
-    "id": "api.server.warn_metric.number_of_posts_2M.notification_body",
-    "translation": "Вашата система Mattermost има голям брой съобщения. Търсенето на база данни по подразбиране на Mattermost започва да показва влошаване на производителността при около 2,5 милиона публикации. При над 5 милиона публикации, Elasticsearch може да помогне да се избегнат значителни проблеми с производителността, като изчаквания при търсене и споменавания. Свържете се с нас, за да научите повече и да ни уведомите как можем да помогнем.\n\n[Научете повече за подобряване на производителността](https://www.mattermost.com/docs-elasticsearch/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=elasticsearch)\n\nКато натиснете върху Свържете се с нас, ще споделите информацията си с Mattermost, Inc. [Виж още](https://mattermost.com/pl/default-admin-advisory)"
-  },
-  {
-    "id": "api.server.warn_metric.number_of_posts_2M.contact_us.email_body",
-    "translation": "Mattermost свържете се с нас заявка. Интересно ми е да науча повече за подобряване на производителността с Elasticsearch.\n"
-  },
-  {
-    "id": "api.server.warn_metric.number_of_channels_50.start_trial.notification_success.message",
-    "translation": "Пробната версия на Enterprise вече е активна. Отидете на **Системна конзола > Управление на потребители > Права**, за да активирате Разширени права."
-  },
-  {
-    "id": "api.server.warn_metric.number_of_channels_50.start_trial.notification_body",
-    "translation": "Каналите помагат за подобряване на комуникацията, но тъй като потребителите от Mattermost се присъединяват и създават канали, предизвикателството да поддържате системата организирана се увеличава. Разширените права ви позволяват да зададете кои потребители или роли могат да извършват определени действия, включително управление на настройки на канали и членове, използване на @channel или @here за маркиране на широки групи потребители и създаване на нови webhook.\n\n[Научете повече за използването на разширени права](https://www.mattermost.com/docs-advanced-permissions/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=advanced-permissions)\n\nС натискането върху Старт пробна версия, аз се съгласявам с [Mattermost Споразумение за оценка на софтуера](https://mattermost.com/software-evaluation-agreement/), [политика за поверителност](https://mattermost.com/pl/privacy-policy/), и получаването на ел.поща за продукта."
-  },
-  {
-    "id": "api.server.warn_metric.number_of_channels_50.notification_title",
-    "translation": "Използване на разширени права"
-  },
-  {
-    "id": "api.server.warn_metric.number_of_channels_50.notification_body",
-    "translation": "Каналите помагат за подобряване на комуникацията, но тъй като потребителите от Mattermost се присъединяват и създават канали, предизвикателството да поддържате системата организирана се увеличава. Разширените права ви позволяват да зададете кои потребители или роли могат да извършват определени действия, включително управление на настройки на канали и членове, използване на @channel или @here за маркиране на широки групи потребители и създаване на нови webhook.\n\n[Научете повече за използването на разширени права](https://www.mattermost.com/docs-advanced-permissions/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=advanced-permissions)\n\nКато натиснете върху Свържете се с нас, ще споделите информацията си с Mattermost, Inc. [Виж още](https://mattermost.com/pl/default-admin-advisory)"
-  },
-  {
-    "id": "api.server.warn_metric.number_of_channels_50.contact_us.email_body",
-    "translation": "Mattermost свържете се с нас заявка. Интересно ми е да науча повече за използването на разширени права със системни схеми.\n"
-  },
-  {
-    "id": "api.server.warn_metric.number_of_active_users_500.start_trial.notification_success.message",
-    "translation": "Пробната версия на Enterprise вече е активна. Отидете на системната конзола, за да активирате разширените функции."
-  },
-  {
-    "id": "api.server.warn_metric.number_of_active_users_500.start_trial.notification_body",
-    "translation": "Mattermost настоятелно препоръчва инсталациите с над 500 потребители да се възползват от функции като управление на потребители, клъстеризиране на сървъри и мониторинг на производителността. Свържете се с нас, за да научите повече и да ни уведомите как можем да помогнем.\n\nС натискането върху Старт пробна версия, аз се съгласявам с [Mattermost Споразумение за оценка на софтуера](https://mattermost.com/software-evaluation-agreement/), [политика за поверителност](https://mattermost.com/pl/privacy-policy/), и получаването на ел.поща за продукта."
-  },
-  {
-    "id": "api.server.warn_metric.number_of_active_users_500.notification_title",
-    "translation": "Мащабиране с Mattermost"
-  },
-  {
-    "id": "api.server.warn_metric.number_of_active_users_500.notification_body",
-    "translation": "Mattermost настоятелно препоръчва инсталации с над 500 потребители да се възползват от функции като управление на потребители, клъстеризиране на сървъри и мониторинг на производителността. Свържете се с нас, за да научите повече и да ни уведомите как можем да помогнем.\n\nС натискане върху Свържете се с нас, ще споделите информацията си с Mattermost, Inc. [Научете повече](https://mattermost.com/pl/default-admin-advisory)"
-  },
-  {
-    "id": "api.server.warn_metric.number_of_active_users_500.contact_us.email_body",
-    "translation": "Mattermost свържете се с нас заявка. Сега екипът ми има 500 потребители и обмислям Mattermost корпоративна версия.\n"
-  },
-  {
-    "id": "api.server.warn_metric.number_of_active_users_300.start_trial.notification_title",
-    "translation": "Канали за съобщения само за четене"
-  },
-  {
-    "id": "api.server.warn_metric.number_of_active_users_300.start_trial.notification_success.message",
-    "translation": "Пробната версия на Enterprise вече е активна. Създайте канал и отидете на **Системна конзола > Управление на потребители > Канали **, за да ограничите публикуването в канала до администратори."
-  },
-  {
-    "id": "api.server.warn_metric.number_of_active_users_300.start_trial.notification_body",
-    "translation": "Тъй като толкова много разговори се случват в Mattermost, може да бъде предизвикателство да знаете къде да търсите важна информация. Ако искате да излъчите съобщение до голяма аудитория, можете да настроите канали за съобщения само за четене, където всеки може да се присъедини, но само администраторите на каналите могат да публикуват съобщения.\n\n[Научете повече за създаването на канали за съобщения само за четене](https://www.mattermost.com/docs-channel-moderation/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=channel-moderation)\n\nС натискането върху Старт пробна версия, аз се съгласявам с [Mattermost Споразумение за оценка на софтуера](https://mattermost.com/software-evaluation-agreement/), [политика за поверителност](https://mattermost.com/pl/privacy-policy/), и получаването на ел.поща за продукта."
-  },
-  {
-    "id": "api.server.warn_metric.number_of_active_users_300.notification_body",
-    "translation": "Тъй като толкова много разговори се случват в Mattermost, може да бъде предизвикателство да знаете къде да търсите важна информация. Ако искате да излъчите съобщение до голяма аудитория, можете да настроите канали за съобщения само за четене, където всеки може да се присъедини, но само администраторите на каналите могат да публикуват съобщения.\n\n[Научете повече за създаването на канали за съобщения само за четене](https://www.mattermost.com/docs-channel-moderation/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=channel-moderation)\n\nКато натиснете върху Свържете се с нас, ще споделите информацията си с Mattermost, Inc. [Виж още](https://mattermost.com/pl/default-admin-advisory)"
-  },
-  {
-    "id": "api.server.warn_metric.number_of_active_users_300.contact_us.email_body",
-    "translation": "Mattermost свържете се с нас заявка. Интересно ми е да науча повече за създаването на канали за съобщения само за четене.\n"
-  },
-  {
-    "id": "api.server.warn_metric.number_of_active_users_200.start_trial.notification_success.message",
-    "translation": "Пробната корпоративна версия вече е активна. Отидете на **Системна конзола > Удостоверяване > SAML 2.0**, за да интегрирате с вашия доставчик на SAML 2.0."
-  },
-  {
-    "id": "api.server.warn_metric.number_of_active_users_200.start_trial.notification_body",
-    "translation": "Вашата система Mattermost вече има 200 потребители. Когато свържете Mattermost с доставчика за еднократно удостоверяване на вашата организация, потребителите имат достъп до Mattermost, без да се налага да въвеждат повторно своите идентификационни данни. Препоръчваме ви да интегрирате вашия доставчик на SAML 2.0 с вашия сървър Mattermost.[Научете повече за интегрирането със SAML 2.0](https://www.mattermost.com/docs-saml/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=saml)\n\nС натискането върху Старт пробна версия, аз се съгласявам с [Mattermost Споразумение за оценка на софтуера](https://mattermost.com/software-evaluation-agreement/), [Privacy Policy](https://mattermost.com/pl/privacy-policy/), и получаването на ел.поща за продукта."
-  },
-  {
-    "id": "api.server.warn_metric.number_of_active_users_200.notification_title",
-    "translation": "Мащабиране с Mattermost"
-  },
-  {
-    "id": "api.server.warn_metric.number_of_active_users_200.notification_body",
-    "translation": "Вашата система Mattermost вече има 200 потребители. Когато свържете Mattermost с доставчика за влизане на вашата организация, потребителите могат да получат достъп до Mattermost, без да се налага да въвеждат повторно своите идентификационни данни. Препоръчваме ви да интегрирате вашия доставчик на SAML 2.0 с вашия сървър Mattermost. [Научете повече за интегрирането със SAML 2.0](https://www.mattermost.com/docs-saml/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=saml)\n\nС натискане върху Свържете се с нас, ще споделите информацията си с Mattermost, Inc. [Научете повече](https://mattermost.com/pl/default-admin-advisory)"
-  },
-  {
-    "id": "api.server.warn_metric.number_of_active_users_200.contact_us.email_body",
-    "translation": "Mattermost Свържете се с нас. Сега екипът ми има 200 потребители и обмислям Mattermost Корпоративна версия.\n"
-  },
-  {
-    "id": "api.server.warn_metric.number_of_active_users_100.start_trial.notification_success.message",
-    "translation": "Пробната версия на Enterprise вече е активна. Отидете на **Системна конзола > Удостоверяване > AD/LDAP **, за да интегрирате вашата AD/LDAP услуга."
-  },
-  {
-    "id": "api.server.warn_metric.number_of_active_users_100.start_trial.notification_body",
-    "translation": "Вашата система Mattermost има над 100 потребители. С нарастването на вашата потребителска база предоставянето на нови профили може да отнеме много време. Препоръчваме ви да интегрирате Active Directory / LDAP на вашата организация, което ще позволи на всеки с профил да има достъп до Mattermost.\n\n[Научете повече за интегрирането с AD/LDAP](https://www.mattermost.com/docs-adldap/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=adldap)\n\nС натискането върху Старт пробна версия, аз се съгласявам с [Mattermost споразумение за оценка на софтуера](https://mattermost.com/software-evaluation-agreement/), [Политика на поверителност](https://mattermost.com/pl/privacy-policy/), и получаването на ел.поща за продукта."
-  },
-  {
-    "id": "api.server.warn_metric.number_of_active_users_100.notification_title",
-    "translation": "Мащабиране с Mattermost"
-  },
-  {
-    "id": "api.server.warn_metric.number_of_active_users_100.notification_body",
-    "translation": "Вашата система Mattermost има над 100 потребители. С нарастването на вашата потребителска база предоставянето на нови профили може да отнеме много време. Препоръчваме ви да интегрирате Active Directory / LDAP на вашата организация, което ще позволи на всеки с профил да има достъп до Mattermost.\n\n[Научете повече за интегрирането с AD/LDAP](https://www.mattermost.com/docs-adldap/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=adldap)\n\nКогато натиснете върху Свържете се с нас, ще споделите информацията си с Mattermost, Inc. [Виж още](https://mattermost.com/pl/default-admin-advisory)"
-  },
-  {
-    "id": "api.server.warn_metric.number_of_active_users_100.contact_us.email_body",
-    "translation": "Mattermost Свържете с нас заявка. Сега екипът ми има 100 потребители и обмислям Mattermost корпоративна версия.\n"
-  },
-  {
-    "id": "api.server.warn_metric.mfa.start_trial_notification_success.message",
-    "translation": "Пробният ви период за Enterprise вече е активен. Отидете на **Системна конзола > Удостоверяване > МФУ**, за да наложите многофакторно удостоверяване."
-  },
-  {
-    "id": "api.server.warn_metric.mfa.start_trial.notification_body",
-    "translation": "Вашата система Mattermost има активирано многофакторно удостоверяване, което дава на потребителите избор да защитят своите акаунти с допълнителни средства за удостоверяване, освен паролата. За да подобрите сигурността в системата, можете да изискате всички акаунти на Mattermost да използват многофакторно удостоверяване.\n\n[Научете повече за изискване на многофакторно удостоверяване](https://www.mattermost.com/docs-multi-factor-authentication/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=multi-factor-authentication). \n\nС натискането върху Започни пробен период, се съгласяте с. [Mattermost споразумение за оценка на софтуера](https://mattermost.com/software-evaluation-agreement/), [Privacy Policy](https://mattermost.com/pl/privacy-policy/), и получаването на ел.поща за продукта."
-  },
-  {
-    "id": "api.server.warn_metric.mfa.notification_title",
-    "translation": "Изисквай многофакторно удостоверяване"
-  },
-  {
-    "id": "api.server.warn_metric.mfa.notification_body",
-    "translation": "Вашата система Mattermost има активирано многофакторно удостоверяване, което дава на потребителите избор да защитят своите акаунти с допълнителни средства за удостоверяване, освен паролата. За да подобрите сигурността в системата, можете да изискате всички акаунти на Mattermost да използват многофакторно удостоверяване.\n\n[Научете повече за изискване на многофакторно удостоверяване](https://www.mattermost.com/docs-multi-factor-authentication/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=multi-factor-authentication). \n\nС натискането върху Свържете се с нас, ще споделяте информацията си с Mattermost, Inc. [Виж още](https://mattermost.com/pl/default-admin-advisory)"
-  },
-  {
-    "id": "api.server.warn_metric.mfa.contact_us.email_body",
-    "translation": "Заявка Mattermost свържете с нас. Интересно ми е да науча повече за използването на многофакторно удостоверяване.\n"
-  },
-  {
-    "id": "api.server.warn_metric.email_us",
-    "translation": "Пишете ни"
-  },
-  {
-    "id": "api.server.warn_metric.email_domain.start_trial_notification_success.message",
-    "translation": "Пробният ви период за Enterprise вече е активен. Отидете на **Системна конзола > Удостоверяване > Достъп за гости**, за да разрешите профили за гости."
-  },
-  {
-    "id": "api.server.warn_metric.email_domain.start_trial.notification_body",
-    "translation": "Проектите често включват хора както от организацията, така и извън нея. С профилите за гости можете да привлечете външни партньори във вашата система Mattermost и да посочите с кого да работят и какво могат да виждат.\n\n[Научете повече за разрешаване акаунтите за гости](https://www.mattermost.com/docs-guest-accounts/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=guest-accounts)\n\nС натискането върху Старт пробна версия, се съгласявам с [споразумение на Mattermost за оценка на софтуера](https://mattermost.com/software-evaluation-agreement/), [политика за поверителност](https://mattermost.com/pl/privacy-policy/), и получаване на ел.поща за продукта."
-  },
-  {
-    "id": "api.server.warn_metric.email_domain.notification_title",
-    "translation": "Създаване на профили за гости"
-  },
-  {
-    "id": "api.server.warn_metric.email_domain.notification_body",
-    "translation": "Проектите често включват хора както от организацията, така и извън нея. С профилите за гости можете да привлечете външни партньори във вашата система Mattermost и да посочите с кого да работят и какво могат да виждат.\n\n[Научете повече за разрешаване акаунтите за гости](https://www.mattermost.com/docs-guest-accounts/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=guest-accounts).\n\nС натискането върху Свържете се с нас, ще споделяте информацията си с Mattermost, Inc. [Виж още](https://mattermost.com/pl/default-admin-advisory)"
-  },
-  {
-    "id": "api.server.warn_metric.email_domain.contact_us.email_body",
-    "translation": "Заявка Mattermost свържете с нас. Интересно ми е да науча повече за използването на профили за гости.\n"
-  },
-  {
-    "id": "api.server.warn_metric.bot_response.start_trial_failure.message",
-    "translation": "Пробният лиценз не можа да бъде извлечен. Посетете https://mattermost.com/trial/, за да поискате лиценз."
-  },
-  {
-    "id": "api.server.warn_metric.bot_response.notification_success.message",
-    "translation": "Благодарим Ви, че се свързахте с Mattermost. Ще се свържем с Вас скоро."
-  },
-  {
-    "id": "api.server.warn_metric.bot_response.notification_failure.message",
-    "translation": "Съобщението не можа да бъде изпратено."
-  },
-  {
-    "id": "api.server.warn_metric.bot_response.notification_failure.body",
-    "translation": "Моля, изпратете ни ел.поща."
-  },
-  {
-    "id": "api.server.warn_metric.bot_response.mailto_subject",
-    "translation": "Mattermost свържете се с нас заявка"
-  },
-  {
-    "id": "api.server.warn_metric.bot_response.mailto_site_url_header",
-    "translation": "URL адрес на сайта: {{.SiteUrl}}"
-  },
-  {
-    "id": "api.server.warn_metric.bot_response.mailto_registered_users_header",
-    "translation": "Общо активни потребители: {{.NoRegisteredUsers}}"
-  },
-  {
-    "id": "api.server.warn_metric.bot_response.mailto_footer",
-    "translation": "Ако имате някакви допълнителни запитвания, моля, свържете се с support@mattermost.com"
-  },
-  {
-    "id": "api.server.warn_metric.bot_response.mailto_email_header",
-    "translation": "Ел.поща: {{.Email}}"
-  },
-  {
-    "id": "api.server.warn_metric.bot_response.mailto_diagnostic_id_header",
-    "translation": "Диагностичен ID: {{.DiagnosticId}}"
-  },
-  {
-    "id": "api.server.warn_metric.bot_response.mailto_contact_header",
-    "translation": "За контакти: {{.Contact}}"
-  },
-  {
     "id": "api.server.start_server.starting.critical",
     "translation": "Грешка при стартиране на сървъра, грешка:% v"
   },
@@ -7488,10 +6776,6 @@
     "translation": "%v напусна канала."
   },
   {
-    "id": "api.channel.leave.last_member.app_error",
-    "translation": "Вие сте единствения останал участник, опитайте да изтриете частния канал, вместо да го напускате."
-  },
-  {
     "id": "api.channel.leave.direct.app_error",
     "translation": "Не може да се напусне канал за директни съобщения."
   },
@@ -7816,42 +7100,6 @@
     "translation": "Неуспешно създаване на Elasticsearch шаблон за файлове"
   },
   {
-    "id": "bleveengine.stop_file_index.error",
-    "translation": "Неуспешно затваряне на файловия индекс."
-  },
-  {
-    "id": "bleveengine.search_files.error",
-    "translation": "Търсенето на файлове не успя да приключи."
-  },
-  {
-    "id": "bleveengine.indexer.do_job.bulk_index_files.batch_error",
-    "translation": "Неуспешно пакетно индексиране на файлове."
-  },
-  {
-    "id": "bleveengine.index_file.error",
-    "translation": "Неуспешно индексиране на файл."
-  },
-  {
-    "id": "bleveengine.delete_user_files.error",
-    "translation": "Неуспешно изтриване файлове на потребители."
-  },
-  {
-    "id": "bleveengine.delete_post_files.error",
-    "translation": "Неуспешно изтриване файлове на публикации."
-  },
-  {
-    "id": "bleveengine.delete_files_batch.error",
-    "translation": "Неуспешно изтриване на файлове."
-  },
-  {
-    "id": "bleveengine.delete_file.error",
-    "translation": "Неуспешно изтриване на файла."
-  },
-  {
-    "id": "bleveengine.create_file_index.error",
-    "translation": "Грешка при създаването на файла с bleve индекса."
-  },
-  {
     "id": "api.job.unable_to_download_job.incorrect_job_type",
     "translation": "Заданието, което се опитвате да изтеглите, в момента не се поддържа"
   },
@@ -7912,10 +7160,6 @@
     "translation": "Параметрите Преди и След за getThreadsForUser се изключват взаимно"
   },
   {
-    "id": "api.unable_to_read_file_from_backend",
-    "translation": "Грешка при четене на файл от сървъра"
-  },
-  {
     "id": "api.unable_to_create_zip_file",
     "translation": "Грешка при създаването на zip файл."
   },
@@ -7930,14 +7174,6 @@
   {
     "id": "model.config.is_valid.export.directory.app_error",
     "translation": "Стойността за Директория не може да е празна."
-  },
-  {
-    "id": "ent.message_export.global_relay_export.deliver.unable_to_connect_smtp_server.app_error",
-    "translation": "Неуспешно свързване с smtp сървър"
-  },
-  {
-    "id": "app.import.attachment.read_file_data.error",
-    "translation": "Неуспешно четене на прикачения файл при вноса."
   },
   {
     "id": "app.export.zip_create.error",
@@ -7966,10 +7202,6 @@
   {
     "id": "api.export.export_not_found.app_error",
     "translation": "Неуспешно търсене на износния файл."
-  },
-  {
-    "id": "app.user.send_emails.app_error",
-    "translation": "Няма успешно изпратена ел.поща"
   },
   {
     "id": "mfa.deactivate.app_error",
@@ -8014,14 +7246,6 @@
   {
     "id": "api.command_custom_status.app_error",
     "translation": "Грешка при задаване на състоянието."
-  },
-  {
-    "id": "bleveengine.purge_file_index.error",
-    "translation": "Неуспешно изчистване на файлови индекси."
-  },
-  {
-    "id": "app.post.get_files_batch_for_indexing.get.app_error",
-    "translation": "Не можа да се получи пакета с файлове за индексиране."
   },
   {
     "id": "ent.elasticsearch.post.get_files_batch_for_indexing.error",
@@ -8293,7 +7517,7 @@
   },
   {
     "id": "api.command_remote.remote_table_header",
-    "translation": "| Сигурна връзка | Показвано име | ИН на връзката | URL на сайта | Приета покана | Онлайн | Последен пинг |"
+    "translation": "| Сигурна връзка | Показвано име | ИН на връзката | URL на сайта | Подразбиращ се екип | Приета покана | Онлайн | Последен пинг | Изтрит |"
   },
   {
     "id": "api.command_remote.remote_add_remove.help",
@@ -8350,10 +7574,6 @@
   {
     "id": "api.command_remote.invitation.help",
     "translation": "Покана от защитена връзка"
-  },
-  {
-    "id": "api.command_remote.incorrect_password.error",
-    "translation": "Не може да дешифрира поканата. Неправилна парола или повредена покана: {{.Error}}"
   },
   {
     "id": "api.command_remote.hint",
@@ -8426,10 +7646,6 @@
   {
     "id": "app.team.get_common_team_ids_for_users.app_error",
     "translation": "Не мога да получа общите ИН на екипите."
-  },
-  {
-    "id": "app.sharedchannel.dm_channel_creation.internal_error",
-    "translation": "Срещната е грешка при създаването на директен споделен канал."
   },
   {
     "id": "app.notification.footer.title",
@@ -8732,10 +7948,6 @@
     "translation": "Система"
   },
   {
-    "id": "app.bot.get_warn_metrics_bot.empty_admin_list.app_error",
-    "translation": "Списъкът на администраторите е празен."
-  },
-  {
     "id": "app.bot.get_system_bot.empty_admin_list.app_error",
     "translation": "Списъкът на администраторите е празен."
   },
@@ -8764,10 +7976,6 @@
     "translation": "Вашият абонамент за Mattermost подлежи на подновяване"
   },
   {
-    "id": "api.templates.license_up_for_renewal_subtitle_two",
-    "translation": "Влезте в клиентския си профил, за да подновите"
-  },
-  {
     "id": "api.templates.license_up_for_renewal_subtitle",
     "translation": "{{.UserName}}, абонаментът Ви изтича след {{.Days}} дни. Надяваме се, че ще се насладите на гъвкавото и сигурно екипно сътрудничество, което Mattermost позволява. Подновете абонамента си скоро, за да гарантирате, че екипът Ви ще продължи да се възползва от тези предимства."
   },
@@ -8776,16 +7984,8 @@
     "translation": "Лицензът Ви подлежи на подновяване"
   },
   {
-    "id": "api.templates.license_up_for_renewal_renew_now",
-    "translation": "Поднови сега"
-  },
-  {
     "id": "api.server.license_up_for_renewal.error_sending_email",
     "translation": "Неуспешно изпращане на ел.поща за подновяване на лиценза"
-  },
-  {
-    "id": "api.server.license_up_for_renewal.error_generating_link",
-    "translation": "Неуспешно генериране връзката за подновяване на лиценза"
   },
   {
     "id": "api.user.invalidate_verify_email_tokens_parse.error",
@@ -8806,5 +8006,317 @@
   {
     "id": "api.license.upgrade_needed.app_error",
     "translation": "Функцията изисква надграждане до версия Enterprise Edition."
+  },
+  {
+    "id": "api.channel.bookmark.channel_bookmark.license.error",
+    "translation": "Вашият лиценз не поддържа отметки на канали."
+  },
+  {
+    "id": "api.channel.bookmark.create_channel_bookmark.direct_or_group_channels.forbidden.app_error",
+    "translation": "Потребителя не е упълномощен да създава отметки на канали."
+  },
+  {
+    "id": "api.channel.bookmark.create_channel_bookmark.direct_or_group_channels_by_guests.forbidden.app_error",
+    "translation": "Неуспешно създаване отметките на канала."
+  },
+  {
+    "id": "api.channel.bookmark.create_channel_bookmark.forbidden.app_error",
+    "translation": "Неуспешно създаване отметките на канала."
+  },
+  {
+    "id": "api.channel.bookmark.delete_channel_bookmark.direct_or_group_channels.forbidden.app_error",
+    "translation": "Неуспешно изтриване отметките на канала."
+  },
+  {
+    "id": "api.channel.bookmark.delete_channel_bookmark.direct_or_group_channels_by_guests.forbidden.app_error",
+    "translation": "Неуспешно изтриване отметките на канала."
+  },
+  {
+    "id": "api.channel.bookmark.delete_channel_bookmark.forbidden.app_error",
+    "translation": "Неуспешно изтриване отметките на канала."
+  },
+  {
+    "id": "api.channel.bookmark.update_channel_bookmark.direct_or_group_channels.forbidden.app_error",
+    "translation": "Неуспешно актуализиране отметките на канала."
+  },
+  {
+    "id": "api.channel.bookmark.update_channel_bookmark.direct_or_group_channels_by_guests.forbidden.app_error",
+    "translation": "Неуспешно актуализиране отметките на канала."
+  },
+  {
+    "id": "api.channel.bookmark.update_channel_bookmark.forbidden.app_error",
+    "translation": "Неуспешно актуализиране отметките на канала."
+  },
+  {
+    "id": "api.channel.bookmark.update_channel_bookmark_sort_order.direct_or_group_channels.forbidden.app_error",
+    "translation": "Неуспешно актуализиране реда на сортиране за отметките на канала."
+  },
+  {
+    "id": "api.channel.bookmark.update_channel_bookmark_sort_order.direct_or_group_channels_by_guests.forbidden.app_error",
+    "translation": "Неуспешно актуализиране реда на сортиране за отметките на канала."
+  },
+  {
+    "id": "api.channel.update_channel.update_direct_or_group_messages_not_allowed.app_error",
+    "translation": "Нямате права да актуализирате името, display_name и целите на личните или груповите съобщения."
+  },
+  {
+    "id": "api.acknowledgement.delete.archived_channel.app_error",
+    "translation": "Не можете да премахнете потвърждение в архивиран канал."
+  },
+  {
+    "id": "api.acknowledgement.delete.deadline.app_error",
+    "translation": "Не можете да изтриете потвърждение след изминали 5 минути."
+  },
+  {
+    "id": "api.acknowledgement.save.archived_channel.app_error",
+    "translation": "Не можете да потвърдите в архивиран канал."
+  },
+  {
+    "id": "api.admin.syncables_error",
+    "translation": "неуспешно добавяне на потребител към group-teams и group-channels"
+  },
+  {
+    "id": "api.channel.gm_to_channel_conversion.not_allowed_for_user.request_error",
+    "translation": "Потребителят няма права да преобразува групово съобщение в частен канал"
+  },
+  {
+    "id": "api.channel.patch_update_channel.update_direct_or_group_messages_not_allowed.app_error",
+    "translation": "Нямате права да актуализирате името, display_name и целите на личните или груповите съобщения."
+  },
+  {
+    "id": "api.channel.bookmark.update_channel_bookmark_sort_order.forbidden.app_error",
+    "translation": "Неуспешно актуализиране реда на сортиране за отметките на канала."
+  },
+  {
+    "id": "api.channel.update_channel_member_roles.guest.app_error",
+    "translation": "Невалидно обновяване член на канала: Гост не може да бъде член или администратор на екип, моля, първо го повишете в потребител."
+  },
+  {
+    "id": "api.channel.update_channel_member_roles.user_and_guest.app_error",
+    "translation": "Невалидно обновяване член на канала: Гост не може да бъде зададен за един канал, системен администратор трябва да повиши или понижи потребителите до/от гости."
+  },
+  {
+    "id": "api.cloud.notify_admin_to_upgrade_error.already_notified",
+    "translation": "Администраторът вече е уведомен"
+  },
+  {
+    "id": "api.cloud.teams_limit_reached.create",
+    "translation": "Не може да се създаде екип, защото ограничението за екипи е достигнато"
+  },
+  {
+    "id": "api.command_exportlink.desc",
+    "translation": "Генериране на връзка за изтегляне на експорт."
+  },
+  {
+    "id": "api.command_exportlink.driver.app_error",
+    "translation": "Драйверът за съхранение на файлове не поддържа генериране на връзки."
+  },
+  {
+    "id": "api.command_exportlink.empty.app_error",
+    "translation": "Не е намерен експортен файл."
+  },
+  {
+    "id": "api.command_exportlink.hint",
+    "translation": "[job-id|име на zip файла|{{.LatestMsg}}]"
+  },
+  {
+    "id": "api.channel.create_channel.missing_display_name.error",
+    "translation": "Липсва display_name в тялото на заявката"
+  },
+  {
+    "id": "api.channel.create_channel.missing_team_id.error",
+    "translation": "Липсва team_id в тялото на заявката"
+  },
+  {
+    "id": "api.cloud.teams_limit_reached.restore",
+    "translation": "Не може да се възстанови екип, защото ограничението за екипи е достигнато"
+  },
+  {
+    "id": "api.channel.create_channel.direct_channel.remote_restricted.app_error",
+    "translation": "Не може да се създаде канал за лични съобщения с отдалечен потребител"
+  },
+  {
+    "id": "api.channel.create_group.remote_restricted.app_error",
+    "translation": "Не може да се създаде групов канал с отдалечени потребители"
+  },
+  {
+    "id": "api.channel.group_message.converted.to_private_channel",
+    "translation": "{{.ConvertedByUsername}} създаде този канал от групово съобщение с {{.GMMembers}}."
+  },
+  {
+    "id": "api.command_exportlink.invalid.app_error",
+    "translation": "Не успяхме да намерим искания от вас файл."
+  },
+  {
+    "id": "api.command_exportlink.name",
+    "translation": "връзка за експорт"
+  },
+  {
+    "id": "api.command_exportlink.link.text",
+    "translation": "Можете да изтеглите своя файл от тук: {{.Link}}.\nТази връзка ще изтече след {{.Expiration}}."
+  },
+  {
+    "id": "api.command_exportlink.list.app_error",
+    "translation": "Не може да се извлече списъкът за експорт."
+  },
+  {
+    "id": "api.command_exportlink.presign.app_error",
+    "translation": "Не може да се генерира предварителен url."
+  },
+  {
+    "id": "api.command_exportlink.permission.app_error",
+    "translation": "Нямате достатъчно права, за да изпълните тази команда."
+  },
+  {
+    "id": "api.command_help.success",
+    "translation": "Mattermost е платформа с отворен код за сигурна комуникация, сътрудничество и организиране на работата между инструменти и екипи.\nMattermost съдържа два основни инструмента:\n\n**Канали** - поддържайте връзка с екипа си чрез 1:1 и групови съобщения.\n**[Playbooks](/playbooks)** - Изграждайте и конфигурирайте повтарящи се процеси за постигане на конкретни и предвидими резултати.\n\n[Преглед на документация и ръководства]({{.HelpLink}})"
+  },
+  {
+    "id": "api.command_invite.successOverflow",
+    "translation": "{{.FirstUser}} и {{.Others}}, добавени към канала {{.Channel}}."
+  },
+  {
+    "id": "api.command_invite.user_already_in_channel.overflow",
+    "translation": "{{.FirstUser}} и {{.Others}} други вече са в канала."
+  },
+  {
+    "id": "api.command_marketplace.desc",
+    "translation": "Отвори пазара"
+  },
+  {
+    "id": "api.command_marketplace.name",
+    "translation": "пазар"
+  },
+  {
+    "id": "api.command_invite.channel_constrained_user_denied",
+    "translation": "Този канал се управлява от групи. Този потребител не е част от група, която е свързана с този канал."
+  },
+  {
+    "id": "api.command_invite.user_not_in_team.messageOverflow",
+    "translation": "Можете да добавите {{.FirstUser}} и {{.Others}} други потребители към този канал, след като те станат членове на екипа **{{.Team}}**."
+  },
+  {
+    "id": "api.command_share.invite_remote_to_channel.error",
+    "translation": "Отдалечената страна не може да бъде поканена към канала: {{.Error}}"
+  },
+  {
+    "id": "api.config.reload_config.app_error",
+    "translation": "Неуспешно презареждане на конфигурацията."
+  },
+  {
+    "id": "api.command_marketplace.unsupported.app_error",
+    "translation": "Командата marketplace не се поддържа от вашето устройство."
+  },
+  {
+    "id": "api.command_remote.confirm_invitation.error",
+    "translation": "Не може да се потвърди поканата: {{.Error}}"
+  },
+  {
+    "id": "api.config.update_config.translations.app_error",
+    "translation": "Неуспешно актуализиране превода за сървъра."
+  },
+  {
+    "id": "api.command_share.channel_not_shared.error",
+    "translation": "Отдалечената страна не можа да бъде поканена, защото каналът {{.ChannelID}} не е споделен."
+  },
+  {
+    "id": "api.context.ip_filtering.apply_ip_filters.app_error",
+    "translation": "Възникна грешка при прилагането на IP филтри"
+  },
+  {
+    "id": "api.context.ip_filtering.get_ip_filters.app_error",
+    "translation": "Възникна грешка при извличането на IP филтри"
+  },
+  {
+    "id": "api.context.ip_filtering.get_my_ip.failed",
+    "translation": "Възникна грешка при извличането на клиентския IP адрес"
+  },
+  {
+    "id": "api.context.ip_filtering.not_available.app_error",
+    "translation": "IP филтрирането не е налично на този сървър"
+  },
+  {
+    "id": "api.context.outgoing_oauth_connection.create_connection.app_error",
+    "translation": "Възникна грешка при създаването на изходяща OAuth връзка ."
+  },
+  {
+    "id": "api.config.update.elasticsearch.autocomplete_cannot_be_enabled_error",
+    "translation": "Не може да се активира функцията за автоматично попълване за канала, тъй като схемата на индекса на каналите е остаряла. Препоръчително е да регенерирате индекса на канала. За повече информация вижте списъка с промените в Mattermost"
+  },
+  {
+    "id": "api.context.outgoing_oauth_connection.list_connections.app_error",
+    "translation": "Възникна грешка при изготвяне списъка на изходящите OAuth връзки."
+  },
+  {
+    "id": "api.context.outgoing_oauth_connection.delete_connection.app_error",
+    "translation": "Възникна грешка при изтриването на изходящата OAuth връзка."
+  },
+  {
+    "id": "api.context.outgoing_oauth_connection.validate_connection_credentials.input_error",
+    "translation": "Неуспешно получаване на идентификационни данни с посочената конфигурация на връзката."
+  },
+  {
+    "id": "api.custom_groups.license_error",
+    "translation": "не е лицензиран за потребителски групи"
+  },
+  {
+    "id": "api.custom_groups.no_remote_id",
+    "translation": "remote_id трябва да е празно за потребителските групи"
+  },
+  {
+    "id": "api.context.outgoing_oauth_connection.update_connection.app_error",
+    "translation": "Възникна грешка при актуализирането на изходящите OAuth връзки."
+  },
+  {
+    "id": "api.context.outgoing_oauth_connection.update_connection.input_error",
+    "translation": "Невалидни входни параметри."
+  },
+  {
+    "id": "api.context.outgoing_oauth_connection.validate_connection_credentials.app_error",
+    "translation": "Възникна грешка при проверка на идентификацията за изходящата OAuth връзка ."
+  },
+  {
+    "id": "api.custom_groups.must_be_referenceable",
+    "translation": "allow_reference трябва да е 'true' за потребителските групи"
+  },
+  {
+    "id": "api.draft.create_draft.can_not_draft_to_deleted.error",
+    "translation": "Не може да се запази чернова в изтрит канал"
+  },
+  {
+    "id": "api.drafts.disabled.app_error",
+    "translation": "Функцията Чернови е забранена."
+  },
+  {
+    "id": "api.custom_status.set_custom_statuses.update.app_error",
+    "translation": "Неуспешно актуализиране на потребителския статус. Моля, добавете емотикон или персонализиран текстов статус, или и двете."
+  },
+  {
+    "id": "api.context.outgoing_oauth_connection.create_connection.input_error",
+    "translation": "Невалидни входни параметри."
+  },
+  {
+    "id": "api.custom_groups.feature_disabled",
+    "translation": "функцията за потребителски групи е забранена"
+  },
+  {
+    "id": "api.custom_groups.count_err",
+    "translation": "грешка при преброяване на групите"
+  },
+  {
+    "id": "api.custom_status.set_custom_statuses.emoji_not_found",
+    "translation": "Неуспешно актуализиране на потребителския статус. Не съществува емотикон с даденото име."
+  },
+  {
+    "id": "api.context.request_body_too_large.app_error",
+    "translation": "Невъзможно е да се обработи заявката. Тялото на заявката е твърде голямо."
+  },
+  {
+    "id": "api.context.outgoing_oauth_connection.list_connections.input_error",
+    "translation": "Невалидни входни параметри."
+  },
+  {
+    "id": "api.context.outgoing_oauth_connection.not_available.configuration_disabled",
+    "translation": "Изходящите OAuth връзки са недостъпни на този сървър."
   }
 ]

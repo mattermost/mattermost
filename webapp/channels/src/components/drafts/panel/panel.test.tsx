@@ -7,9 +7,13 @@ import React from 'react';
 import Panel from './panel';
 
 describe('components/drafts/panel/', () => {
+    function Component() {
+        return null;
+    }
     const baseProps = {
-        children: jest.fn(),
+        children: <Component/>,
         onClick: jest.fn(),
+        hasError: false,
     };
 
     it('should match snapshot', () => {

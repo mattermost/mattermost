@@ -1,4 +1,4 @@
-// Jest Snapshot v1, https://goo.gl/fbAQLP
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
 
 exports[`components/global/product_switcher should have an active button state when the switcher menu is open 1`] = `
 <div>
@@ -11,12 +11,22 @@ exports[`components/global/product_switcher should have an active button state w
       onClick={[Function]}
     >
       <ProductMenuButton
-        active={true}
         aria-controls="product-switcher-menu"
         aria-expanded={true}
         aria-label="Product switch menu"
-      />
-      <ProductBranding />
+        style={
+          Object {
+            "backgroundColor": "rgba(var(--sidebar-text-rgb), 0.16)",
+            "color": "rgba(var(--sidebar-text-rgb), 0.56)",
+          }
+        }
+      >
+        <ProductsIcon
+          color="rgba(var(--sidebar-text-rgb), 0.56)"
+          size={20}
+        />
+        <ProductBranding />
+      </ProductMenuButton>
     </ProductMenuContainer>
     <Menu
       ariaLabel="switcherOpen"
@@ -54,45 +64,162 @@ exports[`components/global/product_switcher should have an active button state w
         isMessaging={true}
         onClick={[Function]}
       />
+      <Memo(MenuGroup)>
+        <MenuStartTrial
+          id="startTrial"
+        />
+      </Memo(MenuGroup)>
     </Menu>
   </MenuWrapper>
 </div>
 `;
 
 exports[`components/global/product_switcher should match snapshot 1`] = `
-<ContextProvider
-  value={
-    Object {
-      "store": Object {
-        "clearActions": [Function],
-        "dispatch": [Function],
-        "getActions": [Function],
-        "getState": [Function],
-        "replaceReducer": [Function],
-        "subscribe": [Function],
-      },
-      "subscription": Subscription {
-        "handleChangeWrapper": [Function],
-        "listeners": Object {
-          "notify": [Function],
-        },
-        "onStateChange": [Function],
-        "parentSub": undefined,
-        "store": Object {
-          "clearActions": [Function],
-          "dispatch": [Function],
-          "getActions": [Function],
-          "getState": [Function],
-          "replaceReducer": [Function],
-          "subscribe": [Function],
-        },
-        "unsubscribe": null,
-      },
-    }
-  }
->
-  <ProductMenu />
-</ContextProvider>
+<div>
+  <MenuWrapper
+    animationComponent={[Function]}
+    className=""
+    open={true}
+  >
+    <ProductMenuContainer
+      onClick={[Function]}
+    >
+      <ProductMenuButton
+        aria-controls="product-switcher-menu"
+        aria-expanded={true}
+        aria-label="Product switch menu"
+        style={
+          Object {
+            "backgroundColor": "rgba(var(--sidebar-text-rgb), 0.16)",
+            "color": "rgba(var(--sidebar-text-rgb), 0.56)",
+          }
+        }
+      >
+        <ProductsIcon
+          color="rgba(var(--sidebar-text-rgb), 0.56)"
+          size={20}
+        />
+        <ProductBranding />
+      </ProductMenuButton>
+    </ProductMenuContainer>
+    <Menu
+      ariaLabel="switcherOpen"
+      className="product-switcher-menu"
+      id="product-switcher-menu"
+      listId="product-switcher-menu-dropdown"
+    >
+      <ProductMenuItem
+        active={true}
+        destination="/"
+        icon="product-channels"
+        onClick={[Function]}
+        text="Channels"
+      />
+      <ProductMenuItem
+        active={false}
+        destination=""
+        icon="product-boards"
+        id="product-menu-item-Boards"
+        key="Boards"
+        onClick={[Function]}
+        text="Boards"
+      />
+      <ProductMenuItem
+        active={false}
+        destination=""
+        icon="product-playbooks"
+        id="product-menu-item-Playbooks"
+        key="Playbooks"
+        onClick={[Function]}
+        text="Playbooks"
+      />
+      <Connect(ProductMenuList)
+        handleVisitConsoleClick={[Function]}
+        isMessaging={true}
+        onClick={[Function]}
+      />
+      <Memo(MenuGroup)>
+        <MenuStartTrial
+          id="startTrial"
+        />
+      </Memo(MenuGroup)>
+    </Menu>
+  </MenuWrapper>
+</div>
+`;
+
+exports[`components/global/product_switcher should match snapshot for Entry license 1`] = `
+<div>
+  <MenuWrapper
+    animationComponent={[Function]}
+    className=""
+    open={true}
+  >
+    <ProductMenuContainer
+      onClick={[Function]}
+    >
+      <ProductMenuButton
+        aria-controls="product-switcher-menu"
+        aria-expanded={true}
+        aria-label="Product switch menu"
+        style={
+          Object {
+            "backgroundColor": "rgba(var(--sidebar-text-rgb), 0.16)",
+            "color": "rgba(var(--sidebar-text-rgb), 0.56)",
+          }
+        }
+      >
+        <ProductsIcon
+          color="rgba(var(--sidebar-text-rgb), 0.56)"
+          size={20}
+        />
+        <ProductBrandingFreeEdition />
+      </ProductMenuButton>
+    </ProductMenuContainer>
+    <Menu
+      ariaLabel="switcherOpen"
+      className="product-switcher-menu"
+      id="product-switcher-menu"
+      listId="product-switcher-menu-dropdown"
+    >
+      <ProductMenuItem
+        active={true}
+        destination="/"
+        icon="product-channels"
+        onClick={[Function]}
+        text="Channels"
+      />
+      <ProductMenuItem
+        active={false}
+        destination=""
+        icon="product-boards"
+        id="product-menu-item-Boards"
+        key="Boards"
+        onClick={[Function]}
+        text="Boards"
+      />
+      <ProductMenuItem
+        active={false}
+        destination=""
+        icon="product-playbooks"
+        id="product-menu-item-Playbooks"
+        key="Playbooks"
+        onClick={[Function]}
+        text="Playbooks"
+      />
+      <Connect(ProductMenuList)
+        handleVisitConsoleClick={[Function]}
+        isMessaging={true}
+        onClick={[Function]}
+      />
+      <Memo(MenuGroup)>
+        <MenuStartTrial
+          id="startTrial"
+        />
+      </Memo(MenuGroup)>
+    </Menu>
+  </MenuWrapper>
+</div>
 `;
 
 exports[`components/global/product_switcher should match snapshot with product switcher menu 1`] = `
@@ -106,12 +233,22 @@ exports[`components/global/product_switcher should match snapshot with product s
       onClick={[Function]}
     >
       <ProductMenuButton
-        active={true}
         aria-controls="product-switcher-menu"
         aria-expanded={true}
         aria-label="Product switch menu"
-      />
-      <ProductBranding />
+        style={
+          Object {
+            "backgroundColor": "rgba(var(--sidebar-text-rgb), 0.16)",
+            "color": "rgba(var(--sidebar-text-rgb), 0.56)",
+          }
+        }
+      >
+        <ProductsIcon
+          color="rgba(var(--sidebar-text-rgb), 0.56)"
+          size={20}
+        />
+        <ProductBranding />
+      </ProductMenuButton>
     </ProductMenuContainer>
     <Menu
       ariaLabel="switcherOpen"
@@ -149,6 +286,85 @@ exports[`components/global/product_switcher should match snapshot with product s
         isMessaging={true}
         onClick={[Function]}
       />
+      <Memo(MenuGroup)>
+        <MenuStartTrial
+          id="startTrial"
+        />
+      </Memo(MenuGroup)>
+    </Menu>
+  </MenuWrapper>
+</div>
+`;
+
+exports[`components/global/product_switcher should match snapshot without license 1`] = `
+<div>
+  <MenuWrapper
+    animationComponent={[Function]}
+    className=""
+    open={true}
+  >
+    <ProductMenuContainer
+      onClick={[Function]}
+    >
+      <ProductMenuButton
+        aria-controls="product-switcher-menu"
+        aria-expanded={true}
+        aria-label="Product switch menu"
+        style={
+          Object {
+            "backgroundColor": "rgba(var(--sidebar-text-rgb), 0.16)",
+            "color": "rgba(var(--sidebar-text-rgb), 0.56)",
+          }
+        }
+      >
+        <ProductsIcon
+          color="rgba(var(--sidebar-text-rgb), 0.56)"
+          size={20}
+        />
+        <ProductBrandingFreeEdition />
+      </ProductMenuButton>
+    </ProductMenuContainer>
+    <Menu
+      ariaLabel="switcherOpen"
+      className="product-switcher-menu"
+      id="product-switcher-menu"
+      listId="product-switcher-menu-dropdown"
+    >
+      <ProductMenuItem
+        active={true}
+        destination="/"
+        icon="product-channels"
+        onClick={[Function]}
+        text="Channels"
+      />
+      <ProductMenuItem
+        active={false}
+        destination=""
+        icon="product-boards"
+        id="product-menu-item-Boards"
+        key="Boards"
+        onClick={[Function]}
+        text="Boards"
+      />
+      <ProductMenuItem
+        active={false}
+        destination=""
+        icon="product-playbooks"
+        id="product-menu-item-Playbooks"
+        key="Playbooks"
+        onClick={[Function]}
+        text="Playbooks"
+      />
+      <Connect(ProductMenuList)
+        handleVisitConsoleClick={[Function]}
+        isMessaging={true}
+        onClick={[Function]}
+      />
+      <Memo(MenuGroup)>
+        <MenuStartTrial
+          id="startTrial"
+        />
+      </Memo(MenuGroup)>
     </Menu>
   </MenuWrapper>
 </div>
@@ -165,12 +381,22 @@ exports[`components/global/product_switcher should render once when there are no
       onClick={[Function]}
     >
       <ProductMenuButton
-        active={true}
         aria-controls="product-switcher-menu"
         aria-expanded={true}
         aria-label="Product switch menu"
-      />
-      <ProductBranding />
+        style={
+          Object {
+            "backgroundColor": "rgba(var(--sidebar-text-rgb), 0.16)",
+            "color": "rgba(var(--sidebar-text-rgb), 0.56)",
+          }
+        }
+      >
+        <ProductsIcon
+          color="rgba(var(--sidebar-text-rgb), 0.56)"
+          size={20}
+        />
+        <ProductBranding />
+      </ProductMenuButton>
     </ProductMenuContainer>
     <Menu
       ariaLabel="switcherOpen"
@@ -208,6 +434,11 @@ exports[`components/global/product_switcher should render once when there are no
         isMessaging={true}
         onClick={[Function]}
       />
+      <Memo(MenuGroup)>
+        <MenuStartTrial
+          id="startTrial"
+        />
+      </Memo(MenuGroup)>
     </Menu>
   </MenuWrapper>
 </div>
@@ -224,12 +455,22 @@ exports[`components/global/product_switcher should render the correct amount of 
       onClick={[Function]}
     >
       <ProductMenuButton
-        active={true}
         aria-controls="product-switcher-menu"
         aria-expanded={true}
         aria-label="Product switch menu"
-      />
-      <ProductBranding />
+        style={
+          Object {
+            "backgroundColor": "rgba(var(--sidebar-text-rgb), 0.16)",
+            "color": "rgba(var(--sidebar-text-rgb), 0.56)",
+          }
+        }
+      >
+        <ProductsIcon
+          color="rgba(var(--sidebar-text-rgb), 0.56)"
+          size={20}
+        />
+        <ProductBranding />
+      </ProductMenuButton>
     </ProductMenuContainer>
     <Menu
       ariaLabel="switcherOpen"
@@ -267,6 +508,11 @@ exports[`components/global/product_switcher should render the correct amount of 
         isMessaging={true}
         onClick={[Function]}
       />
+      <Memo(MenuGroup)>
+        <MenuStartTrial
+          id="startTrial"
+        />
+      </Memo(MenuGroup)>
     </Menu>
   </MenuWrapper>
 </div>

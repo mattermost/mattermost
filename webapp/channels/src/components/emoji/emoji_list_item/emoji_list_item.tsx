@@ -1,13 +1,12 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
+import React, {useCallback, useMemo} from 'react';
 
 import type {CustomEmoji} from '@mattermost/types/emojis';
 
 import {Client4} from 'mattermost-redux/client';
 import Permissions from 'mattermost-redux/constants/permissions';
-import type {ActionFunc} from 'mattermost-redux/types/actions';
 
 import AnyTeamPermissionGate from 'components/permissions_gates/any_team_permission_gate';
 
@@ -21,74 +20,73 @@ export type Props = {
     creatorUsername?: string;
     onDelete?: (emojiId: string) => void;
     actions: {
-        deleteCustomEmoji: (emojiId: string) => ActionFunc;
+        deleteCustomEmoji: (emojiId: string) => void;
     };
-}
+};
 
-export default class EmojiListItem extends React.PureComponent<Props> {
-    static defaultProps = {
-        emoji: {} as CustomEmoji,
-        currentUserId: '',
-        creatorDisplayName: '',
-    };
+const DELETE_PERMISSION = [Permissions.DELETE_EMOJIS];
+const DELETE_OTHER_PERMISSION = [Permissions.DELETE_OTHERS_EMOJIS];
 
-    handleDelete = (): void => {
-        if (!this.props.emoji) {
+const EmojiListItem = ({
+    actions: {
+        deleteCustomEmoji,
+    },
+    onDelete,
+    emoji = {} as CustomEmoji,
+    creatorUsername,
+    currentUserId = '',
+    creatorDisplayName = '',
+}: Props) => {
+    const emoticonStyle = useMemo(() => {
+        return {backgroundImage: `url(${Client4.getCustomEmojiImageUrl(emoji.id)})`};
+    }, [emoji.id]);
+
+    const handleDelete = useCallback((): void => {
+        if (!emoji) {
             return;
         }
-
-        if (this.props.onDelete) {
-            this.props.onDelete(this.props.emoji.id);
+        if (onDelete) {
+            onDelete(emoji.id);
         }
+        deleteCustomEmoji(emoji.id);
+    }, [deleteCustomEmoji, emoji, onDelete]);
 
-        this.props.actions.deleteCustomEmoji(this.props.emoji.id);
-    };
+    let displayName = creatorDisplayName;
+    if (creatorUsername && creatorUsername !== displayName) {
+        displayName += ' (@' + creatorUsername + ')';
+    }
 
-    render(): JSX.Element {
-        const emoji = this.props.emoji as CustomEmoji;
-        const creatorUsername = this.props.creatorUsername;
-        let creatorDisplayName = this.props.creatorDisplayName;
+    let deleteButton = <DeleteEmojiButton onDelete={handleDelete}/>;
 
-        if (creatorUsername && creatorUsername !== creatorDisplayName) {
-            creatorDisplayName += ' (@' + creatorUsername + ')';
-        }
-
-        let deleteButton = <DeleteEmojiButton onDelete={this.handleDelete}/>;
-
-        if (emoji.creator_id === this.props.currentUserId) {
-            deleteButton = (
-                <AnyTeamPermissionGate permissions={[Permissions.DELETE_EMOJIS]}>
+    if (emoji.creator_id === currentUserId) {
+        deleteButton = (
+            <AnyTeamPermissionGate permissions={DELETE_PERMISSION}>
+                {deleteButton}
+            </AnyTeamPermissionGate>
+        );
+    } else {
+        deleteButton = (
+            <AnyTeamPermissionGate permissions={DELETE_PERMISSION}>
+                <AnyTeamPermissionGate permissions={DELETE_OTHER_PERMISSION}>
                     {deleteButton}
                 </AnyTeamPermissionGate>
-            );
-        } else {
-            deleteButton = (
-                <AnyTeamPermissionGate permissions={[Permissions.DELETE_EMOJIS]}>
-                    <AnyTeamPermissionGate permissions={[Permissions.DELETE_OTHERS_EMOJIS]}>
-                        {deleteButton}
-                    </AnyTeamPermissionGate>
-                </AnyTeamPermissionGate>
-            );
-        }
-
-        return (
-            <tr className='backstage-list__item'>
-                <td className='emoji-list__name'>
-                    {':' + emoji.name + ':'}
-                </td>
-                <td className='emoji-list__image'>
-                    <span
-                        className='emoticon'
-                        style={{backgroundImage: 'url(' + Client4.getCustomEmojiImageUrl(emoji.id) + ')'}}
-                    />
-                </td>
-                <td className='emoji-list__creator'>
-                    {creatorDisplayName}
-                </td>
-                <td className='emoji-list-item_actions'>
-                    {deleteButton}
-                </td>
-            </tr>
+            </AnyTeamPermissionGate>
         );
     }
-}
+
+    return (
+        <tr className='backstage-list__item'>
+            <td className='emoji-list__name'>{':' + emoji.name + ':'}</td>
+            <td className='emoji-list__image'>
+                <span
+                    className='emoticon'
+                    style={emoticonStyle}
+                />
+            </td>
+            <td className='emoji-list__creator'>{displayName}</td>
+            <td className='emoji-list-item_actions'>{deleteButton}</td>
+        </tr>
+    );
+};
+
+export default React.memo(EmojiListItem);

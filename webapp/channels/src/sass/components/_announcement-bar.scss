@@ -1,16 +1,15 @@
-@charset 'UTF-8';
+@use "utils/variables";
 
 .announcement-bar {
-    z-index: 999;
     display: flex;
     overflow: hidden;
-    width: 100%;
-    min-height: $announcement-bar-height;
-    max-height: $announcement-bar-height;
+    width: 100vw;
+    min-height: variables.$announcement-bar-height;
+    max-height: variables.$announcement-bar-height;
     align-items: center;
     justify-content: center;
     background-color: #579eff;
-    color: $white;
+    color: variables.$white;
     text-align: center;
 
     .announcement-bar__text {
@@ -19,6 +18,7 @@
         width: 100%;
         align-items: center;
         justify-content: center;
+        padding: 0 32px;
         white-space: nowrap;
 
         > span {
@@ -48,7 +48,7 @@
         }
 
         .annnouncementBar__renewLicense {
-            border-color: $white;
+            border-color: variables.$white;
         }
     }
 
@@ -63,18 +63,17 @@
         }
 
         &.announcement-bar__close {
-            position: absolute;
             top: 5px;
             right: 0;
             padding: 0 10px;
-            color: $white;
+            color: variables.$white;
             font-family: 'Open Sans', sans-serif;
             font-size: 20px;
             font-weight: 600;
             text-decoration: none;
 
             &:hover {
-                color: $white;
+                color: variables.$white;
                 text-decoration: none;
             }
         }
@@ -88,32 +87,17 @@
         content: "\00a0 ";
     }
 
-    .content__icon,
-    i {
-        margin-right: 4px;
-        color: #fff;
-        font-family: 'compass-icons';
+    .icon {
         font-size: 16px;
     }
 
-    button {
-        &:hover {
-            background-color: rgba(255, 255, 255, 0.08);
-        }
+    .btn.btn-tertiary.btn-xs.btn-inverted {
+        background-color: rgba(variables.$white, 0.16);
+        color: variables.$white;
 
-        height: 24px;
-        box-sizing: border-box;
-        padding: 4px 8px;
-        padding-top: 2px;
-        border: 1px solid #fff;
-        margin-left: 8px;
-        background-color: inherit !important;
-        border-radius: 4px;
-        font-family: Open Sans;
-        font-size: 12px;
-        font-style: normal;
-        font-weight: 600;
-        line-height: 16px;
+        &:hover {
+            background-color: rgba(variables.$white, 0.24);
+        }
     }
 }
 
@@ -135,6 +119,18 @@
 
 .announcement-bar-general {
     background-color: #3d3c40;
+}
+
+.announcement-bar-warning {
+    background-color: var(--yellow-400);
+    color: var(--neutral-900);
+    .announcement-bar__text {
+        .btn.btn-tertiary.btn-xs.btn-inverted {
+            border-color: var(--neutral-900);
+            
+            color: var(--neutral-900);
+        }
+    }
 }
 
 .announcement-bar__link {

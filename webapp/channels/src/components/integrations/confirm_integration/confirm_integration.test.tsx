@@ -5,7 +5,7 @@ import {shallow} from 'enzyme';
 import React from 'react';
 
 import type {Bot} from '@mattermost/types/bots';
-import type {IncomingWebhook, OAuthApp, OutgoingWebhook} from '@mattermost/types/integrations';
+import type {IncomingWebhook, OAuthApp, OutgoingOAuthConnection, OutgoingWebhook} from '@mattermost/types/integrations';
 import type {IDMappedObjects} from '@mattermost/types/utilities';
 
 import ConfirmIntegration from 'components/integrations/confirm_integration/confirm_integration';
@@ -43,6 +43,16 @@ describe('components/integrations/ConfirmIntegration', () => {
         client_secret: '<==secret==>',
         callback_urls: ['https://someCallback', 'https://anotherCallback'],
     };
+    const outgoingOAuthConnection = {
+        id,
+        audiences: ['https://myaudience.com'],
+        client_id: 'someid',
+        client_secret: '',
+        grant_type: 'client_credentials',
+        name: 'My OAuth Connection',
+        oauth_token_url: 'https://tokenurl.com',
+    };
+
     const userId = 'b5tpgt4iepf45jt768jz84djhd';
     const bot = TestHelper.getBotMock({
         user_id: userId,
@@ -50,6 +60,7 @@ describe('components/integrations/ConfirmIntegration', () => {
     });
     const commands = {[id]: TestHelper.getCommandMock({id, token})};
     const oauthApps = {[id]: oauthApp} as unknown as IDMappedObjects<OAuthApp>;
+    const outgoingOAuthConnections = {[id]: outgoingOAuthConnection} as unknown as IDMappedObjects<OutgoingOAuthConnection>;
     const incomingHooks: IDMappedObjects<IncomingWebhook> = {[id]: TestHelper.getIncomingWebhookMock({id})};
     const outgoingHooks = {[id]: {id, token}} as unknown as IDMappedObjects<OutgoingWebhook>;
     const bots: Record<string, Bot> = {[userId]: bot};
@@ -59,6 +70,7 @@ describe('components/integrations/ConfirmIntegration', () => {
         location,
         commands,
         oauthApps,
+        outgoingOAuthConnections,
         incomingHooks,
         outgoingHooks,
         bots,
@@ -80,6 +92,14 @@ describe('components/integrations/ConfirmIntegration', () => {
         );
 
         expect(container.querySelector('.word-break--all')).toHaveTextContent('URL(s): https://someCallback, https://anotherCallback');
+    });
+
+    test('should match snapshot, outgoingOAuthConnections case', () => {
+        props.location.search = getSearchString('outgoing-oauth2-connections');
+        const wrapper = shallow(
+            <ConfirmIntegration {...props}/>,
+        );
+        expect(wrapper).toMatchSnapshot();
     });
 
     test('should match snapshot, commands case', () => {

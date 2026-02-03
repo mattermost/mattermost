@@ -1,16 +1,23 @@
-.date-picker__popper {
-    padding: 12px;
-    border: 1px solid rgba(var(--center-channel-color-rgb), 0.08);
-    margin: 0;
-    background: var(--center-channel-bg);
-    border-radius: 4px;
-    box-shadow: 0 8px 24px 0 rgba(0, 0, 0, 0.12);
+.date-picker {
+    &__wrapper {
+        position: relative;
+    }
+
+    &__popper {
+        padding: 16px;
+        border: 1px solid rgba(var(--center-channel-color-rgb), 0.16);
+        border-radius: 4px;
+        background: var(--center-channel-bg);
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+    }
 }
 
+// React Day Picker styles
 .rdp {
     --rdp-accent-color: var(--button-bg);
     --rdp-background-color: rgba(var(--center-channel-color-rgb), 0.08);
     --rdp-cell-size: 36px;
+    margin: 0;
 
     .rdp-caption {
         padding: 4px;
@@ -26,7 +33,7 @@
     }
 
     .rdp-head_cell {
-        color: rgba(var(--center-channel-color-rgb), 0.64);
+        color: rgba(var(--center-channel-color-rgb), 0.75);
         font-family: 'Open Sans';
         font-size: 12px;
         font-style: normal;
@@ -83,7 +90,7 @@
 
         &.rdp-nav_button {
             border-radius: 4px;
-            color: rgba(var(--center-channel-color-rgb), 0.56);
+            color: rgba(var(--center-channel-color-rgb), 0.75);
 
             &_previous {
                 margin-right: 8px;
@@ -97,7 +104,7 @@
 
             &:hover {
                 background-color: rgba(var(--center-channel-color-rgb), 0.08);
-                color: rgba(var(--center-channel-color-rgb), 0.72);
+                color: rgba(var(--center-channel-color-rgb), 0.75);
             }
 
             &:active {

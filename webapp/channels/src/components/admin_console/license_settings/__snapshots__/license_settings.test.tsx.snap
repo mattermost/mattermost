@@ -1,4 +1,4 @@
-// Jest Snapshot v1, https://goo.gl/fbAQLP
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
 
 exports[`components/admin_console/license_settings/LicenseSettings load screen after upgrading 1`] = `
 <div
@@ -19,8 +19,23 @@ exports[`components/admin_console/license_settings/LicenseSettings load screen a
       <div
         className="admin-console__banner_section"
       >
+        <UserSeatAlertBanner
+          license={
+            Object {
+              "Company": "Mattermost Inc.",
+              "ExpiresAt": "1620335443650",
+              "IsLicensed": "true",
+              "IssuedAt": "1517714643650",
+              "Name": "LicenseName",
+              "SkuShortName": "E20",
+              "StartsAt": "1517714643650",
+              "Users": "100",
+            }
+          }
+          location="license_settings"
+          totalUsers={10}
+        />
         <RenewLicenseCard
-          isDisabled={false}
           isLicenseExpired={false}
           license={
             Object {
@@ -47,16 +62,6 @@ exports[`components/admin_console/license_settings/LicenseSettings load screen a
             className="panel-card"
           >
             <TeamEdition
-              currentPlan={
-                <div
-                  className="current-plan-legend"
-                >
-                  <i
-                    className="icon-check-circle"
-                  />
-                  Current Plan
-                </div>
-              }
               openEELicenseModal={[Function]}
             />
           </div>
@@ -64,21 +69,21 @@ exports[`components/admin_console/license_settings/LicenseSettings load screen a
             className="terms-and-policy"
           >
             See also 
-            <ExternalLink
+            <ForwardRef
               href="https://mattermost.com/pl/terms-of-use/"
               id="privacyLink"
               location="license_settings"
             >
               Enterprise Edition Terms of Use
-            </ExternalLink>
+            </ForwardRef>
              and 
-            <ExternalLink
+            <ForwardRef
               href="https://mattermost.com/pl/privacy-policy/"
               id="privacyLink"
               location="license_settings"
             >
               Privacy Policy
-            </ExternalLink>
+            </ForwardRef>
           </div>
         </div>
         <div
@@ -94,6 +99,7 @@ exports[`components/admin_console/license_settings/LicenseSettings load screen a
               restartError={null}
               restarting={false}
               setClickNormalUpgradeBtn={[Function]}
+              upgradeDisabled={false}
               upgradeError={null}
               upgradingPercentage={100}
             />
@@ -124,8 +130,23 @@ exports[`components/admin_console/license_settings/LicenseSettings load screen w
       <div
         className="admin-console__banner_section"
       >
+        <UserSeatAlertBanner
+          license={
+            Object {
+              "Company": "Mattermost Inc.",
+              "ExpiresAt": "1620335443650",
+              "IsLicensed": "true",
+              "IssuedAt": "1517714643650",
+              "Name": "LicenseName",
+              "SkuShortName": "E20",
+              "StartsAt": "1517714643650",
+              "Users": "100",
+            }
+          }
+          location="license_settings"
+          totalUsers={10}
+        />
         <RenewLicenseCard
-          isDisabled={false}
           isLicenseExpired={false}
           license={
             Object {
@@ -152,16 +173,6 @@ exports[`components/admin_console/license_settings/LicenseSettings load screen w
             className="panel-card"
           >
             <TeamEdition
-              currentPlan={
-                <div
-                  className="current-plan-legend"
-                >
-                  <i
-                    className="icon-check-circle"
-                  />
-                  Current Plan
-                </div>
-              }
               openEELicenseModal={[Function]}
             />
           </div>
@@ -169,21 +180,21 @@ exports[`components/admin_console/license_settings/LicenseSettings load screen w
             className="terms-and-policy"
           >
             See also 
-            <ExternalLink
+            <ForwardRef
               href="https://mattermost.com/pl/terms-of-use/"
               id="privacyLink"
               location="license_settings"
             >
               Enterprise Edition Terms of Use
-            </ExternalLink>
+            </ForwardRef>
              and 
-            <ExternalLink
+            <ForwardRef
               href="https://mattermost.com/pl/privacy-policy/"
               id="privacyLink"
               location="license_settings"
             >
               Privacy Policy
-            </ExternalLink>
+            </ForwardRef>
           </div>
         </div>
         <div
@@ -199,6 +210,7 @@ exports[`components/admin_console/license_settings/LicenseSettings load screen w
               restartError={null}
               restarting={false}
               setClickNormalUpgradeBtn={[Function]}
+              upgradeDisabled={false}
               upgradeError={null}
               upgradingPercentage={42}
             />
@@ -229,8 +241,23 @@ exports[`components/admin_console/license_settings/LicenseSettings should match 
       <div
         className="admin-console__banner_section"
       >
+        <UserSeatAlertBanner
+          license={
+            Object {
+              "Company": "Mattermost Inc.",
+              "ExpiresAt": "1620335443650",
+              "IsLicensed": "true",
+              "IssuedAt": "1517714643650",
+              "Name": "LicenseName",
+              "SkuShortName": "E10",
+              "StartsAt": "1517714643650",
+              "Users": "100",
+            }
+          }
+          location="license_settings"
+          totalUsers={10}
+        />
         <RenewLicenseCard
-          isDisabled={false}
           isLicenseExpired={false}
           license={
             Object {
@@ -265,6 +292,7 @@ exports[`components/admin_console/license_settings/LicenseSettings should match 
               handleChange={[Function]}
               handleRemove={[Function]}
               isDisabled={false}
+              isLicenseSetByEnvVar={false}
               isTrialLicense={false}
               license={
                 Object {
@@ -288,21 +316,21 @@ exports[`components/admin_console/license_settings/LicenseSettings should match 
             className="terms-and-policy"
           >
             See also 
-            <ExternalLink
+            <ForwardRef
               href="https://mattermost.com/pl/terms-of-use/"
               id="privacyLink"
               location="license_settings"
             >
               Enterprise Edition Terms of Use
-            </ExternalLink>
+            </ForwardRef>
              and 
-            <ExternalLink
+            <ForwardRef
               href="https://mattermost.com/pl/privacy-policy/"
               id="privacyLink"
               location="license_settings"
             >
               Privacy Policy
-            </ExternalLink>
+            </ForwardRef>
           </div>
         </div>
         <div
@@ -331,13 +359,13 @@ exports[`components/admin_console/license_settings/LicenseSettings should match 
             className="compare-plans-text"
           >
             Curious about upgrading? 
-            <ExternalLink
+            <ForwardRef
               href="https://mattermost.com/pl/pricing/"
               id="privacyLink"
               location="license_settings"
             >
               Compare Plans
-            </ExternalLink>
+            </ForwardRef>
           </div>
         </div>
       </div>
@@ -365,8 +393,23 @@ exports[`components/admin_console/license_settings/LicenseSettings should match 
       <div
         className="admin-console__banner_section"
       >
+        <UserSeatAlertBanner
+          license={
+            Object {
+              "Company": "Mattermost Inc.",
+              "ExpiresAt": "1620335443650",
+              "IsLicensed": "true",
+              "IssuedAt": "1517714643650",
+              "Name": "LicenseName",
+              "SkuShortName": "E20",
+              "StartsAt": "1517714643650",
+              "Users": "100",
+            }
+          }
+          location="license_settings"
+          totalUsers={10}
+        />
         <RenewLicenseCard
-          isDisabled={false}
           isLicenseExpired={false}
           license={
             Object {
@@ -401,6 +444,7 @@ exports[`components/admin_console/license_settings/LicenseSettings should match 
               handleChange={[Function]}
               handleRemove={[Function]}
               isDisabled={false}
+              isLicenseSetByEnvVar={false}
               isTrialLicense={false}
               license={
                 Object {
@@ -424,21 +468,21 @@ exports[`components/admin_console/license_settings/LicenseSettings should match 
             className="terms-and-policy"
           >
             See also 
-            <ExternalLink
+            <ForwardRef
               href="https://mattermost.com/pl/terms-of-use/"
               id="privacyLink"
               location="license_settings"
             >
               Enterprise Edition Terms of Use
-            </ExternalLink>
+            </ForwardRef>
              and 
-            <ExternalLink
+            <ForwardRef
               href="https://mattermost.com/pl/privacy-policy/"
               id="privacyLink"
               location="license_settings"
             >
               Privacy Policy
-            </ExternalLink>
+            </ForwardRef>
           </div>
         </div>
         <div
@@ -489,8 +533,23 @@ exports[`components/admin_console/license_settings/LicenseSettings should match 
       <div
         className="admin-console__banner_section"
       >
+        <UserSeatAlertBanner
+          license={
+            Object {
+              "Company": "Mattermost Inc.",
+              "ExpiresAt": "1620335443650",
+              "IsLicensed": "true",
+              "IssuedAt": "1517714643650",
+              "Name": "LicenseName",
+              "SkuShortName": "enterprise",
+              "StartsAt": "1517714643650",
+              "Users": "100",
+            }
+          }
+          location="license_settings"
+          totalUsers={10}
+        />
         <RenewLicenseCard
-          isDisabled={false}
           isLicenseExpired={false}
           license={
             Object {
@@ -525,6 +584,7 @@ exports[`components/admin_console/license_settings/LicenseSettings should match 
               handleChange={[Function]}
               handleRemove={[Function]}
               isDisabled={false}
+              isLicenseSetByEnvVar={false}
               isTrialLicense={false}
               license={
                 Object {
@@ -548,21 +608,21 @@ exports[`components/admin_console/license_settings/LicenseSettings should match 
             className="terms-and-policy"
           >
             See also 
-            <ExternalLink
+            <ForwardRef
               href="https://mattermost.com/pl/terms-of-use/"
               id="privacyLink"
               location="license_settings"
             >
               Enterprise Edition Terms of Use
-            </ExternalLink>
+            </ForwardRef>
              and 
-            <ExternalLink
+            <ForwardRef
               href="https://mattermost.com/pl/privacy-policy/"
               id="privacyLink"
               location="license_settings"
             >
               Privacy Policy
-            </ExternalLink>
+            </ForwardRef>
           </div>
         </div>
         <div
@@ -613,8 +673,23 @@ exports[`components/admin_console/license_settings/LicenseSettings should match 
       <div
         className="admin-console__banner_section"
       >
+        <UserSeatAlertBanner
+          license={
+            Object {
+              "Company": "Mattermost Inc.",
+              "ExpiresAt": "1620335443650",
+              "IsLicensed": "true",
+              "IssuedAt": "1517714643650",
+              "Name": "LicenseName",
+              "SkuShortName": "E20",
+              "StartsAt": "1517714643650",
+              "Users": "100",
+            }
+          }
+          location="license_settings"
+          totalUsers={10}
+        />
         <RenewLicenseCard
-          isDisabled={false}
           isLicenseExpired={false}
           license={
             Object {
@@ -649,6 +724,7 @@ exports[`components/admin_console/license_settings/LicenseSettings should match 
               handleChange={[Function]}
               handleRemove={[Function]}
               isDisabled={false}
+              isLicenseSetByEnvVar={false}
               isTrialLicense={false}
               license={
                 Object {
@@ -672,21 +748,21 @@ exports[`components/admin_console/license_settings/LicenseSettings should match 
             className="terms-and-policy"
           >
             See also 
-            <ExternalLink
+            <ForwardRef
               href="https://mattermost.com/pl/terms-of-use/"
               id="privacyLink"
               location="license_settings"
             >
               Enterprise Edition Terms of Use
-            </ExternalLink>
+            </ForwardRef>
              and 
-            <ExternalLink
+            <ForwardRef
               href="https://mattermost.com/pl/privacy-policy/"
               id="privacyLink"
               location="license_settings"
             >
               Privacy Policy
-            </ExternalLink>
+            </ForwardRef>
           </div>
         </div>
         <div
@@ -737,8 +813,23 @@ exports[`components/admin_console/license_settings/LicenseSettings should match 
       <div
         className="admin-console__banner_section"
       >
+        <UserSeatAlertBanner
+          license={
+            Object {
+              "Company": "Mattermost Inc.",
+              "ExpiresAt": "1620335443650",
+              "IsLicensed": "true",
+              "IssuedAt": "1517714643650",
+              "Name": "LicenseName",
+              "SkuShortName": "E20",
+              "StartsAt": "1517714643650",
+              "Users": "100",
+            }
+          }
+          location="license_settings"
+          totalUsers={10}
+        />
         <RenewLicenseCard
-          isDisabled={true}
           isLicenseExpired={false}
           license={
             Object {
@@ -773,6 +864,7 @@ exports[`components/admin_console/license_settings/LicenseSettings should match 
               handleChange={[Function]}
               handleRemove={[Function]}
               isDisabled={true}
+              isLicenseSetByEnvVar={false}
               isTrialLicense={false}
               license={
                 Object {
@@ -796,21 +888,21 @@ exports[`components/admin_console/license_settings/LicenseSettings should match 
             className="terms-and-policy"
           >
             See also 
-            <ExternalLink
+            <ForwardRef
               href="https://mattermost.com/pl/terms-of-use/"
               id="privacyLink"
               location="license_settings"
             >
               Enterprise Edition Terms of Use
-            </ExternalLink>
+            </ForwardRef>
              and 
-            <ExternalLink
+            <ForwardRef
               href="https://mattermost.com/pl/privacy-policy/"
               id="privacyLink"
               location="license_settings"
             >
               Privacy Policy
-            </ExternalLink>
+            </ForwardRef>
           </div>
         </div>
         <div
@@ -861,8 +953,23 @@ exports[`components/admin_console/license_settings/LicenseSettings should match 
       <div
         className="admin-console__banner_section"
       >
+        <UserSeatAlertBanner
+          license={
+            Object {
+              "Company": "Mattermost Inc.",
+              "ExpiresAt": "1620335443650",
+              "IsLicensed": "true",
+              "IssuedAt": "1517714643650",
+              "Name": "LicenseName",
+              "SkuShortName": "E20",
+              "StartsAt": "1517714643650",
+              "Users": "100",
+            }
+          }
+          location="license_settings"
+          totalUsers={10}
+        />
         <RenewLicenseCard
-          isDisabled={false}
           isLicenseExpired={false}
           license={
             Object {
@@ -897,6 +1004,7 @@ exports[`components/admin_console/license_settings/LicenseSettings should match 
               handleChange={[Function]}
               handleRemove={[Function]}
               isDisabled={false}
+              isLicenseSetByEnvVar={false}
               isTrialLicense={false}
               license={
                 Object {
@@ -920,21 +1028,21 @@ exports[`components/admin_console/license_settings/LicenseSettings should match 
             className="terms-and-policy"
           >
             See also 
-            <ExternalLink
+            <ForwardRef
               href="https://mattermost.com/pl/terms-of-use/"
               id="privacyLink"
               location="license_settings"
             >
               Enterprise Edition Terms of Use
-            </ExternalLink>
+            </ForwardRef>
              and 
-            <ExternalLink
+            <ForwardRef
               href="https://mattermost.com/pl/privacy-policy/"
               id="privacyLink"
               location="license_settings"
             >
               Privacy Policy
-            </ExternalLink>
+            </ForwardRef>
           </div>
         </div>
         <div
@@ -985,6 +1093,18 @@ exports[`components/admin_console/license_settings/LicenseSettings should match 
       <div
         className="admin-console__banner_section"
       >
+        <UserSeatAlertBanner
+          license={
+            Object {
+              "ExpiresAt": "1620335443650",
+              "IsLicensed": "true",
+              "IssuedAt": "1617714643650",
+              "StartsAt": "1617714643650",
+            }
+          }
+          location="license_settings"
+          totalUsers={10}
+        />
         <TrialLicenseCard
           license={
             Object {
@@ -1014,6 +1134,7 @@ exports[`components/admin_console/license_settings/LicenseSettings should match 
               handleChange={[Function]}
               handleRemove={[Function]}
               isDisabled={false}
+              isLicenseSetByEnvVar={false}
               isTrialLicense={true}
               license={
                 Object {
@@ -1052,13 +1173,13 @@ exports[`components/admin_console/license_settings/LicenseSettings should match 
             className="compare-plans-text"
           >
             Curious about upgrading? 
-            <ExternalLink
+            <ForwardRef
               href="https://mattermost.com/pl/pricing/"
               id="privacyLink"
               location="license_settings"
             >
               Compare Plans
-            </ExternalLink>
+            </ForwardRef>
           </div>
         </div>
       </div>
@@ -1086,6 +1207,15 @@ exports[`components/admin_console/license_settings/LicenseSettings should match 
       <div
         className="admin-console__banner_section"
       >
+        <UserSeatAlertBanner
+          license={
+            Object {
+              "IsLicensed": "false",
+            }
+          }
+          location="license_settings"
+          totalUsers={10}
+        />
         <Component
           enterpriseReady={true}
           gettingTrial={false}
@@ -1097,6 +1227,7 @@ exports[`components/admin_console/license_settings/LicenseSettings should match 
           openEEModal={[Function]}
           restartError={null}
           restarting={false}
+          upgradeDisabled={false}
           upgradeError={null}
           upgradingPercentage={0}
         />
@@ -1135,21 +1266,21 @@ exports[`components/admin_console/license_settings/LicenseSettings should match 
             className="terms-and-policy"
           >
             See also 
-            <ExternalLink
+            <ForwardRef
               href="https://mattermost.com/pl/terms-of-use/"
               id="privacyLink"
               location="license_settings"
             >
               Enterprise Edition Terms of Use
-            </ExternalLink>
+            </ForwardRef>
              and 
-            <ExternalLink
+            <ForwardRef
               href="https://mattermost.com/pl/privacy-policy/"
               id="privacyLink"
               location="license_settings"
             >
               Privacy Policy
-            </ExternalLink>
+            </ForwardRef>
           </div>
         </div>
         <div
@@ -1164,13 +1295,13 @@ exports[`components/admin_console/license_settings/LicenseSettings should match 
             className="compare-plans-text"
           >
             Curious about upgrading? 
-            <ExternalLink
+            <ForwardRef
               href="https://mattermost.com/pl/pricing/"
               id="privacyLink"
               location="license_settings"
             >
               Compare Plans
-            </ExternalLink>
+            </ForwardRef>
           </div>
         </div>
       </div>
@@ -1198,6 +1329,15 @@ exports[`components/admin_console/license_settings/LicenseSettings should match 
       <div
         className="admin-console__banner_section"
       >
+        <UserSeatAlertBanner
+          license={
+            Object {
+              "IsLicensed": "false",
+            }
+          }
+          location="license_settings"
+          totalUsers={10}
+        />
         <Component
           enterpriseReady={true}
           gettingTrial={false}
@@ -1209,6 +1349,7 @@ exports[`components/admin_console/license_settings/LicenseSettings should match 
           openEEModal={[Function]}
           restartError={null}
           restarting={false}
+          upgradeDisabled={false}
           upgradeError={null}
           upgradingPercentage={0}
         />
@@ -1247,21 +1388,21 @@ exports[`components/admin_console/license_settings/LicenseSettings should match 
             className="terms-and-policy"
           >
             See also 
-            <ExternalLink
+            <ForwardRef
               href="https://mattermost.com/pl/terms-of-use/"
               id="privacyLink"
               location="license_settings"
             >
               Enterprise Edition Terms of Use
-            </ExternalLink>
+            </ForwardRef>
              and 
-            <ExternalLink
+            <ForwardRef
               href="https://mattermost.com/pl/privacy-policy/"
               id="privacyLink"
               location="license_settings"
             >
               Privacy Policy
-            </ExternalLink>
+            </ForwardRef>
           </div>
         </div>
         <div
@@ -1276,13 +1417,13 @@ exports[`components/admin_console/license_settings/LicenseSettings should match 
             className="compare-plans-text"
           >
             Curious about upgrading? 
-            <ExternalLink
+            <ForwardRef
               href="https://mattermost.com/pl/pricing/"
               id="privacyLink"
               location="license_settings"
             >
               Compare Plans
-            </ExternalLink>
+            </ForwardRef>
           </div>
         </div>
       </div>
@@ -1310,8 +1451,23 @@ exports[`components/admin_console/license_settings/LicenseSettings should match 
       <div
         className="admin-console__banner_section"
       >
+        <UserSeatAlertBanner
+          license={
+            Object {
+              "Company": "Mattermost Inc.",
+              "ExpiresAt": "1620335443650",
+              "IsLicensed": "true",
+              "IssuedAt": "1517714643650",
+              "Name": "LicenseName",
+              "SkuShortName": "E20",
+              "StartsAt": "1517714643650",
+              "Users": "100",
+            }
+          }
+          location="license_settings"
+          totalUsers={10}
+        />
         <RenewLicenseCard
-          isDisabled={false}
           isLicenseExpired={false}
           license={
             Object {
@@ -1338,16 +1494,6 @@ exports[`components/admin_console/license_settings/LicenseSettings should match 
             className="panel-card"
           >
             <TeamEdition
-              currentPlan={
-                <div
-                  className="current-plan-legend"
-                >
-                  <i
-                    className="icon-check-circle"
-                  />
-                  Current Plan
-                </div>
-              }
               openEELicenseModal={[Function]}
             />
           </div>
@@ -1355,21 +1501,21 @@ exports[`components/admin_console/license_settings/LicenseSettings should match 
             className="terms-and-policy"
           >
             See also 
-            <ExternalLink
+            <ForwardRef
               href="https://mattermost.com/pl/terms-of-use/"
               id="privacyLink"
               location="license_settings"
             >
               Enterprise Edition Terms of Use
-            </ExternalLink>
+            </ForwardRef>
              and 
-            <ExternalLink
+            <ForwardRef
               href="https://mattermost.com/pl/privacy-policy/"
               id="privacyLink"
               location="license_settings"
             >
               Privacy Policy
-            </ExternalLink>
+            </ForwardRef>
           </div>
         </div>
         <div
@@ -1385,6 +1531,7 @@ exports[`components/admin_console/license_settings/LicenseSettings should match 
               restartError={null}
               restarting={false}
               setClickNormalUpgradeBtn={[Function]}
+              upgradeDisabled={false}
               upgradeError={null}
               upgradingPercentage={0}
             />
@@ -1415,6 +1562,15 @@ exports[`components/admin_console/license_settings/LicenseSettings should match 
       <div
         className="admin-console__banner_section"
       >
+        <UserSeatAlertBanner
+          license={
+            Object {
+              "IsLicensed": "false",
+            }
+          }
+          location="license_settings"
+          totalUsers={10}
+        />
         <Component
           enterpriseReady={false}
           gettingTrial={false}
@@ -1426,6 +1582,7 @@ exports[`components/admin_console/license_settings/LicenseSettings should match 
           openEEModal={[Function]}
           restartError={null}
           restarting={false}
+          upgradeDisabled={false}
           upgradeError={null}
           upgradingPercentage={0}
         />
@@ -1440,16 +1597,6 @@ exports[`components/admin_console/license_settings/LicenseSettings should match 
             className="panel-card"
           >
             <TeamEdition
-              currentPlan={
-                <div
-                  className="current-plan-legend"
-                >
-                  <i
-                    className="icon-check-circle"
-                  />
-                  Current Plan
-                </div>
-              }
               openEELicenseModal={[Function]}
             />
           </div>
@@ -1457,21 +1604,21 @@ exports[`components/admin_console/license_settings/LicenseSettings should match 
             className="terms-and-policy"
           >
             See also 
-            <ExternalLink
+            <ForwardRef
               href="https://mattermost.com/pl/terms-of-use/"
               id="privacyLink"
               location="license_settings"
             >
               Enterprise Edition Terms of Use
-            </ExternalLink>
+            </ForwardRef>
              and 
-            <ExternalLink
+            <ForwardRef
               href="https://mattermost.com/pl/privacy-policy/"
               id="privacyLink"
               location="license_settings"
             >
               Privacy Policy
-            </ExternalLink>
+            </ForwardRef>
           </div>
         </div>
         <div
@@ -1487,6 +1634,7 @@ exports[`components/admin_console/license_settings/LicenseSettings should match 
               restartError={null}
               restarting={false}
               setClickNormalUpgradeBtn={[Function]}
+              upgradeDisabled={false}
               upgradeError={null}
               upgradingPercentage={0}
             />
@@ -1495,13 +1643,13 @@ exports[`components/admin_console/license_settings/LicenseSettings should match 
             className="compare-plans-text"
           >
             Curious about upgrading? 
-            <ExternalLink
+            <ForwardRef
               href="https://mattermost.com/pl/pricing/"
               id="privacyLink"
               location="license_settings"
             >
               Compare Plans
-            </ExternalLink>
+            </ForwardRef>
           </div>
         </div>
       </div>
@@ -1528,7 +1676,17 @@ exports[`components/admin_console/license_settings/LicenseSettings should match 
     >
       <div
         className="admin-console__banner_section"
-      />
+      >
+        <UserSeatAlertBanner
+          license={
+            Object {
+              "IsLicensed": "false",
+            }
+          }
+          location="license_settings"
+          totalUsers={10}
+        />
+      </div>
       <div
         className="top-wrapper"
       >
@@ -1563,21 +1721,21 @@ exports[`components/admin_console/license_settings/LicenseSettings should match 
             className="terms-and-policy"
           >
             See also 
-            <ExternalLink
+            <ForwardRef
               href="https://mattermost.com/pl/terms-of-use/"
               id="privacyLink"
               location="license_settings"
             >
               Enterprise Edition Terms of Use
-            </ExternalLink>
+            </ForwardRef>
              and 
-            <ExternalLink
+            <ForwardRef
               href="https://mattermost.com/pl/privacy-policy/"
               id="privacyLink"
               location="license_settings"
             >
               Privacy Policy
-            </ExternalLink>
+            </ForwardRef>
           </div>
         </div>
         <div
@@ -1592,13 +1750,13 @@ exports[`components/admin_console/license_settings/LicenseSettings should match 
             className="compare-plans-text"
           >
             Curious about upgrading? 
-            <ExternalLink
+            <ForwardRef
               href="https://mattermost.com/pl/pricing/"
               id="privacyLink"
               location="license_settings"
             >
               Compare Plans
-            </ExternalLink>
+            </ForwardRef>
           </div>
         </div>
       </div>
@@ -1625,7 +1783,25 @@ exports[`components/admin_console/license_settings/LicenseSettings should match 
     >
       <div
         className="admin-console__banner_section"
-      />
+      >
+        <UserSeatAlertBanner
+          license={
+            Object {
+              "Cloud": "true",
+              "Company": "Mattermost Inc.",
+              "ExpiresAt": "1620993600000",
+              "IsLicensed": "true",
+              "IssuedAt": "1517714643650",
+              "Name": "LicenseName",
+              "SkuShortName": "E20",
+              "StartsAt": "1517714643650",
+              "Users": "100",
+            }
+          }
+          location="license_settings"
+          totalUsers={10}
+        />
+      </div>
       <div
         className="top-wrapper"
       >
@@ -1644,6 +1820,7 @@ exports[`components/admin_console/license_settings/LicenseSettings should match 
               handleChange={[Function]}
               handleRemove={[Function]}
               isDisabled={false}
+              isLicenseSetByEnvVar={false}
               isTrialLicense={false}
               license={
                 Object {
@@ -1668,21 +1845,21 @@ exports[`components/admin_console/license_settings/LicenseSettings should match 
             className="terms-and-policy"
           >
             See also 
-            <ExternalLink
+            <ForwardRef
               href="https://mattermost.com/pl/terms-of-use/"
               id="privacyLink"
               location="license_settings"
             >
               Enterprise Edition Terms of Use
-            </ExternalLink>
+            </ForwardRef>
              and 
-            <ExternalLink
+            <ForwardRef
               href="https://mattermost.com/pl/privacy-policy/"
               id="privacyLink"
               location="license_settings"
             >
               Privacy Policy
-            </ExternalLink>
+            </ForwardRef>
           </div>
         </div>
         <div
@@ -1734,8 +1911,23 @@ exports[`components/admin_console/license_settings/LicenseSettings should match 
       <div
         className="admin-console__banner_section"
       >
+        <UserSeatAlertBanner
+          license={
+            Object {
+              "Company": "Mattermost Inc.",
+              "ExpiresAt": "1620993600000",
+              "IsLicensed": "true",
+              "IssuedAt": "1517714643650",
+              "Name": "LicenseName",
+              "SkuShortName": "E20",
+              "StartsAt": "1517714643650",
+              "Users": "100",
+            }
+          }
+          location="license_settings"
+          totalUsers={10}
+        />
         <RenewLicenseCard
-          isDisabled={false}
           isLicenseExpired={false}
           license={
             Object {
@@ -1770,6 +1962,7 @@ exports[`components/admin_console/license_settings/LicenseSettings should match 
               handleChange={[Function]}
               handleRemove={[Function]}
               isDisabled={false}
+              isLicenseSetByEnvVar={false}
               isTrialLicense={false}
               license={
                 Object {
@@ -1793,21 +1986,21 @@ exports[`components/admin_console/license_settings/LicenseSettings should match 
             className="terms-and-policy"
           >
             See also 
-            <ExternalLink
+            <ForwardRef
               href="https://mattermost.com/pl/terms-of-use/"
               id="privacyLink"
               location="license_settings"
             >
               Enterprise Edition Terms of Use
-            </ExternalLink>
+            </ForwardRef>
              and 
-            <ExternalLink
+            <ForwardRef
               href="https://mattermost.com/pl/privacy-policy/"
               id="privacyLink"
               location="license_settings"
             >
               Privacy Policy
-            </ExternalLink>
+            </ForwardRef>
           </div>
         </div>
         <div

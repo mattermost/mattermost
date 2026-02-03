@@ -4,23 +4,21 @@
 package app
 
 import (
-	"os"
 	"testing"
+	"time"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
 	storemocks "github.com/mattermost/mattermost/server/v8/channels/store/storetest/mocks"
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 )
 
 func TestResolvePersistentNotification(t *testing.T) {
+	mainHelper.Parallel(t)
 	t.Run("should not delete when no posts exist", func(t *testing.T) {
-		os.Setenv("MM_FEATUREFLAGS_POSTPRIORITY", "true")
-		defer os.Unsetenv("MM_FEATUREFLAGS_POSTPRIORITY")
-
 		th := SetupWithStoreMock(t)
-		defer th.TearDown()
 
 		post := &model.Post{Id: "test id"}
 
@@ -42,11 +40,7 @@ func TestResolvePersistentNotification(t *testing.T) {
 	})
 
 	t.Run("should delete for mentioned user", func(t *testing.T) {
-		os.Setenv("MM_FEATUREFLAGS_POSTPRIORITY", "true")
-		defer os.Unsetenv("MM_FEATUREFLAGS_POSTPRIORITY")
-
 		th := SetupWithStoreMock(t)
-		defer th.TearDown()
 
 		user1 := &model.User{Id: "uid1", Username: "user-1"}
 		user2 := &model.User{Id: "uid2", Username: "user-2"}
@@ -91,7 +85,6 @@ func TestResolvePersistentNotification(t *testing.T) {
 
 	t.Run("should not delete for post owner", func(t *testing.T) {
 		th := SetupWithStoreMock(t)
-		defer th.TearDown()
 
 		user1 := &model.User{Id: "uid1"}
 		post := &model.Post{Id: "test id", UserId: user1.Id}
@@ -108,11 +101,7 @@ func TestResolvePersistentNotification(t *testing.T) {
 	})
 
 	t.Run("should not delete for non-mentioned user", func(t *testing.T) {
-		os.Setenv("MM_FEATUREFLAGS_POSTPRIORITY", "true")
-		defer os.Unsetenv("MM_FEATUREFLAGS_POSTPRIORITY")
-
 		th := SetupWithStoreMock(t)
-		defer th.TearDown()
 
 		user1 := &model.User{Id: "uid1", Username: "user-1"}
 		user2 := &model.User{Id: "uid2", Username: "user-2"}
@@ -158,12 +147,9 @@ func TestResolvePersistentNotification(t *testing.T) {
 }
 
 func TestDeletePersistentNotification(t *testing.T) {
+	mainHelper.Parallel(t)
 	t.Run("should not delete when no posts exist", func(t *testing.T) {
-		os.Setenv("MM_FEATUREFLAGS_POSTPRIORITY", "true")
-		defer os.Unsetenv("MM_FEATUREFLAGS_POSTPRIORITY")
-
 		th := SetupWithStoreMock(t)
-		defer th.TearDown()
 
 		post := &model.Post{Id: "test id"}
 
@@ -185,11 +171,7 @@ func TestDeletePersistentNotification(t *testing.T) {
 	})
 
 	t.Run("should delete", func(t *testing.T) {
-		os.Setenv("MM_FEATUREFLAGS_POSTPRIORITY", "true")
-		defer os.Unsetenv("MM_FEATUREFLAGS_POSTPRIORITY")
-
 		th := SetupWithStoreMock(t)
-		defer th.TearDown()
 
 		post := &model.Post{Id: "test id"}
 
@@ -211,10 +193,11 @@ func TestDeletePersistentNotification(t *testing.T) {
 }
 
 func TestSendPersistentNotifications(t *testing.T) {
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
 
-	th.App.AddUserToChannel(th.Context, th.BasicUser2, th.BasicChannel, false)
+	_, appErr := th.App.AddUserToChannel(th.Context, th.BasicUser2, th.BasicChannel, false)
+	require.Nil(t, appErr)
 
 	s := "Urgent"
 	tr := true
@@ -229,9 +212,112 @@ func TestSendPersistentNotifications(t *testing.T) {
 			},
 		},
 	}
-	_, appErr := th.App.CreatePost(th.Context, p1, th.BasicChannel, false, false)
+	_, _, appErr = th.App.CreatePost(th.Context, p1, th.BasicChannel, model.CreatePostFlags{})
 	require.Nil(t, appErr)
 
 	err := th.App.SendPersistentNotifications()
 	require.NoError(t, err)
+}
+
+func TestSendPersistentNotificationsBotSender(t *testing.T) {
+	mainHelper.Parallel(t)
+	t.Run("should send notification when bot is sender", func(t *testing.T) {
+		th := Setup(t).InitBasic(t)
+
+		bot, appErr := th.App.CreateBot(th.Context, &model.Bot{
+			Username:    "testbot",
+			DisplayName: "Test Bot",
+			OwnerId:     th.BasicUser.Id,
+		})
+		require.Nil(t, appErr)
+
+		botUser, appErr := th.App.GetUser(bot.UserId)
+		require.Nil(t, appErr)
+
+		_, _, appErr = th.App.AddUserToTeam(th.Context, th.BasicTeam.Id, botUser.Id, "")
+		require.Nil(t, appErr)
+
+		_, appErr = th.App.AddUserToChannel(th.Context, botUser, th.BasicChannel, false)
+		require.Nil(t, appErr)
+
+		_, appErr = th.App.AddUserToChannel(th.Context, th.BasicUser2, th.BasicChannel, false)
+		require.Nil(t, appErr)
+
+		post := &model.Post{
+			UserId:    bot.UserId,
+			ChannelId: th.BasicChannel.Id,
+			Message:   "test " + "@" + th.BasicUser2.Username,
+			Metadata: &model.PostMetadata{
+				Priority: &model.PostPriority{
+					Priority:                model.NewPointer(model.PostPriorityUrgent),
+					PersistentNotifications: model.NewPointer(true),
+				},
+			},
+			// Simulate old timestamp so persistent notifications are sent right away
+			CreateAt: time.Now().Add(-5 * time.Minute).UnixMilli(),
+		}
+		post, _, appErr = th.App.CreatePost(th.Context, post, th.BasicChannel, model.CreatePostFlags{})
+		require.Nil(t, appErr)
+
+		assert.EventuallyWithT(t, func(c *assert.CollectT) {
+			err := th.App.SendPersistentNotifications()
+			require.NoError(t, err)
+
+			persistentPostNotification, err := th.App.Srv().Store().PostPersistentNotification().GetSingle(post.Id)
+			require.NoError(c, err)
+			require.NotNil(c, persistentPostNotification)
+			assert.Greater(c, persistentPostNotification.SentCount, int16(0))
+		}, 5*time.Second, 100*time.Millisecond)
+	})
+}
+
+func TestSendPersistentNotificationsBotSenderNotInChannel(t *testing.T) {
+	mainHelper.Parallel(t)
+	t.Run("should send notification when bot sender is not a channel member", func(t *testing.T) {
+		th := Setup(t).InitBasic(t)
+
+		bot, appErr := th.App.CreateBot(th.Context, &model.Bot{
+			Username:    "testbot",
+			DisplayName: "Test Bot",
+			OwnerId:     th.BasicUser.Id,
+		})
+		require.Nil(t, appErr)
+
+		botUser, appErr := th.App.GetUser(bot.UserId)
+		require.Nil(t, appErr)
+
+		// Make the bot a system admin so it can post to channels it's not a member of
+		_, appErr = th.App.UpdateUserRoles(th.Context, botUser.Id, model.SystemUserRoleId+" "+model.SystemAdminRoleId, false)
+		require.Nil(t, appErr)
+
+		_, appErr = th.App.AddUserToChannel(th.Context, th.BasicUser2, th.BasicChannel, false)
+		require.Nil(t, appErr)
+
+		// Note: bot is NOT added to the team or channel
+
+		post := &model.Post{
+			UserId:    bot.UserId,
+			ChannelId: th.BasicChannel.Id,
+			Message:   "test " + "@" + th.BasicUser2.Username,
+			Metadata: &model.PostMetadata{
+				Priority: &model.PostPriority{
+					Priority:                model.NewPointer(model.PostPriorityUrgent),
+					PersistentNotifications: model.NewPointer(true),
+				},
+			},
+			CreateAt: time.Now().Add(-5 * time.Minute).UnixMilli(),
+		}
+		post, _, appErr = th.App.CreatePost(th.Context, post, th.BasicChannel, model.CreatePostFlags{SetOnline: true})
+		require.Nil(t, appErr)
+
+		assert.EventuallyWithT(t, func(c *assert.CollectT) {
+			err := th.App.SendPersistentNotifications()
+			require.NoError(t, err)
+
+			persistentPostNotification, err := th.App.Srv().Store().PostPersistentNotification().GetSingle(post.Id)
+			require.NoError(c, err)
+			require.NotNil(c, persistentPostNotification)
+			assert.Greater(c, persistentPostNotification.SentCount, int16(0))
+		}, 5*time.Second, 100*time.Millisecond)
+	})
 }

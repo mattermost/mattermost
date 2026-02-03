@@ -3,24 +3,19 @@
 
 import {connect} from 'react-redux';
 import {bindActionCreators} from 'redux';
-import type {ActionCreatorsMapObject, Dispatch} from 'redux';
+import type {Dispatch} from 'redux';
 
-import type {IncomingWebhook} from '@mattermost/types/integrations';
 import type {GlobalState} from '@mattermost/types/store';
 
 import {getIncomingHook, updateIncomingHook} from 'mattermost-redux/actions/integrations';
+import {Permissions} from 'mattermost-redux/constants';
 import {getConfig} from 'mattermost-redux/selectors/entities/general';
-import type {ActionFunc, ActionResult, GenericAction} from 'mattermost-redux/types/actions';
+import {haveICurrentTeamPermission} from 'mattermost-redux/selectors/entities/roles';
 
 import EditIncomingWebhook from './edit_incoming_webhook';
 
 type Props = {
     location: Location;
-}
-
-type Actions = {
-    updateIncomingHook: (hook: IncomingWebhook) => Promise<ActionResult>;
-    getIncomingHook: (hookId: string) => Promise<ActionResult>;
 }
 
 function mapStateToProps(state: GlobalState, ownProps: Props) {
@@ -29,6 +24,7 @@ function mapStateToProps(state: GlobalState, ownProps: Props) {
     const enablePostUsernameOverride = config.EnablePostUsernameOverride === 'true';
     const enablePostIconOverride = config.EnablePostIconOverride === 'true';
     const hookId = (new URLSearchParams(ownProps.location.search)).get('id') || '';
+    const canBypassChannelLock = haveICurrentTeamPermission(state, Permissions.BYPASS_INCOMING_WEBHOOK_CHANNEL_LOCK);
 
     return {
         hookId,
@@ -36,12 +32,13 @@ function mapStateToProps(state: GlobalState, ownProps: Props) {
         enableIncomingWebhooks,
         enablePostUsernameOverride,
         enablePostIconOverride,
+        canBypassChannelLock,
     };
 }
 
-function mapDispatchToProps(dispatch: Dispatch<GenericAction>) {
+function mapDispatchToProps(dispatch: Dispatch) {
     return {
-        actions: bindActionCreators<ActionCreatorsMapObject<ActionFunc>, Actions>({
+        actions: bindActionCreators({
             updateIncomingHook,
             getIncomingHook,
         }, dispatch),

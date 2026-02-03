@@ -1,8 +1,9 @@
-// Jest Snapshot v1, https://goo.gl/fbAQLP
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
 
 exports[`components/sidebar/sidebar_category/sidebar_category_menu should match snapshot and contain correct buttons 1`] = `
 <Memo(SidebarCategoryGenericMenu)
   id="test_category_id"
+  name="custom_category_1"
 >
   <MarkAsUnreadItem
     handleViewCategory={[Function]}
@@ -95,16 +96,22 @@ exports[`components/sidebar/sidebar_category/sidebar_category_menu should match 
         />
       }
       onClick={[Function]}
+      trailingElements={
+        <CheckIcon
+          size={16}
+        />
+      }
     />
     <MenuItem
       id="sortByMostRecent-test_category_id"
       labels={
         <Memo(MemoizedFormattedMessage)
-          defaultMessage="Recent Activity"
+          defaultMessage="Recent activity"
           id="sidebar.sortedByRecencyLabel"
         />
       }
       onClick={[Function]}
+      trailingElements={null}
     />
     <MenuItem
       id="sortManual-test_category_id"
@@ -115,6 +122,7 @@ exports[`components/sidebar/sidebar_category/sidebar_category_menu should match 
         />
       }
       onClick={[Function]}
+      trailingElements={null}
     />
   </SubMenu>
   <MenuItemSeparator />

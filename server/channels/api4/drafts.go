@@ -12,12 +12,12 @@ import (
 )
 
 func (api *API) InitDrafts() {
-	api.BaseRoutes.Drafts.Handle("", api.APISessionRequired(upsertDraft)).Methods("POST")
+	api.BaseRoutes.Drafts.Handle("", api.APISessionRequired(upsertDraft)).Methods(http.MethodPost)
 
-	api.BaseRoutes.TeamForUser.Handle("/drafts", api.APISessionRequired(getDrafts)).Methods("GET")
+	api.BaseRoutes.TeamForUser.Handle("/drafts", api.APISessionRequired(getDrafts)).Methods(http.MethodGet)
 
-	api.BaseRoutes.ChannelForUser.Handle("/drafts/{thread_id:[A-Za-z0-9]+}", api.APISessionRequired(deleteDraft)).Methods("DELETE")
-	api.BaseRoutes.ChannelForUser.Handle("/drafts", api.APISessionRequired(deleteDraft)).Methods("DELETE")
+	api.BaseRoutes.ChannelForUser.Handle("/drafts/{thread_id:[A-Za-z0-9]+}", api.APISessionRequired(deleteDraft)).Methods(http.MethodDelete)
+	api.BaseRoutes.ChannelForUser.Handle("/drafts", api.APISessionRequired(deleteDraft)).Methods(http.MethodDelete)
 }
 
 func upsertDraft(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -38,7 +38,7 @@ func upsertDraft(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	hasPermission := false
 
-	if c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), draft.ChannelId, model.PermissionCreatePost) {
+	if ok, _ := c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), draft.ChannelId, model.PermissionCreatePost); ok {
 		hasPermission = true
 	} else if channel, err := c.App.GetChannel(c.AppContext, draft.ChannelId); err == nil {
 		// Temporary permission check method until advanced permissions, please do not copy

@@ -3,7 +3,7 @@
 
 import {connect} from 'react-redux';
 import {bindActionCreators} from 'redux';
-import type {ActionCreatorsMapObject, Dispatch} from 'redux';
+import type {Dispatch} from 'redux';
 
 import {getPrevTrialLicense} from 'mattermost-redux/actions/admin';
 import {Permissions} from 'mattermost-redux/constants';
@@ -21,7 +21,6 @@ import {
 import {haveICurrentTeamPermission, haveISystemPermission} from 'mattermost-redux/selectors/entities/roles';
 import {getCurrentTeam} from 'mattermost-redux/selectors/entities/teams';
 import {getCurrentUser} from 'mattermost-redux/selectors/entities/users';
-import type {Action} from 'mattermost-redux/types/actions';
 
 import {openModal} from 'actions/views/modals';
 import {getIsMobileView} from 'selectors/views/browser';
@@ -31,19 +30,13 @@ import {OnboardingTaskCategory, OnboardingTasksName, TaskNameMapToSteps} from 'c
 import {CloudProducts} from 'utils/constants';
 import {isCloudLicense} from 'utils/license_utils';
 
-import type {ModalData} from 'types/actions';
 import type {GlobalState} from 'types/store';
 
 import ProductMenuList from './product_menu_list';
 
-type Actions = {
-    openModal: <P>(modalData: ModalData<P>) => void;
-    getPrevTrialLicense: () => void;
-}
-
 function mapStateToProps(state: GlobalState) {
     const config = getConfig(state);
-    const currentTeam = getCurrentTeam(state) || {};
+    const currentTeam = getCurrentTeam(state);
     const currentUser = getCurrentUser(state);
 
     const appDownloadLink = config.AppDownloadLink || '';
@@ -53,7 +46,15 @@ function mapStateToProps(state: GlobalState) {
     const enableOAuthServiceProvider = config.EnableOAuthServiceProvider === 'true';
     const enableOutgoingWebhooks = config.EnableOutgoingWebhooks === 'true';
     const enablePluginMarketplace = isMarketplaceEnabled(state);
-    const canManageTeamIntegrations = (haveICurrentTeamPermission(state, Permissions.MANAGE_SLASH_COMMANDS) || haveICurrentTeamPermission(state, Permissions.MANAGE_OAUTH) || haveICurrentTeamPermission(state, Permissions.MANAGE_INCOMING_WEBHOOKS) || haveICurrentTeamPermission(state, Permissions.MANAGE_OUTGOING_WEBHOOKS));
+    const canManageTeamIntegrations = (
+        haveICurrentTeamPermission(state, Permissions.MANAGE_SLASH_COMMANDS) ||
+        haveICurrentTeamPermission(state, Permissions.MANAGE_OWN_SLASH_COMMANDS) ||
+        haveICurrentTeamPermission(state, Permissions.MANAGE_INCOMING_WEBHOOKS) ||
+        haveICurrentTeamPermission(state, Permissions.MANAGE_OWN_INCOMING_WEBHOOKS) ||
+        haveICurrentTeamPermission(state, Permissions.MANAGE_OUTGOING_WEBHOOKS) ||
+        haveICurrentTeamPermission(state, Permissions.MANAGE_OWN_OUTGOING_WEBHOOKS) ||
+        haveISystemPermission(state, {permission: Permissions.MANAGE_OAUTH})
+    );
     const canManageSystemBots = (haveISystemPermission(state, {permission: Permissions.MANAGE_BOTS}) || haveISystemPermission(state, {permission: Permissions.MANAGE_OTHERS_BOTS}));
     const canManageIntegrations = canManageTeamIntegrations || canManageSystemBots;
     const step = getInt(state, OnboardingTaskCategory, OnboardingTasksName.VISIT_SYSTEM_CONSOLE, 0);
@@ -88,8 +89,8 @@ function mapStateToProps(state: GlobalState) {
         enablePluginMarketplace,
         pluginMenuItems: state.plugins.components.MainMenu,
         siteName,
-        teamId: currentTeam.id,
-        teamName: currentTeam.name,
+        teamId: currentTeam?.id,
+        teamName: currentTeam?.name,
         currentUser,
         firstAdminVisitMarketplaceStatus: getFirstAdminVisitMarketplaceStatus(state),
         showVisitSystemConsoleTour,
@@ -101,7 +102,7 @@ function mapStateToProps(state: GlobalState) {
 
 function mapDispatchToProps(dispatch: Dispatch) {
     return {
-        actions: bindActionCreators<ActionCreatorsMapObject<Action>, Actions>({
+        actions: bindActionCreators({
             openModal,
             getPrevTrialLicense,
         }, dispatch),

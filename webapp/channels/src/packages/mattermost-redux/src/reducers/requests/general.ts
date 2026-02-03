@@ -1,16 +1,16 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import type {AnyAction} from 'redux';
 import {combineReducers} from 'redux';
 
-import type {GeneralRequestsStatuses, RequestStatusType} from '@mattermost/types/requests';
+import type {RequestStatusType} from '@mattermost/types/requests';
 
 import {GeneralTypes} from 'mattermost-redux/action_types';
-import type {GenericAction} from 'mattermost-redux/types/actions';
 
 import {handleRequest, initialRequestState} from './helpers';
 
-function websocket(state: RequestStatusType = initialRequestState(), action: GenericAction): RequestStatusType {
+function websocket(state: RequestStatusType = initialRequestState(), action: AnyAction): RequestStatusType {
     if (action.type === GeneralTypes.WEBSOCKET_CLOSED) {
         return initialRequestState();
     }
@@ -24,6 +24,6 @@ function websocket(state: RequestStatusType = initialRequestState(), action: Gen
     );
 }
 
-export default (combineReducers({
+export default combineReducers({
     websocket,
-}) as (b: GeneralRequestsStatuses, a: GenericAction) => GeneralRequestsStatuses);
+});

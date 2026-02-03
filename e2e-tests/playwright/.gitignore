@@ -1,0 +1,16 @@
+# playwright tests
+test/logs
+test/node_modules
+test/playwright-report
+test/test-results
+test/results
+test/storage_state
+test/specs-results
+test/specs/**/*-darwin.png
+test/specs/**/*-window.png
+test/specs/accessibility/**/*-snapshots
+test/.eslintcache
+
+# build
+dist
+*.tsbuildinfo

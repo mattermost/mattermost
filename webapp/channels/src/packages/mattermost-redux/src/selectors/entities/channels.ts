@@ -1,10 +1,11 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {max} from 'lodash';
+import max from 'lodash/max';
 
 import type {
     Channel,
+    ChannelBanner,
     ChannelMemberCountsByGroup,
     ChannelMembership,
     ChannelMessageCount,
@@ -17,7 +18,6 @@ import type {Team} from '@mattermost/types/teams';
 import type {UserProfile, UsersState} from '@mattermost/types/users';
 import type {
     IDMappedObjects,
-    RelationOneToMany,
     RelationOneToManyUnique,
     RelationOneToOne,
 } from '@mattermost/types/utilities';
@@ -28,10 +28,10 @@ import {createSelector} from 'mattermost-redux/selectors/create_selector';
 import {getDataRetentionCustomPolicy} from 'mattermost-redux/selectors/entities/admin';
 import {getCategoryInTeamByType} from 'mattermost-redux/selectors/entities/channel_categories';
 import {
-    getCurrentChannelId,
+    getCurrentChannelId as getCurrentChannelIdInternal,
     getCurrentUser,
-    getMyChannelMemberships,
-    getMyCurrentChannelMembership,
+    getMyChannelMemberships as getMyChannelMembershipsInternal,
+    getMyCurrentChannelMembership as getMyCurrentChannelMembershipInternal,
     getUsers,
 } from 'mattermost-redux/selectors/entities/common';
 import {
@@ -43,7 +43,7 @@ import {
     haveICurrentChannelPermission,
     haveITeamPermission,
 } from 'mattermost-redux/selectors/entities/roles';
-import {getCurrentTeamId, getMyTeams, getTeamMemberships} from 'mattermost-redux/selectors/entities/teams';
+import {getCurrentTeamId, getMyTeams} from 'mattermost-redux/selectors/entities/teams';
 import {
     getCurrentUserId,
     getStatusForUserId,
@@ -70,7 +70,11 @@ import {createIdsSelector} from 'mattermost-redux/utils/helpers';
 import {isPostPriorityEnabled} from './posts';
 import {getThreadCounts, getThreadCountsIncludingDirect} from './threads';
 
-export {getCurrentChannelId, getMyChannelMemberships, getMyCurrentChannelMembership};
+// Re-define these types to ensure that these are typed correctly when mattermost-redux is published
+export const getCurrentChannelId: (state: GlobalState) => string = getCurrentChannelIdInternal;
+export const getMyChannelMemberships: (state: GlobalState) => RelationOneToOne<Channel, ChannelMembership> = getMyChannelMembershipsInternal;
+export const getMyCurrentChannelMembership: (state: GlobalState) => ChannelMembership | undefined = getMyCurrentChannelMembershipInternal;
+
 export function getAllChannels(state: GlobalState): IDMappedObjects<Channel> {
     return state.entities.channels.channels;
 }
@@ -99,7 +103,7 @@ export function getChannelsMemberCount(state: GlobalState): Record<string, numbe
     return state.entities.channels.channelsMemberCount;
 }
 
-export function getChannelsInTeam(state: GlobalState): RelationOneToMany<Team, Channel> {
+export function getChannelsInTeam(state: GlobalState): RelationOneToManyUnique<Team, Channel> {
     return state.entities.channels.channelsInTeam;
 }
 
@@ -131,7 +135,7 @@ export function getChannelsInPolicy() {
 export const getDirectChannelsSet: (state: GlobalState) => Set<string> = createSelector(
     'getDirectChannelsSet',
     getChannelsInTeam,
-    (channelsInTeam: RelationOneToMany<Team, Channel>): Set<string> => {
+    (channelsInTeam: RelationOneToManyUnique<Team, Channel>): Set<string> => {
         if (!channelsInTeam) {
             return new Set();
         }
@@ -148,18 +152,21 @@ export function getChannelMember(state: GlobalState, channelId: string, userId: 
     return getChannelMembersInChannels(state)[channelId]?.[userId];
 }
 
+type OldMakeChannelArgument = {id: string};
+
 // makeGetChannel returns a selector that returns a channel from the store with the following filled in for DM/GM channels:
 // - The display_name set to the other user(s) names, following the Teammate Name Display setting
 // - The teammate_id for DM channels
 // - The status of the other user in a DM channel
-export function makeGetChannel(): (state: GlobalState, props: {id: string}) => Channel {
+export function makeGetChannel(): (state: GlobalState, id: string) => Channel | undefined {
     return createSelector(
         'makeGetChannel',
         getCurrentUserId,
         (state: GlobalState) => state.entities.users.profiles,
         (state: GlobalState) => state.entities.users.profilesInChannel,
-        (state: GlobalState, props: {id: string}) => {
-            const channel = getChannel(state, props.id);
+        (state: GlobalState, channelId: string | OldMakeChannelArgument) => {
+            const id = typeof channelId === 'string' ? channelId : channelId.id;
+            const channel = getChannel(state, id);
             if (!channel || !isDirectChannel(channel)) {
                 return '';
             }
@@ -170,7 +177,10 @@ export function makeGetChannel(): (state: GlobalState, props: {id: string}) => C
 
             return teammateStatus || 'offline';
         },
-        (state: GlobalState, props: {id: string}) => getChannel(state, props.id),
+        (state: GlobalState, channelId: string | OldMakeChannelArgument) => {
+            const id = typeof channelId === 'string' ? channelId : channelId.id;
+            return getChannel(state, id);
+        },
         getTeammateNameDisplaySetting,
         (currentUserId, profiles, profilesInChannel, teammateStatus, channel, teammateNameDisplay) => {
             if (channel) {
@@ -184,11 +194,21 @@ export function makeGetChannel(): (state: GlobalState, props: {id: string}) => C
 
 // getChannel returns a channel as it exists in the store without filling in any additional details such as the
 // display_name for DM/GM channels.
-export function getChannel(state: GlobalState, id: string) {
+export function getChannel(state: GlobalState, id: string): Channel | undefined {
     return getAllChannels(state)[id];
 }
 
-export function getMyChannelMembership(state: GlobalState, channelId: string): ChannelMembership {
+// getDirectChannel returns a direct channel channel as it exists in the store filling in any additional details such as the
+// display_name or teammate_id.
+export function getDirectChannel(state: GlobalState, id: string): Channel | undefined {
+    const channel = getAllChannels(state)[id];
+    if (channel && channel.type === 'D') {
+        return completeDirectChannelInfo(state.entities.users, getTeammateNameDisplaySetting(state), channel);
+    }
+    return undefined;
+}
+
+export function getMyChannelMembership(state: GlobalState, channelId: string): ChannelMembership | undefined {
     return getMyChannelMemberships(state)[channelId];
 }
 
@@ -206,7 +226,7 @@ export function makeGetChannelsForIds(): (state: GlobalState, ids: string[]) => 
     );
 }
 
-export const getCurrentChannel: (state: GlobalState) => Channel = createSelector(
+export const getCurrentChannel: (state: GlobalState) => Channel | undefined = createSelector(
     'getCurrentChannel',
     getAllChannels,
     getCurrentChannelId,
@@ -223,6 +243,26 @@ export const getCurrentChannel: (state: GlobalState) => Channel = createSelector
     },
 );
 
+const getChannelNameForSearch = (channel: Channel | undefined, users: UsersState): string | undefined => {
+    if (!channel) {
+        return undefined;
+    }
+
+    // Only get the extra info from users if we need it
+    if (channel.type === General.DM_CHANNEL) {
+        const dmChannelWithInfo = completeDirectChannelInfo(users, Preferences.DISPLAY_PREFER_USERNAME, channel);
+        return `@${dmChannelWithInfo.display_name}`;
+    }
+
+    // Replace spaces in GM channel names
+    if (channel.type === General.GM_CHANNEL) {
+        const gmChannelWithInfo = completeDirectGroupInfo(users, Preferences.DISPLAY_PREFER_USERNAME, channel, false);
+        return `@${gmChannelWithInfo.display_name.replace(/\s/g, '')}`;
+    }
+
+    return channel.name;
+};
+
 export const getCurrentChannelNameForSearchShortcut: (state: GlobalState) => string | undefined = createSelector(
     'getCurrentChannelNameForSearchShortcut',
     getAllChannels,
@@ -230,33 +270,31 @@ export const getCurrentChannelNameForSearchShortcut: (state: GlobalState) => str
     (state: GlobalState): UsersState => state.entities.users,
     (allChannels: IDMappedObjects<Channel>, currentChannelId: string, users: UsersState): string | undefined => {
         const channel = allChannels[currentChannelId];
-
-        // Only get the extra info from users if we need it
-        if (channel?.type === General.DM_CHANNEL) {
-            const dmChannelWithInfo = completeDirectChannelInfo(users, Preferences.DISPLAY_PREFER_USERNAME, channel);
-            return `@${dmChannelWithInfo.display_name}`;
-        }
-
-        // Replace spaces in GM channel names
-        if (channel?.type === General.GM_CHANNEL) {
-            const gmChannelWithInfo = completeDirectGroupInfo(users, Preferences.DISPLAY_PREFER_USERNAME, channel, false);
-            return `@${gmChannelWithInfo.display_name.replace(/\s/g, '')}`;
-        }
-
-        return channel?.name;
+        return getChannelNameForSearch(channel, users);
     },
 );
 
-export const getMyChannelMember: (state: GlobalState, channelId: string) => ChannelMembership | undefined | null = createSelector(
+export const getChannelNameForSearchShortcut: (state: GlobalState, channelId: string) => string | undefined = createSelector(
+    'getChannelNameForSearchShortcut',
+    getAllChannels,
+    (state: GlobalState): UsersState => state.entities.users,
+    (state: GlobalState, channelId: string): string => channelId,
+    (allChannels: IDMappedObjects<Channel>, users: UsersState, channelId: string): string | undefined => {
+        const channel = allChannels[channelId];
+        return getChannelNameForSearch(channel, users);
+    },
+);
+
+export const getMyChannelMember: (state: GlobalState, channelId: string) => ChannelMembership | undefined = createSelector(
     'getMyChannelMember',
     getMyChannelMemberships,
     (state: GlobalState, channelId: string): string => channelId,
-    (channelMemberships: RelationOneToOne<Channel, ChannelMembership>, channelId: string): ChannelMembership | undefined | null => {
-        return channelMemberships[channelId] || null;
+    (channelMemberships: RelationOneToOne<Channel, ChannelMembership>, channelId: string): ChannelMembership | undefined => {
+        return channelMemberships[channelId];
     },
 );
 
-export const getCurrentChannelStats: (state: GlobalState) => ChannelStats = createSelector(
+export const getCurrentChannelStats: (state: GlobalState) => ChannelStats | undefined = createSelector(
     'getCurrentChannelStats',
     getAllChannelStats,
     getCurrentChannelId,
@@ -297,7 +335,7 @@ export const isMutedChannel: (state: GlobalState, channelId: string) => boolean 
 export const isCurrentChannelArchived: (state: GlobalState) => boolean = createSelector(
     'isCurrentChannelArchived',
     getCurrentChannel,
-    (channel) => channel.delete_at !== 0,
+    (channel) => channel?.delete_at !== 0,
 );
 
 export const isCurrentChannelDefault: (state: GlobalState) => boolean = createSelector(
@@ -314,15 +352,15 @@ export function isChannelReadOnlyById(state: GlobalState, channelId: string): bo
     return isChannelReadOnly(state, getChannel(state, channelId));
 }
 
-export function isChannelReadOnly(state: GlobalState, channel: Channel): boolean {
-    return channel && channel.name === General.DEFAULT_CHANNEL && !isCurrentUserSystemAdmin(state);
+export function isChannelReadOnly(state: GlobalState, channel?: Channel): boolean {
+    return Boolean(channel && channel.name === General.DEFAULT_CHANNEL && !isCurrentUserSystemAdmin(state));
 }
 
 export function getChannelMessageCounts(state: GlobalState): RelationOneToOne<Channel, ChannelMessageCount> {
     return state.entities.channels.messageCounts;
 }
 
-export function getChannelMessageCount(state: GlobalState, channelId: string): ChannelMessageCount {
+export function getChannelMessageCount(state: GlobalState, channelId: string): ChannelMessageCount | undefined {
     return getChannelMessageCounts(state)[channelId];
 }
 
@@ -335,8 +373,8 @@ export const countCurrentChannelUnreadMessages: (state: GlobalState) => number =
     getCurrentChannelMessageCount,
     getMyCurrentChannelMembership,
     isCollapsedThreadsEnabled,
-    (messageCount: ChannelMessageCount, membership?: ChannelMembership, crtEnabled?: boolean): number => {
-        if (!membership) {
+    (messageCount?: ChannelMessageCount, membership?: ChannelMembership, crtEnabled?: boolean): number => {
+        if (!membership || !messageCount) {
             return 0;
         }
         return crtEnabled ? messageCount.root - membership.msg_count_root : messageCount.total - membership.msg_count;
@@ -349,7 +387,7 @@ export function makeGetChannelUnreadCount(): (state: GlobalState, channelId: str
         (state: GlobalState, channelId: string) => getChannelMessageCount(state, channelId),
         (state: GlobalState, channelId: string) => getMyChannelMembership(state, channelId),
         isCollapsedThreadsEnabled,
-        (messageCount: ChannelMessageCount, member: ChannelMembership, crtEnabled) =>
+        (messageCount: ChannelMessageCount | undefined, member: ChannelMembership | undefined, crtEnabled) =>
             calculateUnreadCount(messageCount, member, crtEnabled),
     );
 }
@@ -364,12 +402,12 @@ export function getChannelByTeamIdAndChannelName(state: GlobalState, teamId: str
     );
 }
 
-export const getChannelSetInCurrentTeam: (state: GlobalState) => string[] = createSelector(
+export const getChannelSetInCurrentTeam: (state: GlobalState) => Set<string> = createSelector(
     'getChannelSetInCurrentTeam',
     getCurrentTeamId,
     getChannelsInTeam,
-    (currentTeamId: string, channelsInTeam: RelationOneToMany<Team, Channel>): string[] => {
-        return (channelsInTeam && channelsInTeam[currentTeamId]) || [];
+    (currentTeamId: string, channelsInTeam: RelationOneToManyUnique<Team, Channel>) => {
+        return (channelsInTeam && channelsInTeam[currentTeamId]) || new Set();
     },
 );
 
@@ -387,7 +425,7 @@ export const getChannelSetForAllTeams: (state: GlobalState) => string[] = create
     },
 );
 
-function sortAndInjectChannels(channels: IDMappedObjects<Channel>, channelSet: string[], locale: string): Channel[] {
+function sortAndInjectChannels(channels: IDMappedObjects<Channel>, channelSet: string[] | Set<string>, locale: string): Channel[] {
     const currentChannels: Channel[] = [];
 
     if (typeof channelSet === 'undefined') {
@@ -406,7 +444,7 @@ export const getChannelsInCurrentTeam: (state: GlobalState) => Channel[] = creat
     getAllChannels,
     getChannelSetInCurrentTeam,
     getCurrentUser,
-    (channels: IDMappedObjects<Channel>, currentTeamChannelSet: string[], currentUser: UserProfile): Channel[] => {
+    (channels: IDMappedObjects<Channel>, currentTeamChannelSet: Set<string>, currentUser: UserProfile): Channel[] => {
         let locale = General.DEFAULT_LOCALE;
 
         if (currentUser && currentUser.locale) {
@@ -433,8 +471,8 @@ export const getChannelsNameMapInTeam: (state: GlobalState, teamId: string) => R
     getAllChannels,
     getChannelsInTeam,
     (state: GlobalState, teamId: string): string => teamId,
-    (channels: IDMappedObjects<Channel>, channelsInTeams: RelationOneToMany<Team, Channel>, teamId: string): Record<string, Channel> => {
-        const channelsInTeam = channelsInTeams[teamId] || [];
+    (channels: IDMappedObjects<Channel>, channelsInTeams: RelationOneToManyUnique<Team, Channel>, teamId: string): Record<string, Channel> => {
+        const channelsInTeam = channelsInTeams[teamId] || new Set();
         const channelMap: Record<string, Channel> = {};
         channelsInTeam.forEach((id) => {
             const channel = channels[id];
@@ -448,7 +486,7 @@ export const getChannelsNameMapInCurrentTeam: (state: GlobalState) => Record<str
     'getChannelsNameMapInCurrentTeam',
     getAllChannels,
     getChannelSetInCurrentTeam,
-    (channels: IDMappedObjects<Channel>, currentTeamChannelSet: string[]): Record<string, Channel> => {
+    (channels: IDMappedObjects<Channel>, currentTeamChannelSet: Set<string>): Record<string, Channel> => {
         const channelMap: Record<string, Channel> = {};
         currentTeamChannelSet.forEach((id) => {
             const channel = channels[id];
@@ -462,7 +500,7 @@ export const getChannelNameToDisplayNameMap: (state: GlobalState) => Record<stri
     'getChannelNameToDisplayNameMap',
     getAllChannels,
     getChannelSetInCurrentTeam,
-    (channels: IDMappedObjects<Channel>, currentTeamChannelSet: string[]) => {
+    (channels: IDMappedObjects<Channel>, currentTeamChannelSet: Set<string>) => {
         const channelMap: Record<string, string> = {};
         for (const id of currentTeamChannelSet) {
             const channel = channels[id];
@@ -530,7 +568,7 @@ export const getMyChannels: (state: GlobalState) => Channel[] = createSelector(
     getAllDirectChannels,
     getMyChannelMemberships,
     (channels: Channel[], directChannels: Channel[], myMembers: RelationOneToOne<Channel, ChannelMembership>): Channel[] => {
-        return [...channels, ...directChannels].filter((c) => myMembers.hasOwnProperty(c.id));
+        return [...channels, ...directChannels].filter((c) => Object.hasOwn(myMembers, c.id));
     },
 );
 
@@ -540,7 +578,7 @@ export const getOtherChannels: (state: GlobalState, archived?: boolean | null) =
     getMyChannelMemberships,
     (state: GlobalState, archived: boolean | undefined | null = true) => archived,
     (channels: Channel[], myMembers: RelationOneToOne<Channel, ChannelMembership>, archived?: boolean | null): Channel[] => {
-        return channels.filter((c) => !myMembers.hasOwnProperty(c.id) && c.type === General.OPEN_CHANNEL && (archived ? true : c.delete_at === 0));
+        return channels.filter((c) => !Object.hasOwn(myMembers, c.id) && c.type === General.OPEN_CHANNEL && (archived ? true : c.delete_at === 0));
     },
 );
 
@@ -575,8 +613,6 @@ export const getUnreadStatus: (state: GlobalState) => BasicUnreadStatus = create
     getUsers,
     getCurrentUserId,
     getCurrentTeamId,
-    getMyTeams,
-    getTeamMemberships,
     isCollapsedThreadsEnabled,
     getThreadCounts,
     getThreadCountsIncludingDirect,
@@ -587,28 +623,17 @@ export const getUnreadStatus: (state: GlobalState) => BasicUnreadStatus = create
         users,
         currentUserId,
         currentTeamId,
-        myTeams,
-        myTeamMemberships,
         collapsedThreads,
         threadCounts,
         threadCountsIncludingDirect,
     ) => {
         const {
-            messages: currentTeamUnreadMessages,
-            mentions: currentTeamUnreadMentions,
+            messages: unreadMessages,
+            mentions: unreadMentions,
         } = Object.entries(myMembers).reduce((counts, [channelId, membership]) => {
             const channel = channels[channelId];
 
             if (!channel || !membership) {
-                return counts;
-            }
-
-            if (
-                // other-team non-DM/non-GM channels
-                channel.team_id !== currentTeamId &&
-                channel.type !== General.DM_CHANNEL &&
-                channel.type !== General.GM_CHANNEL
-            ) {
                 return counts;
             }
 
@@ -617,8 +642,12 @@ export const getUnreadStatus: (state: GlobalState) => BasicUnreadStatus = create
                 return counts;
             }
 
+            if (isChannelMuted(membership)) {
+                return counts;
+            }
+
             const mentions = collapsedThreads ? membership.mention_count_root : membership.mention_count;
-            if (mentions && !isChannelMuted(membership)) {
+            if (mentions) {
                 counts.mentions += mentions;
             }
 
@@ -633,26 +662,8 @@ export const getUnreadStatus: (state: GlobalState) => BasicUnreadStatus = create
             mentions: 0,
         });
 
-        // Includes mention count and message count from teams other than the current team
-        // This count does not include GM's and DM's
-        const {
-            messages: otherTeamsUnreadMessages,
-            mentions: otherTeamsUnreadMentions,
-        } = myTeams.reduce((acc, team) => {
-            if (currentTeamId !== team.id) {
-                const member = myTeamMemberships[team.id];
-                acc.messages += collapsedThreads ? member.msg_count_root : member.msg_count;
-                acc.mentions += collapsedThreads ? member.mention_count_root : member.mention_count;
-            }
-
-            return acc;
-        }, {
-            messages: 0,
-            mentions: 0,
-        });
-
-        const totalUnreadMessages = currentTeamUnreadMessages + otherTeamsUnreadMessages;
-        let totalUnreadMentions = currentTeamUnreadMentions + otherTeamsUnreadMentions;
+        const totalUnreadMessages = unreadMessages;
+        let totalUnreadMentions = unreadMentions;
         let anyUnreadThreads = false;
 
         // when collapsed threads are enabled, we start with root-post counts from channels, then
@@ -685,16 +696,12 @@ export const getTeamsUnreadStatuses: (state: GlobalState) => [Set<Team['id']>, M
     getAllChannels,
     getMyChannelMemberships,
     getChannelMessageCounts,
-    getUsers,
-    getCurrentUserId,
     isCollapsedThreadsEnabled,
     getThreadCounts,
     (
         channels,
         channelMemberships,
         channelMessageCounts,
-        users,
-        currentUserId,
         collapsedThreadsEnabled,
         teamThreadCounts,
     ) => {
@@ -879,7 +886,7 @@ export const canManageChannelMembers: (state: GlobalState) => boolean = createSe
         Permissions.MANAGE_PUBLIC_CHANNEL_MEMBERS,
     ),
     (
-        channel: Channel,
+        channel: Channel | undefined,
         managePrivateMembers: boolean,
         managePublicMembers: boolean,
     ): boolean => {
@@ -948,7 +955,7 @@ export const getChannelIdsInCurrentTeam: (state: GlobalState) => string[] = crea
     'getChannelIdsInCurrentTeam',
     getCurrentTeamId,
     getChannelsInTeam,
-    (currentTeamId: string, channelsInTeam: RelationOneToMany<Team, Channel>): string[] => {
+    (currentTeamId: string, channelsInTeam: RelationOneToManyUnique<Team, Channel>): string[] => {
         return Array.from(channelsInTeam[currentTeamId] || []);
     },
 );
@@ -1232,6 +1239,11 @@ export const getMyFirstChannelForTeams: (state: GlobalState) => RelationOneToOne
     },
 );
 
+export const getRedirectChannelNameForCurrentTeam = (state: GlobalState): string => {
+    const currentTeamId = getCurrentTeamId(state);
+    return getRedirectChannelNameForTeam(state, currentTeamId);
+};
+
 export const getRedirectChannelNameForTeam = (state: GlobalState, teamId: string): string => {
     const defaultChannelForTeam = getDefaultChannelForTeams(state)[teamId];
     const canIJoinPublicChannelsInTeam = haveITeamPermission(state,
@@ -1264,7 +1276,10 @@ export function getChannelModerations(state: GlobalState, channelId: string): Ch
 }
 
 const EMPTY_OBJECT = {};
-export function getChannelMemberCountsByGroup(state: GlobalState, channelId: string): ChannelMemberCountsByGroup {
+export function getChannelMemberCountsByGroup(state: GlobalState, channelId?: string): ChannelMemberCountsByGroup {
+    if (!channelId) {
+        return EMPTY_OBJECT;
+    }
     return state.entities.channels.channelMemberCountsByGroup[channelId] || EMPTY_OBJECT;
 }
 
@@ -1327,7 +1342,7 @@ export function searchChannelsInPolicy(state: GlobalState, policyId: string, ter
 
 export function getDirectTeammate(state: GlobalState, channelId: string): UserProfile | undefined {
     const channel = getChannel(state, channelId);
-    if (!channel) {
+    if (!channel || channel.type !== 'D') {
         return undefined;
     }
 
@@ -1430,3 +1445,13 @@ export const getRecentProfilesFromDMs: (state: GlobalState) => UserProfile[] = c
         return [...sortedUserProfiles];
     },
 );
+
+export const isDeactivatedDirectChannel = (state: GlobalState, channelId: string) => {
+    const teammate = getDirectTeammate(state, channelId);
+    return Boolean(teammate && teammate.delete_at);
+};
+
+export function getChannelBanner(state: GlobalState, channelId: string): ChannelBanner | undefined {
+    const channel = getChannel(state, channelId);
+    return channel ? channel.banner_info : undefined;
+}

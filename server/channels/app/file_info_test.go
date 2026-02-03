@@ -15,6 +15,7 @@ import (
 )
 
 func TestGetInfoForFile(t *testing.T) {
+	mainHelper.Parallel(t)
 	fakeFile := make([]byte, 1000)
 
 	pngFile, err := os.ReadFile("tests/test.png")
@@ -26,7 +27,7 @@ func TestGetInfoForFile(t *testing.T) {
 	animatedGifFile, err := os.ReadFile("tests/testgif.gif")
 	require.NoError(t, err, "Failed to load testgif.gif")
 
-	var ttc = []struct {
+	ttc := []struct {
 		testName                string
 		filename                string
 		file                    []byte

@@ -1,154 +1,60 @@
-// Jest Snapshot v1, https://goo.gl/fbAQLP
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
 
 exports[`components/UserProfile should match snapshot 1`] = `
-<Fragment>
-  <OverlayTrigger
-    defaultOverlayShown={false}
-    overlay={
-      <Memo(Connect(injectIntl(ProfilePopover)))
-        className="user-profile-popover"
-        hasMention={false}
-        hide={[Function]}
-        hideStatus={false}
-        isBusy={false}
-        overwriteName=""
-        src="/api/v4/users/undefined/image?_=0"
-        userId="user_id"
-      />
-    }
-    placement="right"
-    rootClose={true}
-    trigger={
-      Array [
-        "click",
-      ]
-    }
+<div>
+  <button
+    aria-expanded="false"
+    aria-haspopup="dialog"
+    class="user-popover style--none"
   >
-    <button
-      aria-label="nickname"
-      className="user-popover style--none"
-    >
-      nickname
-    </button>
-  </OverlayTrigger>
-</Fragment>
+    nickname
+  </button>
+</div>
 `;
 
 exports[`components/UserProfile should match snapshot, when displayUsername is enabled 1`] = `
-<Fragment>
-  <OverlayTrigger
-    defaultOverlayShown={false}
-    overlay={
-      <Memo(Connect(injectIntl(ProfilePopover)))
-        className="user-profile-popover"
-        hasMention={false}
-        hide={[Function]}
-        hideStatus={false}
-        isBusy={false}
-        overwriteName=""
-        src="/api/v4/users/undefined/image?_=0"
-        userId="user_id"
-      />
-    }
-    placement="right"
-    rootClose={true}
-    trigger={
-      Array [
-        "click",
-      ]
-    }
+<div>
+  <button
+    aria-expanded="false"
+    aria-haspopup="dialog"
+    class="user-popover style--none"
   >
-    <button
-      aria-label="@username"
-      className="user-popover style--none"
-    >
-      @username
-    </button>
-  </OverlayTrigger>
-</Fragment>
+    @username
+  </button>
+</div>
 `;
 
 exports[`components/UserProfile should match snapshot, when popover is disabled 1`] = `
-<div
-  className="user-popover"
->
-  nickname
+<div>
+  <div
+    class="user-popover"
+  >
+    nickname
+  </div>
 </div>
 `;
 
 exports[`components/UserProfile should match snapshot, when user is shared 1`] = `
-<Fragment>
-  <OverlayTrigger
-    defaultOverlayShown={false}
-    overlay={
-      <Memo(Connect(injectIntl(ProfilePopover)))
-        className="user-profile-popover"
-        hasMention={false}
-        hide={[Function]}
-        hideStatus={false}
-        isBusy={false}
-        overwriteName=""
-        src="/api/v4/users/undefined/image?_=0"
-        userId="user_id"
-      />
-    }
-    placement="right"
-    rootClose={true}
-    trigger={
-      Array [
-        "click",
-      ]
-    }
+<div>
+  <button
+    aria-expanded="false"
+    aria-haspopup="dialog"
+    class="user-popover style--none"
   >
-    <button
-      aria-label="nickname"
-      className="user-popover style--none"
-    >
-      nickname
-    </button>
-  </OverlayTrigger>
-  <SharedUserIndicator
-    className="shared-user-icon"
-    withTooltip={true}
-  />
-</Fragment>
+    nickname
+  </button>
+</div>
 `;
 
 exports[`components/UserProfile should match snapshot, with colorization 1`] = `
-<Fragment>
-  <OverlayTrigger
-    defaultOverlayShown={false}
-    overlay={
-      <Memo(Connect(injectIntl(ProfilePopover)))
-        className="user-profile-popover"
-        hasMention={false}
-        hide={[Function]}
-        hideStatus={false}
-        isBusy={false}
-        overwriteName=""
-        src="/api/v4/users/undefined/image?_=0"
-        userId="user_id"
-      />
-    }
-    placement="right"
-    rootClose={true}
-    trigger={
-      Array [
-        "click",
-      ]
-    }
+<div>
+  <button
+    aria-expanded="false"
+    aria-haspopup="dialog"
+    class="user-popover style--none"
+    style="color: rgb(187, 210, 121);"
   >
-    <button
-      aria-label="nickname"
-      className="user-popover style--none"
-      style={
-        Object {
-          "color": "#bbd279",
-        }
-      }
-    >
-      nickname
-    </button>
-  </OverlayTrigger>
-</Fragment>
+    nickname
+  </button>
+</div>
 `;

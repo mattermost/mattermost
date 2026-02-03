@@ -27,6 +27,8 @@ func TestRemoteClusterIsValid(t *testing.T) {
 		{name: "Missing create_at", rc: &RemoteCluster{RemoteId: id, Name: NewId(), SiteURL: "example.com"}, valid: false},
 		{name: "Missing last_ping_at", rc: &RemoteCluster{RemoteId: id, Name: NewId(), SiteURL: "example.com", CreatorId: creator, CreateAt: now}, valid: true},
 		{name: "Missing creator", rc: &RemoteCluster{RemoteId: id, Name: NewId(), SiteURL: "example.com", CreateAt: now, LastPingAt: now}, valid: false},
+		{name: "Bad default_team_id", rc: &RemoteCluster{RemoteId: id, Name: NewId(), SiteURL: "example.com", CreateAt: now, LastPingAt: now, CreatorId: creator, DefaultTeamId: "bad-id"}, valid: false},
+		{name: "Valid default_team_id", rc: &RemoteCluster{RemoteId: id, Name: NewId(), SiteURL: "example.com", CreateAt: now, LastPingAt: now, CreatorId: creator, DefaultTeamId: NewId()}, valid: true},
 		{name: "RemoteCluster valid", rc: &RemoteCluster{RemoteId: id, Name: NewId(), SiteURL: "example.com", CreateAt: now, LastPingAt: now, CreatorId: creator}, valid: true},
 		{name: "Include protocol", rc: &RemoteCluster{RemoteId: id, Name: NewId(), SiteURL: "http://example.com", CreateAt: now, LastPingAt: now, CreatorId: creator}, valid: true},
 		{name: "Include protocol & port", rc: &RemoteCluster{RemoteId: id, Name: NewId(), SiteURL: "http://example.com:8065", CreateAt: now, LastPingAt: now, CreatorId: creator}, valid: true},
@@ -68,6 +70,34 @@ func TestRemoteClusterMsgIsValid(t *testing.T) {
 
 	for _, item := range data {
 		appErr := item.msg.IsValid()
+		if item.valid {
+			assert.Nil(t, appErr, item.name)
+		} else {
+			assert.NotNil(t, appErr, item.name)
+		}
+	}
+}
+
+func TestRemoteClusterInviteIsValid(t *testing.T) {
+	id := NewId()
+	url := "https://localhost:8080/test"
+	token := NewId()
+
+	data := []struct {
+		name   string
+		invite *RemoteClusterInvite
+		valid  bool
+	}{
+		{name: "Zero value", invite: &RemoteClusterInvite{}, valid: false},
+		{name: "Missing remote id", invite: &RemoteClusterInvite{Token: token, SiteURL: url}, valid: false},
+		{name: "Missing site url", invite: &RemoteClusterInvite{RemoteId: id, Token: token}, valid: false},
+		{name: "Bad site url", invite: &RemoteClusterInvite{RemoteId: id, Token: token, SiteURL: ":/localhost"}, valid: false},
+		{name: "Missing token", invite: &RemoteClusterInvite{RemoteId: id, SiteURL: url}, valid: false},
+		{name: "RemoteClusterInvite valid", invite: &RemoteClusterInvite{RemoteId: id, Token: token, SiteURL: url}, valid: true},
+	}
+
+	for _, item := range data {
+		appErr := item.invite.IsValid()
 		if item.valid {
 			assert.Nil(t, appErr, item.name)
 		} else {
@@ -128,11 +158,76 @@ func TestRemoteClusterInviteEncryption(t *testing.T) {
 	}
 }
 
+func TestRemoteClusterInviteBackwardCompatibility(t *testing.T) {
+	// Test that we can decrypt invites created with the old scrypt method
+	oldInvite := RemoteClusterInvite{
+		RemoteId:       NewId(),
+		SiteURL:        "https://example.com:8065",
+		Token:          NewId(),
+		RefreshedToken: NewId(),
+		Version:        2, // Old version using scrypt
+	}
+
+	password := "test password"
+
+	// Encrypt with old method (scrypt)
+	encrypted, err := oldInvite.Encrypt(password)
+	require.NoError(t, err)
+
+	// Decrypt should work with backward compatibility
+	decryptedInvite := RemoteClusterInvite{}
+	err = decryptedInvite.Decrypt(encrypted, password)
+	require.NoError(t, err)
+	assert.Equal(t, oldInvite, decryptedInvite)
+
+	// Test new version (PBKDF2)
+	newInvite := RemoteClusterInvite{
+		RemoteId:       NewId(),
+		SiteURL:        "https://example.com:8065",
+		Token:          NewId(),
+		RefreshedToken: NewId(),
+		Version:        3, // New version using PBKDF2
+	}
+
+	// Encrypt with new method (PBKDF2)
+	encrypted, err = newInvite.Encrypt(password)
+	require.NoError(t, err)
+
+	// Decrypt should work
+	decryptedInvite = RemoteClusterInvite{}
+	err = decryptedInvite.Decrypt(encrypted, password)
+	require.NoError(t, err)
+	assert.Equal(t, newInvite, decryptedInvite)
+}
+
 func makeInvite(url string) RemoteClusterInvite {
 	return RemoteClusterInvite{
-		RemoteId:     NewId(),
-		RemoteTeamId: NewId(),
-		SiteURL:      url,
-		Token:        NewId(),
+		RemoteId:       NewId(),
+		SiteURL:        url,
+		Token:          NewId(),
+		RefreshedToken: NewId(),
+		Version:        3,
+	}
+}
+
+func TestNewIDFromBytes(t *testing.T) {
+	tests := []struct {
+		name string
+		ss   string
+	}{
+		{name: "empty", ss: ""},
+		{name: "very short", ss: "x"},
+		{name: "normal", ss: "com.mattermost.msteams-sync"},
+		{name: "long", ss: "com.mattermost.msteams-synccom.mattermost.msteams-synccom.mattermost.msteams-synccom.mattermost.msteams-sync"},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got1 := newIDFromBytes([]byte(tt.ss))
+
+			assert.True(t, IsValidId(got1), "not a valid id")
+
+			got2 := newIDFromBytes([]byte(tt.ss))
+			assert.Equal(t, got1, got2, "newIDFromBytes must generate same id for same inputs")
+		})
 	}
 }

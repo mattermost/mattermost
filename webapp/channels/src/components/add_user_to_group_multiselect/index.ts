@@ -3,13 +3,12 @@
 
 import {connect} from 'react-redux';
 import {bindActionCreators} from 'redux';
-import type {ActionCreatorsMapObject, Dispatch} from 'redux';
+import type {Dispatch} from 'redux';
 
 import type {UserProfile} from '@mattermost/types/users';
 
 import {getProfilesNotInGroup, searchProfiles, getProfiles} from 'mattermost-redux/actions/users';
 import {getProfilesNotInCurrentGroup, getUserStatuses, getProfiles as getUsers} from 'mattermost-redux/selectors/entities/users';
-import type {Action, ActionResult} from 'mattermost-redux/types/actions';
 
 import {loadStatusesForProfilesList} from 'actions/status_actions';
 
@@ -42,16 +41,9 @@ function mapStateToProps(state: GlobalState, props: OwnProps) {
     };
 }
 
-type Actions = {
-    getProfiles: (page?: number, perPage?: number) => Promise<ActionResult>;
-    getProfilesNotInGroup: (groupId: string, page?: number, perPage?: number) => Promise<ActionResult>;
-    loadStatusesForProfilesList: (users: UserProfile[]) => void;
-    searchProfiles: (term: string, options: any) => Promise<ActionResult>;
-}
-
 function mapDispatchToProps(dispatch: Dispatch) {
     return {
-        actions: bindActionCreators<ActionCreatorsMapObject<Action>, Actions>({
+        actions: bindActionCreators({
             getProfiles,
             getProfilesNotInGroup,
             loadStatusesForProfilesList,

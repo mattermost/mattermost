@@ -9,11 +9,11 @@ import (
 	"strconv"
 
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/configservice"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
+	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/channels/jobs"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
-	"github.com/mattermost/mattermost/server/v8/platform/services/configservice"
-	"github.com/mattermost/mattermost/server/v8/platform/services/telemetry"
 )
 
 const FourtyEightHoursInMillis int64 = 172800000
@@ -22,33 +22,31 @@ type AppIface interface {
 	configservice.ConfigService
 	GetUserByEmail(email string) (*model.User, *model.AppError)
 	GetTeamMembersByIds(teamID string, userIDs []string, restrictions *model.ViewUsersRestrictions) ([]*model.TeamMember, *model.AppError)
-	InviteNewUsersToTeamGracefully(memberInvite *model.MemberInvite, teamID, senderId string, reminderInterval string) ([]*model.EmailInviteWithError, *model.AppError)
+	InviteNewUsersToTeamGracefully(rctx request.CTX, memberInvite *model.MemberInvite, teamID, senderId string, reminderInterval string) ([]*model.EmailInviteWithError, *model.AppError)
 }
 
 type ResendInvitationEmailWorker struct {
-	name             string
-	stop             chan bool
-	stopped          chan bool
-	jobs             chan model.Job
-	jobServer        *jobs.JobServer
-	logger           mlog.LoggerIFace
-	app              AppIface
-	store            store.Store
-	telemetryService *telemetry.TelemetryService
+	name      string
+	stop      chan bool
+	stopped   chan bool
+	jobs      chan model.Job
+	jobServer *jobs.JobServer
+	logger    mlog.LoggerIFace
+	app       AppIface
+	store     store.Store
 }
 
-func MakeWorker(jobServer *jobs.JobServer, app AppIface, store store.Store, telemetryService *telemetry.TelemetryService) *ResendInvitationEmailWorker {
+func MakeWorker(jobServer *jobs.JobServer, app AppIface, store store.Store) *ResendInvitationEmailWorker {
 	const workerName = "ResendInvitationEmail"
 	worker := ResendInvitationEmailWorker{
-		name:             workerName,
-		stop:             make(chan bool, 1),
-		stopped:          make(chan bool, 1),
-		jobs:             make(chan model.Job),
-		jobServer:        jobServer,
-		logger:           jobServer.Logger().With(mlog.String("worker_name", workerName)),
-		app:              app,
-		store:            store,
-		telemetryService: telemetryService,
+		name:      workerName,
+		stop:      make(chan bool, 1),
+		stopped:   make(chan bool, 1),
+		jobs:      make(chan model.Job),
+		jobServer: jobServer,
+		logger:    jobServer.Logger().With(mlog.String("worker_name", workerName)),
+		app:       app,
+		store:     store,
 	}
 	return &worker
 }
@@ -170,11 +168,16 @@ func (rseworker *ResendInvitationEmailWorker) GetDurations(job *model.Job) (int6
 }
 
 func (rseworker *ResendInvitationEmailWorker) TearDown(logger mlog.LoggerIFace, job *model.Job) {
-	rseworker.store.System().PermanentDeleteByName(job.Id)
+	if _, err := rseworker.store.System().PermanentDeleteByName(job.Id); err != nil {
+		logger.Error("Worker: Failed to tear down data", mlog.Err(err))
+	}
+
 	rseworker.setJobSuccess(logger, job)
 }
 
 func (rseworker *ResendInvitationEmailWorker) ResendEmails(logger mlog.LoggerIFace, job *model.Job, interval string) {
+	rctx := request.EmptyContext(logger)
+
 	teamID := job.Data["teamID"]
 	emailListData := job.Data["emailList"]
 	channelListData := job.Data["channelList"]
@@ -203,10 +206,9 @@ func (rseworker *ResendInvitationEmailWorker) ResendEmails(logger mlog.LoggerIFa
 		memberInvite.ChannelIds = channelList
 	}
 
-	_, appErr := rseworker.app.InviteNewUsersToTeamGracefully(&memberInvite, teamID, job.Data["senderID"], interval)
+	_, appErr := rseworker.app.InviteNewUsersToTeamGracefully(rctx, &memberInvite, teamID, job.Data["senderID"], interval)
 	if appErr != nil {
 		logger.Error("Worker: Failed to send emails", mlog.Err(appErr))
 		rseworker.setJobError(logger, job, appErr)
 	}
-	rseworker.telemetryService.SendTelemetry("track_invite_email_resend", map[string]any{interval: interval})
 }

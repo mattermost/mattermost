@@ -21,8 +21,7 @@ func BenchmarkDiff(b *testing.B) {
 	b.Run("equal empty", func(b *testing.B) {
 		baseCfg := &model.Config{}
 		actualCfg := &model.Config{}
-		b.ResetTimer()
-		for i := 0; i < b.N; i++ {
+		for b.Loop() {
 			_, _ = Diff(baseCfg, actualCfg)
 		}
 	})
@@ -30,8 +29,7 @@ func BenchmarkDiff(b *testing.B) {
 	b.Run("equal with defaults", func(b *testing.B) {
 		baseCfg := defaultConfigGen()
 		actualCfg := defaultConfigGen()
-		b.ResetTimer()
-		for i := 0; i < b.N; i++ {
+		for b.Loop() {
 			_, _ = Diff(baseCfg, actualCfg)
 		}
 	})
@@ -39,8 +37,7 @@ func BenchmarkDiff(b *testing.B) {
 	b.Run("actual empty", func(b *testing.B) {
 		baseCfg := defaultConfigGen()
 		actualCfg := &model.Config{}
-		b.ResetTimer()
-		for i := 0; i < b.N; i++ {
+		for b.Loop() {
 			_, _ = Diff(baseCfg, actualCfg)
 		}
 	})
@@ -48,8 +45,7 @@ func BenchmarkDiff(b *testing.B) {
 	b.Run("base empty", func(b *testing.B) {
 		baseCfg := &model.Config{}
 		actualCfg := defaultConfigGen()
-		b.ResetTimer()
-		for i := 0; i < b.N; i++ {
+		for b.Loop() {
 			_, _ = Diff(baseCfg, actualCfg)
 		}
 	})
@@ -57,19 +53,18 @@ func BenchmarkDiff(b *testing.B) {
 	b.Run("some diffs", func(b *testing.B) {
 		baseCfg := defaultConfigGen()
 		actualCfg := defaultConfigGen()
-		baseCfg.ServiceSettings.SiteURL = model.NewString("http://localhost")
-		baseCfg.ServiceSettings.ReadTimeout = model.NewInt(300)
-		baseCfg.SqlSettings.QueryTimeout = model.NewInt(0)
+		baseCfg.ServiceSettings.SiteURL = model.NewPointer("http://localhost")
+		baseCfg.ServiceSettings.ReadTimeout = model.NewPointer(300)
+		baseCfg.SqlSettings.QueryTimeout = model.NewPointer(0)
 		actualCfg.PluginSettings.EnableUploads = nil
-		actualCfg.TeamSettings.MaxChannelsPerTeam = model.NewInt64(100000)
+		actualCfg.TeamSettings.MaxChannelsPerTeam = model.NewPointer(int64(100000))
 		actualCfg.FeatureFlags = nil
 		actualCfg.SqlSettings.DataSourceReplicas = []string{
 			"ds0",
 			"ds1",
 			"ds2",
 		}
-		b.ResetTimer()
-		for i := 0; i < b.N; i++ {
+		for b.Loop() {
 			_, _ = Diff(baseCfg, actualCfg)
 		}
 	})
@@ -113,7 +108,7 @@ func TestDiffSanitized(t *testing.T) {
 					Path: "",
 					BaseVal: func() model.Config {
 						cfg := defaultConfigGen()
-						cfg.Sanitize()
+						cfg.Sanitize(nil, nil)
 						return *cfg
 					}(),
 					ActualVal: model.Config{},
@@ -131,7 +126,7 @@ func TestDiffSanitized(t *testing.T) {
 					BaseVal: model.Config{},
 					ActualVal: func() model.Config {
 						cfg := defaultConfigGen()
-						cfg.Sanitize()
+						cfg.Sanitize(nil, nil)
 						return *cfg
 					}(),
 				},
@@ -142,12 +137,12 @@ func TestDiffSanitized(t *testing.T) {
 			"sensitive LdapSettings.BindPassword",
 			func() *model.Config {
 				cfg := defaultConfigGen()
-				cfg.LdapSettings.BindPassword = model.NewString("base")
+				cfg.LdapSettings.BindPassword = model.NewPointer("base")
 				return cfg
 			}(),
 			func() *model.Config {
 				cfg := defaultConfigGen()
-				cfg.LdapSettings.BindPassword = model.NewString("actual")
+				cfg.LdapSettings.BindPassword = model.NewPointer("actual")
 				return cfg
 			}(),
 			ConfigDiffs{
@@ -163,12 +158,12 @@ func TestDiffSanitized(t *testing.T) {
 			"sensitive FileSettings.PublicLinkSalt",
 			func() *model.Config {
 				cfg := defaultConfigGen()
-				cfg.FileSettings.PublicLinkSalt = model.NewString("base")
+				cfg.FileSettings.PublicLinkSalt = model.NewPointer("base")
 				return cfg
 			}(),
 			func() *model.Config {
 				cfg := defaultConfigGen()
-				cfg.FileSettings.PublicLinkSalt = model.NewString("actual")
+				cfg.FileSettings.PublicLinkSalt = model.NewPointer("actual")
 				return cfg
 			}(),
 			ConfigDiffs{
@@ -184,12 +179,12 @@ func TestDiffSanitized(t *testing.T) {
 			"sensitive FileSettings.AmazonS3SecretAccessKey",
 			func() *model.Config {
 				cfg := defaultConfigGen()
-				cfg.FileSettings.AmazonS3SecretAccessKey = model.NewString("base")
+				cfg.FileSettings.AmazonS3SecretAccessKey = model.NewPointer("base")
 				return cfg
 			}(),
 			func() *model.Config {
 				cfg := defaultConfigGen()
-				cfg.FileSettings.AmazonS3SecretAccessKey = model.NewString("actual")
+				cfg.FileSettings.AmazonS3SecretAccessKey = model.NewPointer("actual")
 				return cfg
 			}(),
 			ConfigDiffs{
@@ -205,12 +200,12 @@ func TestDiffSanitized(t *testing.T) {
 			"sensitive SqlSettings.DataSource",
 			func() *model.Config {
 				cfg := defaultConfigGen()
-				cfg.SqlSettings.DataSource = model.NewString("base")
+				cfg.SqlSettings.DataSource = model.NewPointer("base")
 				return cfg
 			}(),
 			func() *model.Config {
 				cfg := defaultConfigGen()
-				cfg.SqlSettings.DataSource = model.NewString("actual")
+				cfg.SqlSettings.DataSource = model.NewPointer("actual")
 				return cfg
 			}(),
 			ConfigDiffs{
@@ -226,12 +221,12 @@ func TestDiffSanitized(t *testing.T) {
 			"sensitive SqlSettings.AtRestEncryptKey",
 			func() *model.Config {
 				cfg := defaultConfigGen()
-				cfg.SqlSettings.AtRestEncryptKey = model.NewString("base")
+				cfg.SqlSettings.AtRestEncryptKey = model.NewPointer("base")
 				return cfg
 			}(),
 			func() *model.Config {
 				cfg := defaultConfigGen()
-				cfg.SqlSettings.AtRestEncryptKey = model.NewString("actual")
+				cfg.SqlSettings.AtRestEncryptKey = model.NewPointer("actual")
 				return cfg
 			}(),
 			ConfigDiffs{
@@ -303,12 +298,12 @@ func TestDiffSanitized(t *testing.T) {
 			"sensitive EmailSettings.SMTPPassword",
 			func() *model.Config {
 				cfg := defaultConfigGen()
-				cfg.EmailSettings.SMTPPassword = model.NewString("base")
+				cfg.EmailSettings.SMTPPassword = model.NewPointer("base")
 				return cfg
 			}(),
 			func() *model.Config {
 				cfg := defaultConfigGen()
-				cfg.EmailSettings.SMTPPassword = model.NewString("actual")
+				cfg.EmailSettings.SMTPPassword = model.NewPointer("actual")
 				return cfg
 			}(),
 			ConfigDiffs{
@@ -324,12 +319,12 @@ func TestDiffSanitized(t *testing.T) {
 			"sensitive GitLabSettings.Secret",
 			func() *model.Config {
 				cfg := defaultConfigGen()
-				cfg.GitLabSettings.Secret = model.NewString("base")
+				cfg.GitLabSettings.Secret = model.NewPointer("base")
 				return cfg
 			}(),
 			func() *model.Config {
 				cfg := defaultConfigGen()
-				cfg.GitLabSettings.Secret = model.NewString("actual")
+				cfg.GitLabSettings.Secret = model.NewPointer("actual")
 				return cfg
 			}(),
 			ConfigDiffs{
@@ -345,12 +340,12 @@ func TestDiffSanitized(t *testing.T) {
 			"sensitive GoogleSettings.Secret",
 			func() *model.Config {
 				cfg := defaultConfigGen()
-				cfg.GoogleSettings.Secret = model.NewString("base")
+				cfg.GoogleSettings.Secret = model.NewPointer("base")
 				return cfg
 			}(),
 			func() *model.Config {
 				cfg := defaultConfigGen()
-				cfg.GoogleSettings.Secret = model.NewString("actual")
+				cfg.GoogleSettings.Secret = model.NewPointer("actual")
 				return cfg
 			}(),
 			ConfigDiffs{
@@ -366,12 +361,12 @@ func TestDiffSanitized(t *testing.T) {
 			"sensitive Office365Settings.Secret",
 			func() *model.Config {
 				cfg := defaultConfigGen()
-				cfg.Office365Settings.Secret = model.NewString("base")
+				cfg.Office365Settings.Secret = model.NewPointer("base")
 				return cfg
 			}(),
 			func() *model.Config {
 				cfg := defaultConfigGen()
-				cfg.Office365Settings.Secret = model.NewString("actual")
+				cfg.Office365Settings.Secret = model.NewPointer("actual")
 				return cfg
 			}(),
 			ConfigDiffs{
@@ -387,12 +382,12 @@ func TestDiffSanitized(t *testing.T) {
 			"sensitive OpenIdSettings.Secret",
 			func() *model.Config {
 				cfg := defaultConfigGen()
-				cfg.OpenIdSettings.Secret = model.NewString("base")
+				cfg.OpenIdSettings.Secret = model.NewPointer("base")
 				return cfg
 			}(),
 			func() *model.Config {
 				cfg := defaultConfigGen()
-				cfg.OpenIdSettings.Secret = model.NewString("actual")
+				cfg.OpenIdSettings.Secret = model.NewPointer("actual")
 				return cfg
 			}(),
 			ConfigDiffs{
@@ -408,12 +403,12 @@ func TestDiffSanitized(t *testing.T) {
 			"sensitive ElasticsearchSettings.Password",
 			func() *model.Config {
 				cfg := defaultConfigGen()
-				cfg.ElasticsearchSettings.Password = model.NewString("base")
+				cfg.ElasticsearchSettings.Password = model.NewPointer("base")
 				return cfg
 			}(),
 			func() *model.Config {
 				cfg := defaultConfigGen()
-				cfg.ElasticsearchSettings.Password = model.NewString("actual")
+				cfg.ElasticsearchSettings.Password = model.NewPointer("actual")
 				return cfg
 			}(),
 			ConfigDiffs{
@@ -430,18 +425,18 @@ func TestDiffSanitized(t *testing.T) {
 			func() *model.Config {
 				cfg := defaultConfigGen()
 				cfg.MessageExportSettings.GlobalRelaySettings = &model.GlobalRelayMessageExportSettings{
-					SMTPUsername: model.NewString("base"),
-					SMTPPassword: model.NewString("base"),
-					EmailAddress: model.NewString("base"),
+					SMTPUsername: model.NewPointer("base"),
+					SMTPPassword: model.NewPointer("base"),
+					EmailAddress: model.NewPointer("base"),
 				}
 				return cfg
 			}(),
 			func() *model.Config {
 				cfg := defaultConfigGen()
 				cfg.MessageExportSettings.GlobalRelaySettings = &model.GlobalRelayMessageExportSettings{
-					SMTPUsername: model.NewString("actual"),
-					SMTPPassword: model.NewString("actual"),
-					EmailAddress: model.NewString("actual"),
+					SMTPUsername: model.NewPointer("actual"),
+					SMTPPassword: model.NewPointer("actual"),
+					EmailAddress: model.NewPointer("actual"),
 				}
 				return cfg
 			}(),
@@ -468,12 +463,12 @@ func TestDiffSanitized(t *testing.T) {
 			"sensitive ServiceSettings.SplitKey",
 			func() *model.Config {
 				cfg := defaultConfigGen()
-				cfg.ServiceSettings.SplitKey = model.NewString("base")
+				cfg.ServiceSettings.SplitKey = model.NewPointer("base")
 				return cfg
 			}(),
 			func() *model.Config {
 				cfg := defaultConfigGen()
-				cfg.ServiceSettings.SplitKey = model.NewString("actual")
+				cfg.ServiceSettings.SplitKey = model.NewPointer("actual")
 				return cfg
 			}(),
 			ConfigDiffs{
@@ -582,7 +577,7 @@ func TestDiff(t *testing.T) {
 			defaultConfigGen(),
 			func() *model.Config {
 				cfg := defaultConfigGen()
-				cfg.ServiceSettings.SiteURL = model.NewString("http://changed")
+				cfg.ServiceSettings.SiteURL = model.NewPointer("http://changed")
 				return cfg
 			}(),
 			ConfigDiffs{
@@ -618,7 +613,7 @@ func TestDiff(t *testing.T) {
 			defaultConfigGen(),
 			func() *model.Config {
 				cfg := defaultConfigGen()
-				cfg.PluginSettings.Enable = model.NewBool(!*cfg.PluginSettings.Enable)
+				cfg.PluginSettings.Enable = model.NewPointer(!*cfg.PluginSettings.Enable)
 				return cfg
 			}(),
 			ConfigDiffs{
@@ -654,7 +649,7 @@ func TestDiff(t *testing.T) {
 			defaultConfigGen(),
 			func() *model.Config {
 				cfg := defaultConfigGen()
-				cfg.ServiceSettings.ReadTimeout = model.NewInt(0)
+				cfg.ServiceSettings.ReadTimeout = model.NewPointer(0)
 				return cfg
 			}(),
 			ConfigDiffs{
@@ -789,6 +784,9 @@ func TestDiff(t *testing.T) {
 						"com.mattermost.calls": {
 							Enable: true,
 						},
+						"mattermost-ai": {
+							Enable: true,
+						},
 						"playbooks": {
 							Enable: true,
 						},
@@ -821,6 +819,9 @@ func TestDiff(t *testing.T) {
 						"com.mattermost.calls": {
 							Enable: true,
 						},
+						"mattermost-ai": {
+							Enable: true,
+						},
 						"playbooks": {
 							Enable: true,
 						},
@@ -843,6 +844,9 @@ func TestDiff(t *testing.T) {
 					BaseVal: defaultConfigGen().PluginSettings.PluginStates,
 					ActualVal: map[string]*model.PluginState{
 						"com.mattermost.calls": {
+							Enable: true,
+						},
+						"mattermost-ai": {
 							Enable: true,
 						},
 						"playbooks": {

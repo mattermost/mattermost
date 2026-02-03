@@ -2,6 +2,7 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
+import type {MessageDescriptor} from 'react-intl';
 
 import AccordionToggleIcon from 'components/widgets/icons/accordion_toggle_icon';
 
@@ -12,34 +13,38 @@ type Props = {
     className: string;
     id?: string;
     open: boolean;
-    titleId: string;
-    titleDefault: string;
-    subtitleId: string;
-    subtitleDefault: string;
+    title: MessageDescriptor;
+    subtitle: MessageDescriptor;
     onToggle?: React.EventHandler<React.MouseEvent>;
-    isDisabled?: boolean;
 };
 
-const AdminPanelTogglable: React.FC<Props> = (props: Props) => {
+const AdminPanelTogglable = ({
+    className = '',
+    open = true,
+    subtitle,
+    title,
+    children,
+    id,
+    onToggle,
+}: Props) => {
+    // The content is rendered in two divs: an outer one that uses CSS grid to trick the browser into animating height
+    // and an inner one to prevent the content from overflowing the grid.
     return (
         <AdminPanel
-            className={'AdminPanelTogglable ' + props.className + (props.open ? '' : ' closed')}
-            id={props.id}
-            titleId={props.titleId}
-            titleDefault={props.titleDefault}
-            subtitleId={props.subtitleId}
-            subtitleDefault={props.subtitleDefault}
-            onHeaderClick={props.onToggle}
+            className={'AdminPanelTogglable ' + className + (open ? '' : ' closed')}
+            id={id}
+            title={title}
+            subtitle={subtitle}
+            onHeaderClick={onToggle}
             button={<AccordionToggleIcon/>}
         >
-            {props.children}
+            <div className='AdminPanelTogglableContent'>
+                <div className='AdminPanelTogglableContentInner'>
+                    {children}
+                </div>
+            </div>
         </AdminPanel>
     );
-};
-
-AdminPanelTogglable.defaultProps = {
-    className: '',
-    open: true,
 };
 
 export default AdminPanelTogglable;

@@ -16,6 +16,7 @@ const mockedUser = TestHelper.getUserMock();
 
 describe('components/MoreDirectChannels', () => {
     const baseProps: ComponentProps<typeof MoreDirectChannels> = {
+        focusOriginElement: 'anyId',
         currentUserId: 'current_user_id',
         currentTeamId: 'team_id',
         currentTeamName: 'team_name',
@@ -54,8 +55,8 @@ describe('components/MoreDirectChannels', () => {
         onExited: jest.fn(),
         actions: {
             getProfiles: jest.fn(() => {
-                return new Promise<void>((resolve) => {
-                    process.nextTick(() => resolve());
+                return new Promise((resolve) => {
+                    process.nextTick(() => resolve({data: true}));
                 });
             }),
             getProfilesInTeam: jest.fn().mockResolvedValue({data: true}),
@@ -72,6 +73,7 @@ describe('components/MoreDirectChannels', () => {
                     process.nextTick(() => resolve());
                 });
             }),
+            canUserDirectMessage: jest.fn().mockResolvedValue({data: {can_dm: true}}),
         },
     };
 
@@ -89,9 +91,9 @@ describe('components/MoreDirectChannels', () => {
 
         expect(props.actions.getProfiles).toHaveBeenCalledTimes(1);
         expect(props.actions.getTotalUsersStats).toHaveBeenCalledTimes(1);
-        expect(props.actions.getProfiles).toBeCalledWith(0, 100);
+        expect(props.actions.getProfiles).toHaveBeenCalledWith(0, 100);
         expect(props.actions.loadProfilesMissingStatus).toHaveBeenCalledTimes(1);
-        expect(props.actions.loadProfilesMissingStatus).toBeCalledWith(baseProps.users);
+        expect(props.actions.loadProfilesMissingStatus).toHaveBeenCalledWith(baseProps.users);
     });
 
     test('should call actions.loadProfilesMissingStatus on componentDidUpdate when users prop changes length', () => {
@@ -106,7 +108,7 @@ describe('components/MoreDirectChannels', () => {
 
         wrapper.setProps({users: newUsers});
         expect(props.actions.loadProfilesMissingStatus).toHaveBeenCalledTimes(1);
-        expect(props.actions.loadProfilesMissingStatus).toBeCalledWith(newUsers);
+        expect(props.actions.loadProfilesMissingStatus).toHaveBeenCalledWith(newUsers);
     });
 
     test('should call actions.setModalSearchTerm and match state on handleHide', () => {
@@ -117,7 +119,7 @@ describe('components/MoreDirectChannels', () => {
 
         wrapper.instance().handleHide();
         expect(props.actions.setModalSearchTerm).toHaveBeenCalledTimes(1);
-        expect(props.actions.setModalSearchTerm).toBeCalledWith('');
+        expect(props.actions.setModalSearchTerm).toHaveBeenCalledWith('');
         expect(wrapper.state('show')).toEqual(false);
     });
 
@@ -139,10 +141,10 @@ describe('components/MoreDirectChannels', () => {
         const props = {...baseProps, actions: {...baseProps.actions, setModalSearchTerm: jest.fn()}};
         const wrapper = shallow<MoreDirectChannels>(<MoreDirectChannels {...props}/>);
         wrapper.instance().search('user_search');
-        expect(props.actions.setModalSearchTerm).not.toBeCalled();
+        expect(props.actions.setModalSearchTerm).not.toHaveBeenCalled();
         jest.runAllTimers();
         expect(props.actions.setModalSearchTerm).toHaveBeenCalledTimes(1);
-        expect(props.actions.setModalSearchTerm).toBeCalledWith('user_search');
+        expect(props.actions.setModalSearchTerm).toHaveBeenCalledWith('user_search');
     });
 
     test('should match state on handleDelete', () => {
@@ -174,7 +176,7 @@ describe('components/MoreDirectChannels', () => {
 
         wrapper.instance().handleSubmit();
         expect(wrapper.state('saving')).toEqual(false);
-        expect(baseProps.actions.openDirectChannelToUserId).not.toBeCalled();
+        expect(baseProps.actions.openDirectChannelToUserId).not.toHaveBeenCalled();
     });
 
     test('should open a DM', (done) => {
@@ -196,7 +198,7 @@ describe('components/MoreDirectChannels', () => {
         expect(props.actions.openDirectChannelToUserId).toHaveBeenCalledWith('user_id_1');
         process.nextTick(() => {
             expect(wrapper.state('saving')).toEqual(false);
-            expect(handleHide).toBeCalled();
+            expect(handleHide).toHaveBeenCalled();
             expect(wrapper.instance().exitToChannel).toEqual(`/${props.currentTeamName}/channels/dm`);
             done();
         });
@@ -216,7 +218,7 @@ describe('components/MoreDirectChannels', () => {
         expect(baseProps.actions.openGroupChannelToUserIds).toHaveBeenCalledWith(['user_id_1', 'user_id_2']);
         process.nextTick(() => {
             expect(wrapper.state('saving')).toEqual(false);
-            expect(handleHide).toBeCalled();
+            expect(handleHide).toHaveBeenCalled();
             expect(wrapper.instance().exitToChannel).toEqual(`/${baseProps.currentTeamName}/channels/group`);
             done();
         });

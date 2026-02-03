@@ -35,10 +35,6 @@ type CustomStatus struct {
 }
 
 func (cs *CustomStatus) PreSave() {
-	if cs.Emoji == "" {
-		cs.Emoji = DefaultCustomStatusEmoji
-	}
-
 	if cs.Duration == "" && !cs.ExpiresAt.Before(time.Now()) {
 		cs.Duration = "date_and_time"
 	}

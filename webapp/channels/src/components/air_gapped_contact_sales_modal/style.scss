@@ -6,8 +6,13 @@
     display: flex;
     flex-direction: column;
     margin-bottom: 26px;
-}
 
-.air-gapped-contact-sales-modal-body > .image {
-    align-self: center;
+    & > .image {
+        align-self: center;
+
+        & > img {
+            max-width: 300px;
+            height: auto;
+        }
+    }
 }

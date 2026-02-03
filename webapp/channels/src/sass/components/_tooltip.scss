@@ -1,6 +1,6 @@
-@charset 'UTF-8';
 
 .tooltip {
+    z-index: 2000;
     max-width: 220px;
     font-family: inherit;
     pointer-events: none;
@@ -8,12 +8,6 @@
 
     &.in {
         opacity: 1;
-    }
-
-    &#announcement-bar__tooltip {
-        width: 50%;
-        max-width: 100%;
-        pointer-events: auto;
     }
 
     .tooltip-inner {
@@ -40,43 +34,38 @@
         }
     }
 
-    &.text-nowrap {
-        .tooltip-inner {
-            white-space: nowrap;
+
+    .tooltip-help {
+        color: rgba(255, 255, 255, 0.75);
+    }
+
+    .tooltip-large-emoji {
+        margin-bottom: 2px;
+    }
+
+    .tooltip-title {
+        font-weight: 600;
+        line-height: 15px;
+
+        .emoticon {
+            margin-right: 6px;
         }
     }
 
-    .tooltip-help {
-        color: rgba(255, 255, 255, 0.64);
+    .tooltip-hint {
+        font-size: 11px;
+        line-height: 16px;
+        opacity: 56%;
     }
-}
 
-.floating-ui-tooltip {
-    max-width: 220px;
-    padding: 4px 8px;
-    background: #000;
-    border-radius: 4px;
-    box-shadow: 0 6px 14px rgba(0, 0, 0, 0.12);
-    color: #fff;
-    font-size: 12px;
-    font-weight: 600;
-    line-height: 18px;
-    opacity: 0;
-    pointer-events: none;
-    text-align: center;
-    transition: opacity 0.15s linear;
-    word-break: break-word;
-
-    &.floating-ui-tooltip--visible {
-        opacity: 0.9;
-        transition: opacity 0.15s linear;
+    .tooltip-shortcuts-container {
+        display: flex;
+        justify-content: center;
+        padding: 4px 0;
+        gap: 2px;
     }
-}
 
-.floating-ui-tooltip-arrow {
-    position: absolute;
-    width: 8px;
-    height: 8px;
-    background: #000;
-    transform: rotate(45deg);
+    .emoticon {
+        vertical-align: center;
+    }
 }

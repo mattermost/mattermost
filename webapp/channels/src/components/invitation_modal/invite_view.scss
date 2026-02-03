@@ -1,4 +1,4 @@
-@import 'sass/utils/_mixins';
+@use 'utils/_mixins';
 
 .InviteView {
     &__sectionTitle {
@@ -11,9 +11,14 @@
         }
     }
 
+    &__header {
+        padding-left: 0 !important;
+    }
+
     &__footer {
         display: flex;
         justify-content: space-between;
+        padding-right: 0 !important;
 
         // to override clearfix rule in clearfix.less
         &::before,
@@ -31,8 +36,26 @@
     }
 
     &__sectionTitleParenthetical {
-        color: rgba(var(--center-channel-color-rgb), 0.6);
+        color: rgba(var(--center-channel-color-rgb), 0.75);
         font-weight: normal;
+    }
+
+    &__guestMagicLinkSection {
+        padding: 12px 0;
+    }
+
+    &__guestMagicLinkCheckbox {
+        display: flex;
+        align-items: center;
+        margin: 0;
+        cursor: pointer;
+        font-weight: normal;
+        gap: 8px;
+
+        input[type='checkbox'] {
+            margin: 0;
+            cursor: pointer;
+        }
     }
 }
 

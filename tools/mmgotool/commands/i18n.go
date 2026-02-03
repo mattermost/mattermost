@@ -26,8 +26,8 @@ const enterpriseKeyPrefix = "ent."
 const untranslatedKey = "<untranslated>"
 
 type Translation struct {
-	Id          string      `json:"id"`
-	Translation interface{} `json:"translation"`
+	Id          string `json:"id"`
+	Translation any    `json:"translation"`
 }
 
 type Item struct {
@@ -113,8 +113,16 @@ func getBaseFileSrcStrings(mattermostDir string) ([]Translation, error) {
 		return nil, err
 	}
 	var translations []Translation
-	_ = json.Unmarshal(jsonFile, &translations)
-	return translations, nil
+	err = json.Unmarshal(jsonFile, &translations)
+	return translations, err
+}
+
+// resolveSymlink resolves a path if it's a symlink, otherwise returns the original path
+func resolveSymlink(path string) string {
+	if realPath, err := filepath.EvalSymlinks(path); err == nil {
+		return realPath
+	}
+	return path
 }
 
 func extractSrcStrings(enterpriseDir, mattermostDir, modelDir, pluginDir, portalDir string) map[string]bool {
@@ -125,13 +133,14 @@ func extractSrcStrings(enterpriseDir, mattermostDir, modelDir, pluginDir, portal
 		}
 		return extractFromPath(p, info, err, i18nStrings)
 	}
+
 	if portalDir != "" {
-		_ = filepath.Walk(portalDir, walkFunc)
+		_ = filepath.Walk(resolveSymlink(portalDir), walkFunc)
 	} else {
-		_ = filepath.Walk(mattermostDir, walkFunc)
-		_ = filepath.Walk(enterpriseDir, walkFunc)
-		_ = filepath.Walk(modelDir, walkFunc)
-		_ = filepath.Walk(pluginDir, walkFunc)
+		_ = filepath.Walk(resolveSymlink(mattermostDir), walkFunc)
+		_ = filepath.Walk(resolveSymlink(enterpriseDir), walkFunc)
+		_ = filepath.Walk(resolveSymlink(modelDir), walkFunc)
+		_ = filepath.Walk(resolveSymlink(pluginDir), walkFunc)
 	}
 	return i18nStrings
 }
@@ -318,7 +327,8 @@ func checkCmdF(command *cobra.Command, args []string) error {
 }
 
 func addDynamicallyGeneratedStrings(i18nStrings map[string]bool) {
-	i18nStrings["model.user.is_valid.pwd.app_error"] = true
+	i18nStrings["model.user.is_valid.pwd_min_length.app_error"] = true
+	i18nStrings["model.user.is_valid.pwd_max_length.app_error"] = true
 	i18nStrings["model.user.is_valid.pwd_lowercase.app_error"] = true
 	i18nStrings["model.user.is_valid.pwd_lowercase_number.app_error"] = true
 	i18nStrings["model.user.is_valid.pwd_lowercase_number_symbol.app_error"] = true
@@ -466,6 +476,7 @@ func extractForConstants(name string, valueNode ast.Expr) *string {
 		"ExpiredLicenseError":          true,
 		"InvalidLicenseError":          true,
 		"NoTranslation":                true,
+		"PayloadParseError":            true,
 	}
 
 	if _, ok := validConstants[name]; !ok {
@@ -728,7 +739,7 @@ func removeEmptyTranslations(oldList []Item) ([]Item, int) {
 	return newList, count
 }
 
-func JSONMarshal(t interface{}) ([]byte, error) {
+func JSONMarshal(t any) ([]byte, error) {
 	buffer := &bytes.Buffer{}
 	encoder := json.NewEncoder(buffer)
 	encoder.SetEscapeHTML(false)

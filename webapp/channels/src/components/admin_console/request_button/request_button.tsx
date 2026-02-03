@@ -1,15 +1,15 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+/* eslint-disable formatjs/enforce-placeholders -- Admin request button uses runtime injection for error placeholder */
+
 import React from 'react';
-import {FormattedMessage} from 'react-intl';
+import type {MessageDescriptor} from 'react-intl';
+import {FormattedMessage, defineMessage} from 'react-intl';
 
 import SuccessIcon from 'components/widgets/icons/fa_success_icon';
 import WarningIcon from 'components/widgets/icons/fa_warning_icon';
 import LoadingWrapper from 'components/widgets/loading/loading_wrapper';
-
-import {t} from 'utils/i18n';
-import * as Utils from 'utils/utils';
 
 /**
  * A button which, when clicked, performs an action and displays
@@ -27,8 +27,8 @@ type Props = {
      * The action to be called to carry out the request.
      */
     requestAction: (
-        success: (data?: any) => void,
-        error: (error: any) => void
+        success: () => void,
+        error: (error: {message: string; detailed_error?: string}) => void
     ) => void;
 
     /**
@@ -87,37 +87,12 @@ type Props = {
     /**
      * The message to show when the request completes successfully.
      */
-    successMessage: {
-
-        /**
-         * The i18n string ID for the success message.
-         */
-        id: string;
-
-        /**
-         * The i18n default value for the success message.
-         */
-        defaultMessage: string;
-    };
+    successMessage: string | MessageDescriptor;
 
     /**
      * The message to show when the request returns an error.
      */
-    errorMessage: {
-
-        /**
-         * The i18n string ID for the error message.
-         */
-        id: string;
-
-        /**
-         * The i18n default value for the error message.
-         *
-         * The placeholder {error} may be used to include the error message returned
-         * by the server in response to the failed request.
-         */
-        defaultMessage: string;
-    };
+    errorMessage: string | MessageDescriptor;
 
     /**
      * True if the {error} placeholder for the `errorMessage` property should include both
@@ -130,6 +105,18 @@ type Props = {
      * An element to display adjacent to the request button.
      */
     alternativeActionElement?: React.ReactNode;
+
+    /**
+     * True if the button should be displayed flush left without the col-sm-offset-4 class,
+     * otherwise false.
+     */
+    flushLeft?: boolean;
+
+    /**
+     * The button type/variant to apply. Determines the button's visual style.
+     * Defaults to 'tertiary'.
+     */
+    buttonType?: 'primary' | 'secondary' | 'tertiary';
 };
 
 type State = {
@@ -144,14 +131,14 @@ export default class RequestButton extends React.PureComponent<Props, State> {
         saveNeeded: false,
         showSuccessMessage: true,
         includeDetailedError: false,
-        successMessage: {
-            id: t('admin.requestButton.requestSuccess'),
+        successMessage: defineMessage({
+            id: 'admin.requestButton.requestSuccess',
             defaultMessage: 'Test Successful',
-        },
-        errorMessage: {
-            id: t('admin.requestButton.requestFailure'),
+        }),
+        errorMessage: defineMessage({
+            id: 'admin.requestButton.requestFailure',
             defaultMessage: 'Test Failure: {error}',
-        },
+        }),
     };
 
     constructor(props: Props) {
@@ -203,33 +190,33 @@ export default class RequestButton extends React.PureComponent<Props, State> {
     render() {
         let message = null;
         if (this.state.fail) {
+            const text = typeof this.props.errorMessage === 'string' ?
+                this.props.errorMessage :
+                (
+                    <FormattedMessage
+                        {...this.props.errorMessage}
+                        values={{
+                            error: this.state.fail,
+                        }}
+                    />
+                );
             message = (
                 <div>
                     <div className='alert alert-warning'>
                         <WarningIcon/>
-                        <FormattedMessage
-                            id={this.props.errorMessage.id}
-                            defaultMessage={
-                                this.props.errorMessage.defaultMessage
-                            }
-                            values={{
-                                error: this.state.fail,
-                            }}
-                        />
+                        {text}
                     </div>
                 </div>
             );
         } else if (this.state.success && this.props.showSuccessMessage) {
+            const text = typeof this.props.successMessage === 'string' ?
+                this.props.successMessage :
+                (<FormattedMessage {...this.props.successMessage}/>);
             message = (
                 <div>
                     <div className='alert alert-success'>
                         <SuccessIcon/>
-                        <FormattedMessage
-                            id={this.props.successMessage.id}
-                            defaultMessage={
-                                this.props.successMessage.defaultMessage
-                            }
-                        />
+                        {text}
                     </div>
                 </div>
             );
@@ -238,11 +225,14 @@ export default class RequestButton extends React.PureComponent<Props, State> {
         let widgetClassNames = 'col-sm-8';
         let label = null;
         if (this.props.label) {
+            // When there's a label, widget takes remaining 8 columns regardless of flushLeft
             label = (
                 <label className='control-label col-sm-4'>
                     {this.props.label}
                 </label>
             );
+        } else if (this.props.flushLeft) {
+            widgetClassNames = 'col-sm-12';
         } else {
             widgetClassNames = 'col-sm-offset-4 ' + widgetClassNames;
         }
@@ -257,7 +247,7 @@ export default class RequestButton extends React.PureComponent<Props, State> {
                     <div>
                         <button
                             type='button'
-                            className='btn btn-tertiary'
+                            className={`btn btn-${this.props.buttonType || 'tertiary'}`}
                             onClick={this.handleRequest}
                             disabled={this.props.disabled}
                         >
@@ -265,9 +255,11 @@ export default class RequestButton extends React.PureComponent<Props, State> {
                                 loading={this.state.busy}
                                 text={
                                     this.props.loadingText ||
-                                    Utils.localizeMessage(
-                                        'admin.requestButton.loading',
-                                        'Loading...',
+                                    (
+                                        <FormattedMessage
+                                            id={'admin.requestButton.loading'}
+                                            defaultMessage={'Loading...'}
+                                        />
                                     )
                                 }
                             >

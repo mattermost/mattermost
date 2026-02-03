@@ -1,9 +1,9 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {isEmpty} from 'lodash';
+import isEmpty from 'lodash/isEmpty';
 import React, {useEffect, useState} from 'react';
-import {FormattedMessage} from 'react-intl';
+import {FormattedMessage, defineMessages} from 'react-intl';
 import {useSelector, useDispatch} from 'react-redux';
 
 import {getCloudCustomer} from 'mattermost-redux/actions/cloud';
@@ -14,18 +14,16 @@ import {
 } from 'mattermost-redux/selectors/entities/cloud';
 import {getLicense} from 'mattermost-redux/selectors/entities/general';
 import {isCurrentUserSystemAdmin} from 'mattermost-redux/selectors/entities/users';
-import type {DispatchFunc} from 'mattermost-redux/types/actions';
 
 import {getHistory} from 'utils/browser_history';
 import {isCustomerCardExpired} from 'utils/cloud_utils';
 import {AnnouncementBarTypes, CloudProducts, ConsolePages} from 'utils/constants';
-import {t} from 'utils/i18n';
 
 import AnnouncementBar from '../default_announcement_bar';
 
 export default function PaymentAnnouncementBar() {
     const [requestedCustomer, setRequestedCustomer] = useState(false);
-    const dispatch = useDispatch<DispatchFunc>();
+    const dispatch = useDispatch();
     const subscription = useSelector(selectCloudSubscription);
     const customer = useSelector(selectCloudCustomer);
     const isStarterFree = useSelector(getSubscriptionProduct)?.sku === CloudProducts.STARTER;
@@ -79,11 +77,17 @@ export default function PaymentAnnouncementBar() {
             type={AnnouncementBarTypes.CRITICAL}
             showCloseButton={false}
             onButtonClick={updatePaymentInfo}
-            modalButtonText={t('admin.billing.subscription.updatePaymentInfo')}
-            modalButtonDefaultText={'Update payment info'}
+            modalButtonText={messages.updatePaymentInfo}
             message={message}
             showLinkAsButton={true}
             isTallBanner={true}
         />
     );
 }
+
+const messages = defineMessages({
+    updatePaymentInfo: {
+        id: 'admin.billing.subscription.updatePaymentInfo',
+        defaultMessage: 'Update Payment Information',
+    },
+});

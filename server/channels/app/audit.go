@@ -4,10 +4,15 @@
 package app
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
+	"io"
+	"mime/multipart"
 	"net/http"
+	"os"
 	"os/user"
+	"strings"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
@@ -18,11 +23,23 @@ import (
 	"github.com/mattermost/mattermost/server/v8/config"
 )
 
+// Audit level aliases for convenient access within the app package.
+// These map directly to the audit levels defined in mlog.
+//
+// See [github.com/mattermost/mattermost/server/public/shared/mlog.LvlAuditAPI],
+// [github.com/mattermost/mattermost/server/public/shared/mlog.LvlAuditContent],
+// [github.com/mattermost/mattermost/server/public/shared/mlog.LvlAuditPerms],
+// [github.com/mattermost/mattermost/server/public/shared/mlog.LvlAuditCLI]
+// for detailed documentation on when to use each level.
 var (
 	LevelAPI     = mlog.LvlAuditAPI
 	LevelContent = mlog.LvlAuditContent
 	LevelPerms   = mlog.LvlAuditPerms
 	LevelCLI     = mlog.LvlAuditCLI
+)
+
+const (
+	AuditCertificateFilename = "audit_certificate.pem"
 )
 
 func (a *App) GetAudits(rctx request.CTX, userID string, limit int) (model.Audits, *model.AppError) {
@@ -54,12 +71,12 @@ func (a *App) GetAuditsPage(rctx request.CTX, userID string, page int, perPage i
 }
 
 // LogAuditRec logs an audit record using default LvlAuditCLI.
-func (a *App) LogAuditRec(rctx request.CTX, rec *audit.Record, err error) {
+func (a *App) LogAuditRec(rctx request.CTX, rec *model.AuditRecord, err error) {
 	a.LogAuditRecWithLevel(rctx, rec, mlog.LvlAuditCLI, err)
 }
 
 // LogAuditRecWithLevel logs an audit record using specified Level.
-func (a *App) LogAuditRecWithLevel(rctx request.CTX, rec *audit.Record, level mlog.Level, err error) {
+func (a *App) LogAuditRecWithLevel(rctx request.CTX, rec *model.AuditRecord, level mlog.Level, err error) {
 	if rec == nil {
 		return
 	}
@@ -75,31 +92,31 @@ func (a *App) LogAuditRecWithLevel(rctx request.CTX, rec *audit.Record, level ml
 }
 
 // MakeAuditRecord creates a audit record pre-populated with defaults.
-func (a *App) MakeAuditRecord(rctx request.CTX, event string, initialStatus string) *audit.Record {
+func (a *App) MakeAuditRecord(rctx request.CTX, event string, initialStatus string) *model.AuditRecord {
 	var userID string
 	user, err := user.Current()
 	if err == nil {
 		userID = fmt.Sprintf("%s:%s", user.Uid, user.Username)
 	}
 
-	rec := &audit.Record{
+	rec := &model.AuditRecord{
 		EventName: event,
 		Status:    initialStatus,
-		Meta: map[string]interface{}{
-			audit.KeyAPIPath:   "",
-			audit.KeyClusterID: a.GetClusterId(),
+		Meta: map[string]any{
+			model.AuditKeyAPIPath:   "",
+			model.AuditKeyClusterID: a.GetClusterId(),
 		},
-		Actor: audit.EventActor{
+		Actor: model.AuditEventActor{
 			UserId:        userID,
 			SessionId:     "",
 			Client:        fmt.Sprintf("server %s-%s", model.BuildNumber, model.BuildHash),
 			IpAddress:     "",
 			XForwardedFor: "",
 		},
-		EventData: audit.EventData{
-			Parameters:  map[string]interface{}{},
-			PriorState:  map[string]interface{}{},
-			ResultState: map[string]interface{}{},
+		EventData: model.AuditEventData{
+			Parameters:  map[string]any{},
+			PriorState:  map[string]any{},
+			ResultState: map[string]any{},
 			ObjectType:  "",
 		},
 	}
@@ -132,6 +149,16 @@ func (s *Server) configureAudit(adt *audit.Audit, bAllowAdvancedLogging bool) er
 		return fmt.Errorf("invalid config for audit, %w", err)
 	}
 
+	// Append additional config from env var; any target name collisions will be overwritten.
+	additionalJSON := strings.TrimSpace(os.Getenv("MM_EXPERIMENTALAUDITSETTINGS_ADDITIONAL"))
+	if additionalJSON != "" {
+		cfgAdditional := make(mlog.LoggerConfiguration)
+		if err := json.Unmarshal([]byte(additionalJSON), &cfgAdditional); err != nil {
+			return fmt.Errorf("invalid additional config for audit, %w", err)
+		}
+		cfg.Append(cfgAdditional)
+	}
+
 	return adt.Configure(cfg)
 }
 
@@ -142,4 +169,67 @@ func (s *Server) onAuditTargetQueueFull(qname string, maxQSize int) bool {
 
 func (s *Server) onAuditError(err error) {
 	s.Log().Error("Audit Error", mlog.Err(err))
+}
+
+func (a *App) AddAuditLogCertificate(rctx request.CTX, fileData *multipart.FileHeader) *model.AppError {
+	file, err := fileData.Open()
+	if err != nil {
+		return model.NewAppError("AddAuditLogCertificate", "api.admin.add_certificate.open.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+	defer file.Close()
+
+	data, err := io.ReadAll(file)
+	if err != nil {
+		return model.NewAppError("AddAuditLogCertificate", "api.admin.add_certificate.saving.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+
+	err = a.Srv().platform.SetConfigFile(AuditCertificateFilename, data)
+	if err != nil {
+		return model.NewAppError("AddAuditLogCertificate", "api.admin.add_certificate.saving.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+
+	cfg := a.Config().Clone()
+
+	*cfg.ExperimentalAuditSettings.Certificate = AuditCertificateFilename
+
+	if err := cfg.IsValid(); err != nil {
+		return err
+	}
+
+	a.UpdateConfig(func(dest *model.Config) { *dest = *cfg })
+
+	if a.License().IsCloud() {
+		err = a.Cloud().CreateAuditLoggingCert(rctx.Session().UserId, fileData)
+		if err != nil {
+			return model.NewAppError("AddAuditLogCertificate", "api.admin.add_certificate.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		}
+	}
+
+	return nil
+}
+
+func (a *App) RemoveAuditLogCertificate(rctx request.CTX) *model.AppError {
+	err := a.Srv().platform.RemoveConfigFile(AuditCertificateFilename)
+	if err != nil {
+		return model.NewAppError("RemoveAuditLogCertificate", "api.admin.remove_certificate.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+
+	cfg := a.Config().Clone()
+
+	*cfg.ExperimentalAuditSettings.Certificate = ""
+
+	if err := cfg.IsValid(); err != nil {
+		return model.NewAppError("RemoveAuditLogCertificate", "api.admin.remove_certificate.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+
+	a.UpdateConfig(func(dest *model.Config) { *dest = *cfg })
+
+	if a.License().IsCloud() {
+		err = a.Cloud().RemoveAuditLoggingCert(rctx.Session().UserId)
+		if err != nil {
+			return model.NewAppError("RemoveAuditLogCertificate", "api.admin.remove_certificate.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		}
+	}
+
+	return nil
 }

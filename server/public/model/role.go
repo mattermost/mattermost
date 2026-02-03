@@ -6,6 +6,8 @@ package model
 import (
 	"fmt"
 	"strings"
+
+	"github.com/mattermost/mattermost/server/public/utils/timeutils"
 )
 
 // SysconsoleAncillaryPermissions maps the non-sysconsole permissions required by each sysconsole view.
@@ -68,7 +70,6 @@ func init() {
 		},
 		PermissionSysconsoleReadUserManagementUsers.Id: {
 			PermissionReadOtherUsersTeams,
-			PermissionGetAnalytics,
 		},
 		PermissionSysconsoleReadUserManagementTeams.Id: {
 			PermissionListPrivateTeams,
@@ -90,7 +91,9 @@ func init() {
 		PermissionSysconsoleWriteEnvironmentElasticsearch.Id: {
 			PermissionTestElasticsearch,
 			PermissionCreateElasticsearchPostIndexingJob,
+			PermissionManageElasticsearchPostIndexingJob,
 			PermissionCreateElasticsearchPostAggregationJob,
+			PermissionManageElasticsearchPostAggregationJob,
 			PermissionPurgeElasticsearchIndexes,
 		},
 		PermissionSysconsoleWriteEnvironmentFileStorage.Id: {
@@ -106,7 +109,7 @@ func init() {
 			PermissionGetAnalytics,
 		},
 		PermissionSysconsoleReadReportingTeamStatistics.Id: {
-			PermissionViewTeam,
+			PermissionGetAnalytics,
 		},
 		PermissionSysconsoleWriteUserManagementUsers.Id: {
 			PermissionEditOtherUsers,
@@ -114,7 +117,6 @@ func init() {
 			PermissionPromoteGuest,
 		},
 		PermissionSysconsoleWriteUserManagementChannels.Id: {
-			PermissionManageTeam,
 			PermissionManagePublicChannelProperties,
 			PermissionManagePrivateChannelProperties,
 			PermissionManagePrivateChannelMembers,
@@ -134,7 +136,6 @@ func init() {
 			PermissionAddUserToTeam,
 		},
 		PermissionSysconsoleWriteUserManagementGroups.Id: {
-			PermissionManageTeam,
 			PermissionManagePrivateChannelMembers,
 			PermissionManagePublicChannelMembers,
 			PermissionConvertPublicChannelToPrivate,
@@ -145,27 +146,26 @@ func init() {
 		},
 		PermissionSysconsoleWriteComplianceDataRetentionPolicy.Id: {
 			PermissionCreateDataRetentionJob,
+			PermissionManageDataRetentionJob,
 		},
 		PermissionSysconsoleReadComplianceDataRetentionPolicy.Id: {
 			PermissionReadDataRetentionJob,
 		},
 		PermissionSysconsoleWriteComplianceComplianceExport.Id: {
 			PermissionCreateComplianceExportJob,
+			PermissionManageComplianceExportJob,
 			PermissionDownloadComplianceExportResult,
 		},
 		PermissionSysconsoleReadComplianceComplianceExport.Id: {
 			PermissionReadComplianceExportJob,
 			PermissionDownloadComplianceExportResult,
 		},
-		PermissionSysconsoleReadComplianceCustomTermsOfService.Id: {
+		PermissionSysconsoleReadComplianceComplianceMonitoring.Id: {
 			PermissionReadAudits,
-		},
-		PermissionSysconsoleWriteExperimentalBleve.Id: {
-			PermissionCreatePostBleveIndexesJob,
-			PermissionPurgeBleveIndexes,
 		},
 		PermissionSysconsoleWriteAuthenticationLdap.Id: {
 			PermissionCreateLdapSyncJob,
+			PermissionManageLdapSyncJob,
 			PermissionAddLdapPublicCert,
 			PermissionRemoveLdapPublicCert,
 			PermissionAddLdapPrivateCert,
@@ -260,7 +260,6 @@ func init() {
 		PermissionSysconsoleReadComplianceCustomTermsOfService.Id,
 		PermissionSysconsoleReadExperimentalFeatures.Id,
 		PermissionSysconsoleReadExperimentalFeatureFlags.Id,
-		PermissionSysconsoleReadExperimentalBleve.Id,
 		PermissionSysconsoleReadProductsBoards.Id,
 	}
 
@@ -342,6 +341,7 @@ func init() {
 		PermissionSysconsoleWriteIntegrationsCors.Id,
 		PermissionSysconsoleReadProductsBoards.Id,
 		PermissionSysconsoleWriteProductsBoards.Id,
+		PermissionManageOutgoingOAuthConnections.Id,
 	}
 
 	SystemCustomGroupAdminDefaultPermissions = []string{
@@ -418,8 +418,8 @@ type Role struct {
 	BuiltIn       bool     `json:"built_in"`
 }
 
-func (r *Role) Auditable() map[string]interface{} {
-	return map[string]interface{}{
+func (r *Role) Auditable() map[string]any {
+	return map[string]any{
 		"id":             r.Id,
 		"name":           r.Name,
 		"display_name":   r.DisplayName,
@@ -433,12 +433,90 @@ func (r *Role) Auditable() map[string]interface{} {
 	}
 }
 
+func (r *Role) Sanitize() {
+	r.DisplayName = FakeSetting
+	r.Description = FakeSetting
+}
+
+func (r *Role) MarshalYAML() (any, error) {
+	return struct {
+		Id            string   `yaml:"id"`
+		Name          string   `yaml:"name"`
+		DisplayName   string   `yaml:"display_name"`
+		Description   string   `yaml:"description"`
+		CreateAt      string   `yaml:"create_at"`
+		UpdateAt      string   `yaml:"update_at"`
+		DeleteAt      string   `yaml:"delete_at"`
+		Permissions   []string `yaml:"permissions"`
+		SchemeManaged bool     `yaml:"scheme_managed"`
+		BuiltIn       bool     `yaml:"built_in"`
+	}{
+		Id:            r.Id,
+		Name:          r.Name,
+		DisplayName:   r.DisplayName,
+		Description:   r.Description,
+		CreateAt:      timeutils.FormatMillis(r.CreateAt),
+		UpdateAt:      timeutils.FormatMillis(r.UpdateAt),
+		DeleteAt:      timeutils.FormatMillis(r.DeleteAt),
+		Permissions:   r.Permissions,
+		SchemeManaged: r.SchemeManaged,
+		BuiltIn:       r.BuiltIn,
+	}, nil
+}
+
+func (r *Role) UnmarshalYAML(unmarshal func(any) error) error {
+	out := struct {
+		Id            string   `yaml:"id"`
+		Name          string   `yaml:"name"`
+		DisplayName   string   `yaml:"display_name"`
+		Description   string   `yaml:"description"`
+		CreateAt      string   `yaml:"create_at"`
+		UpdateAt      string   `yaml:"update_at"`
+		DeleteAt      string   `yaml:"delete_at"`
+		Permissions   []string `yaml:"permissions"`
+		SchemeManaged bool     `yaml:"scheme_managed"`
+		BuiltIn       bool     `yaml:"built_in"`
+	}{}
+
+	err := unmarshal(&out)
+	if err != nil {
+		return err
+	}
+
+	createAt, err := timeutils.ParseFormatedMillis(out.CreateAt)
+	if err != nil {
+		return err
+	}
+	updateAt, err := timeutils.ParseFormatedMillis(out.UpdateAt)
+	if err != nil {
+		return err
+	}
+	deleteAt, err := timeutils.ParseFormatedMillis(out.DeleteAt)
+	if err != nil {
+		return err
+	}
+
+	*r = Role{
+		Id:            out.Id,
+		Name:          out.Name,
+		DisplayName:   out.DisplayName,
+		Description:   out.Description,
+		CreateAt:      createAt,
+		UpdateAt:      updateAt,
+		DeleteAt:      deleteAt,
+		Permissions:   out.Permissions,
+		SchemeManaged: out.SchemeManaged,
+		BuiltIn:       out.BuiltIn,
+	}
+	return nil
+}
+
 type RolePatch struct {
 	Permissions *[]string `json:"permissions"`
 }
 
-func (r *RolePatch) Auditable() map[string]interface{} {
-	return map[string]interface{}{
+func (r *RolePatch) Auditable() map[string]any {
+	return map[string]any{
 		"permissions": r.Permissions,
 	}
 }
@@ -581,6 +659,15 @@ func ChannelModeratedPermissionsChangedByPatch(role *Role, patch *RolePatch) []s
 	return result
 }
 
+func isModeratedBookmarkPermission(permission string) bool {
+	for _, mbp := range ModeratedBookmarkPermissions {
+		if mbp.Id == permission {
+			return true
+		}
+	}
+	return false
+}
+
 // GetChannelModeratedPermissions returns a map of channel moderated permissions that the role has access to
 func (r *Role) GetChannelModeratedPermissions(channelType ChannelType) map[string]bool {
 	moderatedPermissions := make(map[string]bool)
@@ -596,10 +683,21 @@ func (r *Role) GetChannelModeratedPermissions(channelType ChannelType) map[strin
 			}
 
 			if moderated == permission {
-				// Special case where the channel moderated permission for `manage_members` is different depending on whether the channel is private or public
+				// Special case where the channel moderated permission for `manage_members` is different depending
+				// on whether the channel is private or public
 				if moderated == PermissionManagePublicChannelMembers.Id || moderated == PermissionManagePrivateChannelMembers.Id {
 					canManagePublic := channelType == ChannelTypeOpen && moderated == PermissionManagePublicChannelMembers.Id
 					canManagePrivate := channelType == ChannelTypePrivate && moderated == PermissionManagePrivateChannelMembers.Id
+					moderatedPermissions[moderatedPermissionValue] = canManagePublic || canManagePrivate
+
+					// Special case where the channel moderated permission for `manage_bookmarks` is different
+					// depending on whether the channel is private or public.
+					//
+					// Only AddBookmark is checked even if the permission includes four (add, delete, edit and
+					// order) as all of them are enabled or disabled in together
+				} else if isModeratedBookmarkPermission(moderated) {
+					canManagePublic := channelType == ChannelTypeOpen && moderated == PermissionAddBookmarkPublicChannel.Id
+					canManagePrivate := channelType == ChannelTypePrivate && moderated == PermissionAddBookmarkPrivateChannel.Id
 					moderatedPermissions[moderatedPermissionValue] = canManagePublic || canManagePrivate
 				} else {
 					moderatedPermissions[moderatedPermissionValue] = true
@@ -782,6 +880,14 @@ func MakeDefaultRoles() map[string]*Role {
 			PermissionManagePrivateChannelMembers.Id,
 			PermissionDeletePost.Id,
 			PermissionEditPost.Id,
+			PermissionAddBookmarkPublicChannel.Id,
+			PermissionEditBookmarkPublicChannel.Id,
+			PermissionDeleteBookmarkPublicChannel.Id,
+			PermissionOrderBookmarkPublicChannel.Id,
+			PermissionAddBookmarkPrivateChannel.Id,
+			PermissionEditBookmarkPrivateChannel.Id,
+			PermissionDeleteBookmarkPrivateChannel.Id,
+			PermissionOrderBookmarkPrivateChannel.Id,
 		},
 		SchemeManaged: true,
 		BuiltIn:       true,
@@ -794,6 +900,17 @@ func MakeDefaultRoles() map[string]*Role {
 		Permissions: []string{
 			PermissionManageChannelRoles.Id,
 			PermissionUseGroupMentions.Id,
+			PermissionAddBookmarkPublicChannel.Id,
+			PermissionEditBookmarkPublicChannel.Id,
+			PermissionDeleteBookmarkPublicChannel.Id,
+			PermissionOrderBookmarkPublicChannel.Id,
+			PermissionAddBookmarkPrivateChannel.Id,
+			PermissionEditBookmarkPrivateChannel.Id,
+			PermissionDeleteBookmarkPrivateChannel.Id,
+			PermissionOrderBookmarkPrivateChannel.Id,
+			PermissionManagePublicChannelBanner.Id,
+			PermissionManagePrivateChannelBanner.Id,
+			PermissionManageChannelAccessRules.Id,
 		},
 		SchemeManaged: true,
 		BuiltIn:       true,
@@ -862,16 +979,28 @@ func MakeDefaultRoles() map[string]*Role {
 			PermissionImportTeam.Id,
 			PermissionManageTeamRoles.Id,
 			PermissionManageChannelRoles.Id,
+			PermissionManageOwnIncomingWebhooks.Id,
 			PermissionManageOthersIncomingWebhooks.Id,
+			PermissionManageOwnOutgoingWebhooks.Id,
 			PermissionManageOthersOutgoingWebhooks.Id,
-			PermissionManageSlashCommands.Id,
+			PermissionManageOwnSlashCommands.Id,
 			PermissionManageOthersSlashCommands.Id,
-			PermissionManageIncomingWebhooks.Id,
-			PermissionManageOutgoingWebhooks.Id,
+			PermissionBypassIncomingWebhookChannelLock.Id,
 			PermissionConvertPublicChannelToPrivate.Id,
 			PermissionConvertPrivateChannelToPublic.Id,
 			PermissionDeletePost.Id,
 			PermissionDeleteOthersPosts.Id,
+			PermissionAddBookmarkPublicChannel.Id,
+			PermissionEditBookmarkPublicChannel.Id,
+			PermissionDeleteBookmarkPublicChannel.Id,
+			PermissionOrderBookmarkPublicChannel.Id,
+			PermissionAddBookmarkPrivateChannel.Id,
+			PermissionEditBookmarkPrivateChannel.Id,
+			PermissionDeleteBookmarkPrivateChannel.Id,
+			PermissionOrderBookmarkPrivateChannel.Id,
+			PermissionManagePublicChannelBanner.Id,
+			PermissionManagePrivateChannelBanner.Id,
+			PermissionManageChannelAccessRules.Id,
 		},
 		SchemeManaged: true,
 		BuiltIn:       true,

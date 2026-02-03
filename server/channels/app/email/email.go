@@ -12,6 +12,7 @@ import (
 	"net/http"
 	"net/url"
 	"strings"
+	"time"
 
 	"github.com/pkg/errors"
 
@@ -78,7 +79,7 @@ func (es *Service) SendEmailChangeVerifyEmail(newUserEmail, locale, siteURL, tok
 	data.Props["QuestionTitle"] = T("api.templates.questions_footer.title")
 	data.Props["EmailInfo1"] = T("api.templates.email_us_anytime_at")
 	data.Props["SupportEmail"] = "feedback@mattermost.com"
-	data.Props["FooterV2"] = T("api.templates.email_footer_v2")
+	data.Props["FooterV2"] = T("api.templates.email_footer_v2", map[string]any{"CurrentYear": time.Now().Year()})
 
 	body, err := es.templatesContainer.RenderToString("email_change_verify_body", data)
 	if err != nil {
@@ -239,44 +240,6 @@ func (es *Service) SendWelcomeEmail(userID string, email string, verified bool, 
 	return nil
 }
 
-func (es *Service) SendCloudUpgradeConfirmationEmail(userEmail, name, date, locale, siteURL, workspaceName string, isYearly bool, embeddedFiles map[string]io.Reader) error {
-	T := i18n.GetUserTranslations(locale)
-	subject := T("api.templates.cloud_upgrade_confirmation.subject")
-
-	data := es.NewEmailTemplateData(locale)
-	data.Props["Title"] = T("api.templates.cloud_upgrade_confirmation.title")
-	data.Props["SubTitle"] = T("api.templates.cloud_upgrade_confirmation_monthly.subtitle", map[string]any{"WorkspaceName": workspaceName, "Date": date})
-	data.Props["SiteURL"] = siteURL
-	data.Props["ButtonURL"] = siteURL
-	data.Props["Button"] = T("api.templates.cloud_welcome_email.button")
-	data.Props["QuestionTitle"] = T("api.templates.questions_footer.title")
-	data.Props["QuestionInfo"] = T("api.templates.questions_footer.info")
-	data.Props["SupportEmail"] = *es.config().SupportSettings.SupportEmail
-
-	if isYearly {
-		data.Props["SubTitle"] = T("api.templates.cloud_upgrade_confirmation_yearly.subtitle", map[string]any{"WorkspaceName": workspaceName})
-		data.Props["ButtonURL"] = siteURL + "/admin_console/billing/billing_history"
-		data.Props["Button"] = T("api.templates.cloud_welcome_email.yearly_plan_button")
-	}
-
-	body, err := es.templatesContainer.RenderToString("cloud_upgrade_confirmation", data)
-	if err != nil {
-		return err
-	}
-
-	if isYearly {
-		if err := es.SendMailWithEmbeddedFilesAndCustomReplyTo(userEmail, subject, body, *es.config().SupportSettings.SupportEmail, embeddedFiles, "CloudUpgradeConfirmationEmail"); err != nil {
-			return err
-		}
-	} else {
-		if err := es.sendEmailWithCustomReplyTo(userEmail, subject, body, *es.config().SupportSettings.SupportEmail, "CloudUpgradeConfirmationEmail"); err != nil {
-			return err
-		}
-	}
-
-	return nil
-}
-
 // SendCloudWelcomeEmail sends the cloud version of the welcome email
 func (es *Service) SendCloudWelcomeEmail(userEmail, locale, teamInviteID, workSpaceName, dns, siteURL string) error {
 	T := i18n.GetUserTranslations(locale)
@@ -301,7 +264,11 @@ func (es *Service) SendCloudWelcomeEmail(userEmail, locale, teamInviteID, workSp
 	data.Props["SignInSubInfo"] = T("api.templates.cloud_welcome_email.signin_sub_info")
 	data.Props["MMApps"] = T("api.templates.cloud_welcome_email.mm_apps")
 	data.Props["SignInSubInfo2"] = T("api.templates.cloud_welcome_email.signin_sub_info2")
-	data.Props["DownloadMMAppsLink"] = "https://mattermost.com/download/"
+	if es.config().NativeAppSettings.AppDownloadLink != nil && *es.config().NativeAppSettings.AppDownloadLink != "" {
+		data.Props["DownloadMMAppsLink"] = es.config().NativeAppSettings.AppDownloadLink
+	} else {
+		data.Props["DownloadMMAppsLink"] = "https://mattermost.com/pl/download-apps"
+	}
 	data.Props["Button"] = T("api.templates.cloud_welcome_email.button")
 	data.Props["GettingStartedQuestions"] = T("api.templates.cloud_welcome_email.start_questions")
 
@@ -518,6 +485,8 @@ func (es *Service) SendInviteEmails(
 	return nil
 }
 
+const magicLinkURL = "%s/landing#/login/one_time_link?t=%s"
+
 func (es *Service) SendGuestInviteEmails(
 	team *model.Team,
 	channels []*model.Channel,
@@ -530,6 +499,7 @@ func (es *Service) SendGuestInviteEmails(
 	errorWhenNotSent bool,
 	isSystemAdmin bool,
 	isFirstAdmin bool,
+	isGuestMagicLink bool,
 ) error {
 	if es.perHourEmailRateLimiter == nil {
 		return NoRateLimiterError
@@ -571,8 +541,13 @@ func (es *Service) SendGuestInviteEmails(
 				channelIDs = append(channelIDs, channel.Id)
 			}
 
+			tokenType := TokenTypeGuestInvitation
+			if isGuestMagicLink {
+				tokenType = TokenTypeGuestMagicLinkInvitation
+			}
+
 			token := model.NewToken(
-				TokenTypeGuestInvitation,
+				tokenType,
 				model.MapToJSON(map[string]string{
 					"teamId":   team.Id,
 					"channels": strings.Join(channelIDs, " "),
@@ -593,7 +568,12 @@ func (es *Service) SendGuestInviteEmails(
 				continue
 			}
 
-			data.Props["ButtonURL"] = fmt.Sprintf("%s/signup_user_complete/?d=%s&t=%s&sbr=%s", siteURL, url.QueryEscape(tokenData), url.QueryEscape(token.Token), es.GetTrackFlowStartedByRole(isFirstAdmin, isSystemAdmin))
+			if isGuestMagicLink {
+				// Guest magic link uses SSO-style authentication - clicking the link sends them to the landing page and logs them in directly
+				data.Props["ButtonURL"] = fmt.Sprintf(magicLinkURL, siteURL, url.QueryEscape(token.Token))
+			} else {
+				data.Props["ButtonURL"] = fmt.Sprintf("%s/signup_user_complete/?d=%s&t=%s&sbr=%s", siteURL, url.QueryEscape(tokenData), url.QueryEscape(token.Token), es.GetTrackFlowStartedByRole(isFirstAdmin, isSystemAdmin))
+			}
 
 			if !*es.config().EmailSettings.SendEmailNotifications {
 				mlog.Info("sending invitation ", mlog.String("to", invite), mlog.String("link", data.Props["ButtonURL"].(string)))
@@ -631,6 +611,80 @@ func (es *Service) SendGuestInviteEmails(
 			}
 		}
 	}
+	return nil
+}
+
+// SendMagicLinkEmailSelfService sends a passwordless login link to an existing guest user
+// This is for self-service login requests (no sender, no team/channel context).
+// For admin-initiated guest magic link invitations with team/channel assignment, use SendGuestInviteEmails with isGuestMagicLink=true.
+func (es *Service) SendMagicLinkEmailSelfService(
+	invite string,
+	siteURL string,
+) error {
+	if es.perHourEmailRateLimiter == nil {
+		return NoRateLimiterError
+	}
+
+	// Rate limit by email address for self-service requests
+	rateLimited, result, err := es.perMinuteEmailRateLimiter.RateLimit(invite, 1)
+	if err != nil {
+		return SetupRateLimiterError
+	}
+
+	if rateLimited {
+		mlog.Error("rate limit exceeded", mlog.Duration("RetryAfter", result.RetryAfter), mlog.Duration("ResetAfter", result.ResetAfter), mlog.String("email", invite),
+			mlog.String("retry_after_secs", fmt.Sprintf("%f", result.RetryAfter.Seconds())), mlog.String("reset_after_secs", fmt.Sprintf("%f", result.ResetAfter.Seconds())))
+		return RateLimitExceededError
+	}
+
+	if invite == "" {
+		return nil
+	}
+
+	subject := i18n.T("api.templates.guest_magic_link_subject",
+		map[string]any{"SiteName": es.config().TeamSettings.SiteName})
+
+	data := es.NewEmailTemplateData("")
+	data.Props["SiteURL"] = siteURL
+	data.Props["Title"] = i18n.T("api.templates.guest_magic_link_body.title")
+	data.Props["SubTitle"] = i18n.T("api.templates.guest_magic_link_body.subtitle")
+	data.Props["Button"] = i18n.T("api.templates.invite_body.button")
+	data.Props["InviteFooterTitle"] = i18n.T("api.templates.guest_magic_link_body.footer.title")
+	data.Props["InviteFooterInfo"] = i18n.T("api.templates.guest_magic_link_body.footer.info")
+
+	// Login-only token - no team or channel info needed
+	token, err := es.store.Token().GetTokenByTypeAndEmail(TokenTypeGuestMagicLink, invite)
+	if err != nil || token.IsExpired() {
+		// No existing token found, create a new one
+		token = model.NewToken(
+			TokenTypeGuestMagicLink,
+			model.MapToJSON(map[string]string{
+				"email": invite,
+			}),
+		)
+	}
+
+	if saveErr := es.store.Token().Save(token); saveErr != nil {
+		mlog.Error("Failed to save guest magic link token", mlog.Err(saveErr))
+		return fmt.Errorf("%w: %v", SaveTokenError, saveErr)
+	}
+
+	// Guest magic link uses SSO-style authentication - clicking the link sends them to the landing page and logs them in directly
+	data.Props["ButtonURL"] = fmt.Sprintf(magicLinkURL, siteURL, url.QueryEscape(token.Token))
+
+	if !*es.config().EmailSettings.SendEmailNotifications {
+		mlog.Info("sending guest magic link", mlog.String("to", invite))
+	}
+
+	body, err := es.templatesContainer.RenderToString("invite_body", data)
+	if err != nil {
+		mlog.Error("Failed to send guest magic link email successfully", mlog.Err(err))
+	}
+
+	if nErr := es.SendMailWithEmbeddedFiles(invite, subject, body, nil, "", "", "", "GuestMagicLinkEmail"); nErr != nil {
+		mlog.Error("Failed to send guest magic link email successfully", mlog.Err(nErr))
+	}
+
 	return nil
 }
 
@@ -806,7 +860,7 @@ func (es *Service) NewEmailTemplateData(locale string) templates.Data {
 				map[string]any{"SiteName": es.config().TeamSettings.SiteName}),
 			"SupportEmail": *es.config().SupportSettings.SupportEmail,
 			"Footer":       localT("api.templates.email_footer"),
-			"FooterV2":     localT("api.templates.email_footer_v2"),
+			"FooterV2":     localT("api.templates.email_footer_v2", map[string]any{"CurrentYear": time.Now().Year()}),
 			"Organization": organization,
 		},
 		HTML: map[string]template.HTML{},
@@ -966,285 +1020,6 @@ func (es *Service) SendLicenseUpForRenewalEmail(email, name, locale, siteURL, ct
 	}
 
 	if err := es.sendMail(email, subject, body, "LicenseUpForRenewal"); err != nil {
-		return err
-	}
-
-	return nil
-}
-
-func (es *Service) SendPaymentFailedEmail(email string, locale string, failedPayment *model.FailedPayment, planName, siteURL string) (bool, error) {
-	T := i18n.GetUserTranslations(locale)
-
-	subject := T("api.templates.payment_failed.subject", map[string]any{"Plan": planName})
-
-	data := es.NewEmailTemplateData(locale)
-	data.Props["SiteURL"] = siteURL
-	data.Props["Title"] = T("api.templates.payment_failed.title")
-	data.Props["SubTitle1"] = T("api.templates.payment_failed.info1", map[string]any{"CardBrand": failedPayment.CardBrand, "LastFour": failedPayment.LastFour})
-	data.Props["SubTitle2"] = T("api.templates.payment_failed.info2")
-	data.Props["FailedReason"] = failedPayment.FailureMessage
-	data.Props["SubTitle3"] = T("api.templates.payment_failed.info3", map[string]any{"Plan": planName})
-	data.Props["QuestionTitle"] = T("api.templates.questions_footer.title")
-	data.Props["QuestionInfo"] = T("api.templates.questions_footer.info")
-	data.Props["SupportEmail"] = *es.config().SupportSettings.SupportEmail
-	data.Props["Button"] = T("api.templates.delinquency_45.button")
-	data.Props["IncludeSecondaryActionButton"] = false
-	data.Props["EmailUs"] = T("api.templates.email_us_anytime_at")
-
-	data.Props["Footer"] = T("api.templates.copyright")
-
-	body, err := es.templatesContainer.RenderToString("payment_failed_body", data)
-	if err != nil {
-		return false, err
-	}
-
-	if err := es.sendEmailWithCustomReplyTo(email, subject, body, *es.config().SupportSettings.SupportEmail, "PaymentFailed"); err != nil {
-		return false, err
-	}
-
-	return true, nil
-}
-
-func (es *Service) SendNoCardPaymentFailedEmail(email string, locale string, siteURL string) error {
-	T := i18n.GetUserTranslations(locale)
-
-	subject := T("api.templates.payment_failed_no_card.subject")
-
-	data := es.NewEmailTemplateData(locale)
-	data.Props["SiteURL"] = siteURL
-	data.Props["Title"] = T("api.templates.payment_failed_no_card.title")
-	data.Props["Info1"] = T("api.templates.payment_failed_no_card.info1")
-	data.Props["Info3"] = T("api.templates.payment_failed_no_card.info3")
-	data.Props["Button"] = T("api.templates.payment_failed_no_card.button")
-	data.Props["EmailUs"] = T("api.templates.email_us_anytime_at")
-
-	data.Props["Footer"] = T("api.templates.copyright")
-
-	body, err := es.templatesContainer.RenderToString("payment_failed_no_card_body", data)
-	if err != nil {
-		return err
-	}
-
-	if err := es.sendEmailWithCustomReplyTo(email, subject, body, *es.config().SupportSettings.SupportEmail, "NoCardPaymentFailed"); err != nil {
-		return err
-	}
-
-	return nil
-}
-
-func (es *Service) SendDelinquencyEmail7(email, locale, siteURL, planName string) error {
-	T := i18n.GetUserTranslations(locale)
-
-	subject := T("api.templates.payment_failed.subject", map[string]any{"Plan": planName})
-
-	data := es.NewEmailTemplateData(locale)
-	data.Props["SiteURL"] = siteURL
-	data.Props["Title"] = T("api.templates.delinquency_7.title")
-	data.Props["SubTitle1"] = T("api.templates.delinquency_7.subtitle1")
-	data.Props["SubTitle2"] = T("api.templates.delinquency_7.subtitle2", map[string]any{"Plan": planName})
-	data.Props["QuestionTitle"] = T("api.templates.questions_footer.title")
-	data.Props["QuestionInfo"] = T("api.templates.questions_footer.info")
-	data.Props["SupportEmail"] = *es.config().SupportSettings.SupportEmail
-	data.Props["Button"] = T("api.templates.delinquency_7.button")
-	data.Props["EmailUs"] = T("api.templates.email_us_anytime_at")
-
-	data.Props["Footer"] = T("api.templates.copyright")
-
-	body, err := es.templatesContainer.RenderToString("cloud_7_day_arrears", data)
-	if err != nil {
-		return err
-	}
-
-	if err := es.sendEmailWithCustomReplyTo(email, subject, body, *es.config().SupportSettings.SupportEmail, "Delinquency7"); err != nil {
-		return err
-	}
-
-	return nil
-}
-func (es *Service) SendDelinquencyEmail14(email, locale, siteURL, planName string) error {
-	T := i18n.GetUserTranslations(locale)
-
-	subject := T("api.templates.delinquency_14.subject", map[string]any{"Plan": planName})
-
-	data := es.NewEmailTemplateData(locale)
-	data.Props["SiteURL"] = siteURL
-	data.Props["Title"] = T("api.templates.delinquency_14.title")
-	data.Props["SubTitle1"] = T("api.templates.delinquency_14.subtitle1")
-	data.Props["SubTitle2"] = T("api.templates.delinquency_14.subtitle2")
-	data.Props["QuestionTitle"] = T("api.templates.questions_footer.title")
-	data.Props["QuestionInfo"] = T("api.templates.questions_footer.info")
-	data.Props["SupportEmail"] = *es.config().SupportSettings.SupportEmail
-	data.Props["Button"] = T("api.templates.delinquency_14.button")
-	data.Props["EmailUs"] = T("api.templates.email_us_anytime_at")
-
-	data.Props["Footer"] = T("api.templates.copyright")
-
-	body, err := es.templatesContainer.RenderToString("cloud_14_day_arrears", data)
-	if err != nil {
-		return err
-	}
-
-	if err := es.sendEmailWithCustomReplyTo(email, subject, body, *es.config().SupportSettings.SupportEmail, "Delinquency14"); err != nil {
-		return err
-	}
-
-	return nil
-}
-func (es *Service) SendDelinquencyEmail30(email, locale, siteURL, planName string) error {
-	T := i18n.GetUserTranslations(locale)
-
-	subject := T("api.templates.delinquency_30.subject", map[string]any{"Plan": planName})
-
-	data := es.NewEmailTemplateData(locale)
-	data.Props["SiteURL"] = siteURL
-	data.Props["Title"] = T("api.templates.delinquency_30.title")
-	data.Props["SubTitle1"] = T("api.templates.delinquency_30.subtitle1", map[string]any{"Plan": planName})
-	data.Props["SubTitle2"] = T("api.templates.delinquency_30.subtitle2")
-	data.Props["QuestionTitle"] = T("api.templates.questions_footer.title")
-	data.Props["QuestionInfo"] = T("api.templates.questions_footer.info")
-	data.Props["SupportEmail"] = *es.config().SupportSettings.SupportEmail
-	data.Props["Button"] = T("api.templates.delinquency_30.button")
-	data.Props["EmailUs"] = T("api.templates.email_us_anytime_at")
-	data.Props["BulletListItems"] = []string{T("api.templates.delinquency_30.bullet.message_history"), T("api.templates.delinquency_30.bullet.files")}
-	data.Props["LimitsDocs"] = T("api.templates.delinquency_30.limits_documentation")
-	data.Props["Footer"] = T("api.templates.copyright")
-
-	body, err := es.templatesContainer.RenderToString("cloud_30_day_arrears", data)
-	if err != nil {
-		return err
-	}
-
-	if err := es.sendEmailWithCustomReplyTo(email, subject, body, *es.config().SupportSettings.SupportEmail, "Delinquency30"); err != nil {
-		return err
-	}
-
-	return nil
-}
-
-func (es *Service) SendDelinquencyEmail45(email, locale, siteURL, planName, delinquencyDate string) error {
-	T := i18n.GetUserTranslations(locale)
-
-	subject := T("api.templates.delinquency_45.subject", map[string]any{"Plan": planName})
-
-	data := es.NewEmailTemplateData(locale)
-	data.Props["SiteURL"] = siteURL
-	data.Props["Title"] = T("api.templates.delinquency_45.title")
-	data.Props["SubTitle1"] = T("api.templates.delinquency_45.subtitle1", map[string]any{"DelinquencyDate": delinquencyDate})
-	data.Props["SubTitle2"] = T("api.templates.delinquency_45.subtitle2")
-	data.Props["SubTitle3"] = T("api.templates.delinquency_45.subtitle3")
-	data.Props["QuestionTitle"] = T("api.templates.questions_footer.title")
-	data.Props["QuestionInfo"] = T("api.templates.questions_footer.info")
-	data.Props["SupportEmail"] = *es.config().SupportSettings.SupportEmail
-	data.Props["Button"] = T("api.templates.delinquency_45.button")
-	data.Props["IncludeSecondaryActionButton"] = false
-	data.Props["EmailUs"] = T("api.templates.email_us_anytime_at")
-
-	data.Props["Footer"] = T("api.templates.copyright")
-
-	body, err := es.templatesContainer.RenderToString("cloud_45_day_arrears", data)
-	if err != nil {
-		return err
-	}
-
-	if err := es.sendEmailWithCustomReplyTo(email, subject, body, *es.config().SupportSettings.SupportEmail, "Delinquency45"); err != nil {
-		return err
-	}
-
-	return nil
-}
-
-func (es *Service) SendDelinquencyEmail60(email, locale, siteURL string) error {
-	T := i18n.GetUserTranslations(locale)
-
-	subject := T("api.templates.delinquency_60.subject")
-
-	data := es.NewEmailTemplateData(locale)
-	data.Props["SiteURL"] = siteURL
-	data.Props["Title"] = T("api.templates.delinquency_60.title")
-	data.Props["SubTitle1"] = T("api.templates.delinquency_60.subtitle1")
-	data.Props["SubTitle2"] = T("api.templates.delinquency_60.subtitle2")
-	data.Props["SubTitle3"] = T("api.templates.delinquency_60.subtitle3")
-	data.Props["QuestionTitle"] = T("api.templates.questions_footer.title")
-	data.Props["QuestionInfo"] = T("api.templates.questions_footer.info")
-	data.Props["SupportEmail"] = *es.config().SupportSettings.SupportEmail
-	data.Props["Button"] = T("api.templates.delinquency_60.button")
-	data.Props["EmailUs"] = T("api.templates.email_us_anytime_at")
-	data.Props["IncludeSecondaryActionButton"] = true
-	data.Props["SecondaryActionButtonText"] = T("api.templates.delinquency_60.downgrade_to_free")
-	data.Props["Footer"] = T("api.templates.copyright")
-
-	// 45 day template is the same as the 60 day one so its reused
-	body, err := es.templatesContainer.RenderToString("cloud_45_day_arrears", data)
-	if err != nil {
-		return err
-	}
-
-	if err := es.sendEmailWithCustomReplyTo(email, subject, body, *es.config().SupportSettings.SupportEmail, "Delinquency60"); err != nil {
-		return err
-	}
-
-	return nil
-}
-
-func (es *Service) SendDelinquencyEmail75(email, locale, siteURL, planName, delinquencyDate string) error {
-	T := i18n.GetUserTranslations(locale)
-
-	subject := T("api.templates.delinquency_75.subject", map[string]any{"Plan": planName})
-
-	data := es.NewEmailTemplateData(locale)
-	data.Props["SiteURL"] = siteURL
-	data.Props["Title"] = T("api.templates.delinquency_75.title")
-	data.Props["SubTitle1"] = T("api.templates.delinquency_75.subtitle1", map[string]any{"DelinquencyDate": delinquencyDate})
-	data.Props["SubTitle2"] = T("api.templates.delinquency_75.subtitle2", map[string]any{"Plan": planName})
-	data.Props["SubTitle3"] = T("api.templates.delinquency_75.subtitle3")
-	data.Props["QuestionTitle"] = T("api.templates.questions_footer.title")
-	data.Props["QuestionInfo"] = T("api.templates.questions_footer.info")
-	data.Props["SupportEmail"] = *es.config().SupportSettings.SupportEmail
-	data.Props["Button"] = T("api.templates.delinquency_75.button")
-	data.Props["EmailUs"] = T("api.templates.email_us_anytime_at")
-	data.Props["IncludeSecondaryActionButton"] = true
-	data.Props["SecondaryActionButtonText"] = T("api.templates.delinquency_75.downgrade_to_free")
-	data.Props["Footer"] = T("api.templates.copyright")
-
-	// 45 day template is the same as the 75 day one so its reused
-	body, err := es.templatesContainer.RenderToString("cloud_45_day_arrears", data)
-	if err != nil {
-		return err
-	}
-
-	if err := es.sendEmailWithCustomReplyTo(email, subject, body, *es.config().SupportSettings.SupportEmail, "Delinquency75"); err != nil {
-		return err
-	}
-
-	return nil
-}
-
-func (es *Service) SendDelinquencyEmail90(email, locale, siteURL string) error {
-	T := i18n.GetUserTranslations(locale)
-
-	subject := T("api.templates.delinquency_90.subject")
-
-	data := es.NewEmailTemplateData(locale)
-	data.Props["SiteURL"] = siteURL
-	data.Props["Title"] = T("api.templates.delinquency_90.title")
-	data.Props["SubTitle1"] = T("api.templates.delinquency_90.subtitle1", map[string]any{"SiteURL": siteURL})
-	data.Props["SubTitle2"] = T("api.templates.delinquency_90.subtitle2")
-	data.Props["SubTitle3"] = T("api.templates.delinquency_90.subtitle3")
-	data.Props["QuestionTitle"] = T("api.templates.questions_footer.title")
-	data.Props["QuestionInfo"] = T("api.templates.questions_footer.info")
-	data.Props["SupportEmail"] = *es.config().SupportSettings.SupportEmail
-	data.Props["Button"] = T("api.templates.delinquency_90.button")
-	data.Props["EmailUs"] = T("api.templates.email_us_anytime_at")
-	data.Props["IncludeSecondaryActionButton"] = true
-	data.Props["SecondaryActionButtonText"] = T("api.templates.delinquency_90.secondary_action_button")
-	data.Props["Footer"] = T("api.templates.copyright")
-
-	body, err := es.templatesContainer.RenderToString("cloud_90_day_arrears", data)
-	if err != nil {
-		return err
-	}
-
-	if err := es.sendEmailWithCustomReplyTo(email, subject, body, *es.config().SupportSettings.SupportEmail, "Delinquency90"); err != nil {
 		return err
 	}
 

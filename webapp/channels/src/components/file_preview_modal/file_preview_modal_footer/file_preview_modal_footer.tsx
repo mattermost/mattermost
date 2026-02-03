@@ -37,7 +37,6 @@ const FilePreviewModalFooter: React.FC<Props> = ({post, ...actionProps}: Props) 
             <FilePreviewModalMainActions
                 {...actionProps}
                 showClose={false}
-                usedInside='Footer'
                 showOnlyClose={false}
             />
         </div>

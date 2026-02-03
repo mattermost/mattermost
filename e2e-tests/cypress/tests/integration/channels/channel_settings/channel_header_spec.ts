@@ -11,6 +11,8 @@
 // Group: @channels @channel_settings
 // node run_tests.js --group='@channel_settings'
 
+import {ChannelType} from '@mattermost/types/channels';
+
 import {getRandomId} from '../../../utils';
 import * as TIMEOUTS from '../../../fixtures/timeouts';
 
@@ -35,7 +37,7 @@ describe('Channel Settings', () => {
     it('MM-T1808 Hover effect exists to add a channel description / header (when not already present)', () => {
         // # Create a new public channel and then private channel
         ['O', 'P'].forEach((channelType) => {
-            cy.apiCreateChannel(testTeam.id, `chan${getRandomId()}`, 'chan', channelType).then(({channel}) => {
+            cy.apiCreateChannel(testTeam.id, `chan${getRandomId()}`, 'chan', channelType as ChannelType).then(({channel}) => {
                 // # Go to new channel
                 cy.visit(`/${testTeam.name}/channels/${channel.name}`);
 
@@ -45,7 +47,7 @@ describe('Channel Settings', () => {
         });
 
         // # Create DM with admin and user 1
-        cy.apiCreateDirectChannel([user1.id, user1.id]).then(() => {
+        cy.apiCreateDirectChannel([admin.id, user1.id]).then(() => {
             // # Go to DM
             cy.visit(`/${testTeam.name}/messages/@${user1.username}`);
 
@@ -73,13 +75,10 @@ function hoverOnChannelDescriptionAndVerifyBehavior() {
     const channelDescriptionText = `test description ${getRandomId()}`;
 
     // # Wait a little for channel to load
-    cy.wait(TIMEOUTS.FIVE_SEC);
+    cy.wait(TIMEOUTS.ONE_SEC);
 
     // # Scan within channel header description area
-    cy.get('#channelHeaderDescription').should('be.visible').within(() => {
-        // * Verify that empty header text is visible and click it
-        cy.findByText('Add a channel header').should('be.visible').click();
-    });
+    cy.get('#channelHeaderDescription').should('be.visible').find('span').invoke('show').click({multiple: true, force: true});
 
     // # Scan inside the channel header modal
     cy.get('.a11y__modal.modal-dialog').should('be.visible').within(() => {

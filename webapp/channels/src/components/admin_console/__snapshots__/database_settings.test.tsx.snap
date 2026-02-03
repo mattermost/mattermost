@@ -1,4 +1,4 @@
-// Jest Snapshot v1, https://goo.gl/fbAQLP
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
 
 exports[`components/DatabaseSettings should match snapshot 1`] = `
 <form
@@ -11,11 +11,11 @@ exports[`components/DatabaseSettings should match snapshot 1`] = `
   >
     <AdminHeader>
       <MemoizedFormattedMessage
-        defaultMessage="Database Settings"
+        defaultMessage="Database"
         id="admin.database.title"
       />
     </AdminHeader>
-    <SettingsGroup>
+    <Memo(SettingsGroup)>
       <div
         className="banner"
       >
@@ -101,7 +101,12 @@ exports[`components/DatabaseSettings should match snapshot 1`] = `
           />
         }
         onChange={[Function]}
-        placeholder="E.g.: \\"10\\""
+        placeholder={
+          Object {
+            "defaultMessage": "E.g.: \\"10\\"",
+            "id": "admin.sql.maxConnectionsExample",
+          }
+        }
         setByEnv={false}
         type="text"
         value={10}
@@ -122,7 +127,12 @@ exports[`components/DatabaseSettings should match snapshot 1`] = `
           />
         }
         onChange={[Function]}
-        placeholder="E.g.: \\"10\\""
+        placeholder={
+          Object {
+            "defaultMessage": "E.g.: \\"10\\"",
+            "id": "admin.sql.maxOpenExample",
+          }
+        }
         setByEnv={false}
         type="text"
         value={100}
@@ -143,7 +153,12 @@ exports[`components/DatabaseSettings should match snapshot 1`] = `
           />
         }
         onChange={[Function]}
-        placeholder="E.g.: \\"30\\""
+        placeholder={
+          Object {
+            "defaultMessage": "E.g.: \\"30\\"",
+            "id": "admin.sql.queryTimeoutExample",
+          }
+        }
         setByEnv={false}
         type="text"
         value={10}
@@ -164,7 +179,12 @@ exports[`components/DatabaseSettings should match snapshot 1`] = `
           />
         }
         onChange={[Function]}
-        placeholder="E.g.: \\"3600000\\""
+        placeholder={
+          Object {
+            "defaultMessage": "E.g.: \\"3600000\\"",
+            "id": "admin.sql.connMaxLifetimeExample",
+          }
+        }
         setByEnv={false}
         type="text"
         value={10}
@@ -185,7 +205,12 @@ exports[`components/DatabaseSettings should match snapshot 1`] = `
           />
         }
         onChange={[Function]}
-        placeholder="E.g.: \\"300000\\""
+        placeholder={
+          Object {
+            "defaultMessage": "E.g.: \\"300000\\"",
+            "id": "admin.sql.connMaxIdleTimeExample",
+          }
+        }
         setByEnv={false}
         type="text"
         value={20}
@@ -194,13 +219,8 @@ exports[`components/DatabaseSettings should match snapshot 1`] = `
         disabled={false}
         helpText={
           <Memo(MemoizedFormattedMessage)
-            defaultMessage="Minimum number of characters in a hashtag. This must be greater than or equal to 2. MySQL databases must be configured to support searching strings shorter than three characters, <link>see documentation</link>."
+            defaultMessage="Minimum number of characters in a hashtag. This must be greater than or equal to 2."
             id="admin.service.minimumHashtagLengthDescription"
-            values={
-              Object {
-                "link": [Function],
-              }
-            }
           />
         }
         id="minimumHashtagLength"
@@ -211,19 +231,18 @@ exports[`components/DatabaseSettings should match snapshot 1`] = `
           />
         }
         onChange={[Function]}
-        placeholder="E.g.: \\"3\\""
+        placeholder={
+          Object {
+            "defaultMessage": "E.g.: \\"3\\"",
+            "id": "admin.service.minimumHashtagLengthExample",
+          }
+        }
         setByEnv={false}
         type="text"
         value={10}
       />
-      <BooleanSetting
+      <Memo(BooleanSetting)
         disabled={false}
-        falseText={
-          <Memo(MemoizedFormattedMessage)
-            defaultMessage="false"
-            id="admin.false"
-          />
-        }
         helpText={
           <Memo(MemoizedFormattedMessage)
             defaultMessage="(Development Mode) When true, executing SQL statements are written to the log."
@@ -239,12 +258,6 @@ exports[`components/DatabaseSettings should match snapshot 1`] = `
         }
         onChange={[Function]}
         setByEnv={false}
-        trueText={
-          <Memo(MemoizedFormattedMessage)
-            defaultMessage="true"
-            id="admin.true"
-          />
-        }
         value={false}
       />
       <RequestButton
@@ -298,14 +311,8 @@ exports[`components/DatabaseSettings should match snapshot 1`] = `
           }
         }
       />
-      <BooleanSetting
+      <Memo(BooleanSetting)
         disabled={false}
-        falseText={
-          <Memo(MemoizedFormattedMessage)
-            defaultMessage="false"
-            id="admin.false"
-          />
-        }
         helpText={
           <Memo(MemoizedFormattedMessage)
             defaultMessage="Disables the use of the database to perform searches. Should only be used when other <link>search engines</link> are configured."
@@ -326,47 +333,35 @@ exports[`components/DatabaseSettings should match snapshot 1`] = `
         }
         onChange={[Function]}
         setByEnv={false}
-        trueText={
-          <Memo(MemoizedFormattedMessage)
-            defaultMessage="true"
-            id="admin.true"
-          />
-        }
         value={true}
       />
-      <div
-        className="form-group"
-      >
-        <label
-          className="control-label col-sm-4"
-        >
-          <MemoizedFormattedMessage
+      <SettingSet
+        label={
+          <Memo(MemoizedFormattedMessage)
             defaultMessage="Schema Migrations:"
             id="admin.database.migrations_table.title"
           />
-        </label>
+        }
+      >
         <div
-          className="col-sm-8"
+          className="migrations-table-setting"
         >
-          <div
-            className="migrations-table-setting"
-          >
-            <Connect(MigrationsTable)
-              createHelpText={
-                <Memo(MemoizedFormattedMessage)
-                  defaultMessage="All applied migrations."
-                  id="admin.database.migrations_table.help_text"
-                />
-              }
-            />
-          </div>
+          <Connect(Component)
+            createHelpText={
+              <Memo(MemoizedFormattedMessage)
+                defaultMessage="All applied migrations."
+                id="admin.database.migrations_table.help_text"
+              />
+            }
+          />
         </div>
-      </div>
+      </SettingSet>
       <div
         className="form-group"
       >
         <label
           className="control-label col-sm-4"
+          htmlFor="activeSearchBackend"
         >
           <MemoizedFormattedMessage
             defaultMessage="Active Search Backend:"
@@ -379,6 +374,7 @@ exports[`components/DatabaseSettings should match snapshot 1`] = `
           <input
             className="form-control"
             disabled={true}
+            id="activeSearchBackend"
             type="text"
             value=""
           />
@@ -386,51 +382,38 @@ exports[`components/DatabaseSettings should match snapshot 1`] = `
             className="help-text"
           >
             <MemoizedFormattedMessage
-              defaultMessage="Shows the currently active backend used for search. Values can be none, database, elasticsearch, bleve etc."
+              defaultMessage="Shows the currently active backend used for search. Values can be none, database, elasticsearch."
               id="admin.database.search_backend.help_text"
             />
           </div>
         </div>
       </div>
-    </SettingsGroup>
+    </Memo(SettingsGroup)>
     <div
       className="admin-console-save"
     >
       <SaveButton
-        btnClass=""
-        defaultMessage={
-          <Memo(MemoizedFormattedMessage)
-            defaultMessage="Save"
-            id="save_button.save"
-          />
-        }
         disabled={true}
-        extraClasses=""
         onClick={[Function]}
         saving={false}
-        savingMessage="Saving Config..."
+        savingMessage={
+          <Memo(MemoizedFormattedMessage)
+            defaultMessage="Saving Config..."
+            id="admin.saving"
+          />
+        }
       />
-      <div
-        className="error-message"
-        onMouseOut={[Function]}
-        onMouseOver={[Function]}
+      <WithTooltip
+        title=""
       >
-        <FormError
-          error={null}
-          errors={Array []}
-        />
-      </div>
-      <Overlay
-        animation={[Function]}
-        placement="top"
-        rootClose={false}
-        show={false}
-        target={null}
-      >
-        <Tooltip
-          id="error-tooltip"
-        />
-      </Overlay>
+        <div
+          className="error-message"
+        >
+          <Memo(FormError)
+            error={null}
+          />
+        </div>
+      </WithTooltip>
     </div>
   </div>
 </form>

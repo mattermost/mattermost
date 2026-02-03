@@ -9,17 +9,16 @@ import (
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
-	"github.com/mattermost/mattermost/server/v8/channels/audit"
 )
 
 func (api *API) InitCommandLocal() {
-	api.BaseRoutes.Commands.Handle("", api.APILocal(localCreateCommand)).Methods("POST")
-	api.BaseRoutes.Commands.Handle("", api.APILocal(listCommands)).Methods("GET")
+	api.BaseRoutes.Commands.Handle("", api.APILocal(localCreateCommand)).Methods(http.MethodPost)
+	api.BaseRoutes.Commands.Handle("", api.APILocal(listCommands)).Methods(http.MethodGet)
 
-	api.BaseRoutes.Command.Handle("", api.APILocal(getCommand)).Methods("GET")
-	api.BaseRoutes.Command.Handle("", api.APILocal(updateCommand)).Methods("PUT")
-	api.BaseRoutes.Command.Handle("/move", api.APILocal(moveCommand)).Methods("PUT")
-	api.BaseRoutes.Command.Handle("", api.APILocal(deleteCommand)).Methods("DELETE")
+	api.BaseRoutes.Command.Handle("", api.APILocal(getCommand)).Methods(http.MethodGet)
+	api.BaseRoutes.Command.Handle("", api.APILocal(updateCommand)).Methods(http.MethodPut)
+	api.BaseRoutes.Command.Handle("/move", api.APILocal(moveCommand)).Methods(http.MethodPut)
+	api.BaseRoutes.Command.Handle("", api.APILocal(deleteCommand)).Methods(http.MethodDelete)
 }
 
 func localCreateCommand(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -29,8 +28,8 @@ func localCreateCommand(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	auditRec := c.MakeAuditRecord("localCreateCommand", audit.Fail)
-	audit.AddEventParameterAuditable(auditRec, "command", &cmd)
+	auditRec := c.MakeAuditRecord(model.AuditEventLocalCreateCommand, model.AuditStatusFail)
+	model.AddEventParameterAuditableToAuditRec(auditRec, "command", &cmd)
 	defer c.LogAuditRec(auditRec)
 	c.LogAudit("attempt")
 

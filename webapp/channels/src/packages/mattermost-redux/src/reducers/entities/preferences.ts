@@ -3,10 +3,10 @@
 
 import {combineReducers} from 'redux';
 
-import type {PreferenceType} from '@mattermost/types/preferences';
+import type {PreferencesType, PreferenceType} from '@mattermost/types/preferences';
 
+import type {MMReduxAction} from 'mattermost-redux/action_types';
 import {PreferenceTypes, UserTypes} from 'mattermost-redux/action_types';
-import type {GenericAction} from 'mattermost-redux/types/actions';
 
 function getKey(preference: PreferenceType) {
     return `${preference.category}--${preference.name}`;
@@ -24,7 +24,25 @@ function setAllPreferences(preferences: PreferenceType[]): any {
     return nextState;
 }
 
-function myPreferences(state: Record<string, PreferenceType> = {}, action: GenericAction) {
+function setAllUserPreferences(preferences: PreferenceType[]): {[key: string]: PreferencesType} {
+    const nextState: {[key: string]: PreferencesType} = {};
+    if (preferences.length === 0) {
+        return nextState;
+    }
+
+    const userID = preferences[0].user_id;
+    nextState[userID] = {};
+
+    if (preferences) {
+        for (const preference of preferences) {
+            nextState[userID][getKey(preference)] = preference;
+        }
+    }
+
+    return nextState;
+}
+
+function myPreferences(state: Record<string, PreferenceType> = {}, action: MMReduxAction) {
     switch (action.type) {
     case PreferenceTypes.RECEIVED_ALL_PREFERENCES:
         return setAllPreferences(action.data);
@@ -62,8 +80,37 @@ function myPreferences(state: Record<string, PreferenceType> = {}, action: Gener
     }
 }
 
+function userPreferences(state: Record<string, PreferencesType> = {}, action: MMReduxAction) {
+    switch (action.type) {
+    case PreferenceTypes.RECEIVED_USER_ALL_PREFERENCES:
+        return setAllUserPreferences(action.data);
+
+    case PreferenceTypes.RECEIVED_USER_PREFERENCES: {
+        const nextState = {...state};
+
+        const data = action.data as PreferenceType[];
+        if (action.data && data.length > 0) {
+            const userID = data[0].user_id;
+            nextState[userID] = nextState[userID] ? {...nextState[userID]} : {};
+
+            for (const preference of action.data) {
+                nextState[preference.user_id][getKey(preference)] = preference;
+            }
+        }
+
+        return nextState;
+    }
+
+    case UserTypes.LOGOUT_SUCCESS:
+        return {};
+    default:
+        return state;
+    }
+}
+
 export default combineReducers({
 
     // object where the key is the category-name and has the corresponding value
     myPreferences,
+    userPreferences,
 });

@@ -1,4 +1,4 @@
-// Jest Snapshot v1, https://goo.gl/fbAQLP
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
 
 exports[`components/pricing_modal/downgrade_team_removal_modal matches snapshot 1`] = `
 <Provider
@@ -16,13 +16,11 @@ exports[`components/pricing_modal/downgrade_team_removal_modal matches snapshot 
   <SuccessModal>
     <injectIntl(FullScreenModal)
       onClose={[Function]}
-      overrideTargetEvent={true}
       show={true}
     >
       <injectIntl(FullScreenModal)
         forwardedRef={null}
         onClose={[Function]}
-        overrideTargetEvent={true}
         show={true}
       >
         <FullScreenModal
@@ -96,7 +94,7 @@ exports[`components/pricing_modal/downgrade_team_removal_modal matches snapshot 
               <div
                 aria-modal={true}
                 className="FullScreenModal"
-                role="dialog"
+                role="none"
                 tabIndex={-1}
               >
                 <button
@@ -131,7 +129,6 @@ exports[`components/pricing_modal/downgrade_team_removal_modal matches snapshot 
                   <IconMessage
                     buttonHandler={[Function]}
                     className="success"
-                    date=""
                     error={false}
                     formattedButtonText={
                       <Memo(MemoizedFormattedMessage)
@@ -167,7 +164,6 @@ exports[`components/pricing_modal/downgrade_team_removal_modal matches snapshot 
                         width={444}
                       />
                     }
-                    subtitle=""
                   >
                     <div
                       className="IconMessage"

@@ -1,16 +1,16 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
+import React, {useEffect} from 'react';
 import type {ReactNode} from 'react';
-import {IntlProvider as BaseIntlProvider} from 'react-intl';
+import {IntlProvider as BaseIntlProvider, useIntl} from 'react-intl';
 import type {IntlConfig} from 'react-intl';
 
 import {Client4} from 'mattermost-redux/client';
-import type {ActionFunc} from 'mattermost-redux/types/actions';
 import {setLocalizeFunction} from 'mattermost-redux/utils/i18n_utils';
 
 import * as I18n from 'i18n/i18n';
+import {setIntl} from 'utils/i18n';
 import {localizeMessage} from 'utils/utils';
 
 type Props = {
@@ -18,9 +18,23 @@ type Props = {
     locale: IntlConfig['locale'];
     translations?: IntlConfig['messages'];
     actions: {
-        loadTranslations: ((locale: string, url: string) => ActionFunc) | (() => void);
+        loadTranslations: (locale: string, url: string) => void;
     };
 };
+
+/**
+ * Captures the intl instance from BaseIntlProvider and stores it
+ * so that getIntl() can return the same instance.
+ */
+function IntlCapture() {
+    const intl = useIntl();
+
+    useEffect(() => {
+        setIntl(intl);
+    }, [intl]);
+
+    return null;
+}
 
 export default class IntlProvider extends React.PureComponent<Props> {
     componentDidMount() {
@@ -69,6 +83,7 @@ export default class IntlProvider extends React.PureComponent<Props> {
                 textComponent='span'
                 wrapRichTextChunksInFragment={false}
             >
+                <IntlCapture/>
                 {this.props.children}
             </BaseIntlProvider>
         );

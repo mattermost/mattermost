@@ -3,6 +3,7 @@
 
 import type {Channel} from '@mattermost/types/channels';
 import type {MarketplaceApp, MarketplacePlugin} from '@mattermost/types/marketplace';
+import type {CursorPaginationDirection, ReportDuration} from '@mattermost/types/reports';
 import type {Team} from '@mattermost/types/teams';
 import type {UserThread} from '@mattermost/types/threads';
 import type {RelationOneToOne} from '@mattermost/types/utilities';
@@ -19,6 +20,30 @@ export type ModalFilters = {
     team_roles?: string[];
 };
 
+export type AdminConsoleUserManagementTableProperties = {
+    sortColumn: string;
+    sortIsDescending: boolean;
+    pageSize: number;
+    pageIndex: number;
+    cursorUserId: string;
+    cursorColumnValue: string;
+    cursorDirection: CursorPaginationDirection;
+    columnVisibility: Record<string, boolean>;
+    searchTerm: string;
+    filterTeam: string;
+    filterTeamLabel: string;
+    filterStatus: string;
+    filterRole: string;
+    dateRange?: ReportDuration;
+};
+
+export type EditingPostDetails = {
+    postId: string;
+    refocusId: string;
+    isRHS: boolean;
+    show: boolean;
+};
+
 export type ViewsState = {
     admin: {
         navigationBlock: {
@@ -27,6 +52,7 @@ export type ViewsState = {
             showNavigationPrompt: boolean;
         };
         needsLoggedInLimitReachedCheck: boolean;
+        adminConsoleUserManagementTableProperties: AdminConsoleUserManagementTableProperties;
     };
 
     announcementBar: {
@@ -73,11 +99,7 @@ export type ViewsState = {
     rhsSuppressed: boolean;
 
     posts: {
-        editingPost: {
-            postId: string;
-            show: boolean;
-            isRHS: boolean;
-        };
+        editingPost: EditingPostDetails;
         menuActions: {
             [postId: string]: {
                 [actionId: string]: {
@@ -108,16 +130,15 @@ export type ViewsState = {
 
     lhs: LhsViewState;
 
+    readout: {
+        message: string | null;
+    };
+
     search: {
         modalSearch: string;
         popoverSearch: string;
         channelMembersRhsSearch: string;
         modalFilters: ModalFilters;
-        systemUsersSearch: {
-            term: string;
-            team: string;
-            filter: string;
-        };
         userGridSearch: {
             term: string;
             filters: {
@@ -175,15 +196,6 @@ export type ViewsState = {
         newCategoryIds: string[];
         multiSelectedChannelIds: string[];
         lastSelectedChannel: string;
-        firstChannelName: string;
-    };
-
-    statusDropdown: {
-        isOpen: boolean;
-    };
-
-    addChannelDropdown: {
-        isOpen: boolean;
     };
 
     addChannelCtaDropdown: {
@@ -199,6 +211,7 @@ export type ViewsState = {
     threads: {
         selectedThreadIdInTeam: RelationOneToOne<Team, UserThread['id'] | null>;
         lastViewedAt: {[id: string]: number};
+        lastUpdateAt: {[id: string]: number};
         manuallyUnread: {[id: string]: boolean};
         toastStatus: boolean;
     };
@@ -208,5 +221,7 @@ export type ViewsState = {
         shouldShowPreviewOnCreatePost: boolean;
         shouldShowPreviewOnEditChannelHeaderModal: boolean;
         shouldShowPreviewOnEditPostModal: boolean;
+        shouldShowPreviewOnChannelSettingsHeaderModal: boolean;
+        shouldShowPreviewOnChannelSettingsPurposeModal: boolean;
     };
 };

@@ -56,7 +56,7 @@ func (s *SearchUserStore) Search(rctx request.CTX, teamId, term string, options 
 				continue
 			}
 
-			users, nErr := s.UserStore.GetProfileByIds(context.Background(), usersIds, nil, false)
+			users, nErr := s.UserStore.GetProfileByIds(rctx, usersIds, nil, false)
 			if nErr != nil {
 				rctx.Logger().Warn("Encountered error on Search", mlog.String("search_engine", engine.GetName()), mlog.Err(nErr))
 				continue
@@ -81,11 +81,8 @@ func (s *SearchUserStore) Update(rctx request.CTX, user *model.User, trustedUpda
 	return userUpdate, err
 }
 
-func (s *SearchUserStore) Save(user *model.User) (*model.User, error) {
-	// TODO: Use the actuall request context from the App layer
-	// https://mattermost.atlassian.net/browse/MM-55737
-	rctx := request.EmptyContext(s.rootStore.Logger())
-	nuser, err := s.UserStore.Save(user)
+func (s *SearchUserStore) Save(rctx request.CTX, user *model.User) (*model.User, error) {
+	nuser, err := s.UserStore.Save(rctx, user)
 
 	if err == nil {
 		s.rootStore.indexUser(rctx, nuser)
@@ -93,22 +90,19 @@ func (s *SearchUserStore) Save(user *model.User) (*model.User, error) {
 	return nuser, err
 }
 
-func (s *SearchUserStore) PermanentDelete(userId string) error {
-	// TODO: Use the actuall request context from the App layer
-	// https://mattermost.atlassian.net/browse/MM-55738
-	rctx := request.EmptyContext(s.rootStore.Logger())
+func (s *SearchUserStore) PermanentDelete(rctx request.CTX, userId string) error {
 	user, userErr := s.UserStore.Get(context.Background(), userId)
 	if userErr != nil {
 		rctx.Logger().Warn("Encountered error deleting user", mlog.String("user_id", userId), mlog.Err(userErr))
 	}
-	err := s.UserStore.PermanentDelete(userId)
+	err := s.UserStore.PermanentDelete(rctx, userId)
 	if err == nil && userErr == nil {
 		s.deleteUserIndex(rctx, user)
 	}
 	return err
 }
 
-func (s *SearchUserStore) autocompleteUsersInChannelByEngine(engine searchengine.SearchEngineInterface, teamId, channelId, term string, options *model.UserSearchOptions) (*model.UserAutocompleteInChannel, error) {
+func (s *SearchUserStore) autocompleteUsersInChannelByEngine(rctx request.CTX, engine searchengine.SearchEngineInterface, teamId, channelId, term string, options *model.UserSearchOptions) (*model.UserAutocompleteInChannel, error) {
 	var err *model.AppError
 	uchanIds := []string{}
 	nuchanIds := []string{}
@@ -124,14 +118,14 @@ func (s *SearchUserStore) autocompleteUsersInChannelByEngine(engine searchengine
 
 	uchan := make(chan store.StoreResult[[]*model.User], 1)
 	go func() {
-		users, nErr := s.UserStore.GetProfileByIds(context.Background(), uchanIds, nil, false)
+		users, nErr := s.UserStore.GetProfileByIds(rctx, uchanIds, nil, false)
 		uchan <- store.StoreResult[[]*model.User]{Data: users, NErr: nErr}
 		close(uchan)
 	}()
 
 	nuchan := make(chan store.StoreResult[[]*model.User], 1)
 	go func() {
-		users, nErr := s.UserStore.GetProfileByIds(context.Background(), nuchanIds, nil, false)
+		users, nErr := s.UserStore.GetProfileByIds(rctx, nuchanIds, nil, false)
 		nuchan <- store.StoreResult[[]*model.User]{Data: users, NErr: nErr}
 		close(nuchan)
 	}()
@@ -226,7 +220,7 @@ func (s *SearchUserStore) AutocompleteUsersInChannel(rctx request.CTX, teamId, c
 			}
 			options.ListOfAllowedChannels = listOfAllowedChannels
 
-			autocomplete, nErr := s.autocompleteUsersInChannelByEngine(engine, teamId, channelId, term, options)
+			autocomplete, nErr := s.autocompleteUsersInChannelByEngine(rctx, engine, teamId, channelId, term, options)
 			if nErr != nil {
 				rctx.Logger().Warn("Encountered error on AutocompleteUsersInChannel.", mlog.String("search_engine", engine.GetName()), mlog.Err(nErr))
 				continue

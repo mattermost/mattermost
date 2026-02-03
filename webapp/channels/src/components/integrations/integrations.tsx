@@ -15,6 +15,7 @@ import TeamPermissionGate from 'components/permissions_gates/team_permission_gat
 import BotAccountsIcon from 'images/bot_default_icon.png';
 import IncomingWebhookIcon from 'images/incoming_webhook.jpg';
 import OAuthIcon from 'images/oauth_icon.png';
+import OutgoingOAuthConnectionsIcon from 'images/outgoing_oauth_connection.png';
 import OutgoingWebhookIcon from 'images/outgoing_webhook.jpg';
 import SlashCommandIcon from 'images/slash_command_icon.jpg';
 import * as Utils from 'utils/utils';
@@ -27,6 +28,7 @@ type Props = {
     enableOutgoingWebhooks: boolean;
     enableCommands: boolean;
     enableOAuthServiceProvider: boolean;
+    enableOutgoingOAuthConnections: boolean;
     team: Team;
 }
 
@@ -37,7 +39,7 @@ export default class Integrations extends React.PureComponent <Props> {
 
     updateTitle = () => {
         const currentSiteName = this.props.siteName || '';
-        document.title = Utils.localizeMessage('admin.sidebar.integrations', 'Integrations') + ' - ' + this.props.team.display_name + ' ' + currentSiteName;
+        document.title = Utils.localizeMessage({id: 'admin.sidebar.integrations', defaultMessage: 'Integrations'}) + ' - ' + this.props.team.display_name + ' ' + currentSiteName;
     };
 
     render() {
@@ -47,7 +49,7 @@ export default class Integrations extends React.PureComponent <Props> {
             options.push(
                 <TeamPermissionGate
                     teamId={this.props.team.id}
-                    permissions={[Permissions.MANAGE_INCOMING_WEBHOOKS]}
+                    permissions={[Permissions.MANAGE_INCOMING_WEBHOOKS, Permissions.MANAGE_OWN_INCOMING_WEBHOOKS]}
                     key='incomingWebhookPermission'
                 >
                     <IntegrationOption
@@ -75,7 +77,7 @@ export default class Integrations extends React.PureComponent <Props> {
             options.push(
                 <TeamPermissionGate
                     teamId={this.props.team.id}
-                    permissions={[Permissions.MANAGE_OUTGOING_WEBHOOKS]}
+                    permissions={[Permissions.MANAGE_OUTGOING_WEBHOOKS, Permissions.MANAGE_OWN_OUTGOING_WEBHOOKS]}
                     key='outgoingWebhookPermission'
                 >
                     <IntegrationOption
@@ -103,7 +105,7 @@ export default class Integrations extends React.PureComponent <Props> {
             options.push(
                 <TeamPermissionGate
                     teamId={this.props.team.id}
-                    permissions={[Permissions.MANAGE_SLASH_COMMANDS]}
+                    permissions={[Permissions.MANAGE_SLASH_COMMANDS, Permissions.MANAGE_OWN_SLASH_COMMANDS]}
                     key='commandPermission'
                 >
                     <IntegrationOption
@@ -118,7 +120,7 @@ export default class Integrations extends React.PureComponent <Props> {
                         description={
                             <FormattedMessage
                                 id='integrations.command.description'
-                                defaultMessage='Slash commands send events to an external integration'
+                                defaultMessage='Slash commands send events to external integrations'
                             />
                         }
                         link={'/' + this.props.team.name + '/integrations/commands'}
@@ -145,12 +147,40 @@ export default class Integrations extends React.PureComponent <Props> {
                         description={
                             <FormattedMessage
                                 id='integrations.oauthApps.description'
-                                defaultMessage='Auth 2.0 allows external applications to make authorized requests to the Mattermost API'
+                                defaultMessage='OAuth 2.0 allows external applications to make authorized requests to the Mattermost API'
                             />
                         }
                         link={'/' + this.props.team.name + '/integrations/oauth2-apps'}
                     />
                 </SystemPermissionGate>,
+            );
+        }
+
+        if (this.props.enableOutgoingOAuthConnections) {
+            options.push(
+                <TeamPermissionGate
+                    teamId={this.props.team.id}
+                    permissions={[Permissions.MANAGE_OUTGOING_OAUTH_CONNECTIONS]}
+                    key='outgoingOAuthConnectionsPermission'
+                >
+                    <IntegrationOption
+                        key='outgoingOAuthConnections'
+                        image={OutgoingOAuthConnectionsIcon}
+                        title={
+                            <FormattedMessage
+                                id='integrations.outgoingOAuthConnections.title'
+                                defaultMessage='Outgoing OAuth Connections'
+                            />
+                        }
+                        description={
+                            <FormattedMessage
+                                id='integrations.outgoingOAuthConnections.description'
+                                defaultMessage='Outgoing OAuth Connections allow custom integrations to communicate to external systems'
+                            />
+                        }
+                        link={'/' + this.props.team.name + '/integrations/outgoing-oauth2-connections'}
+                    />
+                </TeamPermissionGate>,
             );
         }
 

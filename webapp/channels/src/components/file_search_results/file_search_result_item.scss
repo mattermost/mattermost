@@ -7,9 +7,9 @@
     align-items: center;
     padding: 11px;
     border: 1px solid rgba(var(--center-channel-color-rgb), 0.16);
+    border-radius: 4px;
     margin: 0 14px 8px 14px;
     background: transparent;
-    border-radius: 4px;
     color: var(--center-channel-color);
     cursor: pointer;
     transition: box-shadow 0.15s ease;
@@ -71,7 +71,7 @@
             gap: 8px;
 
             > :not(.Tag) {
-                opacity: 0.56;
+                opacity: 0.73;
             }
 
             .Tag {
@@ -85,32 +85,15 @@
     }
 
     .action-icon {
-        display: flex;
-        width: 32px;
-        min-width: 32px;
-        height: 32px;
-        justify-content: center;
-        margin-left: 8px;
-        background-color: var(--center-channel-bg);
-        border-radius: 4px;
-        color: rgba(var(--center-channel-color-rgb), 0.72);
-        cursor: pointer;
-        fill: rgba(var(--center-channel-color-rgb), 0.72);
-        opacity: 0;
-        text-decoration: none;
-        transition: opacity 0.15s ease;
+        display: none;
+        margin-left: 2px;
 
         &.download-icon {
-            margin-right: 6px;
+            margin-right: 2px;
         }
 
         svg {
             display: flex;
-        }
-
-        &:hover {
-            background-color: rgba(var(--center-channel-color-rgb), 0.08);
-            color: rgba(var(--center-channel-color-rgb), 0.72);
         }
     }
 

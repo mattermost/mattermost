@@ -15,11 +15,11 @@ import (
 )
 
 func TestDownloadFromURL(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t)
-	defer th.TearDown()
 
 	app := th.App
-	app.Config().PluginSettings.AllowInsecureDownloadURL = model.NewBool(true)
+	app.Config().PluginSettings.AllowInsecureDownloadURL = model.NewPointer(true)
 
 	// To keep track of how many times an endpoint is retried. This needs to be reset
 	// for each test run.

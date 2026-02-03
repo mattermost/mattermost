@@ -12,11 +12,11 @@ import (
 	"net/http"
 	"net/url"
 	"path"
+	"slices"
 	"strings"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/i18n"
-	"github.com/mattermost/mattermost/server/public/utils"
 )
 
 func CheckOrigin(r *http.Request, allowedOrigins string) bool {
@@ -28,12 +28,7 @@ func CheckOrigin(r *http.Request, allowedOrigins string) bool {
 	if allowedOrigins == "*" {
 		return true
 	}
-	for _, allowed := range strings.Split(allowedOrigins, " ") {
-		if allowed == origin {
-			return true
-		}
-	}
-	return false
+	return slices.Contains(strings.Split(allowedOrigins, " "), origin)
 }
 
 func OriginChecker(allowedOrigins string) func(*http.Request) bool {
@@ -114,7 +109,7 @@ func RenderMobileAuthComplete(w http.ResponseWriter, redirectURL string) {
 func RenderMobileError(config *model.Config, w http.ResponseWriter, err *model.AppError, redirectURL string) {
 	var link = template.HTMLEscapeString(redirectURL)
 	u, redirectErr := url.Parse(redirectURL)
-	if redirectErr != nil || !utils.Contains(config.NativeAppSettings.AppCustomURLSchemes, u.Scheme) {
+	if redirectErr != nil || !slices.Contains(config.NativeAppSettings.AppCustomURLSchemes, u.Scheme) {
 		link = *config.ServiceSettings.SiteURL
 	}
 	RenderMobileMessage(w, `

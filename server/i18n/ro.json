@@ -208,10 +208,6 @@
     "translation": "Nu pot lăsa un mesaj direct pe canal."
   },
   {
-    "id": "api.channel.leave.last_member.app_error",
-    "translation": "Tu ești singurul membru ramas, încerca eliminarea Canalului Privat în loc de a pleca."
-  },
-  {
     "id": "api.channel.leave.left",
     "translation": "%v a plecat de pe canal."
   },
@@ -792,10 +788,6 @@
     "translation": "Canalul specificat nu a putut găsi. Vă rugăm să folosiţi [mâner canal](https://docs.mattermost.com/messaging/managing-channels.html#naming-a-channel) pentru a identifica canalele."
   },
   {
-    "id": "api.command_mute.not_member.error",
-    "translation": "Ar putea dezactiva canalul {{.Channel}} ca nu sunteti membru."
-  },
-  {
     "id": "api.command_mute.success_mute",
     "translation": "Nu veți primi notificări pentru {{.Channel}} până când opțiunea de a muți canalului este dezactivată."
   },
@@ -922,10 +914,6 @@
   {
     "id": "api.command_shrug.name",
     "translation": "umeri"
-  },
-  {
-    "id": "api.config.client.old_format.app_error",
-    "translation": "Noul format pentru configurare client nu supported încă. Vă rugăm să specificaţi formatul = vechi în şirul de interogare."
   },
   {
     "id": "api.context.404.app_error",
@@ -1190,10 +1178,6 @@
   {
     "id": "api.oauth.get_access_token.bad_client_id.app_error",
     "translation": "invalid_request: Invalid client_id."
-  },
-  {
-    "id": "api.oauth.get_access_token.bad_client_secret.app_error",
-    "translation": "invalid_request: Lipsește client_secret."
   },
   {
     "id": "api.oauth.get_access_token.bad_grant.app_error",
@@ -2080,14 +2064,6 @@
     "translation": "Conectarea la bot este interzisă."
   },
   {
-    "id": "api.user.login.client_side_cert.certificate.app_error",
-    "translation": "A încercat să faceţi sign in utilizând caracteristica experimentale ClientSideCert fără a furniza un certificat valabil."
-  },
-  {
-    "id": "api.user.login.client_side_cert.license.app_error",
-    "translation": "Încercaţi să utilizaţi caracteristica experimentale ClientSideCertEnable fara licenta valida enterprise."
-  },
-  {
     "id": "api.user.login.inactive.app_error",
     "translation": "Conectare a eşuat deoarece contul a fost dezactivat.  Vă rugăm să contactaţi un administrator."
   },
@@ -2294,10 +2270,6 @@
   {
     "id": "api.webhook.create_outgoing.triggers.app_error",
     "translation": "Trebuie să fie setate fie trigger_words, fie channel_id."
-  },
-  {
-    "id": "api.webhook.incoming.error",
-    "translation": "Nu s-a putut decoda încărcătura utilă multiplă a hubului de intrare."
   },
   {
     "id": "api.webhook.team_mismatch.app_error",
@@ -3000,60 +2972,8 @@
     "translation": "Consola de sistem este setată la read-only când Disponibilitatea ridicată este activată, cu excepția cazului în care ReadOnlyConfig este dezactivat în fișierul de configurare."
   },
   {
-    "id": "ent.compliance.bad_export_type.appError",
-    "translation": "Formatul de ieșire necunoscut {{.ExportType}}"
-  },
-  {
-    "id": "ent.compliance.csv.attachment.copy.appError",
-    "translation": "Imposibil de copiat atașamentul în fișierul zip."
-  },
-  {
-    "id": "ent.compliance.csv.attachment.export.appError",
-    "translation": "Imposibil de adăugat atașament la exportul CSV."
-  },
-  {
-    "id": "ent.compliance.csv.file.creation.appError",
-    "translation": "Imposibil de creat fișier temporar de export CSV."
-  },
-  {
-    "id": "ent.compliance.csv.header.export.appError",
-    "translation": "Nu se poate adăuga antet la exportul CSV."
-  },
-  {
-    "id": "ent.compliance.csv.metadata.export.appError",
-    "translation": "Imposibil de adăugat fișierul metadate în fișierul zip."
-  },
-  {
-    "id": "ent.compliance.csv.metadata.json.marshalling.appError",
-    "translation": "Imposibil de convertit metadatele la json."
-  },
-  {
-    "id": "ent.compliance.csv.post.export.appError",
-    "translation": "Imposibil de exportat o postare."
-  },
-  {
-    "id": "ent.compliance.csv.zip.creation.appError",
-    "translation": "Imposibil de creat fișierul de export zip."
-  },
-  {
-    "id": "ent.compliance.global_relay.attachments_removed.appError",
-    "translation": "Fișierul încărcat a fost eliminat din exportul Global Relay, deoarece a fost prea mare pentru a fi trimis."
-  },
-  {
-    "id": "ent.compliance.global_relay.open_temporary_file.appError",
-    "translation": "Imposibil de deschis fişierul de export temporar."
-  },
-  {
-    "id": "ent.compliance.global_relay.rewind_temporary_file.appError",
-    "translation": "Imposibil de re-citit fișierul de export temporar Global Relay."
-  },
-  {
     "id": "ent.compliance.licence_disable.app_error",
     "translation": "Funcționalitatea de conformitate este dezactivată de licența curentă. Contactați administratorul de sistem despre actualizarea licenței dvs. pentru întreprindere."
-  },
-  {
-    "id": "ent.compliance.run_export.template_watcher.appError",
-    "translation": "Nu se pot încărca șabloane de export. Vă rugăm să încercați din nou."
   },
   {
     "id": "ent.compliance.run_failed.error",
@@ -3116,10 +3036,6 @@
     "translation": "Elasticsearch nu este pornit"
   },
   {
-    "id": "ent.elasticsearch.purge_indexes.delete_failed",
-    "translation": "Nu sa reușit ștergerea indexului Elasticsearch"
-  },
-  {
     "id": "ent.elasticsearch.search_posts.disabled",
     "translation": "Elasticsearch căutarea este dezactivat pe acest server"
   },
@@ -3134,14 +3050,6 @@
   {
     "id": "ent.elasticsearch.search_posts.unmarshall_post_failed",
     "translation": "Nu a reuşit să decodeze rezultatele cautării"
-  },
-  {
-    "id": "ent.elasticsearch.start.create_bulk_processor_failed.app_error",
-    "translation": "Nu s-a putut crea procesorul în bloc Elasticsearch."
-  },
-  {
-    "id": "ent.elasticsearch.start.start_bulk_processor_failed.app_error",
-    "translation": "Nu a putut porni procesorul în bloc Elasticsearch."
   },
   {
     "id": "ent.elasticsearch.stop.already_stopped.app_error",
@@ -3244,58 +3152,6 @@
     "translation": "eroare de enumerare a grupurilor pentru utilizatori"
   },
   {
-    "id": "ent.message_export.global_relay.attach_file.app_error",
-    "translation": "Imposibil de adăugat atașamentul la exportul Global Relay."
-  },
-  {
-    "id": "ent.message_export.global_relay.close_zip_file.app_error",
-    "translation": "Imposibil de închis fișierul zip."
-  },
-  {
-    "id": "ent.message_export.global_relay.create_file_in_zip.app_error",
-    "translation": "Nu am putut crea fișierul% 1."
-  },
-  {
-    "id": "ent.message_export.global_relay.generate_email.app_error",
-    "translation": "Imposibil de generat date despre fișierul eml."
-  },
-  {
-    "id": "ent.message_export.global_relay_export.deliver.close.app_error",
-    "translation": "Imposibilitatea de a livra e-mail la releu de nivel mondial."
-  },
-  {
-    "id": "ent.message_export.global_relay_export.deliver.from_address.app_error",
-    "translation": "Imposibil de setat e-mail la adresa."
-  },
-  {
-    "id": "ent.message_export.global_relay_export.deliver.msg.app_error",
-    "translation": "Imposibil de setat mesajul de e-mail."
-  },
-  {
-    "id": "ent.message_export.global_relay_export.deliver.msg_data.app_error",
-    "translation": "Imposibilitatea de a scrie mesajul de e-mail."
-  },
-  {
-    "id": "ent.message_export.global_relay_export.deliver.parse_mail.app_error",
-    "translation": "Imposibil de citit informațiile de e-mail."
-  },
-  {
-    "id": "ent.message_export.global_relay_export.deliver.to_address.app_error",
-    "translation": "Imposibil de setat e-mail la adresă."
-  },
-  {
-    "id": "ent.message_export.global_relay_export.deliver.unable_to_get_file_info.app_error",
-    "translation": "Imposibilitatea de a obţine informaţiile din fişierul de export temporar."
-  },
-  {
-    "id": "ent.message_export.global_relay_export.deliver.unable_to_open_email_file.app_error",
-    "translation": "Imposibilitatea de a obţine un e-mail de la fişierul temporar."
-  },
-  {
-    "id": "ent.message_export.global_relay_export.deliver.unable_to_open_zip_file_data.app_error",
-    "translation": "Imposibil de deschis fişierul de export temporar."
-  },
-  {
     "id": "ent.migration.migratetoldap.duplicate_field",
     "translation": "Imposibilitatea de a migra AD/LDAP utilizatorilor cu câmpul specificat. Dublare intrare detectate. Eliminaţi toate duplcates şi încercaţi din nou."
   },
@@ -3324,16 +3180,8 @@
     "translation": "Eroare la initierea cererii de către furnizorul de identitate. Vă rugăm să contactaţi administratorul de sistem."
   },
   {
-    "id": "ent.saml.build_request.encoding.app_error",
-    "translation": "Eroare în timp ce codare cererea pentru furnizorul de identitate. Vă rugăm să contactaţi administratorul de sistem."
-  },
-  {
     "id": "ent.saml.configure.encryption_not_enabled.app_error",
     "translation": "SAML login a avut succes, deoarece criptare nu este activat. Vă rugăm să contactaţi administratorul de sistem."
-  },
-  {
-    "id": "ent.saml.configure.load_idp_cert.app_error",
-    "translation": "Identitatea furnizorului Public Certificate dosar nu a fost găsit. Vă rugăm să contactaţi administratorul de sistem."
   },
   {
     "id": "ent.saml.configure.load_private_key.app_error",
@@ -3344,20 +3192,12 @@
     "translation": "SAML login a avut succes ca răspuns furnizor de identitate nu este criptat. Vă rugăm să contactaţi administratorul de sistem."
   },
   {
-    "id": "ent.saml.do_login.decrypt.app_error",
-    "translation": "SAML login a avut succes pentru că a apărut o eroare în timp ce decriptarea răspunsul de la furnizorul de identitate. Vă rugăm să contactaţi administratorul de sistem."
-  },
-  {
     "id": "ent.saml.do_login.empty_response.app_error",
     "translation": "Am primit un raspuns gol la furnizorul de identitate."
   },
   {
     "id": "ent.saml.do_login.parse.app_error",
     "translation": "Eroare la parsarea răspunsul de la furnizorul de identitate. Vă rugăm să contactaţi administratorul de sistem."
-  },
-  {
-    "id": "ent.saml.do_login.validate.app_error",
-    "translation": "Eroare la validarea răspunsul de la furnizorul de identitate. Vă rugăm să contactaţi administratorul de sistem."
   },
   {
     "id": "ent.saml.license_disable.app_error",
@@ -4336,10 +4176,6 @@
     "translation": "ID Incorect."
   },
   {
-    "id": "model.post.is_valid.msg.app_error",
-    "translation": "Mesaj inexistent."
-  },
-  {
     "id": "model.post.is_valid.original_id.app_error",
     "translation": "Identitatea originala invalidă."
   },
@@ -4466,10 +4302,6 @@
   {
     "id": "model.user.is_valid.email.app_error",
     "translation": "Te rog introdu o adresa de email valida."
-  },
-  {
-    "id": "model.user.is_valid.pwd.app_error",
-    "translation": "Parola dvs. trebuie să conțină cel puțin {{.Min}} caractere."
   },
   {
     "id": "model.user.is_valid.pwd_lowercase.app_error",
@@ -4808,10 +4640,6 @@
     "translation": "Obțineți cel mai recent browser Chrome"
   },
   {
-    "id": "searchengine.bleve.disabled.error",
-    "translation": "Eroare la eliminarea indexurilor Bleve: motorul este dezactivat"
-  },
-  {
     "id": "plugin_api.bot_cant_create_bot",
     "translation": "Utilizatorul Bot nu poate crea utilizator de bot."
   },
@@ -4920,18 +4748,6 @@
     "translation": "Setarea Elasticsearch EnableIndexing trebuie să fie setată la true când Elasticsearch EnableAutocomplete este setat pe true"
   },
   {
-    "id": "model.config.is_valid.bleve_search.filename.app_error",
-    "translation": "Setarea Bleve EnableIndexing trebuie să fie setată la true atunci când este setată Bleve IndexingDir"
-  },
-  {
-    "id": "model.config.is_valid.bleve_search.enable_searching.app_error",
-    "translation": "Setarea Bleve EnableIndexing trebuie să fie setată pe true când Bleve EnableSearching este setată pe true"
-  },
-  {
-    "id": "model.config.is_valid.bleve_search.enable_autocomplete.app_error",
-    "translation": "Setarea Bleve EnableIndexing trebuie să fie setată pe true când Bleve EnableAutocomplete este setată pe true"
-  },
-  {
     "id": "model.command.is_valid.autocomplete_data.app_error",
     "translation": "AutocompleteData invalid"
   },
@@ -4962,10 +4778,6 @@
   {
     "id": "ent.ldap.syncronize.search_failure_size_exceeded.app_error",
     "translation": "Limita de dimensiune a fost depășită. Încercați să verificați [mărimea paginii maximă] (https://docs.mattermost.com/deployment/sso-ldap.html#i-see-the-log-error-ldap-result-code-4-size-limit-exceeded)."
-  },
-  {
-    "id": "ent.ldap.syncronize.delete_group_constained_memberships",
-    "translation": "eroare la ștergerea membrilor echipei sau a canalelor"
   },
   {
     "id": "ent.id_loaded.license_disable.app_error",
@@ -5034,130 +4846,6 @@
   {
     "id": "ent.elasticsearch.create_template_channels_if_not_exists.template_create_failed",
     "translation": "Nu s-a creat șablonul Elasticsearch pentru canale"
-  },
-  {
-    "id": "ent.compliance.csv.warning.appError",
-    "translation": "Imposibil de creat fișierul de avertizare."
-  },
-  {
-    "id": "ent.compliance.csv.metadata.json.zipfile.appError",
-    "translation": "Imposibil de creat fișierul zip"
-  },
-  {
-    "id": "bleveengine.stop_user_index.error",
-    "translation": "Eroare la închiderea indexului utilizatorului."
-  },
-  {
-    "id": "bleveengine.stop_post_index.error",
-    "translation": "Eroare la închiderea indexului postării."
-  },
-  {
-    "id": "bleveengine.stop_channel_index.error",
-    "translation": "Eroare la închiderea indexului canalului."
-  },
-  {
-    "id": "bleveengine.search_users_in_team.error",
-    "translation": "Căutarea utilizatorului nu a reușit."
-  },
-  {
-    "id": "bleveengine.search_users_in_channel.uchan.error",
-    "translation": "Căutarea utilizatorului nu a reușit."
-  },
-  {
-    "id": "bleveengine.search_users_in_channel.nuchan.error",
-    "translation": "Căutarea utilizatorului nu a reușit."
-  },
-  {
-    "id": "bleveengine.search_posts.error",
-    "translation": "Căutarea postării nu a fost finalizată."
-  },
-  {
-    "id": "bleveengine.search_channels.error",
-    "translation": "Căutarea pe canal nu a finalizat."
-  },
-  {
-    "id": "bleveengine.purge_user_index.error",
-    "translation": "Nu a reușit să elimine indexurile utilizatorilor."
-  },
-  {
-    "id": "bleveengine.purge_post_index.error",
-    "translation": "Nu a reușit să elimine indexurile postării."
-  },
-  {
-    "id": "bleveengine.purge_channel_index.error",
-    "translation": "Eroare la purjarea indexurilor canalului."
-  },
-  {
-    "id": "bleveengine.indexer.index_batch.nothing_left_to_index.error",
-    "translation": "Încercați să indexați un lot nou când toate entitățile sunt finalizate."
-  },
-  {
-    "id": "bleveengine.indexer.do_job.parse_start_time.error",
-    "translation": "Lucrătorul de indexare Bleve nu a reușit să analizeze ora de început."
-  },
-  {
-    "id": "bleveengine.indexer.do_job.parse_end_time.error",
-    "translation": "Lucrătorul de indexare Bleve nu a reușit să analizeze ora de sfârșit."
-  },
-  {
-    "id": "bleveengine.indexer.do_job.get_oldest_entity.error",
-    "translation": "Cea mai veche entitate (utilizator, canal sau postare) nu a putut fi recuperată din baza de date."
-  },
-  {
-    "id": "bleveengine.indexer.do_job.engine_inactive",
-    "translation": "Nu a reușit să execute jobul de index Bleve: motorul este inactiv."
-  },
-  {
-    "id": "bleveengine.indexer.do_job.bulk_index_users.batch_error",
-    "translation": "Eroare la indexarea lotului de utilizator."
-  },
-  {
-    "id": "bleveengine.indexer.do_job.bulk_index_posts.batch_error",
-    "translation": "Eroare la indexarea lotului post."
-  },
-  {
-    "id": "bleveengine.indexer.do_job.bulk_index_channels.batch_error",
-    "translation": "Eroare la indexarea lotului de canale."
-  },
-  {
-    "id": "bleveengine.index_user.error",
-    "translation": "Eroare la indexarea utilizatorului."
-  },
-  {
-    "id": "bleveengine.index_post.error",
-    "translation": "Eroare la indexarea postării."
-  },
-  {
-    "id": "bleveengine.index_channel.error",
-    "translation": "Eroare la indexarea canalului."
-  },
-  {
-    "id": "bleveengine.delete_user.error",
-    "translation": "Nu a reușit ștergerea utilizatorului."
-  },
-  {
-    "id": "bleveengine.delete_post.error",
-    "translation": "Nu a reușit să ștergi postarea."
-  },
-  {
-    "id": "bleveengine.delete_channel.error",
-    "translation": "Nu a reușit să ștergi canalul."
-  },
-  {
-    "id": "bleveengine.create_user_index.error",
-    "translation": "Eroare la crearea indexului utilizatorului."
-  },
-  {
-    "id": "bleveengine.create_post_index.error",
-    "translation": "Eroare la crearea indexului bleve post."
-  },
-  {
-    "id": "bleveengine.create_channel_index.error",
-    "translation": "Eroare la crearea indexului canalului bleve."
-  },
-  {
-    "id": "bleveengine.already_started.error",
-    "translation": "Bleve a început deja."
   },
   {
     "id": "app.user_terms_of_service.save.app_error",
@@ -5286,10 +4974,6 @@
   {
     "id": "app.plugin.get_public_key.get_file.app_error",
     "translation": "A apărut o eroare la preluarea cheii publice din magazin."
-  },
-  {
-    "id": "app.plugin.flag_managed.app_error",
-    "translation": "Nu se poate seta plugin-ul așa cum este gestionat de depozitul de fișiere."
   },
   {
     "id": "app.plugin.delete_public_key.delete.app_error",
@@ -5546,10 +5230,6 @@
   {
     "id": "api.templates.remove_expired_license.body.title",
     "translation": "Licența dvs. Enterprise Edition a expirat și este posibil ca unele funcții să fie dezactivate. Vă rugăm să vă reînnoiți licența acum."
-  },
-  {
-    "id": "api.templates.remove_expired_license.body.renew_button",
-    "translation": "Reînnoiți licența acum"
   },
   {
     "id": "api.templates.invite_guest_subject",
@@ -5824,10 +5504,6 @@
     "translation": "Limita depășită pentru paginare."
   },
   {
-    "id": "ent.get_users_in_channel_during",
-    "translation": "Eroarea de a primi utilizatorii pe canal în perioada specificată."
-  },
-  {
     "id": "model.config.is_valid.saml_spidentifier_attribute.app_error",
     "translation": "Identificatorul furnizorului de servicii este necesar"
   },
@@ -5846,14 +5522,6 @@
   {
     "id": "ent.cluster.json_encode.error",
     "translation": "A apărut o eroare la trimiterea cererii JSON"
-  },
-  {
-    "id": "bleveengine.delete_user_posts.error",
-    "translation": "Ștergerea postărilor utilizatorilor nu a reușit"
-  },
-  {
-    "id": "bleveengine.delete_channel_posts.error",
-    "translation": "Ștergerea postărilor canalului nu a reușit"
   },
   {
     "id": "app.scheme.delete.app_error",
@@ -6136,18 +5804,6 @@
     "translation": "Imposibil de șters jetonul de acces personal."
   },
   {
-    "id": "api.email.send_warn_metric_ack.missing_server.app_error",
-    "translation": "Serverul SMTP este necesar"
-  },
-  {
-    "id": "api.server.warn_metric.bot_response.notification_success.message",
-    "translation": "Vă mulțumim că ați contactat Mattermost. Vă vom contacta în curând."
-  },
-  {
-    "id": "app.system.warn_metric.bot_displayname",
-    "translation": "Consilier Mattermost"
-  },
-  {
     "id": "app.command.tryexecutecustomcommand.internal_error",
     "translation": "Imposibil de executat comanda personalizată."
   },
@@ -6176,90 +5832,6 @@
     "translation": "Funcția de ștergere permanentă a echipei nu este activată. Vă rugăm să contactați administratorul de sistem."
   },
   {
-    "id": "api.templates.warn_metric_ack.subject",
-    "translation": "Mattermost Cererea de contact"
-  },
-  {
-    "id": "api.templates.warn_metric_ack.footer",
-    "translation": "Dacă aveți întrebări suplimentare, contactați support@mattermost.com"
-  },
-  {
-    "id": "api.templates.warn_metric_ack.body.site_url_header",
-    "translation": "Adresa paginii: "
-  },
-  {
-    "id": "api.templates.warn_metric_ack.body.registered_users_header",
-    "translation": "Total utilizatori activi: "
-  },
-  {
-    "id": "api.templates.warn_metric_ack.body.diagnostic_id_header",
-    "translation": "ID de diagnostic: "
-  },
-  {
-    "id": "api.templates.warn_metric_ack.body.contact_name_header",
-    "translation": "Contact: "
-  },
-  {
-    "id": "api.templates.warn_metric_ack.body.contact_email_header",
-    "translation": "Email: "
-  },
-  {
-    "id": "api.server.warn_metric.number_of_active_users_500.notification_title",
-    "translation": "Scalare cu Mattermost"
-  },
-  {
-    "id": "api.server.warn_metric.number_of_active_users_500.notification_body",
-    "translation": "Mattermost recomandă cu tărie ca implementările a peste 500 de utilizatori să profite de funcții precum gestionarea utilizatorilor, clusterizarea serverelor și monitorizarea performanței. Contactați-ne pentru a afla mai multe și anunțați-ne cum vă putem ajuta.\n\nDând clic pe Contactați-ne, veți împărtăși informațiile dvs. cu Mattermost, Inc. [Aflați mai multe](https://mattermost.com/pl/default-admin-advisory)"
-  },
-  {
-    "id": "api.server.warn_metric.number_of_active_users_200.notification_title",
-    "translation": "Scalare cu Mattermost"
-  },
-  {
-    "id": "api.server.warn_metric.number_of_active_users_200.notification_body",
-    "translation": "Sistemul dvs. Mattermost are acum 200 de utilizatori. Când vă conectați Mattermost la furnizorul de conectare unică al organizației dvs., utilizatorii pot accesa Mattermost fără a fi nevoie să reintroducă acreditările. Vă recomandăm să vă integrați furnizorul SAML 2.0 cu serverul dvs. Mattermost. [Aflați mai multe despre integrarea cu SAML 2.0](https://www.mattermost.com/docs-saml/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=saml) .\n\nDând clic pe Contactați-ne, veți împărtăși informațiile dvs. cu Mattermost, Inc. [Aflați mai multe](https://mattermost.com/pl/default-admin-advisory)"
-  },
-  {
-    "id": "api.server.warn_metric.email_us",
-    "translation": "Trimite-ti-ne un e-mail"
-  },
-  {
-    "id": "api.server.warn_metric.bot_response.notification_failure.message",
-    "translation": "Mesajul nu a putut fi trimis."
-  },
-  {
-    "id": "api.server.warn_metric.bot_response.notification_failure.body",
-    "translation": "Vă rugăm să ne trimiteți un e-mail."
-  },
-  {
-    "id": "api.server.warn_metric.bot_response.mailto_subject",
-    "translation": "Mattermost Cererea de contact"
-  },
-  {
-    "id": "api.server.warn_metric.bot_response.mailto_site_url_header",
-    "translation": "URL Site: {{.SiteUrl}}"
-  },
-  {
-    "id": "api.server.warn_metric.bot_response.mailto_registered_users_header",
-    "translation": "Total utilizatori activi: {{.NoRegisteredUsers}}"
-  },
-  {
-    "id": "api.server.warn_metric.bot_response.mailto_footer",
-    "translation": "Dacă aveți întrebări suplimentare, contactați support@mattermost.com"
-  },
-  {
-    "id": "api.server.warn_metric.bot_response.mailto_email_header",
-    "translation": "Email: {{.Email}}"
-  },
-  {
-    "id": "api.server.warn_metric.bot_response.mailto_diagnostic_id_header",
-    "translation": "Id Diagnostic: {{.DiagnosticId}}"
-  },
-  {
-    "id": "api.server.warn_metric.bot_response.mailto_contact_header",
-    "translation": "Contact: {{.contact}}"
-  },
-  {
     "id": "api.preference.update_preferences.update_sidebar.app_error",
     "translation": "Nu se poate actualiza bara laterală pentru a se potrivi cu preferințele actualizate"
   },
@@ -6270,14 +5842,6 @@
   {
     "id": "api.invalid_channel",
     "translation": "Canalul listat în cerere nu aparține utilizatorului"
-  },
-  {
-    "id": "api.email.send_warn_metric_ack.invalid_warn_metric.app_error",
-    "translation": "Nu s-a putut găsi metrica de avertizare."
-  },
-  {
-    "id": "api.email.send_warn_metric_ack.failure.app_error",
-    "translation": "Eșecul de a trimite un e-mail de confirmare a administratorului"
   },
   {
     "id": "ent.message_export.run_export.app_error",
@@ -6326,10 +5890,6 @@
   {
     "id": "ent.ldap_id_migrate.app_error",
     "translation": "incapabil să migreze."
-  },
-  {
-    "id": "app.system.warn_metric.store.app_error",
-    "translation": "Nu a reușit să stocheze valoarea pentru {{.WarnMetricName}}"
   },
   {
     "id": "app.job.download_export_results_not_enabled",
@@ -6528,10 +6088,6 @@
     "translation": "Imposibil de găsit variabila de sistem."
   },
   {
-    "id": "app.system.get.app_error",
-    "translation": "Am intalnit o eroare găsirea sistem properties."
-  },
-  {
     "id": "app.team.join_user_to_team.save_member.max_accounts.app_error",
     "translation": "Nu se poate crea noul membru al echipei, deoarece echipa a ajuns la limita membrilor"
   },
@@ -6604,16 +6160,8 @@
     "translation": "Am atins intervalul de timp pentru lucrarea de sincronizare AD/LDAP."
   },
   {
-    "id": "ent.cluster.404.app_error",
-    "translation": "Clustering API final nu a fost găsit."
-  },
-  {
     "id": "ent.api.post.send_notifications_and_forget.push_image_only",
     "translation": " un fişier ataşat."
-  },
-  {
-    "id": "ent.actiance.export.marshalToXml.appError",
-    "translation": "Imposibil de convertit exportul în XML."
   },
   {
     "id": "app.job.update.app_error",
@@ -6980,10 +6528,6 @@
     "translation": "Imposibil de obținut membrii canalului."
   },
   {
-    "id": "app.channel.get_channels_batch_for_indexing.get.app_error",
-    "translation": "Imposibilitatea de a obține loturile de canale pentru indexare."
-  },
-  {
     "id": "app.channel.get_by_scheme.app_error",
     "translation": "Nu se pot obține canalele pentru schema furnizată."
   },
@@ -7000,30 +6544,6 @@
     "translation": "Eșuarea la preluarea membrilor canalului."
   },
   {
-    "id": "api.server.warn_metric.number_of_active_users_500.contact_us.email_body",
-    "translation": "Mattermost cererea Solicitați-ma. Echipa mea are acum {{.Limit}} utilizatori și mă gândesc la Mattermost Enterprise Edition.\n"
-  },
-  {
-    "id": "api.server.warn_metric.number_of_active_users_200.contact_us.email_body",
-    "translation": "Mattermost cererea Solicitați-ma. Echipa mea are acum {{.Limit}} utilizatori și mă gândesc la Mattermost Enterprise Edition.\n"
-  },
-  {
-    "id": "api.server.warn_metric.number_of_active_users_100.notification_title",
-    "translation": "Scalare cu Mattermost"
-  },
-  {
-    "id": "api.server.warn_metric.number_of_active_users_100.notification_body",
-    "translation": "Sistemul dvs. cel mai important are acum 200 de utilizatori. Pe măsură ce baza de utilizator crește, furnizarea de conturi noi poate deveni mult timp. Vă recomandăm să faceți upgrade la Ediția Mattermost Enterprise și să integrați Active Directory/LDAP al organizației dvs., ceea ce va permite oricui are un cont să acceseze Mattermost. Utilizatorii se pot autentifica fără a fi nevoie să creeze noi nume de utilizator și parole, iar administratorii economisesc conturi de furnizare și gestionare a timpului.\n\n[Aflați mai multe despre integrarea cu AD/LDAP](https://docs.mattermost.com/deployment/sso-ldap.html?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=adldap)\n\nAsistența de contact trimite informațiile de contact către Mattermost, Inc. [Aflați mai multe](https://mattermost.com/pl/default-admin-advisory)"
-  },
-  {
-    "id": "api.server.warn_metric.number_of_active_users_100.contact_us.email_body",
-    "translation": "Mattermost cererea Solicitați-ma. Echipa mea are acum {{.Limit}} utilizatori și mă gândesc la Mattermost Enterprise Edition.\n"
-  },
-  {
-    "id": "api.server.warn_metric.mfa.notification_title",
-    "translation": "Aplicarea autentificării cu mai mulți factori"
-  },
-  {
     "id": "ent.elasticsearch.post.get_posts_batch_for_indexing.error",
     "translation": "Imposibil de obținut lotul de postări pentru indexare."
   },
@@ -7038,10 +6558,6 @@
   {
     "id": "app.post.get_posts_created_at.app_error",
     "translation": "Nu se pot obține postările pentru canal."
-  },
-  {
-    "id": "app.post.get_posts_batch_for_indexing.get.app_error",
-    "translation": "Imposibil de obținut lotul de postări pentru indexare."
   },
   {
     "id": "app.post.get_posts.app_error",
@@ -7092,130 +6608,6 @@
     "translation": "Accesul la bot este interzis."
   },
   {
-    "id": "api.server.warn_metric.number_of_posts_2M.start_trial.notification_success.message",
-    "translation": "Încercarea dvs. Enterprise este acum activă. După ce aveți un server Elasticsearch, accesați **Consola de sistem > Mediu > Elasticsearch** pentru a configura Elasticsearch."
-  },
-  {
-    "id": "api.server.warn_metric.number_of_posts_2M.start_trial.notification_body",
-    "translation": "Sistemul dvs. Mattermost are un număr mare de mesaje. Căutarea implicită a bazei de date Mattermost începe să prezinte degradarea performanței la aproximativ 2,5 milioane de postări. Cu peste 5 milioane de postări, Elasticsearch poate ajuta la evitarea problemelor semnificative de performanță, cum ar fi expirarea timpului, cu căutare și mențiuni. Contactați-ne pentru a afla mai multe și anunțați-ne cum vă putem ajuta.\n\n[Aflați mai multe despre îmbunătățirea performanței](https://www.mattermost.com/docs-elasticsearch/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=elasticsearch)\n\nDând clic pe Începeți încercarea, sunt de acord cu [Acordul de evaluare a software-ului Mattermost](https://mattermost.com/software-evaluation-agreement/), [Politica de confidențialitate](https://mattermost.com/pl/privacy-policy/) și primirea de e-mailuri despre produse."
-  },
-  {
-    "id": "api.server.warn_metric.number_of_posts_2M.notification_title",
-    "translation": "Îmbunătățirea performanței"
-  },
-  {
-    "id": "api.server.warn_metric.number_of_posts_2M.notification_body",
-    "translation": "Sistemul dvs. Mattermost are un număr mare de mesaje. Căutarea implicită a bazei de date Mattermost începe să prezinte degradarea performanței la aproximativ 2,5 milioane de postări. Cu peste 5 milioane de postări, Elasticsearch poate ajuta la evitarea problemelor semnificative de performanță, cum ar fi expirarea timpului, cu căutare și mențiuni. Contactați-ne pentru a afla mai multe și anunțați-ne cum vă putem ajuta.\n\n[Aflați mai multe despre îmbunătățirea performanței](https://www.mattermost.com/docs-elasticsearch/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=elasticsearch)\n\nDând clic pe Contactați-ne, veți împărtăși informațiile dvs. cu Mattermost, Inc. [Aflați mai multe](https://mattermost.com/pl/default-admin-advisory)"
-  },
-  {
-    "id": "api.server.warn_metric.number_of_posts_2M.contact_us.email_body",
-    "translation": "Cererea cea mai importantă este să ne contactați. Sunt interesat să aflu mai multe despre îmbunătățirea performanței cu Elasticsearch.\n"
-  },
-  {
-    "id": "api.server.warn_metric.number_of_channels_50.start_trial.notification_success.message",
-    "translation": "Încercarea dvs. Enterprise este acum activă. Accesați **Consola de sistem > Gestionare utilizator > Permisiuni** pentru a activa permisiunile avansate."
-  },
-  {
-    "id": "api.server.warn_metric.number_of_channels_50.start_trial.notification_body",
-    "translation": "Canalele ajută la îmbunătățirea comunicării, dar odată cu adunarea și crearea de canale de la Mattermost, provocarea de a menține sistemul organizat crește. Permisiunile avansate vă permit să setați ce utilizatori sau roluri pot efectua anumite acțiuni, inclusiv gestionarea setărilor canalului și a membrilor, folosind @channel sau @here pentru a eticheta grupuri largi de utilizatori și crearea de webhook-uri noi.\n\n[Aflați mai multe despre utilizarea permisiunilor avansate](https://www.mattermost.com/docs-advanced-permissions/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=advanced-permissions)\n\nDând clic pe Începeți încercarea, sunt de acord cu [Acordul de evaluare a software-ului Mattermost](https://mattermost.com/software-evaluation-agreement/), [Politica de confidențialitate](https://mattermost.com/pl/privacy-policy/) și primirea de e-mailuri despre produse."
-  },
-  {
-    "id": "api.server.warn_metric.number_of_channels_50.notification_title",
-    "translation": "Utilizarea permisiunilor avansate"
-  },
-  {
-    "id": "api.server.warn_metric.number_of_channels_50.notification_body",
-    "translation": "Canalele contribuie la îmbunătățirea comunicării, dar odată cu adunarea și crearea de canale de la Mattermost, provocarea de a menține sistemul organizat crește. Permisiunile avansate vă permit să setați ce utilizatori sau roluri pot efectua anumite acțiuni, inclusiv gestionarea setărilor canalului și a membrilor, folosind @channel sau @here pentru a eticheta grupuri largi de utilizatori și crearea de webhook-uri noi.\n\n[Aflați mai multe despre utilizarea permisiunilor avansate] (https://www.mattermost.com/docs-advanced-permissions/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=advanced-permissions)\n\nDând clic pe Contactați-ne, veți împărtăși informațiile dvs. cu Mattermost, Inc. [Aflați mai multe] (https://mattermost.com/pl/default-admin-advisory)"
-  },
-  {
-    "id": "api.server.warn_metric.number_of_channels_50.contact_us.email_body",
-    "translation": "Cererea cea mai importantă este să ne contactați. Sunt interesat să aflu mai multe despre utilizarea permisiunilor avansate cu schemele de sistem.\n"
-  },
-  {
-    "id": "api.server.warn_metric.number_of_active_users_500.start_trial.notification_success.message",
-    "translation": "Încercarea dvs. Enterprise este acum activă. Accesați Consola de sistem pentru a activa funcțiile avansate."
-  },
-  {
-    "id": "api.server.warn_metric.number_of_active_users_500.start_trial.notification_body",
-    "translation": "Mattermost recomandă cu tărie ca implementările a peste 500 de utilizatori să profite de funcții precum gestionarea utilizatorilor, clusterizarea serverelor și monitorizarea performanței. Contactați-ne pentru a afla mai multe și anunțați-ne cum vă putem ajuta.\n\nDând clic pe Începeți încercarea, sunt de acord cu [Acordul de evaluare a software-ului Mattermost](https://mattermost.com/software-evaluation-agreement/), [Politica de confidențialitate](https://mattermost.com/pl/privacy-policy/) și primirea de e-mailuri despre produse."
-  },
-  {
-    "id": "api.server.warn_metric.number_of_active_users_300.start_trial.notification_title",
-    "translation": "Canale de anunțuri numai în citire"
-  },
-  {
-    "id": "api.server.warn_metric.number_of_active_users_300.start_trial.notification_success.message",
-    "translation": "Încercarea dvs. Enterprise este acum activă. Creați un canal și accesați **Consola de sistem > Gestionarea utilizatorilor > Canale** pentru a limita postarea la administratorii canalelor."
-  },
-  {
-    "id": "api.server.warn_metric.number_of_active_users_300.start_trial.notification_body",
-    "translation": "Având atâtea conversații în Mattermost, poate fi o provocare să știi unde să cauți informații importante. Dacă doriți să transmiteți un mesaj unui public larg, puteți configura canale de anunțuri numai în citire unde oricine se poate alătura, dar numai administratorii canalelor pot posta mesaje.\n\n[Aflați mai multe despre crearea canalelor de anunțuri numai în citire](https://www.mattermost.com/docs-channel-moderation/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=channel-moderation)\n\nDând clic pe Începeți încercarea, sunt de acord cu [Acordul de evaluare a software-ului Mattermost](https://mattermost.com/software-evaluation-agreement/), [Politica de confidențialitate](https://mattermost.com/pl/privacy-policy/) și primirea de e-mailuri despre produse."
-  },
-  {
-    "id": "api.server.warn_metric.number_of_active_users_300.notification_body",
-    "translation": "Având atâtea conversații în Mattermost, poate fi o provocare să știi unde să cauți informații importante. Dacă doriți să transmiteți un mesaj unui public larg, puteți configura canale de anunțuri numai în citire unde oricine se poate alătura, dar numai administratorii canalelor pot posta mesaje.\n\n[Aflați mai multe despre crearea canalelor de anunțuri numai în citire](https://www.mattermost.com/docs-channel-moderation/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=channel-moderation)\n\nDând clic pe Contactați-ne, veți împărtăși informațiile dvs. cu Mattermost, Inc. [Aflați mai multe](https://mattermost.com/pl/default-admin-advisory)"
-  },
-  {
-    "id": "api.server.warn_metric.number_of_active_users_300.contact_us.email_body",
-    "translation": "Cererea cea mai importantă este să ne contactați. Sunt interesat să aflu mai multe despre crearea de canale de anunțuri numai în citire.\n"
-  },
-  {
-    "id": "api.server.warn_metric.number_of_active_users_200.start_trial.notification_success.message",
-    "translation": "Încercarea dvs. Enterprise este acum activă. Accesați **Consola de sistem > Autentificare > SAML 2.0** pentru a vă integra cu furnizorul dvs. SAML 2.0."
-  },
-  {
-    "id": "api.server.warn_metric.number_of_active_users_200.start_trial.notification_body",
-    "translation": "Sistemul dvs. Mattermost are acum 200 de utilizatori. Când vă conectați Mattermost la furnizorul de conectare unică al organizației dvs., utilizatorii pot accesa Mattermost fără a fi nevoie să reintroducă acreditările. Vă recomandăm să vă integrați furnizorul SAML 2.0 cu serverul dvs. Mattermost. [Aflați mai multe despre integrarea cu SAML 2.0](https://www.mattermost.com/docs-saml/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=saml)\n\nDând clic pe Începeți încercarea, sunt de acord cu [Acordul de evaluare a software-ului Mattermost] (https://mattermost.com/software-evaluation-agreement/), [Politica de confidențialitate](https://mattermost.com/pl/privacy-policy/) și primirea de e-mailuri despre produse."
-  },
-  {
-    "id": "api.server.warn_metric.number_of_active_users_100.start_trial.notification_success.message",
-    "translation": "Încercarea dvs. Enterprise este acum activă. Accesați **Consola de sistem > Autentificare > AD/LDAP** pentru a vă integra serviciul AD / LDAP."
-  },
-  {
-    "id": "api.server.warn_metric.number_of_active_users_100.start_trial.notification_body",
-    "translation": "Sistemul dvs. Mattermost are peste 100 de utilizatori. Pe măsură ce baza dvs. de utilizatori crește, aprovizionarea conturilor noi poate deveni consumatoare de timp. Vă recomandăm să integrați Active Directory/LDAP al organizației dvs., ceea ce va permite oricui are un cont să acceseze Mattermost.\n\n[Aflați mai multe despre integrarea cu AD / LDAP](https://www.mattermost.com/docs-adldap/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=adldap)\n\nDând clic pe Începeți încercarea, sunt de acord cu [Acordul de evaluare a software-ului Mattermost](https://mattermost.com/software-evaluation-agreement/), [Politica de confidențialitate] (https://mattermost.com/pl/privacy-policy/) și primirea de e-mailuri despre produse."
-  },
-  {
-    "id": "api.server.warn_metric.mfa.start_trial_notification_success.message",
-    "translation": "Încercarea dvs. Enterprise este acum activă. Accesați **Consola de sistem > Autentificare > MFA** pentru a aplica autentificarea cu mai mulți factori."
-  },
-  {
-    "id": "api.server.warn_metric.mfa.start_trial.notification_body",
-    "translation": "Sistemul dvs. Mattermost are activată autentificarea cu mai mulți factori, oferind utilizatorilor posibilitatea de a-și securiza conturile cu mijloace suplimentare de autentificare dincolo de o parolă. Pentru a îmbunătăți securitatea în sistem, puteți solicita tuturor conturilor Mattermost să utilizeze autentificarea cu mai mulți factori.\n\n[Aflați mai multe despre aplicarea autentificării cu mai mulți factori](https://www.mattermost.com/docs-multi-factor-authentication/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=multi-factor-authentication)\n\nDând clic pe Începeți încercarea, sunt de acord cu [Acordul de evaluare a software-ului Mattermost](https://mattermost.com/software-evaluation-agreement/), [Politica de confidențialitate] (https://mattermost.com/pl/privacy-policy/) și primirea de e-mailuri despre produse."
-  },
-  {
-    "id": "api.server.warn_metric.mfa.notification_body",
-    "translation": "Sistemul dvs. Mattermost are activată autentificarea cu mai mulți factori, oferind utilizatorilor posibilitatea de a-și securiza conturile cu mijloace suplimentare de autentificare dincolo de o parolă. Pentru a îmbunătăți securitatea în sistem, puteți solicita tuturor conturilor Mattermost să utilizeze autentificarea cu mai mulți factori.\n\n[Aflați mai multe despre aplicarea autentificării cu mai mulți factori] (https://www.mattermost.com/docs-multi-factor-authentication/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=multi-factor-authentication).\n\nDând clic pe Contactați-ne, veți împărtăși informațiile dvs. cu Mattermost, Inc. [Aflați mai multe] (https://mattermost.com/pl/default-admin-advisory)"
-  },
-  {
-    "id": "api.server.warn_metric.mfa.contact_us.email_body",
-    "translation": "Cererea cea mai importantă este să ne contactați. Sunt interesat să aflu mai multe despre aplicarea autentificării cu mai mulți factori.\n"
-  },
-  {
-    "id": "api.server.warn_metric.email_domain.start_trial_notification_success.message",
-    "translation": "Încercarea dvs. Enterprise este acum activă. Accesați ** Consola de sistem> Autentificare> Acces pentru oaspeți ** pentru a activa conturile de oaspeți."
-  },
-  {
-    "id": "api.server.warn_metric.email_domain.start_trial.notification_body",
-    "translation": "Proiectele implică adesea oameni atât în interiorul, cât și în afara unei organizații. Cu Conturile de oaspeți, puteți aduce parteneri externi în sistemul dvs. Mattermost și puteți specifica cu cine pot lucra și cu ce pot vedea.\n\n[Aflați mai multe despre activarea conturilor de oaspeți] (https://www.mattermost.com/docs-guest-accounts/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=guest-accounts)\n\nDând clic pe Începeți încercarea, sunt de acord cu [Acordul de evaluare a software-ului Mattermost](https://mattermost.com/software-evaluation-agreement/), [Politica de confidențialitate] (https://mattermost.com/pl/privacy-policy/) și primirea de e-mailuri despre produse."
-  },
-  {
-    "id": "api.server.warn_metric.email_domain.notification_title",
-    "translation": "Crearea conturilor de oaspeți"
-  },
-  {
-    "id": "api.server.warn_metric.email_domain.notification_body",
-    "translation": "Proiectele implică adesea oameni atât în interiorul, cât și în afara unei organizații. Cu Conturile de oaspeți, puteți aduce parteneri externi în sistemul dvs. Mattermost și puteți specifica cu cine pot lucra și cu ce pot vedea.\n\n[Aflați mai multe despre activarea conturilor de oaspeți] (https://www.mattermost.com/docs-guest-accounts/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=guest-accounts).\n\nDând clic pe Contactați-ne, veți împărtăși informațiile dvs. cu Mattermost, Inc. [Aflați mai multe](https://mattermost.com/pl/default-admin-advisory)"
-  },
-  {
-    "id": "api.server.warn_metric.email_domain.contact_us.email_body",
-    "translation": "Cererea cea mai importantă este să ne contactați. Sunt interesat să aflu mai multe despre utilizarea conturilor de oaspeți.\n"
-  },
-  {
-    "id": "api.server.warn_metric.bot_response.start_trial_failure.message",
-    "translation": "Licența de încercare nu a putut fi recuperată. Accesați https://mattermost.com/trial/ pentru a solicita o licență."
-  },
-  {
     "id": "api.roles.patch_roles.not_allowed_permission.error",
     "translation": "Una sau mai multe dintre următoarele permisiuni pe care încercați să le adăugați sau să le eliminați nu sunt permise"
   },
@@ -7226,10 +6618,6 @@
   {
     "id": "api.migrate_to_saml.error",
     "translation": "Nu se poate migra SAML."
-  },
-  {
-    "id": "api.license.request_trial_license.fail_get_user_count.app_error",
-    "translation": "Imposibil de obținut o licență de încercare, vă rugăm să încercați din nou sau să contactați support@mattermost.com. Nu se poate obține numărul de utilizatori înregistrați."
   },
   {
     "id": "api.config.migrate_config.app_error",
@@ -7252,10 +6640,6 @@
     "translation": "Trimiteți-ne un e-mail oricând la "
   },
   {
-    "id": "api.templates.copyright",
-    "translation": "© 2021 Mattermost, Inc. 530 Lytton Avenue, Second floor,, Palo Alto, CA, 94301"
-  },
-  {
     "id": "api.team.add_team_member.invalid_body.app_error",
     "translation": "Imposibil de analizat corpul solicitării."
   },
@@ -7274,26 +6658,6 @@
   {
     "id": "api.system.update_notices.clear_failed",
     "translation": "Ștergerea notificărilor de produse vechi nu a reușit"
-  },
-  {
-    "id": "api.server.warn_metric.number_of_teams_5.start_trial_notification_success.message",
-    "translation": "Încercarea dvs. Enterprise este acum activă. Accesați **Consola de sistem > Gestionare utilizator > Permisiuni** pentru a activa permisiunile avansate."
-  },
-  {
-    "id": "api.server.warn_metric.number_of_teams_5.start_trial.notification_body",
-    "translation": "Sistemul dvs. Mattermost are acum mai multe echipe. Multe echipe au propriul lor mod preferat de coordonare și colaborare, inclusiv modul în care sunt create canalele, cine poate invita noi coechipieri și modul în care sunt gestionate integrările. Schemele de depășire a echipei vă permit să personalizați permisiunile utilizatorilor în cadrul fiecărei echipe pentru a satisface nevoile lor specifice.\n\n[Aflați mai multe despre utilizarea permisiunilor avansate](https://www.mattermost.com/docs-advanced-permissions-team-override/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=advanced-permissions-team-override).\n\nDând clic pe Începeți încercarea, sunt de acord cu [Acordul de evaluare a software-ului Mattermost](https://mattermost.com/software-evaluation-agreement/), [Politica de confidențialitate](https://mattermost.com/pl/privacy-policy/) și primirea de e-mailuri despre produse."
-  },
-  {
-    "id": "api.server.warn_metric.number_of_teams_5.notification_title",
-    "translation": "Utilizarea permisiunilor avansate"
-  },
-  {
-    "id": "api.server.warn_metric.number_of_teams_5.notification_body",
-    "translation": "Sistemul dvs. Mattermost are acum mai multe echipe. Multe echipe au propriul lor mod preferat de coordonare și colaborare, inclusiv modul în care sunt create canalele, cine poate invita noi coechipieri și modul în care sunt gestionate integrările. Schemele de depășire a echipei vă permit să personalizați permisiunile utilizatorilor în cadrul fiecărei echipe pentru a satisface nevoile lor specifice.\n\n[Aflați mai multe despre utilizarea permisiunilor avansate](https://www.mattermost.com/docs-advanced-permissions-team-override/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=advanced-permissions-team-override).\n\nDând clic pe Contactați-ne, veți împărtăși informațiile dvs. cu Mattermost, Inc. [Aflați mai multe](https://mattermost.com/pl/default-admin-advisory)"
-  },
-  {
-    "id": "api.server.warn_metric.number_of_teams_5.contact_us.email_body",
-    "translation": "Mattermost cerere contactare. Sunt interesat să aflu mai multe despre permisiunile avansate cu schemele de echipă.\n"
   },
   {
     "id": "model.config.is_valid.collapsed_threads.app_error",
@@ -7540,26 +6904,6 @@
     "translation": "Lungime conținut nevalidă."
   },
   {
-    "id": "api.templates.payment_failed.title",
-    "translation": "Plata nu a reușit"
-  },
-  {
-    "id": "api.templates.payment_failed.subject",
-    "translation": "Acțiune necesară: plata nu a reușit pentru Mattermost Cloud"
-  },
-  {
-    "id": "api.templates.payment_failed.info3",
-    "translation": "Pentru a vă asigura un abonament neîntrerupt la Mattermost Cloud, vă rugăm să contactați instituția dvs. financiară pentru a remedia problema de bază sau să vă actualizați informațiile de plată. După actualizarea informațiilor de plată, Mattermost va încerca să deconteze orice sold restant."
-  },
-  {
-    "id": "api.templates.payment_failed.info2",
-    "translation": "Au furnizat următorul motiv:"
-  },
-  {
-    "id": "api.templates.payment_failed.info1",
-    "translation": "Instituția dvs. financiară a refuzat o plată din {{.CardBrand}} **** {{.LastFour}} asociată cu spațiul dvs. de lucru Mattermost Cloud."
-  },
-  {
     "id": "app.user.missing_account.const",
     "translation": "Imposibil de găsit utilizatorul."
   },
@@ -7576,16 +6920,8 @@
     "translation": "Încărcarea nu a reușit."
   },
   {
-    "id": "api.templates.payment_failed_no_card.title",
-    "translation": "Factura dvs. Mattermost Cloud este datorată"
-  },
-  {
     "id": "model.config.is_valid.import.directory.app_error",
     "translation": "Valoare nevalidă pentru Director."
-  },
-  {
-    "id": "ent.message_export.actiance_export.get_attachment_error",
-    "translation": "Nu s-au putut obține informațiile despre fișier pentru o postare."
   },
   {
     "id": "app.user.get_profiles.app_error",
@@ -7624,36 +6960,12 @@
     "translation": "Nu se poate procesa importul: fișierul JSONL lipsește."
   },
   {
-    "id": "ent.message_export.csv_export.get_attachment_error",
-    "translation": "Nu s-au putut obține informațiile despre fișier pentru o postare."
-  },
-  {
-    "id": "ent.message_export.global_relay_export.get_attachment_error",
-    "translation": "Nu s-au putut obține informațiile despre fișier pentru o postare."
-  },
-  {
-    "id": "api.templates.payment_failed_no_card.subject",
-    "translation": "Plata se datorează pentru abonamentul dvs. Mattermost Cloud"
-  },
-  {
     "id": "app.user.demote_user_to_guest.user_update.app_error",
     "translation": "Actualizarea utilizatorului nu a reușit."
   },
   {
     "id": "model.config.is_valid.import.retention_days_too_low.app_error",
     "translation": "Valoare nevalidă pentru RetentionDays. Valoarea este prea mică."
-  },
-  {
-    "id": "api.templates.payment_failed_no_card.info3",
-    "translation": "Pentru a vă examina factura și a adăuga o metodă de plată, selectați Plătiți acum."
-  },
-  {
-    "id": "api.templates.payment_failed_no_card.info1",
-    "translation": "Factura dvs. Mattermost Cloud pentru cea mai recentă perioadă de facturare a fost procesată. Cu toate acestea, nu avem înregistrate detaliile dvs. de plată."
-  },
-  {
-    "id": "api.templates.payment_failed_no_card.button",
-    "translation": "Plătește acum"
   },
   {
     "id": "model.upload_session.is_valid.filename.app_error",
@@ -7712,34 +7024,6 @@
     "translation": "Nu a reușit să fuzioneze configuratia primita."
   },
   {
-    "id": "ent.compliance.global_relay.write_file.appError",
-    "translation": "Imposibil de scris fișierul global de releu."
-  },
-  {
-    "id": "ent.compliance.csv.write_file.appError",
-    "translation": "Imposibil de scris fișierul CSV."
-  },
-  {
-    "id": "ent.actiance.export.write_file.appError",
-    "translation": "Imposibil de scris fișierul de export."
-  },
-  {
-    "id": "app.license.generate_renewal_token.no_license",
-    "translation": "Fără licență prezentă"
-  },
-  {
-    "id": "app.license.generate_renewal_token.bad_license",
-    "translation": "Acest tip de licență nu acceptă generarea de jetoane de reînnoire"
-  },
-  {
-    "id": "app.license.generate_renewal_token.app_error",
-    "translation": "Nu s-a putut genera un nou jeton de reînnoire."
-  },
-  {
-    "id": "api.license.request_renewal_link.app_error",
-    "translation": "Eroare la obținerea linkului de reînnoire a licenței"
-  },
-  {
     "id": "api.file.write_file.app_error",
     "translation": "Imposibil de scris fișierul."
   },
@@ -7788,10 +7072,6 @@
     "translation": "Eroare la recuperarea punctului final din Documentul de descoperire."
   },
   {
-    "id": "bleveengine.delete_post_files.error",
-    "translation": "Ștergerea fișierelor de postare nu a reușit."
-  },
-  {
     "id": "ent.elasticsearch.search_files.unmarshall_file_failed",
     "translation": "Decodarea rezultatelor căutării nu a reușit"
   },
@@ -7822,38 +7102,6 @@
   {
     "id": "ent.elasticsearch.create_template_file_info_if_not_exists.template_create_failed",
     "translation": "Nu s-a putut crea șablonul Elasticsearch pentru fișiere"
-  },
-  {
-    "id": "bleveengine.stop_file_index.error",
-    "translation": "Nu s-a putut închide indexul fișierului."
-  },
-  {
-    "id": "bleveengine.search_files.error",
-    "translation": "Căutarea fișierelor nu s-a finalizat."
-  },
-  {
-    "id": "bleveengine.indexer.do_job.bulk_index_files.batch_error",
-    "translation": "Nu s-a reușit indexarea lotului de fișiere."
-  },
-  {
-    "id": "bleveengine.index_file.error",
-    "translation": "Nu s-a putut indexa fișierul."
-  },
-  {
-    "id": "bleveengine.delete_user_files.error",
-    "translation": "Ștergerea fișierelor utilizator nu a reușit."
-  },
-  {
-    "id": "bleveengine.delete_files_batch.error",
-    "translation": "Ștergerea fișierelor nu a reușit."
-  },
-  {
-    "id": "bleveengine.delete_file.error",
-    "translation": "Ștergerea fișierului nu a reușit."
-  },
-  {
-    "id": "bleveengine.create_file_index.error",
-    "translation": "Eroare la crearea indexului de fișier bleve."
   },
   {
     "id": "api.job.unable_to_download_job.incorrect_job_type",
@@ -7916,16 +7164,8 @@
     "translation": "Valoarea pentru Director nu trebuie să fie goală."
   },
   {
-    "id": "ent.message_export.global_relay_export.deliver.unable_to_connect_smtp_server.app_error",
-    "translation": "Nu s-a putut conecta la serverul smtp"
-  },
-  {
     "id": "app.user.get_threads_for_user.not_found",
     "translation": "Firul utilizatorului nu există sau nu este urmat"
-  },
-  {
-    "id": "app.import.attachment.read_file_data.error",
-    "translation": "Nu s-a citit atașamentul fișierului în timpul importului."
   },
   {
     "id": "app.export.zip_create.error",
@@ -7950,10 +7190,6 @@
   {
     "id": "app.export.export_attachment.copy_file.error",
     "translation": "Copierea fișierului nu a reușit în timpul exportului."
-  },
-  {
-    "id": "api.unable_to_read_file_from_backend",
-    "translation": "Eroare la citirea fișierului din backend"
   },
   {
     "id": "api.unable_to_create_zip_file",
@@ -7981,18 +7217,6 @@
   },
   {
     "id": "ent.elasticsearch.post.get_files_batch_for_indexing.error",
-    "translation": "Imposibil de obținut lotul de fișiere pentru indexare."
-  },
-  {
-    "id": "bleveengine.purge_file_index.error",
-    "translation": "Eliminarea indexurilor fișierelor nu a reușit."
-  },
-  {
-    "id": "app.user.send_emails.app_error",
-    "translation": "Nu s-au trimis e-mailuri"
-  },
-  {
-    "id": "app.post.get_files_batch_for_indexing.get.app_error",
     "translation": "Imposibil de obținut lotul de fișiere pentru indexare."
   },
   {
@@ -8144,10 +7368,6 @@
     "translation": "Invitație din clusterul de la distanță"
   },
   {
-    "id": "api.command_remote.incorrect_password.error",
-    "translation": "Nu s-a putut decripta invitația. Parolă incorectă sau invitație coruptă: {{.Error}}"
-  },
-  {
     "id": "api.command_remote.hint",
     "translation": "[acțiune]"
   },
@@ -8202,10 +7422,6 @@
   {
     "id": "model.user.is_valid.marshal.app_error",
     "translation": "Nu a reușit să codifice câmpul în JSON"
-  },
-  {
-    "id": "app.sharedchannel.dm_channel_creation.internal_error",
-    "translation": "A apărut o eroare la crearea unui canal partajat direct."
   },
   {
     "id": "app.import.generate_password.app_error",

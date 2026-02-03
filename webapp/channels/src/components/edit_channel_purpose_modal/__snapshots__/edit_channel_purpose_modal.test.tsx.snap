@@ -1,4 +1,4 @@
-// Jest Snapshot v1, https://goo.gl/fbAQLP
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
 
 exports[`comoponents/EditChannelPurposeModal clear error on next 1`] = `
 <Modal
@@ -28,7 +28,7 @@ exports[`comoponents/EditChannelPurposeModal clear error on next 1`] = `
   onHide={[Function]}
   renderBackdrop={[Function]}
   restoreFocus={true}
-  role="dialog"
+  role="none"
   show={true}
 >
   <ModalHeader
@@ -141,7 +141,7 @@ exports[`comoponents/EditChannelPurposeModal match with modal error 1`] = `
   onHide={[Function]}
   renderBackdrop={[Function]}
   restoreFocus={true}
-  role="dialog"
+  role="none"
   show={true}
 >
   <ModalHeader
@@ -254,7 +254,7 @@ exports[`comoponents/EditChannelPurposeModal match with modal error with fake id
   onHide={[Function]}
   renderBackdrop={[Function]}
   restoreFocus={true}
-  role="dialog"
+  role="none"
   show={true}
 >
   <ModalHeader
@@ -367,7 +367,7 @@ exports[`comoponents/EditChannelPurposeModal should match for private channel 1`
   onHide={[Function]}
   renderBackdrop={[Function]}
   restoreFocus={true}
-  role="dialog"
+  role="none"
   show={true}
 >
   <ModalHeader
@@ -399,7 +399,7 @@ exports[`comoponents/EditChannelPurposeModal should match for private channel 1`
   >
     <p>
       <MemoizedFormattedMessage
-        defaultMessage="This text appears in the \\\\\\"View Info\\\\\\" modal of the private channel."
+        defaultMessage="This text appears in the \\"View Info\\" modal of the private channel."
         id="edit_channel_private_purpose_modal.body"
       />
     </p>
@@ -470,7 +470,7 @@ exports[`comoponents/EditChannelPurposeModal should match on init 1`] = `
   onHide={[Function]}
   renderBackdrop={[Function]}
   restoreFocus={true}
-  role="dialog"
+  role="none"
   show={true}
 >
   <ModalHeader
@@ -581,7 +581,7 @@ exports[`comoponents/EditChannelPurposeModal should match submitted 1`] = `
     dialogClassName="a11y__modal"
     handleDialogMouseDown={[Function]}
     onClick={[Function]}
-    role="dialog"
+    role="none"
     style={Object {}}
   >
     <ModalHeader
@@ -685,7 +685,7 @@ exports[`comoponents/EditChannelPurposeModal should match with display name 1`] 
   onHide={[Function]}
   renderBackdrop={[Function]}
   restoreFocus={true}
-  role="dialog"
+  role="none"
   show={true}
 >
   <ModalHeader

@@ -1,12 +1,10 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {shallow} from 'enzyme';
-import type {ReactWrapper} from 'enzyme';
 import React from 'react';
+import {FormattedMessage} from 'react-intl';
 
-import {mountWithIntl} from 'tests/helpers/intl-test-helper';
-import * as Utils from 'utils/utils';
+import {renderWithContext, screen} from 'tests/react_testing_utils';
 
 import Toast from './toast';
 import type {Props} from './toast';
@@ -16,46 +14,52 @@ describe('components/Toast', () => {
         onClick: jest.fn(),
         show: true,
         showActions: true,
-        onClickMessage: Utils.localizeMessage('postlist.toast.scrollToBottom', 'Jump to recents'),
+        onClickMessage: (
+            <FormattedMessage
+                id='postlist.toast.scrollToBottom'
+                defaultMessage='Jump to recents'
+            />
+        ),
         width: 1000,
     };
 
     test('should match snapshot for showing toast', () => {
-        const wrapper = shallow<Toast>(<Toast {...defaultProps}><span>{'child'}</span></Toast>);
-        expect(wrapper).toMatchSnapshot();
+        const {container} = renderWithContext(<Toast {...defaultProps}><span>{'child'}</span></Toast>);
+        expect(container).toMatchSnapshot();
+        expect(screen.getByTestId('dismissToast')).toBeInTheDocument();
     });
 
     test('should match snapshot for hiding toast', () => {
-        const wrapper = shallow<Toast>(<Toast {...{...defaultProps, show: false}}><span>{'child'}</span></Toast>);
-        expect(wrapper).toMatchSnapshot();
-        expect(wrapper.find('.toast__visible').length).toBe(0);
+        const {container} = renderWithContext(<Toast {...{...defaultProps, show: false}}><span>{'child'}</span></Toast>);
+        expect(container).toMatchSnapshot();
     });
 
     test('should match snapshot for toast width less than 780px', () => {
-        const wrapper = shallow<Toast>(<Toast {...{...defaultProps, width: 779}}><span>{'child'}</span></Toast>);
-        expect(wrapper).toMatchSnapshot();
+        const {container} = renderWithContext(<Toast {...{...defaultProps, width: 779}}><span>{'child'}</span></Toast>);
+        expect(container).toMatchSnapshot();
     });
 
     test('should match snapshot to not have actions', () => {
-        const wrapper = shallow<Toast>(<Toast {...{...defaultProps, showActions: false}}><span>{'child'}</span></Toast>);
-        expect(wrapper).toMatchSnapshot();
-        expect(wrapper.find('.toast__pointer').length).toBe(0);
+        const {container} = renderWithContext(<Toast {...{...defaultProps, showActions: false}}><span>{'child'}</span></Toast>);
+        expect(container).toMatchSnapshot();
     });
 
     test('should dismiss', () => {
         defaultProps.onDismiss = jest.fn();
 
-        const wrapper: ReactWrapper<any, any, React.Component> = mountWithIntl(<Toast {... defaultProps}><span>{'child'}</span></Toast>);
-        const toast = wrapper.find(Toast).instance();
+        renderWithContext(
+            <Toast {... defaultProps}>
+                <span>{'child'}</span>
+            </Toast>,
+        );
 
-        if (toast instanceof Toast) {
-            toast.handleDismiss();
-        }
+        screen.getByTestId('dismissToast').click();
+
         expect(defaultProps.onDismiss).toHaveBeenCalledTimes(1);
     });
 
     test('should match snapshot to have extraClasses', () => {
-        const wrapper = shallow<Toast>(<Toast {...{...defaultProps, extraClasses: 'extraClasses'}}><span>{'child'}</span></Toast>);
-        expect(wrapper).toMatchSnapshot();
+        const {container} = renderWithContext(<Toast {...{...defaultProps, extraClasses: 'extraClasses'}}><span>{'child'}</span></Toast>);
+        expect(container).toMatchSnapshot();
     });
 });

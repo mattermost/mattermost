@@ -1,6 +1,12 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+// Equivalent to MessageDescriptor from react-intl
+type MessageDescriptor = {
+    id: string;
+    defaultMessage: string;
+}
+
 export type PluginManifest = {
     id: string;
     name: string;
@@ -38,13 +44,25 @@ export type PluginSettingsSchema = {
     header: string;
     footer: string;
     settings: PluginSetting[];
+    sections?: PluginSettingSection[];
+};
+
+export type PluginSettingSection = {
+    key: string;
+    title?: string;
+    subtitle?: string;
+    settings: PluginSetting[];
+    header?: string;
+    footer?: string;
+    custom?: boolean;
+    fallback?: boolean;
 };
 
 export type PluginSetting = {
     key: string;
     display_name: string;
     type: string;
-    help_text: string;
+    help_text: string | MessageDescriptor;
     regenerate_help_text?: string;
     placeholder: string;
     default: any;
@@ -91,6 +109,7 @@ export type PluginStatusRedux = {
 
 export type ClientPluginManifest = {
     id: string;
+    name: string;
     min_server_version?: string;
     version: string;
     webapp: {

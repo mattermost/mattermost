@@ -9,3 +9,6 @@
 
 # node
 *.lock
+
+# build
+*.tsbuildinfo

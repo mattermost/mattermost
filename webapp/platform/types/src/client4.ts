@@ -20,41 +20,28 @@ export type Options = {
     url?: string;
     credentials?: 'omit' | 'same-origin' | 'include';
     body?: any;
+    signal?: RequestInit['signal'];
     ignoreStatus?: boolean; /** If true, status codes > 300 are ignored and don't cause an error */
+    duplex?: 'half'; /** Optional, but required for node clients. Must be 'half' for half-duplex fetch; 'full' is reserved for future use. See https://fetch.spec.whatwg.org/#dom-requestinit-duplex */
 };
+
+export type OptsSignalExt = {signal?: AbortSignal};
 
 export type StatusOK = {
     status: 'OK';
 };
 
+export const isStatusOK = (x: StatusOK | Record<string, unknown>): x is StatusOK => (x as StatusOK)?.status === 'OK';
+
 export type FetchPaginatedThreadOptions = {
     fetchThreads?: boolean;
     collapsedThreads?: boolean;
     collapsedThreadsExtended?: boolean;
+    updatesOnly?: boolean; // This indicates the API is meant to be used to only get delta updates.
     direction?: 'up'|'down';
     fetchAll?: boolean;
     perPage?: number;
     fromCreateAt?: number;
+    fromUpdateAt?: number;
     fromPost?: string;
-}
-
-export enum ReportDuration {
-    Last30Days = 'last_30_days',
-    PreviousMonth = 'previous_month',
-    Last6Months = 'last_6_months',
-}
-
-export type UserReportOptions = {
-    sort_column: 'CreateAt' | 'Username' | 'FirstName' | 'LastName' | 'Nickname' | 'Email',
-    page_size: number,
-    sort_direction?: 'asc' | 'desc',
-    direction?: 'up' | 'down',
-    date_range?: ReportDuration,
-    from_column_value?: string,
-    from_id?: string,
-    role_filter?: string,
-    has_no_team?: boolean,
-    team_filter?: string,
-    hide_active?: boolean,
-    hide_inactive?: boolean,
 }

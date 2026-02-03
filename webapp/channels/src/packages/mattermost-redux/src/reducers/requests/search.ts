@@ -1,16 +1,16 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import type {AnyAction} from 'redux';
 import {combineReducers} from 'redux';
 
-import type {SearchRequestsStatuses, RequestStatusType} from '@mattermost/types/requests';
+import type {RequestStatusType} from '@mattermost/types/requests';
 
 import {SearchTypes} from 'mattermost-redux/action_types';
-import type {GenericAction} from 'mattermost-redux/types/actions';
 
 import {handleRequest, initialRequestState} from './helpers';
 
-function flaggedPosts(state: RequestStatusType = initialRequestState(), action: GenericAction): RequestStatusType {
+function flaggedPosts(state: RequestStatusType = initialRequestState(), action: AnyAction): RequestStatusType {
     if (action.type === SearchTypes.REMOVE_SEARCH_POSTS) {
         return initialRequestState();
     }
@@ -24,7 +24,7 @@ function flaggedPosts(state: RequestStatusType = initialRequestState(), action: 
     );
 }
 
-function pinnedPosts(state: RequestStatusType = initialRequestState(), action: GenericAction): RequestStatusType {
+function pinnedPosts(state: RequestStatusType = initialRequestState(), action: AnyAction): RequestStatusType {
     if (action.type === SearchTypes.REMOVE_SEARCH_POSTS) {
         return initialRequestState();
     }
@@ -38,7 +38,7 @@ function pinnedPosts(state: RequestStatusType = initialRequestState(), action: G
     );
 }
 
-export default (combineReducers({
+export default combineReducers({
     flaggedPosts,
     pinnedPosts,
-}) as (b: SearchRequestsStatuses, a: GenericAction) => SearchRequestsStatuses);
+});

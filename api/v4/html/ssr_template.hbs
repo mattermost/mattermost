@@ -4,27 +4,25 @@
 <head>
   <meta charset="utf8" />
   <title>Mattermost API Reference</title>
-  <!-- needed for adaptive design -->
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <link rel="shortcut icon" href="./static/favicon.ico">
+  <script src="https://unpkg.com/@stoplight/elements/web-components.min.js"></script>
+  <link rel="stylesheet" href="https://unpkg.com/@stoplight/elements/styles.min.css">
   <style>
     body {
       padding: 0;
       margin: 0;
+      height: 100vh;
     }
-    label[type="tag"] {
-        text-transform:  uppercase;
-      }
-      h1{
-        text-transform: capitalize;
-      }
   </style>
-  {{{redocHead}}}
-  {{#unless disableGoogleFont}}<link href="https://fonts.googleapis.com/css?family=Montserrat:300,400,700|Roboto:300,400,700" rel="stylesheet">{{/unless}}
 </head>
 
 <body>
-  {{{redocHTML}}}
+  <elements-api
+    apiDescriptionUrl="./static/mattermost-openapi-v4.yaml"
+    router="hash"
+    layout="sidebar"
+  />
 </body>
 
 </html>

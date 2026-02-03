@@ -63,6 +63,18 @@ function getPost(postId: string): ChainableT<JQuery> {
 }
 Cypress.Commands.add('getPost', getPost);
 
+function editLastPostWithNewMessage(message: string) {
+    cy.uiGetPostTextBox().type('{uparrow}');
+
+    // * Edit Post Input should appear
+    cy.get('#edit_textbox').should('be.visible');
+
+    // # Update the post message and click Save
+    cy.get('#edit_textbox').clear().type(message)
+    cy.get('#create_post').findByText('Save').scrollIntoView().click();
+}
+Cypress.Commands.add('editLastPostWithNewMessage', editLastPostWithNewMessage);
+
 export function verifySavedPost(postId, message) {
     // * Check that the center save icon has been updated correctly
     cy.get(`#post_${postId}`).trigger('mouseover', {force: true});
@@ -76,7 +88,7 @@ export function verifySavedPost(postId, message) {
     // * Check that the dotmenu item is changed accordingly
     cy.findAllByTestId(`post-menu-${postId}`).eq(0).should('be.visible');
     cy.findByText('Remove from Saved').scrollIntoView().should('be.visible');
-    cy.get(`#CENTER_dropdown_${postId}`).should('be.visible').type('{esc}');
+    cy.get('body').type('{esc}');
 
     cy.get('#postListContent').within(() => {
         // * Check that the post is highlighted
@@ -137,7 +149,7 @@ export function verifyUnsavedPost(postId) {
     // * Check that the dotmenu item is changed accordingly
     cy.findAllByTestId(`post-menu-${postId}`).eq(0).should('be.visible');
     cy.findByText('Save Message').scrollIntoView().should('be.visible');
-    cy.get(`#CENTER_dropdown_${postId}`).should('be.visible').type('{esc}');
+    cy.get('body').type('{esc}');
 
     cy.get('#postListContent').within(() => {
         // * Check that the post is not highlighted
@@ -181,6 +193,16 @@ declare global {
     // eslint-disable-next-line @typescript-eslint/no-namespace
     namespace Cypress {
         interface Chainable {
+
+            /**
+             * Edit last post with a new message
+             *
+             * @param {string} - message
+             *
+             * @example
+             *   cy.editLastPostWithNewMessage('new message');
+             */
+            editLastPostWithNewMessage: typeof editLastPostWithNewMessage;
 
             /**
              * Get post profile image of a given post ID or the last post if post ID is not given

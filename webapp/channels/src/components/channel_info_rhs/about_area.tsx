@@ -30,7 +30,7 @@ const Container = styled.div`
         padding: 0px;
         background: transparent;
         border: 0px;
-        color: rgba(var(--center-channel-color-rgb), 0.64);
+        color: rgba(var(--center-channel-color-rgb), 0.75);
     }
 `;
 
@@ -40,6 +40,7 @@ interface Props {
     gmUsers?: UserProfile[];
     canEditChannelProperties: boolean;
     actions: {
+        editChannelName: () => void;
         editChannelPurpose: () => void;
         editChannelHeader: () => void;
     };

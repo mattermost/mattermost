@@ -14,14 +14,22 @@ import {createCustomEmoji} from 'mattermost-redux/actions/emojis';
 import * as Actions from 'mattermost-redux/actions/posts';
 import {loadMe} from 'mattermost-redux/actions/users';
 import {Client4} from 'mattermost-redux/client';
-import type {ActionResult, GetStateFunc} from 'mattermost-redux/types/actions';
-import {getPreferenceKey} from 'mattermost-redux/utils/preference_utils';
+import {isPostFlagged} from 'mattermost-redux/selectors/entities/posts';
+import type {GetStateFunc} from 'mattermost-redux/types/actions';
+
+import mockStore from 'tests/test_store';
 
 import TestHelper from '../../test/test_helper';
 import configureStore from '../../test/test_store';
 import {Preferences, Posts, RequestStatus} from '../constants';
 
 const OK_RESPONSE = {status: 'OK'};
+
+jest.mock('mattermost-redux/actions/status_profile_polling', () => ({
+    batchFetchStatusesProfilesGroupsFromPosts: jest.fn(() => {
+        return {type: ''};
+    }),
+}));
 
 describe('Actions.Posts', () => {
     let store = configureStore();
@@ -53,7 +61,7 @@ describe('Actions.Posts', () => {
             post('/posts').
             reply(201, {...post, id: TestHelper.generateId()});
 
-        await Actions.createPost(post)(store.dispatch, store.getState);
+        await store.dispatch(Actions.createPost(post));
 
         const state: GlobalState = store.getState();
         const createRequest = state.requests.posts.createPost;
@@ -81,38 +89,6 @@ describe('Actions.Posts', () => {
         expect(!postsInChannel[channelId]).toBeTruthy();
     });
 
-    it('maintain postReplies', async () => {
-        const channelId = TestHelper.basicChannel!.id;
-        const post = TestHelper.fakePost(channelId);
-        const postId = TestHelper.generateId();
-
-        nock(Client4.getBaseRoute()).
-            post('/posts').
-            reply(201, {...post, id: postId});
-
-        await Actions.createPostImmediately(post)(store.dispatch, store.getState);
-
-        const post2 = TestHelper.fakePostWithId(channelId);
-        post2.root_id = postId;
-
-        nock(Client4.getBaseRoute()).
-            post('/posts').
-            reply(201, post2);
-
-        await Actions.createPostImmediately(post2)(store.dispatch, store.getState);
-
-        expect(store.getState().entities.posts.postsReplies[postId]).toBe(1);
-
-        nock(Client4.getBaseRoute()).
-            delete(`/posts/${post2.id}`).
-            reply(200, OK_RESPONSE);
-
-        await Actions.deletePost(post2)(store.dispatch, store.getState);
-        await Actions.removePost(post2)(store.dispatch, store.getState);
-
-        expect(store.getState().entities.posts.postsReplies[postId]).toBe(0);
-    });
-
     it('resetCreatePostRequest', async () => {
         const channelId = TestHelper.basicChannel!.id;
         const post = TestHelper.fakePost(channelId);
@@ -127,7 +103,7 @@ describe('Actions.Posts', () => {
             post('/posts').
             reply(400, createPostError);
 
-        await Actions.createPost(post)(store.dispatch, store.getState);
+        await store.dispatch(Actions.createPost(post));
         await TestHelper.wait(50);
 
         let state = store.getState();
@@ -162,10 +138,10 @@ describe('Actions.Posts', () => {
             post('/posts').
             reply(201, {...post, id: TestHelper.generateId(), file_ids: [files[0].id, files[1].id, files[2].id]});
 
-        await Actions.createPost(
+        await store.dispatch(Actions.createPost(
             post,
             files,
-        )(store.dispatch, store.getState);
+        ));
 
         const state: GlobalState = store.getState();
         const createRequest = state.requests.posts.createPost;
@@ -221,9 +197,9 @@ describe('Actions.Posts', () => {
             put(`/posts/${post.id}/patch`).
             reply(200, post);
 
-        await Actions.editPost(
+        await store.dispatch(Actions.editPost(
             post,
-        )(store.dispatch, store.getState);
+        ));
 
         const state: GlobalState = store.getState();
         const editRequest = state.requests.posts.editPost;
@@ -248,7 +224,7 @@ describe('Actions.Posts', () => {
         nock(Client4.getBaseRoute()).
             post('/posts').
             reply(201, TestHelper.fakePostWithId(channelId));
-        await Actions.createPost(TestHelper.fakePost(channelId))(store.dispatch, store.getState);
+        await store.dispatch(Actions.createPost(TestHelper.fakePost(channelId)));
         const initialPosts = store.getState().entities.posts;
         const postId = Object.keys(initialPosts.posts)[0];
 
@@ -256,7 +232,7 @@ describe('Actions.Posts', () => {
             delete(`/posts/${postId}`).
             reply(200, OK_RESPONSE);
 
-        await Actions.deletePost(initialPosts.posts[postId])(store.dispatch, store.getState);
+        await store.dispatch(Actions.deletePost(initialPosts.posts[postId]));
 
         const state: GlobalState = store.getState();
         const {posts} = state.entities.posts;
@@ -289,7 +265,7 @@ describe('Actions.Posts', () => {
         nock(Client4.getBaseRoute()).
             post('/reactions').
             reply(201, {user_id: TestHelper.basicUser!.id, post_id: post1.id, emoji_name: emojiName, create_at: 1508168444721});
-        await Actions.addReaction(post1.id, emojiName)(store.dispatch, store.getState);
+        await store.dispatch(Actions.addReaction(post1.id, emojiName));
 
         let reactions = store.getState().entities.posts.reactions;
         expect(reactions).toBeTruthy();
@@ -300,7 +276,7 @@ describe('Actions.Posts', () => {
             delete(`/posts/${post1.id}`).
             reply(200, OK_RESPONSE);
 
-        await Actions.deletePost(post1)(store.dispatch, store.getState);
+        await store.dispatch(Actions.deletePost(post1));
 
         reactions = store.getState().entities.posts.reactions;
         expect(reactions).toBeTruthy();
@@ -382,7 +358,7 @@ describe('Actions.Posts', () => {
         nock(Client4.getBaseRoute()).
             post('/reactions').
             reply(201, {user_id: TestHelper.basicUser!.id, post_id: post1.id, emoji_name: emojiName, create_at: 1508168444721});
-        await Actions.addReaction(post1.id, emojiName)(store.dispatch, store.getState);
+        await store.dispatch(Actions.addReaction(post1.id, emojiName));
 
         let reactions = store.getState().entities.posts.reactions;
         expect(reactions).toBeTruthy();
@@ -415,7 +391,7 @@ describe('Actions.Posts', () => {
             query(true).
             reply(200, response);
 
-        await Actions.getPostsUnread(channelId)(dispatch, getState);
+        await dispatch(Actions.getPostsUnread(channelId));
         const {posts} = getState().entities.posts;
 
         expect(posts[post.id]).toBeTruthy();
@@ -476,7 +452,7 @@ describe('Actions.Posts', () => {
             query(true).
             reply(200, responseWithRecentPosts);
 
-        await Actions.getPostsUnread(channelId)(dispatch, getState);
+        await dispatch(Actions.getPostsUnread(channelId));
         const {posts} = getState().entities.posts;
 
         expect(posts[recentPost.id]).toBeTruthy();
@@ -500,7 +476,7 @@ describe('Actions.Posts', () => {
         nock(Client4.getBaseRoute()).
             get(`/posts/${post.id}/thread?skipFetchThreads=false&collapsedThreads=true&collapsedThreadsExtended=false&direction=down&perPage=60`).
             reply(200, postList);
-        await Actions.getPostThread(post.id)(store.dispatch, store.getState);
+        await store.dispatch(Actions.getPostThread(post.id));
 
         const state: GlobalState = store.getState();
         const getRequest = state.requests.posts.getPostThread;
@@ -538,7 +514,7 @@ describe('Actions.Posts', () => {
             get(`/posts/${postId}/edit_history`).
             reply(200, data);
 
-        await Actions.getPostEditHistory(postId)(store.dispatch, store.getState);
+        await store.dispatch(Actions.getPostEditHistory(postId));
 
         const state: GlobalState = store.getState();
         const editHistory = state.entities.posts.postEditHistory;
@@ -594,7 +570,7 @@ describe('Actions.Posts', () => {
         });
     });
 
-    it('getNeededAtMentionedUsernames', async () => {
+    describe('getNeededAtMentionedUsernames', () => {
         const state = {
             entities: {
                 users: {
@@ -616,65 +592,55 @@ describe('Actions.Posts', () => {
             },
         } as unknown as GlobalState;
 
-        expect(
-            Actions.getNeededAtMentionedUsernamesAndGroups(state, [
-                TestHelper.getPostMock({message: 'aaa'}),
-            ])).toEqual(
-            new Set(),
-        );
-
-        expect(
-            Actions.getNeededAtMentionedUsernamesAndGroups(state, [
-                TestHelper.getPostMock({message: '@aaa'}),
-            ])).toEqual(
-            new Set(),
-        );
-
-        expect(
-            Actions.getNeededAtMentionedUsernamesAndGroups(state, [
-                TestHelper.getPostMock({message: '@zzz'}),
-            ])).toEqual(
-            new Set(),
-        );
-
-        expect(
-            Actions.getNeededAtMentionedUsernamesAndGroups(state, [
-                TestHelper.getPostMock({message: '@aaa @bbb @ccc @zzz'}),
-            ])).toEqual(
-            new Set(['bbb', 'ccc']),
-        );
-
-        expect(
-            Actions.getNeededAtMentionedUsernamesAndGroups(state, [
-                TestHelper.getPostMock({message: '@bbb. @ccc.ddd'}),
-            ])).toEqual(
-            new Set(['bbb.', 'bbb', 'ccc.ddd']),
-        );
-
-        expect(
-            Actions.getNeededAtMentionedUsernamesAndGroups(state, [
-                TestHelper.getPostMock({message: '@bbb- @ccc-ddd'}),
-            ])).toEqual(
-            new Set(['bbb-', 'bbb', 'ccc-ddd']),
-        );
-
-        expect(
-            Actions.getNeededAtMentionedUsernamesAndGroups(state, [
-                TestHelper.getPostMock({message: '@bbb_ @ccc_ddd'}),
-            ])).toEqual(
-            new Set(['bbb_', 'ccc_ddd']),
-        );
-
-        expect(
-            Actions.getNeededAtMentionedUsernamesAndGroups(state, [
-                TestHelper.getPostMock({message: '(@bbb/@ccc) ddd@eee'}),
-            ])).toEqual(
-            new Set(['bbb', 'ccc']),
-        );
-
-        expect(
-            Actions.getNeededAtMentionedUsernamesAndGroups(state, [
-                TestHelper.getPostMock({
+        const testCases = [
+            {
+                name: "shouldn't return anything when no users are at-mentioned",
+                input: TestHelper.getPostMock({message: 'aaa'}),
+                expected: new Set(),
+            },
+            {
+                name: "shouldn't return anything for a user that's already loaded",
+                input: TestHelper.getPostMock({message: '@aaa'}),
+                expected: new Set(),
+            },
+            {
+                name: "shouldn't return anything for a group that's already loaded",
+                input: TestHelper.getPostMock({message: '@zzz'}),
+                expected: new Set(),
+            },
+            {
+                name: 'should return any unrecognized at-mentions',
+                input: TestHelper.getPostMock({message: '@aaa @bbb @ccc @zzz'}),
+                expected: new Set(['bbb', 'ccc']),
+            },
+            {
+                name: 'should return at-mentions followed by period both with and without the period',
+                input: TestHelper.getPostMock({message: '@bbb. @ccc.ddd'}),
+                expected: new Set(['bbb.', 'bbb', 'ccc.ddd']),
+            },
+            {
+                name: 'should return at-mentions followed by hyphen both with and without the hyphen',
+                input: TestHelper.getPostMock({message: '@bbb- @ccc-ddd'}),
+                expected: new Set(['bbb-', 'bbb', 'ccc-ddd']),
+            },
+            {
+                name: 'should return at-mentions followed by underscores with the underscore',
+                input: TestHelper.getPostMock({message: '@bbb_ @ccc_ddd'}),
+                expected: new Set(['bbb_', 'ccc_ddd']),
+            },
+            {
+                name: 'should return at-mentions in brackets',
+                input: TestHelper.getPostMock({message: '(@bbb/@ccc)'}),
+                expected: new Set(['bbb', 'ccc']),
+            },
+            {
+                name: "shouldn't return anything when an at sign is in the middle of a word",
+                input: TestHelper.getPostMock({message: 'ddd@eee'}),
+                expected: new Set(),
+            },
+            {
+                name: 'should return at-mentions from inside message attachment props text and pretext',
+                input: TestHelper.getPostMock({
                     message: '@aaa @bbb',
                     props: {
                         attachments: [
@@ -683,23 +649,62 @@ describe('Actions.Posts', () => {
                         ],
                     },
                 }),
-            ]),
-        ).toEqual(
-            new Set(['bbb', 'ccc', 'ddd', 'eee', 'fff', 'ggg']),
-        );
+                expected: new Set(['bbb', 'ccc', 'ddd', 'eee', 'fff', 'ggg']),
+            },
+            {
+                name: 'should return at-mentions from inside message attachment field values but not their titles',
+                input: TestHelper.getPostMock({
+                    props: {
+                        attachments: [
+                            {
+                                fields: [
+                                    {title: '@bbb', value: '@ccc'},
+                                    {title: 'some title', value: '@ddd'},
+                                ],
+                            },
+                            {
+                                fields: [
+                                    {title: '@eee', value: '@fff'},
+                                    {title: 'some other title', value: '@ggg'},
+                                ],
+                            },
+                        ],
+                    },
+                }),
+                expected: new Set(['ccc', 'ddd', 'fff', 'ggg']),
+            },
+            {
+                name: 'should return potential remote mentions',
+                input: TestHelper.getPostMock({
+                    message: '@user1:org1 @user2:org2/@user3:org3/@user4:org4 (@user5:org5) @user6:org6',
+                }),
+                expected: new Set(['user1:org1', 'user2:org2', 'user3:org3', 'user4:org4', 'user5:org5', 'user6:org6']),
+            },
+        ];
 
-        // should never try to request usernames matching special mentions
-        expect(
-            Actions.getNeededAtMentionedUsernamesAndGroups(state, [
-                TestHelper.getPostMock({message: '@all'}),
-                TestHelper.getPostMock({message: '@here'}),
-                TestHelper.getPostMock({message: '@channel'}),
-                TestHelper.getPostMock({message: '@all.'}),
-                TestHelper.getPostMock({message: '@here.'}),
-                TestHelper.getPostMock({message: '@channel.'}),
-            ])).toEqual(
-            new Set(),
-        );
+        for (const specialMention of [
+            '@all',
+            '@here',
+            '@channel',
+            '@all.',
+            '@here.',
+            '@channel.',
+        ]) {
+            testCases.push({
+                name: `should never return special mentions (${specialMention})`,
+                input: TestHelper.getPostMock({message: specialMention}),
+                expected: new Set(),
+            });
+        }
+
+        for (const testCase of testCases) {
+            test(testCase.name, () => {
+                expect(Actions.getNeededAtMentionedUsernamesAndGroups(
+                    state,
+                    [testCase.input],
+                )).toEqual(testCase.expected);
+            });
+        }
     });
 
     it('getPostsSince', async () => {
@@ -1029,11 +1034,9 @@ describe('Actions.Posts', () => {
             put(`/${TestHelper.basicUser!.id}/preferences`).
             reply(200, OK_RESPONSE);
 
-        Actions.flagPost(post1.id)(dispatch, getState);
-        const state = getState();
-        const prefKey = getPreferenceKey(Preferences.CATEGORY_FLAGGED_POST, post1.id);
-        const preference = state.entities.preferences.myPreferences[prefKey];
-        expect(preference).toBeTruthy();
+        dispatch(Actions.flagPost(post1.id));
+
+        expect(isPostFlagged(getState(), post1.id)).toBe(true);
     });
 
     it('unflagPost', async () => {
@@ -1060,21 +1063,16 @@ describe('Actions.Posts', () => {
         nock(Client4.getUsersRoute()).
             put(`/${TestHelper.basicUser!.id}/preferences`).
             reply(200, OK_RESPONSE);
-        Actions.flagPost(post1.id)(dispatch, getState);
-        let state = getState();
-        const prefKey = getPreferenceKey(Preferences.CATEGORY_FLAGGED_POST, post1.id);
-        const preference = state.entities.preferences.myPreferences[prefKey];
-        expect(preference).toBeTruthy();
+        dispatch(Actions.flagPost(post1.id));
+
+        expect(isPostFlagged(getState(), post1.id)).toBe(true);
 
         nock(Client4.getUsersRoute()).
             delete(`/${TestHelper.basicUser!.id}/preferences`).
             reply(200, OK_RESPONSE);
-        Actions.unflagPost(post1.id)(dispatch, getState);
-        state = getState();
-        const unflagged = state.entities.preferences.myPreferences[prefKey];
-        if (unflagged) {
-            throw new Error('unexpected unflagged');
-        }
+        dispatch(Actions.unflagPost(post1.id));
+
+        expect(isPostFlagged(getState(), post1.id)).toBe(false);
     });
 
     it('setUnreadPost', async () => {
@@ -1131,87 +1129,115 @@ describe('Actions.Posts', () => {
         expect(state.entities.teams.myMembers[teamId].mention_count).toBe(1);
     });
 
-    it('pinPost', async () => {
-        const {dispatch, getState} = store;
+    describe('pinPost', () => {
+        test('should update post and channel stats', async () => {
+            nock(Client4.getBaseRoute()).
+                get(`/channels/${TestHelper.basicChannel!.id}/stats?exclude_files_count=true`).
+                reply(200, {channel_id: TestHelper.basicChannel!.id, member_count: 1, pinnedpost_count: 0});
+            await store.dispatch(getChannelStats(TestHelper.basicChannel!.id));
 
-        nock(Client4.getBaseRoute()).
-            get(`/channels/${TestHelper.basicChannel!.id}/stats?exclude_files_count=true`).
-            reply(200, {channel_id: TestHelper.basicChannel!.id, member_count: 1, pinnedpost_count: 0});
+            const post = TestHelper.fakePostWithId(TestHelper.basicChannel!.id);
+            store.dispatch(Actions.receivedPost(post));
 
-        await dispatch(getChannelStats(TestHelper.basicChannel!.id));
+            nock(Client4.getBaseRoute()).
+                post(`/posts/${post.id}/pin`).
+                reply(200, OK_RESPONSE);
 
-        nock(Client4.getBaseRoute()).
-            post('/posts').
-            reply(201, TestHelper.fakePostWithId(TestHelper.basicChannel!.id));
-        const post1 = await Client4.createPost(
-            TestHelper.fakePost(TestHelper.basicChannel!.id),
-        );
+            const result = await store.dispatch(Actions.pinPost(post.id));
+            expect(result.error).toBeUndefined();
 
-        const postList = {order: [post1.id], posts: {}} as PostList;
-        postList.posts[post1.id] = post1;
+            const state = store.getState();
+            expect(state.entities.posts.posts[post.id].is_pinned).toBe(true);
+            expect(state.entities.channels.stats[TestHelper.basicChannel!.id].pinnedpost_count).toBe(1);
+        });
 
-        nock(Client4.getBaseRoute()).
-            get(`/posts/${post1.id}/thread?skipFetchThreads=false&collapsedThreads=true&collapsedThreadsExtended=false&direction=down&perPage=60`).
-            reply(200, postList);
-        await Actions.getPostThread(post1.id)(dispatch, getState);
+        test('MM-14115 should not clobber reactions on pinned post', async () => {
+            const post = TestHelper.getPostMock({
+                id: TestHelper.generateId(),
+                metadata: {
+                    embeds: [],
+                    emojis: [],
+                    files: [],
+                    images: {},
+                    reactions: [
+                        TestHelper.getReactionMock({emoji_name: 'test'}),
+                    ],
+                },
+            });
 
-        nock(Client4.getBaseRoute()).
-            post(`/posts/${post1.id}/pin`).
-            reply(200, OK_RESPONSE);
-        await Actions.pinPost(post1.id)(dispatch, getState);
+            store.dispatch(Actions.receivedPost(post));
 
-        const state = getState();
-        const {stats} = state.entities.channels;
-        const post = state.entities.posts.posts[post1.id];
-        const pinnedPostCount = stats[TestHelper.basicChannel!.id].pinnedpost_count;
+            let state = store.getState();
+            expect(state.entities.posts.posts[post.id].is_pinned).toBe(false);
+            expect(Object.keys(state.entities.posts.reactions[post.id])).toHaveLength(1);
 
-        expect(post).toBeTruthy();
-        expect(post.is_pinned === true).toBeTruthy();
-        expect(pinnedPostCount === 1).toBeTruthy();
+            nock(Client4.getBaseRoute()).
+                post(`/posts/${post.id}/pin`).
+                reply(200, OK_RESPONSE);
+
+            const result = await store.dispatch(Actions.pinPost(post.id));
+            expect(result.error).toBeUndefined();
+
+            state = store.getState();
+            expect(state.entities.posts.posts[post.id].is_pinned).toBe(true);
+            expect(Object.keys(state.entities.posts.reactions[post.id])).toHaveLength(1);
+        });
     });
 
-    it('unpinPost', async () => {
-        const {dispatch, getState} = store;
+    describe('unpinPost', () => {
+        test('should update post and channel stats', async () => {
+            nock(Client4.getBaseRoute()).
+                get(`/channels/${TestHelper.basicChannel!.id}/stats?exclude_files_count=true`).
+                reply(200, {channel_id: TestHelper.basicChannel!.id, member_count: 1, pinnedpost_count: 1});
+            await store.dispatch(getChannelStats(TestHelper.basicChannel!.id));
 
-        nock(Client4.getBaseRoute()).
-            get(`/channels/${TestHelper.basicChannel!.id}/stats?exclude_files_count=true`).
-            reply(200, {channel_id: TestHelper.basicChannel!.id, member_count: 1, pinnedpost_count: 0});
+            const post = TestHelper.fakePostWithId(TestHelper.basicChannel!.id);
+            store.dispatch(Actions.receivedPost(post));
 
-        await dispatch(getChannelStats(TestHelper.basicChannel!.id));
+            nock(Client4.getBaseRoute()).
+                post(`/posts/${post.id}/unpin`).
+                reply(200, OK_RESPONSE);
 
-        nock(Client4.getBaseRoute()).
-            post('/posts').
-            reply(201, TestHelper.fakePostWithId(TestHelper.basicChannel!.id));
-        const post1 = await Client4.createPost(
-            TestHelper.fakePost(TestHelper.basicChannel!.id),
-        );
+            const result = await store.dispatch(Actions.unpinPost(post.id));
+            expect(result.error).toBeUndefined();
 
-        const postList = {order: [post1.id], posts: {}} as PostList;
-        postList.posts[post1.id] = post1;
+            const state = store.getState();
+            expect(state.entities.posts.posts[post.id].is_pinned).toBe(false);
+            expect(state.entities.channels.stats[TestHelper.basicChannel!.id].pinnedpost_count).toBe(0);
+        });
 
-        nock(Client4.getBaseRoute()).
-            get(`/posts/${post1.id}/thread?skipFetchThreads=false&collapsedThreads=true&collapsedThreadsExtended=false&direction=down&perPage=60`).
-            reply(200, postList);
-        await Actions.getPostThread(post1.id)(dispatch, getState);
+        test('MM-14115 should not clobber reactions on pinned post', async () => {
+            const post = TestHelper.getPostMock({
+                id: TestHelper.generateId(),
+                is_pinned: true,
+                metadata: {
+                    embeds: [],
+                    emojis: [],
+                    files: [],
+                    images: {},
+                    reactions: [
+                        TestHelper.getReactionMock({emoji_name: 'test'}),
+                    ],
+                },
+            });
 
-        nock(Client4.getBaseRoute()).
-            post(`/posts/${post1.id}/pin`).
-            reply(200, OK_RESPONSE);
-        await Actions.pinPost(post1.id)(dispatch, getState);
+            store.dispatch(Actions.receivedPost(post));
 
-        nock(Client4.getBaseRoute()).
-            post(`/posts/${post1.id}/unpin`).
-            reply(200, OK_RESPONSE);
-        await Actions.unpinPost(post1.id)(dispatch, getState);
+            let state = store.getState();
+            expect(state.entities.posts.posts[post.id].is_pinned).toBe(true);
+            expect(Object.keys(state.entities.posts.reactions[post.id])).toHaveLength(1);
 
-        const state = getState();
-        const {stats} = state.entities.channels;
-        const post = state.entities.posts.posts[post1.id];
-        const pinnedPostCount = stats[TestHelper.basicChannel!.id].pinnedpost_count;
+            nock(Client4.getBaseRoute()).
+                post(`/posts/${post.id}/unpin`).
+                reply(200, OK_RESPONSE);
 
-        expect(post).toBeTruthy();
-        expect(post.is_pinned === false).toBeTruthy();
-        expect(pinnedPostCount === 0).toBeTruthy();
+            const result = await store.dispatch(Actions.unpinPost(post.id));
+            expect(result.error).toBeUndefined();
+
+            state = store.getState();
+            expect(state.entities.posts.posts[post.id].is_pinned).toBe(false);
+            expect(Object.keys(state.entities.posts.reactions[post.id])).toHaveLength(1);
+        });
     });
 
     it('addReaction', async () => {
@@ -1235,7 +1261,7 @@ describe('Actions.Posts', () => {
         nock(Client4.getBaseRoute()).
             post('/reactions').
             reply(201, {user_id: TestHelper.basicUser!.id, post_id: post1.id, emoji_name: emojiName, create_at: 1508168444721});
-        await Actions.addReaction(post1.id, emojiName)(dispatch, getState);
+        await dispatch(Actions.addReaction(post1.id, emojiName));
 
         const state = getState();
         const reactions = state.entities.posts.reactions[post1.id];
@@ -1264,57 +1290,17 @@ describe('Actions.Posts', () => {
         nock(Client4.getBaseRoute()).
             post('/reactions').
             reply(201, {user_id: TestHelper.basicUser!.id, post_id: post1.id, emoji_name: emojiName, create_at: 1508168444721});
-        await Actions.addReaction(post1.id, emojiName)(dispatch, getState);
+        await dispatch(Actions.addReaction(post1.id, emojiName));
 
         nock(Client4.getUsersRoute()).
             delete(`/${TestHelper.basicUser!.id}/posts/${post1.id}/reactions/${emojiName}`).
             reply(200, OK_RESPONSE);
-        await Actions.removeReaction(post1.id, emojiName)(dispatch, getState);
+        await dispatch(Actions.removeReaction(post1.id, emojiName));
 
         const state = getState();
         const reactions = state.entities.posts.reactions[post1.id];
         expect(reactions).toBeTruthy();
         expect(!reactions[TestHelper.basicUser!.id + '-' + emojiName]).toBeTruthy();
-    });
-
-    it('getReactionsForPost', async () => {
-        const {dispatch, getState} = store;
-
-        TestHelper.mockLogin();
-        store.dispatch({
-            type: UserTypes.LOGIN_SUCCESS,
-        });
-        await store.dispatch(loadMe());
-
-        nock(Client4.getBaseRoute()).
-            post('/posts').
-            reply(201, TestHelper.fakePostWithId(TestHelper.basicChannel!.id));
-        const post1 = await Client4.createPost(
-            TestHelper.fakePost(TestHelper.basicChannel!.id),
-        );
-
-        const emojiName = '+1';
-
-        nock(Client4.getBaseRoute()).
-            post('/reactions').
-            reply(201, {user_id: TestHelper.basicUser!.id, post_id: post1.id, emoji_name: emojiName, create_at: 1508168444721});
-        await Actions.addReaction(post1.id, emojiName)(dispatch, getState);
-
-        dispatch({
-            type: PostTypes.REACTION_DELETED,
-            data: {user_id: TestHelper.basicUser!.id, post_id: post1.id, emoji_name: emojiName},
-        });
-
-        nock(Client4.getBaseRoute()).
-            get(`/posts/${post1.id}/reactions`).
-            reply(200, [{user_id: TestHelper.basicUser!.id, post_id: post1.id, emoji_name: emojiName, create_at: 1508168444721}]);
-        await Actions.getReactionsForPost(post1.id)(dispatch, getState);
-
-        const state = getState();
-        const reactions = state.entities.posts.reactions[post1.id];
-
-        expect(reactions).toBeTruthy();
-        expect(reactions[TestHelper.basicUser!.id + '-' + emojiName]).toBeTruthy();
     });
 
     it('getCustomEmojiForReaction', async () => {
@@ -1325,13 +1311,13 @@ describe('Actions.Posts', () => {
             post('/emoji').
             reply(201, {id: TestHelper.generateId(), create_at: 1507918415696, update_at: 1507918415696, delete_at: 0, creator_id: TestHelper.basicUser!.id, name: TestHelper.generateId()});
 
-        const {data: created} = await createCustomEmoji(
+        const {data: created} = await dispatch(createCustomEmoji(
             {
                 name: TestHelper.generateId(),
                 creator_id: TestHelper.basicUser!.id,
             },
             testImageData,
-        )(store.dispatch, store.getState) as ActionResult;
+        ));
 
         nock(Client4.getEmojisRoute()).
             get(`/name/${created.name}`).
@@ -1343,7 +1329,7 @@ describe('Actions.Posts', () => {
             get(`/name/${missingEmojiName}`).
             reply(404, {message: 'Not found', status_code: 404});
 
-        await Actions.getCustomEmojiForReaction(missingEmojiName)(dispatch, getState);
+        await dispatch(Actions.getCustomEmojiForReaction(missingEmojiName));
 
         const state = getState();
         const emojis = state.entities.emojis.customEmoji;
@@ -1357,7 +1343,7 @@ describe('Actions.Posts', () => {
             post('/posts/posth67ja7ntdkek6g13dp3wka/actions/action7ja7ntdkek6g13dp3wka').
             reply(200, {});
 
-        const {data} = await Actions.doPostAction('posth67ja7ntdkek6g13dp3wka', 'action7ja7ntdkek6g13dp3wka', 'option')(store.dispatch, store.getState);
+        const {data} = await store.dispatch(Actions.doPostAction('posth67ja7ntdkek6g13dp3wka', 'action7ja7ntdkek6g13dp3wka', 'option'));
         expect(data).toEqual({});
     });
 
@@ -1366,26 +1352,63 @@ describe('Actions.Posts', () => {
             post('/posts/posth67ja7ntdkek6g13dp3wka/actions/action7ja7ntdkek6g13dp3wka').
             reply(200, {});
 
-        const {data} = await Actions.doPostActionWithCookie('posth67ja7ntdkek6g13dp3wka', 'action7ja7ntdkek6g13dp3wka', '', 'option')(store.dispatch, store.getState);
+        const {data} = await store.dispatch(Actions.doPostActionWithCookie('posth67ja7ntdkek6g13dp3wka', 'action7ja7ntdkek6g13dp3wka', '', 'option'));
         expect(data).toEqual({});
+    });
+
+    it('doPostActionWithCookie with trigger_id', async () => {
+        const postId = 'posth67ja7ntdkek6g13dp3wka';
+        const actionId = 'action7ja7ntdkek6g13dp3wka';
+        const triggerId = 'trigger7ja7ntdkek6g13dp3wka';
+        const channelId = 'channel7ja7ntdkek6g13dp3wka';
+
+        // Setup post in state
+        store = configureStore({
+            entities: {
+                posts: {
+                    posts: {
+                        [postId]: {id: postId, channel_id: channelId},
+                    },
+                },
+                integrations: {
+                    dialogArguments: {},
+                },
+            },
+        });
+
+        nock(Client4.getBaseRoute()).
+            post(`/posts/${postId}/actions/${actionId}`).
+            reply(200, {trigger_id: triggerId});
+
+        const {data} = await store.dispatch(Actions.doPostActionWithCookie(postId, actionId, '', 'option'));
+
+        // Verify the trigger_id was received and stored in state
+        const state = store.getState();
+        expect(data).toBeTruthy();
+        expect(data).toEqual({trigger_id: triggerId});
+        expect(data).toBeTruthy();
+
+        expect(state.entities.integrations.dialogArguments).toBeTruthy();
+        expect(state.entities.integrations.dialogTriggerId).toEqual(triggerId);
+        expect(state.entities.integrations.dialogArguments.channel_id).toEqual(channelId);
     });
 
     it('addMessageIntoHistory', async () => {
         const {dispatch, getState} = store;
 
-        await Actions.addMessageIntoHistory('test1')(dispatch);
+        await dispatch(Actions.addMessageIntoHistory('test1'));
 
         let history = getState().entities.posts.messagesHistory.messages;
         expect(history.length === 1).toBeTruthy();
         expect(history[0] === 'test1').toBeTruthy();
 
-        await Actions.addMessageIntoHistory('test2')(dispatch);
+        await dispatch(Actions.addMessageIntoHistory('test2'));
 
         history = getState().entities.posts.messagesHistory.messages;
         expect(history.length === 2).toBeTruthy();
         expect(history[1] === 'test2').toBeTruthy();
 
-        await Actions.addMessageIntoHistory('test3')(dispatch);
+        await dispatch(Actions.addMessageIntoHistory('test3'));
 
         history = getState().entities.posts.messagesHistory.messages;
         expect(history.length === 3).toBeTruthy();
@@ -1395,32 +1418,32 @@ describe('Actions.Posts', () => {
     it('resetHistoryIndex', async () => {
         const {dispatch, getState} = store;
 
-        await Actions.addMessageIntoHistory('test1')(dispatch);
-        await Actions.addMessageIntoHistory('test2')(dispatch);
-        await Actions.addMessageIntoHistory('test3')(dispatch);
+        await dispatch(Actions.addMessageIntoHistory('test1'));
+        await dispatch(Actions.addMessageIntoHistory('test2'));
+        await dispatch(Actions.addMessageIntoHistory('test3'));
 
         let index = getState().entities.posts.messagesHistory.index[Posts.MESSAGE_TYPES.POST];
         expect(index === 3).toBeTruthy();
         index = getState().entities.posts.messagesHistory.index[Posts.MESSAGE_TYPES.COMMENT];
         expect(index === 3).toBeTruthy();
 
-        await Actions.moveHistoryIndexBack(Posts.MESSAGE_TYPES.POST)(dispatch);
-        await Actions.moveHistoryIndexBack(Posts.MESSAGE_TYPES.POST)(dispatch);
-        await Actions.moveHistoryIndexBack(Posts.MESSAGE_TYPES.COMMENT)(dispatch);
+        await dispatch(Actions.moveHistoryIndexBack(Posts.MESSAGE_TYPES.POST));
+        await dispatch(Actions.moveHistoryIndexBack(Posts.MESSAGE_TYPES.POST));
+        await dispatch(Actions.moveHistoryIndexBack(Posts.MESSAGE_TYPES.COMMENT));
 
         index = getState().entities.posts.messagesHistory.index[Posts.MESSAGE_TYPES.POST];
         expect(index === 1).toBeTruthy();
         index = getState().entities.posts.messagesHistory.index[Posts.MESSAGE_TYPES.COMMENT];
         expect(index === 2).toBeTruthy();
 
-        await Actions.resetHistoryIndex(Posts.MESSAGE_TYPES.POST)(dispatch);
+        await dispatch(Actions.resetHistoryIndex(Posts.MESSAGE_TYPES.POST));
 
         index = getState().entities.posts.messagesHistory.index[Posts.MESSAGE_TYPES.POST];
         expect(index === 3).toBeTruthy();
         index = getState().entities.posts.messagesHistory.index[Posts.MESSAGE_TYPES.COMMENT];
         expect(index === 2).toBeTruthy();
 
-        await Actions.resetHistoryIndex(Posts.MESSAGE_TYPES.COMMENT)(dispatch);
+        await dispatch(Actions.resetHistoryIndex(Posts.MESSAGE_TYPES.COMMENT));
 
         index = getState().entities.posts.messagesHistory.index[Posts.MESSAGE_TYPES.POST];
         expect(index === 3).toBeTruthy();
@@ -1431,42 +1454,42 @@ describe('Actions.Posts', () => {
     it('moveHistoryIndexBack', async () => {
         const {dispatch, getState} = store;
 
-        await Actions.moveHistoryIndexBack(Posts.MESSAGE_TYPES.POST)(dispatch);
+        await dispatch(Actions.moveHistoryIndexBack(Posts.MESSAGE_TYPES.POST));
 
         let index = getState().entities.posts.messagesHistory.index[Posts.MESSAGE_TYPES.POST];
         expect(index === -1).toBeTruthy();
 
-        await Actions.moveHistoryIndexBack(Posts.MESSAGE_TYPES.POST)(dispatch);
+        await dispatch(Actions.moveHistoryIndexBack(Posts.MESSAGE_TYPES.POST));
 
         index = getState().entities.posts.messagesHistory.index[Posts.MESSAGE_TYPES.POST];
         expect(index === -1).toBeTruthy();
 
-        await Actions.addMessageIntoHistory('test1')(dispatch);
-        await Actions.addMessageIntoHistory('test2')(dispatch);
-        await Actions.addMessageIntoHistory('test3')(dispatch);
+        await dispatch(Actions.addMessageIntoHistory('test1'));
+        await dispatch(Actions.addMessageIntoHistory('test2'));
+        await dispatch(Actions.addMessageIntoHistory('test3'));
 
         index = getState().entities.posts.messagesHistory.index[Posts.MESSAGE_TYPES.POST];
         expect(index === 3).toBeTruthy();
         index = getState().entities.posts.messagesHistory.index[Posts.MESSAGE_TYPES.COMMENT];
         expect(index === 3).toBeTruthy();
 
-        await Actions.moveHistoryIndexBack(Posts.MESSAGE_TYPES.POST)(dispatch);
-        await Actions.moveHistoryIndexBack(Posts.MESSAGE_TYPES.POST)(dispatch);
+        await dispatch(Actions.moveHistoryIndexBack(Posts.MESSAGE_TYPES.POST));
+        await dispatch(Actions.moveHistoryIndexBack(Posts.MESSAGE_TYPES.POST));
 
         index = getState().entities.posts.messagesHistory.index[Posts.MESSAGE_TYPES.POST];
         expect(index === 1).toBeTruthy();
         index = getState().entities.posts.messagesHistory.index[Posts.MESSAGE_TYPES.COMMENT];
         expect(index === 3).toBeTruthy();
 
-        await Actions.moveHistoryIndexBack(Posts.MESSAGE_TYPES.POST)(dispatch);
-        await Actions.moveHistoryIndexBack(Posts.MESSAGE_TYPES.POST)(dispatch);
+        await dispatch(Actions.moveHistoryIndexBack(Posts.MESSAGE_TYPES.POST));
+        await dispatch(Actions.moveHistoryIndexBack(Posts.MESSAGE_TYPES.POST));
 
         index = getState().entities.posts.messagesHistory.index[Posts.MESSAGE_TYPES.POST];
         expect(index === 0).toBeTruthy();
         index = getState().entities.posts.messagesHistory.index[Posts.MESSAGE_TYPES.COMMENT];
         expect(index === 3).toBeTruthy();
 
-        await Actions.moveHistoryIndexBack(Posts.MESSAGE_TYPES.COMMENT)(dispatch);
+        await dispatch(Actions.moveHistoryIndexBack(Posts.MESSAGE_TYPES.COMMENT));
 
         index = getState().entities.posts.messagesHistory.index[Posts.MESSAGE_TYPES.POST];
         expect(index === 0).toBeTruthy();
@@ -1477,51 +1500,51 @@ describe('Actions.Posts', () => {
     it('moveHistoryIndexForward', async () => {
         const {dispatch, getState} = store;
 
-        await Actions.moveHistoryIndexForward(Posts.MESSAGE_TYPES.POST)(dispatch);
+        await dispatch(Actions.moveHistoryIndexForward(Posts.MESSAGE_TYPES.POST));
 
         let index = getState().entities.posts.messagesHistory.index[Posts.MESSAGE_TYPES.POST];
         expect(index === 0).toBeTruthy();
 
-        await Actions.moveHistoryIndexForward(Posts.MESSAGE_TYPES.POST)(dispatch);
+        await dispatch(Actions.moveHistoryIndexForward(Posts.MESSAGE_TYPES.POST));
 
         index = getState().entities.posts.messagesHistory.index[Posts.MESSAGE_TYPES.POST];
         expect(index === 0).toBeTruthy();
 
-        await Actions.addMessageIntoHistory('test1')(dispatch);
-        await Actions.addMessageIntoHistory('test2')(dispatch);
-        await Actions.addMessageIntoHistory('test3')(dispatch);
+        await dispatch(Actions.addMessageIntoHistory('test1'));
+        await dispatch(Actions.addMessageIntoHistory('test2'));
+        await dispatch(Actions.addMessageIntoHistory('test3'));
 
         index = getState().entities.posts.messagesHistory.index[Posts.MESSAGE_TYPES.POST];
         expect(index === 3).toBeTruthy();
         index = getState().entities.posts.messagesHistory.index[Posts.MESSAGE_TYPES.COMMENT];
         expect(index === 3).toBeTruthy();
 
-        await Actions.moveHistoryIndexForward(Posts.MESSAGE_TYPES.POST)(dispatch);
-        await Actions.moveHistoryIndexForward(Posts.MESSAGE_TYPES.POST)(dispatch);
+        await dispatch(Actions.moveHistoryIndexForward(Posts.MESSAGE_TYPES.POST));
+        await dispatch(Actions.moveHistoryIndexForward(Posts.MESSAGE_TYPES.POST));
 
         index = getState().entities.posts.messagesHistory.index[Posts.MESSAGE_TYPES.POST];
         expect(index === 3).toBeTruthy();
         index = getState().entities.posts.messagesHistory.index[Posts.MESSAGE_TYPES.COMMENT];
         expect(index === 3).toBeTruthy();
 
-        await Actions.moveHistoryIndexBack(Posts.MESSAGE_TYPES.POST)(dispatch);
-        await Actions.moveHistoryIndexBack(Posts.MESSAGE_TYPES.POST)(dispatch);
-        await Actions.moveHistoryIndexBack(Posts.MESSAGE_TYPES.COMMENT)(dispatch);
-        await Actions.moveHistoryIndexBack(Posts.MESSAGE_TYPES.COMMENT)(dispatch);
+        await dispatch(Actions.moveHistoryIndexBack(Posts.MESSAGE_TYPES.POST));
+        await dispatch(Actions.moveHistoryIndexBack(Posts.MESSAGE_TYPES.POST));
+        await dispatch(Actions.moveHistoryIndexBack(Posts.MESSAGE_TYPES.COMMENT));
+        await dispatch(Actions.moveHistoryIndexBack(Posts.MESSAGE_TYPES.COMMENT));
 
         index = getState().entities.posts.messagesHistory.index[Posts.MESSAGE_TYPES.POST];
         expect(index === 1).toBeTruthy();
         index = getState().entities.posts.messagesHistory.index[Posts.MESSAGE_TYPES.COMMENT];
         expect(index === 1).toBeTruthy();
 
-        await Actions.moveHistoryIndexForward(Posts.MESSAGE_TYPES.POST)(dispatch);
+        await dispatch(Actions.moveHistoryIndexForward(Posts.MESSAGE_TYPES.POST));
 
         index = getState().entities.posts.messagesHistory.index[Posts.MESSAGE_TYPES.POST];
         expect(index === 2).toBeTruthy();
         index = getState().entities.posts.messagesHistory.index[Posts.MESSAGE_TYPES.COMMENT];
         expect(index === 1).toBeTruthy();
 
-        await Actions.moveHistoryIndexForward(Posts.MESSAGE_TYPES.COMMENT)(dispatch);
+        await dispatch(Actions.moveHistoryIndexForward(Posts.MESSAGE_TYPES.COMMENT));
 
         index = getState().entities.posts.messagesHistory.index[Posts.MESSAGE_TYPES.POST];
         expect(index === 2).toBeTruthy();
@@ -1569,103 +1592,6 @@ describe('Actions.Posts', () => {
 
                 await Actions.getMentionsAndStatusesForPosts(posts, dispatch as any, getState);
             });
-        });
-    });
-
-    describe('getThreadsForPosts', () => {
-        beforeAll(() => {
-            TestHelper.initBasic(Client4);
-        });
-
-        afterAll(() => {
-            TestHelper.tearDown();
-        });
-
-        let channelId = '';
-        let post1 = TestHelper.getPostMock();
-        let post2 = TestHelper.getPostMock();
-        let post3 = TestHelper.getPostMock();
-        let comment = TestHelper.getPostMock();
-
-        beforeEach(async () => {
-            store = configureStore();
-
-            channelId = TestHelper.basicChannel!.id;
-            post1 = TestHelper.getPostMock({id: TestHelper.generateId(), channel_id: channelId, message: ''});
-            post2 = TestHelper.getPostMock({id: TestHelper.generateId(), channel_id: channelId, message: ''});
-            comment = TestHelper.getPostMock({id: TestHelper.generateId(), root_id: post1.id, channel_id: channelId, message: ''});
-            post3 = TestHelper.getPostMock({id: TestHelper.generateId(), channel_id: channelId, message: ''});
-
-            store.dispatch(Actions.receivedPostsInChannel({
-                order: [post2.id, post3.id],
-                posts: {[post2.id]: post2, [post3.id]: post3},
-            } as PostList, channelId));
-
-            const threadList = {
-                order: [post1.id],
-                posts: {
-                    [post1.id]: post1,
-                    [comment.id]: comment,
-                },
-            };
-
-            nock(Client4.getBaseRoute()).
-                get(`/posts/${post1.id}/thread?skipFetchThreads=false&collapsedThreads=false&collapsedThreadsExtended=false&direction=down&perPage=60`).
-                reply(200, threadList);
-        });
-
-        it('handlesNull', async () => {
-            const ret = await store.dispatch(Actions.getThreadsForPosts(null as any));
-            expect(ret).toEqual({data: true});
-
-            const state: GlobalState = store.getState();
-
-            const getRequest = state.requests.posts.getPostThread;
-            if (getRequest.status === RequestStatus.FAILURE) {
-                throw new Error(JSON.stringify(getRequest.error));
-            }
-
-            const {
-                postsInChannel,
-                postsInThread,
-            } = state.entities.posts;
-
-            expect(postsInChannel[channelId]).toBeTruthy();
-            expect(postsInChannel[channelId][0].order).toEqual([post2.id, post3.id]);
-            expect(!postsInThread[post1.id]).toBeTruthy();
-
-            const found = postsInChannel[channelId].find((block) => block.order.indexOf(comment.id) !== -1);
-
-            // should not have found comment in postsInChannel
-            expect(!found).toBeTruthy();
-        });
-
-        it('pullsUpTheThreadOfAMissingPost', async () => {
-            await store.dispatch(Actions.getThreadsForPosts([comment]));
-
-            const state: GlobalState = store.getState();
-
-            const getRequest = state.requests.posts.getPostThread;
-            if (getRequest.status === RequestStatus.FAILURE) {
-                throw new Error(JSON.stringify(getRequest.error));
-            }
-
-            const {
-                posts,
-                postsInChannel,
-                postsInThread,
-            } = state.entities.posts;
-
-            expect(posts).toBeTruthy();
-            expect(postsInChannel[channelId][0].order).toEqual([post2.id, post3.id]);
-            expect(posts[post1.id]).toBeTruthy();
-            expect(postsInThread[post1.id]).toBeTruthy();
-            expect(postsInThread[post1.id]).toEqual([comment.id]);
-
-            const found = postsInChannel[channelId].find((block) => block.order.indexOf(comment.id) !== -1);
-
-            // should not have found comment in postsInChannel
-            expect(!found).toBeTruthy();
         });
     });
 
@@ -1718,6 +1644,78 @@ describe('Actions.Posts', () => {
                 recent: true,
                 oldest: true,
             });
+        });
+    });
+});
+
+describe('getPostThreads', () => {
+    beforeAll(() => {
+        TestHelper.initBasic(Client4);
+    });
+
+    afterAll(() => {
+        TestHelper.tearDown();
+    });
+
+    const channelId = 'currentChannelId';
+    const initialState = {
+        entities: {
+            channels: {
+                currentChannelId: channelId,
+            },
+            users: {
+                currentUserId: 'currentUserId',
+                statuses: {},
+                profiles: {},
+            },
+            general: {
+                config: {},
+            },
+            posts: {
+                posts: {},
+            },
+            preferences: {
+                myPreferences: {},
+            },
+        },
+    };
+
+    const post1 = TestHelper.getPostMock({id: TestHelper.generateId(), channel_id: channelId, message: '', user_id: 'currentUserId'});
+    const comment = TestHelper.getPostMock({id: TestHelper.generateId(), root_id: post1.id, channel_id: channelId, message: '', user_id: 'currentUserId'});
+
+    it('handles null', async () => {
+        const testStore = await mockStore(initialState);
+        const ret = await testStore.dispatch(Actions.getPostThreads(null as any));
+        expect(ret).toEqual({data: true});
+
+        expect(testStore.getActions()).toEqual([]);
+    });
+
+    it('pulls up the thread of missing root post in the same channel', async () => {
+        const testStore = await mockStore(initialState);
+        nock(Client4.getBaseRoute()).
+            get(`/posts/${post1.id}/thread?skipFetchThreads=false&collapsedThreads=false&collapsedThreadsExtended=false&direction=down&perPage=60`).
+            reply(200, {
+                order: [post1.id],
+                posts: {
+                    [post1.id]: post1,
+                    [comment.id]: comment,
+                },
+            });
+
+        await testStore.dispatch(Actions.getPostThreads([comment]));
+
+        expect(testStore.getActions()[0].payload[0].type).toEqual('RECEIVED_POSTS');
+        expect(testStore.getActions()[0].payload[0].data.posts).toEqual({
+            [post1.id]: post1,
+            [comment.id]: comment,
+        });
+
+        expect(testStore.getActions()[0].payload[1].type).toEqual('RECEIVED_POSTS_IN_THREAD');
+        expect(testStore.getActions()[0].payload[1].rootId).toEqual(post1.id);
+        expect(testStore.getActions()[0].payload[1].data.posts).toEqual({
+            [post1.id]: post1,
+            [comment.id]: comment,
         });
     });
 });

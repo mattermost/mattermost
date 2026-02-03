@@ -1,17 +1,18 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import type {AnyAction} from 'redux';
 import {combineReducers} from 'redux';
 
 import type {Team, TeamMembership, TeamUnread} from '@mattermost/types/teams';
 import type {UserProfile} from '@mattermost/types/users';
 import type {RelationOneToOne, IDMappedObjects} from '@mattermost/types/utilities';
 
+import type {MMReduxAction} from 'mattermost-redux/action_types';
 import {AdminTypes, ChannelTypes, TeamTypes, UserTypes, SchemeTypes, GroupTypes} from 'mattermost-redux/action_types';
-import type {GenericAction} from 'mattermost-redux/types/actions';
 import {teamListToMap} from 'mattermost-redux/utils/team_utils';
 
-function currentTeamId(state = '', action: GenericAction) {
+function currentTeamId(state = '', action: MMReduxAction) {
     switch (action.type) {
     case TeamTypes.SELECT_TEAM:
         return action.data;
@@ -23,7 +24,7 @@ function currentTeamId(state = '', action: GenericAction) {
     }
 }
 
-function teams(state: IDMappedObjects<Team> = {}, action: GenericAction) {
+function teams(state: IDMappedObjects<Team> = {}, action: MMReduxAction) {
     switch (action.type) {
     case TeamTypes.RECEIVED_TEAMS_LIST:
     case SchemeTypes.RECEIVED_SCHEME_TEAMS:
@@ -47,7 +48,7 @@ function teams(state: IDMappedObjects<Team> = {}, action: GenericAction) {
     case TeamTypes.RECEIVED_TEAM_DELETED: {
         const nextState = {...state};
         const teamId = action.data.id;
-        if (nextState.hasOwnProperty(teamId)) {
+        if (Object.hasOwn(nextState, teamId)) {
             Reflect.deleteProperty(nextState, teamId);
             return nextState;
         }
@@ -94,7 +95,7 @@ function teams(state: IDMappedObjects<Team> = {}, action: GenericAction) {
     }
 }
 
-function myMembers(state: RelationOneToOne<Team, TeamMembership> = {}, action: GenericAction) {
+function myMembers(state: RelationOneToOne<Team, TeamMembership> = {}, action: MMReduxAction) {
     function updateState(receivedTeams: IDMappedObjects<Team> = {}, currentState: RelationOneToOne<Team, TeamMembership> = {}) {
         return Object.keys(receivedTeams).forEach((teamId) => {
             if (receivedTeams[teamId].delete_at > 0 && currentState[teamId]) {
@@ -289,7 +290,7 @@ function myMembers(state: RelationOneToOne<Team, TeamMembership> = {}, action: G
     }
 }
 
-function membersInTeam(state: RelationOneToOne<Team, RelationOneToOne<UserProfile, TeamMembership>> = {}, action: GenericAction) {
+function membersInTeam(state: RelationOneToOne<Team, RelationOneToOne<UserProfile, TeamMembership>> = {}, action: MMReduxAction) {
     switch (action.type) {
     case TeamTypes.RECEIVED_MEMBER_IN_TEAM: {
         const data = action.data;
@@ -352,7 +353,7 @@ function membersInTeam(state: RelationOneToOne<Team, RelationOneToOne<UserProfil
     case TeamTypes.RECEIVED_TEAM_DELETED: {
         const nextState = {...state};
         const teamId = action.data.id;
-        if (nextState.hasOwnProperty(teamId)) {
+        if (Object.hasOwn(nextState, teamId)) {
             Reflect.deleteProperty(nextState, teamId);
             return nextState;
         }
@@ -369,7 +370,7 @@ function membersInTeam(state: RelationOneToOne<Team, RelationOneToOne<UserProfil
     }
 }
 
-function stats(state: any = {}, action: GenericAction) {
+function stats(state: any = {}, action: MMReduxAction) {
     switch (action.type) {
     case TeamTypes.RECEIVED_TEAM_STATS: {
         const stat = action.data;
@@ -381,7 +382,7 @@ function stats(state: any = {}, action: GenericAction) {
     case TeamTypes.RECEIVED_TEAM_DELETED: {
         const nextState = {...state};
         const teamId = action.data.id;
-        if (nextState.hasOwnProperty(teamId)) {
+        if (Object.hasOwn(nextState, teamId)) {
             Reflect.deleteProperty(nextState, teamId);
             return nextState;
         }
@@ -395,7 +396,7 @@ function stats(state: any = {}, action: GenericAction) {
     }
 }
 
-function groupsAssociatedToTeam(state: RelationOneToOne<Team, {ids: string[]; totalCount: number}> = {}, action: GenericAction) {
+function groupsAssociatedToTeam(state: RelationOneToOne<Team, {ids: string[]; totalCount: number}> = {}, action: MMReduxAction) {
     switch (action.type) {
     case GroupTypes.RECEIVED_GROUP_ASSOCIATED_TO_TEAM: {
         const {teamID, groups} = action.data;
@@ -445,7 +446,7 @@ function groupsAssociatedToTeam(state: RelationOneToOne<Team, {ids: string[]; to
     }
 }
 
-function updateTeamMemberSchemeRoles(state: RelationOneToOne<Team, RelationOneToOne<UserProfile, TeamMembership>>, action: GenericAction) {
+function updateTeamMemberSchemeRoles(state: RelationOneToOne<Team, RelationOneToOne<UserProfile, TeamMembership>>, action: AnyAction) {
     const {teamId, userId, isSchemeUser, isSchemeAdmin} = action.data;
     const team = state[teamId];
     if (team) {
@@ -467,7 +468,7 @@ function updateTeamMemberSchemeRoles(state: RelationOneToOne<Team, RelationOneTo
     return state;
 }
 
-function updateMyTeamMemberSchemeRoles(state: RelationOneToOne<Team, TeamMembership>, action: GenericAction) {
+function updateMyTeamMemberSchemeRoles(state: RelationOneToOne<Team, TeamMembership>, action: AnyAction) {
     const {teamId, isSchemeUser, isSchemeAdmin} = action.data;
     const member = state[teamId];
     if (member) {
@@ -483,10 +484,23 @@ function updateMyTeamMemberSchemeRoles(state: RelationOneToOne<Team, TeamMembers
     return state;
 }
 
-function totalCount(state = 0, action: GenericAction) {
+function totalCount(state = 0, action: MMReduxAction) {
     switch (action.type) {
     case TeamTypes.RECEIVED_TOTAL_TEAM_COUNT: {
         return action.data;
+    }
+    default:
+        return state;
+    }
+}
+
+function contentFlaggingStatus(state = {}, action: MMReduxAction) {
+    switch (action.type) {
+    case TeamTypes.RECEIVED_CONTENT_FLAGGING_STATUS: {
+        return {
+            ...state,
+            [action.data.teamId]: action.data.status,
+        };
     }
     default:
         return state;
@@ -513,4 +527,6 @@ export default combineReducers({
     groupsAssociatedToTeam,
 
     totalCount,
+
+    contentFlaggingStatus,
 });

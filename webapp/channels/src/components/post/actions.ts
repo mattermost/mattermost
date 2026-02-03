@@ -3,7 +3,6 @@
 
 import {removePost} from 'mattermost-redux/actions/posts';
 import type {ExtendedPost} from 'mattermost-redux/actions/posts';
-import type {DispatchFunc} from 'mattermost-redux/types/actions';
 
 import {removeDraft} from 'actions/views/drafts';
 import {closeRightHandSide} from 'actions/views/rhs';
@@ -12,14 +11,14 @@ import {isThreadOpen} from 'selectors/views/threads';
 
 import {StoragePrefixes} from 'utils/constants';
 
-import type {GlobalState} from 'types/store';
+import type {ActionFunc} from 'types/store';
 
 /**
  * This action is called when the deleted post which is shown as 'deleted' in the RHS is then removed from the channel manually.
  * @param post Deleted post
  */
-export function removePostCloseRHSDeleteDraft(post: ExtendedPost) {
-    return (dispatch: DispatchFunc, getState: () => GlobalState) => {
+export function removePostCloseRHSDeleteDraft(post: ExtendedPost): ActionFunc<boolean> {
+    return (dispatch, getState) => {
         if (isThreadOpen(getState(), post.id)) {
             dispatch(closeRightHandSide());
         }

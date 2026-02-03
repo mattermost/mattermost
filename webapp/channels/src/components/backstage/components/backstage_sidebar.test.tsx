@@ -1,14 +1,18 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {shallow} from 'enzyme';
 import React from 'react';
 import type {ComponentProps} from 'react';
+import {MemoryRouter} from 'react-router-dom';
 
+import {renderWithContext, screen} from 'tests/react_testing_utils';
 import {TestHelper} from 'utils/test_helper';
 
-import BackstageCategory from './backstage_category';
 import BackstageSidebar from './backstage_sidebar';
+
+// Mock permission gates to render their children
+jest.mock('components/permissions_gates/team_permission_gate', () => ({children}: {children: React.ReactNode}) => <>{children}</>);
+jest.mock('components/permissions_gates/system_permission_gate', () => ({children}: {children: React.ReactNode}) => <>{children}</>);
 
 describe('components/backstage/components/BackstageSidebar', () => {
     const defaultProps: ComponentProps<typeof BackstageSidebar> = {
@@ -16,7 +20,6 @@ describe('components/backstage/components/BackstageSidebar', () => {
             id: 'team-id',
             name: 'team_name',
         }),
-        user: TestHelper.getUserMock({}),
         enableCustomEmoji: false,
         enableIncomingWebhooks: false,
         enableOutgoingWebhooks: false,
@@ -24,6 +27,16 @@ describe('components/backstage/components/BackstageSidebar', () => {
         enableOAuthServiceProvider: false,
         canCreateOrDeleteCustomEmoji: false,
         canManageIntegrations: false,
+        enableOutgoingOAuthConnections: false,
+    };
+
+    // Helper to render with router at integrations path to show children
+    const renderAtIntegrationsPath = (props: ComponentProps<typeof BackstageSidebar>) => {
+        return renderWithContext(
+            <MemoryRouter initialEntries={['/team_name/integrations']}>
+                <BackstageSidebar {...props}/>
+            </MemoryRouter>,
+        );
     };
 
     describe('custom emoji', () => {
@@ -41,11 +54,13 @@ describe('components/backstage/components/BackstageSidebar', () => {
                     enableCustomEmoji: testCase.enableCustomEmoji,
                     canCreateOrDeleteCustomEmoji: testCase.canCreateOrDeleteCustomEmoji,
                 };
-                const wrapper = shallow(
-                    <BackstageSidebar {...props}/>,
-                );
+                renderAtIntegrationsPath(props);
 
-                expect(wrapper.find(BackstageCategory).find({name: 'emoji'}).exists()).toBe(testCase.expectedResult);
+                if (testCase.expectedResult) {
+                    expect(screen.getByText('Custom Emoji')).toBeInTheDocument();
+                } else {
+                    expect(screen.queryByText('Custom Emoji')).not.toBeInTheDocument();
+                }
             });
         });
     });
@@ -65,11 +80,13 @@ describe('components/backstage/components/BackstageSidebar', () => {
                     enableIncomingWebhooks: testCase.enableIncomingWebhooks,
                     canManageIntegrations: testCase.canManageIntegrations,
                 };
-                const wrapper = shallow(
-                    <BackstageSidebar {...props}/>,
-                );
+                renderAtIntegrationsPath(props);
 
-                expect(wrapper.find(BackstageCategory).find({name: 'incoming_webhooks'}).exists()).toBe(testCase.expectedResult);
+                if (testCase.expectedResult) {
+                    expect(screen.getByText('Incoming Webhooks')).toBeInTheDocument();
+                } else {
+                    expect(screen.queryByText('Incoming Webhooks')).not.toBeInTheDocument();
+                }
             });
         });
     });
@@ -89,11 +106,13 @@ describe('components/backstage/components/BackstageSidebar', () => {
                     enableOutgoingWebhooks: testCase.enableOutgoingWebhooks,
                     canManageIntegrations: testCase.canManageIntegrations,
                 };
-                const wrapper = shallow(
-                    <BackstageSidebar {...props}/>,
-                );
+                renderAtIntegrationsPath(props);
 
-                expect(wrapper.find(BackstageCategory).find({name: 'outgoing_webhooks'}).exists()).toBe(testCase.expectedResult);
+                if (testCase.expectedResult) {
+                    expect(screen.getByText('Outgoing Webhooks')).toBeInTheDocument();
+                } else {
+                    expect(screen.queryByText('Outgoing Webhooks')).not.toBeInTheDocument();
+                }
             });
         });
     });
@@ -113,11 +132,13 @@ describe('components/backstage/components/BackstageSidebar', () => {
                     enableCommands: testCase.enableCommands,
                     canManageIntegrations: testCase.canManageIntegrations,
                 };
-                const wrapper = shallow(
-                    <BackstageSidebar {...props}/>,
-                );
+                renderAtIntegrationsPath(props);
 
-                expect(wrapper.find(BackstageCategory).find({name: 'commands'}).exists()).toBe(testCase.expectedResult);
+                if (testCase.expectedResult) {
+                    expect(screen.getByText('Slash Commands')).toBeInTheDocument();
+                } else {
+                    expect(screen.queryByText('Slash Commands')).not.toBeInTheDocument();
+                }
             });
         });
     });
@@ -137,11 +158,39 @@ describe('components/backstage/components/BackstageSidebar', () => {
                     enableOAuthServiceProvider: testCase.enableOAuthServiceProvider,
                     canManageIntegrations: testCase.canManageIntegrations,
                 };
-                const wrapper = shallow(
-                    <BackstageSidebar {...props}/>,
-                );
+                renderAtIntegrationsPath(props);
 
-                expect(wrapper.find(BackstageCategory).find({name: 'oauth2-apps'}).exists()).toBe(testCase.expectedResult);
+                if (testCase.expectedResult) {
+                    expect(screen.getByText('OAuth 2.0 Applications')).toBeInTheDocument();
+                } else {
+                    expect(screen.queryByText('OAuth 2.0 Applications')).not.toBeInTheDocument();
+                }
+            });
+        });
+    });
+
+    describe('outgoing oauth connections', () => {
+        const testCases = [
+            {canManageIntegrations: false, enableOutgoingOAuthConnections: false, expectedResult: false},
+            {canManageIntegrations: false, enableOutgoingOAuthConnections: true, expectedResult: false},
+            {canManageIntegrations: true, enableOutgoingOAuthConnections: false, expectedResult: false},
+            {canManageIntegrations: true, enableOutgoingOAuthConnections: true, expectedResult: true},
+        ];
+
+        testCases.forEach((testCase) => {
+            it(`when outgoing oauth connections is ${testCase.enableOutgoingOAuthConnections} and can manage integrations is ${testCase.canManageIntegrations}`, () => {
+                const props = {
+                    ...defaultProps,
+                    enableOutgoingOAuthConnections: testCase.enableOutgoingOAuthConnections,
+                    canManageIntegrations: testCase.canManageIntegrations,
+                };
+                renderAtIntegrationsPath(props);
+
+                if (testCase.expectedResult) {
+                    expect(screen.getByText('Outgoing OAuth 2.0 Connections')).toBeInTheDocument();
+                } else {
+                    expect(screen.queryByText('Outgoing OAuth 2.0 Connections')).not.toBeInTheDocument();
+                }
             });
         });
     });
@@ -158,11 +207,13 @@ describe('components/backstage/components/BackstageSidebar', () => {
                     ...defaultProps,
                     canManageIntegrations: testCase.canManageIntegrations,
                 };
-                const wrapper = shallow(
-                    <BackstageSidebar {...props}/>,
-                );
+                renderAtIntegrationsPath(props);
 
-                expect(wrapper.find(BackstageCategory).find({name: 'bots'}).exists()).toBe(testCase.expectedResult);
+                if (testCase.expectedResult) {
+                    expect(screen.getByText('Bot Accounts')).toBeInTheDocument();
+                } else {
+                    expect(screen.queryByText('Bot Accounts')).not.toBeInTheDocument();
+                }
             });
         });
     });
@@ -176,16 +227,16 @@ describe('components/backstage/components/BackstageSidebar', () => {
                 enableCommands: true,
                 enableOAuthServiceProvider: true,
                 canManageIntegrations: true,
+                enableOutgoingOAuthConnections: true,
             };
-            const wrapper = shallow(
-                <BackstageSidebar {...props}/>,
-            );
+            renderAtIntegrationsPath(props);
 
-            expect(wrapper.find(BackstageCategory).find({name: 'incoming_webhooks'}).exists()).toBe(true);
-            expect(wrapper.find(BackstageCategory).find({name: 'outgoing_webhooks'}).exists()).toBe(true);
-            expect(wrapper.find(BackstageCategory).find({name: 'commands'}).exists()).toBe(true);
-            expect(wrapper.find(BackstageCategory).find({name: 'oauth2-apps'}).exists()).toBe(true);
-            expect(wrapper.find(BackstageCategory).find({name: 'bots'}).exists()).toBe(true);
+            expect(screen.getByText('Incoming Webhooks')).toBeInTheDocument();
+            expect(screen.getByText('Outgoing Webhooks')).toBeInTheDocument();
+            expect(screen.getByText('Slash Commands')).toBeInTheDocument();
+            expect(screen.getByText('OAuth 2.0 Applications')).toBeInTheDocument();
+            expect(screen.getByText('Outgoing OAuth 2.0 Connections')).toBeInTheDocument();
+            expect(screen.getByText('Bot Accounts')).toBeInTheDocument();
         });
 
         it('cannot manage integrations', () => {
@@ -195,17 +246,17 @@ describe('components/backstage/components/BackstageSidebar', () => {
                 enableOutgoingWebhooks: true,
                 enableCommands: true,
                 enableOAuthServiceProvider: true,
+                enableOutgoingOAuthConnections: true,
                 canManageIntegrations: false,
             };
-            const wrapper = shallow(
-                <BackstageSidebar {...props}/>,
-            );
+            renderAtIntegrationsPath(props);
 
-            expect(wrapper.find(BackstageCategory).find({name: 'incoming_webhooks'}).exists()).toBe(false);
-            expect(wrapper.find(BackstageCategory).find({name: 'outgoing_webhooks'}).exists()).toBe(false);
-            expect(wrapper.find(BackstageCategory).find({name: 'commands'}).exists()).toBe(false);
-            expect(wrapper.find(BackstageCategory).find({name: 'oauth2-apps'}).exists()).toBe(false);
-            expect(wrapper.find(BackstageCategory).find({name: 'bots'}).exists()).toBe(false);
+            expect(screen.queryByText('Incoming Webhooks')).not.toBeInTheDocument();
+            expect(screen.queryByText('Outgoing Webhooks')).not.toBeInTheDocument();
+            expect(screen.queryByText('Slash Commands')).not.toBeInTheDocument();
+            expect(screen.queryByText('OAuth 2.0 Applications')).not.toBeInTheDocument();
+            expect(screen.queryByText('Outgoing OAuth 2.0 Connections')).not.toBeInTheDocument();
+            expect(screen.queryByText('Bot Accounts')).not.toBeInTheDocument();
         });
     });
 });

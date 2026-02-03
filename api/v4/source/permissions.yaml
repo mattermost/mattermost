@@ -1,24 +1,22 @@
   /api/v4/permissions/ancillary:
-    get:
+    post:
       tags:
         - permissions
       summary: Return all system console subsection ancillary permissions
       description: >
         Returns all the ancillary permissions for the corresponding system console
         subsection permissions appended to the requested permission subsections.
-
-
-        __Minimum server version__: 5.35
-      operationId: GetAncillaryPermissions
-      parameters:
-        - name: subsection_permissions
-          in: query
-          description: >
-            The subsection permissions to return the ancillary permissions for.
-            These values are comma seperated.
-            Ex. subsection_permissions=sysconsole_read_reporting_site_statistics,sysconsole_write_reporting_site_statistics,sysconsole_write_user_management_channels
-          schema:
-            type: string
+        __Minimum server version__: 9.10
+      operationId: GetAncillaryPermissionsPost
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                type: string
+        description: List of subsection permissions
+        required: true
       responses:
         "200":
           description: Successfully returned all ancillary and requested permissions

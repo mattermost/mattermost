@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-/* eslint-disable no-await-in-loop, no-console */
+/* eslint-disable no-console */
 
 /*
  * This command, which is normally used in CI, generates test cycle in full or partial
@@ -44,7 +44,6 @@
  *   BROWSER                    : Chrome by default. Set to run test on other browser such as chrome, edge, electron and firefox.
  *                                The environment should have the specified browser to successfully run.
  *   HEADLESS                   : Headless by default (true) or false to run on headed mode.
- *   CI_BASE_URL                : Test server base URL in CI
  *
  * Example:
  * 1. "node generate_test_cycle.js"

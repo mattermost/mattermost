@@ -1,6 +1,7 @@
 /.github/workflows/channels-ci.yml @mattermost/web-platform
 /webapp/package.json @mattermost/web-platform
 /webapp/channels/package.json @mattermost/web-platform
+/webapp/channels/src/packages/mattermost-redux/src/store/configureStore.ts @hmhealey
 /webapp/Makefile @mattermost/web-platform
 /webapp/package-lock.json @mattermost/web-platform
 /webapp/platform/*/package.json @mattermost/web-platform

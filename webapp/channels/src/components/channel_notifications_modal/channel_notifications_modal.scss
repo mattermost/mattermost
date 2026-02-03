@@ -1,17 +1,61 @@
-.modal .channel-notifications-settings-modal {
-    overflow: hidden;
+.modal .ChannelNotificationModal {
     width: 100%;
     max-width: 600px;
-    margin-top: -24px;
+    margin-top: 5vh !important;
+    overflow-y: hidden;
 
     .modal-content {
-        display: flex;
-        overflow: hidden;
-        max-height: calc(100vh - 240px);
         flex-direction: column;
-        border: 1px solid rgba(var(--center-channel-color-rgb), 0.16);
-        border-radius: 12px;
+        border: var(--border-default);
+        border-radius: var(--radius-l);
         box-shadow: var(--elevation-6);
+        overflow-y: hidden;
+
+        .GenericModal__wrapper {
+            display: flex;
+            overflow: hidden;
+            max-height: calc(100vh - 160px);
+            flex-direction: column;
+            border: var(--border-default);
+            border-radius: var(--radius-l);
+            box-shadow: var(--elevation-6);
+
+            .modal-header {
+                padding: 0 !important;
+            }
+
+            .modal-body {
+                display: flex;
+                width: 100%;
+                max-width: 1024px;
+                min-height: 150px;
+                flex-direction: column;
+                gap: 24px;
+                overflow-x: hidden;
+                overflow-y: auto;
+
+                main {
+                    display: flex;
+                    width: 100%;
+                    max-width: 1024px;
+                    min-height: 150px;
+                    flex-direction: column;
+                    padding: 28px 32px;
+                    gap: 24px;
+                    overflow-x: hidden;
+                    overflow-y: auto;
+                }
+            }
+
+            .modal-footer {
+                display: flex;
+                width: 100%;
+                max-width: 1024px;
+                align-items: center;
+                justify-content: flex-end;
+                gap: 8px;
+            }
+        }
     }
 
     &__ctr {
@@ -19,47 +63,21 @@
         place-items: center;
     }
 
-    .modal-header {
-        border: none;
-        border-bottom: 1px solid rgba(var(--center-channel-color-rgb), 0.08);
-        background: none;
-    }
-
-    &__body {
-        display: flex;
-        width: 100%;
-        max-width: 1024px;
-        min-height: 150px;
-        flex-direction: column;
-        padding: 32px;
-        gap: 24px;
-        overflow-x: hidden;
-        overflow-y: auto;
-    }
-
-    &__footer {
-        display: flex;
-        width: 100%;
-        max-width: 1024px;
-        align-items: center;
-        justify-content: flex-end;
-        padding: 24px 32px;
-        border-top: 1px solid rgba(var(--center-channel-color-rgb), 0.08);
-        gap: 8px;
-    }
-
     &__reset-btn {
         display: flex;
+        align-items: center;
         padding: 5px 8px;
         border: none;
-        background: transparent;
         border-radius: 4px;
+        background: transparent;
         color: var(--button-bg);
         font-size: 12px;
         font-weight: 600;
         gap: 4px;
-        line-height: 9.5px;
-        place-items: center;
+
+        i {
+            font-size: 16px;
+        }
 
         &:hover,
         &:active {
@@ -72,50 +90,8 @@
         color: var(--error-text);
     }
 
-    &__save-btn {
-        padding: 12px 20px 12px 20px;
-        border: none;
-        background: var(--button-bg);
-        border-radius: 4px;
-        color: var(--button-color);
-        font-size: 14px;
-        font-weight: 600;
-        line-height: 14px;
-        text-transform: capitalize;
-
-        &:hover,
-        &:active {
-            background: rgba(var(--button-bg-rgb), 0.12);
-            background: linear-gradient(0deg, rgba(0, 0, 0, 0.08), rgba(0, 0, 0, 0.08)), var(--button-bg);
-        }
-
-        &:focus {
-            box-sizing: border-box;
-            padding: 10px 18px;
-            border: 2px solid var(--sidebar-text-active-border);
-            box-shadow: none;
-        }
-    }
-
-    &__cancel-btn {
-        padding: 12px 20px 12px 20px;
-        border: none;
-        background: rgba(var(--button-bg-rgb), 0.08);
-        border-radius: 4px;
-        color: var(--button-bg);
-        font-size: 14px;
-        font-weight: 600;
-        line-height: 14px;
-        text-transform: capitalize;
-
-        &:hover,
-        &:active {
-            background: rgba(var(--button-bg-rgb), 0.12);
-        }
-    }
-
     &__divider {
-        border-bottom: 1px solid rgba(var(--center-channel-color-rgb), 0.08);
+        border-bottom: var(--border-light);
     }
 
     @media screen and (max-width: 768px) {
@@ -124,8 +100,7 @@
 
         .modal-content {
             display: flex;
-            height: 100vh;
-            max-height: unset;
+            max-height: 100vh;
             flex-direction: column;
             border-radius: unset;
         }
@@ -134,6 +109,18 @@
     @media screen and (max-height: 900px) and (min-width: 768px) {
         .modal-content {
             max-height: calc(100vh - 160px);
+        }
+    }
+
+    @media screen and (max-height: 600px) and (min-width: 768px) {
+        .modal-content, .GenericModal__wrapper {
+            max-height: 85vh !important;
+        }
+    }
+
+    @media screen and (max-width: 640px) {
+        .GenericModal__wrapper {
+            max-height: unset !important;
         }
     }
 }

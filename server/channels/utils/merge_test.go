@@ -11,6 +11,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
+	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/v8/channels/utils"
 )
 
@@ -63,9 +64,9 @@ func TestMergeWithMaps(t *testing.T) {
 	})
 
 	t.Run("merge map[string]*int patch with different keys and values", func(t *testing.T) {
-		m1 := map[string]*int{"this": newInt(1), "is": newInt(3), "a key": newInt(3)}
-		m2 := map[string]*int{"this": newInt(2), "is": newInt(3), "a key": newInt(4)}
-		expected := map[string]*int{"this": newInt(2), "is": newInt(3), "a key": newInt(4)}
+		m1 := map[string]*int{"this": newPointer(1), "is": newPointer(3), "a key": newPointer(3)}
+		m2 := map[string]*int{"this": newPointer(2), "is": newPointer(3), "a key": newPointer(4)}
+		expected := map[string]*int{"this": newPointer(2), "is": newPointer(3), "a key": newPointer(4)}
 
 		merged, err := mergeStringPtrIntMap(m1, m2)
 		require.NoError(t, err)
@@ -74,9 +75,9 @@ func TestMergeWithMaps(t *testing.T) {
 	})
 
 	t.Run("merge map[string]*int patch has nil keys -- doesn't matter, maps overwrite completely", func(t *testing.T) {
-		m1 := map[string]*int{"this": newInt(1), "is": newInt(3), "a key": newInt(3)}
-		m2 := map[string]*int{"this": newInt(1), "is": nil, "a key": newInt(3)}
-		expected := map[string]*int{"this": newInt(1), "is": nil, "a key": newInt(3)}
+		m1 := map[string]*int{"this": newPointer(1), "is": newPointer(3), "a key": newPointer(3)}
+		m2 := map[string]*int{"this": newPointer(1), "is": nil, "a key": newPointer(3)}
+		expected := map[string]*int{"this": newPointer(1), "is": nil, "a key": newPointer(3)}
 
 		merged, err := mergeStringPtrIntMap(m1, m2)
 		require.NoError(t, err)
@@ -85,9 +86,9 @@ func TestMergeWithMaps(t *testing.T) {
 	})
 
 	t.Run("merge map[string]*int base has nil vals -- overwrite base with patch", func(t *testing.T) {
-		m1 := map[string]*int{"this": newInt(1), "is": nil, "base key": newInt(4)}
-		m2 := map[string]*int{"this": newInt(1), "is": newInt(3), "a key": newInt(3)}
-		expected := map[string]*int{"this": newInt(1), "is": newInt(3), "a key": newInt(3)}
+		m1 := map[string]*int{"this": newPointer(1), "is": nil, "base key": newPointer(4)}
+		m2 := map[string]*int{"this": newPointer(1), "is": newPointer(3), "a key": newPointer(3)}
+		expected := map[string]*int{"this": newPointer(1), "is": newPointer(3), "a key": newPointer(3)}
 
 		merged, err := mergeStringPtrIntMap(m1, m2)
 		require.NoError(t, err)
@@ -96,9 +97,9 @@ func TestMergeWithMaps(t *testing.T) {
 	})
 
 	t.Run("merge map[string]*int base has nil vals -- but patch is nil, so keep base", func(t *testing.T) {
-		m1 := map[string]*int{"this": newInt(1), "is": nil, "base key": newInt(4)}
+		m1 := map[string]*int{"this": newPointer(1), "is": nil, "base key": newPointer(4)}
 		var m2 map[string]*int
-		expected := map[string]*int{"this": newInt(1), "is": nil, "base key": newInt(4)}
+		expected := map[string]*int{"this": newPointer(1), "is": nil, "base key": newPointer(4)}
 
 		merged, err := mergeStringPtrIntMap(m1, m2)
 		require.NoError(t, err)
@@ -108,9 +109,9 @@ func TestMergeWithMaps(t *testing.T) {
 
 	t.Run("merge map[string]*int pointers are not copied - change in base do not affect merged", func(t *testing.T) {
 		// that should never happen, since patch overwrites completely
-		m1 := map[string]*int{"this": newInt(1), "is": newInt(3), "a key": newInt(4)}
-		m2 := map[string]*int{"this": newInt(1), "a key": newInt(5)}
-		expected := map[string]*int{"this": newInt(1), "a key": newInt(5)}
+		m1 := map[string]*int{"this": newPointer(1), "is": newPointer(3), "a key": newPointer(4)}
+		m2 := map[string]*int{"this": newPointer(1), "a key": newPointer(5)}
+		expected := map[string]*int{"this": newPointer(1), "a key": newPointer(5)}
 
 		merged, err := mergeStringPtrIntMap(m1, m2)
 		require.NoError(t, err)
@@ -121,9 +122,9 @@ func TestMergeWithMaps(t *testing.T) {
 	})
 
 	t.Run("merge map[string]*int pointers are not copied - change in patched do not affect merged", func(t *testing.T) {
-		m1 := map[string]*int{"this": newInt(1), "is": newInt(3), "a key": newInt(4)}
-		m2 := map[string]*int{"this": newInt(2), "a key": newInt(5)}
-		expected := map[string]*int{"this": newInt(2), "a key": newInt(5)}
+		m1 := map[string]*int{"this": newPointer(1), "is": newPointer(3), "a key": newPointer(4)}
+		m2 := map[string]*int{"this": newPointer(2), "a key": newPointer(5)}
+		expected := map[string]*int{"this": newPointer(2), "a key": newPointer(5)}
 
 		merged, err := mergeStringPtrIntMap(m1, m2)
 		require.NoError(t, err)
@@ -204,9 +205,9 @@ func TestMergeWithMaps(t *testing.T) {
 	})
 
 	t.Run("merge map[string]map[string]*int", func(t *testing.T) {
-		m1 := map[string]map[string]*int{"this": {"second": newInt(99)}, "base": {"level": newInt(10)}}
-		m2 := map[string]map[string]*int{"this": {"second": newInt(77)}, "patch": {"level": newInt(15)}}
-		expected := map[string]map[string]*int{"this": {"second": newInt(77)}, "patch": {"level": newInt(15)}}
+		m1 := map[string]map[string]*int{"this": {"second": newPointer(99)}, "base": {"level": newPointer(10)}}
+		m2 := map[string]map[string]*int{"this": {"second": newPointer(77)}, "patch": {"level": newPointer(15)}}
+		expected := map[string]map[string]*int{"this": {"second": newPointer(77)}, "patch": {"level": newPointer(15)}}
 
 		merged, err := mergeMapOfMap(m1, m2)
 		require.NoError(t, err)
@@ -215,9 +216,9 @@ func TestMergeWithMaps(t *testing.T) {
 	})
 
 	t.Run("merge map[string]map[string]*int, patch has nil keys -- /do/ overwrite base with nil", func(t *testing.T) {
-		m1 := map[string]map[string]*int{"this": {"second": newInt(99)}, "base": {"level": newInt(10)}}
-		m2 := map[string]map[string]*int{"this": {"second": nil}, "base": nil, "patch": {"level": newInt(15)}}
-		expected := map[string]map[string]*int{"this": {"second": nil}, "base": nil, "patch": {"level": newInt(15)}}
+		m1 := map[string]map[string]*int{"this": {"second": newPointer(99)}, "base": {"level": newPointer(10)}}
+		m2 := map[string]map[string]*int{"this": {"second": nil}, "base": nil, "patch": {"level": newPointer(15)}}
+		expected := map[string]map[string]*int{"this": {"second": nil}, "base": nil, "patch": {"level": newPointer(15)}}
 
 		merged, err := mergeMapOfMap(m1, m2)
 		require.NoError(t, err)
@@ -227,8 +228,8 @@ func TestMergeWithMaps(t *testing.T) {
 
 	t.Run("merge map[string]map[string]*int, base has nil vals -- overwrite base with patch", func(t *testing.T) {
 		m1 := map[string]map[string]*int{"this": {"second": nil}, "base": nil}
-		m2 := map[string]map[string]*int{"this": {"second": newInt(77)}, "base": {"level": newInt(10)}, "patch": {"level": newInt(15)}}
-		expected := map[string]map[string]*int{"this": {"second": newInt(77)}, "base": {"level": newInt(10)}, "patch": {"level": newInt(15)}}
+		m2 := map[string]map[string]*int{"this": {"second": newPointer(77)}, "base": {"level": newPointer(10)}, "patch": {"level": newPointer(15)}}
+		expected := map[string]map[string]*int{"this": {"second": newPointer(77)}, "base": {"level": newPointer(10)}, "patch": {"level": newPointer(15)}}
 
 		merged, err := mergeMapOfMap(m1, m2)
 		require.NoError(t, err)
@@ -238,9 +239,9 @@ func TestMergeWithMaps(t *testing.T) {
 
 	t.Run("merge map[string]map[string]*int, pointers are not copied - change in base does not affect merged", func(t *testing.T) {
 		// shouldn't, if we're overwriting completely
-		m1 := map[string]map[string]*int{"this": {"second": newInt(99)}, "base": {"level": newInt(10)}, "are belong": {"to us": newInt(23)}}
-		m2 := map[string]map[string]*int{"base": {"level": newInt(10)}}
-		expected := map[string]map[string]*int{"base": {"level": newInt(10)}}
+		m1 := map[string]map[string]*int{"this": {"second": newPointer(99)}, "base": {"level": newPointer(10)}, "are belong": {"to us": newPointer(23)}}
+		m2 := map[string]map[string]*int{"base": {"level": newPointer(10)}}
+		expected := map[string]map[string]*int{"base": {"level": newPointer(10)}}
 
 		merged, err := mergeMapOfMap(m1, m2)
 		require.NoError(t, err)
@@ -252,20 +253,20 @@ func TestMergeWithMaps(t *testing.T) {
 		assert.Equal(t, 10, *merged["base"]["level"])
 
 		// test replacing map entry
-		m1["base"]["level"] = newInt(12)
+		m1["base"]["level"] = newPointer(12)
 		assert.Equal(t, 10, *merged["base"]["level"])
 
 		// test replacing a referenced map
-		m1["base"] = map[string]*int{"third": newInt(777)}
+		m1["base"] = map[string]*int{"third": newPointer(777)}
 		assert.Equal(t, 10, *merged["base"]["level"])
 	})
 
 	t.Run("merge map[string]map[string]*int, pointers are not copied - change in patch do not affect merged", func(t *testing.T) {
-		m1 := map[string]map[string]*int{"base": {"level": newInt(15)}}
-		m2 := map[string]map[string]*int{"this": {"second": newInt(99)}, "patch": {"level": newInt(10)},
-			"are belong": {"to us": newInt(23)}}
-		expected := map[string]map[string]*int{"this": {"second": newInt(99)}, "patch": {"level": newInt(10)},
-			"are belong": {"to us": newInt(23)}}
+		m1 := map[string]map[string]*int{"base": {"level": newPointer(15)}}
+		m2 := map[string]map[string]*int{"this": {"second": newPointer(99)}, "patch": {"level": newPointer(10)},
+			"are belong": {"to us": newPointer(23)}}
+		expected := map[string]map[string]*int{"this": {"second": newPointer(99)}, "patch": {"level": newPointer(10)},
+			"are belong": {"to us": newPointer(23)}}
 
 		merged, err := mergeMapOfMap(m1, m2)
 		require.NoError(t, err)
@@ -273,11 +274,11 @@ func TestMergeWithMaps(t *testing.T) {
 		assert.Equal(t, expected, merged)
 
 		// test replacing a referenced map
-		m2["this"] = map[string]*int{"third": newInt(777)}
+		m2["this"] = map[string]*int{"third": newPointer(777)}
 		assert.Equal(t, 99, *merged["this"]["second"])
 
 		// test replacing map entry
-		m2["patch"]["level"] = newInt(12)
+		m2["patch"]["level"] = newPointer(12)
 		assert.Equal(t, 10, *merged["patch"]["level"])
 
 		// test changing the map entry's referenced value
@@ -286,12 +287,12 @@ func TestMergeWithMaps(t *testing.T) {
 	})
 
 	t.Run("merge map[string]any", func(t *testing.T) {
-		m1 := map[string]any{"this": map[string]*int{"second": newInt(99)},
-			"base": map[string]*int{"level": newInt(10)}}
-		m2 := map[string]any{"this": map[string]*int{"second": newInt(77)},
-			"patch": map[string]*int{"level": newInt(15)}}
-		expected := map[string]any{"this": map[string]*int{"second": newInt(77)},
-			"patch": map[string]*int{"level": newInt(15)}}
+		m1 := map[string]any{"this": map[string]*int{"second": newPointer(99)},
+			"base": map[string]*int{"level": newPointer(10)}}
+		m2 := map[string]any{"this": map[string]*int{"second": newPointer(77)},
+			"patch": map[string]*int{"level": newPointer(15)}}
+		expected := map[string]any{"this": map[string]*int{"second": newPointer(77)},
+			"patch": map[string]*int{"level": newPointer(15)}}
 
 		merged, err := mergeInterfaceMap(m1, m2)
 		require.NoError(t, err)
@@ -300,7 +301,7 @@ func TestMergeWithMaps(t *testing.T) {
 	})
 
 	t.Run("merge map[string]any, patch has nil keys -- /do/ overwrite base with nil", func(t *testing.T) {
-		m1 := map[string]any{"this": map[string]*int{"second": newInt(99)}}
+		m1 := map[string]any{"this": map[string]*int{"second": newPointer(99)}}
 		m2 := map[string]any{"this": map[string]*int{"second": nil}}
 		expected := map[string]any{"this": map[string]*int{"second": nil}}
 
@@ -311,12 +312,12 @@ func TestMergeWithMaps(t *testing.T) {
 	})
 
 	t.Run("merge map[string]any, patch has nil keys -- /do/ overwrite base with nil (more complex)", func(t *testing.T) {
-		m1 := map[string]any{"this": map[string]*int{"second": newInt(99)},
-			"base": map[string]*int{"level": newInt(10)}}
+		m1 := map[string]any{"this": map[string]*int{"second": newPointer(99)},
+			"base": map[string]*int{"level": newPointer(10)}}
 		m2 := map[string]any{"this": map[string]*int{"second": nil},
-			"base": nil, "patch": map[string]*int{"level": newInt(15)}}
+			"base": nil, "patch": map[string]*int{"level": newPointer(15)}}
 		expected := map[string]any{"this": map[string]*int{"second": nil},
-			"base": nil, "patch": map[string]*int{"level": newInt(15)}}
+			"base": nil, "patch": map[string]*int{"level": newPointer(15)}}
 
 		merged, err := mergeInterfaceMap(m1, m2)
 		require.NoError(t, err)
@@ -326,8 +327,8 @@ func TestMergeWithMaps(t *testing.T) {
 
 	t.Run("merge map[string]map[string]*int, base has nil vals -- overwrite base with patch", func(t *testing.T) {
 		m1 := map[string]any{"base": nil}
-		m2 := map[string]any{"base": map[string]*int{"level": newInt(10)}}
-		expected := map[string]any{"base": map[string]*int{"level": newInt(10)}}
+		m2 := map[string]any{"base": map[string]*int{"level": newPointer(10)}}
+		expected := map[string]any{"base": map[string]*int{"level": newPointer(10)}}
 
 		merged, err := mergeInterfaceMap(m1, m2)
 		require.NoError(t, err)
@@ -337,10 +338,10 @@ func TestMergeWithMaps(t *testing.T) {
 
 	t.Run("merge map[string]map[string]*int, base has nil vals -- overwrite base with patch (more complex)", func(t *testing.T) {
 		m1 := map[string]any{"this": map[string]*int{"second": nil}, "base": nil}
-		m2 := map[string]any{"this": map[string]*int{"second": newInt(77)},
-			"base": map[string]*int{"level": newInt(10)}, "patch": map[string]*int{"level": newInt(15)}}
-		expected := map[string]any{"this": map[string]*int{"second": newInt(77)},
-			"base": map[string]*int{"level": newInt(10)}, "patch": map[string]*int{"level": newInt(15)}}
+		m2 := map[string]any{"this": map[string]*int{"second": newPointer(77)},
+			"base": map[string]*int{"level": newPointer(10)}, "patch": map[string]*int{"level": newPointer(15)}}
+		expected := map[string]any{"this": map[string]*int{"second": newPointer(77)},
+			"base": map[string]*int{"level": newPointer(10)}, "patch": map[string]*int{"level": newPointer(15)}}
 
 		merged, err := mergeInterfaceMap(m1, m2)
 		require.NoError(t, err)
@@ -349,12 +350,12 @@ func TestMergeWithMaps(t *testing.T) {
 	})
 
 	t.Run("merge map[string]any, pointers are not copied - changes in base do not affect merged", func(t *testing.T) {
-		m1 := map[string]any{"this": map[string]*int{"second": newInt(99)},
-			"base": map[string]*int{"level": newInt(10)}, "are belong": map[string]*int{"to us": newInt(23)}}
-		m2 := map[string]any{"this": map[string]*int{"second": newInt(99)},
-			"base": map[string]*int{"level": newInt(10)}, "are belong": map[string]*int{"to us": newInt(23)}}
-		expected := map[string]any{"this": map[string]*int{"second": newInt(99)},
-			"base": map[string]*int{"level": newInt(10)}, "are belong": map[string]*int{"to us": newInt(23)}}
+		m1 := map[string]any{"this": map[string]*int{"second": newPointer(99)},
+			"base": map[string]*int{"level": newPointer(10)}, "are belong": map[string]*int{"to us": newPointer(23)}}
+		m2 := map[string]any{"this": map[string]*int{"second": newPointer(99)},
+			"base": map[string]*int{"level": newPointer(10)}, "are belong": map[string]*int{"to us": newPointer(23)}}
+		expected := map[string]any{"this": map[string]*int{"second": newPointer(99)},
+			"base": map[string]*int{"level": newPointer(10)}, "are belong": map[string]*int{"to us": newPointer(23)}}
 
 		merged, err := mergeInterfaceMap(m1, m2)
 		require.NoError(t, err)
@@ -362,11 +363,11 @@ func TestMergeWithMaps(t *testing.T) {
 		assert.Equal(t, expected, merged)
 
 		// test replacing a referenced map
-		m1["this"] = map[string]*int{"third": newInt(777)}
+		m1["this"] = map[string]*int{"third": newPointer(777)}
 		assert.Equal(t, 99, *merged["this"].(map[string]*int)["second"])
 
 		// test replacing map entry
-		m1["base"].(map[string]*int)["level"] = newInt(12)
+		m1["base"].(map[string]*int)["level"] = newPointer(12)
 		assert.Equal(t, 10, *merged["base"].(map[string]*int)["level"])
 
 		// test changing the map entry's referenced value
@@ -375,11 +376,11 @@ func TestMergeWithMaps(t *testing.T) {
 	})
 
 	t.Run("merge map[string]any, pointers are not copied - change in patch do not affect merged", func(t *testing.T) {
-		m1 := map[string]any{"base": map[string]*int{"level": newInt(15)}}
-		m2 := map[string]any{"this": map[string]*int{"second": newInt(99)},
-			"patch": map[string]*int{"level": newInt(10)}, "are belong": map[string]*int{"to us": newInt(23)}}
-		expected := map[string]any{"this": map[string]*int{"second": newInt(99)},
-			"patch": map[string]*int{"level": newInt(10)}, "are belong": map[string]*int{"to us": newInt(23)}}
+		m1 := map[string]any{"base": map[string]*int{"level": newPointer(15)}}
+		m2 := map[string]any{"this": map[string]*int{"second": newPointer(99)},
+			"patch": map[string]*int{"level": newPointer(10)}, "are belong": map[string]*int{"to us": newPointer(23)}}
+		expected := map[string]any{"this": map[string]*int{"second": newPointer(99)},
+			"patch": map[string]*int{"level": newPointer(10)}, "are belong": map[string]*int{"to us": newPointer(23)}}
 
 		merged, err := mergeInterfaceMap(m1, m2)
 		require.NoError(t, err)
@@ -387,11 +388,11 @@ func TestMergeWithMaps(t *testing.T) {
 		assert.Equal(t, expected, merged)
 
 		// test replacing a referenced map
-		m2["this"] = map[string]*int{"third": newInt(777)}
+		m2["this"] = map[string]*int{"third": newPointer(777)}
 		assert.Equal(t, 99, *merged["this"].(map[string]*int)["second"])
 
 		// test replacing map entry
-		m2["patch"].(map[string]*int)["level"] = newInt(12)
+		m2["patch"].(map[string]*int)["level"] = newPointer(12)
 		assert.Equal(t, 10, *merged["patch"].(map[string]*int)["level"])
 
 		// test changing the map entry's referenced value
@@ -581,9 +582,9 @@ func (e *evenSimpler2) String() string {
 
 func TestMergeWithEvenSimpler(t *testing.T) {
 	t.Run("evenSimplerStruct: base nils are overwritten by patch", func(t *testing.T) {
-		t1 := evenSimpler{newBool(true), &evenSimpler2{nil}}
-		t2 := evenSimpler{newBool(false), &evenSimpler2{newString("patch")}}
-		expected := evenSimpler{newBool(false), &evenSimpler2{newString("patch")}}
+		t1 := evenSimpler{newPointer(true), &evenSimpler2{nil}}
+		t2 := evenSimpler{newPointer(false), &evenSimpler2{newPointer("patch")}}
+		expected := evenSimpler{newPointer(false), &evenSimpler2{newPointer("patch")}}
 
 		merged, err := mergeEvenSimpler(t1, t2)
 		require.NoError(t, err)
@@ -592,9 +593,9 @@ func TestMergeWithEvenSimpler(t *testing.T) {
 	})
 
 	t.Run("evenSimplerStruct: patch nils are ignored", func(t *testing.T) {
-		t1 := evenSimpler{newBool(true), &evenSimpler2{newString("base")}}
+		t1 := evenSimpler{newPointer(true), &evenSimpler2{newPointer("base")}}
 		t2 := evenSimpler{nil, &evenSimpler2{nil}}
-		expected := evenSimpler{newBool(true), &evenSimpler2{newString("base")}}
+		expected := evenSimpler{newPointer(true), &evenSimpler2{newPointer("base")}}
 
 		merged, err := mergeEvenSimpler(t1, t2)
 		require.NoError(t, err)
@@ -614,9 +615,9 @@ func TestMergeWithEvenSimpler(t *testing.T) {
 	})
 
 	t.Run("evenSimplerStruct: can handle both nils (ptr to ptr), merged will have nil (not zero value)", func(t *testing.T) {
-		t1 := evenSimpler{newBool(true), nil}
-		t2 := evenSimpler{newBool(true), nil}
-		expected := evenSimpler{newBool(true), nil}
+		t1 := evenSimpler{newPointer(true), nil}
+		t2 := evenSimpler{newPointer(true), nil}
+		expected := evenSimpler{newPointer(true), nil}
 
 		merged, err := mergeEvenSimpler(t1, t2)
 		require.NoError(t, err)
@@ -625,9 +626,9 @@ func TestMergeWithEvenSimpler(t *testing.T) {
 	})
 
 	t.Run("evenSimplerStruct: base nils (ptr to ptr) are overwritten by patch", func(t *testing.T) {
-		t1 := evenSimpler{newBool(true), nil}
-		t2 := evenSimpler{newBool(false), &evenSimpler2{newString("patch")}}
-		expected := evenSimpler{newBool(false), &evenSimpler2{newString("patch")}}
+		t1 := evenSimpler{newPointer(true), nil}
+		t2 := evenSimpler{newPointer(false), &evenSimpler2{newPointer("patch")}}
+		expected := evenSimpler{newPointer(false), &evenSimpler2{newPointer("patch")}}
 
 		merged, err := mergeEvenSimpler(t1, t2)
 		require.NoError(t, err)
@@ -636,9 +637,9 @@ func TestMergeWithEvenSimpler(t *testing.T) {
 	})
 
 	t.Run("evenSimplerStruct: base nils (ptr to ptr) are overwritten by patch, and not copied - changes in patch don't affect merged", func(t *testing.T) {
-		t1 := evenSimpler{newBool(true), nil}
-		t2 := evenSimpler{newBool(false), &evenSimpler2{newString("patch")}}
-		expected := evenSimpler{newBool(false), &evenSimpler2{newString("patch")}}
+		t1 := evenSimpler{newPointer(true), nil}
+		t2 := evenSimpler{newPointer(false), &evenSimpler2{newPointer("patch")}}
+		expected := evenSimpler{newPointer(false), &evenSimpler2{newPointer("patch")}}
 
 		merged, err := mergeEvenSimpler(t1, t2)
 		require.NoError(t, err)
@@ -649,9 +650,9 @@ func TestMergeWithEvenSimpler(t *testing.T) {
 	})
 
 	t.Run("evenSimplerStruct: patch nils (ptr to ptr) do not overwrite base, and are not copied - changes in base don't affect merged", func(t *testing.T) {
-		t1 := evenSimpler{newBool(true), &evenSimpler2{newString("base")}}
-		t2 := evenSimpler{newBool(false), nil}
-		expected := evenSimpler{newBool(false), &evenSimpler2{newString("base")}}
+		t1 := evenSimpler{newPointer(true), &evenSimpler2{newPointer("base")}}
+		t2 := evenSimpler{newPointer(false), nil}
+		expected := evenSimpler{newPointer(false), &evenSimpler2{newPointer("base")}}
 
 		merged, err := mergeEvenSimpler(t1, t2)
 		require.NoError(t, err)
@@ -734,7 +735,7 @@ type mapPtr struct {
 
 func TestMergeWithMapPtr(t *testing.T) {
 	t.Run("patch nils overwrite - mapPtr - maps overwrite completely", func(t *testing.T) {
-		t1 := mapPtr{map[string]*evenSimpler2{"base key": {newString("base")}}}
+		t1 := mapPtr{map[string]*evenSimpler2{"base key": {newPointer("base")}}}
 		t2 := mapPtr{map[string]*evenSimpler2{"base key": {nil}}}
 		expected := mapPtr{map[string]*evenSimpler2{"base key": {nil}}}
 
@@ -745,7 +746,7 @@ func TestMergeWithMapPtr(t *testing.T) {
 	})
 
 	t.Run("patch nil structs are ignored - mapPtr - maps overwrite ", func(t *testing.T) {
-		t1 := mapPtr{map[string]*evenSimpler2{"base key": {newString("base")}}}
+		t1 := mapPtr{map[string]*evenSimpler2{"base key": {newPointer("base")}}}
 		t2 := mapPtr{map[string]*evenSimpler2{"base key": nil}}
 		expected := mapPtr{map[string]*evenSimpler2{"base key": nil}}
 
@@ -776,18 +777,18 @@ func TestMergeWithMapPtrState(t *testing.T) {
 	})
 
 	t.Run("merge identical structs - simple", func(t *testing.T) {
-		t1 := simple{42, 42.2, newFloat64(932.2), newInt(45), newBool(true),
+		t1 := simple{42, 42.2, newPointer[float64](932.2), newPointer(45), newPointer(true),
 			[]int{1, 2, 3}, map[string]int{"key1": 1, "key2": 2},
-			simple2{30, newString("test"), []string{"test1", "test2"}},
-			&simple2{40, newString("test2"), []string{"test3", "test4", "test5"}}}
-		t2 := simple{42, 42.2, newFloat64(932.2), newInt(45), newBool(true),
+			simple2{30, newPointer("test"), []string{"test1", "test2"}},
+			&simple2{40, newPointer("test2"), []string{"test3", "test4", "test5"}}}
+		t2 := simple{42, 42.2, newPointer[float64](932.2), newPointer(45), newPointer(true),
 			[]int{1, 2, 3}, map[string]int{"key1": 1, "key2": 2},
-			simple2{30, newString("test"), []string{"test1", "test2"}},
-			&simple2{40, newString("test2"), []string{"test3", "test4", "test5"}}}
-		expected := simple{42, 0, nil, newInt(45), newBool(true),
+			simple2{30, newPointer("test"), []string{"test1", "test2"}},
+			&simple2{40, newPointer("test2"), []string{"test3", "test4", "test5"}}}
+		expected := simple{42, 0, nil, newPointer(45), newPointer(true),
 			[]int{1, 2, 3}, map[string]int{"key1": 1, "key2": 2},
-			simple2{30, newString("test"), []string{"test1", "test2"}},
-			&simple2{40, newString("test2"), []string{"test3", "test4", "test5"}}}
+			simple2{30, newPointer("test"), []string{"test1", "test2"}},
+			&simple2{40, newPointer("test2"), []string{"test3", "test4", "test5"}}}
 
 		merged, err := mergeSimple(t1, t2)
 		require.NoError(t, err)
@@ -796,18 +797,18 @@ func TestMergeWithMapPtrState(t *testing.T) {
 	})
 
 	t.Run("base nils are overwritten by patch", func(t *testing.T) {
-		t1 := simple{42, 42.2, newFloat64(932.2), newInt(45), nil,
+		t1 := simple{42, 42.2, newPointer[float64](932.2), newPointer(45), nil,
 			[]int{1, 2, 3}, nil,
 			simple2{30, nil, nil},
 			nil}
-		t2 := simple{42, 42.2, newFloat64(932.2), newInt(45), newBool(true),
+		t2 := simple{42, 42.2, newPointer[float64](932.2), newPointer(45), newPointer(true),
 			[]int{1, 2, 3}, map[string]int{"key1": 1, "key2": 2},
-			simple2{30, newString("test"), []string{"test1", "test2"}},
-			&simple2{40, newString("test2"), []string{"test3", "test4", "test5"}}}
-		expected := simple{42, 0, nil, newInt(45), newBool(true),
+			simple2{30, newPointer("test"), []string{"test1", "test2"}},
+			&simple2{40, newPointer("test2"), []string{"test3", "test4", "test5"}}}
+		expected := simple{42, 0, nil, newPointer(45), newPointer(true),
 			[]int{1, 2, 3}, map[string]int{"key1": 1, "key2": 2},
-			simple2{30, newString("test"), []string{"test1", "test2"}},
-			&simple2{40, newString("test2"), []string{"test3", "test4", "test5"}}}
+			simple2{30, newPointer("test"), []string{"test1", "test2"}},
+			&simple2{40, newPointer("test2"), []string{"test3", "test4", "test5"}}}
 
 		merged, err := mergeSimple(t1, t2)
 		require.NoError(t, err)
@@ -826,7 +827,7 @@ type state2 struct {
 
 func TestMergeWithMapPtrState2(t *testing.T) {
 	t.Run("inside structs, maps overwrite completely - mapPtrState2", func(t *testing.T) {
-		t1 := mapPtrState2{map[string]*state2{"base key": {true, newBool(true)}}}
+		t1 := mapPtrState2{map[string]*state2{"base key": {true, newPointer(true)}}}
 		t2 := mapPtrState2{map[string]*state2{"base key": {false, nil}}}
 		expected := mapPtrState2{map[string]*state2{"base key": {false, nil}}}
 
@@ -837,7 +838,7 @@ func TestMergeWithMapPtrState2(t *testing.T) {
 	})
 
 	t.Run("inside structs, maps overwrite completely - mapPtrState2 2", func(t *testing.T) {
-		t1 := mapPtrState2{map[string]*state2{"base key": {true, newBool(true)}}} //
+		t1 := mapPtrState2{map[string]*state2{"base key": {true, newPointer(true)}}} //
 		t2 := mapPtrState2{map[string]*state2{"base key": nil}}
 		expected := mapPtrState2{map[string]*state2{"base key": nil}}
 
@@ -868,18 +869,18 @@ type simple2 struct {
 
 func TestMergeWithSimpleStruct(t *testing.T) {
 	t.Run("patch nils are ignored", func(t *testing.T) {
-		t1 := simple{42, 42.2, newFloat64(932.2), newInt(45), newBool(true),
+		t1 := simple{42, 42.2, newPointer[float64](932.2), newPointer(45), newPointer(true),
 			[]int{1, 2, 3}, map[string]int{"key1": 1, "key2": 2},
-			simple2{30, newString("test base"), []string{"test1", "test2"}},
-			&simple2{40, newString("test2"), []string{"test3", "test4", "test5"}}}
-		t2 := simple{42, 42.2, newFloat64(932.2), nil, nil,
+			simple2{30, newPointer("test base"), []string{"test1", "test2"}},
+			&simple2{40, newPointer("test2"), []string{"test3", "test4", "test5"}}}
+		t2 := simple{42, 42.2, newPointer[float64](932.2), nil, nil,
 			nil, nil,
 			simple2{30, nil, nil},
 			&simple2{42, nil, nil}}
-		expected := simple{42, 0, nil, newInt(45), newBool(true),
+		expected := simple{42, 0, nil, newPointer(45), newPointer(true),
 			[]int{1, 2, 3}, map[string]int{"key1": 1, "key2": 2},
-			simple2{30, newString("test base"), []string{"test1", "test2"}},
-			&simple2{42, newString("test2"), []string{"test3", "test4", "test5"}}}
+			simple2{30, newPointer("test base"), []string{"test1", "test2"}},
+			&simple2{42, newPointer("test2"), []string{"test3", "test4", "test5"}}}
 
 		merged, err := mergeSimple(t1, t2)
 		require.NoError(t, err)
@@ -888,18 +889,18 @@ func TestMergeWithSimpleStruct(t *testing.T) {
 	})
 
 	t.Run("patch nilled structs are ignored", func(t *testing.T) {
-		t1 := simple{42, 42.2, newFloat64(932.2), newInt(45), newBool(true),
+		t1 := simple{42, 42.2, newPointer[float64](932.2), newPointer(45), newPointer(true),
 			[]int{1, 2, 3}, map[string]int{"key1": 1, "key2": 2},
-			simple2{30, newString("test base"), []string{"test1", "test2"}},
-			&simple2{40, newString("test2"), []string{"test3", "test4", "test5"}}}
-		t2 := simple{42, 42.2, newFloat64(932.2), newInt(45), newBool(true),
+			simple2{30, newPointer("test base"), []string{"test1", "test2"}},
+			&simple2{40, newPointer("test2"), []string{"test3", "test4", "test5"}}}
+		t2 := simple{42, 42.2, newPointer[float64](932.2), newPointer(45), newPointer(true),
 			[]int{1, 2, 3}, map[string]int{"key1": 1, "key2": 2},
-			simple2{30, newString("test base"), []string{"test1", "test2"}},
+			simple2{30, newPointer("test base"), []string{"test1", "test2"}},
 			nil}
-		expected := simple{42, 0, nil, newInt(45), newBool(true),
+		expected := simple{42, 0, nil, newPointer(45), newPointer(true),
 			[]int{1, 2, 3}, map[string]int{"key1": 1, "key2": 2},
-			simple2{30, newString("test base"), []string{"test1", "test2"}},
-			&simple2{40, newString("test2"), []string{"test3", "test4", "test5"}}}
+			simple2{30, newPointer("test base"), []string{"test1", "test2"}},
+			&simple2{40, newPointer("test2"), []string{"test3", "test4", "test5"}}}
 
 		merged, err := mergeSimple(t1, t2)
 		require.NoError(t, err)
@@ -908,15 +909,15 @@ func TestMergeWithSimpleStruct(t *testing.T) {
 	})
 
 	t.Run("can handle both nils", func(t *testing.T) {
-		t1 := simple{42, 42.2, newFloat64(932.2), newInt(45), nil,
+		t1 := simple{42, 42.2, newPointer[float64](932.2), newPointer(45), nil,
 			[]int{1, 2, 3}, nil,
 			simple2{30, nil, nil},
 			nil}
-		t2 := simple{42, 42.2, newFloat64(932.2), newInt(45), nil,
+		t2 := simple{42, 42.2, newPointer[float64](932.2), newPointer(45), nil,
 			[]int{1, 2, 3}, nil,
 			simple2{30, nil, nil},
 			nil}
-		expected := simple{42, 0, nil, newInt(45), nil,
+		expected := simple{42, 0, nil, newPointer(45), nil,
 			[]int{1, 2, 3}, nil,
 			simple2{30, nil, nil},
 			nil}
@@ -928,18 +929,18 @@ func TestMergeWithSimpleStruct(t *testing.T) {
 	})
 
 	t.Run("different base vals are overwritten by patch, and unexported fields are ignored", func(t *testing.T) {
-		t1 := simple{42, 42.2, newFloat64(932.2), newInt(45), newBool(true),
+		t1 := simple{42, 42.2, newPointer[float64](932.2), newPointer(45), newPointer(true),
 			[]int{1, 2, 3}, map[string]int{"key1": 1, "key2": 2},
-			simple2{30, newString("test"), []string{"test1", "test2"}},
-			&simple2{40, newString("test2"), []string{"test3", "test4", "test5"}}}
-		t2 := simple{13, 53.1, newFloat64(932.2), newInt(46), newBool(false),
+			simple2{30, newPointer("test"), []string{"test1", "test2"}},
+			&simple2{40, newPointer("test2"), []string{"test3", "test4", "test5"}}}
+		t2 := simple{13, 53.1, newPointer[float64](932.2), newPointer(46), newPointer(false),
 			[]int{1, 2, 3}, map[string]int{"key1": 1, "key2": 2},
-			simple2{30, newString("testpatch"), []string{"test1", "test99"}},
+			simple2{30, newPointer("testpatch"), []string{"test1", "test99"}},
 			&simple2{45, nil, []string{"test3", "test123", "test5"}}}
-		expected := simple{13, 0, nil, newInt(46), newBool(false),
+		expected := simple{13, 0, nil, newPointer(46), newPointer(false),
 			[]int{1, 2, 3}, map[string]int{"key1": 1, "key2": 2},
-			simple2{30, newString("testpatch"), []string{"test1", "test99"}},
-			&simple2{45, newString("test2"), []string{"test3", "test123", "test5"}}}
+			simple2{30, newPointer("testpatch"), []string{"test1", "test99"}},
+			&simple2{45, newPointer("test2"), []string{"test3", "test123", "test5"}}}
 
 		merged, err := mergeSimple(t1, t2)
 		require.NoError(t, err)
@@ -949,18 +950,18 @@ func TestMergeWithSimpleStruct(t *testing.T) {
 	})
 
 	t.Run("pointers are not being copied or modified", func(t *testing.T) {
-		t1 := simple{42, 42.2, newFloat64(932.2), newInt(99), newBool(true),
+		t1 := simple{42, 42.2, newPointer[float64](932.2), newPointer(99), newPointer(true),
 			[]int{1, 2, 3}, map[string]int{"key1": 1, "key2": 2},
-			simple2{30, newString("test"), []string{"test1", "test2"}},
-			&simple2{40, newString("test2"), []string{"test3", "test4", "test5"}}}
-		t2 := simple{13, 53.1, newFloat64(932.2), nil, newBool(false),
+			simple2{30, newPointer("test"), []string{"test1", "test2"}},
+			&simple2{40, newPointer("test2"), []string{"test3", "test4", "test5"}}}
+		t2 := simple{13, 53.1, newPointer[float64](932.2), nil, newPointer(false),
 			[]int{1, 2, 3}, map[string]int{"key1": 1, "key2": 2},
-			simple2{30, newString("testpatch"), []string{"test1", "test2"}},
+			simple2{30, newPointer("testpatch"), []string{"test1", "test2"}},
 			&simple2{45, nil, []string{"test3", "test4", "test5"}}}
-		expected := simple{13, 0, nil, newInt(99), newBool(false),
+		expected := simple{13, 0, nil, newPointer(99), newPointer(false),
 			[]int{1, 2, 3}, map[string]int{"key1": 1, "key2": 2},
-			simple2{30, newString("testpatch"), []string{"test1", "test2"}},
-			&simple2{45, newString("test2"), []string{"test3", "test4", "test5"}}}
+			simple2{30, newPointer("testpatch"), []string{"test1", "test2"}},
+			&simple2{45, newPointer("test2"), []string{"test3", "test4", "test5"}}}
 
 		merged, err := mergeSimple(t1, t2)
 		require.NoError(t, err)
@@ -986,18 +987,18 @@ func TestMergeWithSimpleStruct(t *testing.T) {
 	})
 
 	t.Run("slices are not being copied or modified", func(t *testing.T) {
-		t1 := simple{42, 42.2, newFloat64(932.2), newInt(99), newBool(true),
+		t1 := simple{42, 42.2, newPointer[float64](932.2), newPointer(99), newPointer(true),
 			[]int{1, 2, 3}, map[string]int{"key1": 1, "key2": 2},
-			simple2{30, newString("test"), []string{"test1", "test2"}},
-			&simple2{40, newString("test2"), []string{"test3", "test4", "test5"}}}
-		t2 := simple{13, 53.1, newFloat64(932.2), nil, newBool(false),
+			simple2{30, newPointer("test"), []string{"test1", "test2"}},
+			&simple2{40, newPointer("test2"), []string{"test3", "test4", "test5"}}}
+		t2 := simple{13, 53.1, newPointer[float64](932.2), nil, newPointer(false),
 			[]int{1, 2, 3}, map[string]int{"key1": 1, "key2": 2},
-			simple2{30, newString("testpatch"), nil},
+			simple2{30, newPointer("testpatch"), nil},
 			&simple2{45, nil, []string{"test3", "test4", "test99"}}}
-		expected := simple{13, 0, nil, newInt(99), newBool(false),
+		expected := simple{13, 0, nil, newPointer(99), newPointer(false),
 			[]int{1, 2, 3}, map[string]int{"key1": 1, "key2": 2},
-			simple2{30, newString("testpatch"), []string{"test1", "test2"}},
-			&simple2{45, newString("test2"), []string{"test3", "test4", "test99"}}}
+			simple2{30, newPointer("testpatch"), []string{"test1", "test2"}},
+			&simple2{45, newPointer("test2"), []string{"test3", "test4", "test99"}}}
 
 		merged, err := mergeSimple(t1, t2)
 		require.NoError(t, err)
@@ -1019,18 +1020,18 @@ func TestMergeWithSimpleStruct(t *testing.T) {
 	})
 
 	t.Run("maps are not being copied or modified: base -> merged", func(t *testing.T) {
-		t1 := simple{42, 42.2, newFloat64(932.2), newInt(99), newBool(true),
+		t1 := simple{42, 42.2, newPointer[float64](932.2), newPointer(99), newPointer(true),
 			[]int{1, 2, 3}, map[string]int{"key1": 1, "key2": 2},
-			simple2{30, newString("test"), []string{"test1", "test2"}},
-			&simple2{40, newString("test2"), []string{"test3", "test4", "test5"}}}
-		t2 := simple{13, 53.1, newFloat64(932.2), nil, newBool(false),
+			simple2{30, newPointer("test"), []string{"test1", "test2"}},
+			&simple2{40, newPointer("test2"), []string{"test3", "test4", "test5"}}}
+		t2 := simple{13, 53.1, newPointer[float64](932.2), nil, newPointer(false),
 			[]int{1, 2, 3}, map[string]int{"key1": 1, "key2": 2},
-			simple2{30, newString("testpatch"), []string{"test1", "test2"}},
+			simple2{30, newPointer("testpatch"), []string{"test1", "test2"}},
 			&simple2{45, nil, []string{"test3", "test4", "test99"}}}
-		expected := simple{13, 0, nil, newInt(99), newBool(false),
+		expected := simple{13, 0, nil, newPointer(99), newPointer(false),
 			[]int{1, 2, 3}, map[string]int{"key1": 1, "key2": 2},
-			simple2{30, newString("testpatch"), []string{"test1", "test2"}},
-			&simple2{45, newString("test2"), []string{"test3", "test4", "test99"}}}
+			simple2{30, newPointer("testpatch"), []string{"test1", "test2"}},
+			&simple2{45, newPointer("test2"), []string{"test3", "test4", "test99"}}}
 
 		merged, err := mergeSimple(t1, t2)
 		require.NoError(t, err)
@@ -1047,18 +1048,18 @@ func TestMergeWithSimpleStruct(t *testing.T) {
 	})
 
 	t.Run("patch map overwrites", func(t *testing.T) {
-		t1 := simple{42, 42.2, newFloat64(932.2), newInt(99), newBool(true),
+		t1 := simple{42, 42.2, newPointer[float64](932.2), newPointer(99), newPointer(true),
 			[]int{1, 2, 3}, map[string]int{"key1": 1, "key2": 2, "key4": 4},
-			simple2{30, newString("test"), []string{"test1", "test2"}},
-			&simple2{40, newString("test2"), []string{"test3", "test4", "test5"}}}
-		t2 := simple{13, 53.1, newFloat64(932.2), nil, newBool(false),
+			simple2{30, newPointer("test"), []string{"test1", "test2"}},
+			&simple2{40, newPointer("test2"), []string{"test3", "test4", "test5"}}}
+		t2 := simple{13, 53.1, newPointer[float64](932.2), nil, newPointer(false),
 			[]int{1, 2, 3}, map[string]int{"key1": 11, "key2": 2, "key3": 3},
-			simple2{30, newString("testpatch"), []string{"test1", "test2"}},
+			simple2{30, newPointer("testpatch"), []string{"test1", "test2"}},
 			&simple2{45, nil, []string{"test3", "test4", "test99"}}}
-		expected := simple{13, 0, nil, newInt(99), newBool(false),
+		expected := simple{13, 0, nil, newPointer(99), newPointer(false),
 			[]int{1, 2, 3}, map[string]int{"key1": 11, "key2": 2, "key3": 3},
-			simple2{30, newString("testpatch"), []string{"test1", "test2"}},
-			&simple2{45, newString("test2"), []string{"test3", "test4", "test99"}}}
+			simple2{30, newPointer("testpatch"), []string{"test1", "test2"}},
+			&simple2{45, newPointer("test2"), []string{"test3", "test4", "test99"}}}
 
 		merged, err := mergeSimple(t1, t2)
 		require.NoError(t, err)
@@ -1093,9 +1094,21 @@ func TestMergeWithVeryComplexStruct(t *testing.T) {
 		setupStructs(t)
 
 		base.F = 1342.12
-		base.Struct1.Pi = newInt(937)
+		base.Struct1.Pi = newPointer(937)
 		base.Struct1p.UI = 734
 		base.Struct1.Struct2.Sli = []int{123123, 1243123}
+
+		merged, err := mergeTestStructs(base, patch)
+		require.NoError(t, err)
+
+		assert.NotEqual(t, base, *merged)
+		assert.Equal(t, patch, *merged)
+	})
+
+	t.Run("blank string in patch overwrites base string b/c empty string is not nil", func(t *testing.T) {
+		setupStructs(t)
+
+		patch.S = ""
 
 		merged, err := mergeTestStructs(base, patch)
 		require.NoError(t, err)
@@ -1162,9 +1175,9 @@ func TestMergeWithVeryComplexStruct(t *testing.T) {
 
 func TestMergeWithStructFieldFilter(t *testing.T) {
 	t.Run("filter skips merging from patch", func(t *testing.T) {
-		t1 := evenSimpler{newBool(true), &evenSimpler2{newString("base")}}
-		t2 := evenSimpler{newBool(false), &evenSimpler2{newString("patch")}}
-		expected := evenSimpler{newBool(true), &evenSimpler2{newString("base")}}
+		t1 := evenSimpler{newPointer(true), &evenSimpler2{newPointer("base")}}
+		t2 := evenSimpler{newPointer(false), &evenSimpler2{newPointer("patch")}}
+		expected := evenSimpler{newPointer(true), &evenSimpler2{newPointer("base")}}
 
 		merged, err := mergeEvenSimplerWithConfig(t1, t2, &utils.MergeConfig{
 			StructFieldFilter: func(structField reflect.StructField, base, patch reflect.Value) bool {
@@ -1177,9 +1190,9 @@ func TestMergeWithStructFieldFilter(t *testing.T) {
 	})
 
 	t.Run("filter skips merging configured fields from patch", func(t *testing.T) {
-		t1 := evenSimpler{newBool(true), &evenSimpler2{newString("base")}}
-		t2 := evenSimpler{newBool(false), &evenSimpler2{newString("patch")}}
-		expected := evenSimpler{newBool(false), &evenSimpler2{newString("base")}}
+		t1 := evenSimpler{newPointer(true), &evenSimpler2{newPointer("base")}}
+		t2 := evenSimpler{newPointer(false), &evenSimpler2{newPointer("patch")}}
+		expected := evenSimpler{newPointer(false), &evenSimpler2{newPointer("base")}}
 
 		merged, err := mergeEvenSimplerWithConfig(t1, t2, &utils.MergeConfig{
 			StructFieldFilter: func(structField reflect.StructField, base, patch reflect.Value) bool {
@@ -1323,221 +1336,221 @@ func setupStructs(t *testing.T) {
 	t.Helper()
 
 	baseStructEmbed2A = testStructEmbed2{1, 2, 3, 4, 5, 1.1, 2.2, "test", 10, 11, 12, 12, 13,
-		newInt(14), newInt8(15), newInt16(16), newInt32(17), newInt64(18),
-		newFloat64(19.9), newFloat32(20.1), newString("test pointer"),
-		newUint(21), newUint8(22), newUint16(23), newUint32(24), newUint64(25),
+		newPointer(14), newPointer[int8](15), newPointer[int16](16), newPointer[int32](17), newPointer[int64](18),
+		newPointer[float64](19.9), newPointer[float32](20.1), newPointer("test pointer"),
+		newPointer[uint](21), newPointer[uint8](22), newPointer[uint16](23), newPointer[uint32](24), newPointer[uint64](25),
 		[]string{"test", "slice", "strings"}, []int{1, 2, 3, 4}, []float64{1.1, 2.2, 3.3},
 		map[string]int{"this": 1, "is": 2, "a": 3, "map": 4}, map[int]string{1: "this", 2: "is", 3: "another"},
-		map[string]*int{"wow": newInt(1), "a map": newInt(2), "of pointers!": newInt(3)},
-		map[int]*string{1: newString("Another"), 2: newString("map of"), 3: newString("pointers, wow!")},
+		map[string]*int{"wow": newPointer(1), "a map": newPointer(2), "of pointers!": newPointer(3)},
+		map[int]*string{1: newPointer("Another"), 2: newPointer("map of"), 3: newPointer("pointers, wow!")},
 	}
 
 	baseStructEmbed2B = testStructEmbed2{1, 2, 3, 4, 5, 1.1, 2.2, "test", 10, 11, 12, 12, 13,
-		newInt(14), newInt8(15), newInt16(16), newInt32(17), newInt64(18),
-		newFloat64(19.9), newFloat32(20.1), newString("test pointer"),
-		newUint(21), newUint8(22), newUint16(23), newUint32(24), newUint64(25),
+		newPointer(14), newPointer[int8](15), newPointer[int16](16), newPointer[int32](17), newPointer[int64](18),
+		newPointer[float64](19.9), newPointer[float32](20.1), newPointer("test pointer"),
+		newPointer[uint](21), newPointer[uint8](22), newPointer[uint16](23), newPointer[uint32](24), newPointer[uint64](25),
 		[]string{"test", "slice", "strings"}, []int{1, 2, 3, 4}, []float64{1.1, 2.2, 3.3},
 		map[string]int{"this": 1, "is": 2, "a": 3, "map": 4}, map[int]string{1: "this", 2: "is", 3: "another"},
-		map[string]*int{"wow": newInt(1), "a map": newInt(2), "of pointers!": newInt(3)},
-		map[int]*string{1: newString("Another"), 2: newString("map of"), 3: newString("pointers, wow!")},
+		map[string]*int{"wow": newPointer(1), "a map": newPointer(2), "of pointers!": newPointer(3)},
+		map[int]*string{1: newPointer("Another"), 2: newPointer("map of"), 3: newPointer("pointers, wow!")},
 	}
 
 	baseStructEmbed2C = testStructEmbed2{1, 2, 3, 4, 5, 1.1, 2.2, "test", 10, 11, 12, 12, 13,
-		newInt(14), newInt8(15), newInt16(16), newInt32(17), newInt64(18),
-		newFloat64(19.9), newFloat32(20.1), newString("test pointer"),
-		newUint(21), newUint8(22), newUint16(23), newUint32(24), newUint64(25),
+		newPointer(14), newPointer[int8](15), newPointer[int16](16), newPointer[int32](17), newPointer[int64](18),
+		newPointer[float64](19.9), newPointer[float32](20.1), newPointer("test pointer"),
+		newPointer[uint](21), newPointer[uint8](22), newPointer[uint16](23), newPointer[uint32](24), newPointer[uint64](25),
 		[]string{"test", "slice", "strings"}, []int{1, 2, 3, 4}, []float64{1.1, 2.2, 3.3},
 		map[string]int{"this": 1, "is": 2, "a": 3, "map": 4}, map[int]string{1: "this", 2: "is", 3: "another"},
-		map[string]*int{"wow": newInt(1), "a map": newInt(2), "of pointers!": newInt(3)},
-		map[int]*string{1: newString("Another"), 2: newString("map of"), 3: newString("pointers, wow!")},
+		map[string]*int{"wow": newPointer(1), "a map": newPointer(2), "of pointers!": newPointer(3)},
+		map[int]*string{1: newPointer("Another"), 2: newPointer("map of"), 3: newPointer("pointers, wow!")},
 	}
 
 	baseStructEmbed2D = testStructEmbed2{1, 2, 3, 4, 5, 1.1, 2.2, "test", 10, 11, 12, 12, 13,
-		newInt(14), newInt8(15), newInt16(16), newInt32(17), newInt64(18),
-		newFloat64(19.9), newFloat32(20.1), newString("test pointer"),
-		newUint(21), newUint8(22), newUint16(23), newUint32(24), newUint64(25),
+		newPointer(14), newPointer[int8](15), newPointer[int16](16), newPointer[int32](17), newPointer[int64](18),
+		newPointer[float64](19.9), newPointer[float32](20.1), newPointer("test pointer"),
+		newPointer[uint](21), newPointer[uint8](22), newPointer[uint16](23), newPointer[uint32](24), newPointer[uint64](25),
 		[]string{"test", "slice", "strings"}, []int{1, 2, 3, 4}, []float64{1.1, 2.2, 3.3},
 		map[string]int{"this": 1, "is": 2, "a": 3, "map": 4}, map[int]string{1: "this", 2: "is", 3: "another"},
-		map[string]*int{"wow": newInt(1), "a map": newInt(2), "of pointers!": newInt(3)},
-		map[int]*string{1: newString("Another"), 2: newString("map of"), 3: newString("pointers, wow!")},
+		map[string]*int{"wow": newPointer(1), "a map": newPointer(2), "of pointers!": newPointer(3)},
+		map[int]*string{1: newPointer("Another"), 2: newPointer("map of"), 3: newPointer("pointers, wow!")},
 	}
 
 	baseStructEmbedBaseA = testStructEmbed{1, 2, 3, 4, 5, 1.1, 2.2, "test", 10, 11, 12, 12, 13,
-		newInt(14), newInt8(15), newInt16(16), newInt32(17), newInt64(18),
-		newFloat64(19.9), newFloat32(20.1), newString("test pointer"),
-		newUint(21), newUint8(22), newUint16(23), newUint32(24), newUint64(25),
+		newPointer(14), newPointer[int8](15), newPointer[int16](16), newPointer[int32](17), newPointer[int64](18),
+		newPointer[float64](19.9), newPointer[float32](20.1), newPointer("test pointer"),
+		newPointer[uint](21), newPointer[uint8](22), newPointer[uint16](23), newPointer[uint32](24), newPointer[uint64](25),
 		[]string{"test", "slice", "strings"}, []int{1, 2, 3, 4}, []float64{1.1, 2.2, 3.3},
 		map[string]int{"this": 1, "is": 2, "a": 3, "map": 4}, map[int]string{1: "this", 2: "is", 3: "another"},
-		map[string]*int{"wow": newInt(1), "a map": newInt(2), "of pointers!": newInt(3)},
-		map[int]*string{1: newString("Another"), 2: newString("map of"), 3: newString("pointers, wow!")},
+		map[string]*int{"wow": newPointer(1), "a map": newPointer(2), "of pointers!": newPointer(3)},
+		map[int]*string{1: newPointer("Another"), 2: newPointer("map of"), 3: newPointer("pointers, wow!")},
 		baseStructEmbed2A, &baseStructEmbed2B,
 	}
 
 	baseStructEmbedBaseB = testStructEmbed{1, 2, 3, 4, 5, 1.1, 2.2, "test", 10, 11, 12, 12, 13,
-		newInt(14), newInt8(15), newInt16(16), newInt32(17), newInt64(18),
-		newFloat64(19.9), newFloat32(20.1), newString("test pointer"),
-		newUint(21), newUint8(22), newUint16(23), newUint32(24), newUint64(25),
+		newPointer(14), newPointer[int8](15), newPointer[int16](16), newPointer[int32](17), newPointer[int64](18),
+		newPointer[float64](19.9), newPointer[float32](20.1), newPointer("test pointer"),
+		newPointer[uint](21), newPointer[uint8](22), newPointer[uint16](23), newPointer[uint32](24), newPointer[uint64](25),
 		[]string{"test", "slice", "strings"}, []int{1, 2, 3, 4}, []float64{1.1, 2.2, 3.3},
 		map[string]int{"this": 1, "is": 2, "a": 3, "map": 4}, map[int]string{1: "this", 2: "is", 3: "another"},
-		map[string]*int{"wow": newInt(1), "a map": newInt(2), "of pointers!": newInt(3)},
-		map[int]*string{1: newString("Another"), 2: newString("map of"), 3: newString("pointers, wow!")},
+		map[string]*int{"wow": newPointer(1), "a map": newPointer(2), "of pointers!": newPointer(3)},
+		map[int]*string{1: newPointer("Another"), 2: newPointer("map of"), 3: newPointer("pointers, wow!")},
 		baseStructEmbed2C, &baseStructEmbed2D,
 	}
 
 	base = testStruct{1, 2, 3, 4, 5, 1.1, 2.2, "test", 10, 11, 12, 12, 13,
-		newInt(14), newInt8(15), newInt16(16), newInt32(17), newInt64(18),
-		newFloat64(19.9), newFloat32(20.1), newString("test pointer"),
-		newUint(21), newUint8(22), newUint16(23), newUint32(24), newUint64(25),
+		newPointer(14), newPointer[int8](15), newPointer[int16](16), newPointer[int32](17), newPointer[int64](18),
+		newPointer[float64](19.9), newPointer[float32](20.1), newPointer("test pointer"),
+		newPointer[uint](21), newPointer[uint8](22), newPointer[uint16](23), newPointer[uint32](24), newPointer[uint64](25),
 		[]string{"test", "slice", "strings"}, []int{1, 2, 3, 4}, []float64{1.1, 2.2, 3.3},
 		map[string]int{"this": 1, "is": 2, "a": 3, "map": 4}, map[int]string{1: "this", 2: "is", 3: "another"},
-		map[string]*int{"wow": newInt(1), "a map": newInt(2), "of pointers!": newInt(3)},
-		map[int]*string{1: newString("Another"), 2: newString("map of"), 3: newString("pointers, wow!")},
+		map[string]*int{"wow": newPointer(1), "a map": newPointer(2), "of pointers!": newPointer(3)},
+		map[int]*string{1: newPointer("Another"), 2: newPointer("map of"), 3: newPointer("pointers, wow!")},
 		baseStructEmbedBaseA, &baseStructEmbedBaseB,
 	}
 
 	patchStructEmbed2A = testStructEmbed2{1, 2, 3, 4, 5, 1.1, 2.2, "test", 10, 11, 12, 12, 13,
-		newInt(14), newInt8(15), newInt16(16), newInt32(17), newInt64(18),
-		newFloat64(19.9), newFloat32(20.1), newString("test pointer"),
-		newUint(21), newUint8(22), newUint16(23), newUint32(24), newUint64(25),
+		newPointer(14), newPointer[int8](15), newPointer[int16](16), newPointer[int32](17), newPointer[int64](18),
+		newPointer[float64](19.9), newPointer[float32](20.1), newPointer("test pointer"),
+		newPointer[uint](21), newPointer[uint8](22), newPointer[uint16](23), newPointer[uint32](24), newPointer[uint64](25),
 		[]string{"test", "slice", "strings"}, []int{1, 2, 3, 4}, []float64{1.1, 2.2, 3.3},
 		map[string]int{"this": 1, "is": 2, "a": 3, "map": 4}, map[int]string{1: "this", 2: "is", 3: "another"},
-		map[string]*int{"wow": newInt(1), "a map": newInt(2), "of pointers!": newInt(3)},
-		map[int]*string{1: newString("Another"), 2: newString("map of"), 3: newString("pointers, wow!")},
+		map[string]*int{"wow": newPointer(1), "a map": newPointer(2), "of pointers!": newPointer(3)},
+		map[int]*string{1: newPointer("Another"), 2: newPointer("map of"), 3: newPointer("pointers, wow!")},
 	}
 
 	patchStructEmbed2B = testStructEmbed2{1, 2, 3, 4, 5, 1.1, 2.2, "test", 10, 11, 12, 12, 13,
-		newInt(14), newInt8(15), newInt16(16), newInt32(17), newInt64(18),
-		newFloat64(19.9), newFloat32(20.1), newString("test pointer"),
-		newUint(21), newUint8(22), newUint16(23), newUint32(24), newUint64(25),
+		newPointer(14), newPointer[int8](15), newPointer[int16](16), newPointer[int32](17), newPointer[int64](18),
+		newPointer[float64](19.9), newPointer[float32](20.1), newPointer("test pointer"),
+		newPointer[uint](21), newPointer[uint8](22), newPointer[uint16](23), newPointer[uint32](24), newPointer[uint64](25),
 		[]string{"test", "slice", "strings"}, []int{1, 2, 3, 4}, []float64{1.1, 2.2, 3.3},
 		map[string]int{"this": 1, "is": 2, "a": 3, "map": 4}, map[int]string{1: "this", 2: "is", 3: "another"},
-		map[string]*int{"wow": newInt(1), "a map": newInt(2), "of pointers!": newInt(3)},
-		map[int]*string{1: newString("Another"), 2: newString("map of"), 3: newString("pointers, wow!")},
+		map[string]*int{"wow": newPointer(1), "a map": newPointer(2), "of pointers!": newPointer(3)},
+		map[int]*string{1: newPointer("Another"), 2: newPointer("map of"), 3: newPointer("pointers, wow!")},
 	}
 
 	patchStructEmbed2C = testStructEmbed2{1, 2, 3, 4, 5, 1.1, 2.2, "test", 10, 11, 12, 12, 13,
-		newInt(14), newInt8(15), newInt16(16), newInt32(17), newInt64(18),
-		newFloat64(19.9), newFloat32(20.1), newString("test pointer"),
-		newUint(21), newUint8(22), newUint16(23), newUint32(24), newUint64(25),
+		newPointer(14), newPointer[int8](15), newPointer[int16](16), newPointer[int32](17), newPointer[int64](18),
+		newPointer[float64](19.9), newPointer[float32](20.1), newPointer("test pointer"),
+		newPointer[uint](21), newPointer[uint8](22), newPointer[uint16](23), newPointer[uint32](24), newPointer[uint64](25),
 		[]string{"test", "slice", "strings"}, []int{1, 2, 3, 4}, []float64{1.1, 2.2, 3.3},
 		map[string]int{"this": 1, "is": 2, "a": 3, "map": 4}, map[int]string{1: "this", 2: "is", 3: "another"},
-		map[string]*int{"wow": newInt(1), "a map": newInt(2), "of pointers!": newInt(3)},
-		map[int]*string{1: newString("Another"), 2: newString("map of"), 3: newString("pointers, wow!")},
+		map[string]*int{"wow": newPointer(1), "a map": newPointer(2), "of pointers!": newPointer(3)},
+		map[int]*string{1: newPointer("Another"), 2: newPointer("map of"), 3: newPointer("pointers, wow!")},
 	}
 
 	patchStructEmbed2D = testStructEmbed2{1, 2, 3, 4, 5, 1.1, 2.2, "test", 10, 11, 12, 12, 13,
-		newInt(14), newInt8(15), newInt16(16), newInt32(17), newInt64(18),
-		newFloat64(19.9), newFloat32(20.1), newString("test pointer"),
-		newUint(21), newUint8(22), newUint16(23), newUint32(24), newUint64(25),
+		newPointer(14), newPointer[int8](15), newPointer[int16](16), newPointer[int32](17), newPointer[int64](18),
+		newPointer[float64](19.9), newPointer[float32](20.1), newPointer("test pointer"),
+		newPointer[uint](21), newPointer[uint8](22), newPointer[uint16](23), newPointer[uint32](24), newPointer[uint64](25),
 		[]string{"test", "slice", "strings"}, []int{1, 2, 3, 4}, []float64{1.1, 2.2, 3.3},
 		map[string]int{"this": 1, "is": 2, "a": 3, "map": 4}, map[int]string{1: "this", 2: "is", 3: "another"},
-		map[string]*int{"wow": newInt(1), "a map": newInt(2), "of pointers!": newInt(3)},
-		map[int]*string{1: newString("Another"), 2: newString("map of"), 3: newString("pointers, wow!")},
+		map[string]*int{"wow": newPointer(1), "a map": newPointer(2), "of pointers!": newPointer(3)},
+		map[int]*string{1: newPointer("Another"), 2: newPointer("map of"), 3: newPointer("pointers, wow!")},
 	}
 
 	patchStructEmbedBaseA = testStructEmbed{1, 2, 3, 4, 5, 1.1, 2.2, "test", 10, 11, 12, 12, 13,
-		newInt(14), newInt8(15), newInt16(16), newInt32(17), newInt64(18),
-		newFloat64(19.9), newFloat32(20.1), newString("test pointer"),
-		newUint(21), newUint8(22), newUint16(23), newUint32(24), newUint64(25),
+		newPointer(14), newPointer[int8](15), newPointer[int16](16), newPointer[int32](17), newPointer[int64](18),
+		newPointer[float64](19.9), newPointer[float32](20.1), newPointer("test pointer"),
+		newPointer[uint](21), newPointer[uint8](22), newPointer[uint16](23), newPointer[uint32](24), newPointer[uint64](25),
 		[]string{"test", "slice", "strings"}, []int{1, 2, 3, 4}, []float64{1.1, 2.2, 3.3},
 		map[string]int{"this": 1, "is": 2, "a": 3, "map": 4}, map[int]string{1: "this", 2: "is", 3: "another"},
-		map[string]*int{"wow": newInt(1), "a map": newInt(2), "of pointers!": newInt(3)},
-		map[int]*string{1: newString("Another"), 2: newString("map of"), 3: newString("pointers, wow!")},
+		map[string]*int{"wow": newPointer(1), "a map": newPointer(2), "of pointers!": newPointer(3)},
+		map[int]*string{1: newPointer("Another"), 2: newPointer("map of"), 3: newPointer("pointers, wow!")},
 		patchStructEmbed2A, &patchStructEmbed2B,
 	}
 
 	patchStructEmbedBaseB = testStructEmbed{1, 2, 3, 4, 5, 1.1, 2.2, "test", 10, 11, 12, 12, 13,
-		newInt(14), newInt8(15), newInt16(16), newInt32(17), newInt64(18),
-		newFloat64(19.9), newFloat32(20.1), newString("test pointer"),
-		newUint(21), newUint8(22), newUint16(23), newUint32(24), newUint64(25),
+		newPointer(14), newPointer[int8](15), newPointer[int16](16), newPointer[int32](17), newPointer[int64](18),
+		newPointer[float64](19.9), newPointer[float32](20.1), newPointer("test pointer"),
+		newPointer[uint](21), newPointer[uint8](22), newPointer[uint16](23), newPointer[uint32](24), newPointer[uint64](25),
 		[]string{"test", "slice", "strings"}, []int{1, 2, 3, 4}, []float64{1.1, 2.2, 3.3},
 		map[string]int{"this": 1, "is": 2, "a": 3, "map": 4}, map[int]string{1: "this", 2: "is", 3: "another"},
-		map[string]*int{"wow": newInt(1), "a map": newInt(2), "of pointers!": newInt(3)},
-		map[int]*string{1: newString("Another"), 2: newString("map of"), 3: newString("pointers, wow!")},
+		map[string]*int{"wow": newPointer(1), "a map": newPointer(2), "of pointers!": newPointer(3)},
+		map[int]*string{1: newPointer("Another"), 2: newPointer("map of"), 3: newPointer("pointers, wow!")},
 		patchStructEmbed2C, &patchStructEmbed2D,
 	}
 
 	patch = testStruct{1, 2, 3, 4, 5, 1.1, 2.2, "test", 10, 11, 12, 12, 13,
-		newInt(14), newInt8(15), newInt16(16), newInt32(17), newInt64(18),
-		newFloat64(19.9), newFloat32(20.1), newString("test pointer"),
-		newUint(21), newUint8(22), newUint16(23), newUint32(24), newUint64(25),
+		newPointer(14), newPointer[int8](15), newPointer[int16](16), newPointer[int32](17), newPointer[int64](18),
+		newPointer[float64](19.9), newPointer[float32](20.1), newPointer("test pointer"),
+		newPointer[uint](21), newPointer[uint8](22), newPointer[uint16](23), newPointer[uint32](24), newPointer[uint64](25),
 		[]string{"test", "slice", "strings"}, []int{1, 2, 3, 4}, []float64{1.1, 2.2, 3.3},
 		map[string]int{"this": 1, "is": 2, "a": 3, "map": 4}, map[int]string{1: "this", 2: "is", 3: "another"},
-		map[string]*int{"wow": newInt(1), "a map": newInt(2), "of pointers!": newInt(3)},
-		map[int]*string{1: newString("Another"), 2: newString("map of"), 3: newString("pointers, wow!")},
+		map[string]*int{"wow": newPointer(1), "a map": newPointer(2), "of pointers!": newPointer(3)},
+		map[int]*string{1: newPointer("Another"), 2: newPointer("map of"), 3: newPointer("pointers, wow!")},
 		patchStructEmbedBaseA, &patchStructEmbedBaseB,
 	}
 
 	mergeStructEmbed2A = testStructEmbed2{1, 2, 3, 4, 5, 1.1, 2.2, "test", 10, 11, 12, 12, 13,
-		newInt(14), newInt8(15), newInt16(16), newInt32(17), newInt64(18),
-		newFloat64(19.9), newFloat32(20.1), newString("test pointer"),
-		newUint(21), newUint8(22), newUint16(23), newUint32(24), newUint64(25),
+		newPointer(14), newPointer[int8](15), newPointer[int16](16), newPointer[int32](17), newPointer[int64](18),
+		newPointer[float64](19.9), newPointer[float32](20.1), newPointer("test pointer"),
+		newPointer[uint](21), newPointer[uint8](22), newPointer[uint16](23), newPointer[uint32](24), newPointer[uint64](25),
 		[]string{"test", "slice", "strings"}, []int{1, 2, 3, 4}, []float64{1.1, 2.2, 3.3},
 		map[string]int{"this": 1, "is": 2, "a": 3, "map": 4}, map[int]string{1: "this", 2: "is", 3: "another"},
-		map[string]*int{"wow": newInt(1), "a map": newInt(2), "of pointers!": newInt(3)},
-		map[int]*string{1: newString("Another"), 2: newString("map of"), 3: newString("pointers, wow!")},
+		map[string]*int{"wow": newPointer(1), "a map": newPointer(2), "of pointers!": newPointer(3)},
+		map[int]*string{1: newPointer("Another"), 2: newPointer("map of"), 3: newPointer("pointers, wow!")},
 	}
 
 	mergeStructEmbed2B = testStructEmbed2{1, 2, 3, 4, 5, 1.1, 2.2, "test", 10, 11, 12, 12, 13,
-		newInt(14), newInt8(15), newInt16(16), newInt32(17), newInt64(18),
-		newFloat64(19.9), newFloat32(20.1), newString("test pointer"),
-		newUint(21), newUint8(22), newUint16(23), newUint32(24), newUint64(25),
+		newPointer(14), newPointer[int8](15), newPointer[int16](16), newPointer[int32](17), newPointer[int64](18),
+		newPointer[float64](19.9), newPointer[float32](20.1), newPointer("test pointer"),
+		newPointer[uint](21), newPointer[uint8](22), newPointer[uint16](23), newPointer[uint32](24), newPointer[uint64](25),
 		[]string{"test", "slice", "strings"}, []int{1, 2, 3, 4}, []float64{1.1, 2.2, 3.3},
 		map[string]int{"this": 1, "is": 2, "a": 3, "map": 4}, map[int]string{1: "this", 2: "is", 3: "another"},
-		map[string]*int{"wow": newInt(1), "a map": newInt(2), "of pointers!": newInt(3)},
-		map[int]*string{1: newString("Another"), 2: newString("map of"), 3: newString("pointers, wow!")},
+		map[string]*int{"wow": newPointer(1), "a map": newPointer(2), "of pointers!": newPointer(3)},
+		map[int]*string{1: newPointer("Another"), 2: newPointer("map of"), 3: newPointer("pointers, wow!")},
 	}
 
 	mergeStructEmbed2C = testStructEmbed2{1, 2, 3, 4, 5, 1.1, 2.2, "test", 10, 11, 12, 12, 13,
-		newInt(14), newInt8(15), newInt16(16), newInt32(17), newInt64(18),
-		newFloat64(19.9), newFloat32(20.1), newString("test pointer"),
-		newUint(21), newUint8(22), newUint16(23), newUint32(24), newUint64(25),
+		newPointer(14), newPointer[int8](15), newPointer[int16](16), newPointer[int32](17), newPointer[int64](18),
+		newPointer[float64](19.9), newPointer[float32](20.1), newPointer("test pointer"),
+		newPointer[uint](21), newPointer[uint8](22), newPointer[uint16](23), newPointer[uint32](24), newPointer[uint64](25),
 		[]string{"test", "slice", "strings"}, []int{1, 2, 3, 4}, []float64{1.1, 2.2, 3.3},
 		map[string]int{"this": 1, "is": 2, "a": 3, "map": 4}, map[int]string{1: "this", 2: "is", 3: "another"},
-		map[string]*int{"wow": newInt(1), "a map": newInt(2), "of pointers!": newInt(3)},
-		map[int]*string{1: newString("Another"), 2: newString("map of"), 3: newString("pointers, wow!")},
+		map[string]*int{"wow": newPointer(1), "a map": newPointer(2), "of pointers!": newPointer(3)},
+		map[int]*string{1: newPointer("Another"), 2: newPointer("map of"), 3: newPointer("pointers, wow!")},
 	}
 
 	mergeStructEmbed2D = testStructEmbed2{1, 2, 3, 4, 5, 1.1, 2.2, "test", 10, 11, 12, 12, 13,
-		newInt(14), newInt8(15), newInt16(16), newInt32(17), newInt64(18),
-		newFloat64(19.9), newFloat32(20.1), newString("test pointer"),
-		newUint(21), newUint8(22), newUint16(23), newUint32(24), newUint64(25),
+		newPointer(14), newPointer[int8](15), newPointer[int16](16), newPointer[int32](17), newPointer[int64](18),
+		newPointer[float64](19.9), newPointer[float32](20.1), newPointer("test pointer"),
+		newPointer[uint](21), newPointer[uint8](22), newPointer[uint16](23), newPointer[uint32](24), newPointer[uint64](25),
 		[]string{"test", "slice", "strings"}, []int{1, 2, 3, 4}, []float64{1.1, 2.2, 3.3},
 		map[string]int{"this": 1, "is": 2, "a": 3, "map": 4}, map[int]string{1: "this", 2: "is", 3: "another"},
-		map[string]*int{"wow": newInt(1), "a map": newInt(2), "of pointers!": newInt(3)},
-		map[int]*string{1: newString("Another"), 2: newString("map of"), 3: newString("pointers, wow!")},
+		map[string]*int{"wow": newPointer(1), "a map": newPointer(2), "of pointers!": newPointer(3)},
+		map[int]*string{1: newPointer("Another"), 2: newPointer("map of"), 3: newPointer("pointers, wow!")},
 	}
 
 	mergeStructEmbedBaseA = testStructEmbed{1, 2, 3, 4, 5, 1.1, 2.2, "test", 10, 11, 12, 12, 13,
-		newInt(14), newInt8(15), newInt16(16), newInt32(17), newInt64(18),
-		newFloat64(19.9), newFloat32(20.1), newString("test pointer"),
-		newUint(21), newUint8(22), newUint16(23), newUint32(24), newUint64(25),
+		newPointer(14), newPointer[int8](15), newPointer[int16](16), newPointer[int32](17), newPointer[int64](18),
+		newPointer[float64](19.9), newPointer[float32](20.1), newPointer("test pointer"),
+		newPointer[uint](21), newPointer[uint8](22), newPointer[uint16](23), newPointer[uint32](24), newPointer[uint64](25),
 		[]string{"test", "slice", "strings"}, []int{1, 2, 3, 4}, []float64{1.1, 2.2, 3.3},
 		map[string]int{"this": 1, "is": 2, "a": 3, "map": 4}, map[int]string{1: "this", 2: "is", 3: "another"},
-		map[string]*int{"wow": newInt(1), "a map": newInt(2), "of pointers!": newInt(3)},
-		map[int]*string{1: newString("Another"), 2: newString("map of"), 3: newString("pointers, wow!")},
+		map[string]*int{"wow": newPointer(1), "a map": newPointer(2), "of pointers!": newPointer(3)},
+		map[int]*string{1: newPointer("Another"), 2: newPointer("map of"), 3: newPointer("pointers, wow!")},
 		mergeStructEmbed2A, &mergeStructEmbed2B,
 	}
 
 	mergeStructEmbedBaseB = testStructEmbed{1, 2, 3, 4, 5, 1.1, 2.2, "test", 10, 11, 12, 12, 13,
-		newInt(14), newInt8(15), newInt16(16), newInt32(17), newInt64(18),
-		newFloat64(19.9), newFloat32(20.1), newString("test pointer"),
-		newUint(21), newUint8(22), newUint16(23), newUint32(24), newUint64(25),
+		newPointer(14), newPointer[int8](15), newPointer[int16](16), newPointer[int32](17), newPointer[int64](18),
+		newPointer[float64](19.9), newPointer[float32](20.1), newPointer("test pointer"),
+		newPointer[uint](21), newPointer[uint8](22), newPointer[uint16](23), newPointer[uint32](24), newPointer[uint64](25),
 		[]string{"test", "slice", "strings"}, []int{1, 2, 3, 4}, []float64{1.1, 2.2, 3.3},
 		map[string]int{"this": 1, "is": 2, "a": 3, "map": 4}, map[int]string{1: "this", 2: "is", 3: "another"},
-		map[string]*int{"wow": newInt(1), "a map": newInt(2), "of pointers!": newInt(3)},
-		map[int]*string{1: newString("Another"), 2: newString("map of"), 3: newString("pointers, wow!")},
+		map[string]*int{"wow": newPointer(1), "a map": newPointer(2), "of pointers!": newPointer(3)},
+		map[int]*string{1: newPointer("Another"), 2: newPointer("map of"), 3: newPointer("pointers, wow!")},
 		mergeStructEmbed2C, &mergeStructEmbed2D,
 	}
 
 	expectedMerged = testStruct{1, 2, 3, 4, 5, 1.1, 2.2, "test", 10, 11, 12, 12, 13,
-		newInt(14), newInt8(15), newInt16(16), newInt32(17), newInt64(18),
-		newFloat64(19.9), newFloat32(20.1), newString("test pointer"),
-		newUint(21), newUint8(22), newUint16(23), newUint32(24), newUint64(25),
+		newPointer(14), newPointer[int8](15), newPointer[int16](16), newPointer[int32](17), newPointer[int64](18),
+		newPointer[float64](19.9), newPointer[float32](20.1), newPointer("test pointer"),
+		newPointer[uint](21), newPointer[uint8](22), newPointer[uint16](23), newPointer[uint32](24), newPointer[uint64](25),
 		[]string{"test", "slice", "strings"}, []int{1, 2, 3, 4}, []float64{1.1, 2.2, 3.3},
 		map[string]int{"this": 1, "is": 2, "a": 3, "map": 4}, map[int]string{1: "this", 2: "is", 3: "another"},
-		map[string]*int{"wow": newInt(1), "a map": newInt(2), "of pointers!": newInt(3)},
-		map[int]*string{1: newString("Another"), 2: newString("map of"), 3: newString("pointers, wow!")},
+		map[string]*int{"wow": newPointer(1), "a map": newPointer(2), "of pointers!": newPointer(3)},
+		map[int]*string{1: newPointer("Another"), 2: newPointer("map of"), 3: newPointer("pointers, wow!")},
 		mergeStructEmbedBaseA, &mergeStructEmbedBaseB,
 	}
 }
@@ -1642,17 +1655,6 @@ func mergeTestStructsPtrs(base, patch *testStruct) (*testStruct, error) {
 	return utils.Merge(base, patch, nil)
 }
 
-func newBool(b bool) *bool          { return &b }
-func newInt(n int) *int             { return &n }
-func newInt64(n int64) *int64       { return &n }
-func newString(s string) *string    { return &s }
-func newInt8(n int8) *int8          { return &n }
-func newInt16(n int16) *int16       { return &n }
-func newInt32(n int32) *int32       { return &n }
-func newFloat64(f float64) *float64 { return &f }
-func newFloat32(f float32) *float32 { return &f }
-func newUint(n uint) *uint          { return &n }
-func newUint8(n uint8) *uint8       { return &n }
-func newUint16(n uint16) *uint16    { return &n }
-func newUint32(n uint32) *uint32    { return &n }
-func newUint64(n uint64) *uint64    { return &n }
+func newPointer[T any](t T) *T {
+	return model.NewPointer(t)
+}

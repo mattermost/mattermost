@@ -16,7 +16,6 @@ import {createSelector} from 'mattermost-redux/selectors/create_selector';
 import {getCustomEmojisByName} from 'mattermost-redux/selectors/entities/emojis';
 import {canAddReactions, canRemoveReactions} from 'mattermost-redux/selectors/entities/reactions';
 import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
-import type {GenericAction} from 'mattermost-redux/types/actions';
 import {getEmojiImageUrl} from 'mattermost-redux/utils/emoji_utils';
 
 import {addReaction} from 'actions/post_actions';
@@ -24,6 +23,7 @@ import {addReaction} from 'actions/post_actions';
 import * as Emoji from 'utils/emoji';
 
 import Reaction from './reaction';
+import {makeGetNamesOfUsers} from './reaction_tooltip';
 
 type Props = {
     emojiName: string;
@@ -41,6 +41,8 @@ function makeMapStateToProps() {
         },
     );
 
+    const getNamesOfUsers = makeGetNamesOfUsers();
+
     return function mapStateToProps(state: GlobalState, ownProps: Props) {
         const channelId = ownProps.post.channel_id;
 
@@ -56,20 +58,18 @@ function makeMapStateToProps() {
         if (emoji) {
             emojiImageUrl = getEmojiImageUrl(emoji as EmojiType);
         }
-        const currentUserId = getCurrentUserId(state);
-
         return {
-            currentUserId,
             reactionCount: ownProps.reactions.length,
             canAddReactions: canAddReactions(state, channelId),
             canRemoveReactions: canRemoveReactions(state, channelId),
             emojiImageUrl,
             currentUserReacted: didCurrentUserReact(state, ownProps.reactions),
+            users: getNamesOfUsers(state, ownProps.reactions),
         };
     };
 }
 
-function mapDispatchToProps(dispatch: Dispatch<GenericAction>) {
+function mapDispatchToProps(dispatch: Dispatch) {
     return {
         actions: bindActionCreators({
             addReaction,

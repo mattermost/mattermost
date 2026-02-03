@@ -1,25 +1,33 @@
-@import 'utils/mixins';
+@use 'utils/mixins';
 
 .CenterMessageLock {
     display: flex;
     align-items: center;
     padding: 16px;
     border: 1px rgba(var(--center-channel-color-rgb), 0.08) solid;
-    margin: 0 24px 13px;
-    background-color: rgba(var(--center-channel-color-rgb), 0.04);
     border-radius: 4px;
+    margin: 0 16px 16px;
+    background-color: rgba(var(--center-channel-color-rgb), 0.04);
+    gap: 12px;
 
     &__left {
         align-self: flex-start;
-        padding: 0 12px;
+        padding: 0;
+    }
+    &__right {
+        margin-top: -2px;
+    }
+    
+    &__description {
+        color: rgba(var(--center-channel-color-rgb), 0.75);
     }
 
     &__icon {
-        color: rgba(var(--center-channel-color-rgb), 0.72);
+        color: rgba(var(--center-channel-color-rgb), 0.64);
     }
 
     &__title {
-        padding-bottom: 8px;
+        padding-bottom: 4px;
         font-size: 14px;
         font-weight: 600;
     }
@@ -28,7 +36,7 @@
         padding-top: 12px;
 
         .btn {
-            @include tertiary-button;
+            @include mixins.tertiary-button;
 
             font-size: 12px;
 
@@ -42,7 +50,7 @@
             }
 
             &.is-admin {
-                @include primary-button;
+                @include mixins.primary-button;
 
                 &:hover,
                 &:focus {

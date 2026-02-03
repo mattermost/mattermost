@@ -13,6 +13,8 @@ import reduxStore from 'stores/redux_store';
 import mockStore from 'tests/test_store';
 import {getHistory} from 'utils/browser_history';
 
+const getState = jest.mocked(reduxStore.getState);
+
 jest.mock('actions/views/rhs', () => ({
     closeMenu: jest.fn(),
     closeRightHandSide: jest.fn(),
@@ -64,7 +66,7 @@ describe('actions/global_actions', () => {
                 },
             });
 
-            reduxStore.getState.mockImplementation(store.getState);
+            getState.mockImplementation(store.getState);
 
             await redirectUserToDefaultTeam();
             expect(getHistory().push).toHaveBeenCalledWith('/select_team');
@@ -90,8 +92,8 @@ describe('actions/global_actions', () => {
                             team2: {id: 'team2', display_name: 'Team 2', name: 'team2', delete_at: 0},
                         },
                         myMembers: {
-                            team1: {id: 'team1'},
-                            team2: {id: 'team2'},
+                            team1: {team_id: 'team1'},
+                            team2: {team_id: 'team2'},
                         },
                     },
                     channels: {
@@ -112,8 +114,8 @@ describe('actions/global_actions', () => {
                             },
                         },
                         channelsInTeam: {
-                            team1: ['channel-in-team-1'],
-                            team2: ['channel-in-team-2'],
+                            team1: new Set(['channel-in-team-1']),
+                            team2: new Set(['channel-in-team-2']),
                         },
                     },
                     users: {
@@ -138,7 +140,7 @@ describe('actions/global_actions', () => {
                 },
             });
 
-            reduxStore.getState.mockImplementation(store.getState);
+            getState.mockImplementation(store.getState);
 
             await redirectUserToDefaultTeam();
             expect(getHistory().push).toHaveBeenCalledWith('/team2/channels/channel-in-team-2');
@@ -164,8 +166,8 @@ describe('actions/global_actions', () => {
                             team2: {id: 'team2', display_name: 'Team 2', name: 'team2', delete_at: 0},
                         },
                         myMembers: {
-                            team1: {id: 'team1'},
-                            team2: {id: 'team2'},
+                            team1: {team_id: 'team1'},
+                            team2: {team_id: 'team2'},
                         },
                     },
                     channels: {
@@ -185,8 +187,8 @@ describe('actions/global_actions', () => {
                             },
                         },
                         channelsInTeam: {
-                            team1: ['channel-in-team-1'],
-                            team2: ['channel-in-team-2'],
+                            team1: new Set(['channel-in-team-1']),
+                            team2: new Set(['channel-in-team-2']),
                         },
                     },
                     users: {
@@ -211,7 +213,7 @@ describe('actions/global_actions', () => {
                 },
             });
 
-            reduxStore.getState.mockImplementation(store.getState);
+            getState.mockImplementation(store.getState);
 
             await redirectUserToDefaultTeam();
             expect(getHistory().push).toHaveBeenCalledWith('/team2/channels/channel-in-team-2');
@@ -237,8 +239,8 @@ describe('actions/global_actions', () => {
                             team2: {id: 'team2', display_name: 'Team 2', name: 'team2', delete_at: 0},
                         },
                         myMembers: {
-                            team1: {id: 'team1'},
-                            team2: {id: 'team2'},
+                            team1: {team_id: 'team1'},
+                            team2: {team_id: 'team2'},
                         },
                     },
                     channels: {
@@ -257,8 +259,8 @@ describe('actions/global_actions', () => {
                             },
                         },
                         channelsInTeam: {
-                            team1: ['channel-in-team-1'],
-                            team2: ['channel-in-team-2'],
+                            team1: new Set(['channel-in-team-1']),
+                            team2: new Set(['channel-in-team-2']),
                         },
                     },
                     users: {
@@ -283,7 +285,7 @@ describe('actions/global_actions', () => {
                 },
             });
 
-            reduxStore.getState.mockImplementation(store.getState);
+            getState.mockImplementation(store.getState);
 
             await redirectUserToDefaultTeam();
             expect(getHistory().push).toHaveBeenCalledWith('/select_team');
@@ -303,8 +305,8 @@ describe('actions/global_actions', () => {
                             team2: {id: 'team2', display_name: 'Team 2', name: 'team2', delete_at: 0},
                         },
                         myMembers: {
-                            team1: {id: 'team1'},
-                            team2: {id: 'team2'},
+                            team1: {team_id: 'team1'},
+                            team2: {team_id: 'team2'},
                         },
                     },
                     users: {
@@ -315,7 +317,7 @@ describe('actions/global_actions', () => {
                 },
             });
 
-            reduxStore.getState.mockImplementation(store.getState);
+            getState.mockImplementation(store.getState);
 
             await redirectUserToDefaultTeam();
             expect(getHistory().push).not.toHaveBeenCalled();
@@ -344,8 +346,8 @@ describe('actions/global_actions', () => {
                             team2: {id: 'team2', display_name: 'Team 2', name: 'team2', delete_at: 0},
                         },
                         myMembers: {
-                            team1: {id: 'team1'},
-                            team2: {id: 'team2'},
+                            team1: {team_id: 'team1'},
+                            team2: {team_id: 'team2'},
                         },
                     },
                     channels: {
@@ -382,8 +384,8 @@ describe('actions/global_actions', () => {
                             },
                         },
                         channelsInTeam: {
-                            team1: ['channel-in-team-1', directChannelId],
-                            team2: ['channel-in-team-2'],
+                            team1: new Set(['channel-in-team-1', directChannelId]),
+                            team2: new Set(['channel-in-team-2']),
                         },
                     },
                     users: {
@@ -408,7 +410,7 @@ describe('actions/global_actions', () => {
                     },
                 },
             });
-            reduxStore.getState.mockImplementation(store.getState);
+            getState.mockImplementation(store.getState);
             LocalStorageStore.setPreviousTeamId(userId, teamId);
             LocalStorageStore.setPreviousChannelName(userId, teamId, directChannelId);
 
@@ -440,8 +442,8 @@ describe('actions/global_actions', () => {
                             team2: {id: 'team2', display_name: 'Team 2', name: 'team2', delete_at: 0},
                         },
                         myMembers: {
-                            team1: {id: 'team1'},
-                            team2: {id: 'team2'},
+                            team1: {team_id: 'team1'},
+                            team2: {team_id: 'team2'},
                         },
                     },
                     channels: {
@@ -479,8 +481,8 @@ describe('actions/global_actions', () => {
                             },
                         },
                         channelsInTeam: {
-                            team1: ['channel-in-team-1', directChannelId, groupChannelId],
-                            team2: ['channel-in-team-2'],
+                            team1: new Set(['channel-in-team-1', directChannelId, groupChannelId]),
+                            team2: new Set(['channel-in-team-2']),
                         },
                     },
                     users: {
@@ -505,7 +507,7 @@ describe('actions/global_actions', () => {
                     },
                 },
             });
-            reduxStore.getState.mockImplementation(store.getState);
+            getState.mockImplementation(store.getState);
             LocalStorageStore.setPreviousTeamId(userId, teamId);
             LocalStorageStore.setPreviousChannelName(userId, teamId, groupChannelId);
 
@@ -532,8 +534,8 @@ describe('actions/global_actions', () => {
                             team2: {id: 'team2', display_name: 'Team 2', name: 'team2', delete_at: 0},
                         },
                         myMembers: {
-                            team1: {id: 'team1'},
-                            team2: {id: 'team2'},
+                            team1: {team_id: 'team1'},
+                            team2: {team_id: 'team2'},
                         },
                     },
                     channels: {
@@ -554,8 +556,8 @@ describe('actions/global_actions', () => {
                             },
                         },
                         channelsInTeam: {
-                            team1: ['channel-in-team-1'],
-                            team2: ['channel-in-team-2'],
+                            team1: new Set(['channel-in-team-1']),
+                            team2: new Set(['channel-in-team-2']),
                         },
                     },
                     users: {
@@ -567,7 +569,7 @@ describe('actions/global_actions', () => {
                 },
             });
 
-            reduxStore.getState.mockImplementation(store.getState);
+            getState.mockImplementation(store.getState);
 
             await redirectUserToDefaultTeam();
             expect(getHistory().push).toHaveBeenCalledWith('/team1/channels/channel-in-team-1');
@@ -575,10 +577,12 @@ describe('actions/global_actions', () => {
     });
 
     test('toggleSideBarRightMenuAction', () => {
-        const dispatchMock = async () => {
-            return {data: true};
+        const dispatchMock = (arg: any) => {
+            if (typeof arg === 'function') {
+                arg(dispatchMock);
+            }
         };
-        toggleSideBarRightMenuAction()(dispatchMock);
+        dispatchMock(toggleSideBarRightMenuAction());
         expect(closeRhsMenu).toHaveBeenCalled();
         expect(closeRightHandSide).toHaveBeenCalled();
         expect(closeLhs).toHaveBeenCalled();

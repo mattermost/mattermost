@@ -2,17 +2,19 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-import {act} from 'react-dom/test-utils';
+
+import type {DeepPartial} from '@mattermost/types/utilities';
 
 import {createChannel} from 'mattermost-redux/actions/channels';
 import Permissions from 'mattermost-redux/constants/permissions';
 
 import {
-    render,
+    act,
     renderWithContext,
     screen,
     userEvent,
     waitFor,
+    fireEvent,
 } from 'tests/react_testing_utils';
 import {suitePluginIds} from 'utils/constants';
 import {cleanUpUrlable} from 'utils/url';
@@ -23,97 +25,89 @@ import NewChannelModal from './new_channel_modal';
 
 jest.mock('mattermost-redux/actions/channels');
 
-const mockDispatch = jest.fn();
-let mockState: GlobalState;
-
-jest.mock('react-redux', () => ({
-    ...jest.requireActual('react-redux') as typeof import('react-redux'),
-    useSelector: (selector: (state: typeof mockState) => unknown) => selector(mockState),
-    useDispatch: () => mockDispatch,
-}));
-
 describe('components/new_channel_modal', () => {
-    beforeEach(() => {
-        mockState = {
-            entities: {
-                general: {
-                    config: {},
-                },
+    const initialState: DeepPartial<GlobalState> = {
+        entities: {
+            general: {
+                config: {},
+            },
+            channels: {
+                currentChannelId: 'current_channel_id',
                 channels: {
-                    currentChannelId: 'current_channel_id',
-                    channels: {
-                        current_channel_id: {
-                            id: 'current_channel_id',
-                            display_name: 'Current channel',
-                            name: 'current_channel',
-                        },
-                    },
-                    roles: {
-                        current_channel_id: [
-                            'channel_user',
-                            'channel_admin',
-                        ],
-                    },
-                },
-                teams: {
-                    currentTeamId: 'current_team_id',
-                    myMembers: {
-                        current_team_id: {
-                            roles: 'team_user team_admin',
-                        },
-                    },
-                    teams: {
-                        current_team_id: {
-                            id: 'current_team_id',
-                            description: 'Curent team description',
-                            name: 'current-team',
-                        },
-                    },
-                },
-                preferences: {
-                    myPreferences: {},
-                },
-                users: {
-                    currentUserId: 'current_user_id',
-                    profiles: {
-                        current_user_id: {roles: 'system_admin system_user'},
+                    current_channel_id: {
+                        id: 'current_channel_id',
+                        display_name: 'Current channel',
+                        name: 'current_channel',
                     },
                 },
                 roles: {
-                    roles: {
-                        channel_admin: {
-                            permissions: [],
-                        },
-                        channel_user: {
-                            permissions: [],
-                        },
-                        team_admin: {
-                            permissions: [],
-                        },
-                        team_user: {
-                            permissions: [
-                                Permissions.CREATE_PRIVATE_CHANNEL,
-                            ],
-                        },
-                        system_admin: {
-                            permissions: [
-                                Permissions.CREATE_PUBLIC_CHANNEL,
-                            ],
-                        },
-                        system_user: {
-                            permissions: [],
-                        },
+                    current_channel_id: new Set([
+                        'channel_user',
+                        'channel_admin',
+                    ]),
+                },
+            },
+            teams: {
+                currentTeamId: 'current_team_id',
+                myMembers: {
+                    current_team_id: {
+                        roles: 'team_user team_admin',
+                    },
+                },
+                teams: {
+                    current_team_id: {
+                        id: 'current_team_id',
+                        description: 'Curent team description',
+                        name: 'current-team',
                     },
                 },
             },
-            plugins: {
-                plugins: {focalboard: {id: suitePluginIds.focalboard}},
+            preferences: {
+                myPreferences: {},
             },
-        } as unknown as GlobalState;
-    });
+            users: {
+                currentUserId: 'current_user_id',
+                profiles: {
+                    current_user_id: {roles: 'system_admin system_user'},
+                },
+            },
+            roles: {
+                roles: {
+                    channel_admin: {
+                        permissions: [],
+                    },
+                    channel_user: {
+                        permissions: [],
+                    },
+                    team_admin: {
+                        permissions: [],
+                    },
+                    team_user: {
+                        permissions: [
+                            Permissions.CREATE_PRIVATE_CHANNEL,
+                        ],
+                    },
+                    system_admin: {
+                        permissions: [
+                            Permissions.CREATE_PUBLIC_CHANNEL,
+                        ],
+                    },
+                    system_user: {
+                        permissions: [],
+                    },
+                },
+            },
+        },
+        plugins: {
+            plugins: {focalboard: {id: suitePluginIds.focalboard}},
+        },
+    };
 
     test('should match component state with given props', () => {
-        render(<NewChannelModal/>);
+        renderWithContext(
+            <NewChannelModal/>,
+            initialState,
+        );
 
         const heading = screen.getByRole('heading');
         expect(heading).toBeInTheDocument();
@@ -152,9 +146,9 @@ describe('components/new_channel_modal', () => {
         expect(privateChannelHeading).toBeInTheDocument();
         expect(privateChannelHeading.nextSibling).toHaveTextContent('Only invited members');
 
-        const purposeTextArea = screen.getByPlaceholderText('Enter a purpose for this channel (optional)');
+        const purposeTextArea = screen.getByLabelText('Channel Purpose');
         expect(purposeTextArea).toBeInTheDocument();
-        expect(purposeTextArea).toHaveClass('new-channel-modal-purpose-textarea');
+        expect(purposeTextArea).toHaveClass('Input form-control medium');
 
         const purposeDesc = screen.getByText('This will be displayed when browsing for channels.');
         expect(purposeDesc).toBeInTheDocument();
@@ -169,11 +163,12 @@ describe('components/new_channel_modal', () => {
         expect(createChannelButton).toBeDisabled();
     });
 
-    test('should handle display name change', () => {
+    test('should handle display name change', async () => {
         const value = 'Channel name';
 
-        render(
+        renderWithContext(
             <NewChannelModal/>,
+            initialState,
         );
 
         // Change display name
@@ -181,7 +176,7 @@ describe('components/new_channel_modal', () => {
         expect(channelNameInput).toBeInTheDocument();
         expect(channelNameInput).toHaveAttribute('value', '');
 
-        userEvent.type(channelNameInput, value);
+        await userEvent.type(channelNameInput, value);
 
         // Display name should have been updated
         expect(channelNameInput).toHaveAttribute('value', value);
@@ -196,8 +191,9 @@ describe('components/new_channel_modal', () => {
 
         const url = 'channel-name-new';
 
-        render(
+        renderWithContext(
             <NewChannelModal/>,
+            initialState,
         );
 
         // Change display name
@@ -205,7 +201,7 @@ describe('components/new_channel_modal', () => {
         expect(channelNameInput).toBeInTheDocument();
         expect(channelNameInput).toHaveAttribute('value', '');
 
-        userEvent.type(channelNameInput, value);
+        await userEvent.type(channelNameInput, value);
         const urlInputLabel = screen.getByTestId('urlInputLabel');
         expect(urlInputLabel).toHaveTextContent(cleanUpUrlable(value));
 
@@ -213,37 +209,38 @@ describe('components/new_channel_modal', () => {
         const editUrl = screen.getByText('Edit');
         expect(editUrl).toBeInTheDocument();
 
-        userEvent.click(editUrl);
+        await userEvent.click(editUrl);
 
         const editUrlInput = screen.getByTestId('channelURLInput');
-        userEvent.clear(editUrlInput);
-        userEvent.type(editUrlInput, url);
+        await userEvent.clear(editUrlInput);
+        await userEvent.type(editUrlInput, url);
 
-        const doneButton = screen.getByText('Done');
-        await waitFor(() =>
-            userEvent.click(doneButton),
-        );
+        // Tab out of the input since it saves on blur
+        await userEvent.tab();
 
         // URL should have been updated
-        expect(screen.getByText(url, {exact: false})).toBeInTheDocument();
+        await waitFor(() => {
+            expect(screen.queryByText(url, {exact: false})).toBeInTheDocument();
+        });
 
         // Change display name again
-        userEvent.type(channelNameInput, `${value} updated`);
+        await userEvent.type(channelNameInput, `${value} updated`);
 
         // URL should NOT be updated
         expect(screen.getByText(url, {exact: false})).toBeInTheDocument();
     });
 
-    test('should handle type changes', () => {
-        render(
+    test('should handle type changes', async () => {
+        renderWithContext(
             <NewChannelModal/>,
+            initialState,
         );
 
         // Change type to private
         const privateChannel = screen.getByText('Private Channel');
         expect(privateChannel).toBeInTheDocument();
 
-        userEvent.click(privateChannel);
+        await userEvent.click(privateChannel);
 
         // Type should have been updated to private
         expect(privateChannel.parentElement?.nextSibling?.firstChild).toHaveAttribute('aria-label', 'Check Circle Icon');
@@ -252,33 +249,40 @@ describe('components/new_channel_modal', () => {
         const publicChannel = screen.getByText('Public Channel');
         expect(publicChannel).toBeInTheDocument();
 
-        userEvent.click(publicChannel);
+        await userEvent.click(publicChannel);
 
         // Type should have been updated to public
         expect(publicChannel.parentElement?.nextSibling?.firstChild).toHaveAttribute('aria-label', 'Check Circle Icon');
     });
 
-    test('should handle purpose changes', () => {
+    test('should handle purpose changes', async () => {
         const value = 'Purpose';
 
-        render(
+        renderWithContext(
             <NewChannelModal/>,
+            initialState,
         );
 
         // Change purpose
-        const ChannelPurposeTextArea = screen.getByPlaceholderText('Enter a purpose for this channel (optional)');
+        const ChannelPurposeTextArea = screen.getByLabelText('Channel Purpose');
         expect(ChannelPurposeTextArea).toBeInTheDocument();
 
-        userEvent.click(ChannelPurposeTextArea);
-        userEvent.type(ChannelPurposeTextArea, value);
+        // Simulate user interaction with purpose field including focus/blur for validation - fireEvent used because userEvent doesn't have direct focus/blur methods
+        await act(async () => {
+            fireEvent.focus(ChannelPurposeTextArea);
+            await userEvent.clear(ChannelPurposeTextArea);
+            await userEvent.type(ChannelPurposeTextArea, value);
+            fireEvent.blur(ChannelPurposeTextArea);
+        });
 
         // Purpose should have been updated
         expect(ChannelPurposeTextArea).toHaveValue(value);
     });
 
-    test('should enable confirm button when having valid display name, url and type', () => {
-        render(
+    test('should enable confirm button when having valid display name, url and type', async () => {
+        renderWithContext(
             <NewChannelModal/>,
+            initialState,
         );
 
         // Confirm button should be disabled
@@ -291,21 +295,22 @@ describe('components/new_channel_modal', () => {
         expect(channelNameInput).toBeInTheDocument();
         expect(channelNameInput).toHaveAttribute('value', '');
 
-        userEvent.type(channelNameInput, 'Channel name');
+        await userEvent.type(channelNameInput, 'Channel name');
 
         // Change type to private
         const privateChannel = screen.getByText('Private Channel');
         expect(privateChannel).toBeInTheDocument();
 
-        userEvent.click(privateChannel);
+        await userEvent.click(privateChannel);
 
         // Confirm button should be enabled
         expect(createChannelButton).toBeEnabled();
     });
 
-    test('should disable confirm button when display name in error', () => {
-        render(
+    test('should disable confirm button when display name in error', async () => {
+        renderWithContext(
             <NewChannelModal/>,
+            initialState,
         );
 
         // Change display name
@@ -313,28 +318,29 @@ describe('components/new_channel_modal', () => {
         expect(channelNameInput).toBeInTheDocument();
         expect(channelNameInput).toHaveAttribute('value', '');
 
-        userEvent.type(channelNameInput, 'Channel name');
+        await userEvent.type(channelNameInput, 'Channel name');
 
         // Change type to private
         const privateChannel = screen.getByText('Private Channel');
         expect(privateChannel).toBeInTheDocument();
 
-        userEvent.click(privateChannel);
+        await userEvent.click(privateChannel);
 
         // Confirm button should be enabled
         const createChannelButton = screen.getByText('Create channel');
         expect(createChannelButton).toBeEnabled();
 
         // Change display name to invalid
-        userEvent.clear(channelNameInput);
+        await userEvent.clear(channelNameInput);
 
         // Confirm button should be disabled
         expect(createChannelButton).toBeDisabled();
     });
 
-    test('should disable confirm button when url in error', () => {
-        render(
+    test('should disable confirm button when url in error', async () => {
+        renderWithContext(
             <NewChannelModal/>,
+            initialState,
         );
 
         // Change display name
@@ -342,13 +348,13 @@ describe('components/new_channel_modal', () => {
         expect(channelNameInput).toBeInTheDocument();
         expect(channelNameInput).toHaveAttribute('value', '');
 
-        userEvent.type(channelNameInput, 'Channel name');
+        await userEvent.type(channelNameInput, 'Channel name');
 
         // Change type to private
         const privateChannel = screen.getByText('Private Channel');
         expect(privateChannel).toBeInTheDocument();
 
-        userEvent.click(privateChannel);
+        await userEvent.click(privateChannel);
 
         // Confirm button should be enabled
         const createChannelButton = screen.getByText('Create channel');
@@ -358,19 +364,20 @@ describe('components/new_channel_modal', () => {
         const editUrl = screen.getByText('Edit');
         expect(editUrl).toBeInTheDocument();
 
-        userEvent.click(editUrl);
+        await userEvent.click(editUrl);
 
         const editUrlInput = screen.getByTestId('channelURLInput');
-        userEvent.clear(editUrlInput);
-        userEvent.type(editUrlInput, 'c-');
+        await userEvent.clear(editUrlInput);
+        await userEvent.type(editUrlInput, 'c-');
 
         // Confirm button should be disabled
         expect(createChannelButton).toBeDisabled();
     });
 
     test('should disable confirm button when server error', async () => {
-        render(
+        renderWithContext(
             <NewChannelModal/>,
+            initialState,
         );
 
         // Confirm button should be disabled
@@ -382,22 +389,25 @@ describe('components/new_channel_modal', () => {
         expect(channelNameInput).toBeInTheDocument();
         expect(channelNameInput).toHaveAttribute('value', '');
 
-        userEvent.type(channelNameInput, 'Channel name');
+        await userEvent.type(channelNameInput, 'Channel name');
 
         // Change type to private
         const privateChannel = screen.getByText('Private Channel');
         expect(privateChannel).toBeInTheDocument();
 
-        userEvent.click(privateChannel);
+        await userEvent.click(privateChannel);
 
         // Confirm button should be enabled
         expect(createChannelButton).toBeEnabled();
 
         // Submit
-        await act(async () => userEvent.click(createChannelButton));
+        await userEvent.click(createChannelButton);
 
-        const serverError = screen.getByText('Something went wrong. Please try again.');
-        expect(serverError).toBeInTheDocument();
+        // Wait for async state updates
+        await waitFor(() => {
+            const serverError = screen.getByText('Something went wrong. Please try again.');
+            expect(serverError).toBeInTheDocument();
+        });
         expect(createChannelButton).toBeDisabled();
     });
 
@@ -406,6 +416,7 @@ describe('components/new_channel_modal', () => {
 
         renderWithContext(
             <NewChannelModal/>,
+            initialState,
         );
 
         // Confirm button should be disabled
@@ -418,7 +429,7 @@ describe('components/new_channel_modal', () => {
         expect(channelNameInput).toBeInTheDocument();
         expect(channelNameInput).toHaveAttribute('value', '');
 
-        userEvent.type(channelNameInput, name);
+        await userEvent.type(channelNameInput, name);
 
         // Display name should be updated
         expect(channelNameInput).toHaveValue(name);
@@ -427,9 +438,7 @@ describe('components/new_channel_modal', () => {
         expect(createChannelButton).toBeEnabled();
 
         // Submit
-        await act(async () => {
-            userEvent.click(createChannelButton);
-        });
+        await userEvent.click(createChannelButton);
 
         // Request should be sent
         expect(createChannel).toHaveBeenCalledWith({

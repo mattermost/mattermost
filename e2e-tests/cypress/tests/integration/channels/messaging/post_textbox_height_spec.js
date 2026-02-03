@@ -28,7 +28,7 @@ describe('Messaging', () => {
             // # Click reply icon
             cy.clickPostCommentIcon(latestPostId);
 
-            cy.uiGetReplyTextBox().should('have.css', 'height', '100px').invoke('height').then((height) => {
+            cy.uiGetReplyTextBox().should('have.css', 'height', '46px').invoke('height').then((height) => {
                 // # Get the initial height of the textbox
                 // Setting alias based on reference to element seemed to be problematic with Cypress (regression)
                 // Quick hack to reference based on value

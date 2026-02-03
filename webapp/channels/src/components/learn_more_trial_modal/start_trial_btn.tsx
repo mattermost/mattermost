@@ -9,14 +9,10 @@ import useOpenStartTrialFormModal from 'components/common/hooks/useOpenStartTria
 import './start_trial_btn.scss';
 
 export type StartTrialBtnProps = {
-    message: string;
-    telemetryId: string;
     onClick?: () => void;
-    handleEmbargoError?: () => void;
     btnClass?: string;
     renderAsButton?: boolean;
     disabled?: boolean;
-    trackingPage?: string;
 };
 
 const StartTrialBtn = ({

@@ -1,4 +1,4 @@
-// Jest Snapshot v1, https://goo.gl/fbAQLP
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
 
 exports[`admin_console/add_users_to_role_modal search should not include bot user 1`] = `
 <Modal
@@ -44,10 +44,7 @@ exports[`admin_console/add_users_to_role_modal search should not include bot use
         values={
           Object {
             "roleName": <strong>
-              <Memo(MemoizedFormattedMessage)
-                defaultMessage="role_name"
-                id="admin.permissions.roles.role_name.name"
-              />
+              role_name
             </strong>,
           }
         }
@@ -60,8 +57,18 @@ exports[`admin_console/add_users_to_role_modal search should not include bot use
   >
     <MultiSelect
       ariaLabelRenderer={[Function]}
-      buttonSubmitLoadingText="Adding..."
-      buttonSubmitText="Add"
+      buttonSubmitLoadingText={
+        Object {
+          "defaultMessage": "Adding...",
+          "id": "multiselect.adding",
+        }
+      }
+      buttonSubmitText={
+        Object {
+          "defaultMessage": "Add",
+          "id": "multiselect.add",
+        }
+      }
       focusOnLoad={true}
       handleAdd={[Function]}
       handleDelete={[Function]}
@@ -171,7 +178,13 @@ exports[`admin_console/add_users_to_role_modal search should not include bot use
         ]
       }
       perPage={50}
-      placeholderText="Search and add members"
+      placeholderText={
+        Object {
+          "defaultMessage": "Search for people",
+          "id": "multiselect.placeholder",
+        }
+      }
+      required={false}
       saveButtonPosition="top"
       saving={false}
       savingEnabled={true}
@@ -227,10 +240,7 @@ exports[`admin_console/add_users_to_role_modal should exclude user 1`] = `
         values={
           Object {
             "roleName": <strong>
-              <Memo(MemoizedFormattedMessage)
-                defaultMessage="role_name"
-                id="admin.permissions.roles.role_name.name"
-              />
+              role_name
             </strong>,
           }
         }
@@ -243,8 +253,18 @@ exports[`admin_console/add_users_to_role_modal should exclude user 1`] = `
   >
     <MultiSelect
       ariaLabelRenderer={[Function]}
-      buttonSubmitLoadingText="Adding..."
-      buttonSubmitText="Add"
+      buttonSubmitLoadingText={
+        Object {
+          "defaultMessage": "Adding...",
+          "id": "multiselect.adding",
+        }
+      }
+      buttonSubmitText={
+        Object {
+          "defaultMessage": "Add",
+          "id": "multiselect.add",
+        }
+      }
       focusOnLoad={true}
       handleAdd={[Function]}
       handleDelete={[Function]}
@@ -310,7 +330,13 @@ exports[`admin_console/add_users_to_role_modal should exclude user 1`] = `
       optionRenderer={[Function]}
       options={Array []}
       perPage={50}
-      placeholderText="Search and add members"
+      placeholderText={
+        Object {
+          "defaultMessage": "Search for people",
+          "id": "multiselect.placeholder",
+        }
+      }
+      required={false}
       saveButtonPosition="top"
       saving={false}
       savingEnabled={true}
@@ -366,10 +392,7 @@ exports[`admin_console/add_users_to_role_modal should have single passed value 1
         values={
           Object {
             "roleName": <strong>
-              <Memo(MemoizedFormattedMessage)
-                defaultMessage="role_name"
-                id="admin.permissions.roles.role_name.name"
-              />
+              role_name
             </strong>,
           }
         }
@@ -382,8 +405,18 @@ exports[`admin_console/add_users_to_role_modal should have single passed value 1
   >
     <MultiSelect
       ariaLabelRenderer={[Function]}
-      buttonSubmitLoadingText="Adding..."
-      buttonSubmitText="Add"
+      buttonSubmitLoadingText={
+        Object {
+          "defaultMessage": "Adding...",
+          "id": "multiselect.adding",
+        }
+      }
+      buttonSubmitText={
+        Object {
+          "defaultMessage": "Add",
+          "id": "multiselect.add",
+        }
+      }
       focusOnLoad={true}
       handleAdd={[Function]}
       handleDelete={[Function]}
@@ -493,7 +526,13 @@ exports[`admin_console/add_users_to_role_modal should have single passed value 1
         ]
       }
       perPage={50}
-      placeholderText="Search and add members"
+      placeholderText={
+        Object {
+          "defaultMessage": "Search for people",
+          "id": "multiselect.placeholder",
+        }
+      }
+      required={false}
       saveButtonPosition="top"
       saving={false}
       savingEnabled={true}
@@ -549,10 +588,7 @@ exports[`admin_console/add_users_to_role_modal should include additional user 1`
         values={
           Object {
             "roleName": <strong>
-              <Memo(MemoizedFormattedMessage)
-                defaultMessage="role_name"
-                id="admin.permissions.roles.role_name.name"
-              />
+              role_name
             </strong>,
           }
         }
@@ -565,8 +601,18 @@ exports[`admin_console/add_users_to_role_modal should include additional user 1`
   >
     <MultiSelect
       ariaLabelRenderer={[Function]}
-      buttonSubmitLoadingText="Adding..."
-      buttonSubmitText="Add"
+      buttonSubmitLoadingText={
+        Object {
+          "defaultMessage": "Adding...",
+          "id": "multiselect.adding",
+        }
+      }
+      buttonSubmitText={
+        Object {
+          "defaultMessage": "Add",
+          "id": "multiselect.add",
+        }
+      }
       focusOnLoad={true}
       handleAdd={[Function]}
       handleDelete={[Function]}
@@ -717,7 +763,13 @@ exports[`admin_console/add_users_to_role_modal should include additional user 1`
         ]
       }
       perPage={50}
-      placeholderText="Search and add members"
+      placeholderText={
+        Object {
+          "defaultMessage": "Search for people",
+          "id": "multiselect.placeholder",
+        }
+      }
+      required={false}
       saveButtonPosition="top"
       saving={false}
       savingEnabled={true}
@@ -773,10 +825,7 @@ exports[`admin_console/add_users_to_role_modal should include additional user 2`
         values={
           Object {
             "roleName": <strong>
-              <Memo(MemoizedFormattedMessage)
-                defaultMessage="role_name"
-                id="admin.permissions.roles.role_name.name"
-              />
+              role_name
             </strong>,
           }
         }
@@ -789,8 +838,18 @@ exports[`admin_console/add_users_to_role_modal should include additional user 2`
   >
     <MultiSelect
       ariaLabelRenderer={[Function]}
-      buttonSubmitLoadingText="Adding..."
-      buttonSubmitText="Add"
+      buttonSubmitLoadingText={
+        Object {
+          "defaultMessage": "Adding...",
+          "id": "multiselect.adding",
+        }
+      }
+      buttonSubmitText={
+        Object {
+          "defaultMessage": "Add",
+          "id": "multiselect.add",
+        }
+      }
       focusOnLoad={true}
       handleAdd={[Function]}
       handleDelete={[Function]}
@@ -941,7 +1000,13 @@ exports[`admin_console/add_users_to_role_modal should include additional user 2`
         ]
       }
       perPage={50}
-      placeholderText="Search and add members"
+      placeholderText={
+        Object {
+          "defaultMessage": "Search for people",
+          "id": "multiselect.placeholder",
+        }
+      }
+      required={false}
       saveButtonPosition="top"
       saving={false}
       savingEnabled={true}
@@ -997,10 +1062,7 @@ exports[`admin_console/add_users_to_role_modal should not include bot user 1`] =
         values={
           Object {
             "roleName": <strong>
-              <Memo(MemoizedFormattedMessage)
-                defaultMessage="role_name"
-                id="admin.permissions.roles.role_name.name"
-              />
+              role_name
             </strong>,
           }
         }
@@ -1013,8 +1075,18 @@ exports[`admin_console/add_users_to_role_modal should not include bot user 1`] =
   >
     <MultiSelect
       ariaLabelRenderer={[Function]}
-      buttonSubmitLoadingText="Adding..."
-      buttonSubmitText="Add"
+      buttonSubmitLoadingText={
+        Object {
+          "defaultMessage": "Adding...",
+          "id": "multiselect.adding",
+        }
+      }
+      buttonSubmitText={
+        Object {
+          "defaultMessage": "Add",
+          "id": "multiselect.add",
+        }
+      }
       focusOnLoad={true}
       handleAdd={[Function]}
       handleDelete={[Function]}
@@ -1124,7 +1196,13 @@ exports[`admin_console/add_users_to_role_modal should not include bot user 1`] =
         ]
       }
       perPage={50}
-      placeholderText="Search and add members"
+      placeholderText={
+        Object {
+          "defaultMessage": "Search for people",
+          "id": "multiselect.placeholder",
+        }
+      }
+      required={false}
       saveButtonPosition="top"
       saving={false}
       savingEnabled={true}

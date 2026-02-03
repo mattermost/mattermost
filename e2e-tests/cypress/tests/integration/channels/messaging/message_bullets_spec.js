@@ -7,7 +7,6 @@
 // - Use element ID when selecting an element. Create one if none.
 // ***************************************************************
 
-// Stage: @prod
 // Group: @channels @messaging
 
 describe('Message', () => {
@@ -39,7 +38,7 @@ describe('Message', () => {
                 const expectedSize = '13.5px';
 
                 cy.get('p').first().should('have.text', 'This is a normal sentence.').and('have.css', 'font-size', expectedSize);
-                cy.get('ol li').first().should('have.text', 'this is point 1\nthis is a bullet under 1').and('have.css', 'font-size', expectedSize);
+                cy.get('ol li').first().should('have.text', 'this is point 1this is a bullet under 1').and('have.css', 'font-size', expectedSize);
                 cy.get('ol li ul li').should('have.text', 'this is a bullet under 1').and('have.css', 'font-size', expectedSize);
                 cy.get('p').last().should('have.text', 'This is more normal text.').and('have.css', 'font-size', expectedSize);
             });

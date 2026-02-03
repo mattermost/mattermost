@@ -4,7 +4,7 @@
 import type {ComponentProps} from 'react';
 import {connect} from 'react-redux';
 import {bindActionCreators} from 'redux';
-import type {ActionCreatorsMapObject, Dispatch} from 'redux';
+import type {Dispatch} from 'redux';
 
 import type {AppBinding} from '@mattermost/types/apps';
 import type {Post} from '@mattermost/types/posts';
@@ -12,11 +12,11 @@ import type {Post} from '@mattermost/types/posts';
 import {Permissions} from 'mattermost-redux/constants';
 import {AppBindingLocations} from 'mattermost-redux/constants/apps';
 import {appsEnabled} from 'mattermost-redux/selectors/entities/apps';
-import {isMarketplaceEnabled} from 'mattermost-redux/selectors/entities/general';
+import {getChannel} from 'mattermost-redux/selectors/entities/channels';
+import {isMarketplaceEnabled, getFeatureFlagValue} from 'mattermost-redux/selectors/entities/general';
 import {haveICurrentTeamPermission} from 'mattermost-redux/selectors/entities/roles';
 import {getCurrentTeamId} from 'mattermost-redux/selectors/entities/teams';
 import {getCurrentUser} from 'mattermost-redux/selectors/entities/users';
-import type {GenericAction} from 'mattermost-redux/types/actions';
 import {isCombinedUserActivityPost} from 'mattermost-redux/utils/post_list';
 import {isSystemMessage} from 'mattermost-redux/utils/post_utils';
 import {isSystemAdmin} from 'mattermost-redux/utils/user_utils';
@@ -25,8 +25,6 @@ import {makeFetchBindings, postEphemeralCallResponseForPost, handleBindingClick,
 import {openModal} from 'actions/views/modals';
 import {getIsMobileView} from 'selectors/views/browser';
 
-import type {ModalData} from 'types/actions';
-import type {HandleBindingClick, OpenAppsModal, PostEphemeralCallResponseForPost} from 'types/apps';
 import type {GlobalState} from 'types/store';
 
 import ActionsMenu from './actions_menu';
@@ -50,6 +48,8 @@ function mapStateToProps(state: GlobalState, ownProps: Props) {
     const {post} = ownProps;
 
     const systemMessage = isSystemMessage(post);
+    const channel = getChannel(state, post.channel_id);
+    const sharedChannelsPluginsEnabled = getFeatureFlagValue(state, 'EnableSharedChannelsPlugins') === 'true';
 
     const apps = appsEnabled(state);
     const showBindings = apps && !systemMessage && !isCombinedUserActivityPost(post.id);
@@ -60,12 +60,14 @@ function mapStateToProps(state: GlobalState, ownProps: Props) {
     const currentUser = getCurrentUser(state);
     const isSysAdmin = isSystemAdmin(currentUser.roles);
 
+    const pluginItemsVisible = !channel?.shared || sharedChannelsPluginsEnabled;
+
     return {
         appBindings,
         appsEnabled: apps,
-        components: state.plugins.components,
+        pluginMenuItemComponents: pluginItemsVisible ? state.plugins.components.PostDropdownMenuItem : [],
         isSysAdmin,
-        pluginMenuItems: state.plugins.components.PostDropdownMenu,
+        pluginMenuItems: pluginItemsVisible ? state.plugins.components.PostDropdownMenu : [],
         teamId: getCurrentTeamId(state),
         isMobileView: getIsMobileView(state),
         canOpenMarketplace: (
@@ -75,17 +77,9 @@ function mapStateToProps(state: GlobalState, ownProps: Props) {
     };
 }
 
-type Actions = {
-    handleBindingClick: HandleBindingClick;
-    fetchBindings: (channelId: string, teamId: string) => Promise<{data: AppBinding[]}>;
-    openModal: <P>(modalData: ModalData<P>) => void;
-    openAppsModal: OpenAppsModal;
-    postEphemeralCallResponseForPost: PostEphemeralCallResponseForPost;
-}
-
-function mapDispatchToProps(dispatch: Dispatch<GenericAction>) {
+function mapDispatchToProps(dispatch: Dispatch) {
     return {
-        actions: bindActionCreators<ActionCreatorsMapObject<any>, Actions>({
+        actions: bindActionCreators({
             handleBindingClick,
             fetchBindings,
             openModal,

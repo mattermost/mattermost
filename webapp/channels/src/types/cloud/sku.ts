@@ -1,13 +1,6 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import type {StripeCardElement} from '@stripe/stripe-js';
-
-export type StripeSetupIntent = {
-    id: string;
-    client_secret: string;
-};
-
 export type BillingDetails = {
     address: string;
     address2: string;
@@ -16,7 +9,6 @@ export type BillingDetails = {
     country: string;
     postalCode: string;
     name: string;
-    card: StripeCardElement;
     agreedTerms?: boolean;
     company_name?: string;
 };

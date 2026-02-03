@@ -135,11 +135,6 @@ describe('Selectors.Preferences', () => {
         });
     });
 
-    it('get preferences by category', () => {
-        const getCategory = Selectors.makeGetCategory();
-        expect(getCategory(testState, category1)).toEqual([pref1]);
-    });
-
     it('get direct channel show preferences', () => {
         expect(Selectors.getDirectShowPreferences(testState)).toEqual([dmPref1, dmPref2]);
     });
@@ -596,6 +591,233 @@ describe('Selectors.Preferences', () => {
         const getStyleFromTheme = Selectors.makeGetStyleFromTheme();
 
         expect(getStyleFromTheme(state, testStyleFunction)).toEqual(expected);
+    });
+});
+
+describe('makeGetCategory', () => {
+    const category1 = 'category1';
+    const category2 = 'category2';
+    const name1 = 'name1';
+    const name2 = 'name2';
+
+    function getBaseState() {
+        return deepFreezeAndThrowOnMutation({
+            entities: {
+                preferences: {
+                    myPreferences: {
+                        [getPreferenceKey(category1, name1)]: {
+                            category: category1,
+                            name: name1,
+                            value: 'value1',
+                        },
+                        [getPreferenceKey(category2, name1)]: {
+                            category: category2,
+                            name: name1,
+                            value: 'value2',
+                        },
+                        [getPreferenceKey(category1, name2)]: {
+                            category: category1,
+                            name: name2,
+                            value: 'value3',
+                        },
+                    },
+                },
+            },
+        }) as GlobalState;
+    }
+
+    it('should return preferences in a category', () => {
+        const state = getBaseState();
+
+        const getCategory1 = Selectors.makeGetCategory('getCategory1', category1);
+        const getCategory2 = Selectors.makeGetCategory('getCategory2', category2);
+
+        expect(getCategory1(state)).toEqual([
+            {
+                category: category1,
+                name: name1,
+                value: 'value1',
+            },
+            {
+                category: category1,
+                name: name2,
+                value: 'value3',
+            },
+        ]);
+        expect(getCategory2(state)).toEqual([
+            {
+                category: category2,
+                name: name1,
+                value: 'value2',
+            },
+        ]);
+    });
+
+    it('should return the same preference objects unless they change', () => {
+        let state = getBaseState();
+
+        const preference1 = state.entities.preferences.myPreferences[getPreferenceKey(category1, name1)];
+        const preference2 = state.entities.preferences.myPreferences[getPreferenceKey(category1, name2)];
+
+        const getCategory1 = Selectors.makeGetCategory('getCategory1', category1);
+
+        expect(getCategory1(state)[0]).toBe(preference1);
+        expect(getCategory1(state)[1]).toBe(preference2);
+
+        state = mergeObjects(state, {
+            entities: {
+                preferences: {
+                    myPreferences: {
+                        [getPreferenceKey(category1, name1)]: {
+                            category: category1,
+                            name: name1,
+                            value: 'new value',
+                        },
+                    },
+                },
+            },
+        });
+
+        expect(getCategory1(state)[0]).not.toBe(preference1);
+        expect(getCategory1(state)[1]).toBe(preference2);
+    });
+
+    it('should only return a new array when one of the preferences in that category changes', () => {
+        let state = getBaseState();
+
+        const getCategory1 = Selectors.makeGetCategory('getCategory1', category1);
+        const getCategory2 = Selectors.makeGetCategory('getCategory2', category2);
+
+        const originalResult1 = getCategory1(state);
+        const originalResult2 = getCategory2(state);
+
+        expect(getCategory1(state)).toBe(originalResult1);
+
+        state = mergeObjects(state, {
+            entities: {
+                preferences: {
+                    myPreferences: {
+                        [getPreferenceKey(category2, name2)]: {
+                            category: category2,
+                            name: name2,
+                            value: 'value4',
+                        },
+                    },
+                },
+            },
+        });
+
+        expect(getCategory1(state)).toBe(originalResult1);
+        expect(getCategory2(state)).not.toBe(originalResult2);
+
+        state = mergeObjects(state, {
+            entities: {
+                preferences: {
+                    myPreferences: {
+                        [getPreferenceKey(category1, name1)]: {
+                            category: category1,
+                            name: name1,
+                            value: 'new value',
+                        },
+                    },
+                },
+            },
+        });
+
+        expect(getCategory1(state)).not.toBe(originalResult1);
+        expect(getCategory2(state)).not.toBe(originalResult2);
+    });
+});
+
+describe('shouldShowJoinLeaveMessages', () => {
+    it('should default to true', () => {
+        const state = {
+            entities: {
+                general: {
+                    config: {
+                        EnableJoinLeaveMessageByDefault: 'true',
+                    },
+                },
+                preferences: {
+                    myPreferences: {},
+                },
+            },
+        } as unknown as GlobalState;
+
+        // Defaults to show post
+        const show = Selectors.shouldShowJoinLeaveMessages(state);
+        expect(show).toEqual(true);
+    });
+
+    it('set config to false, return false', () => {
+        const state = {
+            entities: {
+                general: {
+                    config: {
+                        EnableJoinLeaveMessageByDefault: 'false',
+                    },
+                },
+                preferences: {
+                    myPreferences: {},
+                },
+            },
+        } as unknown as GlobalState;
+
+        // Defaults to show post
+        const show = Selectors.shouldShowJoinLeaveMessages(state);
+        expect(show).toEqual(false);
+    });
+
+    it('if user preference, set default wont be used', () => {
+        const state = {
+            entities: {
+                general: {
+                    config: {
+                        EnableJoinLeaveMessageByDefault: 'false',
+                    },
+                },
+                preferences: {
+                    myPreferences: {
+                        [getPreferenceKey(Preferences.CATEGORY_ADVANCED_SETTINGS, Preferences.ADVANCED_FILTER_JOIN_LEAVE)]: {
+                            category: Preferences.CATEGORY_ADVANCED_SETTINGS,
+                            name: Preferences.ADVANCED_FILTER_JOIN_LEAVE,
+                            value: 'true',
+                        },
+
+                    },
+                },
+            },
+        } as unknown as GlobalState;
+
+        // Defaults to show post
+        const show = Selectors.shouldShowJoinLeaveMessages(state);
+        expect(show).toEqual(true);
+    });
+
+    it('if user preference, set default wont be used', () => {
+        const state = {
+            entities: {
+                general: {
+                    config: {
+                        EnableJoinLeaveMessageByDefault: 'true',
+                    },
+                },
+                preferences: {
+                    myPreferences: {
+                        [getPreferenceKey(Preferences.CATEGORY_ADVANCED_SETTINGS, Preferences.ADVANCED_FILTER_JOIN_LEAVE)]: {
+                            category: Preferences.CATEGORY_ADVANCED_SETTINGS,
+                            name: Preferences.ADVANCED_FILTER_JOIN_LEAVE,
+                            value: 'false',
+                        },
+
+                    },
+                },
+            },
+        } as unknown as GlobalState;
+
+        // Defaults to show post
+        const show = Selectors.shouldShowJoinLeaveMessages(state);
+        expect(show).toEqual(false);
     });
 });
 

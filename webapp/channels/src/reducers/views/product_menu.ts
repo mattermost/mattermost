@@ -3,11 +3,11 @@
 
 import {combineReducers} from 'redux';
 
-import type {GenericAction} from 'mattermost-redux/types/actions';
-
 import {ActionTypes} from 'utils/constants';
 
-export function switcherOpen(state = false, action: GenericAction) {
+import type {MMAction} from 'types/store';
+
+export function switcherOpen(state = false, action: MMAction) {
     switch (action.type) {
     case ActionTypes.SET_PRODUCT_SWITCHER_OPEN:
         return action.open;

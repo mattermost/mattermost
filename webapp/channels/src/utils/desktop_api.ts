@@ -3,7 +3,7 @@
 
 import semver from 'semver';
 
-import type {DesktopAPI} from '@mattermost/desktop-api';
+import type {DesktopAPI, PopoutViewProps, Theme} from '@mattermost/desktop-api';
 
 import {isDesktopApp} from 'utils/user_agent';
 
@@ -13,10 +13,12 @@ declare global {
     }
 }
 
-class DesktopAppAPI {
+export class DesktopAppAPI {
     private name?: string;
     private version?: string | null;
+    private prereleaseVersion?: string;
     private dev?: boolean;
+    private isAbleToPopout?: boolean;
 
     /**
      * @deprecated
@@ -32,6 +34,7 @@ class DesktopAppAPI {
         this.getDesktopAppInfo().then(({name, version}) => {
             this.name = name;
             this.version = semver.valid(semver.coerce(version));
+            this.prereleaseVersion = version?.split('-')?.[1];
 
             // Legacy Desktop App version, used by some plugins
             if (!window.desktop) {
@@ -42,6 +45,9 @@ class DesktopAppAPI {
         window.desktopAPI?.isDev?.().then((isDev) => {
             this.dev = isDev;
         });
+        window.desktopAPI?.canPopout?.().then((canPopout) => {
+            this.isAbleToPopout = canPopout;
+        });
 
         // Legacy code - to be removed
         this.postMessageListeners = new Map();
@@ -50,6 +56,32 @@ class DesktopAppAPI {
             window.removeEventListener('message', this.postMessageListener);
         });
     }
+
+    setupDesktopPopout = async (path: string, desktopProps?: PopoutViewProps) => {
+        const popoutId = await this.openPopout(path, desktopProps ?? {});
+        if (!popoutId) {
+            throw new Error('Failed to open popout: Desktop App returned an invalid popout ID');
+        }
+        return {
+            sendToPopout: (channel: string, ...args: unknown[]) => {
+                this.sendToPopoutWindow(popoutId, channel, ...args);
+            },
+            onMessageFromPopout: (listener: (channel: string, ...args: unknown[]) => void) => {
+                return this.onMessageFromPopoutWindow((id, channel, ...args) => {
+                    if (id === popoutId) {
+                        listener(channel, ...args);
+                    }
+                });
+            },
+            onClosePopout: (listener: () => void) => {
+                return this.onPopoutWindowClosed((id) => {
+                    if (id === popoutId) {
+                        listener();
+                    }
+                });
+            },
+        };
+    };
 
     /*******************************************************
      * Getters/setters for Desktop App specific information
@@ -63,8 +95,16 @@ class DesktopAppAPI {
         return this.version;
     };
 
+    getPrereleaseVersion = () => {
+        return this.prereleaseVersion;
+    };
+
     isDev = () => {
         return this.dev;
+    };
+
+    canPopout = () => {
+        return this.isAbleToPopout;
     };
 
     private getDesktopAppInfo = () => {
@@ -102,6 +142,18 @@ class DesktopAppAPI {
             canGoBack: enableBack,
             canGoForward: enableForward,
         };
+    };
+
+    private openPopout = (path: string, props: PopoutViewProps) => {
+        return window.desktopAPI?.openPopout?.(path, props);
+    };
+
+    canUsePopoutOption = (optionName: string) => {
+        return Boolean(window.desktopAPI?.canUsePopoutOption?.(optionName));
+    };
+
+    getDarkMode = () => {
+        return window.desktopAPI?.getDarkMode?.() ?? Promise.resolve(false);
     };
 
     /**
@@ -152,11 +204,31 @@ class DesktopAppAPI {
         return () => this.removePostMessageListener('history-button-return', legacyListener);
     };
 
+    onReceiveMetrics = (listener: (metricsMap: Map<string, {cpu?: number; memory?: number}>) => void) => {
+        return window.desktopAPI?.onSendMetrics?.(listener);
+    };
+
+    onMessageFromParentWindow = (listener: (channel: string, ...args: unknown[]) => void) => {
+        return window.desktopAPI?.onMessageFromParent?.(listener);
+    };
+
+    private onMessageFromPopoutWindow = (listener: (id: string, channel: string, ...args: unknown[]) => void) => {
+        return window.desktopAPI?.onMessageFromPopout?.(listener);
+    };
+
+    private onPopoutWindowClosed = (listener: (id: string) => void) => {
+        return window.desktopAPI?.onPopoutClosed?.(listener);
+    };
+
+    onDarkModeChanged = (listener: (darkMode: boolean) => void) => {
+        return window.desktopAPI?.onDarkModeChanged?.(listener);
+    };
+
     /**
      * One-ways
      */
 
-    dispatchNotification = (
+    dispatchNotification = async (
         title: string,
         body: string,
         channelId: string,
@@ -166,8 +238,8 @@ class DesktopAppAPI {
         url: string,
     ) => {
         if (window.desktopAPI?.sendNotification) {
-            window.desktopAPI.sendNotification(title, body, channelId, teamId, url, silent, soundName);
-            return;
+            const result = await window.desktopAPI.sendNotification(title, body, channelId, teamId, url, silent, soundName);
+            return result ?? {status: 'unsupported', reason: 'desktop_app_unsupported'};
         }
 
         // get the desktop app to trigger the notification
@@ -186,6 +258,7 @@ class DesktopAppAPI {
             },
             window.location.origin,
         );
+        return {status: 'unsupported', reason: 'desktop_app_unsupported'};
     };
 
     doBrowserHistoryPush = (path: string) => {
@@ -206,6 +279,13 @@ class DesktopAppAPI {
     updateUnreadsAndMentions = (isUnread: boolean, mentionCount: number) =>
         window.desktopAPI?.setUnreadsAndMentions && window.desktopAPI.setUnreadsAndMentions(isUnread, mentionCount);
     setSessionExpired = (expired: boolean) => window.desktopAPI?.setSessionExpired && window.desktopAPI.setSessionExpired(expired);
+    signalLogin = () => window.desktopAPI?.onLogin?.();
+    signalLogout = () => window.desktopAPI?.onLogout?.();
+    reactAppInitialized = () => window.desktopAPI?.reactAppInitialized?.();
+    updateTheme = (theme: Theme) => window.desktopAPI?.updateTheme?.(theme);
+
+    sendToParentWindow = (channel: string, ...args: unknown[]) => window.desktopAPI?.sendToParent?.(channel, ...args);
+    sendToPopoutWindow = (id: string, channel: string, ...args: unknown[]) => window.desktopAPI?.sendToPopout?.(id, channel, ...args);
 
     /*********************************************************************
      * Helper functions for legacy code

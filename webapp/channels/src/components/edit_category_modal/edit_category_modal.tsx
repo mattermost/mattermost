@@ -5,9 +5,6 @@ import React from 'react';
 import {FormattedMessage} from 'react-intl';
 
 import {GenericModal} from '@mattermost/components';
-import type {ChannelCategory} from '@mattermost/types/channel_categories';
-
-import {trackEvent} from 'actions/telemetry_actions';
 
 import QuickInput, {MaxLengthInput} from 'components/quick_input';
 
@@ -25,7 +22,7 @@ type Props = {
     initialCategoryName?: string;
     channelIdsToAdd?: string[];
     actions: {
-        createCategory: (teamId: string, displayName: string, channelIds?: string[] | undefined) => {data: ChannelCategory};
+        createCategory: (teamId: string, displayName: string, channelIds?: string[] | undefined) => void;
         renameCategory: (categoryId: string, newName: string) => void;
     };
 };
@@ -76,7 +73,6 @@ export default class EditCategoryModal extends React.PureComponent<Props, State>
             this.props.actions.renameCategory(this.props.categoryId, this.state.categoryName);
         } else {
             this.props.actions.createCategory(this.props.currentTeamId, this.state.categoryName, this.props.channelIdsToAdd);
-            trackEvent('ui', 'ui_sidebar_created_category');
         }
     };
 
@@ -141,7 +137,6 @@ export default class EditCategoryModal extends React.PureComponent<Props, State>
         return (
             <GenericModal
                 id='editCategoryModal'
-                ariaLabel={localizeMessage('rename_category_modal.renameCategory', 'Rename Category')}
                 modalHeaderText={modalHeaderText}
                 confirmButtonText={editButtonText}
                 compassDesign={true}
@@ -157,7 +152,7 @@ export default class EditCategoryModal extends React.PureComponent<Props, State>
                     className='form-control filter-textbox'
                     type='text'
                     value={this.state.categoryName}
-                    placeholder={localizeMessage('edit_category_modal.placeholder', 'Name your category')}
+                    placeholder={localizeMessage({id: 'edit_category_modal.placeholder', defaultMessage: 'Name your category'})}
                     clearable={true}
                     onClear={this.handleClear}
                     onChange={this.handleChange}

@@ -8,9 +8,9 @@ import {Client4} from 'mattermost-redux/client';
 
 import {uploadBrandImage, deleteBrandImage} from 'actions/admin_actions.jsx';
 
+import SettingSet from 'components/admin_console/setting_set';
 import FormError from 'components/form_error';
-import OverlayTrigger from 'components/overlay_trigger';
-import Tooltip from 'components/tooltip';
+import WithTooltip from 'components/with_tooltip';
 
 import {Constants} from 'utils/constants';
 
@@ -111,6 +111,10 @@ export default class BrandImageSetting extends React.PureComponent<Props, State>
         }
     }
 
+    handleSelectClick = () => {
+        this.fileInputRef.current?.click();
+    };
+
     handleImageChange = () => {
         if (!this.fileInputRef.current) {
             return;
@@ -193,19 +197,14 @@ export default class BrandImageSetting extends React.PureComponent<Props, State>
             let overlay;
             if (!this.props.disabled) {
                 overlay = (
-                    <OverlayTrigger
-                        delayShow={Constants.OVERLAY_TIME_DELAY}
-                        placement='right'
-                        overlay={
-                            <Tooltip id='removeIcon'>
-                                <div aria-hidden={true}>
-                                    <FormattedMessage
-                                        id='admin.team.removeBrandImage'
-                                        defaultMessage='Remove brand image'
-                                    />
-                                </div>
-                            </Tooltip>
-                        }
+                    <WithTooltip
+                        title={(
+                            <FormattedMessage
+                                id='admin.team.removeBrandImage'
+                                defaultMessage='Remove brand image'
+                            />
+                        )}
+                        isVertical={false}
                     >
                         <button
                             type='button'
@@ -214,7 +213,7 @@ export default class BrandImageSetting extends React.PureComponent<Props, State>
                         >
                             <span aria-hidden={true}>{'×'}</span>
                         </button>
-                    </OverlayTrigger>
+                    </WithTooltip>
                 );
             }
             img = (
@@ -240,50 +239,47 @@ export default class BrandImageSetting extends React.PureComponent<Props, State>
         }
 
         return (
-            <div
-                data-testid={this.props.id}
-                className='form-group'
-            >
-                <label className='control-label col-sm-4'>
+            <SettingSet
+                inputId={this.props.id}
+                helpText={
+                    <FormattedMessage
+                        id='admin.team.uploadDesc'
+                        defaultMessage='Customize your user experience by adding a custom image to your login screen. Recommended maximum image size is less than 2 MB.'
+                    />
+                }
+                label={
                     <FormattedMessage
                         id='admin.team.brandImageTitle'
                         defaultMessage='Custom Brand Image:'
                     />
-                </label>
-                <div className='col-sm-8'>
+                }
+                setByEnv={false}
+            >
+                <div>
                     <div className='remove-image'>{img}</div>
                 </div>
-                <div className='col-sm-4'/>
-                <div className='col-sm-8'>
-                    <div className='file__upload mt-5'>
-                        <button
-                            type='button'
-                            className='btn btn-tertiary'
-                            disabled={this.props.disabled}
-                        >
-                            <FormattedMessage
-                                id='admin.team.chooseImage'
-                                defaultMessage='Select Image'
-                            />
-                        </button>
-                        <input
-                            ref={this.fileInputRef}
-                            type='file'
-                            accept={Constants.ACCEPT_STATIC_IMAGE}
-                            disabled={this.props.disabled}
-                            onChange={this.handleImageChange}
-                        />
-                    </div>
-                    <br/>
-                    <FormError error={this.state.error}/>
-                    <p className='help-text m-0'>
+                <div className='file__upload mt-5'>
+                    <button
+                        type='button'
+                        className='btn btn-tertiary'
+                        disabled={this.props.disabled}
+                        onClick={this.handleSelectClick}
+                    >
                         <FormattedMessage
-                            id='admin.team.uploadDesc'
-                            defaultMessage='Customize your user experience by adding a custom image to your login screen. Recommended maximum image size is less than 2 MB.'
+                            id='admin.team.chooseImage'
+                            defaultMessage='Select Image'
                         />
-                    </p>
+                    </button>
+                    <input
+                        ref={this.fileInputRef}
+                        type='file'
+                        accept={Constants.ACCEPT_STATIC_IMAGE}
+                        disabled={this.props.disabled}
+                        onChange={this.handleImageChange}
+                    />
                 </div>
-            </div>
+                <FormError error={this.state.error}/>
+            </SettingSet>
         );
     }
 }

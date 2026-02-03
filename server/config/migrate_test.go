@@ -55,7 +55,7 @@ func TestMigrate(t *testing.T) {
 
 		cfg := source.Get()
 		originalCfg := cfg.Clone()
-		cfg.ServiceSettings.SiteURL = model.NewString("http://example.com")
+		cfg.ServiceSettings.SiteURL = model.NewPointer("http://example.com")
 		cfg.SamlSettings.IdpCertificateFile = &files[0]
 		cfg.SamlSettings.PublicCertificateFile = &files[1]
 		cfg.SamlSettings.PrivateKeyFile = &files[2]
@@ -64,10 +64,10 @@ func TestMigrate(t *testing.T) {
 			files[4],
 		}
 		cfg.SqlSettings.DataSourceReplicas = []string{
-			"mysql://mmuser:password@tcp(replicahost:3306)/mattermost",
+			"postgres://mmuser:password@replicahost:5432/mattermost",
 		}
 		cfg.SqlSettings.DataSourceSearchReplicas = []string{
-			"mysql://mmuser:password@tcp(searchreplicahost:3306)/mattermost",
+			"postgres://mmuser:password@searchreplicahost:5432/mattermost",
 		}
 
 		_, _, err := source.Set(cfg)

@@ -1,4 +1,4 @@
-// Jest Snapshot v1, https://goo.gl/fbAQLP
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
 
 exports[`components/sidebar/sidebar_channel/sidebar_channel_menu should match snapshot and contain correct buttons 1`] = `
 <Menu
@@ -11,7 +11,7 @@ exports[`components/sidebar/sidebar_channel/sidebar_channel_menu should match sn
   }
   menuButton={
     Object {
-      "aria-label": "Channel options",
+      "aria-label": "Channel options for {channelName}",
       "children": <DotsVerticalIcon
         size={16}
       />,
@@ -22,7 +22,6 @@ exports[`components/sidebar/sidebar_channel/sidebar_channel_menu should match sn
   menuButtonTooltip={
     Object {
       "class": "hidden-xs",
-      "id": "SidebarChannelMenu-ButtonTooltip-channel_id",
       "text": "Channel options",
     }
   }
@@ -157,7 +156,7 @@ exports[`components/sidebar/sidebar_channel/sidebar_channel_menu should match sn
   }
   menuButton={
     Object {
-      "aria-label": "Channel options",
+      "aria-label": "Channel options for {channelName}",
       "children": <DotsVerticalIcon
         size={16}
       />,
@@ -168,7 +167,6 @@ exports[`components/sidebar/sidebar_channel/sidebar_channel_menu should match sn
   menuButtonTooltip={
     Object {
       "class": "hidden-xs",
-      "id": "SidebarChannelMenu-ButtonTooltip-channel_id",
       "text": "Channel options",
     }
   }
@@ -303,7 +301,7 @@ exports[`components/sidebar/sidebar_channel/sidebar_channel_menu should match sn
   }
   menuButton={
     Object {
-      "aria-label": "Channel options",
+      "aria-label": "Channel options for {channelName}",
       "children": <DotsVerticalIcon
         size={16}
       />,
@@ -314,7 +312,6 @@ exports[`components/sidebar/sidebar_channel/sidebar_channel_menu should match sn
   menuButtonTooltip={
     Object {
       "class": "hidden-xs",
-      "id": "SidebarChannelMenu-ButtonTooltip-channel_id",
       "text": "Channel options",
     }
   }
@@ -449,7 +446,7 @@ exports[`components/sidebar/sidebar_channel/sidebar_channel_menu should show cor
   }
   menuButton={
     Object {
-      "aria-label": "Channel options",
+      "aria-label": "Channel options for {channelName}",
       "children": <DotsVerticalIcon
         size={16}
       />,
@@ -460,7 +457,6 @@ exports[`components/sidebar/sidebar_channel/sidebar_channel_menu should show cor
   menuButtonTooltip={
     Object {
       "class": "hidden-xs",
-      "id": "SidebarChannelMenu-ButtonTooltip-channel_id",
       "text": "Channel options",
     }
   }
@@ -499,8 +495,8 @@ exports[`components/sidebar/sidebar_channel/sidebar_channel_menu should show cor
     id="mute-channel_id"
     labels={
       <Memo(MemoizedFormattedMessage)
-        defaultMessage="Mute Conversation"
-        id="sidebar_left.sidebar_channel_menu.muteConversation"
+        defaultMessage="Mute"
+        id="sidebar_left.sidebar_channel_menu.mute"
       />
     }
     leadingElement={
@@ -563,7 +559,7 @@ exports[`components/sidebar/sidebar_channel/sidebar_channel_menu should show cor
   }
   menuButton={
     Object {
-      "aria-label": "Channel options",
+      "aria-label": "Channel options for {channelName}",
       "children": <DotsVerticalIcon
         size={16}
       />,
@@ -574,7 +570,6 @@ exports[`components/sidebar/sidebar_channel/sidebar_channel_menu should show cor
   menuButtonTooltip={
     Object {
       "class": "hidden-xs",
-      "id": "SidebarChannelMenu-ButtonTooltip-channel_id",
       "text": "Channel options",
     }
   }
@@ -692,7 +687,7 @@ exports[`components/sidebar/sidebar_channel/sidebar_channel_menu should show cor
   }
   menuButton={
     Object {
-      "aria-label": "Channel options",
+      "aria-label": "Channel options for {channelName}",
       "children": <DotsVerticalIcon
         size={16}
       />,
@@ -703,7 +698,6 @@ exports[`components/sidebar/sidebar_channel/sidebar_channel_menu should show cor
   menuButtonTooltip={
     Object {
       "class": "hidden-xs",
-      "id": "SidebarChannelMenu-ButtonTooltip-channel_id",
       "text": "Channel options",
     }
   }
@@ -838,7 +832,7 @@ exports[`components/sidebar/sidebar_channel/sidebar_channel_menu should show cor
   }
   menuButton={
     Object {
-      "aria-label": "Channel options",
+      "aria-label": "Channel options for {channelName}",
       "children": <DotsVerticalIcon
         size={16}
       />,
@@ -849,7 +843,6 @@ exports[`components/sidebar/sidebar_channel/sidebar_channel_menu should show cor
   menuButtonTooltip={
     Object {
       "class": "hidden-xs",
-      "id": "SidebarChannelMenu-ButtonTooltip-channel_id",
       "text": "Channel options",
     }
   }
@@ -984,7 +977,7 @@ exports[`components/sidebar/sidebar_channel/sidebar_channel_menu should show cor
   }
   menuButton={
     Object {
-      "aria-label": "Channel options",
+      "aria-label": "Channel options for {channelName}",
       "children": <DotsVerticalIcon
         size={16}
       />,
@@ -995,7 +988,6 @@ exports[`components/sidebar/sidebar_channel/sidebar_channel_menu should show cor
   menuButtonTooltip={
     Object {
       "class": "hidden-xs",
-      "id": "SidebarChannelMenu-ButtonTooltip-channel_id",
       "text": "Channel options",
     }
   }
@@ -1130,7 +1122,7 @@ exports[`components/sidebar/sidebar_channel/sidebar_channel_menu should show cor
   }
   menuButton={
     Object {
-      "aria-label": "Channel options",
+      "aria-label": "Channel options for {channelName}",
       "children": <DotsVerticalIcon
         size={16}
       />,
@@ -1141,7 +1133,6 @@ exports[`components/sidebar/sidebar_channel/sidebar_channel_menu should show cor
   menuButtonTooltip={
     Object {
       "class": "hidden-xs",
-      "id": "SidebarChannelMenu-ButtonTooltip-channel_id",
       "text": "Channel options",
     }
   }
@@ -1276,7 +1267,7 @@ exports[`components/sidebar/sidebar_channel/sidebar_channel_menu should show cor
   }
   menuButton={
     Object {
-      "aria-label": "Channel options",
+      "aria-label": "Channel options for {channelName}",
       "children": <DotsVerticalIcon
         size={16}
       />,
@@ -1287,7 +1278,6 @@ exports[`components/sidebar/sidebar_channel/sidebar_channel_menu should show cor
   menuButtonTooltip={
     Object {
       "class": "hidden-xs",
-      "id": "SidebarChannelMenu-ButtonTooltip-channel_id",
       "text": "Channel options",
     }
   }

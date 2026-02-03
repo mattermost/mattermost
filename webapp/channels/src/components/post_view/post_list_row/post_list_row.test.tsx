@@ -41,7 +41,6 @@ describe('components/post_view/post_list_row', () => {
         post: TestHelper.getPostMock({id: 'post_id_1'}),
         currentUserId: 'user_id_1',
         newMessagesSeparatorActions: [],
-        lastViewedAt: 0,
         channelId: 'channel_id_1',
     };
 
@@ -107,7 +106,7 @@ describe('components/post_view/post_list_row', () => {
     });
 
     test('should render new messages line', () => {
-        const listId = PostListRowListIds.START_OF_NEW_MESSAGES;
+        const listId = PostListRowListIds.START_OF_NEW_MESSAGES + '1553106600000';
         const props = {
             ...defaultProps,
             listId,

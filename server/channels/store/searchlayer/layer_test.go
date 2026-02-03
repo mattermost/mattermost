@@ -27,19 +27,19 @@ func TestUpdateConfigRace(t *testing.T) {
 	if driverName == "" {
 		driverName = model.DatabaseDriverPostgres
 	}
-	settings := storetest.MakeSqlSettings(driverName, false)
-	store, err := sqlstore.New(*settings, logger, nil)
+	settings := storetest.MakeSqlSettings(driverName)
+	store, err := sqlstore.New(*settings, logger, nil, sqlstore.DisableMorphLogging())
 	require.NoError(t, err)
 
 	cfg := &model.Config{}
 	cfg.SetDefaults()
-	cfg.ClusterSettings.MaxIdleConns = model.NewInt(1)
+	cfg.ClusterSettings.GossipPort = model.NewPointer(9999)
 	searchEngine := searchengine.NewBroker(cfg)
 	layer := searchlayer.NewSearchLayer(&testlib.TestStore{Store: store}, searchEngine, cfg)
 	var wg sync.WaitGroup
 
 	wg.Add(5)
-	for i := 0; i < 5; i++ {
+	for range 5 {
 		go func() {
 			defer wg.Done()
 			layer.UpdateConfig(cfg.Clone())

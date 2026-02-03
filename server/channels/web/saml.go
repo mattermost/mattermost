@@ -12,16 +12,15 @@ import (
 	"time"
 
 	"github.com/mattermost/mattermost/server/public/model"
-	"github.com/mattermost/mattermost/server/public/shared/mlog"
-	"github.com/mattermost/mattermost/server/v8/channels/audit"
+	"github.com/mattermost/mattermost/server/public/plugin"
 	"github.com/mattermost/mattermost/server/v8/channels/utils"
 )
 
 const maxSAMLResponseSize = 2 * 1024 * 1024 // 2MB
 
 func (w *Web) InitSaml() {
-	w.MainRouter.Handle("/login/sso/saml", w.APIHandler(loginWithSaml)).Methods("GET")
-	w.MainRouter.Handle("/login/sso/saml", w.APIHandlerTrustRequester(completeSaml)).Methods("POST")
+	w.MainRouter.Handle("/login/sso/saml", w.APIHandler(loginWithSaml)).Methods(http.MethodGet)
+	w.MainRouter.Handle("/login/sso/saml", w.APIHandlerTrustRequester(completeSaml)).Methods(http.MethodPost)
 }
 
 func loginWithSaml(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -32,22 +31,28 @@ func loginWithSaml(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	teamId, err := c.App.GetTeamIdFromQuery(r.URL.Query())
-	if err != nil {
-		c.Err = err
-		return
-	}
+	tokenID := r.URL.Query().Get("t")
+	inviteId := r.URL.Query().Get("id")
+
 	action := r.URL.Query().Get("action")
 	isMobile := action == model.OAuthActionMobile
 	redirectURL := html.EscapeString(r.URL.Query().Get("redirect_to"))
+	// Optional SAML challenge parameters for mobile code-exchange
+	state := r.URL.Query().Get("state")
+	codeChallenge := r.URL.Query().Get("code_challenge")
+	codeChallengeMethod := r.URL.Query().Get("code_challenge_method")
 	relayProps := map[string]string{}
 	relayState := ""
 
 	if action != "" {
-		relayProps["team_id"] = teamId
+		if tokenID != "" {
+			relayProps["invite_token"] = tokenID
+		} else if inviteId != "" {
+			relayProps["invite_id"] = inviteId
+		}
 		relayProps["action"] = action
 		if action == model.OAuthActionEmailToSSO {
-			relayProps["email"] = r.URL.Query().Get("email")
+			relayProps["email_token"] = r.URL.Query().Get("email_token")
 		}
 	}
 
@@ -58,6 +63,19 @@ func loginWithSaml(c *Context, w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		relayProps["redirect_to"] = redirectURL
+	}
+
+	// Forward SAML challenge values via RelayState so the complete step can prefer code-exchange
+	if isMobile {
+		if state != "" {
+			relayProps["state"] = state
+		}
+		if codeChallenge != "" {
+			relayProps["code_challenge"] = codeChallenge
+		}
+		if codeChallengeMethod != "" {
+			relayProps["code_challenge_method"] = codeChallengeMethod
+		}
 	}
 
 	desktopToken := r.URL.Query().Get("desktop_token")
@@ -88,7 +106,7 @@ func completeSaml(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	//Validate that the user is with SAML and all that
+	// Validate that the user is with SAML and all that
 	encodedXML := r.FormValue("SAMLResponse")
 	relayState := r.FormValue("RelayState")
 
@@ -104,7 +122,7 @@ func completeSaml(c *Context, w http.ResponseWriter, r *http.Request) {
 		relayProps = model.MapFromJSON(strings.NewReader(stateStr))
 	}
 
-	auditRec := c.MakeAuditRecord("completeSaml", audit.Fail)
+	auditRec := c.MakeAuditRecord(model.AuditEventCompleteSaml, model.AuditStatusFail)
 	defer c.LogAuditRec(auditRec)
 	c.LogAudit("attempt")
 
@@ -118,7 +136,7 @@ func completeSaml(c *Context, w http.ResponseWriter, r *http.Request) {
 		redirectURL = val
 		hasRedirectURL = val != ""
 	}
-	redirectURL = fullyQualifiedRedirectURL(c.GetSiteURLHeader(), redirectURL)
+	redirectURL = fullyQualifiedRedirectURL(c.GetSiteURLHeader(), redirectURL, c.App.Config().NativeAppSettings.AppCustomURLSchemes)
 
 	handleError := func(err *model.AppError) {
 		if isMobile && hasRedirectURL {
@@ -128,8 +146,6 @@ func completeSaml(c *Context, w http.ResponseWriter, r *http.Request) {
 			c.Err = err
 			c.Err.StatusCode = http.StatusFound
 		}
-
-		c.Logger.Error("Failed to complete SAML login", mlog.Err(err))
 	}
 
 	if len(encodedXML) > maxSAMLResponseSize {
@@ -138,26 +154,26 @@ func completeSaml(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	user, err := samlInterface.DoLogin(c.AppContext, encodedXML, relayProps)
+	user, assertion, err := samlInterface.DoLogin(c.AppContext, encodedXML, relayProps)
 	if err != nil {
 		c.LogAudit("fail")
 		handleError(err)
 		return
 	}
 
-	if err = c.App.CheckUserAllAuthenticationCriteria(c.AppContext, user, ""); err != nil {
+	err = c.App.CheckUserAllAuthenticationCriteria(c.AppContext, user, "")
+	if err != nil {
 		handleError(err)
 		return
 	}
 
 	switch action {
 	case model.OAuthActionSignup:
-		if teamId := relayProps["team_id"]; teamId != "" {
-			if err = c.App.AddUserToTeamByTeamId(c.AppContext, teamId, user); err != nil {
-				c.LogErrorByCode(err)
-				break
-			}
-			c.App.AddDirectChannels(c.AppContext, teamId, user)
+		inviteToken := relayProps["invite_token"]
+		inviteId := relayProps["invite_id"]
+		if err = c.App.AddUserToTeamByInviteIfNeeded(c.AppContext, user, inviteToken, inviteId); err != nil {
+			c.LogErrorByCode(err)
+			break
 		}
 	case model.OAuthActionEmailToSSO:
 		if err = c.App.RevokeAllSessions(c.AppContext, user.Id); err != nil {
@@ -175,22 +191,30 @@ func completeSaml(c *Context, w http.ResponseWriter, r *http.Request) {
 		})
 	}
 
+	pluginContext := &plugin.Context{
+		RequestId:      c.AppContext.RequestId(),
+		SessionId:      c.AppContext.Session().Id,
+		IPAddress:      c.AppContext.IPAddress(),
+		AcceptLanguage: c.AppContext.AcceptLanguage(),
+		UserAgent:      c.AppContext.UserAgent(),
+	}
+
+	var hookErr error
+	c.App.Channels().RunMultiHook(func(hooks plugin.Hooks, manifest *model.Manifest) bool {
+		hookErr = hooks.OnSAMLLogin(pluginContext, user, assertion)
+		return hookErr == nil
+	}, plugin.OnSAMLLoginID)
+	if hookErr != nil {
+		handleError(model.NewAppError("completeSaml", "api.user.authorize_oauth_user.saml_hook_error.app_error", nil, "", http.StatusInternalServerError).Wrap(hookErr))
+		return
+	}
+
 	auditRec.AddMeta("obtained_user_id", user.Id)
 	c.LogAuditWithUserId(user.Id, "obtained user")
 
-	session, err := c.App.DoLogin(c.AppContext, w, r, user, "", isMobile, false, true)
-	if err != nil {
-		handleError(err)
-		return
-	}
-	c.AppContext = c.AppContext.WithSession(session)
-
-	auditRec.Success()
-	c.LogAuditWithUserId(user.Id, "success")
-
-	c.App.AttachSessionCookies(c.AppContext, w, r)
-
 	desktopToken := relayProps["desktop_token"]
+
+	// If it's a desktop login we generate a token and redirect to another endpoint to handle session creation
 	if desktopToken != "" {
 		serverToken, serverTokenErr := c.App.GenerateAndSaveDesktopToken(time.Now().Unix(), user)
 		if serverTokenErr != nil {
@@ -214,13 +238,56 @@ func completeSaml(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Decide between legacy token-in-URL vs SAML code-exchange for mobile
+	samlState := relayProps["state"]
+	samlChallenge := relayProps["code_challenge"]
+	samlMethod := relayProps["code_challenge_method"]
+
+	if isMobile && hasRedirectURL && samlChallenge != "" && c.App.Config().FeatureFlags.MobileSSOCodeExchange {
+		// Issue one-time login_code bound to user and SAML challenge values; do not create a session here
+		extra := model.MapToJSON(map[string]string{
+			"user_id":               user.Id,
+			"state":                 samlState,
+			"code_challenge":        samlChallenge,
+			"code_challenge_method": samlMethod,
+		})
+
+		var code *model.Token
+		code, err = c.App.CreateSamlRelayToken(model.TokenTypeSSOCodeExchange, extra)
+		if err != nil {
+			handleError(model.NewAppError("completeSaml", "app.recover.save.app_error", nil, "", http.StatusInternalServerError).Wrap(err))
+			return
+		}
+
+		redirectURL = utils.AppendQueryParamsToURL(redirectURL, map[string]string{
+			"login_code": code.Token,
+		})
+		utils.RenderMobileAuthComplete(w, redirectURL)
+		return
+	}
+
+	// Legacy: create a session and attach tokens (web/mobile without SAML code exchange)
+	session, err := c.App.DoLogin(c.AppContext, w, r, user, "", isMobile, false, true)
+	if err != nil {
+		handleError(err)
+		return
+	}
+	c.AppContext = c.AppContext.WithSession(session)
+
+	auditRec.Success()
+	c.LogAuditWithUserId(user.Id, "success")
+	c.App.AttachSessionCookies(c.AppContext, w, r)
+
 	if hasRedirectURL {
 		if isMobile {
 			// Mobile clients with redirect url support
-			redirectURL = utils.AppendQueryParamsToURL(redirectURL, map[string]string{
-				model.SessionCookieToken: c.AppContext.Session().Token,
-				model.SessionCookieCsrf:  c.AppContext.Session().GetCSRF(),
-			})
+			// Legacy mobile path: return tokens only when SAML code exchange was not requested
+			if samlChallenge == "" {
+				redirectURL = utils.AppendQueryParamsToURL(redirectURL, map[string]string{
+					model.SessionCookieToken: c.AppContext.Session().Token,
+					model.SessionCookieCsrf:  c.AppContext.Session().GetCSRF(),
+				})
+			}
 			utils.RenderMobileAuthComplete(w, redirectURL)
 		} else {
 			http.Redirect(w, r, redirectURL, http.StatusFound)

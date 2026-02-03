@@ -1,0 +1,409 @@
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
+
+exports[`DesktopNotificationSettings should match snapshot, on max setting 1`] = `
+<div>
+  <section
+    class="section-max form-horizontal "
+  >
+    <h4
+      class="col-sm-12 section-title"
+      id="settingTitle"
+    >
+      Desktop and mobile notifications
+    </h4>
+    <div />
+    <div
+      class="sectionContent col-sm-10 col-sm-offset-2"
+    >
+      <div
+        class="setting-list"
+        tabindex="-1"
+      >
+        <div
+          class="setting-list-item"
+        >
+          <fieldset
+            id="sendDesktopNotificationsSection"
+          >
+            <legend
+              class="form-legend"
+            >
+              Send notifications for:
+            </legend>
+            <div
+              class="radio"
+            >
+              <label>
+                <input
+                  type="radio"
+                  value="all"
+                />
+                All new messages
+              </label>
+            </div>
+            <div
+              class="radio"
+            >
+              <label>
+                <input
+                  type="radio"
+                  value="mention"
+                />
+                Mentions, direct messages, and group messages
+              </label>
+            </div>
+            <div
+              class="radio"
+            >
+              <label>
+                <input
+                  type="radio"
+                  value="none"
+                />
+                Nothing
+              </label>
+            </div>
+          </fieldset>
+          <br />
+          <div
+            class="checkbox single-checkbox"
+          >
+            <label>
+              <input
+                class="a11y--active a11y--focused"
+                type="checkbox"
+              />
+              Notify me about replies to threads I'm following
+            </label>
+          </div>
+          <hr />
+          <div
+            class="checkbox single-checkbox"
+          >
+            <label>
+              <input
+                type="checkbox"
+              />
+              Use different settings for my mobile devices
+            </label>
+          </div>
+          <br />
+          <label
+            class="singleSelectLabel"
+            for="pushMobileNotificationSelectInput"
+            id="pushMobileNotificationsLabel"
+          >
+            Trigger mobile notifications when I am:
+          </label>
+          <div
+            class="react-select singleSelect css-b62m3t-container"
+          >
+            <span
+              class="css-1f43avz-a11yText-A11yText"
+              id="react-select-2-live-region"
+            />
+            <span
+              aria-atomic="false"
+              aria-live="polite"
+              aria-relevant="additions text"
+              class="css-1f43avz-a11yText-A11yText"
+              role="log"
+            />
+            <div
+              class="react-select__control css-13cymwt-control"
+            >
+              <div
+                class="react-select__value-container react-select__value-container--has-value css-hlgwow"
+              >
+                <div
+                  class="react-select__single-value css-1dimb5e-singleValue"
+                >
+                  Offline
+                </div>
+                <input
+                  aria-activedescendant=""
+                  aria-autocomplete="list"
+                  aria-expanded="false"
+                  aria-haspopup="true"
+                  aria-labelledby="pushMobileNotificationsLabel"
+                  aria-readonly="true"
+                  class="css-1s80ejz-dummyInput-DummyInput"
+                  id="pushMobileNotificationSelectInput"
+                  inputmode="none"
+                  role="combobox"
+                  tabindex="0"
+                  value=""
+                />
+              </div>
+              <div
+                class="react-select__indicators css-1wy0on6"
+              >
+                <div
+                  aria-hidden="true"
+                  class="react-select__indicator react-select__dropdown-indicator css-1xc3v61-indicatorContainer"
+                >
+                  <svg
+                    aria-hidden="true"
+                    class="css-tj5bde-Svg"
+                    focusable="false"
+                    height="20"
+                    viewBox="0 0 20 20"
+                    width="20"
+                  >
+                    <path
+                      d="M4.516 7.548c0.436-0.446 1.043-0.481 1.576 0l3.908 3.747 3.908-3.747c0.533-0.481 1.141-0.446 1.574 0 0.436 0.445 0.408 1.197 0 1.615-0.406 0.418-4.695 4.502-4.695 4.502-0.217 0.223-0.502 0.335-0.787 0.335s-0.57-0.112-0.789-0.335c0 0-4.287-4.084-4.695-4.502s-0.436-1.17 0-1.615z"
+                    />
+                  </svg>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div
+          class="setting-list-item"
+        >
+          <hr />
+          <div
+            role="alert"
+          />
+          <button
+            class="btn btn-primary "
+            data-testid="saveSetting"
+            id="saveSetting"
+            type="submit"
+          >
+            <span>
+              Save
+            </span>
+          </button>
+          <button
+            class="btn btn-tertiary"
+            data-testid="cancelButton"
+            id="cancelSetting"
+          >
+            Cancel
+          </button>
+        </div>
+      </div>
+    </div>
+  </section>
+</div>
+`;
+
+exports[`DesktopNotificationSettings should match snapshot, on min setting 1`] = `
+<div>
+  <div
+    class="section-min"
+  >
+    <div
+      class="section-min__header"
+    >
+      <h4
+        class="section-min__title"
+        id="desktopAndMobileTitle"
+      >
+        Desktop and mobile notifications
+        <div />
+      </h4>
+      <button
+        aria-expanded="false"
+        aria-labelledby="desktopAndMobileTitle desktopAndMobileEdit"
+        class="color--link style--none section-min__edit"
+        id="desktopAndMobileEdit"
+      >
+        <i
+          aria-hidden="true"
+          class="icon-pencil-outline"
+          title="Edit Icon"
+        />
+        Edit
+      </button>
+    </div>
+    <div
+      class="section-min__describe"
+      id="desktopAndMobileDesc"
+    >
+      Configure desktop and mobile settings
+    </div>
+  </div>
+</div>
+`;
+
+exports[`DesktopNotificationSettings should not show desktop thread notification checkbox when collapsed threads are not enabled 1`] = `
+<div>
+  <section
+    class="section-max form-horizontal "
+  >
+    <h4
+      class="col-sm-12 section-title"
+      id="settingTitle"
+    >
+      Desktop and mobile notifications
+    </h4>
+    <div />
+    <div
+      class="sectionContent col-sm-10 col-sm-offset-2"
+    >
+      <div
+        class="setting-list"
+        tabindex="-1"
+      >
+        <div
+          class="setting-list-item"
+        >
+          <fieldset
+            id="sendDesktopNotificationsSection"
+          >
+            <legend
+              class="form-legend"
+            >
+              Send notifications for:
+            </legend>
+            <div
+              class="radio"
+            >
+              <label>
+                <input
+                  type="radio"
+                  value="all"
+                />
+                All new messages
+              </label>
+            </div>
+            <div
+              class="radio"
+            >
+              <label>
+                <input
+                  type="radio"
+                  value="mention"
+                />
+                Mentions, direct messages, and group messages
+              </label>
+            </div>
+            <div
+              class="radio"
+            >
+              <label>
+                <input
+                  type="radio"
+                  value="none"
+                />
+                Nothing
+              </label>
+            </div>
+          </fieldset>
+          <hr />
+          <div
+            class="checkbox single-checkbox"
+          >
+            <label>
+              <input
+                class="a11y--active a11y--focused"
+                type="checkbox"
+              />
+              Use different settings for my mobile devices
+            </label>
+          </div>
+          <br />
+          <label
+            class="singleSelectLabel"
+            for="pushMobileNotificationSelectInput"
+            id="pushMobileNotificationsLabel"
+          >
+            Trigger mobile notifications when I am:
+          </label>
+          <div
+            class="react-select singleSelect css-b62m3t-container"
+          >
+            <span
+              class="css-1f43avz-a11yText-A11yText"
+              id="react-select-3-live-region"
+            />
+            <span
+              aria-atomic="false"
+              aria-live="polite"
+              aria-relevant="additions text"
+              class="css-1f43avz-a11yText-A11yText"
+              role="log"
+            />
+            <div
+              class="react-select__control css-13cymwt-control"
+            >
+              <div
+                class="react-select__value-container react-select__value-container--has-value css-hlgwow"
+              >
+                <div
+                  class="react-select__single-value css-1dimb5e-singleValue"
+                >
+                  Offline
+                </div>
+                <input
+                  aria-activedescendant=""
+                  aria-autocomplete="list"
+                  aria-expanded="false"
+                  aria-haspopup="true"
+                  aria-labelledby="pushMobileNotificationsLabel"
+                  aria-readonly="true"
+                  class="css-1s80ejz-dummyInput-DummyInput"
+                  id="pushMobileNotificationSelectInput"
+                  inputmode="none"
+                  role="combobox"
+                  tabindex="0"
+                  value=""
+                />
+              </div>
+              <div
+                class="react-select__indicators css-1wy0on6"
+              >
+                <div
+                  aria-hidden="true"
+                  class="react-select__indicator react-select__dropdown-indicator css-1xc3v61-indicatorContainer"
+                >
+                  <svg
+                    aria-hidden="true"
+                    class="css-tj5bde-Svg"
+                    focusable="false"
+                    height="20"
+                    viewBox="0 0 20 20"
+                    width="20"
+                  >
+                    <path
+                      d="M4.516 7.548c0.436-0.446 1.043-0.481 1.576 0l3.908 3.747 3.908-3.747c0.533-0.481 1.141-0.446 1.574 0 0.436 0.445 0.408 1.197 0 1.615-0.406 0.418-4.695 4.502-4.695 4.502-0.217 0.223-0.502 0.335-0.787 0.335s-0.57-0.112-0.789-0.335c0 0-4.287-4.084-4.695-4.502s-0.436-1.17 0-1.615z"
+                    />
+                  </svg>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div
+          class="setting-list-item"
+        >
+          <hr />
+          <div
+            role="alert"
+          />
+          <button
+            class="btn btn-primary "
+            data-testid="saveSetting"
+            id="saveSetting"
+            type="submit"
+          >
+            <span>
+              Save
+            </span>
+          </button>
+          <button
+            class="btn btn-tertiary"
+            data-testid="cancelButton"
+            id="cancelSetting"
+          >
+            Cancel
+          </button>
+        </div>
+      </div>
+    </div>
+  </section>
+</div>
+`;

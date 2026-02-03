@@ -6,18 +6,15 @@ import {FormattedMessage} from 'react-intl';
 
 import BrowserStore from 'stores/browser_store';
 
-import FormattedMarkdownMessage from 'components/formatted_markdown_message';
-import CheckboxCheckedIcon from 'components/widgets/icons/checkbox_checked_icon';
+import ExternalLink from 'components/external_link';
 
 import desktopImg from 'images/deep-linking/deeplinking-desktop-img.png';
 import mobileImg from 'images/deep-linking/deeplinking-mobile-img.png';
 import MattermostLogoSvg from 'images/logo.svg';
 import {LandingPreferenceTypes} from 'utils/constants';
 import * as UserAgent from 'utils/user_agent';
-import * as Utils from 'utils/utils';
 
 type Props = {
-    defaultTheme: any;
     desktopAppLink?: string;
     iosAppLink?: string;
     androidAppLink?: string;
@@ -36,17 +33,50 @@ type State = {
     navigating: boolean;
 }
 
+function safeRedirect(path: string) {
+    const url = new URL(path);
+
+    // Remove '/landing' from the end of the pathname
+    url.pathname = url.pathname.slice(0, -'/landing'.length);
+
+    const hash = url.hash.slice(1);
+    const baseUrl = new URL(url.pathname, url.origin);
+
+    // Default to base URL if no hash
+    if (!hash) {
+        return baseUrl.href;
+    }
+
+    let redirectUrl;
+
+    try {
+        // Attempt to construct URL from hash (handles both absolute and relative URLs)
+        redirectUrl = new URL(hash, baseUrl);
+    } catch (e) {
+        // Invalid hash, return safe default
+        return baseUrl.href;
+    }
+
+    // Only allow same-origin redirects
+    if (redirectUrl.origin !== baseUrl.origin) {
+        return baseUrl.href;
+    }
+
+    return redirectUrl.href;
+}
+
 export default class LinkingLandingPage extends PureComponent<Props, State> {
     constructor(props: Props) {
         super(props);
 
-        const location = window.location.href.replace('/landing#', '');
+        const finalLocation = safeRedirect(window.location.href);
+        const nativeLocation = finalLocation.replace(/^(https|http)/, 'mattermost');
 
         this.state = {
             rememberChecked: false,
             redirectPage: false,
-            location,
-            nativeLocation: location.replace(/^(https|http)/, 'mattermost'),
+            location: finalLocation,
+            nativeLocation,
             brandImageError: false,
             navigating: false,
         };
@@ -57,7 +87,6 @@ export default class LinkingLandingPage extends PureComponent<Props, State> {
     }
 
     componentDidMount() {
-        Utils.applyTheme(this.props.defaultTheme);
         if (this.checkLandingPreferenceApp()) {
             this.openMattermostApp();
         }
@@ -99,12 +128,13 @@ export default class LinkingLandingPage extends PureComponent<Props, State> {
         return landingPreference && landingPreference === LandingPreferenceTypes.MATTERMOSTAPP;
     };
 
-    handleChecked = () => {
+    handleChecked = (e: React.ChangeEvent<HTMLInputElement>) => {
+        this.setState({rememberChecked: e.target.checked});
+
         // If it was checked, and now we're unchecking it, clear the preference
-        if (this.state.rememberChecked) {
+        if (!e.target.checked) {
             BrowserStore.clearLandingPreference(this.props.siteUrl);
         }
-        this.setState({rememberChecked: !this.state.rememberChecked});
     };
 
     setPreference = (pref: string, clearIfNotChecked?: boolean) => {
@@ -201,16 +231,6 @@ export default class LinkingLandingPage extends PureComponent<Props, State> {
         this.setState({brandImageError: true});
     };
 
-    renderCheckboxIcon = () => {
-        if (this.state.rememberChecked) {
-            return (
-                <CheckboxCheckedIcon/>
-            );
-        }
-
-        return null;
-    };
-
     renderGraphic = () => {
         const isMobile = UserAgent.isMobile();
 
@@ -251,11 +271,18 @@ export default class LinkingLandingPage extends PureComponent<Props, State> {
         if (this.state.redirectPage) {
             return (
                 <div className='get-app__download-link'>
-                    <FormattedMarkdownMessage
-                        id='get_app.openLinkInBrowser'
-                        defaultMessage='Or, [open this link in your browser.](!{link})'
+                    <FormattedMessage
+                        id='getApp.downloadLinkInBrowser'
+                        defaultMessage='Or, <a>open this link in your browser</a>.'
                         values={{
-                            link: this.state.location,
+                            a: (chunks) => (
+                                <ExternalLink
+                                    href={this.state.location}
+                                    location='landingPage'
+                                >
+                                    {chunks}
+                                </ExternalLink>
+                            ),
                         }}
                     />
                 </div>
@@ -392,18 +419,18 @@ export default class LinkingLandingPage extends PureComponent<Props, State> {
                         />
                     </a>
                 </div>
-                <div className='get-app__preference'>
-                    <button
-                        className={`get-app__checkbox ${this.state.rememberChecked ? 'checked' : ''}`}
-                        onClick={this.handleChecked}
-                    >
-                        {this.renderCheckboxIcon()}
-                    </button>
+                <label className='get-app__preference'>
+                    <input
+                        type='checkbox'
+                        checked={this.state.rememberChecked}
+                        className='get-app__checkbox'
+                        onChange={this.handleChecked}
+                    />
                     <FormattedMessage
                         id='get_app.rememberMyPreference'
                         defaultMessage='Remember my preference'
                     />
-                </div>
+                </label>
                 {this.renderDownloadLinkSection()}
             </div>
         );

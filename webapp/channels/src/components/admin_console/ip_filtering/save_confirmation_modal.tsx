@@ -52,6 +52,7 @@ export default function SaveConfirmationModal({onExited, onConfirm, title, subti
                                     values={{
                                         customerportal: (msg) => (
                                             <ExternalLink
+                                                location='save_confirmation_modal'
                                                 href='https://customers.mattermost.com/console/ip_filtering'
                                             >
                                                 {msg}
@@ -66,7 +67,7 @@ export default function SaveConfirmationModal({onExited, onConfirm, title, subti
             <Modal.Footer>
                 <button
                     type='button'
-                    className='btn-cancel'
+                    className='btn btn-tertiary'
                     onClick={onExited}
                 >
                     {formatMessage({id: 'admin.ip_filtering.cancel', defaultMessage: 'Cancel'})}
@@ -74,7 +75,7 @@ export default function SaveConfirmationModal({onExited, onConfirm, title, subti
                 <button
                     data-testid='save-confirmation-button'
                     type='button'
-                    className='btn-delete'
+                    className='btn btn-primary btn-danger'
                     onClick={() => onConfirm?.()}
                 >
                     {buttonText}

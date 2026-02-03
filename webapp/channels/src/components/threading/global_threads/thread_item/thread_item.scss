@@ -1,11 +1,9 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-@import "sass/utils/_mixins";
+@use 'utils/_mixins';
 
 .ThreadItem {
-    --border: 1px solid rgba(var(--center-channel-color-rgb), 0.08);
-
     position: relative;
     padding: 18px 18px 18px 28px;
     cursor: pointer;
@@ -30,7 +28,7 @@
     }
 
     &__author {
-        @include clearfix;
+        @include mixins.clearfix;
 
         overflow: hidden;
         max-width: 100%;
@@ -59,7 +57,7 @@
     .activity {
         display: flex;
         align-items: center;
-        color: rgba(var(--center-channel-color-rgb), 0.64);
+        color: rgba(var(--center-channel-color-rgb), 0.75);
         font-size: 12px;
         font-weight: 600;
         line-height: 15px;
@@ -75,9 +73,9 @@
         display: inline-block;
         width: 8px;
         height: 8px;
+        border-radius: 50%;
         margin: 0 8px;
         background: rgba(var(--sidebar-text-active-border-rgb), 1);
-        border-radius: 50%;
         text-align: center;
     }
 
@@ -85,8 +83,8 @@
         display: inline-block;
         width: 16px;
         height: 16px;
-        background: rgba(var(--button-bg-rgb), 1);
         border-radius: 50%;
+        background: rgba(var(--button-bg-rgb), 1);
         color: rgba(var(--button-color-rgb), 1);
         font-size: 10px;
         font-weight: 700;
@@ -107,7 +105,7 @@
         place-content: center;
     }
 
-    h1 {
+    > .thread-item-header {
         position: relative;
         display: grid;
         margin: 0 0 6px;
@@ -119,6 +117,14 @@
         justify-items: start;
         line-height: 20px;
         white-space: nowrap;
+
+        > time {
+            color: rgba(var(--center-channel-color-rgb), 0.75);
+            font-size: 12px;
+            font-weight: normal;
+            grid-column: 3/4;
+            line-height: 20px;
+        }
     }
 
     div.preview {
@@ -126,15 +132,7 @@
         margin: 0 0 10px;
         color: rgba(var(--center-channel-color-rgb), 1);
 
-        @include text-clamp(2, 20);
-    }
-
-    time {
-        color: rgba(var(--center-channel-color-rgb), 0.64);
-        font-size: 12px;
-        font-weight: normal;
-        grid-column: 3/4;
-        line-height: 20px;
+        @include mixins.text-clamp(2, 20);
     }
 
     .menu-anchor {
@@ -156,5 +154,18 @@
 
     .Avatars {
         margin-right: 10px;
+    }
+}
+
+.no-results__wrapper {
+    .thread-no-results-subtitle-shortcut {
+        .shortcut-key{
+            padding: 2px 5px;
+            background-color: rgba(var(--center-channel-color-rgb), 0.08);
+            color: rgba(var(--center-channel-color-rgb), 0.75);
+            font-size: 12px;
+            font-weight: 600;
+            line-height: 16px;
+        }
     }
 }

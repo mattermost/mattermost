@@ -7,6 +7,7 @@ import (
 	"crypto/x509"
 	"encoding/pem"
 	"encoding/xml"
+	"errors"
 	"fmt"
 	"io"
 	"mime/multipart"
@@ -23,15 +24,15 @@ const (
 	SamlIdpCertificateName    = "saml-idp.crt"
 )
 
-func (a *App) GetSamlMetadata(c request.CTX) (string, *model.AppError) {
+func (a *App) GetSamlMetadata(rctx request.CTX) (string, *model.AppError) {
 	if a.Saml() == nil {
 		err := model.NewAppError("GetSamlMetadata", "api.admin.saml.not_available.app_error", nil, "", http.StatusNotImplemented)
 		return "", err
 	}
 
-	result, err := a.Saml().GetMetadata(c)
+	result, err := a.Saml().GetMetadata(rctx)
 	if err != nil {
-		return "", model.NewAppError("GetSamlMetadata", "api.admin.saml.metadata.app_error", nil, "err="+err.Message, err.StatusCode)
+		return "", model.NewAppError("GetSamlMetadata", "api.admin.saml.metadata.app_error", nil, "", err.StatusCode).Wrap(err)
 	}
 	return result, nil
 }
@@ -231,19 +232,19 @@ func (a *App) BuildSamlMetadataObject(idpMetadata []byte) (*model.SamlMetadataRe
 	data := &model.SamlMetadataResponse{}
 	data.IdpDescriptorURL = entityDescriptor.EntityID
 
-	if entityDescriptor.IDPSSODescriptors == nil || len(entityDescriptor.IDPSSODescriptors) == 0 {
+	if len(entityDescriptor.IDPSSODescriptors) == 0 {
 		err := model.NewAppError("BuildSamlMetadataObject", "api.admin.saml.invalid_xml_missing_idpssodescriptors.app_error", nil, "", http.StatusInternalServerError)
 		return nil, err
 	}
 
 	idpSSODescriptor := entityDescriptor.IDPSSODescriptors[0]
-	if idpSSODescriptor.SingleSignOnServices == nil || len(idpSSODescriptor.SingleSignOnServices) == 0 {
+	if len(idpSSODescriptor.SingleSignOnServices) == 0 {
 		err := model.NewAppError("BuildSamlMetadataObject", "api.admin.saml.invalid_xml_missing_ssoservices.app_error", nil, "", http.StatusInternalServerError)
 		return nil, err
 	}
 
 	data.IdpURL = idpSSODescriptor.SingleSignOnServices[0].Location
-	if idpSSODescriptor.SSODescriptor.RoleDescriptor.KeyDescriptors == nil || len(idpSSODescriptor.SSODescriptor.RoleDescriptor.KeyDescriptors) == 0 {
+	if len(idpSSODescriptor.SSODescriptor.RoleDescriptor.KeyDescriptors) == 0 {
 		err := model.NewAppError("BuildSamlMetadataObject", "api.admin.saml.invalid_xml_missing_keydescriptor.app_error", nil, "", http.StatusInternalServerError)
 		return nil, err
 	}
@@ -295,4 +296,33 @@ func (a *App) ResetSamlAuthDataToEmail(includeDeleted bool, dryRun bool, userIDs
 		return
 	}
 	return
+}
+
+func (a *App) CreateSamlRelayToken(tokenType string, extra string) (*model.Token, *model.AppError) {
+	token := model.NewToken(tokenType, extra)
+
+	if err := a.Srv().Store().Token().Save(token); err != nil {
+		var appErr *model.AppError
+		switch {
+		case errors.As(err, &appErr):
+			return nil, appErr
+		default:
+			return nil, model.NewAppError("CreateSamlRelayToken", "app.recover.save.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		}
+	}
+
+	return token, nil
+}
+
+func (a *App) GetSamlEmailToken(token string) (*model.Token, *model.AppError) {
+	mToken, err := a.Srv().Store().Token().GetByToken(token)
+	if err != nil {
+		return nil, model.NewAppError("GetSamlEmailToken", "api.saml.invalid_email_token.app_error", nil, "", http.StatusBadRequest).Wrap(err)
+	}
+
+	if mToken.Type != model.TokenTypeSaml {
+		return nil, model.NewAppError("GetSamlEmailToken", "api.saml.invalid_email_token.app_error", nil, "", http.StatusBadRequest)
+	}
+
+	return mToken, nil
 }

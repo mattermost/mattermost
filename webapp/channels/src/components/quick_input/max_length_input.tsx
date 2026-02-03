@@ -25,7 +25,7 @@ const MaxLengthInput: FC<InputProps> = forwardRef<HTMLInputElement, InputProps>(
         });
 
         return (
-            <Fragment>
+            <>
                 <input
                     className={classes}
                     defaultValue={defaultValue}
@@ -38,7 +38,7 @@ const MaxLengthInput: FC<InputProps> = forwardRef<HTMLInputElement, InputProps>(
                         {excess}
                     </span>
                 )}
-            </Fragment>
+            </>
         );
     },
 );

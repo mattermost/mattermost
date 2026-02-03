@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {isNil} from 'lodash';
+import isNil from 'lodash/isNil';
 
 import type {TextboxElement} from 'components/textbox';
 
@@ -160,12 +160,31 @@ export function formatMarkdownLinkMessage({message, clipboardData, selectionStar
     return markdownLink;
 }
 
-export function pasteHandler(event: ClipboardEvent, location: string, message: string, isNonFormattedPaste?: boolean, caretPosition?: number) {
+export function isKnownTargetForPaste(event: ClipboardEvent, location: string, isInEditMode?: boolean): boolean {
+    let isKnownTarget = false;
+
+    if (isInEditMode) {
+        isKnownTarget = (event.target as TextboxElement)?.id === 'edit_textbox';
+    } else if (location === Locations.CENTER) {
+        isKnownTarget = (event.target as TextboxElement)?.id === 'post_textbox';
+    } else if (location === Locations.RHS_COMMENT) {
+        isKnownTarget = (event.target as TextboxElement)?.id === 'reply_textbox';
+    } else {
+        isKnownTarget = (event.target as TextboxElement)?.id === 'post_textbox';
+    }
+
+    return isKnownTarget;
+}
+
+export function pasteHandler(event: ClipboardEvent, location: string, message: string, isNonFormattedPaste: boolean, isInEditMode?: boolean) {
+    const isKnownTarget = isKnownTargetForPaste(event, location, isInEditMode);
+    if (!isKnownTarget || isNonFormattedPaste) {
+        return;
+    }
+
     const {clipboardData, target} = event;
 
-    const textboxId = location === Locations.RHS_COMMENT ? 'reply_textbox' : 'post_textbox';
-
-    if (!clipboardData || !clipboardData.items || !target || (target as TextboxElement)?.id !== textboxId) {
+    if (!clipboardData || !clipboardData.items || !target) {
         return;
     }
 
@@ -173,7 +192,7 @@ export function pasteHandler(event: ClipboardEvent, location: string, message: s
 
     const hasSelection = !isNil(selectionStart) && !isNil(selectionEnd) && selectionStart < selectionEnd;
     const hasTextUrl = isTextUrl(clipboardData);
-    const hasHTMLLinks = !isNonFormattedPaste && hasHtmlLink(clipboardData);
+    const hasHTMLLinks = hasHtmlLink(clipboardData);
     const htmlTable = getHtmlTable(clipboardData);
     const shouldApplyLinkMarkdown = hasSelection && hasTextUrl;
     const shouldApplyGithubCodeBlock = htmlTable && isGitHubCodeBlock(htmlTable.className);
@@ -192,7 +211,7 @@ export function pasteHandler(event: ClipboardEvent, location: string, message: s
         const {formattedCodeBlock} = formatGithubCodePaste({selectionStart, selectionEnd, message, clipboardData});
         execCommandInsertText(formattedCodeBlock);
     } else {
-        const {formattedMarkdown} = formatMarkdownMessage(clipboardData, message, caretPosition);
+        const {formattedMarkdown} = formatMarkdownMessage(clipboardData, message, selectionStart ?? message.length);
         execCommandInsertText(formattedMarkdown);
     }
 }

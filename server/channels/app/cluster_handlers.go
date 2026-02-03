@@ -33,10 +33,6 @@ func (s *Server) clusterPluginEventHandler(msg *model.ClusterMessage) {
 		return
 	}
 	pluginID := msg.Props["PluginID"]
-	// if the plugin key is empty, the message might be coming from a product.
-	if pluginID == "" {
-		pluginID = msg.Props["ProductID"]
-	}
 	eventID := msg.Props["EventID"]
 	if pluginID == "" || eventID == "" {
 		s.Log().Warn("Invalid ClusterMessage.Props values for plugin event",
@@ -46,12 +42,7 @@ func (s *Server) clusterPluginEventHandler(msg *model.ClusterMessage) {
 		return
 	}
 
-	channels, ok := s.products["channels"].(*Channels)
-	if !ok {
-		return
-	}
-
-	hooks, err := channels.HooksForPluginOrProduct(pluginID)
+	hooks, err := s.Channels().HooksForPlugin(pluginID)
 	if err != nil {
 		s.Log().Warn("Getting hooks for plugin failed", mlog.String("plugin_id", pluginID), mlog.Err(err))
 		return

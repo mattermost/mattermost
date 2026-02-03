@@ -1,4 +1,4 @@
-// Jest Snapshot v1, https://goo.gl/fbAQLP
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
 
 exports[`components/PluginManagement should match snapshot 1`] = `
 <div
@@ -33,7 +33,10 @@ exports[`components/PluginManagement should match snapshot 1`] = `
             className="global_policy"
           >
             <p>
-              Applies to all teams and channels, but does not apply to custom retention policies.
+              <MemoizedFormattedMessage
+                defaultMessage="Applies to all teams and channels, but does not apply to custom retention policies."
+                id="admin.data_retention.form.text"
+              />
             </p>
             <div
               id="global_direct_message_dropdown"
@@ -62,13 +65,26 @@ exports[`components/PluginManagement should match snapshot 1`] = `
                 }
                 inputId="channel_message_retention_input"
                 inputType="number"
-                inputValue="60"
-                legend="Channel & direct message retention"
+                inputValue="100"
+                legend={
+                  Object {
+                    "defaultMessage": "Channel & direct message retention",
+                    "id": "admin.data_retention.form.channelAndDirectMessageRetention",
+                  }
+                }
                 name="channel_message_retention"
                 onDropdownChange={[Function]}
                 onInputChange={[Function]}
                 options={
                   Array [
+                    Object {
+                      "label": <span
+                        className="option_hours"
+                      >
+                        Hours
+                      </span>,
+                      "value": "HOURS",
+                    },
                     Object {
                       "label": <span
                         className="option_days"
@@ -100,7 +116,12 @@ exports[`components/PluginManagement should match snapshot 1`] = `
                     },
                   ]
                 }
-                placeholder="Channel & direct message retention"
+                placeholder={
+                  Object {
+                    "defaultMessage": "Channel & direct message retention",
+                    "id": "admin.data_retention.form.channelAndDirectMessageRetention",
+                  }
+                }
                 value={
                   Object {
                     "label": <span
@@ -141,13 +162,26 @@ exports[`components/PluginManagement should match snapshot 1`] = `
                 }
                 inputId="file_retention_input"
                 inputType="number"
-                inputValue="40"
-                legend="File retention"
+                inputValue="100"
+                legend={
+                  Object {
+                    "defaultMessage": "File retention",
+                    "id": "admin.data_retention.form.fileRetention",
+                  }
+                }
                 name="file_retention"
                 onDropdownChange={[Function]}
                 onInputChange={[Function]}
                 options={
                   Array [
+                    Object {
+                      "label": <span
+                        className="option_hours"
+                      >
+                        Hours
+                      </span>,
+                      "value": "HOURS",
+                    },
                     Object {
                       "label": <span
                         className="option_days"
@@ -179,7 +213,12 @@ exports[`components/PluginManagement should match snapshot 1`] = `
                     },
                   ]
                 }
-                placeholder="File retention"
+                placeholder={
+                  Object {
+                    "defaultMessage": "File retention",
+                    "id": "admin.data_retention.form.fileRetention",
+                  }
+                }
                 value={
                   Object {
                     "label": <span
@@ -202,7 +241,6 @@ exports[`components/PluginManagement should match snapshot 1`] = `
     className="admin-console-save"
   >
     <SaveButton
-      btnClass=""
       defaultMessage={
         <Memo(MemoizedFormattedMessage)
           defaultMessage="Save"
@@ -210,18 +248,11 @@ exports[`components/PluginManagement should match snapshot 1`] = `
         />
       }
       disabled={true}
-      extraClasses=""
       onClick={[Function]}
       saving={false}
-      savingMessage={
-        <Memo(MemoizedFormattedMessage)
-          defaultMessage="Saving"
-          id="save_button.saving"
-        />
-      }
     />
     <Connect(Component)
-      className="cancel-button"
+      className="btn btn-tertiary"
       to="/admin_console/compliance/data_retention_settings"
     >
       <MemoizedFormattedMessage

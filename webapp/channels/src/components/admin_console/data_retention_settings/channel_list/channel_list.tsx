@@ -1,7 +1,8 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {debounce, isEqual} from 'lodash';
+import debounce from 'lodash/debounce';
+import isEqual from 'lodash/isEqual';
 import React from 'react';
 import {FormattedMessage} from 'react-intl';
 
@@ -13,11 +14,8 @@ import DataGrid from 'components/admin_console/data_grid/data_grid';
 import type {Column, Row} from 'components/admin_console/data_grid/data_grid';
 import type {FilterOptions} from 'components/admin_console/filter/filter';
 import TeamFilterDropdown from 'components/admin_console/filter/team_filter_dropdown';
-import ArchiveIcon from 'components/widgets/icons/archive_icon';
-import GlobeIcon from 'components/widgets/icons/globe_icon';
-import LockIcon from 'components/widgets/icons/lock_icon';
 
-import {isArchivedChannel} from 'utils/channel_utils';
+import {getChannelIconComponent} from 'utils/channel_utils';
 import {Constants} from 'utils/constants';
 
 import './channel_list.scss';
@@ -31,15 +29,14 @@ type Props = {
     policyId?: string;
 
     onRemoveCallback: (channel: ChannelWithTeamData) => void;
-    onAddCallback: (channels: ChannelWithTeamData[]) => void;
     channelsToRemove: Record<string, ChannelWithTeamData>;
     channelsToAdd: Record<string, ChannelWithTeamData>;
 
     actions: {
-        searchChannels: (id: string, term: string, opts: ChannelSearchOpts) => Promise<{ data: ChannelWithTeamData[] }>;
-        getDataRetentionCustomPolicyChannels: (id: string, page: number, perPage: number) => Promise<{ data: ChannelWithTeamData[] }>;
-        setChannelListSearch: (term: string) => ActionResult;
-        setChannelListFilters: (filters: ChannelSearchOpts) => ActionResult;
+        searchChannels: (id: string, term: string, opts: ChannelSearchOpts) => Promise<ActionResult>;
+        getDataRetentionCustomPolicyChannels: (id: string, page: number, perPage: number) => Promise<ActionResult>;
+        setChannelListSearch: (term: string) => void;
+        setChannelListFilters: (filters: ChannelSearchOpts) => void;
     };
 }
 
@@ -188,19 +185,13 @@ export default class ChannelList extends React.PureComponent<Props, State> {
         }
 
         return channelsToDisplay.map((channel) => {
-            let iconToDisplay = <GlobeIcon className='channel-icon'/>;
-
-            if (channel.type === Constants.PRIVATE_CHANNEL) {
-                iconToDisplay = <LockIcon className='channel-icon'/>;
-            }
-            if (isArchivedChannel(channel)) {
-                iconToDisplay = (
-                    <ArchiveIcon
-                        className='channel-icon'
-                        data-testid={`${channel.name}-archive-icon`}
-                    />
-                );
-            }
+            const ChannelIconComponent = getChannelIconComponent(channel);
+            const iconToDisplay = (
+                <ChannelIconComponent
+                    className='channel-icon'
+                    data-testid={`${channel.name}-archive-icon`}
+                />
+            );
             return {
                 cells: {
                     id: channel.id,
@@ -355,7 +346,6 @@ export default class ChannelList extends React.PureComponent<Props, State> {
                     columns={columns}
                     rows={rows}
                     loading={this.state.loading}
-                    page={this.state.page}
                     nextPage={this.nextPage}
                     previousPage={this.previousPage}
                     startCount={startCount}

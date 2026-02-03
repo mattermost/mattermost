@@ -7,6 +7,21 @@ import (
 	"encoding/json"
 	"net/http"
 	"unicode/utf8"
+
+	"github.com/pkg/errors"
+)
+
+const (
+	UserPropsKeyRemoteUsername   = "RemoteUsername"
+	UserPropsKeyRemoteEmail      = "RemoteEmail"
+	UserPropsKeyOriginalRemoteId = "OriginalRemoteId"
+	UserOriginalRemoteIdUnknown  = "UNKNOWN"
+)
+
+var (
+	ErrChannelAlreadyShared = errors.New("channel is already shared")
+	ErrChannelHomedOnRemote = errors.New("channel is homed on a remote cluster")
+	ErrChannelAlreadyExists = errors.New("channel already exists")
 )
 
 // SharedChannel represents a channel that can be synchronized with a remote cluster.
@@ -35,7 +50,7 @@ func (sc *SharedChannel) IsValid() *AppError {
 		return NewAppError("SharedChannel.IsValid", "model.channel.is_valid.id.app_error", nil, "ChannelId="+sc.ChannelId, http.StatusBadRequest)
 	}
 
-	if sc.Type != ChannelTypeDirect && !IsValidId(sc.TeamId) {
+	if sc.Type != ChannelTypeDirect && sc.Type != ChannelTypeGroup && !IsValidId(sc.TeamId) {
 		return NewAppError("SharedChannel.IsValid", "model.channel.is_valid.id.app_error", nil, "TeamId="+sc.TeamId, http.StatusBadRequest)
 	}
 
@@ -97,6 +112,7 @@ type SharedChannelRemote struct {
 	CreatorId         string `json:"creator_id"`
 	CreateAt          int64  `json:"create_at"`
 	UpdateAt          int64  `json:"update_at"`
+	DeleteAt          int64  `json:"delete_at"`
 	IsInviteAccepted  bool   `json:"is_invite_accepted"`
 	IsInviteConfirmed bool   `json:"is_invite_confirmed"`
 	RemoteId          string `json:"remote_id"`
@@ -104,6 +120,7 @@ type SharedChannelRemote struct {
 	LastPostUpdateID  string `json:"last_post_id"`
 	LastPostCreateAt  int64  `json:"last_post_create_at"`
 	LastPostCreateID  string `json:"last_post_create_id"`
+	LastMembersSyncAt int64  `json:"last_members_sync_at"`
 }
 
 func (sc *SharedChannelRemote) IsValid() *AppError {
@@ -155,12 +172,13 @@ type SharedChannelRemoteStatus struct {
 // SharedChannelUser stores a lastSyncAt timestamp on behalf of a remote cluster for
 // each user that has been synchronized.
 type SharedChannelUser struct {
-	Id         string `json:"id"`
-	UserId     string `json:"user_id"`
-	ChannelId  string `json:"channel_id"`
-	RemoteId   string `json:"remote_id"`
-	CreateAt   int64  `json:"create_at"`
-	LastSyncAt int64  `json:"last_sync_at"`
+	Id                   string `json:"id"`
+	UserId               string `json:"user_id"`
+	ChannelId            string `json:"channel_id"`
+	RemoteId             string `json:"remote_id"`
+	CreateAt             int64  `json:"create_at"`
+	LastSyncAt           int64  `json:"last_sync_at"`
+	LastMembershipSyncAt int64  `json:"last_membership_sync_at"`
 }
 
 func (scu *SharedChannelUser) PreSave() {
@@ -247,19 +265,36 @@ type SharedChannelFilterOpts struct {
 }
 
 type SharedChannelRemoteFilterOpts struct {
-	ChannelId       string
-	RemoteId        string
-	InclUnconfirmed bool
+	ChannelId          string
+	RemoteId           string
+	IncludeUnconfirmed bool
+	ExcludeConfirmed   bool
+	ExcludeHome        bool
+	ExcludeRemote      bool
+	IncludeDeleted     bool
+}
+
+// MembershipChangeMsg represents a change in channel membership
+type MembershipChangeMsg struct {
+	ChannelId  string `json:"channel_id"`
+	UserId     string `json:"user_id"`
+	IsAdd      bool   `json:"is_add"`
+	RemoteId   string `json:"remote_id"`
+	ChangeTime int64  `json:"change_time"`
 }
 
 // SyncMsg represents a change in content (post add/edit/delete, reaction add/remove, users).
 // It is sent to remote clusters as the payload of a `RemoteClusterMsg`.
 type SyncMsg struct {
-	Id        string           `json:"id"`
-	ChannelId string           `json:"channel_id"`
-	Users     map[string]*User `json:"users,omitempty"`
-	Posts     []*Post          `json:"posts,omitempty"`
-	Reactions []*Reaction      `json:"reactions,omitempty"`
+	Id                string                 `json:"id"`
+	ChannelId         string                 `json:"channel_id"`
+	Users             map[string]*User       `json:"users,omitempty"`
+	Posts             []*Post                `json:"posts,omitempty"`
+	Reactions         []*Reaction            `json:"reactions,omitempty"`
+	Statuses          []*Status              `json:"statuses,omitempty"`
+	MembershipChanges []*MembershipChangeMsg `json:"membership_changes,omitempty"`
+	Acknowledgements  []*PostAcknowledgement `json:"acknowledgements,omitempty"`
+	MentionTransforms map[string]string      `json:"mention_transforms,omitempty"`
 }
 
 func NewSyncMsg(channelID string) *SyncMsg {
@@ -296,6 +331,11 @@ type SyncResponse struct {
 
 	ReactionsLastUpdateAt int64    `json:"reactions_last_update_at"`
 	ReactionErrors        []string `json:"reaction_errors"`
+
+	AcknowledgementsLastUpdateAt int64    `json:"acknowledgements_last_update_at"`
+	AcknowledgementErrors        []string `json:"acknowledgement_errors"`
+
+	StatusErrors []string `json:"status_errors"` // user IDs for which the status sync failed
 }
 
 // RegisterPluginOpts is passed by plugins to the `RegisterPluginForSharedChannels` plugin API
@@ -305,6 +345,7 @@ type RegisterPluginOpts struct {
 	PluginID     string // id of this plugin registering
 	CreatorID    string // id of the user/bot registering
 	AutoShareDMs bool   // when true, all DMs are automatically shared to this remote
+	AutoInvited  bool   // when true, the plugin is automatically invited and sync'd with all shared channels.
 }
 
 // GetOptionFlags returns a Bitmask of option flags as specified by the boolean options.
@@ -312,6 +353,9 @@ func (po RegisterPluginOpts) GetOptionFlags() Bitmask {
 	var flags Bitmask
 	if po.AutoShareDMs {
 		flags |= BitflagOptionAutoShareDMs
+	}
+	if po.AutoInvited {
+		flags |= BitflagOptionAutoInvited
 	}
 	return flags
 }

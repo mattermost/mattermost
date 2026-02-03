@@ -16,6 +16,8 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/mlog"
+	"github.com/mattermost/mattermost/server/v8/channels/testlib"
 )
 
 type testHandler struct {
@@ -37,15 +39,16 @@ func (th *testHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	assert.NotEmpty(th.t, poir.TeamName)
 	assert.NotEmpty(th.t, poir.PostId)
 	assert.NotEmpty(th.t, poir.TriggerId)
-	assert.Equal(th.t, "button", poir.Type)
+	assert.Equal(th.t, model.PostActionTypeButton, poir.Type)
 	assert.Equal(th.t, "test-value", poir.Context["test-key"])
-	w.Write([]byte("{}"))
+	_, err = w.Write([]byte("{}"))
+	require.NoError(th.t, err)
 	w.WriteHeader(200)
 }
 
 func TestPostActionCookies(t *testing.T) {
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
 	client := th.Client
 
 	th.App.UpdateConfig(func(cfg *model.Config) {
@@ -115,7 +118,7 @@ func TestPostActionCookies(t *testing.T) {
 				CreateAt:  model.GetMillis(),
 				UpdateAt:  model.GetMillis(),
 				Props: map[string]any{
-					"attachments": []*model.SlackAttachment{
+					model.PostPropsAttachments: []*model.SlackAttachment{
 						{
 							Title:     "some-title",
 							TitleLink: "https://some-url.com",
@@ -145,8 +148,8 @@ func TestPostActionCookies(t *testing.T) {
 }
 
 func TestOpenDialog(t *testing.T) {
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
 	client := th.Client
 
 	th.App.UpdateConfig(func(cfg *model.Config) {
@@ -209,6 +212,53 @@ func TestOpenDialog(t *testing.T) {
 		require.NoError(t, err)
 	})
 
+	t.Run("Should pass with too long display name of elements", func(t *testing.T) {
+		request.Dialog.Elements = []model.DialogElement{
+			{
+				DisplayName: "Very very long Element Name",
+				Name:        "element_name",
+				Type:        "text",
+				Placeholder: "Enter a value",
+			},
+		}
+
+		buffer := &mlog.Buffer{}
+		err := mlog.AddWriterTarget(th.TestLogger, buffer, true, mlog.StdAll...)
+		require.NoError(t, err)
+
+		_, err = client.OpenInteractiveDialog(context.Background(), request)
+		require.NoError(t, err)
+
+		require.NoError(t, th.TestLogger.Flush())
+		testlib.AssertLog(t, buffer, mlog.LvlWarn.Name, "Interactive dialog is invalid")
+	})
+
+	t.Run("Should pass with same elements", func(t *testing.T) {
+		request.Dialog.Elements = []model.DialogElement{
+			{
+				DisplayName: "Element Name",
+				Name:        "element_name",
+				Type:        "text",
+				Placeholder: "Enter a value",
+			},
+			{
+				DisplayName: "Element Name",
+				Name:        "element_name",
+				Type:        "text",
+				Placeholder: "Enter a value",
+			},
+		}
+		buffer := &mlog.Buffer{}
+		err := mlog.AddWriterTarget(th.TestLogger, buffer, true, mlog.StdAll...)
+		require.NoError(t, err)
+
+		_, err = client.OpenInteractiveDialog(context.Background(), request)
+		require.NoError(t, err)
+
+		require.NoError(t, th.TestLogger.Flush())
+		testlib.AssertLog(t, buffer, mlog.LvlWarn.Name, "Interactive dialog is invalid")
+	})
+
 	t.Run("Should pass with nil elements slice", func(t *testing.T) {
 		request.Dialog.Elements = nil
 		_, err := client.OpenInteractiveDialog(context.Background(), request)
@@ -223,10 +273,10 @@ func TestOpenDialog(t *testing.T) {
 
 	t.Run("Should fail if trigger timeout is extended", func(t *testing.T) {
 		th.App.UpdateConfig(func(cfg *model.Config) {
-			cfg.ServiceSettings.OutgoingIntegrationRequestsTimeout = model.NewInt64(1)
+			cfg.ServiceSettings.OutgoingIntegrationRequestsTimeout = model.NewPointer(int64(1))
 		})
 
-		time.Sleep(1 * time.Second)
+		time.Sleep(2 * time.Second)
 
 		_, err := client.OpenInteractiveDialog(context.Background(), request)
 		require.Error(t, err)
@@ -235,8 +285,8 @@ func TestOpenDialog(t *testing.T) {
 }
 
 func TestSubmitDialog(t *testing.T) {
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
 	client := th.Client
 
 	th.App.UpdateConfig(func(cfg *model.Config) {
@@ -285,7 +335,7 @@ func TestSubmitDialog(t *testing.T) {
 	submit.ChannelId = model.NewId()
 	submitResp, resp, err = client.SubmitInteractiveDialog(context.Background(), submit)
 	require.Error(t, err)
-	CheckForbiddenStatus(t, resp)
+	CheckNotFoundStatus(t, resp)
 	assert.Nil(t, submitResp)
 
 	submit.URL = ts.URL
@@ -295,4 +345,191 @@ func TestSubmitDialog(t *testing.T) {
 	require.Error(t, err)
 	CheckForbiddenStatus(t, resp)
 	assert.Nil(t, submitResp)
+}
+
+func TestLookupDialog(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+	client := th.Client
+
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.ServiceSettings.AllowedUntrustedInternalConnections = "localhost,127.0.0.1"
+	})
+
+	t.Run("should handle successful lookup request", func(t *testing.T) {
+		ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			var request model.SubmitDialogRequest
+			err := json.NewDecoder(r.Body).Decode(&request)
+			require.NoError(t, err)
+
+			assert.Equal(t, "dialog_lookup", request.Type)
+			assert.Equal(t, th.BasicUser.Id, request.UserId)
+			assert.Equal(t, th.BasicChannel.Id, request.ChannelId)
+			assert.Equal(t, th.BasicTeam.Id, request.TeamId)
+			assert.Equal(t, "callbackid", request.CallbackId)
+			assert.Equal(t, "somestate", request.State)
+
+			// Check for query and selected_field in submission
+			query, ok := request.Submission["query"].(string)
+			require.True(t, ok)
+			assert.Equal(t, "test query", query)
+
+			selectedField, ok := request.Submission["selected_field"].(string)
+			require.True(t, ok)
+			assert.Equal(t, "dynamic_field", selectedField)
+
+			// Return mock lookup response
+			response := model.LookupDialogResponse{
+				Items: []model.DialogSelectOption{
+					{Text: "Option 1", Value: "value1"},
+					{Text: "Option 2", Value: "value2"},
+				},
+			}
+			w.Header().Set("Content-Type", "application/json")
+			_ = json.NewEncoder(w).Encode(response)
+		}))
+		defer ts.Close()
+
+		lookup := model.SubmitDialogRequest{
+			URL:        ts.URL,
+			CallbackId: "callbackid",
+			State:      "somestate",
+			UserId:     th.BasicUser.Id,
+			ChannelId:  th.BasicChannel.Id,
+			TeamId:     th.BasicTeam.Id,
+			Submission: map[string]any{
+				"query":          "test query",
+				"selected_field": "dynamic_field",
+			},
+		}
+
+		lookupResp, _, err := client.LookupInteractiveDialog(context.Background(), lookup)
+		require.NoError(t, err)
+		assert.NotNil(t, lookupResp)
+		assert.Len(t, lookupResp.Items, 2)
+		assert.Equal(t, "Option 1", lookupResp.Items[0].Text)
+		assert.Equal(t, "value1", lookupResp.Items[0].Value)
+	})
+
+	t.Run("should fail on empty URL", func(t *testing.T) {
+		lookup := model.SubmitDialogRequest{
+			URL:        "",
+			CallbackId: "callbackid",
+			State:      "somestate",
+			UserId:     th.BasicUser.Id,
+			ChannelId:  th.BasicChannel.Id,
+			TeamId:     th.BasicTeam.Id,
+			Submission: map[string]any{"query": "test"},
+		}
+
+		lookupResp, resp, err := client.LookupInteractiveDialog(context.Background(), lookup)
+		require.Error(t, err)
+		CheckBadRequestStatus(t, resp)
+		assert.Nil(t, lookupResp)
+	})
+
+	t.Run("should fail on invalid URL", func(t *testing.T) {
+		lookup := model.SubmitDialogRequest{
+			URL:        "http://invalid-url-not-allowed",
+			CallbackId: "callbackid",
+			State:      "somestate",
+			UserId:     th.BasicUser.Id,
+			ChannelId:  th.BasicChannel.Id,
+			TeamId:     th.BasicTeam.Id,
+			Submission: map[string]any{"query": "test"},
+		}
+
+		lookupResp, resp, err := client.LookupInteractiveDialog(context.Background(), lookup)
+		require.Error(t, err)
+		CheckBadRequestStatus(t, resp)
+		assert.Nil(t, lookupResp)
+	})
+
+	t.Run("should fail on invalid channel ID", func(t *testing.T) {
+		ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			w.WriteHeader(http.StatusOK)
+		}))
+		defer ts.Close()
+
+		lookup := model.SubmitDialogRequest{
+			URL:        ts.URL,
+			CallbackId: "callbackid",
+			State:      "somestate",
+			UserId:     th.BasicUser.Id,
+			ChannelId:  model.NewId(),
+			TeamId:     th.BasicTeam.Id,
+			Submission: map[string]any{"query": "test"},
+		}
+
+		lookupResp, resp, err := client.LookupInteractiveDialog(context.Background(), lookup)
+		require.Error(t, err)
+		CheckNotFoundStatus(t, resp)
+		assert.Nil(t, lookupResp)
+	})
+
+	t.Run("should fail on invalid team ID", func(t *testing.T) {
+		ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			w.WriteHeader(http.StatusOK)
+		}))
+		defer ts.Close()
+
+		lookup := model.SubmitDialogRequest{
+			URL:        ts.URL,
+			CallbackId: "callbackid",
+			State:      "somestate",
+			UserId:     th.BasicUser.Id,
+			ChannelId:  th.BasicChannel.Id,
+			TeamId:     model.NewId(),
+			Submission: map[string]any{"query": "test"},
+		}
+
+		lookupResp, resp, err := client.LookupInteractiveDialog(context.Background(), lookup)
+		require.Error(t, err)
+		CheckForbiddenStatus(t, resp)
+		assert.Nil(t, lookupResp)
+	})
+
+	t.Run("should handle plugin URL", func(t *testing.T) {
+		lookup := model.SubmitDialogRequest{
+			URL:        "/plugins/myplugin/lookup",
+			CallbackId: "callbackid",
+			State:      "somestate",
+			UserId:     th.BasicUser.Id,
+			ChannelId:  th.BasicChannel.Id,
+			TeamId:     th.BasicTeam.Id,
+			Submission: map[string]any{"query": "test"},
+		}
+
+		// Should fail because plugin doesn't exist, but URL validation should pass
+		lookupResp, resp, err := client.LookupInteractiveDialog(context.Background(), lookup)
+		require.Error(t, err)
+		// Should not be a bad request (URL validation error), but a different error
+		assert.NotEqual(t, http.StatusBadRequest, resp.StatusCode)
+		assert.Nil(t, lookupResp)
+	})
+
+	t.Run("should handle empty response", func(t *testing.T) {
+		ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			w.Header().Set("Content-Type", "application/json")
+			w.WriteHeader(http.StatusOK)
+			// Return empty JSON object for valid JSON response
+			_, _ = w.Write([]byte("{}"))
+		}))
+		defer ts.Close()
+
+		lookup := model.SubmitDialogRequest{
+			URL:        ts.URL,
+			CallbackId: "callbackid",
+			State:      "somestate",
+			UserId:     th.BasicUser.Id,
+			ChannelId:  th.BasicChannel.Id,
+			TeamId:     th.BasicTeam.Id,
+			Submission: map[string]any{"query": "test"},
+		}
+
+		lookupResp, _, err := client.LookupInteractiveDialog(context.Background(), lookup)
+		require.NoError(t, err)
+		assert.NotNil(t, lookupResp)
+		assert.Empty(t, lookupResp.Items)
+	})
 }

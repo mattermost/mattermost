@@ -5,43 +5,20 @@ package app
 
 import (
 	"net/http"
-	"time"
 
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/pkg/errors"
 
 	"github.com/mattermost/mattermost/server/public/model"
-	"github.com/mattermost/mattermost/server/v8/channels/product"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
 )
 
-const (
-	JWTDefaultTokenExpiration = 7 * 24 * time.Hour // 7 days of expiration
-)
-
-// ensure the license service wrapper implements `product.LicenseService`
-var _ product.LicenseService = (*licenseWrapper)(nil)
-
-// licenseWrapper is an adapter struct that only exposes the
-// config related functionality to be passed down to other products.
-type licenseWrapper struct {
-	srv *Server
+func (ch *Channels) License() *model.License {
+	return ch.srv.License()
 }
 
-func (w *licenseWrapper) Name() product.ServiceKey {
-	return product.LicenseKey
-}
-
-func (w *licenseWrapper) GetLicense() *model.License {
-	return w.srv.License()
-}
-
-func (w *licenseWrapper) RequestTrialLicenseWithExtraFields(requesterID string, trialRequest *model.TrialLicenseRequest) *model.AppError {
-	if *w.srv.platform.Config().ExperimentalSettings.RestrictSystemAdmin {
-		return model.NewAppError("RequestTrialLicense", "api.restricted_system_admin", nil, "", http.StatusForbidden)
-	}
-
-	requester, err := w.srv.userService.GetUser(requesterID)
+func (ch *Channels) RequestTrialLicenseWithExtraFields(requesterID string, trialRequest *model.TrialLicenseRequest) *model.AppError {
+	requester, err := ch.srv.userService.GetUser(requesterID)
 	if err != nil {
 		var nfErr *store.ErrNotFound
 		switch {
@@ -52,17 +29,17 @@ func (w *licenseWrapper) RequestTrialLicenseWithExtraFields(requesterID string, 
 		}
 	}
 
-	if w.srv.Cloud.ValidateBusinessEmail(requesterID, trialRequest.ContactEmail) != nil {
+	if ch.srv.Cloud.ValidateBusinessEmail(requesterID, trialRequest.ContactEmail) != nil {
 		return model.NewAppError("RequestTrialLicense", "api.license.request-trial.bad-request.business-email", nil, "", http.StatusBadRequest)
 	}
 
 	// Create a new struct only using the fields from the request that are allowed to be set by the client
 	sanitizedRequest := &model.TrialLicenseRequest{
-		ServerID:              w.srv.TelemetryId(),
+		ServerID:              ch.srv.ServerId(),
 		Name:                  requester.GetDisplayName(model.ShowFullName),
 		Email:                 requester.Email,
-		SiteName:              *w.srv.platform.Config().TeamSettings.SiteName,
-		SiteURL:               *w.srv.platform.Config().ServiceSettings.SiteURL,
+		SiteName:              *ch.srv.platform.Config().TeamSettings.SiteName,
+		SiteURL:               *ch.srv.platform.Config().ServiceSettings.SiteURL,
 		Users:                 trialRequest.Users,
 		TermsAccepted:         trialRequest.TermsAccepted,
 		ReceiveEmailsAccepted: trialRequest.ReceiveEmailsAccepted,
@@ -71,21 +48,18 @@ func (w *licenseWrapper) RequestTrialLicenseWithExtraFields(requesterID string, 
 		CompanyName:           trialRequest.CompanyName,
 		CompanySize:           trialRequest.CompanySize,
 		CompanyCountry:        trialRequest.CompanyCountry,
+		ServerVersion:         model.CurrentVersion,
 	}
 
 	if !sanitizedRequest.IsValid() {
 		return model.NewAppError("RequestTrialLicense", "api.license.request-trial.bad-request", nil, "", http.StatusBadRequest)
 	}
 
-	return w.srv.platform.RequestTrialLicense(sanitizedRequest)
+	return ch.srv.platform.RequestTrialLicense(sanitizedRequest)
 }
 
-// DEPRECATED - use RequestTrialLicenseWithExtraFields instead. This function remains to support the Plugin API.
-func (w *licenseWrapper) RequestTrialLicense(requesterID string, users int, termsAccepted bool, receiveEmailsAccepted bool) *model.AppError {
-	if *w.srv.platform.Config().ExperimentalSettings.RestrictSystemAdmin {
-		return model.NewAppError("RequestTrialLicense", "api.restricted_system_admin", nil, "", http.StatusForbidden)
-	}
-
+// Deprecated: Use RequestTrialLicenseWithExtraFields instead. This function remains to support the Plugin API.
+func (ch *Channels) RequestTrialLicense(requesterID string, users int, termsAccepted bool, receiveEmailsAccepted bool) *model.AppError {
 	if !termsAccepted {
 		return model.NewAppError("RequestTrialLicense", "api.license.request-trial.bad-request.terms-not-accepted", nil, "", http.StatusBadRequest)
 	}
@@ -94,7 +68,7 @@ func (w *licenseWrapper) RequestTrialLicense(requesterID string, users int, term
 		return model.NewAppError("RequestTrialLicense", "api.license.request-trial.bad-request", nil, "", http.StatusBadRequest)
 	}
 
-	requester, err := w.srv.userService.GetUser(requesterID)
+	requester, err := ch.srv.userService.GetUser(requesterID)
 	if err != nil {
 		var nfErr *store.ErrNotFound
 		switch {
@@ -106,17 +80,17 @@ func (w *licenseWrapper) RequestTrialLicense(requesterID string, users int, term
 	}
 
 	trialLicenseRequest := &model.TrialLicenseRequest{
-		ServerID:              w.srv.TelemetryId(),
+		ServerID:              ch.srv.ServerId(),
 		Name:                  requester.GetDisplayName(model.ShowFullName),
 		Email:                 requester.Email,
-		SiteName:              *w.srv.platform.Config().TeamSettings.SiteName,
-		SiteURL:               *w.srv.platform.Config().ServiceSettings.SiteURL,
+		SiteName:              *ch.srv.platform.Config().TeamSettings.SiteName,
+		SiteURL:               *ch.srv.platform.Config().ServiceSettings.SiteURL,
 		Users:                 users,
 		TermsAccepted:         termsAccepted,
 		ReceiveEmailsAccepted: receiveEmailsAccepted,
 	}
 
-	return w.srv.platform.RequestTrialLicense(trialLicenseRequest)
+	return ch.srv.platform.RequestTrialLicense(trialLicenseRequest)
 }
 
 // JWTClaims custom JWT claims with the needed information for the
@@ -143,7 +117,7 @@ func (s *Server) SetLicense(license *model.License) bool {
 	return s.platform.SetLicense(license)
 }
 
-func (s *Server) ValidateAndSetLicenseBytes(b []byte) bool {
+func (s *Server) ValidateAndSetLicenseBytes(b []byte) error {
 	return s.platform.ValidateAndSetLicenseBytes(b)
 }
 
@@ -169,14 +143,4 @@ func (s *Server) RemoveLicenseListener(id string) {
 
 func (s *Server) GetSanitizedClientLicense() map[string]string {
 	return s.platform.GetSanitizedClientLicense()
-}
-
-// GenerateRenewalToken returns a renewal token that expires after duration expiration
-func (s *Server) GenerateRenewalToken(expiration time.Duration) (string, *model.AppError) {
-	return s.platform.GenerateRenewalToken(expiration)
-}
-
-// GenerateLicenseRenewalLink returns a link that points to the CWS where clients can renew license
-func (s *Server) GenerateLicenseRenewalLink() (string, string, *model.AppError) {
-	return s.platform.GenerateLicenseRenewalLink()
 }

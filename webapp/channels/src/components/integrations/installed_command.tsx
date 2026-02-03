@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-import {FormattedMessage} from 'react-intl';
+import {defineMessage, FormattedMessage} from 'react-intl';
 import {Link} from 'react-router-dom';
 
 import type {Command} from '@mattermost/types/integrations';
@@ -149,14 +149,14 @@ export default class InstalledCommand extends React.PureComponent<Props> {
             <div className='backstage-list__item'>
                 <div className='item-details'>
                     <div className='item-details__row d-flex flex-column flex-md-row justify-content-between'>
-                        <div>
-                            <strong className='item-details__name'>
+                        <div className='item-details__name'>
+                            <strong>
                                 {name}
                             </strong>
-                            <span className='item-details__trigger'>
-                                {trigger}
-                            </span>
                         </div>
+                        <span className='item-details__trigger'>
+                            {trigger}
+                        </span>
                         {actions}
                     </div>
                     {description}
@@ -166,10 +166,14 @@ export default class InstalledCommand extends React.PureComponent<Props> {
                                 id='installed_integrations.token'
                                 defaultMessage='Token: {token}'
                                 values={{
-                                    token: commandToken,
+                                    token: <code>{commandToken}</code>,
                                 }}
                             />
                             <CopyText
+                                label={defineMessage({
+                                    id: 'integrations.copy_token',
+                                    defaultMessage: 'Copy Token',
+                                })}
                                 value={commandToken}
                             />
                         </span>

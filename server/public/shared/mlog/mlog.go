@@ -10,7 +10,9 @@ import (
 	"fmt"
 	"io"
 	"log"
+	"maps"
 	"os"
+	"slices"
 	"strings"
 	"sync/atomic"
 	"time"
@@ -28,6 +30,7 @@ const (
 	DefaultMetricsUpdateFreqMillis = 15000
 )
 
+// LoggerIFace should be abbreviated as `logger`.
 type LoggerIFace interface {
 	IsLevelEnabled(Level) bool
 	Trace(string, ...Field)
@@ -64,12 +67,10 @@ type Sugar = logr.Sugar
 type LoggerConfiguration map[string]TargetCfg
 
 func (lc LoggerConfiguration) Append(cfg LoggerConfiguration) {
-	for k, v := range cfg {
-		lc[k] = v
-	}
+	maps.Copy(lc, cfg)
 }
 
-func (lc LoggerConfiguration) IsValid() error {
+func (lc LoggerConfiguration) IsValid(validLevels []Level) error {
 	logger, err := logr.New()
 	if err != nil {
 		return errors.Wrap(err, "failed to create logger")
@@ -81,14 +82,25 @@ func (lc LoggerConfiguration) IsValid() error {
 		return errors.Wrap(err, "logger configuration is invalid")
 	}
 
+	validLevelIDs := make([]logr.LevelID, 0, len(validLevels))
+	for _, l := range validLevels {
+		validLevelIDs = append(validLevelIDs, l.ID)
+	}
+
+	for _, c := range lc {
+		for _, l := range c.Levels {
+			if !slices.Contains(validLevelIDs, l.ID) {
+				return errors.Errorf("invalid log level id %d", l.ID)
+			}
+		}
+	}
+
 	return nil
 }
 
 func (lc LoggerConfiguration) toTargetCfg() map[string]logrcfg.TargetCfg {
 	tcfg := make(map[string]logrcfg.TargetCfg)
-	for k, v := range lc {
-		tcfg[k] = v
-	}
+	maps.Copy(tcfg, lc)
 	return tcfg
 }
 
@@ -169,6 +181,8 @@ func Map[M ~map[K]V, K comparable, V any](key string, val M) Field {
 // so that there are no allocations on the heap each interface method invocation. Normally not
 // something to be concerned about, but logging calls for disabled levels should have as little CPU
 // and memory impact as possible. Most of these wrapper calls will be inlined as well.
+//
+// Logger should be abbreviated as `logger`.
 type Logger struct {
 	log        *logr.Logger
 	lockConfig *int32
@@ -245,7 +259,7 @@ func (l *Logger) Configure(cfgFile string, cfgEscaped string, factories *Factori
 }
 
 // ConfigureTargets provides a new configuration for this logger via a `LoggerConfig` map.
-// Typically `mlog.Configure` is used instead which accepts JSON formatted configuration.
+// `Logger.Configure` can be used instead which accepts JSON formatted configuration.
 // An optional set of factories can be provided which will be called to create any target
 // types or formatters not built-in.
 func (l *Logger) ConfigureTargets(cfg LoggerConfiguration, factories *Factories) error {

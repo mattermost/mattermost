@@ -1,4 +1,4 @@
-// Jest Snapshot v1, https://goo.gl/fbAQLP
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
 
 exports[`components/admin_console/permission_schemes_settings/permission_system_scheme_settings/permission_system_scheme_settings should match snapshot on roles with permissions 1`] = `<LoadingScreen />`;
 
@@ -175,7 +175,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_system_
         >
           <span>
             <MemoizedFormattedMessage
-              defaultMessage="Configure the default permissions for Team Admins, Channel Admins and other members. This scheme is inherited by all teams unless a <link>Team Override Scheme</link>is applied in specific teams."
+              defaultMessage="Configure the default permissions for Team Admins, Channel Admins and other members. This scheme is inherited by all teams unless a <link>Team Override Scheme</link> is applied in specific teams."
               id="admin.permissions.systemScheme.introBanner"
               values={
                 Object {
@@ -191,10 +191,18 @@ exports[`components/admin_console/permission_schemes_settings/permission_system_
         id="all_users"
         onToggle={[Function]}
         open={true}
-        subtitleDefault="Permissions granted to guest users."
-        subtitleId="admin.permissions.systemScheme.GuestsDescription"
-        titleDefault="Guests"
-        titleId="admin.permissions.systemScheme.GuestsTitle"
+        subtitle={
+          Object {
+            "defaultMessage": "Permissions granted to guest users.",
+            "id": "admin.permissions.systemScheme.GuestsDescription",
+          }
+        }
+        title={
+          Object {
+            "defaultMessage": "Guests",
+            "id": "admin.permissions.systemScheme.GuestsTitle",
+          }
+        }
       >
         <Connect(GuestPermissionsTree)
           onToggle={[Function]}
@@ -215,10 +223,18 @@ exports[`components/admin_console/permission_schemes_settings/permission_system_
         id="all_users"
         onToggle={[Function]}
         open={true}
-        subtitleDefault="Permissions granted to all members, including administrators and newly created users."
-        subtitleId="admin.permissions.systemScheme.allMembersDescription"
-        titleDefault="All Members"
-        titleId="admin.permissions.systemScheme.allMembersTitle"
+        subtitle={
+          Object {
+            "defaultMessage": "Permissions granted to all members, including administrators and newly created users.",
+            "id": "admin.permissions.systemScheme.allMembersDescription",
+          }
+        }
+        title={
+          Object {
+            "defaultMessage": "All Members",
+            "id": "admin.permissions.systemScheme.allMembersTitle",
+          }
+        }
       >
         <Connect(PermissionsTree)
           onToggle={[Function]}
@@ -237,10 +253,18 @@ exports[`components/admin_console/permission_schemes_settings/permission_system_
         className="permissions-block"
         onToggle={[Function]}
         open={true}
-        subtitleDefault="Permissions granted to channel creators and any users promoted to Channel Administrator."
-        subtitleId="admin.permissions.systemScheme.channelAdminsDescription"
-        titleDefault="Channel Administrators"
-        titleId="admin.permissions.systemScheme.channelAdminsTitle"
+        subtitle={
+          Object {
+            "defaultMessage": "Permissions granted to channel creators and any users promoted to Channel Administrator.",
+            "id": "admin.permissions.systemScheme.channelAdminsDescription",
+          }
+        }
+        title={
+          Object {
+            "defaultMessage": "Channel Administrators",
+            "id": "admin.permissions.systemScheme.channelAdminsTitle",
+          }
+        }
       >
         <Connect(PermissionsTree)
           onToggle={[Function]}
@@ -273,10 +297,18 @@ exports[`components/admin_console/permission_schemes_settings/permission_system_
         className="permissions-block"
         onToggle={[Function]}
         open={true}
-        subtitleDefault="Permissions granted to administrators of a playbook."
-        subtitleId="admin.permissions.systemScheme.playbookAdminSubtitle"
-        titleDefault="Playbook Administrator"
-        titleId="admin.permissions.systemScheme.playbookAdmin"
+        subtitle={
+          Object {
+            "defaultMessage": "Permissions granted to administrators of a playbook.",
+            "id": "admin.permissions.systemScheme.playbookAdminSubtitle",
+          }
+        }
+        title={
+          Object {
+            "defaultMessage": "Playbook Administrator",
+            "id": "admin.permissions.systemScheme.playbookAdmin",
+          }
+        }
       >
         <PermissionsTreePlaybooks
           license={
@@ -316,10 +348,18 @@ exports[`components/admin_console/permission_schemes_settings/permission_system_
         className="permissions-block"
         onToggle={[Function]}
         open={true}
-        subtitleDefault="Permissions granted to team creators and any users promoted to Team Administrator."
-        subtitleId="admin.permissions.systemScheme.teamAdminsDescription"
-        titleDefault="Team Administrators"
-        titleId="admin.permissions.systemScheme.teamAdminsTitle"
+        subtitle={
+          Object {
+            "defaultMessage": "Permissions granted to team creators and any users promoted to Team Administrator.",
+            "id": "admin.permissions.systemScheme.teamAdminsDescription",
+          }
+        }
+        title={
+          Object {
+            "defaultMessage": "Team Administrators",
+            "id": "admin.permissions.systemScheme.teamAdminsTitle",
+          }
+        }
       >
         <Connect(PermissionsTree)
           onToggle={[Function]}
@@ -352,10 +392,18 @@ exports[`components/admin_console/permission_schemes_settings/permission_system_
         className="permissions-block"
         onToggle={[Function]}
         open={true}
-        subtitleDefault="Full permissions granted to System Administrators."
-        subtitleId="admin.permissions.systemScheme.systemAdminsDescription"
-        titleDefault="System Administrators"
-        titleId="admin.permissions.systemScheme.systemAdminsTitle"
+        subtitle={
+          Object {
+            "defaultMessage": "Full permissions granted to System Administrators.",
+            "id": "admin.permissions.systemScheme.systemAdminsDescription",
+          }
+        }
+        title={
+          Object {
+            "defaultMessage": "System Administrators",
+            "id": "admin.permissions.systemScheme.systemAdminsTitle",
+          }
+        }
       >
         <Connect(PermissionsTree)
           onToggle={[Function]}
@@ -384,21 +432,14 @@ exports[`components/admin_console/permission_schemes_settings/permission_system_
     className="admin-console-save"
   >
     <SaveButton
-      btnClass=""
-      defaultMessage={
-        <Memo(MemoizedFormattedMessage)
-          defaultMessage="Save"
-          id="save_button.save"
-        />
-      }
       disabled={true}
-      extraClasses=""
       onClick={[Function]}
       saving={false}
       savingMessage="Saving Config..."
     />
     <Connect(Component)
       className="btn btn-tertiary"
+      data-testid="permission-scheme-cancel-button"
       to="/admin_console/user_management/permissions"
     >
       <MemoizedFormattedMessage
@@ -419,14 +460,12 @@ exports[`components/admin_console/permission_schemes_settings/permission_system_
     <div
       className="error-message"
     >
-      <FormError
+      <Memo(FormError)
         error={null}
-        errors={Array []}
       />
     </div>
   </div>
-  <ConfirmModal
-    confirmButtonClass="btn btn-primary"
+  <Memo(ConfirmModal)
     confirmButtonText={
       <Memo(MemoizedFormattedMessage)
         defaultMessage="Yes, Reset"
@@ -439,7 +478,6 @@ exports[`components/admin_console/permission_schemes_settings/permission_system_
         id="admin.permissions.systemScheme.resetDefaultsButtonModalBody"
       />
     }
-    modalClass=""
     onCancel={[Function]}
     onConfirm={[Function]}
     show={false}
@@ -485,7 +523,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_system_
         >
           <span>
             <MemoizedFormattedMessage
-              defaultMessage="Configure the default permissions for Team Admins, Channel Admins and other members. This scheme is inherited by all teams unless a <link>Team Override Scheme</link>is applied in specific teams."
+              defaultMessage="Configure the default permissions for Team Admins, Channel Admins and other members. This scheme is inherited by all teams unless a <link>Team Override Scheme</link> is applied in specific teams."
               id="admin.permissions.systemScheme.introBanner"
               values={
                 Object {
@@ -501,10 +539,18 @@ exports[`components/admin_console/permission_schemes_settings/permission_system_
         id="all_users"
         onToggle={[Function]}
         open={true}
-        subtitleDefault="Permissions granted to guest users."
-        subtitleId="admin.permissions.systemScheme.GuestsDescription"
-        titleDefault="Guests"
-        titleId="admin.permissions.systemScheme.GuestsTitle"
+        subtitle={
+          Object {
+            "defaultMessage": "Permissions granted to guest users.",
+            "id": "admin.permissions.systemScheme.GuestsDescription",
+          }
+        }
+        title={
+          Object {
+            "defaultMessage": "Guests",
+            "id": "admin.permissions.systemScheme.GuestsTitle",
+          }
+        }
       >
         <Connect(GuestPermissionsTree)
           onToggle={[Function]}
@@ -525,10 +571,18 @@ exports[`components/admin_console/permission_schemes_settings/permission_system_
         id="all_users"
         onToggle={[Function]}
         open={true}
-        subtitleDefault="Permissions granted to all members, including administrators and newly created users."
-        subtitleId="admin.permissions.systemScheme.allMembersDescription"
-        titleDefault="All Members"
-        titleId="admin.permissions.systemScheme.allMembersTitle"
+        subtitle={
+          Object {
+            "defaultMessage": "Permissions granted to all members, including administrators and newly created users.",
+            "id": "admin.permissions.systemScheme.allMembersDescription",
+          }
+        }
+        title={
+          Object {
+            "defaultMessage": "All Members",
+            "id": "admin.permissions.systemScheme.allMembersTitle",
+          }
+        }
       >
         <Connect(PermissionsTree)
           onToggle={[Function]}
@@ -547,10 +601,18 @@ exports[`components/admin_console/permission_schemes_settings/permission_system_
         className="permissions-block"
         onToggle={[Function]}
         open={true}
-        subtitleDefault="Permissions granted to channel creators and any users promoted to Channel Administrator."
-        subtitleId="admin.permissions.systemScheme.channelAdminsDescription"
-        titleDefault="Channel Administrators"
-        titleId="admin.permissions.systemScheme.channelAdminsTitle"
+        subtitle={
+          Object {
+            "defaultMessage": "Permissions granted to channel creators and any users promoted to Channel Administrator.",
+            "id": "admin.permissions.systemScheme.channelAdminsDescription",
+          }
+        }
+        title={
+          Object {
+            "defaultMessage": "Channel Administrators",
+            "id": "admin.permissions.systemScheme.channelAdminsTitle",
+          }
+        }
       >
         <Connect(PermissionsTree)
           onToggle={[Function]}
@@ -583,10 +645,18 @@ exports[`components/admin_console/permission_schemes_settings/permission_system_
         className="permissions-block"
         onToggle={[Function]}
         open={true}
-        subtitleDefault="Permissions granted to administrators of a playbook."
-        subtitleId="admin.permissions.systemScheme.playbookAdminSubtitle"
-        titleDefault="Playbook Administrator"
-        titleId="admin.permissions.systemScheme.playbookAdmin"
+        subtitle={
+          Object {
+            "defaultMessage": "Permissions granted to administrators of a playbook.",
+            "id": "admin.permissions.systemScheme.playbookAdminSubtitle",
+          }
+        }
+        title={
+          Object {
+            "defaultMessage": "Playbook Administrator",
+            "id": "admin.permissions.systemScheme.playbookAdmin",
+          }
+        }
       >
         <PermissionsTreePlaybooks
           license={
@@ -627,10 +697,18 @@ exports[`components/admin_console/permission_schemes_settings/permission_system_
         className="permissions-block"
         onToggle={[Function]}
         open={true}
-        subtitleDefault="Permissions granted to team creators and any users promoted to Team Administrator."
-        subtitleId="admin.permissions.systemScheme.teamAdminsDescription"
-        titleDefault="Team Administrators"
-        titleId="admin.permissions.systemScheme.teamAdminsTitle"
+        subtitle={
+          Object {
+            "defaultMessage": "Permissions granted to team creators and any users promoted to Team Administrator.",
+            "id": "admin.permissions.systemScheme.teamAdminsDescription",
+          }
+        }
+        title={
+          Object {
+            "defaultMessage": "Team Administrators",
+            "id": "admin.permissions.systemScheme.teamAdminsTitle",
+          }
+        }
       >
         <Connect(PermissionsTree)
           onToggle={[Function]}
@@ -663,10 +741,18 @@ exports[`components/admin_console/permission_schemes_settings/permission_system_
         className="permissions-block"
         onToggle={[Function]}
         open={true}
-        subtitleDefault="Full permissions granted to System Administrators."
-        subtitleId="admin.permissions.systemScheme.systemAdminsDescription"
-        titleDefault="System Administrators"
-        titleId="admin.permissions.systemScheme.systemAdminsTitle"
+        subtitle={
+          Object {
+            "defaultMessage": "Full permissions granted to System Administrators.",
+            "id": "admin.permissions.systemScheme.systemAdminsDescription",
+          }
+        }
+        title={
+          Object {
+            "defaultMessage": "System Administrators",
+            "id": "admin.permissions.systemScheme.systemAdminsTitle",
+          }
+        }
       >
         <Connect(PermissionsTree)
           onToggle={[Function]}
@@ -695,21 +781,14 @@ exports[`components/admin_console/permission_schemes_settings/permission_system_
     className="admin-console-save"
   >
     <SaveButton
-      btnClass=""
-      defaultMessage={
-        <Memo(MemoizedFormattedMessage)
-          defaultMessage="Save"
-          id="save_button.save"
-        />
-      }
       disabled={true}
-      extraClasses=""
       onClick={[Function]}
       saving={false}
       savingMessage="Saving Config..."
     />
     <Connect(Component)
       className="btn btn-tertiary"
+      data-testid="permission-scheme-cancel-button"
       to="/admin_console/user_management/permissions"
     >
       <MemoizedFormattedMessage
@@ -730,14 +809,12 @@ exports[`components/admin_console/permission_schemes_settings/permission_system_
     <div
       className="error-message"
     >
-      <FormError
+      <Memo(FormError)
         error={null}
-        errors={Array []}
       />
     </div>
   </div>
-  <ConfirmModal
-    confirmButtonClass="btn btn-primary"
+  <Memo(ConfirmModal)
     confirmButtonText={
       <Memo(MemoizedFormattedMessage)
         defaultMessage="Yes, Reset"
@@ -750,7 +827,6 @@ exports[`components/admin_console/permission_schemes_settings/permission_system_
         id="admin.permissions.systemScheme.resetDefaultsButtonModalBody"
       />
     }
-    modalClass=""
     onCancel={[Function]}
     onConfirm={[Function]}
     show={false}
@@ -796,7 +872,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_system_
         >
           <span>
             <MemoizedFormattedMessage
-              defaultMessage="Configure the default permissions for Team Admins, Channel Admins and other members. This scheme is inherited by all teams unless a <link>Team Override Scheme</link>is applied in specific teams."
+              defaultMessage="Configure the default permissions for Team Admins, Channel Admins and other members. This scheme is inherited by all teams unless a <link>Team Override Scheme</link> is applied in specific teams."
               id="admin.permissions.systemScheme.introBanner"
               values={
                 Object {
@@ -812,10 +888,18 @@ exports[`components/admin_console/permission_schemes_settings/permission_system_
         id="all_users"
         onToggle={[Function]}
         open={true}
-        subtitleDefault="Permissions granted to guest users."
-        subtitleId="admin.permissions.systemScheme.GuestsDescription"
-        titleDefault="Guests"
-        titleId="admin.permissions.systemScheme.GuestsTitle"
+        subtitle={
+          Object {
+            "defaultMessage": "Permissions granted to guest users.",
+            "id": "admin.permissions.systemScheme.GuestsDescription",
+          }
+        }
+        title={
+          Object {
+            "defaultMessage": "Guests",
+            "id": "admin.permissions.systemScheme.GuestsTitle",
+          }
+        }
       >
         <Connect(GuestPermissionsTree)
           onToggle={[Function]}
@@ -836,10 +920,18 @@ exports[`components/admin_console/permission_schemes_settings/permission_system_
         id="all_users"
         onToggle={[Function]}
         open={true}
-        subtitleDefault="Permissions granted to all members, including administrators and newly created users."
-        subtitleId="admin.permissions.systemScheme.allMembersDescription"
-        titleDefault="All Members"
-        titleId="admin.permissions.systemScheme.allMembersTitle"
+        subtitle={
+          Object {
+            "defaultMessage": "Permissions granted to all members, including administrators and newly created users.",
+            "id": "admin.permissions.systemScheme.allMembersDescription",
+          }
+        }
+        title={
+          Object {
+            "defaultMessage": "All Members",
+            "id": "admin.permissions.systemScheme.allMembersTitle",
+          }
+        }
       >
         <Connect(PermissionsTree)
           onToggle={[Function]}
@@ -858,10 +950,18 @@ exports[`components/admin_console/permission_schemes_settings/permission_system_
         className="permissions-block"
         onToggle={[Function]}
         open={true}
-        subtitleDefault="Permissions granted to channel creators and any users promoted to Channel Administrator."
-        subtitleId="admin.permissions.systemScheme.channelAdminsDescription"
-        titleDefault="Channel Administrators"
-        titleId="admin.permissions.systemScheme.channelAdminsTitle"
+        subtitle={
+          Object {
+            "defaultMessage": "Permissions granted to channel creators and any users promoted to Channel Administrator.",
+            "id": "admin.permissions.systemScheme.channelAdminsDescription",
+          }
+        }
+        title={
+          Object {
+            "defaultMessage": "Channel Administrators",
+            "id": "admin.permissions.systemScheme.channelAdminsTitle",
+          }
+        }
       >
         <Connect(PermissionsTree)
           onToggle={[Function]}
@@ -894,10 +994,18 @@ exports[`components/admin_console/permission_schemes_settings/permission_system_
         className="permissions-block"
         onToggle={[Function]}
         open={true}
-        subtitleDefault="Permissions granted to administrators of a playbook."
-        subtitleId="admin.permissions.systemScheme.playbookAdminSubtitle"
-        titleDefault="Playbook Administrator"
-        titleId="admin.permissions.systemScheme.playbookAdmin"
+        subtitle={
+          Object {
+            "defaultMessage": "Permissions granted to administrators of a playbook.",
+            "id": "admin.permissions.systemScheme.playbookAdminSubtitle",
+          }
+        }
+        title={
+          Object {
+            "defaultMessage": "Playbook Administrator",
+            "id": "admin.permissions.systemScheme.playbookAdmin",
+          }
+        }
       >
         <PermissionsTreePlaybooks
           license={
@@ -938,10 +1046,18 @@ exports[`components/admin_console/permission_schemes_settings/permission_system_
         className="permissions-block"
         onToggle={[Function]}
         open={true}
-        subtitleDefault="Permissions granted to team creators and any users promoted to Team Administrator."
-        subtitleId="admin.permissions.systemScheme.teamAdminsDescription"
-        titleDefault="Team Administrators"
-        titleId="admin.permissions.systemScheme.teamAdminsTitle"
+        subtitle={
+          Object {
+            "defaultMessage": "Permissions granted to team creators and any users promoted to Team Administrator.",
+            "id": "admin.permissions.systemScheme.teamAdminsDescription",
+          }
+        }
+        title={
+          Object {
+            "defaultMessage": "Team Administrators",
+            "id": "admin.permissions.systemScheme.teamAdminsTitle",
+          }
+        }
       >
         <Connect(PermissionsTree)
           onToggle={[Function]}
@@ -974,10 +1090,18 @@ exports[`components/admin_console/permission_schemes_settings/permission_system_
         className="permissions-block"
         onToggle={[Function]}
         open={true}
-        subtitleDefault="Full permissions granted to System Administrators."
-        subtitleId="admin.permissions.systemScheme.systemAdminsDescription"
-        titleDefault="System Administrators"
-        titleId="admin.permissions.systemScheme.systemAdminsTitle"
+        subtitle={
+          Object {
+            "defaultMessage": "Full permissions granted to System Administrators.",
+            "id": "admin.permissions.systemScheme.systemAdminsDescription",
+          }
+        }
+        title={
+          Object {
+            "defaultMessage": "System Administrators",
+            "id": "admin.permissions.systemScheme.systemAdminsTitle",
+          }
+        }
       >
         <Connect(PermissionsTree)
           onToggle={[Function]}
@@ -1006,21 +1130,14 @@ exports[`components/admin_console/permission_schemes_settings/permission_system_
     className="admin-console-save"
   >
     <SaveButton
-      btnClass=""
-      defaultMessage={
-        <Memo(MemoizedFormattedMessage)
-          defaultMessage="Save"
-          id="save_button.save"
-        />
-      }
       disabled={true}
-      extraClasses=""
       onClick={[Function]}
       saving={false}
       savingMessage="Saving Config..."
     />
     <Connect(Component)
       className="btn btn-tertiary"
+      data-testid="permission-scheme-cancel-button"
       to="/admin_console/user_management/permissions"
     >
       <MemoizedFormattedMessage
@@ -1041,14 +1158,12 @@ exports[`components/admin_console/permission_schemes_settings/permission_system_
     <div
       className="error-message"
     >
-      <FormError
+      <Memo(FormError)
         error={null}
-        errors={Array []}
       />
     </div>
   </div>
-  <ConfirmModal
-    confirmButtonClass="btn btn-primary"
+  <Memo(ConfirmModal)
     confirmButtonText={
       <Memo(MemoizedFormattedMessage)
         defaultMessage="Yes, Reset"
@@ -1061,7 +1176,6 @@ exports[`components/admin_console/permission_schemes_settings/permission_system_
         id="admin.permissions.systemScheme.resetDefaultsButtonModalBody"
       />
     }
-    modalClass=""
     onCancel={[Function]}
     onConfirm={[Function]}
     show={false}
@@ -1107,7 +1221,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_system_
         >
           <span>
             <MemoizedFormattedMessage
-              defaultMessage="Configure the default permissions for Team Admins, Channel Admins and other members. This scheme is inherited by all teams unless a <link>Team Override Scheme</link>is applied in specific teams."
+              defaultMessage="Configure the default permissions for Team Admins, Channel Admins and other members. This scheme is inherited by all teams unless a <link>Team Override Scheme</link> is applied in specific teams."
               id="admin.permissions.systemScheme.introBanner"
               values={
                 Object {
@@ -1123,10 +1237,18 @@ exports[`components/admin_console/permission_schemes_settings/permission_system_
         id="all_users"
         onToggle={[Function]}
         open={true}
-        subtitleDefault="Permissions granted to guest users."
-        subtitleId="admin.permissions.systemScheme.GuestsDescription"
-        titleDefault="Guests"
-        titleId="admin.permissions.systemScheme.GuestsTitle"
+        subtitle={
+          Object {
+            "defaultMessage": "Permissions granted to guest users.",
+            "id": "admin.permissions.systemScheme.GuestsDescription",
+          }
+        }
+        title={
+          Object {
+            "defaultMessage": "Guests",
+            "id": "admin.permissions.systemScheme.GuestsTitle",
+          }
+        }
       >
         <Connect(GuestPermissionsTree)
           onToggle={[Function]}
@@ -1147,10 +1269,18 @@ exports[`components/admin_console/permission_schemes_settings/permission_system_
         id="all_users"
         onToggle={[Function]}
         open={true}
-        subtitleDefault="Permissions granted to all members, including administrators and newly created users."
-        subtitleId="admin.permissions.systemScheme.allMembersDescription"
-        titleDefault="All Members"
-        titleId="admin.permissions.systemScheme.allMembersTitle"
+        subtitle={
+          Object {
+            "defaultMessage": "Permissions granted to all members, including administrators and newly created users.",
+            "id": "admin.permissions.systemScheme.allMembersDescription",
+          }
+        }
+        title={
+          Object {
+            "defaultMessage": "All Members",
+            "id": "admin.permissions.systemScheme.allMembersTitle",
+          }
+        }
       >
         <Connect(PermissionsTree)
           onToggle={[Function]}
@@ -1169,10 +1299,18 @@ exports[`components/admin_console/permission_schemes_settings/permission_system_
         className="permissions-block"
         onToggle={[Function]}
         open={true}
-        subtitleDefault="Permissions granted to channel creators and any users promoted to Channel Administrator."
-        subtitleId="admin.permissions.systemScheme.channelAdminsDescription"
-        titleDefault="Channel Administrators"
-        titleId="admin.permissions.systemScheme.channelAdminsTitle"
+        subtitle={
+          Object {
+            "defaultMessage": "Permissions granted to channel creators and any users promoted to Channel Administrator.",
+            "id": "admin.permissions.systemScheme.channelAdminsDescription",
+          }
+        }
+        title={
+          Object {
+            "defaultMessage": "Channel Administrators",
+            "id": "admin.permissions.systemScheme.channelAdminsTitle",
+          }
+        }
       >
         <Connect(PermissionsTree)
           onToggle={[Function]}
@@ -1205,10 +1343,18 @@ exports[`components/admin_console/permission_schemes_settings/permission_system_
         className="permissions-block"
         onToggle={[Function]}
         open={true}
-        subtitleDefault="Permissions granted to administrators of a playbook."
-        subtitleId="admin.permissions.systemScheme.playbookAdminSubtitle"
-        titleDefault="Playbook Administrator"
-        titleId="admin.permissions.systemScheme.playbookAdmin"
+        subtitle={
+          Object {
+            "defaultMessage": "Permissions granted to administrators of a playbook.",
+            "id": "admin.permissions.systemScheme.playbookAdminSubtitle",
+          }
+        }
+        title={
+          Object {
+            "defaultMessage": "Playbook Administrator",
+            "id": "admin.permissions.systemScheme.playbookAdmin",
+          }
+        }
       >
         <PermissionsTreePlaybooks
           license={
@@ -1249,10 +1395,18 @@ exports[`components/admin_console/permission_schemes_settings/permission_system_
         className="permissions-block"
         onToggle={[Function]}
         open={true}
-        subtitleDefault="Permissions granted to team creators and any users promoted to Team Administrator."
-        subtitleId="admin.permissions.systemScheme.teamAdminsDescription"
-        titleDefault="Team Administrators"
-        titleId="admin.permissions.systemScheme.teamAdminsTitle"
+        subtitle={
+          Object {
+            "defaultMessage": "Permissions granted to team creators and any users promoted to Team Administrator.",
+            "id": "admin.permissions.systemScheme.teamAdminsDescription",
+          }
+        }
+        title={
+          Object {
+            "defaultMessage": "Team Administrators",
+            "id": "admin.permissions.systemScheme.teamAdminsTitle",
+          }
+        }
       >
         <Connect(PermissionsTree)
           onToggle={[Function]}
@@ -1285,10 +1439,18 @@ exports[`components/admin_console/permission_schemes_settings/permission_system_
         className="permissions-block"
         onToggle={[Function]}
         open={true}
-        subtitleDefault="Full permissions granted to System Administrators."
-        subtitleId="admin.permissions.systemScheme.systemAdminsDescription"
-        titleDefault="System Administrators"
-        titleId="admin.permissions.systemScheme.systemAdminsTitle"
+        subtitle={
+          Object {
+            "defaultMessage": "Full permissions granted to System Administrators.",
+            "id": "admin.permissions.systemScheme.systemAdminsDescription",
+          }
+        }
+        title={
+          Object {
+            "defaultMessage": "System Administrators",
+            "id": "admin.permissions.systemScheme.systemAdminsTitle",
+          }
+        }
       >
         <Connect(PermissionsTree)
           onToggle={[Function]}
@@ -1317,21 +1479,14 @@ exports[`components/admin_console/permission_schemes_settings/permission_system_
     className="admin-console-save"
   >
     <SaveButton
-      btnClass=""
-      defaultMessage={
-        <Memo(MemoizedFormattedMessage)
-          defaultMessage="Save"
-          id="save_button.save"
-        />
-      }
       disabled={true}
-      extraClasses=""
       onClick={[Function]}
       saving={false}
       savingMessage="Saving Config..."
     />
     <Connect(Component)
       className="btn btn-tertiary"
+      data-testid="permission-scheme-cancel-button"
       to="/admin_console/user_management/permissions"
     >
       <MemoizedFormattedMessage
@@ -1352,14 +1507,12 @@ exports[`components/admin_console/permission_schemes_settings/permission_system_
     <div
       className="error-message"
     >
-      <FormError
+      <Memo(FormError)
         error={null}
-        errors={Array []}
       />
     </div>
   </div>
-  <ConfirmModal
-    confirmButtonClass="btn btn-primary"
+  <Memo(ConfirmModal)
     confirmButtonText={
       <Memo(MemoizedFormattedMessage)
         defaultMessage="Yes, Reset"
@@ -1372,7 +1525,6 @@ exports[`components/admin_console/permission_schemes_settings/permission_system_
         id="admin.permissions.systemScheme.resetDefaultsButtonModalBody"
       />
     }
-    modalClass=""
     onCancel={[Function]}
     onConfirm={[Function]}
     show={false}

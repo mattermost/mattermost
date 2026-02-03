@@ -1,21 +1,16 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {shallow} from 'enzyme';
 import React from 'react';
-import {FormattedMessage} from 'react-intl';
 
 import type {UserNotifyProps, UserProfile} from '@mattermost/types/users';
 
-import type {ActionResult} from 'mattermost-redux/types/actions';
-
-import {mountWithIntl} from 'tests/helpers/intl-test-helper';
+import {renderWithContext, screen, userEvent, waitFor} from 'tests/react_testing_utils';
 import {TestHelper} from 'utils/test_helper';
 
 import ResetPasswordModal from './reset_password_modal';
 
 describe('components/admin_console/reset_password_modal/reset_password_modal.tsx', () => {
-    const emptyFunction = jest.fn();
     const notifyProps: UserNotifyProps = {
         channel: 'true',
         comments: 'never',
@@ -30,19 +25,21 @@ describe('components/admin_console/reset_password_modal/reset_password_modal.tsx
         push: 'default',
         push_status: 'ooo',
     };
+
     const user: UserProfile = TestHelper.getUserMock({
-        auth_service: 'test',
+        id: 'user_id_1',
+        auth_service: '',
         notify_props: notifyProps,
+        first_name: 'Test',
+        last_name: 'User',
+        username: 'testuser',
     });
 
     const baseProps = {
-        // eslint-disable-next-line @typescript-eslint/ban-types
-        actions: {updateUserPassword: jest.fn<ActionResult, Array<{}>>(() => ({data: ''}))},
+        actions: {updateUserPassword: jest.fn(() => Promise.resolve({data: ''}))},
         currentUserId: user.id,
         user,
-        show: true,
-        onModalSubmit: emptyFunction,
-        onModalDismissed: emptyFunction,
+        onExited: jest.fn(),
         passwordConfig: {
             minimumLength: 10,
             requireLowercase: true,
@@ -52,68 +49,115 @@ describe('components/admin_console/reset_password_modal/reset_password_modal.tsx
         },
     };
 
-    test('should match snapshot', () => {
-        const wrapper = shallow(
-            <ResetPasswordModal {...baseProps}/>,
-        );
-        expect(wrapper).toMatchSnapshot();
+    test('should render modal with user name in title', () => {
+        renderWithContext(<ResetPasswordModal {...baseProps}/>);
+
+        expect(screen.getByText(/Reset password for Test User/i)).toBeInTheDocument();
     });
 
-    test('should match snapshot when there is no user', () => {
+    test('should render null when there is no user', () => {
         const props = {...baseProps, user: undefined};
-        const wrapper = shallow(
-            <ResetPasswordModal {...props}/>,
-        );
-        expect(wrapper).toMatchSnapshot();
+        const {container} = renderWithContext(<ResetPasswordModal {...props}/>);
+
+        expect(container).toBeEmptyDOMElement();
     });
 
-    test('should call updateUserPassword', () => {
-        // eslint-disable-next-line @typescript-eslint/ban-types
-        const updateUserPassword = jest.fn<ActionResult, Array<{}>>(() => ({data: ''}));
-        const oldPassword = 'oldPassword123!';
-        const newPassword = 'newPassword123!';
+    test('should show switch account title when user has auth_service', () => {
+        const authUser = TestHelper.getUserMock({
+            ...user,
+            auth_service: 'ldap',
+        });
+        const props = {...baseProps, user: authUser};
+        renderWithContext(<ResetPasswordModal {...props}/>);
+
+        expect(screen.getByText(/Switch account to Email\/Password/i)).toBeInTheDocument();
+    });
+
+    test('should show current password field when resetting own password', () => {
+        renderWithContext(<ResetPasswordModal {...baseProps}/>);
+
+        expect(screen.getByPlaceholderText(/Current password/i)).toBeInTheDocument();
+        expect(screen.getByPlaceholderText(/New password/i)).toBeInTheDocument();
+    });
+
+    test('should not show current password field when resetting another user password', () => {
+        const props = {...baseProps, currentUserId: 'different_user_id'};
+        renderWithContext(<ResetPasswordModal {...props}/>);
+
+        expect(screen.queryByPlaceholderText(/Current password/i)).not.toBeInTheDocument();
+        expect(screen.getByPlaceholderText(/New password/i)).toBeInTheDocument();
+    });
+
+    test('should call updateUserPassword with both passwords when resetting own password', async () => {
+        const updateUserPassword = jest.fn(() => Promise.resolve({data: ''}));
         const props = {...baseProps, actions: {updateUserPassword}};
-        const wrapper = mountWithIntl(<ResetPasswordModal {...props}/>);
+        renderWithContext(<ResetPasswordModal {...props}/>);
 
-        (wrapper.find('input[type=\'password\']').first().instance() as unknown as HTMLInputElement).value = oldPassword;
-        (wrapper.find('input[type=\'password\']').last().instance() as unknown as HTMLInputElement).value = newPassword;
-        wrapper.find('button[type=\'submit\']').first().simulate('click', {preventDefault: jest.fn()});
+        const currentPasswordInput = screen.getByPlaceholderText(/Current password/i);
+        const newPasswordInput = screen.getByPlaceholderText(/New password/i);
 
-        expect(updateUserPassword.mock.calls.length).toBe(1);
-        expect(wrapper.state('serverErrorCurrentPass')).toBeNull();
-        expect(wrapper.state('serverErrorNewPass')).toBeNull();
+        await userEvent.type(currentPasswordInput, 'oldPassword123!');
+        await userEvent.type(newPasswordInput, 'newPassword123!');
+        await userEvent.click(screen.getByRole('button', {name: /Reset/i}));
+
+        await waitFor(() => {
+            expect(updateUserPassword).toHaveBeenCalledTimes(1);
+            expect(updateUserPassword).toHaveBeenCalledWith(
+                user.id,
+                'oldPassword123!',
+                'newPassword123!',
+            );
+        });
     });
 
-    test('should not call updateUserPassword when the old password is not provided', () => {
-        // eslint-disable-next-line @typescript-eslint/ban-types
-        const updateUserPassword = jest.fn<ActionResult, Array<{}>>(() => ({data: ''}));
-        const newPassword = 'newPassword123!';
+    test('should not call updateUserPassword when the current password is not provided', async () => {
+        const updateUserPassword = jest.fn(() => Promise.resolve({data: ''}));
         const props = {...baseProps, actions: {updateUserPassword}};
-        const wrapper = mountWithIntl(<ResetPasswordModal {...props}/>);
+        renderWithContext(<ResetPasswordModal {...props}/>);
 
-        (wrapper.find('input[type=\'password\']').last().instance() as unknown as HTMLInputElement).value = newPassword;
-        wrapper.find('button[type=\'submit\']').first().simulate('click', {preventDefault: jest.fn()});
+        const newPasswordInput = screen.getByPlaceholderText(/New password/i);
+        await userEvent.type(newPasswordInput, 'newPassword123!');
+        await userEvent.click(screen.getByRole('button', {name: /Reset/i}));
 
-        expect(updateUserPassword.mock.calls.length).toBe(0);
-        expect(wrapper.state('serverErrorCurrentPass')).toStrictEqual(
-            <FormattedMessage
-                defaultMessage='Please enter your current password.'
-                id='admin.reset_password.missing_current'
-            />);
-        expect(wrapper.state('serverErrorNewPass')).toBeNull();
+        expect(updateUserPassword).not.toHaveBeenCalled();
+        await waitFor(() => {
+            expect(screen.getByText(/Please enter your current password/i)).toBeInTheDocument();
+        });
     });
 
-    test('should call updateUserPassword', () => {
-        // eslint-disable-next-line @typescript-eslint/ban-types
-        const updateUserPassword = jest.fn<ActionResult, Array<{}>>(() => ({data: ''}));
-        const password = 'Password123!';
+    test('should call updateUserPassword without current password when resetting another user', async () => {
+        const updateUserPassword = jest.fn(() => Promise.resolve({data: ''}));
+        const props = {...baseProps, currentUserId: 'different_user_id', actions: {updateUserPassword}};
+        renderWithContext(<ResetPasswordModal {...props}/>);
 
-        const props = {...baseProps, currentUserId: '2', actions: {updateUserPassword}};
-        const wrapper = mountWithIntl(<ResetPasswordModal {...props}/>);
+        const newPasswordInput = screen.getByPlaceholderText(/New password/i);
+        await userEvent.type(newPasswordInput, 'Password123!');
+        await userEvent.click(screen.getByRole('button', {name: /Reset/i}));
 
-        (wrapper.find('input[type=\'password\']').first().instance() as unknown as HTMLInputElement).value = password;
-        wrapper.find('button[type=\'submit\']').first().simulate('click', {preventDefault: jest.fn()});
+        await waitFor(() => {
+            expect(updateUserPassword).toHaveBeenCalledTimes(1);
+            expect(updateUserPassword).toHaveBeenCalledWith(
+                user.id,
+                '',
+                'Password123!',
+            );
+        });
+    });
 
-        expect(updateUserPassword.mock.calls.length).toBe(1);
+    test('should show error when password does not meet requirements', async () => {
+        const updateUserPassword = jest.fn(() => Promise.resolve({data: ''}));
+        const props = {...baseProps, currentUserId: 'different_user_id', actions: {updateUserPassword}};
+        renderWithContext(<ResetPasswordModal {...props}/>);
+
+        const newPasswordInput = screen.getByPlaceholderText(/New password/i);
+        await userEvent.type(newPasswordInput, 'weak');
+        await userEvent.click(screen.getByRole('button', {name: /Reset/i}));
+
+        expect(updateUserPassword).not.toHaveBeenCalled();
+
+        // Password validation error should appear
+        await waitFor(() => {
+            expect(screen.getByText(/Must be 10-72 characters long/i)).toBeInTheDocument();
+        });
     });
 });

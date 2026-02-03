@@ -3,7 +3,7 @@
 
 import {connect} from 'react-redux';
 import {bindActionCreators} from 'redux';
-import type {ActionCreatorsMapObject, Dispatch} from 'redux';
+import type {Dispatch} from 'redux';
 
 import type {GlobalState} from '@mattermost/types/store';
 
@@ -24,12 +24,10 @@ import {
     getGroupTeams,
 } from 'mattermost-redux/selectors/entities/groups';
 import {getProfilesInGroup as selectProfilesInGroup} from 'mattermost-redux/selectors/entities/users';
-import type {ActionFunc, GenericAction} from 'mattermost-redux/types/actions';
 
 import {setNavigationBlocked} from 'actions/admin_actions';
 
 import GroupDetails from './group_details';
-import type {Props} from './group_details';
 
 type OwnProps = {
     match: {
@@ -57,12 +55,9 @@ function mapStateToProps(state: GlobalState, props: OwnProps) {
     };
 }
 
-function mapDispatchToProps(dispatch: Dispatch<GenericAction>) {
+function mapDispatchToProps(dispatch: Dispatch) {
     return {
-        actions: bindActionCreators<
-        ActionCreatorsMapObject<ActionFunc | GenericAction>,
-        Props['actions']
-        >(
+        actions: bindActionCreators(
             {
                 setNavigationBlocked,
                 getGroup: fetchGroup,

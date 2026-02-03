@@ -11,7 +11,6 @@
 // Group: @channels @system_console @authentication @mfa
 
 import * as TIMEOUTS from '../../../fixtures/timeouts';
-
 import {getRandomId} from '../../../utils';
 
 describe('Authentication', () => {
@@ -20,7 +19,7 @@ describe('Authentication', () => {
         cy.apiAdminLogin();
     });
 
-    it('MM-T1771 - Minimum password length error field shows below 5 and above 64', () => {
+    it('MM-T1771 - Minimum password length error field shows below 5 and above 72', () => {
         cy.visit('/admin_console/authentication/password');
 
         cy.findByPlaceholderText('E.g.: "5"', {timeout: TIMEOUTS.ONE_MIN}).clear().type('88');
@@ -28,7 +27,7 @@ describe('Authentication', () => {
         cy.uiSave();
 
         // * Ensure error appears when saving a password outside of the limits
-        cy.findByText('Minimum password length must be a whole number greater than or equal to 5 and less than or equal to 64.', {timeout: TIMEOUTS.ONE_MIN}).
+        cy.findByText('Minimum password length must be a whole number greater than or equal to 5 and less than or equal to 72.', {timeout: TIMEOUTS.ONE_MIN}).
             should('exist').
             and('be.visible');
 
@@ -37,7 +36,7 @@ describe('Authentication', () => {
         cy.uiSave();
 
         // * Ensure error appears when saving a password outside of the limits
-        cy.findByText('Minimum password length must be a whole number greater than or equal to 5 and less than or equal to 64.', {timeout: TIMEOUTS.ONE_MIN}).
+        cy.findByText('Minimum password length must be a whole number greater than or equal to 5 and less than or equal to 72.', {timeout: TIMEOUTS.ONE_MIN}).
             should('exist').
             and('be.visible');
     });
@@ -49,7 +48,7 @@ describe('Authentication', () => {
 
         cy.uiSave();
 
-        cy.findByText('Must be 7-64 characters long.').should('be.visible');
+        cy.findByText('Your password must be 7-72 characters long.').should('be.visible');
 
         cy.apiLogout();
 
@@ -62,14 +61,18 @@ describe('Authentication', () => {
 
         cy.get('#input_password-input').clear().type('less');
 
-        cy.findByText('Create Account').click();
+        cy.get('#signup-body-card-form-check-terms-and-privacy').check();
+
+        cy.findByText('Create account').click();
 
         // * Assert the error is what is expected;
-        cy.findByText('Must be 7-64 characters long.').should('be.visible');
+        cy.findByText('Your password must be 7-72 characters long.').should('be.visible');
 
         cy.get('#input_password-input').clear().type('greaterthan7');
 
-        cy.findByText('Create Account').click();
+        cy.get('#signup-body-card-form-check-terms-and-privacy').check();
+
+        cy.findByText('Create account').click();
 
         // * Assert that we are not shown an MFA screen and instead a Teams You Can join page
         cy.findByText('Teams you can join:', {timeout: TIMEOUTS.ONE_MIN}).should('be.visible');
@@ -113,12 +116,14 @@ describe('Authentication', () => {
 
         cy.get('#input_name').clear().type(`BestUsernameInTheWorld${getRandomId()}`);
 
+        cy.get('#signup-body-card-form-check-terms-and-privacy').check();
+
         ['NOLOWERCASE123!', 'noupppercase123!', 'NoNumber!', 'NoSymbol123'].forEach((option) => {
             cy.get('#input_password-input').clear().type(option);
-            cy.findByText('Create Account').click();
+            cy.findByText('Create account').click();
 
             // * Assert the error is what is expected;
-            cy.findByText('Must be 5-64 characters long and include both lowercase and uppercase letters, numbers, and special characters.').should('be.visible');
+            cy.findByText('Your password must be 5-72 characters long and include both lowercase and uppercase letters, numbers, and special characters.').should('be.visible');
         });
     });
 

@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-/* eslint-disable no-console, camelcase */
+/* eslint-disable no-console */
 
 const axios = require('axios');
 const fse = require('fs-extra');
@@ -9,7 +9,7 @@ const dayjs = require('dayjs');
 const duration = require('dayjs/plugin/duration');
 dayjs.extend(duration);
 
-const {MOCHAWESOME_REPORT_DIR} = require('./constants');
+const {MOCHAWESOME_REPORT_DIR, AD_CYCLE_FILE} = require('./constants');
 
 const MAX_FAILED_TITLES = 5;
 
@@ -76,6 +76,16 @@ function generateShortSummary(report) {
     const failedFullTitles = tests.filter((t) => t.fail).map((t) => t.fullTitle);
     const statsFieldValue = generateStatsFieldValue(stats, failedFullTitles);
 
+    // If AD Cycle file is found, we have data from the Automation Dashboard available
+    // We are able to override the run stats with enriched information
+    const adCycle = readJsonFromFile(AD_CYCLE_FILE);
+    if (!(adCycle instanceof Error)) {
+        stats.passes = adCycle.pass;
+        stats.failures = adCycle.fail;
+        stats.tests = adCycle.pass + adCycle.fail;
+        stats.passPercent = 100 * (stats.passes / stats.tests);
+    }
+
     return {
         stats,
         statsFieldValue,
@@ -117,6 +127,8 @@ function generateTestReport(summary, isUploadedToS3, reportLink, environment, te
         TEST_CYCLE_LINK_PREFIX,
         MM_ENV,
         SERVER_TYPE,
+        BUILD_ID,
+        AUTOMATION_DASHBOARD_FRONTEND_URL,
     } = process.env;
     const {statsFieldValue, stats} = summary;
     const {
@@ -216,6 +228,12 @@ function generateTestReport(summary, isUploadedToS3, reportLink, environment, te
         testCycleLink = testCycleKey ? `| [Recorded test executions](${TEST_CYCLE_LINK_PREFIX}${testCycleKey})` : '';
     }
 
+    const automationDashboardField = AUTOMATION_DASHBOARD_FRONTEND_URL ? `| [Automation Dashboard](${AUTOMATION_DASHBOARD_FRONTEND_URL}/cycle/${BUILD_ID})` : '';
+
+    const rollingReleaseMatchRegex = BUILD_ID.match(/-rolling(?<version>[^-]+)-/);
+    const rollingReleaseFrom = rollingReleaseMatchRegex?.groups?.version;
+    const rollingReleaseFromField = rollingReleaseFrom ? `\nRolling release upgrade from: ${rollingReleaseFrom}` : '';
+
     const startAt = dayjs(stats.start);
     const endAt = dayjs(stats.end);
     const statsDuration = dayjs.duration(endAt.diff(startAt)).format('H:mm:ss');
@@ -229,7 +247,7 @@ function generateTestReport(summary, isUploadedToS3, reportLink, environment, te
             author_icon: 'https://mattermost.com/wp-content/uploads/2022/02/icon_WS.png',
             author_link: 'https://www.mattermost.com/',
             title,
-            text: `${quickSummary} | ${statsDuration} ${testCycleLink}\n${runnerEnvValue}${SERVER_TYPE ? '\nTest server: ' + SERVER_TYPE : ''}${MM_ENV ? '\nTest server override: ' + MM_ENV : ''}`,
+            text: `${quickSummary} | ${statsDuration} ${testCycleLink} ${automationDashboardField}\n${runnerEnvValue}${SERVER_TYPE ? '\nTest server: ' + SERVER_TYPE : ''}${rollingReleaseFromField}${MM_ENV ? '\nTest server override: ' + MM_ENV : ''}`,
         }],
     };
 }
@@ -246,7 +264,7 @@ function generateTitle() {
 
     let dockerImageLink = '';
     if (MM_DOCKER_IMAGE && MM_DOCKER_TAG) {
-        dockerImageLink = ` with [${MM_DOCKER_IMAGE}:${MM_DOCKER_TAG}](https://hub.docker.com/r/mattermost/${MM_DOCKER_IMAGE}/tags?name=${MM_DOCKER_TAG})`;
+        dockerImageLink = ` with [${MM_DOCKER_IMAGE}:${MM_DOCKER_TAG}](https://hub.docker.com/r/mattermostdevelopment/${MM_DOCKER_IMAGE}/tags?name=${MM_DOCKER_TAG})`;
     }
 
     let releaseDate = '';

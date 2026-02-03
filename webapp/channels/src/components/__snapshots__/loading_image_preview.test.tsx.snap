@@ -1,27 +1,51 @@
-// Jest Snapshot v1, https://goo.gl/fbAQLP
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
 
-exports[`components/LoadingImagePreview should match snapshot 1`] = `
-<div
-  className="view-image__loading"
->
-  <Memo(LoadingSpinner) />
-  <span
-    className="loader-percent"
+exports[`components/LoadingImagePreview should match snapshot with progress 50% 1`] = `
+<div>
+  <div
+    class="view-image__loading"
   >
-    Loading 50%
-  </span>
+    <span
+      class="LoadingSpinner"
+      data-testid="loadingSpinner"
+      id="loadingSpinner"
+    >
+      <span
+        class="fa fa-spinner fa-fw fa-pulse spinner"
+        title="Loading Icon"
+      />
+    </span>
+    <span
+      class="loader-percent"
+    >
+      Loading
+       50%
+    </span>
+  </div>
 </div>
 `;
 
-exports[`components/LoadingImagePreview should match snapshot 2`] = `
-<div
-  className="view-image__loading"
->
-  <Memo(LoadingSpinner) />
-  <span
-    className="loader-percent"
+exports[`components/LoadingImagePreview should match snapshot with progress 90% 1`] = `
+<div>
+  <div
+    class="view-image__loading"
   >
-    Loading 90%
-  </span>
+    <span
+      class="LoadingSpinner"
+      data-testid="loadingSpinner"
+      id="loadingSpinner"
+    >
+      <span
+        class="fa fa-spinner fa-fw fa-pulse spinner"
+        title="Loading Icon"
+      />
+    </span>
+    <span
+      class="loader-percent"
+    >
+      Loading
+       90%
+    </span>
+  </div>
 </div>
 `;

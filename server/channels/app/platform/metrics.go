@@ -27,7 +27,10 @@ import (
 	"github.com/mattermost/mattermost/server/v8/einterfaces"
 )
 
-const TimeToWaitForConnectionsToCloseOnServerShutdown = time.Second
+const (
+	TimeToWaitForConnectionsToCloseOnServerShutdown = time.Second
+	cpuProfileDuration                              = 5 * time.Second
+)
 
 type platformMetrics struct {
 	server *http.Server
@@ -159,7 +162,9 @@ func (pm *platformMetrics) initMetricsRouter() error {
 	}
 
 	rootHandler := func(w http.ResponseWriter, r *http.Request) {
-		metricsPageTmpl.Execute(w, pm.metricsImpl != nil)
+		if err := metricsPageTmpl.Execute(w, pm.metricsImpl != nil); err != nil {
+			pm.logger.Error("Failed to execute template", mlog.Err(err))
+		}
 	}
 
 	pm.router.HandleFunc("/", rootHandler)
@@ -175,8 +180,10 @@ func (pm *platformMetrics) initMetricsRouter() error {
 	// Manually add support for paths linked to by index page at /debug/pprof/
 	pm.router.Handle("/debug/pprof/goroutine", pprof.Handler("goroutine"))
 	pm.router.Handle("/debug/pprof/heap", pprof.Handler("heap"))
+	pm.router.Handle("/debug/pprof/allocs", pprof.Handler("allocs"))
 	pm.router.Handle("/debug/pprof/threadcreate", pprof.Handler("threadcreate"))
 	pm.router.Handle("/debug/pprof/block", pprof.Handler("block"))
+	pm.router.Handle("/debug/pprof/mutex", pprof.Handler("mutex"))
 
 	// Plugins metrics route
 	pluginsMetricsRoute := pm.router.PathPrefix("/plugins/{plugin_id:[A-Za-z0-9\\_\\-\\.]+}/metrics").Subrouter()
@@ -196,7 +203,9 @@ func (pm *platformMetrics) servePluginMetricsRequest(w http.ResponseWriter, r *h
 		mlog.Error(appErr.Error())
 		w.WriteHeader(appErr.StatusCode)
 		w.Header().Set("Content-Type", "application/json")
-		w.Write([]byte(appErr.ToJSON()))
+		if _, writeErr := w.Write([]byte(appErr.ToJSON())); writeErr != nil {
+			mlog.Error("Failed to write error response", mlog.Err(writeErr))
+		}
 		return
 	}
 
@@ -217,7 +226,9 @@ func (pm *platformMetrics) servePluginMetricsRequest(w http.ResponseWriter, r *h
 		mlog.Error(appErr.Error())
 		w.WriteHeader(appErr.StatusCode)
 		w.Header().Set("Content-Type", "application/json")
-		w.Write([]byte(appErr.ToJSON()))
+		if _, writeErr := w.Write([]byte(appErr.ToJSON())); writeErr != nil {
+			mlog.Error("Failed to write error response", mlog.Err(writeErr))
+		}
 		return
 	}
 

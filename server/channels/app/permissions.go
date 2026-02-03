@@ -4,10 +4,7 @@
 package app
 
 import (
-	"bufio"
-	"context"
 	"encoding/json"
-	"fmt"
 	"io"
 	"net/http"
 
@@ -15,35 +12,10 @@ import (
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/request"
-	"github.com/mattermost/mattermost/server/v8/channels/product"
 )
 
 const permissionsExportBatchSize = 100
 const systemSchemeName = "00000000-0000-0000-0000-000000000000" // Prevents collisions with user-created schemes.
-
-// Ensure permissions service wrapper implements `product.PermissionService`
-var _ product.PermissionService = (*permissionsServiceWrapper)(nil)
-
-// permissionsServiceWrapper provides an implementation of `product.PermissionService` for use by products.
-type permissionsServiceWrapper struct {
-	app AppIface
-}
-
-func (s *permissionsServiceWrapper) HasPermissionTo(userID string, permission *model.Permission) bool {
-	return s.app.HasPermissionTo(userID, permission)
-}
-
-func (s *permissionsServiceWrapper) HasPermissionToTeam(c request.CTX, userID string, teamID string, permission *model.Permission) bool {
-	return s.app.HasPermissionToTeam(c, userID, teamID, permission)
-}
-
-func (s *permissionsServiceWrapper) HasPermissionToChannel(c request.CTX, askingUserID string, channelID string, permission *model.Permission) bool {
-	return s.app.HasPermissionToChannel(c, askingUserID, channelID, permission)
-}
-
-func (s *permissionsServiceWrapper) RolesGrantPermission(roleNames []string, permissionId string) bool {
-	return s.app.RolesGrantPermission(roleNames, permissionId)
-}
 
 func (a *App) ResetPermissionsSystem() *model.AppError {
 	// Reset all Teams to not have a scheme.
@@ -102,7 +74,7 @@ func (a *App) ResetPermissionsSystem() *model.AppError {
 	return nil
 }
 
-func (a *App) ExportPermissions(w io.Writer) error {
+func (a *App) ExportPermissions(rctx request.CTX, w io.Writer) error {
 	next := a.SchemesIterator("", permissionsExportBatchSize)
 	var schemeBatch []*model.Scheme
 
@@ -122,7 +94,7 @@ func (a *App) ExportPermissions(w io.Writer) error {
 				if roleName == "" {
 					continue
 				}
-				role, err := a.GetRoleByName(context.Background(), roleName)
+				role, err := a.GetRoleByName(rctx, roleName)
 				if err != nil {
 					return err
 				}
@@ -177,109 +149,4 @@ func (a *App) ExportPermissions(w io.Writer) error {
 
 	_, err = w.Write(schemeExport)
 	return err
-}
-
-func (a *App) ImportPermissions(jsonl io.Reader) error {
-	createdSchemeIDs := []string{}
-
-	scanner := bufio.NewScanner(jsonl)
-
-	for scanner.Scan() {
-		var schemeConveyor *model.SchemeConveyor
-		err := json.Unmarshal(scanner.Bytes(), &schemeConveyor)
-		if err != nil {
-			rollback(a, createdSchemeIDs)
-			return err
-		}
-
-		if schemeConveyor.Name == systemSchemeName {
-			for _, roleIn := range schemeConveyor.Roles {
-				dbRole, err := a.GetRoleByName(context.Background(), roleIn.Name)
-				if err != nil {
-					rollback(a, createdSchemeIDs)
-					return errors.New(err.Message)
-				}
-				_, err = a.PatchRole(dbRole, &model.RolePatch{
-					Permissions: &roleIn.Permissions,
-				})
-				if err != nil {
-					rollback(a, createdSchemeIDs)
-					return err
-				}
-			}
-			continue
-		}
-
-		// Create the new Scheme. The new Roles are created automatically.
-		var appErr *model.AppError
-		schemeCreated, appErr := a.CreateScheme(schemeConveyor.Scheme())
-		if appErr != nil {
-			rollback(a, createdSchemeIDs)
-			return errors.New(appErr.Message)
-		}
-		createdSchemeIDs = append(createdSchemeIDs, schemeCreated.Id)
-
-		schemeIn := schemeConveyor.Scheme()
-		roleNameTuples := [][]string{
-			{schemeCreated.DefaultTeamAdminRole, schemeIn.DefaultTeamAdminRole},
-			{schemeCreated.DefaultTeamUserRole, schemeIn.DefaultTeamUserRole},
-			{schemeCreated.DefaultTeamGuestRole, schemeIn.DefaultTeamGuestRole},
-			{schemeCreated.DefaultChannelAdminRole, schemeIn.DefaultChannelAdminRole},
-			{schemeCreated.DefaultChannelUserRole, schemeIn.DefaultChannelUserRole},
-			{schemeCreated.DefaultChannelGuestRole, schemeIn.DefaultChannelGuestRole},
-		}
-		for _, roleNameTuple := range roleNameTuples {
-			if roleNameTuple[0] == "" || roleNameTuple[1] == "" {
-				continue
-			}
-
-			err = updateRole(a, schemeConveyor, roleNameTuple[0], roleNameTuple[1])
-			if err != nil {
-				// Delete the new Schemes. The new Roles are deleted automatically.
-				rollback(a, createdSchemeIDs)
-				return err
-			}
-		}
-	}
-
-	if err := scanner.Err(); err != nil {
-		rollback(a, createdSchemeIDs)
-		return err
-	}
-
-	return nil
-}
-
-func rollback(a *App, createdSchemeIDs []string) {
-	for _, schemeID := range createdSchemeIDs {
-		a.DeleteScheme(schemeID)
-	}
-}
-
-func updateRole(a *App, sc *model.SchemeConveyor, roleCreatedName, defaultRoleName string) error {
-	var err *model.AppError
-
-	roleCreated, err := a.GetRoleByName(context.Background(), roleCreatedName)
-	if err != nil {
-		return errors.New(err.Message)
-	}
-
-	var roleIn *model.Role
-	for _, role := range sc.Roles {
-		if role.Name == defaultRoleName {
-			roleIn = role
-			break
-		}
-	}
-
-	roleCreated.DisplayName = roleIn.DisplayName
-	roleCreated.Description = roleIn.Description
-	roleCreated.Permissions = roleIn.Permissions
-
-	_, err = a.UpdateRole(roleCreated)
-	if err != nil {
-		return fmt.Errorf("failed to update role: %w", err)
-	}
-
-	return nil
 }

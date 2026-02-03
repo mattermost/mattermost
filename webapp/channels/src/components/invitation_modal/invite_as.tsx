@@ -8,9 +8,7 @@ import {useSelector, useDispatch} from 'react-redux';
 import {getPrevTrialLicense} from 'mattermost-redux/actions/admin';
 import {getSubscriptionProduct, checkHadPriorTrial} from 'mattermost-redux/selectors/entities/cloud';
 import {getConfig, getLicense} from 'mattermost-redux/selectors/entities/general';
-import {deprecateCloudFree} from 'mattermost-redux/selectors/entities/preferences';
 import {isCurrentUserSystemAdmin} from 'mattermost-redux/selectors/entities/users';
-import type {DispatchFunc} from 'mattermost-redux/types/actions';
 
 import {closeModal, openModal} from 'actions/views/modals';
 
@@ -36,13 +34,13 @@ export type Props = {
     setInviteAs: (inviteType: InviteType) => void;
     inviteType: InviteType;
     titleClass?: string;
+    canInviteGuests?: boolean;
 }
 
 export default function InviteAs(props: Props) {
     const {formatMessage} = useIntl();
     const license = useSelector(getLicense);
-    const cloudFreeDeprecated = useSelector(deprecateCloudFree);
-    const dispatch = useDispatch<DispatchFunc>();
+    const dispatch = useDispatch();
 
     useEffect(() => {
         dispatch(getPrevTrialLicense());
@@ -84,7 +82,7 @@ export default function InviteAs(props: Props) {
         if (isFreeTrial) {
             ctaExtraContentMsg = formatMessage({id: 'free.professional_feature.professional', defaultMessage: 'Professional feature'});
         } else {
-            ctaExtraContentMsg = (hasPriorTrial || cloudFreeDeprecated) ? formatMessage({id: 'free.professional_feature.upgrade', defaultMessage: 'Upgrade'}) : formatMessage({id: 'free.professional_feature.try_free', defaultMessage: 'Professional feature- try it out free'});
+            ctaExtraContentMsg = (hasPriorTrial) ? formatMessage({id: 'free.professional_feature.upgrade', defaultMessage: 'Upgrade'}) : formatMessage({id: 'free.professional_feature.try_free', defaultMessage: 'Professional feature- try it out free'});
         }
 
         const restrictedIndicator = (
@@ -118,7 +116,7 @@ export default function InviteAs(props: Props) {
                 clickCallback={closeInviteModal}
                 tooltipMessage={hasPriorTrial ? formatMessage({id: 'free.professional_feature.upgrade', defaultMessage: 'Upgrade'}) : undefined}
 
-                // the secondary back button first closes the restridted feature modal and then opens back the invitation modal
+                // the secondary back button first closes the restricted feature modal and then opens back the invitation modal
                 customSecondaryButtonInModal={hasPriorTrial ? undefined : {
                     msg: formatMessage({id: 'free.professional_feature.back', defaultMessage: 'Back'}),
                     action: () => {
@@ -141,7 +139,7 @@ export default function InviteAs(props: Props) {
     }
 
     // disable the radio button logic (is disabled when is starter - pre and post trial)
-    if (isStarter) {
+    if (isStarter || !props.canInviteGuests) {
         guestDisabled = (id: string) => {
             return (id === InviteType.GUEST);
         };

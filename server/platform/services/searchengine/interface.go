@@ -33,7 +33,8 @@ type SearchEngineInterface interface {
 	// IndexChannel indexes a given channel. The userIDs are only populated
 	// for private channels.
 	IndexChannel(rctx request.CTX, channel *model.Channel, userIDs, teamMemberIDs []string) *model.AppError
-	SearchChannels(teamId, userID, term string, isGuest bool) ([]string, *model.AppError)
+	SyncBulkIndexChannels(rctx request.CTX, channels []*model.Channel, getUserIDsForChannel func(channel *model.Channel) ([]string, error), teamMemberIDs []string) *model.AppError
+	SearchChannels(teamId, userID, term string, isGuest, includeDeleted bool) ([]string, *model.AppError)
 	DeleteChannel(channel *model.Channel) *model.AppError
 	IndexUser(rctx request.CTX, user *model.User, teamsIds, channelsIds []string) *model.AppError
 	SearchUsersInChannel(teamId, channelId string, restrictedToChannels []string, term string, options *model.UserSearchOptions) ([]string, []string, *model.AppError)
@@ -47,6 +48,7 @@ type SearchEngineInterface interface {
 	DeleteFilesBatch(rctx request.CTX, endTime, limit int64) *model.AppError
 	TestConfig(rctx request.CTX, cfg *model.Config) *model.AppError
 	PurgeIndexes(rctx request.CTX) *model.AppError
+	PurgeIndexList(rctx request.CTX, indexes []string) *model.AppError
 	RefreshIndexes(rctx request.CTX) *model.AppError
 	DataRetentionDeleteIndexes(rctx request.CTX, cutoff time.Time) *model.AppError
 }

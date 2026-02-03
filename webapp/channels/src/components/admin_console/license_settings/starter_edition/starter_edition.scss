@@ -1,12 +1,12 @@
-@import 'utils/variables';
-@import 'utils/mixins';
+@use 'utils/variables';
+@use 'utils/mixins';
 
 .StarterEditionRightPannel {
     .svg-image {
         text-align: center;
 
         svg {
-            margin: 0 auto;
+            margin: 0 auto 24px auto;
         }
     }
 
@@ -33,30 +33,15 @@
         }
 
         :last-child {
-            color: rgba(63, 69, 80, 0.72);
+            color: rgba(63, 69, 80, 0.64);
         }
     }
 
     .purchase_buttons {
         display: flex;
         flex-direction: row;
-        justify-content: space-between;
+        justify-content: center;
         margin-top: 20px;
-
-        button {
-            width: 120px;
-            padding: 14px 12px !important;
-            border-radius: 4px;
-
-            span {
-                font-size: 16px !important;
-            }
-
-            &.contact-us {
-                width: 130px;
-                margin-left: 15px;
-            }
-        }
 
         @media screen and (max-width: 1130px) {
             flex-direction: column;
@@ -85,15 +70,11 @@
         right: 10px;
         display: block;
         margin-left: auto;
-
-        &.btn {
-            @include tertiary-button;
-        }
     }
 
     .pre-title {
         margin-bottom: 10px;
-        color: rgba(63, 67, 80, 0.56) !important;
+        color: rgba(63, 67, 80, 0.75) !important;
         font-size: 12px;
         font-weight: 600;
         line-height: 16px;
@@ -135,11 +116,6 @@
 
             input {
                 display: hidden;
-            }
-
-            button {
-                height: 48px;
-                border-radius: 4px;
             }
 
             .help-text {

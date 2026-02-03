@@ -1,7 +1,6 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import accessProblemImage from 'images/access_problem.svg';
 import React, {useCallback} from 'react';
 import {useIntl} from 'react-intl';
 import {useDispatch} from 'react-redux';
@@ -12,6 +11,7 @@ import {closeModal} from 'actions/views/modals';
 
 import ExternalLink from 'components/external_link';
 
+import accessProblemImage from 'images/air_gapped_contact_us_image.png';
 import {ModalIdentifiers} from 'utils/constants';
 
 import './style.scss';

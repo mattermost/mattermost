@@ -77,7 +77,7 @@
   },
   {
     "id": "api.acknowledgement.save.archived_channel.app_error",
-    "translation": "Bạn không thể đăng nội dung trong kênh đã lưu trữ."
+    "translation": "Bạn không lưu nội dung trong kênh đã lưu trữ."
   },
   {
     "id": "web.error.unsupported_browser.download_the_app",
@@ -98,10 +98,6 @@
   {
     "id": "app.import.validate_direct_post_import_data.user_missing.error",
     "translation": "Thiếu thuộc tính bài đăng trực tiếp yêu cầu: người dùng"
-  },
-  {
-    "id": "bleveengine.index_channel.error",
-    "translation": "Không thể tạo chỉ mục cho kênh"
   },
   {
     "id": "api.create_terms_of_service.empty_text.app_error",
@@ -177,7 +173,7 @@
   },
   {
     "id": "api.channel.rename_channel.cant_rename_direct_messages.app_error",
-    "translation": "Bạn không thể đổi tên kênh tin nhắn trực tiếp"
+    "translation": "Bạn không thể đổi tên kênh tin nhắn trực tiếp."
   },
   {
     "id": "api.slackimport.slack_add_users.merge_existing",
@@ -323,7 +319,7 @@
   },
   {
     "id": "api.channel.rename_channel.cant_rename_group_messages.app_error",
-    "translation": "Bạn không thể đổi tên kênh tin nhắn nhóm"
+    "translation": "Bạn không thể đổi tên kênh tin nhắn nhóm."
   },
   {
     "id": "app.import.validate_direct_post_import_data.create_at_zero.error",
@@ -340,10 +336,6 @@
   {
     "id": "api.command.invite_people.name",
     "translation": "invite_people"
-  },
-  {
-    "id": "bleveengine.index_post.error",
-    "translation": "Không thể tạo chỉ mục cho thông điệp"
   },
   {
     "id": "api.templates.password_change_body.info",
@@ -414,10 +406,6 @@
     "translation": "Dữ liệu trong trường 'image' bị trống"
   },
   {
-    "id": "ent.compliance.csv.attachment.copy.appError",
-    "translation": "Không thể sao chép tệp đính kèm vào tệp zip."
-  },
-  {
     "id": "app.import.validate_user_import_data.notify_props_email_invalid.error",
     "translation": "Địa chỉ nhận email thông báo không hợp lệ."
   },
@@ -428,10 +416,6 @@
   {
     "id": "model.config.is_valid.write_timeout.app_error",
     "translation": "Giá trị không hợp lệ cho thời gian chờ ghi."
-  },
-  {
-    "id": "bleveengine.indexer.index_batch.nothing_left_to_index.error",
-    "translation": "Cố gắng lập chỉ mục một đợt mới khi tất cả các thực thể được hoàn thành."
   },
   {
     "id": "api.post.create_post.root_id.app_error",
@@ -447,11 +431,7 @@
   },
   {
     "id": "api.admin.upload_brand_image.array.app_error",
-    "translation": "Dữ liệu trong trường 'image' bị trống"
-  },
-  {
-    "id": "ent.message_export.global_relay_export.deliver.parse_mail.app_error",
-    "translation": "Không thể đọc thông tin email."
+    "translation": "Mảng dữ liệu rỗng đằng sau 'hình ảnh' trong yêu cầu"
   },
   {
     "id": "api.admin.saml.failure_get_metadata_from_idp.app_error",
@@ -518,10 +498,6 @@
     "translation": "đuổi"
   },
   {
-    "id": "ent.message_export.global_relay.attach_file.app_error",
-    "translation": "Không thể thêm tệp đính kèm vào Global Relay export."
-  },
-  {
     "id": "api.team.invite_members.no_one.app_error",
     "translation": "Không có ai để mời."
   },
@@ -564,10 +540,6 @@
   {
     "id": "api.user.upload_profile_user.storage.app_error",
     "translation": "Không thể tải hình ảnh lên. Kho dữ liệu ảnh chưa được cấu hình."
-  },
-  {
-    "id": "ent.message_export.global_relay_export.deliver.msg.app_error",
-    "translation": "Không thể đặt thông báo email."
   },
   {
     "id": "model.command.is_valid.create_at.app_error",
@@ -656,10 +628,6 @@
   {
     "id": "app.import.validate_user_import_data.advanced_props_show_unread_section.error",
     "translation": "Hiển thị cài đặt phần chưa đọc không hợp lệ cho Người dùng"
-  },
-  {
-    "id": "ent.saml.configure.load_idp_cert.app_error",
-    "translation": "Không tìm thấy tập tin Nhận dạng nhà cung cấp chứng chỉ công cộng. Xin vui lòng liên hệ với quản trị hệ thống của bạn."
   },
   {
     "id": "app.scheme.save.app_error",
@@ -810,10 +778,6 @@
     "translation": "lỗi truy xuất nhóm cho người dùng"
   },
   {
-    "id": "ent.compliance.global_relay.open_temporary_file.appError",
-    "translation": "Không thể mở tệp xuất tạm thời."
-  },
-  {
     "id": "api.command_channel_header.message.app_error",
     "translation": "Văn bản phải được cung cấp với lệnh /header."
   },
@@ -920,10 +884,6 @@
     "translation": "Nếu bạn không thực hiện thay đổi này, vui lòng liên hệ với quản trị viên hệ thống."
   },
   {
-    "id": "bleveengine.search_users_in_channel.nuchan.error",
-    "translation": "Tìm kiếm không hoàn thành"
-  },
-  {
     "id": "app.plugin.disabled.app_error",
     "translation": "Plugin đã bị vô hiệu hóa. Vui lòng kiểm tra nhật ký của bạn để biết thêm chi tiết."
   },
@@ -1016,10 +976,6 @@
     "translation": "Lệnh với một kích hoạt của '{{.Trigger}}' không thành công"
   },
   {
-    "id": "bleveengine.search_channels.error",
-    "translation": "Tìm kiếm không hoàn thành"
-  },
-  {
     "id": "api.channel.leave.direct.app_error",
     "translation": "Không thể để lại tin nhắn trực tiếp."
   },
@@ -1052,10 +1008,6 @@
     "translation": "Vai trò được cung cấp không tồn tại"
   },
   {
-    "id": "bleveengine.search_users_in_team.error",
-    "translation": "Tìm kiếm không hoàn thành"
-  },
-  {
     "id": "app.notification.subject.notification.full",
     "translation": "[{{.SiteName}}] Có thông báo lúc {{.Month}} {{.Day}}, {{.Year}}"
   },
@@ -1066,10 +1018,6 @@
   {
     "id": "api.command_channel_rename.name",
     "translation": "đổi tên"
-  },
-  {
-    "id": "ent.elasticsearch.purge_indexes.delete_failed",
-    "translation": "Không thể xóa chỉ mục Elaticsearch"
   },
   {
     "id": "api.channel.guest_join_channel.post_and_forget",
@@ -1192,10 +1140,6 @@
     "translation": "Thiếu thuộc tính Người dùng yêu cầu: email"
   },
   {
-    "id": "ent.message_export.global_relay.create_file_in_zip.app_error",
-    "translation": "Không thể tạo tệp eml."
-  },
-  {
     "id": "api.admin.saml.failure_parse_idp_certificate.app_error",
     "translation": "Đã xảy ra lỗi khi phân tích cú pháp thông tin siêu dữ liệu nhận được từ Nhà cung cấp danh tính thành chứng chỉ."
   },
@@ -1206,10 +1150,6 @@
   {
     "id": "model.user.is_valid.id.app_error",
     "translation": "User id không hợp lệ"
-  },
-  {
-    "id": "ent.message_export.global_relay_export.deliver.unable_to_open_email_file.app_error",
-    "translation": "Không thể nhận email từ tệp tạm thời"
   },
   {
     "id": "app.import.import_direct_channel.update_header_failed.error",
@@ -1262,10 +1202,6 @@
   {
     "id": "api.user.activate_mfa.email_and_ldap_only.app_error",
     "translation": "MFA không có sẵn cho loại tài khoản này"
-  },
-  {
-    "id": "ent.compliance.csv.header.export.appError",
-    "translation": "Không thể thêm tiêu đề vào CSV export."
   },
   {
     "id": "api.post_get_post_by_id.get.app_error",
@@ -1350,10 +1286,6 @@
   {
     "id": "model.reaction.is_valid.emoji_name.app_error",
     "translation": "Tên biểu tượng cảm xúc không hợp lệ"
-  },
-  {
-    "id": "ent.compliance.global_relay.attachments_removed.appError",
-    "translation": "Tệp đã tải lên đã bị xóa khỏi Global Relay export vì quá lớn để gửi."
   },
   {
     "id": "model.authorize.is_valid.response_type.app_error",
@@ -1673,7 +1605,7 @@
   },
   {
     "id": "api.channel.remove.default.app_error",
-    "translation": "Không thể xóa người dùng khỏi kênh mặc định {{.Channel}}"
+    "translation": "Không thể xóa người dùng khỏi kênh mặc định {{.Channel}}."
   },
   {
     "id": "api.post.do_action.action_id.app_error",
@@ -1770,10 +1702,6 @@
   {
     "id": "model.incoming_hook.description.app_error",
     "translation": "Mô tả không hợp lệ."
-  },
-  {
-    "id": "app.plugin.flag_managed.app_error",
-    "translation": "Không thể đặt plugin như được quản lý bởi kho lưu trữ tệp."
   },
   {
     "id": "api.command_invite.name",
@@ -1933,7 +1861,7 @@
   },
   {
     "id": "api.channel.remove_user_from_channel.app_error",
-    "translation": "Không thể gỡ người dùng từ kiểu kênh này"
+    "translation": "Không thể xóa người dùng từ kiểu kênh này"
   },
   {
     "id": "api.command_away.name",
@@ -2076,10 +2004,6 @@
     "translation": "Không thể lấy liên kết public cho tệp tin. Tệp tin phải được gắn vào bài đăng và có thể được đọc bởi người dùng hiện tại."
   },
   {
-    "id": "ent.ldap.syncronize.delete_group_constained_memberships",
-    "translation": "lỗi xóa nhóm hoặc thành viên kênh"
-  },
-  {
     "id": "model.outgoing_hook.is_valid.callback.app_error",
     "translation": "URL gọi lại không hợp lệ"
   },
@@ -2188,10 +2112,6 @@
     "translation": "Tên kênh không hợp lệ. ID người dùng không được phép có trong tên kênh cho các kênh tin nhắn không trực tiếp."
   },
   {
-    "id": "api.command_mute.not_member.error",
-    "translation": "Không thể tắt tiếng kênh {{.Channel}} vì bạn không phải là thành viên."
-  },
-  {
     "id": "app.import.validate_user_import_data.password_length.error",
     "translation": "Mật khẩu người dùng có độ dài không hợp lệ."
   },
@@ -2252,10 +2172,6 @@
   {
     "id": "model.job.is_valid.status.app_error",
     "translation": "Tình trạng công việc không hợp lệ"
-  },
-  {
-    "id": "ent.saml.do_login.decrypt.app_error",
-    "translation": "Đăng nhập SAML không thành công vì đã xảy ra lỗi trong khi giải mã phản hồi từ Nhà cung cấp danh tính. Xin vui lòng liên hệ với quản trị hệ thống của bạn."
   },
   {
     "id": "model.config.is_valid.atmos_camo_image_proxy_options.app_error",
@@ -2362,10 +2278,6 @@
     "translation": "Người dùng chưa đăng ký trên máy chủ AD / LDAP"
   },
   {
-    "id": "ent.compliance.csv.metadata.json.marshalling.appError",
-    "translation": "Không thể chuyển đổi siêu dữ liệu sang json."
-  },
-  {
     "id": "api.channel.remove_members.denied",
     "translation": "Xóa thành viên kênh bị từ chối đối với những người dùng sau vì các ràng buộc nhóm: {{ .UserIDs }}"
   },
@@ -2404,10 +2316,6 @@
   {
     "id": "api.team.demote_user_to_guest.disabled.error",
     "translation": "Tài khoản khách đã bị vô hiệu hoá."
-  },
-  {
-    "id": "ent.message_export.global_relay_export.deliver.from_address.app_error",
-    "translation": "Không thể đặt email Từ địa chỉ."
   },
   {
     "id": "api.user.login.bot_login_forbidden.app_error",
@@ -2464,10 +2372,6 @@
   {
     "id": "model.channel.is_valid.create_at.app_error",
     "translation": "Trường Create_at phải là thời gian hợp lệ."
-  },
-  {
-    "id": "bleveengine.search_posts.error",
-    "translation": "Tìm kiếm không hoàn thành"
   },
   {
     "id": "model.config.is_valid.cluster_email_batching.app_error",
@@ -2584,10 +2488,6 @@
   {
     "id": "api.channel.update_team_member_roles.scheme_role.app_error",
     "translation": "Vai trò được cung cấp được quản lý bởi một Scheme và do đó không thể được áp dụng trực tiếp cho một Team Member"
-  },
-  {
-    "id": "bleveengine.delete_post.error",
-    "translation": "Không thể xoá thông điệp."
   },
   {
     "id": "api.license.client.old_format.app_error",
@@ -2726,14 +2626,6 @@
     "translation": "Đã xảy ra lỗi trong khi tạo tin nhắn trực tiếp."
   },
   {
-    "id": "model.user.is_valid.pwd.app_error",
-    "translation": "Mật khẩu của bạn phải chứa ít nhất {{.Min}} ký tự."
-  },
-  {
-    "id": "bleveengine.search_users_in_channel.uchan.error",
-    "translation": "Tìm kiếm không hoàn thành"
-  },
-  {
     "id": "api.channel.delete_channel.type.invalid",
     "translation": "Không thể xoá tin nhắn trực tiếp hoặc kênh tin nhắn nhóm"
   },
@@ -2794,10 +2686,6 @@
     "translation": "Không thể cập nhật bot"
   },
   {
-    "id": "ent.message_export.global_relay.close_zip_file.app_error",
-    "translation": "Không thể đóng tệp zip."
-  },
-  {
     "id": "api.user.upload_profile_user.too_large.app_error",
     "translation": "Không thể tải hình ảnh lên. File quá lớn."
   },
@@ -2814,10 +2702,6 @@
     "translation": "User id không hợp lệ"
   },
   {
-    "id": "bleveengine.index_user.error",
-    "translation": "Không thể tạo chỉ mục cho người dùng"
-  },
-  {
     "id": "api.team.invite_members.invalid_email.app_error",
     "translation": "Những địa chỉ email sau đây không thuộc về một tên miên được chấp nhận: {{.Addresses}}. Vui lòng liên hệ Quản trị hệ thống để được hỗ trợ."
   },
@@ -2827,7 +2711,7 @@
   },
   {
     "id": "api.channel.patch_channel_moderations.license.error",
-    "translation": "Giấy phép của bạn không hỗ trợ Lưu giữ dữ liệu."
+    "translation": "Giấy phép của bạn không hỗ trợ tính năng kiểm duyệt nội dung"
   },
   {
     "id": "api.team.import_team.array.app_error",
@@ -2860,10 +2744,6 @@
   {
     "id": "ent.saml.do_login.empty_response.app_error",
     "translation": "Chúng tôi đã nhận được phản hồi trống từ Nhà cung cấp danh tính"
-  },
-  {
-    "id": "ent.message_export.global_relay_export.deliver.unable_to_open_zip_file_data.app_error",
-    "translation": "Không thể mở tệp tạm thời xuất"
   },
   {
     "id": "api.oauth.get_access_token.redirect_uri.app_error",
@@ -2900,10 +2780,6 @@
   {
     "id": "api.slackimport.slack_import.note2",
     "translation": "- Tin nhắn bot trùng hiện không được hỗ trợ.\n"
-  },
-  {
-    "id": "ent.compliance.csv.file.creation.appError",
-    "translation": "Không thể tạo tệp CSV export tạm thời."
   },
   {
     "id": "web.error.unsupported_browser.learn_more",
@@ -3210,10 +3086,6 @@
     "translation": "Lỗi khi truy xuất kênh hiện tại."
   },
   {
-    "id": "ent.compliance.csv.warning.appError",
-    "translation": "Không thể tạo tệp eml."
-  },
-  {
     "id": "app.import.validate_team_import_data.description_length.error",
     "translation": "Mô tả nhóm quá dài."
   },
@@ -3244,14 +3116,6 @@
   {
     "id": "app.export.export_custom_emoji.copy_emoji_images.error",
     "translation": "Không thể sao chép hình ảnh biểu tượng cảm xúc tùy chỉnh"
-  },
-  {
-    "id": "ent.message_export.global_relay_export.deliver.to_address.app_error",
-    "translation": "Không thể đặt email đến địa chỉ."
-  },
-  {
-    "id": "api.oauth.get_access_token.bad_client_secret.app_error",
-    "translation": "không hợp lệ: thiếu client_secret"
   },
   {
     "id": "model.config.is_valid.image_proxy_type.app_error",
@@ -3334,10 +3198,6 @@
     "translation": "Tên nhóm quá dài."
   },
   {
-    "id": "api.channel.leave.last_member.app_error",
-    "translation": "Bạn là thành viên duy nhất còn lại, hãy thử loại bỏ các Kênh Riêng tư thay vì để lại."
-  },
-  {
     "id": "api.slackimport.slack_add_users.created",
     "translation": "\nNgười dùng đã tạo:\n"
   },
@@ -3356,10 +3216,6 @@
   {
     "id": "ent.elasticsearch.aggregator_worker.index_job_failed.error",
     "translation": "Phần mềm tra cứu tổng hợp thất bại do việc tạo mục lục không thành công"
-  },
-  {
-    "id": "api.user.login.client_side_cert.certificate.app_error",
-    "translation": "Đã cố đăng nhập bằng tính năng thử nghiệm ClientSideCert mà không cung cấp chứng chỉ hợp lệ"
   },
   {
     "id": "model.utils.decode_json.app_error",
@@ -3439,7 +3295,7 @@
   },
   {
     "id": "api.channel.update_channel.tried.app_error",
-    "translation": "Cố gắng thực hiện một cập nhật không hợp lệ của kênh mặc định {{.Channel}}"
+    "translation": "Cố gắng thực hiện một cập nhật không hợp lệ của kênh mặc định {{.Channel}}."
   },
   {
     "id": "api.command_channel_header.channel.app_error",
@@ -3634,10 +3490,6 @@
     "translation": "Không thể lấy thông tin người dùng từ {{.Service}}"
   },
   {
-    "id": "ent.compliance.global_relay.rewind_temporary_file.appError",
-    "translation": "Không thể đọc lại tệp xuất tạm thời Global Relay."
-  },
-  {
     "id": "model.compliance.is_valid.end_at.app_error",
     "translation": "Phải là một thời gian hợp lệ"
   },
@@ -3695,7 +3547,7 @@
   },
   {
     "id": "api.channel.update_channel.deleted.app_error",
-    "translation": "Kênh này đã bị đóng hoặc xoá bỏ"
+    "translation": "Kênh này đã bị đóng hoặc xoá bỏ."
   },
   {
     "id": "model.config.is_valid.max_users.app_error",
@@ -3703,7 +3555,7 @@
   },
   {
     "id": "api.channel.create_channel.direct_channel.app_error",
-    "translation": "Yêu cầu sử dụng dịch vụ createDirectChannel API cho tạo quá trình kênh giao tiếp trực tiếp"
+    "translation": "Cần sử dụng dịch vụ createDirectChannel API để tạo kênh nhắn tin trực tiếp."
   },
   {
     "id": "model.config.is_valid.elastic_search.enable_autocomplete.app_error",
@@ -3716,10 +3568,6 @@
   {
     "id": "model.post.is_valid.props.app_error",
     "translation": "Props không hợp lệ"
-  },
-  {
-    "id": "ent.message_export.global_relay_export.deliver.close.app_error",
-    "translation": "Không thể gửi email đến Global Relay."
   },
   {
     "id": "model.config.is_valid.login_attempts.app_error",
@@ -3818,10 +3666,6 @@
     "translation": "Trường Updated_at phải là thời gian hợp lệ"
   },
   {
-    "id": "model.config.is_valid.bleve_search.enable_searching.app_error",
-    "translation": "Cài đặt Elasticsearch IndexingEnabled phải được bật lên khi Elastic Search SearchEnabled được bật."
-  },
-  {
     "id": "model.authorize.is_valid.client_id.app_error",
     "translation": "Cilent ID không hợp lệ"
   },
@@ -3860,10 +3704,6 @@
   {
     "id": "ent.elasticsearch.test_config.license.error",
     "translation": "Giấy phép của bạn không hỗ trợ Elaticsearch."
-  },
-  {
-    "id": "api.webhook.incoming.error",
-    "translation": "Không thể giải mã gói dữ liệu nhiều phần của webhook sắp tới."
   },
   {
     "id": "api.user.check_user_mfa.bad_code.app_error",
@@ -4242,10 +4082,6 @@
     "translation": "Trường Create_at phải là thời gian hợp lệ."
   },
   {
-    "id": "ent.saml.build_request.encoding.app_error",
-    "translation": "Đã xảy ra lỗi trong khi mã hóa yêu cầu cho Nhà cung cấp danh tính. Xin vui lòng liên hệ với quản trị hệ thống của bạn."
-  },
-  {
     "id": "app.import.import_direct_channel.create_group_channel.error",
     "translation": "Tạo kênh nhóm không thành công"
   },
@@ -4280,10 +4116,6 @@
   {
     "id": "api.context.server_busy.app_error",
     "translation": "Máy chủ bận, các dịch vụ không quan trọng tạm thời không khả dụng"
-  },
-  {
-    "id": "api.config.client.old_format.app_error",
-    "translation": "Định dạng mới cho cấu hình máy khách chưa được hỗ trợ. Vui lòng xác định format=old trong chuỗi truy vấn."
   },
   {
     "id": "model.outgoing_hook.is_valid.token.app_error",
@@ -4494,10 +4326,6 @@
     "translation": "Tin nhắn được export từ ExportFromTimestamp phải là 1 timestamp (tính bằng giây bởi thời gian unix). Chỉ những tin nhắn được gửi sau timestamp này mới được export."
   },
   {
-    "id": "model.config.is_valid.bleve_search.enable_autocomplete.app_error",
-    "translation": "Cài đặt Elasticsearch IndexingEnabled phải được bật lên khi Elastic Search AutocompleteEnabled được bật."
-  },
-  {
     "id": "interactive_message.generate_trigger_id.signing_failed",
     "translation": "Không thể giải mã base64 cho ID kích hoạt cho hộp thoại tương tác."
   },
@@ -4538,20 +4366,12 @@
     "translation": "Đã xảy ra lỗi khi rời khỏi kênh."
   },
   {
-    "id": "ent.compliance.csv.metadata.export.appError",
-    "translation": "Không thể thêm tệp siêu dữ liệu vào tệp zip."
-  },
-  {
     "id": "api.command_invite.fail.app_error",
     "translation": "Đã xảy ra lỗi khi tham gia kênh."
   },
   {
     "id": "api.command_join.fail.app_error",
     "translation": "Đã xảy ra lỗi khi tham gia kênh."
-  },
-  {
-    "id": "ent.elasticsearch.start.start_bulk_processor_failed.app_error",
-    "translation": "Không thể khởi động bộ xử lý hàng loạt Elaticsearch"
   },
   {
     "id": "api.command_collapse.success",
@@ -4586,16 +4406,8 @@
     "translation": "Dữ liệu trong trường 'image' bị trống"
   },
   {
-    "id": "ent.saml.do_login.validate.app_error",
-    "translation": "Đã xảy ra lỗi trong khi xác thực phản hồi từ Nhà cung cấp danh tính. Xin vui lòng liên hệ với quản trị hệ thống của bạn."
-  },
-  {
     "id": "app.export.export_write_line.io_writer.error",
     "translation": "Đã xảy ra lỗi khi ghi dữ liệu xuất."
-  },
-  {
-    "id": "ent.message_export.global_relay.generate_email.app_error",
-    "translation": "Không thể tạo dữ liệu tệp eml."
   },
   {
     "id": "api.command_groupmsg.invalid_user.app_error",
@@ -4692,12 +4504,8 @@
     "translation": "@{{.Username}} không nhận được thông báo vì họ không ở trong kênh giao tiếp."
   },
   {
-    "id": "ent.compliance.csv.zip.creation.appError",
-    "translation": "Không thể tạo tệp xuất zip."
-  },
-  {
     "id": "api.admin.upload_brand_image.parse.app_error",
-    "translation": "Không thể phân tích form với định dạng multipart"
+    "translation": "Không thể xử lý nội dung gửi lên"
   },
   {
     "id": "web.error.unsupported_browser.install_guide.windows",
@@ -4745,19 +4553,11 @@
   },
   {
     "id": "api.channel.get_channel_moderations.license.error",
-    "translation": "Giấy phép của bạn không hỗ trợ Lưu giữ dữ liệu."
-  },
-  {
-    "id": "ent.compliance.csv.post.export.appError",
-    "translation": "Không thể xuất một bài đăng."
+    "translation": "Giấy phép của bạn không hỗ trợ tính năng kiểm định nội dụng"
   },
   {
     "id": "model.outgoing_hook.is_valid.team_id.app_error",
     "translation": "ID nhóm không hợp lệ"
-  },
-  {
-    "id": "model.post.is_valid.msg.app_error",
-    "translation": "Tin nhắn không hợp lệ"
   },
   {
     "id": "api.templates.mfa_activated_body.title",
@@ -4879,7 +4679,7 @@
   },
   {
     "id": "api.admin.saml.set_certificate_from_metadata.invalid_body.app_error",
-    "translation": "Chứng chỉ văn bản không hợp lệ"
+    "translation": "Chứng chỉ không hợp lệ."
   },
   {
     "id": "api.post.send_notifications_and_forget.push_general_message",
@@ -4948,10 +4748,6 @@
   {
     "id": "model.config.is_valid.message_export.global_relay.config_missing.app_error",
     "translation": "Tin nhắn xuất từ ExportFormat được đặt từ 'globalrelay', nhưng GlobalRelaySettings đang thiếu"
-  },
-  {
-    "id": "ent.elasticsearch.start.create_bulk_processor_failed.app_error",
-    "translation": "Không thể tạo bộ xử lý hàng loạt Elaticsearch"
   },
   {
     "id": "api.command_me.hint",
@@ -5066,10 +4862,6 @@
     "translation": "Trường CreateAt trong bài đăng không được bằng không."
   },
   {
-    "id": "bleveengine.delete_channel.error",
-    "translation": "Không thể xoá kênh."
-  },
-  {
     "id": "app.import.import_line.null_channel.error",
     "translation": "Dòng dữ liệu nhập có loại \"kênh\" nhưng đối tượng kênh không hợp lệ."
   },
@@ -5146,10 +4938,6 @@
     "translation": "Tìm kiếm Elaticsearch không được kích hoạt trên máy chủ này"
   },
   {
-    "id": "api.user.login.client_side_cert.license.app_error",
-    "translation": "Cố gắng sử dụng tính năng thử nghiệm ClientSideCertEnable mà không có giấy phép doanh nghiệp hợp lệ"
-  },
-  {
     "id": "api.command_leave.fail.app_error",
     "translation": "Đã xảy ra lỗi khi rời khỏi kênh."
   },
@@ -5172,10 +4960,6 @@
   {
     "id": "app.scheme.get.app_error",
     "translation": "Không thể lấy về scheme"
-  },
-  {
-    "id": "bleveengine.indexer.do_job.parse_end_time.error",
-    "translation": "Phần mềm tra cứu mục lục thất bại trong việc phân tích thời gian kết thúc"
   },
   {
     "id": "api.slackimport.slack_add_channels.failed_to_add_user",
@@ -5230,16 +5014,12 @@
     "translation": "Cấp đánh dấu chưa đọc không hợp lệ."
   },
   {
-    "id": "bleveengine.delete_user.error",
-    "translation": "Không thể xoá người dùng"
-  },
-  {
     "id": "api.user.authorize_oauth_user.unsupported.app_error",
     "translation": "Nhà cung cấp dịch vụ OAuth không được hỗ trợ"
   },
   {
     "id": "api.channel.join_channel.permissions.app_error",
-    "translation": "Bạn không có đủ thẩm quyền truy cập"
+    "translation": "Bạn không có đủ thẩm quyền cho hành động này"
   },
   {
     "id": "app.save_config.app_error",
@@ -5298,10 +5078,6 @@
     "translation": "Không thể tạo mẫu Elaticsearch cho người dùng"
   },
   {
-    "id": "bleveengine.indexer.do_job.parse_start_time.error",
-    "translation": "Phần mềm tra cứu mục lục thất bại trong việc phân tích thời gian bắt đầu"
-  },
-  {
     "id": "model.group_member.user_id.app_error",
     "translation": "Thuộc tính id người dùng không hợp lệ cho thành viên nhóm"
   },
@@ -5320,10 +5096,6 @@
   {
     "id": "app.import.validate_reply_import_data.user_missing.error",
     "translation": "Thiếu thuộc tính Trả lời yêu cầu: Người dùng."
-  },
-  {
-    "id": "ent.compliance.csv.metadata.json.zipfile.appError",
-    "translation": "Không thể tạo tệp eml."
   },
   {
     "id": "api.command_invite.desc",
@@ -5355,15 +5127,7 @@
   },
   {
     "id": "api.channel.create_channel.max_channel_limit.app_error",
-    "translation": "Không thể tạo nhiều hơn {{.MaxChannelsPerTeam}} kênh cho nhóm hiện tại"
-  },
-  {
-    "id": "ent.compliance.bad_export_type.appError",
-    "translation": "Không thể kết xuất theo dạng {{.ExportType}}"
-  },
-  {
-    "id": "ent.compliance.csv.attachment.export.appError",
-    "translation": "Không thể thêm tệp đính kèm vào CSV export."
+    "translation": "Không thể tạo nhiều hơn {{.MaxChannelsPerTeam}} kênh cho nhóm hiện tại."
   },
   {
     "id": "mfa.generate_qr_code.create_code.app_error",
@@ -5402,10 +5166,6 @@
     "translation": "Thất bại gửi email \"đặt lại mật khẩu thành công\""
   },
   {
-    "id": "ent.compliance.run_export.template_watcher.appError",
-    "translation": "Không thể tải mẫu xuất. Vui lòng thử lại."
-  },
-  {
     "id": "api.templates.signin_change_email.body.method_email",
     "translation": "email và mật khẩu"
   },
@@ -5426,16 +5186,8 @@
     "translation": "Tên trang web phải nhỏ hơn hoặc bằng {{.MaxLength}} ký tự"
   },
   {
-    "id": "ent.message_export.global_relay_export.deliver.unable_to_get_file_info.app_error",
-    "translation": "Không thể lấy thông tin của tệp tạm thời xuất"
-  },
-  {
     "id": "model.emoji.create_at.app_error",
     "translation": "Trường Create_at phải là thời gian hợp lệ."
-  },
-  {
-    "id": "ent.message_export.global_relay_export.deliver.msg_data.app_error",
-    "translation": "Không thể viết tin nhắn email."
   },
   {
     "id": "api.command_groupmsg.permission.app_error",
@@ -5526,16 +5278,8 @@
     "translation": "Lỗi nội bộ trong khi yêu cầu api trên đám mây."
   },
   {
-    "id": "api.server.warn_metric.number_of_active_users_100.notification_title",
-    "translation": "Mở rộng quy mô với Mattermost"
-  },
-  {
     "id": "api.team.invite_members.unable_to_send_email_with_defaults.app_error",
     "translation": "SMTP không được định cấu hình trong Bảng điều khiển hệ thống"
-  },
-  {
-    "id": "api.templates.delinquency_30.bullet.message_history",
-    "translation": "Lịch sử tin nhắn"
   },
   {
     "id": "api.templates.invite_body_footer.learn_more",
@@ -5554,32 +5298,12 @@
     "translation": "Hệ thống"
   },
   {
-    "id": "bleveengine.create_channel_index.error",
-    "translation": "Lỗi khi tạo chỉ mục kênh"
-  },
-  {
     "id": "error",
     "translation": "Lỗi"
   },
   {
     "id": "api.channel.restore_channel.unarchived",
     "translation": "{{.Username}} đã hủy lưu trữ kênh."
-  },
-  {
-    "id": "api.templates.delinquency_30.bullet.files",
-    "translation": "Tệp"
-  },
-  {
-    "id": "api.server.warn_metric.number_of_active_users_200.notification_title",
-    "translation": "Mở rộng quy mô với Mattermost"
-  },
-  {
-    "id": "api.server.warn_metric.bot_response.notification_success.message",
-    "translation": "Cảm ơn bạn đã liên hệ với Mattermost. Chúng tôi sẽ liên hệ với bạn sớm nhất có thể."
-  },
-  {
-    "id": "api.server.warn_metric.number_of_active_users_500.notification_title",
-    "translation": "Mở rộng quy mô với Mattermost"
   },
   {
     "id": "api.channel.group_message.converted.to_private_channel",
@@ -5850,10 +5574,6 @@
     "translation": "Matter Extreme là một nền tảng nguồn mở để liên lạc, cộng tác và điều phối công việc một cách an toàn giữa các công cụ và nhóm.\nMattermost chứa ba công cụ chính:\n\n**Kênh** - Luôn kết nối với nhóm của bạn thông qua nhắn tin 1:1 và nhóm.\n**[Playbooks](/playbooks)** - Xây dựng và định cấu hình các quy trình có thể lặp lại để đạt được kết quả cụ thể và có thể dự đoán được.\n**[Boards](/boards)** - Quản lý các dự án và nhiệm vụ theo cấu trúc bảng Kanban để giúp nhóm của bạn đạt được các cột mốc quan trọng.\n\n[Xem tài liệu và hướng dẫn]({{.HelpLink}})"
   },
   {
-    "id": "api.cloud.delinquency_email.missing_email_to_trigger",
-    "translation": "Thiếu các trường bắt buộc để gửi email quá hạn."
-  },
-  {
     "id": "api.command_exportlink.driver.app_error",
     "translation": "Trình điều khiển lưu trữ tệp không hỗ trợ tạo liên kết."
   },
@@ -5904,10 +5624,6 @@
   {
     "id": "api.command_marketplace.unsupported.app_error",
     "translation": "Lệnh kho tiện ích không hỗ trợ trên thiết bị của bạn."
-  },
-  {
-    "id": "api.command_remote.incorrect_password.error",
-    "translation": "Không thể giải mã lời mời. Mật khẩu không chính xác hoặc lời mời bị hỏng: {{.Error}}"
   },
   {
     "id": "api.command_remote.name.help",
@@ -6070,10 +5786,6 @@
     "translation": "Một hoặc nhiều quyền sau đây mà bạn đang cố gắng thêm hoặc xóa không được phép"
   },
   {
-    "id": "api.server.cws.delete_workspace.app_error",
-    "translation": "Máy chủ CWS không xóa được không gian làm việc."
-  },
-  {
     "id": "api.server.cws.health_check.app_error",
     "translation": "Máy chủ CWS không khả dụng."
   },
@@ -6082,16 +5794,8 @@
     "translation": "Dịch vụ chỉ có ở phiên bản Matter Extreme Enterprise"
   },
   {
-    "id": "api.server.cws.subscribe_to_newsletter.app_error",
-    "translation": "Máy chủ CWS không thể đăng ký nhận bản tin."
-  },
-  {
     "id": "api.server.hosted_signup_unavailable.error",
     "translation": "Cổng thông tin không có sẵn để đăng ký tự lưu trữ."
-  },
-  {
-    "id": "api.server.license_up_for_renewal.error_generating_link",
-    "translation": "Failed to generate the license renewal link"
   },
   {
     "id": "api.push_notifications.session.expired",
@@ -6104,146 +5808,6 @@
   {
     "id": "api.server.license_up_for_renewal.error_sending_email",
     "translation": "Failed to send license up for renewal emails"
-  },
-  {
-    "id": "api.server.warn_metric.bot_response.mailto_contact_header",
-    "translation": "Liên hệ: {{.Contact}}"
-  },
-  {
-    "id": "api.server.warn_metric.bot_response.mailto_diagnostic_id_header",
-    "translation": "Id chẩn đoán: {{.DiagnosticId}}"
-  },
-  {
-    "id": "api.server.warn_metric.bot_response.mailto_email_header",
-    "translation": "Email: {{.Email}}"
-  },
-  {
-    "id": "api.server.warn_metric.bot_response.mailto_registered_users_header",
-    "translation": "Tổng số người dùng đang hoạt động: {{.NoRegisteredUsers}}"
-  },
-  {
-    "id": "api.server.warn_metric.bot_response.mailto_site_url_header",
-    "translation": "URL trang web: {{.SiteUrl}}"
-  },
-  {
-    "id": "api.server.warn_metric.bot_response.mailto_subject",
-    "translation": "Mattermost Liên hệ với chúng tôi yêu cầu"
-  },
-  {
-    "id": "api.server.warn_metric.bot_response.notification_failure.body",
-    "translation": "Hãy gửi email cho chúng tôi."
-  },
-  {
-    "id": "api.server.warn_metric.bot_response.notification_failure.message",
-    "translation": "Không thể gửi tin nhắn."
-  },
-  {
-    "id": "api.server.warn_metric.email_domain.contact_us.email_body",
-    "translation": "Quan trọng nhất hãy liên hệ với chúng tôi theo yêu cầu. Tôi muốn tìm hiểu thêm về cách sử dụng Tài khoản khách.\n"
-  },
-  {
-    "id": "api.server.warn_metric.email_domain.notification_title",
-    "translation": "Tạo tài khoản khách"
-  },
-  {
-    "id": "api.server.warn_metric.email_domain.start_trial_notification_success.message",
-    "translation": "Bản dùng thử Enterprise của bạn hiện đang hoạt động. Đi tới **Bảng điều khiển hệ thống > Xác thực > Quyền truy cập của khách** để bật Tài khoản khách."
-  },
-  {
-    "id": "api.server.warn_metric.email_us",
-    "translation": "Gửi email cho chúng tôi"
-  },
-  {
-    "id": "api.server.warn_metric.mfa.contact_us.email_body",
-    "translation": "Quan trọng nhất hãy liên hệ với chúng tôi theo yêu cầu. Tôi muốn tìm hiểu thêm về cách thực thi Xác thực đa yếu tố.\n"
-  },
-  {
-    "id": "api.server.warn_metric.mfa.notification_title",
-    "translation": "Thực thi xác thực đa yếu tố"
-  },
-  {
-    "id": "api.server.warn_metric.mfa.start_trial_notification_success.message",
-    "translation": "Bản dùng thử Enterprise của bạn hiện đang hoạt động. Đi tới **Bảng điều khiển hệ thống > Xác thực > MFA** để thực thi xác thực đa yếu tố."
-  },
-  {
-    "id": "api.server.warn_metric.number_of_active_users_100.contact_us.email_body",
-    "translation": "Quan trọng nhất hãy liên hệ với chúng tôi theo yêu cầu. Nhóm của tôi hiện có 100 người dùng và tôi đang xem xét Phiên bản Mattermost Enterprise.\n"
-  },
-  {
-    "id": "api.server.warn_metric.number_of_active_users_100.start_trial.notification_success.message",
-    "translation": "Bản dùng thử Enterprise của bạn hiện đang hoạt động. Đi tới **Bảng điều khiển hệ thống > Xác thực > AD/LDAP** để tích hợp dịch vụ AD/LDAP của bạn."
-  },
-  {
-    "id": "api.server.warn_metric.number_of_active_users_200.contact_us.email_body",
-    "translation": "Quan trọng nhất hãy liên hệ với chúng tôi theo yêu cầu. Nhóm của tôi hiện có 200 người dùng và tôi đang xem xét Phiên bản Mattermost Enterprise.\n"
-  },
-  {
-    "id": "api.server.warn_metric.number_of_active_users_200.start_trial.notification_success.message",
-    "translation": "Bản dùng thử Enterprise của bạn hiện đang hoạt động. Đi tới **Bảng điều khiển hệ thống > Xác thực > SAML 2.0** để tích hợp với nhà cung cấp SAML 2.0 của bạn."
-  },
-  {
-    "id": "api.server.warn_metric.number_of_active_users_300.contact_us.email_body",
-    "translation": "Quan trọng nhất hãy liên hệ với chúng tôi theo yêu cầu. Tôi muốn tìm hiểu thêm về cách tạo Kênh thông báo chỉ đọc.\n"
-  },
-  {
-    "id": "api.server.warn_metric.number_of_active_users_300.start_trial.notification_body",
-    "translation": "Với rất nhiều cuộc trò chuyện diễn ra trên Matter Extreme, việc biết nơi tìm thông tin quan trọng có thể là một thách thức. Nếu bạn muốn phát thông báo tới nhiều khán giả, bạn có thể thiết lập Kênh thông báo chỉ đọc nơi bất kỳ ai cũng có thể tham gia nhưng chỉ quản trị viên kênh mới có thể đăng thông báo.\n\n[Tìm hiểu thêm về cách tạo Kênh thông báo chỉ đọc](https://www.mattermost.com/docs-channel-moderation/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=channel-moderation)\n\nBằng cách nhấp vào Bắt đầu dùng thử, tôi đồng ý với [Thỏa thuận đánh giá phần mềm quan trọng nhất](https://mattermost.com/software-evaluation-agreement/), [Chính sách quyền riêng tư](https://mattermost.com/pl/privacy-policy /) và nhận email sản phẩm."
-  },
-  {
-    "id": "api.server.warn_metric.number_of_active_users_300.start_trial.notification_success.message",
-    "translation": "Bản dùng thử Enterprise của bạn hiện đang hoạt động. Tạo kênh và đi tới **Bảng điều khiển hệ thống > Quản lý người dùng > Kênh** để hạn chế đăng bài cho quản trị viên kênh."
-  },
-  {
-    "id": "api.server.warn_metric.number_of_active_users_300.start_trial.notification_title",
-    "translation": "Kênh thông báo chỉ đọc"
-  },
-  {
-    "id": "api.server.warn_metric.number_of_active_users_500.contact_us.email_body",
-    "translation": "Quan trọng nhất hãy liên hệ với chúng tôi theo yêu cầu. Nhóm của tôi hiện có 500 người dùng và tôi đang xem xét Phiên bản Mattermost Enterprise.\n"
-  },
-  {
-    "id": "api.server.warn_metric.number_of_active_users_500.start_trial.notification_success.message",
-    "translation": "Bản dùng thử Enterprise của bạn hiện đang hoạt động. Đi tới Bảng điều khiển Hệ thống để bật các tính năng nâng cao."
-  },
-  {
-    "id": "api.server.warn_metric.number_of_channels_50.contact_us.email_body",
-    "translation": "Quan trọng nhất hãy liên hệ với chúng tôi theo yêu cầu. Tôi muốn tìm hiểu thêm về cách sử dụng Quyền nâng cao với Lược đồ hệ thống.\n"
-  },
-  {
-    "id": "api.server.warn_metric.number_of_channels_50.notification_title",
-    "translation": "Sử dụng quyền nâng cao"
-  },
-  {
-    "id": "api.server.warn_metric.number_of_channels_50.start_trial.notification_success.message",
-    "translation": "Bản dùng thử Enterprise của bạn hiện đang hoạt động. Đi tới **Bảng điều khiển hệ thống > Quản lý người dùng > Quyền** để bật Quyền nâng cao."
-  },
-  {
-    "id": "api.server.warn_metric.number_of_posts_2M.contact_us.email_body",
-    "translation": "Quan trọng nhất hãy liên hệ với chúng tôi theo yêu cầu. Tôi muốn tìm hiểu thêm về cách cải thiện hiệu suất với Elaticsearch.\n"
-  },
-  {
-    "id": "api.server.warn_metric.number_of_posts_2M.notification_title",
-    "translation": "Cải thiện hiệu suất"
-  },
-  {
-    "id": "api.server.warn_metric.number_of_posts_2M.start_trial.notification_success.message",
-    "translation": "Bản dùng thử Enterprise của bạn hiện đang hoạt động. Sau khi bạn có máy chủ Elaticsearch, hãy đi tới **Bảng điều khiển hệ thống > Môi trường > Elaticsearch** để định cấu hình Elaticsearch."
-  },
-  {
-    "id": "api.server.warn_metric.number_of_teams_5.contact_us.email_body",
-    "translation": "Quan trọng nhất hãy liên hệ với chúng tôi theo yêu cầu. Tôi muốn tìm hiểu thêm về Quyền nâng cao với Sơ đồ nhóm.\n"
-  },
-  {
-    "id": "api.server.warn_metric.number_of_teams_5.notification_body",
-    "translation": "Hệ thống Matter Extreme của bạn hiện có nhiều nhóm. Nhiều nhóm có cách điều phối và cộng tác ưa thích của riêng họ, bao gồm cách tạo kênh, ai có thể mời đồng đội mới và cách quản lý tích hợp. Lược đồ ghi đè nhóm cho phép bạn tùy chỉnh quyền của người dùng trong mỗi nhóm để đáp ứng nhu cầu cụ thể của họ.\n\n[Tìm hiểu thêm về cách sử dụng Quyền nâng cao](https://www.mattermost.com/docs-advanced-permissions-team-override/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=advanced-permissions-team-override).\n\nBằng cách nhấp vào Liên hệ với chúng tôi, bạn sẽ chia sẻ thông tin của mình với Mattermost, Inc. [Tìm hiểu thêm](https://mattermost.com/pl/default-admin-advisory)"
-  },
-  {
-    "id": "api.server.warn_metric.number_of_teams_5.notification_title",
-    "translation": "Sử dụng quyền nâng cao"
-  },
-  {
-    "id": "api.server.warn_metric.number_of_teams_5.start_trial_notification_success.message",
-    "translation": "Bản dùng thử Enterprise của bạn hiện đang hoạt động. Đi tới **Bảng điều khiển hệ thống > Quản lý người dùng > Quyền** để bật Quyền nâng cao."
   },
   {
     "id": "api.slackimport.slack_import.zip.file_too_large",
@@ -6298,10 +5862,6 @@
     "translation": "Lỗi khi gửi email"
   },
   {
-    "id": "api.team.invite_members_to_team_and_channels.invalid_body_parsing.app_error",
-    "translation": "Lỗi khi phân tích cú pháp dữ liệu nội dung."
-  },
-  {
     "id": "api.team.invite_members_to_team_and_channels.invalid_body.app_error",
     "translation": "Nội dung yêu cầu không hợp lệ."
   },
@@ -6324,18 +5884,6 @@
   {
     "id": "api.team.set_team_icon.check_image_limits.app_error",
     "translation": "Kiểm tra giới hạn hình ảnh không thành công. Độ phân giải quá cao."
-  },
-  {
-    "id": "api.templates.cloud_upgrade_confirmation.subject",
-    "translation": "Xác nhận nâng cấp quan trọng nhất"
-  },
-  {
-    "id": "api.templates.cloud_upgrade_confirmation.title",
-    "translation": "Bây giờ bạn đã được nâng cấp!"
-  },
-  {
-    "id": "api.templates.cloud_upgrade_confirmation_yearly.subtitle",
-    "translation": "Không gian làm việc {{.WorkspaceName}} của bạn hiện đã được nâng cấp."
   },
   {
     "id": "api.templates.cloud_welcome_email.add_apps_info",
@@ -6406,154 +5954,6 @@
     "translation": "Không gian làm việc của bạn đã sẵn sàng hoạt động!"
   },
   {
-    "id": "api.templates.cloud_welcome_email.yearly_plan_button",
-    "translation": "Xem hóa đơn của bạn"
-  },
-  {
-    "id": "api.templates.copyright",
-    "translation": "© 2021 Mattermost, Inc. 530 Đại lộ Lytton, Tầng hai, Palo Alto, CA, 94301"
-  },
-  {
-    "id": "api.templates.delinquency_14.button",
-    "translation": "Cập nhật thanh toán"
-  },
-  {
-    "id": "api.templates.delinquency_14.subject",
-    "translation": "Đã quá hạn thanh toán cho Mattermost {{.Plan}} của bạn"
-  },
-  {
-    "id": "api.templates.delinquency_14.subtitle1",
-    "translation": "Chúng tôi không thể tính phí vào thẻ tín dụng mà chúng tôi có trong hồ sơ. Điều này đồng nghĩa với việc không gian làm việc của bạn có nguy cơ bị hạ cấp xuống Cloud Free."
-  },
-  {
-    "id": "api.templates.delinquency_30.button",
-    "translation": "Cập nhật thanh toán"
-  },
-  {
-    "id": "api.templates.delinquency_14.title",
-    "translation": "Không nhận được thanh toán"
-  },
-  {
-    "id": "api.templates.delinquency_30.limits_documentation",
-    "translation": "Xem tất cả tài liệu về giới hạn."
-  },
-  {
-    "id": "api.templates.delinquency_30.subject",
-    "translation": "Hãy hành động để duy trì các tính năng {{.Plan}} quan trọng nhất của bạn"
-  },
-  {
-    "id": "api.templates.delinquency_30.subtitle2",
-    "translation": "Nếu không thực hiện hành động nào, không gian làm việc của bạn sẽ bị hạ cấp và dữ liệu sau có thể được lưu trữ:"
-  },
-  {
-    "id": "api.templates.delinquency_30.title",
-    "translation": "Không gian làm việc của bạn sẽ sớm bị hạ cấp"
-  },
-  {
-    "id": "api.templates.delinquency_45.button",
-    "translation": "Cập nhật thanh toán"
-  },
-  {
-    "id": "api.templates.delinquency_45.subtitle1",
-    "translation": "Chúng tôi không thể thu khoản thanh toán cho các hoá đơn chưa thanh toán kể từ {{.DelinquencyDate}}. Không gian làm việc của bạn có nguy cơ bị hạ cấp."
-  },
-  {
-    "id": "api.templates.delinquency_45.subtitle3",
-    "translation": "Hãy cập nhật thông tin thẻ tín dụng của bạn ngay bây giờ."
-  },
-  {
-    "id": "api.templates.delinquency_45.title",
-    "translation": "Không gian làm việc của bạn sẽ sớm bị hạ cấp"
-  },
-  {
-    "id": "api.templates.delinquency_60.button",
-    "translation": "Cập nhật thanh toán"
-  },
-  {
-    "id": "api.templates.delinquency_60.downgrade_to_free",
-    "translation": "Hạ cấp xuống đám mây miễn phí"
-  },
-  {
-    "id": "api.templates.delinquency_60.subject",
-    "translation": "Hành động bắt buộc: Không gian làm việc sẽ bị hạ cấp sau 30 ngày"
-  },
-  {
-    "id": "api.templates.delinquency_60.subtitle2",
-    "translation": "Chúng tôi sẽ tự động hạ cấp không gian làm việc của bạn sau 30 ngày nếu chúng tôi không thể xử lý khoản thanh toán của bạn."
-  },
-  {
-    "id": "api.templates.delinquency_60.subtitle3",
-    "translation": "Cập nhật thông tin thanh toán của bạn ngay bây giờ hoặc hạ cấp xuống Cloud Free bên dưới."
-  },
-  {
-    "id": "api.templates.delinquency_60.title",
-    "translation": "Không gian làm việc Mattermost của bạn sẽ bị hạ cấp sau 30 ngày"
-  },
-  {
-    "id": "api.templates.delinquency_7.button",
-    "translation": "Cập nhật thanh toán"
-  },
-  {
-    "id": "api.templates.delinquency_7.subtitle1",
-    "translation": "Chúng tôi không thể xử lý khoản thanh toán gần đây nhất của bạn."
-  },
-  {
-    "id": "api.templates.delinquency_7.title",
-    "translation": "Thanh toán của bạn chưa hoàn tất"
-  },
-  {
-    "id": "api.templates.delinquency_75.button",
-    "translation": "Cập nhật thanh toán"
-  },
-  {
-    "id": "api.templates.delinquency_75.downgrade_to_free",
-    "translation": "Hạ cấp xuống đám mây miễn phí"
-  },
-  {
-    "id": "api.templates.delinquency_75.subject",
-    "translation": "Mattermost {{.Plan}} của bạn sẽ bị hạ cấp sau 15 ngày"
-  },
-  {
-    "id": "api.templates.delinquency_75.subtitle1",
-    "translation": "Đây là lời nhắc cuối cùng rằng chúng tôi chưa nhận được khoản thanh toán cho không gian làm việc Mattermost Cloud của bạn kể từ {{.DelinquencyDate}}."
-  },
-  {
-    "id": "api.templates.delinquency_75.subtitle2",
-    "translation": "Không gian làm việc của bạn sẽ bị hạ cấp xuống Cloud Free. Các tính năng {{.Plan}} của bạn sẽ bị khóa và một số dữ liệu không gian làm việc của bạn có thể được lưu trữ cho đến khi giải quyết toàn bộ số dư chưa thanh toán của bạn."
-  },
-  {
-    "id": "api.templates.delinquency_75.subtitle3",
-    "translation": "Cập nhật thông tin thanh toán của bạn ngay bây giờ hoặc hạ cấp xuống Cloud Free."
-  },
-  {
-    "id": "api.templates.delinquency_75.title",
-    "translation": "Không gian làm việc của bạn sẽ bị hạ cấp sau 15 ngày"
-  },
-  {
-    "id": "api.templates.delinquency_90.button",
-    "translation": "Cập nhật thanh toán"
-  },
-  {
-    "id": "api.templates.delinquency_90.secondary_action_button",
-    "translation": "Xem các gói và chi phí"
-  },
-  {
-    "id": "api.templates.delinquency_90.subject",
-    "translation": "Không gian làm việc trên Matter Extreme Cloud của bạn đã bị hạ cấp"
-  },
-  {
-    "id": "api.templates.delinquency_90.subtitle2",
-    "translation": "Ngoài ra, dữ liệu của bạn có thể đã được lưu trữ do các giới hạn của Cloud Free."
-  },
-  {
-    "id": "api.templates.delinquency_90.subtitle3",
-    "translation": "Để hủy lưu trữ dữ liệu của bạn và duy trì các tính năng trả phí, hãy cập nhật thông tin thanh toán của bạn."
-  },
-  {
-    "id": "api.templates.delinquency_90.title",
-    "translation": "Không gian làm việc Mattermost của bạn đã bị hạ cấp"
-  },
-  {
     "id": "api.templates.email_us_anytime_at",
     "translation": "Gửi email cho chúng tôi bất cứ lúc nào tại "
   },
@@ -6578,10 +5978,6 @@
     "translation": "Mattermost là gì?"
   },
   {
-    "id": "api.templates.license_up_for_renewal_renew_now",
-    "translation": "Gia hạn ngay bây giờ"
-  },
-  {
     "id": "api.templates.invite_team_and_channel_body.title",
     "translation": "{{ .SenderName }} đã mời bạn tham gia Kênh {{ .ChannelName }} trong Nhóm {{ .TeamDisplayName }}"
   },
@@ -6598,44 +5994,8 @@
     "translation": "Giấy phép của bạn đã đến kỳ gia hạn"
   },
   {
-    "id": "api.templates.license_up_for_renewal_subtitle_two",
-    "translation": "Đăng nhập vào Tài khoản khách hàng của bạn để gia hạn"
-  },
-  {
     "id": "api.templates.license_up_for_renewal_title",
     "translation": "Đăng ký Mattermost của bạn sắp được gia hạn"
-  },
-  {
-    "id": "api.templates.payment_failed.info1",
-    "translation": "Tổ chức tài chính của bạn đã từ chối khoản thanh toán từ {{.CardBrand}} ****{{.LastFour}} được liên kết với không gian làm việc Mattermost Cloud của bạn."
-  },
-  {
-    "id": "api.templates.payment_failed.info2",
-    "translation": "Họ đưa ra lý do sau:"
-  },
-  {
-    "id": "api.templates.payment_failed.subject",
-    "translation": "Hành động bắt buộc: Thanh toán không thành công cho Matter Extreme {{.Plan}}"
-  },
-  {
-    "id": "api.templates.payment_failed.title",
-    "translation": "Thanh toán không thành công"
-  },
-  {
-    "id": "api.templates.payment_failed_no_card.button",
-    "translation": "Thanh toán ngay bây giờ"
-  },
-  {
-    "id": "api.templates.payment_failed_no_card.info3",
-    "translation": "Để xem lại hóa đơn của bạn và thêm phương thức thanh toán, hãy chọn Thanh toán ngay."
-  },
-  {
-    "id": "api.templates.payment_failed_no_card.subject",
-    "translation": "Khoản thanh toán đến hạn cho đăng ký Mattermost Cloud của bạn"
-  },
-  {
-    "id": "api.templates.payment_failed_no_card.title",
-    "translation": "Hóa đơn trên nền tảng đám mây quan trọng nhất của bạn sắp đến hạn"
   },
   {
     "id": "api.templates.questions_footer.info",
@@ -6644,10 +6004,6 @@
   {
     "id": "api.templates.questions_footer.title",
     "translation": "Bạn có thắc mắc?"
-  },
-  {
-    "id": "api.templates.remove_expired_license.body.renew_button",
-    "translation": "Gia hạn giấy phép ngay bây giờ"
   },
   {
     "id": "api.templates.remove_expired_license.subject",
@@ -6674,36 +6030,8 @@
     "translation": "Nhấp vào bên dưới để xác minh địa chỉ email của bạn."
   },
   {
-    "id": "api.templates.warn_metric_ack.body.contact_email_header",
-    "translation": "Email: "
-  },
-  {
-    "id": "api.templates.warn_metric_ack.body.contact_name_header",
-    "translation": "Liên hệ: "
-  },
-  {
-    "id": "api.templates.warn_metric_ack.body.diagnostic_id_header",
-    "translation": "Diagnostic Id: "
-  },
-  {
-    "id": "api.templates.warn_metric_ack.body.registered_users_header",
-    "translation": "Tổng số người dùng đang hoạt động: "
-  },
-  {
     "id": "api.templates.welcome_body.app_download_title",
     "translation": "Tải xuống ứng dụng dành cho máy tính để bàn và thiết bị di động"
-  },
-  {
-    "id": "api.templates.warn_metric_ack.body.site_url_header",
-    "translation": "URL trang web: "
-  },
-  {
-    "id": "api.templates.warn_metric_ack.footer",
-    "translation": "Nếu bạn có bất kỳ thắc mắc nào khác, vui lòng liên hệ với support@mattermost.com"
-  },
-  {
-    "id": "api.templates.warn_metric_ack.subject",
-    "translation": "Yêu cầu Mattermost liên hệ lại"
   },
   {
     "id": "api.templates.welcome_body.info1",
@@ -6718,120 +6046,16 @@
     "translation": "Cám ơn vì đã tham gia "
   },
   {
-    "id": "api.server.warn_metric.bot_response.mailto_footer",
-    "translation": "Nếu bạn có bất kỳ thắc mắc nào khác, vui lòng liên hệ với support@mattermost.com"
-  },
-  {
-    "id": "api.server.warn_metric.bot_response.start_trial_failure.message",
-    "translation": "Không thể lấy lại giấy phép dùng thử. Truy cập https://mattermost.com/trial/ để yêu cầu giấy phép."
-  },
-  {
-    "id": "api.server.warn_metric.email_domain.notification_body",
-    "translation": "Các dự án thường có sự tham gia của mọi người cả bên trong và bên ngoài tổ chức. Với Tài khoản khách, bạn có thể đưa các đối tác bên ngoài vào hệ thống Matter Extreme của mình và chỉ định họ có thể làm việc cùng ai và họ có thể xem những gì.\n\n[Tìm hiểu thêm về cách bật Tài khoản khách](https://www.mattermost.com/docs-guest-accounts/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=guest-accounts).\n\nBằng cách nhấp vào Liên hệ với chúng tôi, bạn sẽ chia sẻ thông tin của mình với Mattermost, Inc. [Tìm hiểu thêm](https://mattermost.com/pl/default-admin-advisory)"
-  },
-  {
-    "id": "api.server.warn_metric.email_domain.start_trial.notification_body",
-    "translation": "Các dự án thường có sự tham gia của mọi người cả bên trong và bên ngoài tổ chức. Với Tài khoản khách, bạn có thể đưa các đối tác bên ngoài vào hệ thống Matter Extreme của mình và chỉ định họ có thể làm việc cùng ai và họ có thể xem những gì.\n\n[Tìm hiểu thêm về cách bật Tài khoản khách](https://www.mattermost.com/docs-guest-accounts/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=guest-accounts)\n\nBằng cách nhấp vào Bắt đầu dùng thử, tôi đồng ý với [Thỏa thuận đánh giá phần mềm quan trọng nhất](https://mattermost.com/software-evaluation-agreement/), [Chính sách quyền riêng tư](https://mattermost.com/pl/privacy-policy /) và nhận email sản phẩm."
-  },
-  {
-    "id": "api.server.warn_metric.number_of_active_users_100.notification_body",
-    "translation": "Hệ thống Matter Extreme của bạn có hơn 100 người dùng. Khi cơ sở người dùng của bạn tăng lên, việc cấp phép tài khoản mới có thể trở nên tốn thời gian. Chúng tôi khuyên bạn nên tích hợp Active Directory/LDAP của tổ chức mình để cho phép bất kỳ ai có tài khoản đều có thể truy cập Matter Extreme.\n\n[Tìm hiểu thêm về cách tích hợp với AD/LDAP](https://www.mattermost.com/docs-adldap/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=adldap)\n\nBằng cách nhấp vào Liên hệ với chúng tôi, bạn sẽ chia sẻ thông tin của mình với Mattermost, Inc. [Tìm hiểu thêm](https://mattermost.com/pl/default-admin-advisory)"
-  },
-  {
-    "id": "api.server.warn_metric.mfa.notification_body",
-    "translation": "Hệ thống Matter Extreme của bạn đã bật xác thực đa yếu tố, cho phép người dùng lựa chọn bảo mật tài khoản của họ bằng các phương tiện xác thực bổ sung ngoài mật khẩu. Để nâng cao tính bảo mật trên toàn hệ thống, bạn có thể yêu cầu tất cả tài khoản Matter Extreme sử dụng xác thực đa yếu tố.\n\n[Tìm hiểu thêm về cách thực thi Xác thực đa yếu tố](https://www.mattermost.com/docs-multi-factor-authentication/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=multi-factor-authentication).\n\nBằng cách nhấp vào Liên hệ với chúng tôi, bạn sẽ chia sẻ thông tin của mình với Mattermost, Inc. [Tìm hiểu thêm](https://mattermost.com/pl/default-admin-advisory)"
-  },
-  {
-    "id": "api.server.warn_metric.mfa.start_trial.notification_body",
-    "translation": "Hệ thống Matter Extreme của bạn đã bật xác thực đa yếu tố, cho phép người dùng lựa chọn bảo mật tài khoản của họ bằng các phương tiện xác thực bổ sung ngoài mật khẩu. Để nâng cao tính bảo mật trên toàn hệ thống, bạn có thể yêu cầu tất cả tài khoản Matter Extreme sử dụng xác thực đa yếu tố.\n\n[Tìm hiểu thêm về cách thực thi Xác thực đa yếu tố](https://www.mattermost.com/docs-multi-factor-authentication/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=multi-factor-authentication)\n\nBằng cách nhấp vào Bắt đầu dùng thử, tôi đồng ý với [Thỏa thuận đánh giá phần mềm quan trọng nhất](https://mattermost.com/software-evaluation-agreement/), [Chính sách quyền riêng tư](https://mattermost.com/pl/privacy-policy /) và nhận email sản phẩm."
-  },
-  {
-    "id": "api.server.warn_metric.number_of_active_users_100.start_trial.notification_body",
-    "translation": "Hệ thống Matter Extreme của bạn có hơn 100 người dùng. Khi cơ sở người dùng của bạn tăng lên, việc cấp phép tài khoản mới có thể trở nên tốn thời gian. Chúng tôi khuyên bạn nên tích hợp Active Directory/LDAP của tổ chức mình để cho phép bất kỳ ai có tài khoản đều có thể truy cập Matter Extreme.\n\n[Tìm hiểu thêm về cách tích hợp với AD/LDAP](https://www.mattermost.com/docs-adldap/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=adldap)\n\nBằng cách nhấp vào Bắt đầu dùng thử, tôi đồng ý với [Thỏa thuận đánh giá phần mềm quan trọng nhất](https://mattermost.com/software-evaluation-agreement/), [Chính sách quyền riêng tư](https://mattermost.com/pl/privacy-policy /) và nhận email sản phẩm."
-  },
-  {
-    "id": "api.server.warn_metric.number_of_active_users_200.notification_body",
-    "translation": "Hệ thống Matter Extreme của bạn hiện có 200 người dùng. Khi bạn kết nối Matter Extreme với nhà cung cấp dịch vụ đăng nhập một lần trong tổ chức của mình, người dùng có thể truy cập Matter Extreme mà không cần phải nhập lại thông tin đăng nhập của họ. Chúng tôi khuyên bạn nên tích hợp nhà cung cấp SAML 2.0 với máy chủ Mattermost của mình.[Tìm hiểu thêm về cách tích hợp với SAML 2.0](https://www.mattermost.com/docs-saml/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=saml) .\n\nBằng cách nhấp vào Liên hệ với chúng tôi, bạn sẽ chia sẻ thông tin của mình với Mattermost, Inc. [Tìm hiểu thêm](https://mattermost.com/pl/default-admin-advisory)"
-  },
-  {
-    "id": "api.server.warn_metric.number_of_active_users_200.start_trial.notification_body",
-    "translation": "Hệ thống Matter Extreme của bạn hiện có 200 người dùng. Khi bạn kết nối Matter Extreme với nhà cung cấp dịch vụ đăng nhập một lần trong tổ chức của mình, người dùng có thể truy cập Matter Extreme mà không cần phải nhập lại thông tin đăng nhập của họ. Chúng tôi khuyên bạn nên tích hợp nhà cung cấp SAML 2.0 với máy chủ Mattermost của mình.[Tìm hiểu thêm về cách tích hợp với SAML 2.0](https://www.mattermost.com/docs-saml/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=saml)\n\nBằng cách nhấp vào Bắt đầu dùng thử, tôi đồng ý với [Thỏa thuận đánh giá phần mềm quan trọng nhất](https://mattermost.com/software-evaluation-agreement/), [Chính sách quyền riêng tư](https://mattermost.com/pl/privacy-policy /) và nhận email sản phẩm."
-  },
-  {
-    "id": "api.server.warn_metric.number_of_active_users_300.notification_body",
-    "translation": "Với rất nhiều cuộc trò chuyện diễn ra trên Matter Extreme, việc biết nơi tìm thông tin quan trọng có thể là một thách thức. Nếu bạn muốn phát thông báo tới nhiều khán giả, bạn có thể thiết lập Kênh thông báo chỉ đọc nơi bất kỳ ai cũng có thể tham gia nhưng chỉ quản trị viên kênh mới có thể đăng thông báo.\n\n[Tìm hiểu thêm về cách tạo Kênh thông báo chỉ đọc](https://www.mattermost.com/docs-channel-moderation/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=channel-moderation)\n\nBằng cách nhấp vào Liên hệ với chúng tôi, bạn sẽ chia sẻ thông tin của mình với Mattermost, Inc. [Tìm hiểu thêm](https://mattermost.com/pl/default-admin-advisory)"
-  },
-  {
-    "id": "api.templates.delinquency_30.subtitle1",
-    "translation": "Bạn có thời gian để duy trì hoạt động Mattermost {{.Plan}} của mình nhưng bạn sẽ cần giải quyết các vấn đề với phương thức thanh toán của mình."
-  },
-  {
-    "id": "api.templates.delinquency_7.subtitle2",
-    "translation": "Để duy trì gói {{.Plan}} của bạn hoạt động, vui lòng liên hệ với tổ chức tài chính của bạn càng sớm càng tốt. Sau đó, cập nhật chi tiết thanh toán của bạn nếu cần."
-  },
-  {
-    "id": "api.server.warn_metric.number_of_active_users_500.notification_body",
-    "translation": "Mattermost đặc biệt khuyến nghị việc triển khai trên 500 người dùng nên tận dụng các tính năng như quản lý người dùng, phân cụm máy chủ và giám sát hiệu suất. Hãy liên hệ với chúng tôi để tìm hiểu thêm và cho chúng tôi biết cách chúng tôi có thể trợ giúp.\n\nBằng cách nhấp vào Liên hệ với chúng tôi, bạn sẽ chia sẻ thông tin của mình với Mattermost, Inc. [Tìm hiểu thêm](https://mattermost.com/pl/default-admin-advisory)"
-  },
-  {
-    "id": "api.templates.delinquency_45.subject",
-    "translation": "Lưu ý: Mattermost {{.Plan}} của bạn sẽ sớm bị hạ cấp"
-  },
-  {
-    "id": "api.templates.delinquency_90.subtitle1",
-    "translation": "Nếu bạn sử dụng các tính năng của Cloud Professional hoặc Enterprise cho các hoạt động kinh doanh quan trọng thì những tính năng này sẽ không còn khả dụng nữa và bạn sẽ thấy hiệu suất bị suy giảm."
-  },
-  {
-    "id": "api.server.warn_metric.number_of_active_users_500.start_trial.notification_body",
-    "translation": "Mattermost đặc biệt khuyến nghị việc triển khai trên 500 người dùng nên tận dụng các tính năng như quản lý người dùng, phân cụm máy chủ và giám sát hiệu suất. Hãy liên hệ với chúng tôi để tìm hiểu thêm và cho chúng tôi biết cách chúng tôi có thể trợ giúp.\n\nBằng cách nhấp vào Bắt đầu dùng thử, tôi đồng ý với [Thỏa thuận đánh giá phần mềm quan trọng nhất](https://mattermost.com/software-evaluation-agreement/), [Chính sách quyền riêng tư](https://mattermost.com/pl/privacy-policy /) và nhận email sản phẩm."
-  },
-  {
-    "id": "api.templates.delinquency_45.subtitle2",
-    "translation": "Không gian làm việc bị hạ cấp có thể ảnh hưởng tiêu cực đến các quy trình công việc quan trọng và các hoạt động kinh doanh quan trọng khác được thực hiện tại không gian làm việc của bạn."
-  },
-  {
     "id": "api.templates.email_footer_v2",
     "translation": "© 2022 Mattermost, Inc. 530 Đại lộ Lytton, Tầng hai, Palo Alto, CA, 94301"
-  },
-  {
-    "id": "api.server.warn_metric.number_of_channels_50.notification_body",
-    "translation": "Các kênh giúp cải thiện khả năng giao tiếp nhưng với việc người dùng trên khắp các kênh tham gia và tạo các kênh Matter Extreme, thách thức trong việc giữ cho hệ thống luôn ngăn nắp sẽ tăng lên. Quyền nâng cao cho phép bạn đặt người dùng hoặc vai trò nào có thể thực hiện một số hành động nhất định, bao gồm quản lý cài đặt kênh và thành viên, sử dụng @channel hoặc @here để gắn thẻ các nhóm người dùng rộng rãi và tạo webhook mới.\n\n[Tìm hiểu thêm về cách sử dụng Quyền nâng cao](https://www.mattermost.com/docs-advanced-permissions/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=advanced-permissions)\n\nBằng cách nhấp vào Liên hệ với chúng tôi, bạn sẽ chia sẻ thông tin của mình với Mattermost, Inc. [Tìm hiểu thêm](https://mattermost.com/pl/default-admin-advisory)"
-  },
-  {
-    "id": "api.templates.delinquency_60.subtitle1",
-    "translation": "Vui lòng cập nhật sớm thông tin thanh toán của bạn để xử lý các hóa đơn chưa thanh toán của bạn."
   },
   {
     "id": "api.templates.invite_team_and_channels_body.title",
     "translation": "{{ .SenderName }} đã mời bạn tham gia các kênh {{ .ChannelsLen }} trong Nhóm {{ .TeamDisplayName }}"
   },
   {
-    "id": "api.server.warn_metric.number_of_channels_50.start_trial.notification_body",
-    "translation": "Các kênh giúp cải thiện khả năng giao tiếp nhưng với việc người dùng trên khắp các kênh tham gia và tạo các kênh Matter Extreme, thách thức trong việc giữ cho hệ thống luôn ngăn nắp sẽ tăng lên. Quyền nâng cao cho phép bạn đặt người dùng hoặc vai trò nào có thể thực hiện một số hành động nhất định, bao gồm quản lý cài đặt kênh và thành viên, sử dụng @channel hoặc @here để gắn thẻ các nhóm người dùng rộng rãi và tạo webhook mới.\n\n[Tìm hiểu thêm về cách sử dụng Quyền nâng cao](https://www.mattermost.com/docs-advanced-permissions/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=advanced-permissions)\n\nBằng cách nhấp vào Bắt đầu dùng thử, tôi đồng ý với [Thỏa thuận đánh giá phần mềm quan trọng nhất](https://mattermost.com/software-evaluation-agreement/), [Chính sách quyền riêng tư](https://mattermost.com/pl/privacy-policy /) và nhận email sản phẩm."
-  },
-  {
     "id": "api.templates.license_up_for_renewal_subtitle",
     "translation": "{{.UserName}}, đăng ký của bạn sẽ hết hạn sau {{.Days}} ngày. Chúng tôi hy vọng bạn đang trải nghiệm sự cộng tác nhóm linh hoạt và an toàn mà Mattermost mang lại. Hãy sớm gia hạn để đảm bảo nhóm của bạn có thể tiếp tục tận hưởng những lợi ích này."
-  },
-  {
-    "id": "api.server.warn_metric.number_of_posts_2M.notification_body",
-    "translation": "Hệ thống Matter Extreme của bạn có số lượng tin nhắn lớn. Tìm kiếm cơ sở dữ liệu Matter Extreme mặc định bắt đầu hiển thị sự suy giảm hiệu suất ở khoảng 2,5 triệu bài đăng. Với hơn 5 triệu bài đăng, Elaticsearch có thể giúp tránh các vấn đề đáng kể về hiệu suất, chẳng hạn như thời gian chờ, với tìm kiếm và lượt đề cập. Hãy liên hệ với chúng tôi để tìm hiểu thêm và cho chúng tôi biết cách chúng tôi có thể trợ giúp.\n\n[Tìm hiểu thêm về cách cải thiện hiệu suất](https://www.mattermost.com/docs-elasticsearch/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=elasticsearch)\n\nBằng cách nhấp vào Liên hệ với chúng tôi, bạn sẽ chia sẻ thông tin của mình với Mattermost, Inc. [Tìm hiểu thêm](https://mattermost.com/pl/default-admin-advisory)"
-  },
-  {
-    "id": "api.server.warn_metric.number_of_posts_2M.start_trial.notification_body",
-    "translation": "Hệ thống Matter Extreme của bạn có số lượng tin nhắn lớn. Tìm kiếm cơ sở dữ liệu Matter Extreme mặc định bắt đầu hiển thị sự suy giảm hiệu suất ở khoảng 2,5 triệu bài đăng. Với hơn 5 triệu bài đăng, Elaticsearch có thể giúp tránh các vấn đề đáng kể về hiệu suất, chẳng hạn như thời gian chờ, với tìm kiếm và lượt đề cập. Hãy liên hệ với chúng tôi để tìm hiểu thêm và cho chúng tôi biết cách chúng tôi có thể trợ giúp.\n\n[Tìm hiểu thêm về cách cải thiện hiệu suất](https://www.mattermost.com/docs-elasticsearch/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=elasticsearch)\n\nBằng cách nhấp vào Bắt đầu dùng thử, tôi đồng ý với [Thỏa thuận đánh giá phần mềm quan trọng nhất](https://mattermost.com/software-evaluation-agreement/), [Chính sách quyền riêng tư](https://mattermost.com/pl/privacy-policy /) và nhận email sản phẩm."
-  },
-  {
-    "id": "api.templates.payment_failed.info3",
-    "translation": "Để đảm bảo quyền truy cập không bị gián đoạn vào Matter Extreme {{.Plan}}, vui lòng liên hệ với tổ chức tài chính của bạn để khắc phục sự cố cơ bản hoặc cập nhật thông tin thanh toán của bạn. Sau khi thông tin thanh toán được cập nhật, Mattermost sẽ cố gắng giải quyết mọi số dư chưa thanh toán."
-  },
-  {
-    "id": "api.server.warn_metric.number_of_teams_5.start_trial.notification_body",
-    "translation": "Hệ thống Matter Extreme của bạn hiện có nhiều nhóm. Nhiều nhóm có cách điều phối và cộng tác ưa thích của riêng họ, bao gồm cách tạo kênh, ai có thể mời đồng đội mới và cách quản lý tích hợp. Lược đồ ghi đè nhóm cho phép bạn tùy chỉnh quyền của người dùng trong mỗi nhóm để đáp ứng nhu cầu cụ thể của họ.\n\n[Tìm hiểu thêm về cách sử dụng Quyền nâng cao](https://www.mattermost.com/docs-advanced-permissions-team-override/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=advanced-permissions-team-override)\n\nBằng cách nhấp vào Bắt đầu dùng thử, tôi đồng ý với [Thỏa thuận đánh giá phần mềm quan trọng nhất](https://mattermost.com/software-evaluation-agreement/), [Chính sách quyền riêng tư](https://mattermost.com/pl/privacy-policy /) và nhận email sản phẩm."
-  },
-  {
-    "id": "api.templates.payment_failed_no_card.info1",
-    "translation": "Hóa đơn Matter Extreme Cloud của bạn cho kỳ thanh toán gần đây nhất đã được xử lý. Tuy nhiên, chúng tôi không có chi tiết thanh toán của bạn trong hồ sơ."
   },
   {
     "id": "api.system.id_loaded.not_available.app_error",
@@ -6850,16 +6074,8 @@
     "translation": "Nhấp vào nút bên dưới để đặt lại mật khẩu của bạn. Nếu bạn không yêu cầu điều này, bạn có thể yên tâm bỏ qua email này."
   },
   {
-    "id": "api.templates.cloud_upgrade_confirmation_monthly.subtitle",
-    "translation": "Không gian làm việc {{.WorkspaceName}} của bạn hiện đã được nâng cấp. Bạn sẽ được lập hoá đơn từ {{.Date}}"
-  },
-  {
     "id": "api.templates.welcome_body.subTitle2",
     "translation": "Nhấp vào bên dưới để xác minh địa chỉ email của bạn."
-  },
-  {
-    "id": "api.templates.delinquency_14.subtitle2",
-    "translation": "Vui lòng liên hệ với tổ chức tài chính của bạn để giải quyết mọi vấn đề. Sau đó, cập nhật chi tiết thanh toán của bạn nếu cần."
   },
   {
     "id": "api.cloud.request_error",
@@ -7086,10 +6302,6 @@
     "translation": "Không thể cập nhật id thiết bị."
   },
   {
-    "id": "app.sharedchannel.dm_channel_creation.internal_error",
-    "translation": "Đã gặp lỗi khi tạo kênh chia sẻ trực tiếp."
-  },
-  {
     "id": "app.status.get.app_error",
     "translation": "Đã gặp lỗi khi truy xuất trạng thái."
   },
@@ -7102,16 +6314,8 @@
     "translation": "Việc giới thiệu chỉ có thể được hoàn thành bởi Quản trị viên hệ thống."
   },
   {
-    "id": "app.system.get.app_error",
-    "translation": "Chúng tôi đã gặp lỗi khi tìm thuộc tính hệ thống."
-  },
-  {
     "id": "app.system.get_by_name.app_error",
     "translation": "Không thể tìm thấy biến hệ thống."
-  },
-  {
-    "id": "app.system.warn_metric.bot_displayname",
-    "translation": "Cố vấn của Mattermost"
   },
   {
     "id": "app.system.get_onboarding_request.app_error",
@@ -7124,10 +6328,6 @@
   {
     "id": "app.system.save.app_error",
     "translation": "Chúng tôi đã gặp lỗi khi lưu thuộc tính hệ thống."
-  },
-  {
-    "id": "app.system.warn_metric.store.app_error",
-    "translation": "Không lưu trữ được giá trị cho {{.WarnMetricName}}"
   },
   {
     "id": "app.team.analytics_team_count.app_error",
@@ -7330,18 +6530,6 @@
     "translation": "Cài đặt Elaticsearch có các giá trị chưa được đặt."
   },
   {
-    "id": "api.email.send_warn_metric_ack.failure.app_error",
-    "translation": "Không gửi được email xác nhận của quản trị viên"
-  },
-  {
-    "id": "api.email.send_warn_metric_ack.invalid_warn_metric.app_error",
-    "translation": "không thể tìm thấy số liệu cảnh báo."
-  },
-  {
-    "id": "api.email.send_warn_metric_ack.missing_server.app_error",
-    "translation": "Máy chủ SMTP là bắt buộc"
-  },
-  {
     "id": "api.email_batching.send_batched_email_notification.button",
     "translation": "Mở quan trọng nhất"
   },
@@ -7396,10 +6584,6 @@
   {
     "id": "app.user.send_auto_response.app_error",
     "translation": "Không thể gửi phản hồi tự động từ người dùng."
-  },
-  {
-    "id": "app.user.send_emails.app_error",
-    "translation": "Không có email nào được gửi thành công"
   },
   {
     "id": "app.user.store_is_empty.app_error",
@@ -7638,10 +6822,6 @@
     "translation": "Không thể phân tích phiên bản máy chủ Elaticsearch."
   },
   {
-    "id": "ent.get_users_in_channel_during",
-    "translation": "Không thể thu hút người dùng vào kênh trong khoảng thời gian được chỉ định."
-  },
-  {
     "id": "ent.id_loaded.license_disable.app_error",
     "translation": "Giấy phép của bạn không hỗ trợ Thông báo đẩy được tải ID."
   },
@@ -7676,22 +6856,6 @@
   {
     "id": "ent.ldap_id_migrate.app_error",
     "translation": "không thể di cư."
-  },
-  {
-    "id": "ent.message_export.actiance_export.get_attachment_error",
-    "translation": "Không thể lấy thông tin tệp cho bài đăng."
-  },
-  {
-    "id": "ent.message_export.csv_export.get_attachment_error",
-    "translation": "Không thể lấy thông tin tệp cho bài đăng."
-  },
-  {
-    "id": "ent.message_export.global_relay_export.deliver.unable_to_connect_smtp_server.app_error",
-    "translation": "Không thể kết nối với máy chủ smtp"
-  },
-  {
-    "id": "ent.message_export.global_relay_export.get_attachment_error",
-    "translation": "Không thể lấy thông tin tệp cho bài đăng."
   },
   {
     "id": "ent.message_export.run_export.app_error",
@@ -7796,14 +6960,6 @@
   {
     "id": "model.config.is_valid.amazons3_timeout.app_error",
     "translation": "Giá trị thời gian chờ không hợp lệ {{.Value}}. Phải là một số dương."
-  },
-  {
-    "id": "model.config.is_valid.bleve_search.bulk_indexing_batch_size.app_error",
-    "translation": "Kích thước lô lập chỉ mục hàng loạt của Bleve phải ít nhất là {{.BatchSize}}."
-  },
-  {
-    "id": "model.config.is_valid.bleve_search.filename.app_error",
-    "translation": "Cài đặt Bleve IndexingDir phải được đặt khi Bleve EnableIndexing được đặt thành true"
   },
   {
     "id": "ent.elasticsearch.search_files.disabled",
@@ -7962,48 +7118,12 @@
     "translation": "Không thể áp dụng giấy phép dùng thử mới. Trước đây, bạn đã đăng ký giấy phép dùng thử cho phiên bản Matter Extreme này. Nếu bạn muốn kéo dài thời gian dùng thử, vui lòng [liên hệ với nhóm bán hàng của chúng tôi](https://mattermost.com/contact-us/)."
   },
   {
-    "id": "api.license.request_renewal_link.app_error",
-    "translation": "Lỗi lấy link gia hạn giấy phép"
-  },
-  {
-    "id": "api.license.request_renewal_link.cannot_renew_on_cws",
-    "translation": "Không thể gia hạn giấy phép này trên cổng thông tin"
-  },
-  {
     "id": "api.license.request_trial_license.app_error",
     "translation": "Không thể nhận được giấy phép dùng thử, vui lòng thử lại hoặc liên hệ với support@mattermost.com."
   },
   {
     "id": "api.license.request_trial_license.embargoed",
     "translation": "Chúng tôi không thể xử lý yêu cầu do những hạn chế đối với các quốc gia bị cấm vận. [Tìm hiểu thêm trong tài liệu của chúng tôi](https://mattermost.com/pl/limitations-for-embargoed-countries) hoặc liên hệ với legal@mattermost.com nếu có câu hỏi xung quanh các hạn chế xuất khẩu."
-  },
-  {
-    "id": "api.license.request_trial_license.fail_get_user_count.app_error",
-    "translation": "Không thể nhận được giấy phép dùng thử, vui lòng thử lại hoặc liên hệ với support@mattermost.com. Không thể có được số lượng người dùng đã đăng ký."
-  },
-  {
-    "id": "api.license.true_up_review.create_error",
-    "translation": "Không thể tạo bản ghi trạng thái đúng"
-  },
-  {
-    "id": "api.license.true_up_review.failed_to_submit",
-    "translation": "Không thể gửi hồ sơ đánh giá thực tế tới CWS."
-  },
-  {
-    "id": "api.license.true_up_review.get_status_error",
-    "translation": "Không thể lấy được bản ghi trạng thái đúng"
-  },
-  {
-    "id": "api.license.true_up_review.license_required",
-    "translation": "Đánh giá thực tế cần có giấy phép"
-  },
-  {
-    "id": "api.license.true_up_review.not_allowed_for_cloud",
-    "translation": "Đánh giá thực tế không được phép đối với các phiên bản đám mây"
-  },
-  {
-    "id": "api.license.true_up_review.webhook_in_count_fail",
-    "translation": "Không thể lấy tổng số lượng webhook đến"
   },
   {
     "id": "api.migrate_to_saml.error",
@@ -8086,14 +7206,6 @@
     "translation": "Người dùng không được phép tạo bài đăng ưu tiên hoặc thông báo liên tục."
   },
   {
-    "id": "api.license.true_up_review.user_count_fail",
-    "translation": "Không thể lấy tổng số người dùng đang hoạt động"
-  },
-  {
-    "id": "api.license.true_up_review.webhook_out_count_fail",
-    "translation": "Không thể lấy tổng số lượng webhook gửi đi"
-  },
-  {
     "id": "api.license.upgrade_needed.app_error",
     "translation": "Tính năng yêu cầu nâng cấp lên Phiên bản doanh nghiệp."
   },
@@ -8128,10 +7240,6 @@
   {
     "id": "api.post.post_priority.persistent_notification_validation_error.request_error",
     "translation": "Xác thực thông báo liên tục không thành công."
-  },
-  {
-    "id": "searchengine.bleve.disabled.error",
-    "translation": "Lỗi xóa chỉ mục Bleve: động cơ bị tắt"
   },
   {
     "id": "sharedchannel.cannot_deliver_post",
@@ -8252,22 +7360,6 @@
   {
     "id": "app.channel.update_member.app_error",
     "translation": "Không thể cập nhật thành viên kênh."
-  },
-  {
-    "id": "app.cloud.get_cloud_products.app_error",
-    "translation": "Không thể truy xuất các sản phẩm trên đám mây"
-  },
-  {
-    "id": "app.cloud.get_current_plan_name.app_error",
-    "translation": "Không thể lấy tên gói hiện tại"
-  },
-  {
-    "id": "app.cloud.get_subscription.app_error",
-    "translation": "Không thể truy xuất đăng ký đám mây"
-  },
-  {
-    "id": "app.cloud.get_subscription_delinquency_date.app_error",
-    "translation": "Đăng ký không quá hạn"
   },
   {
     "id": "app.channel.get_file_count.app_error",
@@ -8414,14 +7506,6 @@
     "translation": "Lỗi tìm nạp bài đăng có thể truy cập lần cuối"
   },
   {
-    "id": "app.license.generate_renewal_token.app_error",
-    "translation": "Không tạo được mã thông báo gia hạn mới."
-  },
-  {
-    "id": "app.license.generate_renewal_token.no_license",
-    "translation": "Không có giấy phép hiện tại"
-  },
-  {
     "id": "app.member_count",
     "translation": "lỗi lấy số thành viên"
   },
@@ -8440,10 +7524,6 @@
   {
     "id": "app.post.get_post_after_time.app_error",
     "translation": "Không thể nhận được bài viết sau thời gian bị ràng buộc."
-  },
-  {
-    "id": "app.post.get_posts_batch_for_indexing.get.app_error",
-    "translation": "Không thể lấy hàng loạt bài viết để lập chỉ mục."
   },
   {
     "id": "app.post.get_posts_since.app_error",
@@ -8738,10 +7818,6 @@
     "translation": "Các chỉ mục bị bỏ qua để thanh lọc không được bắt đầu bằng dấu gạch ngang."
   },
   {
-    "id": "app.license.generate_renewal_token.bad_license",
-    "translation": "Loại giấy phép này không hỗ trợ tạo mã thông báo gia hạn"
-  },
-  {
     "id": "app.role.get_by_name.app_error",
     "translation": "Không thể nhận được vai trò."
   },
@@ -8752,10 +7828,6 @@
   {
     "id": "model.config.is_valid.image_decoder_concurrency.app_error",
     "translation": "Bộ giải mã đồng thời không hợp lệ {{.Value}}. Phải là số dương hoặc -1."
-  },
-  {
-    "id": "app.post.get_files_batch_for_indexing.get.app_error",
-    "translation": "Không thể lấy hàng loạt tệp để lập chỉ mục."
   },
   {
     "id": "app.role.save.invalid_role.app_error",
@@ -8970,10 +8042,6 @@
     "translation": "Trường CreateAt không hợp lệ cho phiên."
   },
   {
-    "id": "api.unable_to_read_file_from_backend",
-    "translation": "Lỗi đọc file từ backend"
-  },
-  {
     "id": "model.draft.is_valid.user_id.app_error",
     "translation": "ID người dùng không hợp lệ."
   },
@@ -9094,10 +8162,6 @@
     "translation": "Ảnh hồ sơ phải được đặt thông qua nhà cung cấp thông tin đăng nhập của người dùng."
   },
   {
-    "id": "api.user.view_archived_channels.get_posts_for_channel.app_error",
-    "translation": "Không thể truy xuất bài đăng cho kênh đã lưu trữ"
-  },
-  {
     "id": "app.acknowledgement.delete.app_error",
     "translation": "Không thể xóa xác nhận."
   },
@@ -9120,10 +8184,6 @@
   {
     "id": "api.user.create_user.bad_token_email_data.app_error",
     "translation": "Địa chỉ email trong mã thông báo không khớp với địa chỉ trong dữ liệu người dùng."
-  },
-  {
-    "id": "api.user.view_archived_channels.get_users_in_channel.app_error",
-    "translation": "Không thể truy xuất người dùng cho kênh đã lưu trữ"
   },
   {
     "id": "api.user.delete_user.not_enabled.app_error",
@@ -9226,14 +8286,6 @@
     "translation": "Chúng tôi không thể đếm được số lượng người dùng."
   },
   {
-    "id": "bleveengine.index_file.error",
-    "translation": "Đánh chỉ mục file thất bại."
-  },
-  {
-    "id": "ent.cluster.404.app_error",
-    "translation": "Không tìm thấy điểm cuối API cụm."
-  },
-  {
     "id": "ent.elasticsearch.create_client.client_cert_malformed",
     "translation": "Giải mã chứng chỉ ứng dụng khách cho Elaticsearch không thành công"
   },
@@ -9254,10 +8306,6 @@
     "translation": "Chúng tôi không thể lấy được số lượng tin nhắn chưa đọc của người dùng."
   },
   {
-    "id": "bleveengine.create_post_index.error",
-    "translation": "Lỗi tạo chỉ mục bài viết."
-  },
-  {
     "id": "app.user.demote_user_to_guest.user_update.app_error",
     "translation": "Không thể cập nhật người dùng."
   },
@@ -9274,36 +8322,12 @@
     "translation": "Chúng tôi đã gặp lỗi khi tìm người dùng mới."
   },
   {
-    "id": "bleveengine.create_user_index.error",
-    "translation": "Lỗi tạo chỉ mục người dùng."
-  },
-  {
-    "id": "ent.compliance.global_relay.write_file.appError",
-    "translation": "Không thể ghi tập tin chuyển tiếp toàn cầu."
-  },
-  {
-    "id": "bleveengine.indexer.do_job.bulk_index_users.batch_error",
-    "translation": "Đánh chỉ mục người dùng thất bại."
-  },
-  {
-    "id": "bleveengine.indexer.do_job.get_oldest_entity.error",
-    "translation": "Không thể truy xuất thực thể cũ nhất (người dùng, kênh hoặc bài đăng) từ cơ sở dữ liệu."
-  },
-  {
     "id": "ent.cluster.timeout.error",
     "translation": "Đã hết thời gian chờ phản hồi của cụm"
   },
   {
-    "id": "ent.elasticsearch.create_client.ca_cert_malformed",
-    "translation": "Giải mã CA cho Elaticsearch không thành công"
-  },
-  {
     "id": "app.channel.get_channels_member_count.existing.app_error",
     "translation": "Không thể tìm thấy số lượng thành viên cho các kênh nhất định."
-  },
-  {
-    "id": "bleveengine.search_files.error",
-    "translation": "Tìm kiếm tệp không thể hoàn tất."
   },
   {
     "id": "app.cloud.trial_plan_bot_message_single",
@@ -9374,10 +8398,6 @@
     "translation": "Chúng tôi đã gặp lỗi khi tìm hồ sơ người dùng."
   },
   {
-    "id": "bleveengine.delete_file.error",
-    "translation": "Xóa file thất bại."
-  },
-  {
     "id": "api.upgrade_to_enterprise.invalid-permission.app_error",
     "translation": "Matter Extreme không thể nâng cấp lên Phiên bản doanh nghiệp. Người dùng hệ thống Matter Extreme {{.MattermostUsername}} không có quyền ghi vào tệp nhị phân cần thiết. Quản trị viên hệ thống có thể cập nhật quyền của tệp bằng cách thực hiện lệnh sau trên máy chủ nơi Matter Extreme được cài đặt:\n\n```\nchmod +w \"{{.Path}}\"\n```\n\nSau khi thay đổi quyền truy cập tệp, hãy thử nâng cấp lại Matter Extreme. Khi bạn đã nâng cấp và khởi động lại, hãy nhớ khôi phục quyền truy cập tệp nhị phân ban đầu:\n\n```\nchmod -w \"{{.Path}}\"\n```"
   },
@@ -9395,10 +8415,6 @@
   },
   {
     "id": "app.bot.get_system_bot.empty_admin_list.app_error",
-    "translation": "Danh sách quản trị viên trống."
-  },
-  {
-    "id": "app.bot.get_warn_metrics_bot.empty_admin_list.app_error",
     "translation": "Danh sách quản trị viên trống."
   },
   {
@@ -9424,10 +8440,6 @@
   {
     "id": "app.channel.get_channel_counts.get.app_error",
     "translation": "Không thể lấy được số lượng kênh."
-  },
-  {
-    "id": "app.channel.get_channels_batch_for_indexing.get.app_error",
-    "translation": "Không thể lấy lô kênh để lập chỉ mục."
   },
   {
     "id": "app.channel.get_channels_by_ids.app_error",
@@ -9614,10 +8626,6 @@
     "translation": "thành viên nhóm đã tồn tại"
   },
   {
-    "id": "app.import.attachment.read_file_data.error",
-    "translation": "Không thể đọc tệp đính kèm trong quá trình nhập."
-  },
-  {
     "id": "app.import.generate_password.app_error",
     "translation": "Lỗi tạo mật khẩu."
   },
@@ -9790,92 +8798,8 @@
     "translation": "Không thể lưu tài khoản."
   },
   {
-    "id": "bleveengine.already_started.error",
-    "translation": "Bleve đã được bắt đầu."
-  },
-  {
-    "id": "bleveengine.create_file_index.error",
-    "translation": "Lỗi tạo chỉ mục tệp."
-  },
-  {
-    "id": "bleveengine.delete_channel_posts.error",
-    "translation": "Xóa bài viết thất bại"
-  },
-  {
-    "id": "bleveengine.delete_files_batch.error",
-    "translation": "Xóa file thất bại."
-  },
-  {
-    "id": "bleveengine.delete_post_files.error",
-    "translation": "Xóa file của bài viết thất bại."
-  },
-  {
-    "id": "bleveengine.delete_user_files.error",
-    "translation": "Xóa file của người dùng thất bại."
-  },
-  {
-    "id": "bleveengine.delete_user_posts.error",
-    "translation": "Xóa bài viết của người dùng thất bại"
-  },
-  {
-    "id": "bleveengine.indexer.do_job.bulk_index_channels.batch_error",
-    "translation": "Đánh chỉ mục kênh thất bại."
-  },
-  {
-    "id": "bleveengine.indexer.do_job.bulk_index_files.batch_error",
-    "translation": "Đánh chỉ mục file thất bại."
-  },
-  {
-    "id": "bleveengine.indexer.do_job.bulk_index_posts.batch_error",
-    "translation": "Đánh chỉ mục bài viết thất bại."
-  },
-  {
-    "id": "bleveengine.indexer.do_job.engine_inactive",
-    "translation": "Tác vụ đánh chỉ mục Bleve đã thất bại: engine đã bị vô hiệu."
-  },
-  {
-    "id": "bleveengine.purge_channel_index.error",
-    "translation": "Không thể lọc các chỉ mục kênh."
-  },
-  {
-    "id": "bleveengine.purge_file_index.error",
-    "translation": "Không thể lọc các chỉ mục tệp."
-  },
-  {
-    "id": "bleveengine.purge_post_index.error",
-    "translation": "Không thể lọc các chỉ mục bài viết."
-  },
-  {
-    "id": "bleveengine.purge_user_index.error",
-    "translation": "Không thể xóa chỉ mục người dùng."
-  },
-  {
-    "id": "bleveengine.stop_channel_index.error",
-    "translation": "Không thể đóng chỉ mục kênh."
-  },
-  {
-    "id": "bleveengine.stop_file_index.error",
-    "translation": "Không thể đóng chỉ mục tệp."
-  },
-  {
-    "id": "bleveengine.stop_post_index.error",
-    "translation": "Không thể đóng chỉ mục bài viết."
-  },
-  {
-    "id": "bleveengine.stop_user_index.error",
-    "translation": "Không thể đóng chỉ mục người dùng."
-  },
-  {
     "id": "common.parse_error_int64",
     "translation": "Không phân tích được giá trị:{{.Value}} thành int64"
-  },
-  {
-    "id": "ent.actiance.export.marshalToXml.appError",
-    "translation": "Không thể chuyển đổi xuất sang XML."
-  },
-  {
-    "id": "ent.actiance.export.write_file.appError",
-    "translation": "Không thể ghi tập tin xuất."
   },
   {
     "id": "ent.api.post.send_notifications_and_forget.push_image_only",
@@ -9884,10 +8808,6 @@
   {
     "id": "ent.cluster.json_encode.error",
     "translation": "Đã xảy ra lỗi khi sắp xếp thứ tự yêu cầu JSON"
-  },
-  {
-    "id": "ent.compliance.csv.write_file.appError",
-    "translation": "Không thể ghi tệp csv."
   },
   {
     "id": "ent.data_retention.policies.internal_error",
@@ -9938,10 +8858,6 @@
     "translation": "Id tập tin không hợp lệ."
   },
   {
-    "id": "model.draft.is_valid.msg.app_error",
-    "translation": "Tin nhắn không hợp lệ."
-  },
-  {
     "id": "model.draft.is_valid.priority.app_error",
     "translation": "Mức độ ưu tiên không hợp lệ"
   },
@@ -9976,5 +8892,117 @@
   {
     "id": "model.draft.is_valid.create_at.app_error",
     "translation": "Thời gian tạo phải hợp lệ."
+  },
+  {
+    "id": "api.channel.create_channel.missing_display_name.error",
+    "translation": "Thiếu display_name trong yêu cầu gửi lên"
+  },
+  {
+    "id": "api.channel.create_channel.missing_team_id.error",
+    "translation": "Thiếu team_id trong yêu cầu gửi đi"
+  },
+  {
+    "id": "api.channel.bookmark.create_channel_bookmark.deleted_channel.forbidden.app_error",
+    "translation": "Đánh dấu kênh không thành công."
+  },
+  {
+    "id": "api.channel.bookmark.update_channel_bookmark.deleted_channel.forbidden.app_error",
+    "translation": "Cập nhật đánh dấu kênh không thành công."
+  },
+  {
+    "id": "api.channel.bookmark.update_channel_bookmark_sort_order.deleted_channel.forbidden.app_error",
+    "translation": "Cập nhật thứ tự đánh dấu cho kênh không thành công."
+  },
+  {
+    "id": "api.channel.bookmark.delete_channel_bookmark.deleted_channel.forbidden.app_error",
+    "translation": "Xoá đánh dấu kênh không thành công."
+  },
+  {
+    "id": "api.channel.bookmark.channel_bookmark.license.error",
+    "translation": "Giấy phép bản quyền của bạn không hỗ trợ tính năng đánh dấu kênh."
+  },
+  {
+    "id": "api.channel.bookmark.create_channel_bookmark.direct_or_group_channels.forbidden.app_error",
+    "translation": "Người dùng không có quyền đánh dấu kênh."
+  },
+  {
+    "id": "api.channel.bookmark.create_channel_bookmark.direct_or_group_channels_by_guests.forbidden.app_error",
+    "translation": "Đánh dấu kênh không thành công."
+  },
+  {
+    "id": "api.channel.bookmark.create_channel_bookmark.forbidden.app_error",
+    "translation": "Đánh dấu kênh không thành công."
+  },
+  {
+    "id": "api.channel.bookmark.update_channel_bookmark_sort_order.direct_or_group_channels.forbidden.app_error",
+    "translation": "Cập nhật thứ tự đánh dấu cho kênh không thành công."
+  },
+  {
+    "id": "api.admin.add_certificate.app_error",
+    "translation": "Thêm chứng chỉ không thành công."
+  },
+  {
+    "id": "api.admin.add_certificate.multiple_files.app_error",
+    "translation": "Quá nhiều tệp gửi lên."
+  },
+  {
+    "id": "api.admin.remove_certificate.app_error",
+    "translation": "Xoá chứng chỉ không thành công."
+  },
+  {
+    "id": "api.channel.bookmark.delete_channel_bookmark.direct_or_group_channels.forbidden.app_error",
+    "translation": "Xoá đánh dấu kênh không thành công."
+  },
+  {
+    "id": "api.channel.bookmark.delete_channel_bookmark.forbidden.app_error",
+    "translation": "Xoá đánh dấu kênh không thành công."
+  },
+  {
+    "id": "api.channel.bookmark.delete_channel_bookmark.direct_or_group_channels_by_guests.forbidden.app_error",
+    "translation": "Xoá đánh dấu kênh không thành công."
+  },
+  {
+    "id": "api.channel.bookmark.update_channel_bookmark.direct_or_group_channels.forbidden.app_error",
+    "translation": "Cập nhật đánh dấu kênh không thành công."
+  },
+  {
+    "id": "api.channel.bookmark.update_channel_bookmark.direct_or_group_channels_by_guests.forbidden.app_error",
+    "translation": "Cập nhật đánh dấu kênh không thành công."
+  },
+  {
+    "id": "api.channel.bookmark.update_channel_bookmark.forbidden.app_error",
+    "translation": "Cập nhật đánh dấu kênh không thành công."
+  },
+  {
+    "id": "api.channel.bookmark.update_channel_bookmark_sort_order.direct_or_group_channels_by_guests.forbidden.app_error",
+    "translation": "Cập nhật thứ tự đánh dấu cho kênh không thành công."
+  },
+  {
+    "id": "api.channel.bookmark.update_channel_bookmark_sort_order.forbidden.app_error",
+    "translation": "Cập nhật thứ tự đánh dấu cho kênh không thành công."
+  },
+  {
+    "id": "api.channel.create_channel.direct_channel.remote_restricted.app_error",
+    "translation": "Không thể tạo kênh nói chuyện với người dùng từ xa"
+  },
+  {
+    "id": "api.access_control_policy.get_channels.limit.app_error",
+    "translation": "Giới hạn số channel không hợp lệ."
+  },
+  {
+    "id": "api.access_control_policy.get_fields.limit.app_error",
+    "translation": "Giới hạn các trường trả về không hợp lệ."
+  },
+  {
+    "id": "api.channel.add_user.to.channel.rejected",
+    "translation": "Người dùng không có các thuộc tính cần thiết để tham gia kênh."
+  },
+  {
+    "id": "api.channel.create_group.remote_restricted.app_error",
+    "translation": "Không thể tạo một kênh nhắn tin theo nhóm cho người dùng từ xa"
+  },
+  {
+    "id": "api.channel.get_channel.flagged_post_mismatch.app_error",
+    "translation": "ID của kênh này không trùng với ID của kênh có bài viết được gắn cờ."
   }
 ]

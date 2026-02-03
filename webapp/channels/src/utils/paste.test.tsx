@@ -12,7 +12,7 @@ import {
     isTextUrl,
     hasPlainText,
     createFileFromClipboardDataItem,
-    pasteHandler,
+    pasteHandler, isKnownTargetForPaste,
 } from './paste';
 
 const validClipboardData: any = {
@@ -287,6 +287,36 @@ describe('pasteHandler', () => {
             },
             expectedMarkdown: "```\n// a javascript codeblock example\nif (1 > 0) {\n  return 'condition is true';\n}\n```",
         },
+        {
+            testName: 'should paste table as plain text when shift is held',
+            isNonFormattedPaste: true,
+            clipboardData: {
+                items: [1],
+                types: ['text/plain', 'text/html'],
+                getData: (dataType: string) => {
+                    if (dataType === 'text/plain') {
+                        return 'test \ttest\ntest \ttest';
+                    }
+                    return '<table><tr><th>test</th>\n<th>test</th>\n</tr>\n<tr>\n<td>test</td>\n<td>test</td></tr></table>';
+                },
+            },
+            expectedMarkdown: 'test \ttest\ntest \ttest',
+        },
+        {
+            testName: 'should paste github code as plain text when shift is held',
+            isNonFormattedPaste: true,
+            clipboardData: {
+                items: [1],
+                types: ['text/plain', 'text/html'],
+                getData: (type: string) => {
+                    if (type === 'text/plain') {
+                        return '// a javascript codeblock example\nif (1 > 0) {\n  return \'condition is true\';\n}';
+                    }
+                    return '<table class="highlight tab-size js-file-line-container" data-tab-size="8"><tbody><tr><td id="LC1" class="blob-code blob-code-inner js-file-line"><span class="pl-c"><span class="pl-c">//</span> a javascript codeblock example</span></td></tr><tr><td id="L2" class="blob-num js-line-number" data-line-number="2">&nbsp;</td><td id="LC2" class="blob-code blob-code-inner js-file-line"><span class="pl-k">if</span> (<span class="pl-c1">1</span> <span class="pl-k">&gt;</span> <span class="pl-c1">0</span>) {</td></tr><tr><td id="L3" class="blob-num js-line-number" data-line-number="3">&nbsp;</td><td id="LC3" class="blob-code blob-code-inner js-file-line"><span class="pl-en">console</span>.<span class="pl-c1">log</span>(<span class="pl-s"><span class="pl-pds">\'</span>condition is true<span class="pl-pds">\'</span></span>);</td></tr><tr><td id="L4" class="blob-num js-line-number" data-line-number="4">&nbsp;</td><td id="LC4" class="blob-code blob-code-inner js-file-line">}</td></tr></tbody></table>';
+                },
+            },
+            expectedMarkdown: '// a javascript codeblock example\nif (1 > 0) {\n  return \'condition is true\';\n}',
+        },
     ];
 
     for (const tc of testCases) {
@@ -300,9 +330,13 @@ describe('pasteHandler', () => {
                 clipboardData: tc.clipboardData,
             };
 
-            pasteHandler(event, location, '', false, 0);
+            pasteHandler(event, location, '', tc.isNonFormattedPaste ?? false);
 
-            expect(execCommandInsertText).toHaveBeenCalledWith(tc.expectedMarkdown);
+            if (tc.isNonFormattedPaste) {
+                expect(execCommandInsertText).not.toHaveBeenCalled();
+            } else {
+                expect(execCommandInsertText).toHaveBeenCalledWith(tc.expectedMarkdown);
+            }
         });
     }
 });
@@ -423,5 +457,67 @@ describe('createFileFromClipboardDataItem', () => {
         const file = createFileFromClipboardDataItem(item, 'pasted') as File;
 
         expect(file.name).toContain('.jpeg');
+    });
+});
+
+describe('isKnownTargetForPaste', () => {
+    test('editing mode should return true only for edit_textbox', () => {
+        expect(isKnownTargetForPaste(
+            {target: {id: 'edit_textbox'}} as unknown as ClipboardEvent,
+            Locations.RHS_COMMENT,
+            true,
+        )).toBe(true);
+
+        expect(isKnownTargetForPaste(
+            {target: {id: 'edit_textbox'}} as unknown as ClipboardEvent,
+            Locations.CENTER,
+            true,
+        )).toBe(true);
+
+        expect(isKnownTargetForPaste(
+            {target: {id: 'post_textbox'}} as unknown as ClipboardEvent,
+            Locations.CENTER,
+            true,
+        )).toBe(false);
+
+        expect(isKnownTargetForPaste(
+            {target: {id: 'reply_textbox'}} as unknown as ClipboardEvent,
+            Locations.RHS_COMMENT,
+            true,
+        )).toBe(false);
+    });
+
+    test('in non-editing state, center channel can only have post textbox', () => {
+        expect(isKnownTargetForPaste(
+            {target: {id: 'post_textbox'}} as unknown as ClipboardEvent,
+            Locations.CENTER,
+            false,
+        )).toBe(true);
+
+        expect(isKnownTargetForPaste(
+            {target: {id: 'edit_textbox'}} as unknown as ClipboardEvent,
+            Locations.CENTER,
+            false,
+        )).toBe(false);
+
+        expect(isKnownTargetForPaste(
+            {target: {id: 'reply_textbox'}} as unknown as ClipboardEvent,
+            Locations.CENTER,
+            false,
+        )).toBe(false);
+    });
+
+    test('in non-editing state, RHS can only have reply textbox', () => {
+        expect(isKnownTargetForPaste(
+            {target: {id: 'reply_textbox'}} as unknown as ClipboardEvent,
+            Locations.RHS_COMMENT,
+            false,
+        )).toBe(true);
+
+        expect(isKnownTargetForPaste(
+            {target: {id: 'edit_textbox'}} as unknown as ClipboardEvent,
+            Locations.RHS_COMMENT,
+            false,
+        )).toBe(false);
     });
 });

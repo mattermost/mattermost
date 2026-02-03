@@ -10,6 +10,8 @@
 // Stage: @prod
 // Group: @channels @files_and_attachments
 
+import * as TIMEOUTS from '../../../fixtures/timeouts';
+
 describe('YouTube Video', () => {
     before(() => {
         // # Enable Link Previews
@@ -27,13 +29,15 @@ describe('YouTube Video', () => {
 
     it('MM-T2258 YouTube Video play, collapse', () => {
         // # Post message
-        cy.postMessage('https://www.youtube.com/watch?v=gLNmtUEvI5A');
+        const youtubeUrl = 'https://www.youtube.com/watch?v=gLNmtUEvI5A';
+        cy.postMessage(youtubeUrl);
+        cy.uiWaitUntilMessagePostedIncludes(youtubeUrl);
         cy.getLastPost().within(() => {
             // # Click play button
-            cy.get('.play-button').click();
+            cy.get('.play-button', {timeout: TIMEOUTS.TEN_SEC}).click();
 
             // * Video should be loaded in the iframe
-            cy.get('.video-div > iframe').should('exist');
+            cy.get('.video-playing iframe').should('exist');
 
             // # Collapse video
             cy.get('.post__embed-visibility').click();
@@ -48,7 +52,7 @@ describe('YouTube Video', () => {
             cy.get('.play-button').should('exist');
 
             // * Video should not be played in the iframe
-            cy.get('.video-div > iframe').should('not.exist');
+            cy.get('.video-playing iframe').should('not.exist');
         });
     });
 });

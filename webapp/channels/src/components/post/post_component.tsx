@@ -4,7 +4,7 @@
 import classNames from 'classnames';
 import React, {useCallback, useEffect, useRef, useState, useMemo} from 'react';
 import type {MouseEvent} from 'react';
-import {FormattedMessage} from 'react-intl';
+import {FormattedMessage, useIntl} from 'react-intl';
 
 import type {Emoji} from '@mattermost/types/emojis';
 import type {Post} from '@mattermost/types/posts';
@@ -16,18 +16,19 @@ import {
     isMeMessage as checkIsMeMessage,
     isPostPendingOrFailed} from 'mattermost-redux/utils/post_utils';
 
-import {trackEvent} from 'actions/telemetry_actions';
-
+import BurnOnReadConfirmationModal from 'components/burn_on_read_confirmation_modal';
 import AutoHeightSwitcher, {AutoHeightSlots} from 'components/common/auto_height_switcher';
 import EditPost from 'components/edit_post';
 import FileAttachmentListContainer from 'components/file_attachment_list';
 import MessageWithAdditionalContent from 'components/message_with_additional_content';
-import OverlayTrigger from 'components/overlay_trigger';
 import PriorityLabel from 'components/post_priority/post_priority_label';
 import PostProfilePicture from 'components/post_profile_picture';
 import PostAcknowledgements from 'components/post_view/acknowledgements';
+import AiGeneratedIndicator from 'components/post_view/ai_generated_indicator/ai_generated_indicator';
+import BurnOnReadBadge from 'components/post_view/burn_on_read_badge';
+import BurnOnReadConcealedPlaceholder from 'components/post_view/burn_on_read_concealed_placeholder';
+import BurnOnReadTimerChip from 'components/post_view/burn_on_read_timer_chip';
 import CommentedOn from 'components/post_view/commented_on/commented_on';
-import DateSeparator from 'components/post_view/date_separator';
 import FailedPostOptions from 'components/post_view/failed_post_options';
 import PostAriaLabelDiv from 'components/post_view/post_aria_label_div';
 import PostBodyAdditionalContent from 'components/post_view/post_body_additional_content';
@@ -37,25 +38,28 @@ import PostTime from 'components/post_view/post_time';
 import ReactionList from 'components/post_view/reaction_list';
 import ThreadFooter from 'components/threading/channel_threads/thread_footer';
 import type {Props as TimestampProps} from 'components/timestamp/timestamp';
-import Tooltip from 'components/tooltip';
-import ArchiveIcon from 'components/widgets/icons/archive_icon';
 import InfoSmallIcon from 'components/widgets/icons/info_small_icon';
+import WithTooltip from 'components/with_tooltip';
 
+import {createBurnOnReadDeleteModalHandlers} from 'hooks/useBurnOnReadDeleteModal';
 import {getHistory} from 'utils/browser_history';
-import Constants, {A11yCustomEventTypes, AppEvents, Locations} from 'utils/constants';
+import {getArchiveIconComponent} from 'utils/channel_utils';
+import Constants, {A11yCustomEventTypes, AppEvents, Locations, PostTypes, ModalIdentifiers} from 'utils/constants';
 import type {A11yFocusEventDetail} from 'utils/constants';
 import {isKeyPressed} from 'utils/keyboard';
 import * as PostUtils from 'utils/post_utils';
-import {getDateForUnixTicks, makeIsEligibleForClick} from 'utils/utils';
+import {makeIsEligibleForClick} from 'utils/utils';
 
-import type {PostPluginComponent, PluginComponent} from 'types/store/plugins';
+import type {ModalData} from 'types/actions';
+import type {PostActionComponent, PostPluginComponent} from 'types/store/plugins';
 
+import {withPostErrorBoundary} from './post_error_boundary';
 import PostOptions from './post_options';
 import PostUserProfile from './user_profile';
 
 export type Props = {
     post: Post;
-    currentTeam: Team;
+    currentTeam?: Team;
     team?: Team;
     currentUserId: string;
     compactDisplay?: boolean;
@@ -69,6 +73,7 @@ export type Props = {
     isReadOnly?: boolean;
     pluginPostTypes?: {[postType: string]: PostPluginComponent};
     channelIsArchived?: boolean;
+    channelIsShared?: boolean;
     isConsecutivePost?: boolean;
     isLastPost?: boolean;
     recentEmojis: Emoji[];
@@ -92,13 +97,17 @@ export type Props = {
     actions: {
         markPostAsUnread: (post: Post, location: string) => void;
         emitShortcutReactToLastPostFrom: (emittedFrom: 'CENTER' | 'RHS_ROOT' | 'NO_WHERE') => void;
-        setActionsMenuInitialisationState: (viewed: Record<string, boolean>) => void;
         selectPost: (post: Post) => void;
         selectPostFromRightHandSideSearch: (post: Post) => void;
         removePost: (post: Post) => void;
         closeRightHandSide: () => void;
         selectPostCard: (post: Post) => void;
         setRhsExpanded: (rhsExpanded: boolean) => void;
+        revealBurnOnReadPost: (postId: string) => Promise<{data?: any; error?: any}>;
+        burnPostNow?: (postId: string) => Promise<any>;
+        savePreferences: (userId: string, preferences: Array<{category: string; user_id: string; name: string; value: string}>) => void;
+        openModal: <P>(modalData: ModalData<P>) => void;
+        closeModal: (modalId: string) => void;
     };
     timestampProps?: Partial<TimestampProps>;
     shouldHighlight?: boolean;
@@ -118,17 +127,21 @@ export type Props = {
     isPostPriorityEnabled: boolean;
     isCardOpen?: boolean;
     canDelete?: boolean;
-    pluginActions: PluginComponent[];
+    pluginActions: PostActionComponent[];
+    shouldDisplayBurnOnReadConcealed?: boolean;
+    burnOnReadDurationMinutes: number;
+    burnOnReadSkipConfirmation?: boolean;
 };
 
-const PostComponent = (props: Props): JSX.Element => {
+function PostComponent(props: Props) {
     const {post, shouldHighlight, togglePostMenu} = props;
+    const {formatMessage} = useIntl();
 
     const isSearchResultItem = (props.matches && props.matches.length > 0) || props.isMentionSearch || (props.term && props.term.length > 0);
     const isRHS = props.location === Locations.RHS_ROOT || props.location === Locations.RHS_COMMENT || props.location === Locations.SEARCH;
     const postRef = useRef<HTMLDivElement>(null);
     const postHeaderRef = useRef<HTMLDivElement>(null);
-    const teamId = props.team?.id || props.currentTeam.id;
+    const teamId = props.team?.id ?? props.currentTeam?.id ?? '';
 
     const [hover, setHover] = useState(false);
     const [a11yActive, setA11y] = useState(false);
@@ -137,6 +150,8 @@ const PostComponent = (props: Props): JSX.Element => {
     const [fadeOutHighlight, setFadeOutHighlight] = useState(false);
     const [alt, setAlt] = useState(false);
     const [hasReceivedA11yFocus, setHasReceivedA11yFocus] = useState(false);
+    const [burnOnReadRevealing, setBurnOnReadRevealing] = useState(false);
+    const [burnOnReadRevealError, setBurnOnReadRevealError] = useState<string | null>(null);
 
     const isSystemMessage = PostUtils.isSystemMessage(post);
     const fromAutoResponder = PostUtils.fromAutoResponder(post);
@@ -344,6 +359,11 @@ const PostComponent = (props: Props): JSX.Element => {
             return;
         }
 
+        // Prevent BoR messages from opening reply
+        if (post.type === PostTypes.BURN_ON_READ) {
+            return;
+        }
+
         if (
             !e.altKey &&
             props.clickToReply &&
@@ -352,7 +372,6 @@ const PostComponent = (props: Props): JSX.Element => {
             props.location === Locations.CENTER &&
             !props.isPostBeingEdited
         ) {
-            trackEvent('crt', 'clicked_to_reply');
             props.actions.selectPost(post);
         }
 
@@ -381,32 +400,102 @@ const PostComponent = (props: Props): JSX.Element => {
         getHistory().push(`/${props.teamName}/pl/${post.id}`);
     }, [props.isMobileView, props.actions, props.teamName, post?.id]);
 
+    const {selectPostFromRightHandSideSearch} = props.actions;
+
     const handleCommentClick = useCallback((e: React.MouseEvent) => {
         e.preventDefault();
 
         if (!post) {
             return;
         }
-        props.actions.selectPostFromRightHandSideSearch(post);
-    }, [post, props.actions, props.actions.selectPostFromRightHandSideSearch]);
+        selectPostFromRightHandSideSearch(post);
+    }, [post, selectPostFromRightHandSideSearch]);
 
     const handleThreadClick = useCallback((e: React.MouseEvent) => {
-        if (props.currentTeam.id === teamId) {
+        if (props.currentTeam?.id === teamId) {
             handleCommentClick(e);
         } else {
             handleJumpClick(e);
         }
-    }, [handleCommentClick, handleJumpClick, props.currentTeam.id, teamId]);
+    }, [handleCommentClick, handleJumpClick, props.currentTeam?.id, teamId]);
+
+    const handleRevealBurnOnRead = useCallback(async (postId: string) => {
+        setBurnOnReadRevealing(true);
+        setBurnOnReadRevealError(null);
+
+        try {
+            const result = await props.actions.revealBurnOnReadPost(postId);
+
+            if (result && typeof result === 'object' && 'error' in result) {
+                // Handle different error types with i18n
+                let errorMessage = formatMessage({
+                    id: 'post.burn_on_read.reveal_error.generic',
+                    defaultMessage: 'Failed to reveal message. Please try again.',
+                });
+
+                if (result.error.status_code === 404) {
+                    errorMessage = formatMessage({
+                        id: 'post.burn_on_read.reveal_error.not_found',
+                        defaultMessage: 'This message is no longer available.',
+                    });
+                } else if (result.error.status_code === 403) {
+                    errorMessage = formatMessage({
+                        id: 'post.burn_on_read.reveal_error.forbidden',
+                        defaultMessage: "You don't have permission to view this message.",
+                    });
+                }
+
+                setBurnOnReadRevealError(errorMessage);
+            }
+        } finally {
+            setBurnOnReadRevealing(false);
+        }
+    }, [props.actions, formatMessage]);
+
+    const handleBurnOnReadClick = useCallback((skipConfirmation: boolean) => {
+        const isSender = post.user_id === props.currentUserId;
+
+        if (skipConfirmation) {
+            props.actions.burnPostNow?.(post.id);
+            return;
+        }
+
+        const handlers = createBurnOnReadDeleteModalHandlers(
+            props.actions,
+            {
+                postId: post.id,
+                userId: props.currentUserId,
+                isSender,
+            },
+        );
+
+        props.actions.openModal({
+            modalId: ModalIdentifiers.BURN_ON_READ_CONFIRMATION,
+            dialogType: BurnOnReadConfirmationModal,
+            dialogProps: {
+                show: true,
+                ...handlers,
+            },
+        });
+    }, [props.actions, post.id, post.user_id, props.currentUserId]);
+
+    const handleTimerChipClick = useCallback(() => {
+        handleBurnOnReadClick(Boolean(props.burnOnReadSkipConfirmation));
+    }, [handleBurnOnReadClick, props.burnOnReadSkipConfirmation]);
+
+    const handleBadgeClick = useCallback(() => {
+        handleBurnOnReadClick(false);
+    }, [handleBurnOnReadClick]);
 
     const postClass = classNames('post__body', {'post--edited': PostUtils.isEdited(post), 'search-item-snippet': isSearchResultItem});
 
     let comment;
-    if (props.isFirstReply && props.parentPost && props.parentPostUser && post.type !== Constants.PostTypes.EPHEMERAL) {
+    if (props.isFirstReply && post.type !== Constants.PostTypes.EPHEMERAL) {
         comment = (
             <CommentedOn
-                post={props.parentPost}
-                parentPostUser={props.parentPostUser}
                 onCommentClick={handleCommentClick}
+                rootId={post.root_id}
+                enablePostUsernameOverride={props.enablePostUsernameOverride}
             />
         );
     }
@@ -444,44 +533,64 @@ const PostComponent = (props: Props): JSX.Element => {
         }
     }
 
-    const message = isSearchResultItem ? (
-        <PostBodyAdditionalContent
-            post={post}
-            options={{
-                searchTerm: props.term,
-                searchMatches: props.matches,
-            }}
-        >
-            <PostMessageContainer
+    // Determine if we should show concealed placeholder for burn-on-read posts
+    const showConcealedPlaceholder = props.shouldDisplayBurnOnReadConcealed && post.type === PostTypes.BURN_ON_READ;
+
+    let message;
+    if (showConcealedPlaceholder) {
+        message = (
+            <BurnOnReadConcealedPlaceholder
+                postId={post.id}
+                authorName={props.displayName || post.user_id}
+                onReveal={handleRevealBurnOnRead}
+                loading={burnOnReadRevealing}
+                error={burnOnReadRevealError}
+            />
+        );
+    } else if (isSearchResultItem) {
+        message = (
+            <PostBodyAdditionalContent
                 post={post}
                 options={{
                     searchTerm: props.term,
                     searchMatches: props.matches,
-                    mentionHighlight: props.isMentionSearch,
                 }}
+            >
+                <PostMessageContainer
+                    post={post}
+                    options={{
+                        searchTerm: props.term,
+                        searchMatches: props.matches,
+                        mentionHighlight: props.isMentionSearch,
+                    }}
+                    isRHS={isRHS}
+                />
+            </PostBodyAdditionalContent>
+        );
+    } else {
+        message = (
+            <MessageWithAdditionalContent
+                post={post}
+                isEmbedVisible={props.isEmbedVisible}
+                pluginPostTypes={props.pluginPostTypes}
                 isRHS={isRHS}
+                compactDisplay={props.compactDisplay}
             />
-        </PostBodyAdditionalContent>
-    ) : (
-        <MessageWithAdditionalContent
-            post={post}
-            isEmbedVisible={props.isEmbedVisible}
-            pluginPostTypes={props.pluginPostTypes}
-            isRHS={isRHS}
-            compactDisplay={props.compactDisplay}
-        />
-    );
+        );
+    }
 
-    const showSlot = props.isPostBeingEdited ? AutoHeightSlots.SLOT2 : AutoHeightSlots.SLOT1;
+    const slotBasedOnEditOrMessageView = props.isPostBeingEdited ? AutoHeightSlots.SLOT2 : AutoHeightSlots.SLOT1;
     const threadFooter = props.location !== Locations.RHS_ROOT && props.isCollapsedThreadsEnabled && !post.root_id && (props.hasReplies || post.is_following) ? (
         <ThreadFooter
             threadId={post.id}
             replyClick={handleThreadClick}
         />
     ) : null;
-    const currentPostDay = getDateForUnixTicks(post.create_at);
     const channelDisplayName = getChannelName();
-    const showReactions = props.location !== Locations.SEARCH || props.isPinnedPosts || props.isFlaggedPosts;
+
+    // Don't show reactions for unrevealed BoR posts - users can't react to concealed content
+    const showReactions = (props.location !== Locations.SEARCH || props.isPinnedPosts || props.isFlaggedPosts) &&
+        !props.shouldDisplayBurnOnReadConcealed;
 
     const getTestId = () => {
         let idPrefix: string;
@@ -505,8 +614,66 @@ const PostComponent = (props: Props): JSX.Element => {
     };
 
     let priority;
-    if (post.metadata?.priority && props.isPostPriorityEnabled) {
-        priority = <span className='d-flex mr-2 ml-1'><PriorityLabel priority={post.metadata.priority.priority}/></span>;
+    if (post.metadata?.priority && props.isPostPriorityEnabled && post.state !== Posts.POST_DELETED) {
+        priority = <span className='d-flex'><PriorityLabel priority={post.metadata.priority.priority}/></span>;
+    }
+
+    // Burn-on-Read badge logic
+    // Badge handles expiration scheduling internally via BurnOnReadExpirationHandler
+    // Only shows on first post in series (not consecutive posts)
+    let burnOnReadBadge;
+    const isBoRPost = post.type === PostTypes.BURN_ON_READ && post.state !== Posts.POST_DELETED && !props.isConsecutivePost;
+    if (isBoRPost) {
+        const isSender = post.user_id === props.currentUserId;
+        const revealed = typeof post.metadata?.expire_at === 'number';
+
+        // Parse expiration times - can be either number or string from API
+        // For revealed posts: metadata.expire_at contains the reveal timer
+        // For unrevealed posts: props.expire_at contains the maximum TTL
+        let expireAt = null;
+        if (typeof post.metadata?.expire_at === 'number') {
+            expireAt = post.metadata.expire_at;
+        } else if (post.metadata?.expire_at) {
+            expireAt = parseInt(String(post.metadata.expire_at), 10);
+        }
+
+        let maxExpireAt = null;
+        if (!revealed) {
+            // Unrevealed posts: read maximum TTL from props.expire_at
+            if (typeof post.props?.expire_at === 'number') {
+                maxExpireAt = post.props.expire_at;
+            } else if (post.props?.expire_at) {
+                maxExpireAt = parseInt(String(post.props.expire_at), 10);
+            }
+        }
+
+        burnOnReadBadge = (
+            <BurnOnReadBadge
+                post={post}
+                isSender={isSender}
+                revealed={revealed}
+                expireAt={expireAt && !isNaN(expireAt) ? expireAt : null}
+                maxExpireAt={maxExpireAt && !isNaN(maxExpireAt) ? maxExpireAt : null}
+                onReveal={handleRevealBurnOnRead}
+                onSenderDelete={handleBadgeClick}
+            />
+        );
+    }
+
+    // Burn-on-Read countdown timer chip
+    // Displays when expire_at is set (after reveal for receivers, after all reveal for sender)
+    let burnOnReadTimerChip;
+    if (isBoRPost) {
+        const hasExpireAt = typeof post.metadata?.expire_at === 'number';
+
+        if (hasExpireAt) {
+            burnOnReadTimerChip = (
+                <BurnOnReadTimerChip
+                    expireAt={post.metadata.expire_at as number}
+                    onClick={handleTimerChipClick}
+                />
+            );
+        }
     }
 
     let postAriaLabelDivTestId = '';
@@ -516,14 +683,15 @@ const PostComponent = (props: Props): JSX.Element => {
         postAriaLabelDivTestId = 'rhsPostView';
     }
 
+    // Don't show file attachments for concealed burn-on-read posts (attachments only fetched after reveal)
+    const showFileAttachments = post.file_ids && post.file_ids.length > 0 && !props.isPostBeingEdited && !showConcealedPlaceholder;
+
     return (
         <>
-            {(isSearchResultItem || (props.location !== Locations.CENTER && (props.isPinnedPosts || props.isFlaggedPosts))) && <DateSeparator date={currentPostDay}/>}
             <PostAriaLabelDiv
                 ref={postRef}
                 id={getTestId()}
                 data-testid={postAriaLabelDivTestId}
-                tabIndex={0}
                 post={post}
                 className={getClassName()}
                 onClick={handlePostClick}
@@ -541,13 +709,20 @@ const PostComponent = (props: Props): JSX.Element => {
                         </span>
                         }
                         {props.channelIsArchived &&
-                        <span className='search-channel__archived'>
-                            <ArchiveIcon className='icon icon__archive channel-header-archived-icon svg-text-color'/>
-                            <FormattedMessage
-                                id='search_item.channelArchived'
-                                defaultMessage='Archived'
-                            />
-                        </span>
+                        <WithTooltip
+                            id='channelArchivedTooltip'
+                            title={formatMessage({
+                                id: 'search_item.channelArchived',
+                                defaultMessage: 'Archived',
+                            })}
+                        >
+                            <span className='search-channel__archived'>
+                                {(() => {
+                                    const ArchiveIcon = getArchiveIconComponent(props.channelType);
+                                    return <ArchiveIcon className='icon icon__archive channel-header-archived-icon svg-text-color'/>;
+                                })()}
+                            </span>
+                        </WithTooltip>
                         }
                         {(Boolean(isSearchResultItem) || props.isFlaggedPosts) && Boolean(props.teamDisplayName) &&
                         <span className='search-team__name'>
@@ -564,7 +739,6 @@ const PostComponent = (props: Props): JSX.Element => {
                     channelId={post.channel_id}
                 />
                 <div
-                    role='application'
                     className={`post__content ${props.center ? 'center' : ''}`}
                     data-testid='postContent'
                 >
@@ -580,7 +754,7 @@ const PostComponent = (props: Props): JSX.Element => {
                                 {...props}
                                 isSystemMessage={isSystemMessage}
                             />
-                            <div className='col d-flex align-items-center'>
+                            <div className='badges-wrapper col d-flex align-items-center'>
                                 {((!hideProfilePicture && props.location === Locations.CENTER) || hover || props.location !== Locations.CENTER) &&
                                     <PostTime
                                         isPermalink={!(Posts.POST_DELETED === post.state || isPostPendingOrFailed(post))}
@@ -592,17 +766,23 @@ const PostComponent = (props: Props): JSX.Element => {
                                     />
                                 }
                                 {priority}
-                                {post.props && post.props.card &&
-                                    <OverlayTrigger
-                                        delayShow={Constants.OVERLAY_TIME_DELAY}
-                                        placement='top'
-                                        overlay={
-                                            <Tooltip>
-                                                <FormattedMessage
-                                                    id='post_info.info.view_additional_info'
-                                                    defaultMessage='View additional info'
-                                                />
-                                            </Tooltip>
+                                {burnOnReadBadge}
+                                {burnOnReadTimerChip}
+                                {((!props.compactDisplay && !(hasSameRoot(props) && props.isConsecutivePost)) || (props.compactDisplay && isRHS)) &&
+                                    PostUtils.hasAiGeneratedMetadata(post) && (
+                                    <AiGeneratedIndicator
+                                        userId={post.props.ai_generated_by as string}
+                                        username={post.props.ai_generated_by_username as string}
+                                        postAuthorId={post.user_id}
+                                    />
+                                )}
+                                {Boolean(post.props && post.props.card) &&
+                                    <WithTooltip
+                                        title={
+                                            <FormattedMessage
+                                                id='post_info.info.view_additional_info'
+                                                defaultMessage='View additional info'
+                                            />
                                         }
                                     >
                                         <button
@@ -617,7 +797,7 @@ const PostComponent = (props: Props): JSX.Element => {
                                                 aria-hidden='true'
                                             />
                                         </button>
-                                    </OverlayTrigger>
+                                    </WithTooltip>
                                 }
                                 {visibleMessage}
                             </div>
@@ -641,18 +821,19 @@ const PostComponent = (props: Props): JSX.Element => {
                         >
                             {post.failed && <FailedPostOptions post={post}/>}
                             <AutoHeightSwitcher
-                                showSlot={showSlot}
+                                showSlot={slotBasedOnEditOrMessageView}
                                 shouldScrollIntoView={props.isPostBeingEdited}
                                 slot1={message}
                                 slot2={<EditPost/>}
                                 onTransitionEnd={() => document.dispatchEvent(new Event(AppEvents.FOCUS_EDIT_TEXTBOX))}
                             />
-                            {post.file_ids && post.file_ids.length > 0 &&
-                            <FileAttachmentListContainer
-                                post={post}
-                                compactDisplay={props.compactDisplay}
-                                handleFileDropdownOpened={handleFileDropdownOpened}
-                            />
+                            {
+                                showFileAttachments &&
+                                <FileAttachmentListContainer
+                                    post={post}
+                                    compactDisplay={props.compactDisplay}
+                                    handleFileDropdownOpened={handleFileDropdownOpened}
+                                />
                             }
                             <div className='post__body-reactions-acks'>
                                 {props.isPostAcknowledgementsEnabled && post.metadata?.priority?.requested_ack && (
@@ -671,6 +852,6 @@ const PostComponent = (props: Props): JSX.Element => {
             </PostAriaLabelDiv>
         </>
     );
-};
+}
 
-export default PostComponent;
+export default withPostErrorBoundary(PostComponent);

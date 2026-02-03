@@ -95,12 +95,12 @@ function verifyDMChannelViaSendMessage(postId, team, channel, profileSelector, u
     // * Verify that it redirects into the DM channel and matches channel intro
     cy.get('#channelIntro').should('be.visible').within(() => {
         cy.url().should('include', `/${team.name}/messages/@${user.username}`);
-        cy.get('.channel-intro-profile').
+        cy.get('.channel-intro__title').
             should('be.visible').
             and('have.text', user.username);
-        cy.get('.channel-intro-text').
+        cy.get('.channel-intro__text').
             should('be.visible').
             and('contain', `This is the start of your direct message history with ${user.username}.`).
-            and('contain', 'Direct messages and files shared here are not shown to people outside this area.');
+            and('contain', 'Messages and files shared here are not shown to anyone else.');
     });
 }

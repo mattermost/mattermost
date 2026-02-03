@@ -4,31 +4,39 @@
 import {combineReducers} from 'redux';
 
 import {UserTypes} from 'mattermost-redux/action_types';
-import type {GenericAction} from 'mattermost-redux/types/actions';
 
 import {ActionTypes} from 'utils/constants';
 
-const defaultState = {
-    post: {},
+import type {MMAction} from 'types/store';
+import type {ViewsState} from 'types/store/views';
+
+const editingPostDefaultState: ViewsState['posts']['editingPost'] = {
     show: false,
+    postId: '',
+    refocusId: '',
+    isRHS: false,
 };
 
-function editingPost(state = defaultState, action: GenericAction) {
+function editingPost(state: ViewsState['posts']['editingPost'] = editingPostDefaultState, action: MMAction) {
     switch (action.type) {
-    case ActionTypes.TOGGLE_EDITING_POST:
-        return {
-            ...state,
-            ...action.data,
-        };
+    case ActionTypes.TOGGLE_EDITING_POST: {
+        if (action.data.show) {
+            return {
+                ...state,
+                ...action.data,
+            };
+        }
 
+        return editingPostDefaultState;
+    }
     case UserTypes.LOGOUT_SUCCESS:
-        return defaultState;
+        return editingPostDefaultState;
     default:
         return state;
     }
 }
 
-function menuActions(state: {[postId: string]: {[actionId: string]: {text: string; value: string}}} = {}, action: GenericAction) {
+function menuActions(state: {[postId: string]: {[actionId: string]: {text: string; value: string}}} = {}, action: MMAction) {
     switch (action.type) {
     case ActionTypes.SELECT_ATTACHMENT_MENU_ACTION: {
         const nextState = {...state};

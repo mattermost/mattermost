@@ -6,6 +6,7 @@ package flow
 import (
 	"encoding/json"
 	"fmt"
+	"maps"
 	"net/http"
 
 	"github.com/pkg/errors"
@@ -97,7 +98,7 @@ func (f *Flow) handleButton(fromName Name, selectedButton int, triggerID string)
 }
 
 func (f *Flow) handleDialog(
-	fromName Name, selectedButton int, submission map[string]interface{},
+	fromName Name, selectedButton int, submission map[string]any,
 ) (
 	*model.Post, map[string]string, error,
 ) {
@@ -105,7 +106,7 @@ func (f *Flow) handleDialog(
 }
 
 func (f *Flow) handle(
-	fromName Name, selectedButton int, submission map[string]interface{}, triggerID string, asButton bool,
+	fromName Name, selectedButton int, submission map[string]any, triggerID string, asButton bool,
 ) (
 	*model.Post, map[string]string, error,
 ) {
@@ -141,7 +142,7 @@ func (f *Flow) handle(
 	if err != nil || len(fieldErrors) > 0 {
 		return nil, fieldErrors, err
 	}
-	state.AppState = state.AppState.MergeWith(updated)
+	maps.Copy(state.AppState, updated)
 	state.Done = true
 	err = f.storeState(state)
 	if err != nil {
@@ -162,7 +163,7 @@ func (f *Flow) handle(
 
 		dialogRequest := model.OpenDialogRequest{
 			TriggerId: triggerID,
-			URL:       f.pluginURL + namePath(f.name) + "/dialog",
+			URL:       "/plugins/" + f.pluginID + namePath(f.name) + "/dialog",
 			Dialog:    processDialog(b.Dialog, state.AppState),
 		}
 		dialogRequest.Dialog.State = fmt.Sprintf("%v,%v", fromName, selectedButton)
@@ -196,7 +197,7 @@ func (f *Flow) handle(
 }
 
 func (f *Flow) processButtonPostActions(post *model.Post) {
-	attachments, ok := post.GetProp("attachments").([]*model.SlackAttachment)
+	attachments, ok := post.GetProp(model.PostPropsAttachments).([]*model.SlackAttachment)
 	if !ok || len(attachments) == 0 {
 		return
 	}
@@ -205,6 +206,6 @@ func (f *Flow) processButtonPostActions(post *model.Post) {
 		if a.Integration == nil {
 			a.Integration = &model.PostActionIntegration{}
 		}
-		a.Integration.URL = f.pluginURL + namePath(f.name) + "/button"
+		a.Integration.URL = "/plugins/" + f.pluginID + namePath(f.name) + "/button"
 	}
 }

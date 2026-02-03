@@ -3,26 +3,28 @@
 
 import classNames from 'classnames';
 import React from 'react';
-import {FormattedMessage} from 'react-intl';
+import type {WrappedComponentProps} from 'react-intl';
+import {FormattedMessage, defineMessages, injectIntl} from 'react-intl';
 import {Link} from 'react-router-dom';
 
 import type {AdminConfig} from '@mattermost/types/config';
 import type {DeepPartial} from '@mattermost/types/utilities';
 
 import PluginState from 'mattermost-redux/constants/plugins';
+import type {ActionResult} from 'mattermost-redux/types/actions';
 
 import ConfirmModal from 'components/confirm_modal';
 import ExternalLink from 'components/external_link';
-import FormattedMarkdownMessage from 'components/formatted_markdown_message';
 import LoadingScreen from 'components/loading_screen';
 
 import {appsPluginID} from 'utils/apps';
 import {DeveloperLinks} from 'utils/constants';
 import * as Utils from 'utils/utils';
 
-import AdminSettings from '../admin_settings';
-import type {BaseProps, BaseState} from '../admin_settings';
 import BooleanSetting from '../boolean_setting';
+import OLDAdminSettings from '../old_admin_settings';
+import type {BaseProps, BaseState} from '../old_admin_settings';
+import SettingSet from '../setting_set';
 import SettingsGroup from '../settings_group';
 import TextSetting from '../text_setting';
 
@@ -185,6 +187,44 @@ type PluginItemProps = {
     appsFeatureFlagEnabled: boolean;
     isDisabled?: boolean;
 };
+
+const messages = defineMessages({
+    title: {id: 'admin.plugin.management.title', defaultMessage: 'Plugin Management'},
+    enable: {id: 'admin.plugins.settings.enable', defaultMessage: 'Enable Plugins: '},
+    enableDesc: {id: 'admin.plugins.settings.enableDesc', defaultMessage: 'When true, enables plugins on your Mattermost server. Use plugins to integrate with third-party systems, extend functionality, or customize the user interface of your Mattermost server. See <link>documentation</link> to learn more.'},
+    uploadTitle: {id: 'admin.plugin.uploadTitle', defaultMessage: 'Upload Plugin: '},
+    installedTitle: {id: 'admin.plugin.installedTitle', defaultMessage: 'Installed Plugins: '},
+    installedDesc: {id: 'admin.plugin.installedDesc', defaultMessage: 'Installed plugins on your Mattermost server.'},
+    uploadDesc: {id: 'admin.plugin.uploadDesc', defaultMessage: 'Upload a plugin for your Mattermost server. See <link>documentation</link> to learn more.'},
+    uploadDisabledDesc: {id: 'admin.plugin.uploadDisabledDesc', defaultMessage: 'Enable plugin uploads in config.json. See <link>documentation</link> to learn more.'},
+    enableMarketplace: {id: 'admin.plugins.settings.enableMarketplace', defaultMessage: 'Enable Marketplace:'},
+    enableMarketplaceDesc: {id: 'admin.plugins.settings.enableMarketplaceDesc', defaultMessage: 'When true, enables System Administrators to install plugins from the <link>marketplace</link>.'},
+    enableRemoteMarketplace: {id: 'admin.plugins.settings.enableRemoteMarketplace', defaultMessage: 'Enable Remote Marketplace:'},
+    enableRemoteMarketplaceDesc: {id: 'admin.plugins.settings.enableRemoteMarketplaceDesc', defaultMessage: 'When true, marketplace fetches latest plugins from the configured Marketplace URL.'},
+    automaticPrepackagedPlugins: {id: 'admin.plugins.settings.automaticPrepackagedPlugins', defaultMessage: 'Enable Automatic Prepackaged Plugins:'},
+    automaticPrepackagedPluginsDesc: {id: 'admin.plugins.settings.automaticPrepackagedPluginsDesc', defaultMessage: 'When true, automatically installs any prepackaged plugin found to be enabled in the server configuration.'},
+    marketplaceUrl: {id: 'admin.plugins.settings.marketplaceUrl', defaultMessage: 'Marketplace URL:'},
+    marketplaceUrlDesc: {id: 'admin.plugins.settings.marketplaceUrlDesc', defaultMessage: 'URL of the marketplace server.'},
+});
+
+export const searchableStrings = [
+    messages.title,
+    messages.enable,
+    messages.enableDesc,
+    messages.uploadTitle,
+    messages.installedTitle,
+    messages.installedDesc,
+    messages.uploadDesc,
+    messages.uploadDisabledDesc,
+    messages.enableMarketplace,
+    messages.enableMarketplaceDesc,
+    messages.enableRemoteMarketplace,
+    messages.enableRemoteMarketplaceDesc,
+    messages.automaticPrepackagedPlugins,
+    messages.automaticPrepackagedPluginsDesc,
+    messages.marketplaceUrl,
+    messages.marketplaceUrlDesc,
+];
 
 const PluginItem = ({
     pluginStatus,
@@ -421,15 +461,15 @@ type Props = BaseProps & {
     plugins: any;
     appsFeatureFlagEnabled: boolean;
     actions: {
-        uploadPlugin: (fileData: File, force: boolean) => any;
-        removePlugin: (pluginId: string) => any;
-        getPlugins: () => unknown;
-        getPluginStatuses: () => any;
-        enablePlugin: (pluginId: string) => any;
-        disablePlugin: (pluginId: string) => any;
-        installPluginFromUrl: (url: string, force: boolean) => any;
+        uploadPlugin: (fileData: File, force: boolean) => Promise<ActionResult>;
+        removePlugin: (pluginId: string) => Promise<ActionResult>;
+        getPlugins: () => Promise<ActionResult>;
+        getPluginStatuses: () => Promise<ActionResult>;
+        enablePlugin: (pluginId: string) => Promise<ActionResult>;
+        disablePlugin: (pluginId: string) => Promise<ActionResult>;
+        installPluginFromUrl: (url: string, force: boolean) => Promise<ActionResult>;
     };
-};
+} & WrappedComponentProps;
 
 type State = BaseState & {
     loading: boolean;
@@ -456,7 +496,7 @@ type State = BaseState & {
     requirePluginSignature: boolean;
     removing: string | null;
 }
-export default class PluginManagement extends AdminSettings<Props, State> {
+class PluginManagement extends OLDAdminSettings<Props, State> {
     private fileInput: React.RefObject<HTMLInputElement>;
     constructor(props: Props) {
         super(props);
@@ -517,6 +557,10 @@ export default class PluginManagement extends AdminSettings<Props, State> {
         }
     }
 
+    handleChooseFileClick = () => {
+        this.fileInput.current?.click();
+    };
+
     handleUpload = () => {
         this.setState({lastMessage: null, serverError: null});
         const element = this.fileInput.current as HTMLInputElement;
@@ -540,9 +584,9 @@ export default class PluginManagement extends AdminSettings<Props, State> {
                 uploading: false,
             });
             if (error.server_error_id === 'app.plugin.activate.app_error') {
-                this.setState({serverError: Utils.localizeMessage('admin.plugin.error.activate', 'Unable to upload the plugin. It may conflict with another plugin on your server.')});
+                this.setState({serverError: this.props.intl.formatMessage({id: 'admin.plugin.error.activate', defaultMessage: 'Unable to upload the plugin. It may conflict with another plugin on your server.'})});
             } else if (error.server_error_id === 'app.plugin.extract.app_error') {
-                this.setState({serverError: Utils.localizeMessage('admin.plugin.error.extract', 'Encountered an error when extracting the plugin. Review your plugin file content and try again.')});
+                this.setState({serverError: this.props.intl.formatMessage({id: 'admin.plugin.error.extract', defaultMessage: 'Encountered an error when extracting the plugin. Review your plugin file content and try again.'})});
             } else {
                 this.setState({serverError: error.message});
             }
@@ -628,7 +672,7 @@ export default class PluginManagement extends AdminSettings<Props, State> {
             });
 
             if (error.server_error_id === 'app.plugin.extract.app_error') {
-                this.setState({serverError: Utils.localizeMessage('admin.plugin.error.extract', 'Encountered an error when extracting the plugin. Review your plugin file content and try again.')});
+                this.setState({serverError: this.props.intl.formatMessage({id: 'admin.plugin.error.extract', defaultMessage: 'Encountered an error when extracting the plugin. Review your plugin file content and try again.'})});
             } else {
                 this.setState({serverError: error.message});
             }
@@ -659,7 +703,7 @@ export default class PluginManagement extends AdminSettings<Props, State> {
                     url === '' && enableUploads &&
                     <div className='alert-warning'>
                         <i className='fa fa-warning'/>
-                        <FormattedMarkdownMessage
+                        <FormattedMessage
                             id='admin.plugins.settings.marketplaceUrlDesc.empty'
                             defaultMessage=' Marketplace URL is a required field.'
                         />
@@ -667,16 +711,12 @@ export default class PluginManagement extends AdminSettings<Props, State> {
                 }
                 {
                     url !== '' && enableUploads &&
-                    <FormattedMarkdownMessage
-                        id='admin.plugins.settings.marketplaceUrlDesc'
-                        defaultMessage='URL of the marketplace server.'
-                    />
+                    <FormattedMessage {...messages.marketplaceUrlDesc}/>
                 }
                 {
                     !enableUploads &&
                     <FormattedMessage
-                        id='admin.plugin.uploadDisabledDesc'
-                        defaultMessage='Enable plugin uploads in config.json. See <link>documentation</link> to learn more.'
+                        {...messages.uploadDisabledDesc}
                         values={{
                             link: (msg: React.ReactNode) => (
                                 <ExternalLink
@@ -781,12 +821,7 @@ export default class PluginManagement extends AdminSettings<Props, State> {
     };
 
     renderTitle() {
-        return (
-            <FormattedMessage
-                id='admin.plugin.management.title'
-                defaultMessage='Management'
-            />
-        );
+        return (<FormattedMessage {...messages.title}/>);
     }
 
     renderOverwritePluginModal = (
@@ -868,16 +903,10 @@ export default class PluginManagement extends AdminSettings<Props, State> {
             return (
                 <BooleanSetting
                     id='enable'
-                    label={
-                        <FormattedMessage
-                            id='admin.plugins.settings.enable'
-                            defaultMessage='Enable Plugins: '
-                        />
-                    }
+                    label={<FormattedMessage {...messages.enable}/>}
                     helpText={
                         <FormattedMessage
-                            id='admin.plugins.settings.enableDesc'
-                            defaultMessage='When true, enables plugins on your Mattermost server. Use plugins to integrate with third-party systems, extend functionality, or customize the user interface of your Mattermost server. See <link>documentation</link> to learn more.'
+                            {...messages.enableDesc}
                             values={{
                                 link: (msg: React.ReactNode) => (
                                     <ExternalLink
@@ -903,8 +932,8 @@ export default class PluginManagement extends AdminSettings<Props, State> {
     renderSettings = () => {
         const {enableUploads} = this.state;
         const enable = this.props.config?.PluginSettings?.Enable;
-        let serverError = <React.Fragment/>;
-        let lastMessage = <React.Fragment/>;
+        let serverError = <></>;
+        let lastMessage = <></>;
 
         // Using props values to make sure these are set on the server and not just locally
         const enableUploadButton = enableUploads && enable && !(this.props.config.PluginSettings && this.props.config.PluginSettings.RequirePluginSignature);
@@ -994,26 +1023,15 @@ export default class PluginManagement extends AdminSettings<Props, State> {
 
         if (enable) {
             pluginsContainer = (
-                <div className='form-group'>
-                    <label
-                        className='control-label col-sm-4'
-                    >
-                        <FormattedMessage
-                            id='admin.plugin.installedTitle'
-                            defaultMessage='Installed Plugins: '
-                        />
-                    </label>
-                    <div className='col-sm-8'>
-                        <p className='help-text'>
-                            <FormattedMessage
-                                id='admin.plugin.installedDesc'
-                                defaultMessage='Installed plugins on your Mattermost server.'
-                            />
-                        </p>
-                        <br/>
-                        {pluginsListContainer}
-                    </div>
-                </div>
+                <SettingSet
+                    label={<FormattedMessage {...messages.installedTitle}/>}
+                >
+                    <p className='help-text'>
+                        <FormattedMessage {...messages.installedDesc}/>
+                    </p>
+                    <br/>
+                    {pluginsListContainer}
+                </SettingSet>
             );
         }
 
@@ -1022,8 +1040,7 @@ export default class PluginManagement extends AdminSettings<Props, State> {
         if (enableUploads && enable) {
             uploadHelpText = (
                 <FormattedMessage
-                    id='admin.plugin.uploadDesc'
-                    defaultMessage='Upload a plugin for your Mattermost server. See <link>documentation</link> to learn more.'
+                    {...messages.uploadDesc}
                     values={{
                         link: (msg: React.ReactNode) => (
                             <ExternalLink
@@ -1039,8 +1056,7 @@ export default class PluginManagement extends AdminSettings<Props, State> {
         } else if (enable && !enableUploads) {
             uploadHelpText = (
                 <FormattedMessage
-                    id='admin.plugin.uploadDisabledDesc'
-                    defaultMessage='Enable plugin uploads in config.json. See <link>documentation</link> to learn more.'
+                    {...messages.uploadDisabledDesc}
                     values={{
                         link: (msg: React.ReactNode) => (
                             <ExternalLink
@@ -1057,7 +1073,7 @@ export default class PluginManagement extends AdminSettings<Props, State> {
             uploadHelpText = (
                 <FormattedMessage
                     id='admin.plugin.uploadAndPluginDisabledDesc'
-                    defaultMessage='To enable plugins, set **Enable Plugins** to true. See <link>documentation</link> to learn more.'
+                    defaultMessage='To enable plugins, set <strong>Enable Plugins</strong> to true. See <link>documentation</link> to learn more.'
                     values={{
                         link: (msg: React.ReactNode) => (
                             <ExternalLink
@@ -1067,6 +1083,7 @@ export default class PluginManagement extends AdminSettings<Props, State> {
                                 {msg}
                             </ExternalLink>
                         ),
+                        strong: (msg: React.ReactNode) => <strong>{msg}</strong>,
                     }}
                 />
             );
@@ -1126,82 +1143,57 @@ export default class PluginManagement extends AdminSettings<Props, State> {
                                 />
                                 <BooleanSetting
                                     id='automaticPrepackagedPlugins'
-                                    label={
-                                        <FormattedMessage
-                                            id='admin.plugins.settings.automaticPrepackagedPlugins'
-                                            defaultMessage='Enable Automatic Prepackaged Plugins:'
-                                        />
-                                    }
-                                    helpText={
-                                        <FormattedMarkdownMessage
-                                            id='admin.plugins.settings.automaticPrepackagedPluginsDesc'
-                                            defaultMessage='When true, automatically installs any prepackaged plugin found to be enabled in the server configuration.'
-                                        />
-                                    }
+                                    label={<FormattedMessage {...messages.automaticPrepackagedPlugins}/>}
+                                    helpText={<FormattedMessage {...messages.automaticPrepackagedPluginsDesc}/>}
                                     value={this.state.automaticPrepackagedPlugins}
                                     disabled={this.props.isDisabled || !this.state.enable}
                                     onChange={this.handleChange}
                                     setByEnv={this.isSetByEnv('PluginSettings.AutomaticPrepackagedPlugins')}
                                 />
-                                <div className='form-group'>
-                                    <label
-                                        className='control-label col-sm-4'
-                                    >
-                                        <FormattedMessage
-                                            id='admin.plugin.uploadTitle'
-                                            defaultMessage='Upload Plugin: '
-                                        />
-                                    </label>
-                                    <div className='col-sm-8'>
-                                        <div className='file__upload'>
-                                            <button
-                                                type='button'
-                                                className={classNames(['btn', {'btn-tertiary': enableUploads}])}
-                                                disabled={!enableUploadButton || this.props.isDisabled}
-                                            >
-                                                <FormattedMessage
-                                                    id='admin.plugin.choose'
-                                                    defaultMessage='Choose File'
-                                                />
-                                            </button>
-                                            <input
-                                                ref={this.fileInput}
-                                                type='file'
-                                                accept='.gz'
-                                                onChange={this.handleUpload}
-                                                disabled={!enableUploadButton || this.props.isDisabled}
-                                            />
-                                        </div>
+                                <SettingSet
+                                    helpText={uploadHelpText}
+                                    label={<FormattedMessage {...messages.uploadTitle}/>}
+                                >
+                                    <div className='file__upload'>
                                         <button
-                                            className={btnClass}
-                                            id='uploadPlugin'
-                                            disabled={!this.state.fileSelected}
-                                            onClick={this.handleSubmitUpload}
+                                            type='button'
+                                            className={classNames(['btn', {'btn-tertiary': enableUploads}])}
+                                            onClick={this.handleChooseFileClick}
+                                            disabled={!enableUploadButton || this.props.isDisabled}
                                         >
-                                            {uploadButtonText}
+                                            <FormattedMessage
+                                                id='admin.plugin.choose'
+                                                defaultMessage='Choose File'
+                                            />
                                         </button>
-                                        <div className='help-text m-0'>
-                                            {fileName}
-                                        </div>
-                                        {serverError}
-                                        {lastMessage}
-                                        <p className='help-text'>
-                                            {uploadHelpText}
-                                        </p>
+                                        <input
+                                            ref={this.fileInput}
+                                            type='file'
+                                            accept='.gz'
+                                            onChange={this.handleUpload}
+                                            disabled={!enableUploadButton || this.props.isDisabled}
+                                        />
                                     </div>
-                                </div>
+                                    <button
+                                        className={btnClass}
+                                        id='uploadPlugin'
+                                        disabled={!this.state.fileSelected}
+                                        onClick={this.handleSubmitUpload}
+                                    >
+                                        {uploadButtonText}
+                                    </button>
+                                    <div className='help-text m-0'>
+                                        {fileName}
+                                    </div>
+                                    {serverError}
+                                    {lastMessage}
+                                </SettingSet>
                                 <BooleanSetting
                                     id='enableMarketplace'
-                                    label={
-                                        <FormattedMessage
-                                            id='admin.plugins.settings.enableMarketplace'
-                                            defaultMessage='Enable Marketplace:'
-                                        />
-                                    }
+                                    label={<FormattedMessage {...messages.enableMarketplace}/>}
                                     helpText={
                                         <FormattedMessage
-                                            id='admin.plugins.settings.enableMarketplaceDesc'
-                                            defaultMessage='When true, enables System Administrators to install plugins from the <link>marketplace</link>.'
+                                            {...messages.enableMarketplaceDesc}
                                             values={{
                                                 link: (msg: React.ReactNode) => (
                                                     <ExternalLink
@@ -1221,18 +1213,8 @@ export default class PluginManagement extends AdminSettings<Props, State> {
                                 />
                                 <BooleanSetting
                                     id='enableRemoteMarketplace'
-                                    label={
-                                        <FormattedMessage
-                                            id='admin.plugins.settings.enableRemoteMarketplace'
-                                            defaultMessage='Enable Remote Marketplace:'
-                                        />
-                                    }
-                                    helpText={
-                                        <FormattedMarkdownMessage
-                                            id='admin.plugins.settings.enableRemoteMarketplaceDesc'
-                                            defaultMessage='When true, marketplace fetches latest plugins from the configured Marketplace URL.'
-                                        />
-                                    }
+                                    label={<FormattedMessage {...messages.enableRemoteMarketplace}/>}
+                                    helpText={<FormattedMessage {...messages.enableRemoteMarketplaceDesc}/>}
                                     value={this.state.enableRemoteMarketplace}
                                     disabled={this.props.isDisabled || !this.state.enable || !this.state.enableUploads || !this.state.enableMarketplace}
                                     onChange={this.handleChange}
@@ -1240,12 +1222,7 @@ export default class PluginManagement extends AdminSettings<Props, State> {
                                 />
                                 <TextSetting
                                     id={'marketplaceUrl'}
-                                    label={
-                                        <FormattedMessage
-                                            id='admin.plugins.settings.marketplaceUrl'
-                                            defaultMessage='Marketplace URL:'
-                                        />
-                                    }
+                                    label={<FormattedMessage {...messages.marketplaceUrl}/>}
                                     helpText={this.getMarketplaceURLHelpText(this.state.marketplaceUrl, this.state.enableUploads)}
                                     value={this.state.marketplaceUrl}
                                     disabled={this.props.isDisabled || !this.state.enable || !this.state.enableUploads || !this.state.enableMarketplace || !this.state.enableRemoteMarketplace}
@@ -1263,3 +1240,5 @@ export default class PluginManagement extends AdminSettings<Props, State> {
         );
     };
 }
+
+export default injectIntl(PluginManagement);

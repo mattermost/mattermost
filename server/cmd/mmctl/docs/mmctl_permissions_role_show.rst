@@ -20,7 +20,7 @@ Examples
 
 ::
 
-    permissions show system_user
+    permissions role show system_user
 
 Options
 ~~~~~~~

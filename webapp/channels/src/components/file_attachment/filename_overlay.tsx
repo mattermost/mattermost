@@ -2,15 +2,15 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
+import {defineMessage} from 'react-intl';
 
 import type {FileInfo} from '@mattermost/types/files';
 
 import {getFileDownloadUrl} from 'mattermost-redux/utils/file_utils';
 
 import ExternalLink from 'components/external_link';
-import OverlayTrigger from 'components/overlay_trigger';
-import Tooltip from 'components/tooltip';
 import AttachmentIcon from 'components/widgets/icons/attachment_icon';
+import WithTooltip from 'components/with_tooltip';
 
 import {trimFilename} from 'utils/file_utils';
 import {localizeMessage} from 'utils/utils';
@@ -46,6 +46,8 @@ type Props = {
      * Optional class like for icon
      */
     iconClass?: string;
+
+    overrideGenerateFileDownloadUrl?: (fileId: string) => string;
 }
 
 export default class FilenameOverlay extends React.PureComponent<Props> {
@@ -57,6 +59,7 @@ export default class FilenameOverlay extends React.PureComponent<Props> {
             fileInfo,
             handleImageClick,
             iconClass,
+            overrideGenerateFileDownloadUrl,
         } = this.props;
 
         const fileName = fileInfo.name;
@@ -65,44 +68,36 @@ export default class FilenameOverlay extends React.PureComponent<Props> {
         let filenameOverlay;
         if (compactDisplay) {
             filenameOverlay = (
-                <OverlayTrigger
-                    delayShow={1000}
-                    placement='top'
-                    overlay={<Tooltip id='file-name__tooltip'>{fileName}</Tooltip>}
+                <WithTooltip
+                    title={fileName}
                 >
                     <a
-                        id='file-attachment-link'
                         href='#'
                         onClick={handleImageClick}
-                        className='post-image__name'
+                        className='post-image__name btn btn-icon btn-sm'
                         rel='noopener noreferrer'
                     >
                         <AttachmentIcon className='icon'/>
                         {trimmedFilename}
                     </a>
-                </OverlayTrigger>
+                </WithTooltip>
             );
         } else if (canDownload) {
             filenameOverlay = (
                 <div className={iconClass || 'post-image__name'}>
-                    <OverlayTrigger
-                        delayShow={1000}
-                        placement='top'
-                        overlay={
-                            <Tooltip id='file-name__tooltip'>
-                                {localizeMessage('view_image_popover.download', 'Download')}
-                            </Tooltip>
-                        }
+                    <WithTooltip
+                        title={defineMessage({id: 'view_image_popover.download', defaultMessage: 'Download'})}
                     >
                         <ExternalLink
-                            href={getFileDownloadUrl(fileInfo.id)}
-                            aria-label={localizeMessage('view_image_popover.download', 'Download').toLowerCase()}
+                            href={(overrideGenerateFileDownloadUrl || getFileDownloadUrl)(fileInfo.id)}
+                            aria-label={localizeMessage({id: 'view_image_popover.download', defaultMessage: 'Download'}).toLowerCase()}
+                            className='btn btn-icon btn-sm'
                             download={fileName}
                             location='filename_overlay'
                         >
                             {children || trimmedFilename}
                         </ExternalLink>
-                    </OverlayTrigger>
+                    </WithTooltip>
                 </div>
             );
         } else {

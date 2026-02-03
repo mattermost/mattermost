@@ -6,11 +6,15 @@ import type {ConnectedProps} from 'react-redux';
 import {bindActionCreators} from 'redux';
 import type {Dispatch} from 'redux';
 
+import type {FileInfo} from '@mattermost/types/files';
 import type {Post} from '@mattermost/types/posts';
 
-import {makeGetFilesForPost} from 'mattermost-redux/selectors/entities/files';
+import {PostTypes} from 'mattermost-redux/constants/posts';
+import {
+    makeGetFilesForEditHistory,
+    makeGetFilesForPost,
+} from 'mattermost-redux/selectors/entities/files';
 import {getConfig} from 'mattermost-redux/selectors/entities/general';
-import type {GenericAction} from 'mattermost-redux/types/actions';
 
 import {openModal} from 'actions/views/modals';
 import {getCurrentLocale} from 'selectors/i18n';
@@ -25,18 +29,37 @@ export type OwnProps = {
     compactDisplay?: boolean;
     isInPermalink?: boolean;
     handleFileDropdownOpened?: (open: boolean) => void;
+    isEditHistory?: boolean;
+    disableDownload?: boolean;
+    disableActions?: boolean;
+    usePostAsSource?: boolean;
+    overrideGenerateFileDownloadUrl?: (fileId: string) => string;
 }
 
 function makeMapStateToProps() {
     const selectFilesForPost = makeGetFilesForPost();
+    const getFilesForEditHistory = makeGetFilesForEditHistory();
 
     return function mapStateToProps(state: GlobalState, ownProps: OwnProps) {
         const postId = ownProps.post ? ownProps.post.id : '';
-        const fileInfos = selectFilesForPost(state, postId);
+
+        let fileInfos: FileInfo[];
+
+        if (ownProps.usePostAsSource) {
+            fileInfos = ownProps.post.metadata?.files || [];
+        } else if (ownProps.isEditHistory) {
+            fileInfos = getFilesForEditHistory(state, ownProps.post);
+        } else if (ownProps.post.type === PostTypes.BURN_ON_READ && ownProps.post.metadata?.files) {
+            // For burn-on-read posts, file metadata is sent directly in the reveal response
+            // and not stored as separate entities in Redux state, so we use metadata.files
+            fileInfos = ownProps.post.metadata.files;
+        } else {
+            fileInfos = selectFilesForPost(state, postId);
+        }
 
         let fileCount = 0;
-        if (ownProps.post.metadata && ownProps.post.metadata.files) {
-            fileCount = (ownProps.post.metadata.files || []).length;
+        if (ownProps.post.metadata?.files) {
+            fileCount = ownProps.post.metadata.files.length;
         } else if (ownProps.post.file_ids) {
             fileCount = ownProps.post.file_ids.length;
         } else if (ownProps.post.filenames) {
@@ -53,7 +76,7 @@ function makeMapStateToProps() {
     };
 }
 
-function mapDispatchToProps(dispatch: Dispatch<GenericAction>) {
+function mapDispatchToProps(dispatch: Dispatch) {
     return {
         actions: bindActionCreators({
             openModal,

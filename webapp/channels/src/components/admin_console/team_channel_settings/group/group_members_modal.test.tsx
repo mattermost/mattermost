@@ -18,7 +18,7 @@ describe('admin_console/team_channel_settings/group/GroupList', () => {
                 onExited={jest.fn()}
             />,
         );
-        wrapper.setState({show: true});
+        expect(wrapper.find('Modal').prop('show')).toBe(true);
         expect(wrapper).toMatchSnapshot();
     });
 });

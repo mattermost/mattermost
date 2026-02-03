@@ -12,6 +12,7 @@ import SaveButton from 'components/save_button';
 jest.mock('actions/admin_actions.jsx', () => {
     return {
         elasticsearchPurgeIndexes: jest.fn(),
+        rebuildChannelsIndex: jest.fn(),
         elasticsearchTest: (config: AdminConfig, success: () => void) => success(),
     };
 });
@@ -78,20 +79,20 @@ describe('components/ElasticSearchSettings', () => {
                 EnableAutocomplete: false,
             },
         };
-        const wrapper = shallow<ElasticSearchSettings>(
+        const wrapper = shallow(
             <ElasticSearchSettings
                 config={config as AdminConfig}
             />,
         );
+        const instance = wrapper.instance() as any;
         expect(wrapper.find(SaveButton).prop('disabled')).toBe(true);
-        wrapper.instance().handleSettingChanged('enableIndexing', true);
+        instance.handleSettingChanged('enableIndexing', true);
         expect(wrapper.find(SaveButton).prop('disabled')).toBe(true);
-        const instance = wrapper.instance();
         const success = jest.fn();
         const error = jest.fn();
         instance.doTestConfig(success, error);
-        expect(success).toBeCalled();
-        expect(error).not.toBeCalled();
+        expect(success).toHaveBeenCalled();
+        expect(error).not.toHaveBeenCalled();
         expect(wrapper.find(SaveButton).prop('disabled')).toBe(false);
     });
 });

@@ -18,34 +18,86 @@ func TestPreferenceIsValid(t *testing.T) {
 		Name:     NewId(),
 	}
 
-	require.NotNil(t, preference.IsValid())
+	t.Run("should require a user ID", func(t *testing.T) {
+		require.NotNil(t, preference.IsValid())
 
-	preference.UserId = NewId()
-	require.Nil(t, preference.IsValid())
+		preference.UserId = NewId()
+		require.Nil(t, preference.IsValid())
+	})
 
-	preference.Category = strings.Repeat("01234567890", 20)
-	require.NotNil(t, preference.IsValid())
+	t.Run("should require a valid category", func(t *testing.T) {
+		preference.Category = strings.Repeat("01234567890", 20)
+		require.NotNil(t, preference.IsValid())
 
-	preference.Category = PreferenceCategoryDirectChannelShow
-	require.Nil(t, preference.IsValid())
+		preference.Category = PreferenceCategoryDirectChannelShow
+		require.Nil(t, preference.IsValid())
+	})
 
-	preference.Name = strings.Repeat("01234567890", 20)
-	require.NotNil(t, preference.IsValid())
+	t.Run("should require a valid name", func(t *testing.T) {
+		preference.Name = strings.Repeat("01234567890", 20)
+		require.NotNil(t, preference.IsValid())
 
-	preference.Name = NewId()
-	require.Nil(t, preference.IsValid())
+		preference.Name = NewId()
+		require.Nil(t, preference.IsValid())
+	})
 
-	preference.Value = strings.Repeat("01234567890", 201)
-	require.NotNil(t, preference.IsValid())
+	t.Run("should require a valid value", func(t *testing.T) {
+		preference.Value = strings.Repeat("01234567890", 2001)
+		require.NotNil(t, preference.IsValid())
 
-	preference.Value = "1234garbage"
-	require.Nil(t, preference.IsValid())
+		preference.Value = "1234garbage"
+		require.Nil(t, preference.IsValid())
+	})
 
-	preference.Category = PreferenceCategoryTheme
-	require.NotNil(t, preference.IsValid())
+	t.Run("should validate that a theme preference's value is a map", func(t *testing.T) {
+		preference.Category = PreferenceCategoryTheme
+		require.NotNil(t, preference.IsValid())
 
-	preference.Value = `{"color": "#ff0000", "color2": "#faf"}`
-	require.Nil(t, preference.IsValid())
+		preference.Value = `{"color": "#ff0000", "color2": "#faf"}`
+		require.Nil(t, preference.IsValid())
+	})
+
+	t.Run("MM-57913 should be able to store an array of 200 IDs for the team sidebar order preference", func(t *testing.T) {
+		preference.Category = "teams_order"
+		preference.Name = ""
+
+		teamIds := make([]string, 200)
+		for i := range teamIds {
+			teamIds[i] = NewId()
+		}
+		teamIdsBytes, _ := json.Marshal(teamIds)
+		preference.Value = string(teamIdsBytes)
+
+		require.Nil(t, preference.IsValid())
+	})
+
+	t.Run("limit_visible_dms_gms has a valid value", func(t *testing.T) {
+		preference.Category = PreferenceCategorySidebarSettings
+		preference.Name = PreferenceLimitVisibleDmsGms
+		preference.Value = "40"
+		require.Nil(t, preference.IsValid())
+	})
+
+	t.Run("limit_visible_dms_gms has a value greater than PreferenceMaxLimitVisibleDmsGmsValue", func(t *testing.T) {
+		preference.Category = PreferenceCategorySidebarSettings
+		preference.Name = PreferenceLimitVisibleDmsGms
+		preference.Value = "10000"
+		require.NotNil(t, preference.IsValid())
+	})
+
+	t.Run("limit_visible_dms_gms has an invalid value", func(t *testing.T) {
+		preference.Category = PreferenceCategorySidebarSettings
+		preference.Name = PreferenceLimitVisibleDmsGms
+		preference.Value = "one thousand"
+		require.NotNil(t, preference.IsValid())
+	})
+
+	t.Run("limit_visible_dms_gms has a negative number", func(t *testing.T) {
+		preference.Category = PreferenceCategorySidebarSettings
+		preference.Name = PreferenceLimitVisibleDmsGms
+		preference.Value = "-10"
+		require.NotNil(t, preference.IsValid())
+	})
 }
 
 func TestPreferencePreUpdate(t *testing.T) {

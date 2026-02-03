@@ -3,40 +3,34 @@
 
 import {connect} from 'react-redux';
 import type {ConnectedProps} from 'react-redux';
-import {withRouter} from 'react-router-dom';
 import {bindActionCreators} from 'redux';
 import type {Dispatch} from 'redux';
 
 import {getConfig} from 'mattermost-redux/selectors/entities/general';
-import {getIsOnboardingFlowEnabled} from 'mattermost-redux/selectors/entities/preferences';
-import {getCurrentRelativeTeamUrl} from 'mattermost-redux/selectors/entities/teams';
+import {getReportAProblemLink} from 'mattermost-redux/selectors/entities/report_a_problem';
 import {isFirstAdmin} from 'mattermost-redux/selectors/entities/users';
-import type {GenericAction} from 'mattermost-redux/types/actions';
 
 import {openModal} from 'actions/views/modals';
 import {getUserGuideDropdownPluginMenuItems} from 'selectors/plugins';
-import {getIsMobileView} from 'selectors/views/browser';
 
 import type {GlobalState} from 'types/store';
 
 import UserGuideDropdown from './user_guide_dropdown';
 
 function mapStateToProps(state: GlobalState) {
-    const {HelpLink, ReportAProblemLink, EnableAskCommunityLink} = getConfig(state);
+    const {HelpLink, EnableAskCommunityLink} = getConfig(state);
 
+    const reportAProblemLink = getReportAProblemLink(state);
     return {
         helpLink: HelpLink || '',
-        isMobileView: getIsMobileView(state),
-        reportAProblemLink: ReportAProblemLink || '',
+        reportAProblemLink,
         enableAskCommunityLink: EnableAskCommunityLink || '',
-        teamUrl: getCurrentRelativeTeamUrl(state),
         pluginMenuItems: getUserGuideDropdownPluginMenuItems(state),
         isFirstAdmin: isFirstAdmin(state),
-        onboardingFlowEnabled: getIsOnboardingFlowEnabled(state),
     };
 }
 
-function mapDispatchToProps(dispatch: Dispatch<GenericAction>) {
+function mapDispatchToProps(dispatch: Dispatch) {
     return {
         actions: bindActionCreators({
             openModal,
@@ -48,4 +42,4 @@ const connector = connect(mapStateToProps, mapDispatchToProps);
 
 export type PropsFromRedux = ConnectedProps<typeof connector>;
 
-export default withRouter(connector(UserGuideDropdown));
+export default connector(UserGuideDropdown);

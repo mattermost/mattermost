@@ -2,6 +2,9 @@
 // See LICENSE.txt for license information.
 
 import React, {useEffect, useState} from 'react';
+import {useSelector} from 'react-redux';
+
+import {getIsMobileView} from 'selectors/views/browser';
 
 import Constants from 'utils/constants';
 
@@ -14,13 +17,14 @@ type Props = React.ComponentProps<typeof SuggestionList> & {
 
 export default function RhsSuggestionList(props: Props): JSX.Element {
     const [position, setPosition] = useState<Props['position']>('top');
+    const isMobile = useSelector(getIsMobileView);
 
     useEffect(() => {
         const input = props.inputRef.current;
-
         if (input && props.open) {
             const inputTop = input.getBoundingClientRect().top ?? 0;
-            const newPosition = (inputTop < Constants.SUGGESTION_LIST_SPACE_RHS) ? 'bottom' : 'top';
+            const requiredSpace = isMobile ? Constants.MOBILE_SUGGESTION_LIST_SPACE_RHS : Constants.SUGGESTION_LIST_SPACE_RHS;
+            const newPosition = (inputTop < requiredSpace) ? 'bottom' : 'top';
 
             if (newPosition !== position) {
                 // This potentially causes a second render when the list position changes, but that's better
@@ -28,7 +32,7 @@ export default function RhsSuggestionList(props: Props): JSX.Element {
                 setPosition(newPosition);
             }
         }
-    }, [position, props.inputRef, props.open]);
+    }, [position, props.inputRef, props.open, isMobile]);
 
     return (
         <SuggestionList

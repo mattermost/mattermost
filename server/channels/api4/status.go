@@ -12,16 +12,16 @@ import (
 )
 
 func (api *API) InitStatus() {
-	api.BaseRoutes.User.Handle("/status", api.APISessionRequired(getUserStatus)).Methods("GET")
-	api.BaseRoutes.Users.Handle("/status/ids", api.APISessionRequired(getUserStatusesByIds)).Methods("POST")
-	api.BaseRoutes.User.Handle("/status", api.APISessionRequired(updateUserStatus)).Methods("PUT")
-	api.BaseRoutes.User.Handle("/status/custom", api.APISessionRequired(updateUserCustomStatus)).Methods("PUT")
-	api.BaseRoutes.User.Handle("/status/custom", api.APISessionRequired(removeUserCustomStatus)).Methods("DELETE")
+	api.BaseRoutes.User.Handle("/status", api.APISessionRequired(getUserStatus)).Methods(http.MethodGet)
+	api.BaseRoutes.Users.Handle("/status/ids", api.APISessionRequired(getUserStatusesByIds)).Methods(http.MethodPost)
+	api.BaseRoutes.User.Handle("/status", api.APISessionRequired(updateUserStatus)).Methods(http.MethodPut)
+	api.BaseRoutes.User.Handle("/status/custom", api.APISessionRequired(updateUserCustomStatus)).Methods(http.MethodPut)
+	api.BaseRoutes.User.Handle("/status/custom", api.APISessionRequired(removeUserCustomStatus)).Methods(http.MethodDelete)
 
 	// Both these handlers are for removing the recent custom status but the one with the POST method should be preferred
 	// as DELETE method doesn't support request body in the mobile app.
-	api.BaseRoutes.User.Handle("/status/custom/recent", api.APISessionRequired(removeUserRecentCustomStatus)).Methods("DELETE")
-	api.BaseRoutes.User.Handle("/status/custom/recent/delete", api.APISessionRequired(removeUserRecentCustomStatus)).Methods("POST")
+	api.BaseRoutes.User.Handle("/status/custom/recent", api.APISessionRequired(removeUserRecentCustomStatus)).Methods(http.MethodDelete)
+	api.BaseRoutes.User.Handle("/status/custom/recent/delete", api.APISessionRequired(removeUserRecentCustomStatus)).Methods(http.MethodPost)
 }
 
 func getUserStatus(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -49,9 +49,11 @@ func getUserStatus(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func getUserStatusesByIds(c *Context, w http.ResponseWriter, r *http.Request) {
-	userIds := model.ArrayFromJSON(r.Body)
-
-	if len(userIds) == 0 {
+	userIds, err := model.SortedArrayFromJSON(r.Body)
+	if err != nil {
+		c.Err = model.NewAppError("getUserStatusesByIds", model.PayloadParseError, nil, "", http.StatusBadRequest).Wrap(err)
+		return
+	} else if len(userIds) == 0 {
 		c.SetInvalidParam("user_ids")
 		return
 	}
@@ -76,7 +78,9 @@ func getUserStatusesByIds(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	w.Write(js)
+	if _, err := w.Write(js); err != nil {
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
+	}
 }
 
 func updateUserStatus(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -103,15 +107,20 @@ func updateUserStatus(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	currentStatus, err := c.App.GetStatus(c.Params.UserId)
-	if err == nil && currentStatus.Status == model.StatusOutOfOffice && status.Status != model.StatusOutOfOffice {
-		c.App.DisableAutoResponder(c.AppContext, c.Params.UserId, c.IsSystemAdmin())
+	if err != nil {
+		c.Logger.Warn("Failed to get current status", mlog.Err(err))
+	} else if currentStatus.Status == model.StatusOutOfOffice && status.Status != model.StatusOutOfOffice {
+		err = c.App.DisableAutoResponder(c.AppContext, c.Params.UserId, c.IsSystemAdmin())
+		if err != nil {
+			c.Logger.Warn("Failed to disable auto-responder", mlog.Err(err))
+		}
 	}
 
 	switch status.Status {
 	case "online":
 		c.App.SetStatusOnline(c.Params.UserId, true)
 	case "offline":
-		c.App.SetStatusOffline(c.Params.UserId, true)
+		c.App.SetStatusOffline(c.Params.UserId, true, false)
 	case "away":
 		c.App.SetStatusAwayIfNeeded(c.Params.UserId, true)
 	case "dnd":

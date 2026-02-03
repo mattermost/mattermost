@@ -22,7 +22,9 @@ Options
 
   -h, --help                        help for create
       --include-archived-channels   Include archived channels in the export file.
+      --include-profile-pictures    Include profile pictures in the export file.
       --no-attachments              Exclude file attachments from the export file.
+      --no-roles-and-schemes        Exclude roles and custom permission schemes from the export file.
 
 Options inherited from parent commands
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

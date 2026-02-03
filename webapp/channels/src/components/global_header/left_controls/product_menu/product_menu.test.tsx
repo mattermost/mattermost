@@ -10,6 +10,8 @@ import {TopLevelProducts} from 'utils/constants';
 import * as productUtils from 'utils/products';
 import {TestHelper} from 'utils/test_helper';
 
+import ProductBranding from './product_branding';
+import ProductBrandingFreeEdition from './product_branding_team_edition';
 import ProductMenu, {ProductMenuButton, ProductMenuContainer} from './product_menu';
 import ProductMenuItem from './product_menu_item';
 import ProductMenuList from './product_menu_list';
@@ -40,10 +42,38 @@ describe('components/global/product_switcher', () => {
                 },
             },
         };
+        useSelectorMock.mockReturnValue(true);
+        useSelectorMock.mockReturnValueOnce(true);
+        useSelectorMock.mockReturnValueOnce({IsLicensed: 'true'});
         const store = mockStore(state);
         const dummyDispatch = jest.fn();
         useDispatchMock.mockReturnValue(dummyDispatch);
-        const wrapper = shallow(<reactRedux.Provider store={store}><ProductMenu/></reactRedux.Provider>);
+        const wrapper = shallow(<ProductMenu/>, {
+            wrappingComponent: reactRedux.Provider,
+            wrappingComponentProps: {store},
+        });
+
+        expect(wrapper).toMatchSnapshot();
+    });
+
+    it('should match snapshot without license', () => {
+        const state = {
+            views: {
+                productMenu: {
+                    switcherOpen: false,
+                },
+            },
+        };
+        useSelectorMock.mockReturnValue(true);
+        useSelectorMock.mockReturnValueOnce(true);
+        useSelectorMock.mockReturnValueOnce({IsLicensed: 'false'});
+        const store = mockStore(state);
+        const dummyDispatch = jest.fn();
+        useDispatchMock.mockReturnValue(dummyDispatch);
+        const wrapper = shallow(<ProductMenu/>, {
+            wrappingComponent: reactRedux.Provider,
+            wrappingComponentProps: {store},
+        });
 
         expect(wrapper).toMatchSnapshot();
     });
@@ -63,6 +93,8 @@ describe('components/global/product_switcher', () => {
         const dummyDispatch = jest.fn();
         useDispatchMock.mockReturnValue(dummyDispatch);
         useSelectorMock.mockReturnValue(true);
+        useSelectorMock.mockReturnValueOnce(true);
+        useSelectorMock.mockReturnValueOnce({IsLicensed: 'true'});
         const wrapper = shallow(<ProductMenu/>, {
             wrappingComponent: reactRedux.Provider,
             wrappingComponentProps: {store},
@@ -87,6 +119,8 @@ describe('components/global/product_switcher', () => {
         const dummyDispatch = jest.fn();
         useDispatchMock.mockReturnValue(dummyDispatch);
         useSelectorMock.mockReturnValue(true);
+        useSelectorMock.mockReturnValueOnce(true);
+        useSelectorMock.mockReturnValueOnce({IsLicensed: 'true'});
         const wrapper = shallow(<ProductMenu/>, {
             wrappingComponent: reactRedux.Provider,
             wrappingComponentProps: {store},
@@ -115,6 +149,8 @@ describe('components/global/product_switcher', () => {
         const dummyDispatch = jest.fn();
         useDispatchMock.mockReturnValue(dummyDispatch);
         useSelectorMock.mockReturnValue(true);
+        useSelectorMock.mockReturnValueOnce(true);
+        useSelectorMock.mockReturnValueOnce({IsLicensed: 'true'});
         const wrapper = shallow(<ProductMenu/>, {
             wrappingComponent: reactRedux.Provider,
             wrappingComponentProps: {store},
@@ -125,7 +161,7 @@ describe('components/global/product_switcher', () => {
         useStateSpy.mockImplementation(() => [false, setState]);
 
         wrapper.find(ProductMenuContainer).simulate('click');
-        expect(wrapper.find(ProductMenuButton).props().active).toEqual(true);
+        expect(wrapper.find(ProductMenuButton).props()['aria-expanded']).toEqual(true);
         expect(wrapper).toMatchSnapshot();
     });
 
@@ -141,12 +177,128 @@ describe('components/global/product_switcher', () => {
         const dummyDispatch = jest.fn();
         useDispatchMock.mockReturnValue(dummyDispatch);
         useSelectorMock.mockReturnValue(true);
+        useSelectorMock.mockReturnValueOnce(true);
+        useSelectorMock.mockReturnValueOnce({IsLicensed: 'true'});
         const wrapper = shallow(<ProductMenu/>, {
             wrappingComponent: reactRedux.Provider,
             wrappingComponentProps: {store},
         });
 
         expect(wrapper.find(ProductMenuList)).toHaveLength(1);
+        expect(wrapper).toMatchSnapshot();
+    });
+
+    it('should render ProductBrandingFreeEdition for Entry license', () => {
+        const state = {
+            views: {
+                productMenu: {
+                    switcherOpen: false,
+                },
+            },
+        };
+        const store = mockStore(state);
+        const dummyDispatch = jest.fn();
+        useDispatchMock.mockReturnValue(dummyDispatch);
+        useSelectorMock.mockReturnValue(true);
+        useSelectorMock.mockReturnValueOnce(true);
+        useSelectorMock.mockReturnValueOnce({IsLicensed: 'true', SkuShortName: 'entry'});
+        const wrapper = shallow(<ProductMenu/>, {
+            wrappingComponent: reactRedux.Provider,
+            wrappingComponentProps: {store},
+        });
+
+        expect(wrapper.find(ProductBrandingFreeEdition)).toHaveLength(1);
+        expect(wrapper.find(ProductBranding)).toHaveLength(0);
+    });
+
+    it('should render ProductBrandingFreeEdition for unlicensed', () => {
+        const state = {
+            views: {
+                productMenu: {
+                    switcherOpen: false,
+                },
+            },
+        };
+        const store = mockStore(state);
+        const dummyDispatch = jest.fn();
+        useDispatchMock.mockReturnValue(dummyDispatch);
+        useSelectorMock.mockReturnValue(true);
+        useSelectorMock.mockReturnValueOnce(true);
+        useSelectorMock.mockReturnValueOnce({IsLicensed: 'false'});
+        const wrapper = shallow(<ProductMenu/>, {
+            wrappingComponent: reactRedux.Provider,
+            wrappingComponentProps: {store},
+        });
+
+        expect(wrapper.find(ProductBrandingFreeEdition)).toHaveLength(1);
+        expect(wrapper.find(ProductBranding)).toHaveLength(0);
+    });
+
+    it('should render ProductBranding for Professional license', () => {
+        const state = {
+            views: {
+                productMenu: {
+                    switcherOpen: false,
+                },
+            },
+        };
+        const store = mockStore(state);
+        const dummyDispatch = jest.fn();
+        useDispatchMock.mockReturnValue(dummyDispatch);
+        useSelectorMock.mockReturnValue(true);
+        useSelectorMock.mockReturnValueOnce(true);
+        useSelectorMock.mockReturnValueOnce({IsLicensed: 'true', SkuShortName: 'professional'});
+        const wrapper = shallow(<ProductMenu/>, {
+            wrappingComponent: reactRedux.Provider,
+            wrappingComponentProps: {store},
+        });
+
+        expect(wrapper.find(ProductBranding)).toHaveLength(1);
+        expect(wrapper.find(ProductBrandingFreeEdition)).toHaveLength(0);
+    });
+
+    it('should render ProductBranding for Enterprise license', () => {
+        const state = {
+            views: {
+                productMenu: {
+                    switcherOpen: false,
+                },
+            },
+        };
+        const store = mockStore(state);
+        const dummyDispatch = jest.fn();
+        useDispatchMock.mockReturnValue(dummyDispatch);
+        useSelectorMock.mockReturnValue(true);
+        useSelectorMock.mockReturnValueOnce(true);
+        useSelectorMock.mockReturnValueOnce({IsLicensed: 'true', SkuShortName: 'enterprise'});
+        const wrapper = shallow(<ProductMenu/>, {
+            wrappingComponent: reactRedux.Provider,
+            wrappingComponentProps: {store},
+        });
+
+        expect(wrapper.find(ProductBranding)).toHaveLength(1);
+        expect(wrapper.find(ProductBrandingFreeEdition)).toHaveLength(0);
+    });
+
+    it('should match snapshot for Entry license', () => {
+        const state = {
+            views: {
+                productMenu: {
+                    switcherOpen: false,
+                },
+            },
+        };
+        const store = mockStore(state);
+        const dummyDispatch = jest.fn();
+        useDispatchMock.mockReturnValue(dummyDispatch);
+        useSelectorMock.mockReturnValue(true);
+        useSelectorMock.mockReturnValueOnce(true);
+        useSelectorMock.mockReturnValueOnce({IsLicensed: 'true', SkuShortName: 'entry'});
+        const wrapper = shallow(<ProductMenu/>, {
+            wrappingComponent: reactRedux.Provider,
+            wrappingComponentProps: {store},
+        });
+
         expect(wrapper).toMatchSnapshot();
     });
 });

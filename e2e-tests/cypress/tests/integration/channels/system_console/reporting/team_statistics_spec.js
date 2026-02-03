@@ -19,14 +19,16 @@ describe('System Console > Team Statistics', () => {
             // # Create private channel.
             cy.apiCreateChannel(team.id, 'mmt906-ch', 'mmt906-ch', 'P');
 
-            // # Visit team statistics page.
-            cy.visit('/admin_console/reporting/team_statistics');
+            cy.dbRefreshPostStats().then(() => {
+                // # Visit team statistics page.
+                cy.visit('/admin_console/reporting/team_statistics');
 
-            // # Select created team.
-            cy.get('select.team-statistics__team-filter__dropdown').select(team.id);
+                // # Select created team.
+                cy.get('select.team-statistics__team-filter__dropdown').select(team.id);
 
-            // # Explicit wait to allow stats to get loaded
-            cy.wait(TIMEOUTS.TWO_SEC);
+                // # Explicit wait to allow stats to get loaded
+                cy.wait(TIMEOUTS.TWO_SEC);
+            });
         });
     });
 
@@ -38,7 +40,7 @@ describe('System Console > Team Statistics', () => {
         cy.get('.grid-statistics__card').should('have.length', 4);
 
         // * Check that the title content for the stats is as expected.
-        cy.get('.admin-console__content').eq(0).find('.title').eq(0).should('contain', 'Total Active Users');
+        cy.get('.admin-console__content').eq(0).find('.title').eq(0).should('contain', 'Total Activated Users');
         cy.get('.admin-console__content').eq(0).find('.title').eq(1).should('contain', 'Public Channels');
         cy.get('.admin-console__content').eq(0).find('.title').eq(2).should('contain', 'Private Channels');
         cy.get('.admin-console__content').eq(0).find('.title').eq(3).should('contain', 'Total Posts');

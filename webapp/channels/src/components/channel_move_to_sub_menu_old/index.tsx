@@ -18,9 +18,7 @@ import {CategoryTypes} from 'mattermost-redux/constants/channel_categories';
 import {getCategoryInTeamWithChannel} from 'mattermost-redux/selectors/entities/channel_categories';
 import {getAllChannels} from 'mattermost-redux/selectors/entities/channels';
 import {getCurrentTeam} from 'mattermost-redux/selectors/entities/teams';
-import type {DispatchFunc} from 'mattermost-redux/types/actions';
 
-import {trackEvent} from 'actions/telemetry_actions';
 import {addChannelsInSidebar} from 'actions/views/channel_sidebar';
 import {openModal} from 'actions/views/modals';
 import {getCategoriesForCurrentTeam} from 'selectors/views/channel_sidebar';
@@ -42,7 +40,7 @@ type Props = {
 const ChannelMoveToSubMenuOld = (props: Props) => {
     const {formatMessage} = useIntl();
 
-    const dispatch = useDispatch<DispatchFunc>();
+    const dispatch = useDispatch();
 
     const allChannels = useSelector(getAllChannels);
     const multiSelectedChannelIds = useSelector((state: GlobalState) => state.views.channelSidebar.multiSelectedChannelIds);
@@ -58,7 +56,6 @@ const ChannelMoveToSubMenuOld = (props: Props) => {
     function handleMoveToCategory(categoryId: string) {
         if (currentCategory?.id !== categoryId) {
             dispatch(addChannelsInSidebar(categoryId, props.channel.id));
-            trackEvent('ui', 'ui_sidebar_channel_menu_moveToExistingCategory');
         }
     }
 
@@ -70,7 +67,6 @@ const ChannelMoveToSubMenuOld = (props: Props) => {
                 channelIdsToAdd: multiSelectedChannelIds.indexOf(props.channel.id) === -1 ? [props.channel.id] : multiSelectedChannelIds,
             },
         }));
-        trackEvent('ui', 'ui_sidebar_channel_menu_createCategory');
     }
 
     function createSubmenuItemsForCategoryArray(categories: ChannelCategory[]): MenuType[] {

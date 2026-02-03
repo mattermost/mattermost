@@ -1,19 +1,20 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import type {AnyAction} from 'redux';
+
 import type {Typing} from '@mattermost/types/typing';
 
-import {WebsocketEvents} from 'mattermost-redux/constants';
-import type {GenericAction} from 'mattermost-redux/types/actions';
+import {WebSocketTypes} from 'mattermost-redux/action_types';
 
-export default function typing(state: Typing = {}, action: GenericAction): Typing {
+export default function typing(state: Typing = {}, action: AnyAction): Typing {
     const {
         data,
         type,
     } = action;
 
     switch (type) {
-    case WebsocketEvents.TYPING: {
+    case WebSocketTypes.TYPING: {
         const {
             id,
             userId,
@@ -32,7 +33,7 @@ export default function typing(state: Typing = {}, action: GenericAction): Typin
 
         return state;
     }
-    case WebsocketEvents.STOP_TYPING: {
+    case WebSocketTypes.STOPPED_TYPING: {
         const {
             id,
             userId,

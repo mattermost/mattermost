@@ -4,6 +4,7 @@
 package app
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -22,8 +23,8 @@ import (
 
 // Test for MM-13598 where an invalid integration URL was causing a crash
 func TestPostActionInvalidURL(t *testing.T) {
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
 
 	th.App.UpdateConfig(func(cfg *model.Config) {
 		*cfg.ServiceSettings.AllowedUntrustedInternalConnections = "localhost,127.0.0.1"
@@ -42,16 +43,16 @@ func TestPostActionInvalidURL(t *testing.T) {
 		PendingPostId: model.NewId() + ":" + fmt.Sprint(model.GetMillis()),
 		UserId:        th.BasicUser.Id,
 		Props: model.StringInterface{
-			"attachments": []*model.SlackAttachment{
+			model.PostPropsAttachments: []*model.SlackAttachment{
 				{
 					Text: "hello",
 					Actions: []*model.PostAction{
 						{
+							Type: model.PostActionTypeButton,
+							Name: "action",
 							Integration: &model.PostActionIntegration{
 								URL: ":test",
 							},
-							Name: "action",
-							Type: "some_type",
 						},
 					},
 				},
@@ -59,21 +60,21 @@ func TestPostActionInvalidURL(t *testing.T) {
 		},
 	}
 
-	post, err := th.App.CreatePostAsUser(th.Context, &interactivePost, "", true)
+	post, _, err := th.App.CreatePostAsUser(th.Context, &interactivePost, "", true)
 	require.Nil(t, err)
-	attachments, ok := post.GetProp("attachments").([]*model.SlackAttachment)
+	attachments, ok := post.GetProp(model.PostPropsAttachments).([]*model.SlackAttachment)
 	require.True(t, ok)
 	require.NotEmpty(t, attachments[0].Actions)
 	require.NotEmpty(t, attachments[0].Actions[0].Id)
 
 	_, err = th.App.DoPostActionWithCookie(th.Context, post.Id, attachments[0].Actions[0].Id, th.BasicUser.Id, "", nil)
 	require.NotNil(t, err)
-	require.True(t, strings.Contains(err.Error(), "missing protocol scheme"))
+	assert.ErrorContains(t, err, "missing protocol scheme")
 }
 
 func TestPostActionEmptyResponse(t *testing.T) {
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
 
 	channel := th.BasicChannel
 	th.App.UpdateConfig(func(cfg *model.Config) {
@@ -90,11 +91,14 @@ func TestPostActionEmptyResponse(t *testing.T) {
 			PendingPostId: model.NewId() + ":" + fmt.Sprint(model.GetMillis()),
 			UserId:        th.BasicUser.Id,
 			Props: model.StringInterface{
-				"attachments": []*model.SlackAttachment{
+				model.PostPropsAttachments: []*model.SlackAttachment{
 					{
 						Text: "hello",
 						Actions: []*model.PostAction{
 							{
+								Type:       model.PostActionTypeSelect,
+								Name:       "action",
+								DataSource: model.PostActionDataSourceUsers,
 								Integration: &model.PostActionIntegration{
 									Context: model.StringInterface{
 										"s": "foo",
@@ -102,9 +106,6 @@ func TestPostActionEmptyResponse(t *testing.T) {
 									},
 									URL: ts.URL,
 								},
-								Name:       "action",
-								Type:       "some_type",
-								DataSource: "some_source",
 							},
 						},
 					},
@@ -112,10 +113,10 @@ func TestPostActionEmptyResponse(t *testing.T) {
 			},
 		}
 
-		post, err := th.App.CreatePostAsUser(th.Context, &interactivePost, "", true)
+		post, _, err := th.App.CreatePostAsUser(th.Context, &interactivePost, "", true)
 		require.Nil(t, err)
 
-		attachments, ok := post.GetProp("attachments").([]*model.SlackAttachment)
+		attachments, ok := post.GetProp(model.PostPropsAttachments).([]*model.SlackAttachment)
 		require.True(t, ok)
 
 		_, err = th.App.DoPostActionWithCookie(th.Context, post.Id, attachments[0].Actions[0].Id, th.BasicUser.Id, "", nil)
@@ -134,11 +135,14 @@ func TestPostActionEmptyResponse(t *testing.T) {
 			PendingPostId: model.NewId() + ":" + fmt.Sprint(model.GetMillis()),
 			UserId:        th.BasicUser.Id,
 			Props: model.StringInterface{
-				"attachments": []*model.SlackAttachment{
+				model.PostPropsAttachments: []*model.SlackAttachment{
 					{
 						Text: "hello",
 						Actions: []*model.PostAction{
 							{
+								Type:       model.PostActionTypeSelect,
+								Name:       "action",
+								DataSource: model.PostActionDataSourceUsers,
 								Integration: &model.PostActionIntegration{
 									Context: model.StringInterface{
 										"s": "foo",
@@ -146,9 +150,6 @@ func TestPostActionEmptyResponse(t *testing.T) {
 									},
 									URL: ts.URL,
 								},
-								Name:       "action",
-								Type:       "some_type",
-								DataSource: "some_source",
 							},
 						},
 					},
@@ -156,23 +157,136 @@ func TestPostActionEmptyResponse(t *testing.T) {
 			},
 		}
 
-		post, err := th.App.CreatePostAsUser(th.Context, &interactivePost, "", true)
+		post, _, err := th.App.CreatePostAsUser(th.Context, &interactivePost, "", true)
 		require.Nil(t, err)
 
-		attachments, ok := post.GetProp("attachments").([]*model.SlackAttachment)
+		attachments, ok := post.GetProp(model.PostPropsAttachments).([]*model.SlackAttachment)
 		require.True(t, ok)
 
 		th.App.UpdateConfig(func(cfg *model.Config) {
-			cfg.ServiceSettings.OutgoingIntegrationRequestsTimeout = model.NewInt64(1)
+			cfg.ServiceSettings.OutgoingIntegrationRequestsTimeout = model.NewPointer(int64(1))
 		})
 
 		_, err = th.App.DoPostActionWithCookie(th.Context, post.Id, attachments[0].Actions[0].Id, th.BasicUser.Id, "", nil)
-		require.Error(t, err)
-		assert.Contains(t, err.DetailedError, "context deadline exceeded")
+		require.NotNil(t, err)
+		assert.ErrorContains(t, err, "context deadline exceeded")
+	})
+}
+
+// infiniteReader generates unlimited data for testing response size limits
+type infiniteReader struct{}
+
+func (r infiniteReader) Read(p []byte) (n int, err error) {
+	for i := range p {
+		p[i] = 'a'
+	}
+	return len(p), nil
+}
+
+// MM-67074: TestPostActionResponseSizeLimit verifies that DoPostActionWithCookie
+// properly limits response sizes to prevent OOM attacks
+func TestPostActionResponseSizeLimit(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+
+	channel := th.BasicChannel
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.ServiceSettings.AllowedUntrustedInternalConnections = "localhost,127.0.0.1"
+	})
+
+	t.Run("large valid JSON response is truncated", func(t *testing.T) {
+		server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			// Send response larger than MaxIntegrationResponseSize (1MB)
+			// Response starts as valid JSON but becomes truncated
+			_, _ = io.Copy(w, io.MultiReader(
+				strings.NewReader(`{"update":{"message":"`),
+				infiniteReader{},
+				strings.NewReader(`"}}`),
+			))
+		}))
+		defer server.Close()
+
+		interactivePost := model.Post{
+			Message:       "Interactive post",
+			ChannelId:     channel.Id,
+			PendingPostId: model.NewId() + ":" + fmt.Sprint(model.GetMillis()),
+			UserId:        th.BasicUser.Id,
+			Props: model.StringInterface{
+				model.PostPropsAttachments: []*model.SlackAttachment{
+					{
+						Text: "hello",
+						Actions: []*model.PostAction{
+							{
+								Type: model.PostActionTypeButton,
+								Name: "action",
+								Integration: &model.PostActionIntegration{
+									URL: server.URL,
+								},
+							},
+						},
+					},
+				},
+			},
+		}
+
+		post, _, err := th.App.CreatePostAsUser(th.Context, &interactivePost, "", true)
+		require.Nil(t, err)
+		attachments, ok := post.GetProp(model.PostPropsAttachments).([]*model.SlackAttachment)
+		require.True(t, ok)
+
+		// Should return error due to truncated JSON, but NOT crash or OOM
+		_, err = th.App.DoPostActionWithCookie(th.Context, post.Id,
+			attachments[0].Actions[0].Id, th.BasicUser.Id, "", nil)
+		require.NotNil(t, err)
+		// Truncated JSON causes unmarshal error
+		assert.Equal(t, "api.post.do_action.action_integration.app_error", err.Id)
+	})
+
+	t.Run("large invalid response is truncated", func(t *testing.T) {
+		server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			// Send infinite non-JSON data
+			_, _ = io.Copy(w, infiniteReader{})
+		}))
+		defer server.Close()
+
+		interactivePost := model.Post{
+			Message:       "Interactive post",
+			ChannelId:     channel.Id,
+			PendingPostId: model.NewId() + ":" + fmt.Sprint(model.GetMillis()),
+			UserId:        th.BasicUser.Id,
+			Props: model.StringInterface{
+				model.PostPropsAttachments: []*model.SlackAttachment{
+					{
+						Text: "hello",
+						Actions: []*model.PostAction{
+							{
+								Type: model.PostActionTypeButton,
+								Name: "action",
+								Integration: &model.PostActionIntegration{
+									URL: server.URL,
+								},
+							},
+						},
+					},
+				},
+			},
+		}
+
+		post, _, err := th.App.CreatePostAsUser(th.Context, &interactivePost, "", true)
+		require.Nil(t, err)
+		attachments, ok := post.GetProp(model.PostPropsAttachments).([]*model.SlackAttachment)
+		require.True(t, ok)
+
+		// Should return error due to invalid JSON, but NOT crash or OOM
+		_, err = th.App.DoPostActionWithCookie(th.Context, post.Id,
+			attachments[0].Actions[0].Id, th.BasicUser.Id, "", nil)
+		require.NotNil(t, err)
+		assert.Equal(t, "api.post.do_action.action_integration.app_error", err.Id)
 	})
 }
 
 func TestPostAction(t *testing.T) {
+	mainHelper.Parallel(t)
 	testCases := []struct {
 		Description string
 		Channel     func(th *TestHelper) *model.Channel
@@ -181,22 +295,21 @@ func TestPostAction(t *testing.T) {
 			return th.BasicChannel
 		}},
 		{"direct channel", func(th *TestHelper) *model.Channel {
-			user1 := th.CreateUser()
+			user1 := th.CreateUser(t)
 
-			return th.CreateDmChannel(user1)
+			return th.CreateDmChannel(t, user1)
 		}},
 		{"group channel", func(th *TestHelper) *model.Channel {
-			user1 := th.CreateUser()
-			user2 := th.CreateUser()
+			user1 := th.CreateUser(t)
+			user2 := th.CreateUser(t)
 
-			return th.CreateGroupChannel(th.Context, user1, user2)
+			return th.CreateGroupChannel(t, user1, user2)
 		}},
 	}
 
 	for _, testCase := range testCases {
 		t.Run(testCase.Description, func(t *testing.T) {
-			th := Setup(t).InitBasic()
-			defer th.TearDown()
+			th := Setup(t).InitBasic(t)
 
 			channel := testCase.Channel(th)
 
@@ -209,23 +322,28 @@ func TestPostAction(t *testing.T) {
 				jsonErr := json.NewDecoder(r.Body).Decode(&request)
 				assert.NoError(t, jsonErr)
 
-				assert.Equal(t, request.UserId, th.BasicUser.Id)
-				assert.Equal(t, request.UserName, th.BasicUser.Username)
-				assert.Equal(t, request.ChannelId, channel.Id)
-				assert.Equal(t, request.ChannelName, channel.Name)
+				assert.Equal(t, th.BasicUser.Id, request.UserId)
+				assert.Equal(t, th.BasicUser.Username, request.UserName)
+				assert.Equal(t, channel.Id, request.ChannelId)
+				assert.Equal(t, channel.Name, request.ChannelName)
 				if channel.Type == model.ChannelTypeDirect || channel.Type == model.ChannelTypeGroup {
 					assert.Empty(t, request.TeamId)
 					assert.Empty(t, request.TeamName)
 				} else {
-					assert.Equal(t, request.TeamId, th.BasicTeam.Id)
-					assert.Equal(t, request.TeamName, th.BasicTeam.Name)
+					assert.Equal(t, th.BasicTeam.Id, request.TeamId)
+					assert.Equal(t, th.BasicTeam.Name, request.TeamName)
 				}
 				assert.True(t, request.TriggerId != "")
 				if request.Type == model.PostActionTypeSelect {
-					assert.Equal(t, request.DataSource, "some_source")
-					assert.Equal(t, request.Context["selected_option"], "selected")
+					if selectedOption, ok := request.Context["selected_option"]; ok {
+						// If something was selected, confirm that the data source and selected option are present
+						assert.Equal(t, model.PostActionDataSourceUsers, request.DataSource)
+						assert.Equal(t, "selected", selectedOption)
+					} else {
+						assert.Empty(t, request.DataSource)
+					}
 				} else {
-					assert.Equal(t, request.DataSource, "")
+					assert.Equal(t, "", request.DataSource)
 				}
 				assert.Equal(t, "foo", request.Context["s"])
 				assert.EqualValues(t, 3, request.Context["n"])
@@ -239,11 +357,14 @@ func TestPostAction(t *testing.T) {
 				PendingPostId: model.NewId() + ":" + fmt.Sprint(model.GetMillis()),
 				UserId:        th.BasicUser.Id,
 				Props: model.StringInterface{
-					"attachments": []*model.SlackAttachment{
+					model.PostPropsAttachments: []*model.SlackAttachment{
 						{
 							Text: "hello",
 							Actions: []*model.PostAction{
 								{
+									Type:       model.PostActionTypeSelect,
+									Name:       "action",
+									DataSource: model.PostActionDataSourceUsers,
 									Integration: &model.PostActionIntegration{
 										Context: model.StringInterface{
 											"s": "foo",
@@ -251,9 +372,6 @@ func TestPostAction(t *testing.T) {
 										},
 										URL: ts.URL,
 									},
-									Name:       "action",
-									Type:       "some_type",
-									DataSource: "some_source",
 								},
 							},
 						},
@@ -261,10 +379,10 @@ func TestPostAction(t *testing.T) {
 				},
 			}
 
-			post, err := th.App.CreatePostAsUser(th.Context, &interactivePost, "", true)
+			post, _, err := th.App.CreatePostAsUser(th.Context, &interactivePost, "", true)
 			require.Nil(t, err)
 
-			attachments, ok := post.GetProp("attachments").([]*model.SlackAttachment)
+			attachments, ok := post.GetProp(model.PostPropsAttachments).([]*model.SlackAttachment)
 			require.True(t, ok)
 
 			require.NotEmpty(t, attachments[0].Actions)
@@ -276,11 +394,14 @@ func TestPostAction(t *testing.T) {
 				PendingPostId: model.NewId() + ":" + fmt.Sprint(model.GetMillis()),
 				UserId:        th.BasicUser.Id,
 				Props: model.StringInterface{
-					"attachments": []*model.SlackAttachment{
+					model.PostPropsAttachments: []*model.SlackAttachment{
 						{
 							Text: "hello",
 							Actions: []*model.PostAction{
 								{
+									Type:       model.PostActionTypeSelect,
+									Name:       "action",
+									DataSource: model.PostActionDataSourceUsers,
 									Integration: &model.PostActionIntegration{
 										Context: model.StringInterface{
 											"s": "foo",
@@ -288,9 +409,6 @@ func TestPostAction(t *testing.T) {
 										},
 										URL: ts.URL,
 									},
-									Name:       "action",
-									Type:       model.PostActionTypeSelect,
-									DataSource: "some_source",
 								},
 							},
 						},
@@ -298,27 +416,27 @@ func TestPostAction(t *testing.T) {
 				},
 			}
 
-			post2, err := th.App.CreatePostAsUser(th.Context, &menuPost, "", true)
+			post2, _, err := th.App.CreatePostAsUser(th.Context, &menuPost, "", true)
 			require.Nil(t, err)
 
-			attachments2, ok := post2.GetProp("attachments").([]*model.SlackAttachment)
+			attachments2, ok := post2.GetProp(model.PostPropsAttachments).([]*model.SlackAttachment)
 			require.True(t, ok)
 
 			require.NotEmpty(t, attachments2[0].Actions)
 			require.NotEmpty(t, attachments2[0].Actions[0].Id)
 
-			clientTriggerId, err := th.App.DoPostActionWithCookie(th.Context, post.Id, "notavalidid", th.BasicUser.Id, "", nil)
+			clientTriggerID, err := th.App.DoPostActionWithCookie(th.Context, post.Id, "notavalidid", th.BasicUser.Id, "", nil)
 			require.NotNil(t, err)
 			assert.Equal(t, http.StatusNotFound, err.StatusCode)
-			assert.True(t, clientTriggerId == "")
+			assert.Len(t, clientTriggerID, 0)
 
-			clientTriggerId, err = th.App.DoPostActionWithCookie(th.Context, post.Id, attachments[0].Actions[0].Id, th.BasicUser.Id, "", nil)
+			clientTriggerID, err = th.App.DoPostActionWithCookie(th.Context, post.Id, attachments[0].Actions[0].Id, th.BasicUser.Id, "", nil)
 			require.Nil(t, err)
-			assert.True(t, len(clientTriggerId) == 26)
+			assert.Len(t, clientTriggerID, 26)
 
-			clientTriggerId, err = th.App.DoPostActionWithCookie(th.Context, post2.Id, attachments2[0].Actions[0].Id, th.BasicUser.Id, "selected", nil)
+			clientTriggerID, err = th.App.DoPostActionWithCookie(th.Context, post2.Id, attachments2[0].Actions[0].Id, th.BasicUser.Id, "selected", nil)
 			require.Nil(t, err)
-			assert.True(t, len(clientTriggerId) == 26)
+			assert.Len(t, clientTriggerID, 26)
 
 			th.App.UpdateConfig(func(cfg *model.Config) {
 				*cfg.ServiceSettings.AllowedUntrustedInternalConnections = ""
@@ -326,7 +444,7 @@ func TestPostAction(t *testing.T) {
 
 			_, err = th.App.DoPostActionWithCookie(th.Context, post.Id, attachments[0].Actions[0].Id, th.BasicUser.Id, "", nil)
 			require.NotNil(t, err)
-			require.True(t, strings.Contains(err.Error(), "address forbidden"))
+			assert.ErrorContains(t, err, "address forbidden")
 
 			interactivePostPlugin := model.Post{
 				Message:       "Interactive post",
@@ -334,11 +452,14 @@ func TestPostAction(t *testing.T) {
 				PendingPostId: model.NewId() + ":" + fmt.Sprint(model.GetMillis()),
 				UserId:        th.BasicUser.Id,
 				Props: model.StringInterface{
-					"attachments": []*model.SlackAttachment{
+					model.PostPropsAttachments: []*model.SlackAttachment{
 						{
 							Text: "hello",
 							Actions: []*model.PostAction{
 								{
+									Type:       model.PostActionTypeSelect,
+									Name:       "action",
+									DataSource: model.PostActionDataSourceUsers,
 									Integration: &model.PostActionIntegration{
 										Context: model.StringInterface{
 											"s": "foo",
@@ -346,9 +467,6 @@ func TestPostAction(t *testing.T) {
 										},
 										URL: ts.URL + "/plugins/myplugin/myaction",
 									},
-									Name:       "action",
-									Type:       "some_type",
-									DataSource: "some_source",
 								},
 							},
 						},
@@ -356,10 +474,10 @@ func TestPostAction(t *testing.T) {
 				},
 			}
 
-			postplugin, err := th.App.CreatePostAsUser(th.Context, &interactivePostPlugin, "", true)
+			postplugin, _, err := th.App.CreatePostAsUser(th.Context, &interactivePostPlugin, "", true)
 			require.Nil(t, err)
 
-			attachmentsPlugin, ok := postplugin.GetProp("attachments").([]*model.SlackAttachment)
+			attachmentsPlugin, ok := postplugin.GetProp(model.PostPropsAttachments).([]*model.SlackAttachment)
 			require.True(t, ok)
 
 			_, err = th.App.DoPostActionWithCookie(th.Context, postplugin.Id, attachmentsPlugin[0].Actions[0].Id, th.BasicUser.Id, "", nil)
@@ -382,11 +500,14 @@ func TestPostAction(t *testing.T) {
 				PendingPostId: model.NewId() + ":" + fmt.Sprint(model.GetMillis()),
 				UserId:        th.BasicUser.Id,
 				Props: model.StringInterface{
-					"attachments": []*model.SlackAttachment{
+					model.PostPropsAttachments: []*model.SlackAttachment{
 						{
 							Text: "hello",
 							Actions: []*model.PostAction{
 								{
+									Type:       model.PostActionTypeSelect,
+									Name:       "action",
+									DataSource: model.PostActionDataSourceUsers,
 									Integration: &model.PostActionIntegration{
 										Context: model.StringInterface{
 											"s": "foo",
@@ -394,9 +515,6 @@ func TestPostAction(t *testing.T) {
 										},
 										URL: "http://127.1.1.1/plugins/myplugin/myaction",
 									},
-									Name:       "action",
-									Type:       "some_type",
-									DataSource: "some_source",
 								},
 							},
 						},
@@ -404,15 +522,15 @@ func TestPostAction(t *testing.T) {
 				},
 			}
 
-			postSiteURL, err := th.App.CreatePostAsUser(th.Context, &interactivePostSiteURL, "", true)
+			postSiteURL, _, err := th.App.CreatePostAsUser(th.Context, &interactivePostSiteURL, "", true)
 			require.Nil(t, err)
 
-			attachmentsSiteURL, ok := postSiteURL.GetProp("attachments").([]*model.SlackAttachment)
+			attachmentsSiteURL, ok := postSiteURL.GetProp(model.PostPropsAttachments).([]*model.SlackAttachment)
 			require.True(t, ok)
 
 			_, err = th.App.DoPostActionWithCookie(th.Context, postSiteURL.Id, attachmentsSiteURL[0].Actions[0].Id, th.BasicUser.Id, "", nil)
 			require.NotNil(t, err)
-			require.False(t, strings.Contains(err.Error(), "address forbidden"))
+			assert.ErrorContains(t, err, "connection refused")
 
 			th.App.UpdateConfig(func(cfg *model.Config) {
 				*cfg.ServiceSettings.SiteURL = ts.URL + "/subpath"
@@ -424,11 +542,14 @@ func TestPostAction(t *testing.T) {
 				PendingPostId: model.NewId() + ":" + fmt.Sprint(model.GetMillis()),
 				UserId:        th.BasicUser.Id,
 				Props: model.StringInterface{
-					"attachments": []*model.SlackAttachment{
+					model.PostPropsAttachments: []*model.SlackAttachment{
 						{
 							Text: "hello",
 							Actions: []*model.PostAction{
 								{
+									Type:       model.PostActionTypeSelect,
+									Name:       "action",
+									DataSource: model.PostActionDataSourceUsers,
 									Integration: &model.PostActionIntegration{
 										Context: model.StringInterface{
 											"s": "foo",
@@ -436,9 +557,6 @@ func TestPostAction(t *testing.T) {
 										},
 										URL: ts.URL + "/subpath/plugins/myplugin/myaction",
 									},
-									Name:       "action",
-									Type:       "some_type",
-									DataSource: "some_source",
 								},
 							},
 						},
@@ -446,10 +564,10 @@ func TestPostAction(t *testing.T) {
 				},
 			}
 
-			postSubpath, err := th.App.CreatePostAsUser(th.Context, &interactivePostSubpath, "", true)
+			postSubpath, _, err := th.App.CreatePostAsUser(th.Context, &interactivePostSubpath, "", true)
 			require.Nil(t, err)
 
-			attachmentsSubpath, ok := postSubpath.GetProp("attachments").([]*model.SlackAttachment)
+			attachmentsSubpath, ok := postSubpath.GetProp(model.PostPropsAttachments).([]*model.SlackAttachment)
 			require.True(t, ok)
 
 			_, err = th.App.DoPostActionWithCookie(th.Context, postSubpath.Id, attachmentsSubpath[0].Actions[0].Id, th.BasicUser.Id, "", nil)
@@ -459,8 +577,8 @@ func TestPostAction(t *testing.T) {
 }
 
 func TestPostActionProps(t *testing.T) {
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
 
 	th.App.UpdateConfig(func(cfg *model.Config) {
 		*cfg.ServiceSettings.AllowedUntrustedInternalConnections = "localhost,127.0.0.1"
@@ -477,7 +595,7 @@ func TestPostActionProps(t *testing.T) {
 				"has_reactions": true,
 				"is_pinned": false,
 				"props": {
-					"from_webhook":true,
+					"from_webhook":"true",
 					"override_username":"new_override_user",
 					"override_icon_url":"new_override_icon",
 					"A":"AA"
@@ -496,11 +614,14 @@ func TestPostActionProps(t *testing.T) {
 		HasReactions:  false,
 		IsPinned:      true,
 		Props: model.StringInterface{
-			"attachments": []*model.SlackAttachment{
+			model.PostPropsAttachments: []*model.SlackAttachment{
 				{
 					Text: "hello",
 					Actions: []*model.PostAction{
 						{
+							Type:       model.PostActionTypeSelect,
+							Name:       "action",
+							DataSource: model.PostActionDataSourceUsers,
 							Integration: &model.PostActionIntegration{
 								Context: model.StringInterface{
 									"s": "foo",
@@ -508,43 +629,40 @@ func TestPostActionProps(t *testing.T) {
 								},
 								URL: ts.URL,
 							},
-							Name:       "action",
-							Type:       "some_type",
-							DataSource: "some_source",
 						},
 					},
 				},
 			},
-			"override_icon_url": "old_override_icon",
-			"from_webhook":      false,
-			"B":                 "BB",
+			model.PostPropsOverrideIconURL: "old_override_icon",
+			model.PostPropsFromWebhook:     "false",
+			"B":                            "BB",
 		},
 	}
 
-	post, err := th.App.CreatePostAsUser(th.Context, &interactivePost, "", true)
+	post, _, err := th.App.CreatePostAsUser(th.Context, &interactivePost, "", true)
 	require.Nil(t, err)
-	attachments, ok := post.GetProp("attachments").([]*model.SlackAttachment)
+	attachments, ok := post.GetProp(model.PostPropsAttachments).([]*model.SlackAttachment)
 	require.True(t, ok)
 
 	clientTriggerId, err := th.App.DoPostActionWithCookie(th.Context, post.Id, attachments[0].Actions[0].Id, th.BasicUser.Id, "", nil)
 	require.Nil(t, err)
-	assert.True(t, len(clientTriggerId) == 26)
+	assert.Len(t, clientTriggerId, 26)
 
-	newPost, nErr := th.App.Srv().Store().Post().GetSingle(post.Id, false)
+	newPost, nErr := th.App.Srv().Store().Post().GetSingle(th.Context, post.Id, false)
 	require.NoError(t, nErr)
 
 	assert.True(t, newPost.IsPinned)
 	assert.False(t, newPost.HasReactions)
 	assert.Nil(t, newPost.GetProp("B"))
-	assert.Nil(t, newPost.GetProp("override_username"))
+	assert.Nil(t, newPost.GetProp(model.PostPropsOverrideUsername))
 	assert.Equal(t, "AA", newPost.GetProp("A"))
-	assert.Equal(t, "old_override_icon", newPost.GetProp("override_icon_url"))
-	assert.Equal(t, false, newPost.GetProp("from_webhook"))
+	assert.Equal(t, "old_override_icon", newPost.GetProp(model.PostPropsOverrideIconURL))
+	assert.Equal(t, "false", newPost.GetProp(model.PostPropsFromWebhook))
 }
 
 func TestSubmitInteractiveDialog(t *testing.T) {
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
 
 	th.App.UpdateConfig(func(cfg *model.Config) {
 		*cfg.ServiceSettings.AllowedUntrustedInternalConnections = "localhost,127.0.0.1"
@@ -582,9 +700,11 @@ func TestSubmitInteractiveDialog(t *testing.T) {
 			Errors: map[string]string{"name1": "some error"},
 		}
 
-		b, _ := json.Marshal(resp)
+		b, err := json.Marshal(resp)
+		require.NoError(t, err)
 
-		w.Write(b)
+		_, err = w.Write(b)
+		require.NoError(t, err)
 	}))
 	defer ts.Close()
 
@@ -663,8 +783,8 @@ func TestSubmitInteractiveDialog(t *testing.T) {
 }
 
 func TestPostActionRelativeURL(t *testing.T) {
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
 
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		var request model.PostActionIntegrationRequest
@@ -686,16 +806,16 @@ func TestPostActionRelativeURL(t *testing.T) {
 			PendingPostId: model.NewId() + ":" + fmt.Sprint(model.GetMillis()),
 			UserId:        th.BasicUser.Id,
 			Props: model.StringInterface{
-				"attachments": []*model.SlackAttachment{
+				model.PostPropsAttachments: []*model.SlackAttachment{
 					{
 						Text: "hello",
 						Actions: []*model.PostAction{
 							{
+								Type: model.PostActionTypeButton,
+								Name: "action",
 								Integration: &model.PostActionIntegration{
 									URL: "/notaplugin/some/path",
 								},
-								Name: "action",
-								Type: "some_type",
 							},
 						},
 					},
@@ -703,9 +823,9 @@ func TestPostActionRelativeURL(t *testing.T) {
 			},
 		}
 
-		post, err := th.App.CreatePostAsUser(th.Context, &interactivePost, "", true)
+		post, _, err := th.App.CreatePostAsUser(th.Context, &interactivePost, "", true)
 		require.Nil(t, err)
-		attachments, ok := post.GetProp("attachments").([]*model.SlackAttachment)
+		attachments, ok := post.GetProp(model.PostPropsAttachments).([]*model.SlackAttachment)
 		require.True(t, ok)
 		require.NotEmpty(t, attachments[0].Actions)
 		require.NotEmpty(t, attachments[0].Actions[0].Id)
@@ -726,16 +846,16 @@ func TestPostActionRelativeURL(t *testing.T) {
 			PendingPostId: model.NewId() + ":" + fmt.Sprint(model.GetMillis()),
 			UserId:        th.BasicUser.Id,
 			Props: model.StringInterface{
-				"attachments": []*model.SlackAttachment{
+				model.PostPropsAttachments: []*model.SlackAttachment{
 					{
 						Text: "hello",
 						Actions: []*model.PostAction{
 							{
+								Type: model.PostActionTypeButton,
+								Name: "action",
 								Integration: &model.PostActionIntegration{
 									URL: "/plugins/myplugin/myaction",
 								},
-								Name: "action",
-								Type: "some_type",
 							},
 						},
 					},
@@ -743,9 +863,9 @@ func TestPostActionRelativeURL(t *testing.T) {
 			},
 		}
 
-		post, err := th.App.CreatePostAsUser(th.Context, &interactivePost, "", true)
+		post, _, err := th.App.CreatePostAsUser(th.Context, &interactivePost, "", true)
 		require.Nil(t, err)
-		attachments, ok := post.GetProp("attachments").([]*model.SlackAttachment)
+		attachments, ok := post.GetProp(model.PostPropsAttachments).([]*model.SlackAttachment)
 		require.True(t, ok)
 		require.NotEmpty(t, attachments[0].Actions)
 		require.NotEmpty(t, attachments[0].Actions[0].Id)
@@ -766,16 +886,16 @@ func TestPostActionRelativeURL(t *testing.T) {
 			PendingPostId: model.NewId() + ":" + fmt.Sprint(model.GetMillis()),
 			UserId:        th.BasicUser.Id,
 			Props: model.StringInterface{
-				"attachments": []*model.SlackAttachment{
+				model.PostPropsAttachments: []*model.SlackAttachment{
 					{
 						Text: "hello",
 						Actions: []*model.PostAction{
 							{
+								Type: model.PostActionTypeButton,
+								Name: "action",
 								Integration: &model.PostActionIntegration{
 									URL: "/plugins/myplugin/myaction",
 								},
-								Name: "action",
-								Type: "some_type",
 							},
 						},
 					},
@@ -783,9 +903,9 @@ func TestPostActionRelativeURL(t *testing.T) {
 			},
 		}
 
-		post, err := th.App.CreatePostAsUser(th.Context, &interactivePost, "", true)
+		post, _, err := th.App.CreatePostAsUser(th.Context, &interactivePost, "", true)
 		require.Nil(t, err)
-		attachments, ok := post.GetProp("attachments").([]*model.SlackAttachment)
+		attachments, ok := post.GetProp(model.PostPropsAttachments).([]*model.SlackAttachment)
 		require.True(t, ok)
 		require.NotEmpty(t, attachments[0].Actions)
 		require.NotEmpty(t, attachments[0].Actions[0].Id)
@@ -806,16 +926,16 @@ func TestPostActionRelativeURL(t *testing.T) {
 			PendingPostId: model.NewId() + ":" + fmt.Sprint(model.GetMillis()),
 			UserId:        th.BasicUser.Id,
 			Props: model.StringInterface{
-				"attachments": []*model.SlackAttachment{
+				model.PostPropsAttachments: []*model.SlackAttachment{
 					{
 						Text: "hello",
 						Actions: []*model.PostAction{
 							{
+								Type: model.PostActionTypeButton,
+								Name: "action",
 								Integration: &model.PostActionIntegration{
 									URL: "//plugins/myplugin///myaction",
 								},
-								Name: "action",
-								Type: "some_type",
 							},
 						},
 					},
@@ -823,9 +943,9 @@ func TestPostActionRelativeURL(t *testing.T) {
 			},
 		}
 
-		post, err := th.App.CreatePostAsUser(th.Context, &interactivePost, "", true)
+		post, _, err := th.App.CreatePostAsUser(th.Context, &interactivePost, "", true)
 		require.Nil(t, err)
-		attachments, ok := post.GetProp("attachments").([]*model.SlackAttachment)
+		attachments, ok := post.GetProp(model.PostPropsAttachments).([]*model.SlackAttachment)
 		require.True(t, ok)
 		require.NotEmpty(t, attachments[0].Actions)
 		require.NotEmpty(t, attachments[0].Actions[0].Id)
@@ -846,16 +966,16 @@ func TestPostActionRelativeURL(t *testing.T) {
 			PendingPostId: model.NewId() + ":" + fmt.Sprint(model.GetMillis()),
 			UserId:        th.BasicUser.Id,
 			Props: model.StringInterface{
-				"attachments": []*model.SlackAttachment{
+				model.PostPropsAttachments: []*model.SlackAttachment{
 					{
 						Text: "hello",
 						Actions: []*model.PostAction{
 							{
+								Type: model.PostActionTypeButton,
+								Name: "action",
 								Integration: &model.PostActionIntegration{
 									URL: "plugins/myplugin/myaction",
 								},
-								Name: "action",
-								Type: "some_type",
 							},
 						},
 					},
@@ -863,9 +983,9 @@ func TestPostActionRelativeURL(t *testing.T) {
 			},
 		}
 
-		post, err := th.App.CreatePostAsUser(th.Context, &interactivePost, "", true)
+		post, _, err := th.App.CreatePostAsUser(th.Context, &interactivePost, "", true)
 		require.Nil(t, err)
-		attachments, ok := post.GetProp("attachments").([]*model.SlackAttachment)
+		attachments, ok := post.GetProp(model.PostPropsAttachments).([]*model.SlackAttachment)
 		require.True(t, ok)
 		require.NotEmpty(t, attachments[0].Actions)
 		require.NotEmpty(t, attachments[0].Actions[0].Id)
@@ -876,8 +996,8 @@ func TestPostActionRelativeURL(t *testing.T) {
 }
 
 func TestPostActionRelativePluginURL(t *testing.T) {
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
 
 	setupPluginAPITest(t,
 		`
@@ -885,7 +1005,7 @@ func TestPostActionRelativePluginURL(t *testing.T) {
 
 		import (
 			"net/http"
-			"encoding/json" 
+			"encoding/json"
 
 			"github.com/mattermost/mattermost/server/public/plugin"
 			"github.com/mattermost/mattermost/server/public/model"
@@ -923,16 +1043,16 @@ func TestPostActionRelativePluginURL(t *testing.T) {
 			PendingPostId: model.NewId() + ":" + fmt.Sprint(model.GetMillis()),
 			UserId:        th.BasicUser.Id,
 			Props: model.StringInterface{
-				"attachments": []*model.SlackAttachment{
+				model.PostPropsAttachments: []*model.SlackAttachment{
 					{
 						Text: "hello",
 						Actions: []*model.PostAction{
 							{
+								Type: model.PostActionTypeButton,
+								Name: "action",
 								Integration: &model.PostActionIntegration{
 									URL: "/notaplugin/some/path",
 								},
-								Name: "action",
-								Type: "some_type",
 							},
 						},
 					},
@@ -940,9 +1060,9 @@ func TestPostActionRelativePluginURL(t *testing.T) {
 			},
 		}
 
-		post, err := th.App.CreatePostAsUser(th.Context, &interactivePost, "", true)
+		post, _, err := th.App.CreatePostAsUser(th.Context, &interactivePost, "", true)
 		require.Nil(t, err)
-		attachments, ok := post.GetProp("attachments").([]*model.SlackAttachment)
+		attachments, ok := post.GetProp(model.PostPropsAttachments).([]*model.SlackAttachment)
 		require.True(t, ok)
 		require.NotEmpty(t, attachments[0].Actions)
 		require.NotEmpty(t, attachments[0].Actions[0].Id)
@@ -963,16 +1083,16 @@ func TestPostActionRelativePluginURL(t *testing.T) {
 			PendingPostId: model.NewId() + ":" + fmt.Sprint(model.GetMillis()),
 			UserId:        th.BasicUser.Id,
 			Props: model.StringInterface{
-				"attachments": []*model.SlackAttachment{
+				model.PostPropsAttachments: []*model.SlackAttachment{
 					{
 						Text: "hello",
 						Actions: []*model.PostAction{
 							{
+								Type: model.PostActionTypeButton,
+								Name: "action",
 								Integration: &model.PostActionIntegration{
 									URL: "/plugins/myplugin/myaction",
 								},
-								Name: "action",
-								Type: "some_type",
 							},
 						},
 					},
@@ -980,9 +1100,9 @@ func TestPostActionRelativePluginURL(t *testing.T) {
 			},
 		}
 
-		post, err := th.App.CreatePostAsUser(th.Context, &interactivePost, "", true)
+		post, _, err := th.App.CreatePostAsUser(th.Context, &interactivePost, "", true)
 		require.Nil(t, err)
-		attachments, ok := post.GetProp("attachments").([]*model.SlackAttachment)
+		attachments, ok := post.GetProp(model.PostPropsAttachments).([]*model.SlackAttachment)
 		require.True(t, ok)
 		require.NotEmpty(t, attachments[0].Actions)
 		require.NotEmpty(t, attachments[0].Actions[0].Id)
@@ -1003,16 +1123,16 @@ func TestPostActionRelativePluginURL(t *testing.T) {
 			PendingPostId: model.NewId() + ":" + fmt.Sprint(model.GetMillis()),
 			UserId:        th.BasicUser.Id,
 			Props: model.StringInterface{
-				"attachments": []*model.SlackAttachment{
+				model.PostPropsAttachments: []*model.SlackAttachment{
 					{
 						Text: "hello",
 						Actions: []*model.PostAction{
 							{
+								Type: model.PostActionTypeButton,
+								Name: "action",
 								Integration: &model.PostActionIntegration{
 									URL: "//plugins/myplugin///myaction",
 								},
-								Name: "action",
-								Type: "some_type",
 							},
 						},
 					},
@@ -1020,9 +1140,9 @@ func TestPostActionRelativePluginURL(t *testing.T) {
 			},
 		}
 
-		post, err := th.App.CreatePostAsUser(th.Context, &interactivePost, "", true)
+		post, _, err := th.App.CreatePostAsUser(th.Context, &interactivePost, "", true)
 		require.Nil(t, err)
-		attachments, ok := post.GetProp("attachments").([]*model.SlackAttachment)
+		attachments, ok := post.GetProp(model.PostPropsAttachments).([]*model.SlackAttachment)
 		require.True(t, ok)
 		require.NotEmpty(t, attachments[0].Actions)
 		require.NotEmpty(t, attachments[0].Actions[0].Id)
@@ -1043,16 +1163,16 @@ func TestPostActionRelativePluginURL(t *testing.T) {
 			PendingPostId: model.NewId() + ":" + fmt.Sprint(model.GetMillis()),
 			UserId:        th.BasicUser.Id,
 			Props: model.StringInterface{
-				"attachments": []*model.SlackAttachment{
+				model.PostPropsAttachments: []*model.SlackAttachment{
 					{
 						Text: "hello",
 						Actions: []*model.PostAction{
 							{
+								Type: model.PostActionTypeButton,
+								Name: "action",
 								Integration: &model.PostActionIntegration{
 									URL: "plugins/myplugin/myaction",
 								},
-								Name: "action",
-								Type: "some_type",
 							},
 						},
 					},
@@ -1060,9 +1180,9 @@ func TestPostActionRelativePluginURL(t *testing.T) {
 			},
 		}
 
-		post, err := th.App.CreatePostAsUser(th.Context, &interactivePost, "", true)
+		post, _, err := th.App.CreatePostAsUser(th.Context, &interactivePost, "", true)
 		require.Nil(t, err)
-		attachments, ok := post.GetProp("attachments").([]*model.SlackAttachment)
+		attachments, ok := post.GetProp(model.PostPropsAttachments).([]*model.SlackAttachment)
 		require.True(t, ok)
 		require.NotEmpty(t, attachments[0].Actions)
 		require.NotEmpty(t, attachments[0].Actions[0].Id)
@@ -1072,9 +1192,529 @@ func TestPostActionRelativePluginURL(t *testing.T) {
 	})
 }
 
+func TestLookupInteractiveDialog(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.ServiceSettings.AllowedUntrustedInternalConnections = "localhost,127.0.0.1"
+	})
+
+	t.Run("should handle successful lookup request", func(t *testing.T) {
+		ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			var request model.SubmitDialogRequest
+			err := json.NewDecoder(r.Body).Decode(&request)
+			require.NoError(t, err)
+
+			assert.Equal(t, "dialog_lookup", request.Type)
+			assert.Equal(t, th.BasicUser.Id, request.UserId)
+			assert.Equal(t, th.BasicChannel.Id, request.ChannelId)
+			assert.Equal(t, th.BasicTeam.Id, request.TeamId)
+			assert.Equal(t, "callbackid", request.CallbackId)
+
+			// Check for query and selected_field in submission
+			query, ok := request.Submission["query"].(string)
+			require.True(t, ok)
+			assert.Equal(t, "test query", query)
+
+			selectedField, ok := request.Submission["selected_field"].(string)
+			require.True(t, ok)
+			assert.Equal(t, "dynamic_field", selectedField)
+
+			// Return mock lookup response
+			response := model.LookupDialogResponse{
+				Items: []model.DialogSelectOption{
+					{Text: "Option 1", Value: "value1"},
+					{Text: "Option 2", Value: "value2"},
+					{Text: "Option 3", Value: "value3"},
+				},
+			}
+			w.Header().Set("Content-Type", "application/json")
+			_ = json.NewEncoder(w).Encode(response)
+		}))
+		defer ts.Close()
+
+		submit := model.SubmitDialogRequest{
+			URL:        ts.URL,
+			CallbackId: "callbackid",
+			State:      "somestate",
+			UserId:     th.BasicUser.Id,
+			ChannelId:  th.BasicChannel.Id,
+			TeamId:     th.BasicTeam.Id,
+			Submission: map[string]any{
+				"query":          "test query",
+				"selected_field": "dynamic_field",
+			},
+		}
+
+		resp, err := th.App.LookupInteractiveDialog(th.Context, submit)
+		require.Nil(t, err)
+		require.NotNil(t, resp)
+		assert.Len(t, resp.Items, 3)
+		assert.Equal(t, "Option 1", resp.Items[0].Text)
+		assert.Equal(t, "value1", resp.Items[0].Value)
+		assert.Equal(t, "Option 2", resp.Items[1].Text)
+		assert.Equal(t, "value2", resp.Items[1].Value)
+	})
+
+	t.Run("should handle empty response", func(t *testing.T) {
+		ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			w.Header().Set("Content-Type", "application/json")
+			w.WriteHeader(http.StatusOK)
+			// Empty response body
+		}))
+		defer ts.Close()
+
+		submit := model.SubmitDialogRequest{
+			URL:        ts.URL,
+			CallbackId: "callbackid",
+			State:      "somestate",
+			UserId:     th.BasicUser.Id,
+			ChannelId:  th.BasicChannel.Id,
+			TeamId:     th.BasicTeam.Id,
+			Submission: map[string]any{"query": "test"},
+		}
+
+		resp, err := th.App.LookupInteractiveDialog(th.Context, submit)
+		require.Nil(t, err)
+		require.NotNil(t, resp)
+		assert.Empty(t, resp.Items)
+	})
+
+	t.Run("should handle HTTP error response", func(t *testing.T) {
+		ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			w.WriteHeader(http.StatusInternalServerError)
+			_, _ = w.Write([]byte("Internal server error"))
+		}))
+		defer ts.Close()
+
+		submit := model.SubmitDialogRequest{
+			URL:        ts.URL,
+			CallbackId: "callbackid",
+			State:      "somestate",
+			UserId:     th.BasicUser.Id,
+			ChannelId:  th.BasicChannel.Id,
+			TeamId:     th.BasicTeam.Id,
+			Submission: map[string]any{"query": "test"},
+		}
+
+		resp, err := th.App.LookupInteractiveDialog(th.Context, submit)
+		require.NotNil(t, err)
+		assert.Nil(t, resp)
+		assert.Contains(t, err.Error(), "status=500")
+	})
+
+	t.Run("should handle malformed JSON response", func(t *testing.T) {
+		ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			w.Header().Set("Content-Type", "application/json")
+			w.WriteHeader(http.StatusOK)
+			_, _ = w.Write([]byte("invalid json"))
+		}))
+		defer ts.Close()
+
+		submit := model.SubmitDialogRequest{
+			URL:        ts.URL,
+			CallbackId: "callbackid",
+			State:      "somestate",
+			UserId:     th.BasicUser.Id,
+			ChannelId:  th.BasicChannel.Id,
+			TeamId:     th.BasicTeam.Id,
+			Submission: map[string]any{"query": "test"},
+		}
+
+		resp, err := th.App.LookupInteractiveDialog(th.Context, submit)
+		require.NotNil(t, err)
+		assert.Nil(t, resp)
+		assert.Contains(t, err.Error(), "Encountered an error decoding JSON response")
+	})
+
+	t.Run("should handle plugin lookup", func(t *testing.T) {
+		setupPluginAPITest(t,
+			`
+			package main
+
+			import (
+				"encoding/json"
+				"net/http"
+
+				"github.com/mattermost/mattermost/server/public/plugin"
+				"github.com/mattermost/mattermost/server/public/model"
+			)
+
+			type MyPlugin struct {
+				plugin.MattermostPlugin
+			}
+
+			func (p *MyPlugin) ServeHTTP(c *plugin.Context, w http.ResponseWriter, r *http.Request) {
+				var request model.SubmitDialogRequest
+				json.NewDecoder(r.Body).Decode(&request)
+
+				response := &model.LookupDialogResponse{
+					Items: []model.DialogSelectOption{
+						{Text: "Plugin Option 1", Value: "plugin_value1"},
+						{Text: "Plugin Option 2", Value: "plugin_value2"},
+					},
+				}
+				w.WriteHeader(http.StatusOK)
+				responseJSON, _ := json.Marshal(response)
+				w.Write(responseJSON)
+			}
+
+			func main() {
+				plugin.ClientMain(&MyPlugin{})
+			}
+			`, `{"id": "myplugin", "server": {"executable": "backend.exe"}}`, "myplugin", th.App, th.Context)
+
+		submit := model.SubmitDialogRequest{
+			URL:        "/plugins/myplugin/lookup",
+			CallbackId: "callbackid",
+			State:      "somestate",
+			UserId:     th.BasicUser.Id,
+			ChannelId:  th.BasicChannel.Id,
+			TeamId:     th.BasicTeam.Id,
+			Submission: map[string]any{"query": "test"},
+		}
+
+		resp, err := th.App.LookupInteractiveDialog(th.Context, submit)
+		require.Nil(t, err)
+		require.NotNil(t, resp)
+		assert.Len(t, resp.Items, 2)
+		assert.Equal(t, "Plugin Option 1", resp.Items[0].Text)
+		assert.Equal(t, "plugin_value1", resp.Items[0].Value)
+	})
+
+	t.Run("should fail on invalid URL", func(t *testing.T) {
+		submit := model.SubmitDialogRequest{
+			URL:        "not-a-valid-url",
+			CallbackId: "callbackid",
+			State:      "somestate",
+			UserId:     th.BasicUser.Id,
+			ChannelId:  th.BasicChannel.Id,
+			TeamId:     th.BasicTeam.Id,
+			Submission: map[string]any{"query": "test"},
+		}
+
+		resp, err := th.App.LookupInteractiveDialog(th.Context, submit)
+		require.NotNil(t, err)
+		assert.Nil(t, resp)
+		assert.Contains(t, err.Error(), "unsupported protocol scheme")
+	})
+
+	t.Run("should handle timeout", func(t *testing.T) {
+		ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			// Simulate a slow response that would trigger a timeout
+			time.Sleep(2 * time.Second)
+			w.WriteHeader(http.StatusOK)
+		}))
+		defer ts.Close()
+
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			cfg.ServiceSettings.OutgoingIntegrationRequestsTimeout = model.NewPointer(int64(1))
+		})
+
+		submit := model.SubmitDialogRequest{
+			URL:        ts.URL,
+			CallbackId: "callbackid",
+			State:      "somestate",
+			UserId:     th.BasicUser.Id,
+			ChannelId:  th.BasicChannel.Id,
+			TeamId:     th.BasicTeam.Id,
+			Submission: map[string]any{"query": "test"},
+		}
+
+		resp, err := th.App.LookupInteractiveDialog(th.Context, submit)
+		require.NotNil(t, err)
+		assert.Nil(t, resp)
+		assert.Contains(t, err.Error(), "context deadline exceeded")
+	})
+}
+
+func TestOpenInteractiveDialog(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+
+	t.Run("should successfully open dialog with valid trigger ID", func(t *testing.T) {
+		_, triggerId, err := model.GenerateTriggerId(th.BasicUser.Id, th.App.AsymmetricSigningKey())
+		require.Nil(t, err)
+
+		request := model.OpenDialogRequest{
+			TriggerId: triggerId,
+			URL:       "http://localhost:8065",
+			Dialog: model.Dialog{
+				CallbackId: "callbackid",
+				Title:      "Test Dialog",
+				Elements: []model.DialogElement{
+					{
+						DisplayName: "Field Name",
+						Name:        "field_name",
+						Type:        "text",
+						Placeholder: "Enter value",
+					},
+				},
+				SubmitLabel:    "Submit",
+				NotifyOnCancel: false,
+				State:          "somestate",
+			},
+		}
+
+		err = th.App.OpenInteractiveDialog(th.Context, request)
+		require.Nil(t, err)
+	})
+
+	t.Run("should fail with invalid trigger ID", func(t *testing.T) {
+		request := model.OpenDialogRequest{
+			TriggerId: "invalid_trigger_id",
+			URL:       "http://localhost:8065",
+			Dialog: model.Dialog{
+				CallbackId: "callbackid",
+				Title:      "Test Dialog",
+			},
+		}
+
+		err := th.App.OpenInteractiveDialog(th.Context, request)
+		require.NotNil(t, err)
+		assert.Contains(t, err.Error(), "trigger ID")
+	})
+
+	t.Run("should fail with expired trigger ID", func(t *testing.T) {
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			cfg.ServiceSettings.OutgoingIntegrationRequestsTimeout = model.NewPointer(int64(1))
+		})
+
+		// Generate trigger ID and wait for it to expire
+		_, triggerId, err := model.GenerateTriggerId(th.BasicUser.Id, th.App.AsymmetricSigningKey())
+		require.Nil(t, err)
+
+		time.Sleep(2 * time.Second)
+
+		request := model.OpenDialogRequest{
+			TriggerId: triggerId,
+			URL:       "http://localhost:8065",
+			Dialog: model.Dialog{
+				CallbackId: "callbackid",
+				Title:      "Test Dialog",
+			},
+		}
+
+		err = th.App.OpenInteractiveDialog(th.Context, request)
+		require.NotNil(t, err)
+		assert.Contains(t, err.Error(), "Trigger ID for interactive dialog is expired")
+	})
+
+	t.Run("should handle dialog with invalid elements", func(t *testing.T) {
+		_, triggerId, err := model.GenerateTriggerId(th.BasicUser.Id, th.App.AsymmetricSigningKey())
+		require.Nil(t, err)
+
+		request := model.OpenDialogRequest{
+			TriggerId: triggerId,
+			URL:       "http://localhost:8065",
+			Dialog: model.Dialog{
+				CallbackId: "callbackid",
+				Title:      "Test Dialog",
+				Elements: []model.DialogElement{
+					{
+						DisplayName: strings.Repeat("A", 500), // Too long display name
+						Name:        "field_name",
+						Type:        "text",
+					},
+				},
+			},
+		}
+
+		// Should succeed but log warning about invalid dialog
+		err = th.App.OpenInteractiveDialog(th.Context, request)
+		require.Nil(t, err)
+	})
+}
+
+func TestDoActionRequest(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.ServiceSettings.AllowedUntrustedInternalConnections = "localhost,127.0.0.1"
+	})
+
+	t.Run("should handle successful external request", func(t *testing.T) {
+		ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			assert.Equal(t, "POST", r.Method)
+			assert.Equal(t, "application/json", r.Header.Get("Content-Type"))
+			assert.Equal(t, "application/json", r.Header.Get("Accept"))
+
+			body, err := io.ReadAll(r.Body)
+			require.NoError(t, err)
+			assert.NotEmpty(t, body)
+
+			w.WriteHeader(http.StatusOK)
+			_, _ = w.Write([]byte(`{"success": true}`))
+		}))
+		defer ts.Close()
+
+		requestBody := []byte(`{"test": "data"}`)
+		resp, err := th.App.DoActionRequest(th.Context, ts.URL, requestBody)
+		require.Nil(t, err)
+		require.NotNil(t, resp)
+		assert.Equal(t, http.StatusOK, resp.StatusCode)
+
+		body, readErr := io.ReadAll(resp.Body)
+		require.NoError(t, readErr)
+		assert.Equal(t, `{"success": true}`, string(body))
+		resp.Body.Close()
+	})
+
+	t.Run("should handle non-200 status code", func(t *testing.T) {
+		ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			w.WriteHeader(http.StatusBadRequest)
+			_, _ = w.Write([]byte("Bad request"))
+		}))
+		defer ts.Close()
+
+		requestBody := []byte(`{"test": "data"}`)
+		resp, err := th.App.DoActionRequest(th.Context, ts.URL, requestBody)
+		require.NotNil(t, err)
+		require.NotNil(t, resp)
+		assert.Equal(t, http.StatusBadRequest, resp.StatusCode)
+		assert.Contains(t, err.Error(), "status=400")
+		resp.Body.Close()
+	})
+
+	t.Run("should handle invalid URL", func(t *testing.T) {
+		requestBody := []byte(`{"test": "data"}`)
+		resp, err := th.App.DoActionRequest(th.Context, "invalid-url", requestBody)
+		require.NotNil(t, err)
+		assert.Nil(t, resp)
+		assert.Contains(t, err.Error(), "unsupported protocol scheme")
+	})
+
+	t.Run("should handle plugin URL", func(t *testing.T) {
+		requestBody := []byte(`{"test": "data"}`)
+		resp, err := th.App.DoActionRequest(th.Context, "/plugins/myplugin/action", requestBody)
+		require.Nil(t, err) // Plugin URLs return HTTP response, not Go error
+		require.NotNil(t, resp)
+		assert.Equal(t, http.StatusNotFound, resp.StatusCode) // Plugin doesn't exist, returns 404
+		resp.Body.Close()
+	})
+
+	t.Run("should handle context timeout", func(t *testing.T) {
+		ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			time.Sleep(2 * time.Second)
+			w.WriteHeader(http.StatusOK)
+		}))
+		defer ts.Close()
+
+		ctx, cancel := context.WithTimeout(context.Background(), 500*time.Millisecond)
+		defer cancel()
+		c := th.Context.WithContext(ctx)
+
+		requestBody := []byte(`{"test": "data"}`)
+		resp, err := th.App.DoActionRequest(c, ts.URL, requestBody)
+		require.NotNil(t, err)
+		assert.Nil(t, resp)
+		assert.Contains(t, err.Error(), "context deadline exceeded")
+	})
+
+	t.Run("should handle network error", func(t *testing.T) {
+		requestBody := []byte(`{"test": "data"}`)
+		resp, err := th.App.DoActionRequest(th.Context, "http://invalid-host-that-does-not-exist:9999", requestBody)
+		require.NotNil(t, err)
+		assert.Nil(t, resp)
+	})
+}
+
+func TestDoLocalRequest(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+
+	t.Run("should delegate to doPluginRequest", func(t *testing.T) {
+		requestBody := []byte(`{"test": "data"}`)
+		resp, err := th.App.DoLocalRequest(th.Context, "/plugins/nonexistent/action", requestBody)
+		require.Nil(t, err) // DoLocalRequest returns HTTP response, not error
+		require.NotNil(t, resp)
+		assert.Equal(t, http.StatusNotFound, resp.StatusCode) // Plugin doesn't exist, returns 404
+	})
+}
+
+func TestDoPostActionWithCookieEdgeCases(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.ServiceSettings.AllowedUntrustedInternalConnections = "localhost,127.0.0.1"
+	})
+
+	t.Run("should handle missing post with valid cookie", func(t *testing.T) {
+		ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			w.WriteHeader(http.StatusOK)
+			_, _ = w.Write([]byte(`{}`))
+		}))
+		defer ts.Close()
+
+		cookie := &model.PostActionCookie{
+			PostId:    "nonexistent_post_id",
+			ChannelId: th.BasicChannel.Id,
+			Type:      model.PostActionTypeButton,
+			Integration: &model.PostActionIntegration{
+				URL: ts.URL,
+			},
+		}
+
+		_, err := th.App.DoPostActionWithCookie(th.Context, "nonexistent_post_id", "action_id", th.BasicUser.Id, "", cookie)
+		require.Nil(t, err)
+	})
+
+	t.Run("should handle cookie with mismatched post ID", func(t *testing.T) {
+		cookie := &model.PostActionCookie{
+			PostId:    "different_post_id",
+			ChannelId: th.BasicChannel.Id,
+			Type:      model.PostActionTypeButton,
+			Integration: &model.PostActionIntegration{
+				URL: "http://example.com",
+			},
+		}
+
+		_, err := th.App.DoPostActionWithCookie(th.Context, "actual_post_id", "action_id", th.BasicUser.Id, "", cookie)
+		require.NotNil(t, err)
+		assert.Contains(t, err.Error(), "postId doesn't match")
+	})
+
+	t.Run("should handle cookie with nil integration", func(t *testing.T) {
+		cookie := &model.PostActionCookie{
+			PostId:      "nonexistent_post_id",
+			ChannelId:   th.BasicChannel.Id,
+			Type:        model.PostActionTypeButton,
+			Integration: nil,
+		}
+
+		_, err := th.App.DoPostActionWithCookie(th.Context, "nonexistent_post_id", "action_id", th.BasicUser.Id, "", cookie)
+		require.NotNil(t, err)
+		assert.Contains(t, err.Error(), "no Integration in action cookie")
+	})
+
+	t.Run("should handle missing user error", func(t *testing.T) {
+		ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			w.WriteHeader(http.StatusOK)
+			_, _ = w.Write([]byte(`{}`))
+		}))
+		defer ts.Close()
+
+		cookie := &model.PostActionCookie{
+			PostId:    "nonexistent_post_id",
+			ChannelId: th.BasicChannel.Id,
+			Type:      model.PostActionTypeButton,
+			Integration: &model.PostActionIntegration{
+				URL: ts.URL,
+			},
+		}
+
+		_, err := th.App.DoPostActionWithCookie(th.Context, "nonexistent_post_id", "action_id", "nonexistent_user_id", "", cookie)
+		require.NotNil(t, err)
+		assert.Contains(t, err.Error(), "Unable to find the user.")
+	})
+}
+
 func TestDoPluginRequest(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t)
-	defer th.TearDown()
 
 	th.App.UpdateConfig(func(cfg *model.Config) {
 		*cfg.ServiceSettings.AllowedUntrustedInternalConnections = "localhost,127.0.0.1"

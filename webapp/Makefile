@@ -8,7 +8,12 @@ CI ?= false
 # please see optipng-bin Linux arm64 support issue (https://github.com/imagemin/optipng-bin/issues/118) for details:
 ifeq ($(shell uname)/$(shell uname -m),Linux/aarch64)
   LINUX_ARM64 = true
-  CPPFLAGS = "-DPNG_ARM_NEON_OPT=0"
+  CPPFLAGS += -DPNG_ARM_NEON_OPT=0
+endif
+# Exact same issue but for Linux/PPC64
+ifeq ($(findstring Linux/ppc64,$(shell uname)/$(shell uname -m)),Linux/ppc64)
+  LINUX_PPC64 = true
+  CPPFLAGS += -DPNG_POWERPC_VSX_OPT=0
 endif
 
 .PHONY: run
@@ -58,6 +63,18 @@ check-types: node_modules ## Checks TS file for TypeScript confirmity
 
 	npm run check-types
 
+.PHONY: i18n-extract
+i18n-extract: node_modules ## Extracts i18n messages from code to en.json
+	@echo Extracting i18n messages
+
+	npm run i18n-extract
+
+.PHONY: i18n-extract-check
+i18n-extract-check: node_modules ## Checks if en.json is in sync with code
+	@echo Checking i18n message sync
+
+	npm run i18n-extract:check
+
 .PHONY: dist
 dist: node_modules ## Builds all web app packages
 	@echo Packaging Mattermost Web App
@@ -68,7 +85,7 @@ node_modules: package.json $(wildcard package-lock.json)
 	@echo Getting dependencies using npm
 
 ifeq ($(CI),false)
-	CPPFLAGS=$(CPPFLAGS) npm install
+	CPPFLAGS="$(CPPFLAGS)" npm install
 else
 	# This runs in CI with NODE_ENV=production which skips devDependencies without this flag
 	npm ci --include=dev

@@ -16,10 +16,9 @@ import type {
 import AutoHeightSwitcher from 'components/common/auto_height_switcher';
 import ExternalImage from 'components/external_image';
 import ExternalLink from 'components/external_link';
-import OverlayTrigger from 'components/overlay_trigger';
-import Tooltip from 'components/tooltip';
+import WithTooltip from 'components/with_tooltip';
 
-import Constants, {PostTypes} from 'utils/constants';
+import {PostTypes} from 'utils/constants';
 import {isSystemMessage} from 'utils/post_utils';
 import {makeUrlSafe} from 'utils/url';
 
@@ -119,12 +118,6 @@ const PostAttachmentOpenGraph = ({openGraphData, post, actions, link, isInPermal
         return actions.editPost(patchedPost);
     };
 
-    const removeButtonTooltip = (
-        <Tooltip id={`removeLinkPreview-${post.id}`}>
-            {formatMessage({id: 'link_preview.remove_link_preview', defaultMessage: 'Remove link preview'})}
-        </Tooltip>
-    );
-
     const safeLink = makeUrlSafe(openGraphData?.url || link);
 
     return (
@@ -136,10 +129,8 @@ const PostAttachmentOpenGraph = ({openGraphData, post, actions, link, isInPermal
             location='post_attachment_opengraph'
         >
             {rest.currentUserId === post.user_id && !isInPermalink && (
-                <OverlayTrigger
-                    placement='top'
-                    delayShow={Constants.OVERLAY_TIME_DELAY}
-                    overlay={removeButtonTooltip}
+                <WithTooltip
+                    title={formatMessage({id: 'link_preview.remove_link_preview', defaultMessage: 'Remove link preview'})}
                 >
                     <button
                         type='button'
@@ -153,7 +144,7 @@ const PostAttachmentOpenGraph = ({openGraphData, post, actions, link, isInPermal
                             color={'currentColor'}
                         />
                     </button>
-                </OverlayTrigger>
+                </WithTooltip>
             )}
             <PostAttachmentOpenGraphBody
                 isInPermalink={isInPermalink}

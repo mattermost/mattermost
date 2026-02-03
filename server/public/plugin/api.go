@@ -10,6 +10,7 @@ import (
 	plugin "github.com/hashicorp/go-plugin"
 
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/mlog"
 )
 
 // The API can be used to retrieve data or perform actions on behalf of the plugin. Most methods
@@ -131,9 +132,17 @@ type API interface {
 
 	// GetUsers a list of users based on search options.
 	//
+	// Not all fields in UserGetOptions are supported by this API.
+	//
 	// @tag User
 	// Minimum server version: 5.10
 	GetUsers(options *model.UserGetOptions) ([]*model.User, *model.AppError)
+
+	// GetUsersByIds gets a list of users by their IDs.
+	//
+	// @tag User
+	// Minimum server version: 9.8
+	GetUsersByIds(userIDs []string) ([]*model.User, *model.AppError)
 
 	// GetUser gets a user.
 	//
@@ -166,7 +175,8 @@ type API interface {
 	// Minimum server version: 5.6
 	GetUsersInTeam(teamID string, page int, perPage int) ([]*model.User, *model.AppError)
 
-	// GetPreferenceForUser gets a single preference for a user.
+	// GetPreferenceForUser gets a single preference for a user. An error is returned if the user has no preference
+	// set with the given category and name, an error is returned.
 	//
 	// @tag User
 	// @tag Preference
@@ -463,7 +473,8 @@ type API interface {
 	// Minimum server version: 5.2
 	GetChannelByNameForTeamName(teamName, channelName string, includeDeleted bool) (*model.Channel, *model.AppError)
 
-	// GetChannelsForTeamForUser gets a list of channels for given user ID in given team ID.
+	// GetChannelsForTeamForUser  gets a list of channels for given user ID in given team ID, including DMs.
+	// If an empty string is passed as the team ID, the user's channels on all teams and their DMs will be returned.
 	//
 	// @tag Channel
 	// @tag Team
@@ -599,6 +610,15 @@ type API interface {
 	// @tag User
 	// Minimum server version: 5.2
 	UpdateChannelMemberNotifications(channelId, userID string, notifications map[string]string) (*model.ChannelMember, *model.AppError)
+
+	// PatchChannelMembersNotifications updates the notification properties for multiple channel members.
+	// Other changes made to the channel memberships will be ignored. A maximum of 200 members can be
+	// updated at once.
+	//
+	// @tag Channel
+	// @tag User
+	// Minimum server version: 9.5
+	PatchChannelMembersNotifications(members []*model.ChannelMemberIdentifier, notifyProps map[string]string) *model.AppError
 
 	// GetGroup gets a group by ID.
 	//
@@ -1270,10 +1290,11 @@ type API interface {
 
 	// InviteRemoteToChannel invites a remote, or this plugin, as a target for synchronizing. Once invited, the
 	// remote will start to receive synchronization messages for any changed content in the specified channel.
+	// If `shareIfNotShared` is true, the channel's shared flag will be set, if not already.
 	//
 	// @tag SharedChannels
 	// Minimum server version: 9.5
-	InviteRemoteToChannel(channelID string, remoteID string, userID string) error
+	InviteRemoteToChannel(channelID string, remoteID string, userID string, shareIfNotShared bool) error
 
 	// UninviteRemoteFromChannel uninvites a remote, or this plugin, such that it will stop receiving sychronization
 	// messages for the channel.
@@ -1281,6 +1302,268 @@ type API interface {
 	// @tag SharedChannels
 	// Minimum server version: 9.5
 	UninviteRemoteFromChannel(channelID string, remoteID string) error
+
+	// UpsertGroupMember adds a user to a group or updates their existing membership.
+	//
+	// @tag Group
+	// @tag User
+	// Minimum server version: 10.7
+	UpsertGroupMember(groupID string, userID string) (*model.GroupMember, *model.AppError)
+
+	// UpsertGroupMembers adds multiple users to a group or updates their existing memberships.
+	//
+	// @tag Group
+	// @tag User
+	// Minimum server version: 10.7
+	UpsertGroupMembers(groupID string, userIDs []string) ([]*model.GroupMember, *model.AppError)
+
+	// GetGroupByRemoteID gets a group by its remote ID.
+	//
+	// @tag Group
+	// Minimum server version: 10.7
+	GetGroupByRemoteID(remoteID string, groupSource model.GroupSource) (*model.Group, *model.AppError)
+
+	// CreateGroup creates a new group.
+	//
+	// @tag Group
+	// Minimum server version: 10.7
+	CreateGroup(group *model.Group) (*model.Group, *model.AppError)
+
+	// UpdateGroup updates a group.
+	//
+	// @tag Group
+	// Minimum server version: 10.7
+	UpdateGroup(group *model.Group) (*model.Group, *model.AppError)
+
+	// DeleteGroup soft deletes a group.
+	//
+	// @tag Group
+	// Minimum server version: 10.7
+	DeleteGroup(groupID string) (*model.Group, *model.AppError)
+
+	// RestoreGroup restores a soft deleted group.
+	//
+	// @tag Group
+	// Minimum server version: 10.7
+	RestoreGroup(groupID string) (*model.Group, *model.AppError)
+
+	// DeleteGroupMember removes a user from a group.
+	//
+	// @tag Group
+	// @tag User
+	// Minimum server version: 10.7
+	DeleteGroupMember(groupID string, userID string) (*model.GroupMember, *model.AppError)
+
+	// GetGroupSyncable gets a group syncable.
+	//
+	// @tag Group
+	// Minimum server version: 10.7
+	GetGroupSyncable(groupID string, syncableID string, syncableType model.GroupSyncableType) (*model.GroupSyncable, *model.AppError)
+
+	// GetGroupSyncables gets all group syncables for the given group.
+	//
+	// @tag Group
+	// Minimum server version: 10.7
+	GetGroupSyncables(groupID string, syncableType model.GroupSyncableType) ([]*model.GroupSyncable, *model.AppError)
+
+	// UpsertGroupSyncable creates or updates a group syncable.
+	//
+	// @tag Group
+	// Minimum server version: 10.7
+	UpsertGroupSyncable(groupSyncable *model.GroupSyncable) (*model.GroupSyncable, *model.AppError)
+
+	// UpdateGroupSyncable updates a group syncable.
+	//
+	// @tag Group
+	// Minimum server version: 10.7
+	UpdateGroupSyncable(groupSyncable *model.GroupSyncable) (*model.GroupSyncable, *model.AppError)
+
+	// DeleteGroupSyncable deletes a group syncable.
+	//
+	// @tag Group
+	// Minimum server version: 10.7
+	DeleteGroupSyncable(groupID string, syncableID string, syncableType model.GroupSyncableType) (*model.GroupSyncable, *model.AppError)
+
+	// UpdateUserRoles updates the role for a user.
+	//
+	// @tag Team
+	// @tag User
+	// Minimum server version: 9.8
+	UpdateUserRoles(userID, newRoles string) (*model.User, *model.AppError)
+
+	// GetPluginID returns the plugin ID.
+	//
+	// @tag Plugin
+	// Minimum server version: 10.1
+	GetPluginID() string
+
+	// GetGroups returns a list of all groups with the given options and restrictions.
+	//
+	// @tag Group
+	// Minimum server version: 10.7
+	GetGroups(page, perPage int, opts model.GroupSearchOpts, viewRestrictions *model.ViewUsersRestrictions) ([]*model.Group, *model.AppError)
+
+	// CreateDefaultSyncableMemberships creates default syncable memberships based off the provided parameters.
+	//
+	// @tag Group
+	// Minimum server version: 10.9
+	CreateDefaultSyncableMemberships(params model.CreateDefaultMembershipParams) *model.AppError
+
+	// DeleteGroupConstrainedMemberships deletes team and channel memberships of users who aren't members of the allowed groups of all group-constrained teams and channels.
+	//
+	// @tag Group
+	// Minimum server version: 10.9
+	DeleteGroupConstrainedMemberships() *model.AppError
+
+	// CreatePropertyField creates a new property field.
+	//
+	// @tag PropertyField
+	// Minimum server version: 10.10
+	CreatePropertyField(field *model.PropertyField) (*model.PropertyField, error)
+
+	// GetPropertyField gets a property field by groupID and fieldID.
+	//
+	// @tag PropertyField
+	// Minimum server version: 10.10
+	GetPropertyField(groupID, fieldID string) (*model.PropertyField, error)
+
+	// GetPropertyFields gets multiple property fields by groupID and a list of IDs.
+	//
+	// @tag PropertyField
+	// Minimum server version: 10.10
+	GetPropertyFields(groupID string, ids []string) ([]*model.PropertyField, error)
+
+	// UpdatePropertyField updates an existing property field.
+	//
+	// @tag PropertyField
+	// Minimum server version: 10.10
+	UpdatePropertyField(groupID string, field *model.PropertyField) (*model.PropertyField, error)
+
+	// DeletePropertyField deletes a property field (soft delete).
+	//
+	// @tag PropertyField
+	// Minimum server version: 10.10
+	DeletePropertyField(groupID, fieldID string) error
+
+	// SearchPropertyFields searches for property fields with filtering options.
+	//
+	// @tag PropertyField
+	// Minimum server version: 11.0
+	SearchPropertyFields(groupID string, opts model.PropertyFieldSearchOpts) ([]*model.PropertyField, error)
+
+	// CountPropertyFields counts property fields for a group.
+	//
+	// @tag PropertyField
+	// Minimum server version: 11.0
+	CountPropertyFields(groupID string, includeDeleted bool) (int64, error)
+
+	// CountPropertyFieldsForTarget counts property fields for a specific target.
+	//
+	// @tag PropertyField
+	// Minimum server version: 11.0
+	CountPropertyFieldsForTarget(groupID, targetType, targetID string, includeDeleted bool) (int64, error)
+
+	// CreatePropertyValue creates a new property value.
+	//
+	// @tag PropertyValue
+	// Minimum server version: 10.10
+	CreatePropertyValue(value *model.PropertyValue) (*model.PropertyValue, error)
+
+	// GetPropertyValue gets a property value by groupID and valueID.
+	//
+	// @tag PropertyValue
+	// Minimum server version: 10.10
+	GetPropertyValue(groupID, valueID string) (*model.PropertyValue, error)
+
+	// GetPropertyValues gets multiple property values by groupID and a list of IDs.
+	//
+	// @tag PropertyValue
+	// Minimum server version: 10.10
+	GetPropertyValues(groupID string, ids []string) ([]*model.PropertyValue, error)
+
+	// UpdatePropertyValue updates an existing property value.
+	//
+	// @tag PropertyValue
+	// Minimum server version: 10.10
+	UpdatePropertyValue(groupID string, value *model.PropertyValue) (*model.PropertyValue, error)
+
+	// UpsertPropertyValue creates a new property value or updates if it already exists.
+	//
+	// @tag PropertyValue
+	// Minimum server version: 10.10
+	UpsertPropertyValue(value *model.PropertyValue) (*model.PropertyValue, error)
+
+	// DeletePropertyValue deletes a property value (soft delete).
+	//
+	// @tag PropertyValue
+	// Minimum server version: 10.10
+	DeletePropertyValue(groupID, valueID string) error
+
+	// SearchPropertyValues searches for property values with filtering options.
+	//
+	// @tag PropertyValue
+	// Minimum server version: 11.0
+	SearchPropertyValues(groupID string, opts model.PropertyValueSearchOpts) ([]*model.PropertyValue, error)
+
+	// RegisterPropertyGroup registers a new property group.
+	//
+	// @tag PropertyGroup
+	// Minimum server version: 10.10
+	RegisterPropertyGroup(name string) (*model.PropertyGroup, error)
+
+	// GetPropertyGroup gets a property group by name.
+	//
+	// @tag PropertyGroup
+	// Minimum server version: 10.10
+	GetPropertyGroup(name string) (*model.PropertyGroup, error)
+
+	// GetPropertyFieldByName gets a property field by groupID, targetID and name.
+	//
+	// @tag PropertyField
+	// Minimum server version: 10.10
+	GetPropertyFieldByName(groupID, targetID, name string) (*model.PropertyField, error)
+
+	// UpdatePropertyFields updates multiple property fields in a single operation.
+	//
+	// @tag PropertyField
+	// Minimum server version: 10.10
+	UpdatePropertyFields(groupID string, fields []*model.PropertyField) ([]*model.PropertyField, error)
+
+	// UpdatePropertyValues updates multiple property values in a single operation.
+	//
+	// @tag PropertyValue
+	// Minimum server version: 10.10
+	UpdatePropertyValues(groupID string, values []*model.PropertyValue) ([]*model.PropertyValue, error)
+
+	// UpsertPropertyValues creates or updates multiple property values in a single operation.
+	//
+	// @tag PropertyValue
+	// Minimum server version: 10.10
+	UpsertPropertyValues(values []*model.PropertyValue) ([]*model.PropertyValue, error)
+
+	// DeletePropertyValuesForTarget deletes all property values for a specific target.
+	//
+	// @tag PropertyValue
+	// Minimum server version: 10.10
+	DeletePropertyValuesForTarget(groupID, targetType, targetID string) error
+
+	// DeletePropertyValuesForField deletes all property values for a specific field.
+	//
+	// @tag PropertyValue
+	// Minimum server version: 10.10
+	DeletePropertyValuesForField(groupID, fieldID string) error
+
+	// LogAuditRec logs an audit record using the default audit logger.
+	//
+	// @tag Audit
+	// Minimum server version: 10.10
+	LogAuditRec(rec *model.AuditRecord)
+
+	// LogAuditRecWithLevel logs an audit record with a specific log level.
+	//
+	// @tag Audit
+	// Minimum server version: 10.10
+	LogAuditRecWithLevel(rec *model.AuditRecord, level mlog.Level)
 }
 
 var handshake = plugin.HandshakeConfig{

@@ -3,13 +3,13 @@
 
 import {combineReducers} from 'redux';
 
-import type {AppBinding, AppCommandFormMap, AppsState} from '@mattermost/types/apps';
+import type {AppBinding, AppCommandFormMap} from '@mattermost/types/apps';
 
+import type {MMReduxAction} from 'mattermost-redux/action_types';
 import {AppsTypes} from 'mattermost-redux/action_types';
-import type {GenericAction} from 'mattermost-redux/types/actions';
 import {validateBindings} from 'mattermost-redux/utils/apps';
 
-export function mainBindings(state: AppBinding[] = [], action: GenericAction): AppBinding[] {
+export function mainBindings(state: AppBinding[] = [], action: MMReduxAction): AppBinding[] {
     switch (action.type) {
     case AppsTypes.FAILED_TO_FETCH_APP_BINDINGS: {
         if (!state.length) {
@@ -34,7 +34,7 @@ export function mainBindings(state: AppBinding[] = [], action: GenericAction): A
     }
 }
 
-function mainForms(state: AppCommandFormMap = {}, action: GenericAction): AppCommandFormMap {
+function mainForms(state: AppCommandFormMap = {}, action: MMReduxAction): AppCommandFormMap {
     switch (action.type) {
     case AppsTypes.RECEIVED_APP_BINDINGS:
         return {};
@@ -56,7 +56,7 @@ const main = combineReducers({
     forms: mainForms,
 });
 
-function rhsBindings(state: AppBinding[] = [], action: GenericAction): AppBinding[] {
+function rhsBindings(state: AppBinding[] = [], action: MMReduxAction): AppBinding[] {
     switch (action.type) {
     case AppsTypes.RECEIVED_APP_RHS_BINDINGS: {
         const bindings = action.data;
@@ -67,7 +67,7 @@ function rhsBindings(state: AppBinding[] = [], action: GenericAction): AppBindin
     }
 }
 
-function rhsForms(state: AppCommandFormMap = {}, action: GenericAction): AppCommandFormMap {
+function rhsForms(state: AppCommandFormMap = {}, action: MMReduxAction): AppCommandFormMap {
     switch (action.type) {
     case AppsTypes.RECEIVED_APP_RHS_BINDINGS:
         return {};
@@ -89,7 +89,7 @@ const rhs = combineReducers({
     forms: rhsForms,
 });
 
-export function pluginEnabled(state = true, action: GenericAction): boolean {
+export function pluginEnabled(state = true, action: MMReduxAction): boolean {
     switch (action.type) {
     case AppsTypes.APPS_PLUGIN_ENABLED: {
         return true;
@@ -109,8 +109,8 @@ export function pluginEnabled(state = true, action: GenericAction): boolean {
     }
 }
 
-export default (combineReducers({
+export default combineReducers({
     main,
     rhs,
     pluginEnabled,
-}) as (b: AppsState, a: GenericAction) => AppsState);
+});

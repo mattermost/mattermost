@@ -49,6 +49,15 @@ func (u *UserService) List(options *model.UserGetOptions) ([]*model.User, error)
 	return users, normalizeAppErr(appErr)
 }
 
+// ListByUserIDs gets users by their IDs.
+//
+// Minimum server version: 9.8
+func (u *UserService) ListByUserIDs(userIDs []string) ([]*model.User, error) {
+	users, appErr := u.api.GetUsersByIds(userIDs)
+
+	return users, normalizeAppErr(appErr)
+}
+
 // ListByUsernames gets users by their usernames.
 //
 // Minimum server version: 5.6
@@ -243,4 +252,13 @@ func (u *UserService) CreateAccessToken(userID, description string) (*model.User
 // Minimum server version: 5.38
 func (u *UserService) RevokeAccessToken(tokenID string) error {
 	return normalizeAppErr(u.api.RevokeUserAccessToken(tokenID))
+}
+
+// UpdateRoles updates the roles for a user.
+//
+// Minimum server version: 9.8
+func (u *UserService) UpdateRoles(userID, newRoles string) (*model.User, error) {
+	user, appErr := u.api.UpdateUserRoles(userID, newRoles)
+
+	return user, normalizeAppErr(appErr)
 }

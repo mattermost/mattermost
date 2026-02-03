@@ -71,19 +71,19 @@ describe('Mark as Unread', () => {
             verifyPostNextToNewMessageSeparator(`this is from user: ${otherUser1.id}, 7`);
 
             // * Verify the group message in LHS is unread
-            cy.get(`#sidebarItem_${gmChannel.name}`).should('have.attr', 'aria-label', `${otherUser1.username}, ${otherUser2.username} unread`);
+            cy.get(`#sidebarItem_${gmChannel.name}`).should('have.attr', 'aria-label', `${otherUser1.username}, ${otherUser2.username} 2 mentions`);
 
             // # Leave the group message channel
             cy.get('#sidebarItem_town-square').click();
 
             // * Verify the group message in LHS is unread
-            cy.get(`#sidebarItem_${gmChannel.name}`).should('have.attr', 'aria-label', `${otherUser1.username}, ${otherUser2.username} unread`);
+            cy.get(`#sidebarItem_${gmChannel.name}`).should('have.attr', 'aria-label', `${otherUser1.username}, ${otherUser2.username} 2 mentions`);
 
             // # Go to the group message channel
             cy.get(`#sidebarItem_${gmChannel.name}`).click().wait(TIMEOUTS.ONE_SEC);
 
             // * Verify the group message in LHS is read
-            cy.get(`#sidebarItem_${gmChannel.name}`).should('exist').should('not.have.attr', 'aria-label', `${otherUser1.username}, ${otherUser2.username} unread`);
+            cy.get(`#sidebarItem_${gmChannel.name}`).should('exist').should('not.have.attr', 'aria-label', `${otherUser1.username}, ${otherUser2.username} 2 mentions`);
 
             // * Verify the notification separator line exists and present before the unread message
             verifyPostNextToNewMessageSeparator(`this is from user: ${otherUser1.id}, 7`);

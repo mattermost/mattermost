@@ -3,10 +3,16 @@
 
 import {connect, type ConnectedProps} from 'react-redux';
 
-import {updateMe} from 'mattermost-redux/actions/users';
+import type {PreferencesType} from '@mattermost/types/preferences';
+import type {UserProfile} from '@mattermost/types/users';
+
+import {patchUser, updateMe} from 'mattermost-redux/actions/users';
 import {getSubscriptionProduct} from 'mattermost-redux/selectors/entities/cloud';
 import {getConfig, getLicense} from 'mattermost-redux/selectors/entities/general';
-import {isCollapsedThreadsEnabled} from 'mattermost-redux/selectors/entities/preferences';
+import {
+    isCollapsedThreadsEnabled,
+    isCollapsedThreadsEnabledForUser,
+} from 'mattermost-redux/selectors/entities/preferences';
 
 import {isCallsEnabled, isCallsRingingEnabledOnServer} from 'selectors/calls';
 
@@ -16,7 +22,18 @@ import type {GlobalState} from 'types/store';
 
 import UserSettingsNotifications from './user_settings_notifications';
 
-const mapStateToProps = (state: GlobalState) => {
+export type OwnProps = {
+    user: UserProfile;
+    updateSection: (section: string) => void;
+    activeSection: string;
+    closeModal: () => void;
+    collapseModal: () => void;
+    adminMode?: boolean;
+    userPreferences?: PreferencesType;
+}
+
+const mapStateToProps = (state: GlobalState, props: OwnProps) => {
+    // server config, related to server configuration, not the user
     const config = getConfig(state);
 
     const sendPushNotifications = config.SendPushNotifications === 'true';
@@ -30,16 +47,16 @@ const mapStateToProps = (state: GlobalState) => {
     return {
         sendPushNotifications,
         enableAutoResponder,
-        isCollapsedThreadsEnabled: isCollapsedThreadsEnabled(state),
+        isCollapsedThreadsEnabled: props.adminMode && props.userPreferences ? isCollapsedThreadsEnabledForUser(state, props.userPreferences) : isCollapsedThreadsEnabled(state),
         isCallsRingingEnabled: isCallsEnabled(state, '0.17.0') && isCallsRingingEnabledOnServer(state),
         isEnterpriseOrCloudOrSKUStarterFree: isEnterpriseOrCloudOrSKUStarterFree(license, subscriptionProduct, isEnterpriseReady),
         isEnterpriseReady,
-
     };
 };
 
 const mapDispatchToProps = {
     updateMe,
+    patchUser,
 };
 
 const connector = connect(mapStateToProps, mapDispatchToProps);

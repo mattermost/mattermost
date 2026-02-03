@@ -2,15 +2,16 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-import {FormattedDate, FormattedMessage, FormattedTime} from 'react-intl';
+import type {MessageDescriptor} from 'react-intl';
+import {FormattedDate, FormattedMessage, FormattedTime, defineMessages} from 'react-intl';
 
 import type {Session} from '@mattermost/types/sessions';
 
 import {General} from 'mattermost-redux/constants';
 
-import {getMonthLong, t} from 'utils/i18n';
-import {localizeMessage} from 'utils/utils';
+import {getMonthLong} from 'utils/i18n';
 
+import DeviceIcon from './device_icon';
 import MoreInfo from './more_info';
 
 type Props = {
@@ -40,10 +41,10 @@ type State = {
     moreInfo: boolean;
 };
 
-type MobileSessionInfo = {
+type SessionInfo = {
     devicePicture?: string;
-    deviceTitle?: string;
-    devicePlatform: JSX.Element;
+    deviceTitle: string | MessageDescriptor;
+    devicePlatform?: JSX.Element;
 };
 
 export default class ActivityLog extends React.PureComponent<Props, State> {
@@ -67,44 +68,83 @@ export default class ActivityLog extends React.PureComponent<Props, State> {
         return Boolean(session.device_id && (session.device_id.includes('apple') || session.device_id.includes('android')));
     };
 
-    mobileSessionInfo = (session: Session): MobileSessionInfo => {
-        let deviceTypeId;
-        let deviceTypeMessage;
-        let devicePicture;
-        let deviceTitle;
+    sessionInfo = (session: Session): SessionInfo => {
+        const sessionInfo: SessionInfo = {
+            deviceTitle: 'Unknown',
+            devicePlatform: session.props?.platform,
+        };
 
-        if (session.device_id.includes('apple')) {
-            devicePicture = 'fa fa-apple';
-            deviceTitle = localizeMessage('device_icons.apple', 'Apple Icon');
-            deviceTypeId = t('activity_log_modal.iphoneNativeClassicApp');
-            deviceTypeMessage = 'iPhone Native Classic App';
+        const isWindows = session.props?.platform === 'Windows';
+        const isMac = session.props?.platform === 'Macintosh';
+        const isIPhone = session.props?.platform === 'iPhone';
+        const isLinux = session.props?.platform === 'Linux' || session.props?.os?.includes('Linux');
+        const isAndroid = session.props?.os?.includes('Android');
+        const isDesktopApp = session.props?.browser?.includes('Desktop App');
+        const isIPhoneNativeApp = session.device_id?.includes(General.PUSH_NOTIFY_APPLE_REACT_NATIVE);
+        const isIPhoneNativeClassicApp = session.device_id?.includes('apple') && !isIPhoneNativeApp;
+        const isAndroidNativeApp = session.device_id?.includes(General.PUSH_NOTIFY_ANDROID_REACT_NATIVE);
+        const isAndroidNativeClassicApp = session.device_id?.includes('android') && !isAndroidNativeApp;
 
-            if (session.device_id.includes(General.PUSH_NOTIFY_APPLE_REACT_NATIVE)) {
-                deviceTypeId = t('activity_log_modal.iphoneNativeApp');
-                deviceTypeMessage = 'iPhone Native App';
-            }
-        } else if (session.device_id.includes('android')) {
-            devicePicture = 'fa fa-android';
-            deviceTitle = localizeMessage('device_icons.android', 'Android Icon');
-            deviceTypeId = t('activity_log_modal.androidNativeClassicApp');
-            deviceTypeMessage = 'Android Native Classic App';
-
-            if (session.device_id.includes(General.PUSH_NOTIFY_ANDROID_REACT_NATIVE)) {
-                deviceTypeId = t('activity_log_modal.androidNativeApp');
-                deviceTypeMessage = 'Android Native App';
-            }
+        // Set device picture and title
+        if (isMac || isIPhone || isIPhoneNativeApp || isIPhoneNativeClassicApp) {
+            sessionInfo.devicePicture = 'fa fa-apple';
+            sessionInfo.deviceTitle = messages.appleIcon;
+        } else if (isWindows) {
+            sessionInfo.devicePicture = 'fa fa-windows';
+            sessionInfo.deviceTitle = messages.windowsIcon;
+        } else if (isAndroid || isAndroidNativeApp || isAndroidNativeClassicApp) {
+            sessionInfo.devicePicture = 'fa fa-android';
+            sessionInfo.deviceTitle = messages.androidIcon;
+        } else if (isLinux) {
+            sessionInfo.devicePicture = 'fa fa-linux';
+            sessionInfo.deviceTitle = messages.linuxIcon;
         }
 
-        return {
-            devicePicture,
-            deviceTitle,
-            devicePlatform: (
+        if (isIPhoneNativeClassicApp) {
+            sessionInfo.devicePlatform = (
                 <FormattedMessage
-                    id={deviceTypeId}
-                    defaultMessage={deviceTypeMessage}
+                    id='activity_log_modal.iphoneNativeClassicApp'
+                    defaultMessage='iPhone Native Classic App'
                 />
-            ),
-        };
+            );
+        } else if (isIPhoneNativeApp) {
+            sessionInfo.devicePlatform = (
+                <FormattedMessage
+                    id='activity_log_modal.iphoneNativeApp'
+                    defaultMessage='iPhone Native App'
+                />
+            );
+        } else if (isAndroidNativeClassicApp) {
+            sessionInfo.devicePlatform = (
+                <FormattedMessage
+                    id='activity_log_modal.androidNativeClassicApp'
+                    defaultMessage='Android Native Classic App'
+                />
+            );
+        } else if (isAndroidNativeApp) {
+            sessionInfo.devicePlatform = (
+                <FormattedMessage
+                    id='activity_log_modal.androidNativeApp'
+                    defaultMessage='Android Native App'
+                />
+            );
+        } else if (isAndroid) {
+            sessionInfo.devicePlatform = (
+                <FormattedMessage
+                    id='activity_log_modal.android'
+                    defaultMessage='Android'
+                />
+            );
+        } else if (isDesktopApp) {
+            sessionInfo.devicePlatform = (
+                <FormattedMessage
+                    id='activity_log_modal.desktop'
+                    defaultMessage='Native Desktop App'
+                />
+            );
+        }
+
+        return sessionInfo;
     };
 
     render(): React.ReactNode {
@@ -115,51 +155,7 @@ export default class ActivityLog extends React.PureComponent<Props, State> {
         } = this.props;
 
         const lastAccessTime = new Date(currentSession.last_activity_at);
-        let devicePlatform = currentSession.props.platform;
-        let devicePicture: string | undefined = '';
-        let deviceTitle = '';
-
-        if (this.isMobileSession(currentSession)) {
-            const sessionInfo = this.mobileSessionInfo(currentSession);
-            devicePicture = sessionInfo.devicePicture;
-            devicePlatform = sessionInfo.devicePlatform;
-            deviceTitle = sessionInfo.deviceTitle || deviceTitle;
-        } else {
-            if (currentSession.props.platform === 'Windows') {
-                devicePicture = 'fa fa-windows';
-                deviceTitle = localizeMessage('device_icons.windows', 'Windows Icon');
-            } else if (currentSession.props.platform === 'Macintosh' ||
-                currentSession.props.platform === 'iPhone') {
-                devicePicture = 'fa fa-apple';
-                deviceTitle = localizeMessage('device_icons.apple', 'Apple Icon');
-            } else if (currentSession.props.platform === 'Linux') {
-                if (currentSession.props.os.indexOf('Android') >= 0) {
-                    devicePlatform = (
-                        <FormattedMessage
-                            id='activity_log_modal.android'
-                            defaultMessage='Android'
-                        />
-                    );
-                    devicePicture = 'fa fa-android';
-                    deviceTitle = localizeMessage('device_icons.android', 'Android Icon');
-                } else {
-                    devicePicture = 'fa fa-linux';
-                    deviceTitle = localizeMessage('device_icons.linux', 'Linux Icon');
-                }
-            } else if (currentSession.props.os.indexOf('Linux') !== -1) {
-                devicePicture = 'fa fa-linux';
-                deviceTitle = localizeMessage('device_icons.linux', 'Linux Icon');
-            }
-
-            if (currentSession.props.browser.indexOf('Desktop App') !== -1) {
-                devicePlatform = (
-                    <FormattedMessage
-                        id='activity_log_modal.desktop'
-                        defaultMessage='Native Desktop App'
-                    />
-                );
-            }
-        }
+        const sessionInfo = this.sessionInfo(currentSession);
 
         return (
             <div
@@ -168,10 +164,11 @@ export default class ActivityLog extends React.PureComponent<Props, State> {
             >
                 <div className='activity-log__report'>
                     <div className='report__platform'>
-                        <i
-                            className={devicePicture}
-                            title={deviceTitle}
-                        />{devicePlatform}
+                        <DeviceIcon
+                            devicePicture={sessionInfo.devicePicture}
+                            deviceTitle={sessionInfo.deviceTitle}
+                        />
+                        {sessionInfo.devicePlatform}
                     </div>
                     <div className='report__info'>
                         <div>
@@ -220,3 +217,22 @@ export default class ActivityLog extends React.PureComponent<Props, State> {
         );
     }
 }
+
+const messages = defineMessages({
+    androidIcon: {
+        id: 'device_icons.android',
+        defaultMessage: 'Android Icon',
+    },
+    appleIcon: {
+        id: 'device_icons.apple',
+        defaultMessage: 'Apple Icon',
+    },
+    linuxIcon: {
+        id: 'device_icons.linux',
+        defaultMessage: 'Linux Icon',
+    },
+    windowsIcon: {
+        id: 'device_icons.windows',
+        defaultMessage: 'Windows Icon',
+    },
+});

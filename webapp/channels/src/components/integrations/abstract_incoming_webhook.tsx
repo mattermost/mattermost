@@ -15,8 +15,6 @@ import ChannelSelect from 'components/channel_select';
 import FormError from 'components/form_error';
 import SpinnerButton from 'components/spinner_button';
 
-import {localizeMessage} from 'utils/utils';
-
 interface State {
     displayName: string;
     description: string;
@@ -70,6 +68,11 @@ interface Props {
     * Whether to allow configuration of the default post icon.
     */
     enablePostIconOverride: boolean;
+
+    /**
+    * Whether the user can bypass the channel lock requirement.
+    */
+    canBypassChannelLock?: boolean;
 
     /**
     * The async function to run when the action button is pressed
@@ -282,31 +285,33 @@ export default class AbstractIncomingWebhook extends PureComponent<Props, State>
                                 </div>
                             </div>
                         </div>
-                        <div className='form-group'>
-                            <label
-                                className='control-label col-sm-4'
-                                htmlFor='channelLocked'
-                            >
-                                <FormattedMessage
-                                    id='add_incoming_webhook.channelLocked'
-                                    defaultMessage='Lock to this channel'
-                                />
-                            </label>
-                            <div className='col-md-5 col-sm-8 checkbox'>
-                                <input
-                                    id='channelLocked'
-                                    type='checkbox'
-                                    checked={this.state.channelLocked}
-                                    onChange={this.updateChannelLocked}
-                                />
-                                <div className='form__help'>
+                        { this.props.canBypassChannelLock &&
+                            <div className='form-group'>
+                                <label
+                                    className='control-label col-sm-4'
+                                    htmlFor='channelLocked'
+                                >
                                     <FormattedMessage
-                                        id='add_incoming_webhook.channelLocked.help'
-                                        defaultMessage='If set, the incoming webhook can post only to the selected channel.'
+                                        id='add_incoming_webhook.channelLocked'
+                                        defaultMessage='Lock to this channel'
                                     />
+                                </label>
+                                <div className='col-md-5 col-sm-8 checkbox'>
+                                    <input
+                                        id='channelLocked'
+                                        type='checkbox'
+                                        checked={this.state.channelLocked}
+                                        onChange={this.updateChannelLocked}
+                                    />
+                                    <div className='form__help'>
+                                        <FormattedMessage
+                                            id='add_incoming_webhook.channelLocked.help'
+                                            defaultMessage='If set, the incoming webhook can post only to the selected channel.'
+                                        />
+                                    </div>
                                 </div>
                             </div>
-                        </div>
+                        }
                         { this.props.enablePostUsernameOverride &&
                             <div className='form-group'>
                                 <label
@@ -330,7 +335,7 @@ export default class AbstractIncomingWebhook extends PureComponent<Props, State>
                                     <div className='form__help'>
                                         <FormattedMessage
                                             id='add_incoming_webhook.username.help'
-                                            defaultMessage='Specify the username this integration will post as. Usernames can be up to 22 characters, and can contain lowercase letters, numbers and the symbols \"-\", \"_\", and \".\". If left blank, the name specified by the webhook creator is used.'
+                                            defaultMessage='Specify the username this integration will post as. Usernames can be up to 22 characters, and can contain lowercase letters, numbers and the symbols "-", "_", and ".". If left blank, the name specified by the webhook creator is used.'
                                         />
                                     </div>
                                 </div>
@@ -383,7 +388,7 @@ export default class AbstractIncomingWebhook extends PureComponent<Props, State>
                                 className='btn btn-primary'
                                 type='submit'
                                 spinning={this.state.saving}
-                                spinningText={localizeMessage(this.props.loading.id as string, this.props.loading.defaultMessage as string)}
+                                spinningText={this.props.loading}
                                 onClick={(e) => this.handleSubmit(e)}
                                 id='saveWebhook'
                             >

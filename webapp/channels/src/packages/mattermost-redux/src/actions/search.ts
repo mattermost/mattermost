@@ -4,14 +4,13 @@
 import {batchActions} from 'redux-batched-actions';
 
 import type {FileSearchResults, FileSearchResultItem} from '@mattermost/types/files';
-import type {PostList} from '@mattermost/types/posts';
+import type {PostList, PostSearchResults} from '@mattermost/types/posts';
 import type {SearchParameter} from '@mattermost/types/search';
 
 import {SearchTypes} from 'mattermost-redux/action_types';
 import {Client4} from 'mattermost-redux/client';
-import {getCurrentTeamId} from 'mattermost-redux/selectors/entities/teams';
 import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
-import type {ActionResult, DispatchFunc, GetStateFunc, ActionFunc} from 'mattermost-redux/types/actions';
+import type {ActionResult, ActionFuncAsync, ThunkActionFunc} from 'mattermost-redux/types/actions';
 
 import {getChannelAndMyMember, getChannelMembers} from './channels';
 import {logError} from './errors';
@@ -19,10 +18,10 @@ import {receivedFiles} from './files';
 import {forceLogoutIfNecessary} from './helpers';
 import {getMentionsAndStatusesForPosts, receivedPosts} from './posts';
 
-const WEBAPP_SEARCH_PER_PAGE = 20;
+export const WEBAPP_SEARCH_PER_PAGE = 20;
 
-export function getMissingChannelsFromPosts(posts: PostList['posts']): ActionFunc {
-    return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
+export function getMissingChannelsFromPosts(posts: PostList['posts']): ThunkActionFunc<unknown> {
+    return async (dispatch, getState) => {
         const {
             channels,
             membersInChannel,
@@ -44,8 +43,8 @@ export function getMissingChannelsFromPosts(posts: PostList['posts']): ActionFun
     };
 }
 
-export function getMissingChannelsFromFiles(files: Map<string, FileSearchResultItem>): ActionFunc {
-    return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
+export function getMissingChannelsFromFiles(files: Map<string, FileSearchResultItem>): ThunkActionFunc<Promise<ActionResult[]>> {
+    return async (dispatch, getState) => {
         const {
             channels,
             membersInChannel,
@@ -67,13 +66,25 @@ export function getMissingChannelsFromFiles(files: Map<string, FileSearchResultI
     };
 }
 
-export function searchPostsWithParams(teamId: string, params: SearchParameter): ActionFunc {
-    return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
+export function searchPostsWithParams(teamId: string, params: SearchParameter): ActionFuncAsync<PostSearchResults> {
+    return async (dispatch, getState) => {
         const isGettingMore = params.page > 0;
         dispatch({
             type: SearchTypes.SEARCH_POSTS_REQUEST,
             isGettingMore,
         });
+
+        // Reset truncation info for new searches (not pagination)
+        if (!isGettingMore) {
+            dispatch({
+                type: SearchTypes.RECEIVED_SEARCH_TRUNCATION_INFO,
+                data: {
+                    firstInaccessiblePostTime: 0,
+                    searchType: 'posts',
+                },
+            });
+        }
+
         let posts;
 
         try {
@@ -81,7 +92,7 @@ export function searchPostsWithParams(teamId: string, params: SearchParameter): 
 
             const profilesAndStatuses = getMentionsAndStatusesForPosts(posts.posts, dispatch, getState);
             const missingChannels = dispatch(getMissingChannelsFromPosts(posts.posts));
-            const arr: [Promise<any>, Promise<any>] = [profilesAndStatuses, missingChannels];
+            const arr = [profilesAndStatuses, missingChannels];
             await Promise.all(arr);
         } catch (error) {
             forceLogoutIfNecessary(error, dispatch, getState);
@@ -109,6 +120,18 @@ export function searchPostsWithParams(teamId: string, params: SearchParameter): 
             },
         ], 'SEARCH_POST_BATCH'));
 
+        // Dispatch truncation info separately to avoid typing conflicts
+        const firstInaccessiblePostTime = posts.first_inaccessible_post_time || 0;
+        if (firstInaccessiblePostTime > 0) {
+            dispatch({
+                type: SearchTypes.RECEIVED_SEARCH_TRUNCATION_INFO,
+                data: {
+                    firstInaccessiblePostTime,
+                    searchType: 'posts',
+                },
+            });
+        }
+
         return {data: posts};
     };
 }
@@ -117,10 +140,9 @@ export function searchPosts(teamId: string, terms: string, isOrSearch: boolean, 
     return searchPostsWithParams(teamId, {terms, is_or_search: isOrSearch, include_deleted_channels: includeDeletedChannels, page: 0, per_page: WEBAPP_SEARCH_PER_PAGE});
 }
 
-export function getMorePostsForSearch(): ActionFunc {
-    return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
-        const teamId = getCurrentTeamId(getState());
-        const {params, isEnd} = getState().entities.search.current[teamId];
+export function getMorePostsForSearch(teamId: string): ActionFuncAsync {
+    return async (dispatch, getState) => {
+        const {params, isEnd} = getState().entities.search.current[teamId || 'ALL_TEAMS'];
         if (!isEnd) {
             const newParams = Object.assign({}, params);
             newParams.page += 1;
@@ -130,7 +152,7 @@ export function getMorePostsForSearch(): ActionFunc {
     };
 }
 
-export function clearSearch(): ActionFunc {
+export function clearSearch(): ActionFuncAsync {
     return async (dispatch) => {
         dispatch({type: SearchTypes.REMOVE_SEARCH_POSTS});
         dispatch({type: SearchTypes.REMOVE_SEARCH_FILES});
@@ -139,13 +161,24 @@ export function clearSearch(): ActionFunc {
     };
 }
 
-export function searchFilesWithParams(teamId: string, params: SearchParameter): ActionFunc {
-    return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
+export function searchFilesWithParams(teamId: string, params: SearchParameter): ActionFuncAsync {
+    return async (dispatch, getState) => {
         const isGettingMore = params.page > 0;
         dispatch({
             type: SearchTypes.SEARCH_FILES_REQUEST,
             isGettingMore,
         });
+
+        // Reset truncation info for new searches (not pagination)
+        if (!isGettingMore) {
+            dispatch({
+                type: SearchTypes.RECEIVED_SEARCH_TRUNCATION_INFO,
+                data: {
+                    firstInaccessiblePostTime: 0,
+                    searchType: 'files',
+                },
+            });
+        }
 
         let files: FileSearchResults;
         try {
@@ -182,14 +215,9 @@ export function searchFilesWithParams(teamId: string, params: SearchParameter): 
     };
 }
 
-export function searchFiles(teamId: string, terms: string, isOrSearch: boolean, includeDeletedChannels: boolean) {
-    return searchFilesWithParams(teamId, {terms, is_or_search: isOrSearch, include_deleted_channels: includeDeletedChannels, page: 0, per_page: WEBAPP_SEARCH_PER_PAGE});
-}
-
-export function getMoreFilesForSearch(): ActionFunc {
-    return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
-        const teamId = getCurrentTeamId(getState());
-        const {params, isFilesEnd} = getState().entities.search.current[teamId];
+export function getMoreFilesForSearch(teamId: string): ActionFuncAsync {
+    return async (dispatch, getState) => {
+        const {params, isFilesEnd} = getState().entities.search.current[teamId || 'ALL_TEAMS'];
         if (!isFilesEnd) {
             const newParams = Object.assign({}, params);
             newParams.page += 1;
@@ -199,8 +227,8 @@ export function getMoreFilesForSearch(): ActionFunc {
     };
 }
 
-export function getFlaggedPosts(): ActionFunc {
-    return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
+export function getFlaggedPosts(): ActionFuncAsync<PostList> {
+    return async (dispatch, getState) => {
         const state = getState();
         const userId = getCurrentUserId(state);
 
@@ -210,7 +238,7 @@ export function getFlaggedPosts(): ActionFunc {
         try {
             posts = await Client4.getFlaggedPosts(userId);
 
-            await Promise.all([getMentionsAndStatusesForPosts(posts.posts, dispatch, getState) as any, dispatch(getMissingChannelsFromPosts(posts.posts)) as any]);
+            await Promise.all([getMentionsAndStatusesForPosts(posts.posts, dispatch, getState), dispatch(getMissingChannelsFromPosts(posts.posts))]);
         } catch (error) {
             forceLogoutIfNecessary(error, dispatch, getState);
             dispatch({type: SearchTypes.SEARCH_FLAGGED_POSTS_FAILURE, error});
@@ -233,8 +261,8 @@ export function getFlaggedPosts(): ActionFunc {
     };
 }
 
-export function getPinnedPosts(channelId: string): ActionFunc {
-    return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
+export function getPinnedPosts(channelId: string): ActionFuncAsync {
+    return async (dispatch, getState) => {
         dispatch({type: SearchTypes.SEARCH_PINNED_POSTS_REQUEST});
 
         let result;
@@ -243,7 +271,7 @@ export function getPinnedPosts(channelId: string): ActionFunc {
 
             const profilesAndStatuses = getMentionsAndStatusesForPosts(result.posts, dispatch, getState);
             const missingChannels = dispatch(getMissingChannelsFromPosts(result.posts));
-            const arr: [Promise<any>, Promise<any>] = [profilesAndStatuses, missingChannels];
+            const arr = [profilesAndStatuses, missingChannels];
             await Promise.all(arr);
         } catch (error) {
             forceLogoutIfNecessary(error, dispatch, getState);
@@ -269,35 +297,7 @@ export function getPinnedPosts(channelId: string): ActionFunc {
     };
 }
 
-export function clearPinnedPosts(channelId: string): ActionFunc {
-    return async (dispatch) => {
-        dispatch({
-            type: SearchTypes.REMOVE_SEARCH_PINNED_POSTS,
-            data: {
-                channelId,
-            },
-        });
-
-        return {data: true};
-    };
-}
-
-export function removeSearchTerms(teamId: string, terms: string): ActionFunc {
-    return async (dispatch) => {
-        dispatch({
-            type: SearchTypes.REMOVE_SEARCH_TERM,
-            data: {
-                teamId,
-                terms,
-            },
-        });
-
-        return {data: true};
-    };
-}
-
 export default {
     clearSearch,
-    removeSearchTerms,
     searchPosts,
 };

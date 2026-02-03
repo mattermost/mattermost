@@ -7,7 +7,6 @@
 // - Use element ID when selecting an element. Create one if none.
 // ***************************************************************
 
-// Stage: @prod
 // Group: @channels @enterprise @system_console @mfa
 
 import ldapUsers from '../../../../fixtures/ldap_users.json';
@@ -65,44 +64,36 @@ describe('Settings', () => {
         const adminUsername = getAdminAccount().username;
 
         // # Type sysadmin
-        cy.get('#searchUsers').clear().type(adminUsername).wait(TIMEOUTS.HALF_SEC);
+        cy.findByPlaceholderText('Search users').clear().type(adminUsername).wait(TIMEOUTS.TWO_SEC);
 
-        // * Verify sign-in method
-        cy.findByTestId('userListRow').within(() => {
-            cy.get('.more-modal__details').
-                should('be.visible').
-                and('contain.text', 'Sign-in Method: Email');
-        });
+        // * Verify sign-in method from user profile
+        cy.get('.displayName').click();
+        cy.get('label').contains('Authentication Method').find('span').last().should('have.text', 'Email');
+        cy.get('a.back').click();
 
         // # Type saml user
-        cy.get('#searchUsers').clear().type(samlUser.username).wait(TIMEOUTS.HALF_SEC);
+        cy.findByPlaceholderText('Search users').clear().type(samlUser.username).wait(TIMEOUTS.TWO_SEC);
 
-        // * Verify sign-in method
-        cy.findByTestId('userListRow').within(() => {
-            cy.get('.more-modal__details').
-                should('be.visible').
-                and('contain.text', 'Sign-in Method: SAML');
-        });
+        // * Verify sign-in method from user profile
+        cy.get('.displayName').click();
+        cy.get('label').contains('Authentication Method').find('span').last().should('have.text', 'SAML');
+        cy.get('a.back').click();
 
         // # Type ldap user
-        cy.get('#searchUsers').clear().type(ldapUser.username).wait(TIMEOUTS.HALF_SEC);
+        cy.findByPlaceholderText('Search users').clear().type(ldapUser.username).wait(TIMEOUTS.TWO_SEC);
 
-        // * Verify sign-in method
-        cy.findByTestId('userListRow').within(() => {
-            cy.get('.more-modal__details').
-                should('be.visible').
-                and('contain.text', 'Sign-in Method: LDAP');
-        });
+        // * Verify sign-in method from user profile
+        cy.get('.displayName').click();
+        cy.get('label').contains('Authentication Method').find('span').last().should('have.text', 'LDAP');
+        cy.get('a.back').click();
 
         // # Type mfa user
-        cy.get('#searchUsers').clear().type(mfaUser.username).wait(TIMEOUTS.HALF_SEC);
+        cy.findByPlaceholderText('Search users').clear().type(mfaUser.username).wait(TIMEOUTS.TWO_SEC);
 
-        // * Verify sign-in method
-        cy.findByTestId('userListRow').within(() => {
-            cy.get('.more-modal__details').
-                should('be.visible').
-                and('contain.text', 'MFA: Yes');
-        });
+        // * Verify sign-in method from user profile
+        cy.get('.displayName').click();
+        cy.get('label').contains('Authentication Method').find('span').last().should('contain.text', 'MFA');
+        cy.get('a.back').click();
     });
 });
 

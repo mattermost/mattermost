@@ -2,7 +2,8 @@
 // See LICENSE.txt for license information.
 
 import {mount} from 'enzyme';
-import {cloneDeep, set} from 'lodash';
+import cloneDeep from 'lodash/cloneDeep';
+import set from 'lodash/set';
 import React from 'react';
 import {Provider} from 'react-redux';
 
@@ -23,22 +24,17 @@ const preferenceKeys = {
 };
 
 const openGraphData = {
-    audios: null,
     description: 'Mattermost is a secure, open source platform for communication, collaboration, and workflow orchestration across tools and teams.',
-    determiner: '',
     images: [{
         height: 1256,
         secure_url: 'http://localhost:8065/api/v4/image?url=http%3A%2F%2Fmattermo…t.com%2Fwp-content%2Fuploads%2F2021%2F09%2FHomepage%402x.png',
         type: 'image/png',
         url: '',
         width: 2400}],
-    locale: '',
-    locales_alternate: null,
     site_name: 'Mattermost.com',
     title: 'Mattermost | Open Source Collaboration for Developers',
     type: 'website',
     url: 'https://www.mattermost.com',
-    videos: null,
 };
 
 const initialState = {
@@ -64,7 +60,9 @@ const initialState = {
         },
         posts: {
             openGraph: {
-                post_id_1: openGraphData,
+                post_id_1: {
+                    [openGraphData.url]: openGraphData,
+                },
             },
         },
     },

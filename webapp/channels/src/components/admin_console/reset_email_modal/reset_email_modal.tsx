@@ -1,260 +1,184 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
-import {Modal} from 'react-bootstrap';
-import {FormattedMessage} from 'react-intl';
+import React, {useCallback, useRef, useState} from 'react';
+import {useIntl} from 'react-intl';
 
+import {GenericModal} from '@mattermost/components';
 import type {UserProfile} from '@mattermost/types/users';
 
 import type {ActionResult} from 'mattermost-redux/types/actions';
 import {isEmail} from 'mattermost-redux/utils/helpers';
 
-type State = {
-    error: JSX.Element|string|null;
-    isEmailError: boolean;
-    isCurrentPasswordError: boolean;
-}
+import Input from 'components/widgets/inputs/input/input';
+
+import {getFullName} from 'utils/utils';
+
+import '../admin_modal_with_input.scss';
 
 type Props = {
     user?: UserProfile;
     currentUserId: string;
-    show: boolean;
-    onModalSubmit: (user?: UserProfile) => void;
-    onModalDismissed: () => void;
+    onSuccess: (email: string) => void;
+    onExited: () => void;
     actions: {
-        patchUser: (user: UserProfile) => ActionResult;
+        patchUser: (user: UserProfile) => Promise<ActionResult>;
     };
 }
 
-export default class ResetEmailModal extends React.PureComponent<Props, State> {
-    private emailRef: React.RefObject<HTMLInputElement>;
-    private currentPasswordRef: React.RefObject<HTMLInputElement>;
-    public static defaultProps: Partial<Props> = {
-        show: false,
-    };
+export default function ResetEmailModal({
+    user,
+    currentUserId,
+    onSuccess,
+    onExited,
+    actions,
+}: Props) {
+    const {formatMessage} = useIntl();
 
-    public constructor(props: Props) {
-        super(props);
+    const [show, setShow] = useState(true);
+    const [email, setEmail] = useState('');
+    const [currentPassword, setCurrentPassword] = useState('');
+    const [error, setError] = useState<React.ReactNode>(null);
+    const [emailError, setEmailError] = useState<React.ReactNode>(null);
+    const [passwordError, setPasswordError] = useState<React.ReactNode>(null);
 
-        this.state = {
-            error: null,
-            isEmailError: false,
-            isCurrentPasswordError: false,
-        };
+    const emailRef = useRef<HTMLInputElement>(null);
+    const currentPasswordRef = useRef<HTMLInputElement>(null);
 
-        this.emailRef = React.createRef();
-        this.currentPasswordRef = React.createRef();
-    }
+    const isUpdatingOwnEmail = user?.id === currentUserId;
 
-    public componentDidUpdate(prevProps: Props): void {
-        if (!prevProps.show && this.props.show) {
-            this.resetState();
-        }
-    }
+    const handleCancel = useCallback(() => {
+        setShow(false);
+    }, []);
 
-    private resetState = (): void => {
-        this.setState({
-            error: null,
-            isEmailError: false,
-            isCurrentPasswordError: false,
-        });
-    };
-
-    private isEmailValid = (): boolean => {
-        if (!this.emailRef.current || !this.emailRef.current.value || !isEmail(this.emailRef.current.value)) {
-            const errMsg = (
-                <FormattedMessage
-                    id='user.settings.general.validEmail'
-                    defaultMessage='Please enter a valid email address.'
-                />
-            );
-            this.setState({error: errMsg, isEmailError: true});
-            return false;
-        }
-
-        this.setState({error: null, isEmailError: false});
-        return true;
-    };
-
-    private isCurrentPasswordValid = (): boolean => {
-        if (!this.currentPasswordRef.current || !this.currentPasswordRef.current.value) {
-            const errMsg = (
-                <FormattedMessage
-                    id='admin.reset_email.missing_current_password'
-                    defaultMessage='Please enter your current password.'
-                />
-            );
-
-            this.setState({error: errMsg, isCurrentPasswordError: true});
-            return false;
-        }
-        this.setState({error: null, isCurrentPasswordError: false});
-        return true;
-    };
-
-    private doSubmit = async (e: React.MouseEvent<HTMLButtonElement, MouseEvent>) => {
-        e.preventDefault();
-        if (!this.props.user) {
-            return;
-        }
-
-        if (!this.isEmailValid()) {
-            return;
-        }
-
-        const user = {
-            ...this.props.user,
-            email: (this.emailRef.current as HTMLInputElement).value.trim().toLowerCase(),
-        };
-
-        if (this.props.user?.id === this.props.currentUserId) {
-            if (!this.isCurrentPasswordValid()) {
-                return;
-            }
-            user.password = (this.currentPasswordRef.current as HTMLInputElement).value;
-        }
-
-        const result = await this.props.actions.patchUser(user);
-        if ('error' in result) {
-            this.setState({
-                error: result.error.message,
-                isEmailError: result.error.server_error_id === 'app.user.save.email_exists.app_error',
-                isCurrentPasswordError: result.error.server_error_id === 'api.user.check_user_password.invalid.app_error',
-            });
-            return;
-        }
-
-        this.props.onModalSubmit(this.props.user);
-    };
-
-    private doCancel = (): void => {
-        this.setState({
-            error: null,
-        });
-        this.props.onModalDismissed();
-    };
-
-    public render(): JSX.Element {
-        const user = this.props.user;
+    const handleConfirm = useCallback(async () => {
         if (!user) {
-            return <div/>;
+            return;
         }
 
-        const groupClass = 'input-group input-group--limit mb-5';
+        // Clear previous errors
+        setError(null);
+        setEmailError(null);
+        setPasswordError(null);
 
-        const title = (
-            <FormattedMessage
-                id='admin.reset_email.titleReset'
-                defaultMessage='Update Email'
-            />
-        );
+        // Validate email
+        if (!email || !isEmail(email)) {
+            setEmailError(formatMessage({
+                id: 'user.settings.general.validEmail',
+                defaultMessage: 'Please enter a valid email address.',
+            }));
+            return;
+        }
 
-        return (
-            <Modal
-                dialogClassName='a11y__modal'
-                show={this.props.show}
-                onHide={this.doCancel}
-                role='dialog'
-                aria-labelledby='resetEmailModalLabel'
-                data-testid='resetEmailModal'
-            >
-                <Modal.Header closeButton={true}>
-                    <Modal.Title
-                        componentClass='h1'
-                        id='resetEmailModalLabel'
-                    >
-                        {title}
-                    </Modal.Title>
-                </Modal.Header>
-                <form
-                    role='form'
-                    className='form-horizontal'
-                >
-                    <Modal.Body>
-                        <div className='form-group'>
-                            <div className='col-sm-10'>
-                                <div
-                                    className={`${groupClass}${this.state.isEmailError ? ' has-error' : ''}`}
-                                    data-testid='resetEmailForm'
-                                >
-                                    <span
-                                        data-toggle='tooltip'
-                                        title='New Email'
-                                        className='input-group-addon email__group-addon'
-                                    >
-                                        <FormattedMessage
-                                            id='admin.reset_email.newEmail'
-                                            defaultMessage='New Email'
-                                        />
-                                    </span>
-                                    <input
-                                        type='email'
-                                        ref={this.emailRef}
-                                        className='form-control'
-                                        maxLength={128}
-                                        autoFocus={true}
-                                    />
-                                </div>
+        // Validate current password if updating own email
+        if (isUpdatingOwnEmail && !currentPassword) {
+            setPasswordError(formatMessage({
+                id: 'admin.reset_email.missing_current_password',
+                defaultMessage: 'Please enter your current password.',
+            }));
+            return;
+        }
 
-                                {this.props.user?.id === this.props.currentUserId && (
-                                    <div
-                                        className={`${groupClass}${this.state.isCurrentPasswordError ? ' has-error' : ''}`}
-                                        data-testid='resetEmailForm'
-                                    >
-                                        <span
-                                            data-toggle='tooltip'
-                                            title='Current Password'
-                                            className='input-group-addon email__group-addon'
-                                        >
-                                            <FormattedMessage
-                                                id='admin.reset_email.currentPassword'
-                                                defaultMessage='Current Password'
-                                            />
-                                        </span>
-                                        <input
-                                            type='password'
-                                            ref={this.currentPasswordRef}
-                                            className='form-control'
-                                        />
-                                    </div>
-                                )}
+        const updatedUser: UserProfile = {
+            ...user,
+            email: email.trim().toLowerCase(),
+        };
 
-                                {this.state.error && (
-                                    <div className='has-error'>
-                                        <p className='input__help error'>
-                                            {this.state.error}
-                                        </p>
-                                    </div>
-                                )}
-                            </div>
-                        </div>
-                    </Modal.Body>
-                    <Modal.Footer>
-                        <button
-                            type='button'
-                            className='btn btn-tertiary'
-                            onClick={this.doCancel}
-                        >
-                            <FormattedMessage
-                                id='admin.reset_email.cancel'
-                                defaultMessage='Cancel'
-                            />
-                        </button>
-                        <button
-                            onClick={this.doSubmit}
-                            type='submit'
-                            className='btn btn-primary'
-                            data-testid='resetEmailButton'
-                        >
-                            <FormattedMessage
-                                id='admin.reset_email.reset'
-                                defaultMessage='Reset'
-                            />
-                        </button>
-                    </Modal.Footer>
-                </form>
-            </Modal>
-        );
+        if (isUpdatingOwnEmail) {
+            updatedUser.password = currentPassword;
+        }
+
+        const result = await actions.patchUser(updatedUser);
+
+        if ('error' in result) {
+            const isEmailError = result.error.server_error_id === 'app.user.save.email_exists.app_error';
+            const isPasswordError = result.error.server_error_id === 'api.user.check_user_password.invalid.app_error';
+
+            if (isEmailError) {
+                setEmailError(result.error.message);
+            } else if (isPasswordError) {
+                setPasswordError(result.error.message);
+            } else {
+                setError(result.error.message);
+            }
+            return;
+        }
+
+        onSuccess(updatedUser.email);
+        setShow(false);
+    }, [user, email, currentPassword, isUpdatingOwnEmail, actions, onSuccess, formatMessage]);
+
+    if (!user) {
+        return null;
     }
+
+    const displayName = getFullName(user) || user.username;
+
+    const title = formatMessage({
+        id: 'admin.reset_email.titleResetFor',
+        defaultMessage: 'Update email for {name}',
+    }, {name: displayName});
+
+    return (
+        <GenericModal
+            id='resetEmailModal'
+            className='ResetEmailModal'
+            modalHeaderText={title}
+            show={show}
+            onExited={onExited}
+            onHide={handleCancel}
+            handleCancel={handleCancel}
+            handleConfirm={handleConfirm}
+            handleEnterKeyPress={handleConfirm}
+            confirmButtonText={formatMessage({
+                id: 'admin.reset_email.update',
+                defaultMessage: 'Update',
+            })}
+            compassDesign={true}
+            autoCloseOnConfirmButton={false}
+            errorText={error ? <span className='error'>{error}</span> : undefined}
+            dataTestId='resetEmailModal'
+        >
+            <div className='ResetEmailModal__body'>
+                <Input
+                    ref={emailRef as React.Ref<HTMLInputElement>}
+                    type='email'
+                    name='newEmail'
+                    autoComplete='off'
+                    label={formatMessage({
+                        id: 'admin.reset_email.newEmail',
+                        defaultMessage: 'New email',
+                    })}
+                    placeholder={formatMessage({
+                        id: 'admin.reset_email.enterNewEmail',
+                        defaultMessage: 'Enter new email address',
+                    })}
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    autoFocus={true}
+                    maxLength={128}
+                    customMessage={emailError ? {type: 'error', value: emailError} : undefined}
+                />
+                {isUpdatingOwnEmail && (
+                    <Input
+                        ref={currentPasswordRef as React.Ref<HTMLInputElement>}
+                        type='password'
+                        name='currentPassword'
+                        autoComplete='current-password'
+                        label={formatMessage({
+                            id: 'admin.reset_email.currentPassword',
+                            defaultMessage: 'Current password',
+                        })}
+                        placeholder={formatMessage({
+                            id: 'admin.reset_email.enterCurrentPassword',
+                            defaultMessage: 'Enter current password',
+                        })}
+                        value={currentPassword}
+                        onChange={(e) => setCurrentPassword(e.target.value)}
+                        customMessage={passwordError ? {type: 'error', value: passwordError} : undefined}
+                    />
+                )}
+            </div>
+        </GenericModal>
+    );
 }

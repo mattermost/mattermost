@@ -4,7 +4,6 @@
 import classNames from 'classnames';
 import throttle from 'lodash/throttle';
 import React, {useState, useEffect, useRef, useCallback} from 'react';
-import type {FocusEvent} from 'react';
 import {useIntl} from 'react-intl';
 import {useSelector, useDispatch} from 'react-redux';
 import {useLocation, useHistory, Route} from 'react-router-dom';
@@ -15,48 +14,43 @@ import type {UserProfile} from '@mattermost/types/users';
 import {getTeamInviteInfo} from 'mattermost-redux/actions/teams';
 import {createUser, loadMe} from 'mattermost-redux/actions/users';
 import {Client4} from 'mattermost-redux/client';
-import {getConfig, getLicense} from 'mattermost-redux/selectors/entities/general';
+import {getConfig, getLicense, getPasswordConfig} from 'mattermost-redux/selectors/entities/general';
 import {getIsOnboardingFlowEnabled} from 'mattermost-redux/selectors/entities/preferences';
 import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
-import type {DispatchFunc} from 'mattermost-redux/types/actions';
 import {isEmail} from 'mattermost-redux/utils/helpers';
 
 import {redirectUserToDefaultTeam} from 'actions/global_actions';
 import {removeGlobalItem, setGlobalItem} from 'actions/storage';
 import {addUserToTeamFromInvite} from 'actions/team_actions';
-import {trackEvent} from 'actions/telemetry_actions.jsx';
 import {loginById} from 'actions/views/login';
 import {getGlobalItem} from 'selectors/storage';
 
 import AlertBanner from 'components/alert_banner';
 import type {ModeType, AlertBannerProps} from 'components/alert_banner';
-import useCWSAvailabilityCheck from 'components/common/hooks/useCWSAvailabilityCheck';
-import LaptopAlertSVG from 'components/common/svg_images_components/laptop_alert_svg';
-import ManWithLaptopSVG from 'components/common/svg_images_components/man_with_laptop_svg';
 import DesktopAuthToken from 'components/desktop_auth_token';
 import ExternalLink from 'components/external_link';
 import ExternalLoginButton from 'components/external_login_button/external_login_button';
 import type {ExternalLoginButtonType} from 'components/external_login_button/external_login_button';
-import FormattedMarkdownMessage from 'components/formatted_markdown_message';
 import AlternateLinkLayout from 'components/header_footer_route/content_layouts/alternate_link';
 import ColumnLayout from 'components/header_footer_route/content_layouts/column';
 import type {CustomizeHeaderType} from 'components/header_footer_route/header_footer_route';
 import LoadingScreen from 'components/loading_screen';
 import Markdown from 'components/markdown';
 import SaveButton from 'components/save_button';
+import EntraIdIcon from 'components/widgets/icons/entra_id_icon';
 import LockIcon from 'components/widgets/icons/lock_icon';
 import LoginGitlabIcon from 'components/widgets/icons/login_gitlab_icon';
 import LoginGoogleIcon from 'components/widgets/icons/login_google_icon';
-import LoginOffice365Icon from 'components/widgets/icons/login_office_365_icon';
 import LoginOpenIDIcon from 'components/widgets/icons/login_openid_icon';
 import CheckInput from 'components/widgets/inputs/check';
 import Input, {SIZE} from 'components/widgets/inputs/input/input';
 import type {CustomMessageInputType} from 'components/widgets/inputs/input/input';
 import PasswordInput from 'components/widgets/inputs/password_input/password_input';
 
-import {Constants, HostedCustomerLinks, ItemStatus, ValidationErrors} from 'utils/constants';
+import {Constants, ItemStatus, ValidationErrors} from 'utils/constants';
+import {isValidPassword} from 'utils/password';
 import {isDesktopApp} from 'utils/user_agent';
-import {isValidUsername, isValidPassword, getPasswordConfig, getRoleFromTrackFlow, getMediumFromTrackFlow} from 'utils/utils';
+import {isValidUsername} from 'utils/utils';
 
 import type {GlobalState} from 'types/store';
 
@@ -71,7 +65,7 @@ type SignupProps = {
 const Signup = ({onCustomizeHeader}: SignupProps) => {
     const intl = useIntl();
     const {formatMessage} = intl;
-    const dispatch = useDispatch<DispatchFunc>();
+    const dispatch = useDispatch();
     const history = useHistory();
     const {search} = useLocation();
 
@@ -80,11 +74,12 @@ const Signup = ({onCustomizeHeader}: SignupProps) => {
     const inviteId = params.get('id') ?? '';
     const data = params.get('d');
     const parsedData: Record<string, string> = data ? JSON.parse(data) : {};
-    const {email: parsedEmail, name: parsedTeamName, reminder_interval: reminderInterval} = parsedData;
+    const {email: parsedEmail, name: parsedTeamName} = parsedData;
 
     const config = useSelector(getConfig);
     const {
         EnableOpenServer,
+        EnableUserCreation,
         NoAccounts,
         EnableSignUpWithEmail,
         EnableSignUpWithGitLab,
@@ -117,17 +112,18 @@ const Signup = ({onCustomizeHeader}: SignupProps) => {
 
     const isLicensed = IsLicensed === 'true';
     const enableOpenServer = EnableOpenServer === 'true';
+    const enableUserCreation = EnableUserCreation === 'true';
     const noAccounts = NoAccounts === 'true';
-    const enableSignUpWithEmail = EnableSignUpWithEmail === 'true';
-    const enableSignUpWithGitLab = EnableSignUpWithGitLab === 'true';
-    const enableSignUpWithGoogle = EnableSignUpWithGoogle === 'true';
-    const enableSignUpWithOffice365 = EnableSignUpWithOffice365 === 'true';
-    const enableSignUpWithOpenId = EnableSignUpWithOpenId === 'true';
+    const enableSignUpWithEmail = enableUserCreation && EnableSignUpWithEmail === 'true';
+    const enableSignUpWithGitLab = enableUserCreation && EnableSignUpWithGitLab === 'true';
+    const enableSignUpWithGoogle = enableUserCreation && EnableSignUpWithGoogle === 'true';
+    const enableSignUpWithOffice365 = enableUserCreation && EnableSignUpWithOffice365 === 'true';
+    const enableSignUpWithOpenId = enableUserCreation && EnableSignUpWithOpenId === 'true';
     const enableLDAP = EnableLdap === 'true';
     const enableSAML = EnableSaml === 'true';
     const enableCustomBrand = EnableCustomBrand === 'true';
 
-    const noOpenServer = !inviteId && !token && !enableOpenServer && !noAccounts;
+    const noOpenServer = !inviteId && !token && !enableOpenServer && !noAccounts && !enableUserCreation;
 
     const [email, setEmail] = useState(parsedEmail ?? '');
     const [name, setName] = useState('');
@@ -142,25 +138,16 @@ const Signup = ({onCustomizeHeader}: SignupProps) => {
     const [teamName, setTeamName] = useState(parsedTeamName ?? '');
     const [alertBanner, setAlertBanner] = useState<AlertBannerProps | null>(null);
     const [isMobileView, setIsMobileView] = useState(false);
-    const [subscribeToSecurityNewsletter, setSubscribeToSecurityNewsletter] = useState(false);
-
-    const canReachCWS = useCWSAvailabilityCheck();
+    const [acceptedTerms, setAcceptedTerms] = useState(false);
+    const [submitClicked, setSubmitClicked] = useState(false);
 
     const enableExternalSignup = enableSignUpWithGitLab || enableSignUpWithOffice365 || enableSignUpWithGoogle || enableSignUpWithOpenId || enableLDAP || enableSAML;
     const hasError = Boolean(emailError || nameError || passwordError || serverError || alertBanner);
-    const canSubmit = Boolean(email && name && password) && !hasError && !loading;
-    const {error: passwordInfo} = isValidPassword('', getPasswordConfig(config), intl);
+    const canSubmit = Boolean(email && name && password && acceptedTerms) && !hasError && !loading;
+    const passwordConfig = useSelector(getPasswordConfig);
+    const {error: passwordInfo} = isValidPassword('', passwordConfig, intl);
 
     const [desktopLoginLink, setDesktopLoginLink] = useState('');
-
-    const subscribeToSecurityNewsletterFunc = () => {
-        try {
-            Client4.subscribeToNewsletter({email, subscribed_content: 'security_newsletter'});
-        } catch (error) {
-            // eslint-disable-next-line no-console
-            console.error(error);
-        }
-    };
 
     const getExternalSignupOptions = () => {
         const externalLoginOptions: ExternalLoginButtonType[] = [];
@@ -197,8 +184,8 @@ const Signup = ({onCustomizeHeader}: SignupProps) => {
             externalLoginOptions.push({
                 id: 'office365',
                 url,
-                icon: <LoginOffice365Icon/>,
-                label: formatMessage({id: 'login.office365', defaultMessage: 'Office 365'}),
+                icon: <EntraIdIcon/>,
+                label: formatMessage({id: 'login.office365', defaultMessage: 'Entra ID'}),
                 onClick: desktopExternalAuth(url),
             });
         }
@@ -246,12 +233,8 @@ const Signup = ({onCustomizeHeader}: SignupProps) => {
     };
 
     const handleHeaderBackButtonOnClick = useCallback(() => {
-        if (!noAccounts) {
-            trackEvent('signup_email', 'click_back');
-        }
-
         history.goBack();
-    }, [noAccounts, history]);
+    }, [history]);
 
     const handleInvalidInvite = ({
         // eslint-disable-next-line @typescript-eslint/naming-convention
@@ -324,7 +307,6 @@ const Signup = ({onCustomizeHeader}: SignupProps) => {
 
     useEffect(() => {
         dispatch(removeGlobalItem('team'));
-        trackEvent('signup', 'signup_user_01_welcome', {...getRoleFromTrackFlow(), ...getMediumFromTrackFlow()});
 
         onWindowResize();
 
@@ -354,10 +336,14 @@ const Signup = ({onCustomizeHeader}: SignupProps) => {
     }, []);
 
     useEffect(() => {
-        if (SiteName) {
-            document.title = SiteName;
-        }
-    }, [SiteName]);
+        document.title = formatMessage(
+            {
+                id: 'signup.title',
+                defaultMessage: 'Create Account | {siteName}',
+            },
+            {siteName: SiteName || 'Mattermost'},
+        );
+    }, [formatMessage, SiteName]);
 
     useEffect(() => {
         if (onCustomizeHeader) {
@@ -368,18 +354,25 @@ const Signup = ({onCustomizeHeader}: SignupProps) => {
         }
     }, [onCustomizeHeader, handleHeaderBackButtonOnClick, isMobileView, getAlternateLink, search]);
 
+    useEffect(() => {
+        if (submitClicked) {
+            if (emailError && emailInput.current) {
+                emailInput.current.focus();
+            } else if (nameError && nameInput.current) {
+                nameInput.current.focus();
+            } else if (passwordError && passwordInput.current) {
+                passwordInput.current.focus();
+            }
+            setSubmitClicked(false);
+        }
+    }, [emailError, nameError, passwordError, submitClicked]);
+
     if (loading) {
         return (<LoadingScreen/>);
     }
 
     const handleBrandImageError = () => {
         setBrandImageError(true);
-    };
-
-    const onEnterKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
-        if (e.key === Constants.KeyCodes.ENTER[0] && canSubmit) {
-            handleSubmit(e);
-        }
     };
 
     const getCardTitle = () => {
@@ -444,12 +437,6 @@ const Signup = ({onCustomizeHeader}: SignupProps) => {
     };
 
     const handleSignupSuccess = async (user: UserProfile, data: UserProfile) => {
-        trackEvent('signup', 'signup_user_02_complete', getRoleFromTrackFlow());
-
-        if (reminderInterval) {
-            trackEvent('signup', `signup_from_reminder_${reminderInterval}`, {user: user.id});
-        }
-
         const redirectTo = (new URLSearchParams(search)).get('redirect_to');
 
         const {error} = await dispatch(loginById(data.id, user.password));
@@ -500,25 +487,16 @@ const Signup = ({onCustomizeHeader}: SignupProps) => {
         }
     };
 
-    function sendSignUpTelemetryEvents(telemetryId: string, props?: any) {
-        trackEvent('signup', telemetryId, props);
-    }
-
-    type TelemetryErrorList = {errors: Array<{field: string; rule: string}>; success: boolean};
-
     const isUserValid = () => {
         let isValid = true;
 
         const providedEmail = emailInput.current?.value.trim();
-        const telemetryEvents: TelemetryErrorList = {errors: [], success: true};
 
         if (!providedEmail) {
             setEmailError(formatMessage({id: 'signup_user_completed.required', defaultMessage: 'This field is required'}));
-            telemetryEvents.errors.push({field: 'email', rule: 'not_provided'});
             isValid = false;
         } else if (!isEmail(providedEmail)) {
             setEmailError(formatMessage({id: 'signup_user_completed.validEmail', defaultMessage: 'Please enter a valid email address'}));
-            telemetryEvents.errors.push({field: 'email', rule: 'invalid_email'});
             isValid = false;
         }
 
@@ -543,30 +521,21 @@ const Signup = ({onCustomizeHeader}: SignupProps) => {
                         },
                     );
                 }
-                telemetryEvents.errors.push({field: 'username', rule: usernameError.id.toLowerCase()});
                 setNameError(nameError);
                 isValid = false;
             }
         } else {
             setNameError(formatMessage({id: 'signup_user_completed.required', defaultMessage: 'This field is required'}));
-            telemetryEvents.errors.push({field: 'username', rule: 'not_provided'});
             isValid = false;
         }
 
         const providedPassword = passwordInput.current?.value ?? '';
-        const {error, telemetryErrorIds} = isValidPassword(providedPassword, getPasswordConfig(config), intl);
+        const {error} = isValidPassword(providedPassword, passwordConfig, intl);
 
         if (error) {
             setPasswordError(error as string);
-            telemetryEvents.errors = [...telemetryEvents.errors, ...telemetryErrorIds];
             isValid = false;
         }
-
-        if (telemetryEvents.errors.length) {
-            telemetryEvents.success = false;
-        }
-
-        sendSignUpTelemetryEvents('validate_user', telemetryEvents);
 
         return isValid;
     };
@@ -577,8 +546,8 @@ const Signup = ({onCustomizeHeader}: SignupProps) => {
 
     const handleSubmit = async (e: React.MouseEvent | React.KeyboardEvent) => {
         e.preventDefault();
-        sendSignUpTelemetryEvents('click_create_account', getRoleFromTrackFlow());
         setIsWaiting(true);
+        setSubmitClicked(true);
 
         if (isUserValid()) {
             setNameError('');
@@ -604,89 +573,22 @@ const Signup = ({onCustomizeHeader}: SignupProps) => {
                     onDismiss: dismissAlert,
                 });
                 setIsWaiting(false);
+
+                // Special case for accessibility to show the error message when the username is already taken
+                if (error.server_error_id === 'app.user.save.username_exists.app_error') {
+                    setNameError(error.message);
+                    setSubmitClicked(true);
+                }
                 return;
             }
 
-            await handleSignupSuccess(user, data as UserProfile);
-            if (subscribeToSecurityNewsletter) {
-                subscribeToSecurityNewsletterFunc();
-            }
+            await handleSignupSuccess(user, data!);
         } else {
             setIsWaiting(false);
         }
     };
 
     const handleReturnButtonOnClick = () => history.replace('/');
-
-    const getNewsletterCheck = () => {
-        if (canReachCWS) {
-            return (
-                <CheckInput
-                    id='signup-body-card-form-check-newsletter'
-                    ariaLabel={formatMessage({id: 'newsletter_optin.checkmark.box', defaultMessage: 'newsletter checkbox'})}
-                    name='newsletter'
-                    onChange={() => setSubscribeToSecurityNewsletter(!subscribeToSecurityNewsletter)}
-                    text={
-                        formatMessage(
-                            {id: 'newsletter_optin.checkmark.text', defaultMessage: '<span>I would like to receive Mattermost security updates via newsletter.</span> By subscribing, I consent to receive emails from Mattermost with product updates, promotions, and company news. I have read the <a>Privacy Policy</a> and understand that I can <aa>unsubscribe</aa> at any time'},
-                            {
-                                a: (chunks: React.ReactNode | React.ReactNodeArray) => (
-                                    <ExternalLink
-                                        location='signup-newsletter-checkmark'
-                                        href={HostedCustomerLinks.PRIVACY}
-                                    >
-                                        {chunks}
-                                    </ExternalLink>
-                                ),
-                                aa: (chunks: React.ReactNode | React.ReactNodeArray) => (
-                                    <ExternalLink
-                                        location='signup-newsletter-checkmark'
-                                        href={HostedCustomerLinks.NEWSLETTER_UNSUBSCRIBE_LINK}
-                                    >
-                                        {chunks}
-                                    </ExternalLink>
-                                ),
-                                span: (chunks: React.ReactNode | React.ReactNodeArray) => (
-                                    <span className='header'>{chunks}</span>
-                                ),
-                            },
-                        )}
-                    checked={subscribeToSecurityNewsletter}
-                />
-            );
-        }
-        return (
-            <div className='newsletter'>
-                <span className='interested'>
-                    {formatMessage({id: 'newsletter_optin.title', defaultMessage: 'Interested in receiving Mattermost security, product, promotions, and company updates updates via newsletter?'})}
-                </span>
-                <span className='link'>
-                    {formatMessage(
-                        {id: 'newsletter_optin.desc', defaultMessage: 'Sign up at <a>{link}</a>.'},
-                        {
-                            link: HostedCustomerLinks.SECURITY_UPDATES,
-                            a: (chunks: React.ReactNode | React.ReactNodeArray) => (
-                                <ExternalLink
-                                    location='signup'
-                                    href={HostedCustomerLinks.SECURITY_UPDATES}
-                                >
-                                    {chunks}
-                                </ExternalLink>
-                            ),
-                        },
-                    )}
-                </span>
-            </div>
-        );
-    };
-
-    const handleOnBlur = (e: FocusEvent<HTMLInputElement>, inputId: string) => {
-        const text = e.target.value;
-        if (!text) {
-            return;
-        }
-        sendSignUpTelemetryEvents(`typed_input_${inputId}`);
-    };
 
     const getContent = () => {
         if (!enableSignUpWithEmail && !enableExternalSignup) {
@@ -710,7 +612,6 @@ const Signup = ({onCustomizeHeader}: SignupProps) => {
                 <ColumnLayout
                     title={titleColumn}
                     message={formatMessage({id: 'signup_user_completed.invalid_invite.message', defaultMessage: 'Please speak with your Administrator to receive an invitation.'})}
-                    SVGElement={<LaptopAlertSVG/>}
                     extraContent={(
                         <div className='signup-body-content-button-container'>
                             <button
@@ -780,23 +681,16 @@ const Signup = ({onCustomizeHeader}: SignupProps) => {
                         </h1>
                     )}
                     {getMessageSubtitle()}
-                    {!enableCustomBrand && (
-                        <div className='signup-body-message-svg'>
-                            <ManWithLaptopSVG/>
-                        </div>
-                    )}
                 </div>
                 <div className='signup-body-action'>
                     {!isMobileView && getAlternateLink()}
                     <div className={classNames('signup-body-card', {'custom-branding': enableCustomBrand, 'with-error': hasError})}>
                         <div
                             className='signup-body-card-content'
-                            onKeyDown={onEnterKeyDown}
-                            tabIndex={0}
                         >
-                            <p className='signup-body-card-title'>
+                            <h2 className='signup-body-card-title'>
                                 {getCardTitle()}
-                            </p>
+                            </h2>
                             {enableCustomBrand && getMessageSubtitle()}
                             {alertBanner && (
                                 <AlertBanner
@@ -807,7 +701,7 @@ const Signup = ({onCustomizeHeader}: SignupProps) => {
                                 />
                             )}
                             {enableSignUpWithEmail && (
-                                <div className='signup-body-card-form'>
+                                <form className='signup-body-card-form'>
                                     <Input
                                         ref={emailInput}
                                         name='email'
@@ -823,7 +717,6 @@ const Signup = ({onCustomizeHeader}: SignupProps) => {
                                         disabled={isWaiting || Boolean(parsedEmail)}
                                         autoFocus={true}
                                         customMessage={emailCustomLabelForInput}
-                                        onBlur={(e) => handleOnBlur(e, 'email')}
                                     />
                                     <Input
                                         ref={nameInput}
@@ -845,7 +738,6 @@ const Signup = ({onCustomizeHeader}: SignupProps) => {
                                                 value: formatMessage({id: 'signup_user_completed.userHelp', defaultMessage: 'You can use lowercase letters, numbers, periods, dashes, and underscores.'}),
                                             }
                                         }
-                                        onBlur={(e) => handleOnBlur(e, 'username')}
                                     />
                                     <PasswordInput
                                         ref={passwordInput}
@@ -857,9 +749,36 @@ const Signup = ({onCustomizeHeader}: SignupProps) => {
                                         createMode={true}
                                         info={passwordInfo as string}
                                         error={passwordError}
-                                        onBlur={(e) => handleOnBlur(e, 'password')}
                                     />
-                                    {getNewsletterCheck()}
+                                    <CheckInput
+                                        id='signup-body-card-form-check-terms-and-privacy'
+                                        ariaLabel={formatMessage({id: 'signup.terms_and_privacy.checkmark.box', defaultMessage: 'Terms and privacy policy checkbox'})}
+                                        name='terms'
+                                        onChange={() => setAcceptedTerms(!acceptedTerms)}
+                                        text={
+                                            formatMessage(
+                                                {id: 'signup.terms_and_privacy.checkmark.text', defaultMessage: 'I agree to the <termsOfUseLink>Acceptable Use Policy</termsOfUseLink> and the <privacyPolicyLink>Privacy Policy</privacyPolicyLink>'},
+                                                {
+                                                    privacyPolicyLink: (chunks: React.ReactNode | React.ReactNodeArray) => (
+                                                        <ExternalLink
+                                                            href={PrivacyPolicyLink as string}
+                                                            location='signup-privacy-policy'
+                                                        >
+                                                            {chunks}
+                                                        </ExternalLink>
+                                                    ),
+                                                    termsOfUseLink: (chunks: React.ReactNode | React.ReactNodeArray) => (
+                                                        <ExternalLink
+                                                            href={TermsOfServiceLink as string}
+                                                            location='signup-terms-of-use'
+                                                        >
+                                                            {chunks}
+                                                        </ExternalLink>
+                                                    ),
+                                                },
+                                            )}
+                                        checked={acceptedTerms}
+                                    />
                                     <SaveButton
                                         extraClasses='signup-body-card-form-button-submit large'
                                         saving={isWaiting}
@@ -868,7 +787,7 @@ const Signup = ({onCustomizeHeader}: SignupProps) => {
                                         defaultMessage={formatMessage({id: 'signup_user_completed.create', defaultMessage: 'Create account'})}
                                         savingMessage={formatMessage({id: 'signup_user_completed.saving', defaultMessage: 'Creating account…'})}
                                     />
-                                </div>
+                                </form>
                             )}
                             {enableSignUpWithEmail && enableExternalSignup && (
                                 <div className='signup-body-card-form-divider'>
@@ -887,19 +806,6 @@ const Signup = ({onCustomizeHeader}: SignupProps) => {
                                         />
                                     ))}
                                 </div>
-                            )}
-                            {enableSignUpWithEmail && !serverError && (
-                                <p className='signup-body-card-agreement'>
-                                    <FormattedMarkdownMessage
-                                        id='create_team.agreement'
-                                        defaultMessage='By proceeding to create your account and use {siteName}, you agree to our [Terms of Use]({TermsOfServiceLink}) and [Privacy Policy]({PrivacyPolicyLink}). If you do not agree, you cannot use {siteName}.'
-                                        values={{
-                                            siteName: SiteName,
-                                            TermsOfServiceLink: `!${TermsOfServiceLink}`,
-                                            PrivacyPolicyLink: `!${PrivacyPolicyLink}`,
-                                        }}
-                                    />
-                                </p>
                             )}
                         </div>
                     </div>

@@ -1,9 +1,8 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {WebsocketEvents} from 'mattermost-redux/constants';
+import {WebSocketTypes} from 'mattermost-redux/action_types';
 import typingReducer from 'mattermost-redux/reducers/entities/typing';
-import type {GenericAction} from 'mattermost-redux/types/actions';
 
 import TestHelper from '../../../test/test_helper';
 
@@ -13,12 +12,12 @@ describe('Reducers.Typing', () => {
 
         state = typingReducer(
             state,
-            {} as GenericAction,
+            {type: 'testinit'},
         );
         expect(state).toEqual({});
     });
 
-    it('WebsocketEvents.TYPING', async () => {
+    it('WebSocketTypes.TYPING', async () => {
         let state = {};
 
         const id1 = TestHelper.generateId();
@@ -28,7 +27,7 @@ describe('Reducers.Typing', () => {
         state = typingReducer(
             state,
             {
-                type: WebsocketEvents.TYPING,
+                type: WebSocketTypes.TYPING,
                 data: {
                     id: id1,
                     userId: userId1,
@@ -50,7 +49,7 @@ describe('Reducers.Typing', () => {
         state = typingReducer(
             state,
             {
-                type: WebsocketEvents.TYPING,
+                type: WebSocketTypes.TYPING,
                 data: {
                     id: id2,
                     userId: userId1,
@@ -75,7 +74,7 @@ describe('Reducers.Typing', () => {
         state = typingReducer(
             state,
             {
-                type: WebsocketEvents.TYPING,
+                type: WebSocketTypes.TYPING,
                 data: {
                     id: id1,
                     userId: userId2,
@@ -100,7 +99,7 @@ describe('Reducers.Typing', () => {
         state = typingReducer(
             state,
             {
-                type: WebsocketEvents.TYPING,
+                type: WebSocketTypes.TYPING,
                 data: {
                     id: id2,
                     userId: userId2,
@@ -122,7 +121,7 @@ describe('Reducers.Typing', () => {
         });
     });
 
-    it('WebsocketEvents.STOP_TYPING', async () => {
+    it('WebSocketTypes.STOPPED_TYPING', async () => {
         const id1 = TestHelper.generateId();
         const id2 = TestHelper.generateId();
 
@@ -148,7 +147,7 @@ describe('Reducers.Typing', () => {
         state = typingReducer(
             state,
             {
-                type: WebsocketEvents.STOP_TYPING,
+                type: WebSocketTypes.STOPPED_TYPING,
                 data: {
                     id: id1,
                     userId: userId1,
@@ -171,7 +170,7 @@ describe('Reducers.Typing', () => {
         state = typingReducer(
             state,
             {
-                type: WebsocketEvents.STOP_TYPING,
+                type: WebSocketTypes.STOPPED_TYPING,
                 data: {
                     id: id2,
                     userId: userId1,
@@ -193,7 +192,7 @@ describe('Reducers.Typing', () => {
         state = typingReducer(
             state,
             {
-                type: WebsocketEvents.STOP_TYPING,
+                type: WebSocketTypes.STOPPED_TYPING,
                 data: {
                     id: id1,
                     userId: userId2,
@@ -213,7 +212,7 @@ describe('Reducers.Typing', () => {
         state = typingReducer(
             state,
             {
-                type: WebsocketEvents.STOP_TYPING,
+                type: WebSocketTypes.STOPPED_TYPING,
                 data: {
                     id: id2,
                     userId: userId2,
@@ -233,7 +232,7 @@ describe('Reducers.Typing', () => {
         state = typingReducer(
             state,
             {
-                type: WebsocketEvents.STOP_TYPING,
+                type: WebSocketTypes.STOPPED_TYPING,
                 data: {
                     id: id1,
                     userId: userId1,
@@ -252,7 +251,7 @@ describe('Reducers.Typing', () => {
         state = typingReducer(
             state,
             {
-                type: WebsocketEvents.STOP_TYPING,
+                type: WebSocketTypes.STOPPED_TYPING,
                 data: {
                     id: id1,
                     userId: userId1,

@@ -288,6 +288,7 @@ describe('components/sidebar/show_start_trial_modal', () => {
 
                 // installation date is set to be 10 hours before current time
                 InstallationDate: new Date().getTime() - ((10 * 60 * 60) * 1000),
+                SQLDriverName: 'postgres',
             },
             license: {
                 IsLicensed: 'false',

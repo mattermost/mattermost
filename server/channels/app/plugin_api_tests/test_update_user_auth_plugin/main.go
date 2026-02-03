@@ -24,7 +24,7 @@ func (p *MyPlugin) OnConfigurationChange() error {
 }
 
 func (p *MyPlugin) expectUserAuth(userID string, expectedUserAuth *model.UserAuth) error {
-	user, err := p.API.GetUser(p.configuration.BasicUserID)
+	user, err := p.API.GetUser(userID)
 	if err != nil {
 		return err
 	}
@@ -56,28 +56,40 @@ func (p *MyPlugin) MessageWillBePosted(_ *plugin.Context, _ *model.Post) (*model
 	// Update BasicUser to SAML
 	expectedUserAuth := &model.UserAuth{
 		AuthService: model.UserAuthServiceSaml,
-		AuthData:    model.NewString("saml_auth_data"),
+		AuthData:    model.NewPointer("saml_auth_data"),
 	}
 	_, appErr = p.API.UpdateUserAuth(p.configuration.BasicUserID, expectedUserAuth)
 	if appErr != nil {
 		return nil, appErr.Error()
 	}
 
-	p.expectUserAuth(p.configuration.BasicUserID, expectedUserAuth)
-	p.expectUserAuth(p.configuration.BasicUser2Id, expectedUser2Auth)
-
-	// Update BasicUser to LDAP
-	expectedUserAuth = &model.UserAuth{
-		AuthService: model.UserAuthServiceLdap,
-		AuthData:    model.NewString("ldap_auth_data"),
+	err := p.expectUserAuth(p.configuration.BasicUserID, expectedUserAuth)
+	if err != nil {
+		return nil, err.Error()
 	}
-	_, err := p.API.UpdateUserAuth(p.configuration.BasicUserID, expectedUserAuth)
+	err = p.expectUserAuth(p.configuration.BasicUser2Id, expectedUser2Auth)
 	if err != nil {
 		return nil, err.Error()
 	}
 
-	p.expectUserAuth(p.configuration.BasicUserID, expectedUserAuth)
-	p.expectUserAuth(p.configuration.BasicUser2Id, expectedUser2Auth)
+	// Update BasicUser to LDAP
+	expectedUserAuth = &model.UserAuth{
+		AuthService: model.UserAuthServiceLdap,
+		AuthData:    model.NewPointer("ldap_auth_data"),
+	}
+	_, appErr = p.API.UpdateUserAuth(p.configuration.BasicUserID, expectedUserAuth)
+	if appErr != nil {
+		return nil, appErr.Error()
+	}
+
+	err = p.expectUserAuth(p.configuration.BasicUserID, expectedUserAuth)
+	if err != nil {
+		return nil, err.Error()
+	}
+	err = p.expectUserAuth(p.configuration.BasicUser2Id, expectedUser2Auth)
+	if err != nil {
+		return nil, err.Error()
+	}
 
 	return nil, "OK"
 }

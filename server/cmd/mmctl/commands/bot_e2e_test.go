@@ -14,22 +14,22 @@ import (
 )
 
 func (s *MmctlE2ETestSuite) TestListBotCmdF() {
-	s.SetupTestHelper().InitBasic().DeleteBots()
+	s.SetupTestHelper().InitBasic(s.T()).DeleteBots(s.T())
 
 	s.RunForSystemAdminAndLocal("List Bot", func(c client.Client) {
 		printer.Clean()
 
-		bot, appErr := s.th.App.CreateBot(s.th.Context, &model.Bot{Username: model.NewId(), OwnerId: s.th.BasicUser.Id})
+		bot, appErr := s.th.App.CreateBot(s.th.Context, &model.Bot{Username: model.NewUsername(), OwnerId: s.th.BasicUser.Id})
 		s.Require().Nil(appErr)
 		defer func() {
-			err := s.th.App.PermanentDeleteBot(bot.UserId)
+			err := s.th.App.PermanentDeleteBot(s.th.Context, bot.UserId)
 			s.Require().Nil(err)
 		}()
 
-		deletedBot, appErr := s.th.App.CreateBot(s.th.Context, &model.Bot{Username: model.NewId(), OwnerId: s.th.BasicUser.Id})
+		deletedBot, appErr := s.th.App.CreateBot(s.th.Context, &model.Bot{Username: model.NewUsername(), OwnerId: s.th.BasicUser.Id})
 		s.Require().Nil(appErr)
 		defer func() {
-			err := s.th.App.PermanentDeleteBot(deletedBot.UserId)
+			err := s.th.App.PermanentDeleteBot(s.th.Context, deletedBot.UserId)
 			s.Require().Nil(err)
 		}()
 
@@ -49,34 +49,34 @@ func (s *MmctlE2ETestSuite) TestListBotCmdF() {
 	s.RunForSystemAdminAndLocal("List Bot only orphaned", func(c client.Client) {
 		printer.Clean()
 
-		user, appErr := s.th.App.CreateUser(s.th.Context, &model.User{Email: s.th.GenerateTestEmail(), Username: model.NewId(), Password: model.NewId(), DeleteAt: 1})
+		user, appErr := s.th.App.CreateUser(s.th.Context, &model.User{Email: s.th.GenerateTestEmail(), Username: model.NewUsername(), Password: model.NewId(), DeleteAt: 1})
 		s.Require().Nil(appErr)
 		defer func() {
 			err := s.th.App.PermanentDeleteUser(s.th.Context, user)
 			s.Require().Nil(err)
 		}()
 
-		bot, appErr := s.th.App.CreateBot(s.th.Context, &model.Bot{Username: model.NewId(), OwnerId: s.th.BasicUser.Id})
+		bot, appErr := s.th.App.CreateBot(s.th.Context, &model.Bot{Username: model.NewUsername(), OwnerId: s.th.BasicUser.Id})
 		s.Require().Nil(appErr)
 		defer func() {
-			err := s.th.App.PermanentDeleteBot(bot.UserId)
+			err := s.th.App.PermanentDeleteBot(s.th.Context, bot.UserId)
 			s.Require().Nil(err)
 		}()
 
-		deletedBot, appErr := s.th.App.CreateBot(s.th.Context, &model.Bot{Username: model.NewId(), OwnerId: user.Id})
+		deletedBot, appErr := s.th.App.CreateBot(s.th.Context, &model.Bot{Username: model.NewUsername(), OwnerId: user.Id})
 		s.Require().Nil(appErr)
 		defer func() {
-			err := s.th.App.PermanentDeleteBot(deletedBot.UserId)
+			err := s.th.App.PermanentDeleteBot(s.th.Context, deletedBot.UserId)
 			s.Require().Nil(err)
 		}()
 
 		deletedBot, appErr = s.th.App.UpdateBotActive(s.th.Context, deletedBot.UserId, false)
 		s.Require().Nil(appErr)
 
-		orphanBot, appErr := s.th.App.CreateBot(s.th.Context, &model.Bot{Username: model.NewId(), OwnerId: user.Id})
+		orphanBot, appErr := s.th.App.CreateBot(s.th.Context, &model.Bot{Username: model.NewUsername(), OwnerId: user.Id})
 		s.Require().Nil(appErr)
 		defer func() {
-			err := s.th.App.PermanentDeleteBot(orphanBot.UserId)
+			err := s.th.App.PermanentDeleteBot(s.th.Context, orphanBot.UserId)
 			s.Require().Nil(err)
 		}()
 
@@ -96,31 +96,31 @@ func (s *MmctlE2ETestSuite) TestListBotCmdF() {
 	s.RunForSystemAdminAndLocal("List all Bots", func(c client.Client) {
 		printer.Clean()
 
-		user, appErr := s.th.App.CreateUser(s.th.Context, &model.User{Email: s.th.GenerateTestEmail(), Username: model.NewId(), Password: model.NewId(), DeleteAt: 1})
+		user, appErr := s.th.App.CreateUser(s.th.Context, &model.User{Email: s.th.GenerateTestEmail(), Username: model.NewUsername(), Password: model.NewId(), DeleteAt: 1})
 		s.Require().Nil(appErr)
 		defer func() {
 			err := s.th.App.PermanentDeleteUser(s.th.Context, user)
 			s.Require().Nil(err)
 		}()
 
-		bot, appErr := s.th.App.CreateBot(s.th.Context, &model.Bot{Username: model.NewId(), OwnerId: s.th.BasicUser2.Id})
+		bot, appErr := s.th.App.CreateBot(s.th.Context, &model.Bot{Username: model.NewUsername(), OwnerId: s.th.BasicUser2.Id})
 		s.Require().Nil(appErr)
 		defer func() {
-			err := s.th.App.PermanentDeleteBot(bot.UserId)
+			err := s.th.App.PermanentDeleteBot(s.th.Context, bot.UserId)
 			s.Require().Nil(err)
 		}()
 
-		orphanBot, appErr := s.th.App.CreateBot(s.th.Context, &model.Bot{Username: model.NewId(), OwnerId: user.Id})
+		orphanBot, appErr := s.th.App.CreateBot(s.th.Context, &model.Bot{Username: model.NewUsername(), OwnerId: user.Id})
 		s.Require().Nil(appErr)
 		defer func() {
-			err := s.th.App.PermanentDeleteBot(orphanBot.UserId)
+			err := s.th.App.PermanentDeleteBot(s.th.Context, orphanBot.UserId)
 			s.Require().Nil(err)
 		}()
 
-		deletedBot, appErr := s.th.App.CreateBot(s.th.Context, &model.Bot{Username: model.NewId(), OwnerId: s.th.BasicUser2.Id})
+		deletedBot, appErr := s.th.App.CreateBot(s.th.Context, &model.Bot{Username: model.NewUsername(), OwnerId: s.th.BasicUser2.Id})
 		s.Require().Nil(appErr)
 		defer func() {
-			err := s.th.App.PermanentDeleteBot(deletedBot.UserId)
+			err := s.th.App.PermanentDeleteBot(s.th.Context, deletedBot.UserId)
 			s.Require().Nil(err)
 		}()
 
@@ -156,16 +156,16 @@ func (s *MmctlE2ETestSuite) TestListBotCmdF() {
 }
 
 func (s *MmctlE2ETestSuite) TestBotEnableCmd() {
-	s.SetupTestHelper().InitBasic()
+	s.SetupTestHelper().InitBasic(s.T())
 	s.th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableBotAccountCreation = true })
 
-	user, appErr := s.th.App.CreateUser(s.th.Context, &model.User{Email: s.th.GenerateTestEmail(), Username: model.NewId(), Password: model.NewId()})
+	user, appErr := s.th.App.CreateUser(s.th.Context, &model.User{Email: s.th.GenerateTestEmail(), Username: model.NewUsername(), Password: model.NewId()})
 	s.Require().Nil(appErr)
 
 	s.RunForSystemAdminAndLocal("enable a bot", func(c client.Client) {
 		printer.Clean()
 
-		newBot, appErr := s.th.App.CreateBot(s.th.Context, &model.Bot{Username: model.NewId(), OwnerId: user.Id})
+		newBot, appErr := s.th.App.CreateBot(s.th.Context, &model.Bot{Username: model.NewUsername(), OwnerId: user.Id})
 		s.Require().Nil(appErr)
 
 		_, appErr = s.th.App.UpdateBotActive(s.th.Context, newBot.UserId, false)
@@ -181,7 +181,7 @@ func (s *MmctlE2ETestSuite) TestBotEnableCmd() {
 		s.Require().Equal(newBot.Username, printedBot.Username)
 		s.Require().Equal(newBot.OwnerId, printedBot.OwnerId)
 
-		bot, appErr := s.th.App.GetBot(newBot.UserId, false)
+		bot, appErr := s.th.App.GetBot(s.th.Context, newBot.UserId, false)
 		s.Require().Nil(appErr)
 		s.Require().Equal(newBot.UserId, bot.UserId)
 		s.Require().Equal(newBot.Username, bot.Username)
@@ -191,7 +191,7 @@ func (s *MmctlE2ETestSuite) TestBotEnableCmd() {
 	s.Run("enable a bot without permissions", func() {
 		printer.Clean()
 
-		newBot, appErr := s.th.App.CreateBot(s.th.Context, &model.Bot{Username: model.NewId(), OwnerId: user.Id})
+		newBot, appErr := s.th.App.CreateBot(s.th.Context, &model.Bot{Username: model.NewUsername(), OwnerId: user.Id})
 		s.Require().Nil(appErr)
 
 		_, appErr = s.th.App.UpdateBotActive(s.th.Context, newBot.UserId, false)
@@ -219,7 +219,7 @@ func (s *MmctlE2ETestSuite) TestBotEnableCmd() {
 	s.RunForSystemAdminAndLocal("enable an already enabled bot", func(c client.Client) {
 		printer.Clean()
 
-		newBot, appErr := s.th.App.CreateBot(s.th.Context, &model.Bot{Username: model.NewId(), OwnerId: user.Id})
+		newBot, appErr := s.th.App.CreateBot(s.th.Context, &model.Bot{Username: model.NewUsername(), OwnerId: user.Id})
 		s.Require().Nil(appErr)
 
 		_, appErr = s.th.App.UpdateBotActive(s.th.Context, newBot.UserId, true)
@@ -235,7 +235,7 @@ func (s *MmctlE2ETestSuite) TestBotEnableCmd() {
 		s.Require().Equal(newBot.Username, printedBot.Username)
 		s.Require().Equal(newBot.OwnerId, printedBot.OwnerId)
 
-		bot, appErr := s.th.App.GetBot(newBot.UserId, false)
+		bot, appErr := s.th.App.GetBot(s.th.Context, newBot.UserId, false)
 		s.Require().Nil(appErr)
 		s.Require().Equal(newBot.UserId, bot.UserId)
 		s.Require().Equal(newBot.Username, bot.Username)
@@ -244,16 +244,16 @@ func (s *MmctlE2ETestSuite) TestBotEnableCmd() {
 }
 
 func (s *MmctlE2ETestSuite) TestBotDisableCmd() {
-	s.SetupTestHelper().InitBasic()
+	s.SetupTestHelper().InitBasic(s.T())
 	s.th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableBotAccountCreation = true })
 
-	user, appErr := s.th.App.CreateUser(s.th.Context, &model.User{Email: s.th.GenerateTestEmail(), Username: model.NewId(), Password: model.NewId()})
+	user, appErr := s.th.App.CreateUser(s.th.Context, &model.User{Email: s.th.GenerateTestEmail(), Username: model.NewUsername(), Password: model.NewId()})
 	s.Require().Nil(appErr)
 
 	s.RunForSystemAdminAndLocal("disable a bot", func(c client.Client) {
 		printer.Clean()
 
-		newBot, appErr := s.th.App.CreateBot(s.th.Context, &model.Bot{Username: model.NewId(), OwnerId: user.Id})
+		newBot, appErr := s.th.App.CreateBot(s.th.Context, &model.Bot{Username: model.NewUsername(), OwnerId: user.Id})
 		s.Require().Nil(appErr)
 
 		_, appErr = s.th.App.UpdateBotActive(s.th.Context, newBot.UserId, true)
@@ -269,7 +269,7 @@ func (s *MmctlE2ETestSuite) TestBotDisableCmd() {
 		s.Require().Equal(newBot.Username, printedBot.Username)
 		s.Require().Equal(newBot.OwnerId, printedBot.OwnerId)
 
-		_, appErr = s.th.App.GetBot(newBot.UserId, false)
+		_, appErr = s.th.App.GetBot(s.th.Context, newBot.UserId, false)
 		s.Require().NotNil(appErr)
 		s.Require().Equal("store.sql_bot.get.missing.app_error", appErr.Id)
 	})
@@ -277,7 +277,7 @@ func (s *MmctlE2ETestSuite) TestBotDisableCmd() {
 	s.Run("disable a bot without permissions", func() {
 		printer.Clean()
 
-		newBot, appErr := s.th.App.CreateBot(s.th.Context, &model.Bot{Username: model.NewId(), OwnerId: user.Id})
+		newBot, appErr := s.th.App.CreateBot(s.th.Context, &model.Bot{Username: model.NewUsername(), OwnerId: user.Id})
 		s.Require().Nil(appErr)
 
 		_, appErr = s.th.App.UpdateBotActive(s.th.Context, newBot.UserId, true)
@@ -305,7 +305,7 @@ func (s *MmctlE2ETestSuite) TestBotDisableCmd() {
 	s.RunForSystemAdminAndLocal("disable an already disabled bot", func(c client.Client) {
 		printer.Clean()
 
-		newBot, appErr := s.th.App.CreateBot(s.th.Context, &model.Bot{Username: model.NewId(), OwnerId: user.Id})
+		newBot, appErr := s.th.App.CreateBot(s.th.Context, &model.Bot{Username: model.NewUsername(), OwnerId: user.Id})
 		s.Require().Nil(appErr)
 
 		_, appErr = s.th.App.UpdateBotActive(s.th.Context, newBot.UserId, false)
@@ -321,37 +321,37 @@ func (s *MmctlE2ETestSuite) TestBotDisableCmd() {
 		s.Require().Equal(newBot.Username, printedBot.Username)
 		s.Require().Equal(newBot.OwnerId, printedBot.OwnerId)
 
-		_, appErr = s.th.App.GetBot(newBot.UserId, false)
+		_, appErr = s.th.App.GetBot(s.th.Context, newBot.UserId, false)
 		s.Require().NotNil(appErr)
 		s.Require().Equal("store.sql_bot.get.missing.app_error", appErr.Id)
 	})
 }
 
 func (s *MmctlE2ETestSuite) TestBotAssignCmdF() {
-	s.SetupTestHelper().InitBasic()
+	s.SetupTestHelper().InitBasic(s.T())
 
 	s.RunForSystemAdminAndLocal("Assign Bot", func(c client.Client) {
 		printer.Clean()
 
-		botOwner, appErr := s.th.App.CreateUser(s.th.Context, &model.User{Email: s.th.GenerateTestEmail(), Username: model.NewId(), Password: model.NewId()})
+		botOwner, appErr := s.th.App.CreateUser(s.th.Context, &model.User{Email: s.th.GenerateTestEmail(), Username: model.NewUsername(), Password: model.NewId()})
 		s.Require().Nil(appErr)
 		defer func() {
 			err := s.th.App.PermanentDeleteUser(s.th.Context, botOwner)
 			s.Require().Nil(err)
 		}()
 
-		newBotOwner, appErr := s.th.App.CreateUser(s.th.Context, &model.User{Email: s.th.GenerateTestEmail(), Username: model.NewId(), Password: model.NewId()})
+		newBotOwner, appErr := s.th.App.CreateUser(s.th.Context, &model.User{Email: s.th.GenerateTestEmail(), Username: model.NewUsername(), Password: model.NewId()})
 		s.Require().Nil(appErr)
 		defer func() {
 			err := s.th.App.PermanentDeleteUser(s.th.Context, newBotOwner)
 			s.Require().Nil(err)
 		}()
 
-		bot, appErr := s.th.App.CreateBot(s.th.Context, &model.Bot{Username: model.NewId(), OwnerId: botOwner.Id})
+		bot, appErr := s.th.App.CreateBot(s.th.Context, &model.Bot{Username: model.NewUsername(), OwnerId: botOwner.Id})
 		s.Require().Nil(appErr)
 		s.Require().Equal(bot.OwnerId, botOwner.Id)
 		defer func() {
-			err := s.th.App.PermanentDeleteBot(bot.UserId)
+			err := s.th.App.PermanentDeleteBot(s.th.Context, bot.UserId)
 			s.Require().Nil(err)
 		}()
 
@@ -366,25 +366,25 @@ func (s *MmctlE2ETestSuite) TestBotAssignCmdF() {
 	s.Run("Assign Bot without permission", func() {
 		printer.Clean()
 
-		botOwner, appErr := s.th.App.CreateUser(s.th.Context, &model.User{Email: s.th.GenerateTestEmail(), Username: model.NewId(), Password: model.NewId()})
+		botOwner, appErr := s.th.App.CreateUser(s.th.Context, &model.User{Email: s.th.GenerateTestEmail(), Username: model.NewUsername(), Password: model.NewId()})
 		s.Require().Nil(appErr)
 		defer func() {
 			err := s.th.App.PermanentDeleteUser(s.th.Context, botOwner)
 			s.Require().Nil(err)
 		}()
 
-		newBotOwner, appErr := s.th.App.CreateUser(s.th.Context, &model.User{Email: s.th.GenerateTestEmail(), Username: model.NewId(), Password: model.NewId()})
+		newBotOwner, appErr := s.th.App.CreateUser(s.th.Context, &model.User{Email: s.th.GenerateTestEmail(), Username: model.NewUsername(), Password: model.NewId()})
 		s.Require().Nil(appErr)
 		defer func() {
 			err := s.th.App.PermanentDeleteUser(s.th.Context, newBotOwner)
 			s.Require().Nil(err)
 		}()
 
-		bot, appErr := s.th.App.CreateBot(s.th.Context, &model.Bot{Username: model.NewId(), OwnerId: botOwner.Id})
+		bot, appErr := s.th.App.CreateBot(s.th.Context, &model.Bot{Username: model.NewUsername(), OwnerId: botOwner.Id})
 		s.Require().Nil(appErr)
 		s.Require().Equal(bot.OwnerId, botOwner.Id)
 		defer func() {
-			err := s.th.App.PermanentDeleteBot(bot.UserId)
+			err := s.th.App.PermanentDeleteBot(s.th.Context, bot.UserId)
 			s.Require().Nil(err)
 		}()
 
@@ -395,7 +395,7 @@ func (s *MmctlE2ETestSuite) TestBotAssignCmdF() {
 }
 
 func (s *MmctlE2ETestSuite) TestBotCreateCmdF() {
-	s.SetupTestHelper().InitBasic()
+	s.SetupTestHelper().InitBasic(s.T())
 
 	createBots := *s.th.App.Config().ServiceSettings.EnableBotAccountCreation
 	s.th.App.UpdateConfig(func(c *model.Config) { *c.ServiceSettings.EnableBotAccountCreation = true })
@@ -420,7 +420,7 @@ func (s *MmctlE2ETestSuite) TestBotCreateCmdF() {
 		bot, ok := printer.GetLines()[0].(*model.Bot)
 		s.Require().True(ok)
 		defer func() {
-			err := s.th.App.PermanentDeleteBot(bot.UserId)
+			err := s.th.App.PermanentDeleteBot(s.th.Context, bot.UserId)
 			s.Require().Nil(err)
 		}()
 		token, ok := printer.GetLines()[1].(*model.UserAccessToken)

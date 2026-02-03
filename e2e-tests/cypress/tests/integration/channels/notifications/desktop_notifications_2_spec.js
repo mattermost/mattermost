@@ -43,7 +43,7 @@ describe('Desktop notifications', () => {
 
     it('MM-T885 Channel notifications: Desktop notifications mentions only', () => {
         // # Ensure notifications are set up to fire a desktop notification
-        changeDesktopNotificationAs('#desktopNotificationAllActivity');
+        changeDesktopNotificationAs('all');
 
         const messageWithNotification = `random message with mention @${testUser.username}`;
         const expected = `@${otherUser.username}: ${messageWithNotification}`;

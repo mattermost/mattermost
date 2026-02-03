@@ -4,25 +4,30 @@
 package platform
 
 import (
+	"encoding/json"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/plugin/plugintest/mock"
+	"github.com/mattermost/mattermost/server/v8/channels/utils"
+	mocks2 "github.com/mattermost/mattermost/server/v8/channels/utils/mocks"
+	"github.com/mattermost/mattermost/server/v8/channels/utils/testutils"
 )
 
 func TestLoadLicense(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t)
-	defer th.TearDown()
 
 	th.Service.LoadLicense()
 	require.Nil(t, th.Service.License(), "shouldn't have a valid license")
 }
 
 func TestSaveLicense(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t)
-	defer th.TearDown()
 
 	b1 := []byte("junk")
 
@@ -30,17 +35,50 @@ func TestSaveLicense(t *testing.T) {
 	require.NotNil(t, err, "shouldn't have saved license")
 }
 
-func TestRemoveLicense(t *testing.T) {
+func TestSaveEnterpriseAdvancedLicense(t *testing.T) {
 	th := Setup(t)
-	defer th.TearDown()
+
+	defer testutils.ResetLicenseValidator()
+	mockLicenseValidator := mocks2.LicenseValidatorIface{}
+
+	license := &model.License{
+		Id: model.NewId(),
+		Features: &model.Features{
+			Users: model.NewPointer(100),
+		},
+		Customer: &model.Customer{
+			Name:  "TestName",
+			Email: "test@example.com",
+		},
+		SkuName:      "SKU NAME",
+		SkuShortName: model.LicenseShortSkuEnterpriseAdvanced,
+		StartsAt:     model.GetMillis() - 1000,
+		ExpiresAt:    model.GetMillis() + 100000,
+	}
+
+	mockLicenseValidator.On("LicenseFromBytes", mock.Anything).Return(license, nil).Once()
+	licenseBytes, err := json.Marshal(license)
+	require.NoError(t, err)
+
+	mockLicenseValidator.On("ValidateLicense", mock.Anything).Return(string(licenseBytes), nil)
+	utils.LicenseValidator = &mockLicenseValidator
+
+	_, appErr := th.Service.SaveLicense(licenseBytes)
+
+	require.Nil(t, appErr, "should have saved license")
+}
+
+func TestRemoveLicense(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t)
 
 	err := th.Service.RemoveLicense()
 	require.Nil(t, err, "should have removed license")
 }
 
 func TestSetLicense(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t)
-	defer th.TearDown()
 
 	l1 := &model.License{}
 	l1.Features = &model.Features{}
@@ -60,8 +98,8 @@ func TestSetLicense(t *testing.T) {
 }
 
 func TestGetSanitizedClientLicense(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t)
-	defer th.TearDown()
 
 	setLicense(th, nil)
 
@@ -71,24 +109,6 @@ func TestGetSanitizedClientLicense(t *testing.T) {
 	assert.False(t, ok)
 	_, ok = m["SkuName"]
 	assert.False(t, ok)
-}
-
-func TestGenerateRenewalToken(t *testing.T) {
-	th := Setup(t)
-	defer th.TearDown()
-
-	t.Run("renewal token generated correctly", func(t *testing.T) {
-		setLicense(th, nil)
-		token, appErr := th.Service.GenerateRenewalToken(JWTDefaultTokenExpiration)
-		require.Nil(t, appErr)
-		require.NotEmpty(t, token)
-	})
-
-	t.Run("return error if there is no active license", func(t *testing.T) {
-		th.Service.SetLicense(nil)
-		_, appErr := th.Service.GenerateRenewalToken(JWTDefaultTokenExpiration)
-		require.NotNil(t, appErr)
-	})
 }
 
 func setLicense(th *TestHelper, customer *model.Customer) {

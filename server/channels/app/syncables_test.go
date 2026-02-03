@@ -4,16 +4,21 @@
 package app
 
 import (
+	"context"
+	"fmt"
 	"testing"
 
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/v8/channels/store"
 )
 
+//nolint:govet // The setup code leads to a lot of variable shadowing.
 func TestCreateDefaultMemberships(t *testing.T) {
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
 
 	singersTeam, err := th.App.CreateTeam(th.Context, &model.Team{
 		DisplayName: "Singers",
@@ -56,9 +61,9 @@ func TestCreateDefaultMemberships(t *testing.T) {
 	}
 
 	gleeGroup, err := th.App.CreateGroup(&model.Group{
-		Name:        model.NewString(model.NewId()),
+		Name:        model.NewPointer(model.NewId()),
 		DisplayName: "Glee Club",
-		RemoteId:    model.NewString(model.NewId()),
+		RemoteId:    model.NewPointer(model.NewId()),
 		Source:      model.GroupSourceLdap,
 	})
 	if err != nil {
@@ -66,9 +71,9 @@ func TestCreateDefaultMemberships(t *testing.T) {
 	}
 
 	scienceGroup, err := th.App.CreateGroup(&model.Group{
-		Name:        model.NewString(model.NewId()),
+		Name:        model.NewPointer(model.NewId()),
 		DisplayName: "Science Club",
-		RemoteId:    model.NewString(model.NewId()),
+		RemoteId:    model.NewPointer(model.NewId()),
 		Source:      model.GroupSourceLdap,
 	})
 	if err != nil {
@@ -105,7 +110,7 @@ func TestCreateDefaultMemberships(t *testing.T) {
 
 	pErr := th.App.CreateDefaultMemberships(th.Context, model.CreateDefaultMembershipParams{Since: 0, ReAddRemovedMembers: false})
 	if pErr != nil {
-		t.Errorf("faild to populate syncables: %s", pErr.Error())
+		t.Errorf("failed to populate syncables: %s", pErr.Error())
 	}
 
 	// Singer should be in team and channel
@@ -175,7 +180,7 @@ func TestCreateDefaultMemberships(t *testing.T) {
 	// Sync everything after syncable was created (proving that team updates trigger re-sync)
 	pErr = th.App.CreateDefaultMemberships(th.Context, model.CreateDefaultMembershipParams{Since: scientistGroupMember.CreateAt + 1, ReAddRemovedMembers: false})
 	if pErr != nil {
-		t.Errorf("faild to populate syncables: %s", pErr.Error())
+		t.Errorf("failed to populate syncables: %s", pErr.Error())
 	}
 
 	// Scientist should be in team but not the channel
@@ -218,7 +223,7 @@ func TestCreateDefaultMemberships(t *testing.T) {
 	// Sync everything after syncable was created (proving that channel updates trigger re-sync)
 	pErr = th.App.CreateDefaultMemberships(th.Context, model.CreateDefaultMembershipParams{Since: scientistGroupMember.CreateAt + 1, ReAddRemovedMembers: false})
 	if pErr != nil {
-		t.Errorf("faild to populate syncables: %s", pErr.Error())
+		t.Errorf("failed to populate syncables: %s", pErr.Error())
 	}
 
 	expected = 1
@@ -243,7 +248,7 @@ func TestCreateDefaultMemberships(t *testing.T) {
 	// Even re-syncing from the beginning doesn't re-add to channel or team
 	pErr = th.App.CreateDefaultMemberships(th.Context, model.CreateDefaultMembershipParams{Since: 0, ReAddRemovedMembers: false})
 	if pErr != nil {
-		t.Errorf("faild to populate syncables: %s", pErr.Error())
+		t.Errorf("failed to populate syncables: %s", pErr.Error())
 	}
 
 	// Singer should not be in team or channel
@@ -284,7 +289,7 @@ func TestCreateDefaultMemberships(t *testing.T) {
 
 	pErr = th.App.CreateDefaultMemberships(th.Context, model.CreateDefaultMembershipParams{Since: 0, ReAddRemovedMembers: false})
 	if pErr != nil {
-		t.Errorf("faild to populate syncables: %s", pErr.Error())
+		t.Errorf("failed to populate syncables: %s", pErr.Error())
 	}
 
 	timeBeforeLeaving := model.GetMillis()
@@ -297,9 +302,15 @@ func TestCreateDefaultMemberships(t *testing.T) {
 
 	timeAfterLeaving := model.GetMillis() + 1
 
+	retentionPolicyBatchConfigs := model.RetentionPolicyBatchConfigs{
+		Now:                 0,
+		GlobalPolicyEndTime: timeBeforeLeaving,
+		Limit:               1000,
+	}
+
 	// Purging channelmemberhistory doesn't re-add user to channel
 	deletedCount, _, nErr := th.App.Srv().Store().ChannelMemberHistory().PermanentDeleteBatchForRetentionPolicies(
-		0, timeBeforeLeaving, 1000, model.RetentionPolicyCursor{})
+		retentionPolicyBatchConfigs, model.RetentionPolicyCursor{})
 	if nErr != nil {
 		t.Errorf("error permanently deleting channelmemberhistory: %s", nErr.Error())
 	}
@@ -315,9 +326,15 @@ func TestCreateDefaultMemberships(t *testing.T) {
 		t.Error("Expected channel member to remain deleted")
 	}
 
+	retentionPolicyBatchConfigs = model.RetentionPolicyBatchConfigs{
+		Now:                 0,
+		GlobalPolicyEndTime: timeAfterLeaving,
+		Limit:               1000,
+	}
+
 	// Purging channelmemberhistory doesn't re-add user to channel
 	deletedCount, _, nErr = th.App.Srv().Store().ChannelMemberHistory().PermanentDeleteBatchForRetentionPolicies(
-		0, timeAfterLeaving, 1000, model.RetentionPolicyCursor{})
+		retentionPolicyBatchConfigs, model.RetentionPolicyCursor{})
 	if nErr != nil {
 		t.Errorf("error permanently deleting channelmemberhistory: %s", nErr.Error())
 	}
@@ -335,7 +352,7 @@ func TestCreateDefaultMemberships(t *testing.T) {
 	}
 
 	t.Run("Team with restricted domains skips over members that do not match the allowed domains", func(t *testing.T) {
-		restrictedUser := th.CreateUser()
+		restrictedUser := th.CreateUser(t)
 		restrictedUser.Email = "restricted@mattermost.org"
 		_, err = th.App.UpdateUser(th.Context, restrictedUser, false)
 		require.Nil(t, err)
@@ -398,9 +415,9 @@ func TestCreateDefaultMemberships(t *testing.T) {
 		}
 
 		group1, err := th.App.CreateGroup(&model.Group{
-			Name:        model.NewString(model.NewId()),
+			Name:        model.NewPointer(model.NewId()),
 			DisplayName: "Group 1",
-			RemoteId:    model.NewString(model.NewId()),
+			RemoteId:    model.NewPointer(model.NewId()),
 			Source:      model.GroupSourceLdap,
 		})
 		if err != nil {
@@ -482,13 +499,53 @@ func TestCreateDefaultMemberships(t *testing.T) {
 			t.Errorf("expected 2 channel member on team1Channel1, got %d", len(team1Channel1Members))
 		}
 	})
+
+	t.Run("error should contain a information about all users that failed", func(t *testing.T) {
+		user1 := th.CreateUser(t)
+		_, err = th.App.UpsertGroupMember(scienceGroup.Id, user1.Id)
+		require.Nil(t, err)
+
+		user2 := th.CreateUser(t)
+		_, err = th.App.UpsertGroupMember(scienceGroup.Id, user2.Id)
+		require.Nil(t, err)
+
+		store := &mockStore{
+			Store: th.App.Srv().Store(),
+			us: &mokeUserStore{
+				UserStore: th.App.Srv().Store().User(),
+			},
+		}
+		require.Nil(t, err)
+		th.App.Srv().platform.Store = store
+
+		nErr = th.App.CreateDefaultMemberships(th.Context, model.CreateDefaultMembershipParams{Since: 0, ReAddRemovedMembers: false})
+		require.Error(t, nErr)
+		assert.ErrorContains(t, nErr, "failed to add team member for default team membership")
+		assert.ErrorContains(t, nErr, user1.Id)
+		assert.ErrorContains(t, nErr, user2.Id)
+	})
+}
+
+type mockStore struct {
+	store.Store
+	us store.UserStore
+}
+
+func (fk *mockStore) User() store.UserStore { return fk.us }
+
+type mokeUserStore struct {
+	store.UserStore
+}
+
+func (us *mokeUserStore) Get(_ context.Context, id string) (*model.User, error) {
+	return nil, fmt.Errorf("some error for %s", id)
 }
 
 func TestDeleteGroupMemberships(t *testing.T) {
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
 
-	group := th.CreateGroup()
+	group := th.CreateGroup(t)
 
 	userIDs := []string{th.BasicUser.Id, th.BasicUser2.Id, th.SystemAdminUser.Id}
 
@@ -504,14 +561,14 @@ func TestDeleteGroupMemberships(t *testing.T) {
 
 	// make team group-constrained
 	team := th.BasicTeam
-	team.GroupConstrained = model.NewBool(true)
+	team.GroupConstrained = model.NewPointer(true)
 	team, err = th.App.UpdateTeam(team)
 	require.Nil(t, err)
 	require.True(t, *team.GroupConstrained)
 
 	// make channel group-constrained
 	channel := th.BasicChannel
-	channel.GroupConstrained = model.NewBool(true)
+	channel.GroupConstrained = model.NewPointer(true)
 	channel, err = th.App.UpdateChannel(th.Context, channel)
 	require.Nil(t, err)
 	require.True(t, *channel.GroupConstrained)
@@ -552,19 +609,19 @@ func TestDeleteGroupMemberships(t *testing.T) {
 }
 
 func TestSyncSyncableRoles(t *testing.T) {
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
 
-	team := th.CreateTeam()
+	team := th.CreateTeam(t)
 
-	channel := th.CreateChannel(th.Context, team)
-	channel.GroupConstrained = model.NewBool(true)
+	channel := th.CreateChannel(t, team)
+	channel.GroupConstrained = model.NewPointer(true)
 	channel, err := th.App.UpdateChannel(th.Context, channel)
 	require.Nil(t, err)
 
-	user1 := th.CreateUser()
-	user2 := th.CreateUser()
-	group := th.CreateGroup()
+	user1 := th.CreateUser(t)
+	user2 := th.CreateUser(t)
+	group := th.CreateGroup(t)
 
 	teamSyncable, err := th.App.UpsertGroupSyncable(&model.GroupSyncable{
 		SyncableId: team.Id,
@@ -589,7 +646,7 @@ func TestSyncSyncableRoles(t *testing.T) {
 		require.Nil(t, err)
 		require.False(t, tm.SchemeAdmin)
 
-		cm := th.AddUserToChannel(user, channel)
+		cm := th.AddUserToChannel(t, user, channel)
 		require.False(t, cm.SchemeAdmin)
 	}
 
@@ -601,10 +658,10 @@ func TestSyncSyncableRoles(t *testing.T) {
 	_, err = th.App.UpdateGroupSyncable(channelSyncable)
 	require.Nil(t, err)
 
-	err = th.App.SyncSyncableRoles(channel.Id, model.GroupSyncableTypeChannel)
+	err = th.App.SyncSyncableRoles(th.Context, channel.Id, model.GroupSyncableTypeChannel)
 	require.Nil(t, err)
 
-	err = th.App.SyncSyncableRoles(team.Id, model.GroupSyncableTypeTeam)
+	err = th.App.SyncSyncableRoles(th.Context, team.Id, model.GroupSyncableTypeTeam)
 	require.Nil(t, err)
 
 	for _, user := range []*model.User{user1, user2} {

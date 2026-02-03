@@ -10,26 +10,27 @@ import (
 	"io"
 	"net/http"
 	"net/url"
+
+	"github.com/mattermost/mattermost/server/public/model"
 )
 
 type AtmosCamoBackend struct {
-	proxy     *ImageProxy
-	siteURL   *url.URL
-	remoteURL *url.URL
-	client    *http.Client
+	siteURL       *url.URL
+	remoteOptions string
+	remoteURL     *url.URL
+	client        *http.Client
 }
 
-func makeAtmosCamoBackend(proxy *ImageProxy) *AtmosCamoBackend {
+func makeAtmosCamoBackend(proxy *ImageProxy, proxySettings model.ImageProxySettings) *AtmosCamoBackend {
 	// We deliberately ignore the error because it's from config.json.
 	// The function returns a nil pointer in case of error, and we handle it when it's used.
-	siteURL, _ := url.Parse(*proxy.ConfigService.Config().ServiceSettings.SiteURL)
-	remoteURL, _ := url.Parse(*proxy.ConfigService.Config().ImageProxySettings.RemoteImageProxyURL)
+	remoteURL, _ := url.Parse(*proxySettings.RemoteImageProxyURL)
 
 	return &AtmosCamoBackend{
-		proxy:     proxy,
-		siteURL:   siteURL,
-		remoteURL: remoteURL,
-		client:    proxy.HTTPService.MakeClient(false),
+		siteURL:       proxy.siteURL,
+		remoteURL:     remoteURL,
+		remoteOptions: *proxySettings.RemoteImageProxyOptions,
+		client:        proxy.HTTPService.MakeClient(false),
 	}
 }
 
@@ -53,9 +54,6 @@ func (backend *AtmosCamoBackend) GetImageDirect(imageURL string) (io.ReadCloser,
 }
 
 func (backend *AtmosCamoBackend) getAtmosCamoImageURL(imageURL string) string {
-	cfg := *backend.proxy.ConfigService.Config()
-	options := *cfg.ImageProxySettings.RemoteImageProxyOptions
-
 	if imageURL == "" || backend.siteURL == nil {
 		return imageURL
 	}
@@ -84,7 +82,7 @@ func (backend *AtmosCamoBackend) getAtmosCamoImageURL(imageURL string) string {
 	}
 
 	urlBytes := []byte(parsedURL.String())
-	mac := hmac.New(sha1.New, []byte(options))
+	mac := hmac.New(sha1.New, []byte(backend.remoteOptions))
 	mac.Write(urlBytes)
 	digest := hex.EncodeToString(mac.Sum(nil))
 

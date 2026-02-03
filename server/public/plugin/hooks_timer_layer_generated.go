@@ -11,6 +11,7 @@ import (
 	"net/http"
 	timePkg "time"
 
+	saml2 "github.com/mattermost/gosaml2"
 	"github.com/mattermost/mattermost/server/public/model"
 )
 
@@ -232,6 +233,13 @@ func (hooks *hooksTimerLayer) ConfigurationWillBeSaved(newCfg *model.Config) (*m
 	return _returnsA, _returnsB
 }
 
+func (hooks *hooksTimerLayer) EmailNotificationWillBeSent(emailNotification *model.EmailNotification) (*model.EmailNotificationContent, string) {
+	startTime := timePkg.Now()
+	_returnsA, _returnsB := hooks.hooksImpl.EmailNotificationWillBeSent(emailNotification)
+	hooks.recordTime(startTime, "EmailNotificationWillBeSent", true)
+	return _returnsA, _returnsB
+}
+
 func (hooks *hooksTimerLayer) NotificationWillBePushed(pushNotification *model.PushNotification, userID string) (*model.PushNotification, string) {
 	startTime := timePkg.Now()
 	_returnsA, _returnsB := hooks.hooksImpl.NotificationWillBePushed(pushNotification, userID)
@@ -269,4 +277,32 @@ func (hooks *hooksTimerLayer) PreferencesHaveChanged(c *Context, preferences []m
 	startTime := timePkg.Now()
 	hooks.hooksImpl.PreferencesHaveChanged(c, preferences)
 	hooks.recordTime(startTime, "PreferencesHaveChanged", true)
+}
+
+func (hooks *hooksTimerLayer) OnSharedChannelsAttachmentSyncMsg(fi *model.FileInfo, post *model.Post, rc *model.RemoteCluster) error {
+	startTime := timePkg.Now()
+	_returnsA := hooks.hooksImpl.OnSharedChannelsAttachmentSyncMsg(fi, post, rc)
+	hooks.recordTime(startTime, "OnSharedChannelsAttachmentSyncMsg", _returnsA == nil)
+	return _returnsA
+}
+
+func (hooks *hooksTimerLayer) OnSharedChannelsProfileImageSyncMsg(user *model.User, rc *model.RemoteCluster) error {
+	startTime := timePkg.Now()
+	_returnsA := hooks.hooksImpl.OnSharedChannelsProfileImageSyncMsg(user, rc)
+	hooks.recordTime(startTime, "OnSharedChannelsProfileImageSyncMsg", _returnsA == nil)
+	return _returnsA
+}
+
+func (hooks *hooksTimerLayer) GenerateSupportData(c *Context) ([]*model.FileData, error) {
+	startTime := timePkg.Now()
+	_returnsA, _returnsB := hooks.hooksImpl.GenerateSupportData(c)
+	hooks.recordTime(startTime, "GenerateSupportData", _returnsB == nil)
+	return _returnsA, _returnsB
+}
+
+func (hooks *hooksTimerLayer) OnSAMLLogin(c *Context, user *model.User, assertion *saml2.AssertionInfo) error {
+	startTime := timePkg.Now()
+	_returnsA := hooks.hooksImpl.OnSAMLLogin(c, user, assertion)
+	hooks.recordTime(startTime, "OnSAMLLogin", _returnsA == nil)
+	return _returnsA
 }

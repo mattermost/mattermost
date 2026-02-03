@@ -7,16 +7,19 @@ import {useIntl} from 'react-intl';
 import {useSelector, useDispatch} from 'react-redux';
 
 import {DotsVerticalIcon} from '@mattermost/compass-icons/components';
-import type {UserThread} from '@mattermost/types/threads';
+import type {UserThread, UserThreadSynthetic} from '@mattermost/types/threads';
 
 import {setThreadFollow} from 'mattermost-redux/actions/threads';
 import {makeGetChannel} from 'mattermost-redux/selectors/entities/channels';
 import {getPost, makeGetPostsForThread} from 'mattermost-redux/selectors/entities/posts';
 
+import {focusPost} from 'components/permalink_view/actions';
+import PopoutButton from 'components/popout_button';
+import {getThreadPopoutTitle} from 'components/thread_popout/thread_popout';
 import Header from 'components/widgets/header';
-import SimpleTooltip from 'components/widgets/simple_tooltip';
+import WithTooltip from 'components/with_tooltip';
 
-import {t} from 'utils/i18n';
+import {popoutThread} from 'utils/popouts/popout_windows';
 
 import type {GlobalState} from 'types/store';
 
@@ -31,7 +34,7 @@ const getChannel = makeGetChannel();
 const getPostsForThread = makeGetPostsForThread();
 
 type Props = {
-    thread: UserThread;
+    thread: UserThread | UserThreadSynthetic;
     children?: ReactNode;
 };
 
@@ -39,9 +42,13 @@ const ThreadPane = ({
     thread,
     children,
 }: Props) => {
-    const {formatMessage} = useIntl();
+    const intl = useIntl();
+    const {formatMessage} = intl;
     const dispatch = useDispatch();
     const {
+        params: {
+            team,
+        },
         currentTeamId,
         currentUserId,
         goToInChannel,
@@ -56,7 +63,7 @@ const ThreadPane = ({
         },
     } = thread;
 
-    const channel = useSelector((state: GlobalState) => getChannel(state, {id: channelId}));
+    const channel = useSelector((state: GlobalState) => getChannel(state, channelId));
     const post = useSelector((state: GlobalState) => getPost(state, thread.id));
     const postsInThread = useSelector((state: GlobalState) => getPostsForThread(state, post.id));
     const selectHandler = useCallback(() => select(), []);
@@ -74,7 +81,17 @@ const ThreadPane = ({
 
     const followHandler = useCallback(() => {
         dispatch(setThreadFollow(currentUserId, currentTeamId, threadId, !isFollowing));
-    }, [currentUserId, currentTeamId, threadId, isFollowing, setThreadFollow]);
+    }, [dispatch, currentUserId, currentTeamId, threadId, isFollowing]);
+
+    const popout = useCallback(() => {
+        popoutThread(
+            intl.formatMessage(getThreadPopoutTitle(channel)),
+            threadId,
+            team,
+            (postId, returnTo) => {
+                dispatch(focusPost(postId, returnTo, currentUserId, {skipRedirectReplyPermalink: true}));
+            });
+    }, [threadId, team, intl, dispatch, currentUserId]);
 
     return (
         <div
@@ -112,26 +129,25 @@ const ThreadPane = ({
                     <>
                         <FollowButton
                             isFollowing={isFollowing}
-                            disabled={isFollowing == null}
                             onClick={followHandler}
                         />
+                        <PopoutButton onClick={popout}/>
                         <ThreadMenu
                             threadId={threadId}
                             isFollowing={isFollowing}
-                            hasUnreads={Boolean(thread.unread_replies || thread.unread_mentions)}
+                            hasUnreads={isFollowing && Boolean((thread as UserThread).unread_replies || (thread as UserThread).unread_mentions)}
                             unreadTimestamp={unreadTimestamp}
                         >
-                            <SimpleTooltip
-                                id='threadActionMenu'
-                                content={formatMessage({
-                                    id: t('threading.threadHeader.menu'),
+                            <WithTooltip
+                                title={formatMessage({
+                                    id: 'threading.threadHeader.menu',
                                     defaultMessage: 'More Actions',
                                 })}
                             >
                                 <Button className='Button___icon Button___large'>
                                     <DotsVerticalIcon size={18}/>
                                 </Button>
-                            </SimpleTooltip>
+                            </WithTooltip>
                         </ThreadMenu>
                     </>
                 )}

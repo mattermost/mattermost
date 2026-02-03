@@ -4,7 +4,7 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
 
-import {logError} from 'mattermost-redux/actions/errors';
+import {logError, LogErrorBarMode} from 'mattermost-redux/actions/errors';
 
 import store from 'stores/redux_store';
 
@@ -28,7 +28,7 @@ declare global {
 
 // This is for anything that needs to be done for ALL react components.
 // This runs before we start to render anything.
-function preRenderSetup(callwhendone: () => void) {
+function preRenderSetup(onPreRenderSetupReady: () => void) {
     window.onerror = (msg, url, line, column, error) => {
         if (msg === 'ResizeObserver loop limit exceeded') {
             return;
@@ -42,39 +42,37 @@ function preRenderSetup(callwhendone: () => void) {
                     stack: error?.stack,
                     url,
                 },
-                true,
-                true,
+                {errorBarMode: LogErrorBarMode.InDevMode},
             ),
         );
     };
+
     setCSRFFromCookie();
-    callwhendone();
+
+    onPreRenderSetupReady();
 }
 
-function renderRootComponent() {
-    ReactDOM.render((
-        <App/>
-    ),
-    document.getElementById('root'));
+function renderReactRootComponent() {
+    // We're using React 18, but we're using the deprecated way of starting React because ReactDOM.createRoot enables
+    // new features such as automatic batching which breaks some components. This will need to be changed in the future
+    // because this method of starting the app will be removed in React 19.
+    ReactDOM.render(<App/>, document.getElementById('root')!);
 }
 
 /**
- * Adds a function to be invoked onload appended to any existing onload
- * event handlers.
+ * Adds a function to be invoked when the DOM content is loaded.
  */
-function appendOnLoadEvent(fn: (evt: Event) => void) {
-    if (window.onload) {
-        const curronload = window.onload;
-        window.onload = (evt) => {
-            (curronload as any)(evt);
-            fn(evt);
-        };
+function appendOnDOMContentLoadedEvent(onDomContentReady: () => void) {
+    if (document.readyState === 'loading') {
+        // If the DOM hasn't finished loading, add an event listener and call the function when it does
+        document.addEventListener('DOMContentLoaded', onDomContentReady);
     } else {
-        window.onload = fn;
+        // If the DOM is already loaded, call the function immediately
+        onDomContentReady();
     }
 }
 
-appendOnLoadEvent(() => {
-    // Do the pre-render setup and call renderRootComponent when done
-    preRenderSetup(renderRootComponent);
+appendOnDOMContentLoadedEvent(() => {
+    // Do the pre-render setup and call renderReactRootComponent when done
+    preRenderSetup(renderReactRootComponent);
 });

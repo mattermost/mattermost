@@ -1,18 +1,17 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {useState, useCallback, useMemo} from 'react';
+import React, {useState, useCallback, useMemo, useRef} from 'react';
 import {Modal} from 'react-bootstrap';
-import {FormattedMessage, useIntl} from 'react-intl';
+import {defineMessage, FormattedMessage, useIntl} from 'react-intl';
 
+import {useFocusTrap} from '@mattermost/components';
 import type {Group} from '@mattermost/types/groups';
 import type {UserProfile} from '@mattermost/types/users';
 
 import type {ActionResult} from 'mattermost-redux/types/actions';
 
 import AddUserToGroupMultiSelect from 'components/add_user_to_group_multiselect';
-
-import {localizeMessage} from 'utils/utils';
 
 import type {ModalData} from 'types/actions';
 
@@ -35,6 +34,9 @@ const AddUsersToGroupModal = (props: Props) => {
     const [usersToAdd, setUsersToAdd] = useState<UserProfile[]>([]);
     const [showUnknownError, setShowUnknownError] = useState(false);
     const {formatMessage} = useIntl();
+
+    const modalRef = useRef<HTMLDivElement>(null);
+    useFocusTrap(show, modalRef);
 
     const doHide = useCallback(() => {
         setShow(false);
@@ -95,65 +97,84 @@ const AddUsersToGroupModal = (props: Props) => {
             show={show}
             onHide={doHide}
             onExited={props.onExited}
-            role='dialog'
+            role='none'
             aria-labelledby='createUserGroupsModalLabel'
             id='addUsersToGroupsModal'
         >
-            <Modal.Header closeButton={true}>
-                <button
-                    type='button'
-                    className='modal-header-back-button btn btn-icon'
-                    aria-label={formatMessage({id: 'user_groups_modal.goBackLabel', defaultMessage: 'Back'})}
-                    onClick={goBack}
-                >
-                    <i className='icon icon-arrow-left'/>
-                </button>
-                <Modal.Title
-                    componentClass='h1'
-                    id='addUsersToGroupsModalLabel'
-                >
-                    <FormattedMessage
-                        id='user_groups_modal.addPeopleTitle'
-                        defaultMessage='Add people to {group}'
-                        values={titleValue}
-                    />
-                </Modal.Title>
-            </Modal.Header>
-            <Modal.Body
-                className='overflow--visible'
-            >
-                <div className='user-groups-modal__content'>
-                    <form role='form'>
-                        <div className='group-add-user'>
-                            <AddUserToGroupMultiSelect
-                                multilSelectKey={'addUsersToGroupKey'}
-                                onSubmitCallback={addUsersToGroup}
-                                focusOnLoad={false}
-                                savingEnabled={isSaveEnabled()}
-                                addUserCallback={addUserCallback}
-                                deleteUserCallback={deleteUserCallback}
-                                groupId={props.groupId}
-                                searchOptions={searchOptions}
-                                buttonSubmitText={localizeMessage('multiselect.addPeopleToGroup', 'Add People')}
-                                buttonSubmitLoadingText={localizeMessage('multiselect.adding', 'Adding...')}
-                                backButtonClick={goBack}
-                                backButtonClass={'multiselect-back'}
-                                saving={saving}
+            <div ref={modalRef}>
+                <Modal.Header>
+                    <div className='d-flex align-items-center'>
+                        <button
+                            type='button'
+                            className='modal-header-back-button btn btn-icon'
+                            aria-label={formatMessage({id: 'user_groups_modal.goBackLabel', defaultMessage: 'Back'})}
+                            onClick={goBack}
+                        >
+                            <i className='icon icon-arrow-left'/>
+                        </button>
+                        <Modal.Title
+                            componentClass='h1'
+                            id='addUsersToGroupsModalLabel'
+                        >
+                            <FormattedMessage
+                                id='user_groups_modal.addPeopleTitle'
+                                // eslint-disable-next-line formatjs/enforce-placeholders -- group provided via titleValue memoized value
+                                defaultMessage='Add people to {group}'
+                                values={titleValue}
                             />
-                        </div>
-                        {
-                            showUnknownError &&
-                            <div className='Input___error group-error'>
-                                <i className='icon icon-alert-outline'/>
-                                <FormattedMessage
-                                    id='user_groups_modal.unknownError'
-                                    defaultMessage='An unknown error has occurred.'
+                        </Modal.Title>
+                    </div>
+                    <button
+                        type='button'
+                        className='close'
+                        onClick={props.onExited}
+                        aria-label={formatMessage({id: 'generic.close', defaultMessage: 'Close'})}
+                    >
+                        <span aria-hidden='true'>{'×'}</span>
+                        <span className='sr-only'>
+                            <FormattedMessage
+                                id='generic.close'
+                                defaultMessage='Close'
+                            />
+                        </span>
+                    </button>
+                </Modal.Header>
+                <Modal.Body
+                    className='overflow--visible'
+                >
+                    <div className='user-groups-modal__content'>
+                        <form role='form'>
+                            <div className='group-add-user'>
+                                <AddUserToGroupMultiSelect
+                                    multilSelectKey={'addUsersToGroupKey'}
+                                    onSubmitCallback={addUsersToGroup}
+                                    focusOnLoad={false}
+                                    savingEnabled={isSaveEnabled()}
+                                    addUserCallback={addUserCallback}
+                                    deleteUserCallback={deleteUserCallback}
+                                    groupId={props.groupId}
+                                    searchOptions={searchOptions}
+                                    buttonSubmitText={defineMessage({id: 'multiselect.addPeopleToGroup', defaultMessage: 'Add People'})}
+                                    buttonSubmitLoadingText={defineMessage({id: 'multiselect.adding', defaultMessage: 'Adding...'})}
+                                    backButtonClick={goBack}
+                                    backButtonClass={'multiselect-back'}
+                                    saving={saving}
                                 />
                             </div>
-                        }
-                    </form>
-                </div>
-            </Modal.Body>
+                            {
+                                showUnknownError &&
+                                <div className='Input___error group-error'>
+                                    <i className='icon icon-alert-outline'/>
+                                    <FormattedMessage
+                                        id='user_groups_modal.unknownError'
+                                        defaultMessage='An unknown error has occurred.'
+                                    />
+                                </div>
+                            }
+                        </form>
+                    </div>
+                </Modal.Body>
+            </div>
         </Modal>
     );
 };

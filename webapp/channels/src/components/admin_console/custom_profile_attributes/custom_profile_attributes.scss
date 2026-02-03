@@ -1,0 +1,19 @@
+.custom-profile-attributes {
+    border-top: 1px solid rgba(61, 60, 64, 0.08);
+    border-bottom: 1px solid rgba(61, 60, 64, 0.08);
+    margin-bottom: 25px;
+    
+    .section-header {
+        padding: 24px 0px;
+        border-bottom: none;
+    
+        .section-title {
+            font-size: 16px;
+            font-weight: bold;
+        }
+    
+        .section-subtitle {
+            font-size: 14px;
+        }
+    }
+}

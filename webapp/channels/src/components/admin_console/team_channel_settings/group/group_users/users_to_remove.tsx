@@ -32,7 +32,7 @@ export type Filters = {
 
 export type Memberships = RelationOneToOne<UserProfile, TeamMembership> | RelationOneToOne<UserProfile, ChannelMembership>;
 
-interface Props {
+export interface Props {
     members: UserProfile[];
     memberships: Memberships;
     total: number;
@@ -40,14 +40,9 @@ interface Props {
     scope: 'team' | 'channel';
     scopeId: string;
     enableGuestAccounts: boolean;
-    filters: Filters;
     actions: {
-        loadTeamMembersForProfilesList: (profiles: UserProfile[], teamId: string) => Promise<{
-            data: boolean;
-        }>;
-        loadChannelMembersForProfilesList: (profiles: UserProfile[], channelId: string) => Promise<{
-            data: boolean;
-        }>;
+        loadTeamMembersForProfilesList: (profiles: UserProfile[], teamId: string) => Promise<ActionResult>;
+        loadChannelMembersForProfilesList: (profiles: UserProfile[], channelId: string) => Promise<ActionResult>;
         setModalSearchTerm: (term: string) => ActionResult;
         setModalFilters: (filters: Filters) => ActionResult;
     };
@@ -349,7 +344,6 @@ export default class UsersToRemove extends React.PureComponent<Props, State> {
                     columns={columns}
                     rows={rows}
                     loading={this.state.loading}
-                    page={this.state.page}
                     nextPage={this.nextPage}
                     previousPage={this.previousPage}
                     startCount={startCount}

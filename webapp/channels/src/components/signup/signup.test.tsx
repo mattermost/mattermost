@@ -1,24 +1,18 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import type {ReactWrapper} from 'enzyme';
 import {shallow} from 'enzyme';
 import React from 'react';
-import {IntlProvider} from 'react-intl';
-import {BrowserRouter} from 'react-router-dom';
 
 import type {ClientConfig} from '@mattermost/types/config';
 
 import {RequestStatus} from 'mattermost-redux/constants';
 
-import * as useCWSAvailabilityCheckAll from 'components/common/hooks/useCWSAvailabilityCheck';
-import SaveButton from 'components/save_button';
-import Signup from 'components/signup/signup';
-import Input from 'components/widgets/inputs/input/input';
-import PasswordInput from 'components/widgets/inputs/password_input/password_input';
+import {redirectUserToDefaultTeam} from 'actions/global_actions';
 
-import {mountWithIntl} from 'tests/helpers/intl-test-helper';
-import {act, renderWithContext, screen} from 'tests/react_testing_utils';
+import Signup from 'components/signup/signup';
+
+import {renderWithContext, screen, waitFor, userEvent} from 'tests/react_testing_utils';
 import {WindowSizes} from 'utils/constants';
 
 import type {GlobalState} from 'types/store';
@@ -29,12 +23,6 @@ const mockHistoryPush = jest.fn();
 let mockLicense = {IsLicensed: 'true', Cloud: 'false'};
 let mockConfig: Partial<ClientConfig>;
 let mockDispatch = jest.fn();
-
-const intlProviderProps = {
-    defaultLocale: 'en',
-    locale: 'en',
-    messages: {},
-};
 
 jest.mock('react-redux', () => ({
     ...jest.requireActual('react-redux') as typeof import('react-redux'),
@@ -56,13 +44,21 @@ jest.mock('mattermost-redux/selectors/entities/general', () => ({
     getConfig: () => mockConfig,
 }));
 
+let mockCurrentUserId = '';
+
 jest.mock('mattermost-redux/selectors/entities/users', () => ({
     ...jest.requireActual('mattermost-redux/selectors/entities/users') as typeof import('mattermost-redux/selectors/entities/users'),
-    getCurrentUserId: () => '',
+    getCurrentUserId: () => mockCurrentUserId,
+}));
+
+jest.mock('actions/global_actions', () => ({
+    ...jest.requireActual('actions/global_actions'),
+    redirectUserToDefaultTeam: jest.fn(),
 }));
 
 jest.mock('actions/team_actions', () => ({
     ...jest.requireActual('actions/team_actions') as typeof import('actions/team_actions'),
+    addUserToTeamFromInvite: jest.fn().mockResolvedValue({data: {}}),
     addUsersToTeamFromInvite: jest.fn().mockResolvedValue({name: 'teamName'}),
 }));
 
@@ -76,27 +72,14 @@ jest.mock('actions/views/login', () => ({
     loginById: jest.fn().mockResolvedValue({data: {}}),
 }));
 
-jest.mock('actions/team_actions', () => ({
-    ...jest.requireActual('actions/team_actions') as typeof import('actions/team_actions'),
-    addUserToTeamFromInvite: jest.fn().mockResolvedValue({data: {}}),
-}));
-
 jest.mock('actions/storage');
-
-const actImmediate = (wrapper: ReactWrapper) =>
-    act(
-        () =>
-            new Promise<void>((resolve) => {
-                setImmediate(() => {
-                    wrapper.update();
-                    resolve();
-                });
-            }),
-    );
 
 describe('components/signup/Signup', () => {
     beforeEach(() => {
         mockLocation = {pathname: '', search: '', hash: ''};
+        mockHistoryPush.mockClear();
+        mockDispatch.mockClear();
+        mockCurrentUserId = '';
 
         mockLicense = {IsLicensed: 'true', Cloud: 'false'};
 
@@ -157,6 +140,7 @@ describe('components/signup/Signup', () => {
             EnableSignUpWithGoogle: 'true',
             EnableSignUpWithOpenId: 'true',
             EnableOpenServer: 'true',
+            EnableUserCreation: 'true',
             LdapLoginFieldName: '',
             GitLabButtonText: '',
             GitLabButtonColor: '',
@@ -189,6 +173,16 @@ describe('components/signup/Signup', () => {
         expect(wrapper).toMatchSnapshot();
     });
 
+    it('should match snapshot for all signup options enabled with EnableUserCreaton disabled', () => {
+        mockConfig.EnableUserCreation = 'false';
+
+        const wrapper = shallow(
+            <Signup/>,
+        );
+
+        expect(wrapper).toMatchSnapshot();
+    });
+
     it('should create user, log in and redirect to invite teamname', async () => {
         mockLocation.search = 'd=%7B"name"%3A"teamName"%7D';
 
@@ -197,33 +191,27 @@ describe('components/signup/Signup', () => {
             mockResolvedValueOnce({data: {id: 'userId', password: 'password', email: 'jdoe@mm.com}'}}). // createUser
             mockResolvedValueOnce({error: {server_error_id: 'api.user.login.not_verified.app_error'}}); // loginById
 
-        const wrapper = mountWithIntl(
-            <IntlProvider {...intlProviderProps}>
-                <BrowserRouter>
-                    <Signup/>
-                </BrowserRouter>
-            </IntlProvider>,
+        renderWithContext(
+            <Signup/>,
         );
 
-        const emailInput = wrapper.find(Input).first().find('input').first();
-        emailInput.simulate('change', {target: {value: 'jdoe@mm.com'}});
+        const emailInput = screen.getByLabelText('Email address');
+        const usernameInput = screen.getByLabelText('Choose a Username');
+        const passwordInput = screen.getByLabelText('Choose a Password');
+        const termsCheckbox = screen.getByRole('checkbox', {name: /terms and privacy policy checkbox/i});
+        const submitButton = screen.getByRole('button', {name: 'Create account'});
 
-        const nameInput = wrapper.find('#input_name').first();
-        nameInput.simulate('change', {target: {value: 'jdoe'}});
+        await userEvent.type(emailInput, 'jdoe@mm.com');
+        await userEvent.type(usernameInput, 'jdoe');
+        await userEvent.type(passwordInput, 'password');
+        await userEvent.click(termsCheckbox);
 
-        const passwordInput = wrapper.find(PasswordInput).first().find('input').first();
-        passwordInput.simulate('change', {target: {value: 'password'}});
+        expect(submitButton).not.toBeDisabled();
+        await userEvent.click(submitButton);
 
-        const saveButton = wrapper.find(SaveButton).first();
-        expect(saveButton.props().disabled).toEqual(false);
-
-        saveButton.find('button').first().simulate('click');
-
-        await actImmediate(wrapper);
-
-        expect(wrapper.find(Input).first().props().disabled).toEqual(true);
-        expect(wrapper.find('#input_name').first().props().disabled).toEqual(true);
-        expect(wrapper.find(PasswordInput).first().props().disabled).toEqual(true);
+        expect(emailInput).toBeDisabled();
+        expect(usernameInput).toBeDisabled();
+        expect(passwordInput).toBeDisabled();
 
         expect(mockHistoryPush).toHaveBeenCalledWith('/should_verify_email?email=jdoe%40mm.com&teamname=teamName');
     });
@@ -234,100 +222,186 @@ describe('components/signup/Signup', () => {
             mockResolvedValueOnce({data: {id: 'userId', password: 'password', email: 'jdoe@mm.com}'}}). // createUser
             mockResolvedValueOnce({}); // loginById
 
-        const wrapper = mountWithIntl(
-            <IntlProvider {...intlProviderProps}>
-                <BrowserRouter>
-                    <Signup/>
-                </BrowserRouter>
-            </IntlProvider>,
+        renderWithContext(
+            <Signup/>,
         );
 
-        const emailInput = wrapper.find(Input).first().find('input').first();
-        emailInput.simulate('change', {target: {value: 'jdoe@mm.com'}});
+        const emailInput = screen.getByLabelText('Email address');
+        const usernameInput = screen.getByLabelText('Choose a Username');
+        const passwordInput = screen.getByLabelText('Choose a Password');
+        const termsCheckbox = screen.getByRole('checkbox', {name: /terms and privacy policy checkbox/i});
+        const submitButton = screen.getByRole('button', {name: 'Create account'});
 
-        const nameInput = wrapper.find('#input_name').first();
-        nameInput.simulate('change', {target: {value: 'jdoe'}});
+        await userEvent.type(emailInput, 'jdoe@mm.com');
+        await userEvent.type(usernameInput, 'jdoe');
+        await userEvent.type(passwordInput, 'password');
+        await userEvent.click(termsCheckbox);
 
-        const passwordInput = wrapper.find(PasswordInput).first().find('input').first();
-        passwordInput.simulate('change', {target: {value: 'password'}});
+        expect(submitButton).not.toBeDisabled();
+        await userEvent.click(submitButton);
 
-        const saveButton = wrapper.find(SaveButton).first();
-        expect(saveButton.props().disabled).toEqual(false);
+        expect(emailInput).toBeDisabled();
+        expect(usernameInput).toBeDisabled();
+        expect(passwordInput).toBeDisabled();
 
-        saveButton.find('button').first().simulate('click');
+        expect(redirectUserToDefaultTeam).toHaveBeenCalled();
+    });
 
-        await actImmediate(wrapper);
+    it('should focus email input when email validation fails', async () => {
+        renderWithContext(<Signup/>, mockState);
 
-        expect(wrapper.find(Input).first().props().disabled).toEqual(true);
-        expect(wrapper.find('#input_name').first().props().disabled).toEqual(true);
-        expect(wrapper.find(PasswordInput).first().props().disabled).toEqual(true);
+        const emailInput = screen.getByLabelText('Email address');
+        const usernameInput = screen.getByLabelText('Choose a Username');
+        const passwordInput = screen.getByLabelText('Choose a Password');
+        const termsCheckbox = screen.getByRole('checkbox', {name: /terms and privacy policy checkbox/i});
+        const submitButton = screen.getByRole('button', {name: 'Create account'});
+
+        // Submit with invalid email
+        await userEvent.type(emailInput, 'invalid-email');
+        await userEvent.type(usernameInput, 'testuser');
+        await userEvent.type(passwordInput, '123');
+        await userEvent.click(termsCheckbox);
+
+        // The focus should no longer be on the email input before clicking submit
+        expect(emailInput).not.toHaveFocus();
+
+        await userEvent.click(submitButton);
+
+        // And now the focus should move back to the email input
+        expect(emailInput).toHaveFocus();
+    });
+
+    it('should focus password input when password validation fails', async () => {
+        renderWithContext(<Signup/>, mockState);
+
+        const emailInput = screen.getByLabelText('Email address');
+        const usernameInput = screen.getByLabelText('Choose a Username');
+        const passwordInput = screen.getByLabelText('Choose a Password');
+        const termsCheckbox = screen.getByRole('checkbox', {name: /terms and privacy policy checkbox/i});
+        const submitButton = screen.getByText('Create account');
+
+        // Submit with valid email and username but invalid password
+        await userEvent.type(emailInput, 'test@example.com');
+        await userEvent.type(usernameInput, 'testuser');
+        await userEvent.type(passwordInput, '123');
+        await userEvent.click(termsCheckbox);
+
+        // The focus should no longer be on the password input before clicking submit
+        expect(emailInput).not.toHaveFocus();
+
+        await userEvent.click(submitButton);
+
+        // And now the focus should move back to the password input
+        expect(passwordInput).toHaveFocus();
+    });
+
+    it('should focus username input when server returns username exists error', async () => {
+        mockDispatch = jest.fn().mockImplementation(() => Promise.resolve({
+            data: {},
+            error: {
+                server_error_id: 'app.user.save.username_exists.app_error',
+                message: 'Username already exists',
+            },
+        }));
+
+        renderWithContext(<Signup/>, mockState);
+
+        const emailInput = screen.getByLabelText('Email address');
+        const usernameInput = screen.getByLabelText('Choose a Username');
+        const passwordInput = screen.getByLabelText('Choose a Password');
+        const termsCheckbox = screen.getByRole('checkbox', {name: /terms and privacy policy checkbox/i});
+        const submitButton = screen.getByText('Create account');
+
+        // Submit with valid data that will trigger server error
+        await userEvent.type(emailInput, 'test@example.com');
+        await userEvent.type(usernameInput, 'existinguser');
+        await userEvent.type(passwordInput, 'password123');
+        await userEvent.click(termsCheckbox);
+
+        // The focus should no longer be on the email input before clicking submit
+        expect(usernameInput).not.toHaveFocus();
+
+        await userEvent.click(submitButton);
+
+        // And now the focus should move back to the username input
+        expect(usernameInput).toHaveFocus();
     });
 
     it('should add user to team and redirect when team invite valid and logged in', async () => {
         mockLocation.search = '?id=ppni7a9t87fn3j4d56rwocdctc';
+        mockCurrentUserId = 'user1'; // Simulate logged-in user
 
-        const wrapper = shallow(
+        mockDispatch = jest.fn().
+            mockResolvedValueOnce({}). // removeGlobalItem in useEffect
+            mockResolvedValueOnce({data: {name: 'teamName'}}); // addUserToTeamFromInvite
+
+        renderWithContext(
             <Signup/>,
         );
 
-        setTimeout(() => {
+        await waitFor(() => {
             expect(mockHistoryPush).toHaveBeenCalledWith('/teamName/channels/town-square');
-            expect(wrapper).toMatchSnapshot();
-        }, 0);
-    });
-
-    it('should handle failure adding user to team when team invite and logged in', () => {
-        mockLocation.search = '?id=ppni7a9t87fn3j4d56rwocdctc';
-
-        const wrapper = shallow(
-            <Signup/>,
-        );
-
-        setTimeout(() => {
-            expect(mockHistoryPush).not.toHaveBeenCalled();
-            expect(wrapper.find('.content-layout-column-title').text()).toEqual('This invite link is invalid');
         });
     });
 
-    it('should show newsletter check box opt-in for self-hosted non airgapped workspaces', async () => {
-        jest.spyOn(useCWSAvailabilityCheckAll, 'default').mockImplementation(() => true);
-        mockLicense = {IsLicensed: 'true', Cloud: 'false'};
+    it('should handle failure adding user to team when team invite and logged in', async () => {
+        mockLocation.search = '?id=ppni7a9t87fn3j4d56rwocdctc';
+        mockCurrentUserId = 'user1'; // Simulate logged-in user
 
-        const {container: signupContainer} = renderWithContext(
-            <Signup/>,
-        );
+        mockDispatch = jest.fn().
+            mockResolvedValueOnce({}). // removeGlobalItem in useEffect
+            mockResolvedValueOnce({
+                error: {
+                    server_error_id: 'api.team.add_user_to_team_from_invite.invalid.app_error',
+                    message: 'Invalid invite',
+                },
+            }); // addUserToTeamFromInvite with error
 
-        screen.getByTestId('signup-body-card-form-check-newsletter');
-        const checkInput = screen.getByTestId('signup-body-card-form-check-newsletter');
-        expect(checkInput).toHaveAttribute('type', 'checkbox');
+        renderWithContext(<Signup/>, mockState);
 
-        expect(signupContainer).toHaveTextContent('I would like to receive Mattermost security updates via newsletter. By subscribing, I consent to receive emails from Mattermost with product updates, promotions, and company news. I have read the Privacy Policy and understand that I can unsubscribe at any time');
+        await waitFor(() => {
+            expect(mockHistoryPush).not.toHaveBeenCalled();
+            expect(screen.getByText('This invite link is invalid')).toBeInTheDocument();
+        });
     });
 
-    it('should NOT show newsletter check box opt-in for self-hosted AND airgapped workspaces', async () => {
-        jest.spyOn(useCWSAvailabilityCheckAll, 'default').mockImplementation(() => false);
-        mockLicense = {IsLicensed: 'true', Cloud: 'false'};
+    it('should show terms and privacy checkbox', async () => {
+        mockConfig.TermsOfServiceLink = 'https://mattermost.com/terms';
+        mockConfig.PrivacyPolicyLink = 'https://mattermost.com/privacy';
 
         const {container: signupContainer} = renderWithContext(
             <Signup/>,
         );
 
-        expect(() => screen.getByTestId('signup-body-card-form-check-newsletter')).toThrow();
-        expect(signupContainer).toHaveTextContent('Interested in receiving Mattermost security, product, promotions, and company updates updates via newsletter?Sign up at https://mattermost.com/security-updates/.');
+        const checkInput = screen.getByRole('checkbox', {name: /terms and privacy policy checkbox/i});
+        expect(checkInput).toHaveAttribute('type', 'checkbox');
+        expect(checkInput).not.toBeChecked();
+
+        expect(signupContainer).toHaveTextContent('I agree to the Acceptable Use Policy and the Privacy Policy');
     });
 
-    it('should show newsletter related opt-in or text for cloud', async () => {
-        jest.spyOn(useCWSAvailabilityCheckAll, 'default').mockImplementation(() => true);
-        mockLicense = {IsLicensed: 'true', Cloud: 'true'};
+    it('should require terms acceptance before enabling submit button', async () => {
+        renderWithContext(<Signup/>, mockState);
 
-        const {container: signupContainer} = renderWithContext(
-            <Signup/>,
-        );
+        const emailInput = screen.getByLabelText('Email address');
+        const usernameInput = screen.getByLabelText('Choose a Username');
+        const passwordInput = screen.getByLabelText('Choose a Password');
+        const termsCheckbox = screen.getByRole('checkbox', {name: /terms and privacy policy checkbox/i});
 
-        screen.getByTestId('signup-body-card-form-check-newsletter');
-        const checkInput = screen.getByTestId('signup-body-card-form-check-newsletter');
-        expect(checkInput).toHaveAttribute('type', 'checkbox');
+        // Fill in all fields but don't check terms
+        await userEvent.type(emailInput, 'test@example.com');
+        await userEvent.type(usernameInput, 'testuser');
+        await userEvent.type(passwordInput, 'ValidPassword123!');
 
-        expect(signupContainer).toHaveTextContent('I would like to receive Mattermost security updates via newsletter. By subscribing, I consent to receive emails from Mattermost with product updates, promotions, and company news. I have read the Privacy Policy and understand that I can unsubscribe at any time');
+        // Submit button should be disabled (SaveButton uses disabled prop on inner button)
+        const submitButton = screen.getByRole('button', {name: /Create account/i});
+        expect(submitButton).toBeDisabled();
+
+        // Check terms
+        await userEvent.click(termsCheckbox);
+
+        // Now submit button should be enabled
+        const enabledButton = screen.getByRole('button', {name: /Create account/i});
+        expect(enabledButton).not.toBeDisabled();
     });
 });

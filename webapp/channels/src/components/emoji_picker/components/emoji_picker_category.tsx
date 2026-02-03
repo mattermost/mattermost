@@ -3,17 +3,14 @@
 
 import classNames from 'classnames';
 import React, {memo} from 'react';
-import {FormattedMessage} from 'react-intl';
+import {FormattedMessage, useIntl} from 'react-intl';
 
 import type {EmojiCategory} from '@mattermost/types/emojis';
 
 import type {Category, CategoryOrEmojiRow} from 'components/emoji_picker/types';
-import OverlayTrigger from 'components/overlay_trigger';
-import Tooltip from 'components/tooltip';
+import WithTooltip from 'components/with_tooltip';
 
-import {Constants} from 'utils/constants';
-
-interface Props {
+export interface Props {
     category: Category;
     categoryRowIndex: CategoryOrEmojiRow['index'];
     selected: boolean;
@@ -22,6 +19,8 @@ interface Props {
 }
 
 function EmojiPickerCategory({category, categoryRowIndex, selected, enable, onClick}: Props) {
+    const intl = useIntl();
+
     const handleClick = (event: React.MouseEvent) => {
         event.preventDefault();
 
@@ -38,31 +37,20 @@ function EmojiPickerCategory({category, categoryRowIndex, selected, enable, onCl
     });
 
     return (
-        <OverlayTrigger
-            trigger={['hover', 'focus']}
-            delayShow={Constants.OVERLAY_TIME_DELAY}
-            placement='bottom'
-            overlay={
-                <Tooltip
-                    id='skinTooltip'
-                    className='emoji-tooltip'
-                >
-                    <FormattedMessage
-                        id={`emoji_picker.${category.name}`}
-                        defaultMessage={category.message}
-                    />
-                </Tooltip>
+        <WithTooltip
+            title={
+                <FormattedMessage {...category.label}/>
             }
         >
-            <a
-                className={className}
-                href='#'
+            <button
+                aria-pressed={selected}
+                className={classNames('style--none', className)}
                 onClick={handleClick}
-                aria-label={category.id}
+                aria-label={intl.formatMessage(category.label)}
             >
-                <i className={category.className}/>
-            </a>
-        </OverlayTrigger>
+                <i className={category.iconClassName}/>
+            </button>
+        </WithTooltip>
     );
 }
 

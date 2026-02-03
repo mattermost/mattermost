@@ -15,12 +15,14 @@ import * as TIMEOUTS from '../../../fixtures/timeouts';
 describe('Messaging', () => {
     let offTopicUrl;
     let testChannelName;
+    let user;
 
     before(() => {
         // # Login as test user
         cy.apiInitSetup({loginAfter: true}).then((out) => {
             offTopicUrl = out.offTopicUrl;
             testChannelName = out.channel.display_name;
+            user = out.user;
         });
     });
 
@@ -68,7 +70,7 @@ describe('Messaging', () => {
         cy.get('#quickSwitchHint').should('be.visible');
 
         // # Type channel name and select it
-        cy.findByRole('textbox', {name: 'quick switch input'}).type(testChannelName).wait(TIMEOUTS.HALF_SEC).type('{enter}');
+        cy.findByRole('combobox', {name: 'quick switch input'}).type(testChannelName).wait(TIMEOUTS.HALF_SEC).type('{enter}');
 
         // * Verify that it redirected into selected channel
         cy.get('#channelHeaderTitle').should('be.visible').should('contain', testChannelName);
@@ -94,6 +96,43 @@ describe('Messaging', () => {
         cy.clickPostCommentIcon();
 
         // * Verify RHS textbox is again focused the second time, when already open
+        cy.uiGetReplyTextBox().should('be.focused');
+    });
+
+    it('MM-T205 Focus to remain in RHS textbox when replying to reply post in center channel (CRT disabled)', () => {
+        // # Ensure collapsed reply threads is disabled
+        cy.apiSaveCRTPreference(user.id, 'off');
+
+        // # Post a thread root message
+        cy.postMessage('Thread root message');
+
+        // # Open RHS and post a reply
+        cy.clickPostCommentIcon();
+        cy.uiGetReplyTextBox().type('First reply{enter}');
+
+        // # Close RHS
+        cy.get('#rhsCloseButton').click();
+
+        // * Verify RHS is closed
+        cy.get('.sidebar--right__header').should('not.exist');
+
+        // # Get the reply post ID and click its comment icon
+        cy.getLastPostId().then((postId) => {
+            // # Click the reply arrow on the reply post
+            cy.clickPostCommentIcon(postId);
+
+            // * Verify RHS opens and textbox is focused
+            cy.get('.sidebar--right__header').should('be.visible');
+            cy.uiGetReplyTextBox().should('be.focused');
+
+            // # Focus away from RHS textbox
+            cy.get('#rhsContainer .post-right__content').click();
+
+            // # Click reply arrow on the same reply post again
+            cy.clickPostCommentIcon(postId);
+        });
+
+        // * Verify RHS textbox is focused again
         cy.uiGetReplyTextBox().should('be.focused');
     });
 
@@ -142,7 +181,8 @@ function verifyFocusInAddChannelMemberModal() {
     cy.get('#channelLeaveChannel').should('be.visible');
 
     // # Click 'Add Members'
-    cy.get('#channelAddMembers').click();
+    cy.get('#channelMembers').click();
+    cy.uiGetButton('Add').click();
 
     // * Assert that modal appears
     cy.get('#addUsersToChannelModal').should('be.visible');
@@ -156,8 +196,8 @@ function verifyFocusInAddChannelMemberModal() {
     // * Check that input box has character A
     cy.get('#selectItems input').should('have.value', 'A');
 
-    // # Click anywhere in the modal that is not on a field that can take focus
-    cy.get('.channel-invite__header').click();
+    // # Remove the focus from the input box
+    cy.get('#selectItems input').blur();
 
     // * Note the focus has been removed from the search box
     cy.get('#selectItems input').should('not.be.focused');

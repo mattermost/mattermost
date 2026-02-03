@@ -6,7 +6,6 @@ import {bindActionCreators} from 'redux';
 import type {Dispatch} from 'redux';
 
 import {loadRolesIfNeeded} from 'mattermost-redux/actions/roles';
-import {getTheme} from 'mattermost-redux/selectors/entities/preferences';
 import {getCurrentTeam} from 'mattermost-redux/selectors/entities/teams';
 
 import EmojiPage from 'components/emoji/emoji_page';
@@ -14,14 +13,12 @@ import EmojiPage from 'components/emoji/emoji_page';
 import type {GlobalState} from 'types/store';
 
 function mapStateToProps(state: GlobalState) {
-    const team = getCurrentTeam(state) || {};
+    const team = getCurrentTeam(state);
 
     return {
-        teamId: team.id,
-        teamName: team.name,
-        teamDisplayName: team.display_name,
+        teamName: team?.name,
+        teamDisplayName: team?.display_name,
         siteName: state.entities.general.config.SiteName,
-        currentTheme: getTheme(state),
     };
 }
 

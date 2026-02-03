@@ -144,10 +144,6 @@
     "translation": "%v ചാനലിൽ നിന്ന് പിന്മാറിയിരിക്കുന്നു."
   },
   {
-    "id": "api.channel.leave.last_member.app_error",
-    "translation": "താങ്കൾ മാത്രാമാണ് ബാക്കിയുള്ളത്, ദയവായി പിന്മാറുന്നതിനു പകരം സ്വകാര്യ ചാനൽ നീക്കം ചെയ്യാൻ ശ്രമിക്കുക."
-  },
-  {
     "id": "api.channel.leave.direct.app_error",
     "translation": "ഡയറക്റ്റ് മെസ്സേജ് ചാനലിൽ നിന്ന് പിന്മാറുവാൻ സാധ്യമല്ല."
   },
@@ -997,10 +993,6 @@
   {
     "id": "api.command_mute.success_mute",
     "translation": "ചാനൽ നിശബ്ദമാക്കുന്നത് വരെ നിങ്ങൾക്ക് {{.Channel}}-നായി അറിയിപ്പുകൾ ലഭിക്കില്ല."
-  },
-  {
-    "id": "api.command_mute.not_member.error",
-    "translation": "നിങ്ങൾ അംഗമല്ലാത്തതിനാൽ {{.Channel}} ചാനൽ നിശബ്ദമാക്കാൻ കഴിഞ്ഞില്ല."
   },
   {
     "id": "api.command_mute.no_channel.error",

@@ -5,8 +5,12 @@ package app
 
 import (
 	"fmt"
+	"net/http"
+	"net/http/httptest"
 	"os"
+	"slices"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -15,8 +19,8 @@ import (
 )
 
 func TestGetSessionIdleTimeoutInMinutes(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t)
-	defer th.TearDown()
 
 	session := &model.Session{
 		UserId: model.NewId(),
@@ -94,13 +98,13 @@ func TestGetSessionIdleTimeoutInMinutes(t *testing.T) {
 }
 
 func TestUpdateSessionOnPromoteDemote(t *testing.T) {
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
 
 	th.App.Srv().SetLicense(model.NewTestLicense())
 
 	t.Run("Promote Guest to User updates the session", func(t *testing.T) {
-		guest := th.CreateGuest()
+		guest := th.CreateGuest(t)
 
 		session, err := th.App.CreateSession(th.Context, &model.Session{UserId: guest.Id, Props: model.StringMap{model.SessionPropIsGuest: "true"}})
 		require.Nil(t, err)
@@ -124,7 +128,7 @@ func TestUpdateSessionOnPromoteDemote(t *testing.T) {
 	})
 
 	t.Run("Demote User to Guest updates the session", func(t *testing.T) {
-		user := th.CreateUser()
+		user := th.CreateUser(t)
 
 		session, err := th.App.CreateSession(th.Context, &model.Session{UserId: user.Id, Props: model.StringMap{model.SessionPropIsGuest: "false"}})
 		require.Nil(t, err)
@@ -147,12 +151,14 @@ func TestUpdateSessionOnPromoteDemote(t *testing.T) {
 	})
 }
 
-const hourMillis int64 = 60 * 60 * 1000
-const dayMillis int64 = 24 * hourMillis
+const (
+	hourMillis int64 = 60 * 60 * 1000
+	dayMillis  int64 = 24 * hourMillis
+)
 
 func TestApp_GetSessionLengthInMillis(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t)
-	defer th.TearDown()
 
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.SessionLengthMobileInHours = 3 * 24 })
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.SessionLengthSSOInHours = 2 * 24 })
@@ -218,7 +224,8 @@ func TestApp_GetSessionLengthInMillis(t *testing.T) {
 			UserId: model.NewId(),
 			Props: map[string]string{
 				model.UserAuthServiceIsSaml: "true",
-			}}
+			},
+		}
 		session, err := th.App.CreateSession(th.Context, session)
 		require.Nil(t, err)
 
@@ -239,8 +246,8 @@ func TestApp_GetSessionLengthInMillis(t *testing.T) {
 }
 
 func TestApp_ExtendExpiryIfNeeded(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t)
-	defer th.TearDown()
 
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.ExtendSessionLengthWithActivity = true })
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.SessionLengthMobileInHours = 3 * 24 })
@@ -280,7 +287,7 @@ func TestApp_ExtendExpiryIfNeeded(t *testing.T) {
 		require.False(t, session.IsExpired())
 	})
 
-	var tests = []struct {
+	tests := []struct {
 		enabled bool
 		name    string
 		session *model.Session
@@ -332,7 +339,6 @@ func TestGetCloudSession(t *testing.T) {
 	th := Setup(t)
 	defer func() {
 		os.Unsetenv("MM_CLOUD_API_KEY")
-		th.TearDown()
 	}()
 
 	t.Run("Matching environment variable and token should return non-nil session", func(t *testing.T) {
@@ -361,30 +367,30 @@ func TestGetCloudSession(t *testing.T) {
 }
 
 func TestGetRemoteClusterSession(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t)
 	token := model.NewId()
-	remoteId := model.NewId()
+	remoteID := model.NewId()
 
 	rc := model.RemoteCluster{
-		RemoteId:     remoteId,
-		RemoteTeamId: model.NewId(),
-		Name:         "test",
-		Token:        token,
-		CreatorId:    model.NewId(),
+		RemoteId:  remoteID,
+		Name:      "test",
+		Token:     token,
+		CreatorId: model.NewId(),
 	}
 
 	_, err := th.GetSqlStore().RemoteCluster().Save(&rc)
 	require.NoError(t, err)
 
 	t.Run("Valid remote token should return session", func(t *testing.T) {
-		session, err := th.App.GetRemoteClusterSession(token, remoteId)
+		session, err := th.App.GetRemoteClusterSession(token, remoteID)
 		require.Nil(t, err)
 		require.NotNil(t, session)
 		require.Equal(t, token, session.Token)
 	})
 
 	t.Run("Invalid remote token should return error", func(t *testing.T) {
-		session, err := th.App.GetRemoteClusterSession(model.NewId(), remoteId)
+		session, err := th.App.GetRemoteClusterSession(model.NewId(), remoteID)
 		require.NotNil(t, err)
 		require.Nil(t, session)
 	})
@@ -393,5 +399,102 @@ func TestGetRemoteClusterSession(t *testing.T) {
 		session, err := th.App.GetRemoteClusterSession(token, model.NewId())
 		require.NotNil(t, err)
 		require.Nil(t, session)
+	})
+}
+
+func TestSessionsLimit(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+
+	user := th.BasicUser
+	var sessions []*model.Session
+
+	r := &http.Request{}
+	w := httptest.NewRecorder()
+	for range maxSessionsLimit {
+		session, err := th.App.DoLogin(th.Context, w, r, th.BasicUser, "", false, false, false)
+		require.Nil(t, err)
+		sessions = append(sessions, session)
+		time.Sleep(1 * time.Millisecond)
+	}
+
+	gotSessions, _ := th.App.GetSessions(th.Context, user.Id)
+	require.Equal(t, maxSessionsLimit, len(gotSessions), "should have maxSessionsLimit number of sessions")
+
+	// Ensure we are retrieving the same sessions.
+	slices.Reverse(gotSessions)
+	for i, sess := range gotSessions {
+		require.Equal(t, sessions[i].Id, sess.Id)
+	}
+
+	// Now add 10 more.
+	for range 10 {
+		session, err := th.App.DoLogin(th.Context, w, r, th.BasicUser, "", false, false, false)
+		require.Nil(t, err, "should not have an error creating user sessions")
+
+		// Remove oldest, append newest.
+		sessions = sessions[1:]
+		sessions = append(sessions, session)
+		time.Sleep(1 * time.Millisecond)
+	}
+
+	// Ensure that we still only have the max allowed.
+	gotSessions, _ = th.App.GetSessions(th.Context, user.Id)
+	require.Equal(t, maxSessionsLimit, len(gotSessions), "should have maxSessionsLimit number of sessions")
+
+	// Ensure the the oldest sessions were removed first.
+	slices.Reverse(gotSessions)
+	for i, sess := range gotSessions {
+		require.Equal(t, sessions[i].Id, sess.Id)
+	}
+}
+
+func TestSetExtraSessionProps(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+
+	r := &http.Request{}
+	w := httptest.NewRecorder()
+	session, _ := th.App.DoLogin(th.Context, w, r, th.BasicUser, "", false, false, false)
+
+	resetSession := func(session *model.Session) {
+		session.AddProp("testProp", "")
+		err := th.Server.Store().Session().UpdateProps(session)
+		require.NoError(t, err)
+		th.App.ClearSessionCacheForUser(session.UserId)
+	}
+	t.Run("do not update the session if there are no props", func(t *testing.T) {
+		defer resetSession(session)
+		appErr := th.App.SetExtraSessionProps(session, map[string]string{})
+		require.Nil(t, appErr)
+		updatedSession, _ := th.App.GetSession(session.Token)
+		storeSession, _ := th.Server.Store().Session().Get(th.Context, session.Id)
+		assert.Equal(t, session, updatedSession)
+		assert.Equal(t, session, storeSession)
+	})
+	t.Run("update the session with the selected prop", func(t *testing.T) {
+		defer resetSession(session)
+		appErr := th.App.SetExtraSessionProps(session, map[string]string{"testProp": "true"})
+		require.Nil(t, appErr)
+		updatedSession, _ := th.App.GetSession(session.Token)
+		storeSession, _ := th.Server.Store().Session().Get(th.Context, session.Id)
+		assert.Equal(t, "true", updatedSession.Props["testProp"])
+		assert.Equal(t, "true", storeSession.Props["testProp"])
+	})
+	t.Run("do not update the session if the prop is the same", func(t *testing.T) {
+		defer resetSession(session)
+		session.AddProp("testProp", "true")
+		err := th.Server.Store().Session().UpdateProps(session)
+		require.NoError(t, err)
+		th.App.ClearSessionCacheForUser(session.UserId)
+
+		appErr := th.App.SetExtraSessionProps(session, map[string]string{"testProp": "true"})
+		require.Nil(t, appErr)
+		updatedSession, _ := th.App.GetSession(session.Token)
+		storeSession, _ := th.Server.Store().Session().Get(th.Context, session.Id)
+		assert.Equal(t, session, updatedSession)
+		assert.Equal(t, session, storeSession)
+		assert.Equal(t, "true", updatedSession.Props["testProp"])
+		assert.Equal(t, "true", storeSession.Props["testProp"])
 	})
 }

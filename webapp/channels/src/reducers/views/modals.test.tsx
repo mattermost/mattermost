@@ -4,31 +4,27 @@
 import React from 'react';
 import {Modal} from 'react-bootstrap';
 
-import type {GenericAction} from 'mattermost-redux/types/actions';
-
 import {modalState as modalStateReducer} from 'reducers/views/modals';
 
 import {ActionTypes, ModalIdentifiers} from 'utils/constants';
 
-class TestModal extends React.PureComponent {
-    render() {
-        return (
-            <Modal
-                show={true}
-                onHide={jest.fn()}
-            >
-                <Modal.Header closeButton={true}/>
-                <Modal.Body/>
-            </Modal>
-        );
-    }
-}
+const TestModal = () => {
+    return (
+        <Modal
+            show={true}
+            onHide={jest.fn()}
+        >
+            <Modal.Header closeButton={true}/>
+            <Modal.Body/>
+        </Modal>
+    );
+};
 
 describe('Reducers.Modals', () => {
     test('Initial state', () => {
         const nextState = modalStateReducer(
             {},
-            {} as GenericAction,
+            {type: 'testinit'},
         );
 
         const expectedState = {};

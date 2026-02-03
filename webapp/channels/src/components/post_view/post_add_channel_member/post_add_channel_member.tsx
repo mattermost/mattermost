@@ -12,7 +12,6 @@ import {sendAddToChannelEphemeralPost} from 'actions/global_actions';
 import AtMention from 'components/at_mention';
 
 import {Constants} from 'utils/constants';
-import {t} from 'utils/i18n';
 
 interface Actions {
     addChannelMember: (channelId: string, userId: string, rootId: string) => void;
@@ -27,6 +26,7 @@ export interface Props {
     userIds: string[];
     usernames: string[];
     noGroupsUsernames: string[];
+    isPolicyEnforced: boolean;
     actions: Actions;
 }
 
@@ -147,86 +147,112 @@ export default class PostAddChannelMember extends React.PureComponent<Props, Sta
     }
 
     render() {
-        const {channelType, postId, usernames, noGroupsUsernames} = this.props;
+        const {channelType, postId, usernames, noGroupsUsernames, isPolicyEnforced} = this.props;
         if (!postId || !channelType) {
             return null;
         }
 
-        let linkId;
-        let linkText;
-        if (channelType === Constants.PRIVATE_CHANNEL) {
-            linkId = t('post_body.check_for_out_of_channel_mentions.link.private');
-            linkText = 'add them to this private channel';
-        } else if (channelType === Constants.OPEN_CHANNEL) {
-            linkId = t('post_body.check_for_out_of_channel_mentions.link.public');
-            linkText = 'add them to the channel';
-        }
+        // For ABAC channels (policy enforced), NEVER show invite links - only show notification message
+        if (isPolicyEnforced) {
+            // Combine all users into a single message without any invite functionality
+            const allUsers = [...usernames, ...noGroupsUsernames];
+            const allUsersAtMentions = this.generateAtMentions(allUsers);
 
-        let outOfChannelMessageID;
-        let outOfChannelMessageText;
-        const outOfChannelAtMentions = this.generateAtMentions(usernames);
-        if (usernames.length === 1) {
-            outOfChannelMessageID = t('post_body.check_for_out_of_channel_mentions.message.one');
-            outOfChannelMessageText = 'did not get notified by this mention because they are not in the channel. Would you like to ';
-        } else if (usernames.length > 1) {
-            outOfChannelMessageID = t('post_body.check_for_out_of_channel_mentions.message.multiple');
-            outOfChannelMessageText = 'did not get notified by this mention because they are not in the channel. Would you like to ';
-        }
+            if (allUsers.length === 0) {
+                return null;
+            }
 
-        let outOfGroupsMessageID;
-        let outOfGroupsMessageText;
-        const outOfGroupsAtMentions = this.generateAtMentions(noGroupsUsernames);
-        if (noGroupsUsernames.length) {
-            outOfGroupsMessageID = t('post_body.check_for_out_of_channel_groups_mentions.message');
-            outOfGroupsMessageText = 'did not get notified by this mention because they are not in the channel. They cannot be added to the channel because they are not a member of the linked groups. To add them to this channel, they must be added to the linked groups.';
-        }
+            const messageText = 'did not get notified by this mention because they are not in the channel.';
 
-        let outOfChannelMessage = null;
-        let outOfGroupsMessage = null;
-
-        if (usernames.length) {
-            outOfChannelMessage = (
+            return (
                 <p>
-                    {outOfChannelAtMentions}
+                    {allUsersAtMentions}
                     {' '}
-                    <FormattedMessage
-                        id={outOfChannelMessageID}
-                        defaultMessage={outOfChannelMessageText}
-                    />
-                    <a
-                        className='PostBody_addChannelMemberLink'
-                        onClick={this.handleAddChannelMember}
-                    >
-                        <FormattedMessage
-                            id={linkId}
-                            defaultMessage={linkText}
-                        />
-                    </a>
-                    <FormattedMessage
-                        id={'post_body.check_for_out_of_channel_mentions.message_last'}
-                        defaultMessage={'? They will have access to all message history.'}
-                    />
+                    {messageText}
                 </p>
             );
         }
 
-        if (noGroupsUsernames.length) {
-            outOfGroupsMessage = (
-                <p>
+        // Regular flow for non-ABAC channels
+        let link;
+        if (channelType === Constants.PRIVATE_CHANNEL) {
+            link = (
+                <FormattedMessage
+                    id='post_body.check_for_out_of_channel_mentions.link.private'
+                    defaultMessage='add them to this private channel'
+                />
+            );
+        } else if (channelType === Constants.OPEN_CHANNEL) {
+            link = (
+                <FormattedMessage
+                    id='post_body.check_for_out_of_channel_mentions.link.public'
+                    defaultMessage='add them to the channel'
+                />
+            );
+        }
+
+        // Separate invitable users from group-constrained users
+        const invitableUsers = usernames.filter((username) => !noGroupsUsernames.includes(username));
+        const outOfGroupsUsers = noGroupsUsernames;
+
+        const messages = [];
+
+        // Handle invitable users with invite functionality
+        if (invitableUsers.length > 0) {
+            const invitableAtMentions = this.generateAtMentions(invitableUsers);
+            const invitableMessagePart = invitableUsers.length === 1 ? (
+                <FormattedMessage
+                    id='post_body.check_for_out_of_channel_mentions.message.one'
+                    defaultMessage='did not get notified by this mention because they are not in the channel. Would you like to '
+                />
+            ) : (
+                <FormattedMessage
+                    id='post_body.check_for_out_of_channel_mentions.message.multiple'
+                    defaultMessage='did not get notified by this mention because they are not in the channel. Would you like to '
+                />
+            );
+
+            messages.push(
+                <p key='invitable'>
+                    {invitableAtMentions}
+                    {' '}
+                    {invitableMessagePart}
+                    <a
+                        className='PostBody_addChannelMemberLink'
+                        onClick={this.handleAddChannelMember}
+                    >
+                        {link}
+                    </a>
+                    <FormattedMessage
+                        id='post_body.check_for_out_of_channel_mentions.message_last'
+                        defaultMessage='? They will have access to all message history.'
+                    />
+                </p>,
+            );
+        }
+
+        // Handle users not in required groups with specific messaging
+        if (outOfGroupsUsers.length > 0) {
+            const outOfGroupsAtMentions = this.generateAtMentions(outOfGroupsUsers);
+            const outOfGroupsMessagePart = (
+                <FormattedMessage
+                    id='post_body.check_for_out_of_channel_groups_mentions.message'
+                    defaultMessage='did not get notified by this mention because they are not in the channel. They cannot be added to the channel because they are not a member of the linked groups. To add them to this channel, they must be added to the linked groups.'
+                />
+            );
+
+            messages.push(
+                <p key='out-of-groups'>
                     {outOfGroupsAtMentions}
                     {' '}
-                    <FormattedMessage
-                        id={outOfGroupsMessageID}
-                        defaultMessage={outOfGroupsMessageText}
-                    />
-                </p>
+                    {outOfGroupsMessagePart}
+                </p>,
             );
         }
 
         return (
             <>
-                {outOfChannelMessage}
-                {outOfGroupsMessage}
+                {messages}
             </>
         );
     }

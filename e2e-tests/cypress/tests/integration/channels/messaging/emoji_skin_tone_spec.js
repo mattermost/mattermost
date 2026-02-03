@@ -7,7 +7,6 @@
 // Use element ID when selecting an element. Create one if none.
 // ***************************************************************
 
-// Stage: @prod
 // Group: @channels @messaging
 
 describe('Messaging', () => {
@@ -42,13 +41,15 @@ describe('Messaging', () => {
                 cy.postMessage(gesture + skinTone);
 
                 // * Check if gesture with skin tone is visible
-                cy.findByTitle(gesture + skinTone).should('be.visible');
+                cy.getLastPost().within(() => {
+                    cy.get('span[data-emoticon] span').should('be.visible').should('have.attr', 'alt', gesture + skinTone);
+                });
 
                 // # Set viewport to mobile
                 cy.viewport('iphone-se2');
 
                 // * Check if gesture with skin tone is visible
-                cy.findByTitle(gesture + skinTone).should('be.visible');
+                cy.get('span[data-emoticon] span').should('be.visible');
             });
         });
     });

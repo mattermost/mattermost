@@ -10,18 +10,19 @@ import {logError} from 'mattermost-redux/actions/errors';
 import {getGroups, getAllGroupsAssociatedToChannelsInTeam, getAllGroupsAssociatedToTeam, getGroupsByUserIdPaginated} from 'mattermost-redux/actions/groups';
 import {forceLogoutIfNecessary} from 'mattermost-redux/actions/helpers';
 import {getTeamByName, selectTeam} from 'mattermost-redux/actions/teams';
+import {getIsUserStatusesConfigEnabled} from 'mattermost-redux/selectors/entities/common';
 import {getLicense} from 'mattermost-redux/selectors/entities/general';
 import {isCustomGroupsEnabled} from 'mattermost-redux/selectors/entities/preferences';
 import {getCurrentUser} from 'mattermost-redux/selectors/entities/users';
-import type {ActionFunc} from 'mattermost-redux/types/actions';
 
-import {loadStatusesForChannelAndSidebar} from 'actions/status_actions';
+import {addVisibleUsersInCurrentChannelAndSelfToStatusPoll} from 'actions/status_actions';
 import {addUserToTeam} from 'actions/team_actions';
 import LocalStorageStore from 'stores/local_storage_store';
 
 import {isSuccess} from 'types/actions';
+import type {ActionFuncAsync} from 'types/store';
 
-export function initializeTeam(team: Team): ActionFunc<Team, ServerError> {
+export function initializeTeam(team: Team): ActionFuncAsync<Team> {
     return async (dispatch, getState) => {
         dispatch(selectTeam(team.id));
 
@@ -29,15 +30,10 @@ export function initializeTeam(team: Team): ActionFunc<Team, ServerError> {
         const currentUser = getCurrentUser(state);
         LocalStorageStore.setPreviousTeamId(currentUser.id, team.id);
 
-        try {
-            await dispatch(fetchChannelsAndMembers(team.id));
-        } catch (error) {
-            forceLogoutIfNecessary(error as ServerError, dispatch, getState);
-            dispatch(logError(error as ServerError));
-            return {error: error as ServerError};
+        const enabledUserStatuses = getIsUserStatusesConfigEnabled(state);
+        if (enabledUserStatuses) {
+            dispatch(addVisibleUsersInCurrentChannelAndSelfToStatusPoll());
         }
-
-        dispatch(loadStatusesForChannelAndSidebar());
 
         const license = getLicense(state);
         const customGroupEnabled = isCustomGroupsEnabled(state);
@@ -76,7 +72,7 @@ export function initializeTeam(team: Team): ActionFunc<Team, ServerError> {
     };
 }
 
-export function joinTeam(teamname: string, joinedOnFirstLoad: boolean): ActionFunc<Team, ServerError> {
+export function joinTeam(teamname: string, joinedOnFirstLoad: boolean): ActionFuncAsync<Team> {
     return async (dispatch, getState) => {
         const state = getState();
         const currentUser = getCurrentUser(state);
@@ -94,6 +90,14 @@ export function joinTeam(teamname: string, joinedOnFirstLoad: boolean): ActionFu
                         }
 
                         await dispatch(initializeTeam(team));
+
+                        try {
+                            await dispatch(fetchChannelsAndMembers(team.id));
+                        } catch (error) {
+                            forceLogoutIfNecessary(error as ServerError, dispatch, getState);
+                            dispatch(logError(error as ServerError));
+                            return {error: error as ServerError};
+                        }
 
                         return {data: team};
                     }

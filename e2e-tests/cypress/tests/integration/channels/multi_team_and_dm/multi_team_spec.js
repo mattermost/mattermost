@@ -142,7 +142,7 @@ describe('Send a DM', () => {
         // * Dot appears, with no number (just unread, not a mention)
         cy.apiLogin(userA);
         cy.visit(offTopicUrlB);
-        cy.get(`#${teamA.name}TeamButton`).parent('.unread').should('be.visible');
+        cy.get(`#${teamA.name}TeamButton`).children('.unread').should('be.visible');
         cy.get(`#${teamA.name}TeamButton`).should('be.visible').within(() => {
             cy.get('.badge').should('not.exist');
         });

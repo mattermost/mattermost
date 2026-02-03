@@ -13,15 +13,16 @@ const emptyOtherUsersState: Omit<GlobalState['entities']['users'], 'profiles' | 
     myAudits: [],
     profilesInTeam: {},
     profilesNotInTeam: {},
-    profilesWithoutTeam: new Set(),
     profilesInChannel: {},
     profilesNotInChannel: {},
     profilesInGroup: {},
     profilesNotInGroup: {},
     statuses: {},
     stats: {},
+    filteredStats: {},
     myUserAccessTokens: {},
     lastActivity: {},
+    dndEndTimes: {},
 };
 
 export const adminUsersState: () => GlobalState['entities']['users'] = () => ({

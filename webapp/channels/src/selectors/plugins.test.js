@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {getChannelHeaderMenuPluginComponents, getPluginUserSettings} from 'selectors/plugins';
+import {getChannelHeaderMenuPluginComponents, getPluginUserSettings, getChannelMobileHeaderPluginButtons} from 'selectors/plugins';
 
 describe('selectors/plugins', () => {
     describe('getPluginUserSettings', () => {
@@ -205,6 +205,36 @@ describe('selectors/plugins', () => {
                 state.plugins.components.ChannelHeader[0],
                 state.plugins.components.ChannelHeader[1],
             ]);
+        });
+    });
+
+    describe('getChannelMobileHeaderPluginButtons', () => {
+        it('has no settings', () => {
+            const state = {
+                plugins: {
+                    components: {
+                        MobileChannelHeaderButton: [],
+                    },
+                },
+            };
+            const settings = getChannelMobileHeaderPluginButtons(state);
+            expect(settings).toEqual([]);
+        });
+        it('has settings', () => {
+            const headerButton = {
+                id: 'someid',
+                pluginId: 'pluginid',
+                dropdownText: 'some dropdown text',
+            };
+            const state = {
+                plugins: {
+                    components: {
+                        MobileChannelHeaderButton: [headerButton],
+                    },
+                },
+            };
+            const settings = getChannelMobileHeaderPluginButtons(state);
+            expect(settings).toEqual([headerButton]);
         });
     });
 });

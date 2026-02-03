@@ -10,8 +10,10 @@ import (
 	"github.com/avct/uasurfer"
 )
 
+const maxUserAgentVersionLength = 128
+
 var platformNames = map[uasurfer.Platform]string{
-	uasurfer.PlatformUnknown:      "Windows",
+	uasurfer.PlatformUnknown:      "Unknown",
 	uasurfer.PlatformWindows:      "Windows",
 	uasurfer.PlatformMac:          "Macintosh",
 	uasurfer.PlatformLinux:        "Linux",
@@ -22,8 +24,18 @@ var platformNames = map[uasurfer.Platform]string{
 	uasurfer.PlatformWindowsPhone: "Windows Phone",
 }
 
-func getPlatformName(ua *uasurfer.UserAgent) string {
+func getPlatformName(ua *uasurfer.UserAgent, userAgentString string) string {
 	platform := ua.OS.Platform
+
+	if platform == uasurfer.PlatformUnknown && strings.Contains(userAgentString, "Mattermost Mobile/") {
+		if strings.Contains(userAgentString, "iPhone") {
+			platform = uasurfer.PlatformiPhone
+		} else if strings.Contains(userAgentString, "iPad") {
+			platform = uasurfer.PlatformiPad
+		} else {
+			platform = uasurfer.PlatformLinux
+		}
+	}
 
 	name, ok := platformNames[platform]
 	if !ok {
@@ -46,7 +58,7 @@ var osNames = map[uasurfer.OSName]string{
 	uasurfer.OSLinux:        "Linux",
 }
 
-func getOSName(ua *uasurfer.UserAgent) string {
+func getOSName(ua *uasurfer.UserAgent, userAgentString string) string {
 	os := ua.OS
 
 	if os.Name == uasurfer.OSWindows {
@@ -75,7 +87,19 @@ func getOSName(ua *uasurfer.UserAgent) string {
 		}
 	}
 
-	name, ok := osNames[os.Name]
+	osName := os.Name
+
+	if osName == uasurfer.OSUnknown && strings.Contains(userAgentString, "Mattermost Mobile/") {
+		if strings.Contains(userAgentString, "iPhone") {
+			osName = uasurfer.OSiOS
+		} else if strings.Contains(userAgentString, "iPad") {
+			osName = uasurfer.OSiOS
+		} else {
+			osName = uasurfer.OSAndroid
+		}
+	}
+
+	name, ok := osNames[osName]
 	if ok {
 		return name
 	}
@@ -83,28 +107,29 @@ func getOSName(ua *uasurfer.UserAgent) string {
 	return osNames[uasurfer.OSUnknown]
 }
 
+var versionPrefixes = []string{
+	"Mattermost Mobile/",
+	"Mattermost/",
+	"mmctl/",
+	"Franz/",
+}
+
 func getBrowserVersion(ua *uasurfer.UserAgent, userAgentString string) string {
-	if index := strings.Index(userAgentString, "Mattermost Mobile/"); index != -1 {
-		afterVersion := userAgentString[index+len("Mattermost Mobile/"):]
-		return strings.Fields(afterVersion)[0]
+	for _, prefix := range versionPrefixes {
+		if index := strings.Index(userAgentString, prefix); index != -1 {
+			afterPrefix := userAgentString[index+len(prefix):]
+			if fields := strings.Fields(afterPrefix); len(fields) > 0 {
+				// MM-55320: limitStringLength prevents potential DOS caused by filling an unbounded string with junk data
+				return limitStringLength(fields[0], maxUserAgentVersionLength)
+			}
+		}
 	}
-
-	if index := strings.Index(userAgentString, "Mattermost/"); index != -1 {
-		afterVersion := userAgentString[index+len("Mattermost/"):]
-		return strings.Fields(afterVersion)[0]
-	}
-
-	if index := strings.Index(userAgentString, "mmctl/"); index != -1 {
-		afterVersion := userAgentString[index+len("mmctl/"):]
-		return strings.Fields(afterVersion)[0]
-	}
-
-	if index := strings.Index(userAgentString, "Franz/"); index != -1 {
-		afterVersion := userAgentString[index+len("Franz/"):]
-		return strings.Fields(afterVersion)[0]
-	}
-
 	return getUAVersion(ua.Browser.Version)
+}
+
+func limitStringLength(field string, limit int) string {
+	endPos := min(len(field), limit)
+	return field[:endPos]
 }
 
 func getUAVersion(version uasurfer.Version) string {

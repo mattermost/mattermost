@@ -19,19 +19,19 @@ var validTestLicense = []byte("eyJpZCI6InpvZ3c2NW44Z2lmajVkbHJoYThtYnUxcGl3Iiwia
 func TestValidateLicense(t *testing.T) {
 	t.Run("should fail with junk data", func(t *testing.T) {
 		b1 := []byte("junk")
-		ok, _ := LicenseValidator.ValidateLicense(b1)
-		require.False(t, ok, "should have failed - bad license")
+		_, err := LicenseValidator.ValidateLicense(b1)
+		require.Error(t, err, "should have failed - bad license")
 
 		b2 := []byte("junkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunk")
-		ok, _ = LicenseValidator.ValidateLicense(b2)
-		require.False(t, ok, "should have failed - bad license")
+		_, err = LicenseValidator.ValidateLicense(b2)
+		require.Error(t, err, "should have failed - bad license")
 	})
 
 	t.Run("should not panic on shorter than expected input", func(t *testing.T) {
 		var licenseData bytes.Buffer
 		var inputData []byte
 
-		for i := 0; i < 255; i++ {
+		for range 255 {
 			inputData = append(inputData, 'A')
 		}
 		inputData = append(inputData, 0x00)
@@ -42,8 +42,8 @@ func TestValidateLicense(t *testing.T) {
 		err = encoder.Close()
 		require.NoError(t, err)
 
-		ok, str := LicenseValidator.ValidateLicense(licenseData.Bytes())
-		require.False(t, ok)
+		str, err := LicenseValidator.ValidateLicense(licenseData.Bytes())
+		require.Error(t, err)
 		require.Empty(t, str)
 	})
 
@@ -51,7 +51,7 @@ func TestValidateLicense(t *testing.T) {
 		var licenseData bytes.Buffer
 		var inputData []byte
 
-		for i := 0; i < 256; i++ {
+		for range 256 {
 			inputData = append(inputData, 0x00)
 		}
 
@@ -61,8 +61,8 @@ func TestValidateLicense(t *testing.T) {
 		err = encoder.Close()
 		require.NoError(t, err)
 
-		ok, str := LicenseValidator.ValidateLicense(licenseData.Bytes())
-		require.False(t, ok)
+		str, err := LicenseValidator.ValidateLicense(licenseData.Bytes())
+		require.Error(t, err)
 		require.Empty(t, str)
 	})
 
@@ -70,8 +70,8 @@ func TestValidateLicense(t *testing.T) {
 		os.Setenv("MM_SERVICEENVIRONMENT", model.ServiceEnvironmentTest)
 		defer os.Unsetenv("MM_SERVICEENVIRONMENT")
 
-		ok, str := LicenseValidator.ValidateLicense(nil)
-		require.False(t, ok)
+		str, err := LicenseValidator.ValidateLicense(nil)
+		require.Error(t, err)
 		require.Empty(t, str)
 	})
 
@@ -79,8 +79,8 @@ func TestValidateLicense(t *testing.T) {
 		os.Setenv("MM_SERVICEENVIRONMENT", model.ServiceEnvironmentTest)
 		defer os.Unsetenv("MM_SERVICEENVIRONMENT")
 
-		ok, str := LicenseValidator.ValidateLicense(validTestLicense)
-		require.True(t, ok)
+		str, err := LicenseValidator.ValidateLicense(validTestLicense)
+		require.NoError(t, err)
 		require.NotEmpty(t, str)
 	})
 
@@ -88,9 +88,26 @@ func TestValidateLicense(t *testing.T) {
 		os.Setenv("MM_SERVICEENVIRONMENT", model.ServiceEnvironmentProduction)
 		defer os.Unsetenv("MM_SERVICEENVIRONMENT")
 
-		ok, str := LicenseValidator.ValidateLicense(validTestLicense)
-		require.False(t, ok)
+		str, err := LicenseValidator.ValidateLicense(validTestLicense)
+		require.Error(t, err)
 		require.Empty(t, str)
+	})
+
+	t.Run("should handle corrupted public key without panicking", func(t *testing.T) {
+		os.Setenv("MM_SERVICEENVIRONMENT", model.ServiceEnvironmentTest)
+		defer os.Unsetenv("MM_SERVICEENVIRONMENT")
+
+		mockValidator := &LicenseValidatorImpl{}
+
+		originalTestKey := testPublicKey
+		defer func() { testPublicKey = originalTestKey }()
+
+		testPublicKey = []byte("not a valid PEM block")
+
+		str, err := mockValidator.ValidateLicense(validTestLicense)
+		require.Error(t, err)
+		require.Empty(t, str)
+		require.Contains(t, err.Error(), "failed to decode public key PEM block")
 	})
 }
 
@@ -112,12 +129,13 @@ func TestGetLicenseFileFromDisk(t *testing.T) {
 		f, err := os.CreateTemp("", "TestGetLicenseFileFromDisk")
 		require.NoError(t, err)
 		defer os.Remove(f.Name())
-		os.WriteFile(f.Name(), []byte("not a license"), 0777)
+		err = os.WriteFile(f.Name(), []byte("not a license"), 0777)
+		require.NoError(t, err)
 
 		fileBytes := GetLicenseFileFromDisk(f.Name())
 		require.NotEmpty(t, fileBytes, "should have read the file")
 
-		success, _ := LicenseValidator.ValidateLicense(fileBytes)
-		assert.False(t, success, "should have been an invalid file")
+		_, err = LicenseValidator.ValidateLicense(fileBytes)
+		assert.Error(t, err, "should have been an invalid file")
 	})
 }

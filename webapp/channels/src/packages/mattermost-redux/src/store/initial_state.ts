@@ -1,21 +1,25 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {SelfHostedSignupProgress} from '@mattermost/types/hosted_customer';
 import type {GlobalState} from '@mattermost/types/store';
 
 import {zeroStateLimitedViews} from '../reducers/entities/posts';
 
 const state: GlobalState = {
     entities: {
+        agents: {
+            agents: [],
+            llmServices: [],
+            agentsStatus: {available: false},
+        },
         general: {
             config: {},
-            dataRetentionPolicy: {},
             license: {},
             serverVersion: '',
-            warnMetricsStatus: {},
             firstAdminVisitMarketplaceStatus: false,
             firstAdminCompleteSetup: false,
+            customProfileAttributes: {},
+            cwsAvailability: 'pending',
         },
         users: {
             currentUserId: '',
@@ -25,15 +29,22 @@ const state: GlobalState = {
             profiles: {},
             profilesInTeam: {},
             profilesNotInTeam: {},
-            profilesWithoutTeam: new Set(),
             profilesInChannel: {},
             profilesNotInChannel: {},
             profilesInGroup: {},
             profilesNotInGroup: {},
             statuses: {},
             stats: {},
+            filteredStats: {},
             myUserAccessTokens: {},
             lastActivity: {},
+            dndEndTimes: {},
+        },
+        limits: {
+            serverLimits: {
+                activeUserCount: 0,
+                maxUsersLimit: 0,
+            },
         },
         teams: {
             currentTeamId: '',
@@ -43,6 +54,7 @@ const state: GlobalState = {
             stats: {},
             groupsAssociatedToTeam: {},
             totalCount: 0,
+            contentFlaggingStatus: {},
         },
         channels: {
             currentChannelId: '',
@@ -59,6 +71,10 @@ const state: GlobalState = {
             channelMemberCountsByGroup: {},
             messageCounts: {},
             channelsMemberCount: {},
+            restrictedDMs: {},
+        },
+        channelBookmarks: {
+            byChannelId: {},
         },
         posts: {
             posts: {},
@@ -69,7 +85,6 @@ const state: GlobalState = {
             postEditHistory: [],
             reactions: {},
             openGraph: {},
-            selectedPostId: '',
             currentFocusedPostId: '',
             messagesHistory: {
                 messages: [],
@@ -88,8 +103,13 @@ const state: GlobalState = {
             counts: {},
             countsIncludingDirect: {},
         },
+        recaps: {
+            byId: {},
+            allIds: [],
+        },
         preferences: {
             myPreferences: {},
+            userPreferences: {},
         },
         bots: {
             accounts: {},
@@ -106,9 +126,12 @@ const state: GlobalState = {
             userAccessTokens: {},
             clusterInfo: [],
             analytics: {},
+            teamAnalytics: {},
             dataRetentionCustomPolicies: {},
             dataRetentionCustomPoliciesCount: 0,
             prevTrialLicense: {},
+            accessControlPolicies: {},
+            channelsForAccessControlPolicy: {},
         },
         jobs: {
             jobs: {},
@@ -116,12 +139,15 @@ const state: GlobalState = {
         },
         integrations: {
             incomingHooks: {},
+            incomingHooksTotalCount: 0,
             outgoingHooks: {},
             oauthApps: {},
             systemCommands: {},
             commands: {},
             appsBotIDs: [],
             appsOAuthAppIDs: [],
+            dialogTriggerId: '',
+            outgoingOAuthConnections: {},
         },
         files: {
             files: {},
@@ -136,7 +162,6 @@ const state: GlobalState = {
             results: [],
             fileResults: [],
             current: {},
-            recent: {},
             matches: {},
             flagged: [],
             pinned: {},
@@ -179,29 +204,11 @@ const state: GlobalState = {
                 limitsLoaded: false,
             },
             errors: {},
-            selfHostedSignup: {
-                progress: SelfHostedSignupProgress.START,
-            },
         },
         hostedCustomer: {
-            signupProgress: SelfHostedSignupProgress.START,
             products: {
                 products: {},
                 productsLoaded: false,
-            },
-            errors: {},
-            invoices: {
-                invoices: {},
-                invoicesLoaded: false,
-            },
-            trueUpReviewProfile: {
-                content: '',
-                getRequestState: 'IDLE',
-            },
-            trueUpReviewStatus: {
-                complete: false,
-                due_date: 0,
-                getRequestState: 'IDLE',
             },
         },
         usage: {
@@ -219,6 +226,13 @@ const state: GlobalState = {
                 teamsLoaded: false,
             },
         },
+        scheduledPosts: {
+            byId: {},
+            byTeamId: {},
+            errorsByTeamId: {},
+            byChannelOrThreadId: {},
+        },
+        contentFlagging: {},
     },
     errors: [],
     requests: {
@@ -236,10 +250,6 @@ const state: GlobalState = {
                 error: null,
             },
             createChannel: {
-                status: 'not_started',
-                error: null,
-            },
-            updateChannel: {
                 status: 'not_started',
                 error: null,
             },
@@ -265,15 +275,7 @@ const state: GlobalState = {
             },
         },
         teams: {
-            getMyTeams: {
-                status: 'not_started',
-                error: null,
-            },
             getTeams: {
-                status: 'not_started',
-                error: null,
-            },
-            joinTeam: {
                 status: 'not_started',
                 error: null,
             },
@@ -332,6 +334,7 @@ const state: GlobalState = {
         lastConnectAt: 0,
         lastDisconnectAt: 0,
         connectionId: '',
+        serverHostname: '',
     },
 };
 export default state;

@@ -2,6 +2,7 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
+import {defineMessage} from 'react-intl';
 import type {Store} from 'redux';
 
 import {DockWindowIcon} from '@mattermost/compass-icons/components';
@@ -12,13 +13,16 @@ import {appsEnabled} from 'mattermost-redux/selectors/entities/apps';
 
 import globalStore from 'stores/redux_store';
 
+import usePrefixedIds from 'components/common/hooks/usePrefixedIds';
+
 import {Constants} from 'utils/constants';
+import {getIntl} from 'utils/i18n';
 import * as UserAgent from 'utils/user_agent';
 
 import type {GlobalState} from 'types/store';
 
 import {AppCommandParser} from './app_command_parser/app_command_parser';
-import {intlShim} from './app_command_parser/app_command_parser_dependencies';
+import type {ExtendedAutocompleteSuggestion} from './app_command_parser/app_command_parser_dependencies';
 
 import Provider from '../provider';
 import type {ResultsCallback} from '../provider';
@@ -29,8 +33,8 @@ const EXECUTE_CURRENT_COMMAND_ITEM_ID = Constants.Integrations.EXECUTE_CURRENT_C
 const OPEN_COMMAND_IN_MODAL_ITEM_ID = Constants.Integrations.OPEN_COMMAND_IN_MODAL_ITEM_ID;
 const COMMAND_SUGGESTION_ERROR = Constants.Integrations.COMMAND_SUGGESTION_ERROR;
 
-const CommandSuggestion = React.forwardRef<HTMLDivElement, SuggestionProps<AutocompleteSuggestion>>((props, ref) => {
-    const {item} = props;
+const CommandSuggestion = React.forwardRef<HTMLLIElement, SuggestionProps<AutocompleteSuggestion>>((props, ref) => {
+    const {id, item} = props;
 
     let symbolSpan = <span>{'/'}</span>;
     switch (item.IconData) {
@@ -55,21 +59,38 @@ const CommandSuggestion = React.forwardRef<HTMLDivElement, SuggestionProps<Autoc
                 className='slash-command__icon'
                 style={{backgroundColor: 'transparent'}}
             >
-                <img src={item.IconData}/>
-            </div>);
+                <img
+                    src={item.IconData}
+                    alt=''
+                />
+            </div>
+        );
     }
+
+    const ids = usePrefixedIds(id, {
+        label: null,
+        description: null,
+    });
 
     return (
         <SuggestionContainer
             ref={ref}
             {...props}
+            aria-describedby={ids.description}
+            aria-labelledby={ids.label}
         >
             {icon}
             <div className='slash-command__info'>
-                <div className='slash-command__title'>
+                <div
+                    id={ids.label}
+                    className='slash-command__title'
+                >
                     {item.Suggestion.substring(1) + ' ' + item.Hint}
                 </div>
-                <div className='slash-command__desc'>
+                <div
+                    id={ids.description}
+                    className='slash-command__desc'
+                >
                     {item.Description}
                 </div>
             </div>
@@ -96,7 +117,7 @@ export default class CommandProvider extends Provider {
 
         this.store = globalStore;
         this.props = props;
-        this.appCommandParser = new AppCommandParser(this.store as any, intlShim, props.channelId, props.teamId, props.rootId);
+        this.appCommandParser = new AppCommandParser(this.store as any, getIntl(), props.channelId, props.teamId, props.rootId);
         this.triggerCharacter = '/';
     }
 
@@ -118,12 +139,9 @@ export default class CommandProvider extends Provider {
                     Suggestion: '/' + suggestion.Suggestion,
                 }));
 
-                const terms = matches.map((suggestion) => suggestion.Complete);
                 resultCallback({
                     matchedPretext: pretext,
-                    terms,
-                    items: matches,
-                    component: CommandSuggestion,
+                    groups: [commandsGroup(matches)],
                 });
             });
             return true;
@@ -145,7 +163,8 @@ export default class CommandProvider extends Provider {
     handleMobile(pretext: string, resultCallback: ResultsCallback<AutocompleteSuggestion>) {
         const {teamId} = this.props;
 
-        const command = pretext.toLowerCase();
+        const spaceIndex = pretext.indexOf(' ');
+        const command = spaceIndex === -1 ? pretext.toLowerCase() : pretext.slice(0, spaceIndex).toLowerCase() + pretext.slice(spaceIndex);
         Client4.getCommandsList(teamId).then(
             (data) => {
                 let matches: AutocompleteSuggestion[] = [];
@@ -182,21 +201,17 @@ export default class CommandProvider extends Provider {
 
                 matches = matches.sort((a, b) => a.Suggestion.localeCompare(b.Suggestion));
 
-                // pull out the suggested commands from the returned data
-                const terms = matches.map((suggestion) => suggestion.Suggestion);
-
                 resultCallback({
-                    matchedPretext: command,
-                    terms,
-                    items: matches,
-                    component: CommandSuggestion,
+                    matchedPretext: pretext,
+                    groups: [commandsGroup(matches)],
                 });
             },
         );
     }
 
     handleWebapp(pretext: string, resultCallback: ResultsCallback<AutocompleteSuggestion>) {
-        const command = pretext.toLowerCase();
+        const spaceIndex = pretext.indexOf(' ');
+        const command = spaceIndex === -1 ? pretext.toLowerCase() : pretext.slice(0, spaceIndex).toLowerCase() + pretext.slice(spaceIndex);
 
         const {teamId, channelId, rootId} = this.props;
         const args: CommandArgs = {
@@ -259,14 +274,9 @@ export default class CommandProvider extends Provider {
                     });
                 }
 
-                // pull out the suggested commands from the returned data
-                const terms = matches.map((suggestion) => suggestion.Complete);
-
                 resultCallback({
-                    matchedPretext: command,
-                    terms,
-                    items: matches,
-                    component: CommandSuggestion,
+                    matchedPretext: pretext,
+                    groups: [commandsGroup(matches)],
                 });
             }),
         );
@@ -287,4 +297,16 @@ export default class CommandProvider extends Provider {
     contains(matches: AutocompleteSuggestion[], complete: string) {
         return matches.findIndex((match) => match.Complete === complete) !== -1;
     }
+}
+
+export function commandsGroup(items: ExtendedAutocompleteSuggestion[]) {
+    const terms = items.map((suggestion) => suggestion.Complete);
+
+    return {
+        key: 'commands',
+        label: defineMessage({id: 'suggestion.commands', defaultMessage: 'Commands'}),
+        terms,
+        items,
+        component: CommandSuggestion,
+    };
 }

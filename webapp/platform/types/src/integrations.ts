@@ -1,8 +1,8 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {MessageAttachment} from './message_attachments';
-import {IDMappedObjects} from './utilities';
+import type {MessageAttachment} from './message_attachments';
+import type {IDMappedObjects} from './utilities';
 
 export type IncomingWebhook = {
     id: string;
@@ -17,6 +17,11 @@ export type IncomingWebhook = {
     username: string;
     icon_url: string;
     channel_locked: boolean;
+};
+
+export type IncomingWebhooksWithCount = {
+    incoming_webhooks: IncomingWebhook[];
+    total_count: number;
 };
 
 export type OutgoingWebhook = {
@@ -64,6 +69,10 @@ export type CommandArgs = {
     root_id?: string;
 }
 
+export type DialogArgs = {
+    channel_id: string;
+}
+
 export type CommandResponse = {
     response_type: string;
     text: string;
@@ -102,29 +111,70 @@ export type OAuthApp = {
     'callback_urls': string[];
     'homepage': string;
     'is_trusted': boolean;
+    'is_dynamically_registered'?: boolean;
+    'is_public'?: boolean;
+};
+
+export type OutgoingOAuthConnection = {
+    'id': string;
+    'name': string;
+    'creator_id': string;
+    'create_at': number;
+    'update_at': number;
+    'client_id': string;
+    'client_secret'?: string;
+    'credentials_username'?: string;
+    'credentials_password'?: string;
+    'oauth_token_url': string;
+    'grant_type': 'client_credentials' | 'password';
+    'audiences': string[];
 };
 
 export type IntegrationsState = {
     incomingHooks: IDMappedObjects<IncomingWebhook>;
+    incomingHooksTotalCount: number;
     outgoingHooks: IDMappedObjects<OutgoingWebhook>;
     oauthApps: IDMappedObjects<OAuthApp>;
+    outgoingOAuthConnections: IDMappedObjects<OutgoingOAuthConnection>;
     appsOAuthAppIDs: string[];
     appsBotIDs: string[];
     systemCommands: IDMappedObjects<Command>;
     commands: IDMappedObjects<Command>;
+    dialogArguments?: DialogArgs;
+    dialogTriggerId: string;
+    dialog?: OpenDialogRequest;
+};
+
+export type OpenDialogRequest = {
+    trigger_id: string;
+    url: string;
+    dialog: Dialog;
+}
+
+export type Dialog = {
+    callback_id?: string;
+    elements?: DialogElement[];
+    title: string;
+    introduction_text?: string;
+    icon_url?: string;
+    submit_label?: string;
+    notify_on_cancel?: boolean;
+    state?: string;
+    source_url?: string;
 };
 
 export type DialogSubmission = {
-    url: string;
+    url?: string;
     callback_id: string;
     state: string;
     user_id: string;
     channel_id: string;
     team_id: string;
     submission: {
-        [x: string]: string;
+        [x: string]: string | string[];
     };
     cancelled: boolean;
+    type?: string;
 };
 
 export type DialogElement = {
@@ -139,13 +189,21 @@ export type DialogElement = {
     min_length: number;
     max_length: number;
     data_source: string;
+    data_source_url?: string;
+    multiselect?: boolean;
     options: Array<{
         text: string;
         value: any;
     }>;
+    refresh?: boolean;
+    min_date?: string;
+    max_date?: string;
+    time_interval?: number;
 };
 
 export type SubmitDialogResponse = {
     error?: string;
     errors?: Record<string, string>;
+    type?: string;
+    form?: Dialog;
 };

@@ -3,11 +3,10 @@
 
 import {connect} from 'react-redux';
 import {bindActionCreators} from 'redux';
-import type {ActionCreatorsMapObject, AnyAction, Dispatch} from 'redux';
+import type {Dispatch} from 'redux';
 
 import {getTeams as loadTeams, searchTeams} from 'mattermost-redux/actions/teams';
 import {getTeams} from 'mattermost-redux/selectors/entities/teams';
-import type {ActionFunc, ActionResult, GenericAction} from 'mattermost-redux/types/actions';
 
 import {setModalSearchTerm} from 'actions/views/search';
 
@@ -29,15 +28,9 @@ function mapStateToProps(state: GlobalState) {
     };
 }
 
-type Actions = {
-    loadTeams: (page?: number, perPage?: number, includeTotalCount?: boolean) => Promise<ActionResult>;
-    searchTeams: (searchTerm: string) => void;
-    setModalSearchTerm: (searchTerm: string) => GenericAction;
-}
-
-function mapDispatchToProps(dispatch: Dispatch<AnyAction>) {
+function mapDispatchToProps(dispatch: Dispatch) {
     return {
-        actions: bindActionCreators<ActionCreatorsMapObject<ActionFunc | GenericAction>, Actions>({
+        actions: bindActionCreators({
             loadTeams,
             setModalSearchTerm,
             searchTeams,

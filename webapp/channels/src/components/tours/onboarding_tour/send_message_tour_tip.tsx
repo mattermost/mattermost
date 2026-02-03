@@ -5,33 +5,29 @@ import React from 'react';
 import {FormattedMessage} from 'react-intl';
 
 import {useMeasurePunchouts} from '@mattermost/components';
-import type {Channel} from '@mattermost/types/channels';
 
 import PrewrittenChips from 'components/advanced_create_post/prewritten_chips';
 
 import OnboardingTourTip from './onboarding_tour_tip';
 
 type Props = {
-    prefillMessage: (msg: string, shouldFocus: boolean) => void;
-    currentChannel: Channel;
+    prefillMessage: (msg: string) => void;
+    channelId: string;
     currentUserId: string;
-    currentChannelTeammateUsername?: string;
 }
 
 const translate = {x: -6, y: -6};
 
 export const SendMessageTour = ({
     prefillMessage,
-    currentChannel,
+    channelId,
     currentUserId,
-    currentChannelTeammateUsername,
 }: Props) => {
     const chips = (
         <PrewrittenChips
             prefillMessage={prefillMessage}
-            currentChannel={currentChannel}
+            channelId={channelId}
             currentUserId={currentUserId}
-            currentChannelTeammateUsername={currentChannelTeammateUsername}
         />
     );
 

@@ -10,6 +10,7 @@ import IntlProvider from 'components/intl_provider/intl_provider';
 import {getLanguageInfo} from 'i18n/i18n';
 
 describe('components/IntlProvider', () => {
+    const messageId = 'test.hello_world';
     const baseProps = {
         locale: 'en',
         translations: {
@@ -20,7 +21,7 @@ describe('components/IntlProvider', () => {
         },
         children: (
             <FormattedMessage
-                id='test.hello_world'
+                id={messageId}
                 defaultMessage='Hello, World!'
             />
         ),
@@ -69,7 +70,7 @@ describe('components/IntlProvider', () => {
 
         shallow(<IntlProvider {...props}/>);
 
-        expect(props.actions.loadTranslations).toBeCalledWith('fr', getLanguageInfo('fr').url);
+        expect(props.actions.loadTranslations).toHaveBeenCalledWith('fr', getLanguageInfo('fr').url);
     });
 
     test('on mount, should not attempt to load when given translations', () => {
@@ -84,7 +85,7 @@ describe('components/IntlProvider', () => {
 
         shallow(<IntlProvider {...props}/>);
 
-        expect(props.actions.loadTranslations).not.toBeCalled();
+        expect(props.actions.loadTranslations).not.toHaveBeenCalled();
     });
 
     test('on locale change, should attempt to load missing translations', () => {
@@ -97,14 +98,14 @@ describe('components/IntlProvider', () => {
 
         const wrapper = shallow(<IntlProvider {...props}/>);
 
-        expect(props.actions.loadTranslations).not.toBeCalled();
+        expect(props.actions.loadTranslations).not.toHaveBeenCalled();
 
         wrapper.setProps({
             locale: 'fr',
             translations: null,
         });
 
-        expect(props.actions.loadTranslations).toBeCalledWith('fr', getLanguageInfo('fr').url);
+        expect(props.actions.loadTranslations).toHaveBeenCalledWith('fr', getLanguageInfo('fr').url);
     });
 
     test('on locale change, should not attempt to load when given translations', () => {
@@ -117,13 +118,13 @@ describe('components/IntlProvider', () => {
 
         const wrapper = shallow(<IntlProvider {...props}/>);
 
-        expect(props.actions.loadTranslations).not.toBeCalled();
+        expect(props.actions.loadTranslations).not.toHaveBeenCalled();
 
         wrapper.setProps({
             locale: 'fr',
             translations: {},
         });
 
-        expect(props.actions.loadTranslations).not.toBeCalled();
+        expect(props.actions.loadTranslations).not.toHaveBeenCalled();
     });
 });

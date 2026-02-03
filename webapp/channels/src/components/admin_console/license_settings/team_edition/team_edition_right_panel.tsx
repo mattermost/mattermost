@@ -2,14 +2,14 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-import {FormattedMessage} from 'react-intl';
+import {FormattedMessage, useIntl} from 'react-intl';
 
-import WomanUpArrowsAndCloudsSvg from 'components/common/svg_images_components/woman_up_arrows_and_clouds_svg';
-import FormattedMarkdownMessage from 'components/formatted_markdown_message';
+import SetupSystemSvg from 'components/common/svg_images_components/setup_system_svg';
+import ExternalLink from 'components/external_link';
 import LoadingWrapper from 'components/widgets/loading/loading_wrapper';
 
+import {LicenseLinks} from 'utils/constants';
 import {format} from 'utils/markdown';
-import {localizeMessage} from 'utils/utils';
 
 interface TeamEditionRightPanelProps {
     upgradingPercentage: number;
@@ -24,6 +24,8 @@ interface TeamEditionRightPanelProps {
     openEEModal: () => void;
 
     restarting: boolean;
+
+    upgradeDisabled: boolean;
 }
 
 const TeamEditionRightPanel: React.FC<TeamEditionRightPanelProps> = ({
@@ -35,8 +37,11 @@ const TeamEditionRightPanel: React.FC<TeamEditionRightPanelProps> = ({
     restarting,
     openEEModal,
     setClickNormalUpgradeBtn,
+    upgradeDisabled,
 }: TeamEditionRightPanelProps) => {
     let upgradeButton = null;
+    const intl = useIntl();
+
     const onHandleUpgrade = (e: React.MouseEvent<HTMLButtonElement>) => {
         if (!handleUpgrade) {
             return;
@@ -50,7 +55,25 @@ const TeamEditionRightPanel: React.FC<TeamEditionRightPanelProps> = ({
         'Advanced compliance',
         'And more...',
     ];
-    if (upgradingPercentage !== 100) {
+    if (upgradeDisabled) {
+        upgradeButton = (
+            <div>
+                <p>
+                    <ExternalLink
+                        href={LicenseLinks.UNSUPPORTED_UPGRADE_LINK}
+                        location='team_edition_right_panel'
+                        className='btn btn-tertiary'
+                        role='button'
+                    >
+                        <FormattedMessage
+                            id='admin.licenseSettings.teamEdition.teamEditionRightPanel.learnMore'
+                            defaultMessage='Learn more'
+                        />
+                    </ExternalLink>
+                </p>
+            </div>
+        );
+    } else if (upgradingPercentage !== 100) {
         upgradeButton = (
             <div>
                 <p>
@@ -77,34 +100,36 @@ const TeamEditionRightPanel: React.FC<TeamEditionRightPanelProps> = ({
                     </button>
                 </p>
                 <p className='upgrade-legal-terms'>
-                    <FormattedMarkdownMessage
-                        id='admin.license.enterprise.upgrade.acceptTermsInitial'
-                        defaultMessage='By clicking **Upgrade**, I agree to the terms of the Mattermost '
+                    <FormattedMessage
+                        id='admin.licenseSettings.teamEdition.teamEditionRightPanel.acceptTermsInitial'
+                        defaultMessage='By clicking <b>Upgrade</b>, I agree to the terms of the Mattermost '
+                        values={{
+                            b: (chunks) => <b>{chunks}</b>,
+                        }}
                     />
                     <a
                         role='button'
                         onClick={openEEModal}
                     >
-                        <FormattedMarkdownMessage
-                            id='admin.license.enterprise.upgrade.eeLicenseLink'
+                        <FormattedMessage
+                            id='admin.licenseSettings.teamEdition.teamEditionRightPanel.eeLicenseLink'
                             defaultMessage='Enterprise Edition License'
                         />
                     </a>
-                    <FormattedMarkdownMessage
-                        id='admin.license.enterprise.upgrade.acceptTermsFinal'
+                    <FormattedMessage
+                        id='admin.licenseSettings.teamEdition.teamEditionRightPanel.acceptTermsFinal'
                         defaultMessage='. Upgrading will download the binary and update your team edition.'
                     />
                 </p>
                 {upgradeError && (
                     <div className='upgrade-error'>
                         <div className='form-group has-error'>
-                            <label className='control-label'>
-                                <span
-                                    dangerouslySetInnerHTML={{
-                                        __html: format(upgradeError),
-                                    }}
-                                />
-                            </label>
+                            <div
+                                className='as-bs-label control-label'
+                                dangerouslySetInnerHTML={{
+                                    __html: format(upgradeError),
+                                }}
+                            />
                         </div>
                     </div>
                 )}
@@ -114,8 +139,8 @@ const TeamEditionRightPanel: React.FC<TeamEditionRightPanelProps> = ({
         upgradeButton = (
             <div>
                 <p>
-                    <FormattedMarkdownMessage
-                        id='admin.license.upgraded-restart'
+                    <FormattedMessage
+                        id='admin.licenseSettings.teamEdition.teamEditionRightPanel.upgradedRestart'
                         defaultMessage='You have upgraded your binary to mattermost enterprise, please restart the server to start using the new binary. You can do it right here:'
                     />
                 </p>
@@ -127,27 +152,27 @@ const TeamEditionRightPanel: React.FC<TeamEditionRightPanelProps> = ({
                     >
                         <LoadingWrapper
                             loading={restarting}
-                            text={localizeMessage(
-                                'admin.license.enterprise.restarting',
-                                'Restarting',
-                            )}
+                            text={intl.formatMessage({
+                                id: 'admin.licenseSettings.teamEdition.teamEditionRightPanel.restarting',
+                                defaultMessage: 'Restarting',
+                            })}
                         >
                             <FormattedMessage
-                                id='admin.license.enterprise.restart'
+                                id='admin.licenseSettings.teamEdition.teamEditionRightPanel.restart'
                                 defaultMessage='Restart Server'
                             />
                         </LoadingWrapper>
-                        {restartError && (
-                            <div className='col-sm-12'>
-                                <div className='form-group has-error'>
-                                    <label className='control-label'>
-                                        {restartError}
-                                    </label>
-                                </div>
-                            </div>
-                        )}
                     </button>
                 </p>
+                {restartError && (
+                    <div className='upgrade-error'>
+                        <div className='form-group has-error'>
+                            <div className='as-bs-label control-label'>
+                                {restartError}
+                            </div>
+                        </div>
+                    </div>
+                )}
             </div>
         );
     }
@@ -155,9 +180,9 @@ const TeamEditionRightPanel: React.FC<TeamEditionRightPanelProps> = ({
     return (
         <div className='TeamEditionRightPanel'>
             <div className='svg-image'>
-                <WomanUpArrowsAndCloudsSvg
-                    width={200}
-                    height={200}
+                <SetupSystemSvg
+                    width={197}
+                    height={120}
                 />
             </div>
             <div className='upgrade-title'>

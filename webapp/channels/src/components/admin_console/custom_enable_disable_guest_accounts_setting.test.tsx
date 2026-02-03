@@ -1,9 +1,10 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {shallow} from 'enzyme';
 import React from 'react';
 import {FormattedMessage} from 'react-intl';
+
+import {renderWithContext, screen, userEvent} from 'tests/react_testing_utils';
 
 import CustomEnableDisableGuestAccountsSetting from './custom_enable_disable_guest_accounts_setting';
 
@@ -25,76 +26,88 @@ describe('components/AdminConsole/CustomEnableDisableGuestAccountsSetting', () =
         />
     );
 
-    describe('initial state', () => {
-        test('with true', () => {
-            const props = {
-                ...baseProps,
-                value: true,
-            };
-
-            const wrapper = shallow(
-                <CustomEnableDisableGuestAccountsSetting {...props}/>,
+    describe('renders correctly', () => {
+        test('when enabled', () => {
+            const {container} = renderWithContext(
+                <CustomEnableDisableGuestAccountsSetting
+                    {...baseProps}
+                    value={true}
+                />,
             );
-            expect(wrapper).toMatchSnapshot();
+            expect(container).toMatchSnapshot();
         });
 
-        test('with false', () => {
-            const props = {
-                ...baseProps,
-                value: false,
-            };
-
-            const wrapper = shallow(
-                <CustomEnableDisableGuestAccountsSetting {...props}/>,
+        test('when disabled', () => {
+            const {container} = renderWithContext(
+                <CustomEnableDisableGuestAccountsSetting
+                    {...baseProps}
+                    value={false}
+                />,
             );
-            expect(wrapper).toMatchSnapshot();
+            expect(container).toMatchSnapshot();
         });
     });
 
     describe('handleChange', () => {
-        test('should enable without show confirmation modal or warning', () => {
+        test('should enable without show confirmation modal or warning', async () => {
             const props = {
-                ...baseProps,
                 showConfirm: true,
                 onChange: jest.fn(),
             };
 
-            const wrapper = shallow<CustomEnableDisableGuestAccountsSetting>(
-                <CustomEnableDisableGuestAccountsSetting {...props}/>,
+            renderWithContext(
+                <CustomEnableDisableGuestAccountsSetting
+                    {...baseProps}
+                    {...props}
+                />,
             );
 
-            wrapper.instance().handleChange('MySetting', true);
-            expect(props.onChange).toBeCalledWith(baseProps.id, true, false, false, '');
+            const trueRadio = screen.getByTestId('MySettingtrue');
+            await userEvent.click(trueRadio);
+
+            expect(props.onChange).toHaveBeenCalledWith(baseProps.id, true, false, false, '');
         });
 
-        test('should show confirmation modal and warning when disabling', () => {
+        test('should show confirmation modal and warning when disabling', async () => {
             const props = {
-                ...baseProps,
+                value: true,
                 showConfirm: true,
                 onChange: jest.fn(),
             };
 
-            const wrapper = shallow<CustomEnableDisableGuestAccountsSetting>(
-                <CustomEnableDisableGuestAccountsSetting {...props}/>,
+            renderWithContext(
+                <CustomEnableDisableGuestAccountsSetting
+                    {...baseProps}
+                    {...props}
+                />,
             );
 
-            wrapper.instance().handleChange('MySetting', false);
-            expect(props.onChange).toBeCalledWith(baseProps.id, false, true, false, warningMessage);
+            const falseRadio = screen.getByTestId('MySettingfalse');
+            await userEvent.click(falseRadio);
+
+            expect(props.onChange).toHaveBeenCalledWith(baseProps.id, false, true, false, warningMessage);
         });
 
-        test('should call onChange with doSubmit = true when confirm is true', () => {
+        test('should call onChange with doSubmit = true when confirm is true', async () => {
             const props = {
                 ...baseProps,
                 onChange: jest.fn(),
                 showConfirm: true,
             };
 
-            const wrapper = shallow<CustomEnableDisableGuestAccountsSetting>(
-                <CustomEnableDisableGuestAccountsSetting {...props}/>,
+            renderWithContext(
+                <CustomEnableDisableGuestAccountsSetting
+                    {...props}
+                />,
             );
 
-            wrapper.instance().handleChange('MySetting', false, true);
-            expect(props.onChange).toBeCalledWith(baseProps.id, false, true, true, warningMessage);
+            const falseRadio = screen.getByTestId('MySettingfalse');
+            await userEvent.click(falseRadio);
+
+            const confirmButton = screen.getByText('Save and Disable Guest Access');
+            await userEvent.click(confirmButton);
+
+            expect(props.onChange).toHaveBeenCalledWith(baseProps.id, false, true, true, warningMessage);
         });
     });
 });

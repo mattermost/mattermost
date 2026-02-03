@@ -35,17 +35,7 @@ type Props = {
     };
 }
 
-type State = {
-    enforceMultifactorAuthentication: boolean;
-}
-
-export default class MFAController extends React.PureComponent<Props & RouteComponentProps, State> {
-    public constructor(props: Props & RouteComponentProps) {
-        super(props);
-
-        this.state = {enforceMultifactorAuthentication: props.enableMultifactorAuthentication};
-    }
-
+export default class MFAController extends React.PureComponent<Props & RouteComponentProps> {
     public componentDidMount(): void {
         document.body.classList.add('sticky');
         document.getElementById('root')!.classList.add('container-fluid');
@@ -63,10 +53,6 @@ export default class MFAController extends React.PureComponent<Props & RouteComp
     public handleOnClick = (e: React.MouseEvent<HTMLButtonElement, MouseEvent>): void => {
         e.preventDefault();
         emitUserLoggedOutEvent('/login');
-    };
-
-    public updateParent = (state: State): void => {
-        this.setState(state);
     };
 
     public render(): JSX.Element {
@@ -114,20 +100,14 @@ export default class MFAController extends React.PureComponent<Props & RouteComp
                                             path={`${this.props.match.url}/setup`}
                                             render={(props) => (
                                                 <Setup
-                                                    state={this.state}
-                                                    updateParent={this.updateParent}
                                                     {...props}
                                                 />
                                             )}
                                         />
                                         <Route
                                             path={`${this.props.match.url}/confirm`}
-                                            render={(props) => (
-                                                <Confirm
-                                                    state={this.state}
-                                                    updateParent={this.updateParent}
-                                                    {...props}
-                                                />
+                                            render={() => (
+                                                <Confirm/>
                                             )}
                                         />
                                     </Switch>

@@ -11,6 +11,7 @@ import {Link} from 'react-router-dom';
 import type {OAuthApp} from '@mattermost/types/integrations';
 import type {UserProfile} from '@mattermost/types/users';
 
+import type {PasswordConfig} from 'mattermost-redux/selectors/entities/general';
 import type {ActionResult} from 'mattermost-redux/types/actions';
 
 import AccessHistoryModal from 'components/access_history_modal';
@@ -19,13 +20,17 @@ import ExternalLink from 'components/external_link';
 import SettingItem from 'components/setting_item';
 import SettingItemMax from 'components/setting_item_max';
 import ToggleModalButton from 'components/toggle_modal_button';
+import Input from 'components/widgets/inputs/input/input';
 
 import icon50 from 'images/icon50x50.png';
 import Constants from 'utils/constants';
-import * as Utils from 'utils/utils';
+import {isValidPassword} from 'utils/password';
 
 import MfaSection from './mfa_section';
 import UserAccessTokenSection from './user_access_token_section';
+
+import SettingDesktopHeader from '../headers/setting_desktop_header';
+import SettingMobileHeader from '../headers/setting_mobile_header';
 
 const SECTION_MFA = 'mfa';
 const SECTION_PASSWORD = 'password';
@@ -53,7 +58,7 @@ type Props = {
     setRequireConfirm: () => void;
     canUseAccessTokens: boolean;
     enableOAuthServiceProvider: boolean;
-    enableSignUpWithEmail: boolean;
+    allowedToSwitchToEmail: boolean;
     enableSignUpWithGitLab: boolean;
     enableSignUpWithGoogle: boolean;
     enableSignUpWithOpenId: boolean;
@@ -61,17 +66,17 @@ type Props = {
     enableSaml: boolean;
     enableSignUpWithOffice365: boolean;
     experimentalEnableAuthenticationTransfer: boolean;
-    passwordConfig: ReturnType<typeof Utils.getPasswordConfig>;
+    passwordConfig: PasswordConfig;
     militaryTime: boolean;
     actions: Actions;
     intl: IntlShape;
+    deleteAccountLink?: string;
 };
 
 type State = {
     currentPassword: string;
     newPassword: string;
     confirmPassword: string;
-    passwordError: React.ReactNode;
     serverError: string | null;
     tokenError: string;
     savingPassword: boolean;
@@ -89,7 +94,6 @@ export class SecurityTab extends React.PureComponent<Props, State> {
             currentPassword: '',
             newPassword: '',
             confirmPassword: '',
-            passwordError: '',
             serverError: '',
             tokenError: '',
             authService: this.props.user.auth_service,
@@ -119,41 +123,8 @@ export class SecurityTab extends React.PureComponent<Props, State> {
         const user = this.props.user;
         const currentPassword = this.state.currentPassword;
         const newPassword = this.state.newPassword;
-        const confirmPassword = this.state.confirmPassword;
 
-        if (currentPassword === '') {
-            this.setState({
-                passwordError: this.props.intl.formatMessage({
-                    id: 'user.settings.security.currentPasswordError',
-                    defaultMessage: 'Please enter your current password.',
-                }),
-                serverError: '',
-            });
-            return;
-        }
-
-        const {valid, error} = Utils.isValidPassword(
-            newPassword,
-            this.props.passwordConfig,
-        );
-        if (!valid && error) {
-            this.setState({
-                passwordError: error,
-                serverError: '',
-            });
-            return;
-        }
-
-        if (newPassword !== confirmPassword) {
-            const defaultState = Object.assign(this.getDefaultState(), {
-                passwordError: this.props.intl.formatMessage({
-                    id: 'user.settings.security.passwordMatchError',
-                    defaultMessage:
-                        'The new passwords you entered do not match.',
-                }),
-                serverError: '',
-            });
-            this.setState(defaultState);
+        if (!this.isPasswordValid()) {
             return;
         }
 
@@ -176,9 +147,28 @@ export class SecurityTab extends React.PureComponent<Props, State> {
             } else {
                 state.serverError = err;
             }
-            state.passwordError = '';
             this.setState(state);
         }
+    };
+
+    isPasswordValid = () => {
+        if (this.state.currentPassword === '') {
+            return false;
+        }
+
+        const {valid, error} = isValidPassword(
+            this.state.newPassword,
+            this.props.passwordConfig,
+        );
+        if (!valid && error) {
+            return false;
+        }
+
+        if (this.state.newPassword !== this.state.confirmPassword) {
+            return false;
+        }
+
+        return true;
     };
 
     updateCurrentPassword = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -229,7 +219,6 @@ export class SecurityTab extends React.PureComponent<Props, State> {
                     newPassword: '',
                     confirmPassword: '',
                     serverError: null,
-                    passwordError: null,
                 });
                 break;
             default:
@@ -254,17 +243,20 @@ export class SecurityTab extends React.PureComponent<Props, State> {
                         key='currentPasswordUpdateForm'
                         className='form-group'
                     >
-                        <label className='col-sm-5 control-label'>
+                        <label
+                            className='col-sm-5 control-label'
+                            htmlFor='currentPassword'
+                        >
                             <FormattedMessage
                                 id='user.settings.security.currentPassword'
                                 defaultMessage='Current Password'
                             />
                         </label>
                         <div className='col-sm-7'>
-                            <input
+                            <Input
                                 id='currentPassword'
+                                name='currentPassword'
                                 autoFocus={true}
-                                className='form-control'
                                 type='password'
                                 onChange={this.updateCurrentPassword}
                                 value={this.state.currentPassword}
@@ -272,6 +264,20 @@ export class SecurityTab extends React.PureComponent<Props, State> {
                                     id: 'user.settings.security.currentPassword',
                                     defaultMessage: 'Current Password',
                                 })}
+                                validate={(value) => {
+                                    if (typeof value !== 'string' || value === '') {
+                                        return {
+                                            type: 'error' as const,
+                                            value: (
+                                                <FormattedMessage
+                                                    id='user.settings.security.currentPasswordError'
+                                                    defaultMessage='Please enter your current password.'
+                                                />
+                                            ),
+                                        };
+                                    }
+                                    return undefined;
+                                }}
                             />
                         </div>
                     </div>,
@@ -281,16 +287,19 @@ export class SecurityTab extends React.PureComponent<Props, State> {
                         key='newPasswordUpdateForm'
                         className='form-group'
                     >
-                        <label className='col-sm-5 control-label'>
+                        <label
+                            className='col-sm-5 control-label'
+                            htmlFor='newPassword'
+                        >
                             <FormattedMessage
                                 id='user.settings.security.newPassword'
                                 defaultMessage='New Password'
                             />
                         </label>
                         <div className='col-sm-7'>
-                            <input
+                            <Input
                                 id='newPassword'
-                                className='form-control'
+                                name='newPassword'
                                 type='password'
                                 onChange={this.updateNewPassword}
                                 value={this.state.newPassword}
@@ -298,6 +307,19 @@ export class SecurityTab extends React.PureComponent<Props, State> {
                                     id: 'user.settings.security.newPassword',
                                     defaultMessage: 'New Password',
                                 })}
+                                validate={(value) => {
+                                    const {valid, error} = isValidPassword(
+                                        value as string,
+                                        this.props.passwordConfig,
+                                    );
+                                    if (!valid) {
+                                        return {
+                                            type: 'error' as const,
+                                            value: error,
+                                        };
+                                    }
+                                    return undefined;
+                                }}
                             />
                         </div>
                     </div>,
@@ -307,16 +329,19 @@ export class SecurityTab extends React.PureComponent<Props, State> {
                         key='retypeNewPasswordUpdateForm'
                         className='form-group'
                     >
-                        <label className='col-sm-5 control-label'>
+                        <label
+                            className='col-sm-5 control-label'
+                            htmlFor='confirmPassword'
+                        >
                             <FormattedMessage
                                 id='user.settings.security.retypePassword'
                                 defaultMessage='Retype New Password'
                             />
                         </label>
                         <div className='col-sm-7'>
-                            <input
+                            <Input
                                 id='confirmPassword'
-                                className='form-control'
+                                name='confirmPassword'
                                 type='password'
                                 onChange={this.updateConfirmPassword}
                                 value={this.state.confirmPassword}
@@ -324,90 +349,69 @@ export class SecurityTab extends React.PureComponent<Props, State> {
                                     id: 'user.settings.security.retypePassword',
                                     defaultMessage: 'Retype New Password',
                                 })}
+                                validate={(value) => {
+                                    if (typeof value !== 'string') {
+                                        return undefined;
+                                    }
+                                    if (this.state.newPassword !== value) {
+                                        return {
+                                            type: 'error' as const,
+                                            value: (
+                                                <FormattedMessage
+                                                    id='user.settings.security.passwordMatchError'
+                                                    defaultMessage='The new passwords you entered do not match.'
+                                                />
+                                            ),
+                                        };
+                                    }
+                                    return undefined;
+                                }}
                             />
                         </div>
                     </div>,
                 );
-            } else if (
-                this.props.user.auth_service === Constants.GITLAB_SERVICE
-            ) {
-                inputs.push(
-                    <div
-                        key='oauthEmailInfo'
-                        className='form-group'
-                    >
-                        <div className='pb-3'>
-                            <FormattedMessage
-                                id='user.settings.security.passwordGitlabCantUpdate'
-                                defaultMessage='Login occurs through GitLab. Password cannot be updated.'
-                            />
-                        </div>
-                    </div>,
-                );
-            } else if (
-                this.props.user.auth_service === Constants.LDAP_SERVICE
-            ) {
-                inputs.push(
-                    <div
-                        key='oauthEmailInfo'
-                        className='form-group'
-                    >
-                        <div className='pb-3'>
-                            <FormattedMessage
-                                id='user.settings.security.passwordLdapCantUpdate'
-                                defaultMessage='Login occurs through AD/LDAP. Password cannot be updated.'
-                            />
-                        </div>
-                    </div>,
-                );
-            } else if (
-                this.props.user.auth_service === Constants.SAML_SERVICE
-            ) {
-                inputs.push(
-                    <div
-                        key='oauthEmailInfo'
-                        className='form-group'
-                    >
-                        <div className='pb-3'>
-                            <FormattedMessage
-                                id='user.settings.security.passwordSamlCantUpdate'
-                                defaultMessage='This field is handled through your login provider. If you want to change it, you need to do so through your login provider.'
-                            />
-                        </div>
-                    </div>,
-                );
-            } else if (
-                this.props.user.auth_service === Constants.GOOGLE_SERVICE
-            ) {
-                inputs.push(
-                    <div
-                        key='oauthEmailInfo'
-                        className='form-group'
-                    >
-                        <div className='pb-3'>
-                            <FormattedMessage
-                                id='user.settings.security.passwordGoogleCantUpdate'
-                                defaultMessage='Login occurs through Google Apps. Password cannot be updated.'
-                            />
-                        </div>
-                    </div>,
-                );
-            } else if (
-                this.props.user.auth_service === Constants.OFFICE365_SERVICE
-            ) {
-                inputs.push(
-                    <div
-                        key='oauthEmailInfo'
-                        className='form-group'
-                    >
-                        <div className='pb-3'>
-                            <FormattedMessage
-                                id='user.settings.security.passwordOffice365CantUpdate'
-                                defaultMessage='Login occurs through Office 365. Password cannot be updated.'
-                            />
-                        </div>
-                    </div>,
-                );
+            } else {
+                // Map auth service to corresponding formatted message
+                const authServiceMessages: Record<string, string> = {
+                    [Constants.GITLAB_SERVICE]: this.props.intl.formatMessage({
+                        id: 'user.settings.security.passwordGitlabCantUpdate',
+                        defaultMessage: 'Login occurs through GitLab. Password cannot be updated.',
+                    }),
+                    [Constants.LDAP_SERVICE]: this.props.intl.formatMessage({
+                        id: 'user.settings.security.passwordLdapCantUpdate',
+                        defaultMessage: 'Login occurs through AD/LDAP. Password cannot be updated.',
+                    }),
+                    [Constants.SAML_SERVICE]: this.props.intl.formatMessage({
+                        id: 'user.settings.security.passwordSamlCantUpdate',
+                        defaultMessage: 'This field is handled through your login provider. If you want to change it, you need to do so through your login provider.',
+                    }),
+                    [Constants.GOOGLE_SERVICE]: this.props.intl.formatMessage({
+                        id: 'user.settings.security.passwordGoogleCantUpdate',
+                        defaultMessage: 'Login occurs through Google Apps. Password cannot be updated.',
+                    }),
+                    [Constants.OFFICE365_SERVICE]: this.props.intl.formatMessage({
+                        id: 'user.settings.security.passwordOffice365CantUpdate',
+                        defaultMessage: 'Login occurs through Entra ID. Password cannot be updated.',
+                    }),
+                    [Constants.MAGIC_LINK_SERVICE]: this.props.intl.formatMessage({
+                        id: 'user.settings.security.passwordMagicLinkCantUpdate',
+                        defaultMessage: 'Login occurs via magic link. Password cannot be updated.',
+                    }),
+                };
+
+                const message = authServiceMessages[this.props.user.auth_service];
+                if (message) {
+                    inputs.push(
+                        <div
+                            key='oauthEmailInfo'
+                            className='form-group'
+                        >
+                            <div className='pb-3'>
+                                {message}
+                            </div>
+                        </div>,
+                    );
+                }
             }
 
             max = (
@@ -422,8 +426,8 @@ export class SecurityTab extends React.PureComponent<Props, State> {
                     submit={submit}
                     saving={this.state.savingPassword}
                     serverError={this.state.serverError}
-                    clientError={this.state.passwordError}
                     updateSection={this.handleUpdateSection}
+                    isValid={this.isPasswordValid()}
                 />
             );
         }
@@ -491,7 +495,14 @@ export class SecurityTab extends React.PureComponent<Props, State> {
             describe = (
                 <FormattedMessage
                     id='user.settings.security.loginOffice365'
-                    defaultMessage='Login done through Office 365'
+                    defaultMessage='Login done through Entra ID'
+                />
+            );
+        } else if (this.props.user.auth_service === Constants.MAGIC_LINK_SERVICE) {
+            describe = (
+                <FormattedMessage
+                    id='user.settings.security.loginMagicLink'
+                    defaultMessage='Login done through Magic Link'
                 />
             );
         }
@@ -593,7 +604,7 @@ export class SecurityTab extends React.PureComponent<Props, State> {
                             >
                                 <FormattedMessage
                                     id='user.settings.security.switchOffice365'
-                                    defaultMessage='Switch to Using Office 365 SSO'
+                                    defaultMessage='Switch to Using Entra ID SSO'
                                 />
                             </Link>
                             <br/>
@@ -668,7 +679,7 @@ export class SecurityTab extends React.PureComponent<Props, State> {
                         </div>
                     );
                 }
-            } else if (this.props.enableSignUpWithEmail) {
+            } else if (this.props.allowedToSwitchToEmail && user.auth_service !== Constants.MAGIC_LINK_SERVICE) {
                 let link;
                 if (user.auth_service === Constants.LDAP_SERVICE) {
                     link =
@@ -711,7 +722,7 @@ export class SecurityTab extends React.PureComponent<Props, State> {
                 </div>,
             );
 
-            const extraInfo = (
+            let extraInfo = (
                 <span>
                     <FormattedMessage
                         id='user.settings.security.oneSignin'
@@ -719,6 +730,17 @@ export class SecurityTab extends React.PureComponent<Props, State> {
                     />
                 </span>
             );
+
+            if (user.auth_service === Constants.MAGIC_LINK_SERVICE) {
+                extraInfo = (
+                    <span>
+                        <FormattedMessage
+                            id='user.settings.security.magicLinkInfo'
+                            defaultMessage='Magic Link is the only sign-in method available for this account.'
+                        />
+                    </span>
+                );
+            }
 
             max = (
                 <SettingItemMax
@@ -760,7 +782,7 @@ export class SecurityTab extends React.PureComponent<Props, State> {
             describe = (
                 <FormattedMessage
                     id='user.settings.security.office365'
-                    defaultMessage='Office 365'
+                    defaultMessage='Entra ID'
                 />
             );
         } else if (
@@ -784,6 +806,13 @@ export class SecurityTab extends React.PureComponent<Props, State> {
                 <FormattedMessage
                     id='user.settings.security.saml'
                     defaultMessage='SAML'
+                />
+            );
+        } else if (this.props.user.auth_service === Constants.MAGIC_LINK_SERVICE) {
+            describe = (
+                <FormattedMessage
+                    id='user.settings.security.magicLink'
+                    defaultMessage='Magic Link'
                 />
             );
         }
@@ -915,7 +944,7 @@ export class SecurityTab extends React.PureComponent<Props, State> {
                     inputs={inputs}
                     serverError={this.state.serverError}
                     updateSection={this.handleUpdateSection}
-                    width='full'
+                    isFullWidth={true}
                     cancelButtonText={
                         <FormattedMessage
                             id='user.settings.security.close'
@@ -963,7 +992,7 @@ export class SecurityTab extends React.PureComponent<Props, State> {
         // If there are other sign-in methods and either email is enabled or the user's account is email, then allow switching
         let signInSection;
         if (
-            (this.props.enableSignUpWithEmail || user.auth_service === '') &&
+            (this.props.allowedToSwitchToEmail || user.auth_service === '') &&
             numMethods > 0 &&
             this.props.experimentalEnableAuthenticationTransfer
         ) {
@@ -989,46 +1018,30 @@ export class SecurityTab extends React.PureComponent<Props, State> {
         }
 
         return (
-            <div>
-                <div className='modal-header'>
-                    <button
-                        type='button'
-                        className='close'
-                        data-dismiss='modal'
-                        aria-label={this.props.intl.formatMessage({
-                            id: 'user.settings.security.close',
-                            defaultMessage: 'Close',
-                        })}
-                        onClick={this.props.closeModal}
-                    >
-                        <span aria-hidden='true'>{'×'}</span>
-                    </button>
-                    <h4
-                        className='modal-title'
-                    >
-                        <div className='modal-back'>
-                            <i
-                                className='fa fa-angle-left'
-                                title={this.props.intl.formatMessage({
-                                    id: 'generic_icons.collapse',
-                                    defaultMessage: 'Collapse Icon',
-                                })}
-                                onClick={this.props.collapseModal}
-                            />
-                        </div>
+            <div
+                id='securitySettings'
+                aria-labelledby='securityButton'
+                role='tabpanel'
+            >
+                <SettingMobileHeader
+                    closeModal={this.props.closeModal}
+                    collapseModal={this.props.collapseModal}
+                    text={
                         <FormattedMessage
                             id='user.settings.security.title'
                             defaultMessage='Security Settings'
                         />
-                    </h4>
-                </div>
+                    }
+                />
                 <div className='user-settings'>
-                    <h3 className='tab-header'>
-                        <FormattedMessage
-                            id='user.settings.security.title'
-                            defaultMessage='Security Settings'
-                        />
-                    </h3>
+                    <SettingDesktopHeader
+                        text={
+                            <FormattedMessage
+                                id='user.settings.security.title'
+                                defaultMessage='Security Settings'
+                            />
+                        }
+                    />
                     <div className='divider-dark first'/>
                     {passwordSection}
                     <div className='divider-light'/>
@@ -1052,11 +1065,12 @@ export class SecurityTab extends React.PureComponent<Props, State> {
                         id='viewAccessHistory'
                     >
                         <i
-                            className='fa fa-clock-o'
+                            className='icon icon-clock-outline'
                             title={this.props.intl.formatMessage({
                                 id: 'user.settings.security.viewHistory.icon',
                                 defaultMessage: 'Access History Icon',
                             })}
+                            aria-hidden='true'
                         />
                         <FormattedMessage
                             id='user.settings.security.viewHistory'
@@ -1070,17 +1084,42 @@ export class SecurityTab extends React.PureComponent<Props, State> {
                         id='viewAndLogOutOfActiveSessions'
                     >
                         <i
-                            className='fa fa-clock-o'
+                            className='icon icon-clock-outline'
                             title={this.props.intl.formatMessage({
                                 id: 'user.settings.security.logoutActiveSessions.icon',
                                 defaultMessage: 'Active Sessions Icon',
                             })}
+                            aria-hidden='true'
                         />
                         <FormattedMessage
                             id='user.settings.security.logoutActiveSessions'
                             defaultMessage='View and Log Out of Active Sessions'
                         />
                     </ToggleModalButton>
+                    {this.props.deleteAccountLink && (
+                        <>
+                            <p/>
+                            <ExternalLink
+                                className='security-links color--link mt-2 danger'
+                                href={this.props.deleteAccountLink}
+                                id='deleteAccountLink'
+                                location={window.location.href}
+                            >
+                                <i
+                                    className='icon icon-trash-can-outline'
+                                    title={this.props.intl.formatMessage({
+                                        id: 'user.settings.security.deleteAccountLink.icon',
+                                        defaultMessage: 'Delete Account Icon',
+                                    })}
+                                    aria-hidden='true'
+                                />
+                                <FormattedMessage
+                                    id='user.settings.security.deleteAccountLink'
+                                    defaultMessage='Delete Your Account'
+                                />
+                            </ExternalLink>
+                        </>
+                    )}
                 </div>
             </div>
         );

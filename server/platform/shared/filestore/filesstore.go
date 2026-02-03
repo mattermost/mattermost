@@ -40,6 +40,7 @@ type FileBackend interface {
 	ListDirectory(path string) ([]string, error)
 	ListDirectoryRecursively(path string) ([]string, error)
 	RemoveDirectory(path string) error
+	ZipReader(path string, deflate bool) (io.ReadCloser, error)
 }
 
 type FileBackendWithLinkGenerator interface {
@@ -62,6 +63,8 @@ type FileBackendSettings struct {
 	SkipVerify                         bool
 	AmazonS3RequestTimeoutMilliseconds int64
 	AmazonS3PresignExpiresSeconds      int64
+	AmazonS3UploadPartSizeBytes        int64
+	AmazonS3StorageClass               string
 }
 
 func NewFileBackendSettingsFromConfig(fileSettings *model.FileSettings, enableComplianceFeature bool, skipVerify bool) FileBackendSettings {
@@ -85,6 +88,8 @@ func NewFileBackendSettingsFromConfig(fileSettings *model.FileSettings, enableCo
 		AmazonS3Trace:                      fileSettings.AmazonS3Trace != nil && *fileSettings.AmazonS3Trace,
 		AmazonS3RequestTimeoutMilliseconds: *fileSettings.AmazonS3RequestTimeoutMilliseconds,
 		SkipVerify:                         skipVerify,
+		AmazonS3UploadPartSizeBytes:        *fileSettings.AmazonS3UploadPartSizeBytes,
+		AmazonS3StorageClass:               *fileSettings.AmazonS3StorageClass,
 	}
 }
 
@@ -109,6 +114,8 @@ func NewExportFileBackendSettingsFromConfig(fileSettings *model.FileSettings, en
 		AmazonS3Trace:                      fileSettings.ExportAmazonS3Trace != nil && *fileSettings.ExportAmazonS3Trace,
 		AmazonS3RequestTimeoutMilliseconds: *fileSettings.ExportAmazonS3RequestTimeoutMilliseconds,
 		AmazonS3PresignExpiresSeconds:      *fileSettings.ExportAmazonS3PresignExpiresSeconds,
+		AmazonS3UploadPartSizeBytes:        *fileSettings.ExportAmazonS3UploadPartSizeBytes,
+		AmazonS3StorageClass:               *fileSettings.ExportAmazonS3StorageClass,
 		SkipVerify:                         skipVerify,
 	}
 }

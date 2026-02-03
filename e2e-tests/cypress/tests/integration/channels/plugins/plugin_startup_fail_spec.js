@@ -14,7 +14,6 @@
  * under fixtures folder.
  */
 
-// Stage: @prod
 // Group: @channels @system_console @plugin @not_cloud @timeout_error
 
 import * as TIMEOUTS from '../../../fixtures/timeouts';
@@ -33,8 +32,8 @@ describe('If plugins fail to start, they can be disabled', () => {
 
     it('MM-T2391 If plugins fail to start, they can be disabled', () => {
         const mimeType = 'application/gzip';
-        cy.fixture(gitlabPlugin.filename, 'binary').
-            then(Cypress.Blob.binaryStringToBlob).
+        cy.fixture(gitlabPlugin.filename, null).
+            then(Cypress.Blob.arrayBufferToBlob).
             then((fileContent) => {
                 cy.get('input[type=file]').attachFile({fileContent, fileName: gitlabPlugin.filename, mimeType});
             });

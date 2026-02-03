@@ -7,8 +7,6 @@ import {useSelector, useDispatch} from 'react-redux';
 
 import {GenericModal} from '@mattermost/components';
 
-import type {DispatchFunc} from 'mattermost-redux/types/actions';
-
 import {closeModal} from 'actions/views/modals';
 import {isModalOpen} from 'selectors/views/modals';
 
@@ -27,7 +25,7 @@ type Props = {
 }
 
 const ConfirmLicenseRemovalModal: React.FC<Props> = (props: Props): JSX.Element | null => {
-    const dispatch = useDispatch<DispatchFunc>();
+    const dispatch = useDispatch();
 
     const show = useSelector((state: GlobalState) => isModalOpen(state, ModalIdentifiers.CONFIRM_LICENSE_REMOVAL));
     if (!show) {
@@ -60,8 +58,8 @@ const ConfirmLicenseRemovalModal: React.FC<Props> = (props: Props): JSX.Element 
                 <div className='content-body'>
                     <div className='alert-svg'>
                         <AlertSvg
-                            width={150}
-                            height={150}
+                            width={130.5}
+                            height={103.5}
                         />
                     </div>
                     <div className='title'>
@@ -81,7 +79,7 @@ const ConfirmLicenseRemovalModal: React.FC<Props> = (props: Props): JSX.Element 
                 <div className='content-footer'>
                     <button
                         onClick={handleOnClose}
-                        className='btn light-blue-btn'
+                        className='btn btn-tertiary'
                         id='cancel-removal'
                     >
                         <FormattedMessage

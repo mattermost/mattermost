@@ -1,9 +1,10 @@
-// Jest Snapshot v1, https://goo.gl/fbAQLP
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
 
 exports[`SidebarList should match snapshot 1`] = `
 <Fragment>
   <GlobalThreadsLink />
-  <Memo(DraftsLink) />
+  <DraftsLink />
+  <RecapsLink />
   <div
     aria-label="channel sidebar region"
     className="SidebarNavContainer a11y__region"
@@ -38,27 +39,7 @@ exports[`SidebarList should match snapshot 1`] = `
       show={false}
     />
     <Scrollbars
-      autoHeight={false}
-      autoHeightMax={200}
-      autoHeightMin={0}
-      autoHide={true}
-      autoHideDuration={500}
-      autoHideTimeout={500}
-      hideTracksWhenNotNeeded={false}
       onScroll={[Function]}
-      renderThumbHorizontal={[Function]}
-      renderThumbVertical={[Function]}
-      renderTrackHorizontal={[Function]}
-      renderTrackVertical={[Function]}
-      renderView={[Function]}
-      style={
-        Object {
-          "position": "absolute",
-        }
-      }
-      tagName="div"
-      thumbMinSize={30}
-      universal={false}
     >
       <DragDropContext
         onBeforeCapture={[Function]}

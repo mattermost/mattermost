@@ -17,8 +17,8 @@ func (z *User) DecodeMsg(dc *msgp.Reader) (err error) {
 		err = msgp.WrapError(err)
 		return
 	}
-	if zb0001 != 34 {
-		err = msgp.ArrayError{Wanted: 34, Got: zb0001}
+	if zb0001 != 35 {
+		err = msgp.ArrayError{Wanted: 35, Got: zb0001}
 		return
 	}
 	z.Id, err = dc.ReadString()
@@ -215,13 +215,18 @@ func (z *User) DecodeMsg(dc *msgp.Reader) (err error) {
 		err = msgp.WrapError(err, "LastLogin")
 		return
 	}
+	err = z.MfaUsedTimestamps.DecodeMsg(dc)
+	if err != nil {
+		err = msgp.WrapError(err, "MfaUsedTimestamps")
+		return
+	}
 	return
 }
 
 // EncodeMsg implements msgp.Encodable
 func (z *User) EncodeMsg(en *msgp.Writer) (err error) {
-	// array header, size 34
-	err = en.Append(0xdc, 0x0, 0x22)
+	// array header, size 35
+	err = en.Append(0xdc, 0x0, 0x23)
 	if err != nil {
 		return
 	}
@@ -409,14 +414,19 @@ func (z *User) EncodeMsg(en *msgp.Writer) (err error) {
 		err = msgp.WrapError(err, "LastLogin")
 		return
 	}
+	err = z.MfaUsedTimestamps.EncodeMsg(en)
+	if err != nil {
+		err = msgp.WrapError(err, "MfaUsedTimestamps")
+		return
+	}
 	return
 }
 
 // MarshalMsg implements msgp.Marshaler
 func (z *User) MarshalMsg(b []byte) (o []byte, err error) {
 	o = msgp.Require(b, z.Msgsize())
-	// array header, size 34
-	o = append(o, 0xdc, 0x0, 0x22)
+	// array header, size 35
+	o = append(o, 0xdc, 0x0, 0x23)
 	o = msgp.AppendString(o, z.Id)
 	o = msgp.AppendInt64(o, z.CreateAt)
 	o = msgp.AppendInt64(o, z.UpdateAt)
@@ -471,6 +481,11 @@ func (z *User) MarshalMsg(b []byte) (o []byte, err error) {
 	o = msgp.AppendInt64(o, z.TermsOfServiceCreateAt)
 	o = msgp.AppendBool(o, z.DisableWelcomeEmail)
 	o = msgp.AppendInt64(o, z.LastLogin)
+	o, err = z.MfaUsedTimestamps.MarshalMsg(o)
+	if err != nil {
+		err = msgp.WrapError(err, "MfaUsedTimestamps")
+		return
+	}
 	return
 }
 
@@ -482,8 +497,8 @@ func (z *User) UnmarshalMsg(bts []byte) (o []byte, err error) {
 		err = msgp.WrapError(err)
 		return
 	}
-	if zb0001 != 34 {
-		err = msgp.ArrayError{Wanted: 34, Got: zb0001}
+	if zb0001 != 35 {
+		err = msgp.ArrayError{Wanted: 35, Got: zb0001}
 		return
 	}
 	z.Id, bts, err = msgp.ReadStringBytes(bts)
@@ -678,6 +693,11 @@ func (z *User) UnmarshalMsg(bts []byte) (o []byte, err error) {
 		err = msgp.WrapError(err, "LastLogin")
 		return
 	}
+	bts, err = z.MfaUsedTimestamps.UnmarshalMsg(bts)
+	if err != nil {
+		err = msgp.WrapError(err, "MfaUsedTimestamps")
+		return
+	}
 	o = bts
 	return
 }
@@ -696,7 +716,7 @@ func (z *User) Msgsize() (s int) {
 	} else {
 		s += msgp.StringPrefixSize + len(*z.RemoteId)
 	}
-	s += msgp.Int64Size + msgp.BoolSize + msgp.StringPrefixSize + len(z.BotDescription) + msgp.Int64Size + msgp.StringPrefixSize + len(z.TermsOfServiceId) + msgp.Int64Size + msgp.BoolSize + msgp.Int64Size
+	s += msgp.Int64Size + msgp.BoolSize + msgp.StringPrefixSize + len(z.BotDescription) + msgp.Int64Size + msgp.StringPrefixSize + len(z.TermsOfServiceId) + msgp.Int64Size + msgp.BoolSize + msgp.Int64Size + z.MfaUsedTimestamps.Msgsize()
 	return
 }
 
@@ -875,12 +895,6 @@ func (z *UserPostStats) DecodeMsg(dc *msgp.Reader) (err error) {
 			return
 		}
 		switch msgp.UnsafeString(field) {
-		case "LastLogin":
-			z.LastLogin, err = dc.ReadInt64()
-			if err != nil {
-				err = msgp.WrapError(err, "LastLogin")
-				return
-			}
 		case "LastStatusAt":
 			if dc.IsNil() {
 				err = dc.ReadNil()
@@ -966,19 +980,9 @@ func (z *UserPostStats) DecodeMsg(dc *msgp.Reader) (err error) {
 
 // EncodeMsg implements msgp.Encodable
 func (z *UserPostStats) EncodeMsg(en *msgp.Writer) (err error) {
-	// map header, size 5
-	// write "LastLogin"
-	err = en.Append(0x85, 0xa9, 0x4c, 0x61, 0x73, 0x74, 0x4c, 0x6f, 0x67, 0x69, 0x6e)
-	if err != nil {
-		return
-	}
-	err = en.WriteInt64(z.LastLogin)
-	if err != nil {
-		err = msgp.WrapError(err, "LastLogin")
-		return
-	}
+	// map header, size 4
 	// write "LastStatusAt"
-	err = en.Append(0xac, 0x4c, 0x61, 0x73, 0x74, 0x53, 0x74, 0x61, 0x74, 0x75, 0x73, 0x41, 0x74)
+	err = en.Append(0x84, 0xac, 0x4c, 0x61, 0x73, 0x74, 0x53, 0x74, 0x61, 0x74, 0x75, 0x73, 0x41, 0x74)
 	if err != nil {
 		return
 	}
@@ -1051,12 +1055,9 @@ func (z *UserPostStats) EncodeMsg(en *msgp.Writer) (err error) {
 // MarshalMsg implements msgp.Marshaler
 func (z *UserPostStats) MarshalMsg(b []byte) (o []byte, err error) {
 	o = msgp.Require(b, z.Msgsize())
-	// map header, size 5
-	// string "LastLogin"
-	o = append(o, 0x85, 0xa9, 0x4c, 0x61, 0x73, 0x74, 0x4c, 0x6f, 0x67, 0x69, 0x6e)
-	o = msgp.AppendInt64(o, z.LastLogin)
+	// map header, size 4
 	// string "LastStatusAt"
-	o = append(o, 0xac, 0x4c, 0x61, 0x73, 0x74, 0x53, 0x74, 0x61, 0x74, 0x75, 0x73, 0x41, 0x74)
+	o = append(o, 0x84, 0xac, 0x4c, 0x61, 0x73, 0x74, 0x53, 0x74, 0x61, 0x74, 0x75, 0x73, 0x41, 0x74)
 	if z.LastStatusAt == nil {
 		o = msgp.AppendNil(o)
 	} else {
@@ -1104,12 +1105,6 @@ func (z *UserPostStats) UnmarshalMsg(bts []byte) (o []byte, err error) {
 			return
 		}
 		switch msgp.UnsafeString(field) {
-		case "LastLogin":
-			z.LastLogin, bts, err = msgp.ReadInt64Bytes(bts)
-			if err != nil {
-				err = msgp.WrapError(err, "LastLogin")
-				return
-			}
 		case "LastStatusAt":
 			if msgp.IsNil(bts) {
 				bts, err = msgp.ReadNilBytes(bts)
@@ -1192,7 +1187,7 @@ func (z *UserPostStats) UnmarshalMsg(bts []byte) (o []byte, err error) {
 
 // Msgsize returns an upper bound estimate of the number of bytes occupied by the serialized message
 func (z *UserPostStats) Msgsize() (s int) {
-	s = 1 + 10 + msgp.Int64Size + 13
+	s = 1 + 13
 	if z.LastStatusAt == nil {
 		s += msgp.NilSize
 	} else {

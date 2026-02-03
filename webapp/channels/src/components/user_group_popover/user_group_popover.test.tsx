@@ -2,6 +2,7 @@
 // See LICENSE.txt for license information.
 
 import type {ReactWrapper} from 'enzyme';
+import type {ComponentProps} from 'react';
 import React from 'react';
 import {Provider} from 'react-redux';
 import {BrowserRouter} from 'react-router-dom';
@@ -21,10 +22,6 @@ jest.mock('react-redux', () => ({
     useDispatch: jest.fn().mockReturnValue(() => {}),
 }));
 
-jest.mock('react-virtualized-auto-sizer', () =>
-    ({children}: {children: any}) => children({height: 100, width: 100}),
-);
-
 const actImmediate = (wrapper: ReactWrapper) =>
     act(
         () =>
@@ -39,6 +36,7 @@ const actImmediate = (wrapper: ReactWrapper) =>
 describe('component/user_group_popover', () => {
     const profiles: Record<string, UserProfile> = {};
     const profilesInGroup: Record<Group['id'], Set<UserProfile['id']>> = {};
+    const statuses: Record<UserProfile['id'], string> = {};
 
     const group1 = TestHelper.getGroupMock({
         id: 'group1',
@@ -85,6 +83,7 @@ describe('component/user_group_popover', () => {
             users: {
                 profiles,
                 profilesInGroup,
+                statuses,
             },
             preferences: {
                 myPreferences: {},
@@ -100,18 +99,10 @@ describe('component/user_group_popover', () => {
         },
     };
 
-    const baseProps = {
-        searchTerm: '',
+    const baseProps: ComponentProps<typeof UserGroupPopover> = {
         group: group1,
-        canManageGroup: true,
-        showUserOverlay: jest.fn(),
         hide: jest.fn(),
         returnFocus: jest.fn(),
-        actions: {
-            setPopoverSearchTerm: jest.fn(),
-            openModal: jest.fn(),
-            searchProfiles: jest.fn().mockImplementation(() => Promise.resolve()),
-        },
     };
 
     test('should match snapshot', async () => {
@@ -129,25 +120,6 @@ describe('component/user_group_popover', () => {
         expect(wrapper).toMatchSnapshot();
     });
 
-    test('should open modal', async () => {
-        const store = await mockStore(initialState);
-        const wrapper = mountWithIntl(
-            <Provider store={store}>
-                <BrowserRouter>
-                    <UserGroupPopover
-                        {...baseProps}
-                    />
-                </BrowserRouter>
-            </Provider>,
-        );
-        await actImmediate(wrapper);
-
-        expect(wrapper.find('button.user-group-popover_header-button').exists()).toBe(true);
-        wrapper.find('button.user-group-popover_header-button').simulate('click');
-        expect(baseProps.actions.openModal).toBeCalled();
-        expect(baseProps.hide).toBeCalled();
-    });
-
     test('should not show search bar', async () => {
         const store = await mockStore(initialState);
         const wrapper = mountWithIntl(
@@ -163,24 +135,6 @@ describe('component/user_group_popover', () => {
         await actImmediate(wrapper);
 
         expect(wrapper.find('.user-group-popover_search-bar').exists()).toBe(false);
-    });
-
-    test('should show and set search term', async () => {
-        const store = await mockStore(initialState);
-        const wrapper = mountWithIntl(
-            <Provider store={store}>
-                <BrowserRouter>
-                    <UserGroupPopover
-                        {...baseProps}
-                    />
-                </BrowserRouter>
-            </Provider>,
-        );
-        await actImmediate(wrapper);
-
-        expect(wrapper.find('.user-group-popover_search-bar input').exists()).toBe(true);
-        wrapper.find('.user-group-popover_search-bar input').simulate('change', {target: {value: 'a'}});
-        expect(baseProps.actions.setPopoverSearchTerm).toHaveBeenCalledWith('a');
     });
 
     test('should show users', async () => {

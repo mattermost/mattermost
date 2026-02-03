@@ -5,18 +5,15 @@ import React, {useState} from 'react';
 import {FormattedMessage} from 'react-intl';
 import {useDispatch} from 'react-redux';
 
-import type {ServerError} from '@mattermost/types/errors';
-
 import {revokeSessionsForAllUsers} from 'mattermost-redux/actions/users';
 import {Permissions} from 'mattermost-redux/constants';
-import type {ActionResult} from 'mattermost-redux/types/actions';
 
 import {emitUserLoggedOutEvent} from 'actions/global_actions';
 
 import ConfirmModal from 'components/confirm_modal';
 import SystemPermissionGate from 'components/permissions_gates/system_permission_gate';
 
-function RevokeSessionsButton() {
+export function RevokeSessionsButton() {
     const dispatch = useDispatch();
 
     const [showModal, setShowModal] = useState(false);
@@ -26,7 +23,7 @@ function RevokeSessionsButton() {
     }
 
     async function handleModalConfirm() {
-        const {data} = await dispatch(revokeSessionsForAllUsers()) as ActionResult<boolean, ServerError>;
+        const {data} = await dispatch(revokeSessionsForAllUsers());
 
         if (data) {
             emitUserLoggedOutEvent();
@@ -73,5 +70,3 @@ function RevokeSessionsButton() {
         </SystemPermissionGate>
     );
 }
-
-export default RevokeSessionsButton;

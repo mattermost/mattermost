@@ -2,59 +2,74 @@
 // See LICENSE.txt for license information.
 
 import React, {memo} from 'react';
-import {FormattedMessage} from 'react-intl';
+import {FormattedMessage, useIntl} from 'react-intl';
 
 import ContactUsButton from 'components/announcement_bar/contact_sales/contact_us';
-import PurchaseLink from 'components/announcement_bar/purchase_link/purchase_link';
-import WomanUpArrowsAndCloudsSvg from 'components/common/svg_images_components/woman_up_arrows_and_clouds_svg';
+import SetupSystemSvg from 'components/common/svg_images_components/setup_system_svg';
 
 const StarterRightPanel = () => {
+    const intl = useIntl();
     const upgradeAdvantages = [
-        'OneLogin/ADFS SAML 2.0',
-        'OpenID Connect',
-        'Office365 suite integration',
-        'Read-only announcement channels',
-        'And more...',
+        intl.formatMessage({
+            id: 'admin.license.enterpriseToAdvancedAdvantage.attributeBasedAccess',
+            defaultMessage: 'Attribute-based access control',
+        }),
+        intl.formatMessage({
+            id: 'admin.license.enterpriseToAdvancedAdvantage.channelWarningBanners',
+            defaultMessage: 'Channel warning banners',
+        }),
+        intl.formatMessage({
+            id: 'admin.license.enterpriseToAdvancedAdvantage.adLdapGroupSync',
+            defaultMessage: 'AD/LDAP group sync',
+        }),
+        intl.formatMessage({
+            id: 'admin.license.enterpriseToAdvancedAdvantage.advancedWorkflows',
+            defaultMessage: 'Advanced workflows with Playbooks',
+        }),
+        intl.formatMessage({
+            id: 'admin.license.enterpriseToAdvancedAdvantage.highAvailability',
+            defaultMessage: 'High availability',
+        }),
+        intl.formatMessage({
+            id: 'admin.license.enterpriseToAdvancedAdvantage.advancedCompliance',
+            defaultMessage: 'Advanced compliance',
+        }),
+        intl.formatMessage({
+            id: 'admin.license.upgradeAdvantage.andMore',
+            defaultMessage: 'And more...',
+        }),
     ];
 
     return (
         <div className='StarterEditionRightPannel'>
             <div className='svg-image'>
-                <WomanUpArrowsAndCloudsSvg
-                    width={200}
-                    height={200}
+                <SetupSystemSvg
+                    width={197}
+                    height={120}
                 />
             </div>
             <div className='upgrade-title'>
                 <FormattedMessage
                     id='admin.license.upgradeTitle'
-                    defaultMessage='Upgrade to the Professional Plan'
+                    defaultMessage='Purchase one of our plans to unlock more features'
                 />
             </div>
             <div className='advantages-list'>
-                {upgradeAdvantages.map((item: string, i: number) => {
+                {upgradeAdvantages.map((item, i) => {
                     return (
                         <div
                             className='item'
                             key={i.toString()}
                         >
-                            <i className='fa fa-lock'/>{item}
+                            <i className='fa fa-lock'/>
+                            {item}
                         </div>
                     );
                 })}
             </div>
             <div className='purchase_buttons'>
-                <PurchaseLink
-                    eventID='post_trial_purchase_license'
-                    buttonTextElement={
-                        <FormattedMessage
-                            id='admin.license.trialCard.purchase'
-                            defaultMessage='Purchase'
-                        />
-                    }
-                />
                 <ContactUsButton
-                    eventID='post_trial_contact_sales'
+                    customClass='btn-tertiary btn-full'
                 />
             </div>
         </div>

@@ -13,19 +13,6 @@ import LearnMoreTrialModal from 'components/learn_more_trial_modal/learn_more_tr
 import {mountWithIntl} from 'tests/helpers/intl-test-helper';
 import mockStore from 'tests/test_store';
 
-jest.mock('actions/telemetry_actions.jsx', () => {
-    const original = jest.requireActual('actions/telemetry_actions.jsx');
-    return {
-        ...original,
-        trackEvent: jest.fn(),
-    };
-});
-
-const CloudStartTrialButton = () => {
-    return (<button>{'Start Cloud Trial'}</button>);
-};
-
-jest.mock('components/cloud_start_trial/cloud_start_trial_btn', () => CloudStartTrialButton);
 describe('components/learn_more_trial_modal/learn_more_trial_modal', () => {
     // required state to mount using the provider
     const state = {
@@ -50,21 +37,18 @@ describe('components/learn_more_trial_modal/learn_more_trial_modal', () => {
             general: {
                 license: {
                     IsLicensed: 'false',
-                    Cloud: 'true',
+                    Cloud: 'false',
                 },
                 config: {
                     DiagnosticsEnabled: 'false',
                 },
-            },
-            cloud: {
-                subscription: {id: 'subscription'},
             },
         },
         views: {
             modals: {
                 modalState: {
                     learn_more_trial_modal: {
-                        open: 'true',
+                        open: true,
                     },
                 },
             },
@@ -107,7 +91,7 @@ describe('components/learn_more_trial_modal/learn_more_trial_modal', () => {
             </Provider>,
         );
 
-        wrapper.find(GenericModal).props().onExited();
+        wrapper.find(GenericModal).props().onExited?.();
 
         expect(mockOnClose).toHaveBeenCalled();
     });
@@ -124,7 +108,7 @@ describe('components/learn_more_trial_modal/learn_more_trial_modal', () => {
             </Provider>,
         );
 
-        wrapper.find(GenericModal).props().onExited();
+        wrapper.find(GenericModal).props().onExited?.();
 
         expect(mockOnExited).toHaveBeenCalled();
     });
@@ -172,20 +156,6 @@ describe('components/learn_more_trial_modal/learn_more_trial_modal', () => {
         expect(activeSlideId).toBe('ldap');
     });
 
-    test('should have the start cloud trial button when is cloud workspace and cloud free is enabled', () => {
-        const wrapper = mountWithIntl(
-            <Provider store={store}>
-                <LearnMoreTrialModal
-                    {...props}
-                />
-            </Provider>,
-        );
-
-        const trialButton = wrapper.find('CloudStartTrialButton');
-
-        expect(trialButton).toHaveLength(1);
-    });
-
     test('should have the self hosted request trial button cloud free is disabled', () => {
         const nonCloudState = {
             ...state,
@@ -209,10 +179,6 @@ describe('components/learn_more_trial_modal/learn_more_trial_modal', () => {
                 />
             </Provider>,
         );
-
-        // validate the cloud start trial button is not present
-        const trialButton = wrapper.find('CloudStartTrialButton');
-        expect(trialButton).toHaveLength(0);
 
         // validate the cloud start trial button is not present
         const selfHostedRequestTrialButton = wrapper.find('StartTrialBtn');

@@ -1,8 +1,7 @@
-// Jest Snapshot v1, https://goo.gl/fbAQLP
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
 
 exports[`components/integrations/EditOAuthApp should have match renderExtra 1`] = `
-<ConfirmModal
-  confirmButtonClass="btn btn-primary"
+<Memo(ConfirmModal)
   confirmButtonText={
     <Memo(MemoizedFormattedMessage)
       defaultMessage="Update"
@@ -15,7 +14,7 @@ exports[`components/integrations/EditOAuthApp should have match renderExtra 1`] 
       id="update_oauth_app.question"
     />
   }
-  modalClass=""
+  modalClass="integrations-backstage-modal"
   onCancel={[Function]}
   onConfirm={[Function]}
   show={false}
@@ -68,8 +67,7 @@ exports[`components/integrations/EditOAuthApp should match snapshot 1`] = `
     }
   }
   renderExtra={
-    <ConfirmModal
-      confirmButtonClass="btn btn-primary"
+    <Memo(ConfirmModal)
       confirmButtonText={
         <Memo(MemoizedFormattedMessage)
           defaultMessage="Update"
@@ -82,7 +80,7 @@ exports[`components/integrations/EditOAuthApp should match snapshot 1`] = `
           id="update_oauth_app.question"
         />
       }
-      modalClass=""
+      modalClass="integrations-backstage-modal"
       onCancel={[Function]}
       onConfirm={[Function]}
       show={false}
@@ -144,8 +142,7 @@ exports[`components/integrations/EditOAuthApp should match snapshot when EnableO
     }
   }
   renderExtra={
-    <ConfirmModal
-      confirmButtonClass="btn btn-primary"
+    <Memo(ConfirmModal)
       confirmButtonText={
         <Memo(MemoizedFormattedMessage)
           defaultMessage="Update"
@@ -158,7 +155,7 @@ exports[`components/integrations/EditOAuthApp should match snapshot when EnableO
           id="update_oauth_app.question"
         />
       }
-      modalClass=""
+      modalClass="integrations-backstage-modal"
       onCancel={[Function]}
       onConfirm={[Function]}
       show={false}
@@ -220,8 +217,7 @@ exports[`components/integrations/EditOAuthApp should match snapshot, loading 1`]
     }
   }
   renderExtra={
-    <ConfirmModal
-      confirmButtonClass="btn btn-primary"
+    <Memo(ConfirmModal)
       confirmButtonText={
         <Memo(MemoizedFormattedMessage)
           defaultMessage="Update"
@@ -234,7 +230,7 @@ exports[`components/integrations/EditOAuthApp should match snapshot, loading 1`]
           id="update_oauth_app.question"
         />
       }
-      modalClass=""
+      modalClass="integrations-backstage-modal"
       onCancel={[Function]}
       onConfirm={[Function]}
       show={false}

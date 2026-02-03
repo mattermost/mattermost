@@ -10,9 +10,9 @@ import (
 
 	"github.com/spf13/cobra"
 
+	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/channels/app"
-	"github.com/mattermost/mattermost/server/v8/channels/audit"
 	"github.com/mattermost/mattermost/server/v8/config"
 )
 
@@ -46,8 +46,8 @@ func jobserverCmdF(command *cobra.Command, args []string) error {
 	rctx := request.EmptyContext(a.Log())
 
 	// Run jobs
-	a.Log().Info("Starting Mattermost job server")
-	defer a.Log().Info("Stopped Mattermost job server")
+	rctx.Logger().Info("Starting Mattermost job server")
+	defer rctx.Logger().Info("Stopped Mattermost job server")
 
 	if !noJobs {
 		a.Srv().Jobs.StartWorkers()
@@ -59,7 +59,7 @@ func jobserverCmdF(command *cobra.Command, args []string) error {
 	}
 
 	if !noJobs || !noSchedule {
-		auditRec := a.MakeAuditRecord(rctx, "jobServer", audit.Success)
+		auditRec := a.MakeAuditRecord(rctx, model.AuditEventJobServer, model.AuditStatusSuccess)
 		a.LogAuditRec(rctx, auditRec, nil)
 	}
 
@@ -68,7 +68,7 @@ func jobserverCmdF(command *cobra.Command, args []string) error {
 	<-signalChan
 
 	// Cleanup anything that isn't handled by a defer statement
-	a.Log().Info("Stopping Mattermost job server")
+	rctx.Logger().Info("Stopping Mattermost job server")
 
 	return nil
 }

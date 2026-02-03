@@ -28,6 +28,7 @@ describe('Toast', () => {
         // # Search for a term e.g.test
         const searchTerm = 'test';
         cy.postMessage(searchTerm);
+        cy.uiGetSearchContainer().should('be.visible').click();
         cy.uiGetSearchBox().type(searchTerm).type('{enter}');
 
         // # Click on Jump to link in search results

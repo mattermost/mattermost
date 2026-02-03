@@ -7,8 +7,8 @@
     .accordion-card {
         box-sizing: border-box;
         border: 1px solid rgba(var(--center-channel-color-rgb) 0.08);
-        background: var(--center-channel-bg);
         border-radius: 4px;
+        background: var(--center-channel-bg);
         box-shadow: var(--elevation-1);
 
         .accordion-card:not(:first-of-type) {

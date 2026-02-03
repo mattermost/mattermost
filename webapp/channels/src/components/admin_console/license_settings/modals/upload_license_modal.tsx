@@ -3,7 +3,7 @@
 
 import marked from 'marked';
 import React, {useRef} from 'react';
-import {FormattedDate, FormattedMessage} from 'react-intl';
+import {defineMessage, FormattedDate, FormattedMessage} from 'react-intl';
 import {useSelector, useDispatch} from 'react-redux';
 
 import {GenericModal} from '@mattermost/components';
@@ -12,21 +12,20 @@ import type {ClientLicense} from '@mattermost/types/config';
 import {uploadLicense} from 'mattermost-redux/actions/admin';
 import {getLicenseConfig} from 'mattermost-redux/actions/general';
 import {getLicense} from 'mattermost-redux/selectors/entities/general';
-import type {DispatchFunc} from 'mattermost-redux/types/actions';
 
 import {closeModal} from 'actions/views/modals';
 import {getCurrentLocale} from 'selectors/i18n';
 import {isModalOpen} from 'selectors/views/modals';
 
 import FileSvg from 'components/common/svg_images_components/file_svg';
-import HandsSvg from 'components/common/svg_images_components/hands_svg';
-import WomanArmOnTable from 'components/common/svg_images_components/woman_arm_on_table_svg';
+import SuccessSvg from 'components/common/svg_images_components/success_svg';
+import UploadLicenseSvg from 'components/common/svg_images_components/upload_license_svg';
 import LoadingWrapper from 'components/widgets/loading/loading_wrapper';
 
 import {FileTypes, ModalIdentifiers} from 'utils/constants';
 import {getMonthLong} from 'utils/i18n';
 import {getSkuDisplayName} from 'utils/subscription';
-import {fileSizeToString, localizeMessage} from 'utils/utils';
+import {fileSizeToString} from 'utils/utils';
 
 import type {GlobalState} from 'types/store';
 
@@ -38,7 +37,7 @@ type Props = {
 }
 
 const UploadLicenseModal = (props: Props): JSX.Element | null => {
-    const dispatch = useDispatch<DispatchFunc>();
+    const dispatch = useDispatch();
 
     const [fileObj, setFileObj] = React.useState<File | null>(props.fileObjFromProps);
     const [isUploading, setIsUploading] = React.useState(false);
@@ -111,9 +110,9 @@ const UploadLicenseModal = (props: Props): JSX.Element | null => {
         <>
             <div className='content-body'>
                 <div className='svg-image'>
-                    <WomanArmOnTable
-                        width={200}
-                        height={200}
+                    <UploadLicenseSvg
+                        width={151}
+                        height={103}
                     />
                 </div>
                 <div className='title'>
@@ -206,7 +205,7 @@ const UploadLicenseModal = (props: Props): JSX.Element | null => {
                     >
                         <LoadingWrapper
                             loading={Boolean(isUploading)}
-                            text={localizeMessage('admin.license.modal.uploading', 'Uploading')}
+                            text={defineMessage({id: 'admin.license.modal.uploading', defaultMessage: 'Uploading'})}
                         >
                             <FormattedMessage
                                 id='admin.license.modal.upload'
@@ -243,9 +242,9 @@ const UploadLicenseModal = (props: Props): JSX.Element | null => {
             <>
                 <div className='content-body'>
                     <div className='svg-image hands-svg'>
-                        <HandsSvg
-                            width={100}
-                            height={100}
+                        <SuccessSvg
+                            width={162}
+                            height={103.5}
                         />
                     </div>
                     <div className='title'>

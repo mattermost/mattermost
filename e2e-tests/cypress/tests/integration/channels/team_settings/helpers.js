@@ -10,7 +10,7 @@ import {
 
 export const allowOnlyUserFromSpecificDomain = (domain) => {
     // # Open 'Team Settings' modal
-    cy.uiOpenTeamMenu('Team Settings');
+    cy.uiOpenTeamMenu('Team settings');
 
     // * Check that the 'Team Settings' modal was opened
     cy.get('#teamSettingsModal').should('exist').within(() => {
@@ -31,12 +31,12 @@ export const allowOnlyUserFromSpecificDomain = (domain) => {
 
 export const inviteUserByEmail = (email) => {
     // # Open team menu and click 'Invite People'
-    cy.uiOpenTeamMenu('Invite People');
+    cy.uiOpenTeamMenu('Invite people');
 
     // # Wait half a second to ensure that the modal has been fully loaded
     cy.wait(TIMEOUTS.HALF_SEC);
 
-    cy.findByRole('textbox', {name: 'Add or Invite People'}).
+    cy.findByRole('textbox', {name: 'Invite People'}).
         typeWithForce(email).
         wait(TIMEOUTS.HALF_SEC).
         typeWithForce('{enter}');
@@ -71,7 +71,7 @@ export const signupAndVerifyTutorial = (username, password, teamDisplayName) => 
     cy.get('#name', {timeout: TIMEOUTS.HALF_MIN}).should('be.visible').type(username);
     cy.get('#password').should('be.visible').type(password);
 
-    // # Attempt to create an account by clicking on the 'Create Account' button
+    // # Attempt to create an account by clicking on the 'Create account' button
     cy.get('#createAccountButton').click();
 
     // # Close the onboarding tutorial

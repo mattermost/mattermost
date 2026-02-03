@@ -78,7 +78,7 @@ describe('Keyboard Shortcuts', () => {
             cy.uiClickSidebarItem('threads');
 
             // * There should be a thread there
-            cy.get('article.ThreadItem').should('have.have.lengthOf', 2);
+            cy.get('div.ThreadItem').should('have.have.lengthOf', 2);
         });
 
         // # Press CTRL/CMD+K

@@ -17,18 +17,18 @@
     }
 
     .btn-inverted {
-        border: 2px solid var(--denim-button-bg);
-        background: transparent;
+        border: 2px solid var(--button-bg);
         border-radius: 4px;
-        color: var(--denim-button-bg);
+        background: transparent;
+        color: var(--button-bg);
         font-weight: bold;
         line-height: 12px;
     }
 
     .btn-dangerous {
         border: 2px solid var(--dnd-indicator);
-        background: transparent;
         border-radius: 4px;
+        background: transparent;
         color: var(--dnd-indicator);
         font-weight: bold;
         line-height: 16px;

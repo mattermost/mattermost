@@ -3,6 +3,7 @@
 
 import {shallow} from 'enzyme';
 import React from 'react';
+import {Button} from 'react-bootstrap';
 
 import PermissionRow from 'components/admin_console/permission_schemes_settings/permission_row';
 
@@ -55,6 +56,26 @@ describe('components/admin_console/permission_schemes_settings/permission_row', 
         expect(wrapper).toMatchSnapshot();
     });
 
+    test('should match snapshot with additional values', () => {
+        const ADDITIONAL_VALUES = {
+            edit_post: {
+                editTimeLimitButton: (
+                    <Button
+                        onClick={jest.fn()}
+                    />
+                ),
+            },
+        };
+
+        const wrapper = shallow(
+            <PermissionRow
+                {...defaultProps}
+                additionalValues={ADDITIONAL_VALUES}
+            />,
+        );
+        expect(wrapper).toMatchSnapshot();
+    });
+
     test('should call onChange function on click', () => {
         const onChange = jest.fn();
         const wrapper = shallow(
@@ -64,7 +85,7 @@ describe('components/admin_console/permission_schemes_settings/permission_row', 
             />,
         );
         wrapper.find('div').first().simulate('click');
-        expect(onChange).toBeCalledWith('id');
+        expect(onChange).toHaveBeenCalledWith('id');
     });
 
     test('shouldn\'t call onChange function on click when is read-only', () => {
@@ -77,6 +98,6 @@ describe('components/admin_console/permission_schemes_settings/permission_row', 
             />,
         );
         wrapper.find('div').first().simulate('click');
-        expect(onChange).not.toBeCalled();
+        expect(onChange).not.toHaveBeenCalled();
     });
 });

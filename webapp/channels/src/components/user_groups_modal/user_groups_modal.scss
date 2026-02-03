@@ -1,5 +1,3 @@
-@charset 'UTF-8';
-
 .user-groups-modal-create,
 .user-groups-modal-update,
 .view-user-groups-modal,
@@ -22,9 +20,9 @@
             align-items: center;
             justify-content: space-between;
             padding: 12px 8px;
-            margin: 0 12px;
-            background-color: var(--denim-sidebar-active-border);
             border-radius: 8px;
+            margin: 0 12px;
+            background-color: var(--sidebar-active-border);
             box-shadow: 0 4px 6px rgba(0, 0, 0, 0.12);
             color: var(--button-color);
 
@@ -109,32 +107,28 @@
                     height: 32px;
                     padding: 10px 16px;
                     border: none;
-                    background: rgba(28, 88, 217, 0.08);
                     border-radius: 4px;
-                    color: var(--denim-button-bg);
+                    background: rgba(28, 88, 217, 0.08);
+                    color: var(--button-bg);
                     font-size: 12px;
                     font-weight: 600;
                     line-height: 10px;
                 }
 
                 .learn-more {
-                    background: rgba(var(--denim-button-bg-rgb), 0.08);
-                    color: var(--denim-button-bg);
+                    background: rgba(var(--button-bg-rgb), 0.08);
+                    color: var(--button-bg);
                 }
 
                 .continue {
-                    background: var(--denim-button-bg);
+                    background: var(--button-bg);
                     color: var(--button-color);
                 }
             }
         }
 
-        .modal-header {
-            h1#createGroupsModalTitleWithBack,
-            h1#updateGroupsModalTitle,
-            h1#addUsersToGroupsModalLabel {
-                margin-left: 16px;
-            }
+        .GenericModal__header {
+            display: flex;
         }
     }
 
@@ -157,7 +151,9 @@
                     line-height: 38px;
                 }
 
-                .Input {
+                .Input.form-control {
+                    height: 34px;
+                    border: none;
                     font-size: 14px;
                     line-height: 38px;
                 }
@@ -179,8 +175,11 @@
             border-bottom: 1px solid rgba(var(--center-channel-color-rgb), 0.08);
 
             #groupsFilterDropdown {
+                display: inline-flex;
                 padding: 6px;
+                border: none;
                 border-radius: 4px;
+                background: none;
                 line-height: 12px;
 
                 &:hover {
@@ -191,14 +190,11 @@
                     background: rgba(var(--button-bg-rgb), 0.08);
                 }
 
-                a {
+                span {
+                    color: var(--button-bg);
+                    font-size: 12px;
                     line-height: 12px;
-
-                    span {
-                        color: var(--button-bg);
-                        font-size: 12px;
-                        line-height: 12px;
-                    }
+                    white-space: nowrap;
                 }
             }
 
@@ -235,15 +231,18 @@
 
                 &::-webkit-scrollbar-thumb {
                     border: 8px rgba(0, 0, 0, 0) solid;
+                    border-radius: 9999px;
                     background: rgba(var(--center-channel-color-rgb), 0.24);
                     background-clip: padding-box;
-                    border-radius: 9999px;
                 }
 
                 .group-row {
                     display: flex;
                     align-items: center;
                     padding: 14px 32px;
+                    border: none;
+                    background: none;
+                    line-height: 38px;
 
                     &:hover {
                         background: rgba(var(--center-channel-color-rgb), 0.08);
@@ -256,27 +255,30 @@
 
                     .group-display-name,
                     .group-name {
-                        display: block;
+                        display: flex;
                         overflow: hidden;
                         max-width: 200px;
+                        align-items: center;
+                        gap: 8px;
                         text-overflow: ellipsis;
                         white-space: nowrap;
 
-                        i {
-                            color: rgba(var(--center-channel-color-rgb), 0.56);
+                        i,
+                        svg {
+                            color: rgba(var(--center-channel-color-rgb), 0.64);
                             font-size: 16px;
                         }
                     }
 
                     .group-name {
                         padding-left: 8px;
-                        color: rgba(var(--center-channel-color-rgb), 0.64);
+                        color: rgba(var(--center-channel-color-rgb), 0.75);
                     }
 
                     .group-member-count {
                         margin-right: 8px;
                         margin-left: auto;
-                        color: rgba(var(--center-channel-color-rgb), 0.64);
+                        color: rgba(var(--center-channel-color-rgb), 0.75);
                         font-size: 12px;
                         line-height: 16px;
                     }
@@ -291,8 +293,8 @@
                             .Menu {
                                 position: absolute;
                                 border: 1px solid rgba(var(--center-channel-color-rgb), 0.16);
-                                margin-top: 8px;
                                 border-radius: 4px;
+                                margin-top: 8px;
                             }
                         }
 
@@ -300,21 +302,6 @@
                             span.MenuItem__primary-text {
                                 font-size: 14px;
                                 line-height: 20px;
-
-                                &.leave-group-action {
-                                    color: var(--dnd-indicator);
-                                }
-
-                                span.icon {
-                                    display: inline-flex;
-                                    width: auto;
-                                    height: auto;
-                                    align-self: center;
-                                    padding-right: 12px;
-                                    color: rgba(var(--center-channel-color-rgb), 0.56);
-                                    font-size: 18px;
-                                    line-height: 18px;
-                                }
                             }
                         }
                     }
@@ -327,17 +314,17 @@
                         align-items: center;
                         padding: 4px 6px;
                         border: none;
+                        border-radius: 4px;
                         margin-left: auto;
                         background: transparent;
-                        border-radius: 4px;
-                        color: rgba(var(--center-channel-color-rgb), 0.56);
+                        color: rgba(var(--center-channel-color-rgb), 0.75);
                         text-decoration: none;
 
                         &:hover {
-                            background: rgba(var(--center-channel-color-rgb), 0.08);
                             border-radius: 4px;
-                            color: rgba(var(--center-channel-color-rgb), 0.72);
-                            fill: rgba(var(--center-channel-color-rgb), 0.72);
+                            background: rgba(var(--center-channel-color-rgb), 0.08);
+                            color: rgba(var(--center-channel-color-rgb), 0.8);
+                            fill: rgba(var(--center-channel-color-rgb), 0.8);
                         }
 
                         &:active {
@@ -390,12 +377,19 @@
                 padding: 12px 32px 24px;
             }
 
-            h2 {
-                padding: 0 32px;
-                color: inherit;
-                font-size: 18px;
-                font-weight: 600;
-                line-height: 24px;
+            .group-add-people-fieldset {
+                margin-top: 20px;
+
+                legend {
+                    padding: 0 32px;
+                    border: none;
+                    margin-bottom: 10px;
+                    color: inherit;
+                    font-family: Metropolis, sans-serif;
+                    font-size: 18px;
+                    font-weight: 600;
+                    line-height: 24px;
+                }
             }
 
             .group-add-user {
