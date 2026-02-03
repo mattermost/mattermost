@@ -499,6 +499,16 @@
         padding: 16px;
         animation: slideIn 0.3s ease;
 
+        &--api {
+            background: rgba(var(--dnd-indicator-rgb), 0.04);
+            border-color: rgba(var(--dnd-indicator-rgb), 0.12);
+        }
+
+        &--js {
+            background: rgba(var(--away-indicator-rgb), 0.04);
+            border-color: rgba(var(--away-indicator-rgb), 0.12);
+        }
+
         @keyframes slideIn {
             from {
                 opacity: 0;
@@ -785,6 +795,16 @@
         border-radius: 8px;
         padding: 16px;
         animation: slideIn 0.3s ease;
+
+        &--api {
+            background: rgba(var(--dnd-indicator-rgb), 0.04);
+            border-color: rgba(var(--dnd-indicator-rgb), 0.12);
+        }
+
+        &--js {
+            background: rgba(var(--away-indicator-rgb), 0.04);
+            border-color: rgba(var(--away-indicator-rgb), 0.12);
+        }
 
         &--muted {
             opacity: 0.6;

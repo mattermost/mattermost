@@ -673,34 +673,57 @@ const ErrorLogDashboard: React.FC<Props> = ({config, patchConfig}) => {
     };
 
     const handleExport = () => {
-        const exportData = {
+        const formatError = (error: ErrorLog) => ({
+            id: error.id,
+            type: error.type,
+            timestamp: new Date(error.create_at).toISOString(),
+            message: error.message,
+            user: error.username || null,
+            url: error.url || null,
+            user_agent: error.user_agent || null,
+            ...(error.type === 'api' ? {
+                endpoint: error.endpoint || null,
+                method: error.method || null,
+                status_code: error.status_code || null,
+                request_payload: error.request_payload ? tryParseJSON(error.request_payload) : null,
+                response_body: error.response_body ? tryParseJSON(error.response_body) : null,
+            } : {}),
+            stack: error.stack || null,
+            component_stack: error.component_stack || null,
+        });
+
+        const baseExport = {
             exported_at: new Date().toISOString(),
-            stats,
-            errors: filteredErrors.map((error) => ({
-                id: error.id,
-                type: error.type,
-                timestamp: new Date(error.create_at).toISOString(),
-                message: error.message,
-                user: error.username || null,
-                url: error.url || null,
-                user_agent: error.user_agent || null,
-                ...(error.type === 'api' ? {
-                    endpoint: error.endpoint || null,
-                    method: error.method || null,
-                    status_code: error.status_code || null,
-                    request_payload: error.request_payload ? tryParseJSON(error.request_payload) : null,
-                    response_body: error.response_body ? tryParseJSON(error.response_body) : null,
-                } : {}),
-                stack: error.stack || null,
-                component_stack: error.component_stack || null,
+            view_mode: viewMode,
+            filter: filter,
+            search: search || null,
+            showing_muted: showMutedErrors,
+            stats: {
+                visible: filteredErrors.length,
+                total: stats.total,
+            },
+        };
+
+        const exportData = viewMode === 'grouped' ? {
+            ...baseExport,
+            groups: groupedErrors.map((group) => ({
+                message: group.message,
+                type: group.type,
+                count: group.count,
+                users: Array.from(group.users),
+                latest_timestamp: new Date(group.latestError.create_at).toISOString(),
+                errors: group.errors.map(formatError),
             })),
+        } : {
+            ...baseExport,
+            errors: filteredErrors.map(formatError),
         };
 
         const blob = new Blob([JSON.stringify(exportData, null, 2)], {type: 'application/json'});
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
         a.href = url;
-        a.download = `mattermost-errors-${new Date().toISOString().slice(0, 10)}.json`;
+        a.download = `mattermost-errors-${viewMode}-${new Date().toISOString().slice(0, 10)}.json`;
         document.body.appendChild(a);
         a.click();
         document.body.removeChild(a);
@@ -1037,21 +1060,6 @@ const ErrorLogDashboard: React.FC<Props> = ({config, patchConfig}) => {
                         />
                     </h2>
                     <div className='ErrorLogDashboard__header__actions'>
-                        <div className='ErrorLogDashboard__toggle'>
-                            <FormattedMessage
-                                id='admin.error_log.enabled'
-                                defaultMessage='Enabled'
-                            />
-                            <button
-                                className='btn btn-link'
-                                onClick={handleToggleFeature}
-                            >
-                                <FormattedMessage
-                                    id='admin.error_log.disable'
-                                    defaultMessage='Disable'
-                                />
-                            </button>
-                        </div>
                         <button
                             className='btn btn-tertiary'
                             onClick={handleExport}
@@ -1353,7 +1361,7 @@ const ErrorLogDashboard: React.FC<Props> = ({config, patchConfig}) => {
                             return (
                                 <div
                                     key={group.message}
-                                    className={`ErrorLogDashboard__group-card ${isMuted ? 'ErrorLogDashboard__group-card--muted' : ''}`}
+                                    className={`ErrorLogDashboard__group-card ErrorLogDashboard__group-card--${group.type} ${isMuted ? 'ErrorLogDashboard__group-card--muted' : ''}`}
                                 >
                                     <div
                                         className='ErrorLogDashboard__group-card__header'
@@ -1438,7 +1446,7 @@ const ErrorLogDashboard: React.FC<Props> = ({config, patchConfig}) => {
                                             {group.errors.map((error) => (
                                                 <div
                                                     key={error.id}
-                                                    className='ErrorLogDashboard__error-card ErrorLogDashboard__error-card--nested'
+                                                    className={`ErrorLogDashboard__error-card ErrorLogDashboard__error-card--${error.type} ErrorLogDashboard__error-card--nested`}
                                                 >
                                                     <div className='ErrorLogDashboard__error-card__header'>
                                                         <div className='ErrorLogDashboard__error-card__header-left'>
@@ -1591,7 +1599,7 @@ const ErrorLogDashboard: React.FC<Props> = ({config, patchConfig}) => {
                             return (
                                 <div
                                     key={error.id}
-                                    className={`ErrorLogDashboard__error-card ${isMuted ? 'ErrorLogDashboard__error-card--muted' : ''}`}
+                                    className={`ErrorLogDashboard__error-card ErrorLogDashboard__error-card--${error.type} ${isMuted ? 'ErrorLogDashboard__error-card--muted' : ''}`}
                                 >
                                     <div className='ErrorLogDashboard__error-card__header'>
                                         <div className='ErrorLogDashboard__error-card__header-left'>
