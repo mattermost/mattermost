@@ -171,6 +171,7 @@ export default function UserAccountDndMenuItem(props: Props) {
             id='userAccountMenu.dndMenuItem'
             menuId='userAccountMenu.dndSubMenu'
             menuAriaDescribedBy='userAccountMenu_dndSubMenuTitle'
+            onTriggerClick={handleDoNotClear}
             leadingElement={
                 <MinusCircleIcon
                     size='18'

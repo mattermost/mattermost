@@ -49,6 +49,9 @@ interface Props {
     menuAriaDescribedBy?: string;
     forceOpenOnLeft?: boolean; // Most of the times this is not needed, since submenu position is calculated and placed
 
+    // Optional click handler for the trigger item (fires in addition to opening submenu on desktop)
+    onTriggerClick?: () => void;
+
     subMenuHeader?: ReactNode;
     children: ReactNode;
 }
@@ -65,6 +68,7 @@ export function SubMenu(props: Props) {
         menuAriaLabel,
         menuAriaDescribedBy,
         forceOpenOnLeft,
+        onTriggerClick,
         children,
         subMenuHeader,
         ...rest
@@ -132,7 +136,7 @@ export function SubMenu(props: Props) {
     }
 
     // This is used in MobileView to open the submenu in a modal
-    function handleOnClick() {
+    function handleMobileClick() {
         dispatch(openModal<SubMenuModalProps>({
             modalId: menuId,
             dialogType: SubMenuModal,
@@ -143,6 +147,15 @@ export function SubMenu(props: Props) {
                 subMenuHeader,
             },
         }));
+    }
+
+    // Handle click on the trigger item (desktop: fires onTriggerClick if provided, mobile: opens modal)
+    function handleClick() {
+        if (isMobileView) {
+            handleMobileClick();
+        } else if (onTriggerClick) {
+            onTriggerClick();
+        }
     }
 
     const passedInTriggerButtonProps = {
@@ -156,7 +169,7 @@ export function SubMenu(props: Props) {
         trailingElements,
         isDestructive,
         role,
-        onClick: isMobileView ? handleOnClick : undefined, // OnClicks on parent menuItem of subMenu is only needed in mobile view
+        onClick: (isMobileView || onTriggerClick) ? handleClick : undefined,
     };
 
     if (isMobileView) {
