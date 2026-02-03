@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {useCallback, useEffect, useState} from 'react';
+import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 
 import type {AdminConfig} from '@mattermost/types/config';
@@ -25,147 +25,44 @@ type Props = {
     patchConfig: (config: DeepPartial<AdminConfig>) => Promise<ActionResult>;
 };
 
-// Metadata for known preferences - provides friendly labels and value options
-const PREFERENCE_METADATA: Record<string, {
-    label: string;
-    preferences: Record<string, {
-        label: string;
-        description?: string;
-        options?: Array<{value: string; label: string}>;
-    }>;
-}> = {
-    display_settings: {
-        label: 'Display Settings',
-        preferences: {
-            use_military_time: {
-                label: 'Clock Display',
-                description: 'Format for displaying time',
-                options: [
-                    {value: 'true', label: '24-hour clock'},
-                    {value: 'false', label: '12-hour clock'},
-                ],
-            },
-            channel_display_mode: {
-                label: 'Channel Display',
-                description: 'How channels are displayed',
-                options: [
-                    {value: 'full', label: 'Full width'},
-                    {value: 'centered', label: 'Fixed width, centered'},
-                ],
-            },
-            message_display: {
-                label: 'Message Display',
-                description: 'How messages are displayed',
-                options: [
-                    {value: 'clean', label: 'Standard'},
-                    {value: 'compact', label: 'Compact'},
-                ],
-            },
-            collapse_previews: {
-                label: 'Link Previews',
-                description: 'Whether to show link previews by default',
-                options: [
-                    {value: 'false', label: 'Show link previews'},
-                    {value: 'true', label: 'Collapse link previews'},
-                ],
-            },
-            colorize_usernames: {
-                label: 'Colorize Usernames',
-                description: 'Assign unique colors to usernames',
-                options: [
-                    {value: 'true', label: 'Enabled'},
-                    {value: 'false', label: 'Disabled'},
-                ],
-            },
-            name_format: {
-                label: 'Teammate Name Display',
-                description: 'How to display teammate names',
-                options: [
-                    {value: 'username', label: 'Show username'},
-                    {value: 'nickname_full_name', label: 'Show nickname if available, otherwise full name'},
-                    {value: 'full_name', label: 'Show full name'},
-                ],
-            },
-            collapse_consecutive_messages: {
-                label: 'Collapse Consecutive Messages',
-                description: 'Collapse messages from the same user',
-                options: [
-                    {value: 'true', label: 'Enabled'},
-                    {value: 'false', label: 'Disabled'},
-                ],
-            },
-        },
-    },
-    notifications: {
-        label: 'Notifications',
-        preferences: {
-            email_interval: {
-                label: 'Email Notification Frequency',
-                description: 'How often to send email notifications',
-                options: [
-                    {value: '30', label: 'Immediately'},
-                    {value: '900', label: 'Every 15 minutes'},
-                    {value: '3600', label: 'Every hour'},
-                    {value: '0', label: 'Never'},
-                ],
-            },
-        },
-    },
-    advanced_settings: {
-        label: 'Advanced Settings',
-        preferences: {
-            formatting: {
-                label: 'Enable Message Formatting',
-                description: 'Whether to format messages with markdown',
-                options: [
-                    {value: 'true', label: 'Enabled'},
-                    {value: 'false', label: 'Disabled'},
-                ],
-            },
-            send_on_ctrl_enter: {
-                label: 'Send Messages on CTRL+Enter',
-                description: 'Require CTRL+Enter to send messages',
-                options: [
-                    {value: 'true', label: 'On'},
-                    {value: 'false', label: 'Off'},
-                ],
-            },
-            join_leave: {
-                label: 'Join/Leave Messages',
-                description: 'Show join/leave messages in channels',
-                options: [
-                    {value: 'true', label: 'Show'},
-                    {value: 'false', label: 'Hide'},
-                ],
-            },
-            sync_drafts: {
-                label: 'Sync Drafts',
-                description: 'Sync message drafts across devices',
-                options: [
-                    {value: 'true', label: 'Enabled'},
-                    {value: 'false', label: 'Disabled'},
-                ],
-            },
-        },
-    },
-    sidebar_settings: {
-        label: 'Sidebar Settings',
-        preferences: {
-            show_unread_section: {
-                label: 'Unread Section',
-                description: 'Group unread channels in a separate section',
-                options: [
-                    {value: 'true', label: 'Enabled'},
-                    {value: 'false', label: 'Disabled'},
-                ],
-            },
-            limit_visible_dms_gms: {
-                label: 'Visible DMs/GMs',
-                description: 'Number of direct/group messages to show',
-            },
-        },
-    },
+// Convert snake_case or kebab-case to Title Case
+// e.g., "haptic_feedback_enabled" -> "Haptic Feedback Enabled"
+// e.g., "use_military_time" -> "Use Military Time"
+const toTitleCase = (str: string): string => {
+    return str
+        .replace(/[_-]/g, ' ')
+        .replace(/\b\w/g, (char) => char.toUpperCase());
 };
+
+// Check if a preference name suggests it's a boolean toggle
+// Names ending in _enabled, _on, _off, or containing "enable", "show", "hide", "use", "allow"
+const looksLikeBoolean = (name: string): boolean => {
+    const booleanPatterns = [
+        /_enabled$/,
+        /_on$/,
+        /_off$/,
+        /_display$/,
+        /^enable_/,
+        /^show_/,
+        /^hide_/,
+        /^use_/,
+        /^allow_/,
+        /^is_/,
+        /^has_/,
+        /colorize/,
+        /collapse/,
+        /formatting/,
+        /sync_drafts/,
+        /join_leave/,
+    ];
+    return booleanPatterns.some((pattern) => pattern.test(name));
+};
+
+// Default options for boolean-like preferences
+const BOOLEAN_OPTIONS = [
+    {value: 'true', label: 'On'},
+    {value: 'false', label: 'Off'},
+];
 
 // SVG Icons
 const IconSave = () => (
@@ -329,8 +226,55 @@ const PreferenceOverridesDashboard: React.FC<Props> = ({config, patchConfig}) =>
         loadPreferences();
     }, [loadPreferences]);
 
+    // Build a map of unique values per preference from the database
+    // This helps us offer meaningful options for non-boolean preferences
+    const preferenceValues = useMemo(() => {
+        // For now, we'll use common known values for specific preferences
+        // In the future, we could query the database for distinct values
+        const knownValues: Record<string, Array<{value: string; label: string}>> = {
+            // Display settings
+            'display_settings:channel_display_mode': [
+                {value: 'full', label: 'Full width'},
+                {value: 'centered', label: 'Fixed width, centered'},
+            ],
+            'display_settings:message_display': [
+                {value: 'clean', label: 'Standard'},
+                {value: 'compact', label: 'Compact'},
+            ],
+            'display_settings:name_format': [
+                {value: 'username', label: 'Show username'},
+                {value: 'nickname_full_name', label: 'Show nickname, otherwise full name'},
+                {value: 'full_name', label: 'Show full name'},
+            ],
+            'display_settings:collapsed_reply_threads': [
+                {value: 'on', label: 'On'},
+                {value: 'off', label: 'Off'},
+            ],
+            // Notifications
+            'notifications:email_interval': [
+                {value: '30', label: 'Immediately'},
+                {value: '900', label: 'Every 15 minutes'},
+                {value: '3600', label: 'Every hour'},
+                {value: '0', label: 'Never'},
+            ],
+            // Advanced settings
+            'advanced_settings:unread_scroll_position': [
+                {value: 'start_from_left_off', label: 'Start where I left off'},
+                {value: 'start_from_newest', label: 'Start at newest message'},
+            ],
+            // Sidebar settings
+            'sidebar_settings:limit_visible_dms_gms': [
+                {value: '10', label: '10'},
+                {value: '15', label: '15'},
+                {value: '20', label: '20'},
+                {value: '40', label: '40'},
+            ],
+        };
+        return knownValues;
+    }, []);
+
     // Group preferences by category
-    const groupedPreferences = React.useMemo(() => {
+    const groupedPreferences = useMemo(() => {
         const groups: Record<string, PreferenceKey[]> = {};
         availablePreferences.forEach((pref) => {
             if (!groups[pref.category]) {
@@ -338,6 +282,12 @@ const PreferenceOverridesDashboard: React.FC<Props> = ({config, patchConfig}) =>
             }
             groups[pref.category].push(pref);
         });
+
+        // Sort preferences within each category alphabetically
+        Object.values(groups).forEach((prefs) => {
+            prefs.sort((a, b) => a.name.localeCompare(b.name));
+        });
+
         return groups;
     }, [availablePreferences]);
 
@@ -345,6 +295,24 @@ const PreferenceOverridesDashboard: React.FC<Props> = ({config, patchConfig}) =>
     const isOverridden = (category: string, name: string): boolean => {
         const key = `${category}:${name}`;
         return key in overrides;
+    };
+
+    // Get options for a preference
+    const getPreferenceOptions = (category: string, name: string): Array<{value: string; label: string}> | null => {
+        const key = `${category}:${name}`;
+
+        // Check for known specific values first
+        if (preferenceValues[key]) {
+            return preferenceValues[key];
+        }
+
+        // If it looks like a boolean, return boolean options
+        if (looksLikeBoolean(name)) {
+            return BOOLEAN_OPTIONS;
+        }
+
+        // Otherwise, return null to indicate free-form text input
+        return null;
     };
 
     // Toggle override for a preference
@@ -355,9 +323,9 @@ const PreferenceOverridesDashboard: React.FC<Props> = ({config, patchConfig}) =>
             if (key in newOverrides) {
                 delete newOverrides[key];
             } else {
-                // Get default value from metadata or use empty string
-                const metadata = PREFERENCE_METADATA[category]?.preferences[name];
-                const defaultValue = metadata?.options?.[0]?.value || '';
+                // Get default value - first option if available, empty string otherwise
+                const options = getPreferenceOptions(category, name);
+                const defaultValue = options?.[0]?.value || 'true';
                 newOverrides[key] = defaultValue;
             }
             return newOverrides;
@@ -404,26 +372,6 @@ const PreferenceOverridesDashboard: React.FC<Props> = ({config, patchConfig}) =>
         } finally {
             setSaving(false);
         }
-    };
-
-    // Get preference label
-    const getPreferenceLabel = (category: string, name: string): string => {
-        return PREFERENCE_METADATA[category]?.preferences[name]?.label || name;
-    };
-
-    // Get preference description
-    const getPreferenceDescription = (category: string, name: string): string | undefined => {
-        return PREFERENCE_METADATA[category]?.preferences[name]?.description;
-    };
-
-    // Get category label
-    const getCategoryLabel = (category: string): string => {
-        return PREFERENCE_METADATA[category]?.label || category.replace(/_/g, ' ').replace(/\b\w/g, (l) => l.toUpperCase());
-    };
-
-    // Get preference options
-    const getPreferenceOptions = (category: string, name: string): Array<{value: string; label: string}> | undefined => {
-        return PREFERENCE_METADATA[category]?.preferences[name]?.options;
     };
 
     // Count active overrides
@@ -539,7 +487,7 @@ const PreferenceOverridesDashboard: React.FC<Props> = ({config, patchConfig}) =>
                                 className='PreferenceOverridesDashboard__category'
                             >
                                 <div className='PreferenceOverridesDashboard__category-header'>
-                                    <h3>{getCategoryLabel(category)}</h3>
+                                    <h3>{toTitleCase(category)}</h3>
                                     <span className='PreferenceOverridesDashboard__category-count'>
                                         {prefs.filter((p) => isOverridden(p.category, p.name)).length} / {prefs.length}
                                     </span>
@@ -549,7 +497,6 @@ const PreferenceOverridesDashboard: React.FC<Props> = ({config, patchConfig}) =>
                                         const key = `${pref.category}:${pref.name}`;
                                         const overridden = isOverridden(pref.category, pref.name);
                                         const options = getPreferenceOptions(pref.category, pref.name);
-                                        const description = getPreferenceDescription(pref.category, pref.name);
 
                                         return (
                                             <div
@@ -566,13 +513,11 @@ const PreferenceOverridesDashboard: React.FC<Props> = ({config, patchConfig}) =>
                                                     </button>
                                                     <div className='PreferenceOverridesDashboard__preference-info'>
                                                         <span className='PreferenceOverridesDashboard__preference-label'>
-                                                            {getPreferenceLabel(pref.category, pref.name)}
+                                                            {toTitleCase(pref.name)}
                                                         </span>
-                                                        {description && (
-                                                            <span className='PreferenceOverridesDashboard__preference-description'>
-                                                                {description}
-                                                            </span>
-                                                        )}
+                                                        <span className='PreferenceOverridesDashboard__preference-key'>
+                                                            {pref.category}:{pref.name}
+                                                        </span>
                                                     </div>
                                                 </div>
                                                 {overridden && (

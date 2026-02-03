@@ -205,6 +205,17 @@
         color: rgba(var(--center-channel-color-rgb), 0.56);
     }
 
+    &__preference-key {
+        font-size: 11px;
+        font-family: monospace;
+        color: rgba(var(--center-channel-color-rgb), 0.4);
+        background: rgba(var(--center-channel-color-rgb), 0.04);
+        padding: 2px 6px;
+        border-radius: 3px;
+        display: inline-block;
+        margin-top: 2px;
+    }
+
     &__preference-value {
         display: flex;
         align-items: center;
