@@ -1,64 +1,36 @@
 // Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
 
 exports[`components/file_preview_modal/popover_bar/PopoverBar should match snapshot with zoom controls enabled 1`] = `
-<div
-  className="modal-button-bar file-preview-modal__zoom-bar"
-  data-testid="fileCountFooter"
->
+<div>
   <div
-    className="modal-column"
+    class="modal-button-bar file-preview-modal__zoom-bar"
+    data-testid="fileCountFooter"
   >
-    <WithTooltip
-      key="zoomOut"
-      title={
-        <Memo(MemoizedFormattedMessage)
-          defaultMessage="Zoom Out"
-          id="view_image.zoom_out"
-        />
-      }
+    <div
+      class="modal-column"
     >
       <span
-        className="btn-inactive"
+        class="btn-inactive"
       >
         <i
-          className="icon icon-minus"
+          class="icon icon-minus"
         />
       </span>
-    </WithTooltip>
-    <WithTooltip
-      key="zoomReset"
-      title={
-        <Memo(MemoizedFormattedMessage)
-          defaultMessage="Reset Zoom"
-          id="view_image.zoom_reset"
-        />
-      }
-    >
       <span
-        className="btn-inactive"
+        class="btn-inactive"
       >
         <i
-          className="icon icon-magnify-minus"
+          class="icon icon-magnify-minus"
         />
       </span>
-    </WithTooltip>
-    <WithTooltip
-      key="zoomIn"
-      title={
-        <Memo(MemoizedFormattedMessage)
-          defaultMessage="Zoom In"
-          id="view_image.zoom_in"
-        />
-      }
-    >
       <span
-        className="btn-inactive"
+        class="btn-inactive"
       >
         <i
-          className="icon icon-plus"
+          class="icon icon-plus"
         />
       </span>
-    </WithTooltip>
+    </div>
   </div>
 </div>
 `;
