@@ -510,8 +510,12 @@ type LogTypeFilter = 'all' | 'status_change' | 'activity';
 // Filter type for time period
 type TimePeriodFilter = 'all' | '5m' | '15m' | '1h' | '6h' | '24h';
 
+// Tab type
+type TabType = 'logs' | 'rules';
+
 const StatusLogDashboard: React.FC<Props> = ({config, patchConfig}) => {
     const intl = useIntl();
+    const [activeTab, setActiveTab] = useState<TabType>('logs');
     const [logs, setLogs] = useState<StatusLog[]>([]);
     const [stats, setStats] = useState<StatusLogStats>({total: 0, online: 0, away: 0, dnd: 0, offline: 0});
     const [loading, setLoading] = useState(true);
@@ -1093,34 +1097,75 @@ const StatusLogDashboard: React.FC<Props> = ({config, patchConfig}) => {
                             defaultMessage='Status Log Dashboard'
                         />
                     </h2>
-                    <div className='StatusLogDashboard__header__actions'>
-                        <button
-                            className='btn btn-tertiary'
-                            onClick={handleExport}
-                            disabled={filteredLogs.length === 0}
-                        >
-                            <IconDownload/>
-                            <FormattedMessage
-                                id='admin.status_log.export'
-                                defaultMessage='Export JSON'
-                            />
-                        </button>
-                        <button
-                            className='btn btn-danger'
-                            onClick={handleClearAll}
-                            disabled={logs.length === 0}
-                        >
-                            <IconTrash/>
-                            <FormattedMessage
-                                id='admin.status_log.clear_all'
-                                defaultMessage='Clear All'
-                            />
-                        </button>
-                    </div>
                 </div>
 
-                {/* Connection Status */}
-                <div className='StatusLogDashboard__connection'>
+                {/* Tabs */}
+                <div className='StatusLogDashboard__tabs'>
+                    <button
+                        className={`StatusLogDashboard__tab ${activeTab === 'logs' ? 'active' : ''}`}
+                        onClick={() => setActiveTab('logs')}
+                    >
+                        <IconStatusChange/>
+                        <FormattedMessage
+                            id='admin.status_log.tab.logs'
+                            defaultMessage='Status Logs'
+                        />
+                    </button>
+                    <button
+                        className={`StatusLogDashboard__tab ${activeTab === 'rules' ? 'active' : ''}`}
+                        onClick={() => setActiveTab('rules')}
+                    >
+                        <svg
+                            width='16'
+                            height='16'
+                            viewBox='0 0 24 24'
+                            fill='none'
+                            stroke='currentColor'
+                            strokeWidth='2'
+                            strokeLinecap='round'
+                            strokeLinejoin='round'
+                        >
+                            <path d='M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9'/>
+                            <path d='M13.73 21a2 2 0 0 1-3.46 0'/>
+                        </svg>
+                        <FormattedMessage
+                            id='admin.status_log.tab.rules'
+                            defaultMessage='Push Notification Rules'
+                        />
+                    </button>
+                </div>
+
+                {/* Tab Content */}
+                {activeTab === 'logs' ? (
+                    <div className='StatusLogDashboard__tab-content'>
+                        {/* Header Actions for Logs */}
+                        <div className='StatusLogDashboard__header-actions'>
+                            <button
+                                className='btn btn-tertiary'
+                                onClick={handleExport}
+                                disabled={filteredLogs.length === 0}
+                            >
+                                <IconDownload/>
+                                <FormattedMessage
+                                    id='admin.status_log.export'
+                                    defaultMessage='Export JSON'
+                                />
+                            </button>
+                            <button
+                                className='btn btn-danger'
+                                onClick={handleClearAll}
+                                disabled={logs.length === 0}
+                            >
+                                <IconTrash/>
+                                <FormattedMessage
+                                    id='admin.status_log.clear_all'
+                                    defaultMessage='Clear All'
+                                />
+                            </button>
+                        </div>
+
+                        {/* Connection Status */}
+                        <div className='StatusLogDashboard__connection'>
                     <div className='StatusLogDashboard__connection__dot'/>
                     <span className='StatusLogDashboard__connection__text'>
                         <FormattedMessage
@@ -1551,9 +1596,12 @@ const StatusLogDashboard: React.FC<Props> = ({config, patchConfig}) => {
                         )}
                     </div>
                 )}
-
-                {/* Push Notification Rules Section */}
-                <StatusNotificationRules isEnabled={isEnabled}/>
+                    </div>
+                ) : (
+                    <div className='StatusLogDashboard__tab-content'>
+                        <StatusNotificationRules isEnabled={isEnabled}/>
+                    </div>
+                )}
             </div>
         </div>
     );

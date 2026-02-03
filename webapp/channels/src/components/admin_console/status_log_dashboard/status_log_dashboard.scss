@@ -8,18 +8,74 @@
         display: flex;
         justify-content: space-between;
         align-items: center;
-        margin-bottom: 24px;
+        margin-bottom: 16px;
 
         h2 {
             margin: 0;
             font-size: 20px;
             font-weight: 600;
         }
+    }
 
-        &__actions {
-            display: flex;
-            align-items: center;
-            gap: 12px;
+    &__header-actions {
+        display: flex;
+        align-items: center;
+        justify-content: flex-end;
+        gap: 12px;
+        margin-bottom: 16px;
+    }
+
+    &__tabs {
+        display: flex;
+        gap: 4px;
+        margin-bottom: 24px;
+        padding: 4px;
+        background: rgba(var(--center-channel-color-rgb), 0.04);
+        border-radius: 8px;
+    }
+
+    &__tab {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 10px 20px;
+        border: none;
+        background: transparent;
+        border-radius: 6px;
+        font-size: 14px;
+        font-weight: 500;
+        color: rgba(var(--center-channel-color-rgb), 0.64);
+        cursor: pointer;
+        transition: all 0.15s ease;
+
+        svg {
+            width: 16px;
+            height: 16px;
+            flex-shrink: 0;
+        }
+
+        &:hover {
+            color: var(--center-channel-color);
+            background: rgba(var(--center-channel-color-rgb), 0.08);
+        }
+
+        &.active {
+            color: var(--button-bg);
+            background: var(--center-channel-bg);
+            box-shadow: 0 1px 3px rgba(var(--center-channel-color-rgb), 0.12);
+        }
+    }
+
+    &__tab-content {
+        animation: fadeIn 0.2s ease;
+    }
+
+    @keyframes fadeIn {
+        from {
+            opacity: 0;
+        }
+        to {
+            opacity: 1;
         }
     }
 
