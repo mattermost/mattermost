@@ -307,6 +307,8 @@ func getPostsForChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 	// - initial page load (no pagination params)
 	if beforePost != "" || afterPost != "" {
 		c.App.UpdateActivityFromManualAction(c.AppContext.Session().UserId, channelId, model.StatusLogTriggerFetchHistory)
+		// NoOffline: Set user Online if they're Away/Offline (independent of AccurateStatuses)
+		c.App.SetOnlineIfNoOffline(c.AppContext.Session().UserId, channelId, model.StatusLogTriggerFetchHistory)
 	}
 
 	if etag != "" {

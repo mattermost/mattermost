@@ -439,6 +439,73 @@ func (ps *PlatformService) UpdateActivityFromManualAction(userID string, channel
 	}
 }
 
+// SetOnlineIfNoOffline sets a user to Online if the NoOffline feature flag is enabled
+// and the user is currently Away or Offline. This is independent of AccurateStatuses
+// and is called from SetActiveChannel and FetchHistory triggers.
+func (ps *PlatformService) SetOnlineIfNoOffline(userID string, channelID string, trigger string) {
+	if !*ps.Config().ServiceSettings.EnableUserStatuses {
+		return
+	}
+
+	// Only process if NoOffline feature is enabled
+	if !ps.Config().FeatureFlags.NoOffline {
+		return
+	}
+
+	status, err := ps.GetStatus(userID)
+	if err != nil {
+		// User doesn't have a status yet, create one as Online
+		status = &model.Status{
+			UserId:         userID,
+			Status:         model.StatusOnline,
+			Manual:         false,
+			LastActivityAt: model.GetMillis(),
+			ActiveChannel:  channelID,
+		}
+		ps.AddStatusCache(status)
+		if dbErr := ps.Store.Status().SaveOrUpdate(status); dbErr != nil {
+			ps.Log().Warn("Failed to save status from NoOffline", mlog.String("user_id", userID), mlog.Err(dbErr))
+		}
+		ps.BroadcastStatus(status)
+		return
+	}
+
+	// Only act on Away or Offline users
+	// Don't touch DND or Out of Office statuses
+	if status.Status != model.StatusAway && status.Status != model.StatusOffline {
+		return
+	}
+
+	oldStatus := status.Status
+
+	// Set to Online
+	status.Status = model.StatusOnline
+	status.Manual = false
+	status.LastActivityAt = model.GetMillis()
+	if channelID != "" {
+		status.ActiveChannel = channelID
+	}
+
+	// Save to cache and database
+	ps.AddStatusCache(status)
+	if dbErr := ps.Store.Status().SaveOrUpdate(status); dbErr != nil {
+		ps.Log().Warn("Failed to save status from NoOffline", mlog.String("user_id", userID), mlog.Err(dbErr))
+	}
+
+	// Log the status change
+	username := ""
+	if user, userErr := ps.Store.User().Get(context.Background(), userID); userErr == nil {
+		username = user.Username
+	}
+	ps.LogStatusChange(userID, username, oldStatus, model.StatusOnline, model.StatusLogReasonOfflinePrevented, model.StatusLogDeviceUnknown, true, channelID, false, "SetOnlineIfNoOffline/"+trigger)
+
+	// Broadcast status change
+	ps.BroadcastStatus(status)
+	if ps.sharedChannelService != nil {
+		ps.sharedChannelService.NotifyUserStatusChanged(status)
+	}
+}
+
 func (ps *PlatformService) SetStatusOnline(userID string, manual bool) {
 	if !*ps.Config().ServiceSettings.EnableUserStatuses {
 		return

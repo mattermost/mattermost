@@ -69,6 +69,12 @@ func (a *App) UpdateActivityFromManualAction(userID string, channelID string, tr
 	a.Srv().Platform().UpdateActivityFromManualAction(userID, channelID, trigger)
 }
 
+// SetOnlineIfNoOffline sets a user to Online if the NoOffline feature flag is enabled
+// and the user is currently Away or Offline. This is independent of AccurateStatuses.
+func (a *App) SetOnlineIfNoOffline(userID string, channelID string, trigger string) {
+	a.Srv().Platform().SetOnlineIfNoOffline(userID, channelID, trigger)
+}
+
 // UpdateDNDStatusOfUsers is a recurring task which is started when server starts
 // which unsets dnd status of users if needed and saves and broadcasts it
 func (a *App) UpdateDNDStatusOfUsers() {

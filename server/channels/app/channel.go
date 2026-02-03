@@ -2863,6 +2863,9 @@ func (a *App) SetActiveChannel(rctx request.CTX, userID string, channelID string
 		a.Srv().Platform().LogActivityUpdate(userID, username, status.Status, model.StatusLogDeviceUnknown, true, channelID, channelName, channelType, model.StatusLogTriggerActiveChannel, "SetActiveChannel")
 	}
 
+	// NoOffline: Set user Online if they're Away/Offline (independent of AccurateStatuses)
+	a.SetOnlineIfNoOffline(userID, channelID, model.StatusLogTriggerActiveChannel)
+
 	return nil
 }
 
