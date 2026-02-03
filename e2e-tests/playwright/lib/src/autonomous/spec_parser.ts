@@ -286,7 +286,9 @@ export class SpecificationParser {
 
                 const scenarios: BusinessScenario[] = (specData.scenarios || []).map((s: any, sIndex: number) => {
                     if (!s.name) {
-                        throw new Error(`Scenario ${sIndex + 1} in "${specData.name || specData.feature}" missing "name" field`);
+                        throw new Error(
+                            `Scenario ${sIndex + 1} in "${specData.name || specData.feature}" missing "name" field`,
+                        );
                     }
                     return {
                         name: s.name,

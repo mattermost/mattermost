@@ -210,7 +210,6 @@ ENVIRONMENT:
 // UI EXPLORATION (using Playwright accessibility tree)
 // =============================================================================
 
-
 /**
  * Cookie structure required by Playwright's storageState
  */
