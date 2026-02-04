@@ -406,17 +406,18 @@ func TestCombinedFeaturesScenario(t *testing.T) {
 			cfg.FeatureFlags.NoOffline = true
 		})
 
-		// Set user to Offline
-		th.App.SetStatusOffline(th.BasicUser.Id, false, true)
+		// Set user to Offline with ActiveChannel so heartbeat activity detection works
+		offlineStatus := &model.Status{
+			UserId:         th.BasicUser.Id,
+			Status:         model.StatusOffline,
+			Manual:         false,
+			LastActivityAt: model.GetMillis() - 10000,
+			ActiveChannel:  th.BasicChannel.Id,
+		}
+		th.App.SaveAndBroadcastStatus(offlineStatus)
 		status, _, err := client.GetUserStatus(context.Background(), th.BasicUser.Id, "")
 		require.NoError(t, err)
 		assert.Equal(t, model.StatusOffline, status.Status)
-
-		// Set ActiveChannel so heartbeat activity detection works
-		offlineStatus, appErr := th.App.GetStatus(th.BasicUser.Id)
-		require.Nil(t, appErr)
-		offlineStatus.ActiveChannel = th.BasicChannel.Id
-		th.App.SaveAndBroadcastStatus(offlineStatus)
 
 		// Heartbeat with window active
 		th.App.Srv().Platform().UpdateActivityFromHeartbeat(th.BasicUser.Id, true, th.BasicChannel.Id, "desktop")
