@@ -1,6 +1,4 @@
-// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
-// See LICENSE.txt for license information.
-
+// webapp/channels/src/tests/mattermost_extended/settings_resorted.test.tsx
 /**
  * Tests for the SettingsResorted feature flag.
  * When enabled, user settings are reorganized into intuitive categories with icons.
