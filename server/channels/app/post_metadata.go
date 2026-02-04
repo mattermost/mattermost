@@ -429,10 +429,9 @@ func (a *App) getEmbedForPost(rctx request.CTX, post *model.Post, firstLink stri
 	}
 
 	if image != nil {
-		// Skip SVG images to prevent DoS attacks via malicious SVG content
-		// that can crash browsers when rendered in link previews (MM-67372).
+		// See MM-67372
 		if image.Format == "svg" || model.IsSVGImageURL(firstLink) {
-			rctx.Logger().Debug("Skipping SVG image embed to prevent browser crash",
+			rctx.Logger().Debug("Skipping SVG image embed",
 				mlog.String("post_id", post.Id),
 				mlog.String("url", firstLink))
 			// Return a link embed instead of an image embed
@@ -720,9 +719,8 @@ func (a *App) containsPermalink(rctx request.CTX, post *model.Post) bool {
 	return looksLikeAPermalink(link, a.GetSiteURL())
 }
 
-// filterSVGImage filters out SVG images to prevent DoS attacks via malicious
-// SVG content that can crash browsers (MM-67372). Returns nil if the image is
-// an SVG, otherwise returns the image unchanged.
+// filterSVGImage filters out SVG images (MM-67372).
+// Returns nil if the image is an SVG, otherwise returns the image unchanged.
 func filterSVGImage(image *model.PostImage, imageURL string) *model.PostImage {
 	if image == nil {
 		return nil
@@ -1021,8 +1019,7 @@ func (a *App) parseLinkMetadata(rctx request.CTX, requestURL string, body io.Rea
 	}
 
 	if contentType == "image/svg+xml" {
-		// Do not store SVG images to prevent DoS attacks via malicious
-		// SVG content that can crash browsers (MM-67372).
+		// See MM-67372
 		rctx.Logger().Debug("Filtering SVG image from link metadata",
 			mlog.String("url", requestURL))
 		return nil, nil, nil

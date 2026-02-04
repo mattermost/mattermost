@@ -87,7 +87,7 @@ func TruncateOpenGraph(ogdata *opengraph.OpenGraph) *opengraph.OpenGraph {
 	return ogdata
 }
 
-// FilterSVGImages removes SVG images which can contain malicious content that crashes browsers when rendered.
+// FilterSVGImages removes SVG images from the provided list. See MM-67372.
 func FilterSVGImages(images []*image.Image) []*image.Image {
 	if len(images) == 0 {
 		return images

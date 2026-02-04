@@ -2710,8 +2710,6 @@ func TestParseLinkMetadata(t *testing.T) {
 	t.Run("svg", func(t *testing.T) {
 		og, dimensions, err := th.App.parseLinkMetadata(th.Context, "http://example.com/image.svg", nil, "image/svg+xml")
 		assert.NoError(t, err)
-
-		// SVG images should not be stored to prevent DoS attacks (MM-67372)
 		assert.Nil(t, og)
 		assert.Nil(t, dimensions)
 	})

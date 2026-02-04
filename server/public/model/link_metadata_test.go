@@ -349,9 +349,9 @@ func TestTruncateOpenGraphFiltersSVGImages(t *testing.T) {
 		Title: "Test",
 		Images: []*image.Image{
 			sampleImage("image.png"),
-			sampleImage("malicious.svg"),
+			sampleImage("icon.svg"),
 			sampleImage("photo.jpg"),
-			sampleImage("icon.svgz"),
+			sampleImage("compressed.svgz"),
 		},
 	}
 	result := TruncateOpenGraph(&og)
@@ -430,7 +430,7 @@ func TestFilterSVGImages(t *testing.T) {
 	t.Run("filter SVG by URL", func(t *testing.T) {
 		images := []*image.Image{
 			sampleImage("image.png"),
-			sampleImage("malicious.svg"),
+			sampleImage("icon.svg"),
 			sampleImage("photo.jpg"),
 		}
 		result := FilterSVGImages(images)
@@ -441,12 +441,12 @@ func TestFilterSVGImages(t *testing.T) {
 
 	t.Run("filter SVG by SecureURL", func(t *testing.T) {
 		images := []*image.Image{
-			{SecureURL: "https://example.com/safe.png"},
-			{SecureURL: "https://example.com/malicious.svg"},
+			{SecureURL: "https://example.com/banner.png"},
+			{SecureURL: "https://example.com/icon.svg"},
 		}
 		result := FilterSVGImages(images)
 		assert.Len(t, result, 1)
-		assert.Equal(t, "https://example.com/safe.png", result[0].SecureURL)
+		assert.Equal(t, "https://example.com/banner.png", result[0].SecureURL)
 	})
 
 	t.Run("filter SVG by MIME type", func(t *testing.T) {

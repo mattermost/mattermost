@@ -63,7 +63,6 @@ func (a *App) parseOpenGraphMetadata(requestURL string, body io.Reader, contentT
 
 	openGraphDecodeHTMLEntities(og)
 
-	// Filter out SVG images to prevent DoS attacks via malicious SVG content
 	og = filterSVGImagesFromOpenGraph(og)
 
 	// If image proxy enabled modify open graph data to feed though proxy
@@ -148,9 +147,6 @@ func openGraphDataWithProxyAddedToImageURLs(ogdata *opengraph.OpenGraph, toProxy
 }
 
 // filterSVGImagesFromOpenGraph removes SVG images from OpenGraph metadata.
-// SVG images are filtered because they can contain malicious content that crashes
-// browsers when rendered in link previews (CVE: DoS via malicious SVG in OpenGraph).
-// See: https://issues.chromium.org/issues/40057345
 func filterSVGImagesFromOpenGraph(og *opengraph.OpenGraph) *opengraph.OpenGraph {
 	if og == nil || len(og.Images) == 0 {
 		return og
@@ -186,7 +182,6 @@ func (a *App) parseOpenGraphFromOEmbed(requestURL string, body io.Reader) (*open
 		})
 	}
 
-	// Filter out SVG images to prevent DoS attacks via malicious SVG content
 	og = filterSVGImagesFromOpenGraph(og)
 
 	if toProxyURL := a.ImageProxyAdder(); toProxyURL != nil {

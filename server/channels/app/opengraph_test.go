@@ -244,7 +244,7 @@ func TestFilterSVGImagesFromOpenGraph(t *testing.T) {
 		og := opengraph.NewOpenGraph()
 		og.Images = []*ogImage.Image{
 			{URL: "https://example.com/image.png"},
-			{URL: "https://example.com/malicious.svg"},
+			{URL: "https://example.com/icon.svg"},
 			{URL: "https://example.com/photo.jpg"},
 		}
 		result := filterSVGImagesFromOpenGraph(og)
@@ -256,12 +256,12 @@ func TestFilterSVGImagesFromOpenGraph(t *testing.T) {
 	t.Run("filter SVG by SecureURL extension", func(t *testing.T) {
 		og := opengraph.NewOpenGraph()
 		og.Images = []*ogImage.Image{
-			{SecureURL: "https://example.com/safe.png"},
-			{SecureURL: "https://example.com/malicious.svg"},
+			{SecureURL: "https://example.com/banner.png"},
+			{SecureURL: "https://example.com/icon.svg"},
 		}
 		result := filterSVGImagesFromOpenGraph(og)
 		require.Len(t, result.Images, 1)
-		assert.Equal(t, "https://example.com/safe.png", result.Images[0].SecureURL)
+		assert.Equal(t, "https://example.com/banner.png", result.Images[0].SecureURL)
 	})
 
 	t.Run("filter SVG by MIME type", func(t *testing.T) {
@@ -313,7 +313,7 @@ func TestFilterSVGImagesFromOpenGraph(t *testing.T) {
 		og.Description = "Test Description"
 		og.URL = "https://example.com"
 		og.Images = []*ogImage.Image{
-			{URL: "https://example.com/malicious.svg"},
+			{URL: "https://example.com/icon.svg"},
 		}
 		result := filterSVGImagesFromOpenGraph(og)
 		assert.Equal(t, "Test Title", result.Title)
