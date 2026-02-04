@@ -2112,10 +2112,6 @@
     "translation": "Tên kênh không hợp lệ. ID người dùng không được phép có trong tên kênh cho các kênh tin nhắn không trực tiếp."
   },
   {
-    "id": "api.command_mute.not_member.error",
-    "translation": "Không thể tắt tiếng kênh {{.Channel}} vì bạn không phải là thành viên."
-  },
-  {
     "id": "app.import.validate_user_import_data.password_length.error",
     "translation": "Mật khẩu người dùng có độ dài không hợp lệ."
   },

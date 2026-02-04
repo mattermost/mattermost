@@ -790,10 +790,6 @@
     "translation": "Belirtilen kanal bulunamadı. Lütfen kanalları belirtmek için [kanal kısaltması](https://docs.mattermost.com/messaging/managing-channels.html#naming-a-channel) kullanın."
   },
   {
-    "id": "api.command_mute.not_member.error",
-    "translation": "Üyesi olmadığınızdan {{.Channel}} kanalının bildirimlerini kapatamazsınız."
-  },
-  {
     "id": "api.command_mute.success_mute",
     "translation": "Bildirimleri açana kadar {{.Channel}} kanalından bildirim almayacaksınız."
   },
@@ -10672,10 +10668,6 @@
     "translation": "Kanallardan erişim denetimi ilkesi ataması kaldırılamadı."
   },
   {
-    "id": "app.pap.update_access_control_policy_active.app_error",
-    "translation": "Erişim denetimi ilkesinin etkin durumu değiştirilemedi."
-  },
-  {
     "id": "app.pdp.access_evaluation.app_error",
     "translation": "Erişim denetimi ilkesi değerlendirilemedi."
   },
@@ -10990,18 +10982,6 @@
   {
     "id": "model.config.is_valid.autotranslation.provider.unsupported.app_error",
     "translation": "Otomatik çeviri hizmeti sağlayıcı desteklenmiyor."
-  },
-  {
-    "id": "model.config.is_valid.autotranslation.timeouts.fetch.app_error",
-    "translation": "Otomatik çeviri ayarları için alma zaman aşımı değeri geçersiz. Pozitif bir sayı olmalıdır."
-  },
-  {
-    "id": "model.config.is_valid.autotranslation.timeouts.new_post.app_error",
-    "translation": "Otomatik çeviri ayarları için yeni gönderi zaman aşımı değeri geçersiz. Pozitif bir sayı olmalıdır."
-  },
-  {
-    "id": "model.config.is_valid.autotranslation.timeouts.notification.app_error",
-    "translation": "Otomatik çeviri ayarları için bildirim zaman aşımı değeri geçersiz. Pozitif bir sayı olmalıdır."
   },
   {
     "id": "api.channel.get_channel.flagged_post_mismatch.app_error",
