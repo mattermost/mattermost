@@ -70,51 +70,166 @@ jobs:
         working-directory: ./server
         run: make setup-go-work
 
+      - name: Create results directory
+        run: mkdir -p test-results
+
       - name: Run Status Tests
+        id: status-tests
         if: inputs.test_scope == 'status' || inputs.test_scope == 'full'
+        continue-on-error: true
         working-directory: ./server
         env:
           MM_SQLSETTINGS_DRIVERNAME: postgres
           MM_SQLSETTINGS_DATASOURCE: postgres://mmuser:mostest@localhost:5432/mattermost_test?sslmode=disable
         run: |
-          echo "## Status Tests" >> $GITHUB_STEP_SUMMARY
-          gotestsum --format testname -- -v \
+          gotestsum --format testname --junitfile ../test-results/status-tests.xml -- -v \
             -run "Status" \
             ./channels/app/platform/... \
             -timeout 20m
 
       - name: Run App Tests
+        id: app-tests
         if: inputs.test_scope == 'app' || inputs.test_scope == 'full'
+        continue-on-error: true
         working-directory: ./server
         env:
           MM_SQLSETTINGS_DRIVERNAME: postgres
           MM_SQLSETTINGS_DATASOURCE: postgres://mmuser:mostest@localhost:5432/mattermost_test?sslmode=disable
         run: |
-          echo "## App Tests" >> $GITHUB_STEP_SUMMARY
-          gotestsum --format testname -- -v \
+          gotestsum --format testname --junitfile ../test-results/app-tests.xml -- -v \
             ./channels/app/... \
-            -timeout 30m || true  # Don't fail on mocks issues
+            -timeout 30m
 
       - name: Run API Tests
+        id: api-tests
         if: inputs.test_scope == 'api' || inputs.test_scope == 'full'
+        continue-on-error: true
         working-directory: ./server
         env:
           MM_SQLSETTINGS_DRIVERNAME: postgres
           MM_SQLSETTINGS_DATASOURCE: postgres://mmuser:mostest@localhost:5432/mattermost_test?sslmode=disable
         run: |
-          echo "## API Tests" >> $GITHUB_STEP_SUMMARY
-          gotestsum --format testname -- -v \
+          gotestsum --format testname --junitfile ../test-results/api-tests.xml -- -v \
             ./channels/api4/... \
             -timeout 45m
 
       - name: Run Store Tests
+        id: store-tests
         if: inputs.test_scope == 'store' || inputs.test_scope == 'full'
+        continue-on-error: true
         working-directory: ./server
         env:
           MM_SQLSETTINGS_DRIVERNAME: postgres
           MM_SQLSETTINGS_DATASOURCE: postgres://mmuser:mostest@localhost:5432/mattermost_test?sslmode=disable
         run: |
-          echo "## Store Tests" >> $GITHUB_STEP_SUMMARY
-          gotestsum --format testname -- -v \
+          gotestsum --format testname --junitfile ../test-results/store-tests.xml -- -v \
             ./channels/store/... \
             -timeout 60m
+
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: upstream-test-results
+          path: test-results/
+          retention-days: 7
+
+      - name: Generate test summary
+        if: always()
+        run: |
+          echo "# 📊 Upstream Tests Summary (${{ inputs.test_scope }})" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+
+          TOTAL_TESTS=0
+          TOTAL_FAILURES=0
+          TOTAL_ERRORS=0
+
+          echo "## Results by Test Suite" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+
+          for file in test-results/*.xml; do
+            if [ -f "$file" ]; then
+              NAME=$(basename "$file" .xml)
+              TESTS=$(grep -o 'tests="[0-9]*"' "$file" | head -1 | grep -o '[0-9]*' || echo "0")
+              FAILURES=$(grep -o 'failures="[0-9]*"' "$file" | head -1 | grep -o '[0-9]*' || echo "0")
+              ERRORS=$(grep -o 'errors="[0-9]*"' "$file" | head -1 | grep -o '[0-9]*' || echo "0")
+
+              TOTAL_TESTS=$((TOTAL_TESTS + TESTS))
+              TOTAL_FAILURES=$((TOTAL_FAILURES + FAILURES))
+              TOTAL_ERRORS=$((TOTAL_ERRORS + ERRORS))
+
+              if [ "$FAILURES" = "0" ] && [ "$ERRORS" = "0" ]; then
+                echo "✅ **$NAME**: $TESTS tests passed" >> $GITHUB_STEP_SUMMARY
+              else
+                echo "❌ **$NAME**: $FAILURES failures, $ERRORS errors out of $TESTS tests" >> $GITHUB_STEP_SUMMARY
+              fi
+            fi
+          done
+
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "---" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Total: $TOTAL_TESTS tests, $TOTAL_FAILURES failures, $TOTAL_ERRORS errors**" >> $GITHUB_STEP_SUMMARY
+
+          # List all failures in detail for easy resolution
+          if [ "$TOTAL_FAILURES" -gt 0 ] || [ "$TOTAL_ERRORS" -gt 0 ]; then
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "## 🔴 All Failures (for resolution)" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "Copy these test names to resolve one by one:" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+
+            for file in test-results/*.xml; do
+              if [ -f "$file" ]; then
+                # Extract failed test names using grep (more portable)
+                FAILED_TESTS=$(grep -oP 'name="\K[^"]+(?=".*<failure)' "$file" 2>/dev/null || \
+                               grep '<testcase' "$file" | grep -B0 '<failure' | grep -oP 'name="\K[^"]+' 2>/dev/null || true)
+                if [ -n "$FAILED_TESTS" ]; then
+                  NAME=$(basename "$file" .xml)
+                  echo "### $NAME" >> $GITHUB_STEP_SUMMARY
+                  echo '```' >> $GITHUB_STEP_SUMMARY
+                  echo "$FAILED_TESTS" >> $GITHUB_STEP_SUMMARY
+                  echo '```' >> $GITHUB_STEP_SUMMARY
+                  echo "" >> $GITHUB_STEP_SUMMARY
+
+                  # Show failure messages with context
+                  echo "<details><summary>Failure details</summary>" >> $GITHUB_STEP_SUMMARY
+                  echo "" >> $GITHUB_STEP_SUMMARY
+                  echo '```' >> $GITHUB_STEP_SUMMARY
+                  grep -B2 -A20 '<failure' "$file" | head -500 >> $GITHUB_STEP_SUMMARY || true
+                  echo '```' >> $GITHUB_STEP_SUMMARY
+                  echo "</details>" >> $GITHUB_STEP_SUMMARY
+                  echo "" >> $GITHUB_STEP_SUMMARY
+                fi
+              fi
+            done
+          fi
+
+      - name: Check for failures
+        if: always()
+        run: |
+          FAILED=0
+
+          # Check each test step that was actually run
+          if [ "${{ inputs.test_scope }}" = "status" ] || [ "${{ inputs.test_scope }}" = "full" ]; then
+            [ "${{ steps.status-tests.outcome }}" = "failure" ] && FAILED=1
+          fi
+
+          if [ "${{ inputs.test_scope }}" = "app" ] || [ "${{ inputs.test_scope }}" = "full" ]; then
+            [ "${{ steps.app-tests.outcome }}" = "failure" ] && FAILED=1
+          fi
+
+          if [ "${{ inputs.test_scope }}" = "api" ] || [ "${{ inputs.test_scope }}" = "full" ]; then
+            [ "${{ steps.api-tests.outcome }}" = "failure" ] && FAILED=1
+          fi
+
+          if [ "${{ inputs.test_scope }}" = "store" ] || [ "${{ inputs.test_scope }}" = "full" ]; then
+            [ "${{ steps.store-tests.outcome }}" = "failure" ] && FAILED=1
+          fi
+
+          if [ "$FAILED" = "1" ]; then
+            echo "::error::Upstream tests failed - see summary above for details"
+            exit 1
+          fi
+
+          echo "All tests passed!"
