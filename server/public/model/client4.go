@@ -3262,8 +3262,8 @@ func (c *Client4) UpdateChannelNotifyProps(ctx context.Context, channelId, userI
 }
 
 // UpdateChannelMemberAutotranslation will update the autotranslation setting for a user in a channel.
-func (c *Client4) UpdateChannelMemberAutotranslation(ctx context.Context, channelId, userId string, autotranslation bool) (*Response, error) {
-	requestBody := map[string]any{"autotranslation": autotranslation}
+func (c *Client4) UpdateChannelMemberAutotranslation(ctx context.Context, channelId, userId string, autoTranslationDisabled bool) (*Response, error) {
+	requestBody := map[string]any{"autotranslation_disabled": autoTranslationDisabled}
 	r, err := c.doAPIPutJSON(ctx, c.channelMemberRoute(channelId, userId).Join("autotranslation"), requestBody)
 	if err != nil {
 		return BuildResponse(r), err

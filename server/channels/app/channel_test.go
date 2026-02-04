@@ -1684,27 +1684,27 @@ func TestUpdateChannelMemberAutotranslation(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
 
-	t.Run("update autotranslation to true", func(t *testing.T) {
+	t.Run("disable autotranslation", func(t *testing.T) {
 		updatedMember, appErr := th.App.UpdateChannelMemberAutotranslation(th.Context, th.BasicChannel.Id, th.BasicUser.Id, true)
 		require.Nil(t, appErr)
-		require.True(t, updatedMember.AutoTranslation, "autotranslation should be true")
+		require.True(t, updatedMember.AutoTranslationDisabled, "autotranslation should be disabled")
 
 		member, appErr := th.App.GetChannelMember(th.Context, th.BasicChannel.Id, th.BasicUser.Id)
 		require.Nil(t, appErr)
-		require.True(t, member.AutoTranslation, "autotranslation should persist as true")
+		require.True(t, member.AutoTranslationDisabled, "autotranslation disabled should persist as true")
 	})
 
-	t.Run("update autotranslation to false", func(t *testing.T) {
+	t.Run("enable autotranslation", func(t *testing.T) {
 		_, appErr := th.App.UpdateChannelMemberAutotranslation(th.Context, th.BasicChannel.Id, th.BasicUser.Id, true)
 		require.Nil(t, appErr)
 
 		updatedMember, appErr := th.App.UpdateChannelMemberAutotranslation(th.Context, th.BasicChannel.Id, th.BasicUser.Id, false)
 		require.Nil(t, appErr)
-		require.False(t, updatedMember.AutoTranslation, "autotranslation should be false")
+		require.False(t, updatedMember.AutoTranslationDisabled, "autotranslation should be enabled")
 
 		member, appErr := th.App.GetChannelMember(th.Context, th.BasicChannel.Id, th.BasicUser.Id)
 		require.Nil(t, appErr)
-		require.False(t, member.AutoTranslation, "autotranslation should persist as false")
+		require.False(t, member.AutoTranslationDisabled, "autotranslation disabled should persist as false")
 	})
 
 	t.Run("nonexistent channel returns not found", func(t *testing.T) {

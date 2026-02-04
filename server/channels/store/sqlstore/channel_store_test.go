@@ -80,7 +80,7 @@ func testNewMapFromChannelMemberModel(t *testing.T) {
 	assert.Equal(t, sql.NullBool{Bool: true, Valid: true}, db["SchemeUser"])
 	assert.Equal(t, sql.NullBool{Bool: true, Valid: true}, db["SchemeAdmin"])
 	assert.Equal(t, m.ExplicitRoles, db["Roles"])
-	assert.Equal(t, m.AutoTranslation, db["AutoTranslation"])
+	assert.Equal(t, m.AutoTranslationDisabled, db["AutoTranslationDisabled"])
 }
 
 func testChannelMemberWithSchemeRolesToModel(t *testing.T) {

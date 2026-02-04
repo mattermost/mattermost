@@ -1848,7 +1848,7 @@ func updateChannelMemberNotifyProps(c *Context, w http.ResponseWriter, r *http.R
 }
 
 type UpdateChannelMemberAutotranslationProps struct {
-	Autotranslation bool `json:"autotranslation"`
+	AutoTranslationDisabled bool `json:"autotranslation_disabled"`
 }
 
 func updateChannelMemberAutotranslation(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -1871,7 +1871,7 @@ func updateChannelMemberAutotranslation(c *Context, w http.ResponseWriter, r *ht
 	auditRec := c.MakeAuditRecord(model.AuditEventUpdateChannelMemberAutotranslation, model.AuditStatusFail)
 	defer c.LogAuditRec(auditRec)
 	model.AddEventParameterToAuditRec(auditRec, "channel_id", c.Params.ChannelId)
-	model.AddEventParameterToAuditRec(auditRec, "autotranslation", props.Autotranslation)
+	model.AddEventParameterToAuditRec(auditRec, "autotranslation_disabled", props.AutoTranslationDisabled)
 	model.AddEventParameterToAuditRec(auditRec, "user_id", c.Params.UserId)
 
 	if !c.App.SessionHasPermissionToUser(*c.AppContext.Session(), c.Params.UserId) {
@@ -1896,7 +1896,7 @@ func updateChannelMemberAutotranslation(c *Context, w http.ResponseWriter, r *ht
 		return
 	}
 
-	_, appErr := c.App.UpdateChannelMemberAutotranslation(c.AppContext, c.Params.ChannelId, c.Params.UserId, props.Autotranslation)
+	_, appErr := c.App.UpdateChannelMemberAutotranslation(c.AppContext, c.Params.ChannelId, c.Params.UserId, props.AutoTranslationDisabled)
 	if appErr != nil {
 		c.Err = appErr
 		return
