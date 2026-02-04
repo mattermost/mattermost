@@ -73,9 +73,9 @@ on:
         required: false
       REPORT_WEBHOOK_URL:
         required: false
-      REPORT_TM4J_API_KEY:
+      ZEPHYR_API_KEY:
         required: false
-      REPORT_TM4J_TEST_CYCLE_LINK_PREFIX:
+      ZEPHYR_TEST_CYCLE_LINK_PREFIX:
         required: false
       CWS_URL:
         required: false
@@ -244,34 +244,81 @@ jobs:
           node-version-file: ".nvmrc"
           cache: npm
           cache-dependency-path: ${{ needs.generate-build-variables.outputs.node-cache-dependency-path }}
-      - name: ci/e2e-test
+      - name: ci/setup-testcontainers
+        working-directory: e2e-tests/testcontainers
+        run: npm ci --ignore-scripts --omit=dev
+      - name: ci/get-webapp-node-modules
+        if: inputs.TEST == 'playwright'
+        working-directory: webapp
+        run: make node_modules
+      - name: ci/install-test-dependencies
+        working-directory: e2e-tests/${{ inputs.TEST }}
+        run: npm ci
+      - name: ci/start-server
+        id: start-server
+        working-directory: e2e-tests/testcontainers
+        env:
+          TC_SERVER_IMAGE: ${{ inputs.SERVER_IMAGE }}
+          TC_DEPENDENCIES: ${{ inputs.ENABLED_DOCKER_SERVICES }}
+          MM_LICENSE: ${{ secrets.MM_LICENSE }}
         run: |
-          make cloud-init
+          # Convert space-separated to comma-separated for testcontainers
+          DEPS=$(echo "$TC_DEPENDENCIES" | tr ' ' ',')
+          node dist/cli.js start --detach --admin -D "$DEPS" -o .tc.out
+          # Extract server URL from testcontainers output
+          SERVER_URL=$(jq -r '.mattermost.url' .tc.out/latest/.tc.docker.json)
+          echo "SERVER_URL=$SERVER_URL" >> $GITHUB_OUTPUT
+          echo "Server started at: $SERVER_URL"
+      - name: ci/e2e-test
+        working-directory: e2e-tests/${{ inputs.TEST }}
+        env:
+          MM_SERVICESETTINGS_SITEURL: ${{ steps.start-server.outputs.SERVER_URL }}
+          CYPRESS_baseUrl: ${{ steps.start-server.outputs.SERVER_URL }}
+        run: |
           if [ -n "$ROLLING_RELEASE_SERVER_IMAGE" ]; then
             echo "RollingRelease: checking out E2E test cases from revision ${ROLLING_RELEASE_COMMIT_SHA}, for initial smoketest"
-            git checkout "${ROLLING_RELEASE_COMMIT_SHA}" -- "${TEST}/" && git status
+            git checkout "${ROLLING_RELEASE_COMMIT_SHA}" -- "." && git status
             (
             echo "RollingRelease: running initial smoketest against image $ROLLING_RELEASE_SERVER_IMAGE"
-            export SERVER_IMAGE="$ROLLING_RELEASE_SERVER_IMAGE"
-            export TEST_FILTER=""
-            export AUTOMATION_DASHBOARD_URL=""
-            make
+            # Extract tag from rolling release image for upgrade command
+            ROLLING_TAG="${ROLLING_RELEASE_SERVER_IMAGE##*:}"
+            echo "RollingRelease: upgrading server to tag $ROLLING_TAG"
+            cd ../testcontainers
+            node dist/cli.js upgrade --tag "$ROLLING_TAG" -o .tc.out
+            cd ../${{ inputs.TEST }}
+            if [ "${{ inputs.TEST }}" = "cypress" ]; then
+              AUTOMATION_DASHBOARD_URL="" node run_test_cycle.js
+            else
+              npm run test:ci
+            fi
             )
             echo "RollingRelease: asserting smoketest result has zero failures."
-            FAILURES=$(jq -r '.failed' "${TEST}/results/summary.json")
+            FAILURES=$(jq -r '.failed' "results/summary.json")
             if [ "$FAILURES" -ne "0" ]; then
               echo "RollingRelease: initial smoketest for rolling release E2E run has nonzero ($FAILURES) failures. Aborting test run." >&2
               exit 1
             fi
-            rm -rfv "${TEST}/{results,logs}"
+            rm -rfv "results" "logs"
             echo "RollingRelease: reset the E2E test cases to the revision to test"
             git reset --hard HEAD && git status
+            # Upgrade server back to original image tag
+            ORIGINAL_TAG="${SERVER_IMAGE##*:}"
+            echo "RollingRelease: upgrading server back to tag $ORIGINAL_TAG"
+            cd ../testcontainers
+            node dist/cli.js upgrade --tag "$ORIGINAL_TAG" -o .tc.out
+            cd ../${{ inputs.TEST }}
             echo "RollingRelease: smoketest completed. Starting full E2E tests."
           fi
-          make
-      - name: ci/cloud-teardown
+          # Run tests
+          if [ "${{ inputs.TEST }}" = "cypress" ]; then
+            node run_test_cycle.js
+          else
+            npm run test:ci -- "$TEST_FILTER"
+          fi
+      - name: ci/stop-server
         if: always()
-        run: make cloud-teardown
+        working-directory: e2e-tests/testcontainers
+        run: node dist/cli.js stop || true
       - name: ci/e2e-test-store-results
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         if: always()
@@ -338,8 +385,8 @@ jobs:
           BRANCH: "${{ inputs.BRANCH }}"
           BUILD_ID: "${{ inputs.BUILD_ID }}"
           MM_ENV: "${{ inputs.MM_ENV }}"
-          TM4J_API_KEY: "${{ secrets.REPORT_TM4J_API_KEY }}"
-          TEST_CYCLE_LINK_PREFIX: "${{ secrets.REPORT_TM4J_TEST_CYCLE_LINK_PREFIX }}"
+          ZEPHYR_API_KEY: "${{ secrets.ZEPHYR_API_KEY }}"
+          TEST_CYCLE_LINK_PREFIX: "${{ secrets.ZEPHYR_TEST_CYCLE_LINK_PREFIX }}"
         run: |
           echo "DEBUG: TYPE=${TYPE}, PR_NUMBER=${PR_NUMBER:-<not set>}"
           make report

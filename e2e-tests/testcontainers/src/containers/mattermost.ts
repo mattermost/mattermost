@@ -12,7 +12,7 @@ import {
     PostgresConnectionInfo,
     InbucketConnectionInfo,
 } from '../config/types';
-import {createFileLogConsumer} from '../utils/log';
+import {createFileLogConsumer, log} from '../utils/log';
 
 // Default max age for images before forcing a pull (24 hours in milliseconds)
 const DEFAULT_IMAGE_MAX_AGE_MS = 24 * 60 * 60 * 1000;
@@ -49,11 +49,6 @@ function getLocalImageCreatedDate(imageName: string): Date | null {
         // Image doesn't exist locally
         return null;
     }
-}
-
-function log(message: string): void {
-    const timestamp = new Date().toISOString().replace(/\.\d{3}Z$/, 'Z');
-    process.stderr.write(`[${timestamp}] [tc] ${message}\n`);
 }
 
 /**

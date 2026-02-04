@@ -850,6 +850,7 @@ const defaultServerConfig: AdminConfig = {
         },
         TargetLanguages: ['en'],
         TimeoutMs: 5000,
+        Workers: 0,
         Agents: {
             LLMServiceID: '',
         },

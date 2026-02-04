@@ -1,5 +1,5 @@
 ---
-name: E2E Tests
+name: E2E Tests (Full)
 on:
   # For PRs, this workflow gets triggered from the Argo Events platform.
   # Check the following repo for details: https://github.com/mattermost/delivery-platform
@@ -78,7 +78,7 @@ jobs:
       TEST_FILTER_PLAYWRIGHT: "tests --grep-invert @team_edition"
       TEST_FILTER_PLAYWRIGHT_TEAM: "tests --grep '@team_edition|@entry_tier'"
       BUILD_ID: "${{ steps.generate.outputs.BUILD_ID }}"
-      TM4J_ENABLE: "${{ steps.generate.outputs.TM4J_ENABLE }}"
+      ZEPHYR_ENABLE: "${{ steps.generate.outputs.ZEPHYR_ENABLE }}"
       REPORT_TYPE: "${{ steps.generate.outputs.REPORT_TYPE }}"
       TESTCASE_FAILURE_FATAL: "${{ steps.generate.outputs.TESTCASE_FAILURE_FATAL }}"
       ROLLING_RELEASE_commit_sha: "${{ steps.generate.outputs.ROLLING_RELEASE_commit_sha }}"
@@ -158,7 +158,7 @@ jobs:
               BUILD_ID_SUFFIX_IN_STATUS_CHECK=true
               WORKERS_NUMBER=10   # Daily tests are not time critical, and it's more efficient to run on fewer workers
               TEST_FILTER_CYPRESS="${!_TEST_FILTER_CYPRESS_VARIABLE} ${_IS_TEST_UNSTABLE:+--invert}"
-              TM4J_ENABLE=true
+              ZEPHYR_ENABLE=true
               COMPUTED_REPORT_TYPE="${REPORT_TYPE}"
               [ -z "$_IS_TEST_UNSTABLE" ] || TESTCASE_FAILURE_FATAL="" # Assert that tests are stable. If they are not, the status check will be always green
               ;;
@@ -174,7 +174,7 @@ jobs:
               BUILD_ID_SUFFIX_IN_STATUS_CHECK=true
               WORKERS_NUMBER=20
               TEST_FILTER_CYPRESS="${!_TEST_FILTER_CYPRESS_VARIABLE}"
-              TM4J_ENABLE=true
+              ZEPHYR_ENABLE=true
               COMPUTED_REPORT_TYPE=RELEASE
               ### Run sanity assertions after variable generations
               git show-ref --verify "refs/tags/${REF}"              # 'inputs.ref' must be a tag, for release report types
@@ -226,7 +226,7 @@ jobs:
           echo "workers_number=${WORKERS_NUMBER}" >> $GITHUB_OUTPUT
           echo "TEST_FILTER_CYPRESS=${TEST_FILTER_CYPRESS}" >> $GITHUB_OUTPUT
           echo "TESTCASE_FAILURE_FATAL=${TESTCASE_FAILURE_FATAL}" >> $GITHUB_OUTPUT
-          echo "TM4J_ENABLE=${TM4J_ENABLE:-}" >> $GITHUB_OUTPUT
+          echo "ZEPHYR_ENABLE=${ZEPHYR_ENABLE:-}" >> $GITHUB_OUTPUT
           echo "REPORT_TYPE=${COMPUTED_REPORT_TYPE}" >> $GITHUB_OUTPUT
           echo "ROLLING_RELEASE_commit_sha=${ROLLING_RELEASE_COMMIT_SHA}" >> $GITHUB_OUTPUT
           echo "ROLLING_RELEASE_SERVER_IMAGE=${ROLLING_RELEASE_SERVER_IMAGE}" >> $GITHUB_OUTPUT
@@ -257,99 +257,84 @@ jobs:
   e2e-fulltest-cypress:
     needs:
       - generate-test-variables
-    uses: ./.github/workflows/e2e-tests-ci-template.yml
+    uses: ./.github/workflows/e2e-tests-cypress-template.yml
     if: ${{ inputs.RUN_CYPRESS == 'true' }}
     with:
+      test_type: full
+      test_filter: "${{ needs.generate-test-variables.outputs.TEST_FILTER_CYPRESS }}"
+      workers: ${{ fromJSON(needs.generate-test-variables.outputs.workers_number) }}
+      timeout_minutes: 60
+      enabled_docker_services: "${{ needs.generate-test-variables.outputs.ENABLED_DOCKER_SERVICES }}"
+      mm_env: "${{ inputs.MM_ENV }}"
       commit_sha: "${{ needs.generate-test-variables.outputs.commit_sha }}"
-      status_check_context: "${{ needs.generate-test-variables.outputs.status_check_context }}"
-      workers_number: "${{ needs.generate-test-variables.outputs.workers_number }}"
-      testcase_failure_fatal: "${{ needs.generate-test-variables.outputs.TESTCASE_FAILURE_FATAL == 'true' }}"
+      branch: "${{ needs.generate-test-variables.outputs.BRANCH }}"
+      build_id: "${{ needs.generate-test-variables.outputs.BUILD_ID }}"
+      server_image: "${{ needs.generate-test-variables.outputs.SERVER_IMAGE }}"
+      server: "${{ needs.generate-test-variables.outputs.SERVER }}"
       enable_reporting: true
-      SERVER: "${{ needs.generate-test-variables.outputs.SERVER }}"
-      SERVER_IMAGE: "${{ needs.generate-test-variables.outputs.SERVER_IMAGE }}"
-      ENABLED_DOCKER_SERVICES: "${{ needs.generate-test-variables.outputs.ENABLED_DOCKER_SERVICES }}"
-      TEST: "cypress"
-      TEST_FILTER: "${{ needs.generate-test-variables.outputs.TEST_FILTER_CYPRESS }}"
-      MM_ENV: "${{ inputs.MM_ENV || '' }}"
-      BRANCH: "${{ needs.generate-test-variables.outputs.BRANCH }}"
-      BUILD_ID: "${{ needs.generate-test-variables.outputs.BUILD_ID }}"
-      REPORT_TYPE: "${{ needs.generate-test-variables.outputs.REPORT_TYPE }}"
-      ROLLING_RELEASE_commit_sha: "${{ needs.generate-test-variables.outputs.ROLLING_RELEASE_commit_sha }}"
-      ROLLING_RELEASE_SERVER_IMAGE: "${{ needs.generate-test-variables.outputs.ROLLING_RELEASE_SERVER_IMAGE }}"
-      PR_NUMBER: "${{ inputs.PR_NUMBER }}"
+      report_type: "${{ needs.generate-test-variables.outputs.REPORT_TYPE }}"
+      pr_number: "${{ inputs.PR_NUMBER }}"
+      context_name: "${{ needs.generate-test-variables.outputs.status_check_context }}"
     secrets:
       MM_LICENSE: "${{ secrets[format('MM_E2E_TEST_LICENSE_{0}_ENT', needs.generate-test-variables.outputs.server_uppercase)] }}"
       AUTOMATION_DASHBOARD_URL: "${{ secrets.MM_E2E_AUTOMATION_DASHBOARD_URL }}"
       AUTOMATION_DASHBOARD_TOKEN: "${{ secrets.MM_E2E_AUTOMATION_DASHBOARD_TOKEN }}"
       PUSH_NOTIFICATION_SERVER: "${{ secrets.MM_E2E_PUSH_NOTIFICATION_SERVER }}"
       REPORT_WEBHOOK_URL: "${{ secrets.MM_E2E_REPORT_WEBHOOK_URL }}"
-      REPORT_TM4J_API_KEY: "${{ needs.generate-test-variables.outputs.TM4J_ENABLE == 'true' && secrets.MM_E2E_TM4J_API_KEY || '' }}"
-      REPORT_TM4J_TEST_CYCLE_LINK_PREFIX: "${{ secrets.MM_E2E_TEST_CYCLE_LINK_PREFIX }}"
+      ZEPHYR_API_KEY: "${{ needs.generate-test-variables.outputs.ZEPHYR_ENABLE == 'true' && secrets.MM_E2E_ZEPHYR_API_KEY || '' }}"
+      ZEPHYR_TEST_CYCLE_LINK_PREFIX: "${{ secrets.MM_E2E_ZEPHYR_TEST_CYCLE_LINK_PREFIX }}"
       CWS_URL: "${{ needs.generate-test-variables.outputs.SERVER == 'cloud' && secrets.MM_E2E_CWS_URL || '' }}"
       CWS_EXTRA_HTTP_HEADERS: "${{ needs.generate-test-variables.outputs.SERVER == 'cloud' && secrets.MM_E2E_CWS_EXTRA_HTTP_HEADERS || '' }}"
-      AWS_ACCESS_KEY_ID: "${{ secrets.CYPRESS_AWS_ACCESS_KEY_ID }}"
-      AWS_SECRET_ACCESS_KEY: "${{ secrets.CYPRESS_AWS_SECRET_ACCESS_KEY }}"
 
   e2e-fulltest-playwright:
     needs:
       - generate-test-variables
-    uses: ./.github/workflows/e2e-tests-ci-template.yml
+    uses: ./.github/workflows/e2e-tests-playwright-template.yml
     if: ${{ inputs.RUN_PLAYWRIGHT == 'true' }}
     with:
+      test_type: full
+      test_filter: "${{ needs.generate-test-variables.outputs.TEST_FILTER_PLAYWRIGHT }}"
+      timeout_minutes: 60
+      enabled_docker_services: "${{ needs.generate-test-variables.outputs.ENABLED_DOCKER_SERVICES }}"
+      mm_env: "${{ inputs.MM_ENV }}"
       commit_sha: "${{ needs.generate-test-variables.outputs.commit_sha }}"
-      status_check_context: "${{ needs.generate-test-variables.outputs.status_check_context }}-playwright"
-      workers_number: "1"
-      testcase_failure_fatal: "${{ needs.generate-test-variables.outputs.TESTCASE_FAILURE_FATAL == 'true' }}"
+      branch: "${{ needs.generate-test-variables.outputs.BRANCH }}"
+      build_id: "${{ needs.generate-test-variables.outputs.BUILD_ID }}"
+      server_image: "${{ needs.generate-test-variables.outputs.SERVER_IMAGE }}"
+      server: "${{ needs.generate-test-variables.outputs.SERVER }}"
       enable_reporting: true
-      SERVER: "${{ needs.generate-test-variables.outputs.SERVER }}"
-      SERVER_IMAGE: "${{ needs.generate-test-variables.outputs.SERVER_IMAGE }}"
-      TEST: "playwright"
-      TEST_FILTER: "${{ needs.generate-test-variables.outputs.TEST_FILTER_PLAYWRIGHT }}"
-      MM_ENV: "${{ inputs.MM_ENV || '' }}"
-      BRANCH: "${{ needs.generate-test-variables.outputs.BRANCH }}"
-      BUILD_ID: "${{ needs.generate-test-variables.outputs.BUILD_ID }}"
-      REPORT_TYPE: "${{ needs.generate-test-variables.outputs.REPORT_TYPE }}"
-      ROLLING_RELEASE_commit_sha: "${{ needs.generate-test-variables.outputs.ROLLING_RELEASE_commit_sha }}"
-      ROLLING_RELEASE_SERVER_IMAGE: "${{ needs.generate-test-variables.outputs.ROLLING_RELEASE_SERVER_IMAGE }}"
-      PR_NUMBER: "${{ inputs.PR_NUMBER }}"
+      report_type: "${{ needs.generate-test-variables.outputs.REPORT_TYPE }}"
+      pr_number: "${{ inputs.PR_NUMBER }}"
+      context_name: "${{ needs.generate-test-variables.outputs.status_check_context }}-playwright"
     secrets:
       MM_LICENSE: "${{ secrets[format('MM_E2E_TEST_LICENSE_{0}_ENT', needs.generate-test-variables.outputs.server_uppercase)] }}"
-      PUSH_NOTIFICATION_SERVER: "${{ secrets.MM_E2E_PUSH_NOTIFICATION_SERVER }}"
       REPORT_WEBHOOK_URL: "${{ secrets.MM_E2E_REPORT_WEBHOOK_URL }}"
-      CWS_URL: "${{ needs.generate-test-variables.outputs.SERVER == 'cloud' && secrets.MM_E2E_CWS_URL || '' }}"
-      CWS_EXTRA_HTTP_HEADERS: "${{ needs.generate-test-variables.outputs.SERVER == 'cloud' && secrets.MM_E2E_CWS_EXTRA_HTTP_HEADERS || '' }}"
       AWS_ACCESS_KEY_ID: "${{ secrets.CYPRESS_AWS_ACCESS_KEY_ID }}"
       AWS_SECRET_ACCESS_KEY: "${{ secrets.CYPRESS_AWS_SECRET_ACCESS_KEY }}"
 
   e2e-fulltest-playwright-team:
     needs:
       - generate-test-variables
-    uses: ./.github/workflows/e2e-tests-ci-template.yml
+    uses: ./.github/workflows/e2e-tests-playwright-template.yml
     if: ${{ inputs.RUN_PLAYWRIGHT == 'true' }}
     with:
+      test_type: full
+      test_filter: "${{ needs.generate-test-variables.outputs.TEST_FILTER_PLAYWRIGHT_TEAM }}"
+      timeout_minutes: 60
+      enabled_docker_services: "${{ needs.generate-test-variables.outputs.ENABLED_DOCKER_SERVICES }}"
+      mm_env: "${{ inputs.MM_ENV }}"
       commit_sha: "${{ needs.generate-test-variables.outputs.commit_sha }}"
-      status_check_context: "${{ needs.generate-test-variables.outputs.status_check_context }}-playwright-team"
-      workers_number: "1"
-      testcase_failure_fatal: "${{ needs.generate-test-variables.outputs.TESTCASE_FAILURE_FATAL == 'true' }}"
-      run_preflight_checks: false
+      branch: "${{ needs.generate-test-variables.outputs.BRANCH }}"
+      build_id: "${{ needs.generate-test-variables.outputs.BUILD_ID }}-team"
+      server_image: "${{ needs.generate-test-variables.outputs.SERVER_IMAGE }}"
+      server: "${{ needs.generate-test-variables.outputs.SERVER }}"
       enable_reporting: true
-      SERVER: "${{ needs.generate-test-variables.outputs.SERVER }}"
-      SERVER_IMAGE: "${{ needs.generate-test-variables.outputs.SERVER_IMAGE }}"
-      TEST: "playwright"
-      TEST_FILTER: "${{ needs.generate-test-variables.outputs.TEST_FILTER_PLAYWRIGHT_TEAM }}"
-      MM_ENV: "${{ inputs.MM_ENV || '' }}"
-      BRANCH: "${{ needs.generate-test-variables.outputs.BRANCH }}"
-      BUILD_ID: "${{ needs.generate-test-variables.outputs.BUILD_ID }}-team"
-      REPORT_TYPE: "${{ needs.generate-test-variables.outputs.REPORT_TYPE }}"
-      ROLLING_RELEASE_commit_sha: "${{ needs.generate-test-variables.outputs.ROLLING_RELEASE_commit_sha }}"
-      ROLLING_RELEASE_SERVER_IMAGE: "${{ needs.generate-test-variables.outputs.ROLLING_RELEASE_SERVER_IMAGE }}"
-      PR_NUMBER: "${{ inputs.PR_NUMBER }}"
+      report_type: "${{ needs.generate-test-variables.outputs.REPORT_TYPE }}"
+      pr_number: "${{ inputs.PR_NUMBER }}"
+      context_name: "${{ needs.generate-test-variables.outputs.status_check_context }}-playwright-team"
     secrets:
       MM_LICENSE: ""
-      PUSH_NOTIFICATION_SERVER: "${{ secrets.MM_E2E_PUSH_NOTIFICATION_SERVER }}"
       REPORT_WEBHOOK_URL: "${{ secrets.MM_E2E_REPORT_WEBHOOK_URL }}"
-      CWS_URL: "${{ needs.generate-test-variables.outputs.SERVER == 'cloud' && secrets.MM_E2E_CWS_URL || '' }}"
-      CWS_EXTRA_HTTP_HEADERS: "${{ needs.generate-test-variables.outputs.SERVER == 'cloud' && secrets.MM_E2E_CWS_EXTRA_HTTP_HEADERS || '' }}"
       AWS_ACCESS_KEY_ID: "${{ secrets.CYPRESS_AWS_ACCESS_KEY_ID }}"
       AWS_SECRET_ACCESS_KEY: "${{ secrets.CYPRESS_AWS_SECRET_ACCESS_KEY }}"
 
@@ -377,8 +362,9 @@ jobs:
       CYCLE_URL: "${{ needs.generate-test-variables.outputs.CYCLE_URL }}"
       RUN_CYPRESS: "${{inputs.RUN_CYPRESS == 'true' || ''}}"
       RUN_PLAYWRIGHT: "${{inputs.RUN_PLAYWRIGHT == 'true' || ''}}"
-      PLAYWRIGHT_REPORT_URL: "${{ needs.e2e-fulltest-playwright.outputs.playwright_report_url }}"
-      PLAYWRIGHT_TEAM_REPORT_URL: "${{ needs.e2e-fulltest-playwright-team.outputs.playwright_report_url }}"
+      CYPRESS_REPORT_URL: "${{ needs.e2e-fulltest-cypress.outputs.status_check_url }}"
+      PLAYWRIGHT_REPORT_URL: "${{ needs.e2e-fulltest-playwright.outputs.report_url }}"
+      PLAYWRIGHT_TEAM_REPORT_URL: "${{ needs.e2e-fulltest-playwright-team.outputs.report_url }}"
     steps:
       - name: ci/notify-user-test-completion
         run: |
@@ -386,10 +372,10 @@ jobs:
             gh issue -R "${{ github.repository }}" comment "$PR_NUMBER" --body-file - <<EOF
           E2E test has completed for commit \`${COMMIT_SHA}\`${MM_ENV:+, with \`MM_ENV=$MM_ENV\`}.
           Results summary:
-          - Cypress: ${RUN_CYPRESS:+pass rate is \`${{ needs.e2e-fulltest-cypress.outputs.pass_rate || 'unknown' }}\` (see [Automation Dashboard]($CYCLE_URL) and commit status check \`$STATUS_CHECK_CONTEXT\`)}$([ -n "${RUN_CYPRESS:-}" ] || echo -n "did not run").
-          - Playwright: ${RUN_PLAYWRIGHT:+pass rate is \`${{ needs.e2e-fulltest-playwright.outputs.pass_rate || 'unknown' }}\` (see [Playwright Report URL]($PLAYWRIGHT_REPORT_URL) and commit status check \`$STATUS_CHECK_CONTEXT-playwright\`)}$([ -n "${RUN_PLAYWRIGHT:-}" ] || echo -n "did not run").
-          - Playwright (Team): ${RUN_PLAYWRIGHT:+pass rate is \`${{ needs.e2e-fulltest-playwright-team.outputs.pass_rate || 'unknown' }}\` (see [Playwright Report URL]($PLAYWRIGHT_TEAM_REPORT_URL) and commit status check \`$STATUS_CHECK_CONTEXT-playwright-team\`)}$([ -n "${RUN_PLAYWRIGHT:-}" ] || echo -n "did not run").
-          
+          - Cypress: ${RUN_CYPRESS:+pass rate is \`${{ needs.e2e-fulltest-cypress.outputs.pass_rate || 'unknown' }}\` (see [Automation Dashboard]($CYPRESS_REPORT_URL) and commit status check \`$STATUS_CHECK_CONTEXT\`)}$([ -n "${RUN_CYPRESS:-}" ] || echo -n "did not run").
+          - Playwright: ${RUN_PLAYWRIGHT:+pass rate is \`${{ needs.e2e-fulltest-playwright.outputs.pass_rate || 'unknown' }}\` (see [Playwright Report]($PLAYWRIGHT_REPORT_URL) and commit status check \`$STATUS_CHECK_CONTEXT-playwright\`)}$([ -n "${RUN_PLAYWRIGHT:-}" ] || echo -n "did not run").
+          - Playwright (Team): ${RUN_PLAYWRIGHT:+pass rate is \`${{ needs.e2e-fulltest-playwright-team.outputs.pass_rate || 'unknown' }}\` (see [Playwright Report]($PLAYWRIGHT_TEAM_REPORT_URL) and commit status check \`$STATUS_CHECK_CONTEXT-playwright-team\`)}$([ -n "${RUN_PLAYWRIGHT:-}" ] || echo -n "did not run").
+
           The run summary artifacts are available in the corresponding [Workflow Run]($WORKFLOW_RUN_URL).
           EOF
           fi

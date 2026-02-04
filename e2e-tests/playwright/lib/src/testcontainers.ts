@@ -1,18 +1,9 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {
-    MattermostTestEnvironment,
-    DependencyConnectionInfo,
-    MmctlClient,
-    discoverAndLoadConfig,
-    setOutputDir,
-    printConnectionInfo,
-    type ResolvedTestcontainersConfig,
-} from '@mattermost/testcontainers';
+import {MattermostTestEnvironment, discoverAndLoadConfig} from '@mattermost/testcontainers';
 
 let environment: MattermostTestEnvironment | null = null;
-let resolvedConfig: ResolvedTestcontainersConfig | null = null;
 
 /**
  * Check if testcontainers is enabled via environment variables.
@@ -42,7 +33,6 @@ function isTestcontainersEnabled(): boolean {
  * }
  */
 export async function startTestEnvironment(): Promise<MattermostTestEnvironment | null> {
-    // Check if testcontainers is enabled
     if (!isTestcontainersEnabled()) {
         return null;
     }
@@ -51,25 +41,12 @@ export async function startTestEnvironment(): Promise<MattermostTestEnvironment 
         return environment;
     }
 
-    // Auto-discover and load configuration
-    resolvedConfig = await discoverAndLoadConfig();
-
-    // Set the output directory for all testcontainers artifacts (logs, .env.tc, etc.)
-    setOutputDir(resolvedConfig.outputDir);
-
-    // Create environment with resolved config
-    // MattermostTestEnvironment handles serverEnv with proper priority:
-    // defaults (serviceEnvironment) < MM_* env vars < user serverEnv
-    environment = new MattermostTestEnvironment(resolvedConfig);
+    const config = await discoverAndLoadConfig();
+    environment = new MattermostTestEnvironment(config);
     await environment.start();
+    environment.printConnectionInfo();
 
-    // Print connection info
-    const info = environment.getConnectionInfo();
-    printConnectionInfo(info);
-
-    // Set PW_BASE_URL for Playwright
-    const serverUrl = environment.getServerUrl();
-    process.env.PW_BASE_URL = serverUrl;
+    process.env.PW_BASE_URL = environment.getServerUrl();
 
     return environment;
 }
@@ -90,47 +67,5 @@ export async function stopTestEnvironment(): Promise<void> {
     if (environment) {
         await environment.stop();
         environment = null;
-        resolvedConfig = null;
     }
 }
-
-/**
- * Get the MmctlClient for executing mmctl commands.
- * Throws if environment is not started or in local mode.
- *
- * @example
- * const mmctl = getMmctl();
- * await mmctl.exec('user create --email test@test.com --username testuser --password Test123!');
- */
-export function getMmctl(): MmctlClient {
-    if (!environment) {
-        throw new Error('Test environment not started. Call startTestEnvironment() first.');
-    }
-    return environment.getMmctl();
-}
-
-/**
- * Get the Mattermost server URL.
- * Works for both container and local modes.
- */
-export function getServerUrl(): string {
-    if (!environment) {
-        return process.env.PW_BASE_URL || 'http://localhost:8065';
-    }
-    return environment.getServerUrl();
-}
-
-/**
- * Get all service connection information.
- * Useful for configuring test clients or debugging.
- */
-export function getConnectionInfo(): DependencyConnectionInfo | null {
-    if (!environment) {
-        return null;
-    }
-    return environment.getConnectionInfo();
-}
-
-// Re-export types for convenience
-export type {DependencyConnectionInfo, MmctlClient, ResolvedTestcontainersConfig};
-export {MattermostTestEnvironment};

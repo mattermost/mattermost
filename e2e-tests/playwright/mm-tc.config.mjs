@@ -4,11 +4,31 @@
 import {defineConfig} from '@mattermost/testcontainers';
 
 /**
+ * Parse MM_ENV environment variable (comma-separated KEY=value pairs) into an object.
+ * Used to pass server environment variables from CI workflows.
+ * @example MM_ENV="MM_FEATUREFLAGS_X=true,MM_SERVICESETTINGS_Y=value"
+ */
+function parseServerEnv() {
+    const serverEnv = {};
+    if (process.env.MM_ENV) {
+        for (const pair of process.env.MM_ENV.split(',')) {
+            const eqIndex = pair.indexOf('=');
+            if (eqIndex > 0) {
+                const key = pair.substring(0, eqIndex).trim();
+                const value = pair.substring(eqIndex + 1).trim();
+                serverEnv[key] = value;
+            }
+        }
+    }
+    return serverEnv;
+}
+
+/**
  * Testcontainers configuration for Playwright E2E tests.
  *
  * Configuration priority (highest to lowest):
  * 1. CLI flags (e.g., -e, -t, --ha)
- * 2. Environment variables (e.g., TC_EDITION, MM_SERVICEENVIRONMENT)
+ * 2. Environment variables (e.g., TC_EDITION, MM_SERVICEENVIRONMENT, MM_ENV)
  * 3. This config file
  * 4. Built-in defaults
  *
@@ -24,10 +44,10 @@ export default defineConfig({
         // imageMaxAgeHours: 24, // Pull fresh images if older than N hours (@env TC_IMAGE_MAX_AGE_HOURS, @default 24)
         // ha: false, // High-availability mode (3-node cluster with nginx) - requires MM_LICENSE (@env TC_HA, @default false)
         // subpath: false, // Subpath mode (2 servers at /mattermost1 and /mattermost2) (@env TC_SUBPATH, @default false)
-        // env: {
-        //     MM_SERVICESETTINGS_ENABLEOPENSERVER: 'true',
-        //     MM_LOGSETTINGS_CONSOLELEVEL: 'DEBUG',
-        // },
+
+        // Environment variables parsed from MM_ENV (comma-separated KEY=value pairs)
+        env: parseServerEnv(),
+
         // config: {
         //     ServiceSettings: {EnableOpenServer: true, EnableTesting: true},
         //     TeamSettings: {MaxUsersPerTeam: 100},

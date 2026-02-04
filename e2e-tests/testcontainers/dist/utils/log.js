@@ -2,6 +2,16 @@
 // See LICENSE.txt for license information.
 import * as fs from 'fs';
 import * as path from 'path';
+/**
+ * Log a message with timestamp to stderr.
+ * Format: [ISO8601] [tc] message
+ *
+ * @param message The message to log
+ */
+export function log(message) {
+    const timestamp = new Date().toISOString().replace(/\.\d{3}Z$/, 'Z');
+    process.stderr.write(`[${timestamp}] [tc] ${message}\n`);
+}
 // Default output directory for all testcontainers artifacts
 const DEFAULT_OUTPUT_DIR = '.tc.out';
 // Subdirectory for container logs within outputDir

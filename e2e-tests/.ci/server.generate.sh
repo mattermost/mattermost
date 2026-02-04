@@ -236,7 +236,7 @@ $(if mme2e_is_token_in_list "cypress" "$ENABLED_DOCKER_SERVICES"; then
       CYPRESS_firstTest: "true"
       CYPRESS_resetBeforeTest: "true"
       CYPRESS_allowedUntrustedInternalConnections: "localhost webhook-interactions"
-      TM4J_ENABLE: "false"
+      ZEPHYR_ENABLE: "false"
       # disable shared memory X11 affecting Cypress v4 and Chrome
       # https://github.com/cypress-io/cypress-docker-images/issues/270
       QT_X11_NO_MITSHM: "1"

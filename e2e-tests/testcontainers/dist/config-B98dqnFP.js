@@ -204,13 +204,7 @@ const DEFAULT_CREDENTIALS = {
     keycloak: {
         adminUser: 'admin',
         adminPassword: 'admin',
-    },
-    mattermost: {
-        adminUsername: 'sysadmin',
-        adminPassword: 'Sys@dmin-sample1',
-        // Email is derived as '<username>@sample.mattermost.com'
-    },
-};
+    }};
 /**
  * Internal ports for dependencies (inside containers)
  */
@@ -254,6 +248,16 @@ const HA_NODE_COUNT = 3;
 
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
+/**
+ * Log a message with timestamp to stderr.
+ * Format: [ISO8601] [tc] message
+ *
+ * @param message The message to log
+ */
+function log(message) {
+    const timestamp = new Date().toISOString().replace(/\.\d{3}Z$/, 'Z');
+    process.stderr.write(`[${timestamp}] [tc] ${message}\n`);
+}
 // Default output directory for all testcontainers artifacts
 const DEFAULT_OUTPUT_DIR$1 = '.tc.out';
 // Subdirectory for container logs within outputDir
@@ -285,19 +289,6 @@ function setOutputDir(dir) {
  */
 function getLogDir() {
     return path__namespace.join(getOutputDir(), LOGS_SUBDIR);
-}
-/**
- * @deprecated Use setOutputDir instead. This function is kept for backwards compatibility.
- */
-function setLogDir(dir) {
-    // For backwards compatibility, if someone sets logDir directly,
-    // we treat it as the parent outputDir (remove /logs suffix if present)
-    if (dir.endsWith(`/${LOGS_SUBDIR}`) || dir.endsWith(`\\${LOGS_SUBDIR}`)) {
-        outputDir = dir.slice(0, -LOGS_SUBDIR.length - 1);
-    }
-    else {
-        outputDir = dir;
-    }
 }
 /**
  * Ensure the log directory exists.
@@ -1117,10 +1108,6 @@ function getLocalImageCreatedDate(imageName) {
         return null;
     }
 }
-function log(message) {
-    const timestamp = new Date().toISOString().replace(/\.\d{3}Z$/, 'Z');
-    process.stderr.write(`[${timestamp}] [tc] ${message}\n`);
-}
 /**
  * Pull a Docker image using docker CLI.
  * Mattermost images are only published for linux/amd64.
@@ -1555,83 +1542,6 @@ function getNginxConnectionInfo(container, image) {
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 /**
- * Client for executing mmctl commands inside a Mattermost container.
- * Uses --local flag to communicate via Unix socket (no authentication required).
- */
-class MmctlClient {
-    container;
-    constructor(container) {
-        this.container = container;
-    }
-    /**
-     * Execute an mmctl command inside the container.
-     * The --local flag is automatically added to use Unix socket communication.
-     *
-     * @param command - The mmctl command to execute (without 'mmctl' prefix)
-     * @returns Promise<MmctlExecResult> - The result of the command execution
-     *
-     * @example
-     * // Create a user
-     * await mmctl.exec('user create --email test@test.com --username testuser --password Test123!');
-     *
-     * @example
-     * // Get system info
-     * const result = await mmctl.exec('system version');
-     * console.log(result.stdout);
-     *
-     * @example
-     * // Run a test command
-     * await mmctl.exec('sampledata --teams 5 --users 100');
-     */
-    async exec(command) {
-        // Split the command into arguments
-        const args = this.parseCommand(command);
-        // Execute mmctl with --local flag inside the container
-        const result = await this.container.exec(['mmctl', '--local', ...args]);
-        return {
-            exitCode: result.exitCode,
-            stdout: result.output,
-            stderr: '', // testcontainers combines stdout/stderr in output
-        };
-    }
-    /**
-     * Parse a command string into an array of arguments.
-     * Handles quoted strings properly.
-     */
-    parseCommand(command) {
-        const args = [];
-        let current = '';
-        let inQuote = false;
-        let quoteChar = '';
-        for (const char of command) {
-            if ((char === '"' || char === "'") && !inQuote) {
-                inQuote = true;
-                quoteChar = char;
-            }
-            else if (char === quoteChar && inQuote) {
-                inQuote = false;
-                quoteChar = '';
-            }
-            else if (char === ' ' && !inQuote) {
-                if (current) {
-                    args.push(current);
-                    current = '';
-                }
-            }
-            else {
-                current += char;
-            }
-        }
-        if (current) {
-            args.push(current);
-        }
-        return args;
-    }
-}
-
-// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
-// See LICENSE.txt for license information.
-/**
  * Check if a Docker image exists locally.
  *
  * @param image The image name (e.g., 'postgres:14')
@@ -1649,48 +1559,660 @@ function imageExistsLocally(image) {
         return false;
     }
 }
-/**
- * Pull a Docker image if it doesn't exist locally.
- *
- * @param image The image name to pull
- * @param onPullStart Callback when pull starts
- * @returns true if the image was pulled, false if it already existed
- */
-async function pullImageIfNeeded(image, onPullStart) {
-    if (imageExistsLocally(image)) {
-        return false;
-    }
-    onPullStart?.();
-    return new Promise((resolve, reject) => {
-        try {
-            child_process.execSync(`docker pull "${image}"`, {
-                stdio: ['pipe', 'pipe', 'pipe'],
-            });
-            resolve(true);
-        }
-        catch (error) {
-            reject(error);
-        }
-    });
-}
 
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 /**
- * Format elapsed time in a human-readable format.
- * Shows decimal if < 10s, whole seconds if < 60s, otherwise minutes and seconds.
+ * Print connection info for all dependencies in the test environment.
+ * @param info Service connection information
+ * @param logger Optional custom logger function (defaults to console.log)
  */
-function formatElapsed(ms) {
-    const totalSeconds = ms / 1000;
-    if (totalSeconds < 10) {
-        return `${totalSeconds.toFixed(1)}s`;
+function printConnectionInfo(info, logger = console.log) {
+    logger('\nTest Environment Connection Info:');
+    logger('=================================');
+    if (info.mattermost) {
+        logger(`  Mattermost: ${info.mattermost.url}`);
     }
-    if (totalSeconds < 60) {
-        return `${Math.round(totalSeconds)}s`;
+    logger(`  PostgreSQL: ${info.postgres.connectionString}`);
+    if (info.inbucket) {
+        logger(`  Inbucket Web: http://${info.inbucket.host}:${info.inbucket.webPort}`);
     }
-    const minutes = Math.floor(totalSeconds / 60);
-    const seconds = Math.round(totalSeconds % 60);
-    return `${minutes}m ${seconds}s`;
+    if (info.openldap) {
+        logger(`  OpenLDAP: ldap://${info.openldap.host}:${info.openldap.port}`);
+    }
+    if (info.minio) {
+        logger(`  MinIO: ${info.minio.endpoint}`);
+    }
+    if (info.elasticsearch) {
+        logger(`  Elasticsearch: ${info.elasticsearch.url}`);
+    }
+    if (info.opensearch) {
+        logger(`  OpenSearch: ${info.opensearch.url}`);
+    }
+    if (info.keycloak) {
+        logger(`  Keycloak: ${info.keycloak.adminUrl}`);
+    }
+    if (info.redis) {
+        logger(`  Redis: ${info.redis.url}`);
+    }
+    if (info.dejavu) {
+        logger(`  Dejavu: ${info.dejavu.url}`);
+    }
+    if (info.prometheus) {
+        logger(`  Prometheus: ${info.prometheus.url}`);
+    }
+    if (info.grafana) {
+        logger(`  Grafana: ${info.grafana.url}`);
+    }
+    if (info.loki) {
+        logger(`  Loki: ${info.loki.url}`);
+    }
+    if (info.promtail) {
+        logger(`  Promtail: ${info.promtail.url}`);
+    }
+    logger('');
+}
+/**
+ * Write environment variables to a file that can be sourced by shell.
+ * Includes section comments for each dependency.
+ * @param info Service connection information
+ * @param outputDir Directory to write the file to
+ * @param options Options for file generation
+ * @param options.depsOnly Whether running in deps-only mode (adds MM_NO_DOCKER)
+ * @param options.filename Filename (default: .env.tc)
+ * @returns The full path to the written file
+ */
+function writeEnvFile(info, outputDir, options = {}) {
+    const { depsOnly = false, filename = '.env.tc' } = options;
+    const lines = [];
+    // General settings (only for deps-only mode when running local server)
+    if (depsOnly) {
+        lines.push('# General');
+        lines.push('export MM_NO_DOCKER="true"');
+        lines.push('export MM_SERVICEENVIRONMENT="dev"');
+        lines.push('');
+    }
+    // PostgreSQL
+    lines.push('# PostgreSQL');
+    lines.push('export MM_SQLSETTINGS_DRIVERNAME="postgres"');
+    lines.push(`export MM_SQLSETTINGS_DATASOURCE="${info.postgres.connectionString}"`);
+    lines.push('');
+    // Server settings
+    lines.push('# Server');
+    lines.push('export MM_SERVICESETTINGS_SITEURL="http://localhost:8065"');
+    lines.push('export MM_SERVICESETTINGS_LISTENADDRESS=":8065"');
+    lines.push('');
+    // Inbucket (Email) - connection settings only, other email settings via mmctl
+    if (info.inbucket) {
+        lines.push('# Inbucket (Email)');
+        lines.push(`export MM_EMAILSETTINGS_SMTPSERVER="${info.inbucket.host}"`);
+        lines.push(`export MM_EMAILSETTINGS_SMTPPORT="${info.inbucket.smtpPort}"`);
+        lines.push('');
+    }
+    // OpenLDAP
+    // Enable via System Console or set MM_LDAPSETTINGS_ENABLE="true"
+    if (info.openldap) {
+        lines.push('# OpenLDAP - Connection Settings');
+        lines.push(`export MM_LDAPSETTINGS_LDAPSERVER="${info.openldap.host}"`);
+        lines.push(`export MM_LDAPSETTINGS_LDAPPORT="${info.openldap.port}"`);
+        lines.push(`export MM_LDAPSETTINGS_BASEDN="${info.openldap.baseDN}"`);
+        lines.push(`export MM_LDAPSETTINGS_BINDUSERNAME="${info.openldap.bindDN}"`);
+        lines.push(`export MM_LDAPSETTINGS_BINDPASSWORD="${info.openldap.bindPassword}"`);
+        lines.push('');
+        lines.push('# OpenLDAP - Attribute Mappings (required for LDAP to work)');
+        lines.push('export MM_LDAPSETTINGS_EMAILATTRIBUTE="mail"');
+        lines.push('export MM_LDAPSETTINGS_USERNAMEATTRIBUTE="uid"');
+        lines.push('export MM_LDAPSETTINGS_IDATTRIBUTE="uid"');
+        lines.push('export MM_LDAPSETTINGS_LOGINIDATTRIBUTE="uid"');
+        lines.push('export MM_LDAPSETTINGS_FIRSTNAMEATTRIBUTE="cn"');
+        lines.push('export MM_LDAPSETTINGS_LASTNAMEATTRIBUTE="sn"');
+        lines.push('export MM_LDAPSETTINGS_NICKNAMEATTRIBUTE="cn"');
+        lines.push('export MM_LDAPSETTINGS_POSITIONATTRIBUTE="title"');
+        lines.push('');
+        lines.push('# OpenLDAP - Group Settings (optional, for LDAP group sync)');
+        lines.push('# export MM_LDAPSETTINGS_GROUPDISPLAYNAMEATTRIBUTE="cn"');
+        lines.push('# export MM_LDAPSETTINGS_GROUPIDATTRIBUTE="entryUUID"');
+        lines.push('# export MM_LDAPSETTINGS_GROUPFILTER=""');
+        lines.push('# export MM_LDAPSETTINGS_USERFILTER=""');
+        lines.push('');
+        lines.push('# OpenLDAP - Enable LDAP (uncomment to enable)');
+        lines.push('# export MM_LDAPSETTINGS_ENABLE="true"');
+        lines.push('');
+    }
+    // MinIO (S3)
+    if (info.minio) {
+        lines.push('# MinIO (S3)');
+        lines.push('export MM_FILESETTINGS_DRIVERNAME="amazons3"');
+        lines.push(`export MM_FILESETTINGS_AMAZONS3ACCESSKEYID="${info.minio.accessKey}"`);
+        lines.push(`export MM_FILESETTINGS_AMAZONS3SECRETACCESSKEY="${info.minio.secretKey}"`);
+        lines.push('export MM_FILESETTINGS_AMAZONS3BUCKET="mattermost-test"');
+        lines.push(`export MM_FILESETTINGS_AMAZONS3ENDPOINT="${info.minio.host}:${info.minio.port}"`);
+        lines.push('export MM_FILESETTINGS_AMAZONS3SSL="false"');
+        lines.push('');
+    }
+    // Elasticsearch (EnableIndexing/EnableSearching set via mmctl, not env var)
+    if (info.elasticsearch) {
+        lines.push('# Elasticsearch');
+        lines.push(`export MM_ELASTICSEARCHSETTINGS_CONNECTIONURL="${info.elasticsearch.url}"`);
+        lines.push('');
+    }
+    // OpenSearch (EnableIndexing/EnableSearching set via mmctl, not env var)
+    if (info.opensearch) {
+        lines.push('# OpenSearch');
+        lines.push(`export MM_ELASTICSEARCHSETTINGS_CONNECTIONURL="${info.opensearch.url}"`);
+        lines.push('export MM_ELASTICSEARCHSETTINGS_BACKEND="opensearch"');
+        lines.push('');
+    }
+    // Redis (CacheType set via mmctl, not env var)
+    if (info.redis) {
+        lines.push('# Redis');
+        lines.push(`export MM_CACHESETTINGS_REDISADDRESS="${info.redis.host}:${info.redis.port}"`);
+        lines.push('export MM_CACHESETTINGS_REDISDB="0"');
+        lines.push('');
+    }
+    // Keycloak (SAML/OpenID) - settings for reference
+    // Note: SAML requires certificate upload via System Console (env vars alone won't work with database config)
+    // OpenID is simpler and can be configured via env vars or System Console
+    // Keycloak clients: 'mattermost' (SAML), 'mattermost-openid' (OpenID, secret: mattermost-openid-secret)
+    if (info.keycloak) {
+        const keycloakPort = info.keycloak.port;
+        lines.push('# Keycloak Credentials');
+        lines.push('# Admin Console: admin / admin');
+        lines.push('# Test Users:');
+        lines.push('#   - user-1 / Password1! (user-1@sample.mattermost.com)');
+        lines.push('#   - user-2 / Password1! (user-2@sample.mattermost.com)');
+        lines.push('');
+        lines.push('# Keycloak - SAML Settings (requires certificate upload via System Console)');
+        lines.push(`# export MM_SAMLSETTINGS_IDPURL="http://localhost:${keycloakPort}/realms/mattermost/protocol/saml"`);
+        lines.push(`# export MM_SAMLSETTINGS_IDPDESCRIPTORURL="http://localhost:${keycloakPort}/realms/mattermost"`);
+        lines.push(`# export MM_SAMLSETTINGS_IDPMETADATAURL="http://localhost:${keycloakPort}/realms/mattermost/protocol/saml/descriptor"`);
+        lines.push('# export MM_SAMLSETTINGS_SERVICEPROVIDERIDENTIFIER="mattermost"');
+        lines.push('# export MM_SAMLSETTINGS_ASSERTIONCONSUMERSERVICEURL="http://localhost:8065/login/sso/saml"');
+        lines.push('# export MM_SAMLSETTINGS_IDATTRIBUTE="id"');
+        lines.push('# export MM_SAMLSETTINGS_FIRSTNAMEATTRIBUTE="givenName"');
+        lines.push('# export MM_SAMLSETTINGS_LASTNAMEATTRIBUTE="surname"');
+        lines.push('# export MM_SAMLSETTINGS_EMAILATTRIBUTE="email"');
+        lines.push('# export MM_SAMLSETTINGS_USERNAMEATTRIBUTE="username"');
+        lines.push('# export MM_SAMLSETTINGS_ENABLE="true"');
+        lines.push('');
+        lines.push('# Keycloak - OpenID Settings (can be configured via env vars or System Console)');
+        lines.push('# export MM_OPENIDSETTINGS_SECRET="mattermost-openid-secret"');
+        lines.push('# export MM_OPENIDSETTINGS_ID="mattermost-openid"');
+        lines.push('# export MM_OPENIDSETTINGS_SCOPE="profile openid email"');
+        lines.push(`# export MM_OPENIDSETTINGS_DISCOVERYENDPOINT="http://localhost:${keycloakPort}/realms/mattermost/.well-known/openid-configuration"`);
+        lines.push('# export MM_OPENIDSETTINGS_BUTTONTEXT="Login using OpenID"');
+        lines.push('# export MM_OPENIDSETTINGS_ENABLE="true"');
+        lines.push('');
+    }
+    const filePath = path__namespace.join(outputDir, filename);
+    fs__namespace.writeFileSync(filePath, lines.join('\n'));
+    return filePath;
+}
+/**
+ * Write server configuration to a JSON file.
+ * @param config Server configuration object (from mmctl config show)
+ * @param outputDir Directory to write the file to
+ * @param filename Filename (default: .tc.server.config.json)
+ * @returns The full path to the written file
+ */
+function writeServerConfig(config, outputDir, filename = '.tc.server.config.json') {
+    const filePath = path__namespace.join(outputDir, filename);
+    fs__namespace.writeFileSync(filePath, JSON.stringify(config, null, 2) + '\n');
+    return filePath;
+}
+/**
+ * Helper to merge connection info with container metadata.
+ */
+function mergeContainerInfo(connection, metadata) {
+    if (!metadata)
+        return connection;
+    return {
+        id: metadata.id,
+        name: metadata.name,
+        image: metadata.image,
+        labels: metadata.labels,
+        ...connection,
+    };
+}
+/**
+ * Build Docker container information from connection info and metadata.
+ * @param info Service connection information
+ * @param metadata Container metadata (ID, name, labels)
+ * @returns Object with container details for each service
+ */
+function buildDockerInfo(info, metadata) {
+    const containers = {};
+    if (info.mattermost) {
+        containers.mattermost = mergeContainerInfo({
+            host: info.mattermost.host,
+            port: info.mattermost.port,
+            url: info.mattermost.url,
+            internalUrl: info.mattermost.internalUrl,
+        }, metadata?.mattermost);
+    }
+    containers.postgres = mergeContainerInfo({
+        host: info.postgres.host,
+        port: info.postgres.port,
+        database: info.postgres.database,
+        username: info.postgres.username,
+        connectionString: info.postgres.connectionString,
+    }, metadata?.postgres);
+    if (info.inbucket) {
+        containers.inbucket = mergeContainerInfo({
+            host: info.inbucket.host,
+            smtpPort: info.inbucket.smtpPort,
+            webPort: info.inbucket.webPort,
+            pop3Port: info.inbucket.pop3Port,
+            webUrl: `http://${info.inbucket.host}:${info.inbucket.webPort}`,
+        }, metadata?.inbucket);
+    }
+    if (info.openldap) {
+        containers.openldap = mergeContainerInfo({
+            host: info.openldap.host,
+            port: info.openldap.port,
+            tlsPort: info.openldap.tlsPort,
+            baseDN: info.openldap.baseDN,
+            bindDN: info.openldap.bindDN,
+        }, metadata?.openldap);
+    }
+    if (info.minio) {
+        containers.minio = mergeContainerInfo({
+            host: info.minio.host,
+            port: info.minio.port,
+            consolePort: info.minio.consolePort,
+            endpoint: info.minio.endpoint,
+            consoleUrl: info.minio.consoleUrl,
+            accessKey: info.minio.accessKey,
+        }, metadata?.minio);
+    }
+    if (info.elasticsearch) {
+        containers.elasticsearch = mergeContainerInfo({
+            host: info.elasticsearch.host,
+            port: info.elasticsearch.port,
+            url: info.elasticsearch.url,
+        }, metadata?.elasticsearch);
+    }
+    if (info.opensearch) {
+        containers.opensearch = mergeContainerInfo({
+            host: info.opensearch.host,
+            port: info.opensearch.port,
+            url: info.opensearch.url,
+        }, metadata?.opensearch);
+    }
+    if (info.keycloak) {
+        containers.keycloak = mergeContainerInfo({
+            host: info.keycloak.host,
+            port: info.keycloak.port,
+            adminUrl: info.keycloak.adminUrl,
+            realmUrl: info.keycloak.realmUrl,
+        }, metadata?.keycloak);
+    }
+    if (info.redis) {
+        containers.redis = mergeContainerInfo({
+            host: info.redis.host,
+            port: info.redis.port,
+            url: info.redis.url,
+        }, metadata?.redis);
+    }
+    if (info.dejavu) {
+        containers.dejavu = mergeContainerInfo({
+            host: info.dejavu.host,
+            port: info.dejavu.port,
+            url: info.dejavu.url,
+        }, metadata?.dejavu);
+    }
+    if (info.prometheus) {
+        containers.prometheus = mergeContainerInfo({
+            host: info.prometheus.host,
+            port: info.prometheus.port,
+            url: info.prometheus.url,
+        }, metadata?.prometheus);
+    }
+    if (info.grafana) {
+        containers.grafana = mergeContainerInfo({
+            host: info.grafana.host,
+            port: info.grafana.port,
+            url: info.grafana.url,
+        }, metadata?.grafana);
+    }
+    if (info.loki) {
+        containers.loki = mergeContainerInfo({
+            host: info.loki.host,
+            port: info.loki.port,
+            url: info.loki.url,
+        }, metadata?.loki);
+    }
+    if (info.promtail) {
+        containers.promtail = mergeContainerInfo({
+            host: info.promtail.host,
+            port: info.promtail.port,
+            url: info.promtail.url,
+        }, metadata?.promtail);
+    }
+    return {
+        startedAt: new Date().toISOString(),
+        containers,
+    };
+}
+/**
+ * Write Docker container information to a JSON file.
+ * @param info Service connection information
+ * @param metadata Container metadata (ID, name, labels)
+ * @param outputDir Directory to write the file to
+ * @param filename Filename (default: .tc.docker.json)
+ * @returns The full path to the written file
+ */
+function writeDockerInfo(info, metadata, outputDir, filename = '.tc.docker.json') {
+    const dockerInfo = buildDockerInfo(info, metadata);
+    const filePath = path__namespace.join(outputDir, filename);
+    fs__namespace.writeFileSync(filePath, JSON.stringify(dockerInfo, null, 2) + '\n');
+    return filePath;
+}
+// Keycloak SAML certificate (from server/build/docker/keycloak/keycloak.crt)
+// This certificate is used by Mattermost to verify SAML assertions from Keycloak
+const KEYCLOAK_SAML_CERTIFICATE = `-----BEGIN CERTIFICATE-----
+MIICozCCAYsCBgGNzWfMwjANBgkqhkiG9w0BAQsFADAVMRMwEQYDVQQDDAptYXR0ZXJtb3N0MB4XDTI0MDIyMTIwNDA0OFoXDTM0MDIyMTIwNDIyOFowFTETMBEGA1UEAwwKbWF0dGVybW9zdDCCASIwDQYJKoZIhvcNAQEBBQADggEPADCCAQoCggEBAOnsgNexkO5tbKkFXN+SdMUuLHbqdjZ9/JSnKrYPHLarf8801YDDzV8wI9jjdCCgq+xtKFKWlwU2rGpjPbefDLV1m7CSu0Iq+hNxDiBdX3wkEIK98piDpx+xYGL0aAbXn3nAlqFOWQJLKLM1I65ZmK31YZeVj4Kn01W4WfsvKHoxPjLPwPTug4HB6vaQXqEpzYYYHyuJKvIYNuVwo0WQdaPRXb0poZoYzOnoB6tOFrim6B7/chqtZeXQc7h6/FejBsV59aO5uATI0aAJw1twzjCNIiOeJLB2jlLuIMR3/Yaqr8IRpRXzcRPETpisWNilhV07ZBW0YL9ZwuU4sHWy+iMCAwEAATANBgkqhkiG9w0BAQsFAAOCAQEAW4I1egm+czdnnZxTtth3cjCmLg/UsalUDKSfFOLAlnbe6TtVhP4DpAl+OaQO4+kdEKemLENPmh4ddaHUjSSbbCQZo8B7IjByEe7x3kQdj2ucQpA4bh0vGZ11pVhk5HfkGqAO+UVNQsyLpTmWXQ8SEbxcw6mlTM4SjuybqaGOva1LBscI158Uq5FOVT6TJaxCt3dQkBH0tK+vhRtIM13pNZ/+SFgecn16AuVdBfjjqXynefrSihQ20BZ3NTyjs/N5J2qvSwQ95JARZrlhfiS++L81u2N/0WWni9cXmHsdTLxRrDZjz2CXBNeFOBRio74klSx8tMK27/2lxMsEC7R+DA==
+-----END CERTIFICATE-----`;
+/**
+ * Write Keycloak SAML certificate to the output directory.
+ * This certificate can be uploaded to Mattermost via System Console or API.
+ * @param outputDir Directory to write the file to
+ * @param filename Filename (default: saml-idp.crt)
+ * @returns The full path to the written file
+ */
+function writeKeycloakCertificate(outputDir, filename = 'saml-idp.crt') {
+    const filePath = path__namespace.join(outputDir, filename);
+    fs__namespace.writeFileSync(filePath, KEYCLOAK_SAML_CERTIFICATE);
+    return filePath;
+}
+/**
+ * Write OpenLDAP setup documentation to the output directory.
+ * @param info Service connection information (must include openldap)
+ * @param outputDir Directory to write the file to
+ * @param filename Filename (default: openldap_setup.md)
+ * @returns The full path to the written file, or null if openldap not configured
+ */
+function writeOpenLdapSetup(info, outputDir, filename = 'openldap_setup.md') {
+    if (!info.openldap) {
+        return null;
+    }
+    const { host, port, tlsPort, baseDN, bindDN, bindPassword, image } = info.openldap;
+    const content = `# OpenLDAP Setup for Mattermost Testing
+
+This document describes the OpenLDAP configuration used by the testcontainers environment.
+
+## Container Information
+
+| Property | Value |
+|----------|-------|
+| Image | \`${image}\` |
+| Host | \`${host}\` |
+| LDAP Port | ${port} |
+| LDAPS Port | ${tlsPort} |
+| Network Alias | \`openldap\` |
+
+## Admin Credentials
+
+| Field | Value |
+|-------|-------|
+| Bind DN | \`${bindDN}\` |
+| Password | \`${bindPassword}\` |
+| Base DN | \`${baseDN}\` |
+| Domain | \`mm.test.com\` |
+| Organisation | \`Mattermost Test\` |
+
+## Pre-loaded Test Users
+
+| Username | Password | Email | Title |
+|----------|----------|-------|-------|
+| \`test.one\` | \`Password1\` | \`success+testone@simulator.amazonses.com\` | Test1 Title |
+| \`test.two\` | \`Password1\` | \`success+testtwo@simulator.amazonses.com\` | Test2 Title |
+| \`dev.one\` | \`Password1\` | \`success+devone@simulator.amazonses.com\` | Senior Software Design Engineer |
+
+### User DNs
+
+| Username | DN |
+|----------|-----|
+| \`test.one\` | \`uid=test.one,ou=testusers,${baseDN}\` |
+| \`test.two\` | \`uid=test.two,ou=testusers,${baseDN}\` |
+| \`dev.one\` | \`uid=dev.one,ou=testusers,${baseDN}\` |
+
+## Pre-loaded Test Groups
+
+| Group Name | DN | Members |
+|------------|-----|---------|
+| \`developers\` | \`cn=developers,ou=testgroups,${baseDN}\` | \`dev.one\`, \`test.one\` |
+
+## Organizational Units
+
+| OU | DN |
+|----|-----|
+| Test Users | \`ou=testusers,${baseDN}\` |
+| Test Groups | \`ou=testgroups,${baseDN}\` |
+
+## Custom Schema Extensions
+
+### 1. Active Directory ObjectGUID Support
+- **Attribute**: \`objectGUID\` - AD object GUID (octet string, single-value)
+- **Object Class**: \`activeDSObject\` - Auxiliary class with \`objectGUID\` attribute
+
+### 2. Custom Profile Attributes (CPA)
+
+| Attribute | Description | Type |
+|-----------|-------------|------|
+| \`textCustomAttribute\` | Text custom attribute | String |
+| \`dateCustomAttribute\` | Date attribute | GeneralizedTime |
+| \`selectCustomAttribute\` | Single selection | String, single-value |
+| \`multiSelectCustomAttribute\` | Multi-selection | String, multi-value |
+| \`userReferenceCustomAttribute\` | Reference to single user | DN, single-value |
+| \`multiUserReferenceCustomAttribute\` | References to multiple users | DN, multi-value |
+
+## Mattermost LDAP Configuration
+
+### System Console Settings (AD/LDAP)
+
+| Setting | Value |
+|---------|-------|
+| Enable sign-in with AD/LDAP | \`true\` |
+| AD/LDAP Server | \`${host}\` |
+| AD/LDAP Port | \`${port}\` |
+| Connection Security | None |
+| Base DN | \`${baseDN}\` |
+| Bind Username | \`${bindDN}\` |
+| Bind Password | \`${bindPassword}\` |
+| User Filter | \`(objectClass=iNetOrgPerson)\` |
+| Group Filter | \`(objectClass=groupOfUniqueNames)\` |
+
+### Attribute Mappings
+
+| Mattermost Field | LDAP Attribute |
+|------------------|----------------|
+| ID Attribute | \`uid\` |
+| Login ID Attribute | \`uid\` |
+| Username Attribute | \`uid\` |
+| Email Attribute | \`mail\` |
+| First Name Attribute | \`cn\` |
+| Last Name Attribute | \`sn\` |
+| Position Attribute | \`title\` |
+
+## Testing LDAP Connection
+
+\`\`\`bash
+# Search for all users
+ldapsearch -x -H ldap://${host}:${port} \\
+  -D "${bindDN}" \\
+  -w ${bindPassword} \\
+  -b "ou=testusers,${baseDN}" \\
+  "(objectClass=iNetOrgPerson)"
+
+# Test user authentication
+ldapwhoami -x -H ldap://${host}:${port} \\
+  -D "uid=test.one,ou=testusers,${baseDN}" \\
+  -w Password1
+\`\`\`
+
+## Logging into Mattermost with LDAP
+
+1. Navigate to the Mattermost login page
+2. Click "AD/LDAP" or enter credentials in the LDAP login form
+3. Use test user credentials: \`test.one\` / \`Password1\`
+`;
+    const filePath = path__namespace.join(outputDir, filename);
+    fs__namespace.writeFileSync(filePath, content);
+    return filePath;
+}
+/**
+ * Write Keycloak setup documentation to the output directory.
+ * @param info Service connection information (must include keycloak)
+ * @param outputDir Directory to write the file to
+ * @param filename Filename (default: keycloak_setup.md)
+ * @returns The full path to the written file, or null if keycloak not configured
+ */
+function writeKeycloakSetup(info, outputDir, filename = 'keycloak_setup.md') {
+    if (!info.keycloak) {
+        return null;
+    }
+    const { host, port, adminUrl, realmUrl, image } = info.keycloak;
+    const content = `# Keycloak Setup for Mattermost Testing
+
+This document describes the Keycloak configuration for SAML and OpenID Connect authentication testing.
+
+## Container Information
+
+| Property | Value |
+|----------|-------|
+| Image | \`${image}\` |
+| Host | \`${host}\` |
+| Port | ${port} |
+| Network Alias | \`keycloak\` |
+
+## Admin Console Access
+
+| Field | Value |
+|-------|-------|
+| Admin URL | \`${adminUrl}\` |
+| Username | \`admin\` |
+| Password | \`admin\` |
+
+## Pre-configured Realm
+
+| Property | Value |
+|----------|-------|
+| Realm Name | \`mattermost\` |
+| Realm URL | \`${realmUrl}\` |
+| SSL Required | None |
+
+## Test Users
+
+| Username | Password | Email | First Name | Last Name |
+|----------|----------|-------|------------|-----------|
+| \`user-1\` | \`Password1!\` | \`user-1@sample.mattermost.com\` | User | One |
+| \`user-2\` | \`Password1!\` | \`user-2@sample.mattermost.com\` | User | Two |
+
+## Pre-configured Clients
+
+### 1. SAML Client (\`mattermost\`)
+
+| Property | Value |
+|----------|-------|
+| Client ID | \`mattermost\` |
+| Protocol | SAML |
+| Name | Mattermost SAML |
+
+#### SAML Protocol Mappers
+
+| Mapper Name | User Attribute | SAML Attribute |
+|-------------|----------------|----------------|
+| email | email | email |
+| firstName | firstName | firstName |
+| lastName | lastName | lastName |
+| username | username | username |
+| id | id | id |
+
+### 2. OpenID Connect Client (\`mattermost-openid\`)
+
+| Property | Value |
+|----------|-------|
+| Client ID | \`mattermost-openid\` |
+| Client Secret | \`mattermost-openid-secret\` |
+| Protocol | OpenID Connect |
+
+## Mattermost SAML Configuration
+
+### System Console Settings (SAML 2.0)
+
+| Setting | Value |
+|---------|-------|
+| Enable Login With SAML 2.0 | \`true\` |
+| SAML SSO URL | \`http://${host}:${port}/realms/mattermost/protocol/saml\` |
+| Identity Provider Issuer URL | \`http://${host}:${port}/realms/mattermost\` |
+| Identity Provider Public Certificate | Upload \`saml-idp.crt\` from output directory |
+| Service Provider Identifier | \`mattermost\` |
+
+### SAML Attribute Mappings
+
+| Mattermost Field | SAML Attribute |
+|------------------|----------------|
+| ID Attribute | \`id\` |
+| Email Attribute | \`email\` |
+| Username Attribute | \`username\` |
+| First Name Attribute | \`firstName\` |
+| Last Name Attribute | \`lastName\` |
+
+## Mattermost OpenID Connect Configuration
+
+### System Console Settings
+
+| Setting | Value |
+|---------|-------|
+| Client ID | \`mattermost-openid\` |
+| Client Secret | \`mattermost-openid-secret\` |
+| Discovery Endpoint | \`http://${host}:${port}/realms/mattermost/.well-known/openid-configuration\` |
+
+### OpenID Connect URLs
+
+| Endpoint | URL |
+|----------|-----|
+| Discovery | \`http://${host}:${port}/realms/mattermost/.well-known/openid-configuration\` |
+| Authorization | \`http://${host}:${port}/realms/mattermost/protocol/openid-connect/auth\` |
+| Token | \`http://${host}:${port}/realms/mattermost/protocol/openid-connect/token\` |
+| User Info | \`http://${host}:${port}/realms/mattermost/protocol/openid-connect/userinfo\` |
+
+## SAML IdP Certificate
+
+The SAML signing certificate is available at:
+\`\`\`
+${outputDir}/saml-idp.crt
+\`\`\`
+
+Upload this to Mattermost System Console under:
+**SAML 2.0 > Identity Provider Public Certificate**
+
+## Testing Authentication
+
+### SAML Login Flow
+
+1. Navigate to Mattermost login page
+2. Click "SAML" login button
+3. Enter credentials: \`user-1\` / \`Password1!\`
+4. Redirected back to Mattermost (authenticated)
+
+### OpenID Connect Login Flow
+
+1. Navigate to Mattermost login page
+2. Click "OpenID Connect" login button
+3. Enter credentials: \`user-1\` / \`Password1!\`
+4. Redirected back to Mattermost (authenticated)
+
+## Keycloak Health Check
+
+\`\`\`bash
+curl -s "http://${host}:${port}/health/ready"
+\`\`\`
+`;
+    const filePath = path__namespace.join(outputDir, filename);
+    fs__namespace.writeFileSync(filePath, content);
+    return filePath;
 }
 
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
@@ -1818,6 +2340,83 @@ function httpPut(host, port, path, body, headers = {}) {
         req.write(body);
         req.end();
     });
+}
+
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
+/**
+ * Client for executing mmctl commands inside a Mattermost container.
+ * Uses --local flag to communicate via Unix socket (no authentication required).
+ */
+class MmctlClient {
+    container;
+    constructor(container) {
+        this.container = container;
+    }
+    /**
+     * Execute an mmctl command inside the container.
+     * The --local flag is automatically added to use Unix socket communication.
+     *
+     * @param command - The mmctl command to execute (without 'mmctl' prefix)
+     * @returns Promise<MmctlExecResult> - The result of the command execution
+     *
+     * @example
+     * // Create a user
+     * await mmctl.exec('user create --email test@test.com --username testuser --password Test123!');
+     *
+     * @example
+     * // Get system info
+     * const result = await mmctl.exec('system version');
+     * console.log(result.stdout);
+     *
+     * @example
+     * // Run a test command
+     * await mmctl.exec('sampledata --teams 5 --users 100');
+     */
+    async exec(command) {
+        // Split the command into arguments
+        const args = this.parseCommand(command);
+        // Execute mmctl with --local flag inside the container
+        const result = await this.container.exec(['mmctl', '--local', ...args]);
+        return {
+            exitCode: result.exitCode,
+            stdout: result.output,
+            stderr: '', // testcontainers combines stdout/stderr in output
+        };
+    }
+    /**
+     * Parse a command string into an array of arguments.
+     * Handles quoted strings properly.
+     */
+    parseCommand(command) {
+        const args = [];
+        let current = '';
+        let inQuote = false;
+        let quoteChar = '';
+        for (const char of command) {
+            if ((char === '"' || char === "'") && !inQuote) {
+                inQuote = true;
+                quoteChar = char;
+            }
+            else if (char === quoteChar && inQuote) {
+                inQuote = false;
+                quoteChar = '';
+            }
+            else if (char === ' ' && !inQuote) {
+                if (current) {
+                    args.push(current);
+                    current = '';
+                }
+            }
+            else {
+                current += char;
+            }
+        }
+        if (current) {
+            args.push(current);
+        }
+        return args;
+    }
 }
 
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
@@ -2056,6 +2655,25 @@ async function configureServerViaMmctl(mmctl, connectionInfo, config, log, loadL
 
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
+/**
+ * Format elapsed time in a human-readable format.
+ * Shows decimal if < 10s, whole seconds if < 60s, otherwise minutes and seconds.
+ */
+function formatElapsed(ms) {
+    const totalSeconds = ms / 1000;
+    if (totalSeconds < 10) {
+        return `${totalSeconds.toFixed(1)}s`;
+    }
+    if (totalSeconds < 60) {
+        return `${Math.round(totalSeconds)}s`;
+    }
+    const minutes = Math.floor(totalSeconds / 60);
+    const seconds = Math.round(totalSeconds % 60);
+    return `${minutes}m ${seconds}s`;
+}
+
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
 // Disable Ryuk (testcontainers cleanup container) so containers persist after CLI exits.
 // Containers should only be cleaned up via `mm-tc stop`.
 process.env.TESTCONTAINERS_RYUK_DISABLED = 'true';
@@ -2107,6 +2725,8 @@ class MattermostTestEnvironment {
      * Start all enabled dependencies and the Mattermost server.
      */
     async start() {
+        // Set output directory from config
+        setOutputDir(this.config.outputDir);
         const startTime = Date.now();
         if (this.serverMode === 'local') {
             this.log('Starting Mattermost dependencies');
@@ -2273,9 +2893,7 @@ class MattermostTestEnvironment {
         this.log(`✓ Test environment ready in ${elapsed}`);
     }
     log(message) {
-        const timestamp = new Date().toISOString().replace(/\.\d{3}Z$/, 'Z');
-        // Use stderr for more reliable output visibility
-        process.stderr.write(`[${timestamp}] [tc] ${message}\n`);
+        log(message);
     }
     /**
      * Stop all running containers and clean up resources.
@@ -2386,6 +3004,13 @@ class MattermostTestEnvironment {
             throw new Error('Environment not started. Call start() first.');
         }
         return this.connectionInfo;
+    }
+    /**
+     * Print connection information for all dependencies to console.
+     */
+    printConnectionInfo() {
+        const info = this.getConnectionInfo();
+        printConnectionInfo(info);
     }
     /**
      * Get the MmctlClient for executing mmctl commands.
@@ -9175,27 +9800,6 @@ function resolveConfig(userConfig) {
     return resolved;
 }
 /**
- * Log the resolved configuration.
- *
- * @param logger Function to log messages
- * @param config Resolved configuration to log
- */
-function logConfig(logger, config) {
-    logger('Testcontainers Configuration:');
-    logger(`  Server: ${config.server.image} (edition: ${config.server.edition}, tag: ${config.server.tag})`);
-    logger(`  Enabled dependencies: ${config.dependencies.join(', ')}`);
-    logger(`  Image max age: ${config.server.imageMaxAgeHours} hours`);
-    if (config.server.ha) {
-        logger('  HA mode: enabled (3-node cluster)');
-    }
-    if (config.server.subpath) {
-        logger('  Subpath mode: enabled (/mattermost1, /mattermost2)');
-    }
-    if (config.admin) {
-        logger(`  Admin user: ${config.admin.username}`);
-    }
-}
-/**
  * Load a config file based on its extension.
  * Supports .mjs (ES module) and .jsonc (JSON with comments).
  *
@@ -9337,802 +9941,13 @@ async function discoverAndLoadConfig(options) {
     return resolveConfig(userConfig);
 }
 
-// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
-// See LICENSE.txt for license information.
-/**
- * Build environment variables for the Mattermost server from connection info.
- * These can be used to start a local server pointing to testcontainers dependencies.
- */
-function buildServerEnvVars(info) {
-    const env = {
-        // Skip Docker in make run-server (testcontainers provides dependencies)
-        MM_NO_DOCKER: 'true',
-        // Database
-        MM_SQLSETTINGS_DRIVERNAME: 'postgres',
-        MM_SQLSETTINGS_DATASOURCE: info.postgres.connectionString,
-        // Server settings
-        MM_SERVICESETTINGS_SITEURL: 'http://localhost:8065',
-        MM_SERVICESETTINGS_LISTENADDRESS: ':8065',
-    };
-    // Email settings if inbucket is available (connection only, other settings via mmctl)
-    if (info.inbucket) {
-        env.MM_EMAILSETTINGS_SMTPSERVER = info.inbucket.host;
-        env.MM_EMAILSETTINGS_SMTPPORT = String(info.inbucket.smtpPort);
-    }
-    // LDAP settings if openldap is available (Enable is set via mmctl, not env var)
-    if (info.openldap) {
-        // Connection settings
-        env.MM_LDAPSETTINGS_LDAPSERVER = info.openldap.host;
-        env.MM_LDAPSETTINGS_LDAPPORT = String(info.openldap.port);
-        env.MM_LDAPSETTINGS_BASEDN = info.openldap.baseDN;
-        env.MM_LDAPSETTINGS_BINDUSERNAME = info.openldap.bindDN;
-        env.MM_LDAPSETTINGS_BINDPASSWORD = info.openldap.bindPassword;
-        // Attribute mappings (required for LDAP to work)
-        env.MM_LDAPSETTINGS_EMAILATTRIBUTE = 'mail';
-        env.MM_LDAPSETTINGS_USERNAMEATTRIBUTE = 'uid';
-        env.MM_LDAPSETTINGS_IDATTRIBUTE = 'uid';
-        env.MM_LDAPSETTINGS_LOGINIDATTRIBUTE = 'uid';
-        env.MM_LDAPSETTINGS_FIRSTNAMEATTRIBUTE = 'cn';
-        env.MM_LDAPSETTINGS_LASTNAMEATTRIBUTE = 'sn';
-        env.MM_LDAPSETTINGS_NICKNAMEATTRIBUTE = 'cn';
-        env.MM_LDAPSETTINGS_POSITIONATTRIBUTE = 'title';
-    }
-    // MinIO settings if available
-    if (info.minio) {
-        env.MM_FILESETTINGS_DRIVERNAME = 'amazons3';
-        env.MM_FILESETTINGS_AMAZONS3ACCESSKEYID = info.minio.accessKey;
-        env.MM_FILESETTINGS_AMAZONS3SECRETACCESSKEY = info.minio.secretKey;
-        env.MM_FILESETTINGS_AMAZONS3BUCKET = 'mattermost-test';
-        env.MM_FILESETTINGS_AMAZONS3ENDPOINT = `${info.minio.host}:${info.minio.port}`;
-        env.MM_FILESETTINGS_AMAZONS3SSL = 'false';
-    }
-    // Elasticsearch settings if available (EnableIndexing/EnableSearching set via mmctl, not env var)
-    if (info.elasticsearch) {
-        env.MM_ELASTICSEARCHSETTINGS_CONNECTIONURL = info.elasticsearch.url;
-    }
-    // OpenSearch settings if available (EnableIndexing/EnableSearching set via mmctl, not env var)
-    if (info.opensearch) {
-        env.MM_ELASTICSEARCHSETTINGS_CONNECTIONURL = info.opensearch.url;
-        env.MM_ELASTICSEARCHSETTINGS_BACKEND = 'opensearch';
-    }
-    // Redis settings if available (CacheType set via mmctl, not env var)
-    if (info.redis) {
-        env.MM_CACHESETTINGS_REDISADDRESS = `${info.redis.host}:${info.redis.port}`;
-        env.MM_CACHESETTINGS_REDISDB = '0';
-    }
-    return env;
-}
-/**
- * Print environment variables for the Mattermost server in a format that can be sourced.
- * @param info Service connection information
- * @param logger Optional custom logger function (defaults to console.log)
- */
-function printServerEnvVars(info, logger = console.log) {
-    const envVars = buildServerEnvVars(info);
-    logger('\n# Server Environment Variables (source this or export manually):');
-    for (const [key, value] of Object.entries(envVars)) {
-        logger(`export ${key}="${value}"`);
-    }
-    logger('');
-}
-/**
- * Print connection info for all dependencies in the test environment.
- * @param info Service connection information
- * @param logger Optional custom logger function (defaults to console.log)
- */
-function printConnectionInfo(info, logger = console.log) {
-    logger('\nTest Environment Connection Info:');
-    logger('=================================');
-    if (info.mattermost) {
-        logger(`  Mattermost: ${info.mattermost.url}`);
-    }
-    logger(`  PostgreSQL: ${info.postgres.connectionString}`);
-    if (info.inbucket) {
-        logger(`  Inbucket Web: http://${info.inbucket.host}:${info.inbucket.webPort}`);
-    }
-    if (info.openldap) {
-        logger(`  OpenLDAP: ldap://${info.openldap.host}:${info.openldap.port}`);
-    }
-    if (info.minio) {
-        logger(`  MinIO: ${info.minio.endpoint}`);
-    }
-    if (info.elasticsearch) {
-        logger(`  Elasticsearch: ${info.elasticsearch.url}`);
-    }
-    if (info.opensearch) {
-        logger(`  OpenSearch: ${info.opensearch.url}`);
-    }
-    if (info.keycloak) {
-        logger(`  Keycloak: ${info.keycloak.adminUrl}`);
-    }
-    if (info.redis) {
-        logger(`  Redis: ${info.redis.url}`);
-    }
-    if (info.dejavu) {
-        logger(`  Dejavu: ${info.dejavu.url}`);
-    }
-    if (info.prometheus) {
-        logger(`  Prometheus: ${info.prometheus.url}`);
-    }
-    if (info.grafana) {
-        logger(`  Grafana: ${info.grafana.url}`);
-    }
-    if (info.loki) {
-        logger(`  Loki: ${info.loki.url}`);
-    }
-    if (info.promtail) {
-        logger(`  Promtail: ${info.promtail.url}`);
-    }
-    logger('');
-}
-/**
- * Write environment variables to a file that can be sourced by shell.
- * Includes section comments for each dependency.
- * @param info Service connection information
- * @param outputDir Directory to write the file to
- * @param options Options for file generation
- * @param options.depsOnly Whether running in deps-only mode (adds MM_NO_DOCKER)
- * @param options.filename Filename (default: .env.tc)
- * @returns The full path to the written file
- */
-function writeEnvFile(info, outputDir, options = {}) {
-    const { depsOnly = false, filename = '.env.tc' } = options;
-    const lines = [];
-    // General settings (only for deps-only mode when running local server)
-    if (depsOnly) {
-        lines.push('# General');
-        lines.push('export MM_NO_DOCKER="true"');
-        lines.push('export MM_SERVICEENVIRONMENT="dev"');
-        lines.push('');
-    }
-    // PostgreSQL
-    lines.push('# PostgreSQL');
-    lines.push('export MM_SQLSETTINGS_DRIVERNAME="postgres"');
-    lines.push(`export MM_SQLSETTINGS_DATASOURCE="${info.postgres.connectionString}"`);
-    lines.push('');
-    // Server settings
-    lines.push('# Server');
-    lines.push('export MM_SERVICESETTINGS_SITEURL="http://localhost:8065"');
-    lines.push('export MM_SERVICESETTINGS_LISTENADDRESS=":8065"');
-    lines.push('');
-    // Inbucket (Email) - connection settings only, other email settings via mmctl
-    if (info.inbucket) {
-        lines.push('# Inbucket (Email)');
-        lines.push(`export MM_EMAILSETTINGS_SMTPSERVER="${info.inbucket.host}"`);
-        lines.push(`export MM_EMAILSETTINGS_SMTPPORT="${info.inbucket.smtpPort}"`);
-        lines.push('');
-    }
-    // OpenLDAP
-    // Enable via System Console or set MM_LDAPSETTINGS_ENABLE="true"
-    if (info.openldap) {
-        lines.push('# OpenLDAP - Connection Settings');
-        lines.push(`export MM_LDAPSETTINGS_LDAPSERVER="${info.openldap.host}"`);
-        lines.push(`export MM_LDAPSETTINGS_LDAPPORT="${info.openldap.port}"`);
-        lines.push(`export MM_LDAPSETTINGS_BASEDN="${info.openldap.baseDN}"`);
-        lines.push(`export MM_LDAPSETTINGS_BINDUSERNAME="${info.openldap.bindDN}"`);
-        lines.push(`export MM_LDAPSETTINGS_BINDPASSWORD="${info.openldap.bindPassword}"`);
-        lines.push('');
-        lines.push('# OpenLDAP - Attribute Mappings (required for LDAP to work)');
-        lines.push('export MM_LDAPSETTINGS_EMAILATTRIBUTE="mail"');
-        lines.push('export MM_LDAPSETTINGS_USERNAMEATTRIBUTE="uid"');
-        lines.push('export MM_LDAPSETTINGS_IDATTRIBUTE="uid"');
-        lines.push('export MM_LDAPSETTINGS_LOGINIDATTRIBUTE="uid"');
-        lines.push('export MM_LDAPSETTINGS_FIRSTNAMEATTRIBUTE="cn"');
-        lines.push('export MM_LDAPSETTINGS_LASTNAMEATTRIBUTE="sn"');
-        lines.push('export MM_LDAPSETTINGS_NICKNAMEATTRIBUTE="cn"');
-        lines.push('export MM_LDAPSETTINGS_POSITIONATTRIBUTE="title"');
-        lines.push('');
-        lines.push('# OpenLDAP - Group Settings (optional, for LDAP group sync)');
-        lines.push('# export MM_LDAPSETTINGS_GROUPDISPLAYNAMEATTRIBUTE="cn"');
-        lines.push('# export MM_LDAPSETTINGS_GROUPIDATTRIBUTE="entryUUID"');
-        lines.push('# export MM_LDAPSETTINGS_GROUPFILTER=""');
-        lines.push('# export MM_LDAPSETTINGS_USERFILTER=""');
-        lines.push('');
-        lines.push('# OpenLDAP - Enable LDAP (uncomment to enable)');
-        lines.push('# export MM_LDAPSETTINGS_ENABLE="true"');
-        lines.push('');
-    }
-    // MinIO (S3)
-    if (info.minio) {
-        lines.push('# MinIO (S3)');
-        lines.push('export MM_FILESETTINGS_DRIVERNAME="amazons3"');
-        lines.push(`export MM_FILESETTINGS_AMAZONS3ACCESSKEYID="${info.minio.accessKey}"`);
-        lines.push(`export MM_FILESETTINGS_AMAZONS3SECRETACCESSKEY="${info.minio.secretKey}"`);
-        lines.push('export MM_FILESETTINGS_AMAZONS3BUCKET="mattermost-test"');
-        lines.push(`export MM_FILESETTINGS_AMAZONS3ENDPOINT="${info.minio.host}:${info.minio.port}"`);
-        lines.push('export MM_FILESETTINGS_AMAZONS3SSL="false"');
-        lines.push('');
-    }
-    // Elasticsearch (EnableIndexing/EnableSearching set via mmctl, not env var)
-    if (info.elasticsearch) {
-        lines.push('# Elasticsearch');
-        lines.push(`export MM_ELASTICSEARCHSETTINGS_CONNECTIONURL="${info.elasticsearch.url}"`);
-        lines.push('');
-    }
-    // OpenSearch (EnableIndexing/EnableSearching set via mmctl, not env var)
-    if (info.opensearch) {
-        lines.push('# OpenSearch');
-        lines.push(`export MM_ELASTICSEARCHSETTINGS_CONNECTIONURL="${info.opensearch.url}"`);
-        lines.push('export MM_ELASTICSEARCHSETTINGS_BACKEND="opensearch"');
-        lines.push('');
-    }
-    // Redis (CacheType set via mmctl, not env var)
-    if (info.redis) {
-        lines.push('# Redis');
-        lines.push(`export MM_CACHESETTINGS_REDISADDRESS="${info.redis.host}:${info.redis.port}"`);
-        lines.push('export MM_CACHESETTINGS_REDISDB="0"');
-        lines.push('');
-    }
-    // Keycloak (SAML/OpenID) - settings for reference
-    // Note: SAML requires certificate upload via System Console (env vars alone won't work with database config)
-    // OpenID is simpler and can be configured via env vars or System Console
-    // Keycloak clients: 'mattermost' (SAML), 'mattermost-openid' (OpenID, secret: mattermost-openid-secret)
-    if (info.keycloak) {
-        const keycloakPort = info.keycloak.port;
-        lines.push('# Keycloak Credentials');
-        lines.push('# Admin Console: admin / admin');
-        lines.push('# Test Users:');
-        lines.push('#   - user-1 / Password1! (user-1@sample.mattermost.com)');
-        lines.push('#   - user-2 / Password1! (user-2@sample.mattermost.com)');
-        lines.push('');
-        lines.push('# Keycloak - SAML Settings (requires certificate upload via System Console)');
-        lines.push(`# export MM_SAMLSETTINGS_IDPURL="http://localhost:${keycloakPort}/realms/mattermost/protocol/saml"`);
-        lines.push(`# export MM_SAMLSETTINGS_IDPDESCRIPTORURL="http://localhost:${keycloakPort}/realms/mattermost"`);
-        lines.push(`# export MM_SAMLSETTINGS_IDPMETADATAURL="http://localhost:${keycloakPort}/realms/mattermost/protocol/saml/descriptor"`);
-        lines.push('# export MM_SAMLSETTINGS_SERVICEPROVIDERIDENTIFIER="mattermost"');
-        lines.push('# export MM_SAMLSETTINGS_ASSERTIONCONSUMERSERVICEURL="http://localhost:8065/login/sso/saml"');
-        lines.push('# export MM_SAMLSETTINGS_IDATTRIBUTE="id"');
-        lines.push('# export MM_SAMLSETTINGS_FIRSTNAMEATTRIBUTE="givenName"');
-        lines.push('# export MM_SAMLSETTINGS_LASTNAMEATTRIBUTE="surname"');
-        lines.push('# export MM_SAMLSETTINGS_EMAILATTRIBUTE="email"');
-        lines.push('# export MM_SAMLSETTINGS_USERNAMEATTRIBUTE="username"');
-        lines.push('# export MM_SAMLSETTINGS_ENABLE="true"');
-        lines.push('');
-        lines.push('# Keycloak - OpenID Settings (can be configured via env vars or System Console)');
-        lines.push('# export MM_OPENIDSETTINGS_SECRET="mattermost-openid-secret"');
-        lines.push('# export MM_OPENIDSETTINGS_ID="mattermost-openid"');
-        lines.push('# export MM_OPENIDSETTINGS_SCOPE="profile openid email"');
-        lines.push(`# export MM_OPENIDSETTINGS_DISCOVERYENDPOINT="http://localhost:${keycloakPort}/realms/mattermost/.well-known/openid-configuration"`);
-        lines.push('# export MM_OPENIDSETTINGS_BUTTONTEXT="Login using OpenID"');
-        lines.push('# export MM_OPENIDSETTINGS_ENABLE="true"');
-        lines.push('');
-    }
-    const filePath = path__namespace.join(outputDir, filename);
-    fs__namespace.writeFileSync(filePath, lines.join('\n'));
-    return filePath;
-}
-/**
- * Write server configuration to a JSON file.
- * @param config Server configuration object (from mmctl config show)
- * @param outputDir Directory to write the file to
- * @param filename Filename (default: .tc.server.config.json)
- * @returns The full path to the written file
- */
-function writeServerConfig(config, outputDir, filename = '.tc.server.config.json') {
-    const filePath = path__namespace.join(outputDir, filename);
-    fs__namespace.writeFileSync(filePath, JSON.stringify(config, null, 2) + '\n');
-    return filePath;
-}
-/**
- * Helper to merge connection info with container metadata.
- */
-function mergeContainerInfo(connection, metadata) {
-    if (!metadata)
-        return connection;
-    return {
-        id: metadata.id,
-        name: metadata.name,
-        image: metadata.image,
-        labels: metadata.labels,
-        ...connection,
-    };
-}
-/**
- * Build Docker container information from connection info and metadata.
- * @param info Service connection information
- * @param metadata Container metadata (ID, name, labels)
- * @returns Object with container details for each service
- */
-function buildDockerInfo(info, metadata) {
-    const containers = {};
-    if (info.mattermost) {
-        containers.mattermost = mergeContainerInfo({
-            host: info.mattermost.host,
-            port: info.mattermost.port,
-            url: info.mattermost.url,
-            internalUrl: info.mattermost.internalUrl,
-        }, metadata?.mattermost);
-    }
-    containers.postgres = mergeContainerInfo({
-        host: info.postgres.host,
-        port: info.postgres.port,
-        database: info.postgres.database,
-        username: info.postgres.username,
-        connectionString: info.postgres.connectionString,
-    }, metadata?.postgres);
-    if (info.inbucket) {
-        containers.inbucket = mergeContainerInfo({
-            host: info.inbucket.host,
-            smtpPort: info.inbucket.smtpPort,
-            webPort: info.inbucket.webPort,
-            pop3Port: info.inbucket.pop3Port,
-            webUrl: `http://${info.inbucket.host}:${info.inbucket.webPort}`,
-        }, metadata?.inbucket);
-    }
-    if (info.openldap) {
-        containers.openldap = mergeContainerInfo({
-            host: info.openldap.host,
-            port: info.openldap.port,
-            tlsPort: info.openldap.tlsPort,
-            baseDN: info.openldap.baseDN,
-            bindDN: info.openldap.bindDN,
-        }, metadata?.openldap);
-    }
-    if (info.minio) {
-        containers.minio = mergeContainerInfo({
-            host: info.minio.host,
-            port: info.minio.port,
-            consolePort: info.minio.consolePort,
-            endpoint: info.minio.endpoint,
-            consoleUrl: info.minio.consoleUrl,
-            accessKey: info.minio.accessKey,
-        }, metadata?.minio);
-    }
-    if (info.elasticsearch) {
-        containers.elasticsearch = mergeContainerInfo({
-            host: info.elasticsearch.host,
-            port: info.elasticsearch.port,
-            url: info.elasticsearch.url,
-        }, metadata?.elasticsearch);
-    }
-    if (info.opensearch) {
-        containers.opensearch = mergeContainerInfo({
-            host: info.opensearch.host,
-            port: info.opensearch.port,
-            url: info.opensearch.url,
-        }, metadata?.opensearch);
-    }
-    if (info.keycloak) {
-        containers.keycloak = mergeContainerInfo({
-            host: info.keycloak.host,
-            port: info.keycloak.port,
-            adminUrl: info.keycloak.adminUrl,
-            realmUrl: info.keycloak.realmUrl,
-        }, metadata?.keycloak);
-    }
-    if (info.redis) {
-        containers.redis = mergeContainerInfo({
-            host: info.redis.host,
-            port: info.redis.port,
-            url: info.redis.url,
-        }, metadata?.redis);
-    }
-    if (info.dejavu) {
-        containers.dejavu = mergeContainerInfo({
-            host: info.dejavu.host,
-            port: info.dejavu.port,
-            url: info.dejavu.url,
-        }, metadata?.dejavu);
-    }
-    if (info.prometheus) {
-        containers.prometheus = mergeContainerInfo({
-            host: info.prometheus.host,
-            port: info.prometheus.port,
-            url: info.prometheus.url,
-        }, metadata?.prometheus);
-    }
-    if (info.grafana) {
-        containers.grafana = mergeContainerInfo({
-            host: info.grafana.host,
-            port: info.grafana.port,
-            url: info.grafana.url,
-        }, metadata?.grafana);
-    }
-    if (info.loki) {
-        containers.loki = mergeContainerInfo({
-            host: info.loki.host,
-            port: info.loki.port,
-            url: info.loki.url,
-        }, metadata?.loki);
-    }
-    if (info.promtail) {
-        containers.promtail = mergeContainerInfo({
-            host: info.promtail.host,
-            port: info.promtail.port,
-            url: info.promtail.url,
-        }, metadata?.promtail);
-    }
-    return {
-        startedAt: new Date().toISOString(),
-        containers,
-    };
-}
-/**
- * Write Docker container information to a JSON file.
- * @param info Service connection information
- * @param metadata Container metadata (ID, name, labels)
- * @param outputDir Directory to write the file to
- * @param filename Filename (default: .tc.docker.json)
- * @returns The full path to the written file
- */
-function writeDockerInfo(info, metadata, outputDir, filename = '.tc.docker.json') {
-    const dockerInfo = buildDockerInfo(info, metadata);
-    const filePath = path__namespace.join(outputDir, filename);
-    fs__namespace.writeFileSync(filePath, JSON.stringify(dockerInfo, null, 2) + '\n');
-    return filePath;
-}
-// Keycloak SAML certificate (from server/build/docker/keycloak/keycloak.crt)
-// This certificate is used by Mattermost to verify SAML assertions from Keycloak
-const KEYCLOAK_SAML_CERTIFICATE = `-----BEGIN CERTIFICATE-----
-MIICozCCAYsCBgGNzWfMwjANBgkqhkiG9w0BAQsFADAVMRMwEQYDVQQDDAptYXR0ZXJtb3N0MB4XDTI0MDIyMTIwNDA0OFoXDTM0MDIyMTIwNDIyOFowFTETMBEGA1UEAwwKbWF0dGVybW9zdDCCASIwDQYJKoZIhvcNAQEBBQADggEPADCCAQoCggEBAOnsgNexkO5tbKkFXN+SdMUuLHbqdjZ9/JSnKrYPHLarf8801YDDzV8wI9jjdCCgq+xtKFKWlwU2rGpjPbefDLV1m7CSu0Iq+hNxDiBdX3wkEIK98piDpx+xYGL0aAbXn3nAlqFOWQJLKLM1I65ZmK31YZeVj4Kn01W4WfsvKHoxPjLPwPTug4HB6vaQXqEpzYYYHyuJKvIYNuVwo0WQdaPRXb0poZoYzOnoB6tOFrim6B7/chqtZeXQc7h6/FejBsV59aO5uATI0aAJw1twzjCNIiOeJLB2jlLuIMR3/Yaqr8IRpRXzcRPETpisWNilhV07ZBW0YL9ZwuU4sHWy+iMCAwEAATANBgkqhkiG9w0BAQsFAAOCAQEAW4I1egm+czdnnZxTtth3cjCmLg/UsalUDKSfFOLAlnbe6TtVhP4DpAl+OaQO4+kdEKemLENPmh4ddaHUjSSbbCQZo8B7IjByEe7x3kQdj2ucQpA4bh0vGZ11pVhk5HfkGqAO+UVNQsyLpTmWXQ8SEbxcw6mlTM4SjuybqaGOva1LBscI158Uq5FOVT6TJaxCt3dQkBH0tK+vhRtIM13pNZ/+SFgecn16AuVdBfjjqXynefrSihQ20BZ3NTyjs/N5J2qvSwQ95JARZrlhfiS++L81u2N/0WWni9cXmHsdTLxRrDZjz2CXBNeFOBRio74klSx8tMK27/2lxMsEC7R+DA==
------END CERTIFICATE-----`;
-/**
- * Write Keycloak SAML certificate to the output directory.
- * This certificate can be uploaded to Mattermost via System Console or API.
- * @param outputDir Directory to write the file to
- * @param filename Filename (default: saml-idp.crt)
- * @returns The full path to the written file
- */
-function writeKeycloakCertificate(outputDir, filename = 'saml-idp.crt') {
-    const filePath = path__namespace.join(outputDir, filename);
-    fs__namespace.writeFileSync(filePath, KEYCLOAK_SAML_CERTIFICATE);
-    return filePath;
-}
-/**
- * Write OpenLDAP setup documentation to the output directory.
- * @param info Service connection information (must include openldap)
- * @param outputDir Directory to write the file to
- * @param filename Filename (default: openldap_setup.md)
- * @returns The full path to the written file, or null if openldap not configured
- */
-function writeOpenLdapSetup(info, outputDir, filename = 'openldap_setup.md') {
-    if (!info.openldap) {
-        return null;
-    }
-    const { host, port, tlsPort, baseDN, bindDN, bindPassword, image } = info.openldap;
-    const content = `# OpenLDAP Setup for Mattermost Testing
-
-This document describes the OpenLDAP configuration used by the testcontainers environment.
-
-## Container Information
-
-| Property | Value |
-|----------|-------|
-| Image | \`${image}\` |
-| Host | \`${host}\` |
-| LDAP Port | ${port} |
-| LDAPS Port | ${tlsPort} |
-| Network Alias | \`openldap\` |
-
-## Admin Credentials
-
-| Field | Value |
-|-------|-------|
-| Bind DN | \`${bindDN}\` |
-| Password | \`${bindPassword}\` |
-| Base DN | \`${baseDN}\` |
-| Domain | \`mm.test.com\` |
-| Organisation | \`Mattermost Test\` |
-
-## Pre-loaded Test Users
-
-| Username | Password | Email | Title |
-|----------|----------|-------|-------|
-| \`test.one\` | \`Password1\` | \`success+testone@simulator.amazonses.com\` | Test1 Title |
-| \`test.two\` | \`Password1\` | \`success+testtwo@simulator.amazonses.com\` | Test2 Title |
-| \`dev.one\` | \`Password1\` | \`success+devone@simulator.amazonses.com\` | Senior Software Design Engineer |
-
-### User DNs
-
-| Username | DN |
-|----------|-----|
-| \`test.one\` | \`uid=test.one,ou=testusers,${baseDN}\` |
-| \`test.two\` | \`uid=test.two,ou=testusers,${baseDN}\` |
-| \`dev.one\` | \`uid=dev.one,ou=testusers,${baseDN}\` |
-
-## Pre-loaded Test Groups
-
-| Group Name | DN | Members |
-|------------|-----|---------|
-| \`developers\` | \`cn=developers,ou=testgroups,${baseDN}\` | \`dev.one\`, \`test.one\` |
-
-## Organizational Units
-
-| OU | DN |
-|----|-----|
-| Test Users | \`ou=testusers,${baseDN}\` |
-| Test Groups | \`ou=testgroups,${baseDN}\` |
-
-## Custom Schema Extensions
-
-### 1. Active Directory ObjectGUID Support
-- **Attribute**: \`objectGUID\` - AD object GUID (octet string, single-value)
-- **Object Class**: \`activeDSObject\` - Auxiliary class with \`objectGUID\` attribute
-
-### 2. Custom Profile Attributes (CPA)
-
-| Attribute | Description | Type |
-|-----------|-------------|------|
-| \`textCustomAttribute\` | Text custom attribute | String |
-| \`dateCustomAttribute\` | Date attribute | GeneralizedTime |
-| \`selectCustomAttribute\` | Single selection | String, single-value |
-| \`multiSelectCustomAttribute\` | Multi-selection | String, multi-value |
-| \`userReferenceCustomAttribute\` | Reference to single user | DN, single-value |
-| \`multiUserReferenceCustomAttribute\` | References to multiple users | DN, multi-value |
-
-## Mattermost LDAP Configuration
-
-### System Console Settings (AD/LDAP)
-
-| Setting | Value |
-|---------|-------|
-| Enable sign-in with AD/LDAP | \`true\` |
-| AD/LDAP Server | \`${host}\` |
-| AD/LDAP Port | \`${port}\` |
-| Connection Security | None |
-| Base DN | \`${baseDN}\` |
-| Bind Username | \`${bindDN}\` |
-| Bind Password | \`${bindPassword}\` |
-| User Filter | \`(objectClass=iNetOrgPerson)\` |
-| Group Filter | \`(objectClass=groupOfUniqueNames)\` |
-
-### Attribute Mappings
-
-| Mattermost Field | LDAP Attribute |
-|------------------|----------------|
-| ID Attribute | \`uid\` |
-| Login ID Attribute | \`uid\` |
-| Username Attribute | \`uid\` |
-| Email Attribute | \`mail\` |
-| First Name Attribute | \`cn\` |
-| Last Name Attribute | \`sn\` |
-| Position Attribute | \`title\` |
-
-## Testing LDAP Connection
-
-\`\`\`bash
-# Search for all users
-ldapsearch -x -H ldap://${host}:${port} \\
-  -D "${bindDN}" \\
-  -w ${bindPassword} \\
-  -b "ou=testusers,${baseDN}" \\
-  "(objectClass=iNetOrgPerson)"
-
-# Test user authentication
-ldapwhoami -x -H ldap://${host}:${port} \\
-  -D "uid=test.one,ou=testusers,${baseDN}" \\
-  -w Password1
-\`\`\`
-
-## Logging into Mattermost with LDAP
-
-1. Navigate to the Mattermost login page
-2. Click "AD/LDAP" or enter credentials in the LDAP login form
-3. Use test user credentials: \`test.one\` / \`Password1\`
-`;
-    const filePath = path__namespace.join(outputDir, filename);
-    fs__namespace.writeFileSync(filePath, content);
-    return filePath;
-}
-/**
- * Write Keycloak setup documentation to the output directory.
- * @param info Service connection information (must include keycloak)
- * @param outputDir Directory to write the file to
- * @param filename Filename (default: keycloak_setup.md)
- * @returns The full path to the written file, or null if keycloak not configured
- */
-function writeKeycloakSetup(info, outputDir, filename = 'keycloak_setup.md') {
-    if (!info.keycloak) {
-        return null;
-    }
-    const { host, port, adminUrl, realmUrl, image } = info.keycloak;
-    const content = `# Keycloak Setup for Mattermost Testing
-
-This document describes the Keycloak configuration for SAML and OpenID Connect authentication testing.
-
-## Container Information
-
-| Property | Value |
-|----------|-------|
-| Image | \`${image}\` |
-| Host | \`${host}\` |
-| Port | ${port} |
-| Network Alias | \`keycloak\` |
-
-## Admin Console Access
-
-| Field | Value |
-|-------|-------|
-| Admin URL | \`${adminUrl}\` |
-| Username | \`admin\` |
-| Password | \`admin\` |
-
-## Pre-configured Realm
-
-| Property | Value |
-|----------|-------|
-| Realm Name | \`mattermost\` |
-| Realm URL | \`${realmUrl}\` |
-| SSL Required | None |
-
-## Test Users
-
-| Username | Password | Email | First Name | Last Name |
-|----------|----------|-------|------------|-----------|
-| \`user-1\` | \`Password1!\` | \`user-1@sample.mattermost.com\` | User | One |
-| \`user-2\` | \`Password1!\` | \`user-2@sample.mattermost.com\` | User | Two |
-
-## Pre-configured Clients
-
-### 1. SAML Client (\`mattermost\`)
-
-| Property | Value |
-|----------|-------|
-| Client ID | \`mattermost\` |
-| Protocol | SAML |
-| Name | Mattermost SAML |
-
-#### SAML Protocol Mappers
-
-| Mapper Name | User Attribute | SAML Attribute |
-|-------------|----------------|----------------|
-| email | email | email |
-| firstName | firstName | firstName |
-| lastName | lastName | lastName |
-| username | username | username |
-| id | id | id |
-
-### 2. OpenID Connect Client (\`mattermost-openid\`)
-
-| Property | Value |
-|----------|-------|
-| Client ID | \`mattermost-openid\` |
-| Client Secret | \`mattermost-openid-secret\` |
-| Protocol | OpenID Connect |
-
-## Mattermost SAML Configuration
-
-### System Console Settings (SAML 2.0)
-
-| Setting | Value |
-|---------|-------|
-| Enable Login With SAML 2.0 | \`true\` |
-| SAML SSO URL | \`http://${host}:${port}/realms/mattermost/protocol/saml\` |
-| Identity Provider Issuer URL | \`http://${host}:${port}/realms/mattermost\` |
-| Identity Provider Public Certificate | Upload \`saml-idp.crt\` from output directory |
-| Service Provider Identifier | \`mattermost\` |
-
-### SAML Attribute Mappings
-
-| Mattermost Field | SAML Attribute |
-|------------------|----------------|
-| ID Attribute | \`id\` |
-| Email Attribute | \`email\` |
-| Username Attribute | \`username\` |
-| First Name Attribute | \`firstName\` |
-| Last Name Attribute | \`lastName\` |
-
-## Mattermost OpenID Connect Configuration
-
-### System Console Settings
-
-| Setting | Value |
-|---------|-------|
-| Client ID | \`mattermost-openid\` |
-| Client Secret | \`mattermost-openid-secret\` |
-| Discovery Endpoint | \`http://${host}:${port}/realms/mattermost/.well-known/openid-configuration\` |
-
-### OpenID Connect URLs
-
-| Endpoint | URL |
-|----------|-----|
-| Discovery | \`http://${host}:${port}/realms/mattermost/.well-known/openid-configuration\` |
-| Authorization | \`http://${host}:${port}/realms/mattermost/protocol/openid-connect/auth\` |
-| Token | \`http://${host}:${port}/realms/mattermost/protocol/openid-connect/token\` |
-| User Info | \`http://${host}:${port}/realms/mattermost/protocol/openid-connect/userinfo\` |
-
-## SAML IdP Certificate
-
-The SAML signing certificate is available at:
-\`\`\`
-${outputDir}/saml-idp.crt
-\`\`\`
-
-Upload this to Mattermost System Console under:
-**SAML 2.0 > Identity Provider Public Certificate**
-
-## Testing Authentication
-
-### SAML Login Flow
-
-1. Navigate to Mattermost login page
-2. Click "SAML" login button
-3. Enter credentials: \`user-1\` / \`Password1!\`
-4. Redirected back to Mattermost (authenticated)
-
-### OpenID Connect Login Flow
-
-1. Navigate to Mattermost login page
-2. Click "OpenID Connect" login button
-3. Enter credentials: \`user-1\` / \`Password1!\`
-4. Redirected back to Mattermost (authenticated)
-
-## Keycloak Health Check
-
-\`\`\`bash
-curl -s "http://${host}:${port}/health/ready"
-\`\`\`
-`;
-    const filePath = path__namespace.join(outputDir, filename);
-    fs__namespace.writeFileSync(filePath, content);
-    return filePath;
-}
-
 exports.DEFAULT_ADMIN = DEFAULT_ADMIN;
-exports.DEFAULT_CONFIG = DEFAULT_CONFIG;
-exports.DEFAULT_CREDENTIALS = DEFAULT_CREDENTIALS;
-exports.DEFAULT_HA_SETTINGS = DEFAULT_HA_SETTINGS;
-exports.DEFAULT_IMAGES = DEFAULT_IMAGES;
 exports.DEFAULT_OUTPUT_DIR = DEFAULT_OUTPUT_DIR;
-exports.DEFAULT_SERVER_TAG = DEFAULT_SERVER_TAG;
-exports.HA_NODE_COUNT = HA_NODE_COUNT;
-exports.IMAGE_ENV_VARS = IMAGE_ENV_VARS;
-exports.INTERNAL_PORTS = INTERNAL_PORTS;
 exports.MATTERMOST_EDITION_IMAGES = MATTERMOST_EDITION_IMAGES;
 exports.MattermostTestEnvironment = MattermostTestEnvironment;
-exports.MmctlClient = MmctlClient;
-exports.buildDockerInfo = buildDockerInfo;
-exports.buildServerEnvVars = buildServerEnvVars;
-exports.createDejavuContainer = createDejavuContainer;
-exports.createElasticsearchContainer = createElasticsearchContainer;
-exports.createGrafanaContainer = createGrafanaContainer;
-exports.createInbucketContainer = createInbucketContainer;
-exports.createKeycloakContainer = createKeycloakContainer;
-exports.createLokiContainer = createLokiContainer;
-exports.createMattermostContainer = createMattermostContainer;
-exports.createMinioContainer = createMinioContainer;
-exports.createNginxContainer = createNginxContainer;
-exports.createOpenLdapContainer = createOpenLdapContainer;
-exports.createOpenSearchContainer = createOpenSearchContainer;
-exports.createPostgresContainer = createPostgresContainer;
-exports.createPrometheusContainer = createPrometheusContainer;
-exports.createPromtailContainer = createPromtailContainer;
-exports.createRedisContainer = createRedisContainer;
-exports.createSubpathNginxContainer = createSubpathNginxContainer;
 exports.defineConfig = defineConfig;
 exports.discoverAndLoadConfig = discoverAndLoadConfig;
-exports.generateNodeNames = generateNodeNames;
-exports.getDejavuConnectionInfo = getDejavuConnectionInfo;
-exports.getElasticsearchConnectionInfo = getElasticsearchConnectionInfo;
-exports.getGrafanaConnectionInfo = getGrafanaConnectionInfo;
-exports.getInbucketConnectionInfo = getInbucketConnectionInfo;
-exports.getKeycloakConnectionInfo = getKeycloakConnectionInfo;
-exports.getLogDir = getLogDir;
-exports.getLokiConnectionInfo = getLokiConnectionInfo;
-exports.getMattermostConnectionInfo = getMattermostConnectionInfo;
-exports.getMattermostImage = getMattermostImage;
-exports.getMattermostNodeConnectionInfo = getMattermostNodeConnectionInfo;
-exports.getMinioConnectionInfo = getMinioConnectionInfo;
-exports.getNginxConnectionInfo = getNginxConnectionInfo;
-exports.getNginxImage = getNginxImage;
-exports.getOpenLdapConnectionInfo = getOpenLdapConnectionInfo;
-exports.getOpenSearchConnectionInfo = getOpenSearchConnectionInfo;
-exports.getOpenSearchImage = getOpenSearchImage;
-exports.getOutputDir = getOutputDir;
-exports.getPostgresConnectionInfo = getPostgresConnectionInfo;
-exports.getPostgresImage = getPostgresImage;
-exports.getPrometheusConnectionInfo = getPrometheusConnectionInfo;
-exports.getPromtailConnectionInfo = getPromtailConnectionInfo;
-exports.getRedisConnectionInfo = getRedisConnectionInfo;
-exports.getServiceImage = getServiceImage;
-exports.imageExistsLocally = imageExistsLocally;
-exports.loadConfigFile = loadConfigFile;
-exports.logConfig = logConfig;
-exports.printConnectionInfo = printConnectionInfo;
-exports.printServerEnvVars = printServerEnvVars;
-exports.pullImageIfNeeded = pullImageIfNeeded;
-exports.resolveConfig = resolveConfig;
-exports.setLogDir = setLogDir;
+exports.log = log;
 exports.setOutputDir = setOutputDir;
 exports.writeDockerInfo = writeDockerInfo;
 exports.writeEnvFile = writeEnvFile;
@@ -10140,4 +9955,4 @@ exports.writeKeycloakCertificate = writeKeycloakCertificate;
 exports.writeKeycloakSetup = writeKeycloakSetup;
 exports.writeOpenLdapSetup = writeOpenLdapSetup;
 exports.writeServerConfig = writeServerConfig;
-//# sourceMappingURL=print-APSvEmKI.js.map
+//# sourceMappingURL=config-B98dqnFP.js.map

@@ -1,4 +1,11 @@
 /**
+ * Log a message with timestamp to stderr.
+ * Format: [ISO8601] [tc] message
+ *
+ * @param message The message to log
+ */
+export declare function log(message: string): void;
+/**
  * Get the output directory path.
  * Priority: setOutputDir() > TC_OUTPUT_DIR env var > default (.tc.out in cwd)
  */

@@ -40,7 +40,7 @@ export MM_DOCKER_TAG="${BUILD_TAG##*:}"
 export SERVER_TYPE="${SERVER}"
 export AUTOMATION_DASHBOARD_FRONTEND_URL="${AUTOMATION_DASHBOARD_URL:+${AUTOMATION_DASHBOARD_URL%%/api}}"
 
-if [ -n "${TM4J_API_KEY:-}" ]; then
+if [ -n "${ZEPHYR_API_KEY:-}" ]; then
   # Set additional variables required for Zephyr reporting
   if grep -q 'UNSTABLE' <<<"$TYPE"; then
     export TEST_SUITE=prod
@@ -53,28 +53,28 @@ if [ -n "${TM4J_API_KEY:-}" ]; then
     export SERVER_ARTIFACT_TYPE=master
     export TEST_IS_DAILY=yes
   fi
-  export TM4J_ENABLE=true
+  export ZEPHYR_ENABLE=true
   export JIRA_PROJECT_KEY=MM
-  export TM4J_ENVIRONMENT_NAME="${TEST@u}/${BROWSER@u}/${SERVER_ARTIFACT_TYPE}-${SERVER_TYPE}-ent${TEST_IS_DAILY:+-${TEST_SUITE}}"
+  export ZEPHYR_ENVIRONMENT_NAME="${TEST@u}/${BROWSER@u}/${SERVER_ARTIFACT_TYPE}-${SERVER_TYPE}-ent${TEST_IS_DAILY:+-${TEST_SUITE}}"
   # Assert that the test type is among the ones supported by Zephyr, and select the corresponding folderId
   case "${SERVER}-${TYPE}" in
   onprem-RELEASE)
-    export TM4J_FOLDER_ID="2014475"
+    export ZEPHYR_FOLDER_ID="2014475"
     ;;
   onprem-MASTER)
-    export TM4J_FOLDER_ID="2014476"
+    export ZEPHYR_FOLDER_ID="2014476"
     ;;
   onprem-MASTER_UNSTABLE)
-    export TM4J_FOLDER_ID="2014478"
+    export ZEPHYR_FOLDER_ID="2014478"
     ;;
   cloud-RELEASE)
-    export TM4J_FOLDER_ID="2014474"
+    export ZEPHYR_FOLDER_ID="2014474"
     ;;
   cloud-CLOUD)
-    export TM4J_FOLDER_ID="2014479"
+    export ZEPHYR_FOLDER_ID="2014479"
     ;;
   cloud-CLOUD_UNSTABLE)
-    export TM4J_FOLDER_ID="2014481"
+    export ZEPHYR_FOLDER_ID="2014481"
     ;;
   *)
     mme2e_log "Error: unsupported Zephyr environment for the requested report (SERVER=${SERVER}, TYPE=${TYPE}). Aborting." >&2
@@ -82,9 +82,9 @@ if [ -n "${TM4J_API_KEY:-}" ]; then
     ;;
   esac
   : ${TEST_CYCLE_LINK_PREFIX:?}
-  : ${TM4J_CYCLE_KEY:-}  # Optional. Populated automatically by the reporting script
-  : ${TM4J_CYCLE_NAME:-} # Optional. Populated automatically by the reporting script
-  mme2e_log "TMJ4 integration enabled. Environment: $TM4J_ENVIRONMENT_NAME"
+  : ${ZEPHYR_CYCLE_KEY:-}  # Optional. Populated automatically by the reporting script
+  : ${ZEPHYR_CYCLE_NAME:-} # Optional. Populated automatically by the reporting script
+  mme2e_log "TMJ4 integration enabled. Environment: $ZEPHYR_ENVIRONMENT_NAME"
 fi
 
 if [ -n "${DIAGNOSTIC_WEBHOOK_URL:-}" ]; then

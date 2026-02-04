@@ -1,18 +1,19 @@
 #!/usr/bin/env node
 'use strict';
 
-var fs = require('fs');
-var path = require('path');
 var require$$0 = require('node:events');
 var require$$1 = require('node:child_process');
 var require$$2 = require('node:path');
 var require$$3 = require('node:fs');
 var process$1 = require('node:process');
-var os = require('node:os');
-var tty = require('node:tty');
+var fs = require('fs');
+var path = require('path');
 var require$$2$1 = require('os');
 var require$$3$1 = require('crypto');
-var print = require('./print-APSvEmKI.js');
+var os = require('node:os');
+var tty = require('node:tty');
+var config = require('./config-B98dqnFP.js');
+var readline = require('readline');
 require('testcontainers');
 require('@testcontainers/postgresql');
 require('child_process');
@@ -38,6 +39,7 @@ function _interopNamespaceDefault(e) {
 
 var fs__namespace = /*#__PURE__*/_interopNamespaceDefault(fs);
 var path__namespace = /*#__PURE__*/_interopNamespaceDefault(path);
+var readline__namespace = /*#__PURE__*/_interopNamespaceDefault(readline);
 
 var commander = {};
 
@@ -4328,6 +4330,456 @@ function requireCommander () {
 
 var commanderExports = requireCommander();
 
+var main = {exports: {}};
+
+var version = "17.2.3";
+var require$$4 = {
+	version: version};
+
+var hasRequiredMain;
+
+function requireMain () {
+	if (hasRequiredMain) return main.exports;
+	hasRequiredMain = 1;
+	const fs$1 = fs;
+	const path$1 = path;
+	const os = require$$2$1;
+	const crypto = require$$3$1;
+	const packageJson = require$$4;
+
+	const version = packageJson.version;
+
+	// Array of tips to display randomly
+	const TIPS = [
+	  '🔐 encrypt with Dotenvx: https://dotenvx.com',
+	  '🔐 prevent committing .env to code: https://dotenvx.com/precommit',
+	  '🔐 prevent building .env in docker: https://dotenvx.com/prebuild',
+	  '📡 add observability to secrets: https://dotenvx.com/ops',
+	  '👥 sync secrets across teammates & machines: https://dotenvx.com/ops',
+	  '🗂️ backup and recover secrets: https://dotenvx.com/ops',
+	  '✅ audit secrets and track compliance: https://dotenvx.com/ops',
+	  '🔄 add secrets lifecycle management: https://dotenvx.com/ops',
+	  '🔑 add access controls to secrets: https://dotenvx.com/ops',
+	  '🛠️  run anywhere with `dotenvx run -- yourcommand`',
+	  '⚙️  specify custom .env file path with { path: \'/custom/path/.env\' }',
+	  '⚙️  enable debug logging with { debug: true }',
+	  '⚙️  override existing env vars with { override: true }',
+	  '⚙️  suppress all logs with { quiet: true }',
+	  '⚙️  write to custom object with { processEnv: myObject }',
+	  '⚙️  load multiple .env files with { path: [\'.env.local\', \'.env\'] }'
+	];
+
+	// Get a random tip from the tips array
+	function _getRandomTip () {
+	  return TIPS[Math.floor(Math.random() * TIPS.length)]
+	}
+
+	function parseBoolean (value) {
+	  if (typeof value === 'string') {
+	    return !['false', '0', 'no', 'off', ''].includes(value.toLowerCase())
+	  }
+	  return Boolean(value)
+	}
+
+	function supportsAnsi () {
+	  return process.stdout.isTTY // && process.env.TERM !== 'dumb'
+	}
+
+	function dim (text) {
+	  return supportsAnsi() ? `\x1b[2m${text}\x1b[0m` : text
+	}
+
+	const LINE = /(?:^|^)\s*(?:export\s+)?([\w.-]+)(?:\s*=\s*?|:\s+?)(\s*'(?:\\'|[^'])*'|\s*"(?:\\"|[^"])*"|\s*`(?:\\`|[^`])*`|[^#\r\n]+)?\s*(?:#.*)?(?:$|$)/mg;
+
+	// Parse src into an Object
+	function parse (src) {
+	  const obj = {};
+
+	  // Convert buffer to string
+	  let lines = src.toString();
+
+	  // Convert line breaks to same format
+	  lines = lines.replace(/\r\n?/mg, '\n');
+
+	  let match;
+	  while ((match = LINE.exec(lines)) != null) {
+	    const key = match[1];
+
+	    // Default undefined or null to empty string
+	    let value = (match[2] || '');
+
+	    // Remove whitespace
+	    value = value.trim();
+
+	    // Check if double quoted
+	    const maybeQuote = value[0];
+
+	    // Remove surrounding quotes
+	    value = value.replace(/^(['"`])([\s\S]*)\1$/mg, '$2');
+
+	    // Expand newlines if double quoted
+	    if (maybeQuote === '"') {
+	      value = value.replace(/\\n/g, '\n');
+	      value = value.replace(/\\r/g, '\r');
+	    }
+
+	    // Add to object
+	    obj[key] = value;
+	  }
+
+	  return obj
+	}
+
+	function _parseVault (options) {
+	  options = options || {};
+
+	  const vaultPath = _vaultPath(options);
+	  options.path = vaultPath; // parse .env.vault
+	  const result = DotenvModule.configDotenv(options);
+	  if (!result.parsed) {
+	    const err = new Error(`MISSING_DATA: Cannot parse ${vaultPath} for an unknown reason`);
+	    err.code = 'MISSING_DATA';
+	    throw err
+	  }
+
+	  // handle scenario for comma separated keys - for use with key rotation
+	  // example: DOTENV_KEY="dotenv://:key_1234@dotenvx.com/vault/.env.vault?environment=prod,dotenv://:key_7890@dotenvx.com/vault/.env.vault?environment=prod"
+	  const keys = _dotenvKey(options).split(',');
+	  const length = keys.length;
+
+	  let decrypted;
+	  for (let i = 0; i < length; i++) {
+	    try {
+	      // Get full key
+	      const key = keys[i].trim();
+
+	      // Get instructions for decrypt
+	      const attrs = _instructions(result, key);
+
+	      // Decrypt
+	      decrypted = DotenvModule.decrypt(attrs.ciphertext, attrs.key);
+
+	      break
+	    } catch (error) {
+	      // last key
+	      if (i + 1 >= length) {
+	        throw error
+	      }
+	      // try next key
+	    }
+	  }
+
+	  // Parse decrypted .env string
+	  return DotenvModule.parse(decrypted)
+	}
+
+	function _warn (message) {
+	  console.error(`[dotenv@${version}][WARN] ${message}`);
+	}
+
+	function _debug (message) {
+	  console.log(`[dotenv@${version}][DEBUG] ${message}`);
+	}
+
+	function _log (message) {
+	  console.log(`[dotenv@${version}] ${message}`);
+	}
+
+	function _dotenvKey (options) {
+	  // prioritize developer directly setting options.DOTENV_KEY
+	  if (options && options.DOTENV_KEY && options.DOTENV_KEY.length > 0) {
+	    return options.DOTENV_KEY
+	  }
+
+	  // secondary infra already contains a DOTENV_KEY environment variable
+	  if (process.env.DOTENV_KEY && process.env.DOTENV_KEY.length > 0) {
+	    return process.env.DOTENV_KEY
+	  }
+
+	  // fallback to empty string
+	  return ''
+	}
+
+	function _instructions (result, dotenvKey) {
+	  // Parse DOTENV_KEY. Format is a URI
+	  let uri;
+	  try {
+	    uri = new URL(dotenvKey);
+	  } catch (error) {
+	    if (error.code === 'ERR_INVALID_URL') {
+	      const err = new Error('INVALID_DOTENV_KEY: Wrong format. Must be in valid uri format like dotenv://:key_1234@dotenvx.com/vault/.env.vault?environment=development');
+	      err.code = 'INVALID_DOTENV_KEY';
+	      throw err
+	    }
+
+	    throw error
+	  }
+
+	  // Get decrypt key
+	  const key = uri.password;
+	  if (!key) {
+	    const err = new Error('INVALID_DOTENV_KEY: Missing key part');
+	    err.code = 'INVALID_DOTENV_KEY';
+	    throw err
+	  }
+
+	  // Get environment
+	  const environment = uri.searchParams.get('environment');
+	  if (!environment) {
+	    const err = new Error('INVALID_DOTENV_KEY: Missing environment part');
+	    err.code = 'INVALID_DOTENV_KEY';
+	    throw err
+	  }
+
+	  // Get ciphertext payload
+	  const environmentKey = `DOTENV_VAULT_${environment.toUpperCase()}`;
+	  const ciphertext = result.parsed[environmentKey]; // DOTENV_VAULT_PRODUCTION
+	  if (!ciphertext) {
+	    const err = new Error(`NOT_FOUND_DOTENV_ENVIRONMENT: Cannot locate environment ${environmentKey} in your .env.vault file.`);
+	    err.code = 'NOT_FOUND_DOTENV_ENVIRONMENT';
+	    throw err
+	  }
+
+	  return { ciphertext, key }
+	}
+
+	function _vaultPath (options) {
+	  let possibleVaultPath = null;
+
+	  if (options && options.path && options.path.length > 0) {
+	    if (Array.isArray(options.path)) {
+	      for (const filepath of options.path) {
+	        if (fs$1.existsSync(filepath)) {
+	          possibleVaultPath = filepath.endsWith('.vault') ? filepath : `${filepath}.vault`;
+	        }
+	      }
+	    } else {
+	      possibleVaultPath = options.path.endsWith('.vault') ? options.path : `${options.path}.vault`;
+	    }
+	  } else {
+	    possibleVaultPath = path$1.resolve(process.cwd(), '.env.vault');
+	  }
+
+	  if (fs$1.existsSync(possibleVaultPath)) {
+	    return possibleVaultPath
+	  }
+
+	  return null
+	}
+
+	function _resolveHome (envPath) {
+	  return envPath[0] === '~' ? path$1.join(os.homedir(), envPath.slice(1)) : envPath
+	}
+
+	function _configVault (options) {
+	  const debug = parseBoolean(process.env.DOTENV_CONFIG_DEBUG || (options && options.debug));
+	  const quiet = parseBoolean(process.env.DOTENV_CONFIG_QUIET || (options && options.quiet));
+
+	  if (debug || !quiet) {
+	    _log('Loading env from encrypted .env.vault');
+	  }
+
+	  const parsed = DotenvModule._parseVault(options);
+
+	  let processEnv = process.env;
+	  if (options && options.processEnv != null) {
+	    processEnv = options.processEnv;
+	  }
+
+	  DotenvModule.populate(processEnv, parsed, options);
+
+	  return { parsed }
+	}
+
+	function configDotenv (options) {
+	  const dotenvPath = path$1.resolve(process.cwd(), '.env');
+	  let encoding = 'utf8';
+	  let processEnv = process.env;
+	  if (options && options.processEnv != null) {
+	    processEnv = options.processEnv;
+	  }
+	  let debug = parseBoolean(processEnv.DOTENV_CONFIG_DEBUG || (options && options.debug));
+	  let quiet = parseBoolean(processEnv.DOTENV_CONFIG_QUIET || (options && options.quiet));
+
+	  if (options && options.encoding) {
+	    encoding = options.encoding;
+	  } else {
+	    if (debug) {
+	      _debug('No encoding is specified. UTF-8 is used by default');
+	    }
+	  }
+
+	  let optionPaths = [dotenvPath]; // default, look for .env
+	  if (options && options.path) {
+	    if (!Array.isArray(options.path)) {
+	      optionPaths = [_resolveHome(options.path)];
+	    } else {
+	      optionPaths = []; // reset default
+	      for (const filepath of options.path) {
+	        optionPaths.push(_resolveHome(filepath));
+	      }
+	    }
+	  }
+
+	  // Build the parsed data in a temporary object (because we need to return it).  Once we have the final
+	  // parsed data, we will combine it with process.env (or options.processEnv if provided).
+	  let lastError;
+	  const parsedAll = {};
+	  for (const path of optionPaths) {
+	    try {
+	      // Specifying an encoding returns a string instead of a buffer
+	      const parsed = DotenvModule.parse(fs$1.readFileSync(path, { encoding }));
+
+	      DotenvModule.populate(parsedAll, parsed, options);
+	    } catch (e) {
+	      if (debug) {
+	        _debug(`Failed to load ${path} ${e.message}`);
+	      }
+	      lastError = e;
+	    }
+	  }
+
+	  const populated = DotenvModule.populate(processEnv, parsedAll, options);
+
+	  // handle user settings DOTENV_CONFIG_ options inside .env file(s)
+	  debug = parseBoolean(processEnv.DOTENV_CONFIG_DEBUG || debug);
+	  quiet = parseBoolean(processEnv.DOTENV_CONFIG_QUIET || quiet);
+
+	  if (debug || !quiet) {
+	    const keysCount = Object.keys(populated).length;
+	    const shortPaths = [];
+	    for (const filePath of optionPaths) {
+	      try {
+	        const relative = path$1.relative(process.cwd(), filePath);
+	        shortPaths.push(relative);
+	      } catch (e) {
+	        if (debug) {
+	          _debug(`Failed to load ${filePath} ${e.message}`);
+	        }
+	        lastError = e;
+	      }
+	    }
+
+	    _log(`injecting env (${keysCount}) from ${shortPaths.join(',')} ${dim(`-- tip: ${_getRandomTip()}`)}`);
+	  }
+
+	  if (lastError) {
+	    return { parsed: parsedAll, error: lastError }
+	  } else {
+	    return { parsed: parsedAll }
+	  }
+	}
+
+	// Populates process.env from .env file
+	function config (options) {
+	  // fallback to original dotenv if DOTENV_KEY is not set
+	  if (_dotenvKey(options).length === 0) {
+	    return DotenvModule.configDotenv(options)
+	  }
+
+	  const vaultPath = _vaultPath(options);
+
+	  // dotenvKey exists but .env.vault file does not exist
+	  if (!vaultPath) {
+	    _warn(`You set DOTENV_KEY but you are missing a .env.vault file at ${vaultPath}. Did you forget to build it?`);
+
+	    return DotenvModule.configDotenv(options)
+	  }
+
+	  return DotenvModule._configVault(options)
+	}
+
+	function decrypt (encrypted, keyStr) {
+	  const key = Buffer.from(keyStr.slice(-64), 'hex');
+	  let ciphertext = Buffer.from(encrypted, 'base64');
+
+	  const nonce = ciphertext.subarray(0, 12);
+	  const authTag = ciphertext.subarray(-16);
+	  ciphertext = ciphertext.subarray(12, -16);
+
+	  try {
+	    const aesgcm = crypto.createDecipheriv('aes-256-gcm', key, nonce);
+	    aesgcm.setAuthTag(authTag);
+	    return `${aesgcm.update(ciphertext)}${aesgcm.final()}`
+	  } catch (error) {
+	    const isRange = error instanceof RangeError;
+	    const invalidKeyLength = error.message === 'Invalid key length';
+	    const decryptionFailed = error.message === 'Unsupported state or unable to authenticate data';
+
+	    if (isRange || invalidKeyLength) {
+	      const err = new Error('INVALID_DOTENV_KEY: It must be 64 characters long (or more)');
+	      err.code = 'INVALID_DOTENV_KEY';
+	      throw err
+	    } else if (decryptionFailed) {
+	      const err = new Error('DECRYPTION_FAILED: Please check your DOTENV_KEY');
+	      err.code = 'DECRYPTION_FAILED';
+	      throw err
+	    } else {
+	      throw error
+	    }
+	  }
+	}
+
+	// Populate process.env with parsed values
+	function populate (processEnv, parsed, options = {}) {
+	  const debug = Boolean(options && options.debug);
+	  const override = Boolean(options && options.override);
+	  const populated = {};
+
+	  if (typeof parsed !== 'object') {
+	    const err = new Error('OBJECT_REQUIRED: Please check the processEnv argument being passed to populate');
+	    err.code = 'OBJECT_REQUIRED';
+	    throw err
+	  }
+
+	  // Set process.env
+	  for (const key of Object.keys(parsed)) {
+	    if (Object.prototype.hasOwnProperty.call(processEnv, key)) {
+	      if (override === true) {
+	        processEnv[key] = parsed[key];
+	        populated[key] = parsed[key];
+	      }
+
+	      if (debug) {
+	        if (override === true) {
+	          _debug(`"${key}" is already defined and WAS overwritten`);
+	        } else {
+	          _debug(`"${key}" is already defined and was NOT overwritten`);
+	        }
+	      }
+	    } else {
+	      processEnv[key] = parsed[key];
+	      populated[key] = parsed[key];
+	    }
+	  }
+
+	  return populated
+	}
+
+	const DotenvModule = {
+	  configDotenv,
+	  _configVault,
+	  _parseVault,
+	  config,
+	  decrypt,
+	  parse,
+	  populate
+	};
+
+	main.exports.configDotenv = DotenvModule.configDotenv;
+	main.exports._configVault = DotenvModule._configVault;
+	main.exports._parseVault = DotenvModule._parseVault;
+	main.exports.config = DotenvModule.config;
+	main.exports.decrypt = DotenvModule.decrypt;
+	main.exports.parse = DotenvModule.parse;
+	main.exports.populate = DotenvModule.populate;
+
+	main.exports = DotenvModule;
+	return main.exports;
+}
+
+var mainExports = requireMain();
+
 const ANSI_BACKGROUND_OFFSET = 10;
 
 const wrapAnsi16 = (offset = 0) => code => `\u001B[${code + offset}m`;
@@ -4968,503 +5420,24 @@ Object.defineProperties(createChalk.prototype, styles);
 createChalk();
 createChalk({level: stderrColor ? stderrColor.level : 0});
 
-var main = {exports: {}};
-
-var version = "17.2.3";
-var require$$4 = {
-	version: version};
-
-var hasRequiredMain;
-
-function requireMain () {
-	if (hasRequiredMain) return main.exports;
-	hasRequiredMain = 1;
-	const fs$1 = fs;
-	const path$1 = path;
-	const os = require$$2$1;
-	const crypto = require$$3$1;
-	const packageJson = require$$4;
-
-	const version = packageJson.version;
-
-	// Array of tips to display randomly
-	const TIPS = [
-	  '🔐 encrypt with Dotenvx: https://dotenvx.com',
-	  '🔐 prevent committing .env to code: https://dotenvx.com/precommit',
-	  '🔐 prevent building .env in docker: https://dotenvx.com/prebuild',
-	  '📡 add observability to secrets: https://dotenvx.com/ops',
-	  '👥 sync secrets across teammates & machines: https://dotenvx.com/ops',
-	  '🗂️ backup and recover secrets: https://dotenvx.com/ops',
-	  '✅ audit secrets and track compliance: https://dotenvx.com/ops',
-	  '🔄 add secrets lifecycle management: https://dotenvx.com/ops',
-	  '🔑 add access controls to secrets: https://dotenvx.com/ops',
-	  '🛠️  run anywhere with `dotenvx run -- yourcommand`',
-	  '⚙️  specify custom .env file path with { path: \'/custom/path/.env\' }',
-	  '⚙️  enable debug logging with { debug: true }',
-	  '⚙️  override existing env vars with { override: true }',
-	  '⚙️  suppress all logs with { quiet: true }',
-	  '⚙️  write to custom object with { processEnv: myObject }',
-	  '⚙️  load multiple .env files with { path: [\'.env.local\', \'.env\'] }'
-	];
-
-	// Get a random tip from the tips array
-	function _getRandomTip () {
-	  return TIPS[Math.floor(Math.random() * TIPS.length)]
-	}
-
-	function parseBoolean (value) {
-	  if (typeof value === 'string') {
-	    return !['false', '0', 'no', 'off', ''].includes(value.toLowerCase())
-	  }
-	  return Boolean(value)
-	}
-
-	function supportsAnsi () {
-	  return process.stdout.isTTY // && process.env.TERM !== 'dumb'
-	}
-
-	function dim (text) {
-	  return supportsAnsi() ? `\x1b[2m${text}\x1b[0m` : text
-	}
-
-	const LINE = /(?:^|^)\s*(?:export\s+)?([\w.-]+)(?:\s*=\s*?|:\s+?)(\s*'(?:\\'|[^'])*'|\s*"(?:\\"|[^"])*"|\s*`(?:\\`|[^`])*`|[^#\r\n]+)?\s*(?:#.*)?(?:$|$)/mg;
-
-	// Parse src into an Object
-	function parse (src) {
-	  const obj = {};
-
-	  // Convert buffer to string
-	  let lines = src.toString();
-
-	  // Convert line breaks to same format
-	  lines = lines.replace(/\r\n?/mg, '\n');
-
-	  let match;
-	  while ((match = LINE.exec(lines)) != null) {
-	    const key = match[1];
-
-	    // Default undefined or null to empty string
-	    let value = (match[2] || '');
-
-	    // Remove whitespace
-	    value = value.trim();
-
-	    // Check if double quoted
-	    const maybeQuote = value[0];
-
-	    // Remove surrounding quotes
-	    value = value.replace(/^(['"`])([\s\S]*)\1$/mg, '$2');
-
-	    // Expand newlines if double quoted
-	    if (maybeQuote === '"') {
-	      value = value.replace(/\\n/g, '\n');
-	      value = value.replace(/\\r/g, '\r');
-	    }
-
-	    // Add to object
-	    obj[key] = value;
-	  }
-
-	  return obj
-	}
-
-	function _parseVault (options) {
-	  options = options || {};
-
-	  const vaultPath = _vaultPath(options);
-	  options.path = vaultPath; // parse .env.vault
-	  const result = DotenvModule.configDotenv(options);
-	  if (!result.parsed) {
-	    const err = new Error(`MISSING_DATA: Cannot parse ${vaultPath} for an unknown reason`);
-	    err.code = 'MISSING_DATA';
-	    throw err
-	  }
-
-	  // handle scenario for comma separated keys - for use with key rotation
-	  // example: DOTENV_KEY="dotenv://:key_1234@dotenvx.com/vault/.env.vault?environment=prod,dotenv://:key_7890@dotenvx.com/vault/.env.vault?environment=prod"
-	  const keys = _dotenvKey(options).split(',');
-	  const length = keys.length;
-
-	  let decrypted;
-	  for (let i = 0; i < length; i++) {
-	    try {
-	      // Get full key
-	      const key = keys[i].trim();
-
-	      // Get instructions for decrypt
-	      const attrs = _instructions(result, key);
-
-	      // Decrypt
-	      decrypted = DotenvModule.decrypt(attrs.ciphertext, attrs.key);
-
-	      break
-	    } catch (error) {
-	      // last key
-	      if (i + 1 >= length) {
-	        throw error
-	      }
-	      // try next key
-	    }
-	  }
-
-	  // Parse decrypted .env string
-	  return DotenvModule.parse(decrypted)
-	}
-
-	function _warn (message) {
-	  console.error(`[dotenv@${version}][WARN] ${message}`);
-	}
-
-	function _debug (message) {
-	  console.log(`[dotenv@${version}][DEBUG] ${message}`);
-	}
-
-	function _log (message) {
-	  console.log(`[dotenv@${version}] ${message}`);
-	}
-
-	function _dotenvKey (options) {
-	  // prioritize developer directly setting options.DOTENV_KEY
-	  if (options && options.DOTENV_KEY && options.DOTENV_KEY.length > 0) {
-	    return options.DOTENV_KEY
-	  }
-
-	  // secondary infra already contains a DOTENV_KEY environment variable
-	  if (process.env.DOTENV_KEY && process.env.DOTENV_KEY.length > 0) {
-	    return process.env.DOTENV_KEY
-	  }
-
-	  // fallback to empty string
-	  return ''
-	}
-
-	function _instructions (result, dotenvKey) {
-	  // Parse DOTENV_KEY. Format is a URI
-	  let uri;
-	  try {
-	    uri = new URL(dotenvKey);
-	  } catch (error) {
-	    if (error.code === 'ERR_INVALID_URL') {
-	      const err = new Error('INVALID_DOTENV_KEY: Wrong format. Must be in valid uri format like dotenv://:key_1234@dotenvx.com/vault/.env.vault?environment=development');
-	      err.code = 'INVALID_DOTENV_KEY';
-	      throw err
-	    }
-
-	    throw error
-	  }
-
-	  // Get decrypt key
-	  const key = uri.password;
-	  if (!key) {
-	    const err = new Error('INVALID_DOTENV_KEY: Missing key part');
-	    err.code = 'INVALID_DOTENV_KEY';
-	    throw err
-	  }
-
-	  // Get environment
-	  const environment = uri.searchParams.get('environment');
-	  if (!environment) {
-	    const err = new Error('INVALID_DOTENV_KEY: Missing environment part');
-	    err.code = 'INVALID_DOTENV_KEY';
-	    throw err
-	  }
-
-	  // Get ciphertext payload
-	  const environmentKey = `DOTENV_VAULT_${environment.toUpperCase()}`;
-	  const ciphertext = result.parsed[environmentKey]; // DOTENV_VAULT_PRODUCTION
-	  if (!ciphertext) {
-	    const err = new Error(`NOT_FOUND_DOTENV_ENVIRONMENT: Cannot locate environment ${environmentKey} in your .env.vault file.`);
-	    err.code = 'NOT_FOUND_DOTENV_ENVIRONMENT';
-	    throw err
-	  }
-
-	  return { ciphertext, key }
-	}
-
-	function _vaultPath (options) {
-	  let possibleVaultPath = null;
-
-	  if (options && options.path && options.path.length > 0) {
-	    if (Array.isArray(options.path)) {
-	      for (const filepath of options.path) {
-	        if (fs$1.existsSync(filepath)) {
-	          possibleVaultPath = filepath.endsWith('.vault') ? filepath : `${filepath}.vault`;
-	        }
-	      }
-	    } else {
-	      possibleVaultPath = options.path.endsWith('.vault') ? options.path : `${options.path}.vault`;
-	    }
-	  } else {
-	    possibleVaultPath = path$1.resolve(process.cwd(), '.env.vault');
-	  }
-
-	  if (fs$1.existsSync(possibleVaultPath)) {
-	    return possibleVaultPath
-	  }
-
-	  return null
-	}
-
-	function _resolveHome (envPath) {
-	  return envPath[0] === '~' ? path$1.join(os.homedir(), envPath.slice(1)) : envPath
-	}
-
-	function _configVault (options) {
-	  const debug = parseBoolean(process.env.DOTENV_CONFIG_DEBUG || (options && options.debug));
-	  const quiet = parseBoolean(process.env.DOTENV_CONFIG_QUIET || (options && options.quiet));
-
-	  if (debug || !quiet) {
-	    _log('Loading env from encrypted .env.vault');
-	  }
-
-	  const parsed = DotenvModule._parseVault(options);
-
-	  let processEnv = process.env;
-	  if (options && options.processEnv != null) {
-	    processEnv = options.processEnv;
-	  }
-
-	  DotenvModule.populate(processEnv, parsed, options);
-
-	  return { parsed }
-	}
-
-	function configDotenv (options) {
-	  const dotenvPath = path$1.resolve(process.cwd(), '.env');
-	  let encoding = 'utf8';
-	  let processEnv = process.env;
-	  if (options && options.processEnv != null) {
-	    processEnv = options.processEnv;
-	  }
-	  let debug = parseBoolean(processEnv.DOTENV_CONFIG_DEBUG || (options && options.debug));
-	  let quiet = parseBoolean(processEnv.DOTENV_CONFIG_QUIET || (options && options.quiet));
-
-	  if (options && options.encoding) {
-	    encoding = options.encoding;
-	  } else {
-	    if (debug) {
-	      _debug('No encoding is specified. UTF-8 is used by default');
-	    }
-	  }
-
-	  let optionPaths = [dotenvPath]; // default, look for .env
-	  if (options && options.path) {
-	    if (!Array.isArray(options.path)) {
-	      optionPaths = [_resolveHome(options.path)];
-	    } else {
-	      optionPaths = []; // reset default
-	      for (const filepath of options.path) {
-	        optionPaths.push(_resolveHome(filepath));
-	      }
-	    }
-	  }
-
-	  // Build the parsed data in a temporary object (because we need to return it).  Once we have the final
-	  // parsed data, we will combine it with process.env (or options.processEnv if provided).
-	  let lastError;
-	  const parsedAll = {};
-	  for (const path of optionPaths) {
-	    try {
-	      // Specifying an encoding returns a string instead of a buffer
-	      const parsed = DotenvModule.parse(fs$1.readFileSync(path, { encoding }));
-
-	      DotenvModule.populate(parsedAll, parsed, options);
-	    } catch (e) {
-	      if (debug) {
-	        _debug(`Failed to load ${path} ${e.message}`);
-	      }
-	      lastError = e;
-	    }
-	  }
-
-	  const populated = DotenvModule.populate(processEnv, parsedAll, options);
-
-	  // handle user settings DOTENV_CONFIG_ options inside .env file(s)
-	  debug = parseBoolean(processEnv.DOTENV_CONFIG_DEBUG || debug);
-	  quiet = parseBoolean(processEnv.DOTENV_CONFIG_QUIET || quiet);
-
-	  if (debug || !quiet) {
-	    const keysCount = Object.keys(populated).length;
-	    const shortPaths = [];
-	    for (const filePath of optionPaths) {
-	      try {
-	        const relative = path$1.relative(process.cwd(), filePath);
-	        shortPaths.push(relative);
-	      } catch (e) {
-	        if (debug) {
-	          _debug(`Failed to load ${filePath} ${e.message}`);
-	        }
-	        lastError = e;
-	      }
-	    }
-
-	    _log(`injecting env (${keysCount}) from ${shortPaths.join(',')} ${dim(`-- tip: ${_getRandomTip()}`)}`);
-	  }
-
-	  if (lastError) {
-	    return { parsed: parsedAll, error: lastError }
-	  } else {
-	    return { parsed: parsedAll }
-	  }
-	}
-
-	// Populates process.env from .env file
-	function config (options) {
-	  // fallback to original dotenv if DOTENV_KEY is not set
-	  if (_dotenvKey(options).length === 0) {
-	    return DotenvModule.configDotenv(options)
-	  }
-
-	  const vaultPath = _vaultPath(options);
-
-	  // dotenvKey exists but .env.vault file does not exist
-	  if (!vaultPath) {
-	    _warn(`You set DOTENV_KEY but you are missing a .env.vault file at ${vaultPath}. Did you forget to build it?`);
-
-	    return DotenvModule.configDotenv(options)
-	  }
-
-	  return DotenvModule._configVault(options)
-	}
-
-	function decrypt (encrypted, keyStr) {
-	  const key = Buffer.from(keyStr.slice(-64), 'hex');
-	  let ciphertext = Buffer.from(encrypted, 'base64');
-
-	  const nonce = ciphertext.subarray(0, 12);
-	  const authTag = ciphertext.subarray(-16);
-	  ciphertext = ciphertext.subarray(12, -16);
-
-	  try {
-	    const aesgcm = crypto.createDecipheriv('aes-256-gcm', key, nonce);
-	    aesgcm.setAuthTag(authTag);
-	    return `${aesgcm.update(ciphertext)}${aesgcm.final()}`
-	  } catch (error) {
-	    const isRange = error instanceof RangeError;
-	    const invalidKeyLength = error.message === 'Invalid key length';
-	    const decryptionFailed = error.message === 'Unsupported state or unable to authenticate data';
-
-	    if (isRange || invalidKeyLength) {
-	      const err = new Error('INVALID_DOTENV_KEY: It must be 64 characters long (or more)');
-	      err.code = 'INVALID_DOTENV_KEY';
-	      throw err
-	    } else if (decryptionFailed) {
-	      const err = new Error('DECRYPTION_FAILED: Please check your DOTENV_KEY');
-	      err.code = 'DECRYPTION_FAILED';
-	      throw err
-	    } else {
-	      throw error
-	    }
-	  }
-	}
-
-	// Populate process.env with parsed values
-	function populate (processEnv, parsed, options = {}) {
-	  const debug = Boolean(options && options.debug);
-	  const override = Boolean(options && options.override);
-	  const populated = {};
-
-	  if (typeof parsed !== 'object') {
-	    const err = new Error('OBJECT_REQUIRED: Please check the processEnv argument being passed to populate');
-	    err.code = 'OBJECT_REQUIRED';
-	    throw err
-	  }
-
-	  // Set process.env
-	  for (const key of Object.keys(parsed)) {
-	    if (Object.prototype.hasOwnProperty.call(processEnv, key)) {
-	      if (override === true) {
-	        processEnv[key] = parsed[key];
-	        populated[key] = parsed[key];
-	      }
-
-	      if (debug) {
-	        if (override === true) {
-	          _debug(`"${key}" is already defined and WAS overwritten`);
-	        } else {
-	          _debug(`"${key}" is already defined and was NOT overwritten`);
-	        }
-	      }
-	    } else {
-	      processEnv[key] = parsed[key];
-	      populated[key] = parsed[key];
-	    }
-	  }
-
-	  return populated
-	}
-
-	const DotenvModule = {
-	  configDotenv,
-	  _configVault,
-	  _parseVault,
-	  config,
-	  decrypt,
-	  parse,
-	  populate
-	};
-
-	main.exports.configDotenv = DotenvModule.configDotenv;
-	main.exports._configVault = DotenvModule._configVault;
-	main.exports._parseVault = DotenvModule._parseVault;
-	main.exports.config = DotenvModule.config;
-	main.exports.decrypt = DotenvModule.decrypt;
-	main.exports.parse = DotenvModule.parse;
-	main.exports.populate = DotenvModule.populate;
-
-	main.exports = DotenvModule;
-	return main.exports;
-}
-
-var mainExports = requireMain();
-
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
-// Create chalk instance at runtime to ensure proper color detection
-// (default export is evaluated at bundle time which may be non-TTY)
-const chalk = new Chalk();
 /**
- * Create a timestamped run directory for output files.
- * Structure: <baseOutputDir>/run-<timestamp-epoch>/
- * Also creates 'latest' symlink pointing to the new directory.
+ * Prepare output directory for a new session.
+ * Deletes existing directory if present and creates it fresh.
  *
- * Directory naming uses 'run-' prefix so 'latest' sorts first alphabetically.
- *
- * @param baseOutputDir Base output directory from config
- * @returns Path to the timestamped run directory
+ * @param outputDir Output directory path
+ * @returns Path to the output directory
  */
-function createRunDirectory(baseOutputDir) {
-    // Ensure base output directory exists
-    if (!fs__namespace.existsSync(baseOutputDir)) {
-        fs__namespace.mkdirSync(baseOutputDir, { recursive: true });
+function prepareOutputDirectory(outputDir) {
+    // Delete existing directory if it exists
+    if (fs__namespace.existsSync(outputDir)) {
+        fs__namespace.rmSync(outputDir, { recursive: true, force: true });
     }
-    // Create timestamped subdirectory with 'run-' prefix
-    // This ensures 'latest' sorts first (l < r alphabetically)
-    const timestamp = Date.now();
-    const runDirName = `run-${timestamp}`;
-    const runDir = path__namespace.join(baseOutputDir, runDirName);
-    fs__namespace.mkdirSync(runDir, { recursive: true });
-    // Create/update 'latest' symlink
-    const latestLink = path__namespace.join(baseOutputDir, 'latest');
-    try {
-        // Remove existing symlink if it exists
-        if (fs__namespace.existsSync(latestLink)) {
-            fs__namespace.unlinkSync(latestLink);
-        }
-        // Create relative symlink to the timestamped directory
-        fs__namespace.symlinkSync(runDirName, latestLink);
-    }
-    catch {
-        // Symlink creation may fail on some systems (e.g., Windows without admin)
-        // This is non-critical, so we just log a warning
-        console.log(chalk.gray(`Note: Could not create 'latest' symlink`));
-    }
-    return runDir;
+    // Create fresh directory
+    fs__namespace.mkdirSync(outputDir, { recursive: true });
+    return outputDir;
 }
-// Load environment variables
-mainExports.config();
-const program = new commanderExports.Command();
-program.name('mm-tc').description('CLI for managing Mattermost test containers').version('0.1.0');
 /**
  * Apply CLI options on top of resolved config.
  * CLI options have the highest priority in the configuration hierarchy:
@@ -5473,12 +5446,12 @@ program.name('mm-tc').description('CLI for managing Mattermost test containers')
  * 3. Config file
  * 4. Built-in defaults (lowest)
  */
-function applyCliOverrides(config, options) {
+function applyCliOverrides(config$1, options) {
     const result = {
-        ...config,
-        server: { ...config.server },
-        images: { ...config.images },
-        admin: config.admin ? { ...config.admin } : undefined,
+        ...config$1,
+        server: { ...config$1.server },
+        images: { ...config$1.images },
+        admin: config$1.admin ? { ...config$1.admin } : undefined,
     };
     // Server edition (CLI flag)
     if (options.edition) {
@@ -5521,15 +5494,15 @@ function applyCliOverrides(config, options) {
     }
     // Admin user (CLI flag)
     if (options.admin !== undefined) {
-        const username = typeof options.admin === 'string' ? options.admin : print.DEFAULT_ADMIN.username;
+        const username = typeof options.admin === 'string' ? options.admin : config.DEFAULT_ADMIN.username;
         result.admin = {
             username,
-            password: options.adminPassword || result.admin?.password || print.DEFAULT_ADMIN.password,
+            password: options.adminPassword || result.admin?.password || config.DEFAULT_ADMIN.password,
             email: `${username}@sample.mattermost.com`,
         };
     }
     // Rebuild server image after applying overrides
-    result.server.image = `${print.MATTERMOST_EDITION_IMAGES[result.server.edition]}:${result.server.tag}`;
+    result.server.image = `${config.MATTERMOST_EDITION_IMAGES[result.server.edition]}:${result.server.tag}`;
     return result;
 }
 /**
@@ -5577,48 +5550,168 @@ function buildServerEnv(config, options) {
     }
     return serverEnv;
 }
-const startCommand = program
-    .command('start')
-    .description('Start the Mattermost test environment')
-    .argument('[command]', 'Use "help" to show help')
-    .option('-c, --config <path>', 'Path to config file. Accepts .mjs or .jsonc extensions. Auto-discovers mm-tc.config.mjs or mm-tc.config.jsonc')
-    .option('-e, --edition <edition>', 'Mattermost server edition: enterprise (default), fips, team')
-    .option('-t, --tag <tag>', 'Mattermost server image tag (e.g., master, release-11.4)')
-    .option('-S, --service-env <env>', 'Service environment: test, production, dev (sets MM_SERVICEENVIRONMENT)')
-    .option('-E, --env <KEY=value>', 'Environment variable to pass to Mattermost server, can be specified multiple times', (value, previous) => previous.concat([value]), [])
-    .option('--env-file <path>', 'Path to env file to load variables for Mattermost server')
-    .option('-D, --deps <deps>', 'Additional dependencies to enable: openldap, keycloak, minio, elasticsearch, opensearch, redis, dejavu, prometheus, grafana, loki, promtail')
-    .option('--deps-only', 'Start dependencies only (no Mattermost container)')
-    .option('--ha', 'Run in high-availability mode (3-node cluster with nginx load balancer)')
-    .option('--subpath', 'Run two Mattermost servers behind nginx with subpaths (/mattermost1, /mattermost2)')
-    .option('--entry', 'Use Mattermost Entry tier (enterprise/fips only, ignores MM_LICENSE)')
-    .option('--admin [username]', 'Create admin user (default username: sysadmin, email: <username>@sample.mattermost.com)')
-    .option('--admin-password <password>', 'Admin user password')
-    .option('-o, --output-dir <dir>', 'Output directory for logs/, .env.tc, and .tc.server.json', print.DEFAULT_OUTPUT_DIR)
-    .option('-d, --detach', 'Start containers and exit (run in background)')
-    .action(async (command, options) => {
-    // Handle "mm-tc start help"
-    if (command === 'help') {
-        startCommand.help();
-        return;
-    }
+
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
+const chalk$1 = new Chalk();
+/**
+ * Register the start command on the program.
+ */
+function registerStartCommand(program) {
+    const startCommand = program
+        .command('start')
+        .description('Start the Mattermost test environment')
+        .argument('[command]', 'Use "help" to show help')
+        .option('-c, --config <path>', 'Path to config file. Accepts .mjs or .jsonc extensions. Auto-discovers mm-tc.config.mjs or mm-tc.config.jsonc')
+        .option('-e, --edition <edition>', 'Mattermost server edition: enterprise (default), fips, team')
+        .option('-t, --tag <tag>', 'Mattermost server image tag (e.g., master, release-11.4)')
+        .option('-S, --service-env <env>', 'Service environment: test, production, dev (sets MM_SERVICEENVIRONMENT)')
+        .option('-E, --env <KEY=value>', 'Environment variable to pass to Mattermost server, can be specified multiple times', (value, previous) => previous.concat([value]), [])
+        .option('--env-file <path>', 'Path to env file to load variables for Mattermost server')
+        .option('-D, --deps <deps>', 'Additional dependencies to enable: openldap, keycloak, minio, elasticsearch, opensearch, redis, dejavu, prometheus, grafana, loki, promtail')
+        .option('--deps-only', 'Start dependencies only (no Mattermost container)')
+        .option('--ha', 'Run in high-availability mode (3-node cluster with nginx load balancer)')
+        .option('--subpath', 'Run two Mattermost servers behind nginx with subpaths (/mattermost1, /mattermost2)')
+        .option('--entry', 'Use Mattermost Entry tier (enterprise/fips only, ignores MM_LICENSE)')
+        .option('--admin [username]', 'Create admin user (default username: sysadmin, email: <username>@sample.mattermost.com)')
+        .option('--admin-password <password>', 'Admin user password')
+        .option('-o, --output-dir <dir>', 'Output directory for logs/, .env.tc, and .tc.server.json', config.DEFAULT_OUTPUT_DIR)
+        .action(async (command, options) => {
+        // Handle "mm-tc start help"
+        if (command === 'help') {
+            startCommand.help();
+            return;
+        }
+        await executeStartCommand(options);
+    });
+    return startCommand;
+}
+/**
+ * Execute the start command logic.
+ */
+async function executeStartCommand(options) {
     try {
         // Load and resolve config (applies: defaults → config file → env vars)
-        const resolvedConfig = await print.discoverAndLoadConfig({ configFile: options.config });
+        const resolvedConfig = await config.discoverAndLoadConfig({ configFile: options.config });
+        // Check if containers already exist from a previous session
+        const checkOutputDir = options.outputDir || resolvedConfig.outputDir || config.DEFAULT_OUTPUT_DIR;
+        const existingDockerInfoPath = path__namespace.join(checkOutputDir, '.tc.docker.json');
+        if (fs__namespace.existsSync(existingDockerInfoPath)) {
+            const { execSync } = await import('child_process');
+            // Read docker info and check container status
+            const dockerInfoRaw = fs__namespace.readFileSync(existingDockerInfoPath, 'utf-8');
+            const dockerInfo = JSON.parse(dockerInfoRaw);
+            const containers = Object.entries(dockerInfo.containers || {});
+            if (containers.length > 0) {
+                // Check how many containers are running
+                let runningCount = 0;
+                let stoppedCount = 0;
+                const containerStatuses = [];
+                for (const [name, info] of containers) {
+                    const containerInfo = info;
+                    try {
+                        const isRunning = execSync(`docker inspect --format '{{.State.Running}}' ${containerInfo.id}`, {
+                            encoding: 'utf-8',
+                            stdio: ['pipe', 'pipe', 'pipe'],
+                        }).trim() === 'true';
+                        containerStatuses.push({ name, running: isRunning });
+                        if (isRunning) {
+                            runningCount++;
+                        }
+                        else {
+                            stoppedCount++;
+                        }
+                    }
+                    catch {
+                        // Container doesn't exist anymore
+                        stoppedCount++;
+                        containerStatuses.push({ name, running: false });
+                    }
+                }
+                if (runningCount > 0) {
+                    // Build set of running container names
+                    const runningContainers = new Set(containerStatuses.filter((s) => s.running).map((s) => s.name));
+                    console.log(chalk$1.green(`\nContainers from previous session (${runningCount} running):\n`));
+                    console.log(chalk$1.cyan('Connection Information:'));
+                    console.log(chalk$1.cyan('======================='));
+                    // Display connection info only for running containers
+                    const c = dockerInfo.containers;
+                    if (runningContainers.has('mattermost') && c.mattermost?.url) {
+                        console.log(`Mattermost:      ${chalk$1.yellow(c.mattermost.url)}`);
+                    }
+                    if (runningContainers.has('postgres') && c.postgres?.connectionString) {
+                        console.log(`PostgreSQL:      ${chalk$1.yellow(c.postgres.connectionString)}`);
+                    }
+                    if (runningContainers.has('inbucket') && c.inbucket?.host && c.inbucket?.webPort) {
+                        console.log(`Inbucket:        ${chalk$1.yellow(`http://${c.inbucket.host}:${c.inbucket.webPort}`)}`);
+                    }
+                    if (runningContainers.has('openldap') && c.openldap?.host && c.openldap?.port) {
+                        console.log(`OpenLDAP:        ${chalk$1.yellow(`ldap://${c.openldap.host}:${c.openldap.port}`)}`);
+                    }
+                    if (runningContainers.has('minio') && c.minio?.endpoint) {
+                        console.log(`MinIO API:       ${chalk$1.yellow(c.minio.endpoint)}`);
+                        if (c.minio?.consoleUrl) {
+                            console.log(`MinIO Console:   ${chalk$1.yellow(c.minio.consoleUrl)}`);
+                        }
+                    }
+                    if (runningContainers.has('elasticsearch') && c.elasticsearch?.url) {
+                        console.log(`Elasticsearch:   ${chalk$1.yellow(c.elasticsearch.url)}`);
+                    }
+                    if (runningContainers.has('opensearch') && c.opensearch?.url) {
+                        console.log(`OpenSearch:      ${chalk$1.yellow(c.opensearch.url)}`);
+                    }
+                    if (runningContainers.has('keycloak') && c.keycloak?.adminUrl) {
+                        console.log(`Keycloak:        ${chalk$1.yellow(c.keycloak.adminUrl)}`);
+                    }
+                    if (runningContainers.has('redis') && c.redis?.url) {
+                        console.log(`Redis:           ${chalk$1.yellow(c.redis.url)}`);
+                    }
+                    if (runningContainers.has('dejavu') && c.dejavu?.url) {
+                        console.log(`Dejavu:          ${chalk$1.yellow(c.dejavu.url)}`);
+                    }
+                    if (runningContainers.has('prometheus') && c.prometheus?.url) {
+                        console.log(`Prometheus:      ${chalk$1.yellow(c.prometheus.url)}`);
+                    }
+                    if (runningContainers.has('grafana') && c.grafana?.url) {
+                        console.log(`Grafana:         ${chalk$1.yellow(c.grafana.url)}`);
+                    }
+                    if (runningContainers.has('loki') && c.loki?.url) {
+                        console.log(`Loki:            ${chalk$1.yellow(c.loki.url)}`);
+                    }
+                    if (runningContainers.has('promtail') && c.promtail?.url) {
+                        console.log(`Promtail:        ${chalk$1.yellow(c.promtail.url)}`);
+                    }
+                    console.log(chalk$1.gray('\nCommands:'));
+                    console.log(chalk$1.gray('  mm-tc restart    # Restart all containers'));
+                    console.log(chalk$1.gray('  mm-tc upgrade    # Upgrade mattermost to new tag'));
+                    console.log(chalk$1.gray('  mm-tc rm         # Remove containers and start fresh'));
+                    process.exit(0);
+                }
+                else if (stoppedCount > 0) {
+                    console.log(chalk$1.yellow(`\nStopped containers from previous session:`));
+                    for (const { name } of containerStatuses) {
+                        console.log(`  ${name}: ${chalk$1.gray('stopped')}`);
+                    }
+                    console.log(chalk$1.gray('\nCommands:'));
+                    console.log(chalk$1.gray('  mm-tc restart    # Restart all containers'));
+                    console.log(chalk$1.gray('  mm-tc rm         # Remove containers and start fresh'));
+                    process.exit(0);
+                }
+            }
+        }
         // Apply CLI overrides (highest priority)
-        const config = applyCliOverrides(resolvedConfig, options);
-        // Create timestamped run directory for this session
-        // Structure: <outputDir>/<timestamp>/logs/, .env.tc, .tc.docker.json, etc.
-        const runDir = createRunDirectory(config.outputDir);
-        print.setOutputDir(runDir);
-        console.log(chalk.gray(`Output directory: ${runDir}`));
+        const config$1 = applyCliOverrides(resolvedConfig, options);
+        // Prepare output directory (deletes existing and creates fresh)
+        const outputDir = prepareOutputDirectory(config$1.outputDir);
+        config.setOutputDir(outputDir);
+        console.log(chalk$1.gray(`Output directory: ${outputDir}`));
         // Validate --deps-only cannot be used with --ha or --subpath
-        if (options.depsOnly && (config.server.ha || config.server.subpath)) {
-            console.error(chalk.red('--deps-only cannot be used with --ha or --subpath'));
+        if (options.depsOnly && (config$1.server.ha || config$1.server.subpath)) {
+            console.error(chalk$1.red('--deps-only cannot be used with --ha or --subpath'));
             process.exit(1);
         }
         // Build server environment variables
-        const serverEnv = buildServerEnv(config, {
+        const serverEnv = buildServerEnv(config$1, {
             env: options.env,
             envFile: options.envFile,
             serviceEnv: options.serviceEnv,
@@ -5627,143 +5720,143 @@ const startCommand = program
         // Log startup message
         const serviceEnvDisplay = serverEnv.MM_SERVICEENVIRONMENT;
         if (options.depsOnly) {
-            console.log(chalk.blue(`Starting Mattermost dependencies (service env: ${serviceEnvDisplay})`));
-            console.log(chalk.gray('Run the server separately to connect to these services.'));
+            console.log(chalk$1.blue(`Starting Mattermost dependencies (service env: ${serviceEnvDisplay})`));
+            console.log(chalk$1.gray('Run the server separately to connect to these services.'));
         }
-        else if (config.server.subpath && config.server.ha) {
-            console.log(chalk.blue(`Starting Mattermost subpath + HA mode (2 servers x 3 nodes each, service env: ${serviceEnvDisplay})`));
+        else if (config$1.server.subpath && config$1.server.ha) {
+            console.log(chalk$1.blue(`Starting Mattermost subpath + HA mode (2 servers x 3 nodes each, service env: ${serviceEnvDisplay})`));
         }
-        else if (config.server.subpath) {
-            console.log(chalk.blue(`Starting Mattermost subpath mode (2 servers at /mattermost1 and /mattermost2, service env: ${serviceEnvDisplay})`));
+        else if (config$1.server.subpath) {
+            console.log(chalk$1.blue(`Starting Mattermost subpath mode (2 servers at /mattermost1 and /mattermost2, service env: ${serviceEnvDisplay})`));
         }
-        else if (config.server.ha) {
-            console.log(chalk.blue(`Starting Mattermost HA cluster (3 nodes, cluster: mm_test_cluster, service env: ${serviceEnvDisplay})`));
+        else if (config$1.server.ha) {
+            console.log(chalk$1.blue(`Starting Mattermost HA cluster (3 nodes, cluster: mm_test_cluster, service env: ${serviceEnvDisplay})`));
         }
         else {
-            console.log(chalk.blue(`Starting Mattermost test environment (service env: ${serviceEnvDisplay})`));
+            console.log(chalk$1.blue(`Starting Mattermost test environment (service env: ${serviceEnvDisplay})`));
         }
         // Merge built serverEnv into config.server.env (CLI overrides take precedence)
-        config.server.env = {
-            ...config.server.env,
+        config$1.server.env = {
+            ...config$1.server.env,
             ...serverEnv,
         };
         // Determine server mode: 'local' for deps-only, 'container' otherwise
         const serverMode = options.depsOnly ? 'local' : 'container';
-        const env = new print.MattermostTestEnvironment(config, serverMode);
+        const env = new config.MattermostTestEnvironment(config$1, serverMode);
         await env.start();
         const info = env.getConnectionInfo();
-        console.log(chalk.green('\n✓ Environment started successfully!\n'));
-        console.log(chalk.cyan('Connection Information:'));
-        console.log(chalk.cyan('======================='));
+        console.log(chalk$1.green('\n✓ Environment started successfully!\n'));
+        console.log(chalk$1.cyan('Connection Information:'));
+        console.log(chalk$1.cyan('======================='));
         // Display subpath, HA cluster, or single node info
         if (info.subpath) {
-            console.log(`Mattermost:      ${chalk.yellow(info.subpath.url)} ${chalk.gray('(nginx with subpaths)')}`);
-            console.log(`  Server 1:      ${chalk.yellow(info.subpath.server1Url)}`);
-            console.log(chalk.gray(`    Direct: ${info.subpath.server1DirectUrl}`));
-            console.log(`  Server 2:      ${chalk.yellow(info.subpath.server2Url)}`);
-            console.log(chalk.gray(`    Direct: ${info.subpath.server2DirectUrl}`));
+            console.log(`Mattermost:      ${chalk$1.yellow(info.subpath.url)} ${chalk$1.gray('(nginx with subpaths)')}`);
+            console.log(`  Server 1:      ${chalk$1.yellow(info.subpath.server1Url)}`);
+            console.log(chalk$1.gray(`    Direct: ${info.subpath.server1DirectUrl}`));
+            console.log(`  Server 2:      ${chalk$1.yellow(info.subpath.server2Url)}`);
+            console.log(chalk$1.gray(`    Direct: ${info.subpath.server2DirectUrl}`));
         }
         else if (info.haCluster) {
-            console.log(`Mattermost HA:   ${chalk.yellow(info.haCluster.url)} ${chalk.gray('(nginx load balancer)')}`);
-            console.log(chalk.gray(`  Cluster: ${info.haCluster.clusterName}`));
+            console.log(`Mattermost HA:   ${chalk$1.yellow(info.haCluster.url)} ${chalk$1.gray('(nginx load balancer)')}`);
+            console.log(chalk$1.gray(`  Cluster: ${info.haCluster.clusterName}`));
             for (const node of info.haCluster.nodes) {
-                console.log(chalk.gray(`  ${node.nodeName}: ${node.url}`));
+                console.log(chalk$1.gray(`  ${node.nodeName}: ${node.url}`));
             }
         }
         else if (info.mattermost) {
-            console.log(`Mattermost:      ${chalk.yellow(info.mattermost.url)}`);
+            console.log(`Mattermost:      ${chalk$1.yellow(info.mattermost.url)}`);
         }
-        console.log(`PostgreSQL:      ${chalk.yellow(info.postgres.connectionString)}`);
+        console.log(`PostgreSQL:      ${chalk$1.yellow(info.postgres.connectionString)}`);
         if (info.inbucket) {
-            console.log(`Inbucket:        ${chalk.yellow(`http://${info.inbucket.host}:${info.inbucket.webPort}`)}`);
+            console.log(`Inbucket:        ${chalk$1.yellow(`http://${info.inbucket.host}:${info.inbucket.webPort}`)}`);
         }
         if (info.openldap) {
-            console.log(`OpenLDAP:        ${chalk.yellow(`ldap://${info.openldap.host}:${info.openldap.port}`)}`);
+            console.log(`OpenLDAP:        ${chalk$1.yellow(`ldap://${info.openldap.host}:${info.openldap.port}`)}`);
         }
         if (info.minio) {
-            console.log(`MinIO API:       ${chalk.yellow(info.minio.endpoint)}`);
-            console.log(`MinIO Console:   ${chalk.yellow(info.minio.consoleUrl)}`);
+            console.log(`MinIO API:       ${chalk$1.yellow(info.minio.endpoint)}`);
+            console.log(`MinIO Console:   ${chalk$1.yellow(info.minio.consoleUrl)}`);
         }
         if (info.elasticsearch) {
-            console.log(`Elasticsearch:   ${chalk.yellow(info.elasticsearch.url)}`);
+            console.log(`Elasticsearch:   ${chalk$1.yellow(info.elasticsearch.url)}`);
         }
         if (info.opensearch) {
-            console.log(`OpenSearch:      ${chalk.yellow(info.opensearch.url)}`);
+            console.log(`OpenSearch:      ${chalk$1.yellow(info.opensearch.url)}`);
         }
         if (info.keycloak) {
-            console.log(`Keycloak:        ${chalk.yellow(info.keycloak.adminUrl)}`);
+            console.log(`Keycloak:        ${chalk$1.yellow(info.keycloak.adminUrl)}`);
         }
         if (info.redis) {
-            console.log(`Redis:           ${chalk.yellow(info.redis.url)}`);
+            console.log(`Redis:           ${chalk$1.yellow(info.redis.url)}`);
         }
         if (info.dejavu) {
-            console.log(`Dejavu:          ${chalk.yellow(info.dejavu.url)}`);
+            console.log(`Dejavu:          ${chalk$1.yellow(info.dejavu.url)}`);
         }
         if (info.prometheus) {
-            console.log(`Prometheus:      ${chalk.yellow(info.prometheus.url)}`);
+            console.log(`Prometheus:      ${chalk$1.yellow(info.prometheus.url)}`);
         }
         if (info.grafana) {
-            console.log(`Grafana:         ${chalk.yellow(info.grafana.url)}`);
+            console.log(`Grafana:         ${chalk$1.yellow(info.grafana.url)}`);
         }
         if (info.loki) {
-            console.log(`Loki API:        ${chalk.yellow(info.loki.url)} ${chalk.gray('(use Grafana to view logs)')}`);
+            console.log(`Loki API:        ${chalk$1.yellow(info.loki.url)} ${chalk$1.gray('(use Grafana to view logs)')}`);
         }
         if (info.promtail) {
-            console.log(`Promtail API:    ${chalk.yellow(info.promtail.url)} ${chalk.gray('(metrics only)')}`);
+            console.log(`Promtail API:    ${chalk$1.yellow(info.promtail.url)} ${chalk$1.gray('(metrics only)')}`);
         }
         // Write config files to run directory
-        const envPath = print.writeEnvFile(info, runDir, { depsOnly: options.depsOnly });
-        console.log(chalk.green(`\n✓ Environment variables written to ${envPath}`));
+        const envPath = config.writeEnvFile(info, outputDir, { depsOnly: options.depsOnly });
+        console.log(chalk$1.green(`\n✓ Environment variables written to ${envPath}`));
         const containerMetadata = env.getContainerMetadata();
-        const dockerInfoPath = print.writeDockerInfo(info, containerMetadata, runDir);
-        console.log(chalk.green(`✓ Docker container info written to ${dockerInfoPath}`));
+        const dockerInfoPath = config.writeDockerInfo(info, containerMetadata, outputDir);
+        console.log(chalk$1.green(`✓ Docker container info written to ${dockerInfoPath}`));
         // Write setup documentation for enabled dependencies
         if (info.openldap) {
-            const ldapSetupPath = print.writeOpenLdapSetup(info, runDir);
+            const ldapSetupPath = config.writeOpenLdapSetup(info, outputDir);
             if (ldapSetupPath) {
-                console.log(chalk.green(`✓ OpenLDAP setup documentation written to ${ldapSetupPath}`));
+                console.log(chalk$1.green(`✓ OpenLDAP setup documentation written to ${ldapSetupPath}`));
             }
         }
         if (info.keycloak) {
-            const keycloakSetupPath = print.writeKeycloakSetup(info, runDir);
+            const keycloakSetupPath = config.writeKeycloakSetup(info, outputDir);
             if (keycloakSetupPath) {
-                console.log(chalk.green(`✓ Keycloak setup documentation written to ${keycloakSetupPath}`));
+                console.log(chalk$1.green(`✓ Keycloak setup documentation written to ${keycloakSetupPath}`));
             }
         }
         // Create admin user if requested (container mode only)
-        if (!options.depsOnly && config.admin && info.mattermost) {
+        if (!options.depsOnly && config$1.admin && info.mattermost) {
             const adminResult = await env.createAdminUser();
             if (adminResult.success) {
-                console.log(chalk.green(`✓ Admin user: ${adminResult.username} / ${adminResult.password} (${adminResult.email})`));
+                console.log(chalk$1.green(`✓ Admin user: ${adminResult.username} / ${adminResult.password} (${adminResult.email})`));
             }
             else {
-                console.log(chalk.yellow(`⚠ Could not create admin user: ${adminResult.error}`));
+                console.log(chalk$1.yellow(`⚠ Could not create admin user: ${adminResult.error}`));
             }
         }
         // Write Keycloak SAML certificate if keycloak is enabled
         if (info.keycloak) {
-            const certPath = print.writeKeycloakCertificate(runDir);
-            console.log(chalk.green(`✓ Keycloak SAML certificate written to ${certPath}`));
+            const certPath = config.writeKeycloakCertificate(outputDir);
+            console.log(chalk$1.green(`✓ Keycloak SAML certificate written to ${certPath}`));
             // Print Keycloak test user credentials
-            console.log(chalk.gray('  Keycloak admin: admin / admin'));
-            console.log(chalk.gray('  Keycloak test users:'));
-            console.log(chalk.gray('    - user-1 / Password1! (user-1@sample.mattermost.com)'));
-            console.log(chalk.gray('    - user-2 / Password1! (user-2@sample.mattermost.com)'));
+            console.log(chalk$1.gray('  Keycloak admin: admin / admin'));
+            console.log(chalk$1.gray('  Keycloak test users:'));
+            console.log(chalk$1.gray('    - user-1 / Password1! (user-1@sample.mattermost.com)'));
+            console.log(chalk$1.gray('    - user-2 / Password1! (user-2@sample.mattermost.com)'));
             // Configure SAML in Mattermost (container mode only)
             if (!options.depsOnly && info.mattermost) {
                 try {
                     const uploadResult = await env.uploadSamlIdpCertificate();
                     if (uploadResult.success) {
-                        console.log(chalk.green('✓ SAML configured and enabled with Keycloak'));
+                        console.log(chalk$1.green('✓ SAML configured and enabled with Keycloak'));
                     }
                     else {
-                        console.log(chalk.yellow(`⚠ Could not configure SAML: ${uploadResult.error}`));
-                        console.log(chalk.gray(`  Configure manually via System Console. Certificate: ${certPath}`));
+                        console.log(chalk$1.yellow(`⚠ Could not configure SAML: ${uploadResult.error}`));
+                        console.log(chalk$1.gray(`  Configure manually via System Console. Certificate: ${certPath}`));
                     }
                 }
                 catch {
-                    console.log(chalk.yellow('⚠ Could not configure SAML'));
-                    console.log(chalk.gray(`  Configure manually via System Console. Certificate: ${certPath}`));
+                    console.log(chalk$1.yellow('⚠ Could not configure SAML'));
+                    console.log(chalk$1.gray(`  Configure manually via System Console. Certificate: ${certPath}`));
                 }
             }
         }
@@ -5774,93 +5867,217 @@ const startCommand = program
                 const result = await mmctl.exec('config show --json');
                 if (result.exitCode === 0) {
                     const serverConfigJson = JSON.parse(result.stdout);
-                    const configPath = print.writeServerConfig(serverConfigJson, runDir);
-                    console.log(chalk.green(`✓ Server configuration written to ${configPath}`));
+                    const configPath = config.writeServerConfig(serverConfigJson, outputDir);
+                    console.log(chalk$1.green(`✓ Server configuration written to ${configPath}`));
                 }
                 else {
-                    console.log(chalk.yellow('⚠ Could not get server config via mmctl'));
+                    console.log(chalk$1.yellow('⚠ Could not get server config via mmctl'));
                 }
             }
             catch {
-                console.log(chalk.yellow('⚠ Could not get server config via mmctl'));
+                console.log(chalk$1.yellow('⚠ Could not get server config via mmctl'));
             }
         }
         if (options.depsOnly) {
-            console.log(chalk.gray(`  Usage: source ${envPath} && make run-server`));
+            console.log(chalk$1.gray(`  Usage: source ${envPath} && make run-server`));
         }
-        // Detach mode: exit after starting
-        if (options.detach) {
-            console.log(chalk.gray('\nContainers are running in background. Use `mm-tc stop` to stop them.'));
+        console.log(chalk$1.gray('\nContainers are running. Use `mm-tc stop` to stop or `mm-tc rm` to remove.'));
+    }
+    catch (error) {
+        console.error(chalk$1.red('Failed to start environment:'), error);
+        process.exit(1);
+    }
+}
+
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
+/**
+ * Register the stop command on the program.
+ */
+function registerStopCommand(program) {
+    const stopCommand = program
+        .command('stop')
+        .description('Stop containers from current session')
+        .argument('[command]', 'Use "help" to show help')
+        .option('-o, --output-dir <dir>', 'Output directory containing .tc.docker.json', config.DEFAULT_OUTPUT_DIR)
+        .action(async (command, options) => {
+        // Handle "mm-tc stop help"
+        if (command === 'help') {
+            stopCommand.help();
+            return;
+        }
+        await executeStopCommand(options);
+    });
+    return stopCommand;
+}
+/**
+ * Execute the stop command logic.
+ */
+async function executeStopCommand(options) {
+    try {
+        const { execSync } = await import('child_process');
+        const dockerInfoPath = path__namespace.join(options.outputDir, '.tc.docker.json');
+        if (!fs__namespace.existsSync(dockerInfoPath)) {
+            config.log('No container info found. Nothing to stop.');
+            return;
+        }
+        const dockerInfoRaw = fs__namespace.readFileSync(dockerInfoPath, 'utf-8');
+        const dockerInfo = JSON.parse(dockerInfoRaw);
+        // Get all containers from docker info
+        const containers = Object.entries(dockerInfo.containers).filter((entry) => entry[1] !== undefined);
+        if (containers.length === 0) {
+            config.log('No containers found.');
+            return;
+        }
+        // Stop containers
+        const stoppedContainers = [];
+        for (const [name, info] of containers) {
+            try {
+                // Check if container exists and is running
+                const status = execSync(`docker inspect --format '{{.State.Running}}' ${info.id}`, {
+                    encoding: 'utf-8',
+                    stdio: ['pipe', 'pipe', 'pipe'],
+                }).trim();
+                if (status === 'true') {
+                    execSync(`docker stop ${info.id}`, { stdio: ['pipe', 'pipe', 'pipe'] });
+                    stoppedContainers.push(name);
+                }
+            }
+            catch {
+                // Container doesn't exist or already stopped
+            }
+        }
+        if (stoppedContainers.length > 0) {
+            config.log(`✓ Stopped ${stoppedContainers.length} container(s): ${stoppedContainers.join(', ')}`);
         }
         else {
-            // Default: run in foreground until Ctrl+C
-            console.log(chalk.gray('\nPress Ctrl+C to stop the environment'));
-            let isShuttingDown = false;
-            process.on('SIGINT', async () => {
-                if (isShuttingDown)
-                    return;
-                isShuttingDown = true;
-                console.log(chalk.blue('\n\nStopping environment...'));
-                try {
-                    await env.stop();
-                    console.log(chalk.green('Environment stopped.'));
-                }
-                catch {
-                    // Containers may already be stopped
-                    console.log(chalk.yellow('Environment cleanup completed (some containers may have already been stopped).'));
-                }
-                process.exit(0);
-            });
-            // Keep the process alive using setInterval
-            // This prevents Node from exiting while waiting for Ctrl+C
-            setInterval(() => { }, 1000 * 60 * 60); // 1 hour interval
-            await new Promise(() => { }); // Never resolves
+            config.log('No running containers to stop');
         }
     }
     catch (error) {
-        console.error(chalk.red('Failed to start environment:'), error);
+        config.log(`Failed to stop containers: ${error}`);
         process.exit(1);
     }
-});
-const stopCommand = program
-    .command('stop')
-    .description('Stop and remove all testcontainers')
-    .argument('[command]', 'Use "help" to show help')
-    .action(async (command) => {
-    // Handle "mm-tc stop help"
-    if (command === 'help') {
-        stopCommand.help();
-        return;
-    }
+}
+
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
+/**
+ * Prompt user for confirmation.
+ */
+async function confirm$1(message) {
+    const rl = readline__namespace.createInterface({
+        input: process.stdin,
+        output: process.stdout,
+    });
+    return new Promise((resolve) => {
+        rl.question(`${message} (y/N): `, (answer) => {
+            rl.close();
+            resolve(answer.toLowerCase() === 'y' || answer.toLowerCase() === 'yes');
+        });
+    });
+}
+/**
+ * Register the rm command on the program.
+ */
+function registerRmCommand(program) {
+    const rmCommand = program
+        .command('rm')
+        .description('Stop and remove containers from current session')
+        .argument('[command]', 'Use "help" to show help')
+        .option('-o, --output-dir <dir>', 'Output directory containing .tc.docker.json', config.DEFAULT_OUTPUT_DIR)
+        .option('-y, --yes', 'Skip confirmation prompt')
+        .action(async (command, options) => {
+        // Handle "mm-tc rm help"
+        if (command === 'help') {
+            rmCommand.help();
+            return;
+        }
+        await executeRmCommand(options);
+    });
+    return rmCommand;
+}
+/**
+ * Execute the rm command logic.
+ */
+async function executeRmCommand(options) {
     try {
-        console.log(chalk.blue('Stopping testcontainers...'));
-        // Use docker to find and stop containers with testcontainers labels
         const { execSync } = await import('child_process');
-        // Find containers with testcontainers label
-        try {
-            const containers = execSync('docker ps -q --filter "label=org.testcontainers=true"', {
-                encoding: 'utf-8',
-            }).trim();
-            if (containers) {
-                console.log(chalk.gray('Stopping containers...'));
-                execSync(`docker stop ${containers.split('\n').join(' ')}`, { stdio: 'inherit' });
-                console.log(chalk.gray('Removing containers...'));
-                execSync(`docker rm ${containers.split('\n').join(' ')}`, { stdio: 'inherit' });
+        const dockerInfoPath = path__namespace.join(options.outputDir, '.tc.docker.json');
+        if (!fs__namespace.existsSync(dockerInfoPath)) {
+            config.log('No container info found. Nothing to remove.');
+            return;
+        }
+        const dockerInfoRaw = fs__namespace.readFileSync(dockerInfoPath, 'utf-8');
+        const dockerInfo = JSON.parse(dockerInfoRaw);
+        // Get all containers from docker info
+        const containers = Object.entries(dockerInfo.containers).filter((entry) => entry[1] !== undefined);
+        if (containers.length === 0) {
+            config.log('No containers found.');
+            return;
+        }
+        // Show what will be removed
+        config.log('');
+        config.log('The following will be removed:');
+        config.log('==============================');
+        config.log(`Containers (${containers.length}):`);
+        for (const [key, info] of containers) {
+            config.log(`  - ${key}`);
+            if (info.name && info.name !== key) {
+                config.log(`    Name: ${info.name}`);
+            }
+            config.log(`    Image: ${info.image}`);
+            config.log(`    ID: ${info.id}`);
+        }
+        config.log('');
+        config.log(`Output directory: ${options.outputDir}`);
+        config.log('');
+        // Ask for confirmation unless --yes is provided
+        if (!options.yes) {
+            const confirmed = await confirm$1('Are you sure you want to remove these resources?');
+            if (!confirmed) {
+                config.log('Aborted.');
+                return;
             }
         }
-        catch {
-            // No containers found or docker not available
+        // Stop and remove containers
+        const removedContainers = [];
+        for (const [name, info] of containers) {
+            try {
+                // Check if container exists
+                execSync(`docker inspect ${info.id}`, {
+                    encoding: 'utf-8',
+                    stdio: ['pipe', 'pipe', 'pipe'],
+                });
+                // Stop container if running
+                try {
+                    execSync(`docker stop ${info.id}`, { stdio: ['pipe', 'pipe', 'pipe'] });
+                }
+                catch {
+                    // Container might already be stopped
+                }
+                // Remove container
+                execSync(`docker rm ${info.id}`, { stdio: ['pipe', 'pipe', 'pipe'] });
+                removedContainers.push(name);
+            }
+            catch {
+                // Container doesn't exist or already removed
+            }
+        }
+        if (removedContainers.length > 0) {
+            config.log(`✓ Removed ${removedContainers.length} container(s): ${removedContainers.join(', ')}`);
         }
         // Find and remove testcontainers networks
+        let networksRemoved = 0;
         try {
             const networks = execSync('docker network ls -q --filter "label=org.testcontainers=true"', {
                 encoding: 'utf-8',
             }).trim();
             if (networks) {
-                console.log(chalk.gray('Removing networks...'));
-                for (const network of networks.split('\n')) {
+                for (const network of networks.split('\n').filter(Boolean)) {
                     try {
-                        execSync(`docker network rm ${network}`, { stdio: 'inherit' });
+                        execSync(`docker network rm ${network}`, { stdio: ['pipe', 'pipe', 'pipe'] });
+                        networksRemoved++;
                     }
                     catch {
                         // Network might be in use
@@ -5871,126 +6088,1123 @@ const stopCommand = program
         catch {
             // No networks found
         }
-        console.log(chalk.green('✓ Testcontainers stopped'));
+        if (networksRemoved > 0) {
+            config.log(`✓ Removed ${networksRemoved} network(s)`);
+        }
+        // Remove the output directory
+        if (fs__namespace.existsSync(options.outputDir)) {
+            fs__namespace.rmSync(options.outputDir, { recursive: true, force: true });
+            config.log(`✓ Removed output directory: ${options.outputDir}`);
+        }
+        config.log('✓ Session removed');
     }
     catch (error) {
-        console.error(chalk.red('Failed to stop testcontainers:'), error);
+        config.log(`Failed to remove containers: ${error}`);
         process.exit(1);
     }
-});
-program
-    .command('info')
-    .description('Display available dependencies and configuration options')
-    .action(() => {
-    console.log(chalk.cyan('Available Dependencies:'));
-    console.log(chalk.cyan('======================='));
-    console.log('  postgres      - PostgreSQL database (required)');
-    console.log('  inbucket      - Email testing server');
-    console.log('  openldap      - LDAP authentication server');
-    console.log('  minio         - S3-compatible object storage');
-    console.log('  elasticsearch - Search engine');
-    console.log('  opensearch    - OpenSearch engine');
-    console.log('  keycloak      - Identity provider (SAML/OIDC)');
-    console.log('  redis         - Cache server');
-    console.log('  dejavu        - Elasticsearch UI');
-    console.log('  prometheus    - Metrics server');
-    console.log('  grafana       - Visualization dashboards');
-    console.log('  loki          - Log aggregation');
-    console.log('  promtail      - Log shipping agent');
-    console.log(chalk.cyan('\nConfiguration Priority (highest to lowest):'));
-    console.log(chalk.cyan('============================================'));
-    console.log('  1. CLI flags (e.g., -e, -t, --ha)');
-    console.log('  2. Environment variables (e.g., TC_EDITION, MM_SERVICEENVIRONMENT)');
-    console.log('  3. Config file (mm-tc.config.mjs or mm-tc.config.jsonc)');
-    console.log('  4. Built-in defaults');
-    console.log(chalk.cyan('\nEnvironment Variables:'));
-    console.log(chalk.cyan('======================'));
-    console.log('  TC_EDITION             - Server edition (enterprise, fips, team)');
-    console.log('  TC_SERVER_TAG          - Server image tag (e.g., master, release-11.4)');
-    console.log('  TC_SERVER_IMAGE        - Full server image (overrides edition/tag)');
-    console.log('  TC_DEPENDENCIES        - Dependencies (comma-separated)');
-    console.log('  TC_OUTPUT_DIR          - Output directory');
-    console.log('  TC_HA                  - HA mode (true/false)');
-    console.log('  TC_SUBPATH             - Subpath mode (true/false)');
-    console.log('  TC_ENTRY               - Entry tier mode (true/false) - enterprise/fips only');
-    console.log('  TC_ADMIN_USERNAME      - Admin username (email: <username>@sample.mattermost.com)');
-    console.log('  TC_ADMIN_PASSWORD      - Admin password');
-    console.log('  TC_IMAGE_MAX_AGE_HOURS - Max age before pulling fresh image');
-    console.log('  MM_SERVICEENVIRONMENT  - Service environment (test, production, dev)');
-    console.log('  MM_LICENSE             - Enterprise license (base64 encoded)');
-    console.log('  TC_<SERVICE>_IMAGE     - Override service image (e.g., TC_POSTGRES_IMAGE)');
-    console.log(chalk.cyan('\nConfig File (mm-tc.config.mjs):'));
-    console.log(chalk.cyan('==============================='));
-    console.log("  import {defineConfig} from '@mattermost/testcontainers';");
-    console.log('');
-    console.log('  export default defineConfig({');
-    console.log('    server: {');
-    console.log('      edition: "enterprise",');
-    console.log('      entry: false,  // true for Mattermost Entry tier');
-    console.log('      tag: "master",');
-    console.log('      serviceEnvironment: "test",');
-    console.log('      imageMaxAgeHours: 24,');
-    console.log('      ha: false,');
-    console.log('      subpath: false,');
-    console.log('      env: { MM_FEATUREFLAGS_TESTFEATURE: "true" },');
-    console.log('      config: { ServiceSettings: { EnableOpenServer: false } },');
-    console.log('    },');
-    console.log('    dependencies: ["postgres", "inbucket", "minio"],');
-    console.log('    outputDir: ".tc.out",');
-    console.log('    admin: {');
-    console.log('      username: "sysadmin",  // email: sysadmin@sample.mattermost.com');
-    console.log('      password: "Sys@dmin-sample1",');
-    console.log('    },');
-    console.log('  });');
-    console.log(chalk.cyan('\nConfig File (mm-tc.config.jsonc):'));
-    console.log(chalk.cyan('=================================='));
-    console.log('  {');
-    console.log('    // Mattermost server configuration');
-    console.log('    "server": {');
-    console.log('      "edition": "enterprise",  // "enterprise", "fips", or "team"');
-    console.log('      "tag": "master",          // e.g., "master", "release-11.4"');
-    console.log('      "serviceEnvironment": "test",');
-    console.log('      "imageMaxAgeHours": 24,');
-    console.log('      "ha": false,');
-    console.log('      "subpath": false,');
-    console.log('      "env": { "MM_FEATUREFLAGS_TESTFEATURE": "true" },');
-    console.log('      "config": { "ServiceSettings": { "EnableOpenServer": false } }');
-    console.log('    },');
-    console.log('    "dependencies": ["postgres", "inbucket", "minio"],');
-    console.log('    "outputDir": ".tc.out",');
-    console.log('    "admin": {');
-    console.log('      "username": "sysadmin",  // email: sysadmin@sample.mattermost.com');
-    console.log('      "password": "Sys@dmin-sample1"');
-    console.log('    }');
-    console.log('  }');
-    console.log(chalk.cyan('\nOutput Directory Structure:'));
-    console.log(chalk.cyan('==========================='));
-    console.log('  <outputDir>/                    - Base output directory (default: .tc.out)');
-    console.log('    latest -> run-<timestamp>     - Symlink to most recent run');
-    console.log('    run-<timestamp>/              - Timestamped run directory (epoch ms)');
-    console.log('      logs/                       - Container logs directory');
-    console.log('        <service>.log             - Individual container logs');
-    console.log('      .env.tc                     - Environment variables for local server');
-    console.log('      .tc.docker.json             - Docker container metadata');
-    console.log('      .tc.server.config.json      - Server configuration (container mode)');
-    console.log('      openldap_setup.md           - OpenLDAP setup docs (if enabled)');
-    console.log('      keycloak_setup.md           - Keycloak setup docs (if enabled)');
-    console.log('      saml-idp.crt                - Keycloak SAML certificate (if enabled)');
-    console.log(chalk.cyan('\nExamples:'));
-    console.log(chalk.cyan('========='));
-    console.log('  mm-tc start                           # Start with defaults (enterprise)');
-    console.log('  mm-tc start -D minio,elasticsearch    # Add dependencies');
-    console.log('  mm-tc start -t release-11.4           # Specific tag');
-    console.log('  mm-tc start -e team                   # Team edition');
-    console.log('  mm-tc start -e fips                   # FIPS edition');
-    console.log('  mm-tc start --ha                      # HA cluster');
-    console.log('  mm-tc start --subpath                 # Subpath mode');
-    console.log('  mm-tc start --entry                   # Entry tier (ignores MM_LICENSE)');
-    console.log('  mm-tc start --admin                   # Create admin user');
-    console.log('  mm-tc start --deps-only               # Dependencies only');
-    console.log('  mm-tc start -S production             # Production env');
-    console.log('  mm-tc start -E KEY=value              # Pass env var');
-    console.log('  mm-tc stop                            # Stop all containers');
-});
+}
+
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
+/**
+ * Prompt user for confirmation.
+ */
+async function confirm(message) {
+    const rl = readline__namespace.createInterface({
+        input: process.stdin,
+        output: process.stdout,
+    });
+    return new Promise((resolve) => {
+        rl.question(`${message} (y/N): `, (answer) => {
+            rl.close();
+            resolve(answer.toLowerCase() === 'y' || answer.toLowerCase() === 'yes');
+        });
+    });
+}
+/**
+ * Register the rm-all command on the program.
+ */
+function registerRmAllCommand(program) {
+    const rmAllCommand = program
+        .command('rm-all')
+        .description('Remove all containers created by testcontainers (uses container labels)')
+        .argument('[command]', 'Use "help" to show help')
+        .option('-o, --output-dir <dir>', 'Output directory to remove', config.DEFAULT_OUTPUT_DIR)
+        .option('-y, --yes', 'Skip confirmation prompt')
+        .action(async (command, options) => {
+        // Handle "mm-tc rm-all help"
+        if (command === 'help') {
+            rmAllCommand.help();
+            return;
+        }
+        await executeRmAllCommand(options);
+    });
+    return rmAllCommand;
+}
+/**
+ * Execute the rm-all command logic.
+ */
+async function executeRmAllCommand(options) {
+    try {
+        const { execSync } = await import('child_process');
+        // Find all containers with testcontainers label
+        let containerIds = '';
+        try {
+            containerIds = execSync('docker ps -aq --filter "label=org.testcontainers=true"', {
+                encoding: 'utf-8',
+            }).trim();
+        }
+        catch {
+            // No containers found
+        }
+        const containerList = containerIds ? containerIds.split('\n').filter(Boolean) : [];
+        // Get container names and images for display
+        const containerDetails = [];
+        for (const id of containerList) {
+            try {
+                const name = execSync(`docker inspect --format '{{.Name}}' ${id}`, {
+                    encoding: 'utf-8',
+                    stdio: ['pipe', 'pipe', 'pipe'],
+                })
+                    .trim()
+                    .replace(/^\//, '');
+                const image = execSync(`docker inspect --format '{{.Config.Image}}' ${id}`, {
+                    encoding: 'utf-8',
+                    stdio: ['pipe', 'pipe', 'pipe'],
+                }).trim();
+                containerDetails.push({ id, name, image });
+            }
+            catch {
+                containerDetails.push({ id, name: id, image: 'unknown' });
+            }
+        }
+        // Find networks that will be removed
+        let networkIds = [];
+        try {
+            const networks = execSync('docker network ls -q --filter "label=org.testcontainers=true"', {
+                encoding: 'utf-8',
+            }).trim();
+            if (networks) {
+                networkIds = networks.split('\n').filter(Boolean);
+            }
+        }
+        catch {
+            // No networks found
+        }
+        // Check if output directory exists
+        const outputDirExists = fs__namespace.existsSync(options.outputDir);
+        // Check if there's anything to remove
+        if (containerDetails.length === 0 && networkIds.length === 0 && !outputDirExists) {
+            config.log('No testcontainers resources found. Nothing to remove.');
+            return;
+        }
+        // Show what will be removed
+        config.log('');
+        config.log('WARNING: This will remove ALL testcontainers resources!');
+        config.log('=========================================================');
+        if (containerDetails.length > 0) {
+            config.log(`Containers (${containerDetails.length}):`);
+            for (const { name, image, id } of containerDetails) {
+                config.log(`  - ${name}`);
+                config.log(`    Image: ${image}`);
+                config.log(`    ID: ${id}`);
+            }
+        }
+        if (networkIds.length > 0) {
+            config.log('');
+            config.log(`Networks: ${networkIds.length}`);
+        }
+        if (outputDirExists) {
+            config.log('');
+            config.log(`Output directory: ${options.outputDir}`);
+        }
+        config.log('');
+        // Ask for confirmation unless --yes is provided
+        if (!options.yes) {
+            const confirmed = await confirm('Are you sure you want to remove ALL testcontainers resources?');
+            if (!confirmed) {
+                config.log('Aborted.');
+                return;
+            }
+        }
+        // Stop and remove containers
+        if (containerDetails.length > 0) {
+            let removedCount = 0;
+            for (const { id, name } of containerDetails) {
+                try {
+                    // Stop if running
+                    try {
+                        execSync(`docker stop ${id}`, { stdio: ['pipe', 'pipe', 'pipe'] });
+                    }
+                    catch {
+                        // Already stopped
+                    }
+                    // Remove
+                    execSync(`docker rm ${id}`, { stdio: ['pipe', 'pipe', 'pipe'] });
+                    config.log(`✓ Removed ${name}`);
+                    removedCount++;
+                }
+                catch {
+                    config.log(`✗ Failed to remove ${name}`);
+                }
+            }
+            config.log(`✓ Removed ${removedCount} container(s)`);
+        }
+        // Remove networks
+        if (networkIds.length > 0) {
+            let networksRemoved = 0;
+            for (const network of networkIds) {
+                try {
+                    execSync(`docker network rm ${network}`, { stdio: ['pipe', 'pipe', 'pipe'] });
+                    networksRemoved++;
+                }
+                catch {
+                    // Network might be in use
+                }
+            }
+            if (networksRemoved > 0) {
+                config.log(`✓ Removed ${networksRemoved} network(s)`);
+            }
+        }
+        // Remove the output directory
+        if (outputDirExists) {
+            fs__namespace.rmSync(options.outputDir, { recursive: true, force: true });
+            config.log(`✓ Removed output directory: ${options.outputDir}`);
+        }
+        config.log('✓ All testcontainers resources removed');
+    }
+    catch (error) {
+        config.log(`Failed to remove containers: ${error}`);
+        process.exit(1);
+    }
+}
+
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
+/**
+ * Upgrade a single Mattermost container to a new image.
+ * Preserves the same port, network, and environment configuration.
+ */
+async function upgradeContainer(execSync, containerKey, containerInfo, newImage) {
+    const containerId = containerInfo.id;
+    const originalPort = containerInfo.port;
+    // Check if the container is actually running
+    try {
+        const status = execSync(`docker inspect --format '{{.State.Running}}' ${containerId}`, {
+            encoding: 'utf-8',
+            stdio: ['pipe', 'pipe', 'pipe'],
+        }).trim();
+        if (status !== 'true') {
+            return { success: false, error: 'Container is not running' };
+        }
+    }
+    catch {
+        return { success: false, error: 'Container not found' };
+    }
+    // Get the container configuration before stopping
+    let containerConfig;
+    try {
+        const inspectResult = execSync(`docker inspect ${containerId}`, {
+            encoding: 'utf-8',
+            stdio: ['pipe', 'pipe', 'pipe'],
+        });
+        containerConfig = JSON.parse(inspectResult)[0];
+    }
+    catch {
+        return { success: false, error: 'Failed to inspect container' };
+    }
+    // Stop the container
+    config.log(`Stopping ${containerKey}...`);
+    try {
+        execSync(`docker stop ${containerId}`, { stdio: ['pipe', 'pipe', 'pipe'] });
+    }
+    catch {
+        return { success: false, error: 'Failed to stop container' };
+    }
+    // Remove the stopped container
+    try {
+        execSync(`docker rm ${containerId}`, { stdio: ['pipe', 'pipe', 'pipe'] });
+    }
+    catch {
+        // Container might already be removed
+    }
+    // Extract network info - find the testcontainers network (not the default bridge)
+    const networkNames = Object.keys(containerConfig.NetworkSettings.Networks);
+    // Find the testcontainers network - prefer network with aliases, or non-bridge network
+    let selectedNetwork = null;
+    let networkAliases = [];
+    for (const netName of networkNames) {
+        const netConfig = containerConfig.NetworkSettings.Networks[netName];
+        const aliases = netConfig.Aliases || [];
+        // Prefer networks with aliases (testcontainers networks have service aliases)
+        if (aliases.length > 0 && netName !== 'bridge') {
+            selectedNetwork = netName;
+            networkAliases = aliases.filter((alias) => alias !== containerId.substring(0, 12) && alias !== containerId);
+            break;
+        }
+        // If no aliased network found yet, prefer non-bridge networks
+        if (!selectedNetwork && netName !== 'bridge') {
+            selectedNetwork = netName;
+            networkAliases = aliases.filter((alias) => alias !== containerId.substring(0, 12) && alias !== containerId);
+        }
+    }
+    // Fallback to first network if no better option found
+    if (!selectedNetwork && networkNames.length > 0) {
+        selectedNetwork = networkNames[0];
+        const aliases = containerConfig.NetworkSettings.Networks[selectedNetwork].Aliases || [];
+        networkAliases = aliases.filter((alias) => alias !== containerId.substring(0, 12) && alias !== containerId);
+    }
+    // Extract environment variables
+    const envVars = containerConfig.Config.Env || [];
+    // Build docker run command
+    let dockerRunCmd = `docker run -d --platform linux/amd64`;
+    // Add network if available (use network name, not ID)
+    if (selectedNetwork) {
+        dockerRunCmd += ` --network ${selectedNetwork}`;
+        // Add network aliases (only valid with user-defined networks)
+        for (const alias of networkAliases) {
+            dockerRunCmd += ` --network-alias ${alias}`;
+        }
+    }
+    // Add environment variables
+    for (const envVar of envVars) {
+        // Escape special characters in env values
+        const escapedEnvVar = envVar.replace(/"/g, '\\"');
+        dockerRunCmd += ` -e "${escapedEnvVar}"`;
+    }
+    // Add port mapping - use the same host port as the original container
+    dockerRunCmd += ` -p ${originalPort}:8065`;
+    // Add testcontainers label for cleanup
+    dockerRunCmd += ` --label org.testcontainers=true`;
+    // Add the new image
+    dockerRunCmd += ` ${newImage}`;
+    config.log(`Starting ${containerKey} with new image (port ${originalPort})...`);
+    let newContainerId;
+    try {
+        newContainerId = execSync(dockerRunCmd, { encoding: 'utf-8', stdio: ['pipe', 'pipe', 'pipe'] }).trim();
+    }
+    catch (error) {
+        return { success: false, error: `Failed to start container: ${error}` };
+    }
+    return { success: true, newContainerId };
+}
+/**
+ * Wait for a container to be ready by checking its health endpoint.
+ */
+async function waitForContainer(url, maxWaitMs = 60000) {
+    const http = await import('http');
+    const startTime = Date.now();
+    while (Date.now() - startTime < maxWaitMs) {
+        try {
+            const isReady = await new Promise((resolve) => {
+                const req = http.get(`${url}/api/v4/system/ping`, (res) => {
+                    resolve(res.statusCode === 200);
+                });
+                req.on('error', () => resolve(false));
+                req.setTimeout(5000, () => {
+                    req.destroy();
+                    resolve(false);
+                });
+            });
+            if (isReady) {
+                return true;
+            }
+        }
+        catch {
+            // Server not ready yet
+        }
+        await new Promise((resolve) => setTimeout(resolve, 1000));
+    }
+    return false;
+}
+/**
+ * Get the server version from the ping endpoint.
+ * Returns just the version number (e.g., "11.4.0") instead of the full version string.
+ */
+async function getServerVersion(url) {
+    try {
+        const http = await import('http');
+        const fullVersion = await new Promise((resolve) => {
+            const req = http.get(`${url}/api/v4/system/ping`, (res) => {
+                if (res.headers['x-version-id']) {
+                    resolve(res.headers['x-version-id']);
+                }
+                else {
+                    resolve('unknown');
+                }
+            });
+            req.on('error', () => resolve('unknown'));
+            req.setTimeout(5000, () => {
+                req.destroy();
+                resolve('unknown');
+            });
+        });
+        // Extract just the version number (first part before the first dot-separated build info)
+        // Full format: "11.4.0.21550760092.0f2d8b11fcd975de9c2aae2f165176de220a638b3bfaaa4787ccdb95fb5d4a93.true"
+        // We want: "11.4.0"
+        if (fullVersion !== 'unknown') {
+            const parts = fullVersion.split('.');
+            if (parts.length >= 3) {
+                return `${parts[0]}.${parts[1]}.${parts[2]}`;
+            }
+        }
+        return fullVersion;
+    }
+    catch {
+        return 'unknown';
+    }
+}
+/**
+ * Get server config from a running container using mmctl.
+ */
+function getServerConfig(execSync, containerId) {
+    try {
+        const result = execSync(`docker exec ${containerId} mmctl --local config show --json`, {
+            encoding: 'utf-8',
+            stdio: ['pipe', 'pipe', 'pipe'],
+        });
+        return JSON.parse(result);
+    }
+    catch {
+        return null;
+    }
+}
+/**
+ * Deep compare two objects and return paths that differ.
+ */
+function findConfigDiffs(before, after, pathPrefix = '') {
+    const diffs = [];
+    const allKeys = new Set([...Object.keys(before), ...Object.keys(after)]);
+    for (const key of allKeys) {
+        const currentPath = pathPrefix ? `${pathPrefix}.${key}` : key;
+        const beforeVal = before[key];
+        const afterVal = after[key];
+        if (beforeVal === afterVal) {
+            continue;
+        }
+        if (typeof beforeVal === 'object' &&
+            typeof afterVal === 'object' &&
+            beforeVal !== null &&
+            afterVal !== null &&
+            !Array.isArray(beforeVal) &&
+            !Array.isArray(afterVal)) {
+            // Recurse into nested objects
+            diffs.push(...findConfigDiffs(beforeVal, afterVal, currentPath));
+        }
+        else if (JSON.stringify(beforeVal) !== JSON.stringify(afterVal)) {
+            diffs.push({ path: currentPath, before: beforeVal, after: afterVal });
+        }
+    }
+    return diffs;
+}
+/**
+ * Save config diff files for an operation (restart, upgrade, etc.).
+ * - Saves before config to `.tc.before.{operation}.server.config.json`
+ * - Updates `.tc.server.config.json` with after config
+ * - Generates `.tc.diff.{operation}.server.config.jsonc` with comments showing previous values
+ */
+function saveConfigDiff(outputDir, operation, beforeConfig, afterConfig) {
+    // Save before config with fixed name
+    if (beforeConfig) {
+        const beforePath = path__namespace.join(outputDir, `.tc.before.${operation}.server.config.json`);
+        fs__namespace.writeFileSync(beforePath, JSON.stringify(beforeConfig, null, 2) + '\n');
+    }
+    // Update the main server config file
+    if (afterConfig) {
+        const serverConfigPath = path__namespace.join(outputDir, '.tc.server.config.json');
+        fs__namespace.writeFileSync(serverConfigPath, JSON.stringify(afterConfig, null, 2) + '\n');
+    }
+    // Generate and save diff if both configs exist
+    if (beforeConfig && afterConfig) {
+        const diffs = findConfigDiffs(beforeConfig, afterConfig);
+        const diffPath = path__namespace.join(outputDir, `.tc.diff.${operation}.server.config.jsonc`);
+        if (diffs.length > 0) {
+            config.log(`Found ${diffs.length} config difference(s)`);
+            const jsoncContent = generateDiffOnlyConfig(operation, diffs);
+            fs__namespace.writeFileSync(diffPath, jsoncContent + '\n');
+        }
+        else {
+            const content = `// No configuration differences found after ${operation}\n{}`;
+            fs__namespace.writeFileSync(diffPath, content + '\n');
+            config.log('No config differences found');
+        }
+    }
+}
+/**
+ * Generate JSONC content showing only the differences with previous values as comments.
+ */
+function generateDiffOnlyConfig(operation, diffs) {
+    const lines = [];
+    lines.push(`// Configuration differences after ${operation}`);
+    lines.push('// Format: "path": <new_value> // Previous: <old_value>');
+    lines.push('{');
+    for (let i = 0; i < diffs.length; i++) {
+        const diff = diffs[i];
+        const afterStr = JSON.stringify(diff.after);
+        const beforeStr = JSON.stringify(diff.before);
+        const comma = i < diffs.length - 1 ? ',' : '';
+        lines.push(`  "${diff.path}": ${afterStr}${comma} // Previous: ${beforeStr}`);
+    }
+    lines.push('}');
+    return lines.join('\n');
+}
+
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
+/**
+ * Register the upgrade command on the program.
+ */
+function registerUpgradeCommand(program) {
+    program
+        .command('upgrade')
+        .description('Upgrade Mattermost server(s) to a new image tag (rolling upgrade)')
+        .requiredOption('-t, --tag <tag>', 'The new image tag to upgrade to (e.g., release-11.5)')
+        .option('-o, --output-dir <dir>', 'Output directory containing .tc.docker.json', config.DEFAULT_OUTPUT_DIR)
+        .action(async (options) => {
+        await executeUpgradeCommand(options);
+    });
+}
+/**
+ * Execute the upgrade command logic.
+ */
+async function executeUpgradeCommand(options) {
+    const tag = options.tag;
+    try {
+        const { execSync } = await import('child_process');
+        const outputDir = options.outputDir;
+        const dockerInfoPath = path__namespace.join(outputDir, '.tc.docker.json');
+        if (!fs__namespace.existsSync(dockerInfoPath)) {
+            config.log(`Error: Docker info file not found: ${dockerInfoPath}`);
+            process.exit(1);
+        }
+        const dockerInfoRaw = fs__namespace.readFileSync(dockerInfoPath, 'utf-8');
+        const dockerInfo = JSON.parse(dockerInfoRaw);
+        // Find all Mattermost containers (keys starting with 'mattermost')
+        // This handles: single node, HA (mattermost-leader, mattermost-follower),
+        // subpath (mattermost-server1, mattermost-server2), and subpath+HA combinations
+        const mmContainerKeys = Object.keys(dockerInfo.containers).filter((key) => key === 'mattermost' || key.startsWith('mattermost-'));
+        if (mmContainerKeys.length === 0) {
+            config.log('Error: No Mattermost container(s) found in the environment');
+            process.exit(1);
+        }
+        // Get image info from the first container to determine base image
+        const firstContainer = dockerInfo.containers[mmContainerKeys[0]];
+        const currentImage = firstContainer.image;
+        const lastColonIndex = currentImage.lastIndexOf(':');
+        if (lastColonIndex === -1) {
+            config.log(`Error: Invalid image format: ${currentImage}`);
+            process.exit(1);
+        }
+        const imageBase = currentImage.substring(0, lastColonIndex);
+        const currentTag = currentImage.substring(lastColonIndex + 1);
+        const newImage = `${imageBase}:${tag}`;
+        // Check if already on the same tag
+        if (currentTag === tag) {
+            config.log(`Server(s) already running tag: ${tag}`);
+            process.exit(0);
+        }
+        // Get current version from the first accessible container
+        let currentVersion = 'unknown';
+        for (const key of mmContainerKeys) {
+            const info = dockerInfo.containers[key];
+            if (info) {
+                currentVersion = await getServerVersion(info.url);
+                if (currentVersion !== 'unknown')
+                    break;
+            }
+        }
+        config.log(`Upgrading Mattermost from ${currentTag} (v${currentVersion}) to ${tag}`);
+        config.log(`Containers to upgrade: ${mmContainerKeys.join(', ')}`);
+        // Get config from all containers before upgrade
+        const configsBefore = new Map();
+        for (const containerKey of mmContainerKeys) {
+            const containerInfo = dockerInfo.containers[containerKey];
+            if (!containerInfo)
+                continue;
+            config.log(`Getting config from ${containerKey}...`);
+            const configBefore = getServerConfig(execSync, containerInfo.id);
+            configsBefore.set(containerKey, configBefore);
+        }
+        // Pull the new image first (before stopping any containers)
+        config.log(`Pulling image: ${newImage}`);
+        try {
+            execSync(`docker pull --platform linux/amd64 ${newImage}`, {
+                stdio: ['pipe', 'pipe', 'pipe'],
+            });
+            config.log('Image pulled successfully');
+        }
+        catch {
+            config.log(`Error: Failed to pull image: ${newImage}`);
+            process.exit(1);
+        }
+        // Upgrade each Mattermost container
+        const upgradedContainers = [];
+        let hasErrors = false;
+        for (const containerKey of mmContainerKeys) {
+            const containerInfo = dockerInfo.containers[containerKey];
+            if (!containerInfo)
+                continue;
+            const result = await upgradeContainer(execSync, containerKey, containerInfo, newImage);
+            if (result.success && result.newContainerId) {
+                upgradedContainers.push({
+                    key: containerKey,
+                    info: containerInfo,
+                    newContainerId: result.newContainerId,
+                });
+                config.log(`✓ ${containerKey} upgraded (port ${containerInfo.port})`);
+            }
+            else {
+                config.log(`✗ ${containerKey} failed: ${result.error}`);
+                hasErrors = true;
+            }
+        }
+        if (upgradedContainers.length === 0) {
+            config.log('Error: No containers were upgraded');
+            process.exit(1);
+        }
+        // Wait for all upgraded containers to be ready
+        for (const { key, info, newContainerId } of upgradedContainers) {
+            if (!info)
+                continue;
+            const url = `http://localhost:${info.port}`;
+            const isReady = await waitForContainer(url);
+            if (isReady) {
+                config.log(`✓ ${key} ready at http://localhost:${info.port}`);
+                // Get config after upgrade and save diff
+                const configBefore = configsBefore.get(key) ?? null;
+                const configAfter = getServerConfig(execSync, newContainerId);
+                saveConfigDiff(outputDir, 'upgrade', configBefore, configAfter);
+            }
+            else {
+                config.log(`⚠ ${key} may not be fully ready`);
+            }
+        }
+        // Update docker info file with new container details
+        for (const { key, info, newContainerId } of upgradedContainers) {
+            if (!info)
+                continue;
+            const newContainerName = execSync(`docker inspect --format '{{.Name}}' ${newContainerId}`, {
+                encoding: 'utf-8',
+                stdio: ['pipe', 'pipe', 'pipe'],
+            })
+                .trim()
+                .replace(/^\//, '');
+            dockerInfo.containers[key] = {
+                ...info,
+                id: newContainerId,
+                name: newContainerName,
+                image: newImage,
+            };
+        }
+        fs__namespace.writeFileSync(dockerInfoPath, JSON.stringify(dockerInfo, null, 2) + '\n');
+        // Get new version from the first accessible container
+        let newVersion = 'unknown';
+        for (const { info } of upgradedContainers) {
+            if (!info)
+                continue;
+            const url = `http://localhost:${info.port}`;
+            newVersion = await getServerVersion(url);
+            if (newVersion !== 'unknown')
+                break;
+        }
+        config.log(`✓ Upgrade completed: v${currentVersion} → v${newVersion}`);
+        if (hasErrors) {
+            config.log('Note: Some containers failed to upgrade. Check the errors above.');
+            process.exit(1);
+        }
+    }
+    catch (error) {
+        config.log(`Upgrade failed: ${error}`);
+        process.exit(1);
+    }
+}
+
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
+/**
+ * Register the restart command on the program.
+ */
+function registerRestartCommand(program) {
+    program
+        .command('restart')
+        .description('Restart all containers from current session')
+        .option('-o, --output-dir <dir>', 'Output directory containing .tc.docker.json', config.DEFAULT_OUTPUT_DIR)
+        .action(async (options) => {
+        await executeRestartCommand(options);
+    });
+}
+/**
+ * Execute the restart command logic.
+ */
+async function executeRestartCommand(options) {
+    try {
+        const { execSync } = await import('child_process');
+        const outputDir = options.outputDir;
+        const dockerInfoPath = path__namespace.join(outputDir, '.tc.docker.json');
+        if (!fs__namespace.existsSync(dockerInfoPath)) {
+            config.log('No container info found. Nothing to restart.');
+            return;
+        }
+        const dockerInfoRaw = fs__namespace.readFileSync(dockerInfoPath, 'utf-8');
+        const dockerInfo = JSON.parse(dockerInfoRaw);
+        // Get all container keys
+        const allContainerKeys = Object.keys(dockerInfo.containers);
+        if (allContainerKeys.length === 0) {
+            config.log('No containers found. Nothing to restart.');
+            return;
+        }
+        // Separate into dependencies and mattermost containers
+        const mmContainerKeys = allContainerKeys.filter((key) => key === 'mattermost' || key.startsWith('mattermost-'));
+        const depContainerKeys = allContainerKeys.filter((key) => key !== 'mattermost' && !key.startsWith('mattermost-'));
+        config.log(`Containers to restart: ${allContainerKeys.join(', ')}`);
+        let hasErrors = false;
+        // Get config from mattermost containers before restart (if running)
+        const configsBefore = new Map();
+        for (const containerKey of mmContainerKeys) {
+            const containerInfo = dockerInfo.containers[containerKey];
+            if (!containerInfo)
+                continue;
+            try {
+                const isRunning = execSync(`docker inspect --format '{{.State.Running}}' ${containerInfo.id}`, {
+                    encoding: 'utf-8',
+                    stdio: ['pipe', 'pipe', 'pipe'],
+                }).trim() === 'true';
+                if (isRunning) {
+                    config.log(`Getting config from ${containerKey}...`);
+                    const configBefore = getServerConfig(execSync, containerInfo.id);
+                    configsBefore.set(containerKey, configBefore);
+                }
+                else {
+                    configsBefore.set(containerKey, null);
+                }
+            }
+            catch {
+                configsBefore.set(containerKey, null);
+            }
+        }
+        // Step 1: Stop mattermost containers first (so they disconnect cleanly from dependencies)
+        for (const containerKey of mmContainerKeys) {
+            const containerInfo = dockerInfo.containers[containerKey];
+            if (!containerInfo)
+                continue;
+            try {
+                const isRunning = execSync(`docker inspect --format '{{.State.Running}}' ${containerInfo.id}`, {
+                    encoding: 'utf-8',
+                    stdio: ['pipe', 'pipe', 'pipe'],
+                }).trim() === 'true';
+                if (isRunning) {
+                    config.log(`Stopping ${containerKey}...`);
+                    execSync(`docker stop ${containerInfo.id}`, { stdio: ['pipe', 'pipe', 'pipe'] });
+                    config.log(`✓ ${containerKey} stopped`);
+                }
+            }
+            catch {
+                // Container might not exist
+            }
+        }
+        // Step 2: Restart dependency containers and verify they're running
+        if (depContainerKeys.length > 0) {
+            config.log('Restarting dependencies...');
+            for (const containerKey of depContainerKeys) {
+                const containerInfo = dockerInfo.containers[containerKey];
+                if (!containerInfo)
+                    continue;
+                try {
+                    execSync(`docker inspect ${containerInfo.id}`, {
+                        encoding: 'utf-8',
+                        stdio: ['pipe', 'pipe', 'pipe'],
+                    });
+                }
+                catch {
+                    config.log(`✗ ${containerKey} container not found`);
+                    hasErrors = true;
+                    continue;
+                }
+                const isRunning = execSync(`docker inspect --format '{{.State.Running}}' ${containerInfo.id}`, {
+                    encoding: 'utf-8',
+                    stdio: ['pipe', 'pipe', 'pipe'],
+                }).trim() === 'true';
+                if (isRunning) {
+                    config.log(`Restarting ${containerKey}...`);
+                    try {
+                        execSync(`docker restart ${containerInfo.id}`, { stdio: ['pipe', 'pipe', 'pipe'] });
+                    }
+                    catch (error) {
+                        config.log(`✗ ${containerKey} failed to restart: ${error}`);
+                        hasErrors = true;
+                        continue;
+                    }
+                }
+                else {
+                    config.log(`Starting ${containerKey}...`);
+                    try {
+                        execSync(`docker start ${containerInfo.id}`, { stdio: ['pipe', 'pipe', 'pipe'] });
+                    }
+                    catch (error) {
+                        config.log(`✗ ${containerKey} failed to start: ${error}`);
+                        hasErrors = true;
+                        continue;
+                    }
+                }
+                // Verify container is running
+                const nowRunning = execSync(`docker inspect --format '{{.State.Running}}' ${containerInfo.id}`, {
+                    encoding: 'utf-8',
+                    stdio: ['pipe', 'pipe', 'pipe'],
+                }).trim() === 'true';
+                if (nowRunning) {
+                    config.log(`✓ ${containerKey} running`);
+                }
+                else {
+                    config.log(`✗ ${containerKey} not running`);
+                    hasErrors = true;
+                }
+            }
+            // Wait for postgres to be healthy and ready for connections
+            // Uses exponential backoff: 1s, 2s, 4s, 8s (4 degrees), repeated 3 times
+            const postgresInfo = dockerInfo.containers.postgres;
+            if (postgresInfo?.id) {
+                config.log('Waiting for postgres to be ready...');
+                const startTime = Date.now();
+                let postgresReady = false;
+                const maxRetries = 3;
+                const backoffDelays = [1000, 2000, 4000, 8000]; // 4 degrees of exponential backoff
+                const pgUser = postgresInfo.username || 'mmuser';
+                const pgDatabase = postgresInfo.database || 'mattermost_test';
+                for (let retry = 0; retry < maxRetries && !postgresReady; retry++) {
+                    for (const delay of backoffDelays) {
+                        try {
+                            // Run a simple SQL query to verify postgres is ready
+                            // Use PGPASSWORD env var and disable password prompt with -w
+                            execSync(`docker exec -e PGPASSWORD=mostest ${postgresInfo.id} psql -U ${pgUser} -d ${pgDatabase} -w -c "SELECT 1"`, {
+                                stdio: ['pipe', 'pipe', 'pipe'],
+                                timeout: 5000,
+                            });
+                            postgresReady = true;
+                            break;
+                        }
+                        catch {
+                            // Not ready yet, wait with exponential backoff
+                            await new Promise((resolve) => setTimeout(resolve, delay));
+                        }
+                    }
+                }
+                const waitTime = ((Date.now() - startTime) / 1000).toFixed(1);
+                if (postgresReady) {
+                    config.log(`✓ postgres ready (${waitTime}s)`);
+                }
+                else {
+                    config.log(`⚠ postgres may not be fully ready (timeout after ${waitTime}s)`);
+                }
+            }
+            // Final verification: ensure all dependencies are running before starting mattermost
+            config.log('Verifying all dependencies are running...');
+            let allDepsRunning = true;
+            for (const containerKey of depContainerKeys) {
+                const containerInfo = dockerInfo.containers[containerKey];
+                if (!containerInfo)
+                    continue;
+                try {
+                    const isRunning = execSync(`docker inspect --format '{{.State.Running}}' ${containerInfo.id}`, {
+                        encoding: 'utf-8',
+                        stdio: ['pipe', 'pipe', 'pipe'],
+                    }).trim() === 'true';
+                    if (!isRunning) {
+                        config.log(`✗ ${containerKey} is not running`);
+                        allDepsRunning = false;
+                    }
+                }
+                catch {
+                    config.log(`✗ ${containerKey} check failed`);
+                    allDepsRunning = false;
+                }
+            }
+            if (allDepsRunning) {
+                config.log('✓ All dependencies running');
+            }
+            else {
+                config.log('⚠ Some dependencies are not running. Mattermost may fail to start.');
+                hasErrors = true;
+            }
+        }
+        // Step 3: Restart mattermost containers (use docker restart to preserve ports)
+        const restartedContainers = [];
+        for (const containerKey of mmContainerKeys) {
+            const containerInfo = dockerInfo.containers[containerKey];
+            if (!containerInfo)
+                continue;
+            try {
+                execSync(`docker inspect ${containerInfo.id}`, {
+                    encoding: 'utf-8',
+                    stdio: ['pipe', 'pipe', 'pipe'],
+                });
+            }
+            catch {
+                config.log(`✗ ${containerKey} container not found`);
+                hasErrors = true;
+                continue;
+            }
+            config.log(`Starting ${containerKey}...`);
+            try {
+                // Use docker start since container was stopped earlier
+                // docker restart on stopped container just starts it
+                execSync(`docker start ${containerInfo.id}`, { stdio: ['pipe', 'pipe', 'pipe'] });
+                // Get actual port after start to verify it matches expected
+                let actualPort = containerInfo.port;
+                try {
+                    const portOutput = execSync(`docker port ${containerInfo.id} 8065`, {
+                        encoding: 'utf-8',
+                        stdio: ['pipe', 'pipe', 'pipe'],
+                    }).trim();
+                    const portMatch = portOutput.match(/:(\d+)$/m);
+                    if (portMatch) {
+                        actualPort = parseInt(portMatch[1], 10);
+                    }
+                }
+                catch {
+                    // Port check failed, use original
+                }
+                // Update info with actual port
+                const actualUrl = `http://localhost:${actualPort}`;
+                const updatedInfo = { ...containerInfo, port: actualPort, url: actualUrl };
+                restartedContainers.push({ key: containerKey, info: updatedInfo, containerId: containerInfo.id });
+                if (actualPort !== containerInfo.port) {
+                    config.log(`✓ ${containerKey} started (port changed: ${containerInfo.port} → ${actualPort})`);
+                }
+                else {
+                    config.log(`✓ ${containerKey} started (port ${actualPort})`);
+                }
+            }
+            catch (error) {
+                config.log(`✗ ${containerKey} failed to start: ${error}`);
+                hasErrors = true;
+            }
+        }
+        if (restartedContainers.length === 0 && depContainerKeys.length === 0) {
+            config.log('No containers were restarted');
+            return;
+        }
+        // Wait for all mattermost containers to be ready
+        let newVersion = 'unknown';
+        for (const { key, info, containerId } of restartedContainers) {
+            const url = info.url;
+            config.log(`Waiting for ${key} to be ready...`);
+            const isReady = await waitForContainer(url, 120000); // 2 minutes for restart
+            if (isReady) {
+                const version = await getServerVersion(url);
+                if (newVersion === 'unknown' && version !== 'unknown') {
+                    newVersion = version;
+                }
+                config.log(`✓ ${key} ready at ${url} (v${version})`);
+                // Get config after restart and save diff
+                const configBefore = configsBefore.get(key) ?? null;
+                const configAfter = getServerConfig(execSync, containerId);
+                saveConfigDiff(outputDir, 'restart', configBefore, configAfter);
+            }
+            else {
+                config.log(`⚠ ${key} may not be fully ready (timeout after 120s)`);
+            }
+        }
+        // Update docker info file if ports changed
+        let portsChanged = false;
+        for (const { key, info } of restartedContainers) {
+            const originalInfo = dockerInfo.containers[key];
+            if (originalInfo && info.port !== originalInfo.port) {
+                dockerInfo.containers[key] = {
+                    ...originalInfo,
+                    port: info.port,
+                    url: info.url,
+                };
+                portsChanged = true;
+            }
+        }
+        if (portsChanged) {
+            fs__namespace.writeFileSync(dockerInfoPath, JSON.stringify(dockerInfo, null, 2) + '\n');
+            config.log('Docker info updated with new ports');
+        }
+        config.log(`✓ Restart completed${newVersion !== 'unknown' ? `: v${newVersion}` : ''}`);
+        // Print connection info for all services (use updated info from restartedContainers)
+        config.log('');
+        config.log('Connection Information:');
+        config.log('=======================');
+        // Get mattermost URL from restarted containers (has updated port)
+        const mmInfo = restartedContainers.find((c) => c.key === 'mattermost');
+        if (mmInfo) {
+            config.log(`Mattermost:      ${mmInfo.info.url}`);
+        }
+        const c = dockerInfo.containers;
+        if (c.postgres?.connectionString) {
+            config.log(`PostgreSQL:      ${c.postgres.connectionString}`);
+        }
+        if (c.inbucket?.host && c.inbucket?.webPort) {
+            config.log(`Inbucket:        http://${c.inbucket.host}:${c.inbucket.webPort}`);
+        }
+        if (c.openldap?.host && c.openldap?.port) {
+            config.log(`OpenLDAP:        ldap://${c.openldap.host}:${c.openldap.port}`);
+        }
+        if (c.minio?.endpoint) {
+            config.log(`MinIO:           ${c.minio.endpoint}`);
+        }
+        if (c.elasticsearch?.url) {
+            config.log(`Elasticsearch:   ${c.elasticsearch.url}`);
+        }
+        if (c.opensearch?.url) {
+            config.log(`OpenSearch:      ${c.opensearch.url}`);
+        }
+        if (c.keycloak?.adminUrl) {
+            config.log(`Keycloak:        ${c.keycloak.adminUrl}`);
+        }
+        if (c.redis?.url) {
+            config.log(`Redis:           ${c.redis.url}`);
+        }
+        if (hasErrors) {
+            config.log('');
+            config.log('Note: Some containers failed to restart. Check the errors above.');
+        }
+    }
+    catch (error) {
+        config.log(`Restart failed: ${error}`);
+        process.exit(1);
+    }
+}
+
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
+const chalk = new Chalk();
+/**
+ * Register the info command on the program.
+ */
+function registerInfoCommand(program) {
+    program
+        .command('info')
+        .description('Display available dependencies and configuration options')
+        .action(() => {
+        console.log(chalk.cyan('Available Dependencies:'));
+        console.log(chalk.cyan('======================='));
+        console.log('  postgres      - PostgreSQL database (required)');
+        console.log('  inbucket      - Email testing server');
+        console.log('  openldap      - LDAP authentication server');
+        console.log('  minio         - S3-compatible object storage');
+        console.log('  elasticsearch - Search engine');
+        console.log('  opensearch    - OpenSearch engine');
+        console.log('  keycloak      - Identity provider (SAML/OIDC)');
+        console.log('  redis         - Cache server');
+        console.log('  dejavu        - Elasticsearch UI');
+        console.log('  prometheus    - Metrics server');
+        console.log('  grafana       - Visualization dashboards');
+        console.log('  loki          - Log aggregation');
+        console.log('  promtail      - Log shipping agent');
+        console.log(chalk.cyan('\nConfiguration Priority (highest to lowest):'));
+        console.log(chalk.cyan('============================================'));
+        console.log('  1. CLI flags (e.g., -e, -t, --ha)');
+        console.log('  2. Environment variables (e.g., TC_EDITION, MM_SERVICEENVIRONMENT)');
+        console.log('  3. Config file (mm-tc.config.mjs or mm-tc.config.jsonc)');
+        console.log('  4. Built-in defaults');
+        console.log(chalk.cyan('\nEnvironment Variables:'));
+        console.log(chalk.cyan('======================'));
+        console.log('  TC_EDITION             - Server edition (enterprise, fips, team)');
+        console.log('  TC_SERVER_TAG          - Server image tag (e.g., master, release-11.4)');
+        console.log('  TC_SERVER_IMAGE        - Full server image (overrides edition/tag)');
+        console.log('  TC_DEPENDENCIES        - Dependencies (comma-separated)');
+        console.log('  TC_OUTPUT_DIR          - Output directory');
+        console.log('  TC_HA                  - HA mode (true/false)');
+        console.log('  TC_SUBPATH             - Subpath mode (true/false)');
+        console.log('  TC_ENTRY               - Entry tier mode (true/false) - enterprise/fips only');
+        console.log('  TC_ADMIN_USERNAME      - Admin username (email: <username>@sample.mattermost.com)');
+        console.log('  TC_ADMIN_PASSWORD      - Admin password');
+        console.log('  TC_IMAGE_MAX_AGE_HOURS - Max age before pulling fresh image');
+        console.log('  MM_SERVICEENVIRONMENT  - Service environment (test, production, dev)');
+        console.log('  MM_LICENSE             - Enterprise license (base64 encoded)');
+        console.log('  TC_<SERVICE>_IMAGE     - Override service image (e.g., TC_POSTGRES_IMAGE)');
+        console.log(chalk.cyan('\nConfig File (mm-tc.config.mjs):'));
+        console.log(chalk.cyan('==============================='));
+        console.log("  import {defineConfig} from '@mattermost/testcontainers';");
+        console.log('');
+        console.log('  export default defineConfig({');
+        console.log('    server: {');
+        console.log('      edition: "enterprise",');
+        console.log('      entry: false,  // true for Mattermost Entry tier');
+        console.log('      tag: "master",');
+        console.log('      serviceEnvironment: "test",');
+        console.log('      imageMaxAgeHours: 24,');
+        console.log('      ha: false,');
+        console.log('      subpath: false,');
+        console.log('      env: { MM_FEATUREFLAGS_TESTFEATURE: "true" },');
+        console.log('      config: { ServiceSettings: { EnableOpenServer: false } },');
+        console.log('    },');
+        console.log('    dependencies: ["postgres", "inbucket", "minio"],');
+        console.log('    outputDir: ".tc.out",');
+        console.log('    admin: {');
+        console.log('      username: "sysadmin",  // email: sysadmin@sample.mattermost.com');
+        console.log('      password: "Sys@dmin-sample1",');
+        console.log('    },');
+        console.log('  });');
+        console.log(chalk.cyan('\nConfig File (mm-tc.config.jsonc):'));
+        console.log(chalk.cyan('=================================='));
+        console.log('  {');
+        console.log('    // Mattermost server configuration');
+        console.log('    "server": {');
+        console.log('      "edition": "enterprise",  // "enterprise", "fips", or "team"');
+        console.log('      "tag": "master",          // e.g., "master", "release-11.4"');
+        console.log('      "serviceEnvironment": "test",');
+        console.log('      "imageMaxAgeHours": 24,');
+        console.log('      "ha": false,');
+        console.log('      "subpath": false,');
+        console.log('      "env": { "MM_FEATUREFLAGS_TESTFEATURE": "true" },');
+        console.log('      "config": { "ServiceSettings": { "EnableOpenServer": false } }');
+        console.log('    },');
+        console.log('    "dependencies": ["postgres", "inbucket", "minio"],');
+        console.log('    "outputDir": ".tc.out",');
+        console.log('    "admin": {');
+        console.log('      "username": "sysadmin",  // email: sysadmin@sample.mattermost.com');
+        console.log('      "password": "Sys@dmin-sample1"');
+        console.log('    }');
+        console.log('  }');
+        console.log(chalk.cyan('\nOutput Directory Structure:'));
+        console.log(chalk.cyan('==========================='));
+        console.log('  <outputDir>/                  - Output directory (default: .tc.out)');
+        console.log('    logs/                       - Container logs directory');
+        console.log('      <service>.log             - Individual container logs');
+        console.log('    .env.tc                     - Environment variables for local server');
+        console.log('    .tc.docker.json             - Docker container metadata');
+        console.log('    .tc.server.config.json      - Server configuration (container mode)');
+        console.log('    openldap_setup.md           - OpenLDAP setup docs (if enabled)');
+        console.log('    keycloak_setup.md           - Keycloak setup docs (if enabled)');
+        console.log('    saml-idp.crt                - Keycloak SAML certificate (if enabled)');
+        console.log(chalk.cyan('\nExamples:'));
+        console.log(chalk.cyan('========='));
+        console.log('  mm-tc start                           # Start with defaults (enterprise)');
+        console.log('  mm-tc start -D minio,elasticsearch    # Add dependencies');
+        console.log('  mm-tc start -t release-11.4           # Specific tag');
+        console.log('  mm-tc start -e team                   # Team edition');
+        console.log('  mm-tc start -e fips                   # FIPS edition');
+        console.log('  mm-tc start --ha                      # HA cluster');
+        console.log('  mm-tc start --subpath                 # Subpath mode');
+        console.log('  mm-tc start --entry                   # Entry tier (ignores MM_LICENSE)');
+        console.log('  mm-tc start --admin                   # Create admin user');
+        console.log('  mm-tc start --deps-only               # Dependencies only');
+        console.log('  mm-tc start -S production             # Production env');
+        console.log('  mm-tc start -E KEY=value              # Pass env var');
+        console.log('  mm-tc restart                         # Restart all containers');
+        console.log('  mm-tc upgrade -t release-11.5         # Upgrade to new tag');
+        console.log('  mm-tc stop                            # Stop all containers');
+        console.log('  mm-tc rm                              # Remove session containers');
+        console.log('  mm-tc rm-all                          # Remove ALL testcontainers');
+    });
+}
+
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
+// Load environment variables
+mainExports.config();
+const program = new commanderExports.Command();
+program.name('mm-tc').description('CLI for managing Mattermost test containers').version('0.1.0');
+// Register all commands
+registerStartCommand(program);
+registerStopCommand(program);
+registerRmCommand(program);
+registerRmAllCommand(program);
+registerUpgradeCommand(program);
+registerRestartCommand(program);
+registerInfoCommand(program);
 program.parse();
 //# sourceMappingURL=cli.js.map

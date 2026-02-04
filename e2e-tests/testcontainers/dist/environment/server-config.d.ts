@@ -1,6 +1,6 @@
-import { MmctlClient } from '../mmctl';
 import { DependencyConnectionInfo } from '../config/types';
 import { ResolvedTestcontainersConfig } from '../config/config';
+import { MmctlClient } from './mmctl';
 import { ServerMode } from './types';
 /**
  * Default test settings applied via mmctl.

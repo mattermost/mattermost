@@ -27,6 +27,10 @@ on:
         type: string
         required: false
         default: "postgres inbucket"
+      mm_env:
+        description: "Comma-separated list of environment variables to set for the server (e.g., MM_FEATUREFLAGS_X=true,MM_SERVICESETTINGS_Y=value)"
+        type: string
+        required: false
       # Common build variables
       commit_sha:
         type: string
@@ -38,9 +42,13 @@ on:
         type: string
         required: true
       server_image_tag:
-        description: "Server image tag (e.g., master or short SHA)"
+        description: "Server image tag (e.g., master or short SHA). Ignored if server_image is provided."
         type: string
-        required: true
+        required: false
+      server_image:
+        description: "Full server image (e.g., mattermost/mattermost-enterprise-edition:v10.0.0). If not provided, constructed from server_image_tag."
+        type: string
+        required: false
       server:
         type: string
         required: false
@@ -70,6 +78,9 @@ on:
       failed:
         description: "Number of failed tests"
         value: ${{ jobs.report.outputs.failed }}
+      pass_rate:
+        description: "Pass rate percentage"
+        value: ${{ jobs.report.outputs.pass_rate }}
       status_check_url:
         description: "URL to test results"
         value: ${{ jobs.generate-test-cycle.outputs.status_check_url }}
@@ -85,13 +96,18 @@ on:
         required: false
       REPORT_WEBHOOK_URL:
         required: false
+      ZEPHYR_API_KEY:
+        required: false
+      ZEPHYR_TEST_CYCLE_LINK_PREFIX:
+        required: false
       CWS_URL:
         required: false
       CWS_EXTRA_HTTP_HEADERS:
         required: false
 
 env:
-  SERVER_IMAGE: "mattermostdevelopment/mattermost-enterprise-edition:${{ inputs.server_image_tag }}"
+  # Use server_image if provided, otherwise construct from server_image_tag
+  SERVER_IMAGE: "${{ inputs.server_image || format('mattermostdevelopment/mattermost-enterprise-edition:{0}', inputs.server_image_tag) }}"
 
 jobs:
   update-initial-status:
@@ -202,15 +218,25 @@ jobs:
           TC_SERVER_IMAGE: ${{ env.SERVER_IMAGE }}
           TC_DEPENDENCIES: ${{ inputs.enabled_docker_services }}
           MM_LICENSE: ${{ secrets.MM_LICENSE }}
+          MM_ENV: ${{ inputs.mm_env }}
         run: |
           # Convert space-separated dependencies to comma-separated
           DEPS=$(echo "$TC_DEPENDENCIES" | tr ' ' ',')
 
+          # Build environment variable arguments from MM_ENV (comma-separated KEY=value pairs)
+          ENV_ARGS=""
+          if [ -n "$MM_ENV" ]; then
+            IFS=',' read -ra ENV_VARS <<< "$MM_ENV"
+            for env_var in "${ENV_VARS[@]}"; do
+              ENV_ARGS="$ENV_ARGS -E $env_var"
+            done
+          fi
+
           # Start testcontainers environment (using bundled CLI)
-          node dist/cli.js start --detach --admin -D "$DEPS" -o .tc.out
+          node dist/cli.js start --admin -D "$DEPS" $ENV_ARGS -o .tc.out
 
           # Export server URL from testcontainers JSON output
-          SERVER_URL=$(jq -r '.mattermost.url' .tc.out/latest/.tc.docker.json)
+          SERVER_URL=$(jq -r '.containers.mattermost.url' .tc.out/.tc.docker.json)
           echo "SERVER_URL=$SERVER_URL" >> $GITHUB_OUTPUT
           echo "Server started at: $SERVER_URL"
       - name: ci/run-tests
@@ -329,15 +355,25 @@ jobs:
           TC_SERVER_IMAGE: ${{ env.SERVER_IMAGE }}
           TC_DEPENDENCIES: ${{ inputs.enabled_docker_services }}
           MM_LICENSE: ${{ secrets.MM_LICENSE }}
+          MM_ENV: ${{ inputs.mm_env }}
         run: |
           # Convert space-separated dependencies to comma-separated
           DEPS=$(echo "$TC_DEPENDENCIES" | tr ' ' ',')
 
+          # Build environment variable arguments from MM_ENV (comma-separated KEY=value pairs)
+          ENV_ARGS=""
+          if [ -n "$MM_ENV" ]; then
+            IFS=',' read -ra ENV_VARS <<< "$MM_ENV"
+            for env_var in "${ENV_VARS[@]}"; do
+              ENV_ARGS="$ENV_ARGS -E $env_var"
+            done
+          fi
+
           # Start testcontainers environment (using bundled CLI)
-          node dist/cli.js start --detach --admin -D "$DEPS" -o .tc.out
+          node dist/cli.js start --admin -D "$DEPS" $ENV_ARGS -o .tc.out
 
           # Export server URL from testcontainers JSON output
-          SERVER_URL=$(jq -r '.mattermost.url' .tc.out/latest/.tc.docker.json)
+          SERVER_URL=$(jq -r '.containers.mattermost.url' .tc.out/.tc.docker.json)
           echo "SERVER_URL=$SERVER_URL" >> $GITHUB_OUTPUT
           echo "Server started at: $SERVER_URL"
       - name: ci/run-failed-specs
@@ -387,6 +423,7 @@ jobs:
     outputs:
       passed: "${{ steps.final-results.outputs.passed }}"
       failed: "${{ steps.final-results.outputs.failed }}"
+      pass_rate: "${{ steps.final-results.outputs.pass_rate }}"
       commit_status_message: "${{ steps.final-results.outputs.commit_status_message }}"
     defaults:
       run:
@@ -504,36 +541,22 @@ jobs:
             e2e-tests/cypress/logs/
             e2e-tests/cypress/results/
       - name: ci/publish-report
-        if: inputs.enable_reporting && env.REPORT_WEBHOOK_URL != ''
+        if: inputs.enable_reporting
+        working-directory: e2e-tests
         env:
-          REPORT_WEBHOOK_URL: ${{ secrets.REPORT_WEBHOOK_URL }}
-          PASS_RATE: ${{ steps.final-results.outputs.pass_rate }}
-          PASSED: ${{ steps.final-results.outputs.passed }}
-          TOTAL: ${{ steps.final-results.outputs.total }}
-          TOTAL_SPECS: ${{ steps.final-results.outputs.total_specs }}
-          COLOR: ${{ steps.final-results.outputs.color }}
-          REPORT_URL: ${{ needs.generate-test-cycle.outputs.status_check_url }}
-          TEST_TYPE: ${{ inputs.test_type }}
+          TYPE: ${{ inputs.report_type }}
+          TEST: cypress
+          SERVER: ${{ inputs.server }}
+          SERVER_IMAGE: ${{ env.SERVER_IMAGE }}
+          AUTOMATION_DASHBOARD_URL: ${{ secrets.AUTOMATION_DASHBOARD_URL }}
+          WEBHOOK_URL: ${{ secrets.REPORT_WEBHOOK_URL }}
           PR_NUMBER: ${{ inputs.pr_number }}
-        run: |
-          # Capitalize test type
-          TEST_TYPE_CAP=$(echo "$TEST_TYPE" | sed 's/.*/\u&/')
-
-          # Build payload with attachments
-          PAYLOAD=$(cat <<EOF
-          {
-            "username": "E2E Test",
-            "icon_url": "https://mattermost.com/wp-content/uploads/2022/02/icon_WS.png",
-            "attachments": [{
-              "color": "${COLOR}",
-              "text": "**Results - Cypress ${TEST_TYPE_CAP} Tests**\n\n:open-pull-request: [mattermost-pr-${PR_NUMBER}](https://github.com/${{ github.repository }}/pull/${PR_NUMBER})\n:docker: \`${{ env.SERVER_IMAGE }}\`\n${PASS_RATE}% (${PASSED}/${TOTAL}) in ${TOTAL_SPECS} spec files | [full report](${REPORT_URL})"
-            }]
-          }
-          EOF
-          )
-
-          # Send to webhook
-          curl -X POST -H "Content-Type: application/json" -d "$PAYLOAD" "$REPORT_WEBHOOK_URL"
+          BRANCH: ${{ inputs.branch }}
+          BUILD_ID: ${{ inputs.build_id }}
+          MM_ENV: ${{ inputs.mm_env }}
+          ZEPHYR_API_KEY: ${{ secrets.ZEPHYR_API_KEY }}
+          TEST_CYCLE_LINK_PREFIX: ${{ secrets.ZEPHYR_TEST_CYCLE_LINK_PREFIX }}
+        run: make report
       - name: ci/write-job-summary
         if: always()
         env:
