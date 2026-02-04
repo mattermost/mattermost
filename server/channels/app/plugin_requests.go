@@ -164,6 +164,7 @@ func (ch *Channels) servePluginRequest(w http.ResponseWriter, r *http.Request, h
 		IPAddress:      utils.GetIPAddress(r, ch.cfgSvc.Config().ServiceSettings.TrustedProxyIPHeader),
 		AcceptLanguage: r.Header.Get("Accept-Language"),
 		UserAgent:      r.UserAgent(),
+		ConnectionId:   r.Header.Get(model.ConnectionId),
 	}
 
 	pluginID := mux.Vars(r)["plugin_id"]

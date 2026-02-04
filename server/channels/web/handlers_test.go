@@ -1122,6 +1122,50 @@ func TestHandlerServeHTTPRequestPayloadLimit(t *testing.T) {
 	})
 }
 
+func TestHandlerConnectionIdHeader(t *testing.T) {
+	t.Run("should set connection id from header on request context", func(t *testing.T) {
+		th := SetupWithStoreMock(t)
+
+		connectionId := "test-connection-id-12345"
+		var capturedConnectionId string
+
+		handlerFunc := func(c *Context, w http.ResponseWriter, r *http.Request) {
+			capturedConnectionId = c.AppContext.ConnectionId()
+		}
+
+		web := New(th.Server)
+		handler := web.NewHandler(handlerFunc)
+
+		request := httptest.NewRequest("GET", "/api/v4/test", nil)
+		request.Header.Set(model.ConnectionId, connectionId)
+		response := httptest.NewRecorder()
+		handler.ServeHTTP(response, request)
+
+		assert.Equal(t, http.StatusOK, response.Code)
+		assert.Equal(t, connectionId, capturedConnectionId)
+	})
+
+	t.Run("should have empty connection id when header not present", func(t *testing.T) {
+		th := SetupWithStoreMock(t)
+
+		var capturedConnectionId string
+
+		handlerFunc := func(c *Context, w http.ResponseWriter, r *http.Request) {
+			capturedConnectionId = c.AppContext.ConnectionId()
+		}
+
+		web := New(th.Server)
+		handler := web.NewHandler(handlerFunc)
+
+		request := httptest.NewRequest("GET", "/api/v4/test", nil)
+		response := httptest.NewRecorder()
+		handler.ServeHTTP(response, request)
+
+		assert.Equal(t, http.StatusOK, response.Code)
+		assert.Empty(t, capturedConnectionId)
+	})
+}
+
 func TestHandleContextErrorZeroStatusCode(t *testing.T) {
 	t.Run("should set StatusCode to 500 when AppError has zero StatusCode", func(t *testing.T) {
 		th := SetupWithStoreMock(t)

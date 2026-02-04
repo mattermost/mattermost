@@ -416,6 +416,7 @@ func executeCommand(c *Context, w http.ResponseWriter, r *http.Request) {
 	commandArgs.UserId = c.AppContext.Session().UserId
 	commandArgs.T = c.AppContext.T
 	commandArgs.SiteURL = c.GetSiteURLHeader()
+	commandArgs.ConnectionId = r.Header.Get(model.ConnectionId)
 
 	response, err := c.App.ExecuteCommand(c.AppContext, &commandArgs)
 	if err != nil {

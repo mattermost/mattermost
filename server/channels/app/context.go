@@ -37,6 +37,7 @@ func pluginContext(rctx request.CTX) *plugin.Context {
 		IPAddress:      rctx.IPAddress(),
 		AcceptLanguage: rctx.AcceptLanguage(),
 		UserAgent:      rctx.UserAgent(),
+		ConnectionId:   rctx.ConnectionId(),
 	}
 	return context
 }

@@ -12,4 +12,5 @@ type Context struct {
 	IPAddress      string
 	AcceptLanguage string
 	UserAgent      string
+	ConnectionId   string
 }
