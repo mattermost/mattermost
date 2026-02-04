@@ -1027,6 +1027,16 @@ func (ps *PlatformService) SetStatusOutOfOffice(userID string) {
 		return
 	}
 
+	if ps.Config().FeatureFlags.AccurateStatuses {
+		ps.statusTransitionManager.TransitionStatus(StatusTransitionOptions{
+			UserID:    userID,
+			NewStatus: model.StatusOutOfOffice,
+			Reason:    TransitionReasonManual,
+			Manual:    true,
+		})
+		return
+	}
+
 	status, err := ps.GetStatus(userID)
 
 	if err != nil {
