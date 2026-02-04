@@ -171,7 +171,7 @@ describe('ErrorLogDashboard', () => {
             expect(screen.getByText('Error Logs')).toBeInTheDocument();
         });
 
-        expect(screen.getByText('Export')).toBeInTheDocument();
+        expect(screen.getByText('Export JSON')).toBeInTheDocument();
         expect(screen.getByText('Clear All')).toBeInTheDocument();
     });
 
@@ -309,10 +309,10 @@ describe('ErrorLogDashboard', () => {
         );
 
         await waitFor(() => {
-            expect(screen.getByText('Export')).toBeInTheDocument();
+            expect(screen.getByText('Export JSON')).toBeInTheDocument();
         });
 
-        const exportButton = screen.getByText('Export');
+        const exportButton = screen.getByText('Export JSON');
         await userEvent.click(exportButton);
 
         expect(mockCreateObjectURL).toHaveBeenCalled();
@@ -330,7 +330,7 @@ describe('ErrorLogDashboard', () => {
             />,
         );
 
-        expect(screen.getByText('Loading error logs...')).toBeInTheDocument();
+        expect(screen.getByText('Loading errors...')).toBeInTheDocument();
     });
 
     test('should display empty state when no errors', async () => {
