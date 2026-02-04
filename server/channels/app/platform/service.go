@@ -124,6 +124,8 @@ type PlatformService struct {
 	// Callback for sending status notification push alerts
 	// This is set by the App layer to allow the platform service to send push notifications
 	sendStatusNotificationPushFunc func(recipientUserID, watchedUsername, message string)
+
+	statusTransitionManager *StatusTransitionManager
 }
 
 type HookRunner interface {
@@ -151,6 +153,8 @@ func New(sc ServiceConfig, options ...Option) (*PlatformService, error) {
 		statusUpdateDoneSignal:    make(chan struct{}),
 		errorLogBuffer:            NewErrorLogBuffer(ErrorLogBufferSize),
 	}
+
+	ps.statusTransitionManager = NewStatusTransitionManager(ps)
 
 	// Assume the first user account has not been created yet. A call to the DB will later check if this is really the case.
 	ps.isFirstUserAccount.Store(true)

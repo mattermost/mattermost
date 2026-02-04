@@ -17,6 +17,12 @@ import (
 	"github.com/mattermost/mattermost/server/v8/platform/services/cache"
 )
 
+// StatusTransitionManager returns the centralized status transition manager.
+// This is only used when AccurateStatuses is enabled.
+func (ps *PlatformService) StatusTransitionManager() *StatusTransitionManager {
+	return ps.statusTransitionManager
+}
+
 func (ps *PlatformService) AddStatusCacheSkipClusterSend(status *model.Status) {
 	if err := ps.statusCache.SetWithDefaultExpiry(status.UserId, status); err != nil {
 		ps.logger.Warn("Failed to set cache entry for status", mlog.String("user_id", status.UserId), mlog.Err(err))
