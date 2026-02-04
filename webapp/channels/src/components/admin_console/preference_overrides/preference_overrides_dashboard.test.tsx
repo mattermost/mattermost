@@ -16,20 +16,20 @@ jest.mock('mattermost-redux/client', () => ({
     },
 }));
 
-// Mock preference_definitions
+// Mock preference_definitions with proper message descriptors
 jest.mock('utils/preference_definitions', () => ({
     getPreferenceDefinition: jest.fn().mockReturnValue(null),
     getPreferenceGroup: jest.fn().mockReturnValue('advanced'),
     PREFERENCE_GROUP_INFO: {
-        time_date: {icon: 'clock', label: 'Time & Date'},
-        teammates: {icon: 'users', label: 'Teammates'},
-        messages: {icon: 'message', label: 'Messages'},
-        channel: {icon: 'channel', label: 'Channels'},
-        notifications: {icon: 'bell', label: 'Notifications'},
-        advanced: {icon: 'settings', label: 'Advanced'},
-        sidebar: {icon: 'sidebar', label: 'Sidebar'},
-        theme: {icon: 'palette', label: 'Theme'},
-        language: {icon: 'globe', label: 'Language'},
+        time_date: {icon: 'clock', title: {id: 'test.time_date', defaultMessage: 'Time & Date'}, order: 1},
+        teammates: {icon: 'users', title: {id: 'test.teammates', defaultMessage: 'Teammates'}, order: 2},
+        messages: {icon: 'message', title: {id: 'test.messages', defaultMessage: 'Messages'}, order: 3},
+        channel: {icon: 'channel', title: {id: 'test.channel', defaultMessage: 'Channels'}, order: 4},
+        notifications: {icon: 'bell', title: {id: 'test.notifications', defaultMessage: 'Notifications'}, order: 5},
+        advanced: {icon: 'settings', title: {id: 'test.advanced', defaultMessage: 'Advanced'}, order: 6},
+        sidebar: {icon: 'sidebar', title: {id: 'test.sidebar', defaultMessage: 'Sidebar'}, order: 7},
+        theme: {icon: 'palette', title: {id: 'test.theme', defaultMessage: 'Theme'}, order: 8},
+        language: {icon: 'globe', title: {id: 'test.language', defaultMessage: 'Language'}, order: 9},
     },
     PreferenceGroups: {
         TIME_DATE: 'time_date',
