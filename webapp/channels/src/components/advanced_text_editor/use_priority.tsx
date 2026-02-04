@@ -40,7 +40,6 @@ const usePriority = (
 ) => {
     const {formatMessage} = useIntl();
     const dispatch = useDispatch();
-    const rootId = draft.rootId;
     const channelId = draft.channelId;
 
     const isPostPriorityEnabled = useSelector(isPostPriorityEnabledSelector);
@@ -163,7 +162,7 @@ const usePriority = (
     }, [isPostPriorityEnabled, showPersistNotificationModal, draft, channelType, specialMentions]);
 
     const labels = useMemo(() => (
-        (hasPrioritySet && !rootId) ? (
+        hasPrioritySet ? (
             <PriorityLabels
                 canRemove={showIndividualCloseButton && !shouldShowPreview}
                 hasError={!isValidPersistentNotifications}
@@ -174,10 +173,10 @@ const usePriority = (
                 requestedAck={draft!.metadata!.priority?.requested_ack}
             />
         ) : undefined
-    ), [hasPrioritySet, rootId, showIndividualCloseButton, shouldShowPreview, isValidPersistentNotifications, specialMentions, handleRemovePriority, draft]);
+    ), [hasPrioritySet, showIndividualCloseButton, shouldShowPreview, isValidPersistentNotifications, specialMentions, handleRemovePriority, draft]);
 
     const additionalControl = useMemo(() =>
-        !rootId && isPostPriorityEnabled && (
+        isPostPriorityEnabled && (
             <PostPriorityPicker
                 key='post-priority-picker-key'
                 settings={draft.metadata?.priority}
@@ -185,10 +184,10 @@ const usePriority = (
                 onClose={handlePostPriorityHide}
                 disabled={shouldShowPreview}
             />
-        ), [rootId, isPostPriorityEnabled, draft.metadata?.priority, handlePostPriorityApply, handlePostPriorityHide, shouldShowPreview]);
+        ), [isPostPriorityEnabled, draft.metadata?.priority, handlePostPriorityApply, handlePostPriorityHide, shouldShowPreview]);
 
     const encryptionControl = useMemo(() =>
-        !rootId && isEncryptionEnabled && (
+        isEncryptionEnabled && (
             <WithTooltip
                 key='encryption-toggle'
                 title={formatMessage({id: 'post_priority.encryption.toggle', defaultMessage: 'Toggle encryption'})}
@@ -205,7 +204,7 @@ const usePriority = (
                     />
                 </IconContainer>
             </WithTooltip>
-        ), [rootId, isEncryptionEnabled, formatMessage, draft.metadata?.priority?.priority, handleEncryptionToggle, shouldShowPreview]);
+        ), [isEncryptionEnabled, formatMessage, draft.metadata?.priority?.priority, handleEncryptionToggle, shouldShowPreview]);
 
     const isEncrypted = draft.metadata?.priority?.priority === PostPriority.ENCRYPTED;
 
