@@ -66,7 +66,7 @@ func NewMapFromChannelMemberModel(cm *model.ChannelMember) map[string]any {
 		"SchemeGuest":             sql.NullBool{Valid: true, Bool: cm.SchemeGuest},
 		"SchemeUser":              sql.NullBool{Valid: true, Bool: cm.SchemeUser},
 		"SchemeAdmin":             sql.NullBool{Valid: true, Bool: cm.SchemeAdmin},
-		"Autotranslationdisabled": cm.AutoTranslationDisabled,
+		"AutoTranslationDisabled": cm.AutoTranslationDisabled,
 	}
 }
 
