@@ -584,6 +584,18 @@ func (ps *PlatformService) SetStatusOnline(userID string, manual bool, device st
 		return
 	}
 
+	// When AccurateStatuses is enabled, use the centralized transition manager
+	if ps.Config().FeatureFlags.AccurateStatuses {
+		ps.statusTransitionManager.TransitionStatus(StatusTransitionOptions{
+			UserID:    userID,
+			NewStatus: model.StatusOnline,
+			Reason:    TransitionReasonConnect,
+			Manual:    manual,
+			Device:    device,
+		})
+		return
+	}
+
 	broadcast := false
 
 	var oldStatus string = model.StatusOffline
