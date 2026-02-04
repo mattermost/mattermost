@@ -21,16 +21,16 @@ This document outlines the complete test coverage plan for all Mattermost Extend
 | NoOffline | ✅ Exists | ❌ Missing | ❌ Missing | Partial |
 | DND Extended | ✅ Exists | ❌ Missing | ❌ Missing | Partial |
 | Status Log Dashboard | ✅ Exists | ✅ Exists | ❌ Missing | Good |
-| Custom Channel Icons | ✅ Exists | ❌ Missing | ❌ Missing | Partial |
-| Encryption (E2EE) | ✅ Exists | ❌ Missing | ❌ Missing | Partial |
+| Custom Channel Icons | ✅ Exists | ✅ Exists | ❌ Missing | Good |
+| Encryption (E2EE) | ✅ Exists | ✅ Exists | ❌ Missing | Good |
 | ThreadsInSidebar | ❌ Missing | ❌ Missing | ❌ Missing | None |
 | CustomThreadNames | ❌ Missing | ❌ Missing | ❌ Missing | None |
 | ImageMulti | ❌ Missing | ❌ Missing | ❌ Missing | None |
 | ImageSmaller | ❌ Missing | ❌ Missing | ❌ Missing | None |
 | ImageCaptions | ❌ Missing | ❌ Missing | ❌ Missing | None |
-| VideoEmbed | ❌ Missing | ❌ Missing | ❌ Missing | None |
-| VideoLinkEmbed | ❌ Missing | ❌ Missing | ❌ Missing | None |
-| EmbedYoutube | ❌ Missing | ❌ Missing | ❌ Missing | None |
+| VideoEmbed | ❌ Missing | ✅ Exists | ❌ Missing | Partial |
+| VideoLinkEmbed | ❌ Missing | ✅ Exists | ❌ Missing | Partial |
+| EmbedYoutube | ❌ Missing | ✅ Exists | ❌ Missing | Partial |
 | ErrorLogDashboard | ✅ Exists | ✅ Exists | ❌ Missing | Good |
 | SystemConsoleDarkMode | N/A | ❌ Missing | ❌ Missing | None |
 | SystemConsoleHideEnterprise | N/A | ❌ Missing | ❌ Missing | None |
@@ -280,331 +280,204 @@ Tests the React component for the Preference Overrides Dashboard:
 - ✅ Displays preference values in dropdown
 - ✅ Groups preferences by category or SettingsResorted groups
 
----
+### 16. Encryption Keypair Tests
+**File:** `webapp/channels/src/utils/encryption/keypair.test.ts`
 
-## New Tests Required
+Tests RSA key pair generation and operations:
+- ✅ `generateKeyPair` creates valid 4096-bit RSA key pair
+- ✅ `exportPublicKey` returns JWK format string
+- ✅ `exportPrivateKey` returns JWK format string with private components
+- ✅ `importPublicKey` loads JWK correctly
+- ✅ `importPublicKey` throws error for invalid JWK
+- ✅ `importPrivateKey` loads JWK correctly
+- ✅ `rsaEncrypt/rsaDecrypt` round-trip works
+- ✅ Encrypted data differs from plaintext
+- ✅ Fails to decrypt with wrong key
+- ✅ Handles empty data
+- ✅ Handles binary data
+- ✅ Key export/import round-trip works
 
-### Server-Side Tests (Go)
+### 17. Encryption Hybrid Tests
+**File:** `webapp/channels/src/utils/encryption/hybrid.test.ts`
 
-#### A. Custom Channel Icons (`server/channels/api4/custom_channel_icon_test.go`)
+Tests hybrid RSA-OAEP + AES-GCM encryption:
+- ✅ `arrayBufferToBase64` converts ArrayBuffer to Base64 string
+- ✅ `base64ToArrayBuffer` converts Base64 string to ArrayBuffer
+- ✅ `isEncryptedMessage` detects PENC format
+- ✅ `parseEncryptedMessage` extracts payload from PENC format
+- ✅ `parseEncryptedMessage` returns null for invalid messages
+- ✅ `formatEncryptedMessage` creates correct PENC format
+- ✅ `encryptMessage` produces PENC format payload
+- ✅ `encryptMessage` encrypts for multiple recipients
+- ✅ `encryptMessage` produces different ciphertext for same message
+- ✅ `encryptMessage` skips sessions with invalid public keys
+- ✅ `decryptMessage` recovers original text
+- ✅ Each recipient can decrypt with their key
+- ✅ Throws error when session key not found
+- ✅ Fails with wrong private key
+- ✅ Handles unicode characters
+- ✅ Handles long messages
 
-```go
-// API Tests
-func TestGetCustomChannelIcons(t *testing.T)
-    - Returns empty list when no icons
-    - Returns all icons when icons exist
-    - Returns 403 when feature flag disabled
-    - Pagination works correctly
+### 18. Encryption Storage Tests
+**File:** `webapp/channels/src/utils/encryption/storage.test.ts`
 
-func TestGetCustomChannelIcon(t *testing.T)
-    - Returns icon by ID
-    - Returns 404 for non-existent icon
-    - Returns 404 for deleted icon
+Tests encryption key storage and session management:
+- ✅ `storeSessionId/getSessionId` stores and retrieves session ID
+- ✅ `storeKeyPair` saves to localStorage with session namespace
+- ✅ `storeKeyPair` stores metadata with timestamp
+- ✅ `getPublicKeyJwk` retrieves public key for session
+- ✅ `getPrivateKey` retrieves private key as CryptoKey
+- ✅ `getPublicKey` retrieves public key as CryptoKey
+- ✅ `hasEncryptionKeys` returns correct state
+- ✅ `clearEncryptionKeys` removes keys for specific session
+- ✅ `clearAllEncryptionKeys` removes ALL encryption keys
+- ✅ `migrateFromV1` migrates v1 keys to v2 format
+- ✅ `cleanupStaleKeys` removes keys older than maxAge
+- ✅ `cleanupStaleKeys` does NOT remove current session keys
+- ✅ `getAllStoredSessionIds` returns all stored session IDs
 
-func TestCreateCustomChannelIcon(t *testing.T)
-    - Creates icon successfully (admin)
-    - Returns 403 for non-admin
-    - Validates name (required, max 64 chars)
-    - Validates SVG (required, max 50KB)
-    - Returns 403 when feature flag disabled
+### 19. Encryption File Tests
+**File:** `webapp/channels/src/utils/encryption/file.test.ts`
 
-func TestUpdateCustomChannelIcon(t *testing.T)
-    - Updates name successfully
-    - Updates SVG successfully
-    - Updates normalizeColor successfully
-    - Returns 403 for non-admin
-    - Returns 404 for non-existent icon
+Tests file encryption and decryption:
+- ✅ `encryptFile` produces encrypted blob with correct MIME type
+- ✅ `encryptFile` produces valid metadata
+- ✅ `encryptFile` encrypts for multiple recipients
+- ✅ Encrypted blob is different from original
+- ✅ `decryptFile` recovers original file content
+- ✅ `decryptFile` extracts original file info
+- ✅ `decryptFile` restores correct MIME type
+- ✅ Each recipient can decrypt
+- ✅ Throws error when session key not found
+- ✅ Handles binary files
+- ✅ Handles files with unicode names
+- ✅ `isEncryptedFile` detects encrypted file by MIME type
+- ✅ `getEncryptedFileMetadata` returns metadata for file
+- ✅ `createEncryptedFilesProps` creates correct props structure
+- ✅ `createFileFromDecryptedBlob` creates File with original name
 
-func TestDeleteCustomChannelIcon(t *testing.T)
-    - Soft-deletes icon successfully
-    - Returns 403 for non-admin
-    - Returns 404 for non-existent icon
-    - Returns 404 for already deleted icon
-```
+### 20. Encryption Session Tests
+**File:** `webapp/channels/src/utils/encryption/session.test.ts`
 
-```go
-// Store Tests (server/channels/store/sqlstore/custom_channel_icon_store_test.go)
-func TestCustomChannelIconStoreSave(t *testing.T)
-    - Saves valid icon
-    - Generates ID if empty
-    - Sets timestamps
-    - Validates required fields
+Tests encryption session management:
+- ✅ `getSessionId` returns null when no session
+- ✅ `isEncryptionInitialized` returns correct state
+- ✅ `checkEncryptionStatus` calls API and returns status
+- ✅ `ensureEncryptionKeys` generates keys when none exist
+- ✅ `ensureEncryptionKeys` re-registers existing keys when server missing
+- ✅ `ensureEncryptionKeys` skips registration when server has keys
+- ✅ `ensureEncryptionKeys` throws when session ID not available
+- ✅ `getCurrentPublicKey` returns public key JWK
+- ✅ `getCurrentPrivateKey` returns private CryptoKey
+- ✅ `ensureSessionIdRestored` returns cached session ID when available
+- ✅ `ensureSessionIdRestored` restores from server when cache missing
+- ✅ `clearEncryptionSession` clears keys and decryption cache
+- ✅ `clearAllEncryptionData` clears all keys and cache
+- ✅ `getChannelRecipientKeys` returns session keys for channel members
+- ✅ `getChannelEncryptionInfo` returns unique recipients excluding current user
 
-func TestCustomChannelIconStoreGet(t *testing.T)
-    - Returns icon by ID
-    - Returns nil for non-existent
-    - Returns nil for deleted icon
+### 21. Custom SVG Management Tests
+**File:** `webapp/channels/src/components/channel_settings_modal/icon_libraries/custom_svgs.test.ts`
 
-func TestCustomChannelIconStoreGetByName(t *testing.T)
-    - Returns icon by name
-    - Case-sensitive name lookup
-    - Returns nil for deleted icon
+Tests custom SVG CRUD and validation:
+- ✅ `generateCustomSvgId` generates unique IDs
+- ✅ `getCustomSvgs/saveCustomSvgs` stores and retrieves SVGs
+- ✅ `addCustomSvg` adds new SVG with generated ID and timestamp
+- ✅ `updateCustomSvg` updates existing SVG
+- ✅ `deleteCustomSvg` deletes SVG
+- ✅ `getCustomSvgById` finds SVG by ID
+- ✅ `getCustomSvgByName` finds SVG by name (case-insensitive)
+- ✅ `validateSvg` accepts valid SVG
+- ✅ `validateSvg` rejects content without SVG tag
+- ✅ `validateSvg` rejects SVG with script tags
+- ✅ `validateSvg` rejects SVG with event handlers
+- ✅ `sanitizeSvg` removes dangerous elements
+- ✅ `normalizeSvgColors` converts to currentColor
+- ✅ `extractSvgViewBox` extracts viewBox dimensions
+- ✅ `extractSvgInnerContent` extracts content inside SVG tags
+- ✅ `normalizeSvgViewBox` normalizes to 24x24 viewBox
+- ✅ `encodeSvgToBase64/decodeSvgFromBase64` round-trip works
+- ✅ `formatCustomSvgValue/parseCustomSvgValue` formats and parses values
+- ✅ Server API functions (`getCustomSvgsFromServer`, `addCustomSvgToServer`, etc.)
 
-func TestCustomChannelIconStoreGetAll(t *testing.T)
-    - Returns all non-deleted icons
-    - Sorted by name
+### 22. Icon Types Tests
+**File:** `webapp/channels/src/components/channel_settings_modal/icon_libraries/types.test.ts`
 
-func TestCustomChannelIconStoreDelete(t *testing.T)
-    - Sets deleteat timestamp
-    - Does not physically delete
+Tests icon value parsing and search:
+- ✅ `parseIconValue` parses MDI icon format
+- ✅ `parseIconValue` parses Lucide, Tabler, Feather, Simple, FontAwesome formats
+- ✅ `parseIconValue` parses custom SVG and inline SVG formats
+- ✅ `parseIconValue` handles empty and invalid values
+- ✅ `formatIconValue` formats all icon types correctly
+- ✅ Round-trip with parseIconValue/formatIconValue works
+- ✅ `matchesSearch` matches by name, tags, and aliases
+- ✅ `matchesSearch` supports case-sensitive and case-insensitive modes
+- ✅ `matchesSearch` supports contains, startsWith, and exact match modes
+- ✅ `matchesSearch` respects field restrictions
 
-func TestCustomChannelIconStoreSearch(t *testing.T)
-    - Searches by name prefix
-    - Respects limit parameter
-    - Excludes deleted icons
-```
+### 23. Video Link Embed Tests
+**File:** `webapp/channels/src/components/video_link_embed/video_link_embed.test.tsx`
 
-#### B. Encryption (`server/channels/api4/encryption_test.go`)
+Tests video URL detection and embedding:
+- ✅ `isVideoUrl` detects .mp4, .webm, .mov, .avi, .mkv, .m4v, .ogv URLs
+- ✅ `isVideoUrl` handles URLs with query strings
+- ✅ `isVideoUrl` returns false for non-video URLs
+- ✅ `isVideoLinkText` detects "Video" link text
+- ✅ `isVideoLinkText` handles emoji prefixes
+- ✅ Renders video element with controls
+- ✅ Sets video source from href
+- ✅ Respects maxHeight prop
+- ✅ Shows error state on video load failure
+- ✅ Download button opens URL in new tab
+- ✅ Extracts filename from URL for fallback link
 
-```go
-// API Tests
-func TestGetEncryptionStatus(t *testing.T)
-    - Returns status when enabled
-    - Returns 403 when feature flag disabled
-    - Shows key registered status
+### 24. Video Player Tests
+**File:** `webapp/channels/src/components/video_player/video_player.test.tsx`
 
-func TestRegisterPublicKey(t *testing.T)
-    - Registers new public key
-    - Updates existing key for session
-    - Validates JWK format
-    - Returns 403 when feature flag disabled
+Tests video player component:
+- ✅ Renders video element with controls
+- ✅ Sets video source from fileInfo
+- ✅ Displays filename caption
+- ✅ Respects maxHeight/maxWidth props
+- ✅ Calculates aspect ratio from file dimensions
+- ✅ Opens preview modal on double-click
+- ✅ Shows error state on video load failure
+- ✅ Download button opens download URL
+- ✅ Returns null when no fileInfo provided
+- ✅ Handles missing mime_type and name with defaults
+- ✅ Applies compact display class when enabled
 
-func TestGetPublicKeysByUserIds(t *testing.T)
-    - Returns keys for valid users
-    - Returns empty for users without keys
-    - Handles multiple users
+### 25. YouTube Discord Embed Tests
+**File:** `webapp/channels/src/components/youtube_video/youtube_video_discord.test.tsx`
 
-func TestGetChannelMemberKeys(t *testing.T)
-    - Returns keys for channel members
-    - Excludes users without keys
-    - Returns 403 for non-channel members
-
-func TestAdminGetAllKeys(t *testing.T)
-    - Returns all keys (admin only)
-    - Returns 403 for non-admin
-    - Includes session and user info
-
-func TestAdminDeleteKey(t *testing.T)
-    - Deletes key by session ID (admin)
-    - Returns 403 for non-admin
-    - Returns 404 for non-existent
-
-func TestAdminCleanupOrphanedKeys(t *testing.T)
-    - Removes keys for expired sessions
-    - Returns count of deleted keys
-```
-
-```go
-// Store Tests (server/channels/store/sqlstore/encryption_session_key_store_test.go)
-func TestEncryptionSessionKeyStoreSave(t *testing.T)
-    - Saves new key
-    - Updates existing key (upsert)
-    - Sets timestamps
-
-func TestEncryptionSessionKeyStoreGetBySession(t *testing.T)
-    - Returns key for session
-    - Returns nil for non-existent
-
-func TestEncryptionSessionKeyStoreGetByUser(t *testing.T)
-    - Returns all keys for user
-    - Returns empty for user without keys
-
-func TestEncryptionSessionKeyStoreDeleteExpired(t *testing.T)
-    - Deletes keys for expired sessions
-    - Keeps keys for active sessions
-
-func TestEncryptionSessionKeyStoreDeleteOrphaned(t *testing.T)
-    - Deletes keys without valid sessions
-```
-
-#### C. Status Logs (`server/channels/api4/status_log_test.go`)
-
-```go
-// API Tests
-func TestGetStatusLogs(t *testing.T)
-    - Returns logs with pagination
-    - Filters by user_id
-    - Filters by username
-    - Filters by log_type
-    - Filters by status
-    - Filters by time range (since/until)
-    - Searches by text
-    - Returns 403 for non-admin
-    - Returns 403 when feature disabled
-
-func TestDeleteStatusLogs(t *testing.T)
-    - Clears all logs (admin)
-    - Returns 403 for non-admin
-
-func TestExportStatusLogs(t *testing.T)
-    - Returns JSON file
-    - Applies same filters as GET
-    - Returns 403 for non-admin
-
-// Notification Rules Tests
-func TestStatusNotificationRulesAPI(t *testing.T)
-    - CRUD operations for notification rules
-    - Validates rule structure
-    - Returns 403 for non-admin
-```
-
-```go
-// Store Tests (server/channels/store/sqlstore/status_log_store_test.go)
-func TestStatusLogStoreSave(t *testing.T)
-    - Saves status log entry
-    - Generates ID
-    - Sets timestamp
-
-func TestStatusLogStoreGet(t *testing.T)
-    - Returns logs with pagination
-    - Applies all filters correctly
-    - Orders by timestamp descending
-
-func TestStatusLogStoreGetStats(t *testing.T)
-    - Returns counts by status type
-    - Applies time filters
-
-func TestStatusLogStoreDeleteOlderThan(t *testing.T)
-    - Deletes logs older than timestamp
-    - Returns count of deleted
-```
-
-```go
-// Platform Tests (server/channels/app/platform/status_logs_test.go)
-func TestLogStatusChange(t *testing.T)
-    - Logs status changes when enabled
-    - Does not log when disabled
-    - Includes all required fields
-    - Broadcasts WebSocket event to admins
-
-func TestLogActivityUpdate(t *testing.T)
-    - Logs activity without status change
-    - Includes trigger information
-
-func TestCleanupOldStatusLogs(t *testing.T)
-    - Deletes logs based on retention setting
-    - Does not delete when retention is 0
-
-func TestCheckDNDTimeouts(t *testing.T)
-    - Sets inactive DND users to Offline
-    - Preserves DND as PrevStatus
-    - Does not affect active DND users
-```
-
-#### D. Error Log Dashboard (`server/channels/api4/error_log_test.go`)
-
-```go
-func TestReportError(t *testing.T)
-    - Accepts error report from authenticated user
-    - Validates error structure
-    - Returns 403 when feature disabled
-
-func TestGetErrors(t *testing.T)
-    - Returns all errors (admin)
-    - Supports filtering
-    - Returns 403 for non-admin
-
-func TestClearErrors(t *testing.T)
-    - Clears all errors (admin)
-    - Returns 403 for non-admin
-```
-
-#### E. Preference Overrides (`server/channels/api4/preference_override_test.go`)
-
-```go
-func TestGetPreferenceWithOverride(t *testing.T)
-    - Returns overridden value when set
-    - Returns user value when no override
-    - Respects PreferencesRevamp feature flag
-
-func TestPreferenceOverrideApplied(t *testing.T)
-    - User cannot change overridden preference
-    - Override persists across sessions
-    - Override applies to all users
-```
+Tests Discord-style YouTube embed:
+- ✅ Renders Discord-style card
+- ✅ Shows YouTube source label
+- ✅ Displays video title from metadata
+- ✅ Displays default title when no metadata
+- ✅ Loads maxresdefault thumbnail initially
+- ✅ Falls back to hqdefault on image error
+- ✅ Shows thumbnail initially (not playing)
+- ✅ Click shows embedded player
+- ✅ Enter/Space key triggers play
+- ✅ Iframe has correct src with autoplay
+- ✅ Handles youtu.be short URLs
+- ✅ Includes timestamp in embed URL
+- ✅ Title link goes to YouTube
+- ✅ Thumbnail is keyboard accessible
+- ✅ Shows play button overlay on thumbnail
+- ✅ Applies referrer policy when enabled
+- ✅ Iframe has security sandbox attribute
 
 ---
 
-### Client-Side Tests (TypeScript/React)
+## Remaining Tests
 
-#### A. Encryption Tests (`webapp/channels/src/utils/encryption/*.test.ts`)
+### Webapp Tests (TypeScript/React) - Remaining
 
-```typescript
-// keypair.test.ts
-describe('RSA Key Pair', () => {
-    test('generateKeyPair creates valid 4096-bit RSA key pair')
-    test('exportPublicKey returns JWK format')
-    test('exportPrivateKey returns JWK format')
-    test('importPublicKey loads JWK correctly')
-    test('importPrivateKey loads JWK correctly')
-    test('rsaEncrypt/rsaDecrypt round-trip works')
-})
-
-// hybrid.test.ts
-describe('Hybrid Encryption', () => {
-    test('encryptMessage produces PENC format')
-    test('decryptMessage recovers original text')
-    test('isEncryptedMessage detects PENC format')
-    test('parseEncryptedMessage extracts payload')
-    test('formatEncryptedMessage creates correct format')
-    test('encrypts for multiple recipients')
-    test('each recipient can decrypt with their key')
-})
-
-// storage.test.ts
-describe('Key Storage', () => {
-    test('storeKeyPair saves to localStorage')
-    test('getPublicKeyJwk retrieves public key')
-    test('getPrivateKey retrieves private key')
-    test('clearEncryptionKeys removes all keys')
-    test('hasEncryptionKeys returns correct state')
-    test('v1 to v2 migration works')
-})
-
-// file.test.ts
-describe('File Encryption', () => {
-    test('encryptFile produces valid encrypted blob')
-    test('decryptFile recovers original file')
-    test('isEncryptedFile detects encrypted files')
-    test('metadata preserved through encryption')
-    test('thumbnail generation works')
-})
-
-// session.test.ts
-describe('Session Management', () => {
-    test('ensureEncryptionKeys generates keys if missing')
-    test('checkEncryptionStatus returns correct state')
-    test('getChannelRecipientKeys returns member keys')
-    test('clearEncryptionSession removes all data')
-})
-```
-
-#### B. Custom Channel Icons Tests
+#### A. Sidebar Base Channel Icon Tests (Not Implemented)
 
 ```typescript
-// icon_libraries/custom_svgs.test.ts
-describe('Custom SVG Management', () => {
-    test('validateSvg accepts valid SVG')
-    test('validateSvg rejects invalid SVG')
-    test('validateSvg rejects oversized SVG')
-    test('sanitizeSvg removes dangerous elements')
-    test('normalizeSvgColors converts to currentColor')
-    test('normalizeSvgViewBox fixes viewBox')
-    test('encodeSvgToBase64 encodes correctly')
-    test('decodeSvgFromBase64 decodes correctly')
-    test('getCustomSvgsFromServer fetches all')
-    test('addCustomSvgToServer creates new')
-    test('updateCustomSvgOnServer patches existing')
-    test('deleteCustomSvgFromServer soft-deletes')
-})
-
-// icon_libraries/types.test.ts
-describe('Icon Value Parsing', () => {
-    test('parseIconValue extracts library and name')
-    test('parseIconValue handles invalid format')
-    test('formatIconValue creates correct format')
-})
-
 // sidebar_base_channel_icon.test.tsx
 describe('SidebarBaseChannelIcon', () => {
     test('renders MDI icon correctly')
@@ -615,7 +488,7 @@ describe('SidebarBaseChannelIcon', () => {
 })
 ```
 
-#### C. Media Feature Tests
+#### B. Multi Image View Tests (Not Implemented)
 
 ```typescript
 // multi_image_view.test.tsx
@@ -624,31 +497,6 @@ describe('MultiImageView', () => {
     test('applies maxHeight/maxWidth when ImageSmaller enabled')
     test('handles click to expand')
     test('shows loading state')
-})
-
-// video_player.test.tsx
-describe('VideoPlayer', () => {
-    test('renders video element with controls')
-    test('respects maxHeight/maxWidth')
-    test('shows error state on load failure')
-    test('double-click opens preview modal')
-})
-
-// video_link_embed.test.tsx
-describe('VideoLinkEmbed', () => {
-    test('isVideoUrl detects video URLs')
-    test('isVideoLinkText detects video link text')
-    test('renders video from URL')
-    test('shows error on invalid URL')
-})
-
-// youtube_video_discord.test.tsx
-describe('YoutubeVideoDiscord', () => {
-    test('renders Discord-style card')
-    test('shows red accent bar')
-    test('loads thumbnail')
-    test('click shows embedded player')
-    test('always visible (no toggle)')
 })
 
 // markdown_image.test.tsx (caption tests)
@@ -660,41 +508,7 @@ describe('MarkdownImage Captions', () => {
 })
 ```
 
-#### D. Status Log Dashboard Tests
-
-```typescript
-// status_log_dashboard.test.tsx
-describe('StatusLogDashboard', () => {
-    test('renders log entries')
-    test('shows statistics correctly')
-    test('filters by user')
-    test('filters by log type')
-    test('filters by status')
-    test('filters by time range')
-    test('searches by text')
-    test('paginates correctly')
-    test('clears logs on button click')
-    test('exports logs as JSON')
-    test('receives real-time WebSocket updates')
-    test('shows user profile pictures')
-})
-```
-
-#### E. Preference Overrides Dashboard Tests
-
-```typescript
-// preference_overrides_dashboard.test.tsx
-describe('PreferenceOverridesDashboard', () => {
-    test('renders all preference categories')
-    test('shows current override values')
-    test('allows setting override')
-    test('allows clearing override')
-    test('saves changes correctly')
-    test('respects PreferencesRevamp flag')
-})
-```
-
-#### F. UI Tweak Tests
+#### C. UI Tweak Tests (Not Implemented)
 
 ```typescript
 // websocket_actions.test.ts (HideDeletedMessagePlaceholder)
@@ -718,7 +532,7 @@ describe('HideUpdateStatusButton', () => {
 })
 ```
 
-#### G. System Console Feature Tests
+#### D. System Console Feature Tests (Not Implemented)
 
 ```typescript
 // admin_console.test.tsx (SystemConsoleDarkMode)
@@ -737,7 +551,7 @@ describe('Admin Sidebar Features', () => {
 
 ---
 
-### E2E Tests (Cypress)
+### E2E Tests (Cypress) - Not Implemented
 
 #### A. Custom Channel Icons E2E
 
@@ -906,13 +720,13 @@ describe('ErrorLogDashboard', () => {
 ### Webapp Tests (TypeScript)
 | Feature | File Path |
 |---------|-----------|
-| Encryption Utils | `webapp/channels/src/utils/encryption/*.test.ts` ❌ |
-| Custom SVGs | `webapp/channels/src/components/channel_settings_modal/icon_libraries/*.test.ts` ❌ |
+| Encryption Utils | `webapp/channels/src/utils/encryption/*.test.ts` ✅ |
+| Custom SVGs | `webapp/channels/src/components/channel_settings_modal/icon_libraries/*.test.ts` ✅ |
 | Sidebar Icon | `webapp/channels/src/components/sidebar/sidebar_channel/sidebar_base_channel/*.test.tsx` ❌ |
 | Multi Image View | `webapp/channels/src/components/multi_image_view/*.test.tsx` ❌ |
-| Video Player | `webapp/channels/src/components/video_player/*.test.tsx` ❌ |
-| Video Link Embed | `webapp/channels/src/components/video_link_embed/*.test.tsx` ❌ |
-| YouTube Discord | `webapp/channels/src/components/youtube_video/*.test.tsx` ❌ |
+| Video Player | `webapp/channels/src/components/video_player/*.test.tsx` ✅ |
+| Video Link Embed | `webapp/channels/src/components/video_link_embed/*.test.tsx` ✅ |
+| YouTube Discord | `webapp/channels/src/components/youtube_video/*.test.tsx` ✅ |
 | Status Log Dashboard | `webapp/channels/src/components/admin_console/status_log_dashboard/status_log_dashboard.test.tsx` ✅ |
 | Preference Overrides | `webapp/channels/src/components/admin_console/preference_overrides/preference_overrides_dashboard.test.tsx` ✅ |
 | Error Log Dashboard | `webapp/channels/src/components/admin_console/error_log_dashboard/error_log_dashboard.test.tsx` ✅ |
@@ -939,10 +753,10 @@ describe('ErrorLogDashboard', () => {
 4. ✅ Error Log API tests
 5. ✅ Preference Override API tests
 
-### Phase 2: Core Webapp Tests (High Priority)
-1. ❌ Encryption utility tests (most complex)
-2. ❌ Custom SVG management tests
-3. ❌ Video player/embed tests
+### Phase 2: Core Webapp Tests (High Priority) ✅ COMPLETE
+1. ✅ Encryption utility tests (keypair, hybrid, storage, file, session)
+2. ✅ Custom SVG management tests (custom_svgs, types)
+3. ✅ Video player/embed tests (video_player, video_link_embed, youtube_video_discord)
 4. ✅ Status Log Dashboard tests
 5. ✅ Error Log Dashboard tests
 6. ✅ Preference Overrides Dashboard tests
