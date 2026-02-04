@@ -22,6 +22,8 @@ func (api *API) InitEncryption() {
 	// Admin endpoints
 	api.BaseRoutes.Encryption.Handle("/admin/keys", api.APISessionRequired(adminGetAllKeys)).Methods(http.MethodGet)
 	api.BaseRoutes.Encryption.Handle("/admin/keys", api.APISessionRequired(adminDeleteAllKeys)).Methods(http.MethodDelete)
+	api.BaseRoutes.Encryption.Handle("/admin/keys/orphaned", api.APISessionRequired(adminDeleteOrphanedKeys)).Methods(http.MethodDelete)
+	api.BaseRoutes.Encryption.Handle("/admin/keys/session/{session_id:[A-Za-z0-9]+}", api.APISessionRequired(adminDeleteSessionKey)).Methods(http.MethodDelete)
 	api.BaseRoutes.Encryption.Handle("/admin/keys/{user_id:[A-Za-z0-9]+}", api.APISessionRequired(adminDeleteUserKeys)).Methods(http.MethodDelete)
 }
 
@@ -295,5 +297,47 @@ func adminDeleteUserKeys(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	ReturnStatusOK(w)
+}
+
+// adminDeleteOrphanedKeys removes encryption keys for sessions that no longer exist or are expired (admin only)
+func adminDeleteOrphanedKeys(c *Context, w http.ResponseWriter, r *http.Request) {
+	// Check admin permission
+	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageSystem) {
+		c.SetPermissionError(model.PermissionManageSystem)
+		return
+	}
+
+	deleted, err := c.App.Srv().Store().EncryptionSessionKey().DeleteOrphaned()
+	if err != nil {
+		c.Err = model.NewAppError("adminDeleteOrphanedKeys", "api.encryption.admin_delete_orphaned_keys.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		return
+	}
+
+	c.Logger.Info("Deleted orphaned encryption keys", mlog.Int("count", int(deleted)))
+	ReturnStatusOK(w)
+}
+
+// adminDeleteSessionKey removes a specific encryption session key (admin only)
+func adminDeleteSessionKey(c *Context, w http.ResponseWriter, r *http.Request) {
+	c.RequireSessionId()
+	if c.Err != nil {
+		return
+	}
+
+	// Check admin permission
+	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageSystem) {
+		c.SetPermissionError(model.PermissionManageSystem)
+		return
+	}
+
+	sessionId := c.Params.SessionId
+
+	if err := c.App.Srv().Store().EncryptionSessionKey().DeleteBySession(sessionId); err != nil {
+		c.Err = model.NewAppError("adminDeleteSessionKey", "api.encryption.admin_delete_session_key.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		return
+	}
+
+	c.Logger.Info("Deleted encryption session key", mlog.String("session_id", sessionId))
 	ReturnStatusOK(w)
 }

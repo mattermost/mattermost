@@ -100,11 +100,18 @@ func (r *EncryptionPublicKeysRequest) IsValid() *AppError {
 
 // EncryptionSessionKeyWithUser extends EncryptionSessionKey with user info for admin display.
 type EncryptionSessionKeyWithUser struct {
-	SessionId string `json:"session_id" db:"sessionid"`
-	UserId    string `json:"user_id" db:"userid"`
-	Username  string `json:"username" db:"username"`
-	PublicKey string `json:"public_key" db:"publickey"`
-	CreateAt  int64  `json:"create_at" db:"createat"`
+	SessionId        string `json:"session_id" db:"sessionid"`
+	UserId           string `json:"user_id" db:"userid"`
+	Username         string `json:"username" db:"username"`
+	PublicKey        string `json:"public_key" db:"publickey"`
+	CreateAt         int64  `json:"create_at" db:"createat"`
+	LastActivityAt   int64  `json:"last_activity_at" db:"lastactivityat"`     // From sessions table
+	SessionExpiresAt int64  `json:"session_expires_at" db:"sessionexpiresat"` // From sessions table
+	Platform         string `json:"platform" db:"platform"`                   // From sessions.props
+	OS               string `json:"os" db:"os"`                               // From sessions.props
+	Browser          string `json:"browser" db:"browser"`                     // From sessions.props
+	DeviceId         string `json:"device_id" db:"deviceid"`                  // From sessions table
+	SessionActive    bool   `json:"session_active"`                           // Whether session still exists
 }
 
 // EncryptionKeyStats contains statistics about encryption keys.

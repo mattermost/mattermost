@@ -169,18 +169,60 @@ func (s *SqlEncryptionSessionKeyStore) DeleteExpired() error {
 }
 
 // GetAll returns all encryption keys with user info (admin only).
+// Includes session info (platform, os, browser, last activity) and identifies orphaned keys.
 func (s *SqlEncryptionSessionKeyStore) GetAll() ([]*model.EncryptionSessionKeyWithUser, error) {
-	var keys []*model.EncryptionSessionKeyWithUser
-
+	// Use a raw SQL query to extract props from the sessions table
+	// LEFT JOIN to include orphaned keys (where session no longer exists)
 	query := `
-		SELECT e.sessionid, e.userid, u.username, e.publickey, e.createat
+		SELECT
+			e.sessionid,
+			e.userid,
+			u.username,
+			e.publickey,
+			e.createat,
+			COALESCE(s.lastactivityat, 0) as lastactivityat,
+			COALESCE(s.expiresat, 0) as sessionexpiresat,
+			COALESCE(s.deviceid, '') as deviceid,
+			COALESCE(s.props::json->>'platform', '') as platform,
+			COALESCE(s.props::json->>'os', '') as os,
+			COALESCE(s.props::json->>'browser', '') as browser
 		FROM encryptionsessionkeys e
 		INNER JOIN users u ON e.userid = u.id
+		LEFT JOIN sessions s ON e.sessionid = s.id
 		ORDER BY e.createat DESC
 	`
 
-	if err := s.GetReplica().Select(&keys, query); err != nil {
+	rows, err := s.GetReplica().Query(query)
+	if err != nil {
 		return nil, errors.Wrap(err, "failed to get all EncryptionSessionKeys")
+	}
+	defer rows.Close()
+
+	var keys []*model.EncryptionSessionKeyWithUser
+	for rows.Next() {
+		var key model.EncryptionSessionKeyWithUser
+		if err := rows.Scan(
+			&key.SessionId,
+			&key.UserId,
+			&key.Username,
+			&key.PublicKey,
+			&key.CreateAt,
+			&key.LastActivityAt,
+			&key.SessionExpiresAt,
+			&key.DeviceId,
+			&key.Platform,
+			&key.OS,
+			&key.Browser,
+		); err != nil {
+			return nil, errors.Wrap(err, "failed to scan EncryptionSessionKey")
+		}
+		// Session is active if it exists (lastactivityat > 0) and not expired
+		key.SessionActive = key.LastActivityAt > 0 && (key.SessionExpiresAt == 0 || key.SessionExpiresAt > model.GetMillis())
+		keys = append(keys, &key)
+	}
+
+	if err := rows.Err(); err != nil {
+		return nil, errors.Wrap(err, "failed to iterate EncryptionSessionKeys")
 	}
 
 	return keys, nil
@@ -214,4 +256,26 @@ func (s *SqlEncryptionSessionKeyStore) DeleteAll() error {
 	}
 
 	return nil
+}
+
+// DeleteOrphaned removes encryption keys for sessions that no longer exist or are expired.
+func (s *SqlEncryptionSessionKeyStore) DeleteOrphaned() (int64, error) {
+	query := `
+		DELETE FROM encryptionsessionkeys
+		WHERE sessionid NOT IN (
+			SELECT id FROM sessions WHERE expiresat = 0 OR expiresat > $1
+		)
+	`
+
+	result, err := s.GetMaster().Exec(query, model.GetMillis())
+	if err != nil {
+		return 0, errors.Wrap(err, "failed to delete orphaned EncryptionSessionKeys")
+	}
+
+	rowsAffected, err := result.RowsAffected()
+	if err != nil {
+		return 0, errors.Wrap(err, "failed to get rows affected for orphaned EncryptionSessionKeys deletion")
+	}
+
+	return rowsAffected, nil
 }

@@ -22,6 +22,13 @@ type EncryptionKeyWithUser = {
     username: string;
     public_key: string;
     create_at: number;
+    last_activity_at: number;
+    session_expires_at: number;
+    platform: string;
+    os: string;
+    browser: string;
+    device_id: string;
+    session_active: boolean;
 };
 
 type EncryptionKeyStats = {
@@ -137,12 +144,132 @@ const IconLock = () => (
     </svg>
 );
 
+const IconDesktop = () => (
+    <svg
+        width='16'
+        height='16'
+        viewBox='0 0 24 24'
+        fill='none'
+        stroke='currentColor'
+        strokeWidth='2'
+        strokeLinecap='round'
+        strokeLinejoin='round'
+    >
+        <rect x='2' y='3' width='20' height='14' rx='2' ry='2'/>
+        <line x1='8' y1='21' x2='16' y2='21'/>
+        <line x1='12' y1='17' x2='12' y2='21'/>
+    </svg>
+);
+
+const IconMobile = () => (
+    <svg
+        width='16'
+        height='16'
+        viewBox='0 0 24 24'
+        fill='none'
+        stroke='currentColor'
+        strokeWidth='2'
+        strokeLinecap='round'
+        strokeLinejoin='round'
+    >
+        <rect x='5' y='2' width='14' height='20' rx='2' ry='2'/>
+        <line x1='12' y1='18' x2='12.01' y2='18'/>
+    </svg>
+);
+
+const IconGlobe = () => (
+    <svg
+        width='16'
+        height='16'
+        viewBox='0 0 24 24'
+        fill='none'
+        stroke='currentColor'
+        strokeWidth='2'
+        strokeLinecap='round'
+        strokeLinejoin='round'
+    >
+        <circle cx='12' cy='12' r='10'/>
+        <line x1='2' y1='12' x2='22' y2='12'/>
+        <path d='M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z'/>
+    </svg>
+);
+
+const IconAlertTriangle = () => (
+    <svg
+        width='14'
+        height='14'
+        viewBox='0 0 24 24'
+        fill='none'
+        stroke='currentColor'
+        strokeWidth='2'
+        strokeLinecap='round'
+        strokeLinejoin='round'
+    >
+        <path d='M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z'/>
+        <line x1='12' y1='9' x2='12' y2='13'/>
+        <line x1='12' y1='17' x2='12.01' y2='17'/>
+    </svg>
+);
+
+const IconClock = () => (
+    <svg
+        width='12'
+        height='12'
+        viewBox='0 0 24 24'
+        fill='none'
+        stroke='currentColor'
+        strokeWidth='2'
+        strokeLinecap='round'
+        strokeLinejoin='round'
+    >
+        <circle cx='12' cy='12' r='10'/>
+        <polyline points='12 6 12 12 16 14'/>
+    </svg>
+);
+
+// Helper to determine platform icon and label
+const getPlatformInfo = (key: EncryptionKeyWithUser): {icon: React.ReactNode; label: string} => {
+    const platform = key.platform.toLowerCase();
+    const deviceId = key.device_id.toLowerCase();
+
+    // Check for mobile first (via device ID or platform)
+    if (deviceId.includes('android') || deviceId.includes('ios') || platform.includes('android') || platform.includes('ios')) {
+        return {
+            icon: <IconMobile/>,
+            label: key.os || key.platform || 'Mobile',
+        };
+    }
+
+    // Check for desktop app
+    if (platform.includes('electron') || platform.includes('desktop')) {
+        return {
+            icon: <IconDesktop/>,
+            label: `Desktop (${key.os || 'Unknown OS'})`,
+        };
+    }
+
+    // Check for web browser
+    if (key.browser) {
+        return {
+            icon: <IconGlobe/>,
+            label: key.browser + (key.os ? ` on ${key.os}` : ''),
+        };
+    }
+
+    // Unknown/default
+    return {
+        icon: <IconGlobe/>,
+        label: 'Web',
+    };
+};
+
 const EncryptionDashboard: React.FC<Props> = ({config, patchConfig}) => {
     const intl = useIntl();
     const [keys, setKeys] = useState<EncryptionKeyWithUser[]>([]);
     const [stats, setStats] = useState<EncryptionKeyStats>({total_keys: 0, total_users: 0});
     const [loading, setLoading] = useState(true);
     const [search, setSearch] = useState('');
+    const [filter, setFilter] = useState<'all' | 'active' | 'orphaned'>('all');
 
     const isEnabled = config.FeatureFlags?.Encryption === true;
 
@@ -204,6 +331,31 @@ const EncryptionDashboard: React.FC<Props> = ({config, patchConfig}) => {
         }
     };
 
+    const handleCleanOrphaned = async () => {
+        const orphanedCount = keys.filter((k) => !k.session_active).length;
+        if (orphanedCount === 0) {
+            return;
+        }
+
+        if (!window.confirm(intl.formatMessage({
+            id: 'admin.encryption.clean_orphaned_confirm',
+            defaultMessage: 'Are you sure you want to delete {count} orphaned encryption keys? These keys belong to expired or deleted sessions and are no longer in use.',
+        }, {count: orphanedCount}))) {
+            return;
+        }
+
+        try {
+            await Client4.doFetch(
+                `${Client4.getBaseRoute()}/encryption/admin/keys/orphaned`,
+                {method: 'delete'},
+            );
+            // Reload keys
+            loadKeys();
+        } catch (e) {
+            console.error('Failed to clean orphaned keys:', e);
+        }
+    };
+
     const handleDeleteUserKeys = async (userId: string, username: string) => {
         if (!window.confirm(intl.formatMessage({
             id: 'admin.encryption.delete_user_confirm',
@@ -221,6 +373,26 @@ const EncryptionDashboard: React.FC<Props> = ({config, patchConfig}) => {
             loadKeys();
         } catch (e) {
             console.error('Failed to delete user keys:', e);
+        }
+    };
+
+    const handleDeleteSessionKey = async (sessionId: string, username: string) => {
+        if (!window.confirm(intl.formatMessage({
+            id: 'admin.encryption.delete_session_confirm',
+            defaultMessage: 'Are you sure you want to delete the encryption key for session {sessionId} ({username})?',
+        }, {sessionId: sessionId.slice(0, 12), username}))) {
+            return;
+        }
+
+        try {
+            await Client4.doFetch(
+                `${Client4.getBaseRoute()}/encryption/admin/keys/session/${sessionId}`,
+                {method: 'delete'},
+            );
+            // Reload keys
+            loadKeys();
+        } catch (e) {
+            console.error('Failed to delete session key:', e);
         }
     };
 
@@ -245,12 +417,24 @@ const EncryptionDashboard: React.FC<Props> = ({config, patchConfig}) => {
     };
 
     const filteredKeys = keys.filter((key) => {
+        // Apply status filter
+        if (filter === 'active' && !key.session_active) {
+            return false;
+        }
+        if (filter === 'orphaned' && key.session_active) {
+            return false;
+        }
+
+        // Apply search filter
         if (search) {
             const searchLower = search.toLowerCase();
             return (
                 key.username.toLowerCase().includes(searchLower) ||
                 key.user_id.toLowerCase().includes(searchLower) ||
-                key.session_id.toLowerCase().includes(searchLower)
+                key.session_id.toLowerCase().includes(searchLower) ||
+                key.platform.toLowerCase().includes(searchLower) ||
+                key.browser.toLowerCase().includes(searchLower) ||
+                key.os.toLowerCase().includes(searchLower)
             );
         }
         return true;
@@ -346,6 +530,18 @@ const EncryptionDashboard: React.FC<Props> = ({config, patchConfig}) => {
                     </h2>
                     <div className='EncryptionDashboard__header__actions'>
                         <button
+                            className='btn btn-tertiary'
+                            onClick={handleCleanOrphaned}
+                            disabled={keys.filter((k) => !k.session_active).length === 0}
+                        >
+                            <IconAlertTriangle/>
+                            <FormattedMessage
+                                id='admin.encryption.clean_orphaned'
+                                defaultMessage='Clean Orphaned ({count})'
+                                values={{count: keys.filter((k) => !k.session_active).length}}
+                            />
+                        </button>
+                        <button
                             className='btn btn-danger'
                             onClick={handleClearAll}
                             disabled={keys.length === 0}
@@ -389,6 +585,34 @@ const EncryptionDashboard: React.FC<Props> = ({config, patchConfig}) => {
                             />
                         </div>
                     </div>
+                    <div className='EncryptionDashboard__stat-card'>
+                        <div className='EncryptionDashboard__stat-card__icon EncryptionDashboard__stat-card__icon--active'>
+                            <IconCheckCircle/>
+                        </div>
+                        <div className='EncryptionDashboard__stat-card__value'>
+                            {keys.filter((k) => k.session_active).length}
+                        </div>
+                        <div className='EncryptionDashboard__stat-card__label'>
+                            <FormattedMessage
+                                id='admin.encryption.stat.active_keys'
+                                defaultMessage='Active Keys'
+                            />
+                        </div>
+                    </div>
+                    <div className='EncryptionDashboard__stat-card EncryptionDashboard__stat-card--warning'>
+                        <div className='EncryptionDashboard__stat-card__icon EncryptionDashboard__stat-card__icon--orphaned'>
+                            <IconAlertTriangle/>
+                        </div>
+                        <div className='EncryptionDashboard__stat-card__value'>
+                            {keys.filter((k) => !k.session_active).length}
+                        </div>
+                        <div className='EncryptionDashboard__stat-card__label'>
+                            <FormattedMessage
+                                id='admin.encryption.stat.orphaned_keys'
+                                defaultMessage='Orphaned Keys'
+                            />
+                        </div>
+                    </div>
                 </div>
 
                 {/* Filters */}
@@ -397,11 +621,26 @@ const EncryptionDashboard: React.FC<Props> = ({config, patchConfig}) => {
                         <IconSearch/>
                         <input
                             type='text'
-                            placeholder={intl.formatMessage({id: 'admin.encryption.search', defaultMessage: 'Search by username or ID...'})}
+                            placeholder={intl.formatMessage({id: 'admin.encryption.search', defaultMessage: 'Search by username, platform, or ID...'})}
                             value={search}
                             onChange={(e) => setSearch(e.target.value)}
                         />
                     </div>
+                    <select
+                        className='EncryptionDashboard__filters__select'
+                        value={filter}
+                        onChange={(e) => setFilter(e.target.value as 'all' | 'active' | 'orphaned')}
+                    >
+                        <option value='all'>
+                            {intl.formatMessage({id: 'admin.encryption.filter.all', defaultMessage: 'All Keys'})}
+                        </option>
+                        <option value='active'>
+                            {intl.formatMessage({id: 'admin.encryption.filter.active', defaultMessage: 'Active Only'})}
+                        </option>
+                        <option value='orphaned'>
+                            {intl.formatMessage({id: 'admin.encryption.filter.orphaned', defaultMessage: 'Orphaned Only'})}
+                        </option>
+                    </select>
                 </div>
 
                 {/* Key List */}
@@ -432,43 +671,94 @@ const EncryptionDashboard: React.FC<Props> = ({config, patchConfig}) => {
                     </div>
                 ) : (
                     <div className='EncryptionDashboard__list'>
-                        {filteredKeys.map((key) => (
-                            <div
-                                key={key.session_id}
-                                className='EncryptionDashboard__key-card'
-                            >
-                                <div className='EncryptionDashboard__key-card__user'>
-                                    <ProfilePicture
-                                        src={Client4.getProfilePictureUrl(key.user_id, 0)}
-                                        size='sm'
-                                        username={key.username}
-                                    />
-                                    <div className='EncryptionDashboard__key-card__user__info'>
-                                        <span className='EncryptionDashboard__key-card__user__name'>
-                                            {key.username}
+                        {filteredKeys.map((key) => {
+                            const platformInfo = getPlatformInfo(key);
+                            return (
+                                <div
+                                    key={key.session_id}
+                                    className={`EncryptionDashboard__key-card ${!key.session_active ? 'EncryptionDashboard__key-card--orphaned' : ''}`}
+                                >
+                                    <div className='EncryptionDashboard__key-card__user'>
+                                        <ProfilePicture
+                                            src={Client4.getProfilePictureUrl(key.user_id, 0)}
+                                            size='sm'
+                                            username={key.username}
+                                        />
+                                        <div className='EncryptionDashboard__key-card__user__info'>
+                                            <span className='EncryptionDashboard__key-card__user__name'>
+                                                {key.username}
+                                            </span>
+                                            <span className='EncryptionDashboard__key-card__user__id'>
+                                                {key.user_id.slice(0, 8)}...
+                                            </span>
+                                        </div>
+                                    </div>
+                                    <div
+                                        className='EncryptionDashboard__key-card__platform'
+                                        title={platformInfo.label}
+                                    >
+                                        {platformInfo.icon}
+                                        <span>{platformInfo.label}</span>
+                                    </div>
+                                    <div className='EncryptionDashboard__key-card__session'>
+                                        <span className='EncryptionDashboard__key-card__session__label'>
+                                            <FormattedMessage
+                                                id='admin.encryption.session'
+                                                defaultMessage='Session:'
+                                            />
                                         </span>
-                                        <span className='EncryptionDashboard__key-card__user__id'>
-                                            {key.user_id.slice(0, 8)}...
-                                        </span>
+                                        {key.session_id.slice(0, 12)}...
+                                    </div>
+                                    <div className='EncryptionDashboard__key-card__times'>
+                                        <div
+                                            className='EncryptionDashboard__key-card__time'
+                                            title={intl.formatMessage({id: 'admin.encryption.created_at', defaultMessage: 'Key created'})}
+                                        >
+                                            <IconKey/>
+                                            <span>{formatRelativeTime(key.create_at)}</span>
+                                        </div>
+                                        {key.session_active ? (
+                                            <div
+                                                className='EncryptionDashboard__key-card__time EncryptionDashboard__key-card__time--activity'
+                                                title={intl.formatMessage({id: 'admin.encryption.last_activity', defaultMessage: 'Last session activity'})}
+                                            >
+                                                <IconClock/>
+                                                <span>{formatRelativeTime(key.last_activity_at)}</span>
+                                            </div>
+                                        ) : (
+                                            <div
+                                                className='EncryptionDashboard__key-card__time EncryptionDashboard__key-card__time--orphaned'
+                                                title={intl.formatMessage({id: 'admin.encryption.orphaned_hint', defaultMessage: 'Session expired or deleted - this key is no longer in use'})}
+                                            >
+                                                <IconAlertTriangle/>
+                                                <span>
+                                                    <FormattedMessage
+                                                        id='admin.encryption.orphaned'
+                                                        defaultMessage='Orphaned'
+                                                    />
+                                                </span>
+                                            </div>
+                                        )}
+                                    </div>
+                                    <div className='EncryptionDashboard__key-card__actions'>
+                                        <button
+                                            className='EncryptionDashboard__key-card__action-btn EncryptionDashboard__key-card__action-btn--session'
+                                            onClick={() => handleDeleteSessionKey(key.session_id, key.username)}
+                                            title={intl.formatMessage({id: 'admin.encryption.delete_session_key', defaultMessage: 'Delete this session key'})}
+                                        >
+                                            <IconTrash/>
+                                        </button>
+                                        <button
+                                            className='EncryptionDashboard__key-card__action-btn'
+                                            onClick={() => handleDeleteUserKeys(key.user_id, key.username)}
+                                            title={intl.formatMessage({id: 'admin.encryption.delete_user_keys', defaultMessage: 'Delete all keys for this user'})}
+                                        >
+                                            <IconUsers/>
+                                        </button>
                                     </div>
                                 </div>
-                                <div className='EncryptionDashboard__key-card__session'>
-                                    Session: {key.session_id.slice(0, 12)}...
-                                </div>
-                                <div className='EncryptionDashboard__key-card__time'>
-                                    {formatRelativeTime(key.create_at)}
-                                </div>
-                                <div className='EncryptionDashboard__key-card__actions'>
-                                    <button
-                                        className='EncryptionDashboard__key-card__action-btn'
-                                        onClick={() => handleDeleteUserKeys(key.user_id, key.username)}
-                                        title={intl.formatMessage({id: 'admin.encryption.delete_user_keys', defaultMessage: 'Delete all keys for this user'})}
-                                    >
-                                        <IconTrash/>
-                                    </button>
-                                </div>
-                            </div>
-                        ))}
+                            );
+                        })}
                     </div>
                 )}
             </div>

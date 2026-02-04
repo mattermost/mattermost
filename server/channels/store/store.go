@@ -1238,6 +1238,9 @@ type EncryptionSessionKeyStore interface {
 	GetStats() (*model.EncryptionKeyStats, error)
 	// DeleteAll removes all encryption keys.
 	DeleteAll() error
+	// DeleteOrphaned removes encryption keys for sessions that no longer exist or are expired.
+	// Returns the number of keys deleted.
+	DeleteOrphaned() (int64, error)
 }
 
 // CustomChannelIconStore manages custom SVG icons for channels.
