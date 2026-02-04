@@ -346,22 +346,9 @@ func TestCreatePostForPriority(t *testing.T) {
 		CheckForbiddenStatus(t, resp)
 	})
 
-	t.Run("should return badRequest when priority is set for reply post", func(t *testing.T) {
-		rootPost := &model.Post{ChannelId: th.BasicChannel.Id, Message: "root"}
-
-		post, resp, err := client.CreatePost(context.Background(), rootPost)
-		require.NoError(t, err)
-		CheckCreatedStatus(t, resp)
-
-		replyPost := &model.Post{RootId: post.Id, ChannelId: th.BasicChannel.Id, Message: "reply", Metadata: &model.PostMetadata{
-			Priority: &model.PostPriority{
-				Priority: model.NewPointer("urgent"),
-			},
-		}}
-		_, resp, err = client.CreatePost(context.Background(), replyPost)
-		require.Error(t, err)
-		CheckBadRequestStatus(t, resp)
-	})
+	// MATTERMOST EXTENDED: This test was moved to post_priority_extended_test.go
+	// Thread replies are now allowed to have priority labels (discord_reply, encrypted, etc.)
+	// See TestPostPriorityExtended for the updated behavior test
 
 	t.Run("should return statusNotImplemented when min. pro. license not available", func(t *testing.T) {
 		appErr := th.App.Srv().RemoveLicense()

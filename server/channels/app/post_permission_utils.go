@@ -11,7 +11,7 @@ import (
 	"github.com/mattermost/mattermost/server/public/shared/request"
 )
 
-func PostPriorityCheckWithApp(where string, a *App, userId string, priority *model.PostPriority, rootId string) *model.AppError {
+func PostPriorityCheckWithApp(where string, a *App, userId string, priority *model.PostPriority) *model.AppError {
 	user, appErr := a.GetUser(userId)
 	if appErr != nil {
 		return appErr
@@ -22,7 +22,7 @@ func PostPriorityCheckWithApp(where string, a *App, userId string, priority *mod
 	allowPersistentNotificationsForGuests := *a.Config().ServiceSettings.AllowPersistentNotificationsForGuests
 	license := a.License()
 
-	appErr = postPriorityCheck(user, priority, rootId, isPostPriorityEnabled, IsPersistentNotificationsEnabled, allowPersistentNotificationsForGuests, license)
+	appErr = postPriorityCheck(user, priority, isPostPriorityEnabled, IsPersistentNotificationsEnabled, allowPersistentNotificationsForGuests, license)
 	if appErr != nil {
 		appErr.Where = where
 		return appErr
@@ -34,7 +34,6 @@ func PostPriorityCheckWithApp(where string, a *App, userId string, priority *mod
 func postPriorityCheck(
 	user *model.User,
 	priority *model.PostPriority,
-	rootId string,
 	isPostPriorityEnabled,
 	isPersistentNotificationsEnabled,
 	allowPersistentNotificationsForGuests bool,
@@ -50,9 +49,8 @@ func postPriorityCheck(
 		return priorityForbiddenErr
 	}
 
-	if rootId != "" {
-		return model.NewAppError("", "api.post.post_priority.priority_post_only_allowed_for_root_post.request_error", nil, "", http.StatusBadRequest)
-	}
+	// Note: We allow priority labels (urgent, important, discord_reply, encrypted) on thread replies.
+	// The enterprise features (RequestedAck, PersistentNotifications) are still gated by license checks below.
 
 	if ack := priority.RequestedAck; ack != nil && *ack {
 		if !model.MinimumProfessionalLicense(license) {

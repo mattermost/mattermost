@@ -34,8 +34,8 @@ func postHardenedModeCheckWithContext(where string, c *Context, props model.Stri
 	}
 }
 
-func postPriorityCheckWithContext(where string, c *Context, priority *model.PostPriority, rootId string) {
-	appErr := app.PostPriorityCheckWithApp(where, c.App, c.AppContext.Session().UserId, priority, rootId)
+func postPriorityCheckWithContext(where string, c *Context, priority *model.PostPriority) {
+	appErr := app.PostPriorityCheckWithApp(where, c.App, c.AppContext.Session().UserId, priority)
 	if appErr != nil {
 		appErr.Where = where
 		c.Err = appErr

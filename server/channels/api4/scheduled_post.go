@@ -39,7 +39,7 @@ func scheduledPostChecks(where string, c *Context, scheduledPost *model.Schedule
 		return
 	}
 
-	postPriorityCheckWithContext(where, c, scheduledPost.GetPriority(), scheduledPost.RootId)
+	postPriorityCheckWithContext(where, c, scheduledPost.GetPriority())
 }
 
 func requireScheduledPostsEnabled(c *Context) {

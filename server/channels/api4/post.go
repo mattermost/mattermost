@@ -78,7 +78,7 @@ func createPostChecks(where string, c *Context, post *model.Post) {
 		return
 	}
 
-	postPriorityCheckWithContext(where, c, post.GetPriority(), post.RootId)
+	postPriorityCheckWithContext(where, c, post.GetPriority())
 }
 
 func createPost(c *Context, w http.ResponseWriter, r *http.Request) {
