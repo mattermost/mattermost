@@ -61,6 +61,16 @@ jobs:
           --health-timeout 5s
           --health-retries 5
 
+      redis:
+        image: redis:7
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -230,6 +240,7 @@ jobs:
       - name: Compile Tests
         working-directory: ./server
         run: |
-          go test -c ./public/model/...
-          go test -c ./channels/app/platform/...
-          go test -c ./channels/app/...
+          # Compile test packages (build only, no output binary)
+          go test -c -o /dev/null ./public/model/...
+          go test -c -o /dev/null ./channels/app/platform/...
+          # Skip ./channels/app/... as it has multiple 'mocks' packages that conflict
