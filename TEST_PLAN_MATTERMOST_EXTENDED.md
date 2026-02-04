@@ -23,8 +23,8 @@ This document outlines the complete test coverage plan for all Mattermost Extend
 | Status Log Dashboard | ✅ Exists | ✅ Exists | ❌ Missing | Good |
 | Custom Channel Icons | ✅ Exists | ✅ Exists | ✅ Exists | Complete |
 | Encryption (E2EE) | ✅ Exists | ✅ Exists | ✅ Exists | Complete |
-| ThreadsInSidebar | ❌ Missing | ❌ Missing | ❌ Missing | None |
-| CustomThreadNames | ❌ Missing | ❌ Missing | ❌ Missing | None |
+| ThreadsInSidebar | ❌ Missing | ✅ Exists | ❌ Missing | Partial |
+| CustomThreadNames | ❌ Missing | ✅ Exists | ❌ Missing | Partial |
 | ImageMulti | ❌ Missing | ✅ Exists | ✅ Exists | Good |
 | ImageSmaller | ❌ Missing | ✅ Exists | ✅ Exists | Good |
 | ImageCaptions | ❌ Missing | ❌ Missing | ✅ Exists | Partial |
@@ -565,7 +565,82 @@ Tests SystemConsoleIcons:
 - ✅ Config mapping from FeatureFlagSystemConsoleIcons
 - ✅ Combined behavior tests
 
-#### E. MarkdownImage Captions Tests (Not Implemented)
+#### E. Thread Feature Tests ✅ IMPLEMENTED
+
+**File:** `webapp/channels/src/tests/mattermost_extended/threads_in_sidebar.test.tsx`
+
+Tests ThreadsInSidebar feature:
+- ✅ Config mapping - maps FeatureFlagThreadsInSidebar to boolean
+- ✅ Config mapping - requires CRT (CollapsedReplyThreads) to be enabled
+- ✅ Thread label logic - uses custom thread name when set in props
+- ✅ Thread label logic - uses cleaned post message when no custom name
+- ✅ Thread label logic - prefers custom name over post message
+- ✅ Thread label logic - falls back to "Thread" when no message and no custom name
+- ✅ Thread link generation - generates correct link to full-width thread view
+- ✅ Thread link generation - handles team names with special characters
+- ✅ Unread detection - detects unread when there are unread replies
+- ✅ Unread detection - detects unread when there are unread mentions
+- ✅ Unread detection - does NOT detect unread when no unreads
+- ✅ Unread detection - detects unread with both replies and mentions
+- ✅ Active thread detection - detects active when route threadIdentifier matches
+- ✅ Active thread detection - does NOT detect active when route does not match
+- ✅ Active thread detection - does NOT detect active when route params undefined
+- ✅ Urgent thread detection - passes isUrgent when thread is urgent
+- ✅ Urgent thread detection - does NOT pass isUrgent when not urgent
+- ✅ Urgent thread detection - defaults to false when is_urgent undefined
+
+Tests cleanMessageForDisplay utility:
+- ✅ Returns empty string for empty message
+- ✅ Returns empty string for whitespace-only message
+- ✅ Truncates long messages with ellipsis
+- ✅ Only uses first line of multi-line message
+- ✅ Removes markdown links but keeps text
+- ✅ Replaces images with [image]
+- ✅ Removes bold markdown (double asterisk)
+- ✅ Removes italic markdown (single asterisk)
+- ✅ Removes underscore bold/italic
+- ✅ Removes header markers
+- ✅ Removes blockquote markers
+- ✅ Replaces inline code with [code]
+- ✅ Collapses multiple whitespace
+- ✅ Handles complex message with multiple markdown elements
+- ✅ Handles message with only whitespace on first line
+- ✅ Uses custom maxLength
+- ✅ Does not add ellipsis if message fits within maxLength
+- ✅ Uses default maxLength of 50
+
+**File:** `webapp/channels/src/tests/mattermost_extended/custom_thread_names.test.tsx`
+
+Tests CustomThreadNames feature:
+- ✅ Config mapping - maps FeatureFlagCustomThreadNames to boolean
+- ✅ Config mapping - works independently of ThreadsInSidebar
+- ✅ Thread name resolution - uses custom_name from thread props when set
+- ✅ Thread name resolution - falls back to auto-generated name when no custom name
+- ✅ Thread name resolution - prefers custom name over auto-generated name
+- ✅ Thread name resolution - handles empty custom name as falsy
+- ✅ Edit state management - starts editing with existing custom name
+- ✅ Edit state management - starts editing with empty string when no custom name
+- ✅ Edit state management - cancels editing and resets state
+- ✅ Save thread name logic - creates props with custom_name when name provided
+- ✅ Save thread name logic - clears custom_name when empty string saved
+- ✅ Save thread name logic - trims whitespace from name
+- ✅ Save thread name logic - clears custom_name when only whitespace saved
+- ✅ Keyboard handling - saves on Enter key
+- ✅ Keyboard handling - cancels on Escape key
+- ✅ Keyboard handling - ignores other keys
+- ✅ UI state - allows editing when CustomThreadNames is enabled
+- ✅ UI state - does NOT allow editing when CustomThreadNames is disabled
+- ✅ UI state - adds editable class when feature is enabled
+- ✅ UI state - does NOT add editable class when feature is disabled
+- ✅ UI state - shows pencil icon only when feature is enabled
+- ✅ UI state - does NOT show pencil icon when feature is disabled
+- ✅ patchThread API call format - formats props correctly for setting custom name
+- ✅ patchThread API call format - formats props correctly for clearing custom name
+- ✅ ThreadsInSidebar integration - shows enhanced header when ThreadsInSidebar enabled
+- ✅ ThreadsInSidebar integration - shows simple header when ThreadsInSidebar disabled
+- ✅ ThreadsInSidebar integration - shows enhanced header without edit when only ThreadsInSidebar enabled
+
+#### F. MarkdownImage Captions Tests (Not Implemented)
 
 ```typescript
 // markdown_image.test.tsx (caption tests)
@@ -766,6 +841,9 @@ describe('ErrorLogDashboard', () => {
 | SystemConsoleDarkMode | `webapp/channels/src/tests/mattermost_extended/system_console_dark_mode.test.tsx` ✅ |
 | SystemConsoleHideEnterprise | `webapp/channels/src/tests/mattermost_extended/admin_sidebar_features.test.tsx` ✅ |
 | SystemConsoleIcons | `webapp/channels/src/tests/mattermost_extended/admin_sidebar_features.test.tsx` ✅ |
+| ThreadsInSidebar | `webapp/channels/src/tests/mattermost_extended/threads_in_sidebar.test.tsx` ✅ |
+| CustomThreadNames | `webapp/channels/src/tests/mattermost_extended/custom_thread_names.test.tsx` ✅ |
+| cleanMessageForDisplay | `webapp/channels/src/tests/mattermost_extended/threads_in_sidebar.test.tsx` ✅ |
 
 ### E2E Tests (Cypress)
 | Feature | File Path |
@@ -809,7 +887,7 @@ describe('ErrorLogDashboard', () => {
 3. ✅ Multi Image View tests
 4. ✅ Sidebar Base Channel Icon tests
 5. ✅ Status Logs Platform tests
-6. ❌ Thread feature tests (ThreadsInSidebar, CustomThreadNames)
+6. ✅ Thread feature tests (ThreadsInSidebar, CustomThreadNames)
 7. ❌ MarkdownImage Captions tests (ImageCaptions)
 
 ---

@@ -27,7 +27,7 @@ Writing webapp tests for Mattermost Extended features as outlined in the test pl
 - SystemConsoleHideEnterprise and SystemConsoleIcons tests
 
 **Remaining (from test plan):**
-- Thread feature tests (ThreadsInSidebar, CustomThreadNames)
+- ~~Thread feature tests (ThreadsInSidebar, CustomThreadNames)~~ ✅ COMPLETED
 - MarkdownImage Captions tests (ImageCaptions)
 - E2E tests for UI Tweaks, Threads, Admin Console
 
@@ -43,6 +43,8 @@ Writing webapp tests for Mattermost Extended features as outlined in the test pl
 - `webapp/channels/src/tests/mattermost_extended/sidebar_channel_settings.test.tsx` - New test file
 - `webapp/channels/src/tests/mattermost_extended/system_console_dark_mode.test.tsx` - New test file
 - `webapp/channels/src/tests/mattermost_extended/admin_sidebar_features.test.tsx` - New test file
+- `webapp/channels/src/tests/mattermost_extended/threads_in_sidebar.test.tsx` - New test file (ThreadsInSidebar + cleanMessageForDisplay)
+- `webapp/channels/src/tests/mattermost_extended/custom_thread_names.test.tsx` - New test file (CustomThreadNames)
 - `TEST_PLAN_MATTERMOST_EXTENDED.md` - Updated coverage status
 
 ## Learnings
@@ -67,6 +69,8 @@ Writing webapp tests for Mattermost Extended features as outlined in the test pl
 - `webapp/channels/src/tests/mattermost_extended/sidebar_channel_settings.test.tsx`
 - `webapp/channels/src/tests/mattermost_extended/system_console_dark_mode.test.tsx`
 - `webapp/channels/src/tests/mattermost_extended/admin_sidebar_features.test.tsx`
+- `webapp/channels/src/tests/mattermost_extended/threads_in_sidebar.test.tsx`
+- `webapp/channels/src/tests/mattermost_extended/custom_thread_names.test.tsx`
 - `TEST_PLAN_MATTERMOST_EXTENDED.md` (updated)
 
 ## Action Items & Next Steps
