@@ -5021,9 +5021,12 @@ export default class Client4 {
         page?: number;
         perPage?: number;
         userId?: string;
+        username?: string;
         logType?: string;
+        status?: string;
         since?: number;
         until?: number;
+        search?: string;
     }) => {
         const params = new URLSearchParams();
         if (options?.page !== undefined) {
@@ -5035,14 +5038,23 @@ export default class Client4 {
         if (options?.userId) {
             params.append('user_id', options.userId);
         }
+        if (options?.username) {
+            params.append('username', options.username);
+        }
         if (options?.logType) {
             params.append('log_type', options.logType);
+        }
+        if (options?.status) {
+            params.append('status', options.status);
         }
         if (options?.since) {
             params.append('since', String(options.since));
         }
         if (options?.until) {
             params.append('until', String(options.until));
+        }
+        if (options?.search) {
+            params.append('search', options.search);
         }
 
         const queryString = params.toString();

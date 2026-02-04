@@ -94,14 +94,29 @@ func (s *SqlStatusLogStore) Get(options model.StatusLogGetOptions) ([]*model.Sta
 	if options.UserID != "" {
 		query = query.Where(sq.Eq{"userid": options.UserID})
 	}
+	if options.Username != "" {
+		query = query.Where(sq.ILike{"username": options.Username})
+	}
 	if options.LogType != "" {
 		query = query.Where(sq.Eq{"logtype": options.LogType})
+	}
+	if options.Status != "" {
+		query = query.Where(sq.Eq{"newstatus": options.Status})
 	}
 	if options.Since > 0 {
 		query = query.Where(sq.GtOrEq{"createat": options.Since})
 	}
 	if options.Until > 0 {
 		query = query.Where(sq.LtOrEq{"createat": options.Until})
+	}
+	if options.Search != "" {
+		// Search across username, reason, and trigger fields
+		searchPattern := "%" + options.Search + "%"
+		query = query.Where(sq.Or{
+			sq.ILike{"username": searchPattern},
+			sq.ILike{"reason": searchPattern},
+			sq.ILike{"trigger": searchPattern},
+		})
 	}
 
 	// Apply pagination
@@ -135,14 +150,28 @@ func (s *SqlStatusLogStore) GetCount(options model.StatusLogGetOptions) (int64, 
 	if options.UserID != "" {
 		query = query.Where(sq.Eq{"userid": options.UserID})
 	}
+	if options.Username != "" {
+		query = query.Where(sq.ILike{"username": options.Username})
+	}
 	if options.LogType != "" {
 		query = query.Where(sq.Eq{"logtype": options.LogType})
+	}
+	if options.Status != "" {
+		query = query.Where(sq.Eq{"newstatus": options.Status})
 	}
 	if options.Since > 0 {
 		query = query.Where(sq.GtOrEq{"createat": options.Since})
 	}
 	if options.Until > 0 {
 		query = query.Where(sq.LtOrEq{"createat": options.Until})
+	}
+	if options.Search != "" {
+		searchPattern := "%" + options.Search + "%"
+		query = query.Where(sq.Or{
+			sq.ILike{"username": searchPattern},
+			sq.ILike{"reason": searchPattern},
+			sq.ILike{"trigger": searchPattern},
+		})
 	}
 
 	queryString, args, err := query.ToSql()
@@ -170,6 +199,17 @@ func (s *SqlStatusLogStore) GetStats(options model.StatusLogGetOptions) (map[str
 	}
 	if options.UserID != "" {
 		conditions = append(conditions, sq.Eq{"userid": options.UserID})
+	}
+	if options.Username != "" {
+		conditions = append(conditions, sq.ILike{"username": options.Username})
+	}
+	if options.Search != "" {
+		searchPattern := "%" + options.Search + "%"
+		conditions = append(conditions, sq.Or{
+			sq.ILike{"username": searchPattern},
+			sq.ILike{"reason": searchPattern},
+			sq.ILike{"trigger": searchPattern},
+		})
 	}
 
 	// Get total count

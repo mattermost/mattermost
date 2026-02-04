@@ -68,12 +68,18 @@ const (
 type StatusLogGetOptions struct {
 	// UserID filters logs by user ID (optional).
 	UserID string
+	// Username filters logs by username (optional, case-insensitive).
+	Username string
 	// LogType filters by log type: "status_change" or "activity" (optional).
 	LogType string
+	// Status filters by new_status value: "online", "away", "dnd", "offline" (optional).
+	Status string
 	// Since filters logs created after this timestamp in milliseconds (optional).
 	Since int64
 	// Until filters logs created before this timestamp in milliseconds (optional).
 	Until int64
+	// Search performs text search across username, reason, and trigger fields (optional).
+	Search string
 	// Page is the page number for pagination (0-indexed).
 	Page int
 	// PerPage is the number of results per page.

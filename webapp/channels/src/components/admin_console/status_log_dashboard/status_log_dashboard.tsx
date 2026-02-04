@@ -531,6 +531,7 @@ const StatusLogDashboard: React.FC<Props> = ({config, patchConfig}) => {
     const [currentPage, setCurrentPage] = useState(0);
     const [hasMore, setHasMore] = useState(false);
     const [totalCount, setTotalCount] = useState(0);
+    const [knownUsernames, setKnownUsernames] = useState<Set<string>>(new Set());
     const perPage = 100;
 
     const isEnabled = config.MattermostExtendedSettings?.Statuses?.EnableStatusLogs === true;
@@ -560,6 +561,9 @@ const StatusLogDashboard: React.FC<Props> = ({config, patchConfig}) => {
     const loadLogs = useCallback(async (page = 0, append = false, options?: {
         logType?: string;
         since?: number;
+        username?: string;
+        status?: string;
+        search?: string;
     }) => {
         if (!isEnabled) {
             setLoading(false);
@@ -579,6 +583,9 @@ const StatusLogDashboard: React.FC<Props> = ({config, patchConfig}) => {
                 perPage: number;
                 logType?: string;
                 since?: number;
+                username?: string;
+                status?: string;
+                search?: string;
             } = {page, perPage};
 
             // Apply log type filter server-side
@@ -591,11 +598,41 @@ const StatusLogDashboard: React.FC<Props> = ({config, patchConfig}) => {
                 apiOptions.since = options.since;
             }
 
+            // Apply username filter server-side
+            if (options?.username && options.username !== 'all') {
+                apiOptions.username = options.username;
+            }
+
+            // Apply status filter server-side
+            if (options?.status && options.status !== 'all') {
+                apiOptions.status = options.status;
+            }
+
+            // Apply search filter server-side
+            if (options?.search) {
+                apiOptions.search = options.search;
+            }
+
             const response = await Client4.getStatusLogs(apiOptions);
+            const newLogs = response.logs || [];
+
+            // Track usernames for the filter dropdown (persists even when filtering)
+            if (newLogs.length > 0) {
+                setKnownUsernames((prev) => {
+                    const updated = new Set(prev);
+                    newLogs.forEach((log: StatusLog) => {
+                        if (log.username) {
+                            updated.add(log.username);
+                        }
+                    });
+                    return updated;
+                });
+            }
+
             if (append) {
-                setLogs((prev) => [...prev, ...(response.logs || [])]);
+                setLogs((prev) => [...prev, ...newLogs]);
             } else {
-                setLogs(response.logs || []);
+                setLogs(newLogs);
             }
             setStats(response.stats || {total: 0, online: 0, away: 0, dnd: 0, offline: 0});
             setHasMore(response.has_more || false);
@@ -616,19 +653,25 @@ const StatusLogDashboard: React.FC<Props> = ({config, patchConfig}) => {
             loadLogs(currentPage + 1, true, {
                 logType: logTypeFilter,
                 since: since > 0 ? since : undefined,
+                username: userFilter,
+                status: filter,
+                search: search || undefined,
             });
         }
-    }, [loadLogs, currentPage, loadingMore, hasMore, logTypeFilter, timePeriodFilter, getTimePeriodCutoff]);
+    }, [loadLogs, currentPage, loadingMore, hasMore, logTypeFilter, timePeriodFilter, userFilter, filter, search, getTimePeriodCutoff]);
 
-    // Reload when server-side filters change (logTypeFilter, timePeriodFilter)
+    // Reload when any server-side filter changes
     // This resets to page 0 and fetches fresh data with the new filters
     useEffect(() => {
         const since = getTimePeriodCutoff(timePeriodFilter);
         loadLogs(0, false, {
             logType: logTypeFilter,
             since: since > 0 ? since : undefined,
+            username: userFilter,
+            status: filter,
+            search: search || undefined,
         });
-    }, [loadLogs, logTypeFilter, timePeriodFilter, getTimePeriodCutoff]);
+    }, [loadLogs, logTypeFilter, timePeriodFilter, userFilter, filter, search, getTimePeriodCutoff]);
 
     // WebSocket handler for real-time updates
     useEffect(() => {
@@ -641,11 +684,30 @@ const StatusLogDashboard: React.FC<Props> = ({config, patchConfig}) => {
                 const log = msg.data.status_log;
                 const logType = log.log_type || 'status_change';
 
-                // Only add logs that match the current filter
-                // This keeps the displayed list consistent with server-side filtering
-                const matchesFilter = logTypeFilter === 'all' || logType === logTypeFilter;
+                // Always track new usernames for the filter dropdown
+                if (log.username) {
+                    setKnownUsernames((prev) => {
+                        if (prev.has(log.username)) {
+                            return prev;
+                        }
+                        const updated = new Set(prev);
+                        updated.add(log.username);
+                        return updated;
+                    });
+                }
 
-                if (matchesFilter) {
+                // Check if log matches all current filters
+                // This keeps the displayed list consistent with server-side filtering
+                const matchesLogType = logTypeFilter === 'all' || logType === logTypeFilter;
+                const matchesUser = userFilter === 'all' || log.username === userFilter;
+                const matchesStatus = filter === 'all' || log.new_status === filter;
+                const matchesSearch = !search || (
+                    log.username.toLowerCase().includes(search.toLowerCase()) ||
+                    log.reason.toLowerCase().includes(search.toLowerCase()) ||
+                    (log.trigger && log.trigger.toLowerCase().includes(search.toLowerCase()))
+                );
+
+                if (matchesLogType && matchesUser && matchesStatus && matchesSearch) {
                     // Add to beginning, don't slice to allow all loaded logs to remain
                     setLogs((prev) => [log, ...prev]);
                     setTotalCount((prev) => prev + 1);
@@ -669,7 +731,7 @@ const StatusLogDashboard: React.FC<Props> = ({config, patchConfig}) => {
         return () => {
             webSocketClient.removeMessageListener(handleWebSocketEvent);
         };
-    }, [isEnabled, logTypeFilter]);
+    }, [isEnabled, logTypeFilter, userFilter, filter, search]);
 
     const handleToggleFeature = async () => {
         try {
@@ -912,15 +974,10 @@ const StatusLogDashboard: React.FC<Props> = ({config, patchConfig}) => {
     };
 
     // Get unique usernames for user filter dropdown
+    // Use persisted usernames for the dropdown (survives filtering)
     const uniqueUsers = useMemo(() => {
-        const users = new Set<string>();
-        logs.forEach((log) => {
-            if (log.username) {
-                users.add(log.username);
-            }
-        });
-        return Array.from(users).sort();
-    }, [logs]);
+        return Array.from(knownUsernames).sort();
+    }, [knownUsernames]);
 
     // Filter logs
     const filteredLogs = useMemo(() => {

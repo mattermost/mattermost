@@ -49,9 +49,12 @@ func (api *API) InitStatusLog() {
 //   - page: page number (0-indexed, default: 0)
 //   - per_page: number of results per page (default: 100, max: 1000)
 //   - user_id: filter by user ID (optional)
+//   - username: filter by username, case-insensitive (optional)
 //   - log_type: filter by log type ("status_change" or "activity", optional)
+//   - status: filter by new_status value ("online", "away", "dnd", "offline", optional)
 //   - since: filter logs after this timestamp in milliseconds (optional)
 //   - until: filter logs before this timestamp in milliseconds (optional)
+//   - search: text search across username, reason, and trigger fields (optional)
 //
 // System admin only
 func getStatusLogs(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -88,10 +91,13 @@ func getStatusLogs(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	options := model.StatusLogGetOptions{
-		Page:    page,
-		PerPage: perPage,
-		UserID:  query.Get("user_id"),
-		LogType: query.Get("log_type"),
+		Page:     page,
+		PerPage:  perPage,
+		UserID:   query.Get("user_id"),
+		Username: query.Get("username"),
+		LogType:  query.Get("log_type"),
+		Status:   query.Get("status"),
+		Search:   query.Get("search"),
 	}
 
 	if sinceStr := query.Get("since"); sinceStr != "" {
@@ -165,10 +171,13 @@ func exportStatusLogs(c *Context, w http.ResponseWriter, r *http.Request) {
 	query := r.URL.Query()
 
 	options := model.StatusLogGetOptions{
-		Page:    0,
-		PerPage: 0, // 0 means no limit for export
-		UserID:  query.Get("user_id"),
-		LogType: query.Get("log_type"),
+		Page:     0,
+		PerPage:  0, // 0 means no limit for export
+		UserID:   query.Get("user_id"),
+		Username: query.Get("username"),
+		LogType:  query.Get("log_type"),
+		Status:   query.Get("status"),
+		Search:   query.Get("search"),
 	}
 
 	if sinceStr := query.Get("since"); sinceStr != "" {
