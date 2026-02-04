@@ -666,6 +666,33 @@ Tests ImageCaptions feature:
 - ✅ Caption content - displays caption with unicode characters
 - ✅ Caption content - handles whitespace-only title
 
+#### G. Settings Resorted Tests ✅ IMPLEMENTED
+
+**File:** `webapp/channels/src/tests/mattermost_extended/settings_resorted.test.tsx`
+
+Tests SettingsResorted feature:
+- ✅ Config mapping - maps FeatureFlagSettingsResorted to boolean
+- ✅ Tab Structure - checks for split display tabs when enabled
+- ✅ Tab Structure - checks for default tabs when disabled
+- ✅ Tab Icons - verifies MDI icon format
+- ✅ Preference Group Mapping - verifies tab to group mapping
+- ✅ Feature Flag Toggle - verifies config keys
+
+#### H. Preference Definitions Tests ✅ IMPLEMENTED
+
+**File:** `webapp/channels/src/utils/preference_definitions.test.ts`
+
+Tests preference utility functions:
+- ✅ PREFERENCE_DEFINITIONS - checks keys and structure
+- ✅ PreferenceGroups - checks group constants
+- ✅ PREFERENCE_GROUP_INFO - checks group metadata
+- ✅ PreferenceNames - checks preference name constants
+- ✅ getPreferenceDefinition - retrieves definition by category/name
+- ✅ getPreferenceDefinitionsByCategory - retrieves definitions by category
+- ✅ hasPreferenceDefinition - checks existence
+- ✅ getPreferenceDefinitionsGrouped - returns grouped and sorted definitions
+- ✅ getPreferenceGroup - determines group for preference
+
 ---
 
 ### E2E Tests (Cypress) ✅ IMPLEMENTED
