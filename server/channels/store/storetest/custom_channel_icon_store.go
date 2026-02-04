@@ -271,7 +271,8 @@ func testCustomChannelIconStoreUpdate(t *testing.T, rctx request.CTX, ss store.S
 		assert.Equal(t, "updated-name", updatedIcon.Name)
 		assert.Equal(t, "<svg>updated</svg>", updatedIcon.Svg)
 		assert.True(t, updatedIcon.NormalizeColor)
-		assert.Greater(t, updatedIcon.UpdateAt, savedIcon.CreateAt)
+		// Use GreaterOrEqual since save and update can happen within same millisecond on fast systems
+		assert.GreaterOrEqual(t, updatedIcon.UpdateAt, savedIcon.CreateAt)
 	})
 
 	t.Run("returns error for non-existent icon", func(t *testing.T) {
