@@ -531,10 +531,25 @@ const StatusLogDashboard: React.FC<Props> = ({config, patchConfig}) => {
     const [currentPage, setCurrentPage] = useState(0);
     const [hasMore, setHasMore] = useState(false);
     const [totalCount, setTotalCount] = useState(0);
-    const [knownUsernames, setKnownUsernames] = useState<Set<string>>(new Set());
+    const [allUsers, setAllUsers] = useState<{id: string; username: string}[]>([]);
     const perPage = 100;
 
     const isEnabled = config.MattermostExtendedSettings?.Statuses?.EnableStatusLogs === true;
+
+    // Fetch all users on mount for the user filter dropdown
+    useEffect(() => {
+        const fetchAllUsers = async () => {
+            try {
+                // Fetch users with a high per_page to get all users in one request
+                // For larger instances, you might need pagination
+                const users = await Client4.getProfiles(0, 200);
+                setAllUsers(users.map((u) => ({id: u.id, username: u.username})).sort((a, b) => a.username.localeCompare(b.username)));
+            } catch (e) {
+                console.error('Failed to fetch users for filter dropdown:', e);
+            }
+        };
+        fetchAllUsers();
+    }, []);
 
     // Get time period cutoff in milliseconds (moved up for use in loadLogs/loadMore)
     const getTimePeriodCutoff = useCallback((period: TimePeriodFilter): number => {
@@ -616,19 +631,6 @@ const StatusLogDashboard: React.FC<Props> = ({config, patchConfig}) => {
             const response = await Client4.getStatusLogs(apiOptions);
             const newLogs = response.logs || [];
 
-            // Track usernames for the filter dropdown (persists even when filtering)
-            if (newLogs.length > 0) {
-                setKnownUsernames((prev) => {
-                    const updated = new Set(prev);
-                    newLogs.forEach((log: StatusLog) => {
-                        if (log.username) {
-                            updated.add(log.username);
-                        }
-                    });
-                    return updated;
-                });
-            }
-
             if (append) {
                 setLogs((prev) => [...prev, ...newLogs]);
             } else {
@@ -683,18 +685,6 @@ const StatusLogDashboard: React.FC<Props> = ({config, patchConfig}) => {
             if (msg.event === 'status_log' && msg.data?.status_log) {
                 const log = msg.data.status_log;
                 const logType = log.log_type || 'status_change';
-
-                // Always track new usernames for the filter dropdown
-                if (log.username) {
-                    setKnownUsernames((prev) => {
-                        if (prev.has(log.username)) {
-                            return prev;
-                        }
-                        const updated = new Set(prev);
-                        updated.add(log.username);
-                        return updated;
-                    });
-                }
 
                 // Check if log matches all current filters
                 // This keeps the displayed list consistent with server-side filtering
@@ -973,11 +963,10 @@ const StatusLogDashboard: React.FC<Props> = ({config, patchConfig}) => {
         }
     };
 
-    // Get unique usernames for user filter dropdown
-    // Use persisted usernames for the dropdown (survives filtering)
+    // Get usernames for user filter dropdown from all system users
     const uniqueUsers = useMemo(() => {
-        return Array.from(knownUsernames).sort();
-    }, [knownUsernames]);
+        return allUsers.map((u) => u.username);
+    }, [allUsers]);
 
     // Filter logs
     const filteredLogs = useMemo(() => {
