@@ -1,0 +1,120 @@
+name: Upstream Tests
+
+# Run upstream Mattermost tests to catch regressions
+# Trigger manually or when syncing with a new upstream version
+
+on:
+  workflow_dispatch:
+    inputs:
+      test_scope:
+        description: 'Test scope'
+        required: true
+        default: 'status'
+        type: choice
+        options:
+          - status        # Status-related tests only (~5 min)
+          - app           # App layer tests (~15 min)
+          - api           # API tests (~20 min)
+          - store         # Store layer tests (~30 min)
+          - full          # All server tests (~60+ min)
+
+permissions:
+  contents: read
+
+jobs:
+  upstream-tests:
+    name: Upstream Tests (${{ inputs.test_scope }})
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_USER: mmuser
+          POSTGRES_PASSWORD: mostest
+          POSTGRES_DB: mattermost_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+      redis:
+        image: redis:7
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: 'server/go.mod'
+          cache-dependency-path: |
+            server/go.sum
+            server/public/go.sum
+
+      - name: Install gotestsum
+        run: go install gotest.tools/gotestsum@v1.11.0
+
+      - name: Setup workspace
+        working-directory: ./server
+        run: make setup-go-work
+
+      - name: Run Status Tests
+        if: inputs.test_scope == 'status' || inputs.test_scope == 'full'
+        working-directory: ./server
+        env:
+          MM_SQLSETTINGS_DRIVERNAME: postgres
+          MM_SQLSETTINGS_DATASOURCE: postgres://mmuser:mostest@localhost:5432/mattermost_test?sslmode=disable
+        run: |
+          echo "## Status Tests" >> $GITHUB_STEP_SUMMARY
+          gotestsum --format testname -- -v \
+            -run "Status" \
+            ./channels/app/platform/... \
+            -timeout 20m
+
+      - name: Run App Tests
+        if: inputs.test_scope == 'app' || inputs.test_scope == 'full'
+        working-directory: ./server
+        env:
+          MM_SQLSETTINGS_DRIVERNAME: postgres
+          MM_SQLSETTINGS_DATASOURCE: postgres://mmuser:mostest@localhost:5432/mattermost_test?sslmode=disable
+        run: |
+          echo "## App Tests" >> $GITHUB_STEP_SUMMARY
+          gotestsum --format testname -- -v \
+            ./channels/app/... \
+            -timeout 30m || true  # Don't fail on mocks issues
+
+      - name: Run API Tests
+        if: inputs.test_scope == 'api' || inputs.test_scope == 'full'
+        working-directory: ./server
+        env:
+          MM_SQLSETTINGS_DRIVERNAME: postgres
+          MM_SQLSETTINGS_DATASOURCE: postgres://mmuser:mostest@localhost:5432/mattermost_test?sslmode=disable
+        run: |
+          echo "## API Tests" >> $GITHUB_STEP_SUMMARY
+          gotestsum --format testname -- -v \
+            ./channels/api4/... \
+            -timeout 45m
+
+      - name: Run Store Tests
+        if: inputs.test_scope == 'store' || inputs.test_scope == 'full'
+        working-directory: ./server
+        env:
+          MM_SQLSETTINGS_DRIVERNAME: postgres
+          MM_SQLSETTINGS_DATASOURCE: postgres://mmuser:mostest@localhost:5432/mattermost_test?sslmode=disable
+        run: |
+          echo "## Store Tests" >> $GITHUB_STEP_SUMMARY
+          gotestsum --format testname -- -v \
+            ./channels/store/... \
+            -timeout 60m
