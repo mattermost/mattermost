@@ -33,7 +33,7 @@ func (f *FrontendService) PublishWebSocketEvent(event string, payload map[string
 // The userID parameter specifies the user to send the toast to.
 // If connectionID is set, the toast will only be sent to that specific connection.
 //
-// Minimum server version: 11.4
+// Minimum server version: 11.5
 func (f *FrontendService) SendToastMessage(userID, connectionID, message string, options model.SendToastMessageOptions) error {
 	return normalizeAppErr(f.api.SendToastMessage(userID, connectionID, message, options))
 }

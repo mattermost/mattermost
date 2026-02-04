@@ -251,7 +251,7 @@ type Hooks interface {
 	//   - model.FileDownloadTypePreview: Preview image request
 	//   - model.FileDownloadTypePublic: Public link access (userID will be empty string in this case)
 	//
-	// Minimum server version: 11.4
+	// Minimum server version: 11.5
 	FileWillBeDownloaded(c *Context, fileInfo *model.FileInfo, userID string, downloadType model.FileDownloadType) string
 
 	// ReactionHasBeenAdded is invoked after the reaction has been committed to the database.

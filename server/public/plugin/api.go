@@ -865,7 +865,7 @@ type API interface {
 	// If connectionID is set, the toast will only be sent to that specific connection.
 	//
 	// @tag Frontend
-	// Minimum server version: 11.4
+	// Minimum server version: 11.5
 	SendToastMessage(userID, connectionID, message string, options model.SendToastMessageOptions) *model.AppError
 
 	// Plugin Section
