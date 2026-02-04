@@ -199,12 +199,10 @@ func (ps *PlatformService) PopulateWebConnConfig(s *model.Session, cfg *WebConnC
 // NewWebConn returns a new WebConn instance.
 func (ps *PlatformService) NewWebConn(cfg *WebConnConfig, suite SuiteIFace, runner HookRunner) *WebConn {
 	userID := cfg.Session.UserId
-	session := cfg.Session
 	device := cfg.OriginClient
 	if cfg.Session.UserId != "" {
 		ps.Go(func() {
 			ps.SetStatusOnline(userID, false, device)
-			ps.UpdateLastActivityAtIfNeeded(session)
 		})
 	}
 
