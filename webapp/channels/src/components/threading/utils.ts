@@ -22,11 +22,11 @@ export function cleanMessageForDisplay(message: string, maxLength = 50): string 
         // Remove code blocks (inline only since we're on first line)
         replace(/`[^`]+`/g, '[code]').
 
+        // Remove images BEFORE links (images start with ! before the [)
+        replace(/!\[[^\]]*\]\([^)]+\)/g, '[image]').
+
         // Remove links but keep text
         replace(/\[([^\]]+)\]\([^)]+\)/g, '$1').
-
-        // Remove images
-        replace(/!\[[^\]]*\]\([^)]+\)/g, '[image]').
 
         // Remove bold/italic
         replace(/\*\*([^*]+)\*\*/g, '$1').

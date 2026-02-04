@@ -13,6 +13,7 @@ import {shallow} from 'enzyme';
 import React from 'react';
 
 import MarkdownImage from 'components/markdown_image/markdown_image';
+import SizeAwareImage from 'components/size_aware_image';
 
 describe('ImageCaptions feature', () => {
     describe('config mapping', () => {
@@ -294,7 +295,7 @@ describe('ImageCaptions feature', () => {
 
             // Both wrapper and SizeAwareImage should exist
             expect(childrenWrapper.find('.markdown-image-caption-wrapper')).toHaveLength(1);
-            expect(childrenWrapper.find('SizeAwareImage')).toHaveLength(1);
+            expect(childrenWrapper.find(SizeAwareImage)).toHaveLength(1);
         });
 
         it('should render image directly when caption is not shown', () => {
@@ -312,7 +313,7 @@ describe('ImageCaptions feature', () => {
 
             // No wrapper, just SizeAwareImage
             expect(childrenWrapper.find('.markdown-image-caption-wrapper')).toHaveLength(0);
-            expect(childrenWrapper.find('SizeAwareImage')).toHaveLength(1);
+            expect(childrenWrapper.find(SizeAwareImage)).toHaveLength(1);
         });
 
         it('should handle broken images without caption', () => {
