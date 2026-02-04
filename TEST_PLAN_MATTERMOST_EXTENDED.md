@@ -23,24 +23,24 @@ This document outlines the complete test coverage plan for all Mattermost Extend
 | Status Log Dashboard | ✅ Exists | ✅ Exists | ❌ Missing | Good |
 | Custom Channel Icons | ✅ Exists | ✅ Exists | ✅ Exists | Complete |
 | Encryption (E2EE) | ✅ Exists | ✅ Exists | ✅ Exists | Complete |
-| ThreadsInSidebar | ❌ Missing | ✅ Exists | ❌ Missing | Partial |
-| CustomThreadNames | ❌ Missing | ✅ Exists | ❌ Missing | Partial |
+| ThreadsInSidebar | ❌ Missing | ✅ Exists | ✅ Exists | Good |
+| CustomThreadNames | ❌ Missing | ✅ Exists | ✅ Exists | Good |
 | ImageMulti | ❌ Missing | ✅ Exists | ✅ Exists | Good |
 | ImageSmaller | ❌ Missing | ✅ Exists | ✅ Exists | Good |
-| ImageCaptions | ❌ Missing | ❌ Missing | ✅ Exists | Partial |
+| ImageCaptions | ❌ Missing | ✅ Exists | ✅ Exists | Good |
 | VideoEmbed | ❌ Missing | ✅ Exists | ✅ Exists | Good |
 | VideoLinkEmbed | ❌ Missing | ✅ Exists | ✅ Exists | Good |
 | EmbedYoutube | ❌ Missing | ✅ Exists | ✅ Exists | Good |
-| ErrorLogDashboard | ✅ Exists | ✅ Exists | ❌ Missing | Good |
-| SystemConsoleDarkMode | N/A | ✅ Exists | ❌ Missing | Good |
-| SystemConsoleHideEnterprise | N/A | ✅ Exists | ❌ Missing | Good |
-| SystemConsoleIcons | N/A | ✅ Exists | ❌ Missing | Good |
+| ErrorLogDashboard | ✅ Exists | ✅ Exists | ✅ Exists | Complete |
+| SystemConsoleDarkMode | N/A | ✅ Exists | ✅ Exists | Complete |
+| SystemConsoleHideEnterprise | N/A | ✅ Exists | ✅ Exists | Complete |
+| SystemConsoleIcons | N/A | ✅ Exists | ✅ Exists | Complete |
 | SettingsResorted | N/A | ❌ Missing | ❌ Missing | None |
 | PreferencesRevamp | ❌ Missing | ❌ Missing | ❌ Missing | None |
-| PreferenceOverridesDashboard | ✅ Exists | ✅ Exists | ❌ Missing | Good |
-| HideDeletedMessagePlaceholder | ❌ Missing | ✅ Exists | ❌ Missing | Good |
-| SidebarChannelSettings | ❌ Missing | ✅ Exists | ❌ Missing | Good |
-| HideUpdateStatusButton | ❌ Missing | ✅ Exists | ❌ Missing | Good |
+| PreferenceOverridesDashboard | ✅ Exists | ✅ Exists | ✅ Exists | Complete |
+| HideDeletedMessagePlaceholder | ❌ Missing | ✅ Exists | ✅ Exists | Good |
+| SidebarChannelSettings | ❌ Missing | ✅ Exists | ✅ Exists | Good |
+| HideUpdateStatusButton | ❌ Missing | ✅ Exists | ✅ Exists | Good |
 | SidebarBaseChannelIcon | N/A | ✅ Exists | N/A | Good |
 | MultiImageView | N/A | ✅ Exists | N/A | Good |
 | MattermostExtendedSettings | ✅ Exists | N/A | N/A | Complete |
@@ -640,165 +640,132 @@ Tests CustomThreadNames feature:
 - ✅ ThreadsInSidebar integration - shows simple header when ThreadsInSidebar disabled
 - ✅ ThreadsInSidebar integration - shows enhanced header without edit when only ThreadsInSidebar enabled
 
-#### F. MarkdownImage Captions Tests (Not Implemented)
+#### F. MarkdownImage Captions Tests ✅ IMPLEMENTED
 
-```typescript
-// markdown_image.test.tsx (caption tests)
-describe('MarkdownImage Captions', () => {
-    test('shows caption when ImageCaptions enabled')
-    test('hides caption when disabled')
-    test('respects captionFontSize setting')
-    test('displays title attribute as caption')
-})
-```
+**File:** `webapp/channels/src/tests/mattermost_extended/image_captions.test.tsx`
+
+Tests ImageCaptions feature:
+- ✅ Config mapping - maps FeatureFlagImageCaptions to boolean
+- ✅ Config mapping - maps MattermostExtendedMediaCaptionFontSize to number (default 12)
+- ✅ Config mapping - handles non-numeric font size gracefully
+- ✅ Caption rendering - shows caption when ImageCaptions enabled and title is present
+- ✅ Caption rendering - NOT shown when ImageCaptions disabled
+- ✅ Caption rendering - NOT shown when title is empty
+- ✅ Caption rendering - NOT shown when imageCaptionsEnabled is undefined
+- ✅ Caption rendering - includes "> " prefix in caption text
+- ✅ Caption styling - applies custom captionFontSize
+- ✅ Caption styling - uses default 12px when captionFontSize not provided
+- ✅ Caption styling - applies various font sizes (10px, 20px)
+- ✅ Integration - still renders image when caption is shown
+- ✅ Integration - renders image directly when caption is not shown
+- ✅ Integration - handles broken images without caption
+- ✅ Integration - does not show caption for unsafe links post
+- ✅ Caption content - displays long caption text
+- ✅ Caption content - displays caption with special characters
+- ✅ Caption content - displays caption with unicode characters
+- ✅ Caption content - handles whitespace-only title
 
 ---
 
-### E2E Tests (Cypress) - Not Implemented
+### E2E Tests (Cypress) ✅ IMPLEMENTED
 
-#### A. Custom Channel Icons E2E
+All E2E tests are now implemented in `e2e-tests/cypress/tests/integration/channels/mattermost_extended/`:
 
-```javascript
-// e2e-tests/cypress/tests/integration/custom_channel_icons_spec.js
-describe('Custom Channel Icons', () => {
-    it('Admin can create custom SVG icon')
-    it('Admin can edit custom icon')
-    it('Admin can delete custom icon')
-    it('User can set channel icon from library')
-    it('User can set channel icon from custom SVG')
-    it('Icon displays correctly in sidebar')
-    it('Icon displays correctly in channel header')
-    it('Feature disabled hides icon tab')
-})
-```
+#### A. Custom Channel Icons E2E ✅
+**File:** `custom_channel_icons_spec.ts` (existing)
 
-#### B. Encryption E2E
+#### B. Encryption E2E ✅
+**File:** `encryption_spec.ts` (existing)
 
-```javascript
-// e2e-tests/cypress/tests/integration/encryption_spec.js
-describe('End-to-End Encryption', () => {
-    it('Keys generated automatically on login')
-    it('Encrypted message sent and received')
-    it('Multiple users in channel can decrypt')
-    it('Encrypted file upload and download')
-    it('Admin can view encryption keys')
-    it('Admin can delete encryption keys')
-    it('Feature disabled prevents encryption')
-})
-```
+#### C. Status Features E2E ✅
+**File:** `status_extended_spec.ts` (existing)
 
-#### C. Status Features E2E
+#### D. Media Features E2E ✅
+**File:** `media_extended_spec.ts` (existing)
 
-```javascript
-// e2e-tests/cypress/tests/integration/status_extended_spec.js
-describe('Accurate Statuses', () => {
-    it('User goes Away after inactivity')
-    it('User returns to Online on activity')
-    it('Channel switch updates activity')
-    it('Manual status preserved')
-    it('DND timeout works')
-})
+#### E. Thread Features E2E ✅ NEW
+**File:** `threads_extended_spec.ts`
 
-describe('Status Log Dashboard', () => {
-    it('Admin can view status logs')
-    it('Filters work correctly')
-    it('Export downloads JSON')
-    it('Clear removes all logs')
-})
-```
+Tests ThreadsInSidebar:
+- ✅ MM-EXT-TH001 Followed threads appear under parent channel in sidebar
+- ✅ MM-EXT-TH002 Thread shows message preview as label
+- ✅ MM-EXT-TH003 Clicking thread in sidebar opens full-width thread view
+- ✅ MM-EXT-TH004 Unread threads show unread indicator
+- ✅ MM-EXT-TH005 Unfollowing thread removes it from sidebar
+- ✅ MM-EXT-TH006 Thread with mentions shows mention badge
 
-#### D. Media Features E2E
+Tests CustomThreadNames:
+- ✅ MM-EXT-TH007 User can rename thread in full-width view
+- ✅ MM-EXT-TH008 Custom thread name appears in sidebar
+- ✅ MM-EXT-TH009 Clearing custom name reverts to message preview
+- ✅ MM-EXT-TH010 Escape key cancels thread name edit
+- ✅ MM-EXT-TH011 Thread name is trimmed of whitespace
 
-```javascript
-// e2e-tests/cypress/tests/integration/media_extended_spec.js
-describe('ImageMulti', () => {
-    it('Multiple images display full-size')
-})
+Tests Feature Flag Configuration:
+- ✅ MM-EXT-TH012 ThreadsInSidebar can be toggled
+- ✅ MM-EXT-TH013 CustomThreadNames can be toggled
+- ✅ MM-EXT-TH014 ThreadsInSidebar requires CRT to be enabled
+- ✅ MM-EXT-TH015 Admin console shows thread feature flags
 
-describe('ImageSmaller', () => {
-    it('Images constrained to max dimensions')
-})
+#### F. UI Tweaks E2E ✅ NEW
+**File:** `ui_tweaks_spec.ts`
 
-describe('ImageCaptions', () => {
-    it('Caption displays below image')
-})
+Tests HideDeletedMessagePlaceholder:
+- ✅ MM-EXT-UI001 Deleted messages disappear immediately
+- ✅ MM-EXT-UI002 Multiple deleted messages all disappear
+- ✅ MM-EXT-UI003 Placeholder shown when tweak is disabled
 
-describe('VideoEmbed', () => {
-    it('Video file plays inline')
-})
+Tests SidebarChannelSettings:
+- ✅ MM-EXT-UI004 Channel Settings appears in right-click menu
+- ✅ MM-EXT-UI005 Clicking Channel Settings opens modal
+- ✅ MM-EXT-UI006 Channel Settings available for public channels
+- ✅ MM-EXT-UI007 Channel Settings available for private channels
+- ✅ MM-EXT-UI008 Channel Settings NOT shown for DM channels
+- ✅ MM-EXT-UI009 Channel Settings NOT shown when tweak disabled
 
-describe('VideoLinkEmbed', () => {
-    it('Video URL embeds player')
-})
+Tests HideUpdateStatusButton:
+- ✅ MM-EXT-UI010 Update status button is hidden on posts
+- ✅ MM-EXT-UI011 Status button visible when feature disabled
 
-describe('EmbedYoutube', () => {
-    it('YouTube shows Discord-style card')
-})
-```
+Tests Tweak Configuration:
+- ✅ MM-EXT-UI012-014 Tweaks can be toggled via API
+- ✅ MM-EXT-UI015-018 Admin console shows tweak settings
 
-#### E. Thread Features E2E
+#### G. Admin Console Features E2E ✅ NEW
+**File:** `admin_console_extended_spec.ts`
 
-```javascript
-// e2e-tests/cypress/tests/integration/threads_extended_spec.js
-describe('ThreadsInSidebar', () => {
-    it('Followed threads appear under channels')
-    it('Thread can be unfollowed')
-    it('Thread followers visible')
-})
+Tests SystemConsoleDarkMode:
+- ✅ MM-EXT-AC001 Dark mode is applied to admin console
+- ✅ MM-EXT-AC002 Dark mode styling is visible
+- ✅ MM-EXT-AC003 Dark mode can be toggled
 
-describe('CustomThreadNames', () => {
-    it('User can rename thread')
-    it('Thread name displays in sidebar')
-    it('Thread name displays in header')
-})
-```
+Tests SystemConsoleHideEnterprise:
+- ✅ MM-EXT-AC004 Enterprise features are hidden
+- ✅ MM-EXT-AC005 Non-enterprise features are still visible
+- ✅ MM-EXT-AC006 Enterprise features visible when disabled
 
-#### F. UI Tweaks E2E
+Tests SystemConsoleIcons:
+- ✅ MM-EXT-AC007 Icons are shown next to sidebar sections
+- ✅ MM-EXT-AC008 Icons removed when feature disabled
 
-```javascript
-// e2e-tests/cypress/tests/integration/ui_tweaks_spec.js
-describe('HideDeletedMessagePlaceholder', () => {
-    it('Deleted message disappears immediately')
-})
+Tests PreferenceOverridesDashboard:
+- ✅ MM-EXT-AC009 Preference overrides dashboard accessible
+- ✅ MM-EXT-AC010 Admin can view preference categories
+- ✅ MM-EXT-AC011 Admin can set preference overrides
+- ✅ MM-EXT-AC012 Override applies to users
+- ✅ MM-EXT-AC013 User cannot change overridden preference
 
-describe('SidebarChannelSettings', () => {
-    it('Channel Settings in right-click menu')
-    it('Opens channel settings modal')
-})
+Tests ErrorLogDashboard:
+- ✅ MM-EXT-AC014 Error log dashboard accessible
+- ✅ MM-EXT-AC015 Error dashboard displays
+- ✅ MM-EXT-AC016 Error filters work
+- ✅ MM-EXT-AC017 Clear errors functionality
 
-describe('HideUpdateStatusButton', () => {
-    it('Update status button hidden')
-})
-```
+Tests Mattermost Extended Sidebar:
+- ✅ MM-EXT-AC018-023 All subsections exist in admin sidebar
 
-#### G. Admin Console Features E2E
-
-```javascript
-// e2e-tests/cypress/tests/integration/admin_console_extended_spec.js
-describe('SystemConsoleDarkMode', () => {
-    it('Dark mode applied to admin console')
-})
-
-describe('SystemConsoleHideEnterprise', () => {
-    it('Enterprise features hidden')
-})
-
-describe('SystemConsoleIcons', () => {
-    it('Icons display next to sections')
-})
-
-describe('PreferenceOverridesDashboard', () => {
-    it('Admin can set preference overrides')
-    it('Override applies to users')
-    it('User cannot change overridden preference')
-})
-
-describe('ErrorLogDashboard', () => {
-    it('Errors displayed in dashboard')
-    it('Filters work correctly')
-    it('Clear removes all errors')
-})
-```
+Tests Feature Flag Toggles:
+- ✅ MM-EXT-AC024-028 All feature flags can be toggled
 
 ---
 
@@ -844,6 +811,7 @@ describe('ErrorLogDashboard', () => {
 | ThreadsInSidebar | `webapp/channels/src/tests/mattermost_extended/threads_in_sidebar.test.tsx` ✅ |
 | CustomThreadNames | `webapp/channels/src/tests/mattermost_extended/custom_thread_names.test.tsx` ✅ |
 | cleanMessageForDisplay | `webapp/channels/src/tests/mattermost_extended/threads_in_sidebar.test.tsx` ✅ |
+| ImageCaptions | `webapp/channels/src/tests/mattermost_extended/image_captions.test.tsx` ✅ |
 
 ### E2E Tests (Cypress)
 | Feature | File Path |
@@ -852,9 +820,9 @@ describe('ErrorLogDashboard', () => {
 | Encryption | `e2e-tests/cypress/tests/integration/channels/mattermost_extended/encryption_spec.ts` ✅ |
 | Status Extended | `e2e-tests/cypress/tests/integration/channels/mattermost_extended/status_extended_spec.ts` ✅ |
 | Media Extended | `e2e-tests/cypress/tests/integration/channels/mattermost_extended/media_extended_spec.ts` ✅ |
-| Threads Extended | `e2e-tests/cypress/tests/integration/channels/mattermost_extended/threads_extended_spec.ts` ❌ |
-| UI Tweaks | `e2e-tests/cypress/tests/integration/channels/mattermost_extended/ui_tweaks_spec.ts` ❌ |
-| Admin Console Extended | `e2e-tests/cypress/tests/integration/channels/mattermost_extended/admin_console_extended_spec.ts` ❌ |
+| Threads Extended | `e2e-tests/cypress/tests/integration/channels/mattermost_extended/threads_extended_spec.ts` ✅ |
+| UI Tweaks | `e2e-tests/cypress/tests/integration/channels/mattermost_extended/ui_tweaks_spec.ts` ✅ |
+| Admin Console Extended | `e2e-tests/cypress/tests/integration/channels/mattermost_extended/admin_console_extended_spec.ts` ✅ |
 
 ---
 
@@ -881,14 +849,14 @@ describe('ErrorLogDashboard', () => {
 3. ✅ Status features E2E
 4. ✅ Media features E2E
 
-### Phase 4: Remaining Tests (Lower Priority) ✅ MOSTLY COMPLETE
+### Phase 4: Remaining Tests (Lower Priority) ✅ COMPLETE
 1. ✅ UI tweak tests (HideDeletedMessagePlaceholder, SidebarChannelSettings, HideUpdateStatusButton)
 2. ✅ System Console feature tests (SystemConsoleDarkMode, SystemConsoleHideEnterprise, SystemConsoleIcons)
 3. ✅ Multi Image View tests
 4. ✅ Sidebar Base Channel Icon tests
 5. ✅ Status Logs Platform tests
 6. ✅ Thread feature tests (ThreadsInSidebar, CustomThreadNames)
-7. ❌ MarkdownImage Captions tests (ImageCaptions)
+7. ✅ MarkdownImage Captions tests (ImageCaptions)
 
 ---
 
