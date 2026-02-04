@@ -516,4 +516,33 @@ func TestSetStatusAwayIfNeededExtended(t *testing.T) {
 		assert.Equal(t, model.StatusOnline, after.Status)
 		assert.True(t, after.Manual)
 	})
+
+	t.Run("should NOT set Away when Offline with PrevStatus=DND", func(t *testing.T) {
+		th := Setup(t).InitBasic(t)
+
+		// Set config for short timeout
+		th.Service.UpdateConfig(func(cfg *model.Config) {
+			*cfg.TeamSettings.UserStatusAwayTimeout = 1 // 1 second
+		})
+
+		// User was DND, went offline due to DND inactivity (prevStatus preserved)
+		oldTime := model.GetMillis() - 5000 // 5 seconds ago (past 1 second timeout)
+		status := &model.Status{
+			UserId:         th.BasicUser.Id,
+			Status:         model.StatusOffline,
+			PrevStatus:     model.StatusDnd, // KEY: was DND before going offline
+			Manual:         false,
+			LastActivityAt: oldTime,
+		}
+		th.Service.SaveAndBroadcastStatus(status)
+
+		// Call SetStatusAwayIfNeeded
+		th.Service.SetStatusAwayIfNeeded(th.BasicUser.Id, false)
+
+		// Should remain Offline (NOT Away) to preserve DND restoration
+		after, err := th.Service.GetStatus(th.BasicUser.Id)
+		require.Nil(t, err)
+		assert.Equal(t, model.StatusOffline, after.Status)
+		assert.Equal(t, model.StatusDnd, after.PrevStatus) // PrevStatus should be preserved
+	})
 }

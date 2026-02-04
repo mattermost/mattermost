@@ -407,3 +407,54 @@ func TestDNDWithNoOffline(t *testing.T) {
 		assert.Equal(t, "", after.PrevStatus)
 	})
 }
+
+func TestDNDOfflineDoesNotTransitionToAway(t *testing.T) {
+	t.Run("DND user that went Offline should NOT transition to Away via SetStatusAwayIfNeeded", func(t *testing.T) {
+		th := Setup(t).InitBasic(t)
+
+		th.Service.UpdateConfig(func(cfg *model.Config) {
+			cfg.FeatureFlags.AccurateStatuses = true
+			*cfg.TeamSettings.UserStatusAwayTimeout = 1                              // 1 second
+			*cfg.MattermostExtendedSettings.Statuses.DNDInactivityTimeoutMinutes = 1 // 1 minute
+		})
+
+		// Step 1: User sets DND
+		status := &model.Status{
+			UserId:         th.BasicUser.Id,
+			Status:         model.StatusDnd,
+			Manual:         true,
+			LastActivityAt: model.GetMillis(),
+		}
+		th.Service.SaveAndBroadcastStatus(status)
+
+		// Step 2: Simulate DND inactivity timeout - user goes offline
+		// This is what happens in UpdateActivityFromHeartbeat when DND user is inactive too long
+		offlineStatus := &model.Status{
+			UserId:         th.BasicUser.Id,
+			Status:         model.StatusOffline,
+			PrevStatus:     model.StatusDnd,
+			Manual:         false,
+			LastActivityAt: model.GetMillis() - (2 * 60 * 1000), // 2 minutes ago
+		}
+		th.Service.SaveAndBroadcastStatus(offlineStatus)
+
+		// Step 3: SetStatusAwayIfNeeded is called (e.g., from WebSocket disconnect handler)
+		// This should NOT change the status to Away
+		th.Service.SetStatusAwayIfNeeded(th.BasicUser.Id, false)
+
+		// Verify user is still Offline (not Away)
+		after, err := th.Service.GetStatus(th.BasicUser.Id)
+		require.Nil(t, err)
+		assert.Equal(t, model.StatusOffline, after.Status, "User should remain Offline, not transition to Away")
+		assert.Equal(t, model.StatusDnd, after.PrevStatus, "PrevStatus should be preserved for DND restoration")
+
+		// Step 4: User shows activity - should restore DND
+		th.Service.UpdateActivityFromHeartbeat(th.BasicUser.Id, true, th.BasicChannel.Id, "desktop")
+
+		restored, err := th.Service.GetStatus(th.BasicUser.Id)
+		require.Nil(t, err)
+		assert.Equal(t, model.StatusDnd, restored.Status, "User should be restored to DND")
+		assert.True(t, restored.Manual, "Restored DND should be manual")
+		assert.Equal(t, "", restored.PrevStatus, "PrevStatus should be cleared after restoration")
+	})
+}

@@ -867,6 +867,13 @@ func (ps *PlatformService) SetStatusAwayIfNeeded(userID string, manual bool) {
 		return // manually set status always overrides non-manual one
 	}
 
+	// Don't set Away if user was DND and went Offline due to DND inactivity timeout.
+	// They should stay Offline (preserving notification suppression via PrevStatus)
+	// until they show activity, at which point DND will be restored.
+	if status.Status == model.StatusOffline && status.PrevStatus == model.StatusDnd {
+		return
+	}
+
 	if !manual {
 		if status.Status == model.StatusAway {
 			return
