@@ -1,11 +1,16 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import classNames from 'classnames';
 import type {HTMLAttributes} from 'react';
 import React, {useEffect, useRef, useState} from 'react';
 import {useSelector} from 'react-redux';
 
+import {getConfig} from 'mattermost-redux/selectors/entities/general';
+
 import {getIsRhsExpanded, getRhsSize} from 'selectors/rhs';
+
+import type {GlobalState} from 'types/store';
 
 import {CssVarKeyForResizable, RHS_MIN_MAX_WIDTH, ResizeDirection} from '../constants';
 import ResizableDivider from '../resizable_divider';
@@ -31,6 +36,7 @@ function ResizableRhs({
 
     const rhsSize = useSelector(getRhsSize);
     const isRhsExpanded = useSelector(getIsRhsExpanded);
+    const freeResizing = useSelector((state: GlobalState) => getConfig(state).FeatureFlagFreeSidebarResizing === 'true');
 
     const [previousRhsExpanded, setPreviousRhsExpanded] = useState(false);
 
@@ -92,7 +98,7 @@ function ResizableRhs({
     return (
         <div
             id={id}
-            className={className}
+            className={classNames(className, {'free-resizing': freeResizing})}
             role={role}
             ref={containerRef}
             aria-label={ariaLabel}
@@ -109,6 +115,7 @@ function ResizableRhs({
                 onResize={handleResize}
                 onResizeEnd={handleResizeEnd}
                 onDividerDoubleClick={handleDividerDoubleClick}
+                disableSnapping={freeResizing}
             />
         </div>
     );

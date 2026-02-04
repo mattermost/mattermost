@@ -32,6 +32,14 @@ $sidebarOpacityAnimationDuration: 0.15s;
         max-width: 440px;
     }
 
+    // Free resizing mode: remove max-width constraints
+    &.free-resizing {
+        @media screen and (min-width: 769px) {
+            min-width: 180px;
+            max-width: calc(50vw - 100px);
+        }
+    }
+
     h1,
     h2,
     h3 {

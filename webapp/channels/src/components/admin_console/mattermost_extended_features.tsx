@@ -40,6 +40,7 @@ const MATTERMOST_EXTENDED_FLAGS = [
     'PreferencesRevamp',
     'PreferenceOverridesDashboard',
     'HideUpdateStatusButton',
+    'FreeSidebarResizing',
 ];
 
 type Props = {

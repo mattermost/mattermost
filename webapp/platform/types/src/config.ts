@@ -137,6 +137,7 @@ export type ClientConfig = {
     FeatureFlagGuildedSounds: string;
     FeatureFlagSuppressEnterpriseUpgradeChecks: string;
     FeatureFlagSettingsResorted: string;
+    FeatureFlagFreeSidebarResizing: string;
 
     // Mattermost Extended Settings
     MattermostExtendedPreferenceOverrideKeys: string;

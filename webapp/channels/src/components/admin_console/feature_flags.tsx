@@ -241,6 +241,10 @@ const FLAG_METADATA: Record<string, {description: string; defaultValue: boolean}
         description: 'Hide the "Update your status" button that appears on posts when user has no custom status set',
         defaultValue: false,
     },
+    FreeSidebarResizing: {
+        description: 'Allow free resizing of sidebars without max-width constraints or snapping. Persists sizes across sessions.',
+        defaultValue: false,
+    },
 };
 
 // Styled components
