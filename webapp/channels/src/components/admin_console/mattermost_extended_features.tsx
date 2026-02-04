@@ -335,32 +335,8 @@ const Container = styled.div`
 const ContentWrapper = styled.div`
     flex: 1;
     overflow-y: auto;
-    padding: 0 32px 32px;
-    max-width: 1200px;
-    margin: 0 auto;
+    padding: 24px 32px 32px;
     width: 100%;
-`;
-
-const HeaderBanner = styled.div`
-    background: linear-gradient(135deg, var(--button-bg) 0%, rgba(var(--button-bg-rgb), 0.8) 100%);
-    color: var(--button-color);
-    padding: 32px 40px;
-    border-radius: 12px;
-    margin-bottom: 32px;
-    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
-`;
-
-const BannerTitle = styled.h1`
-    font-size: 28px;
-    font-weight: 700;
-    margin: 0 0 8px;
-`;
-
-const BannerDescription = styled.p`
-    font-size: 16px;
-    opacity: 0.9;
-    margin: 0;
-    max-width: 700px;
 `;
 
 const StatsBar = styled.div`
@@ -568,15 +544,15 @@ const RegularFeatureCard = styled.div<{$enabled: boolean}>`
     }
 `;
 
-const FeatureIconWrapper = styled.div<{$enabled: boolean; $major: boolean}>`
-    width: ${(props) => props.$major ? '48px' : '36px'};
-    height: ${(props) => props.$major ? '48px' : '36px'};
-    border-radius: ${(props) => props.$major ? '12px' : '8px'};
+const FeatureIconWrapper = styled.div<{$enabled: boolean}>`
+    width: 36px;
+    height: 36px;
+    border-radius: 8px;
     background: ${(props) => props.$enabled
-        ? (props.$major ? 'var(--online-indicator)' : 'rgba(61, 204, 145, 0.15)')
+        ? 'rgba(61, 204, 145, 0.15)'
         : 'rgba(var(--center-channel-color-rgb), 0.08)'};
     color: ${(props) => props.$enabled
-        ? (props.$major ? 'white' : 'var(--online-indicator)')
+        ? 'var(--online-indicator)'
         : 'rgba(var(--center-channel-color-rgb), 0.48)'};
     display: flex;
     align-items: center;
@@ -636,12 +612,13 @@ const UnsavedDot = styled.span`
     margin-left: 8px;
 `;
 
-const ToggleWrapper = styled.label`
+const ToggleWrapper = styled.div`
     position: relative;
     display: inline-block;
     width: 44px;
     height: 24px;
     flex-shrink: 0;
+    cursor: pointer;
 `;
 
 const ToggleInput = styled.input`
@@ -874,7 +851,7 @@ const MattermostExtendedFeatures: React.FC<Props> = ({config, patchConfig, disab
         const Icon = feature.icon;
 
         const toggle = (
-            <ToggleWrapper onClick={(e) => e.stopPropagation()}>
+            <ToggleWrapper onClick={(e) => handleToggle(feature.key, e)}>
                 <ToggleInput
                     type='checkbox'
                     checked={isEnabled}
@@ -884,7 +861,6 @@ const MattermostExtendedFeatures: React.FC<Props> = ({config, patchConfig, disab
                 <ToggleSlider
                     $checked={isEnabled}
                     $disabled={disabled}
-                    onClick={(e) => handleToggle(feature.key, e)}
                 />
             </ToggleWrapper>
         );
@@ -896,8 +872,8 @@ const MattermostExtendedFeatures: React.FC<Props> = ({config, patchConfig, disab
                     $enabled={isEnabled}
                     onClick={(e) => handleToggle(feature.key, e)}
                 >
-                    <FeatureIconWrapper $enabled={isEnabled} $major={true}>
-                        <Icon size={24}/>
+                    <FeatureIconWrapper $enabled={isEnabled}>
+                        <Icon size={18}/>
                     </FeatureIconWrapper>
                     <FeatureInfo>
                         <FeatureHeader>
@@ -921,7 +897,7 @@ const MattermostExtendedFeatures: React.FC<Props> = ({config, patchConfig, disab
                 $enabled={isEnabled}
                 onClick={(e) => handleToggle(feature.key, e)}
             >
-                <FeatureIconWrapper $enabled={isEnabled} $major={false}>
+                <FeatureIconWrapper $enabled={isEnabled}>
                     <Icon size={18}/>
                 </FeatureIconWrapper>
                 <FeatureInfo>
@@ -982,13 +958,6 @@ const MattermostExtendedFeatures: React.FC<Props> = ({config, patchConfig, disab
             </AdminHeader>
 
             <ContentWrapper>
-                <HeaderBanner>
-                    <BannerTitle>{'Mattermost Extended Features'}</BannerTitle>
-                    <BannerDescription>
-                        {'Customize your Mattermost experience with extended features. Toggle individual flags to enable or disable functionality.'}
-                    </BannerDescription>
-                </HeaderBanner>
-
                 <StatsBar>
                     <StatItem $highlight={stats.majorEnabled > 0}>
                         <StatLabel>{'Major Features'}</StatLabel>

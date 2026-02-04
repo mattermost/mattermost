@@ -40,11 +40,6 @@ describe('components/admin_console/MattermostExtendedFeatures', () => {
             expect(screen.getByText('Features')).toBeInTheDocument();
         });
 
-        test('should render the header banner', () => {
-            renderWithContext(<MattermostExtendedFeatures {...defaultProps}/>);
-            expect(screen.getByText('Mattermost Extended Features')).toBeInTheDocument();
-        });
-
         test('should render all 7 sections', () => {
             renderWithContext(<MattermostExtendedFeatures {...defaultProps}/>);
 
