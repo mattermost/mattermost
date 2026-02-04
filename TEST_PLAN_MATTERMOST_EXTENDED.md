@@ -20,7 +20,7 @@ This document outlines the complete test coverage plan for all Mattermost Extend
 | AccurateStatuses | ✅ Exists | ❌ Missing | ✅ Exists | Good |
 | NoOffline | ✅ Exists | ❌ Missing | ✅ Exists | Good |
 | DND Extended | ✅ Exists | ❌ Missing | ✅ Exists | Good |
-| Status Log Dashboard | ✅ Exists | ✅ Exists | ✅ Exists | Complete |
+| Status Log Dashboard | ✅ Exists | ✅ Exists | ❌ Missing | Good |
 | Custom Channel Icons | ✅ Exists | ✅ Exists | ✅ Exists | Complete |
 | Encryption (E2EE) | ✅ Exists | ✅ Exists | ✅ Exists | Complete |
 | ThreadsInSidebar | ❌ Missing | ❌ Missing | ❌ Missing | None |
@@ -707,6 +707,8 @@ describe('ErrorLogDashboard', () => {
 | Settings Defaults | `server/public/model/mattermost_extended_settings_test.go` ✅ |
 | StatusLog Model | `server/public/model/status_log_test.go` ✅ |
 | Status API | `server/channels/api4/status_extended_test.go` ✅ |
+| Accurate Statuses Platform | `server/channels/app/platform/accurate_statuses_test.go` ✅ |
+| No Offline Platform | `server/channels/app/platform/no_offline_test.go` ✅ |
 | DND Platform | `server/channels/app/platform/dnd_extended_test.go` ✅ |
 | Custom Icons API | `server/channels/api4/custom_channel_icon_test.go` ✅ |
 | Custom Icons Store | `server/channels/store/sqlstore/custom_channel_icon_store_test.go` ✅ |
