@@ -853,6 +853,7 @@ jobs:
               echo "### $JOB_NAME" >> $GITHUB_STEP_SUMMARY
               echo "" >> $GITHUB_STEP_SUMMARY
 
+              # Process XML files (Go tests)
               for file in "$dir"*.xml; do
                 if [ -f "$file" ]; then
                   NAME=$(basename "$file" .xml)
@@ -868,6 +869,29 @@ jobs:
                     echo "- ✅ **$NAME**: $TESTS tests passed" >> $GITHUB_STEP_SUMMARY
                   else
                     echo "- ❌ **$NAME**: $FAILURES failures, $ERRORS errors out of $TESTS tests" >> $GITHUB_STEP_SUMMARY
+                  fi
+                fi
+              done
+
+              # Process log files (Jest/webapp tests) - parse "Tests: X failed, Y passed, Z total"
+              for file in "$dir"*.log; do
+                if [ -f "$file" ]; then
+                  NAME=$(basename "$file" .log)
+                  # Parse Jest output: "Tests:       2 failed, 17 passed, 19 total"
+                  SUMMARY_LINE=$(grep -E "^Tests:\s+[0-9]+" "$file" | tail -1 || echo "")
+                  if [ -n "$SUMMARY_LINE" ]; then
+                    TESTS=$(echo "$SUMMARY_LINE" | grep -oE '[0-9]+ total' | grep -oE '[0-9]+' || echo "0")
+                    FAILURES=$(echo "$SUMMARY_LINE" | grep -oE '[0-9]+ failed' | grep -oE '[0-9]+' || echo "0")
+                    PASSED=$(echo "$SUMMARY_LINE" | grep -oE '[0-9]+ passed' | grep -oE '[0-9]+' || echo "0")
+
+                    TOTAL_TESTS=$((TOTAL_TESTS + TESTS))
+                    TOTAL_FAILURES=$((TOTAL_FAILURES + FAILURES))
+
+                    if [ "$FAILURES" = "0" ] || [ -z "$FAILURES" ]; then
+                      echo "- ✅ **$NAME**: $TESTS tests passed" >> $GITHUB_STEP_SUMMARY
+                    else
+                      echo "- ❌ **$NAME**: $FAILURES failed, $PASSED passed out of $TESTS total" >> $GITHUB_STEP_SUMMARY
+                    fi
                   fi
                 fi
               done
