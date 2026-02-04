@@ -16,10 +16,10 @@ import LoadingScreen from 'components/loading_screen';
 import Constants from 'utils/constants';
 
 import {DangerText, BorderlessInput, LinkButton} from './controls';
+import {useIsFieldOrphaned} from './orphaned_fields_utils';
 import type {SectionHook} from './section_utils';
 import DotMenu from './user_properties_dot_menu';
 import OrphanedFieldDeleteButton from './user_properties_orphaned_delete_button';
-import {useIsFieldOrphaned} from './orphaned_fields_utils';
 import SelectType from './user_properties_type_menu';
 import type {UserPropertyFields} from './user_properties_utils';
 import {isCreatePending, useUserPropertyFields, ValidationWarningNameRequired, ValidationWarningNameTaken, ValidationWarningNameUnique} from './user_properties_utils';
@@ -234,25 +234,14 @@ export function UserPropertiesTable({
                     );
                 },
                 cell: ({row}) => {
-                    const isOrphaned = useIsFieldOrphaned(row.original);
-
                     return (
-                        <ActionsRoot>
-                            {isOrphaned ? (
-                                <OrphanedFieldDeleteButton
-                                    field={row.original}
-                                    deleteField={deleteField}
-                                />
-                            ) : (
-                                <DotMenu
-                                    field={row.original}
-                                    canCreate={canCreate}
-                                    createField={createField}
-                                    updateField={updateField}
-                                    deleteField={deleteField}
-                                />
-                            )}
-                        </ActionsRoot>
+                        <ActionsCell
+                            field={row.original}
+                            canCreate={canCreate}
+                            createField={createField}
+                            updateField={updateField}
+                            deleteField={deleteField}
+                        />
                     );
                 },
                 enableHiding: false,
@@ -353,6 +342,37 @@ const ColHeaderRight = styled.div`
 const ActionsRoot = styled.div`
     text-align: right;
 `;
+
+type ActionsCellProps = {
+    field: UserPropertyField;
+    canCreate: boolean;
+    createField: (field: UserPropertyField) => void;
+    updateField: (field: UserPropertyField) => void;
+    deleteField: (id: string) => void;
+};
+
+const ActionsCell = ({field, canCreate, createField, updateField, deleteField}: ActionsCellProps) => {
+    const isOrphaned = useIsFieldOrphaned(field);
+
+    return (
+        <ActionsRoot>
+            {isOrphaned ? (
+                <OrphanedFieldDeleteButton
+                    field={field}
+                    deleteField={deleteField}
+                />
+            ) : (
+                <DotMenu
+                    field={field}
+                    canCreate={canCreate}
+                    createField={createField}
+                    updateField={updateField}
+                    deleteField={deleteField}
+                />
+            )}
+        </ActionsRoot>
+    );
+};
 
 type EditCellProps = {
     value: string;

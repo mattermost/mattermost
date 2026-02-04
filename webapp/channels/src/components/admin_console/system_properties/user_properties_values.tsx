@@ -21,9 +21,9 @@ import {isKeyPressed} from 'utils/keyboard';
 import type {GlobalState} from 'types/store';
 
 import {DangerText} from './controls';
+import {useIsFieldOrphaned} from './orphaned_fields_utils';
 import './user_properties_values.scss';
 import {useAttributeLinkModal} from './user_properties_dot_menu';
-import {useIsFieldOrphaned} from './orphaned_fields_utils';
 
 type Props = {
     field: UserPropertyField;
@@ -41,6 +41,7 @@ const UserPropertyValues = ({
 }: Props) => {
     const {formatMessage} = useIntl();
     const pluginDisplayName = useSelector((state: GlobalState) => getPluginDisplayName(state, field.attrs?.source_plugin_id));
+    const isOrphaned = useIsFieldOrphaned(field);
 
     const [query, setQuery] = React.useState('');
     const {promptEditLdapLink, promptEditSamlLink} = useAttributeLinkModal(field, updateField);
@@ -150,8 +151,6 @@ const UserPropertyValues = ({
     }
 
     if (field.attrs?.protected) {
-        const isOrphaned = useIsFieldOrphaned(field);
-
         return (
             <>
                 <span className='user-property-field-values'>
