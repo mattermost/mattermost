@@ -229,14 +229,16 @@ const IconClock = () => (
 
 // Helper to determine platform icon and label
 const getPlatformInfo = (key: EncryptionKeyWithUser): {icon: React.ReactNode; label: string} => {
-    const platform = key.platform.toLowerCase();
-    const deviceId = key.device_id.toLowerCase();
+    const platform = (key.platform || '').toLowerCase();
+    const deviceId = (key.device_id || '').toLowerCase();
+    const browser = key.browser || '';
+    const os = key.os || '';
 
     // Check for mobile first (via device ID or platform)
     if (deviceId.includes('android') || deviceId.includes('ios') || platform.includes('android') || platform.includes('ios')) {
         return {
             icon: <IconMobile/>,
-            label: key.os || key.platform || 'Mobile',
+            label: os || key.platform || 'Mobile',
         };
     }
 
@@ -244,15 +246,15 @@ const getPlatformInfo = (key: EncryptionKeyWithUser): {icon: React.ReactNode; la
     if (platform.includes('electron') || platform.includes('desktop')) {
         return {
             icon: <IconDesktop/>,
-            label: `Desktop (${key.os || 'Unknown OS'})`,
+            label: `Desktop (${os || 'Unknown OS'})`,
         };
     }
 
     // Check for web browser
-    if (key.browser) {
+    if (browser) {
         return {
             icon: <IconGlobe/>,
-            label: key.browser + (key.os ? ` on ${key.os}` : ''),
+            label: browser + (os ? ` on ${os}` : ''),
         };
     }
 
@@ -429,12 +431,12 @@ const EncryptionDashboard: React.FC<Props> = ({config, patchConfig}) => {
         if (search) {
             const searchLower = search.toLowerCase();
             return (
-                key.username.toLowerCase().includes(searchLower) ||
-                key.user_id.toLowerCase().includes(searchLower) ||
-                key.session_id.toLowerCase().includes(searchLower) ||
-                key.platform.toLowerCase().includes(searchLower) ||
-                key.browser.toLowerCase().includes(searchLower) ||
-                key.os.toLowerCase().includes(searchLower)
+                (key.username || '').toLowerCase().includes(searchLower) ||
+                (key.user_id || '').toLowerCase().includes(searchLower) ||
+                (key.session_id || '').toLowerCase().includes(searchLower) ||
+                (key.platform || '').toLowerCase().includes(searchLower) ||
+                (key.browser || '').toLowerCase().includes(searchLower) ||
+                (key.os || '').toLowerCase().includes(searchLower)
             );
         }
         return true;
