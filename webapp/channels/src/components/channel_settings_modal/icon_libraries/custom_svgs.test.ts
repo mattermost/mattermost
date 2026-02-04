@@ -413,9 +413,12 @@ describe('Custom SVG Management', () => {
             });
 
             test('returns empty array on error', async () => {
+                const consoleSpy = jest.spyOn(console, 'error').mockImplementation();
                 Client4.getCustomChannelIcons.mockRejectedValue(new Error('Network error'));
                 const result = await getCustomSvgsFromServer();
                 expect(result).toEqual([]);
+                expect(consoleSpy).toHaveBeenCalled();
+                consoleSpy.mockRestore();
             });
         });
 
