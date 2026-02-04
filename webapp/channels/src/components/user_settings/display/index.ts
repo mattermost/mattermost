@@ -27,6 +27,7 @@ import {getCurrentUserId, getUser} from 'mattermost-redux/selectors/entities/use
 import {getUserCurrentTimezone} from 'mattermost-redux/utils/timezone_utils';
 
 import {getLanguages, isLanguageAvailable} from 'i18n/i18n';
+import {getOverriddenPreferenceKeys} from 'selectors/preference_overrides';
 import {Preferences} from 'utils/constants';
 
 import type {GlobalState} from 'types/store';
@@ -93,6 +94,7 @@ export function makeMapStateToProps() {
             lastActiveTimeEnabled,
             discordRepliesEnabled: config?.FeatureFlagDiscordReplies === 'true',
             settingsResorted: config?.FeatureFlagSettingsResorted === 'true',
+            overriddenPreferenceKeys: getOverriddenPreferenceKeys(state),
         };
     };
 }

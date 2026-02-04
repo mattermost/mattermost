@@ -111,6 +111,7 @@ type SectionProps ={
     description: MessageDescriptor;
     disabled?: boolean;
     onSubmit?: () => void;
+    preferenceName?: string; // The preference name for override checking (e.g., 'use_military_time')
 }
 
 // Display modes for split tabs when SettingsResorted is enabled
@@ -160,6 +161,7 @@ type Props = OwnProps & {
     renderEmoticonsAsEmoji: string;
     discordRepliesEnabled: boolean;
     settingsResorted: boolean;
+    overriddenPreferenceKeys: Set<string>;
     actions: {
         savePreferences: (userId: string, preferences: PreferenceType[]) => void;
         autoUpdateTimezone: (deviceTimezone: string) => void;
@@ -230,6 +232,14 @@ export default class UserSettingsDisplay extends React.PureComponent<Props, Stat
             this.updateState();
         }
     }
+
+    /**
+     * Check if a preference is admin-overridden.
+     * Overridden preferences should be hidden from user settings.
+     */
+    isPreferenceOverridden = (category: string, name: string): boolean => {
+        return this.props.overriddenPreferenceKeys.has(`${category}:${name}`);
+    };
 
     submitLastActive = () => {
         const {user, actions} = this.props;
@@ -434,7 +444,14 @@ export default class UserSettingsDisplay extends React.PureComponent<Props, Stat
             description,
             disabled,
             onSubmit,
+            preferenceName,
         } = props;
+
+        // If this preference is admin-overridden, don't show the section
+        if (preferenceName && this.isPreferenceOverridden(Preferences.CATEGORY_DISPLAY_SETTINGS, preferenceName)) {
+            return null;
+        }
+
         let extraInfo = null;
         let submit: (() => Promise<void>) | (() => void) | null = onSubmit || this.handleSubmit;
 
@@ -712,6 +729,7 @@ export default class UserSettingsDisplay extends React.PureComponent<Props, Stat
                 id: 'user.settings.display.collapseDesc',
                 defaultMessage: 'Set whether previews of image links and image attachment thumbnails show as expanded or collapsed by default. This setting can also be controlled using the slash commands /expand and /collapse.',
             }),
+            preferenceName: Preferences.COLLAPSE_DISPLAY,
         });
 
         let linkPreviewSection = null;
@@ -748,6 +766,7 @@ export default class UserSettingsDisplay extends React.PureComponent<Props, Stat
                     id: 'user.settings.display.linkPreviewDesc',
                     defaultMessage: 'When available, the first web link in a message will show a preview of the website content below the message.',
                 }),
+                preferenceName: Preferences.LINK_PREVIEW_DISPLAY,
             });
             this.prevSections.message_display = 'linkpreview';
         } else {
@@ -823,6 +842,7 @@ export default class UserSettingsDisplay extends React.PureComponent<Props, Stat
                 id: 'user.settings.display.preferTime',
                 defaultMessage: 'Select how you prefer time displayed.',
             }),
+            preferenceName: Preferences.USE_MILITARY_TIME,
         });
 
         const alwaysShowRemoteUserHourSection = this.createSection({
@@ -856,6 +876,7 @@ export default class UserSettingsDisplay extends React.PureComponent<Props, Stat
                 id: 'user.settings.display.alwaysShowRemoteUserHourDescription',
                 defaultMessage: 'Select whether to always show the teammate\'s local time in Direct Messages, or only when it is outside of their normal working hours.',
             }),
+            preferenceName: Preferences.ALWAYS_SHOW_REMOTE_USER_HOUR,
         });
 
         const teammateNameDisplaySection = this.createSection({
@@ -899,6 +920,7 @@ export default class UserSettingsDisplay extends React.PureComponent<Props, Stat
                 defaultMessage: 'Set how to display other user\'s names in posts and the Direct Messages list.',
             }),
             disabled: this.props.lockTeammateNameDisplay,
+            preferenceName: Preferences.NAME_NAME_FORMAT,
         });
 
         const availabilityStatusOnPostsSection = this.createSection({
@@ -932,6 +954,7 @@ export default class UserSettingsDisplay extends React.PureComponent<Props, Stat
                 id: 'user.settings.display.availabilityStatusOnPostsDescription',
                 defaultMessage: 'When enabled, online availability is displayed on profile images in the message list.',
             }),
+            preferenceName: Preferences.AVAILABILITY_STATUS_ON_POSTS,
         });
 
         let timezoneSelection;
@@ -1023,6 +1046,7 @@ export default class UserSettingsDisplay extends React.PureComponent<Props, Stat
                 id: 'user.settings.display.messageDisplayDescription',
                 defaultMessage: 'Select how messages in a channel should be displayed.',
             }),
+            preferenceName: Preferences.MESSAGE_DISPLAY,
         });
 
         let collapsedReplyThreads;
@@ -1059,6 +1083,7 @@ export default class UserSettingsDisplay extends React.PureComponent<Props, Stat
                     id: 'user.settings.display.collapsedReplyThreadsDescription',
                     defaultMessage: 'When enabled, reply messages are not shown in the channel and you\'ll be notified about threads you\'re following in the "Threads" view.',
                 }),
+                preferenceName: Preferences.COLLAPSED_REPLY_THREADS,
             });
         }
 
@@ -1100,6 +1125,7 @@ export default class UserSettingsDisplay extends React.PureComponent<Props, Stat
                 id: 'user.settings.display.clickToReplyDescription',
                 defaultMessage: 'When enabled, click anywhere on a message to open the reply thread.',
             }),
+            preferenceName: Preferences.CLICK_TO_REPLY,
         });
 
         const channelDisplayModeSection = this.createSection({
@@ -1133,6 +1159,7 @@ export default class UserSettingsDisplay extends React.PureComponent<Props, Stat
                 id: 'user.settings.display.channeldisplaymode',
                 defaultMessage: 'Select the width of the center channel.',
             }),
+            preferenceName: Preferences.CHANNEL_DISPLAY_MODE,
         });
 
         let languagesSection;
@@ -1219,10 +1246,14 @@ export default class UserSettingsDisplay extends React.PureComponent<Props, Stat
                     id: 'user.settings.display.oneClickReactionsOnPostsDescription',
                     defaultMessage: 'When enabled, you can react in one-click with recently used reactions when hovering over a message.',
                 }),
+                preferenceName: Preferences.ONE_CLICK_REACTIONS_ENABLED,
             });
         }
 
-        const renderEmoticonsAsEmojiSection = (
+        const renderEmoticonsAsEmojiSection = this.isPreferenceOverridden(
+            Preferences.CATEGORY_DISPLAY_SETTINGS,
+            Preferences.RENDER_EMOTICONS_AS_EMOJI,
+        ) ? null : (
             <div>
                 <SettingItem
                     active={this.props.activeSection === 'renderEmoticonsAsEmoji'}

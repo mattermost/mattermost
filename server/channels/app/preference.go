@@ -7,6 +7,7 @@ import (
 	"encoding/json"
 	"errors"
 	"net/http"
+	"strings"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/plugin"
@@ -18,23 +19,60 @@ func (a *App) GetPreferencesForUser(rctx request.CTX, userID string) (model.Pref
 	if err != nil {
 		return nil, model.NewAppError("GetPreferencesForUser", "app.preference.get_all.app_error", nil, "", http.StatusBadRequest).Wrap(err)
 	}
-	return a.applyPreferenceOverrides(preferences), nil
+	return a.applyPreferenceOverrides(userID, preferences, ""), nil
 }
 
 // applyPreferenceOverrides applies admin-enforced preference overrides to the given preferences.
 // This ensures users always see the admin-enforced values for overridden settings.
-func (a *App) applyPreferenceOverrides(preferences model.Preferences) model.Preferences {
+// It both modifies existing preferences AND injects any overrides that don't exist yet.
+// If filterCategory is non-empty, only overrides matching that category are injected.
+func (a *App) applyPreferenceOverrides(userID string, preferences model.Preferences, filterCategory string) model.Preferences {
 	overrides := a.Config().MattermostExtendedSettings.Preferences.Overrides
 	if len(overrides) == 0 {
 		return preferences
 	}
 
+	// Track which override keys we've already applied
+	appliedKeys := make(map[string]bool)
+
+	// First, modify any existing preferences that have overrides
 	for i, pref := range preferences {
 		key := pref.Category + ":" + pref.Name
 		if enforcedValue, ok := overrides[key]; ok {
 			preferences[i].Value = enforcedValue
+			appliedKeys[key] = true
 		}
 	}
+
+	// Then, inject any overrides that don't exist in the user's preferences
+	for key, enforcedValue := range overrides {
+		if appliedKeys[key] {
+			continue // Already applied
+		}
+
+		// Parse the key into category:name
+		parts := strings.SplitN(key, ":", 2)
+		if len(parts) != 2 {
+			continue // Invalid key format
+		}
+
+		category := parts[0]
+		name := parts[1]
+
+		// If filtering by category, skip overrides from other categories
+		if filterCategory != "" && category != filterCategory {
+			continue
+		}
+
+		// Add the override as a new preference
+		preferences = append(preferences, model.Preference{
+			UserId:   userID,
+			Category: category,
+			Name:     name,
+			Value:    enforcedValue,
+		})
+	}
+
 	return preferences
 }
 
@@ -54,11 +92,13 @@ func (a *App) GetPreferenceByCategoryForUser(rctx request.CTX, userID string, ca
 	if err != nil {
 		return nil, model.NewAppError("GetPreferenceByCategoryForUser", "app.preference.get_category.app_error", nil, "", http.StatusBadRequest).Wrap(err)
 	}
+	// Apply overrides even if no preferences exist yet - overrides may need to be injected
+	preferences = a.applyPreferenceOverrides(userID, preferences, category)
 	if len(preferences) == 0 {
 		err := model.NewAppError("GetPreferenceByCategoryForUser", "api.preference.preferences_category.get.app_error", nil, "", http.StatusNotFound)
 		return nil, err
 	}
-	return a.applyPreferenceOverrides(preferences), nil
+	return preferences, nil
 }
 
 func (a *App) GetPreferenceByCategoryAndNameForUser(rctx request.CTX, userID string, category string, preferenceName string) (*model.Preference, *model.AppError) {
