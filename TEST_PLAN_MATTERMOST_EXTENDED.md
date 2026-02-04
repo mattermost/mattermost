@@ -17,35 +17,36 @@ This document outlines the complete test coverage plan for all Mattermost Extend
 
 | Feature | Server Tests | Webapp Tests | E2E Tests | Coverage Status |
 |---------|--------------|--------------|-----------|-----------------|
-| AccurateStatuses | ✅ Exists | ❌ Missing | ✅ Exists | Good |
-| NoOffline | ✅ Exists | ❌ Missing | ✅ Exists | Good |
-| DND Extended | ✅ Exists | ❌ Missing | ✅ Exists | Good |
+| AccurateStatuses | ✅ Exists | N/A (server-only) | ✅ Exists | Complete |
+| NoOffline | ✅ Exists | N/A (server-only) | ✅ Exists | Complete |
+| DND Extended | ✅ Exists | N/A (server-only) | ✅ Exists | Complete |
 | Status Log Dashboard | ✅ Exists | ✅ Exists | ❌ Missing | Good |
 | Custom Channel Icons | ✅ Exists | ✅ Exists | ✅ Exists | Complete |
 | Encryption (E2EE) | ✅ Exists | ✅ Exists | ✅ Exists | Complete |
-| ThreadsInSidebar | ❌ Missing | ✅ Exists | ✅ Exists | Good |
-| CustomThreadNames | ❌ Missing | ✅ Exists | ✅ Exists | Good |
-| ImageMulti | ❌ Missing | ✅ Exists | ✅ Exists | Good |
-| ImageSmaller | ❌ Missing | ✅ Exists | ✅ Exists | Good |
-| ImageCaptions | ❌ Missing | ✅ Exists | ✅ Exists | Good |
-| VideoEmbed | ❌ Missing | ✅ Exists | ✅ Exists | Good |
-| VideoLinkEmbed | ❌ Missing | ✅ Exists | ✅ Exists | Good |
-| EmbedYoutube | ❌ Missing | ✅ Exists | ✅ Exists | Good |
+| ThreadsInSidebar | N/A (UI-only) | ✅ Exists | ✅ Exists | Complete |
+| CustomThreadNames | N/A (UI-only) | ✅ Exists | ✅ Exists | Complete |
+| ImageMulti | N/A (UI-only) | ✅ Exists | ✅ Exists | Complete |
+| ImageSmaller | N/A (UI-only) | ✅ Exists | ✅ Exists | Complete |
+| ImageCaptions | N/A (UI-only) | ✅ Exists | ✅ Exists | Complete |
+| VideoEmbed | N/A (UI-only) | ✅ Exists | ✅ Exists | Complete |
+| VideoLinkEmbed | N/A (UI-only) | ✅ Exists | ✅ Exists | Complete |
+| EmbedYoutube | N/A (UI-only) | ✅ Exists | ✅ Exists | Complete |
 | ErrorLogDashboard | ✅ Exists | ✅ Exists | ✅ Exists | Complete |
 | SystemConsoleDarkMode | N/A | ✅ Exists | ✅ Exists | Complete |
 | SystemConsoleHideEnterprise | N/A | ✅ Exists | ✅ Exists | Complete |
 | SystemConsoleIcons | N/A | ✅ Exists | ✅ Exists | Complete |
-| SettingsResorted | N/A | ❌ Missing | ❌ Missing | None |
-| PreferencesRevamp | ❌ Missing | ❌ Missing | ❌ Missing | None |
+| SettingsResorted | N/A (UI-only) | ✅ Exists | N/A | Complete |
+| PreferencesRevamp | N/A (UI-only) | ✅ Exists | N/A | Complete |
 | PreferenceOverridesDashboard | ✅ Exists | ✅ Exists | ✅ Exists | Complete |
-| HideDeletedMessagePlaceholder | ❌ Missing | ✅ Exists | ✅ Exists | Good |
-| SidebarChannelSettings | ❌ Missing | ✅ Exists | ✅ Exists | Good |
-| HideUpdateStatusButton | ❌ Missing | ✅ Exists | ✅ Exists | Good |
-| SidebarBaseChannelIcon | N/A | ✅ Exists | N/A | Good |
-| MultiImageView | N/A | ✅ Exists | N/A | Good |
+| HideDeletedMessagePlaceholder | N/A (UI-only) | ✅ Exists | ✅ Exists | Complete |
+| SidebarChannelSettings | N/A (UI-only) | ✅ Exists | ✅ Exists | Complete |
+| HideUpdateStatusButton | N/A (UI-only) | ✅ Exists | ✅ Exists | Complete |
+| SidebarBaseChannelIcon | N/A | ✅ Exists | N/A | Complete |
+| MultiImageView | N/A | ✅ Exists | N/A | Complete |
 | MattermostExtendedSettings | ✅ Exists | N/A | N/A | Complete |
 | StatusLog Model | ✅ Exists | N/A | N/A | Complete |
 | Status Logs Platform | ✅ Exists | N/A | N/A | Complete |
+| PreferenceDefinitions | N/A | ✅ Exists | N/A | Complete |
 
 ---
 
@@ -812,6 +813,8 @@ Tests Feature Flag Toggles:
 | CustomThreadNames | `webapp/channels/src/tests/mattermost_extended/custom_thread_names.test.tsx` ✅ |
 | cleanMessageForDisplay | `webapp/channels/src/tests/mattermost_extended/threads_in_sidebar.test.tsx` ✅ |
 | ImageCaptions | `webapp/channels/src/tests/mattermost_extended/image_captions.test.tsx` ✅ |
+| SettingsResorted | `webapp/channels/src/tests/mattermost_extended/settings_resorted.test.tsx` ✅ |
+| PreferenceDefinitions | `webapp/channels/src/utils/preference_definitions.test.ts` ✅ |
 
 ### E2E Tests (Cypress)
 | Feature | File Path |
