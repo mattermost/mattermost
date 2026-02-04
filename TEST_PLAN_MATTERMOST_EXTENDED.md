@@ -17,20 +17,20 @@ This document outlines the complete test coverage plan for all Mattermost Extend
 
 | Feature | Server Tests | Webapp Tests | E2E Tests | Coverage Status |
 |---------|--------------|--------------|-----------|-----------------|
-| AccurateStatuses | ✅ Exists | ❌ Missing | ❌ Missing | Partial |
-| NoOffline | ✅ Exists | ❌ Missing | ❌ Missing | Partial |
-| DND Extended | ✅ Exists | ❌ Missing | ❌ Missing | Partial |
-| Status Log Dashboard | ✅ Exists | ✅ Exists | ❌ Missing | Good |
-| Custom Channel Icons | ✅ Exists | ✅ Exists | ❌ Missing | Good |
-| Encryption (E2EE) | ✅ Exists | ✅ Exists | ❌ Missing | Good |
+| AccurateStatuses | ✅ Exists | ❌ Missing | ✅ Exists | Good |
+| NoOffline | ✅ Exists | ❌ Missing | ✅ Exists | Good |
+| DND Extended | ✅ Exists | ❌ Missing | ✅ Exists | Good |
+| Status Log Dashboard | ✅ Exists | ✅ Exists | ✅ Exists | Complete |
+| Custom Channel Icons | ✅ Exists | ✅ Exists | ✅ Exists | Complete |
+| Encryption (E2EE) | ✅ Exists | ✅ Exists | ✅ Exists | Complete |
 | ThreadsInSidebar | ❌ Missing | ❌ Missing | ❌ Missing | None |
 | CustomThreadNames | ❌ Missing | ❌ Missing | ❌ Missing | None |
-| ImageMulti | ❌ Missing | ❌ Missing | ❌ Missing | None |
-| ImageSmaller | ❌ Missing | ❌ Missing | ❌ Missing | None |
-| ImageCaptions | ❌ Missing | ❌ Missing | ❌ Missing | None |
-| VideoEmbed | ❌ Missing | ✅ Exists | ❌ Missing | Partial |
-| VideoLinkEmbed | ❌ Missing | ✅ Exists | ❌ Missing | Partial |
-| EmbedYoutube | ❌ Missing | ✅ Exists | ❌ Missing | Partial |
+| ImageMulti | ❌ Missing | ❌ Missing | ✅ Exists | Partial |
+| ImageSmaller | ❌ Missing | ❌ Missing | ✅ Exists | Partial |
+| ImageCaptions | ❌ Missing | ❌ Missing | ✅ Exists | Partial |
+| VideoEmbed | ❌ Missing | ✅ Exists | ✅ Exists | Good |
+| VideoLinkEmbed | ❌ Missing | ✅ Exists | ✅ Exists | Good |
+| EmbedYoutube | ❌ Missing | ✅ Exists | ✅ Exists | Good |
 | ErrorLogDashboard | ✅ Exists | ✅ Exists | ❌ Missing | Good |
 | SystemConsoleDarkMode | N/A | ❌ Missing | ❌ Missing | None |
 | SystemConsoleHideEnterprise | N/A | ❌ Missing | ❌ Missing | None |
@@ -734,13 +734,13 @@ describe('ErrorLogDashboard', () => {
 ### E2E Tests (Cypress)
 | Feature | File Path |
 |---------|-----------|
-| Custom Channel Icons | `e2e-tests/cypress/tests/integration/custom_channel_icons_spec.js` ❌ |
-| Encryption | `e2e-tests/cypress/tests/integration/encryption_spec.js` ❌ |
-| Status Extended | `e2e-tests/cypress/tests/integration/status_extended_spec.js` ❌ |
-| Media Extended | `e2e-tests/cypress/tests/integration/media_extended_spec.js` ❌ |
-| Threads Extended | `e2e-tests/cypress/tests/integration/threads_extended_spec.js` ❌ |
-| UI Tweaks | `e2e-tests/cypress/tests/integration/ui_tweaks_spec.js` ❌ |
-| Admin Console Extended | `e2e-tests/cypress/tests/integration/admin_console_extended_spec.js` ❌ |
+| Custom Channel Icons | `e2e-tests/cypress/tests/integration/channels/mattermost_extended/custom_channel_icons_spec.ts` ✅ |
+| Encryption | `e2e-tests/cypress/tests/integration/channels/mattermost_extended/encryption_spec.ts` ✅ |
+| Status Extended | `e2e-tests/cypress/tests/integration/channels/mattermost_extended/status_extended_spec.ts` ✅ |
+| Media Extended | `e2e-tests/cypress/tests/integration/channels/mattermost_extended/media_extended_spec.ts` ✅ |
+| Threads Extended | `e2e-tests/cypress/tests/integration/channels/mattermost_extended/threads_extended_spec.ts` ❌ |
+| UI Tweaks | `e2e-tests/cypress/tests/integration/channels/mattermost_extended/ui_tweaks_spec.ts` ❌ |
+| Admin Console Extended | `e2e-tests/cypress/tests/integration/channels/mattermost_extended/admin_console_extended_spec.ts` ❌ |
 
 ---
 
@@ -761,11 +761,11 @@ describe('ErrorLogDashboard', () => {
 5. ✅ Error Log Dashboard tests
 6. ✅ Preference Overrides Dashboard tests
 
-### Phase 3: E2E Tests (Medium Priority)
-1. ❌ Encryption E2E (critical path)
-2. ❌ Custom Channel Icons E2E
-3. ❌ Status features E2E
-4. ❌ Media features E2E
+### Phase 3: E2E Tests (Medium Priority) ✅ COMPLETE
+1. ✅ Encryption E2E (critical path)
+2. ✅ Custom Channel Icons E2E
+3. ✅ Status features E2E
+4. ✅ Media features E2E
 
 ### Phase 4: Remaining Tests (Lower Priority)
 1. ❌ UI tweak tests (simple toggles)
