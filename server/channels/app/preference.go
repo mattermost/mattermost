@@ -141,17 +141,26 @@ func (a *App) UpdatePreferences(rctx request.CTX, userID string, preferences mod
 		}
 	}
 
-	// Block updates to admin-enforced preferences
+	// Filter out admin-enforced preferences instead of blocking the entire batch.
+	// This allows users to save other preferences when one happens to be enforced.
 	overrides := a.Config().MattermostExtendedSettings.Preferences.Overrides
 	if len(overrides) > 0 {
+		filteredPreferences := make(model.Preferences, 0, len(preferences))
 		for _, pref := range preferences {
 			key := pref.Category + ":" + pref.Name
-			if _, isOverridden := overrides[key]; isOverridden {
-				return model.NewAppError("UpdatePreferences", "api.preference.update_preferences.admin_enforced.app_error",
-					map[string]any{"Category": pref.Category, "Name": pref.Name},
-					"preference is admin-enforced", http.StatusForbidden)
+			if _, isOverridden := overrides[key]; !isOverridden {
+				filteredPreferences = append(filteredPreferences, pref)
 			}
 		}
+
+		// If all preferences were filtered out (all enforced), return error
+		if len(filteredPreferences) == 0 {
+			return model.NewAppError("UpdatePreferences", "api.preference.update_preferences.admin_enforced.app_error",
+				nil, "all preferences in batch are admin-enforced", http.StatusForbidden)
+		}
+
+		// Use the filtered list for saving
+		preferences = filteredPreferences
 	}
 
 	if err := a.Srv().Store().Preference().Save(preferences); err != nil {
