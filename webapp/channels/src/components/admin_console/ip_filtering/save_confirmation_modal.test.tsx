@@ -1,10 +1,9 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {fireEvent} from '@testing-library/react';
 import React from 'react';
 
-import {renderWithContext} from 'tests/react_testing_utils';
+import {renderWithContext, userEvent} from 'tests/react_testing_utils';
 
 import SaveConfirmationModal from './save_confirmation_modal';
 
@@ -51,26 +50,26 @@ describe('SaveConfirmationModal', () => {
         expect(getByText('Using the Customer Portal to restore access')).toBeInTheDocument();
     });
 
-    test('calls onClose when the cancel button is clicked', () => {
+    test('calls onClose when the cancel button is clicked', async () => {
         const {getByText} = renderWithContext(
             <SaveConfirmationModal
                 {...baseProps}
             />,
         );
 
-        fireEvent.click(getByText('Cancel'));
+        await userEvent.click(getByText('Cancel'));
 
         expect(onExitedMock).toHaveBeenCalledTimes(1);
     });
 
-    test('calls onConfirm when the confirm button is clicked', () => {
+    test('calls onConfirm when the confirm button is clicked', async () => {
         const {getByText} = renderWithContext(
             <SaveConfirmationModal
                 {...baseProps}
             />,
         );
 
-        fireEvent.click(getByText(buttonText));
+        await userEvent.click(getByText(buttonText));
 
         expect(onConfirmMock).toHaveBeenCalledTimes(1);
     });

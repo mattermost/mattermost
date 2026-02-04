@@ -2857,7 +2857,6 @@
   "admin.site.fileSharingDownloads": "Bestanden Delen en Downloaden",
   "admin.site.localization": "Lokalisatie",
   "admin.site.localization.autoTranslationInfo": "Automatische vertaling moet ook worden ingeschakeld in elk kanaal waar het nodig is.",
-  "admin.site.localization.autoTranslationInfoSecondary": "Als er meerdere talen worden gedetecteerd, worden gebruikers gevraagd om automatische vertaling in te schakelen. [Meer informatie](https://docs.mattermost.com/).",
   "admin.site.localization.autoTranslationProviderDescription": "<strong>OPMERKING:</strong> Als je externe vertaaldiensten gebruikt (bijvoorbeeld in de cloud), kunnen{br}berichtgegevens buiten je omgeving worden verwerkt.",
   "admin.site.localization.autoTranslationProviderLibreTranslateAPIKeyDescription": "Als jouw LibreTranslate server een API-sleutel vereist, voer die dan hier in. Laat dit veld anders leeg. Bekijk <link>LibreTranslate docs</link> voor het beheer van API-sleutels.",
   "admin.site.localization.autoTranslationProviderLibreTranslateAPIKeyExample": "LibreTranslate API sleutel invoeren",

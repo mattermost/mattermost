@@ -1,8 +1,6 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {screen, waitFor} from '@testing-library/react';
-import userEvent from '@testing-library/user-event';
 import React from 'react';
 
 import type {Team} from '@mattermost/types/teams';
@@ -11,7 +9,7 @@ import * as teams from 'mattermost-redux/selectors/entities/teams';
 
 import * as channelActions from 'actions/views/channel';
 
-import {renderWithContext} from 'tests/react_testing_utils';
+import {renderWithContext, screen, userEvent, waitFor} from 'tests/react_testing_utils';
 import {TestHelper} from 'utils/test_helper';
 
 import ChannelSettingsArchiveTab from './channel_settings_archive_tab';
@@ -49,8 +47,6 @@ const baseProps = {
 describe('ChannelSettingsArchiveTab', () => {
     const {getHistory} = require('utils/browser_history');
     beforeEach(() => {
-        jest.clearAllMocks();
-
         jest.spyOn(teams, 'getCurrentTeam').mockReturnValue({
             id: 'team1',
             name: 'team-name',
