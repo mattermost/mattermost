@@ -43,14 +43,6 @@
         @media screen and (min-width: 1681px) {
             max-width: 776px;
         }
-
-        // Free resizing mode: remove max-width constraints
-        &.free-resizing {
-            @media screen and (min-width: 901px) {
-                min-width: 250px;
-                max-width: calc(70vw - 100px);
-            }
-        }
     }
 
     height: 100%;

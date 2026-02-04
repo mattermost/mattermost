@@ -156,9 +156,6 @@ type FeatureFlags struct {
 
 	// Hide the "Update your status" button that appears on posts when user has no custom status
 	HideUpdateStatusButton bool
-
-	// Allow free resizing of sidebars without max-width constraints or snapping
-	FreeSidebarResizing bool
 }
 
 // featureFlagDefaults defines the default value for each boolean feature flag.

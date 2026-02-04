@@ -29,7 +29,6 @@ type Props = {
     onResize?: (width: number, cssVarProperty: string, cssVarValue: string) => void;
     onResizeEnd?: (finalWidth: number, cssVarProperty: string, cssVarValue: string) => void;
     onDividerDoubleClick?: (prevWidth: number, cssVarProperty: string) => void;
-    disableSnapping?: boolean;
 }
 
 const Divider = styled.div<{isActive: boolean}>`
@@ -89,7 +88,6 @@ function ResizableDivider({
     onResizeStart,
     onResizeEnd,
     onDividerDoubleClick,
-    disableSnapping = false,
     ...props
 }: Props) {
     const resizeLineRef = useRef<HTMLDivElement>(null);
@@ -176,13 +174,6 @@ function ResizableDivider({
 
             const newWidth = previousWidth + widthDiff;
 
-            // When snapping is disabled, skip all snap logic
-            if (disableSnapping) {
-                previousClientX.current = e.clientX;
-                handleOnResize(newWidth, cssVarKey, `${newWidth}px`);
-                return;
-            }
-
             if (resizeLine.classList.contains('snapped')) {
                 const diff = newWidth - defaultWidth;
 
@@ -241,7 +232,7 @@ function ResizableDivider({
             window.removeEventListener('mousemove', onMouseMove);
             window.removeEventListener('mouseup', onMouseUp);
         };
-    }, [isActive, disabled, disableSnapping]);
+    }, [isActive, disabled]);
 
     const onDoubleClick = () => {
         onDividerDoubleClick?.(width ?? 0, cssVarKey);

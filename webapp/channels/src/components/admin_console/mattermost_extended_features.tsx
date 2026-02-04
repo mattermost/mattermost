@@ -26,7 +26,6 @@ import {
     BellRingOutlineIcon,
     AlertCircleOutlineIcon,
     EyeOffOutlineIcon,
-    ArrowExpandIcon,
     PlayOutlineIcon,
     VideoOutlineIcon,
     LinkVariantIcon,
@@ -234,15 +233,6 @@ const FEATURES: FeatureDefinition[] = [
         defaultValue: false,
         section: 'ux',
         icon: EyeOffOutlineIcon,
-        isMajor: false,
-    },
-    {
-        key: 'FreeSidebarResizing',
-        title: 'Free Sidebar Resizing',
-        description: 'Resize sidebars freely without max-width constraints. Persists across sessions.',
-        defaultValue: false,
-        section: 'ux',
-        icon: ArrowExpandIcon,
         isMajor: false,
     },
 
