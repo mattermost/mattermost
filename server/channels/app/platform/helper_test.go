@@ -94,6 +94,9 @@ func Setup(tb testing.TB, options ...Option) *TestHelper {
 }
 
 func (th *TestHelper) InitBasic(tb testing.TB) *TestHelper {
+	// Clear status logs from previous tests to ensure test isolation
+	th.Service.ClearStatusLogs()
+
 	th.SystemAdminUser = th.CreateAdmin(tb)
 
 	th.BasicUser = th.CreateUserOrGuest(tb, false)
