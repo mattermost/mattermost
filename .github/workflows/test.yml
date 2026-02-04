@@ -116,6 +116,7 @@ jobs:
         continue-on-error: true
         working-directory: ./webapp/channels
         run: |
+          set -o pipefail
           npm test -- --ci --coverage=false \
             --testPathPatterns="utils/encryption/.*\\.test\\.(ts|tsx)$" \
             2>&1 | tee ../../test-results/encryption-tests.log
@@ -126,6 +127,7 @@ jobs:
         continue-on-error: true
         working-directory: ./webapp/channels
         run: |
+          set -o pipefail
           npm test -- --ci --coverage=false \
             --testPathPatterns="status_log_dashboard\\.test\\.tsx$" \
             2>&1 | tee ../../test-results/status-log-dashboard.log
@@ -136,6 +138,7 @@ jobs:
         continue-on-error: true
         working-directory: ./webapp/channels
         run: |
+          set -o pipefail
           npm test -- --ci --coverage=false \
             --testPathPatterns="error_log_dashboard\\.test\\.tsx$" \
             2>&1 | tee ../../test-results/error-log-dashboard.log
@@ -146,6 +149,7 @@ jobs:
         continue-on-error: true
         working-directory: ./webapp/channels
         run: |
+          set -o pipefail
           npm test -- --ci --coverage=false \
             --testPathPatterns="preference_overrides_dashboard\\.test\\.tsx$" \
             2>&1 | tee ../../test-results/preference-overrides.log
@@ -156,6 +160,7 @@ jobs:
         continue-on-error: true
         working-directory: ./webapp/channels
         run: |
+          set -o pipefail
           npm test -- --ci --coverage=false \
             --testPathPatterns="(video_player|video_link_embed|youtube_video_discord)\\.test\\.tsx$" \
             2>&1 | tee ../../test-results/video-tests.log
@@ -166,6 +171,7 @@ jobs:
         continue-on-error: true
         working-directory: ./webapp/channels
         run: |
+          set -o pipefail
           npm test -- --ci --coverage=false \
             --testPathPatterns="icon_libraries/(custom_svgs|types)\\.test\\.ts$" \
             2>&1 | tee ../../test-results/icons-tests.log
