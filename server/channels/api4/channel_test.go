@@ -8,7 +8,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
-	"sort"
 	"strings"
 	"testing"
 	"time"
@@ -256,7 +255,7 @@ func TestCreateChannel(t *testing.T) {
 			require.NoError(t, err)
 
 			// Verify that the guest user can access the private channel they were added to
-			_, _, err = guestClient.GetChannel(context.Background(), private.Id, "")
+			_, _, err = guestClient.GetChannel(context.Background(), private.Id)
 			require.NoError(t, err)
 
 			// Verify that the guest user cannot add members to the private channel
@@ -269,7 +268,7 @@ func TestCreateChannel(t *testing.T) {
 			require.NoError(t, err)
 
 			// Verify that the guest user can access the public channel they were added to
-			_, _, err = guestClient.GetChannel(context.Background(), public.Id, "")
+			_, _, err = guestClient.GetChannel(context.Background(), public.Id)
 			require.NoError(t, err)
 
 			// Verify that the guest user cannot add members to the public channel
@@ -1625,50 +1624,50 @@ func TestGetChannel(t *testing.T) {
 	th := Setup(t).InitBasic(t)
 	client := th.Client
 
-	channel, _, err := client.GetChannel(context.Background(), th.BasicChannel.Id, "")
+	channel, _, err := client.GetChannel(context.Background(), th.BasicChannel.Id)
 	require.NoError(t, err)
 	require.Equal(t, th.BasicChannel.Id, channel.Id, "ids did not match")
 
 	_, err = client.RemoveUserFromChannel(context.Background(), th.BasicChannel.Id, th.BasicUser.Id)
 	require.NoError(t, err)
-	_, _, err = client.GetChannel(context.Background(), th.BasicChannel.Id, "")
+	_, _, err = client.GetChannel(context.Background(), th.BasicChannel.Id)
 	require.NoError(t, err)
 
-	channel, _, err = client.GetChannel(context.Background(), th.BasicPrivateChannel.Id, "")
+	channel, _, err = client.GetChannel(context.Background(), th.BasicPrivateChannel.Id)
 	require.NoError(t, err)
 	require.Equal(t, th.BasicPrivateChannel.Id, channel.Id, "ids did not match")
 
 	_, err = client.RemoveUserFromChannel(context.Background(), th.BasicPrivateChannel.Id, th.BasicUser.Id)
 	require.NoError(t, err)
-	_, resp, err := client.GetChannel(context.Background(), th.BasicPrivateChannel.Id, "")
+	_, resp, err := client.GetChannel(context.Background(), th.BasicPrivateChannel.Id)
 	require.Error(t, err)
 	CheckForbiddenStatus(t, resp)
 
-	_, resp, err = client.GetChannel(context.Background(), model.NewId(), "")
+	_, resp, err = client.GetChannel(context.Background(), model.NewId())
 	require.Error(t, err)
 	CheckNotFoundStatus(t, resp)
 
 	_, err = client.Logout(context.Background())
 	require.NoError(t, err)
-	_, resp, err = client.GetChannel(context.Background(), th.BasicChannel.Id, "")
+	_, resp, err = client.GetChannel(context.Background(), th.BasicChannel.Id)
 	require.Error(t, err)
 	CheckUnauthorizedStatus(t, resp)
 
 	user := th.CreateUser(t)
 	_, _, err = client.Login(context.Background(), user.Email, user.Password)
 	require.NoError(t, err)
-	_, resp, err = client.GetChannel(context.Background(), th.BasicChannel.Id, "")
+	_, resp, err = client.GetChannel(context.Background(), th.BasicChannel.Id)
 	require.Error(t, err)
 	CheckForbiddenStatus(t, resp)
 
 	th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
-		_, _, err = client.GetChannel(context.Background(), th.BasicChannel.Id, "")
+		_, _, err = client.GetChannel(context.Background(), th.BasicChannel.Id)
 		require.NoError(t, err)
 
-		_, _, err = client.GetChannel(context.Background(), th.BasicPrivateChannel.Id, "")
+		_, _, err = client.GetChannel(context.Background(), th.BasicPrivateChannel.Id)
 		require.NoError(t, err)
 
-		_, resp, err = client.GetChannel(context.Background(), th.BasicUser.Id, "")
+		_, resp, err = client.GetChannel(context.Background(), th.BasicUser.Id)
 		require.Error(t, err)
 		CheckNotFoundStatus(t, resp)
 	})
@@ -1930,21 +1929,22 @@ func TestGetPublicChannelsByIdsForTeam(t *testing.T) {
 
 	t.Run("should return 2 channels", func(t *testing.T) {
 		input := []string{th.BasicChannel.Id}
-		output := []string{th.BasicChannel.DisplayName}
+		expectedDisplayNames := []string{th.BasicChannel.DisplayName}
 
 		input = append(input, GenerateTestID())
 		input = append(input, th.BasicChannel2.Id)
 		input = append(input, th.BasicPrivateChannel.Id)
-		output = append(output, th.BasicChannel2.DisplayName)
-		sort.Strings(output)
+		expectedDisplayNames = append(expectedDisplayNames, th.BasicChannel2.DisplayName)
 
 		channels, _, err := client.GetPublicChannelsByIdsForTeam(context.Background(), teamId, input)
 		require.NoError(t, err)
 		require.Len(t, channels, 2, "should return 2 channels")
 
+		actualDisplayNames := make([]string, len(channels))
 		for i, c := range channels {
-			require.Equal(t, output[i], c.DisplayName, "missing channel")
+			actualDisplayNames[i] = c.DisplayName
 		}
+		require.ElementsMatch(t, expectedDisplayNames, actualDisplayNames, "missing channel")
 	})
 
 	t.Run("forbidden for invalid team", func(t *testing.T) {
@@ -3644,7 +3644,7 @@ func TestViewChannel(t *testing.T) {
 
 	member, _, err := client.GetChannelMember(context.Background(), th.BasicChannel.Id, th.BasicUser.Id, "")
 	require.NoError(t, err)
-	channel, _, err = client.GetChannel(context.Background(), th.BasicChannel.Id, "")
+	channel, _, err = client.GetChannel(context.Background(), th.BasicChannel.Id)
 	require.NoError(t, err)
 	require.Equal(t, channel.TotalMsgCount, member.MsgCount, "should match message counts")
 	require.Equal(t, int64(0), member.MentionCount, "should have no mentions")
@@ -3679,9 +3679,9 @@ func TestReadMultipleChannels(t *testing.T) {
 	user := th.BasicUser
 
 	t.Run("Should successfully mark public channels as read for self", func(t *testing.T) {
-		channel, _, err := client.GetChannel(context.Background(), th.BasicChannel.Id, "")
+		channel, _, err := client.GetChannel(context.Background(), th.BasicChannel.Id)
 		require.NoError(t, err)
-		channel2, _, err := client.GetChannel(context.Background(), th.BasicChannel2.Id, "")
+		channel2, _, err := client.GetChannel(context.Background(), th.BasicChannel2.Id)
 		require.NoError(t, err)
 
 		channelResponse, _, err := client.ReadMultipleChannels(context.Background(), user.Id, []string{channel.Id, channel2.Id})
@@ -3692,7 +3692,7 @@ func TestReadMultipleChannels(t *testing.T) {
 	})
 
 	t.Run("Should successfully mark private channels as read for self", func(t *testing.T) {
-		channel, _, err := client.GetChannel(context.Background(), th.BasicPrivateChannel.Id, "")
+		channel, _, err := client.GetChannel(context.Background(), th.BasicPrivateChannel.Id)
 		require.NoError(t, err)
 
 		// private channel without membership should be ignored
@@ -3704,7 +3704,7 @@ func TestReadMultipleChannels(t *testing.T) {
 	})
 
 	t.Run("Should fail marking public/private channels for other user", func(t *testing.T) {
-		channel, _, err := client.GetChannel(context.Background(), th.BasicChannel.Id, "")
+		channel, _, err := client.GetChannel(context.Background(), th.BasicChannel.Id)
 		require.NoError(t, err)
 
 		_, _, err = client.ReadMultipleChannels(context.Background(), th.BasicUser2.Id, []string{channel.Id})
@@ -3713,9 +3713,9 @@ func TestReadMultipleChannels(t *testing.T) {
 
 	t.Run("Admin should succeed in marking public/private channels for other user", func(t *testing.T) {
 		adminClient := th.SystemAdminClient
-		channel, _, err := adminClient.GetChannel(context.Background(), th.BasicChannel.Id, "")
+		channel, _, err := adminClient.GetChannel(context.Background(), th.BasicChannel.Id)
 		require.NoError(t, err)
-		privateChannel, _, err := adminClient.GetChannel(context.Background(), th.BasicPrivateChannel.Id, "")
+		privateChannel, _, err := adminClient.GetChannel(context.Background(), th.BasicPrivateChannel.Id)
 		require.NoError(t, err)
 
 		channelResponse, _, err := adminClient.ReadMultipleChannels(context.Background(), th.BasicUser2.Id, []string{channel.Id, privateChannel.Id})
@@ -3729,9 +3729,9 @@ func TestReadMultipleChannels(t *testing.T) {
 		th.LoginSystemManager(t)
 		sysMgrClient := th.SystemManagerClient
 
-		channel, _, err := sysMgrClient.GetChannel(context.Background(), th.BasicChannel.Id, "")
+		channel, _, err := sysMgrClient.GetChannel(context.Background(), th.BasicChannel.Id)
 		require.NoError(t, err)
-		privateChannel, _, err := sysMgrClient.GetChannel(context.Background(), th.BasicPrivateChannel.Id, "")
+		privateChannel, _, err := sysMgrClient.GetChannel(context.Background(), th.BasicPrivateChannel.Id)
 		require.NoError(t, err)
 
 		_, _, err = sysMgrClient.ReadMultipleChannels(context.Background(), th.BasicUser2.Id, []string{channel.Id, privateChannel.Id})

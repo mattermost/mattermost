@@ -155,7 +155,6 @@ type Props = {
     canDelete: boolean;
     userId: string;
     threadId: UserThread['id'];
-    isCollapsedThreadsEnabled: boolean;
     isFollowingThread?: boolean;
     isMentionedInRootPost?: boolean;
     threadReplyCount?: number;
@@ -544,21 +543,21 @@ export class DotMenuClass extends React.PureComponent<Props, State> {
         const saveFlag = (
             <FormattedMessage
                 id='rhs_root.mobile.flag'
-                defaultMessage='Save'
+                defaultMessage='Save Message'
             />
         );
 
         const pinPost = (
             <FormattedMessage
                 id='post_info.pin'
-                defaultMessage='Pin'
+                defaultMessage='Pin to Channel'
             />
         );
 
         const unPinPost = (
             <FormattedMessage
                 id='post_info.unpin'
-                defaultMessage='Unpin'
+                defaultMessage='Unpin from Channel'
             />
         );
 
@@ -748,21 +747,6 @@ export class DotMenuClass extends React.PureComponent<Props, State> {
                     />
                 }
                 {shouldShowDelete && !isSystemMessage && <Menu.Separator/>}
-                {shouldShowDelete &&
-                    <Menu.Item
-                        id={`delete_post_${this.props.post.id}`}
-                        data-testid={`delete_post_${this.props.post.id}`}
-                        leadingElement={<TrashCanOutlineIcon size={18}/>}
-                        trailingElements={<span>{'delete'}</span>}
-                        labels={
-                            <FormattedMessage
-                                id='post_info.del'
-                                defaultMessage='Delete'
-                            />}
-                        onClick={this.handleDeleteMenuItemActivated}
-                        isDestructive={true}
-                    />
-                }
                 {
                     this.props.canFlagContent &&
                     <Menu.Item
@@ -777,6 +761,21 @@ export class DotMenuClass extends React.PureComponent<Props, State> {
                             />
                         }
                         onClick={this.handleFlagPostMenuItemClicked}
+                        isDestructive={true}
+                    />
+                }
+                {shouldShowDelete &&
+                    <Menu.Item
+                        id={`delete_post_${this.props.post.id}`}
+                        data-testid={`delete_post_${this.props.post.id}`}
+                        leadingElement={<TrashCanOutlineIcon size={18}/>}
+                        trailingElements={<span>{'delete'}</span>}
+                        labels={
+                            <FormattedMessage
+                                id='post_info.del'
+                                defaultMessage='Delete'
+                            />}
+                        onClick={this.handleDeleteMenuItemActivated}
                         isDestructive={true}
                     />
                 }

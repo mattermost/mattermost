@@ -115,6 +115,20 @@ func TestDecoderDecode(t *testing.T) {
 	})
 }
 
+func TestPSDNotSupported(t *testing.T) {
+	// MM-67077: PSD preview support was removed due to memory vulnerability in oov/psd package
+	d, err := NewDecoder(DecoderOptions{})
+	require.NotNil(t, d)
+	require.NoError(t, err)
+
+	// PSD file header magic bytes: "8BPS" followed by version (0x0001 for PSD)
+	psdHeader := []byte("8BPS\x00\x01")
+	_, _, err = d.Decode(bytes.NewReader(psdHeader))
+
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "unknown format")
+}
+
 func TestDecoderDecodeMemBounded(t *testing.T) {
 	t.Run("concurrency bounded", func(t *testing.T) {
 		d, err := NewDecoder(DecoderOptions{

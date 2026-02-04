@@ -5673,7 +5673,7 @@
   },
   {
     "id": "api.templates.email_footer_v2",
-    "translation": "© 2022 Mattermost, Inc. 530 Lytton Avenue, Second floor, Palo Alto, CA, 94301"
+    "translation": "© 2015 - {{ .CurrentYear }} Mattermost, Inc. 2100 Geng Road, Suite 210, Palo Alto, CA, 94303"
   },
   {
     "id": "api.templates.email_footer",
@@ -6185,15 +6185,15 @@
   },
   {
     "id": "api.job.unable_to_download_job.incorrect_job_type",
-    "translation": "Тып задачы, якую вы спрабуеце спампаваць, у дадзены момант не падтрымліваецца."
+    "translation": "Тып задачы, якую вы спрабуеце спампаваць, у дадзены момант не падтрымліваецца"
   },
   {
     "id": "api.job.unable_to_download_job",
-    "translation": "Немагчыма спампаваць гэту задачу."
+    "translation": "Немагчыма спампаваць гэту задачу"
   },
   {
     "id": "api.job.unable_to_create_job.incorrect_job_type",
-    "translation": "Тып задачы, якую вы спрабуеце стварыць, несапраўдны."
+    "translation": "Тып задачы, якую вы спрабуеце стварыць, няправільны"
   },
   {
     "id": "api.job.retrieve.nopermissions",
@@ -6201,11 +6201,11 @@
   },
   {
     "id": "api.invalid_redirect_url",
-    "translation": "Пададзены несапраўдны URL пераадрасацыі."
+    "translation": "Пададзены несапраўдны URL пераадрасацыі"
   },
   {
     "id": "api.invalid_custom_url_scheme",
-    "translation": "Пададзена несапраўдная карыстальніцкая схема URL."
+    "translation": "Пададзена несапраўдная карыстальніцкая схема URL"
   },
   {
     "id": "app.channel.remove_all_deactivated_members.app_error",
@@ -6626,8 +6626,8 @@
   {
     "id": "api.email_batching.send_batched_email_notification.subject",
     "translation": {
-      "few": "",
-      "many": "",
+      "few": "[{{.SiteName}}] Новыя апавяшчэнне за {{.Day}} {{.Month}}, {{.Year}}",
+      "many": "[{{.SiteName}}] Новыя апавяшчэнне за {{.Day}} {{.Month}}, {{.Year}}",
       "one": "[{{.SiteName}}] Новае апавяшчэнне за {{.Day}} {{.Month}}, {{.Year}}"
     }
   },
@@ -6649,7 +6649,11 @@
   },
   {
     "id": "api.command_invite.user_already_in_channel.app_error",
-    "translation": "{{.User}} ужо знаходзіцца ў канале."
+    "translation": {
+      "few": "{{.User}} ужо знаходзяцца ў канале.",
+      "many": "{{.User}} ужо знаходзяцца ў канале.",
+      "one": "{{.User}} ужо знаходзіцца ў канале."
+    }
   },
   {
     "id": "api.command_invite.success",
@@ -6710,8 +6714,8 @@
   {
     "id": "api.command_groupmsg.invalid_user.app_error",
     "translation": {
-      "few": "",
-      "many": "",
+      "few": "Не ўдалося знайсці карыстальнікаў",
+      "many": "Не ўдалося знайсці карыстальнікаў",
       "one": "Не ўдалося знайсці карыстальніка: {{.Users}}"
     }
   },
@@ -8176,10 +8180,6 @@
     "translation": "Вы не будзеце атрымліваць апавяшчэнні для {{.Channel}}, пакуль адключаны гук канала."
   },
   {
-    "id": "api.command_mute.not_member.error",
-    "translation": "Немагчыма адключыць гук у канале {{.Channel}}, бо вы не з'яўляецеся яго ўдзельнікам."
-  },
-  {
     "id": "api.command_mute.no_channel.error",
     "translation": "Немагчыма знайсці ўказаны канал. Калі ласка, выкарыстоўвайце [ідэнтыфікатар канала](https://docs.mattermost.com/messaging/managing-channels.html#naming-a-channel), каб ідэнтыфікаваць каналы."
   },
@@ -8550,10 +8550,6 @@
   {
     "id": "api.server.cws.needs_enterprise_edition",
     "translation": "Паслуга даступная толькі ў выданні Mattermost Enterprise"
-  },
-  {
-    "id": "api.server.cws.subscribe_to_newsletter.app_error",
-    "translation": "Серверу CWS не ўдалося падпісацца на рассылку навін."
   },
   {
     "id": "api.system.logs.invalidFilter",
@@ -9493,7 +9489,7 @@
   },
   {
     "id": "api.config.update.elasticsearch.autocomplete_cannot_be_enabled_error",
-    "translation": "Аўтадапаўненне каналаў не можа быць уключана, бо схема індэкса каналаў састарэла. Рэкамендуецца перагенераваць індэкс каналаў. Глядзіце часопіс зменаў Mattermost для атрымання дадатковай інфармацыі."
+    "translation": "Аўтадапаўненне каналаў не можа быць уключана, бо схема індэкса каналаў састарэла. Рэкамендуецца перагенерыць індэкс каналаў. Глядзіце часопіс зменаў Mattermost для атрымання дадатковай інфармацыі"
   },
   {
     "id": "ent.elasticsearch.purge_index.delete_failed",
@@ -9537,11 +9533,11 @@
   },
   {
     "id": "api.channel.create_channel.missing_display_name.error",
-    "translation": "Адсутнічае display_name у целе запыту."
+    "translation": "Адсутнічае display_name у целе запыту"
   },
   {
     "id": "api.channel.create_channel.missing_team_id.error",
-    "translation": "Адсутнічае team_id у целе запыту."
+    "translation": "Адсутнічае team_id у целе запыту"
   },
   {
     "id": "api.user.auth_switch.not_available.email_signup_disabled.app_error",
@@ -9605,11 +9601,11 @@
   },
   {
     "id": "api.job.status.invalid",
-    "translation": "Няправільны ўсталяваны статус."
+    "translation": "Ўсталяваны няверны статус"
   },
   {
     "id": "api.job.unable_to_manage_job.incorrect_job_type",
-    "translation": "Вы не маеце дазволу кіраваць гэтым тыпам задання."
+    "translation": "Вы не маеце дазволу кіраваць гэтым тыпам задання"
   },
   {
     "id": "app.job.update_status.app_error",
@@ -9633,7 +9629,7 @@
   },
   {
     "id": "api.get_site_url_error",
-    "translation": "Не атрымалася атрымаць URL сайта інстанса."
+    "translation": "Не атрымалася атрымаць URL сайта інстанса"
   },
   {
     "id": "api.remote_cluster.accept_invitation_error",
@@ -9785,7 +9781,7 @@
   },
   {
     "id": "api.license.add_license.copy.app_error",
-    "translation": "Не атрымалася скапіяваць змест файла ліцэнзіі ў буфер."
+    "translation": "Не атрымалася скапіяваць змест файла ліцэнзіі ў буфер"
   },
   {
     "id": "api.remote_cluster.create_invite_error",
@@ -10484,10 +10480,6 @@
     "translation": "Немагчыма адмяніць прызначэнне палітыкі кантролю доступу ад каналаў."
   },
   {
-    "id": "app.pap.update_access_control_policy_active.app_error",
-    "translation": "Немагчыма змяніць актыўны статус палітыкі кантролю доступу."
-  },
-  {
     "id": "app.pdp.access_evaluation.app_error",
     "translation": "Не атрымалася ацаніць палітыку кантролю доступу."
   },
@@ -10952,18 +10944,6 @@
     "translation": "Непадтрымоўваны пастаўшчык аўтаматычнага перакладу."
   },
   {
-    "id": "model.config.is_valid.autotranslation.timeouts.fetch.app_error",
-    "translation": "Несапраўдны час чакання атрымання для налад аўтаматычнага перакладу. Павінна быць станоўчым лікам."
-  },
-  {
-    "id": "model.config.is_valid.autotranslation.timeouts.new_post.app_error",
-    "translation": "Несапраўдны час чакання новага паведамлення для налад аўтаматычнага перакладу. Павінна быць станоўчым лікам."
-  },
-  {
-    "id": "model.config.is_valid.autotranslation.timeouts.notification.app_error",
-    "translation": "Несапраўдны час чакання апавяшчэння для налад аўтаматычнага перакладу. Павінна быць станоўчым лікам."
-  },
-  {
     "id": "api.channel.get_channel.flagged_post_mismatch.app_error",
     "translation": "Ідэнтыфікатар канала не супадае з ідэнтыфікатарам маркіраванага паведамлення."
   },
@@ -11388,66 +11368,6 @@
     "translation": "Няслушнае поле часу."
   },
   {
-    "id": "store.sql_autotranslation.channel_not_found",
-    "translation": "Канал не знойдзены."
-  },
-  {
-    "id": "store.sql_autotranslation.get.app_error",
-    "translation": "Немагчыма атрымаць пераклад."
-  },
-  {
-    "id": "store.sql_autotranslation.get_active_languages.app_error",
-    "translation": "Немагчыма атрымаць актыўныя мовы."
-  },
-  {
-    "id": "store.sql_autotranslation.get_channel_enabled.app_error",
-    "translation": "Немагчыма атрымаць статус уключэння аўтаперакладу канала."
-  },
-  {
-    "id": "store.sql_autotranslation.get_user_enabled.app_error",
-    "translation": "Немагчыма атрымаць статус уключэння аўтаперакладу карыстальніка."
-  },
-  {
-    "id": "store.sql_autotranslation.get_user_language.app_error",
-    "translation": "Немагчыма атрымаць мову карыстальніка."
-  },
-  {
-    "id": "store.sql_autotranslation.is_channel_enabled.app_error",
-    "translation": "Немагчыма атрымаць статус уключэння аўтаперакладу канала."
-  },
-  {
-    "id": "store.sql_autotranslation.member_not_found",
-    "translation": "Удзельнік не знойдзены."
-  },
-  {
-    "id": "store.sql_autotranslation.meta_json.app_error",
-    "translation": "Не атрымалася прааналізаваць JSON метададзеных перакладу."
-  },
-  {
-    "id": "store.sql_autotranslation.query_build_error",
-    "translation": "Не атрымалася стварыць запыт."
-  },
-  {
-    "id": "store.sql_autotranslation.save.app_error",
-    "translation": "Немагчыма захаваць пераклад."
-  },
-  {
-    "id": "store.sql_autotranslation.save.invalid_translation",
-    "translation": "Праверка перакладу не ўдалася. Аб'ект перакладу няслушны."
-  },
-  {
-    "id": "store.sql_autotranslation.save.meta_json.app_error",
-    "translation": "Не атрымалася серыялізаваць метададзеныя перакладу ў JSON."
-  },
-  {
-    "id": "store.sql_autotranslation.set_channel_enabled.app_error",
-    "translation": "Немагчыма ўсталяваць статус уключэння аўтаперакладу канала."
-  },
-  {
-    "id": "store.sql_autotranslation.set_user_enabled.app_error",
-    "translation": "Немагчыма ўсталяваць статус уключэння аўтаперакладу карыстальніка."
-  },
-  {
     "id": "api.post.burn_post.user_not_in_channel.app_error",
     "translation": "У вас няма дазволу на выдаленне гэтага паведамлення. Вы павінны быць удзельнікам канала."
   },
@@ -11682,5 +11602,9 @@
       "many": "- {{.Count}} у канале {{.ChannelName}}. Прычына: {{.ErrorReason}}",
       "one": "- {{.Count}} у канале {{.ChannelName}}. Прычына: {{.ErrorReason}}"
     }
+  },
+  {
+    "id": "app.update_scheduled_post.convert_to_post.error",
+    "translation": "Немагчыма пераўтварыць запланаваны допіс у фармат допісу."
   }
 ]
