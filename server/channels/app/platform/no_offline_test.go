@@ -143,6 +143,31 @@ func TestSetOnlineIfNoOffline(t *testing.T) {
 		assert.True(t, after.Manual)
 		assert.Equal(t, "", after.PrevStatus)
 	})
+
+	t.Run("when NoOffline is enabled but channelID is empty, should NOT set Online", func(t *testing.T) {
+		th := Setup(t).InitBasic(t)
+
+		th.Service.UpdateConfig(func(cfg *model.Config) {
+			cfg.FeatureFlags.NoOffline = true
+		})
+
+		// Set status to Away
+		status := &model.Status{
+			UserId:         th.BasicUser.Id,
+			Status:         model.StatusAway,
+			Manual:         false,
+			LastActivityAt: model.GetMillis() - 10000,
+		}
+		th.Service.SaveAndBroadcastStatus(status)
+
+		// Call SetOnlineIfNoOffline with empty channel - user is idle
+		th.Service.SetOnlineIfNoOffline(th.BasicUser.Id, "", "test")
+
+		// Status should remain Away (not set to Online)
+		after, err := th.Service.GetStatus(th.BasicUser.Id)
+		require.Nil(t, err)
+		assert.Equal(t, model.StatusAway, after.Status)
+	})
 }
 
 func TestNoOfflineWithAccurateStatuses(t *testing.T) {
@@ -154,12 +179,13 @@ func TestNoOfflineWithAccurateStatuses(t *testing.T) {
 			cfg.FeatureFlags.NoOffline = true
 		})
 
-		// Set user to Offline
+		// Set user to Offline but with an active channel (simulates user returning)
 		status := &model.Status{
 			UserId:         th.BasicUser.Id,
 			Status:         model.StatusOffline,
 			Manual:         false,
 			LastActivityAt: model.GetMillis() - 10000,
+			ActiveChannel:  th.BasicChannel.Id, // User has active channel
 		}
 		th.Service.SaveAndBroadcastStatus(status)
 
@@ -180,12 +206,13 @@ func TestNoOfflineWithAccurateStatuses(t *testing.T) {
 			cfg.FeatureFlags.NoOffline = true
 		})
 
-		// Set user to Away
+		// Set user to Away but with an active channel (user is engaged)
 		status := &model.Status{
 			UserId:         th.BasicUser.Id,
 			Status:         model.StatusAway,
 			Manual:         false,
 			LastActivityAt: model.GetMillis() - 10000,
+			ActiveChannel:  th.BasicChannel.Id, // User has active channel
 		}
 		th.Service.SaveAndBroadcastStatus(status)
 

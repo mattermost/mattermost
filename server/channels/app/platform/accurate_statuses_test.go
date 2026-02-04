@@ -48,7 +48,7 @@ func TestUpdateActivityFromHeartbeat(t *testing.T) {
 		assert.Equal(t, model.StatusAway, after.Status)
 	})
 
-	t.Run("when window is active, should update LastActivityAt and set Online from Away", func(t *testing.T) {
+	t.Run("when window is active and has active channel, should update LastActivityAt and set Online from Away", func(t *testing.T) {
 		th := Setup(t).InitBasic(t)
 
 		th.Service.UpdateConfig(func(cfg *model.Config) {
@@ -62,11 +62,11 @@ func TestUpdateActivityFromHeartbeat(t *testing.T) {
 			Status:         model.StatusAway,
 			Manual:         false,
 			LastActivityAt: oldTime,
-			ActiveChannel:  "",
+			ActiveChannel:  th.BasicChannel.Id, // User has an active channel (not idle)
 		}
 		th.Service.SaveAndBroadcastStatus(status)
 
-		// Call heartbeat with window active
+		// Call heartbeat with window active - user is engaged
 		th.Service.UpdateActivityFromHeartbeat(th.BasicUser.Id, true, th.BasicChannel.Id, "desktop")
 
 		after, err := th.Service.GetStatus(th.BasicUser.Id)
