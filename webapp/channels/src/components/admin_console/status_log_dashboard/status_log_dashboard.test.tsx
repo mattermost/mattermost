@@ -237,9 +237,11 @@ describe('StatusLogDashboard', () => {
             expect(screen.getByText('All Logs')).toBeInTheDocument();
         });
 
-        // Click on Activity filter
-        const activityButton = screen.getByText('Activity');
-        await userEvent.click(activityButton);
+        // Click on Activity filter - use getAllByText since "Activity" appears multiple times
+        // and select the one that's a button in the filter row
+        const activityButtons = screen.getAllByText('Activity');
+        // The first "Activity" is the filter button in the log type filter row
+        await userEvent.click(activityButtons[0]);
 
         // API should be called with logType filter
         await waitFor(() => {
@@ -267,8 +269,8 @@ describe('StatusLogDashboard', () => {
         const filtersButton = screen.getByText('Filters');
         await userEvent.click(filtersButton);
 
-        // Select away status
-        const statusSelect = screen.getByLabelText(/Status/i);
+        // Find status select by finding the select that contains "All statuses" option
+        const statusSelect = screen.getByDisplayValue('All statuses');
         await userEvent.selectOptions(statusSelect, 'away');
 
         // API should be called with status filter
@@ -522,8 +524,8 @@ describe('StatusLogDashboard', () => {
         const filtersButton = screen.getByText('Filters');
         await userEvent.click(filtersButton);
 
-        // Select a time filter
-        const timeSelect = screen.getByLabelText(/Time Period/i);
+        // Select a time filter - find by the "All time" default value
+        const timeSelect = screen.getByDisplayValue('All time');
         await userEvent.selectOptions(timeSelect, '1h');
 
         // Clear button should appear
