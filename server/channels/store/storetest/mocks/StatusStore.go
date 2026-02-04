@@ -204,6 +204,36 @@ func (_m *StatusStore) UpdateLastActivityAt(userID string, lastActivityAt int64)
 	return r0
 }
 
+// GetDNDUsersInactiveSince provides a mock function with given fields: cutoffTime
+func (_m *StatusStore) GetDNDUsersInactiveSince(cutoffTime int64) ([]*model.Status, error) {
+	ret := _m.Called(cutoffTime)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetDNDUsersInactiveSince")
+	}
+
+	var r0 []*model.Status
+	var r1 error
+	if rf, ok := ret.Get(0).(func(int64) ([]*model.Status, error)); ok {
+		return rf(cutoffTime)
+	}
+	if rf, ok := ret.Get(0).(func(int64) []*model.Status); ok {
+		r0 = rf(cutoffTime)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]*model.Status)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(int64) error); ok {
+		r1 = rf(cutoffTime)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // NewStatusStore creates a new instance of StatusStore. It also registers a testing interface on the mock and a cleanup function to assert the mocks expectations.
 // The first argument is typically a *testing.T value.
 func NewStatusStore(t interface {

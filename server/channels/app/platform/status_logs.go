@@ -4,6 +4,7 @@
 package platform
 
 import (
+	"context"
 	"fmt"
 	"strings"
 	"time"
@@ -15,6 +16,8 @@ import (
 const (
 	// StatusLogCleanupInterval is how often the status log cleanup runs
 	StatusLogCleanupInterval = 1 * time.Hour
+	// DNDTimeoutCheckInterval is how often the DND inactivity timeout check runs
+	DNDTimeoutCheckInterval = 1 * time.Minute
 )
 
 // LogStatusChange saves a status change to the database and broadcasts it via WebSocket.
@@ -379,4 +382,85 @@ func (ps *PlatformService) buildActivityMessage(log *model.StatusLog) string {
 	}
 
 	return fmt.Sprintf("%s had activity", log.Username)
+}
+
+// dndTimeoutCheckLoop runs periodically to check for DND users who have been inactive
+// longer than the configured timeout and sets them to Offline.
+func (ps *PlatformService) dndTimeoutCheckLoop() {
+	ticker := time.NewTicker(DNDTimeoutCheckInterval)
+	defer ticker.Stop()
+
+	// Wait a bit on startup to ensure everything is ready
+	time.Sleep(30 * time.Second)
+
+	for {
+		select {
+		case <-ticker.C:
+			ps.CheckDNDTimeouts()
+		case <-ps.goroutineExitSignal:
+			return
+		}
+	}
+}
+
+// CheckDNDTimeouts checks for DND users who have exceeded the inactivity timeout
+// and sets them to Offline (with PrevStatus = DND so they can be restored when active again).
+func (ps *PlatformService) CheckDNDTimeouts() {
+	// Skip if AccurateStatuses feature is disabled
+	if !ps.Config().FeatureFlags.AccurateStatuses {
+		return
+	}
+
+	// Get DND inactivity timeout from config (in minutes)
+	dndTimeoutMinutes := *ps.Config().MattermostExtendedSettings.Statuses.DNDInactivityTimeoutMinutes
+	if dndTimeoutMinutes <= 0 {
+		// DND timeout disabled
+		return
+	}
+
+	// Calculate cutoff time
+	now := model.GetMillis()
+	cutoffTime := now - int64(dndTimeoutMinutes)*60*1000
+
+	// Get all DND users who have been inactive longer than the timeout
+	statuses, err := ps.Store.Status().GetDNDUsersInactiveSince(cutoffTime)
+	if err != nil {
+		ps.logger.Warn("Failed to get DND users for timeout check", mlog.Err(err))
+		return
+	}
+
+	if len(statuses) == 0 {
+		return
+	}
+
+	ps.logger.Debug("Checking DND timeouts",
+		mlog.Int("dnd_timeout_minutes", dndTimeoutMinutes),
+		mlog.Int("users_to_check", len(statuses)))
+
+	// Set each user to Offline
+	for _, status := range statuses {
+		oldStatus := status.Status
+
+		// Save the DND status so it can be restored when user returns
+		status.PrevStatus = model.StatusDnd
+		status.Status = model.StatusOffline
+		status.Manual = false
+
+		ps.SaveAndBroadcastStatus(status)
+		if ps.sharedChannelService != nil {
+			ps.sharedChannelService.NotifyUserStatusChanged(status)
+		}
+
+		// Log the status change
+		username := ""
+		if user, userErr := ps.Store.User().Get(context.Background(), status.UserId); userErr == nil {
+			username = user.Username
+		}
+		ps.LogStatusChange(status.UserId, username, oldStatus, model.StatusOffline, model.StatusLogReasonDNDExpired, model.StatusLogDeviceUnknown, false, "", false, "CheckDNDTimeouts")
+
+		ps.logger.Info("Set DND user to Offline due to inactivity timeout",
+			mlog.String("user_id", status.UserId),
+			mlog.String("username", username),
+			mlog.Int("timeout_minutes", dndTimeoutMinutes))
+	}
 }

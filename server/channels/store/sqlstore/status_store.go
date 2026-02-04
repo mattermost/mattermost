@@ -171,3 +171,22 @@ func (s SqlStatusStore) UpdateLastActivityAt(userId string, lastActivityAt int64
 
 	return nil
 }
+
+// GetDNDUsersInactiveSince returns all users with DND status whose LastActivityAt is before the given cutoff time.
+// This is used for the DND inactivity timeout feature to set DND users to Offline after extended inactivity.
+func (s SqlStatusStore) GetDNDUsersInactiveSince(cutoffTime int64) ([]*model.Status, error) {
+	query := s.statusSelectQuery.Where(
+		sq.And{
+			sq.Eq{"Status": model.StatusDnd},
+			sq.Lt{"LastActivityAt": cutoffTime},
+		},
+	)
+
+	statuses := []*model.Status{}
+	err := s.GetReplica().SelectBuilder(&statuses, query)
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to find DND users inactive since cutoff")
+	}
+
+	return statuses, nil
+}

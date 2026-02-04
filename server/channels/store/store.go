@@ -745,6 +745,8 @@ type StatusStore interface {
 	GetTotalActiveUsersCount() (int64, error)
 	UpdateLastActivityAt(userID string, lastActivityAt int64) error
 	UpdateExpiredDNDStatuses() ([]*model.Status, error)
+	// GetDNDUsersInactiveSince returns all DND users whose LastActivityAt is before the given cutoff time
+	GetDNDUsersInactiveSince(cutoffTime int64) ([]*model.Status, error)
 }
 
 type FileInfoStore interface {
