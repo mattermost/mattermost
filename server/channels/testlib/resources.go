@@ -7,8 +7,8 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
-	"path"
 	"path/filepath"
+	"runtime"
 
 	"github.com/pkg/errors"
 
@@ -16,7 +16,6 @@ import (
 	"github.com/mattermost/mattermost/server/public/utils"
 	"github.com/mattermost/mattermost/server/v8"
 	"github.com/mattermost/mattermost/server/v8/channels/utils/fileutils"
-	"github.com/mattermost/mattermost/server/v8/platform/shared/filestore"
 )
 
 const (
@@ -55,7 +54,7 @@ func findDir(dir string) (string, bool) {
 			return "./", false
 		}
 
-		return path.Dir(srcPath), true
+		return filepath.Dir(srcPath), true
 	}
 
 	// Use the testdata path to search from the root of the monorepo.
@@ -89,20 +88,32 @@ func getTestResourcesToSetup() []testResourceDetails {
 
 	// Finding resources and setting full path to source to be used for further processing
 	for i, testResource := range testResourcesToSetup {
+		if runtime.GOOS == "windows" {
+			testResourcesToSetup[i].action = actionCopy
+		}
+
 		if testResource.resType == resourceTypeFile {
 			srcPath = findFile(testResource.src)
 			if srcPath == "" {
 				panic(fmt.Sprintf("Failed to find file %s", testResource.src))
 			}
 
-			testResourcesToSetup[i].src = srcPath
+			absPath, err := filepath.Abs(srcPath)
+			if err != nil {
+				panic(fmt.Sprintf("Failed to get absolute path for %s: %v", srcPath, err))
+			}
+			testResourcesToSetup[i].src = absPath
 		} else if testResource.resType == resourceTypeFolder {
 			srcPath, found = findDir(testResource.src)
 			if !found {
 				panic(fmt.Sprintf("Failed to find folder %s", testResource.src))
 			}
 
-			testResourcesToSetup[i].src = srcPath
+			absPath, err := filepath.Abs(srcPath)
+			if err != nil {
+				panic(fmt.Sprintf("Failed to get absolute path for %s: %v", srcPath, err))
+			}
+			testResourcesToSetup[i].src = absPath
 		} else {
 			panic(fmt.Sprintf("Invalid resource type: %d", testResource.resType))
 		}
@@ -112,11 +123,7 @@ func getTestResourcesToSetup() []testResourceDetails {
 }
 
 func CopyFile(src, dst string) error {
-	fileBackend, err := filestore.NewFileBackend(filestore.FileBackendSettings{DriverName: "local", Directory: ""})
-	if err != nil {
-		return errors.Wrapf(err, "failed to copy file %s to %s", src, dst)
-	}
-	if err = fileBackend.CopyFile(src, dst); err != nil {
+	if err := utils.CopyFile(src, dst); err != nil {
 		return errors.Wrapf(err, "failed to copy file %s to %s", src, dst)
 	}
 	return nil
@@ -130,19 +137,19 @@ func SetupTestResources() (string, error) {
 		return "", errors.Wrap(err, "failed to create temporary directory")
 	}
 
-	pluginsDir := path.Join(tempDir, "plugins")
+	pluginsDir := filepath.Join(tempDir, "plugins")
 	err = os.Mkdir(pluginsDir, 0700)
 	if err != nil {
 		return "", errors.Wrapf(err, "failed to create plugins directory %s", pluginsDir)
 	}
 
-	clientDir := path.Join(tempDir, "client")
+	clientDir := filepath.Join(tempDir, "client")
 	err = os.Mkdir(clientDir, 0700)
 	if err != nil {
 		return "", errors.Wrapf(err, "failed to create client directory %s", clientDir)
 	}
 
-	err = setupConfig(path.Join(tempDir, "config"))
+	err = setupConfig(filepath.Join(tempDir, "config"))
 	if err != nil {
 		return "", errors.Wrap(err, "failed to setup config")
 	}
@@ -160,13 +167,28 @@ func SetupTestResources() (string, error) {
 					return "", err
 				}
 			} else if testResource.resType == resourceTypeFolder {
-				err = utils.CopyDir(testResource.src, resourceDestInTemp)
-				if err != nil {
-					return "", errors.Wrapf(err, "failed to copy folder %s to %s", testResource.src, resourceDestInTemp)
+				if testResource.dest == "mattermost-server" && runtime.GOOS == "windows" {
+					// Special case for root on windows: just create the dir and copy go.mod
+					// to avoid copying the whole repository which is slow and large.
+					err = os.MkdirAll(resourceDestInTemp, 0700)
+					if err != nil {
+						return "", errors.Wrapf(err, "failed to create directory %s", resourceDestInTemp)
+					}
+					// Copy go.mod into it to act as a marker
+					goModSrc := filepath.Join(testResource.src, "go.mod")
+					goModDest := filepath.Join(resourceDestInTemp, "go.mod")
+					if err = CopyFile(goModSrc, goModDest); err != nil {
+						return "", err
+					}
+				} else {
+					err = utils.CopyDir(testResource.src, resourceDestInTemp)
+					if err != nil {
+						return "", errors.Wrapf(err, "failed to copy folder %s to %s", testResource.src, resourceDestInTemp)
+					}
 				}
 			}
 		} else if testResource.action == actionSymlink {
-			destDir := path.Dir(resourceDestInTemp)
+			destDir := filepath.Dir(resourceDestInTemp)
 			if destDir != "." {
 				err = os.MkdirAll(destDir, os.ModePerm)
 				if err != nil {
@@ -202,7 +224,7 @@ func setupConfig(configDir string) error {
 		return fmt.Errorf("failed to marshal config: %v", err)
 	}
 
-	configJSON := path.Join(configDir, "config.json")
+	configJSON := filepath.Join(configDir, "config.json")
 	err = os.WriteFile(configJSON, buf, 0644)
 	if err != nil {
 		return errors.Wrapf(err, "failed to write config to %s", configJSON)
