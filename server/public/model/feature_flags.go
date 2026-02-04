@@ -153,6 +153,9 @@ type FeatureFlags struct {
 
 	// Enable admin preference overrides dashboard (requires PreferencesRevamp)
 	PreferenceOverridesDashboard bool
+
+	// Hide the "Update your status" button that appears on posts when user has no custom status
+	HideUpdateStatusButton bool
 }
 
 // featureFlagDefaults defines the default value for each boolean feature flag.

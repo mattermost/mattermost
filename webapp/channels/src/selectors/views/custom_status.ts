@@ -93,5 +93,9 @@ export function showStatusDropdownPulsatingDot(state: GlobalState) {
 }
 
 export function showPostHeaderUpdateStatusButton(state: GlobalState) {
+    const config = getConfig(state);
+    if (config.FeatureFlagHideUpdateStatusButton === 'true') {
+        return false;
+    }
     return showCustomStatusPulsatingDotAndPostHeader(state);
 }

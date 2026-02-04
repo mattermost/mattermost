@@ -39,6 +39,7 @@ const MATTERMOST_EXTENDED_FLAGS = [
     'SettingsResorted',
     'PreferencesRevamp',
     'PreferenceOverridesDashboard',
+    'HideUpdateStatusButton',
 ];
 
 type Props = {

@@ -237,6 +237,10 @@ const FLAG_METADATA: Record<string, {description: string; defaultValue: boolean}
         description: 'Enable admin preference overrides dashboard to enforce user preferences (requires PreferencesRevamp)',
         defaultValue: false,
     },
+    HideUpdateStatusButton: {
+        description: 'Hide the "Update your status" button that appears on posts when user has no custom status set',
+        defaultValue: false,
+    },
 };
 
 // Styled components
