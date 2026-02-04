@@ -117,7 +117,7 @@ jobs:
         working-directory: ./webapp/channels
         run: |
           npm test -- --ci --coverage=false \
-            --testPathPattern="utils/encryption/.*\\.test\\.(ts|tsx)$" \
+            --testPathPatterns="utils/encryption/.*\\.test\\.(ts|tsx)$" \
             2>&1 | tee ../../test-results/encryption-tests.log
           cp build/test-results.xml ../../test-results/encryption-tests.xml 2>/dev/null || true
 
@@ -127,7 +127,7 @@ jobs:
         working-directory: ./webapp/channels
         run: |
           npm test -- --ci --coverage=false \
-            --testPathPattern="status_log_dashboard\\.test\\.tsx$" \
+            --testPathPatterns="status_log_dashboard\\.test\\.tsx$" \
             2>&1 | tee ../../test-results/status-log-dashboard.log
           cp build/test-results.xml ../../test-results/status-log-dashboard.xml 2>/dev/null || true
 
@@ -137,7 +137,7 @@ jobs:
         working-directory: ./webapp/channels
         run: |
           npm test -- --ci --coverage=false \
-            --testPathPattern="error_log_dashboard\\.test\\.tsx$" \
+            --testPathPatterns="error_log_dashboard\\.test\\.tsx$" \
             2>&1 | tee ../../test-results/error-log-dashboard.log
           cp build/test-results.xml ../../test-results/error-log-dashboard.xml 2>/dev/null || true
 
@@ -147,7 +147,7 @@ jobs:
         working-directory: ./webapp/channels
         run: |
           npm test -- --ci --coverage=false \
-            --testPathPattern="preference_overrides_dashboard\\.test\\.tsx$" \
+            --testPathPatterns="preference_overrides_dashboard\\.test\\.tsx$" \
             2>&1 | tee ../../test-results/preference-overrides.log
           cp build/test-results.xml ../../test-results/preference-overrides.xml 2>/dev/null || true
 
@@ -157,7 +157,7 @@ jobs:
         working-directory: ./webapp/channels
         run: |
           npm test -- --ci --coverage=false \
-            --testPathPattern="(video_player|video_link_embed|youtube_video_discord)\\.test\\.tsx$" \
+            --testPathPatterns="(video_player|video_link_embed|youtube_video_discord)\\.test\\.tsx$" \
             2>&1 | tee ../../test-results/video-tests.log
           cp build/test-results.xml ../../test-results/video-tests.xml 2>/dev/null || true
 
@@ -167,7 +167,7 @@ jobs:
         working-directory: ./webapp/channels
         run: |
           npm test -- --ci --coverage=false \
-            --testPathPattern="icon_libraries/(custom_svgs|types)\\.test\\.ts$" \
+            --testPathPatterns="icon_libraries/(custom_svgs|types)\\.test\\.ts$" \
             2>&1 | tee ../../test-results/icons-tests.log
           cp build/test-results.xml ../../test-results/icons-tests.xml 2>/dev/null || true
 
@@ -210,10 +210,34 @@ jobs:
                   echo "" >> $GITHUB_STEP_SUMMARY
                 fi
               else
-                # Parse from log file
-                PASSED=$(grep -o 'Tests:.*passed' "$logfile" | tail -1 || echo "")
-                if [ -n "$PASSED" ]; then
-                  echo "✅ **$NAME**: $PASSED" >> $GITHUB_STEP_SUMMARY
+                # Parse from log file - Jest outputs "Tests: X passed, X total" or "Test Suites: X passed"
+                # Also check for deprecation/error messages
+                if grep -q "was replaced by" "$logfile"; then
+                  ERROR_MSG=$(grep "was replaced by" "$logfile" | head -1)
+                  echo "❌ **$NAME**: Jest CLI error - $ERROR_MSG" >> $GITHUB_STEP_SUMMARY
+                elif grep -q "PASS\|FAIL" "$logfile"; then
+                  # Jest ran - look for summary line
+                  SUMMARY=$(grep -E "Tests:.*[0-9]+ (passed|failed)" "$logfile" | tail -1 || echo "")
+                  if [ -n "$SUMMARY" ]; then
+                    if echo "$SUMMARY" | grep -q "failed"; then
+                      echo "❌ **$NAME**: $SUMMARY" >> $GITHUB_STEP_SUMMARY
+                    else
+                      echo "✅ **$NAME**: $SUMMARY" >> $GITHUB_STEP_SUMMARY
+                    fi
+                  else
+                    # Count PASS/FAIL lines
+                    PASS_COUNT=$(grep -c "^PASS" "$logfile" || echo "0")
+                    FAIL_COUNT=$(grep -c "^FAIL" "$logfile" || echo "0")
+                    if [ "$FAIL_COUNT" = "0" ] && [ "$PASS_COUNT" -gt "0" ]; then
+                      echo "✅ **$NAME**: $PASS_COUNT test files passed" >> $GITHUB_STEP_SUMMARY
+                    elif [ "$FAIL_COUNT" -gt "0" ]; then
+                      echo "❌ **$NAME**: $FAIL_COUNT failed, $PASS_COUNT passed" >> $GITHUB_STEP_SUMMARY
+                    else
+                      echo "⚠️ **$NAME**: Could not parse results" >> $GITHUB_STEP_SUMMARY
+                    fi
+                  fi
+                elif grep -q "npm error" "$logfile"; then
+                  echo "❌ **$NAME**: npm error (see logs)" >> $GITHUB_STEP_SUMMARY
                 else
                   echo "⚠️ **$NAME**: Could not parse results" >> $GITHUB_STEP_SUMMARY
                 fi
