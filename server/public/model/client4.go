@@ -3747,7 +3747,7 @@ func (c *Client4) GetFlaggingConfiguration(ctx context.Context) (*ContentFlaggin
 
 func (c *Client4) GetFlaggingConfigurationForTeam(ctx context.Context, teamId string) (*ContentFlaggingReportingConfig, *Response, error) {
 	values := url.Values{}
-	values.Set("teamId", teamId)
+	values.Set("team_id", teamId)
 	r, err := c.doAPIGetWithQuery(ctx, c.contentFlaggingRoute().Join("flag", "config"), values, "")
 	if err != nil {
 		return nil, BuildResponse(r), err

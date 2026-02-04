@@ -104,7 +104,7 @@ func TestGetFlaggingConfiguration(t *testing.T) {
 					TeamReviewersSetting: map[string]*model.TeamReviewerSetting{
 						th.BasicTeam.Id: {
 							Enabled:     model.NewPointer(true),
-							ReviewerIds: []string{}, // Empty list - user is not a reviewer
+							ReviewerIds: []string{},
 						},
 					},
 				},
