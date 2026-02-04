@@ -20,9 +20,9 @@ This document outlines the complete test coverage plan for all Mattermost Extend
 | AccurateStatuses | ✅ Exists | ❌ Missing | ❌ Missing | Partial |
 | NoOffline | ✅ Exists | ❌ Missing | ❌ Missing | Partial |
 | DND Extended | ✅ Exists | ❌ Missing | ❌ Missing | Partial |
-| Status Log Dashboard | ❌ Missing | ❌ Missing | ❌ Missing | None |
-| Custom Channel Icons | ❌ Missing | ❌ Missing | ❌ Missing | None |
-| Encryption (E2EE) | ❌ Missing | ❌ Missing | ❌ Missing | None |
+| Status Log Dashboard | ✅ Exists | ❌ Missing | ❌ Missing | Partial |
+| Custom Channel Icons | ✅ Exists | ❌ Missing | ❌ Missing | Partial |
+| Encryption (E2EE) | ✅ Exists | ❌ Missing | ❌ Missing | Partial |
 | ThreadsInSidebar | ❌ Missing | ❌ Missing | ❌ Missing | None |
 | CustomThreadNames | ❌ Missing | ❌ Missing | ❌ Missing | None |
 | ImageMulti | ❌ Missing | ❌ Missing | ❌ Missing | None |
@@ -31,17 +31,18 @@ This document outlines the complete test coverage plan for all Mattermost Extend
 | VideoEmbed | ❌ Missing | ❌ Missing | ❌ Missing | None |
 | VideoLinkEmbed | ❌ Missing | ❌ Missing | ❌ Missing | None |
 | EmbedYoutube | ❌ Missing | ❌ Missing | ❌ Missing | None |
-| ErrorLogDashboard | ❌ Missing | ❌ Missing | ❌ Missing | None |
+| ErrorLogDashboard | ✅ Exists | ❌ Missing | ❌ Missing | Partial |
 | SystemConsoleDarkMode | N/A | ❌ Missing | ❌ Missing | None |
 | SystemConsoleHideEnterprise | N/A | ❌ Missing | ❌ Missing | None |
 | SystemConsoleIcons | N/A | ❌ Missing | ❌ Missing | None |
 | SettingsResorted | N/A | ❌ Missing | ❌ Missing | None |
 | PreferencesRevamp | ❌ Missing | ❌ Missing | ❌ Missing | None |
-| PreferenceOverridesDashboard | ❌ Missing | ❌ Missing | ❌ Missing | None |
+| PreferenceOverridesDashboard | ✅ Exists | ❌ Missing | ❌ Missing | Partial |
 | HideDeletedMessagePlaceholder | ❌ Missing | ❌ Missing | ❌ Missing | None |
 | SidebarChannelSettings | ❌ Missing | ❌ Missing | ❌ Missing | None |
 | HideUpdateStatusButton | ❌ Missing | ❌ Missing | ❌ Missing | None |
 | MattermostExtendedSettings | ✅ Exists | N/A | N/A | Complete |
+| StatusLog Model | ✅ Exists | N/A | N/A | Complete |
 
 ---
 
@@ -101,6 +102,81 @@ Platform-level DND functionality:
 - ✅ `TestSetStatusOutOfOfficeExtended` - OOO not changed by heartbeat
 - ✅ `TestDNDWithNoOffline` - NoOffline doesn't change DND
 - ✅ `TestDNDWithNoOffline` - NoOffline restores DND from Offline
+
+### 4. StatusLog Model Tests
+**File:** `server/public/model/status_log_test.go`
+
+Tests the StatusLog model struct:
+- ✅ `TestStatusLogPreSave` - Generates ID and timestamp
+- ✅ `TestStatusLogIsValid` - Validates required fields
+- ✅ `TestStatusLogIsValid` - Rejects invalid status values
+
+### 5. Status Log Store Tests
+**File:** `server/channels/store/sqlstore/status_log_store_test.go`
+
+Tests the database layer for status logs:
+- ✅ `TestStatusLogStoreSave` - Saves status log entry
+- ✅ `TestStatusLogStoreGet` - Retrieves logs with pagination
+- ✅ `TestStatusLogStoreGet` - Filters by user_id, status, log_type
+- ✅ `TestStatusLogStoreGetStats` - Returns counts by status
+- ✅ `TestStatusLogStoreDeleteOlderThan` - Deletes old logs
+
+### 6. Custom Channel Icon API Tests
+**File:** `server/channels/api4/custom_channel_icon_test.go`
+
+Tests the REST API for custom channel icons:
+- ✅ `TestGetCustomChannelIcons` - Returns empty list, returns all icons
+- ✅ `TestGetCustomChannelIcons` - Returns 403 when feature disabled
+- ✅ `TestCreateCustomChannelIcon` - Creates icon (admin only)
+- ✅ `TestCreateCustomChannelIcon` - Returns 403 for non-admin
+- ✅ `TestUpdateCustomChannelIcon` - Updates icon properties
+- ✅ `TestDeleteCustomChannelIcon` - Soft-deletes icon
+
+### 7. Custom Channel Icon Store Tests
+**File:** `server/channels/store/sqlstore/custom_channel_icon_store_test.go`
+
+Tests the database layer for custom icons:
+- ✅ `TestCustomChannelIconStoreSave` - Saves valid icon
+- ✅ `TestCustomChannelIconStoreGet` - Returns icon by ID
+- ✅ `TestCustomChannelIconStoreGetByName` - Returns icon by name
+- ✅ `TestCustomChannelIconStoreGetAll` - Returns all non-deleted icons
+- ✅ `TestCustomChannelIconStoreDelete` - Sets deleteat timestamp
+
+### 8. Encryption API Tests
+**File:** `server/channels/api4/encryption_test.go`
+
+Tests the REST API for E2E encryption:
+- ✅ `TestGetEncryptionStatus` - Returns status when enabled
+- ✅ `TestGetEncryptionStatus` - Returns 403 when feature disabled
+- ✅ `TestRegisterPublicKey` - Registers new public key
+- ✅ `TestGetPublicKeysByUserIds` - Returns keys for users
+- ✅ `TestGetChannelMemberKeys` - Returns keys for channel members
+
+### 9. Encryption Session Key Store Tests
+**File:** `server/channels/store/sqlstore/encryption_session_key_store_test.go`
+
+Tests the database layer for encryption keys:
+- ✅ `TestEncryptionSessionKeyStoreSave` - Saves new key (upsert)
+- ✅ `TestEncryptionSessionKeyStoreGetBySession` - Returns key for session
+- ✅ `TestEncryptionSessionKeyStoreGetByUser` - Returns all keys for user
+- ✅ `TestEncryptionSessionKeyStoreDeleteExpired` - Deletes expired keys
+
+### 10. Error Log API Tests
+**File:** `server/channels/api4/error_log_test.go`
+
+Tests the REST API for error logging:
+- ✅ `TestReportError` - Accepts error report from authenticated user
+- ✅ `TestReportError` - Returns 403 when feature disabled
+- ✅ `TestGetErrors` - Returns all errors (admin only)
+- ✅ `TestClearErrors` - Clears all errors (admin only)
+
+### 11. Preference Override API Tests
+**File:** `server/channels/api4/preference_override_test.go`
+
+Tests the REST API for preference overrides:
+- ✅ `TestGetPreferenceWithOverride` - Returns overridden value when set
+- ✅ `TestGetPreferenceWithOverride` - Returns user value when no override
+- ✅ `TestPreferenceOverrideApplied` - User cannot change overridden preference
 
 ---
 
@@ -713,17 +789,17 @@ describe('ErrorLogDashboard', () => {
 | Feature | File Path |
 |---------|-----------|
 | Settings Defaults | `server/public/model/mattermost_extended_settings_test.go` ✅ |
+| StatusLog Model | `server/public/model/status_log_test.go` ✅ |
 | Status API | `server/channels/api4/status_extended_test.go` ✅ |
 | DND Platform | `server/channels/app/platform/dnd_extended_test.go` ✅ |
-| Custom Icons API | `server/channels/api4/custom_channel_icon_test.go` ❌ |
-| Custom Icons Store | `server/channels/store/sqlstore/custom_channel_icon_store_test.go` ❌ |
-| Encryption API | `server/channels/api4/encryption_test.go` ❌ |
-| Encryption Store | `server/channels/store/sqlstore/encryption_session_key_store_test.go` ❌ |
-| Status Logs API | `server/channels/api4/status_log_test.go` ❌ |
-| Status Logs Store | `server/channels/store/sqlstore/status_log_store_test.go` ❌ |
+| Custom Icons API | `server/channels/api4/custom_channel_icon_test.go` ✅ |
+| Custom Icons Store | `server/channels/store/sqlstore/custom_channel_icon_store_test.go` ✅ |
+| Encryption API | `server/channels/api4/encryption_test.go` ✅ |
+| Encryption Store | `server/channels/store/sqlstore/encryption_session_key_store_test.go` ✅ |
+| Status Logs Store | `server/channels/store/sqlstore/status_log_store_test.go` ✅ |
 | Status Logs Platform | `server/channels/app/platform/status_logs_test.go` ❌ |
-| Error Log API | `server/channels/api4/error_log_test.go` ❌ |
-| Preferences | `server/channels/api4/preference_override_test.go` ❌ |
+| Error Log API | `server/channels/api4/error_log_test.go` ✅ |
+| Preferences | `server/channels/api4/preference_override_test.go` ✅ |
 
 ### Webapp Tests (TypeScript)
 | Feature | File Path |
@@ -754,11 +830,12 @@ describe('ErrorLogDashboard', () => {
 
 ## Implementation Priority
 
-### Phase 1: Core Server Tests (High Priority)
-1. ❌ Custom Channel Icons API + Store tests
-2. ❌ Encryption API + Store tests
-3. ❌ Status Logs API + Store + Platform tests
-4. ❌ Error Log API tests
+### Phase 1: Core Server Tests (High Priority) ✅ COMPLETE
+1. ✅ Custom Channel Icons API + Store tests
+2. ✅ Encryption API + Store tests
+3. ✅ Status Logs Store tests (API tests pending)
+4. ✅ Error Log API tests
+5. ✅ Preference Override API tests
 
 ### Phase 2: Core Webapp Tests (High Priority)
 1. ❌ Encryption utility tests (most complex)
@@ -776,7 +853,7 @@ describe('ErrorLogDashboard', () => {
 1. ❌ UI tweak tests (simple toggles)
 2. ❌ System Console feature tests (CSS-based)
 3. ❌ Thread feature tests
-4. ❌ Preference override tests
+4. ❌ Status Logs Platform tests
 
 ---
 
@@ -796,15 +873,23 @@ describe('ErrorLogDashboard', () => {
 # Status-related tests only
 ./tests.bat status
 
+# Store layer tests only
+./tests.bat store
+
+# API endpoint tests only
+./tests.bat api
+
 # Stop test containers when done
 ./tests.bat stop
 ```
 
 | Command | What it Tests | Docker Required |
 |---------|---------------|-----------------|
-| `./tests.bat` | Full suite (model + integration) | Yes |
+| `./tests.bat` | Full suite (13 tests) | Yes |
 | `./tests.bat quick` | Unit tests only | No |
-| `./tests.bat status` | Status feature tests | Yes |
+| `./tests.bat status` | Status/Platform tests | Yes |
+| `./tests.bat store` | Store layer tests | Yes |
+| `./tests.bat api` | API endpoint tests | Yes |
 | `./tests.bat stop` | Stop test containers | - |
 
 ### GitHub Actions
