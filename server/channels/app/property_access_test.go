@@ -339,9 +339,9 @@ func TestGetPropertyFieldReadAccess(t *testing.T) {
 			Type:       model.PropertyFieldTypeSelect,
 			TargetType: "user",
 			Attrs: model.StringInterface{
-				model.PropertyAttrsAccessMode:       model.PropertyAccessModeSourceOnly,
-				model.PropertyAttrsProtected:        true,
-				model.PropertyAttrsSourcePluginID:   pluginID1,
+				model.PropertyAttrsAccessMode:     model.PropertyAccessModeSourceOnly,
+				model.PropertyAttrsProtected:      true,
+				model.PropertyAttrsSourcePluginID: pluginID1,
 				model.PropertyFieldAttributeOptions: []any{
 					map[string]any{"id": "opt1", "value": "Secret Option 1"},
 					map[string]any{"id": "opt2", "value": "Secret Option 2"},
@@ -1092,7 +1092,6 @@ func TestDeletePropertyField_WriteAccessControl(t *testing.T) {
 	})
 
 	t.Run("denies non-source plugin deleting protected field", func(t *testing.T) {
-		pas := th.App.PropertyAccessService()
 		pas.setPluginCheckerForTests(func(pluginID string) bool {
 			return pluginID == "plugin1"
 		})
