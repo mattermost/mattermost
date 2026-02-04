@@ -316,10 +316,15 @@ export function extractSvgInnerContent(content: string): string {
     return match ? match[1].trim() : '';
 }
 
-// Normalize SVG to have a standard 24x24 viewBox with content properly scaled and centered
+// Normalize SVG to have a standard 24x24 viewBox with consistent vertical padding
+// Height is fixed with padding, width varies by aspect ratio and is horizontally centered
 export function normalizeSvgViewBox(content: string): string {
     // Target viewBox dimensions
     const TARGET_SIZE = 24;
+
+    // Vertical padding (top and bottom) - content height is fixed
+    const VERTICAL_PADDING = 2;
+    const CONTENT_HEIGHT = TARGET_SIZE - (VERTICAL_PADDING * 2); // 20
 
     // Extract original viewBox
     let originalViewBox = extractSvgViewBox(content);
@@ -329,22 +334,14 @@ export function normalizeSvgViewBox(content: string): string {
         originalViewBox = {x: 0, y: 0, width: TARGET_SIZE, height: TARGET_SIZE};
     }
 
-    // If already 24x24 starting at 0,0, just ensure preserveAspectRatio is set
-    if (originalViewBox.x === 0 && originalViewBox.y === 0 &&
-        originalViewBox.width === TARGET_SIZE && originalViewBox.height === TARGET_SIZE) {
-        // Just add preserveAspectRatio if not present
-        if (!content.includes('preserveAspectRatio')) {
-            content = content.replace(/<svg/, '<svg preserveAspectRatio="xMidYMid meet"');
-        }
-        return content;
-    }
-
-    // Calculate transform to center and scale content into 24x24
-    const scale = Math.min(TARGET_SIZE / originalViewBox.width, TARGET_SIZE / originalViewBox.height);
+    // Scale based on height to ensure consistent vertical size
+    const scale = CONTENT_HEIGHT / originalViewBox.height;
     const scaledWidth = originalViewBox.width * scale;
-    const scaledHeight = originalViewBox.height * scale;
+    const scaledHeight = CONTENT_HEIGHT; // Always exactly CONTENT_HEIGHT
+
+    // Center horizontally within TARGET_SIZE, fixed vertical padding
     const translateX = (TARGET_SIZE - scaledWidth) / 2 - (originalViewBox.x * scale);
-    const translateY = (TARGET_SIZE - scaledHeight) / 2 - (originalViewBox.y * scale);
+    const translateY = VERTICAL_PADDING - (originalViewBox.y * scale);
 
     // Extract the inner content
     const innerMatch = content.match(/<svg[^>]*>([\s\S]*?)<\/svg>/i);
@@ -366,7 +363,7 @@ export function normalizeSvgViewBox(content: string): string {
     }
 
     // Build the normalized SVG
-    // Wrap content in a group with transform to scale and center it
+    // Wrap content in a group with transform to scale (by height) and center horizontally
     const transform = `translate(${translateX.toFixed(4)}, ${translateY.toFixed(4)}) scale(${scale.toFixed(4)})`;
 
     return `<svg viewBox="0 0 ${TARGET_SIZE} ${TARGET_SIZE}" preserveAspectRatio="xMidYMid meet"${existingAttrs ? ' ' + existingAttrs : ''}><g transform="${transform}">${innerContent}</g></svg>`;
