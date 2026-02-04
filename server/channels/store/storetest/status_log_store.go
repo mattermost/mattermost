@@ -68,7 +68,6 @@ func testStatusLogStoreSave(t *testing.T, rctx request.CTX, ss store.Store) {
 	})
 
 	t.Run("sets timestamp", func(t *testing.T) {
-		before := model.GetMillis()
 		log := createTestStatusLog(
 			model.NewId(),
 			"testuser2",

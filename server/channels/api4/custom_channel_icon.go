@@ -93,6 +93,12 @@ func createCustomChannelIcon(c *Context, w http.ResponseWriter, r *http.Request)
 	// Set the creator
 	icon.CreatedBy = c.AppContext.Session().UserId
 
+	icon.PreSave()
+	if appErr := icon.IsValid(); appErr != nil {
+		c.Err = appErr
+		return
+	}
+
 	savedIcon, err := c.App.Srv().Store().CustomChannelIcon().Save(&icon)
 	if err != nil {
 		c.Err = model.NewAppError("createCustomChannelIcon", "api.custom_channel_icon.save.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
@@ -154,6 +160,12 @@ func updateCustomChannelIcon(c *Context, w http.ResponseWriter, r *http.Request)
 
 	// Apply patch
 	icon.Patch(&patch)
+
+	icon.PreUpdate()
+	if appErr := icon.IsValid(); appErr != nil {
+		c.Err = appErr
+		return
+	}
 
 	updatedIcon, err := c.App.Srv().Store().CustomChannelIcon().Update(icon)
 	if err != nil {

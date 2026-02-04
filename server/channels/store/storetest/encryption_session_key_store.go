@@ -26,7 +26,7 @@ func TestEncryptionSessionKeyStore(t *testing.T, rctx request.CTX, ss store.Stor
 }
 
 // Helper to create a user and session for testing
-func createTestUserAndSession(t *testing.T, ss store.Store) (*model.User, *model.Session) {
+func createTestUserAndSession(t *testing.T, rctx request.CTX, ss store.Store) (*model.User, *model.Session) {
 	user := &model.User{
 		Email:    model.NewId() + "@test.com",
 		Username: "user_" + model.NewId(),
@@ -46,7 +46,7 @@ func createTestUserAndSession(t *testing.T, ss store.Store) (*model.User, *model
 
 func testEncryptionSessionKeyStoreSave(t *testing.T, rctx request.CTX, ss store.Store) {
 	// Create test user and session
-	user, session := createTestUserAndSession(t, ss)
+	user, session := createTestUserAndSession(t, rctx, ss)
 	defer func() {
 		_ = ss.Session().Remove(session.Id)
 		_ = ss.User().PermanentDelete(rctx, user.Id)
@@ -128,7 +128,7 @@ func testEncryptionSessionKeyStoreSave(t *testing.T, rctx request.CTX, ss store.
 
 func testEncryptionSessionKeyStoreGetBySession(t *testing.T, rctx request.CTX, ss store.Store) {
 	// Create test user and session
-	user, session := createTestUserAndSession(t, ss)
+	user, session := createTestUserAndSession(t, rctx, ss)
 	defer func() {
 		_ = ss.Session().Remove(session.Id)
 		_ = ss.User().PermanentDelete(rctx, user.Id)
@@ -160,7 +160,7 @@ func testEncryptionSessionKeyStoreGetBySession(t *testing.T, rctx request.CTX, s
 
 func testEncryptionSessionKeyStoreGetByUser(t *testing.T, rctx request.CTX, ss store.Store) {
 	// Create test user with multiple sessions
-	user, session1 := createTestUserAndSession(t, ss)
+	user, session1 := createTestUserAndSession(t, rctx, ss)
 	session2 := &model.Session{
 		UserId: user.Id,
 		Token:  model.NewId(),
@@ -207,8 +207,8 @@ func testEncryptionSessionKeyStoreGetByUser(t *testing.T, rctx request.CTX, ss s
 
 func testEncryptionSessionKeyStoreGetByUsers(t *testing.T, rctx request.CTX, ss store.Store) {
 	// Create two test users with sessions
-	user1, session1 := createTestUserAndSession(t, ss)
-	user2, session2 := createTestUserAndSession(t, ss)
+	user1, session1 := createTestUserAndSession(t, rctx, ss)
+	user2, session2 := createTestUserAndSession(t, rctx, ss)
 	defer func() {
 		_ = ss.EncryptionSessionKey().DeleteByUser(user1.Id)
 		_ = ss.EncryptionSessionKey().DeleteByUser(user2.Id)
@@ -248,7 +248,7 @@ func testEncryptionSessionKeyStoreGetByUsers(t *testing.T, rctx request.CTX, ss 
 }
 
 func testEncryptionSessionKeyStoreDeleteBySession(t *testing.T, rctx request.CTX, ss store.Store) {
-	user, session := createTestUserAndSession(t, ss)
+	user, session := createTestUserAndSession(t, rctx, ss)
 	defer func() {
 		_ = ss.Session().Remove(session.Id)
 		_ = ss.User().PermanentDelete(rctx, user.Id)
@@ -278,7 +278,7 @@ func testEncryptionSessionKeyStoreDeleteBySession(t *testing.T, rctx request.CTX
 }
 
 func testEncryptionSessionKeyStoreDeleteByUser(t *testing.T, rctx request.CTX, ss store.Store) {
-	user, session1 := createTestUserAndSession(t, ss)
+	user, session1 := createTestUserAndSession(t, rctx, ss)
 	session2 := &model.Session{
 		UserId: user.Id,
 		Token:  model.NewId(),
@@ -318,8 +318,8 @@ func testEncryptionSessionKeyStoreDeleteByUser(t *testing.T, rctx request.CTX, s
 }
 
 func testEncryptionSessionKeyStoreDeleteAll(t *testing.T, rctx request.CTX, ss store.Store) {
-	user1, session1 := createTestUserAndSession(t, ss)
-	user2, session2 := createTestUserAndSession(t, ss)
+	user1, session1 := createTestUserAndSession(t, rctx, ss)
+	user2, session2 := createTestUserAndSession(t, rctx, ss)
 	defer func() {
 		_ = ss.Session().Remove(session1.Id)
 		_ = ss.Session().Remove(session2.Id)
@@ -358,8 +358,8 @@ func testEncryptionSessionKeyStoreGetStats(t *testing.T, rctx request.CTX, ss st
 	// Clean up first
 	_ = ss.EncryptionSessionKey().DeleteAll()
 
-	user1, session1 := createTestUserAndSession(t, ss)
-	user2, session2 := createTestUserAndSession(t, ss)
+	user1, session1 := createTestUserAndSession(t, rctx, ss)
+	user2, session2 := createTestUserAndSession(t, rctx, ss)
 	session3 := &model.Session{
 		UserId: user1.Id,
 		Token:  model.NewId(),
