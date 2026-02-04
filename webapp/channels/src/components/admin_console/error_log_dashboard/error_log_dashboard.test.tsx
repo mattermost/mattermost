@@ -522,14 +522,19 @@ describe('ErrorLogDashboard', () => {
             />,
         );
 
-        // Wait for data to load
+        // Wait for data to load - in grouped view, errors are grouped
+        await waitFor(() => {
+            expect(screen.getByText(/All Errors/i)).toBeInTheDocument();
+        });
+
+        // Switch to list mode first to see individual errors
+        const listButton = screen.getByTitle('List View');
+        await userEvent.click(listButton);
+
+        // Now wait for individual error messages to be visible
         await waitFor(() => {
             expect(screen.getByText('API request failed')).toBeInTheDocument();
         });
-
-        // Switch to list mode
-        const listButton = screen.getByTitle('List View');
-        await userEvent.click(listButton);
 
         // Find and click copy button
         await waitFor(() => {
