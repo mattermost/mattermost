@@ -6,8 +6,6 @@
       description: |
         List all the Custom Profile Attributes fields.
 
-        _This endpoint is experimental._
-
         __Minimum server version__: 10.5
 
         ##### Permissions
@@ -31,8 +29,6 @@
       summary: Create a Custom Profile Attribute field
       description: |
         Create a new Custom Profile Attribute field on the system.
-
-        _This endpoint is experimental._
 
         __Minimum server version__: 10.5
 
@@ -107,8 +103,6 @@
         only the fields you want to update. Omitted fields will not be
         updated. The fields that can be updated are defined in the
         request body, all other provided fields will be ignored.
-
-        _This endpoint is experimental._
 
         __Minimum server version__: 10.5
 
@@ -189,8 +183,6 @@
         Marks a Custom Profile Attribute field and all its values as
         deleted.
 
-        _This endpoint is experimental._
-
         __Minimum server version__: 10.5
 
         ##### Permissions
@@ -228,8 +220,6 @@
         want to update. Omitted fields will not be updated. The fields
         that can be updated are defined in the request body, all other
         provided fields will be ignored.
-
-        _This endpoint is experimental._
 
         __Minimum server version__: 10.5
 
@@ -315,8 +305,6 @@
       description: |
         List all the Custom Profile Attributes values for specified user.
 
-        _This endpoint is experimental._
-
         __Minimum server version__: 10.5
 
         ##### Permissions
@@ -355,8 +343,6 @@
       summary: Update custom profile attribute values for a user
       description: |
         Update Custom Profile Attribute field values for a specific user.
-
-        _This endpoint is experimental._
 
         __Minimum server version__: 11
 
