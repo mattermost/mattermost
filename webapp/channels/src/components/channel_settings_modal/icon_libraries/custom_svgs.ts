@@ -315,3 +315,59 @@ export function extractSvgInnerContent(content: string): string {
     const match = content.match(/<svg[^>]*>([\s\S]*?)<\/svg>/i);
     return match ? match[1].trim() : '';
 }
+
+// Normalize SVG to have a standard 24x24 viewBox with content properly scaled and centered
+export function normalizeSvgViewBox(content: string): string {
+    // Target viewBox dimensions
+    const TARGET_SIZE = 24;
+
+    // Extract original viewBox
+    let originalViewBox = extractSvgViewBox(content);
+
+    // If no viewBox, try to create one from width/height or default to 24x24
+    if (!originalViewBox) {
+        originalViewBox = {x: 0, y: 0, width: TARGET_SIZE, height: TARGET_SIZE};
+    }
+
+    // If already 24x24 starting at 0,0, just ensure preserveAspectRatio is set
+    if (originalViewBox.x === 0 && originalViewBox.y === 0 &&
+        originalViewBox.width === TARGET_SIZE && originalViewBox.height === TARGET_SIZE) {
+        // Just add preserveAspectRatio if not present
+        if (!content.includes('preserveAspectRatio')) {
+            content = content.replace(/<svg/, '<svg preserveAspectRatio="xMidYMid meet"');
+        }
+        return content;
+    }
+
+    // Calculate transform to center and scale content into 24x24
+    const scale = Math.min(TARGET_SIZE / originalViewBox.width, TARGET_SIZE / originalViewBox.height);
+    const scaledWidth = originalViewBox.width * scale;
+    const scaledHeight = originalViewBox.height * scale;
+    const translateX = (TARGET_SIZE - scaledWidth) / 2 - (originalViewBox.x * scale);
+    const translateY = (TARGET_SIZE - scaledHeight) / 2 - (originalViewBox.y * scale);
+
+    // Extract the inner content
+    const innerMatch = content.match(/<svg[^>]*>([\s\S]*?)<\/svg>/i);
+    if (!innerMatch) {
+        return content;
+    }
+    const innerContent = innerMatch[1];
+
+    // Extract existing SVG attributes (excluding viewBox, width, height, preserveAspectRatio)
+    const svgTagMatch = content.match(/<svg([^>]*)>/i);
+    let existingAttrs = '';
+    if (svgTagMatch) {
+        existingAttrs = svgTagMatch[1]
+            .replace(/viewBox\s*=\s*["'][^"']*["']/gi, '')
+            .replace(/width\s*=\s*["'][^"']*["']/gi, '')
+            .replace(/height\s*=\s*["'][^"']*["']/gi, '')
+            .replace(/preserveAspectRatio\s*=\s*["'][^"']*["']/gi, '')
+            .trim();
+    }
+
+    // Build the normalized SVG
+    // Wrap content in a group with transform to scale and center it
+    const transform = `translate(${translateX.toFixed(4)}, ${translateY.toFixed(4)}) scale(${scale.toFixed(4)})`;
+
+    return `<svg viewBox="0 0 ${TARGET_SIZE} ${TARGET_SIZE}" preserveAspectRatio="xMidYMid meet"${existingAttrs ? ' ' + existingAttrs : ''}><g transform="${transform}">${innerContent}</g></svg>`;
+}

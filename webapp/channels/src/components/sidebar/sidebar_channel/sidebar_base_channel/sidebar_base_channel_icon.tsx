@@ -20,6 +20,7 @@ import {
     decodeSvgFromBase64,
     sanitizeSvg,
     normalizeSvgColors,
+    normalizeSvgViewBox,
 } from 'components/channel_settings_modal/icon_libraries';
 
 import Constants from 'utils/constants';
@@ -173,17 +174,24 @@ function FontAwesomeSidebarIcon({name}: {name: string}) {
 // Render custom SVG from base64 (legacy format: svg:base64)
 function CustomSvgSidebarIcon({base64}: {base64: string}) {
     try {
-        const svgContent = atob(base64);
+        let svgContent = atob(base64);
+
         // Sanitize: remove script tags and event handlers
-        const sanitized = svgContent
+        svgContent = svgContent
             .replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '')
             .replace(/\s*on\w+\s*=\s*["'][^"']*["']/gi, '')
             .replace(/javascript:/gi, '');
 
+        // Normalize viewBox to 24x24 for consistent sizing and centering
+        svgContent = normalizeSvgViewBox(svgContent);
+
+        // Add size attributes
+        svgContent = svgContent.replace(/<svg/, '<svg width="18" height="18"');
+
         return (
             <i
                 className='icon sidebar-channel-icon sidebar-channel-icon--custom'
-                dangerouslySetInnerHTML={{__html: sanitized}}
+                dangerouslySetInnerHTML={{__html: svgContent}}
             />
         );
     } catch {
@@ -205,6 +213,9 @@ function RegisteredCustomSvgSidebarIcon({userId, svgId}: {userId: string; svgId:
         if (customSvg.normalizeColor) {
             svgContent = normalizeSvgColors(svgContent);
         }
+
+        // Normalize viewBox to 24x24 for consistent sizing and centering
+        svgContent = normalizeSvgViewBox(svgContent);
 
         // Add size attributes
         svgContent = svgContent.replace(/<svg/, '<svg width="18" height="18"');

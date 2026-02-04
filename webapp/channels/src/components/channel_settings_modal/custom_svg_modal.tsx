@@ -10,6 +10,7 @@ import {
     validateSvg,
     sanitizeSvg,
     normalizeSvgColors,
+    normalizeSvgViewBox,
     encodeSvgToBase64,
     decodeSvgFromBase64,
     extractSvgViewBox,
@@ -140,12 +141,14 @@ export default function CustomSvgModal({
         onClose();
     }, [name, svgInput, onSave, onClose]);
 
-    // Get preview SVG with color normalization applied (always normalized)
+    // Get preview SVG with color and viewBox normalization applied (always normalized)
     const getDisplaySvg = useCallback(() => {
         if (!previewSvg) {
             return null;
         }
-        return normalizeSvgColors(previewSvg);
+        let svg = normalizeSvgColors(previewSvg);
+        svg = normalizeSvgViewBox(svg);
+        return svg;
     }, [previewSvg]);
 
     const displaySvg = getDisplaySvg();

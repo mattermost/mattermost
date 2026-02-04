@@ -13,6 +13,7 @@ import {
     decodeSvgFromBase64,
     sanitizeSvg,
     normalizeSvgColors,
+    normalizeSvgViewBox,
     encodeSvgToBase64,
 } from './icon_libraries/custom_svgs';
 import {parseIconValue, formatIconValue} from './icon_libraries/types';
@@ -86,6 +87,9 @@ function CustomSvgIcon({svg, size = 20}: {svg: CustomSvg; size?: number}) {
     if (svg.normalizeColor) {
         displaySvg = normalizeSvgColors(displaySvg);
     }
+
+    // Normalize viewBox for consistent sizing and centering
+    displaySvg = normalizeSvgViewBox(displaySvg);
 
     // Add size to SVG
     displaySvg = displaySvg.replace(/<svg/, `<svg width="${size}" height="${size}"`);
@@ -309,6 +313,8 @@ export default function ChannelIconSelector({
                 try {
                     let svgContent = decodeSvgFromBase64(parsed.name);
                     svgContent = sanitizeSvg(svgContent);
+                    // Normalize viewBox for consistent sizing and centering
+                    svgContent = normalizeSvgViewBox(svgContent);
                     svgContent = svgContent.replace(/<svg/, '<svg width="20" height="20"');
                     return (
                         <i

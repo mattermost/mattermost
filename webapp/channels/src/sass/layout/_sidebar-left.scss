@@ -1185,12 +1185,11 @@ $sidebarOpacityAnimationDuration: 0.15s;
     }
 
     .SidebarChannel .SidebarLink > i.sidebar-channel-icon svg {
-        display: inline-block;
-        width: 1em;
+        display: block;
+        width: 18px;
+        height: 18px;
         margin-left: 0.2em;
         margin-right: 0.2em;
-        text-align: center;
-        line-height: 1em;
     }
 
     .SidebarChannelLinkLabel_wrapper,

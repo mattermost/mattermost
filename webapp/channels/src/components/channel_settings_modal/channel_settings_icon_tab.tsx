@@ -34,6 +34,7 @@ import {
     decodeSvgFromBase64,
     sanitizeSvg,
     normalizeSvgColors,
+    normalizeSvgViewBox,
     encodeSvgToBase64,
     type CustomSvg,
     type IconLibrary,
@@ -219,6 +220,9 @@ function CustomSvgIconFromStorage({svg, size = 22}: {svg: CustomSvg; size?: numb
         if (svg.normalizeColor) {
             svgContent = normalizeSvgColors(svgContent);
         }
+
+        // Normalize viewBox for consistent sizing and centering
+        svgContent = normalizeSvgViewBox(svgContent);
 
         // Add size to SVG
         svgContent = svgContent.replace(/<svg/, `<svg width="${size}" height="${size}"`);
