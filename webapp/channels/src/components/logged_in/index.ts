@@ -50,7 +50,7 @@ export function mapStateToProps(state: GlobalState, ownProps: Props) {
         isCurrentChannelManuallyUnread: isManuallyUnread(state, currentChannelId),
         mfaRequired: checkIfMFARequired(getCurrentUser(state), license, config, ownProps.match.url),
         showTermsOfService,
-        customProfileAttributesEnabled: isEnterpriseLicense(license) && getFeatureFlagValue(state, 'CustomProfileAttributes') === 'true',
+        customProfileAttributesEnabled: isEnterpriseLicense(license) && getFeatureFlagValue(state, 'CustomProfileAttributes') === 'true' && getFeatureFlagValue(state, 'SuppressEnterpriseUpgradeChecks') !== 'true',
         accurateStatusesEnabled,
         heartbeatIntervalSeconds,
     };

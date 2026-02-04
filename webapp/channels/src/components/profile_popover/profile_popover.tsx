@@ -85,7 +85,8 @@ const ProfilePopover = ({
     const currentUserId = useSelector(getCurrentUserId);
     const license = useSelector((state: GlobalState) => getLicense(state));
     const isEnterprise = isEnterpriseLicense(license);
-    const enableCustomProfileAttributes = useSelector((state: GlobalState) => getFeatureFlagValue(state, 'CustomProfileAttributes') === 'true' && isEnterprise && !fromWebhook);
+    const suppressEnterpriseChecks = useSelector((state: GlobalState) => getFeatureFlagValue(state, 'SuppressEnterpriseUpgradeChecks') === 'true');
+    const enableCustomProfileAttributes = useSelector((state: GlobalState) => getFeatureFlagValue(state, 'CustomProfileAttributes') === 'true' && isEnterprise && !fromWebhook && !suppressEnterpriseChecks);
 
     const [loadingDMChannel, setLoadingDMChannel] = useState<string>();
 

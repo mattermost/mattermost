@@ -42,7 +42,8 @@ function mapStateToProps(state: GlobalState) {
 
     const license = getLicense(state);
     const isEnterprise = isEnterpriseLicense(license);
-    const enableCustomProfileAttributes = isEnterprise && getFeatureFlagValue(state, 'CustomProfileAttributes') === 'true';
+    const suppressEnterpriseChecks = getFeatureFlagValue(state, 'SuppressEnterpriseUpgradeChecks') === 'true';
+    const enableCustomProfileAttributes = isEnterprise && getFeatureFlagValue(state, 'CustomProfileAttributes') === 'true' && !suppressEnterpriseChecks;
 
     return {
         isMobileView: getIsMobileView(state),
