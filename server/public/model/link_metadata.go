@@ -67,8 +67,7 @@ func firstNImages(images []*image.Image, maxImages int) []*image.Image {
 
 // TruncateOpenGraph ensure OpenGraph metadata doesn't grow too big by
 // shortening strings, trimming fields and reducing the number of
-// images. It also filters out SVG images as a defense-in-depth measure
-// to prevent DoS attacks via malicious SVG content.
+// images.
 func TruncateOpenGraph(ogdata *opengraph.OpenGraph) *opengraph.OpenGraph {
 	if ogdata != nil {
 		empty := &opengraph.OpenGraph{}
@@ -88,8 +87,7 @@ func TruncateOpenGraph(ogdata *opengraph.OpenGraph) *opengraph.OpenGraph {
 	return ogdata
 }
 
-// filterNonSVGImages removes SVG images from the list as a defense-in-depth measure.
-// SVG images can contain malicious content that crashes browsers when rendered.
+// filterNonSVGImages removes SVG images which can contain malicious content that crashes browsers when rendered.
 func filterNonSVGImages(images []*image.Image) []*image.Image {
 	if len(images) == 0 {
 		return images
@@ -113,9 +111,6 @@ func filterNonSVGImages(images []*image.Image) []*image.Image {
 	return filtered
 }
 
-// IsSVGImageURL checks if a URL points to an SVG image based on file extension.
-// This is used to filter SVG images from OpenGraph metadata to prevent DoS attacks
-// via malicious SVG content that can crash browsers when rendered in link previews.
 func IsSVGImageURL(imageURL string) bool {
 	if imageURL == "" {
 		return false
