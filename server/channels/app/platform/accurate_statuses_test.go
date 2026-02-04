@@ -5,11 +5,14 @@ package platform
 
 import (
 	"testing"
+	"time"
 
+	"github.com/gorilla/websocket"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/request"
 )
 
 // Tests for the AccurateStatuses feature flag
@@ -210,7 +213,7 @@ func TestUpdateActivityFromHeartbeat(t *testing.T) {
 		assert.Equal(t, model.StatusDnd, after.Status)
 	})
 
-	t.Run("when window is active but no active channel, should NOT update LastActivityAt", func(t *testing.T) {
+	t.Run("when window is active but no active channel in status, should NOT update LastActivityAt", func(t *testing.T) {
 		th := Setup(t).InitBasic(t)
 
 		th.Service.UpdateConfig(func(cfg *model.Config) {
@@ -224,18 +227,50 @@ func TestUpdateActivityFromHeartbeat(t *testing.T) {
 			Status:         model.StatusOnline,
 			Manual:         false,
 			LastActivityAt: oldTime,
-			ActiveChannel:  "", // User is idle / no active channel
+			ActiveChannel:  "", // User is idle / no active channel (set via SetActiveChannel(""))
 		}
 		th.Service.SaveAndBroadcastStatus(status)
 
-		// Call heartbeat with window active but no channel
+		// Call heartbeat with window active but no channel in heartbeat
 		th.Service.UpdateActivityFromHeartbeat(th.BasicUser.Id, true, "", "desktop")
 
 		after, err := th.Service.GetStatus(th.BasicUser.Id)
 		require.Nil(t, err)
-		// LastActivityAt should NOT be updated since no active channel, even if window is active
+		// LastActivityAt should NOT be updated since status has no active channel
 		assert.Equal(t, oldTime, after.LastActivityAt)
 	})
+
+	t.Run("when heartbeat sends stale channelID but status.ActiveChannel is empty, should NOT update LastActivityAt", func(t *testing.T) {
+		th := Setup(t).InitBasic(t)
+
+		th.Service.UpdateConfig(func(cfg *model.Config) {
+			cfg.FeatureFlags.AccurateStatuses = true
+			*cfg.MattermostExtendedSettings.Statuses.InactivityTimeoutMinutes = 5
+		})
+
+		oldTime := model.GetMillis() - 10000
+		status := &model.Status{
+			UserId:         th.BasicUser.Id,
+			Status:         model.StatusOnline,
+			Manual:         false,
+			LastActivityAt: oldTime,
+			ActiveChannel:  "", // User went idle via SetActiveChannel("")
+		}
+		th.Service.SaveAndBroadcastStatus(status)
+
+		// Heartbeat sends stale channelID (client hasn't caught up yet)
+		// but status.ActiveChannel is empty (authoritative state)
+		// This simulates: user went idle, SetActiveChannel("") was called,
+		// but heartbeat still has old channelID cached
+		th.Service.UpdateActivityFromHeartbeat(th.BasicUser.Id, true, th.BasicChannel.Id, "desktop")
+
+		after, err := th.Service.GetStatus(th.BasicUser.Id)
+		require.Nil(t, err)
+		// LastActivityAt should NOT be updated because status.ActiveChannel is empty
+		// (the authoritative state) even though heartbeat sent a channelID
+		assert.Equal(t, oldTime, after.LastActivityAt)
+	})
+
 }
 
 func TestUpdateActivityFromManualAction(t *testing.T) {
@@ -571,5 +606,50 @@ func TestSetStatusAwayIfNeededExtended(t *testing.T) {
 		require.Nil(t, err)
 		assert.Equal(t, model.StatusOffline, after.Status)
 		assert.Equal(t, model.StatusDnd, after.PrevStatus) // PrevStatus should be preserved
+	})
+}
+
+func TestWebSocketConnectionDoesNotUpdateLastActivityAt(t *testing.T) {
+	t.Run("NewWebConn should NOT call UpdateLastActivityAtIfNeeded", func(t *testing.T) {
+		th := Setup(t).InitBasic(t)
+
+		th.Service.UpdateConfig(func(cfg *model.Config) {
+			cfg.FeatureFlags.AccurateStatuses = true
+		})
+
+		// Create a session first (it will have current time as LastActivityAt)
+		session, err := th.Service.CreateSession(request.EmptyContext(th.Service.Log()), &model.Session{
+			UserId: th.BasicUser.Id,
+		})
+		require.NoError(t, err)
+
+		// Set LastActivityAt to old time (past the SessionActivityTimeout threshold)
+		// SessionActivityTimeout is 5 minutes (300000 ms), so set it to 10 minutes ago
+		oldTime := model.GetMillis() - 600000
+		err = th.Service.Store.Session().UpdateLastActivityAt(session.Id, oldTime)
+		require.NoError(t, err)
+
+		// Fetch the session to confirm the old time
+		session, err = th.Service.Store.Session().Get(request.EmptyContext(th.Service.Log()), session.Token)
+		require.NoError(t, err)
+		require.Equal(t, oldTime, session.LastActivityAt)
+
+		// Create a new WebConn - this should NOT update LastActivityAt
+		cfg := &WebConnConfig{
+			WebSocket: &websocket.Conn{},
+			Session:   *session,
+		}
+		_ = th.Service.NewWebConn(cfg, th.Suite, &hookRunner{})
+
+		// Give async goroutine time to run (if it was going to)
+		time.Sleep(200 * time.Millisecond)
+
+		// Verify session LastActivityAt was NOT updated
+		updatedSession, sessErr := th.Service.Store.Session().Get(request.EmptyContext(th.Service.Log()), session.Token)
+		require.NoError(t, sessErr)
+
+		// The session's LastActivityAt should still be the old time
+		assert.Equal(t, oldTime, updatedSession.LastActivityAt,
+			"WebSocket connection should NOT update session LastActivityAt")
 	})
 }
