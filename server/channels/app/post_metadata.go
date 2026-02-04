@@ -83,7 +83,78 @@ func (a *App) PreparePostListForClient(rctx request.CTX, originalList *model.Pos
 		}
 	}
 
+	a.populatePostListTranslations(rctx, list)
+
 	return list
+}
+
+// populatePostListTranslations fetches and populates translation metadata for posts that don't already have it.
+// Posts from WebSocket broadcasts (post_created) already have translations populated.
+// This function handles API requests (GetPostsForChannel, etc.) by fetching only the user's language.
+func (a *App) populatePostListTranslations(rctx request.CTX, list *model.PostList) {
+	// Check if auto-translation is available before making database calls
+	if a.AutoTranslation() == nil || !a.AutoTranslation().IsFeatureAvailable() {
+		return
+	}
+
+	userID := rctx.Session().UserId
+
+	// Check which posts need translation data populated
+	postsNeedingTranslations := make(map[string][]string) // channelID -> postIDs
+
+	for _, post := range list.Posts {
+		// Skip if translations already populated (e.g., from CreatePost)
+		if post.Metadata != nil && len(post.Metadata.Translations) > 0 {
+			continue
+		}
+
+		postsNeedingTranslations[post.ChannelId] = append(postsNeedingTranslations[post.ChannelId], post.Id)
+	}
+
+	if len(postsNeedingTranslations) == 0 {
+		return // All posts already have translations
+	}
+
+	// For API requests, fetch only the user's language translation
+	for channelID, postIDs := range postsNeedingTranslations {
+		userLang, err := a.AutoTranslation().GetUserLanguage(userID, channelID)
+		if err != nil {
+			var notAvailErr *model.ErrAutoTranslationNotAvailable
+			if !errors.As(err, &notAvailErr) {
+				// Log non-availability errors
+				rctx.Logger().Warn("Failed to get user language for auto-translation", mlog.String("channel_id", channelID), mlog.Err(err))
+			}
+			continue
+		}
+		if userLang == "" {
+			continue
+		}
+
+		translationsMap, err := a.AutoTranslation().GetBatch(postIDs, userLang)
+		if err != nil {
+			var notAvailErr *model.ErrAutoTranslationNotAvailable
+			if errors.As(err, &notAvailErr) {
+				rctx.Logger().Debug("Auto-translation feature not available during GetBatch", mlog.Err(err))
+			} else {
+				// Real error - log it
+				rctx.Logger().Warn("Failed to fetch translations batch", mlog.Err(err))
+			}
+			continue
+		}
+
+		// Populate each post's metadata
+		for postID, t := range translationsMap {
+			post := list.Posts[postID]
+			if post.Metadata == nil {
+				post.Metadata = &model.PostMetadata{}
+			}
+			if post.Metadata.Translations == nil {
+				post.Metadata.Translations = make(map[string]*model.PostTranslation)
+			}
+
+			post.Metadata.Translations[t.Lang] = t.ToPostTranslation()
+		}
+	}
 }
 
 // OverrideIconURLIfEmoji changes the post icon override URL prop, if it has an emoji icon,
@@ -247,50 +318,48 @@ func removeEmbeddedPostsFromMetadata(post *model.Post) {
 	post.Metadata.Embeds = newEmbeds
 }
 
-func (a *App) sanitizePostMetadataForUserAndChannel(rctx request.CTX, post *model.Post, previewedPost *model.PreviewPost, previewedChannel *model.Channel, userID string) *model.Post {
-	if post.Metadata == nil || len(post.Metadata.Embeds) == 0 || previewedPost == nil {
-		return post
-	}
-
-	if previewedChannel != nil && !a.HasPermissionToReadChannel(rctx, userID, previewedChannel) {
-		removePermalinkMetadataFromPost(post)
-	}
-
-	return post
-}
-
-func (a *App) SanitizePostMetadataForUser(rctx request.CTX, post *model.Post, userID string) (*model.Post, *model.AppError) {
+func (a *App) SanitizePostMetadataForUser(rctx request.CTX, post *model.Post, userID string) (*model.Post, bool, *model.AppError) {
 	if post.Metadata == nil || len(post.Metadata.Embeds) == 0 {
-		return post, nil
+		return post, true, nil
 	}
 
 	previewPost := post.GetPreviewPost()
 	if previewPost == nil {
-		return post, nil
+		return post, true, nil
 	}
 
 	previewedChannel, err := a.GetChannel(rctx, previewPost.Post.ChannelId)
 	if err != nil {
-		return nil, err
+		return nil, false, err
 	}
 
-	if previewedChannel != nil && !a.HasPermissionToReadChannel(rctx, userID, previewedChannel) {
-		removePermalinkMetadataFromPost(post)
+	isMember := true
+
+	if previewedChannel != nil {
+		var hasPermission bool
+		hasPermission, isMember = a.HasPermissionToReadChannel(rctx, userID, previewedChannel)
+		if !hasPermission {
+			removePermalinkMetadataFromPost(post)
+			// Since we remove the permalink metadata, we return true
+			isMember = true
+		}
 	}
 
-	return post, nil
+	return post, isMember, nil
 }
 
-func (a *App) SanitizePostListMetadataForUser(rctx request.CTX, postList *model.PostList, userID string) (*model.PostList, *model.AppError) {
+func (a *App) SanitizePostListMetadataForUser(rctx request.CTX, postList *model.PostList, userID string) (*model.PostList, bool, *model.AppError) {
 	clonedPostList := postList.Clone()
+	allPreviewsHaveMembership := true
 	for postID, post := range clonedPostList.Posts {
-		sanitizedPost, err := a.SanitizePostMetadataForUser(rctx, post, userID)
+		sanitizedPost, isMember, err := a.SanitizePostMetadataForUser(rctx, post, userID)
 		if err != nil {
-			return nil, err
+			return nil, false, err
 		}
 		clonedPostList.Posts[postID] = sanitizedPost
+		allPreviewsHaveMembership = allPreviewsHaveMembership && isMember
 	}
-	return clonedPostList, nil
+	return clonedPostList, allPreviewsHaveMembership, nil
 }
 
 func (a *App) getFileMetadataForPost(rctx request.CTX, post *model.Post, fromMaster, includeDeleted bool) ([]*model.FileInfo, int64, *model.AppError) {

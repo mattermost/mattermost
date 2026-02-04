@@ -26,12 +26,11 @@ func newSqlStatusStore(sqlStore *SqlStore) store.StatusStore {
 		SqlStore: sqlStore,
 	}
 
-	manualColumnName := quoteColumnName(s.DriverName(), "Manual")
 	s.statusSelectQuery = s.getQueryBuilder().
 		Select(
 			"COALESCE(UserId, '') AS UserId",
 			"COALESCE(Status, '') AS Status",
-			fmt.Sprintf("COALESCE(%s, FALSE) AS %s", manualColumnName, manualColumnName),
+			"COALESCE(Manual, FALSE) AS Manual",
 			"COALESCE(LastActivityAt, 0) AS LastActivityAt",
 			"COALESCE(DNDEndTime, 0) AS DNDEndTime",
 			"COALESCE(PrevStatus, '') AS PrevStatus",
@@ -44,7 +43,7 @@ func newSqlStatusStore(sqlStore *SqlStore) store.StatusStore {
 func (s SqlStatusStore) SaveOrUpdate(st *model.Status) error {
 	query := s.getQueryBuilder().
 		Insert("Status").
-		Columns("UserId", "Status", quoteColumnName(s.DriverName(), "Manual"), "LastActivityAt", "DNDEndTime", "PrevStatus").
+		Columns("UserId", "Status", "Manual", "LastActivityAt", "DNDEndTime", "PrevStatus").
 		Values(st.UserId, st.Status, st.Manual, st.LastActivityAt, st.DNDEndTime, st.PrevStatus)
 
 	query = query.SuffixExpr(sq.Expr("ON CONFLICT (userid) DO UPDATE SET Status = EXCLUDED.Status, Manual = EXCLUDED.Manual, LastActivityAt = EXCLUDED.LastActivityAt, DNDEndTime = EXCLUDED.DNDEndTime, PrevStatus = EXCLUDED.PrevStatus"))
@@ -70,7 +69,7 @@ func (s SqlStatusStore) SaveOrUpdateMany(statuses map[string]*model.Status) erro
 
 	query := s.getQueryBuilder().
 		Insert("Status").
-		Columns("UserId", "Status", quoteColumnName(s.DriverName(), "Manual"), "LastActivityAt", "DNDEndTime", "PrevStatus")
+		Columns("UserId", "Status", "Manual", "LastActivityAt", "DNDEndTime", "PrevStatus")
 
 	// Add values for each unique status
 	for _, st := range statuses {
@@ -125,7 +124,7 @@ func (s SqlStatusStore) UpdateExpiredDNDStatuses() (_ []*model.Status, err error
 		Set("Status", sq.Expr("PrevStatus")).
 		Set("PrevStatus", model.StatusDnd).
 		Set("DNDEndTime", 0).
-		Set(quoteColumnName(s.DriverName(), "Manual"), false).
+		Set("Manual", false).
 		Suffix("RETURNING *")
 
 	statuses := []*model.Status{}
@@ -138,7 +137,7 @@ func (s SqlStatusStore) UpdateExpiredDNDStatuses() (_ []*model.Status, err error
 }
 
 func (s SqlStatusStore) ResetAll() error {
-	if _, err := s.GetMaster().Exec(fmt.Sprintf("UPDATE Status SET Status = ? WHERE %s = false", quoteColumnName(s.DriverName(), "Manual")), model.StatusOffline); err != nil {
+	if _, err := s.GetMaster().Exec("UPDATE Status SET Status = ? WHERE Manual = false", model.StatusOffline); err != nil {
 		return errors.Wrap(err, "failed to update Statuses")
 	}
 	return nil

@@ -2446,7 +2446,7 @@ func TestPermanentDeleteFlaggedPost(t *testing.T) {
 
 		// Update post to include file IDs
 		post.FileIds = []string{fileInfo1.Id, fileInfo2.Id}
-		_, appErr := th.App.UpdatePost(th.Context, post, &model.UpdatePostOptions{})
+		_, _, appErr := th.App.UpdatePost(th.Context, post, &model.UpdatePostOptions{})
 		require.Nil(t, appErr)
 
 		// Flag the post
@@ -2487,7 +2487,7 @@ func TestPermanentDeleteFlaggedPost(t *testing.T) {
 		editedPost.Message = "Edited message"
 		editedPost.EditAt = model.GetMillis()
 
-		_, appErr := th.App.UpdatePost(th.Context, editedPost, &model.UpdatePostOptions{})
+		_, _, appErr := th.App.UpdatePost(th.Context, editedPost, &model.UpdatePostOptions{})
 		require.Nil(t, appErr)
 
 		// Flag the post

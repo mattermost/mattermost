@@ -221,7 +221,6 @@ const LDAPWizard = (props: Props) => {
         return (
             <LDAPButtonSetting
                 key={schema.id + '_button_' + setting.key}
-                onChange={handleChange}
                 saveNeeded={false}
                 schema={schema}
                 disabled={isDisabled(setting)}

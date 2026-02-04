@@ -79,99 +79,115 @@ const setupDefaultSystemManagerRole = async (
     await adminConsolePage.page.waitForLoadState('networkidle');
 };
 
-test('MM-63378 System Manager without team access permissions cannot view team details', async ({pw}) => {
-    const {
-        adminUser,
-        adminClient,
-        user: systemManagerUser,
-        userClient: systemManagerClient,
-        team,
-    } = await pw.initSetup();
+test(
+    'MM-63378 System Manager without team access permissions cannot view team details',
+    {tag: ['@smoke', '@system_console']},
+    async ({pw}) => {
+        const {
+            adminUser,
+            adminClient,
+            user: systemManagerUser,
+            userClient: systemManagerClient,
+            team,
+        } = await pw.initSetup();
 
-    // Update user with system_manager role
-    await adminClient.updateUserRoles(systemManagerUser.id, 'system_user system_manager');
+        // Update user with system_manager role
+        await adminClient.updateUserRoles(systemManagerUser.id, 'system_user system_manager');
 
-    // Create another team of which the user is not a member.
-    const otherTeam = await adminClient.createTeam(await pw.random.team());
+        // Create another team of which the user is not a member.
+        const otherTeam = await adminClient.createTeam(await pw.random.team());
 
-    // Login as the user
-    const {systemConsolePage} = await pw.testBrowser.login(systemManagerUser);
+        // Login as the user
+        const {systemConsolePage} = await pw.testBrowser.login(systemManagerUser);
 
-    // Configure the system manager with the default permissions.
-    await setupDefaultSystemManagerRole(
-        pw,
-        adminUser,
-        'permission_section_reporting',
-        'permission_section_reporting_team_statistics',
-        'Can edit',
-    );
-    await setupDefaultSystemManagerRole(
-        pw,
-        adminUser,
-        'permission_section_user_management',
-        'permission_section_user_management_teams',
-        'Can edit',
-    );
+        // Configure the system manager with the default permissions.
+        await setupDefaultSystemManagerRole(
+            pw,
+            adminUser,
+            'permission_section_reporting',
+            'permission_section_reporting_team_statistics',
+            'Can edit',
+        );
+        await setupDefaultSystemManagerRole(
+            pw,
+            adminUser,
+            'permission_section_user_management',
+            'permission_section_user_management_teams',
+            'Can edit',
+        );
 
-    // Verify the system manager has access to the site statistics for all teams
-    await systemConsolePage.goto();
+        // Verify the system manager has access to the site statistics for all teams
+        await systemConsolePage.goto();
 
-    // Navigate to Team Statistics
-    await systemConsolePage.sidebar.goToItem('Team Statistics');
+        // Navigate to Team Statistics
+        await systemConsolePage.sidebar.goToItem('Team Statistics');
 
-    // Wait for page to fully load
-    await systemConsolePage.page.waitForLoadState('networkidle');
+        // Wait for page to fully load
+        await systemConsolePage.page.waitForLoadState('networkidle');
 
-    // Find the team filter dropdown
-    let teamFilterSelect = systemConsolePage.page.getByTestId('teamFilter');
-    await expect(teamFilterSelect).toBeVisible();
+        // Find the team filter dropdown
+        let teamFilterSelect = systemConsolePage.page.getByTestId('teamFilter');
+        await expect(teamFilterSelect).toBeVisible();
 
-    // Select the team by value
-    await teamFilterSelect.selectOption({value: team.id});
+        // Select the team by value
+        await teamFilterSelect.selectOption({value: team.id});
 
-    // Verify the text shows "Team Statistics for <team name>"
-    let teamStatsHeading = systemConsolePage.page.getByText(`Team Statistics for ${team.display_name}`, {exact: true});
-    await expect(teamStatsHeading).toBeVisible();
+        // Verify the text shows "Team Statistics for <team name>"
+        let teamStatsHeading = systemConsolePage.page.getByText(`Team Statistics for ${team.display_name}`, {
+            exact: true,
+        });
+        await expect(teamStatsHeading).toBeVisible();
 
-    // Select the other team by value
-    await teamFilterSelect.selectOption({value: otherTeam.id});
+        // Select the other team by value
+        await teamFilterSelect.selectOption({value: otherTeam.id});
 
-    // Verify the text shows "Team Statistics for <team name>"
-    const otherTeamStatsHeading = systemConsolePage.page.getByText(`Team Statistics for ${otherTeam.display_name}`, {
-        exact: true,
-    });
-    await expect(otherTeamStatsHeading).toBeVisible();
+        // Verify the text shows "Team Statistics for <team name>"
+        const otherTeamStatsHeading = systemConsolePage.page.getByText(
+            `Team Statistics for ${otherTeam.display_name}`,
+            {
+                exact: true,
+            },
+        );
+        await expect(otherTeamStatsHeading).toBeVisible();
 
-    // Verify the user has API access to the otherTeam.
-    const fetchedOtherTeam = await systemManagerClient.getTeam(otherTeam.id);
-    expect(fetchedOtherTeam.id).toEqual(otherTeam.id);
+        // Verify the user has API access to the otherTeam.
+        const fetchedOtherTeam = await systemManagerClient.getTeam(otherTeam.id);
+        expect(fetchedOtherTeam.id).toEqual(otherTeam.id);
 
-    // Configure the system manager without access to team user management
-    await setupDefaultSystemManagerRole(
-        pw,
-        adminUser,
-        'permission_section_user_management',
-        'permission_section_user_management_teams',
-        'No access',
-    );
+        // Configure the system manager without access to team user management
+        await setupDefaultSystemManagerRole(
+            pw,
+            adminUser,
+            'permission_section_user_management',
+            'permission_section_user_management_teams',
+            'No access',
+        );
 
-    // Verify the system manager only has access to the site statistics for the team they belong to
-    await systemConsolePage.goto();
+        // Verify the system manager only has access to the site statistics for the team they belong to
+        await systemConsolePage.goto();
 
-    // Navigate to Team Statistics
-    await systemConsolePage.sidebar.goToItem('Team Statistics');
+        // Navigate to Team Statistics
+        await systemConsolePage.sidebar.goToItem('Team Statistics');
 
-    // Find the team filter dropdown
-    teamFilterSelect = systemConsolePage.page.getByTestId('teamFilter');
-    await expect(teamFilterSelect).toBeVisible();
+        // Find the team filter dropdown
+        teamFilterSelect = systemConsolePage.page.getByTestId('teamFilter');
+        await expect(teamFilterSelect).toBeVisible();
 
-    // Select the team by value
-    await teamFilterSelect.selectOption({value: team.id});
+        // Select the team by value
+        await teamFilterSelect.selectOption({value: team.id});
 
-    // Verify the text shows "Team Statistics for <team name>"
-    teamStatsHeading = systemConsolePage.page.getByText(`Team Statistics for ${team.display_name}`, {exact: true});
-    await expect(teamStatsHeading).toBeVisible();
+        // Verify the text shows "Team Statistics for <team name>"
+        teamStatsHeading = systemConsolePage.page.getByText(`Team Statistics for ${team.display_name}`, {exact: true});
+        await expect(teamStatsHeading).toBeVisible();
 
-    // Verify the user has no API access to the otherTeam.
-    await expect(systemManagerClient.getTeam(otherTeam.id)).rejects.toThrow();
-});
+        // Verify the user has no API access to the otherTeam.
+        let apiError: Error | null = null;
+        try {
+            await systemManagerClient.getTeam(otherTeam.id);
+        } catch (error) {
+            apiError = error as Error;
+        }
+        expect(apiError).not.toBeNull();
+        expect(apiError?.message).toContain('You do not have the appropriate permissions');
+    },
+);
