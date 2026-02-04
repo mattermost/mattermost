@@ -1,12 +1,13 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {useCallback} from 'react';
+import React, {useCallback, useEffect} from 'react';
 import {FormattedMessage} from 'react-intl';
 
 import type {WebSocketMessage} from '@mattermost/client';
 
 import {SocketEvents} from 'utils/constants';
+import {stopTypingSound} from 'utils/guilded_sounds';
 import {useWebSocket} from 'utils/use_websocket';
 
 type Props = {
@@ -42,6 +43,13 @@ export default function MsgTyping(props: Props) {
             }
         }, [props.channelId, props.rootId, userStartedTyping, userStoppedTyping]),
     });
+
+    // Stop typing sound when channel changes
+    useEffect(() => {
+        return () => {
+            stopTypingSound();
+        };
+    }, [props.channelId, props.rootId]);
 
     const getTypingText = () => {
         let users: string[] = [];
