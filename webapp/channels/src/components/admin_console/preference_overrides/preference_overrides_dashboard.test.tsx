@@ -222,6 +222,7 @@ describe('PreferenceOverridesDashboard', () => {
     });
 
     test('should display error state on API failure', async () => {
+        const consoleSpy = jest.spyOn(console, 'error').mockImplementation();
         Client4.getDistinctPreferences.mockRejectedValue(new Error('Failed to load'));
 
         renderWithContext(
@@ -234,6 +235,8 @@ describe('PreferenceOverridesDashboard', () => {
         await waitFor(() => {
             expect(screen.getByText(/Failed to load preferences/i)).toBeInTheDocument();
         });
+        expect(consoleSpy).toHaveBeenCalled();
+        consoleSpy.mockRestore();
     });
 
     test('should refresh preferences when refresh button clicked', async () => {
