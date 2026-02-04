@@ -18,7 +18,24 @@ jest.mock('mattermost-redux/client', () => ({
 
 // Mock preference_definitions with proper message descriptors
 jest.mock('utils/preference_definitions', () => ({
-    getPreferenceDefinition: jest.fn().mockReturnValue(null),
+    getPreferenceDefinition: jest.fn((category, name) => {
+        if (category === 'display_settings' && name === 'use_military_time') {
+            return {
+                id: 'use_military_time',
+                category: 'display_settings',
+                name: 'use_military_time',
+                title: {id: 'test.use_military_time', defaultMessage: 'Use Military Time'},
+                description: {id: 'test.use_military_time_desc', defaultMessage: 'Display time in 24-hour format'},
+                options: [
+                    {value: 'true', label: {id: 'test.true', defaultMessage: 'True'}},
+                    {value: 'false', label: {id: 'test.false', defaultMessage: 'False'}},
+                ],
+                defaultValue: 'false',
+                order: 1,
+            };
+        }
+        return null;
+    }),
     getPreferenceGroup: jest.fn().mockReturnValue('advanced'),
     PREFERENCE_GROUP_INFO: {
         time_date: {icon: 'clock', title: {id: 'test.time_date', defaultMessage: 'Time & Date'}, order: 1},
@@ -191,7 +208,7 @@ describe('PreferenceOverridesDashboard', () => {
 
         // The overrides should be visible (locked icons indicate overridden)
         await waitFor(() => {
-            const lockIcons = screen.getAllByTitle(/Override is set|Clear override/i);
+            const lockIcons = screen.getAllByTitle(/Remove override|Enable override/i);
             expect(lockIcons.length).toBeGreaterThan(0);
         });
     });
@@ -281,7 +298,7 @@ describe('PreferenceOverridesDashboard', () => {
 
         // Need to make a change first to enable the save button
         // Click on a lock button to toggle an override
-        const lockButtons = screen.getAllByTitle(/Set override|Clear override/i);
+        const lockButtons = screen.getAllByTitle(/Remove override|Enable override/i);
         if (lockButtons.length > 0) {
             await userEvent.click(lockButtons[0]);
 
@@ -316,10 +333,10 @@ describe('PreferenceOverridesDashboard', () => {
         });
 
         // Now find and click a lock button
-        const lockButtons = screen.getAllByTitle(/Set override|Clear override/i);
+        const lockButtons = screen.getAllByTitle(/Remove override|Enable override/i);
         expect(lockButtons.length).toBeGreaterThan(0);
 
-        // Click on a lock button to set/clear override
+        // Click on a lock button to remove/enable override
         const lockButton = lockButtons[0];
         await userEvent.click(lockButton);
 
@@ -338,6 +355,10 @@ describe('PreferenceOverridesDashboard', () => {
         await waitFor(() => {
             expect(screen.getByText('Display Settings')).toBeInTheDocument();
         });
+
+        // Toggle an override to show the dropdown
+        const lockButtons = screen.getAllByTitle(/Enable override/i);
+        await userEvent.click(lockButtons[0]);
 
         // Each preference should have a dropdown with its possible values
         const dropdowns = screen.getAllByRole('combobox');
@@ -361,9 +382,16 @@ describe('PreferenceOverridesDashboard', () => {
         });
 
         // Need to make a change to enable save - click a lock button
-        const lockButtons = screen.getAllByTitle(/Set override|Clear override/i);
+        const lockButtons = screen.getAllByTitle(/Remove override|Enable override/i);
         if (lockButtons.length > 0) {
             await userEvent.click(lockButtons[0]);
+
+            const saveButton = screen.getByRole('button', {name: /Save Changes/i});
+            await userEvent.click(saveButton);
+
+            await waitFor(() => {
+                expect(screen.getByText('Saved')).toBeInTheDocument();
+            });
         }
     });
 

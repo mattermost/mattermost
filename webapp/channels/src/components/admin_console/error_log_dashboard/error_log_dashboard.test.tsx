@@ -213,8 +213,7 @@ describe('ErrorLogDashboard', () => {
         );
 
         await waitFor(() => {
-            // The stat card shows "All Errors", not just "All"
-            expect(screen.getByText('All Errors')).toBeInTheDocument();
+            expect(screen.getByText('API request failed')).toBeInTheDocument();
         });
 
         // Click on JavaScript stat card to filter (the stat card shows "JS Errors")
@@ -237,7 +236,7 @@ describe('ErrorLogDashboard', () => {
         );
 
         await waitFor(() => {
-            expect(screen.getByPlaceholderText(/Search errors/i)).toBeInTheDocument();
+            expect(screen.getByText('API request failed')).toBeInTheDocument();
         });
 
         const searchInput = screen.getByPlaceholderText(/Search errors/i);
@@ -305,7 +304,7 @@ describe('ErrorLogDashboard', () => {
         );
 
         await waitFor(() => {
-            expect(screen.getByText('Export JSON')).toBeInTheDocument();
+            expect(screen.getByText('API request failed')).toBeInTheDocument();
         });
 
         // Set up download mocks - use a real anchor element to avoid appendChild issues
@@ -480,7 +479,7 @@ describe('ErrorLogDashboard', () => {
 
     test('should toggle showing muted errors', async () => {
         // Set up muted patterns
-        mockLocalStorage.getItem.mockReturnValue(JSON.stringify(['API request']));
+        mockLocalStorage.setItem('errorLogDashboard_mutedPatterns', JSON.stringify(['API request']));
 
         renderWithContext(
             <ErrorLogDashboard
@@ -522,9 +521,9 @@ describe('ErrorLogDashboard', () => {
             />,
         );
 
-        // Wait for data to load - in grouped view, errors are grouped
+        // Wait for data to load
         await waitFor(() => {
-            expect(screen.getByText(/All Errors/i)).toBeInTheDocument();
+            expect(screen.getByText('API request failed')).toBeInTheDocument();
         });
 
         // Switch to list mode first to see individual errors

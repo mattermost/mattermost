@@ -602,6 +602,7 @@ const ErrorLogDashboard: React.FC<Props> = ({config, patchConfig}) => {
             return;
         }
 
+        setLoading(true);
         try {
             const response = await Client4.getErrorLogs();
             setErrors(response.errors || []);
@@ -1653,23 +1654,23 @@ const ErrorLogDashboard: React.FC<Props> = ({config, patchConfig}) => {
                                             >
                                                 <IconVolumeX/>
                                             </button>
-                                        <button
-                                            className='ErrorLogDashboard__error-card__action-btn'
-                                            onClick={() => exportSingleError(error)}
-                                            title={intl.formatMessage({id: 'admin.error_log.export_single', defaultMessage: 'Export as JSON'})}
-                                        >
-                                            <IconDownload/>
-                                        </button>
-                                        <button
-                                            className='ErrorLogDashboard__error-card__action-btn'
-                                            onClick={() => copyError(error)}
-                                            title={intl.formatMessage({id: 'admin.error_log.copy', defaultMessage: 'Copy error details'})}
-                                        >
-                                            {copiedId === error.id ? <IconCheck/> : <IconCopy/>}
-                                        </button>
-                                        <span className='ErrorLogDashboard__error-card__time'>
-                                            {formatRelativeTime(error.create_at)}
-                                        </span>
+                                            <button
+                                                className='ErrorLogDashboard__error-card__action-btn'
+                                                onClick={() => exportSingleError(error)}
+                                                title={intl.formatMessage({id: 'admin.error_log.export_single', defaultMessage: 'Export as JSON'})}
+                                            >
+                                                <IconDownload/>
+                                            </button>
+                                            <button
+                                                className='ErrorLogDashboard__error-card__action-btn'
+                                                onClick={() => copyError(error)}
+                                                title={intl.formatMessage({id: 'admin.error_log.copy', defaultMessage: 'Copy error details'})}
+                                            >
+                                                {copiedId === error.id ? <IconCheck/> : <IconCopy/>}
+                                            </button>
+                                            <span className='ErrorLogDashboard__error-card__time'>
+                                                {formatRelativeTime(error.create_at)}
+                                            </span>
                                     </div>
                                 </div>
 
