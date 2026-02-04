@@ -177,6 +177,17 @@ jobs:
             2>&1 | tee ../../test-results/icons-tests.log
           cp build/test-results.xml ../../test-results/icons-tests.xml 2>/dev/null || true
 
+      - name: Run Mattermost Extended Feature Tests
+        id: mattermost-extended-tests
+        continue-on-error: true
+        working-directory: ./webapp/channels
+        run: |
+          set -o pipefail
+          npm test -- --ci --coverage=false \
+            --testPathPatterns="tests/mattermost_extended/.*\\.test\\.(ts|tsx)$" \
+            2>&1 | tee ../../test-results/mattermost-extended-tests.log
+          cp build/test-results.xml ../../test-results/mattermost-extended-tests.xml 2>/dev/null || true
+
       - name: Upload test results
         if: always()
         uses: actions/upload-artifact@v4
@@ -261,6 +272,7 @@ jobs:
           [ "${{ steps.preference-overrides-tests.outcome }}" = "failure" ] && FAILED=1
           [ "${{ steps.video-tests.outcome }}" = "failure" ] && FAILED=1
           [ "${{ steps.icons-tests.outcome }}" = "failure" ] && FAILED=1
+          [ "${{ steps.mattermost-extended-tests.outcome }}" = "failure" ] && FAILED=1
 
           if [ "$FAILED" = "1" ]; then
             echo "::error::Webapp tests failed - see summary above for details"
