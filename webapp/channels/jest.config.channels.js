@@ -20,10 +20,6 @@ const config = {
         '/node_modules/',
         'src/packages/mattermost-redux/',
     ],
-    reporters: [
-        'default',
-        ['jest-junit', {outputDirectory: 'build', outputName: 'test-results-channels.xml'}],
-    ],
 };
 
 module.exports = config;
