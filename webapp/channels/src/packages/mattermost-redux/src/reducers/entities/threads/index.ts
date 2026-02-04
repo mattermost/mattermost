@@ -18,6 +18,9 @@ export const threadsReducer = (state: ThreadsState['threads'] = {}, action: MMRe
     case ThreadTypes.RECEIVED_UNREAD_THREADS:
     case ThreadTypes.RECEIVED_THREADS: {
         const {threads} = action.data;
+        if (!threads || !Array.isArray(threads)) {
+            return state;
+        }
         return {
             ...state,
             ...threads.reduce((results: IDMappedObjects<UserThread>, thread: UserThread) => {

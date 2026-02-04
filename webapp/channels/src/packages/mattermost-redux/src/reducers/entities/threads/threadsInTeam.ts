@@ -143,9 +143,14 @@ export function handleFollowChanged(state: State, action: AnyAction, extra: Extr
 }
 
 function handleReceiveThreads(state: State, action: AnyAction) {
+    const threads = action.data?.threads;
+    if (!threads || !Array.isArray(threads)) {
+        return state;
+    }
+
     const nextSet = new Set(state[action.data.team_id] || []);
 
-    action.data.threads.forEach((thread: UserThread) => {
+    threads.forEach((thread: UserThread) => {
         nextSet.add(thread.id);
     });
 
@@ -285,14 +290,19 @@ export const unreadThreadsInTeamReducer = (state: ThreadsState['unreadThreadsInT
             return handleReceivedThread(state, action, extra);
         }
         return state;
-    case ThreadTypes.RECEIVED_THREADS:
+    case ThreadTypes.RECEIVED_THREADS: {
+        const threads = action.data?.threads;
+        if (!threads || !Array.isArray(threads)) {
+            return state;
+        }
         return handleReceiveThreads(state, {
             ...action,
             data: {
                 ...action.data,
-                threads: action.data.threads.filter((thread: UserThreadWithPost) => thread.unread_replies > 0 || thread.unread_mentions > 0),
+                threads: threads.filter((thread: UserThreadWithPost) => thread.unread_replies > 0 || thread.unread_mentions > 0),
             },
         });
+    }
     case PostTypes.POST_DELETED:
     case PostTypes.POST_REMOVED:
         return handlePostRemoved(state, action);

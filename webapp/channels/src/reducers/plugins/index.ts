@@ -147,7 +147,7 @@ function removePluginComponent(state: PluginsState['components'], action: AnyAct
 function plugins(state: IDMappedObjects<ClientPluginManifest> = {}, action: MMAction) {
     switch (action.type) {
     case ActionTypes.RECEIVED_WEBAPP_PLUGINS: {
-        if (action.data) {
+        if (action.data && Array.isArray(action.data)) {
             const nextState: IDMappedObjects<ClientPluginManifest> = {};
             action.data.forEach((p: ClientPluginManifest) => {
                 nextState[p.id] = p;
