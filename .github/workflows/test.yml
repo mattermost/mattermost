@@ -2,9 +2,8 @@ name: Tests
 
 on:
   push:
-    branches: [ master ]
-  pull_request:
-    branches: [ master ]
+    tags:
+      - 'v*-custom.*'
 
 permissions:
   contents: read
