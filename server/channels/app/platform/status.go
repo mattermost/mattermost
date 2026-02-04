@@ -1027,7 +1027,7 @@ func (ps *PlatformService) isUserAway(lastActivityAt int64) bool {
 // 2. If user is Away/Offline and has manual activity → Set to Online (except DND)
 // 3. If user is Online and has been inactive (no manual activity) for X minutes → Set to Away
 // 4. If user is DND and has been inactive for Y minutes → Set to Offline
-func (ps *PlatformService) UpdateActivityFromHeartbeat(userID string, windowActive bool, channelID string) {
+func (ps *PlatformService) UpdateActivityFromHeartbeat(userID string, windowActive bool, channelID string, device string) {
 	if !*ps.Config().ServiceSettings.EnableUserStatuses {
 		return
 	}
@@ -1148,9 +1148,8 @@ func (ps *PlatformService) UpdateActivityFromHeartbeat(userID string, windowActi
 			username = user.Username
 		}
 
-		// Device will be "unknown" here - heartbeat doesn't carry device info yet
 		// This is NOT a manual status change - it's automatic from heartbeat activity
-		ps.LogStatusChange(userID, username, oldStatus, newStatus, reason, model.StatusLogDeviceUnknown, windowActive, channelID, false, "UpdateActivityFromHeartbeat")
+		ps.LogStatusChange(userID, username, oldStatus, newStatus, reason, device, windowActive, channelID, false, "UpdateActivityFromHeartbeat")
 	}
 
 	// Save the status update
@@ -1224,7 +1223,7 @@ func (ps *PlatformService) UpdateActivityFromHeartbeat(userID string, windowActi
 		}
 
 		if trigger != "" {
-			ps.LogActivityUpdate(userID, username, status.Status, model.StatusLogDeviceUnknown, windowActive, channelID, channelName, channelType, trigger, "UpdateActivityFromHeartbeat", status.LastActivityAt)
+			ps.LogActivityUpdate(userID, username, status.Status, device, windowActive, channelID, channelName, channelType, trigger, "UpdateActivityFromHeartbeat", status.LastActivityAt)
 		}
 	}
 

@@ -4262,7 +4262,7 @@ func TestSetChannelUnread(t *testing.T) {
 	unread, appErr = th.App.GetChannelUnread(th.Context, c1.Id, u2.Id)
 	require.Nil(t, appErr)
 	require.Equal(t, int64(4), unread.MsgCount)
-	_, appErr = th.App.ViewChannel(th.Context, c1toc2, u2.Id, s2.Id, false)
+	_, appErr = th.App.ViewChannel(th.Context, c1toc2, u2.Id, s2.Id, false, "")
 	require.Nil(t, appErr)
 	unread, appErr = th.App.GetChannelUnread(th.Context, c1.Id, u2.Id)
 	require.Nil(t, appErr)
@@ -4292,7 +4292,7 @@ func TestSetChannelUnread(t *testing.T) {
 		require.Nil(t, err)
 		require.Equal(t, int64(4), unread.MsgCount)
 		cv := &model.ChannelView{ChannelId: dc.Id}
-		_, appErr := th.App.ViewChannel(th.Context, cv, u1.Id, s2.Id, false)
+		_, appErr := th.App.ViewChannel(th.Context, cv, u1.Id, s2.Id, false, "")
 		require.Nil(t, appErr)
 		unread, err = th.App.GetChannelUnread(th.Context, dc.Id, u1.Id)
 		require.Nil(t, err)
@@ -4305,7 +4305,7 @@ func TestSetChannelUnread(t *testing.T) {
 		require.Equal(t, int64(3), unread.MsgCount)
 
 		// Ensure that post have been read
-		_, appErr = th.App.ViewChannel(th.Context, cv, u1.Id, s2.Id, false)
+		_, appErr = th.App.ViewChannel(th.Context, cv, u1.Id, s2.Id, false, "")
 		require.Nil(t, appErr)
 		unread, err = th.App.GetChannelUnread(th.Context, dc.Id, u1.Id)
 		require.Nil(t, err)
@@ -4335,7 +4335,7 @@ func TestSetChannelUnread(t *testing.T) {
 		require.Equal(t, int64(4), unread.MsgCount)
 		require.Equal(t, int64(1), unread.MsgCountRoot)
 		cv := &model.ChannelView{ChannelId: dc.Id}
-		_, appErr = th.App.ViewChannel(th.Context, cv, u1.Id, s2.Id, false)
+		_, appErr = th.App.ViewChannel(th.Context, cv, u1.Id, s2.Id, false, "")
 		require.Nil(t, appErr)
 		unread, err = th.App.GetChannelUnread(th.Context, dc.Id, u1.Id)
 		require.Nil(t, err)
@@ -4350,7 +4350,7 @@ func TestSetChannelUnread(t *testing.T) {
 		require.Equal(t, int64(1), unread.MsgCountRoot)
 
 		// Ensure that post have been read
-		_, appErr = th.App.ViewChannel(th.Context, cv, u1.Id, s2.Id, false)
+		_, appErr = th.App.ViewChannel(th.Context, cv, u1.Id, s2.Id, false, "")
 		require.Nil(t, appErr)
 		unread, err = th.App.GetChannelUnread(th.Context, dc.Id, u1.Id)
 		require.Nil(t, err)

@@ -2816,7 +2816,7 @@ func (a *App) GetNumberOfChannelsOnTeam(rctx request.CTX, teamID string) (int, *
 	return len(list), nil
 }
 
-func (a *App) SetActiveChannel(rctx request.CTX, userID string, channelID string) *model.AppError {
+func (a *App) SetActiveChannel(rctx request.CTX, userID string, channelID string, device string) *model.AppError {
 	status, err := a.Srv().Platform().GetStatus(userID)
 
 	oldStatus := model.StatusOffline
@@ -2895,9 +2895,9 @@ func (a *App) SetActiveChannel(rctx request.CTX, userID string, channelID string
 
 	if statusChanged {
 		// This is NOT a manual status change - it's automatic from viewing a channel
-		a.Srv().Platform().LogStatusChange(userID, username, oldStatus, status.Status, model.StatusLogTriggerActiveChannel, model.StatusLogDeviceUnknown, true, channelID, false, "SetActiveChannel")
+		a.Srv().Platform().LogStatusChange(userID, username, oldStatus, status.Status, model.StatusLogTriggerActiveChannel, device, true, channelID, false, "SetActiveChannel")
 	} else {
-		a.Srv().Platform().LogActivityUpdate(userID, username, status.Status, model.StatusLogDeviceUnknown, true, channelID, channelName, channelType, model.StatusLogTriggerActiveChannel, "SetActiveChannel", status.LastActivityAt)
+		a.Srv().Platform().LogActivityUpdate(userID, username, status.Status, device, true, channelID, channelName, channelType, model.StatusLogTriggerActiveChannel, "SetActiveChannel", status.LastActivityAt)
 	}
 
 	// NoOffline: Set user Online if they're Away/Offline (independent of AccurateStatuses)
@@ -3287,8 +3287,8 @@ func (a *App) MarkChannelsAsViewed(rctx request.CTX, channelIDs []string, userID
 	return times, nil
 }
 
-func (a *App) ViewChannel(rctx request.CTX, view *model.ChannelView, userID string, currentSessionId string, collapsedThreadsSupported bool) (map[string]int64, *model.AppError) {
-	if err := a.SetActiveChannel(rctx, userID, view.ChannelId); err != nil {
+func (a *App) ViewChannel(rctx request.CTX, view *model.ChannelView, userID string, currentSessionId string, collapsedThreadsSupported bool, device string) (map[string]int64, *model.AppError) {
+	if err := a.SetActiveChannel(rctx, userID, view.ChannelId, device); err != nil {
 		return nil, err
 	}
 

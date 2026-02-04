@@ -120,9 +120,12 @@ func (wr *WebSocketRouter) ServeWebSocket(conn *WebConn, r *model.WebSocketReque
 				channelID = chID
 			}
 
+			// Get device from connection's origin client
+			device := conn.originClient
+
 			// Process the heartbeat asynchronously
 			conn.Platform.Go(func() {
-				conn.Platform.UpdateActivityFromHeartbeat(conn.UserId, windowActive, channelID)
+				conn.Platform.UpdateActivityFromHeartbeat(conn.UserId, windowActive, channelID, device)
 			})
 		}
 
