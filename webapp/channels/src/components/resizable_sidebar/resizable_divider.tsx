@@ -219,7 +219,9 @@ function ResizableDivider({
                 onResizeEnd?.(finalWidth, cssVarKey, `${finalWidth}px`);
             }
 
-            containerRef.current?.style.removeProperty(cssVarKey);
+            // Don't remove the inline style here - it causes a flash to default width
+            // because the global style hasn't re-rendered yet with the new value.
+            // The inline style will have the same value as the global style, so no conflict.
             document.body.classList.remove('layout-changing');
             reset();
             setIsActive(false);
@@ -236,6 +238,8 @@ function ResizableDivider({
 
     const onDoubleClick = () => {
         onDividerDoubleClick?.(width ?? 0, cssVarKey);
+        // Remove inline style when resetting to default
+        containerRef.current?.style.removeProperty(cssVarKey);
         reset();
         setWidth(null);
     };
