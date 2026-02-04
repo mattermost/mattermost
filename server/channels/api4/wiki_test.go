@@ -2409,7 +2409,7 @@ func TestGetPageBreadcrumb(t *testing.T) {
 	})
 }
 
-func TestUpdatePageParent(t *testing.T) {
+func TestMovePage(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
 
@@ -2439,7 +2439,7 @@ func TestUpdatePageParent(t *testing.T) {
 		child, appErr := th.App.CreateWikiPage(th.Context, createdWiki.Id, parent1.Id, "Child", "", th.BasicUser.Id, "", "")
 		require.Nil(t, appErr)
 
-		resp, err = th.Client.UpdatePageParent(context.Background(), createdWiki.Id, child.Id, parent2.Id)
+		resp, err = th.Client.MovePageParent(context.Background(), createdWiki.Id, child.Id, parent2.Id)
 		require.NoError(t, err)
 		CheckOKStatus(t, resp)
 
@@ -2463,7 +2463,7 @@ func TestUpdatePageParent(t *testing.T) {
 		child, appErr := th.App.CreateWikiPage(th.Context, createdWiki.Id, parent.Id, "Child", "", th.BasicUser.Id, "", "")
 		require.Nil(t, appErr)
 
-		resp, err = th.Client.UpdatePageParent(context.Background(), createdWiki.Id, child.Id, "")
+		resp, err = th.Client.MovePageParent(context.Background(), createdWiki.Id, child.Id, "")
 		require.NoError(t, err)
 		CheckOKStatus(t, resp)
 
@@ -2484,7 +2484,7 @@ func TestUpdatePageParent(t *testing.T) {
 		page, appErr := th.App.CreateWikiPage(th.Context, createdWiki.Id, "", "Test Page", "", th.BasicUser.Id, "", "")
 		require.Nil(t, appErr)
 
-		resp, err = th.Client.UpdatePageParent(context.Background(), createdWiki.Id, page.Id, "invalid-id")
+		resp, err = th.Client.MovePageParent(context.Background(), createdWiki.Id, page.Id, "invalid-id")
 		require.Error(t, err)
 		CheckBadRequestStatus(t, resp)
 	})
@@ -2501,7 +2501,7 @@ func TestUpdatePageParent(t *testing.T) {
 		page, appErr := th.App.CreateWikiPage(th.Context, createdWiki.Id, "", "Test Page", "", th.BasicUser.Id, "", "")
 		require.Nil(t, appErr)
 
-		resp, err = th.Client.UpdatePageParent(context.Background(), createdWiki.Id, page.Id, model.NewId())
+		resp, err = th.Client.MovePageParent(context.Background(), createdWiki.Id, page.Id, model.NewId())
 		require.Error(t, err)
 		CheckNotFoundStatus(t, resp)
 	})
@@ -2525,7 +2525,7 @@ func TestUpdatePageParent(t *testing.T) {
 		}, th.BasicChannel, model.CreatePostFlags{})
 		require.Nil(t, postErr)
 
-		resp, err = th.Client.UpdatePageParent(context.Background(), createdWiki.Id, page.Id, regularPost.Id)
+		resp, err = th.Client.MovePageParent(context.Background(), createdWiki.Id, page.Id, regularPost.Id)
 		require.Error(t, err)
 		CheckBadRequestStatus(t, resp)
 	})
@@ -2553,7 +2553,7 @@ func TestUpdatePageParent(t *testing.T) {
 		page2, appErr := th.App.CreateWikiPage(th.Context, createdWiki2.Id, "", "Page 2", "", th.BasicUser.Id, "", "")
 		require.Nil(t, appErr)
 
-		resp, err = th.Client.UpdatePageParent(context.Background(), createdWiki1.Id, page1.Id, page2.Id)
+		resp, err = th.Client.MovePageParent(context.Background(), createdWiki1.Id, page1.Id, page2.Id)
 		require.Error(t, err)
 		CheckBadRequestStatus(t, resp)
 	})
@@ -2579,7 +2579,7 @@ func TestUpdatePageParent(t *testing.T) {
 		_, _, loginErr := client2.Login(context.Background(), th.BasicUser2.Username, "Pa$$word11")
 		require.NoError(t, loginErr)
 
-		resp, err := client2.UpdatePageParent(context.Background(), createdPrivateWiki.Id, page.Id, parent.Id)
+		resp, err := client2.MovePageParent(context.Background(), createdPrivateWiki.Id, page.Id, parent.Id)
 		require.Error(t, err)
 		CheckForbiddenStatus(t, resp)
 	})
@@ -2599,9 +2599,211 @@ func TestUpdatePageParent(t *testing.T) {
 		child, appErr := th.App.CreateWikiPage(th.Context, createdWiki.Id, parent.Id, "Child", "", th.BasicUser.Id, "", "")
 		require.Nil(t, appErr)
 
-		resp, err = th.Client.UpdatePageParent(context.Background(), createdWiki.Id, parent.Id, child.Id)
+		resp, err = th.Client.MovePageParent(context.Background(), createdWiki.Id, parent.Id, child.Id)
 		require.Error(t, err)
 		CheckBadRequestStatus(t, resp)
+	})
+}
+
+func TestMovePageWithReorder(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+
+	th.AddPermissionToRole(t, model.PermissionManagePublicChannelProperties.Id, model.ChannelUserRoleId)
+	th.AddPermissionToRole(t, model.PermissionCreatePage.Id, model.ChannelUserRoleId)
+	th.AddPermissionToRole(t, model.PermissionEditPage.Id, model.ChannelUserRoleId)
+	th.AddPermissionToRole(t, model.PermissionReadPage.Id, model.ChannelUserRoleId)
+	th.Context.Session().UserId = th.BasicUser.Id
+
+	t.Run("successfully reorder page among siblings", func(t *testing.T) {
+		wiki := &model.Wiki{
+			ChannelId: th.BasicChannel.Id,
+			Title:     "Reorder Test Wiki",
+		}
+		createdWiki, resp, err := th.Client.CreateWiki(context.Background(), wiki)
+		require.NoError(t, err)
+		CheckCreatedStatus(t, resp)
+
+		// Create 3 root-level pages
+		page1, appErr := th.App.CreateWikiPage(th.Context, createdWiki.Id, "", "Page 1", "", th.BasicUser.Id, "", "")
+		require.Nil(t, appErr)
+
+		page2, appErr := th.App.CreateWikiPage(th.Context, createdWiki.Id, "", "Page 2", "", th.BasicUser.Id, "", "")
+		require.Nil(t, appErr)
+
+		page3, appErr := th.App.CreateWikiPage(th.Context, createdWiki.Id, "", "Page 3", "", th.BasicUser.Id, "", "")
+		require.Nil(t, appErr)
+
+		// Move page1 to index 2 (end)
+		newIndex := int64(2)
+		emptyParent := ""
+		siblings, resp, err := th.Client.MovePage(context.Background(), createdWiki.Id, page1.Id, &emptyParent, &newIndex)
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+		require.NotNil(t, siblings)
+		require.Len(t, siblings.Posts, 3)
+
+		// Verify order: page2, page3, page1 (by sort order)
+		var sortedPosts []*model.Post
+		for _, p := range siblings.Posts {
+			sortedPosts = append(sortedPosts, p)
+		}
+		// Sort by page_sort_order
+		for i := 0; i < len(sortedPosts)-1; i++ {
+			for j := i + 1; j < len(sortedPosts); j++ {
+				if sortedPosts[i].GetPageSortOrder() > sortedPosts[j].GetPageSortOrder() {
+					sortedPosts[i], sortedPosts[j] = sortedPosts[j], sortedPosts[i]
+				}
+			}
+		}
+
+		require.Equal(t, "Page 2", sortedPosts[0].Props["title"])
+		require.Equal(t, "Page 3", sortedPosts[1].Props["title"])
+		require.Equal(t, "Page 1", sortedPosts[2].Props["title"])
+
+		_ = page2
+		_ = page3
+	})
+
+	t.Run("successfully move and reorder page to new parent", func(t *testing.T) {
+		wiki := &model.Wiki{
+			ChannelId: th.BasicChannel.Id,
+			Title:     "Move and Reorder Wiki",
+		}
+		createdWiki, resp, err := th.Client.CreateWiki(context.Background(), wiki)
+		require.NoError(t, err)
+		CheckCreatedStatus(t, resp)
+
+		// Create parent with children
+		parent, appErr := th.App.CreateWikiPage(th.Context, createdWiki.Id, "", "Parent", "", th.BasicUser.Id, "", "")
+		require.Nil(t, appErr)
+
+		child1, appErr := th.App.CreateWikiPage(th.Context, createdWiki.Id, parent.Id, "Child 1", "", th.BasicUser.Id, "", "")
+		require.Nil(t, appErr)
+
+		child2, appErr := th.App.CreateWikiPage(th.Context, createdWiki.Id, parent.Id, "Child 2", "", th.BasicUser.Id, "", "")
+		require.Nil(t, appErr)
+
+		// Create orphan to move
+		orphan, appErr := th.App.CreateWikiPage(th.Context, createdWiki.Id, "", "Orphan", "", th.BasicUser.Id, "", "")
+		require.Nil(t, appErr)
+
+		// Move orphan under parent at index 1 (middle)
+		newIndex := int64(1)
+		parentId := parent.Id
+		siblings, resp, err := th.Client.MovePage(context.Background(), createdWiki.Id, orphan.Id, &parentId, &newIndex)
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+		require.NotNil(t, siblings)
+		require.Len(t, siblings.Posts, 3)
+
+		// Verify orphan is now under parent
+		updatedOrphan, appErr := th.App.GetSinglePost(th.Context, orphan.Id, false)
+		require.Nil(t, appErr)
+		require.Equal(t, parent.Id, updatedOrphan.PageParentId)
+
+		_ = child1
+		_ = child2
+	})
+
+	t.Run("returns nil siblings when no newIndex provided", func(t *testing.T) {
+		wiki := &model.Wiki{
+			ChannelId: th.BasicChannel.Id,
+			Title:     "No Index Wiki",
+		}
+		createdWiki, resp, err := th.Client.CreateWiki(context.Background(), wiki)
+		require.NoError(t, err)
+		CheckCreatedStatus(t, resp)
+
+		parent, appErr := th.App.CreateWikiPage(th.Context, createdWiki.Id, "", "Parent", "", th.BasicUser.Id, "", "")
+		require.Nil(t, appErr)
+
+		child, appErr := th.App.CreateWikiPage(th.Context, createdWiki.Id, "", "Child", "", th.BasicUser.Id, "", "")
+		require.Nil(t, appErr)
+
+		// Move without reorder
+		parentId := parent.Id
+		siblings, resp, err := th.Client.MovePage(context.Background(), createdWiki.Id, child.Id, &parentId, nil)
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+		require.Nil(t, siblings, "siblings should be nil when no index provided")
+
+		// Verify parent changed
+		updatedChild, appErr := th.App.GetSinglePost(th.Context, child.Id, false)
+		require.Nil(t, appErr)
+		require.Equal(t, parent.Id, updatedChild.PageParentId)
+	})
+
+	t.Run("fail with negative index", func(t *testing.T) {
+		wiki := &model.Wiki{
+			ChannelId: th.BasicChannel.Id,
+			Title:     "Negative Index Wiki",
+		}
+		createdWiki, resp, err := th.Client.CreateWiki(context.Background(), wiki)
+		require.NoError(t, err)
+		CheckCreatedStatus(t, resp)
+
+		page, appErr := th.App.CreateWikiPage(th.Context, createdWiki.Id, "", "Test Page", "", th.BasicUser.Id, "", "")
+		require.Nil(t, appErr)
+
+		// Try negative index
+		negativeIndex := int64(-1)
+		emptyParent := ""
+		_, resp, err = th.Client.MovePage(context.Background(), createdWiki.Id, page.Id, &emptyParent, &negativeIndex)
+		require.Error(t, err)
+		CheckBadRequestStatus(t, resp)
+	})
+
+	t.Run("clamps large index to bounds", func(t *testing.T) {
+		// Use a fresh channel to avoid interference from other tests
+		channel, appErr := th.App.CreateChannel(th.Context, &model.Channel{
+			TeamId:      th.BasicTeam.Id,
+			Type:        model.ChannelTypeOpen,
+			DisplayName: "Large Index Test Channel",
+			Name:        "large-index-test-" + model.NewId(),
+		}, false)
+		require.Nil(t, appErr)
+
+		_, appErr = th.App.AddUserToChannel(th.Context, th.BasicUser, channel, false)
+		require.Nil(t, appErr)
+
+		wiki := &model.Wiki{
+			ChannelId: channel.Id,
+			Title:     "Large Index Wiki",
+		}
+		createdWiki, resp, err := th.Client.CreateWiki(context.Background(), wiki)
+		require.NoError(t, err)
+		CheckCreatedStatus(t, resp)
+
+		pageA, appErr := th.App.CreateWikiPage(th.Context, createdWiki.Id, "", "Page A", "", th.BasicUser.Id, "", "")
+		require.Nil(t, appErr)
+
+		_, appErr = th.App.CreateWikiPage(th.Context, createdWiki.Id, "", "Page B", "", th.BasicUser.Id, "", "")
+		require.Nil(t, appErr)
+
+		// Move pageA to index 1000 (should be clamped to 1)
+		largeIndex := int64(1000)
+		emptyParent := ""
+		siblings, resp, err := th.Client.MovePage(context.Background(), createdWiki.Id, pageA.Id, &emptyParent, &largeIndex)
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+		require.NotNil(t, siblings)
+		require.Len(t, siblings.Posts, 2)
+
+		// Verify pageA is at the end (after pageB)
+		var sortedPosts []*model.Post
+		for _, p := range siblings.Posts {
+			sortedPosts = append(sortedPosts, p)
+		}
+		for i := 0; i < len(sortedPosts)-1; i++ {
+			for j := i + 1; j < len(sortedPosts); j++ {
+				if sortedPosts[i].GetPageSortOrder() > sortedPosts[j].GetPageSortOrder() {
+					sortedPosts[i], sortedPosts[j] = sortedPosts[j], sortedPosts[i]
+				}
+			}
+		}
+		require.Equal(t, "Page B", sortedPosts[0].Props["title"])
+		require.Equal(t, "Page A", sortedPosts[1].Props["title"])
 	})
 }
 

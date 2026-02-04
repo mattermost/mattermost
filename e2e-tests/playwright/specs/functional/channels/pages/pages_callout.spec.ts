@@ -15,6 +15,7 @@ import {
     typeInEditor,
     selectTextInEditor,
     SHORT_WAIT,
+    UI_MICRO_WAIT,
 } from './test_helpers';
 
 /**
@@ -175,15 +176,14 @@ test('shows formatting bar when selecting text inside callout', {tag: '@pages'},
     // # Type some text inside the callout
     await typeInsideBlock(page, callout, 'Select this text');
 
-    // # Select all text inside the callout using keyboard
-    await page.keyboard.press('Home');
-    for (let i = 0; i < 16; i++) {
-        await page.keyboard.press('Shift+ArrowRight');
-    }
+    // # Select text using triple-click on the paragraph (more reliable than keyboard selection)
+    const paragraph = callout.locator('p').first();
+    await paragraph.click({clickCount: 3});
+    await page.waitForTimeout(SHORT_WAIT);
 
     // * Verify formatting bar appears
-    const formattingBar = page.locator('.formatting-bar-bubble');
-    await expect(formattingBar).toBeVisible({timeout: 5000});
+    const formattingBar = await waitForFormattingBar(page);
+    await expect(formattingBar).toBeVisible();
 });
 
 /**
@@ -208,7 +208,7 @@ test(
 
         // # Click inside the callout to position cursor
         await callout.click();
-        await page.waitForTimeout(100);
+        await page.waitForTimeout(UI_MICRO_WAIT);
 
         // # Press Backspace to delete the empty callout
         await page.keyboard.press('Backspace');
@@ -240,7 +240,7 @@ test(
 
         // # Click inside the callout and move cursor to the very beginning
         await callout.click();
-        await page.waitForTimeout(100);
+        await page.waitForTimeout(UI_MICRO_WAIT);
         await page.keyboard.press('Home');
 
         // # Press Backspace to unwrap/lift the content out of callout
@@ -389,7 +389,7 @@ test(
 
         // # Use keyboard to select text inside callout
         await page.keyboard.press('Home');
-        await page.waitForTimeout(100);
+        await page.waitForTimeout(UI_MICRO_WAIT);
         for (let i = 0; i < testContent.length; i++) {
             await page.keyboard.press('Shift+ArrowRight');
         }

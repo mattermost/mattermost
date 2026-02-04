@@ -251,6 +251,140 @@ describe('tree_builder', () => {
             expect(tree[1].id).toBe('root-2');
             expect(tree[1].children).toHaveLength(1);
         });
+
+        // Tests for page_sort_order sorting
+        const createPageWithSortOrder = (id: string, title: string, pageParentId: string, createAt: number, sortOrder?: number): PageOrDraft => ({
+            id,
+            create_at: createAt,
+            update_at: createAt,
+            delete_at: 0,
+            edit_at: 0,
+            is_pinned: false,
+            user_id: 'user-1',
+            channel_id: 'channel-1',
+            root_id: '',
+            original_id: '',
+            message: '',
+            type: 'page',
+            page_parent_id: pageParentId,
+            props: sortOrder === undefined ? {title} : {title, page_sort_order: sortOrder},
+            hashtags: '',
+            filenames: [],
+            file_ids: [],
+            pending_post_id: '',
+            reply_count: 0,
+            last_reply_at: 0,
+            participants: null,
+            metadata: {embeds: [], emojis: [], files: [], images: {}},
+        });
+
+        test('sorts by page_sort_order when set', () => {
+            const pages = [
+                createPageWithSortOrder('page-high', 'High Sort', '', 1000, 3000),
+                createPageWithSortOrder('page-low', 'Low Sort', '', 2000, 1000),
+                createPageWithSortOrder('page-mid', 'Mid Sort', '', 3000, 2000),
+            ];
+
+            const tree = buildTree(pages);
+
+            expect(tree[0].id).toBe('page-low'); // sort_order 1000
+            expect(tree[1].id).toBe('page-mid'); // sort_order 2000
+            expect(tree[2].id).toBe('page-high'); // sort_order 3000
+        });
+
+        test('falls back to create_at when page_sort_order is 0 or not set', () => {
+            const pages = [
+                createPageWithSortOrder('page-3', 'Page 3', '', 3000, 0),
+                createPageWithSortOrder('page-1', 'Page 1', '', 1000), // no sort order
+                createPageWithSortOrder('page-2', 'Page 2', '', 2000, 0),
+            ];
+
+            const tree = buildTree(pages);
+
+            // All have sort_order 0, so sorted by create_at
+            expect(tree[0].id).toBe('page-1');
+            expect(tree[1].id).toBe('page-2');
+            expect(tree[2].id).toBe('page-3');
+        });
+
+        test('page_sort_order takes precedence over create_at', () => {
+            const pages = [
+                createPageWithSortOrder('old-page', 'Old Page', '', 1000, 2000), // older but higher sort_order
+                createPageWithSortOrder('new-page', 'New Page', '', 5000, 1000), // newer but lower sort_order
+            ];
+
+            const tree = buildTree(pages);
+
+            expect(tree[0].id).toBe('new-page'); // lower sort_order wins
+            expect(tree[1].id).toBe('old-page');
+        });
+
+        test('sorts children by page_sort_order', () => {
+            const pages = [
+                createPageWithSortOrder('parent', 'Parent', '', 1000),
+                createPageWithSortOrder('child-c', 'Child C', 'parent', 2000, 3000),
+                createPageWithSortOrder('child-a', 'Child A', 'parent', 3000, 1000),
+                createPageWithSortOrder('child-b', 'Child B', 'parent', 4000, 2000),
+            ];
+
+            const tree = buildTree(pages);
+
+            expect(tree[0].children[0].id).toBe('child-a'); // sort_order 1000
+            expect(tree[0].children[1].id).toBe('child-b'); // sort_order 2000
+            expect(tree[0].children[2].id).toBe('child-c'); // sort_order 3000
+        });
+
+        test('handles mixed pages with and without page_sort_order', () => {
+            const pages = [
+                createPageWithSortOrder('with-order', 'With Order', '', 3000, 1000),
+                createPageWithSortOrder('without-order', 'Without Order', '', 1000), // no sort_order
+            ];
+
+            const tree = buildTree(pages);
+
+            // without-order has sort_order 0, with-order has 1000
+            // 0 < 1000, so without-order comes first
+            expect(tree[0].id).toBe('without-order');
+            expect(tree[1].id).toBe('with-order');
+        });
+
+        test('handles page_sort_order as string (JSON deserialization edge case)', () => {
+            const pageWithStringOrder: PageOrDraft = {
+                id: 'string-order',
+                create_at: 1000,
+                update_at: 1000,
+                delete_at: 0,
+                edit_at: 0,
+                is_pinned: false,
+                user_id: 'user-1',
+                channel_id: 'channel-1',
+                root_id: '',
+                original_id: '',
+                message: '',
+                type: 'page',
+                page_parent_id: '',
+                props: {title: 'String Order', page_sort_order: '2000' as unknown as number}, // string instead of number
+                hashtags: '',
+                filenames: [],
+                file_ids: [],
+                pending_post_id: '',
+                reply_count: 0,
+                last_reply_at: 0,
+                participants: null,
+                metadata: {embeds: [], emojis: [], files: [], images: {}},
+            };
+
+            const pages = [
+                pageWithStringOrder,
+                createPageWithSortOrder('number-order', 'Number Order', '', 2000, 1000),
+            ];
+
+            const tree = buildTree(pages);
+
+            // String "2000" should be parsed as 2000, number 1000 comes first
+            expect(tree[0].id).toBe('number-order');
+            expect(tree[1].id).toBe('string-order');
+        });
     });
 
     describe('getAncestorIds', () => {

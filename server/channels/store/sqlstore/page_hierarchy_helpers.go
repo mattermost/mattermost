@@ -16,6 +16,10 @@ const (
 	PageHierarchySubtree     PageHierarchyCTEDirection = "subtree"
 )
 
+// MaxPageHierarchyDepth limits CTE recursion depth to prevent infinite loops
+// and excessive resource consumption on deeply nested page hierarchies.
+const MaxPageHierarchyDepth = 50
+
 // buildPageHierarchyCTE generates a recursive CTE query for page hierarchy traversal
 // Parameters:
 //
@@ -32,16 +36,17 @@ func buildPageHierarchyCTE(direction PageHierarchyCTEDirection, excludeRoot, ful
 			cteName = "page_subtree"
 		}
 
+		// Include depth tracking to prevent infinite recursion
 		cte = fmt.Sprintf(`
 		WITH RECURSIVE %s AS (
-			SELECT Id, PageParentId
+			SELECT Id, PageParentId, 1 AS depth
 			FROM Posts WHERE Id = $1 AND Type = 'page' AND DeleteAt = 0
 			UNION ALL
-			SELECT p.Id, p.PageParentId
+			SELECT p.Id, p.PageParentId, d.depth + 1
 			FROM Posts p
 			INNER JOIN %s d ON p.PageParentId = d.Id
-			WHERE p.Type = 'page' AND p.DeleteAt = 0
-		)`, cteName, cteName)
+			WHERE p.Type = 'page' AND p.DeleteAt = 0 AND d.depth < %d
+		)`, cteName, cteName, MaxPageHierarchyDepth)
 
 		if fullSelect {
 			selectClause = fmt.Sprintf(`
@@ -62,17 +67,18 @@ func buildPageHierarchyCTE(direction PageHierarchyCTEDirection, excludeRoot, ful
 		}
 
 	case PageHierarchyAncestors:
-		cte = `
+		// Include depth tracking to prevent infinite recursion
+		cte = fmt.Sprintf(`
 		WITH RECURSIVE ancestors AS (
-			SELECT Id, PageParentId
+			SELECT Id, PageParentId, 1 AS depth
 			FROM Posts WHERE Id = $1 AND Type = 'page' AND DeleteAt = 0
 			UNION ALL
-			SELECT p.Id, p.PageParentId
+			SELECT p.Id, p.PageParentId, a.depth + 1
 			FROM Posts p
 			INNER JOIN ancestors a ON p.Id = a.PageParentId
 			WHERE a.PageParentId IS NOT NULL AND a.PageParentId != ''
-			  AND p.Type = 'page' AND p.DeleteAt = 0
-		)`
+			  AND p.Type = 'page' AND p.DeleteAt = 0 AND a.depth < %d
+		)`, MaxPageHierarchyDepth)
 
 		if fullSelect {
 			selectClause = `

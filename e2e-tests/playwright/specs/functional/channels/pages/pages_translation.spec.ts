@@ -21,6 +21,7 @@ import {
     uniqueName,
     ELEMENT_TIMEOUT,
     PAGE_LOAD_TIMEOUT,
+    SHORT_WAIT,
 } from './test_helpers';
 
 /**
@@ -395,7 +396,7 @@ test('preserves URLs during page translation', {tag: '@pages'}, async ({pw, shar
     await page.keyboard.type(`See this invoice: ${testUrl} for billing details.`);
 
     // # Wait for TipTap to auto-link the URL
-    await page.waitForTimeout(500);
+    await page.waitForTimeout(SHORT_WAIT);
 
     // # Open page actions menu and navigate to AI Tools submenu
     await openAIToolsMenu(page);

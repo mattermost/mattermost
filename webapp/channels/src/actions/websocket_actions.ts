@@ -1116,6 +1116,7 @@ interface PageMovedEventData {
     wiki_id: string;
     source_wiki_id?: string;
     update_at: number;
+    siblings?: string; // JSON-encoded PostList with updated sort orders
 }
 
 export async function handlePageMovedEvent(msg: WebSocketMessage) {
@@ -1125,6 +1126,7 @@ export async function handlePageMovedEvent(msg: WebSocketMessage) {
     const wikiId = eventData.wiki_id;
     const sourceWikiId = eventData.source_wiki_id;
     const updateAt = eventData.update_at;
+    const siblingsJson = eventData.siblings;
 
     const state = getState();
     let existingPage = getPost(state, pageId);
@@ -1160,6 +1162,27 @@ export async function handlePageMovedEvent(msg: WebSocketMessage) {
             data: {page: updatedPage, wikiId},
         },
     ];
+
+    // If siblings with updated sort orders are included, update them in Redux
+    // This ensures all clients have consistent page ordering after drag-drop
+    if (siblingsJson) {
+        try {
+            const siblings = JSON.parse(siblingsJson) as {posts?: Record<string, Post>};
+            if (siblings.posts) {
+                for (const post of Object.values(siblings.posts)) {
+                    // Skip the moved page - already added above with parent update
+                    if (post.id !== pageId) {
+                        actions.push({
+                            type: PostTypes.RECEIVED_POST,
+                            data: post,
+                        });
+                    }
+                }
+            }
+        } catch {
+            // Invalid JSON - continue without siblings update
+        }
+    }
 
     if (sourceWikiId && sourceWikiId !== wikiId) {
         actions.push({

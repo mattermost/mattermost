@@ -2223,10 +2223,21 @@ export default class Client4 {
         );
     };
 
-    updatePageParent = (wikiId: string, pageId: string, newParentId: string) => {
-        return this.doFetch<StatusOK>(
-            `${this.getWikiPageRoute(wikiId, pageId)}/parent`,
-            {method: 'put', body: JSON.stringify({new_parent_id: newParentId})},
+    // movePage moves a page within the hierarchy. Can change parent and/or reorder among siblings.
+    // parentId: if provided, changes the page's parent (null/undefined = keep current parent, empty string = move to root)
+    // siblingIndex: if provided, reorders the page to this position among siblings
+    movePage = (wikiId: string, pageId: string, parentId?: string | null, siblingIndex?: number) => {
+        const body: {parent_id?: string; sibling_index?: number} = {};
+        if (parentId !== undefined) {
+            body.parent_id = parentId ?? '';
+        }
+        if (siblingIndex !== undefined) {
+            body.sibling_index = siblingIndex;
+        }
+
+        return this.doFetch<StatusOK | PostList>(
+            `${this.getWikiPageRoute(wikiId, pageId)}/move`,
+            {method: 'PUT', body: JSON.stringify(body)},
         );
     };
 
@@ -2236,7 +2247,7 @@ export default class Client4 {
             body.parent_page_id = parentPageId;
         }
         return this.doFetch<StatusOK>(
-            `${this.getWikiPageRoute(sourceWikiId, pageId)}/move`,
+            `${this.getWikiPageRoute(sourceWikiId, pageId)}/move-to-wiki`,
             {method: 'PATCH', body: JSON.stringify(body)},
         );
     };

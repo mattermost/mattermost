@@ -325,6 +325,9 @@ func (a *App) GetPageDraftsForWiki(rctx request.CTX, userId, wikiId string, offs
 	// Combine contents with drafts
 	var combinedDrafts []*model.PageDraft
 	for _, content := range contents {
+		if content == nil {
+			continue
+		}
 		draft, found := draftMap[content.PageId]
 		if !found {
 			rctx.Logger().Warn("Draft metadata not found for content, skipping",
@@ -496,7 +499,7 @@ func (a *App) updatePageFromDraft(rctx request.CTX, pageId, wikiId, parentId, ti
 	}
 
 	if parentId != page.PageParentId {
-		if parentErr := a.ChangePageParent(rctx, pageId, parentId, wikiId); parentErr != nil {
+		if _, parentErr := a.MovePage(rctx, pageId, &parentId, wikiId, nil); parentErr != nil {
 			return nil, parentErr
 		}
 		// Use master context to avoid replica lag after parent change
@@ -614,17 +617,35 @@ func (a *App) BroadcastPageTitleUpdated(pageId, title, wikiId, channelId string,
 	a.Publish(message)
 }
 
-// BroadcastPageMoved broadcasts a page hierarchy change to all clients with access to the channel
-func (a *App) BroadcastPageMoved(pageId, oldParentId, newParentId, wikiId, channelId string, updateAt int64, sourceWikiId ...string) {
+// PageMovedBroadcastOptions contains optional parameters for BroadcastPageMoved.
+type PageMovedBroadcastOptions struct {
+	SourceWikiId string          // Set when page is moved between wikis
+	Siblings     *model.PostList // Updated siblings with new sort orders (for reorder broadcasts)
+}
+
+// BroadcastPageMoved broadcasts a page hierarchy change to all clients with access to the channel.
+// When siblings are provided (reorder operation), they are included so all clients can update sort orders.
+func (a *App) BroadcastPageMoved(pageId, oldParentId, newParentId, wikiId, channelId string, updateAt int64, opts ...PageMovedBroadcastOptions) {
 	message := model.NewWebSocketEvent(model.WebsocketEventPageMoved, "", channelId, "", nil, "")
 	message.Add("page_id", pageId)
 	message.Add("old_parent_id", oldParentId)
 	message.Add("new_parent_id", newParentId)
 	message.Add("wiki_id", wikiId)
 	message.Add("update_at", updateAt)
-	if len(sourceWikiId) > 0 && sourceWikiId[0] != "" && sourceWikiId[0] != wikiId {
-		message.Add("source_wiki_id", sourceWikiId[0])
+
+	if len(opts) > 0 {
+		opt := opts[0]
+		if opt.SourceWikiId != "" && opt.SourceWikiId != wikiId {
+			message.Add("source_wiki_id", opt.SourceWikiId)
+		}
+		if opt.Siblings != nil && len(opt.Siblings.Posts) > 0 {
+			// Include updated siblings so all clients can sync sort orders
+			if siblingsJSON, err := opt.Siblings.ToJSON(); err == nil {
+				message.Add("siblings", siblingsJSON)
+			}
+		}
 	}
+
 	message.SetBroadcast(&model.WebsocketBroadcast{
 		ChannelId:           channelId,
 		ReliableClusterSend: true,
@@ -875,8 +896,9 @@ func (a *App) rollbackPageUpdate(rctx request.CTX, pageId string, originalConten
 
 	// Restore parent if it was changed
 	if originalParentId != newParentId {
-		// Pass empty wikiId - ChangePageParent will fetch it from page props
-		if err := a.ChangePageParent(rctx, pageId, originalParentId, ""); err != nil {
+		// Pass empty wikiId - MovePage will fetch it from page props
+		// Pass nil for newIndex - no reordering needed during rollback
+		if _, err := a.MovePage(rctx, pageId, &originalParentId, "", nil); err != nil {
 			rctx.Logger().Warn("Failed to restore original parent during rollback - content was restored but hierarchy may be inconsistent",
 				mlog.String("page_id", pageId),
 				mlog.String("original_parent", originalParentId),

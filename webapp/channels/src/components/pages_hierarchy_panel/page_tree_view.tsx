@@ -167,20 +167,42 @@ const PageTreeView = ({
 
         // Determine drop type and target
         let newParentId: string | null = null;
+        let newIndex: number | undefined;
 
         if (combine) {
-            // Dropped ON another page (make it a child)
+            // Dropped ON another page (make it a child) - append as last child
             newParentId = combine.draggableId;
         } else if (destination) {
             // Dropped BETWEEN pages (sibling reordering or parent change)
-            const targetNode = visibleNodes[destination.index];
 
-            // If dropping at same position, no-op
-            if (source.index === destination.index) {
-                return;
+            // Handle edge case: dropping at the end of the list
+            if (destination.index >= visibleNodes.length) {
+                const lastNode = visibleNodes[visibleNodes.length - 1];
+                newParentId = lastNode.parentId;
+
+                // Count all siblings (excluding dragged item) to append at end
+                newIndex = visibleNodes.filter(
+                    (n) => n.parentId === newParentId && n.id !== draggableId,
+                ).length;
+            } else {
+                const targetNode = visibleNodes[destination.index];
+
+                // If dropping at same position, no-op
+                if (source.index === destination.index) {
+                    return;
+                }
+
+                newParentId = targetNode.parentId;
+
+                // Calculate sibling index: count siblings with same parent
+                // that appear before the destination position, excluding dragged item
+                newIndex = 0;
+                for (let i = 0; i < destination.index; i++) {
+                    if (visibleNodes[i].parentId === newParentId && visibleNodes[i].id !== draggableId) {
+                        newIndex++;
+                    }
+                }
             }
-
-            newParentId = targetNode.parentId;
         }
 
         const sourceNode = nodeMap.get(draggableId);
@@ -193,7 +215,7 @@ const PageTreeView = ({
 
         // Dispatch Redux action with optimistic update
         if (wikiId) {
-            dispatch(movePageInHierarchy(draggableId, newParentId, wikiId));
+            dispatch(movePageInHierarchy(draggableId, newParentId, wikiId, newIndex));
         }
     }, [visibleNodes, nodeMap, wikiId, dispatch]);
 

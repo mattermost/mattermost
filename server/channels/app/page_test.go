@@ -677,7 +677,7 @@ func TestGetChannelPages(t *testing.T) {
 	})
 }
 
-func TestChangePageParent(t *testing.T) {
+func TestMovePage(t *testing.T) {
 	th := Setup(t).InitBasic(t)
 	th.SetupPagePermissions()
 	th.AddPermissionToRole(t, model.PermissionManagePublicChannelProperties.Id, model.ChannelUserRoleId)
@@ -698,7 +698,8 @@ func TestChangePageParent(t *testing.T) {
 		child, err := th.App.CreateWikiPage(th.Context, wiki.Id, "", "Child", "", th.BasicUser.Id, "", "")
 		require.Nil(t, err)
 
-		err = th.App.ChangePageParent(sessionCtx, child.Id, newParent.Id, "")
+		parentId := newParent.Id
+		_, err = th.App.MovePage(sessionCtx, child.Id, &parentId, "", nil)
 		require.Nil(t, err)
 
 		updatedChild, getErr := th.App.Srv().Store().Post().GetSingle(th.Context, child.Id, false)
@@ -713,7 +714,8 @@ func TestChangePageParent(t *testing.T) {
 		child, err := th.App.CreateWikiPage(th.Context, wiki.Id, parent.Id, "Child", "", th.BasicUser.Id, "", "")
 		require.Nil(t, err)
 
-		err = th.App.ChangePageParent(sessionCtx, child.Id, "", "")
+		emptyParent := ""
+		_, err = th.App.MovePage(sessionCtx, child.Id, &emptyParent, "", nil)
 		require.Nil(t, err)
 
 		updatedChild, getErr := th.App.Srv().Store().Post().GetSingle(th.Context, child.Id, false)
@@ -728,18 +730,20 @@ func TestChangePageParent(t *testing.T) {
 		child, err := th.App.CreateWikiPage(th.Context, wiki.Id, parent.Id, "Child", "", th.BasicUser.Id, "", "")
 		require.Nil(t, err)
 
-		err = th.App.ChangePageParent(sessionCtx, parent.Id, child.Id, "")
+		childId := child.Id
+		_, err = th.App.MovePage(sessionCtx, parent.Id, &childId, "", nil)
 		require.NotNil(t, err)
-		require.Equal(t, "app.page.change_parent.circular_reference.app_error", err.Id)
+		require.Equal(t, "app.page.move.circular_reference.app_error", err.Id)
 	})
 
 	t.Run("fails when setting page as its own parent (direct cycle)", func(t *testing.T) {
 		page, err := th.App.CreateWikiPage(th.Context, wiki.Id, "", "Page", "", th.BasicUser.Id, "", "")
 		require.Nil(t, err)
 
-		err = th.App.ChangePageParent(sessionCtx, page.Id, page.Id, "")
+		pageId := page.Id
+		_, err = th.App.MovePage(sessionCtx, page.Id, &pageId, "", nil)
 		require.NotNil(t, err)
-		require.Equal(t, "app.page.change_parent.circular_reference.app_error", err.Id)
+		require.Equal(t, "app.page.move.circular_reference.app_error", err.Id)
 	})
 
 	t.Run("fails when creating multi-level circular reference (A→B→C→A)", func(t *testing.T) {
@@ -752,9 +756,10 @@ func TestChangePageParent(t *testing.T) {
 		pageC, err := th.App.CreateWikiPage(th.Context, wiki.Id, pageB.Id, "Page C", "", th.BasicUser.Id, "", "")
 		require.Nil(t, err)
 
-		err = th.App.ChangePageParent(sessionCtx, pageA.Id, pageC.Id, "")
+		pageCId := pageC.Id
+		_, err = th.App.MovePage(sessionCtx, pageA.Id, &pageCId, "", nil)
 		require.NotNil(t, err)
-		require.Equal(t, "app.page.change_parent.circular_reference.app_error", err.Id)
+		require.Equal(t, "app.page.move.circular_reference.app_error", err.Id)
 	})
 
 	t.Run("fails when new parent is not a page", func(t *testing.T) {
@@ -768,9 +773,10 @@ func TestChangePageParent(t *testing.T) {
 		}, th.BasicChannel, model.CreatePostFlags{})
 		require.Nil(t, postErr)
 
-		err = th.App.ChangePageParent(sessionCtx, child.Id, regularPost.Id, "")
+		regularPostId := regularPost.Id
+		_, err = th.App.MovePage(sessionCtx, child.Id, &regularPostId, "", nil)
 		require.NotNil(t, err)
-		require.Equal(t, "app.page.change_parent.invalid_parent.app_error", err.Id)
+		require.Equal(t, "app.page.move.invalid_parent.app_error", err.Id)
 	})
 
 	t.Run("fails when new parent is in different channel", func(t *testing.T) {
@@ -798,9 +804,203 @@ func TestChangePageParent(t *testing.T) {
 		child, err := th.App.CreateWikiPage(th.Context, wiki.Id, "", "Child", "", th.BasicUser.Id, "", "")
 		require.Nil(t, err)
 
-		err = th.App.ChangePageParent(sessionCtx, child.Id, parentInOtherChannel.Id, "")
+		parentInOtherChannelId := parentInOtherChannel.Id
+		_, err = th.App.MovePage(sessionCtx, child.Id, &parentInOtherChannelId, "", nil)
 		require.NotNil(t, err)
-		require.Equal(t, "app.page.change_parent.parent_different_channel.app_error", err.Id)
+		require.Equal(t, "app.page.move.parent_different_channel.app_error", err.Id)
+	})
+}
+
+func TestMovePageWithReorder(t *testing.T) {
+	th := Setup(t).InitBasic(t)
+	th.SetupPagePermissions()
+	th.AddPermissionToRole(t, model.PermissionManagePublicChannelProperties.Id, model.ChannelUserRoleId)
+
+	sessionCtx := th.CreateSessionContext()
+
+	// Create a wiki for the basic channel
+	wiki, wikiErr := th.App.CreateWiki(th.Context, &model.Wiki{
+		ChannelId: th.BasicChannel.Id,
+		Title:     "Reorder Test Wiki",
+	}, th.BasicUser.Id)
+	require.Nil(t, wikiErr)
+
+	t.Run("reorders page among siblings without changing parent", func(t *testing.T) {
+		// Create 3 root-level pages
+		page1, err := th.App.CreateWikiPage(th.Context, wiki.Id, "", "Page 1", "", th.BasicUser.Id, "", "")
+		require.Nil(t, err)
+
+		page2, err := th.App.CreateWikiPage(th.Context, wiki.Id, "", "Page 2", "", th.BasicUser.Id, "", "")
+		require.Nil(t, err)
+
+		page3, err := th.App.CreateWikiPage(th.Context, wiki.Id, "", "Page 3", "", th.BasicUser.Id, "", "")
+		require.Nil(t, err)
+
+		// Move page1 to index 2 (end) without changing parent
+		newIndex := int64(2)
+		emptyParent := ""
+		siblings, appErr := th.App.MovePage(sessionCtx, page1.Id, &emptyParent, wiki.Id, &newIndex)
+		require.Nil(t, appErr)
+		require.NotNil(t, siblings)
+		require.Len(t, siblings.Posts, 3)
+
+		// Verify page1 is now at the end based on sort order
+		var sortOrders []struct {
+			title string
+			order int64
+		}
+		for _, p := range siblings.Posts {
+			sortOrders = append(sortOrders, struct {
+				title string
+				order int64
+			}{
+				title: p.Props["title"].(string),
+				order: p.GetPageSortOrder(),
+			})
+		}
+
+		// Sort by order
+		for i := 0; i < len(sortOrders)-1; i++ {
+			for j := i + 1; j < len(sortOrders); j++ {
+				if sortOrders[i].order > sortOrders[j].order {
+					sortOrders[i], sortOrders[j] = sortOrders[j], sortOrders[i]
+				}
+			}
+		}
+
+		require.Equal(t, "Page 2", sortOrders[0].title)
+		require.Equal(t, "Page 3", sortOrders[1].title)
+		require.Equal(t, "Page 1", sortOrders[2].title)
+
+		// Verify parent is still empty (root level)
+		updatedPage1, getErr := th.App.Srv().Store().Post().GetSingle(th.Context, page1.Id, false)
+		require.NoError(t, getErr)
+		require.Empty(t, updatedPage1.PageParentId)
+
+		_ = page2
+		_ = page3
+	})
+
+	t.Run("moves page to new parent and reorders at destination", func(t *testing.T) {
+		// Create parent with existing children
+		parent, err := th.App.CreateWikiPage(th.Context, wiki.Id, "", "Parent", "", th.BasicUser.Id, "", "")
+		require.Nil(t, err)
+
+		child1, err := th.App.CreateWikiPage(th.Context, wiki.Id, parent.Id, "Child 1", "", th.BasicUser.Id, "", "")
+		require.Nil(t, err)
+
+		child2, err := th.App.CreateWikiPage(th.Context, wiki.Id, parent.Id, "Child 2", "", th.BasicUser.Id, "", "")
+		require.Nil(t, err)
+
+		// Create an orphan page to move
+		orphan, err := th.App.CreateWikiPage(th.Context, wiki.Id, "", "Orphan", "", th.BasicUser.Id, "", "")
+		require.Nil(t, err)
+
+		// Move orphan under parent at index 1 (between child1 and child2)
+		newIndex := int64(1)
+		parentId := parent.Id
+		siblings, appErr := th.App.MovePage(sessionCtx, orphan.Id, &parentId, wiki.Id, &newIndex)
+		require.Nil(t, appErr)
+		require.NotNil(t, siblings)
+		require.Len(t, siblings.Posts, 3, "should have 3 children after move")
+
+		// Verify orphan is now a child of parent
+		updatedOrphan, getErr := th.App.Srv().Store().Post().GetSingle(th.Context, orphan.Id, false)
+		require.NoError(t, getErr)
+		require.Equal(t, parent.Id, updatedOrphan.PageParentId)
+
+		// Verify order: child1, orphan, child2
+		var sortOrders []struct {
+			title string
+			order int64
+		}
+		for _, p := range siblings.Posts {
+			sortOrders = append(sortOrders, struct {
+				title string
+				order int64
+			}{
+				title: p.Props["title"].(string),
+				order: p.GetPageSortOrder(),
+			})
+		}
+
+		for i := 0; i < len(sortOrders)-1; i++ {
+			for j := i + 1; j < len(sortOrders); j++ {
+				if sortOrders[i].order > sortOrders[j].order {
+					sortOrders[i], sortOrders[j] = sortOrders[j], sortOrders[i]
+				}
+			}
+		}
+
+		require.Equal(t, "Child 1", sortOrders[0].title)
+		require.Equal(t, "Orphan", sortOrders[1].title)
+		require.Equal(t, "Child 2", sortOrders[2].title)
+
+		_ = child1
+		_ = child2
+	})
+
+	t.Run("returns nil siblings when newIndex is nil", func(t *testing.T) {
+		parent, err := th.App.CreateWikiPage(th.Context, wiki.Id, "", "Parent NoIndex", "", th.BasicUser.Id, "", "")
+		require.Nil(t, err)
+
+		child, err := th.App.CreateWikiPage(th.Context, wiki.Id, "", "Child NoIndex", "", th.BasicUser.Id, "", "")
+		require.Nil(t, err)
+
+		// Move without reorder (nil newIndex)
+		parentId := parent.Id
+		siblings, appErr := th.App.MovePage(sessionCtx, child.Id, &parentId, wiki.Id, nil)
+		require.Nil(t, appErr)
+		require.Nil(t, siblings, "siblings should be nil when newIndex is not provided")
+
+		// Verify parent was changed
+		updatedChild, getErr := th.App.Srv().Store().Post().GetSingle(th.Context, child.Id, false)
+		require.NoError(t, getErr)
+		require.Equal(t, parent.Id, updatedChild.PageParentId)
+	})
+
+	t.Run("promotes child to root and reorders at root level", func(t *testing.T) {
+		// Create existing root pages
+		root1, err := th.App.CreateWikiPage(th.Context, wiki.Id, "", "Root 1", "", th.BasicUser.Id, "", "")
+		require.Nil(t, err)
+
+		root2, err := th.App.CreateWikiPage(th.Context, wiki.Id, "", "Root 2", "", th.BasicUser.Id, "", "")
+		require.Nil(t, err)
+
+		// Create a child under root1
+		childToPromote, err := th.App.CreateWikiPage(th.Context, wiki.Id, root1.Id, "Child To Promote", "", th.BasicUser.Id, "", "")
+		require.Nil(t, err)
+
+		// Promote child to root level at index 0 (first position)
+		newIndex := int64(0)
+		emptyParent := ""
+		siblings, appErr := th.App.MovePage(sessionCtx, childToPromote.Id, &emptyParent, wiki.Id, &newIndex)
+		require.Nil(t, appErr)
+		require.NotNil(t, siblings)
+
+		// Verify child is now at root level
+		updatedChild, getErr := th.App.Srv().Store().Post().GetSingle(th.Context, childToPromote.Id, false)
+		require.NoError(t, getErr)
+		require.Empty(t, updatedChild.PageParentId)
+
+		// Verify it has a sort order
+		require.Greater(t, updatedChild.GetPageSortOrder(), int64(0))
+
+		_ = root1
+		_ = root2
+	})
+
+	t.Run("handles sort order error gracefully", func(t *testing.T) {
+		page, err := th.App.CreateWikiPage(th.Context, wiki.Id, "", "Solo Page", "", th.BasicUser.Id, "", "")
+		require.Nil(t, err)
+
+		// Try to reorder a non-existent page - should fail at parent change step
+		newIndex := int64(0)
+		emptyParent := ""
+		_, appErr := th.App.MovePage(sessionCtx, model.NewId(), &emptyParent, wiki.Id, &newIndex)
+		require.NotNil(t, appErr)
+
+		_ = page
 	})
 }
 
@@ -880,9 +1080,9 @@ func TestPageDepthLimit(t *testing.T) {
 		require.Nil(t, err)
 
 		// Try to move it under the deepest page - this would make it depth PostPageMaxDepth + 1, which should fail
-		err = th.App.ChangePageParent(sessionCtx, separatePage.Id, deepParentID, "")
+		_, err = th.App.MovePage(sessionCtx, separatePage.Id, &deepParentID, "", nil)
 		require.NotNil(t, err, "Should not allow moving page to depth > PostPageMaxDepth")
-		require.Equal(t, "app.page.change_parent.max_depth_exceeded.app_error", err.Id)
+		require.Equal(t, "app.page.move.max_depth_exceeded.app_error", err.Id)
 	})
 
 	t.Run("allows moving page within depth limit", func(t *testing.T) {
@@ -892,7 +1092,8 @@ func TestPageDepthLimit(t *testing.T) {
 		child, err := th.App.CreateWikiPage(th.Context, wiki.Id, "", "Child", "", th.BasicUser.Id, "", "")
 		require.Nil(t, err)
 
-		err = th.App.ChangePageParent(sessionCtx, child.Id, parent2.Id, "")
+		parent2Id := parent2.Id
+		_, err = th.App.MovePage(sessionCtx, child.Id, &parent2Id, "", nil)
 		require.Nil(t, err)
 
 		updatedChild, err := th.App.GetSinglePost(th.Context, child.Id, false)
@@ -954,9 +1155,9 @@ func TestPageDepthLimit(t *testing.T) {
 		}
 
 		// Try to move subtree root under destination - should fail because combined depth exceeds max
-		err = th.App.ChangePageParent(sessionCtx, subtreeRoot.Id, destinationID, "")
+		_, err = th.App.MovePage(sessionCtx, subtreeRoot.Id, &destinationID, "", nil)
 		require.NotNil(t, err, "Should not allow moving subtree when combined depth exceeds max")
-		require.Equal(t, "app.page.change_parent.subtree_max_depth_exceeded.app_error", err.Id)
+		require.Equal(t, "app.page.move.subtree_max_depth_exceeded.app_error", err.Id)
 	})
 }
 

@@ -149,11 +149,13 @@ func (a *App) calculateMaxDepthFromPostList(postList *model.PostList) int {
 	return maxDepth
 }
 
-// ChangePageParent updates the parent of a page.
+// MovePage moves a page within the hierarchy. Can change parent and/or reorder among siblings.
+// - newParentID: if non-nil, changes the page's parent (nil = keep current parent, empty string = move to root)
+// - newIndex: if non-nil, reorders the page to this position among siblings
 // Uses optimistic locking to handle concurrent modifications in HA cluster mode.
-// If another node modifies the page concurrently, returns a conflict error.
 // wikiID is optional - if empty, it will be fetched from the page's props or property values.
-func (a *App) ChangePageParent(rctx request.CTX, postID string, newParentID string, wikiID string) *model.AppError {
+// Returns the updated list of siblings if reordering occurred, nil otherwise.
+func (a *App) MovePage(rctx request.CTX, postID string, newParentID *string, wikiID string, newIndex *int64) (*model.PostList, *model.AppError) {
 	start := time.Now()
 	defer func() {
 		if a.Metrics() != nil {
@@ -164,12 +166,28 @@ func (a *App) ChangePageParent(rctx request.CTX, postID string, newParentID stri
 	// Use master DB to avoid replica lag issues in HA
 	page, err := a.GetPage(RequestContextWithMaster(rctx), postID)
 	if err != nil {
-		return model.NewAppError("ChangePageParent", "app.page.change_parent.not_found.app_error", nil, "", http.StatusNotFound).Wrap(err)
+		// Check underlying error type to determine appropriate status code
+		var nfErr *store.ErrNotFound
+		statusCode := http.StatusInternalServerError
+		errKey := "app.page.move.get_page.app_error"
+		if errors.As(err, &nfErr) {
+			statusCode = http.StatusNotFound
+			errKey = "app.page.move.not_found.app_error"
+		}
+		return nil, model.NewAppError("MovePage", errKey, nil, "", statusCode).Wrap(err)
 	}
 	post := page
 
 	// Store old parent ID for websocket broadcast
 	oldParentID := post.PageParentId
+
+	// Determine effective parent ID for validation and broadcast
+	effectiveParentID := oldParentID
+	parentChanging := false
+	if newParentID != nil {
+		effectiveParentID = *newParentID
+		parentChanging = effectiveParentID != oldParentID
+	}
 
 	// Store UpdateAt for optimistic locking - will fail if page was modified concurrently
 	expectedUpdateAt := post.UpdateAt
@@ -184,32 +202,33 @@ func (a *App) ChangePageParent(rctx request.CTX, postID string, newParentID stri
 			var wikiErr *model.AppError
 			wikiID, wikiErr = a.GetWikiIdForPage(rctx, postID)
 			if wikiErr != nil {
-				return model.NewAppError("ChangePageParent", "app.page.change_parent.wiki_not_found.app_error", nil, "", http.StatusBadRequest).Wrap(wikiErr)
+				return nil, model.NewAppError("MovePage", "app.page.move.wiki_not_found.app_error", nil, "", http.StatusBadRequest).Wrap(wikiErr)
 			}
 		}
 	}
 
-	if newParentID != "" {
-		if newParentID == postID {
-			return model.NewAppError("ChangePageParent", "app.page.change_parent.circular_reference.app_error", nil, "", http.StatusBadRequest)
+	// Validate parent change if applicable (depth checks, same channel, etc.)
+	if parentChanging && effectiveParentID != "" {
+		if effectiveParentID == postID {
+			return nil, model.NewAppError("MovePage", "app.page.move.circular_reference.app_error", nil, "", http.StatusBadRequest)
 		}
 
-		parentPage, parentErr := a.GetPage(rctx, newParentID)
+		parentPage, parentErr := a.GetPage(rctx, effectiveParentID)
 		if parentErr != nil {
-			return model.NewAppError("ChangePageParent", "app.page.change_parent.invalid_parent.app_error", nil, "", http.StatusBadRequest).Wrap(parentErr)
+			return nil, model.NewAppError("MovePage", "app.page.move.invalid_parent.app_error", nil, "", http.StatusBadRequest).Wrap(parentErr)
 		}
 		if parentPage.ChannelId != post.ChannelId {
-			return model.NewAppError("ChangePageParent", "app.page.change_parent.parent_different_channel.app_error", nil, "", http.StatusBadRequest)
+			return nil, model.NewAppError("MovePage", "app.page.move.parent_different_channel.app_error", nil, "", http.StatusBadRequest)
 		}
 
-		ancestors, ancestorErr := a.GetPageAncestors(rctx, newParentID)
+		ancestors, ancestorErr := a.GetPageAncestors(rctx, effectiveParentID)
 		if ancestorErr != nil {
-			return ancestorErr
+			return nil, ancestorErr
 		}
 
 		for _, ancestor := range ancestors.Posts {
 			if ancestor.Id == postID {
-				return model.NewAppError("ChangePageParent", "app.page.change_parent.circular_reference.app_error", nil, "", http.StatusBadRequest)
+				return nil, model.NewAppError("MovePage", "app.page.move.circular_reference.app_error", nil, "", http.StatusBadRequest)
 			}
 		}
 
@@ -217,48 +236,65 @@ func (a *App) ChangePageParent(rctx request.CTX, postID string, newParentID stri
 		parentDepth := len(ancestors.Posts)
 		newPageDepth := parentDepth + 1
 		if newPageDepth > model.PostPageMaxDepth {
-			return model.NewAppError("ChangePageParent", "app.page.change_parent.max_depth_exceeded.app_error",
+			return nil, model.NewAppError("MovePage", "app.page.move.max_depth_exceeded.app_error",
 				map[string]any{"MaxDepth": model.PostPageMaxDepth}, "", http.StatusBadRequest)
 		}
 
 		// Validate that the entire subtree won't exceed max depth after the move
 		subtreeMaxDepth, subtreeErr := a.calculateSubtreeMaxDepth(rctx, postID)
 		if subtreeErr != nil {
-			return subtreeErr
+			return nil, subtreeErr
 		}
 		if newPageDepth+subtreeMaxDepth > model.PostPageMaxDepth {
-			return model.NewAppError("ChangePageParent", "app.page.change_parent.subtree_max_depth_exceeded.app_error",
+			return nil, model.NewAppError("MovePage", "app.page.move.subtree_max_depth_exceeded.app_error",
 				map[string]any{"MaxDepth": model.PostPageMaxDepth, "SubtreeDepth": subtreeMaxDepth, "NewDepth": newPageDepth}, "", http.StatusBadRequest)
 		}
 	}
 
-	// Use optimistic locking: only update if UpdateAt hasn't changed since we read the page
-	// The store layer also performs atomic cycle detection to prevent race conditions
-	if storeErr := a.Srv().Store().Page().ChangePageParent(postID, newParentID, expectedUpdateAt); storeErr != nil {
+	// Perform atomic move operation (parent change + sort order in single transaction)
+	siblingPosts, storeErr := a.Srv().Store().Page().MovePage(postID, post.ChannelId, newParentID, newIndex, expectedUpdateAt)
+	if storeErr != nil {
 		var nfErr *store.ErrNotFound
 		var invErr *store.ErrInvalidInput
 		switch {
 		case errors.As(storeErr, &nfErr):
-			return model.NewAppError("ChangePageParent", "app.page.change_parent.not_found", nil, "", http.StatusNotFound).Wrap(storeErr)
+			return nil, model.NewAppError("MovePage", "app.page.move.not_found", nil, "", http.StatusNotFound).Wrap(storeErr)
 		case errors.As(storeErr, &invErr):
 			// Cycle detected at store level (race condition prevention)
-			return model.NewAppError("ChangePageParent", "app.page.change_parent.circular_reference.app_error", nil, "", http.StatusBadRequest).Wrap(storeErr)
+			return nil, model.NewAppError("MovePage", "app.page.move.circular_reference.app_error", nil, "", http.StatusBadRequest).Wrap(storeErr)
 		default:
-			return model.NewAppError("ChangePageParent", "app.page.change_parent.app_error", nil, "", http.StatusInternalServerError).Wrap(storeErr)
+			return nil, model.NewAppError("MovePage", "app.page.move.app_error", nil, "", http.StatusInternalServerError).Wrap(storeErr)
+		}
+	}
+
+	// Convert to PostList for response
+	var siblings *model.PostList
+	if siblingPosts != nil {
+		siblings = model.NewPostList()
+		for _, p := range siblingPosts {
+			siblings.AddPost(p)
+			siblings.AddOrder(p.Id)
 		}
 	}
 
 	a.invalidateCacheForChannelPosts(post.ChannelId)
 
-	// Broadcast page_moved websocket event
-	a.BroadcastPageMoved(postID, oldParentID, newParentID, wikiID, post.ChannelId, model.GetMillis())
+	// Broadcast page_moved websocket event (only if parent changed or reordering happened)
+	if parentChanging || newIndex != nil {
+		opts := PageMovedBroadcastOptions{
+			Siblings: siblings, // Include updated sort orders so all clients sync
+		}
+		a.BroadcastPageMoved(postID, oldParentID, effectiveParentID, wikiID, post.ChannelId, model.GetMillis(), opts)
+	}
 
-	rctx.Logger().Info("Page parent changed",
+	rctx.Logger().Info("Page moved",
 		mlog.String("page_id", postID),
 		mlog.String("old_parent_id", oldParentID),
-		mlog.String("new_parent_id", newParentID))
+		mlog.String("effective_parent_id", effectiveParentID),
+		mlog.Bool("parent_changed", parentChanging),
+		mlog.Bool("reordered", newIndex != nil))
 
-	return nil
+	return siblings, nil
 }
 
 // calculatePageDepth calculates the depth of a page in the hierarchy

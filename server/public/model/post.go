@@ -80,6 +80,11 @@ const (
 	MaxPageTitleLength   = 255 // Maximum length for page titles
 	PostEditHistoryLimit = 10  // Maximum number of edit history versions to store
 
+	// PageSortOrderGap is the gap between page sort order values for sibling pages.
+	// Currently all siblings are recalculated on every reorder.
+	// The gap is reserved for potential future optimization (insert without full recalculation).
+	PageSortOrderGap = int64(1000)
+
 	// Reporting API constants
 	MaxReportingPerPage        = 1000 // Maximum number of posts that can be requested per page in reporting endpoints
 	ReportingTimeFieldCreateAt = "create_at"
@@ -1158,6 +1163,34 @@ func (o *Post) GetPageTitle() string {
 		return title
 	}
 	return "Untitled page"
+}
+
+// GetPageSortOrder returns the sort order for a page from Props.
+// Returns 0 if not set, which means sorting by CreateAt as fallback.
+func (o *Post) GetPageSortOrder() int64 {
+	if o.GetProps() == nil {
+		return 0
+	}
+	if v, ok := o.GetProps()["page_sort_order"]; ok {
+		switch val := v.(type) {
+		case float64:
+			return int64(val)
+		case int64:
+			return val
+		case int:
+			return int64(val)
+		case string:
+			if i, err := strconv.ParseInt(val, 10, 64); err == nil {
+				return i
+			}
+		}
+	}
+	return 0
+}
+
+// SetPageSortOrder sets the sort order for a page in Props.
+func (o *Post) SetPageSortOrder(order int64) {
+	o.AddProp("page_sort_order", order)
 }
 
 func (o *Post) GetPriority() *PostPriority {

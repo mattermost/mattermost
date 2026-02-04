@@ -20,6 +20,7 @@ import {
     ELEMENT_TIMEOUT,
     WEBSOCKET_WAIT,
     UI_MICRO_WAIT,
+    AUTOSAVE_WAIT,
 } from './test_helpers';
 
 /**
@@ -989,7 +990,7 @@ test(
         const proxyUrl = `/api/v4/image?url=${encodeURIComponent(externalUrl)}`;
 
         await pasteProxiedImageHtml(page, proxyUrl);
-        await page.waitForTimeout(2000);
+        await page.waitForTimeout(AUTOSAVE_WAIT);
 
         // * Verify the image is visible
         const imageInEditor = editor.locator('img').first();
@@ -1088,7 +1089,7 @@ test(
         const proxyUrl = `/api/v4/image?url=${encodeURIComponent(externalUrl)}`;
 
         await pasteProxiedImageHtml(page, proxyUrl);
-        await page.waitForTimeout(2000);
+        await page.waitForTimeout(AUTOSAVE_WAIT);
 
         // * Verify the image is visible
         const imageInEditor = editor.locator('img').first();
@@ -1185,7 +1186,7 @@ test(
         const proxyUrl = `/api/v4/image?url=${encodeURIComponent(externalUrl)}`;
 
         await pasteProxiedImageHtml(page, proxyUrl);
-        await page.waitForTimeout(2000);
+        await page.waitForTimeout(AUTOSAVE_WAIT);
 
         // * Verify the image is visible
         const imageInEditor = editor.locator('img').first();

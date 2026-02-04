@@ -1345,9 +1345,11 @@ func (a *App) RepairOrphanedPageHierarchy(rctx request.CTX, channelId string) (i
 			continue
 		}
 
-		// Update page parent using ChangePageParent (includes cycle detection)
-		// Pass empty wikiId - ChangePageParent will fetch it from page props
-		if changeErr := a.ChangePageParent(rctx, page.Id, parentPage.Id, ""); changeErr != nil {
+		// Update page parent using MovePage (includes cycle detection)
+		// Pass empty wikiId - MovePage will fetch it from page props
+		// Pass nil for newIndex - no reordering needed during hierarchy repair
+		parentId := parentPage.Id
+		if _, changeErr := a.MovePage(rctx, page.Id, &parentId, "", nil); changeErr != nil {
 			rctx.Logger().Warn("Failed to repair orphaned page hierarchy",
 				mlog.String("page_id", page.Id),
 				mlog.String("parent_id", parentPage.Id),

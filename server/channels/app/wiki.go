@@ -588,7 +588,8 @@ func (a *App) MovePageToWiki(rctx request.CTX, page *model.Post, targetWikiId st
 	if parentPageId != nil {
 		newParentId = *parentPageId
 	}
-	a.BroadcastPageMoved(pageId, page.PageParentId, newParentId, targetWikiId, page.ChannelId, post.UpdateAt, sourceWikiId)
+	opts := PageMovedBroadcastOptions{SourceWikiId: sourceWikiId}
+	a.BroadcastPageMoved(pageId, page.PageParentId, newParentId, targetWikiId, page.ChannelId, post.UpdateAt, opts)
 
 	return nil
 }

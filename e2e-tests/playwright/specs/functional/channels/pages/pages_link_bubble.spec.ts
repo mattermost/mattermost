@@ -22,6 +22,7 @@ import {
     ELEMENT_TIMEOUT,
     HIERARCHY_TIMEOUT,
     UI_MICRO_WAIT,
+    EDITOR_LOAD_WAIT,
 } from './test_helpers';
 
 /**
@@ -280,7 +281,7 @@ test('shows link bubble menu when clicking on a link', {tag: '@pages'}, async ({
 
     // # Click directly on the link text to position cursor inside it
     await pageLink.click();
-    await page.waitForTimeout(1000); // Wait longer for bubble menu to appear
+    await page.waitForTimeout(EDITOR_LOAD_WAIT); // Wait longer for bubble menu to appear
 
     // Check if any bubble menu element exists (even if not visible)
     const bubbleExists = await page.locator('[data-testid="link-bubble-menu"]').count();

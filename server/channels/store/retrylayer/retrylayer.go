@@ -8212,6 +8212,27 @@ func (s *RetryLayerPageStore) ChangePageParent(postID string, newParentID string
 
 }
 
+func (s *RetryLayerPageStore) MovePage(pageID string, channelID string, newParentID *string, newIndex *int64, expectedUpdateAt int64) ([]*model.Post, error) {
+
+	tries := 0
+	for {
+		result, err := s.PageStore.MovePage(pageID, channelID, newParentID, newIndex, expectedUpdateAt)
+		if err == nil {
+			return result, nil
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
 func (s *RetryLayerPageStore) CreatePage(rctx request.CTX, post *model.Post, content string, searchText string) (*model.Post, error) {
 
 	tries := 0
@@ -8506,6 +8527,27 @@ func (s *RetryLayerPageStore) GetPageVersionHistory(pageID string, offset int, l
 
 }
 
+func (s *RetryLayerPageStore) GetSiblingPages(parentID string, channelID string) ([]*model.Post, error) {
+
+	tries := 0
+	for {
+		result, err := s.PageStore.GetSiblingPages(parentID, channelID)
+		if err == nil {
+			return result, nil
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
 func (s *RetryLayerPageStore) PermanentDeletePageContent(pageID string) error {
 
 	tries := 0
@@ -8679,6 +8721,27 @@ func (s *RetryLayerPageStore) UpdatePageContent(pageContent *model.PageContent) 
 	tries := 0
 	for {
 		result, err := s.PageStore.UpdatePageContent(pageContent)
+		if err == nil {
+			return result, nil
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
+func (s *RetryLayerPageStore) UpdatePageSortOrder(pageID string, parentID string, channelID string, newIndex int64) ([]*model.Post, error) {
+
+	tries := 0
+	for {
+		result, err := s.PageStore.UpdatePageSortOrder(pageID, parentID, channelID, newIndex)
 		if err == nil {
 			return result, nil
 		}

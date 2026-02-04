@@ -224,15 +224,69 @@ test.skip('promotes child page to root level via drag-drop', {tag: '@pages'}, as
  */
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 test.skip('reorders pages at same level via drag-drop', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
-    // BLOCKED: Requires DisplayOrder field implementation
+    // NOTE: page_sort_order is NOW IMPLEMENTED (stored in Post.Props)
+    // The DisplayOrder blocker has been resolved.
     //
-    // Current limitation: Pages are ordered by CreateAt timestamp only (no display_order field)
-    // The drag-drop UI exists (react-beautiful-dnd) but only supports parent changes, not sibling reordering
+    // However, this test remains skipped due to Playwright + react-beautiful-dnd compatibility issues.
+    // Playwright's native drag-and-drop (dragTo, mouse.down/up) doesn't properly trigger
+    // react-beautiful-dnd's event handlers.
     //
-    // To implement:
-    // 1. Add DisplayOrder field to Post model (server/public/model/post.go)
-    // 2. Update database schema with migration
-    // 3. Modify GetPageChildren query to ORDER BY DisplayOrder, CreateAt (server/channels/store/sqlstore/page_store.go:33)
-    // 4. Implement reorder API endpoint
-    // 5. Update handleDragEnd in page_tree_view.tsx:156-164 to calculate new order and call reorder API
+    // The reordering functionality is tested via the "reorders pages via API call" test below.
+});
+
+/**
+ * @objective Verify page reordering works via API call with new_index parameter
+ * This tests the complete reordering flow from API to frontend rendering.
+ */
+test('reorders pages via API call', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
+    const {team, user, adminClient} = sharedPagesSetup;
+    const channel = await createTestChannel(adminClient, team.id, uniqueName('Reorder API Channel'));
+
+    const {page} = await loginAndNavigateToChannel(pw, user, team.name, channel.name);
+
+    // # Create wiki through UI
+    const wiki = await createWikiThroughUI(page, uniqueName('Reorder Wiki'));
+
+    // # Create three root-level pages (they will be ordered by create_at initially)
+    const page1 = await createPageThroughUI(page, 'Page 1', 'Content 1');
+    await page.waitForTimeout(SHORT_WAIT);
+    await createPageThroughUI(page, 'Page 2', 'Content 2');
+    await page.waitForTimeout(SHORT_WAIT);
+    await createPageThroughUI(page, 'Page 3', 'Content 3');
+
+    // * Verify pages exist in hierarchy panel
+    const hierarchyPanel = getHierarchyPanel(page);
+
+    // Wait for pages to load in hierarchy panel
+    await page.waitForTimeout(SHORT_WAIT);
+
+    // Get order of our test pages by filtering to only pages with "Page " prefix
+    const getTestPageOrder = async () => {
+        const nodes = await hierarchyPanel.locator('[data-testid="page-tree-node"]').all();
+        const titles: string[] = [];
+        for (const node of nodes) {
+            const titleEl = node.locator('[data-testid="page-tree-node-title"]');
+            const title = await titleEl.textContent();
+            if (title && title.startsWith('Page ')) {
+                titles.push(title);
+            }
+        }
+        return titles;
+    };
+
+    const initialOrder = await getTestPageOrder();
+    expect(initialOrder).toEqual(['Page 1', 'Page 2', 'Page 3']);
+
+    // # Call API to move Page 1 to index 2 (end of list among root pages)
+    // This should result in order: Page 2, Page 3, Page 1
+    await adminClient.movePage(wiki.id, page1.id!, '', 2);
+
+    // # Refresh page to get updated order from server
+    await page.reload();
+    await page.waitForLoadState('networkidle');
+    await page.waitForTimeout(SHORT_WAIT);
+
+    // * Verify new order: Page 2, Page 3, Page 1
+    const newOrder = await getTestPageOrder();
+    expect(newOrder).toEqual(['Page 2', 'Page 3', 'Page 1']);
 });

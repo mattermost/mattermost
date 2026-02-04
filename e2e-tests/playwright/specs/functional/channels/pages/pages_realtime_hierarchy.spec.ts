@@ -23,10 +23,13 @@ import {
     setupWebSocketEventLogging,
     getWebSocketEvents,
     navigateToWikiView,
+    uniqueName,
+    loginAndNavigateToChannel,
     EDITOR_LOAD_WAIT,
     WEBSOCKET_WAIT,
     ELEMENT_TIMEOUT,
     HIERARCHY_TIMEOUT,
+    SHORT_WAIT,
 } from './test_helpers';
 
 /**
@@ -44,17 +47,20 @@ test(
         const channel = await adminClient.getChannelByName(team.id, 'town-square');
 
         // # User 1 creates two wikis and a page in source wiki
-        const {page: page1, channelsPage: channelsPage1} = await pw.testBrowser.login(user1);
-        await channelsPage1.goto(team.name, channel.name);
-        await channelsPage1.toBeVisible();
+        const {page: page1, channelsPage: channelsPage1} = await loginAndNavigateToChannel(
+            pw,
+            user1,
+            team.name,
+            channel.name,
+        );
 
-        const sourceWiki = await createWikiThroughUI(page1, `Source Wiki ${await pw.random.id()}`);
-        const pageTitle = `Page to Move ${await pw.random.id()}`;
+        const sourceWiki = await createWikiThroughUI(page1, uniqueName('Source Wiki'));
+        const pageTitle = uniqueName('Page to Move');
         const createdPage = await createPageThroughUI(page1, pageTitle, 'This page will be moved');
 
         // # Navigate back to channel to create target wiki
         await channelsPage1.goto(team.name, channel.name);
-        const targetWiki = await createWikiThroughUI(page1, `Target Wiki ${await pw.random.id()}`);
+        const targetWiki = await createWikiThroughUI(page1, uniqueName('Target Wiki'));
 
         // # Create user2 and add to channel
         const {user: user2} = await createTestUserInChannel(pw, adminClient, team, channel, 'user2');
@@ -157,12 +163,10 @@ test(
         const channel = await adminClient.getChannelByName(team.id, 'town-square');
 
         // # User 1 creates wiki and page
-        const {page: page1, channelsPage: channelsPage1} = await pw.testBrowser.login(user1);
-        await channelsPage1.goto(team.name, channel.name);
-        await channelsPage1.toBeVisible();
+        const {page: page1} = await loginAndNavigateToChannel(pw, user1, team.name, channel.name);
 
-        const wiki = await createWikiThroughUI(page1, `Test Wiki ${await pw.random.id()}`);
-        const pageTitle = `Page to Delete ${await pw.random.id()}`;
+        const wiki = await createWikiThroughUI(page1, uniqueName('Test Wiki'));
+        const pageTitle = uniqueName('Page to Delete');
         const createdPage = await createPageThroughUI(page1, pageTitle, 'This page will be deleted');
 
         // # Create user2 with delete permissions
@@ -265,12 +269,10 @@ test(
         const channel = await adminClient.getChannelByName(team.id, 'town-square');
 
         // # User 1 creates wiki and page
-        const {page: page1, channelsPage: channelsPage1} = await pw.testBrowser.login(user1);
-        await channelsPage1.goto(team.name, channel.name);
-        await channelsPage1.toBeVisible();
+        const {page: page1} = await loginAndNavigateToChannel(pw, user1, team.name, channel.name);
 
-        const wiki = await createWikiThroughUI(page1, `Test Wiki ${await pw.random.id()}`);
-        const originalTitle = `Original Title ${await pw.random.id()}`;
+        const wiki = await createWikiThroughUI(page1, uniqueName('Test Wiki'));
+        const originalTitle = uniqueName('Original Title');
         await createPageThroughUI(page1, originalTitle, 'Test content');
 
         // # Create user2 and add to channel
@@ -318,7 +320,7 @@ test(
         });
 
         // # User 1 renames the page via UI
-        const newTitle = `Renamed Title ${await pw.random.id()}`;
+        const newTitle = uniqueName('Renamed Title');
         await renamePageViaContextMenu(page1, originalTitle, newTitle);
 
         // * Verify rename succeeded for user1 first
@@ -354,12 +356,10 @@ test(
         const channel = await adminClient.getChannelByName(team.id, 'town-square');
 
         // # User 1 creates wiki and parent page
-        const {page: page1, channelsPage: channelsPage1} = await pw.testBrowser.login(user1);
-        await channelsPage1.goto(team.name, channel.name);
-        await channelsPage1.toBeVisible();
+        const {page: page1} = await loginAndNavigateToChannel(pw, user1, team.name, channel.name);
 
-        const wiki = await createWikiThroughUI(page1, `Test Wiki ${await pw.random.id()}`);
-        const parentTitle = `Parent Page ${await pw.random.id()}`;
+        const wiki = await createWikiThroughUI(page1, uniqueName('Test Wiki'));
+        const parentTitle = uniqueName('Parent Page');
         const parentPage = await createPageThroughUI(page1, parentTitle, 'Parent content');
 
         // # Create user2 and add to channel
@@ -387,13 +387,13 @@ test(
         await verifyPageInHierarchy(user2Page, parentTitle);
 
         // # User 1 creates child page under parent via UI
-        const childTitle = `Child Page ${await pw.random.id()}`;
+        const childTitle = uniqueName('Child Page');
         await createChildPageThroughContextMenu(page1, parentPage.id, childTitle, 'Child page content');
         await page1.waitForTimeout(EDITOR_LOAD_WAIT);
 
         // * Verify child page appears in user2's hierarchy (real-time)
         await user2Page.waitForTimeout(WEBSOCKET_WAIT); // Allow WebSocket message to propagate
-        await user2Page.waitForTimeout(1000); // Give React time to re-render
+        await user2Page.waitForTimeout(EDITOR_LOAD_WAIT); // Give React time to re-render
 
         // Check if parent now has an expand button (indicating it detected the child)
         const parentNode = user2Page.locator(`[data-testid="page-tree-node"][data-page-id="${parentPage.id}"]`);
@@ -404,7 +404,7 @@ test(
 
         // # Expand parent node to make child visible
         await expandButton.click();
-        await user2Page.waitForTimeout(200); // Wait for expand animation
+        await user2Page.waitForTimeout(SHORT_WAIT); // Wait for expand animation
 
         // * Child page should now be visible in hierarchy (nested under parent)
         await verifyPageInHierarchy(user2Page, childTitle, 5000);
@@ -435,12 +435,10 @@ test(
         const channel = await adminClient.getChannelByName(team.id, 'town-square');
 
         // # User 1 creates wiki and page
-        const {page: page1, channelsPage: channelsPage1} = await pw.testBrowser.login(user1);
-        await channelsPage1.goto(team.name, channel.name);
-        await channelsPage1.toBeVisible();
+        const {page: page1} = await loginAndNavigateToChannel(pw, user1, team.name, channel.name);
 
-        const wiki = await createWikiThroughUI(page1, `Test Wiki ${await pw.random.id()}`);
-        const pageTitle = `Page to Delete ${await pw.random.id()}`;
+        const wiki = await createWikiThroughUI(page1, uniqueName('Test Wiki'));
+        const pageTitle = uniqueName('Page to Delete');
         const createdPage = await createPageThroughUI(page1, pageTitle, 'This page will be deleted');
 
         // # Create user2 and add to channel
@@ -518,13 +516,16 @@ test(
         ]);
 
         // # User 1 creates wiki and page
-        const {page: page1, channelsPage: channelsPage1} = await pw.testBrowser.login(user1);
-        await channelsPage1.goto(team.name, channel.name);
-        await channelsPage1.toBeVisible();
+        const {page: page1, channelsPage: channelsPage1} = await loginAndNavigateToChannel(
+            pw,
+            user1,
+            team.name,
+            channel.name,
+        );
 
-        const wikiName = `Wiki to Delete ${await pw.random.id()}`;
+        const wikiName = uniqueName('Wiki to Delete');
         const wiki = await createWikiThroughUI(page1, wikiName);
-        const pageTitle = `Test Page ${await pw.random.id()}`;
+        const pageTitle = uniqueName('Test Page');
         const createdPage = await createPageThroughUI(page1, pageTitle, 'This page will be deleted with wiki');
 
         // # Create user2 and add to channel
@@ -624,11 +625,14 @@ test('removes wiki tab for other users when wiki is deleted', {tag: '@pages'}, a
     ]);
 
     // # User 1 creates wiki
-    const {page: page1, channelsPage: channelsPage1} = await pw.testBrowser.login(user1);
-    await channelsPage1.goto(team.name, channel.name);
-    await channelsPage1.toBeVisible();
+    const {page: page1, channelsPage: channelsPage1} = await loginAndNavigateToChannel(
+        pw,
+        user1,
+        team.name,
+        channel.name,
+    );
 
-    const wikiName = `Wiki Tab Test ${await pw.random.id()}`;
+    const wikiName = uniqueName('Wiki Tab Test');
     await createWikiThroughUI(page1, wikiName);
 
     // # Create user2 and add to channel
@@ -696,18 +700,16 @@ test(
         const {team, user: user1, adminClient} = sharedPagesSetup;
 
         // # Create a custom channel (users can be removed from custom channels, not town-square)
-        const channel = await createTestChannel(adminClient, team.id, `Permission Test ${await pw.random.id()}`);
+        const channel = await createTestChannel(adminClient, team.id, uniqueName('Permission Test'));
 
         // # Add user1 to the custom channel
         await adminClient.addToChannel(user1.id, channel.id);
 
         // # User 1 creates wiki and page
-        const {page: page1, channelsPage: channelsPage1} = await pw.testBrowser.login(user1);
-        await channelsPage1.goto(team.name, channel.name);
-        await channelsPage1.toBeVisible();
+        const {page: page1} = await loginAndNavigateToChannel(pw, user1, team.name, channel.name);
 
-        const wiki = await createWikiThroughUI(page1, `Permission Test Wiki ${await pw.random.id()}`);
-        const pageTitle = `Test Page ${await pw.random.id()}`;
+        const wiki = await createWikiThroughUI(page1, uniqueName('Permission Test Wiki'));
+        const pageTitle = uniqueName('Test Page');
         const createdPage = await createPageThroughUI(page1, pageTitle, 'Content for permission test');
 
         // # Create user2 and add to channel
@@ -806,12 +808,10 @@ test(
         }
 
         // # User 1 creates wiki and page
-        const {page: page1, channelsPage: channelsPage1} = await pw.testBrowser.login(user1);
-        await channelsPage1.goto(team.name, channel.name);
-        await channelsPage1.toBeVisible();
+        const {page: page1} = await loginAndNavigateToChannel(pw, user1, team.name, channel.name);
 
-        const wiki = await createWikiThroughUI(page1, `Edit Permission Wiki ${await pw.random.id()}`);
-        const pageTitle = `Edit Test Page ${await pw.random.id()}`;
+        const wiki = await createWikiThroughUI(page1, uniqueName('Edit Permission Wiki'));
+        const pageTitle = uniqueName('Edit Test Page');
         const createdPage = await createPageThroughUI(page1, pageTitle, 'Original content');
 
         // # Create user2 and add to channel
@@ -935,14 +935,12 @@ test(
         const channel = await adminClient.getChannelByName(team.id, 'town-square');
 
         // # User 1 creates wiki and multiple pages
-        const {page: page1, channelsPage: channelsPage1} = await pw.testBrowser.login(user1);
-        await channelsPage1.goto(team.name, channel.name);
-        await channelsPage1.toBeVisible();
+        const {page: page1} = await loginAndNavigateToChannel(pw, user1, team.name, channel.name);
 
-        const wiki = await createWikiThroughUI(page1, `Multi-Page Wiki ${await pw.random.id()}`);
-        const page1Title = `Page One ${await pw.random.id()}`;
-        const page2Title = `Page Two ${await pw.random.id()}`;
-        const page3Title = `Page Three ${await pw.random.id()}`;
+        const wiki = await createWikiThroughUI(page1, uniqueName('Multi-Page Wiki'));
+        const page1Title = uniqueName('Page One');
+        const page2Title = uniqueName('Page Two');
+        const page3Title = uniqueName('Page Three');
 
         await createPageThroughUI(page1, page1Title, 'Content for page one');
         await createPageThroughUI(page1, page2Title, 'Content for page two');
@@ -1002,13 +1000,11 @@ test(
         const channel = await adminClient.getChannelByName(team.id, 'town-square');
 
         // # User 1 creates wiki with parent and child pages (initially siblings)
-        const {page: page1, channelsPage: channelsPage1} = await pw.testBrowser.login(user1);
-        await channelsPage1.goto(team.name, channel.name);
-        await channelsPage1.toBeVisible();
+        const {page: page1} = await loginAndNavigateToChannel(pw, user1, team.name, channel.name);
 
-        const wiki = await createWikiThroughUI(page1, `Hierarchy Sync Wiki ${await pw.random.id()}`);
-        const parentTitle = `Parent Page ${await pw.random.id()}`;
-        const childTitle = `Future Child Page ${await pw.random.id()}`;
+        const wiki = await createWikiThroughUI(page1, uniqueName('Hierarchy Sync Wiki'));
+        const parentTitle = uniqueName('Parent Page');
+        const childTitle = uniqueName('Future Child Page');
 
         const parentPage = await createPageThroughUI(page1, parentTitle, 'Parent content');
         const childPage = await createPageThroughUI(page1, childTitle, 'This will become a child');
@@ -1051,8 +1047,8 @@ test(
         await setupWebSocketEventLogging(user2Page);
 
         // # User 1 moves the child page to be under the parent page via API
-        // This uses the dedicated /parent endpoint which broadcasts page_moved event
-        await adminClient.updatePageParent(wiki.id, childPage.id!, parentPage.id!);
+        // This uses the movePage endpoint which broadcasts page_moved event
+        await adminClient.movePage(wiki.id, childPage.id!, parentPage.id!);
 
         // * Wait for WebSocket event to propagate to user2
         await user2Page.waitForTimeout(WEBSOCKET_WAIT);
@@ -1073,7 +1069,7 @@ test(
 
         // # Expand parent node to verify child is nested underneath
         await iconButton.click();
-        await user2Page.waitForTimeout(200); // Wait for expand animation
+        await user2Page.waitForTimeout(SHORT_WAIT); // Wait for expand animation
 
         // * Verify child page is now visible with depth=1 (child of parent)
         const childNodeUser2After = user2Page.locator(`[data-testid="page-tree-node"][data-page-id="${childPage.id}"]`);

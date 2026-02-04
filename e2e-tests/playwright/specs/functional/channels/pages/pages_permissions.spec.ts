@@ -27,6 +27,8 @@ import {
     getHierarchyPanel,
     AUTOSAVE_WAIT,
     ELEMENT_TIMEOUT,
+    SHORT_WAIT,
+    EDITOR_LOAD_WAIT,
 } from './test_helpers';
 
 /**
@@ -92,8 +94,19 @@ test('prevents non-member from viewing wiki', {tag: '@pages'}, async ({pw, share
         // The system should either redirect the user away from the wiki page,
         // or show an error state. Either way, the wiki content should not be accessible.
 
-        // Wait for navigation/error handling to complete
-        await nonMemberPage.waitForTimeout(2000);
+        // Wait for navigation/error handling to complete using proper wait pattern
+        await pw.waitUntil(
+            async () => {
+                const url = nonMemberPage.url();
+                const redirected = !url.includes(wiki.id);
+                const errorVisible = await nonMemberPage
+                    .locator('[data-testid="error-page"], [data-testid="access-denied"]')
+                    .isVisible()
+                    .catch(() => false);
+                return redirected || errorVisible;
+            },
+            {timeout: AUTOSAVE_WAIT},
+        );
 
         // Check that user was redirected away from the wiki page (URL no longer contains wiki.id)
         const currentUrl = nonMemberPage.url();
@@ -314,7 +327,7 @@ test('restricts page actions based on channel permissions', {tag: '@pages'}, asy
     await adminClient.addToTeam(team.id, createdGuestUser.id);
     await adminClient.addToChannel(createdGuestUser.id, channel.id);
 
-    // # Login as guest and navigate to the page
+    // # Login as guest and navigate to the wiki page
     const {page: guestPage} = await pw.testBrowser.login(createdGuestUser);
     const pageUrl = buildWikiPageUrl(pw.url, team.name, channel.id, wiki.id, testPage.id);
     await guestPage.goto(pageUrl);
@@ -374,7 +387,7 @@ test(
         const editor = getEditor(pageA);
         const paragraph = editor.locator('p').first();
         await paragraph.click({clickCount: 3});
-        await pageA.waitForTimeout(500);
+        await pageA.waitForTimeout(SHORT_WAIT);
 
         // Click the add comment button that appears in view mode toolbar
         const addCommentButton = pageA.locator('[data-testid="inline-comment-add-button"]');
@@ -390,9 +403,9 @@ test(
         await expect(createComment).toBeVisible({timeout: ELEMENT_TIMEOUT});
         const textarea = createComment.locator('textarea, [contenteditable="true"]').first();
         await textarea.fill('Comment by userA that userB should not resolve');
-        await pageA.waitForTimeout(500);
+        await pageA.waitForTimeout(SHORT_WAIT);
         await textarea.press('Control+Enter');
-        await pageA.waitForTimeout(1000);
+        await pageA.waitForTimeout(EDITOR_LOAD_WAIT);
 
         // * Verify comment marker is visible
         await verifyCommentMarkerVisible(pageA);
@@ -430,7 +443,7 @@ test(
         await resolveMenuItem.click();
 
         // Wait for API call to complete
-        await pageB.waitForTimeout(1000);
+        await pageB.waitForTimeout(EDITOR_LOAD_WAIT);
 
         // * Verify the comment is still NOT resolved (backend rejected the request)
         // The comment highlight should still be active (not resolved)

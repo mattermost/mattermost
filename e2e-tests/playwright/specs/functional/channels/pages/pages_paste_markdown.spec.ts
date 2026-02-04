@@ -9,6 +9,7 @@ import {
     getEditorAndWait,
     EDITOR_LOAD_WAIT,
     ELEMENT_TIMEOUT,
+    SHORT_WAIT,
     loginAndNavigateToChannel,
     uniqueName,
 } from './test_helpers';
@@ -87,7 +88,7 @@ test.describe('Paste Markdown', () => {
         // # Paste markdown code block
         const markdown = '```javascript\nconst greeting = "Hello, World!";\nconsole.log(greeting);\n```';
         await pasteMarkdownIntoEditor(page, markdown);
-        await page.waitForTimeout(500);
+        await page.waitForTimeout(SHORT_WAIT);
 
         // * Verify code block was created
         const codeBlock = editor.locator('pre code');
@@ -117,7 +118,7 @@ test.describe('Paste Markdown', () => {
         // # Paste markdown table
         const markdown = '| Name | Role |\n|------|------|\n| Alice | Engineer |\n| Bob | Designer |';
         await pasteMarkdownIntoEditor(page, markdown);
-        await page.waitForTimeout(500);
+        await page.waitForTimeout(SHORT_WAIT);
 
         // * Verify table was created
         const table = editor.locator('table');
@@ -153,7 +154,7 @@ test.describe('Paste Markdown', () => {
         // # Paste markdown with header and link (2 medium signals = convert)
         const markdown = '# Getting Started\n\nCheck the [documentation](https://example.com/docs) for more info.';
         await pasteMarkdownIntoEditor(page, markdown);
-        await page.waitForTimeout(500);
+        await page.waitForTimeout(SHORT_WAIT);
 
         // * Verify heading was created
         const heading = editor.locator('h1');
@@ -187,7 +188,7 @@ test.describe('Paste Markdown', () => {
         // # Paste markdown with code block (strong signal) and mention
         const markdown = '```\ncode\n```\n\nHey @sysadmin, please review this.';
         await pasteMarkdownIntoEditor(page, markdown);
-        await page.waitForTimeout(500);
+        await page.waitForTimeout(SHORT_WAIT);
 
         // * Verify mention node was created
         const mention = editor.locator('[data-type="mention"]');
@@ -216,7 +217,7 @@ test.describe('Paste Markdown', () => {
         // # Paste markdown with code block (strong signal) and channel mention
         const markdown = '```\ncode\n```\n\nDiscuss in ~town-square channel.';
         await pasteMarkdownIntoEditor(page, markdown);
-        await page.waitForTimeout(500);
+        await page.waitForTimeout(SHORT_WAIT);
 
         // * Verify channel mention node was created
         const channelMention = editor.locator('[data-type="channelMention"]');
@@ -244,7 +245,7 @@ test.describe('Paste Markdown', () => {
         // # Paste plain text without markdown
         const plainText = 'This is just regular text without any markdown formatting.';
         await pasteMarkdownIntoEditor(page, plainText);
-        await page.waitForTimeout(500);
+        await page.waitForTimeout(SHORT_WAIT);
 
         // * Verify text was inserted as-is (in a paragraph, no special formatting)
         await expect(editor).toContainText(plainText);
@@ -285,7 +286,7 @@ test.describe('Paste Markdown', () => {
         // # Paste text with only a header (1 weak signal - should NOT convert)
         const markdown = '# This is a header';
         await pasteMarkdownIntoEditor(page, markdown);
-        await page.waitForTimeout(500);
+        await page.waitForTimeout(SHORT_WAIT);
 
         // * Verify NO heading was created (single signal doesn't trigger conversion)
         const heading = editor.locator('h1');
@@ -316,7 +317,7 @@ test.describe('Paste Markdown', () => {
         // # Paste HTML (should use HTML, not markdown conversion)
         const html = '<h2>Already Formatted</h2><p>This is <strong>bold</strong> text.</p>';
         await pasteHtmlIntoEditor(page, html);
-        await page.waitForTimeout(500);
+        await page.waitForTimeout(SHORT_WAIT);
 
         // * Verify HTML was used directly
         const heading = editor.locator('h2');
@@ -349,7 +350,7 @@ test.describe('Paste Markdown', () => {
         // # Paste markdown with code block and email address
         const markdown = '```\ncode\n```\n\nContact support@example.com for help.';
         await pasteMarkdownIntoEditor(page, markdown);
-        await page.waitForTimeout(500);
+        await page.waitForTimeout(SHORT_WAIT);
 
         // * Verify email is displayed as plain text, not a mention
         await expect(editor).toContainText('support@example.com');
@@ -386,7 +387,7 @@ test.describe('Paste Markdown', () => {
         // # Paste markdown with image (strong signal)
         const markdown = '![Logo](https://example.com/logo.png)';
         await pasteMarkdownIntoEditor(page, markdown);
-        await page.waitForTimeout(500);
+        await page.waitForTimeout(SHORT_WAIT);
 
         // * Verify image was created
         const image = editor.locator('img');

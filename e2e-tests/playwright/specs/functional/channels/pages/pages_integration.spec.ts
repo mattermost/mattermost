@@ -450,7 +450,7 @@ test(
         // Expand parent to see child in hierarchy
         await expandPageTreeNode(page, 'Deep Link Parent');
         // Wait for expand animation and children to render
-        await page.waitForTimeout(1000);
+        await page.waitForTimeout(EDITOR_LOAD_WAIT);
         await verifyHierarchyContains(page, 'Deep Link Child');
     },
 );

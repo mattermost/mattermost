@@ -12,7 +12,8 @@ import (
 	"github.com/mattermost/mattermost/server/v8/channels/app"
 )
 
-func updatePageParent(c *Context, w http.ResponseWriter, r *http.Request) {
+// movePage moves a page within the hierarchy. Can change parent and/or reorder among siblings.
+func movePage(c *Context, w http.ResponseWriter, r *http.Request) {
 	c.RequireWikiId()
 	c.RequirePageId()
 	if c.Err != nil {
@@ -20,7 +21,7 @@ func updatePageParent(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Check wiki modify permission first (includes channel deletion check)
-	if _, _, ok := c.GetWikiForModify("updatePageParent"); !ok {
+	if _, _, ok := c.GetWikiForModify("movePage"); !ok {
 		return
 	}
 
@@ -35,31 +36,38 @@ func updatePageParent(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	type UpdateParentRequest struct {
-		NewParentId string `json:"new_parent_id"`
+	type MovePageRequest struct {
+		ParentId     *string `json:"parent_id,omitempty"`     // nil = keep current parent
+		SiblingIndex *int64  `json:"sibling_index,omitempty"` // position among siblings
 	}
 
-	var req UpdateParentRequest
+	var req MovePageRequest
 	if jsonErr := json.NewDecoder(r.Body).Decode(&req); jsonErr != nil {
 		c.SetInvalidParamWithErr("request", jsonErr)
 		return
 	}
 
-	if req.NewParentId != "" && !model.IsValidId(req.NewParentId) {
-		c.SetInvalidParam("new_parent_id")
+	if req.ParentId != nil && *req.ParentId != "" && !model.IsValidId(*req.ParentId) {
+		c.SetInvalidParam("parent_id")
+		return
+	}
+
+	// Validate sibling_index if provided
+	if req.SiblingIndex != nil && *req.SiblingIndex < 0 {
+		c.SetInvalidParam("sibling_index")
 		return
 	}
 
 	// If new parent is specified, verify it exists, is a page, and belongs to the same wiki
-	if req.NewParentId != "" {
+	if req.ParentId != nil && *req.ParentId != "" {
 		// GetPage validates the post exists and is a page type
-		parentPage, err := c.App.GetPage(c.AppContext, req.NewParentId)
+		parentPage, err := c.App.GetPage(c.AppContext, *req.ParentId)
 		if err != nil {
 			if err.Id == "app.page.get.not_a_page.app_error" {
-				c.Err = model.NewAppError("updatePageParent", "api.wiki.update_page_parent.parent_not_page.app_error", nil, "", http.StatusBadRequest)
+				c.Err = model.NewAppError("movePage", "api.wiki.move_page.parent_not_page.app_error", nil, "", http.StatusBadRequest)
 				return
 			}
-			c.Err = model.NewAppError("updatePageParent", "api.wiki.update_page_parent.parent_not_found.app_error", nil, "", http.StatusNotFound).Wrap(err)
+			c.Err = model.NewAppError("movePage", "api.wiki.move_page.parent_not_found.app_error", nil, "", http.StatusNotFound).Wrap(err)
 			return
 		}
 
@@ -75,31 +83,44 @@ func updatePageParent(c *Context, w http.ResponseWriter, r *http.Request) {
 		if !ok || parentWikiId == "" {
 			// Fallback: get wiki_id from PropertyValues (source of truth)
 			var wikiErr *model.AppError
-			parentWikiId, wikiErr = c.App.GetWikiIdForPage(c.AppContext, req.NewParentId)
+			parentWikiId, wikiErr = c.App.GetWikiIdForPage(c.AppContext, *req.ParentId)
 			if wikiErr != nil || parentWikiId == "" {
-				c.Err = model.NewAppError("updatePageParent", "api.wiki.page_wiki_not_set.app_error", nil, "", http.StatusBadRequest)
+				c.Err = model.NewAppError("movePage", "api.wiki.page_wiki_not_set.app_error", nil, "", http.StatusBadRequest)
 				return
 			}
 		}
 		if parentWikiId != c.Params.WikiId {
-			c.Err = model.NewAppError("updatePageParent", "api.wiki.update_page_parent.parent_different_wiki.app_error", nil, "", http.StatusBadRequest)
+			c.Err = model.NewAppError("movePage", "api.wiki.move_page.parent_different_wiki.app_error", nil, "", http.StatusBadRequest)
 			return
 		}
 	}
 
-	auditRec := c.MakeAuditRecord("updatePageParent", model.AuditStatusFail)
+	auditRec := c.MakeAuditRecord("movePage", model.AuditStatusFail)
 	model.AddEventParameterToAuditRec(auditRec, "page_id", c.Params.PageId)
-	model.AddEventParameterToAuditRec(auditRec, "new_parent_id", req.NewParentId)
+	if req.ParentId != nil {
+		model.AddEventParameterToAuditRec(auditRec, "parent_id", *req.ParentId)
+	}
+	if req.SiblingIndex != nil {
+		model.AddEventParameterToAuditRec(auditRec, "sibling_index", *req.SiblingIndex)
+	}
 	defer c.LogAuditRecWithLevel(auditRec, app.LevelContent)
 
-	if appErr := c.App.ChangePageParent(c.AppContext, c.Params.PageId, req.NewParentId, c.Params.WikiId); appErr != nil {
+	siblings, appErr := c.App.MovePage(c.AppContext, c.Params.PageId, req.ParentId, c.Params.WikiId, req.SiblingIndex)
+	if appErr != nil {
 		c.Err = appErr
 		return
 	}
 
 	auditRec.Success()
 
-	ReturnStatusOK(w)
+	// If siblings were updated, return them; otherwise return OK
+	if siblings != nil {
+		if err := json.NewEncoder(w).Encode(siblings); err != nil {
+			c.Logger.Warn("Error writing response", mlog.Err(err))
+		}
+	} else {
+		ReturnStatusOK(w)
+	}
 }
 
 func movePageToWiki(c *Context, w http.ResponseWriter, r *http.Request) {

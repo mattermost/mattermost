@@ -10,6 +10,8 @@ import {
     publishPage,
     EDITOR_LOAD_WAIT,
     ELEMENT_TIMEOUT,
+    HIERARCHY_TIMEOUT,
+    AUTOSAVE_WAIT,
     loginAndNavigateToChannel,
 } from './test_helpers';
 
@@ -89,7 +91,7 @@ test.describe('External Image Paste', () => {
 
             // # Wait for the re-hosting process to complete
             // The setTimeout is 100ms, plus fetch + upload time
-            await page.waitForTimeout(5000);
+            await page.waitForTimeout(ELEMENT_TIMEOUT);
 
             // * Verify the image src was changed to a Mattermost file URL
             const imageInEditor = editor.locator('img').first();
@@ -149,7 +151,7 @@ test.describe('External Image Paste', () => {
         `;
 
         await pasteHtmlIntoEditor(page, htmlWithImage);
-        await page.waitForTimeout(5000);
+        await page.waitForTimeout(ELEMENT_TIMEOUT);
 
         // * Verify text content is preserved
         const editorText = await editor.textContent();
@@ -198,7 +200,7 @@ test.describe('External Image Paste', () => {
         await pasteHtmlIntoEditor(page, htmlWithMultipleImages);
 
         // # Wait for re-hosting (longer timeout for multiple images)
-        await page.waitForTimeout(10000);
+        await page.waitForTimeout(HIERARCHY_TIMEOUT);
 
         // * Verify all images were re-hosted
         const imagesInEditor = editor.locator('img');
@@ -236,7 +238,7 @@ test.describe('External Image Paste', () => {
         const htmlWithMmImage = `<p>Already hosted image:</p><img src="${mmFileUrl}" alt="MM Image">`;
 
         await pasteHtmlIntoEditor(page, htmlWithMmImage);
-        await page.waitForTimeout(2000);
+        await page.waitForTimeout(AUTOSAVE_WAIT);
 
         // * Verify the Mattermost URL is preserved (not re-hosted)
         const imageInEditor = editor.locator('img').first();
@@ -272,7 +274,7 @@ test.describe('External Image Paste', () => {
         const htmlWithDataUri = `<p>Data URI image:</p><img src="${dataUri}" alt="Data URI">`;
 
         await pasteHtmlIntoEditor(page, htmlWithDataUri);
-        await page.waitForTimeout(2000);
+        await page.waitForTimeout(AUTOSAVE_WAIT);
 
         // * Verify the data URI is preserved (not re-hosted)
         const imageInEditor = editor.locator('img').first();

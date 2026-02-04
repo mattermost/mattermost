@@ -7888,12 +7888,12 @@ func (c *Client4) UpdatePage(ctx context.Context, wikiId, pageId, title, content
 	return DecodeJSONFromResponse[*Post](r)
 }
 
-// MovePageToWiki moves a page from one wiki to another within the same channel.
+// MovePageToWiki moves a page from one wiki to another.
 func (c *Client4) MovePageToWiki(ctx context.Context, sourceWikiId, pageId, targetWikiId string) (*Response, error) {
 	payload := map[string]string{
 		"target_wiki_id": targetWikiId,
 	}
-	r, err := c.doAPIPatchJSON(ctx, c.wikiPageRoute(sourceWikiId, pageId).Join("move"), payload)
+	r, err := c.doAPIPatchJSON(ctx, c.wikiPageRoute(sourceWikiId, pageId).Join("move-to-wiki"), payload)
 	if err != nil {
 		return BuildResponse(r), err
 	}
@@ -7930,17 +7930,39 @@ func (c *Client4) GetPageBreadcrumb(ctx context.Context, wikiId, pageId string) 
 	return DecodeJSONFromResponse[*BreadcrumbPath](r)
 }
 
-// UpdatePageParent changes the parent of a page in the hierarchy.
-func (c *Client4) UpdatePageParent(ctx context.Context, wikiId, pageId, newParentId string) (*Response, error) {
-	payload := map[string]string{
-		"new_parent_id": newParentId,
+// MovePage moves a page within the hierarchy. Can change parent and/or reorder among siblings.
+// parentId: if non-nil, changes the page's parent (nil = keep current parent, empty string = move to root)
+// siblingIndex: if non-nil, reorders the page to this position among siblings
+func (c *Client4) MovePage(ctx context.Context, wikiId, pageId string, parentId *string, siblingIndex *int64) (*PostList, *Response, error) {
+	payload := map[string]any{}
+	if parentId != nil {
+		payload["parent_id"] = *parentId
 	}
-	r, err := c.doAPIPutJSON(ctx, c.wikiPageRoute(wikiId, pageId).Join("parent"), payload)
+	if siblingIndex != nil {
+		payload["sibling_index"] = *siblingIndex
+	}
+	r, err := c.doAPIPutJSON(ctx, c.wikiPageRoute(wikiId, pageId).Join("move"), payload)
 	if err != nil {
-		return BuildResponse(r), err
+		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
-	return BuildResponse(r), nil
+
+	// If siblingIndex was provided, response contains siblings; otherwise just status OK
+	if siblingIndex != nil {
+		var postList PostList
+		if err := json.NewDecoder(r.Body).Decode(&postList); err != nil {
+			return nil, BuildResponse(r), NewAppError("MovePage", "api.unmarshal_error", nil, "", 0).Wrap(err)
+		}
+		return &postList, BuildResponse(r), nil
+	}
+	return nil, BuildResponse(r), nil
+}
+
+// MovePageParent is a convenience method that changes only the parent of a page.
+// Deprecated: Use MovePage instead.
+func (c *Client4) MovePageParent(ctx context.Context, wikiId, pageId, newParentId string) (*Response, error) {
+	_, resp, err := c.MovePage(ctx, wikiId, pageId, &newParentId, nil)
+	return resp, err
 }
 
 // GetPageComments retrieves all comments for a page (including inline comments).

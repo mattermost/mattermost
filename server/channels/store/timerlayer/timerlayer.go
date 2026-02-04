@@ -6569,6 +6569,22 @@ func (s *TimerLayerPageStore) ChangePageParent(postID string, newParentID string
 	return err
 }
 
+func (s *TimerLayerPageStore) MovePage(pageID string, channelID string, newParentID *string, newIndex *int64, expectedUpdateAt int64) ([]*model.Post, error) {
+	start := time.Now()
+
+	result, err := s.PageStore.MovePage(pageID, channelID, newParentID, newIndex, expectedUpdateAt)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("PageStore.MovePage", success, elapsed)
+	}
+	return result, err
+}
+
 func (s *TimerLayerPageStore) CreatePage(rctx request.CTX, post *model.Post, content string, searchText string) (*model.Post, error) {
 	start := time.Now()
 
@@ -6793,6 +6809,22 @@ func (s *TimerLayerPageStore) GetPageVersionHistory(pageID string, offset int, l
 	return result, err
 }
 
+func (s *TimerLayerPageStore) GetSiblingPages(parentID string, channelID string) ([]*model.Post, error) {
+	start := time.Now()
+
+	result, err := s.PageStore.GetSiblingPages(parentID, channelID)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("PageStore.GetSiblingPages", success, elapsed)
+	}
+	return result, err
+}
+
 func (s *TimerLayerPageStore) PermanentDeletePageContent(pageID string) error {
 	start := time.Now()
 
@@ -6933,6 +6965,22 @@ func (s *TimerLayerPageStore) UpdatePageContent(pageContent *model.PageContent) 
 			success = "true"
 		}
 		s.Root.Metrics.ObserveStoreMethodDuration("PageStore.UpdatePageContent", success, elapsed)
+	}
+	return result, err
+}
+
+func (s *TimerLayerPageStore) UpdatePageSortOrder(pageID string, parentID string, channelID string, newIndex int64) ([]*model.Post, error) {
+	start := time.Now()
+
+	result, err := s.PageStore.UpdatePageSortOrder(pageID, parentID, channelID, newIndex)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("PageStore.UpdatePageSortOrder", success, elapsed)
 	}
 	return result, err
 }

@@ -429,6 +429,66 @@ func (_m *PageStore) GetPageVersionHistory(pageID string, offset int, limit int)
 	return r0, r1
 }
 
+// GetSiblingPages provides a mock function with given fields: parentID, channelID
+func (_m *PageStore) GetSiblingPages(parentID string, channelID string) ([]*model.Post, error) {
+	ret := _m.Called(parentID, channelID)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetSiblingPages")
+	}
+
+	var r0 []*model.Post
+	var r1 error
+	if rf, ok := ret.Get(0).(func(string, string) ([]*model.Post, error)); ok {
+		return rf(parentID, channelID)
+	}
+	if rf, ok := ret.Get(0).(func(string, string) []*model.Post); ok {
+		r0 = rf(parentID, channelID)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]*model.Post)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(string, string) error); ok {
+		r1 = rf(parentID, channelID)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// MovePage provides a mock function with given fields: pageID, channelID, newParentID, newIndex, expectedUpdateAt
+func (_m *PageStore) MovePage(pageID string, channelID string, newParentID *string, newIndex *int64, expectedUpdateAt int64) ([]*model.Post, error) {
+	ret := _m.Called(pageID, channelID, newParentID, newIndex, expectedUpdateAt)
+
+	if len(ret) == 0 {
+		panic("no return value specified for MovePage")
+	}
+
+	var r0 []*model.Post
+	var r1 error
+	if rf, ok := ret.Get(0).(func(string, string, *string, *int64, int64) ([]*model.Post, error)); ok {
+		return rf(pageID, channelID, newParentID, newIndex, expectedUpdateAt)
+	}
+	if rf, ok := ret.Get(0).(func(string, string, *string, *int64, int64) []*model.Post); ok {
+		r0 = rf(pageID, channelID, newParentID, newIndex, expectedUpdateAt)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]*model.Post)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(string, string, *string, *int64, int64) error); ok {
+		r1 = rf(pageID, channelID, newParentID, newIndex, expectedUpdateAt)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // PermanentDeletePageContent provides a mock function with given fields: pageID
 func (_m *PageStore) PermanentDeletePageContent(pageID string) error {
 	ret := _m.Called(pageID)
@@ -620,6 +680,36 @@ func (_m *PageStore) UpdatePageContent(pageContent *model.PageContent) (*model.P
 
 	if rf, ok := ret.Get(1).(func(*model.PageContent) error); ok {
 		r1 = rf(pageContent)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// UpdatePageSortOrder provides a mock function with given fields: pageID, parentID, channelID, newIndex
+func (_m *PageStore) UpdatePageSortOrder(pageID string, parentID string, channelID string, newIndex int64) ([]*model.Post, error) {
+	ret := _m.Called(pageID, parentID, channelID, newIndex)
+
+	if len(ret) == 0 {
+		panic("no return value specified for UpdatePageSortOrder")
+	}
+
+	var r0 []*model.Post
+	var r1 error
+	if rf, ok := ret.Get(0).(func(string, string, string, int64) ([]*model.Post, error)); ok {
+		return rf(pageID, parentID, channelID, newIndex)
+	}
+	if rf, ok := ret.Get(0).(func(string, string, string, int64) []*model.Post); ok {
+		r0 = rf(pageID, parentID, channelID, newIndex)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]*model.Post)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(string, string, string, int64) error); ok {
+		r1 = rf(pageID, parentID, channelID, newIndex)
 	} else {
 		r1 = ret.Error(1)
 	}

@@ -2906,7 +2906,7 @@ export async function waitForActiveEditorsIndicator(
                 await page.reload();
                 await page.waitForLoadState('networkidle');
                 // Extra wait for WebSocket reconnection after reload
-                await page.waitForTimeout(1000);
+                await page.waitForTimeout(EDITOR_LOAD_WAIT);
             }
         }
     }

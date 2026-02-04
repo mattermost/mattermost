@@ -295,10 +295,12 @@ export function deletePage(wikiId: string, pageId: string): ActionFuncAsync<bool
     };
 }
 
-export function updatePageParent(wikiId: string, pageId: string, newParentId: string): ActionFuncAsync<boolean> {
+// movePageParent changes the parent of a page without reordering.
+// Use movePageInHierarchy from actions/pages.ts for drag-and-drop with optimistic updates.
+export function movePageParent(wikiId: string, pageId: string, newParentId: string): ActionFuncAsync<boolean> {
     return async (dispatch, getState) => {
         try {
-            await Client4.updatePageParent(wikiId, pageId, newParentId);
+            await Client4.movePage(wikiId, pageId, newParentId);
             return {data: true};
         } catch (error) {
             forceLogoutIfNecessary(error, dispatch, getState);

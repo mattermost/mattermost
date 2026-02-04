@@ -1308,10 +1308,30 @@ type PageStore interface {
 	// GetChannelPages fetches all pages in a channel
 	GetChannelPages(channelID string) (*model.PostList, error)
 
+	// GetSiblingPages fetches all sibling pages (pages with the same parent) for a given parent.
+	// If parentID is empty, returns root-level pages in the channel.
+	// Results are sorted by page_sort_order, then CreateAt, then Id.
+	GetSiblingPages(parentID, channelID string) ([]*model.Post, error)
+
+	// UpdatePageSortOrder reorders a page among its siblings.
+	// Moves the page to newIndex position (0-indexed) and recalculates sort orders for all siblings.
+	// Uses SELECT FOR UPDATE to prevent concurrent modification issues.
+	// Returns the updated list of siblings with their new sort orders.
+	UpdatePageSortOrder(pageID, parentID, channelID string, newIndex int64) ([]*model.Post, error)
+
 	// ChangePageParent updates the parent of a page.
 	// Uses optimistic locking: only updates if UpdateAt matches expectedUpdateAt.
 	// Returns ErrNotFound if no rows affected (page not found or concurrent modification).
 	ChangePageParent(postID string, newParentID string, expectedUpdateAt int64) error
+
+	// MovePage atomically moves a page within the hierarchy.
+	// Combines parent change and sibling reordering in a single transaction.
+	// - newParentID: if non-nil, changes the page's parent (nil = keep current, empty string = root)
+	// - newIndex: if non-nil, reorders the page to this position among siblings
+	// Uses optimistic locking: only updates if UpdateAt matches expectedUpdateAt.
+	// Returns ErrNotFound if page not found or concurrent modification detected.
+	// Returns ErrInvalidInput if the move would create a cycle.
+	MovePage(pageID, channelID string, newParentID *string, newIndex *int64, expectedUpdateAt int64) ([]*model.Post, error)
 
 	// ReparentChildren updates all direct children of a page to a new parent.
 	// Used when deleting a page to avoid orphaning its children.

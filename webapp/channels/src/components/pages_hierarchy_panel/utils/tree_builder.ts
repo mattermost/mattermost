@@ -99,12 +99,37 @@ export function buildTree(pages: PageOrDraft[]): TreeNode[] {
         }
     });
 
-    // Sort nodes by creation time (oldest first) for consistent ordering
-    // This ensures tree order remains stable across navigation and updates
-    // Use ID as tiebreaker to ensure deterministic ordering when timestamps are identical
-    const sortByCreateTime = (nodes: Array<TreeNode & {originalIndex: number}>): TreeNode[] => {
+    // Helper to safely extract page_sort_order from props with type validation
+    const getPageSortOrder = (page: PageOrDraft): number => {
+        const raw = page.props?.page_sort_order;
+        if (typeof raw === 'number' && Number.isFinite(raw)) {
+            return raw;
+        }
+        if (typeof raw === 'string') {
+            const parsed = parseInt(raw, 10);
+            if (Number.isFinite(parsed)) {
+                return parsed;
+            }
+        }
+        return 0;
+    };
+
+    // Sort nodes by page_sort_order (if set), then by creation time (oldest first)
+    // page_sort_order is stored in page.props.page_sort_order and is set by the server
+    // for drag-and-drop reordering. Pages without a sort order fall back to create_at.
+    // Use ID as tiebreaker to ensure deterministic ordering when both are identical.
+    const sortByOrder = (nodes: Array<TreeNode & {originalIndex: number}>): TreeNode[] => {
         return nodes.
             sort((a, b) => {
+                const aSortOrder = getPageSortOrder(a.page);
+                const bSortOrder = getPageSortOrder(b.page);
+
+                // Sort by page_sort_order first (if both have values > 0)
+                if (aSortOrder !== bSortOrder) {
+                    return aSortOrder - bSortOrder;
+                }
+
+                // Fallback to create_at for pages without sort order
                 const aCreateAt = a.page.create_at || 0;
                 const bCreateAt = b.page.create_at || 0;
                 if (aCreateAt !== bCreateAt) {
@@ -118,12 +143,12 @@ export function buildTree(pages: PageOrDraft[]): TreeNode[] {
                 id: node.id,
                 title: node.title,
                 page: node.page,
-                children: sortByCreateTime(node.children as Array<TreeNode & {originalIndex: number}>),
+                children: sortByOrder(node.children as Array<TreeNode & {originalIndex: number}>),
                 parentId: node.parentId,
             }));
     };
 
-    return sortByCreateTime(rootNodes);
+    return sortByOrder(rootNodes);
 }
 
 /**

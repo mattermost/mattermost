@@ -5,7 +5,10 @@ package sqlstore
 
 import (
 	"database/sql"
+	"fmt"
 	"maps"
+	"slices"
+	"sort"
 
 	sq "github.com/mattermost/squirrel"
 	"github.com/pkg/errors"
@@ -19,6 +22,18 @@ import (
 // PublishedPageContentUserId is the UserId value for published page content.
 // Published content has empty UserId; draft content has non-empty UserId (the author's ID).
 const PublishedPageContentUserId = ""
+
+// MaxPageContentBatchSize is the maximum number of page IDs to query at once
+// in GetManyPageContents to prevent unbounded IN clauses.
+const MaxPageContentBatchSize = 100
+
+// MaxChannelPagesLimit is a safety limit for GetChannelPages to prevent
+// unbounded memory allocation. Channels with more pages need pagination.
+const MaxChannelPagesLimit = 10000
+
+// MaxPageDescendantsLimit is the maximum number of descendants to return
+// from GetPageDescendants to prevent unbounded recursion.
+const MaxPageDescendantsLimit = 5000
 
 // pageContentInsertColumns returns the columns for inserting page content.
 func pageContentInsertColumns() []string {
@@ -609,7 +624,9 @@ func (s *SqlPageStore) GetPageChildren(postID string, options model.GetPostsOpti
 }
 
 func (s *SqlPageStore) GetPageDescendants(postID string) (*model.PostList, error) {
-	query := buildPageHierarchyCTE(PageHierarchyDescendants, true, true)
+	// Build CTE with depth limit (enforced in CTE itself) and add result limit
+	query := buildPageHierarchyCTE(PageHierarchyDescendants, true, true) +
+		fmt.Sprintf(" LIMIT %d", MaxPageDescendantsLimit)
 
 	posts := []*model.Post{}
 	if err := s.GetReplica().Select(&posts, query, postID); err != nil {
@@ -639,14 +656,309 @@ func (s *SqlPageStore) GetChannelPages(channelID string) (*model.PostList, error
 			"p.Type":      model.PostTypePage,
 			"p.DeleteAt":  0,
 		}).
-		OrderBy("p.CreateAt ASC")
+		Limit(MaxChannelPagesLimit + 1) // +1 to detect if limit is exceeded
 
 	posts := []*model.Post{}
 	if err := s.GetReplica().SelectBuilder(&posts, query); err != nil {
 		return nil, errors.Wrapf(err, "failed to find pages for channel_id=%s", channelID)
 	}
 
+	// Safety check: if we got more than the limit, truncate to prevent memory issues
+	if len(posts) > MaxChannelPagesLimit {
+		posts = posts[:MaxChannelPagesLimit]
+	}
+
+	// Sort in-memory by page_sort_order, then CreateAt, then Id
+	// This allows sorting by Props value which can't be done efficiently in SQL
+	sort.Slice(posts, func(i, j int) bool {
+		// First by PageParentId for grouping (optional, but consistent)
+		if posts[i].PageParentId != posts[j].PageParentId {
+			return posts[i].PageParentId < posts[j].PageParentId
+		}
+		// Then by sort order
+		iOrder := posts[i].GetPageSortOrder()
+		jOrder := posts[j].GetPageSortOrder()
+		if iOrder != jOrder {
+			return iOrder < jOrder
+		}
+		// Fallback to CreateAt
+		if posts[i].CreateAt != posts[j].CreateAt {
+			return posts[i].CreateAt < posts[j].CreateAt
+		}
+		// Final tiebreaker by Id for stability
+		return posts[i].Id < posts[j].Id
+	})
+
 	return postsToPostList(posts), nil
+}
+
+// GetSiblingPages fetches all sibling pages (pages with the same parent) for a given parent.
+// If parentID is empty, returns root-level pages in the channel.
+// Results are sorted by page_sort_order, then CreateAt, then Id.
+func (s *SqlPageStore) GetSiblingPages(parentID, channelID string) ([]*model.Post, error) {
+	if channelID == "" {
+		return nil, store.NewErrInvalidInput("Post", "channelID", channelID)
+	}
+	if parentID != "" && !model.IsValidId(parentID) {
+		return nil, store.NewErrInvalidInput("Post", "parentID", parentID)
+	}
+
+	query := s.getQueryBuilder().
+		Select(postSliceColumnsWithName("p")...).
+		From("Posts p").
+		Where(sq.Eq{
+			"p.ChannelId":    channelID,
+			"p.PageParentId": parentID,
+			"p.Type":         model.PostTypePage,
+			"p.DeleteAt":     0,
+		})
+
+	posts := []*model.Post{}
+	if err := s.GetReplica().SelectBuilder(&posts, query); err != nil {
+		return nil, errors.Wrapf(err, "failed to get sibling pages for parent_id=%s channel_id=%s", parentID, channelID)
+	}
+
+	// Sort in-memory by page_sort_order, then CreateAt, then Id
+	sort.Slice(posts, func(i, j int) bool {
+		iOrder := posts[i].GetPageSortOrder()
+		jOrder := posts[j].GetPageSortOrder()
+		if iOrder != jOrder {
+			return iOrder < jOrder
+		}
+		if posts[i].CreateAt != posts[j].CreateAt {
+			return posts[i].CreateAt < posts[j].CreateAt
+		}
+		return posts[i].Id < posts[j].Id
+	})
+
+	return posts, nil
+}
+
+// UpdatePageSortOrder reorders a page among its siblings.
+// Moves the page to newIndex position (0-indexed) and recalculates sort orders for all siblings.
+// Uses SELECT FOR UPDATE to prevent concurrent modification issues.
+// Returns the updated list of siblings with their new sort orders.
+func (s *SqlPageStore) UpdatePageSortOrder(pageID, parentID, channelID string, newIndex int64) ([]*model.Post, error) {
+	if pageID == "" {
+		return nil, store.NewErrInvalidInput("Post", "pageID", pageID)
+	}
+	if channelID == "" {
+		return nil, store.NewErrInvalidInput("Post", "channelID", channelID)
+	}
+	if parentID != "" && !model.IsValidId(parentID) {
+		return nil, store.NewErrInvalidInput("Post", "parentID", parentID)
+	}
+
+	var result []*model.Post
+	err := s.ExecuteInTransaction(func(tx *sqlxTxWrapper) error {
+		var txErr error
+		result, txErr = s.updatePageSortOrderInTx(tx, pageID, parentID, channelID, newIndex)
+		return txErr
+	})
+	return result, err
+}
+
+func (s *SqlPageStore) updatePageSortOrderInTx(tx *sqlxTxWrapper, pageID, parentID, channelID string, newIndex int64) ([]*model.Post, error) {
+	// 1. Fetch siblings with FOR UPDATE lock to prevent concurrent modifications
+	// OrderBy ensures deterministic lock acquisition order to prevent deadlocks
+	query := s.getQueryBuilder().
+		Select(postSliceColumnsWithName("p")...).
+		From("Posts p").
+		Where(sq.Eq{
+			"p.ChannelId":    channelID,
+			"p.PageParentId": parentID,
+			"p.Type":         model.PostTypePage,
+			"p.DeleteAt":     0,
+		}).
+		OrderBy("p.Id").
+		Suffix("FOR UPDATE")
+
+	siblings := []*model.Post{}
+	if err := tx.SelectBuilder(&siblings, query); err != nil {
+		return nil, errors.Wrap(err, "failed to fetch siblings for sort order update")
+	}
+
+	// 2. Sort by current order
+	sort.Slice(siblings, func(i, j int) bool {
+		iOrder := siblings[i].GetPageSortOrder()
+		jOrder := siblings[j].GetPageSortOrder()
+		if iOrder != jOrder {
+			return iOrder < jOrder
+		}
+		if siblings[i].CreateAt != siblings[j].CreateAt {
+			return siblings[i].CreateAt < siblings[j].CreateAt
+		}
+		return siblings[i].Id < siblings[j].Id
+	})
+
+	// 3. Find the page to move
+	currentIndex := -1
+	for i, p := range siblings {
+		if p.Id == pageID {
+			currentIndex = i
+			break
+		}
+	}
+	if currentIndex == -1 {
+		return nil, store.NewErrNotFound("Post", pageID)
+	}
+
+	// 4. Clamp newIndex to valid bounds
+	if newIndex < 0 {
+		newIndex = 0
+	}
+	if newIndex >= int64(len(siblings)) {
+		newIndex = int64(len(siblings) - 1)
+	}
+
+	// 5. If already at the target position, no-op (return current state)
+	if int64(currentIndex) == newIndex {
+		return siblings, nil
+	}
+
+	// 6. Remove from current position and insert at new position
+	page := siblings[currentIndex]
+	siblings = slices.Delete(siblings, currentIndex, currentIndex+1)
+	siblings = slices.Insert(siblings, int(newIndex), page)
+
+	// 7. Recalculate sort orders with gaps and batch update Props
+	now := model.GetMillis()
+	for i, p := range siblings {
+		newOrder := int64(i+1) * model.PageSortOrderGap
+		p.SetPageSortOrder(newOrder)
+		p.UpdateAt = now
+
+		propsJSON := model.StringInterfaceToJSON(p.GetProps())
+
+		updateQuery := s.getQueryBuilder().
+			Update("Posts").
+			Set("Props", propsJSON).
+			Set("UpdateAt", now).
+			Where(sq.Eq{"Id": p.Id})
+
+		if _, err := tx.ExecBuilder(updateQuery); err != nil {
+			return nil, errors.Wrapf(err, "failed to update sort order for page_id=%s", p.Id)
+		}
+	}
+
+	return siblings, nil
+}
+
+// MovePage atomically moves a page within the hierarchy.
+// Combines parent change and sibling reordering in a single transaction.
+// - newParentID: if non-nil, changes the page's parent (nil = keep current, empty string = root)
+// - newIndex: if non-nil, reorders the page to this position among siblings
+// Uses optimistic locking: only updates if UpdateAt matches expectedUpdateAt.
+// Returns ErrNotFound if page not found or concurrent modification detected.
+// Returns ErrInvalidInput if the move would create a cycle.
+func (s *SqlPageStore) MovePage(pageID, channelID string, newParentID *string, newIndex *int64, expectedUpdateAt int64) ([]*model.Post, error) {
+	if pageID == "" {
+		return nil, store.NewErrInvalidInput("Post", "pageID", pageID)
+	}
+	if channelID == "" {
+		return nil, store.NewErrInvalidInput("Post", "channelID", channelID)
+	}
+
+	var result []*model.Post
+	err := s.ExecuteInTransaction(func(tx *sqlxTxWrapper) error {
+		now := model.GetMillis()
+
+		// Always fetch current parent to determine if we're changing and for reorder operations
+		var currentParentID string
+		selectQuery := s.getQueryBuilder().
+			Select("PageParentId").
+			From("Posts").
+			Where(sq.And{
+				sq.Eq{"Id": pageID},
+				sq.Eq{"Type": model.PostTypePage},
+				sq.Eq{"DeleteAt": 0},
+				sq.Eq{"UpdateAt": expectedUpdateAt},
+			})
+
+		queryString, args, buildErr := selectQuery.ToSql()
+		if buildErr != nil {
+			return errors.Wrap(buildErr, "failed to build select query")
+		}
+
+		if err := tx.Get(&currentParentID, queryString, args...); err != nil {
+			if err == sql.ErrNoRows {
+				return store.NewErrNotFound("Post", pageID)
+			}
+			return errors.Wrap(err, "failed to get current parent")
+		}
+
+		effectiveParentID := currentParentID
+		parentChanging := false
+		if newParentID != nil {
+			effectiveParentID = *newParentID
+			parentChanging = effectiveParentID != currentParentID
+		}
+
+		// If changing parent, validate and perform cycle detection
+		if parentChanging {
+			if effectiveParentID != "" {
+				// Direct self-reference check
+				if effectiveParentID == pageID {
+					return store.NewErrInvalidInput("Post", "PageParentId", "cannot set page as its own parent")
+				}
+
+				// Check if pageID is an ancestor of newParentID (would create cycle)
+				cycleCheckQuery := `
+				WITH RECURSIVE ancestors AS (
+					SELECT Id, PageParentId
+					FROM Posts WHERE Id = $1 AND Type = 'page' AND DeleteAt = 0
+					UNION ALL
+					SELECT p.Id, p.PageParentId
+					FROM Posts p
+					INNER JOIN ancestors a ON p.Id = a.PageParentId
+					WHERE a.PageParentId IS NOT NULL AND a.PageParentId != ''
+					  AND p.Type = 'page' AND p.DeleteAt = 0
+				)
+				SELECT 1 FROM ancestors WHERE Id = $2 LIMIT 1`
+
+				var cycleExists int
+				err := tx.Get(&cycleExists, cycleCheckQuery, effectiveParentID, pageID)
+				if err == nil {
+					return store.NewErrInvalidInput("Post", "PageParentId", "would create cycle in hierarchy")
+				} else if err != sql.ErrNoRows {
+					return errors.Wrap(err, "failed to check for cycle")
+				}
+			}
+
+			// Update parent with optimistic locking
+			updateQuery := s.getQueryBuilder().
+				Update("Posts").
+				Set("PageParentId", effectiveParentID).
+				Set("UpdateAt", now).
+				Where(sq.And{
+					sq.Eq{"Id": pageID},
+					sq.Eq{"DeleteAt": 0},
+					sq.Eq{"UpdateAt": expectedUpdateAt},
+				})
+
+			updateResult, err := tx.ExecBuilder(updateQuery)
+			if err != nil {
+				return errors.Wrapf(err, "failed to update parent for post_id=%s", pageID)
+			}
+
+			if err := s.checkRowsAffected(updateResult, "Post", pageID); err != nil {
+				return err
+			}
+		}
+
+		// If newIndex provided, reorder among siblings
+		if newIndex != nil {
+			var txErr error
+			result, txErr = s.updatePageSortOrderInTx(tx, pageID, effectiveParentID, channelID, *newIndex)
+			if txErr != nil {
+				return txErr
+			}
+		}
+
+		return nil
+	})
+
+	return result, err
 }
 
 // ChangePageParent updates the parent of a page using optimistic locking.
@@ -691,12 +1003,14 @@ func (s *SqlPageStore) ChangePageParent(postID string, newParentID string, expec
 		}
 
 		// Perform the update with optimistic locking
+		// Include Type filter for defense in depth (app layer already validates)
 		updateQuery := s.getQueryBuilder().
 			Update("Posts").
 			Set("PageParentId", newParentID).
 			Set("UpdateAt", model.GetMillis()).
 			Where(sq.And{
 				sq.Eq{"Id": postID},
+				sq.Eq{"Type": model.PostTypePage},
 				sq.Eq{"DeleteAt": 0},
 				sq.Eq{"UpdateAt": expectedUpdateAt},
 			})

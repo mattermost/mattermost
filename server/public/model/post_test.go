@@ -162,6 +162,114 @@ func TestPostIsValidPageParentId(t *testing.T) {
 	})
 }
 
+func TestGetPageSortOrder(t *testing.T) {
+	t.Run("returns 0 when Props is nil", func(t *testing.T) {
+		post := &Post{}
+		require.Equal(t, int64(0), post.GetPageSortOrder())
+	})
+
+	t.Run("returns 0 when page_sort_order not set", func(t *testing.T) {
+		post := &Post{
+			Props: StringInterface{
+				"title": "Test Page",
+			},
+		}
+		require.Equal(t, int64(0), post.GetPageSortOrder())
+	})
+
+	t.Run("returns correct value when set as float64", func(t *testing.T) {
+		post := &Post{
+			Props: StringInterface{
+				"page_sort_order": float64(1000),
+			},
+		}
+		require.Equal(t, int64(1000), post.GetPageSortOrder())
+	})
+
+	t.Run("returns correct value when set as int64", func(t *testing.T) {
+		post := &Post{
+			Props: StringInterface{
+				"page_sort_order": int64(2000),
+			},
+		}
+		require.Equal(t, int64(2000), post.GetPageSortOrder())
+	})
+
+	t.Run("returns correct value when set as int", func(t *testing.T) {
+		post := &Post{
+			Props: StringInterface{
+				"page_sort_order": int(3000),
+			},
+		}
+		require.Equal(t, int64(3000), post.GetPageSortOrder())
+	})
+
+	t.Run("returns correct value when set as valid string", func(t *testing.T) {
+		post := &Post{
+			Props: StringInterface{
+				"page_sort_order": "4000",
+			},
+		}
+		require.Equal(t, int64(4000), post.GetPageSortOrder())
+	})
+
+	t.Run("returns 0 for invalid string", func(t *testing.T) {
+		post := &Post{
+			Props: StringInterface{
+				"page_sort_order": "not-a-number",
+			},
+		}
+		require.Equal(t, int64(0), post.GetPageSortOrder())
+	})
+
+	t.Run("returns 0 for invalid type", func(t *testing.T) {
+		post := &Post{
+			Props: StringInterface{
+				"page_sort_order": []int{1, 2, 3},
+			},
+		}
+		require.Equal(t, int64(0), post.GetPageSortOrder())
+	})
+}
+
+func TestSetPageSortOrder(t *testing.T) {
+	t.Run("sets sort order in Props", func(t *testing.T) {
+		post := &Post{}
+		post.SetPageSortOrder(1000)
+		require.Equal(t, int64(1000), post.GetPageSortOrder())
+	})
+
+	t.Run("overwrites existing sort order", func(t *testing.T) {
+		post := &Post{
+			Props: StringInterface{
+				"page_sort_order": int64(500),
+			},
+		}
+		post.SetPageSortOrder(2000)
+		require.Equal(t, int64(2000), post.GetPageSortOrder())
+	})
+
+	t.Run("preserves other Props", func(t *testing.T) {
+		post := &Post{
+			Props: StringInterface{
+				"title": "Test Page",
+			},
+		}
+		post.SetPageSortOrder(1500)
+		require.Equal(t, int64(1500), post.GetPageSortOrder())
+		require.Equal(t, "Test Page", post.Props["title"])
+	})
+
+	t.Run("works with PageSortOrderGap constant", func(t *testing.T) {
+		post := &Post{}
+		post.SetPageSortOrder(PageSortOrderGap)
+		require.Equal(t, PageSortOrderGap, post.GetPageSortOrder())
+
+		post.SetPageSortOrder(PageSortOrderGap * 3)
+		require.Equal(t, PageSortOrderGap*3, post.GetPageSortOrder())
+	})
+}
+
 func TestPostPreSave(t *testing.T) {
 	o := Post{Message: "test"}
 	o.PreSave()

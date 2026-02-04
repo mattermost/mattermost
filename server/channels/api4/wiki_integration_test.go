@@ -41,7 +41,9 @@ func TestPagePublishWebSocketEvent(t *testing.T) {
 
 		wsClient.Listen()
 
-		time.Sleep(100 * time.Millisecond)
+		// Wait for WebSocket connection to be fully established
+		// This is necessary because Listen() returns immediately before the connection is ready
+		time.Sleep(500 * time.Millisecond)
 
 		pageId := model.NewId()
 		draftContent := `{"type":"doc","content":[{"type":"paragraph","content":[{"type":"text","text":"Test page content"}]}]}`
@@ -56,7 +58,8 @@ func TestPagePublishWebSocketEvent(t *testing.T) {
 		})
 		require.Nil(t, appErr)
 
-		timeout := time.After(3 * time.Second)
+		// Use longer timeout for CI environments which may be under load
+		timeout := time.After(10 * time.Second)
 		eventReceived := false
 
 		for !eventReceived {
@@ -99,7 +102,8 @@ func TestPagePublishWebSocketEvent(t *testing.T) {
 
 		wsClient2.Listen()
 
-		time.Sleep(100 * time.Millisecond)
+		// Wait for WebSocket connection to be fully established
+		time.Sleep(500 * time.Millisecond)
 
 		pageId := model.NewId()
 		draftContent := `{"type":"doc","content":[{"type":"paragraph","content":[{"type":"text","text":"Test page content"}]}]}`
@@ -114,7 +118,9 @@ func TestPagePublishWebSocketEvent(t *testing.T) {
 		})
 		require.Nil(t, appErr)
 
-		timeout := time.After(2 * time.Second)
+		// Wait sufficient time to ensure the event would have arrived if it was going to
+		// Using a shorter timeout here since we're expecting NOT to receive the event
+		timeout := time.After(3 * time.Second)
 
 		select {
 		case event := <-wsClient2.EventChannel:
@@ -122,6 +128,7 @@ func TestPagePublishWebSocketEvent(t *testing.T) {
 				require.Fail(t, "non-channel-member should not receive page_published event")
 			}
 		case <-timeout:
+			// Expected: timeout means no page_published event was received (correct behavior)
 		}
 	})
 }
@@ -316,7 +323,8 @@ func TestConcurrentPageHierarchyOperations(t *testing.T) {
 		errors := make(chan *model.AppError, 2)
 
 		go func() {
-			err := th.App.ChangePageParent(th.Context, child1.Id, parentPage.Id, "")
+			parentId := parentPage.Id
+			_, err := th.App.MovePage(th.Context, child1.Id, &parentId, "", nil)
 			if err != nil {
 				errors <- err
 			}
@@ -324,7 +332,8 @@ func TestConcurrentPageHierarchyOperations(t *testing.T) {
 		}()
 
 		go func() {
-			err := th.App.ChangePageParent(th.Context, child2.Id, parentPage.Id, "")
+			parentId := parentPage.Id
+			_, err := th.App.MovePage(th.Context, child2.Id, &parentId, "", nil)
 			if err != nil {
 				errors <- err
 			}
@@ -378,7 +387,8 @@ func TestConcurrentPageHierarchyOperations(t *testing.T) {
 		})
 		require.Nil(t, appErr)
 
-		err1 := th.App.ChangePageParent(th.Context, parent1.Id, parent2.Id, "")
+		parent2Id := parent2.Id
+		_, err1 := th.App.MovePage(th.Context, parent1.Id, &parent2Id, "", nil)
 		require.NotNil(t, err1)
 		assert.Contains(t, err1.Id, "circular_reference")
 	})

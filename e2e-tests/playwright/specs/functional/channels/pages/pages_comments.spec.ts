@@ -40,6 +40,8 @@ import {
     ELEMENT_TIMEOUT,
     WEBSOCKET_WAIT,
     HIERARCHY_TIMEOUT,
+    SHORT_WAIT,
+    EDITOR_LOAD_WAIT,
 } from './test_helpers';
 
 /**
@@ -501,7 +503,7 @@ test(
             'Page with comment',
             'This text will have a comment',
         );
-        await page.waitForTimeout(500);
+        await page.waitForTimeout(SHORT_WAIT);
 
         // # In view mode, select text and add inline comment using the view mode toolbar
         await selectTextInEditor(page);
@@ -533,7 +535,7 @@ test(
         await ensurePanelOpen(page);
         const pageNode = page.locator('[data-testid="page-tree-node"]').filter({hasText: 'Page with comment'});
         await pageNode.click();
-        await page.waitForTimeout(1000);
+        await page.waitForTimeout(EDITOR_LOAD_WAIT);
 
         // * Verify inline comment marker is still visible after navigation
         await verifyCommentMarkerVisible(page);

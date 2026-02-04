@@ -927,6 +927,59 @@
           $ref: "#/components/responses/NotFound"
 
   /api/v4/wikis/{wiki_id}/pages/{page_id}/move:
+    put:
+      tags:
+        - wikis
+      summary: Move page to new parent
+      description: |
+        Moves a page to a new parent within the same wiki.
+
+        __Minimum server version__: TBD
+
+        ##### Permissions
+        Must have `edit_post` permission for the page being moved.
+      operationId: MovePage
+      parameters:
+        - name: wiki_id
+          in: path
+          description: Wiki GUID
+          required: true
+          schema:
+            type: string
+        - name: page_id
+          in: path
+          description: Page (Post) GUID
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                new_parent_id:
+                  type: string
+                  description: The ID of the new parent page, or empty string to make it a root page
+        description: New parent information
+        required: true
+      responses:
+        "200":
+          description: Page move successful
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StatusOK"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+  /api/v4/wikis/{wiki_id}/pages/{page_id}/move-to-wiki:
     patch:
       tags:
         - wikis

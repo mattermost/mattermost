@@ -53,15 +53,20 @@ func TestPageStore(t *testing.T, rctx request.CTX, ss store.Store, s SqlStore) {
 	t.Run("ConcurrentOperations", func(t *testing.T) { testConcurrentOperations(t, rctx, ss) })
 	t.Run("DeletePage", func(t *testing.T) { testDeletePage(t, rctx, ss) })
 	t.Run("VersionHistoryPruning", func(t *testing.T) { testVersionHistoryPruning(t, rctx, ss, s) })
+	t.Run("GetSiblingPages", func(t *testing.T) { testGetSiblingPages(t, rctx, ss) })
+	t.Run("UpdatePageSortOrder", func(t *testing.T) { testUpdatePageSortOrder(t, rctx, ss) })
+	t.Run("MovePage", func(t *testing.T) { testMovePage(t, rctx, ss) })
 
 	t.Cleanup(func() {
 		typesSQL := pagePostTypesSQL()
 		_, _ = s.GetMaster().Exec(fmt.Sprintf("DELETE FROM PropertyValues WHERE TargetType = 'post' AND TargetID IN (SELECT Id FROM Posts WHERE Type IN (%s))", typesSQL))
 		_, _ = s.GetMaster().Exec("DELETE FROM PageContents")
 		_, _ = s.GetMaster().Exec(fmt.Sprintf("DELETE FROM Posts WHERE Type IN (%s)", typesSQL))
-		// Clean up wikis and channels created by page tests
-		_, _ = s.GetMaster().Exec("TRUNCATE Wikis CASCADE")
-		_, _ = s.GetMaster().Exec("TRUNCATE Channels CASCADE")
+		// Clean up wikis that have no remaining pages (orphaned by page deletion above)
+		_, _ = s.GetMaster().Exec("DELETE FROM Wikis WHERE Id NOT IN (SELECT DISTINCT (Props->>'wiki_id')::text FROM Posts WHERE Props->>'wiki_id' IS NOT NULL AND Type = 'page' AND DeleteAt = 0)")
+		// Clean up channels that have no remaining posts or wikis (test-created channels only)
+		// Note: We don't delete all channels as that could affect parallel tests
+		_, _ = s.GetMaster().Exec("DELETE FROM Channels WHERE Id NOT IN (SELECT DISTINCT ChannelId FROM Posts WHERE ChannelId IS NOT NULL) AND Id NOT IN (SELECT DISTINCT ChannelId FROM Wikis WHERE ChannelId IS NOT NULL)")
 	})
 }
 
@@ -1877,5 +1882,830 @@ func testVersionHistoryPruning(t *testing.T, rctx request.CTX, ss store.Store, s
 			require.NotContains(t, contentJSON, `"Version 1"`,
 				"Oldest version should have been pruned")
 		}
+	})
+}
+
+func testGetSiblingPages(t *testing.T, rctx request.CTX, ss store.Store) {
+	teamID := model.NewId()
+	channel, err := ss.Channel().Save(rctx, &model.Channel{
+		TeamId:      teamID,
+		DisplayName: "Sibling Pages Test Channel",
+		Name:        "channel" + model.NewId(),
+		Type:        model.ChannelTypeOpen,
+	}, -1)
+	require.NoError(t, err)
+
+	userID := model.NewId()
+
+	t.Run("returns root-level siblings when parentID is empty", func(t *testing.T) {
+		page1 := &model.Post{
+			ChannelId: channel.Id,
+			UserId:    userID,
+			Type:      model.PostTypePage,
+			Message:   "Root Page 1",
+			Props:     model.StringInterface{"title": "Root Page 1"},
+		}
+		page1, err = ss.Post().Save(rctx, page1)
+		require.NoError(t, err)
+
+		time.Sleep(2 * time.Millisecond)
+
+		page2 := &model.Post{
+			ChannelId: channel.Id,
+			UserId:    userID,
+			Type:      model.PostTypePage,
+			Message:   "Root Page 2",
+			Props:     model.StringInterface{"title": "Root Page 2"},
+		}
+		page2, err = ss.Post().Save(rctx, page2)
+		require.NoError(t, err)
+
+		siblings, sibErr := ss.Page().GetSiblingPages("", channel.Id)
+		require.NoError(t, sibErr)
+		require.GreaterOrEqual(t, len(siblings), 2)
+
+		// Verify our pages are in the result
+		foundPage1, foundPage2 := false, false
+		for _, p := range siblings {
+			if p.Id == page1.Id {
+				foundPage1 = true
+			}
+			if p.Id == page2.Id {
+				foundPage2 = true
+			}
+		}
+		require.True(t, foundPage1)
+		require.True(t, foundPage2)
+	})
+
+	t.Run("returns child siblings for given parentID", func(t *testing.T) {
+		parent := &model.Post{
+			ChannelId: channel.Id,
+			UserId:    userID,
+			Type:      model.PostTypePage,
+			Message:   "Parent Page",
+			Props:     model.StringInterface{"title": "Parent Page"},
+		}
+		parent, err = ss.Post().Save(rctx, parent)
+		require.NoError(t, err)
+
+		child1 := &model.Post{
+			ChannelId:    channel.Id,
+			UserId:       userID,
+			Type:         model.PostTypePage,
+			PageParentId: parent.Id,
+			Message:      "Child 1",
+			Props:        model.StringInterface{"title": "Child 1"},
+		}
+		_, err = ss.Post().Save(rctx, child1)
+		require.NoError(t, err)
+
+		child2 := &model.Post{
+			ChannelId:    channel.Id,
+			UserId:       userID,
+			Type:         model.PostTypePage,
+			PageParentId: parent.Id,
+			Message:      "Child 2",
+			Props:        model.StringInterface{"title": "Child 2"},
+		}
+		_, err = ss.Post().Save(rctx, child2)
+		require.NoError(t, err)
+
+		siblings, sibErr := ss.Page().GetSiblingPages(parent.Id, channel.Id)
+		require.NoError(t, sibErr)
+		require.Len(t, siblings, 2)
+	})
+
+	t.Run("returns empty slice when no siblings exist", func(t *testing.T) {
+		nonExistentParent := model.NewId()
+		siblings, sibErr := ss.Page().GetSiblingPages(nonExistentParent, channel.Id)
+		require.NoError(t, sibErr)
+		require.Empty(t, siblings)
+	})
+
+	t.Run("excludes deleted pages", func(t *testing.T) {
+		deletedParent := model.NewId()
+
+		activePage := &model.Post{
+			ChannelId:    channel.Id,
+			UserId:       userID,
+			Type:         model.PostTypePage,
+			PageParentId: deletedParent,
+			Message:      "Active Page",
+			Props:        model.StringInterface{"title": "Active Page"},
+		}
+		activePage, err = ss.Post().Save(rctx, activePage)
+		require.NoError(t, err)
+
+		deletedPage := &model.Post{
+			ChannelId:    channel.Id,
+			UserId:       userID,
+			Type:         model.PostTypePage,
+			PageParentId: deletedParent,
+			Message:      "Deleted Page",
+			Props:        model.StringInterface{"title": "Deleted Page"},
+			DeleteAt:     model.GetMillis(),
+		}
+		_, err = ss.Post().Save(rctx, deletedPage)
+		require.NoError(t, err)
+
+		siblings, sibErr := ss.Page().GetSiblingPages(deletedParent, channel.Id)
+		require.NoError(t, sibErr)
+		require.Len(t, siblings, 1)
+		require.Equal(t, activePage.Id, siblings[0].Id)
+	})
+
+	t.Run("returns error for empty channelID", func(t *testing.T) {
+		_, sibErr := ss.Page().GetSiblingPages("", "")
+		require.Error(t, sibErr)
+	})
+
+	t.Run("sorts by page_sort_order then create_at", func(t *testing.T) {
+		sortTestParent := model.NewId()
+
+		// Create pages with different sort orders
+		pageHigh := &model.Post{
+			ChannelId:    channel.Id,
+			UserId:       userID,
+			Type:         model.PostTypePage,
+			PageParentId: sortTestParent,
+			Message:      "High Sort Order",
+			Props:        model.StringInterface{"title": "High Sort Order", "page_sort_order": int64(3000)},
+		}
+		_, err = ss.Post().Save(rctx, pageHigh)
+		require.NoError(t, err)
+
+		pageLow := &model.Post{
+			ChannelId:    channel.Id,
+			UserId:       userID,
+			Type:         model.PostTypePage,
+			PageParentId: sortTestParent,
+			Message:      "Low Sort Order",
+			Props:        model.StringInterface{"title": "Low Sort Order", "page_sort_order": int64(1000)},
+		}
+		_, err = ss.Post().Save(rctx, pageLow)
+		require.NoError(t, err)
+
+		pageMid := &model.Post{
+			ChannelId:    channel.Id,
+			UserId:       userID,
+			Type:         model.PostTypePage,
+			PageParentId: sortTestParent,
+			Message:      "Mid Sort Order",
+			Props:        model.StringInterface{"title": "Mid Sort Order", "page_sort_order": int64(2000)},
+		}
+		_, err = ss.Post().Save(rctx, pageMid)
+		require.NoError(t, err)
+
+		siblings, sibErr := ss.Page().GetSiblingPages(sortTestParent, channel.Id)
+		require.NoError(t, sibErr)
+		require.Len(t, siblings, 3)
+
+		// Should be sorted: Low (1000), Mid (2000), High (3000)
+		require.Equal(t, "Low Sort Order", siblings[0].Props["title"])
+		require.Equal(t, "Mid Sort Order", siblings[1].Props["title"])
+		require.Equal(t, "High Sort Order", siblings[2].Props["title"])
+	})
+
+	t.Run("returns error for invalid parentID format", func(t *testing.T) {
+		_, sibErr := ss.Page().GetSiblingPages("invalid-id-format", channel.Id)
+		require.Error(t, sibErr)
+	})
+}
+
+func testUpdatePageSortOrder(t *testing.T, rctx request.CTX, ss store.Store) {
+	teamID := model.NewId()
+	channel, err := ss.Channel().Save(rctx, &model.Channel{
+		TeamId:      teamID,
+		DisplayName: "Sort Order Test Channel",
+		Name:        "channel" + model.NewId(),
+		Type:        model.ChannelTypeOpen,
+	}, -1)
+	require.NoError(t, err)
+
+	userID := model.NewId()
+
+	t.Run("reorders page from first to last position", func(t *testing.T) {
+		// Create 3 root-level pages
+		page1 := &model.Post{
+			ChannelId: channel.Id,
+			UserId:    userID,
+			Type:      model.PostTypePage,
+			Message:   "Page 1",
+			Props:     model.StringInterface{"title": "Page 1"},
+		}
+		page1, err = ss.Post().Save(rctx, page1)
+		require.NoError(t, err)
+
+		time.Sleep(2 * time.Millisecond) // Ensure different CreateAt
+
+		page2 := &model.Post{
+			ChannelId: channel.Id,
+			UserId:    userID,
+			Type:      model.PostTypePage,
+			Message:   "Page 2",
+			Props:     model.StringInterface{"title": "Page 2"},
+		}
+		_, err = ss.Post().Save(rctx, page2)
+		require.NoError(t, err)
+
+		time.Sleep(2 * time.Millisecond)
+
+		page3 := &model.Post{
+			ChannelId: channel.Id,
+			UserId:    userID,
+			Type:      model.PostTypePage,
+			Message:   "Page 3",
+			Props:     model.StringInterface{"title": "Page 3"},
+		}
+		_, err = ss.Post().Save(rctx, page3)
+		require.NoError(t, err)
+
+		// Move page1 to index 2 (last position)
+		siblings, sortErr := ss.Page().UpdatePageSortOrder(page1.Id, "", channel.Id, 2)
+		require.NoError(t, sortErr)
+		require.Len(t, siblings, 3)
+
+		// Sort by new page_sort_order to verify order
+		sortedSiblings := make([]*model.Post, len(siblings))
+		copy(sortedSiblings, siblings)
+		for i := 0; i < len(sortedSiblings)-1; i++ {
+			for j := i + 1; j < len(sortedSiblings); j++ {
+				if sortedSiblings[i].GetPageSortOrder() > sortedSiblings[j].GetPageSortOrder() {
+					sortedSiblings[i], sortedSiblings[j] = sortedSiblings[j], sortedSiblings[i]
+				}
+			}
+		}
+
+		require.Equal(t, "Page 2", sortedSiblings[0].Props["title"])
+		require.Equal(t, "Page 3", sortedSiblings[1].Props["title"])
+		require.Equal(t, "Page 1", sortedSiblings[2].Props["title"])
+
+		// Verify sort orders use gaps
+		require.Equal(t, model.PageSortOrderGap, sortedSiblings[0].GetPageSortOrder())
+		require.Equal(t, model.PageSortOrderGap*2, sortedSiblings[1].GetPageSortOrder())
+		require.Equal(t, model.PageSortOrderGap*3, sortedSiblings[2].GetPageSortOrder())
+	})
+
+	t.Run("reorders page from last to first position", func(t *testing.T) {
+		// Create separate channel for isolation
+		ch2, chErr := ss.Channel().Save(rctx, &model.Channel{
+			TeamId:      teamID,
+			DisplayName: "Sort Test Channel 2",
+			Name:        "channel" + model.NewId(),
+			Type:        model.ChannelTypeOpen,
+		}, -1)
+		require.NoError(t, chErr)
+
+		// Create 3 root-level pages
+		pageA := &model.Post{
+			ChannelId: ch2.Id,
+			UserId:    userID,
+			Type:      model.PostTypePage,
+			Message:   "Page A",
+			Props:     model.StringInterface{"title": "Page A"},
+		}
+		_, err = ss.Post().Save(rctx, pageA)
+		require.NoError(t, err)
+
+		time.Sleep(2 * time.Millisecond)
+
+		pageB := &model.Post{
+			ChannelId: ch2.Id,
+			UserId:    userID,
+			Type:      model.PostTypePage,
+			Message:   "Page B",
+			Props:     model.StringInterface{"title": "Page B"},
+		}
+		_, err = ss.Post().Save(rctx, pageB)
+		require.NoError(t, err)
+
+		time.Sleep(2 * time.Millisecond)
+
+		pageC := &model.Post{
+			ChannelId: ch2.Id,
+			UserId:    userID,
+			Type:      model.PostTypePage,
+			Message:   "Page C",
+			Props:     model.StringInterface{"title": "Page C"},
+		}
+		pageC, err = ss.Post().Save(rctx, pageC)
+		require.NoError(t, err)
+
+		// Move pageC to index 0 (first position)
+		siblings, sortErr := ss.Page().UpdatePageSortOrder(pageC.Id, "", ch2.Id, 0)
+		require.NoError(t, sortErr)
+		require.Len(t, siblings, 3)
+
+		// Sort by page_sort_order
+		sortedSiblings := make([]*model.Post, len(siblings))
+		copy(sortedSiblings, siblings)
+		for i := 0; i < len(sortedSiblings)-1; i++ {
+			for j := i + 1; j < len(sortedSiblings); j++ {
+				if sortedSiblings[i].GetPageSortOrder() > sortedSiblings[j].GetPageSortOrder() {
+					sortedSiblings[i], sortedSiblings[j] = sortedSiblings[j], sortedSiblings[i]
+				}
+			}
+		}
+
+		// Verify new order: pageC, pageA, pageB
+		require.Equal(t, "Page C", sortedSiblings[0].Props["title"])
+		require.Equal(t, "Page A", sortedSiblings[1].Props["title"])
+		require.Equal(t, "Page B", sortedSiblings[2].Props["title"])
+	})
+
+	t.Run("reorders page to middle position", func(t *testing.T) {
+		parentPage := &model.Post{
+			ChannelId: channel.Id,
+			UserId:    userID,
+			Type:      model.PostTypePage,
+			Message:   "Parent Page",
+			Props:     model.StringInterface{"title": "Parent"},
+		}
+		parentPage, err = ss.Post().Save(rctx, parentPage)
+		require.NoError(t, err)
+
+		// Create child pages
+		child1 := &model.Post{
+			ChannelId:    channel.Id,
+			UserId:       userID,
+			Type:         model.PostTypePage,
+			PageParentId: parentPage.Id,
+			Message:      "Child 1",
+			Props:        model.StringInterface{"title": "Child 1"},
+		}
+		child1, err = ss.Post().Save(rctx, child1)
+		require.NoError(t, err)
+
+		time.Sleep(2 * time.Millisecond)
+
+		child2 := &model.Post{
+			ChannelId:    channel.Id,
+			UserId:       userID,
+			Type:         model.PostTypePage,
+			PageParentId: parentPage.Id,
+			Message:      "Child 2",
+			Props:        model.StringInterface{"title": "Child 2"},
+		}
+		_, err = ss.Post().Save(rctx, child2)
+		require.NoError(t, err)
+
+		time.Sleep(2 * time.Millisecond)
+
+		child3 := &model.Post{
+			ChannelId:    channel.Id,
+			UserId:       userID,
+			Type:         model.PostTypePage,
+			PageParentId: parentPage.Id,
+			Message:      "Child 3",
+			Props:        model.StringInterface{"title": "Child 3"},
+		}
+		_, err = ss.Post().Save(rctx, child3)
+		require.NoError(t, err)
+
+		// Move child1 to index 1 (middle position)
+		siblings, sortErr := ss.Page().UpdatePageSortOrder(child1.Id, parentPage.Id, channel.Id, 1)
+		require.NoError(t, sortErr)
+		require.Len(t, siblings, 3)
+
+		// Sort by page_sort_order
+		sortedSiblings := make([]*model.Post, len(siblings))
+		copy(sortedSiblings, siblings)
+		for i := 0; i < len(sortedSiblings)-1; i++ {
+			for j := i + 1; j < len(sortedSiblings); j++ {
+				if sortedSiblings[i].GetPageSortOrder() > sortedSiblings[j].GetPageSortOrder() {
+					sortedSiblings[i], sortedSiblings[j] = sortedSiblings[j], sortedSiblings[i]
+				}
+			}
+		}
+
+		// Verify new order: child2, child1, child3
+		require.Equal(t, "Child 2", sortedSiblings[0].Props["title"])
+		require.Equal(t, "Child 1", sortedSiblings[1].Props["title"])
+		require.Equal(t, "Child 3", sortedSiblings[2].Props["title"])
+	})
+
+	t.Run("no-op when already at target position", func(t *testing.T) {
+		// Create separate channel for isolation
+		ch3, chErr := ss.Channel().Save(rctx, &model.Channel{
+			TeamId:      teamID,
+			DisplayName: "Sort Test Channel 3",
+			Name:        "channel" + model.NewId(),
+			Type:        model.ChannelTypeOpen,
+		}, -1)
+		require.NoError(t, chErr)
+
+		pageX := &model.Post{
+			ChannelId: ch3.Id,
+			UserId:    userID,
+			Type:      model.PostTypePage,
+			Message:   "Page X",
+			Props:     model.StringInterface{"title": "Page X"},
+		}
+		pageX, err = ss.Post().Save(rctx, pageX)
+		require.NoError(t, err)
+
+		time.Sleep(2 * time.Millisecond)
+
+		pageY := &model.Post{
+			ChannelId: ch3.Id,
+			UserId:    userID,
+			Type:      model.PostTypePage,
+			Message:   "Page Y",
+			Props:     model.StringInterface{"title": "Page Y"},
+		}
+		_, err = ss.Post().Save(rctx, pageY)
+		require.NoError(t, err)
+
+		// Move pageX to index 0 (already at 0 by CreateAt order)
+		siblings, sortErr := ss.Page().UpdatePageSortOrder(pageX.Id, "", ch3.Id, 0)
+		require.NoError(t, sortErr)
+		require.Len(t, siblings, 2)
+	})
+
+	t.Run("clamps index to valid bounds", func(t *testing.T) {
+		// Create separate channel for isolation
+		ch4, chErr := ss.Channel().Save(rctx, &model.Channel{
+			TeamId:      teamID,
+			DisplayName: "Sort Test Channel 4",
+			Name:        "channel" + model.NewId(),
+			Type:        model.ChannelTypeOpen,
+		}, -1)
+		require.NoError(t, chErr)
+
+		pageP := &model.Post{
+			ChannelId: ch4.Id,
+			UserId:    userID,
+			Type:      model.PostTypePage,
+			Message:   "Page P",
+			Props:     model.StringInterface{"title": "Page P"},
+		}
+		pageP, err = ss.Post().Save(rctx, pageP)
+		require.NoError(t, err)
+
+		time.Sleep(2 * time.Millisecond)
+
+		pageQ := &model.Post{
+			ChannelId: ch4.Id,
+			UserId:    userID,
+			Type:      model.PostTypePage,
+			Message:   "Page Q",
+			Props:     model.StringInterface{"title": "Page Q"},
+		}
+		_, err = ss.Post().Save(rctx, pageQ)
+		require.NoError(t, err)
+
+		// Try to move to index 100 (out of bounds) - should clamp to last position
+		siblings, sortErr := ss.Page().UpdatePageSortOrder(pageP.Id, "", ch4.Id, 100)
+		require.NoError(t, sortErr)
+		require.Len(t, siblings, 2)
+
+		// Verify pageP is at the end
+		sortedSiblings := make([]*model.Post, len(siblings))
+		copy(sortedSiblings, siblings)
+		for i := 0; i < len(sortedSiblings)-1; i++ {
+			for j := i + 1; j < len(sortedSiblings); j++ {
+				if sortedSiblings[i].GetPageSortOrder() > sortedSiblings[j].GetPageSortOrder() {
+					sortedSiblings[i], sortedSiblings[j] = sortedSiblings[j], sortedSiblings[i]
+				}
+			}
+		}
+
+		require.Equal(t, "Page Q", sortedSiblings[0].Props["title"])
+		require.Equal(t, "Page P", sortedSiblings[1].Props["title"])
+	})
+
+	t.Run("returns ErrNotFound for non-existent page", func(t *testing.T) {
+		_, sortErr := ss.Page().UpdatePageSortOrder(model.NewId(), "", channel.Id, 0)
+		require.Error(t, sortErr)
+		var nfErr *store.ErrNotFound
+		assert.True(t, errors.As(sortErr, &nfErr))
+	})
+
+	t.Run("returns error for invalid parentID format", func(t *testing.T) {
+		validPage := &model.Post{
+			ChannelId: channel.Id,
+			UserId:    userID,
+			Type:      model.PostTypePage,
+			Message:   "Valid Page",
+			Props:     model.StringInterface{"title": "Valid Page"},
+		}
+		validPage, err = ss.Post().Save(rctx, validPage)
+		require.NoError(t, err)
+
+		_, sortErr := ss.Page().UpdatePageSortOrder(validPage.Id, "invalid-parent-id", channel.Id, 0)
+		require.Error(t, sortErr)
+	})
+
+	t.Run("updates UpdateAt timestamp", func(t *testing.T) {
+		pageT := &model.Post{
+			ChannelId: channel.Id,
+			UserId:    userID,
+			Type:      model.PostTypePage,
+			Message:   "Page T",
+			Props:     model.StringInterface{"title": "Page T"},
+		}
+		pageT, err = ss.Post().Save(rctx, pageT)
+		require.NoError(t, err)
+
+		originalUpdateAt := pageT.UpdateAt
+
+		time.Sleep(5 * time.Millisecond)
+
+		siblings, sortErr := ss.Page().UpdatePageSortOrder(pageT.Id, "", channel.Id, 0)
+		require.NoError(t, sortErr)
+		require.NotEmpty(t, siblings)
+
+		// Find pageT in siblings
+		var updatedPageT *model.Post
+		for _, p := range siblings {
+			if p.Id == pageT.Id {
+				updatedPageT = p
+				break
+			}
+		}
+		require.NotNil(t, updatedPageT)
+		require.Greater(t, updatedPageT.UpdateAt, originalUpdateAt)
+	})
+
+	t.Run("excludes deleted pages from siblings", func(t *testing.T) {
+		activeParent := &model.Post{
+			ChannelId: channel.Id,
+			UserId:    userID,
+			Type:      model.PostTypePage,
+			Message:   "Active Parent",
+			Props:     model.StringInterface{"title": "Active Parent"},
+		}
+		activeParent, err = ss.Post().Save(rctx, activeParent)
+		require.NoError(t, err)
+
+		activeSibling := &model.Post{
+			ChannelId:    channel.Id,
+			UserId:       userID,
+			Type:         model.PostTypePage,
+			PageParentId: activeParent.Id,
+			Message:      "Active Sibling",
+			Props:        model.StringInterface{"title": "Active Sibling"},
+		}
+		activeSibling, err = ss.Post().Save(rctx, activeSibling)
+		require.NoError(t, err)
+
+		deletedSibling := &model.Post{
+			ChannelId:    channel.Id,
+			UserId:       userID,
+			Type:         model.PostTypePage,
+			PageParentId: activeParent.Id,
+			Message:      "Deleted Sibling",
+			Props:        model.StringInterface{"title": "Deleted Sibling"},
+		}
+		deletedSibling, err = ss.Post().Save(rctx, deletedSibling)
+		require.NoError(t, err)
+
+		// Delete the sibling
+		err = ss.Post().Delete(rctx, deletedSibling.Id, model.GetMillis(), userID)
+		require.NoError(t, err)
+
+		anotherSibling := &model.Post{
+			ChannelId:    channel.Id,
+			UserId:       userID,
+			Type:         model.PostTypePage,
+			PageParentId: activeParent.Id,
+			Message:      "Another Sibling",
+			Props:        model.StringInterface{"title": "Another Sibling"},
+		}
+		_, err = ss.Post().Save(rctx, anotherSibling)
+		require.NoError(t, err)
+
+		// Reorder should only include 2 active siblings
+		siblings, sortErr := ss.Page().UpdatePageSortOrder(activeSibling.Id, activeParent.Id, channel.Id, 1)
+		require.NoError(t, sortErr)
+		require.Len(t, siblings, 2, "should only include active siblings, not deleted")
+
+		// Verify deleted sibling is not in the list
+		for _, p := range siblings {
+			require.NotEqual(t, deletedSibling.Id, p.Id)
+		}
+	})
+}
+
+func testMovePage(t *testing.T, rctx request.CTX, ss store.Store) {
+	teamID := model.NewId()
+	channel, err := ss.Channel().Save(rctx, &model.Channel{
+		TeamId:      teamID,
+		DisplayName: "Move Page Test Channel",
+		Name:        "channel" + model.NewId(),
+		Type:        model.ChannelTypeOpen,
+	}, -1)
+	require.NoError(t, err)
+
+	userID := model.NewId()
+
+	t.Run("moves page to new parent with index", func(t *testing.T) {
+		// Create parent page
+		parent := &model.Post{
+			ChannelId: channel.Id,
+			UserId:    userID,
+			Type:      model.PostTypePage,
+			Message:   "Parent",
+			Props:     model.StringInterface{"title": "Parent"},
+		}
+		parent, err = ss.Post().Save(rctx, parent)
+		require.NoError(t, err)
+
+		// Create existing child under parent
+		existingChild := &model.Post{
+			ChannelId:    channel.Id,
+			UserId:       userID,
+			Type:         model.PostTypePage,
+			PageParentId: parent.Id,
+			Message:      "Existing Child",
+			Props:        model.StringInterface{"title": "Existing Child"},
+		}
+		_, err = ss.Post().Save(rctx, existingChild)
+		require.NoError(t, err)
+
+		// Create page to move (currently at root level)
+		pageToMove := &model.Post{
+			ChannelId: channel.Id,
+			UserId:    userID,
+			Type:      model.PostTypePage,
+			Message:   "Page to Move",
+			Props:     model.StringInterface{"title": "Page to Move"},
+		}
+		pageToMove, err = ss.Post().Save(rctx, pageToMove)
+		require.NoError(t, err)
+
+		// Move page to parent at index 0 (before existing child)
+		newParentID := parent.Id
+		newIndex := int64(0)
+		siblings, moveErr := ss.Page().MovePage(pageToMove.Id, channel.Id, &newParentID, &newIndex, pageToMove.UpdateAt)
+		require.NoError(t, moveErr)
+		require.NotNil(t, siblings)
+		require.Len(t, siblings, 2)
+
+		// Verify page is now first among siblings (lower sort order)
+		var movedPage, otherChild *model.Post
+		for _, p := range siblings {
+			if p.Id == pageToMove.Id {
+				movedPage = p
+			} else {
+				otherChild = p
+			}
+		}
+		require.NotNil(t, movedPage)
+		require.NotNil(t, otherChild)
+		require.Less(t, movedPage.GetPageSortOrder(), otherChild.GetPageSortOrder())
+
+		// Verify parent was updated
+		updatedPage, getErr := ss.Post().GetSingle(rctx, pageToMove.Id, false)
+		require.NoError(t, getErr)
+		require.Equal(t, parent.Id, updatedPage.PageParentId)
+	})
+
+	t.Run("reorders page within same parent (no parent change)", func(t *testing.T) {
+		parent := &model.Post{
+			ChannelId: channel.Id,
+			UserId:    userID,
+			Type:      model.PostTypePage,
+			Message:   "Reorder Parent",
+			Props:     model.StringInterface{"title": "Reorder Parent"},
+		}
+		parent, err = ss.Post().Save(rctx, parent)
+		require.NoError(t, err)
+
+		// Create 3 children
+		child1 := &model.Post{
+			ChannelId:    channel.Id,
+			UserId:       userID,
+			Type:         model.PostTypePage,
+			PageParentId: parent.Id,
+			Message:      "Child 1",
+			Props:        model.StringInterface{"title": "Child 1"},
+		}
+		child1, _ = ss.Post().Save(rctx, child1)
+		time.Sleep(2 * time.Millisecond)
+
+		child2 := &model.Post{
+			ChannelId:    channel.Id,
+			UserId:       userID,
+			Type:         model.PostTypePage,
+			PageParentId: parent.Id,
+			Message:      "Child 2",
+			Props:        model.StringInterface{"title": "Child 2"},
+		}
+		_, _ = ss.Post().Save(rctx, child2)
+		time.Sleep(2 * time.Millisecond)
+
+		child3 := &model.Post{
+			ChannelId:    channel.Id,
+			UserId:       userID,
+			Type:         model.PostTypePage,
+			PageParentId: parent.Id,
+			Message:      "Child 3",
+			Props:        model.StringInterface{"title": "Child 3"},
+		}
+		_, _ = ss.Post().Save(rctx, child3)
+
+		// Move child1 to index 2 (last) - only reorder, no parent change
+		newIndex := int64(2)
+		siblings, moveErr := ss.Page().MovePage(child1.Id, channel.Id, nil, &newIndex, child1.UpdateAt)
+		require.NoError(t, moveErr)
+		require.Len(t, siblings, 3)
+
+		// Sort by page_sort_order
+		sortedSiblings := make([]*model.Post, len(siblings))
+		copy(sortedSiblings, siblings)
+		for i := 0; i < len(sortedSiblings)-1; i++ {
+			for j := i + 1; j < len(sortedSiblings); j++ {
+				if sortedSiblings[i].GetPageSortOrder() > sortedSiblings[j].GetPageSortOrder() {
+					sortedSiblings[i], sortedSiblings[j] = sortedSiblings[j], sortedSiblings[i]
+				}
+			}
+		}
+
+		// New order should be: Child 2, Child 3, Child 1
+		require.Equal(t, "Child 2", sortedSiblings[0].Props["title"])
+		require.Equal(t, "Child 3", sortedSiblings[1].Props["title"])
+		require.Equal(t, "Child 1", sortedSiblings[2].Props["title"])
+	})
+
+	t.Run("returns error for non-existent page", func(t *testing.T) {
+		nonExistentID := model.NewId()
+		newParentID := ""
+		_, moveErr := ss.Page().MovePage(nonExistentID, channel.Id, &newParentID, nil, 12345)
+		require.Error(t, moveErr)
+
+		var nfErr *store.ErrNotFound
+		require.True(t, errors.As(moveErr, &nfErr))
+	})
+
+	t.Run("returns error for optimistic lock failure (concurrent modification)", func(t *testing.T) {
+		page := &model.Post{
+			ChannelId: channel.Id,
+			UserId:    userID,
+			Type:      model.PostTypePage,
+			Message:   "Concurrent Page",
+			Props:     model.StringInterface{"title": "Concurrent Page"},
+		}
+		page, err = ss.Post().Save(rctx, page)
+		require.NoError(t, err)
+
+		// Use a stale UpdateAt value (simulating concurrent modification)
+		staleUpdateAt := page.UpdateAt - 1000
+		newParentID := ""
+		_, moveErr := ss.Page().MovePage(page.Id, channel.Id, &newParentID, nil, staleUpdateAt)
+		require.Error(t, moveErr)
+
+		var nfErr *store.ErrNotFound
+		require.True(t, errors.As(moveErr, &nfErr), "expected ErrNotFound for optimistic lock failure")
+	})
+
+	t.Run("returns error when creating cycle", func(t *testing.T) {
+		// Create parent -> child hierarchy
+		parent := &model.Post{
+			ChannelId: channel.Id,
+			UserId:    userID,
+			Type:      model.PostTypePage,
+			Message:   "Cycle Parent",
+			Props:     model.StringInterface{"title": "Cycle Parent"},
+		}
+		parent, err = ss.Post().Save(rctx, parent)
+		require.NoError(t, err)
+
+		child := &model.Post{
+			ChannelId:    channel.Id,
+			UserId:       userID,
+			Type:         model.PostTypePage,
+			PageParentId: parent.Id,
+			Message:      "Cycle Child",
+			Props:        model.StringInterface{"title": "Cycle Child"},
+		}
+		child, err = ss.Post().Save(rctx, child)
+		require.NoError(t, err)
+
+		// Try to move parent under child (would create cycle)
+		newParentID := child.Id
+		_, moveErr := ss.Page().MovePage(parent.Id, channel.Id, &newParentID, nil, parent.UpdateAt)
+		require.Error(t, moveErr)
+
+		var invErr *store.ErrInvalidInput
+		require.True(t, errors.As(moveErr, &invErr), "expected ErrInvalidInput for cycle detection")
+	})
+
+	t.Run("returns nil siblings when no index provided and parent unchanged", func(t *testing.T) {
+		page := &model.Post{
+			ChannelId: channel.Id,
+			UserId:    userID,
+			Type:      model.PostTypePage,
+			Message:   "No-op Page",
+			Props:     model.StringInterface{"title": "No-op Page"},
+		}
+		page, err = ss.Post().Save(rctx, page)
+		require.NoError(t, err)
+
+		// Move with nil parent (keep current) and nil index - should be a no-op
+		siblings, moveErr := ss.Page().MovePage(page.Id, channel.Id, nil, nil, page.UpdateAt)
+		require.NoError(t, moveErr)
+		require.Nil(t, siblings, "no siblings should be returned for no-op move")
 	})
 }

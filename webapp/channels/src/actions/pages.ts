@@ -650,8 +650,9 @@ function moveDraftInHierarchy(draftId: string, newParentId: string | null, wikiI
                 await Client4.movePageDraft(wikiId, draftId, newParentId || '');
             } catch (error) {
                 // Local state has been updated; next autosave will sync.
-                // Still log error for debugging purposes.
+                // Log error and return with serverSyncPending flag so callers know sync failed.
                 dispatch(logError(error));
+                return {data: true, serverSyncPending: true};
             }
         }
 
@@ -660,9 +661,11 @@ function moveDraftInHierarchy(draftId: string, newParentId: string | null, wikiI
 }
 
 // Move a page in hierarchy (used for drag-and-drop)
-// Uses the dedicated /parent endpoint which broadcasts page_moved WebSocket event
+// Uses the dedicated /move endpoint which broadcasts page_moved WebSocket event
 // to ensure all clients update their hierarchy view
-export function movePageInHierarchy(pageId: string, newParentId: string | null, wikiId: string): ActionFuncAsync {
+// newParentId: null = keep current parent, string = change parent (empty string = move to root)
+// newIndex: optional - if provided, the page will be reordered among its siblings
+export function movePageInHierarchy(pageId: string, newParentId: string | null, wikiId: string, newIndex?: number): ActionFuncAsync {
     return async (dispatch, getState) => {
         if (pageId.startsWith('draft-')) {
             return dispatch(moveDraftInHierarchy(pageId, newParentId, wikiId));
@@ -675,12 +678,14 @@ export function movePageInHierarchy(pageId: string, newParentId: string | null, 
             return {error: new Error('Page not found')};
         }
 
+        // Only update parent in optimistic state if actually changing parent
+        const parentChanging = newParentId !== null;
         const optimisticPost = {
             ...originalPost,
-            page_parent_id: newParentId || '',
+            page_parent_id: parentChanging ? (newParentId || '') : originalPost.page_parent_id,
             props: {
                 ...originalPost.props,
-                [PagePropsKeys.PAGE_PARENT_ID]: newParentId || '',
+                ...(parentChanging ? {[PagePropsKeys.PAGE_PARENT_ID]: newParentId || ''} : {}),
             },
             update_at: Date.now(),
         };
@@ -691,10 +696,29 @@ export function movePageInHierarchy(pageId: string, newParentId: string | null, 
         });
 
         try {
-            // Use the dedicated updatePageParent endpoint instead of patchPost.
+            // Use the dedicated movePage endpoint which handles both parent change and reordering.
             // This endpoint broadcasts the page_moved WebSocket event, ensuring
             // all connected clients update their hierarchy view.
-            await Client4.updatePageParent(wikiId, pageId, newParentId || '');
+            // parentId is passed only if changing parent (null = keep current)
+            // siblingIndex is passed to reorder the page among its siblings.
+
+            const response = await Client4.movePage(
+                wikiId,
+                pageId,
+                parentChanging ? newParentId : undefined,
+                newIndex,
+            );
+
+            // If the server returned updated siblings (PostList), update Redux store
+            // This ensures the frontend has the correct page_sort_order values
+            if (response && 'posts' in response && response.posts) {
+                for (const post of Object.values(response.posts)) {
+                    dispatch({
+                        type: PostActionTypes.RECEIVED_POST,
+                        data: post,
+                    });
+                }
+            }
 
             const timestamp = Date.now();
             dispatch({

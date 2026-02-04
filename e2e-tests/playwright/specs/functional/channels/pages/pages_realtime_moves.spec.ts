@@ -299,7 +299,7 @@ test(
 
         // # User 1 moves the child page to be under newParent using API
         // This is more reliable than UI and tests the WebSocket broadcast
-        await adminClient.updatePageParent(wiki.id, childPage.id!, newParent.id!);
+        await adminClient.movePage(wiki.id, childPage.id!, newParent.id!);
 
         // * Wait for WebSocket event to propagate to user2
         await user2Page.waitForTimeout(WEBSOCKET_WAIT);

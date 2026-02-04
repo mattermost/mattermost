@@ -114,6 +114,24 @@ func (a *App) CreatePageWithChannel(rctx request.CTX, channel *model.Channel, ti
 		},
 	}
 
+	// Set initial sort order for the new page (append at end of siblings)
+	siblings, sibErr := a.Srv().Store().Page().GetSiblingPages(pageParentID, channelID)
+	if sibErr != nil {
+		rctx.Logger().Warn("Failed to get sibling pages for sort order",
+			mlog.String("channel_id", channelID),
+			mlog.String("parent_id", pageParentID),
+			mlog.Err(sibErr))
+		// Continue without sort order - will use CreateAt as fallback
+	} else {
+		var maxOrder int64
+		for _, s := range siblings {
+			if order := s.GetPageSortOrder(); order > maxOrder {
+				maxOrder = order
+			}
+		}
+		page.SetPageSortOrder(maxOrder + model.PageSortOrderGap)
+	}
+
 	createdPage, createErr := a.Srv().Store().Page().CreatePage(rctx, page, content, searchText)
 	if createErr != nil {
 		if strings.Contains(createErr.Error(), "invalid_content") {
@@ -226,8 +244,13 @@ type PageContentLoadOptions struct {
 	SearchTextOnly bool
 }
 
+// maxPageContentBatchSize limits the number of page IDs per batch query
+// to prevent unbounded IN clauses that degrade database performance.
+const maxPageContentBatchSize = 100
+
 // LoadPageContent loads page content from the PageContent table for pages in the PostList.
 // Use options to control loading behavior (deleted content, search text only).
+// Content is loaded in batches to prevent unbounded IN clauses.
 func (a *App) LoadPageContent(rctx request.CTX, postList *model.PostList, opts PageContentLoadOptions) *model.AppError {
 	if postList == nil || postList.Posts == nil {
 		return nil
@@ -244,21 +267,27 @@ func (a *App) LoadPageContent(rctx request.CTX, postList *model.PostList, opts P
 		return nil
 	}
 
-	var pageContents []*model.PageContent
-	var contentErr error
+	// Load content in batches to prevent unbounded IN clauses
+	contentMap := make(map[string]*model.PageContent, len(pageIDs))
+	for i := 0; i < len(pageIDs); i += maxPageContentBatchSize {
+		end := min(i+maxPageContentBatchSize, len(pageIDs))
+		batch := pageIDs[i:end]
 
-	if opts.IncludeDeleted {
-		pageContents, contentErr = a.Srv().Store().Page().GetManyPageContentsWithDeleted(pageIDs)
-	} else {
-		pageContents, contentErr = a.Srv().Store().Page().GetManyPageContents(pageIDs)
-	}
-	if contentErr != nil {
-		return model.NewAppError("LoadPageContent", "app.page.get.content.app_error", nil, "", http.StatusInternalServerError).Wrap(contentErr)
-	}
+		var batchContents []*model.PageContent
+		var contentErr error
 
-	contentMap := make(map[string]*model.PageContent, len(pageContents))
-	for _, content := range pageContents {
-		contentMap[content.PageId] = content
+		if opts.IncludeDeleted {
+			batchContents, contentErr = a.Srv().Store().Page().GetManyPageContentsWithDeleted(batch)
+		} else {
+			batchContents, contentErr = a.Srv().Store().Page().GetManyPageContents(batch)
+		}
+		if contentErr != nil {
+			return model.NewAppError("LoadPageContent", "app.page.get.content.app_error", nil, "", http.StatusInternalServerError).Wrap(contentErr)
+		}
+
+		for _, content := range batchContents {
+			contentMap[content.PageId] = content
+		}
 	}
 
 	for _, post := range postList.Posts {
