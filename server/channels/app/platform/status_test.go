@@ -70,7 +70,7 @@ func TestQueueSetStatusOffline(t *testing.T) {
 
 	// Initially set all users to online
 	for _, userID := range userIDs {
-		th.Service.SetStatusOnline(userID, false)
+		th.Service.SetStatusOnline(userID, false, "")
 		status, err := th.Service.GetStatus(userID)
 		require.Nil(t, err, "Failed to get initial status")
 		require.Equal(t, model.StatusOnline, status.Status, "User should be online initially")
@@ -80,7 +80,7 @@ func TestQueueSetStatusOffline(t *testing.T) {
 	for i, userID := range userIDs {
 		// Set every other status as manual to test both cases
 		manual := i%2 == 0
-		th.Service.QueueSetStatusOffline(userID, manual)
+		th.Service.QueueSetStatusOffline(userID, manual, "")
 	}
 
 	// Wait for the background processor to handle the updates

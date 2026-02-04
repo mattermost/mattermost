@@ -64,8 +64,11 @@ func (wr *WebSocketRouter) ServeWebSocket(conn *WebConn, r *model.WebSocketReque
 			return
 		}
 
+		// Get device from connection's origin client
+		wsDevice := conn.originClient
+
 		conn.Platform.Go(func() {
-			conn.Platform.SetStatusOnline(session.UserId, false)
+			conn.Platform.SetStatusOnline(session.UserId, false, wsDevice)
 			conn.Platform.UpdateLastActivityAtIfNeeded(*session)
 		})
 

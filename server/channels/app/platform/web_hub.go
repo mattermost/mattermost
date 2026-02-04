@@ -605,6 +605,7 @@ func (h *Hub) Start() {
 				// which is intentional.
 				if areAllInactive(conns) {
 					userID := webConn.UserId
+					device := webConn.originClient
 					h.ProcessAsync(func() {
 						// If this is an HA setup, get count for this user
 						// from other nodes.
@@ -624,7 +625,7 @@ func (h *Hub) Start() {
 						// Only set to offline if there are no
 						// active connections in other nodes as well.
 						if clusterCnt == 0 {
-							h.platform.QueueSetStatusOffline(userID, false)
+							h.platform.QueueSetStatusOffline(userID, false, device)
 						}
 					})
 					continue
@@ -748,7 +749,7 @@ func (h *Hub) Start() {
 			case <-h.stop:
 				for webConn := range connIndex.All() {
 					webConn.Close()
-					h.platform.SetStatusOffline(webConn.UserId, false, false)
+					h.platform.SetStatusOffline(webConn.UserId, false, false, webConn.originClient)
 				}
 
 				h.explicitStop = true

@@ -573,7 +573,7 @@ func (ps *PlatformService) SetOnlineIfNoOffline(userID string, channelID string,
 	}
 }
 
-func (ps *PlatformService) SetStatusOnline(userID string, manual bool) {
+func (ps *PlatformService) SetStatusOnline(userID string, manual bool, device string) {
 	if !*ps.Config().ServiceSettings.EnableUserStatuses {
 		return
 	}
@@ -622,7 +622,7 @@ func (ps *PlatformService) SetStatusOnline(userID string, manual bool) {
 			if user, userErr := ps.Store.User().Get(context.Background(), userID); userErr == nil {
 				username = user.Username
 			}
-			ps.LogStatusChange(userID, username, oldStatus, model.StatusDnd, model.StatusLogReasonDNDRestored, model.StatusLogDeviceUnknown, true, "", false, "SetStatusOnline")
+			ps.LogStatusChange(userID, username, oldStatus, model.StatusDnd, model.StatusLogReasonDNDRestored, device, true, "", false, "SetStatusOnline")
 			return
 		}
 
@@ -657,7 +657,7 @@ func (ps *PlatformService) SetStatusOnline(userID string, manual bool) {
 			if user, userErr := ps.Store.User().Get(context.Background(), userID); userErr == nil {
 				username = user.Username
 			}
-			ps.LogActivityUpdate(userID, username, model.StatusOnline, model.StatusLogDeviceUnknown, true, "", "", "", model.StatusLogTriggerHeartbeat, "SetStatusOnline", status.LastActivityAt)
+			ps.LogActivityUpdate(userID, username, model.StatusOnline, device, true, "", "", "", model.StatusLogTriggerHeartbeat, "SetStatusOnline", status.LastActivityAt)
 		}
 		if ps.sharedChannelService != nil {
 			ps.sharedChannelService.NotifyUserStatusChanged(status)
@@ -676,16 +676,17 @@ func (ps *PlatformService) SetStatusOnline(userID string, manual bool) {
 		if !manual {
 			reason = model.StatusLogReasonConnect
 		}
-		device := model.StatusLogDeviceUnknown
-		if manual {
-			device = model.StatusLogDeviceAPI
+		// Use passed device, fall back to API if manual and no device provided
+		logDevice := device
+		if logDevice == "" && manual {
+			logDevice = model.StatusLogDeviceAPI
 		}
 		// manual=true means user explicitly set their status to Online
-		ps.LogStatusChange(userID, username, oldStatus, model.StatusOnline, reason, device, true, "", manual, "SetStatusOnline")
+		ps.LogStatusChange(userID, username, oldStatus, model.StatusOnline, reason, logDevice, true, "", manual, "SetStatusOnline")
 	}
 }
 
-func (ps *PlatformService) SetStatusOffline(userID string, manual bool, force bool) {
+func (ps *PlatformService) SetStatusOffline(userID string, manual bool, force bool, device string) {
 	if !*ps.Config().ServiceSettings.EnableUserStatuses {
 		return
 	}
@@ -712,12 +713,13 @@ func (ps *PlatformService) SetStatusOffline(userID string, manual bool, force bo
 		if !manual {
 			reason = model.StatusLogReasonDisconnect
 		}
-		device := model.StatusLogDeviceUnknown
-		if manual {
-			device = model.StatusLogDeviceAPI
+		// Use passed device, fall back to API if manual and no device provided
+		logDevice := device
+		if logDevice == "" && manual {
+			logDevice = model.StatusLogDeviceAPI
 		}
 		// manual=true means user explicitly set their status to Offline
-		ps.LogStatusChange(userID, username, oldStatus, model.StatusOffline, reason, device, false, "", manual, "SetStatusOffline")
+		ps.LogStatusChange(userID, username, oldStatus, model.StatusOffline, reason, logDevice, false, "", manual, "SetStatusOffline")
 	}
 }
 
@@ -731,7 +733,7 @@ func (ps *PlatformService) _setStatusOfflineAndNotify(userID string, manual bool
 
 // QueueSetStatusOffline queues a status update to set a user offline
 // instead of directly updating it for better performance during high load
-func (ps *PlatformService) QueueSetStatusOffline(userID string, manual bool) {
+func (ps *PlatformService) QueueSetStatusOffline(userID string, manual bool, device string) {
 	if !*ps.Config().ServiceSettings.EnableUserStatuses {
 		return
 	}
@@ -775,12 +777,13 @@ func (ps *PlatformService) QueueSetStatusOffline(userID string, manual bool) {
 		if !manual {
 			reason = model.StatusLogReasonDisconnect
 		}
-		device := model.StatusLogDeviceUnknown
-		if manual {
-			device = model.StatusLogDeviceAPI
+		// Use passed device, fall back to API if manual and no device provided
+		logDevice := device
+		if logDevice == "" && manual {
+			logDevice = model.StatusLogDeviceAPI
 		}
 		// manual=true means user explicitly set their status to Offline
-		ps.LogStatusChange(userID, username, oldStatus, model.StatusOffline, reason, device, false, "", manual, "QueueSetStatusOffline")
+		ps.LogStatusChange(userID, username, oldStatus, model.StatusOffline, reason, logDevice, false, "", manual, "QueueSetStatusOffline")
 	}
 }
 

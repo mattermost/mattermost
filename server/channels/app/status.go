@@ -25,12 +25,20 @@ func (a *App) SetStatusLastActivityAt(userID string, activityAt int64) {
 	a.Srv().Platform().SetStatusLastActivityAt(userID, activityAt)
 }
 
-func (a *App) SetStatusOnline(userID string, manual bool) {
-	a.Srv().Platform().SetStatusOnline(userID, manual)
+func (a *App) SetStatusOnline(userID string, manual bool, device ...string) {
+	dev := ""
+	if len(device) > 0 {
+		dev = device[0]
+	}
+	a.Srv().Platform().SetStatusOnline(userID, manual, dev)
 }
 
-func (a *App) SetStatusOffline(userID string, manual bool, force bool) {
-	a.Srv().Platform().SetStatusOffline(userID, manual, force)
+func (a *App) SetStatusOffline(userID string, manual bool, force bool, device ...string) {
+	dev := ""
+	if len(device) > 0 {
+		dev = device[0]
+	}
+	a.Srv().Platform().SetStatusOffline(userID, manual, force, dev)
 }
 
 func (a *App) SetStatusAwayIfNeeded(userID string, manual bool) {
