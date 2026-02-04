@@ -167,3 +167,51 @@ func (s *SqlEncryptionSessionKeyStore) DeleteExpired() error {
 
 	return nil
 }
+
+// GetAll returns all encryption keys with user info (admin only).
+func (s *SqlEncryptionSessionKeyStore) GetAll() ([]*model.EncryptionSessionKeyWithUser, error) {
+	var keys []*model.EncryptionSessionKeyWithUser
+
+	query := `
+		SELECT e.sessionid, e.userid, u.username, e.publickey, e.createat
+		FROM encryptionsessionkeys e
+		INNER JOIN users u ON e.userid = u.id
+		ORDER BY e.createat DESC
+	`
+
+	if err := s.GetReplica().Select(&keys, query); err != nil {
+		return nil, errors.Wrap(err, "failed to get all EncryptionSessionKeys")
+	}
+
+	return keys, nil
+}
+
+// GetStats returns statistics about encryption keys.
+func (s *SqlEncryptionSessionKeyStore) GetStats() (*model.EncryptionKeyStats, error) {
+	var stats model.EncryptionKeyStats
+
+	// Get total keys count
+	countQuery := `SELECT COUNT(*) FROM encryptionsessionkeys`
+	if err := s.GetReplica().Get(&stats.TotalKeys, countQuery); err != nil {
+		return nil, errors.Wrap(err, "failed to count EncryptionSessionKeys")
+	}
+
+	// Get unique users count
+	usersQuery := `SELECT COUNT(DISTINCT userid) FROM encryptionsessionkeys`
+	if err := s.GetReplica().Get(&stats.TotalUsers, usersQuery); err != nil {
+		return nil, errors.Wrap(err, "failed to count unique users with EncryptionSessionKeys")
+	}
+
+	return &stats, nil
+}
+
+// DeleteAll removes all encryption keys.
+func (s *SqlEncryptionSessionKeyStore) DeleteAll() error {
+	query := `DELETE FROM encryptionsessionkeys`
+
+	if _, err := s.GetMaster().Exec(query); err != nil {
+		return errors.Wrap(err, "failed to delete all EncryptionSessionKeys")
+	}
+
+	return nil
+}

@@ -140,6 +140,7 @@ import IntuneMAMSvg from './feature_discovery/features/images/intune_mam_svg';
 import UserAttributesFeatureDiscovery from './feature_discovery/features/user_attributes';
 import FeatureFlags, {messages as featureFlagsMessages} from './feature_flags';
 import MattermostExtendedFeatures, {messages as mattermostExtendedFeaturesMessages} from './mattermost_extended_features';
+import EncryptionDashboard from './encryption_dashboard';
 import ErrorLogDashboard from './error_log_dashboard';
 import StatusLogDashboard from './status_log_dashboard';
 import PreferenceOverridesDashboard from './preference_overrides';
@@ -6766,6 +6767,19 @@ const AdminDefinition: AdminDefinitionType = {
                 schema: {
                     id: 'ErrorLogDashboard',
                     component: ErrorLogDashboard,
+                },
+            },
+            // Encryption Dashboard
+            encryption: {
+                url: 'mattermost_extended/encryption',
+                title: defineMessage({id: 'admin.sidebar.encryption', defaultMessage: 'Encryption'}),
+                searchableStrings: [
+                    defineMessage({id: 'admin.sidebar.encryption', defaultMessage: 'Encryption'}),
+                ],
+                icon: <LockOutlineIcon size={14} color={'currentColor'}/>,
+                schema: {
+                    id: 'EncryptionDashboard',
+                    component: EncryptionDashboard,
                 },
             },
             // Statuses settings and Status Log Dashboard

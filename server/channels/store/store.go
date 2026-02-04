@@ -1230,6 +1230,12 @@ type EncryptionSessionKeyStore interface {
 	DeleteByUser(userId string) error
 	// DeleteExpired removes encryption keys for sessions that no longer exist.
 	DeleteExpired() error
+	// GetAll returns all encryption keys with user info (admin only).
+	GetAll() ([]*model.EncryptionSessionKeyWithUser, error)
+	// GetStats returns statistics about encryption keys.
+	GetStats() (*model.EncryptionKeyStats, error)
+	// DeleteAll removes all encryption keys.
+	DeleteAll() error
 }
 
 // CustomChannelIconStore manages custom SVG icons for channels.

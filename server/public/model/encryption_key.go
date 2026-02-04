@@ -97,3 +97,24 @@ func (r *EncryptionPublicKeysRequest) IsValid() *AppError {
 	}
 	return nil
 }
+
+// EncryptionSessionKeyWithUser extends EncryptionSessionKey with user info for admin display.
+type EncryptionSessionKeyWithUser struct {
+	SessionId string `json:"session_id" db:"sessionid"`
+	UserId    string `json:"user_id" db:"userid"`
+	Username  string `json:"username" db:"username"`
+	PublicKey string `json:"public_key" db:"publickey"`
+	CreateAt  int64  `json:"create_at" db:"createat"`
+}
+
+// EncryptionKeyStats contains statistics about encryption keys.
+type EncryptionKeyStats struct {
+	TotalKeys  int `json:"total_keys"`
+	TotalUsers int `json:"total_users"`
+}
+
+// EncryptionKeysResponse is the admin response containing keys and stats.
+type EncryptionKeysResponse struct {
+	Keys  []*EncryptionSessionKeyWithUser `json:"keys"`
+	Stats *EncryptionKeyStats             `json:"stats"`
+}

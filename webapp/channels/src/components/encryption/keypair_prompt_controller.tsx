@@ -8,6 +8,7 @@ import {getCurrentUser} from 'mattermost-redux/selectors/entities/users';
 
 import {setEncryptionKeyError} from 'actions/views/encryption';
 import {ensureEncryptionKeys, checkEncryptionStatus} from 'utils/encryption/session';
+import {hasEncryptionKeys} from 'utils/encryption/storage';
 
 import type {GlobalState} from 'types/store';
 
@@ -41,9 +42,15 @@ const KeypairPromptController = () => {
                     return;
                 }
 
-                if (status.has_key) {
-                    // Already have a key for this session, nothing to do
+                if (status.has_key && hasEncryptionKeys(status.session_id)) {
+                    // Server has key AND client has local keys, nothing to do
                     return;
+                }
+
+                // If server has key but client doesn't, we need to regenerate
+                // (client lost keys due to cleared browser data, different browser, etc.)
+                if (status.has_key && !hasEncryptionKeys(status.session_id)) {
+                    console.log('[KeypairPromptController] Server has key but client missing local keys, regenerating...');
                 }
 
                 // Mark that we've attempted key generation

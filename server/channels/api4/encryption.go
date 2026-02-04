@@ -18,6 +18,11 @@ func (api *API) InitEncryption() {
 	api.BaseRoutes.Encryption.Handle("/publickey", api.APISessionRequired(registerPublicKey)).Methods(http.MethodPost)
 	api.BaseRoutes.Encryption.Handle("/publickeys", api.APISessionRequired(getPublicKeysByUserIds)).Methods(http.MethodPost)
 	api.BaseRoutes.Encryption.Handle("/channel/{channel_id:[A-Za-z0-9]+}/keys", api.APISessionRequired(getChannelMemberKeys)).Methods(http.MethodGet)
+
+	// Admin endpoints
+	api.BaseRoutes.Encryption.Handle("/admin/keys", api.APISessionRequired(adminGetAllKeys)).Methods(http.MethodGet)
+	api.BaseRoutes.Encryption.Handle("/admin/keys", api.APISessionRequired(adminDeleteAllKeys)).Methods(http.MethodDelete)
+	api.BaseRoutes.Encryption.Handle("/admin/keys/{user_id:[A-Za-z0-9]+}", api.APISessionRequired(adminDeleteUserKeys)).Methods(http.MethodDelete)
 }
 
 // getEncryptionStatus returns the encryption status for the current session
@@ -220,4 +225,75 @@ func getChannelMemberKeys(c *Context, w http.ResponseWriter, r *http.Request) {
 	if err := json.NewEncoder(w).Encode(keys); err != nil {
 		c.Logger.Warn("Error while writing response", mlog.Err(err))
 	}
+}
+
+// adminGetAllKeys returns all encryption keys with user info (admin only)
+func adminGetAllKeys(c *Context, w http.ResponseWriter, r *http.Request) {
+	// Check admin permission
+	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageSystem) {
+		c.SetPermissionError(model.PermissionManageSystem)
+		return
+	}
+
+	// Get all keys
+	keys, err := c.App.Srv().Store().EncryptionSessionKey().GetAll()
+	if err != nil {
+		c.Err = model.NewAppError("adminGetAllKeys", "api.encryption.admin_get_keys.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		return
+	}
+
+	// Get stats
+	stats, err := c.App.Srv().Store().EncryptionSessionKey().GetStats()
+	if err != nil {
+		c.Err = model.NewAppError("adminGetAllKeys", "api.encryption.admin_get_stats.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		return
+	}
+
+	response := &model.EncryptionKeysResponse{
+		Keys:  keys,
+		Stats: stats,
+	}
+
+	if err := json.NewEncoder(w).Encode(response); err != nil {
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
+	}
+}
+
+// adminDeleteAllKeys removes all encryption keys (admin only)
+func adminDeleteAllKeys(c *Context, w http.ResponseWriter, r *http.Request) {
+	// Check admin permission
+	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageSystem) {
+		c.SetPermissionError(model.PermissionManageSystem)
+		return
+	}
+
+	if err := c.App.Srv().Store().EncryptionSessionKey().DeleteAll(); err != nil {
+		c.Err = model.NewAppError("adminDeleteAllKeys", "api.encryption.admin_delete_keys.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		return
+	}
+
+	ReturnStatusOK(w)
+}
+
+// adminDeleteUserKeys removes all encryption keys for a specific user (admin only)
+func adminDeleteUserKeys(c *Context, w http.ResponseWriter, r *http.Request) {
+	c.RequireUserId()
+	if c.Err != nil {
+		return
+	}
+
+	// Check admin permission
+	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageSystem) {
+		c.SetPermissionError(model.PermissionManageSystem)
+		return
+	}
+
+	userId := c.Params.UserId
+
+	if err := c.App.Srv().Store().EncryptionSessionKey().DeleteByUser(userId); err != nil {
+		c.Err = model.NewAppError("adminDeleteUserKeys", "api.encryption.admin_delete_user_keys.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		return
+	}
+
+	ReturnStatusOK(w)
 }
