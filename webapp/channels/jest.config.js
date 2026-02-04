@@ -29,6 +29,11 @@ const config = {
             '<rootDir>/src/tests/image_url_mock.json',
         '^.+\\.(css|less|scss)$': 'identity-obj-proxy',
         '^.*i18n.*\\.(json)$': '<rootDir>/src/tests/i18n_mock.json',
+        // @tabler/icons exports field redirects ./* to ./icons/*, but JSON files are at root
+        // Map these directly to bypass the exports field
+        '^@tabler/icons/tabler-nodes-outline\\.json$': '<rootDir>/../node_modules/@tabler/icons/tabler-nodes-outline.json',
+        '^@tabler/icons/tabler-nodes-filled\\.json$': '<rootDir>/../node_modules/@tabler/icons/tabler-nodes-filled.json',
+        '^@tabler/icons/icons\\.json$': '<rootDir>/../node_modules/@tabler/icons/icons.json',
     },
     moduleDirectories: ['src', 'node_modules'],
     moduleFileExtensions: ['ts', 'tsx', 'js', 'jsx', 'json'],

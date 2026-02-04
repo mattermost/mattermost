@@ -29,9 +29,10 @@ describe('SystemConsoleHideEnterprise feature flag', () => {
             const hideEnterpriseEnabled = true;
 
             // Simulate the logic from admin_sidebar.tsx
+            // Note: JavaScript && returns the last truthy value (the object) not true
             const shouldHide = hideEnterpriseEnabled && mockItem.restrictedIndicator;
 
-            expect(shouldHide).toBe(true);
+            expect(shouldHide).toBeTruthy();
         });
 
         it('should NOT hide items without restrictedIndicator', () => {
