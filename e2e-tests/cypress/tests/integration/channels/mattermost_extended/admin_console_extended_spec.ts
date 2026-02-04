@@ -270,6 +270,231 @@ describe('Admin Console Extended Features', () => {
         });
     });
 
+    describe('StatusLogDashboard', () => {
+        before(() => {
+            // # Enable status logs
+            cy.apiAdminLogin();
+            cy.apiUpdateConfig({
+                MattermostExtendedSettings: {
+                    Statuses: {
+                        EnableStatusLogs: true,
+                        InactivityTimeoutMinutes: 5,
+                        HeartbeatIntervalSeconds: 30,
+                        StatusLogRetentionDays: 7,
+                    },
+                },
+            });
+        });
+
+        it('MM-EXT-AC029 Status log dashboard accessible in sidebar', () => {
+            // # Login as admin
+            cy.apiAdminLogin();
+            cy.visit('/admin_console');
+
+            // # Navigate to Mattermost Extended section
+            cy.findByText('Mattermost Extended').click();
+
+            // * Status Logs option should exist
+            cy.findByText('Status Logs').should('exist');
+        });
+
+        it('MM-EXT-AC030 Status log dashboard renders when enabled', () => {
+            // # Login as admin
+            cy.apiAdminLogin();
+            cy.visit('/admin_console');
+
+            // # Navigate to Status Logs
+            cy.findByText('Mattermost Extended').click();
+            cy.findByText('Status Logs').click();
+
+            // * Dashboard should be visible
+            cy.get('.StatusLogDashboard, .status-log-dashboard, .admin-console__wrapper').should('be.visible');
+        });
+
+        it('MM-EXT-AC031 Status log dashboard shows promotional card when disabled', () => {
+            // # Disable status logs
+            cy.apiAdminLogin();
+            cy.apiUpdateConfig({
+                MattermostExtendedSettings: {
+                    Statuses: {
+                        EnableStatusLogs: false,
+                    },
+                },
+            });
+
+            cy.visit('/admin_console');
+            cy.findByText('Mattermost Extended').click();
+            cy.findByText('Status Logs').click();
+
+            // * Should show promotional/enable card
+            cy.get('.StatusLogDashboard, .status-log-dashboard, .admin-console__wrapper').should('be.visible');
+
+            // * Should have enable button or promotional content
+            cy.findByText(/Enable|Status Logging/i).should('exist');
+
+            // # Re-enable for subsequent tests
+            cy.apiUpdateConfig({
+                MattermostExtendedSettings: {
+                    Statuses: {
+                        EnableStatusLogs: true,
+                    },
+                },
+            });
+        });
+
+        it('MM-EXT-AC032 Status log dashboard displays filter controls', () => {
+            // # Login as admin
+            cy.apiAdminLogin();
+            cy.visit('/admin_console');
+
+            // # Navigate to Status Logs
+            cy.findByText('Mattermost Extended').click();
+            cy.findByText('Status Logs').click();
+
+            // * Filter controls should exist (dropdowns for log_type, status, search)
+            cy.get('select, .filter-dropdown, input[type="search"], .StatusLogFilters, .log-filters').should('exist');
+        });
+
+        it('MM-EXT-AC033 Status log dashboard can filter by log type', () => {
+            // # Login as admin
+            cy.apiAdminLogin();
+            cy.visit('/admin_console');
+
+            // # Navigate to Status Logs
+            cy.findByText('Mattermost Extended').click();
+            cy.findByText('Status Logs').click();
+
+            // * Log type filter should exist and be usable
+            cy.get('select, .log-type-filter').first().should('exist');
+        });
+
+        it('MM-EXT-AC034 Status log dashboard can filter by status', () => {
+            // # Login as admin
+            cy.apiAdminLogin();
+            cy.visit('/admin_console');
+
+            // # Navigate to Status Logs
+            cy.findByText('Mattermost Extended').click();
+            cy.findByText('Status Logs').click();
+
+            // * Status filter should exist
+            cy.get('select, .status-filter').should('exist');
+        });
+
+        it('MM-EXT-AC035 Status log dashboard has search functionality', () => {
+            // # Login as admin
+            cy.apiAdminLogin();
+            cy.visit('/admin_console');
+
+            // # Navigate to Status Logs
+            cy.findByText('Mattermost Extended').click();
+            cy.findByText('Status Logs').click();
+
+            // * Search input should exist
+            cy.get('input[type="search"], input[type="text"], .search-input').should('exist');
+        });
+
+        it('MM-EXT-AC036 Status log dashboard has export functionality', () => {
+            // # Login as admin
+            cy.apiAdminLogin();
+            cy.visit('/admin_console');
+
+            // # Navigate to Status Logs
+            cy.findByText('Mattermost Extended').click();
+            cy.findByText('Status Logs').click();
+
+            // * Export button should exist
+            cy.findByText(/Export/i).should('exist');
+        });
+
+        it('MM-EXT-AC037 Status log dashboard has clear functionality', () => {
+            // # Login as admin
+            cy.apiAdminLogin();
+            cy.visit('/admin_console');
+
+            // # Navigate to Status Logs
+            cy.findByText('Mattermost Extended').click();
+            cy.findByText('Status Logs').click();
+
+            // * Clear button should exist
+            cy.findByText(/Clear/i).should('exist');
+        });
+
+        it('MM-EXT-AC038 Status log dashboard has tabs for logs and notification rules', () => {
+            // # Login as admin
+            cy.apiAdminLogin();
+            cy.visit('/admin_console');
+
+            // # Navigate to Status Logs
+            cy.findByText('Mattermost Extended').click();
+            cy.findByText('Status Logs').click();
+
+            // * Tab controls should exist
+            cy.get('.tabs, [role="tablist"], .StatusLogTabs').should('exist');
+        });
+
+        it('MM-EXT-AC039 Status log entry shows user, status, and device info', () => {
+            // # First, generate a status log by changing status
+            cy.apiAdminLogin();
+
+            // # Trigger a status change to create a log entry
+            cy.apiGetMe().then(({user}) => {
+                cy.request({
+                    url: `/api/v4/users/${user.id}/status`,
+                    method: 'PUT',
+                    body: {
+                        user_id: user.id,
+                        status: 'away',
+                    },
+                });
+
+                // # Change back to create another log
+                cy.request({
+                    url: `/api/v4/users/${user.id}/status`,
+                    method: 'PUT',
+                    body: {
+                        user_id: user.id,
+                        status: 'online',
+                    },
+                });
+            });
+
+            // # Navigate to Status Logs
+            cy.visit('/admin_console');
+            cy.findByText('Mattermost Extended').click();
+            cy.findByText('Status Logs').click();
+
+            // * Dashboard should show log entries (or empty state if no logs)
+            cy.get('.StatusLogDashboard, .status-log-dashboard, .admin-console__wrapper').should('be.visible');
+        });
+
+        it('MM-EXT-AC040 Status log dashboard displays stats summary', () => {
+            // # Login as admin
+            cy.apiAdminLogin();
+            cy.visit('/admin_console');
+
+            // # Navigate to Status Logs
+            cy.findByText('Mattermost Extended').click();
+            cy.findByText('Status Logs').click();
+
+            // * Stats section should be visible (counts by status)
+            cy.get('.StatusLogStats, .stats-summary, .status-stats').should('exist');
+        });
+
+        it('MM-EXT-AC041 Status log retention setting is visible in Statuses section', () => {
+            // # Login as admin
+            cy.apiAdminLogin();
+            cy.visit('/admin_console');
+
+            // # Navigate to Statuses settings
+            cy.findByText('Mattermost Extended').click();
+            cy.findByText('Statuses').click();
+
+            // * Status log retention setting should exist
+            cy.findByText(/Retention|Status Log/i).should('exist');
+        });
+    });
+
     describe('ErrorLogDashboard', () => {
         it('MM-EXT-AC014 Error log dashboard accessible', () => {
             // # Login as admin

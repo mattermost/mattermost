@@ -20,7 +20,7 @@ This document outlines the complete test coverage plan for all Mattermost Extend
 | AccurateStatuses | ✅ Exists | N/A (server-only) | ✅ Exists | Complete |
 | NoOffline | ✅ Exists | N/A (server-only) | ✅ Exists | Complete |
 | DND Extended | ✅ Exists | N/A (server-only) | ✅ Exists | Complete |
-| Status Log Dashboard | ✅ Exists | ✅ Exists | ❌ Missing | Good |
+| Status Log Dashboard | ✅ Exists | ✅ Exists | ✅ Exists | Complete |
 | Custom Channel Icons | ✅ Exists | ✅ Exists | ✅ Exists | Complete |
 | Encryption (E2EE) | ✅ Exists | ✅ Exists | ✅ Exists | Complete |
 | ThreadsInSidebar | N/A (UI-only) | ✅ Exists | ✅ Exists | Complete |
@@ -755,6 +755,21 @@ Tests PreferenceOverridesDashboard:
 - ✅ MM-EXT-AC011 Admin can set preference overrides
 - ✅ MM-EXT-AC012 Override applies to users
 - ✅ MM-EXT-AC013 User cannot change overridden preference
+
+Tests StatusLogDashboard:
+- ✅ MM-EXT-AC029 Status log dashboard accessible in sidebar
+- ✅ MM-EXT-AC030 Status log dashboard renders when enabled
+- ✅ MM-EXT-AC031 Status log dashboard shows promotional card when disabled
+- ✅ MM-EXT-AC032 Status log dashboard displays filter controls
+- ✅ MM-EXT-AC033 Status log dashboard can filter by log type
+- ✅ MM-EXT-AC034 Status log dashboard can filter by status
+- ✅ MM-EXT-AC035 Status log dashboard has search functionality
+- ✅ MM-EXT-AC036 Status log dashboard has export functionality
+- ✅ MM-EXT-AC037 Status log dashboard has clear functionality
+- ✅ MM-EXT-AC038 Status log dashboard has tabs for logs and notification rules
+- ✅ MM-EXT-AC039 Status log entry shows user, status, and device info
+- ✅ MM-EXT-AC040 Status log dashboard displays stats summary
+- ✅ MM-EXT-AC041 Status log retention setting is visible in Statuses section
 
 Tests ErrorLogDashboard:
 - ✅ MM-EXT-AC014 Error log dashboard accessible
