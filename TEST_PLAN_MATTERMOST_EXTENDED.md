@@ -25,22 +25,24 @@ This document outlines the complete test coverage plan for all Mattermost Extend
 | Encryption (E2EE) | ✅ Exists | ✅ Exists | ✅ Exists | Complete |
 | ThreadsInSidebar | ❌ Missing | ❌ Missing | ❌ Missing | None |
 | CustomThreadNames | ❌ Missing | ❌ Missing | ❌ Missing | None |
-| ImageMulti | ❌ Missing | ❌ Missing | ✅ Exists | Partial |
-| ImageSmaller | ❌ Missing | ❌ Missing | ✅ Exists | Partial |
+| ImageMulti | ❌ Missing | ✅ Exists | ✅ Exists | Good |
+| ImageSmaller | ❌ Missing | ✅ Exists | ✅ Exists | Good |
 | ImageCaptions | ❌ Missing | ❌ Missing | ✅ Exists | Partial |
 | VideoEmbed | ❌ Missing | ✅ Exists | ✅ Exists | Good |
 | VideoLinkEmbed | ❌ Missing | ✅ Exists | ✅ Exists | Good |
 | EmbedYoutube | ❌ Missing | ✅ Exists | ✅ Exists | Good |
 | ErrorLogDashboard | ✅ Exists | ✅ Exists | ❌ Missing | Good |
-| SystemConsoleDarkMode | N/A | ❌ Missing | ❌ Missing | None |
-| SystemConsoleHideEnterprise | N/A | ❌ Missing | ❌ Missing | None |
-| SystemConsoleIcons | N/A | ❌ Missing | ❌ Missing | None |
+| SystemConsoleDarkMode | N/A | ✅ Exists | ❌ Missing | Good |
+| SystemConsoleHideEnterprise | N/A | ✅ Exists | ❌ Missing | Good |
+| SystemConsoleIcons | N/A | ✅ Exists | ❌ Missing | Good |
 | SettingsResorted | N/A | ❌ Missing | ❌ Missing | None |
 | PreferencesRevamp | ❌ Missing | ❌ Missing | ❌ Missing | None |
 | PreferenceOverridesDashboard | ✅ Exists | ✅ Exists | ❌ Missing | Good |
-| HideDeletedMessagePlaceholder | ❌ Missing | ❌ Missing | ❌ Missing | None |
-| SidebarChannelSettings | ❌ Missing | ❌ Missing | ❌ Missing | None |
-| HideUpdateStatusButton | ❌ Missing | ❌ Missing | ❌ Missing | None |
+| HideDeletedMessagePlaceholder | ❌ Missing | ✅ Exists | ❌ Missing | Good |
+| SidebarChannelSettings | ❌ Missing | ✅ Exists | ❌ Missing | Good |
+| HideUpdateStatusButton | ❌ Missing | ✅ Exists | ❌ Missing | Good |
+| SidebarBaseChannelIcon | N/A | ✅ Exists | N/A | Good |
+| MultiImageView | N/A | ✅ Exists | N/A | Good |
 | MattermostExtendedSettings | ✅ Exists | N/A | N/A | Complete |
 | StatusLog Model | ✅ Exists | N/A | N/A | Complete |
 | Status Logs Platform | ✅ Exists | N/A | N/A | Complete |
@@ -475,77 +477,103 @@ Tests Discord-style YouTube embed:
 
 ### Webapp Tests (TypeScript/React) - Remaining
 
-#### A. Sidebar Base Channel Icon Tests (Not Implemented)
+#### A. Sidebar Base Channel Icon Tests ✅ IMPLEMENTED
+
+**File:** `webapp/channels/src/components/sidebar/sidebar_channel/sidebar_base_channel/sidebar_base_channel_icon.test.tsx`
+
+Tests custom channel icons in the sidebar:
+- ✅ Renders MDI icon correctly
+- ✅ Renders Lucide icon correctly
+- ✅ Renders Tabler icon correctly
+- ✅ Renders Feather icon correctly
+- ✅ Renders Simple (brand) icon correctly
+- ✅ Renders Font Awesome icon correctly
+- ✅ Renders registered custom SVG correctly
+- ✅ Renders legacy base64 SVG correctly
+- ✅ Falls back to default for invalid library/icon
+- ✅ Respects channel type (public/private/DM)
+- ✅ Icons have correct sizing
+
+#### B. Multi Image View Tests ✅ IMPLEMENTED
+
+**File:** `webapp/channels/src/components/multi_image_view/multi_image_view.test.tsx`
+
+Tests ImageMulti feature:
+- ✅ Renders multiple images
+- ✅ Returns null for empty fileInfos
+- ✅ Applies compact-display and is-permalink classes
+- ✅ Uses preview URL when has_preview_image is true
+- ✅ Opens modal with correct props when image is clicked
+- ✅ Passes maxHeight/maxWidth when ImageSmaller is enabled
+- ✅ Skips archived and null files
+- ✅ Adds loaded class after image loads
+
+#### C. UI Tweak Tests ✅ IMPLEMENTED
+
+**File:** `webapp/channels/src/tests/mattermost_extended/websocket_post_delete.test.ts`
+
+Tests HideDeletedMessagePlaceholder:
+- ✅ postDeleted dispatches POST_DELETED action (shows placeholder)
+- ✅ postRemoved dispatches POST_REMOVED action (hides placeholder)
+- ✅ Action types are distinct
+
+**File:** `webapp/channels/src/tests/mattermost_extended/sidebar_channel_settings.test.tsx`
+
+Tests SidebarChannelSettings:
+- ✅ Shows Channel Settings menu item when enabled and user has access
+- ✅ Shows for public channels
+- ✅ Shows for private channels
+- ✅ NOT shown for DM channels
+- ✅ NOT shown for GM channels
+- ✅ NOT shown when user does not have access
+- ✅ NOT shown when tweak is disabled
+- ✅ Calls openModal when clicked
+
+**File:** `webapp/channels/src/tests/mattermost_extended/hide_update_status_button.test.ts`
+
+Tests HideUpdateStatusButton:
+- ✅ Returns false when feature flag is enabled
+- ✅ Returns true when feature flag is disabled and conditions are met
+- ✅ Still hides button when flag is off but modal was already viewed
+- ✅ Hides button when flag is enabled regardless of modal view state
+- ✅ Hides button when flag is enabled even for new users
+
+#### D. System Console Feature Tests ✅ IMPLEMENTED
+
+**File:** `webapp/channels/src/tests/mattermost_extended/system_console_dark_mode.test.tsx`
+
+Tests SystemConsoleDarkMode:
+- ✅ Adds admin-console-dark-mode class to body when enabled
+- ✅ Does NOT add class when disabled
+- ✅ Removes class when toggling from enabled to disabled
+- ✅ Adds admin-console--dark-mode class to wrapper when enabled
+- ✅ Config mapping from FeatureFlagSystemConsoleDarkMode
+- ✅ Cleanup removes class on unmount
+
+**File:** `webapp/channels/src/tests/mattermost_extended/admin_sidebar_features.test.tsx`
+
+Tests SystemConsoleHideEnterprise:
+- ✅ Hides items with restrictedIndicator when enabled
+- ✅ Does NOT hide items without restrictedIndicator
+- ✅ Does NOT hide items when disabled
+- ✅ Config mapping from FeatureFlagSystemConsoleHideEnterprise
+
+Tests SystemConsoleIcons:
+- ✅ Includes icon prop when enabled
+- ✅ Renders plugin icons when enabled
+- ✅ Does NOT include icon prop when disabled
+- ✅ Config mapping from FeatureFlagSystemConsoleIcons
+- ✅ Combined behavior tests
+
+#### E. MarkdownImage Captions Tests (Not Implemented)
 
 ```typescript
-// sidebar_base_channel_icon.test.tsx
-describe('SidebarBaseChannelIcon', () => {
-    test('renders MDI icon correctly')
-    test('renders Lucide icon correctly')
-    test('renders custom SVG correctly')
-    test('falls back to default for invalid library')
-    test('respects channel type (public/private/DM)')
-})
-```
-
-#### B. Multi Image View Tests (Not Implemented)
-
-```typescript
-// multi_image_view.test.tsx
-describe('MultiImageView', () => {
-    test('renders multiple images vertically')
-    test('applies maxHeight/maxWidth when ImageSmaller enabled')
-    test('handles click to expand')
-    test('shows loading state')
-})
-
 // markdown_image.test.tsx (caption tests)
 describe('MarkdownImage Captions', () => {
     test('shows caption when ImageCaptions enabled')
     test('hides caption when disabled')
     test('respects captionFontSize setting')
     test('displays title attribute as caption')
-})
-```
-
-#### C. UI Tweak Tests (Not Implemented)
-
-```typescript
-// websocket_actions.test.ts (HideDeletedMessagePlaceholder)
-describe('HideDeletedMessagePlaceholder', () => {
-    test('removes post when enabled and post deleted')
-    test('shows placeholder when disabled')
-})
-
-// sidebar_channel_menu.test.tsx (SidebarChannelSettings)
-describe('SidebarChannelSettings', () => {
-    test('shows Channel Settings menu item when enabled')
-    test('hides menu item when disabled')
-    test('only shows for public/private channels')
-    test('respects user permissions')
-})
-
-// custom_status.test.ts (HideUpdateStatusButton)
-describe('HideUpdateStatusButton', () => {
-    test('hides button when feature enabled')
-    test('shows button when disabled')
-})
-```
-
-#### D. System Console Feature Tests (Not Implemented)
-
-```typescript
-// admin_console.test.tsx (SystemConsoleDarkMode)
-describe('SystemConsoleDarkMode', () => {
-    test('adds dark mode class when enabled')
-    test('removes dark mode class when disabled')
-})
-
-// admin_sidebar.test.tsx
-describe('Admin Sidebar Features', () => {
-    test('hides enterprise sections when SystemConsoleHideEnterprise enabled')
-    test('shows icons when SystemConsoleIcons enabled')
-    test('hides icons when SystemConsoleIcons disabled')
 })
 ```
 
@@ -724,14 +752,20 @@ describe('ErrorLogDashboard', () => {
 |---------|-----------|
 | Encryption Utils | `webapp/channels/src/utils/encryption/*.test.ts` ✅ |
 | Custom SVGs | `webapp/channels/src/components/channel_settings_modal/icon_libraries/*.test.ts` ✅ |
-| Sidebar Icon | `webapp/channels/src/components/sidebar/sidebar_channel/sidebar_base_channel/*.test.tsx` ❌ |
-| Multi Image View | `webapp/channels/src/components/multi_image_view/*.test.tsx` ❌ |
+| Sidebar Base Channel Icon | `webapp/channels/src/components/sidebar/sidebar_channel/sidebar_base_channel/sidebar_base_channel_icon.test.tsx` ✅ |
+| Multi Image View | `webapp/channels/src/components/multi_image_view/multi_image_view.test.tsx` ✅ |
 | Video Player | `webapp/channels/src/components/video_player/*.test.tsx` ✅ |
 | Video Link Embed | `webapp/channels/src/components/video_link_embed/*.test.tsx` ✅ |
 | YouTube Discord | `webapp/channels/src/components/youtube_video/*.test.tsx` ✅ |
 | Status Log Dashboard | `webapp/channels/src/components/admin_console/status_log_dashboard/status_log_dashboard.test.tsx` ✅ |
 | Preference Overrides | `webapp/channels/src/components/admin_console/preference_overrides/preference_overrides_dashboard.test.tsx` ✅ |
 | Error Log Dashboard | `webapp/channels/src/components/admin_console/error_log_dashboard/error_log_dashboard.test.tsx` ✅ |
+| HideDeletedMessagePlaceholder | `webapp/channels/src/tests/mattermost_extended/websocket_post_delete.test.ts` ✅ |
+| SidebarChannelSettings | `webapp/channels/src/tests/mattermost_extended/sidebar_channel_settings.test.tsx` ✅ |
+| HideUpdateStatusButton | `webapp/channels/src/tests/mattermost_extended/hide_update_status_button.test.ts` ✅ |
+| SystemConsoleDarkMode | `webapp/channels/src/tests/mattermost_extended/system_console_dark_mode.test.tsx` ✅ |
+| SystemConsoleHideEnterprise | `webapp/channels/src/tests/mattermost_extended/admin_sidebar_features.test.tsx` ✅ |
+| SystemConsoleIcons | `webapp/channels/src/tests/mattermost_extended/admin_sidebar_features.test.tsx` ✅ |
 
 ### E2E Tests (Cypress)
 | Feature | File Path |
@@ -769,11 +803,14 @@ describe('ErrorLogDashboard', () => {
 3. ✅ Status features E2E
 4. ✅ Media features E2E
 
-### Phase 4: Remaining Tests (Lower Priority)
-1. ❌ UI tweak tests (simple toggles)
-2. ❌ System Console feature tests (CSS-based)
-3. ❌ Thread feature tests
-4. ✅ Status Logs Platform tests
+### Phase 4: Remaining Tests (Lower Priority) ✅ MOSTLY COMPLETE
+1. ✅ UI tweak tests (HideDeletedMessagePlaceholder, SidebarChannelSettings, HideUpdateStatusButton)
+2. ✅ System Console feature tests (SystemConsoleDarkMode, SystemConsoleHideEnterprise, SystemConsoleIcons)
+3. ✅ Multi Image View tests
+4. ✅ Sidebar Base Channel Icon tests
+5. ✅ Status Logs Platform tests
+6. ❌ Thread feature tests (ThreadsInSidebar, CustomThreadNames)
+7. ❌ MarkdownImage Captions tests (ImageCaptions)
 
 ---
 
