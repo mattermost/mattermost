@@ -102,18 +102,32 @@ func (a *App) GetPreferenceByCategoryForUser(rctx request.CTX, userID string, ca
 }
 
 func (a *App) GetPreferenceByCategoryAndNameForUser(rctx request.CTX, userID string, category string, preferenceName string) (*model.Preference, *model.AppError) {
+	// Check if there's an admin override for this preference
+	overrides := a.Config().MattermostExtendedSettings.Preferences.Overrides
+	key := category + ":" + preferenceName
+	var enforcedValue string
+	var hasOverride bool
+	if len(overrides) > 0 {
+		enforcedValue, hasOverride = overrides[key]
+	}
+
 	res, err := a.Srv().Store().Preference().Get(userID, category, preferenceName)
 	if err != nil {
+		// If the preference doesn't exist in DB but we have an override, return the override
+		if hasOverride {
+			return &model.Preference{
+				UserId:   userID,
+				Category: category,
+				Name:     preferenceName,
+				Value:    enforcedValue,
+			}, nil
+		}
 		return nil, model.NewAppError("GetPreferenceByCategoryAndNameForUser", "app.preference.get.app_error", nil, "", http.StatusBadRequest).Wrap(err)
 	}
 
 	// Apply override if this preference is admin-enforced
-	overrides := a.Config().MattermostExtendedSettings.Preferences.Overrides
-	if len(overrides) > 0 {
-		key := category + ":" + preferenceName
-		if enforcedValue, ok := overrides[key]; ok {
-			res.Value = enforcedValue
-		}
+	if hasOverride {
+		res.Value = enforcedValue
 	}
 
 	return res, nil
