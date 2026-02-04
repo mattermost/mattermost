@@ -849,6 +849,7 @@ const defaultServerConfig: AdminConfig = {
             APIKey: '',
         },
         TargetLanguages: ['en'],
+        Workers: 4,
         TimeoutMs: 5000,
         Agents: {
             LLMServiceID: '',
