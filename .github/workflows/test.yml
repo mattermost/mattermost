@@ -29,6 +29,10 @@ jobs:
       - name: Install gotestsum
         run: go install gotest.tools/gotestsum@v1.11.0
 
+      - name: Setup workspace
+        working-directory: ./server
+        run: make setup-go-work
+
       - name: Run Model Tests (MattermostExtended + StatusLog)
         working-directory: ./server
         run: |
