@@ -535,7 +535,32 @@ const StatusLogDashboard: React.FC<Props> = ({config, patchConfig}) => {
 
     const isEnabled = config.MattermostExtendedSettings?.Statuses?.EnableStatusLogs === true;
 
-    const loadLogs = useCallback(async (page = 0, append = false) => {
+    // Get time period cutoff in milliseconds (moved up for use in loadLogs/loadMore)
+    const getTimePeriodCutoff = useCallback((period: TimePeriodFilter): number => {
+        if (period === 'all') {
+            return 0;
+        }
+        const now = Date.now();
+        switch (period) {
+        case '5m':
+            return now - (5 * 60 * 1000);
+        case '15m':
+            return now - (15 * 60 * 1000);
+        case '1h':
+            return now - (60 * 60 * 1000);
+        case '6h':
+            return now - (6 * 60 * 60 * 1000);
+        case '24h':
+            return now - (24 * 60 * 60 * 1000);
+        default:
+            return 0;
+        }
+    }, []);
+
+    const loadLogs = useCallback(async (page = 0, append = false, options?: {
+        logType?: string;
+        since?: number;
+    }) => {
         if (!isEnabled) {
             setLoading(false);
             return;
@@ -548,7 +573,25 @@ const StatusLogDashboard: React.FC<Props> = ({config, patchConfig}) => {
         }
 
         try {
-            const response = await Client4.getStatusLogs({page, perPage});
+            // Build API options with server-side filters
+            const apiOptions: {
+                page: number;
+                perPage: number;
+                logType?: string;
+                since?: number;
+            } = {page, perPage};
+
+            // Apply log type filter server-side
+            if (options?.logType && options.logType !== 'all') {
+                apiOptions.logType = options.logType;
+            }
+
+            // Apply time period filter server-side
+            if (options?.since && options.since > 0) {
+                apiOptions.since = options.since;
+            }
+
+            const response = await Client4.getStatusLogs(apiOptions);
             if (append) {
                 setLogs((prev) => [...prev, ...(response.logs || [])]);
             } else {
@@ -568,13 +611,24 @@ const StatusLogDashboard: React.FC<Props> = ({config, patchConfig}) => {
 
     const loadMore = useCallback(() => {
         if (!loadingMore && hasMore) {
-            loadLogs(currentPage + 1, true);
+            // Pass current filters to maintain consistency when loading more
+            const since = getTimePeriodCutoff(timePeriodFilter);
+            loadLogs(currentPage + 1, true, {
+                logType: logTypeFilter,
+                since: since > 0 ? since : undefined,
+            });
         }
-    }, [loadLogs, currentPage, loadingMore, hasMore]);
+    }, [loadLogs, currentPage, loadingMore, hasMore, logTypeFilter, timePeriodFilter, getTimePeriodCutoff]);
 
+    // Reload when server-side filters change (logTypeFilter, timePeriodFilter)
+    // This resets to page 0 and fetches fresh data with the new filters
     useEffect(() => {
-        loadLogs(0, false);
-    }, [loadLogs]);
+        const since = getTimePeriodCutoff(timePeriodFilter);
+        loadLogs(0, false, {
+            logType: logTypeFilter,
+            since: since > 0 ? since : undefined,
+        });
+    }, [loadLogs, logTypeFilter, timePeriodFilter, getTimePeriodCutoff]);
 
     // WebSocket handler for real-time updates
     useEffect(() => {
@@ -585,19 +639,27 @@ const StatusLogDashboard: React.FC<Props> = ({config, patchConfig}) => {
         const handleWebSocketEvent = (msg: {event: string; data: {status_log: StatusLog}}) => {
             if (msg.event === 'status_log' && msg.data?.status_log) {
                 const log = msg.data.status_log;
-                // Add to beginning, don't slice to allow all loaded logs to remain
-                setLogs((prev) => [log, ...prev]);
-                setTotalCount((prev) => prev + 1);
+                const logType = log.log_type || 'status_change';
 
-                // Only update stats for status change logs, not activity logs
-                if (log.log_type !== 'activity') {
-                    setStats((prev) => ({
-                        total: prev.total + 1,
-                        online: prev.online + (log.new_status === 'online' ? 1 : 0),
-                        away: prev.away + (log.new_status === 'away' ? 1 : 0),
-                        dnd: prev.dnd + (log.new_status === 'dnd' ? 1 : 0),
-                        offline: prev.offline + (log.new_status === 'offline' ? 1 : 0),
-                    }));
+                // Only add logs that match the current filter
+                // This keeps the displayed list consistent with server-side filtering
+                const matchesFilter = logTypeFilter === 'all' || logType === logTypeFilter;
+
+                if (matchesFilter) {
+                    // Add to beginning, don't slice to allow all loaded logs to remain
+                    setLogs((prev) => [log, ...prev]);
+                    setTotalCount((prev) => prev + 1);
+
+                    // Only update stats for status change logs, not activity logs
+                    if (logType !== 'activity') {
+                        setStats((prev) => ({
+                            total: prev.total + 1,
+                            online: prev.online + (log.new_status === 'online' ? 1 : 0),
+                            away: prev.away + (log.new_status === 'away' ? 1 : 0),
+                            dnd: prev.dnd + (log.new_status === 'dnd' ? 1 : 0),
+                            offline: prev.offline + (log.new_status === 'offline' ? 1 : 0),
+                        }));
+                    }
                 }
             }
         };
@@ -607,7 +669,7 @@ const StatusLogDashboard: React.FC<Props> = ({config, patchConfig}) => {
         return () => {
             webSocketClient.removeMessageListener(handleWebSocketEvent);
         };
-    }, [isEnabled]);
+    }, [isEnabled, logTypeFilter]);
 
     const handleToggleFeature = async () => {
         try {
@@ -859,28 +921,6 @@ const StatusLogDashboard: React.FC<Props> = ({config, patchConfig}) => {
         });
         return Array.from(users).sort();
     }, [logs]);
-
-    // Get time period cutoff in milliseconds
-    const getTimePeriodCutoff = useCallback((period: TimePeriodFilter): number => {
-        if (period === 'all') {
-            return 0;
-        }
-        const now = Date.now();
-        switch (period) {
-        case '5m':
-            return now - (5 * 60 * 1000);
-        case '15m':
-            return now - (15 * 60 * 1000);
-        case '1h':
-            return now - (60 * 60 * 1000);
-        case '6h':
-            return now - (6 * 60 * 60 * 1000);
-        case '24h':
-            return now - (24 * 60 * 60 * 1000);
-        default:
-            return 0;
-        }
-    }, []);
 
     // Filter logs
     const filteredLogs = useMemo(() => {
