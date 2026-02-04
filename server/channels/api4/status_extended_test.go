@@ -142,9 +142,11 @@ func TestAccurateStatusesScenario(t *testing.T) {
 		assert.Equal(t, model.StatusDnd, status.Status)
 
 		// Simulate extended inactivity (31 minutes)
+		// Also set ActiveChannel so heartbeat activity detection works
 		dndStatus, appErr := th.App.GetStatus(th.BasicUser.Id)
 		require.Nil(t, appErr)
 		dndStatus.LastActivityAt = model.GetMillis() - (31 * 60 * 1000)
+		dndStatus.ActiveChannel = th.BasicChannel.Id
 		th.App.SaveAndBroadcastStatus(dndStatus)
 
 		// Heartbeat with window inactive - should transition to Offline
@@ -410,6 +412,12 @@ func TestCombinedFeaturesScenario(t *testing.T) {
 		require.NoError(t, err)
 		assert.Equal(t, model.StatusOffline, status.Status)
 
+		// Set ActiveChannel so heartbeat activity detection works
+		offlineStatus, appErr := th.App.GetStatus(th.BasicUser.Id)
+		require.Nil(t, appErr)
+		offlineStatus.ActiveChannel = th.BasicChannel.Id
+		th.App.SaveAndBroadcastStatus(offlineStatus)
+
 		// Heartbeat with window active
 		th.App.Srv().Platform().UpdateActivityFromHeartbeat(th.BasicUser.Id, true, th.BasicChannel.Id, "desktop")
 
@@ -432,11 +440,13 @@ func TestMultiUserStatusScenario(t *testing.T) {
 		})
 
 		// Set User1 to Away directly (SetStatusAwayIfNeeded may not work if user isn't in right state)
+		// ActiveChannel must be set for heartbeat activity detection to work
 		awayStatus := &model.Status{
 			UserId:         th.BasicUser.Id,
 			Status:         model.StatusAway,
 			Manual:         false,
 			LastActivityAt: model.GetMillis() - (10 * 60 * 1000), // 10 min ago
+			ActiveChannel:  th.BasicChannel.Id,
 		}
 		th.App.SaveAndBroadcastStatus(awayStatus)
 

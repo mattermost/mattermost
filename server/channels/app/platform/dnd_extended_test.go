@@ -110,12 +110,14 @@ func TestDNDRestoration(t *testing.T) {
 		})
 
 		// Set Offline status with PrevStatus = DND (user was DND, went offline due to inactivity)
+		// ActiveChannel must be set for heartbeat to count as manual activity
 		status := &model.Status{
 			UserId:         th.BasicUser.Id,
 			Status:         model.StatusOffline,
 			PrevStatus:     model.StatusDnd,
 			Manual:         false,
 			LastActivityAt: model.GetMillis() - 10000,
+			ActiveChannel:  th.BasicChannel.Id,
 		}
 		th.Service.SaveAndBroadcastStatus(status)
 
@@ -429,12 +431,14 @@ func TestDNDOfflineDoesNotTransitionToAway(t *testing.T) {
 
 		// Step 2: Simulate DND inactivity timeout - user goes offline
 		// This is what happens in UpdateActivityFromHeartbeat when DND user is inactive too long
+		// ActiveChannel is preserved so heartbeat activity detection works on return
 		offlineStatus := &model.Status{
 			UserId:         th.BasicUser.Id,
 			Status:         model.StatusOffline,
 			PrevStatus:     model.StatusDnd,
 			Manual:         false,
 			LastActivityAt: model.GetMillis() - (2 * 60 * 1000), // 2 minutes ago
+			ActiveChannel:  th.BasicChannel.Id,
 		}
 		th.Service.SaveAndBroadcastStatus(offlineStatus)
 
