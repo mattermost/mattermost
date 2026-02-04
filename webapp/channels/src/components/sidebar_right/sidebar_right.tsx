@@ -23,7 +23,7 @@ import Search from 'components/search/index';
 import RhsPlugin from 'plugins/rhs_plugin';
 import a11yController from 'utils/a11y_controller_instance';
 import {focusElement, getFirstFocusableChild} from 'utils/a11y_utils';
-import Constants from 'utils/constants';
+import Constants, {RHSStates} from 'utils/constants';
 import {cmdOrCtrlPressed, isKeyPressed} from 'utils/keyboard';
 import {isMac} from 'utils/user_agent';
 
@@ -47,6 +47,7 @@ export type Props = {
     isPluginView: boolean;
     isPostEditHistory: boolean;
     previousRhsState: RhsState;
+    rhsState: RhsState;
     rhsChannel?: Channel;
     selectedPostId: string;
     selectedPostCardId: string;
@@ -63,6 +64,7 @@ export type Props = {
         updateSearchTerms: (terms: string) => void;
         showChannelFiles: (channelId: string) => void;
         showChannelInfo: (channelId: string) => void;
+        showChannelMembers: (channelId: string) => void;
     };
 }
 
@@ -228,6 +230,17 @@ export default class SidebarRight extends React.PureComponent<Props, State> {
             (channel && !prevProps.channel)
         ) {
             this.props.actions.setRhsExpanded(false);
+        }
+
+        if (
+            prevProps.rhsState === RHSStates.THREAD_FOLLOWERS &&
+            this.props.channel && prevProps.channel &&
+            this.props.channel.id !== prevProps.channel.id
+        ) {
+            const isNowViewingChannel = !window.location.pathname.includes('/thread/');
+            if (isNowViewingChannel) {
+                this.props.actions.showChannelMembers(this.props.channel.id);
+            }
         }
 
         // close when changing products or teams
