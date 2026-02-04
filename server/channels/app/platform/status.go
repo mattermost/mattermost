@@ -1169,6 +1169,8 @@ func (ps *PlatformService) UpdateActivityFromHeartbeat(userID string, windowActi
 		if dbErr := ps.Store.Status().SaveOrUpdate(status); dbErr != nil {
 			ps.Log().Warn("Failed to save status from heartbeat", mlog.String("user_id", userID), mlog.Err(dbErr))
 		}
+		// Broadcast status change via WebSocket so other users see the update
+		ps.BroadcastStatus(status)
 	} else if lastActivityAtChanged {
 		if dbErr := ps.Store.Status().UpdateLastActivityAt(userID, status.LastActivityAt); dbErr != nil {
 			ps.Log().Warn("Failed to update LastActivityAt from heartbeat", mlog.String("user_id", userID), mlog.Err(dbErr))
