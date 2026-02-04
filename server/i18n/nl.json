@@ -11678,5 +11678,53 @@
   {
     "id": "app.recap.update.app_error",
     "translation": "Fout bij het bijwerken van de samenvatting."
+  },
+  {
+    "id": "api.user.oauth_to_email.not_oauth_user.app_error",
+    "translation": "Kan niet overschakelen naar e-mailauthenticatie omdat gebruiker geen OAuth- of SAML-authenticatie gebruikt."
+  },
+  {
+    "id": "ent.autotranslation.add_task.missing_object_id",
+    "translation": "De vertaaltaak moet een object-ID bevatten."
+  },
+  {
+    "id": "ent.autotranslation.add_task.missing_object_type",
+    "translation": "De vertaaltaak moet een objecttype bevatten."
+  },
+  {
+    "id": "ent.autotranslation.add_task.nil_task",
+    "translation": "Vertaaltaken kunnen niet leeg zijn."
+  },
+  {
+    "id": "ent.autotranslation.create_translation_failed",
+    "translation": "Fout bij het maken van de vertaling."
+  },
+  {
+    "id": "ent.autotranslation.detect_language.nil_context",
+    "translation": "Context is nodig voor taaldetectie."
+  },
+  {
+    "id": "ent.autotranslation.detect_language.text_too_large",
+    "translation": "Tekst overschrijdt maximale grootte voor taaldetectie."
+  },
+  {
+    "id": "ent.autotranslation.detect_remote.error",
+    "translation": "Taal is niet gedetecteerd met behulp van vertaalprovider."
+  },
+  {
+    "id": "ent.autotranslation.extract_content.mask_error",
+    "translation": "Inhoud niet gemaskeerd voor vertaling."
+  },
+  {
+    "id": "ent.autotranslation.extract_post.nil_post",
+    "translation": "Berichtobject kan niet leeg zijn."
+  },
+  {
+    "id": "ent.autotranslation.feature_unavailable",
+    "translation": "Automatische vertaling is niet beschikbaar. Neem contact op met je systeembeheerder over het upgraden van je bedrijfslicentie."
+  },
+  {
+    "id": "ent.autotranslation.invalid_input",
+    "translation": "Ongeldige taalcode opgegeven."
   }
 ]
