@@ -26,8 +26,10 @@ export interface Props extends PropsFromRedux {
 }
 
 export default function VideoPlayer(props: Props) {
-    // Use maxHeight/maxWidth props if provided, otherwise use defaults from config
     const {fileInfo, postId, compactDisplay, defaultMaxHeight, defaultMaxWidth} = props;
+
+    // Early return MUST be before hooks, but we need to handle this case carefully
+    // React hooks cannot be conditionally called, so we use safe defaults
     const maxHeight = props.maxHeight ?? defaultMaxHeight ?? 350;
     const maxWidth = props.maxWidth ?? defaultMaxWidth ?? 480;
     const [hasError, setHasError] = useState(false);
@@ -40,6 +42,9 @@ export default function VideoPlayer(props: Props) {
 
     const handleDoubleClick = useCallback((e: React.MouseEvent) => {
         e.preventDefault();
+        if (!fileInfo) {
+            return;
+        }
         props.actions.openModal({
             modalId: ModalIdentifiers.FILE_PREVIEW_MODAL,
             dialogType: FilePreviewModal,
@@ -56,9 +61,12 @@ export default function VideoPlayer(props: Props) {
     }, []);
 
     const handleDownload = useCallback(() => {
+        if (!fileInfo?.id) {
+            return;
+        }
         const downloadUrl = getFileDownloadUrl(fileInfo.id);
         window.open(downloadUrl, '_blank');
-    }, [fileInfo.id]);
+    }, [fileInfo?.id]);
 
     if (!fileInfo) {
         return null;

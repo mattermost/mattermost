@@ -99,9 +99,9 @@ describe('VideoLinkEmbed component', () => {
     test('renders video element with controls', () => {
         render(<VideoLinkEmbed {...defaultProps} />);
 
-        const video = screen.getByRole('application') || document.querySelector('video');
-        expect(document.querySelector('video')).toBeInTheDocument();
-        expect(document.querySelector('video')).toHaveAttribute('controls');
+        const video = document.querySelector('video');
+        expect(video).toBeInTheDocument();
+        expect(video).toHaveAttribute('controls');
     });
 
     test('sets video source from href', () => {
