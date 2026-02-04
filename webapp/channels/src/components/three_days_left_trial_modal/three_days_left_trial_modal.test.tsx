@@ -72,10 +72,6 @@ describe('components/three_days_left_trial_modal/three_days_left_trial_modal', (
         limitsOverpassed: false,
     };
 
-    beforeEach(() => {
-        jest.clearAllMocks();
-    });
-
     test('should render the modal with header, subtitle, feature cards, and view plans button', () => {
         renderWithContext(
             <ThreeDaysLeftTrialModal {...defaultProps}/>,

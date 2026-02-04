@@ -2752,7 +2752,6 @@
   "admin.site.fileSharingDownloads": "Dosya paylaşımı ve indirmeler",
   "admin.site.localization": "Yerelleştirme",
   "admin.site.localization.autoTranslationInfo": "Otomatik çeviri, gerek duyulan her kanalda açılmış olmalıdır.",
-  "admin.site.localization.autoTranslationInfoSecondary": "Birden fazla dil algılandığında, kullanıcılardan otomatik çeviriyi açmaları istenir. [Ayrıntılı bilgi alın](https://docs.mattermost.com/).",
   "admin.site.localization.autoTranslationProviderDescription": "<strong>NOT:</strong> Dış çeviri hizmetleri (bulut tabanlı gibi) kullanılıyorsa,{br}ileti verileri ortamınızın dışında işleniyor olabilir.",
   "admin.site.localization.autoTranslationProviderLibreTranslateAPIKeyDescription": "LibreTranslate sunucunuz için bir API anahtarı gerekiyorsa, buraya yazın. Gerekmiyorsa bu alanı boş bırakın. API anahtarı yönetimi için <link>LibreTranslate belgelerine</link> bakabilirsiniz.",
   "admin.site.localization.autoTranslationProviderLibreTranslateAPIKeyExample": "LibreTranslate API anahtarını yazın",

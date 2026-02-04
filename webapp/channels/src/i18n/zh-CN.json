@@ -2843,7 +2843,6 @@
   "admin.site.fileSharingDownloads": "文件共享与下载",
   "admin.site.localization": "本地化",
   "admin.site.localization.autoTranslationInfo": "还需要在每个需要的频道中启用自动翻译功能。",
-  "admin.site.localization.autoTranslationInfoSecondary": "当检测到多种语言时，用户将收到启用自动翻译的提示。[了解更多](https://docs.mattermost.com/)。",
   "admin.site.localization.autoTranslationProviderDescription": "<strong>注意：</strong>如果使用外部翻译服务（如基于云的服务），{br}消息数据可能会在您的环境之外被处理。",
   "admin.site.localization.autoTranslationProviderLibreTranslateAPIKeyDescription": "如果您的 LibreTranslate 服务器需要 API 密钥，请在此处输入。否则，请留空此字段。查看<link>LibreTranslate 文档</link>以了解 API 密钥管理。",
   "admin.site.localization.autoTranslationProviderLibreTranslateAPIKeyExample": "请输入 LibreTranslate API 密钥",

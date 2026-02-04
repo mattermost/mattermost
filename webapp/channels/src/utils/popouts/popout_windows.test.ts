@@ -46,7 +46,6 @@ const getMockSetupBrowserPopout = () => {
 
 describe('popout_windows', () => {
     beforeEach(() => {
-        jest.clearAllMocks();
         getMockSetupBrowserPopout().mockClear();
 
         // Default: no subpath
