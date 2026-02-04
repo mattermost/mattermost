@@ -7,6 +7,8 @@ import (
 	"encoding/json"
 	"net/http"
 
+	"github.com/gorilla/mux"
+
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
@@ -320,18 +322,17 @@ func adminDeleteOrphanedKeys(c *Context, w http.ResponseWriter, r *http.Request)
 
 // adminDeleteSessionKey removes a specific encryption session key (admin only)
 func adminDeleteSessionKey(c *Context, w http.ResponseWriter, r *http.Request) {
-	c.RequireSessionId()
-	if c.Err != nil {
-		return
-	}
-
 	// Check admin permission
 	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageSystem) {
 		c.SetPermissionError(model.PermissionManageSystem)
 		return
 	}
 
-	sessionId := c.Params.SessionId
+	sessionId := mux.Vars(r)["session_id"]
+	if sessionId == "" {
+		c.SetInvalidURLParam("session_id")
+		return
+	}
 
 	if err := c.App.Srv().Store().EncryptionSessionKey().DeleteBySession(sessionId); err != nil {
 		c.Err = model.NewAppError("adminDeleteSessionKey", "api.encryption.admin_delete_session_key.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
