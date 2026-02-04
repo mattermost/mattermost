@@ -12,7 +12,6 @@ on:
   pull_request:
     paths:
       - "server/**"
-      - "e2e-tests/**"
       - ".github/workflows/server-ci.yml"
       - ".github/workflows/server-test-template.yml"
       - ".github/workflows/mmctl-test-template.yml"
@@ -282,6 +281,12 @@ jobs:
     steps:
       - name: Checkout mattermost project
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+      - name: ci/setup-node
+        uses: actions/setup-node@395ad3262231945c25e8478fd5baf05154b1d79f # v6.1.0
+        with:
+          node-version-file: ".nvmrc"
+          cache: "npm"
+          cache-dependency-path: "webapp/package-lock.json"
       - name: Run setup-go-work
         run: make setup-go-work
       - name: Build

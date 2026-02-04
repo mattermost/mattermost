@@ -21,7 +21,6 @@ type Props = {
     onExited: () => void;
     userId: string;
     currentDate: Date;
-    locale: string;
     timezone?: string;
 
     actions: {

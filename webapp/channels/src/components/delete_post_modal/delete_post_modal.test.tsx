@@ -1,14 +1,13 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {shallow} from 'enzyme';
 import React from 'react';
-import {Modal} from 'react-bootstrap';
 
 import type {PostType, PostMetadata} from '@mattermost/types/posts';
 
 import DeletePostModal from 'components/delete_post_modal/delete_post_modal';
 
+import {renderWithContext, screen, userEvent, waitFor} from 'tests/react_testing_utils';
 import {getHistory} from 'utils/browser_history';
 
 describe('components/delete_post_modal', () => {
@@ -49,19 +48,19 @@ describe('components/delete_post_modal', () => {
     };
 
     test('should match snapshot for delete_post_modal with 0 comments', () => {
-        const wrapper = shallow(
+        const {baseElement} = renderWithContext(
             <DeletePostModal {...baseProps}/>,
         );
-        expect(wrapper).toMatchSnapshot();
+        expect(baseElement).toMatchSnapshot();
     });
 
     test('should match snapshot for delete_post_modal with 1 comment', () => {
         const commentCount = 1;
         const props = {...baseProps, commentCount};
-        const wrapper = shallow(
+        const {baseElement} = renderWithContext(
             <DeletePostModal {...props}/>,
         );
-        expect(wrapper).toMatchSnapshot();
+        expect(baseElement).toMatchSnapshot();
     });
 
     test('should match snapshot for post with 1 commentCount and is not rootPost', () => {
@@ -77,49 +76,59 @@ describe('components/delete_post_modal', () => {
             post: postObj,
         };
 
-        const wrapper = shallow(
+        const {baseElement} = renderWithContext(
             <DeletePostModal {...props}/>,
         );
-        expect(wrapper).toMatchSnapshot();
+        expect(baseElement).toMatchSnapshot();
     });
 
-    test('should focus delete button on enter', () => {
-        const wrapper = shallow<DeletePostModal>(
+    test('should focus delete button on enter', async () => {
+        renderWithContext(
             <DeletePostModal {...baseProps}/>,
         );
 
-        const deletePostBtn = {
-            current: {
-                focus: jest.fn(),
-            },
-        } as any;
-        wrapper.instance().deletePostBtn = deletePostBtn;
-
-        wrapper.instance().handleEntered();
-        expect(deletePostBtn.current.focus).toHaveBeenCalled();
+        // Wait for modal to be entered and focus applied
+        await waitFor(() => {
+            const deleteButton = screen.getByRole('button', {name: 'Delete'});
+            expect(deleteButton).toHaveFocus();
+        });
     });
 
-    test('should match state when onHide is called', () => {
-        const wrapper = shallow<DeletePostModal>(
+    test('should hide on Cancel', async () => {
+        renderWithContext(
             <DeletePostModal {...baseProps}/>,
         );
 
-        wrapper.setState({show: true});
-        wrapper.instance().onHide();
-        expect(wrapper.state('show')).toEqual(false);
+        // Modal should be visible
+        expect(screen.getByRole('dialog')).toBeInTheDocument();
+
+        // Click cancel to trigger onHide
+        await userEvent.click(screen.getByRole('button', {name: 'Cancel'}));
+
+        // Modal should be hidden
+        await waitFor(() => {
+            expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+        });
     });
 
-    test('should match state when the cancel button is clicked', () => {
-        const wrapper = shallow(
+    test('should match state when the cancel button is clicked', async () => {
+        renderWithContext(
             <DeletePostModal {...baseProps}/>,
         );
 
-        wrapper.setState({show: true});
-        wrapper.find('button').at(0).simulate('click');
-        expect(wrapper.state('show')).toEqual(false);
+        // Modal should be visible
+        expect(screen.getByRole('dialog')).toBeInTheDocument();
+
+        // Click cancel button
+        await userEvent.click(screen.getByRole('button', {name: 'Cancel'}));
+
+        // Modal should be hidden
+        await waitFor(() => {
+            expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+        });
     });
 
-    test('should have called actions.deleteAndRemovePost when handleDelete is called', async () => {
+    test('should have called actions.deleteAndRemovePost on Delete', async () => {
         const deleteAndRemovePost = jest.fn().mockReturnValueOnce({data: true});
         const props = {
             ...baseProps,
@@ -130,16 +139,25 @@ describe('components/delete_post_modal', () => {
                 pathname: '/teamname/messages/@username',
             },
         };
-        const wrapper = shallow<DeletePostModal>(
+        renderWithContext(
             <DeletePostModal {...props}/>,
         );
 
-        wrapper.setState({show: true});
-        wrapper.instance().handleDelete();
+        // Modal should be visible
+        expect(screen.getByRole('dialog')).toBeInTheDocument();
 
-        await expect(deleteAndRemovePost).toHaveBeenCalledTimes(1);
+        // Click delete button
+        await userEvent.click(screen.getByRole('button', {name: 'Delete'}));
+
+        await waitFor(() => {
+            expect(deleteAndRemovePost).toHaveBeenCalledTimes(1);
+        });
         expect(deleteAndRemovePost).toHaveBeenCalledWith(props.post);
-        expect(wrapper.state('show')).toEqual(false);
+
+        // Modal should be hidden
+        await waitFor(() => {
+            expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+        });
     });
 
     test('should have called browserHistory.replace when permalink post is deleted for DM/GM', async () => {
@@ -154,14 +172,16 @@ describe('components/delete_post_modal', () => {
             },
         };
 
-        const wrapper = shallow<DeletePostModal>(
+        renderWithContext(
             <DeletePostModal {...props}/>,
         );
 
-        wrapper.setState({show: true});
-        wrapper.instance().handleDelete();
+        // Click delete button
+        await userEvent.click(screen.getByRole('button', {name: 'Delete'}));
 
-        await expect(deleteAndRemovePost).toHaveBeenCalledTimes(1);
+        await waitFor(() => {
+            expect(deleteAndRemovePost).toHaveBeenCalledTimes(1);
+        });
         expect(getHistory().replace).toHaveBeenCalledWith('/teamname/messages/@username');
     });
 
@@ -177,27 +197,34 @@ describe('components/delete_post_modal', () => {
             },
         };
 
-        const wrapper = shallow<DeletePostModal>(
+        renderWithContext(
             <DeletePostModal {...props}/>,
         );
 
-        wrapper.setState({show: true});
-        wrapper.instance().handleDelete();
+        // Click delete button
+        await userEvent.click(screen.getByRole('button', {name: 'Delete'}));
 
-        await expect(deleteAndRemovePost).toHaveBeenCalledTimes(1);
+        await waitFor(() => {
+            expect(deleteAndRemovePost).toHaveBeenCalledTimes(1);
+        });
         expect(getHistory().replace).toHaveBeenCalledWith('/teamname/channels/channelName');
     });
 
-    test('should have called props.onExiteed when Modal.onExited is called', () => {
-        const wrapper = shallow(
-            <DeletePostModal {...baseProps}/>,
+    test('should have called props.onExited on Cancel', async () => {
+        const onExited = jest.fn();
+        renderWithContext(
+            <DeletePostModal
+                {...baseProps}
+                onExited={onExited}
+            />,
         );
 
-        const modalProps = wrapper.find(Modal).first().props();
-        if (modalProps.onExited) {
-            modalProps.onExited(document.createElement('div'));
-        }
-        expect(baseProps.onExited).toHaveBeenCalledTimes(1);
+        // Close modal to trigger onExited
+        await userEvent.click(screen.getByRole('button', {name: 'Cancel'}));
+
+        await waitFor(() => {
+            expect(onExited).toHaveBeenCalledTimes(1);
+        });
     });
 
     test('should warn about remote post deletion', () => {
@@ -209,11 +236,11 @@ describe('components/delete_post_modal', () => {
             },
         };
 
-        const wrapper = shallow<DeletePostModal>(
+        renderWithContext(
             <DeletePostModal {...props}/>,
         );
 
-        expect(wrapper.find('SharedChannelPostDeleteWarning')).toBeDefined();
-        console.log(wrapper.find('SharedChannelPostDeleteWarning').debug());
+        expect(screen.getByText('Shared Channel')).toBeInTheDocument();
+        expect(screen.getByText(/This message originated from a shared channel/)).toBeInTheDocument();
     });
 });

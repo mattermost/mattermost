@@ -672,7 +672,6 @@ export class AppsForm extends React.PureComponent<Props, State> {
             <>
                 {header && (
                     <AppsFormHeader
-                        id='appsModalHeader'
                         value={header}
                     />
                 )}

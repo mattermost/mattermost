@@ -15,7 +15,7 @@ exports[`components/integrations/AbstractOutgoingOAuthConnection should match sn
         "listen": [Function],
         "location": Object {
           "hash": "",
-          "pathname": "undefinedundefined",
+          "pathname": "/",
           "search": "",
           "state": undefined,
         },
@@ -478,7 +478,7 @@ exports[`components/integrations/AbstractOutgoingOAuthConnection should match sn
                 Get help with 
                 <a
                   href="https://mattermost.com/pl/outgoing-oauth-connections"
-                  key=".$.1"
+                  key="1/.1"
                 >
                   configuring outgoing OAuth connections
                 </a>
@@ -590,7 +590,7 @@ exports[`components/integrations/AbstractOutgoingOAuthConnection should match sn
         "listen": [Function],
         "location": Object {
           "hash": "",
-          "pathname": "undefinedundefined",
+          "pathname": "/",
           "search": "",
           "state": undefined,
         },
@@ -1073,7 +1073,7 @@ exports[`components/integrations/AbstractOutgoingOAuthConnection should match sn
                 Get help with 
                 <a
                   href="https://mattermost.com/pl/outgoing-oauth-connections"
-                  key=".$.1"
+                  key="1/.1"
                 >
                   configuring outgoing OAuth connections
                 </a>

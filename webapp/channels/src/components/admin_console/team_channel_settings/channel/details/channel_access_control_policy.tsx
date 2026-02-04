@@ -135,7 +135,7 @@ export const ChannelAccessControl: React.FC<Props> = (props: Props): JSX.Element
     return (
         <AdminPanelWithButton
             id='channel_access_control_with_policy'
-            title={defineMessage({id: 'admin.channel_settings.channel_detail.access_control_policy_title', defaultMessage: 'Access Policy'})}
+            title={defineMessage({id: 'admin.channel_settings.channel_detail.access_control_policy_title', defaultMessage: 'Access policy'})}
             subtitle={defineMessage({id: 'admin.channel_settings.channel_detail.policy_following', defaultMessage: 'This channel is currently using the following access policy.'})}
             buttonText={defineMessage({id: 'admin.channel_settings.channel_detail.remove_policy', defaultMessage: 'Remove all'})}
             onButtonClick={() => {

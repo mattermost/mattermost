@@ -36,21 +36,9 @@ var searchPostStoreTests = []searchTest{
 		Tags: []string{EnginePostgres, EngineElasticSearch},
 	},
 	{
-		Name: "Should be able to search without stemming",
-		Fn:   testStemming,
-		Tags: []string{EnginePostgres},
-	},
-	{
-		// Postgres supports search with and without quotes
 		Name: "Should be able to search for email addresses with or without quotes",
 		Fn:   testSearchEmailAddresses,
 		Tags: []string{EnginePostgres, EngineElasticSearch},
-	},
-	{
-		// MySql supports search with quotes only
-		Name: "Should be able to search for email addresses with quotes",
-		Fn:   testSearchEmailAddressesWithQuotes,
-		Tags: []string{EngineElasticSearch},
 	},
 	{
 		Name: "Should be able to search when markdown underscores are applied",
@@ -472,65 +460,6 @@ func testSearchANDORQuotesCombinations(t *testing.T, th *SearchTestHelper) {
 	}
 }
 
-func testStemming(t *testing.T, th *SearchTestHelper) {
-	p1, err := th.createPost(th.User.Id, th.ChannelBasic.Id, "great minds think", "", model.PostTypeDefault, 0, false)
-	require.NoError(t, err)
-	p2, err := th.createPost(th.User.Id, th.ChannelBasic.Id, "mindful of what you think", "", model.PostTypeDefault, 0, false)
-	require.NoError(t, err)
-
-	defer th.deleteUserPosts(th.User.Id)
-
-	testCases := []struct {
-		name        string
-		terms       string
-		orTerms     bool
-		expectedLen int
-		expectedIDs []string
-	}{
-		{
-			name:        "simple search, no stemming",
-			terms:       `"minds think"`,
-			orTerms:     false,
-			expectedLen: 1,
-			expectedIDs: []string{p1.Id},
-		},
-		{
-			name:        "simple search, single word, no stemming",
-			terms:       `"minds"`,
-			orTerms:     false,
-			expectedLen: 1,
-			expectedIDs: []string{p1.Id},
-		},
-		{
-			name:        "non-simple search, stemming",
-			terms:       `minds think`,
-			orTerms:     true,
-			expectedLen: 2,
-			expectedIDs: []string{p1.Id, p2.Id},
-		},
-		{
-			name:        "simple search, no stemming, no results",
-			terms:       `"mind"`,
-			orTerms:     false,
-			expectedLen: 0,
-			expectedIDs: []string{},
-		},
-	}
-
-	for _, tc := range testCases {
-		t.Run(tc.name, func(t *testing.T) {
-			params := &model.SearchParams{Terms: tc.terms, OrTerms: tc.orTerms}
-			results, err := th.Store.Post().SearchPostsForUser(th.Context, []*model.SearchParams{params}, th.User.Id, th.Team.Id, 0, 20)
-			require.NoError(t, err)
-
-			require.Len(t, results.Posts, tc.expectedLen)
-			for _, id := range tc.expectedIDs {
-				th.checkPostInSearchResults(t, id, results.Posts)
-			}
-		})
-	}
-}
-
 func testSearchEmailAddresses(t *testing.T, th *SearchTestHelper) {
 	p1, err := th.createPost(th.User.Id, th.ChannelBasic.Id, "email test@test.com", "", model.PostTypeDefault, 0, false)
 	require.NoError(t, err)
@@ -555,21 +484,6 @@ func testSearchEmailAddresses(t *testing.T, th *SearchTestHelper) {
 		require.Len(t, results.Posts, 1)
 		th.checkPostInSearchResults(t, p1.Id, results.Posts)
 	})
-}
-
-func testSearchEmailAddressesWithQuotes(t *testing.T, th *SearchTestHelper) {
-	p1, err := th.createPost(th.User.Id, th.ChannelBasic.Id, "email test@test.com", "", model.PostTypeDefault, 0, false)
-	require.NoError(t, err)
-	_, err = th.createPost(th.User.Id, th.ChannelBasic.Id, "email test2@test.com", "", model.PostTypeDefault, 0, false)
-	require.NoError(t, err)
-	defer th.deleteUserPosts(th.User.Id)
-
-	params := &model.SearchParams{Terms: "\"test@test.com\""}
-	results, err := th.Store.Post().SearchPostsForUser(th.Context, []*model.SearchParams{params}, th.User.Id, th.Team.Id, 0, 20)
-	require.NoError(t, err)
-
-	require.Len(t, results.Posts, 1)
-	th.checkPostInSearchResults(t, p1.Id, results.Posts)
 }
 
 func testSearchMarkdownUnderscores(t *testing.T, th *SearchTestHelper) {

@@ -188,7 +188,7 @@ const defaultServerConfig: AdminConfig = {
         PersistentNotificationIntervalMinutes: 5,
         PersistentNotificationMaxCount: 6,
         PersistentNotificationMaxRecipients: 5,
-        EnableBurnOnRead: false,
+        EnableBurnOnRead: true,
         BurnOnReadDurationSeconds: 600,
         BurnOnReadMaximumTimeToLiveSeconds: 604800,
         BurnOnReadSchedulerFrequencySeconds: 600,
@@ -776,8 +776,9 @@ const defaultServerConfig: AdminConfig = {
         EnableMattermostEntry: true,
         MobileSSOCodeExchange: true,
         AutoTranslation: false,
-        BurnOnRead: false,
+        BurnOnRead: true,
         EnableAIPluginBridge: false,
+        EnableAIRecaps: false,
     },
     ImportSettings: {
         Directory: './import',
@@ -843,14 +844,15 @@ const defaultServerConfig: AdminConfig = {
     AutoTranslationSettings: {
         Enable: false,
         Provider: '',
-        TimeoutsMs: {
-            NewPost: 800,
-            Fetch: 2000,
-            Notification: 300,
-        },
         LibreTranslate: {
             URL: '',
             APIKey: '',
+        },
+        TargetLanguages: ['en'],
+        Workers: 4,
+        TimeoutMs: 5000,
+        Agents: {
+            LLMServiceID: '',
         },
     },
 };
