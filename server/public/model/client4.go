@@ -3805,7 +3805,7 @@ func (c *Client4) SearchContentFlaggingReviewers(ctx context.Context, teamID, te
 }
 
 func (c *Client4) RemoveFlaggedPost(ctx context.Context, postId string, actionRequest *FlagContentActionRequest) (*Response, error) {
-	r, err := c.DoAPIPutJSON(ctx, fmt.Sprintf("%s/post/%s/remove", c.contentFlaggingRoute(), postId), actionRequest)
+	r, err := c.doAPIPutJSON(ctx, c.contentFlaggingRoute().Join("post", postId, "remove"), actionRequest)
 	if err != nil {
 		return BuildResponse(r), err
 	}
@@ -3815,7 +3815,7 @@ func (c *Client4) RemoveFlaggedPost(ctx context.Context, postId string, actionRe
 }
 
 func (c *Client4) KeepFlaggedPost(ctx context.Context, postId string, actionRequest *FlagContentActionRequest) (*Response, error) {
-	r, err := c.DoAPIPutJSON(ctx, fmt.Sprintf("%s/post/%s/keep", c.contentFlaggingRoute(), postId), actionRequest)
+	r, err := c.doAPIPutJSON(ctx, c.contentFlaggingRoute().Join("post", postId, "keep"), actionRequest)
 	if err != nil {
 		return BuildResponse(r), err
 	}
