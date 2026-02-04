@@ -1,0 +1,184 @@
+name: Tests
+
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+
+permissions:
+  contents: read
+
+jobs:
+  # Quick unit tests that don't need Docker
+  unit-tests:
+    name: Unit Tests
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: 'server/go.mod'
+          cache-dependency-path: |
+            server/go.sum
+            server/public/go.sum
+
+      - name: Install gotestsum
+        run: go install gotest.tools/gotestsum@v1.11.0
+
+      - name: Run Model Tests
+        working-directory: ./server
+        run: |
+          gotestsum --format testname -- -v ./public/model/... -timeout 10m
+
+  # Integration tests that need Docker
+  integration-tests:
+    name: Integration Tests
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_USER: mmuser
+          POSTGRES_PASSWORD: mostest
+          POSTGRES_DB: mattermost_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: 'server/go.mod'
+          cache-dependency-path: |
+            server/go.sum
+            server/public/go.sum
+
+      - name: Install gotestsum
+        run: go install gotest.tools/gotestsum@v1.11.0
+
+      - name: Setup workspace
+        working-directory: ./server
+        run: make setup-go-work
+
+      - name: Run Extended Status Tests
+        working-directory: ./server
+        env:
+          MM_SQLSETTINGS_DRIVERNAME: postgres
+          MM_SQLSETTINGS_DATASOURCE: postgres://mmuser:mostest@localhost:5432/mattermost_test?sslmode=disable
+        run: |
+          gotestsum --format testname -- -v \
+            -run "TestUpdateActivityFromHeartbeat|TestSetOnlineIfNoOffline|TestUpdateActivityFromManualAction|TestSetStatusOnlineWithDNDRestore|TestSaveStatus|TestSetStatusOffline|TestQueueSetStatusOffline" \
+            ./channels/app/platform/... \
+            -timeout 20m
+
+      - name: Run App Status Tests
+        working-directory: ./server
+        env:
+          MM_SQLSETTINGS_DRIVERNAME: postgres
+          MM_SQLSETTINGS_DATASOURCE: postgres://mmuser:mostest@localhost:5432/mattermost_test?sslmode=disable
+        run: |
+          gotestsum --format testname -- -v \
+            -run "TestCustomStatus|TestSetCustomStatus" \
+            ./channels/app/... \
+            -timeout 20m
+
+  # Coverage report for custom code
+  coverage:
+    name: Coverage Report
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_USER: mmuser
+          POSTGRES_PASSWORD: mostest
+          POSTGRES_DB: mattermost_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: 'server/go.mod'
+          cache-dependency-path: |
+            server/go.sum
+            server/public/go.sum
+
+      - name: Setup workspace
+        working-directory: ./server
+        run: make setup-go-work
+
+      - name: Run Tests with Coverage
+        working-directory: ./server
+        env:
+          MM_SQLSETTINGS_DRIVERNAME: postgres
+          MM_SQLSETTINGS_DATASOURCE: postgres://mmuser:mostest@localhost:5432/mattermost_test?sslmode=disable
+        run: |
+          go test -v \
+            -coverprofile=coverage.out \
+            -covermode=atomic \
+            ./public/model/... \
+            -timeout 10m
+
+      - name: Display Coverage
+        working-directory: ./server
+        run: |
+          echo "## Coverage Report" >> $GITHUB_STEP_SUMMARY
+          echo '```' >> $GITHUB_STEP_SUMMARY
+          go tool cover -func=coverage.out | grep -E "(MattermostExtended|total:)" >> $GITHUB_STEP_SUMMARY || true
+          echo '```' >> $GITHUB_STEP_SUMMARY
+
+  # Compile check (ensures tests compile without running them)
+  compile-check:
+    name: Compile Check
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: 'server/go.mod'
+          cache-dependency-path: |
+            server/go.sum
+            server/public/go.sum
+
+      - name: Setup workspace
+        working-directory: ./server
+        run: make setup-go-work
+
+      - name: Compile Server
+        working-directory: ./server
+        run: |
+          go build ./...
+
+      - name: Compile Tests
+        working-directory: ./server
+        run: |
+          go test -c ./public/model/...
+          go test -c ./channels/app/platform/...
+          go test -c ./channels/app/...
