@@ -1132,7 +1132,7 @@ func TestBuildStatusNotificationMessage(t *testing.T) {
 		assert.Equal(t, "testuser is now offline", message)
 	})
 
-	t.Run("should build message for sent message activity", func(t *testing.T) {
+	t.Run("should build message for sent message in channel", func(t *testing.T) {
 		th := Setup(t).InitBasic(t)
 
 		log := &model.StatusLog{
@@ -1142,7 +1142,20 @@ func TestBuildStatusNotificationMessage(t *testing.T) {
 		}
 
 		message := th.Service.buildStatusNotificationMessage(log)
-		assert.Equal(t, "testuser sent a message", message)
+		assert.Equal(t, "testuser messaged #general", message)
+	})
+
+	t.Run("should build message for sent message in DM", func(t *testing.T) {
+		th := Setup(t).InitBasic(t)
+
+		log := &model.StatusLog{
+			Username: "testuser",
+			LogType:  model.StatusLogTypeActivity,
+			Trigger:  "Sent message in @bob",
+		}
+
+		message := th.Service.buildStatusNotificationMessage(log)
+		assert.Equal(t, "testuser messaged @bob", message)
 	})
 
 	t.Run("should build message for channel view activity", func(t *testing.T) {
@@ -1155,7 +1168,72 @@ func TestBuildStatusNotificationMessage(t *testing.T) {
 		}
 
 		message := th.Service.buildStatusNotificationMessage(log)
-		assert.Equal(t, "testuser viewed a channel", message)
+		assert.Equal(t, "testuser opened #general", message)
+	})
+
+	t.Run("should build message for DM view activity", func(t *testing.T) {
+		th := Setup(t).InitBasic(t)
+
+		log := &model.StatusLog{
+			Username: "testuser",
+			LogType:  model.StatusLogTypeActivity,
+			Trigger:  "Loaded @bob",
+		}
+
+		message := th.Service.buildStatusNotificationMessage(log)
+		assert.Equal(t, "testuser opened chat with @bob", message)
+	})
+
+	t.Run("should build message for active channel set", func(t *testing.T) {
+		th := Setup(t).InitBasic(t)
+
+		log := &model.StatusLog{
+			Username: "testuser",
+			LogType:  model.StatusLogTypeActivity,
+			Trigger:  "Active Channel set to #devops",
+		}
+
+		message := th.Service.buildStatusNotificationMessage(log)
+		assert.Equal(t, "testuser is viewing #devops", message)
+	})
+
+	t.Run("should build message for active channel set to DM", func(t *testing.T) {
+		th := Setup(t).InitBasic(t)
+
+		log := &model.StatusLog{
+			Username: "testuser",
+			LogType:  model.StatusLogTypeActivity,
+			Trigger:  "Active Channel set to @alice",
+		}
+
+		message := th.Service.buildStatusNotificationMessage(log)
+		assert.Equal(t, "testuser is viewing @alice", message)
+	})
+
+	t.Run("should build message for fetch history in channel", func(t *testing.T) {
+		th := Setup(t).InitBasic(t)
+
+		log := &model.StatusLog{
+			Username: "testuser",
+			LogType:  model.StatusLogTypeActivity,
+			Trigger:  "Fetched history of #general",
+		}
+
+		message := th.Service.buildStatusNotificationMessage(log)
+		assert.Equal(t, "testuser scrolled in #general", message)
+	})
+
+	t.Run("should build message for fetch history in DM", func(t *testing.T) {
+		th := Setup(t).InitBasic(t)
+
+		log := &model.StatusLog{
+			Username: "testuser",
+			LogType:  model.StatusLogTypeActivity,
+			Trigger:  "Fetched history of @bob",
+		}
+
+		message := th.Service.buildStatusNotificationMessage(log)
+		assert.Equal(t, "testuser scrolled in @bob", message)
 	})
 
 	t.Run("should build message for window focus activity", func(t *testing.T) {
@@ -1182,5 +1260,86 @@ func TestBuildStatusNotificationMessage(t *testing.T) {
 
 		message := th.Service.buildStatusNotificationMessage(log)
 		assert.Equal(t, "", message)
+	})
+
+	t.Run("should fallback to trigger text for unknown activity", func(t *testing.T) {
+		th := Setup(t).InitBasic(t)
+
+		log := &model.StatusLog{
+			Username: "testuser",
+			LogType:  model.StatusLogTypeActivity,
+			Trigger:  "Some custom trigger",
+		}
+
+		message := th.Service.buildStatusNotificationMessage(log)
+		assert.Equal(t, "testuser: Some custom trigger", message)
+	})
+
+	t.Run("should fallback to generic message when no trigger", func(t *testing.T) {
+		th := Setup(t).InitBasic(t)
+
+		log := &model.StatusLog{
+			Username: "testuser",
+			LogType:  model.StatusLogTypeActivity,
+			Trigger:  "",
+		}
+
+		message := th.Service.buildStatusNotificationMessage(log)
+		assert.Equal(t, "testuser had activity", message)
+	})
+
+	t.Run("should handle sent message without channel", func(t *testing.T) {
+		th := Setup(t).InitBasic(t)
+
+		log := &model.StatusLog{
+			Username: "testuser",
+			LogType:  model.StatusLogTypeActivity,
+			Trigger:  "Sent message in ", // No channel name
+		}
+
+		message := th.Service.buildStatusNotificationMessage(log)
+		assert.Equal(t, "testuser sent a message", message)
+	})
+}
+
+func TestExtractChannelOrDMTarget(t *testing.T) {
+	t.Run("should extract channel name with #", func(t *testing.T) {
+		result := extractChannelOrDMTarget("Sent message in #general")
+		assert.Equal(t, "#general", result)
+	})
+
+	t.Run("should extract DM name with @", func(t *testing.T) {
+		result := extractChannelOrDMTarget("Loaded @bob")
+		assert.Equal(t, "@bob", result)
+	})
+
+	t.Run("should return empty for no target", func(t *testing.T) {
+		result := extractChannelOrDMTarget("Window Active")
+		assert.Equal(t, "", result)
+	})
+
+	t.Run("should handle channel name with special chars", func(t *testing.T) {
+		result := extractChannelOrDMTarget("Active Channel set to #dev-ops_team")
+		assert.Equal(t, "#dev-ops_team", result)
+	})
+
+	t.Run("should handle DM with dots in username", func(t *testing.T) {
+		result := extractChannelOrDMTarget("Fetched history of @john.doe")
+		assert.Equal(t, "@john.doe", result)
+	})
+
+	t.Run("should prefer last # if multiple present", func(t *testing.T) {
+		result := extractChannelOrDMTarget("Some text with # and #actual-channel")
+		assert.Equal(t, "#actual-channel", result)
+	})
+
+	t.Run("should handle empty string", func(t *testing.T) {
+		result := extractChannelOrDMTarget("")
+		assert.Equal(t, "", result)
+	})
+
+	t.Run("should handle group DM format", func(t *testing.T) {
+		result := extractChannelOrDMTarget("Loaded @john, jane, bob")
+		assert.Equal(t, "@john, jane, bob", result)
 	})
 }

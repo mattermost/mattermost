@@ -362,26 +362,74 @@ func (ps *PlatformService) buildStatusChangeMessage(log *model.StatusLog) string
 func (ps *PlatformService) buildActivityMessage(log *model.StatusLog) string {
 	trigger := log.Trigger
 
-	// Handle specific activity types
-	if strings.Contains(trigger, "Sent message") {
+	// Extract channel (#channel) or DM (@user) target from trigger
+	target := extractChannelOrDMTarget(trigger)
+
+	// Handle specific activity types with human-friendly messages
+	if strings.Contains(trigger, "Sent message in ") {
+		if strings.HasPrefix(target, "@") {
+			return fmt.Sprintf("%s messaged %s", log.Username, target)
+		}
+		if target != "" {
+			return fmt.Sprintf("%s messaged %s", log.Username, target)
+		}
 		return fmt.Sprintf("%s sent a message", log.Username)
 	}
 
 	if strings.Contains(trigger, "Loaded ") {
-		// Extract channel name from trigger like "Loaded #general"
-		return fmt.Sprintf("%s viewed a channel", log.Username)
+		if strings.HasPrefix(target, "@") {
+			return fmt.Sprintf("%s opened chat with %s", log.Username, target)
+		}
+		if target != "" {
+			return fmt.Sprintf("%s opened %s", log.Username, target)
+		}
+		return fmt.Sprintf("%s opened a channel", log.Username)
+	}
+
+	if strings.Contains(trigger, "Active Channel set to ") {
+		if strings.HasPrefix(target, "@") {
+			return fmt.Sprintf("%s is viewing %s", log.Username, target)
+		}
+		if target != "" {
+			return fmt.Sprintf("%s is viewing %s", log.Username, target)
+		}
+		return fmt.Sprintf("%s switched channels", log.Username)
+	}
+
+	if strings.Contains(trigger, "Fetched history of ") {
+		if strings.HasPrefix(target, "@") {
+			return fmt.Sprintf("%s scrolled in %s", log.Username, target)
+		}
+		if target != "" {
+			return fmt.Sprintf("%s scrolled in %s", log.Username, target)
+		}
+		return fmt.Sprintf("%s scrolled history", log.Username)
 	}
 
 	if log.Reason == model.StatusLogReasonWindowFocus {
 		return fmt.Sprintf("%s is active", log.Username)
 	}
 
-	// Fallback: use the trigger directly
+	// Fallback: use the trigger directly if available
 	if trigger != "" {
 		return fmt.Sprintf("%s: %s", log.Username, trigger)
 	}
 
 	return fmt.Sprintf("%s had activity", log.Username)
+}
+
+// extractChannelOrDMTarget extracts "#channel" or "@user" from a trigger string.
+// Returns empty string if no target found.
+func extractChannelOrDMTarget(trigger string) string {
+	// Look for # (channel) - use LastIndex in case there are multiple
+	if idx := strings.LastIndex(trigger, "#"); idx != -1 {
+		return trigger[idx:]
+	}
+	// Look for @ (DM)
+	if idx := strings.LastIndex(trigger, "@"); idx != -1 {
+		return trigger[idx:]
+	}
+	return ""
 }
 
 // dndTimeoutCheckLoop runs periodically to check for DND users who have been inactive
