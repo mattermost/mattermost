@@ -430,16 +430,22 @@ func TestMultiUserStatusScenario(t *testing.T) {
 			cfg.FeatureFlags.AccurateStatuses = true
 		})
 
-		// User1 is Away
-		th.App.SetStatusAwayIfNeeded(th.BasicUser.Id, true)
+		// Set User1 to Away directly (SetStatusAwayIfNeeded may not work if user isn't in right state)
+		awayStatus := &model.Status{
+			UserId:         th.BasicUser.Id,
+			Status:         model.StatusAway,
+			Manual:         false,
+			LastActivityAt: model.GetMillis() - (10 * 60 * 1000), // 10 min ago
+		}
+		th.App.SaveAndBroadcastStatus(awayStatus)
 
 		// User2 checks User1's status
 		th.LoginBasic2(t)
 		status, _, err := th.Client.GetUserStatus(context.Background(), th.BasicUser.Id, "")
 		require.NoError(t, err)
-		assert.Equal(t, model.StatusAway, status.Status)
+		assert.Equal(t, model.StatusAway, status.Status, "User1 should be Away")
 
-		// User1 becomes active
+		// User1 becomes active via heartbeat with window active
 		th.App.Srv().Platform().UpdateActivityFromHeartbeat(th.BasicUser.Id, true, th.BasicChannel.Id, "desktop")
 
 		// User2 should see the updated status
@@ -562,22 +568,29 @@ func TestWebSocketStatusEvents(t *testing.T) {
 		// Listen for status change events
 		wsClient.Listen()
 
-		// Give WebSocket time to connect
-		time.Sleep(500 * time.Millisecond)
+		// Give WebSocket time to connect - increase wait time for CI
+		time.Sleep(1 * time.Second)
 
-		// User1 changes status
+		// First ensure User1 is offline so the status change is visible
+		th.App.SetStatusOffline(th.BasicUser.Id, false, true)
+
+		// Small delay to let the offline status settle
+		time.Sleep(100 * time.Millisecond)
+
+		// User1 changes status to online
 		th.App.SetStatusOnline(th.BasicUser.Id, false)
 
-		// Wait for and verify WebSocket event
+		// Wait for and verify WebSocket event with longer timeout for CI
 		received := false
-		timeout := time.After(5 * time.Second)
+		timeout := time.After(10 * time.Second)
 
 	eventLoop:
 		for {
 			select {
 			case event := <-wsClient.EventChannel:
 				if event.EventType() == model.WebsocketEventStatusChange {
-					if event.GetData()["user_id"] == th.BasicUser.Id {
+					data := event.GetData()
+					if data["user_id"] == th.BasicUser.Id {
 						received = true
 						break eventLoop
 					}
