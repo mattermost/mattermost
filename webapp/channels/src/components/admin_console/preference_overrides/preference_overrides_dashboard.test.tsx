@@ -112,7 +112,7 @@ describe('PreferenceOverridesDashboard', () => {
         );
 
         expect(screen.getByText('Preference Overrides')).toBeInTheDocument();
-        expect(screen.getByText('Enable Preference Overrides')).toBeInTheDocument();
+        expect(screen.getByText('Enable Preference Overrides Dashboard')).toBeInTheDocument();
     });
 
     test('should enable feature when enable button clicked', async () => {
@@ -123,7 +123,7 @@ describe('PreferenceOverridesDashboard', () => {
             />,
         );
 
-        const enableButton = screen.getByText('Enable Preference Overrides');
+        const enableButton = screen.getByText('Enable Preference Overrides Dashboard');
         await userEvent.click(enableButton);
 
         expect(mockPatchConfig).toHaveBeenCalledWith({
