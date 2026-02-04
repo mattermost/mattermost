@@ -449,6 +449,38 @@ func TestServePluginRequest(t *testing.T) {
 		require.True(t, handlerCalled)
 	})
 
+	t.Run("connection id passed to plugin context", func(t *testing.T) {
+		connectionId := "test-connection-id-abc123"
+		req := httptest.NewRequest(http.MethodGet, "/plugins/testplugin/endpoint", nil)
+		req = mux.SetURLVars(req, map[string]string{"plugin_id": "testplugin"})
+		req.Header.Set(model.ConnectionId, connectionId)
+		rr := httptest.NewRecorder()
+
+		handlerCalled := false
+		mockHandler := func(ctx *plugin.Context, w http.ResponseWriter, r *http.Request) {
+			handlerCalled = true
+			assert.Equal(t, connectionId, ctx.ConnectionId)
+		}
+
+		th.App.ch.servePluginRequest(rr, req, mockHandler)
+		require.True(t, handlerCalled)
+	})
+
+	t.Run("empty connection id when header not present", func(t *testing.T) {
+		req := httptest.NewRequest(http.MethodGet, "/plugins/testplugin/endpoint", nil)
+		req = mux.SetURLVars(req, map[string]string{"plugin_id": "testplugin"})
+		rr := httptest.NewRecorder()
+
+		handlerCalled := false
+		mockHandler := func(ctx *plugin.Context, w http.ResponseWriter, r *http.Request) {
+			handlerCalled = true
+			assert.Empty(t, ctx.ConnectionId)
+		}
+
+		th.App.ch.servePluginRequest(rr, req, mockHandler)
+		require.True(t, handlerCalled)
+	})
+
 	t.Run("subpath handling", func(t *testing.T) {
 		// Set up with subpath
 		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.SiteURL = "http://localhost:8065/subpath" })
