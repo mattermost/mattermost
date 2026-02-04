@@ -379,23 +379,19 @@ describe('StatusLogDashboard', () => {
             expect(screen.getByText('Export JSON')).toBeInTheDocument();
         });
 
-        // Now set up download mocks AFTER render is complete
+        // Set up download mocks - use a real anchor element to avoid appendChild issues
         const mockCreateObjectURL = jest.fn().mockReturnValue('blob:test');
         const mockRevokeObjectURL = jest.fn();
         global.URL.createObjectURL = mockCreateObjectURL;
         global.URL.revokeObjectURL = mockRevokeObjectURL;
 
-        // Mock only createElement for 'a' tags, not appendChild/removeChild
-        const mockLink = {
-            href: '',
-            download: '',
-            click: jest.fn(),
-            style: {},
-        } as unknown as HTMLAnchorElement;
+        // Create a real anchor element and spy on its click method
+        const realLink = document.createElement('a');
+        const clickSpy = jest.spyOn(realLink, 'click').mockImplementation(() => {});
         const originalCreateElement = document.createElement.bind(document);
         const createElementSpy = jest.spyOn(document, 'createElement').mockImplementation((tagName: string) => {
             if (tagName === 'a') {
-                return mockLink;
+                return realLink;
             }
             return originalCreateElement(tagName);
         });
@@ -409,6 +405,7 @@ describe('StatusLogDashboard', () => {
 
         // Restore mocks
         createElementSpy.mockRestore();
+        clickSpy.mockRestore();
     });
 
     test('should switch between tabs', async () => {
@@ -484,13 +481,31 @@ describe('StatusLogDashboard', () => {
     });
 
     test('should load more logs when button clicked', async () => {
+        // Second page has different log IDs to avoid duplicate key warnings
+        const secondPageLogs = [
+            {
+                id: 'log4',
+                create_at: Date.now() - 120000,
+                user_id: 'user1',
+                username: 'testuser1',
+                old_status: 'online',
+                new_status: 'dnd',
+                reason: 'manual',
+                window_active: true,
+                device: 'desktop',
+                log_type: 'status_change',
+                manual: true,
+                source: 'SetStatus',
+            },
+        ];
+
         Client4.getStatusLogs.mockResolvedValueOnce({
             logs: mockLogs,
             stats: mockStats,
             has_more: true,
             total_count: 10,
         }).mockResolvedValueOnce({
-            logs: mockLogs,
+            logs: secondPageLogs,
             stats: mockStats,
             has_more: false,
             total_count: 10,

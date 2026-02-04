@@ -308,23 +308,19 @@ describe('ErrorLogDashboard', () => {
             expect(screen.getByText('Export JSON')).toBeInTheDocument();
         });
 
-        // Now set up download mocks AFTER render is complete
+        // Set up download mocks - use a real anchor element to avoid appendChild issues
         const mockCreateObjectURL = jest.fn().mockReturnValue('blob:test');
         const mockRevokeObjectURL = jest.fn();
         global.URL.createObjectURL = mockCreateObjectURL;
         global.URL.revokeObjectURL = mockRevokeObjectURL;
 
-        // Mock only createElement for 'a' tags, not appendChild/removeChild
-        const mockLink = {
-            href: '',
-            download: '',
-            click: jest.fn(),
-            style: {},
-        } as unknown as HTMLAnchorElement;
+        // Create a real anchor element and spy on its click method
+        const realLink = document.createElement('a');
+        const clickSpy = jest.spyOn(realLink, 'click').mockImplementation(() => {});
         const originalCreateElement = document.createElement.bind(document);
         const createElementSpy = jest.spyOn(document, 'createElement').mockImplementation((tagName: string) => {
             if (tagName === 'a') {
-                return mockLink;
+                return realLink;
             }
             return originalCreateElement(tagName);
         });
@@ -334,10 +330,11 @@ describe('ErrorLogDashboard', () => {
 
         expect(mockCreateObjectURL).toHaveBeenCalled();
         expect(mockRevokeObjectURL).toHaveBeenCalled();
-        expect(mockLink.click).toHaveBeenCalled();
+        expect(clickSpy).toHaveBeenCalled();
 
         // Restore mocks
         createElementSpy.mockRestore();
+        clickSpy.mockRestore();
     });
 
     test('should display loading state', () => {
