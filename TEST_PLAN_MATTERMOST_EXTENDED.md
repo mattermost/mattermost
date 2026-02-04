@@ -20,7 +20,7 @@ This document outlines the complete test coverage plan for all Mattermost Extend
 | AccurateStatuses | ✅ Exists | ❌ Missing | ❌ Missing | Partial |
 | NoOffline | ✅ Exists | ❌ Missing | ❌ Missing | Partial |
 | DND Extended | ✅ Exists | ❌ Missing | ❌ Missing | Partial |
-| Status Log Dashboard | ✅ Exists | ❌ Missing | ❌ Missing | Partial |
+| Status Log Dashboard | ✅ Exists | ✅ Exists | ❌ Missing | Good |
 | Custom Channel Icons | ✅ Exists | ❌ Missing | ❌ Missing | Partial |
 | Encryption (E2EE) | ✅ Exists | ❌ Missing | ❌ Missing | Partial |
 | ThreadsInSidebar | ❌ Missing | ❌ Missing | ❌ Missing | None |
@@ -31,18 +31,19 @@ This document outlines the complete test coverage plan for all Mattermost Extend
 | VideoEmbed | ❌ Missing | ❌ Missing | ❌ Missing | None |
 | VideoLinkEmbed | ❌ Missing | ❌ Missing | ❌ Missing | None |
 | EmbedYoutube | ❌ Missing | ❌ Missing | ❌ Missing | None |
-| ErrorLogDashboard | ✅ Exists | ❌ Missing | ❌ Missing | Partial |
+| ErrorLogDashboard | ✅ Exists | ✅ Exists | ❌ Missing | Good |
 | SystemConsoleDarkMode | N/A | ❌ Missing | ❌ Missing | None |
 | SystemConsoleHideEnterprise | N/A | ❌ Missing | ❌ Missing | None |
 | SystemConsoleIcons | N/A | ❌ Missing | ❌ Missing | None |
 | SettingsResorted | N/A | ❌ Missing | ❌ Missing | None |
 | PreferencesRevamp | ❌ Missing | ❌ Missing | ❌ Missing | None |
-| PreferenceOverridesDashboard | ✅ Exists | ❌ Missing | ❌ Missing | Partial |
+| PreferenceOverridesDashboard | ✅ Exists | ✅ Exists | ❌ Missing | Good |
 | HideDeletedMessagePlaceholder | ❌ Missing | ❌ Missing | ❌ Missing | None |
 | SidebarChannelSettings | ❌ Missing | ❌ Missing | ❌ Missing | None |
 | HideUpdateStatusButton | ❌ Missing | ❌ Missing | ❌ Missing | None |
 | MattermostExtendedSettings | ✅ Exists | N/A | N/A | Complete |
 | StatusLog Model | ✅ Exists | N/A | N/A | Complete |
+| Status Logs Platform | ✅ Exists | N/A | N/A | Complete |
 
 ---
 
@@ -177,6 +178,107 @@ Tests the REST API for preference overrides:
 - ✅ `TestGetPreferenceWithOverride` - Returns overridden value when set
 - ✅ `TestGetPreferenceWithOverride` - Returns user value when no override
 - ✅ `TestPreferenceOverrideApplied` - User cannot change overridden preference
+
+### 12. Status Logs Platform Tests
+**File:** `server/channels/app/platform/status_logs_test.go`
+
+Tests the platform layer for status logs:
+- ✅ `TestLogStatusChange` - Saves status change when enabled
+- ✅ `TestLogStatusChange` - Does NOT save when disabled
+- ✅ `TestLogStatusChange` - Sets default device when empty
+- ✅ `TestLogStatusChange` - Generates trigger text for window focus
+- ✅ `TestLogStatusChange` - Includes inactivity timeout in trigger
+- ✅ `TestLogStatusChange` - Tracks manual flag
+- ✅ `TestLogActivityUpdate` - Saves activity update when enabled
+- ✅ `TestLogActivityUpdate` - Does NOT save when disabled
+- ✅ `TestLogActivityUpdate` - Formats public channel with # prefix
+- ✅ `TestLogActivityUpdate` - Formats DM channel with @ prefix
+- ✅ `TestLogActivityUpdate` - Formats various trigger types
+- ✅ `TestGetStatusLogs` - Returns empty list when no logs
+- ✅ `TestGetStatusLogs` - Returns logs with default pagination
+- ✅ `TestGetStatusLogsWithOptions` - Filters by user_id
+- ✅ `TestGetStatusLogsWithOptions` - Filters by log_type
+- ✅ `TestGetStatusLogsWithOptions` - Filters by status
+- ✅ `TestGetStatusLogsWithOptions` - Paginates correctly
+- ✅ `TestGetStatusLogCount` - Returns correct count
+- ✅ `TestGetStatusLogCount` - Respects filters
+- ✅ `TestClearStatusLogs` - Clears all logs
+- ✅ `TestGetStatusLogStats` - Returns zero stats when no logs
+- ✅ `TestGetStatusLogStats` - Returns correct stats
+- ✅ `TestCleanupOldStatusLogs` - Deletes logs older than retention
+- ✅ `TestCleanupOldStatusLogs` - Does NOT delete when retention is 0
+- ✅ `TestCheckDNDTimeouts` - Sets inactive DND users to Offline
+- ✅ `TestCheckDNDTimeouts` - Does NOT affect DND users within timeout
+- ✅ `TestCheckDNDTimeouts` - Skips when AccurateStatuses disabled
+- ✅ `TestCheckDNDTimeouts` - Skips when DNDInactivityTimeoutMinutes is 0
+- ✅ `TestBuildStatusNotificationMessage` - Builds correct messages
+
+### 13. Status Log Dashboard Webapp Tests
+**File:** `webapp/channels/src/components/admin_console/status_log_dashboard/status_log_dashboard.test.tsx`
+
+Tests the React component for the Status Log Dashboard:
+- ✅ Renders promotional card when feature is disabled
+- ✅ Enables feature when enable button clicked
+- ✅ Renders dashboard when feature is enabled
+- ✅ Displays log entries
+- ✅ Displays status change correctly
+- ✅ Filters logs by log type
+- ✅ Filters logs by status
+- ✅ Searches logs by text
+- ✅ Clears all logs when confirmed
+- ✅ Does NOT clear logs when cancelled
+- ✅ Exports logs as JSON
+- ✅ Switches between tabs
+- ✅ Displays loading state
+- ✅ Displays empty state when no logs
+- ✅ Loads more logs when button clicked
+- ✅ Displays device icons
+- ✅ Displays manual vs auto badge
+- ✅ Clears all filters
+- ✅ Displays activity log with trigger
+
+### 14. Error Log Dashboard Webapp Tests
+**File:** `webapp/channels/src/components/admin_console/error_log_dashboard/error_log_dashboard.test.tsx`
+
+Tests the React component for the Error Log Dashboard:
+- ✅ Renders promotional card when feature is disabled
+- ✅ Enables feature when enable button clicked
+- ✅ Renders dashboard when feature is enabled
+- ✅ Displays error statistics
+- ✅ Displays error entries
+- ✅ Filters errors by type
+- ✅ Searches errors by text
+- ✅ Clears all errors when confirmed
+- ✅ Does NOT clear errors when cancelled
+- ✅ Exports errors as JSON
+- ✅ Displays loading state
+- ✅ Displays empty state when no errors
+- ✅ Toggles view mode between list and grouped
+- ✅ Displays API error details
+- ✅ Displays JavaScript error details
+- ✅ Expands stack trace
+- ✅ Adds muted pattern
+- ✅ Toggles showing muted errors
+- ✅ Copies error to clipboard
+
+### 15. Preference Overrides Dashboard Webapp Tests
+**File:** `webapp/channels/src/components/admin_console/preference_overrides/preference_overrides_dashboard.test.tsx`
+
+Tests the React component for the Preference Overrides Dashboard:
+- ✅ Renders promotional card when feature is disabled
+- ✅ Enables feature when enable button clicked
+- ✅ Renders dashboard when feature is enabled
+- ✅ Loads preferences from server
+- ✅ Displays preference categories
+- ✅ Displays existing overrides
+- ✅ Enables save button when changes are made
+- ✅ Displays loading state
+- ✅ Displays error state on API failure
+- ✅ Refreshes preferences
+- ✅ Saves overrides
+- ✅ Toggles override when lock button clicked
+- ✅ Displays preference values in dropdown
+- ✅ Groups preferences by category or SettingsResorted groups
 
 ---
 
@@ -797,7 +899,7 @@ describe('ErrorLogDashboard', () => {
 | Encryption API | `server/channels/api4/encryption_test.go` ✅ |
 | Encryption Store | `server/channels/store/sqlstore/encryption_session_key_store_test.go` ✅ |
 | Status Logs Store | `server/channels/store/sqlstore/status_log_store_test.go` ✅ |
-| Status Logs Platform | `server/channels/app/platform/status_logs_test.go` ❌ |
+| Status Logs Platform | `server/channels/app/platform/status_logs_test.go` ✅ |
 | Error Log API | `server/channels/api4/error_log_test.go` ✅ |
 | Preferences | `server/channels/api4/preference_override_test.go` ✅ |
 
@@ -811,9 +913,9 @@ describe('ErrorLogDashboard', () => {
 | Video Player | `webapp/channels/src/components/video_player/*.test.tsx` ❌ |
 | Video Link Embed | `webapp/channels/src/components/video_link_embed/*.test.tsx` ❌ |
 | YouTube Discord | `webapp/channels/src/components/youtube_video/*.test.tsx` ❌ |
-| Status Log Dashboard | `webapp/channels/src/components/admin_console/status_log_dashboard/*.test.tsx` ❌ |
-| Preference Overrides | `webapp/channels/src/components/admin_console/preference_overrides/*.test.tsx` ❌ |
-| Error Log Dashboard | `webapp/channels/src/components/admin_console/error_log_dashboard/*.test.tsx` ❌ |
+| Status Log Dashboard | `webapp/channels/src/components/admin_console/status_log_dashboard/status_log_dashboard.test.tsx` ✅ |
+| Preference Overrides | `webapp/channels/src/components/admin_console/preference_overrides/preference_overrides_dashboard.test.tsx` ✅ |
+| Error Log Dashboard | `webapp/channels/src/components/admin_console/error_log_dashboard/error_log_dashboard.test.tsx` ✅ |
 
 ### E2E Tests (Cypress)
 | Feature | File Path |
@@ -841,7 +943,9 @@ describe('ErrorLogDashboard', () => {
 1. ❌ Encryption utility tests (most complex)
 2. ❌ Custom SVG management tests
 3. ❌ Video player/embed tests
-4. ❌ Status/Error dashboard tests
+4. ✅ Status Log Dashboard tests
+5. ✅ Error Log Dashboard tests
+6. ✅ Preference Overrides Dashboard tests
 
 ### Phase 3: E2E Tests (Medium Priority)
 1. ❌ Encryption E2E (critical path)
@@ -853,7 +957,7 @@ describe('ErrorLogDashboard', () => {
 1. ❌ UI tweak tests (simple toggles)
 2. ❌ System Console feature tests (CSS-based)
 3. ❌ Thread feature tests
-4. ❌ Status Logs Platform tests
+4. ✅ Status Logs Platform tests
 
 ---
 
