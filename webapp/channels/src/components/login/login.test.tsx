@@ -112,10 +112,6 @@ describe('components/login/Login', () => {
         LocalStorageStore.setWasLoggedIn(false);
     });
 
-    afterEach(() => {
-        jest.clearAllMocks();
-    });
-
     it('should match snapshot', () => {
         renderWithContext(
             <Login/>,
