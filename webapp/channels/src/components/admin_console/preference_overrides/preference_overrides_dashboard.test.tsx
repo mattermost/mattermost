@@ -170,8 +170,9 @@ describe('PreferenceOverridesDashboard', () => {
             />,
         );
 
+        // Wait for data to load - component shows category names in title case
         await waitFor(() => {
-            expect(screen.getByText('display_settings')).toBeInTheDocument();
+            expect(screen.getByText('Display Settings')).toBeInTheDocument();
         });
     });
 
@@ -183,9 +184,14 @@ describe('PreferenceOverridesDashboard', () => {
             />,
         );
 
+        // Wait for data to load first
         await waitFor(() => {
-            // The overrides should be visible (locked icons indicate overridden)
-            const lockIcons = screen.getAllByTitle(/Override is set/i);
+            expect(screen.getByText('Display Settings')).toBeInTheDocument();
+        });
+
+        // The overrides should be visible (locked icons indicate overridden)
+        await waitFor(() => {
+            const lockIcons = screen.getAllByTitle(/Override is set|Clear override/i);
             expect(lockIcons.length).toBeGreaterThan(0);
         });
     });
@@ -247,11 +253,12 @@ describe('PreferenceOverridesDashboard', () => {
             />,
         );
 
+        // Wait for initial load
         await waitFor(() => {
-            expect(screen.getByTitle(/Refresh/i)).toBeInTheDocument();
+            expect(screen.getByText('Display Settings')).toBeInTheDocument();
         });
 
-        const refreshButton = screen.getByTitle(/Refresh/i);
+        const refreshButton = screen.getByRole('button', {name: /Refresh/i});
         await userEvent.click(refreshButton);
 
         // API should be called again
@@ -267,18 +274,18 @@ describe('PreferenceOverridesDashboard', () => {
             />,
         );
 
+        // Wait for data to load
         await waitFor(() => {
-            expect(screen.getByText('Save Changes')).toBeInTheDocument();
+            expect(screen.getByText('Display Settings')).toBeInTheDocument();
         });
 
         // Need to make a change first to enable the save button
-        // Look for a dropdown to change
-        const selects = screen.getAllByRole('combobox');
-        if (selects.length > 0) {
-            const firstSelect = selects[0];
-            await userEvent.selectOptions(firstSelect, 'true');
+        // Click on a lock button to toggle an override
+        const lockButtons = screen.getAllByTitle(/Set override|Clear override/i);
+        if (lockButtons.length > 0) {
+            await userEvent.click(lockButtons[0]);
 
-            const saveButton = screen.getByText('Save Changes');
+            const saveButton = screen.getByRole('button', {name: /Save Changes/i});
 
             // If button is now enabled, click it
             if (!saveButton.hasAttribute('disabled')) {
@@ -303,13 +310,17 @@ describe('PreferenceOverridesDashboard', () => {
             />,
         );
 
+        // Wait for data to load
         await waitFor(() => {
-            const lockButtons = screen.getAllByTitle(/Set override|Clear override/i);
-            expect(lockButtons.length).toBeGreaterThan(0);
+            expect(screen.getByText('Display Settings')).toBeInTheDocument();
         });
 
+        // Now find and click a lock button
+        const lockButtons = screen.getAllByTitle(/Set override|Clear override/i);
+        expect(lockButtons.length).toBeGreaterThan(0);
+
         // Click on a lock button to set/clear override
-        const lockButton = screen.getAllByTitle(/Set override|Clear override/i)[0];
+        const lockButton = lockButtons[0];
         await userEvent.click(lockButton);
 
         // The button state should change (icon switches between locked/unlocked)
@@ -323,8 +334,9 @@ describe('PreferenceOverridesDashboard', () => {
             />,
         );
 
+        // Wait for data to load
         await waitFor(() => {
-            expect(screen.getAllByRole('combobox').length).toBeGreaterThan(0);
+            expect(screen.getByText('Display Settings')).toBeInTheDocument();
         });
 
         // Each preference should have a dropdown with its possible values
@@ -343,14 +355,15 @@ describe('PreferenceOverridesDashboard', () => {
             />,
         );
 
+        // Wait for data to load
         await waitFor(() => {
-            expect(screen.getByText('Save Changes')).toBeInTheDocument();
+            expect(screen.getByText('Display Settings')).toBeInTheDocument();
         });
 
-        // Need to make a change to enable save
-        const selects = screen.getAllByRole('combobox');
-        if (selects.length > 0) {
-            await userEvent.selectOptions(selects[0], selects[0].querySelector('option')?.value || '');
+        // Need to make a change to enable save - click a lock button
+        const lockButtons = screen.getAllByTitle(/Set override|Clear override/i);
+        if (lockButtons.length > 0) {
+            await userEvent.click(lockButtons[0]);
         }
     });
 
@@ -362,9 +375,10 @@ describe('PreferenceOverridesDashboard', () => {
             />,
         );
 
+        // Component renders category names in title case
         await waitFor(() => {
-            expect(screen.getByText('display_settings')).toBeInTheDocument();
-            expect(screen.getByText('notifications')).toBeInTheDocument();
+            expect(screen.getByText('Display Settings')).toBeInTheDocument();
+            expect(screen.getByText('Notifications')).toBeInTheDocument();
         });
     });
 
