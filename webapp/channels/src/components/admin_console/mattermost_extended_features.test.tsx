@@ -123,7 +123,7 @@ describe('components/admin_console/MattermostExtendedFeatures', () => {
 
             // Find and click the Encryption feature (it's a major feature card)
             const encryptionTitle = screen.getByText('End-to-End Encryption');
-            const encryptionCard = encryptionTitle.closest('div[class*="MajorFeatureCard"]');
+            const encryptionCard = encryptionTitle.closest('div[class*="FeatureCard"]');
             expect(encryptionCard).toBeInTheDocument();
 
             if (encryptionCard) {
@@ -139,7 +139,7 @@ describe('components/admin_console/MattermostExtendedFeatures', () => {
 
             // Find Encryption card and toggle it
             const encryptionTitle = screen.getByText('End-to-End Encryption');
-            const encryptionCard = encryptionTitle.closest('div[class*="MajorFeatureCard"]');
+            const encryptionCard = encryptionTitle.closest('div[class*="FeatureCard"]');
 
             if (encryptionCard) {
                 fireEvent.click(encryptionCard);
@@ -188,7 +188,7 @@ describe('components/admin_console/MattermostExtendedFeatures', () => {
 
             // Make a change first
             const encryptionTitle = screen.getByText('End-to-End Encryption');
-            const encryptionCard = encryptionTitle.closest('div[class*="MajorFeatureCard"]');
+            const encryptionCard = encryptionTitle.closest('div[class*="FeatureCard"]');
             if (encryptionCard) {
                 fireEvent.click(encryptionCard);
             }
@@ -228,7 +228,7 @@ describe('components/admin_console/MattermostExtendedFeatures', () => {
 
             // Make a change
             const encryptionTitle = screen.getByText('End-to-End Encryption');
-            const encryptionCard = encryptionTitle.closest('div[class*="MajorFeatureCard"]');
+            const encryptionCard = encryptionTitle.closest('div[class*="FeatureCard"]');
             if (encryptionCard) {
                 fireEvent.click(encryptionCard);
             }
@@ -258,7 +258,7 @@ describe('components/admin_console/MattermostExtendedFeatures', () => {
 
             // Make a change
             const encryptionTitle = screen.getByText('End-to-End Encryption');
-            const encryptionCard = encryptionTitle.closest('div[class*="MajorFeatureCard"]');
+            const encryptionCard = encryptionTitle.closest('div[class*="FeatureCard"]');
             if (encryptionCard) {
                 fireEvent.click(encryptionCard);
             }

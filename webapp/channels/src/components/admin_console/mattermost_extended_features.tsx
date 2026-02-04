@@ -360,7 +360,7 @@ const StatItem = styled.div<{$highlight?: boolean}>`
 
     ${(props) => props.$highlight && css`
         border-color: var(--button-bg);
-        box-shadow: 0 2px 8px rgba(var(--button-bg-rgb), 0.15);
+        box-shadow: 0 2px 8px rgba(var(--button-bg-rgb), 0.2);
     `}
 `;
 
@@ -379,7 +379,34 @@ const StatValue = styled.div`
 `;
 
 const SearchRow = styled.div`
+    display: flex;
+    align-items: center;
+    gap: 16px;
     margin-bottom: 24px;
+`;
+
+const ToggleAllButton = styled.button`
+    padding: 10px 16px;
+    border-radius: 8px;
+    border: 1px solid rgba(var(--center-channel-color-rgb), 0.16);
+    background: var(--center-channel-bg);
+    color: var(--center-channel-color);
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    white-space: nowrap;
+
+    &:hover {
+        background: rgba(var(--button-bg-rgb), 0.1);
+        border-color: var(--button-bg);
+        color: var(--button-color);
+    }
+
+    &:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+    }
 `;
 
 const SearchInput = styled.input`
@@ -395,7 +422,7 @@ const SearchInput = styled.input`
     &:focus {
         outline: none;
         border-color: var(--button-bg);
-        box-shadow: 0 0 0 3px rgba(var(--button-bg-rgb), 0.12);
+        box-shadow: 0 0 0 3px rgba(var(--button-bg-rgb), 0.15);
     }
 
     &::placeholder {
@@ -464,10 +491,10 @@ const SectionBadge = styled.span<{$variant: 'enabled' | 'total'}>`
     font-size: 12px;
     font-weight: 600;
     background: ${(props) => (props.$variant === 'enabled'
-        ? 'rgba(61, 204, 145, 0.15)'
+        ? `rgba(var(--button-bg-rgb), 0.15)`
         : 'rgba(var(--center-channel-color-rgb), 0.08)')};
     color: ${(props) => (props.$variant === 'enabled'
-        ? 'var(--online-indicator)'
+        ? 'var(--button-bg)'
         : 'rgba(var(--center-channel-color-rgb), 0.64)')};
 `;
 
@@ -487,60 +514,31 @@ const SectionContent = styled.div<{$collapsed: boolean}>`
     background: var(--center-channel-bg);
 `;
 
-const MajorFeatureCard = styled.div<{$enabled: boolean}>`
-    display: flex;
-    gap: 16px;
-    padding: 20px 24px;
-    border-radius: 12px;
-    border: 2px solid ${(props) => props.$enabled
-        ? 'rgba(61, 204, 145, 0.3)'
-        : 'rgba(var(--center-channel-color-rgb), 0.08)'};
-    background: ${(props) => props.$enabled
-        ? 'linear-gradient(135deg, rgba(61, 204, 145, 0.08) 0%, rgba(61, 204, 145, 0.02) 100%)'
-        : 'var(--center-channel-bg)'};
-    position: relative;
-    transition: all 0.2s ease;
-    cursor: pointer;
-
-    &::before {
-        content: '';
-        position: absolute;
-        top: 0;
-        left: 0;
-        width: 4px;
-        height: 100%;
-        background: ${(props) => props.$enabled ? 'var(--online-indicator)' : 'transparent'};
-        border-radius: 12px 0 0 12px;
-    }
-
-    &:hover {
-        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
-        border-color: ${(props) => props.$enabled
-            ? 'rgba(61, 204, 145, 0.5)'
-            : 'rgba(var(--center-channel-color-rgb), 0.16)'};
-    }
-`;
-
-const RegularFeatureCard = styled.div<{$enabled: boolean}>`
+const FeatureCard = styled.div<{$enabled: boolean; $major: boolean}>`
     display: flex;
     align-items: center;
     gap: 12px;
     padding: 14px 16px;
     border-radius: 8px;
     border: 1px solid ${(props) => props.$enabled
-        ? 'rgba(61, 204, 145, 0.2)'
+        ? `rgba(var(--button-bg-rgb), 0.3)`
         : 'rgba(var(--center-channel-color-rgb), 0.08)'};
     background: ${(props) => props.$enabled
-        ? 'rgba(61, 204, 145, 0.04)'
+        ? `rgba(var(--button-bg-rgb), 0.06)`
         : 'var(--center-channel-bg)'};
     transition: all 0.15s ease;
     cursor: pointer;
+    box-shadow: ${(props) => props.$major && props.$enabled
+        ? `inset 4px 0 0 var(--button-bg)`
+        : 'none'};
 
     &:hover {
         background: ${(props) => props.$enabled
-            ? 'rgba(61, 204, 145, 0.08)'
+            ? `rgba(var(--button-bg-rgb), 0.1)`
             : 'rgba(var(--center-channel-color-rgb), 0.04)'};
-        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+        box-shadow: ${(props) => props.$major && props.$enabled
+            ? `inset 4px 0 0 var(--button-bg), 0 2px 8px rgba(0, 0, 0, 0.06)`
+            : '0 2px 8px rgba(0, 0, 0, 0.06)'};
     }
 `;
 
@@ -549,10 +547,10 @@ const FeatureIconWrapper = styled.div<{$enabled: boolean}>`
     height: 36px;
     border-radius: 8px;
     background: ${(props) => props.$enabled
-        ? 'rgba(61, 204, 145, 0.15)'
+        ? `rgba(var(--button-bg-rgb), 0.15)`
         : 'rgba(var(--center-channel-color-rgb), 0.08)'};
     color: ${(props) => props.$enabled
-        ? 'var(--online-indicator)'
+        ? 'var(--button-bg)'
         : 'rgba(var(--center-channel-color-rgb), 0.48)'};
     display: flex;
     align-items: center;
@@ -573,8 +571,8 @@ const FeatureHeader = styled.div`
     margin-bottom: 4px;
 `;
 
-const FeatureTitle = styled.div<{$major: boolean}>`
-    font-size: ${(props) => props.$major ? '16px' : '14px'};
+const FeatureTitle = styled.div`
+    font-size: 14px;
     font-weight: 600;
     color: var(--center-channel-color);
 `;
@@ -586,7 +584,7 @@ const MajorBadge = styled.span`
     font-weight: 700;
     text-transform: uppercase;
     letter-spacing: 0.5px;
-    background: linear-gradient(135deg, var(--button-bg) 0%, rgba(var(--button-bg-rgb), 0.8) 100%);
+    background: var(--button-bg);
     color: var(--button-color);
 `;
 
@@ -634,7 +632,7 @@ const ToggleSlider = styled.span<{$checked: boolean; $disabled?: boolean}>`
     left: 0;
     right: 0;
     bottom: 0;
-    background-color: ${(props) => props.$checked ? 'var(--online-indicator)' : 'rgba(var(--center-channel-color-rgb), 0.24)'};
+    background-color: ${(props) => props.$checked ? 'var(--button-bg)' : 'rgba(var(--center-channel-color-rgb), 0.24)'};
     transition: 0.2s;
     border-radius: 24px;
     opacity: ${(props) => props.$disabled ? 0.5 : 1};
@@ -805,6 +803,20 @@ const MattermostExtendedFeatures: React.FC<Props> = ({config, patchConfig, disab
         });
     }, []);
 
+    const allEnabled = stats.enabled === stats.total;
+
+    const handleToggleAll = useCallback(() => {
+        const newValue = !allEnabled;
+        setLocalFlags((prev) => {
+            const next = {...prev};
+            for (const feature of FEATURES) {
+                next[feature.key] = newValue;
+            }
+            return next;
+        });
+        setServerError(null);
+    }, [allEnabled]);
+
     const handleSave = useCallback(async () => {
         if (!saveNeeded) {
             return;
@@ -865,36 +877,11 @@ const MattermostExtendedFeatures: React.FC<Props> = ({config, patchConfig, disab
             </ToggleWrapper>
         );
 
-        if (feature.isMajor) {
-            return (
-                <MajorFeatureCard
-                    key={feature.key}
-                    $enabled={isEnabled}
-                    onClick={(e) => handleToggle(feature.key, e)}
-                >
-                    <FeatureIconWrapper $enabled={isEnabled}>
-                        <Icon size={18}/>
-                    </FeatureIconWrapper>
-                    <FeatureInfo>
-                        <FeatureHeader>
-                            <FeatureTitle $major={true}>
-                                {feature.title}
-                                {isModified && <UnsavedDot title='Unsaved change'/>}
-                            </FeatureTitle>
-                            <MajorBadge>{'Major'}</MajorBadge>
-                        </FeatureHeader>
-                        <FeatureDescription>{feature.description}</FeatureDescription>
-                        <FeatureKey>{feature.key}</FeatureKey>
-                    </FeatureInfo>
-                    {toggle}
-                </MajorFeatureCard>
-            );
-        }
-
         return (
-            <RegularFeatureCard
+            <FeatureCard
                 key={feature.key}
                 $enabled={isEnabled}
+                $major={feature.isMajor}
                 onClick={(e) => handleToggle(feature.key, e)}
             >
                 <FeatureIconWrapper $enabled={isEnabled}>
@@ -902,15 +889,16 @@ const MattermostExtendedFeatures: React.FC<Props> = ({config, patchConfig, disab
                 </FeatureIconWrapper>
                 <FeatureInfo>
                     <FeatureHeader>
-                        <FeatureTitle $major={false}>
+                        <FeatureTitle>
                             {feature.title}
                             {isModified && <UnsavedDot title='Unsaved change'/>}
                         </FeatureTitle>
+                        {feature.isMajor && <MajorBadge>{'Major'}</MajorBadge>}
                     </FeatureHeader>
                     <FeatureDescription>{feature.description}</FeatureDescription>
                 </FeatureInfo>
                 {toggle}
-            </RegularFeatureCard>
+            </FeatureCard>
         );
     };
 
@@ -980,6 +968,12 @@ const MattermostExtendedFeatures: React.FC<Props> = ({config, patchConfig, disab
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
                     />
+                    <ToggleAllButton
+                        onClick={handleToggleAll}
+                        disabled={disabled}
+                    >
+                        {allEnabled ? 'Disable All' : 'Enable All'}
+                    </ToggleAllButton>
                 </SearchRow>
 
                 {hasResults ? (
