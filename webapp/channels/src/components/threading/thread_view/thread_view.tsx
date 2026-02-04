@@ -22,7 +22,7 @@ import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
 import {clearLastUnreadChannel} from 'actions/global_actions';
 import {loadProfilesForSidebar} from 'actions/user_actions';
 import {selectLhsItem} from 'actions/views/lhs';
-import {suppressRHS, unsuppressRHS, showThreadPinnedPosts, showThreadFollowers, closeRightHandSide} from 'actions/views/rhs';
+import {showThreadPinnedPosts, showThreadFollowers, closeRightHandSide} from 'actions/views/rhs';
 import {setSelectedThreadId} from 'actions/views/threads';
 import {focusPost} from 'components/permalink_view/actions';
 import ChatIllustration from 'components/common/svg_images_components/chat_illustration';
@@ -93,15 +93,17 @@ const ThreadView = () => {
     const [isLoading, setIsLoading] = useState(!thread);
 
     useEffect(() => {
-        dispatch(suppressRHS);
         dispatch(selectLhsItem(LhsItemType.Page, LhsPage.Threads));
         dispatch(clearLastUnreadChannel);
         loadProfilesForSidebar();
-
-        return () => {
-            dispatch(unsuppressRHS);
-        };
     }, [dispatch]);
+
+    // Transition from Channel Members to Thread Followers when entering ThreadView
+    useEffect(() => {
+        if (isThreadsInSidebarEnabled && threadIdentifier && channelId && rhsState === RHSStates.CHANNEL_MEMBERS) {
+            dispatch(showThreadFollowers(threadIdentifier, channelId));
+        }
+    }, [dispatch, isThreadsInSidebarEnabled, threadIdentifier, channelId, rhsState]);
 
     useEffect(() => {
         dispatch(setSelectedThreadId(currentTeamId, threadIdentifier));
