@@ -1108,7 +1108,7 @@ func (ps *PlatformService) UpdateActivityFromHeartbeat(userID string, windowActi
 	// Note: We only consider it a "channel change" if we previously knew what channel they were on.
 	// This prevents false positives when ActiveChannel is empty (not stored in DB, only in cache).
 	channelChanged := channelID != "" && status.ActiveChannel != "" && channelID != status.ActiveChannel
-	isManualActivity := windowActive || channelChanged
+	isManualActivity := (windowActive && channelID != "") || channelChanged
 
 	// Only update LastActivityAt on manual activity (this is the key fix!)
 	if isManualActivity {

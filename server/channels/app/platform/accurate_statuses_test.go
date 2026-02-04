@@ -209,6 +209,33 @@ func TestUpdateActivityFromHeartbeat(t *testing.T) {
 		// DND should NOT be changed to Online by activity
 		assert.Equal(t, model.StatusDnd, after.Status)
 	})
+
+	t.Run("when window is active but no active channel, should NOT update LastActivityAt", func(t *testing.T) {
+		th := Setup(t).InitBasic(t)
+
+		th.Service.UpdateConfig(func(cfg *model.Config) {
+			cfg.FeatureFlags.AccurateStatuses = true
+			*cfg.MattermostExtendedSettings.Statuses.InactivityTimeoutMinutes = 5
+		})
+
+		oldTime := model.GetMillis() - 10000
+		status := &model.Status{
+			UserId:         th.BasicUser.Id,
+			Status:         model.StatusOnline,
+			Manual:         false,
+			LastActivityAt: oldTime,
+			ActiveChannel:  "", // User is idle / no active channel
+		}
+		th.Service.SaveAndBroadcastStatus(status)
+
+		// Call heartbeat with window active but no channel
+		th.Service.UpdateActivityFromHeartbeat(th.BasicUser.Id, true, "", "desktop")
+
+		after, err := th.Service.GetStatus(th.BasicUser.Id)
+		require.Nil(t, err)
+		// LastActivityAt should NOT be updated since no active channel, even if window is active
+		assert.Equal(t, oldTime, after.LastActivityAt)
+	})
 }
 
 func TestUpdateActivityFromManualAction(t *testing.T) {
