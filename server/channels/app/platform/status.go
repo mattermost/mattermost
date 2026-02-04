@@ -1035,6 +1035,11 @@ func (ps *PlatformService) UpdateActivityFromHeartbeat(userID string, windowActi
 		return
 	}
 
+	// Only process if AccurateStatuses feature is enabled
+	if !ps.Config().FeatureFlags.AccurateStatuses {
+		return
+	}
+
 	now := model.GetMillis()
 
 	status, err := ps.GetStatus(userID)
