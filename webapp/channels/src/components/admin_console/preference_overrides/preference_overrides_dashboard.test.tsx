@@ -356,13 +356,18 @@ describe('PreferenceOverridesDashboard', () => {
             expect(screen.getByText('Display Settings')).toBeInTheDocument();
         });
 
-        // Toggle an override to show the dropdown
+        // Toggle an override for use_military_time to show the dropdown
+        // Preferences are sorted alphabetically within categories, so:
+        // - lockButtons[0] = colorize_usernames (no dropdown mock, renders text input)
+        // - lockButtons[1] = use_military_time (has dropdown mock, renders select)
         const lockButtons = screen.getAllByTitle(/Enable override/i);
-        await userEvent.click(lockButtons[0]);
+        await userEvent.click(lockButtons[1]); // Click use_military_time button
 
-        // Each preference should have a dropdown with its possible values
-        const dropdowns = screen.getAllByRole('combobox');
-        expect(dropdowns.length).toBeGreaterThan(0);
+        // Wait for the dropdown to appear after enabling override
+        await waitFor(() => {
+            const dropdowns = screen.getAllByRole('combobox');
+            expect(dropdowns.length).toBeGreaterThan(0);
+        });
     });
 
     test('should show success message after save', async () => {
