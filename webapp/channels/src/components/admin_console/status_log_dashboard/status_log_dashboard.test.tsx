@@ -367,28 +367,7 @@ describe('StatusLogDashboard', () => {
             logs: mockLogs,
         });
 
-        // Mock URL.createObjectURL and revokeObjectURL
-        const mockCreateObjectURL = jest.fn().mockReturnValue('blob:test');
-        const mockRevokeObjectURL = jest.fn();
-        global.URL.createObjectURL = mockCreateObjectURL;
-        global.URL.revokeObjectURL = mockRevokeObjectURL;
-
-        // Mock document.createElement for the download link
-        const mockLink = {
-            href: '',
-            download: '',
-            click: jest.fn(),
-        };
-        const originalCreateElement = document.createElement.bind(document);
-        jest.spyOn(document, 'createElement').mockImplementation((tagName: string) => {
-            if (tagName === 'a') {
-                return mockLink as unknown as HTMLElement;
-            }
-            return originalCreateElement(tagName);
-        });
-        jest.spyOn(document.body, 'appendChild').mockImplementation(() => mockLink as unknown as Node);
-        jest.spyOn(document.body, 'removeChild').mockImplementation(() => mockLink as unknown as Node);
-
+        // Render first before setting up DOM mocks
         renderWithContext(
             <StatusLogDashboard
                 config={baseConfig}
@@ -400,6 +379,27 @@ describe('StatusLogDashboard', () => {
             expect(screen.getByText('Export JSON')).toBeInTheDocument();
         });
 
+        // Now set up download mocks AFTER render is complete
+        const mockCreateObjectURL = jest.fn().mockReturnValue('blob:test');
+        const mockRevokeObjectURL = jest.fn();
+        global.URL.createObjectURL = mockCreateObjectURL;
+        global.URL.revokeObjectURL = mockRevokeObjectURL;
+
+        // Mock only createElement for 'a' tags, not appendChild/removeChild
+        const mockLink = {
+            href: '',
+            download: '',
+            click: jest.fn(),
+            style: {},
+        } as unknown as HTMLAnchorElement;
+        const originalCreateElement = document.createElement.bind(document);
+        const createElementSpy = jest.spyOn(document, 'createElement').mockImplementation((tagName: string) => {
+            if (tagName === 'a') {
+                return mockLink;
+            }
+            return originalCreateElement(tagName);
+        });
+
         const exportButton = screen.getByText('Export JSON');
         await userEvent.click(exportButton);
 
@@ -408,7 +408,7 @@ describe('StatusLogDashboard', () => {
         });
 
         // Restore mocks
-        jest.restoreAllMocks();
+        createElementSpy.mockRestore();
     });
 
     test('should switch between tabs', async () => {
