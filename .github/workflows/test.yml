@@ -29,12 +29,15 @@ jobs:
       - name: Install gotestsum
         run: go install gotest.tools/gotestsum@v1.11.0
 
-      - name: Run Model Tests
+      - name: Run Model Tests (MattermostExtended + StatusLog)
         working-directory: ./server
         run: |
-          gotestsum --format testname -- -v ./public/model/... -timeout 10m
+          gotestsum --format testname -- -v \
+            -run "TestMattermostExtended|TestStatusLog" \
+            ./public/model/... \
+            -timeout 10m
 
-  # Integration tests that need Docker
+  # Full integration tests with Docker services
   integration-tests:
     name: Integration Tests
     runs-on: ubuntu-latest
@@ -50,6 +53,19 @@ jobs:
           - 5432:5432
         options: >-
           --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+      minio:
+        image: minio/minio:RELEASE.2024-01-16T16-07-38Z
+        env:
+          MINIO_ROOT_USER: minioadmin
+          MINIO_ROOT_PASSWORD: minioadmin
+        ports:
+          - 9000:9000
+        options: >-
+          --health-cmd "curl -f http://localhost:9000/minio/health/live"
           --health-interval 10s
           --health-timeout 5s
           --health-retries 5
@@ -73,16 +89,60 @@ jobs:
         working-directory: ./server
         run: make setup-go-work
 
-      - name: Run Extended Status Tests
+      - name: Run AccurateStatuses Tests
         working-directory: ./server
         env:
           MM_SQLSETTINGS_DRIVERNAME: postgres
           MM_SQLSETTINGS_DATASOURCE: postgres://mmuser:mostest@localhost:5432/mattermost_test?sslmode=disable
         run: |
           gotestsum --format testname -- -v \
-            -run "TestUpdateActivityFromHeartbeat|TestSetOnlineIfNoOffline|TestUpdateActivityFromManualAction|TestSetStatusOnlineWithDNDRestore|TestSaveStatus|TestSetStatusOffline|TestQueueSetStatusOffline" \
+            -run "TestUpdateActivityFromHeartbeat|TestUpdateActivityFromManualAction|TestUpdateActivityFromHeartbeatEdgeCases|TestSetStatusAwayIfNeededExtended" \
             ./channels/app/platform/... \
-            -timeout 20m
+            -timeout 15m
+
+      - name: Run NoOffline Tests
+        working-directory: ./server
+        env:
+          MM_SQLSETTINGS_DRIVERNAME: postgres
+          MM_SQLSETTINGS_DATASOURCE: postgres://mmuser:mostest@localhost:5432/mattermost_test?sslmode=disable
+        run: |
+          gotestsum --format testname -- -v \
+            -run "TestSetOnlineIfNoOffline|TestNoOfflineWithAccurateStatuses|TestNoOfflineOnWebSocketConnect" \
+            ./channels/app/platform/... \
+            -timeout 15m
+
+      - name: Run DND Extended Tests
+        working-directory: ./server
+        env:
+          MM_SQLSETTINGS_DRIVERNAME: postgres
+          MM_SQLSETTINGS_DATASOURCE: postgres://mmuser:mostest@localhost:5432/mattermost_test?sslmode=disable
+        run: |
+          gotestsum --format testname -- -v \
+            -run "TestDNDInactivityTimeout|TestDNDRestoration|TestSetStatusDoNotDisturbExtended|TestSetStatusDoNotDisturbTimedExtended|TestSetStatusOutOfOfficeExtended|TestDNDWithNoOffline" \
+            ./channels/app/platform/... \
+            -timeout 15m
+
+      - name: Run Upstream Status Tests
+        working-directory: ./server
+        env:
+          MM_SQLSETTINGS_DRIVERNAME: postgres
+          MM_SQLSETTINGS_DATASOURCE: postgres://mmuser:mostest@localhost:5432/mattermost_test?sslmode=disable
+        run: |
+          gotestsum --format testname -- -v \
+            -run "TestSaveStatus|TestSetStatusOffline|TestQueueSetStatusOffline|TestTruncateDNDEndTime" \
+            ./channels/app/platform/... \
+            -timeout 15m
+
+      - name: Run API Scenario Tests (Full User Flows)
+        working-directory: ./server
+        env:
+          MM_SQLSETTINGS_DRIVERNAME: postgres
+          MM_SQLSETTINGS_DATASOURCE: postgres://mmuser:mostest@localhost:5432/mattermost_test?sslmode=disable
+        run: |
+          gotestsum --format testname -- -v \
+            -run "TestAccurateStatusesScenario|TestNoOfflineScenario|TestManualActionActivityScenario|TestCombinedFeaturesScenario|TestMultiUserStatusScenario|TestConfigurationScenario|TestWebSocketStatusEvents" \
+            ./channels/api4/... \
+            -timeout 30m
 
       - name: Run App Status Tests
         working-directory: ./server
