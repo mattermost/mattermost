@@ -5,6 +5,7 @@ package commands
 
 import (
 	"fmt"
+	"io/fs"
 	"os"
 	"path/filepath"
 	"strings"
@@ -256,6 +257,10 @@ func (s *MmctlE2ETestSuite) TestExportDownloadCmdF() {
 		s.Require().Len(printer.GetLines(), 1)
 		s.Require().True(strings.HasPrefix(printer.GetLines()[0].(string), "Export file downloaded to "))
 		s.Require().Empty(printer.GetErrorLines())
+
+		info, err := os.Stat(downloadPath)
+		s.Require().Nil(err)
+		s.Require().Equal(fs.FileMode(0600), info.Mode().Perm(), info.Mode().Perm())
 	})
 
 	s.RunForSystemAdminAndLocal("MM-T3842 - full download", func(c client.Client) {
@@ -285,6 +290,10 @@ func (s *MmctlE2ETestSuite) TestExportDownloadCmdF() {
 		s.Require().Nil(err)
 
 		s.Require().Equal(expected, actual)
+
+		info, err := os.Stat(downloadPath)
+		s.Require().Nil(err)
+		s.Require().Equal(fs.FileMode(0600), info.Mode().Perm(), info.Mode().Perm())
 	})
 }
 
