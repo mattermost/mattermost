@@ -156,29 +156,7 @@ func filterSVGImagesFromOpenGraph(og *opengraph.OpenGraph) *opengraph.OpenGraph 
 		return og
 	}
 
-	filteredImages := make([]*ogImage.Image, 0, len(og.Images))
-	for _, img := range og.Images {
-		if img == nil {
-			continue
-		}
-
-		if model.IsSVGImageURL(img.URL) || model.IsSVGImageURL(img.SecureURL) {
-			mlog.Debug("Filtering SVG image from OpenGraph metadata",
-				mlog.String("url", img.URL),
-				mlog.String("secure_url", img.SecureURL))
-			continue
-		}
-
-		if img.Type == "image/svg+xml" {
-			mlog.Debug("Filtering SVG image from OpenGraph metadata by type",
-				mlog.String("type", img.Type))
-			continue
-		}
-
-		filteredImages = append(filteredImages, img)
-	}
-
-	og.Images = filteredImages
+	og.Images = model.FilterSVGImages(og.Images)
 	return og
 }
 

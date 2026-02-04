@@ -1023,7 +1023,7 @@ func (a *App) parseLinkMetadata(rctx request.CTX, requestURL string, body io.Rea
 	if contentType == "image/svg+xml" {
 		// Do not store SVG images to prevent DoS attacks via malicious
 		// SVG content that can crash browsers (MM-67372).
-		rctx.Logger().Debug("Skipping SVG image metadata to prevent browser crash",
+		rctx.Logger().Debug("Filtering SVG image from link metadata",
 			mlog.String("url", requestURL))
 		return nil, nil, nil
 	} else if strings.HasPrefix(contentType, "image") {

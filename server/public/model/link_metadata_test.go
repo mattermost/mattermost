@@ -421,9 +421,9 @@ func TestIsSVGImageURL(t *testing.T) {
 	}
 }
 
-func TestFilterNonSVGImages(t *testing.T) {
+func TestFilterSVGImages(t *testing.T) {
 	t.Run("empty slice", func(t *testing.T) {
-		result := filterNonSVGImages([]*image.Image{})
+		result := FilterSVGImages([]*image.Image{})
 		assert.Empty(t, result)
 	})
 
@@ -433,7 +433,7 @@ func TestFilterNonSVGImages(t *testing.T) {
 			sampleImage("malicious.svg"),
 			sampleImage("photo.jpg"),
 		}
-		result := filterNonSVGImages(images)
+		result := FilterSVGImages(images)
 		assert.Len(t, result, 2)
 		assert.Equal(t, "http://example.com/image.png", result[0].URL)
 		assert.Equal(t, "http://example.com/photo.jpg", result[1].URL)
@@ -444,7 +444,7 @@ func TestFilterNonSVGImages(t *testing.T) {
 			{SecureURL: "https://example.com/safe.png"},
 			{SecureURL: "https://example.com/malicious.svg"},
 		}
-		result := filterNonSVGImages(images)
+		result := FilterSVGImages(images)
 		assert.Len(t, result, 1)
 		assert.Equal(t, "https://example.com/safe.png", result[0].SecureURL)
 	})
@@ -454,7 +454,7 @@ func TestFilterNonSVGImages(t *testing.T) {
 			{URL: "https://example.com/image.png", Type: "image/png"},
 			{URL: "https://example.com/image", Type: "image/svg+xml"},
 		}
-		result := filterNonSVGImages(images)
+		result := FilterSVGImages(images)
 		assert.Len(t, result, 1)
 		assert.Equal(t, "https://example.com/image.png", result[0].URL)
 	})
@@ -464,7 +464,7 @@ func TestFilterNonSVGImages(t *testing.T) {
 			sampleImage("image.png"),
 			sampleImage("compressed.svgz"),
 		}
-		result := filterNonSVGImages(images)
+		result := FilterSVGImages(images)
 		assert.Len(t, result, 1)
 		assert.Equal(t, "http://example.com/image.png", result[0].URL)
 	})
@@ -475,7 +475,7 @@ func TestFilterNonSVGImages(t *testing.T) {
 			nil,
 			sampleImage("photo.jpg"),
 		}
-		result := filterNonSVGImages(images)
+		result := FilterSVGImages(images)
 		assert.Len(t, result, 2)
 	})
 }

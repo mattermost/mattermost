@@ -80,15 +80,15 @@ func TruncateOpenGraph(ogdata *opengraph.OpenGraph) *opengraph.OpenGraph {
 		ogdata.Determiner = empty.Determiner
 		ogdata.Locale = empty.Locale
 		ogdata.LocalesAlternate = empty.LocalesAlternate
-		ogdata.Images = filterNonSVGImages(firstNImages(ogdata.Images, LinkMetadataMaxImages))
+		ogdata.Images = FilterSVGImages(firstNImages(ogdata.Images, LinkMetadataMaxImages))
 		ogdata.Audios = empty.Audios
 		ogdata.Videos = empty.Videos
 	}
 	return ogdata
 }
 
-// filterNonSVGImages removes SVG images which can contain malicious content that crashes browsers when rendered.
-func filterNonSVGImages(images []*image.Image) []*image.Image {
+// FilterSVGImages removes SVG images which can contain malicious content that crashes browsers when rendered.
+func FilterSVGImages(images []*image.Image) []*image.Image {
 	if len(images) == 0 {
 		return images
 	}
