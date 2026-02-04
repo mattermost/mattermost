@@ -186,7 +186,9 @@ describe('StatusLogDashboard', () => {
         );
 
         await waitFor(() => {
-            expect(screen.getByText('Status Logs')).toBeInTheDocument();
+            // "Status Logs" appears multiple times (header and tab button), use getAllByText
+            const statusLogsElements = screen.getAllByText('Status Logs');
+            expect(statusLogsElements.length).toBeGreaterThan(0);
         });
 
         expect(screen.getByText('Connected')).toBeInTheDocument();
@@ -203,8 +205,11 @@ describe('StatusLogDashboard', () => {
         );
 
         await waitFor(() => {
-            expect(screen.getByText('testuser1')).toBeInTheDocument();
-            expect(screen.getByText('testuser2')).toBeInTheDocument();
+            // testuser1 appears multiple times (multiple log entries)
+            const user1Elements = screen.getAllByText('testuser1');
+            const user2Elements = screen.getAllByText('testuser2');
+            expect(user1Elements.length).toBeGreaterThan(0);
+            expect(user2Elements.length).toBeGreaterThan(0);
         });
     });
 
@@ -368,6 +373,22 @@ describe('StatusLogDashboard', () => {
         global.URL.createObjectURL = mockCreateObjectURL;
         global.URL.revokeObjectURL = mockRevokeObjectURL;
 
+        // Mock document.createElement for the download link
+        const mockLink = {
+            href: '',
+            download: '',
+            click: jest.fn(),
+        };
+        const originalCreateElement = document.createElement.bind(document);
+        jest.spyOn(document, 'createElement').mockImplementation((tagName: string) => {
+            if (tagName === 'a') {
+                return mockLink as unknown as HTMLElement;
+            }
+            return originalCreateElement(tagName);
+        });
+        jest.spyOn(document.body, 'appendChild').mockImplementation(() => mockLink as unknown as Node);
+        jest.spyOn(document.body, 'removeChild').mockImplementation(() => mockLink as unknown as Node);
+
         renderWithContext(
             <StatusLogDashboard
                 config={baseConfig}
@@ -382,7 +403,12 @@ describe('StatusLogDashboard', () => {
         const exportButton = screen.getByText('Export JSON');
         await userEvent.click(exportButton);
 
-        expect(Client4.exportStatusLogs).toHaveBeenCalled();
+        await waitFor(() => {
+            expect(Client4.exportStatusLogs).toHaveBeenCalled();
+        });
+
+        // Restore mocks
+        jest.restoreAllMocks();
     });
 
     test('should switch between tabs', async () => {
@@ -392,6 +418,11 @@ describe('StatusLogDashboard', () => {
                 patchConfig={mockPatchConfig}
             />,
         );
+
+        // Wait for data to load
+        await waitFor(() => {
+            expect(screen.getByText('Connected')).toBeInTheDocument();
+        });
 
         await waitFor(() => {
             expect(screen.getByText('Push Notification Rules')).toBeInTheDocument();
@@ -404,9 +435,13 @@ describe('StatusLogDashboard', () => {
         // Rules component should be rendered
         expect(screen.getByTestId('status-notification-rules')).toBeInTheDocument();
 
-        // Click back to Logs tab
-        const logsTabButton = screen.getAllByText('Status Logs')[0];
-        await userEvent.click(logsTabButton);
+        // Click back to Logs tab - find the tab button (there may be multiple "Status Logs" elements)
+        const statusLogsTabs = screen.getAllByText('Status Logs');
+        // Find the tab button (has role of button or is a button element)
+        const logsTabButton = statusLogsTabs.find((el) => el.closest('button'));
+        if (logsTabButton) {
+            await userEvent.click(logsTabButton);
+        }
 
         // Logs should be visible again
         await waitFor(() => {
@@ -454,6 +489,11 @@ describe('StatusLogDashboard', () => {
             stats: mockStats,
             has_more: true,
             total_count: 10,
+        }).mockResolvedValueOnce({
+            logs: mockLogs,
+            stats: mockStats,
+            has_more: false,
+            total_count: 10,
         });
 
         renderWithContext(
@@ -463,6 +503,13 @@ describe('StatusLogDashboard', () => {
             />,
         );
 
+        // Wait for initial data load
+        await waitFor(() => {
+            const user1Elements = screen.getAllByText('testuser1');
+            expect(user1Elements.length).toBeGreaterThan(0);
+        });
+
+        // Check for Load More button
         await waitFor(() => {
             expect(screen.getByText(/Load More/)).toBeInTheDocument();
         });

@@ -213,11 +213,12 @@ describe('ErrorLogDashboard', () => {
         );
 
         await waitFor(() => {
-            expect(screen.getByText('All')).toBeInTheDocument();
+            // The stat card shows "All Errors", not just "All"
+            expect(screen.getByText('All Errors')).toBeInTheDocument();
         });
 
-        // Click on JavaScript filter
-        const jsFilter = screen.getByText('JavaScript');
+        // Click on JavaScript stat card to filter (the stat card shows "JS Errors")
+        const jsFilter = screen.getByText('JS Errors');
         await userEvent.click(jsFilter);
 
         // Only JS errors should be visible
@@ -301,6 +302,22 @@ describe('ErrorLogDashboard', () => {
         global.URL.createObjectURL = mockCreateObjectURL;
         global.URL.revokeObjectURL = mockRevokeObjectURL;
 
+        // Mock document.createElement for the download link
+        const mockLink = {
+            href: '',
+            download: '',
+            click: jest.fn(),
+        };
+        const originalCreateElement = document.createElement.bind(document);
+        jest.spyOn(document, 'createElement').mockImplementation((tagName: string) => {
+            if (tagName === 'a') {
+                return mockLink as unknown as HTMLElement;
+            }
+            return originalCreateElement(tagName);
+        });
+        jest.spyOn(document.body, 'appendChild').mockImplementation(() => mockLink as unknown as Node);
+        jest.spyOn(document.body, 'removeChild').mockImplementation(() => mockLink as unknown as Node);
+
         renderWithContext(
             <ErrorLogDashboard
                 config={baseConfig}
@@ -317,6 +334,10 @@ describe('ErrorLogDashboard', () => {
 
         expect(mockCreateObjectURL).toHaveBeenCalled();
         expect(mockRevokeObjectURL).toHaveBeenCalled();
+        expect(mockLink.click).toHaveBeenCalled();
+
+        // Restore mocks
+        jest.restoreAllMocks();
     });
 
     test('should display loading state', () => {
@@ -359,18 +380,20 @@ describe('ErrorLogDashboard', () => {
             />,
         );
 
+        // Wait for data to load
         await waitFor(() => {
-            expect(screen.getByText('List')).toBeInTheDocument();
-            expect(screen.getByText('Grouped')).toBeInTheDocument();
+            expect(screen.getByText('API request failed')).toBeInTheDocument();
         });
 
-        // Default should be grouped, click List to switch
-        const listButton = screen.getByText('List');
+        // View mode buttons are now icon-only with title attributes
+        // Find the list view button by its title
+        const listButton = screen.getByTitle('List View');
         await userEvent.click(listButton);
 
-        // Should show individual error entries in list mode
+        // Should show individual error entries in list mode with API badges
         await waitFor(() => {
-            const apiLabels = screen.getAllByText('API');
+            // In list mode, errors show "API Error" text in the badge
+            const apiLabels = screen.getAllByText('API Error');
             expect(apiLabels.length).toBeGreaterThan(0);
         });
     });
@@ -409,16 +432,18 @@ describe('ErrorLogDashboard', () => {
             />,
         );
 
-        // Switch to list mode to see individual errors
+        // Wait for data to load
         await waitFor(() => {
-            expect(screen.getByText('List')).toBeInTheDocument();
+            expect(screen.getByText('API request failed')).toBeInTheDocument();
         });
 
-        const listButton = screen.getByText('List');
+        // Switch to list mode to see individual errors
+        const listButton = screen.getByTitle('List View');
         await userEvent.click(listButton);
 
+        // The stack trace toggle shows "Stack Trace" text
         await waitFor(() => {
-            const showStackButtons = screen.getAllByText('Show Stack');
+            const showStackButtons = screen.getAllByText('Stack Trace');
             expect(showStackButtons.length).toBeGreaterThan(0);
         });
     });
@@ -431,19 +456,25 @@ describe('ErrorLogDashboard', () => {
             />,
         );
 
+        // Wait for data to load
         await waitFor(() => {
-            expect(screen.getByText('Mute Patterns')).toBeInTheDocument();
+            expect(screen.getByText('API request failed')).toBeInTheDocument();
         });
 
-        // Open mute patterns manager
-        const muteButton = screen.getByText('Mute Patterns');
+        // Open mute patterns manager - button has title "Muted Patterns"
+        const muteButton = screen.getByTitle('Muted Patterns');
         await userEvent.click(muteButton);
 
-        // Add a mute pattern
-        const patternInput = screen.getByPlaceholderText(/Enter a text pattern/i);
+        // Wait for the muted patterns panel to appear
+        await waitFor(() => {
+            expect(screen.getByText('Muted Patterns')).toBeInTheDocument();
+        });
+
+        // Add a mute pattern - placeholder is "Add pattern to mute..."
+        const patternInput = screen.getByPlaceholderText(/Add pattern to mute/i);
         await userEvent.type(patternInput, 'test-pattern');
 
-        const addButton = screen.getByLabelText('Add mute pattern');
+        const addButton = screen.getByText('Add');
         await userEvent.click(addButton);
 
         // Pattern should be saved to localStorage
@@ -461,17 +492,20 @@ describe('ErrorLogDashboard', () => {
             />,
         );
 
+        // Wait for data to load - with muted patterns, some errors will be hidden
         await waitFor(() => {
-            expect(screen.getByText('Show Muted')).toBeInTheDocument();
+            // The dashboard should show "X hidden" button when there are muted errors
+            // The button text is "{count} hidden" when muted errors are hidden
+            expect(screen.getByText(/hidden/i)).toBeInTheDocument();
         });
 
         // Toggle to show muted errors
-        const showMutedButton = screen.getByText('Show Muted');
+        const showMutedButton = screen.getByText(/hidden/i);
         await userEvent.click(showMutedButton);
 
-        // Muted errors should now be visible
+        // Muted errors should now be visible - button shows "Showing X hidden"
         await waitFor(() => {
-            expect(screen.getByText('Hide Muted')).toBeInTheDocument();
+            expect(screen.getByText(/Showing/i)).toBeInTheDocument();
         });
     });
 
@@ -491,12 +525,13 @@ describe('ErrorLogDashboard', () => {
             />,
         );
 
-        // Switch to list mode
+        // Wait for data to load
         await waitFor(() => {
-            expect(screen.getByText('List')).toBeInTheDocument();
+            expect(screen.getByText('API request failed')).toBeInTheDocument();
         });
 
-        const listButton = screen.getByText('List');
+        // Switch to list mode
+        const listButton = screen.getByTitle('List View');
         await userEvent.click(listButton);
 
         // Find and click copy button
