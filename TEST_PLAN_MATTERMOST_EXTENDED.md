@@ -782,16 +782,71 @@ describe('ErrorLogDashboard', () => {
 
 ## Running Tests
 
-### Server Tests
+### Quick Start (Local)
+
+**MANDATORY: Run tests before every release.**
+
+```bash
+# Full test suite (requires Docker)
+./tests.bat
+
+# Quick unit tests only (no Docker needed)
+./tests.bat quick
+
+# Status-related tests only
+./tests.bat status
+
+# Stop test containers when done
+./tests.bat stop
+```
+
+| Command | What it Tests | Docker Required |
+|---------|---------------|-----------------|
+| `./tests.bat` | Full suite (model + integration) | Yes |
+| `./tests.bat quick` | Unit tests only | No |
+| `./tests.bat status` | Status feature tests | Yes |
+| `./tests.bat stop` | Stop test containers | - |
+
+### GitHub Actions
+
+Tests run automatically on release tags via GitHub Actions:
+
+| Workflow | Trigger | Purpose |
+|----------|---------|---------|
+| `test.yml` | On release tags (`v*-custom.*`) | Custom test suite |
+| `upstream-tests.yml` | Manual dispatch | Upstream Mattermost tests |
+
+**Custom Tests (`test.yml`):**
+- Triggered automatically when you run `build.bat`
+- Tests: MattermostExtended models, AccurateStatuses, NoOffline, DND Extended
+- Must pass for successful release
+
+**Upstream Tests (`upstream-tests.yml`):**
+- Run manually via GitHub Actions UI
+- Use when syncing with a new upstream version
+- Scope options: `status`, `app`, `api`, `store`, `full`
+
+To run upstream tests:
+1. Go to https://github.com/stalecontext/mattermost-extended/actions
+2. Select "Upstream Tests" workflow
+3. Click "Run workflow"
+4. Choose test scope
+
+### Server Tests (Manual)
+
 ```bash
 # Run all extended tests
 cd server && go test ./... -run "Extended|CustomChannelIcon|Encryption|StatusLog|ErrorLog"
 
 # Run specific test file
 cd server && go test ./channels/api4 -run "TestCustomChannelIcon" -v
+
+# Run with verbose output
+cd server && gotestsum --format testname -- -v -run "TestMattermostExtended" ./public/model/...
 ```
 
 ### Webapp Tests
+
 ```bash
 # Run all tests
 cd webapp && npm test
@@ -801,6 +856,7 @@ cd webapp && npm test -- --testPathPattern="encryption"
 ```
 
 ### E2E Tests
+
 ```bash
 # Run all E2E tests
 cd e2e-tests && npm run cypress:run

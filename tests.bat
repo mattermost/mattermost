@@ -8,6 +8,8 @@ setlocal EnableDelayedExpansion
 ::   tests.bat           - Run all custom tests
 ::   tests.bat quick     - Run unit tests only (no Docker needed)
 ::   tests.bat status    - Run status-related tests only
+::   tests.bat store     - Run store tests only
+::   tests.bat api       - Run API tests only
 ::   tests.bat stop      - Stop test containers
 
 set SCRIPT_DIR=%~dp0
@@ -26,10 +28,12 @@ if %ERRORLEVEL% neq 0 (
 if "%1"=="stop" goto :stop
 if "%1"=="quick" goto :quick
 if "%1"=="status" goto :status
+if "%1"=="store" goto :store
+if "%1"=="api" goto :api
 if "%1"=="" goto :all
 
 echo Unknown command: %1
-echo Usage: tests.bat [quick^|status^|stop]
+echo Usage: tests.bat [quick^|status^|store^|api^|stop]
 exit /b 1
 
 :quick
@@ -84,6 +88,70 @@ echo.
 echo === All Status Tests Passed ===
 exit /b 0
 
+:store
+echo.
+echo === Running Store Tests Only ===
+call :start_containers
+if %ERRORLEVEL% neq 0 exit /b 1
+
+cd /d "%SCRIPT_DIR%server"
+
+echo.
+echo [1/3] Status Log Store Tests
+gotestsum --format testname -- -v -run "TestStatusLogStore" ./channels/store/sqlstore/... -timeout 15m
+if %ERRORLEVEL% neq 0 goto :test_failed
+
+echo.
+echo [2/3] Encryption Session Key Store Tests
+gotestsum --format testname -- -v -run "TestEncryptionSessionKeyStore" ./channels/store/sqlstore/... -timeout 15m
+if %ERRORLEVEL% neq 0 goto :test_failed
+
+echo.
+echo [3/3] Custom Channel Icon Store Tests
+gotestsum --format testname -- -v -run "TestCustomChannelIconStore" ./channels/store/sqlstore/... -timeout 15m
+if %ERRORLEVEL% neq 0 goto :test_failed
+
+echo.
+echo === All Store Tests Passed ===
+exit /b 0
+
+:api
+echo.
+echo === Running API Tests Only ===
+call :start_containers
+if %ERRORLEVEL% neq 0 exit /b 1
+
+cd /d "%SCRIPT_DIR%server"
+
+echo.
+echo [1/5] Custom Channel Icon API Tests
+gotestsum --format testname -- -v -run "TestCustomChannelIcon" ./channels/api4/... -timeout 15m
+if %ERRORLEVEL% neq 0 goto :test_failed
+
+echo.
+echo [2/5] Encryption API Tests
+gotestsum --format testname -- -v -run "TestEncryption" ./channels/api4/... -timeout 15m
+if %ERRORLEVEL% neq 0 goto :test_failed
+
+echo.
+echo [3/5] Preference Override API Tests
+gotestsum --format testname -- -v -run "TestPreferenceOverride" ./channels/api4/... -timeout 15m
+if %ERRORLEVEL% neq 0 goto :test_failed
+
+echo.
+echo [4/5] Error Log API Tests
+gotestsum --format testname -- -v -run "TestErrorLog" ./channels/api4/... -timeout 15m
+if %ERRORLEVEL% neq 0 goto :test_failed
+
+echo.
+echo [5/5] Status Log API Tests
+gotestsum --format testname -- -v -run "TestStatusLog" ./channels/api4/... -timeout 15m
+if %ERRORLEVEL% neq 0 goto :test_failed
+
+echo.
+echo === All API Tests Passed ===
+exit /b 0
+
 :all
 echo.
 echo === Running Full Test Suite ===
@@ -94,32 +162,94 @@ cd /d "%SCRIPT_DIR%server"
 call make setup-go-work 2>nul
 
 echo.
-echo [1/5] Model Tests (MattermostExtended + StatusLog)
+echo ========================================
+echo UNIT TESTS
+echo ========================================
+
+echo.
+echo [1/13] Model Tests (MattermostExtended + StatusLog)
 gotestsum --format testname -- -v -run "TestMattermostExtended|TestStatusLog" ./public/model/... -timeout 10m
 if %ERRORLEVEL% neq 0 goto :test_failed
 
 echo.
-echo [2/5] AccurateStatuses Tests
+echo ========================================
+echo STORE TESTS
+echo ========================================
+
+echo.
+echo [2/13] Status Log Store Tests
+gotestsum --format testname -- -v -run "TestStatusLogStore" ./channels/store/sqlstore/... -timeout 15m
+if %ERRORLEVEL% neq 0 goto :test_failed
+
+echo.
+echo [3/13] Encryption Session Key Store Tests
+gotestsum --format testname -- -v -run "TestEncryptionSessionKeyStore" ./channels/store/sqlstore/... -timeout 15m
+if %ERRORLEVEL% neq 0 goto :test_failed
+
+echo.
+echo [4/13] Custom Channel Icon Store Tests
+gotestsum --format testname -- -v -run "TestCustomChannelIconStore" ./channels/store/sqlstore/... -timeout 15m
+if %ERRORLEVEL% neq 0 goto :test_failed
+
+echo.
+echo ========================================
+echo API TESTS
+echo ========================================
+
+echo.
+echo [5/13] Custom Channel Icon API Tests
+gotestsum --format testname -- -v -run "TestCustomChannelIcon" ./channels/api4/... -timeout 15m
+if %ERRORLEVEL% neq 0 goto :test_failed
+
+echo.
+echo [6/13] Encryption API Tests
+gotestsum --format testname -- -v -run "TestEncryption" ./channels/api4/... -timeout 15m
+if %ERRORLEVEL% neq 0 goto :test_failed
+
+echo.
+echo [7/13] Preference Override API Tests
+gotestsum --format testname -- -v -run "TestPreferenceOverride" ./channels/api4/... -timeout 15m
+if %ERRORLEVEL% neq 0 goto :test_failed
+
+echo.
+echo [8/13] Error Log API Tests
+gotestsum --format testname -- -v -run "TestErrorLog" ./channels/api4/... -timeout 15m
+if %ERRORLEVEL% neq 0 goto :test_failed
+
+echo.
+echo [9/13] Status Log API Tests
+gotestsum --format testname -- -v -run "TestStatusLog" ./channels/api4/... -timeout 15m
+if %ERRORLEVEL% neq 0 goto :test_failed
+
+echo.
+echo ========================================
+echo PLATFORM TESTS
+echo ========================================
+
+echo.
+echo [10/13] AccurateStatuses Tests
 gotestsum --format testname -- -v -run "TestUpdateActivityFromHeartbeat|TestUpdateActivityFromManualAction|TestUpdateActivityFromHeartbeatEdgeCases|TestSetStatusAwayIfNeededExtended" ./channels/app/platform/... -timeout 15m
 if %ERRORLEVEL% neq 0 goto :test_failed
 
 echo.
-echo [3/5] NoOffline Tests
+echo [11/13] NoOffline Tests
 gotestsum --format testname -- -v -run "TestSetOnlineIfNoOffline|TestNoOfflineWithAccurateStatuses|TestNoOfflineOnWebSocketConnect" ./channels/app/platform/... -timeout 15m
 if %ERRORLEVEL% neq 0 goto :test_failed
 
 echo.
-echo [4/5] DND Extended Tests
+echo [12/13] DND Extended Tests
 gotestsum --format testname -- -v -run "TestDNDInactivityTimeout|TestDNDRestoration|TestSetStatusDoNotDisturbExtended|TestSetStatusDoNotDisturbTimedExtended|TestSetStatusOutOfOfficeExtended|TestDNDWithNoOffline" ./channels/app/platform/... -timeout 15m
 if %ERRORLEVEL% neq 0 goto :test_failed
 
 echo.
-echo [5/5] Upstream Status Tests
+echo [13/13] Upstream Status Tests
 gotestsum --format testname -- -v -run "TestSaveStatus|TestSetStatusOffline|TestQueueSetStatusOffline|TestTruncateDNDEndTime" ./channels/app/platform/... -timeout 15m
 if %ERRORLEVEL% neq 0 goto :test_failed
 
 echo.
-echo === All Tests Passed ===
+echo ========================================
+echo ALL TESTS PASSED
+echo ========================================
 echo.
 echo You may now run build.bat to create a release.
 exit /b 0

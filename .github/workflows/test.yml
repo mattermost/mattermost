@@ -40,9 +40,185 @@ jobs:
             ./public/model/... \
             -timeout 10m
 
-  # Full integration tests with Docker services
-  integration-tests:
-    name: Integration Tests
+  # Store layer tests with Docker services
+  store-tests:
+    name: Store Tests
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_USER: mmuser
+          POSTGRES_PASSWORD: mostest
+          POSTGRES_DB: mattermost_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: 'server/go.mod'
+          cache-dependency-path: |
+            server/go.sum
+            server/public/go.sum
+
+      - name: Install gotestsum
+        run: go install gotest.tools/gotestsum@v1.11.0
+
+      - name: Setup workspace
+        working-directory: ./server
+        run: make setup-go-work
+
+      - name: Run Status Log Store Tests
+        working-directory: ./server
+        env:
+          MM_SQLSETTINGS_DRIVERNAME: postgres
+          MM_SQLSETTINGS_DATASOURCE: postgres://mmuser:mostest@localhost:5432/mattermost_test?sslmode=disable
+        run: |
+          gotestsum --format testname -- -v \
+            -run "TestStatusLogStore" \
+            ./channels/store/sqlstore/... \
+            -timeout 15m
+
+      - name: Run Encryption Session Key Store Tests
+        working-directory: ./server
+        env:
+          MM_SQLSETTINGS_DRIVERNAME: postgres
+          MM_SQLSETTINGS_DATASOURCE: postgres://mmuser:mostest@localhost:5432/mattermost_test?sslmode=disable
+        run: |
+          gotestsum --format testname -- -v \
+            -run "TestEncryptionSessionKeyStore" \
+            ./channels/store/sqlstore/... \
+            -timeout 15m
+
+      - name: Run Custom Channel Icon Store Tests
+        working-directory: ./server
+        env:
+          MM_SQLSETTINGS_DRIVERNAME: postgres
+          MM_SQLSETTINGS_DATASOURCE: postgres://mmuser:mostest@localhost:5432/mattermost_test?sslmode=disable
+        run: |
+          gotestsum --format testname -- -v \
+            -run "TestCustomChannelIconStore" \
+            ./channels/store/sqlstore/... \
+            -timeout 15m
+
+  # API tests with Docker services
+  api-tests:
+    name: API Tests
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_USER: mmuser
+          POSTGRES_PASSWORD: mostest
+          POSTGRES_DB: mattermost_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+      redis:
+        image: redis:7
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: 'server/go.mod'
+          cache-dependency-path: |
+            server/go.sum
+            server/public/go.sum
+
+      - name: Install gotestsum
+        run: go install gotest.tools/gotestsum@v1.11.0
+
+      - name: Setup workspace
+        working-directory: ./server
+        run: make setup-go-work
+
+      - name: Run Custom Channel Icon API Tests
+        working-directory: ./server
+        env:
+          MM_SQLSETTINGS_DRIVERNAME: postgres
+          MM_SQLSETTINGS_DATASOURCE: postgres://mmuser:mostest@localhost:5432/mattermost_test?sslmode=disable
+        run: |
+          gotestsum --format testname -- -v \
+            -run "TestCustomChannelIcon" \
+            ./channels/api4/... \
+            -timeout 15m
+
+      - name: Run Encryption API Tests
+        working-directory: ./server
+        env:
+          MM_SQLSETTINGS_DRIVERNAME: postgres
+          MM_SQLSETTINGS_DATASOURCE: postgres://mmuser:mostest@localhost:5432/mattermost_test?sslmode=disable
+        run: |
+          gotestsum --format testname -- -v \
+            -run "TestEncryption" \
+            ./channels/api4/... \
+            -timeout 15m
+
+      - name: Run Preference Override API Tests
+        working-directory: ./server
+        env:
+          MM_SQLSETTINGS_DRIVERNAME: postgres
+          MM_SQLSETTINGS_DATASOURCE: postgres://mmuser:mostest@localhost:5432/mattermost_test?sslmode=disable
+        run: |
+          gotestsum --format testname -- -v \
+            -run "TestPreferenceOverride" \
+            ./channels/api4/... \
+            -timeout 15m
+
+      - name: Run Error Log API Tests
+        working-directory: ./server
+        env:
+          MM_SQLSETTINGS_DRIVERNAME: postgres
+          MM_SQLSETTINGS_DATASOURCE: postgres://mmuser:mostest@localhost:5432/mattermost_test?sslmode=disable
+        run: |
+          gotestsum --format testname -- -v \
+            -run "TestErrorLog" \
+            ./channels/api4/... \
+            -timeout 15m
+
+      - name: Run Status Log API Tests
+        working-directory: ./server
+        env:
+          MM_SQLSETTINGS_DRIVERNAME: postgres
+          MM_SQLSETTINGS_DATASOURCE: postgres://mmuser:mostest@localhost:5432/mattermost_test?sslmode=disable
+        run: |
+          gotestsum --format testname -- -v \
+            -run "TestStatusLog" \
+            ./channels/api4/... \
+            -timeout 15m
+
+  # Platform integration tests with Docker services
+  platform-tests:
+    name: Platform Tests
     runs-on: ubuntu-latest
 
     services:
@@ -133,91 +309,6 @@ jobs:
             ./channels/app/platform/... \
             -timeout 15m
 
-      # Note: API Scenario Tests temporarily disabled due to config propagation issues
-      # with Redis cache in the test environment. The core platform tests cover the
-      # same functionality and pass. To be re-enabled after debugging the test infrastructure.
-      # - name: Run API Scenario Tests (Full User Flows)
-      #   working-directory: ./server
-      #   env:
-      #     MM_SQLSETTINGS_DRIVERNAME: postgres
-      #     MM_SQLSETTINGS_DATASOURCE: postgres://mmuser:mostest@localhost:5432/mattermost_test?sslmode=disable
-      #   run: |
-      #     gotestsum --format testname -- -v \
-      #       -run "TestAccurateStatusesScenario|TestNoOfflineScenario|TestManualActionActivityScenario|TestCombinedFeaturesScenario|TestMultiUserStatusScenario|TestConfigurationScenario|TestWebSocketStatusEvents" \
-      #       ./channels/api4/... \
-      #       -timeout 30m
-
-      # Note: App Status Tests temporarily disabled due to mocks package conflicts
-      # in the ./channels/app/... package (same issue as noted in compile-check).
-      # These test upstream custom status functionality, not our AccurateStatuses feature.
-      # Our custom status tests in ./channels/app/platform/... pass successfully.
-      # - name: Run App Status Tests
-      #   working-directory: ./server
-      #   env:
-      #     MM_SQLSETTINGS_DRIVERNAME: postgres
-      #     MM_SQLSETTINGS_DATASOURCE: postgres://mmuser:mostest@localhost:5432/mattermost_test?sslmode=disable
-      #   run: |
-      #     gotestsum --format testname -- -v \
-      #       -run "TestCustomStatus|TestSetCustomStatus" \
-      #       ./channels/app/... \
-      #       -timeout 20m
-
-  # Coverage report for custom code
-  coverage:
-    name: Coverage Report
-    runs-on: ubuntu-latest
-
-    services:
-      postgres:
-        image: postgres:15
-        env:
-          POSTGRES_USER: mmuser
-          POSTGRES_PASSWORD: mostest
-          POSTGRES_DB: mattermost_test
-        ports:
-          - 5432:5432
-        options: >-
-          --health-cmd pg_isready
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
-
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Set up Go
-        uses: actions/setup-go@v5
-        with:
-          go-version-file: 'server/go.mod'
-          cache-dependency-path: |
-            server/go.sum
-            server/public/go.sum
-
-      - name: Setup workspace
-        working-directory: ./server
-        run: make setup-go-work
-
-      - name: Run Tests with Coverage
-        working-directory: ./server
-        env:
-          MM_SQLSETTINGS_DRIVERNAME: postgres
-          MM_SQLSETTINGS_DATASOURCE: postgres://mmuser:mostest@localhost:5432/mattermost_test?sslmode=disable
-        run: |
-          go test -v \
-            -coverprofile=coverage.out \
-            -covermode=atomic \
-            ./public/model/... \
-            -timeout 10m
-
-      - name: Display Coverage
-        working-directory: ./server
-        run: |
-          echo "## Coverage Report" >> $GITHUB_STEP_SUMMARY
-          echo '```' >> $GITHUB_STEP_SUMMARY
-          go tool cover -func=coverage.out | grep -E "(MattermostExtended|total:)" >> $GITHUB_STEP_SUMMARY || true
-          echo '```' >> $GITHUB_STEP_SUMMARY
-
   # Compile check (ensures tests compile without running them)
   compile-check:
     name: Compile Check
@@ -249,4 +340,5 @@ jobs:
           # Compile test packages (build only, no output binary)
           go test -c -o /dev/null ./public/model/...
           go test -c -o /dev/null ./channels/app/platform/...
+          go test -c -o /dev/null ./channels/store/sqlstore/...
           # Skip ./channels/app/... as it has multiple 'mocks' packages that conflict
