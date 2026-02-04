@@ -14,7 +14,12 @@ import LoadingScreen from 'components/loading_screen';
 import * as Menu from 'components/menu';
 import QuickInput from 'components/quick_input';
 import SharedChannelIndicator from 'components/shared_channel_indicator';
+import AccountMultipleIcon from 'components/widgets/icons/account_multiple_icon';
 import CheckboxCheckedIcon from 'components/widgets/icons/checkbox_checked_icon';
+import ClockIcon from 'components/widgets/icons/clock_icon';
+import SortAlphaDownIcon from 'components/widgets/icons/sort_alpha_down_icon';
+import SortAlphaUpIcon from 'components/widgets/icons/sort_alpha_up_icon';
+import ThumbsUpIcon from 'components/widgets/icons/thumbs_up_icon';
 import LoadingWrapper from 'components/widgets/loading/loading_wrapper';
 
 import {getChannelIconComponent} from 'utils/channel_utils';
@@ -22,8 +27,8 @@ import Constants, {ModalIdentifiers} from 'utils/constants';
 import {isKeyPressed} from 'utils/keyboard';
 import * as UserAgent from 'utils/user_agent';
 
-import type {FilterType} from './browse_channels/browse_channels';
-import {Filter} from './browse_channels/browse_channels';
+import type {FilterType, SortType} from './browse_channels/browse_channels';
+import {Filter, Sort} from './browse_channels/browse_channels';
 
 const NEXT_BUTTON_TIMEOUT_MILLISECONDS = 500;
 
@@ -37,6 +42,8 @@ interface Props extends WrappedComponentProps {
     noResultsText: JSX.Element;
     changeFilter: (filter: FilterType) => void;
     filter: FilterType;
+    changeSort: (sort: SortType) => void;
+    sort: SortType;
     myChannelMemberships: RelationOneToOne<Channel, ChannelMembership>;
     closeModal: (modalId: string) => void;
     hideJoinedChannelsPreference: (shouldHideJoinedChannels: boolean) => void;
@@ -258,6 +265,12 @@ export class SearchableChannelList extends React.PureComponent<Props, State> {
             this.setState({page: 0});
         }
     };
+    sortChange = (sortType: SortType) => {
+        this.props.changeSort(sortType);
+        if (this.props.sort !== sortType) {
+            this.setState({page: 0});
+        }
+    };
     handleChange = (e?: React.FormEvent<HTMLInputElement>) => {
         if (e?.currentTarget) {
             this.setState({channelSearchValue: e?.currentTarget.value}, () => this.doSearch());
@@ -348,6 +361,53 @@ export class SearchableChannelList extends React.PureComponent<Props, State> {
                 <FormattedMessage
                     id='more_channels.show_all_channels'
                     defaultMessage='Channel Type: All'
+                />
+            );
+        }
+    };
+
+    getSortLabel = () => {
+        switch (this.props.sort) {
+        case Sort.Recommended:
+            return (
+                <FormattedMessage
+                    id='more_channels.sort_recommended'
+                    defaultMessage='Sort: Recommended'
+                />
+            );
+        case Sort.Newest:
+            return (
+                <FormattedMessage
+                    id='more_channels.sort_newest'
+                    defaultMessage='Sort: Newest'
+                />
+            );
+        case Sort.MostMembers:
+            return (
+                <FormattedMessage
+                    id='more_channels.sort_most_members'
+                    defaultMessage='Sort: Most Members'
+                />
+            );
+        case Sort.AtoZ:
+            return (
+                <FormattedMessage
+                    id='more_channels.sort_a_to_z'
+                    defaultMessage='Sort: A to Z'
+                />
+            );
+        case Sort.ZtoA:
+            return (
+                <FormattedMessage
+                    id='more_channels.sort_z_to_a'
+                    defaultMessage='Sort: Z to A'
+                />
+            );
+        default:
+            return (
+                <FormattedMessage
+                    id='more_channels.sort_recommended'
+                    defaultMessage='Sort: Recommended'
                 />
             );
         }
@@ -503,6 +563,81 @@ export class SearchableChannelList extends React.PureComponent<Props, State> {
                 aria-label={this.props.intl.formatMessage({id: 'suggestion.archive', defaultMessage: 'Archived channels'})}
             />,
         );
+
+        // Sort dropdown items
+        const sortDropdownItems = [
+            <Menu.Item
+                key='sortMoreDropdownRecommended'
+                id='sortMoreDropdownRecommended'
+                onClick={() => this.sortChange(Sort.Recommended)}
+                leadingElement={<ThumbsUpIcon/>}
+                labels={
+                    <FormattedMessage
+                        id='more_channels.sort.recommended'
+                        defaultMessage='Recommended'
+                    />
+                }
+                trailingElements={this.props.sort === Sort.Recommended ? checkIcon : null}
+                aria-label={this.props.intl.formatMessage({id: 'more_channels.sort.recommended', defaultMessage: 'Recommended'})}
+            />,
+            <Menu.Item
+                key='sortMoreDropdownNewest'
+                id='sortMoreDropdownNewest'
+                onClick={() => this.sortChange(Sort.Newest)}
+                leadingElement={<ClockIcon/>}
+                labels={
+                    <FormattedMessage
+                        id='more_channels.sort.newest'
+                        defaultMessage='Newest'
+                    />
+                }
+                trailingElements={this.props.sort === Sort.Newest ? checkIcon : null}
+                aria-label={this.props.intl.formatMessage({id: 'more_channels.sort.newest', defaultMessage: 'Newest'})}
+            />,
+            <Menu.Item
+                key='sortMoreDropdownMostMembers'
+                id='sortMoreDropdownMostMembers'
+                onClick={() => this.sortChange(Sort.MostMembers)}
+                leadingElement={<AccountMultipleIcon/>}
+                labels={
+                    <FormattedMessage
+                        id='more_channels.sort.most_members'
+                        defaultMessage='Most Members'
+                    />
+                }
+                trailingElements={this.props.sort === Sort.MostMembers ? checkIcon : null}
+                aria-label={this.props.intl.formatMessage({id: 'more_channels.sort.most_members', defaultMessage: 'Most Members'})}
+            />,
+            <Menu.Item
+                key='sortMoreDropdownAtoZ'
+                id='sortMoreDropdownAtoZ'
+                onClick={() => this.sortChange(Sort.AtoZ)}
+                leadingElement={<SortAlphaDownIcon/>}
+                labels={
+                    <FormattedMessage
+                        id='more_channels.sort.a_to_z'
+                        defaultMessage='A to Z'
+                    />
+                }
+                trailingElements={this.props.sort === Sort.AtoZ ? checkIcon : null}
+                aria-label={this.props.intl.formatMessage({id: 'more_channels.sort.a_to_z', defaultMessage: 'A to Z'})}
+            />,
+            <Menu.Item
+                key='sortMoreDropdownZtoA'
+                id='sortMoreDropdownZtoA'
+                onClick={() => this.sortChange(Sort.ZtoA)}
+                leadingElement={<SortAlphaUpIcon/>}
+                labels={
+                    <FormattedMessage
+                        id='more_channels.sort.z_to_a'
+                        defaultMessage='Z to A'
+                    />
+                }
+                trailingElements={this.props.sort === Sort.ZtoA ? checkIcon : null}
+                aria-label={this.props.intl.formatMessage({id: 'more_channels.sort.z_to_a', defaultMessage: 'Z to A'})}
+            />,
+        ];
+
         const menuButton = (
             <>
                 {this.getFilterLabel()}
@@ -538,6 +673,45 @@ export class SearchableChannelList extends React.PureComponent<Props, State> {
                     }}
                 >
                     {channelDropdownItems.map((item) => item)}
+                </Menu.Container>
+            </>
+        );
+
+        const sortMenuButton = (
+            <>
+                {this.getSortLabel()}
+                <ChevronDownIcon
+                    color={'rgba(var(--center-channel-color-rgb), 0.64)'}
+                    size={16}
+                />
+            </>
+        );
+        const sortDropdown = (
+            <>
+                <div
+                    role='status'
+                    aria-atomic='true'
+                    className='sr-only'
+                >
+                    {this.props.intl.formatMessage({
+                        id: 'more_channels.sort_filter.sort_type_set',
+                        defaultMessage: 'Sort filter set to {sortType}',
+                    }, {
+                        sortType: this.props.sort,
+                    })}
+                </div>
+                <Menu.Container
+                    menuButton={{
+                        id: 'sortMenuWrapper',
+                        children: sortMenuButton,
+                        'aria-label': this.props.intl.formatMessage({id: 'more_channels.sort_filter', defaultMessage: 'Sort filter'}),
+                    }}
+                    menu={{
+                        id: 'browseSortDropdown',
+                        'aria-label': this.props.intl.formatMessage({id: 'more_channels.sort_filter', defaultMessage: 'Sort filter'}),
+                    }}
+                >
+                    {sortDropdownItems.map((item) => item)}
                 </Menu.Container>
             </>
         );
@@ -590,6 +764,7 @@ export class SearchableChannelList extends React.PureComponent<Props, State> {
                     {channelCountLabel}
                 </span>
                 <div id='modalPreferenceContainer'>
+                    {sortDropdown}
                     {channelDropdown}
                     {hideJoinedPreferenceCheckbox}
                 </div>
