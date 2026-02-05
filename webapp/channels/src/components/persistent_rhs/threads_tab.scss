@@ -1,0 +1,34 @@
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
+
+.threads-tab {
+    height: 100%;
+
+    &--empty {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        padding: 32px;
+        text-align: center;
+    }
+
+    &__empty-icon {
+        font-size: 48px;
+        color: rgba(var(--center-channel-color-rgb), 0.24);
+        margin-bottom: 8px;
+    }
+
+    &__empty-text {
+        font-size: 16px;
+        font-weight: 600;
+        color: var(--center-channel-color);
+    }
+
+    &__empty-hint {
+        font-size: 14px;
+        color: rgba(var(--center-channel-color-rgb), 0.56);
+        max-width: 200px;
+    }
+}

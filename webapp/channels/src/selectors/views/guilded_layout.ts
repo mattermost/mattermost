@@ -3,10 +3,13 @@
 
 import {createSelector} from 'mattermost-redux/selectors/create_selector';
 
-import {getAllChannels, getMyChannelMemberships} from 'mattermost-redux/selectors/entities/channels';
-import {getPostsInChannel} from 'mattermost-redux/selectors/entities/posts';
+import {getAllChannels, getMyChannelMemberships, getChannelMembersInChannels} from 'mattermost-redux/selectors/entities/channels';
+import {getPostsInChannel, getPost} from 'mattermost-redux/selectors/entities/posts';
 import {getConfig} from 'mattermost-redux/selectors/entities/general';
-import {getUsers, getStatusForUserId, getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
+import {getUsers, getStatusForUserId, getCurrentUserId, getProfilesInChannel} from 'mattermost-redux/selectors/entities/users';
+import {getThreads} from 'mattermost-redux/selectors/entities/threads';
+
+import type {Post} from '@mattermost/types/posts';
 
 import {Constants} from 'utils/constants';
 
@@ -257,5 +260,121 @@ export const getAllDmChannelsWithUsers = createSelector(
 
         // Sort by last post time (most recent first)
         return dms.sort((a, b) => b.channel.last_post_at - a.channel.last_post_at);
+    },
+);
+
+// Members tab types
+interface MemberWithStatus {
+    user: UserProfile;
+    status: string;
+    isAdmin: boolean;
+}
+
+interface GroupedMembers {
+    onlineAdmins: MemberWithStatus[];
+    onlineMembers: MemberWithStatus[];
+    offline: MemberWithStatus[];
+}
+
+/**
+ * Get channel members grouped by status (online admins, online members, offline)
+ * Used for the Members tab in Persistent RHS
+ */
+export const getChannelMembersGroupedByStatus = createSelector(
+    'getChannelMembersGroupedByStatus',
+    (state: GlobalState, channelId: string) => getProfilesInChannel(state, channelId),
+    (state: GlobalState, channelId: string) => getChannelMembersInChannels(state)?.[channelId],
+    (state: GlobalState) => state,
+    (profiles, memberships, state): GroupedMembers | null => {
+        if (!profiles || !memberships) {
+            return null;
+        }
+
+        const result: GroupedMembers = {
+            onlineAdmins: [],
+            onlineMembers: [],
+            offline: [],
+        };
+
+        for (const user of profiles) {
+            const membership = memberships[user.id];
+            const status = getStatusForUserId(state, user.id) || 'offline';
+            const isAdmin = membership?.scheme_admin === true;
+            const isOnline = status !== 'offline';
+
+            const memberInfo: MemberWithStatus = {
+                user,
+                status,
+                isAdmin,
+            };
+
+            if (!isOnline) {
+                result.offline.push(memberInfo);
+            } else if (isAdmin) {
+                result.onlineAdmins.push(memberInfo);
+            } else {
+                result.onlineMembers.push(memberInfo);
+            }
+        }
+
+        // Sort each group alphabetically by display name
+        const sortByName = (a: MemberWithStatus, b: MemberWithStatus) => {
+            const nameA = a.user.nickname || a.user.username;
+            const nameB = b.user.nickname || b.user.username;
+            return nameA.localeCompare(nameB);
+        };
+
+        result.onlineAdmins.sort(sortByName);
+        result.onlineMembers.sort(sortByName);
+        result.offline.sort(sortByName);
+
+        return result;
+    },
+);
+
+// Thread info type for RHS
+interface ThreadInfo {
+    id: string;
+    rootPost: Post;
+    replyCount: number;
+    participants: string[];
+    hasUnread: boolean;
+}
+
+/**
+ * Get threads in a channel with metadata
+ * Used for the Threads tab in Persistent RHS
+ */
+export const getThreadsInChannel = createSelector(
+    'getThreadsInChannel',
+    (state: GlobalState) => getThreads(state),
+    (state: GlobalState, channelId: string) => channelId,
+    (state: GlobalState) => state,
+    (threads, channelId, state): ThreadInfo[] => {
+        const channelThreads: ThreadInfo[] = [];
+
+        for (const [threadId, thread] of Object.entries(threads?.threads || {})) {
+            if (!thread) {
+                continue;
+            }
+
+            const rootPost = getPost(state, threadId);
+            if (!rootPost || rootPost.channel_id !== channelId) {
+                continue;
+            }
+
+            channelThreads.push({
+                id: threadId,
+                rootPost,
+                replyCount: thread.reply_count || 0,
+                participants: thread.participants?.map((p: {id: string}) => p.id) || [],
+                hasUnread: (thread.unread_replies || 0) > 0,
+            });
+        }
+
+        // Sort by last reply time (most recent first)
+        return channelThreads.sort((a, b) =>
+            (b.rootPost.last_reply_at || 0) - (a.rootPost.last_reply_at || 0),
+        );
     },
 );

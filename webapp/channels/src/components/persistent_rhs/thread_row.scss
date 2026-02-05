@@ -1,0 +1,75 @@
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
+
+.thread-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 16px;
+    cursor: pointer;
+    transition: background-color 0.1s ease;
+
+    &:hover {
+        background-color: rgba(var(--center-channel-color-rgb), 0.08);
+    }
+
+    &--unread {
+        background-color: rgba(var(--button-bg-rgb), 0.08);
+
+        .thread-row__preview {
+            font-weight: 600;
+        }
+    }
+
+    &__content {
+        flex: 1;
+        min-width: 0;
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+    }
+
+    &__preview {
+        font-size: 14px;
+        color: var(--center-channel-color);
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    &__meta {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    &__reply-count {
+        font-size: 12px;
+        color: rgba(var(--center-channel-color-rgb), 0.56);
+    }
+
+    &__unread-dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background-color: var(--button-bg);
+    }
+
+    &__participants {
+        display: flex;
+        flex-shrink: 0;
+    }
+
+    &__avatar {
+        width: 24px;
+        height: 24px;
+        border-radius: 50%;
+        border: 2px solid var(--sidebar-bg);
+        object-fit: cover;
+        margin-left: -8px;
+
+        &:first-child {
+            margin-left: 0;
+        }
+    }
+}

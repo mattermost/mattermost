@@ -1,0 +1,44 @@
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
+
+.rhs-tab-bar {
+    display: flex;
+    justify-content: center;
+    gap: 4px;
+    padding: 12px 16px;
+    border-bottom: 1px solid rgba(var(--center-channel-color-rgb), 0.08);
+
+    &__tab {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 40px;
+        height: 40px;
+        padding: 0;
+        border: none;
+        border-radius: 8px;
+        background: transparent;
+        color: rgba(var(--center-channel-color-rgb), 0.56);
+        cursor: pointer;
+        transition: background-color 0.1s ease, color 0.1s ease;
+
+        &:hover {
+            background-color: rgba(var(--center-channel-color-rgb), 0.08);
+            color: var(--center-channel-color);
+        }
+
+        &--active {
+            background-color: rgba(var(--button-bg-rgb), 0.12);
+            color: var(--button-bg);
+
+            &:hover {
+                background-color: rgba(var(--button-bg-rgb), 0.16);
+                color: var(--button-bg);
+            }
+        }
+
+        .icon {
+            font-size: 22px;
+        }
+    }
+}

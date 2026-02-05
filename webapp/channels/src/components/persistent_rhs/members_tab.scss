@@ -1,0 +1,28 @@
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
+
+.members-tab {
+    height: 100%;
+
+    &--empty {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: rgba(var(--center-channel-color-rgb), 0.56);
+        font-size: 14px;
+    }
+
+    &__group-header {
+        display: flex;
+        align-items: center;
+        padding: 16px 16px 4px;
+    }
+
+    &__group-label {
+        font-size: 12px;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.02em;
+        color: rgba(var(--center-channel-color-rgb), 0.56);
+    }
+}
