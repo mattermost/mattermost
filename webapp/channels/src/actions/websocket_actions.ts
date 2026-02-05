@@ -757,7 +757,7 @@ function handleChannelMemberUpdatedEvent(msg: WebSocketMessages.ChannelMemberUpd
         const existingMember = getMyChannelMemberInternal(state, channelMember.channel_id);
 
         // If user autotranslation changed, delete posts for this channel
-        if (existingMember && existingMember.autotranslation !== channelMember.autotranslation) {
+        if (existingMember && existingMember.autotranslation_disabled !== channelMember.autotranslation_disabled) {
             doDispatch(resetReloadPostsInChannel(channelMember.channel_id));
         }
 

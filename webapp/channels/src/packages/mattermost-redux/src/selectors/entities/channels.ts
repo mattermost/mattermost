@@ -1474,7 +1474,7 @@ export function getMyChannelAutotranslation(state: GlobalState, channelId: strin
     return Boolean(
         config?.EnableAutoTranslation === 'true' &&
         channel?.autotranslation &&
-        myChannelMember?.autotranslation &&
+        !myChannelMember?.autotranslation_disabled &&
         targetLanguages?.includes(locale),
     );
 }
