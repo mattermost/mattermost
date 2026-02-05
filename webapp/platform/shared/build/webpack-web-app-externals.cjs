@@ -17,17 +17,15 @@ const windowExternals = {
 };
 
 function webAppExternals() {
-    return {
-        externals: [
-            windowExternals,
-            ({request}, callback) => {
-                if ((/^@mattermost\/shared\//).test(request)) {
-                    return callback(null, `promise globalThis.loadSharedDependency('${request}')`);
-                }
+    return [
+        windowExternals,
+        ({request}, callback) => {
+            if ((/^@mattermost\/shared\//).test(request)) {
+                return callback(null, `promise globalThis.loadSharedDependency('${request}')`);
+            }
 
-                return callback();
-            },
-        ],
-    };
+            return callback();
+        },
+    ];
 }
 module.exports = webAppExternals;
