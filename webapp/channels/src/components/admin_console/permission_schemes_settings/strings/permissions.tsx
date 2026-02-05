@@ -278,21 +278,21 @@ export const permissionRolesStrings: Record<string, Record<string, MessageDescri
     manage_public_channel_auto_translation: defineMessages({
         name: {
             id: 'admin.permissions.permission.manage_public_channel_auto_translation.name',
-            defaultMessage: 'Manage Public Channel Auto Translation',
+            defaultMessage: 'Manage Channel Auto Translation',
         },
         description: {
             id: 'admin.permissions.permission.manage_public_channel_auto_translation.description',
-            defaultMessage: 'Manage public channel auto translation.',
+            defaultMessage: 'Enable or disable auto translations for public channels.',
         },
     }),
     manage_private_channel_auto_translation: defineMessages({
         name: {
             id: 'admin.permissions.permission.manage_private_channel_auto_translation.name',
-            defaultMessage: 'Manage Private Channel Auto Translation',
+            defaultMessage: 'Manage Channel Auto Translation',
         },
         description: {
             id: 'admin.permissions.permission.manage_private_channel_auto_translation.description',
-            defaultMessage: 'Manage private channel auto translation.',
+            defaultMessage: 'Enable or disable auto translations for private channels.',
         },
     }),
     manage_roles: defineMessages({
