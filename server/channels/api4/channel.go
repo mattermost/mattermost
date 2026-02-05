@@ -1864,7 +1864,7 @@ func updateChannelMemberAutotranslation(c *Context, w http.ResponseWriter, r *ht
 
 	props := UpdateChannelMemberAutotranslationProps{}
 	if err := json.NewDecoder(r.Body).Decode(&props); err != nil {
-		c.SetInvalidParamWithErr("autotranslation", err)
+		c.SetInvalidParamWithErr("autotranslation_disabled", err)
 		return
 	}
 
