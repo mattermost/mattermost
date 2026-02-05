@@ -25,11 +25,13 @@ jest.mock('../connected_team_sidebar', () => {
         }
         return <div className="team-sidebar" />;
     };
-    // Wrap with connect-like behavior
+    // Wrap with connect-like behavior using useStore to avoid memoization warnings
     return function MockConnectedTeamSidebar() {
-        // Access store via useSelector
-        const {useSelector} = jest.requireActual('react-redux');
-        const myTeams = useSelector((state: any) => Object.values(state.entities?.teams?.teams || {}));
+        const {useStore} = jest.requireActual('react-redux');
+        const store = useStore();
+        const state = store.getState();
+        const teams = state.entities?.teams?.teams || {};
+        const myTeams = Object.values(teams);
         return mockComponent({myTeams});
     };
 });

@@ -18,12 +18,12 @@ jest.mock('selectors/views/guilded_layout', () => ({
 // Mock complex child components
 jest.mock('components/persistent_rhs', () => {
     return function MockPersistentRhs() {
-        const {useSelector} = jest.requireActual('react-redux');
-        const channel = useSelector((state: any) => {
-            const channelId = state.entities?.channels?.currentChannelId;
-            return state.entities?.channels?.channels?.[channelId];
-        });
-        const rhsActiveTab = useSelector((state: any) => state.views?.guildedLayout?.rhsActiveTab || 'members');
+        const {useStore} = jest.requireActual('react-redux');
+        const store = useStore();
+        const state = store.getState();
+
+        const channelId = state.entities?.channels?.currentChannelId;
+        const channel = state.entities?.channels?.channels?.[channelId];
 
         // Mimic PersistentRhs behavior
         if (channel?.type === 'D') {
