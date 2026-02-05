@@ -1,8 +1,6 @@
 <p align="center">
-  <img src="docs/assets/logo-placeholder.png" alt="Mattermost Extended Logo" width="400">
+  <img src="docs/assets/banner.png" alt="Mattermost Extended Logo" width="400">
 </p>
-
-<h1 align="center">Mattermost Extended</h1>
 
 <p align="center">
   A fork of Mattermost with end-to-end encryption, custom icons, and other enhancements.
@@ -130,15 +128,15 @@ When enabled, deleted messages disappear immediately instead of showing "(messag
 
 ## Feature Flags
 
-| Feature | Environment Variable | Default |
-|---------|---------------------|---------|
-| End-to-End Encryption | `MM_FEATUREFLAGS_ENCRYPTION` | Off |
-| Discord-Style Replies | `MM_FEATUREFLAGS_DISCORDREPLIES` | Off |
-| Chat Sounds | `MM_FEATUREFLAGS_GUILDEDSOUNDS` | Off |
-| Custom Channel Icons | `MM_FEATUREFLAGS_CUSTOMCHANNELICONS` | Off |
-| Custom Thread Names | `MM_FEATUREFLAGS_CUSTOMTHREADNAMES` | Off |
-| Threads in Sidebar | `MM_FEATUREFLAGS_THREADSINSIDEBAR` | Off |
-| Hide Deleted Placeholders | `MM_FEATUREFLAGS_HIDEDELETEDMESSAGEPLACEHOLDER` | Off |
+| Feature                   | Environment Variable                            | Default |
+| ------------------------- | ----------------------------------------------- | ------- |
+| End-to-End Encryption     | `MM_FEATUREFLAGS_ENCRYPTION`                    | Off     |
+| Discord-Style Replies     | `MM_FEATUREFLAGS_DISCORDREPLIES`                | Off     |
+| Chat Sounds               | `MM_FEATUREFLAGS_GUILDEDSOUNDS`                 | Off     |
+| Custom Channel Icons      | `MM_FEATUREFLAGS_CUSTOMCHANNELICONS`            | Off     |
+| Custom Thread Names       | `MM_FEATUREFLAGS_CUSTOMTHREADNAMES`             | Off     |
+| Threads in Sidebar        | `MM_FEATUREFLAGS_THREADSINSIDEBAR`              | Off     |
+| Hide Deleted Placeholders | `MM_FEATUREFLAGS_HIDEDELETEDMESSAGEPLACEHOLDER` | Off     |
 
 Features can also be toggled in **System Console > Mattermost Extended > Features**:
 
@@ -177,13 +175,13 @@ cd ../webapp && npm ci && npm run build
 
 ## Documentation
 
-| Document | Description |
-|----------|-------------|
-| [Features](docs/FEATURES.md) | Detailed feature documentation |
-| [Architecture](docs/ARCHITECTURE.md) | Technical design |
-| [Build & Deploy](docs/BUILD_DEPLOY.md) | CI/CD and deployment |
-| [Development](docs/DEVELOPMENT.md) | Local development setup |
-| [Encryption](docs/plans/ENCRYPTION.md) | E2E encryption details |
+| Document                               | Description                    |
+| -------------------------------------- | ------------------------------ |
+| [Features](docs/FEATURES.md)           | Detailed feature documentation |
+| [Architecture](docs/ARCHITECTURE.md)   | Technical design               |
+| [Build & Deploy](docs/BUILD_DEPLOY.md) | CI/CD and deployment           |
+| [Development](docs/DEVELOPMENT.md)     | Local development setup        |
+| [Encryption](docs/plans/ENCRYPTION.md) | E2E encryption details         |
 
 ---
 
@@ -209,10 +207,10 @@ mattermost/
 
 ## Related Repositories
 
-| Repository | Description |
-|------------|-------------|
-| [mattermost-extended](https://github.com/stalecontext/mattermost-extended) | This repository |
-| [mattermost-extended-mobile](https://github.com/stalecontext/mattermost-extended-mobile) | Mobile app |
+| Repository                                                                                           | Description        |
+| ---------------------------------------------------------------------------------------------------- | ------------------ |
+| [mattermost-extended](https://github.com/stalecontext/mattermost-extended)                           | This repository    |
+| [mattermost-extended-mobile](https://github.com/stalecontext/mattermost-extended-mobile)             | Mobile app         |
 | [mattermost-extended-cloudron-app](https://github.com/stalecontext/mattermost-extended-cloudron-app) | Cloudron packaging |
 
 ---
