@@ -11738,11 +11738,11 @@
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.chrome",
-    "translation": "Version 142+"
+    "translation": "Version 144+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.edge",
-    "translation": "Version 142+"
+    "translation": "Version 144+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.firefox",
