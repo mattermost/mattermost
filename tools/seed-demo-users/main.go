@@ -4,6 +4,7 @@ import (
 	"crypto/rand"
 	"database/sql"
 	"encoding/base32"
+	"encoding/json"
 	"fmt"
 	"os"
 	"strings"
@@ -20,6 +21,13 @@ type User struct {
 	LastName  string
 	Nickname  string
 	Roles     string
+}
+
+type Channel struct {
+	Name        string
+	DisplayName string
+	Purpose     string
+	Icon        string // e.g., "mdi:rocket" - stored in props.custom_icon
 }
 
 type Post struct {
@@ -114,111 +122,201 @@ func main() {
 		{Username: "eve", Email: "eve@demo.local", FirstName: "Eve", LastName: "Edwards", Nickname: "Eve", Roles: "system_user"},
 	}
 
-	// Demo conversation posts (Discord-style casual chat)
-	// MinAgo is minutes before "now" - higher = older
+	// =========================================================================
+	// DEMO CHANNELS - Gaming server with custom icons
+	// =========================================================================
+	// Icon format: "library:icon-name" (e.g., "mdi:rocket", "lucide:code")
+	// Supported libraries: mdi, lucide, tabler, feather, fontawesome, simple
+	demoChannels := []Channel{
+		// Default channels
+		{Name: "town-square", DisplayName: "Town Square", Purpose: "main chat", Icon: ""},
+		{Name: "off-topic", DisplayName: "Off-Topic", Purpose: "random stuff", Icon: ""},
+
+		// Gaming channels with icons
+		{Name: "general", DisplayName: "general", Purpose: "main hangout", Icon: "mdi:chat"},
+		{Name: "valorant", DisplayName: "valorant", Purpose: "5 stack when", Icon: "mdi:gamepad-variant"},
+		{Name: "minecraft", DisplayName: "minecraft", Purpose: "server coords and builds", Icon: "mdi:minecraft"},
+		{Name: "music", DisplayName: "music", Purpose: "share bangers", Icon: "mdi:music"},
+		{Name: "memes", DisplayName: "memes", Purpose: "quality content only", Icon: "mdi:emoticon-lol"},
+		{Name: "clips", DisplayName: "clips", Purpose: "gaming clips and highlights", Icon: "simple:youtube"},
+		{Name: "tech", DisplayName: "tech", Purpose: "pc builds and tech help", Icon: "mdi:desktop-tower"},
+		{Name: "secret", DisplayName: "secret", Purpose: "encrypted chat :eyes:", Icon: "mdi:lock"},
+	}
+
+	// =========================================================================
+	// DEMO CONVERSATIONS - Discord-style gaming chat
+	// =========================================================================
 	demoConversations := map[string][]Post{
+		// General - main hangout
 		"general": {
-			{User: "admin", Message: "welcome everyone to the new server :tada:", MinAgo: 200},
-			{User: "alice", Message: "ayo", MinAgo: 199},
-			{User: "bob", Message: "finally we're here", MinAgo: 198},
-			{User: "charlie", Message: "this place looks clean", MinAgo: 197},
-			{User: "dana", Message: "glad to be out of the old one lol", MinAgo: 196},
-			{User: "eve", Message: "the old one was so cluttered, this is much better", MinAgo: 195},
-			{User: "alice", Message: "wait where's the deleted message placeholder? did it actually vanish?", MinAgo: 194},
-			{User: "admin", Message: "yeah enabled HideDeletedPlaceholder. way less ghosting in the chat", MinAgo: 193},
-			{User: "bob", Message: "big W", MinAgo: 192},
-			{User: "charlie", Message: "also noticed the sidebar settings are different now", MinAgo: 191},
-			{User: "dana", Message: "sidebar looks way better with the custom settings, actually readable now", MinAgo: 190},
-			{User: "eve", Message: "true true", MinAgo: 189},
-			{User: "admin", Message: "feel free to test around in the other channels, everything is live", MinAgo: 188},
-			{User: "alice", Message: "bet :fire:", MinAgo: 187},
+			{User: "admin", Message: "yo welcome to the server", MinAgo: 300},
+			{User: "alice", Message: "lets gooo", MinAgo: 299},
+			{User: "bob", Message: "finally a chat app that doesnt suck", MinAgo: 298},
+			{User: "charlie", Message: "the icons in the sidebar are sick", MinAgo: 297},
+			{User: "dana", Message: "wait you can customize channel icons??", MinAgo: 296},
+			{User: "eve", Message: "yeah click the settings on any channel", MinAgo: 295},
+			{User: "alice", Message: "theres like 30k icons to choose from lmao", MinAgo: 294},
+			{User: "bob", Message: "ok thats actually insane", MinAgo: 293},
+			{User: "charlie", Message: "the minecraft one is perfect :chef_kiss:", MinAgo: 292},
+			{User: "admin", Message: "check out #clips too, youtube embeds look way better now", MinAgo: 290},
+			{User: "dana", Message: "ooh discord style?", MinAgo: 289},
+			{User: "admin", Message: "yep with the red bar and everything", MinAgo: 288},
 		},
-		"status-demo": {
-			{User: "alice", Message: "yo charlie why you always online lol", MinAgo: 180},
-			{User: "charlie", Message: "accurate statuses baby. no more \"away\" while i'm literally typing", MinAgo: 179},
-			{User: "bob", Message: "wait is NoOffline on?", MinAgo: 178},
-			{User: "alice", Message: "yeah admin enabled it", MinAgo: 177},
-			{User: "bob", Message: "sick so we can see who's actually around even if they try to hide :eyes:", MinAgo: 176},
-			{User: "dana", Message: "status logs are showing everything too", MinAgo: 175},
-			{User: "eve", Message: "wait what logs?", MinAgo: 174},
-			{User: "dana", Message: "the transition logs in the console, helps with debugging the heartbeat", MinAgo: 173},
-			{User: "charlie", Message: "no more fake away status while i'm gaming in the background", MinAgo: 172},
-			{User: "alice", Message: "finally. the old heartbeat was so laggy", MinAgo: 171},
-			{User: "bob", Message: "literally. it would show me away while i was in the middle of a call", MinAgo: 170},
-			{User: "charlie", Message: "same lol", MinAgo: 169},
-			{User: "admin", Message: "testing the new transition manager, seems solid so far", MinAgo: 168},
-			{User: "alice", Message: "huge improvement honestly", MinAgo: 167},
-			{User: "bob", Message: "massive", MinAgo: 166},
+
+		// Valorant - gaming
+		"valorant": {
+			{User: "bob", Message: "5 stack?", MinAgo: 200},
+			{User: "alice", Message: "im down", MinAgo: 199},
+			{User: "charlie", Message: "same", MinAgo: 198},
+			{User: "dana", Message: "need 2 more", MinAgo: 197},
+			{User: "eve", Message: "im in", MinAgo: 196},
+			{User: "bob", Message: "one more", MinAgo: 195},
+			{User: "admin", Message: "i can play", MinAgo: 194},
+			{User: "alice", Message: "lets go full send", MinAgo: 193},
+			{User: "charlie", Message: "what rank we playing", MinAgo: 192},
+			{User: "bob", Message: "gold lobby", MinAgo: 191},
+			{User: "dana", Message: "perfect", MinAgo: 190},
+			{User: "eve", Message: "im hardstuck silver but ill try lol", MinAgo: 189},
+			{User: "alice", Message: "dw we got you", MinAgo: 188},
+			{User: "bob", Message: "gg ez clap", MinAgo: 150},
+			{User: "charlie", Message: "that last round was insane", MinAgo: 149},
+			{User: "dana", Message: "eve popped off fr", MinAgo: 148},
+			{User: "eve", Message: ":flushed:", MinAgo: 147},
 		},
-		"media-demo": {
-			{User: "alice", Message: "check these out, the multi-upload is working", MinAgo: 155},
-			{User: "bob", Message: "wait multiple images in one post? that's actually huge", MinAgo: 153},
-			{User: "charlie", Message: "they look smaller too, not taking up the whole screen", MinAgo: 152},
-			{User: "dana", Message: "yeah ImageSmaller is a life saver for my vertical monitor", MinAgo: 151},
-			{User: "eve", Message: "the captions look good too", MinAgo: 150},
-			{User: "alice", Message: "![test image](cat.jpg \"cyberpunk vibes\")", MinAgo: 149},
-			{User: "bob", Message: "clean af", MinAgo: 148},
-			{User: "charlie", Message: "does video embedding work yet?", MinAgo: 147},
-			{User: "dana", Message: "let's see", MinAgo: 146},
-			{User: "bob", Message: "yup it embeds perfectly", MinAgo: 144},
-			{User: "alice", Message: "it's finally a real chat app lol :fire:", MinAgo: 143},
+
+		// Minecraft
+		"minecraft": {
+			{User: "charlie", Message: "server ip?", MinAgo: 180},
+			{User: "admin", Message: "mc.demo.local", MinAgo: 179},
+			{User: "alice", Message: "is it modded", MinAgo: 178},
+			{User: "admin", Message: "vanilla for now, might add create mod later", MinAgo: 177},
+			{User: "bob", Message: "create mod is goated", MinAgo: 176},
+			{User: "dana", Message: "anyone have spare diamonds", MinAgo: 175},
+			{User: "eve", Message: "bro just mine lol", MinAgo: 174},
+			{User: "dana", Message: ":skull:", MinAgo: 173},
+			{User: "charlie", Message: "coords to the stronghold?", MinAgo: 172},
+			{User: "alice", Message: "-1847 34 892", MinAgo: 171},
+			{User: "charlie", Message: "ty", MinAgo: 170},
+			{User: "bob", Message: "dont grief my house pls", MinAgo: 165},
+			{User: "eve", Message: "no promises :smiling_imp:", MinAgo: 164},
+			{User: "bob", Message: "EVE", MinAgo: 163},
 		},
-		"youtube-demo": {
-			{User: "alice", Message: "guys look at this lol", MinAgo: 135},
-			{User: "alice", Message: "https://www.youtube.com/watch?v=dQw4w9WgXcQ", MinAgo: 134},
-			{User: "bob", Message: "i knew it. i saw the thumbnail and still clicked :skull:", MinAgo: 133},
-			{User: "charlie", Message: "the embed is actually fast now", MinAgo: 132},
-			{User: "dana", Message: "check this out https://www.youtube.com/watch?v=9bZkp7q19f0", MinAgo: 131},
-			{User: "eve", Message: "psy? what year is it lol", MinAgo: 130},
-			{User: "dana", Message: "classic never dies", MinAgo: 129},
-			{User: "bob", Message: "the youtube embed looks way better than the generic one", MinAgo: 128},
-			{User: "alice", Message: "https://www.youtube.com/watch?v=jNQXAC9IVRw", MinAgo: 127},
-			{User: "charlie", Message: "first youtube video ever, a classic", MinAgo: 126},
-			{User: "eve", Message: "facts", MinAgo: 125},
+
+		// Music - share bangers
+		"music": {
+			{User: "dana", Message: "this song is stuck in my head", MinAgo: 160},
+			{User: "dana", Message: "https://www.youtube.com/watch?v=dQw4w9WgXcQ", MinAgo: 159},
+			{User: "alice", Message: "i hate you", MinAgo: 158},
+			{User: "bob", Message: "LMAOOO", MinAgo: 157},
+			{User: "charlie", Message: "got me good ngl", MinAgo: 156},
+			{User: "eve", Message: "ok but actually heres a banger", MinAgo: 155},
+			{User: "eve", Message: "https://www.youtube.com/watch?v=9bZkp7q19f0", MinAgo: 154},
+			{User: "dana", Message: "GANGNAM STYLE IN 2024???", MinAgo: 153},
+			{User: "eve", Message: "its a classic", MinAgo: 152},
+			{User: "alice", Message: "the youtube embeds look so clean btw", MinAgo: 151},
+			{User: "bob", Message: "fr the red bar is chef kiss", MinAgo: 150},
+			{User: "charlie", Message: "discord vibes", MinAgo: 149},
 		},
-		"encryption-demo": {
-			{User: "admin", Message: "encryption is now live in this channel", MinAgo: 95},
-			{User: "alice", Message: "wait so admin can't even read our messages?", MinAgo: 94},
-			{User: "bob", Message: "nope, that's the point of e2e :lock:", MinAgo: 93},
-			{User: "charlie", Message: "how do we know it's working?", MinAgo: 92},
-			{User: "dana", Message: "check the recipient list in the editor, it shows who has the keys", MinAgo: 91},
-			{User: "eve", Message: "oh i see it, shows exactly who can decrypt", MinAgo: 90},
-			{User: "alice", Message: "this is actually huge for privacy", MinAgo: 89},
-			{User: "bob", Message: "finally i can talk about [REDACTED] lol", MinAgo: 88},
-			{User: "charlie", Message: "the encryption mode UI looks really clean too", MinAgo: 87},
-			{User: "dana", Message: "glad we finally got this implemented", MinAgo: 86},
-			{User: "admin", Message: "stay safe out there", MinAgo: 85},
+
+		// Memes
+		"memes": {
+			{User: "bob", Message: "i regret nothing", MinAgo: 140},
+			{User: "bob", Message: "https://www.youtube.com/watch?v=dQw4w9WgXcQ", MinAgo: 139},
+			{User: "alice", Message: "twice in one day??", MinAgo: 138},
+			{User: "charlie", Message: "ban him", MinAgo: 137},
+			{User: "dana", Message: ":skull: :skull: :skull:", MinAgo: 136},
+			{User: "eve", Message: "L + ratio", MinAgo: 135},
+			{User: "bob", Message: "worth it", MinAgo: 134},
+			{User: "admin", Message: "im not banning anyone for rickrolls lol", MinAgo: 133},
+			{User: "alice", Message: "admin is based", MinAgo: 132},
+			{User: "charlie", Message: "rare admin W", MinAgo: 131},
+		},
+
+		// Clips - YouTube embeds showcase
+		"clips": {
+			{User: "alice", Message: "check out this insane play", MinAgo: 120},
+			{User: "alice", Message: "https://www.youtube.com/watch?v=8aGhZQkoFbQ", MinAgo: 119},
+			{User: "bob", Message: "the embed preview is so much better now", MinAgo: 118},
+			{User: "charlie", Message: "wait it shows the thumbnail and everything??", MinAgo: 117},
+			{User: "dana", Message: "yeah its discord style", MinAgo: 116},
+			{User: "eve", Message: "finally", MinAgo: 115},
+			{User: "bob", Message: "heres another one", MinAgo: 114},
+			{User: "bob", Message: "https://www.youtube.com/watch?v=jNQXAC9IVRw", MinAgo: 113},
+			{User: "alice", Message: "bro thats the first youtube video ever", MinAgo: 112},
+			{User: "charlie", Message: "historical footage", MinAgo: 111},
+			{User: "dana", Message: "me at the zoo", MinAgo: 110},
+			{User: "eve", Message: "certified classic", MinAgo: 109},
+		},
+
+		// Tech
+		"tech": {
+			{User: "eve", Message: "thinking about upgrading my gpu", MinAgo: 100},
+			{User: "bob", Message: "what do you have rn", MinAgo: 99},
+			{User: "eve", Message: "3060", MinAgo: 98},
+			{User: "alice", Message: "4070 super is solid rn", MinAgo: 97},
+			{User: "charlie", Message: "or wait for 5000 series", MinAgo: 96},
+			{User: "dana", Message: "5000 series is gonna be expensive af tho", MinAgo: 95},
+			{User: "bob", Message: "true nvidia prices are crazy", MinAgo: 94},
+			{User: "eve", Message: "might just get a 4070 then", MinAgo: 93},
+			{User: "alice", Message: "good choice honestly", MinAgo: 92},
+			{User: "charlie", Message: "make sure your psu can handle it", MinAgo: 91},
+			{User: "eve", Message: "750w should be fine right", MinAgo: 90},
+			{User: "bob", Message: "yeah youre good", MinAgo: 89},
+		},
+
+		// Secret - E2E Encryption showcase
+		"secret": {
+			{User: "admin", Message: "ok so this channel has encryption enabled :lock:", MinAgo: 80},
+			{User: "alice", Message: "wait how does it work", MinAgo: 79},
+			{User: "admin", Message: "click the lock icon when typing, messages get encrypted before sending", MinAgo: 78},
+			{User: "bob", Message: "so not even admins can read them?", MinAgo: 77},
+			{User: "admin", Message: "nope, server only sees encrypted blobs", MinAgo: 76},
+			{User: "charlie", Message: "thats actually sick", MinAgo: 75},
+			{User: "dana", Message: "the purple border looks cool too", MinAgo: 74},
+			{User: "eve", Message: "finally i can share my deepest secrets", MinAgo: 73},
+			{User: "alice", Message: "which are?", MinAgo: 72},
+			{User: "eve", Message: "i prefer tabs over spaces", MinAgo: 71},
+			{User: "bob", Message: "BAN", MinAgo: 70},
+			{User: "charlie", Message: ":skull:", MinAgo: 69},
+			{User: "dana", Message: "encrypted for a reason lmaooo", MinAgo: 68},
 		},
 	}
 
-	// Threaded conversations for threads-demo channel
+	// =========================================================================
+	// THREADED CONVERSATIONS - Gaming discussions
+	// =========================================================================
 	demoThreads := []Thread{
 		{
 			User:    "alice",
-			Message: "starting a thread for the new project planning",
-			MinAgo:  120,
+			Message: "whos down for a minecraft session this weekend",
+			MinAgo:  250,
 			Replies: []Post{
-				{User: "bob", Message: "i'm in", MinAgo: 119},
-				{User: "charlie", Message: "what's the plan?", MinAgo: 118},
-				{User: "alice", Message: "check the sidebar, it should show up there now", MinAgo: 117},
-				{User: "dana", Message: "oh yeah ThreadsInSidebar is clutch, i can see all of them", MinAgo: 116},
-				{User: "eve", Message: "can we rename these?", MinAgo: 115},
-				{User: "alice", Message: "yeah i just renamed it to \"Project X Planning\"", MinAgo: 114},
-				{User: "bob", Message: "sick, custom names make it so much easier to find stuff", MinAgo: 113},
-				{User: "charlie", Message: "actually organized for once :thumbsup:", MinAgo: 112},
+				{User: "bob", Message: "im free saturday", MinAgo: 248},
+				{User: "charlie", Message: "same", MinAgo: 246},
+				{User: "dana", Message: "what time", MinAgo: 244},
+				{User: "alice", Message: "like 8pm?", MinAgo: 242},
+				{User: "eve", Message: "works for me", MinAgo: 240},
+				{User: "bob", Message: "bet", MinAgo: 238},
+				{User: "charlie", Message: "should we start a new world or continue the old one", MinAgo: 236},
+				{User: "alice", Message: "new world, 1.21 just dropped", MinAgo: 234},
+				{User: "dana", Message: "ooh the trial chambers update", MinAgo: 232},
+				{User: "eve", Message: "lets gooo", MinAgo: 230},
 			},
 		},
 		{
 			User:    "bob",
-			Message: "anyone want to play val later?",
-			MinAgo:  110,
+			Message: "anyone know a good horror game to stream",
+			MinAgo:  190,
 			Replies: []Post{
-				{User: "dana", Message: "me", MinAgo: 109},
-				{User: "eve", Message: "i'm down", MinAgo: 108},
-				{User: "charlie", Message: "count me in", MinAgo: 107},
-				{User: "alice", Message: "i'll be on in an hour", MinAgo: 106},
-				{User: "bob", Message: "renamed thread to \"Val 5-stack\" so people can find it", MinAgo: 105},
-				{User: "dana", Message: "perfect", MinAgo: 104},
+				{User: "charlie", Message: "phasmophobia is always good", MinAgo: 188},
+				{User: "dana", Message: "outlast trials if you have friends", MinAgo: 186},
+				{User: "eve", Message: "lethal company lol", MinAgo: 184},
+				{User: "alice", Message: "lethal company isnt scary its just chaos", MinAgo: 182},
+				{User: "bob", Message: "chaos is content tho", MinAgo: 180},
+				{User: "charlie", Message: "true", MinAgo: 178},
+				{User: "dana", Message: "devour is underrated btw", MinAgo: 176},
+				{User: "eve", Message: "oh yeah devour slaps", MinAgo: 174},
+				{User: "bob", Message: "bet ill try devour, ty", MinAgo: 172},
 			},
 		},
 	}
@@ -323,53 +421,66 @@ func main() {
 		fmt.Println("Updated team 'demo' with demo settings (allowopeninvite=true)")
 	}
 
-	// Create demo channels
-	channels := []struct {
-		name        string
-		displayName string
-		purpose     string
-	}{
-		{"town-square", "Town Square", "General discussion for the team"},
-		{"off-topic", "Off-Topic", "Off-topic conversations"},
-		{"general", "General", "General chat and feature testing"},
-		{"status-demo", "Status Demo", "AccurateStatuses, NoOffline, Status Logs"},
-		{"media-demo", "Media Demo", "ImageMulti, ImageSmaller, ImageCaptions, VideoEmbed"},
-		{"youtube-demo", "YouTube Demo", "EmbedYoutube - Discord-style embeds"},
-		{"threads-demo", "Threads Demo", "ThreadsInSidebar, CustomThreadNames"},
-		{"encryption-demo", "Encryption Demo", "End-to-End Encryption"},
-	}
-
+	// Create demo channels with custom icons
 	channelIds := make(map[string]string)
-	for _, ch := range channels {
+	for _, ch := range demoChannels {
 		var channelId string
-		err = db.QueryRow("SELECT id FROM channels WHERE name = $1 AND teamid = $2", ch.name, teamId).Scan(&channelId)
+		err = db.QueryRow("SELECT id FROM channels WHERE name = $1 AND teamid = $2", ch.Name, teamId).Scan(&channelId)
 		if err == sql.ErrNoRows {
 			channelId = generateId()
+
+			// Build props JSON for custom_icon if specified
+			var propsJson string
+			if ch.Icon != "" {
+				props := map[string]string{"custom_icon": ch.Icon}
+				propsBytes, _ := json.Marshal(props)
+				propsJson = string(propsBytes)
+			} else {
+				propsJson = "{}"
+			}
+
 			_, err = db.Exec(`
 				INSERT INTO channels (
 					id, createat, updateat, deleteat, teamid, type, displayname,
 					name, header, purpose, lastpostat, totalmsgcount, extraupdateat,
 					creatorid, schemeid, groupconstrained, shared, totalmsgcountroot,
-					lastrootpostat
+					lastrootpostat, props
 				) VALUES (
 					$1, $2, $2, 0, $3, 'O', $4,
 					$5, '', $6, $2, 0, 0,
-					'', NULL, NULL, NULL, 0, $2
+					'', NULL, NULL, NULL, 0, $2, $7
 				)`,
-				channelId, now, teamId, ch.displayName, ch.name, ch.purpose,
+				channelId, now, teamId, ch.DisplayName, ch.Name, ch.Purpose, propsJson,
 			)
 			if err != nil {
-				fmt.Printf("Error creating channel %s: %v\n", ch.name, err)
+				fmt.Printf("Error creating channel %s: %v\n", ch.Name, err)
 				continue
 			}
-			fmt.Printf("Created channel: %s\n", ch.displayName)
+			iconInfo := ""
+			if ch.Icon != "" {
+				iconInfo = fmt.Sprintf(" [%s]", ch.Icon)
+			}
+			fmt.Printf("Created channel: %s%s\n", ch.DisplayName, iconInfo)
 		} else if err != nil {
-			fmt.Printf("Error checking channel %s: %v\n", ch.name, err)
+			fmt.Printf("Error checking channel %s: %v\n", ch.Name, err)
 			continue
 		} else {
-			fmt.Printf("Channel %s already exists\n", ch.displayName)
+			// Update existing channel's icon if specified
+			if ch.Icon != "" {
+				props := map[string]string{"custom_icon": ch.Icon}
+				propsBytes, _ := json.Marshal(props)
+				_, err = db.Exec(`UPDATE channels SET props = $1, updateat = $2 WHERE id = $3`,
+					string(propsBytes), now, channelId)
+				if err != nil {
+					fmt.Printf("Error updating channel icon for %s: %v\n", ch.Name, err)
+				} else {
+					fmt.Printf("Updated channel icon: %s [%s]\n", ch.DisplayName, ch.Icon)
+				}
+			} else {
+				fmt.Printf("Channel %s already exists\n", ch.DisplayName)
+			}
 		}
-		channelIds[ch.name] = channelId
+		channelIds[ch.Name] = channelId
 	}
 
 	// Add all users to the team and channels
@@ -487,9 +598,9 @@ func main() {
 	threadsCreated := 0
 	repliesCreated := 0
 
-	threadsChannelId, ok := channelIds["threads-demo"]
+	threadsChannelId, ok := channelIds["general"]
 	if !ok {
-		fmt.Println("Warning: threads-demo channel not found, skipping threads")
+		fmt.Println("Warning: general channel not found, skipping threads")
 	} else {
 		for _, thread := range demoThreads {
 			userId, ok := userIds[thread.User]
@@ -542,6 +653,50 @@ func main() {
 		}
 	}
 	fmt.Println("Channel statistics updated.")
+
+	// Create admin session for auto-login
+	fmt.Println("\nCreating admin session for auto-login...")
+	adminUserId, ok := userIds["admin"]
+	if ok {
+		// Use a deterministic token for demo purposes (based on "demo" + padding)
+		// Token format: 26 chars, alphanumeric lowercase
+		demoToken := "demo" + strings.Repeat("0", 22) // "demo0000000000000000000000"
+		demoToken = demoToken[:26]
+		sessionId := generateId()
+
+		// Session expires in 30 days
+		expiresAt := now + int64(30*24*60*60*1000)
+
+		// Delete any existing sessions with this token
+		_, _ = db.Exec(`DELETE FROM sessions WHERE token = $1`, demoToken)
+
+		_, err = db.Exec(`
+			INSERT INTO sessions (
+				id, token, createat, expiresat, lastactivityat,
+				userid, deviceid, roles, isoauth, props
+			) VALUES (
+				$1, $2, $3, $4, $3,
+				$5, 'demo-device', 'system_admin system_user', false, '{}'
+			)`,
+			sessionId, demoToken, now, expiresAt, adminUserId,
+		)
+		if err != nil {
+			fmt.Printf("Error creating admin session: %v\n", err)
+		} else {
+			fmt.Println("Created admin session!")
+			fmt.Println("")
+			fmt.Println("=== AUTO-LOGIN INFO ===")
+			fmt.Printf("Token: %s\n", demoToken)
+			fmt.Println("")
+			fmt.Println("To auto-login as admin, set this cookie in your browser:")
+			fmt.Printf("  MMAUTHTOKEN=%s\n", demoToken)
+			fmt.Println("")
+			fmt.Println("Or use this JavaScript in the browser console:")
+			fmt.Printf("  document.cookie = 'MMAUTHTOKEN=%s; path=/';\n", demoToken)
+			fmt.Println("  location.reload();")
+			fmt.Println("=======================")
+		}
+	}
 
 	fmt.Println("\nDemo data seeding complete!")
 }
