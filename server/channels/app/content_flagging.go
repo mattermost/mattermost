@@ -649,40 +649,40 @@ func (a *App) PermanentDeletePostDataRetainStub(rctx request.CTX, post *model.Po
 	editHistories, appErr := a.GetEditHistoryForPost(post.Id)
 	if appErr != nil {
 		if appErr.StatusCode != http.StatusNotFound {
-			rctx.Logger().Error("PermanentlyRemoveFlaggedPost: Failed to get edit history for post", mlog.Err(appErr), mlog.String("post_id", post.Id))
+			rctx.Logger().Error("PermanentDeletePostDataRetainStub: Failed to get edit history for post", mlog.Err(appErr), mlog.String("post_id", post.Id))
 		}
 	}
 
 	for _, editHistory := range editHistories {
 		if deletePostAppErr := a.PermanentDeletePost(rctx, editHistory.Id, deleteByID); deletePostAppErr != nil {
-			rctx.Logger().Error("PermanentlyRemoveFlaggedPost: Failed to permanently delete one of the edit history posts", mlog.Err(deletePostAppErr), mlog.String("post_id", editHistory.Id))
+			rctx.Logger().Error("PermanentDeletePostDataRetainStub: Failed to permanently delete one of the edit history posts", mlog.Err(deletePostAppErr), mlog.String("post_id", editHistory.Id))
 		}
 	}
 
 	if filesDeleteAppErr := a.PermanentDeleteFilesByPost(rctx, post.Id); filesDeleteAppErr != nil {
-		rctx.Logger().Error("PermanentlyRemoveFlaggedPost: Failed to permanently delete files for the post", mlog.Err(filesDeleteAppErr), mlog.String("post_id", post.Id))
+		rctx.Logger().Error("PermanentDeletePostDataRetainStub: Failed to permanently delete files for the post", mlog.Err(filesDeleteAppErr), mlog.String("post_id", post.Id))
 	}
 
 	if err := a.DeletePriorityForPost(post.Id); err != nil {
-		rctx.Logger().Error("PermanentlyRemoveFlaggedPost: Failed to delete post priority for the post", mlog.Err(err), mlog.String("post_id", post.Id))
+		rctx.Logger().Error("PermanentDeletePostDataRetainStub: Failed to delete post priority for the post", mlog.Err(err), mlog.String("post_id", post.Id))
 	}
 
 	if err := a.Srv().Store().PostAcknowledgement().DeleteAllForPost(post.Id); err != nil {
-		rctx.Logger().Error("PermanentlyRemoveFlaggedPost: Failed to delete post acknowledgements for the post", mlog.Err(err), mlog.String("post_id", post.Id))
+		rctx.Logger().Error("PermanentDeletePostDataRetainStub: Failed to delete post acknowledgements for the post", mlog.Err(err), mlog.String("post_id", post.Id))
 	}
 
 	if err := a.Srv().Store().Post().DeleteAllPostRemindersForPost(post.Id); err != nil {
-		rctx.Logger().Error("PermanentlyRemoveFlaggedPost: Failed to delete post reminders for the post", mlog.Err(err), mlog.String("post_id", post.Id))
+		rctx.Logger().Error("PermanentDeletePostDataRetainStub: Failed to delete post reminders for the post", mlog.Err(err), mlog.String("post_id", post.Id))
 	}
 
 	if err := a.Srv().Store().Post().PermanentDeleteAssociatedData([]string{post.Id}); err != nil {
-		rctx.Logger().Error("PermanentlyRemoveFlaggedPost: Failed to permanently delete associated data for the post", mlog.Err(err), mlog.String("post_id", post.Id))
+		rctx.Logger().Error("PermanentDeletePostDataRetainStub: Failed to permanently delete associated data for the post", mlog.Err(err), mlog.String("post_id", post.Id))
 	}
 
 	scrubPost(post)
 	_, err := a.Srv().Store().Post().Overwrite(rctx, post)
 	if err != nil {
-		return model.NewAppError("PermanentlyRemoveFlaggedPost", "app.post.permanently_delete_retain_stub.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		return model.NewAppError("PermanentDeletePostDataRetainStub", "app.post.permanently_delete_retain_stub.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
 	// If the post is not already deleted, delete it now.

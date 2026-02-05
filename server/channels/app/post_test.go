@@ -5325,28 +5325,27 @@ func TestGetFlaggedPostsWithExpiredBurnOnRead(t *testing.T) {
 
 func TestGetBurnOnReadPost(t *testing.T) {
 	t.Run("success - temporary post found", func(t *testing.T) {
-		th := SetupWithStoreMock(t)
-
-		mockStore := th.App.Srv().Store().(*storemocks.Store)
-		mockTemporaryPostStore := storemocks.TemporaryPostStore{}
+		th := Setup(t).InitBasic(t)
 
 		post := &model.Post{
 			Id:        model.NewId(),
-			ChannelId: model.NewId(),
-			UserId:    model.NewId(),
+			ChannelId: th.BasicChannel.Id,
+			UserId:    th.BasicUser.Id,
 			Message:   "placeholder message",
 			FileIds:   model.StringArray{"file1"},
 			Type:      model.PostTypeBurnOnRead,
 		}
 
 		temporaryPost := &model.TemporaryPost{
-			ID:      post.Id,
-			Message: "actual secret message",
-			FileIDs: model.StringArray{"file2", "file3"},
+			ID:       post.Id,
+			Type:     model.PostTypeBurnOnRead,
+			ExpireAt: model.GetMillis() + 3600000,
+			Message:  "actual secret message",
+			FileIDs:  model.StringArray{"file2", "file3"},
 		}
 
-		mockTemporaryPostStore.On("Get", mock.Anything, post.Id).Return(temporaryPost, nil)
-		mockStore.On("TemporaryPost").Return(&mockTemporaryPostStore)
+		_, err := th.App.Srv().Store().TemporaryPost().Save(th.Context, temporaryPost)
+		require.NoError(t, err)
 
 		resultPost, appErr := th.App.getBurnOnReadPost(th.Context, post)
 
@@ -5359,22 +5358,16 @@ func TestGetBurnOnReadPost(t *testing.T) {
 		assert.Equal(t, model.StringArray{"file1"}, post.FileIds)
 	})
 
-	t.Run("other store error - returns app error", func(t *testing.T) {
-		th := SetupWithStoreMock(t)
-
-		mockStore := th.App.Srv().Store().(*storemocks.Store)
-		mockTemporaryPostStore := storemocks.TemporaryPostStore{}
+	t.Run("temporary post not found - returns app error", func(t *testing.T) {
+		th := Setup(t).InitBasic(t)
 
 		post := &model.Post{
 			Id:        model.NewId(),
-			ChannelId: model.NewId(),
-			UserId:    model.NewId(),
+			ChannelId: th.BasicChannel.Id,
+			UserId:    th.BasicUser.Id,
 			Message:   "placeholder message",
 			Type:      model.PostTypeBurnOnRead,
 		}
-
-		mockTemporaryPostStore.On("Get", mock.Anything, post.Id).Return(nil, errors.New("database connection error"))
-		mockStore.On("TemporaryPost").Return(&mockTemporaryPostStore)
 
 		resultPost, appErr := th.App.getBurnOnReadPost(th.Context, post)
 
