@@ -418,6 +418,60 @@ describe('selectors/views/guilded_layout', () => {
         });
     });
 
+    describe('getLastPostInChannel', () => {
+        it('should return null when no recent post ID exists', () => {
+            const state = {
+                entities: {
+                    posts: {
+                        posts: {},
+                        postsInChannel: {},
+                    },
+                },
+            } as unknown as GlobalState;
+
+            expect(Selectors.getLastPostInChannel(state, 'channel1')).toBe(null);
+        });
+
+        it('should return the most recent post when it exists', () => {
+            const post1 = {id: 'post1', channel_id: 'channel1', message: 'Hello', create_at: 1000};
+            const state = {
+                entities: {
+                    posts: {
+                        posts: {
+                            post1,
+                        },
+                        postsInChannel: {
+                            channel1: [{order: ['post1'], recent: true}],
+                        },
+                    },
+                },
+            } as unknown as GlobalState;
+
+            expect(Selectors.getLastPostInChannel(state, 'channel1')).toEqual(post1);
+        });
+
+        it('should return the most recent post from multiple posts', () => {
+            const post1 = {id: 'post1', channel_id: 'channel1', message: 'First', create_at: 1000};
+            const post2 = {id: 'post2', channel_id: 'channel1', message: 'Second', create_at: 2000};
+            const state = {
+                entities: {
+                    posts: {
+                        posts: {
+                            post1,
+                            post2,
+                        },
+                        postsInChannel: {
+                            channel1: [{order: ['post2', 'post1'], recent: true}],
+                        },
+                    },
+                },
+            } as unknown as GlobalState;
+
+            // Should return most recent (post2)
+            expect(Selectors.getLastPostInChannel(state, 'channel1')).toEqual(post2);
+        });
+    });
+
     describe('getUnreadDmChannelsWithUsers', () => {
         it('should return empty array when no unread DMs', () => {
             const state = {
