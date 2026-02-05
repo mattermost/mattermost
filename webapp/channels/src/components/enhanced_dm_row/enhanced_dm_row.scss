@@ -1,9 +1,12 @@
-// Enhanced DM row - styled like native SidebarChannel but double height for preview
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
+
+// Enhanced DM row - styled like native SidebarChannel but with preview
 .enhanced-dm-row {
     position: relative;
     display: flex;
     overflow: hidden;
-    height: 64px; // 2x native channel row height (32px)
+    height: 64px;
     align-items: center;
     padding: 8px 16px 8px 19px;
     color: rgba(var(--sidebar-text-rgb), 0.64);
@@ -63,37 +66,60 @@
         }
     }
 
+    // Match native sidebar status-wrapper dimensions (36x36)
     &__avatar-container {
         position: relative;
+        display: inline-flex;
         flex-shrink: 0;
-        width: 40px;
-        height: 40px;
+        width: 36px;
+        height: 36px;
+        align-items: center;
+        align-self: center;
         margin-right: 12px;
     }
 
     &__avatar {
-        width: 40px;
-        height: 40px;
+        width: 36px;
+        height: 36px;
         border-radius: 50%;
         object-fit: cover;
     }
 
+    // Match native sidebar status indicator (19x19)
     &__status {
         position: absolute;
-        right: -2px;
-        bottom: -2px;
+        right: -6px;
+        bottom: -5px;
         display: flex;
-        width: 14px;
-        height: 14px;
+        width: 19px;
+        height: 19px;
         align-items: center;
         justify-content: center;
-        border: 2px solid var(--sidebar-bg);
         border-radius: 50%;
-        background-color: var(--sidebar-bg);
+        background: var(--sidebar-bg);
 
-        .status {
-            width: 10px;
-            height: 10px;
+        svg {
+            position: relative;
+            z-index: 1;
+            width: 13px;
+            height: 13px;
+            max-height: initial;
+        }
+
+        .online--icon {
+            fill: var(--online-indicator);
+        }
+
+        .away--icon {
+            fill: var(--away-indicator);
+        }
+
+        .dnd--icon {
+            fill: var(--dnd-indicator);
+        }
+
+        .offline--icon {
+            fill: var(--offline-indicator);
         }
     }
 

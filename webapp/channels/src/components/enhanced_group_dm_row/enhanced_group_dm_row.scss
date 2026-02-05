@@ -6,7 +6,7 @@
     position: relative;
     display: flex;
     overflow: hidden;
-    height: 64px; // Match enhanced-dm-row
+    height: 64px;
     align-items: center;
     padding: 8px 16px 8px 19px;
     color: rgba(var(--sidebar-text-rgb), 0.64);
@@ -55,19 +55,20 @@
         }
     }
 
+    // Match native sidebar status-wrapper dimensions (36x36 container)
     &__avatars {
         position: relative;
         flex-shrink: 0;
-        width: 40px;
-        height: 40px;
+        width: 36px;
+        height: 36px;
         margin-right: 12px;
     }
 
     &__avatar-container {
         position: absolute;
         overflow: hidden;
-        width: 24px;
-        height: 24px;
+        width: 20px;
+        height: 20px;
         border: 2px solid var(--sidebar-bg);
         border-radius: 50%;
         background-color: var(--sidebar-bg);
@@ -103,15 +104,15 @@
         bottom: 0;
         left: 0;
         display: flex;
-        width: 24px;
-        height: 24px;
+        width: 20px;
+        height: 20px;
         align-items: center;
         justify-content: center;
         border: 2px solid var(--sidebar-bg);
         border-radius: 50%;
         background-color: rgba(var(--sidebar-text-rgb), 0.16);
         color: var(--sidebar-text);
-        font-size: 9px;
+        font-size: 8px;
         font-weight: 700;
     }
 

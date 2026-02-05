@@ -1,45 +1,56 @@
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
+
+// Match native sidebarHeaderContainer styling
 .dm-list-header {
     display: flex;
-    height: 52px; // Match native SidebarHeader height
+    height: 55px; // Match sidebarHeaderContainer
+    flex-direction: row;
     flex-shrink: 0;
+    flex-wrap: nowrap;
     align-items: center;
     justify-content: space-between;
     padding: 0 16px;
-    border-bottom: 1px solid rgba(var(--sidebar-text-rgb), 0.08);
+    color: var(--sidebar-header-text-color);
 
     &__left {
         display: flex;
         align-items: center;
-        gap: 12px;
+        gap: 8px;
     }
 
     &__back-button,
     &__new-button {
         display: flex;
-        width: 28px;
+        min-width: 28px;
         height: 28px;
         align-items: center;
         justify-content: center;
-        padding: 0;
+        padding: 0 6px;
         border: none;
         border-radius: 4px;
         background: transparent;
-        color: rgba(var(--sidebar-text-rgb), 0.64);
+        color: inherit;
         cursor: pointer;
         font-size: 18px;
-        transition: background-color 0.15s ease, color 0.15s ease;
 
         &:hover {
-            background-color: rgba(var(--sidebar-text-rgb), 0.08);
-            color: var(--sidebar-text);
+            background: rgba(var(--sidebar-header-text-color-rgb), 0.08);
+        }
+
+        &:active {
+            background: rgba(var(--sidebar-header-text-color-rgb), 0.12);
         }
     }
 
     &__title {
+        overflow: hidden;
         margin: 0;
-        color: var(--sidebar-text);
-        font-family: 'Open Sans', sans-serif;
+        color: inherit;
+        font-family: Metropolis, sans-serif;
         font-size: 16px;
         font-weight: 600;
+        text-overflow: ellipsis;
+        white-space: nowrap;
     }
 }
