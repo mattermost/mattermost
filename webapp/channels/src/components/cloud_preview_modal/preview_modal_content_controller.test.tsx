@@ -1,10 +1,9 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {screen, fireEvent} from '@testing-library/react';
 import React from 'react';
 
-import {renderWithContext} from 'tests/react_testing_utils';
+import {renderWithContext, screen, userEvent} from 'tests/react_testing_utils';
 
 import PreviewModalController from './preview_modal_content_controller';
 import type {PreviewModalContentData} from './preview_modal_content_data';
@@ -121,43 +120,43 @@ describe('PreviewModalController', () => {
         expect(screen.getByText('1/3')).toBeInTheDocument();
     });
 
-    it('should update page counter when navigating', () => {
+    it('should update page counter when navigating', async () => {
         renderComponent();
 
         expect(screen.getByText('1/3')).toBeInTheDocument();
 
         const nextButton = screen.getByText('Next');
-        fireEvent.click(nextButton);
+        await userEvent.click(nextButton);
 
         expect(screen.getByText('2/3')).toBeInTheDocument();
     });
 
-    it('should navigate to next slide when Next is clicked', () => {
+    it('should navigate to next slide when Next is clicked', async () => {
         renderComponent();
 
         const nextButton = screen.getByText('Next');
-        fireEvent.click(nextButton);
+        await userEvent.click(nextButton);
 
         expect(screen.getByText('Second Slide')).toBeInTheDocument();
         expect(screen.queryByText('First Slide')).not.toBeInTheDocument();
     });
 
-    it('should navigate to previous slide when Previous is clicked', () => {
+    it('should navigate to previous slide when Previous is clicked', async () => {
         renderComponent();
 
         // Go to second slide first
         const nextButton = screen.getByText('Next');
-        fireEvent.click(nextButton);
+        await userEvent.click(nextButton);
 
         // Now go back
         const previousButton = screen.getByText('Previous');
-        fireEvent.click(previousButton);
+        await userEvent.click(previousButton);
 
         expect(screen.getByText('First Slide')).toBeInTheDocument();
         expect(screen.queryByText('Second Slide')).not.toBeInTheDocument();
     });
 
-    it('should show Skip for now button only on first slide', () => {
+    it('should show Skip for now button only on first slide', async () => {
         renderComponent();
 
         // First slide should have Skip button
@@ -165,7 +164,7 @@ describe('PreviewModalController', () => {
 
         // Go to second slide
         const nextButton = screen.getByText('Next');
-        fireEvent.click(nextButton);
+        await userEvent.click(nextButton);
 
         // Second slide should not have Skip button
         expect(screen.queryByText('Skip for now')).not.toBeInTheDocument();
@@ -176,47 +175,47 @@ describe('PreviewModalController', () => {
         expect(screen.queryByText('Previous')).not.toBeInTheDocument();
     });
 
-    it('should show Done button on last slide', () => {
+    it('should show Done button on last slide', async () => {
         renderComponent();
 
         // Navigate to last slide
         const nextButton = screen.getByText('Next');
-        fireEvent.click(nextButton);
-        fireEvent.click(nextButton);
+        await userEvent.click(nextButton);
+        await userEvent.click(nextButton);
 
         expect(screen.getByText('Finish')).toBeInTheDocument();
         expect(screen.queryByText('Next')).not.toBeInTheDocument();
     });
 
-    it('should call onClose when Skip is clicked', () => {
+    it('should call onClose when Skip is clicked', async () => {
         renderComponent();
 
         const skipButton = screen.getByText('Skip for now');
-        fireEvent.click(skipButton);
+        await userEvent.click(skipButton);
 
         expect(mockOnClose).toHaveBeenCalledTimes(1);
     });
 
-    it('should call onClose when Finish is clicked on last slide', () => {
+    it('should call onClose when Finish is clicked on last slide', async () => {
         renderComponent();
 
         // Navigate to last slide
         const nextButton = screen.getByText('Next');
-        fireEvent.click(nextButton);
-        fireEvent.click(nextButton);
+        await userEvent.click(nextButton);
+        await userEvent.click(nextButton);
 
         const finishButton = screen.getByText('Finish');
-        fireEvent.click(finishButton);
+        await userEvent.click(finishButton);
 
         expect(mockOnClose).toHaveBeenCalledTimes(1);
     });
 
-    it('should call onClose when close button is clicked', () => {
+    it('should call onClose when close button is clicked', async () => {
         renderComponent();
 
         // Look for the actual close button from GenericModal
         const closeButton = screen.getByLabelText('Close');
-        fireEvent.click(closeButton);
+        await userEvent.click(closeButton);
 
         expect(mockOnClose).toHaveBeenCalledTimes(1);
     });

@@ -7,6 +7,7 @@ import (
 	"context"
 
 	"github.com/mattermost/mattermost/server/public/model"
+	ejobs "github.com/mattermost/mattermost/server/v8/einterfaces/jobs"
 )
 
 // AutoTranslationInterface defines the enterprise advanced auto-translation functionality.
@@ -30,10 +31,6 @@ type AutoTranslationInterface interface {
 	// This checks both channel enablement AND user opt-in status.
 	// Returns false if the feature is unavailable or the user hasn't opted in.
 	IsUserEnabled(channelID, userID string) (bool, *model.AppError)
-
-	// SetUserEnabled enables or disables auto-translation for a user in a channel.
-	// Only available when the feature is properly licensed and configured.
-	SetUserEnabled(channelID, userID string, enabled bool) *model.AppError
 
 	// Translate translates content in a channel.
 	//
@@ -75,4 +72,12 @@ type AutoTranslationInterface interface {
 
 	// Shutdown gracefully shuts down the auto-translation service.
 	Shutdown() error
+
+	// MakeWorker creates a worker for the autotranslation recovery sweep job.
+	// The worker picks up stuck translations and re-queues them for processing.
+	MakeWorker() model.Worker
+
+	// MakeScheduler creates a scheduler for the autotranslation recovery sweep job.
+	// The scheduler runs periodically to detect stuck translations.
+	MakeScheduler() ejobs.Scheduler
 }

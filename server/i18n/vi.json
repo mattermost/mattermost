@@ -2112,10 +2112,6 @@
     "translation": "Tên kênh không hợp lệ. ID người dùng không được phép có trong tên kênh cho các kênh tin nhắn không trực tiếp."
   },
   {
-    "id": "api.command_mute.not_member.error",
-    "translation": "Không thể tắt tiếng kênh {{.Channel}} vì bạn không phải là thành viên."
-  },
-  {
     "id": "app.import.validate_user_import_data.password_length.error",
     "translation": "Mật khẩu người dùng có độ dài không hợp lệ."
   },
@@ -5796,10 +5792,6 @@
   {
     "id": "api.server.cws.needs_enterprise_edition",
     "translation": "Dịch vụ chỉ có ở phiên bản Matter Extreme Enterprise"
-  },
-  {
-    "id": "api.server.cws.subscribe_to_newsletter.app_error",
-    "translation": "Máy chủ CWS không thể đăng ký nhận bản tin."
   },
   {
     "id": "api.server.hosted_signup_unavailable.error",
