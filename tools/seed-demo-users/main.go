@@ -167,7 +167,7 @@ func main() {
 		fmt.Println("Updated team 'demo' with demo settings (allowopeninvite=true)")
 	}
 
-	// Create default channels (Town Square and Off-Topic)
+	// Create demo channels
 	channels := []struct {
 		name        string
 		displayName string
@@ -175,6 +175,12 @@ func main() {
 	}{
 		{"town-square", "Town Square", "General discussion for the team"},
 		{"off-topic", "Off-Topic", "Off-topic conversations"},
+		{"general", "General", "General chat and feature testing"},
+		{"status-demo", "Status Demo", "AccurateStatuses, NoOffline, Status Logs"},
+		{"media-demo", "Media Demo", "ImageMulti, ImageSmaller, ImageCaptions, VideoEmbed"},
+		{"youtube-demo", "YouTube Demo", "EmbedYoutube - Discord-style embeds"},
+		{"threads-demo", "Threads Demo", "ThreadsInSidebar, CustomThreadNames"},
+		{"encryption-demo", "Encryption Demo", "End-to-End Encryption"},
 	}
 
 	channelIds := make(map[string]string)
