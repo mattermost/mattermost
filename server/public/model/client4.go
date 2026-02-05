@@ -7873,12 +7873,17 @@ func (c *Client4) RestorePage(ctx context.Context, wikiId, pageId string) (*Resp
 	return BuildResponse(r), nil
 }
 
-// UpdatePage updates a page's title and/or content.
-func (c *Client4) UpdatePage(ctx context.Context, wikiId, pageId, title, content, searchText string) (*Post, *Response, error) {
-	payload := map[string]string{
+// UpdatePage updates a page's title and/or content with optional optimistic locking.
+// If baseEditAt > 0, the server will verify the page hasn't been modified since that timestamp.
+// If the page has been modified since baseEditAt, a 409 Conflict error will be returned.
+func (c *Client4) UpdatePage(ctx context.Context, wikiId, pageId, title, content, searchText string, baseEditAt int64) (*Post, *Response, error) {
+	payload := map[string]any{
 		"title":       title,
 		"content":     content,
 		"search_text": searchText,
+	}
+	if baseEditAt > 0 {
+		payload["base_edit_at"] = baseEditAt
 	}
 	r, err := c.doAPIPutJSON(ctx, c.wikiPageRoute(wikiId, pageId), payload)
 	if err != nil {

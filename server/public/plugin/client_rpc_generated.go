@@ -8000,3 +8000,292 @@ func (s *apiRPCServer) CreateWikiPage(args *Z_CreateWikiPageArgs, returns *Z_Cre
 	}
 	return nil
 }
+
+// GetWiki
+
+type Z_GetWikiArgs struct {
+	A string
+}
+
+type Z_GetWikiReturns struct {
+	A *model.Wiki
+	B *model.AppError
+}
+
+func (g *apiRPCClient) GetWiki(wikiID string) (*model.Wiki, *model.AppError) {
+	_args := &Z_GetWikiArgs{wikiID}
+	_returns := &Z_GetWikiReturns{}
+	if err := g.client.Call("Plugin.GetWiki", _args, _returns); err != nil {
+		log.Printf("RPC call to GetWiki API failed: %s", err.Error())
+	}
+	return _returns.A, _returns.B
+}
+
+func (s *apiRPCServer) GetWiki(args *Z_GetWikiArgs, returns *Z_GetWikiReturns) error {
+	if hook, ok := s.impl.(interface {
+		GetWiki(wikiID string) (*model.Wiki, *model.AppError)
+	}); ok {
+		returns.A, returns.B = hook.GetWiki(args.A)
+	} else {
+		return encodableError(fmt.Errorf("API GetWiki called but not implemented."))
+	}
+	return nil
+}
+
+// GetPage
+
+type Z_GetPageArgs struct {
+	A string
+}
+
+type Z_GetPageReturns struct {
+	A *model.Post
+	B *model.AppError
+}
+
+func (g *apiRPCClient) GetPage(pageID string) (*model.Post, *model.AppError) {
+	_args := &Z_GetPageArgs{pageID}
+	_returns := &Z_GetPageReturns{}
+	if err := g.client.Call("Plugin.GetPage", _args, _returns); err != nil {
+		log.Printf("RPC call to GetPage API failed: %s", err.Error())
+	}
+	return _returns.A, _returns.B
+}
+
+func (s *apiRPCServer) GetPage(args *Z_GetPageArgs, returns *Z_GetPageReturns) error {
+	if hook, ok := s.impl.(interface {
+		GetPage(pageID string) (*model.Post, *model.AppError)
+	}); ok {
+		returns.A, returns.B = hook.GetPage(args.A)
+	} else {
+		return encodableError(fmt.Errorf("API GetPage called but not implemented."))
+	}
+	return nil
+}
+
+// GetPageWithContent
+
+type Z_GetPageWithContentArgs struct {
+	A string
+}
+
+type Z_GetPageWithContentReturns struct {
+	A *model.Post
+	B *model.AppError
+}
+
+func (g *apiRPCClient) GetPageWithContent(pageID string) (*model.Post, *model.AppError) {
+	_args := &Z_GetPageWithContentArgs{pageID}
+	_returns := &Z_GetPageWithContentReturns{}
+	if err := g.client.Call("Plugin.GetPageWithContent", _args, _returns); err != nil {
+		log.Printf("RPC call to GetPageWithContent API failed: %s", err.Error())
+	}
+	return _returns.A, _returns.B
+}
+
+func (s *apiRPCServer) GetPageWithContent(args *Z_GetPageWithContentArgs, returns *Z_GetPageWithContentReturns) error {
+	if hook, ok := s.impl.(interface {
+		GetPageWithContent(pageID string) (*model.Post, *model.AppError)
+	}); ok {
+		returns.A, returns.B = hook.GetPageWithContent(args.A)
+	} else {
+		return encodableError(fmt.Errorf("API GetPageWithContent called but not implemented."))
+	}
+	return nil
+}
+
+// GetWikiPages
+
+type Z_GetWikiPagesArgs struct {
+	A string
+	B int
+	C int
+}
+
+type Z_GetWikiPagesReturns struct {
+	A []*model.Post
+	B *model.AppError
+}
+
+func (g *apiRPCClient) GetWikiPages(wikiID string, page, perPage int) ([]*model.Post, *model.AppError) {
+	_args := &Z_GetWikiPagesArgs{wikiID, page, perPage}
+	_returns := &Z_GetWikiPagesReturns{}
+	if err := g.client.Call("Plugin.GetWikiPages", _args, _returns); err != nil {
+		log.Printf("RPC call to GetWikiPages API failed: %s", err.Error())
+	}
+	return _returns.A, _returns.B
+}
+
+func (s *apiRPCServer) GetWikiPages(args *Z_GetWikiPagesArgs, returns *Z_GetWikiPagesReturns) error {
+	if hook, ok := s.impl.(interface {
+		GetWikiPages(wikiID string, page, perPage int) ([]*model.Post, *model.AppError)
+	}); ok {
+		returns.A, returns.B = hook.GetWikiPages(args.A, args.B, args.C)
+	} else {
+		return encodableError(fmt.Errorf("API GetWikiPages called but not implemented."))
+	}
+	return nil
+}
+
+// UpdateWikiPage
+
+type Z_UpdateWikiPageArgs struct {
+	A string
+	B string
+	C string
+	D string
+	E int64
+}
+
+type Z_UpdateWikiPageReturns struct {
+	A *model.Post
+	B *model.AppError
+}
+
+func (g *apiRPCClient) UpdateWikiPage(pageID, wikiID, title, content string, baseEditAt int64) (*model.Post, *model.AppError) {
+	_args := &Z_UpdateWikiPageArgs{pageID, wikiID, title, content, baseEditAt}
+	_returns := &Z_UpdateWikiPageReturns{}
+	if err := g.client.Call("Plugin.UpdateWikiPage", _args, _returns); err != nil {
+		log.Printf("RPC call to UpdateWikiPage API failed: %s", err.Error())
+	}
+	return _returns.A, _returns.B
+}
+
+func (s *apiRPCServer) UpdateWikiPage(args *Z_UpdateWikiPageArgs, returns *Z_UpdateWikiPageReturns) error {
+	if hook, ok := s.impl.(interface {
+		UpdateWikiPage(pageID, wikiID, title, content string, baseEditAt int64) (*model.Post, *model.AppError)
+	}); ok {
+		returns.A, returns.B = hook.UpdateWikiPage(args.A, args.B, args.C, args.D, args.E)
+	} else {
+		return encodableError(fmt.Errorf("API UpdateWikiPage called but not implemented."))
+	}
+	return nil
+}
+
+// DeleteWikiPage
+
+type Z_DeleteWikiPageArgs struct {
+	A string
+	B string
+}
+
+type Z_DeleteWikiPageReturns struct {
+	A *model.AppError
+}
+
+func (g *apiRPCClient) DeleteWikiPage(pageID, wikiID string) *model.AppError {
+	_args := &Z_DeleteWikiPageArgs{pageID, wikiID}
+	_returns := &Z_DeleteWikiPageReturns{}
+	if err := g.client.Call("Plugin.DeleteWikiPage", _args, _returns); err != nil {
+		log.Printf("RPC call to DeleteWikiPage API failed: %s", err.Error())
+	}
+	return _returns.A
+}
+
+func (s *apiRPCServer) DeleteWikiPage(args *Z_DeleteWikiPageArgs, returns *Z_DeleteWikiPageReturns) error {
+	if hook, ok := s.impl.(interface {
+		DeleteWikiPage(pageID, wikiID string) *model.AppError
+	}); ok {
+		returns.A = hook.DeleteWikiPage(args.A, args.B)
+	} else {
+		return encodableError(fmt.Errorf("API DeleteWikiPage called but not implemented."))
+	}
+	return nil
+}
+
+// MoveWikiPage
+
+type Z_MoveWikiPageArgs struct {
+	A string
+	B *string
+	C string
+}
+
+type Z_MoveWikiPageReturns struct {
+	A *model.PostList
+	B *model.AppError
+}
+
+func (g *apiRPCClient) MoveWikiPage(pageID string, newParentID *string, wikiID string) (*model.PostList, *model.AppError) {
+	_args := &Z_MoveWikiPageArgs{pageID, newParentID, wikiID}
+	_returns := &Z_MoveWikiPageReturns{}
+	if err := g.client.Call("Plugin.MoveWikiPage", _args, _returns); err != nil {
+		log.Printf("RPC call to MoveWikiPage API failed: %s", err.Error())
+	}
+	return _returns.A, _returns.B
+}
+
+func (s *apiRPCServer) MoveWikiPage(args *Z_MoveWikiPageArgs, returns *Z_MoveWikiPageReturns) error {
+	if hook, ok := s.impl.(interface {
+		MoveWikiPage(pageID string, newParentID *string, wikiID string) (*model.PostList, *model.AppError)
+	}); ok {
+		returns.A, returns.B = hook.MoveWikiPage(args.A, args.B, args.C)
+	} else {
+		return encodableError(fmt.Errorf("API MoveWikiPage called but not implemented."))
+	}
+	return nil
+}
+
+// GetPageChildren
+
+type Z_GetPageChildrenArgs struct {
+	A string
+	B int
+	C int
+}
+
+type Z_GetPageChildrenReturns struct {
+	A *model.PostList
+	B *model.AppError
+}
+
+func (g *apiRPCClient) GetPageChildren(pageID string, page, perPage int) (*model.PostList, *model.AppError) {
+	_args := &Z_GetPageChildrenArgs{pageID, page, perPage}
+	_returns := &Z_GetPageChildrenReturns{}
+	if err := g.client.Call("Plugin.GetPageChildren", _args, _returns); err != nil {
+		log.Printf("RPC call to GetPageChildren API failed: %s", err.Error())
+	}
+	return _returns.A, _returns.B
+}
+
+func (s *apiRPCServer) GetPageChildren(args *Z_GetPageChildrenArgs, returns *Z_GetPageChildrenReturns) error {
+	if hook, ok := s.impl.(interface {
+		GetPageChildren(pageID string, page, perPage int) (*model.PostList, *model.AppError)
+	}); ok {
+		returns.A, returns.B = hook.GetPageChildren(args.A, args.B, args.C)
+	} else {
+		return encodableError(fmt.Errorf("API GetPageChildren called but not implemented."))
+	}
+	return nil
+}
+
+// GetPageAncestors
+
+type Z_GetPageAncestorsArgs struct {
+	A string
+}
+
+type Z_GetPageAncestorsReturns struct {
+	A *model.PostList
+	B *model.AppError
+}
+
+func (g *apiRPCClient) GetPageAncestors(pageID string) (*model.PostList, *model.AppError) {
+	_args := &Z_GetPageAncestorsArgs{pageID}
+	_returns := &Z_GetPageAncestorsReturns{}
+	if err := g.client.Call("Plugin.GetPageAncestors", _args, _returns); err != nil {
+		log.Printf("RPC call to GetPageAncestors API failed: %s", err.Error())
+	}
+	return _returns.A, _returns.B
+}
+
+func (s *apiRPCServer) GetPageAncestors(args *Z_GetPageAncestorsArgs, returns *Z_GetPageAncestorsReturns) error {
+	if hook, ok := s.impl.(interface {
+		GetPageAncestors(pageID string) (*model.PostList, *model.AppError)
+	}); ok {
+		returns.A, returns.B = hook.GetPageAncestors(args.A)
+	} else {
+		return encodableError(fmt.Errorf("API GetPageAncestors called but not implemented."))
+	}
+	return nil
+}

@@ -16,6 +16,7 @@ import (
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
+	"github.com/mattermost/mattermost/server/v8/channels/utils"
 )
 
 // fileIdPattern matches file IDs in /api/v4/files/{fileId} URLs within TipTap content
@@ -863,6 +864,7 @@ func extractFileIdsFromContent(content string) []string {
 
 // validateAndNormalizePageContent validates and normalizes page content.
 // If content looks like JSON, validates it as TipTap document.
+// If content contains markdown syntax, converts it to TipTap JSON via markdown parsing.
 // If content is plain text, converts it to TipTap JSON format.
 // Returns the normalized content, updated searchText, and any validation error.
 func validateAndNormalizePageContent(content, searchText string) (string, string, error) {
@@ -872,7 +874,7 @@ func validateAndNormalizePageContent(content, searchText string) (string, string
 
 	trimmedContent := strings.TrimSpace(content)
 
-	// If content looks like JSON (starts with {), validate it as TipTap
+	// If content looks like JSON (starts with {), validate it as TipTap (no fallthrough - fail fast)
 	if strings.HasPrefix(trimmedContent, "{") {
 		if err := model.ValidateTipTapDocument(content); err != nil {
 			return "", "", err
@@ -880,7 +882,18 @@ func validateAndNormalizePageContent(content, searchText string) (string, string
 		return content, searchText, nil
 	}
 
-	// Not JSON - treat as plain text and auto-convert to TipTap JSON
+	// Markdown content → convert to TipTap
+	if utils.LooksLikeMarkdown(content) {
+		tiptap, err := utils.MarkdownToTipTapJSON(content)
+		if err != nil {
+			// Fallback to plain text if markdown conversion fails
+			tiptap = convertPlainTextToTipTapJSON(content)
+		}
+		// Leave searchText empty; PreSave() computes it from TipTap JSON
+		return tiptap, "", nil
+	}
+
+	// Plain text → wrap in paragraphs
 	normalizedContent := convertPlainTextToTipTapJSON(content)
 
 	// Extract search text from plain content if not provided

@@ -12793,6 +12793,26 @@
     "translation": "Missing TO address."
   },
   {
+    "id": "plugin_api.wiki.invalid_channel_id.app_error",
+    "translation": "Invalid channel ID."
+  },
+  {
+    "id": "plugin_api.wiki.invalid_page_id.app_error",
+    "translation": "Invalid page ID."
+  },
+  {
+    "id": "plugin_api.wiki.invalid_parent_id.app_error",
+    "translation": "Invalid parent ID."
+  },
+  {
+    "id": "plugin_api.wiki.invalid_user_id.app_error",
+    "translation": "Invalid user ID."
+  },
+  {
+    "id": "plugin_api.wiki.invalid_wiki_id.app_error",
+    "translation": "Invalid wiki ID."
+  },
+  {
     "id": "plugin_reattach_request.is_valid.manifest.app_error",
     "translation": "Missing manifest"
   },

@@ -181,6 +181,6 @@ type Client interface {
 	GetChannelPages(ctx context.Context, channelID string) (*model.PostList, *model.Response, error)
 	GetChannelPagesWithContent(ctx context.Context, channelID string, includeContent bool) (*model.PostList, *model.Response, error)
 	GetPage(ctx context.Context, wikiID, pageID string) (*model.Post, *model.Response, error)
-	UpdatePage(ctx context.Context, wikiID, pageID, title, content, searchText string) (*model.Post, *model.Response, error)
+	UpdatePage(ctx context.Context, wikiID, pageID, title, content, searchText string, baseEditAt int64) (*model.Post, *model.Response, error)
 	GetPageComments(ctx context.Context, wikiID, pageID string) ([]*model.Post, *model.Response, error)
 }

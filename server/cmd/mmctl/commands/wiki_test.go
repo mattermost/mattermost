@@ -441,7 +441,7 @@ func (s *MmctlUnitTestSuite) TestWikiResolveLinksCmdF() {
 		s.client.EXPECT().GetChannelPagesWithContent(gomock.Any(), wikiChannelID, true).Return(postListWithContent, &model.Response{}, nil).Times(1)
 		s.client.EXPECT().GetClientConfig(gomock.Any(), "").Return(map[string]string{"SiteURL": "https://example.com"}, &model.Response{}, nil).Times(1)
 		s.client.EXPECT().GetPage(gomock.Any(), wikiID, wikiPageID1).Return(fetchedPage, &model.Response{}, nil).Times(1)
-		s.client.EXPECT().UpdatePage(gomock.Any(), wikiID, wikiPageID1, "Source Page", gomock.Any(), "").Return(&model.Post{}, &model.Response{}, nil).Times(1)
+		s.client.EXPECT().UpdatePage(gomock.Any(), wikiID, wikiPageID1, "Source Page", gomock.Any(), "", int64(0)).Return(&model.Post{}, &model.Response{}, nil).Times(1)
 
 		cmd := &cobra.Command{}
 		cmd.Flags().String("team", "", "")

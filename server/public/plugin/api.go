@@ -1586,6 +1586,70 @@ type API interface {
 	// @tag Wiki
 	// Minimum server version: 10.10
 	CreateWikiPage(wikiID, title, content, userID string) (*model.Post, *model.AppError)
+
+	// GetWiki retrieves a wiki by its ID.
+	// Returns the wiki or an error if not found.
+	//
+	// @tag Wiki
+	// Minimum server version: 10.10
+	GetWiki(wikiID string) (*model.Wiki, *model.AppError)
+
+	// GetPage retrieves a page by its ID without content.
+	// Returns the page post or an error if not found.
+	//
+	// @tag Wiki
+	// Minimum server version: 10.10
+	GetPage(pageID string) (*model.Post, *model.AppError)
+
+	// GetPageWithContent retrieves a page by its ID with full content.
+	// Returns the page post with content populated or an error if not found.
+	//
+	// @tag Wiki
+	// Minimum server version: 10.10
+	GetPageWithContent(pageID string) (*model.Post, *model.AppError)
+
+	// GetWikiPages retrieves pages for a wiki with pagination.
+	// Uses standard MM pagination (page, perPage).
+	//
+	// @tag Wiki
+	// Minimum server version: 10.10
+	GetWikiPages(wikiID string, page, perPage int) ([]*model.Post, *model.AppError)
+
+	// UpdateWikiPage updates an existing wiki page with optimistic locking.
+	// The baseEditAt parameter must match the page's current EditAt to prevent overwriting concurrent edits.
+	// Returns the updated page or a 409 conflict error with current page state.
+	//
+	// @tag Wiki
+	// Minimum server version: 10.10
+	UpdateWikiPage(pageID, wikiID, title, content string, baseEditAt int64) (*model.Post, *model.AppError)
+
+	// DeleteWikiPage soft-deletes a wiki page.
+	// The page can be restored later.
+	//
+	// @tag Wiki
+	// Minimum server version: 10.10
+	DeleteWikiPage(pageID, wikiID string) *model.AppError
+
+	// MoveWikiPage moves a page to a new parent within the same wiki.
+	// Set newParentID to nil to move to root level.
+	// Returns the updated page with new hierarchy.
+	//
+	// @tag Wiki
+	// Minimum server version: 10.10
+	MoveWikiPage(pageID string, newParentID *string, wikiID string) (*model.PostList, *model.AppError)
+
+	// GetPageChildren retrieves immediate children of a page with pagination.
+	//
+	// @tag Wiki
+	// Minimum server version: 10.10
+	GetPageChildren(pageID string, page, perPage int) (*model.PostList, *model.AppError)
+
+	// GetPageAncestors retrieves all ancestors of a page (parent, grandparent, etc.).
+	// Returns pages ordered from immediate parent to root.
+	//
+	// @tag Wiki
+	// Minimum server version: 10.10
+	GetPageAncestors(pageID string) (*model.PostList, *model.AppError)
 }
 
 var handshake = plugin.HandshakeConfig{

@@ -463,8 +463,8 @@ func wikiResolveLinksCmdF(c client.Client, command *cobra.Command, args []string
 				actualTitle = displayTitle
 			}
 
-			// Update page content with preserved title
-			_, _, uerr := c.UpdatePage(ctx, wikiID, post.Id, actualTitle, resolved, "")
+			// Update page content with preserved title (baseEditAt=0 skips optimistic locking)
+			_, _, uerr := c.UpdatePage(ctx, wikiID, post.Id, actualTitle, resolved, "", 0)
 			if uerr != nil {
 				return fmt.Errorf("failed to update page %s: %w", post.Id, uerr)
 			}

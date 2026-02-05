@@ -1692,3 +1692,66 @@ func (api *apiTimerLayer) CreateWikiPage(wikiID, title, content, userID string) 
 	api.recordTime(startTime, "CreateWikiPage", _returnsB == nil)
 	return _returnsA, _returnsB
 }
+
+func (api *apiTimerLayer) GetWiki(wikiID string) (*model.Wiki, *model.AppError) {
+	startTime := timePkg.Now()
+	_returnsA, _returnsB := api.apiImpl.GetWiki(wikiID)
+	api.recordTime(startTime, "GetWiki", _returnsB == nil)
+	return _returnsA, _returnsB
+}
+
+func (api *apiTimerLayer) GetPage(pageID string) (*model.Post, *model.AppError) {
+	startTime := timePkg.Now()
+	_returnsA, _returnsB := api.apiImpl.GetPage(pageID)
+	api.recordTime(startTime, "GetPage", _returnsB == nil)
+	return _returnsA, _returnsB
+}
+
+func (api *apiTimerLayer) GetPageWithContent(pageID string) (*model.Post, *model.AppError) {
+	startTime := timePkg.Now()
+	_returnsA, _returnsB := api.apiImpl.GetPageWithContent(pageID)
+	api.recordTime(startTime, "GetPageWithContent", _returnsB == nil)
+	return _returnsA, _returnsB
+}
+
+func (api *apiTimerLayer) GetWikiPages(wikiID string, page, perPage int) ([]*model.Post, *model.AppError) {
+	startTime := timePkg.Now()
+	_returnsA, _returnsB := api.apiImpl.GetWikiPages(wikiID, page, perPage)
+	api.recordTime(startTime, "GetWikiPages", _returnsB == nil)
+	return _returnsA, _returnsB
+}
+
+func (api *apiTimerLayer) UpdateWikiPage(pageID, wikiID, title, content string, baseEditAt int64) (*model.Post, *model.AppError) {
+	startTime := timePkg.Now()
+	_returnsA, _returnsB := api.apiImpl.UpdateWikiPage(pageID, wikiID, title, content, baseEditAt)
+	api.recordTime(startTime, "UpdateWikiPage", _returnsB == nil)
+	return _returnsA, _returnsB
+}
+
+func (api *apiTimerLayer) DeleteWikiPage(pageID, wikiID string) *model.AppError {
+	startTime := timePkg.Now()
+	_returnsA := api.apiImpl.DeleteWikiPage(pageID, wikiID)
+	api.recordTime(startTime, "DeleteWikiPage", _returnsA == nil)
+	return _returnsA
+}
+
+func (api *apiTimerLayer) MoveWikiPage(pageID string, newParentID *string, wikiID string) (*model.PostList, *model.AppError) {
+	startTime := timePkg.Now()
+	_returnsA, _returnsB := api.apiImpl.MoveWikiPage(pageID, newParentID, wikiID)
+	api.recordTime(startTime, "MoveWikiPage", _returnsB == nil)
+	return _returnsA, _returnsB
+}
+
+func (api *apiTimerLayer) GetPageChildren(pageID string, page, perPage int) (*model.PostList, *model.AppError) {
+	startTime := timePkg.Now()
+	_returnsA, _returnsB := api.apiImpl.GetPageChildren(pageID, page, perPage)
+	api.recordTime(startTime, "GetPageChildren", _returnsB == nil)
+	return _returnsA, _returnsB
+}
+
+func (api *apiTimerLayer) GetPageAncestors(pageID string) (*model.PostList, *model.AppError) {
+	startTime := timePkg.Now()
+	_returnsA, _returnsB := api.apiImpl.GetPageAncestors(pageID)
+	api.recordTime(startTime, "GetPageAncestors", _returnsB == nil)
+	return _returnsA, _returnsB
+}

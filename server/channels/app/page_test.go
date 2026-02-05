@@ -162,6 +162,116 @@ func TestCreatePageWithContent(t *testing.T) {
 		require.NotNil(t, page)
 		require.Equal(t, customId, page.Id)
 	})
+
+	t.Run("converts markdown content to TipTap", func(t *testing.T) {
+		markdownContent := "# Hello\n\nThis is **bold** text."
+		page, err := th.App.CreatePage(th.Context, th.BasicChannel.Id, "Markdown Page", "", markdownContent, th.BasicUser.Id, "", "")
+		require.Nil(t, err)
+		require.NotNil(t, page)
+
+		pageContent, contentErr := th.App.Srv().Store().Page().GetPageContent(page.Id)
+		require.NoError(t, contentErr)
+		require.NotNil(t, pageContent)
+
+		jsonContent, jsonErr := pageContent.GetDocumentJSON()
+		require.NoError(t, jsonErr)
+
+		// Parse the JSON to verify structure
+		var doc map[string]any
+		parseErr := json.Unmarshal([]byte(jsonContent), &doc)
+		require.NoError(t, parseErr)
+		require.Equal(t, "doc", doc["type"])
+
+		// Verify it's valid TipTap structure with heading
+		content := doc["content"].([]any)
+		require.NotEmpty(t, content)
+
+		// First element should be a heading
+		heading := content[0].(map[string]any)
+		require.Equal(t, "heading", heading["type"])
+	})
+
+	t.Run("converts bullet list markdown to TipTap", func(t *testing.T) {
+		markdownContent := "- item one\n- item two"
+		page, err := th.App.CreatePage(th.Context, th.BasicChannel.Id, "List Page", "", markdownContent, th.BasicUser.Id, "", "")
+		require.Nil(t, err)
+		require.NotNil(t, page)
+
+		pageContent, contentErr := th.App.Srv().Store().Page().GetPageContent(page.Id)
+		require.NoError(t, contentErr)
+
+		jsonContent, jsonErr := pageContent.GetDocumentJSON()
+		require.NoError(t, jsonErr)
+
+		var doc map[string]any
+		parseErr := json.Unmarshal([]byte(jsonContent), &doc)
+		require.NoError(t, parseErr)
+
+		content := doc["content"].([]any)
+		require.NotEmpty(t, content)
+
+		// Should have a bulletList
+		list := content[0].(map[string]any)
+		require.Equal(t, "bulletList", list["type"])
+
+		// Should have listItems with paragraphs
+		items := list["content"].([]any)
+		require.Len(t, items, 2)
+
+		item1 := items[0].(map[string]any)
+		require.Equal(t, "listItem", item1["type"])
+	})
+
+	t.Run("converts fenced code block markdown to TipTap", func(t *testing.T) {
+		markdownContent := "```go\nfmt.Println(\"hello\")\n```"
+		page, err := th.App.CreatePage(th.Context, th.BasicChannel.Id, "Code Page", "", markdownContent, th.BasicUser.Id, "", "")
+		require.Nil(t, err)
+		require.NotNil(t, page)
+
+		pageContent, contentErr := th.App.Srv().Store().Page().GetPageContent(page.Id)
+		require.NoError(t, contentErr)
+
+		jsonContent, jsonErr := pageContent.GetDocumentJSON()
+		require.NoError(t, jsonErr)
+
+		var doc map[string]any
+		parseErr := json.Unmarshal([]byte(jsonContent), &doc)
+		require.NoError(t, parseErr)
+
+		content := doc["content"].([]any)
+		require.NotEmpty(t, content)
+
+		// Should have a codeBlock with language
+		codeBlock := content[0].(map[string]any)
+		require.Equal(t, "codeBlock", codeBlock["type"])
+
+		attrs := codeBlock["attrs"].(map[string]any)
+		require.Equal(t, "go", attrs["language"])
+	})
+
+	t.Run("plain text without markdown is wrapped in paragraphs", func(t *testing.T) {
+		plainContent := "This is plain text"
+		page, err := th.App.CreatePage(th.Context, th.BasicChannel.Id, "Plain Page", "", plainContent, th.BasicUser.Id, "", "")
+		require.Nil(t, err)
+		require.NotNil(t, page)
+
+		pageContent, contentErr := th.App.Srv().Store().Page().GetPageContent(page.Id)
+		require.NoError(t, contentErr)
+
+		jsonContent, jsonErr := pageContent.GetDocumentJSON()
+		require.NoError(t, jsonErr)
+
+		var doc map[string]any
+		parseErr := json.Unmarshal([]byte(jsonContent), &doc)
+		require.NoError(t, parseErr)
+
+		content := doc["content"].([]any)
+		require.NotEmpty(t, content)
+
+		// Should be a paragraph (not heading, list, etc.)
+		para := content[0].(map[string]any)
+		require.Equal(t, "paragraph", para["type"])
+	})
 }
 
 func TestGetPageWithContent(t *testing.T) {

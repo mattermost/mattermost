@@ -2438,9 +2438,9 @@ func (mr *MockClientMockRecorder) UpdateOutgoingWebhook(arg0, arg1 interface{}) 
 }
 
 // UpdatePage mocks base method.
-func (m *MockClient) UpdatePage(arg0 context.Context, arg1, arg2, arg3, arg4, arg5 string) (*model.Post, *model.Response, error) {
+func (m *MockClient) UpdatePage(arg0 context.Context, arg1, arg2, arg3, arg4, arg5 string, arg6 int64) (*model.Post, *model.Response, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "UpdatePage", arg0, arg1, arg2, arg3, arg4, arg5)
+	ret := m.ctrl.Call(m, "UpdatePage", arg0, arg1, arg2, arg3, arg4, arg5, arg6)
 	ret0, _ := ret[0].(*model.Post)
 	ret1, _ := ret[1].(*model.Response)
 	ret2, _ := ret[2].(error)
@@ -2448,9 +2448,9 @@ func (m *MockClient) UpdatePage(arg0 context.Context, arg1, arg2, arg3, arg4, ar
 }
 
 // UpdatePage indicates an expected call of UpdatePage.
-func (mr *MockClientMockRecorder) UpdatePage(arg0, arg1, arg2, arg3, arg4, arg5 interface{}) *gomock.Call {
+func (mr *MockClientMockRecorder) UpdatePage(arg0, arg1, arg2, arg3, arg4, arg5, arg6 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdatePage", reflect.TypeOf((*MockClient)(nil).UpdatePage), arg0, arg1, arg2, arg3, arg4, arg5)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdatePage", reflect.TypeOf((*MockClient)(nil).UpdatePage), arg0, arg1, arg2, arg3, arg4, arg5, arg6)
 }
 
 // UpdatePreferences mocks base method.

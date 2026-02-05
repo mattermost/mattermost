@@ -150,7 +150,7 @@ func TestUpdatePage(t *testing.T) {
 		page, _, err := th.Client.CreatePage(context.Background(), wiki.Id, "", "Original Title")
 		require.NoError(t, err)
 
-		updatedPage, resp, err := th.Client.UpdatePage(context.Background(), wiki.Id, page.Id, "Updated Title", "", "")
+		updatedPage, resp, err := th.Client.UpdatePage(context.Background(), wiki.Id, page.Id, "Updated Title", "", "", 0)
 		require.NoError(t, err)
 		CheckOKStatus(t, resp)
 		require.Equal(t, "Updated Title", updatedPage.GetProps()["title"])
@@ -161,7 +161,7 @@ func TestUpdatePage(t *testing.T) {
 		require.NoError(t, err)
 
 		contentJSON := `{"type":"doc","content":[{"type":"paragraph","content":[{"type":"text","text":"Updated content"}]}]}`
-		updatedPage, resp, err := th.Client.UpdatePage(context.Background(), wiki.Id, page.Id, "", contentJSON, "Updated content")
+		updatedPage, resp, err := th.Client.UpdatePage(context.Background(), wiki.Id, page.Id, "", contentJSON, "Updated content", 0)
 		require.NoError(t, err)
 		CheckOKStatus(t, resp)
 		require.NotNil(t, updatedPage)
@@ -174,13 +174,13 @@ func TestUpdatePage(t *testing.T) {
 		th.RemovePermissionFromRole(t, model.PermissionEditPage.Id, model.ChannelUserRoleId)
 		defer th.AddPermissionToRole(t, model.PermissionEditPage.Id, model.ChannelUserRoleId)
 
-		_, resp, err := th.Client.UpdatePage(context.Background(), wiki.Id, page.Id, "Should Fail", "", "")
+		_, resp, err := th.Client.UpdatePage(context.Background(), wiki.Id, page.Id, "Should Fail", "", "", 0)
 		require.Error(t, err)
 		CheckForbiddenStatus(t, resp)
 	})
 
 	t.Run("fail for non-existent page", func(t *testing.T) {
-		_, resp, err := th.Client.UpdatePage(context.Background(), wiki.Id, model.NewId(), "Should Fail", "", "")
+		_, resp, err := th.Client.UpdatePage(context.Background(), wiki.Id, model.NewId(), "Should Fail", "", "", 0)
 		require.Error(t, err)
 		CheckNotFoundStatus(t, resp)
 	})
@@ -193,7 +193,7 @@ func TestUpdatePage(t *testing.T) {
 		_, err = th.Client.DeletePage(context.Background(), wiki.Id, page.Id)
 		require.NoError(t, err)
 
-		_, resp, err := th.Client.UpdatePage(context.Background(), wiki.Id, page.Id, "Should Fail", "", "")
+		_, resp, err := th.Client.UpdatePage(context.Background(), wiki.Id, page.Id, "Should Fail", "", "", 0)
 		require.Error(t, err)
 		CheckNotFoundStatus(t, resp)
 	})
