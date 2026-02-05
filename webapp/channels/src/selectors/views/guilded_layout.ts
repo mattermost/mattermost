@@ -4,6 +4,7 @@
 import {createSelector} from 'mattermost-redux/selectors/create_selector';
 
 import {getAllChannels, getMyChannelMemberships} from 'mattermost-redux/selectors/entities/channels';
+import {getPostsInChannel} from 'mattermost-redux/selectors/entities/posts';
 import {getConfig} from 'mattermost-redux/selectors/entities/general';
 import {getUsers, getStatusForUserId, getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
 
@@ -165,3 +166,16 @@ export const getUnreadDmChannelsWithUsers = createSelector(
         return unreadDms.sort((a, b) => b.channel.last_post_at - a.channel.last_post_at);
     },
 );
+
+/**
+ * Get the last post in a channel for preview purposes.
+ * Returns the most recent post or null if no posts.
+ */
+export function getLastPostInChannel(state: GlobalState, channelId: string) {
+    const posts = getPostsInChannel(state, channelId) || [];
+    if (posts.length === 0) {
+        return null;
+    }
+    // Posts are ordered newest first
+    return posts[0];
+}

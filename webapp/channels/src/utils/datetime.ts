@@ -108,3 +108,43 @@ export function relativeFormatDate(date: Moment, formatMessage: ReturnType<typeo
 
     return DateTime.fromJSDate(date.toDate()).toLocaleString();
 }
+
+/**
+ * Get a relative timestamp string like "2m", "1h", "Yesterday", etc.
+ * Used for conversation row previews in Guilded layout.
+ */
+export function getRelativeTimestamp(timestamp: number): string {
+    const now = Date.now();
+    const diff = now - timestamp;
+
+    const seconds = Math.floor(diff / 1000);
+    const minutes = Math.floor(seconds / 60);
+    const hours = Math.floor(minutes / 60);
+    const days = Math.floor(hours / 24);
+
+    if (seconds < 60) {
+        return 'Now';
+    }
+
+    if (minutes < 60) {
+        return `${minutes}m`;
+    }
+
+    if (hours < 24) {
+        return `${hours}h`;
+    }
+
+    if (days === 1) {
+        return 'Yesterday';
+    }
+
+    if (days < 7) {
+        return `${days}d`;
+    }
+
+    // Format as date for older messages
+    const date = new Date(timestamp);
+    const month = date.toLocaleString('default', {month: 'short'});
+    const day = date.getDate();
+    return `${month} ${day}`;
+}
