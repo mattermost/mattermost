@@ -1010,22 +1010,6 @@ func (s *TimerLayerAutoTranslationStore) SetChannelEnabled(channelID string, ena
 	return err
 }
 
-func (s *TimerLayerAutoTranslationStore) SetUserEnabled(userID string, channelID string, enabled bool) error {
-	start := time.Now()
-
-	err := s.AutoTranslationStore.SetUserEnabled(userID, channelID, enabled)
-
-	elapsed := float64(time.Since(start)) / float64(time.Second)
-	if s.Root.Metrics != nil {
-		success := "false"
-		if err == nil {
-			success = "true"
-		}
-		s.Root.Metrics.ObserveStoreMethodDuration("AutoTranslationStore.SetUserEnabled", success, elapsed)
-	}
-	return err
-}
-
 func (s *TimerLayerBotStore) Get(userID string, includeDeleted bool) (*model.Bot, error) {
 	start := time.Now()
 
