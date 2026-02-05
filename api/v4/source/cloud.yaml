@@ -360,6 +360,36 @@
           $ref: "#/components/responses/Forbidden"
         "501":
           $ref: "#/components/responses/NotImplemented"
+  /api/v4/cloud/check-cws-connection:
+    get:
+      tags:
+        - cloud
+      summary: Check CWS connection
+      description: >
+        Checks whether the Customer Web Server (CWS) is reachable from this instance.
+        Used to detect if the deployment is air-gapped.
+
+        ##### Permissions
+
+        No permissions required.
+
+        __Minimum server version__: 5.28
+        __Note:__ This is intended for internal use and is subject to change.
+      operationId: CheckCWSConnection
+      responses:
+        "200":
+          description: CWS connection status returned successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    description: Connection status - "available" if CWS is reachable, "unavailable" if not
+                    enum:
+                      - available
+                      - unavailable
   /api/v4/cloud/webhook:
     post:
       tags:

@@ -1,0 +1,48 @@
+name: Calculate Cypress Results
+description: Calculate Cypress test results with optional merge of retest results
+author: Mattermost
+
+inputs:
+  original-results-path:
+    description: Path to the original Cypress results directory (e.g., e2e-tests/cypress/results)
+    required: true
+  retest-results-path:
+    description: Path to the retest Cypress results directory (optional - if not provided, only calculates from original)
+    required: false
+  write-merged:
+    description: Whether to write merged results back to the original directory (default true)
+    required: false
+    default: "true"
+
+outputs:
+  # Merge outputs
+  merged:
+    description: Whether merge was performed (true/false)
+
+  # Calculation outputs (same as calculate-cypress-test-results)
+  passed:
+    description: Number of passed tests
+  failed:
+    description: Number of failed tests
+  pending:
+    description: Number of pending/skipped tests
+  total_specs:
+    description: Total number of spec files
+  commit_status_message:
+    description: Message for commit status (e.g., "X failed, Y passed (Z spec files)")
+  failed_specs:
+    description: Comma-separated list of failed spec files (for retest)
+  failed_specs_count:
+    description: Number of failed spec files
+  failed_tests:
+    description: Markdown table rows of failed tests (for GitHub summary)
+  total:
+    description: Total number of tests (passed + failed)
+  pass_rate:
+    description: Pass rate percentage (e.g., "100.00")
+  color:
+    description: Color for webhook based on pass rate (green=100%, yellow=99%+, orange=98%+, red=<98%)
+
+runs:
+  using: node24
+  main: dist/index.js

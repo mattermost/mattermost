@@ -4242,7 +4242,7 @@ export default class Client4 {
     };
 
     cwsAvailabilityCheck = () => {
-        return this.doFetchWithResponse(
+        return this.doFetch<{status: string}>(
             `${this.getCloudRoute()}/check-cws-connection`,
             {method: 'get'},
         );
@@ -4430,10 +4430,23 @@ export default class Client4 {
         );
     };
 
-    getAIRewrittenMessage = (agentId: string, message: string, action?: string, customPrompt?: string) => {
+    getAIRewrittenMessage = (agentId: string, message: string, action?: string, customPrompt?: string, rootId?: string) => {
+        const body: {agent_id: string; message: string; action?: string; custom_prompt?: string; root_id?: string} = {
+            agent_id: agentId,
+            message,
+        };
+        if (action) {
+            body.action = action;
+        }
+        if (customPrompt) {
+            body.custom_prompt = customPrompt;
+        }
+        if (rootId) {
+            body.root_id = rootId;
+        }
         return this.doFetch<{rewritten_text: string; changes_made: string[]}>(
             `${this.getPostsRoute()}/rewrite`,
-            {method: 'post', body: JSON.stringify({agent_id: agentId, message, action, custom_prompt: customPrompt})},
+            {method: 'post', body: JSON.stringify(body)},
         ).then((response) => response.rewritten_text);
     };
 
@@ -4500,6 +4513,7 @@ export default class Client4 {
             message: msg,
             server_error_id: data.id,
             status_code: data.status_code,
+            detailed_error: data.detailed_error,
             url,
         });
     };
@@ -4678,13 +4692,6 @@ export default class Client4 {
         return this.doFetch<ChannelsWithTotalCount>(
             `${this.getBaseRoute()}/access_control_policies/${policyId}/resources/channels/search?term=${term}`,
             {method: 'post', body: JSON.stringify({term, ...opts})},
-        );
-    };
-
-    updateAccessControlPolicyActive = (policyId: string, active: boolean) => {
-        return this.doFetch<StatusOK>(
-            `${this.getBaseRoute()}/access_control_policies/${policyId}/activate?active=${active}`,
-            {method: 'get'},
         );
     };
 
@@ -4903,6 +4910,7 @@ export class ClientError extends Error implements ServerError {
     url?: string;
     server_error_id?: string;
     status_code?: number;
+    detailed_error?: string;
 
     constructor(baseUrl: string, data: ServerError, cause?: any) {
         super(data.message + ': ' + cleanUrlForLogging(baseUrl, data.url || ''), {cause});
@@ -4911,6 +4919,7 @@ export class ClientError extends Error implements ServerError {
         this.url = data.url;
         this.server_error_id = data.server_error_id;
         this.status_code = data.status_code;
+        this.detailed_error = data.detailed_error;
 
         // Ensure message is treated as a property of this class when object spreading. Without this,
         // copying the object by using `{...error}` would not include the message.
