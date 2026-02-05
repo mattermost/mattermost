@@ -16,7 +16,7 @@ import Toggle from 'components/toggle';
 import {ModalIdentifiers} from 'utils/constants';
 
 import AttributeModal from './attribute_modal';
-import {useUserPropertyFieldDelete} from './user_properties_delete_modal';
+import {usePropertyFieldDelete} from './property_field_delete_modal';
 import {isCreatePending} from './user_properties_utils';
 
 import './user_properties_dot_menu.scss';
@@ -115,7 +115,7 @@ const DotMenu = ({
     deleteField,
 }: Props) => {
     const {formatMessage} = useIntl();
-    const {promptDelete} = useUserPropertyFieldDelete();
+    const {promptDelete} = usePropertyFieldDelete();
     const {promptEditLdapLink, promptEditSamlLink} = useAttributeLinkModal(field, updateField);
 
     const handleDuplicate = () => {

@@ -7,6 +7,7 @@ import {Client4} from 'mattermost-redux/client';
 
 import {isCreatePending, isDeletePending} from './user_properties_utils';
 import type {PropertyFieldConfig} from './attributes_panel';
+import {clearOptionIDs, prepareFieldForPatch} from './property_field_option_utils';
 
 export const userPropertyFieldConfig: PropertyFieldConfig<UserPropertyField> = {
     group_id: 'custom_profile_attributes',
@@ -22,17 +23,8 @@ export const userPropertyFieldConfig: PropertyFieldConfig<UserPropertyField> = {
         return Client4.createCustomProfileAttributeField({name, type, attrs: attrs || {}});
     },
     patchField: async (id: string, patch: Partial<UserPropertyField>) => {
-        const {name, type, attrs} = patch as UserPropertyFieldPatch;
-        let finalPatch: UserPropertyFieldPatch = {name, type, attrs};
-
-        // Clear options if not select/multiselect
-        if (type !== 'select' && type !== 'multiselect') {
-            const attrs = {...finalPatch.attrs};
-            Reflect.deleteProperty(attrs, 'options');
-            finalPatch = {...finalPatch, attrs};
-        }
-
-        return Client4.patchCustomProfileAttributeField(id, finalPatch);
+        const sanitizedPatch = prepareFieldForPatch(patch);
+        return Client4.patchCustomProfileAttributeField(id, sanitizedPatch as UserPropertyFieldPatch);
     },
     deleteField: async (id: string) => {
         return Client4.deleteCustomProfileAttributeField(id);
@@ -40,16 +32,13 @@ export const userPropertyFieldConfig: PropertyFieldConfig<UserPropertyField> = {
     isCreatePending,
     isDeletePending,
     prepareFieldForCreate: (field: Partial<UserPropertyField>) => {
-        const attrs = {...field.attrs};
-        if (attrs?.options) {
-            // Clear option ids
-            attrs.options = attrs.options.map((option) => ({...option, id: ''}));
-        }
-        // Clear ldap/saml links
+        const fieldWithClearedIDs = clearOptionIDs(field);
+        const attrs = {...fieldWithClearedIDs.attrs};
+        // Clear ldap/saml links (user properties specific)
         Reflect.deleteProperty(attrs, 'ldap');
         Reflect.deleteProperty(attrs, 'saml');
         return {
-            ...field,
+            ...fieldWithClearedIDs,
             attrs: {
                 visibility: 'when_set',
                 sort_order: 0,
@@ -58,17 +47,5 @@ export const userPropertyFieldConfig: PropertyFieldConfig<UserPropertyField> = {
             },
         };
     },
-    prepareFieldForPatch: (field: Partial<UserPropertyField>) => {
-        const {name, type, attrs} = field;
-        let patch: UserPropertyFieldPatch = {name, type, attrs};
-
-        // Clear options if not select/multiselect
-        if (type !== 'select' && type !== 'multiselect') {
-            const attrs = {...patch.attrs};
-            Reflect.deleteProperty(attrs, 'options');
-            patch = {...patch, attrs};
-        }
-
-        return patch;
-    },
+    prepareFieldForPatch,
 };

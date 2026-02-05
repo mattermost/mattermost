@@ -9,6 +9,10 @@ import type {PropertyField} from '@mattermost/types/properties';
 
 import * as Menu from 'components/menu';
 
+import {clearOptionIDs} from './property_field_option_utils';
+import {usePropertyFieldDelete} from './property_field_delete_modal';
+import {isCreatePending} from './board_properties_utils';
+
 type Props = {
     field: PropertyField;
     canCreate: boolean;
@@ -25,6 +29,7 @@ export default function BoardPropertiesDotMenu({
 }: Props) {
     const {formatMessage} = useIntl();
     const menuId = `board-property-field-dotmenu-${field.id}`;
+    const {promptDelete} = usePropertyFieldDelete();
 
     const handleDuplicate = () => {
         const name = formatMessage({
@@ -33,20 +38,13 @@ export default function BoardPropertiesDotMenu({
         }, {fieldName: field.name});
 
         // Clear option IDs when duplicating (server will assign new ones)
-        const attrs = {...field.attrs};
-        if (attrs.options && Array.isArray(attrs.options)) {
-            attrs.options = attrs.options.map((option: {id?: string; name: string}) => ({
-                ...option,
-                id: '',
-            }));
-        }
+        const fieldWithClearedIDs = clearOptionIDs(field);
 
         // Create a new field with a new ID and reset create_at/delete_at to mark it as pending
         createField({
-            ...field,
+            ...fieldWithClearedIDs,
             id: `temp_${Date.now()}`,
             name,
-            attrs,
             create_at: 0,
             delete_at: 0,
             update_at: 0,
@@ -56,7 +54,12 @@ export default function BoardPropertiesDotMenu({
     };
 
     const handleDelete = () => {
-        deleteField(field.id);
+        if (isCreatePending(field)) {
+            // skip prompt when field is pending creation
+            deleteField(field.id);
+        } else {
+            promptDelete(field).then(() => deleteField(field.id));
+        }
     };
 
     return (

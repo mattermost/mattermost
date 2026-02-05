@@ -4,14 +4,12 @@
 package app
 
 import (
-	"database/sql"
 	"encoding/json"
 	"net/http"
 	"sort"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
-	"github.com/mattermost/mattermost/server/v8/channels/store"
 	"github.com/pkg/errors"
 )
 
@@ -45,12 +43,8 @@ func (a *App) GetCPAField(fieldID string) (*model.CPAField, *model.AppError) {
 
 	field, err := a.Srv().propertyService.GetPropertyField(groupID, fieldID)
 	if err != nil {
-		switch {
-		case errors.Is(err, sql.ErrNoRows):
-			return nil, model.NewAppError("GetCPAField", "app.custom_profile_attributes.property_field_not_found.app_error", nil, "", http.StatusNotFound).Wrap(err)
-		default:
-			return nil, model.NewAppError("GetCPAField", "app.custom_profile_attributes.get_property_field.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
-		}
+		config := DefaultPropertyFieldErrorConfig("GetCPAField", "app.custom_profile_attributes")
+		return nil, HandlePropertyFieldError(err, config, "get")
 	}
 
 	cpaField, err := model.NewCPAFieldFromPropertyField(field)
@@ -117,13 +111,8 @@ func (a *App) CreateCPAField(field *model.CPAField) (*model.CPAField, *model.App
 
 	newField, err := a.Srv().propertyService.CreatePropertyField(field.ToPropertyField())
 	if err != nil {
-		var appErr *model.AppError
-		switch {
-		case errors.As(err, &appErr):
-			return nil, appErr
-		default:
-			return nil, model.NewAppError("CreateCPAField", "app.custom_profile_attributes.create_property_field.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
-		}
+		config := DefaultPropertyFieldErrorConfig("CreateCPAField", "app.custom_profile_attributes")
+		return nil, HandlePropertyFieldError(err, config, "create")
 	}
 
 	cpaField, err := model.NewCPAFieldFromPropertyField(newField)
@@ -164,13 +153,8 @@ func (a *App) PatchCPAField(fieldID string, patch *model.PropertyFieldPatch) (*m
 
 	patchedField, err := a.Srv().propertyService.UpdatePropertyField(groupID, existingField.ToPropertyField())
 	if err != nil {
-		var nfErr *store.ErrNotFound
-		switch {
-		case errors.As(err, &nfErr):
-			return nil, model.NewAppError("PatchCPAField", "app.custom_profile_attributes.property_field_not_found.app_error", nil, "", http.StatusNotFound).Wrap(err)
-		default:
-			return nil, model.NewAppError("PatchCPAField", "app.custom_profile_attributes.property_field_update.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
-		}
+		config := DefaultPropertyFieldErrorConfig("PatchCPAField", "app.custom_profile_attributes")
+		return nil, HandlePropertyFieldError(err, config, "update")
 	}
 
 	cpaField, err := model.NewCPAFieldFromPropertyField(patchedField)
@@ -202,13 +186,8 @@ func (a *App) DeleteCPAField(id string) *model.AppError {
 	}
 
 	if err := a.Srv().propertyService.DeletePropertyField(groupID, id); err != nil {
-		var nfErr *store.ErrNotFound
-		switch {
-		case errors.As(err, &nfErr):
-			return model.NewAppError("DeleteCPAField", "app.custom_profile_attributes.property_field_not_found.app_error", nil, "", http.StatusNotFound).Wrap(err)
-		default:
-			return model.NewAppError("DeleteCPAField", "app.custom_profile_attributes.property_field_delete.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
-		}
+		config := DefaultPropertyFieldErrorConfig("DeleteCPAField", "app.custom_profile_attributes")
+		return HandlePropertyFieldError(err, config, "delete")
 	}
 
 	message := model.NewWebSocketEvent(model.WebsocketEventCPAFieldDeleted, "", "", "", nil, "")

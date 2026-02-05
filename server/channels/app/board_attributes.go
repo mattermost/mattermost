@@ -4,15 +4,11 @@
 package app
 
 import (
-	"fmt"
 	"net/http"
-	"os"
 	"sort"
-	"time"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
-	"github.com/mattermost/mattermost/server/v8/channels/store"
 	"github.com/pkg/errors"
 )
 
@@ -21,6 +17,7 @@ const (
 )
 
 var boardAttributesGroupID string
+
 
 // BoardAttributesGroupID returns the group ID for board attributes, registering it if necessary.
 func (a *App) BoardAttributesGroupID() (string, error) {
@@ -73,16 +70,8 @@ func (a *App) GetBoardAttributeField(fieldID string) (*model.PropertyField, *mod
 
 	field, err := a.Srv().propertyService.GetPropertyField(groupID, fieldID)
 	if err != nil {
-		var nfErr *store.ErrNotFound
-		var appErr *model.AppError
-		switch {
-		case errors.As(err, &nfErr):
-			return nil, model.NewAppError("GetBoardAttributeField", "app.board_attributes.property_field_not_found.app_error", nil, "", http.StatusNotFound).Wrap(err)
-		case errors.As(err, &appErr):
-			return nil, appErr
-		default:
-			return nil, model.NewAppError("GetBoardAttributeField", "app.board_attributes.get_property_field.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
-		}
+		config := DefaultPropertyFieldErrorConfig("GetBoardAttributeField", "app.board_attributes")
+		return nil, HandlePropertyFieldError(err, config, "get")
 	}
 
 	return field, nil
@@ -113,25 +102,7 @@ func (a *App) CreateBoardAttributeField(field *model.PropertyField) (*model.Prop
 	field.DeleteAt = 0
 
 	// Assign IDs to options if they're empty (for select/multiselect fields)
-	// This matches the behavior in User Attributes' SanitizeAndValidate()
-	if field.Type == model.PropertyFieldTypeSelect || field.Type == model.PropertyFieldTypeMultiselect {
-		if options, ok := field.Attrs[model.PropertyFieldAttributeOptions]; ok {
-			if optionsArr, ok := options.([]any); ok {
-				updated := false
-				for i := range optionsArr {
-					if optionMap, ok := optionsArr[i].(map[string]any); ok {
-						if id, ok := optionMap["id"].(string); !ok || id == "" {
-							optionMap["id"] = model.NewId()
-							updated = true
-						}
-					}
-				}
-				if updated {
-					field.Attrs[model.PropertyFieldAttributeOptions] = optionsArr
-				}
-			}
-		}
-	}
+	AssignOptionIDs(field)
 
 	// Basic validation before passing to store
 	if field.Name == "" {
@@ -142,23 +113,8 @@ func (a *App) CreateBoardAttributeField(field *model.PropertyField) (*model.Prop
 	// The store expects an empty ID and will generate one.
 	newField, err := a.Srv().propertyService.CreatePropertyField(field)
 	if err != nil {
-		var appErr *model.AppError
-		var invalidInput *store.ErrInvalidInput
-		switch {
-		case errors.As(err, &appErr):
-			// Direct AppError
-			return nil, appErr
-		case errors.As(err, &invalidInput):
-			// Store validation error - the ID was not empty
-			return nil, model.NewAppError("CreateBoardAttributeField", "app.board_attributes.create_property_field.app_error", nil, err.Error(), http.StatusBadRequest).Wrap(err)
-		default:
-			// Try to unwrap to find an AppError (store wraps validation errors)
-			unwrapped := errors.Unwrap(err)
-			if unwrapped != nil && errors.As(unwrapped, &appErr) {
-				return nil, appErr
-			}
-			return nil, model.NewAppError("CreateBoardAttributeField", "app.board_attributes.create_property_field.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
-		}
+		config := DefaultPropertyFieldErrorConfig("CreateBoardAttributeField", "app.board_attributes")
+		return nil, HandlePropertyFieldError(err, config, "create")
 	}
 
 	return newField, nil
@@ -173,16 +129,8 @@ func (a *App) PatchBoardAttributeField(fieldID string, patch *model.PropertyFiel
 
 	existingField, err := a.Srv().propertyService.GetPropertyField(groupID, fieldID)
 	if err != nil {
-		var nfErr *store.ErrNotFound
-		var appErr *model.AppError
-		switch {
-		case errors.As(err, &nfErr):
-			return nil, model.NewAppError("PatchBoardAttributeField", "app.board_attributes.property_field_not_found.app_error", nil, "", http.StatusNotFound).Wrap(err)
-		case errors.As(err, &appErr):
-			return nil, appErr
-		default:
-			return nil, model.NewAppError("PatchBoardAttributeField", "app.board_attributes.get_property_field.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
-		}
+		config := DefaultPropertyFieldErrorConfig("PatchBoardAttributeField", "app.board_attributes")
+		return nil, HandlePropertyFieldError(err, config, "get")
 	}
 
 	shouldDeleteValues := false
@@ -200,46 +148,13 @@ func (a *App) PatchBoardAttributeField(fieldID string, patch *model.PropertyFiel
 	existingField.Patch(patch)
 	existingField.UpdateAt = model.GetMillis()
 
-	// Clear options if changing from select/multiselect to a non-select type
-	if existingField.Type != model.PropertyFieldTypeSelect && existingField.Type != model.PropertyFieldTypeMultiselect {
-		if _, ok := existingField.Attrs[model.PropertyFieldAttributeOptions]; ok {
-			delete(existingField.Attrs, model.PropertyFieldAttributeOptions)
-		}
-	}
-
-	// Assign IDs to options if they're empty (for select/multiselect fields)
-	// This matches the behavior in User Attributes' SanitizeAndValidate()
-	if existingField.Type == model.PropertyFieldTypeSelect || existingField.Type == model.PropertyFieldTypeMultiselect {
-		if options, ok := existingField.Attrs[model.PropertyFieldAttributeOptions]; ok {
-			if optionsArr, ok := options.([]any); ok {
-				updated := false
-				for i := range optionsArr {
-					if optionMap, ok := optionsArr[i].(map[string]any); ok {
-						if id, ok := optionMap["id"].(string); !ok || id == "" {
-							optionMap["id"] = model.NewId()
-							updated = true
-						}
-					}
-				}
-				if updated {
-					existingField.Attrs[model.PropertyFieldAttributeOptions] = optionsArr
-				}
-			}
-		}
-	}
+	// Sanitize options: clear if not select/multiselect, assign IDs if needed
+	SanitizePropertyFieldOptions(existingField)
 
 	patchedField, err := a.Srv().propertyService.UpdatePropertyField(groupID, existingField)
 	if err != nil {
-		var nfErr *store.ErrNotFound
-		var appErr *model.AppError
-		switch {
-		case errors.As(err, &nfErr):
-			return nil, model.NewAppError("PatchBoardAttributeField", "app.board_attributes.property_field_not_found.app_error", nil, "", http.StatusNotFound).Wrap(err)
-		case errors.As(err, &appErr):
-			return nil, appErr
-		default:
-			return nil, model.NewAppError("PatchBoardAttributeField", "app.board_attributes.property_field_update.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
-		}
+		config := DefaultPropertyFieldErrorConfig("PatchBoardAttributeField", "app.board_attributes")
+		return nil, HandlePropertyFieldError(err, config, "update")
 	}
 
 	if shouldDeleteValues {
@@ -256,50 +171,15 @@ func (a *App) PatchBoardAttributeField(fieldID string, patch *model.PropertyFiel
 
 // DeleteBoardAttributeField deletes a board attribute field.
 func (a *App) DeleteBoardAttributeField(fieldID string) *model.AppError {
-	// #region agent log
-	if f, err := os.OpenFile("/Users/jgheithcock/Documents/GitHub/mattermost/.cursor/debug.log", os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644); err == nil {
-		fmt.Fprintf(f, `{"location":"board_attributes.go:248","message":"DeleteBoardAttributeField called","data":{"fieldID":"%s"},"timestamp":%d,"sessionId":"debug-session","runId":"run1","hypothesisId":"D"}`+"\n", fieldID, time.Now().UnixMilli())
-		f.Close()
-	}
-	// #endregion
 	groupID, err := a.BoardAttributesGroupID()
 	if err != nil {
-		// #region agent log
-		if f, err2 := os.OpenFile("/Users/jgheithcock/Documents/GitHub/mattermost/.cursor/debug.log", os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644); err2 == nil {
-			fmt.Fprintf(f, `{"location":"board_attributes.go:251","message":"DeleteBoardAttributeField groupID error","data":{"fieldID":"%s","error":"%s"},"timestamp":%d,"sessionId":"debug-session","runId":"run1","hypothesisId":"D"}`+"\n", fieldID, err.Error(), time.Now().UnixMilli())
-			f.Close()
-		}
-		// #endregion
 		return model.NewAppError("DeleteBoardAttributeField", "app.board_attributes.group_id.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
-	// #region agent log
-	if f, err2 := os.OpenFile("/Users/jgheithcock/Documents/GitHub/mattermost/.cursor/debug.log", os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644); err2 == nil {
-		fmt.Fprintf(f, `{"location":"board_attributes.go:254","message":"DeleteBoardAttributeField calling DeletePropertyField","data":{"fieldID":"%s","groupID":"%s"},"timestamp":%d,"sessionId":"debug-session","runId":"run1","hypothesisId":"D"}`+"\n", fieldID, groupID, time.Now().UnixMilli())
-		f.Close()
-	}
-	// #endregion
 	if err := a.Srv().propertyService.DeletePropertyField(groupID, fieldID); err != nil {
-		// #region agent log
-		if f, err2 := os.OpenFile("/Users/jgheithcock/Documents/GitHub/mattermost/.cursor/debug.log", os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644); err2 == nil {
-			fmt.Fprintf(f, `{"location":"board_attributes.go:255","message":"DeleteBoardAttributeField DeletePropertyField error","data":{"fieldID":"%s","error":"%s"},"timestamp":%d,"sessionId":"debug-session","runId":"run1","hypothesisId":"D"}`+"\n", fieldID, err.Error(), time.Now().UnixMilli())
-			f.Close()
-		}
-		// #endregion
-		var nfErr *store.ErrNotFound
-		switch {
-		case errors.As(err, &nfErr):
-			return model.NewAppError("DeleteBoardAttributeField", "app.board_attributes.property_field_not_found.app_error", nil, "", http.StatusNotFound).Wrap(err)
-		default:
-			return model.NewAppError("DeleteBoardAttributeField", "app.board_attributes.property_field_delete.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
-		}
+		config := DefaultPropertyFieldErrorConfig("DeleteBoardAttributeField", "app.board_attributes")
+		return HandlePropertyFieldError(err, config, "delete")
 	}
 
-	// #region agent log
-	if f, err2 := os.OpenFile("/Users/jgheithcock/Documents/GitHub/mattermost/.cursor/debug.log", os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644); err2 == nil {
-		fmt.Fprintf(f, `{"location":"board_attributes.go:262","message":"DeleteBoardAttributeField success","data":{"fieldID":"%s"},"timestamp":%d,"sessionId":"debug-session","runId":"run1","hypothesisId":"D"}`+"\n", fieldID, time.Now().UnixMilli())
-		f.Close()
-	}
-	// #endregion
 	return nil
 }

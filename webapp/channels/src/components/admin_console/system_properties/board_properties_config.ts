@@ -6,6 +6,7 @@ import type {PropertyField} from '@mattermost/types/properties';
 import {Client4} from 'mattermost-redux/client';
 
 import type {PropertyFieldConfig} from './attributes_panel';
+import {clearOptionIDs, prepareFieldForPatch} from './property_field_option_utils';
 import {isCreatePending, isDeletePending} from './board_properties_utils';
 
 export const boardPropertyFieldConfig: PropertyFieldConfig<PropertyField> = {
@@ -22,19 +23,8 @@ export const boardPropertyFieldConfig: PropertyFieldConfig<PropertyField> = {
         return Client4.createBoardAttributeField({name, type, attrs: attrs || {}});
     },
     patchField: async (id: string, patch: Partial<PropertyField>) => {
-        const {name, type, attrs} = patch;
-        let finalPatch: Partial<PropertyField> = {name, type, attrs};
-
-        // Clear options if not select/multiselect
-        if (type !== 'select' && type !== 'multiselect') {
-            const attrs = {...finalPatch.attrs};
-            if (attrs) {
-                Reflect.deleteProperty(attrs, 'options');
-                finalPatch = {...finalPatch, attrs};
-            }
-        }
-
-        return Client4.patchBoardAttributeField(id, finalPatch);
+        const sanitizedPatch = prepareFieldForPatch(patch);
+        return Client4.patchBoardAttributeField(id, sanitizedPatch);
     },
     deleteField: async (id: string) => {
         await Client4.deleteBoardAttributeField(id);
@@ -42,32 +32,14 @@ export const boardPropertyFieldConfig: PropertyFieldConfig<PropertyField> = {
     isCreatePending,
     isDeletePending,
     prepareFieldForCreate: (field: Partial<PropertyField>) => {
-        const attrs = {...field.attrs};
-        if (attrs?.options) {
-            // Clear option ids
-            attrs.options = (attrs.options as Array<{id?: string; name: string}>).map((option) => ({...option, id: ''}));
-        }
+        const fieldWithClearedIDs = clearOptionIDs(field);
         return {
-            ...field,
+            ...fieldWithClearedIDs,
             attrs: {
                 sort_order: 0,
-                ...attrs,
+                ...fieldWithClearedIDs.attrs,
             },
         };
     },
-    prepareFieldForPatch: (field: Partial<PropertyField>) => {
-        const {name, type, attrs} = field;
-        let patch: Partial<PropertyField> = {name, type, attrs};
-
-        // Clear options if not select/multiselect
-        if (type !== 'select' && type !== 'multiselect') {
-            const attrs = {...patch.attrs};
-            if (attrs) {
-                Reflect.deleteProperty(attrs, 'options');
-                patch = {...patch, attrs};
-            }
-        }
-
-        return patch;
-    },
+    prepareFieldForPatch,
 };

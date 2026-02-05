@@ -26,6 +26,19 @@ import type {CollectionIO} from './section_utils';
 
 import SaveChangesPanel from '../save_changes_panel';
 
+// Helper function to generate a unique default name for new fields
+// Similar to getIncrementedName in user_properties_utils.ts
+const getIncrementedName = <T extends PropertyField>(desiredName: string, collection: IDMappedCollection<T>): string => {
+    const names = new Set(Object.values(collection.data).map(({name}) => name));
+    let newName = desiredName;
+    let n = 1;
+    while (names.has(newName)) {
+        n++;
+        newName = `${desiredName} ${n}`;
+    }
+    return newName;
+};
+
 export type PropertyFieldConfig<T extends PropertyField = PropertyField> = {
     group_id: string;
     getFields: () => Promise<T[]>;
@@ -239,9 +252,11 @@ export function useAttributesPanel<T extends PropertyField = PropertyField>(
                 // Calculate sort_order based on number of non-deleted items
                 // eslint-disable-next-line @typescript-eslint/no-explicit-any
                 const nonDeletedCount = Object.values(current.data).filter((f: any) => f.delete_at === 0).length;
+                // Generate a default name if not provided in patch, similar to User Attributes behavior
+                // Ensure we always have a name, even if patch contains an empty string
+                const defaultName = (patchWithoutTimestamps.name && patchWithoutTimestamps.name.trim()) || getIncrementedName('Text', current);
                 const newField = {
                     id: `temp_${Date.now()}`,
-                    name: '',
                     type: 'text' as const,
                     group_id: config.group_id,
                     create_at: 0,
@@ -254,6 +269,8 @@ export function useAttributesPanel<T extends PropertyField = PropertyField>(
                         sort_order: nonDeletedCount,
                     },
                     ...patchWithoutTimestamps,
+                    // Ensure name is always set after spread to prevent empty string from overwriting default
+                    name: defaultName,
                 } as T;
                 return collectionAddItem(current, newField);
             });

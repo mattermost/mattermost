@@ -3,7 +3,7 @@
 
 import {createColumnHelper, getCoreRowModel, getSortedRowModel, useReactTable, type ColumnDef} from '@tanstack/react-table';
 import type {ReactNode} from 'react';
-import React, {useEffect, useMemo, useState} from 'react';
+import React, {useEffect, useMemo, useRef, useState} from 'react';
 import type {MessageDescriptor} from 'react-intl';
 import {FormattedMessage, useIntl} from 'react-intl';
 import styled from 'styled-components';
@@ -322,14 +322,24 @@ type EditCellProps = {
 };
 const EditCell = (props: EditCellProps) => {
     const [value, setValue] = useState(props.value);
+    const inputRef = useRef<HTMLInputElement>(null);
 
     useEffect(() => {
         setValue(props.value);
     }, [props.value]);
 
+    // Focus and select text when autoFocus is true and component mounts
+    useEffect(() => {
+        if (props.autoFocus && inputRef.current) {
+            inputRef.current.focus();
+            inputRef.current.select();
+        }
+    }, [props.autoFocus]);
+
     return (
         <>
             <BorderlessInput
+                ref={inputRef}
                 type='text'
                 aria-label={props.label}
                 data-testid={props.testid}
@@ -337,13 +347,6 @@ const EditCell = (props: EditCellProps) => {
                 $deleted={props.deleted}
                 $strong={props.strong}
                 maxLength={props.maxLength}
-                // eslint-disable-next-line jsx-a11y/no-autofocus
-                autoFocus={props.autoFocus}
-                onFocus={(e) => {
-                    if (props.autoFocus) {
-                        e.target.select();
-                    }
-                }}
                 value={value}
                 onChange={(e) => {
                     setValue(e.target.value);
