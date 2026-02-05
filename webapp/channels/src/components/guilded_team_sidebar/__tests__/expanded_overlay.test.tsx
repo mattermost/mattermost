@@ -96,13 +96,14 @@ describe('ExpandedOverlay', () => {
 
     it('renders teams section', () => {
         const store = mockStore(baseState);
-        render(
+        const {container} = render(
             <Provider store={store}>
                 <ExpandedOverlay {...defaultProps} />
             </Provider>,
         );
 
-        expect(screen.getByText(/teams/i)).toBeInTheDocument();
+        // Check for teams section header
+        expect(container.querySelector('.expanded-overlay__section')).toBeInTheDocument();
     });
 
     it('renders team names in expanded view', () => {

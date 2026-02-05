@@ -64,7 +64,7 @@ describe('UnreadDmAvatars', () => {
     });
 
     it('renders avatars for unread DMs', () => {
-        mockSelectorValues = [[
+        mockValues = [[
             {
                 channel: {id: 'dm1', type: 'D', name: 'currentUser__user2', last_post_at: 2000},
                 user: {id: 'user2', username: 'user2', last_picture_update: 0},
