@@ -99,9 +99,8 @@ export default class WebSocketClient {
     // reconnectTimeout is used for automatic reconnect after socket close
     private reconnectTimeout: ReturnType<typeof setTimeout> | null;
 
-    // Network event handlers
-    private onlineHandler: (() => void) | null = null;
-    private offlineHandler: (() => void) | null = null;
+    // Cleanup logic for network event handlers
+    private removeOnlineOfflineListeners: (() => void) | undefined;
 
     constructor(config?: Partial<WebSocketClientConfig>) {
         this.conn = null;
@@ -147,16 +146,7 @@ export default class WebSocketClient {
             this.postedAck = postedAck;
         }
 
-        // Setup network event listener
-        // Remove existing listeners if any
-        if (this.onlineHandler) {
-            window.removeEventListener('online', this.onlineHandler);
-        }
-        if (this.offlineHandler) {
-            window.removeEventListener('offline', this.offlineHandler);
-        }
-
-        this.onlineHandler = () => {
+        const onlineHandler = () => {
             // If we're already connected, don't need to do anything
             if (this.conn && this.conn.readyState === WebSocket.OPEN) {
                 return;
@@ -175,7 +165,7 @@ export default class WebSocketClient {
             );
         };
 
-        this.offlineHandler = () => {
+        const offlineHandler = () => {
             // If we've detected a full disconnection, don't need to do anything more
             if (this.conn && this.conn.readyState !== WebSocket.OPEN) {
                 return;
@@ -199,8 +189,7 @@ export default class WebSocketClient {
             });
         };
 
-        window.addEventListener('online', this.onlineHandler);
-        window.addEventListener('offline', this.offlineHandler);
+        this.addOnlineOfflineListeners(onlineHandler, offlineHandler);
 
         // Add connection id, and last_sequence_number to the query param.
         // We cannot use a cookie because it will bleed across tabs.
@@ -424,6 +413,27 @@ export default class WebSocketClient {
         };
     }
 
+    private addOnlineOfflineListeners(onlineHandler: () => void, offlineHandler: () => void) {
+        // The window and these events don't exist outside of a browser environment
+        if (!globalThis.window) {
+            return;
+        }
+
+        if (this.removeOnlineOfflineListeners) {
+            this.removeOnlineOfflineListeners();
+        }
+
+        globalThis.window.addEventListener('online', onlineHandler);
+        globalThis.window.addEventListener('offline', offlineHandler);
+
+        this.removeOnlineOfflineListeners = () => {
+            globalThis.window.removeEventListener('online', onlineHandler);
+            globalThis.window.removeEventListener('offline', offlineHandler);
+
+            this.removeOnlineOfflineListeners = undefined;
+        };
+    }
+
     /**
      * @deprecated Use addMessageListener instead
      */
@@ -558,14 +568,7 @@ export default class WebSocketClient {
             console.log('websocket closed manually'); //eslint-disable-line no-console
         }
 
-        if (this.onlineHandler) {
-            window.removeEventListener('online', this.onlineHandler);
-            this.onlineHandler = null;
-        }
-        if (this.offlineHandler) {
-            window.removeEventListener('offline', this.offlineHandler);
-            this.offlineHandler = null;
-        }
+        this.removeOnlineOfflineListeners?.();
     }
 
     clearReconnectTimeout() {
@@ -656,7 +659,8 @@ export default class WebSocketClient {
     acknowledgePostedNotification(postId: string, status: string, reason?: string, postedData?: string) {
         const data = {
             post_id: postId,
-            user_agent: window.navigator.userAgent,
+
+            user_agent: globalThis.window?.navigator?.userAgent ?? '',
             status,
             reason,
             data: postedData,
