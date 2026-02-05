@@ -67,6 +67,19 @@ describe('GuildedTeamSidebar', () => {
         expect(container.querySelector('.guilded-team-sidebar__collapsed')).toBeInTheDocument();
     });
 
+    it('has team-sidebar class for CSS Grid positioning', () => {
+        const store = mockStore(defaultState);
+
+        const {container} = render(
+            <Provider store={store}>
+                <GuildedTeamSidebar />
+            </Provider>
+        );
+
+        // Must have team-sidebar class to be positioned correctly in the app grid layout
+        expect(container.querySelector('.team-sidebar')).toBeInTheDocument();
+    });
+
     it('renders DM button', () => {
         const store = mockStore(defaultState);
 
