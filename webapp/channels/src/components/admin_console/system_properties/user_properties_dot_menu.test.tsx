@@ -188,8 +188,9 @@ describe('UserPropertyDotMenu', () => {
         // Wait for createField to be called
         await waitFor(() => {
             // Verify createField was called with the correct parameters
+            // Note: Duplicated fields get a new temporary ID, not the original ID
             expect(createField).toHaveBeenCalledWith(expect.objectContaining({
-                id: baseField.id,
+                id: expect.stringMatching(/^temp_\d+$/),
                 name: 'Test Field (copy)',
             }));
         });
