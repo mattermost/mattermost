@@ -157,7 +157,7 @@ describe('ThreadsTab', () => {
         const threadRow = screen.getByTestId('thread-thread1');
         fireEvent.click(threadRow);
 
-        expect(mockPush).toHaveBeenCalledWith('/test-team/threads/thread1');
+        expect(mockPush).toHaveBeenCalledWith('/test-team/thread/thread1');
     });
 
     it('shows empty state when no channel is selected', () => {
