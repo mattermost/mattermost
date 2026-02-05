@@ -241,6 +241,10 @@ const FLAG_METADATA: Record<string, {description: string; defaultValue: boolean}
         description: 'Hide the "Update your status" button that appears on posts when user has no custom status set',
         defaultValue: false,
     },
+    GuildedChatLayout: {
+        description: 'Guilded-style layout: enhanced team sidebar with DM button, separate DM page, persistent Members/Threads RHS, and modal popouts. Auto-enables ThreadsInSidebar. Desktop only.',
+        defaultValue: false,
+    },
 };
 
 // Styled components

@@ -37,6 +37,7 @@ import {RHSStates} from 'utils/constants';
 import {popoutThread} from 'utils/popouts/popout_windows';
 
 import {getRhsState, getPinnedPostsThreadId, getThreadFollowersThreadId} from 'selectors/rhs';
+import {isThreadsInSidebarActive} from 'selectors/views/guilded_layout';
 
 import type {GlobalState} from 'types/store';
 import {LhsItemType, LhsPage} from 'types/store/lhs';
@@ -70,7 +71,7 @@ const ThreadView = () => {
 
     // Feature flag checks
     const config = useSelector(getConfig);
-    const isThreadsInSidebarEnabled = (config as Record<string, string>)?.FeatureFlagThreadsInSidebar === 'true';
+    const isThreadsInSidebarEnabled = useSelector(isThreadsInSidebarActive);
     const isCustomThreadNamesEnabled = (config as Record<string, string>)?.FeatureFlagCustomThreadNames === 'true';
 
     const channelId = thread?.post?.channel_id || rootPost?.channel_id;

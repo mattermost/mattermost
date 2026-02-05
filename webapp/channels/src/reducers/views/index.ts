@@ -14,6 +14,7 @@ import discordReplies from './discord_replies';
 import drafts from './drafts';
 import emoji from './emoji';
 import encryption from './encryption';
+import guildedLayout from './guilded_layout';
 import i18n from './i18n';
 import lhs from './lhs';
 import marketplace from './marketplace';
@@ -43,6 +44,7 @@ export default combineReducers({
     emoji,
     encryption,
     discordReplies,
+    guildedLayout,
     i18n,
     lhs,
     search,

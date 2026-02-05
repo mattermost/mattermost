@@ -5,12 +5,12 @@ import {connect} from 'react-redux';
 import type {ConnectedProps} from 'react-redux';
 
 import {getCurrentChannelId, makeGetChannel, makeGetChannelUnreadCount} from 'mattermost-redux/selectors/entities/channels';
-import {getConfig} from 'mattermost-redux/selectors/entities/general';
 import {isCollapsedThreadsEnabled} from 'mattermost-redux/selectors/entities/preferences';
 import {getCurrentTeam} from 'mattermost-redux/selectors/entities/teams';
 import {getFollowedThreadsInChannel} from 'mattermost-redux/selectors/entities/threads';
 
 import {getAutoSortedCategoryIds, getDraggingState, isChannelSelected} from 'selectors/views/channel_sidebar';
+import {isThreadsInSidebarActive} from 'selectors/views/guilded_layout';
 
 import type {GlobalState} from 'types/store';
 
@@ -42,10 +42,10 @@ function makeMapStateToProps() {
 
         const unreadCount = getUnreadCount(state, channel?.id || '');
 
-        // Only fetch followed threads if ThreadsInSidebar feature flag is enabled AND Collapsed Reply Threads is enabled
+        // Only fetch followed threads if ThreadsInSidebar behavior is active AND Collapsed Reply Threads is enabled
         // (The /thread/:id route only exists when CRT is enabled)
-        const config = getConfig(state);
-        const isThreadsInSidebarEnabled = (config as Record<string, string>)?.FeatureFlagThreadsInSidebar === 'true';
+        // Note: isThreadsInSidebarActive returns true if either ThreadsInSidebar OR GuildedChatLayout is enabled
+        const isThreadsInSidebarEnabled = isThreadsInSidebarActive(state);
         const isCRTEnabled = isCollapsedThreadsEnabled(state);
         const followedThreads = (isThreadsInSidebarEnabled && isCRTEnabled && channel) ? getFollowedThreadsInChannel(state, channel.id) : [];
 

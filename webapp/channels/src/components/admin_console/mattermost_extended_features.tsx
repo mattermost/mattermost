@@ -31,13 +31,14 @@ import {
     LinkVariantIcon,
     ShieldOutlineIcon,
     ChevronDownIcon,
+    ViewDashboardOutlineIcon,
 } from '@mattermost/compass-icons/components';
 
 export const messages = defineMessages({
     title: {id: 'admin.mattermost_extended.features.title', defaultMessage: 'Features'},
 });
 
-type SectionId = 'security' | 'messaging' | 'media' | 'ux' | 'status' | 'system' | 'preferences';
+type SectionId = 'security' | 'messaging' | 'media' | 'layout' | 'ux' | 'status' | 'system' | 'preferences';
 
 interface SectionDefinition {
     id: SectionId;
@@ -76,6 +77,12 @@ const SECTIONS: SectionDefinition[] = [
         description: 'Image, video, and embed handling',
     },
     {
+        id: 'layout',
+        title: 'Layout & Navigation',
+        icon: ViewDashboardOutlineIcon,
+        description: 'Chat layout and sidebar enhancements',
+    },
+    {
         id: 'ux',
         title: 'User Experience',
         icon: PaletteOutlineIcon,
@@ -110,6 +117,17 @@ const FEATURES: FeatureDefinition[] = [
         defaultValue: false,
         section: 'security',
         icon: LockOutlineIcon,
+        isMajor: true,
+    },
+
+    // Layout & Navigation
+    {
+        key: 'GuildedChatLayout',
+        title: 'Guilded Chat Layout',
+        description: 'Guilded-style UI: enhanced team sidebar with DM button, separate DM page, persistent Members/Threads RHS, modal popouts. Auto-enables ThreadsInSidebar. Desktop only (≥768px).',
+        defaultValue: false,
+        section: 'layout',
+        icon: ViewDashboardOutlineIcon,
         isMajor: true,
     },
 
@@ -753,6 +771,7 @@ const MattermostExtendedFeatures: React.FC<Props> = ({config, patchConfig, disab
             security: [],
             messaging: [],
             media: [],
+            layout: [],
             ux: [],
             status: [],
             system: [],

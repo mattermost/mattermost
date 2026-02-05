@@ -156,6 +156,9 @@ type FeatureFlags struct {
 
 	// Hide the "Update your status" button that appears on posts when user has no custom status
 	HideUpdateStatusButton bool
+
+	// Enable Guilded-style chat layout with enhanced team sidebar, DM page, and persistent RHS
+	GuildedChatLayout bool
 }
 
 // featureFlagDefaults defines the default value for each boolean feature flag.

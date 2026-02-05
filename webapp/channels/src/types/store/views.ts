@@ -250,4 +250,14 @@ export type ViewsState = {
     discordReplies: {
         pendingReplies: DiscordReplyData[];
     };
+
+    guildedLayout: GuildedLayoutState;
 };
+
+export interface GuildedLayoutState {
+    isTeamSidebarExpanded: boolean;
+    isDmMode: boolean;
+    rhsActiveTab: 'members' | 'threads';
+    activeModal: 'info' | 'pins' | 'files' | 'search' | 'edit_history' | null;
+    modalData: Record<string, unknown>;
+}

@@ -364,6 +364,15 @@ export const ActionTypes = keyMirror({
     DISCORD_REPLY_ADD_PENDING: null,
     DISCORD_REPLY_REMOVE_PENDING: null,
     DISCORD_REPLY_CLEAR_PENDING: null,
+
+    // Guilded Layout
+    GUILDED_TOGGLE_TEAM_SIDEBAR: null,
+    GUILDED_SET_TEAM_SIDEBAR_EXPANDED: null,
+    GUILDED_SET_DM_MODE: null,
+    GUILDED_TOGGLE_DM_MODE: null,
+    GUILDED_SET_RHS_TAB: null,
+    GUILDED_OPEN_MODAL: null,
+    GUILDED_CLOSE_MODAL: null,
 });
 
 export const PostRequestTypes = keyMirror({

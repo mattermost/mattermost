@@ -8,7 +8,6 @@ import type {Dispatch} from 'redux';
 import {fetchMyCategories} from 'mattermost-redux/actions/channel_categories';
 import {getThreadsForCurrentTeam} from 'mattermost-redux/actions/threads';
 import Permissions from 'mattermost-redux/constants/permissions';
-import {getConfig} from 'mattermost-redux/selectors/entities/general';
 import {isCustomGroupsEnabled} from 'mattermost-redux/selectors/entities/preferences';
 import {haveICurrentChannelPermission, haveISystemPermission} from 'mattermost-redux/selectors/entities/roles';
 import {getCurrentTeam} from 'mattermost-redux/selectors/entities/teams';
@@ -20,6 +19,7 @@ import {getIsLhsOpen} from 'selectors/lhs';
 import {getIsRhsOpen, getRhsState} from 'selectors/rhs';
 import {getIsMobileView} from 'selectors/views/browser';
 import {isUnreadFilterEnabled} from 'selectors/views/channel_sidebar';
+import {isThreadsInSidebarActive} from 'selectors/views/guilded_layout';
 import {isModalOpen} from 'selectors/views/modals';
 
 import {ModalIdentifiers} from 'utils/constants';
@@ -44,9 +44,8 @@ function mapStateToProps(state: GlobalState) {
 
     const canCreateCustomGroups = isCustomGroupsEnabled(state) && haveISystemPermission(state, {permission: Permissions.CREATE_CUSTOM_GROUP});
 
-    // Check if ThreadsInSidebar feature flag is enabled
-    const config = getConfig(state);
-    const isThreadsInSidebarEnabled = (config as Record<string, string>)?.FeatureFlagThreadsInSidebar === 'true';
+    // Check if ThreadsInSidebar behavior is active (either ThreadsInSidebar OR GuildedChatLayout flag)
+    const isThreadsInSidebarEnabled = isThreadsInSidebarActive(state);
 
     return {
         teamId: currentTeam ? currentTeam.id : '',
