@@ -161,8 +161,10 @@ docker-compose.override.yaml
 .env
 
 **/CLAUDE.local.md
-CLAUDE.md
 .cursorrules
+
+# Project-specific skills (contain sensitive deployment info)
+.claude/skills/
 
 # Private DB queries
 db-queries/
