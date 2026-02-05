@@ -355,7 +355,8 @@ export const getThreadsInChannel = createSelector(
     (threads, channelId, state): ThreadInfo[] => {
         const channelThreads: ThreadInfo[] = [];
 
-        for (const [threadId, thread] of Object.entries(threads?.threads || {})) {
+        // threads is already state.entities.threads.threads from getThreads()
+        for (const [threadId, thread] of Object.entries(threads || {})) {
             if (!thread) {
                 continue;
             }
