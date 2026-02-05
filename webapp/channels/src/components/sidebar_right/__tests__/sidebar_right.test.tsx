@@ -53,6 +53,7 @@ describe('SidebarRight with Guilded Layout', () => {
                 isSidebarExpanded: false,
                 selectedPostId: '',
                 selectedPostCardId: '',
+                selectedChannelId: 'channel1',
                 rhsState: null,
                 previousRhsStates: [],
             },
@@ -179,6 +180,13 @@ describe('SidebarRight with Guilded Layout', () => {
 
         const dmState = {
             ...defaultState,
+            views: {
+                ...defaultState.views,
+                rhs: {
+                    ...defaultState.views.rhs,
+                    selectedChannelId: 'dm1',
+                },
+            },
             entities: {
                 ...defaultState.entities,
                 channels: {
@@ -216,6 +224,13 @@ describe('SidebarRight with Guilded Layout', () => {
 
         const gmState = {
             ...defaultState,
+            views: {
+                ...defaultState.views,
+                rhs: {
+                    ...defaultState.views.rhs,
+                    selectedChannelId: 'gm1',
+                },
+            },
             entities: {
                 ...defaultState.entities,
                 channels: {
