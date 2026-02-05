@@ -80,7 +80,7 @@ const (
 	AuditEventRestoreChannel                     = "restoreChannel"                     // restore previously deleted channel
 	AuditEventUpdateChannel                      = "updateChannel"                      // update channel properties
 	AuditEventUpdateChannelMemberNotifyProps     = "updateChannelMemberNotifyProps"     // update notification preferences
-	AuditEventUpdateChannelMemberAutotranslation = "updateChannelMemberAutotranslation" // update autotranslation preference
+	AuditEventUpdateChannelMemberAutotranslation = "updateChannelMemberAutotranslation" // update autotranslation setting
 	AuditEventUpdateChannelMemberRoles           = "updateChannelMemberRoles"           // update roles and permissions
 	AuditEventUpdateChannelMemberSchemeRoles     = "updateChannelMemberSchemeRoles"     // update scheme-based roles
 	AuditEventUpdateChannelPrivacy               = "updateChannelPrivacy"               // change channel privacy settings

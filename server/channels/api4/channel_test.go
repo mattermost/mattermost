@@ -22,6 +22,7 @@ import (
 	"github.com/mattermost/mattermost/server/v8/channels/app"
 	"github.com/mattermost/mattermost/server/v8/channels/store/storetest/mocks"
 	"github.com/mattermost/mattermost/server/v8/channels/utils/testutils"
+	einterfacesmocks "github.com/mattermost/mattermost/server/v8/einterfaces/mocks"
 )
 
 func TestCreateChannel(t *testing.T) {
@@ -4119,6 +4120,124 @@ func TestUpdateChannelMemberSchemeRoles(t *testing.T) {
 	resp, err = SystemAdminClient.UpdateChannelMemberSchemeRoles(context.Background(), th.BasicChannel.Id, th.SystemAdminUser.Id, s4)
 	require.Error(t, err)
 	CheckUnauthorizedStatus(t, resp)
+}
+
+func TestUpdateChannelMemberAutotranslation(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+	client := th.Client
+
+	mockAutotranslation := &einterfacesmocks.AutoTranslationInterface{}
+	mockAutotranslation.On("IsFeatureAvailable").Return(true)
+	mockAutotranslation.On("IsChannelEnabled", mock.Anything).Return(true, nil)
+	mockAutotranslation.On("Translate", mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(nil, nil)
+	originalAutoTranslation := th.Server.AutoTranslation
+	th.Server.AutoTranslation = mockAutotranslation
+	defer func() {
+		th.Server.AutoTranslation = originalAutoTranslation
+	}()
+
+	channel := th.CreatePublicChannel(t)
+	_, appErr := th.App.AddUserToChannel(th.Context, th.BasicUser2, channel, false)
+	require.Nil(t, appErr)
+
+	t.Run("user can disable own autotranslation", func(t *testing.T) {
+		_, err := client.UpdateChannelMemberAutotranslation(context.Background(), channel.Id, th.BasicUser.Id, true)
+		require.NoError(t, err)
+
+		member, _, err := client.GetChannelMember(context.Background(), channel.Id, th.BasicUser.Id, "")
+		require.NoError(t, err)
+		require.True(t, member.AutoTranslationDisabled, "autotranslation should be disabled")
+	})
+
+	t.Run("user can enable own autotranslation", func(t *testing.T) {
+		_, err := client.UpdateChannelMemberAutotranslation(context.Background(), channel.Id, th.BasicUser.Id, false)
+		require.NoError(t, err)
+
+		member, _, err := client.GetChannelMember(context.Background(), channel.Id, th.BasicUser.Id, "")
+		require.NoError(t, err)
+		require.False(t, member.AutoTranslationDisabled, "autotranslation should be enabled")
+	})
+
+	t.Run("user cannot update other user autotranslation without permission", func(t *testing.T) {
+		resp, err := client.UpdateChannelMemberAutotranslation(context.Background(), channel.Id, th.BasicUser2.Id, true)
+		require.Error(t, err)
+		CheckForbiddenStatus(t, resp)
+
+		member, _, err := client.GetChannelMember(context.Background(), channel.Id, th.BasicUser2.Id, "")
+		require.NoError(t, err)
+		require.False(t, member.AutoTranslationDisabled, "autotranslation should remain enabled when update is forbidden")
+	})
+
+	t.Run("user with PermissionEditOtherUsers can update other user autotranslation", func(t *testing.T) {
+		_, err := th.SystemAdminClient.UpdateChannelMemberAutotranslation(context.Background(), channel.Id, th.BasicUser2.Id, true)
+		require.NoError(t, err)
+
+		member, _, err := th.SystemAdminClient.GetChannelMember(context.Background(), channel.Id, th.BasicUser2.Id, "")
+		require.NoError(t, err)
+		require.True(t, member.AutoTranslationDisabled, "autotranslation should be disabled")
+	})
+
+	t.Run("feature is disabled returns forbidden response", func(t *testing.T) {
+		// Use a dedicated mock so IsFeatureAvailable returns false. The handler returns
+		// before calling IsChannelEnabled/Translate, so we only need this expectation.
+		featureDisabledMock := &einterfacesmocks.AutoTranslationInterface{}
+		featureDisabledMock.On("IsFeatureAvailable").Return(false)
+		th.Server.AutoTranslation = featureDisabledMock
+		defer func() { th.Server.AutoTranslation = mockAutotranslation }()
+
+		resp, err := client.UpdateChannelMemberAutotranslation(context.Background(), channel.Id, th.BasicUser.Id, true)
+		require.Error(t, err)
+		CheckForbiddenStatus(t, resp)
+	})
+
+	t.Run("channel autotranslation is disabled returns bad request", func(t *testing.T) {
+		// Use a dedicated mock so IsChannelEnabled returns false.
+		channelDisabledMock := &einterfacesmocks.AutoTranslationInterface{}
+		channelDisabledMock.On("IsFeatureAvailable").Return(true)
+		channelDisabledMock.On("IsChannelEnabled", channel.Id).Return(false, nil)
+		th.Server.AutoTranslation = channelDisabledMock
+		defer func() { th.Server.AutoTranslation = mockAutotranslation }()
+
+		resp, err := client.UpdateChannelMemberAutotranslation(context.Background(), channel.Id, th.BasicUser.Id, true)
+		require.Error(t, err)
+		CheckBadRequestStatus(t, resp)
+	})
+
+	t.Run("invalid channel id returns bad request", func(t *testing.T) {
+		resp, err := client.UpdateChannelMemberAutotranslation(context.Background(), "junk", th.BasicUser.Id, true)
+		require.Error(t, err)
+		CheckBadRequestStatus(t, resp)
+	})
+
+	t.Run("invalid user id returns bad request", func(t *testing.T) {
+		resp, err := client.UpdateChannelMemberAutotranslation(context.Background(), channel.Id, "junk", true)
+		require.Error(t, err)
+		CheckBadRequestStatus(t, resp)
+	})
+
+	t.Run("nonexistent channel returns not found", func(t *testing.T) {
+		resp, err := client.UpdateChannelMemberAutotranslation(context.Background(), model.NewId(), th.BasicUser.Id, true)
+		require.Error(t, err)
+		CheckNotFoundStatus(t, resp)
+	})
+
+	t.Run("nonexistent user returns not found", func(t *testing.T) {
+		// Use SystemAdminClient so permission check passes and we get the "member not found" error from the app
+		resp, err := th.SystemAdminClient.UpdateChannelMemberAutotranslation(context.Background(), channel.Id, model.NewId(), true)
+		require.Error(t, err)
+		CheckNotFoundStatus(t, resp)
+	})
+
+	t.Run("unauthorized when not logged in", func(t *testing.T) {
+		_, err := client.Logout(context.Background())
+		require.NoError(t, err)
+		defer th.LoginBasic(t)
+
+		resp, err := client.UpdateChannelMemberAutotranslation(context.Background(), channel.Id, th.BasicUser.Id, true)
+		require.Error(t, err)
+		CheckUnauthorizedStatus(t, resp)
+	})
 }
 
 func TestUpdateChannelNotifyProps(t *testing.T) {

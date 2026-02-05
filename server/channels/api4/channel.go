@@ -1852,10 +1852,15 @@ func updateChannelMemberNotifyProps(c *Context, w http.ResponseWriter, r *http.R
 }
 
 type UpdateChannelMemberAutotranslationProps struct {
-	Autotranslation bool `json:"autotranslation"`
+	AutoTranslationDisabled bool `json:"autotranslation_disabled"`
 }
 
 func updateChannelMemberAutotranslation(c *Context, w http.ResponseWriter, r *http.Request) {
+	if c.App.AutoTranslation() == nil || !c.App.AutoTranslation().IsFeatureAvailable() {
+		c.Err = model.NewAppError("updateChannelMemberAutotranslation", "api.channel.update_channel_member_autotranslation.feature_not_available.app_error", nil, "", http.StatusForbidden)
+		return
+	}
+
 	c.RequireUserId().RequireChannelId()
 	if c.Err != nil {
 		return
@@ -1863,21 +1868,39 @@ func updateChannelMemberAutotranslation(c *Context, w http.ResponseWriter, r *ht
 
 	props := UpdateChannelMemberAutotranslationProps{}
 	if err := json.NewDecoder(r.Body).Decode(&props); err != nil {
-		c.SetInvalidParamWithErr("autotranslation", err)
+		c.SetInvalidParamWithErr("autotranslation_disabled", err)
 		return
 	}
 
 	auditRec := c.MakeAuditRecord(model.AuditEventUpdateChannelMemberAutotranslation, model.AuditStatusFail)
 	defer c.LogAuditRec(auditRec)
 	model.AddEventParameterToAuditRec(auditRec, "channel_id", c.Params.ChannelId)
-	model.AddEventParameterToAuditRec(auditRec, "autotranslation", props.Autotranslation)
+	model.AddEventParameterToAuditRec(auditRec, "autotranslation_disabled", props.AutoTranslationDisabled)
+	model.AddEventParameterToAuditRec(auditRec, "user_id", c.Params.UserId)
 
 	if !c.App.SessionHasPermissionToUser(*c.AppContext.Session(), c.Params.UserId) {
 		c.SetPermissionError(model.PermissionEditOtherUsers)
 		return
 	}
 
-	_, appErr := c.App.UpdateChannelMemberAutotranslation(c.AppContext, c.Params.ChannelId, c.Params.UserId, props.Autotranslation)
+	_, err := c.App.GetChannelMember(c.AppContext, c.Params.ChannelId, c.Params.UserId)
+	if err != nil {
+		c.Err = err
+		return
+	}
+
+	channelEnabled, err := c.App.AutoTranslation().IsChannelEnabled(c.Params.ChannelId)
+	if err != nil {
+		c.Err = err
+		return
+	}
+
+	if !channelEnabled {
+		c.Err = model.NewAppError("updateChannelMemberAutotranslation", "api.channel.update_channel_member_autotranslation.channel_not_enabled.app_error", nil, "", http.StatusBadRequest)
+		return
+	}
+
+	_, appErr := c.App.UpdateChannelMemberAutotranslation(c.AppContext, c.Params.ChannelId, c.Params.UserId, props.AutoTranslationDisabled)
 	if appErr != nil {
 		c.Err = appErr
 		return

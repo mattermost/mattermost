@@ -1607,7 +1607,9 @@
       summary: Update channel member autotranslation setting
       description: >
         Update a user's autotranslation setting for a channel. This controls whether
-        messages in the channel should be automatically translated for the user.
+        messages in the channel should not be automatically translated for the user.
+        By default, autotranslations are enabled for all users if the channel is enabled
+        for autotranslation.
 
         ##### Permissions
 
@@ -1632,11 +1634,11 @@
             schema:
               type: object
               required:
-                - autotranslation
+                - autotranslation_disabled
               properties:
-                autotranslation:
+                autotranslation_disabled:
                   type: boolean
-                  description: Whether to enable autotranslation for the user in this channel
+                  description: Whether to disable autotranslation for the user in this channel
         required: true
       responses:
         "200":

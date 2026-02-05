@@ -2113,7 +2113,6 @@ func (s *SqlPostStore) search(teamId string, userId string, params *model.Search
 		terms = wildCardRegex.ReplaceAllLiteralString(terms, ":* ")
 		excludedTerms = wildCardRegex.ReplaceAllLiteralString(excludedTerms, ":* ")
 
-		simpleSearch := false
 		// Replace spaces with to_tsquery symbols
 		replaceSpaces := func(input string, excludedInput bool) string {
 			if input == "" {
@@ -2125,11 +2124,6 @@ func (s *SqlPostStore) search(teamId string, userId string, params *model.Search
 
 			// Replace spaces within quoted strings with '<->'
 			input = quotedStringsRegex.ReplaceAllStringFunc(input, func(match string) string {
-				// If the whole search term is a quoted string,
-				// we don't want to do stemming.
-				if input == match {
-					simpleSearch = true
-				}
 				return strings.Replace(match, " ", "<->", -1)
 			})
 
@@ -2150,10 +2144,6 @@ func (s *SqlPostStore) search(teamId string, userId string, params *model.Search
 		}
 
 		textSearchCfg := s.pgDefaultTextSearchConfig
-		if simpleSearch {
-			textSearchCfg = "simple"
-		}
-
 		searchClause := fmt.Sprintf("to_tsvector('%[1]s', %[2]s) @@  to_tsquery('%[1]s', ?)", textSearchCfg, searchType)
 		baseQuery = baseQuery.Where(searchClause, tsQueryClause)
 	}
