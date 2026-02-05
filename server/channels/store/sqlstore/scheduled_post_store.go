@@ -26,11 +26,14 @@ func newScheduledPostStore(sqlStore *SqlStore) *SqlScheduledPostStore {
 	}
 }
 
-func (s *SqlScheduledPostStore) columns(prefix string) []string {
+func (s *SqlScheduledPostStore) normalizePrefix(prefix string) string {
 	if prefix != "" && !strings.HasSuffix(prefix, ".") {
-		prefix = prefix + "."
+		return prefix + "."
 	}
+	return prefix
+}
 
+func (s *SqlScheduledPostStore) baseColumns(prefix string) []string {
 	return []string{
 		prefix + "Id",
 		prefix + "CreateAt",
@@ -45,8 +48,19 @@ func (s *SqlScheduledPostStore) columns(prefix string) []string {
 		prefix + "ScheduledAt",
 		prefix + "ProcessedAt",
 		prefix + "ErrorCode",
-		prefix + "Type",
 	}
+}
+
+func (s *SqlScheduledPostStore) columnsForWrite(prefix string) []string {
+	prefix = s.normalizePrefix(prefix)
+	columns := s.baseColumns(prefix)
+	return append(columns, prefix+"Type")
+}
+
+func (s *SqlScheduledPostStore) columnsForRead(prefix string) []string {
+	prefix = s.normalizePrefix(prefix)
+	columns := s.baseColumns(prefix)
+	return append(columns, "COALESCE("+prefix+"Type, '') AS Type")
 }
 
 func (s *SqlScheduledPostStore) scheduledPostToSlice(scheduledPost *model.ScheduledPost) []any {
@@ -73,7 +87,7 @@ func (s *SqlScheduledPostStore) CreateScheduledPost(scheduledPost *model.Schedul
 
 	builder := s.getQueryBuilder().
 		Insert("ScheduledPosts").
-		Columns(s.columns("")...).
+		Columns(s.columnsForWrite("")...).
 		Values(s.scheduledPostToSlice(scheduledPost)...)
 
 	query, args, err := builder.ToSql()
@@ -104,7 +118,7 @@ func (s *SqlScheduledPostStore) GetScheduledPostsForUser(userId, teamId string) 
 	// joining with Channels table.
 
 	query := s.getQueryBuilder().
-		Select(s.columns("sp")...).
+		Select(s.columnsForRead("sp")...).
 		From("ScheduledPosts AS sp").
 		InnerJoin("Channels as c on sp.ChannelId = c.Id").
 		Where(sq.Eq{
@@ -139,7 +153,7 @@ func (s *SqlScheduledPostStore) GetMaxMessageSize() int {
 
 func (s *SqlScheduledPostStore) GetPendingScheduledPosts(beforeTime, afterTime int64, lastScheduledPostId string, perPage uint64) ([]*model.ScheduledPost, error) {
 	query := s.getQueryBuilder().
-		Select(s.columns("")...).
+		Select(s.columnsForRead("")...).
 		From("ScheduledPosts").
 		Where(sq.Eq{"ErrorCode": ""}).
 		OrderBy("ScheduledAt DESC", "Id").
@@ -249,7 +263,7 @@ func (s *SqlScheduledPostStore) toUpdateMap(scheduledPost *model.ScheduledPost) 
 
 func (s *SqlScheduledPostStore) Get(scheduledPostId string) (*model.ScheduledPost, error) {
 	query := s.getQueryBuilder().
-		Select(s.columns("")...).
+		Select(s.columnsForRead("")...).
 		From("ScheduledPosts").
 		Where(sq.Eq{
 			"Id": scheduledPostId,
