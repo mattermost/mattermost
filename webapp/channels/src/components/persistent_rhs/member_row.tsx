@@ -1,6 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import classNames from 'classnames';
 import React from 'react';
 import {useSelector} from 'react-redux';
 
@@ -33,52 +34,44 @@ export default function MemberRow({user, status, isAdmin}: Props) {
 
     const userProfileSrc = Client4.getProfilePictureUrl(user.id, user.last_picture_update);
 
+    const isOffline = status === 'offline';
+
     return (
-        <div
-            className='channel-members-rhs__member'
-            style={{height: '48px'}}
+        <ProfilePopover
+            triggerComponentClass={classNames('member-row', {'member-row--offline': isOffline})}
+            userId={user.id}
+            src={userProfileSrc}
+            hideStatus={user.is_bot}
         >
-            <span className='ProfileSpan'>
-                <div className='channel-members-rhs__avatar'>
-                    <ProfilePicture
-                        size='sm'
-                        status={status}
-                        isBot={user.is_bot}
-                        userId={user.id}
-                        username={displayName}
-                        src={userProfileSrc}
-                    />
-                </div>
-                <ProfilePopover
-                    triggerComponentClass='profileSpan_userInfo'
+            <div className='member-row__avatar'>
+                <ProfilePicture
+                    size='sm'
+                    status={status}
+                    isBot={user.is_bot}
                     userId={user.id}
+                    username={displayName}
                     src={userProfileSrc}
-                    hideStatus={user.is_bot}
-                >
-                    <span className='channel-members-rhs__display-name'>
-                        {displayName}
-                    </span>
-                    {displayName !== user.username && (
-                        <span className='channel-members-rhs__username'>
-                            {'@'}{user.username}
-                        </span>
-                    )}
-                    <CustomStatusEmoji
-                        userID={user.id}
-                        showTooltip={true}
-                        emojiSize={16}
-                        spanStyle={{
-                            display: 'flex',
-                            flex: '0 0 auto',
-                            alignItems: 'center',
-                        }}
-                        emojiStyle={{
-                            marginLeft: '8px',
-                            alignItems: 'center',
-                        }}
-                    />
-                </ProfilePopover>
-            </span>
-        </div>
+                />
+            </div>
+            <div className='member-row__info'>
+                <span className='member-row__name'>
+                    {displayName}
+                </span>
+                {(customStatus?.emoji || customStatus?.text) && (
+                    <div className='member-row__status-row'>
+                        <CustomStatusEmoji
+                            userID={user.id}
+                            emojiSize={12}
+                            showTooltip={false}
+                        />
+                        {customStatus?.text && (
+                            <span className='member-row__status-text'>
+                                {customStatus.text}
+                            </span>
+                        )}
+                    </div>
+                )}
+            </div>
+        </ProfilePopover>
     );
 }

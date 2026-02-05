@@ -1,5 +1,68 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-// MemberRow now uses channel-members-rhs classes directly
-// This file only contains overrides if needed
+// MemberRow - matches channel-members-rhs__member styling with two-line layout
+
+.member-row {
+    display: flex;
+    height: 36px;
+    align-items: center;
+    padding: 4px 12px;
+    border-radius: 4px;
+    cursor: pointer;
+
+    &:hover {
+        background: rgba(var(--center-channel-color-rgb), 0.08);
+    }
+
+    &--offline {
+        opacity: 0.6;
+    }
+
+    &__avatar {
+        flex-shrink: 0;
+    }
+
+    &__info {
+        display: flex;
+        min-width: 0;
+        flex: 1;
+        flex-direction: column;
+        justify-content: center;
+        margin-left: 6px;
+    }
+
+    &__name {
+        overflow: hidden;
+        color: var(--center-channel-color);
+        font-size: 13px;
+        line-height: 16px;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    &__status-row {
+        display: flex;
+        align-items: center;
+        gap: 3px;
+        line-height: 12px;
+
+        // Make emoji same size as text, with negative margin to align with name
+        .emoticon {
+            width: 11px !important;
+            height: 11px !important;
+            min-width: 11px;
+            min-height: 11px;
+            margin-left: -2px;
+        }
+    }
+
+    &__status-text {
+        overflow: hidden;
+        color: rgba(var(--center-channel-color-rgb), 0.56);
+        font-size: 10px;
+        line-height: 12px;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+}
