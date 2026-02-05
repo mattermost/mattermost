@@ -8,7 +8,7 @@ import type {MessageDescriptor} from 'react-intl';
 import {defineMessage, FormattedMessage, useIntl} from 'react-intl';
 import {css} from 'styled-components';
 
-import {AccountMultipleOutlineIcon, CalendarOutlineIcon, CheckIcon, ChevronDownCircleOutlineIcon, FormatListBulletedIcon, MenuVariantIcon} from '@mattermost/compass-icons/components';
+import {AccountMultipleOutlineIcon, AccountOutlineIcon, CalendarOutlineIcon, CheckIcon, ChevronDownCircleOutlineIcon, FormatListBulletedIcon, MenuVariantIcon} from '@mattermost/compass-icons/components';
 import type IconProps from '@mattermost/compass-icons/components/props';
 import type {PropertyField} from '@mattermost/types/properties';
 import type {IDMappedObjects} from '@mattermost/types/utilities';
@@ -179,7 +179,7 @@ const TYPE_DESCRIPTOR: IDMappedObjects<TypeDescriptor> = {
     user: {
         id: 'user',
         fieldType: 'user',
-        icon: AccountMultipleOutlineIcon,
+        icon: AccountOutlineIcon,
         label: defineMessage({
             id: 'admin.system_properties.board_properties.table.select_type.user',
             defaultMessage: 'User',
