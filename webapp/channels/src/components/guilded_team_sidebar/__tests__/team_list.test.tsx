@@ -10,6 +10,15 @@ import TeamList from '../team_list';
 
 const mockStore = configureStore([]);
 
+// Mock react-router-dom useHistory
+const mockPush = jest.fn();
+jest.mock('react-router-dom', () => ({
+    ...jest.requireActual('react-router-dom'),
+    useHistory: () => ({
+        push: mockPush,
+    }),
+}));
+
 // Mock react-redux useSelector - variables must be prefixed with 'mock'
 let mockCallCount = 0;
 let mockValues: any[] = [];
@@ -45,6 +54,7 @@ describe('TeamList', () => {
     beforeEach(() => {
         jest.clearAllMocks();
         mockCallCount = 0;
+        mockPush.mockClear();
         // TeamList calls useSelector in order: getMyTeams, getFavoritedTeamIds, getCurrentTeamId
         mockValues = [allTeams, ['team1'], 'team1'];
     });
@@ -156,5 +166,26 @@ describe('TeamList', () => {
         );
 
         expect(container.querySelector('.team-list__team--active')).toBeInTheDocument();
+    });
+
+    it('navigates to team when clicked', () => {
+        mockCallCount = 0;
+        mockValues = [allTeams, ['team1'], 'team1'];
+
+        const onTeamClick = jest.fn();
+        const store = mockStore(baseState);
+        const {container} = render(
+            <Provider store={store}>
+                <TeamList {...defaultProps} onTeamClick={onTeamClick} />
+            </Provider>,
+        );
+
+        // Beta Team should be the first non-favorited team (alphabetically)
+        const teamButtons = container.querySelectorAll('.team-list__team');
+        fireEvent.click(teamButtons[0]); // Click Beta Team
+
+        // Should navigate to the team's default channel
+        expect(mockPush).toHaveBeenCalledWith('/beta-team/channels/town-square');
+        expect(onTeamClick).toHaveBeenCalled();
     });
 });

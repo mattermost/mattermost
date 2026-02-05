@@ -94,7 +94,7 @@ describe('GuildedTeamSidebar', () => {
         expect(screen.getByRole('button', {name: /direct messages/i})).toBeInTheDocument();
     });
 
-    it('renders dividers', () => {
+    it('renders at least one divider (after DM section)', () => {
         const store = mockStore(defaultState);
 
         const {container} = render(
@@ -104,7 +104,32 @@ describe('GuildedTeamSidebar', () => {
         );
 
         const dividers = container.querySelectorAll('.guilded-team-sidebar__divider');
-        expect(dividers.length).toBeGreaterThanOrEqual(2);
+        // At minimum, there's one divider after DM button section
+        // Second divider only renders when there are favorited teams
+        expect(dividers.length).toBeGreaterThanOrEqual(1);
+    });
+
+    it('renders two dividers when there are favorited teams', () => {
+        const stateWithFavorites = {
+            ...defaultState,
+            views: {
+                ...defaultState.views,
+                guildedLayout: {
+                    ...defaultState.views.guildedLayout,
+                    favoritedTeamIds: ['team1'],
+                },
+            },
+        };
+        const store = mockStore(stateWithFavorites);
+
+        const {container} = render(
+            <Provider store={store}>
+                <GuildedTeamSidebar />
+            </Provider>
+        );
+
+        const dividers = container.querySelectorAll('.guilded-team-sidebar__divider');
+        expect(dividers.length).toBe(2);
     });
 
     it('shows expanded overlay when isTeamSidebarExpanded is true', () => {

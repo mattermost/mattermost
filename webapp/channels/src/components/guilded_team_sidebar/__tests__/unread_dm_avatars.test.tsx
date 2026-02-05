@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-import {render, screen} from '@testing-library/react';
+import {render, screen, fireEvent} from '@testing-library/react';
 import {Provider} from 'react-redux';
 import configureStore from 'redux-mock-store';
 
@@ -10,12 +10,23 @@ import UnreadDmAvatars from '../unread_dm_avatars';
 
 const mockStore = configureStore([]);
 
-// Mock react-redux useSelector - variables must be prefixed with 'mock'
+// Mock react-router-dom useHistory
+const mockPush = jest.fn();
+jest.mock('react-router-dom', () => ({
+    ...jest.requireActual('react-router-dom'),
+    useHistory: () => ({
+        push: mockPush,
+    }),
+}));
+
+// Mock react-redux - variables must be prefixed with 'mock'
 let mockCallCount = 0;
 let mockValues: any[] = [];
 
+const mockDispatch = jest.fn();
 jest.mock('react-redux', () => ({
     ...jest.requireActual('react-redux'),
+    useDispatch: () => mockDispatch,
     useSelector: () => {
         const value = mockValues[mockCallCount] ?? [];
         mockCallCount++;
@@ -33,8 +44,10 @@ describe('UnreadDmAvatars', () => {
     beforeEach(() => {
         jest.clearAllMocks();
         mockCallCount = 0;
-        // UnreadDmAvatars calls useSelector once: getUnreadDmChannelsWithUsers
-        mockValues = [[]];
+        mockPush.mockClear();
+        mockDispatch.mockClear();
+        // UnreadDmAvatars calls useSelector: getUnreadDmChannelsWithUsers, getCurrentTeam
+        mockValues = [[], {id: 'team1', name: 'test-team'}];
     });
 
     it('renders container element', () => {
@@ -154,5 +167,33 @@ describe('UnreadDmAvatars', () => {
         );
 
         expect(container.querySelector('.unread-dm-avatars__status')).toBeInTheDocument();
+    });
+
+    it('navigates to DM channel when avatar clicked', () => {
+        const mockUnreadDms = [
+            {
+                channel: {id: 'dm1', type: 'D', name: 'currentUser__user2', last_post_at: 1000},
+                user: {id: 'user2', username: 'testuser', last_picture_update: 0},
+                unreadCount: 1,
+                status: 'online',
+            },
+        ];
+        const mockCurrentTeam = {id: 'team1', name: 'test-team'};
+        mockValues = [mockUnreadDms, mockCurrentTeam];
+        mockCallCount = 0;
+
+        const store = mockStore(baseState);
+        const {container} = render(
+            <Provider store={store}>
+                <UnreadDmAvatars />
+            </Provider>,
+        );
+
+        const avatar = container.querySelector('.unread-dm-avatars__avatar');
+        fireEvent.click(avatar!);
+
+        // Should set DM mode and navigate to DM
+        expect(mockDispatch).toHaveBeenCalled();
+        expect(mockPush).toHaveBeenCalledWith('/test-team/messages/@testuser');
     });
 });
