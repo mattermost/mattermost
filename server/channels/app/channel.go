@@ -1446,6 +1446,23 @@ func (a *App) UpdateChannelMemberNotifyProps(rctx request.CTX, data map[string]s
 	return member, nil
 }
 
+func (a *App) UpdateChannelMemberAutotranslation(rctx request.CTX, channelID string, userID string, autoTranslationDisabled bool) (*model.ChannelMember, *model.AppError) {
+	member, err := a.GetChannelMember(rctx, channelID, userID)
+	if err != nil {
+		return nil, err
+	}
+
+	member.AutoTranslationDisabled = autoTranslationDisabled
+	member, err = a.updateChannelMember(rctx, member)
+	if err != nil {
+		return nil, err
+	}
+
+	a.Srv().Store().AutoTranslation().InvalidateUserAutoTranslation(userID, channelID)
+
+	return member, nil
+}
+
 func (a *App) PatchChannelMembersNotifyProps(rctx request.CTX, members []*model.ChannelMemberIdentifier, notifyProps map[string]string) ([]*model.ChannelMember, *model.AppError) {
 	if len(members) > UpdateMultipleMaximum {
 		return nil, model.NewAppError("PatchChannelMembersNotifyProps", "app.channel.patch_channel_members_notify_props.too_many", map[string]any{"Max": UpdateMultipleMaximum}, "", http.StatusBadRequest)
