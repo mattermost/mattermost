@@ -176,3 +176,6 @@ test-errors.js
 
 # Generated demo data (contains timestamps that change each run)
 demo-data/demo-data.jsonl
+
+# Implementation plans (may contain sensitive context)
+docs/plans/
