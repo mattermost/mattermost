@@ -22,9 +22,10 @@ export default function UnreadDmAvatars() {
     const unreadDms = useSelector(getUnreadDmChannelsWithUsers);
     const currentTeam = useSelector(getCurrentTeam);
 
-    const handleDmClick = (username: string) => {
+    const handleDmClick = (channelId: string) => {
         dispatch(setDmMode(true));
-        history.push(`/${currentTeam?.name}/messages/@${username}`);
+        // Use channel ID directly - the /messages/@username pattern isn't recognized
+        history.push(`/${currentTeam?.name}/channels/${channelId}`);
     };
 
     if (unreadDms.length === 0) {
@@ -41,7 +42,7 @@ export default function UnreadDmAvatars() {
                     key={dm.channel.id}
                     className='unread-dm-avatars__avatar'
                     title={dm.user.username}
-                    onClick={() => handleDmClick(dm.user.username)}
+                    onClick={() => handleDmClick(dm.channel.id)}
                 >
                     <img
                         src={Client4.getProfilePictureUrl(dm.user.id, dm.user.last_picture_update)}

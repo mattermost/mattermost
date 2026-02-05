@@ -192,8 +192,8 @@ describe('UnreadDmAvatars', () => {
         const avatar = container.querySelector('.unread-dm-avatars__avatar');
         fireEvent.click(avatar!);
 
-        // Should set DM mode and navigate to DM
+        // Should set DM mode and navigate to DM channel
         expect(mockDispatch).toHaveBeenCalled();
-        expect(mockPush).toHaveBeenCalledWith('/test-team/messages/@testuser');
+        expect(mockPush).toHaveBeenCalledWith('/test-team/channels/dm1');
     });
 });
