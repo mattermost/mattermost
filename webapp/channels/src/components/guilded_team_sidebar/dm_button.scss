@@ -1,0 +1,57 @@
+.dm-button {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 48px;
+    height: 48px;
+    border: none;
+    border-radius: 50%;
+    background-color: rgba(var(--sidebar-text-rgb), 0.08);
+    color: var(--sidebar-text);
+    cursor: pointer;
+    transition: all 0.15s ease;
+
+    &:hover {
+        background-color: rgba(var(--sidebar-text-rgb), 0.16);
+        border-radius: 16px;
+    }
+
+    &--active {
+        background-color: var(--sidebar-text-active-border);
+        color: var(--sidebar-teambar-bg);
+        border-radius: 16px;
+    }
+
+    &__icon {
+        font-size: 20px;
+    }
+
+    &__active-indicator {
+        position: absolute;
+        left: -4px;
+        top: 50%;
+        transform: translateY(-50%);
+        width: 4px;
+        height: 20px;
+        background-color: var(--sidebar-text);
+        border-radius: 0 4px 4px 0;
+    }
+
+    &__badge {
+        position: absolute;
+        bottom: -2px;
+        right: -2px;
+        min-width: 18px;
+        height: 18px;
+        padding: 0 4px;
+        background-color: var(--dnd-indicator);
+        color: white;
+        font-size: 11px;
+        font-weight: 700;
+        border-radius: 9px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+}

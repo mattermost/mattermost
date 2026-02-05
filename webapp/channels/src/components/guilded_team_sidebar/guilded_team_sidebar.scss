@@ -1,0 +1,37 @@
+.guilded-team-sidebar {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    width: 72px;
+    height: 100%;
+    background-color: var(--sidebar-teambar-bg);
+    z-index: 20;
+
+    &__collapsed {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        padding: 12px 0;
+        gap: 4px;
+        height: 100%;
+        overflow-y: auto;
+        overflow-x: hidden;
+
+        &::-webkit-scrollbar {
+            width: 4px;
+        }
+
+        &::-webkit-scrollbar-thumb {
+            background: rgba(var(--center-channel-color-rgb), 0.2);
+            border-radius: 2px;
+        }
+    }
+
+    &__divider {
+        width: 32px;
+        height: 2px;
+        margin: 8px 0;
+        background-color: rgba(var(--sidebar-text-rgb), 0.1);
+        border-radius: 1px;
+    }
+}
