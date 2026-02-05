@@ -1,0 +1,51 @@
+name: Calculate Playwright Results
+description: Calculate Playwright test results with optional merge of retest results
+author: Mattermost
+
+inputs:
+  original-results-path:
+    description: Path to the original Playwright results.json file
+    required: true
+  retest-results-path:
+    description: Path to the retest Playwright results.json file (optional - if not provided, only calculates from original)
+    required: false
+  output-path:
+    description: Path to write the merged results.json file (defaults to original-results-path)
+    required: false
+
+outputs:
+  # Merge outputs
+  merged:
+    description: Whether merge was performed (true/false)
+
+  # Calculation outputs (same as calculate-playwright-test-results)
+  passed:
+    description: Number of passed tests (not including flaky)
+  failed:
+    description: Number of failed tests
+  flaky:
+    description: Number of flaky tests (failed initially but passed on retry)
+  skipped:
+    description: Number of skipped tests
+  total_specs:
+    description: Total number of spec files
+  commit_status_message:
+    description: Message for commit status (e.g., "X failed, Y passed (Z spec files)")
+  failed_specs:
+    description: Comma-separated list of failed spec files (for retest)
+  failed_specs_count:
+    description: Number of failed spec files
+  failed_tests:
+    description: Markdown table rows of failed tests (for GitHub summary)
+  total:
+    description: Total number of tests (passed + flaky + failed)
+  pass_rate:
+    description: Pass rate percentage (e.g., "100.00")
+  passing:
+    description: Number of passing tests (passed + flaky)
+  color:
+    description: Color for webhook based on pass rate (green=100%, yellow=99%+, orange=98%+, red=<98%)
+
+runs:
+  using: node24
+  main: dist/index.js
