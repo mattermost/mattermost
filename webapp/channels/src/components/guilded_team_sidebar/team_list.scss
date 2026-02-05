@@ -1,3 +1,6 @@
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
+
 .team-list {
     position: relative;
     display: flex;
@@ -9,20 +12,8 @@
     padding-top: 4px;
     -webkit-overflow-scrolling: touch;
 
+    // Team button - matches TSX class structure
     &__team {
-        position: relative;
-        display: inline-block;
-        margin-right: auto;
-        margin-bottom: 12px;
-        margin-left: auto;
-
-        &:hover,
-        &:focus {
-            text-decoration: none;
-        }
-    }
-
-    &__team-btn {
         position: relative;
         display: flex;
         overflow: hidden;
@@ -30,6 +21,9 @@
         height: 42px;
         align-items: center;
         justify-content: center;
+        margin-right: auto;
+        margin-bottom: 12px;
+        margin-left: auto;
         padding: 0;
         border: none;
         border-radius: 8px;
@@ -39,39 +33,33 @@
         font-weight: bold;
         text-align: center;
         transform-origin: center center;
-        transition: transform 0.1s, background-color 0.2s, border-radius 0.2s;
+        transition: transform 0.1s, background-color 0.2s, border-radius 0.2s, box-shadow 0.2s;
 
         &:hover {
             background-color: rgba(var(--sidebar-text-rgb), 0.16);
-            border-radius: 16px;
+            box-shadow: 0 0 0 3px rgba(var(--sidebar-text-rgb), 0.16);
         }
 
         &:active {
             transform: scale(0.95);
         }
 
+        // Active state - native outline pattern
         &--active {
-            border-radius: 16px;
-            background-color: var(--sidebar-text-active-border);
-            color: var(--sidebar-teambar-bg);
+            box-shadow: 0 0 0 3px rgba(var(--sidebar-text-active-border-rgb), 0.75);
+
+            img {
+                box-shadow: inset 0 0 0 3px var(--sidebar-teambar-bg);
+            }
         }
 
         img {
             width: 100%;
             height: 100%;
+            border-radius: 8px;
             object-fit: cover;
+            transition: box-shadow 0.2s;
         }
-    }
-
-    &__active-indicator {
-        position: absolute;
-        top: 50%;
-        left: -8px;
-        width: 4px;
-        height: 20px;
-        border-radius: 4px;
-        background: var(--sidebar-text);
-        transform: translateY(-50%);
     }
 
     &__initials {
