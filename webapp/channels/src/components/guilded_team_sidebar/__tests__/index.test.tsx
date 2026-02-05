@@ -11,7 +11,9 @@ import GuildedTeamSidebar from '../index';
 const mockStore = configureStore([]);
 
 // Mock the child components to avoid selector issues
-jest.mock('../dm_button', () => () => <button aria-label="Direct Messages">DM</button>);
+jest.mock('../dm_button', () => ({onClick}: {onClick: () => void}) => (
+    <button aria-label="Direct Messages" onClick={onClick}>DM</button>
+));
 jest.mock('../unread_dm_avatars', () => () => <div className="unread-dm-avatars" />);
 jest.mock('../favorited_teams', () => ({onTeamClick, onExpandClick}: any) => (
     <div className="favorited-teams">

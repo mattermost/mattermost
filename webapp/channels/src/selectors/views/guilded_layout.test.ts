@@ -419,15 +419,27 @@ describe('selectors/views/guilded_layout', () => {
     });
 
     describe('getLastPostInChannel', () => {
-        it('should return null when no recent post ID exists', () => {
-            const state = {
-                entities: {
-                    posts: {
-                        posts: {},
-                        postsInChannel: {},
-                    },
+        const basePostState = {
+            entities: {
+                general: {
+                    config: {},
                 },
-            } as unknown as GlobalState;
+                preferences: {
+                    myPreferences: {},
+                },
+                users: {
+                    currentUserId: 'user1',
+                    profiles: {},
+                },
+                posts: {
+                    posts: {},
+                    postsInChannel: {},
+                },
+            },
+        };
+
+        it('should return null when no recent post ID exists', () => {
+            const state = basePostState as unknown as GlobalState;
 
             expect(Selectors.getLastPostInChannel(state, 'channel1')).toBe(null);
         });
@@ -435,7 +447,9 @@ describe('selectors/views/guilded_layout', () => {
         it('should return the most recent post when it exists', () => {
             const post1 = {id: 'post1', channel_id: 'channel1', message: 'Hello', create_at: 1000};
             const state = {
+                ...basePostState,
                 entities: {
+                    ...basePostState.entities,
                     posts: {
                         posts: {
                             post1,
@@ -454,7 +468,9 @@ describe('selectors/views/guilded_layout', () => {
             const post1 = {id: 'post1', channel_id: 'channel1', message: 'First', create_at: 1000};
             const post2 = {id: 'post2', channel_id: 'channel1', message: 'Second', create_at: 2000};
             const state = {
+                ...basePostState,
                 entities: {
+                    ...basePostState.entities,
                     posts: {
                         posts: {
                             post1,
