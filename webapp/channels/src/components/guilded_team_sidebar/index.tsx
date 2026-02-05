@@ -57,7 +57,7 @@ export default function GuildedTeamSidebar() {
     return (
         <div
             ref={containerRef}
-            className={classNames('guilded-team-sidebar', {
+            className={classNames('team-sidebar', 'guilded-team-sidebar', {
                 'guilded-team-sidebar--expanded': isExpanded,
             })}
         >
