@@ -1,18 +1,561 @@
-# 02 - Team Sidebar Enhancements
+# 02 - Team Sidebar Enhancements (TDD)
 
-> **For Claude:** REQUIRED SUB-SKILL: Use superpowers:executing-plans to implement this plan task-by-task.
+> **For Claude:** REQUIRED: Write tests FIRST, push to GitHub to verify they fail, then implement.
 
 **Goal:** Enhance the team sidebar (far left vertical bar) with DM button, favorited teams section, expand/collapse functionality, and unread DM avatars.
 
 **Architecture:** Wrap or replace existing team sidebar with new `GuildedTeamSidebar` component. DM button triggers `isDmMode` state change. Expand/collapse shows overlay with team names and DM previews. Unread DM avatars appear below DM button when messages are unread.
 
-**Tech Stack:** React, Redux, TypeScript, SCSS, styled-components
+**Tech Stack:** React, Redux, TypeScript, SCSS, @testing-library/react, jest
 
 **Depends on:** 01-feature-flag-and-infrastructure.md
 
 ---
 
-## Task 1: Create GuildedTeamSidebar Component Structure
+## TDD Workflow Reminder
+
+```
+1. Write Test → 2. Push → 3. Verify Fail → 4. Implement → 5. Push → 6. Verify Pass → 7. Commit
+```
+
+---
+
+## Task 1: Write Tests for GuildedTeamSidebar Component
+
+**Files:**
+- Create: `webapp/channels/src/components/guilded_team_sidebar/__tests__/index.test.tsx`
+
+**Step 1: Create test file**
+
+```typescript
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
+
+import React from 'react';
+import {render, screen, fireEvent} from '@testing-library/react';
+import {Provider} from 'react-redux';
+import configureStore from 'redux-mock-store';
+
+import GuildedTeamSidebar from '../index';
+
+const mockStore = configureStore([]);
+
+describe('GuildedTeamSidebar', () => {
+    const defaultState = {
+        views: {
+            guildedLayout: {
+                isTeamSidebarExpanded: false,
+                isDmMode: false,
+                favoritedTeamIds: [],
+            },
+        },
+        entities: {
+            teams: {
+                teams: {},
+                myMembers: {},
+                currentTeamId: 'team1',
+            },
+            channels: {
+                channels: {},
+                myMembers: {},
+            },
+            users: {
+                profiles: {},
+                statuses: {},
+            },
+            general: {
+                config: {},
+            },
+        },
+    };
+
+    it('renders the collapsed sidebar container', () => {
+        const store = mockStore(defaultState);
+
+        const {container} = render(
+            <Provider store={store}>
+                <GuildedTeamSidebar />
+            </Provider>
+        );
+
+        expect(container.querySelector('.guilded-team-sidebar')).toBeInTheDocument();
+        expect(container.querySelector('.guilded-team-sidebar__collapsed')).toBeInTheDocument();
+    });
+
+    it('renders DM button', () => {
+        const store = mockStore(defaultState);
+
+        render(
+            <Provider store={store}>
+                <GuildedTeamSidebar />
+            </Provider>
+        );
+
+        expect(screen.getByRole('button', {name: /direct messages/i})).toBeInTheDocument();
+    });
+
+    it('renders dividers', () => {
+        const store = mockStore(defaultState);
+
+        const {container} = render(
+            <Provider store={store}>
+                <GuildedTeamSidebar />
+            </Provider>
+        );
+
+        const dividers = container.querySelectorAll('.guilded-team-sidebar__divider');
+        expect(dividers.length).toBeGreaterThanOrEqual(2);
+    });
+
+    it('shows expanded overlay when isTeamSidebarExpanded is true', () => {
+        const expandedState = {
+            ...defaultState,
+            views: {
+                ...defaultState.views,
+                guildedLayout: {
+                    ...defaultState.views.guildedLayout,
+                    isTeamSidebarExpanded: true,
+                },
+            },
+        };
+        const store = mockStore(expandedState);
+
+        const {container} = render(
+            <Provider store={store}>
+                <GuildedTeamSidebar />
+            </Provider>
+        );
+
+        expect(container.querySelector('.expanded-overlay')).toBeInTheDocument();
+    });
+
+    it('does not show expanded overlay when collapsed', () => {
+        const store = mockStore(defaultState);
+
+        const {container} = render(
+            <Provider store={store}>
+                <GuildedTeamSidebar />
+            </Provider>
+        );
+
+        expect(container.querySelector('.expanded-overlay')).not.toBeInTheDocument();
+    });
+
+    it('dispatches setDmMode when DM button clicked', () => {
+        const store = mockStore(defaultState);
+
+        render(
+            <Provider store={store}>
+                <GuildedTeamSidebar />
+            </Provider>
+        );
+
+        const dmButton = screen.getByRole('button', {name: /direct messages/i});
+        fireEvent.click(dmButton);
+
+        const actions = store.getActions();
+        expect(actions).toContainEqual(expect.objectContaining({
+            type: 'GUILDED_SET_DM_MODE',
+            isDmMode: true,
+        }));
+    });
+});
+```
+
+**Step 2: Push to GitHub and verify tests fail**
+
+```bash
+git add webapp/channels/src/components/guilded_team_sidebar/__tests__/
+git commit -m "test: add GuildedTeamSidebar component tests"
+git push origin feature/guilded-layout
+# Verify in GitHub Actions that tests fail with "Cannot find module '../index'"
+```
+
+---
+
+## Task 2: Write Tests for DM Button Component
+
+**Files:**
+- Create: `webapp/channels/src/components/guilded_team_sidebar/__tests__/dm_button.test.tsx`
+
+**Step 1: Create test file**
+
+```typescript
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
+
+import React from 'react';
+import {render, screen, fireEvent} from '@testing-library/react';
+import {Provider} from 'react-redux';
+import {IntlProvider} from 'react-intl';
+import configureStore from 'redux-mock-store';
+
+import DmButton from '../dm_button';
+
+const mockStore = configureStore([]);
+
+const renderWithProviders = (component: React.ReactElement, storeState = {}) => {
+    const defaultState = {
+        entities: {
+            channels: {channels: {}, myMembers: {}},
+            users: {profiles: {}},
+        },
+        ...storeState,
+    };
+    const store = mockStore(defaultState);
+
+    return render(
+        <Provider store={store}>
+            <IntlProvider locale='en'>
+                {component}
+            </IntlProvider>
+        </Provider>
+    );
+};
+
+describe('DmButton', () => {
+    const defaultProps = {
+        isActive: false,
+        onClick: jest.fn(),
+    };
+
+    beforeEach(() => {
+        jest.clearAllMocks();
+    });
+
+    it('renders the DM button', () => {
+        renderWithProviders(<DmButton {...defaultProps} />);
+
+        const button = screen.getByRole('button', {name: /direct messages/i});
+        expect(button).toBeInTheDocument();
+    });
+
+    it('has dm-button class', () => {
+        renderWithProviders(<DmButton {...defaultProps} />);
+
+        const button = screen.getByRole('button', {name: /direct messages/i});
+        expect(button).toHaveClass('dm-button');
+    });
+
+    it('has active class when isActive is true', () => {
+        renderWithProviders(<DmButton {...defaultProps} isActive={true} />);
+
+        const button = screen.getByRole('button', {name: /direct messages/i});
+        expect(button).toHaveClass('dm-button--active');
+    });
+
+    it('does not have active class when isActive is false', () => {
+        renderWithProviders(<DmButton {...defaultProps} isActive={false} />);
+
+        const button = screen.getByRole('button', {name: /direct messages/i});
+        expect(button).not.toHaveClass('dm-button--active');
+    });
+
+    it('calls onClick when clicked', () => {
+        const onClick = jest.fn();
+        renderWithProviders(<DmButton {...defaultProps} onClick={onClick} />);
+
+        const button = screen.getByRole('button', {name: /direct messages/i});
+        fireEvent.click(button);
+
+        expect(onClick).toHaveBeenCalledTimes(1);
+    });
+
+    it('shows active indicator when isActive', () => {
+        const {container} = renderWithProviders(<DmButton {...defaultProps} isActive={true} />);
+
+        expect(container.querySelector('.dm-button__active-indicator')).toBeInTheDocument();
+    });
+
+    it('does not show active indicator when not active', () => {
+        const {container} = renderWithProviders(<DmButton {...defaultProps} isActive={false} />);
+
+        expect(container.querySelector('.dm-button__active-indicator')).not.toBeInTheDocument();
+    });
+
+    it('shows unread badge when unreadCount > 0', () => {
+        // This requires the selector to return unread count
+        // For now, test that badge element exists conditionally
+        const stateWithUnreads = {
+            entities: {
+                channels: {
+                    channels: {
+                        dm1: {id: 'dm1', type: 'D', name: 'user1__user2'},
+                    },
+                    myMembers: {
+                        dm1: {channel_id: 'dm1', mention_count: 5},
+                    },
+                },
+                users: {profiles: {}},
+            },
+        };
+        const {container} = renderWithProviders(
+            <DmButton {...defaultProps} />,
+            stateWithUnreads,
+        );
+
+        expect(container.querySelector('.dm-button__badge')).toBeInTheDocument();
+    });
+
+    it('shows 99+ when unread count exceeds 99', () => {
+        const stateWithManyUnreads = {
+            entities: {
+                channels: {
+                    channels: {
+                        dm1: {id: 'dm1', type: 'D', name: 'user1__user2'},
+                    },
+                    myMembers: {
+                        dm1: {channel_id: 'dm1', mention_count: 150},
+                    },
+                },
+                users: {profiles: {}},
+            },
+        };
+        renderWithProviders(<DmButton {...defaultProps} />, stateWithManyUnreads);
+
+        expect(screen.getByText('99+')).toBeInTheDocument();
+    });
+});
+```
+
+**Step 2: Push and verify failure**
+
+```bash
+git add webapp/channels/src/components/guilded_team_sidebar/__tests__/dm_button.test.tsx
+git commit -m "test: add DM button component tests"
+git push
+```
+
+---
+
+## Task 3: Write Tests for Unread DM Selectors
+
+**Files:**
+- Create: `webapp/channels/src/selectors/__tests__/guilded_layout.test.ts`
+
+**Step 1: Create test file**
+
+```typescript
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
+
+import {
+    getUnreadDmCount,
+    getUnreadDmChannelsWithUsers,
+    getFavoritedTeamIds,
+    isThreadsInSidebarActive,
+    isGuildedLayoutEnabled,
+} from '../views/guilded_layout';
+
+import type {GlobalState} from 'types/store';
+
+describe('guilded_layout selectors', () => {
+    const baseState = {
+        entities: {
+            general: {
+                config: {
+                    FeatureFlagGuildedChatLayout: 'false',
+                    FeatureFlagThreadsInSidebar: 'false',
+                },
+            },
+            channels: {
+                channels: {},
+                myMembers: {},
+            },
+            users: {
+                profiles: {},
+                statuses: {},
+                currentUserId: 'currentUser',
+            },
+            teams: {
+                currentTeamId: 'team1',
+            },
+        },
+        views: {
+            guildedLayout: {
+                isTeamSidebarExpanded: false,
+                isDmMode: false,
+                favoritedTeamIds: ['team1', 'team2'],
+                rhsActiveTab: 'members',
+                activeModal: null,
+                modalData: {},
+            },
+        },
+    } as unknown as GlobalState;
+
+    describe('isGuildedLayoutEnabled', () => {
+        it('returns false when flag is disabled', () => {
+            expect(isGuildedLayoutEnabled(baseState)).toBe(false);
+        });
+
+        it('returns true when flag is enabled', () => {
+            const state = {
+                ...baseState,
+                entities: {
+                    ...baseState.entities,
+                    general: {
+                        config: {
+                            FeatureFlagGuildedChatLayout: 'true',
+                        },
+                    },
+                },
+            } as unknown as GlobalState;
+
+            expect(isGuildedLayoutEnabled(state)).toBe(true);
+        });
+    });
+
+    describe('isThreadsInSidebarActive', () => {
+        it('returns false when both flags disabled', () => {
+            expect(isThreadsInSidebarActive(baseState)).toBe(false);
+        });
+
+        it('returns true when ThreadsInSidebar flag enabled', () => {
+            const state = {
+                ...baseState,
+                entities: {
+                    ...baseState.entities,
+                    general: {
+                        config: {
+                            FeatureFlagThreadsInSidebar: 'true',
+                            FeatureFlagGuildedChatLayout: 'false',
+                        },
+                    },
+                },
+            } as unknown as GlobalState;
+
+            expect(isThreadsInSidebarActive(state)).toBe(true);
+        });
+
+        it('returns true when GuildedChatLayout flag enabled (auto-enables)', () => {
+            const state = {
+                ...baseState,
+                entities: {
+                    ...baseState.entities,
+                    general: {
+                        config: {
+                            FeatureFlagThreadsInSidebar: 'false',
+                            FeatureFlagGuildedChatLayout: 'true',
+                        },
+                    },
+                },
+            } as unknown as GlobalState;
+
+            expect(isThreadsInSidebarActive(state)).toBe(true);
+        });
+    });
+
+    describe('getFavoritedTeamIds', () => {
+        it('returns favorited team IDs from state', () => {
+            expect(getFavoritedTeamIds(baseState)).toEqual(['team1', 'team2']);
+        });
+
+        it('returns empty array when no favorites', () => {
+            const state = {
+                ...baseState,
+                views: {
+                    ...baseState.views,
+                    guildedLayout: {
+                        ...baseState.views.guildedLayout,
+                        favoritedTeamIds: [],
+                    },
+                },
+            } as unknown as GlobalState;
+
+            expect(getFavoritedTeamIds(state)).toEqual([]);
+        });
+    });
+
+    describe('getUnreadDmCount', () => {
+        it('returns 0 when no DM channels', () => {
+            expect(getUnreadDmCount(baseState)).toBe(0);
+        });
+
+        it('counts unread mentions in DM channels', () => {
+            const state = {
+                ...baseState,
+                entities: {
+                    ...baseState.entities,
+                    channels: {
+                        channels: {
+                            dm1: {id: 'dm1', type: 'D', name: 'user1__user2'},
+                            dm2: {id: 'dm2', type: 'D', name: 'user1__user3'},
+                            channel1: {id: 'channel1', type: 'O', name: 'town-square'},
+                        },
+                        myMembers: {
+                            dm1: {channel_id: 'dm1', mention_count: 3, user_id: 'currentUser'},
+                            dm2: {channel_id: 'dm2', mention_count: 2, user_id: 'currentUser'},
+                            channel1: {channel_id: 'channel1', mention_count: 10, user_id: 'currentUser'},
+                        },
+                    },
+                },
+            } as unknown as GlobalState;
+
+            expect(getUnreadDmCount(state)).toBe(5); // 3 + 2, excludes channel mentions
+        });
+    });
+
+    describe('getUnreadDmChannelsWithUsers', () => {
+        it('returns empty array when no unread DMs', () => {
+            expect(getUnreadDmChannelsWithUsers(baseState)).toEqual([]);
+        });
+
+        it('returns unread DMs with user info sorted by last_post_at', () => {
+            const state = {
+                ...baseState,
+                entities: {
+                    ...baseState.entities,
+                    channels: {
+                        channels: {
+                            dm1: {id: 'dm1', type: 'D', name: 'currentUser__user2', last_post_at: 1000},
+                            dm2: {id: 'dm2', type: 'D', name: 'currentUser__user3', last_post_at: 2000},
+                        },
+                        myMembers: {
+                            dm1: {channel_id: 'dm1', mention_count: 3, user_id: 'currentUser'},
+                            dm2: {channel_id: 'dm2', mention_count: 1, user_id: 'currentUser'},
+                        },
+                    },
+                    users: {
+                        profiles: {
+                            user2: {id: 'user2', username: 'user2', last_picture_update: 0},
+                            user3: {id: 'user3', username: 'user3', last_picture_update: 0},
+                        },
+                        statuses: {
+                            user2: 'online',
+                            user3: 'away',
+                        },
+                        currentUserId: 'currentUser',
+                    },
+                },
+            } as unknown as GlobalState;
+
+            const result = getUnreadDmChannelsWithUsers(state);
+
+            expect(result).toHaveLength(2);
+            // Should be sorted by last_post_at descending
+            expect(result[0].channel.id).toBe('dm2');
+            expect(result[1].channel.id).toBe('dm1');
+            expect(result[0].user.username).toBe('user3');
+            expect(result[0].unreadCount).toBe(1);
+            expect(result[0].status).toBe('away');
+        });
+    });
+});
+```
+
+**Step 2: Push and verify failure**
+
+```bash
+git add webapp/channels/src/selectors/__tests__/guilded_layout.test.ts
+git commit -m "test: add guilded_layout selector tests"
+git push
+```
+
+---
+
+## Task 4: Implement GuildedTeamSidebar Component (Make Tests Pass)
+
+After tests are pushed and confirmed failing, implement the component:
 
 **Files:**
 - Create: `webapp/channels/src/components/guilded_team_sidebar/index.tsx`
@@ -50,7 +593,6 @@ export default function GuildedTeamSidebar() {
     const isExpanded = useSelector((state: GlobalState) => state.views.guildedLayout.isTeamSidebarExpanded);
     const isDmMode = useSelector((state: GlobalState) => state.views.guildedLayout.isDmMode);
 
-    // Close expanded overlay when clicking outside
     useEffect(() => {
         if (!isExpanded) {
             return;
@@ -85,7 +627,6 @@ export default function GuildedTeamSidebar() {
                 'guilded-team-sidebar--expanded': isExpanded,
             })}
         >
-            {/* Collapsed view (icons only) */}
             <div className='guilded-team-sidebar__collapsed'>
                 <DmButton
                     isActive={isDmMode}
@@ -103,7 +644,6 @@ export default function GuildedTeamSidebar() {
                 />
             </div>
 
-            {/* Expanded overlay */}
             {isExpanded && (
                 <ExpandedOverlay
                     onClose={() => dispatch(setTeamSidebarExpanded(false))}
@@ -117,8 +657,6 @@ export default function GuildedTeamSidebar() {
 **Step 2: Create base styles**
 
 ```scss
-// guilded_team_sidebar.scss
-
 .guilded-team-sidebar {
     position: relative;
     display: flex;
@@ -155,1077 +693,66 @@ export default function GuildedTeamSidebar() {
         background-color: rgba(var(--sidebar-text-rgb), 0.1);
         border-radius: 1px;
     }
-
-    &--expanded {
-        // When expanded, the overlay appears
-    }
 }
 ```
 
-**Step 3: Commit**
+**Step 3: Push and verify tests pass**
 
 ```bash
 git add webapp/channels/src/components/guilded_team_sidebar/
-git commit -m "feat: create GuildedTeamSidebar component structure"
+git commit -m "feat: implement GuildedTeamSidebar component"
+git push
+# Verify tests pass in GitHub Actions
 ```
 
 ---
 
-## Task 2: Create DM Button Component
+## Task 5: Implement DM Button Component (Make Tests Pass)
 
 **Files:**
 - Create: `webapp/channels/src/components/guilded_team_sidebar/dm_button.tsx`
 - Create: `webapp/channels/src/components/guilded_team_sidebar/dm_button.scss`
 
-**Step 1: Create the DM button**
-
-```typescript
-// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
-// See LICENSE.txt for license information.
-
-import classNames from 'classnames';
-import React from 'react';
-import {useIntl} from 'react-intl';
-import {useSelector} from 'react-redux';
-
-import {getUnreadDmCount} from 'selectors/views/guilded_layout';
-import WithTooltip from 'components/with_tooltip';
-
-import type {GlobalState} from 'types/store';
-
-import './dm_button.scss';
-
-interface Props {
-    isActive: boolean;
-    onClick: () => void;
-}
-
-export default function DmButton({isActive, onClick}: Props) {
-    const {formatMessage} = useIntl();
-    const unreadCount = useSelector((state: GlobalState) => getUnreadDmCount(state));
-
-    return (
-        <WithTooltip
-            title={formatMessage({id: 'guilded_team_sidebar.dm_button', defaultMessage: 'Direct Messages'})}
-            placement='right'
-        >
-            <button
-                className={classNames('dm-button', {
-                    'dm-button--active': isActive,
-                })}
-                onClick={onClick}
-                aria-label={formatMessage({id: 'guilded_team_sidebar.dm_button', defaultMessage: 'Direct Messages'})}
-            >
-                <i className='icon icon-message-text-outline' />
-                {unreadCount > 0 && (
-                    <span className='dm-button__badge'>
-                        {unreadCount > 99 ? '99+' : unreadCount}
-                    </span>
-                )}
-                {isActive && <span className='dm-button__active-indicator' />}
-            </button>
-        </WithTooltip>
-    );
-}
-```
-
-**Step 2: Create styles**
-
-```scss
-// dm_button.scss
-
-.dm-button {
-    position: relative;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 48px;
-    height: 48px;
-    border: none;
-    border-radius: 50%;
-    background-color: rgba(var(--sidebar-text-rgb), 0.1);
-    color: var(--sidebar-text);
-    cursor: pointer;
-    transition: background-color 0.15s ease, border-radius 0.15s ease;
-
-    &:hover {
-        background-color: var(--sidebar-text-active-border);
-        border-radius: 16px;
-    }
-
-    &--active {
-        background-color: var(--sidebar-text-active-border);
-        border-radius: 16px;
-    }
-
-    .icon {
-        font-size: 24px;
-    }
-
-    &__badge {
-        position: absolute;
-        bottom: -2px;
-        right: -2px;
-        min-width: 18px;
-        height: 18px;
-        padding: 0 4px;
-        border-radius: 9px;
-        background-color: var(--error-text);
-        color: white;
-        font-size: 11px;
-        font-weight: 600;
-        line-height: 18px;
-        text-align: center;
-    }
-
-    &__active-indicator {
-        position: absolute;
-        left: -8px;
-        width: 4px;
-        height: 40px;
-        background-color: var(--sidebar-text);
-        border-radius: 0 4px 4px 0;
-    }
-}
-```
-
-**Step 3: Commit**
-
-```bash
-git add webapp/channels/src/components/guilded_team_sidebar/dm_button.tsx
-git add webapp/channels/src/components/guilded_team_sidebar/dm_button.scss
-git commit -m "feat: create DM button component for team sidebar"
-```
+(Implementation code as in original plan)
 
 ---
 
-## Task 3: Create Unread DM Avatars Component
-
-**Files:**
-- Create: `webapp/channels/src/components/guilded_team_sidebar/unread_dm_avatars.tsx`
-- Create: `webapp/channels/src/components/guilded_team_sidebar/unread_dm_avatars.scss`
-
-**Step 1: Create the unread avatars component**
-
-```typescript
-// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
-// See LICENSE.txt for license information.
-
-import React from 'react';
-import {useSelector, useDispatch} from 'react-redux';
-import {useHistory} from 'react-router-dom';
-
-import {Client4} from 'mattermost-redux/client';
-import {getCurrentTeamUrl} from 'mattermost-redux/selectors/entities/teams';
-
-import {setDmMode} from 'actions/views/guilded_layout';
-import {getUnreadDmChannelsWithUsers} from 'selectors/views/guilded_layout';
-import StatusIcon from 'components/status_icon';
-import WithTooltip from 'components/with_tooltip';
-
-import type {GlobalState} from 'types/store';
-
-import './unread_dm_avatars.scss';
-
-const MAX_VISIBLE_AVATARS = 5;
-
-export default function UnreadDmAvatars() {
-    const dispatch = useDispatch();
-    const history = useHistory();
-
-    const teamUrl = useSelector(getCurrentTeamUrl);
-    const unreadDms = useSelector((state: GlobalState) => getUnreadDmChannelsWithUsers(state));
-
-    // Only show first N unread DMs
-    const visibleDms = unreadDms.slice(0, MAX_VISIBLE_AVATARS);
-
-    const handleDmClick = (username: string) => {
-        dispatch(setDmMode(true));
-        history.push(`${teamUrl}/messages/@${username}`);
-    };
-
-    if (visibleDms.length === 0) {
-        return null;
-    }
-
-    return (
-        <div className='unread-dm-avatars'>
-            {visibleDms.map(({channel, user, unreadCount, status}) => (
-                <WithTooltip
-                    key={channel.id}
-                    title={`${user.username} (${unreadCount} unread)`}
-                    placement='right'
-                >
-                    <button
-                        className='unread-dm-avatars__item'
-                        onClick={() => handleDmClick(user.username)}
-                    >
-                        <img
-                            className='unread-dm-avatars__avatar'
-                            src={Client4.getProfilePictureUrl(user.id, user.last_picture_update)}
-                            alt={user.username}
-                        />
-                        <StatusIcon
-                            className='unread-dm-avatars__status'
-                            status={status}
-                        />
-                        {unreadCount > 0 && (
-                            <span className='unread-dm-avatars__badge'>
-                                {unreadCount > 99 ? '99+' : unreadCount}
-                            </span>
-                        )}
-                    </button>
-                </WithTooltip>
-            ))}
-        </div>
-    );
-}
-```
-
-**Step 2: Create styles**
-
-```scss
-// unread_dm_avatars.scss
-
-.unread-dm-avatars {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 8px;
-
-    &__item {
-        position: relative;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        width: 48px;
-        height: 48px;
-        padding: 0;
-        border: none;
-        border-radius: 50%;
-        background: transparent;
-        cursor: pointer;
-        transition: border-radius 0.15s ease;
-
-        &:hover {
-            border-radius: 16px;
-
-            .unread-dm-avatars__avatar {
-                border-radius: 16px;
-            }
-        }
-    }
-
-    &__avatar {
-        width: 48px;
-        height: 48px;
-        border-radius: 50%;
-        object-fit: cover;
-        transition: border-radius 0.15s ease;
-    }
-
-    &__status {
-        position: absolute;
-        bottom: 0;
-        right: 0;
-        width: 16px;
-        height: 16px;
-        border: 3px solid var(--sidebar-teambar-bg);
-        border-radius: 50%;
-    }
-
-    &__badge {
-        position: absolute;
-        bottom: -2px;
-        right: -2px;
-        min-width: 18px;
-        height: 18px;
-        padding: 0 4px;
-        border-radius: 9px;
-        background-color: var(--error-text);
-        color: white;
-        font-size: 11px;
-        font-weight: 600;
-        line-height: 18px;
-        text-align: center;
-    }
-}
-```
-
-**Step 3: Commit**
-
-```bash
-git add webapp/channels/src/components/guilded_team_sidebar/unread_dm_avatars.tsx
-git add webapp/channels/src/components/guilded_team_sidebar/unread_dm_avatars.scss
-git commit -m "feat: create unread DM avatars component"
-```
-
----
-
-## Task 4: Create Selectors for Unread DMs
+## Task 6: Implement Unread DM Selectors (Make Tests Pass)
 
 **Files:**
 - Modify: `webapp/channels/src/selectors/views/guilded_layout.ts`
 
-**Step 1: Add unread DM selectors**
+Add selectors:
+- `getUnreadDmCount`
+- `getUnreadDmChannelsWithUsers`
+- `getFavoritedTeamIds`
 
-```typescript
-// Add to existing guilded_layout.ts selectors file
-
-import {createSelector} from 'reselect';
-
-import {
-    getAllChannels,
-    getMyChannelMemberships,
-    makeGetChannel,
-} from 'mattermost-redux/selectors/entities/channels';
-import {getUsers, getStatusForUserId} from 'mattermost-redux/selectors/entities/users';
-import {getCurrentTeamId} from 'mattermost-redux/selectors/entities/teams';
-
-import Constants from 'utils/constants';
-
-import type {GlobalState} from 'types/store';
-import type {Channel} from '@mattermost/types/channels';
-import type {UserProfile} from '@mattermost/types/users';
-
-interface UnreadDmInfo {
-    channel: Channel;
-    user: UserProfile;
-    unreadCount: number;
-    status: string;
-}
-
-/**
- * Get total count of unread DM messages
- */
-export const getUnreadDmCount = createSelector(
-    'getUnreadDmCount',
-    getAllChannels,
-    getMyChannelMemberships,
-    (channels, memberships): number => {
-        let count = 0;
-        for (const channel of Object.values(channels)) {
-            if (channel.type !== Constants.DM_CHANNEL) {
-                continue;
-            }
-            const membership = memberships[channel.id];
-            if (membership) {
-                count += membership.msg_count - (membership.last_viewed_at > 0 ? 0 : membership.msg_count);
-                // Simplified: use mention_count for unread indicator
-                count += membership.mention_count || 0;
-            }
-        }
-        return count;
-    },
-);
-
-/**
- * Get unread DM channels with user info, sorted by most recent
- */
-export const getUnreadDmChannelsWithUsers = createSelector(
-    'getUnreadDmChannelsWithUsers',
-    getAllChannels,
-    getMyChannelMemberships,
-    getUsers,
-    (state: GlobalState) => state,
-    (channels, memberships, users, state): UnreadDmInfo[] => {
-        const unreadDms: UnreadDmInfo[] = [];
-
-        for (const channel of Object.values(channels)) {
-            if (channel.type !== Constants.DM_CHANNEL) {
-                continue;
-            }
-
-            const membership = memberships[channel.id];
-            if (!membership || membership.mention_count === 0) {
-                continue;
-            }
-
-            // Extract other user's ID from DM channel name
-            // DM channel names are formatted as "{oderId}__{currentUserId}" or vice versa
-            const userIds = channel.name.split('__');
-            const otherUserId = userIds.find((id) => users[id] && id !== membership.user_id);
-
-            if (!otherUserId || !users[otherUserId]) {
-                continue;
-            }
-
-            const user = users[otherUserId];
-            const status = getStatusForUserId(state, otherUserId) || 'offline';
-
-            unreadDms.push({
-                channel,
-                user,
-                unreadCount: membership.mention_count,
-                status,
-            });
-        }
-
-        // Sort by last post time (most recent first)
-        return unreadDms.sort((a, b) => b.channel.last_post_at - a.channel.last_post_at);
-    },
-);
-```
-
-**Step 2: Commit**
-
-```bash
-git add webapp/channels/src/selectors/views/guilded_layout.ts
-git commit -m "feat: add selectors for unread DM count and channels"
-```
+**IMPORTANT:** Use `createSelector` from `mattermost-redux/selectors/create_selector`, NOT from `reselect`.
 
 ---
 
-## Task 5: Create Favorited Teams Component
-
-**Files:**
-- Create: `webapp/channels/src/components/guilded_team_sidebar/favorited_teams.tsx`
-- Create: `webapp/channels/src/components/guilded_team_sidebar/favorited_teams.scss`
-
-**Step 1: Create the favorited teams component**
-
-```typescript
-// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
-// See LICENSE.txt for license information.
-
-import React from 'react';
-import {useSelector} from 'react-redux';
-
-import {getMyTeams, getCurrentTeamId} from 'mattermost-redux/selectors/entities/teams';
-
-import {getFavoritedTeamIds} from 'selectors/views/guilded_layout';
-import TeamButton from 'components/team_sidebar/components/team_button';
-
-import type {GlobalState} from 'types/store';
-
-import './favorited_teams.scss';
-
-interface Props {
-    onTeamClick: () => void;
-    onExpandClick: () => void;
-}
-
-export default function FavoritedTeams({onTeamClick, onExpandClick}: Props) {
-    const teams = useSelector(getMyTeams);
-    const currentTeamId = useSelector(getCurrentTeamId);
-    const favoritedIds = useSelector((state: GlobalState) => getFavoritedTeamIds(state));
-
-    const favoritedTeams = teams.filter((team) => favoritedIds.includes(team.id));
-
-    if (favoritedTeams.length === 0) {
-        return null;
-    }
-
-    return (
-        <div className='favorited-teams'>
-            {favoritedTeams.map((team) => (
-                <TeamButton
-                    key={team.id}
-                    team={team}
-                    isActive={team.id === currentTeamId}
-                    onClick={onTeamClick}
-                />
-            ))}
-        </div>
-    );
-}
-```
-
-**Step 2: Create styles**
-
-```scss
-// favorited_teams.scss
-
-.favorited-teams {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 8px;
-}
-```
-
-**Step 3: Commit**
-
-```bash
-git add webapp/channels/src/components/guilded_team_sidebar/favorited_teams.tsx
-git add webapp/channels/src/components/guilded_team_sidebar/favorited_teams.scss
-git commit -m "feat: create favorited teams component"
-```
-
----
-
-## Task 6: Create Team List Component
-
-**Files:**
-- Create: `webapp/channels/src/components/guilded_team_sidebar/team_list.tsx`
-- Create: `webapp/channels/src/components/guilded_team_sidebar/team_list.scss`
-
-**Step 1: Create the team list component**
-
-```typescript
-// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
-// See LICENSE.txt for license information.
-
-import React from 'react';
-import {useSelector} from 'react-redux';
-
-import {getMyTeams, getCurrentTeamId} from 'mattermost-redux/selectors/entities/teams';
-
-import {getFavoritedTeamIds} from 'selectors/views/guilded_layout';
-import TeamButton from 'components/team_sidebar/components/team_button';
-import AddTeamButton from './add_team_button';
-
-import type {GlobalState} from 'types/store';
-
-import './team_list.scss';
-
-interface Props {
-    onTeamClick: () => void;
-}
-
-export default function TeamList({onTeamClick}: Props) {
-    const teams = useSelector(getMyTeams);
-    const currentTeamId = useSelector(getCurrentTeamId);
-    const favoritedIds = useSelector((state: GlobalState) => getFavoritedTeamIds(state));
-
-    // Show non-favorited teams
-    const nonFavoritedTeams = teams.filter((team) => !favoritedIds.includes(team.id));
-
-    return (
-        <div className='team-list'>
-            {nonFavoritedTeams.map((team) => (
-                <TeamButton
-                    key={team.id}
-                    team={team}
-                    isActive={team.id === currentTeamId}
-                    onClick={onTeamClick}
-                />
-            ))}
-            <AddTeamButton />
-        </div>
-    );
-}
-```
-
-**Step 2: Create styles**
-
-```scss
-// team_list.scss
-
-.team-list {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 8px;
-    flex: 1;
-    overflow-y: auto;
-    overflow-x: hidden;
-    padding-bottom: 12px;
-}
-```
-
-**Step 3: Commit**
-
-```bash
-git add webapp/channels/src/components/guilded_team_sidebar/team_list.tsx
-git add webapp/channels/src/components/guilded_team_sidebar/team_list.scss
-git commit -m "feat: create team list component"
-```
-
----
-
-## Task 7: Create Add Team Button Component
-
-**Files:**
-- Create: `webapp/channels/src/components/guilded_team_sidebar/add_team_button.tsx`
-- Create: `webapp/channels/src/components/guilded_team_sidebar/add_team_button.scss`
-
-**Step 1: Create the add team button**
-
-```typescript
-// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
-// See LICENSE.txt for license information.
-
-import React from 'react';
-import {useIntl} from 'react-intl';
-import {useDispatch} from 'react-redux';
-
-import {openModal} from 'actions/views/modals';
-import WithTooltip from 'components/with_tooltip';
-import TeamSelectorModal from 'components/team_selector_modal';
-import {ModalIdentifiers} from 'utils/constants';
-
-import './add_team_button.scss';
-
-export default function AddTeamButton() {
-    const dispatch = useDispatch();
-    const {formatMessage} = useIntl();
-
-    const handleClick = () => {
-        dispatch(openModal({
-            modalId: ModalIdentifiers.TEAM_SELECTOR,
-            dialogType: TeamSelectorModal,
-            dialogProps: {},
-        }));
-    };
-
-    return (
-        <WithTooltip
-            title={formatMessage({id: 'guilded_team_sidebar.add_team', defaultMessage: 'Add a Team'})}
-            placement='right'
-        >
-            <button
-                className='add-team-button'
-                onClick={handleClick}
-                aria-label={formatMessage({id: 'guilded_team_sidebar.add_team', defaultMessage: 'Add a Team'})}
-            >
-                <i className='icon icon-plus' />
-            </button>
-        </WithTooltip>
-    );
-}
-```
-
-**Step 2: Create styles**
-
-```scss
-// add_team_button.scss
-
-.add-team-button {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 48px;
-    height: 48px;
-    border: none;
-    border-radius: 50%;
-    background-color: rgba(var(--sidebar-text-rgb), 0.1);
-    color: var(--sidebar-text);
-    cursor: pointer;
-    transition: background-color 0.15s ease, border-radius 0.15s ease, color 0.15s ease;
-
-    &:hover {
-        background-color: var(--online-indicator);
-        border-radius: 16px;
-        color: white;
-    }
-
-    .icon {
-        font-size: 24px;
-    }
-}
-```
-
-**Step 3: Commit**
-
-```bash
-git add webapp/channels/src/components/guilded_team_sidebar/add_team_button.tsx
-git add webapp/channels/src/components/guilded_team_sidebar/add_team_button.scss
-git commit -m "feat: create add team button component"
-```
-
----
-
-## Task 8: Create Expanded Overlay Component
-
-**Files:**
-- Create: `webapp/channels/src/components/guilded_team_sidebar/expanded_overlay.tsx`
-- Create: `webapp/channels/src/components/guilded_team_sidebar/expanded_overlay.scss`
-
-**Step 1: Create the expanded overlay**
-
-```typescript
-// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
-// See LICENSE.txt for license information.
-
-import React from 'react';
-import {useSelector} from 'react-redux';
-
-import {getMyTeams, getCurrentTeamId} from 'mattermost-redux/selectors/entities/teams';
-import {getUnreadsInTeam} from 'mattermost-redux/selectors/entities/channels';
-
-import {getUnreadDmChannelsWithUsers, getFavoritedTeamIds} from 'selectors/views/guilded_layout';
-import {Client4} from 'mattermost-redux/client';
-
-import type {GlobalState} from 'types/store';
-
-import './expanded_overlay.scss';
-
-interface Props {
-    onClose: () => void;
-}
-
-export default function ExpandedOverlay({onClose}: Props) {
-    const teams = useSelector(getMyTeams);
-    const currentTeamId = useSelector(getCurrentTeamId);
-    const favoritedIds = useSelector((state: GlobalState) => getFavoritedTeamIds(state));
-    const unreadDms = useSelector((state: GlobalState) => getUnreadDmChannelsWithUsers(state));
-
-    const favoritedTeams = teams.filter((team) => favoritedIds.includes(team.id));
-    const otherTeams = teams.filter((team) => !favoritedIds.includes(team.id));
-
-    return (
-        <div className='expanded-overlay'>
-            <div className='expanded-overlay__header'>
-                <h3>Your Servers</h3>
-                <button className='expanded-overlay__close' onClick={onClose}>
-                    <i className='icon icon-close' />
-                </button>
-            </div>
-
-            {/* Unread DMs section */}
-            {unreadDms.length > 0 && (
-                <div className='expanded-overlay__section'>
-                    <h4 className='expanded-overlay__section-title'>Unread Messages</h4>
-                    {unreadDms.slice(0, 5).map(({channel, user, unreadCount}) => (
-                        <div key={channel.id} className='expanded-overlay__dm-row'>
-                            <img
-                                className='expanded-overlay__dm-avatar'
-                                src={Client4.getProfilePictureUrl(user.id, user.last_picture_update)}
-                                alt={user.username}
-                            />
-                            <div className='expanded-overlay__dm-info'>
-                                <span className='expanded-overlay__dm-name'>{user.username}</span>
-                                <span className='expanded-overlay__dm-preview'>
-                                    {unreadCount} new message{unreadCount > 1 ? 's' : ''}
-                                </span>
-                            </div>
-                        </div>
-                    ))}
-                </div>
-            )}
-
-            {/* Favorited teams */}
-            {favoritedTeams.length > 0 && (
-                <div className='expanded-overlay__section'>
-                    <h4 className='expanded-overlay__section-title'>Favorites</h4>
-                    {favoritedTeams.map((team) => (
-                        <ExpandedTeamRow
-                            key={team.id}
-                            team={team}
-                            isActive={team.id === currentTeamId}
-                        />
-                    ))}
-                </div>
-            )}
-
-            {/* Other teams */}
-            <div className='expanded-overlay__section'>
-                <h4 className='expanded-overlay__section-title'>All Servers</h4>
-                {otherTeams.map((team) => (
-                    <ExpandedTeamRow
-                        key={team.id}
-                        team={team}
-                        isActive={team.id === currentTeamId}
-                    />
-                ))}
-            </div>
-        </div>
-    );
-}
-
-interface ExpandedTeamRowProps {
-    team: {id: string; display_name: string; name: string};
-    isActive: boolean;
-}
-
-function ExpandedTeamRow({team, isActive}: ExpandedTeamRowProps) {
-    return (
-        <div className={`expanded-overlay__team-row ${isActive ? 'active' : ''}`}>
-            <div className='expanded-overlay__team-icon'>
-                {team.display_name.charAt(0).toUpperCase()}
-            </div>
-            <span className='expanded-overlay__team-name'>{team.display_name}</span>
-        </div>
-    );
-}
-```
-
-**Step 2: Create styles**
-
-```scss
-// expanded_overlay.scss
-
-.expanded-overlay {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 240px;
-    height: 100%;
-    background-color: var(--sidebar-teambar-bg);
-    border-right: 1px solid rgba(var(--center-channel-color-rgb), 0.12);
-    box-shadow: 4px 0 12px rgba(0, 0, 0, 0.15);
-    z-index: 100;
-    overflow-y: auto;
-
-    &__header {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        padding: 16px;
-        border-bottom: 1px solid rgba(var(--sidebar-text-rgb), 0.1);
-
-        h3 {
-            margin: 0;
-            font-size: 16px;
-            font-weight: 600;
-            color: var(--sidebar-text);
-        }
-    }
-
-    &__close {
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        width: 28px;
-        height: 28px;
-        padding: 0;
-        border: none;
-        border-radius: 4px;
-        background: transparent;
-        color: var(--sidebar-text);
-        cursor: pointer;
-
-        &:hover {
-            background: rgba(var(--sidebar-text-rgb), 0.1);
-        }
-    }
-
-    &__section {
-        padding: 12px 8px;
-
-        &:not(:last-child) {
-            border-bottom: 1px solid rgba(var(--sidebar-text-rgb), 0.1);
-        }
-    }
-
-    &__section-title {
-        margin: 0 0 8px 8px;
-        font-size: 11px;
-        font-weight: 600;
-        text-transform: uppercase;
-        letter-spacing: 0.02em;
-        color: rgba(var(--sidebar-text-rgb), 0.56);
-    }
-
-    &__team-row {
-        display: flex;
-        align-items: center;
-        gap: 12px;
-        padding: 8px;
-        border-radius: 4px;
-        cursor: pointer;
-
-        &:hover {
-            background: rgba(var(--sidebar-text-rgb), 0.08);
-        }
-
-        &.active {
-            background: rgba(var(--sidebar-text-rgb), 0.16);
-        }
-    }
-
-    &__team-icon {
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        width: 32px;
-        height: 32px;
-        border-radius: 8px;
-        background: rgba(var(--sidebar-text-rgb), 0.2);
-        color: var(--sidebar-text);
-        font-size: 14px;
-        font-weight: 600;
-    }
-
-    &__team-name {
-        font-size: 14px;
-        font-weight: 500;
-        color: var(--sidebar-text);
-    }
-
-    &__dm-row {
-        display: flex;
-        align-items: center;
-        gap: 12px;
-        padding: 8px;
-        border-radius: 4px;
-        cursor: pointer;
-
-        &:hover {
-            background: rgba(var(--sidebar-text-rgb), 0.08);
-        }
-    }
-
-    &__dm-avatar {
-        width: 32px;
-        height: 32px;
-        border-radius: 50%;
-        object-fit: cover;
-    }
-
-    &__dm-info {
-        display: flex;
-        flex-direction: column;
-        min-width: 0;
-    }
-
-    &__dm-name {
-        font-size: 14px;
-        font-weight: 500;
-        color: var(--sidebar-text);
-    }
-
-    &__dm-preview {
-        font-size: 12px;
-        color: rgba(var(--sidebar-text-rgb), 0.64);
-    }
-}
-```
-
-**Step 3: Commit**
-
-```bash
-git add webapp/channels/src/components/guilded_team_sidebar/expanded_overlay.tsx
-git add webapp/channels/src/components/guilded_team_sidebar/expanded_overlay.scss
-git commit -m "feat: create expanded overlay for team sidebar"
-```
-
----
-
-## Task 9: Add Favorited Teams Selector and Persistence
-
-**Files:**
-- Modify: `webapp/channels/src/selectors/views/guilded_layout.ts`
-- Modify: `webapp/channels/src/reducers/views/guilded_layout.ts`
-
-**Step 1: Add favorited teams state to reducer**
-
-In `guilded_layout.ts` reducer, add:
-
-```typescript
-// Favorited team IDs (persisted via localStorage)
-function favoritedTeamIds(state: string[] = [], action: MMAction): string[] {
-    switch (action.type) {
-    case ActionTypes.GUILDED_SET_FAVORITED_TEAMS:
-        return action.teamIds;
-    case ActionTypes.GUILDED_ADD_FAVORITED_TEAM:
-        if (state.includes(action.teamId)) {
-            return state;
-        }
-        return [...state, action.teamId];
-    case ActionTypes.GUILDED_REMOVE_FAVORITED_TEAM:
-        return state.filter((id) => id !== action.teamId);
-    case UserTypes.LOGOUT_SUCCESS:
-        return [];
-    default:
-        return state;
-    }
-}
-```
-
-Add to combineReducers.
-
-**Step 2: Add selector**
-
-In selectors file:
-
-```typescript
-export function getFavoritedTeamIds(state: GlobalState): string[] {
-    return state.views.guildedLayout.favoritedTeamIds || [];
-}
-```
-
-**Step 3: Add action types to constants.tsx**
-
-```typescript
-GUILDED_SET_FAVORITED_TEAMS: null,
-GUILDED_ADD_FAVORITED_TEAM: null,
-GUILDED_REMOVE_FAVORITED_TEAM: null,
-```
-
-**Step 4: Add action creators**
-
-```typescript
-export function setFavoritedTeams(teamIds: string[]) {
-    return {
-        type: ActionTypes.GUILDED_SET_FAVORITED_TEAMS,
-        teamIds,
-    };
-}
-
-export function addFavoritedTeam(teamId: string) {
-    return {
-        type: ActionTypes.GUILDED_ADD_FAVORITED_TEAM,
-        teamId,
-    };
-}
-
-export function removeFavoritedTeam(teamId: string) {
-    return {
-        type: ActionTypes.GUILDED_REMOVE_FAVORITED_TEAM,
-        teamId,
-    };
-}
-```
-
-**Step 5: Commit**
-
-```bash
-git add webapp/channels/src/selectors/views/guilded_layout.ts
-git add webapp/channels/src/reducers/views/guilded_layout.ts
-git add webapp/channels/src/actions/views/guilded_layout.ts
-git add webapp/channels/src/utils/constants.tsx
-git commit -m "feat: add favorited teams state, selector, and actions"
-```
-
----
-
-## Task 10: Integrate GuildedTeamSidebar into Layout
-
-**Files:**
-- Modify: `webapp/channels/src/components/team_sidebar/team_sidebar.tsx`
-
-**Step 1: Conditionally render GuildedTeamSidebar**
-
-Wrap or replace the existing team sidebar with conditional rendering:
-
-```typescript
-import {useGuildedLayout} from 'hooks/use_guilded_layout';
-import GuildedTeamSidebar from 'components/guilded_team_sidebar';
-
-// In the component:
-const isGuildedLayout = useGuildedLayout();
-
-if (isGuildedLayout) {
-    return <GuildedTeamSidebar />;
-}
-
-// ... existing team sidebar render
-```
-
-**Step 2: Commit**
-
-```bash
-git add webapp/channels/src/components/team_sidebar/team_sidebar.tsx
-git commit -m "feat: integrate GuildedTeamSidebar into layout"
-```
+## Task 7-10: Continue TDD Pattern
+
+For remaining components (UnreadDmAvatars, FavoritedTeams, TeamList, AddTeamButton, ExpandedOverlay):
+
+1. Write tests first
+2. Push to verify failure
+3. Implement component
+4. Push to verify pass
+5. Commit
 
 ---
 
 ## Summary
 
-| Task | Files | Description |
-|------|-------|-------------|
-| 1 | guilded_team_sidebar/ | Main component structure |
-| 2 | dm_button.tsx | DM button with unread badge |
-| 3 | unread_dm_avatars.tsx | Unread DM user avatars |
-| 4 | guilded_layout.ts (selectors) | Unread DM selectors |
-| 5 | favorited_teams.tsx | Favorited teams section |
-| 6 | team_list.tsx | Non-favorited teams list |
-| 7 | add_team_button.tsx | Add team button |
-| 8 | expanded_overlay.tsx | Expanded overlay (240px) |
-| 9 | Various | Favorited teams persistence |
-| 10 | team_sidebar.tsx | Integration into layout |
+| Task | Type | Files | Description |
+|------|------|-------|-------------|
+| 1 | Test | `__tests__/index.test.tsx` | GuildedTeamSidebar tests |
+| 2 | Test | `__tests__/dm_button.test.tsx` | DmButton tests |
+| 3 | Test | `selectors/__tests__/guilded_layout.test.ts` | Selector tests |
+| 4 | Impl | `index.tsx`, `*.scss` | GuildedTeamSidebar implementation |
+| 5 | Impl | `dm_button.tsx`, `*.scss` | DmButton implementation |
+| 6 | Impl | `guilded_layout.ts` | Selector implementation |
+| 7-10 | TDD | Various | Remaining components with tests |
 
 **Next:** [03-enhanced-conversation-rows.md](./03-enhanced-conversation-rows.md)

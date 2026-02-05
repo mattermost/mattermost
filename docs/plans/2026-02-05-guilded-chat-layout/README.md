@@ -131,26 +131,106 @@ interface GuildedLayoutState {
 
 ---
 
-## Testing Strategy
+## Test-Driven Development (TDD) Workflow
 
-**Unit Tests:**
-- Each new component has isolated tests
-- Redux reducers/selectors tested
-- Hook behavior tested
+**CRITICAL: Tests MUST be written BEFORE implementation.**
 
-**Integration Tests:**
-- Feature flag enables/disables correctly
-- Mobile fallback works
-- Auto-enable of ThreadsInSidebar works
+Since tests cannot be run locally (requires Linux/Docker/PostgreSQL via GitHub Actions), follow this workflow:
 
-**E2E Tests (Cypress):**
-- DM button opens DM page
-- Team sidebar expand/collapse
-- RHS tab switching
-- Modal open/close
-- Sidebar resize persistence
+### TDD Cycle for Each Feature
 
-**Manual Testing Checklist:**
+```
+1. Write Test(s) → 2. Push to GitHub → 3. Verify Tests Fail → 4. Write Implementation → 5. Push Again → 6. Verify Tests Pass → 7. Commit
+```
+
+### Detailed Steps
+
+1. **Write the failing test first**
+   - Create test file in appropriate location
+   - Test should define expected behavior
+   - Use mocks/stubs for dependencies not yet created
+
+2. **Push to GitHub and verify failure**
+   - Push branch to GitHub
+   - GitHub Actions runs tests via `test.yml`
+   - Confirm tests fail with expected error (e.g., "module not found", "function undefined")
+
+3. **Write minimal implementation**
+   - Only write code to make tests pass
+   - No extra features or "improvements"
+
+4. **Push and verify tests pass**
+   - Push implementation
+   - Confirm all tests pass in GitHub Actions
+
+5. **Commit with meaningful message**
+
+### Test Locations
+
+| Test Type | Location | Pattern |
+|-----------|----------|---------|
+| Component tests | `webapp/channels/src/components/<name>/__tests__/` | `*.test.tsx` |
+| Selector tests | `webapp/channels/src/selectors/__tests__/` | `*.test.ts` |
+| Reducer tests | `webapp/channels/src/reducers/__tests__/` | `*.test.ts` |
+| Action tests | `webapp/channels/src/actions/__tests__/` | `*.test.ts` |
+| Hook tests | `webapp/channels/src/hooks/__tests__/` | `*.test.ts` |
+
+### Test File Structure
+
+```typescript
+// Example: components/guilded_team_sidebar/__tests__/index.test.tsx
+import React from 'react';
+import {render, screen, fireEvent} from '@testing-library/react';
+import {Provider} from 'react-redux';
+import configureStore from 'redux-mock-store';
+
+import GuildedTeamSidebar from '../index';
+
+const mockStore = configureStore([]);
+
+describe('GuildedTeamSidebar', () => {
+    it('renders collapsed view by default', () => {
+        const store = mockStore({
+            views: {
+                guildedLayout: {
+                    isTeamSidebarExpanded: false,
+                    isDmMode: false,
+                },
+            },
+        });
+
+        render(
+            <Provider store={store}>
+                <GuildedTeamSidebar />
+            </Provider>
+        );
+
+        expect(screen.getByClassName('guilded-team-sidebar__collapsed')).toBeInTheDocument();
+    });
+});
+```
+
+### Running Tests
+
+**Via GitHub Actions (required):**
+```bash
+# Push your branch
+git push origin feature/guilded-layout
+
+# Go to GitHub Actions → "Custom Tests" workflow
+# Or tests run automatically on release tags
+```
+
+**Test Coverage Requirements:**
+- All new components must have tests
+- All new selectors must have tests
+- All new reducers must have tests
+- All new hooks must have tests
+
+---
+
+## Manual Testing Checklist (After TDD)
+
 - [ ] Enable flag, verify full layout change
 - [ ] Disable flag, verify stock layout
 - [ ] Resize browser to mobile, verify fallback
