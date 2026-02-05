@@ -1205,7 +1205,7 @@ type TemporaryPostStore interface {
 	Save(rctx request.CTX, post *model.TemporaryPost) (*model.TemporaryPost, error)
 	Get(rctx request.CTX, id string) (*model.TemporaryPost, error)
 	Delete(rctx request.CTX, id string) error
-	GetExpiredPosts(rctx request.CTX) ([]string, error)
+	GetExpiredPosts(rctx request.CTX, lastPostId string, limit uint64) ([]string, error)
 }
 
 // ChannelSearchOpts contains options for searching channels.

@@ -14519,11 +14519,11 @@ func (s *RetryLayerTemporaryPostStore) Get(rctx request.CTX, id string) (*model.
 
 }
 
-func (s *RetryLayerTemporaryPostStore) GetExpiredPosts(rctx request.CTX) ([]string, error) {
+func (s *RetryLayerTemporaryPostStore) GetExpiredPosts(rctx request.CTX, lastPostId string, limit uint64) ([]string, error) {
 
 	tries := 0
 	for {
-		result, err := s.TemporaryPostStore.GetExpiredPosts(rctx)
+		result, err := s.TemporaryPostStore.GetExpiredPosts(rctx, lastPostId, limit)
 		if err == nil {
 			return result, nil
 		}

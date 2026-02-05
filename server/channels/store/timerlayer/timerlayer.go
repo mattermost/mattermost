@@ -11456,10 +11456,10 @@ func (s *TimerLayerTemporaryPostStore) Get(rctx request.CTX, id string) (*model.
 	return result, err
 }
 
-func (s *TimerLayerTemporaryPostStore) GetExpiredPosts(rctx request.CTX) ([]string, error) {
+func (s *TimerLayerTemporaryPostStore) GetExpiredPosts(rctx request.CTX, lastPostId string, limit uint64) ([]string, error) {
 	start := time.Now()
 
-	result, err := s.TemporaryPostStore.GetExpiredPosts(rctx)
+	result, err := s.TemporaryPostStore.GetExpiredPosts(rctx, lastPostId, limit)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
 	if s.Root.Metrics != nil {
