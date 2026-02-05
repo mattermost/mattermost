@@ -2032,17 +2032,18 @@ func testSearchPostDeleted(t *testing.T, th *SearchTestHelper) {
 }
 
 func testSearchURLsPostgres(t *testing.T, th *SearchTestHelper) {
+	createPost := func(msg string) string {
+		post, err := th.createPost(th.User.Id, th.ChannelBasic.Id, msg, "", model.PostTypeDefault, 0, false)
+		require.NoError(t, err)
+		return post.Id
+	}
+
 	// Create posts with various URL formats
-	pFullURL, err := th.createPost(th.User.Id, th.ChannelBasic.Id, "check out https://example.com/path/to/page for more info", "", model.PostTypeDefault, 0, false)
-	require.NoError(t, err)
-	pURLNoProtocol, err := th.createPost(th.User.Id, th.ChannelBasic.Id, "visit example.org/docs today", "", model.PostTypeDefault, 0, false)
-	require.NoError(t, err)
-	pURLNoPath, err := th.createPost(th.User.Id, th.ChannelBasic.Id, "go to https://mattermost.com for details", "", model.PostTypeDefault, 0, false)
-	require.NoError(t, err)
-	pURLNoProtocolNoPath, err := th.createPost(th.User.Id, th.ChannelBasic.Id, "see testsite.io now", "", model.PostTypeDefault, 0, false)
-	require.NoError(t, err)
-	pHTTPURL, err := th.createPost(th.User.Id, th.ChannelBasic.Id, "old link http://legacy.example.net/old", "", model.PostTypeDefault, 0, false)
-	require.NoError(t, err)
+	fullUrlId := createPost("check out https://example.com/path/to/page for more info")
+	urlNoProtocolId := createPost("visit example.org/docs today")
+	urlNoPathId := createPost("go to https://mattermost.com for details")
+	urlNoProtocolNoPathId := createPost("see testsite.io now")
+	httpUrlId := createPost("old link http://legacy.example.net/old")
 
 	defer th.deleteUserPosts(th.User.Id)
 
