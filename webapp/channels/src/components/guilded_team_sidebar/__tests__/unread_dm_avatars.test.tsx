@@ -2,33 +2,37 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-import {render, screen, fireEvent} from '@testing-library/react';
+import {render, screen} from '@testing-library/react';
 import {Provider} from 'react-redux';
 import configureStore from 'redux-mock-store';
 
 import UnreadDmAvatars from '../unread_dm_avatars';
+
+jest.mock('selectors/views/guilded_layout', () => ({
+    getUnreadDmChannelsWithUsers: jest.fn(),
+}));
+
+import {getUnreadDmChannelsWithUsers} from 'selectors/views/guilded_layout';
+
+const mockGetUnreadDmChannelsWithUsers = getUnreadDmChannelsWithUsers as jest.Mock;
 
 const mockStore = configureStore([]);
 
 describe('UnreadDmAvatars', () => {
     const baseState = {
         entities: {
-            channels: {
-                channels: {},
-                myMembers: {},
-            },
-            users: {
-                profiles: {},
-                statuses: {},
-                currentUserId: 'currentUser',
-            },
             general: {
                 config: {},
             },
         },
     };
 
+    beforeEach(() => {
+        jest.clearAllMocks();
+    });
+
     it('renders container element', () => {
+        mockGetUnreadDmChannelsWithUsers.mockReturnValue([]);
         const store = mockStore(baseState);
         const {container} = render(
             <Provider store={store}>
@@ -40,6 +44,7 @@ describe('UnreadDmAvatars', () => {
     });
 
     it('renders nothing when no unread DMs', () => {
+        mockGetUnreadDmChannelsWithUsers.mockReturnValue([]);
         const store = mockStore(baseState);
         const {container} = render(
             <Provider store={store}>
@@ -51,34 +56,21 @@ describe('UnreadDmAvatars', () => {
     });
 
     it('renders avatars for unread DMs', () => {
-        const stateWithUnreads = {
-            ...baseState,
-            entities: {
-                ...baseState.entities,
-                channels: {
-                    channels: {
-                        dm1: {id: 'dm1', type: 'D', name: 'currentUser__user2', last_post_at: 2000},
-                        dm2: {id: 'dm2', type: 'D', name: 'currentUser__user3', last_post_at: 1000},
-                    },
-                    myMembers: {
-                        dm1: {channel_id: 'dm1', mention_count: 3},
-                        dm2: {channel_id: 'dm2', mention_count: 1},
-                    },
-                },
-                users: {
-                    profiles: {
-                        user2: {id: 'user2', username: 'user2', last_picture_update: 0},
-                        user3: {id: 'user3', username: 'user3', last_picture_update: 0},
-                    },
-                    statuses: {
-                        user2: 'online',
-                        user3: 'away',
-                    },
-                    currentUserId: 'currentUser',
-                },
+        mockGetUnreadDmChannelsWithUsers.mockReturnValue([
+            {
+                channel: {id: 'dm1', type: 'D', name: 'currentUser__user2', last_post_at: 2000},
+                user: {id: 'user2', username: 'user2', last_picture_update: 0},
+                unreadCount: 3,
+                status: 'online',
             },
-        };
-        const store = mockStore(stateWithUnreads);
+            {
+                channel: {id: 'dm2', type: 'D', name: 'currentUser__user3', last_post_at: 1000},
+                user: {id: 'user3', username: 'user3', last_picture_update: 0},
+                unreadCount: 1,
+                status: 'away',
+            },
+        ]);
+        const store = mockStore(baseState);
         const {container} = render(
             <Provider store={store}>
                 <UnreadDmAvatars />
@@ -90,36 +82,17 @@ describe('UnreadDmAvatars', () => {
     });
 
     it('limits avatars to max 5', () => {
-        const manyDms: Record<string, any> = {};
-        const manyMembers: Record<string, any> = {};
-        const manyProfiles: Record<string, any> = {};
-        const manyStatuses: Record<string, any> = {};
-
+        const manyUnreads = [];
         for (let i = 1; i <= 8; i++) {
-            const dmId = `dm${i}`;
-            const oderId = `user${i}`;
-            manyDms[dmId] = {id: dmId, type: 'D', name: `currentUser__${oderId}`, last_post_at: i * 1000};
-            manyMembers[dmId] = {channel_id: dmId, mention_count: 1};
-            manyProfiles[oderId] = {id: oderId, username: oderId, last_picture_update: 0};
-            manyStatuses[oderId] = 'online';
+            manyUnreads.push({
+                channel: {id: `dm${i}`, type: 'D', name: `currentUser__user${i}`, last_post_at: i * 1000},
+                user: {id: `user${i}`, username: `user${i}`, last_picture_update: 0},
+                unreadCount: 1,
+                status: 'online',
+            });
         }
-
-        const stateWithManyUnreads = {
-            ...baseState,
-            entities: {
-                ...baseState.entities,
-                channels: {
-                    channels: manyDms,
-                    myMembers: manyMembers,
-                },
-                users: {
-                    profiles: manyProfiles,
-                    statuses: manyStatuses,
-                    currentUserId: 'currentUser',
-                },
-            },
-        };
-        const store = mockStore(stateWithManyUnreads);
+        mockGetUnreadDmChannelsWithUsers.mockReturnValue(manyUnreads);
+        const store = mockStore(baseState);
         const {container} = render(
             <Provider store={store}>
                 <UnreadDmAvatars />
@@ -131,36 +104,17 @@ describe('UnreadDmAvatars', () => {
     });
 
     it('shows overflow indicator when more than 5 unread DMs', () => {
-        const manyDms: Record<string, any> = {};
-        const manyMembers: Record<string, any> = {};
-        const manyProfiles: Record<string, any> = {};
-        const manyStatuses: Record<string, any> = {};
-
+        const manyUnreads = [];
         for (let i = 1; i <= 8; i++) {
-            const dmId = `dm${i}`;
-            const oderId = `user${i}`;
-            manyDms[dmId] = {id: dmId, type: 'D', name: `currentUser__${oderId}`, last_post_at: i * 1000};
-            manyMembers[dmId] = {channel_id: dmId, mention_count: 1};
-            manyProfiles[oderId] = {id: oderId, username: oderId, last_picture_update: 0};
-            manyStatuses[oderId] = 'online';
+            manyUnreads.push({
+                channel: {id: `dm${i}`, type: 'D', name: `currentUser__user${i}`, last_post_at: i * 1000},
+                user: {id: `user${i}`, username: `user${i}`, last_picture_update: 0},
+                unreadCount: 1,
+                status: 'online',
+            });
         }
-
-        const stateWithManyUnreads = {
-            ...baseState,
-            entities: {
-                ...baseState.entities,
-                channels: {
-                    channels: manyDms,
-                    myMembers: manyMembers,
-                },
-                users: {
-                    profiles: manyProfiles,
-                    statuses: manyStatuses,
-                    currentUserId: 'currentUser',
-                },
-            },
-        };
-        const store = mockStore(stateWithManyUnreads);
+        mockGetUnreadDmChannelsWithUsers.mockReturnValue(manyUnreads);
+        const store = mockStore(baseState);
         const {container} = render(
             <Provider store={store}>
                 <UnreadDmAvatars />
@@ -172,30 +126,15 @@ describe('UnreadDmAvatars', () => {
     });
 
     it('shows status indicator on avatars', () => {
-        const stateWithUnreads = {
-            ...baseState,
-            entities: {
-                ...baseState.entities,
-                channels: {
-                    channels: {
-                        dm1: {id: 'dm1', type: 'D', name: 'currentUser__user2', last_post_at: 1000},
-                    },
-                    myMembers: {
-                        dm1: {channel_id: 'dm1', mention_count: 1},
-                    },
-                },
-                users: {
-                    profiles: {
-                        user2: {id: 'user2', username: 'user2', last_picture_update: 0},
-                    },
-                    statuses: {
-                        user2: 'online',
-                    },
-                    currentUserId: 'currentUser',
-                },
+        mockGetUnreadDmChannelsWithUsers.mockReturnValue([
+            {
+                channel: {id: 'dm1', type: 'D', name: 'currentUser__user2', last_post_at: 1000},
+                user: {id: 'user2', username: 'user2', last_picture_update: 0},
+                unreadCount: 1,
+                status: 'online',
             },
-        };
-        const store = mockStore(stateWithUnreads);
+        ]);
+        const store = mockStore(baseState);
         const {container} = render(
             <Provider store={store}>
                 <UnreadDmAvatars />

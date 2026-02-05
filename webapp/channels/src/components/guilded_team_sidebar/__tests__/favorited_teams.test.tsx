@@ -8,6 +8,22 @@ import configureStore from 'redux-mock-store';
 
 import FavoritedTeams from '../favorited_teams';
 
+jest.mock('selectors/views/guilded_layout', () => ({
+    getFavoritedTeamIds: jest.fn(),
+}));
+
+jest.mock('mattermost-redux/selectors/entities/teams', () => ({
+    getCurrentTeamId: jest.fn(),
+    getTeam: jest.fn(),
+}));
+
+import {getFavoritedTeamIds} from 'selectors/views/guilded_layout';
+import {getCurrentTeamId, getTeam} from 'mattermost-redux/selectors/entities/teams';
+
+const mockGetFavoritedTeamIds = getFavoritedTeamIds as jest.Mock;
+const mockGetCurrentTeamId = getCurrentTeamId as jest.Mock;
+const mockGetTeam = getTeam as jest.Mock;
+
 const mockStore = configureStore([]);
 
 describe('FavoritedTeams', () => {
@@ -16,18 +32,18 @@ describe('FavoritedTeams', () => {
         onExpandClick: jest.fn(),
     };
 
+    const mockTeams = {
+        team1: {id: 'team1', display_name: 'Team One', name: 'team-one', last_team_icon_update: 0, delete_at: 0},
+        team2: {id: 'team2', display_name: 'Team Two', name: 'team-two', last_team_icon_update: 0, delete_at: 0},
+    };
+
     const baseState = {
         entities: {
             teams: {
-                teams: {
-                    team1: {id: 'team1', display_name: 'Team One', name: 'team-one', last_team_icon_update: 0},
-                    team2: {id: 'team2', display_name: 'Team Two', name: 'team-two', last_team_icon_update: 0},
-                    team3: {id: 'team3', display_name: 'Team Three', name: 'team-three', last_team_icon_update: 0},
-                },
+                teams: mockTeams,
                 myMembers: {
                     team1: {team_id: 'team1'},
                     team2: {team_id: 'team2'},
-                    team3: {team_id: 'team3'},
                 },
                 currentTeamId: 'team1',
             },
@@ -44,6 +60,9 @@ describe('FavoritedTeams', () => {
 
     beforeEach(() => {
         jest.clearAllMocks();
+        mockGetCurrentTeamId.mockReturnValue('team1');
+        mockGetFavoritedTeamIds.mockReturnValue(['team1', 'team2']);
+        mockGetTeam.mockImplementation((state, id) => mockTeams[id as keyof typeof mockTeams] || null);
     });
 
     it('renders container element', () => {
@@ -136,15 +155,15 @@ describe('FavoritedTeams', () => {
     });
 
     it('renders nothing when no favorited teams', () => {
-        const stateWithNoFavorites = {
+        mockGetFavoritedTeamIds.mockReturnValue([]);
+        const store = mockStore({
             ...baseState,
             views: {
                 guildedLayout: {
                     favoritedTeamIds: [],
                 },
             },
-        };
-        const store = mockStore(stateWithNoFavorites);
+        });
         const {container} = render(
             <Provider store={store}>
                 <FavoritedTeams {...defaultProps} />

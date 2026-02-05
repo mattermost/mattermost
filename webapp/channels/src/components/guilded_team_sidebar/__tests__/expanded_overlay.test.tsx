@@ -8,6 +8,24 @@ import configureStore from 'redux-mock-store';
 
 import ExpandedOverlay from '../expanded_overlay';
 
+jest.mock('selectors/views/guilded_layout', () => ({
+    getFavoritedTeamIds: jest.fn(),
+    getUnreadDmChannelsWithUsers: jest.fn(),
+}));
+
+jest.mock('mattermost-redux/selectors/entities/teams', () => ({
+    getCurrentTeamId: jest.fn(),
+    getMyTeams: jest.fn(),
+}));
+
+import {getFavoritedTeamIds, getUnreadDmChannelsWithUsers} from 'selectors/views/guilded_layout';
+import {getCurrentTeamId, getMyTeams} from 'mattermost-redux/selectors/entities/teams';
+
+const mockGetFavoritedTeamIds = getFavoritedTeamIds as jest.Mock;
+const mockGetUnreadDmChannelsWithUsers = getUnreadDmChannelsWithUsers as jest.Mock;
+const mockGetCurrentTeamId = getCurrentTeamId as jest.Mock;
+const mockGetMyTeams = getMyTeams as jest.Mock;
+
 const mockStore = configureStore([]);
 
 describe('ExpandedOverlay', () => {
@@ -15,35 +33,26 @@ describe('ExpandedOverlay', () => {
         onClose: jest.fn(),
     };
 
+    const mockTeams = [
+        {id: 'team1', display_name: 'Team One', name: 'team-one', last_team_icon_update: 0, delete_at: 0},
+        {id: 'team2', display_name: 'Team Two', name: 'team-two', last_team_icon_update: 0, delete_at: 0},
+    ];
+
+    const mockUnreadDms = [
+        {
+            channel: {id: 'dm1', type: 'D', name: 'currentUser__user2', last_post_at: 1000},
+            user: {id: 'user2', username: 'johndoe', first_name: 'John', last_name: 'Doe', last_picture_update: 0},
+            unreadCount: 2,
+            status: 'online',
+        },
+    ];
+
     const baseState = {
         entities: {
             teams: {
-                teams: {
-                    team1: {id: 'team1', display_name: 'Team One', name: 'team-one', last_team_icon_update: 0},
-                    team2: {id: 'team2', display_name: 'Team Two', name: 'team-two', last_team_icon_update: 0},
-                },
-                myMembers: {
-                    team1: {team_id: 'team1'},
-                    team2: {team_id: 'team2'},
-                },
+                teams: {},
+                myMembers: {},
                 currentTeamId: 'team1',
-            },
-            channels: {
-                channels: {
-                    dm1: {id: 'dm1', type: 'D', name: 'currentUser__user2', last_post_at: 1000},
-                },
-                myMembers: {
-                    dm1: {channel_id: 'dm1', mention_count: 2},
-                },
-            },
-            users: {
-                profiles: {
-                    user2: {id: 'user2', username: 'johndoe', first_name: 'John', last_name: 'Doe', last_picture_update: 0},
-                },
-                statuses: {
-                    user2: 'online',
-                },
-                currentUserId: 'currentUser',
             },
             general: {
                 config: {},
@@ -58,6 +67,10 @@ describe('ExpandedOverlay', () => {
 
     beforeEach(() => {
         jest.clearAllMocks();
+        mockGetCurrentTeamId.mockReturnValue('team1');
+        mockGetFavoritedTeamIds.mockReturnValue(['team1']);
+        mockGetMyTeams.mockReturnValue(mockTeams);
+        mockGetUnreadDmChannelsWithUsers.mockReturnValue(mockUnreadDms);
     });
 
     it('renders the overlay container', () => {

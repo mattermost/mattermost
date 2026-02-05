@@ -8,6 +8,22 @@ import configureStore from 'redux-mock-store';
 
 import TeamList from '../team_list';
 
+jest.mock('selectors/views/guilded_layout', () => ({
+    getFavoritedTeamIds: jest.fn(),
+}));
+
+jest.mock('mattermost-redux/selectors/entities/teams', () => ({
+    getCurrentTeamId: jest.fn(),
+    getMyTeams: jest.fn(),
+}));
+
+import {getFavoritedTeamIds} from 'selectors/views/guilded_layout';
+import {getCurrentTeamId, getMyTeams} from 'mattermost-redux/selectors/entities/teams';
+
+const mockGetFavoritedTeamIds = getFavoritedTeamIds as jest.Mock;
+const mockGetCurrentTeamId = getCurrentTeamId as jest.Mock;
+const mockGetMyTeams = getMyTeams as jest.Mock;
+
 const mockStore = configureStore([]);
 
 describe('TeamList', () => {
@@ -15,19 +31,17 @@ describe('TeamList', () => {
         onTeamClick: jest.fn(),
     };
 
+    const allTeams = [
+        {id: 'team1', display_name: 'Alpha Team', name: 'alpha-team', last_team_icon_update: 0, delete_at: 0},
+        {id: 'team2', display_name: 'Beta Team', name: 'beta-team', last_team_icon_update: 0, delete_at: 0},
+        {id: 'team3', display_name: 'Gamma Team', name: 'gamma-team', last_team_icon_update: 0, delete_at: 0},
+    ];
+
     const baseState = {
         entities: {
             teams: {
-                teams: {
-                    team1: {id: 'team1', display_name: 'Alpha Team', name: 'alpha-team', last_team_icon_update: 0},
-                    team2: {id: 'team2', display_name: 'Beta Team', name: 'beta-team', last_team_icon_update: 0},
-                    team3: {id: 'team3', display_name: 'Gamma Team', name: 'gamma-team', last_team_icon_update: 0},
-                },
-                myMembers: {
-                    team1: {team_id: 'team1'},
-                    team2: {team_id: 'team2'},
-                    team3: {team_id: 'team3'},
-                },
+                teams: {},
+                myMembers: {},
                 currentTeamId: 'team1',
             },
             general: {
@@ -43,6 +57,9 @@ describe('TeamList', () => {
 
     beforeEach(() => {
         jest.clearAllMocks();
+        mockGetCurrentTeamId.mockReturnValue('team1');
+        mockGetFavoritedTeamIds.mockReturnValue(['team1']);
+        mockGetMyTeams.mockReturnValue(allTeams);
     });
 
     it('renders container element', () => {
@@ -110,15 +127,15 @@ describe('TeamList', () => {
     });
 
     it('shows all teams when none are favorited', () => {
-        const stateWithNoFavorites = {
+        mockGetFavoritedTeamIds.mockReturnValue([]);
+        const store = mockStore({
             ...baseState,
             views: {
                 guildedLayout: {
                     favoritedTeamIds: [],
                 },
             },
-        };
-        const store = mockStore(stateWithNoFavorites);
+        });
         const {container} = render(
             <Provider store={store}>
                 <TeamList {...defaultProps} />
@@ -130,15 +147,15 @@ describe('TeamList', () => {
     });
 
     it('sorts teams alphabetically by display name', () => {
-        const stateWithNoFavorites = {
+        mockGetFavoritedTeamIds.mockReturnValue([]);
+        const store = mockStore({
             ...baseState,
             views: {
                 guildedLayout: {
                     favoritedTeamIds: [],
                 },
             },
-        };
-        const store = mockStore(stateWithNoFavorites);
+        });
         const {container} = render(
             <Provider store={store}>
                 <TeamList {...defaultProps} />
@@ -151,9 +168,10 @@ describe('TeamList', () => {
     });
 
     it('highlights current team if in list', () => {
-        // Current team is team1, but it's favorited so won't be in list
-        // Let's make team2 current instead
-        const stateWithCurrentInList = {
+        // Make team2 current and not favorited
+        mockGetCurrentTeamId.mockReturnValue('team2');
+        mockGetFavoritedTeamIds.mockReturnValue(['team1']);
+        const store = mockStore({
             ...baseState,
             entities: {
                 ...baseState.entities,
@@ -162,8 +180,7 @@ describe('TeamList', () => {
                     currentTeamId: 'team2',
                 },
             },
-        };
-        const store = mockStore(stateWithCurrentInList);
+        });
         const {container} = render(
             <Provider store={store}>
                 <TeamList {...defaultProps} />
