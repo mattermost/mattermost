@@ -1374,17 +1374,10 @@ func (s *SqlPostStore) getPostsSinceCollapsedThreads(rctx request.CTX, options m
 		LeftJoin("Threads ON Threads.PostId = Posts.Id").
 		LeftJoin("ThreadMemberships ON ThreadMemberships.PostId = Posts.Id AND ThreadMemberships.UserId = ?", options.UserId).
 		Where(sq.Eq{"Posts.ChannelId": options.ChannelId}).
+		Where(sq.Gt{"Posts.UpdateAt": options.Time}).
 		Where(sq.Eq{"Posts.RootId": ""}).
 		OrderBy("Posts.CreateAt DESC").
 		Limit(1000)
-
-	if options.AutotranslationEnabled {
-		query = query.LeftJoin("Translations ON Translations.ObjectId = Posts.Id").
-			Where(sq.Eq{"Translations.DstLang": options.Language}).
-			Where(sq.Or{sq.Gt{"Posts.UpdateAt": options.Time}, sq.Gt{"Translations.UpdateAt": options.Time}})
-	} else {
-		query = query.Where(sq.Gt{"Posts.UpdateAt": options.Time})
-	}
 
 	if err := s.GetReplica().SelectBuilder(&posts, query); err != nil {
 		return nil, errors.Wrapf(err, "failed to find Posts with channelId=%s", options.ChannelId)
@@ -1417,32 +1410,20 @@ func (s *SqlPostStore) GetPostsSince(rctx request.CTX, options model.GetPostsSin
 	postColumnsPosts := strings.Join(postSliceColumnsWithName("Posts"), ", ")
 	postColumnsCte := strings.Join(postSliceColumnsWithName("cte"), ", ")
 	postColumnsP1 := strings.Join(postSliceColumnsWithName("p1"), ", ")
-	withCTEQuery := `WITH cte AS (SELECT
+
+	query = `WITH cte AS (SELECT
 	       ` + postColumnsPosts + `
-		FROM
+	FROM
 	       Posts
-		WHERE
+	WHERE
 	       UpdateAt > ? AND ChannelId = ?
-		LIMIT 1000)`
-	params = []any{options.Time, options.ChannelId}
-
-	if options.AutotranslationEnabled {
-		params = []any{options.Time, options.Time, options.Language, options.ChannelId}
-		withCTEQuery = `WITH cte AS (SELECT
-			` + postColumnsPosts + `
-		FROM Posts
-		LEFT JOIN Translations ON Translations.ObjectId = Posts.Id
-		WHERE
-			(Posts.UpdateAt > ? OR COALESCE(Translations.UpdateAt, 0) > ?) AND Translations.DstLang = ? AND Posts.ChannelId = ?
-		LIMIT 1000)`
-	}
-
-	query = withCTEQuery + `
+	       LIMIT 1000)
 	(SELECT ` + postColumnsCte + replyCountQuery2 + ` FROM cte)
 	UNION
 	(SELECT ` + postColumnsP1 + replyCountQuery1 + ` FROM Posts p1 WHERE id in (SELECT rootid FROM cte))
 	ORDER BY CreateAt ` + order
 
+	params = []any{options.Time, options.ChannelId}
 	err := s.GetReplica().Select(&posts, query, params...)
 	if err != nil {
 		return nil, errors.Wrapf(err, "failed to find Posts with channelId=%s", options.ChannelId)
