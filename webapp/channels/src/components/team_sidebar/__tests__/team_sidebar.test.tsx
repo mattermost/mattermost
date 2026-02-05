@@ -39,10 +39,11 @@ describe('TeamSidebar with Guilded Layout', () => {
                         id: 'team1',
                         name: 'team1',
                         display_name: 'Team 1',
+                        delete_at: 0,
                     },
                 },
                 myMembers: {
-                    team1: {team_id: 'team1', user_id: 'user1'},
+                    team1: {team_id: 'team1', user_id: 'user1', roles: 'team_user'},
                 },
                 currentTeamId: 'team1',
             },
@@ -50,9 +51,12 @@ describe('TeamSidebar with Guilded Layout', () => {
                 channels: {},
                 myMembers: {},
                 channelsInTeam: {},
+                messageCounts: {},
             },
             users: {
-                profiles: {},
+                profiles: {
+                    user1: {id: 'user1', username: 'user1', roles: 'system_user'},
+                },
                 statuses: {},
                 currentUserId: 'user1',
             },
@@ -61,6 +65,16 @@ describe('TeamSidebar with Guilded Layout', () => {
             },
             preferences: {
                 myPreferences: {},
+            },
+            roles: {
+                roles: {
+                    system_user: {
+                        permissions: [],
+                    },
+                    team_user: {
+                        permissions: [],
+                    },
+                },
             },
         },
         plugins: {
@@ -118,12 +132,12 @@ describe('TeamSidebar with Guilded Layout', () => {
                 ...singleTeamState.entities,
                 teams: {
                     teams: {
-                        team1: {id: 'team1', name: 'team1', display_name: 'Team 1'},
-                        team2: {id: 'team2', name: 'team2', display_name: 'Team 2'},
+                        team1: {id: 'team1', name: 'team1', display_name: 'Team 1', delete_at: 0},
+                        team2: {id: 'team2', name: 'team2', display_name: 'Team 2', delete_at: 0},
                     },
                     myMembers: {
-                        team1: {team_id: 'team1', user_id: 'user1'},
-                        team2: {team_id: 'team2', user_id: 'user1'},
+                        team1: {team_id: 'team1', user_id: 'user1', roles: 'team_user'},
+                        team2: {team_id: 'team2', user_id: 'user1', roles: 'team_user'},
                     },
                     currentTeamId: 'team1',
                 },
@@ -153,12 +167,12 @@ describe('TeamSidebar with Guilded Layout', () => {
                 ...singleTeamState.entities,
                 teams: {
                     teams: {
-                        team1: {id: 'team1', name: 'team1', display_name: 'Team 1'},
-                        team2: {id: 'team2', name: 'team2', display_name: 'Team 2'},
+                        team1: {id: 'team1', name: 'team1', display_name: 'Team 1', delete_at: 0},
+                        team2: {id: 'team2', name: 'team2', display_name: 'Team 2', delete_at: 0},
                     },
                     myMembers: {
-                        team1: {team_id: 'team1', user_id: 'user1'},
-                        team2: {team_id: 'team2', user_id: 'user1'},
+                        team1: {team_id: 'team1', user_id: 'user1', roles: 'team_user'},
+                        team2: {team_id: 'team2', user_id: 'user1', roles: 'team_user'},
                     },
                     currentTeamId: 'team1',
                 },
