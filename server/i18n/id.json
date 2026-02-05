@@ -3226,10 +3226,6 @@
     "translation": "Tidak dapat menemukan saluran yang ditentukan. Silakan gunakan [pegangan saluran] (https://docs.mattermost.com/messaging/managing-channels.html#naming-a-channel) untuk mengidentifikasi saluran."
   },
   {
-    "id": "api.command_mute.not_member.error",
-    "translation": "Tidak dapat membisukan saluran {{.Channel}} karena Anda bukan anggota."
-  },
-  {
     "id": "api.command_mute.success_unmute",
     "translation": "{{.Channel}} tidak lagi dibisukan."
   },

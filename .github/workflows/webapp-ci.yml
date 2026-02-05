@@ -7,7 +7,6 @@ on:
   pull_request:
     paths:
       - "webapp/**"
-      - "e2e-tests/**"
       - ".github/workflows/webapp-ci.yml"
       - ".github/actions/webapp-setup/**"
 
