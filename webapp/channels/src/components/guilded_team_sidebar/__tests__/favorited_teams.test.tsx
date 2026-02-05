@@ -10,15 +10,15 @@ import FavoritedTeams from '../favorited_teams';
 
 const mockStore = configureStore([]);
 
-// Mock react-redux useSelector
-let useSelectorCallCount = 0;
-let mockSelectorValues: any[] = [];
+// Mock react-redux useSelector - variables must be prefixed with 'mock'
+let mockCallCount = 0;
+let mockValues: any[] = [];
 
 jest.mock('react-redux', () => ({
     ...jest.requireActual('react-redux'),
     useSelector: () => {
-        const value = mockSelectorValues[useSelectorCallCount] ?? null;
-        useSelectorCallCount++;
+        const value = mockValues[mockCallCount] ?? null;
+        mockCallCount++;
         return value;
     },
 }));
@@ -44,9 +44,9 @@ describe('FavoritedTeams', () => {
 
     beforeEach(() => {
         jest.clearAllMocks();
-        useSelectorCallCount = 0;
+        mockCallCount = 0;
         // FavoritedTeams calls useSelector in order: getFavoritedTeamIds, getCurrentTeamId, inline selector for teams
-        mockSelectorValues = [['team1', 'team2'], 'team1', mockTeams];
+        mockValues = [['team1', 'team2'], 'team1', mockTeams];
     });
 
     it('renders container element', () => {
@@ -139,8 +139,8 @@ describe('FavoritedTeams', () => {
     });
 
     it('renders nothing when no favorited teams', () => {
-        useSelectorCallCount = 0;
-        mockSelectorValues = [[], 'team1', []];
+        mockCallCount = 0;
+        mockValues = [[], 'team1', []];
 
         const store = mockStore(baseState);
         const {container} = render(

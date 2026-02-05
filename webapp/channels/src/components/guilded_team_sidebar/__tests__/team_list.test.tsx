@@ -10,15 +10,15 @@ import TeamList from '../team_list';
 
 const mockStore = configureStore([]);
 
-// Mock react-redux useSelector
-let useSelectorCallCount = 0;
-let mockSelectorValues: any[] = [];
+// Mock react-redux useSelector - variables must be prefixed with 'mock'
+let mockCallCount = 0;
+let mockValues: any[] = [];
 
 jest.mock('react-redux', () => ({
     ...jest.requireActual('react-redux'),
     useSelector: () => {
-        const value = mockSelectorValues[useSelectorCallCount] ?? null;
-        useSelectorCallCount++;
+        const value = mockValues[mockCallCount] ?? null;
+        mockCallCount++;
         return value;
     },
 }));
@@ -44,9 +44,9 @@ describe('TeamList', () => {
 
     beforeEach(() => {
         jest.clearAllMocks();
-        useSelectorCallCount = 0;
+        mockCallCount = 0;
         // TeamList calls useSelector in order: getMyTeams, getFavoritedTeamIds, getCurrentTeamId
-        mockSelectorValues = [allTeams, ['team1'], 'team1'];
+        mockValues = [allTeams, ['team1'], 'team1'];
     });
 
     it('renders container element', () => {
@@ -114,8 +114,8 @@ describe('TeamList', () => {
     });
 
     it('shows all teams when none are favorited', () => {
-        useSelectorCallCount = 0;
-        mockSelectorValues = [allTeams, [], 'team1'];
+        mockCallCount = 0;
+        mockValues = [allTeams, [], 'team1'];
 
         const store = mockStore(baseState);
         const {container} = render(
@@ -129,8 +129,8 @@ describe('TeamList', () => {
     });
 
     it('sorts teams alphabetically by display name', () => {
-        useSelectorCallCount = 0;
-        mockSelectorValues = [allTeams, [], 'team1'];
+        mockCallCount = 0;
+        mockValues = [allTeams, [], 'team1'];
 
         const store = mockStore(baseState);
         const {container} = render(
@@ -145,8 +145,8 @@ describe('TeamList', () => {
     });
 
     it('highlights current team if in list', () => {
-        useSelectorCallCount = 0;
-        mockSelectorValues = [allTeams, ['team1'], 'team2'];
+        mockCallCount = 0;
+        mockValues = [allTeams, ['team1'], 'team2'];
 
         const store = mockStore(baseState);
         const {container} = render(

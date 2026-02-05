@@ -10,15 +10,15 @@ import UnreadDmAvatars from '../unread_dm_avatars';
 
 const mockStore = configureStore([]);
 
-// Mock react-redux useSelector
-let useSelectorCallCount = 0;
-let mockSelectorValues: any[] = [];
+// Mock react-redux useSelector - variables must be prefixed with 'mock'
+let mockCallCount = 0;
+let mockValues: any[] = [];
 
 jest.mock('react-redux', () => ({
     ...jest.requireActual('react-redux'),
     useSelector: () => {
-        const value = mockSelectorValues[useSelectorCallCount] ?? [];
-        useSelectorCallCount++;
+        const value = mockValues[mockCallCount] ?? [];
+        mockCallCount++;
         return value;
     },
 }));
@@ -32,14 +32,14 @@ describe('UnreadDmAvatars', () => {
 
     beforeEach(() => {
         jest.clearAllMocks();
-        useSelectorCallCount = 0;
+        mockCallCount = 0;
         // UnreadDmAvatars calls useSelector once: getUnreadDmChannelsWithUsers
-        mockSelectorValues = [[]];
+        mockValues = [[]];
     });
 
     it('renders container element', () => {
-        mockSelectorValues = [[]];
-        useSelectorCallCount = 0;
+        mockValues = [[]];
+        mockCallCount = 0;
         const store = mockStore(baseState);
         const {container} = render(
             <Provider store={store}>
@@ -51,8 +51,8 @@ describe('UnreadDmAvatars', () => {
     });
 
     it('renders nothing when no unread DMs', () => {
-        mockSelectorValues = [[]];
-        useSelectorCallCount = 0;
+        mockValues = [[]];
+        mockCallCount = 0;
         const store = mockStore(baseState);
         const {container} = render(
             <Provider store={store}>
@@ -78,7 +78,7 @@ describe('UnreadDmAvatars', () => {
                 status: 'away',
             },
         ]];
-        useSelectorCallCount = 0;
+        mockCallCount = 0;
         const store = mockStore(baseState);
         const {container} = render(
             <Provider store={store}>
@@ -100,8 +100,8 @@ describe('UnreadDmAvatars', () => {
                 status: 'online',
             });
         }
-        mockSelectorValues = [manyUnreads];
-        useSelectorCallCount = 0;
+        mockValues = [manyUnreads];
+        mockCallCount = 0;
         const store = mockStore(baseState);
         const {container} = render(
             <Provider store={store}>
@@ -123,8 +123,8 @@ describe('UnreadDmAvatars', () => {
                 status: 'online',
             });
         }
-        mockSelectorValues = [manyUnreads];
-        useSelectorCallCount = 0;
+        mockValues = [manyUnreads];
+        mockCallCount = 0;
         const store = mockStore(baseState);
         const {container} = render(
             <Provider store={store}>
@@ -137,7 +137,7 @@ describe('UnreadDmAvatars', () => {
     });
 
     it('shows status indicator on avatars', () => {
-        mockSelectorValues = [[
+        mockValues = [[
             {
                 channel: {id: 'dm1', type: 'D', name: 'currentUser__user2', last_post_at: 1000},
                 user: {id: 'user2', username: 'user2', last_picture_update: 0},
@@ -145,7 +145,7 @@ describe('UnreadDmAvatars', () => {
                 status: 'online',
             },
         ]];
-        useSelectorCallCount = 0;
+        mockCallCount = 0;
         const store = mockStore(baseState);
         const {container} = render(
             <Provider store={store}>

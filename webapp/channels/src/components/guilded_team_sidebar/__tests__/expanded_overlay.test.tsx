@@ -10,15 +10,15 @@ import ExpandedOverlay from '../expanded_overlay';
 
 const mockStore = configureStore([]);
 
-// Mock react-redux useSelector
-let useSelectorCallCount = 0;
-let mockSelectorValues: any[] = [];
+// Mock react-redux useSelector - variables must be prefixed with 'mock'
+let mockCallCount = 0;
+let mockValues: any[] = [];
 
 jest.mock('react-redux', () => ({
     ...jest.requireActual('react-redux'),
     useSelector: () => {
-        const value = mockSelectorValues[useSelectorCallCount] ?? null;
-        useSelectorCallCount++;
+        const value = mockValues[mockCallCount] ?? null;
+        mockCallCount++;
         return value;
     },
 }));
@@ -52,9 +52,9 @@ describe('ExpandedOverlay', () => {
 
     beforeEach(() => {
         jest.clearAllMocks();
-        useSelectorCallCount = 0;
+        mockCallCount = 0;
         // ExpandedOverlay calls useSelector in order: getMyTeams, getFavoritedTeamIds, getCurrentTeamId, getUnreadDmChannelsWithUsers
-        mockSelectorValues = [mockTeams, ['team1'], 'team1', mockUnreadDms];
+        mockValues = [mockTeams, ['team1'], 'team1', mockUnreadDms];
     });
 
     it('renders the overlay container', () => {
