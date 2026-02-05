@@ -1,5 +1,47 @@
 // Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
 
+exports[`components/ProductBranding should fallback to ProductChannelsIcon when string icon name is not found in glyphMap 1`] = `
+<ProductBrandingContainer
+  tabIndex={-1}
+>
+  <ProductChannelsIcon
+    size={24}
+  />
+  <h1
+    className="sr-only"
+  >
+    InvalidProduct
+  </h1>
+  <ProductBrandingHeading>
+    InvalidProduct
+  </ProductBrandingHeading>
+</ProductBrandingContainer>
+`;
+
+exports[`components/ProductBranding should render a React element icon when switcherIcon is a React node 1`] = `
+<ProductBrandingContainer
+  tabIndex={-1}
+>
+  <svg
+    data-testid="custom-icon"
+  >
+    <circle
+      cx="12"
+      cy="12"
+      r="10"
+    />
+  </svg>
+  <h1
+    className="sr-only"
+  >
+    CustomProduct
+  </h1>
+  <ProductBrandingHeading>
+    CustomProduct
+  </ProductBrandingHeading>
+</ProductBrandingContainer>
+`;
+
 exports[`components/ProductBranding should show correct icon glyph when we are on Boards 1`] = `
 <ProductBrandingContainer
   tabIndex={-1}

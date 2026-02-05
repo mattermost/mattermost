@@ -6,7 +6,7 @@ import React from 'react';
 import {
     renderWithContext,
     screen,
-    fireEvent,
+    userEvent,
 } from 'tests/react_testing_utils';
 
 import SearchBoxHints from './search_box_hints';
@@ -56,9 +56,9 @@ describe('components/new_search/SearchBoxHints', () => {
         expect(screen.getByText('From:')).toBeInTheDocument();
     });
 
-    test('should change the search term and focus on click', () => {
+    test('should change the search term and focus on click', async () => {
         renderWithContext(<SearchBoxHints {...baseProps}/>);
-        fireEvent.click(screen.getByText('From:'));
+        await userEvent.click(screen.getByText('From:'));
         expect(baseProps.setSearchTerms).toHaveBeenCalledWith('From:');
         expect(baseProps.focus).toHaveBeenCalledWith(5);
     });

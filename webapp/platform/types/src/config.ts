@@ -754,16 +754,17 @@ export type LocalizationSettings = {
 
 export type AutoTranslationSettings = {
     Enable: boolean;
-    Provider: '' | 'libretranslate';
+    TargetLanguages: string[];
+    Workers: number;
+    Provider: '' | 'libretranslate' | 'agents';
     LibreTranslate: {
         URL: string;
         APIKey: string;
     };
-    TimeoutsMs: {
-        NewPost: number;
-        Fetch: number;
-        Notification: number;
+    Agents?: {
+        LLMServiceID: string;
     };
+    TimeoutMs: number;
 };
 
 export type SamlSettings = {
