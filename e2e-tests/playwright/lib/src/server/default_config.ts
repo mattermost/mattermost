@@ -770,6 +770,7 @@ const defaultServerConfig: AdminConfig = {
         NotificationMonitoring: true,
         ExperimentalAuditSettingsSystemConsoleUI: true,
         CustomProfileAttributes: true,
+        BoardAttributes: true,
         AttributeBasedAccessControl: true,
         ContentFlagging: true,
         InteractiveDialogAppsForm: true,

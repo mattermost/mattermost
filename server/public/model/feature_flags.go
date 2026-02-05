@@ -67,6 +67,8 @@ type FeatureFlags struct {
 
 	CustomProfileAttributes bool
 
+	BoardAttributes bool
+
 	AttributeBasedAccessControl bool
 
 	ContentFlagging bool
@@ -118,6 +120,7 @@ func (f *FeatureFlags) SetDefaults() {
 	f.NotificationMonitoring = true
 	f.ExperimentalAuditSettingsSystemConsoleUI = true
 	f.CustomProfileAttributes = true
+	f.BoardAttributes = true
 	f.AttributeBasedAccessControl = true
 	f.ContentFlagging = true
 	f.InteractiveDialogAppsForm = true

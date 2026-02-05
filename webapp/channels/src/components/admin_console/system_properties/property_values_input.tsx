@@ -71,7 +71,7 @@ const PropertyValuesInput = ({
     const addNewValue = () => {
         const currentOptions = fieldAttrs?.options || [];
         const newOption: PropertyFieldOption = {
-            id: '', // temporary id, real id assigned by server
+            id: '', // empty id, real id assigned by server
             name: generateDefaultName(),
         };
         updateField({
@@ -157,10 +157,10 @@ const PropertyValuesInput = ({
     return (
         <Container data-testid='property-values-input'>
             <ValuesContainer>
-                {fieldAttrs?.options?.map((option: PropertyFieldOption) => (
+                {fieldAttrs?.options?.map((option: PropertyFieldOption, index: number) => (
                     <ClickableMultiValue
-                        key={option.id || option.name}
-                        data={{label: option.name, id: option.id}}
+                        key={option.id || `option_${index}_${option.name}`}
+                        data={{label: option.name, id: option.id, index}}
                         field={field}
                         setFieldOptions={setFieldOptions}
                         formatMessage={formatMessage}
@@ -185,7 +185,7 @@ const PropertyValuesInput = ({
 
 // Custom MultiValue component with dropdown functionality
 const ClickableMultiValue = (props: {
-    data: {label: string; id: string};
+    data: {label: string; id: string; index?: number};
     field: PropertyField;
     setFieldOptions: (options: PropertyFieldOption[]) => void;
     formatMessage: (descriptor: {id?: string; defaultMessage: string}) => string;
@@ -193,6 +193,9 @@ const ClickableMultiValue = (props: {
     const {data, field, setFieldOptions, formatMessage} = props;
     const [editValue, setEditValue] = useState(data.label);
     const [isMenuOpen, setIsMenuOpen] = useState(false);
+
+    // Use a stable ID for the selector - prefer the option ID, fallback to index-based
+    const selectorId = data.id || `option_${data.index ?? 0}`;
 
     useEffect(() => {
         setEditValue(data.label);
@@ -203,25 +206,35 @@ const ClickableMultiValue = (props: {
             // Check for duplicates
             const fieldAttrs = field.attrs as {options?: PropertyFieldOption[]};
             const existingOptions: PropertyFieldOption[] = fieldAttrs?.options || [];
-            const isDuplicate = existingOptions.some((option: PropertyFieldOption) => (
-                option.name === trimmedValue && option.id !== data.id
-            ));
+            const isDuplicate = existingOptions.some((option: PropertyFieldOption, idx: number) => {
+                // Use index when ID is empty to avoid matching all empty IDs
+                if (data.id) {
+                    return option.name === trimmedValue && option.id !== data.id;
+                }
+                return option.name === trimmedValue && idx !== data.index;
+            });
 
             if (!isDuplicate) {
-                const updatedOptions = existingOptions.map((option: PropertyFieldOption) => (
-                    option.id === data.id ? {...option, name: trimmedValue} : option
-                ));
+                const updatedOptions = existingOptions.map((option: PropertyFieldOption, idx: number) => {
+                    // Use index when ID is empty to uniquely identify the option
+                    if (data.id) {
+                        return option.id === data.id ? {...option, name: trimmedValue} : option;
+                    }
+                    return idx === data.index ? {...option, name: trimmedValue} : option;
+                });
                 setFieldOptions(updatedOptions);
             }
         }
-    }, [editValue, data.label, data.id, field.attrs, setFieldOptions]);
+    }, [editValue, data.label, data.id, data.index, field.attrs, setFieldOptions]);
 
     useEffect(() => {
         if (isMenuOpen) {
             // Focus and select input when menu opens
             // Use querySelector to find the input since Menu.InputItem doesn't expose ref directly
+            // Option IDs may be empty strings, so we use a fallback ID format based on index
             setTimeout(() => {
-                const inputElement = document.querySelector(`#rename_value_${data.id} input`) as HTMLInputElement;
+                const escapedId = CSS.escape(selectorId);
+                const inputElement = document.querySelector(`#rename_value_${escapedId} input`) as HTMLInputElement;
                 if (inputElement) {
                     inputElement.focus();
                     inputElement.select();
@@ -232,7 +245,7 @@ const ClickableMultiValue = (props: {
             handleRename();
             setEditValue(data.label);
         }
-    }, [isMenuOpen, data.id, data.label, handleRename]);
+    }, [isMenuOpen, selectorId, data.label, handleRename]);
 
     const handleDelete = () => {
         const fieldAttrs = field.attrs as {options?: PropertyFieldOption[]};
@@ -243,7 +256,13 @@ const ClickableMultiValue = (props: {
             return;
         }
 
-        const updatedOptions = currentOptions.filter((option: PropertyFieldOption) => option.id !== data.id);
+        // Use index when ID is empty to uniquely identify the option
+        const updatedOptions = currentOptions.filter((option: PropertyFieldOption, idx: number) => {
+            if (data.id) {
+                return option.id !== data.id;
+            }
+            return idx !== data.index;
+        });
         setFieldOptions(updatedOptions);
     };
 
@@ -283,8 +302,8 @@ const ClickableMultiValue = (props: {
             }}
         >
             <Menu.InputItem
-                key={`rename_value_${data.id}`}
-                id={`rename_value_${data.id}`}
+                key={`rename_value_${selectorId}`}
+                id={`rename_value_${selectorId}`}
                 type='text'
                 placeholder={formatMessage({id: 'admin.system_properties.user_properties.table.values.enter_value_name', defaultMessage: 'Enter value name'})}
                 value={editValue}

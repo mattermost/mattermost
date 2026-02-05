@@ -76,6 +76,56 @@ export function useAttributesPanel<T extends PropertyField = PropertyField>(
     const [pendingCollection, pendingIO] = usePendingThing<IDMappedCollection<T>, BatchProcessingError<ClientError>>(
         fieldCollection,
         useMemo(() => ({
+            beforeUpdate: (pending: IDMappedCollection<T>, current: IDMappedCollection<T>) => {
+                // Validate field names
+                const byNamesLower = (fields: T[]) => {
+                    const result: {[key: string]: T[]} = {};
+                    fields.forEach((field) => {
+                        const key = field.name.toLowerCase();
+                        if (!result[key]) {
+                            result[key] = [];
+                        }
+                        result[key].push(field);
+                    });
+                    return result;
+                };
+
+                const pendingFields = collectionToArray(pending);
+                const currentFields = collectionToArray(current);
+
+                const pendingByName = byNamesLower(pendingFields);
+                const currentByName = byNamesLower(currentFields);
+
+                const warnings = pendingFields.reduce<NonNullable<IDMappedCollection<T>['warnings']>>((acc, field) => {
+                    if (!field.name) {
+                        // name not provided
+                        (acc as any)[field.id] = {name: 'name_required'};
+                    } else if (pendingByName[field.name.toLowerCase()]?.filter((x) => (x as T & {delete_at?: number}).delete_at === 0)?.length > 1) {
+                        // duplicate pending name
+                        (acc as any)[field.id] = {name: 'name_unique'};
+                    } else if (
+                        currentByName?.[field.name.toLowerCase()]?.length >= 1 &&
+                        field.id !== currentByName?.[field.name.toLowerCase()]?.[0]?.id
+                    ) {
+                        // name already in use
+                        const conflictingField = currentByName[field.name.toLowerCase()][0];
+                        const correspondingPending = pending.data[conflictingField.id as keyof typeof pending.data] as T | undefined;
+
+                        // except when corresponding field is going to be deleted, then it is no longer in conflict
+                        if (correspondingPending && (correspondingPending as T & {delete_at?: number}).delete_at === 0) {
+                            // not going to be deleted, so in conflict
+                            (acc as any)[field.id] = {name: 'name_taken'};
+                        }
+                    }
+
+                    return acc;
+                }, {} as NonNullable<IDMappedCollection<T>['warnings']>);
+
+                return {
+                    ...pending,
+                    warnings: Object.keys(warnings).length > 0 ? warnings : undefined,
+                };
+            },
             commit: async (collection: IDMappedCollection<T>, prevCollection: IDMappedCollection<T>) => {
                 const process = collectionToArray(collection).reduce<{
                     create: T[];
@@ -83,16 +133,26 @@ export function useAttributesPanel<T extends PropertyField = PropertyField>(
                     delete: T[];
                 }>((ops, item) => {
                     const prevItem = prevCollection.data[item.id as keyof typeof prevCollection.data];
-                    const isSameReference = item === prevItem;
 
-                    // don't process unchanged items
-                    if (isSameReference) {
+                    // Check if item actually changed by comparing key fields, not just reference
+                    // This is important because collectionToArray might return objects that share references
+                    const isActuallyUnchanged = prevItem &&
+                        item.create_at === prevItem.create_at &&
+                        item.delete_at === prevItem.delete_at &&
+                        item.name === prevItem.name &&
+                        item.type === prevItem.type;
+
+                    // don't process unchanged items - but check actual values, not just reference
+                    if (isActuallyUnchanged) {
                         return ops;
                     }
 
-                    if (config.isCreatePending(item)) {
+                    const isCreatePending = config.isCreatePending(item);
+                    const isDeletePending = config.isDeletePending(item);
+
+                    if (isCreatePending) {
                         ops.create.push(item);
-                    } else if (config.isDeletePending(item)) {
+                    } else if (isDeletePending) {
                         ops.delete.push(item);
                     } else if (prevItem) {
                         // Item exists in previous collection, so it's an edit
@@ -206,19 +266,21 @@ export function useAttributesPanel<T extends PropertyField = PropertyField>(
         },
         delete: (id: string) => {
             pendingIO.apply((current) => {
-                const next = {...current};
-                const field = next.data[id];
+                const field = current.data[id as keyof typeof current.data];
                 if (field) {
                     if (config.isCreatePending(field)) {
                         // Remove if it was never saved
+                        const next = {...current, data: {...current.data}};
                         Reflect.deleteProperty(next.data, id);
                         next.order = next.order.filter((orderId) => orderId !== id);
-                    } else {
-                        // Mark as deleted
-                        next.data[id] = {...field, delete_at: Date.now()} as T;
+                        return next;
                     }
+
+                    // Mark as deleted - use collectionReplaceItem to ensure new object reference
+                    const newDeleteAt = Date.now();
+                    return collectionReplaceItem(current, {...field, delete_at: newDeleteAt} as T);
                 }
-                return next;
+                return current;
             });
         },
         reorder: (field: T, nextOrder: number) => {
@@ -284,8 +346,19 @@ export function AttributesPanel<T extends PropertyField = PropertyField>({
                     return;
                 }
 
-                // Reconcile - zero pending changes
-                readIO.setData(newData);
+                // Reconcile - refresh from server to ensure we have the latest state
+                // This ensures deleted items are actually gone from the server
+                readIO.get().then((serverData) => {
+                    if (serverData) {
+                        readIO.setData(serverData);
+                    } else {
+                        // Fallback to local data if refresh fails
+                        readIO.setData(newData);
+                    }
+                }).catch(() => {
+                    // Fallback to local data if refresh fails
+                    readIO.setData(newData);
+                });
             }
         }).catch(() => {
             // Error is already handled by pendingIO.error

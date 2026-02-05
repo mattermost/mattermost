@@ -114,6 +114,7 @@ import ServerLogs from './server_logs';
 import {searchableStrings as serverLogsSearchableStrings} from './server_logs/logs';
 import SessionLengthSettings, {searchableStrings as sessionLengthSearchableStrings} from './session_length_settings';
 import SystemProperties, {searchableStrings as systemPropertiesSearchableStrings} from './system_properties';
+import BoardProperties, {searchableStrings as boardPropertiesSearchableStrings} from './system_properties/board_properties';
 import SystemRoles from './system_roles';
 import SystemRole from './system_roles/system_role';
 import SystemUserDetail from './system_user_detail';
@@ -595,6 +596,19 @@ const AdminDefinition: AdminDefinitionType = {
         sectionTitle: defineMessage({id: 'admin.sidebar.systemAttributes', defaultMessage: 'System Attributes'}),
         isHidden: it.not(it.userHasReadPermissionOnSomeResources(RESOURCE_KEYS.USER_MANAGEMENT)),
         subsections: {
+            board_attributes: {
+                url: 'system_attributes/board_attributes',
+                title: defineMessage({id: 'admin.sidebar.board_attributes', defaultMessage: 'Board Attributes'}),
+                searchableStrings: boardPropertiesSearchableStrings,
+                isHidden: it.not(it.all(
+                    it.minLicenseTier(LicenseSkus.Enterprise),
+                    it.configIsTrue('FeatureFlags', 'BoardAttributes'),
+                )),
+                schema: {
+                    id: 'BoardProperties',
+                    component: BoardProperties,
+                },
+            },
             system_properties: {
                 url: 'system_attributes/user_attributes',
                 title: defineMessage({id: 'admin.sidebar.user_attributes', defaultMessage: 'User Attributes'}),

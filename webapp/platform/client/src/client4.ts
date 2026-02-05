@@ -114,6 +114,7 @@ import type {PreferenceType} from '@mattermost/types/preferences';
 import type {ProductNotices} from '@mattermost/types/product_notices';
 import type {
     NameMappedPropertyFields,
+    PropertyField,
     UserPropertyField,
     UserPropertyFieldPatch,
     PropertyValue,
@@ -358,6 +359,14 @@ export default class Client4 {
 
     getCustomProfileAttributeValuesRoute() {
         return `${this.getBaseRoute()}/custom_profile_attributes/values`;
+    }
+
+    getBoardAttributeFieldsRoute() {
+        return `${this.getBaseRoute()}/board_attributes/fields`;
+    }
+
+    getBoardAttributeFieldRoute(propertyFieldId: string) {
+        return `${this.getBoardAttributeFieldsRoute()}/${propertyFieldId}`;
     }
 
     getPostsRoute() {
@@ -2235,6 +2244,34 @@ export default class Client4 {
     deleteCustomProfileAttributeField = async (fieldId: string) => {
         return this.doFetch<StatusOK>(
             `${this.getCustomProfileAttributeFieldRoute(fieldId)}`,
+            {method: 'DELETE'},
+        );
+    };
+
+    getBoardAttributeFields = async () => {
+        return this.doFetch<PropertyField[]>(
+            `${this.getBoardAttributeFieldsRoute()}`,
+            {method: 'GET'},
+        );
+    };
+
+    createBoardAttributeField = async (patch: Partial<PropertyField>) => {
+        return this.doFetch<PropertyField>(
+            `${this.getBoardAttributeFieldsRoute()}`,
+            {method: 'POST', body: JSON.stringify(patch)},
+        );
+    };
+
+    patchBoardAttributeField = async (fieldId: string, patch: Partial<PropertyField>) => {
+        return this.doFetch<PropertyField>(
+            `${this.getBoardAttributeFieldRoute(fieldId)}`,
+            {method: 'PATCH', body: JSON.stringify(patch)},
+        );
+    };
+
+    deleteBoardAttributeField = async (fieldId: string) => {
+        return this.doFetch<StatusOK>(
+            `${this.getBoardAttributeFieldRoute(fieldId)}`,
             {method: 'DELETE'},
         );
     };
