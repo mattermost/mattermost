@@ -12,6 +12,7 @@ import {getCurrentTeam} from 'mattermost-redux/selectors/entities/teams';
 
 import {setRhsExpanded, showChannelInfo, showPinnedPosts, showChannelFiles, openRHSSearch, closeRightHandSide, openAtPrevious, updateSearchTerms, showChannelMembers} from 'actions/views/rhs';
 import {selectCurrentProductId} from 'selectors/products';
+import {isGuildedLayoutEnabled} from 'selectors/views/guilded_layout';
 import {
     getIsRhsExpanded,
     getIsRhsOpen,
@@ -62,6 +63,7 @@ function mapStateToProps(state: GlobalState, props: RouteComponentProps) {
         team,
         teamId,
         productId,
+        isGuildedLayoutEnabled: isGuildedLayoutEnabled(state),
     };
 }
 

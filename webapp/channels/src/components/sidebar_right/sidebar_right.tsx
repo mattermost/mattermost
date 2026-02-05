@@ -12,6 +12,7 @@ import ChannelInfoRhs from 'components/channel_info_rhs';
 import ChannelMembersRhs from 'components/channel_members_rhs';
 import ThreadFollowersRhs from 'components/thread_followers_rhs';
 import FileUploadOverlay from 'components/file_upload_overlay';
+import PersistentRhs from 'components/persistent_rhs';
 import {DropOverlayIdRHS} from 'components/file_upload_overlay/file_upload_overlay';
 import LoadingScreen from 'components/loading_screen';
 import PostEditHistory from 'components/post_edit_history';
@@ -55,6 +56,7 @@ export type Props = {
     isRecentMentions?: boolean;
     ariaLabel?: string;
     ariaLabeledby?: string;
+    isGuildedLayoutEnabled: boolean;
     actions: {
         setRhsExpanded: (expanded: boolean) => void;
         showPinnedPosts: (channelId: string) => void;
@@ -291,10 +293,40 @@ export default class SidebarRight extends React.PureComponent<Props, State> {
             isChannelMembers,
             isExpanded,
             isPostEditHistory,
+            isGuildedLayoutEnabled,
         } = this.props;
 
-        if (!isOpen) {
+        // In Guilded layout, always render; in standard layout, only when open
+        if (!isOpen && !isGuildedLayoutEnabled) {
             return null;
+        }
+
+        // Guilded layout: show PersistentRhs unless viewing a thread
+        if (isGuildedLayoutEnabled && !isOpen) {
+            return (
+                <>
+                    <div
+                        className={'sidebar--right sidebar--right--width-holder'}
+                        ref={this.sidebarRightWidthHolder}
+                    />
+                    <ResizableRhs
+                        className='sidebar--right move--left is-open'
+                        id='sidebar-right'
+                        role='region'
+                        rightWidthHolderRef={this.sidebarRightWidthHolder}
+                        ariaLabel={this.props.ariaLabel}
+                        ariaLabeledby={this.props.ariaLabeledby}
+                    >
+                        <div
+                            tabIndex={-1}
+                            className='sidebar-right-container'
+                            ref={this.sidebarRight}
+                        >
+                            <PersistentRhs />
+                        </div>
+                    </ResizableRhs>
+                </>
+            );
         }
 
         const teamNeeded = true;
