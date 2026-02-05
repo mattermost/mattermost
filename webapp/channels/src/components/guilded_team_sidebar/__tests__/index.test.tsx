@@ -1,0 +1,132 @@
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
+
+import React from 'react';
+import {render, screen, fireEvent} from '@testing-library/react';
+import {Provider} from 'react-redux';
+import configureStore from 'redux-mock-store';
+
+import GuildedTeamSidebar from '../index';
+
+const mockStore = configureStore([]);
+
+describe('GuildedTeamSidebar', () => {
+    const defaultState = {
+        views: {
+            guildedLayout: {
+                isTeamSidebarExpanded: false,
+                isDmMode: false,
+                favoritedTeamIds: [],
+            },
+        },
+        entities: {
+            teams: {
+                teams: {},
+                myMembers: {},
+                currentTeamId: 'team1',
+            },
+            channels: {
+                channels: {},
+                myMembers: {},
+            },
+            users: {
+                profiles: {},
+                statuses: {},
+            },
+            general: {
+                config: {},
+            },
+        },
+    };
+
+    it('renders the collapsed sidebar container', () => {
+        const store = mockStore(defaultState);
+
+        const {container} = render(
+            <Provider store={store}>
+                <GuildedTeamSidebar />
+            </Provider>
+        );
+
+        expect(container.querySelector('.guilded-team-sidebar')).toBeInTheDocument();
+        expect(container.querySelector('.guilded-team-sidebar__collapsed')).toBeInTheDocument();
+    });
+
+    it('renders DM button', () => {
+        const store = mockStore(defaultState);
+
+        render(
+            <Provider store={store}>
+                <GuildedTeamSidebar />
+            </Provider>
+        );
+
+        expect(screen.getByRole('button', {name: /direct messages/i})).toBeInTheDocument();
+    });
+
+    it('renders dividers', () => {
+        const store = mockStore(defaultState);
+
+        const {container} = render(
+            <Provider store={store}>
+                <GuildedTeamSidebar />
+            </Provider>
+        );
+
+        const dividers = container.querySelectorAll('.guilded-team-sidebar__divider');
+        expect(dividers.length).toBeGreaterThanOrEqual(2);
+    });
+
+    it('shows expanded overlay when isTeamSidebarExpanded is true', () => {
+        const expandedState = {
+            ...defaultState,
+            views: {
+                ...defaultState.views,
+                guildedLayout: {
+                    ...defaultState.views.guildedLayout,
+                    isTeamSidebarExpanded: true,
+                },
+            },
+        };
+        const store = mockStore(expandedState);
+
+        const {container} = render(
+            <Provider store={store}>
+                <GuildedTeamSidebar />
+            </Provider>
+        );
+
+        expect(container.querySelector('.expanded-overlay')).toBeInTheDocument();
+    });
+
+    it('does not show expanded overlay when collapsed', () => {
+        const store = mockStore(defaultState);
+
+        const {container} = render(
+            <Provider store={store}>
+                <GuildedTeamSidebar />
+            </Provider>
+        );
+
+        expect(container.querySelector('.expanded-overlay')).not.toBeInTheDocument();
+    });
+
+    it('dispatches setDmMode when DM button clicked', () => {
+        const store = mockStore(defaultState);
+
+        render(
+            <Provider store={store}>
+                <GuildedTeamSidebar />
+            </Provider>
+        );
+
+        const dmButton = screen.getByRole('button', {name: /direct messages/i});
+        fireEvent.click(dmButton);
+
+        const actions = store.getActions();
+        expect(actions).toContainEqual(expect.objectContaining({
+            type: 'GUILDED_SET_DM_MODE',
+            isDmMode: true,
+        }));
+    });
+});
