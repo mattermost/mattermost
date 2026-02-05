@@ -8,7 +8,7 @@ import classNames from 'classnames';
 
 import {Client4} from 'mattermost-redux/client';
 import {getMyChannelMember} from 'mattermost-redux/selectors/entities/channels';
-import {getCurrentTeamUrl} from 'mattermost-redux/selectors/entities/teams';
+import {getCurrentRelativeTeamUrl} from 'mattermost-redux/selectors/entities/teams';
 import {getUser, getStatusForUserId} from 'mattermost-redux/selectors/entities/users';
 
 import {GlobalState} from 'types/store';
@@ -30,7 +30,7 @@ type Props = {
 };
 
 const EnhancedDmRow = ({channel, user, isActive, onDmClick}: Props) => {
-    const currentTeamUrl = useSelector(getCurrentTeamUrl);
+    const currentTeamUrl = useSelector(getCurrentRelativeTeamUrl);
     const member = useSelector((state: GlobalState) => getMyChannelMember(state, channel.id));
     const userStatus = useSelector((state: GlobalState) => getStatusForUserId(state, user.id)) || 'offline';
 
