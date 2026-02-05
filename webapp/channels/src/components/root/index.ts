@@ -25,6 +25,8 @@ import {
     getIsRhsOpen,
     getRhsState,
 } from 'selectors/rhs';
+import {isGuildedLayoutEnabled} from 'selectors/views/guilded_layout';
+import {getIsMobileView} from 'selectors/views/browser';
 import LocalStorageStore from 'stores/local_storage_store';
 
 import {initializeProducts} from 'plugins/products';
@@ -74,6 +76,7 @@ function mapStateToProps(state: GlobalState) {
         shouldShowAppBar: shouldShowAppBar(state),
         isCloud: isCurrentLicenseCloud(state),
         isDevModeEnabled: isDevModeEnabled(state),
+        isGuildedLayout: isGuildedLayoutEnabled(state) && !getIsMobileView(state),
     };
 }
 

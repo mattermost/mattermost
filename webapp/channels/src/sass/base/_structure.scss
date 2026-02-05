@@ -307,6 +307,21 @@ body.app__body #root {
     box-shadow: var(--elevation-1);
 }
 
+// Disable rounded corners when Guilded layout is active
+#root.guilded-layout {
+    #channel_view.channel-view,
+    .main-wrapper {
+        border-radius: 0;
+    }
+
+    .app__content,
+    .channel-header,
+    .Header,
+    .post-create__container {
+        border-radius: 0;
+    }
+}
+
 .rhs-open #channel_view.channel-view,
 .rhs-open-expanded #channel_view.channel.view {
     @media screen and (min-width: 1200px) {

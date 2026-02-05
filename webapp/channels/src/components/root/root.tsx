@@ -206,7 +206,8 @@ export default class Root extends React.PureComponent<Props, State> {
         if (
             this.props.shouldShowAppBar !== prevProps.shouldShowAppBar ||
             this.props.rhsIsOpen !== prevProps.rhsIsOpen ||
-            this.props.rhsIsExpanded !== prevProps.rhsIsExpanded
+            this.props.rhsIsExpanded !== prevProps.rhsIsExpanded ||
+            this.props.isGuildedLayout !== prevProps.isGuildedLayout
         ) {
             this.setRootMeta();
         }
@@ -320,6 +321,7 @@ export default class Root extends React.PureComponent<Props, State> {
             'app-bar-enabled': this.props.shouldShowAppBar,
             'rhs-open': this.props.rhsIsOpen,
             'rhs-open-expanded': this.props.rhsIsExpanded,
+            'guilded-layout': this.props.isGuildedLayout,
         })) {
             root.classList.toggle(className, enabled);
         }

@@ -15,7 +15,7 @@
     &__group-header {
         display: flex;
         align-items: center;
-        padding: 16px 16px 4px;
+        padding: 12px 12px 4px; // Left padding matches member-row to align with avatars
     }
 
     &__group-label {
