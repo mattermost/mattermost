@@ -263,4 +263,62 @@ describe('EnhancedDmRow', () => {
         expect(badge).toBeInTheDocument();
         expect(badge?.textContent).toBe('3');
     });
+
+    it('shows "No messages yet" when channel has no posts', () => {
+        // baseState already has no posts in postsInChannel
+        const store = mockStore(baseState);
+        const {container} = render(
+            <Provider store={store}>
+                <BrowserRouter>
+                    <EnhancedDmRow
+                        channel={mockChannel}
+                        user={mockUser}
+                        isActive={false}
+                    />
+                </BrowserRouter>
+            </Provider>,
+        );
+
+        const preview = container.querySelector('.enhanced-dm-row__preview');
+        expect(preview?.textContent).toBe('No messages yet');
+    });
+
+    it('shows message preview when last post exists', () => {
+        const stateWithPost = {
+            ...baseState,
+            entities: {
+                ...baseState.entities,
+                posts: {
+                    posts: {
+                        post1: {
+                            id: 'post1',
+                            channel_id: 'dm1',
+                            user_id: 'user2',
+                            message: 'Hello there!',
+                            create_at: 1000,
+                        },
+                    },
+                    postsInChannel: {
+                        dm1: [{order: ['post1'], recent: true}],
+                    },
+                },
+            },
+        };
+
+        const store = mockStore(stateWithPost);
+        const {container} = render(
+            <Provider store={store}>
+                <BrowserRouter>
+                    <EnhancedDmRow
+                        channel={mockChannel}
+                        user={mockUser}
+                        isActive={false}
+                    />
+                </BrowserRouter>
+            </Provider>,
+        );
+
+        const preview = container.querySelector('.enhanced-dm-row__preview');
+        expect(preview?.textContent).toContain('Hello there!');
+    });
 });
