@@ -15,6 +15,25 @@ jest.mock('selectors/views/guilded_layout', () => ({
     isGuildedLayoutEnabled: jest.fn(),
 }));
 
+// Mock child components to avoid complex selector dependencies
+jest.mock('components/guilded_team_sidebar', () => () => <div className="guilded-team-sidebar" />);
+jest.mock('../connected_team_sidebar', () => {
+    const mockComponent = ({myTeams}: {myTeams: any[]}) => {
+        // Mimic original behavior: return null if <= 1 team
+        if (!myTeams || myTeams.length <= 1) {
+            return null;
+        }
+        return <div className="team-sidebar" />;
+    };
+    // Wrap with connect-like behavior
+    return function MockConnectedTeamSidebar() {
+        // Access store via useSelector
+        const {useSelector} = jest.requireActual('react-redux');
+        const myTeams = useSelector((state: any) => Object.values(state.entities?.teams?.teams || {}));
+        return mockComponent({myTeams});
+    };
+});
+
 // Import after mocking
 import TeamSidebarWrapper from '../index';
 
