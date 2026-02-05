@@ -1,0 +1,46 @@
+.dm-list-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: 64px;
+    padding: 0 16px;
+    border-bottom: 1px solid var(--center-channel-color-16);
+    flex-shrink: 0;
+
+    &__left {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+
+    &__back-button,
+    &__new-button {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 32px;
+        height: 32px;
+        border: none;
+        background: transparent;
+        border-radius: 4px;
+        color: var(--center-channel-color-56);
+        cursor: pointer;
+        transition: background-color 0.1s ease, color 0.1s ease;
+
+        &:hover {
+            background-color: var(--center-channel-color-08);
+            color: var(--center-channel-color);
+        }
+
+        .icon {
+            font-size: 18px;
+        }
+    }
+
+    &__title {
+        margin: 0;
+        font-size: 18px;
+        font-weight: 600;
+        color: var(--center-channel-color);
+    }
+}

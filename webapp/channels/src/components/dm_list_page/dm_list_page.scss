@@ -1,0 +1,41 @@
+.dm-list-page {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    background-color: var(--center-channel-bg);
+
+    &__list-container {
+        flex: 1;
+        min-height: 0;
+        padding: 0 16px;
+    }
+
+    &__empty {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        height: 100%;
+        color: var(--center-channel-color-56);
+        text-align: center;
+        padding: 0 32px;
+
+        .icon {
+            font-size: 64px;
+            margin-bottom: 24px;
+            opacity: 0.32;
+        }
+
+        h2 {
+            margin: 0 0 8px;
+            font-size: 20px;
+            font-weight: 600;
+            color: var(--center-channel-color);
+        }
+
+        p {
+            margin: 0;
+            font-size: 14px;
+        }
+    }
+}

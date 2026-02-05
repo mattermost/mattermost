@@ -179,3 +179,83 @@ export function getLastPostInChannel(state: GlobalState, channelId: string) {
     // Posts are ordered newest first
     return posts[0];
 }
+
+// DM list types
+interface DmInfo {
+    type: 'dm';
+    channel: Channel;
+    user: UserProfile;
+}
+
+interface GroupDmInfo {
+    type: 'group';
+    channel: Channel;
+    users: UserProfile[];
+}
+
+type DmOrGroupDm = DmInfo | GroupDmInfo;
+
+/**
+ * Get all DM and Group DM channels with user info, sorted by last activity.
+ * Used for the DM list page in Guilded layout.
+ */
+export const getAllDmChannelsWithUsers = createSelector(
+    'getAllDmChannelsWithUsers',
+    getAllChannels,
+    getMyChannelMemberships,
+    getUsers,
+    getCurrentUserId,
+    (channels, memberships, users, currentUserId): DmOrGroupDm[] => {
+        const dms: DmOrGroupDm[] = [];
+
+        for (const channel of Object.values(channels)) {
+            // Only include channels user is a member of
+            if (!memberships[channel.id]) {
+                continue;
+            }
+
+            if (channel.type === Constants.DM_CHANNEL) {
+                // Extract other user's ID from DM channel name
+                const userIds = channel.name.split('__');
+                const otherUserId = userIds.find((id) => id !== currentUserId);
+
+                if (!otherUserId || !users[otherUserId]) {
+                    continue;
+                }
+
+                dms.push({
+                    type: 'dm',
+                    channel,
+                    user: users[otherUserId],
+                });
+            } else if (channel.type === Constants.GM_CHANNEL) {
+                // Group message - get users from display_name parsing
+                const gmUsers: UserProfile[] = [];
+
+                // GM display_name is typically comma-separated usernames
+                const displayNames = channel.display_name.split(', ');
+                for (const displayName of displayNames) {
+                    const user = Object.values(users).find(
+                        (u) => u.username === displayName ||
+                               u.nickname === displayName ||
+                               `${u.first_name} ${u.last_name}` === displayName,
+                    );
+                    if (user && user.id !== currentUserId) {
+                        gmUsers.push(user);
+                    }
+                }
+
+                if (gmUsers.length > 0) {
+                    dms.push({
+                        type: 'group',
+                        channel,
+                        users: gmUsers,
+                    });
+                }
+            }
+        }
+
+        // Sort by last post time (most recent first)
+        return dms.sort((a, b) => b.channel.last_post_at - a.channel.last_post_at);
+    },
+);

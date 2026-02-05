@@ -4,11 +4,14 @@
 import classNames from 'classnames';
 import React, {lazy, useEffect} from 'react';
 import {useDispatch, useSelector} from 'react-redux';
+import {useLocation} from 'react-router-dom';
 
 import {cleanUpStatusAndProfileFetchingPoll} from 'mattermost-redux/actions/status_profile_polling';
 import {getIsUserStatusesConfigEnabled} from 'mattermost-redux/selectors/entities/common';
 
+import {setDmMode} from 'actions/views/guilded_layout';
 import {addVisibleUsersInCurrentChannelAndSelfToStatusPoll} from 'actions/status_actions';
+import {isGuildedLayoutEnabled} from 'selectors/views/guilded_layout';
 import {getIsMobileView} from 'selectors/views/browser';
 
 import {makeAsyncComponent} from 'components/async_load';
@@ -34,8 +37,10 @@ type Props = {
 }
 
 export default function ChannelController(props: Props) {
+    const location = useLocation();
     const isMobileView = useSelector(getIsMobileView);
     const enabledUserStatuses = useSelector(getIsUserStatusesConfigEnabled);
+    const isGuilded = useSelector(isGuildedLayoutEnabled);
     const dispatch = useDispatch();
 
     useEffect(() => {
@@ -69,6 +74,19 @@ export default function ChannelController(props: Props) {
             clearInterval(loadStatusesIntervalId);
         };
     }, [enabledUserStatuses]);
+
+    // Auto-set DM mode based on route when Guilded layout is active
+    useEffect(() => {
+        if (!isGuilded || isMobileView) {
+            return;
+        }
+
+        // Check if we're on a DM route (/messages/@username or /messages/channelId)
+        const isDmRoute = location.pathname.includes('/messages/@') ||
+                          (location.pathname.includes('/messages/') && !location.pathname.includes('/messages/@'));
+
+        dispatch(setDmMode(isDmRoute));
+    }, [location.pathname, isGuilded, isMobileView, dispatch]);
 
     return (
         <>

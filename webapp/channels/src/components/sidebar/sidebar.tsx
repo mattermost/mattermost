@@ -17,6 +17,8 @@ import {localizeMessage} from 'utils/utils';
 import type {ModalData} from 'types/actions';
 import type {RhsState} from 'types/store/rhs';
 
+import DmListPage from 'components/dm_list_page';
+
 import ChannelNavigator from './channel_navigator';
 import SidebarList from './sidebar_list';
 
@@ -51,6 +53,8 @@ type Props = {
     rhsState?: RhsState;
     rhsOpen?: boolean;
     isThreadsInSidebarEnabled: boolean;
+    isDmMode: boolean;
+    isGuildedLayoutEnabled: boolean;
 };
 
 type State = {
@@ -236,6 +240,21 @@ export default class Sidebar extends React.PureComponent<Props, State> {
     render() {
         if (!this.props.teamId) {
             return (<div/>);
+        }
+
+        // When Guilded layout is active and in DM mode, show the DM list page
+        if (this.props.isGuildedLayoutEnabled && this.props.isDmMode && !this.props.isMobileView) {
+            return (
+                <ResizableLhs
+                    id='SidebarContainer'
+                    className={classNames({
+                        'move--right': this.props.isOpen && this.props.isMobileView,
+                        dragging: this.state.isDragging,
+                    })}
+                >
+                    <DmListPage />
+                </ResizableLhs>
+            );
         }
 
         const ariaLabel = localizeMessage({id: 'accessibility.sections.lhsNavigator', defaultMessage: 'channel navigator region'});

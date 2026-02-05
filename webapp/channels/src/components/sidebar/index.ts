@@ -19,7 +19,7 @@ import {getIsLhsOpen} from 'selectors/lhs';
 import {getIsRhsOpen, getRhsState} from 'selectors/rhs';
 import {getIsMobileView} from 'selectors/views/browser';
 import {isUnreadFilterEnabled} from 'selectors/views/channel_sidebar';
-import {isThreadsInSidebarActive} from 'selectors/views/guilded_layout';
+import {isThreadsInSidebarActive, isDmMode, isGuildedLayoutEnabled} from 'selectors/views/guilded_layout';
 import {isModalOpen} from 'selectors/views/modals';
 
 import {ModalIdentifiers} from 'utils/constants';
@@ -60,6 +60,8 @@ function mapStateToProps(state: GlobalState) {
         rhsState: getRhsState(state),
         rhsOpen: getIsRhsOpen(state),
         isThreadsInSidebarEnabled,
+        isDmMode: isDmMode(state),
+        isGuildedLayoutEnabled: isGuildedLayoutEnabled(state),
     };
 }
 
