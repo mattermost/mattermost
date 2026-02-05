@@ -22,6 +22,53 @@ type User struct {
 	Roles     string
 }
 
+type Post struct {
+	User    string
+	Message string
+	MinAgo  int // minutes ago from "now"
+}
+
+type Thread struct {
+	User    string
+	Message string
+	MinAgo  int
+	Replies []Post
+}
+
+func createPost(db *sql.DB, channelId, userId, message string, createAt int64) (string, error) {
+	postId := generateId()
+	_, err := db.Exec(`
+		INSERT INTO posts (
+			id, createat, updateat, deleteat, userid, channelid,
+			rootid, originalid, message, type, props, hashtags,
+			filenames, fileids, hasreactions, editat, ispinned, remoteid
+		) VALUES (
+			$1, $2, $2, 0, $3, $4,
+			'', '', $5, '', '{}', '',
+			'[]', '[]', false, 0, false, NULL
+		)`,
+		postId, createAt, userId, channelId, message,
+	)
+	return postId, err
+}
+
+func createReply(db *sql.DB, channelId, userId, rootId, message string, createAt int64) error {
+	postId := generateId()
+	_, err := db.Exec(`
+		INSERT INTO posts (
+			id, createat, updateat, deleteat, userid, channelid,
+			rootid, originalid, message, type, props, hashtags,
+			filenames, fileids, hasreactions, editat, ispinned, remoteid
+		) VALUES (
+			$1, $2, $2, 0, $3, $4,
+			$5, $5, $6, '', '{}', '',
+			'[]', '[]', false, 0, false, NULL
+		)`,
+		postId, createAt, userId, channelId, rootId, message,
+	)
+	return err
+}
+
 func main() {
 	if len(os.Args) < 2 {
 		fmt.Println("Usage: seed-demo-users <postgres-connection-string> [password]")
