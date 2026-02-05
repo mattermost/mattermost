@@ -75,6 +75,26 @@ func TestNormalizeFilename(t *testing.T) {
 			input:    "ファイル名.txt",
 			expected: "ファイル名.txt",
 		},
+		{
+			name:     "Korean Hangul NFC",
+			input:    "\uAC00", // 가 (NFC precomposed)
+			expected: "\uAC00",
+		},
+		{
+			name:     "Korean Hangul NFD",
+			input:    "\u1100\u1161", // ᄀ + ᅡ (NFD Jamo) → 가
+			expected: "\uAC00",
+		},
+		{
+			name:     "Korean word NFD",
+			input:    "\u1112\u1161\u11AB\u1100\u1173\u11AF", // 한글 (NFD Jamo: 한글)
+			expected: "\uD55C\uAE00",                         // 한글 (NFC)
+		},
+		{
+			name:     "Korean filename with path NFD",
+			input:    "data/\u1111\u1161\u110B\u1175\u11AF.txt", // 파일 (NFD) + .txt
+			expected: "data/\uD30C\uC77C.txt",                   // 파일.txt (NFC)
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -88,9 +108,11 @@ func TestNormalizeFilenameIdempotent(t *testing.T) {
 	// NFC normalization should be idempotent
 	inputs := []string{
 		"test.jpg",
-		"\u30AC",           // ガ (NFC)
-		"\u30AB\u3099",     // カ + combining dakuten (NFD)
+		"\u30AC",       // ガ (NFC)
+		"\u30AB\u3099", // カ + combining dakuten (NFD)
 		"data/テスト.jpg",
+		"\uD55C\uAE00",                         // 한글 (NFC)
+		"\u1112\u1161\u11AB\u1100\u1173\u11AF", // 한글 (NFD Jamo)
 		"",
 	}
 
