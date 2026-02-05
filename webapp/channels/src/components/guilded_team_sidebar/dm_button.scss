@@ -1,57 +1,85 @@
 .dm-button {
     position: relative;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 48px;
-    height: 48px;
-    border: none;
-    border-radius: 50%;
-    background-color: rgba(var(--sidebar-text-rgb), 0.08);
-    color: var(--sidebar-text);
-    cursor: pointer;
-    transition: all 0.15s ease;
+    display: inline-block;
+    margin-right: auto;
+    margin-bottom: 12px;
+    margin-left: auto;
 
-    &:hover {
-        background-color: rgba(var(--sidebar-text-rgb), 0.16);
-        border-radius: 16px;
+    &:hover,
+    &:focus {
+        text-decoration: none;
     }
 
-    &--active {
-        background-color: var(--sidebar-text-active-border);
-        color: var(--sidebar-teambar-bg);
-        border-radius: 16px;
+    &__btn {
+        position: relative;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 42px;
+        height: 42px;
+        padding: 0;
+        border: none;
+        border-radius: 8px;
+        background-color: rgba(var(--sidebar-text-rgb), 0.08);
+        color: var(--sidebar-header-text-color);
+        cursor: pointer;
+        font-weight: bold;
+        text-align: center;
+        transform: translate(0, 0);
+        transform-origin: center center;
+        transition: transform 0.1s, background-color 0.2s, border-radius 0.2s;
+
+        &:hover {
+            background-color: rgba(var(--sidebar-text-rgb), 0.16);
+            border-radius: 16px;
+        }
+
+        &:active {
+            transform: translate(0, 2px);
+        }
+
+        &--active {
+            border-radius: 16px;
+            background-color: var(--sidebar-text-active-border);
+            color: var(--sidebar-teambar-bg);
+
+            &:hover {
+                background-color: var(--sidebar-text-active-border);
+            }
+        }
     }
 
     &__icon {
-        font-size: 20px;
+        font-size: 18px;
     }
 
     &__active-indicator {
         position: absolute;
-        left: -4px;
         top: 50%;
-        transform: translateY(-50%);
+        left: -8px;
         width: 4px;
         height: 20px;
-        background-color: var(--sidebar-text);
-        border-radius: 0 4px 4px 0;
+        border-radius: 4px;
+        background: var(--sidebar-text);
+        transform: translateY(-50%);
     }
 
     &__badge {
         position: absolute;
-        bottom: -2px;
-        right: -2px;
+        z-index: 1;
+        top: -4px;
+        right: -4px;
+        display: flex;
         min-width: 18px;
         height: 18px;
-        padding: 0 4px;
-        background-color: var(--dnd-indicator);
-        color: white;
-        font-size: 11px;
-        font-weight: 700;
-        border-radius: 9px;
-        display: flex;
         align-items: center;
         justify-content: center;
+        padding: 0 5px;
+        border-radius: 9px;
+        background: var(--mention-bg);
+        box-shadow: 0 0 0 3px var(--sidebar-teambar-bg);
+        color: var(--mention-color);
+        font-size: 11px;
+        font-weight: 600;
     }
 }

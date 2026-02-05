@@ -1,14 +1,14 @@
 .typing-indicator {
     display: flex;
+    height: 16px;
     align-items: center;
     column-gap: 2px;
-    height: 16px;
 
     &__dot {
         width: 4px;
         height: 4px;
         border-radius: 50%;
-        background-color: var(--center-channel-color-56);
+        background-color: rgba(var(--sidebar-text-rgb), 0.56);
         animation: typing-dot-bounce 1.4s infinite ease-in-out both;
 
         &:nth-child(1) {
@@ -22,9 +22,12 @@
 }
 
 @keyframes typing-dot-bounce {
-    0%, 80%, 100% {
+    0%,
+    80%,
+    100% {
         transform: scale(0);
     }
+
     40% {
         transform: scale(1);
     }

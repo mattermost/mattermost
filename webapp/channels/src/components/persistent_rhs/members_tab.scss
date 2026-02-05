@@ -19,10 +19,11 @@
     }
 
     &__group-label {
+        color: rgba(var(--center-channel-color-rgb), 0.56);
+        font-family: 'Open Sans', sans-serif;
         font-size: 12px;
         font-weight: 600;
-        text-transform: uppercase;
         letter-spacing: 0.02em;
-        color: rgba(var(--center-channel-color-rgb), 0.56);
+        text-transform: uppercase;
     }
 }

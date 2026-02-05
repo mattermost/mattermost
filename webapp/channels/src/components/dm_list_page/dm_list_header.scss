@@ -1,11 +1,11 @@
 .dm-list-header {
     display: flex;
+    height: 52px; // Match native SidebarHeader height
+    flex-shrink: 0;
     align-items: center;
     justify-content: space-between;
-    height: 64px;
     padding: 0 16px;
-    border-bottom: 1px solid var(--center-channel-color-16);
-    flex-shrink: 0;
+    border-bottom: 1px solid rgba(var(--sidebar-text-rgb), 0.08);
 
     &__left {
         display: flex;
@@ -16,31 +16,30 @@
     &__back-button,
     &__new-button {
         display: flex;
+        width: 28px;
+        height: 28px;
         align-items: center;
         justify-content: center;
-        width: 32px;
-        height: 32px;
+        padding: 0;
         border: none;
-        background: transparent;
         border-radius: 4px;
-        color: var(--center-channel-color-56);
+        background: transparent;
+        color: rgba(var(--sidebar-text-rgb), 0.64);
         cursor: pointer;
-        transition: background-color 0.1s ease, color 0.1s ease;
+        font-size: 18px;
+        transition: background-color 0.15s ease, color 0.15s ease;
 
         &:hover {
-            background-color: var(--center-channel-color-08);
-            color: var(--center-channel-color);
-        }
-
-        .icon {
-            font-size: 18px;
+            background-color: rgba(var(--sidebar-text-rgb), 0.08);
+            color: var(--sidebar-text);
         }
     }
 
     &__title {
         margin: 0;
-        font-size: 18px;
+        color: var(--sidebar-text);
+        font-family: 'Open Sans', sans-serif;
+        font-size: 16px;
         font-weight: 600;
-        color: var(--center-channel-color);
     }
 }

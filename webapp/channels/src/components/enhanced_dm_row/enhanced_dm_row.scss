@@ -1,33 +1,58 @@
+// Enhanced DM row - styled like native SidebarChannel but double height for preview
 .enhanced-dm-row {
+    position: relative;
     display: flex;
+    overflow: hidden;
+    height: 64px; // 2x native channel row height (32px)
     align-items: center;
-    padding: 8px 12px;
-    border-radius: 8px;
+    padding: 8px 16px 8px 19px;
+    color: rgba(var(--sidebar-text-rgb), 0.64);
     cursor: pointer;
+    list-style-type: none;
     text-decoration: none;
-    color: var(--center-channel-color);
-    transition: background-color 0.1s ease;
-    margin-bottom: 2px;
+    transition: background-color 0.15s ease;
 
     &:hover {
-        background-color: var(--center-channel-color-08);
-        color: var(--center-channel-color);
+        background-color: var(--sidebar-text-hover-bg);
+        color: rgba(var(--sidebar-text-rgb), 0.64);
         text-decoration: none;
+
+        .enhanced-dm-row__menu {
+            display: block;
+        }
+
+        .enhanced-dm-row__timestamp {
+            display: none;
+        }
     }
 
     &--active {
-        background-color: var(--center-channel-color-08);
+        background: rgba(var(--sidebar-text-rgb), 0.08);
+
+        &::before {
+            position: absolute;
+            top: 0;
+            left: -2px;
+            width: 4px;
+            height: 100%;
+            border-radius: 4px;
+            background: var(--sidebar-text-active-border);
+            content: '';
+        }
+
+        .enhanced-dm-row__display-name {
+            color: var(--sidebar-text);
+        }
     }
 
     &--unread {
         .enhanced-dm-row__display-name {
+            color: var(--sidebar-unread-text);
             font-weight: 600;
-            color: var(--center-channel-color);
         }
 
         .enhanced-dm-row__preview {
-            color: var(--center-channel-color);
-            font-weight: 500;
+            color: var(--sidebar-unread-text);
         }
     }
 
@@ -55,16 +80,16 @@
 
     &__status {
         position: absolute;
-        bottom: -2px;
         right: -2px;
+        bottom: -2px;
+        display: flex;
         width: 14px;
         height: 14px;
-        border: 2px solid var(--center-channel-bg);
-        border-radius: 50%;
-        display: flex;
         align-items: center;
         justify-content: center;
-        background-color: var(--center-channel-bg);
+        border: 2px solid var(--sidebar-bg);
+        border-radius: 50%;
+        background-color: var(--sidebar-bg);
 
         .status {
             width: 10px;
@@ -73,9 +98,9 @@
     }
 
     &__content {
-        flex: 1;
-        min-width: 0;
         display: flex;
+        min-width: 0;
+        flex: 1;
         flex-direction: column;
         justify-content: center;
     }
@@ -88,50 +113,57 @@
     }
 
     &__display-name {
-        font-size: 14px;
-        font-weight: 500;
-        white-space: nowrap;
         overflow: hidden;
+        height: 18px;
+        color: rgba(var(--sidebar-text-rgb), 0.64);
+        font-size: 14px;
+        line-height: 18px;
         text-overflow: ellipsis;
-        color: var(--center-channel-color);
+        user-select: none;
+        white-space: nowrap;
     }
 
     &__timestamp {
-        font-size: 11px;
-        color: var(--center-channel-color-56);
         flex-shrink: 0;
         margin-left: 8px;
+        color: rgba(var(--sidebar-text-rgb), 0.48);
+        font-size: 11px;
     }
 
     &__footer {
         display: flex;
+        height: 18px;
         align-items: center;
         justify-content: space-between;
-        height: 18px;
     }
 
     &__preview {
-        font-size: 12px;
-        color: var(--center-channel-color-64);
-        white-space: nowrap;
         overflow: hidden;
-        text-overflow: ellipsis;
         flex: 1;
+        color: rgba(var(--sidebar-text-rgb), 0.48);
+        font-size: 12px;
+        text-overflow: ellipsis;
+        white-space: nowrap;
     }
 
     &__badge {
-        flex-shrink: 0;
+        display: flex;
         min-width: 18px;
         height: 18px;
-        border-radius: 9px;
-        background-color: var(--sidebar-text-active-border);
-        color: var(--sidebar-text-active-color);
-        font-size: 11px;
-        font-weight: 700;
-        display: flex;
+        flex-shrink: 0;
         align-items: center;
         justify-content: center;
         padding: 0 5px;
+        border-radius: 9px;
+        margin-left: 8px;
+        background: var(--mention-bg);
+        color: var(--mention-color);
+        font-size: 11px;
+        font-weight: 600;
+    }
+
+    &__menu {
+        display: none;
         margin-left: 8px;
     }
 }

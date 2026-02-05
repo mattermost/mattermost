@@ -1,118 +1,95 @@
+// Enhanced channel row - styled like native SidebarChannel
 .enhanced-channel-row {
+    position: relative;
     display: flex;
+    overflow: hidden;
+    height: 32px;
     align-items: center;
-    padding: 8px 12px;
-    border-radius: 8px;
+    padding: 7px 16px 7px 19px;
+    color: rgba(var(--sidebar-text-rgb), 0.64);
     cursor: pointer;
+    font-size: 14px;
+    list-style-type: none;
     text-decoration: none;
-    color: var(--center-channel-color);
-    transition: background-color 0.1s ease;
-    margin-bottom: 2px;
+    transition: background-color 0.15s ease;
 
     &:hover {
-        background-color: var(--center-channel-color-08);
-        color: var(--center-channel-color);
+        background-color: var(--sidebar-text-hover-bg);
         text-decoration: none;
     }
 
     &--active {
-        background-color: var(--center-channel-color-08);
+        background: rgba(var(--sidebar-text-rgb), 0.08);
+
+        &::before {
+            position: absolute;
+            top: 0;
+            left: -2px;
+            width: 4px;
+            height: 100%;
+            border-radius: 4px;
+            background: var(--sidebar-text-active-border);
+            content: '';
+        }
+
+        .enhanced-channel-row__display-name {
+            color: var(--sidebar-text);
+        }
     }
 
     &--unread {
         .enhanced-channel-row__display-name {
+            color: var(--sidebar-unread-text);
             font-weight: 600;
-            color: var(--center-channel-color);
-        }
-
-        .enhanced-channel-row__preview {
-            color: var(--center-channel-color);
-            font-weight: 500;
         }
     }
 
     &__icon {
-        flex-shrink: 0;
-        width: 40px;
-        height: 40px;
-        border-radius: 50%;
-        margin-right: 12px;
-        background-color: var(--center-channel-color-16);
         display: flex;
-        align-items: center;
-        justify-content: center;
+        margin: 0 6px 0 -2px;
+        color: inherit;
         font-size: 18px;
-        font-weight: 600;
-        color: var(--center-channel-color);
-        overflow: hidden;
 
-        img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
+        svg {
+            display: block;
+            width: 18px;
+            height: 18px;
         }
     }
 
     &__content {
+        display: flex;
+        overflow: hidden;
+        min-width: 0;
         flex: 1;
-        min-width: 0; // Important for text-overflow to work in flex child
-        display: flex;
-        flex-direction: column;
-        justify-content: center;
-    }
-
-    &__header {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        margin-bottom: 2px;
+        flex-grow: 1;
+        gap: 8px;
     }
 
     &__display-name {
-        font-size: 14px;
-        font-weight: 500;
-        white-space: nowrap;
         overflow: hidden;
-        text-overflow: ellipsis;
-        color: var(--center-channel-color);
-    }
-
-    &__timestamp {
-        font-size: 11px;
-        color: var(--center-channel-color-56);
-        flex-shrink: 0;
-        margin-left: 8px;
-    }
-
-    &__footer {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
+        max-width: 100%;
         height: 18px;
-    }
-
-    &__preview {
-        font-size: 12px;
-        color: var(--center-channel-color-64);
-        white-space: nowrap;
-        overflow: hidden;
+        line-height: 18px;
+        text-align: justify;
         text-overflow: ellipsis;
-        flex: 1;
+        user-select: none;
+        white-space: nowrap;
     }
 
     &__badge {
-        flex-shrink: 0;
+        display: flex;
         min-width: 18px;
         height: 18px;
-        border-radius: 9px;
-        background-color: var(--sidebar-text-active-border);
-        color: var(--sidebar-text-active-color);
-        font-size: 11px;
-        font-weight: 700;
-        display: flex;
+        flex-shrink: 0;
         align-items: center;
         justify-content: center;
         padding: 0 5px;
-        margin-left: 8px;
+        border-radius: 9px;
+        margin-left: auto;
+        background: var(--mention-bg);
+        color: var(--mention-color);
+        font-size: 11px;
+        font-weight: 600;
     }
 }

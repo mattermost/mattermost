@@ -6,21 +6,21 @@
     justify-content: center;
     gap: 4px;
     padding: 12px 16px;
-    border-bottom: 1px solid rgba(var(--center-channel-color-rgb), 0.08);
+    border-bottom: 1px solid rgba(var(--center-channel-color-rgb), 0.12);
 
     &__tab {
         display: flex;
-        align-items: center;
-        justify-content: center;
         width: 40px;
         height: 40px;
+        align-items: center;
+        justify-content: center;
         padding: 0;
         border: none;
         border-radius: 8px;
         background: transparent;
         color: rgba(var(--center-channel-color-rgb), 0.56);
         cursor: pointer;
-        transition: background-color 0.1s ease, color 0.1s ease;
+        transition: background-color 0.12s ease, color 0.12s ease;
 
         &:hover {
             background-color: rgba(var(--center-channel-color-rgb), 0.08);

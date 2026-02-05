@@ -15,20 +15,20 @@
     }
 
     &__empty-icon {
-        font-size: 48px;
-        color: rgba(var(--center-channel-color-rgb), 0.24);
         margin-bottom: 8px;
+        color: rgba(var(--center-channel-color-rgb), 0.24);
+        font-size: 48px;
     }
 
     &__empty-text {
+        color: var(--center-channel-color);
         font-size: 16px;
         font-weight: 600;
-        color: var(--center-channel-color);
     }
 
     &__empty-hint {
-        font-size: 14px;
-        color: rgba(var(--center-channel-color-rgb), 0.56);
         max-width: 200px;
+        color: rgba(var(--center-channel-color-rgb), 0.56);
+        font-size: 14px;
     }
 }

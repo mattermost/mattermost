@@ -3,7 +3,7 @@
 
 .group-dm-participants {
     display: flex;
+    overflow-y: auto;
     flex-direction: column;
     padding: 8px 0;
-    overflow-y: auto;
 }

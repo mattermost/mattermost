@@ -3,27 +3,27 @@
 
 .persistent-rhs {
     display: flex;
-    flex-direction: column;
     height: 100%;
-    background-color: var(--sidebar-bg);
-    border-left: 1px solid rgba(var(--center-channel-color-rgb), 0.08);
+    flex-direction: column;
+    border-left: 1px solid rgba(var(--center-channel-color-rgb), 0.12);
+    background-color: var(--center-channel-bg);
 
     &--group-dm {
-        // Slightly different styling for group DM view
+        // Styling for group DM view
     }
 
     &__header {
         display: flex;
         align-items: center;
         padding: 16px;
-        border-bottom: 1px solid rgba(var(--center-channel-color-rgb), 0.08);
+        border-bottom: 1px solid rgba(var(--center-channel-color-rgb), 0.12);
     }
 
     &__title {
         margin: 0;
+        color: var(--center-channel-color);
         font-size: 16px;
         font-weight: 600;
-        color: var(--center-channel-color);
     }
 
     &__content {

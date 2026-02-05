@@ -2,41 +2,48 @@
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 4px;
     padding: 4px 0;
 
     &__avatar {
         position: relative;
-        width: 48px;
-        height: 48px;
+        display: inline-block;
+        overflow: hidden;
+        width: 42px;
+        height: 42px;
+        margin-right: auto;
+        margin-bottom: 12px;
+        margin-left: auto;
+        padding: 0;
         border: none;
         border-radius: 50%;
         background: transparent;
-        padding: 0;
-        overflow: hidden;
         cursor: pointer;
-        transition: transform 0.15s ease;
+        transition: transform 0.1s;
 
         &:hover {
             transform: scale(1.05);
         }
 
+        &:active {
+            transform: scale(0.95);
+        }
+
         img {
             width: 100%;
             height: 100%;
-            object-fit: cover;
             border-radius: 50%;
+            object-fit: cover;
         }
     }
 
     &__status {
         position: absolute;
-        bottom: 2px;
-        right: 2px;
+        right: 0;
+        bottom: 0;
         width: 12px;
         height: 12px;
-        border-radius: 50%;
         border: 2px solid var(--sidebar-teambar-bg);
+        border-radius: 50%;
         background-color: var(--offline-indicator);
 
         &--online {
@@ -50,22 +57,21 @@
         &--dnd {
             background-color: var(--dnd-indicator);
         }
-
-        &--offline {
-            background-color: var(--offline-indicator);
-        }
     }
 
     &__overflow {
         display: flex;
+        width: 42px;
+        height: 42px;
         align-items: center;
         justify-content: center;
-        width: 48px;
-        height: 48px;
+        margin-right: auto;
+        margin-bottom: 12px;
+        margin-left: auto;
         border-radius: 50%;
         background-color: rgba(var(--sidebar-text-rgb), 0.16);
         color: var(--sidebar-text);
-        font-size: 14px;
+        font-size: 12px;
         font-weight: 600;
     }
 }

@@ -7,7 +7,7 @@
     gap: 12px;
     padding: 12px 16px;
     cursor: pointer;
-    transition: background-color 0.1s ease;
+    transition: background-color 0.12s ease;
 
     &:hover {
         background-color: rgba(var(--center-channel-color-rgb), 0.08);
@@ -22,19 +22,19 @@
     }
 
     &__content {
-        flex: 1;
-        min-width: 0;
         display: flex;
+        min-width: 0;
+        flex: 1;
         flex-direction: column;
         gap: 4px;
     }
 
     &__preview {
-        font-size: 14px;
-        color: var(--center-channel-color);
-        white-space: nowrap;
         overflow: hidden;
+        color: var(--center-channel-color);
+        font-size: 14px;
         text-overflow: ellipsis;
+        white-space: nowrap;
     }
 
     &__meta {
@@ -44,8 +44,8 @@
     }
 
     &__reply-count {
-        font-size: 12px;
         color: rgba(var(--center-channel-color-rgb), 0.56);
+        font-size: 12px;
     }
 
     &__unread-dot {
@@ -63,10 +63,10 @@
     &__avatar {
         width: 24px;
         height: 24px;
-        border-radius: 50%;
-        border: 2px solid var(--sidebar-bg);
-        object-fit: cover;
         margin-left: -8px;
+        border: 2px solid var(--center-channel-bg);
+        border-radius: 50%;
+        object-fit: cover;
 
         &:first-child {
             margin-left: 0;

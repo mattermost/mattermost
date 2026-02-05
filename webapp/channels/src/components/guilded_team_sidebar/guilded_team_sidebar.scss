@@ -1,28 +1,31 @@
 .guilded-team-sidebar {
     position: relative;
+    z-index: 17; // Match native team-sidebar z-index
     display: flex;
-    flex-direction: column;
-    width: 72px;
+    overflow: hidden;
+    width: 65px; // Native team sidebar width
     height: 100%;
-    background-color: var(--sidebar-teambar-bg);
-    z-index: 20;
+    flex-direction: column;
+    background-color: var(--sidebar-header-bg);
+    text-align: center;
 
     &__collapsed {
+        position: relative;
         display: flex;
+        overflow: hidden;
+        height: 100%;
+        flex: 1;
         flex-direction: column;
         align-items: center;
-        padding: 12px 0;
-        gap: 4px;
-        height: 100%;
-        overflow-y: auto;
-        overflow-x: hidden;
+        padding-top: 4px;
+        -webkit-overflow-scrolling: touch;
 
         &::-webkit-scrollbar {
             width: 4px;
         }
 
         &::-webkit-scrollbar-thumb {
-            background: rgba(var(--center-channel-color-rgb), 0.2);
+            background: rgba(var(--sidebar-text-rgb), 0.2);
             border-radius: 2px;
         }
     }
@@ -31,7 +34,18 @@
         width: 32px;
         height: 2px;
         margin: 8px 0;
-        background-color: rgba(var(--sidebar-text-rgb), 0.1);
         border-radius: 1px;
+        background-color: rgba(var(--sidebar-text-rgb), 0.16);
+    }
+}
+
+// Global header style adjustments (match native)
+@media screen and (min-width: 769px) {
+    .guilded-team-sidebar {
+        background: none;
+        --sidebar-teambar-bg: var(--sidebar-header-bg);
+        --sidebar-header-text-color: var(--sidebar-text);
+        --sidebar-teambar-bg-rgb: var(--sidebar-header-bg-rgb);
+        --sidebar-header-text-color-rgb: var(--sidebar-text-rgb);
     }
 }

@@ -8,7 +8,7 @@
     padding: 4px 16px;
     border-radius: 4px;
     cursor: pointer;
-    transition: background-color 0.1s ease;
+    transition: background-color 0.12s ease;
 
     &:hover {
         background-color: rgba(var(--center-channel-color-rgb), 0.08);
@@ -42,18 +42,18 @@
 
     &__status-icon {
         position: absolute;
-        bottom: -2px;
         right: -2px;
+        bottom: -2px;
         width: 12px;
         height: 12px;
-        border: 2px solid var(--sidebar-bg);
+        border: 2px solid var(--center-channel-bg);
         border-radius: 50%;
     }
 
     &__info {
-        flex: 1;
-        min-width: 0;
         display: flex;
+        min-width: 0;
+        flex: 1;
         flex-direction: column;
     }
 
@@ -64,19 +64,19 @@
     }
 
     &__name {
+        overflow: hidden;
+        color: var(--center-channel-color);
         font-size: 14px;
         font-weight: 500;
-        color: var(--center-channel-color);
-        white-space: nowrap;
-        overflow: hidden;
         text-overflow: ellipsis;
+        white-space: nowrap;
     }
 
     &__bot-tag {
         padding: 1px 4px;
-        border-radius: 3px;
+        border-radius: 2px;
         background-color: var(--button-bg);
-        color: white;
+        color: var(--button-color);
         font-size: 10px;
         font-weight: 600;
         text-transform: uppercase;
@@ -90,10 +90,10 @@
     }
 
     &__custom-status-text {
-        font-size: 12px;
-        color: rgba(var(--center-channel-color-rgb), 0.64);
-        white-space: nowrap;
         overflow: hidden;
+        color: rgba(var(--center-channel-color-rgb), 0.64);
+        font-size: 12px;
         text-overflow: ellipsis;
+        white-space: nowrap;
     }
 }
