@@ -39,7 +39,6 @@ import ConfirmResetFailedAttemptsModal from './confirm_reset_failed_attempts_mod
 import CreateGroupSyncablesMembershipsModal from './create_group_syncables_membership_modal';
 import DeactivateMemberModal from './deactivate_member_modal';
 import DemoteToGuestModal from './demote_to_guest_modal';
-import E2EEDevicesModal from './e2ee_devices_modal';
 import PromoteToMemberModal from './promote_to_member_modal';
 import RevokeSessionsModal from './revoke_sessions_modal';
 
@@ -48,12 +47,11 @@ interface Props {
     currentUser: UserProfile;
     tableId?: string;
     rowIndex: number;
-    e2eeEnabled: boolean;
     onError: (error: ServerError) => void;
     updateUser: (user: Partial<UserProfile>) => void;
 }
 
-export function SystemUsersListAction({user, currentUser, tableId, rowIndex, e2eeEnabled, onError, updateUser}: Props) {
+export function SystemUsersListAction({user, currentUser, tableId, rowIndex, onError, updateUser}: Props) {
     const {formatMessage} = useIntl();
     const dispatch = useDispatch();
     const config = useSelector(getConfig);
@@ -324,16 +322,6 @@ export function SystemUsersListAction({user, currentUser, tableId, rowIndex, e2e
         );
     }, [user, updateUser, onError]);
 
-    const handleViewE2EEDevicesClick = useCallback(() => {
-        dispatch(openModal({
-            modalId: ModalIdentifiers.E2EE_DEVICES_MODAL,
-            dialogType: E2EEDevicesModal,
-            dialogProps: {
-                user,
-            },
-        }));
-    }, [user, dispatch]);
-
     const disableActivationToggle = user.auth_service === Constants.LDAP_SERVICE;
 
     const getManagedByLDAPText = (managedByLDAP: boolean) => {
@@ -433,18 +421,6 @@ export function SystemUsersListAction({user, currentUser, tableId, rowIndex, e2e
                         />
                     }
                     onClick={handleManageUserSettingsClick}
-                />
-            }
-            {e2eeEnabled && isCurrentUserSystemAdmin &&
-                <Menu.Item
-                    id={`${menuItemIdPrefix}-viewE2EEDevices`}
-                    labels={
-                        <FormattedMessage
-                            id='admin.system_users.list.actions.menu.viewE2EEDevices'
-                            defaultMessage='View user E2EE devices'
-                        />
-                    }
-                    onClick={handleViewE2EEDevicesClick}
                 />
             }
             {config.ServiceSettings?.EnableUserAccessTokens &&

@@ -12,8 +12,6 @@ import type {ServerError} from '@mattermost/types/errors';
 import {CursorPaginationDirection} from '@mattermost/types/reports';
 import type {ReportDuration, UserReport} from '@mattermost/types/reports';
 
-import {Client4} from 'mattermost-redux/client';
-
 import {AdminConsoleListTable, ElapsedDurationCell, PAGE_SIZES, LoadingStates} from 'components/admin_console/list_table';
 import type {TableMeta} from 'components/admin_console/list_table';
 import SharedUserIndicator from 'components/shared_user_indicator';
@@ -70,18 +68,6 @@ function SystemUsers(props: Props) {
     const [userReports, setUserReports] = useState<UserReportWithError[]>([]);
     const [userCount, setUserCount] = useState<number | undefined>();
     const [loadingState, setLoadingState] = useState<LoadingStates>(LoadingStates.Loading);
-    const [e2eeEnabled, setE2eeEnabled] = useState(false);
-
-    // Effect to check if E2EE plugin is enabled (once per page load)
-    useEffect(() => {
-        Client4.getE2EEVersionInfo().
-            then((info) => {
-                setE2eeEnabled(info.e2ee_enabled);
-            }).
-            catch(() => {
-                // E2EE plugin not installed or version endpoint not available
-            });
-    }, []);
 
     // Effect to get the total user count
     useEffect(() => {
@@ -414,7 +400,6 @@ function SystemUsers(props: Props) {
                             tableId={tableId}
                             user={info.row.original}
                             currentUser={props.currentUser}
-                            e2eeEnabled={e2eeEnabled}
                             updateUser={(updatedUser) => updateUserReport(info.row.original.id, updatedUser)}
                             onError={(error) => updateUserReport(info.row.original.id, {error})}
                         />
@@ -425,7 +410,7 @@ function SystemUsers(props: Props) {
                 enableSorting: false,
             },
         ],
-        [props.currentUser, userReports, e2eeEnabled],
+        [props.currentUser, userReports],
     );
 
     // Table state which are correctly formatted for the table component

@@ -56,7 +56,7 @@ describe('SystemUsersListAction Component', () => {
         jest.clearAllMocks();
     });
 
-    const renderComponent = (authServiceUser: UserProfile, e2eeEnabled = false) => {
+    const renderComponent = (authServiceUser: UserProfile) => {
         renderWithContext(
             <SystemUsersListAction
                 user={authServiceUser}
@@ -65,7 +65,6 @@ describe('SystemUsersListAction Component', () => {
                 rowIndex={0}
                 onError={onError}
                 updateUser={updateUser}
-                e2eeEnabled={e2eeEnabled}
             />,
         );
     };
@@ -112,30 +111,5 @@ describe('SystemUsersListAction Component', () => {
         expect(deactivateMenuItem).not.toHaveAttribute('aria-disabled', 'true');
         expect(deactivateMenuItem).not.toHaveClass('Mui-disabled');
         expect(within(deactivateMenuItem).queryByText(/Managed by LDAP/i)).not.toBeInTheDocument();
-    });
-
-    describe('E2EE devices menu item', () => {
-        test('View user E2EE devices menu item is visible when e2eeEnabled is true', async () => {
-            renderComponent(user, true);
-
-            const menuButton = screen.getByText('Member');
-            await userEvent.click(menuButton);
-
-            await waitFor(() => {
-                expect(screen.getByRole('menuitem', {name: /View user E2EE devices/i})).toBeInTheDocument();
-            });
-        });
-
-        test('View user E2EE devices menu item is NOT visible when e2eeEnabled is false', async () => {
-            renderComponent(user, false);
-
-            const menuButton = screen.getByText('Member');
-            await userEvent.click(menuButton);
-
-            await waitFor(() => {
-                expect(screen.getByRole('menuitem', {name: /Manage teams/i})).toBeInTheDocument();
-            });
-            expect(screen.queryByRole('menuitem', {name: /View user E2EE devices/i})).not.toBeInTheDocument();
-        });
     });
 });

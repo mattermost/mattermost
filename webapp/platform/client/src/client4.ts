@@ -63,7 +63,6 @@ import type {
     GetDataRetentionCustomPoliciesRequest,
 } from '@mattermost/types/data_retention';
 import type {Draft} from '@mattermost/types/drafts';
-import type {E2EEDevice, E2EEVersionInfo} from '@mattermost/types/e2ee';
 import type {CustomEmoji} from '@mattermost/types/emojis';
 import type {ServerError} from '@mattermost/types/errors';
 import type {FileInfo, FileUploadResponse, FileSearchResults} from '@mattermost/types/files';
@@ -471,10 +470,6 @@ export default class Client4 {
 
     getPluginRoute(pluginId: string) {
         return `${this.getPluginsRoute()}/${pluginId}`;
-    }
-
-    getE2eeRoute() {
-        return `${this.url}/plugins/${'mattermost-e2ee'}`;
     }
 
     getPluginsMarketplaceRoute() {
@@ -4453,29 +4448,6 @@ export default class Client4 {
             `${this.getPostsRoute()}/rewrite`,
             {method: 'post', body: JSON.stringify(body)},
         ).then((response) => response.rewritten_text);
-    };
-
-    // E2EE Plugin
-
-    getE2EEVersionInfo = () => {
-        return this.doFetch<E2EEVersionInfo>(
-            `${this.getE2eeRoute()}/version`,
-            {method: 'get'},
-        );
-    };
-
-    getE2EEUserDevices = (userId: string) => {
-        return this.doFetch<E2EEDevice[]>(
-            `${this.getE2eeRoute()}/v1/admin/users/${userId}/devices`,
-            {method: 'get'},
-        );
-    };
-
-    revokeE2EEDevice = (deviceId: string) => {
-        return this.doFetch<StatusOK>(
-            `${this.getE2eeRoute()}/v1/admin/devices/${deviceId}`,
-            {method: 'delete'},
-        );
     };
 
     // Client Helpers
