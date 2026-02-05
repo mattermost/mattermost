@@ -1745,7 +1745,25 @@ function Invoke-Demo {
     }
 
     # FeatureFlags - ALL Mattermost Extended features enabled
+    # FeatureFlags - includes upstream defaults + Mattermost Extended features
     $config['FeatureFlags'] = [ordered]@{
+        # Upstream defaults (from featureFlagDefaults in feature_flags.go)
+        'EnableSharedChannelsPlugins' = $true
+        'OnboardingTourTips' = $true
+        'StreamlinedMarketplace' = $true
+        'ChannelBookmarks' = $true
+        'WebSocketEventScope' = $true
+        'NotificationMonitoring' = $true
+        'ExperimentalAuditSettingsSystemConsoleUI' = $true
+        'CustomProfileAttributes' = $true
+        'AttributeBasedAccessControl' = $true
+        'ContentFlagging' = $true
+        'InteractiveDialogAppsForm' = $true
+        'EnableMattermostEntry' = $true
+        'MobileSSOCodeExchange' = $true
+        'BurnOnRead' = $true
+        'SuppressEnterpriseUpgradeChecks' = $true
+        # Mattermost Extended features
         'Encryption' = $true
         'CustomChannelIcons' = $true
         'ThreadsInSidebar' = $true
@@ -1754,7 +1772,6 @@ function Invoke-Demo {
         'SystemConsoleDarkMode' = $true
         'SystemConsoleHideEnterprise' = $true
         'SystemConsoleIcons' = $true
-        'SuppressEnterpriseUpgradeChecks' = $true
         'ImageMulti' = $true
         'ImageSmaller' = $true
         'ImageCaptions' = $true
@@ -1767,6 +1784,9 @@ function Invoke-Demo {
         'PreferencesRevamp' = $true
         'PreferenceOverridesDashboard' = $true
         'HideUpdateStatusButton' = $true
+        'GuildedChatLayout' = $true
+        'GuildedSounds' = $true
+        'DiscordReplies' = $true
     }
 
     # MattermostExtendedSettings
