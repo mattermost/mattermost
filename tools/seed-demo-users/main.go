@@ -114,6 +114,119 @@ func main() {
 		{Username: "eve", Email: "eve@demo.local", FirstName: "Eve", LastName: "Edwards", Nickname: "Eve", Roles: "system_user"},
 	}
 
+	// Demo conversation posts (Discord-style casual chat)
+	// MinAgo is minutes before "now" - higher = older
+	demoConversations := map[string][]Post{
+		"general": {
+			{User: "admin", Message: "welcome everyone to the new server :tada:", MinAgo: 200},
+			{User: "alice", Message: "ayo", MinAgo: 199},
+			{User: "bob", Message: "finally we're here", MinAgo: 198},
+			{User: "charlie", Message: "this place looks clean", MinAgo: 197},
+			{User: "dana", Message: "glad to be out of the old one lol", MinAgo: 196},
+			{User: "eve", Message: "the old one was so cluttered, this is much better", MinAgo: 195},
+			{User: "alice", Message: "wait where's the deleted message placeholder? did it actually vanish?", MinAgo: 194},
+			{User: "admin", Message: "yeah enabled HideDeletedPlaceholder. way less ghosting in the chat", MinAgo: 193},
+			{User: "bob", Message: "big W", MinAgo: 192},
+			{User: "charlie", Message: "also noticed the sidebar settings are different now", MinAgo: 191},
+			{User: "dana", Message: "sidebar looks way better with the custom settings, actually readable now", MinAgo: 190},
+			{User: "eve", Message: "true true", MinAgo: 189},
+			{User: "admin", Message: "feel free to test around in the other channels, everything is live", MinAgo: 188},
+			{User: "alice", Message: "bet :fire:", MinAgo: 187},
+		},
+		"status-demo": {
+			{User: "alice", Message: "yo charlie why you always online lol", MinAgo: 180},
+			{User: "charlie", Message: "accurate statuses baby. no more \"away\" while i'm literally typing", MinAgo: 179},
+			{User: "bob", Message: "wait is NoOffline on?", MinAgo: 178},
+			{User: "alice", Message: "yeah admin enabled it", MinAgo: 177},
+			{User: "bob", Message: "sick so we can see who's actually around even if they try to hide :eyes:", MinAgo: 176},
+			{User: "dana", Message: "status logs are showing everything too", MinAgo: 175},
+			{User: "eve", Message: "wait what logs?", MinAgo: 174},
+			{User: "dana", Message: "the transition logs in the console, helps with debugging the heartbeat", MinAgo: 173},
+			{User: "charlie", Message: "no more fake away status while i'm gaming in the background", MinAgo: 172},
+			{User: "alice", Message: "finally. the old heartbeat was so laggy", MinAgo: 171},
+			{User: "bob", Message: "literally. it would show me away while i was in the middle of a call", MinAgo: 170},
+			{User: "charlie", Message: "same lol", MinAgo: 169},
+			{User: "admin", Message: "testing the new transition manager, seems solid so far", MinAgo: 168},
+			{User: "alice", Message: "huge improvement honestly", MinAgo: 167},
+			{User: "bob", Message: "massive", MinAgo: 166},
+		},
+		"media-demo": {
+			{User: "alice", Message: "check these out, the multi-upload is working", MinAgo: 155},
+			{User: "bob", Message: "wait multiple images in one post? that's actually huge", MinAgo: 153},
+			{User: "charlie", Message: "they look smaller too, not taking up the whole screen", MinAgo: 152},
+			{User: "dana", Message: "yeah ImageSmaller is a life saver for my vertical monitor", MinAgo: 151},
+			{User: "eve", Message: "the captions look good too", MinAgo: 150},
+			{User: "alice", Message: "![test image](cat.jpg \"cyberpunk vibes\")", MinAgo: 149},
+			{User: "bob", Message: "clean af", MinAgo: 148},
+			{User: "charlie", Message: "does video embedding work yet?", MinAgo: 147},
+			{User: "dana", Message: "let's see", MinAgo: 146},
+			{User: "bob", Message: "yup it embeds perfectly", MinAgo: 144},
+			{User: "alice", Message: "it's finally a real chat app lol :fire:", MinAgo: 143},
+		},
+		"youtube-demo": {
+			{User: "alice", Message: "guys look at this lol", MinAgo: 135},
+			{User: "alice", Message: "https://www.youtube.com/watch?v=dQw4w9WgXcQ", MinAgo: 134},
+			{User: "bob", Message: "i knew it. i saw the thumbnail and still clicked :skull:", MinAgo: 133},
+			{User: "charlie", Message: "the embed is actually fast now", MinAgo: 132},
+			{User: "dana", Message: "check this out https://www.youtube.com/watch?v=9bZkp7q19f0", MinAgo: 131},
+			{User: "eve", Message: "psy? what year is it lol", MinAgo: 130},
+			{User: "dana", Message: "classic never dies", MinAgo: 129},
+			{User: "bob", Message: "the youtube embed looks way better than the generic one", MinAgo: 128},
+			{User: "alice", Message: "https://www.youtube.com/watch?v=jNQXAC9IVRw", MinAgo: 127},
+			{User: "charlie", Message: "first youtube video ever, a classic", MinAgo: 126},
+			{User: "eve", Message: "facts", MinAgo: 125},
+		},
+		"encryption-demo": {
+			{User: "admin", Message: "encryption is now live in this channel", MinAgo: 95},
+			{User: "alice", Message: "wait so admin can't even read our messages?", MinAgo: 94},
+			{User: "bob", Message: "nope, that's the point of e2e :lock:", MinAgo: 93},
+			{User: "charlie", Message: "how do we know it's working?", MinAgo: 92},
+			{User: "dana", Message: "check the recipient list in the editor, it shows who has the keys", MinAgo: 91},
+			{User: "eve", Message: "oh i see it, shows exactly who can decrypt", MinAgo: 90},
+			{User: "alice", Message: "this is actually huge for privacy", MinAgo: 89},
+			{User: "bob", Message: "finally i can talk about [REDACTED] lol", MinAgo: 88},
+			{User: "charlie", Message: "the encryption mode UI looks really clean too", MinAgo: 87},
+			{User: "dana", Message: "glad we finally got this implemented", MinAgo: 86},
+			{User: "admin", Message: "stay safe out there", MinAgo: 85},
+		},
+	}
+
+	// Threaded conversations for threads-demo channel
+	demoThreads := []Thread{
+		{
+			User:    "alice",
+			Message: "starting a thread for the new project planning",
+			MinAgo:  120,
+			Replies: []Post{
+				{User: "bob", Message: "i'm in", MinAgo: 119},
+				{User: "charlie", Message: "what's the plan?", MinAgo: 118},
+				{User: "alice", Message: "check the sidebar, it should show up there now", MinAgo: 117},
+				{User: "dana", Message: "oh yeah ThreadsInSidebar is clutch, i can see all of them", MinAgo: 116},
+				{User: "eve", Message: "can we rename these?", MinAgo: 115},
+				{User: "alice", Message: "yeah i just renamed it to \"Project X Planning\"", MinAgo: 114},
+				{User: "bob", Message: "sick, custom names make it so much easier to find stuff", MinAgo: 113},
+				{User: "charlie", Message: "actually organized for once :thumbsup:", MinAgo: 112},
+			},
+		},
+		{
+			User:    "bob",
+			Message: "anyone want to play val later?",
+			MinAgo:  110,
+			Replies: []Post{
+				{User: "dana", Message: "me", MinAgo: 109},
+				{User: "eve", Message: "i'm down", MinAgo: 108},
+				{User: "charlie", Message: "count me in", MinAgo: 107},
+				{User: "alice", Message: "i'll be on in an hour", MinAgo: 106},
+				{User: "bob", Message: "renamed thread to \"Val 5-stack\" so people can find it", MinAgo: 105},
+				{User: "dana", Message: "perfect", MinAgo: 104},
+			},
+		},
+	}
+
+	// Suppress unused variable warnings (will be used in post seeding)
+	_ = demoConversations
+	_ = demoThreads
+
 	// Create users
 	created := 0
 	for _, u := range users {
