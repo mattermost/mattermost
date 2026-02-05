@@ -30,7 +30,7 @@ export default function ThreadsTab() {
     );
 
     const handleThreadClick = useCallback((threadId: string) => {
-        history.push(`${teamUrl}/pl/${threadId}`);
+        history.push(`${teamUrl}/threads/${threadId}`);
     }, [history, teamUrl]);
 
     const renderRow = useCallback(({index, style}: {index: number; style: React.CSSProperties}) => {
