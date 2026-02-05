@@ -199,6 +199,34 @@ func (_m *AutoTranslationStore) GetByStateOlderThan(state model.TranslationState
 	return r0, r1
 }
 
+// GetLatestPostUpdateAtForChannel provides a mock function with given fields: channelID
+func (_m *AutoTranslationStore) GetLatestPostUpdateAtForChannel(channelID string) (int64, error) {
+	ret := _m.Called(channelID)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetLatestPostUpdateAtForChannel")
+	}
+
+	var r0 int64
+	var r1 error
+	if rf, ok := ret.Get(0).(func(string) (int64, error)); ok {
+		return rf(channelID)
+	}
+	if rf, ok := ret.Get(0).(func(string) int64); ok {
+		r0 = rf(channelID)
+	} else {
+		r0 = ret.Get(0).(int64)
+	}
+
+	if rf, ok := ret.Get(1).(func(string) error); ok {
+		r1 = rf(channelID)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // GetUserLanguage provides a mock function with given fields: userID, channelID
 func (_m *AutoTranslationStore) GetUserLanguage(userID string, channelID string) (string, error) {
 	ret := _m.Called(userID, channelID)
@@ -225,6 +253,11 @@ func (_m *AutoTranslationStore) GetUserLanguage(userID string, channelID string)
 	}
 
 	return r0, r1
+}
+
+// InvalidatePostTranslationEtag provides a mock function with given fields: channelID
+func (_m *AutoTranslationStore) InvalidatePostTranslationEtag(channelID string) {
+	_m.Called(channelID)
 }
 
 // InvalidateUserAutoTranslation provides a mock function with given fields: userID, channelID

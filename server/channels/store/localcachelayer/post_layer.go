@@ -71,23 +71,35 @@ func (s LocalCachePostStore) InvalidateLastPostTimeCache(channelId string) {
 	}
 }
 
-func (s LocalCachePostStore) GetEtag(channelId string, allowFromCache, collapsedThreads bool) string {
+func (s LocalCachePostStore) GetEtag(channelId string, allowFromCache, collapsedThreads bool, includeTranslations bool) string {
+	var baseEtag string
+
 	if allowFromCache {
 		var lastTime int64
 		if err := s.rootStore.doStandardReadCache(s.rootStore.lastPostTimeCache, channelId, &lastTime); err == nil {
-			return fmt.Sprintf("%v.%v", model.CurrentVersion, lastTime)
+			baseEtag = fmt.Sprintf("%v.%v", model.CurrentVersion, lastTime)
 		}
 	}
 
-	result := s.PostStore.GetEtag(channelId, allowFromCache, collapsedThreads)
+	if baseEtag == "" {
+		baseEtag = s.PostStore.GetEtag(channelId, allowFromCache, collapsedThreads, includeTranslations)
 
-	splittedResult := strings.Split(result, ".")
+		splittedResult := strings.Split(baseEtag, ".")
 
-	lastTime, _ := strconv.ParseInt((splittedResult[len(splittedResult)-1]), 10, 64)
+		lastTime, _ := strconv.ParseInt((splittedResult[len(splittedResult)-1]), 10, 64)
 
-	s.rootStore.doStandardAddToCache(s.rootStore.lastPostTimeCache, channelId, lastTime)
+		s.rootStore.doStandardAddToCache(s.rootStore.lastPostTimeCache, channelId, lastTime)
+	}
 
-	return result
+	// If translations should be included, append translation time
+	if includeTranslations {
+		translationTime, err := s.rootStore.AutoTranslation().GetLatestPostUpdateAtForChannel(channelId)
+		if err == nil && translationTime > 0 {
+			return fmt.Sprintf("%s.%d", baseEtag, translationTime)
+		}
+	}
+
+	return baseEtag
 }
 
 func (s LocalCachePostStore) GetPostsSince(rctx request.CTX, options model.GetPostsSinceOptions, allowFromCache bool, sanitizeOptions map[string]bool) (*model.PostList, error) {

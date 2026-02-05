@@ -42,6 +42,8 @@ func getMockStore(t *testing.T) *mocks.Store {
 	mockStore.On("Reaction").Return(&mockReactionsStore)
 
 	mockAutoTranslationStore := mocks.AutoTranslationStore{}
+	// GetLatestPostUpdateAtForChannel now takes only channelID (no locale) since caching is per-channel
+	mockAutoTranslationStore.On("GetLatestPostUpdateAtForChannel", "channelId").Return(int64(5000), nil)
 	mockStore.On("AutoTranslation").Return(&mockAutoTranslationStore)
 
 	fakeRole := model.Role{Id: "123", Name: "role-name"}
@@ -140,8 +142,10 @@ func getMockStore(t *testing.T) *mocks.Store {
 	mockPostStoreEtagResult := fmt.Sprintf("%v.%v", model.CurrentVersion, 1)
 	mockPostStore.On("ClearCaches")
 	mockPostStore.On("InvalidateLastPostTimeCache", "channelId")
-	mockPostStore.On("GetEtag", "channelId", true, false).Return(mockPostStoreEtagResult)
-	mockPostStore.On("GetEtag", "channelId", false, false).Return(mockPostStoreEtagResult)
+	mockPostStore.On("GetEtag", "channelId", true, false, false).Return(mockPostStoreEtagResult)
+	mockPostStore.On("GetEtag", "channelId", false, false, false).Return(mockPostStoreEtagResult)
+	mockPostStore.On("GetEtag", "channelId", true, false, true).Return(mockPostStoreEtagResult)
+	mockPostStore.On("GetEtag", "channelId", false, false, true).Return(mockPostStoreEtagResult)
 	mockPostStore.On("GetPostsSince", mock.AnythingOfType("*request.Context"), mockPostStoreOptions, true, map[string]bool{}).Return(model.NewPostList(), nil)
 	mockPostStore.On("GetPostsSince", mock.AnythingOfType("*request.Context"), mockPostStoreOptions, false, map[string]bool{}).Return(model.NewPostList(), nil)
 	mockStore.On("Post").Return(&mockPostStore)

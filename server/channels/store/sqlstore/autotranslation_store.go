@@ -24,6 +24,7 @@ type TranslationMeta json.RawMessage
 type Translation struct {
 	ObjectType string
 	ObjectID   string
+	ChannelID  *string
 	DstLang    string
 	ProviderID string
 	NormHash   string
@@ -383,6 +384,11 @@ func (s *SqlAutoTranslationStore) Save(translation *model.Translation) error {
 		objectType = &translation.ObjectType
 	}
 
+	var channelID *string
+	if translation.ChannelID != "" {
+		channelID = &translation.ChannelID
+	}
+
 	objectID := translation.ObjectID
 
 	// Preserve existing Meta fields and add/override "type"
@@ -410,11 +416,12 @@ func (s *SqlAutoTranslationStore) Save(translation *model.Translation) error {
 
 	query := s.getQueryBuilder().
 		Insert("Translations").
-		Columns("ObjectId", "DstLang", "ObjectType", "ProviderId", "NormHash", "Text", "Confidence", "Meta", "State", "UpdateAt").
-		Values(objectID, dstLang, objectType, providerID, translation.NormHash, text, confidence, metaBytes, string(translation.State), now).
+		Columns("ObjectId", "DstLang", "ObjectType", "ChannelId", "ProviderId", "NormHash", "Text", "Confidence", "Meta", "State", "UpdateAt").
+		Values(objectID, dstLang, objectType, channelID, providerID, translation.NormHash, text, confidence, metaBytes, string(translation.State), now).
 		Suffix(`ON CONFLICT (ObjectId, dstLang)
 				DO UPDATE SET
 					ObjectType = EXCLUDED.ObjectType,
+					ChannelId = EXCLUDED.ChannelId,
 					ProviderId = EXCLUDED.ProviderId,
 					NormHash = EXCLUDED.NormHash,
 					Text = EXCLUDED.Text,
@@ -557,3 +564,23 @@ func (s *SqlAutoTranslationStore) ClearCaches() {}
 func (s *SqlAutoTranslationStore) InvalidateUserAutoTranslation(userID, channelID string) {}
 
 func (s *SqlAutoTranslationStore) InvalidateUserLocaleCache(userID string) {}
+
+// GetLatestPostUpdateAtForChannel returns the most recent updateAt timestamp for post translations
+// in the given channel (across all locales). Uses a direct lookup on the channelid column
+// for O(1) performance. Returns 0 if no translations exist.
+func (s *SqlAutoTranslationStore) GetLatestPostUpdateAtForChannel(channelID string) (int64, error) {
+	query := s.getQueryBuilder().
+		Select("COALESCE(MAX(updateAt), 0)").
+		From("translations").
+		Where(sq.Eq{"channelid": channelID}).
+		Where(sq.Eq{"objectType": model.TranslationObjectTypePost})
+
+	var updateAt int64
+	if err := s.GetReplica().GetBuilder(&updateAt, query); err != nil {
+		return 0, errors.Wrapf(err, "failed to get latest translation updateAt for channel_id=%s", channelID)
+	}
+
+	return updateAt, nil
+}
+
+func (s *SqlAutoTranslationStore) InvalidatePostTranslationEtag(channelID string) {}
