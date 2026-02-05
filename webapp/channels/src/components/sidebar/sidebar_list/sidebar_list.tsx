@@ -14,6 +14,7 @@ import type {ChannelCategory} from '@mattermost/types/channel_categories';
 import type {Channel} from '@mattermost/types/channels';
 import type {Team} from '@mattermost/types/teams';
 
+import {CategoryTypes} from 'mattermost-redux/constants/channel_categories';
 import {General} from 'mattermost-redux/constants';
 
 import {makeAsyncComponent} from 'components/async_load';
@@ -48,6 +49,7 @@ type Props = WrappedComponentProps & {
     hasUnreadThreads: boolean;
     currentStaticPageId: string;
     staticPages: StaticPage[];
+    isGuildedLayoutEnabled: boolean;
 
     handleOpenMoreDirectChannelsModal: (e: Event) => void;
     onDragStart: (initial: DragStart) => void;
@@ -421,7 +423,14 @@ export class SidebarList extends React.PureComponent<Props, State> {
     };
 
     render() {
-        const {categories} = this.props;
+        let {categories} = this.props;
+
+        // In Guilded layout, filter out Direct Messages category - DMs are accessed via team sidebar
+        if (this.props.isGuildedLayoutEnabled) {
+            categories = categories.filter(
+                (category) => category.type !== CategoryTypes.DIRECT_MESSAGES,
+            );
+        }
 
         let channelList: React.ReactNode;
         if (this.props.isUnreadFilterEnabled) {

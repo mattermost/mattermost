@@ -26,6 +26,7 @@ import {
     getCategoriesForCurrentTeam,
     isUnreadFilterEnabled,
 } from 'selectors/views/channel_sidebar';
+import {isGuildedLayoutEnabled} from 'selectors/views/guilded_layout';
 
 import type {GlobalState} from 'types/store';
 
@@ -55,6 +56,7 @@ function mapStateToProps(state: GlobalState) {
         hasUnreadThreads,
         currentStaticPageId: getCurrentStaticPageId(state),
         staticPages: getVisibleStaticPages(state),
+        isGuildedLayoutEnabled: isGuildedLayoutEnabled(state),
     };
 }
 
