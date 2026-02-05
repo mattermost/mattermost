@@ -15,6 +15,31 @@ jest.mock('selectors/views/guilded_layout', () => ({
     isGuildedLayoutEnabled: jest.fn(),
 }));
 
+// Mock complex child components
+jest.mock('components/persistent_rhs', () => {
+    return function MockPersistentRhs() {
+        const {useSelector} = jest.requireActual('react-redux');
+        const channel = useSelector((state: any) => {
+            const channelId = state.entities?.channels?.currentChannelId;
+            return state.entities?.channels?.channels?.[channelId];
+        });
+        const rhsActiveTab = useSelector((state: any) => state.views?.guildedLayout?.rhsActiveTab || 'members');
+
+        // Mimic PersistentRhs behavior
+        if (channel?.type === 'D') {
+            return null; // Hide for 1:1 DMs
+        }
+        if (channel?.type === 'G') {
+            return <div className="persistent-rhs persistent-rhs--group-dm"><div className="rhs-tab-bar" /></div>;
+        }
+        return <div className="persistent-rhs"><div className="rhs-tab-bar" /></div>;
+    };
+});
+
+jest.mock('components/rhs_thread', () => () => <div className="rhs-thread" />);
+jest.mock('components/search/index', () => ({children}: any) => <div className="search">{children}</div>);
+jest.mock('components/resizable_sidebar/resizable_rhs', () => ({children, className}: any) => <div className={className}>{children}</div>);
+
 // Import after mocking
 import SidebarRightWrapper from '../index';
 
