@@ -1,7 +1,6 @@
 <p align="center">
   <img src="docs/assets/banner.png" alt="Mattermost Extended Logo" width="400">
 </p>
-
 <p align="center">
   A fork of Mattermost with end-to-end encryption, custom icons, and other enhancements.
 </p>
