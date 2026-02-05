@@ -7,7 +7,7 @@ import {useDispatch, useSelector} from 'react-redux';
 import {useHistory} from 'react-router-dom';
 
 import {Client4} from 'mattermost-redux/client';
-import {getCurrentTeamUrl} from 'mattermost-redux/selectors/entities/teams';
+import {getCurrentRelativeTeamUrl} from 'mattermost-redux/selectors/entities/teams';
 
 import {setDmMode} from 'actions/views/guilded_layout';
 import {getUnreadDmChannelsWithUsers} from 'selectors/views/guilded_layout';
@@ -20,12 +20,12 @@ export default function UnreadDmAvatars() {
     const history = useHistory();
     const dispatch = useDispatch();
     const unreadDms = useSelector(getUnreadDmChannelsWithUsers);
-    const currentTeamUrl = useSelector(getCurrentTeamUrl);
+    const teamUrl = useSelector(getCurrentRelativeTeamUrl);
 
     const handleDmClick = (username: string) => {
         dispatch(setDmMode(true));
-        // Use same pattern as EnhancedDmRow
-        history.push(`${currentTeamUrl}/messages/@${username}`);
+        // Use relative team URL path (e.g., /teamname)
+        history.push(`${teamUrl}/messages/@${username}`);
     };
 
     if (unreadDms.length === 0) {
