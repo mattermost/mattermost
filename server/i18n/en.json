@@ -1914,12 +1914,12 @@
     "translation": "Server is busy, non-critical services are temporarily unavailable."
   },
   {
-    "id": "api.context.session_expired.app_error",
-    "translation": "Invalid or expired session, please login again."
-  },
-  {
     "id": "api.context.session_cookie_not_allowed.app_error",
     "translation": "Cookie-based authentication is not allowed for this endpoint. Please use header-based authentication."
+  },
+  {
+    "id": "api.context.session_expired.app_error",
+    "translation": "Invalid or expired session, please login again."
   },
   {
     "id": "api.context.token_provided.app_error",
