@@ -20,6 +20,6 @@ export function isFieldOrphaned(
 }
 
 export function useIsFieldOrphaned(field: UserPropertyField): boolean {
-    const installedPlugins = useSelector((state: GlobalState) => state.plugins.plugins);
+    const installedPlugins = useSelector((state: GlobalState) => state.entities.admin.plugins ?? {});
     return isFieldOrphaned(field, installedPlugins);
 }
