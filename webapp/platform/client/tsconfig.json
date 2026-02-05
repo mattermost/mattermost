@@ -11,6 +11,7 @@
         "esModuleInterop": true,
         "allowSyntheticDefaultImports": true,
         "jsx": "react",
+        "preserveConstEnums": true,
         "outDir": "./lib",
         "rootDir": "./src",
         "composite": true,
