@@ -1159,7 +1159,6 @@ type AttributesStore interface {
 
 type AutoTranslationStore interface {
 	IsUserEnabled(userID, channelID string) (bool, error)
-	SetUserEnabled(userID, channelID string, enabled bool) error
 	GetUserLanguage(userID, channelID string) (string, error)
 	// GetActiveDestinationLanguages returns distinct locales of users who have auto-translation enabled.
 	GetActiveDestinationLanguages(channelID, excludeUserID string, filterUserIDs []string) ([]string, error)

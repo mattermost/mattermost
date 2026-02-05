@@ -61,28 +61,6 @@ func (s LocalCacheAutoTranslationStore) IsUserEnabled(userID, channelID string) 
 	return enabled, nil
 }
 
-// SetUserEnabled sets auto-translation status for a user in a channel and invalidates cache
-func (s LocalCacheAutoTranslationStore) SetUserEnabled(userID, channelID string, enabled bool) error {
-	err := s.AutoTranslationStore.SetUserEnabled(userID, channelID, enabled)
-	if err != nil {
-		return err
-	}
-
-	// Invalidate user auto-translation cache
-	userKey := userAutoTranslationKey(userID, channelID)
-	s.rootStore.doInvalidateCacheCluster(s.rootStore.userAutoTranslationCache, userKey, nil)
-
-	// Invalidate user language cache (for safety, in case locale changed while disabled)
-	langKey := userLanguageKey(userID, channelID)
-	s.rootStore.doInvalidateCacheCluster(s.rootStore.userAutoTranslationCache, langKey, nil)
-
-	if s.rootStore.metrics != nil {
-		s.rootStore.metrics.IncrementMemCacheInvalidationCounter(s.rootStore.userAutoTranslationCache.Name())
-	}
-
-	return nil
-}
-
 // GetUserLanguage gets the user's language preference for a channel (with caching)
 func (s LocalCacheAutoTranslationStore) GetUserLanguage(userID, channelID string) (string, error) {
 	key := userLanguageKey(userID, channelID)

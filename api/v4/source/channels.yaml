@@ -1632,6 +1632,61 @@
           $ref: "#/components/responses/Forbidden"
         "404":
           $ref: "#/components/responses/NotFound"
+  "/api/v4/channels/{channel_id}/members/{user_id}/autotranslation":
+    put:
+      tags:
+        - channels
+      summary: Update channel member autotranslation setting
+      description: >
+        Update a user's autotranslation setting for a channel. This controls whether
+        messages in the channel should not be automatically translated for the user.
+        By default, autotranslations are enabled for all users if the channel is enabled
+        for autotranslation.
+
+        ##### Permissions
+
+        Must be logged in as the user or have `edit_other_users` permission.
+      operationId: UpdateChannelMemberAutotranslation
+      parameters:
+        - name: channel_id
+          in: path
+          description: Channel GUID
+          required: true
+          schema:
+            type: string
+        - name: user_id
+          in: path
+          description: User GUID
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - autotranslation_disabled
+              properties:
+                autotranslation_disabled:
+                  type: boolean
+                  description: Whether to disable autotranslation for the user in this channel
+        required: true
+      responses:
+        "200":
+          description: Channel member autotranslation setting update successful
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StatusOK"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
   "/api/v4/channels/members/{user_id}/view":
     post:
       tags:

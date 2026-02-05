@@ -28,10 +28,6 @@ type AutoTranslationInterface interface {
 	// Returns false if the feature is unavailable or the user hasn't opted in.
 	IsUserEnabled(channelID, userID string) (bool, *model.AppError)
 
-	// SetUserEnabled enables or disables auto-translation for a user in a channel.
-	// Only available when the feature is properly licensed and configured.
-	SetUserEnabled(channelID, userID string, enabled bool) *model.AppError
-
 	// Translate translates content in a channel.
 	//
 	// Parameters:
