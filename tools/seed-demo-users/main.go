@@ -223,10 +223,6 @@ func main() {
 		},
 	}
 
-	// Suppress unused variable warnings (will be used in post seeding)
-	_ = demoConversations
-	_ = demoThreads
-
 	// Create users
 	created := 0
 	for _, u := range users {
@@ -445,6 +441,108 @@ func main() {
 
 	fmt.Printf("\nAdded %d users to demo team\n", addedToTeam)
 	fmt.Printf("Created %d channel memberships\n", addedToChannels)
+
+	// Build username -> userId map for post creation
+	userIds := make(map[string]string)
+	for _, u := range users {
+		var userId string
+		err := db.QueryRow("SELECT id FROM users WHERE username = $1", u.Username).Scan(&userId)
+		if err == nil {
+			userIds[u.Username] = userId
+		}
+	}
+
+	// Seed demo posts
+	fmt.Println("\nSeeding demo conversations...")
+	postsCreated := 0
+
+	for channelName, posts := range demoConversations {
+		channelId, ok := channelIds[channelName]
+		if !ok {
+			fmt.Printf("Warning: channel %s not found, skipping posts\n", channelName)
+			continue
+		}
+
+		for _, p := range posts {
+			userId, ok := userIds[p.User]
+			if !ok {
+				fmt.Printf("Warning: user %s not found, skipping post\n", p.User)
+				continue
+			}
+
+			createAt := now - int64(p.MinAgo*60*1000) // Convert minutes to milliseconds
+			_, err := createPost(db, channelId, userId, p.Message, createAt)
+			if err != nil {
+				fmt.Printf("Error creating post in %s: %v\n", channelName, err)
+				continue
+			}
+			postsCreated++
+		}
+	}
+
+	fmt.Printf("Created %d posts in demo channels\n", postsCreated)
+
+	// Seed threaded conversations
+	fmt.Println("Seeding threaded conversations...")
+	threadsCreated := 0
+	repliesCreated := 0
+
+	threadsChannelId, ok := channelIds["threads-demo"]
+	if !ok {
+		fmt.Println("Warning: threads-demo channel not found, skipping threads")
+	} else {
+		for _, thread := range demoThreads {
+			userId, ok := userIds[thread.User]
+			if !ok {
+				fmt.Printf("Warning: user %s not found, skipping thread\n", thread.User)
+				continue
+			}
+
+			createAt := now - int64(thread.MinAgo*60*1000)
+			rootId, err := createPost(db, threadsChannelId, userId, thread.Message, createAt)
+			if err != nil {
+				fmt.Printf("Error creating thread root: %v\n", err)
+				continue
+			}
+			threadsCreated++
+
+			// Create replies
+			for _, reply := range thread.Replies {
+				replyUserId, ok := userIds[reply.User]
+				if !ok {
+					continue
+				}
+				replyCreateAt := now - int64(reply.MinAgo*60*1000)
+				err := createReply(db, threadsChannelId, replyUserId, rootId, reply.Message, replyCreateAt)
+				if err != nil {
+					fmt.Printf("Error creating reply: %v\n", err)
+					continue
+				}
+				repliesCreated++
+			}
+		}
+	}
+
+	fmt.Printf("Created %d threads with %d replies\n", threadsCreated, repliesCreated)
+
+	// Update channel stats (totalmsgcount, lastpostat)
+	fmt.Println("Updating channel statistics...")
+	for channelName, channelId := range channelIds {
+		_, err := db.Exec(`
+			UPDATE channels SET
+				totalmsgcount = (SELECT COUNT(*) FROM posts WHERE channelid = $1 AND deleteat = 0),
+				totalmsgcountroot = (SELECT COUNT(*) FROM posts WHERE channelid = $1 AND deleteat = 0 AND rootid = ''),
+				lastpostat = COALESCE((SELECT MAX(createat) FROM posts WHERE channelid = $1), $2),
+				lastrootpostat = COALESCE((SELECT MAX(createat) FROM posts WHERE channelid = $1 AND rootid = ''), $2)
+			WHERE id = $1`,
+			channelId, now,
+		)
+		if err != nil {
+			fmt.Printf("Error updating stats for %s: %v\n", channelName, err)
+		}
+	}
+	fmt.Println("Channel statistics updated.")
+
 	fmt.Println("\nDemo data seeding complete!")
 }
 
