@@ -200,6 +200,13 @@ func (a *App) PatchBoardAttributeField(fieldID string, patch *model.PropertyFiel
 	existingField.Patch(patch)
 	existingField.UpdateAt = model.GetMillis()
 
+	// Clear options if changing from select/multiselect to a non-select type
+	if existingField.Type != model.PropertyFieldTypeSelect && existingField.Type != model.PropertyFieldTypeMultiselect {
+		if _, ok := existingField.Attrs[model.PropertyFieldAttributeOptions]; ok {
+			delete(existingField.Attrs, model.PropertyFieldAttributeOptions)
+		}
+	}
+
 	// Assign IDs to options if they're empty (for select/multiselect fields)
 	// This matches the behavior in User Attributes' SanitizeAndValidate()
 	if existingField.Type == model.PropertyFieldTypeSelect || existingField.Type == model.PropertyFieldTypeMultiselect {

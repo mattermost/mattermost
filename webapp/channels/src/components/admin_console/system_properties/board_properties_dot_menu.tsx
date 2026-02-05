@@ -63,8 +63,10 @@ export default function BoardPropertiesDotMenu({
         <Menu.Container
             menuButton={{
                 id: menuId,
-                as: 'div',
+                class: 'btn btn-transparent board-property-field-dotmenu-menu-button',
                 children: <DotsHorizontalIcon size={18}/>,
+                dataTestId: menuId,
+                disabled: field.delete_at !== 0,
             }}
             menu={{
                 id: menuId,

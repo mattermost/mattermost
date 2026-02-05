@@ -500,6 +500,7 @@ func InitLocal(srv *app.Server) *API {
 	api.InitJobLocal()
 	api.InitSamlLocal()
 	api.InitCustomProfileAttributesLocal()
+	api.InitBoardAttributesLocal()
 	api.InitAccessControlPolicyLocal()
 
 	srv.LocalRouter.Handle("/api/v4/{anything:.*}", http.HandlerFunc(api.Handle404))
