@@ -2187,9 +2187,9 @@ export default class Client4 {
         );
     };
 
-    getRemoteClusterInfo = (remoteId: string) => {
+    getRemoteClusterInfo = (remoteId: string, includeDeleted?: boolean) => {
         return this.doFetch<RemoteClusterInfo>(
-            `${this.getBaseRoute()}/sharedchannels/remote_info/${remoteId}`,
+            `${this.getBaseRoute()}/sharedchannels/remote_info/${remoteId}${buildQueryString({include_deleted: includeDeleted})}`,
             {method: 'GET'},
         );
     };
