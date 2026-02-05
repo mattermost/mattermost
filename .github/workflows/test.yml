@@ -188,6 +188,17 @@ jobs:
             2>&1 | tee ../../test-results/mattermost-extended-tests.log
           cp build/test-results.xml ../../test-results/mattermost-extended-tests.xml 2>/dev/null || true
 
+      - name: Run Guilded Layout Tests
+        id: guilded-layout-tests
+        continue-on-error: true
+        working-directory: ./webapp/channels
+        run: |
+          set -o pipefail
+          npm test -- --ci --coverage=false \
+            --testPathPatterns="guilded_layout\\.test\\.(ts|tsx)$|guilded_team_sidebar.*\\.test\\.(ts|tsx)$" \
+            2>&1 | tee ../../test-results/guilded-layout-tests.log
+          cp build/test-results.xml ../../test-results/guilded-layout-tests.xml 2>/dev/null || true
+
       - name: Upload test results
         if: always()
         uses: actions/upload-artifact@v4
@@ -273,6 +284,7 @@ jobs:
           [ "${{ steps.video-tests.outcome }}" = "failure" ] && FAILED=1
           [ "${{ steps.icons-tests.outcome }}" = "failure" ] && FAILED=1
           [ "${{ steps.mattermost-extended-tests.outcome }}" = "failure" ] && FAILED=1
+          [ "${{ steps.guilded-layout-tests.outcome }}" = "failure" ] && FAILED=1
 
           if [ "$FAILED" = "1" ]; then
             echo "::error::Webapp tests failed - see summary above for details"
