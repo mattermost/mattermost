@@ -101,6 +101,7 @@ describe('SidebarList', () => {
         hasUnreadThreads: false,
         currentStaticPageId: '',
         staticPages: [],
+        isGuildedLayoutEnabled: false,
         actions: {
             switchToChannelById: jest.fn(),
             switchToLhsStaticPage: jest.fn(),
@@ -294,5 +295,63 @@ describe('SidebarList', () => {
 
         instance.onDragEnd(channelResult);
         expect(baseProps.actions.moveChannelsInSidebar).toHaveBeenCalledWith(channelResult.destination!.droppableId, channelResult.destination!.index, channelResult.draggableId);
+    });
+
+    describe('Guilded Layout DM category filtering', () => {
+        const propsWithDmCategory = {
+            ...baseProps,
+            categories: [
+                {
+                    id: 'category1',
+                    team_id: 'team1',
+                    user_id: '',
+                    type: CategoryTypes.CUSTOM,
+                    display_name: 'custom_category_1',
+                    sorting: CategorySorting.Alphabetical,
+                    channel_ids: ['channel_id'],
+                    muted: false,
+                    collapsed: false,
+                },
+                {
+                    id: 'dm_category',
+                    team_id: 'team1',
+                    user_id: '',
+                    type: CategoryTypes.DIRECT_MESSAGES,
+                    display_name: 'Direct Messages',
+                    sorting: CategorySorting.Recency,
+                    channel_ids: ['dm_channel_1', 'dm_channel_2'],
+                    muted: false,
+                    collapsed: false,
+                },
+            ],
+        };
+
+        test('should include DM category when Guilded layout is disabled', () => {
+            const wrapper = shallowWithIntl(
+                <SidebarList {...propsWithDmCategory} isGuildedLayoutEnabled={false}/>,
+            );
+            const instance = wrapper.instance() as SidebarListComponent;
+
+            // Access the categories being rendered via the component's render method
+            const draggable = wrapper.find('Connect(Droppable)').first();
+            const children: any = draggable.prop('children')!;
+            const inner = shallow(children({}, {}));
+
+            // Should render 2 SidebarCategory components (custom + DM)
+            expect(inner.find('Connect(SidebarCategory)')).toHaveLength(2);
+        });
+
+        test('should filter out DM category when Guilded layout is enabled', () => {
+            const wrapper = shallowWithIntl(
+                <SidebarList {...propsWithDmCategory} isGuildedLayoutEnabled={true}/>,
+            );
+
+            const draggable = wrapper.find('Connect(Droppable)').first();
+            const children: any = draggable.prop('children')!;
+            const inner = shallow(children({}, {}));
+
+            // Should only render 1 SidebarCategory (custom category, DM filtered out)
+            expect(inner.find('Connect(SidebarCategory)')).toHaveLength(1);
+        });
     });
 });

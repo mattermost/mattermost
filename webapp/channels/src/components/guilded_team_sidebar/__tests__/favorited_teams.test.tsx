@@ -10,6 +10,15 @@ import FavoritedTeams from '../favorited_teams';
 
 const mockStore = configureStore([]);
 
+// Mock react-router-dom useHistory
+const mockPush = jest.fn();
+jest.mock('react-router-dom', () => ({
+    ...jest.requireActual('react-router-dom'),
+    useHistory: () => ({
+        push: mockPush,
+    }),
+}));
+
 // Mock react-redux useSelector - variables must be prefixed with 'mock'
 let mockCallCount = 0;
 let mockValues: any[] = [];
@@ -45,6 +54,7 @@ describe('FavoritedTeams', () => {
     beforeEach(() => {
         jest.clearAllMocks();
         mockCallCount = 0;
+        mockPush.mockClear();
         // FavoritedTeams calls useSelector in order: getFavoritedTeamIds, getCurrentTeamId, inline selector for teams
         mockValues = [['team1', 'team2'], 'team1', mockTeams];
     });
@@ -167,5 +177,23 @@ describe('FavoritedTeams', () => {
         // Should return null, not render any container
         expect(container.querySelector('.favorited-teams')).not.toBeInTheDocument();
         expect(container.querySelector('.favorited-teams__expand')).not.toBeInTheDocument();
+    });
+
+    it('navigates to team when clicked', () => {
+        const onTeamClick = jest.fn();
+        const store = mockStore(baseState);
+        const {container} = render(
+            <Provider store={store}>
+                <FavoritedTeams {...defaultProps} onTeamClick={onTeamClick} />
+            </Provider>,
+        );
+
+        // Click the first favorited team (Team One)
+        const teamButtons = container.querySelectorAll('.favorited-teams__team');
+        fireEvent.click(teamButtons[0]);
+
+        // Should navigate to the team's default channel
+        expect(mockPush).toHaveBeenCalledWith('/team-one/channels/town-square');
+        expect(onTeamClick).toHaveBeenCalled();
     });
 });
