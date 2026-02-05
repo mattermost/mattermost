@@ -10,6 +10,8 @@ import {
     setDmMode,
 } from 'actions/views/guilded_layout';
 
+import {getFavoritedTeamIds} from 'selectors/views/guilded_layout';
+
 import type {GlobalState} from 'types/store';
 
 import DmButton from './dm_button';
@@ -26,6 +28,7 @@ export default function GuildedTeamSidebar() {
 
     const isExpanded = useSelector((state: GlobalState) => state.views.guildedLayout.isTeamSidebarExpanded);
     const isDmMode = useSelector((state: GlobalState) => state.views.guildedLayout.isDmMode);
+    const hasFavorites = useSelector((state: GlobalState) => getFavoritedTeamIds(state).length > 0);
 
     useEffect(() => {
         if (!isExpanded) {
@@ -68,11 +71,15 @@ export default function GuildedTeamSidebar() {
                 />
                 <UnreadDmAvatars />
                 <div className='guilded-team-sidebar__divider' />
-                <FavoritedTeams
-                    onTeamClick={handleTeamClick}
-                    onExpandClick={handleExpandClick}
-                />
-                <div className='guilded-team-sidebar__divider' />
+                {hasFavorites && (
+                    <>
+                        <FavoritedTeams
+                            onTeamClick={handleTeamClick}
+                            onExpandClick={handleExpandClick}
+                        />
+                        <div className='guilded-team-sidebar__divider' />
+                    </>
+                )}
                 <TeamList
                     onTeamClick={handleTeamClick}
                 />

@@ -37,6 +37,11 @@ export default function FavoritedTeams({onTeamClick, onExpandClick}: Props) {
             .filter((team): team is NonNullable<typeof team> => team != null);
     });
 
+    // Return null if no favorites - don't render container or expand button
+    if (favoritedTeams.length === 0) {
+        return null;
+    }
+
     return (
         <div className='favorited-teams'>
             {favoritedTeams.map((team) => (
