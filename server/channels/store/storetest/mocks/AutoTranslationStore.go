@@ -362,24 +362,6 @@ func (_m *AutoTranslationStore) SetChannelEnabled(channelID string, enabled bool
 	return r0
 }
 
-// SetUserEnabled provides a mock function with given fields: userID, channelID, enabled
-func (_m *AutoTranslationStore) SetUserEnabled(userID string, channelID string, enabled bool) error {
-	ret := _m.Called(userID, channelID, enabled)
-
-	if len(ret) == 0 {
-		panic("no return value specified for SetUserEnabled")
-	}
-
-	var r0 error
-	if rf, ok := ret.Get(0).(func(string, string, bool) error); ok {
-		r0 = rf(userID, channelID, enabled)
-	} else {
-		r0 = ret.Error(0)
-	}
-
-	return r0
-}
-
 // NewAutoTranslationStore creates a new instance of AutoTranslationStore. It also registers a testing interface on the mock and a cleanup function to assert the mocks expectations.
 // The first argument is typically a *testing.T value.
 func NewAutoTranslationStore(t interface {
