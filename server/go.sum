@@ -408,6 +408,8 @@ github.com/mattermost/logr/v2 v2.0.22 h1:npFkXlkAWR9J8payh8ftPcCZvLbHSI125mAM5/r
 github.com/mattermost/logr/v2 v2.0.22/go.mod h1:0sUKpO+XNMZApeumaid7PYaUZPBIydfuWZ0dqixXo+s=
 github.com/mattermost/mattermost-plugin-ai v1.7.3-0.20260128145904-ae362cf86c17 h1:Mz9ZbcFPF3OItbDtor/FGJRHNfi7QFnPESjgCmL876A=
 github.com/mattermost/mattermost-plugin-ai v1.7.3-0.20260128145904-ae362cf86c17/go.mod h1:giiKPJpaLV4qv/odeGMyO7ltkgaWZzsbUA92Wi7EMkA=
+github.com/mattermost/mattermost-plugin-ai v1.8.1-0.20260205142725-644bf6ed9297 h1:oojqLsPxMAY7tMOG6cQZ0BAfiYZvGMarRi3dq7krzpU=
+github.com/mattermost/mattermost-plugin-ai v1.8.1-0.20260205142725-644bf6ed9297/go.mod h1:Uco4K7ypsrZWcD256ezvgZDqolJfHYiExN2lYiHmVDo=
 github.com/mattermost/mattermost/server/public v0.1.22-0.20251105210629-8bf4a00724e2 h1:RJtCnj9nF/wb0Fb+O0qAPgUoWP5CTTDnHzHD5ciGlJ8=
 github.com/mattermost/mattermost/server/public v0.1.22-0.20251105210629-8bf4a00724e2/go.mod h1:X0RG3lk0XK0SFSH67JS/xporlz3TxItHEPlFIrsQIa8=
 github.com/mattermost/morph v1.1.0 h1:Q9vrJbeM3s2jfweGheq12EFIzdNp9a/6IovcbvOQ6Cw=
