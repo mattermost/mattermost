@@ -62,10 +62,10 @@ describe('ThreadsTab', () => {
         jest.clearAllMocks();
         mockCallCount = 0;
         mockPush.mockClear();
-        // Default: channel, teamUrl, threads
+        // Default: channel, teamUrl (relative), threads
         mockValues = [
             {id: 'channel1', name: 'channel1'},
-            '/test-team',
+            '/test-team', // getCurrentRelativeTeamUrl returns relative path
             [],
         ];
     });

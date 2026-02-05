@@ -8,7 +8,7 @@ import AutoSizer from 'react-virtualized-auto-sizer';
 import {FixedSizeList} from 'react-window';
 
 import {getCurrentChannel} from 'mattermost-redux/selectors/entities/channels';
-import {getCurrentTeamUrl} from 'mattermost-redux/selectors/entities/teams';
+import {getCurrentRelativeTeamUrl} from 'mattermost-redux/selectors/entities/teams';
 
 import {getThreadsInChannel} from 'selectors/views/guilded_layout';
 
@@ -24,7 +24,7 @@ export default function ThreadsTab() {
     const history = useHistory();
 
     const channel = useSelector(getCurrentChannel);
-    const teamUrl = useSelector(getCurrentTeamUrl);
+    const teamUrl = useSelector(getCurrentRelativeTeamUrl);
     const threads = useSelector((state: GlobalState) =>
         (channel ? getThreadsInChannel(state, channel.id) : [])
     );
