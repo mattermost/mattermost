@@ -6,7 +6,7 @@ import {createSelector} from 'mattermost-redux/selectors/create_selector';
 import {getAllChannels, getMyChannelMemberships, getChannelMembersInChannels} from 'mattermost-redux/selectors/entities/channels';
 import {getPostsInChannel, getPost} from 'mattermost-redux/selectors/entities/posts';
 import {getConfig} from 'mattermost-redux/selectors/entities/general';
-import {getUsers, getStatusForUserId, getCurrentUserId, getProfilesInChannel} from 'mattermost-redux/selectors/entities/users';
+import {getUsers, getStatusForUserId, getCurrentUserId, makeGetProfilesInChannel} from 'mattermost-redux/selectors/entities/users';
 import {getThreads} from 'mattermost-redux/selectors/entities/threads';
 
 import type {Post} from '@mattermost/types/posts';
@@ -275,6 +275,9 @@ interface GroupedMembers {
     onlineMembers: MemberWithStatus[];
     offline: MemberWithStatus[];
 }
+
+// Create reusable selector instance from factory
+const getProfilesInChannel = makeGetProfilesInChannel();
 
 /**
  * Get channel members grouped by status (online admins, online members, offline)
