@@ -2056,107 +2056,90 @@ func testSearchURLsPostgres(t *testing.T, th *SearchTestHelper) {
 	testCases := []struct {
 		name        string
 		terms       string
-		expectedLen int
 		expectedIDs []string
 	}{
 		// Searches WITH protocol - these don't work due to tokenization at "://"
 		{
 			name:        "Search full URL with protocol and path does not match",
 			terms:       "https://example.com/path/to/page",
-			expectedLen: 0,
 			expectedIDs: []string{},
 		},
 		{
 			name:        "Search URL with protocol but without path does not match",
 			terms:       "https://mattermost.com",
-			expectedLen: 0,
 			expectedIDs: []string{},
 		},
 		{
 			name:        "Search HTTP URL with protocol and path does not match",
 			terms:       "http://legacy.example.net/old",
-			expectedLen: 0,
 			expectedIDs: []string{},
 		},
 		{
 			name:        "Search URL in quotes with protocol does not match",
 			terms:       `"https://example.com/path/to/page"`,
-			expectedLen: 0,
 			expectedIDs: []string{},
 		},
 		// Searches WITHOUT protocol - these work correctly
 		{
 			name:        "Search URL without protocol finds post with full URL",
 			terms:       "example.com/path/to/page",
-			expectedLen: 1,
-			expectedIDs: []string{pFullURL.Id},
+			expectedIDs: []string{fullUrlId},
 		},
 		{
 			name:        "Search domain only from URL with path",
 			terms:       "example.com",
-			expectedLen: 1,
-			expectedIDs: []string{pFullURL.Id},
+			expectedIDs: []string{fullUrlId},
 		},
 		{
 			name:        "Search domain without protocol or path",
 			terms:       "mattermost.com",
-			expectedLen: 1,
-			expectedIDs: []string{pURLNoPath.Id},
+			expectedIDs: []string{urlNoPathId},
 		},
 		{
 			name:        "Search post with URL without protocol in content",
 			terms:       "example.org/docs",
-			expectedLen: 1,
-			expectedIDs: []string{pURLNoProtocol.Id},
+			expectedIDs: []string{urlNoProtocolId},
 		},
 		{
 			name:        "Search domain only from post without protocol",
 			terms:       "example.org",
-			expectedLen: 1,
-			expectedIDs: []string{pURLNoProtocol.Id},
+			expectedIDs: []string{urlNoProtocolId},
 		},
 		{
 			name:        "Search simple domain without protocol or path in post",
 			terms:       "testsite.io",
-			expectedLen: 1,
-			expectedIDs: []string{pURLNoProtocolNoPath.Id},
+			expectedIDs: []string{urlNoProtocolNoPathId},
 		},
 		{
 			name:        "Search HTTP URL without protocol",
 			terms:       "legacy.example.net/old",
-			expectedLen: 1,
-			expectedIDs: []string{pHTTPURL.Id},
+			expectedIDs: []string{httpUrlId},
 		},
 		{
 			name:        "Search HTTP domain only",
 			terms:       "legacy.example.net",
-			expectedLen: 1,
-			expectedIDs: []string{pHTTPURL.Id},
+			expectedIDs: []string{httpUrlId},
 		},
 		// Searches with additional text
 		{
 			name:        "Search domain with surrounding text",
 			terms:       "visit example.org/docs today",
-			expectedLen: 1,
-			expectedIDs: []string{pURLNoProtocol.Id},
+			expectedIDs: []string{urlNoProtocolId},
 		},
 		{
 			name:        "Search domain with text before",
 			terms:       "check example.com/path/to/page",
-			expectedLen: 1,
-			expectedIDs: []string{pFullURL.Id},
+			expectedIDs: []string{fullUrlId},
 		},
 		{
 			name:        "Search domain with text after",
 			terms:       "mattermost.com details",
-			expectedLen: 1,
-			expectedIDs: []string{pURLNoPath.Id},
+			expectedIDs: []string{urlNoPathId},
 		},
 		// Negative test cases
 		{
 			name:        "Search non-existent domain returns nothing",
 			terms:       "nonexistent.example.com",
-			expectedLen: 0,
 			expectedIDs: []string{},
 		},
 	}
@@ -2167,7 +2150,7 @@ func testSearchURLsPostgres(t *testing.T, th *SearchTestHelper) {
 			results, err := th.Store.Post().SearchPostsForUser(th.Context, []*model.SearchParams{params}, th.User.Id, th.Team.Id, 0, 20)
 			require.NoError(t, err)
 
-			require.Len(t, results.Posts, tc.expectedLen)
+			require.Len(t, results.Posts, len(tc.expectedIDs))
 			for _, id := range tc.expectedIDs {
 				th.checkPostInSearchResults(t, id, results.Posts)
 			}
