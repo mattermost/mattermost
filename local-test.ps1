@@ -1308,13 +1308,16 @@ function Invoke-Start {
     # Initialize server log file
     "=" * 80 | Out-File $SERVER_LOG -Encoding UTF8
     "Server started: $(Get-Date -Format 'yyyy-MM-dd HH:mm:ss')" | Out-File $SERVER_LOG -Append -Encoding UTF8
-    "Command: $binaryPath server --config $configPath" | Out-File $SERVER_LOG -Append -Encoding UTF8
+    "Command: MM_CONFIG=$configPath $binaryPath server" | Out-File $SERVER_LOG -Append -Encoding UTF8
     "=" * 80 | Out-File $SERVER_LOG -Append -Encoding UTF8
 
     Push-Location $WORK_DIR
 
+    # Set config via environment variable (more reliable than --config flag)
+    $env:MM_CONFIG = $configPath
+
     # Run server and capture output to server log
-    & $binaryPath server --config $configPath 2>&1 | ForEach-Object {
+    & $binaryPath server 2>&1 | ForEach-Object {
         $_ | Out-File $SERVER_LOG -Append -Encoding UTF8
         Write-Host $_
     }
@@ -1349,11 +1352,14 @@ function Invoke-StartBuild {
     # Initialize server log file
     "=" * 80 | Out-File $SERVER_LOG -Encoding UTF8
     "Server started: $(Get-Date -Format 'yyyy-MM-dd HH:mm:ss')" | Out-File $SERVER_LOG -Append -Encoding UTF8
-    "Command: $binaryPath server --config $configPath" | Out-File $SERVER_LOG -Append -Encoding UTF8
+    "Command: MM_CONFIG=$configPath $binaryPath server" | Out-File $SERVER_LOG -Append -Encoding UTF8
     "=" * 80 | Out-File $SERVER_LOG -Append -Encoding UTF8
 
+    # Set config via environment variable (more reliable than --config flag)
+    $env:MM_CONFIG = $configPath
+
     # Run server and capture output to server log
-    & $binaryPath server --config $configPath 2>&1 | ForEach-Object {
+    & $binaryPath server 2>&1 | ForEach-Object {
         $_ | Out-File $SERVER_LOG -Append -Encoding UTF8
         Write-Host $_
     }
@@ -1833,8 +1839,11 @@ function Invoke-Demo {
 
     $binaryPath = Join-Path $WORK_DIR "mattermost.exe"
 
+    # Set config via environment variable (more reliable than --config flag)
+    $env:MM_CONFIG = $configPath
+
     # Start server in background
-    $serverProcess = Start-Process -FilePath $binaryPath -ArgumentList "server", "--config", $configPath -WorkingDirectory $WORK_DIR -PassThru -NoNewWindow -RedirectStandardOutput "$WORK_DIR\init-stdout.log" -RedirectStandardError "$WORK_DIR\init-stderr.log"
+    $serverProcess = Start-Process -FilePath $binaryPath -ArgumentList "server" -WorkingDirectory $WORK_DIR -PassThru -NoNewWindow -RedirectStandardOutput "$WORK_DIR\init-stdout.log" -RedirectStandardError "$WORK_DIR\init-stderr.log"
 
     # Wait for server to initialize (check for tables)
     $timeout = 120
@@ -2361,7 +2370,11 @@ function Invoke-All {
     Push-Location $WORK_DIR
     $binaryPath = Join-Path $WORK_DIR "mattermost.exe"
     $configPath = Join-Path $WORK_DIR "config.json"
-    & $binaryPath server --config $configPath 2>&1 | ForEach-Object {
+
+    # Set config via environment variable (more reliable than --config flag)
+    $env:MM_CONFIG = $configPath
+
+    & $binaryPath server 2>&1 | ForEach-Object {
         $_ | Out-File $LOG_FILE -Append -Encoding UTF8
         Write-Host $_
     }
