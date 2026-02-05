@@ -682,7 +682,7 @@ func (a *App) PermanentDeletePostDataRetainStub(rctx request.CTX, post *model.Po
 	scrubPost(post)
 	_, err := a.Srv().Store().Post().Overwrite(rctx, post)
 	if err != nil {
-		return model.NewAppError("PermanentDeletePostDataRetainStub", "app.post.permanently_delete_retain_stub.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		rctx.Logger().Error("PermanentDeletePostDataRetainStub: Failed to scrub post content", mlog.Err(err), mlog.String("post_id", post.Id))
 	}
 
 	// If the post is not already deleted, delete it now.
