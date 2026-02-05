@@ -6529,6 +6529,14 @@ const AdminDefinition: AdminDefinitionType = {
                             help_text_markdown: true,
                             options: [
                                 {
+                                    value: 'guilded',
+                                    display_name: defineMessage({id: 'admin.experimental.defaultTheme.options.guilded', defaultMessage: 'Guilded'}),
+                                },
+                                {
+                                    value: 'discord',
+                                    display_name: defineMessage({id: 'admin.experimental.defaultTheme.options.discord', defaultMessage: 'Discord'}),
+                                },
+                                {
                                     value: 'denim',
                                     display_name: defineMessage({id: 'admin.experimental.defaultTheme.options.denim', defaultMessage: 'Denim'}),
                                 },
