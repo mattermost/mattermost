@@ -1,9 +1,12 @@
 package main
 
 import (
+	"crypto/rand"
 	"database/sql"
+	"encoding/base32"
 	"fmt"
 	"os"
+	"strings"
 	"time"
 
 	_ "github.com/lib/pq"
@@ -116,13 +119,12 @@ func main() {
 
 	fmt.Printf("\nCreated %d users with password '%s'\n", created, password)
 
-	// Create demo team
-	var teamExists bool
-	err = db.QueryRow("SELECT EXISTS(SELECT 1 FROM teams WHERE name = 'demo')").Scan(&teamExists)
-	if err != nil {
-		fmt.Printf("Error checking team: %v\n", err)
-	} else if !teamExists {
-		teamId := generateId()
+	// Create or get demo team
+	var teamId string
+	err = db.QueryRow("SELECT id FROM teams WHERE name = 'demo'").Scan(&teamId)
+	if err == sql.ErrNoRows {
+		// Create the team
+		teamId = generateId()
 		_, err = db.Exec(`
 			INSERT INTO teams (
 				id, createat, updateat, deleteat, displayname, name,
@@ -138,46 +140,61 @@ func main() {
 		)
 		if err != nil {
 			fmt.Printf("Error creating team: %v\n", err)
-		} else {
-			fmt.Println("Created team: demo (Feature Demo)")
-
-			// Add all users to the team
-			for _, u := range users {
-				var userId string
-				err := db.QueryRow("SELECT id FROM users WHERE username = $1", u.Username).Scan(&userId)
-				if err != nil {
-					continue
-				}
-
-				roles := "team_user"
-				if u.Username == "admin" {
-					roles = "team_admin team_user"
-				}
-
-				_, err = db.Exec(`
-					INSERT INTO teammembers (teamid, userid, roles, deleteat, schemeguest, schemeuser, schemeadmin, createat)
-					VALUES ($1, $2, $3, 0, false, true, $4, $5)
-					ON CONFLICT (teamid, userid) DO NOTHING`,
-					teamId, userId, roles, u.Username == "admin", now,
-				)
-				if err != nil {
-					fmt.Printf("Error adding %s to team: %v\n", u.Username, err)
-				}
-			}
-			fmt.Println("Added all users to demo team")
+			return
 		}
+		fmt.Println("Created team: demo (Feature Demo)")
+	} else if err != nil {
+		fmt.Printf("Error checking team: %v\n", err)
+		return
 	} else {
 		fmt.Println("Team 'demo' already exists")
+	}
+
+	// Add all users to the team (always runs, handles existing memberships via ON CONFLICT)
+	addedCount := 0
+	for _, u := range users {
+		var userId string
+		err := db.QueryRow("SELECT id FROM users WHERE username = $1", u.Username).Scan(&userId)
+		if err != nil {
+			fmt.Printf("Warning: user %s not found, skipping team membership\n", u.Username)
+			continue
+		}
+
+		roles := "team_user"
+		if u.Username == "admin" {
+			roles = "team_admin team_user"
+		}
+
+		result, err := db.Exec(`
+			INSERT INTO teammembers (teamid, userid, roles, deleteat, schemeguest, schemeuser, schemeadmin, createat)
+			VALUES ($1, $2, $3, 0, false, true, $4, $5)
+			ON CONFLICT (teamid, userid) DO NOTHING`,
+			teamId, userId, roles, u.Username == "admin", now,
+		)
+		if err != nil {
+			fmt.Printf("Error adding %s to team: %v\n", u.Username, err)
+		} else {
+			rowsAffected, _ := result.RowsAffected()
+			if rowsAffected > 0 {
+				addedCount++
+			}
+		}
+	}
+	if addedCount > 0 {
+		fmt.Printf("Added %d users to demo team\n", addedCount)
+	} else {
+		fmt.Println("All users already in demo team")
 	}
 }
 
 // generateId creates a 26-character ID similar to Mattermost's format
 func generateId() string {
-	const charset = "ybndrfg8ejkmcpqxot1uwisza345h769"
-	b := make([]byte, 26)
-	for i := range b {
-		b[i] = charset[time.Now().UnixNano()%int64(len(charset))]
-		time.Sleep(time.Nanosecond)
+	b := make([]byte, 16)
+	rand.Read(b)
+	// Use base32 encoding without padding, lowercase
+	id := strings.ToLower(base32.StdEncoding.WithPadding(base32.NoPadding).EncodeToString(b))
+	if len(id) > 26 {
+		id = id[:26]
 	}
-	return string(b)
+	return id
 }
