@@ -96,6 +96,9 @@ describe('SidebarRight with Guilded Layout', () => {
                 profiles: {
                     user1: {id: 'user1', username: 'user1'},
                 },
+                profilesInChannel: {
+                    channel1: new Set(['user1']),
+                },
                 statuses: {},
                 currentUserId: 'user1',
             },
@@ -245,6 +248,18 @@ describe('SidebarRight with Guilded Layout', () => {
                         },
                     },
                     currentChannelId: 'gm1',
+                },
+                users: {
+                    ...defaultState.entities.users,
+                    profilesInChannel: {
+                        ...defaultState.entities.users.profilesInChannel,
+                        gm1: new Set(['user1', 'user2', 'user3']),
+                    },
+                    profiles: {
+                        ...defaultState.entities.users.profiles,
+                        user2: {id: 'user2', username: 'user2'},
+                        user3: {id: 'user3', username: 'user3'},
+                    },
                 },
             },
         };
