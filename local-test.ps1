@@ -1466,8 +1466,8 @@ function Invoke-S3Sync {
         Log-Error "S3_BUCKET not set in local-test.config"
         Log ""
         Log "Add these settings to local-test.config:"
-        Log "  S3_BUCKET=mattermost-modders"
-        Log "  S3_ENDPOINT=https://s3.us-east-005.backblazeb2.com"
+        Log "  S3_BUCKET=your-bucket-name"
+        Log "  S3_ENDPOINT=https://your-s3-endpoint.com"
         Log "  S3_ACCESS_KEY=your-access-key"
         Log "  S3_SECRET_KEY=your-secret-key"
         exit 1
