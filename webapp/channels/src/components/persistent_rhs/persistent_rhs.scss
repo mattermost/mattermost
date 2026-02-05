@@ -26,9 +26,10 @@
         font-weight: 600;
     }
 
+    // Matches channel-members-rhs__members-container
     &__content {
-        flex: 1;
-        min-height: 0;
-        overflow: hidden;
+        flex: 1 1 auto;
+        overflow-y: auto;
+        padding: 0 4px 16px;
     }
 }
