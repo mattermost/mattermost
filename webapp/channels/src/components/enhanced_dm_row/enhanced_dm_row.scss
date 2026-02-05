@@ -86,7 +86,8 @@
     }
 
     // Match native sidebar status indicator (19x19)
-    &__status {
+    // StatusIcon renders: <span class="status enhanced-dm-row__status"><svg>...</svg></span>
+    &__status.status {
         position: absolute;
         right: -6px;
         bottom: -5px;
@@ -95,12 +96,16 @@
         height: 19px;
         align-items: center;
         justify-content: center;
+        margin: 0; // Override native .status margin
         border-radius: 50%;
         background: var(--sidebar-bg);
+        line-height: 0;
 
         svg {
             position: relative;
             z-index: 1;
+            top: 0;
+            left: 0;
             width: 13px;
             height: 13px;
             max-height: initial;

@@ -40,14 +40,42 @@
         object-fit: cover;
     }
 
-    &__status-icon {
+    // StatusIcon renders: <span class="status member-row__status-icon"><svg>...</svg></span>
+    &__status-icon.status {
         position: absolute;
-        right: -2px;
-        bottom: -2px;
-        width: 12px;
-        height: 12px;
-        border: 2px solid var(--center-channel-bg);
+        right: -3px;
+        bottom: -4px;
+        display: flex;
+        width: 15px;
+        height: 15px;
+        align-items: center;
+        justify-content: center;
+        margin: 0;
         border-radius: 50%;
+        background: var(--center-channel-bg);
+        line-height: 0;
+
+        svg {
+            position: relative;
+            top: 2px;
+            max-height: 11px;
+        }
+
+        .online--icon {
+            fill: var(--online-indicator);
+        }
+
+        .away--icon {
+            fill: var(--away-indicator);
+        }
+
+        .dnd--icon {
+            fill: var(--dnd-indicator);
+        }
+
+        .offline--icon {
+            fill: var(--offline-indicator);
+        }
     }
 
     &__info {
