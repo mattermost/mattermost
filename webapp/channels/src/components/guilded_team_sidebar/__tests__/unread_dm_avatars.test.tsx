@@ -8,31 +8,38 @@ import configureStore from 'redux-mock-store';
 
 import UnreadDmAvatars from '../unread_dm_avatars';
 
-jest.mock('selectors/views/guilded_layout', () => ({
-    getUnreadDmChannelsWithUsers: jest.fn(),
-}));
-
-import {getUnreadDmChannelsWithUsers} from 'selectors/views/guilded_layout';
-
-const mockGetUnreadDmChannelsWithUsers = getUnreadDmChannelsWithUsers as jest.Mock;
-
 const mockStore = configureStore([]);
+
+// Mock react-redux useSelector
+let useSelectorCallCount = 0;
+let mockSelectorValues: any[] = [];
+
+jest.mock('react-redux', () => ({
+    ...jest.requireActual('react-redux'),
+    useSelector: () => {
+        const value = mockSelectorValues[useSelectorCallCount] ?? [];
+        useSelectorCallCount++;
+        return value;
+    },
+}));
 
 describe('UnreadDmAvatars', () => {
     const baseState = {
         entities: {
-            general: {
-                config: {},
-            },
+            general: {config: {}},
         },
     };
 
     beforeEach(() => {
         jest.clearAllMocks();
+        useSelectorCallCount = 0;
+        // UnreadDmAvatars calls useSelector once: getUnreadDmChannelsWithUsers
+        mockSelectorValues = [[]];
     });
 
     it('renders container element', () => {
-        mockGetUnreadDmChannelsWithUsers.mockReturnValue([]);
+        mockSelectorValues = [[]];
+        useSelectorCallCount = 0;
         const store = mockStore(baseState);
         const {container} = render(
             <Provider store={store}>
@@ -44,7 +51,8 @@ describe('UnreadDmAvatars', () => {
     });
 
     it('renders nothing when no unread DMs', () => {
-        mockGetUnreadDmChannelsWithUsers.mockReturnValue([]);
+        mockSelectorValues = [[]];
+        useSelectorCallCount = 0;
         const store = mockStore(baseState);
         const {container} = render(
             <Provider store={store}>
@@ -56,7 +64,7 @@ describe('UnreadDmAvatars', () => {
     });
 
     it('renders avatars for unread DMs', () => {
-        mockGetUnreadDmChannelsWithUsers.mockReturnValue([
+        mockSelectorValues = [[
             {
                 channel: {id: 'dm1', type: 'D', name: 'currentUser__user2', last_post_at: 2000},
                 user: {id: 'user2', username: 'user2', last_picture_update: 0},
@@ -69,7 +77,8 @@ describe('UnreadDmAvatars', () => {
                 unreadCount: 1,
                 status: 'away',
             },
-        ]);
+        ]];
+        useSelectorCallCount = 0;
         const store = mockStore(baseState);
         const {container} = render(
             <Provider store={store}>
@@ -91,7 +100,8 @@ describe('UnreadDmAvatars', () => {
                 status: 'online',
             });
         }
-        mockGetUnreadDmChannelsWithUsers.mockReturnValue(manyUnreads);
+        mockSelectorValues = [manyUnreads];
+        useSelectorCallCount = 0;
         const store = mockStore(baseState);
         const {container} = render(
             <Provider store={store}>
@@ -113,7 +123,8 @@ describe('UnreadDmAvatars', () => {
                 status: 'online',
             });
         }
-        mockGetUnreadDmChannelsWithUsers.mockReturnValue(manyUnreads);
+        mockSelectorValues = [manyUnreads];
+        useSelectorCallCount = 0;
         const store = mockStore(baseState);
         const {container} = render(
             <Provider store={store}>
@@ -126,14 +137,15 @@ describe('UnreadDmAvatars', () => {
     });
 
     it('shows status indicator on avatars', () => {
-        mockGetUnreadDmChannelsWithUsers.mockReturnValue([
+        mockSelectorValues = [[
             {
                 channel: {id: 'dm1', type: 'D', name: 'currentUser__user2', last_post_at: 1000},
                 user: {id: 'user2', username: 'user2', last_picture_update: 0},
                 unreadCount: 1,
                 status: 'online',
             },
-        ]);
+        ]];
+        useSelectorCallCount = 0;
         const store = mockStore(baseState);
         const {container} = render(
             <Provider store={store}>

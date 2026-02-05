@@ -8,25 +8,20 @@ import configureStore from 'redux-mock-store';
 
 import ExpandedOverlay from '../expanded_overlay';
 
-jest.mock('selectors/views/guilded_layout', () => ({
-    getFavoritedTeamIds: jest.fn(),
-    getUnreadDmChannelsWithUsers: jest.fn(),
-}));
-
-jest.mock('mattermost-redux/selectors/entities/teams', () => ({
-    getCurrentTeamId: jest.fn(),
-    getMyTeams: jest.fn(),
-}));
-
-import {getFavoritedTeamIds, getUnreadDmChannelsWithUsers} from 'selectors/views/guilded_layout';
-import {getCurrentTeamId, getMyTeams} from 'mattermost-redux/selectors/entities/teams';
-
-const mockGetFavoritedTeamIds = getFavoritedTeamIds as jest.Mock;
-const mockGetUnreadDmChannelsWithUsers = getUnreadDmChannelsWithUsers as jest.Mock;
-const mockGetCurrentTeamId = getCurrentTeamId as jest.Mock;
-const mockGetMyTeams = getMyTeams as jest.Mock;
-
 const mockStore = configureStore([]);
+
+// Mock react-redux useSelector
+let useSelectorCallCount = 0;
+let mockSelectorValues: any[] = [];
+
+jest.mock('react-redux', () => ({
+    ...jest.requireActual('react-redux'),
+    useSelector: () => {
+        const value = mockSelectorValues[useSelectorCallCount] ?? null;
+        useSelectorCallCount++;
+        return value;
+    },
+}));
 
 describe('ExpandedOverlay', () => {
     const defaultProps = {
@@ -49,28 +44,17 @@ describe('ExpandedOverlay', () => {
 
     const baseState = {
         entities: {
-            teams: {
-                teams: {},
-                myMembers: {},
-                currentTeamId: 'team1',
-            },
-            general: {
-                config: {},
-            },
+            teams: {},
+            general: {config: {}},
         },
-        views: {
-            guildedLayout: {
-                favoritedTeamIds: ['team1'],
-            },
-        },
+        views: {guildedLayout: {}},
     };
 
     beforeEach(() => {
         jest.clearAllMocks();
-        mockGetCurrentTeamId.mockReturnValue('team1');
-        mockGetFavoritedTeamIds.mockReturnValue(['team1']);
-        mockGetMyTeams.mockReturnValue(mockTeams);
-        mockGetUnreadDmChannelsWithUsers.mockReturnValue(mockUnreadDms);
+        useSelectorCallCount = 0;
+        // ExpandedOverlay calls useSelector in order: getMyTeams, getFavoritedTeamIds, getCurrentTeamId, getUnreadDmChannelsWithUsers
+        mockSelectorValues = [mockTeams, ['team1'], 'team1', mockUnreadDms];
     });
 
     it('renders the overlay container', () => {

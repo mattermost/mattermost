@@ -8,23 +8,20 @@ import configureStore from 'redux-mock-store';
 
 import TeamList from '../team_list';
 
-jest.mock('selectors/views/guilded_layout', () => ({
-    getFavoritedTeamIds: jest.fn(),
-}));
-
-jest.mock('mattermost-redux/selectors/entities/teams', () => ({
-    getCurrentTeamId: jest.fn(),
-    getMyTeams: jest.fn(),
-}));
-
-import {getFavoritedTeamIds} from 'selectors/views/guilded_layout';
-import {getCurrentTeamId, getMyTeams} from 'mattermost-redux/selectors/entities/teams';
-
-const mockGetFavoritedTeamIds = getFavoritedTeamIds as jest.Mock;
-const mockGetCurrentTeamId = getCurrentTeamId as jest.Mock;
-const mockGetMyTeams = getMyTeams as jest.Mock;
-
 const mockStore = configureStore([]);
+
+// Mock react-redux useSelector
+let useSelectorCallCount = 0;
+let mockSelectorValues: any[] = [];
+
+jest.mock('react-redux', () => ({
+    ...jest.requireActual('react-redux'),
+    useSelector: () => {
+        const value = mockSelectorValues[useSelectorCallCount] ?? null;
+        useSelectorCallCount++;
+        return value;
+    },
+}));
 
 describe('TeamList', () => {
     const defaultProps = {
@@ -39,27 +36,17 @@ describe('TeamList', () => {
 
     const baseState = {
         entities: {
-            teams: {
-                teams: {},
-                myMembers: {},
-                currentTeamId: 'team1',
-            },
-            general: {
-                config: {},
-            },
+            teams: {},
+            general: {config: {}},
         },
-        views: {
-            guildedLayout: {
-                favoritedTeamIds: ['team1'], // team1 is favorited, should be excluded from list
-            },
-        },
+        views: {guildedLayout: {}},
     };
 
     beforeEach(() => {
         jest.clearAllMocks();
-        mockGetCurrentTeamId.mockReturnValue('team1');
-        mockGetFavoritedTeamIds.mockReturnValue(['team1']);
-        mockGetMyTeams.mockReturnValue(allTeams);
+        useSelectorCallCount = 0;
+        // TeamList calls useSelector in order: getMyTeams, getFavoritedTeamIds, getCurrentTeamId
+        mockSelectorValues = [allTeams, ['team1'], 'team1'];
     });
 
     it('renders container element', () => {
@@ -127,15 +114,10 @@ describe('TeamList', () => {
     });
 
     it('shows all teams when none are favorited', () => {
-        mockGetFavoritedTeamIds.mockReturnValue([]);
-        const store = mockStore({
-            ...baseState,
-            views: {
-                guildedLayout: {
-                    favoritedTeamIds: [],
-                },
-            },
-        });
+        useSelectorCallCount = 0;
+        mockSelectorValues = [allTeams, [], 'team1'];
+
+        const store = mockStore(baseState);
         const {container} = render(
             <Provider store={store}>
                 <TeamList {...defaultProps} />
@@ -147,15 +129,10 @@ describe('TeamList', () => {
     });
 
     it('sorts teams alphabetically by display name', () => {
-        mockGetFavoritedTeamIds.mockReturnValue([]);
-        const store = mockStore({
-            ...baseState,
-            views: {
-                guildedLayout: {
-                    favoritedTeamIds: [],
-                },
-            },
-        });
+        useSelectorCallCount = 0;
+        mockSelectorValues = [allTeams, [], 'team1'];
+
+        const store = mockStore(baseState);
         const {container} = render(
             <Provider store={store}>
                 <TeamList {...defaultProps} />
@@ -168,19 +145,10 @@ describe('TeamList', () => {
     });
 
     it('highlights current team if in list', () => {
-        // Make team2 current and not favorited
-        mockGetCurrentTeamId.mockReturnValue('team2');
-        mockGetFavoritedTeamIds.mockReturnValue(['team1']);
-        const store = mockStore({
-            ...baseState,
-            entities: {
-                ...baseState.entities,
-                teams: {
-                    ...baseState.entities.teams,
-                    currentTeamId: 'team2',
-                },
-            },
-        });
+        useSelectorCallCount = 0;
+        mockSelectorValues = [allTeams, ['team1'], 'team2'];
+
+        const store = mockStore(baseState);
         const {container} = render(
             <Provider store={store}>
                 <TeamList {...defaultProps} />

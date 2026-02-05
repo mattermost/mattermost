@@ -8,23 +8,20 @@ import configureStore from 'redux-mock-store';
 
 import FavoritedTeams from '../favorited_teams';
 
-jest.mock('selectors/views/guilded_layout', () => ({
-    getFavoritedTeamIds: jest.fn(),
-}));
-
-jest.mock('mattermost-redux/selectors/entities/teams', () => ({
-    getCurrentTeamId: jest.fn(),
-    getTeam: jest.fn(),
-}));
-
-import {getFavoritedTeamIds} from 'selectors/views/guilded_layout';
-import {getCurrentTeamId, getTeam} from 'mattermost-redux/selectors/entities/teams';
-
-const mockGetFavoritedTeamIds = getFavoritedTeamIds as jest.Mock;
-const mockGetCurrentTeamId = getCurrentTeamId as jest.Mock;
-const mockGetTeam = getTeam as jest.Mock;
-
 const mockStore = configureStore([]);
+
+// Mock react-redux useSelector
+let useSelectorCallCount = 0;
+let mockSelectorValues: any[] = [];
+
+jest.mock('react-redux', () => ({
+    ...jest.requireActual('react-redux'),
+    useSelector: () => {
+        const value = mockSelectorValues[useSelectorCallCount] ?? null;
+        useSelectorCallCount++;
+        return value;
+    },
+}));
 
 describe('FavoritedTeams', () => {
     const defaultProps = {
@@ -32,37 +29,24 @@ describe('FavoritedTeams', () => {
         onExpandClick: jest.fn(),
     };
 
-    const mockTeams = {
-        team1: {id: 'team1', display_name: 'Team One', name: 'team-one', last_team_icon_update: 0, delete_at: 0},
-        team2: {id: 'team2', display_name: 'Team Two', name: 'team-two', last_team_icon_update: 0, delete_at: 0},
-    };
+    const mockTeams = [
+        {id: 'team1', display_name: 'Team One', name: 'team-one', last_team_icon_update: 0, delete_at: 0},
+        {id: 'team2', display_name: 'Team Two', name: 'team-two', last_team_icon_update: 0, delete_at: 0},
+    ];
 
     const baseState = {
         entities: {
-            teams: {
-                teams: mockTeams,
-                myMembers: {
-                    team1: {team_id: 'team1'},
-                    team2: {team_id: 'team2'},
-                },
-                currentTeamId: 'team1',
-            },
-            general: {
-                config: {},
-            },
+            teams: {},
+            general: {config: {}},
         },
-        views: {
-            guildedLayout: {
-                favoritedTeamIds: ['team1', 'team2'],
-            },
-        },
+        views: {guildedLayout: {}},
     };
 
     beforeEach(() => {
         jest.clearAllMocks();
-        mockGetCurrentTeamId.mockReturnValue('team1');
-        mockGetFavoritedTeamIds.mockReturnValue(['team1', 'team2']);
-        mockGetTeam.mockImplementation((state, id) => mockTeams[id as keyof typeof mockTeams] || null);
+        useSelectorCallCount = 0;
+        // FavoritedTeams calls useSelector in order: getFavoritedTeamIds, getCurrentTeamId, inline selector for teams
+        mockSelectorValues = [['team1', 'team2'], 'team1', mockTeams];
     });
 
     it('renders container element', () => {
@@ -155,15 +139,10 @@ describe('FavoritedTeams', () => {
     });
 
     it('renders nothing when no favorited teams', () => {
-        mockGetFavoritedTeamIds.mockReturnValue([]);
-        const store = mockStore({
-            ...baseState,
-            views: {
-                guildedLayout: {
-                    favoritedTeamIds: [],
-                },
-            },
-        });
+        useSelectorCallCount = 0;
+        mockSelectorValues = [[], 'team1', []];
+
+        const store = mockStore(baseState);
         const {container} = render(
             <Provider store={store}>
                 <FavoritedTeams {...defaultProps} />
