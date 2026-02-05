@@ -152,4 +152,20 @@ describe('FavoritedTeams', () => {
         const teamButtons = container.querySelectorAll('.favorited-teams__team');
         expect(teamButtons).toHaveLength(0);
     });
+
+    it('returns null (no container) when no favorited teams', () => {
+        mockCallCount = 0;
+        mockValues = [[], 'team1', []];
+
+        const store = mockStore(baseState);
+        const {container} = render(
+            <Provider store={store}>
+                <FavoritedTeams {...defaultProps} />
+            </Provider>,
+        );
+
+        // Should return null, not render any container
+        expect(container.querySelector('.favorited-teams')).not.toBeInTheDocument();
+        expect(container.querySelector('.favorited-teams__expand')).not.toBeInTheDocument();
+    });
 });
