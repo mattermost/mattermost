@@ -12,6 +12,12 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+// Note: Board attributes do not emit WebSocket events when fields are created, updated, or deleted.
+// This is intentional and differs from Custom Profile Attributes (CPA) which emit WebSocket events.
+// If WebSocket events are needed in the future, they should be added to the app layer methods
+// (CreateBoardAttributeField, PatchBoardAttributeField, DeleteBoardAttributeField) similar to
+// how CPA emits WebsocketEventCPAFieldCreated, WebsocketEventCPAFieldUpdated, etc.
+
 func TestCreateBoardAttributeField(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := SetupConfig(t, func(cfg *model.Config) {
@@ -140,6 +146,80 @@ func TestListBoardAttributeFields(t *testing.T) {
 		CheckOKStatus(t, resp)
 		require.NoError(t, err)
 		require.Empty(t, fields)
+	})
+
+	t.Run("fields should be returned in sort_order", func(t *testing.T) {
+		// Create fields with different sort orders
+		field1 := &model.PropertyField{
+			Name: model.NewId(),
+			Type: model.PropertyFieldTypeText,
+			Attrs: map[string]any{"sort_order": float64(2)},
+		}
+		createdField1, appErr := th.App.CreateBoardAttributeField(field1)
+		require.Nil(t, appErr)
+
+		field2 := &model.PropertyField{
+			Name: model.NewId(),
+			Type: model.PropertyFieldTypeText,
+			Attrs: map[string]any{"sort_order": float64(0)},
+		}
+		createdField2, appErr := th.App.CreateBoardAttributeField(field2)
+		require.Nil(t, appErr)
+
+		field3 := &model.PropertyField{
+			Name: model.NewId(),
+			Type: model.PropertyFieldTypeText,
+			Attrs: map[string]any{"sort_order": float64(1)},
+		}
+		createdField3, appErr := th.App.CreateBoardAttributeField(field3)
+		require.Nil(t, appErr)
+
+		// List fields and verify they are in sort_order
+		fields, resp, err := th.Client.ListBoardAttributeFields(context.Background())
+		CheckOKStatus(t, resp)
+		require.NoError(t, err)
+		require.GreaterOrEqual(t, len(fields), 3)
+
+		// Find our created fields in the list
+		var foundField1, foundField2, foundField3 *model.PropertyField
+		for _, f := range fields {
+			if f.ID == createdField1.ID {
+				foundField1 = f
+			}
+			if f.ID == createdField2.ID {
+				foundField2 = f
+			}
+			if f.ID == createdField3.ID {
+				foundField3 = f
+			}
+		}
+		require.NotNil(t, foundField1)
+		require.NotNil(t, foundField2)
+		require.NotNil(t, foundField3)
+
+		// Verify sort_order values
+		require.Equal(t, float64(2), foundField1.Attrs["sort_order"])
+		require.Equal(t, float64(0), foundField2.Attrs["sort_order"])
+		require.Equal(t, float64(1), foundField3.Attrs["sort_order"])
+
+		// Verify fields are returned in sort_order (0, 1, 2)
+		field2Index := -1
+		field3Index := -1
+		field1Index := -1
+		for i, f := range fields {
+			if f.ID == createdField2.ID {
+				field2Index = i
+			}
+			if f.ID == createdField3.ID {
+				field3Index = i
+			}
+			if f.ID == createdField1.ID {
+				field1Index = i
+			}
+		}
+		require.True(t, field2Index >= 0 && field3Index >= 0 && field1Index >= 0)
+		require.True(t, field2Index < field3Index, "field with sort_order 0 should come before sort_order 1")
+		require.True(t, field3Index < field1Index, "field with sort_order 1 should come before sort_order 2")
 	})
 }
 
@@ -282,4 +362,159 @@ func TestDeleteBoardAttributeField(t *testing.T) {
 		require.Nil(t, appErr)
 		require.NotZero(t, deletedField.DeleteAt)
 	}, "a user with admin permissions should be able to delete the field")
+}
+
+func TestBoardAttributeFieldEdgeCases(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := SetupConfig(t, func(cfg *model.Config) {
+		cfg.FeatureFlags.BoardAttributes = true
+	})
+	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterprise))
+
+	t.Run("should handle empty options array for select field", func(t *testing.T) {
+		field := &model.PropertyField{
+			Name: model.NewId(),
+			Type: model.PropertyFieldTypeSelect,
+			Attrs: map[string]any{
+				"options": []map[string]any{},
+			},
+		}
+
+		createdField, resp, err := th.SystemAdminClient.CreateBoardAttributeField(context.Background(), field)
+		CheckCreatedStatus(t, resp)
+		require.NoError(t, err)
+		require.NotNil(t, createdField)
+		require.Equal(t, model.PropertyFieldTypeSelect, createdField.Type)
+	})
+
+	t.Run("should handle select field with options having duplicate names", func(t *testing.T) {
+		field := &model.PropertyField{
+			Name: model.NewId(),
+			Type: model.PropertyFieldTypeSelect,
+			Attrs: map[string]any{
+				"options": []map[string]any{
+					{"id": model.NewId(), "name": "Option 1"},
+					{"id": model.NewId(), "name": "Option 1"}, // duplicate name
+					{"id": model.NewId(), "name": "Option 2"},
+				},
+			},
+		}
+
+		createdField, resp, err := th.SystemAdminClient.CreateBoardAttributeField(context.Background(), field)
+		CheckCreatedStatus(t, resp)
+		require.NoError(t, err)
+		require.NotNil(t, createdField)
+
+		options, ok := createdField.Attrs["options"].([]any)
+		require.True(t, ok)
+		require.Len(t, options, 3)
+	})
+
+	t.Run("should handle very long field names", func(t *testing.T) {
+		longName := ""
+		for i := 0; i < 1000; i++ {
+			longName += "a"
+		}
+
+		field := &model.PropertyField{
+			Name: longName,
+			Type: model.PropertyFieldTypeText,
+		}
+
+		// The store layer should validate name length, so this might fail
+		// We're testing that the system handles it gracefully
+		createdField, resp, err := th.SystemAdminClient.CreateBoardAttributeField(context.Background(), field)
+		if err != nil {
+			// If it fails, that's expected for very long names
+			require.Error(t, err)
+		} else {
+			CheckCreatedStatus(t, resp)
+			require.NotNil(t, createdField)
+		}
+	})
+
+	t.Run("should handle field names with special characters", func(t *testing.T) {
+		field := &model.PropertyField{
+			Name: "Field with !@#$%^&*() characters",
+			Type: model.PropertyFieldTypeText,
+		}
+
+		createdField, resp, err := th.SystemAdminClient.CreateBoardAttributeField(context.Background(), field)
+		CheckCreatedStatus(t, resp)
+		require.NoError(t, err)
+		require.NotNil(t, createdField)
+		require.Equal(t, "Field with !@#$%^&*() characters", createdField.Name)
+	})
+
+	t.Run("should handle field names with unicode characters", func(t *testing.T) {
+		field := &model.PropertyField{
+			Name: "Field with 中文 and 🎉 emoji",
+			Type: model.PropertyFieldTypeText,
+		}
+
+		createdField, resp, err := th.SystemAdminClient.CreateBoardAttributeField(context.Background(), field)
+		CheckCreatedStatus(t, resp)
+		require.NoError(t, err)
+		require.NotNil(t, createdField)
+		require.Equal(t, "Field with 中文 and 🎉 emoji", createdField.Name)
+	})
+
+	t.Run("should handle select field with very long option names", func(t *testing.T) {
+		longOptionName := ""
+		for i := 0; i < 500; i++ {
+			longOptionName += "a"
+		}
+
+		field := &model.PropertyField{
+			Name: model.NewId(),
+			Type: model.PropertyFieldTypeSelect,
+			Attrs: map[string]any{
+				"options": []map[string]any{
+					{"name": longOptionName},
+				},
+			},
+		}
+
+		createdField, resp, err := th.SystemAdminClient.CreateBoardAttributeField(context.Background(), field)
+		CheckCreatedStatus(t, resp)
+		require.NoError(t, err)
+		require.NotNil(t, createdField)
+
+		options, ok := createdField.Attrs["options"].([]any)
+		require.True(t, ok)
+		require.Len(t, options, 1)
+	})
+
+	t.Run("should handle multiselect field with options", func(t *testing.T) {
+		field := &model.PropertyField{
+			Name: model.NewId(),
+			Type: model.PropertyFieldTypeMultiselect,
+			Attrs: map[string]any{
+				"options": []map[string]any{
+					{"name": "Option 1"},
+					{"name": "Option 2"},
+					{"name": "Option 3"},
+				},
+			},
+		}
+
+		createdField, resp, err := th.SystemAdminClient.CreateBoardAttributeField(context.Background(), field)
+		CheckCreatedStatus(t, resp)
+		require.NoError(t, err)
+		require.NotNil(t, createdField)
+		require.Equal(t, model.PropertyFieldTypeMultiselect, createdField.Type)
+
+		options, ok := createdField.Attrs["options"].([]any)
+		require.True(t, ok)
+		require.Len(t, options, 3)
+
+		// Verify all options have IDs assigned
+		for _, opt := range options {
+			optMap, ok := opt.(map[string]any)
+			require.True(t, ok)
+			id, ok := optMap["id"].(string)
+			require.True(t, ok)
+			require.NotEmpty(t, id)
+		}
+	})
 }

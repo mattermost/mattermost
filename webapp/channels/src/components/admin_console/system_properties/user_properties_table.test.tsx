@@ -10,8 +10,8 @@ import {fireEvent, renderWithContext, screen, userEvent, waitFor} from 'tests/re
 
 import {UserPropertiesTable} from './user_properties_table';
 
-jest.mock('./user_properties_delete_modal', () => ({
-    useUserPropertyFieldDelete: jest.fn(() => ({
+jest.mock('./property_field_delete_modal', () => ({
+    usePropertyFieldDelete: jest.fn(() => ({
         promptDelete: jest.fn().mockResolvedValue(true),
     })),
 }));

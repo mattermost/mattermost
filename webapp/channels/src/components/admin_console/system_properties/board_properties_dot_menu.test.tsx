@@ -6,6 +6,8 @@ import React from 'react';
 
 import type {PropertyField} from '@mattermost/types/properties';
 
+import ModalController from 'components/modal_controller';
+
 import {renderWithContext, screen, userEvent, waitFor} from 'tests/react_testing_utils';
 
 import BoardPropertiesDotMenu from './board_properties_dot_menu';
@@ -32,14 +34,17 @@ describe('BoardPropertiesDotMenu', () => {
 
     const renderComponent = (field: PropertyField = baseField, dotMenuProps?: Partial<ComponentProps<typeof BoardPropertiesDotMenu>>) => {
         return renderWithContext(
-            <BoardPropertiesDotMenu
-                field={field}
-                canCreate={true}
-                {...dotMenuProps}
-                updateField={updateField}
-                deleteField={deleteField}
-                createField={createField}
-            />,
+            <>
+                <BoardPropertiesDotMenu
+                    field={field}
+                    canCreate={true}
+                    {...dotMenuProps}
+                    updateField={updateField}
+                    deleteField={deleteField}
+                    createField={createField}
+                />
+                <ModalController/>
+            </>,
         );
     };
 
@@ -93,7 +98,7 @@ describe('BoardPropertiesDotMenu', () => {
         expect(screen.queryByText(/Duplicate attribute/)).not.toBeInTheDocument();
     });
 
-    it('handles field deletion', async () => {
+    it('handles field deletion with confirmation when field exists in DB', async () => {
         renderComponent();
 
         // Open the menu
@@ -105,7 +110,17 @@ describe('BoardPropertiesDotMenu', () => {
         await userEvent.click(deleteOption);
 
         await waitFor(() => {
+            // Verify the delete modal is shown
+            expect(screen.getByText('Delete Test Field attribute')).toBeInTheDocument();
+        });
+
+        // click delete confirm button
+        const deleteConfirmButton = screen.getByRole('button', {name: /Delete/});
+        await userEvent.click(deleteConfirmButton);
+
+        await waitFor(() => {
             // Verify deleteField was called
+            // promptDelete from the mock will resolve to true, triggering deleteField
             expect(deleteField).toHaveBeenCalledWith(baseField.id);
         });
     });
