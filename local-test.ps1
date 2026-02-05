@@ -1839,11 +1839,9 @@ function Invoke-Demo {
 
     $binaryPath = Join-Path $WORK_DIR "mattermost.exe"
 
-    # Set config via environment variable (more reliable than --config flag)
-    $env:MM_CONFIG = $configPath
-
-    # Start server in background
-    $serverProcess = Start-Process -FilePath $binaryPath -ArgumentList "server" -WorkingDirectory $WORK_DIR -PassThru -NoNewWindow -RedirectStandardOutput "$WORK_DIR\init-stdout.log" -RedirectStandardError "$WORK_DIR\init-stderr.log"
+    # Start server in background with config path
+    # Note: Using -c argument since Start-Process doesn't inherit $env:MM_CONFIG
+    $serverProcess = Start-Process -FilePath $binaryPath -ArgumentList "server", "-c", $configPath -WorkingDirectory $WORK_DIR -PassThru -NoNewWindow -RedirectStandardOutput "$WORK_DIR\init-stdout.log" -RedirectStandardError "$WORK_DIR\init-stderr.log"
 
     # Wait for server to initialize (check for tables)
     $timeout = 120
@@ -1883,9 +1881,22 @@ function Invoke-Demo {
 
     $seedTool = Join-Path $WORK_DIR "seed-demo-users.exe"
     $seedToolDir = Join-Path $SCRIPT_DIR "tools\seed-demo-users"
+    $seedToolSource = Join-Path $seedToolDir "main.go"
 
-    # Build seed tool if not present
+    # Build seed tool if not present or if source is newer
+    $needsBuild = $false
     if (!(Test-Path $seedTool)) {
+        $needsBuild = $true
+    } elseif (Test-Path $seedToolSource) {
+        $sourceTime = (Get-Item $seedToolSource).LastWriteTime
+        $binaryTime = (Get-Item $seedTool).LastWriteTime
+        if ($sourceTime -gt $binaryTime) {
+            Log "Seed tool source has been modified, rebuilding..."
+            $needsBuild = $true
+        }
+    }
+
+    if ($needsBuild) {
         Log "Building seed-demo-users tool..."
         Push-Location $seedToolDir
         $result = & go build -o $seedTool . 2>&1
@@ -2310,7 +2321,7 @@ function Invoke-All {
         $config['FileSettings'] = [ordered]@{ 'DriverName' = 'local'; 'Directory' = "$workDirUnix/data" }
         $config['LogSettings'] = [ordered]@{ 'EnableConsole' = $true; 'ConsoleLevel' = 'DEBUG'; 'ConsoleJson' = $false; 'EnableFile' = $true; 'FileLevel' = 'INFO'; 'FileLocation' = "$workDirUnix" }
         $config['PluginSettings'] = [ordered]@{ 'Enable' = $true; 'EnableUploads' = $true; 'Directory' = "$workDirUnix/data/plugins"; 'ClientDirectory' = "$workDirUnix/data/client/plugins" }
-        $config['EmailSettings'] = [ordered]@{ 'SendEmailNotifications' = $false; 'RequireEmailVerification' = $false }
+        $config['EmailSettings'] = [ordered]@{ 'EnableSignUpWithEmail' = $true; 'EnableSignInWithEmail' = $true; 'EnableSignInWithUsername' = $true; 'SendEmailNotifications' = $false; 'RequireEmailVerification' = $false }
         $config['RateLimitSettings'] = [ordered]@{ 'Enable' = $false }
         $featureFlags = Get-FeatureFlagsFromBackup -BackupConfig $backupConfig -TryDatabase; $config['FeatureFlags'] = $featureFlags
         $extSettings = Get-MattermostExtendedSettingsFromBackup -BackupConfig $backupConfig -TryDatabase; $config['MattermostExtendedSettings'] = $extSettings

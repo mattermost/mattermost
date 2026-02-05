@@ -67,6 +67,7 @@ func main() {
 		{Username: "eve", Email: "eve@demo.local", FirstName: "Eve", LastName: "Edwards", Nickname: "Eve", Roles: "system_user"},
 	}
 
+	// Create users
 	created := 0
 	for _, u := range users {
 		// Check if user exists
@@ -147,43 +148,163 @@ func main() {
 		fmt.Printf("Error checking team: %v\n", err)
 		return
 	} else {
-		fmt.Println("Team 'demo' already exists")
+		// Team exists - ensure it has correct settings for demo mode
+		_, err = db.Exec(`
+			UPDATE teams SET
+				displayname = 'Feature Demo',
+				description = 'Showcase of Mattermost Extended features',
+				type = 'O',
+				allowopeninvite = true,
+				deleteat = 0,
+				updateat = $1
+			WHERE id = $2`,
+			now, teamId,
+		)
+		if err != nil {
+			fmt.Printf("Error updating team: %v\n", err)
+			return
+		}
+		fmt.Println("Updated team 'demo' with demo settings (allowopeninvite=true)")
 	}
 
-	// Add all users to the team (always runs, handles existing memberships via ON CONFLICT)
-	addedCount := 0
+	// Create default channels (Town Square and Off-Topic)
+	channels := []struct {
+		name        string
+		displayName string
+		purpose     string
+	}{
+		{"town-square", "Town Square", "General discussion for the team"},
+		{"off-topic", "Off-Topic", "Off-topic conversations"},
+	}
+
+	channelIds := make(map[string]string)
+	for _, ch := range channels {
+		var channelId string
+		err = db.QueryRow("SELECT id FROM channels WHERE name = $1 AND teamid = $2", ch.name, teamId).Scan(&channelId)
+		if err == sql.ErrNoRows {
+			channelId = generateId()
+			_, err = db.Exec(`
+				INSERT INTO channels (
+					id, createat, updateat, deleteat, teamid, type, displayname,
+					name, header, purpose, lastpostat, totalmsgcount, extraupdateat,
+					creatorid, schemeid, groupconstrained, shared, totalmsgcountroot,
+					lastrootpostat
+				) VALUES (
+					$1, $2, $2, 0, $3, 'O', $4,
+					$5, '', $6, $2, 0, 0,
+					'', NULL, NULL, NULL, 0, $2
+				)`,
+				channelId, now, teamId, ch.displayName, ch.name, ch.purpose,
+			)
+			if err != nil {
+				fmt.Printf("Error creating channel %s: %v\n", ch.name, err)
+				continue
+			}
+			fmt.Printf("Created channel: %s\n", ch.displayName)
+		} else if err != nil {
+			fmt.Printf("Error checking channel %s: %v\n", ch.name, err)
+			continue
+		} else {
+			fmt.Printf("Channel %s already exists\n", ch.displayName)
+		}
+		channelIds[ch.name] = channelId
+	}
+
+	// Add all users to the team and channels
+	addedToTeam := 0
+	addedToChannels := 0
 	for _, u := range users {
 		var userId string
 		err := db.QueryRow("SELECT id FROM users WHERE username = $1", u.Username).Scan(&userId)
 		if err != nil {
-			fmt.Printf("Warning: user %s not found, skipping team membership\n", u.Username)
+			fmt.Printf("Warning: user %s not found, skipping\n", u.Username)
 			continue
 		}
 
+		// Add to team
 		roles := "team_user"
-		if u.Username == "admin" {
+		isAdmin := u.Username == "admin"
+		if isAdmin {
 			roles = "team_admin team_user"
 		}
 
 		result, err := db.Exec(`
 			INSERT INTO teammembers (teamid, userid, roles, deleteat, schemeguest, schemeuser, schemeadmin, createat)
 			VALUES ($1, $2, $3, 0, false, true, $4, $5)
-			ON CONFLICT (teamid, userid) DO NOTHING`,
-			teamId, userId, roles, u.Username == "admin", now,
+			ON CONFLICT (teamid, userid) DO UPDATE SET
+				deleteat = 0,
+				schemeuser = true,
+				roles = EXCLUDED.roles,
+				schemeadmin = EXCLUDED.schemeadmin`,
+			teamId, userId, roles, isAdmin, now,
 		)
 		if err != nil {
 			fmt.Printf("Error adding %s to team: %v\n", u.Username, err)
 		} else {
 			rowsAffected, _ := result.RowsAffected()
 			if rowsAffected > 0 {
-				addedCount++
+				addedToTeam++
 			}
 		}
+
+		// Add to default channels
+		for chName, chId := range channelIds {
+			chRoles := "channel_user"
+			chIsAdmin := isAdmin
+			if isAdmin {
+				chRoles = "channel_admin channel_user"
+			}
+
+			_, err := db.Exec(`
+				INSERT INTO channelmembers (channelid, userid, roles, lastviewedat, msgcount, mentioncount,
+					notifyprops, lastupdateat, schemeuser, schemeadmin, schemeguest, mentioncountroot, msgcountroot, urgentmentioncount)
+				VALUES ($1, $2, $3, $4, 0, 0,
+					'{"desktop":"default","email":"default","ignore_channel_mentions":"default","mark_unread":"all","push":"default"}',
+					$4, true, $5, false, 0, 0, 0)
+				ON CONFLICT (channelid, userid) DO UPDATE SET
+					lastupdateat = EXCLUDED.lastupdateat,
+					schemeuser = true`,
+				chId, userId, chRoles, now, chIsAdmin,
+			)
+			if err != nil {
+				fmt.Printf("Error adding %s to channel %s: %v\n", u.Username, chName, err)
+			} else {
+				addedToChannels++
+			}
+		}
+
+		// Create sidebar categories for this user+team
+		createSidebarCategories(db, userId, teamId, now)
 	}
-	if addedCount > 0 {
-		fmt.Printf("Added %d users to demo team\n", addedCount)
-	} else {
-		fmt.Println("All users already in demo team")
+
+	fmt.Printf("\nAdded %d users to demo team\n", addedToTeam)
+	fmt.Printf("Created %d channel memberships\n", addedToChannels)
+	fmt.Println("\nDemo data seeding complete!")
+}
+
+// createSidebarCategories creates the default sidebar categories for a user in a team
+func createSidebarCategories(db *sql.DB, userId, teamId string, now int64) {
+	categories := []struct {
+		catType     string
+		displayName string
+		sortOrder   int
+	}{
+		{"favorites", "Favorites", 0},
+		{"channels", "Channels", 10},
+		{"direct_messages", "Direct Messages", 20},
+	}
+
+	for _, cat := range categories {
+		catId := generateId()
+		_, err := db.Exec(`
+			INSERT INTO sidebarcategories (id, userid, teamid, sortorder, sorting, type, displayname, muted, collapsed)
+			VALUES ($1, $2, $3, $4, 'alpha', $5, $6, false, false)
+			ON CONFLICT (id) DO NOTHING`,
+			catId, userId, teamId, cat.sortOrder, cat.catType, cat.displayName,
+		)
+		if err != nil {
+			// Ignore errors - categories might already exist with different IDs
+		}
 	}
 }
 
