@@ -4,6 +4,7 @@
 import classNames from 'classnames';
 import React from 'react';
 import {useSelector} from 'react-redux';
+import {useHistory} from 'react-router-dom';
 
 import {getCurrentTeamId, getTeam} from 'mattermost-redux/selectors/entities/teams';
 
@@ -27,6 +28,7 @@ function getTeamInitials(displayName: string): string {
 }
 
 export default function FavoritedTeams({onTeamClick, onExpandClick}: Props) {
+    const history = useHistory();
     const favoritedTeamIds = useSelector(getFavoritedTeamIds);
     const currentTeamId = useSelector(getCurrentTeamId);
 
@@ -42,6 +44,11 @@ export default function FavoritedTeams({onTeamClick, onExpandClick}: Props) {
         return null;
     }
 
+    const handleTeamClick = (teamName: string) => {
+        onTeamClick(); // Clear DM mode
+        history.push(`/${teamName}/channels/town-square`);
+    };
+
     return (
         <div className='favorited-teams'>
             {favoritedTeams.map((team) => (
@@ -50,7 +57,7 @@ export default function FavoritedTeams({onTeamClick, onExpandClick}: Props) {
                     className={classNames('favorited-teams__team', {
                         'favorited-teams__team--active': team.id === currentTeamId,
                     })}
-                    onClick={onTeamClick}
+                    onClick={() => handleTeamClick(team.name)}
                     title={team.display_name}
                 >
                     {team.last_team_icon_update ? (

@@ -3,10 +3,13 @@
 
 import classNames from 'classnames';
 import React from 'react';
-import {useSelector} from 'react-redux';
+import {useDispatch, useSelector} from 'react-redux';
+import {useHistory} from 'react-router-dom';
 
 import {Client4} from 'mattermost-redux/client';
+import {getCurrentTeam} from 'mattermost-redux/selectors/entities/teams';
 
+import {setDmMode} from 'actions/views/guilded_layout';
 import {getUnreadDmChannelsWithUsers} from 'selectors/views/guilded_layout';
 
 import './unread_dm_avatars.scss';
@@ -14,7 +17,15 @@ import './unread_dm_avatars.scss';
 const MAX_AVATARS = 5;
 
 export default function UnreadDmAvatars() {
+    const history = useHistory();
+    const dispatch = useDispatch();
     const unreadDms = useSelector(getUnreadDmChannelsWithUsers);
+    const currentTeam = useSelector(getCurrentTeam);
+
+    const handleDmClick = (username: string) => {
+        dispatch(setDmMode(true));
+        history.push(`/${currentTeam?.name}/messages/@${username}`);
+    };
 
     if (unreadDms.length === 0) {
         return <div className='unread-dm-avatars' />;
@@ -26,10 +37,11 @@ export default function UnreadDmAvatars() {
     return (
         <div className='unread-dm-avatars'>
             {displayedDms.map((dm) => (
-                <div
+                <button
                     key={dm.channel.id}
                     className='unread-dm-avatars__avatar'
                     title={dm.user.username}
+                    onClick={() => handleDmClick(dm.user.username)}
                 >
                     <img
                         src={Client4.getProfilePictureUrl(dm.user.id, dm.user.last_picture_update)}
@@ -43,7 +55,7 @@ export default function UnreadDmAvatars() {
                             'unread-dm-avatars__status--offline': dm.status === 'offline',
                         })}
                     />
-                </div>
+                </button>
             ))}
             {overflow > 0 && (
                 <div className='unread-dm-avatars__overflow'>

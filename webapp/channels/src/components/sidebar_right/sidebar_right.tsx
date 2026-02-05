@@ -301,8 +301,14 @@ export default class SidebarRight extends React.PureComponent<Props, State> {
             return null;
         }
 
-        // Guilded layout: show PersistentRhs unless viewing a thread
+        // Guilded layout: show PersistentRhs unless viewing a thread or in a 1:1 DM
         if (isGuildedLayoutEnabled && !isOpen) {
+            // Don't render RHS for 1:1 DM channels - members panel not useful there
+            const isDmChannel = channel?.type === Constants.DM_CHANNEL;
+            if (isDmChannel) {
+                return null;
+            }
+
             return (
                 <>
                     <div
