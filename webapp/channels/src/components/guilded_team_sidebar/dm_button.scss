@@ -1,56 +1,50 @@
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
+
 .dm-button {
+    // Button is the root element (no wrapper)
     position: relative;
-    display: inline-block;
+    display: flex;
+    width: 42px;
+    height: 42px;
+    align-items: center;
+    justify-content: center;
     margin-right: auto;
     margin-bottom: 12px;
     margin-left: auto;
+    padding: 0;
+    border: none;
+    border-radius: 8px;
+    background-color: rgba(var(--sidebar-text-rgb), 0.08);
+    color: var(--sidebar-header-text-color);
+    cursor: pointer;
+    font-weight: bold;
+    text-align: center;
+    transform-origin: center center;
+    transition: transform 0.1s, background-color 0.2s, border-radius 0.2s;
 
-    &:hover,
-    &:focus {
-        text-decoration: none;
+    &:hover {
+        background-color: rgba(var(--sidebar-text-rgb), 0.16);
+        border-radius: 16px;
     }
 
-    &__btn {
-        position: relative;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        width: 42px;
-        height: 42px;
-        padding: 0;
-        border: none;
-        border-radius: 8px;
-        background-color: rgba(var(--sidebar-text-rgb), 0.08);
-        color: var(--sidebar-header-text-color);
-        cursor: pointer;
-        font-weight: bold;
-        text-align: center;
-        transform: translate(0, 0);
-        transform-origin: center center;
-        transition: transform 0.1s, background-color 0.2s, border-radius 0.2s;
+    &:active {
+        transform: scale(0.95);
+    }
+
+    // Active state - pill style with accent background
+    &--active {
+        border-radius: 16px;
+        background-color: var(--sidebar-text-active-border);
+        color: var(--sidebar-teambar-bg);
 
         &:hover {
-            background-color: rgba(var(--sidebar-text-rgb), 0.16);
-            border-radius: 16px;
-        }
-
-        &:active {
-            transform: translate(0, 2px);
-        }
-
-        &--active {
-            border-radius: 16px;
             background-color: var(--sidebar-text-active-border);
-            color: var(--sidebar-teambar-bg);
-
-            &:hover {
-                background-color: var(--sidebar-text-active-border);
-            }
         }
     }
 
     &__icon {
-        font-size: 18px;
+        font-size: 20px;
     }
 
     &__active-indicator {
