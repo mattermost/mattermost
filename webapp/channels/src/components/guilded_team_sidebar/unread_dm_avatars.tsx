@@ -7,7 +7,7 @@ import {useDispatch, useSelector} from 'react-redux';
 import {useHistory} from 'react-router-dom';
 
 import {Client4} from 'mattermost-redux/client';
-import {getCurrentTeam} from 'mattermost-redux/selectors/entities/teams';
+import {getCurrentTeamUrl} from 'mattermost-redux/selectors/entities/teams';
 
 import {setDmMode} from 'actions/views/guilded_layout';
 import {getUnreadDmChannelsWithUsers} from 'selectors/views/guilded_layout';
@@ -20,12 +20,12 @@ export default function UnreadDmAvatars() {
     const history = useHistory();
     const dispatch = useDispatch();
     const unreadDms = useSelector(getUnreadDmChannelsWithUsers);
-    const currentTeam = useSelector(getCurrentTeam);
+    const currentTeamUrl = useSelector(getCurrentTeamUrl);
 
-    const handleDmClick = (channelId: string) => {
+    const handleDmClick = (username: string) => {
         dispatch(setDmMode(true));
-        // Use channel ID directly - the /messages/@username pattern isn't recognized
-        history.push(`/${currentTeam?.name}/channels/${channelId}`);
+        // Use same pattern as EnhancedDmRow
+        history.push(`${currentTeamUrl}/messages/@${username}`);
     };
 
     if (unreadDms.length === 0) {
@@ -42,7 +42,7 @@ export default function UnreadDmAvatars() {
                     key={dm.channel.id}
                     className='unread-dm-avatars__avatar'
                     title={dm.user.username}
-                    onClick={() => handleDmClick(dm.channel.id)}
+                    onClick={() => handleDmClick(dm.user.username)}
                 >
                     <img
                         src={Client4.getProfilePictureUrl(dm.user.id, dm.user.last_picture_update)}

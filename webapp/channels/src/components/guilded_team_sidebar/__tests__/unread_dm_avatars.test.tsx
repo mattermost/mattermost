@@ -178,8 +178,9 @@ describe('UnreadDmAvatars', () => {
                 status: 'online',
             },
         ];
-        const mockCurrentTeam = {id: 'team1', name: 'test-team'};
-        mockValues = [mockUnreadDms, mockCurrentTeam];
+        // getCurrentTeamUrl returns the full team URL path
+        const mockCurrentTeamUrl = '/test-team';
+        mockValues = [mockUnreadDms, mockCurrentTeamUrl];
         mockCallCount = 0;
 
         const store = mockStore(baseState);
@@ -192,8 +193,8 @@ describe('UnreadDmAvatars', () => {
         const avatar = container.querySelector('.unread-dm-avatars__avatar');
         fireEvent.click(avatar!);
 
-        // Should set DM mode and navigate to DM channel
+        // Should set DM mode and navigate to DM using messages/@username pattern
         expect(mockDispatch).toHaveBeenCalled();
-        expect(mockPush).toHaveBeenCalledWith('/test-team/channels/dm1');
+        expect(mockPush).toHaveBeenCalledWith('/test-team/messages/@testuser');
     });
 });
