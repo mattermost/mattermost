@@ -1,0 +1,87 @@
+{
+    "ServiceSettings": {
+        "SiteURL": "http://localhost:8065",
+        "ListenAddress": ":8065",
+        "EnableDeveloper": true,
+        "EnableTesting": false,
+        "EnableLocalMode": false
+    },
+    "TeamSettings": {
+        "SiteName": "Mattermost Extended Demo",
+        "EnableUserCreation": true,
+        "EnableOpenServer": true,
+        "EnableCustomUserStatuses": true,
+        "EnableLastActiveTime": true
+    },
+    "FeatureFlags": {
+        "Encryption": true,
+        "CustomChannelIcons": true,
+        "ThreadsInSidebar": true,
+        "CustomThreadNames": true,
+        "ErrorLogDashboard": true,
+        "SystemConsoleDarkMode": true,
+        "SystemConsoleHideEnterprise": true,
+        "SystemConsoleIcons": true,
+        "SuppressEnterpriseUpgradeChecks": true,
+        "ImageMulti": true,
+        "ImageSmaller": true,
+        "ImageCaptions": true,
+        "VideoEmbed": true,
+        "VideoLinkEmbed": true,
+        "AccurateStatuses": true,
+        "NoOffline": true,
+        "EmbedYoutube": true,
+        "SettingsResorted": true,
+        "PreferencesRevamp": true,
+        "PreferenceOverridesDashboard": true,
+        "HideUpdateStatusButton": true
+    },
+    "MattermostExtendedSettings": {
+        "Posts": {
+            "HideDeletedMessagePlaceholder": true
+        },
+        "Channels": {
+            "SidebarChannelSettings": true
+        },
+        "Media": {
+            "MaxImageHeight": 400,
+            "MaxImageWidth": 600,
+            "CaptionFontSize": 12,
+            "MaxVideoHeight": 360,
+            "MaxVideoWidth": 640
+        },
+        "Statuses": {
+            "InactivityTimeoutMinutes": 5,
+            "HeartbeatIntervalSeconds": 30,
+            "EnableStatusLogs": true,
+            "StatusLogRetentionDays": 7,
+            "DNDInactivityTimeoutMinutes": 30
+        }
+    },
+    "LogSettings": {
+        "EnableConsole": true,
+        "ConsoleLevel": "DEBUG",
+        "ConsoleJson": false,
+        "EnableFile": true,
+        "FileLevel": "INFO"
+    },
+    "EmailSettings": {
+        "EnableSignUpWithEmail": true,
+        "EnableSignInWithEmail": true,
+        "EnableSignInWithUsername": true,
+        "SendEmailNotifications": false,
+        "RequireEmailVerification": false
+    },
+    "PasswordSettings": {
+        "MinimumLength": 5,
+        "Lowercase": false,
+        "Number": false,
+        "Uppercase": false,
+        "Symbol": false
+    },
+    "LocalizationSettings": {
+        "DefaultServerLocale": "en",
+        "DefaultClientLocale": "en",
+        "AvailableLocales": "en"
+    }
+}

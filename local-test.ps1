@@ -451,6 +451,7 @@ function Show-Help {
     Log "  s3-sync     - Download S3 storage files (uploads, plugins, etc.)"
     Log "  all         - Dev setup: kill, setup, build server only, start"
     Log "  all-build   - Full setup: kill, setup, build server + webapp, start"
+    Log "  demo        - Create fresh demo environment (no backup needed)"
     Log ""
     Log "Configuration:"
     Log "  Edit local-test.config with your backup path and settings"
@@ -1577,6 +1578,346 @@ function Invoke-Migrate {
     Log ""
 }
 
+function Invoke-Demo {
+    Log ""
+    Log "=== Setting up Demo Environment ==="
+    Log ""
+    Log "This creates a fresh Mattermost instance with demo data showcasing all features."
+    Log "No backup file needed - everything is generated fresh."
+    Log ""
+
+    # Check Docker is running
+    $dockerCheck = docker info 2>&1
+    if ($LASTEXITCODE -ne 0) {
+        Log-Error "Docker is not running. Please start Docker Desktop."
+        exit 1
+    }
+    Log "Docker is running."
+
+    # Create work directory
+    if (!(Test-Path $WORK_DIR)) {
+        New-Item -ItemType Directory -Path $WORK_DIR -Force | Out-Null
+        Log "Created work directory: $WORK_DIR"
+    }
+
+    # [1/6] Create PostgreSQL container
+    Log "[1/6] Creating PostgreSQL container..."
+    docker rm -f $PG_CONTAINER 2>$null | Out-Null
+
+    $pgDataPath = Join-Path $WORK_DIR "pgdata"
+    if (Test-Path $pgDataPath) {
+        Remove-Item -Path $pgDataPath -Recurse -Force
+    }
+
+    $dockerArgs = @(
+        "run", "-d",
+        "--name", $PG_CONTAINER,
+        "-e", "POSTGRES_USER=$PG_USER",
+        "-e", "POSTGRES_PASSWORD=$PG_PASSWORD",
+        "-e", "POSTGRES_DB=$PG_DATABASE",
+        "-p", "${PG_PORT}:5432",
+        "-v", "${pgDataPath}:/var/lib/postgresql/data",
+        "postgres:15-alpine"
+    )
+
+    $result = & docker @dockerArgs 2>&1
+    if ($LASTEXITCODE -ne 0) {
+        Log-Error "Failed to create PostgreSQL container"
+        exit 1
+    }
+
+    # Wait for PostgreSQL
+    Log "Waiting for PostgreSQL to be ready..."
+    $maxAttempts = 30
+    $attempt = 0
+    do {
+        Start-Sleep -Seconds 1
+        $attempt++
+        docker exec $PG_CONTAINER pg_isready -U $PG_USER 2>$null | Out-Null
+    } while ($LASTEXITCODE -ne 0 -and $attempt -lt $maxAttempts)
+
+    if ($LASTEXITCODE -ne 0) {
+        Log-Error "PostgreSQL failed to start"
+        exit 1
+    }
+
+    # Wait for database to be created
+    $attempt = 0
+    do {
+        Start-Sleep -Seconds 1
+        $attempt++
+        docker exec $PG_CONTAINER psql -U $PG_USER -d $PG_DATABASE -c "SELECT 1" 2>$null | Out-Null
+    } while ($LASTEXITCODE -ne 0 -and $attempt -lt 10)
+
+    Log-Success "PostgreSQL is ready."
+
+    # [2/6] Generate demo config
+    Log "[2/6] Generating demo config..."
+    $configPath = Join-Path $WORK_DIR "config.json"
+    $workDirUnix = $WORK_DIR -replace "\\", "/"
+
+    # Build config as ordered hashtable (same approach as Invoke-FixConfig)
+    $config = [ordered]@{}
+
+    # ServiceSettings
+    $config['ServiceSettings'] = [ordered]@{
+        'SiteURL' = "http://localhost:$MM_PORT"
+        'ListenAddress' = ":$MM_PORT"
+        'EnableDeveloper' = $true
+        'EnableTesting' = $false
+        'AllowCorsFrom' = '*'
+        'EnableLocalMode' = $false
+    }
+
+    # TeamSettings
+    $config['TeamSettings'] = [ordered]@{
+        'SiteName' = 'Mattermost Extended Demo'
+        'EnableUserCreation' = $true
+        'EnableOpenServer' = $true
+        'EnableCustomUserStatuses' = $true
+        'EnableLastActiveTime' = $true
+    }
+
+    # SqlSettings
+    $config['SqlSettings'] = [ordered]@{
+        'DriverName' = 'postgres'
+        'DataSource' = "postgres://${PG_USER}:${PG_PASSWORD}@localhost:${PG_PORT}/${PG_DATABASE}?sslmode=disable"
+        'DataSourceReplicas' = @()
+        'MaxIdleConns' = 20
+        'MaxOpenConns' = 300
+    }
+
+    # FileSettings
+    $config['FileSettings'] = [ordered]@{
+        'DriverName' = 'local'
+        'Directory' = "$workDirUnix/data"
+        'EnableFileAttachments' = $true
+        'EnablePublicLink' = $true
+        'MaxFileSize' = 104857600
+    }
+
+    # LogSettings
+    $config['LogSettings'] = [ordered]@{
+        'EnableConsole' = $true
+        'ConsoleLevel' = 'DEBUG'
+        'ConsoleJson' = $false
+        'EnableFile' = $true
+        'FileLevel' = 'INFO'
+        'FileJson' = $false
+        'FileLocation' = "$workDirUnix"
+    }
+
+    # PluginSettings
+    $config['PluginSettings'] = [ordered]@{
+        'Enable' = $true
+        'EnableUploads' = $true
+        'Directory' = "$workDirUnix/data/plugins"
+        'ClientDirectory' = "$workDirUnix/data/client/plugins"
+    }
+
+    # EmailSettings - enable email/username login
+    $config['EmailSettings'] = [ordered]@{
+        'EnableSignUpWithEmail' = $true
+        'EnableSignInWithEmail' = $true
+        'EnableSignInWithUsername' = $true
+        'SendEmailNotifications' = $false
+        'RequireEmailVerification' = $false
+    }
+
+    # PasswordSettings - relaxed for demo
+    $config['PasswordSettings'] = [ordered]@{
+        'MinimumLength' = 5
+        'Lowercase' = $false
+        'Number' = $false
+        'Uppercase' = $false
+        'Symbol' = $false
+    }
+
+    # RateLimitSettings - disable for demo
+    $config['RateLimitSettings'] = [ordered]@{
+        'Enable' = $false
+    }
+
+    # FeatureFlags - ALL Mattermost Extended features enabled
+    $config['FeatureFlags'] = [ordered]@{
+        'Encryption' = $true
+        'CustomChannelIcons' = $true
+        'ThreadsInSidebar' = $true
+        'CustomThreadNames' = $true
+        'ErrorLogDashboard' = $true
+        'SystemConsoleDarkMode' = $true
+        'SystemConsoleHideEnterprise' = $true
+        'SystemConsoleIcons' = $true
+        'SuppressEnterpriseUpgradeChecks' = $true
+        'ImageMulti' = $true
+        'ImageSmaller' = $true
+        'ImageCaptions' = $true
+        'VideoEmbed' = $true
+        'VideoLinkEmbed' = $true
+        'AccurateStatuses' = $true
+        'NoOffline' = $true
+        'EmbedYoutube' = $true
+        'SettingsResorted' = $true
+        'PreferencesRevamp' = $true
+        'PreferenceOverridesDashboard' = $true
+        'HideUpdateStatusButton' = $true
+    }
+
+    # MattermostExtendedSettings
+    $config['MattermostExtendedSettings'] = [ordered]@{
+        'Posts' = [ordered]@{
+            'HideDeletedMessagePlaceholder' = $true
+        }
+        'Channels' = [ordered]@{
+            'SidebarChannelSettings' = $true
+        }
+        'Media' = [ordered]@{
+            'MaxImageHeight' = 400
+            'MaxImageWidth' = 600
+            'CaptionFontSize' = 12
+            'MaxVideoHeight' = 360
+            'MaxVideoWidth' = 640
+        }
+        'Statuses' = [ordered]@{
+            'InactivityTimeoutMinutes' = 5
+            'HeartbeatIntervalSeconds' = 30
+            'EnableStatusLogs' = $true
+            'StatusLogRetentionDays' = 7
+            'DNDInactivityTimeoutMinutes' = 30
+        }
+    }
+
+    # LocalizationSettings
+    $config['LocalizationSettings'] = [ordered]@{
+        'DefaultServerLocale' = 'en'
+        'DefaultClientLocale' = 'en'
+        'AvailableLocales' = 'en'
+    }
+
+    # Write config
+    $configJson = $config | ConvertTo-Json -Depth 10
+    [System.IO.File]::WriteAllText($configPath, $configJson)
+    Log-Success "Config generated: $configPath"
+
+    # [3/6] Create data directories
+    Log "[3/6] Creating data directories..."
+    $dataDir = Join-Path $WORK_DIR "data"
+    $pluginsDir = Join-Path $dataDir "plugins"
+    $clientPluginsDir = Join-Path $dataDir "client\plugins"
+
+    New-Item -ItemType Directory -Path $dataDir -Force | Out-Null
+    New-Item -ItemType Directory -Path $pluginsDir -Force | Out-Null
+    New-Item -ItemType Directory -Path $clientPluginsDir -Force | Out-Null
+    Log-Success "Data directories created."
+
+    # [4/6] Build server
+    Log "[4/6] Building server..."
+    Invoke-Build
+
+    # [5/6] Generate demo data
+    Log "[5/6] Generating demo data..."
+    $generateScript = Join-Path $SCRIPT_DIR "demo-data\generate-demo.ps1"
+    $jsonlPath = Join-Path $SCRIPT_DIR "demo-data\demo-data.jsonl"
+
+    & powershell -File $generateScript -OutputPath $jsonlPath
+
+    if (!(Test-Path $jsonlPath)) {
+        Log-Error "Failed to generate demo data"
+        exit 1
+    }
+    Log-Success "Demo data generated: $jsonlPath"
+
+    # [6/6] Initialize database and import data
+    Log "[6/6] Initializing database schema..."
+    Log "Starting server briefly to create tables..."
+
+    $binaryPath = Join-Path $WORK_DIR "mattermost.exe"
+
+    # Start server in background
+    $serverProcess = Start-Process -FilePath $binaryPath -ArgumentList "server", "--config", $configPath -WorkingDirectory $WORK_DIR -PassThru -NoNewWindow -RedirectStandardOutput "$WORK_DIR\init-stdout.log" -RedirectStandardError "$WORK_DIR\init-stderr.log"
+
+    # Wait for server to initialize (check for tables)
+    $timeout = 120
+    $elapsed = 0
+    $schemaReady = $false
+    while ($elapsed -lt $timeout) {
+        Start-Sleep -Seconds 3
+        $elapsed += 3
+
+        # Check if tables exist
+        $tableCheck = docker exec $PG_CONTAINER psql -U $PG_USER -d $PG_DATABASE -t -c "SELECT COUNT(*) FROM information_schema.tables WHERE table_schema = 'public'" 2>$null
+        if ($tableCheck) {
+            $tableCount = [int]($tableCheck -join "").Trim()
+            if ($tableCount -gt 50) {
+                Log "Database schema created ($tableCount tables)"
+                $schemaReady = $true
+                break
+            }
+        }
+        Log "Waiting for schema initialization... ($elapsed seconds, $tableCount tables)"
+    }
+
+    # Stop the server
+    if (!$serverProcess.HasExited) {
+        Stop-Process -Id $serverProcess.Id -Force -ErrorAction SilentlyContinue
+    }
+    Start-Sleep -Seconds 2
+
+    if (!$schemaReady) {
+        Log-Warning "Schema initialization may have timed out. Check logs in $WORK_DIR"
+    } else {
+        Log-Success "Database schema initialized."
+    }
+
+    # Seed demo users directly via SQL (more reliable than bulk import)
+    Log "Seeding demo users..."
+
+    $seedTool = Join-Path $WORK_DIR "seed-demo-users.exe"
+    $seedToolDir = Join-Path $SCRIPT_DIR "tools\seed-demo-users"
+
+    # Build seed tool if not present
+    if (!(Test-Path $seedTool)) {
+        Log "Building seed-demo-users tool..."
+        Push-Location $seedToolDir
+        $result = & go build -o $seedTool . 2>&1
+        Pop-Location
+        if ($LASTEXITCODE -ne 0) {
+            Log-Error "Failed to build seed-demo-users tool"
+            $result | ForEach-Object { Log $_ }
+            exit 1
+        }
+    }
+
+    # Run the seed tool
+    $connStr = "postgres://${PG_USER}:${PG_PASSWORD}@localhost:${PG_PORT}/${PG_DATABASE}?sslmode=disable"
+    $seedResult = & $seedTool $connStr "demo123" 2>&1
+    $seedResult | ForEach-Object { Log $_ }
+
+    # Verify users were created
+    $userCount = docker exec $PG_CONTAINER psql -U $PG_USER -d $PG_DATABASE -t -c "SELECT COUNT(*) FROM users" 2>$null
+    if ($userCount) {
+        $count = [int]($userCount -join "").Trim()
+        if ($count -gt 0) {
+            Log-Success "Seeded $count users successfully."
+        } else {
+            Log-Warning "No users were created. Check logs above."
+        }
+    }
+
+    Log ""
+    Log-Success "Demo environment ready!"
+    Log ""
+    Log "Next steps:"
+    Log "  1. Run './local-test.ps1 start' to start the server"
+    Log "  2. Open http://localhost:$MM_PORT"
+    Log "  3. Login as 'admin' with password 'demo123'"
+    Log ""
+    Log "Demo users: admin, alice, bob, charlie, dana, eve (all password: demo123)"
+    Log ""
+    Log "All Mattermost Extended features are enabled!"
+    Log ""
+}
+
 function Invoke-All {
     param(
         [switch]$BuildWebapp
@@ -2056,6 +2397,7 @@ try {
         "s3-sync"     { Invoke-S3Sync }
         "all"         { Invoke-All }
         "all-build"   { Invoke-All -BuildWebapp }
+        "demo"        { Invoke-Demo }
         default       {
             Log-Error "Unknown command: $Command"
             Show-Help

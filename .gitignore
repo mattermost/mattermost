@@ -171,3 +171,6 @@ db-queries/
 local-test.config
 /extracted-svgs
 test-errors.js
+
+# Generated demo data (contains timestamps that change each run)
+demo-data/demo-data.jsonl
