@@ -260,7 +260,7 @@ func (s *MmctlE2ETestSuite) TestExportDownloadCmdF() {
 
 		info, err := os.Stat(downloadPath)
 		s.Require().Nil(err)
-		s.Require().Equal(fs.FileMode(0600), info.Mode().Perm(), info.Mode().Perm())
+		s.Require().Equal(fs.FileMode(0600), info.Mode().Perm(), fmt.Sprintf("expected %o, got %o", fs.FileMode(0600), info.Mode().Perm()))
 	})
 
 	s.RunForSystemAdminAndLocal("MM-T3842 - full download", func(c client.Client) {
@@ -293,7 +293,7 @@ func (s *MmctlE2ETestSuite) TestExportDownloadCmdF() {
 
 		info, err := os.Stat(downloadPath)
 		s.Require().Nil(err)
-		s.Require().Equal(fs.FileMode(0600), info.Mode().Perm(), info.Mode().Perm())
+		s.Require().Equal(fs.FileMode(0600), info.Mode().Perm(), fmt.Sprintf("expected %o, got %o", fs.FileMode(0600), info.Mode().Perm()))
 	})
 }
 
