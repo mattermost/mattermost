@@ -229,12 +229,13 @@ const PreferenceOverridesDashboard: React.FC<Props> = ({config, patchConfig}) =>
     const [overrides, setOverrides] = useState<Record<string, string>>({});
     const [hasChanges, setHasChanges] = useState(false);
 
-    // Push preference state
-    const [pushingKey, setPushingKey] = useState<string | null>(null);
+    // Push modal state
+    const [pushModalOpen, setPushModalOpen] = useState(false);
+    const [pushSelectedPref, setPushSelectedPref] = useState('');
     const [pushValue, setPushValue] = useState('');
     const [pushOverwrite, setPushOverwrite] = useState(false);
     const [pushing, setPushing] = useState(false);
-    const [pushResult, setPushResult] = useState<{key: string; count: number} | null>(null);
+    const [pushResult, setPushResult] = useState<{count: number} | null>(null);
 
     // Check if features are enabled
     // PreferencesRevamp is required for the shared definitions
@@ -470,40 +471,66 @@ const PreferenceOverridesDashboard: React.FC<Props> = ({config, patchConfig}) =>
         }
     };
 
-    // Open push panel for a preference
-    const openPushPanel = (category: string, name: string) => {
-        const key = `${category}:${name}`;
-        setPushingKey(key);
-        setPushValue(getPreferenceDefaultValue(category, name) || getPreferenceOptions(category, name)?.[0]?.value || '');
+    // Open push modal
+    const openPushModal = () => {
+        const firstKey = availablePreferences.length > 0 ? `${availablePreferences[0].category}:${availablePreferences[0].name}` : '';
+        setPushSelectedPref(firstKey);
+        if (firstKey) {
+            const pref = availablePreferences[0];
+            setPushValue(getPreferenceDefaultValue(pref.category, pref.name) || getPreferenceOptions(pref.category, pref.name)?.[0]?.value || '');
+        } else {
+            setPushValue('');
+        }
         setPushOverwrite(false);
         setPushResult(null);
+        setPushModalOpen(true);
     };
 
-    // Close push panel
-    const closePushPanel = () => {
-        setPushingKey(null);
+    // Close push modal
+    const closePushModal = () => {
+        setPushModalOpen(false);
+        setPushSelectedPref('');
         setPushValue('');
         setPushOverwrite(false);
         setPushResult(null);
     };
 
+    // Handle preference selection change in modal
+    const handlePushPrefChange = (key: string) => {
+        setPushSelectedPref(key);
+        setPushResult(null);
+        const parts = key.split(':');
+        if (parts.length >= 2) {
+            const category = parts[0];
+            const name = parts.slice(1).join(':');
+            setPushValue(getPreferenceDefaultValue(category, name) || getPreferenceOptions(category, name)?.[0]?.value || '');
+        }
+    };
+
+    // Get the selected preference's category and name
+    const getPushPrefParts = (): {category: string; name: string} | null => {
+        if (!pushSelectedPref) {
+            return null;
+        }
+        const parts = pushSelectedPref.split(':');
+        if (parts.length < 2) {
+            return null;
+        }
+        return {category: parts[0], name: parts.slice(1).join(':')};
+    };
+
     // Execute push
     const handlePush = async () => {
-        if (!pushingKey) {
+        const prefParts = getPushPrefParts();
+        if (!prefParts) {
             return;
         }
-        const parts = pushingKey.split(':');
-        if (parts.length < 2) {
-            return;
-        }
-        const category = parts[0];
-        const name = parts.slice(1).join(':');
 
         setPushing(true);
         setError(null);
         try {
-            const result = await Client4.pushPreferenceToAllUsers(category, name, pushValue, pushOverwrite);
-            setPushResult({key: pushingKey, count: result.affected_users});
+            const result = await Client4.pushPreferenceToAllUsers(prefParts.category, prefParts.name, pushValue, pushOverwrite);
+            setPushResult({count: result.affected_users});
         } catch (e) {
             console.error('Failed to push preference:', e);
             setError(intl.formatMessage({
@@ -623,6 +650,17 @@ const PreferenceOverridesDashboard: React.FC<Props> = ({config, patchConfig}) =>
                         </p>
                     </div>
                     <div className='PreferenceOverridesDashboard__header-right'>
+                        <button
+                            className='btn btn-tertiary'
+                            onClick={openPushModal}
+                            disabled={loading || availablePreferences.length === 0}
+                        >
+                            <IconPush/>
+                            <FormattedMessage
+                                id='admin.preference_overrides.push_button'
+                                defaultMessage='Push to Users'
+                            />
+                        </button>
                         <button
                             className='btn btn-tertiary'
                             onClick={loadPreferences}
@@ -751,16 +789,6 @@ const PreferenceOverridesDashboard: React.FC<Props> = ({config, patchConfig}) =>
                                                             {pref.category}:{pref.name}
                                                         </span>
                                                     </div>
-                                                    <button
-                                                        className={`PreferenceOverridesDashboard__push-btn ${pushingKey === key ? 'active' : ''}`}
-                                                        onClick={() => pushingKey === key ? closePushPanel() : openPushPanel(pref.category, pref.name)}
-                                                        title={intl.formatMessage({
-                                                            id: 'admin.preference_overrides.push.tooltip',
-                                                            defaultMessage: 'Push value to all users',
-                                                        })}
-                                                    >
-                                                        <IconPush/>
-                                                    </button>
                                                 </div>
                                                 {overridden && (
                                                     <div className='PreferenceOverridesDashboard__preference-value'>
@@ -798,108 +826,6 @@ const PreferenceOverridesDashboard: React.FC<Props> = ({config, patchConfig}) =>
                                                         </button>
                                                     </div>
                                                 )}
-                                                {pushingKey === key && (
-                                                    <div className='PreferenceOverridesDashboard__push-panel'>
-                                                        <div className='PreferenceOverridesDashboard__push-panel-header'>
-                                                            <IconPush/>
-                                                            <FormattedMessage
-                                                                id='admin.preference_overrides.push.title'
-                                                                defaultMessage='Push to All Users'
-                                                            />
-                                                        </div>
-                                                        <p className='PreferenceOverridesDashboard__push-panel-hint'>
-                                                            <FormattedMessage
-                                                                id='admin.preference_overrides.push.hint'
-                                                                defaultMessage='This writes the value directly to the database for all active users. Users can still change it later.'
-                                                            />
-                                                        </p>
-                                                        <div className='PreferenceOverridesDashboard__push-panel-controls'>
-                                                            {options ? (
-                                                                <select
-                                                                    value={pushValue}
-                                                                    onChange={(e) => setPushValue(e.target.value)}
-                                                                >
-                                                                    {options.map((opt) => (
-                                                                        <option
-                                                                            key={opt.value}
-                                                                            value={opt.value}
-                                                                        >
-                                                                            {opt.label}
-                                                                        </option>
-                                                                    ))}
-                                                                </select>
-                                                            ) : (
-                                                                <input
-                                                                    type='text'
-                                                                    value={pushValue}
-                                                                    onChange={(e) => setPushValue(e.target.value)}
-                                                                    placeholder={intl.formatMessage({
-                                                                        id: 'admin.preference_overrides.push.value_placeholder',
-                                                                        defaultMessage: 'Value to push...',
-                                                                    })}
-                                                                />
-                                                            )}
-                                                        </div>
-                                                        <label className='PreferenceOverridesDashboard__push-panel-checkbox'>
-                                                            <input
-                                                                type='checkbox'
-                                                                checked={pushOverwrite}
-                                                                onChange={(e) => setPushOverwrite(e.target.checked)}
-                                                            />
-                                                            <FormattedMessage
-                                                                id='admin.preference_overrides.push.overwrite'
-                                                                defaultMessage='Overwrite existing values'
-                                                            />
-                                                            <span className='PreferenceOverridesDashboard__push-panel-checkbox-hint'>
-                                                                <FormattedMessage
-                                                                    id='admin.preference_overrides.push.overwrite_hint'
-                                                                    defaultMessage={"If unchecked, only users who haven't set this preference will be affected"}
-                                                                />
-                                                            </span>
-                                                        </label>
-                                                        <div className='PreferenceOverridesDashboard__push-panel-actions'>
-                                                            <button
-                                                                className='btn btn-primary'
-                                                                onClick={handlePush}
-                                                                disabled={pushing || !pushValue}
-                                                            >
-                                                                {pushing ? (
-                                                                    <FormattedMessage
-                                                                        id='admin.preference_overrides.push.pushing'
-                                                                        defaultMessage='Pushing...'
-                                                                    />
-                                                                ) : (
-                                                                    <>
-                                                                        <IconPush/>
-                                                                        <FormattedMessage
-                                                                            id='admin.preference_overrides.push.execute'
-                                                                            defaultMessage='Push to All Users'
-                                                                        />
-                                                                    </>
-                                                                )}
-                                                            </button>
-                                                            <button
-                                                                className='btn btn-tertiary'
-                                                                onClick={closePushPanel}
-                                                            >
-                                                                <FormattedMessage
-                                                                    id='admin.preference_overrides.push.cancel'
-                                                                    defaultMessage='Cancel'
-                                                                />
-                                                            </button>
-                                                        </div>
-                                                        {pushResult && pushResult.key === key && (
-                                                            <div className='PreferenceOverridesDashboard__push-panel-result'>
-                                                                <IconCheckCircle/>
-                                                                <FormattedMessage
-                                                                    id='admin.preference_overrides.push.result'
-                                                                    defaultMessage='Successfully updated {count} {count, plural, one {user} other {users}}.'
-                                                                    values={{count: pushResult.count}}
-                                                                />
-                                                            </div>
-                                                        )}
-                                                    </div>
-                                                )}
                                             </div>
                                         );
                                     })}
@@ -918,6 +844,170 @@ const PreferenceOverridesDashboard: React.FC<Props> = ({config, patchConfig}) =>
                     </div>
                 )}
             </div>
+
+            {/* Push Preference Modal */}
+            {pushModalOpen && (
+                <div
+                    className='PreferenceOverridesDashboard__modal-backdrop'
+                    onClick={closePushModal}
+                >
+                    <div
+                        className='PreferenceOverridesDashboard__modal'
+                        onClick={(e) => e.stopPropagation()}
+                    >
+                        <div className='PreferenceOverridesDashboard__modal-header'>
+                            <h3>
+                                <IconPush/>
+                                <FormattedMessage
+                                    id='admin.preference_overrides.push.title'
+                                    defaultMessage='Push Preference to All Users'
+                                />
+                            </h3>
+                            <button
+                                className='PreferenceOverridesDashboard__modal-close'
+                                onClick={closePushModal}
+                            >
+                                <IconX/>
+                            </button>
+                        </div>
+                        <p className='PreferenceOverridesDashboard__modal-description'>
+                            <FormattedMessage
+                                id='admin.preference_overrides.push.hint'
+                                defaultMessage='This writes the value directly to the database for all active users. Users can still change it later.'
+                            />
+                        </p>
+
+                        <div className='PreferenceOverridesDashboard__modal-field'>
+                            <label>
+                                <FormattedMessage
+                                    id='admin.preference_overrides.push.select_preference'
+                                    defaultMessage='Preference'
+                                />
+                            </label>
+                            <select
+                                value={pushSelectedPref}
+                                onChange={(e) => handlePushPrefChange(e.target.value)}
+                            >
+                                {availablePreferences.map((pref) => {
+                                    const key = `${pref.category}:${pref.name}`;
+                                    return (
+                                        <option
+                                            key={key}
+                                            value={key}
+                                        >
+                                            {getPreferenceTitle(pref.category, pref.name)} ({key})
+                                        </option>
+                                    );
+                                })}
+                            </select>
+                        </div>
+
+                        <div className='PreferenceOverridesDashboard__modal-field'>
+                            <label>
+                                <FormattedMessage
+                                    id='admin.preference_overrides.push.value_label'
+                                    defaultMessage='Value'
+                                />
+                            </label>
+                            {(() => {
+                                const prefParts = getPushPrefParts();
+                                const opts = prefParts ? getPreferenceOptions(prefParts.category, prefParts.name) : null;
+                                if (opts) {
+                                    return (
+                                        <select
+                                            value={pushValue}
+                                            onChange={(e) => setPushValue(e.target.value)}
+                                        >
+                                            {opts.map((opt) => (
+                                                <option
+                                                    key={opt.value}
+                                                    value={opt.value}
+                                                >
+                                                    {opt.label}
+                                                </option>
+                                            ))}
+                                        </select>
+                                    );
+                                }
+                                return (
+                                    <input
+                                        type='text'
+                                        value={pushValue}
+                                        onChange={(e) => setPushValue(e.target.value)}
+                                        placeholder={intl.formatMessage({
+                                            id: 'admin.preference_overrides.push.value_placeholder',
+                                            defaultMessage: 'Value to push...',
+                                        })}
+                                    />
+                                );
+                            })()}
+                        </div>
+
+                        <label className='PreferenceOverridesDashboard__modal-checkbox'>
+                            <input
+                                type='checkbox'
+                                checked={pushOverwrite}
+                                onChange={(e) => setPushOverwrite(e.target.checked)}
+                            />
+                            <span>
+                                <FormattedMessage
+                                    id='admin.preference_overrides.push.overwrite'
+                                    defaultMessage='Overwrite existing values'
+                                />
+                                <span className='PreferenceOverridesDashboard__modal-checkbox-hint'>
+                                    <FormattedMessage
+                                        id='admin.preference_overrides.push.overwrite_hint'
+                                        defaultMessage={"If unchecked, only users who haven't set this preference will be affected"}
+                                    />
+                                </span>
+                            </span>
+                        </label>
+
+                        {pushResult && (
+                            <div className='PreferenceOverridesDashboard__modal-result'>
+                                <IconCheckCircle/>
+                                <FormattedMessage
+                                    id='admin.preference_overrides.push.result'
+                                    defaultMessage='Successfully updated {count} {count, plural, one {user} other {users}}.'
+                                    values={{count: pushResult.count}}
+                                />
+                            </div>
+                        )}
+
+                        <div className='PreferenceOverridesDashboard__modal-actions'>
+                            <button
+                                className='btn btn-primary'
+                                onClick={handlePush}
+                                disabled={pushing || !pushValue || !pushSelectedPref}
+                            >
+                                {pushing ? (
+                                    <FormattedMessage
+                                        id='admin.preference_overrides.push.pushing'
+                                        defaultMessage='Pushing...'
+                                    />
+                                ) : (
+                                    <>
+                                        <IconPush/>
+                                        <FormattedMessage
+                                            id='admin.preference_overrides.push.execute'
+                                            defaultMessage='Push to All Users'
+                                        />
+                                    </>
+                                )}
+                            </button>
+                            <button
+                                className='btn btn-tertiary'
+                                onClick={closePushModal}
+                            >
+                                <FormattedMessage
+                                    id='admin.preference_overrides.push.close'
+                                    defaultMessage='Close'
+                                />
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 };
