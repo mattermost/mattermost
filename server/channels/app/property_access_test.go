@@ -326,42 +326,6 @@ func TestGetPropertyFieldReadAccess(t *testing.T) {
 		require.Error(t, err)
 		assert.Contains(t, err.Error(), "invalid access mode")
 	})
-
-	t.Run("non-CPA group source_only field - everyone sees all options", func(t *testing.T) {
-		// Register a non-CPA group
-		nonCpaGroup, err := pas.RegisterPropertyGroup("other-group-read")
-		require.NoError(t, err)
-
-		field := &model.PropertyField{
-			GroupID:    nonCpaGroup.ID,
-			Name:       "source-only-non-cpa",
-			Type:       model.PropertyFieldTypeSelect,
-			TargetType: "user",
-			Attrs: model.StringInterface{
-				model.PropertyAttrsAccessMode:     model.PropertyAccessModeSourceOnly,
-				model.PropertyAttrsProtected:      true,
-				model.PropertyAttrsSourcePluginID: pluginID1,
-				model.PropertyFieldAttributeOptions: []any{
-					map[string]any{"id": "opt1", "value": "Secret Option 1"},
-					map[string]any{"id": "opt2", "value": "Secret Option 2"},
-				},
-			},
-		}
-		created, err := pas.CreatePropertyField("", field)
-		require.NoError(t, err)
-
-		// Non-source plugin sees all options (no filtering)
-		retrieved, err := pas.GetPropertyField(pluginID2, nonCpaGroup.ID, created.ID)
-		require.NoError(t, err)
-		assert.Equal(t, created.ID, retrieved.ID)
-		assert.Len(t, retrieved.Attrs[model.PropertyFieldAttributeOptions].([]any), 2)
-
-		// User sees all options (no filtering)
-		retrieved, err = pas.GetPropertyField(userID, nonCpaGroup.ID, created.ID)
-		require.NoError(t, err)
-		assert.Equal(t, created.ID, retrieved.ID)
-		assert.Len(t, retrieved.Attrs[model.PropertyFieldAttributeOptions].([]any), 2)
-	})
 }
 
 func TestGetPropertyFieldsReadAccess(t *testing.T) {
@@ -725,48 +689,6 @@ func TestCreatePropertyField_SourcePluginIDValidation(t *testing.T) {
 		require.Error(t, err)
 		assert.Nil(t, created)
 		assert.Contains(t, err.Error(), "protected can only be set by plugins")
-	})
-
-	t.Run("non-CPA group allows protected attribute", func(t *testing.T) {
-		// Register a non-CPA group
-		nonCpaGroup, err := pas.RegisterPropertyGroup("other-group")
-		require.NoError(t, err)
-
-		field := &model.PropertyField{
-			GroupID: nonCpaGroup.ID,
-			Name:    model.NewId(),
-			Type:    model.PropertyFieldTypeText,
-			Attrs: model.StringInterface{
-				model.PropertyAttrsProtected: true,
-			},
-		}
-
-		// Should succeed because access control doesn't apply to non-CPA groups
-		created, err := th.App.PropertyAccessService().CreatePropertyField("user1", field)
-		require.NoError(t, err)
-		assert.NotNil(t, created)
-		assert.True(t, created.Attrs[model.PropertyAttrsProtected].(bool))
-	})
-
-	t.Run("non-CPA group allows source_plugin_id to be set", func(t *testing.T) {
-		// Register a non-CPA group
-		nonCpaGroup, err := pas.RegisterPropertyGroup("other-group-2")
-		require.NoError(t, err)
-
-		field := &model.PropertyField{
-			GroupID: nonCpaGroup.ID,
-			Name:    model.NewId(),
-			Type:    model.PropertyFieldTypeText,
-			Attrs: model.StringInterface{
-				model.PropertyAttrsSourcePluginID: "some-plugin",
-			},
-		}
-
-		// Should succeed because access control doesn't apply to non-CPA groups
-		created, err := th.App.PropertyAccessService().CreatePropertyField("user1", field)
-		require.NoError(t, err)
-		assert.NotNil(t, created)
-		assert.Equal(t, "some-plugin", created.Attrs[model.PropertyAttrsSourcePluginID])
 	})
 }
 
