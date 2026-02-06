@@ -2,22 +2,20 @@
 
 Custom Mattermost fork with server-side modifications. See [stalecontext/mattermost-extended](https://github.com/stalecontext/mattermost-extended).
 
-## Development Philosophy: Test-Driven Development (TDD)
+## Development Philosophy: Fix First, Then Test
 
 **Tests cannot run locally** - they require Linux/Docker/PostgreSQL infrastructure only available in GitHub Actions.
 
-### TDD Workflow
+### Workflow
 
 ```
-1. Write test     → Define expected behavior in test file
-2. Commit & push  → git add . && git commit -m "test: add X tests"
-3. Run tests      → gh workflow run test.yml --ref $(git branch --show-current)
-4. Verify FAIL    → Tests should fail (feature doesn't exist yet)
-5. Implement      → Write the code to make tests pass
-6. Commit & push  → git add . && git commit -m "feat: implement X"
-7. Run tests      → gh workflow run test.yml --ref $(git branch --show-current)
-8. Verify PASS    → All tests should pass
-9. Release        → .\build.bat <version> "Description"
+1. Implement      → Write the fix or feature
+2. Write tests    → Add/update tests covering the changes
+3. Commit & push  → git add . && git commit -m "feat: implement X"
+4. Run tests      → gh workflow run test.yml --ref $(git branch --show-current)
+5. Verify PASS    → All tests must pass
+6. Fix if needed  → If tests fail, fix and repeat from step 3
+7. Release        → .\build.bat <version> "Description"
 ```
 
 ### Running Tests via GitHub CLI
@@ -63,17 +61,16 @@ gh run list --workflow=test.yml --limit=1
 ## Quick Workflow
 
 ```bash
-# 1. Write tests first (TDD!)
-code server/channels/app/my_feature_test.go
-
-# 2. Run tests to verify they fail
-gh workflow run test.yml --ref $(git branch --show-current)
-
-# 3. Implement feature
+# 1. Implement the fix or feature
 code server/channels/app/my_feature.go
 
-# 4. Run tests to verify they pass
+# 2. Write/update tests
+code server/channels/app/my_feature_test.go
+
+# 3. Commit, push, and run tests
 gh workflow run test.yml --ref $(git branch --show-current)
+
+# 4. Verify tests pass — fix and re-run if they don't
 
 # 5. Release (runs tests automatically)
 .\build.bat 11.3.0-custom.X "Description"
