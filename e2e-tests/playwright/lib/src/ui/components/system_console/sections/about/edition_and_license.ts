@@ -4,26 +4,19 @@
 import {Locator, expect} from '@playwright/test';
 
 /**
- * System Console Navbar component
+ * System Console -> About -> Edition and License
  */
-export default class SystemConsoleNavbar {
+export default class EditionAndLicense {
     readonly container: Locator;
-    readonly backLink: Locator;
+    readonly header: Locator;
 
     constructor(container: Locator) {
         this.container = container;
-        this.backLink = container.getByRole('link', {name: /Back/});
+        this.header = container.getByText('Edition and License', {exact: true});
     }
 
     async toBeVisible() {
         await expect(this.container).toBeVisible();
-        await expect(this.backLink).toBeVisible();
-    }
-
-    /**
-     * Click the back link to return to the team
-     */
-    async clickBack() {
-        await this.backLink.click();
+        await expect(this.header).toBeVisible();
     }
 }

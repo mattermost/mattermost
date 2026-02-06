@@ -18,7 +18,7 @@ import {UserProfile} from '@mattermost/types/users';
 import {Client4} from '@mattermost/client';
 import {UserPropertyField} from '@mattermost/types/properties';
 
-import {expect, test} from '@mattermost/playwright-lib';
+import {expect, test, SystemConsolePage} from '@mattermost/playwright-lib';
 
 import {
     CustomProfileAttribute,
@@ -87,7 +87,7 @@ let adminUser: UserProfile;
 let testUser: UserProfile;
 let attributeFieldsMap: Record<string, UserPropertyField>;
 let adminClient: Client4;
-let systemConsolePage: any;
+let systemConsolePage: SystemConsolePage;
 
 test.describe('System Console - Admin User Profile Editing', () => {
     test.beforeEach(async ({pw}) => {
@@ -119,13 +119,13 @@ test.describe('System Console - Admin User Profile Editing', () => {
         // Navigate to system console users
         await systemConsolePage.goto();
         await systemConsolePage.toBeVisible();
-        await systemConsolePage.sidebar.goToItem('Users');
-        await systemConsolePage.systemUsers.toBeVisible();
+        await systemConsolePage.sidebar.users.click();
+        await systemConsolePage.users.toBeVisible();
 
         // Search for target user and navigate to user detail page
-        await systemConsolePage.systemUsers.enterSearchText(testUser.email);
-        const userRow = await systemConsolePage.systemUsers.getNthRow(1);
-        await userRow.getByText(testUser.email).click();
+        await systemConsolePage.users.searchUsers(testUser.email);
+        const userRow = systemConsolePage.users.usersTable.getRowByIndex(0);
+        await userRow.container.getByText(testUser.email).click();
 
         // Wait for user detail page to load
         await systemConsolePage.page.waitForURL(`**/admin_console/user_management/user/${testUser.id}`);

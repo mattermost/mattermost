@@ -23,28 +23,36 @@ test('MM-T5523-1 Sortable columns should sort the list when clicked', async ({pw
     await systemConsolePage.toBeVisible();
 
     // # Go to Users section
-    await systemConsolePage.sidebar.goToItem('Users');
-    await systemConsolePage.systemUsers.toBeVisible();
+    await systemConsolePage.sidebar.users.click();
+    await systemConsolePage.users.toBeVisible();
 
     // * Verify that 'Email' column has aria-sort attribute
-    const userDetailsColumnHeader = await systemConsolePage.systemUsers.getColumnHeader('Email');
-    expect(await userDetailsColumnHeader.isVisible()).toBe(true);
-    expect(userDetailsColumnHeader).toHaveAttribute('aria-sort');
+    const emailColumnHeader = systemConsolePage.users.usersTable.getColumnHeader('Email');
+    await expect(emailColumnHeader).toBeVisible();
+    await expect(emailColumnHeader).toHaveAttribute('aria-sort');
 
-    // # Store the first row's email before sorting
-    const firstRowWithoutSort = await systemConsolePage.systemUsers.getNthRow(1);
-    const firstRowEmailWithoutSort = await firstRowWithoutSort.getByText(pw.simpleEmailRe).allInnerTexts();
+    // # Store all emails before sorting to compare order
+    const rowsBeforeSort = await systemConsolePage.users.usersTable.bodyRows.count();
+    const emailsBeforeSort: string[] = [];
+    for (let i = 0; i < rowsBeforeSort; i++) {
+        const row = systemConsolePage.users.usersTable.getRowByIndex(i);
+        const email = await row.getEmail();
+        emailsBeforeSort.push(email);
+    }
 
-    // # Click on the 'Email' column header to sort
-    await systemConsolePage.systemUsers.clickSortOnColumn('Email');
-    await systemConsolePage.systemUsers.isLoadingComplete();
+    // # Click on the 'Email' column header to sort and wait for sort to complete
+    await systemConsolePage.users.usersTable.sortByColumn('Email');
 
-    // # Store the first row's email after sorting
-    const firstRowWithSort = await systemConsolePage.systemUsers.getNthRow(1);
-    const firstRowEmailWithSort = await firstRowWithSort.getByText(pw.simpleEmailRe).allInnerTexts();
+    // # Store all emails after sorting
+    const emailsAfterSort: string[] = [];
+    for (let i = 0; i < rowsBeforeSort; i++) {
+        const row = systemConsolePage.users.usersTable.getRowByIndex(i);
+        const email = await row.getEmail();
+        emailsAfterSort.push(email);
+    }
 
-    // * Verify that the first row is now different
-    expect(firstRowEmailWithoutSort).not.toBe(firstRowEmailWithSort);
+    // * Verify that the order has changed (emails array is different)
+    expect(emailsBeforeSort).not.toEqual(emailsAfterSort);
 });
 
 test('MM-T5523-2 Non sortable columns should not sort the list when clicked', async ({pw}) => {
@@ -67,24 +75,24 @@ test('MM-T5523-2 Non sortable columns should not sort the list when clicked', as
     await systemConsolePage.toBeVisible();
 
     // # Go to Users section
-    await systemConsolePage.sidebar.goToItem('Users');
-    await systemConsolePage.systemUsers.toBeVisible();
+    await systemConsolePage.sidebar.users.click();
+    await systemConsolePage.users.toBeVisible();
 
     // * Verify that 'Last login' column does not have aria-sort attribute
-    const userDetailsColumnHeader = await systemConsolePage.systemUsers.getColumnHeader('Last login');
-    expect(await userDetailsColumnHeader.isVisible()).toBe(true);
-    expect(userDetailsColumnHeader).not.toHaveAttribute('aria-sort');
+    const lastLoginColumnHeader = systemConsolePage.users.usersTable.getColumnHeader('Last login');
+    await expect(lastLoginColumnHeader).toBeVisible();
+    await expect(lastLoginColumnHeader).not.toHaveAttribute('aria-sort');
 
     // # Store the first row's email without sorting
-    const firstRowWithoutSort = await systemConsolePage.systemUsers.getNthRow(1);
-    const firstRowEmailWithoutSort = await firstRowWithoutSort.getByText(pw.simpleEmailRe).allInnerTexts();
+    const firstRowWithoutSort = systemConsolePage.users.usersTable.getRowByIndex(0);
+    const firstRowEmailWithoutSort = await firstRowWithoutSort.container.getByText(pw.simpleEmailRe).allInnerTexts();
 
     // # Try to click on the 'Last login' column header to sort
-    await systemConsolePage.systemUsers.clickSortOnColumn('Last login');
+    await systemConsolePage.users.usersTable.clickSortOnColumn('Last login');
 
     // # Store the first row's email after sorting
-    const firstRowWithSort = await systemConsolePage.systemUsers.getNthRow(1);
-    const firstRowEmailWithSort = await firstRowWithSort.getByText(pw.simpleEmailRe).allInnerTexts();
+    const firstRowWithSort = systemConsolePage.users.usersTable.getRowByIndex(0);
+    const firstRowEmailWithSort = await firstRowWithSort.container.getByText(pw.simpleEmailRe).allInnerTexts();
 
     // * Verify that the first row's email is still the same
     expect(firstRowEmailWithoutSort).toEqual(firstRowEmailWithSort);
