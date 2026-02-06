@@ -2836,7 +2836,10 @@ func (a *App) SetActiveChannel(rctx request.CTX, userID string, channelID string
 				status.Status = model.StatusOnline
 			}
 		}
-		status.LastActivityAt = model.GetMillis()
+		// Status pause: don't update LastActivityAt for paused users
+		if !a.Srv().Platform().IsUserStatusPaused(userID) {
+			status.LastActivityAt = model.GetMillis()
+		}
 	}
 
 	a.Srv().Platform().AddStatusCache(status)
@@ -2895,7 +2898,7 @@ func (a *App) SetActiveChannel(rctx request.CTX, userID string, channelID string
 
 	if statusChanged {
 		// This is NOT a manual status change - it's automatic from viewing a channel
-		a.Srv().Platform().LogStatusChange(userID, username, oldStatus, status.Status, model.StatusLogTriggerActiveChannel, device, true, channelID, false, "SetActiveChannel")
+		a.Srv().Platform().LogStatusChange(userID, username, oldStatus, status.Status, model.StatusLogTriggerActiveChannel, device, true, channelID, false, "SetActiveChannel", status.LastActivityAt)
 	} else {
 		a.Srv().Platform().LogActivityUpdate(userID, username, status.Status, device, true, channelID, channelName, channelType, model.StatusLogTriggerActiveChannel, "SetActiveChannel", status.LastActivityAt)
 	}
