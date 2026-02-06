@@ -185,6 +185,8 @@ describe('hasUsableAttributes', () => {
                 create_at: 0,
                 update_at: 0,
                 delete_at: 0,
+                created_by: '',
+                updated_by: '',
             },
         ];
 
@@ -207,6 +209,8 @@ describe('hasUsableAttributes', () => {
                 create_at: 0,
                 update_at: 0,
                 delete_at: 0,
+                created_by: '',
+                updated_by: '',
             },
         ];
 
@@ -229,6 +233,8 @@ describe('hasUsableAttributes', () => {
                 create_at: 0,
                 update_at: 0,
                 delete_at: 0,
+                created_by: '',
+                updated_by: '',
             },
         ];
 
@@ -251,6 +257,8 @@ describe('hasUsableAttributes', () => {
                 create_at: 0,
                 update_at: 0,
                 delete_at: 0,
+                created_by: '',
+                updated_by: '',
             },
         ];
 
@@ -272,6 +280,8 @@ describe('hasUsableAttributes', () => {
                 create_at: 0,
                 update_at: 0,
                 delete_at: 0,
+                created_by: '',
+                updated_by: '',
             },
         ];
 
@@ -301,6 +311,8 @@ describe('hasUsableAttributes', () => {
                 create_at: 0,
                 update_at: 0,
                 delete_at: 0,
+                created_by: '',
+                updated_by: '',
             },
         ];
 
@@ -322,6 +334,8 @@ describe('hasUsableAttributes', () => {
                 create_at: 0,
                 update_at: 0,
                 delete_at: 0,
+                created_by: '',
+                updated_by: '',
             },
             {
                 id: 'attr2',
@@ -337,6 +351,8 @@ describe('hasUsableAttributes', () => {
                 create_at: 0,
                 update_at: 0,
                 delete_at: 0,
+                created_by: '',
+                updated_by: '',
             },
         ];
 

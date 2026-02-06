@@ -9,7 +9,7 @@ import type {PropertyField} from '@mattermost/types/properties';
  * as the server will assign new IDs.
  */
 export function clearOptionIDs<T extends PropertyField>(field: Partial<T>): Partial<T> {
-    const attrs = {...field.attrs};
+    const attrs = {...field.attrs} as {options?: Array<{id?: string; name: string}>; [key: string]: unknown};
     if (attrs?.options && Array.isArray(attrs.options)) {
         attrs.options = attrs.options.map((option: {id?: string; name: string}) => ({
             ...option,

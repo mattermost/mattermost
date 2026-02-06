@@ -155,6 +155,7 @@ describe('BoardPropertiesTypeMenu', () => {
             type: 'text',
             attrs: {
                 sort_order: 0,
+
                 // options should be removed
             },
         });

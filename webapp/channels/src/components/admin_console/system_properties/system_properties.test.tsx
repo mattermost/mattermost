@@ -66,7 +66,7 @@ describe('SystemProperties', () => {
 
     describe('UserProperties', () => {
         it('loads custom user properties', async () => {
-            renderWithContext(<SystemProperties disabled={false}/>, getBaseState());
+            renderWithContext(<SystemProperties/>, getBaseState());
 
             await waitFor(() => {
                 expect(screen.queryByText('Loading')).toBeInTheDocument();

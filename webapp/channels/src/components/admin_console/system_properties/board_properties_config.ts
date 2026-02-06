@@ -6,8 +6,8 @@ import type {PropertyField} from '@mattermost/types/properties';
 import {Client4} from 'mattermost-redux/client';
 
 import type {PropertyFieldConfig} from './attributes_panel';
-import {clearOptionIDs, prepareFieldForPatch} from './property_field_option_utils';
 import {isCreatePending, isDeletePending} from './board_properties_utils';
+import {clearOptionIDs, prepareFieldForPatch} from './property_field_option_utils';
 
 export const boardPropertyFieldConfig: PropertyFieldConfig<PropertyField> = {
     group_id: 'board_attributes',

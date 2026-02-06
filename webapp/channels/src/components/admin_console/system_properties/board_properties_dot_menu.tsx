@@ -9,9 +9,9 @@ import type {PropertyField} from '@mattermost/types/properties';
 
 import * as Menu from 'components/menu';
 
-import {clearOptionIDs} from './property_field_option_utils';
-import {usePropertyFieldDelete} from './property_field_delete_modal';
 import {isCreatePending} from './board_properties_utils';
+import {usePropertyFieldDelete} from './property_field_delete_modal';
+import {clearOptionIDs} from './property_field_option_utils';
 
 type Props = {
     field: PropertyField;
@@ -45,12 +45,13 @@ export default function BoardPropertiesDotMenu({
             ...fieldWithClearedIDs,
             id: `temp_${Date.now()}`,
             name,
+            group_id: field.group_id,
             create_at: 0,
             delete_at: 0,
             update_at: 0,
             created_by: '',
             updated_by: '',
-        });
+        } as PropertyField);
     };
 
     const handleDelete = () => {

@@ -12,7 +12,7 @@ import {BoardPropertiesTable} from './board_properties_table';
 
 jest.mock('./board_properties_dot_menu', () => ({
     __esModule: true,
-    default: jest.fn(() => <div data-testid="board-property-field-dotmenu-mock"/>),
+    default: jest.fn(() => <div data-testid='board-property-field-dotmenu-mock'/>),
 }));
 
 describe('BoardPropertiesTable', () => {

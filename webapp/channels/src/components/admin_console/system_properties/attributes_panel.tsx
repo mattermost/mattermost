@@ -29,7 +29,7 @@ import SaveChangesPanel from '../save_changes_panel';
 // Helper function to generate a unique default name for new fields
 // Similar to getIncrementedName in user_properties_utils.ts
 const getIncrementedName = <T extends PropertyField>(desiredName: string, collection: IDMappedCollection<T>): string => {
-    const names = new Set(Object.values(collection.data).map(({name}) => name));
+    const names = new Set(Object.values(collection.data).map((field) => (field as T).name));
     let newName = desiredName;
     let n = 1;
     while (names.has(newName)) {
@@ -198,10 +198,10 @@ export function useAttributesPanel<T extends PropertyField = PropertyField>(
                 // Update
                 await Promise.all(process.edit.map(async (pendingItem) => {
                     const {id, ...patch} = pendingItem;
-                    const preparedPatch = config.prepareFieldForPatch ? config.prepareFieldForPatch(patch) : patch;
-                    return config.patchField(id, preparedPatch).
+                    const preparedPatch = config.prepareFieldForPatch ? config.prepareFieldForPatch(patch as Partial<T>) : patch;
+                    return config.patchField(id, preparedPatch as Partial<T>).
                         then((nextItem) => {
-                            next.data[id] = nextItem;
+                            (next.data as Record<string, T>)[id] = nextItem;
                         }).
                         catch((reason: ClientError) => {
                             if (!next.errors) {
@@ -214,12 +214,12 @@ export function useAttributesPanel<T extends PropertyField = PropertyField>(
                 // Create
                 await Promise.all(process.create.map(async (pendingItem) => {
                     const {id, ...patch} = pendingItem;
-                    const preparedPatch = config.prepareFieldForCreate ? config.prepareFieldForCreate(patch) : patch;
-                    return config.createField(preparedPatch).
+                    const preparedPatch = config.prepareFieldForCreate ? config.prepareFieldForCreate(patch as Partial<T>) : patch;
+                    return config.createField(preparedPatch as Partial<T>).
                         then((nextItem) => {
                             // Replace temporary id with real id
                             Reflect.deleteProperty(next.data, id);
-                            next.data[nextItem.id] = nextItem;
+                            (next.data as Record<string, T>)[nextItem.id] = nextItem;
                             next.order = next.order.map((orderId) => (orderId === id ? nextItem.id : orderId));
                         }).
                         catch((reason: ClientError) => {
@@ -252,6 +252,7 @@ export function useAttributesPanel<T extends PropertyField = PropertyField>(
                 // Calculate sort_order based on number of non-deleted items
                 // eslint-disable-next-line @typescript-eslint/no-explicit-any
                 const nonDeletedCount = Object.values(current.data).filter((f: any) => f.delete_at === 0).length;
+
                 // Generate a default name if not provided in patch, similar to User Attributes behavior
                 // Ensure we always have a name, even if patch contains an empty string
                 const defaultName = (patchWithoutTimestamps.name && patchWithoutTimestamps.name.trim()) || getIncrementedName('Text', current);
@@ -269,6 +270,7 @@ export function useAttributesPanel<T extends PropertyField = PropertyField>(
                         sort_order: nonDeletedCount,
                     },
                     ...patchWithoutTimestamps,
+
                     // Ensure name is always set after spread to prevent empty string from overwriting default
                     name: defaultName,
                 } as T;

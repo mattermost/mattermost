@@ -19,6 +19,7 @@ import PropertyValuesInput from './property_values_input';
 import {AdminConsoleListTable} from '../list_table';
 
 export type AttributesTableConfig<T extends PropertyField> = {
+
     // i18n keys
     i18n: {
         attribute: MessageDescriptor;
@@ -31,14 +32,17 @@ export type AttributesTableConfig<T extends PropertyField> = {
         nameTaken: MessageDescriptor;
         attributeNameInput: MessageDescriptor;
     };
+
     // Validation warning IDs
     validationWarnings: {
         nameRequired: string;
         nameUnique: string;
         nameTaken: string;
     };
+
     // Constants
     maxNameLength: number;
+
     // Render functions
     renderActionsMenu: (props: {
         field: T;
@@ -51,9 +55,11 @@ export type AttributesTableConfig<T extends PropertyField> = {
         field: T;
         updateField: (field: T) => void;
     }) => React.ReactNode;
+
     // Utility functions
     isCreatePending: (field: T) => boolean;
     supportsOptions: (field: T) => boolean;
+
     // Table ID for reordering
     tableId: string;
 };
@@ -83,7 +89,8 @@ export function AttributesTable<T extends PropertyField>({
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const columns = useMemo<Array<ColumnDef<T, any>>>(() => {
         return [
-            col.accessor('name', {
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            (col.accessor as any)('name', {
                 size: 180,
                 header: () => {
                     return (
@@ -92,9 +99,10 @@ export function AttributesTable<T extends PropertyField>({
                         </ColHeaderLeft>
                     );
                 },
-                cell: ({getValue, row}) => {
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                cell: ({getValue, row}: any) => {
                     const toDelete = row.original.delete_at !== 0;
-                    const warningId = collection.warnings?.[row.original.id]?.name;
+                    const warningId = (collection.warnings as Record<string, {name?: string}> | undefined)?.[row.original.id]?.name;
 
                     let warning;
 
@@ -143,7 +151,8 @@ export function AttributesTable<T extends PropertyField>({
                 enableHiding: false,
                 enableSorting: false,
             }),
-            col.accessor('type', {
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            (col.accessor as any)('type', {
                 size: 100,
                 header: () => {
                     return (
@@ -152,7 +161,8 @@ export function AttributesTable<T extends PropertyField>({
                         </ColHeaderLeft>
                     );
                 },
-                cell: ({row}) => {
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                cell: ({row}: any) => {
                     return config.renderTypeSelector({
                         field: row.original,
                         updateField,
