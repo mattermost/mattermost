@@ -55,6 +55,7 @@ import type {
     SearchSuggestionsComponent,
     SearchHintsComponent,
     CallButtonAction,
+    SystemUsersListMenuItemAction,
     CreateBoardFromTemplateComponent,
     PostWillRenderEmbedComponent,
     FilesWillUploadHook,
@@ -1442,6 +1443,35 @@ export default class PluginRegistry {
      */
     registerSystemConsoleGroupTable = reArg(['component'], ({component}: DPluginComponentProp) => {
         return dispatchPluginComponentAction('SystemConsoleGroupTable', this.id, component);
+    });
+
+    /**
+     * Register a menu item in the System Users list actions dropdown.
+     * Accepts the following:
+     * - text - A string or React element to display in the menu
+     * - action - A function called with the userId when the menu item is clicked
+     * Returns a unique identifier.
+     */
+    registerSystemUsersListMenuItem = reArg([
+        'text',
+        'action',
+    ], ({
+        text,
+        action,
+    }: {
+        text: ReactResolvable;
+        action: SystemUsersListMenuItemAction['action'];
+    }) => {
+        const id = generateId();
+
+        dispatchPluginComponentWithData('SystemUsersListMenuItem', {
+            id,
+            pluginId: this.id,
+            text: resolveReactElement(text),
+            action,
+        });
+
+        return id;
     });
 
     registerRHSPluginPopoutListener = reArg(['pluginId', 'onPopoutOpened'], ({pluginId, onPopoutOpened}: {pluginId: string; onPopoutOpened: (teamName: string, channelName: string, listeners: Partial<PopoutListeners>) => void}) => {
