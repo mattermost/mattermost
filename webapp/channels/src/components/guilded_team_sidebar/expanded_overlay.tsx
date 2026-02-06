@@ -6,9 +6,16 @@ import React from 'react';
 import {useSelector} from 'react-redux';
 
 import {Client4} from 'mattermost-redux/client';
+import {get} from 'mattermost-redux/selectors/entities/preferences';
 import {getCurrentTeamId, getMyTeams} from 'mattermost-redux/selectors/entities/teams';
 
+import {getCurrentLocale} from 'selectors/i18n';
 import {getFavoritedTeamIds, getUnreadDmChannelsWithUsers} from 'selectors/views/guilded_layout';
+
+import type {GlobalState} from 'types/store';
+
+import {Preferences} from 'utils/constants';
+import {filterAndSortTeamsByDisplayName} from 'utils/team_utils';
 
 import './expanded_overlay.scss';
 
@@ -36,19 +43,15 @@ export default function ExpandedOverlay({onClose}: Props) {
     const favoritedTeamIds = useSelector(getFavoritedTeamIds);
     const currentTeamId = useSelector(getCurrentTeamId);
     const unreadDms = useSelector(getUnreadDmChannelsWithUsers);
+    const locale = useSelector(getCurrentLocale);
+    const userTeamsOrderPreference = useSelector((state: GlobalState) => get(state, Preferences.TEAMS_ORDER, '', ''));
 
-    // Sort teams: favorites first, then alphabetically
-    const sortedTeams = [...allTeams].sort((a, b) => {
-        const aFav = favoritedTeamIds.includes(a.id);
-        const bFav = favoritedTeamIds.includes(b.id);
-        if (aFav && !bFav) {
-            return -1;
-        }
-        if (!aFav && bFav) {
-            return 1;
-        }
-        return a.display_name.localeCompare(b.display_name);
-    });
+    // Sort teams using user's preferred order, then partition: favorites first, then the rest
+    const orderedTeams = filterAndSortTeamsByDisplayName(allTeams, locale, userTeamsOrderPreference);
+    const sortedTeams = [
+        ...orderedTeams.filter((team) => favoritedTeamIds.includes(team.id)),
+        ...orderedTeams.filter((team) => !favoritedTeamIds.includes(team.id)),
+    ];
 
     return (
         <div className='expanded-overlay'>

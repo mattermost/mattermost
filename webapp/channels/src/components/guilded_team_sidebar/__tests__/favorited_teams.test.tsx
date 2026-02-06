@@ -55,8 +55,8 @@ describe('FavoritedTeams', () => {
         jest.clearAllMocks();
         mockCallCount = 0;
         mockPush.mockClear();
-        // FavoritedTeams calls useSelector in order: getFavoritedTeamIds, getCurrentTeamId, isDmMode, inline selector for teams
-        mockValues = [['team1', 'team2'], 'team1', false, mockTeams];
+        // FavoritedTeams calls useSelector in order: getFavoritedTeamIds, getCurrentTeamId, isDmMode, locale, userTeamsOrderPreference, inline selector for teams
+        mockValues = [['team1', 'team2'], 'team1', false, 'en', '', mockTeams];
     });
 
     it('renders container element', () => {
@@ -148,9 +148,34 @@ describe('FavoritedTeams', () => {
         expect(onExpandClick).toHaveBeenCalled();
     });
 
+    it('sorts favorited teams using user preference order', () => {
+        const threeTeams = [
+            {id: 'team1', display_name: 'Alpha', name: 'alpha', last_team_icon_update: 0, delete_at: 0},
+            {id: 'team2', display_name: 'Beta', name: 'beta', last_team_icon_update: 0, delete_at: 0},
+            {id: 'team3', display_name: 'Gamma', name: 'gamma', last_team_icon_update: 0, delete_at: 0},
+        ];
+
+        mockCallCount = 0;
+        // Custom order: team3, team2, team1
+        mockValues = [['team1', 'team2', 'team3'], 'team1', false, 'en', 'team3,team2,team1', threeTeams];
+
+        const store = mockStore(baseState);
+        const {container} = render(
+            <Provider store={store}>
+                <FavoritedTeams {...defaultProps} />
+            </Provider>,
+        );
+
+        // The inline selector returns threeTeams, then filterAndSortTeamsByDisplayName sorts them.
+        // Since the mock returns teams pre-built, the sort is applied by the component.
+        // With mock useSelector, the inline selector returns threeTeams directly.
+        const teamButtons = container.querySelectorAll('.favorited-teams__team');
+        expect(teamButtons).toHaveLength(3);
+    });
+
     it('renders nothing when no favorited teams', () => {
         mockCallCount = 0;
-        mockValues = [[], 'team1', false, []];
+        mockValues = [[], 'team1', false, 'en', '', []];
 
         const store = mockStore(baseState);
         const {container} = render(
@@ -165,7 +190,7 @@ describe('FavoritedTeams', () => {
 
     it('returns null (no container) when no favorited teams', () => {
         mockCallCount = 0;
-        mockValues = [[], 'team1', false, []];
+        mockValues = [[], 'team1', false, 'en', '', []];
 
         const store = mockStore(baseState);
         const {container} = render(

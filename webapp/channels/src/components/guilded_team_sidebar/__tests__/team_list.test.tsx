@@ -55,8 +55,8 @@ describe('TeamList', () => {
         jest.clearAllMocks();
         mockCallCount = 0;
         mockPush.mockClear();
-        // TeamList calls useSelector in order: getMyTeams, getFavoritedTeamIds, getCurrentTeamId
-        mockValues = [allTeams, ['team1'], 'team1'];
+        // TeamList calls useSelector in order: getMyTeams, getFavoritedTeamIds, getCurrentTeamId, isDmMode, locale, userTeamsOrderPreference
+        mockValues = [allTeams, ['team1'], 'team1', false, 'en', ''];
     });
 
     it('renders container element', () => {
@@ -125,7 +125,7 @@ describe('TeamList', () => {
 
     it('shows all teams when none are favorited', () => {
         mockCallCount = 0;
-        mockValues = [allTeams, [], 'team1'];
+        mockValues = [allTeams, [], 'team1', false, 'en', ''];
 
         const store = mockStore(baseState);
         const {container} = render(
@@ -138,9 +138,9 @@ describe('TeamList', () => {
         expect(teamButtons).toHaveLength(3);
     });
 
-    it('sorts teams alphabetically by display name', () => {
+    it('sorts teams alphabetically by display name when no custom order', () => {
         mockCallCount = 0;
-        mockValues = [allTeams, [], 'team1'];
+        mockValues = [allTeams, [], 'team1', false, 'en', ''];
 
         const store = mockStore(baseState);
         const {container} = render(
@@ -154,9 +154,26 @@ describe('TeamList', () => {
         expect(initials).toEqual(['AT', 'BT', 'GT']); // Alpha, Beta, Gamma
     });
 
+    it('respects user team order preference', () => {
+        mockCallCount = 0;
+        // Custom order: Gamma, Beta, Alpha - with team1 (Alpha) favorited, expect Gamma then Beta
+        mockValues = [allTeams, ['team1'], 'team1', false, 'en', 'team3,team2,team1'];
+
+        const store = mockStore(baseState);
+        const {container} = render(
+            <Provider store={store}>
+                <TeamList {...defaultProps} />
+            </Provider>,
+        );
+
+        const teamButtons = container.querySelectorAll('.team-list__team');
+        const initials = Array.from(teamButtons).map((btn) => btn.textContent);
+        expect(initials).toEqual(['GT', 'BT']); // Gamma, Beta (Alpha is favorited)
+    });
+
     it('highlights current team if in list', () => {
         mockCallCount = 0;
-        mockValues = [allTeams, ['team1'], 'team2'];
+        mockValues = [allTeams, ['team1'], 'team2', false, 'en', ''];
 
         const store = mockStore(baseState);
         const {container} = render(
@@ -170,7 +187,7 @@ describe('TeamList', () => {
 
     it('navigates to team when clicked', () => {
         mockCallCount = 0;
-        mockValues = [allTeams, ['team1'], 'team1'];
+        mockValues = [allTeams, ['team1'], 'team1', false, 'en', ''];
 
         const onTeamClick = jest.fn();
         const store = mockStore(baseState);

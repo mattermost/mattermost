@@ -6,11 +6,16 @@ import React from 'react';
 import {useSelector} from 'react-redux';
 import {useHistory} from 'react-router-dom';
 
+import {get} from 'mattermost-redux/selectors/entities/preferences';
 import {getCurrentTeamId, getTeam} from 'mattermost-redux/selectors/entities/teams';
 
+import {getCurrentLocale} from 'selectors/i18n';
 import {getFavoritedTeamIds} from 'selectors/views/guilded_layout';
 
 import type {GlobalState} from 'types/store';
+
+import {Preferences} from 'utils/constants';
+import {filterAndSortTeamsByDisplayName} from 'utils/team_utils';
 
 import './favorited_teams.scss';
 
@@ -32,12 +37,15 @@ export default function FavoritedTeams({onTeamClick, onExpandClick}: Props) {
     const favoritedTeamIds = useSelector(getFavoritedTeamIds);
     const currentTeamId = useSelector(getCurrentTeamId);
     const isDmMode = useSelector((state: GlobalState) => state.views.guildedLayout.isDmMode);
+    const locale = useSelector(getCurrentLocale);
+    const userTeamsOrderPreference = useSelector((state: GlobalState) => get(state, Preferences.TEAMS_ORDER, '', ''));
 
-    // Get team objects for favorited IDs
+    // Get team objects for favorited IDs, sorted by user's preferred order
     const favoritedTeams = useSelector((state: GlobalState) => {
-        return favoritedTeamIds
+        const teams = favoritedTeamIds
             .map((id) => getTeam(state, id))
             .filter((team): team is NonNullable<typeof team> => team != null);
+        return filterAndSortTeamsByDisplayName(teams, locale, userTeamsOrderPreference);
     });
 
     // Return null if no favorites - don't render container or expand button

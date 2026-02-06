@@ -53,8 +53,8 @@ describe('ExpandedOverlay', () => {
     beforeEach(() => {
         jest.clearAllMocks();
         mockCallCount = 0;
-        // ExpandedOverlay calls useSelector in order: getMyTeams, getFavoritedTeamIds, getCurrentTeamId, getUnreadDmChannelsWithUsers
-        mockValues = [mockTeams, ['team1'], 'team1', mockUnreadDms];
+        // ExpandedOverlay calls useSelector in order: getMyTeams, getFavoritedTeamIds, getCurrentTeamId, getUnreadDmChannelsWithUsers, locale, userTeamsOrderPreference
+        mockValues = [mockTeams, ['team1'], 'team1', mockUnreadDms, 'en', ''];
     });
 
     it('renders the overlay container', () => {
@@ -161,6 +161,29 @@ describe('ExpandedOverlay', () => {
         );
 
         expect(container.querySelector('.expanded-overlay__favorite-indicator')).toBeInTheDocument();
+    });
+
+    it('sorts teams using user preference order', () => {
+        const threeTeams = [
+            {id: 'team1', display_name: 'Alpha', name: 'alpha', last_team_icon_update: 0, delete_at: 0},
+            {id: 'team2', display_name: 'Beta', name: 'beta', last_team_icon_update: 0, delete_at: 0},
+            {id: 'team3', display_name: 'Gamma', name: 'gamma', last_team_icon_update: 0, delete_at: 0},
+        ];
+
+        mockCallCount = 0;
+        // Custom order: team3, team1, team2 — with team1 favorited, expect: team1 (fav first), team3, team2
+        mockValues = [threeTeams, ['team1'], 'team1', [], 'en', 'team3,team1,team2'];
+
+        const store = mockStore(baseState);
+        const {container} = render(
+            <Provider store={store}>
+                <ExpandedOverlay {...defaultProps} />
+            </Provider>,
+        );
+
+        const teamNames = container.querySelectorAll('.expanded-overlay__team-name');
+        const names = Array.from(teamNames).map((el) => el.textContent);
+        expect(names).toEqual(['Alpha', 'Gamma', 'Beta']); // Favorited (Alpha) first, then Gamma, Beta per custom order
     });
 
     it('renders header with title', () => {

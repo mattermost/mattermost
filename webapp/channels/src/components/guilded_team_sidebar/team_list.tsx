@@ -6,11 +6,16 @@ import React from 'react';
 import {useSelector} from 'react-redux';
 import {useHistory} from 'react-router-dom';
 
+import {get} from 'mattermost-redux/selectors/entities/preferences';
 import {getCurrentTeamId, getMyTeams} from 'mattermost-redux/selectors/entities/teams';
 
+import {getCurrentLocale} from 'selectors/i18n';
 import {getFavoritedTeamIds} from 'selectors/views/guilded_layout';
 
 import type {GlobalState} from 'types/store';
+
+import {Preferences} from 'utils/constants';
+import {filterAndSortTeamsByDisplayName} from 'utils/team_utils';
 
 import './team_list.scss';
 
@@ -32,11 +37,12 @@ export default function TeamList({onTeamClick}: Props) {
     const favoritedTeamIds = useSelector(getFavoritedTeamIds);
     const currentTeamId = useSelector(getCurrentTeamId);
     const isDmMode = useSelector((state: GlobalState) => state.views.guildedLayout.isDmMode);
+    const locale = useSelector(getCurrentLocale);
+    const userTeamsOrderPreference = useSelector((state: GlobalState) => get(state, Preferences.TEAMS_ORDER, '', ''));
 
-    // Filter out favorited teams and sort alphabetically
-    const nonFavoritedTeams = allTeams
-        .filter((team) => !favoritedTeamIds.includes(team.id))
-        .sort((a, b) => a.display_name.localeCompare(b.display_name));
+    // Sort using user's preferred team order, then filter out favorited teams
+    const nonFavoritedTeams = filterAndSortTeamsByDisplayName(allTeams, locale, userTeamsOrderPreference)
+        .filter((team) => !favoritedTeamIds.includes(team.id));
 
     const handleTeamClick = (teamName: string) => {
         onTeamClick(); // Clear DM mode
