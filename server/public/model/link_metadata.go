@@ -103,7 +103,7 @@ func FilterSVGImages(images []*image.Image) []*image.Image {
 			continue
 		}
 		// Filter by declared MIME type
-		if img.Type == "image/svg+xml" {
+		if strings.HasPrefix(img.Type, "image/svg+xml") {
 			continue
 		}
 		filtered = append(filtered, img)

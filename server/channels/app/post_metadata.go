@@ -1018,7 +1018,7 @@ func (a *App) parseLinkMetadata(rctx request.CTX, requestURL string, body io.Rea
 		body = bufRd
 	}
 
-	if contentType == "image/svg+xml" {
+	if strings.HasPrefix(contentType, "image/svg+xml") {
 		// See MM-67372
 		rctx.Logger().Debug("Filtering SVG image from link metadata",
 			mlog.String("url", requestURL))
