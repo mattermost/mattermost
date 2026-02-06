@@ -216,19 +216,19 @@ export default class ResetStatusModal extends React.PureComponent<Props, State> 
 
     private renderModalMessage = () => {
         if (this.props.currentUserStatus === UserStatuses.OUT_OF_OFFICE) {
-            return messages[this.state.newStatus] ? (<FormattedMessage {...messages[this.state.newStatus].auto_responder_message}/>) : '';
+            return messages[this.state.newStatus]?.auto_responder_message ? (<FormattedMessage {...messages[this.state.newStatus].auto_responder_message}/>) : '';
         }
 
-        return messages[this.state.newStatus] ? (<FormattedMessage {...messages[this.state.newStatus].message}/>) : '';
+        return messages[this.state.newStatus]?.message ? (<FormattedMessage {...messages[this.state.newStatus].message}/>) : '';
     };
 
     public render(): JSX.Element {
         const userStatus = this.state.currentUserStatus?.status || '';
-        const manualStatusTitle = messages[userStatus] ? (<FormattedMessage {...messages[userStatus].title}/>) : '';
+        const manualStatusTitle = messages[userStatus]?.title ? (<FormattedMessage {...messages[userStatus].title}/>) : '';
 
         const manualStatusMessage = this.renderModalMessage();
-        const manualStatusButton = messages[this.state.newStatus] ? (<FormattedMessage {...messages[this.state.newStatus].button}/>) : '';
-        const manualStatusCancel = messages[userStatus] ? (<FormattedMessage {...messages[userStatus].cancel}/>) : '';
+        const manualStatusButton = messages[this.state.newStatus]?.button ? (<FormattedMessage {...messages[this.state.newStatus].button}/>) : '';
+        const manualStatusCancel = messages[userStatus]?.cancel ? (<FormattedMessage {...messages[userStatus].cancel}/>) : '';
 
         const manualStatusCheckbox = (
             <FormattedMessage
