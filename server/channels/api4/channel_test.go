@@ -483,76 +483,10 @@ func TestUpdateChannel(t *testing.T) {
 	})
 }
 
-func TestPatchChannel(t *testing.T) {
+func TestPatchChannelGroupConstrained(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
 	client := th.Client
-	team := th.BasicTeam
-
-	t.Run("should be unable to apply a null patch", func(t *testing.T) {
-		var nullPatch *model.ChannelPatch
-
-		_, nullResp, err := client.PatchChannel(context.Background(), th.BasicChannel.Id, nullPatch)
-		require.Error(t, err)
-		CheckBadRequestStatus(t, nullResp)
-	})
-
-	t.Run("should be able to patch values", func(t *testing.T) {
-		patch := &model.ChannelPatch{
-			Name:        new(string),
-			DisplayName: new(string),
-			Header:      new(string),
-			Purpose:     new(string),
-		}
-		*patch.Name = model.NewId()
-		*patch.DisplayName = model.NewId()
-		*patch.Header = model.NewId()
-		*patch.Purpose = model.NewId()
-
-		channel, _, err := client.PatchChannel(context.Background(), th.BasicChannel.Id, patch)
-		require.NoError(t, err)
-
-		require.Equal(t, *patch.Name, channel.Name, "do not match")
-		require.Equal(t, *patch.DisplayName, channel.DisplayName, "do not match")
-		require.Equal(t, *patch.Header, channel.Header, "do not match")
-		require.Equal(t, *patch.Purpose, channel.Purpose, "do not match")
-	})
-
-	t.Run("should be able to patch with no name", func(t *testing.T) {
-		channel := &model.Channel{
-			DisplayName: GenerateTestChannelName(),
-			Name:        GenerateTestChannelName(),
-			Type:        model.ChannelTypeOpen,
-			TeamId:      team.Id,
-		}
-		var err error
-		channel, _, err = client.CreateChannel(context.Background(), channel)
-		require.NoError(t, err)
-
-		patch := &model.ChannelPatch{
-			Header:  new(string),
-			Purpose: new(string),
-		}
-
-		oldName := channel.Name
-		patchedChannel, _, err := client.PatchChannel(context.Background(), channel.Id, patch)
-		require.NoError(t, err)
-
-		require.Equal(t, oldName, patchedChannel.Name, "should not have updated")
-	})
-
-	t.Run("Test updating default channel's name and returns error", func(t *testing.T) {
-		// Test updating default channel's name and returns error
-		defaultChannel, appErr := th.App.GetChannelByName(th.Context, model.DefaultChannelName, team.Id, false)
-		require.Nil(t, appErr)
-		defaultChannelPatch := &model.ChannelPatch{
-			Name: new(string),
-		}
-		*defaultChannelPatch.Name = "testing"
-		_, resp, err := client.PatchChannel(context.Background(), defaultChannel.Id, defaultChannelPatch)
-		require.Error(t, err)
-		CheckBadRequestStatus(t, resp)
-	})
 
 	t.Run("Test GroupConstrained flag", func(t *testing.T) {
 		// Test GroupConstrained flag
@@ -756,6 +690,78 @@ func TestPatchChannel(t *testing.T) {
 				}
 			}
 		}
+	})
+}
+
+func TestPatchChannel(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+	client := th.Client
+	team := th.BasicTeam
+
+	t.Run("should be unable to apply a null patch", func(t *testing.T) {
+		var nullPatch *model.ChannelPatch
+
+		_, nullResp, err := client.PatchChannel(context.Background(), th.BasicChannel.Id, nullPatch)
+		require.Error(t, err)
+		CheckBadRequestStatus(t, nullResp)
+	})
+
+	t.Run("should be able to patch values", func(t *testing.T) {
+		patch := &model.ChannelPatch{
+			Name:        new(string),
+			DisplayName: new(string),
+			Header:      new(string),
+			Purpose:     new(string),
+		}
+		*patch.Name = model.NewId()
+		*patch.DisplayName = model.NewId()
+		*patch.Header = model.NewId()
+		*patch.Purpose = model.NewId()
+
+		channel, _, err := client.PatchChannel(context.Background(), th.BasicChannel.Id, patch)
+		require.NoError(t, err)
+
+		require.Equal(t, *patch.Name, channel.Name, "do not match")
+		require.Equal(t, *patch.DisplayName, channel.DisplayName, "do not match")
+		require.Equal(t, *patch.Header, channel.Header, "do not match")
+		require.Equal(t, *patch.Purpose, channel.Purpose, "do not match")
+	})
+
+	t.Run("should be able to patch with no name", func(t *testing.T) {
+		channel := &model.Channel{
+			DisplayName: GenerateTestChannelName(),
+			Name:        GenerateTestChannelName(),
+			Type:        model.ChannelTypeOpen,
+			TeamId:      team.Id,
+		}
+		var err error
+		channel, _, err = client.CreateChannel(context.Background(), channel)
+		require.NoError(t, err)
+
+		patch := &model.ChannelPatch{
+			Header:  new(string),
+			Purpose: new(string),
+		}
+
+		oldName := channel.Name
+		patchedChannel, _, err := client.PatchChannel(context.Background(), channel.Id, patch)
+		require.NoError(t, err)
+
+		require.Equal(t, oldName, patchedChannel.Name, "should not have updated")
+	})
+
+	t.Run("Test updating default channel's name and returns error", func(t *testing.T) {
+		// Test updating default channel's name and returns error
+		defaultChannel, appErr := th.App.GetChannelByName(th.Context, model.DefaultChannelName, team.Id, false)
+		require.Nil(t, appErr)
+		defaultChannelPatch := &model.ChannelPatch{
+			Name: new(string),
+		}
+		*defaultChannelPatch.Name = "testing"
+		_, resp, err := client.PatchChannel(context.Background(), defaultChannel.Id, defaultChannelPatch)
+		require.Error(t, err)
+		CheckBadRequestStatus(t, resp)
 	})
 
 	t.Run("Test updating the header of someone else's GM channel", func(t *testing.T) {
