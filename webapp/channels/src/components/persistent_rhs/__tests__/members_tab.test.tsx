@@ -7,7 +7,6 @@ import {Provider} from 'react-redux';
 import configureStore from 'redux-mock-store';
 
 import MembersTab from '../members_tab';
-import * as UserActions from 'actions/user_actions';
 
 const mockStore = configureStore([]);
 
@@ -26,23 +25,28 @@ const mockDispatch = jest.fn();
 jest.mock('react-redux', () => ({
     ...jest.requireActual('react-redux'),
     useSelector: (selector: any) => {
-        // Check if it's the getCurrentChannel selector
         if (selector.toString().includes('getCurrentChannel') || mockChannel !== undefined) {
             const result = mockChannel;
-            mockChannel = undefined; // Reset for next call
+            mockChannel = undefined;
             if (result !== undefined) {
                 return result;
             }
         }
-        // Return groupedMembers for the second call
         return mockGroupedMembers;
     },
     useDispatch: () => mockDispatch,
 }));
 
-// Mock actions
-jest.mock('actions/user_actions', () => ({
-    loadProfilesAndTeamMembersAndChannelMembers: jest.fn().mockReturnValue({type: 'MOCK_LOAD_PROFILES'}),
+// Mock the actual actions used by the component
+const mockGetProfilesInChannel = jest.fn().mockReturnValue({type: 'MOCK_GET_PROFILES_IN_CHANNEL'});
+const mockGetChannelMembers = jest.fn().mockReturnValue({type: 'MOCK_GET_CHANNEL_MEMBERS'});
+
+jest.mock('mattermost-redux/actions/users', () => ({
+    getProfilesInChannel: (...args: any[]) => mockGetProfilesInChannel(...args),
+}));
+
+jest.mock('mattermost-redux/actions/channels', () => ({
+    getChannelMembers: (...args: any[]) => mockGetChannelMembers(...args),
 }));
 
 // Mock MemberRow component
@@ -123,10 +127,7 @@ describe('MembersTab', () => {
             </Provider>,
         );
 
-        // Should not show "No members"
         expect(screen.queryByText('No members')).not.toBeInTheDocument();
-
-        // Should show group headers
         expect(screen.getByText('Admin — 1')).toBeInTheDocument();
         expect(screen.getByText('Member — 1')).toBeInTheDocument();
         expect(screen.getByText('Offline — 1')).toBeInTheDocument();
@@ -148,18 +149,12 @@ describe('MembersTab', () => {
             </Provider>,
         );
 
-        // Should show Member header
         expect(screen.getByText('Member — 1')).toBeInTheDocument();
-
-        // Should not show Admin or Offline headers
         expect(screen.queryByText(/Admin —/)).not.toBeInTheDocument();
         expect(screen.queryByText(/Offline —/)).not.toBeInTheDocument();
     });
 
-    it('dispatches loadProfilesAndTeamMembersAndChannelMembers on mount', () => {
-        // Ensure data is null so it tries to load? 
-        // Even if data is present, it should probably load fresh data or at least check.
-        // The requirement is "dispatches ... on mount".
+    it('dispatches getProfilesInChannel and getChannelMembers on mount', () => {
         mockGroupedMembers = null;
 
         const store = mockStore(baseState);
@@ -169,7 +164,9 @@ describe('MembersTab', () => {
             </Provider>,
         );
 
+        // Should dispatch both actions to load profiles and channel memberships
         expect(mockDispatch).toHaveBeenCalled();
-        expect(UserActions.loadProfilesAndTeamMembersAndChannelMembers).toHaveBeenCalled();
+        expect(mockGetProfilesInChannel).toHaveBeenCalledWith('channel1', 0, 100);
+        expect(mockGetChannelMembers).toHaveBeenCalledWith('channel1');
     });
 });

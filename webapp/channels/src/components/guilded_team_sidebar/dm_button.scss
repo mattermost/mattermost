@@ -2,27 +2,22 @@
 // See LICENSE.txt for license information.
 
 .dm-button {
-    // Button is the root element (no wrapper)
     position: relative;
     display: flex;
     width: 42px;
     height: 42px;
     align-items: center;
     justify-content: center;
-    margin-right: auto;
-    margin-bottom: 12px;
-    margin-left: auto;
-    padding: 0;
-    border: none;
     border-radius: 8px;
+    margin-top: 2px;
     background-color: rgba(var(--sidebar-text-rgb), 0.08);
     color: var(--sidebar-header-text-color);
     cursor: pointer;
-    font-weight: bold;
-    line-height: 1;
-    text-align: center;
-    transform-origin: center center;
     transition: transform 0.1s, background-color 0.2s, border-radius 0.2s;
+
+    .icon {
+        font-size: 20px;
+    }
 
     &:hover {
         background-color: rgba(var(--sidebar-text-rgb), 0.16);
@@ -42,15 +37,6 @@
         &:hover {
             background-color: var(--sidebar-text-active-border);
         }
-    }
-
-    &__icon {
-        position: absolute;
-        inset: 0;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 20px;
     }
 
     &__active-indicator {

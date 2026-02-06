@@ -10,6 +10,30 @@ import ThreadRow from '../thread_row';
 
 const mockStore = configureStore([]);
 
+// Mock formatText to strip markdown syntax into HTML
+jest.mock('utils/text_formatting', () => ({
+    formatText: (text: string) => {
+        return text
+            .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+            .replace(/\*(.*?)\*/g, '<em>$1</em>');
+    },
+}));
+
+// Mock messageHtmlToComponent to render HTML as React elements
+jest.mock('utils/message_html_to_component', () => ({
+    messageHtmlToComponent: (html: string) => {
+        const ReactMock = require('react');
+        return ReactMock.createElement('span', {dangerouslySetInnerHTML: {__html: html}});
+    },
+}));
+
+// Mock Client4
+jest.mock('mattermost-redux/client', () => ({
+    Client4: {
+        getProfilePictureUrl: (userId: string, lastUpdate: number) => `/api/v4/users/${userId}/image`,
+    },
+}));
+
 describe('ThreadRow', () => {
     const mockThread = {
         id: 'thread1',
@@ -34,7 +58,6 @@ describe('ThreadRow', () => {
     };
 
     // BUG 7: Thread row should render rich message preview, not just plaintext
-    // Current implementation uses message.slice(0, 100) which is just plaintext
     it('renders message with markdown formatting instead of plaintext', () => {
         const store = mockStore(baseState);
         const {container} = render(
@@ -46,8 +69,6 @@ describe('ThreadRow', () => {
             </Provider>,
         );
 
-        // The preview should contain rendered markdown, not raw markdown syntax
-        // Current code just slices the raw message string, so **Bold text** appears literally
         const preview = container.querySelector('.thread-row__preview');
         expect(preview).toBeInTheDocument();
 
@@ -68,5 +89,36 @@ describe('ThreadRow', () => {
         );
 
         expect(screen.getByText('2 replies')).toBeInTheDocument();
+    });
+
+    it('renders follower count', () => {
+        const threadWith3Followers = {
+            ...mockThread,
+            participants: ['user1', 'user2', 'user3'],
+        };
+
+        const stateWith3Users = {
+            entities: {
+                users: {
+                    profiles: {
+                        user1: {id: 'user1', username: 'testuser1', last_picture_update: 0},
+                        user2: {id: 'user2', username: 'testuser2', last_picture_update: 0},
+                        user3: {id: 'user3', username: 'testuser3', last_picture_update: 0},
+                    },
+                },
+            },
+        };
+
+        const store = mockStore(stateWith3Users);
+        render(
+            <Provider store={store}>
+                <ThreadRow
+                    thread={threadWith3Followers}
+                    onClick={jest.fn()}
+                />
+            </Provider>,
+        );
+
+        expect(screen.getByText('3 followers')).toBeInTheDocument();
     });
 });

@@ -8,6 +8,7 @@ import {VariableSizeList} from 'react-window';
 
 import {getCurrentChannel} from 'mattermost-redux/selectors/entities/channels';
 import {getProfilesInChannel} from 'mattermost-redux/actions/users';
+import {getChannelMembers} from 'mattermost-redux/actions/channels';
 
 import {getChannelMembersGroupedByStatus} from 'selectors/views/guilded_layout';
 
@@ -39,6 +40,7 @@ export default function MembersTab() {
     useEffect(() => {
         if (channel?.id) {
             dispatch(getProfilesInChannel(channel.id, 0, 100));
+            dispatch(getChannelMembers(channel.id));
         }
     }, [dispatch, channel?.id]);
 

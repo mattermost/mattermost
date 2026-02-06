@@ -61,7 +61,7 @@ jest.mock('../thread_row', () => ({thread, onClick}: any) => (
     >
         <span>{thread.rootPost.message}</span>
         <span>{thread.replyCount} replies</span>
-        {/* Intentionally NOT showing followers here to simulate the bug/current state */}
+        <span>{thread.participants.length} {thread.participants.length === 1 ? 'follower' : 'followers'}</span>
     </button>
 ));
 

@@ -20,22 +20,22 @@ export default function DmButton({isActive, onClick}: Props) {
     const displayCount = unreadCount > 99 ? '99+' : unreadCount;
 
     return (
-        <button
+        <div
             className={classNames('dm-button', {
                 'dm-button--active': isActive,
             })}
             onClick={onClick}
+            role='button'
+            tabIndex={0}
             aria-label='Direct Messages'
         >
-            <span className='dm-button__icon'>
-                <i className='icon icon-account-multiple-outline' />
-            </span>
+            <i className='icon icon-account-multiple-outline' />
             {isActive && <span className='dm-button__active-indicator' />}
             {unreadCount > 0 && (
                 <span className='dm-button__badge'>
                     {displayCount}
                 </span>
             )}
-        </button>
+        </div>
     );
 }

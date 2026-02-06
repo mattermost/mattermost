@@ -12,12 +12,7 @@ import DmListPage from '../index';
 const mockStore = configureStore([]);
 
 // Track dispatch calls
-const mockDispatch = jest.fn((action) => {
-    if (typeof action === 'function') {
-        return action(mockDispatch);
-    }
-    return action;
-});
+const mockDispatch = jest.fn((action) => action);
 
 // Mock useHistory
 const mockPush = jest.fn();
@@ -31,6 +26,7 @@ jest.mock('react-router-dom', () => ({
 // Selector call tracking
 let mockSelectorCallCount = 0;
 const mockCurrentChannelId = 'dm1';
+const mockCurrentTeamUrl = '/test-team';
 const mockDmChannels = [
     {
         type: 'dm' as const,
@@ -54,7 +50,11 @@ jest.mock('react-redux', () => ({
         if (idx === 0) {
             return mockCurrentChannelId;
         }
-        // Second selector: getAllDmChannelsWithUsers
+        // Second selector: getCurrentRelativeTeamUrl
+        if (idx === 1) {
+            return mockCurrentTeamUrl;
+        }
+        // Third selector: getAllDmChannelsWithUsers
         return mockDmChannels;
     },
 }));
@@ -64,6 +64,21 @@ jest.mock('react-virtualized-auto-sizer', () => ({
     __esModule: true,
     default: ({children}: {children: (size: {height: number; width: number}) => React.ReactNode}) =>
         children({height: 500, width: 300}),
+}));
+
+// Mock getPosts action
+const mockGetPosts = jest.fn().mockReturnValue({type: 'MOCK_GET_POSTS'});
+jest.mock('mattermost-redux/actions/posts', () => ({
+    getPosts: (...args: any[]) => mockGetPosts(...args),
+}));
+
+// Mock modules that may have complex imports
+jest.mock('actions/views/modals', () => ({
+    openModal: jest.fn().mockReturnValue({type: 'MOCK_OPEN_MODAL'}),
+}));
+jest.mock('components/more_direct_channels', () => () => null);
+jest.mock('utils/constants', () => ({
+    ModalIdentifiers: {CREATE_DM_CHANNEL: 'create_dm_channel'},
 }));
 
 // Mock child components
@@ -83,7 +98,6 @@ describe('DmListPage', () => {
     });
 
     // BUG 3: DM list should dispatch an action to fetch latest posts for DM channels
-    // Current code does NOT fetch posts, so all DMs show "No messages yet"
     it('dispatches action to fetch latest DM posts on mount', () => {
         const store = mockStore({});
         render(
@@ -94,9 +108,10 @@ describe('DmListPage', () => {
             </Provider>,
         );
 
-        // The component should dispatch at least one action to load posts for DM channels
-        // Current implementation does NOT dispatch any action on mount
+        // Should dispatch getPosts for each DM channel
         expect(mockDispatch).toHaveBeenCalled();
+        expect(mockGetPosts).toHaveBeenCalledWith('dm1', 0, 1);
+        expect(mockGetPosts).toHaveBeenCalledWith('dm2', 0, 1);
     });
 
     // BUG 4: When opening DM mode, should auto-select (navigate to) the most recent DM
@@ -110,8 +125,7 @@ describe('DmListPage', () => {
             </Provider>,
         );
 
-        // Should navigate to the most recent DM (dm1 with user2, last_post_at: 2000)
-        // Current implementation does NOT auto-navigate
-        expect(mockPush).toHaveBeenCalled();
+        // Should navigate to the most recent DM (first in list - user2)
+        expect(mockPush).toHaveBeenCalledWith('/test-team/messages/@user2');
     });
 });
