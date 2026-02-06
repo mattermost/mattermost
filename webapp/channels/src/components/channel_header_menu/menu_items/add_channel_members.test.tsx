@@ -9,7 +9,7 @@ import * as modalActions from 'actions/views/modals';
 import ChannelInviteModal from 'components/channel_invite_modal';
 import {WithTestMenuContext} from 'components/menu/menu_context_test';
 
-import {renderWithContext, screen, fireEvent} from 'tests/react_testing_utils';
+import {renderWithContext, screen, userEvent} from 'tests/react_testing_utils';
 import {ModalIdentifiers} from 'utils/constants';
 import {TestHelper} from 'utils/test_helper';
 
@@ -40,7 +40,7 @@ describe('components/ChannelHeaderMenu/MenuItems/AddChannelMembers', () => {
         expect(menuItem).toBeInTheDocument(); // Check if text "Add Members" renders
     });
 
-    test('dispatches openModal action on click', () => {
+    test('dispatches openModal action on click', async () => {
         renderWithContext(
             <WithTestMenuContext>
                 <AddChannelMembers
@@ -51,7 +51,7 @@ describe('components/ChannelHeaderMenu/MenuItems/AddChannelMembers', () => {
 
         const menuItem = screen.getByText('Add Members');
         expect(menuItem).toBeInTheDocument(); // Check if text "Add Members" renders
-        fireEvent.click(menuItem); // Simulate click on the menu item
+        await userEvent.click(menuItem); // Simulate click on the menu item
 
         expect(useDispatch).toHaveBeenCalledTimes(1); // Ensure dispatch was called
         expect(modalActions.openModal).toHaveBeenCalledTimes(1);

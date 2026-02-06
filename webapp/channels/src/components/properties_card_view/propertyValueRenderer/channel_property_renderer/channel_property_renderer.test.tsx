@@ -25,10 +25,6 @@ describe('ChannelPropertyRenderer', () => {
         value: 'channel-id-123',
     } as PropertyValue<string>;
 
-    beforeEach(() => {
-        jest.clearAllMocks();
-    });
-
     it('should render channel name and icon when channel exists', () => {
         renderWithContext(
             <ChannelPropertyRenderer

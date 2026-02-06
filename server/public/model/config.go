@@ -2785,24 +2785,13 @@ func (s *LocalizationSettings) SetDefaults() {
 
 type AutoTranslationSettings struct {
 	Enable          *bool                           `access:"site_localization,cloud_restrictable"`
+	RestrictDMAndGM *bool                           `access:"site_localization,cloud_restrictable"`
 	Provider        *string                         `access:"site_localization,cloud_restrictable"`
 	TargetLanguages *[]string                       `access:"site_localization,cloud_restrictable"`
-	TimeoutsMs      *AutoTranslationTimeoutsInMs    `access:"site_localization,cloud_restrictable"`
+	Workers         *int                            `access:"site_localization,cloud_restrictable"`
+	TimeoutMs       *int                            `access:"site_localization,cloud_restrictable"`
 	LibreTranslate  *LibreTranslateProviderSettings `access:"site_localization,cloud_restrictable"`
 	Agents          *AgentsProviderSettings         `access:"site_localization,cloud_restrictable"`
-}
-
-// AutoTranslationTimeoutsInMs defines content-aware timeout thresholds.
-// Based on LibreTranslate benchmark findings, timeouts are set according to content length:
-// - Short: ≤200 runes
-// - Medium: ≤500 runes
-// - Long: >500 runes
-// - Notification: preserved for notification-specific timeout requirements
-type AutoTranslationTimeoutsInMs struct {
-	Short        *int `access:"site_localization,cloud_restrictable"` // ≤200 runes, default: 1200ms
-	Medium       *int `access:"site_localization,cloud_restrictable"` // ≤500 runes, default: 2500ms
-	Long         *int `access:"site_localization,cloud_restrictable"` // >500 runes, default: 6000ms
-	Notification *int `access:"site_localization,cloud_restrictable"` // Notification timeout, default: 300ms
 }
 
 // LibreTranslateProviderSettings configures the LibreTranslate translation provider.
@@ -2828,10 +2817,13 @@ func (s *AutoTranslationSettings) SetDefaults() {
 		s.TargetLanguages = &[]string{"en"}
 	}
 
-	if s.TimeoutsMs == nil {
-		s.TimeoutsMs = &AutoTranslationTimeoutsInMs{}
+	if s.Workers == nil {
+		s.Workers = NewPointer(4)
 	}
-	s.TimeoutsMs.SetDefaults()
+
+	if s.TimeoutMs == nil {
+		s.TimeoutMs = NewPointer(5000)
+	}
 
 	if s.LibreTranslate == nil {
 		s.LibreTranslate = &LibreTranslateProviderSettings{}
@@ -2842,23 +2834,9 @@ func (s *AutoTranslationSettings) SetDefaults() {
 		s.Agents = &AgentsProviderSettings{}
 	}
 	s.Agents.SetDefaults()
-}
 
-func (s *AutoTranslationTimeoutsInMs) SetDefaults() {
-	if s.Short == nil {
-		s.Short = NewPointer(1200)
-	}
-
-	if s.Medium == nil {
-		s.Medium = NewPointer(2500)
-	}
-
-	if s.Long == nil {
-		s.Long = NewPointer(6000)
-	}
-
-	if s.Notification == nil {
-		s.Notification = NewPointer(300)
+	if s.RestrictDMAndGM == nil {
+		s.RestrictDMAndGM = NewPointer(false)
 	}
 }
 
@@ -4850,20 +4828,14 @@ func (s *AutoTranslationSettings) isValid() *AppError {
 		return NewAppError("Config.IsValid", "model.config.is_valid.autotranslation.provider.unsupported.app_error", nil, "", http.StatusBadRequest)
 	}
 
-	// Validate timeouts if set
-	if s.TimeoutsMs != nil {
-		if s.TimeoutsMs.Short != nil && *s.TimeoutsMs.Short <= 0 {
-			return NewAppError("Config.IsValid", "model.config.is_valid.autotranslation.timeouts.short.app_error", nil, "", http.StatusBadRequest)
-		}
-		if s.TimeoutsMs.Medium != nil && *s.TimeoutsMs.Medium <= 0 {
-			return NewAppError("Config.IsValid", "model.config.is_valid.autotranslation.timeouts.medium.app_error", nil, "", http.StatusBadRequest)
-		}
-		if s.TimeoutsMs.Long != nil && *s.TimeoutsMs.Long <= 0 {
-			return NewAppError("Config.IsValid", "model.config.is_valid.autotranslation.timeouts.long.app_error", nil, "", http.StatusBadRequest)
-		}
-		if s.TimeoutsMs.Notification != nil && *s.TimeoutsMs.Notification <= 0 {
-			return NewAppError("Config.IsValid", "model.config.is_valid.autotranslation.timeouts.notification.app_error", nil, "", http.StatusBadRequest)
-		}
+	// Validate timeout if set (must be positive)
+	if s.TimeoutMs != nil && *s.TimeoutMs <= 0 {
+		return NewAppError("Config.IsValid", "model.config.is_valid.autotranslation.timeout.app_error", nil, "", http.StatusBadRequest)
+	}
+
+	// Validate workers if set (must be between 1 and 32)
+	if s.Workers != nil && (*s.Workers < 1 || *s.Workers > 32) {
+		return NewAppError("Config.IsValid", "model.config.is_valid.autotranslation.workers.app_error", nil, "", http.StatusBadRequest)
 	}
 
 	return nil
