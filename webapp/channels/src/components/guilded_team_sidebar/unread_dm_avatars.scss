@@ -2,72 +2,64 @@
     display: flex;
     flex-direction: column;
     align-items: center;
-    padding: 4px 0;
+    gap: 12px;
+    padding: 8px 0;
+
+    &:empty {
+        display: none;
+    }
 
     &__avatar {
         position: relative;
-        display: inline-block;
-        overflow: hidden;
+        display: flex;
         width: 42px;
         height: 42px;
-        margin-right: auto;
-        margin-bottom: 12px;
-        margin-left: auto;
+        flex-shrink: 0;
+        align-items: center;
+        justify-content: center;
         padding: 0;
         border: none;
         border-radius: 50%;
-        background: transparent;
+        background-color: rgba(var(--sidebar-text-rgb), 0.08);
+        color: var(--sidebar-header-text-color);
         cursor: pointer;
-        transition: transform 0.1s;
-
-        &:hover {
-            transform: scale(1.05);
-        }
-
-        &:active {
-            transform: scale(0.95);
-        }
+        font-weight: bold;
+        text-align: center;
 
         img {
             width: 100%;
             height: 100%;
-            border-radius: 50%;
+            border-radius: inherit;
             object-fit: cover;
         }
     }
 
-    &__status {
+    &__badge {
         position: absolute;
-        right: 0;
-        bottom: 0;
-        width: 12px;
-        height: 12px;
-        border: 2px solid var(--sidebar-teambar-bg);
-        border-radius: 50%;
-        background-color: var(--offline-indicator);
-
-        &--online {
-            background-color: var(--online-indicator);
-        }
-
-        &--away {
-            background-color: var(--away-indicator);
-        }
-
-        &--dnd {
-            background-color: var(--dnd-indicator);
-        }
+        z-index: 1;
+        right: -4px;
+        bottom: -4px;
+        display: flex;
+        min-width: 18px;
+        height: 18px;
+        align-items: center;
+        justify-content: center;
+        padding: 0 5px;
+        border-radius: 9px;
+        background: var(--mention-bg);
+        box-shadow: 0 0 0 3px var(--sidebar-teambar-bg);
+        color: var(--mention-color);
+        font-size: 11px;
+        font-weight: 600;
     }
 
     &__overflow {
         display: flex;
         width: 42px;
         height: 42px;
+        flex-shrink: 0;
         align-items: center;
         justify-content: center;
-        margin-right: auto;
-        margin-bottom: 12px;
-        margin-left: auto;
         border-radius: 50%;
         background-color: rgba(var(--sidebar-text-rgb), 0.16);
         color: var(--sidebar-text);

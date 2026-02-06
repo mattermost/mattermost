@@ -1,7 +1,6 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import classNames from 'classnames';
 import React from 'react';
 import {useDispatch, useSelector} from 'react-redux';
 import {useHistory} from 'react-router-dom';
@@ -37,27 +36,25 @@ export default function UnreadDmAvatars() {
 
     return (
         <div className='unread-dm-avatars'>
-            {displayedDms.map((dm) => (
-                <button
-                    key={dm.channel.id}
-                    className='unread-dm-avatars__avatar'
-                    title={dm.user.username}
-                    onClick={() => handleDmClick(dm.user.username)}
-                >
-                    <img
-                        src={Client4.getProfilePictureUrl(dm.user.id, dm.user.last_picture_update)}
-                        alt={dm.user.username}
-                    />
-                    <span
-                        className={classNames('unread-dm-avatars__status', {
-                            'unread-dm-avatars__status--online': dm.status === 'online',
-                            'unread-dm-avatars__status--away': dm.status === 'away',
-                            'unread-dm-avatars__status--dnd': dm.status === 'dnd',
-                            'unread-dm-avatars__status--offline': dm.status === 'offline',
-                        })}
-                    />
-                </button>
-            ))}
+            {displayedDms.map((dm) => {
+                const displayCount = dm.unreadCount > 99 ? '99+' : dm.unreadCount;
+                return (
+                    <button
+                        key={dm.channel.id}
+                        className='unread-dm-avatars__avatar'
+                        title={dm.user.username}
+                        onClick={() => handleDmClick(dm.user.username)}
+                    >
+                        <img
+                            src={Client4.getProfilePictureUrl(dm.user.id, dm.user.last_picture_update)}
+                            alt={dm.user.username}
+                        />
+                        <span className='unread-dm-avatars__badge'>
+                            {displayCount}
+                        </span>
+                    </button>
+                );
+            })}
             {overflow > 0 && (
                 <div className='unread-dm-avatars__overflow'>
                     +{overflow}

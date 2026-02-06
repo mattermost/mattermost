@@ -149,12 +149,12 @@ describe('UnreadDmAvatars', () => {
         expect(screen.getByText('+3')).toBeInTheDocument();
     });
 
-    it('shows status indicator on avatars', () => {
+    it('shows unread count badge on avatars', () => {
         mockValues = [[
             {
                 channel: {id: 'dm1', type: 'D', name: 'currentUser__user2', last_post_at: 1000},
                 user: {id: 'user2', username: 'user2', last_picture_update: 0},
-                unreadCount: 1,
+                unreadCount: 5,
                 status: 'online',
             },
         ]];
@@ -166,7 +166,31 @@ describe('UnreadDmAvatars', () => {
             </Provider>,
         );
 
-        expect(container.querySelector('.unread-dm-avatars__status')).toBeInTheDocument();
+        const badge = container.querySelector('.unread-dm-avatars__badge');
+        expect(badge).toBeInTheDocument();
+        expect(badge).toHaveTextContent('5');
+    });
+
+    it('caps badge display at 99+', () => {
+        mockValues = [[
+            {
+                channel: {id: 'dm1', type: 'D', name: 'currentUser__user2', last_post_at: 1000},
+                user: {id: 'user2', username: 'user2', last_picture_update: 0},
+                unreadCount: 150,
+                status: 'online',
+            },
+        ]];
+        mockCallCount = 0;
+        const store = mockStore(baseState);
+        const {container} = render(
+            <Provider store={store}>
+                <UnreadDmAvatars />
+            </Provider>,
+        );
+
+        const badge = container.querySelector('.unread-dm-avatars__badge');
+        expect(badge).toBeInTheDocument();
+        expect(badge).toHaveTextContent('99+');
     });
 
     it('navigates to DM channel when avatar clicked', () => {
