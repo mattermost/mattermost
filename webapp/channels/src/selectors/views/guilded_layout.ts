@@ -389,7 +389,7 @@ export const getThreadsInChannel = createSelector(
             }
 
             const rootPost = getPost(state, threadId);
-            if (!rootPost || rootPost.channel_id !== channelId) {
+            if (!rootPost || rootPost.channel_id !== channelId || rootPost.delete_at > 0) {
                 continue;
             }
 

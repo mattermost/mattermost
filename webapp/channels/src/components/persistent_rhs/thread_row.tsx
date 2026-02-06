@@ -34,13 +34,17 @@ const MAX_AVATARS = 4;
 
 export default function ThreadRow({thread, onClick}: Props) {
     const participants = useSelector((state: GlobalState) => {
-        return thread.participants.
+        return (thread.participants || []).
             slice(0, MAX_AVATARS).
             map((userId) => getUser(state, userId)).
             filter(Boolean);
     });
 
-    const formattedText = formatText(thread.rootPost.message, {singleline: true});
+    if (!thread.rootPost) {
+        return null;
+    }
+
+    const formattedText = formatText(thread.rootPost.message || '', {singleline: true});
     const messagePreview = messageHtmlToComponent(formattedText, {
         mentions: false,
     });

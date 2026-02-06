@@ -83,6 +83,60 @@ describe('ThreadRow', () => {
         expect(screen.getByText('2 replies')).toBeInTheDocument();
     });
 
+    it('renders nothing when rootPost is null', () => {
+        const threadWithNullPost = {
+            ...mockThread,
+            rootPost: null as any,
+        };
+
+        const {container} = render(
+            <ThreadRow
+                thread={threadWithNullPost}
+                onClick={jest.fn()}
+            />,
+        );
+
+        expect(container.querySelector('.thread-row')).not.toBeInTheDocument();
+    });
+
+    it('renders attachment fallback when message is empty', () => {
+        const threadWithEmptyMessage = {
+            ...mockThread,
+            rootPost: {
+                ...mockThread.rootPost,
+                message: '',
+            },
+        };
+
+        render(
+            <ThreadRow
+                thread={threadWithEmptyMessage}
+                onClick={jest.fn()}
+            />,
+        );
+
+        expect(screen.getByText('[Attachment]')).toBeInTheDocument();
+    });
+
+    it('handles thread with empty participants array', () => {
+        const threadWithNoParticipants = {
+            ...mockThread,
+            participants: [],
+        };
+
+        mockParticipants = [];
+
+        const {container} = render(
+            <ThreadRow
+                thread={threadWithNoParticipants}
+                onClick={jest.fn()}
+            />,
+        );
+
+        expect(container.querySelector('.thread-row')).toBeInTheDocument();
+        expect(container.querySelector('.thread-row__avatar')).not.toBeInTheDocument();
+    });
+
     it('renders follower count', () => {
         const threadWith3Followers = {
             ...mockThread,
