@@ -1429,6 +1429,80 @@ func TestPatchChannel(t *testing.T) {
 		require.True(t, errors.As(err, &appErr))
 		require.Contains(t, []string{"api.channel.patch_update_channel.feature_not_available.app_error", "api.channel.patch_update_channel.auto_translation_restricted.app_error"}, appErr.Id)
 	})
+
+	t.Run("Mixed patch only gets through if all permissions are met", func(t *testing.T) {
+		mockAutoTranslation := &einterfacesmocks.AutoTranslationInterface{}
+		mockAutoTranslation.On("IsFeatureAvailable").Return(true)
+		mockAutoTranslation.On("IsChannelEnabled", mock.Anything).Return(true, nil)
+		mockAutoTranslation.On("Translate", mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(nil, nil)
+		originalAutoTranslation := th.Server.AutoTranslation
+		th.Server.AutoTranslation = mockAutoTranslation
+		defer func() {
+			th.Server.AutoTranslation = originalAutoTranslation
+		}()
+
+		_, err := client.Logout(context.Background())
+		require.NoError(t, err)
+		th.LoginBasic(t)
+
+		th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
+		defer func() {
+			appErr := th.App.Srv().RemoveLicense()
+			require.Nil(t, appErr)
+		}()
+
+		// Mixed patch (channel property + AutoTranslation) fails when user lacks AutoTranslation permission
+		newHeader := "mixed patch header"
+		mixedPatch := &model.ChannelPatch{
+			Header:          &newHeader,
+			AutoTranslation: model.NewPointer(true),
+			BannerInfo: &model.ChannelBannerInfo{
+				Enabled: model.NewPointer(false),
+				Text:    model.NewPointer("mixed patch banner"),
+			},
+		}
+
+		// Permissions missing: AutoTranslation, BannerInfo
+		_, resp, err := client.PatchChannel(context.Background(), th.BasicChannel.Id, mixedPatch)
+		require.Error(t, err)
+		CheckForbiddenStatus(t, resp)
+
+		// Permissions missing: Channel properties
+		th.AddPermissionToRole(t, model.PermissionManagePublicChannelAutoTranslation.Id, model.SystemUserRoleId)
+		defer th.RemovePermissionFromRole(t, model.PermissionManagePublicChannelAutoTranslation.Id, model.SystemUserRoleId)
+		th.AddPermissionToRole(t, model.PermissionManagePublicChannelBanner.Id, model.SystemUserRoleId)
+		defer th.RemovePermissionFromRole(t, model.PermissionManagePublicChannelBanner.Id, model.SystemUserRoleId)
+		th.RemovePermissionFromRole(t, model.PermissionManagePublicChannelProperties.Id, model.ChannelUserRoleId)
+		defer th.AddPermissionToRole(t, model.PermissionManagePublicChannelProperties.Id, model.ChannelUserRoleId)
+
+		_, resp, err = client.PatchChannel(context.Background(), th.BasicChannel.Id, mixedPatch)
+		require.Error(t, err)
+		CheckForbiddenStatus(t, resp)
+
+		// Permissions missing: AutoTranslation
+		th.AddPermissionToRole(t, model.PermissionManagePublicChannelProperties.Id, model.ChannelUserRoleId)
+		th.RemovePermissionFromRole(t, model.PermissionManagePublicChannelAutoTranslation.Id, model.SystemUserRoleId)
+
+		_, resp, err = client.PatchChannel(context.Background(), th.BasicChannel.Id, mixedPatch)
+		require.Error(t, err)
+		CheckForbiddenStatus(t, resp)
+
+		// Permission missing: BannerInfo
+		th.AddPermissionToRole(t, model.PermissionManagePublicChannelAutoTranslation.Id, model.SystemUserRoleId)
+		th.RemovePermissionFromRole(t, model.PermissionManagePublicChannelBanner.Id, model.SystemUserRoleId)
+		_, resp, err = client.PatchChannel(context.Background(), th.BasicChannel.Id, mixedPatch)
+		require.Error(t, err)
+		CheckForbiddenStatus(t, resp)
+
+		// No missing permissions
+		th.AddPermissionToRole(t, model.PermissionManagePublicChannelBanner.Id, model.SystemUserRoleId)
+
+		patchedChannel, resp, err := client.PatchChannel(context.Background(), th.BasicChannel.Id, mixedPatch)
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+		require.Equal(t, newHeader, patchedChannel.Header)
+		require.True(t, patchedChannel.AutoTranslation)
+	})
 }
 
 func TestCanEditChannelBanner(t *testing.T) {
