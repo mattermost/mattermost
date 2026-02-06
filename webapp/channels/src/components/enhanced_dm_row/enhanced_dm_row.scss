@@ -27,6 +27,10 @@
         .enhanced-dm-row__timestamp {
             display: none;
         }
+
+        .enhanced-dm-row__close {
+            display: flex;
+        }
     }
 
     &--active {
@@ -133,6 +137,27 @@
         color: var(--mention-color);
         font-size: 11px;
         font-weight: 600;
+    }
+
+    &__close {
+        display: none;
+        flex-shrink: 0;
+        align-items: center;
+        justify-content: center;
+        width: 20px;
+        height: 20px;
+        padding: 0;
+        border: none;
+        border-radius: 4px;
+        margin-left: 8px;
+        background: none;
+        color: rgba(var(--sidebar-text-rgb), 0.56);
+        cursor: pointer;
+
+        &:hover {
+            background: rgba(var(--sidebar-text-rgb), 0.16);
+            color: rgba(var(--sidebar-text-rgb), 0.72);
+        }
     }
 
     &__menu {

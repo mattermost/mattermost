@@ -6,6 +6,8 @@ import {useSelector} from 'react-redux';
 import {Link} from 'react-router-dom';
 import classNames from 'classnames';
 
+import {CloseIcon} from '@mattermost/compass-icons/components';
+
 import {Client4} from 'mattermost-redux/client';
 import {getMyChannelMember} from 'mattermost-redux/selectors/entities/channels';
 import {getCurrentTeamUrl} from 'mattermost-redux/selectors/entities/teams';
@@ -25,9 +27,10 @@ type Props = {
     users: UserProfile[];
     isActive: boolean;
     onDmClick?: (e: React.MouseEvent<HTMLAnchorElement>) => void;
+    onClose?: (channelId: string) => void;
 };
 
-const EnhancedGroupDmRow = ({channel, users, isActive, onDmClick}: Props) => {
+const EnhancedGroupDmRow = ({channel, users, isActive, onDmClick, onClose}: Props) => {
     const currentTeamUrl = useSelector(getCurrentTeamUrl);
     const member = useSelector((state: GlobalState) => getMyChannelMember(state, channel.id));
     
@@ -41,6 +44,12 @@ const EnhancedGroupDmRow = ({channel, users, isActive, onDmClick}: Props) => {
 
     // Format timestamp
     const timestamp = lastPost ? getRelativeTimestamp(lastPost.create_at) : '';
+
+    const handleClose = (e: React.MouseEvent) => {
+        e.preventDefault();
+        e.stopPropagation();
+        onClose?.(channel.id);
+    };
 
     // Last message preview text
     let previewText = 'No messages yet';
@@ -87,7 +96,7 @@ const EnhancedGroupDmRow = ({channel, users, isActive, onDmClick}: Props) => {
 
                 <div className='enhanced-group-dm-row__footer'>
                     <span className='enhanced-group-dm-row__preview'>{previewText}</span>
-                    
+
                     {hasMentions && (
                         <div className='enhanced-group-dm-row__badge'>
                             {mentionCount}
@@ -95,6 +104,14 @@ const EnhancedGroupDmRow = ({channel, users, isActive, onDmClick}: Props) => {
                     )}
                 </div>
             </div>
+
+            <button
+                className='enhanced-group-dm-row__close'
+                onClick={handleClose}
+                aria-label='Close conversation'
+            >
+                <CloseIcon size={16}/>
+            </button>
         </Link>
     );
 };

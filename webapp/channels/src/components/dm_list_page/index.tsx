@@ -10,12 +10,15 @@ import AutoSizer from 'react-virtualized-auto-sizer';
 
 import {getCurrentChannelId} from 'mattermost-redux/selectors/entities/channels';
 import {getCurrentRelativeTeamUrl} from 'mattermost-redux/selectors/entities/teams';
+import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
 import {getPosts} from 'mattermost-redux/actions/posts';
+import {savePreferences} from 'mattermost-redux/actions/preferences';
 
+import {leaveDirectChannel} from 'actions/views/channel';
 import {openModal} from 'actions/views/modals';
 import {getAllDmChannelsWithUsers} from 'selectors/views/guilded_layout';
 import MoreDirectChannels from 'components/more_direct_channels';
-import {ModalIdentifiers} from 'utils/constants';
+import {Constants, ModalIdentifiers} from 'utils/constants';
 
 import EnhancedDmRow from 'components/enhanced_dm_row';
 import EnhancedGroupDmRow from 'components/enhanced_group_dm_row';
@@ -31,6 +34,7 @@ const DMListPage = () => {
     const history = useHistory();
     const currentChannelId = useSelector(getCurrentChannelId);
     const currentTeamUrl = useSelector(getCurrentRelativeTeamUrl);
+    const currentUserId = useSelector(getCurrentUserId);
     const allDms = useSelector(getAllDmChannelsWithUsers);
     const hasFetchedPosts = useRef(false);
     const hasAutoSelected = useRef(false);
@@ -97,6 +101,40 @@ const DMListPage = () => {
         }));
     }, [dispatch]);
 
+    const handleCloseDm = useCallback((channelId: string) => {
+        const item = allDms.find((dm) => dm.channel.id === channelId);
+        if (!item) {
+            return;
+        }
+
+        const channel = item.channel;
+        let category: string;
+        let name: string;
+        if (channel.type === Constants.DM_CHANNEL) {
+            category = Constants.Preferences.CATEGORY_DIRECT_CHANNEL_SHOW;
+            name = channel.teammate_id!;
+        } else {
+            category = Constants.Preferences.CATEGORY_GROUP_CHANNEL_SHOW;
+            name = channel.id;
+        }
+
+        dispatch(leaveDirectChannel(channel.name));
+        dispatch(savePreferences(currentUserId, [{user_id: currentUserId, category, name, value: 'false'}]));
+
+        // If closing the currently active DM, navigate to the next available one
+        if (channelId === currentChannelId) {
+            const remaining = allDms.filter((dm) => dm.channel.id !== channelId);
+            if (remaining.length > 0) {
+                const next = remaining[0];
+                if (next.type === 'dm') {
+                    history.push(`${currentTeamUrl}/messages/@${next.user.username}`);
+                } else {
+                    history.push(`${currentTeamUrl}/messages/${next.channel.name}`);
+                }
+            }
+        }
+    }, [allDms, currentChannelId, currentTeamUrl, currentUserId, dispatch, history]);
+
     const Row = useCallback(({index, style}: ListChildComponentProps) => {
         const item = filteredDms[index];
         if (!item) {
@@ -110,6 +148,7 @@ const DMListPage = () => {
                         channel={item.channel}
                         user={item.user}
                         isActive={item.channel.id === currentChannelId}
+                        onClose={handleCloseDm}
                     />
                 </div>
             );
@@ -121,10 +160,11 @@ const DMListPage = () => {
                     channel={item.channel}
                     users={item.users}
                     isActive={item.channel.id === currentChannelId}
+                    onClose={handleCloseDm}
                 />
             </div>
         );
-    }, [filteredDms, currentChannelId]);
+    }, [filteredDms, currentChannelId, handleCloseDm]);
 
     return (
         <div className='dm-list-page'>
