@@ -10,13 +10,6 @@ import FollowersTab from '../followers_tab';
 
 const mockStore = configureStore([]);
 
-// Mock react-virtualized-auto-sizer
-jest.mock('react-virtualized-auto-sizer', () => ({
-    __esModule: true,
-    default: ({children}: {children: (size: {height: number; width: number}) => React.ReactNode}) =>
-        children({height: 500, width: 300}),
-}));
-
 // Mock Client4
 let mockGetThreadFollowersResult: Promise<any[]> = Promise.resolve([]);
 jest.mock('mattermost-redux/client', () => ({

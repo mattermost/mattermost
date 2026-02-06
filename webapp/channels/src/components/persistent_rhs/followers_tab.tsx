@@ -3,8 +3,6 @@
 
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {useSelector} from 'react-redux';
-import AutoSizer from 'react-virtualized-auto-sizer';
-import {VariableSizeList} from 'react-window';
 
 import type {UserProfile} from '@mattermost/types/users';
 
@@ -18,16 +16,9 @@ import MemberRow from './member_row';
 
 import './followers_tab.scss';
 
-const GROUP_HEADER_HEIGHT = 32;
-const MEMBER_ROW_HEIGHT = 44;
-
-interface ListItem {
-    type: 'header' | 'member';
-    label?: string;
-    count?: number;
-    user?: UserProfile;
-    status?: string;
-    isAdmin?: boolean;
+interface MemberGroup {
+    label: string;
+    members: Array<{user: UserProfile; status: string; isAdmin: boolean}>;
 }
 
 interface Props {
@@ -65,8 +56,7 @@ export default function FollowersTab({threadId, channelId}: Props) {
         fetchFollowers();
     }, [fetchFollowers]);
 
-    // Group followers by role and status, same as MembersTab
-    const listItems: ListItem[] = useMemo(() => {
+    const groups: MemberGroup[] = useMemo(() => {
         if (followers.length === 0) {
             return [];
         }
@@ -98,63 +88,31 @@ export default function FollowersTab({threadId, channelId}: Props) {
         onlineMembers.sort(sortByName);
         offline.sort(sortByName);
 
-        const items: ListItem[] = [];
+        const result: MemberGroup[] = [];
 
         if (onlineAdmins.length > 0) {
-            items.push({type: 'header', label: 'Admin', count: onlineAdmins.length});
-            for (const m of onlineAdmins) {
-                items.push({type: 'member', user: m.user, status: m.status, isAdmin: true});
-            }
+            result.push({
+                label: `Admin — ${onlineAdmins.length}`,
+                members: onlineAdmins.map((m) => ({user: m.user, status: m.status, isAdmin: true})),
+            });
         }
 
         if (onlineMembers.length > 0) {
-            items.push({type: 'header', label: 'Member', count: onlineMembers.length});
-            for (const m of onlineMembers) {
-                items.push({type: 'member', user: m.user, status: m.status, isAdmin: false});
-            }
+            result.push({
+                label: `Member — ${onlineMembers.length}`,
+                members: onlineMembers.map((m) => ({user: m.user, status: m.status, isAdmin: false})),
+            });
         }
 
         if (offline.length > 0) {
-            items.push({type: 'header', label: 'Offline', count: offline.length});
-            for (const m of offline) {
-                items.push({type: 'member', user: m.user, status: 'offline', isAdmin: m.isAdmin});
-            }
+            result.push({
+                label: `Offline — ${offline.length}`,
+                members: offline.map((m) => ({user: m.user, status: 'offline', isAdmin: m.isAdmin})),
+            });
         }
 
-        return items;
+        return result;
     }, [followers, statuses, channelMembers]);
-
-    const getItemSize = useCallback((index: number) => {
-        const item = listItems[index];
-        return item.type === 'header' ? GROUP_HEADER_HEIGHT : MEMBER_ROW_HEIGHT;
-    }, [listItems]);
-
-    const renderItem = useCallback(({index, style}: {index: number; style: React.CSSProperties}) => {
-        const item = listItems[index];
-
-        if (item.type === 'header') {
-            return (
-                <div
-                    className='members-tab__group-header'
-                    style={style}
-                >
-                    <span className='members-tab__group-label'>
-                        {`${item.label} — ${item.count}`}
-                    </span>
-                </div>
-            );
-        }
-
-        return (
-            <div style={style}>
-                <MemberRow
-                    user={item.user!}
-                    status={item.status || 'offline'}
-                    isAdmin={item.isAdmin || false}
-                />
-            </div>
-        );
-    }, [listItems]);
 
     if (isLoading) {
         return (
@@ -175,18 +133,23 @@ export default function FollowersTab({threadId, channelId}: Props) {
 
     return (
         <div className='followers-tab'>
-            <AutoSizer>
-                {({height, width}) => (
-                    <VariableSizeList
-                        height={height}
-                        width={width}
-                        itemCount={listItems.length}
-                        itemSize={getItemSize}
-                    >
-                        {renderItem}
-                    </VariableSizeList>
-                )}
-            </AutoSizer>
+            {groups.map((group) => (
+                <div key={group.label}>
+                    <div className='members-tab__group-header'>
+                        <span className='members-tab__group-label'>
+                            {group.label}
+                        </span>
+                    </div>
+                    {group.members.map((member) => (
+                        <MemberRow
+                            key={member.user.id}
+                            user={member.user}
+                            status={member.status}
+                            isAdmin={member.isAdmin}
+                        />
+                    ))}
+                </div>
+            ))}
         </div>
     );
 }
