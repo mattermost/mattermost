@@ -31,12 +31,12 @@ const mockCurrentUserId = 'user1';
 const mockDmChannels = [
     {
         type: 'dm' as const,
-        channel: {id: 'dm1', name: 'user1__user2', type: 'D', teammate_id: 'user2', last_post_at: 2000},
+        channel: {id: 'dm1', name: 'user1__user2', type: 'D', last_post_at: 2000},
         user: {id: 'user2', username: 'user2', nickname: '', first_name: '', last_name: ''},
     },
     {
         type: 'dm' as const,
-        channel: {id: 'dm2', name: 'user1__user3', type: 'D', teammate_id: 'user3', last_post_at: 1000},
+        channel: {id: 'dm2', name: 'user1__user3', type: 'D', last_post_at: 1000},
         user: {id: 'user3', username: 'user3', nickname: '', first_name: '', last_name: ''},
     },
 ];

@@ -488,6 +488,118 @@ describe('selectors/views/guilded_layout', () => {
         });
     });
 
+    describe('getAllDmChannelsWithUsers', () => {
+        const makeState = (overrides: any = {}) => ({
+            entities: {
+                channels: {
+                    channels: {
+                        dm1: {id: 'dm1', type: 'D', name: 'currentUser__user2', last_post_at: 2000},
+                        dm2: {id: 'dm2', type: 'D', name: 'currentUser__user3', last_post_at: 1000},
+                        ...overrides.channels,
+                    },
+                    myMembers: {
+                        dm1: {channel_id: 'dm1'},
+                        dm2: {channel_id: 'dm2'},
+                        ...overrides.myMembers,
+                    },
+                },
+                users: {
+                    profiles: {
+                        currentUser: {id: 'currentUser', username: 'currentuser'},
+                        user2: {id: 'user2', username: 'user2'},
+                        user3: {id: 'user3', username: 'user3'},
+                        ...overrides.profiles,
+                    },
+                    currentUserId: 'currentUser',
+                },
+                preferences: {
+                    myPreferences: overrides.myPreferences || {},
+                },
+            },
+        }) as unknown as GlobalState;
+
+        it('should return all DM channels the user is a member of', () => {
+            const state = makeState();
+            const result = Selectors.getAllDmChannelsWithUsers(state);
+
+            expect(result).toHaveLength(2);
+            expect(result[0].channel.id).toBe('dm1'); // most recent first
+            expect(result[1].channel.id).toBe('dm2');
+        });
+
+        it('should hide DMs where direct_channel_show preference is false', () => {
+            const state = makeState({
+                myPreferences: {
+                    'direct_channel_show--user2': {
+                        user_id: 'currentUser',
+                        category: 'direct_channel_show',
+                        name: 'user2',
+                        value: 'false',
+                    },
+                },
+            });
+            const result = Selectors.getAllDmChannelsWithUsers(state);
+
+            expect(result).toHaveLength(1);
+            expect(result[0].channel.id).toBe('dm2');
+        });
+
+        it('should show DMs where direct_channel_show preference is true', () => {
+            const state = makeState({
+                myPreferences: {
+                    'direct_channel_show--user2': {
+                        user_id: 'currentUser',
+                        category: 'direct_channel_show',
+                        name: 'user2',
+                        value: 'true',
+                    },
+                },
+            });
+            const result = Selectors.getAllDmChannelsWithUsers(state);
+
+            expect(result).toHaveLength(2);
+        });
+
+        it('should hide GMs where group_channel_show preference is false', () => {
+            const state = makeState({
+                channels: {
+                    gm1: {id: 'gm1', type: 'G', name: 'group-msg', display_name: 'user2, user3', last_post_at: 3000},
+                },
+                myMembers: {
+                    dm1: {channel_id: 'dm1'},
+                    dm2: {channel_id: 'dm2'},
+                    gm1: {channel_id: 'gm1'},
+                },
+                myPreferences: {
+                    'group_channel_show--gm1': {
+                        user_id: 'currentUser',
+                        category: 'group_channel_show',
+                        name: 'gm1',
+                        value: 'false',
+                    },
+                },
+            });
+            const result = Selectors.getAllDmChannelsWithUsers(state);
+
+            // GM should be hidden, only the 2 DMs remain
+            const gmResults = result.filter((r) => r.type === 'group');
+            expect(gmResults).toHaveLength(0);
+        });
+
+        it('should skip channels where user is not a member', () => {
+            const state = makeState({
+                myMembers: {
+                    dm1: {channel_id: 'dm1'},
+                    // dm2 not in myMembers
+                },
+            });
+            const result = Selectors.getAllDmChannelsWithUsers(state);
+
+            expect(result).toHaveLength(1);
+            expect(result[0].channel.id).toBe('dm1');
+        });
+    });
+
     describe('getUnreadDmChannelsWithUsers', () => {
         it('should return empty array when no unread DMs', () => {
             const state = {
