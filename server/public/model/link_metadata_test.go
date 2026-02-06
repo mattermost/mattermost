@@ -459,6 +459,14 @@ func TestFilterSVGImages(t *testing.T) {
 		assert.Equal(t, "https://example.com/image.png", result[0].URL)
 	})
 
+	t.Run("filter SVG by MIME type with charset", func(t *testing.T) {
+		images := []*image.Image{
+			{URL: "https://example.com/image", Type: "image/svg+xml; charset=utf-8"},
+		}
+		result := FilterSVGImages(images)
+		assert.Len(t, result, 0)
+	})
+
 	t.Run("filter SVGZ", func(t *testing.T) {
 		images := []*image.Image{
 			sampleImage("image.png"),
