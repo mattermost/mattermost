@@ -42,10 +42,10 @@
     "access": "public"
   },
   "dependencies": {
-    "@anthropic-ai/sdk": "^0.72.1",
+    "@anthropic-ai/sdk": "^0.73.0",
     "@axe-core/playwright": "4.11.0",
     "@mattermost/client": "file:../../../webapp/platform/client",
-    "e2e-ai-agents": "^0.2.0",
+    "e2e-ai-agents": "^0.2.1",
     "@mattermost/types": "file:../../../webapp/platform/types",
     "@percy/cli": "1.31.8",
     "@percy/playwright": "1.0.10",

@@ -5,9 +5,9 @@ import {readFileSync, existsSync} from 'fs';
 import {join, dirname} from 'path';
 import {createHash} from 'crypto';
 
-import {marked, type Tokens} from 'marked';
+import type {Tokens} from 'marked';
 
-import type {LLMProvider} from './llm';
+import type {LLMProvider} from 'e2e-ai-agents';
 import type {BusinessScenario, FeatureSpecification, SpecScreenshot} from './types';
 
 /**
@@ -117,6 +117,8 @@ export class SpecificationParser {
      * ![Description](path/to/image.png)
      */
     private async parseMarkdown(content: string, sourcePath: string): Promise<FeatureSpecification[]> {
+        // Dynamic import to handle ESM marked module in CommonJS context
+        const {marked} = await import('marked');
         const tokens = marked.lexer(content);
 
         const specs: FeatureSpecification[] = [];

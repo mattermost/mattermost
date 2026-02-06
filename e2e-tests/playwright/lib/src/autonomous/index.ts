@@ -35,8 +35,8 @@
 export {SpecificationParser} from './spec_parser';
 export type {SpecSummary, SpecificationCache} from './spec_parser';
 
-// LLM Providers
-export {LLMProviderFactory, OllamaProvider, AnthropicProvider} from './llm';
+// LLM Providers (from npm package)
+export {LLMProviderFactory, OllamaProvider, AnthropicProvider} from 'e2e-ai-agents';
 
 export type {
     LLMProvider,
@@ -49,7 +49,7 @@ export type {
     OllamaConfig,
     AnthropicConfig,
     HybridConfig,
-} from './llm';
+} from 'e2e-ai-agents';
 
 // Type definitions
 export type {

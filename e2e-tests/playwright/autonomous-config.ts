@@ -43,6 +43,57 @@ export const config = {
         healingMaxDepth: 1,
     },
 
+    /**
+     * Generation settings (Phase 1-2: UI Map Infrastructure & Signal Gating)
+     *
+     * Controls quality gates for test generation based on UI discovery signal strength.
+     * Signal strength determines whether to:
+     * - Exit with error (<25% coverage)
+     * - Draft feature spec (25-50%)
+     * - Warn but continue (50-75%)
+     * - Proceed normally (>=75%)
+     */
+    generation: {
+        /**
+         * Min confidence score for selectors (0-100)
+         * Selectors below this threshold are not considered "whitelisted"
+         *
+         * Confidence calculation:
+         * - testId: 100% (most reliable)
+         * - ariaLabel: 85%
+         * - text matching: 70%
+         * - class selectors: 50%
+         *
+         * Recommended: 50 (balance between reliability and coverage)
+         */
+        minConfidenceThreshold: 50,
+
+        /**
+         * Min semantic types needed for generation
+         * Semantic types: login_form, post_button, channel_link, etc.
+         *
+         * UI explorer groups selectors by semantic meaning.
+         * Higher values require more diverse UI interactions.
+         *
+         * Recommended: 3 (ensure multiple element types discovered)
+         */
+        requiredSemantics: 3,
+
+        /**
+         * Min % of high-confidence selectors for valid signal (0-100)
+         * Coverage = (high-confidence selectors) / (total selectors) * 100
+         *
+         * Signal quality:
+         * - <25%: Insufficient (exit with guidance)
+         * - 25-50%: Weak (draft spec for review)
+         * - 50-75%: Moderate (warn, continue with caution)
+         * - >=75%: Strong (proceed with confidence)
+         *
+         * Recommended: 75 (strong signal = robust tests)
+         */
+        minCoveragePercent: 75,
+    },
+
     /** Timeouts in milliseconds */
     timeouts: {
         testRun: 300000, // 5 minutes

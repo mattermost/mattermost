@@ -25,6 +25,7 @@ import {resolve, join, basename, dirname} from 'path';
 import {spawnSync} from 'child_process';
 
 import {config, getBaseUrl, getCredentials} from './autonomous-config';
+import {SelectorValidator} from './lib/src/validators/selector-validator.js';
 
 // =============================================================================
 // ARGUMENT PARSING
@@ -363,7 +364,20 @@ async function loginViaAPI(
 // TEST GENERATION WITH UI CONTEXT
 // =============================================================================
 
-async function generateWithUIContext(parsedArgs: ParsedArgs): Promise<string> {
+interface GenerationResult {
+    code: string;
+    uiMap?: UIMap;
+    discoveries?: Array<{
+        url: string;
+        depth: number;
+        title: string;
+        elements: any[];
+        text: string;
+        interactions: string[];
+    }>;
+}
+
+async function generateWithUIContext(parsedArgs: ParsedArgs): Promise<GenerationResult> {
     const {feature, specFile, scenarios = config.defaults.scenarios} = parsedArgs;
     const baseUrl = getBaseUrl(parsedArgs.baseUrl);
 
@@ -400,6 +414,7 @@ async function generateWithUIContext(parsedArgs: ParsedArgs): Promise<string> {
 
     let uiContext = '';
     let explorationWarning = '';
+    let discoveries: GenerationResult['discoveries'] = [];
 
     try {
         const snapshot = await exploreOrganically(baseUrl, {
@@ -412,6 +427,15 @@ async function generateWithUIContext(parsedArgs: ParsedArgs): Promise<string> {
             verbose: parsedArgs.verbose,
         });
         uiContext = snapshot;
+
+        // Extract discoveries from snapshot for UI map building
+        try {
+            const parsed = JSON.parse(snapshot);
+            discoveries = parsed.discoveries || [];
+        } catch {
+            // If parsing fails, continue with empty discoveries
+        }
+
         console.log(`  ✓ Organic exploration complete`);
     } catch (e) {
         const error = e as Error;
@@ -450,7 +474,7 @@ async function generateWithUIContext(parsedArgs: ParsedArgs): Promise<string> {
         baseUrl,
     });
 
-    const {AnthropicProvider} = await import('./lib/src/autonomous/llm/anthropic_provider');
+    const {AnthropicProvider} = await import('e2e-ai-agents');
     const provider = new AnthropicProvider({
         apiKey: process.env.ANTHROPIC_API_KEY!,
         model: config.ai.model,
@@ -461,7 +485,36 @@ async function generateWithUIContext(parsedArgs: ParsedArgs): Promise<string> {
         temperature: config.ai.temperature,
     });
 
-    return extractCodeFromResponse(response.text);
+    let code = extractCodeFromResponse(response.text);
+
+    // Build UI map from discoveries (Phase 1)
+    let uiMap: UIMap | undefined;
+    if (discoveries.length > 0) {
+        uiMap = buildUIMap(discoveries);
+        console.log(`  ✓ Built UI map with ${uiMap.stats.totalSelectors} selectors (${uiMap.stats.avgConfidence}% avg confidence)`);
+
+        // Phase 3: Apply selector validation and enforcement
+        console.log('\n🔍 Phase 3: Validating selectors against whitelist...');
+        const validator = new SelectorValidator(uiMap.globalSelectors, config.generation?.minConfidenceThreshold ?? 50);
+        const validated = validator.applyValidation(code);
+        const summary = validator.getSummary(code);
+
+        console.log(`  ✓ Checked ${summary.total} selectors: ${summary.whitelisted}/${summary.total} whitelisted (${summary.coverage}%)`);
+        if (summary.unobserved.length > 0) {
+            console.log(`  ⚠️  ${summary.unobserved.length} selectors commented out (unobserved)`);
+            if (parsedArgs.verbose) {
+                console.log(`     Unobserved: ${summary.unobserved.slice(0, 3).join(', ')}${summary.unobserved.length > 3 ? '...' : ''}`);
+            }
+        }
+
+        code = validated;
+    }
+
+    return {
+        code,
+        uiMap,
+        discoveries,
+    };
 }
 
 /**
@@ -1092,14 +1145,17 @@ async function healTests(testPath: string, testOutput: string): Promise<string> 
     // Read the failing test file
     const resolvedPath = resolve(testPath);
     let testCode = '';
+    let testDir = resolvedPath;
 
     if (existsSync(resolvedPath) && resolvedPath.endsWith('.ts')) {
         testCode = readFileSync(resolvedPath, 'utf-8');
+        testDir = dirname(resolvedPath);
     } else {
         // Find .spec.ts files in directory
         const files = readdirSync(resolvedPath).filter((f) => f.endsWith('.spec.ts'));
         if (files.length > 0) {
             testCode = readFileSync(join(resolvedPath, files[0]), 'utf-8');
+            testDir = resolvedPath;
         }
     }
 
@@ -1112,6 +1168,9 @@ async function healTests(testPath: string, testOutput: string): Promise<string> 
     const {username, password} = getCredentials();
 
     let uiContext = '';
+    let discoveries: GenerationResult['discoveries'] = [];
+    let healingUIMap: UIMap | undefined;
+
     try {
         uiContext = await exploreOrganically(baseUrl, {
             headless: true, // Use headless for speed during healing
@@ -1122,6 +1181,50 @@ async function healTests(testPath: string, testOutput: string): Promise<string> 
             maxPages: config.exploration.healingMaxPages,
         });
         console.log('  ✓ Captured current UI state');
+
+        // ===== PHASE 4: HEALING WITH RE-DISCOVERY =====
+        // Extract and merge discoveries with existing UI map
+        try {
+            const parsed = JSON.parse(uiContext);
+            discoveries = parsed.discoveries || [];
+
+            if (discoveries.length > 0) {
+                console.log('  ✓ Extracted discoveries from re-exploration');
+
+                // Try to load existing UI map
+                const existingMapFile = join(testDir, 'docs', 'ui-map.json');
+                let existingMap: UIMap | undefined;
+
+                if (existsSync(existingMapFile)) {
+                    try {
+                        const mapContent = readFileSync(existingMapFile, 'utf-8');
+                        existingMap = JSON.parse(mapContent);
+                        console.log(`  ✓ Loaded existing UI map (${existingMap.stats.totalSelectors} selectors)`);
+                    } catch {
+                        console.log('  ⚠️  Could not load existing UI map');
+                    }
+                }
+
+                // Build new UI map from discoveries
+                const newMap = buildUIMap(discoveries);
+                console.log(`  ✓ Built new UI map from re-discovery (${newMap.stats.totalSelectors} selectors)`);
+
+                // Merge maps if we have an existing one
+                if (existingMap) {
+                    healingUIMap = mergeUIMaps([existingMap, newMap]);
+                    console.log(`  ✓ Merged maps: ${healingUIMap.stats.totalSelectors} total selectors (confidence boosted)`);
+                } else {
+                    healingUIMap = newMap;
+                }
+
+                // Save merged map back
+                const mapFile = join(testDir, 'docs', 'ui-map.json');
+                mkdirSync(join(testDir, 'docs'), {recursive: true});
+                writeFileSync(mapFile, JSON.stringify(healingUIMap, null, 2), 'utf-8');
+            }
+        } catch {
+            // Continue with just uiContext string if parsing fails
+        }
     } catch (e) {
         const error = e as Error;
         console.log(`  ℹ️  Could not get UI context: ${error.message}`);
@@ -1131,9 +1234,8 @@ async function healTests(testPath: string, testOutput: string): Promise<string> 
     // Get framework context for healing
     const repoContext = await getRepoContext();
 
-    const prompt = `You are a Playwright test healer for Mattermost E2E tests. Fix the failing test based on the error output.
-
-CURRENT TEST CODE:
+    // Build healing context with re-discovered selectors
+    let healingContext = `CURRENT TEST CODE:
 \`\`\`typescript
 ${testCode}
 \`\`\`
@@ -1143,7 +1245,26 @@ TEST OUTPUT (with errors):
 ${testOutput.slice(0, 4000)}
 \`\`\`
 
-${uiContext ? `CURRENT UI STATE:\n${uiContext.slice(0, 3000)}\n` : ''}
+${uiContext ? `CURRENT UI STATE:\n${uiContext.slice(0, 3000)}\n` : ''}`;
+
+    // Add re-discovered selector information if available
+    if (healingUIMap) {
+        const topSelectors = Object.entries(healingUIMap.globalSelectors)
+            .slice(0, 20)
+            .map(([semantic, elems]) => `${semantic}: [${elems.map((e) => e.selector).join(', ')}]`)
+            .join('\n');
+
+        healingContext += `
+
+PHASE 4: RE-DISCOVERED SELECTORS (from latest exploration):
+${topSelectors}
+
+Confidence scores have been updated based on re-discovery. Use the selectors above if available.`;
+    }
+
+    const prompt = `You are a Playwright test healer for Mattermost E2E tests. Fix the failing test based on the error output and re-discovered UI state.
+
+${healingContext}
 
 MATTERMOST E2E FRAMEWORK PATTERNS:
 ${repoContext.slice(0, 2000)}
@@ -1164,7 +1285,7 @@ CRITICAL: Follow Mattermost framework conventions exactly. Use ONLY methods that
 
 Return the COMPLETE fixed test file. Keep the same structure but fix the issues.`;
 
-    const {AnthropicProvider} = await import('./lib/src/autonomous/llm/anthropic_provider');
+    const {AnthropicProvider} = await import('e2e-ai-agents');
     const provider = new AnthropicProvider({
         apiKey: process.env.ANTHROPIC_API_KEY!,
         model: config.ai.model,
@@ -1176,6 +1297,325 @@ Return the COMPLETE fixed test file. Keep the same structure but fix the issues.
     });
 
     return extractCodeFromResponse(response.text);
+}
+
+// =============================================================================
+// STRUCTURED CONTEXT TYPE (Phase 3)
+// =============================================================================
+
+/**
+ * StructuredContext: Complete generation context with metadata
+ * Replaces ad-hoc string prompting with structured, typed context
+ */
+interface StructuredContext {
+    feature: string;
+    spec?: string;
+    uiMap?: UIMap;
+    repoPatterns: string;
+    scenarios: number;
+    baseUrl: string;
+    selectors: {
+        whitelisted: string[];
+        unobserved: string[];
+        coverage: number;
+    };
+    generationMetadata: {
+        timestamp: string;
+        signal: {
+            coverage: number;
+            semanticTypes: number;
+            confidence: number;
+        };
+        strategy: 'full' | 'partial' | 'api-fallback';
+    };
+}
+
+// =============================================================================
+// UI MAP INFRASTRUCTURE
+// =============================================================================
+
+interface UIElement {
+    selector: string;
+    xpath?: string;
+    testId?: string;
+    ariaLabel?: string;
+    text: string;
+    role: string;
+    confidence: number; // 0-100
+    tag: string;
+}
+
+interface UIMapPage {
+    title: string;
+    elements: UIElement[];
+    semantics: {
+        hasLoginForm?: boolean;
+        hasProfileMenu?: boolean;
+        hasPostForm?: boolean;
+        hasNavMenu?: boolean;
+        hasFormInputs?: boolean;
+        hasButtons?: boolean;
+    };
+}
+
+interface UIMap {
+    timestamp: string;
+    baseUrl: string;
+    teamName: string;
+    featureContext: string;
+    pages: {
+        [url: string]: UIMapPage;
+    };
+    globalSelectors: {
+        [semantic: string]: UIElement[];
+    };
+    stats: {
+        totalPages: number;
+        totalSelectors: number;
+        avgConfidence: number;
+    };
+}
+
+/**
+ * Build indexed UI map from exploration discoveries
+ * Converts loose element arrays into indexed selector whitelist with confidence scoring
+ */
+function buildUIMap(discoveries: Array<{url: string; title: string; elements: any[]; text: string}>): UIMap {
+    const pages: {[url: string]: UIMapPage} = {};
+    const globalSelectors: {[semantic: string]: UIElement[]} = {};
+    let totalElements = 0;
+    let totalConfidence = 0;
+
+    for (const discovery of discoveries) {
+        const elements: UIElement[] = [];
+
+        for (const elem of discovery.elements) {
+            // Calculate confidence based on identifier strength
+            let confidence = 0;
+            if (elem.testId) {
+                confidence = 100; // testId is most reliable
+            } else if (elem.ariaLabel) {
+                confidence = 85; // aria-label is very reliable
+            } else if (elem.text && elem.text.length > 3) {
+                confidence = 70; // text matching is moderate
+            } else {
+                confidence = 50; // fallback to className/role
+            }
+
+            // Build selector based on what's available
+            let selector = '';
+            if (elem.testId) {
+                selector = `[data-testid="${elem.testId}"]`;
+            } else if (elem.ariaLabel) {
+                selector = `[aria-label="${elem.ariaLabel}"]`;
+            } else if (elem.text) {
+                selector = `${elem.tag}:has-text("${elem.text.substring(0, 50)}")`;
+            } else {
+                selector = `${elem.tag}.${elem.className?.split(' ')[0] || 'element'}`;
+            }
+
+            const uiElement: UIElement = {
+                selector,
+                testId: elem.testId,
+                ariaLabel: elem.ariaLabel,
+                text: elem.text.substring(0, 100),
+                role: elem.role,
+                tag: elem.tag,
+                confidence,
+            };
+
+            elements.push(uiElement);
+            totalElements++;
+            totalConfidence += confidence;
+
+            // Track by semantic type
+            const semantic = `${elem.role}_${elem.text.substring(0, 20)}`.replace(/\s+/g, '_').toLowerCase();
+            if (!globalSelectors[semantic]) {
+                globalSelectors[semantic] = [];
+            }
+            globalSelectors[semantic].push(uiElement);
+        }
+
+        // Detect page semantics
+        const semantics = {
+            hasLoginForm: discovery.text.toLowerCase().includes('password') || discovery.text.toLowerCase().includes('login'),
+            hasProfileMenu: elements.some((e) => e.text.toLowerCase().includes('profile')),
+            hasPostForm: elements.some((e) => e.text.toLowerCase().includes('post') || e.text.toLowerCase().includes('message')),
+            hasNavMenu: elements.some((e) => e.role === 'link' && e.confidence >= 80),
+            hasFormInputs: elements.some((e) => e.tag === 'input'),
+            hasButtons: elements.some((e) => e.role === 'button'),
+        };
+
+        pages[discovery.url] = {
+            title: discovery.title,
+            elements,
+            semantics,
+        };
+    }
+
+    const avgConfidence = totalElements > 0 ? totalConfidence / totalElements : 0;
+
+    return {
+        timestamp: new Date().toISOString(),
+        baseUrl: config.baseUrl,
+        teamName: discoveries[0]?.url?.includes('/') ? discoveries[0].url.split('/')[3] : 'unknown',
+        featureContext: '',
+        pages,
+        globalSelectors,
+        stats: {
+            totalPages: discoveries.length,
+            totalSelectors: totalElements,
+            avgConfidence: Math.round(avgConfidence),
+        },
+    };
+}
+
+/**
+ * Validate UI map signal strength (Phase 2: Gating)
+ * Returns metadata about coverage and confidence to gate generation
+ */
+function validateUIMapSignal(uiMap: UIMap): {coverage: number; requiredSemantics: number; isValid: boolean; guidance: string} {
+    const minConfidenceThreshold = config.generation?.minConfidenceThreshold ?? 50;
+    const requiredSemantics = config.generation?.requiredSemantics ?? 3;
+
+    // Coverage: what % of the UI map has high confidence selectors
+    const highConfidenceElements = Object.values(uiMap.globalSelectors).reduce((sum, elems) => {
+        return sum + elems.filter((e) => e.confidence >= minConfidenceThreshold).length;
+    }, 0);
+
+    const totalElements = uiMap.stats.totalSelectors;
+    const coverage = totalElements > 0 ? Math.round((highConfidenceElements / totalElements) * 100) : 0;
+
+    // Semantic richness: do we have diverse element types
+    const semanticCount = Object.keys(uiMap.globalSelectors).length;
+
+    const isValid = coverage >= 75 && semanticCount >= requiredSemantics;
+
+    let guidance = '';
+    if (coverage < 25) {
+        guidance = '❌ Insufficient UI signal - explore more pages or provide better feature hints';
+    } else if (coverage < 50) {
+        guidance = '⚠️  Weak signal (25-50%) - will draft FEATURE_SPEC.md for review';
+    } else if (coverage < 75) {
+        guidance = '✓ Moderate signal (50-75%) - generating tests with caution on unobserved elements';
+    } else {
+        guidance = '✅ Strong signal (>75%) - ready for robust test generation';
+    }
+
+    return {coverage, requiredSemantics: semanticCount, isValid, guidance};
+}
+
+/**
+ * Draft a feature spec from low-confidence signal (Phase 2: Gating)
+ * Helps user provide more detail when UI map coverage is weak
+ */
+function draftFeatureSpec(feature: string, uiMap: UIMap): string {
+    const weakElements = Object.entries(uiMap.globalSelectors)
+        .filter(([, elems]) => elems.some((e) => e.confidence < 60))
+        .slice(0, 10)
+        .map(([semantic, elems]) => {
+            const examples = elems.slice(0, 2).map((e) => `${e.text || e.role}`).join(', ');
+            return `- [ ] ${semantic}: ${examples}`;
+        });
+
+    return `# Feature Specification Draft: ${feature}
+
+This draft spec was generated because the UI exploration found weak signal for your feature.
+Please fill in the details below to help improve test generation.
+
+## Feature Overview
+Describe what the feature does and why it matters:
+> [Your description here]
+
+## Key UI Elements
+Review which elements are involved:
+${weakElements.join('\n') || '- [No weak elements found]'}
+
+## User Workflows
+Describe the main user workflows:
+1. [Workflow 1]
+2. [Workflow 2]
+3. [Workflow 3]
+
+## Success Criteria
+What indicates the feature works correctly:
+- [ ] Criterion 1
+- [ ] Criterion 2
+- [ ] Criterion 3
+
+## Generated on
+${new Date().toISOString()}
+`;
+}
+
+/**
+ * Merge UI maps from multiple exploration runs (Phase 4: Healing)
+ * Combines selectors and re-scores confidence
+ */
+function mergeUIMaps(maps: UIMap[]): UIMap {
+    if (maps.length === 0) {
+        throw new Error('Cannot merge zero UI maps');
+    }
+
+    if (maps.length === 1) {
+        return maps[0];
+    }
+
+    const merged: UIMap = {
+        timestamp: new Date().toISOString(),
+        baseUrl: maps[0].baseUrl,
+        teamName: maps[0].teamName,
+        featureContext: maps[0].featureContext,
+        pages: {},
+        globalSelectors: {},
+        stats: {totalPages: 0, totalSelectors: 0, avgConfidence: 0},
+    };
+
+    // Merge pages
+    for (const map of maps) {
+        Object.assign(merged.pages, map.pages);
+    }
+
+    // Merge global selectors with confidence re-scoring
+    for (const map of maps) {
+        for (const [semantic, elements] of Object.entries(map.globalSelectors)) {
+            if (!merged.globalSelectors[semantic]) {
+                merged.globalSelectors[semantic] = [];
+            }
+
+            for (const newElem of elements) {
+                // Look for existing element with same selector
+                const existing = merged.globalSelectors[semantic].find((e) => e.selector === newElem.selector);
+
+                if (existing) {
+                    // Boost confidence if seen again
+                    existing.confidence = Math.min(100, existing.confidence + 10);
+                } else {
+                    // Add new element
+                    merged.globalSelectors[semantic].push(newElem);
+                }
+            }
+        }
+    }
+
+    // Recalculate stats
+    let totalElements = 0;
+    let totalConfidence = 0;
+
+    for (const elements of Object.values(merged.globalSelectors)) {
+        for (const elem of elements) {
+            totalElements++;
+            totalConfidence += elem.confidence;
+        }
+    }
+
+    merged.stats = {
+        totalPages: Object.keys(merged.pages).length,
+        totalSelectors: totalElements,
+        avgConfidence: totalElements > 0 ? Math.round(totalConfidence / totalElements) : 0,
+    };
+
+    return merged;
 }
 
 // =============================================================================
@@ -1193,7 +1633,9 @@ async function commandGenerate(parsedArgs: ParsedArgs): Promise<void> {
     if (parsedArgs.project) console.log(`Project: ${parsedArgs.project}`);
 
     // Generate tests with UI context
-    const generatedCode = await generateWithUIContext(parsedArgs);
+    const generationResult = await generateWithUIContext(parsedArgs);
+    const generatedCode = generationResult.code;
+    const uiMap = generationResult.uiMap;
 
     if (dryRun) {
         console.log('\n--- DRY RUN: Generated Code ---\n');
@@ -1211,10 +1653,114 @@ async function commandGenerate(parsedArgs: ParsedArgs): Promise<void> {
 
     const targetDir = outputDir || `specs/functional/ai-assisted/${featureSlug}`;
     const targetFile = join(targetDir, `${featureSlug}.spec.ts`);
+    const docsDir = join(targetDir, 'docs');
 
     mkdirSync(targetDir, {recursive: true});
+    mkdirSync(docsDir, {recursive: true});
     writeFileSync(targetFile, generatedCode, 'utf-8');
     console.log(`\n✅ Generated: ${targetFile}`);
+
+    // Save UI map (Phase 1: UI Map Infrastructure)
+    if (uiMap) {
+        const uiMapFile = join(docsDir, 'ui-map.json');
+        writeFileSync(uiMapFile, JSON.stringify(uiMap, null, 2), 'utf-8');
+        console.log(`✅ Generated: ${uiMapFile} (ui-map metadata)`);
+
+        // ===== PHASE 2: SIGNAL GATING =====
+        const signal = validateUIMapSignal(uiMap);
+        console.log(`\n📊 UI Signal Analysis: ${signal.coverage}% coverage (${signal.requiredSemantics} semantic types)`);
+        console.log(`   ${signal.guidance}`);
+
+        // Gate 1: Insufficient signal - exit with guidance
+        if (signal.coverage < 25) {
+            console.error('\n❌ Insufficient UI signal for test generation.');
+            console.error('   Please explore more pages or provide better feature hints.');
+            console.error(`   Current coverage: ${signal.coverage}% (need >25%)\n`);
+            process.exit(1);
+        }
+
+        // Gate 2: Weak signal - draft spec for user review
+        if (signal.coverage >= 25 && signal.coverage < 50) {
+            console.warn('\n⚠️  Weak UI signal detected. Drafting feature specification...');
+            const draftSpec = draftFeatureSpec(feature || 'unknown feature', uiMap);
+            const specDraftFile = join(docsDir, 'FEATURE_SPEC.md.draft');
+            writeFileSync(specDraftFile, draftSpec, 'utf-8');
+            console.warn(`   📝 Created: ${specDraftFile}`);
+            console.warn('   Please review and update the draft spec, then re-run generation.\n');
+        }
+
+        // Gate 3: Moderate signal - warn but continue
+        if (signal.coverage >= 50 && signal.coverage < 75) {
+            console.warn(`\n⚠️  Moderate UI signal (${signal.coverage}%). Some elements may not be found.`);
+            console.warn('   Tests will use test.fixme() for unobserved selectors.\n');
+        }
+
+        // Gate 4: Strong signal - proceed normally
+        if (signal.coverage >= 75) {
+            console.log(`\n✅ Strong UI signal (${signal.coverage}%). Ready for robust test generation.\n`);
+        }
+    }
+
+    // Save documentation (will be ignored by .gitignore)
+    const generatedDate = new Date().toISOString();
+    const featureReadme = `# ${featureSlug.replace(/_/g, ' ')} E2E Tests
+
+> 🤖 Auto-generated by AI Agents on ${generatedDate}
+
+## Overview
+
+This directory contains end-to-end tests for the \`${featureSlug.replace(/_/g, ' ')}\` feature.
+
+Tests are generated and maintained by AI agents:
+- **@planner**: Analyzes feature specs and plans test scenarios
+- **@generator**: Creates TypeScript test code from plans
+- **@healer**: Runs tests and fixes failures automatically
+
+## Files
+
+- \`${featureSlug}.spec.ts\` - Generated test file (committed to git)
+- \`docs/\` - Documentation directory (NOT committed)
+
+## Running Tests
+
+\`\`\`bash
+npm test -- specs/functional/ai-assisted/${featureSlug}/
+\`\`\`
+
+## Generated on
+${generatedDate}
+`;
+
+    writeFileSync(join(targetDir, 'README.md'), featureReadme, 'utf-8');
+    console.log(`✅ Generated: ${join(targetDir, 'README.md')} (will be gitignored)`);
+
+    // Save generation context to docs/ (for local reference only)
+    const generationLog = `# Generation Context
+
+Generated on: ${generatedDate}
+Feature: ${feature || 'from spec'}
+Scenarios: ${scenarios}
+Browser: ${parsedArgs.browser || 'chrome'}
+${parsedArgs.project ? `Project: ${parsedArgs.project}` : ''}
+
+## Source Files
+
+- Spec file: ${specFile || 'none provided'}
+- Generated test file: ${targetFile}
+
+## Configuration
+
+- Dry run: ${dryRun ? 'yes' : 'no'}
+- Verbose: ${parsedArgs.verbose ? 'yes' : 'no'}
+- Headless: ${parsedArgs.headless ? 'yes' : 'no (headed mode)'}
+
+---
+
+This file is auto-generated and not committed to git.
+`;
+
+    writeFileSync(join(docsDir, 'generation-context.md'), generationLog, 'utf-8');
+    console.log(`✅ Generated: ${join(docsDir, 'generation-context.md')} (gitignored - local reference only)`);
 
     // Run the tests
     console.log('\n▶️  Step 5: Running generated tests...');

@@ -73,8 +73,10 @@ export {TestArgs, ScreenshotOptions} from './types';
 export {SpecBridge, createAnthropicBridge, createOllamaBridge} from './spec-bridge';
 export {SpecificationParser} from './autonomous/spec_parser';
 export {LLMProviderFactory} from 'e2e-ai-agents';
+export {SelectorValidator, APIFallbackResolver} from './validators/selector-validator';
 
 // Export types separately to satisfy isolatedModules
 export type {SpecBridgeConfig, ConversionResult} from './spec-bridge';
 export type {LLMProvider, ProviderConfig, HybridConfig} from 'e2e-ai-agents';
 export type {FeatureSpecification, BusinessScenario, SpecScreenshot} from './autonomous/types';
+export type {ValidationResult, ValidatedSelector} from './validators/selector-validator';
