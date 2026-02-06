@@ -46,7 +46,7 @@ export default function RhsTabBar({activeTab, onTabChange, memberCount, threadCo
                     aria-label={formatMessage({id: 'rhs_tab_bar.threads', defaultMessage: 'Threads'})}
                 >
                     <span className='icon icon-discord-thread' />
-                    {threadCount > 0 && <span className='rhs-tab-bar__count'>{threadCount}</span>}
+                    <span className='rhs-tab-bar__count'>{threadCount}</span>
                 </button>
             </WithTooltip>
         </div>
