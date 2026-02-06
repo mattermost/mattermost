@@ -94,6 +94,8 @@ export const Preferences = {
     LINK_PREVIEW_DISPLAY_DEFAULT: 'true',
     COLLAPSE_DISPLAY: 'collapse_previews',
     COLLAPSE_DISPLAY_DEFAULT: 'false',
+    GUILDED_CHAT_LAYOUT: 'guilded_chat_layout',
+    GUILDED_CHAT_LAYOUT_DEFAULT: 'true',
     AVAILABILITY_STATUS_ON_POSTS: 'availability_status_on_posts',
     AVAILABILITY_STATUS_ON_POSTS_DEFAULT: 'true',
     USE_MILITARY_TIME: 'use_military_time',

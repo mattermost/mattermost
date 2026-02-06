@@ -100,6 +100,8 @@ describe('components/user_settings/display/UserSettingsDisplay', () => {
         emojiPickerEnabled: true,
         clickToReply: '',
         lastActiveTimeEnabled: true,
+        guildedChatLayout: 'true',
+        guildedChatLayoutFeatureEnabled: false,
         settingsResorted: false,
     };
 
@@ -444,5 +446,49 @@ describe('components/user_settings/display/UserSettingsDisplay', () => {
         );
 
         expect(wrapper).toMatchSnapshot();
+    });
+
+    test('should not show guilded chat layout section when feature flag is disabled', () => {
+        const wrapper = shallow(
+            <UserSettingsDisplay
+                {...requiredProps}
+                guildedChatLayoutFeatureEnabled={false}
+            />,
+        );
+
+        expect(wrapper).toMatchSnapshot();
+    });
+
+    test('should show guilded chat layout section when feature flag is enabled', () => {
+        const wrapper = shallow(
+            <UserSettingsDisplay
+                {...requiredProps}
+                guildedChatLayoutFeatureEnabled={true}
+                activeSection='guildedChatLayout'
+            />,
+        );
+
+        expect(wrapper).toMatchSnapshot();
+    });
+
+    test('should update guildedChatLayout state', () => {
+        const wrapper = mountWithIntl(
+            <Provider store={store}>
+                <UserSettingsDisplay
+                    {...requiredProps}
+                    guildedChatLayoutFeatureEnabled={true}
+                />
+            </Provider>,
+        ).find(UserSettingsDisplay);
+
+        act(() => {
+            (wrapper.instance() as UserSettingsDisplay).handleGuildedChatLayoutRadio('false');
+        });
+        expect(wrapper.state('guildedChatLayout')).toBe('false');
+
+        act(() => {
+            (wrapper.instance() as UserSettingsDisplay).handleGuildedChatLayoutRadio('true');
+        });
+        expect(wrapper.state('guildedChatLayout')).toBe('true');
     });
 });

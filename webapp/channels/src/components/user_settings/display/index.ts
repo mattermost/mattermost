@@ -89,6 +89,8 @@ export function makeMapStateToProps() {
             alwaysShowRemoteUserHour: get(state, Preferences.CATEGORY_DISPLAY_SETTINGS, Preferences.ALWAYS_SHOW_REMOTE_USER_HOUR, Preferences.ALWAYS_SHOW_REMOTE_USER_HOUR_DEFAULT, userPreference),
             oneClickReactionsOnPosts: get(state, Preferences.CATEGORY_DISPLAY_SETTINGS, Preferences.ONE_CLICK_REACTIONS_ENABLED, Preferences.ONE_CLICK_REACTIONS_ENABLED_DEFAULT, userPreference),
             renderEmoticonsAsEmoji: get(state, Preferences.CATEGORY_DISPLAY_SETTINGS, Preferences.RENDER_EMOTICONS_AS_EMOJI, Preferences.RENDER_EMOTICONS_AS_EMOJI_DEFAULT, userPreference),
+            guildedChatLayout: get(state, Preferences.CATEGORY_DISPLAY_SETTINGS, Preferences.GUILDED_CHAT_LAYOUT, Preferences.GUILDED_CHAT_LAYOUT_DEFAULT, userPreference),
+            guildedChatLayoutFeatureEnabled: config.FeatureFlagGuildedChatLayout === 'true',
             emojiPickerEnabled,
             lastActiveDisplay,
             lastActiveTimeEnabled,

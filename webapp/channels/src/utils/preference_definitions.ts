@@ -86,6 +86,7 @@ export const PreferenceNames = {
     ONE_CLICK_REACTIONS_ENABLED: 'one_click_reactions_enabled',
     ALWAYS_SHOW_REMOTE_USER_HOUR: 'always_show_remote_user_hour',
     RENDER_EMOTICONS_AS_EMOJI: 'render_emoticons_as_emoji',
+    GUILDED_CHAT_LAYOUT: 'guilded_chat_layout',
 
     // Notifications
     EMAIL_INTERVAL: 'email_interval',
@@ -392,6 +393,38 @@ export const PREFERENCE_DEFINITIONS: Record<string, PreferenceDefinition> = {
         defaultValue: 'true',
         group: PreferenceGroups.TEAMMATES,
         order: 1,
+    },
+
+    'display_settings:guilded_chat_layout': {
+        category: 'display_settings',
+        name: 'guilded_chat_layout',
+        title: defineMessage({
+            id: 'user.settings.display.guildedChatLayoutTitle',
+            defaultMessage: 'Guilded Chat Layout',
+        }),
+        description: defineMessage({
+            id: 'user.settings.display.guildedChatLayoutDescription',
+            defaultMessage: 'Use Guilded-style layout with team sidebar, persistent right panel, and DM mode.',
+        }),
+        options: [
+            {
+                value: 'true',
+                label: defineMessage({
+                    id: 'user.settings.sidebar.on',
+                    defaultMessage: 'On',
+                }),
+            },
+            {
+                value: 'false',
+                label: defineMessage({
+                    id: 'user.settings.sidebar.off',
+                    defaultMessage: 'Off',
+                }),
+            },
+        ],
+        defaultValue: 'true',
+        group: PreferenceGroups.CHANNEL,
+        order: 2,
     },
 
     'display_settings:collapsed_reply_threads': {

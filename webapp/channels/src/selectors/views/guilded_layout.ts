@@ -6,7 +6,7 @@ import {createSelector} from 'mattermost-redux/selectors/create_selector';
 import {getAllChannels, getMyChannelMemberships, getChannelMembersInChannels} from 'mattermost-redux/selectors/entities/channels';
 import {getMostRecentPostIdInChannel, getPost} from 'mattermost-redux/selectors/entities/posts';
 import {getConfig} from 'mattermost-redux/selectors/entities/general';
-import {getDirectShowPreferences, getGroupShowPreferences} from 'mattermost-redux/selectors/entities/preferences';
+import {getBool, getDirectShowPreferences, getGroupShowPreferences} from 'mattermost-redux/selectors/entities/preferences';
 import {getUsers, getStatusForUserId, getCurrentUserId, makeGetProfilesInChannel} from 'mattermost-redux/selectors/entities/users';
 import {getThreads} from 'mattermost-redux/selectors/entities/threads';
 
@@ -18,31 +18,35 @@ import type {Channel} from '@mattermost/types/channels';
 import type {UserProfile} from '@mattermost/types/users';
 import type {GlobalState} from 'types/store';
 
+const Preferences = Constants.Preferences;
+
 /**
  * Returns true if ThreadsInSidebar behavior should be active.
  * This is true if either:
  * - ThreadsInSidebar feature flag is enabled, OR
- * - GuildedChatLayout feature flag is enabled (auto-enables ThreadsInSidebar)
+ * - GuildedChatLayout feature flag is enabled AND user hasn't opted out
  */
 export const isThreadsInSidebarActive = createSelector(
     'isThreadsInSidebarActive',
     getConfig,
-    (config): boolean => {
+    (state: GlobalState) => getBool(state, Preferences.CATEGORY_DISPLAY_SETTINGS, Preferences.GUILDED_CHAT_LAYOUT, true),
+    (config, userPrefGuilded): boolean => {
         return (
             config.FeatureFlagThreadsInSidebar === 'true' ||
-            config.FeatureFlagGuildedChatLayout === 'true'
+            (config.FeatureFlagGuildedChatLayout === 'true' && userPrefGuilded)
         );
     },
 );
 
 /**
- * Returns true if the full Guilded layout is enabled (feature flag only, ignores viewport).
+ * Returns true if the full Guilded layout is enabled (feature flag + user preference, ignores viewport).
  */
 export const isGuildedLayoutEnabled = createSelector(
     'isGuildedLayoutEnabled',
     getConfig,
-    (config): boolean => {
-        return config.FeatureFlagGuildedChatLayout === 'true';
+    (state: GlobalState) => getBool(state, Preferences.CATEGORY_DISPLAY_SETTINGS, Preferences.GUILDED_CHAT_LAYOUT, true),
+    (config, userPrefGuilded): boolean => {
+        return config.FeatureFlagGuildedChatLayout === 'true' && userPrefGuilded;
     },
 );
 

@@ -80,6 +80,7 @@ function getDisplayStateFromProps(props: Props) {
         lastActiveDisplay: props.lastActiveDisplay.toString(),
         oneClickReactionsOnPosts: props.oneClickReactionsOnPosts,
         clickToReply: props.clickToReply,
+        guildedChatLayout: props.guildedChatLayout,
     };
 }
 
@@ -159,6 +160,8 @@ type Props = OwnProps & {
     lastActiveDisplay: boolean;
     lastActiveTimeEnabled: boolean;
     renderEmoticonsAsEmoji: string;
+    guildedChatLayout: string;
+    guildedChatLayoutFeatureEnabled: boolean;
     discordRepliesEnabled: boolean;
     settingsResorted: boolean;
     overriddenPreferenceKeys: Set<string>;
@@ -186,6 +189,7 @@ type State = {
     lastActiveDisplay: string;
     oneClickReactionsOnPosts: string;
     clickToReply: string;
+    guildedChatLayout: string;
     handleSubmit?: () => void;
     serverError?: string;
 }
@@ -346,6 +350,12 @@ export default class UserSettingsDisplay extends React.PureComponent<Props, Stat
             name: Preferences.CLICK_TO_REPLY,
             value: this.state.clickToReply,
         };
+        const guildedChatLayoutPreference = {
+            user_id: userId,
+            category: Preferences.CATEGORY_DISPLAY_SETTINGS,
+            name: Preferences.GUILDED_CHAT_LAYOUT,
+            value: this.state.guildedChatLayout,
+        };
 
         this.setState({isSaving: true});
 
@@ -362,6 +372,7 @@ export default class UserSettingsDisplay extends React.PureComponent<Props, Stat
             availabilityStatusOnPostsPreference,
             oneClickReactionsOnPostsPreference,
             colorizeUsernamesPreference,
+            guildedChatLayoutPreference,
         ];
 
         await this.props.actions.savePreferences(userId, preferences);
@@ -411,6 +422,10 @@ export default class UserSettingsDisplay extends React.PureComponent<Props, Stat
 
     handleClickToReplyRadio = (clickToReply: string) => {
         this.setState({clickToReply});
+    };
+
+    handleGuildedChatLayoutRadio = (guildedChatLayout: string) => {
+        this.setState({guildedChatLayout});
     };
 
     handleOnChange(e: React.ChangeEvent, display: {[key: string]: any}) {
@@ -1128,6 +1143,43 @@ export default class UserSettingsDisplay extends React.PureComponent<Props, Stat
             preferenceName: Preferences.CLICK_TO_REPLY,
         });
 
+        let guildedChatLayoutSection = null;
+        if (this.props.guildedChatLayoutFeatureEnabled) {
+            guildedChatLayoutSection = this.createSection({
+                section: 'guildedChatLayout',
+                display: 'guildedChatLayout',
+                value: this.state.guildedChatLayout,
+                defaultDisplay: Preferences.GUILDED_CHAT_LAYOUT_DEFAULT,
+                title: defineMessage({
+                    id: 'user.settings.display.guildedChatLayoutTitle',
+                    defaultMessage: 'Guilded Chat Layout',
+                }),
+                firstOption: {
+                    value: 'true',
+                    radionButtonText: {
+                        label: defineMessage({
+                            id: 'user.settings.sidebar.on',
+                            defaultMessage: 'On',
+                        }),
+                    },
+                },
+                secondOption: {
+                    value: 'false',
+                    radionButtonText: {
+                        label: defineMessage({
+                            id: 'user.settings.sidebar.off',
+                            defaultMessage: 'Off',
+                        }),
+                    },
+                },
+                description: defineMessage({
+                    id: 'user.settings.display.guildedChatLayoutDescription',
+                    defaultMessage: 'Use Guilded-style layout with team sidebar, persistent right panel, and DM mode.',
+                }),
+                preferenceName: Preferences.GUILDED_CHAT_LAYOUT,
+            });
+        }
+
         const channelDisplayModeSection = this.createSection({
             section: Preferences.CHANNEL_DISPLAY_MODE,
             display: 'channelDisplayMode',
@@ -1352,6 +1404,7 @@ export default class UserSettingsDisplay extends React.PureComponent<Props, Stat
             case 'channel':
                 return (
                     <>
+                        {guildedChatLayoutSection}
                         {channelDisplayModeSection}
                         {collapsedReplyThreads}
                     </>
@@ -1399,6 +1452,7 @@ export default class UserSettingsDisplay extends React.PureComponent<Props, Stat
                                 icon={<ForumOutlineIcon size={14}/>}
                                 title={<FormattedMessage id='user.settings.display.section.channel' defaultMessage='Channel'/>}
                             />
+                            {guildedChatLayoutSection}
                             {channelDisplayModeSection}
                             {collapsedReplyThreads}
 
@@ -1410,6 +1464,7 @@ export default class UserSettingsDisplay extends React.PureComponent<Props, Stat
                 return (
                     <>
                         {themeSection}
+                        {guildedChatLayoutSection}
                         {collapsedReplyThreads}
                         {clockSection}
                         {alwaysShowRemoteUserHourSection}

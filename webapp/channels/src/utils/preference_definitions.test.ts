@@ -30,6 +30,7 @@ describe('preference_definitions', () => {
                 'display_settings:one_click_reactions_enabled',
                 'display_settings:always_show_remote_user_hour',
                 'display_settings:render_emoticons_as_emoji',
+                'display_settings:guilded_chat_layout',
                 'notifications:email_interval',
                 'advanced_settings:formatting',
                 'advanced_settings:send_on_ctrl_enter',
@@ -116,6 +117,7 @@ describe('preference_definitions', () => {
             expect(PreferenceNames.LINK_PREVIEW_DISPLAY).toBe('link_preview_display');
             expect(PreferenceNames.COLORIZE_USERNAMES).toBe('colorize_usernames');
             expect(PreferenceNames.NAME_FORMAT).toBe('name_format');
+            expect(PreferenceNames.GUILDED_CHAT_LAYOUT).toBe('guilded_chat_layout');
         });
 
         it('should have all notification and advanced settings names', () => {
@@ -224,6 +226,7 @@ describe('preference_definitions', () => {
             expect(getPreferenceGroup('notifications', 'email_interval')).toBe(PreferenceGroups.NOTIFICATIONS);
             expect(getPreferenceGroup('advanced_settings', 'formatting')).toBe(PreferenceGroups.ADVANCED);
             expect(getPreferenceGroup('sidebar_settings', 'show_unread_section')).toBe(PreferenceGroups.SIDEBAR);
+            expect(getPreferenceGroup('display_settings', 'guilded_chat_layout')).toBe(PreferenceGroups.CHANNEL);
         });
 
         it('should return undefined for invalid preference', () => {

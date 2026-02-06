@@ -15,18 +15,70 @@ describe('selectors/views/guilded_layout', () => {
                             FeatureFlagGuildedChatLayout: 'false',
                         },
                     },
+                    preferences: {
+                        myPreferences: {},
+                    },
                 },
             } as unknown as GlobalState;
 
             expect(Selectors.isGuildedLayoutEnabled(state)).toBe(false);
         });
 
-        it('should return true when flag is enabled', () => {
+        it('should return true when flag is enabled and user preference defaults to true', () => {
             const state = {
                 entities: {
                     general: {
                         config: {
                             FeatureFlagGuildedChatLayout: 'true',
+                        },
+                    },
+                    preferences: {
+                        myPreferences: {},
+                    },
+                },
+            } as unknown as GlobalState;
+
+            expect(Selectors.isGuildedLayoutEnabled(state)).toBe(true);
+        });
+
+        it('should return false when flag is enabled but user preference is false', () => {
+            const state = {
+                entities: {
+                    general: {
+                        config: {
+                            FeatureFlagGuildedChatLayout: 'true',
+                        },
+                    },
+                    preferences: {
+                        myPreferences: {
+                            'display_settings--guilded_chat_layout': {
+                                category: 'display_settings',
+                                name: 'guilded_chat_layout',
+                                value: 'false',
+                            },
+                        },
+                    },
+                },
+            } as unknown as GlobalState;
+
+            expect(Selectors.isGuildedLayoutEnabled(state)).toBe(false);
+        });
+
+        it('should return true when flag is enabled and user preference is explicitly true', () => {
+            const state = {
+                entities: {
+                    general: {
+                        config: {
+                            FeatureFlagGuildedChatLayout: 'true',
+                        },
+                    },
+                    preferences: {
+                        myPreferences: {
+                            'display_settings--guilded_chat_layout': {
+                                category: 'display_settings',
+                                name: 'guilded_chat_layout',
+                                value: 'true',
+                            },
                         },
                     },
                 },
@@ -40,6 +92,9 @@ describe('selectors/views/guilded_layout', () => {
                 entities: {
                     general: {
                         config: {},
+                    },
+                    preferences: {
+                        myPreferences: {},
                     },
                 },
             } as unknown as GlobalState;
@@ -58,6 +113,9 @@ describe('selectors/views/guilded_layout', () => {
                             FeatureFlagGuildedChatLayout: 'false',
                         },
                     },
+                    preferences: {
+                        myPreferences: {},
+                    },
                 },
             } as unknown as GlobalState;
 
@@ -73,19 +131,73 @@ describe('selectors/views/guilded_layout', () => {
                             FeatureFlagGuildedChatLayout: 'false',
                         },
                     },
+                    preferences: {
+                        myPreferences: {},
+                    },
                 },
             } as unknown as GlobalState;
 
             expect(Selectors.isThreadsInSidebarActive(state)).toBe(true);
         });
 
-        it('should return true when GuildedChatLayout flag is enabled (auto-enables ThreadsInSidebar)', () => {
+        it('should return true when GuildedChatLayout flag is enabled and user preference defaults to true', () => {
             const state = {
                 entities: {
                     general: {
                         config: {
                             FeatureFlagThreadsInSidebar: 'false',
                             FeatureFlagGuildedChatLayout: 'true',
+                        },
+                    },
+                    preferences: {
+                        myPreferences: {},
+                    },
+                },
+            } as unknown as GlobalState;
+
+            expect(Selectors.isThreadsInSidebarActive(state)).toBe(true);
+        });
+
+        it('should return false when GuildedChatLayout flag is enabled but user opted out', () => {
+            const state = {
+                entities: {
+                    general: {
+                        config: {
+                            FeatureFlagThreadsInSidebar: 'false',
+                            FeatureFlagGuildedChatLayout: 'true',
+                        },
+                    },
+                    preferences: {
+                        myPreferences: {
+                            'display_settings--guilded_chat_layout': {
+                                category: 'display_settings',
+                                name: 'guilded_chat_layout',
+                                value: 'false',
+                            },
+                        },
+                    },
+                },
+            } as unknown as GlobalState;
+
+            expect(Selectors.isThreadsInSidebarActive(state)).toBe(false);
+        });
+
+        it('should return true when ThreadsInSidebar flag is enabled even if user opted out of Guilded', () => {
+            const state = {
+                entities: {
+                    general: {
+                        config: {
+                            FeatureFlagThreadsInSidebar: 'true',
+                            FeatureFlagGuildedChatLayout: 'true',
+                        },
+                    },
+                    preferences: {
+                        myPreferences: {
+                            'display_settings--guilded_chat_layout': {
+                                category: 'display_settings',
+                                name: 'guilded_chat_layout',
+                                value: 'false',
+                            },
                         },
                     },
                 },
@@ -102,6 +214,9 @@ describe('selectors/views/guilded_layout', () => {
                             FeatureFlagThreadsInSidebar: 'true',
                             FeatureFlagGuildedChatLayout: 'true',
                         },
+                    },
+                    preferences: {
+                        myPreferences: {},
                     },
                 },
             } as unknown as GlobalState;
