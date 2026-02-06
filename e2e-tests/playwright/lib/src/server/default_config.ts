@@ -855,9 +855,11 @@ const defaultServerConfig = {
             APIKey: '',
         },
         TargetLanguages: ['en'],
+        Workers: 4,
         TimeoutMs: 5000,
         Agents: {
             LLMServiceID: '',
         },
+        RestrictDMAndGM: false,
     },
 };

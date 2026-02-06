@@ -978,7 +978,7 @@ func (a *App) PatchChannel(rctx request.CTX, channel *model.Channel, patch *mode
 	}
 
 	if channel.AutoTranslation != oldChannelAutotranslation {
-		if err = a.PostUpdateChannelAutotranslationMessage(rctx, userID, channel, oldChannelAutotranslation, channel.AutoTranslation); err != nil {
+		if err = a.postUpdateChannelAutotranslationMessage(rctx, userID, channel, channel.AutoTranslation); err != nil {
 			rctx.Logger().Warn(err.Error())
 		}
 	}
@@ -1453,14 +1453,21 @@ func (a *App) UpdateChannelMemberNotifyProps(rctx request.CTX, data map[string]s
 	return member, nil
 }
 
-func (a *App) UpdateChannelMemberAutotranslation(rctx request.CTX, channelID string, userID string, autotranslation bool) (*model.ChannelMember, *model.AppError) {
+func (a *App) UpdateChannelMemberAutotranslation(rctx request.CTX, channelID string, userID string, autoTranslationDisabled bool) (*model.ChannelMember, *model.AppError) {
 	member, err := a.GetChannelMember(rctx, channelID, userID)
 	if err != nil {
 		return nil, err
 	}
 
-	member.AutoTranslation = autotranslation
-	return a.updateChannelMember(rctx, member)
+	member.AutoTranslationDisabled = autoTranslationDisabled
+	member, err = a.updateChannelMember(rctx, member)
+	if err != nil {
+		return nil, err
+	}
+
+	a.Srv().Store().AutoTranslation().InvalidateUserAutoTranslation(userID, channelID)
+
+	return member, nil
 }
 
 func (a *App) PatchChannelMembersNotifyProps(rctx request.CTX, members []*model.ChannelMemberIdentifier, notifyProps map[string]string) ([]*model.ChannelMember, *model.AppError) {
@@ -1983,7 +1990,7 @@ func (a *App) PostUpdateChannelPurposeMessage(rctx request.CTX, userID string, c
 	return nil
 }
 
-func (a *App) PostUpdateChannelAutotranslationMessage(rctx request.CTX, userID string, channel *model.Channel, oldChannelAutotranslation, newChannelAutotranslation bool) *model.AppError {
+func (a *App) postUpdateChannelAutotranslationMessage(rctx request.CTX, userID string, channel *model.Channel, newChannelAutotranslation bool) *model.AppError {
 	user, err := a.Srv().Store().User().Get(context.Background(), userID)
 	if err != nil {
 		return model.NewAppError("PostUpdateChannelAutotranslationMessage", "api.channel.post_update_channel_autotranslation_message.retrieve_user.error", nil, "", http.StatusBadRequest).Wrap(err)

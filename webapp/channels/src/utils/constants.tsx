@@ -1136,6 +1136,8 @@ export const PermissionsScope = {
     [Permissions.CREATE_GROUP_CHANNEL]: 'system_scope',
     [Permissions.MANAGE_PUBLIC_CHANNEL_PROPERTIES]: 'channel_scope',
     [Permissions.MANAGE_PRIVATE_CHANNEL_PROPERTIES]: 'channel_scope',
+    [Permissions.MANAGE_PUBLIC_CHANNEL_AUTO_TRANSLATION]: 'channel_scope',
+    [Permissions.MANAGE_PRIVATE_CHANNEL_AUTO_TRANSLATION]: 'channel_scope',
     [Permissions.LIST_PUBLIC_TEAMS]: 'system_scope',
     [Permissions.JOIN_PUBLIC_TEAMS]: 'system_scope',
     [Permissions.LIST_PRIVATE_TEAMS]: 'system_scope',

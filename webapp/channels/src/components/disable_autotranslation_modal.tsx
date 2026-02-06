@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import React, {useCallback, useMemo, useState} from 'react';
-import {FormattedMessage} from 'react-intl';
+import {FormattedMessage, useIntl} from 'react-intl';
 import {useDispatch} from 'react-redux';
 
 import type {Channel} from '@mattermost/types/channels';
@@ -23,6 +23,7 @@ type Props = {
 const DisableAutotranslationModal = ({channel}: Props) => {
     const dispatch = useDispatch();
     const [show, setShow] = useState(true);
+    const intl = useIntl();
 
     const handleHide = useCallback(() => {
         setShow(false);
@@ -35,14 +36,13 @@ const DisableAutotranslationModal = ({channel}: Props) => {
 
         // Disabling autotranslations removes all the posts in a channel,
         // so we need to wait for the posts to be removed before sending the ephemeral post.
-        // 10ms seems to be enough to ensure the posts are removed.
-        setTimeout(() => {
+        requestAnimationFrame(() => {
             dispatch(sendEphemeralPost(
-                'You disabled Auto-translation for this channel. All messages will show original text. This only affects your view.',
+                intl.formatMessage({id: 'channel_header.autotranslation.disable_confirm.ephemeral_message', defaultMessage: 'You disabled Auto-translation for this channel. All messages will show original text. This only affects your view.'}),
                 channel.id,
             ));
-        }, 10);
-    }, [channel.id, dispatch, handleHide]);
+        });
+    }, [channel.id, dispatch, handleHide, intl]);
 
     const texts = useMemo(() => ({
         title: (

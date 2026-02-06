@@ -395,8 +395,6 @@ type GetPostsSinceOptions struct {
 	CollapsedThreads         bool
 	CollapsedThreadsExtended bool
 	SortAscending            bool
-	AutotranslationEnabled   bool
-	Language                 string
 }
 
 type GetPostsSinceForSyncCursor struct {

@@ -28,6 +28,7 @@ import {getCategoryInTeamByType} from 'mattermost-redux/selectors/entities/chann
 import {
     getChannel as getChannelSelector,
     getMyChannelMember as getMyChannelMemberSelector,
+    hasAutotranslationBecomeEnabled,
     isManuallyUnread,
 } from 'mattermost-redux/selectors/entities/channels';
 import {getCurrentTeamId} from 'mattermost-redux/selectors/entities/teams';
@@ -267,8 +268,15 @@ export function setMyChannelAutotranslation(channelId: string, enabled: boolean)
     return async (dispatch, getState) => {
         const state = getState();
         const myChannelMember = getMyChannelMemberSelector(state, channelId);
-        const wasEnabled = myChannelMember?.autotranslation;
 
+        if (!myChannelMember) {
+            return {data: false, error: 'Channel member not found'};
+        }
+
+        const updatedMember: ChannelMembership = {
+            ...myChannelMember,
+            autotranslation_disabled: !enabled,
+        };
         try {
             await Client4.setMyChannelAutotranslation(channelId, enabled);
         } catch (error) {
@@ -277,16 +285,16 @@ export function setMyChannelAutotranslation(channelId: string, enabled: boolean)
             return {data: undefined, error};
         }
 
+        // We check before updating the store
+        const becameEnabled = hasAutotranslationBecomeEnabled(state, updatedMember);
+
         dispatch({
             type: ChannelTypes.RECEIVED_MY_CHANNEL_MEMBER,
-            data: {
-                ...myChannelMember,
-                autotranslation: enabled,
-            },
+            data: updatedMember,
         });
 
         // If autotranslation changed, delete posts for this channel
-        if (wasEnabled !== enabled) {
+        if (becameEnabled) {
             await dispatch(resetReloadPostsInChannel(channelId));
         }
 

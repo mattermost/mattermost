@@ -606,18 +606,36 @@
       summary: Patch a channel
       description: >
         Partially update a channel by providing only the fields you want to
-        update. Omitted fields will not be updated. The fields that can be
-        updated are defined in the request body, all other provided fields will
-        be ignored.
+        update. Omitted fields will not be updated. At least one of the allowed
+        fields must be provided.
+
+        **Public and private channels:** Can update `name`, `display_name`,
+        `purpose`, `header`, `group_constrained`, `autotranslation`, and
+        `banner_info` (subject to permissions and channel type).
+
+        **Direct and group message channels:** Only `header` and (when not
+        restricted by config) `autotranslation` can be updated; the caller
+        must be a channel member. Updating `name`, `display_name`, or `purpose`
+        is not allowed.
+
+        The default channel (e.g. Town Square) cannot have its `name` changed.
 
         ##### Permissions
 
-        If updating a public channel, `manage_public_channel_members` permission is required. If updating a private channel, `manage_private_channel_members` permission is required.
+        - **Public channel:** For property updates (name, display_name, purpose, header, group_constrained),
+        `manage_public_channel_properties` is required. For `autotranslation`, `manage_public_channel_auto_translation`
+        is required. For `banner_info`, `manage_public_channel_banner` is required (Channel Banner feature and
+        Enterprise license required).
+        - **Private channel:** For property updates, `manage_private_channel_properties` is required. For
+        `autotranslation`, `manage_private_channel_auto_translation` is required. For `banner_info`,
+        `manage_private_channel_banner` is required (Channel Banner feature and Enterprise license required).
+        - **Direct or group message channel:** Must be a member of the channel; only `header` and (when allowed)
+        `autotranslation` can be updated.
       operationId: PatchChannel
       parameters:
         - name: channel_id
           in: path
-          description: Channel GUID
+          description: Channel ID
           required: true
           schema:
             type: string
@@ -630,20 +648,34 @@
                 name:
                   type: string
                   description: The unique handle for the channel, will be present in the
-                    channel URL
+                    channel URL. Cannot be updated for direct or group message channels.
+                    Cannot be changed for the default channel (e.g. Town Square).
                 display_name:
                   type: string
-                  description: The non-unique UI name for the channel
+                  description: The non-unique UI name for the channel. Cannot be updated
+                    for direct or group message channels.
                 purpose:
                   type: string
-                  description: A short description of the purpose of the channel
+                  description: A short description of the purpose of the channel. Cannot
+                    be updated for direct or group message channels.
                 header:
                   type: string
                   description: Markdown-formatted text to display in the header of the
                     channel
+                group_constrained:
+                  type: boolean
+                  description: When true, only members of the linked LDAP groups can join
+                    the channel. Only applicable to public and private channels.
+                autotranslation:
+                  type: boolean
+                  description: Enable or disable automatic message translation in the
+                    channel. Requires the auto-translation feature and appropriate
+                    channel permission. May be restricted for direct and group message
+                    channels by server configuration.
                 banner_info:
                   $ref: "#/components/schemas/ChannelBanner"
-        description: Channel object to be updated
+        description: Channel patch object; include only the fields to update. At least
+          one field must be provided.
         required: true
       responses:
         "200":
@@ -1607,7 +1639,9 @@
       summary: Update channel member autotranslation setting
       description: >
         Update a user's autotranslation setting for a channel. This controls whether
-        messages in the channel should be automatically translated for the user.
+        messages in the channel should not be automatically translated for the user.
+        By default, autotranslations are enabled for all users if the channel is enabled
+        for autotranslation.
 
         ##### Permissions
 
@@ -1632,11 +1666,11 @@
             schema:
               type: object
               required:
-                - autotranslation
+                - autotranslation_disabled
               properties:
-                autotranslation:
+                autotranslation_disabled:
                   type: boolean
-                  description: Whether to enable autotranslation for the user in this channel
+                  description: Whether to disable autotranslation for the user in this channel
         required: true
       responses:
         "200":

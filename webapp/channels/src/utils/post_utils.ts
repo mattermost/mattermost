@@ -912,5 +912,5 @@ export function getPostTranslation(post: Post, locale: string): PostTranslation 
 }
 
 export function getPostTranslatedMessage(originalMessage: string, translation: PostTranslation): string {
-    return translation.object?.message ?? originalMessage;
+    return translation.object?.message || originalMessage;
 }

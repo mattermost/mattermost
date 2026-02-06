@@ -2854,7 +2854,6 @@
   "admin.site.fileSharingDownloads": "Dateifreigabe und Downloads",
   "admin.site.localization": "Lokalisierung",
   "admin.site.localization.autoTranslationInfo": "Die automatische Übersetzung muss außerdem in jedem Kanal aktiviert werden, in dem sie benötigt wird.",
-  "admin.site.localization.autoTranslationInfoSecondary": "Wenn mehrere Sprachen erkannt werden, werden die Nutzer aufgefordert, die automatische Übersetzung zu aktivieren. [Mehr erfahren](https://docs.mattermost.com/).",
   "admin.site.localization.autoTranslationProviderDescription": "<strong>HINWEIS:</strong> Wenn du externe Übersetzungsdienste (z. B. in der Cloud) nutzt, können die Daten der Nachricht{br}außerhalb deiner Umgebung verarbeitet werden.",
   "admin.site.localization.autoTranslationProviderLibreTranslateAPIKeyDescription": "Wenn dein LibreTranslate-Server einen API-Schlüssel benötigt, gib ihn hier ein. Andernfalls lässt du dieses Feld leer. Siehe <link>LibreTranslate-Dokumente</link> für die Verwaltung von API-Schlüsseln.",
   "admin.site.localization.autoTranslationProviderLibreTranslateAPIKeyExample": "LibreTranslate API Schlüssel eingeben",

@@ -1474,7 +1474,7 @@ export function getMyChannelAutotranslation(state: GlobalState, channelId: strin
     return Boolean(
         config?.EnableAutoTranslation === 'true' &&
         channel?.autotranslation &&
-        myChannelMember?.autotranslation &&
+        !myChannelMember?.autotranslation_disabled &&
         targetLanguages?.includes(locale),
     );
 }
@@ -1491,4 +1491,35 @@ export function isUserLanguageSupportedForAutotranslation(state: GlobalState): b
     }
     const targetLanguages = config?.AutoTranslationLanguages?.split(',').map((l) => l.trim()).filter(Boolean);
     return Boolean(targetLanguages?.length && targetLanguages.includes(locale));
+}
+
+export function hasAutotranslationBecomeEnabled(state: GlobalState, channelOrMember: Channel | ChannelMembership) {
+    const autotranslationEnabled = getConfig(state)?.EnableAutoTranslation === 'true';
+
+    let existingChannel: Channel | undefined;
+    let existingMember: ChannelMembership | undefined;
+    let newChannel: Channel | undefined;
+    let newMember: ChannelMembership | undefined;
+    if ('channel_id' in channelOrMember) {
+        newMember = channelOrMember;
+        existingChannel = getChannel(state, newMember.channel_id);
+        existingMember = getMyChannelMember(state, newMember.channel_id);
+        newChannel = existingChannel;
+    } else {
+        newChannel = channelOrMember;
+        existingChannel = getChannel(state, newChannel.id);
+        existingMember = getMyChannelMember(state, newChannel.id);
+        newMember = existingMember;
+    }
+
+    if (!existingChannel || !existingMember) {
+        // channel is not in the state, so there is no need
+        // to reload posts
+        return false;
+    }
+
+    const wasTranslating = autotranslationEnabled && existingChannel.autotranslation && !existingMember.autotranslation_disabled;
+    const isTranslating = autotranslationEnabled && newChannel?.autotranslation && !newMember?.autotranslation_disabled;
+
+    return !wasTranslating && isTranslating;
 }

@@ -254,6 +254,7 @@ func GenerateClientConfig(c *model.Config, telemetryID string, license *model.Li
 			} else {
 				props["AutoTranslationLanguages"] = ""
 			}
+			props["RestrictDMAndGMAutotranslation"] = strconv.FormatBool(*c.AutoTranslationSettings.RestrictDMAndGM)
 		}
 	}
 

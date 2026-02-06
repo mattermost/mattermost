@@ -643,14 +643,6 @@ func (a *App) handlePostEvents(rctx request.CTX, post *model.Post, user *model.U
 		return err
 	}
 
-	// Send initial read receipt counts for burn-on-read posts
-	if post.Type == model.PostTypeBurnOnRead {
-		// No revealing user yet (post just created), send empty string
-		if err := a.publishPostRevealedEventToAuthor(rctx, post, "", ""); err != nil {
-			rctx.Logger().Error("Failed to publish initial burn-on-read read receipt event", mlog.String("post_id", post.Id), mlog.Err(err))
-		}
-	}
-
 	if post.Type != model.PostTypeAutoResponder { // don't respond to an auto-responder
 		a.Srv().Go(func() {
 			_, err := a.SendAutoResponseIfNecessary(rctx, channel, user, post)
@@ -912,30 +904,6 @@ func (a *App) UpdatePost(rctx request.CTX, receivedUpdatedPost *model.Post, upda
 	rpost, nErr = a.addPostPreviewProp(rctx, rpost)
 	if nErr != nil {
 		return nil, false, model.NewAppError("UpdatePost", "app.post.update.app_error", nil, "", http.StatusInternalServerError).Wrap(nErr)
-	}
-
-	// Re-translate post if content changed
-	// Our updated Translate() function detects content changes via NormHash comparison
-	// and automatically re-initializes translations for all configured languages
-	if a.AutoTranslation() != nil && a.AutoTranslation().IsFeatureAvailable() {
-		enabled, atErr := a.AutoTranslation().IsChannelEnabled(rpost.ChannelId)
-		if atErr == nil && enabled {
-			_, translateErr := a.AutoTranslation().Translate(rctx.Context(), model.TranslationObjectTypePost, rpost.Id, rpost.ChannelId, rpost.UserId, rpost)
-			if translateErr != nil {
-				var notAvailErr *model.ErrAutoTranslationNotAvailable
-				if errors.As(translateErr, &notAvailErr) {
-					// Feature not available - log at debug level and continue
-					rctx.Logger().Debug("Auto-translation feature not available for edited post", mlog.String("post_id", rpost.Id), mlog.Err(translateErr))
-				} else if translateErr.Id == "ent.autotranslation.no_translatable_content" {
-					// No translatable content (only URLs/mentions) - this is expected, don't log
-				} else {
-					// Unexpected error - log at warn level but don't fail post update
-					rctx.Logger().Warn("Failed to translate edited post", mlog.String("post_id", rpost.Id), mlog.Err(translateErr))
-				}
-			}
-		} else if atErr != nil {
-			rctx.Logger().Warn("Failed to check if channel is enabled for auto-translation", mlog.String("channel_id", rpost.ChannelId), mlog.Err(atErr))
-		}
 	}
 
 	// Re-translate post if content changed
@@ -3132,11 +3100,23 @@ func (a *App) RewriteMessage(
 		return nil, model.NewAppError("RewriteMessage", "app.post.rewrite.invalid_action", nil, fmt.Sprintf("invalid action: %s", action), 400)
 	}
 
+	userLocale := ""
+	if session := rctx.Session(); session != nil && session.UserId != "" {
+		user, appErr := a.GetUser(session.UserId)
+		if appErr == nil {
+			userLocale = user.Locale
+		} else {
+			rctx.Logger().Warn("Failed to get user for rewrite locale", mlog.Err(appErr), mlog.String("user_id", session.UserId))
+		}
+	}
+
+	systemPrompt := buildRewriteSystemPrompt(userLocale)
+
 	// Prepare completion request in the format expected by the client
 	client := a.GetBridgeClient(rctx.Session().UserId)
 	completionRequest := agentclient.CompletionRequest{
 		Posts: []agentclient.Post{
-			{Role: "system", Message: model.RewriteSystemPrompt},
+			{Role: "system", Message: systemPrompt},
 			{Role: "user", Message: userPrompt},
 		},
 	}
@@ -3308,6 +3288,17 @@ func getRewritePromptForAction(action model.RewriteAction, message string, custo
 	}
 
 	return actionPrompt
+}
+
+func buildRewriteSystemPrompt(userLocale string) string {
+	locale := strings.TrimSpace(userLocale)
+	if locale == "" {
+		return model.RewriteSystemPrompt
+	}
+
+	return fmt.Sprintf(`%s
+
+User locale: %s. Preserve locale-specific spelling, grammar, and formatting. Keep locale identifiers (like %s) unchanged. Do not translate between locales.`, model.RewriteSystemPrompt, locale, locale)
 }
 
 // RevealPost reveals a burn-on-read post for a specific user, creating a read receipt

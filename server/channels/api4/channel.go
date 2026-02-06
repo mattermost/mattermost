@@ -345,17 +345,46 @@ func patchChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 	model.AddEventParameterAuditableToAuditRec(auditRec, "channel", patch)
 	auditRec.AddEventPriorState(oldChannel)
 
+	updatingProperties := patch.DisplayName != nil || patch.Name != nil || patch.Header != nil || patch.Purpose != nil || patch.GroupConstrained != nil
+	updatingAutoTranslation := patch.AutoTranslation != nil
+
+	if !updatingProperties && !updatingAutoTranslation && patch.BannerInfo == nil {
+		c.Err = model.NewAppError("patchChannel", "api.channel.patch_update_channel.no_changes.app_error", nil, "", http.StatusBadRequest)
+		return
+	}
+
+	if updatingAutoTranslation && (c.App.AutoTranslation() == nil || !c.App.AutoTranslation().IsFeatureAvailable()) {
+		c.Err = model.NewAppError("patchChannel", "api.channel.patch_update_channel.feature_not_available.app_error", nil, "", http.StatusForbidden)
+		return
+	}
+
 	switch oldChannel.Type {
 	case model.ChannelTypeOpen:
-		if ok, _ := c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), c.Params.ChannelId, model.PermissionManagePublicChannelProperties); !ok {
-			c.SetPermissionError(model.PermissionManagePublicChannelProperties)
-			return
+		if updatingProperties {
+			if ok, _ := c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), c.Params.ChannelId, model.PermissionManagePublicChannelProperties); !ok {
+				c.SetPermissionError(model.PermissionManagePublicChannelProperties)
+				return
+			}
+		}
+		if updatingAutoTranslation {
+			if ok, _ := c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), c.Params.ChannelId, model.PermissionManagePublicChannelAutoTranslation); !ok {
+				c.SetPermissionError(model.PermissionManagePublicChannelAutoTranslation)
+				return
+			}
 		}
 
 	case model.ChannelTypePrivate:
-		if ok, _ := c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), c.Params.ChannelId, model.PermissionManagePrivateChannelProperties); !ok {
-			c.SetPermissionError(model.PermissionManagePrivateChannelProperties)
-			return
+		if updatingProperties {
+			if ok, _ := c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), c.Params.ChannelId, model.PermissionManagePrivateChannelProperties); !ok {
+				c.SetPermissionError(model.PermissionManagePrivateChannelProperties)
+				return
+			}
+		}
+		if updatingAutoTranslation {
+			if ok, _ := c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), c.Params.ChannelId, model.PermissionManagePrivateChannelAutoTranslation); !ok {
+				c.SetPermissionError(model.PermissionManagePrivateChannelAutoTranslation)
+				return
+			}
 		}
 
 	case model.ChannelTypeGroup, model.ChannelTypeDirect:
@@ -368,8 +397,9 @@ func patchChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 			c.Err = model.NewAppError("patchChannel", "api.channel.patch_update_channel.update_direct_or_group_messages_not_allowed.app_error", nil, "", http.StatusBadRequest)
 			return
 		}
-		if patch.AutoTranslation != nil {
-			c.Err = model.NewAppError("patchChannel", "api.channel.patch_update_channel.auto_translation_not_allowed.app_error", nil, "", http.StatusBadRequest)
+
+		if updatingAutoTranslation && *c.App.Config().AutoTranslationSettings.RestrictDMAndGM {
+			c.Err = model.NewAppError("patchChannel", "api.channel.patch_update_channel.auto_translation_restricted.app_error", nil, "", http.StatusForbidden)
 			return
 		}
 
@@ -1852,10 +1882,15 @@ func updateChannelMemberNotifyProps(c *Context, w http.ResponseWriter, r *http.R
 }
 
 type UpdateChannelMemberAutotranslationProps struct {
-	Autotranslation bool `json:"autotranslation"`
+	AutoTranslationDisabled bool `json:"autotranslation_disabled"`
 }
 
 func updateChannelMemberAutotranslation(c *Context, w http.ResponseWriter, r *http.Request) {
+	if c.App.AutoTranslation() == nil || !c.App.AutoTranslation().IsFeatureAvailable() {
+		c.Err = model.NewAppError("updateChannelMemberAutotranslation", "api.channel.update_channel_member_autotranslation.feature_not_available.app_error", nil, "", http.StatusForbidden)
+		return
+	}
+
 	c.RequireUserId().RequireChannelId()
 	if c.Err != nil {
 		return
@@ -1863,21 +1898,39 @@ func updateChannelMemberAutotranslation(c *Context, w http.ResponseWriter, r *ht
 
 	props := UpdateChannelMemberAutotranslationProps{}
 	if err := json.NewDecoder(r.Body).Decode(&props); err != nil {
-		c.SetInvalidParamWithErr("autotranslation", err)
+		c.SetInvalidParamWithErr("autotranslation_disabled", err)
 		return
 	}
 
 	auditRec := c.MakeAuditRecord(model.AuditEventUpdateChannelMemberAutotranslation, model.AuditStatusFail)
 	defer c.LogAuditRec(auditRec)
 	model.AddEventParameterToAuditRec(auditRec, "channel_id", c.Params.ChannelId)
-	model.AddEventParameterToAuditRec(auditRec, "autotranslation", props.Autotranslation)
+	model.AddEventParameterToAuditRec(auditRec, "autotranslation_disabled", props.AutoTranslationDisabled)
+	model.AddEventParameterToAuditRec(auditRec, "user_id", c.Params.UserId)
 
 	if !c.App.SessionHasPermissionToUser(*c.AppContext.Session(), c.Params.UserId) {
 		c.SetPermissionError(model.PermissionEditOtherUsers)
 		return
 	}
 
-	_, appErr := c.App.UpdateChannelMemberAutotranslation(c.AppContext, c.Params.ChannelId, c.Params.UserId, props.Autotranslation)
+	_, err := c.App.GetChannelMember(c.AppContext, c.Params.ChannelId, c.Params.UserId)
+	if err != nil {
+		c.Err = err
+		return
+	}
+
+	channelEnabled, err := c.App.AutoTranslation().IsChannelEnabled(c.Params.ChannelId)
+	if err != nil {
+		c.Err = err
+		return
+	}
+
+	if !channelEnabled {
+		c.Err = model.NewAppError("updateChannelMemberAutotranslation", "api.channel.update_channel_member_autotranslation.channel_not_enabled.app_error", nil, "", http.StatusBadRequest)
+		return
+	}
+
+	_, appErr := c.App.UpdateChannelMemberAutotranslation(c.AppContext, c.Params.ChannelId, c.Params.UserId, props.AutoTranslationDisabled)
 	if appErr != nil {
 		c.Err = appErr
 		return
