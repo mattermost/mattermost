@@ -51,61 +51,13 @@ func newSqlAutoTranslationStore(sqlStore *SqlStore) store.AutoTranslationStore {
 	}
 }
 
-// IsChannelEnabled checks if auto-translation is enabled for a channel
-// Uses the existing Channel cache instead of maintaining a separate cache
-// Thus this method is really for completeness; callers should use the Channel cache
-func (s *SqlAutoTranslationStore) IsChannelEnabled(channelID string) (bool, error) {
-	query := s.getQueryBuilder().
-		Select("AutoTranslation").
-		From("Channels").
-		Where(sq.Eq{"Id": channelID})
-
-	queryString, args, err := query.ToSql()
-	if err != nil {
-		return false, errors.Wrap(err, "failed to build query for IsChannelEnabled")
-	}
-
-	var enabled bool
-	if err := s.GetReplica().Get(&enabled, queryString, args...); err != nil {
-		if err == sql.ErrNoRows {
-			return false, store.NewErrNotFound("Channel", channelID)
-		}
-		return false, errors.Wrapf(err, "failed to get channel enabled status for channel_id=%s", channelID)
-	}
-
-	return enabled, nil
-}
-
-func (s *SqlAutoTranslationStore) SetChannelEnabled(channelID string, enabled bool) error {
-	query := s.getQueryBuilder().
-		Update("Channels").
-		Set("AutoTranslation", enabled).
-		Set("UpdateAt", model.GetMillis()).
-		Where(sq.Eq{"Id": channelID})
-
-	result, err := s.GetMaster().ExecBuilder(query)
-	if err != nil {
-		return errors.Wrapf(err, "failed to set channel enabled for channel_id=%s", channelID)
-	}
-
-	rowsAffected, err := result.RowsAffected()
-	if err != nil {
-		return errors.Wrap(err, "failed to get rows affected for SetChannelEnabled")
-	}
-
-	if rowsAffected == 0 {
-		return store.NewErrNotFound("Channel", channelID)
-	}
-
-	return nil
-}
-
 func (s *SqlAutoTranslationStore) IsUserEnabled(userID, channelID string) (bool, error) {
 	query := s.getQueryBuilder().
 		Select("cm.AutoTranslationDisabled").
 		From("ChannelMembers cm").
-		Join("Channels c ON cm.Channelid = c.id").
+		Join("Channels c ON cm.ChannelId = c.Id").
 		Where(sq.Eq{"cm.UserId": userID, "cm.ChannelId": channelID}).
+		Where("cm.AutoTranslationDisabled != true").
 		Where("c.AutoTranslation = true")
 
 	var disabled bool
@@ -127,7 +79,7 @@ func (s *SqlAutoTranslationStore) GetUserLanguage(userID, channelID string) (str
 		Join("Channels c ON cm.ChannelId = c.Id").
 		Where(sq.Eq{"u.Id": userID, "c.Id": channelID}).
 		Where("c.AutoTranslation = true").
-		Where("cm.AutoTranslationDisabled = false")
+		Where("cm.AutoTranslationDisabled != true")
 
 	var locale string
 	if err := s.GetReplica().GetBuilder(&locale, query); err != nil {
@@ -148,7 +100,7 @@ func (s *SqlAutoTranslationStore) GetActiveDestinationLanguages(channelID, exclu
 		Join("Users u ON u.Id = cm.UserId").
 		Where(sq.Eq{"cm.ChannelId": channelID}).
 		Where("c.AutoTranslation = true").
-		Where("cm.AutoTranslationDisabled = false")
+		Where("cm.AutoTranslationDisabled != true")
 
 	// Filter to specific user IDs if provided (e.g., users with active WebSocket connections)
 	// When filterUserIDs is non-nil and non-empty, squirrel converts it to an IN clause
