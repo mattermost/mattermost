@@ -56,19 +56,13 @@ export function runMessageWillBePostedHooks(originalPost: Post): ActionFuncAsync
                 // Generate quote text
                 const quoteText = dispatch(generateQuoteText()) as string;
 
-                // Prepend quote text to message
+                // Prepend quote text to message, preserve user-selected priority
                 post = {
                     ...post,
                     message: quoteText + post.message,
                     props: {
                         ...post.props,
                         discord_replies: pendingReplies,
-                    },
-                    metadata: {
-                        ...post.metadata,
-                        priority: {
-                            priority: PostPriority.DISCORD_REPLY,
-                        },
                     },
                 };
 
