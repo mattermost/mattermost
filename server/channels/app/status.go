@@ -105,7 +105,7 @@ func (a *App) UpdateDNDStatusOfUsers() {
 		if user, userErr := a.Srv().Store().User().Get(context.Background(), statuses[i].UserId); userErr == nil {
 			username = user.Username
 		}
-		a.Srv().Platform().LogStatusChange(statuses[i].UserId, username, model.StatusDnd, statuses[i].Status, model.StatusLogReasonDNDExpired, model.StatusLogDeviceUnknown, false, "", false, "UpdateDNDStatusOfUsers")
+		a.Srv().Platform().LogStatusChange(statuses[i].UserId, username, model.StatusDnd, statuses[i].Status, model.StatusLogReasonDNDExpired, model.StatusLogDeviceUnknown, false, "", false, "UpdateDNDStatusOfUsers", statuses[i].LastActivityAt)
 	}
 }
 
