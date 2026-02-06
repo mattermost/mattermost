@@ -57,4 +57,5 @@ const (
 	MigrationAddSysconsoleMobileSecurityPermission     = "add_sysconsole_mobile_security_permission"
 	MigrationKeyAddChannelBannerPermissions            = "add_channel_banner_permissions"
 	MigrationKeyAddChannelAccessRulesPermission        = "add_channel_access_rules_permission"
+	MigrationKeyAddChannelAutoTranslationPermissions   = "add_channel_auto_translation_permissions"
 )
