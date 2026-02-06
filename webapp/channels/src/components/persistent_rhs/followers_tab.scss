@@ -1,0 +1,21 @@
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
+
+.followers-tab {
+    height: 100%;
+
+    &--empty {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        color: rgba(var(--center-channel-color-rgb), 0.56);
+        font-size: 14px;
+    }
+
+    &__empty-icon {
+        font-size: 32px;
+        opacity: 0.4;
+    }
+}
