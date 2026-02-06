@@ -152,7 +152,7 @@ func TestPostStoreLastPostTimeCache(t *testing.T) {
 		require.NoError(t, err)
 
 		// Expected: "{version}.{lastTime}.{translationTime}"
-		expectedResult := fmt.Sprintf("%v.%v.%v", model.CurrentVersion, fakeLastTime, 5000)
+		expectedResult := fmt.Sprintf("%v.%v_%v", model.CurrentVersion, fakeLastTime, 5000)
 
 		etag := cachedStore.Post().GetEtag(channelId, true, false, true)
 		assert.Equal(t, expectedResult, etag)
@@ -167,7 +167,7 @@ func TestPostStoreLastPostTimeCache(t *testing.T) {
 		require.NoError(t, err)
 
 		// First call with includeTranslations=true - should call GetLatestPostUpdateAtForChannel
-		expected := fmt.Sprintf("%v.%v.%v", model.CurrentVersion, fakeLastTime, 5000)
+		expected := fmt.Sprintf("%v.%v_%v", model.CurrentVersion, fakeLastTime, 5000)
 		etag := cachedStore.Post().GetEtag(channelId, true, false, true)
 		assert.Equal(t, expected, etag)
 		mockStore.AutoTranslation().(*mocks.AutoTranslationStore).AssertNumberOfCalls(t, "GetLatestPostUpdateAtForChannel", 1)
@@ -185,7 +185,7 @@ func TestPostStoreLastPostTimeCache(t *testing.T) {
 		require.NoError(t, err)
 
 		// Call GetEtag with includeTranslations=true
-		expected := fmt.Sprintf("%v.%v.%v", model.CurrentVersion, fakeLastTime, 5000)
+		expected := fmt.Sprintf("%v.%v_%v", model.CurrentVersion, fakeLastTime, 5000)
 		etag := cachedStore.Post().GetEtag(channelId, true, false, true)
 		assert.Equal(t, expected, etag)
 		mockStore.AutoTranslation().(*mocks.AutoTranslationStore).AssertNumberOfCalls(t, "GetLatestPostUpdateAtForChannel", 1)
