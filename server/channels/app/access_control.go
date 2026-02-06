@@ -229,6 +229,8 @@ func (a *App) UnassignPoliciesFromChannels(rctx request.CTX, policyID string, ch
 			if err := acs.DeletePolicy(rctx, child.ID); err != nil {
 				return model.NewAppError("UnassignPoliciesFromChannels", "app.pap.unassign_access_control_policy_from_channels.app_error", nil, err.Error(), http.StatusInternalServerError)
 			}
+			// invalidate the channel cache
+			a.Srv().Store().Channel().InvalidateChannel(channelID)
 			continue
 		}
 		_, appErr = acs.SavePolicy(rctx, child)
@@ -300,15 +302,6 @@ func (a *App) GetAccessControlFieldsAutocomplete(rctx request.CTX, after string,
 	}
 
 	return fields, nil
-}
-
-func (a *App) UpdateAccessControlPolicyActive(rctx request.CTX, policyID string, active bool) *model.AppError {
-	_, err := a.Srv().Store().AccessControlPolicy().SetActiveStatus(rctx, policyID, active)
-	if err != nil {
-		return model.NewAppError("UpdateAccessControlPolicyActive", "app.pap.update_access_control_policy_active.app_error", nil, err.Error(), http.StatusInternalServerError)
-	}
-
-	return nil
 }
 
 func (a *App) UpdateAccessControlPoliciesActive(rctx request.CTX, updates []model.AccessControlPolicyActiveUpdate) ([]*model.AccessControlPolicy, *model.AppError) {

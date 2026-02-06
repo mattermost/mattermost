@@ -1,11 +1,12 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {render, screen, fireEvent} from '@testing-library/react';
 import React from 'react';
 import type {ComponentProps} from 'react';
 
 import {CheckIcon} from '@mattermost/compass-icons/components';
+
+import {render, screen, userEvent} from 'tests/react_testing_utils';
 
 import InfoToast from './info_toast';
 
@@ -25,18 +26,18 @@ describe('components/InfoToast', () => {
         expect(container).toMatchSnapshot();
     });
 
-    test('should close the toast on undo', () => {
+    test('should close the toast on undo', async () => {
         render(<InfoToast {...baseProps}/>);
 
-        fireEvent.click(screen.getByText(/undo/i));
+        await userEvent.click(screen.getByText(/undo/i));
         expect(baseProps.content.undo).toHaveBeenCalled();
         expect(baseProps.onExited).toHaveBeenCalled();
     });
 
-    test('should close the toast on close button click', () => {
+    test('should close the toast on close button click', async () => {
         render(<InfoToast {...baseProps}/>);
 
-        fireEvent.click(screen.getByRole('button', {name: /close/i}));
+        await userEvent.click(screen.getByRole('button', {name: /close/i}));
         expect(baseProps.onExited).toHaveBeenCalled();
     });
 });
