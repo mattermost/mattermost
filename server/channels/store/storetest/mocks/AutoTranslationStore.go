@@ -79,36 +79,6 @@ func (_m *AutoTranslationStore) GetActiveDestinationLanguages(channelID string, 
 	return r0, r1
 }
 
-// GetAllByStatePage provides a mock function with given fields: state, offset, limit
-func (_m *AutoTranslationStore) GetAllByStatePage(state model.TranslationState, offset int, limit int) ([]*model.Translation, error) {
-	ret := _m.Called(state, offset, limit)
-
-	if len(ret) == 0 {
-		panic("no return value specified for GetAllByStatePage")
-	}
-
-	var r0 []*model.Translation
-	var r1 error
-	if rf, ok := ret.Get(0).(func(model.TranslationState, int, int) ([]*model.Translation, error)); ok {
-		return rf(state, offset, limit)
-	}
-	if rf, ok := ret.Get(0).(func(model.TranslationState, int, int) []*model.Translation); ok {
-		r0 = rf(state, offset, limit)
-	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).([]*model.Translation)
-		}
-	}
-
-	if rf, ok := ret.Get(1).(func(model.TranslationState, int, int) error); ok {
-		r1 = rf(state, offset, limit)
-	} else {
-		r1 = ret.Error(1)
-	}
-
-	return r0, r1
-}
-
 // GetAllForObject provides a mock function with given fields: objectID
 func (_m *AutoTranslationStore) GetAllForObject(objectID string) ([]*model.Translation, error) {
 	ret := _m.Called(objectID)

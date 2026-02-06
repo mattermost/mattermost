@@ -836,22 +836,6 @@ func (s *TimerLayerAutoTranslationStore) GetActiveDestinationLanguages(channelID
 	return result, err
 }
 
-func (s *TimerLayerAutoTranslationStore) GetAllByStatePage(state model.TranslationState, offset int, limit int) ([]*model.Translation, error) {
-	start := time.Now()
-
-	result, err := s.AutoTranslationStore.GetAllByStatePage(state, offset, limit)
-
-	elapsed := float64(time.Since(start)) / float64(time.Second)
-	if s.Root.Metrics != nil {
-		success := "false"
-		if err == nil {
-			success = "true"
-		}
-		s.Root.Metrics.ObserveStoreMethodDuration("AutoTranslationStore.GetAllByStatePage", success, elapsed)
-	}
-	return result, err
-}
-
 func (s *TimerLayerAutoTranslationStore) GetAllForObject(objectID string) ([]*model.Translation, error) {
 	start := time.Now()
 

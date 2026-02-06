@@ -1168,7 +1168,6 @@ type AutoTranslationStore interface {
 	GetBatch(objectIDs []string, dstLang string) (map[string]*model.Translation, error)
 	GetAllForObject(objectID string) ([]*model.Translation, error)
 	Save(translation *model.Translation) error
-	GetAllByStatePage(state model.TranslationState, offset, limit int) ([]*model.Translation, error)
 	GetByStateOlderThan(state model.TranslationState, olderThanMillis int64, limit int) ([]*model.Translation, error)
 
 	ClearCaches()
