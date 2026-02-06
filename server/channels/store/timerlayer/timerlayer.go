@@ -7689,6 +7689,22 @@ func (s *TimerLayerPreferenceStore) PermanentDeleteByUser(userID string) error {
 	return err
 }
 
+func (s *TimerLayerPreferenceStore) PushPreferenceToAllUsers(category string, name string, value string, overwriteExisting bool) (int64, error) {
+	start := time.Now()
+
+	result, err := s.PreferenceStore.PushPreferenceToAllUsers(category, name, value, overwriteExisting)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("PreferenceStore.PushPreferenceToAllUsers", success, elapsed)
+	}
+	return result, err
+}
+
 func (s *TimerLayerPreferenceStore) Save(preferences model.Preferences) error {
 	start := time.Now()
 

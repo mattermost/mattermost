@@ -9514,6 +9514,27 @@ func (s *RetryLayerPreferenceStore) PermanentDeleteByUser(userID string) error {
 
 }
 
+func (s *RetryLayerPreferenceStore) PushPreferenceToAllUsers(category string, name string, value string, overwriteExisting bool) (int64, error) {
+
+	tries := 0
+	for {
+		result, err := s.PreferenceStore.PushPreferenceToAllUsers(category, name, value, overwriteExisting)
+		if err == nil {
+			return result, nil
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
 func (s *RetryLayerPreferenceStore) Save(preferences model.Preferences) error {
 
 	tries := 0

@@ -339,6 +339,37 @@ func (s SqlPreferenceStore) GetDistinctPreferences() ([]model.PreferenceKey, err
 	return keys, nil
 }
 
+// PushPreferenceToAllUsers inserts a preference for all active (non-deleted) users.
+// If overwriteExisting is true, existing values are updated; otherwise they are left unchanged.
+func (s SqlPreferenceStore) PushPreferenceToAllUsers(category, name, value string, overwriteExisting bool) (int64, error) {
+	suffix := "ON CONFLICT (userid, category, name) DO NOTHING"
+	if overwriteExisting {
+		suffix = "ON CONFLICT (userid, category, name) DO UPDATE SET Value = ?"
+	}
+
+	var query string
+	var args []any
+	if overwriteExisting {
+		query = "INSERT INTO Preferences (UserId, Category, Name, Value) SELECT Id, ?, ?, ? FROM Users WHERE DeleteAt = 0 " + suffix
+		args = []any{category, name, value, value}
+	} else {
+		query = "INSERT INTO Preferences (UserId, Category, Name, Value) SELECT Id, ?, ?, ? FROM Users WHERE DeleteAt = 0 " + suffix
+		args = []any{category, name, value}
+	}
+
+	result, err := s.GetMaster().Exec(query, args...)
+	if err != nil {
+		return 0, errors.Wrap(err, "failed to push preference to all users")
+	}
+
+	rowsAffected, err := result.RowsAffected()
+	if err != nil {
+		return 0, errors.Wrap(err, "unable to get rows affected")
+	}
+
+	return rowsAffected, nil
+}
+
 // Delete preference for limit_visible_dms_gms where their value is greater than "40" or less than "1"
 func (s SqlPreferenceStore) DeleteInvalidVisibleDmsGms() (int64, error) {
 	var queryString string

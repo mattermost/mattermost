@@ -18,6 +18,7 @@ func (api *API) InitPreference() {
 	api.BaseRoutes.Preferences.Handle("", api.APISessionRequired(updatePreferences)).Methods(http.MethodPut)
 	api.BaseRoutes.Preferences.Handle("/delete", api.APISessionRequired(deletePreferences)).Methods(http.MethodPost)
 	api.BaseRoutes.Preferences.Handle("/discover", api.APISessionRequired(getDistinctPreferences)).Methods(http.MethodGet)
+	api.BaseRoutes.Preferences.Handle("/push", api.APISessionRequired(pushPreferenceToAllUsers)).Methods(http.MethodPost)
 	api.BaseRoutes.Preferences.Handle("/{category:[A-Za-z0-9_]+}", api.APISessionRequired(getPreferencesByCategory)).Methods(http.MethodGet)
 	api.BaseRoutes.Preferences.Handle("/{category:[A-Za-z0-9_]+}/name/{preference_name:[A-Za-z0-9_]+}", api.APISessionRequired(getPreferenceByCategoryAndName)).Methods(http.MethodGet)
 }
@@ -199,6 +200,43 @@ func getDistinctPreferences(c *Context, w http.ResponseWriter, r *http.Request) 
 	}
 
 	if err := json.NewEncoder(w).Encode(keys); err != nil {
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
+	}
+}
+
+// pushPreferenceToAllUsers pushes a preference value into the database for all active users.
+// This sets a default that users can still change later.
+// Requires system admin permission.
+func pushPreferenceToAllUsers(c *Context, w http.ResponseWriter, r *http.Request) {
+	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageSystem) {
+		c.SetPermissionError(model.PermissionManageSystem)
+		return
+	}
+
+	auditRec := c.MakeAuditRecord(model.AuditEventPushPreference, model.AuditStatusFail)
+	defer c.LogAuditRec(auditRec)
+
+	var req model.PushPreferenceRequest
+	if err := model.StructFromJSONLimited(r.Body, &req); err != nil {
+		c.SetInvalidParamWithErr("push_preference_request", err)
+		return
+	}
+
+	if appErr := req.IsValid(); appErr != nil {
+		c.Err = appErr
+		return
+	}
+
+	affected, appErr := c.App.PushPreferenceToAllUsers(req.Category, req.Name, req.Value, req.OverwriteExisting)
+	if appErr != nil {
+		c.Err = appErr
+		return
+	}
+
+	auditRec.Success()
+
+	resp := model.PushPreferenceResponse{AffectedUsers: affected}
+	if err := json.NewEncoder(w).Encode(resp); err != nil {
 		c.Logger.Warn("Error while writing response", mlog.Err(err))
 	}
 }

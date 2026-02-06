@@ -320,6 +320,34 @@ func (_m *PreferenceStore) PermanentDeleteByUser(userID string) error {
 	return r0
 }
 
+// PushPreferenceToAllUsers provides a mock function with given fields: category, name, value, overwriteExisting
+func (_m *PreferenceStore) PushPreferenceToAllUsers(category string, name string, value string, overwriteExisting bool) (int64, error) {
+	ret := _m.Called(category, name, value, overwriteExisting)
+
+	if len(ret) == 0 {
+		panic("no return value specified for PushPreferenceToAllUsers")
+	}
+
+	var r0 int64
+	var r1 error
+	if rf, ok := ret.Get(0).(func(string, string, string, bool) (int64, error)); ok {
+		return rf(category, name, value, overwriteExisting)
+	}
+	if rf, ok := ret.Get(0).(func(string, string, string, bool) int64); ok {
+		r0 = rf(category, name, value, overwriteExisting)
+	} else {
+		r0 = ret.Get(0).(int64)
+	}
+
+	if rf, ok := ret.Get(1).(func(string, string, string, bool) error); ok {
+		r1 = rf(category, name, value, overwriteExisting)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // Save provides a mock function with given fields: preferences
 func (_m *PreferenceStore) Save(preferences model.Preferences) error {
 	ret := _m.Called(preferences)

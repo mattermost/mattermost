@@ -247,6 +247,17 @@ func (a *App) DeletePreferences(rctx request.CTX, userID string, preferences mod
 	return nil
 }
 
+// PushPreferenceToAllUsers pushes a preference value directly into the database for all active users.
+// If overwriteExisting is true, existing values are updated; otherwise only users who don't have
+// the preference yet will get the new value.
+func (a *App) PushPreferenceToAllUsers(category, name, value string, overwriteExisting bool) (int64, *model.AppError) {
+	affected, err := a.Srv().Store().Preference().PushPreferenceToAllUsers(category, name, value, overwriteExisting)
+	if err != nil {
+		return 0, model.NewAppError("PushPreferenceToAllUsers", "app.preference.push.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+	return affected, nil
+}
+
 // GetDistinctPreferences returns all unique preference keys (category:name pairs) from the database.
 // This is used by the admin panel to discover available preferences for override configuration.
 // Requires system admin permission.

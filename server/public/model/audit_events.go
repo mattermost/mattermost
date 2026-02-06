@@ -261,6 +261,7 @@ const (
 const (
 	AuditEventDeletePreferences = "deletePreferences" // delete user preferences
 	AuditEventUpdatePreferences = "updatePreferences" // update user preferences
+	AuditEventPushPreference    = "pushPreference"    // push preference value to all users
 )
 
 // Remote Clusters

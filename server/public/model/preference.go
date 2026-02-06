@@ -136,6 +136,33 @@ type PreferenceKey struct {
 	Values   []string `json:"values,omitempty"`
 }
 
+// PushPreferenceRequest is the request body for the push preference endpoint.
+// It pushes a preference value directly into the database for all users.
+type PushPreferenceRequest struct {
+	Category          string `json:"category"`
+	Name              string `json:"name"`
+	Value             string `json:"value"`
+	OverwriteExisting bool   `json:"overwrite_existing"`
+}
+
+func (r *PushPreferenceRequest) IsValid() *AppError {
+	if r.Category == "" || len(r.Category) > 32 {
+		return NewAppError("PushPreferenceRequest.IsValid", "model.preference.push.invalid_category.app_error", nil, "category="+r.Category, http.StatusBadRequest)
+	}
+	if len(r.Name) > 32 {
+		return NewAppError("PushPreferenceRequest.IsValid", "model.preference.push.invalid_name.app_error", nil, "name="+r.Name, http.StatusBadRequest)
+	}
+	if utf8.RuneCountInString(r.Value) > MaxPreferenceValueLength {
+		return NewAppError("PushPreferenceRequest.IsValid", "model.preference.push.invalid_value.app_error", nil, "value too long", http.StatusBadRequest)
+	}
+	return nil
+}
+
+// PushPreferenceResponse is the response body for the push preference endpoint.
+type PushPreferenceResponse struct {
+	AffectedUsers int64 `json:"affected_users"`
+}
+
 func (o *Preference) IsValid() *AppError {
 	if !IsValidId(o.UserId) {
 		return NewAppError("Preference.IsValid", "model.preference.is_valid.id.app_error", nil, "user_id="+o.UserId, http.StatusBadRequest)

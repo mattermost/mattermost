@@ -2733,6 +2733,17 @@ export default class Client4 {
         );
     };
 
+    /**
+     * Push a preference value to all active users in the database.
+     * Requires system admin permission.
+     */
+    pushPreferenceToAllUsers = (category: string, name: string, value: string, overwriteExisting: boolean) => {
+        return this.doFetch<{affected_users: number}>(
+            `${this.getPreferencesRoute('me')}/push`,
+            {method: 'post', body: JSON.stringify({category, name, value, overwrite_existing: overwriteExisting})},
+        );
+    };
+
     // General Routes
 
     ping = (getServerStatus: boolean, deviceId?: string) => {

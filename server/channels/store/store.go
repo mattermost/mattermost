@@ -699,6 +699,9 @@ type PreferenceStore interface {
 	// GetDistinctPreferences returns all unique category:name pairs from the preferences table,
 	// filtered to user-facing categories only (display_settings, notifications, etc.)
 	GetDistinctPreferences() ([]model.PreferenceKey, error)
+	// PushPreferenceToAllUsers inserts a preference for all active (non-deleted) users.
+	// If overwriteExisting is true, existing values are updated; otherwise they are left unchanged.
+	PushPreferenceToAllUsers(category, name, value string, overwriteExisting bool) (int64, error)
 }
 
 type LicenseStore interface {
