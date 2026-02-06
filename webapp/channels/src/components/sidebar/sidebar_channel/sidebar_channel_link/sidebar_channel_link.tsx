@@ -39,7 +39,7 @@ type Props = WrappedComponentProps & {
     /**
      * Number of unread mentions in this channel
      */
-    unreadMentions: number;
+    unreadMentions?: number;
 
     /**
      * Whether or not the channel is shown as unread
@@ -123,7 +123,7 @@ export class SidebarChannelLink extends React.PureComponent<Props, State> {
     };
 
     getAriaLabel = (): string => {
-        const {label, ariaLabelPrefix, unreadMentions, intl} = this.props;
+        const {label, ariaLabelPrefix, unreadMentions = 0, intl} = this.props;
 
         let ariaLabel = label;
 
@@ -185,7 +185,7 @@ export class SidebarChannelLink extends React.PureComponent<Props, State> {
             isUnread,
             label,
             link,
-            unreadMentions,
+            unreadMentions = 0,
             firstChannelName,
             showChannelsTutorialStep,
             hasUrgent,
