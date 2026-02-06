@@ -201,10 +201,7 @@ func testTemporaryPostGetExpiredPosts(t *testing.T, rctx request.CTX, ss store.S
 			lastPostId = batch[len(batch)-1]
 		}
 
-		// Verify all expired posts were collected
-		for _, id := range expiredPostIDs {
-			require.Contains(t, allCollectedIDs, id)
-		}
+		require.ElementsMatch(t, expiredPostIDs, allCollectedIDs)
 
 		// Cleanup
 		for _, id := range expiredPostIDs {

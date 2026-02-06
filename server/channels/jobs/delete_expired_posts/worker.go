@@ -16,7 +16,7 @@ import (
 
 const (
 	expiredPostsBatchSize        = 100
-	expiredPostsJobBatchWaitTime = 1 * time.Second
+	expiredPostsJobBatchWaitTime = 100 * time.Millisecond
 )
 
 type AppIface interface {
