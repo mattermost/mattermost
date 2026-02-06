@@ -15,9 +15,10 @@ jest.mock('utils/text_formatting', () => ({
     },
 }));
 
-// Mock messageHtmlToComponent to render HTML as React elements
+// Mock messageHtmlToComponent to render HTML as React elements (default export)
 jest.mock('utils/message_html_to_component', () => ({
-    messageHtmlToComponent: (html: string) => {
+    __esModule: true,
+    default: (html: string) => {
         const ReactMock = require('react');
         return ReactMock.createElement('span', {dangerouslySetInnerHTML: {__html: html}});
     },

@@ -11,7 +11,7 @@ import {Client4} from 'mattermost-redux/client';
 import {getUser} from 'mattermost-redux/selectors/entities/users';
 
 import {formatText} from 'utils/text_formatting';
-import {messageHtmlToComponent} from 'utils/message_html_to_component';
+import messageHtmlToComponent from 'utils/message_html_to_component';
 
 import type {GlobalState} from 'types/store';
 
@@ -41,7 +41,7 @@ export default function ThreadRow({thread, onClick}: Props) {
     });
 
     const formattedText = formatText(thread.rootPost.message, {singleline: true});
-    const messagePreview = messageHtmlToComponent(formattedText, false, {
+    const messagePreview = messageHtmlToComponent(formattedText, {
         mentions: false,
     });
 
