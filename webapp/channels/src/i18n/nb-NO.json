@@ -14,7 +14,7 @@
   "about.date": "Bygget:",
   "about.dbversion": "Versjon av databaseskjema:",
   "about.desktopVersion": "Desktop-versjon:",
-  "about.enterpriseEditionLearn": "Finn ut mer om Mattermost {planName} på ",
+  "about.enterpriseEditionLearn": "Les mer om Enterprise Edition på {link}",
   "about.enterpriseEditionSst": "En meldingsløsning for bedriften, som du kan stole på",
   "about.enterpriseEditionSt": "Moderne kommunikasjon bak brannmuren din.",
   "about.hash": "Hash for dette bygget:",

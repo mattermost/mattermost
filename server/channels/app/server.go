@@ -244,7 +244,10 @@ func NewServer(options ...Option) (*Server, error) {
 	}
 
 	// Wrap PropertyService with access control layer to enforce caller-based permissions
-	s.propertyAccessService = NewPropertyAccessService(propertyService)
+	s.propertyAccessService = NewPropertyAccessService(propertyService, func(pluginID string) bool {
+		_, err := s.ch.GetPluginStatus(pluginID)
+		return err == nil
+	})
 
 	// It is important to initialize the hub only after the global logger is set
 	// to avoid race conditions while logging from inside the hub.
@@ -1489,6 +1492,12 @@ func (s *Server) initJobs() {
 	if pushProxyInterface != nil {
 		builder := pushProxyInterface(New(ServerConnector(s.Channels())))
 		s.Jobs.RegisterJobType(model.JobTypePushProxyAuth, builder.MakeWorker(), builder.MakeScheduler())
+	}
+
+	if s.AutoTranslation != nil {
+		s.Jobs.RegisterJobType(model.JobTypeAutoTranslationRecovery,
+			s.AutoTranslation.MakeWorker(),
+			s.AutoTranslation.MakeScheduler())
 	}
 
 	s.Jobs.RegisterJobType(
