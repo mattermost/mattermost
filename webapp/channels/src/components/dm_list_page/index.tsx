@@ -20,7 +20,6 @@ import {ModalIdentifiers} from 'utils/constants';
 import EnhancedDmRow from 'components/enhanced_dm_row';
 import EnhancedGroupDmRow from 'components/enhanced_group_dm_row';
 
-import DmListHeader from './dm_list_header';
 import DmSearchInput from './dm_search_input';
 
 import './dm_list_page.scss';
@@ -129,12 +128,10 @@ const DMListPage = () => {
 
     return (
         <div className='dm-list-page'>
-            <DmListHeader
-                onNewMessageClick={handleNewMessage}
-            />
             <DmSearchInput
                 value={searchTerm}
                 onChange={setSearchTerm}
+                onNewMessageClick={handleNewMessage}
             />
             
             <div className='dm-list-page__list-container'>

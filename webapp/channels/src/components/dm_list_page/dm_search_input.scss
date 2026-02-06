@@ -3,6 +3,9 @@
 
 // Match native SidebarChannelNavigator styling
 .dm-search-input-container {
+    display: flex;
+    align-items: center;
+    gap: 4px;
     margin: 16px 14px 8px;
     flex-shrink: 0;
 }
@@ -10,7 +13,8 @@
 .dm-search-input {
     position: relative;
     display: flex;
-    width: 100%;
+    flex: 1;
+    min-width: 0;
     height: 28px;
     align-items: center;
     padding: 0 5px 0 2px;
@@ -75,5 +79,9 @@
         .icon {
             font-size: 14px;
         }
+    }
+
+    &__add-button {
+        flex-shrink: 0;
     }
 }

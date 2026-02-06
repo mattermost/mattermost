@@ -59,71 +59,14 @@
         }
     }
 
-    &--offline {
-        .enhanced-dm-row__avatar {
-            filter: grayscale(100%);
-            opacity: 0.6;
-        }
-    }
-
-    &__avatar-container {
-        position: relative;
-        display: inline-flex;
-        flex-shrink: 0;
-        width: 28px;
-        height: 28px;
-        align-items: center;
-        align-self: center;
-        margin-right: 10px;
-    }
-
     &__avatar {
-        width: 28px;
-        height: 28px;
-        border-radius: 50%;
-        object-fit: cover;
-    }
+        flex-shrink: 0;
+        margin-right: 6px;
 
-    // Status indicator - sized proportionally to 28px avatar
-    // StatusIcon renders: <span class="status enhanced-dm-row__status"><svg>...</svg></span>
-    &__status.status {
-        position: absolute;
-        right: -4px;
-        bottom: -2px;
-        display: flex;
-        width: 16px;
-        height: 16px;
-        align-items: center;
-        justify-content: center;
-        margin: 0; // Override native .status margin
-        border-radius: 50%;
-        background: var(--sidebar-bg);
-        line-height: 0;
-
-        svg {
-            position: relative;
-            z-index: 1;
-            top: 0;
-            left: 0;
-            width: 10px;
-            height: 10px;
-            max-height: initial;
-        }
-
-        .online--icon {
-            fill: var(--online-indicator);
-        }
-
-        .away--icon {
-            fill: var(--away-indicator);
-        }
-
-        .dnd--icon {
-            fill: var(--dnd-indicator);
-        }
-
-        .offline--icon {
-            fill: var(--offline-indicator);
+        // Override status icon for sidebar context
+        .status-wrapper .status {
+            bottom: -2px;
+            background: var(--sidebar-bg);
         }
     }
 

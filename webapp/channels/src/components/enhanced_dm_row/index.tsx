@@ -18,7 +18,7 @@ import {UserProfile} from '@mattermost/types/users';
 import {getLastPostInChannel} from 'selectors/views/guilded_layout';
 import {getRelativeTimestamp} from 'utils/datetime';
 
-import StatusIcon from 'components/status_icon';
+import ProfilePicture from 'components/profile_picture';
 
 import './enhanced_dm_row.scss';
 
@@ -60,19 +60,15 @@ const EnhancedDmRow = ({channel, user, isActive, onDmClick}: Props) => {
             className={classNames('enhanced-dm-row', {
                 'enhanced-dm-row--active': isActive,
                 'enhanced-dm-row--unread': isUnread,
-                'enhanced-dm-row--offline': userStatus === 'offline',
             })}
             onClick={onDmClick}
         >
-            <div className='enhanced-dm-row__avatar-container'>
-                <img
-                    className='enhanced-dm-row__avatar'
-                    src={avatarUrl}
-                    alt={`${user.username} avatar`}
-                />
-                <StatusIcon
-                    className='enhanced-dm-row__status status--bottom-right'
+            <div className='enhanced-dm-row__avatar'>
+                <ProfilePicture
+                    size='sm'
                     status={userStatus}
+                    src={avatarUrl}
+                    username={user.username}
                 />
             </div>
 

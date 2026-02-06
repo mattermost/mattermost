@@ -202,9 +202,12 @@ describe('EnhancedDmRow', () => {
             </Provider>,
         );
 
-        const avatar = container.querySelector('.enhanced-dm-row__avatar');
-        expect(avatar).toBeInTheDocument();
-        expect(avatar).toHaveAttribute('alt', 'testuser avatar');
+        const avatarContainer = container.querySelector('.enhanced-dm-row__avatar');
+        expect(avatarContainer).toBeInTheDocument();
+
+        // ProfilePicture renders an Avatar img inside status-wrapper
+        const avatarImg = avatarContainer?.querySelector('img.Avatar');
+        expect(avatarImg).toBeInTheDocument();
     });
 
     it('displays user nickname or username', () => {
@@ -318,7 +321,7 @@ describe('EnhancedDmRow', () => {
         expect(preview?.textContent).toContain('Hello there!');
     });
 
-    it('status icon has correct bottom positioning class', () => {
+    it('renders status icon via ProfilePicture', () => {
         const store = mockStore(baseState);
         const {container} = render(
             <Provider store={store}>
@@ -332,11 +335,11 @@ describe('EnhancedDmRow', () => {
             </Provider>,
         );
 
-        // Current bug: Status is too high.
-        // Fix will add a class like 'status--bottom-right' or update styles.
-        // Test expects a class on the status icon container or the icon itself.
-        // Assuming there is a status element.
+        // ProfilePicture renders status inside a status-wrapper container
+        const statusWrapper = container.querySelector('.status-wrapper');
+        expect(statusWrapper).toBeInTheDocument();
+
         const status = container.querySelector('.status');
-        expect(status).toHaveClass('status--bottom-right');
+        expect(status).toBeInTheDocument();
     });
 });

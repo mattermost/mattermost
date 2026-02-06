@@ -4,15 +4,20 @@
 import React from 'react';
 import {useIntl} from 'react-intl';
 
+import {PlusIcon} from '@mattermost/compass-icons/components';
+
+import WithTooltip from 'components/with_tooltip';
+
 import './dm_search_input.scss';
 
 type Props = {
     value: string;
     onChange: (value: string) => void;
+    onNewMessageClick: () => void;
     placeholder?: string;
 };
 
-const DmSearchInput = ({value, onChange, placeholder}: Props) => {
+const DmSearchInput = ({value, onChange, onNewMessageClick, placeholder}: Props) => {
     const intl = useIntl();
 
     const handleClear = () => {
@@ -40,6 +45,17 @@ const DmSearchInput = ({value, onChange, placeholder}: Props) => {
                     </button>
                 )}
             </div>
+            <WithTooltip
+                title={intl.formatMessage({id: 'guilded_layout.dm_list.new_message', defaultMessage: 'New Message'})}
+            >
+                <button
+                    className='btn btn-icon btn-sm btn-tertiary btn-inverted btn-round dm-search-input__add-button'
+                    onClick={onNewMessageClick}
+                    aria-label='New Message'
+                >
+                    <PlusIcon size={18}/>
+                </button>
+            </WithTooltip>
         </div>
     );
 };

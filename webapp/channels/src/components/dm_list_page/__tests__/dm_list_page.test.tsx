@@ -82,7 +82,6 @@ jest.mock('utils/constants', () => ({
 }));
 
 // Mock child components
-jest.mock('../dm_list_header', () => (props: any) => <div data-testid="dm-list-header">Header</div>);
 jest.mock('../dm_search_input', () => (props: any) => <input data-testid="dm-search-input" />);
 jest.mock('components/enhanced_dm_row', () => ({channel}: any) => (
     <div data-testid={`dm-row-${channel.id}`}>{channel.name}</div>
