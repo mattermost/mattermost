@@ -45,7 +45,7 @@
     "@anthropic-ai/sdk": "^0.72.1",
     "@axe-core/playwright": "4.11.0",
     "@mattermost/client": "file:../../../webapp/platform/client",
-    "@yasserkhanorg/e2e-agents": "^0.1.0",
+    "e2e-ai-agents": "^0.2.0",
     "@mattermost/types": "file:../../../webapp/platform/types",
     "@percy/cli": "1.31.8",
     "@percy/playwright": "1.0.10",

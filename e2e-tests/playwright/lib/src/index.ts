@@ -72,9 +72,9 @@ export {TestArgs, ScreenshotOptions} from './types';
 // Autonomous testing exports
 export {SpecBridge, createAnthropicBridge, createOllamaBridge} from './spec-bridge';
 export {SpecificationParser} from './autonomous/spec_parser';
-export {LLMProviderFactory} from '@yasserkhanorg/e2e-agents';
+export {LLMProviderFactory} from 'e2e-ai-agents';
 
 // Export types separately to satisfy isolatedModules
 export type {SpecBridgeConfig, ConversionResult} from './spec-bridge';
-export type {LLMProvider, ProviderConfig, HybridConfig} from '@yasserkhanorg/e2e-agents';
+export type {LLMProvider, ProviderConfig, HybridConfig} from 'e2e-ai-agents';
 export type {FeatureSpecification, BusinessScenario, SpecScreenshot} from './autonomous/types';

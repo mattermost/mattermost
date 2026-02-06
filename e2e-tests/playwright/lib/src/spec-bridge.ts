@@ -27,8 +27,8 @@ import {writeFileSync, mkdirSync, existsSync} from 'fs';
 import {join, basename} from 'path';
 
 import {SpecificationParser} from './autonomous/spec_parser';
-import {LLMProviderFactory} from '@yasserkhanorg/e2e-agents';
-import type {LLMProvider, ProviderConfig, HybridConfig} from '@yasserkhanorg/e2e-agents';
+import {LLMProviderFactory} from 'e2e-ai-agents';
+import type {LLMProvider, ProviderConfig, HybridConfig} from 'e2e-ai-agents';
 import type {FeatureSpecification, BusinessScenario} from './autonomous/types';
 
 /**
