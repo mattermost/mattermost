@@ -961,22 +961,6 @@ func (s *TimerLayerAutoTranslationStore) InvalidateUserLocaleCache(userID string
 	}
 }
 
-func (s *TimerLayerAutoTranslationStore) IsChannelEnabled(channelID string) (bool, error) {
-	start := time.Now()
-
-	result, err := s.AutoTranslationStore.IsChannelEnabled(channelID)
-
-	elapsed := float64(time.Since(start)) / float64(time.Second)
-	if s.Root.Metrics != nil {
-		success := "false"
-		if err == nil {
-			success = "true"
-		}
-		s.Root.Metrics.ObserveStoreMethodDuration("AutoTranslationStore.IsChannelEnabled", success, elapsed)
-	}
-	return result, err
-}
-
 func (s *TimerLayerAutoTranslationStore) IsUserEnabled(userID string, channelID string) (bool, error) {
 	start := time.Now()
 
@@ -1005,22 +989,6 @@ func (s *TimerLayerAutoTranslationStore) Save(translation *model.Translation) er
 			success = "true"
 		}
 		s.Root.Metrics.ObserveStoreMethodDuration("AutoTranslationStore.Save", success, elapsed)
-	}
-	return err
-}
-
-func (s *TimerLayerAutoTranslationStore) SetChannelEnabled(channelID string, enabled bool) error {
-	start := time.Now()
-
-	err := s.AutoTranslationStore.SetChannelEnabled(channelID, enabled)
-
-	elapsed := float64(time.Since(start)) / float64(time.Second)
-	if s.Root.Metrics != nil {
-		success := "false"
-		if err == nil {
-			success = "true"
-		}
-		s.Root.Metrics.ObserveStoreMethodDuration("AutoTranslationStore.SetChannelEnabled", success, elapsed)
 	}
 	return err
 }

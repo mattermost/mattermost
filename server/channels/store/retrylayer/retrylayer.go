@@ -1037,27 +1037,6 @@ func (s *RetryLayerAutoTranslationStore) InvalidateUserLocaleCache(userID string
 
 }
 
-func (s *RetryLayerAutoTranslationStore) IsChannelEnabled(channelID string) (bool, error) {
-
-	tries := 0
-	for {
-		result, err := s.AutoTranslationStore.IsChannelEnabled(channelID)
-		if err == nil {
-			return result, nil
-		}
-		if !isRepeatableError(err) {
-			return result, err
-		}
-		tries++
-		if tries >= 3 {
-			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
-			return result, err
-		}
-		timepkg.Sleep(100 * timepkg.Millisecond)
-	}
-
-}
-
 func (s *RetryLayerAutoTranslationStore) IsUserEnabled(userID string, channelID string) (bool, error) {
 
 	tries := 0
@@ -1084,27 +1063,6 @@ func (s *RetryLayerAutoTranslationStore) Save(translation *model.Translation) er
 	tries := 0
 	for {
 		err := s.AutoTranslationStore.Save(translation)
-		if err == nil {
-			return nil
-		}
-		if !isRepeatableError(err) {
-			return err
-		}
-		tries++
-		if tries >= 3 {
-			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
-			return err
-		}
-		timepkg.Sleep(100 * timepkg.Millisecond)
-	}
-
-}
-
-func (s *RetryLayerAutoTranslationStore) SetChannelEnabled(channelID string, enabled bool) error {
-
-	tries := 0
-	for {
-		err := s.AutoTranslationStore.SetChannelEnabled(channelID, enabled)
 		if err == nil {
 			return nil
 		}
