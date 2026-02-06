@@ -240,6 +240,10 @@ export type ClientConfig = {
     EnableAttributeBasedAccessControl: string;
     EnableChannelScopeAccessControl: string;
     EnableUserManagedAttributes: string;
+
+    // Auto Translation Settings
+    EnableAutoTranslation: string;
+    RestrictDMAndGMAutotranslation: string;
 };
 
 export type License = {
@@ -767,6 +771,7 @@ export type AutoTranslationSettings = {
         LLMServiceID: string;
     };
     TimeoutMs: number;
+    RestrictDMAndGM: boolean;
 };
 
 export type SamlSettings = {

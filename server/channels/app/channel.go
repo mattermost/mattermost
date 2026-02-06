@@ -978,7 +978,7 @@ func (a *App) PatchChannel(rctx request.CTX, channel *model.Channel, patch *mode
 	}
 
 	if channel.AutoTranslation != oldChannelAutotranslation {
-		if err = a.PostUpdateChannelAutotranslationMessage(rctx, userID, channel, oldChannelAutotranslation, channel.AutoTranslation); err != nil {
+		if err = a.postUpdateChannelAutotranslationMessage(rctx, userID, channel, channel.AutoTranslation); err != nil {
 			rctx.Logger().Warn(err.Error())
 		}
 	}
@@ -1990,7 +1990,7 @@ func (a *App) PostUpdateChannelPurposeMessage(rctx request.CTX, userID string, c
 	return nil
 }
 
-func (a *App) PostUpdateChannelAutotranslationMessage(rctx request.CTX, userID string, channel *model.Channel, oldChannelAutotranslation, newChannelAutotranslation bool) *model.AppError {
+func (a *App) postUpdateChannelAutotranslationMessage(rctx request.CTX, userID string, channel *model.Channel, newChannelAutotranslation bool) *model.AppError {
 	user, err := a.Srv().Store().User().Get(context.Background(), userID)
 	if err != nil {
 		return model.NewAppError("PostUpdateChannelAutotranslationMessage", "api.channel.post_update_channel_autotranslation_message.retrieve_user.error", nil, "", http.StatusBadRequest).Wrap(err)
