@@ -26,9 +26,11 @@ jest.mock('react-redux', () => ({
 }));
 
 // Mock child components
-jest.mock('../rhs_tab_bar', () => ({activeTab, onTabChange}: any) => (
+jest.mock('../rhs_tab_bar', () => ({activeTab, onTabChange, memberCount, threadCount}: any) => (
     <div data-testid='rhs-tab-bar'>
         <span>{`active: ${activeTab}`}</span>
+        <span>{`memberCount: ${memberCount}`}</span>
+        <span>{`threadCount: ${threadCount}`}</span>
         <button onClick={() => onTabChange('members')}>Members</button>
         <button onClick={() => onTabChange('threads')}>Threads</button>
     </div>
@@ -70,12 +72,14 @@ describe('PersistentRhs', () => {
     });
 
     it('returns null for 1:1 DM channels', () => {
-        // channel, activeTab, selectedThreadId, threadRootPost
+        // channel, activeTab, selectedThreadId, threadRootPost, stats, threads
         mockSelectorValues = [
             {id: 'dm1', type: 'D'},
             'members',
             null,
             null,
+            {member_count: 2},
+            [],
         ];
 
         const store = mockStore(baseState);
@@ -89,11 +93,14 @@ describe('PersistentRhs', () => {
     });
 
     it('shows GroupDmParticipants for group DM channels', () => {
+        // channel, activeTab, selectedThreadId, threadRootPost, stats, threads
         mockSelectorValues = [
             {id: 'gm1', type: 'G'},
             'members',
             null,
             null,
+            {member_count: 3},
+            [],
         ];
 
         const store = mockStore(baseState);
@@ -108,11 +115,14 @@ describe('PersistentRhs', () => {
     });
 
     it('shows Members/Threads tabs for regular channel when no thread selected', () => {
+        // channel, activeTab, selectedThreadId, threadRootPost, stats, threads
         mockSelectorValues = [
             {id: 'channel1', type: 'O'},
             'members',
             null, // no selected thread
             null,
+            {member_count: 16},
+            [{id: 't1'}, {id: 't2'}],
         ];
 
         const store = mockStore(baseState);
@@ -125,14 +135,21 @@ describe('PersistentRhs', () => {
         expect(screen.getByTestId('rhs-tab-bar')).toBeInTheDocument();
         expect(screen.getByTestId('members-tab')).toBeInTheDocument();
         expect(screen.queryByTestId('followers-tab')).not.toBeInTheDocument();
+
+        // Verify counts are passed to tab bar
+        expect(screen.getByText('memberCount: 16')).toBeInTheDocument();
+        expect(screen.getByText('threadCount: 2')).toBeInTheDocument();
     });
 
     it('shows ThreadsTab when threads tab is active', () => {
+        // channel, activeTab, selectedThreadId, threadRootPost, stats, threads
         mockSelectorValues = [
             {id: 'channel1', type: 'O'},
             'threads',
             null,
             null,
+            {member_count: 5},
+            [{id: 't1'}],
         ];
 
         const store = mockStore(baseState);
@@ -147,11 +164,14 @@ describe('PersistentRhs', () => {
     });
 
     it('shows FollowersTab when a thread is selected', () => {
+        // channel, activeTab, selectedThreadId, threadRootPost, stats, threads
         mockSelectorValues = [
             {id: 'channel1', type: 'O'},
             'members',
             'thread123', // selected thread
             {id: 'thread123', channel_id: 'channel1', message: 'hello'}, // root post
+            {member_count: 10},
+            [],
         ];
 
         const store = mockStore(baseState);
@@ -172,11 +192,14 @@ describe('PersistentRhs', () => {
     });
 
     it('falls back to Members/Threads when thread selected but root post not loaded', () => {
+        // channel, activeTab, selectedThreadId, threadRootPost, stats, threads
         mockSelectorValues = [
             {id: 'channel1', type: 'O'},
             'members',
             'thread123', // selected thread
             null, // root post not yet loaded
+            {member_count: 8},
+            [],
         ];
 
         const store = mockStore(baseState);

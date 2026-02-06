@@ -11,7 +11,7 @@ import {CloseIcon} from '@mattermost/compass-icons/components';
 import {Client4} from 'mattermost-redux/client';
 import {getMyChannelMember} from 'mattermost-redux/selectors/entities/channels';
 import {getCurrentTeamUrl} from 'mattermost-redux/selectors/entities/teams';
-import {getUser} from 'mattermost-redux/selectors/entities/users';
+import {getCurrentUserId, getUser} from 'mattermost-redux/selectors/entities/users';
 
 import {GlobalState} from 'types/store';
 import {Channel} from '@mattermost/types/channels';
@@ -32,6 +32,7 @@ type Props = {
 
 const EnhancedGroupDmRow = ({channel, users, isActive, onDmClick, onClose}: Props) => {
     const currentTeamUrl = useSelector(getCurrentTeamUrl);
+    const currentUserId = useSelector(getCurrentUserId);
     const member = useSelector((state: GlobalState) => getMyChannelMember(state, channel.id));
     
     // Last post selectors
@@ -52,9 +53,11 @@ const EnhancedGroupDmRow = ({channel, users, isActive, onDmClick, onClose}: Prop
     };
 
     // Last message preview text
+    // In group DMs: show "You: " for own messages, username for others
     let previewText = 'No messages yet';
     if (lastPost) {
-        const prefix = lastPostUser ? `${lastPostUser.username}: ` : '';
+        const isOwnMessage = lastPost.user_id === currentUserId;
+        const prefix = isOwnMessage ? 'You: ' : (lastPostUser ? `${lastPostUser.username}: ` : '');
         previewText = `${prefix}${lastPost.message}`;
     }
 

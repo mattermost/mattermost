@@ -24,6 +24,11 @@
         cursor: pointer;
         transition: background-color 0.12s ease, color 0.12s ease;
 
+        &--wide {
+            padding: 0 8px;
+            gap: 2px;
+        }
+
         &:hover {
             background-color: rgba(var(--center-channel-color-rgb), 0.08);
             color: rgba(var(--center-channel-color-rgb), 0.8); // Match channel-header__icon hover
@@ -47,5 +52,22 @@
                 height: 16px;
             }
         }
+
+        .icon-discord-thread {
+            display: inline-block;
+            width: 18px;
+            height: 18px;
+            background-color: currentcolor;
+            mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath d='M5 4h9M2 6l3 2-3 2M8 8h6M5 12h9' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' fill='none'/%3E%3C/svg%3E");
+            mask-position: center;
+            mask-repeat: no-repeat;
+            mask-size: contain;
+        }
+    }
+
+    &__count {
+        font-size: 12px;
+        font-weight: 600;
+        line-height: 16px;
     }
 }

@@ -11,7 +11,7 @@ import {CloseIcon} from '@mattermost/compass-icons/components';
 import {Client4} from 'mattermost-redux/client';
 import {getMyChannelMember} from 'mattermost-redux/selectors/entities/channels';
 import {getCurrentRelativeTeamUrl} from 'mattermost-redux/selectors/entities/teams';
-import {getUser, getStatusForUserId} from 'mattermost-redux/selectors/entities/users';
+import {getCurrentUserId, getUser, getStatusForUserId} from 'mattermost-redux/selectors/entities/users';
 
 import {GlobalState} from 'types/store';
 import {Channel} from '@mattermost/types/channels';
@@ -34,6 +34,7 @@ type Props = {
 
 const EnhancedDmRow = ({channel, user, isActive, onDmClick, onClose}: Props) => {
     const currentTeamUrl = useSelector(getCurrentRelativeTeamUrl);
+    const currentUserId = useSelector(getCurrentUserId);
     const member = useSelector((state: GlobalState) => getMyChannelMember(state, channel.id));
     const userStatus = useSelector((state: GlobalState) => getStatusForUserId(state, user.id)) || 'offline';
 
@@ -57,9 +58,11 @@ const EnhancedDmRow = ({channel, user, isActive, onDmClick, onClose}: Props) => 
     const avatarUrl = Client4.getProfilePictureUrl(user.id, user.last_picture_update);
 
     // Last message preview text
+    // In 1-on-1 DMs: show "You: " for own messages, no prefix for the other person
     let previewText = 'No messages yet';
     if (lastPost) {
-        const prefix = lastPostUser ? `${lastPostUser.username}: ` : '';
+        const isOwnMessage = lastPost.user_id === currentUserId;
+        const prefix = isOwnMessage ? 'You: ' : '';
         previewText = `${prefix}${lastPost.message}`;
     }
 

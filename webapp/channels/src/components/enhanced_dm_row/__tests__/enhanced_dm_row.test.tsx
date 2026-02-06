@@ -282,7 +282,7 @@ describe('EnhancedDmRow', () => {
         expect(preview?.textContent).toBe('No messages yet');
     });
 
-    it('shows message preview when last post exists', () => {
+    it('shows message preview without prefix when last post is from the other user', () => {
         const stateWithPost = {
             ...baseState,
             entities: {
@@ -318,7 +318,46 @@ describe('EnhancedDmRow', () => {
         );
 
         const preview = container.querySelector('.enhanced-dm-row__preview');
-        expect(preview?.textContent).toContain('Hello there!');
+        expect(preview?.textContent).toBe('Hello there!');
+    });
+
+    it('shows "You: " prefix when last post is from the current user', () => {
+        const stateWithOwnPost = {
+            ...baseState,
+            entities: {
+                ...baseState.entities,
+                posts: {
+                    posts: {
+                        post1: {
+                            id: 'post1',
+                            channel_id: 'dm1',
+                            user_id: 'user1',
+                            message: 'Hey!',
+                            create_at: 1000,
+                        },
+                    },
+                    postsInChannel: {
+                        dm1: [{order: ['post1'], recent: true}],
+                    },
+                },
+            },
+        };
+
+        const store = mockStore(stateWithOwnPost);
+        const {container} = render(
+            <Provider store={store}>
+                <BrowserRouter>
+                    <EnhancedDmRow
+                        channel={mockChannel}
+                        user={mockUser}
+                        isActive={false}
+                    />
+                </BrowserRouter>
+            </Provider>,
+        );
+
+        const preview = container.querySelector('.enhanced-dm-row__preview');
+        expect(preview?.textContent).toBe('You: Hey!');
     });
 
     it('renders status icon via ProfilePicture', () => {

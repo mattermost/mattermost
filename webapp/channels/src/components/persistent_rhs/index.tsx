@@ -4,10 +4,11 @@
 import React, {useCallback} from 'react';
 import {useDispatch, useSelector} from 'react-redux';
 
-import {getCurrentChannel} from 'mattermost-redux/selectors/entities/channels';
+import {getCurrentChannel, getCurrentChannelStats} from 'mattermost-redux/selectors/entities/channels';
 import {getPost} from 'mattermost-redux/selectors/entities/posts';
 
 import {setRhsTab} from 'actions/views/guilded_layout';
+import {getThreadsInChannel} from 'selectors/views/guilded_layout';
 import {getSelectedThreadIdInCurrentTeam} from 'selectors/views/threads';
 import Constants from 'utils/constants';
 
@@ -28,6 +29,12 @@ export default function PersistentRhs() {
     const activeTab = useSelector((state: GlobalState) => state.views.guildedLayout.rhsActiveTab);
     const selectedThreadId = useSelector(getSelectedThreadIdInCurrentTeam);
     const threadRootPost = useSelector((state: GlobalState) => selectedThreadId ? getPost(state, selectedThreadId) : null);
+    const stats = useSelector(getCurrentChannelStats);
+    const memberCount = stats?.member_count || 0;
+    const threads = useSelector((state: GlobalState) =>
+        (channel ? getThreadsInChannel(state, channel.id) : []),
+    );
+    const threadCount = threads.length;
 
     const handleTabChange = useCallback((tab: 'members' | 'threads') => {
         dispatch(setRhsTab(tab));
@@ -73,6 +80,8 @@ export default function PersistentRhs() {
             <RhsTabBar
                 activeTab={activeTab}
                 onTabChange={handleTabChange}
+                memberCount={memberCount}
+                threadCount={threadCount}
             />
             <div className='persistent-rhs__content'>
                 {activeTab === 'members' ? (
