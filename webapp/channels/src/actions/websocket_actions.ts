@@ -99,7 +99,7 @@ import {
     getCurrentChannel,
     getCurrentChannelId,
     getRedirectChannelNameForTeam,
-    getMyChannelMember as getMyChannelMemberInternal,
+    hasAutotranslationBecomeEnabled,
 } from 'mattermost-redux/selectors/entities/channels';
 import {getIsUserStatusesConfigEnabled} from 'mattermost-redux/selectors/entities/common';
 import {getConfig, getLicense} from 'mattermost-redux/selectors/entities/general';
@@ -731,8 +731,7 @@ export function handleChannelUpdatedEvent(msg: WebSocketMessages.ChannelUpdated)
                 actions.push({type: ChannelTypes.GM_CONVERTED_TO_CHANNEL, data: channel});
             }
 
-            // If autotranslation was disabled, delete posts for this channel
-            if (existingChannel.autotranslation && !channel.autotranslation) {
+            if (hasAutotranslationBecomeEnabled(state, channel)) {
                 doDispatch(resetReloadPostsInChannel(channel.id));
             }
         }
@@ -754,14 +753,13 @@ function handleChannelMemberUpdatedEvent(msg: WebSocketMessages.ChannelMemberUpd
         doDispatch(loadRolesIfNeeded(roles));
 
         const state = doGetState();
-        const existingMember = getMyChannelMemberInternal(state, channelMember.channel_id);
-
-        // If user autotranslation changed, delete posts for this channel
-        if (existingMember && existingMember.autotranslation_disabled !== channelMember.autotranslation_disabled) {
-            doDispatch(resetReloadPostsInChannel(channelMember.channel_id));
-        }
+        const becameEnabled = hasAutotranslationBecomeEnabled(state, channelMember);
 
         doDispatch({type: ChannelTypes.RECEIVED_MY_CHANNEL_MEMBER, data: channelMember});
+
+        if (becameEnabled) {
+            doDispatch(resetReloadPostsInChannel(channelMember.channel_id));
+        }
     };
 }
 
@@ -1270,7 +1268,8 @@ export async function handleUserUpdatedEvent(msg: WebSocketMessages.UserUpdated)
             });
             dispatch(loadRolesIfNeeded(user.roles.split(' ')));
         }
-        if (user.locale !== currentUser.locale) {
+        const autotranslationIsEnabled = getConfig(state)?.EnableAutoTranslation === 'true';
+        if (autotranslationIsEnabled && user.locale !== currentUser.locale) {
             dispatch(resetReloadPostsInTranslatedChannels());
         }
     } else {
@@ -1465,9 +1464,9 @@ function handleConfigChanged(msg: WebSocketMessages.ConfigChanged) {
 
     // Check if EnableAutoTranslation changed from enabled to disabled
     const enableAutoTranslationWasEnabled = currentConfig?.EnableAutoTranslation === 'true';
-    const enableAutoTranslationIsDisabled = newConfig?.EnableAutoTranslation !== 'true';
+    const enableAutoTranslationIsEnabled = newConfig?.EnableAutoTranslation === 'true';
 
-    if (enableAutoTranslationWasEnabled && enableAutoTranslationIsDisabled) {
+    if (!enableAutoTranslationWasEnabled && enableAutoTranslationIsEnabled) {
         dispatch(resetReloadPostsInTranslatedChannels());
     }
 

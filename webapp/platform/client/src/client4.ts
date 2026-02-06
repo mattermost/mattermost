@@ -1755,7 +1755,7 @@ export default class Client4 {
     };
 
     setMyChannelAutotranslation = (channelId: string, enabled: boolean) => {
-        return this.doFetch<ChannelMembership>(
+        return this.doFetch<StatusOK>(
             `${this.getChannelMemberRoute(channelId, 'me')}/autotranslation`,
             {method: 'put', body: JSON.stringify({autotranslation_disabled: !enabled})},
         );
