@@ -42,6 +42,7 @@ export default function MemberRow({user, status, isAdmin}: Props) {
             userId={user.id}
             src={userProfileSrc}
             hideStatus={user.is_bot}
+            placement='left-start'
         >
             <div className='member-row__avatar'>
                 <ProfilePicture

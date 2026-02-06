@@ -11,10 +11,12 @@ import {
     useInteractions,
     useRole,
     shift,
+    offset,
     FloatingFocusManager,
     FloatingOverlay,
     FloatingPortal,
 } from '@floating-ui/react';
+import type {Placement} from '@floating-ui/react';
 import classNames from 'classnames';
 import type {HtmlHTMLAttributes, ReactNode} from 'react';
 import React, {useCallback, useState} from 'react';
@@ -80,6 +82,12 @@ interface Props<TriggerComponentType> {
     returnFocus?: () => void;
 
     onToggle?: (isMounted: boolean) => void;
+
+    /**
+     * Fixed placement for the popover. When set, disables autoPlacement and
+     * positions the popover at the given side (e.g. 'left', 'left-start').
+     */
+    placement?: Placement;
 }
 
 export function ProfilePopoverController<TriggerComponentType = HTMLSpanElement>(props: Props<TriggerComponentType>) {
@@ -96,11 +104,16 @@ export function ProfilePopoverController<TriggerComponentType = HTMLSpanElement>
 
     const [isOpen, setOpen] = useState(false);
 
+    const middleware = props.placement
+        ? [offset(4), shift()]
+        : [autoPlacement(), shift()];
+
     const {refs, floatingStyles, context: floatingContext} = useFloating({
         open: isOpen,
         onOpenChange: setOpen,
+        placement: props.placement,
         whileElementsMounted: autoUpdate,
-        middleware: [autoPlacement(), shift()],
+        middleware,
     });
 
     const {isMounted, styles: transitionStyles} = useTransitionStyles(floatingContext, TRANSITION_STYLE_PROPS);
