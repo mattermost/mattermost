@@ -27,6 +27,7 @@ func TestPreferenceStore(t *testing.T, rctx request.CTX, ss store.Store, s SqlSt
 	t.Run("PreferenceDeleteOrphanedRows", func(t *testing.T) { testPreferenceDeleteOrphanedRows(t, rctx, ss) })
 	t.Run("PreferenceCleanupFlagsBatch", func(t *testing.T) { testPreferenceCleanupFlagsBatch(t, rctx, ss) })
 	t.Run("PreferenceDeleteInvalidVisibleDmsGms", func(t *testing.T) { testDeleteInvalidVisibleDmsGms(t, rctx, ss, s) })
+	t.Run("PushPreferenceToAllUsers", func(t *testing.T) { testPushPreferenceToAllUsers(t, rctx, ss) })
 }
 
 func testPreferenceSave(t *testing.T, _ request.CTX, ss store.Store) {
@@ -642,4 +643,90 @@ func testDeleteInvalidVisibleDmsGms(t *testing.T, _ request.CTX, ss store.Store,
 	preference, err = ss.Preference().Get(userId4, category, name)
 	require.NoError(t, err)
 	require.Equal(t, &preferences[6], preference)
+}
+
+func testPushPreferenceToAllUsers(t *testing.T, rctx request.CTX, ss store.Store) {
+	// Create real users for the test
+	user1 := &model.User{Email: model.NewId() + "@test.com", Username: "push_test_" + model.NewId(), Password: "passwd1"}
+	user2 := &model.User{Email: model.NewId() + "@test.com", Username: "push_test_" + model.NewId(), Password: "passwd1"}
+	user3 := &model.User{Email: model.NewId() + "@test.com", Username: "push_test_" + model.NewId(), Password: "passwd1", DeleteAt: 1000}
+
+	u1, err := ss.User().Save(rctx, user1)
+	require.NoError(t, err)
+	u2, err := ss.User().Save(rctx, user2)
+	require.NoError(t, err)
+	u3, err := ss.User().Save(rctx, user3)
+	require.NoError(t, err)
+
+	category := model.PreferenceCategoryDisplaySettings
+	name := "push_test_pref"
+
+	t.Run("push to all users without overwrite", func(t *testing.T) {
+		affected, err := ss.Preference().PushPreferenceToAllUsers(category, name, "value1", false)
+		require.NoError(t, err)
+		assert.Greater(t, affected, int64(0), "should have affected at least some users")
+
+		// Verify user1 got the preference
+		pref, err := ss.Preference().Get(u1.Id, category, name)
+		require.NoError(t, err)
+		assert.Equal(t, "value1", pref.Value)
+
+		// Verify user2 got the preference
+		pref, err = ss.Preference().Get(u2.Id, category, name)
+		require.NoError(t, err)
+		assert.Equal(t, "value1", pref.Value)
+
+		// Verify deleted user3 did NOT get the preference
+		_, err = ss.Preference().Get(u3.Id, category, name)
+		require.Error(t, err, "deleted user should not have the preference")
+	})
+
+	t.Run("push without overwrite should not change existing values", func(t *testing.T) {
+		// User1 already has "value1" from the previous test
+		affected, err := ss.Preference().PushPreferenceToAllUsers(category, name, "value2", false)
+		require.NoError(t, err)
+		_ = affected // may be 0 if all active users already have it
+
+		// User1's value should still be "value1" (not overwritten)
+		pref, err := ss.Preference().Get(u1.Id, category, name)
+		require.NoError(t, err)
+		assert.Equal(t, "value1", pref.Value, "existing value should not be overwritten")
+	})
+
+	t.Run("push with overwrite should update existing values", func(t *testing.T) {
+		affected, err := ss.Preference().PushPreferenceToAllUsers(category, name, "value3", true)
+		require.NoError(t, err)
+		assert.Greater(t, affected, int64(0), "should have affected users")
+
+		// Both users should now have "value3"
+		pref, err := ss.Preference().Get(u1.Id, category, name)
+		require.NoError(t, err)
+		assert.Equal(t, "value3", pref.Value, "value should be overwritten")
+
+		pref, err = ss.Preference().Get(u2.Id, category, name)
+		require.NoError(t, err)
+		assert.Equal(t, "value3", pref.Value, "value should be overwritten")
+	})
+
+	t.Run("push only affects the specified preference", func(t *testing.T) {
+		otherName := "push_test_other"
+
+		// Set a different preference for user1
+		err := ss.Preference().Save(model.Preferences{{
+			UserId:   u1.Id,
+			Category: category,
+			Name:     otherName,
+			Value:    "original",
+		}})
+		require.NoError(t, err)
+
+		// Push to the first preference name - should not affect otherName
+		_, err = ss.Preference().PushPreferenceToAllUsers(category, name, "pushed", true)
+		require.NoError(t, err)
+
+		// otherName should still have its original value
+		pref, err := ss.Preference().Get(u1.Id, category, otherName)
+		require.NoError(t, err)
+		assert.Equal(t, "original", pref.Value, "other preference should not be affected")
+	})
 }

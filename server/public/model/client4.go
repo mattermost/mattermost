@@ -4445,6 +4445,17 @@ func (c *Client4) DeletePreferences(ctx context.Context, userId string, preferen
 	return BuildResponse(r), nil
 }
 
+// PushPreferenceToAllUsers pushes a preference value to all active users.
+// Requires system admin permission.
+func (c *Client4) PushPreferenceToAllUsers(ctx context.Context, req *PushPreferenceRequest) (*PushPreferenceResponse, *Response, error) {
+	r, err := c.DoAPIPostJSON(ctx, c.preferencesRoute("me")+"/push", req)
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+	return DecodeJSONFromResponse[*PushPreferenceResponse](r)
+}
+
 // GetPreferencesByCategory returns the user's preferences from the provided category string.
 func (c *Client4) GetPreferencesByCategory(ctx context.Context, userId string, category string) (Preferences, *Response, error) {
 	url := fmt.Sprintf(c.preferencesRoute(userId)+"/%s", category)

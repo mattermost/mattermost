@@ -988,6 +988,75 @@ func TestDeleteSidebarPreferences(t *testing.T) {
 	})
 }
 
+func TestPushPreferenceToAllUsers(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+
+	t.Run("non-admin user should be forbidden", func(t *testing.T) {
+		th.LoginBasic(t)
+		req := &model.PushPreferenceRequest{
+			Category: model.PreferenceCategoryDisplaySettings,
+			Name:     "use_military_time",
+			Value:    "true",
+		}
+		_, resp, err := th.Client.PushPreferenceToAllUsers(context.Background(), req)
+		require.Error(t, err)
+		CheckForbiddenStatus(t, resp)
+	})
+
+	t.Run("unauthenticated should be unauthorized", func(t *testing.T) {
+		_, err := th.Client.Logout(context.Background())
+		require.NoError(t, err)
+		req := &model.PushPreferenceRequest{
+			Category: model.PreferenceCategoryDisplaySettings,
+			Name:     "use_military_time",
+			Value:    "true",
+		}
+		_, resp, err := th.Client.PushPreferenceToAllUsers(context.Background(), req)
+		require.Error(t, err)
+		CheckUnauthorizedStatus(t, resp)
+	})
+
+	t.Run("admin should succeed", func(t *testing.T) {
+		req := &model.PushPreferenceRequest{
+			Category:          model.PreferenceCategoryDisplaySettings,
+			Name:              "use_military_time",
+			Value:             "true",
+			OverwriteExisting: false,
+		}
+		result, resp, err := th.SystemAdminClient.PushPreferenceToAllUsers(context.Background(), req)
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+		require.NotNil(t, result)
+		assert.GreaterOrEqual(t, result.AffectedUsers, int64(0))
+	})
+
+	t.Run("admin push with overwrite", func(t *testing.T) {
+		req := &model.PushPreferenceRequest{
+			Category:          model.PreferenceCategoryDisplaySettings,
+			Name:              "use_military_time",
+			Value:             "false",
+			OverwriteExisting: true,
+		}
+		result, resp, err := th.SystemAdminClient.PushPreferenceToAllUsers(context.Background(), req)
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+		require.NotNil(t, result)
+		assert.Greater(t, result.AffectedUsers, int64(0), "overwrite should affect users")
+	})
+
+	t.Run("invalid request - empty category", func(t *testing.T) {
+		req := &model.PushPreferenceRequest{
+			Category: "",
+			Name:     "use_military_time",
+			Value:    "true",
+		}
+		_, resp, err := th.SystemAdminClient.PushPreferenceToAllUsers(context.Background(), req)
+		require.Error(t, err)
+		CheckBadRequestStatus(t, resp)
+	})
+}
+
 func TestUpdateLimitVisibleDMsGMs(t *testing.T) {
 	mainHelper.Parallel(t)
 	t.Run("Update limit_visible_dms_gms to a valid value", func(t *testing.T) {
