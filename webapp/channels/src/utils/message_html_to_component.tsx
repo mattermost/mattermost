@@ -303,6 +303,29 @@ export default function messageHtmlToComponent(html: string, options: Options = 
         });
     }
 
+    // Handle inline code to prevent double-escaping of HTML entities
+    // When html-to-react parses <code>&lt;</code>, it extracts the text "&lt;"
+    // React then escapes it again to "&amp;lt;" which displays as "&lt;" instead of "<"
+    // We need to decode entities in text nodes inside code blocks so React's escaping produces the correct result
+    processingInstructions.push({
+        replaceChildren: false,
+        shouldProcessNode: (node: any) => {
+            // Match text nodes that are children of code elements
+            return node.type === 'text' && node.parent && node.parent.name === 'code';
+        },
+        processNode: (node: any) => {
+            // Decode HTML entities in the text content
+            const decoded = node.data.
+                replace(/&lt;/g, '<').
+                replace(/&gt;/g, '>').
+                replace(/&quot;/g, '"').
+                replace(/&#39;/g, "'").
+                replace(/&amp;/g, '&');
+
+            return decoded;
+        },
+    });
+
     processingInstructions.push({
         replaceChildren: false,
         shouldProcessNode: () => true,
