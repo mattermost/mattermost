@@ -31,6 +31,7 @@ export default {
         '@percy/playwright',
         'dotenv',
         'luxon',
+        'e2e-ai-agents',
         'node:fs/promises',
         'node:path',
         'node:fs',
