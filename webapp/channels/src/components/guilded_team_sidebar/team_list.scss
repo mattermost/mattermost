@@ -4,7 +4,7 @@
 .team-list {
     position: relative;
     display: flex;
-    overflow: hidden;
+    min-height: 0;
     height: 100%;
     flex: 1;
     flex-direction: column;
@@ -16,7 +16,6 @@
     &__team {
         position: relative;
         display: flex;
-        overflow: hidden;
         width: 42px;
         height: 42px;
         align-items: center;
@@ -26,37 +25,16 @@
         margin-left: auto;
         padding: 0;
         border: none;
-        border-radius: 8px;
+        border-radius: 50%;
         background-color: rgba(var(--sidebar-text-rgb), 0.08);
         color: var(--sidebar-header-text-color);
         cursor: pointer;
         font-weight: bold;
         text-align: center;
-        transform-origin: center center;
-        transition: transform 0.1s, background-color 0.2s, border-radius 0.2s;
 
-        &:hover {
-            background-color: rgba(var(--sidebar-text-rgb), 0.16);
-            border-radius: 16px;
-        }
-
-        &:active {
-            transform: scale(0.95);
-        }
-
-        // Active state - pill style with accent background (same as DM button)
+        // Active state - circle with no background change
         &--active {
-            border-radius: 16px;
-            background-color: var(--sidebar-text-active-border);
-
-            &:hover {
-                background-color: var(--sidebar-text-active-border);
-            }
-
-            // For initials, invert color
-            .team-list__initials {
-                color: var(--sidebar-teambar-bg);
-            }
+            background-color: rgba(var(--sidebar-text-rgb), 0.08);
         }
 
         img {
@@ -65,6 +43,17 @@
             border-radius: inherit;
             object-fit: cover;
         }
+    }
+
+    &__active-indicator {
+        position: absolute;
+        top: 50%;
+        left: -8px;
+        width: 4px;
+        height: 20px;
+        border-radius: 4px;
+        background: var(--sidebar-text);
+        transform: translateY(-50%);
     }
 
     &__initials {

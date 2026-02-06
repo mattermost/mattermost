@@ -8,35 +8,19 @@
     height: 42px;
     align-items: center;
     justify-content: center;
-    border-radius: 8px;
+    border-radius: 50%;
     margin-top: 2px;
     background-color: rgba(var(--sidebar-text-rgb), 0.08);
     color: var(--sidebar-header-text-color);
     cursor: pointer;
-    transition: transform 0.1s, background-color 0.2s, border-radius 0.2s;
 
     .icon {
         font-size: 20px;
     }
 
-    &:hover {
-        background-color: rgba(var(--sidebar-text-rgb), 0.16);
-        border-radius: 16px;
-    }
-
-    &:active {
-        transform: scale(0.95);
-    }
-
-    // Active state - pill style with accent background
+    // Active state - subtle overlay, no color inversion
     &--active {
-        border-radius: 16px;
-        background-color: var(--sidebar-text-active-border);
-        color: var(--sidebar-teambar-bg);
-
-        &:hover {
-            background-color: var(--sidebar-text-active-border);
-        }
+        background-color: rgba(var(--sidebar-text-rgb), 0.16);
     }
 
     &__active-indicator {

@@ -61,6 +61,7 @@ export default function TeamList({onTeamClick}: Props) {
                             {getTeamInitials(team.display_name)}
                         </span>
                     )}
+                    {team.id === currentTeamId && <span className='team-list__active-indicator'/>}
                 </button>
             ))}
         </div>

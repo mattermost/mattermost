@@ -70,6 +70,7 @@ export default function FavoritedTeams({onTeamClick, onExpandClick}: Props) {
                             {getTeamInitials(team.display_name)}
                         </span>
                     )}
+                    {team.id === currentTeamId && <span className='favorited-teams__active-indicator'/>}
                 </button>
             ))}
             <button
