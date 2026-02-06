@@ -10,13 +10,6 @@ import MembersTab from '../members_tab';
 
 const mockStore = configureStore([]);
 
-// Mock react-virtualized-auto-sizer
-jest.mock('react-virtualized-auto-sizer', () => ({
-    __esModule: true,
-    default: ({children}: {children: (size: {height: number; width: number}) => React.ReactNode}) =>
-        children({height: 500, width: 300}),
-}));
-
 // Mock react-redux
 let mockChannel: any = null;
 let mockGroupedMembers: any = null;
