@@ -130,7 +130,7 @@ func (a *App) populatePostListTranslations(rctx request.CTX, list *model.PostLis
 			continue
 		}
 
-		translationsMap, err := a.AutoTranslation().GetBatch(postIDs, userLang)
+		translationsMap, err := a.AutoTranslation().GetBatch(model.TranslationObjectTypePost, postIDs, userLang)
 		if err != nil {
 			var notAvailErr *model.ErrAutoTranslationNotAvailable
 			if errors.As(err, &notAvailErr) {
