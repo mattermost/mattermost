@@ -1,0 +1,51 @@
+{
+  "name": "@mattermost/llm-testing-providers",
+  "version": "0.1.0",
+  "description": "Framework-agnostic LLM provider library for autonomous testing. Supports Anthropic Claude, Ollama, and custom providers.",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "license": "Apache-2.0",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "require": "./dist/index.js",
+      "import": "./dist/index.js"
+    }
+  },
+  "files": [
+    "dist",
+    "README.md"
+  ],
+  "scripts": {
+    "build": "tsc",
+    "clean": "rm -rf dist",
+    "prebuild": "npm run clean"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.28.0",
+    "openai": "^4.52.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "typescript": "^5.0.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/mattermost/mattermost.git",
+    "directory": "packages/llm-testing-providers"
+  },
+  "keywords": [
+    "llm",
+    "testing",
+    "playwright",
+    "anthropic",
+    "claude",
+    "ollama",
+    "autonomous-testing",
+    "e2e",
+    "ai"
+  ],
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}

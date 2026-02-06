@@ -31,31 +31,73 @@ application behavior.
        For following plan:
 
     ```markdown file=specs/plan.md
-    ### 1. Adding New Todos
+    ### 1. Posting Messages to Channel
 
     **Seed:** `specs/functional/ai-assisted/seed.spec.ts`
 
-    #### 1.1 Add Valid Todo
+    #### 1.1 Post Message to Public Channel
 
     **Steps:**
 
-    1. Click in the "What needs to be done?" input field
+    1. Navigate to a public channel
+    2. Click in the message input field
+    3. Type a message "Test message from E2E"
+    4. Click Send button
+    5. Verify message appears in channel
 
-    #### 1.2 Add Multiple Todos
+    #### 1.2 Post Message with Auto-Translation Enabled
+
+    **Steps:**
+
+    1. Verify auto-translation is enabled for the channel
+    2. Post a message in English
+    3. Verify message appears with translation indicator
+    4. Verify translated text matches expected language
 
     ...
     ```
 
     Following file is generated:
 
-    ```ts file=add-valid-todo.spec.ts
+    ```ts file=post-message-to-channel.spec.ts
     // spec: specs/plan.md
     // seed: specs/functional/ai-assisted/seed.spec.ts
 
-    test.describe('Adding New Todos', () => {
-      test('Add Valid Todo', async { page } => {
-        // 1. Click in the "What needs to be done?" input field
-        await page.click(...);
+    test.describe('Posting Messages to Channel', () => {
+      test('Post Message to Public Channel', async ({ page }) => {
+        // Navigate to a public channel
+        const channelsPage = new ChannelsPage(page);
+        await channelsPage.navigateToChannel('Test Channel');
+
+        // Click in the message input field
+        const messageComposer = new MessageComposerComponent(page);
+        await messageComposer.clickInputField();
+
+        // Type a message "Test message from E2E"
+        await messageComposer.typeMessage('Test message from E2E');
+
+        // Click Send button
+        await messageComposer.clickSendButton();
+
+        // Verify message appears in channel
+        const messagesView = new MessagesViewComponent(page);
+        await expect(messagesView.getMessageByText('Test message from E2E')).toBeVisible();
+      });
+
+      test('Post Message with Auto-Translation Enabled', async ({ page }) => {
+        // Verify auto-translation is enabled for the channel
+        const channelInfo = new ChannelInfoComponent(page);
+        await expect(channelInfo.getAutoTranslationIndicator()).toBeVisible();
+
+        // Post a message in English
+        const messageComposer = new MessageComposerComponent(page);
+        await messageComposer.typeMessage('Hello from automated test');
+        await messageComposer.clickSendButton();
+
+        // Verify message appears with translation indicator
+        const messagesView = new MessagesViewComponent(page);
+        const message = messagesView.getMessageByText('Hello from automated test');
+        await expect(message.locator('[data-testid="translation-indicator"]')).toBeVisible();
 
         ...
       });

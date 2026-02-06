@@ -414,6 +414,100 @@ These scenarios were extracted from the PDF specification. Your task is to:
 
 ---
 
+---
+
+## Feature: Core Messaging (Critical Path)
+
+**Description**: Basic message posting and retrieval — foundational for all other features.
+
+**Priority**: critical
+
+### Scenarios
+
+#### Scenario 1: User posts message to public channel
+
+**Priority**: must-have
+
+**Given**: User is member of a public channel
+**When**: User types message in input and clicks Send
+**Then**: Message appears in channel immediately with sender name and timestamp
+
+#### Scenario 2: User posts message to direct message
+
+**Priority**: must-have
+
+**Given**: User has open DM with another user
+**When**: User types and sends message
+**Then**: Message appears in conversation, other user receives notification
+
+#### Scenario 3: User creates thread reply
+
+**Priority**: must-have
+
+**Given**: Channel has message with replies enabled
+**When**: User clicks reply, types message, clicks Send in thread
+**Then**: Reply appears in thread RHS and thread preview shows updated count
+
+#### Scenario 4: Edit message after posting
+
+**Priority**: must-have
+
+**Given**: User has posted a message
+**When**: User clicks message options, clicks Edit, modifies text, clicks Save
+**Then**: Message updates immediately, "Edited" label appears on message
+
+#### Scenario 5: Delete message
+
+**Priority**: must-have
+
+**Given**: User has posted a message
+**When**: User clicks message options, clicks Delete, confirms
+**Then**: Message disappears from channel, confirmation toast appears
+
+---
+
+## Feature: Channel Management
+
+**Description**: Creating and managing channels — essential for workspace organization.
+
+**Priority**: critical
+
+### Scenarios
+
+#### Scenario 1: Create public channel
+
+**Priority**: must-have
+
+**Given**: User is team member
+**When**: User clicks "+" next to channels, selects "Create new channel", enters name, clicks Create
+**Then**: Channel appears in sidebar, user is added as member, channel is public
+
+#### Scenario 2: Create private channel
+
+**Priority**: must-have
+
+**Given**: User is team member
+**When**: User creates channel with "Make private" option checked
+**Then**: Channel appears with lock icon, requires invite for others to join
+
+#### Scenario 3: Add member to channel
+
+**Priority**: must-have
+
+**Given**: User is channel admin, channel exists
+**When**: User opens channel info, clicks "Add Members", searches and selects user, clicks Add
+**Then**: User is added to channel, appears in members list, notification is sent
+
+#### Scenario 4: Change channel topic/description
+
+**Priority**: should-have
+
+**Given**: User is channel admin
+**When**: User opens channel info, clicks Edit, updates topic, clicks Save
+**Then**: Topic displays in channel header, members see update
+
+---
+
 ## Framework Context
 
 Mattermost E2E Framework follows these conventions:

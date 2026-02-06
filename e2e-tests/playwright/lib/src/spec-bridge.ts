@@ -27,8 +27,8 @@ import {writeFileSync, mkdirSync, existsSync} from 'fs';
 import {join, basename} from 'path';
 
 import {SpecificationParser} from './autonomous/spec_parser';
-import {LLMProviderFactory} from './autonomous/llm';
-import type {LLMProvider, ProviderConfig, HybridConfig} from './autonomous/llm';
+import {LLMProviderFactory} from '@mattermost/llm-testing-providers';
+import type {LLMProvider, ProviderConfig, HybridConfig} from '@mattermost/llm-testing-providers';
 import type {FeatureSpecification, BusinessScenario} from './autonomous/types';
 
 /**
