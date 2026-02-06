@@ -572,6 +572,14 @@
     "translation": "You are not allowed to update the name, display_name, and purpose of direct or group messages."
   },
   {
+    "id": "api.channel.update_channel_member_autotranslation.channel_not_enabled.app_error",
+    "translation": "Auto-translation is not enabled for this channel."
+  },
+  {
+    "id": "api.channel.update_channel_member_autotranslation.feature_not_available.app_error",
+    "translation": "Auto-translation is not available."
+  },
+  {
     "id": "api.channel.update_channel_member_roles.changing_guest_role.app_error",
     "translation": "Invalid channel member update: You can't add or remove the guest role manually."
   },
@@ -1914,6 +1922,10 @@
     "translation": "Server is busy, non-critical services are temporarily unavailable."
   },
   {
+    "id": "api.context.session_cookie_not_allowed.app_error",
+    "translation": "Cookie-based authentication is not allowed for this endpoint. Please use header-based authentication."
+  },
+  {
     "id": "api.context.session_expired.app_error",
     "translation": "Invalid or expired session, please login again."
   },
@@ -3145,10 +3157,6 @@
   {
     "id": "api.server.cws.disabled",
     "translation": "Interactions with the Mattermost Customer Portal have been disabled by the system admin."
-  },
-  {
-    "id": "api.server.cws.health_check.app_error",
-    "translation": "CWS Server is not available."
   },
   {
     "id": "api.server.cws.needs_enterprise_edition",
@@ -9909,6 +9917,10 @@
     "translation": "Invalid timeout for autotranslation settings. Must be a positive number."
   },
   {
+    "id": "model.config.is_valid.autotranslation.workers.app_error",
+    "translation": "Workers must be between 1 and 32."
+  },
+  {
     "id": "model.config.is_valid.cache_type.app_error",
     "translation": "Cache type must be either lru or redis."
   },
@@ -11710,11 +11722,11 @@
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.chrome",
-    "translation": "Version 142+"
+    "translation": "Version 144+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.edge",
-    "translation": "Version 142+"
+    "translation": "Version 144+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.firefox",

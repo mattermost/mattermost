@@ -3980,10 +3980,6 @@
     "translation": "Nebudete dostávat upozornění pro {{.Channel}}, dokud nevypnete ztlumení."
   },
   {
-    "id": "api.command_mute.not_member.error",
-    "translation": "Nelze ztlumit kanál {{.Channel}}, protože nejste členem."
-  },
-  {
     "id": "api.command_mute.no_channel.error",
     "translation": "Zadaný kanál nebyl nalezen. Použijte prosím [identifikátor kanálu](https://docs.mattermost.com/messaging/managing-channels.html#naming-a-channel) k určení kanálů."
   },
@@ -10666,10 +10662,6 @@
   {
     "id": "app.pap.unassign_access_control_policy_from_channels.app_error",
     "translation": "Nepodařilo se odebrat přiřazení pravidla řízení přístupu z kanálů."
-  },
-  {
-    "id": "app.pap.update_access_control_policy_active.app_error",
-    "translation": "Nepodařilo se změnit aktivní stav pravidla řízení přístupu."
   },
   {
     "id": "app.pdp.access_evaluation.app_error",

@@ -5,29 +5,38 @@ import {Page} from '@playwright/test';
 
 import {test} from '@mattermost/playwright-lib';
 
-test('MM-T5654_1 should be able to add attachments while editing a post', async ({pw}) => {
+/**
+ * @objective Verify that users can edit a post and modify its content
+ */
+test('MM-T5654_1 should be able to add attachments while editing a post', {tag: '@smoke'}, async ({pw}) => {
     const originalMessage = 'Lorem ipsum dolor sit amet, consectetur adipiscing elit';
 
+    // # Initialize user and login
     const {user} = await pw.initSetup();
     const {channelsPage} = await pw.testBrowser.login(user);
 
+    // # Navigate to channels page and post a message
     await channelsPage.goto();
     await channelsPage.toBeVisible();
     await channelsPage.postMessage(originalMessage);
 
+    // # Hover over the last post to reveal the post menu
     const post = await channelsPage.getLastPost();
     await post.toBeVisible();
     await post.hover();
     await post.postMenu.toBeVisible();
 
-    // open the dot menu
+    // # Open the dot menu and click edit
     await post.postMenu.dotMenuButton.click();
     await channelsPage.postDotMenu.toBeVisible();
     await channelsPage.postDotMenu.editMenuItem.click();
+
+    // # Edit the message and send
     await channelsPage.centerView.postEdit.toBeVisible();
     await channelsPage.centerView.postEdit.writeMessage('Edited message');
     await channelsPage.centerView.postEdit.sendMessage();
 
+    // * Verify the post was updated with the edited message
     const updatedPost = await channelsPage.getLastPost();
     await updatedPost.toBeVisible();
     await updatedPost.toContainText('Edited message');
