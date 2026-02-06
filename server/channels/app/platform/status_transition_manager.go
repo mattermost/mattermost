@@ -114,6 +114,11 @@ func (m *StatusTransitionManager) getOrCreateStatus(userID, channelID string, no
 
 // checkTransitionBlocked returns a reason string if the transition should be blocked, empty string otherwise
 func (m *StatusTransitionManager) checkTransitionBlocked(status *model.Status, opts StatusTransitionOptions) string {
+	// Status pause: block all non-manual transitions for paused users
+	if !opts.Manual && m.ps.IsUserStatusPaused(opts.UserID) {
+		return "status_paused"
+	}
+
 	// Away is blocked for DND users who went Offline (preserves DND restoration)
 	if opts.NewStatus == model.StatusAway && status.Status == model.StatusOffline && status.PrevStatus == model.StatusDnd {
 		return "away_blocked_dnd_offline"
@@ -128,7 +133,8 @@ func (m *StatusTransitionManager) checkTransitionBlocked(status *model.Status, o
 	// Manual status is protected from automatic changes
 	if status.Manual && !opts.Manual && !opts.Force {
 		// Exception: NoOffline allows Offline->Online even if manual
-		if m.ps.Config().FeatureFlags.NoOffline && status.Status == model.StatusOffline && opts.NewStatus == model.StatusOnline {
+		// But not if user is invisible (allowed to stay offline)
+		if m.ps.Config().FeatureFlags.NoOffline && status.Status == model.StatusOffline && opts.NewStatus == model.StatusOnline && !m.ps.IsUserInvisible(opts.UserID) {
 			return "" // Allow this transition
 		}
 		// Exception: DND/OOO users can go Offline automatically (inactivity timeout)
@@ -155,6 +161,10 @@ func (m *StatusTransitionManager) resolveNewStatus(status *model.Status, opts St
 
 // updateActivityOnly updates activity fields without changing status
 func (m *StatusTransitionManager) updateActivityOnly(status *model.Status, opts StatusTransitionOptions, now int64) {
+	// Status pause: skip LastActivityAt update for paused users
+	if m.ps.IsUserStatusPaused(opts.UserID) {
+		return
+	}
 	if opts.WindowActive || opts.ChannelID != "" {
 		status.LastActivityAt = now
 	}
@@ -166,7 +176,11 @@ func (m *StatusTransitionManager) updateActivityOnly(status *model.Status, opts 
 // applyTransition modifies the status object with the new state
 func (m *StatusTransitionManager) applyTransition(status *model.Status, oldStatus, newStatus string, opts StatusTransitionOptions, now int64, dndRestored bool) {
 	status.Status = newStatus
-	status.LastActivityAt = now
+
+	// Status pause: don't update LastActivityAt for paused users (even on manual changes)
+	if !m.ps.IsUserStatusPaused(opts.UserID) {
+		status.LastActivityAt = now
+	}
 
 	if opts.ChannelID != "" {
 		status.ActiveChannel = opts.ChannelID

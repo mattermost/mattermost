@@ -26,6 +26,7 @@ import BugAlertButton from './bug_alert_button';
 import PlanUpgradeButton from './plan_upgrade_button';
 import SavedPostsButton from './saved_posts_button/saved_posts_button';
 import SettingsButton from './settings_button';
+import StatusPauseButton from './status_pause_button';
 
 const RightControlsContainer = styled.div`
     display: flex;
@@ -75,6 +76,7 @@ const RightControls = ({productId = null}: Props): JSX.Element => {
                     pluggableId={productId}
                 />
             )}
+            <StatusPauseButton/>
             <BugAlertButton/>
             <StyledCustomizeYourExperienceTour id='CustomizeYourExperienceTour'>
                 {

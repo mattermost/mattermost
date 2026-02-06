@@ -17,6 +17,53 @@ import (
 	"github.com/mattermost/mattermost/server/v8/platform/services/cache"
 )
 
+// isUserInAllowedList checks if a user (by ID) is in a comma-separated list of usernames.
+func (ps *PlatformService) isUserInAllowedList(userID string, csvList string) bool {
+	if csvList == "" {
+		return false
+	}
+	user, err := ps.Store.User().Get(context.Background(), userID)
+	if err != nil {
+		return false
+	}
+	for _, username := range strings.Split(csvList, ",") {
+		if strings.TrimSpace(username) == user.Username {
+			return true
+		}
+	}
+	return false
+}
+
+// IsUserStatusPaused checks if a user has status pause enabled.
+// The user must be in the StatusPauseAllowedUsers list AND have set the
+// "mattermost_extended:status_paused" preference to "true".
+func (ps *PlatformService) IsUserStatusPaused(userID string) bool {
+	allowedUsers := *ps.Config().MattermostExtendedSettings.Statuses.StatusPauseAllowedUsers
+	if !ps.isUserInAllowedList(userID, allowedUsers) {
+		return false
+	}
+	pref, err := ps.Store.Preference().Get(userID, "mattermost_extended", "status_paused")
+	if err != nil {
+		return false
+	}
+	return pref.Value == "true"
+}
+
+// IsUserInvisible checks if a user is currently invisible.
+// The user must be in the InvisibilityAllowedUsers list AND have manually set
+// themselves to Offline status.
+func (ps *PlatformService) IsUserInvisible(userID string) bool {
+	allowedUsers := *ps.Config().MattermostExtendedSettings.Statuses.InvisibilityAllowedUsers
+	if !ps.isUserInAllowedList(userID, allowedUsers) {
+		return false
+	}
+	status, err := ps.GetStatus(userID)
+	if err != nil {
+		return false
+	}
+	return status.Status == model.StatusOffline && status.Manual
+}
+
 // StatusTransitionManager returns the centralized status transition manager.
 // This is only used when AccurateStatuses is enabled.
 func (ps *PlatformService) StatusTransitionManager() *StatusTransitionManager {
@@ -268,6 +315,11 @@ func (ps *PlatformService) GetStatus(userID string) (*model.Status, *model.AppEr
 // status to away if needed. Used by the WS to set status to away if an 'online' device disconnects
 // while an 'away' device is still connected
 func (ps *PlatformService) SetStatusLastActivityAt(userID string, activityAt int64) {
+	// Status pause: skip LastActivityAt updates for paused users
+	if ps.IsUserStatusPaused(userID) {
+		return
+	}
+
 	var status *model.Status
 	var err *model.AppError
 	if status, err = ps.GetStatus(userID); err != nil {
@@ -291,6 +343,11 @@ func (ps *PlatformService) SetStatusLastActivityAt(userID string, activityAt int
 }
 
 func (ps *PlatformService) UpdateLastActivityAtIfNeeded(session model.Session) {
+	// Status pause: skip LastActivityAt updates for paused users
+	if ps.IsUserStatusPaused(session.UserId) {
+		return
+	}
+
 	now := model.GetMillis()
 
 	ps.UpdateWebConnUserActivity(session, now)
@@ -338,6 +395,11 @@ func (ps *PlatformService) UpdateActivityFromManualAction(userID string, channel
 
 	// Only process if AccurateStatuses feature is enabled
 	if !ps.Config().FeatureFlags.AccurateStatuses {
+		return
+	}
+
+	// Status pause: skip all activity tracking for paused users
+	if ps.IsUserStatusPaused(userID) {
 		return
 	}
 
@@ -390,7 +452,8 @@ func (ps *PlatformService) UpdateActivityFromManualAction(userID string, channel
 	}
 
 	// Handle NoOffline: If user is offline, set them online (even if manual)
-	if ps.Config().FeatureFlags.NoOffline && oldStatus == model.StatusOffline {
+	// But skip if user is invisible (allowed to be offline even with NoOffline)
+	if ps.Config().FeatureFlags.NoOffline && oldStatus == model.StatusOffline && !ps.IsUserInvisible(userID) {
 		newStatus = model.StatusOnline
 		statusChanged = true
 		status.Status = newStatus
@@ -493,6 +556,16 @@ func (ps *PlatformService) SetOnlineIfNoOffline(userID string, channelID string,
 
 	// Only process if NoOffline feature is enabled
 	if !ps.Config().FeatureFlags.NoOffline {
+		return
+	}
+
+	// Status pause: don't auto-set online for paused users
+	if ps.IsUserStatusPaused(userID) {
+		return
+	}
+
+	// Invisibility: don't override offline for invisible users
+	if ps.IsUserInvisible(userID) {
 		return
 	}
 
@@ -1091,6 +1164,11 @@ func (ps *PlatformService) UpdateActivityFromHeartbeat(userID string, windowActi
 		return
 	}
 
+	// Status pause: skip all heartbeat processing for paused users
+	if ps.IsUserStatusPaused(userID) {
+		return
+	}
+
 	now := model.GetMillis()
 
 	status, err := ps.GetStatus(userID)
@@ -1163,7 +1241,8 @@ func (ps *PlatformService) UpdateActivityFromHeartbeat(userID string, windowActi
 		// Handle non-DND, non-OOO statuses
 
 		// NoOffline feature: If user is offline but showing manual activity, set them online
-		if ps.Config().FeatureFlags.NoOffline && status.Status == model.StatusOffline && isManualActivity {
+		// But skip if user is invisible (allowed to be offline even with NoOffline)
+		if ps.Config().FeatureFlags.NoOffline && status.Status == model.StatusOffline && isManualActivity && !ps.IsUserInvisible(userID) {
 			newStatus = model.StatusOnline
 			status.Manual = false
 		}

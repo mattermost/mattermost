@@ -79,6 +79,14 @@ type MattermostExtendedStatusesSettings struct {
 	// Number of days to retain status logs in the database (default: 7)
 	// Set to 0 to disable automatic cleanup (logs kept forever)
 	StatusLogRetentionDays *int
+
+	// Comma-separated usernames that can pause their status tracking.
+	// When paused, LastActivityAt freezes and auto-status transitions are disabled.
+	StatusPauseAllowedUsers *string
+
+	// Comma-separated usernames that can set themselves Offline even with NoOffline enabled.
+	// Their LastActivityAt still updates normally — they just appear Offline to others.
+	InvisibilityAllowedUsers *string
 }
 
 // MattermostExtendedPreferencesSettings contains settings for admin preference overrides.
@@ -153,6 +161,12 @@ func (s *MattermostExtendedStatusesSettings) SetDefaults() {
 	}
 	if s.StatusLogRetentionDays == nil {
 		s.StatusLogRetentionDays = NewPointer(7)
+	}
+	if s.StatusPauseAllowedUsers == nil {
+		s.StatusPauseAllowedUsers = NewPointer("")
+	}
+	if s.InvisibilityAllowedUsers == nil {
+		s.InvisibilityAllowedUsers = NewPointer("")
 	}
 }
 

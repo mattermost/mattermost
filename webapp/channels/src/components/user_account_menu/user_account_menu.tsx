@@ -120,7 +120,7 @@ export default function UserAccountMenu(props: Props) {
                 timezone={props.timezone}
                 isStatusDnd={props.status === UserStatuses.DND}
             />
-            {!props.isNoOfflineEnabled && (
+            {(!props.isNoOfflineEnabled || props.isInvisibilityAllowed) && (
                 <UserAccountOfflineMenuItem
                     userId={props.userId}
                     shouldConfirmBeforeStatusChange={shouldConfirmBeforeStatusChange}
