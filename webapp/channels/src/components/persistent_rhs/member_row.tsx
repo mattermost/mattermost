@@ -48,7 +48,6 @@ export default function MemberRow({user, status, isAdmin}: Props) {
                     size='sm'
                     status={status}
                     isBot={user.is_bot}
-                    userId={user.id}
                     username={displayName}
                     src={userProfileSrc}
                 />
