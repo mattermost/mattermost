@@ -10,6 +10,9 @@ import type {Post} from '@mattermost/types/posts';
 import {Client4} from 'mattermost-redux/client';
 import {getUser} from 'mattermost-redux/selectors/entities/users';
 
+import {formatText} from 'utils/text_formatting';
+import {messageHtmlToComponent} from 'utils/message_html_to_component';
+
 import type {GlobalState} from 'types/store';
 
 import './thread_row.scss';
@@ -37,9 +40,10 @@ export default function ThreadRow({thread, onClick}: Props) {
             filter(Boolean);
     });
 
-    // Truncate message preview
-    const messagePreview = thread.rootPost.message.slice(0, 100) +
-        (thread.rootPost.message.length > 100 ? '...' : '');
+    const formattedText = formatText(thread.rootPost.message, {singleline: true});
+    const messagePreview = messageHtmlToComponent(formattedText, false, {
+        mentions: false,
+    });
 
     return (
         <div
@@ -55,6 +59,9 @@ export default function ThreadRow({thread, onClick}: Props) {
                 <div className='thread-row__meta'>
                     <span className='thread-row__reply-count'>
                         {thread.replyCount} {thread.replyCount === 1 ? 'reply' : 'replies'}
+                    </span>
+                    <span className='thread-row__follower-count'>
+                        {thread.participants.length} {thread.participants.length === 1 ? 'follower' : 'followers'}
                     </span>
                     {thread.hasUnread && (
                         <span className='thread-row__unread-dot' />

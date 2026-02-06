@@ -1,15 +1,17 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {useMemo, useState, useCallback} from 'react';
+import React, {useMemo, useState, useCallback, useEffect, useRef} from 'react';
 import {useDispatch, useSelector} from 'react-redux';
 import {FormattedMessage} from 'react-intl';
+import {useHistory} from 'react-router-dom';
 import {FixedSizeList, ListChildComponentProps} from 'react-window';
 import AutoSizer from 'react-virtualized-auto-sizer';
 
 import {getCurrentChannelId} from 'mattermost-redux/selectors/entities/channels';
+import {getCurrentRelativeTeamUrl} from 'mattermost-redux/selectors/entities/teams';
+import {getPosts} from 'mattermost-redux/actions/posts';
 
-import {setDmMode} from 'actions/views/guilded_layout';
 import {openModal} from 'actions/views/modals';
 import {getAllDmChannelsWithUsers} from 'selectors/views/guilded_layout';
 import MoreDirectChannels from 'components/more_direct_channels';
@@ -23,14 +25,41 @@ import DmSearchInput from './dm_search_input';
 
 import './dm_list_page.scss';
 
-const ROW_HEIGHT = 64;
+const ROW_HEIGHT = 48;
 
 const DMListPage = () => {
     const dispatch = useDispatch();
+    const history = useHistory();
     const currentChannelId = useSelector(getCurrentChannelId);
+    const currentTeamUrl = useSelector(getCurrentRelativeTeamUrl);
     const allDms = useSelector(getAllDmChannelsWithUsers);
+    const hasFetchedPosts = useRef(false);
+    const hasAutoSelected = useRef(false);
 
     const [searchTerm, setSearchTerm] = useState('');
+
+    // Fetch latest post for each DM channel (once on mount)
+    useEffect(() => {
+        if (!hasFetchedPosts.current && allDms.length > 0) {
+            hasFetchedPosts.current = true;
+            allDms.forEach((dm) => {
+                dispatch(getPosts(dm.channel.id, 0, 1));
+            });
+        }
+    }, [dispatch, allDms]);
+
+    // Auto-select the most recent DM on mount
+    useEffect(() => {
+        if (!hasAutoSelected.current && allDms.length > 0 && currentTeamUrl) {
+            hasAutoSelected.current = true;
+            const firstDm = allDms[0];
+            if (firstDm.type === 'dm') {
+                history.push(`${currentTeamUrl}/messages/@${firstDm.user.username}`);
+            } else {
+                history.push(`${currentTeamUrl}/messages/${firstDm.channel.name}`);
+            }
+        }
+    }, [allDms, currentTeamUrl, history]);
 
     const filteredDms = useMemo(() => {
         if (!searchTerm) {
@@ -60,10 +89,6 @@ const DMListPage = () => {
             return false;
         });
     }, [allDms, searchTerm]);
-
-    const handleBack = useCallback(() => {
-        dispatch(setDmMode(false));
-    }, [dispatch]);
 
     const handleNewMessage = useCallback(() => {
         dispatch(openModal({
@@ -105,7 +130,6 @@ const DMListPage = () => {
     return (
         <div className='dm-list-page'>
             <DmListHeader
-                onBackClick={handleBack}
                 onNewMessageClick={handleNewMessage}
             />
             <DmSearchInput

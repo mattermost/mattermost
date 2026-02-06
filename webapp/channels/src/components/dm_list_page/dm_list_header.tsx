@@ -9,30 +9,13 @@ import WithTooltip from 'components/with_tooltip';
 import './dm_list_header.scss';
 
 type Props = {
-    onBackClick: () => void;
     onNewMessageClick: () => void;
 };
 
-const DmListHeader = ({onBackClick, onNewMessageClick}: Props) => {
+const DmListHeader = ({onNewMessageClick}: Props) => {
     return (
         <div className='dm-list-header'>
             <div className='dm-list-header__left'>
-                <WithTooltip
-                    title={
-                        <FormattedMessage
-                            id='guilded_layout.dm_list.back'
-                            defaultMessage='Back'
-                        />
-                    }
-                >
-                    <button
-                        className='dm-list-header__back-button'
-                        onClick={onBackClick}
-                        aria-label='Back'
-                    >
-                        <i className='icon icon-arrow-left'/>
-                    </button>
-                </WithTooltip>
                 <h1 className='dm-list-header__title'>
                     <FormattedMessage
                         id='guilded_layout.dm_list.title'

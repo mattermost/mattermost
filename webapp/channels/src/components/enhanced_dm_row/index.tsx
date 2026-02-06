@@ -71,7 +71,7 @@ const EnhancedDmRow = ({channel, user, isActive, onDmClick}: Props) => {
                     alt={`${user.username} avatar`}
                 />
                 <StatusIcon
-                    className='enhanced-dm-row__status'
+                    className='enhanced-dm-row__status status--bottom-right'
                     status={userStatus}
                 />
             </div>

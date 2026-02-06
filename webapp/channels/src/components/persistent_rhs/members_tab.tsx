@@ -1,12 +1,13 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {useCallback, useMemo} from 'react';
-import {useSelector} from 'react-redux';
+import React, {useCallback, useMemo, useEffect} from 'react';
+import {useSelector, useDispatch} from 'react-redux';
 import AutoSizer from 'react-virtualized-auto-sizer';
 import {VariableSizeList} from 'react-window';
 
 import {getCurrentChannel} from 'mattermost-redux/selectors/entities/channels';
+import {getProfilesInChannel} from 'mattermost-redux/actions/users';
 
 import {getChannelMembersGroupedByStatus} from 'selectors/views/guilded_layout';
 
@@ -29,10 +30,17 @@ interface ListItem {
 }
 
 export default function MembersTab() {
+    const dispatch = useDispatch();
     const channel = useSelector(getCurrentChannel);
     const groupedMembers = useSelector((state: GlobalState) =>
         (channel ? getChannelMembersGroupedByStatus(state, channel.id) : null)
     );
+
+    useEffect(() => {
+        if (channel?.id) {
+            dispatch(getProfilesInChannel(channel.id, 0, 100));
+        }
+    }, [dispatch, channel?.id]);
 
     // Flatten grouped members into list items
     const listItems: ListItem[] = useMemo(() => {

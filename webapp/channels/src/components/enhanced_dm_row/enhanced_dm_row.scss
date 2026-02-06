@@ -6,9 +6,9 @@
     position: relative;
     display: flex;
     overflow: hidden;
-    height: 64px;
+    height: 48px;
     align-items: center;
-    padding: 8px 16px 8px 19px;
+    padding: 6px 16px 6px 19px;
     color: rgba(var(--sidebar-text-rgb), 0.64);
     cursor: pointer;
     list-style-type: none;
@@ -66,34 +66,33 @@
         }
     }
 
-    // Match native sidebar status-wrapper dimensions (36x36)
     &__avatar-container {
         position: relative;
         display: inline-flex;
         flex-shrink: 0;
-        width: 36px;
-        height: 36px;
+        width: 28px;
+        height: 28px;
         align-items: center;
         align-self: center;
-        margin-right: 12px;
+        margin-right: 10px;
     }
 
     &__avatar {
-        width: 36px;
-        height: 36px;
+        width: 28px;
+        height: 28px;
         border-radius: 50%;
         object-fit: cover;
     }
 
-    // Match native sidebar status indicator (19x19)
+    // Status indicator - sized proportionally to 28px avatar
     // StatusIcon renders: <span class="status enhanced-dm-row__status"><svg>...</svg></span>
     &__status.status {
         position: absolute;
-        right: -6px;
-        bottom: -5px;
+        right: -4px;
+        bottom: -2px;
         display: flex;
-        width: 19px;
-        height: 19px;
+        width: 16px;
+        height: 16px;
         align-items: center;
         justify-content: center;
         margin: 0; // Override native .status margin
@@ -106,8 +105,8 @@
             z-index: 1;
             top: 0;
             left: 0;
-            width: 13px;
-            height: 13px;
+            width: 10px;
+            height: 10px;
             max-height: initial;
         }
 
@@ -140,7 +139,7 @@
         display: flex;
         align-items: center;
         justify-content: space-between;
-        margin-bottom: 2px;
+        margin-bottom: 1px;
     }
 
     &__display-name {
@@ -157,13 +156,13 @@
     &__timestamp {
         flex-shrink: 0;
         margin-left: 8px;
-        color: rgba(var(--sidebar-text-rgb), 0.48);
-        font-size: 11px;
+        color: rgba(var(--sidebar-text-rgb), 0.56);
+        font-size: 12px;
     }
 
     &__footer {
         display: flex;
-        height: 18px;
+        height: 16px;
         align-items: center;
         justify-content: space-between;
     }
@@ -171,7 +170,7 @@
     &__preview {
         overflow: hidden;
         flex: 1;
-        color: rgba(var(--sidebar-text-rgb), 0.48);
+        color: rgba(var(--sidebar-text-rgb), 0.56);
         font-size: 12px;
         text-overflow: ellipsis;
         white-space: nowrap;

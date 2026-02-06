@@ -35,6 +35,12 @@
         font-size: 14px;
         text-overflow: ellipsis;
         white-space: nowrap;
+        
+        p {
+            margin: 0;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
     }
 
     &__meta {
@@ -43,7 +49,8 @@
         gap: 8px;
     }
 
-    &__reply-count {
+    &__reply-count,
+    &__follower-count {
         color: rgba(var(--center-channel-color-rgb), 0.56);
         font-size: 12px;
     }
