@@ -109,17 +109,22 @@ const DMListPage = () => {
 
         const channel = item.channel;
         let category: string;
-        let name: string;
+        let prefName: string;
         if (channel.type === Constants.DM_CHANNEL) {
             category = Constants.Preferences.CATEGORY_DIRECT_CHANNEL_SHOW;
-            name = channel.teammate_id!;
+            // Extract the other user's ID from the DM item
+            prefName = item.type === 'dm' ? item.user.id : '';
         } else {
             category = Constants.Preferences.CATEGORY_GROUP_CHANNEL_SHOW;
-            name = channel.id;
+            prefName = channel.id;
+        }
+
+        if (!prefName) {
+            return;
         }
 
         dispatch(leaveDirectChannel(channel.name));
-        dispatch(savePreferences(currentUserId, [{user_id: currentUserId, category, name, value: 'false'}]));
+        dispatch(savePreferences(currentUserId, [{user_id: currentUserId, category, name: prefName, value: 'false'}]));
 
         // If closing the currently active DM, navigate to the next available one
         if (channelId === currentChannelId) {

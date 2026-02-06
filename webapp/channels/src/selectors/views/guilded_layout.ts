@@ -6,6 +6,7 @@ import {createSelector} from 'mattermost-redux/selectors/create_selector';
 import {getAllChannels, getMyChannelMemberships, getChannelMembersInChannels} from 'mattermost-redux/selectors/entities/channels';
 import {getMostRecentPostIdInChannel, getPost} from 'mattermost-redux/selectors/entities/posts';
 import {getConfig} from 'mattermost-redux/selectors/entities/general';
+import {getDirectShowPreferences, getGroupShowPreferences} from 'mattermost-redux/selectors/entities/preferences';
 import {getUsers, getStatusForUserId, getCurrentUserId, makeGetProfilesInChannel} from 'mattermost-redux/selectors/entities/users';
 import {getThreads} from 'mattermost-redux/selectors/entities/threads';
 
@@ -207,8 +208,24 @@ export const getAllDmChannelsWithUsers = createSelector(
     getMyChannelMemberships,
     getUsers,
     getCurrentUserId,
-    (channels, memberships, users, currentUserId): DmOrGroupDm[] => {
+    getDirectShowPreferences,
+    getGroupShowPreferences,
+    (channels, memberships, users, currentUserId, directShowPrefs, groupShowPrefs): DmOrGroupDm[] => {
         const dms: DmOrGroupDm[] = [];
+
+        // Build lookup maps for hidden channels
+        const hiddenDms = new Set<string>();
+        for (const pref of directShowPrefs) {
+            if (pref.value === 'false') {
+                hiddenDms.add(pref.name);
+            }
+        }
+        const hiddenGms = new Set<string>();
+        for (const pref of groupShowPrefs) {
+            if (pref.value === 'false') {
+                hiddenGms.add(pref.name);
+            }
+        }
 
         for (const channel of Object.values(channels)) {
             // Only include channels user is a member of
@@ -225,12 +242,22 @@ export const getAllDmChannelsWithUsers = createSelector(
                     continue;
                 }
 
+                // Skip if user explicitly closed this DM
+                if (hiddenDms.has(otherUserId)) {
+                    continue;
+                }
+
                 dms.push({
                     type: 'dm',
                     channel,
                     user: users[otherUserId],
                 });
             } else if (channel.type === Constants.GM_CHANNEL) {
+                // Skip if user explicitly closed this GM
+                if (hiddenGms.has(channel.id)) {
+                    continue;
+                }
+
                 // Group message - get users from display_name parsing
                 const gmUsers: UserProfile[] = [];
 
