@@ -31,6 +31,7 @@ export default function FavoritedTeams({onTeamClick, onExpandClick}: Props) {
     const history = useHistory();
     const favoritedTeamIds = useSelector(getFavoritedTeamIds);
     const currentTeamId = useSelector(getCurrentTeamId);
+    const isDmMode = useSelector((state: GlobalState) => state.views.guildedLayout.isDmMode);
 
     // Get team objects for favorited IDs
     const favoritedTeams = useSelector((state: GlobalState) => {
@@ -55,7 +56,7 @@ export default function FavoritedTeams({onTeamClick, onExpandClick}: Props) {
                 <button
                     key={team.id}
                     className={classNames('favorited-teams__team', {
-                        'favorited-teams__team--active': team.id === currentTeamId,
+                        'favorited-teams__team--active': !isDmMode && team.id === currentTeamId,
                     })}
                     onClick={() => handleTeamClick(team.name)}
                     title={team.display_name}
@@ -70,7 +71,7 @@ export default function FavoritedTeams({onTeamClick, onExpandClick}: Props) {
                             {getTeamInitials(team.display_name)}
                         </span>
                     )}
-                    {team.id === currentTeamId && <span className='favorited-teams__active-indicator'/>}
+                    {!isDmMode && team.id === currentTeamId && <span className='favorited-teams__active-indicator'/>}
                 </button>
             ))}
             <button
