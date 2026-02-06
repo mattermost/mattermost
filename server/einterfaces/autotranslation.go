@@ -32,10 +32,6 @@ type AutoTranslationInterface interface {
 	// Returns false if the feature is unavailable or the user hasn't opted in.
 	IsUserEnabled(channelID, userID string) (bool, *model.AppError)
 
-	// SetUserEnabled enables or disables auto-translation for a user in a channel.
-	// Only available when the feature is properly licensed and configured.
-	SetUserEnabled(channelID, userID string, enabled bool) *model.AppError
-
 	// Translate translates content in a channel.
 	//
 	// Parameters:
@@ -57,7 +53,7 @@ type AutoTranslationInterface interface {
 	// GetBatch fetches a batch of translations for a list of object IDs and a destination language.
 	// This is used for efficiently populating translations for list views (e.g., channel history).
 	// Returns error if the feature is unavailable.
-	GetBatch(objectIDs []string, dstLang string) (map[string]*model.Translation, *model.AppError)
+	GetBatch(objectType string, objectIDs []string, dstLang string) (map[string]*model.Translation, *model.AppError)
 
 	// GetUserLanguage returns the preferred language for a user in a channel if auto-translation is enabled.
 	// Returns the language code or error if feature is unavailable.
