@@ -1529,104 +1529,186 @@ func (api *PluginAPI) DeleteGroupConstrainedMemberships() *model.AppError {
 	return nil
 }
 
-func (api *PluginAPI) CreatePropertyField(field *model.PropertyField) (*model.PropertyField, error) {
-	if field == nil {
-		return nil, fmt.Errorf("invalid input: property field parameter is required")
-	}
+func (api *PluginAPI) pluginContext() request.CTX {
+	return RequestContextWithPluginManifestID(api.ctx, api.manifest.Id)
+}
 
-	return api.app.PropertyService().CreatePropertyField(field)
+func (api *PluginAPI) CreatePropertyField(field *model.PropertyField) (*model.PropertyField, error) {
+	createdField, appErr := api.app.CreatePropertyField(api.pluginContext(), field)
+	if appErr != nil {
+		return nil, appErr
+	}
+	return createdField, nil
 }
 
 func (api *PluginAPI) GetPropertyField(groupID, fieldID string) (*model.PropertyField, error) {
-	return api.app.PropertyService().GetPropertyField(groupID, fieldID)
+	field, appErr := api.app.GetPropertyField(api.pluginContext(), groupID, fieldID)
+	if appErr != nil {
+		return nil, appErr
+	}
+	return field, nil
 }
 
 func (api *PluginAPI) GetPropertyFields(groupID string, ids []string) ([]*model.PropertyField, error) {
-	return api.app.PropertyService().GetPropertyFields(groupID, ids)
+	fields, appErr := api.app.GetPropertyFields(api.pluginContext(), groupID, ids)
+	if appErr != nil {
+		return nil, appErr
+	}
+	return fields, nil
 }
 
 func (api *PluginAPI) UpdatePropertyField(groupID string, field *model.PropertyField) (*model.PropertyField, error) {
-	return api.app.PropertyService().UpdatePropertyField(groupID, field)
+	updatedField, appErr := api.app.UpdatePropertyField(api.pluginContext(), groupID, field)
+	if appErr != nil {
+		return nil, appErr
+	}
+	return updatedField, nil
 }
 
 func (api *PluginAPI) DeletePropertyField(groupID, fieldID string) error {
-	return api.app.PropertyService().DeletePropertyField(groupID, fieldID)
+	if appErr := api.app.DeletePropertyField(api.pluginContext(), groupID, fieldID); appErr != nil {
+		return appErr
+	}
+	return nil
 }
 
 func (api *PluginAPI) SearchPropertyFields(groupID string, opts model.PropertyFieldSearchOpts) ([]*model.PropertyField, error) {
-	return api.app.PropertyService().SearchPropertyFields(groupID, opts)
+	fields, appErr := api.app.SearchPropertyFields(api.pluginContext(), groupID, opts)
+	if appErr != nil {
+		return nil, appErr
+	}
+	return fields, nil
 }
 
 func (api *PluginAPI) CountPropertyFields(groupID string, includeDeleted bool) (int64, error) {
-	if includeDeleted {
-		return api.app.PropertyService().CountAllPropertyFieldsForGroup(groupID)
+	count, appErr := api.app.CountPropertyFieldsForGroup(api.pluginContext(), groupID, includeDeleted)
+	if appErr != nil {
+		return 0, appErr
 	}
-	return api.app.PropertyService().CountActivePropertyFieldsForGroup(groupID)
+	return count, nil
 }
 
 func (api *PluginAPI) CountPropertyFieldsForTarget(groupID, targetType, targetID string, includeDeleted bool) (int64, error) {
-	if includeDeleted {
-		return api.app.PropertyService().CountAllPropertyFieldsForTarget(groupID, targetType, targetID)
+	count, appErr := api.app.CountPropertyFieldsForTarget(api.pluginContext(), groupID, targetType, targetID, includeDeleted)
+	if appErr != nil {
+		return 0, appErr
 	}
-	return api.app.PropertyService().CountActivePropertyFieldsForTarget(groupID, targetType, targetID)
+	return count, nil
 }
 
 func (api *PluginAPI) CreatePropertyValue(value *model.PropertyValue) (*model.PropertyValue, error) {
-	return api.app.PropertyService().CreatePropertyValue(value)
+	createdValue, appErr := api.app.CreatePropertyValue(api.pluginContext(), value)
+	if appErr != nil {
+		return nil, appErr
+	}
+	return createdValue, nil
 }
 
 func (api *PluginAPI) GetPropertyValue(groupID, valueID string) (*model.PropertyValue, error) {
-	return api.app.PropertyService().GetPropertyValue(groupID, valueID)
+	value, appErr := api.app.GetPropertyValue(api.pluginContext(), groupID, valueID)
+	if appErr != nil {
+		return nil, appErr
+	}
+	return value, nil
 }
 
 func (api *PluginAPI) GetPropertyValues(groupID string, ids []string) ([]*model.PropertyValue, error) {
-	return api.app.PropertyService().GetPropertyValues(groupID, ids)
+	values, appErr := api.app.GetPropertyValues(api.pluginContext(), groupID, ids)
+	if appErr != nil {
+		return nil, appErr
+	}
+	return values, nil
 }
 
 func (api *PluginAPI) UpdatePropertyValue(groupID string, value *model.PropertyValue) (*model.PropertyValue, error) {
-	return api.app.PropertyService().UpdatePropertyValue(groupID, value)
+	updatedValue, appErr := api.app.UpdatePropertyValue(api.pluginContext(), groupID, value)
+	if appErr != nil {
+		return nil, appErr
+	}
+	return updatedValue, nil
 }
 
 func (api *PluginAPI) UpsertPropertyValue(value *model.PropertyValue) (*model.PropertyValue, error) {
-	return api.app.PropertyService().UpsertPropertyValue(value)
+	upsertedValue, appErr := api.app.UpsertPropertyValue(api.pluginContext(), value)
+	if appErr != nil {
+		return nil, appErr
+	}
+	return upsertedValue, nil
 }
 
 func (api *PluginAPI) DeletePropertyValue(groupID, valueID string) error {
-	return api.app.PropertyService().DeletePropertyValue(groupID, valueID)
+	if appErr := api.app.DeletePropertyValue(api.pluginContext(), groupID, valueID); appErr != nil {
+		return appErr
+	}
+	return nil
 }
 
 func (api *PluginAPI) SearchPropertyValues(groupID string, opts model.PropertyValueSearchOpts) ([]*model.PropertyValue, error) {
-	return api.app.PropertyService().SearchPropertyValues(groupID, opts)
+	values, appErr := api.app.SearchPropertyValues(api.pluginContext(), groupID, opts)
+	if appErr != nil {
+		return nil, appErr
+	}
+	return values, nil
 }
 
 func (api *PluginAPI) RegisterPropertyGroup(name string) (*model.PropertyGroup, error) {
-	return api.app.PropertyService().RegisterPropertyGroup(name)
+	group, appErr := api.app.RegisterPropertyGroup(api.pluginContext(), name)
+	if appErr != nil {
+		return nil, appErr
+	}
+	return group, nil
 }
 
 func (api *PluginAPI) GetPropertyGroup(name string) (*model.PropertyGroup, error) {
-	return api.app.PropertyService().GetPropertyGroup(name)
+	group, appErr := api.app.GetPropertyGroup(api.pluginContext(), name)
+	if appErr != nil {
+		return nil, appErr
+	}
+	return group, nil
 }
 
 func (api *PluginAPI) GetPropertyFieldByName(groupID, targetID, name string) (*model.PropertyField, error) {
-	return api.app.PropertyService().GetPropertyFieldByName(groupID, targetID, name)
+	field, appErr := api.app.GetPropertyFieldByName(api.pluginContext(), groupID, targetID, name)
+	if appErr != nil {
+		return nil, appErr
+	}
+	return field, nil
 }
 
 func (api *PluginAPI) UpdatePropertyFields(groupID string, fields []*model.PropertyField) ([]*model.PropertyField, error) {
-	return api.app.PropertyService().UpdatePropertyFields(groupID, fields)
+	updatedFields, appErr := api.app.UpdatePropertyFields(api.pluginContext(), groupID, fields)
+	if appErr != nil {
+		return nil, appErr
+	}
+	return updatedFields, nil
 }
 
 func (api *PluginAPI) UpdatePropertyValues(groupID string, values []*model.PropertyValue) ([]*model.PropertyValue, error) {
-	return api.app.PropertyService().UpdatePropertyValues(groupID, values)
+	updatedValues, appErr := api.app.UpdatePropertyValues(api.pluginContext(), groupID, values)
+	if appErr != nil {
+		return nil, appErr
+	}
+	return updatedValues, nil
 }
 
 func (api *PluginAPI) UpsertPropertyValues(values []*model.PropertyValue) ([]*model.PropertyValue, error) {
-	return api.app.PropertyService().UpsertPropertyValues(values)
+	upsertedValues, appErr := api.app.UpsertPropertyValues(api.pluginContext(), values)
+	if appErr != nil {
+		return nil, appErr
+	}
+	return upsertedValues, nil
 }
 
 func (api *PluginAPI) DeletePropertyValuesForTarget(groupID, targetType, targetID string) error {
-	return api.app.PropertyService().DeletePropertyValuesForTarget(groupID, targetType, targetID)
+	if appErr := api.app.DeletePropertyValuesForTarget(api.pluginContext(), groupID, targetType, targetID); appErr != nil {
+		return appErr
+	}
+	return nil
 }
 
 func (api *PluginAPI) DeletePropertyValuesForField(groupID, fieldID string) error {
-	return api.app.PropertyService().DeletePropertyValuesForField(groupID, fieldID)
+	if appErr := api.app.DeletePropertyValuesForField(api.pluginContext(), groupID, fieldID); appErr != nil {
+		return appErr
+	}
+	return nil
 }
