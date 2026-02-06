@@ -267,6 +267,7 @@ export const usePageMenuHandlers = ({wikiId, channelId, pages, drafts, onPageSel
                             onCancelAutosave?.();
 
                             const {page_parent_id: pageParentId, has_published_version: hasPublishedVersion, ...otherProps} = draft.props || {};
+                            delete otherProps.title;
                             const propsToPreserve = {
                                 ...(pageParentId !== undefined && {page_parent_id: pageParentId}),
                                 ...(hasPublishedVersion !== undefined && {has_published_version: hasPublishedVersion}),

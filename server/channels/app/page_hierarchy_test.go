@@ -73,7 +73,7 @@ func TestCalculateMaxDepthFromPostList(t *testing.T) {
 	require.Nil(t, appErr)
 
 	t.Run("calculate max depth", func(t *testing.T) {
-		postList, appErr := th.App.GetChannelPages(rctx, th.BasicChannel.Id)
+		postList, appErr := th.App.GetChannelPages(rctx, th.BasicChannel.Id, 0, 0)
 		require.Nil(t, appErr)
 
 		maxDepth := th.App.calculateMaxDepthFromPostList(postList)

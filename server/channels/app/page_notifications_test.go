@@ -19,22 +19,64 @@ func TestHandlePageUpdateNotification(t *testing.T) {
 		ChannelId: th.BasicChannel.Id,
 		Title:     "Test Wiki",
 	}
-	_, err := th.App.CreateWiki(th.Context, wiki, th.BasicUser.Id)
+	wiki, err := th.App.CreateWiki(th.Context, wiki, th.BasicUser.Id)
 	require.Nil(t, err)
 
 	page, appErr := th.App.CreatePage(th.Context, th.BasicChannel.Id, "Notification Test Page", "", "", th.BasicUser.Id, "", "")
 	require.Nil(t, appErr)
 
-	t.Run("handle page update notification - no panic", func(t *testing.T) {
-		// This test verifies the function doesn't panic
-		// The actual notification sending is tested via integration tests
-		require.NotPanics(t, func() {
-			th.App.handlePageUpdateNotification(th.Context, page, th.BasicUser.Id, nil, nil)
-		})
+	t.Run("creates new notification on first call", func(t *testing.T) {
+		th.App.handlePageUpdateNotification(th.Context, page, th.BasicUser.Id, wiki, nil)
+
+		// Verify a PostTypePageUpdated post was created in the channel
+		postList, postErr := th.App.GetPostsPage(th.Context, model.GetPostsOptions{ChannelId: th.BasicChannel.Id, Page: 0, PerPage: 50})
+		require.Nil(t, postErr)
+
+		var found *model.Post
+		for _, p := range postList.Posts {
+			if p.Type == model.PostTypePageUpdated {
+				if propPageID, ok := p.Props[model.PagePropsPageID].(string); ok && propPageID == page.Id {
+					found = p
+					break
+				}
+			}
+		}
+		require.NotNil(t, found, "should have created a page_updated notification post")
+		require.Equal(t, page.Id, found.Props[model.PagePropsPageID])
+		require.Equal(t, "Notification Test Page", found.Props["page_title"])
+	})
+
+	t.Run("updates existing notification on second call", func(t *testing.T) {
+		// Call again - should update the existing notification instead of creating a new one
+		th.App.handlePageUpdateNotification(th.Context, page, th.BasicUser.Id, wiki, nil)
+
+		postList, postErr := th.App.GetPostsPage(th.Context, model.GetPostsOptions{ChannelId: th.BasicChannel.Id, Page: 0, PerPage: 50})
+		require.Nil(t, postErr)
+
+		var notifPosts []*model.Post
+		for _, p := range postList.Posts {
+			if p.Type == model.PostTypePageUpdated {
+				if propPageID, ok := p.Props[model.PagePropsPageID].(string); ok && propPageID == page.Id {
+					notifPosts = append(notifPosts, p)
+				}
+			}
+		}
+		// Should still be exactly 1 notification post (updated, not duplicated)
+		// Note: if this assertion fails, it means a second notification was created instead of updating
+		require.Len(t, notifPosts, 1, "should update existing notification, not create a second one")
+
+		count, ok := notifPosts[0].Props["update_count"]
+		require.True(t, ok, "notification should have update_count prop")
+		// update_count could be float64 (from JSON) or int
+		switch c := count.(type) {
+		case float64:
+			require.GreaterOrEqual(t, c, float64(2))
+		case int:
+			require.GreaterOrEqual(t, c, 2)
+		}
 	})
 
 	t.Run("handle notification for page without wiki - no panic", func(t *testing.T) {
-		// Create a page in a channel without a wiki
 		otherChannel, chanErr := th.App.CreateChannel(th.Context, &model.Channel{
 			TeamId:      th.BasicTeam.Id,
 			Name:        "no-wiki-channel",

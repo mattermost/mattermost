@@ -7,9 +7,9 @@ import {useDispatch} from 'react-redux';
 
 import type {ServerError} from '@mattermost/types/errors';
 
-import {savePageDraft as savePageDraftAction} from 'mattermost-redux/actions/wikis';
 import {Client4} from 'mattermost-redux/client';
 
+import {savePageDraft as savePageDraftAction} from 'actions/page_drafts';
 import {createPage as createPageAction} from 'actions/pages';
 
 import type {ImageAIAction} from '../formatting_bar_bubble';
@@ -152,6 +152,7 @@ function parseExtractedContent(extractedContent: string): unknown[] {
  * 4. Show completion dialog with navigation options
  */
 const useImageAI = (
+    channelId: string,
     wikiId: string,
     currentPageId: string | undefined,
     currentPageTitle: string,
@@ -376,6 +377,7 @@ const useImageAI = (
 
             // Save the draft content WITHOUT publishing - user can review and publish manually
             const saveResult = await dispatch(savePageDraftAction(
+                channelId,
                 wikiId,
                 draftId,
                 pageContent,
@@ -408,6 +410,7 @@ const useImageAI = (
             setProgress('');
         }
     }, [
+        channelId,
         wikiId,
         currentPageId,
         currentPageTitle,

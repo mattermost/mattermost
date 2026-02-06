@@ -6,6 +6,7 @@ package model
 import (
 	"encoding/json"
 	"net/http"
+	"strings"
 )
 
 // PageDraft is a composite model combining metadata from Drafts table
@@ -24,7 +25,7 @@ type PageDraft struct {
 	CreateAt  int64           `json:"create_at"`
 	UpdateAt  int64           `json:"update_at"`
 
-	// From PageContents table (content)
+	// Title comes from Draft.Props["title"]
 	Title        string         `json:"title"`
 	Content      TipTapDocument `json:"content"`
 	BaseUpdateAt int64          `json:"base_updateat,omitempty"` // For conflict detection when editing published pages
@@ -101,6 +102,10 @@ func (opts *PublishPageDraftOptions) IsValid() *AppError {
 	}
 	if !IsValidId(opts.PageId) {
 		return NewAppError("PublishPageDraftOptions.IsValid", "model.page_draft.publish_options.page_id.app_error", nil, "", http.StatusBadRequest)
+	}
+	opts.Title = strings.TrimSpace(opts.Title)
+	if opts.Title == "" {
+		return NewAppError("PublishPageDraftOptions.IsValid", "model.page_draft.publish_options.empty_title.app_error", nil, "", http.StatusBadRequest)
 	}
 	if len(opts.Title) > MaxPageTitleLength {
 		return NewAppError("PublishPageDraftOptions.IsValid", "model.page_draft.publish_options.title_too_long.app_error",

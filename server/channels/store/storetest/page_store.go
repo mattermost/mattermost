@@ -56,6 +56,7 @@ func TestPageStore(t *testing.T, rctx request.CTX, ss store.Store, s SqlStore) {
 	t.Run("GetSiblingPages", func(t *testing.T) { testGetSiblingPages(t, rctx, ss) })
 	t.Run("UpdatePageSortOrder", func(t *testing.T) { testUpdatePageSortOrder(t, rctx, ss) })
 	t.Run("MovePage", func(t *testing.T) { testMovePage(t, rctx, ss) })
+	t.Run("AtomicUpdatePageNotification", func(t *testing.T) { testAtomicUpdatePageNotification(t, rctx, ss) })
 
 	t.Cleanup(func() {
 		typesSQL := pagePostTypesSQL()
@@ -362,10 +363,67 @@ func testGetChannelPages(t *testing.T, rctx request.CTX, ss store.Store) {
 		err = ss.Post().Delete(rctx, deletedPage.Id, model.GetMillis(), model.NewId())
 		require.NoError(t, err)
 
-		result, err := ss.Page().GetChannelPages(channel1.Id)
-		require.NoError(t, err)
+		result, delPageErr := ss.Page().GetChannelPages(channel1.Id)
+		require.NoError(t, delPageErr)
 		require.Contains(t, result.Posts, activePage.Id)
 		require.NotContains(t, result.Posts, deletedPage.Id, "should not include deleted pages")
+	})
+
+	t.Run("respects PageSortOrder within same parent", func(t *testing.T) {
+		sortChannel, sortErr := ss.Channel().Save(rctx, &model.Channel{
+			TeamId:      teamID,
+			DisplayName: "Sort Test Channel",
+			Name:        "channel" + model.NewId(),
+			Type:        model.ChannelTypeOpen,
+		}, -1)
+		require.NoError(t, sortErr)
+
+		// Create pages with explicit sort orders (out of creation order)
+		pageC := &model.Post{
+			ChannelId: sortChannel.Id,
+			UserId:    model.NewId(),
+			Type:      model.PostTypePage,
+			Message:   "Page C (sort=3000)",
+		}
+		pageC, err = ss.Post().Save(rctx, pageC)
+		require.NoError(t, err)
+		origC := pageC.Clone()
+		pageC.SetPageSortOrder(3000)
+		pageC, err = ss.Post().Update(rctx, pageC, origC)
+		require.NoError(t, err)
+
+		pageA := &model.Post{
+			ChannelId: sortChannel.Id,
+			UserId:    model.NewId(),
+			Type:      model.PostTypePage,
+			Message:   "Page A (sort=1000)",
+		}
+		pageA, err = ss.Post().Save(rctx, pageA)
+		require.NoError(t, err)
+		origA := pageA.Clone()
+		pageA.SetPageSortOrder(1000)
+		pageA, err = ss.Post().Update(rctx, pageA, origA)
+		require.NoError(t, err)
+
+		pageB := &model.Post{
+			ChannelId: sortChannel.Id,
+			UserId:    model.NewId(),
+			Type:      model.PostTypePage,
+			Message:   "Page B (sort=2000)",
+		}
+		pageB, err = ss.Post().Save(rctx, pageB)
+		require.NoError(t, err)
+		origB := pageB.Clone()
+		pageB.SetPageSortOrder(2000)
+		pageB, err = ss.Post().Update(rctx, pageB, origB)
+		require.NoError(t, err)
+
+		result, resultErr := ss.Page().GetChannelPages(sortChannel.Id)
+		require.NoError(t, resultErr)
+		require.Len(t, result.Order, 3)
+		require.Equal(t, pageA.Id, result.Order[0], "should be sorted by page_sort_order ascending")
+		require.Equal(t, pageB.Id, result.Order[1])
+		require.Equal(t, pageC.Id, result.Order[2])
 	})
 }
 func testGetCommentsForPage(t *testing.T, rctx request.CTX, ss store.Store) {
@@ -1650,7 +1708,6 @@ func testDeletePage(t *testing.T, rctx request.CTX, ss store.Store) {
 			UserId:    userID,
 			ChannelId: wikiID,
 			RootId:    page.Id,
-			WikiId:    wikiID,
 			Message:   "",
 		}
 		_, err = ss.Draft().UpsertPageDraft(draft1)
@@ -1660,7 +1717,6 @@ func testDeletePage(t *testing.T, rctx request.CTX, ss store.Store) {
 			UserId:    user2ID,
 			ChannelId: wikiID,
 			RootId:    page.Id,
-			WikiId:    wikiID,
 			Message:   "",
 		}
 		_, err = ss.Draft().UpsertPageDraft(draft2)
@@ -1702,8 +1758,6 @@ func testDeletePage(t *testing.T, rctx request.CTX, ss store.Store) {
 		draftContent := &model.PageContent{
 			PageId:   page.Id,
 			UserId:   userID,
-			WikiId:   wikiID,
-			Title:    "Draft Title",
 			CreateAt: model.GetMillis(),
 			UpdateAt: model.GetMillis(),
 		}
@@ -1753,7 +1807,6 @@ func testDeletePage(t *testing.T, rctx request.CTX, ss store.Store) {
 			UserId:    userID,
 			ChannelId: wikiID,
 			RootId:    page1.Id,
-			WikiId:    wikiID,
 			Message:   "",
 		}
 		_, err = ss.Draft().UpsertPageDraft(draft1)
@@ -1763,7 +1816,6 @@ func testDeletePage(t *testing.T, rctx request.CTX, ss store.Store) {
 			UserId:    userID,
 			ChannelId: wikiID,
 			RootId:    page2.Id,
-			WikiId:    wikiID,
 			Message:   "",
 		}
 		_, err = ss.Draft().UpsertPageDraft(draft2)
@@ -2707,5 +2759,213 @@ func testMovePage(t *testing.T, rctx request.CTX, ss store.Store) {
 		siblings, moveErr := ss.Page().MovePage(page.Id, channel.Id, nil, nil, page.UpdateAt)
 		require.NoError(t, moveErr)
 		require.Nil(t, siblings, "no siblings should be returned for no-op move")
+	})
+}
+
+func testAtomicUpdatePageNotification(t *testing.T, rctx request.CTX, ss store.Store) {
+	teamID := model.NewId()
+	channel, err := ss.Channel().Save(rctx, &model.Channel{
+		TeamId:      teamID,
+		DisplayName: "Test Notification Channel",
+		Name:        "test-notification-" + model.NewId(),
+		Type:        model.ChannelTypeOpen,
+	}, -1)
+	require.NoError(t, err)
+
+	userID := model.NewId()
+	pageID := model.NewId()
+
+	t.Run("returns nil when no existing notification", func(t *testing.T) {
+		result, err := ss.Page().AtomicUpdatePageNotification(channel.Id, pageID, userID, "testuser", "Test Page", model.GetMillis()-1000)
+		require.NoError(t, err)
+		assert.Nil(t, result, "should return nil when no existing notification")
+	})
+
+	t.Run("updates existing notification", func(t *testing.T) {
+		// Create a fresh channel to isolate this subtest
+		ch, chErr := ss.Channel().Save(rctx, &model.Channel{
+			TeamId:      teamID,
+			DisplayName: "Update Notif Channel",
+			Name:        "update-notif-" + model.NewId(),
+			Type:        model.ChannelTypeOpen,
+		}, -1)
+		require.NoError(t, chErr)
+
+		testPageID := model.NewId()
+		now := model.GetMillis()
+
+		notifPost := &model.Post{
+			ChannelId: ch.Id,
+			UserId:    userID,
+			Type:      model.PostTypePageUpdated,
+			CreateAt:  now,
+			Props: model.StringInterface{
+				model.PagePropsPageID: testPageID,
+				"page_title":          "Original Title",
+				"update_count":        float64(1),
+				"last_update_time":    float64(now),
+				"updater_ids":         []any{userID},
+				"username_" + userID:  "testuser",
+			},
+		}
+		savedPost, saveErr := ss.Post().Save(rctx, notifPost)
+		require.NoError(t, saveErr)
+
+		sinceTime := now - 1000
+		result, updateErr := ss.Page().AtomicUpdatePageNotification(ch.Id, testPageID, userID, "testuser", "Updated Title", sinceTime)
+		require.NoError(t, updateErr)
+		require.NotNil(t, result)
+		assert.Equal(t, savedPost.Id, result.Id)
+		assert.Equal(t, "Updated Title", result.Props["page_title"])
+
+		// update_count should be incremented; the function sets it as int
+		count, ok := result.Props["update_count"].(int)
+		require.True(t, ok, "update_count should be int, got %T", result.Props["update_count"])
+		assert.Equal(t, 2, count)
+	})
+
+	t.Run("adds new updater to updater_ids", func(t *testing.T) {
+		ch2, chErr := ss.Channel().Save(rctx, &model.Channel{
+			TeamId:      teamID,
+			DisplayName: "Notif Channel 2",
+			Name:        "notif-ch-2-" + model.NewId(),
+			Type:        model.ChannelTypeOpen,
+		}, -1)
+		require.NoError(t, chErr)
+
+		pageID2 := model.NewId()
+		user1 := model.NewId()
+		user2 := model.NewId()
+		now := model.GetMillis()
+
+		notifPost := &model.Post{
+			ChannelId: ch2.Id,
+			UserId:    user1,
+			Type:      model.PostTypePageUpdated,
+			CreateAt:  now,
+			Props: model.StringInterface{
+				model.PagePropsPageID: pageID2,
+				"page_title":          "Page Title",
+				"update_count":        float64(1),
+				"last_update_time":    float64(now),
+				"updater_ids":         []any{user1},
+				"username_" + user1:   "user1",
+			},
+		}
+		_, saveErr := ss.Post().Save(rctx, notifPost)
+		require.NoError(t, saveErr)
+
+		// Second user updates - should be added to updater_ids
+		result, updateErr := ss.Page().AtomicUpdatePageNotification(ch2.Id, pageID2, user2, "user2", "Page Title", now-1000)
+		require.NoError(t, updateErr)
+		require.NotNil(t, result)
+
+		// The function returns updater_ids as []string (built from map keys)
+		updaterIds, ok := result.Props["updater_ids"].([]string)
+		require.True(t, ok, "updater_ids should be []string, got %T", result.Props["updater_ids"])
+		assert.Contains(t, updaterIds, user1)
+		assert.Contains(t, updaterIds, user2)
+		assert.Equal(t, "user2", result.Props["username_"+user2])
+	})
+
+	t.Run("ignores old notifications before sinceTime", func(t *testing.T) {
+		ch3, chErr := ss.Channel().Save(rctx, &model.Channel{
+			TeamId:      teamID,
+			DisplayName: "Notif Channel 3",
+			Name:        "notif-ch-3-" + model.NewId(),
+			Type:        model.ChannelTypeOpen,
+		}, -1)
+		require.NoError(t, chErr)
+
+		pageID3 := model.NewId()
+		now := model.GetMillis()
+
+		// Create a notification from 3 hours ago
+		oldPost := &model.Post{
+			ChannelId: ch3.Id,
+			UserId:    userID,
+			Type:      model.PostTypePageUpdated,
+			CreateAt:  now - 3*60*60*1000,
+			Props: model.StringInterface{
+				model.PagePropsPageID: pageID3,
+				"page_title":          "Old Notification",
+				"update_count":        float64(5),
+			},
+		}
+		_, saveErr := ss.Post().Save(rctx, oldPost)
+		require.NoError(t, saveErr)
+
+		// sinceTime is 2 hours ago - should not find the 3-hour-old notification
+		sinceTime := now - 2*60*60*1000
+		result, updateErr := ss.Page().AtomicUpdatePageNotification(ch3.Id, pageID3, userID, "testuser", "New Title", sinceTime)
+		require.NoError(t, updateErr)
+		assert.Nil(t, result, "should not find notification older than sinceTime")
+	})
+
+	t.Run("does not match notification for different page", func(t *testing.T) {
+		ch4, chErr := ss.Channel().Save(rctx, &model.Channel{
+			TeamId:      teamID,
+			DisplayName: "Notif Channel 4",
+			Name:        "notif-ch-4-" + model.NewId(),
+			Type:        model.ChannelTypeOpen,
+		}, -1)
+		require.NoError(t, chErr)
+
+		pageA := model.NewId()
+		pageB := model.NewId()
+		now := model.GetMillis()
+
+		// Create a notification for pageA
+		notifPost := &model.Post{
+			ChannelId: ch4.Id,
+			UserId:    userID,
+			Type:      model.PostTypePageUpdated,
+			CreateAt:  now,
+			Props: model.StringInterface{
+				model.PagePropsPageID: pageA,
+				"page_title":          "Page A",
+				"update_count":        float64(1),
+			},
+		}
+		_, saveErr := ss.Post().Save(rctx, notifPost)
+		require.NoError(t, saveErr)
+
+		// Query for pageB - should not match
+		result, updateErr := ss.Page().AtomicUpdatePageNotification(ch4.Id, pageB, userID, "testuser", "Page B", now-1000)
+		require.NoError(t, updateErr)
+		assert.Nil(t, result, "should not match notification for a different page")
+	})
+
+	t.Run("does not match deleted notification", func(t *testing.T) {
+		ch5, chErr := ss.Channel().Save(rctx, &model.Channel{
+			TeamId:      teamID,
+			DisplayName: "Notif Channel 5",
+			Name:        "notif-ch-5-" + model.NewId(),
+			Type:        model.ChannelTypeOpen,
+		}, -1)
+		require.NoError(t, chErr)
+
+		pageID5 := model.NewId()
+		now := model.GetMillis()
+
+		// Create a deleted notification post
+		deletedPost := &model.Post{
+			ChannelId: ch5.Id,
+			UserId:    userID,
+			Type:      model.PostTypePageUpdated,
+			CreateAt:  now,
+			DeleteAt:  now,
+			Props: model.StringInterface{
+				model.PagePropsPageID: pageID5,
+				"page_title":          "Deleted Notif",
+				"update_count":        float64(1),
+			},
+		}
+		_, saveErr := ss.Post().Save(rctx, deletedPost)
+		require.NoError(t, saveErr)
+
+		result, updateErr := ss.Page().AtomicUpdatePageNotification(ch5.Id, pageID5, userID, "testuser", "New Title", now-1000)
+		require.NoError(t, updateErr)
+		assert.Nil(t, result, "should not match soft-deleted notification")
 	})
 }

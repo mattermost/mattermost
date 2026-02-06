@@ -5676,7 +5676,7 @@ func TestGetChannelPagesPermissions(t *testing.T) {
 	require.Nil(t, appErr)
 
 	t.Run("get channel pages successfully", func(t *testing.T) {
-		postList, appErr := th.App.GetChannelPages(th.Context, th.BasicChannel.Id)
+		postList, appErr := th.App.GetChannelPages(th.Context, th.BasicChannel.Id, 0, 0)
 		require.Nil(t, appErr)
 		require.NotNil(t, postList)
 		require.GreaterOrEqual(t, len(postList.Posts), 1)

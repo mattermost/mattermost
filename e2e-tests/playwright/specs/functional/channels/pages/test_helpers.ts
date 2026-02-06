@@ -3929,6 +3929,7 @@ export async function loginAndNavigateToChannel(
     const {page, channelsPage} = await pw.testBrowser.login(user);
     await channelsPage.goto(teamName, channelName);
     await page.waitForLoadState('networkidle');
+    await page.waitForSelector('[data-testid="channel_view"]', {state: 'visible', timeout: PAGE_LOAD_TIMEOUT});
     await channelsPage.toBeVisible();
     return {page, channelsPage};
 }

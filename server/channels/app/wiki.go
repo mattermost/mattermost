@@ -122,11 +122,6 @@ func (a *App) DeleteWiki(rctx request.CTX, wikiId, userId string, wiki *model.Wi
 	}
 
 	if err := a.Srv().Store().Wiki().DeleteAllPagesForWiki(wikiId); err != nil {
-		return model.NewAppError("DeleteWiki", "app.wiki.delete.delete_pages.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
-	}
-
-	err := a.Srv().Store().Wiki().Delete(wikiId, false)
-	if err != nil {
 		var nfErr *store.ErrNotFound
 		if errors.As(err, &nfErr) {
 			return model.NewAppError("DeleteWiki", "app.wiki.delete.app_error", nil, "", http.StatusNotFound).Wrap(err)

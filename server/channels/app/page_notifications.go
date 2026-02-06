@@ -52,79 +52,36 @@ func (a *App) handlePageUpdateNotification(rctx request.CTX, page *model.Post, u
 
 	twoHoursAgo := model.GetMillis() - twoHoursInMilliseconds
 
-	existingPosts, searchErr := a.GetPostsSince(rctx, model.GetPostsSinceOptions{
-		ChannelId: page.ChannelId,
-		Time:      twoHoursAgo,
-	})
+	// Resolve username before the atomic store call
+	username := ""
+	user, userErr := a.GetUser(userId)
+	if userErr != nil {
+		rctx.Logger().Warn("Failed to get user for page update notification",
+			mlog.String("user_id", userId),
+			mlog.Err(userErr))
+	} else {
+		username = user.Username
+	}
 
-	if searchErr != nil {
-		rctx.Logger().Warn("Failed to search for existing page update notifications",
+	pageTitle := page.GetPageTitle()
+
+	// Atomically find and update the existing notification using SELECT FOR UPDATE
+	// to prevent lost updates from concurrent page edits
+	updatedPost, updateErr := a.Srv().Store().Page().AtomicUpdatePageNotification(
+		page.ChannelId, page.Id, userId, username, pageTitle, twoHoursAgo,
+	)
+	if updateErr != nil {
+		rctx.Logger().Warn("Failed to atomically update page notification, creating new one",
 			mlog.String("page_id", page.Id),
-			mlog.Err(searchErr))
+			mlog.Err(updateErr))
 		a.createNewPageUpdateNotification(rctx, page, wiki, channel, userId, 1)
 		return
 	}
 
-	var existingNotification *model.Post
-	for _, post := range existingPosts.Posts {
-		if post.Type == model.PostTypePageUpdated {
-			if pageIdProp, ok := post.Props[model.PagePropsPageID].(string); ok && pageIdProp == page.Id {
-				existingNotification = post
-				break
-			}
-		}
-	}
-
-	if existingNotification != nil {
-		updateCount := 1
-		if countProp, ok := existingNotification.Props["update_count"].(float64); ok {
-			updateCount = int(countProp) + 1
-		} else if countProp, ok := existingNotification.Props["update_count"].(int); ok {
-			updateCount = countProp + 1
-		}
-
-		updaterIds := make(map[string]bool)
-		if existingUpdaters, ok := existingNotification.Props["updater_ids"].([]any); ok {
-			for _, id := range existingUpdaters {
-				if idStr, ok := id.(string); ok {
-					updaterIds[idStr] = true
-				}
-			}
-		}
-		updaterIds[userId] = true
-
-		updaterIdsList := make([]string, 0, len(updaterIds))
-		for id := range updaterIds {
-			updaterIdsList = append(updaterIdsList, id)
-		}
-
-		user, userErr := a.GetUser(userId)
-		if userErr != nil {
-			rctx.Logger().Warn("Failed to get user for page update notification",
-				mlog.String("user_id", userId),
-				mlog.Err(userErr))
-		} else {
-			existingNotification.Props["username_"+userId] = user.Username
-		}
-
-		pageTitle := page.GetPageTitle()
-
-		existingNotification.Props["page_title"] = pageTitle
-		existingNotification.Props["update_count"] = updateCount
-		existingNotification.Props["last_update_time"] = model.GetMillis()
-		existingNotification.Props["updater_ids"] = updaterIdsList
-
-		if _, updateErr := a.Srv().Store().Post().Overwrite(rctx, existingNotification); updateErr != nil {
-			rctx.Logger().Warn("Failed to update existing page update notification",
-				mlog.String("notification_id", existingNotification.Id),
-				mlog.String("page_id", page.Id),
-				mlog.Err(updateErr))
-		} else {
-			rctx.Logger().Debug("Updated existing page update notification",
-				mlog.String("notification_id", existingNotification.Id),
-				mlog.String("page_id", page.Id),
-				mlog.Int("update_count", updateCount))
-		}
+	if updatedPost != nil {
+		rctx.Logger().Debug("Updated existing page update notification",
+			mlog.String("notification_id", updatedPost.Id),
+			mlog.String("page_id", page.Id))
 	} else {
 		a.createNewPageUpdateNotification(rctx, page, wiki, channel, userId, 1)
 	}

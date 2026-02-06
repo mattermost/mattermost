@@ -40,10 +40,10 @@ func (a *App) UpsertDraft(rctx request.CTX, draft *model.Draft, connectionID str
 	}
 
 	if draft.IsPageDraft() {
-		_, err := a.GetWiki(rctx, draft.WikiId)
+		_, err := a.GetWiki(rctx, draft.ChannelId)
 		if err != nil {
 			return nil, model.NewAppError("CreateDraft", "api.context.invalid_param.app_error",
-				map[string]any{"Name": "draft.wiki_id"}, "", http.StatusBadRequest).Wrap(err)
+				map[string]any{"Name": "draft.channel_id"}, "", http.StatusBadRequest).Wrap(err)
 		}
 	} else {
 		// Check that channel exists and has not been deleted
@@ -74,8 +74,10 @@ func (a *App) UpsertDraft(rctx request.CTX, draft *model.Draft, connectionID str
 		return nil, model.NewAppError("CreateDraft", "app.user.get.app_error", nil, "", http.StatusInternalServerError).Wrap(nErr)
 	}
 
-	// If the draft is empty, just delete it
-	if draft.Message == "" {
+	// If the draft is empty, just delete it.
+	// Page drafts intentionally have empty Message (content is in PageContents table),
+	// so skip this deletion for page drafts to avoid orphaning PageContents entries.
+	if draft.Message == "" && !draft.IsPageDraft() {
 		deleteErr := a.Srv().Store().Draft().Delete(draft.UserId, draft.ChannelId, draft.RootId)
 		if deleteErr != nil {
 			return nil, model.NewAppError("CreateDraft", "app.draft.save.app_error", nil, "", http.StatusInternalServerError).Wrap(deleteErr)

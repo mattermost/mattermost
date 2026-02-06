@@ -953,9 +953,6 @@ func testCreateWikiWithDefaultPage(t *testing.T, rctx request.CTX, ss store.Stor
 		require.NoError(t, err)
 		require.Len(t, pageDrafts, 1)
 		assert.Equal(t, user.Id, pageDrafts[0].UserId)
-		assert.Equal(t, savedWiki.Id, pageDrafts[0].WikiId)
-		assert.Equal(t, "Untitled page", pageDrafts[0].Title)
-
 		contentJSON, err := pageDrafts[0].GetDocumentJSON()
 		require.NoError(t, err)
 		assert.JSONEq(t, `{"type":"doc","content":[]}`, contentJSON)
@@ -1090,8 +1087,6 @@ func testDeleteAllPagesForWiki(t *testing.T, rctx request.CTX, ss store.Store) {
 	pageDraft := &model.PageContent{
 		PageId:   model.NewId(),
 		UserId:   user.Id,
-		WikiId:   wiki.Id,
-		Title:    "Draft page",
 		CreateAt: model.GetMillis(),
 		UpdateAt: model.GetMillis(),
 	}
@@ -1157,9 +1152,11 @@ func testDeleteAllPagesForWiki(t *testing.T, rctx request.CTX, ss store.Store) {
 		assert.Len(t, pageDrafts, 0)
 	})
 
-	t.Run("delete for non-existent wiki succeeds", func(t *testing.T) {
+	t.Run("delete for non-existent wiki returns not found", func(t *testing.T) {
 		err := ss.Wiki().DeleteAllPagesForWiki(model.NewId())
-		assert.NoError(t, err)
+		assert.Error(t, err)
+		var nfErr *store.ErrNotFound
+		assert.ErrorAs(t, err, &nfErr)
 	})
 }
 
@@ -1392,8 +1389,6 @@ func testMoveWikiToChannel(t *testing.T, rctx request.CTX, ss store.Store) {
 	draft := &model.PageContent{
 		PageId:   model.NewId(),
 		UserId:   user.Id,
-		WikiId:   wiki.Id,
-		Title:    "Draft Title",
 		Content:  model.TipTapDocument{Type: "doc"},
 		CreateAt: model.GetMillis(),
 		UpdateAt: model.GetMillis(),

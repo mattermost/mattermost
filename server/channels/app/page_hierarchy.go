@@ -86,8 +86,9 @@ func (a *App) GetPageDescendants(rctx request.CTX, postID string) (*model.PostLi
 	return postList, nil
 }
 
-// GetChannelPages fetches all pages in a channel
-func (a *App) GetChannelPages(rctx request.CTX, channelID string) (*model.PostList, *model.AppError) {
+// GetChannelPages fetches pages in a channel with pagination.
+// Pages are sorted by hierarchy order in-memory, then paginated.
+func (a *App) GetChannelPages(rctx request.CTX, channelID string, offset, limit int) (*model.PostList, *model.AppError) {
 	start := time.Now()
 	defer func() {
 		if a.Metrics() != nil {
@@ -100,17 +101,37 @@ func (a *App) GetChannelPages(rctx request.CTX, channelID string) (*model.PostLi
 		return nil, model.NewAppError("GetChannelPages", "app.page.get_channel_pages.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
-	if enrichErr := a.EnrichPagesWithProperties(rctx, postList); enrichErr != nil {
-		return nil, enrichErr
-	}
-
-	a.applyPostsWillBeConsumedHook(postList.Posts)
-
 	if a.Metrics() != nil {
 		maxDepth := a.calculateMaxDepthFromPostList(postList)
 		a.Metrics().ObserveWikiHierarchyDepth(float64(maxDepth))
 		a.Metrics().ObserveWikiPagesPerChannel(float64(len(postList.Posts)))
 	}
+
+	// Apply pagination before enrichment so we only enrich the page we return
+	if offset > 0 || limit > 0 {
+		order := postList.Order
+		if offset >= len(order) {
+			postList.Order = []string{}
+			postList.Posts = map[string]*model.Post{}
+		} else {
+			end := min(offset+limit, len(order))
+			paginatedOrder := order[offset:end]
+			paginatedPosts := make(map[string]*model.Post, len(paginatedOrder))
+			for _, id := range paginatedOrder {
+				if p, ok := postList.Posts[id]; ok {
+					paginatedPosts[id] = p
+				}
+			}
+			postList.Order = paginatedOrder
+			postList.Posts = paginatedPosts
+		}
+	}
+
+	if enrichErr := a.EnrichPagesWithProperties(rctx, postList); enrichErr != nil {
+		return nil, enrichErr
+	}
+
+	a.applyPostsWillBeConsumedHook(postList.Posts)
 
 	return postList, nil
 }

@@ -705,6 +705,11 @@ func (a *App) GetPageActiveEditors(rctx request.CTX, pageId string) (*PageActive
 }
 
 func (a *App) GetPageVersionHistory(rctx request.CTX, pageId string, offset, limit int) ([]*model.Post, *model.AppError) {
+	// Verify the page exists
+	if _, appErr := a.GetSinglePost(rctx, pageId, false); appErr != nil {
+		return nil, model.NewAppError("App.GetPageVersionHistory", "app.page.get_version_history.not_found.app_error", nil, "", http.StatusNotFound).Wrap(appErr)
+	}
+
 	posts, err := a.Srv().Store().Page().GetPageVersionHistory(pageId, offset, limit)
 	if err != nil {
 		return nil, model.NewAppError("App.GetPageVersionHistory", "app.page.get_version_history.app_error", nil, "", http.StatusInternalServerError).Wrap(err)

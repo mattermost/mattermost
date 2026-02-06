@@ -24,8 +24,6 @@ const (
 type PageContent struct {
 	PageId       string         `json:"page_id"`
 	UserId       string         `json:"user_id"`                 // Empty string for published, user_id for drafts
-	WikiId       string         `json:"wiki_id,omitempty"`       // Wiki context (required for drafts)
-	Title        string         `json:"title,omitempty"`         // Page title
 	Content      TipTapDocument `json:"content"`                 // TipTap document
 	SearchText   string         `json:"search_text,omitempty"`   // Extracted text for search
 	BaseUpdateAt int64          `json:"base_updateat,omitempty"` // For conflict detection when editing published pages
@@ -82,22 +80,12 @@ func (pc *PageContent) IsValid() *AppError {
 		return NewAppError("PageContent.IsValid", "model.page_content.is_valid.user_id.app_error", nil, "", http.StatusBadRequest)
 	}
 
-	// WikiId is required for drafts (UserId != "" means draft)
-	if pc.UserId != "" && !IsValidId(pc.WikiId) {
-		return NewAppError("PageContent.IsValid", "model.page_content.is_valid.wiki_id.app_error", nil, "", http.StatusBadRequest)
-	}
-
 	if pc.CreateAt == 0 {
 		return NewAppError("PageContent.IsValid", "model.page_content.is_valid.create_at.app_error", nil, "", http.StatusBadRequest)
 	}
 
 	if pc.UpdateAt == 0 {
 		return NewAppError("PageContent.IsValid", "model.page_content.is_valid.update_at.app_error", nil, "", http.StatusBadRequest)
-	}
-
-	if len(pc.Title) > MaxPageTitleLength {
-		return NewAppError("PageContent.IsValid", "model.page_content.is_valid.title_too_long.app_error",
-			map[string]any{"Length": len(pc.Title), "MaxLength": MaxPageTitleLength}, "", http.StatusBadRequest)
 	}
 
 	contentJSON, err := json.Marshal(pc.Content)
@@ -126,8 +114,6 @@ func (pc *PageContent) IsPublished() bool {
 }
 
 func (pc *PageContent) PreSave() {
-	pc.Title = SanitizeUnicode(pc.Title)
-
 	if pc.CreateAt == 0 {
 		pc.CreateAt = GetMillis()
 		pc.UpdateAt = pc.CreateAt
@@ -139,15 +125,7 @@ func (pc *PageContent) PreSave() {
 }
 
 func (pc *PageContent) buildSearchText() string {
-	titleText := cleanText(pc.Title)
-	contentText := extractSimpleText(pc.Content)
-
-	if titleText != "" && contentText != "" {
-		return titleText + " " + contentText
-	} else if titleText != "" {
-		return titleText
-	}
-	return contentText
+	return extractSimpleText(pc.Content)
 }
 
 func (pc *PageContent) SetDocumentJSON(contentJSON string) error {
@@ -354,46 +332,4 @@ func ValidateTipTapDocument(contentJSON string) error {
 	}
 
 	return nil
-}
-
-// CreatePageDraftRequest is the request body for creating a new page draft
-type CreatePageDraftRequest struct {
-	Title    string `json:"title"`
-	ParentId string `json:"parent_id,omitempty"`
-}
-
-// SavePageDraftRequest is the request body for saving/autosaving a page draft
-type SavePageDraftRequest struct {
-	Content      string `json:"content"`       // TipTap JSON document as string
-	Title        string `json:"title"`         // Page title
-	LastUpdateAt int64  `json:"last_updateat"` // For optimistic locking
-}
-
-// PageDraftResponse is the response for page draft operations
-type PageDraftResponse struct {
-	PageId       string `json:"page_id"`
-	WikiId       string `json:"wiki_id"`
-	Title        string `json:"title"`
-	Content      string `json:"content,omitempty"`       // TipTap JSON document as string
-	BaseUpdateAt int64  `json:"base_updateat,omitempty"` // For conflict detection
-	CreateAt     int64  `json:"create_at"`
-	UpdateAt     int64  `json:"update_at"`
-}
-
-// ToResponse converts a PageContent to a PageDraftResponse
-func (pc *PageContent) ToResponse() (*PageDraftResponse, error) {
-	contentJSON, err := pc.GetDocumentJSON()
-	if err != nil {
-		return nil, err
-	}
-
-	return &PageDraftResponse{
-		PageId:       pc.PageId,
-		WikiId:       pc.WikiId,
-		Title:        pc.Title,
-		Content:      contentJSON,
-		BaseUpdateAt: pc.BaseUpdateAt,
-		CreateAt:     pc.CreateAt,
-		UpdateAt:     pc.UpdateAt,
-	}, nil
 }

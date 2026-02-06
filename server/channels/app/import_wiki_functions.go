@@ -854,7 +854,7 @@ func (a *App) ResolvePageTitlePlaceholders(rctx request.CTX, channelId string) *
 	wikiId := wikis[0].Id
 
 	// Get all pages in the channel
-	postList, appErr := a.GetChannelPages(rctx, channelId)
+	postList, appErr := a.GetChannelPages(rctx, channelId, 0, 0)
 	if appErr != nil {
 		return model.NewAppError("ResolvePageTitlePlaceholders", "app.import.resolve_page_placeholders.get_pages.error",
 			map[string]any{"ChannelId": channelId}, "", http.StatusInternalServerError).Wrap(appErr)
@@ -1027,7 +1027,7 @@ func (a *App) ResolvePageIDPlaceholders(rctx request.CTX, channelId string) *mod
 	wikiId := wikis[0].Id
 
 	// Get all pages in the channel to build import_source_id -> page ID mapping
-	postList, appErr := a.GetChannelPages(rctx, channelId)
+	postList, appErr := a.GetChannelPages(rctx, channelId, 0, 0)
 	if appErr != nil {
 		return appErr
 	}
@@ -1169,7 +1169,7 @@ var (
 // This should be called after all resolution attempts are complete.
 func (a *App) CleanupUnresolvedPlaceholders(rctx request.CTX, channelId string) *model.AppError {
 	// Get all pages in the channel
-	postList, appErr := a.GetChannelPages(rctx, channelId)
+	postList, appErr := a.GetChannelPages(rctx, channelId, 0, 0)
 	if appErr != nil {
 		return appErr
 	}
@@ -1304,7 +1304,7 @@ func (a *App) CleanupUnresolvedPlaceholders(rctx request.CTX, channelId string) 
 // because child pages were imported before their parents.
 // This should be called after all pages are imported.
 func (a *App) RepairOrphanedPageHierarchy(rctx request.CTX, channelId string) (int, *model.AppError) {
-	postList, appErr := a.GetChannelPages(rctx, channelId)
+	postList, appErr := a.GetChannelPages(rctx, channelId, 0, 0)
 	if appErr != nil {
 		return 0, appErr
 	}

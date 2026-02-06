@@ -307,5 +307,3 @@ channels/db/migrations/postgres/000154_create_wikis.down.sql
 channels/db/migrations/postgres/000154_create_wikis.up.sql
 channels/db/migrations/postgres/000155_create_page_contents.down.sql
 channels/db/migrations/postgres/000155_create_page_contents.up.sql
-channels/db/migrations/postgres/000156_add_drafts_wiki_id.down.sql
-channels/db/migrations/postgres/000156_add_drafts_wiki_id.up.sql

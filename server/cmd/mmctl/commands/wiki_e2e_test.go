@@ -482,12 +482,12 @@ func (s *MmctlE2ETestSuite) TestWikiExportImportComprehensive() {
 		s.Require().NotNil(foundWiki2, "Wiki 2 should exist after import")
 
 		// Verify page count in Wiki 1's channel
-		pages1, appErr := s.th.App.GetChannelPages(s.th.Context, channel1.Id)
+		pages1, appErr := s.th.App.GetChannelPages(s.th.Context, channel1.Id, 0, 0)
 		s.Require().Nil(appErr)
 		s.GreaterOrEqual(len(pages1.Posts), 4, "Wiki 1 channel should have at least 4 pages")
 
 		// Verify page count in Wiki 2's channel
-		pages2, appErr := s.th.App.GetChannelPages(s.th.Context, channel2.Id)
+		pages2, appErr := s.th.App.GetChannelPages(s.th.Context, channel2.Id, 0, 0)
 		s.Require().Nil(appErr)
 		s.GreaterOrEqual(len(pages2.Posts), 1, "Wiki 2 channel should have at least 1 page")
 

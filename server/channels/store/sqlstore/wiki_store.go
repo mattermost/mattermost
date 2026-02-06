@@ -121,8 +121,8 @@ func (s *SqlWikiStore) CreateWikiWithDefaultPage(wiki *model.Wiki, userId string
 		// Insert into PageContents table with UserId set (non-empty UserId = draft)
 		contentBuilder := s.getQueryBuilder().
 			Insert("PageContents").
-			Columns("PageId", "UserId", "WikiId", "Title", "Content", "SearchText", "BaseUpdateAt", "CreateAt", "UpdateAt", "DeleteAt").
-			Values(pageId, userId, savedWiki.Id, "Untitled page", contentJSON, "Untitled page", 0, now, now, 0)
+			Columns("PageId", "UserId", "Content", "SearchText", "BaseUpdateAt", "CreateAt", "UpdateAt", "DeleteAt").
+			Values(pageId, userId, contentJSON, "", 0, now, now, 0)
 
 		if _, execErr := transaction.ExecBuilder(contentBuilder); execErr != nil {
 			return errors.Wrap(execErr, "create_default_draft_content")
@@ -132,8 +132,8 @@ func (s *SqlWikiStore) CreateWikiWithDefaultPage(wiki *model.Wiki, userId string
 		// This ensures the draft can store file attachments before being published
 		draftBuilder := s.getQueryBuilder().
 			Insert("Drafts").
-			Columns("CreateAt", "UpdateAt", "DeleteAt", "Message", "RootId", "ChannelId", "WikiId", "UserId", "FileIds", "Props", "Priority", "Type").
-			Values(now, now, 0, "", pageId, savedWiki.Id, savedWiki.Id, userId, "[]", "{}", "{}", "")
+			Columns("CreateAt", "UpdateAt", "DeleteAt", "Message", "RootId", "ChannelId", "UserId", "FileIds", "Props", "Priority", "Type").
+			Values(now, now, 0, "", pageId, savedWiki.Id, userId, "[]", `{"title":"Untitled page"}`, "{}", "")
 
 		if _, execErr := transaction.ExecBuilder(draftBuilder); execErr != nil {
 			return errors.Wrap(execErr, "create_default_draft_metadata")
@@ -477,14 +477,33 @@ func (s *SqlWikiStore) DeleteAllPagesForWiki(wikiId string) error {
 		}
 
 		// Delete all drafts from PageContents table for this wiki (hard delete since drafts are user-specific)
-		// UserId != '' indicates a draft
+		// UserId != '' indicates a draft. WikiId is stored in Drafts.ChannelId for page drafts.
 		pageDraftsDeleteQuery := s.getQueryBuilder().
 			Delete("PageContents").
-			Where(sq.Eq{"WikiId": wikiId}).
+			Where(sq.Expr("PageId IN (SELECT RootId FROM Drafts WHERE ChannelId = ?)", wikiId)).
 			Where(sq.NotEq{"UserId": ""})
 
 		if _, execErr := transaction.ExecBuilder(pageDraftsDeleteQuery); execErr != nil {
 			return errors.Wrap(execErr, "failed to delete page drafts for wiki")
+		}
+
+		// Soft delete the wiki itself within the same transaction
+		wikiDeleteQuery := s.getQueryBuilder().
+			Update("Wikis").
+			Set("DeleteAt", deleteAt).
+			Where(sq.Eq{"Id": wikiId, "DeleteAt": 0})
+
+		result, execErr := transaction.ExecBuilder(wikiDeleteQuery)
+		if execErr != nil {
+			return errors.Wrap(execErr, "failed to soft delete wiki")
+		}
+
+		rowsAffected, execErr := result.RowsAffected()
+		if execErr != nil {
+			return errors.Wrap(execErr, "failed to get rows affected for wiki delete")
+		}
+		if rowsAffected == 0 {
+			return store.NewErrNotFound("Wiki", wikiId)
 		}
 
 		return nil

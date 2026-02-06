@@ -84,6 +84,11 @@ func savePageDraft(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	req.Title = strings.TrimSpace(req.Title)
+	if len(req.Title) > model.MaxPageTitleLength {
+		c.Err = model.NewAppError("savePageDraft", "api.page.save_draft.title_too_long.app_error",
+			map[string]any{"MaxLength": model.MaxPageTitleLength}, "", http.StatusBadRequest)
+		return
+	}
 
 	c.Logger.Debug("Received page draft save request",
 		mlog.String("wiki_id", c.Params.WikiId),
@@ -267,6 +272,11 @@ func createPageDraft(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	req.Title = strings.TrimSpace(req.Title)
+	if len(req.Title) > model.MaxPageTitleLength {
+		c.Err = model.NewAppError("createPageDraft", "api.page.save_draft.title_too_long.app_error",
+			map[string]any{"MaxLength": model.MaxPageTitleLength}, "", http.StatusBadRequest)
+		return
+	}
 
 	// Validate parent page if provided
 	if req.PageParentId != "" {
@@ -319,7 +329,9 @@ func createPageDraft(c *Context, w http.ResponseWriter, r *http.Request) {
 		mlog.String("title", req.Title),
 		mlog.String("page_parent_id", req.PageParentId))
 
-	props := map[string]any{}
+	props := map[string]any{
+		"title": req.Title,
+	}
 	if req.PageParentId != "" {
 		props["page_parent_id"] = req.PageParentId
 	}
@@ -403,8 +415,8 @@ func publishPageDraft(c *Context, w http.ResponseWriter, r *http.Request) {
 	auditRec.AddEventResultState(post)
 	auditRec.AddEventObjectType("page")
 
-	w.WriteHeader(http.StatusCreated)
 	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusCreated)
 	if err := json.NewEncoder(w).Encode(post); err != nil {
 		c.Logger.Warn("Error encoding post response", mlog.Err(err))
 	}
@@ -422,8 +434,21 @@ func notifyEditorStopped(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	userId := c.AppContext.Session().UserId
 	pageId := c.Params.PageId
+
+	// Validate the page exists and belongs to this wiki before broadcasting
+	page, appErr := c.App.GetPage(c.AppContext, pageId)
+	if appErr != nil {
+		c.Err = appErr
+		return
+	}
+	if page.ChannelId != wiki.ChannelId {
+		c.Err = model.NewAppError("notifyEditorStopped", "api.page.editor_stopped.page_not_in_wiki.app_error",
+			nil, "", http.StatusBadRequest)
+		return
+	}
+
+	userId := c.AppContext.Session().UserId
 
 	message := model.NewWebSocketEvent(model.WebsocketEventPageEditorStopped, "", wiki.ChannelId, "", nil, "")
 	message.Add("page_id", pageId)

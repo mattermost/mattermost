@@ -1288,7 +1288,7 @@ const TipTapEditor = ({
         cancelExtraction,
         goToCreatedPage: goToImageCreatedPage,
         stayOnCurrentPage: stayOnCurrentPageAfterImage,
-    } = useImageAI(wikiId || '', pageId, pageTitle, selectedImageAIAgentId, isExistingPage, onTranslatedPageCreated, setServerError);
+    } = useImageAI(channelId || '', wikiId || '', pageId, pageTitle, selectedImageAIAgentId, isExistingPage, onTranslatedPageCreated, setServerError);
 
     // Handler for image AI actions from the bubble menu
     const onImageAIAction = useCallback((action: ImageAIAction, imageElement: HTMLImageElement) => {

@@ -94,8 +94,7 @@ const WikiView = () => {
         if (!wikiId || !draftId) {
             return null;
         }
-        const draft = getPageDraft(state, wikiId, draftId);
-        return draft;
+        return getPageDraft(state, wikiId, draftId);
     });
 
     const currentPage = useSelector((state: GlobalState) => {
@@ -274,7 +273,7 @@ const WikiView = () => {
     // draft id in local state.
     // Phase 1 Refactor: Removed cleanup effect - no longer needed with route-based draft IDs
 
-    const {handleEdit, handlePublish, handleTitleChange, handleContentChange, handleDraftStatusChange, cancelAutosave} = useWikiPageActions(
+    const {handleEdit, handlePublish, handleTitleChange, handleTitleBlur, handleContentChange, handleDraftStatusChange, cancelAutosave} = useWikiPageActions(
         channelId,
         pageId,
         draftId,
@@ -584,6 +583,7 @@ const WikiView = () => {
                                 <WikiPageEditor
                                     {...editorProps}
                                     onTitleChange={handleTitleChange}
+                                    onTitleBlur={handleTitleBlur}
                                     onContentChange={handleContentChange}
                                     onDraftStatusChange={handleDraftStatusChange}
                                     onAIToolsReady={setAIToolsHandlers}

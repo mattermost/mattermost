@@ -240,6 +240,7 @@ type UseWikiPageActionsResult = {
     handleEdit: () => Promise<ActionResult | undefined>;
     handlePublish: () => Promise<void>;
     handleTitleChange: (title: string) => void;
+    handleTitleBlur: () => void;
     handleContentChange: (content: string) => void;
     handleDraftStatusChange: (status: string) => void;
     cancelAutosave: () => void;
@@ -297,25 +298,33 @@ export function useWikiPageActions(
 
         // Save any pending changes to the PREVIOUS draft before switching
         // BUT: Don't flush if transitioning to null (draft was deleted/published)
-        if (autosaveTimeoutRef.current && previousDraftRef.current && wikiId && currentDraft) {
-            clearTimeout(autosaveTimeoutRef.current);
-            autosaveTimeoutRef.current = null;
-
-            // Immediately save the pending changes to the previous draft
+        if (previousDraftRef.current && wikiId && currentDraft) {
             const prevDraft = previousDraftRef.current;
-            const prevContent = latestContentRef.current;
-            const prevTitle = latestTitleRef.current;
-            const additionalProps = extractDraftAdditionalProps(prevDraft);
+            const hasPendingAutosave = Boolean(autosaveTimeoutRef.current);
+            const prevSavedTitle = prevDraft.props?.[PagePropsKeys.TITLE] ?? '';
+            const hasUnsavedTitle = latestTitleRef.current !== prevSavedTitle;
 
-            dispatch(savePageDraft(
-                channelId,
-                wikiId,
-                prevDraft.rootId,
-                prevContent,
-                prevTitle,
-                undefined,
-                additionalProps,
-            ));
+            if (hasPendingAutosave || hasUnsavedTitle) {
+                if (autosaveTimeoutRef.current) {
+                    clearTimeout(autosaveTimeoutRef.current);
+                    autosaveTimeoutRef.current = null;
+                }
+
+                // Immediately save the pending changes to the previous draft
+                const prevContent = latestContentRef.current;
+                const prevTitle = latestTitleRef.current;
+                const additionalProps = extractDraftAdditionalProps(prevDraft);
+
+                dispatch(savePageDraft(
+                    channelId,
+                    wikiId,
+                    prevDraft.rootId,
+                    prevContent,
+                    prevTitle,
+                    undefined,
+                    additionalProps,
+                ));
+            }
         } else if (autosaveTimeoutRef.current && !currentDraft) {
             // Transitioning to null (draft deleted/published) - just cancel the timeout
             clearTimeout(autosaveTimeoutRef.current);
@@ -323,8 +332,8 @@ export function useWikiPageActions(
         }
 
         if (currentDraft) {
-            latestContentRef.current = currentDraft.message || '';
-            latestTitleRef.current = currentDraft.props?.[PagePropsKeys.TITLE] || '';
+            latestContentRef.current = currentDraft.message ?? '';
+            latestTitleRef.current = currentDraft.props?.[PagePropsKeys.TITLE] ?? '';
 
             // Only reset latestStatusRef if we're switching to a different draft
             // If it's the same draft (just re-rendered), keep the latestStatusRef value
@@ -374,19 +383,42 @@ export function useWikiPageActions(
     currentDraftRef.current = currentDraft;
     dispatchRef.current = dispatch;
 
-    // Cleanup autosave timeout on unmount to prevent dispatch after unmount
+    // On unmount, flush any unsaved changes (pending autosave or title-only edits)
+    // and cancel the async timeout to prevent dispatch after unmount.
     useEffect(() => {
         return () => {
             if (autosaveTimeoutRef.current) {
                 clearTimeout(autosaveTimeoutRef.current);
                 autosaveTimeoutRef.current = null;
             }
+
+            const draft = currentDraftRef.current;
+            if (!draft || !wikiIdRef.current) {
+                return;
+            }
+
+            const savedTitle = draft.props?.[PagePropsKeys.TITLE] ?? '';
+            const hasUnsavedTitle = latestTitleRef.current !== savedTitle;
+            const savedContent = draft.message ?? '';
+            const hasUnsavedContent = latestContentRef.current !== savedContent;
+
+            if (hasUnsavedTitle || hasUnsavedContent) {
+                const additionalProps = extractDraftAdditionalProps(draft);
+                dispatchRef.current(savePageDraft(
+                    channelIdRef.current,
+                    wikiIdRef.current,
+                    draft.rootId,
+                    latestContentRef.current,
+                    latestTitleRef.current,
+                    undefined,
+                    additionalProps,
+                ));
+            }
         };
     }, []);
 
     const scheduleAutosave = useCallback((options: {
         content?: string;
-        title?: string;
     }) => {
         if (!wikiIdRef.current || !currentDraftRef.current) {
             return;
@@ -398,8 +430,8 @@ export function useWikiPageActions(
 
         const capturedDraft = currentDraftRef.current;
         const draftId = capturedDraft.rootId;
-        const content = options.content ?? (latestContentRef.current || capturedDraft.message || '');
-        const title = options.title ?? (latestTitleRef.current || capturedDraft.props?.[PagePropsKeys.TITLE] || '');
+        const content = options.content ?? (latestContentRef.current ?? capturedDraft.message ?? '');
+        const title = latestTitleRef.current ?? capturedDraft.props?.[PagePropsKeys.TITLE] ?? '';
         const additionalProps = extractDraftAdditionalProps(capturedDraft);
         const capturedChannelId = channelIdRef.current;
         const capturedWikiId = wikiIdRef.current;
@@ -424,13 +456,46 @@ export function useWikiPageActions(
 
     const handleTitleChange = useCallback((newTitle: string) => {
         latestTitleRef.current = newTitle;
-        scheduleAutosave({title: newTitle});
-    }, [scheduleAutosave]);
+    }, []);
 
     const handleContentChange = useCallback((newContent: string) => {
         latestContentRef.current = newContent;
         scheduleAutosave({content: newContent});
     }, [scheduleAutosave]);
+
+    const handleTitleBlur = useCallback(() => {
+        if (!wikiIdRef.current || !currentDraftRef.current) {
+            return;
+        }
+
+        const draft = currentDraftRef.current;
+        const title = latestTitleRef.current ?? draft.props?.[PagePropsKeys.TITLE] ?? '';
+        const savedTitle = draft.props?.[PagePropsKeys.TITLE] ?? '';
+
+        // Skip save if title hasn't changed and there's no pending content autosave
+        if (title === savedTitle && !autosaveTimeoutRef.current) {
+            return;
+        }
+
+        // Cancel pending content autosave — this save supersedes it
+        if (autosaveTimeoutRef.current) {
+            clearTimeout(autosaveTimeoutRef.current);
+            autosaveTimeoutRef.current = null;
+        }
+
+        const content = latestContentRef.current ?? draft.message ?? '';
+        const additionalProps = extractDraftAdditionalProps(draft);
+
+        dispatchRef.current(savePageDraft(
+            channelIdRef.current,
+            wikiIdRef.current,
+            draft.rootId,
+            content,
+            title,
+            undefined,
+            additionalProps,
+        ));
+    }, []);
 
     const handlePublish = useCallback(async () => {
         // Capture ref values at start to avoid stale closures after await
@@ -454,8 +519,8 @@ export function useWikiPageActions(
         }
 
         // Use the latest content and title from refs (may not be saved yet due to debounce)
-        const content = latestContentRef.current || capturedDraft.message || '';
-        const title = latestTitleRef.current || capturedDraft.props?.[PagePropsKeys.TITLE] || '';
+        const content = latestContentRef.current ?? capturedDraft.message ?? '';
+        const title = latestTitleRef.current ?? capturedDraft.props?.[PagePropsKeys.TITLE] ?? '';
         const pageStatus = latestStatusRef.current === null ? (capturedDraft.props?.[PagePropsKeys.PAGE_STATUS] as string | undefined) : latestStatusRef.current;
 
         if (!content || content.trim() === '') {
@@ -533,8 +598,8 @@ export function useWikiPageActions(
                                     return;
                                 }
 
-                                const overwriteContent = conflictContentRef.current || latestContentRef.current || capturedDraft.message || '';
-                                const overwriteTitle = latestTitleRef.current || capturedDraft.props?.[PagePropsKeys.TITLE] || '';
+                                const overwriteContent = conflictContentRef.current ?? latestContentRef.current ?? capturedDraft.message ?? '';
+                                const overwriteTitle = latestTitleRef.current ?? capturedDraft.props?.[PagePropsKeys.TITLE] ?? '';
                                 const overwriteStatus = latestStatusRef.current === null ? (capturedDraft.props?.[PagePropsKeys.PAGE_STATUS] as string | undefined) : latestStatusRef.current;
                                 const overwriteDraftRootId = capturedDraft.rootId;
                                 const overwritePageParentIdFromDraft = capturedDraft.props?.[PagePropsKeys.PAGE_PARENT_ID];
@@ -593,8 +658,8 @@ export function useWikiPageActions(
 
         const pageParentIdFromDraft = currentDraft.props?.[PagePropsKeys.PAGE_PARENT_ID];
         const originalPageEditAt = currentDraft.props?.[PagePropsKeys.ORIGINAL_PAGE_EDIT_AT];
-        const title = latestTitleRef.current || currentDraft.props?.[PagePropsKeys.TITLE] || '';
-        const content = latestContentRef.current || currentDraft.message || '';
+        const title = latestTitleRef.current ?? currentDraft.props?.[PagePropsKeys.TITLE] ?? '';
+        const content = latestContentRef.current ?? currentDraft.message ?? '';
 
         const propsToSave: Record<string, unknown> = {
             [PagePropsKeys.PAGE_STATUS]: newStatus,
@@ -628,6 +693,7 @@ export function useWikiPageActions(
         handleEdit,
         handlePublish,
         handleTitleChange,
+        handleTitleBlur,
         handleContentChange,
         handleDraftStatusChange,
         cancelAutosave,

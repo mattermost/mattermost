@@ -7,6 +7,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"maps"
 	"net/http"
 
 	"github.com/mattermost/mattermost/server/public/model"
@@ -18,7 +19,7 @@ import (
 // UpsertPageDraft creates or updates a page draft using the unified PageContent model.
 // If lastUpdateAt == 0, creates a new draft. Otherwise, updates with optimistic locking.
 // Content is stored in PageContents table with status='draft'.
-// Metadata (FileIds, Props) is stored in Drafts table with WikiId.
+// Metadata (FileIds, Props) is stored in Drafts table (ChannelId = wikiId for page drafts).
 // wiki and channel are optional - if provided, avoids redundant DB fetches.
 func (a *App) UpsertPageDraft(rctx request.CTX, userId, wikiId, pageId, contentJSON, title string, lastUpdateAt int64, props map[string]any, wiki *model.Wiki, channel *model.Channel) (*model.PageDraft, *model.AppError) {
 	result := "failure"
@@ -66,56 +67,85 @@ func (a *App) UpsertPageDraft(rctx request.CTX, userId, wikiId, pageId, contentJ
 		}
 	}
 
-	// Business logic for create-or-update decision (moved from Store layer)
-	savedContent, err := a.upsertPageDraftContent(rctx, pageId, userId, wikiId, processedContent, title, lastUpdateAt)
-	if err != nil {
-		var invErr *store.ErrInvalidInput
-		var confErr *store.ErrConflict
-
-		switch {
-		case errors.As(err, &invErr):
-			return nil, model.NewAppError("UpsertPageDraft", "app.draft.save_page.invalid_content",
-				nil, "", http.StatusBadRequest).Wrap(err)
-		case errors.As(err, &confErr):
-			return nil, model.NewAppError("UpsertPageDraft", "app.draft.save_page.version_conflict",
-				nil, "", http.StatusConflict).Wrap(err)
-		default:
-			return nil, model.NewAppError("UpsertPageDraft", "app.draft.save_page.app_error",
-				nil, "", http.StatusInternalServerError).Wrap(err)
-		}
-	}
-
-	// Always upsert Drafts table metadata (required for GetPageDraft to work)
+	// Upsert Drafts table metadata FIRST so that if the subsequent PageContents
+	// write fails, the draft record exists (title-only is a valid state) rather
+	// than leaving orphaned content in PageContents with no Drafts row.
 	draft := &model.Draft{
 		UserId:    userId,
-		WikiId:    wikiId,
 		ChannelId: wikiId,
 		RootId:    pageId,
 		Message:   "",
 		FileIds:   []string{},
 	}
-	if props != nil {
-		draft.SetProps(props)
+
+	// Merge title and caller props into existing draft props
+	// This prevents clobbering PageParentId, PageStatus, etc.
+	existingDraft, getDraftErr := a.Srv().Store().Draft().Get(userId, wikiId, pageId, false)
+	var existingProps map[string]any
+	if getDraftErr != nil {
+		var nfErr *store.ErrNotFound
+		if !errors.As(getDraftErr, &nfErr) {
+			return nil, model.NewAppError("UpsertPageDraft", "app.draft.save_page.get_existing_error",
+				nil, "", http.StatusInternalServerError).Wrap(getDraftErr)
+		}
+	} else {
+		existingProps = existingDraft.GetProps()
 	}
-	if _, draftErr := a.Srv().Store().Draft().UpsertPageDraft(draft); draftErr != nil {
+	if existingProps == nil {
+		existingProps = map[string]any{}
+	}
+	maps.Copy(existingProps, props)
+	existingProps["title"] = model.SanitizeUnicode(title)
+	draft.SetProps(existingProps)
+
+	savedDraft, draftErr := a.Srv().Store().Draft().UpsertPageDraft(draft)
+	if draftErr != nil {
 		rctx.Logger().Error("Failed to upsert draft metadata", mlog.Err(draftErr))
 		return nil, model.NewAppError("UpsertPageDraft", "app.draft.save_page.metadata_error",
 			nil, "", http.StatusInternalServerError).Wrap(draftErr)
 	}
 
+	// Save content to PageContents table (skip if content is empty — title-only save)
+	var savedContent *model.PageContent
+	if processedContent != "" {
+		var err error
+		savedContent, err = a.upsertPageDraftContent(rctx, pageId, userId, processedContent, lastUpdateAt)
+		if err != nil {
+			var invErr *store.ErrInvalidInput
+			var confErr *store.ErrConflict
+
+			switch {
+			case errors.As(err, &invErr):
+				return nil, model.NewAppError("UpsertPageDraft", "app.draft.save_page.invalid_content",
+					nil, "", http.StatusBadRequest).Wrap(err)
+			case errors.As(err, &confErr):
+				return nil, model.NewAppError("UpsertPageDraft", "app.draft.save_page.version_conflict",
+					nil, "", http.StatusConflict).Wrap(err)
+			default:
+				return nil, model.NewAppError("UpsertPageDraft", "app.draft.save_page.app_error",
+					nil, "", http.StatusInternalServerError).Wrap(err)
+			}
+		}
+	}
+
 	// Return combined PageDraft
 	combinedDraft := &model.PageDraft{
-		UserId:              userId,
-		WikiId:              wikiId,
-		ChannelId:           wikiId,
-		PageId:              savedContent.PageId,
-		Props:               props,
-		CreateAt:            savedContent.CreateAt,
-		UpdateAt:            savedContent.UpdateAt,
-		Title:               savedContent.Title,
-		Content:             savedContent.Content,
-		BaseUpdateAt:        savedContent.BaseUpdateAt,
-		HasPublishedVersion: savedContent.HasPublishedVersion,
+		UserId:    userId,
+		WikiId:    wikiId,
+		ChannelId: wikiId,
+		PageId:    pageId,
+		Props:     savedDraft.GetProps(),
+		Title:     title,
+	}
+	if savedContent != nil {
+		combinedDraft.CreateAt = savedContent.CreateAt
+		combinedDraft.UpdateAt = savedContent.UpdateAt
+		combinedDraft.Content = savedContent.Content
+		combinedDraft.BaseUpdateAt = savedContent.BaseUpdateAt
+		combinedDraft.HasPublishedVersion = savedContent.HasPublishedVersion
+	} else {
+		combinedDraft.CreateAt = savedDraft.CreateAt
+		combinedDraft.UpdateAt = savedDraft.UpdateAt
 	}
 
 	// Notify other users of active editor
@@ -131,8 +161,8 @@ func (a *App) UpsertPageDraft(rctx request.CTX, userId, wikiId, pageId, contentJ
 // If lastUpdateAt == 0, creates or updates a draft for a new page.
 // If lastUpdateAt > 0, tries to update existing draft with optimistic locking;
 // if no draft exists, creates one with BaseUpdateAt set for conflict detection.
-func (a *App) upsertPageDraftContent(rctx request.CTX, pageId, userId, wikiId, content, title string, lastUpdateAt int64) (*model.PageContent, error) {
-	return a.Srv().Store().Draft().UpsertPageDraftContent(pageId, userId, wikiId, content, title, lastUpdateAt)
+func (a *App) upsertPageDraftContent(rctx request.CTX, pageId, userId, content string, lastUpdateAt int64) (*model.PageContent, error) {
+	return a.Srv().Store().Draft().UpsertPageDraftContent(pageId, userId, content, lastUpdateAt)
 }
 
 // SavePageDraftWithMetadata is an alias for UpsertPageDraft for backward compatibility.
@@ -184,17 +214,25 @@ func (a *App) GetPageDraft(rctx request.CTX, userId, wikiId, pageId string, skip
 		}
 	}
 
+	// Read title from Draft.Props["title"]
+	draftTitle := ""
+	if draftProps := draft.GetProps(); draftProps != nil {
+		if t, ok := draftProps["title"].(string); ok {
+			draftTitle = t
+		}
+	}
+
 	// Combine into PageDraft
 	combinedDraft := &model.PageDraft{
 		UserId:              draft.UserId,
-		WikiId:              draft.WikiId,
+		WikiId:              draft.ChannelId,
 		ChannelId:           draft.ChannelId,
 		PageId:              draft.RootId,
 		FileIds:             draft.FileIds,
 		Props:               draft.GetProps(),
 		CreateAt:            draft.CreateAt,
 		UpdateAt:            draft.UpdateAt,
-		Title:               content.Title,
+		Title:               draftTitle,
 		Content:             content.Content,
 		BaseUpdateAt:        content.BaseUpdateAt,
 		HasPublishedVersion: content.HasPublishedVersion,
@@ -203,7 +241,7 @@ func (a *App) GetPageDraft(rctx request.CTX, userId, wikiId, pageId string, skip
 	return combinedDraft, nil
 }
 
-// DeletePageDraft deletes a page draft from PageContents (status='draft') and Drafts tables
+// DeletePageDraft deletes a page draft from PageContents (status='draft') and Drafts tables atomically.
 func (a *App) DeletePageDraft(rctx request.CTX, userId, wikiId, pageId string) *model.AppError {
 	// Fetch wiki to get channelId
 	wiki, wikiErr := a.GetWiki(rctx, wikiId)
@@ -211,8 +249,8 @@ func (a *App) DeletePageDraft(rctx request.CTX, userId, wikiId, pageId string) *
 		return model.NewAppError("DeletePageDraft", "app.draft.delete_page.wiki_not_found.app_error", nil, "", http.StatusNotFound).Wrap(wikiErr)
 	}
 
-	// Delete from PageContents table (status='draft')
-	if err := a.Srv().Store().Draft().DeletePageDraft(pageId, userId); err != nil {
+	// Atomically delete both PageContents (draft content) and Drafts (metadata)
+	if err := a.Srv().Store().Draft().DeletePageDraftAtomic(pageId, userId, wikiId); err != nil {
 		var nfErr *store.ErrNotFound
 		switch {
 		case errors.As(err, &nfErr):
@@ -222,11 +260,6 @@ func (a *App) DeletePageDraft(rctx request.CTX, userId, wikiId, pageId string) *
 			return model.NewAppError("DeletePageDraft", "app.draft.delete_page.app_error",
 				nil, "", http.StatusInternalServerError).Wrap(err)
 		}
-	}
-
-	// Also delete from Drafts metadata table (page drafts store WikiId in ChannelId field)
-	if err := a.Srv().Store().Draft().Delete(userId, wikiId, pageId); err != nil {
-		rctx.Logger().Warn("Failed to delete draft metadata", mlog.Err(err))
 	}
 
 	// Notify other users that this editor stopped editing
@@ -335,16 +368,24 @@ func (a *App) GetPageDraftsForWiki(rctx request.CTX, userId, wikiId string, offs
 			continue
 		}
 
+		// Read title from Draft.Props["title"]
+		draftTitle := ""
+		if draftProps := draft.GetProps(); draftProps != nil {
+			if t, ok := draftProps["title"].(string); ok {
+				draftTitle = t
+			}
+		}
+
 		combinedDraft := &model.PageDraft{
 			UserId:              draft.UserId,
-			WikiId:              draft.WikiId,
+			WikiId:              draft.ChannelId,
 			ChannelId:           draft.ChannelId,
 			PageId:              draft.RootId,
 			FileIds:             draft.FileIds,
 			Props:               draft.GetProps(),
 			CreateAt:            draft.CreateAt,
 			UpdateAt:            draft.UpdateAt,
-			Title:               content.Title,
+			Title:               draftTitle,
 			Content:             content.Content,
 			BaseUpdateAt:        content.BaseUpdateAt,
 			HasPublishedVersion: content.HasPublishedVersion,
@@ -477,19 +518,13 @@ func (a *App) applyDraftPageStatus(rctx request.CTX, page *model.Post, draft *mo
 	return nil
 }
 
-func (a *App) updatePageFromDraft(rctx request.CTX, pageId, wikiId, parentId, title, content, searchText string, baseEditAt int64, force bool) (*model.Post, *model.AppError) {
+func (a *App) updatePageFromDraft(rctx request.CTX, page *model.Post, wikiId, parentId, title, content, searchText string, baseEditAt int64, force bool) (*model.Post, *model.AppError) {
 	rctx.Logger().Debug("Updating existing page from draft",
-		mlog.String("page_id", pageId),
+		mlog.String("page_id", page.Id),
 		mlog.String("wiki_id", wikiId),
 		mlog.Bool("force", force))
 
-	page, err := a.GetPage(rctx, pageId)
-	if err != nil {
-		return nil, model.NewAppError("updatePageFromDraft", "app.draft.publish_page.get_existing_error",
-			nil, "", http.StatusInternalServerError).Wrap(err)
-	}
-
-	if circErr := a.validateCircularReference(rctx, pageId, parentId); circErr != nil {
+	if circErr := a.validateCircularReference(rctx, page.Id, parentId); circErr != nil {
 		return nil, circErr
 	}
 
@@ -499,11 +534,11 @@ func (a *App) updatePageFromDraft(rctx request.CTX, pageId, wikiId, parentId, ti
 	}
 
 	if parentId != page.PageParentId {
-		if _, parentErr := a.MovePage(rctx, pageId, &parentId, wikiId, nil); parentErr != nil {
+		if _, parentErr := a.MovePage(rctx, page.Id, &parentId, wikiId, nil); parentErr != nil {
 			return nil, parentErr
 		}
 		// Use master context to avoid replica lag after parent change
-		updatedPost, err = a.GetSinglePost(RequestContextWithMaster(rctx), pageId, false)
+		updatedPost, err = a.GetSinglePost(RequestContextWithMaster(rctx), page.Id, false)
 		if err != nil {
 			return nil, err
 		}
@@ -526,27 +561,16 @@ func (a *App) createPageFromDraft(rctx request.CTX, wikiId, parentId, title, con
 	return createdPost, nil
 }
 
-func (a *App) applyDraftToPage(rctx request.CTX, draft *model.PageDraft, wikiId, parentId, title, searchText, message, userId string, baseEditAt int64, force bool) (*model.Post, *model.AppError) {
+func (a *App) applyDraftToPage(rctx request.CTX, draft *model.PageDraft, existingPage *model.Post, wikiId, parentId, title, searchText, message, userId string, baseEditAt int64, force bool) (*model.Post, *model.AppError) {
 	content, err := a.resolveDraftContent(draft, message)
 	if err != nil {
 		return nil, err
 	}
 
-	// With unified page ID model, check if a published page exists with this draft's PageId
-	// Only treat ErrNotFound as "new page" - other errors should propagate
-	var isUpdate bool
-	if _, getErr := a.GetPage(rctx, draft.PageId); getErr == nil {
-		isUpdate = true
-	} else if getErr.StatusCode != http.StatusNotFound {
-		return nil, model.NewAppError("applyDraftToPage", "app.draft.publish_page.check_existing_error",
-			nil, "", getErr.StatusCode).Wrap(getErr)
-	}
-
 	var page *model.Post
-	if isUpdate {
-		page, err = a.updatePageFromDraft(rctx, draft.PageId, wikiId, parentId, title, content, searchText, baseEditAt, force)
+	if existingPage != nil {
+		page, err = a.updatePageFromDraft(rctx, existingPage, wikiId, parentId, title, content, searchText, baseEditAt, force)
 	} else {
-		// Pass draft.PageId so published page uses the same ID (unified ID model)
 		page, err = a.createPageFromDraft(rctx, wikiId, parentId, title, content, searchText, userId, draft.PageId)
 	}
 
@@ -556,7 +580,7 @@ func (a *App) applyDraftToPage(rctx request.CTX, draft *model.PageDraft, wikiId,
 
 	// Apply status from draft. If this fails, we still return the page since
 	// the content was saved successfully. The error is logged in applyDraftPageStatus.
-	_ = a.applyDraftPageStatus(rctx, page, draft, isUpdate)
+	_ = a.applyDraftPageStatus(rctx, page, draft, existingPage != nil)
 
 	// Set content on the returned page to avoid extra DB fetch in caller.
 	// The content was already resolved above and saved to PageContents table.
@@ -832,7 +856,7 @@ func (a *App) PublishPageDraft(rctx request.CTX, userId string, opts model.Publi
 		}
 	}
 
-	savedPost, err := a.applyDraftToPage(rctx, draft, opts.WikiId, opts.ParentId, opts.Title, opts.SearchText, opts.Content, userId, opts.BaseEditAt, opts.Force)
+	savedPost, err := a.applyDraftToPage(rctx, draft, existingPage, opts.WikiId, opts.ParentId, opts.Title, opts.SearchText, opts.Content, userId, opts.BaseEditAt, opts.Force)
 	if err != nil {
 		return nil, err
 	}
@@ -849,14 +873,17 @@ func (a *App) PublishPageDraft(rctx request.CTX, userId string, opts model.Publi
 
 		// Attempt rollback based on whether this was a new page or an update
 		if isNewPage {
-			// For new pages: delete the newly created page
-			if page, pageErr := a.GetPage(rctx, savedPost.Id); pageErr == nil {
-				if rollbackErr := a.DeletePage(rctx, page, opts.WikiId); rollbackErr != nil {
-					rctx.Logger().Error("CRITICAL: Failed to rollback page creation after draft deletion failure - data inconsistency",
-						mlog.String("page_id", savedPost.Id),
-						mlog.String("draft_id", opts.PageId),
-						mlog.Err(rollbackErr))
+			// For new pages: clean up PropertyValues then delete the newly created page
+			if group, grpErr := a.GetPagePropertyGroup(); grpErr == nil {
+				if pvErr := a.Srv().Store().PropertyValue().DeleteForTarget(group.ID, "post", savedPost.Id); pvErr != nil {
+					rctx.Logger().Warn("Failed to clean up PropertyValues during rollback", mlog.Err(pvErr))
 				}
+			}
+			if rollbackErr := a.DeletePage(rctx, savedPost, opts.WikiId); rollbackErr != nil {
+				rctx.Logger().Error("CRITICAL: Failed to rollback page creation after draft deletion failure - data inconsistency",
+					mlog.String("page_id", savedPost.Id),
+					mlog.String("draft_id", opts.PageId),
+					mlog.Err(rollbackErr))
 			}
 		} else if originalContent != nil {
 			// For updates: restore original content
@@ -939,14 +966,14 @@ func (a *App) updateChildDraftParentReferences(rctx request.CTX, userId, wikiId,
 		// Create minimal PageDraft for broadcasting (only metadata changed, not content)
 		pageDraft := &model.PageDraft{
 			UserId:    draft.UserId,
-			WikiId:    draft.WikiId,
+			WikiId:    draft.ChannelId,
 			ChannelId: draft.ChannelId,
 			PageId:    draft.RootId,
 			Props:     draft.GetProps(),
 			CreateAt:  draft.CreateAt,
 			UpdateAt:  draft.UpdateAt,
 		}
-		a.BroadcastPageDraftUpdated(draft.WikiId, pageDraft)
+		a.BroadcastPageDraftUpdated(draft.ChannelId, pageDraft)
 	}
 
 	return nil

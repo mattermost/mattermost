@@ -16,7 +16,6 @@ type Draft struct {
 	UserId    string `json:"user_id"`
 	ChannelId string `json:"channel_id"`
 	RootId    string `json:"root_id"`
-	WikiId    string `json:"wiki_id"` // For page drafts: stores the wiki ID
 
 	Message string `json:"message"`
 
@@ -63,11 +62,7 @@ func (o *Draft) BaseIsValid() *AppError {
 		return NewAppError("Drafts.IsValid", "model.draft.is_valid.channel_id.app_error", nil, "", http.StatusBadRequest)
 	}
 
-	if o.IsPageDraft() {
-		if !IsValidId(o.WikiId) {
-			return NewAppError("Drafts.IsValid", "model.draft.is_valid.wiki_id.app_error", nil, "", http.StatusBadRequest)
-		}
-	} else {
+	if !o.IsPageDraft() {
 		if !(IsValidId(o.RootId) || o.RootId == "") {
 			return NewAppError("Drafts.IsValid", "model.draft.is_valid.root_id.app_error", nil, "", http.StatusBadRequest)
 		}
@@ -126,12 +121,8 @@ func (o *Draft) PreCommit() {
 }
 
 // IsPageDraft determines if a draft is for a wiki page (vs a channel post/thread).
-// Page drafts store the wiki ID in the WikiId field.
-// Detection is based on WikiId being set or Props containing page-specific metadata (title or page_id).
+// Detection is based on Props containing page-specific metadata (title or page_id).
 func (o *Draft) IsPageDraft() bool {
-	if o.WikiId != "" {
-		return true
-	}
 	props := o.GetProps()
 	if props == nil {
 		return false

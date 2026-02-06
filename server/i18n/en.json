@@ -2645,6 +2645,10 @@
     "translation": "Page title is too long. Maximum length is {{.MaxLength}} characters."
   },
   {
+    "id": "api.page.editor_stopped.page_not_in_wiki.app_error",
+    "translation": "The page does not belong to the specified wiki."
+  },
+  {
     "id": "api.page.permission.guest_cannot_access",
     "translation": "Guests cannot access pages."
   },
@@ -2667,6 +2671,10 @@
   {
     "id": "api.page.permission.no_channel_access",
     "translation": "You do not have access to this channel."
+  },
+  {
+    "id": "api.page.save_draft.title_too_long.app_error",
+    "translation": "Page draft title is too long. Maximum length is {{.MaxLength}} characters."
   },
   {
     "id": "api.payload.parse.error",
@@ -5955,10 +5963,6 @@
     "translation": "Unable to resolve page draft content for publishing."
   },
   {
-    "id": "app.draft.publish_page.get_existing_error",
-    "translation": "Unable to get existing page for update."
-  },
-  {
     "id": "app.draft.publish_page.not_found",
     "translation": "Page draft not found for publishing."
   },
@@ -5981,6 +5985,10 @@
   {
     "id": "app.draft.save_page.deleted_channel.app_error",
     "translation": "Cannot save draft for archived channel."
+  },
+  {
+    "id": "app.draft.save_page.get_existing_error",
+    "translation": "Failed to fetch existing draft for props merge."
   },
   {
     "id": "app.draft.save_page.invalid_content",
@@ -7561,6 +7569,10 @@
   {
     "id": "app.page.get_version_history.app_error",
     "translation": "Unable to get page version history."
+  },
+  {
+    "id": "app.page.get_version_history.not_found.app_error",
+    "translation": "Page not found."
   },
   {
     "id": "app.page.load_content.app_error",
@@ -9411,10 +9423,6 @@
   {
     "id": "app.wiki.delete.app_error",
     "translation": "Unable to delete wiki."
-  },
-  {
-    "id": "app.wiki.delete.delete_pages.app_error",
-    "translation": "Unable to delete wiki pages."
   },
   {
     "id": "app.wiki.delete_page.app_error",
@@ -11689,10 +11697,6 @@
     "translation": "Invalid user id."
   },
   {
-    "id": "model.draft.is_valid.wiki_id.app_error",
-    "translation": "Invalid wiki ID in draft."
-  },
-  {
     "id": "model.emoji.create_at.app_error",
     "translation": "Create at must be a valid time."
   },
@@ -12105,20 +12109,12 @@
     "translation": "Invalid page ID in page content."
   },
   {
-    "id": "model.page_content.is_valid.title_too_long.app_error",
-    "translation": "Page title exceeds maximum length."
-  },
-  {
     "id": "model.page_content.is_valid.update_at.app_error",
     "translation": "Invalid page content update time."
   },
   {
     "id": "model.page_content.is_valid.user_id.app_error",
     "translation": "Invalid user ID in page content."
-  },
-  {
-    "id": "model.page_content.is_valid.wiki_id.app_error",
-    "translation": "Invalid wiki ID in page content."
   },
   {
     "id": "model.page_draft.is_valid.channel_id.app_error",
@@ -12147,6 +12143,10 @@
   {
     "id": "model.page_draft.is_valid.wiki_id.app_error",
     "translation": "Invalid wiki ID in page draft."
+  },
+  {
+    "id": "model.page_draft.publish_options.empty_title.app_error",
+    "translation": "Page title cannot be empty."
   },
   {
     "id": "model.page_draft.publish_options.page_id.app_error",

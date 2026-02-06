@@ -30,6 +30,7 @@ type Props = {
     title: string;
     content: string;
     onTitleChange: (title: string) => void;
+    onTitleBlur?: () => void;
     onContentChange: (content: string) => void;
     authorId?: string;
     currentUserId?: string;
@@ -50,6 +51,7 @@ const WikiPageEditor = ({
     title,
     content,
     onTitleChange,
+    onTitleBlur,
     onContentChange,
     authorId,
     currentUserId,
@@ -147,6 +149,7 @@ const WikiPageEditor = ({
                     placeholder={formatMessage({id: 'wiki.page_title_placeholder', defaultMessage: 'Untitled page...'})}
                     value={localTitle}
                     onChange={(e) => handleTitleChange(e.target.value)}
+                    onBlur={() => onTitleBlur?.()}
                     rows={1}
                     data-testid='wiki-page-title-input'
                 />

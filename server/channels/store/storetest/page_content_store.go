@@ -323,7 +323,7 @@ func testGetManyPageContent(t *testing.T, rctx request.CTX, ss store.Store) {
 	})
 
 	t.Run("get many excludes soft-deleted content", func(t *testing.T) {
-		deleteErr := ss.Page().DeletePageContent(pages[1].Id)
+		deleteErr := ss.Page().DeletePageContent(pages[1].Id, "")
 		require.NoError(t, deleteErr)
 
 		pageIDs := []string{pages[0].Id, pages[1].Id, pages[2].Id}
@@ -506,7 +506,7 @@ func testDeletePageContent(t *testing.T, rctx request.CTX, ss store.Store) {
 	require.NoError(t, err)
 
 	t.Run("delete existing page content", func(t *testing.T) {
-		deleteErr := ss.Page().DeletePageContent(page.Id)
+		deleteErr := ss.Page().DeletePageContent(page.Id, "")
 		require.NoError(t, deleteErr)
 
 		_, getErr := ss.Page().GetPageContent(page.Id)
@@ -517,7 +517,7 @@ func testDeletePageContent(t *testing.T, rctx request.CTX, ss store.Store) {
 	})
 
 	t.Run("fails to delete non-existent page content", func(t *testing.T) {
-		deleteErr := ss.Page().DeletePageContent(model.NewId())
+		deleteErr := ss.Page().DeletePageContent(model.NewId(), "")
 		require.Error(t, deleteErr)
 
 		var nfErr *store.ErrNotFound
@@ -782,7 +782,7 @@ func testGetPageContentWithDeleted(t *testing.T, rctx request.CTX, ss store.Stor
 	require.NoError(t, err)
 
 	t.Run("GetWithDeleted returns soft-deleted content", func(t *testing.T) {
-		deleteErr := ss.Page().DeletePageContent(page.Id)
+		deleteErr := ss.Page().DeletePageContent(page.Id, "")
 		require.NoError(t, deleteErr)
 
 		_, getErr := ss.Page().GetPageContent(page.Id)
@@ -856,7 +856,7 @@ func testRestorePageContent(t *testing.T, rctx request.CTX, ss store.Store) {
 	require.NoError(t, err)
 
 	t.Run("Restore clears DeleteAt and makes content accessible", func(t *testing.T) {
-		deleteErr := ss.Page().DeletePageContent(page.Id)
+		deleteErr := ss.Page().DeletePageContent(page.Id, "")
 		require.NoError(t, deleteErr)
 
 		_, getErr := ss.Page().GetPageContent(page.Id)

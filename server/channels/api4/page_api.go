@@ -334,7 +334,7 @@ func getChannelPages(c *Context, w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	postList, err := c.App.GetChannelPages(c.AppContext, c.Params.ChannelId)
+	postList, err := c.App.GetChannelPages(c.AppContext, c.Params.ChannelId, c.Params.Page*c.Params.PerPage, c.Params.PerPage)
 	if err != nil {
 		c.Err = err
 		return
@@ -515,20 +515,37 @@ func extractPageImageText(c *Context, w http.ResponseWriter, r *http.Request) {
 
 // summarizeThreadToPage handles POST /api/v4/wiki/{wiki_id}/pages/summarize-thread
 func summarizeThreadToPage(c *Context, w http.ResponseWriter, r *http.Request) {
+	c.RequireWikiId()
+	if c.Err != nil {
+		return
+	}
+
 	c.RequireChannelId()
 	if c.Err != nil {
 		return
 	}
+
+	auditRec := c.MakeAuditRecord("summarizeThreadToPage", model.AuditStatusFail)
+	defer c.LogAuditRecWithLevel(auditRec, app.LevelContent)
+	auditRec.AddMeta("channel_id", c.Params.ChannelId)
 
 	if hasPermission, _ := c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), c.Params.ChannelId, model.PermissionReadChannel); !hasPermission {
 		c.SetPermissionError(model.PermissionReadChannel)
 		return
 	}
 
-	wiki, _, ok := c.GetWikiForRead()
+	wiki, channel, ok := c.GetWikiForModify("summarizeThreadToPage")
 	if !ok {
 		return
 	}
+
+	// Check page creation permission on the wiki's channel
+	if hasPermission, _ := c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), channel.Id, model.PermissionCreatePage); !hasPermission {
+		c.SetPermissionError(model.PermissionCreatePage)
+		return
+	}
+
+	auditRec.AddMeta("wiki_id", wiki.Id)
 
 	if wiki.DeleteAt != 0 {
 		c.Err = model.NewAppError("summarizeThreadToPage", "api.wiki.summarize_thread.wiki_deleted.app_error", nil, "", http.StatusNotFound)
@@ -550,6 +567,9 @@ func summarizeThreadToPage(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.SetInvalidParam("thread_id")
 		return
 	}
+
+	auditRec.AddMeta("thread_id", req.ThreadID)
+	auditRec.AddMeta("agent_id", req.AgentID)
 
 	if strings.TrimSpace(req.Title) == "" {
 		c.SetInvalidParam("title")
@@ -580,6 +600,10 @@ func summarizeThreadToPage(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.Err = appErr
 		return
 	}
+
+	auditRec.Success()
+	auditRec.AddEventObjectType("page")
+	auditRec.AddMeta("draft_page_id", draftPageID)
 
 	response := app.SummarizeThreadToPageResponse{
 		PageID: draftPageID,

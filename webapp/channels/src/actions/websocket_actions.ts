@@ -2273,7 +2273,21 @@ function handleUpsertDraftEvent(msg: WebSocketMessages.PostDraft | WebSocketMess
             const timestamp = pageDraft.update_at;
             const isCreate = msg.event === SocketEvents.PAGE_DRAFT_CREATED;
 
-            // Dispatch draft actions
+            // Skip WS events for the current user's own drafts (same pattern as publishedDraftTimestamps guard).
+            // The savePageDraft thunk already applies both the local update and server response,
+            // so the WS echo is redundant. Applying it can cause races: e.g. when renaming
+            // while an autosave is in-flight, the autosave's WS event overwrites the new title.
+            const currentUserId = getCurrentUserId(state);
+            if (userId === currentUserId) {
+                if (isCreate) {
+                    doDispatch(handleActiveEditorDraftCreated(pageId, userId, timestamp));
+                } else {
+                    doDispatch(handleActiveEditorDraftUpdated(pageId, userId, timestamp));
+                }
+                return;
+            }
+
+            // Dispatch draft actions (other users' drafts only)
             doDispatch(batchActions([
                 setGlobalItem(transformedDraft.key, transformedDraft.value),
                 setGlobalDraftSource(transformedDraft.key, true),

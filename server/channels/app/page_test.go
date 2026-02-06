@@ -760,7 +760,7 @@ func TestGetChannelPages(t *testing.T) {
 		page2, err := th.App.CreatePage(th.Context, th.BasicChannel.Id, "Page 2", "", "", th.BasicUser.Id, "", "")
 		require.Nil(t, err)
 
-		pages, err := th.App.GetChannelPages(sessionCtx, th.BasicChannel.Id)
+		pages, err := th.App.GetChannelPages(sessionCtx, th.BasicChannel.Id, 0, 0)
 		require.Nil(t, err)
 		require.NotNil(t, pages)
 		require.GreaterOrEqual(t, len(pages.Posts), 2)
@@ -780,7 +780,7 @@ func TestGetChannelPages(t *testing.T) {
 		_, addErr := th.App.AddUserToChannel(th.Context, th.BasicUser, emptyChannel, false)
 		require.Nil(t, addErr)
 
-		pages, err := th.App.GetChannelPages(sessionCtx, emptyChannel.Id)
+		pages, err := th.App.GetChannelPages(sessionCtx, emptyChannel.Id, 0, 0)
 		require.Nil(t, err)
 		require.NotNil(t, pages)
 		require.Len(t, pages.Posts, 0)

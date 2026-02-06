@@ -153,15 +153,15 @@ func TestGetPageVersionHistory(t *testing.T) {
 		require.Nil(t, history)
 	})
 
-	t.Run("returns error for page with no edit history", func(t *testing.T) {
+	t.Run("returns empty list for page with no edit history", func(t *testing.T) {
 		// Create a new page without any edits
 		page, appErr := th.App.CreatePage(th.Context, th.BasicChannel.Id, "No Edits Page", "", "", th.BasicUser.Id, "", "")
 		require.Nil(t, appErr)
 
-		// Get version history - should return error since no edits have been made
+		// Get version history - should return empty list since no edits have been made
 		history, appErr := th.App.GetPageVersionHistory(rctx, page.Id, 0, 10)
-		require.NotNil(t, appErr)
-		require.Nil(t, history)
+		require.Nil(t, appErr)
+		require.Empty(t, history)
 	})
 
 	t.Run("pagination works correctly", func(t *testing.T) {
@@ -440,7 +440,7 @@ func TestGetPageActiveEditors(t *testing.T) {
 			ChannelId: th.BasicChannel.Id,
 			Title:     "Test Wiki for Editors",
 		}
-		wiki, wikiErr := th.App.CreateWiki(th.Context, wiki, th.BasicUser.Id)
+		_, wikiErr := th.App.CreateWiki(th.Context, wiki, th.BasicUser.Id)
 		require.Nil(t, wikiErr)
 
 		page, appErr := th.App.CreatePage(th.Context, th.BasicChannel.Id, "Active Editors Page", "", "", th.BasicUser.Id, "", "")
@@ -449,7 +449,7 @@ func TestGetPageActiveEditors(t *testing.T) {
 		// Create a page draft entry using UpsertPageDraftContent
 		// This simulates an active editing session - PageContents with UserId != ""
 		content := `{"type":"doc","content":[]}`
-		_, err := th.App.Srv().Store().Draft().UpsertPageDraftContent(page.Id, th.BasicUser.Id, wiki.Id, content, "Draft Title", 0)
+		_, err := th.App.Srv().Store().Draft().UpsertPageDraftContent(page.Id, th.BasicUser.Id, content, 0)
 		require.NoError(t, err)
 
 		editors, appErr := th.App.GetPageActiveEditors(rctx, page.Id)

@@ -1084,22 +1084,21 @@ type DraftStore interface {
 	// Page draft content methods (PageContents table with status='draft')
 	// With unified page ID model, drafts are stored in PageContents table
 	CreatePageDraft(content *model.PageContent) (*model.PageContent, error)
-	CreateDraftForExistingPage(pageId, userId, wikiId, content, title string, baseUpdateAt int64) (*model.PageContent, error)
+	CreateDraftForExistingPage(pageId, userId, content string, baseUpdateAt int64) (*model.PageContent, error)
 	PageDraftExists(pageId, userId string) (bool, int64, error)
-	UpdatePageDraftContent(pageId, userId, content, title string, expectedUpdateAt int64) (int64, error)
-	UpsertPageDraftContent(pageId, userId, wikiId, content, title string, lastUpdateAt int64) (*model.PageContent, error)
+	UpdatePageDraftContent(pageId, userId, content string, expectedUpdateAt int64) (int64, error)
+	UpsertPageDraftContent(pageId, userId, content string, lastUpdateAt int64) (*model.PageContent, error)
 	GetPageDraft(pageId, userId string) (*model.PageContent, error)
 	DeletePageDraft(pageId, userId string) error
+	DeletePageDraftAtomic(pageId, userId, wikiId string) error
 	GetPageDraftsForUser(userId, wikiId string, offset, limit int) ([]*model.PageContent, error)
 	GetActiveEditorsForPage(pageId string, minUpdateAt int64) ([]*model.PageContent, error)
 
 	// Publish operations (atomic state transition)
 	PublishPageDraft(pageId, userId string) (*model.PageContent, error)
-	CreateDraftFromPublished(pageId, userId string) (*model.PageContent, error)
 
 	// Cleanup operations
 	PermanentDeletePageDraftsByUser(userId string) error
-	PermanentDeletePageContentsByWiki(wikiId string) error
 }
 
 type PostAcknowledgementStore interface {
@@ -1359,9 +1358,15 @@ type PageStore interface {
 	GetPageContentWithDeleted(pageID string) (*model.PageContent, error)
 	GetManyPageContentsWithDeleted(pageIDs []string) ([]*model.PageContent, error)
 	UpdatePageContent(pageContent *model.PageContent) (*model.PageContent, error)
-	DeletePageContent(pageID string) error
+	DeletePageContent(pageID, userID string) error
 	PermanentDeletePageContent(pageID string) error
 	RestorePageContent(pageID string) error
+
+	// AtomicUpdatePageNotification atomically finds and updates an existing page update
+	// notification post within a transaction using SELECT FOR UPDATE to prevent lost updates
+	// from concurrent modifications. Returns the updated post, or nil if no matching
+	// notification was found (caller should create a new one).
+	AtomicUpdatePageNotification(channelID, pageID, userID, username, pageTitle string, sinceTime int64) (*model.Post, error)
 }
 
 // ChannelSearchOpts contains options for searching channels.

@@ -3,9 +3,9 @@
 
 import {renderHook, act} from '@testing-library/react';
 
-import {savePageDraft} from 'mattermost-redux/actions/wikis';
 import {Client4} from 'mattermost-redux/client';
 
+import {savePageDraft} from 'actions/page_drafts';
 import * as PageActions from 'actions/pages';
 
 import useImageAI, {extractFileIdFromSrc, extractImageSource} from './use_image_ai';
@@ -35,7 +35,7 @@ jest.mock('mattermost-redux/client', () => ({
     },
 }));
 
-jest.mock('mattermost-redux/actions/wikis', () => ({
+jest.mock('actions/page_drafts', () => ({
     savePageDraft: jest.fn(),
 }));
 
@@ -45,6 +45,7 @@ const mockExtractImageText = Client4.extractImageText as jest.MockedFunction<typ
 
 describe('useImageAI', () => {
     const defaultProps = {
+        channelId: 'channel-123',
         wikiId: 'wiki-123',
         currentPageId: 'page-123',
         currentPageTitle: 'Test Page',
@@ -136,6 +137,7 @@ describe('useImageAI', () => {
     describe('initial state', () => {
         test('should return initial state', () => {
             const {result} = renderHook(() => useImageAI(
+                defaultProps.channelId,
                 defaultProps.wikiId,
                 defaultProps.currentPageId,
                 defaultProps.currentPageTitle,
@@ -156,6 +158,7 @@ describe('useImageAI', () => {
     describe('handleImageAIAction', () => {
         test('should not process when wikiId is empty', async () => {
             const {result} = renderHook(() => useImageAI(
+                defaultProps.channelId,
                 '',
                 defaultProps.currentPageId,
                 defaultProps.currentPageTitle,
@@ -175,6 +178,7 @@ describe('useImageAI', () => {
 
         test('should not process when image has no src', async () => {
             const {result} = renderHook(() => useImageAI(
+                defaultProps.channelId,
                 defaultProps.wikiId,
                 defaultProps.currentPageId,
                 defaultProps.currentPageTitle,
@@ -194,6 +198,7 @@ describe('useImageAI', () => {
         test('should not process when image is unsupported (not a file or proxy URL)', async () => {
             const mockSetServerError = jest.fn();
             const {result} = renderHook(() => useImageAI(
+                defaultProps.channelId,
                 defaultProps.wikiId,
                 defaultProps.currentPageId,
                 defaultProps.currentPageTitle,
@@ -221,6 +226,7 @@ describe('useImageAI', () => {
         test('should not process data URI images', async () => {
             const mockSetServerError = jest.fn();
             const {result} = renderHook(() => useImageAI(
+                defaultProps.channelId,
                 defaultProps.wikiId,
                 defaultProps.currentPageId,
                 defaultProps.currentPageTitle,
@@ -247,6 +253,7 @@ describe('useImageAI', () => {
         test('should not process when no agentId is provided', async () => {
             const mockSetServerError = jest.fn();
             const {result} = renderHook(() => useImageAI(
+                defaultProps.channelId,
                 defaultProps.wikiId,
                 defaultProps.currentPageId,
                 defaultProps.currentPageTitle,
@@ -274,6 +281,7 @@ describe('useImageAI', () => {
             jest.useFakeTimers();
 
             const {result} = renderHook(() => useImageAI(
+                defaultProps.channelId,
                 defaultProps.wikiId,
                 defaultProps.currentPageId,
                 defaultProps.currentPageTitle,
@@ -299,6 +307,7 @@ describe('useImageAI', () => {
             jest.useFakeTimers();
 
             const {result} = renderHook(() => useImageAI(
+                defaultProps.channelId,
                 defaultProps.wikiId,
                 defaultProps.currentPageId,
                 defaultProps.currentPageTitle,
@@ -320,6 +329,7 @@ describe('useImageAI', () => {
 
         test('should call extractImageText API with file ID for Mattermost files', async () => {
             const {result} = renderHook(() => useImageAI(
+                defaultProps.channelId,
                 defaultProps.wikiId,
                 defaultProps.currentPageId,
                 defaultProps.currentPageTitle,
@@ -346,6 +356,7 @@ describe('useImageAI', () => {
             const proxyUrl = `/api/v4/image?url=${encodeURIComponent(externalUrl)}`;
 
             const {result} = renderHook(() => useImageAI(
+                defaultProps.channelId,
                 defaultProps.wikiId,
                 defaultProps.currentPageId,
                 defaultProps.currentPageTitle,
@@ -373,6 +384,7 @@ describe('useImageAI', () => {
             const proxyUrl = `/api/v4/image?url=${encodeURIComponent(externalUrl)}`;
 
             const {result} = renderHook(() => useImageAI(
+                defaultProps.channelId,
                 defaultProps.wikiId,
                 defaultProps.currentPageId,
                 defaultProps.currentPageTitle,
@@ -395,6 +407,7 @@ describe('useImageAI', () => {
 
         test('should complete extraction and show completion dialog', async () => {
             const {result} = renderHook(() => useImageAI(
+                defaultProps.channelId,
                 defaultProps.wikiId,
                 defaultProps.currentPageId,
                 defaultProps.currentPageTitle,
@@ -420,6 +433,7 @@ describe('useImageAI', () => {
             mockExtractImageText.mockRejectedValue(new Error('API extraction failed'));
 
             const {result} = renderHook(() => useImageAI(
+                defaultProps.channelId,
                 defaultProps.wikiId,
                 defaultProps.currentPageId,
                 defaultProps.currentPageTitle,
@@ -452,6 +466,7 @@ describe('useImageAI', () => {
             mockCreatePage.mockReturnValue(() => Promise.resolve({error}) as any);
 
             const {result} = renderHook(() => useImageAI(
+                defaultProps.channelId,
                 defaultProps.wikiId,
                 defaultProps.currentPageId,
                 defaultProps.currentPageTitle,
@@ -477,6 +492,7 @@ describe('useImageAI', () => {
             jest.useFakeTimers();
 
             const {result} = renderHook(() => useImageAI(
+                defaultProps.channelId,
                 defaultProps.wikiId,
                 defaultProps.currentPageId,
                 defaultProps.currentPageTitle,
@@ -508,6 +524,7 @@ describe('useImageAI', () => {
             jest.useFakeTimers();
 
             const {result} = renderHook(() => useImageAI(
+                defaultProps.channelId,
                 defaultProps.wikiId,
                 defaultProps.currentPageId,
                 defaultProps.currentPageTitle,
@@ -541,6 +558,7 @@ describe('useImageAI', () => {
             const mockOnPageCreated = jest.fn();
 
             const {result} = renderHook(() => useImageAI(
+                defaultProps.channelId,
                 defaultProps.wikiId,
                 defaultProps.currentPageId,
                 defaultProps.currentPageTitle,
@@ -572,6 +590,7 @@ describe('useImageAI', () => {
             const mockOnPageCreated = jest.fn();
 
             const {result} = renderHook(() => useImageAI(
+                defaultProps.channelId,
                 defaultProps.wikiId,
                 defaultProps.currentPageId,
                 defaultProps.currentPageTitle,
@@ -602,6 +621,7 @@ describe('useImageAI', () => {
     describe('page title generation', () => {
         test('should generate title with page name for handwriting', async () => {
             const {result} = renderHook(() => useImageAI(
+                defaultProps.channelId,
                 defaultProps.wikiId,
                 defaultProps.currentPageId,
                 defaultProps.currentPageTitle,
@@ -621,6 +641,7 @@ describe('useImageAI', () => {
 
         test('should generate title with page name for describe_image', async () => {
             const {result} = renderHook(() => useImageAI(
+                defaultProps.channelId,
                 defaultProps.wikiId,
                 defaultProps.currentPageId,
                 defaultProps.currentPageTitle,

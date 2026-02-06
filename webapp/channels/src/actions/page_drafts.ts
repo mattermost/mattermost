@@ -95,17 +95,30 @@ export function savePageDraft(
         ]));
 
         if (syncedDraftsAreAllowedAndEnabled(state)) {
+            // Capture the local draft's updateAt before the server call.
+            // If another savePageDraft modifies the draft while this server call
+            // is in flight, the local draft will have a newer updateAt and we
+            // should NOT overwrite it with this (now-stale) server response.
+            const localUpdateAt = timestamp;
+
             // Delegate to Redux layer for the API call
             const result = await dispatch(WikiActions.savePageDraft(wikiId, pageId, message, title, lastUpdateAt, additionalProps));
 
             if (!result.error && result.data) {
-                const serverDraft = result.data as ServerPageDraft;
-                const transformedDraft = transformPageServerDraft(serverDraft, wikiId, pageId, currentUserId);
+                const currentState = getState();
+                const currentDraft = getGlobalItem<Partial<PostDraft>>(currentState, key, {});
 
-                dispatch(batchActions([
-                    setGlobalItem(key, transformedDraft.value),
-                    setGlobalDraftSource(key, true),
-                ]));
+                // Only apply server response if the draft hasn't been modified
+                // by another save while our server call was in flight
+                if (!currentDraft.updateAt || currentDraft.updateAt <= localUpdateAt) {
+                    const serverDraft = result.data as ServerPageDraft;
+                    const transformedDraft = transformPageServerDraft(serverDraft, wikiId, pageId, currentUserId);
+
+                    dispatch(batchActions([
+                        setGlobalItem(key, transformedDraft.value),
+                        setGlobalDraftSource(key, true),
+                    ]));
+                }
             } else if (result.error) {
                 return {data: false, error: result.error};
             }

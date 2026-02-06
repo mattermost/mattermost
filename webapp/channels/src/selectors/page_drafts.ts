@@ -232,7 +232,11 @@ export const getUnpublishedPageDraftsForWiki: (state: GlobalState, wikiId: strin
     (allDrafts, publishedDraftTimestamps, deletedDraftTimestamps): PostDraft[] => {
         return allDrafts.filter((draft) => {
             const draftId = draft.rootId;
-            const isPublished = Boolean(publishedDraftTimestamps[draftId]);
+
+            // Allow draft if it was updated AFTER publish (meaning the user entered edit mode
+            // and created a new draft after the previous one was published)
+            const publishedAt = publishedDraftTimestamps[draftId];
+            const isPublished = publishedAt && (!draft.updateAt || draft.updateAt <= publishedAt);
 
             // Use same logic as fetchPageDraftsForWiki: allow draft if it was updated AFTER deletion
             // (meaning it's a new draft created after the old one was deleted)

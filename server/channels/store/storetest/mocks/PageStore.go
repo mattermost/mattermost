@@ -15,6 +15,36 @@ type PageStore struct {
 	mock.Mock
 }
 
+// AtomicUpdatePageNotification provides a mock function with given fields: channelID, pageID, userID, username, pageTitle, sinceTime
+func (_m *PageStore) AtomicUpdatePageNotification(channelID string, pageID string, userID string, username string, pageTitle string, sinceTime int64) (*model.Post, error) {
+	ret := _m.Called(channelID, pageID, userID, username, pageTitle, sinceTime)
+
+	if len(ret) == 0 {
+		panic("no return value specified for AtomicUpdatePageNotification")
+	}
+
+	var r0 *model.Post
+	var r1 error
+	if rf, ok := ret.Get(0).(func(string, string, string, string, string, int64) (*model.Post, error)); ok {
+		return rf(channelID, pageID, userID, username, pageTitle, sinceTime)
+	}
+	if rf, ok := ret.Get(0).(func(string, string, string, string, string, int64) *model.Post); ok {
+		r0 = rf(channelID, pageID, userID, username, pageTitle, sinceTime)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.Post)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(string, string, string, string, string, int64) error); ok {
+		r1 = rf(channelID, pageID, userID, username, pageTitle, sinceTime)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // ChangePageParent provides a mock function with given fields: postID, newParentID, expectedUpdateAt
 func (_m *PageStore) ChangePageParent(postID string, newParentID string, expectedUpdateAt int64) error {
 	ret := _m.Called(postID, newParentID, expectedUpdateAt)
@@ -81,17 +111,17 @@ func (_m *PageStore) DeletePage(pageID string, deleteByID string, newParentID st
 	return r0
 }
 
-// DeletePageContent provides a mock function with given fields: pageID
-func (_m *PageStore) DeletePageContent(pageID string) error {
-	ret := _m.Called(pageID)
+// DeletePageContent provides a mock function with given fields: pageID, userID
+func (_m *PageStore) DeletePageContent(pageID string, userID string) error {
+	ret := _m.Called(pageID, userID)
 
 	if len(ret) == 0 {
 		panic("no return value specified for DeletePageContent")
 	}
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(string) error); ok {
-		r0 = rf(pageID)
+	if rf, ok := ret.Get(0).(func(string, string) error); ok {
+		r0 = rf(pageID, userID)
 	} else {
 		r0 = ret.Error(0)
 	}

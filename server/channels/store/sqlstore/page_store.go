@@ -41,8 +41,9 @@ func pageContentInsertColumns() []string {
 }
 
 // pageContentSelectColumns returns the columns for selecting page content (excludes UserId).
+// BaseUpdateAt is nullable in the schema, so COALESCE is used to prevent scan errors.
 func pageContentSelectColumns() []string {
-	return []string{"PageId", "Content", "SearchText", "CreateAt", "UpdateAt", "DeleteAt"}
+	return []string{"PageId", "Content", "SearchText", "COALESCE(BaseUpdateAt, 0) AS BaseUpdateAt", "CreateAt", "UpdateAt", "DeleteAt"}
 }
 
 type SqlPageStore struct {
@@ -863,7 +864,8 @@ func (s *SqlPageStore) MovePage(pageID, channelID string, newParentID *string, n
 	err := s.ExecuteInTransaction(func(tx *sqlxTxWrapper) error {
 		now := model.GetMillis()
 
-		// Always fetch current parent to determine if we're changing and for reorder operations
+		// Fetch current parent and lock the row to prevent concurrent modifications.
+		// FOR UPDATE ensures no other transaction can modify this page until we commit.
 		var currentParentID string
 		selectQuery := s.getQueryBuilder().
 			Select("PageParentId").
@@ -873,7 +875,8 @@ func (s *SqlPageStore) MovePage(pageID, channelID string, newParentID *string, n
 				sq.Eq{"Type": model.PostTypePage},
 				sq.Eq{"DeleteAt": 0},
 				sq.Eq{"UpdateAt": expectedUpdateAt},
-			})
+			}).
+			Suffix("FOR UPDATE")
 
 		queryString, args, buildErr := selectQuery.ToSql()
 		if buildErr != nil {
@@ -902,7 +905,34 @@ func (s *SqlPageStore) MovePage(pageID, channelID string, newParentID *string, n
 					return store.NewErrInvalidInput("Post", "PageParentId", "cannot set page as its own parent")
 				}
 
-				// Check if pageID is an ancestor of newParentID (would create cycle)
+				// Lock the new parent row to prevent concurrent moves that could create cycles.
+				// Without this lock, two concurrent moves (A→B and B→A) could both pass cycle
+				// detection because each sees the pre-move state of the other.
+				lockParentQuery := s.getQueryBuilder().
+					Select("Id").
+					From("Posts").
+					Where(sq.And{
+						sq.Eq{"Id": effectiveParentID},
+						sq.Eq{"Type": model.PostTypePage},
+						sq.Eq{"DeleteAt": 0},
+					}).
+					Suffix("FOR UPDATE")
+
+				lockQueryStr, lockArgs, lockBuildErr := lockParentQuery.ToSql()
+				if lockBuildErr != nil {
+					return errors.Wrap(lockBuildErr, "failed to build lock parent query")
+				}
+
+				var lockedParentID string
+				if err := tx.Get(&lockedParentID, lockQueryStr, lockArgs...); err != nil {
+					if err == sql.ErrNoRows {
+						return store.NewErrNotFound("Post", effectiveParentID)
+					}
+					return errors.Wrap(err, "failed to lock new parent page")
+				}
+
+				// Check if pageID is an ancestor of newParentID (would create cycle).
+				// Safe from races because both the moved page and new parent are locked above.
 				cycleCheckQuery := `
 				WITH RECURSIVE ancestors AS (
 					SELECT Id, PageParentId
@@ -970,6 +1000,31 @@ func (s *SqlPageStore) MovePage(pageID, channelID string, newParentID *string, n
 // move operations could create cycles (e.g., moving P1 under P2 while P2 is moved under P1).
 func (s *SqlPageStore) ChangePageParent(postID string, newParentID string, expectedUpdateAt int64) error {
 	return s.ExecuteInTransaction(func(transaction *sqlxTxWrapper) error {
+		// Lock the page being moved to prevent concurrent modifications
+		lockPageQuery := s.getQueryBuilder().
+			Select("Id").
+			From("Posts").
+			Where(sq.And{
+				sq.Eq{"Id": postID},
+				sq.Eq{"Type": model.PostTypePage},
+				sq.Eq{"DeleteAt": 0},
+				sq.Eq{"UpdateAt": expectedUpdateAt},
+			}).
+			Suffix("FOR UPDATE")
+
+		lockQueryStr, lockArgs, lockBuildErr := lockPageQuery.ToSql()
+		if lockBuildErr != nil {
+			return errors.Wrap(lockBuildErr, "failed to build lock page query")
+		}
+
+		var lockedPageID string
+		if err := transaction.Get(&lockedPageID, lockQueryStr, lockArgs...); err != nil {
+			if err == sql.ErrNoRows {
+				return store.NewErrNotFound("Post", postID)
+			}
+			return errors.Wrap(err, "failed to lock page for parent change")
+		}
+
 		// If setting a parent, check for cycles atomically within the transaction
 		if newParentID != "" {
 			// Direct self-reference check
@@ -977,7 +1032,32 @@ func (s *SqlPageStore) ChangePageParent(postID string, newParentID string, expec
 				return store.NewErrInvalidInput("Post", "PageParentId", "cannot set page as its own parent")
 			}
 
-			// Check if postID is an ancestor of newParentID (would create cycle)
+			// Lock the new parent to prevent concurrent moves that could create cycles
+			lockParentQuery := s.getQueryBuilder().
+				Select("Id").
+				From("Posts").
+				Where(sq.And{
+					sq.Eq{"Id": newParentID},
+					sq.Eq{"Type": model.PostTypePage},
+					sq.Eq{"DeleteAt": 0},
+				}).
+				Suffix("FOR UPDATE")
+
+			lockParentStr, lockParentArgs, lockParentBuildErr := lockParentQuery.ToSql()
+			if lockParentBuildErr != nil {
+				return errors.Wrap(lockParentBuildErr, "failed to build lock parent query")
+			}
+
+			var lockedParentID string
+			if err := transaction.Get(&lockedParentID, lockParentStr, lockParentArgs...); err != nil {
+				if err == sql.ErrNoRows {
+					return store.NewErrNotFound("Post", newParentID)
+				}
+				return errors.Wrap(err, "failed to lock new parent page")
+			}
+
+			// Check if postID is an ancestor of newParentID (would create cycle).
+			// Safe from races because both pages are locked above.
 			cycleCheckQuery := `
 			WITH RECURSIVE ancestors AS (
 				SELECT Id, PageParentId
@@ -1057,6 +1137,7 @@ func (s *SqlPageStore) UpdatePageWithContent(rctx request.CTX, pageID, title, co
 
 	var currentPost model.Post
 	err = s.ExecuteInTransaction(func(transaction *sqlxTxWrapper) error {
+		// FOR UPDATE locks the row to prevent concurrent modifications within this transaction.
 		query := s.getQueryBuilder().
 			Select(
 				"Id", "CreateAt", "UpdateAt", "EditAt", "DeleteAt",
@@ -1069,7 +1150,8 @@ func (s *SqlPageStore) UpdatePageWithContent(rctx request.CTX, pageID, title, co
 			Where(sq.And{
 				sq.Eq{"Id": pageID},
 				sq.Eq{"Type": model.PostTypePage},
-			})
+			}).
+			Suffix("FOR UPDATE")
 
 		queryString, args, buildErr := query.ToSql()
 		if buildErr != nil {
@@ -1372,10 +1454,6 @@ func (s *SqlPageStore) GetPageVersionHistory(pageId string, offset, limit int) (
 		return nil, errors.Wrapf(err, "error getting page version history with pageId=%s", pageId)
 	}
 
-	if len(posts) == 0 {
-		return nil, store.NewErrNotFound("failed to find page version history", pageId)
-	}
-
 	return posts, nil
 }
 
@@ -1460,8 +1538,8 @@ func (s *SqlPageStore) SavePageContent(pageContent *model.PageContent) (*model.P
 
 	query := s.getQueryBuilder().
 		Insert("PageContents").
-		Columns("PageId", "Content", "SearchText", "CreateAt", "UpdateAt", "DeleteAt").
-		Values(pageContent.PageId, contentJSON, pageContent.SearchText, pageContent.CreateAt, pageContent.UpdateAt, pageContent.DeleteAt)
+		Columns("PageId", "UserId", "Content", "SearchText", "BaseUpdateAt", "CreateAt", "UpdateAt", "DeleteAt").
+		Values(pageContent.PageId, pageContent.UserId, contentJSON, pageContent.SearchText, pageContent.BaseUpdateAt, pageContent.CreateAt, pageContent.UpdateAt, pageContent.DeleteAt)
 
 	queryString, args, err := query.ToSql()
 	if err != nil {
@@ -1494,6 +1572,7 @@ func (s *SqlPageStore) GetPageContent(pageID string) (*model.PageContent, error)
 		&pageContent.PageId,
 		&contentJSON,
 		&pageContent.SearchText,
+		&pageContent.BaseUpdateAt,
 		&pageContent.CreateAt,
 		&pageContent.UpdateAt,
 		&pageContent.DeleteAt,
@@ -1514,52 +1593,25 @@ func (s *SqlPageStore) GetPageContent(pageID string) (*model.PageContent, error)
 // GetManyPageContents fetches multiple page contents by IDs.
 // Uses GetReplica() as this is a batch/export operation where slight replication
 // lag is acceptable - callers are fetching existing content for export or bulk display.
+// Automatically batches queries to enforce MaxPageContentBatchSize.
 func (s *SqlPageStore) GetManyPageContents(pageIDs []string) ([]*model.PageContent, error) {
 	if len(pageIDs) == 0 {
 		return []*model.PageContent{}, nil
 	}
 
-	query := s.pageContentQuery.Where(sq.Eq{"PageId": pageIDs, "UserId": PublishedPageContentUserId, "DeleteAt": 0})
+	allResults := make([]*model.PageContent, 0, len(pageIDs))
+	for i := 0; i < len(pageIDs); i += MaxPageContentBatchSize {
+		end := min(i+MaxPageContentBatchSize, len(pageIDs))
+		batch := pageIDs[i:end]
 
-	queryString, args, err := query.ToSql()
-	if err != nil {
-		return nil, errors.Wrap(err, "page_content_getmany_tosql")
-	}
-
-	rows, err := s.GetReplica().Query(queryString, args...)
-	if err != nil {
-		return nil, errors.Wrapf(err, "failed to get PageContents with pageIds=%v", pageIDs)
-	}
-	defer rows.Close()
-
-	pageContents := []*model.PageContent{}
-	for rows.Next() {
-		var pageContent model.PageContent
-		var contentJSON string
-
-		if err := rows.Scan(
-			&pageContent.PageId,
-			&contentJSON,
-			&pageContent.SearchText,
-			&pageContent.CreateAt,
-			&pageContent.UpdateAt,
-			&pageContent.DeleteAt,
-		); err != nil {
-			return nil, errors.Wrap(err, "failed to scan PageContent row")
+		batchResults, err := s.getManyPageContentsBatch(batch, false)
+		if err != nil {
+			return nil, err
 		}
-
-		if err := pageContent.SetDocumentJSON(contentJSON); err != nil {
-			return nil, errors.Wrapf(err, "failed to parse PageContent document for pageId=%s", pageContent.PageId)
-		}
-
-		pageContents = append(pageContents, &pageContent)
+		allResults = append(allResults, batchResults...)
 	}
 
-	if err := rows.Err(); err != nil {
-		return nil, errors.Wrap(err, "error iterating PageContent rows")
-	}
-
-	return pageContents, nil
+	return allResults, nil
 }
 
 // GetPageContentWithDeleted fetches page content including soft-deleted content.
@@ -1582,6 +1634,7 @@ func (s *SqlPageStore) GetPageContentWithDeleted(pageID string) (*model.PageCont
 		&pageContent.PageId,
 		&contentJSON,
 		&pageContent.SearchText,
+		&pageContent.BaseUpdateAt,
 		&pageContent.CreateAt,
 		&pageContent.UpdateAt,
 		&pageContent.DeleteAt,
@@ -1599,26 +1652,49 @@ func (s *SqlPageStore) GetPageContentWithDeleted(pageID string) (*model.PageCont
 	return &pageContent, nil
 }
 
+// GetManyPageContentsWithDeleted fetches multiple page contents by IDs, including soft-deleted.
+// Automatically batches queries to enforce MaxPageContentBatchSize.
 func (s *SqlPageStore) GetManyPageContentsWithDeleted(pageIDs []string) ([]*model.PageContent, error) {
 	if len(pageIDs) == 0 {
 		return []*model.PageContent{}, nil
 	}
 
-	// UserId = '' means published content (drafts have non-empty UserId)
-	query := s.pageContentQuery.Where(sq.Eq{"PageId": pageIDs, "UserId": PublishedPageContentUserId})
+	allResults := make([]*model.PageContent, 0, len(pageIDs))
+	for i := 0; i < len(pageIDs); i += MaxPageContentBatchSize {
+		end := min(i+MaxPageContentBatchSize, len(pageIDs))
+		batch := pageIDs[i:end]
+
+		batchResults, err := s.getManyPageContentsBatch(batch, true)
+		if err != nil {
+			return nil, err
+		}
+		allResults = append(allResults, batchResults...)
+	}
+
+	return allResults, nil
+}
+
+// getManyPageContentsBatch fetches a single batch of page contents.
+// If includeDeleted is false, only non-deleted content is returned.
+func (s *SqlPageStore) getManyPageContentsBatch(pageIDs []string, includeDeleted bool) ([]*model.PageContent, error) {
+	where := sq.Eq{"PageId": pageIDs, "UserId": PublishedPageContentUserId}
+	if !includeDeleted {
+		where["DeleteAt"] = 0
+	}
+	query := s.pageContentQuery.Where(where)
 
 	queryString, args, err := query.ToSql()
 	if err != nil {
-		return nil, errors.Wrap(err, "page_content_getmany_withdeleted_tosql")
+		return nil, errors.Wrap(err, "page_content_getmany_tosql")
 	}
 
 	rows, err := s.GetReplica().Query(queryString, args...)
 	if err != nil {
-		return nil, errors.Wrapf(err, "failed to get PageContents (including deleted) with pageIds=%v", pageIDs)
+		return nil, errors.Wrapf(err, "failed to get PageContents with pageIds=%v", pageIDs)
 	}
 	defer rows.Close()
 
-	pageContents := []*model.PageContent{}
+	var pageContents []*model.PageContent
 	for rows.Next() {
 		var pageContent model.PageContent
 		var contentJSON string
@@ -1627,6 +1703,7 @@ func (s *SqlPageStore) GetManyPageContentsWithDeleted(pageIDs []string) ([]*mode
 			&pageContent.PageId,
 			&contentJSON,
 			&pageContent.SearchText,
+			&pageContent.BaseUpdateAt,
 			&pageContent.CreateAt,
 			&pageContent.UpdateAt,
 			&pageContent.DeleteAt,
@@ -1675,6 +1752,7 @@ func (s *SqlPageStore) UpdatePageContent(pageContent *model.PageContent) (*model
 		Set("UpdateAt", pageContent.UpdateAt).
 		Where(sq.And{
 			sq.Eq{"PageId": pageContent.PageId},
+			sq.Eq{"UserId": pageContent.UserId},
 			sq.Eq{"DeleteAt": 0},
 		})
 
@@ -1690,12 +1768,17 @@ func (s *SqlPageStore) UpdatePageContent(pageContent *model.PageContent) (*model
 	return pageContent, nil
 }
 
-func (s *SqlPageStore) DeletePageContent(pageID string) error {
-	query := s.buildSoftDeleteQuery("PageContents", "PageId", pageID, true)
+func (s *SqlPageStore) DeletePageContent(pageID, userID string) error {
+	now := model.GetMillis()
+	query := s.getQueryBuilder().
+		Update("PageContents").
+		Set("DeleteAt", now).
+		Set("UpdateAt", now).
+		Where(sq.Eq{"PageId": pageID, "UserId": userID, "DeleteAt": 0})
 
 	result, err := s.GetMaster().ExecBuilder(query)
 	if err != nil {
-		return errors.Wrapf(err, "failed to soft-delete PageContent with pageId=%s", pageID)
+		return errors.Wrapf(err, "failed to soft-delete PageContent with pageId=%s userId=%s", pageID, userID)
 	}
 
 	return s.checkRowsAffected(result, "PageContent", pageID)
@@ -1736,4 +1819,94 @@ func (s *SqlPageStore) RestorePageContent(pageID string) error {
 	}
 
 	return s.checkRowsAffected(result, "PageContent", pageID)
+}
+
+// AtomicUpdatePageNotification atomically finds and updates an existing page update notification.
+// Uses SELECT FOR UPDATE within a transaction to prevent lost updates from concurrent modifications.
+// Returns the updated post, or nil if no matching notification was found.
+func (s *SqlPageStore) AtomicUpdatePageNotification(channelID, pageID, userID, username, pageTitle string, sinceTime int64) (*model.Post, error) {
+	var result *model.Post
+
+	err := s.ExecuteInTransaction(func(tx *sqlxTxWrapper) error {
+		// Find all recent page_updated notifications in this channel, locking them.
+		// We filter by Props in Go since the column type may not support JSONB operators.
+		query := s.getQueryBuilder().
+			Select(postSliceColumns()...).
+			From("Posts").
+			Where(sq.And{
+				sq.Eq{"ChannelId": channelID},
+				sq.Eq{"Type": model.PostTypePageUpdated},
+				sq.Eq{"DeleteAt": 0},
+				sq.Gt{"CreateAt": sinceTime},
+			}).
+			OrderBy("CreateAt DESC").
+			Suffix("FOR UPDATE")
+
+		posts := []*model.Post{}
+		if err := tx.SelectBuilder(&posts, query); err != nil {
+			return errors.Wrap(err, "failed to find page update notifications")
+		}
+
+		// Find the notification for this specific page
+		var notification *model.Post
+		for _, post := range posts {
+			if propPageID, ok := post.Props[model.PagePropsPageID].(string); ok && propPageID == pageID {
+				notification = post
+				break
+			}
+		}
+
+		if notification == nil {
+			return nil // No existing notification; caller will create a new one
+		}
+
+		// Atomically update props on the locked row
+		updateCount := 1
+		if countProp, ok := notification.Props["update_count"].(float64); ok {
+			updateCount = int(countProp) + 1
+		} else if countProp, ok := notification.Props["update_count"].(int); ok {
+			updateCount = countProp + 1
+		}
+
+		updaterIds := make(map[string]bool)
+		if existingUpdaters, ok := notification.Props["updater_ids"].([]any); ok {
+			for _, id := range existingUpdaters {
+				if idStr, ok := id.(string); ok {
+					updaterIds[idStr] = true
+				}
+			}
+		}
+		updaterIds[userID] = true
+
+		updaterIdsList := make([]string, 0, len(updaterIds))
+		for id := range updaterIds {
+			updaterIdsList = append(updaterIdsList, id)
+		}
+
+		notification.Props["page_title"] = pageTitle
+		notification.Props["update_count"] = updateCount
+		notification.Props["last_update_time"] = model.GetMillis()
+		notification.Props["updater_ids"] = updaterIdsList
+		if username != "" {
+			notification.Props["username_"+userID] = username
+		}
+
+		now := model.GetMillis()
+		notification.UpdateAt = now
+
+		updateQuery := s.getQueryBuilder().
+			Update("Posts").
+			Set("Props", notification.Props).
+			Set("UpdateAt", now).
+			Where(sq.Eq{"Id": notification.Id})
+
+		if _, err := tx.ExecBuilder(updateQuery); err != nil {
+			return errors.Wrapf(err, "failed to update notification post id=%s", notification.Id)
+		}
+
+		result = notification
+		return nil
+	})
+
+	return result, err
 }

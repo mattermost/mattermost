@@ -448,6 +448,102 @@ func TestUpsertPageDraft(t *testing.T) {
 		require.NotNil(t, draft)
 		require.Equal(t, parentPage.Id, draft.Props[model.DraftPropsPageParentID])
 	})
+
+	t.Run("title-only save skips PageContents write", func(t *testing.T) {
+		pageId := model.NewId()
+
+		// Save with title only (empty content)
+		draft, appErr := th.App.UpsertPageDraft(rctx, th.BasicUser.Id, createdWiki.Id, pageId, "", "Title Only Draft", 0, nil, nil, nil)
+		require.Nil(t, appErr)
+		require.NotNil(t, draft)
+		require.Equal(t, "Title Only Draft", draft.Title)
+		require.Empty(t, draft.Content)
+
+		// GetPageDraft requires PageContents to exist, so title-only draft returns not_found for content
+		_, appErr = th.App.GetPageDraft(rctx, th.BasicUser.Id, createdWiki.Id, pageId, true)
+		require.NotNil(t, appErr)
+		require.Equal(t, "app.draft.get_page_draft.not_found", appErr.Id)
+
+		// But the Drafts metadata row should exist
+		draftMeta, err := th.App.Srv().Store().Draft().Get(th.BasicUser.Id, createdWiki.Id, pageId, false)
+		require.NoError(t, err)
+		require.NotNil(t, draftMeta)
+		require.Equal(t, "Title Only Draft", draftMeta.GetProps()["title"])
+	})
+
+	t.Run("title-only save followed by content save preserves title", func(t *testing.T) {
+		pageId := model.NewId()
+
+		// First: title-only save
+		_, appErr := th.App.UpsertPageDraft(rctx, th.BasicUser.Id, createdWiki.Id, pageId, "", "My Page Title", 0, nil, nil, nil)
+		require.Nil(t, appErr)
+
+		// Second: content save with same title
+		content := `{"type":"doc","content":[{"type":"paragraph","content":[{"type":"text","text":"Now has content"}]}]}`
+		draft, appErr := th.App.UpsertPageDraft(rctx, th.BasicUser.Id, createdWiki.Id, pageId, content, "My Page Title", 0, nil, nil, nil)
+		require.Nil(t, appErr)
+		require.NotNil(t, draft)
+		require.Equal(t, "My Page Title", draft.Title)
+
+		// Verify full draft is retrievable
+		retrieved, appErr := th.App.GetPageDraft(rctx, th.BasicUser.Id, createdWiki.Id, pageId, true)
+		require.Nil(t, appErr)
+		require.Equal(t, "My Page Title", retrieved.Title)
+
+		jsonContent, jsonErr := retrieved.GetDocumentJSON()
+		require.NoError(t, jsonErr)
+		require.JSONEq(t, content, jsonContent)
+	})
+
+	t.Run("prop merging preserves existing props on update", func(t *testing.T) {
+		parentPage, appErr := th.App.CreatePage(th.Context, th.BasicChannel.Id, "Parent For Merge", "", "", th.BasicUser.Id, "", "")
+		require.Nil(t, appErr)
+
+		pageId := model.NewId()
+		content := `{"type":"doc","content":[]}`
+
+		// First save: set parent ID and a custom prop
+		initialProps := map[string]any{
+			model.DraftPropsPageParentID: parentPage.Id,
+			"custom_field":               "custom_value",
+		}
+		draft1, appErr := th.App.UpsertPageDraft(rctx, th.BasicUser.Id, createdWiki.Id, pageId, content, "Merge Test", 0, initialProps, nil, nil)
+		require.Nil(t, appErr)
+		require.Equal(t, parentPage.Id, draft1.Props[model.DraftPropsPageParentID])
+		require.Equal(t, "custom_value", draft1.Props["custom_field"])
+
+		// Second save: only change title (no props passed)
+		// Parent ID and custom_field should be preserved via prop merging
+		draft2, appErr := th.App.UpsertPageDraft(rctx, th.BasicUser.Id, createdWiki.Id, pageId, content, "Updated Merge Test", draft1.UpdateAt, nil, nil, nil)
+		require.Nil(t, appErr)
+		require.Equal(t, "Updated Merge Test", draft2.Title)
+		require.Equal(t, parentPage.Id, draft2.Props[model.DraftPropsPageParentID], "parent ID should be preserved")
+		require.Equal(t, "custom_value", draft2.Props["custom_field"], "custom field should be preserved")
+	})
+
+	t.Run("prop merging allows overwriting existing props", func(t *testing.T) {
+		pageId := model.NewId()
+		content := `{"type":"doc","content":[]}`
+
+		// First save with initial props
+		initialProps := map[string]any{
+			"field_a": "value_a",
+			"field_b": "value_b",
+		}
+		draft1, appErr := th.App.UpsertPageDraft(rctx, th.BasicUser.Id, createdWiki.Id, pageId, content, "Overwrite Test", 0, initialProps, nil, nil)
+		require.Nil(t, appErr)
+		require.Equal(t, "value_a", draft1.Props["field_a"])
+		require.Equal(t, "value_b", draft1.Props["field_b"])
+
+		// Second save: overwrite field_a, leave field_b untouched
+		newProps := map[string]any{
+			"field_a": "new_value_a",
+		}
+		draft2, appErr := th.App.UpsertPageDraft(rctx, th.BasicUser.Id, createdWiki.Id, pageId, content, "Overwrite Test", draft1.UpdateAt, newProps, nil, nil)
+		require.Nil(t, appErr)
+		require.Equal(t, "new_value_a", draft2.Props["field_a"], "field_a should be overwritten")
+		require.Equal(t, "value_b", draft2.Props["field_b"], "field_b should be preserved")
+	})
 }
 
 func TestMovePageDraft(t *testing.T) {
