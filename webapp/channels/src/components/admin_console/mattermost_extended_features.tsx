@@ -31,7 +31,7 @@ import {
     LinkVariantIcon,
     ShieldOutlineIcon,
     ChevronDownIcon,
-    ViewDashboardOutlineIcon,
+    ViewGridPlusOutlineIcon,
 } from '@mattermost/compass-icons/components';
 
 export const messages = defineMessages({
@@ -79,7 +79,7 @@ const SECTIONS: SectionDefinition[] = [
     {
         id: 'layout',
         title: 'Layout & Navigation',
-        icon: ViewDashboardOutlineIcon,
+        icon: ViewGridPlusOutlineIcon,
         description: 'Chat layout and sidebar enhancements',
     },
     {
@@ -127,7 +127,7 @@ const FEATURES: FeatureDefinition[] = [
         description: 'Guilded-style UI: enhanced team sidebar with DM button, separate DM page, persistent Members/Threads RHS, modal popouts. Auto-enables ThreadsInSidebar. Desktop only (≥768px).',
         defaultValue: false,
         section: 'layout',
-        icon: ViewDashboardOutlineIcon,
+        icon: ViewGridPlusOutlineIcon,
         isMajor: true,
     },
 
