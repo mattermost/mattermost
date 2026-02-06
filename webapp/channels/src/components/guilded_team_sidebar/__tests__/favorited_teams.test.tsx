@@ -55,8 +55,8 @@ describe('FavoritedTeams', () => {
         jest.clearAllMocks();
         mockCallCount = 0;
         mockPush.mockClear();
-        // FavoritedTeams calls useSelector in order: getFavoritedTeamIds, getCurrentTeamId, inline selector for teams
-        mockValues = [['team1', 'team2'], 'team1', mockTeams];
+        // FavoritedTeams calls useSelector in order: getFavoritedTeamIds, getCurrentTeamId, isDmMode, inline selector for teams
+        mockValues = [['team1', 'team2'], 'team1', false, mockTeams];
     });
 
     it('renders container element', () => {
@@ -150,7 +150,7 @@ describe('FavoritedTeams', () => {
 
     it('renders nothing when no favorited teams', () => {
         mockCallCount = 0;
-        mockValues = [[], 'team1', []];
+        mockValues = [[], 'team1', false, []];
 
         const store = mockStore(baseState);
         const {container} = render(
@@ -165,7 +165,7 @@ describe('FavoritedTeams', () => {
 
     it('returns null (no container) when no favorited teams', () => {
         mockCallCount = 0;
-        mockValues = [[], 'team1', []];
+        mockValues = [[], 'team1', false, []];
 
         const store = mockStore(baseState);
         const {container} = render(

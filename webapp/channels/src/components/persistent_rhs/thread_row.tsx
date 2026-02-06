@@ -44,10 +44,9 @@ export default function ThreadRow({thread, onClick}: Props) {
         return null;
     }
 
-    const formattedText = formatText(thread.rootPost.message || '', {singleline: true});
-    const messagePreview = messageHtmlToComponent(formattedText, {
-        mentions: false,
-    });
+    const hasMessage = Boolean(thread.rootPost.message);
+    const formattedText = hasMessage ? formatText(thread.rootPost.message, {singleline: true}) : '';
+    const messagePreview = hasMessage ? messageHtmlToComponent(formattedText, {mentions: false}) : null;
 
     return (
         <div

@@ -604,6 +604,10 @@ describe('selectors/views/guilded_layout', () => {
     });
 
     describe('getAllDmChannelsWithUsers', () => {
+        const defaultMyMembers = {
+            dm1: {channel_id: 'dm1'},
+            dm2: {channel_id: 'dm2'},
+        };
         const makeState = (overrides: any = {}) => ({
             entities: {
                 channels: {
@@ -612,11 +616,7 @@ describe('selectors/views/guilded_layout', () => {
                         dm2: {id: 'dm2', type: 'D', name: 'currentUser__user3', last_post_at: 1000},
                         ...overrides.channels,
                     },
-                    myMembers: {
-                        dm1: {channel_id: 'dm1'},
-                        dm2: {channel_id: 'dm2'},
-                        ...overrides.myMembers,
-                    },
+                    myMembers: overrides.myMembers || defaultMyMembers,
                 },
                 users: {
                     profiles: {

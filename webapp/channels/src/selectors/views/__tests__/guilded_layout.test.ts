@@ -15,6 +15,7 @@ describe('guilded_layout selectors', () => {
                             FeatureFlagGuildedChatLayout: 'true',
                         },
                     },
+                    preferences: {myPreferences: {}},
                 },
             } as unknown as GlobalState;
 
@@ -29,6 +30,7 @@ describe('guilded_layout selectors', () => {
                             FeatureFlagGuildedChatLayout: 'false',
                         },
                     },
+                    preferences: {myPreferences: {}},
                 },
             } as unknown as GlobalState;
 
@@ -46,6 +48,7 @@ describe('guilded_layout selectors', () => {
                             FeatureFlagGuildedChatLayout: 'false',
                         },
                     },
+                    preferences: {myPreferences: {}},
                 },
             } as unknown as GlobalState;
 
@@ -61,6 +64,7 @@ describe('guilded_layout selectors', () => {
                             FeatureFlagGuildedChatLayout: 'true',
                         },
                     },
+                    preferences: {myPreferences: {}},
                 },
             } as unknown as GlobalState;
 
@@ -76,6 +80,7 @@ describe('guilded_layout selectors', () => {
                             FeatureFlagGuildedChatLayout: 'false',
                         },
                     },
+                    preferences: {myPreferences: {}},
                 },
             } as unknown as GlobalState;
 
