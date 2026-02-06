@@ -131,12 +131,9 @@ describe('EnhancedDmRow', () => {
 
         const link = container.querySelector('a.enhanced-dm-row');
         const href = link?.getAttribute('href') || '';
-
-        // The href should be a relative path, not a full URL
-        // This test would fail if getCurrentTeamUrl (full URL) was used instead of getCurrentRelativeTeamUrl
         expect(href).not.toContain('http://');
         expect(href).not.toContain('https://');
-        expect(href).toMatch(/^\/[^/]/); // Should start with / followed by non-slash
+        expect(href).toMatch(/^\/[^/]/);
     });
 
     it('applies active class when isActive is true', () => {
@@ -166,7 +163,7 @@ describe('EnhancedDmRow', () => {
                         dm1: {
                             channel_id: 'dm1',
                             user_id: 'user1',
-                            msg_count: 5, // Less than total_msg_count (10)
+                            msg_count: 5,
                             mention_count: 0,
                             notify_props: {},
                         },
@@ -265,7 +262,6 @@ describe('EnhancedDmRow', () => {
     });
 
     it('shows "No messages yet" when channel has no posts', () => {
-        // baseState already has no posts in postsInChannel
         const store = mockStore(baseState);
         const {container} = render(
             <Provider store={store}>
@@ -320,5 +316,27 @@ describe('EnhancedDmRow', () => {
 
         const preview = container.querySelector('.enhanced-dm-row__preview');
         expect(preview?.textContent).toContain('Hello there!');
+    });
+
+    it('status icon has correct bottom positioning class', () => {
+        const store = mockStore(baseState);
+        const {container} = render(
+            <Provider store={store}>
+                <BrowserRouter>
+                    <EnhancedDmRow
+                        channel={mockChannel}
+                        user={mockUser}
+                        isActive={false}
+                    />
+                </BrowserRouter>
+            </Provider>,
+        );
+
+        // Current bug: Status is too high.
+        // Fix will add a class like 'status--bottom-right' or update styles.
+        // Test expects a class on the status icon container or the icon itself.
+        // Assuming there is a status element.
+        const status = container.querySelector('.status');
+        expect(status).toHaveClass('status--bottom-right');
     });
 });

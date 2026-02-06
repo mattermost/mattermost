@@ -7,6 +7,7 @@ import {Provider} from 'react-redux';
 import configureStore from 'redux-mock-store';
 
 import MembersTab from '../members_tab';
+import * as UserActions from 'actions/user_actions';
 
 const mockStore = configureStore([]);
 
@@ -17,9 +18,10 @@ jest.mock('react-virtualized-auto-sizer', () => ({
         children({height: 500, width: 300}),
 }));
 
-// Mock react-redux useSelector - variables must be prefixed with 'mock'
+// Mock react-redux
 let mockChannel: any = null;
 let mockGroupedMembers: any = null;
+const mockDispatch = jest.fn();
 
 jest.mock('react-redux', () => ({
     ...jest.requireActual('react-redux'),
@@ -35,6 +37,12 @@ jest.mock('react-redux', () => ({
         // Return groupedMembers for the second call
         return mockGroupedMembers;
     },
+    useDispatch: () => mockDispatch,
+}));
+
+// Mock actions
+jest.mock('actions/user_actions', () => ({
+    loadProfilesAndTeamMembersAndChannelMembers: jest.fn().mockReturnValue({type: 'MOCK_LOAD_PROFILES'}),
 }));
 
 // Mock MemberRow component
@@ -146,5 +154,22 @@ describe('MembersTab', () => {
         // Should not show Admin or Offline headers
         expect(screen.queryByText(/Admin —/)).not.toBeInTheDocument();
         expect(screen.queryByText(/Offline —/)).not.toBeInTheDocument();
+    });
+
+    it('dispatches loadProfilesAndTeamMembersAndChannelMembers on mount', () => {
+        // Ensure data is null so it tries to load? 
+        // Even if data is present, it should probably load fresh data or at least check.
+        // The requirement is "dispatches ... on mount".
+        mockGroupedMembers = null;
+
+        const store = mockStore(baseState);
+        render(
+            <Provider store={store}>
+                <MembersTab />
+            </Provider>,
+        );
+
+        expect(mockDispatch).toHaveBeenCalled();
+        expect(UserActions.loadProfilesAndTeamMembersAndChannelMembers).toHaveBeenCalled();
     });
 });
