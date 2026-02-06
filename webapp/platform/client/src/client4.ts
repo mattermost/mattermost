@@ -5078,6 +5078,7 @@ export default class Client4 {
             page: number;
             per_page: number;
             has_more: boolean;
+            paused_users: Record<string, number>;
         }>(url, {method: 'get'});
     };
 

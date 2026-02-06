@@ -22,7 +22,8 @@ const (
 
 // LogStatusChange saves a status change to the database and broadcasts it via WebSocket.
 // The source parameter identifies which function triggered this log (e.g., "SetStatusOnline").
-func (ps *PlatformService) LogStatusChange(userID, username, oldStatus, newStatus, reason, device string, windowActive bool, channelID string, manual bool, source string) {
+// The lastActivityAt parameter is the user's LastActivityAt value at the time of the change.
+func (ps *PlatformService) LogStatusChange(userID, username, oldStatus, newStatus, reason, device string, windowActive bool, channelID string, manual bool, source string, lastActivityAt int64) {
 	// Only log if status logs are enabled
 	if !*ps.Config().MattermostExtendedSettings.Statuses.EnableStatusLogs {
 		return
@@ -49,20 +50,21 @@ func (ps *PlatformService) LogStatusChange(userID, username, oldStatus, newStatu
 	}
 
 	statusLog := &model.StatusLog{
-		Id:           model.NewId(),
-		CreateAt:     model.GetMillis(),
-		UserID:       userID,
-		Username:     username,
-		OldStatus:    oldStatus,
-		NewStatus:    newStatus,
-		Reason:       reason,
-		WindowActive: windowActive,
-		ChannelID:    channelID,
-		Device:       device,
-		LogType:      model.StatusLogTypeStatusChange,
-		Trigger:      trigger,
-		Manual:       manual,
-		Source:       source,
+		Id:             model.NewId(),
+		CreateAt:       model.GetMillis(),
+		UserID:         userID,
+		Username:       username,
+		OldStatus:      oldStatus,
+		NewStatus:      newStatus,
+		Reason:         reason,
+		WindowActive:   windowActive,
+		ChannelID:      channelID,
+		Device:         device,
+		LogType:        model.StatusLogTypeStatusChange,
+		Trigger:        trigger,
+		Manual:         manual,
+		Source:         source,
+		LastActivityAt: lastActivityAt,
 	}
 
 	// Save to database
@@ -504,7 +506,7 @@ func (ps *PlatformService) CheckDNDTimeouts() {
 		if user, userErr := ps.Store.User().Get(context.Background(), status.UserId); userErr == nil {
 			username = user.Username
 		}
-		ps.LogStatusChange(status.UserId, username, oldStatus, model.StatusOffline, model.StatusLogReasonDNDExpired, model.StatusLogDeviceUnknown, false, "", false, "CheckDNDTimeouts")
+		ps.LogStatusChange(status.UserId, username, oldStatus, model.StatusOffline, model.StatusLogReasonDNDExpired, model.StatusLogDeviceUnknown, false, "", false, "CheckDNDTimeouts", status.LastActivityAt)
 
 		ps.logger.Info("Set DND user to Offline due to inactivity timeout",
 			mlog.String("user_id", status.UserId),

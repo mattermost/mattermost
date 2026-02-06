@@ -49,6 +49,37 @@ func (ps *PlatformService) IsUserStatusPaused(userID string) bool {
 	return pref.Value == "true"
 }
 
+// GetPausedUsernames returns usernames of all currently-paused users and their
+// frozen LastActivityAt timestamps. Used by the Status Logs dashboard.
+func (ps *PlatformService) GetPausedUsernames() map[string]int64 {
+	result := make(map[string]int64)
+	allowedCSV := *ps.Config().MattermostExtendedSettings.Statuses.StatusPauseAllowedUsers
+	if allowedCSV == "" {
+		return result
+	}
+	for _, username := range strings.Split(allowedCSV, ",") {
+		username = strings.TrimSpace(username)
+		if username == "" {
+			continue
+		}
+		user, err := ps.Store.User().GetByUsername(username)
+		if err != nil {
+			continue
+		}
+		pref, prefErr := ps.Store.Preference().Get(user.Id, "mattermost_extended", "status_paused")
+		if prefErr != nil || pref.Value != "true" {
+			continue
+		}
+		// Get their frozen LastActivityAt
+		var lastActivityAt int64
+		if status, statusErr := ps.GetStatus(user.Id); statusErr == nil {
+			lastActivityAt = status.LastActivityAt
+		}
+		result[username] = lastActivityAt
+	}
+	return result
+}
+
 // IsUserInvisible checks if a user is currently invisible.
 // The user must be in the InvisibilityAllowedUsers list AND have manually set
 // themselves to Offline status.
@@ -486,7 +517,7 @@ func (ps *PlatformService) UpdateActivityFromManualAction(userID string, channel
 			reason = model.StatusLogReasonOfflinePrevented
 		}
 		// This is NOT a manual status change - it's automatic from user activity (e.g., sending message, marking unread)
-		ps.LogStatusChange(userID, username, oldStatus, newStatus, reason, model.StatusLogDeviceUnknown, true, channelID, false, "UpdateActivityFromManualAction")
+		ps.LogStatusChange(userID, username, oldStatus, newStatus, reason, model.StatusLogDeviceUnknown, true, channelID, false, "UpdateActivityFromManualAction", status.LastActivityAt)
 	} else {
 		// Log activity update (no status change)
 		username := ""
@@ -618,7 +649,7 @@ func (ps *PlatformService) SetOnlineIfNoOffline(userID string, channelID string,
 		if user, userErr := ps.Store.User().Get(context.Background(), userID); userErr == nil {
 			username = user.Username
 		}
-		ps.LogStatusChange(userID, username, oldStatus, model.StatusDnd, model.StatusLogReasonDNDRestored, model.StatusLogDeviceUnknown, true, channelID, false, "SetOnlineIfNoOffline/"+trigger)
+		ps.LogStatusChange(userID, username, oldStatus, model.StatusDnd, model.StatusLogReasonDNDRestored, model.StatusLogDeviceUnknown, true, channelID, false, "SetOnlineIfNoOffline/"+trigger, status.LastActivityAt)
 
 		ps.BroadcastStatus(status)
 		if ps.sharedChannelService != nil {
@@ -648,7 +679,7 @@ func (ps *PlatformService) SetOnlineIfNoOffline(userID string, channelID string,
 	if user, userErr := ps.Store.User().Get(context.Background(), userID); userErr == nil {
 		username = user.Username
 	}
-	ps.LogStatusChange(userID, username, oldStatus, model.StatusOnline, model.StatusLogReasonOfflinePrevented, model.StatusLogDeviceUnknown, true, channelID, false, "SetOnlineIfNoOffline/"+trigger)
+	ps.LogStatusChange(userID, username, oldStatus, model.StatusOnline, model.StatusLogReasonOfflinePrevented, model.StatusLogDeviceUnknown, true, channelID, false, "SetOnlineIfNoOffline/"+trigger, status.LastActivityAt)
 
 	// Broadcast status change
 	ps.BroadcastStatus(status)
@@ -746,7 +777,7 @@ func (ps *PlatformService) SetStatusOnline(userID string, manual bool, device st
 			logDevice = model.StatusLogDeviceAPI
 		}
 		// manual=true means user explicitly set their status to Online
-		ps.LogStatusChange(userID, username, oldStatus, model.StatusOnline, reason, logDevice, true, "", manual, "SetStatusOnline")
+		ps.LogStatusChange(userID, username, oldStatus, model.StatusOnline, reason, logDevice, true, "", manual, "SetStatusOnline", status.LastActivityAt)
 	}
 }
 
@@ -795,7 +826,11 @@ func (ps *PlatformService) SetStatusOffline(userID string, manual bool, force bo
 			logDevice = model.StatusLogDeviceAPI
 		}
 		// manual=true means user explicitly set their status to Offline
-		ps.LogStatusChange(userID, username, oldStatus, model.StatusOffline, reason, logDevice, false, "", manual, "SetStatusOffline")
+		var lastActivityAt int64
+		if status != nil {
+			lastActivityAt = status.LastActivityAt
+		}
+		ps.LogStatusChange(userID, username, oldStatus, model.StatusOffline, reason, logDevice, false, "", manual, "SetStatusOffline", lastActivityAt)
 	}
 }
 
@@ -859,7 +894,7 @@ func (ps *PlatformService) QueueSetStatusOffline(userID string, manual bool, dev
 			logDevice = model.StatusLogDeviceAPI
 		}
 		// manual=true means user explicitly set their status to Offline
-		ps.LogStatusChange(userID, username, oldStatus, model.StatusOffline, reason, logDevice, false, "", manual, "QueueSetStatusOffline")
+		ps.LogStatusChange(userID, username, oldStatus, model.StatusOffline, reason, logDevice, false, "", manual, "QueueSetStatusOffline", status.LastActivityAt)
 	}
 }
 
@@ -995,7 +1030,7 @@ func (ps *PlatformService) SetStatusAwayIfNeeded(userID string, manual bool) {
 			device = model.StatusLogDeviceAPI
 		}
 		// manual=true means user explicitly set their status to Away
-		ps.LogStatusChange(userID, username, oldStatus, model.StatusAway, reason, device, false, "", manual, "SetStatusAwayIfNeeded")
+		ps.LogStatusChange(userID, username, oldStatus, model.StatusAway, reason, device, false, "", manual, "SetStatusAwayIfNeeded", status.LastActivityAt)
 	}
 }
 
@@ -1042,7 +1077,7 @@ func (ps *PlatformService) SetStatusDoNotDisturbTimed(userID string, endtime int
 			username = user.Username
 		}
 		// DND timed is always a manual user action
-		ps.LogStatusChange(userID, username, oldStatus, model.StatusDnd, model.StatusLogReasonManual, model.StatusLogDeviceAPI, true, "", true, "SetStatusDoNotDisturbTimed")
+		ps.LogStatusChange(userID, username, oldStatus, model.StatusDnd, model.StatusLogReasonManual, model.StatusLogDeviceAPI, true, "", true, "SetStatusDoNotDisturbTimed", status.LastActivityAt)
 	}
 }
 
@@ -1096,7 +1131,7 @@ func (ps *PlatformService) SetStatusDoNotDisturb(userID string) {
 			username = user.Username
 		}
 		// DND is always a manual user action
-		ps.LogStatusChange(userID, username, oldStatus, model.StatusDnd, model.StatusLogReasonManual, model.StatusLogDeviceAPI, true, "", true, "SetStatusDoNotDisturb")
+		ps.LogStatusChange(userID, username, oldStatus, model.StatusDnd, model.StatusLogReasonManual, model.StatusLogDeviceAPI, true, "", true, "SetStatusDoNotDisturb", status.LastActivityAt)
 	}
 }
 
@@ -1137,7 +1172,7 @@ func (ps *PlatformService) SetStatusOutOfOffice(userID string) {
 			username = user.Username
 		}
 		// Out of Office is always a manual user action
-		ps.LogStatusChange(userID, username, oldStatus, model.StatusOutOfOffice, model.StatusLogReasonManual, model.StatusLogDeviceAPI, true, "", true, "SetStatusOutOfOffice")
+		ps.LogStatusChange(userID, username, oldStatus, model.StatusOutOfOffice, model.StatusLogReasonManual, model.StatusLogDeviceAPI, true, "", true, "SetStatusOutOfOffice", status.LastActivityAt)
 	}
 }
 
@@ -1292,7 +1327,7 @@ func (ps *PlatformService) UpdateActivityFromHeartbeat(userID string, windowActi
 		}
 
 		// This is NOT a manual status change - it's automatic from heartbeat activity
-		ps.LogStatusChange(userID, username, oldStatus, newStatus, reason, device, windowActive, channelID, false, "UpdateActivityFromHeartbeat")
+		ps.LogStatusChange(userID, username, oldStatus, newStatus, reason, device, windowActive, channelID, false, "UpdateActivityFromHeartbeat", status.LastActivityAt)
 	}
 
 	// Save the status update

@@ -41,6 +41,7 @@ func TestLogStatusChange(t *testing.T) {
 			th.BasicChannel.Id,
 			false,
 			"TestLogStatusChange",
+			0,
 		)
 
 		// Verify the log was saved
@@ -74,6 +75,7 @@ func TestLogStatusChange(t *testing.T) {
 			"",
 			false,
 			"TestLogStatusChange",
+			0,
 		)
 
 		// Verify no log was saved
@@ -100,6 +102,7 @@ func TestLogStatusChange(t *testing.T) {
 			"",
 			false,
 			"TestLogStatusChange",
+			0,
 		)
 
 		logs := th.Service.GetStatusLogs()
@@ -125,6 +128,7 @@ func TestLogStatusChange(t *testing.T) {
 			"",
 			false,
 			"TestLogStatusChange",
+			0,
 		)
 
 		logs := th.Service.GetStatusLogs()
@@ -151,6 +155,7 @@ func TestLogStatusChange(t *testing.T) {
 			"",
 			false,
 			"TestLogStatusChange",
+			0,
 		)
 
 		logs := th.Service.GetStatusLogs()
@@ -176,6 +181,7 @@ func TestLogStatusChange(t *testing.T) {
 			"",
 			true, // Manual
 			"TestLogStatusChange",
+			0,
 		)
 
 		logs := th.Service.GetStatusLogs()
@@ -453,6 +459,7 @@ func TestGetStatusLogs(t *testing.T) {
 				"",
 				false,
 				"TestGetStatusLogs",
+				0,
 			)
 		}
 
@@ -481,6 +488,7 @@ func TestGetStatusLogsWithOptions(t *testing.T) {
 			"",
 			false,
 			"TestGetStatusLogsWithOptions",
+			0,
 		)
 
 		// Log for user2
@@ -495,6 +503,7 @@ func TestGetStatusLogsWithOptions(t *testing.T) {
 			"",
 			false,
 			"TestGetStatusLogsWithOptions",
+			0,
 		)
 
 		// Filter by user1
@@ -525,6 +534,7 @@ func TestGetStatusLogsWithOptions(t *testing.T) {
 			"",
 			false,
 			"TestGetStatusLogsWithOptions",
+			0,
 		)
 
 		// Log activity
@@ -578,6 +588,7 @@ func TestGetStatusLogsWithOptions(t *testing.T) {
 			"",
 			false,
 			"TestGetStatusLogsWithOptions",
+			0,
 		)
 
 		// Log to DND
@@ -592,6 +603,7 @@ func TestGetStatusLogsWithOptions(t *testing.T) {
 			"",
 			true,
 			"TestGetStatusLogsWithOptions",
+			0,
 		)
 
 		// Filter by Away (NewStatus)
@@ -623,6 +635,7 @@ func TestGetStatusLogsWithOptions(t *testing.T) {
 				"",
 				false,
 				"TestGetStatusLogsWithOptions",
+				0,
 			)
 		}
 
@@ -677,6 +690,7 @@ func TestGetStatusLogCount(t *testing.T) {
 				"",
 				false,
 				"TestGetStatusLogCount",
+				0,
 			)
 		}
 
@@ -703,6 +717,7 @@ func TestGetStatusLogCount(t *testing.T) {
 			"",
 			false,
 			"TestGetStatusLogCount",
+			0,
 		)
 
 		// Log for user2
@@ -717,6 +732,7 @@ func TestGetStatusLogCount(t *testing.T) {
 			"",
 			false,
 			"TestGetStatusLogCount",
+			0,
 		)
 
 		// Count for user1 only
@@ -752,6 +768,7 @@ func TestClearStatusLogs(t *testing.T) {
 				"",
 				false,
 				"TestClearStatusLogs",
+				0,
 			)
 		}
 
@@ -799,6 +816,7 @@ func TestGetStatusLogStats(t *testing.T) {
 			"",
 			false,
 			"TestGetStatusLogStats",
+			0,
 		)
 
 		// Log to Away
@@ -813,6 +831,7 @@ func TestGetStatusLogStats(t *testing.T) {
 			"",
 			false,
 			"TestGetStatusLogStats",
+			0,
 		)
 
 		// Log to DND
@@ -827,6 +846,7 @@ func TestGetStatusLogStats(t *testing.T) {
 			"",
 			true,
 			"TestGetStatusLogStats",
+			0,
 		)
 
 		// Log to Offline
@@ -841,6 +861,7 @@ func TestGetStatusLogStats(t *testing.T) {
 			"",
 			false,
 			"TestGetStatusLogStats",
+			0,
 		)
 
 		stats := th.Service.GetStatusLogStats()
@@ -887,6 +908,7 @@ func TestCleanupOldStatusLogs(t *testing.T) {
 			"",
 			false,
 			"TestCleanupOldStatusLogs",
+			0,
 		)
 
 		// Verify both logs exist

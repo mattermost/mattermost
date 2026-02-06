@@ -115,14 +115,16 @@ func getStatusLogs(c *Context, w http.ResponseWriter, r *http.Request) {
 	logs := c.App.Srv().Platform().GetStatusLogsWithOptions(options)
 	totalCount := c.App.Srv().Platform().GetStatusLogCount(options)
 	stats := c.App.Srv().Platform().GetStatusLogStatsWithOptions(options)
+	pausedUsers := c.App.Srv().Platform().GetPausedUsernames()
 
 	response := map[string]any{
-		"logs":        logs,
-		"stats":       stats,
-		"total_count": totalCount,
-		"page":        page,
-		"per_page":    perPage,
-		"has_more":    int64((page+1)*perPage) < totalCount,
+		"logs":         logs,
+		"stats":        stats,
+		"total_count":  totalCount,
+		"page":         page,
+		"per_page":     perPage,
+		"has_more":     int64((page+1)*perPage) < totalCount,
+		"paused_users": pausedUsers,
 	}
 
 	if err := json.NewEncoder(w).Encode(response); err != nil {

@@ -240,7 +240,7 @@ func (m *StatusTransitionManager) saveAndBroadcast(status *model.Status, oldStat
 	}
 
 	reason := m.mapTransitionReasonToLogReason(opts.Reason, oldStatus, status.Status)
-	m.ps.LogStatusChange(status.UserId, username, oldStatus, status.Status, reason, opts.Device, opts.WindowActive, opts.ChannelID, opts.Manual, "StatusTransitionManager")
+	m.ps.LogStatusChange(status.UserId, username, oldStatus, status.Status, reason, opts.Device, opts.WindowActive, opts.ChannelID, opts.Manual, "StatusTransitionManager", status.LastActivityAt)
 }
 
 // mapTransitionReasonToLogReason converts transition reason to log reason constant

@@ -550,6 +550,25 @@
             font-size: 14px;
         }
 
+        &__paused-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 2px;
+            padding: 1px 6px;
+            background: rgba(255, 185, 0, 0.15);
+            color: #b8860b;
+            border-radius: 4px;
+            font-size: 10px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-left: 4px;
+
+            i {
+                font-size: 12px;
+            }
+        }
+
         &__status-change {
             display: flex;
             align-items: center;
@@ -766,9 +785,17 @@
             font-size: 11px;
             font-weight: 500;
 
-            svg {
+            svg,
+            i {
                 width: 12px;
                 height: 12px;
+                font-size: 12px;
+            }
+
+            &--paused {
+                background: rgba(255, 185, 0, 0.15);
+                color: #b8860b;
+                font-weight: 600;
             }
         }
     }

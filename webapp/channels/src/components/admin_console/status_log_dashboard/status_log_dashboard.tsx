@@ -532,6 +532,7 @@ const StatusLogDashboard: React.FC<Props> = ({config, patchConfig}) => {
     const [hasMore, setHasMore] = useState(false);
     const [totalCount, setTotalCount] = useState(0);
     const [allUsers, setAllUsers] = useState<{id: string; username: string}[]>([]);
+    const [pausedUsers, setPausedUsers] = useState<Record<string, number>>({});
     const perPage = 100;
 
     const isEnabled = config.MattermostExtendedSettings?.Statuses?.EnableStatusLogs === true;
@@ -640,6 +641,9 @@ const StatusLogDashboard: React.FC<Props> = ({config, patchConfig}) => {
             setHasMore(response.has_more || false);
             setTotalCount(response.total_count || 0);
             setCurrentPage(page);
+            if (response.paused_users) {
+                setPausedUsers(response.paused_users);
+            }
         } catch (e) {
             console.error('Failed to load status logs:', e);
         } finally {
@@ -1543,6 +1547,12 @@ const StatusLogDashboard: React.FC<Props> = ({config, patchConfig}) => {
                                                 <span className='StatusLogDashboard__log-card__username'>
                                                     {log.username}
                                                 </span>
+                                                {pausedUsers[log.username] !== undefined && (
+                                                    <span className='StatusLogDashboard__log-card__paused-badge'>
+                                                        <i className='icon icon-pause'/>
+                                                        {'Paused'}
+                                                    </span>
+                                                )}
                                             </span>
                                             {isActivity ? (
                                                 <span className='StatusLogDashboard__log-card__activity-info'>
@@ -1645,28 +1655,35 @@ const StatusLogDashboard: React.FC<Props> = ({config, patchConfig}) => {
                                                 {log.source}
                                             </span>
                                         )}
-                                        {typeof log.last_activity_at === 'number' && log.last_activity_at > 0 && (
-                                            <span
-                                                className='StatusLogDashboard__log-card__last-activity'
-                                                title={formatTimestamp(log.last_activity_at)}
-                                            >
-                                                <IconClock/>
-                                                <FormattedMessage
-                                                    id='admin.status_log.last_activity_label'
-                                                    defaultMessage='Last active: {time}'
-                                                    values={{
-                                                        time: (
-                                                            <Timestamp
-                                                                value={log.last_activity_at}
-                                                                units={lastActivityTimestampUnits}
-                                                                useTime={false}
-                                                                style='short'
-                                                            />
-                                                        ),
-                                                    }}
-                                                />
-                                            </span>
-                                        )}
+                                        {(() => {
+                                            const isPaused = pausedUsers[log.username] !== undefined;
+                                            const activityTime = isPaused ? pausedUsers[log.username] : log.last_activity_at;
+                                            if (typeof activityTime !== 'number' || activityTime <= 0) {
+                                                return null;
+                                            }
+                                            return (
+                                                <span
+                                                    className={`StatusLogDashboard__log-card__last-activity${isPaused ? ' StatusLogDashboard__log-card__last-activity--paused' : ''}`}
+                                                    title={isPaused ? `Paused — frozen at ${formatTimestamp(activityTime)}` : formatTimestamp(activityTime)}
+                                                >
+                                                    {isPaused ? <i className='icon icon-pause'/> : <IconClock/>}
+                                                    <FormattedMessage
+                                                        id={isPaused ? 'admin.status_log.last_activity_paused_label' : 'admin.status_log.last_activity_label'}
+                                                        defaultMessage={isPaused ? 'Paused {time}' : 'Last active: {time}'}
+                                                        values={{
+                                                            time: (
+                                                                <Timestamp
+                                                                    value={activityTime}
+                                                                    units={lastActivityTimestampUnits}
+                                                                    useTime={false}
+                                                                    style='short'
+                                                                />
+                                                            ),
+                                                        }}
+                                                    />
+                                                </span>
+                                            );
+                                        })()}
                                     </div>
                                 </div>
                             );
