@@ -872,11 +872,11 @@ func (s *RetryLayerAutoTranslationStore) ClearCaches() {
 
 }
 
-func (s *RetryLayerAutoTranslationStore) Get(objectID string, dstLang string) (*model.Translation, error) {
+func (s *RetryLayerAutoTranslationStore) Get(objectType string, objectID string, dstLang string) (*model.Translation, error) {
 
 	tries := 0
 	for {
-		result, err := s.AutoTranslationStore.Get(objectID, dstLang)
+		result, err := s.AutoTranslationStore.Get(objectType, objectID, dstLang)
 		if err == nil {
 			return result, nil
 		}
@@ -914,11 +914,11 @@ func (s *RetryLayerAutoTranslationStore) GetActiveDestinationLanguages(channelID
 
 }
 
-func (s *RetryLayerAutoTranslationStore) GetAllForObject(objectID string) ([]*model.Translation, error) {
+func (s *RetryLayerAutoTranslationStore) GetAllForObject(objectType string, objectID string) ([]*model.Translation, error) {
 
 	tries := 0
 	for {
-		result, err := s.AutoTranslationStore.GetAllForObject(objectID)
+		result, err := s.AutoTranslationStore.GetAllForObject(objectType, objectID)
 		if err == nil {
 			return result, nil
 		}
@@ -935,11 +935,11 @@ func (s *RetryLayerAutoTranslationStore) GetAllForObject(objectID string) ([]*mo
 
 }
 
-func (s *RetryLayerAutoTranslationStore) GetBatch(objectIDs []string, dstLang string) (map[string]*model.Translation, error) {
+func (s *RetryLayerAutoTranslationStore) GetBatch(objectType string, objectIDs []string, dstLang string) (map[string]*model.Translation, error) {
 
 	tries := 0
 	for {
-		result, err := s.AutoTranslationStore.GetBatch(objectIDs, dstLang)
+		result, err := s.AutoTranslationStore.GetBatch(objectType, objectIDs, dstLang)
 		if err == nil {
 			return result, nil
 		}
