@@ -32,16 +32,16 @@ export const RHS_MIN_MAX_WIDTH: { [size in SidebarSize]: { min: number; max: num
     [SidebarSize.MEDIUM]: {
         min: 304,
         max: 400,
-        default: 400,
+        default: 304,
     },
     [SidebarSize.LARGE]: {
         min: 304,
         max: 464,
-        default: 400,
+        default: 304,
     },
     [SidebarSize.XLARGE]: {
         min: 304,
         max: 776,
-        default: 500,
+        default: 304,
     },
 };

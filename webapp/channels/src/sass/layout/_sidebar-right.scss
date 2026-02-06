@@ -11,11 +11,11 @@
         transition: width 0.25s 0s ease-in, z-index 0.25s 0s step-end;
     }
 
-    width: var(--overrideRhsWidth, 400px);
+    width: var(--overrideRhsWidth, 304px);
 }
 
 .sidebar--right {
-    width: var(--overrideRhsWidth, 400px);
+    width: var(--overrideRhsWidth, 304px);
 
     &:not(.expanded):not(.resize-disabled) {
         min-width: 400px;
