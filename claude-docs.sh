@@ -1,10 +1,15 @@
 #!/bin/bash
 
-# This script enables or disables the Claude documentation locally.
+# This script enables or disables Claude documentation and skills locally.
 #
 # Usage:
-#   ./claude-docs.sh enable    — Restore CLAUDE.md files to your working tree
-#   ./claude-docs.sh disable   — Remove CLAUDE.md files locally (git status stays clean)
+#   ./claude-docs.sh enable [--docs] [--skills]
+#   ./claude-docs.sh disable [--docs] [--skills]
+#
+# Flags:
+#   --docs     Target CLAUDE.md files only
+#   --skills   Target .claude/skills/ only
+#   (no flag)  Target both
 #
 # The disable command uses `git update-index --skip-worktree` so that git
 # ignores the local deletions and your `git status` remains clean.
@@ -12,37 +17,87 @@
 set -e
 
 usage() {
-    echo "Usage: $0 {enable|disable}"
+    echo "Usage: $0 {enable|disable} [--docs] [--skills]"
     echo ""
-    echo "  enable   Restore CLAUDE.md files to your working tree"
-    echo "  disable  Remove CLAUDE.md files locally (git status stays clean)"
+    echo "  enable   Restore files to your working tree"
+    echo "  disable  Remove files locally (git status stays clean)"
+    echo ""
+    echo "Flags:"
+    echo "  --docs     Target CLAUDE.md files only"
+    echo "  --skills   Target .claude/skills/ only"
+    echo "  (no flag)  Target both"
     exit 1
 }
 
-if [ $# -ne 1 ]; then
+if [ $# -lt 1 ]; then
     usage
 fi
 
-case "$1" in
+ACTION="$1"
+shift
+
+DOCS=false
+SKILLS=false
+
+while [ $# -gt 0 ]; do
+    case "$1" in
+        --docs)   DOCS=true ;;
+        --skills) SKILLS=true ;;
+        *)        usage ;;
+    esac
+    shift
+done
+
+# If neither flag is set, target both
+if [ "$DOCS" = false ] && [ "$SKILLS" = false ]; then
+    DOCS=true
+    SKILLS=true
+fi
+
+case "$ACTION" in
     enable)
-        echo "Enabling Claude documentation..."
-        git ls-files -v | grep '^S.*CLAUDE\.md$' | awk '{print $2}' | while read -r file; do
-            echo "Enabling $file"
-            git update-index --no-skip-worktree "$file"
-        done
-        git checkout -- '**/CLAUDE.md'
+        if [ "$DOCS" = true ]; then
+            echo "Enabling CLAUDE.md files..."
+            git ls-files -v | grep '^S.*CLAUDE\.md$' | awk '{print $2}' | while read -r file; do
+                echo "  Enabling $file"
+                git update-index --no-skip-worktree "$file"
+            done
+            git checkout -- '**/CLAUDE.md' 2>/dev/null || true
+        fi
+
+        if [ "$SKILLS" = true ]; then
+            echo "Enabling .claude/skills..."
+            git ls-files -v | grep '^S.*\.claude/skills/' | awk '{print $2}' | while read -r file; do
+                echo "  Enabling $file"
+                git update-index --no-skip-worktree "$file"
+            done
+            git checkout -- '.claude/skills/' 2>/dev/null || true
+        fi
+
         echo ""
-        echo "Done! CLAUDE.md files have been restored."
+        echo "Done! Files have been restored."
         ;;
     disable)
-        echo "Disabling Claude documentation..."
-        find . -name "CLAUDE.md" -not -path "*/node_modules/*" | while read -r file; do
-            echo "Disabling $file"
-            git update-index --skip-worktree "$file"
-            rm "$file"
-        done
+        if [ "$DOCS" = true ]; then
+            echo "Disabling CLAUDE.md files..."
+            find . -name "CLAUDE.md" -not -path "*/node_modules/*" | while read -r file; do
+                echo "  Disabling $file"
+                git update-index --skip-worktree "$file"
+                rm "$file"
+            done
+        fi
+
+        if [ "$SKILLS" = true ]; then
+            echo "Disabling .claude/skills..."
+            git ls-files '.claude/skills/' | while read -r file; do
+                echo "  Disabling $file"
+                git update-index --skip-worktree "$file"
+                rm "$file"
+            done
+        fi
+
         echo ""
-        echo "Done! CLAUDE.md files have been removed locally."
+        echo "Done! Files have been removed locally."
         echo "git status will not show these as deleted."
         echo "Run '$0 enable' to restore them."
         ;;
