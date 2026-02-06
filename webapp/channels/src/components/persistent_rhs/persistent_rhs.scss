@@ -14,8 +14,9 @@
 
     &__header {
         display: flex;
+        height: 56px;
         align-items: center;
-        padding: 16px;
+        padding: 12px;
         border-bottom: 1px solid rgba(var(--center-channel-color-rgb), 0.12);
     }
 
@@ -31,5 +32,23 @@
         flex: 1 1 auto;
         overflow-y: auto;
         padding: 0 4px 16px;
+
+        // Auto-hide scrollbar to match sidebar-left (SimpleBar) behavior
+        &::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        &::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        &::-webkit-scrollbar-thumb {
+            border-radius: 2px;
+            background: transparent;
+        }
+
+        &:hover::-webkit-scrollbar-thumb {
+            background: rgba(var(--center-channel-color-rgb), 0.32);
+        }
     }
 }

@@ -9,6 +9,30 @@
         min-height: 0;
         overflow-y: auto;
         -webkit-overflow-scrolling: touch;
+
+        // Auto-hide scrollbar to match sidebar-left (SimpleBar) behavior
+        &,
+        * {
+            &::-webkit-scrollbar {
+                width: 6px;
+            }
+
+            &::-webkit-scrollbar-track {
+                background: transparent;
+            }
+
+            &::-webkit-scrollbar-thumb {
+                border-radius: 2px;
+                background: transparent;
+            }
+        }
+
+        &:hover,
+        &:hover * {
+            &::-webkit-scrollbar-thumb {
+                background: rgba(var(--sidebar-text-rgb), 0.32);
+            }
+        }
     }
 
     &__empty {

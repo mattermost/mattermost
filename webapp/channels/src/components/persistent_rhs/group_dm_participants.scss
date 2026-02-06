@@ -6,4 +6,22 @@
     overflow-y: auto;
     flex-direction: column;
     padding: 8px 0;
+
+    // Auto-hide scrollbar to match sidebar-left (SimpleBar) behavior
+    &::-webkit-scrollbar {
+        width: 6px;
+    }
+
+    &::-webkit-scrollbar-track {
+        background: transparent;
+    }
+
+    &::-webkit-scrollbar-thumb {
+        border-radius: 2px;
+        background: transparent;
+    }
+
+    &:hover::-webkit-scrollbar-thumb {
+        background: rgba(var(--center-channel-color-rgb), 0.32);
+    }
 }
