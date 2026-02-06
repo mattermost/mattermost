@@ -10,6 +10,8 @@ import {getCurrentTeamId, getMyTeams} from 'mattermost-redux/selectors/entities/
 
 import {getFavoritedTeamIds} from 'selectors/views/guilded_layout';
 
+import type {GlobalState} from 'types/store';
+
 import './team_list.scss';
 
 interface Props {
@@ -29,6 +31,7 @@ export default function TeamList({onTeamClick}: Props) {
     const allTeams = useSelector(getMyTeams);
     const favoritedTeamIds = useSelector(getFavoritedTeamIds);
     const currentTeamId = useSelector(getCurrentTeamId);
+    const isDmMode = useSelector((state: GlobalState) => state.views.guildedLayout.isDmMode);
 
     // Filter out favorited teams and sort alphabetically
     const nonFavoritedTeams = allTeams
@@ -46,7 +49,7 @@ export default function TeamList({onTeamClick}: Props) {
                 <button
                     key={team.id}
                     className={classNames('team-list__team', {
-                        'team-list__team--active': team.id === currentTeamId,
+                        'team-list__team--active': !isDmMode && team.id === currentTeamId,
                     })}
                     onClick={() => handleTeamClick(team.name)}
                     title={team.display_name}
@@ -61,7 +64,7 @@ export default function TeamList({onTeamClick}: Props) {
                             {getTeamInitials(team.display_name)}
                         </span>
                     )}
-                    {team.id === currentTeamId && <span className='team-list__active-indicator'/>}
+                    {!isDmMode && team.id === currentTeamId && <span className='team-list__active-indicator'/>}
                 </button>
             ))}
         </div>

@@ -11,6 +11,8 @@ import {getThreadCounts} from 'mattermost-redux/actions/threads';
 import {isCollapsedThreadsEnabled} from 'mattermost-redux/selectors/entities/preferences';
 import {getThreadCountsInCurrentTeam} from 'mattermost-redux/selectors/entities/threads';
 
+import {isGuildedLayoutEnabled} from 'selectors/views/guilded_layout';
+
 import {closeRightHandSide} from 'actions/views/rhs';
 import {getIsRhsOpen, getRhsState} from 'selectors/rhs';
 
@@ -29,6 +31,7 @@ const GlobalThreadsLink = () => {
     const {formatMessage} = useIntl();
     const dispatch = useDispatch();
     const isFeatureEnabled = useSelector(isCollapsedThreadsEnabled);
+    const isGuilded = useSelector(isGuildedLayoutEnabled);
 
     const {url} = useRouteMatch();
     const {pathname} = useLocation();
@@ -56,8 +59,8 @@ const GlobalThreadsLink = () => {
         }
     }, [currentUserId, currentTeamId, isFeatureEnabled]);
 
-    if (!isFeatureEnabled) {
-        // hide link if feature disabled
+    if (!isFeatureEnabled || isGuilded) {
+        // hide link if feature disabled or guilded layout is active
         return null;
     }
 
