@@ -26,6 +26,8 @@ jest.mock('mattermost-redux/client', () => ({
 }));
 
 // Mock react-redux
+// Component calls useSelector twice per render: channelMembers then statuses.
+// Using modulo so it works across re-renders without needing a counter reset.
 let mockChannelMembers: any = null;
 let mockStatuses: Record<string, string> = {};
 let mockSelectorCallCount = 0;
@@ -36,8 +38,8 @@ jest.mock('react-redux', () => ({
         const idx = mockSelectorCallCount;
         mockSelectorCallCount++;
 
-        // First call: channelMembers, second call: statuses
-        if (idx === 0) {
+        // Even calls: channelMembers, odd calls: statuses
+        if (idx % 2 === 0) {
             return mockChannelMembers;
         }
         return mockStatuses;
