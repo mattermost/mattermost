@@ -38,16 +38,10 @@
         font-weight: bold;
         outline: none;
         text-align: center;
-        transition: border-radius 0.2s ease;
         user-select: none;
 
-        &:hover {
-            border-radius: 30%;
-        }
-
-        // Active state - rounded square shape
+        // Active state
         &--active {
-            border-radius: 30%;
             background-color: rgba(var(--sidebar-text-rgb), 0.08);
         }
 

@@ -25,11 +25,6 @@
         cursor: pointer;
         font-weight: bold;
         text-align: center;
-        transition: border-radius 0.2s ease;
-
-        &:hover {
-            border-radius: 30%;
-        }
 
         // Hover color overlay
         &:hover::after {

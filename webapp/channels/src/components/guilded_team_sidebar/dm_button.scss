@@ -13,11 +13,6 @@
     background-color: rgba(var(--sidebar-text-rgb), 0.08);
     color: var(--sidebar-header-text-color);
     cursor: pointer;
-    transition: border-radius 0.2s ease;
-
-    &:hover {
-        border-radius: 30%;
-    }
 
     // Hover color overlay
     &:hover::after {
@@ -35,9 +30,8 @@
         font-size: 20px;
     }
 
-    // Active state - subtle overlay, rounded square shape
+    // Active state - subtle overlay
     &--active {
-        border-radius: 30%;
         background-color: rgba(var(--sidebar-text-rgb), 0.16);
     }
 
