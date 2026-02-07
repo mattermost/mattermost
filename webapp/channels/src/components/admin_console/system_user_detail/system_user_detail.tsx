@@ -8,10 +8,11 @@ import React, {PureComponent} from 'react';
 import type {ChangeEvent, MouseEvent} from 'react';
 import type {IntlShape, WrappedComponentProps} from 'react-intl';
 import {FormattedMessage, defineMessage, injectIntl} from 'react-intl';
+import {useSelector} from 'react-redux';
 import type {RouteComponentProps} from 'react-router-dom';
 import ReactSelect from 'react-select';
 
-import {SyncIcon} from '@mattermost/compass-icons/components';
+import {SyncIcon, PowerPlugOutlineIcon} from '@mattermost/compass-icons/components';
 import type {ServerError} from '@mattermost/types/errors';
 import type {UserPropertyField} from '@mattermost/types/properties';
 import type {Team, TeamMembership} from '@mattermost/types/teams';
@@ -19,6 +20,8 @@ import type {UserProfile} from '@mattermost/types/users';
 
 import type {ActionResult} from 'mattermost-redux/types/actions';
 import {isEmail, getInputTypeFromValueType} from 'mattermost-redux/utils/helpers';
+
+import {getPluginDisplayName} from 'selectors/plugins';
 
 import AdminUserCard from 'components/admin_console/admin_user_card/admin_user_card';
 import BlockableLink from 'components/admin_console/blockable_link';
@@ -40,6 +43,8 @@ import WithTooltip from 'components/with_tooltip';
 import {Constants, ModalIdentifiers} from 'utils/constants';
 import {validHttpUrl} from 'utils/url';
 import {toTitleCase} from 'utils/utils';
+
+import type {GlobalState} from 'types/store';
 
 import type {PropsFromRedux} from './index';
 
@@ -96,6 +101,16 @@ const CPAMultiSelect: React.FC<CPAMultiSelectProps> = ({
             }}
         />
     );
+};
+
+// Private component to get plugin display name
+type PluginDisplayNameProps = {
+    pluginId?: string;
+};
+
+const PluginDisplayName: React.FC<PluginDisplayNameProps> = ({pluginId}) => {
+    const displayName = useSelector((state: GlobalState) => getPluginDisplayName(state, pluginId));
+    return <>{displayName}</>;
 };
 
 export type Params = {
@@ -342,20 +357,32 @@ export class SystemUserDetail extends PureComponent<Props, State> {
     renderCpaField = (field: UserPropertyField) => {
         const value = this.state.customProfileAttributeValues[field.id] || '';
         const isSynced = Boolean(field.attrs?.ldap || field.attrs?.saml);
-        const isDisabled = this.state.isSaving || this.state.isLoading || isSynced;
+        const isProtected = Boolean(field.attrs?.protected);
+        const isLockedFromEditing = isSynced || isProtected;
+        const isDisabled = this.state.isSaving || this.state.isLoading || isLockedFromEditing;
 
-        // Render sync indicator if field is synced
-        const syncIndicator = isSynced ? (
+        // Render indicator if field is synced or protected
+        const syncIndicator = isLockedFromEditing ? (
             <div className='user-property-field-values__sync-indicator'>
-                <SyncIcon size={18}/>
+                {isSynced ? <SyncIcon size={18}/> : <PowerPlugOutlineIcon size={18}/>}
                 <span>
-                    <FormattedMessage
-                        id='admin.userManagement.userDetail.syncedWith'
-                        defaultMessage='Synced with: {source}'
-                        values={{
-                            source: field.attrs?.ldap ? this.props.intl.formatMessage({id: 'admin.userManagement.userDetail.ldap', defaultMessage: 'AD/LDAP: {propertyName}'}, {propertyName: field.attrs.ldap}) : this.props.intl.formatMessage({id: 'admin.userManagement.userDetail.saml', defaultMessage: 'SAML: {propertyName}'}, {propertyName: field.attrs?.saml}),
-                        }}
-                    />
+                    {isSynced ? (
+                        <FormattedMessage
+                            id='admin.userManagement.userDetail.syncedWith'
+                            defaultMessage='Synced with: {source}'
+                            values={{
+                                source: field.attrs?.ldap ? this.props.intl.formatMessage({id: 'admin.userManagement.userDetail.ldap', defaultMessage: 'AD/LDAP: {propertyName}'}, {propertyName: field.attrs.ldap}) : this.props.intl.formatMessage({id: 'admin.userManagement.userDetail.saml', defaultMessage: 'SAML: {propertyName}'}, {propertyName: field.attrs?.saml}),
+                            }}
+                        />
+                    ) : (
+                        <FormattedMessage
+                            id='admin.userManagement.userDetail.managedByPlugin'
+                            defaultMessage='Managed by plugin: {pluginId}'
+                            values={{
+                                pluginId: <PluginDisplayName pluginId={field.attrs?.source_plugin_id}/>,
+                            }}
+                        />
+                    )}
                 </span>
             </div>
         ) : null;
@@ -444,6 +471,7 @@ export class SystemUserDetail extends PureComponent<Props, State> {
 
     renderTwoColumnLayout = () => {
         const sortedCpaFields = [...this.props.customProfileAttributeFields].
+            filter((field) => field.attrs?.access_mode !== 'source_only').
             sort((a, b) => (a.attrs?.sort_order || 0) - (b.attrs?.sort_order || 0));
 
         const fields: Array<React.ReactNode | null> = [];
