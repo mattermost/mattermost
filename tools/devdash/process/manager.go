@@ -32,6 +32,7 @@ type ManagedProcess struct {
 type Manager struct {
 	mu        sync.RWMutex
 	processes map[string]*ManagedProcess
+	order     []string // insertion-order process IDs
 	program   *tea.Program
 	tmux      *TmuxClient
 }
@@ -129,6 +130,17 @@ func (m *Manager) startProcess(id, repoName, targetName, cmdStr, dir string) err
 		done:        done,
 	}
 	m.processes[id] = proc
+	// Track insertion order — only append if this is a new ID
+	found := false
+	for _, oid := range m.order {
+		if oid == id {
+			found = true
+			break
+		}
+	}
+	if !found {
+		m.order = append(m.order, id)
+	}
 	program := m.program
 	m.mu.Unlock()
 
@@ -264,6 +276,12 @@ func (m *Manager) Remove(id string) {
 
 	m.mu.Lock()
 	delete(m.processes, id)
+	for i, oid := range m.order {
+		if oid == id {
+			m.order = append(m.order[:i], m.order[i+1:]...)
+			break
+		}
+	}
 	m.mu.Unlock()
 }
 
@@ -316,14 +334,12 @@ func (m *Manager) FailedCount() int {
 	return count
 }
 
-// ProcessIDs returns all process IDs that have been started.
+// ProcessIDs returns all process IDs in the order they were started.
 func (m *Manager) ProcessIDs() []string {
 	m.mu.RLock()
 	defer m.mu.RUnlock()
-	ids := make([]string, 0, len(m.processes))
-	for id := range m.processes {
-		ids = append(ids, id)
-	}
+	ids := make([]string, len(m.order))
+	copy(ids, m.order)
 	return ids
 }
 

@@ -8,14 +8,9 @@ import (
 
 var (
 	// Colors
-	colorPrimary   = lipgloss.Color("62")  // purple
-	colorSecondary = lipgloss.Color("240") // gray
-	colorSuccess   = lipgloss.Color("2")   // green
-	colorWarning   = lipgloss.Color("3")   // yellow
-	colorDanger    = lipgloss.Color("1")   // red
-	colorInfo      = lipgloss.Color("6")   // cyan
-	colorMuted     = lipgloss.Color("241")
-	colorBg        = lipgloss.Color("236")
+	colorPrimary = lipgloss.Color("62")  // purple
+	colorWarning = lipgloss.Color("3")   // yellow
+	colorMuted   = lipgloss.Color("241")
 
 	// Category colors for target chips (keyed by TargetCategory iota)
 	categoryColors = map[int]lipgloss.Color{
@@ -33,12 +28,6 @@ var (
 			Bold(true).
 			Foreground(lipgloss.Color("15")).
 			Background(colorPrimary).
-			Padding(0, 1)
-
-	// Status bar
-	statusBarStyle = lipgloss.NewStyle().
-			Foreground(colorSecondary).
-			Background(colorBg).
 			Padding(0, 1)
 
 	// Repo name in grid

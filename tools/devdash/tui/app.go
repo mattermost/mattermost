@@ -2,7 +2,6 @@ package tui
 
 import (
 	"fmt"
-	"sort"
 	"strings"
 	"time"
 
@@ -74,8 +73,6 @@ type App struct {
 	// Paths
 	repoRoot string
 
-	// Scan info
-	scanTime time.Time
 }
 
 func NewApp(repos []model.Repo, mgr *process.Manager, repoRoot string) *App {
@@ -103,7 +100,6 @@ func NewApp(repos []model.Repo, mgr *process.Manager, repoRoot string) *App {
 		gridSearchInput:  si,
 		gridSearching:    true,
 		logPanel:         NewLogPanel(),
-		scanTime:         time.Now(),
 	}
 }
 
@@ -125,10 +121,11 @@ func (a *App) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		a.width = msg.Width
 		a.height = msg.Height
 		if a.logVisible {
-			a.logPanel.SetSize(msg.Width, msg.Height/2)
+			lpH := a.logPanelHeight()
+			a.logPanel.SetSize(msg.Width, lpH)
 			// Resize tmux pane to match log panel viewport
 			if a.focusedProc != "" {
-				a.procMgr.ResizeTmux(a.focusedProc, int(msg.Height/2-3), msg.Width)
+				a.procMgr.ResizeTmux(a.focusedProc, lpH, msg.Width)
 			}
 		}
 		return a, nil
@@ -273,7 +270,7 @@ func (a *App) handleKey(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 	case key.Matches(msg, a.keys.ToggleLog):
 		a.logVisible = !a.logVisible
 		if a.logVisible {
-			a.logPanel.SetSize(a.width, a.height/2)
+			a.logPanel.SetSize(a.width, a.logPanelHeight())
 			a.focus = FocusLog
 			// Open log for current cursor's process if running
 			a.openLogForCursor()
@@ -304,18 +301,24 @@ func (a *App) handleKey(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 		return a, nil
 	}
 
-	// Log panel keys (only when log panel is visible)
-	if a.logVisible {
-		// Number keys 1-9 switch log tabs
-		if k := msg.String(); len(k) == 1 && k[0] >= '1' && k[0] <= '9' {
-			idx := int(k[0] - '1')
+	// Number keys 1-9 switch log tabs (works from anywhere when processes exist)
+	if k := msg.String(); len(k) == 1 && k[0] >= '1' && k[0] <= '9' {
+		idx := int(k[0] - '1')
+		if idx < len(a.orderedProcessIDs()) {
 			a.switchLogTab(idx)
 			return a, nil
 		}
 	}
 
-	// Log viewport scrolling when focused
+	// Log viewport scrolling and input mode when focused
 	if a.focus == FocusLog && a.logVisible {
+		// Enter input mode from log focus
+		if key.Matches(msg, a.keys.ProcInput) {
+			if a.focusedProc != "" {
+				a.logPanel.inputting = true
+			}
+			return a, nil
+		}
 		switch msg.String() {
 		case "up", "k":
 			a.logPanel.viewport.LineUp(1)
@@ -490,7 +493,7 @@ func (a *App) executeAtCursor() {
 		a.focusedProc = id
 		a.logPanel.SetProcess(id)
 		a.logVisible = true
-		a.logPanel.SetSize(a.width, a.height/2)
+		a.logPanel.SetSize(a.width, a.logPanelHeight())
 		a.focus = FocusLog
 		return
 	}
@@ -505,7 +508,7 @@ func (a *App) executeAtCursor() {
 	a.focusedProc = id
 	a.logPanel.SetProcess(id)
 	a.logVisible = true
-	a.logPanel.SetSize(a.width, a.height/2)
+	a.logPanel.SetSize(a.width, a.logPanelHeight())
 	a.focus = FocusLog
 }
 
@@ -529,7 +532,7 @@ func (a *App) executeWithInputMode() {
 	a.focusedProc = id
 	a.logPanel.SetProcess(id)
 	a.logVisible = true
-	a.logPanel.SetSize(a.width, a.height/2)
+	a.logPanel.SetSize(a.width, a.logPanelHeight())
 	a.focus = FocusLog
 	a.logPanel.inputting = true
 }
@@ -577,7 +580,7 @@ func (a *App) focusLogForCursor() {
 	a.focusedProc = id
 	a.logPanel.SetProcess(id)
 	a.logVisible = true
-	a.logPanel.SetSize(a.width, a.height/2)
+	a.logPanel.SetSize(a.width, a.logPanelHeight())
 	a.focus = FocusLog
 }
 
@@ -603,7 +606,7 @@ func (a *App) dryRunAtCursor() {
 	a.cmdEditIsNpm = cell.IsNpm
 	a.focusedProc = repo.Name + ":" + cell.Target
 	a.logVisible = true
-	a.logPanel.SetSize(a.width, a.height/2)
+	a.logPanel.SetSize(a.width, a.logPanelHeight())
 	a.focus = FocusLog
 }
 
@@ -619,30 +622,28 @@ func (a *App) openLogForCursor() {
 	}
 }
 
-// sortedProcessIDs returns all started process IDs in stable sorted order.
-func (a *App) sortedProcessIDs() []string {
-	ids := a.procMgr.ProcessIDs()
-	sort.Strings(ids)
-	return ids
+// orderedProcessIDs returns all started process IDs in launch order.
+func (a *App) orderedProcessIDs() []string {
+	return a.procMgr.ProcessIDs()
 }
 
 // switchLogTab switches to the log tab at the given 0-based index.
 func (a *App) switchLogTab(idx int) {
-	ids := a.sortedProcessIDs()
+	ids := a.orderedProcessIDs()
 	if idx < 0 || idx >= len(ids) {
 		return
 	}
 	a.focusedProc = ids[idx]
 	a.logPanel.SetProcess(ids[idx])
 	a.logVisible = true
-	a.logPanel.SetSize(a.width, a.height/2)
+	a.logPanel.SetSize(a.width, a.logPanelHeight())
 	a.focus = FocusLog
 }
 
 // cycleLog cycles through: grid -> proc1 log -> proc2 log -> ... -> grid.
 // dir=1 for forward (Tab), dir=-1 for backward (Shift+Tab).
 func (a *App) cycleLog(dir int) {
-	ids := a.sortedProcessIDs()
+	ids := a.orderedProcessIDs()
 	if len(ids) == 0 {
 		return
 	}
@@ -657,7 +658,7 @@ func (a *App) cycleLog(dir int) {
 		a.focusedProc = target
 		a.logPanel.SetProcess(target)
 		a.logVisible = true
-		a.logPanel.SetSize(a.width, a.height/2)
+		a.logPanel.SetSize(a.width, a.logPanelHeight())
 		a.focus = FocusLog
 		return
 	}
@@ -845,8 +846,67 @@ func (a *App) ensureCursorVisible() {
 	a.hScrolls[a.cursorRow] = scroll
 }
 
+var (
+	hintKeyStyle   = lipgloss.NewStyle().Bold(true).Foreground(lipgloss.Color("15"))
+	hintLabelStyle = lipgloss.NewStyle().Foreground(lipgloss.Color("245"))
+)
+
+// renderHotkeyHints renders "key label" pairs with the key in white and label in gray.
+func renderHotkeyHints(hints []string) string {
+	var parts []string
+	for _, h := range hints {
+		if k, l, ok := strings.Cut(h, " "); ok {
+			parts = append(parts, hintKeyStyle.Render(k)+" "+hintLabelStyle.Render(l))
+		} else {
+			parts = append(parts, hintKeyStyle.Render(h))
+		}
+	}
+	return strings.Join(parts, "  ")
+}
+
+// plainHotkeyHints returns the plain-text width of hints (for gap calculation).
+func plainHotkeyHints(hints []string) string {
+	return strings.Join(hints, "  ")
+}
+
 func (a *App) gridHeight() int {
 	h := len(a.repos) + 2 // repos + possible separator + header
+	return h
+}
+
+// visibleGridRows returns how many grid rows are actually displayed
+// (capped by maxGridRows in View).
+func (a *App) visibleGridRows() int {
+	count := 0
+	for i := range a.repos {
+		cells, _ := a.displayCellsForRow(i)
+		if len(cells) > 0 {
+			count++
+		}
+	}
+	return count
+}
+
+// logPanelHeight returns the height available for the log panel:
+// total height minus header(1) + search bar(1) + tab bar(1 if procs) + grid rows.
+func (a *App) logPanelHeight() int {
+	chrome := 2 // header + search bar
+	if len(a.procMgr.ProcessIDs()) > 0 {
+		chrome++ // tab bar
+	}
+	gridRows := a.visibleGridRows()
+	// Cap grid rows so the log panel gets at least 6 lines
+	maxGrid := a.height - chrome - 6
+	if maxGrid < 3 {
+		maxGrid = 3
+	}
+	if gridRows > maxGrid {
+		gridRows = maxGrid
+	}
+	h := a.height - chrome - gridRows
+	if h < 4 {
+		h = 4
+	}
 	return h
 }
 
@@ -857,14 +917,34 @@ func (a *App) View() string {
 
 	var b strings.Builder
 
-	// Header
-	running := a.procMgr.RunningCount()
-	failed := a.procMgr.FailedCount()
-	scanAgo := time.Since(a.scanTime).Truncate(time.Second)
-
-	headerText := fmt.Sprintf("  DevDash  │ ●%d running  ✗%d failed  │  scanned %s ago  │  ? help  q quit",
-		running, failed, scanAgo)
-	b.WriteString(headerStyle.Width(a.width).Render(headerText))
+	// Header: title + context-sensitive hotkey hints
+	var keys []string
+	if a.cmdEditing {
+		keys = []string{"Enter Run", "Esc Cancel"}
+	} else if a.logPanel.inputting {
+		keys = []string{"Enter Send", "Esc Exit"}
+	} else if a.logVisible {
+		keys = []string{
+			"1-9 Tab", "i Input",
+			"s Stop", "R Restart", "x Dismiss",
+			"Tab Next", "S-Tab Prev", "Esc Close",
+		}
+	} else {
+		keys = []string{
+			"Enter Run", "d DryRun", "f Focus", "F Fav", "L Logs",
+			"s Stop", "/ Search",
+		}
+	}
+	keys = append(keys, "? Help", "q Quit")
+	logo := headerStyle.Render(" DevDash ")
+	headerRight := renderHotkeyHints(keys)
+	headerRightPlain := plainHotkeyHints(keys)
+	logoWidth := lipgloss.Width(logo)
+	headerGap := a.width - logoWidth - len(headerRightPlain) - 1
+	if headerGap < 1 {
+		headerGap = 1
+	}
+	b.WriteString(logo + strings.Repeat(" ", headerGap) + headerRight)
 	b.WriteString("\n")
 
 	// Active filter badges
@@ -901,7 +981,12 @@ func (a *App) View() string {
 	// Grid
 	maxGridRows := len(a.repos)
 	if a.logVisible {
-		maxGridRows = (a.height - 4) / 2 // leave room for log panel
+		// Show grid rows that fit above the log panel + tab bar
+		chrome := 2 // header + search
+		if len(a.orderedProcessIDs()) > 0 {
+			chrome++ // tab bar
+		}
+		maxGridRows = a.height - chrome - a.logPanelHeight()
 		if maxGridRows < 3 {
 			maxGridRows = 3
 		}
@@ -922,52 +1007,31 @@ func (a *App) View() string {
 	a.hitZones = hitZones
 	b.WriteString(gridStr)
 
-	// Log panel / command editor
-	if a.cmdEditing && a.logVisible {
-		// Command edit mode: show editable command instead of log content
-		cmdHeader := lipgloss.NewStyle().
-			Bold(true).
-			Foreground(lipgloss.Color("15")).
-			Background(colorPrimary).
-			Padding(0, 1).
-			Render(fmt.Sprintf(" %s ", a.focusedProc))
-		hint := legendStyle.Render("  Enter:Run  Esc:Cancel")
-		b.WriteString(cmdHeader + hint + "\n")
-		b.WriteString(a.cmdInput.View() + "\n")
-	} else if a.logVisible && a.focusedProc != "" {
-		ids := a.sortedProcessIDs()
-		tabs := make([]LogTab, len(ids))
+	// Tab bar — always visible when processes exist
+	ids := a.orderedProcessIDs()
+	var tabs []LogTab
+	if len(ids) > 0 {
+		tabs = make([]LogTab, len(ids))
 		for i, id := range ids {
 			tabs[i] = LogTab{ID: id, State: a.procMgr.ProcessState(id)}
 		}
-		b.WriteString(a.logPanel.View(tabs, a.focus == FocusLog))
+		b.WriteString(RenderTabBar(tabs, a.focusedProc, a.focus == FocusLog))
+		b.WriteString("\n")
 	}
 
-	// Status bar
-	b.WriteString("\n")
-	var keys []string
-	if a.cmdEditing {
-		keys = []string{
-			"Enter:Run", "Esc:Cancel",
-		}
-	} else if a.logPanel.inputting {
-		keys = []string{
-			"Enter:Send", "Esc:Close",
-		}
-	} else if a.logVisible {
-		keys = []string{
-			"1-9:Tab", "i:Input",
-			"s:Stop", "R:Restart", "x:Dismiss",
-			"Tab:Next", "S-Tab:Prev", "Esc:Close",
-		}
-	} else {
-		keys = []string{
-			"Enter:Run", "d:DryRun", "f:Focus", "F:Fav", "L:Logs",
-			"s:Stop", "/:Search", "?:Help", "q:Quit",
-		}
+	// Log panel / command editor (viewport only — tab bar already rendered above)
+	if a.cmdEditing && a.logVisible {
+		cmdHeader := lipgloss.NewStyle().
+			Bold(true).
+			Reverse(true).
+			Padding(0, 1).
+			Render(fmt.Sprintf(" %s ", a.focusedProc))
+		hint := legendStyle.Render("  Enter Run  Esc Cancel")
+		b.WriteString(cmdHeader + hint + "\n")
+		b.WriteString(a.cmdInput.View() + "\n")
+	} else if a.logVisible && a.focusedProc != "" {
+		b.WriteString(a.logPanel.ViewContent())
 	}
-	statusLine := legendStyle.Render(strings.Join(keys, "  "))
-	b.WriteString(statusBarStyle.Width(a.width).Render(statusLine))
 
 	// Help overlay
 	if a.showHelp {
