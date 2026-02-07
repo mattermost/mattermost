@@ -4,6 +4,7 @@ type RepoKind int
 
 const (
 	RepoKindInternal RepoKind = iota
+	RepoKindSibling
 	RepoKindPlugin
 )
 

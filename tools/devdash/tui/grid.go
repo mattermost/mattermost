@@ -1,6 +1,7 @@
 package tui
 
 import (
+	"fmt"
 	"sort"
 	"strings"
 
@@ -119,7 +120,10 @@ func renderGridRow(repo *model.Repo, cells []GridCell, cursorCol int, isActiveRo
 	}
 
 	var nameRendered string
-	if isActiveRow {
+	if isActiveRow && cursorCol == -1 && !logFocusActive {
+		// Repo name is selected
+		nameRendered = chipSelectedStyle.Render("▸ " + nameStr)
+	} else if isActiveRow {
 		nameRendered = repoNameActiveStyle.Render("▸ " + nameStr)
 	} else {
 		nameRendered = repoNameStyle.Render("  " + nameStr)
@@ -292,27 +296,77 @@ func renderSeparator(width int) string {
 	return separatorStyle.Render(strings.Repeat("─ ", width/2))
 }
 
-func renderGrid(repos []model.Repo, cursorRow, cursorCol int, width, maxRows int, hScrolls []int, favorites map[string]bool, searchQuery string, procStateFn func(string) model.ProcessState, focusedProc string, logFocusActive bool, showOnlyFavorites bool) (string, []HitZone) {
+func renderGrid(repos []model.Repo, cursorRow, cursorCol int, width, maxLines, skipRows int, hScrolls []int, favorites map[string]bool, searchQuery string, procStateFn func(string) model.ProcessState, focusedProc string, logFocusActive bool, showOnlyFavorites bool) (string, []HitZone) {
 	var b strings.Builder
 	var hitZones []HitZone
 
-	splitIdx := -1
-	for i, r := range repos {
-		if r.Kind == model.RepoKindPlugin {
-			splitIdx = i
-			break
+	// Pre-compute total visible repo count for scroll indicators
+	totalVisible := 0
+	for _, repo := range repos {
+		cells := filteredCells(repo, favorites, searchQuery, showOnlyFavorites)
+		if len(cells) > 0 {
+			totalVisible++
 		}
 	}
 
+	// Scroll-up indicator
+	hasAbove := skipRows > 0
+	hasBelow := false
+	if hasAbove && maxLines > 0 {
+		hint := lipgloss.NewStyle().Foreground(colorMuted).Render(
+			fmt.Sprintf("  ▲ %d more above", skipRows))
+		b.WriteString(hint + "\n")
+	}
+
 	rowY := 0
-	lineCount := 0 // total output lines (repos + separators)
+	lineCount := 0
+	if hasAbove {
+		lineCount++ // account for scroll-up indicator
+	}
+	visibleIdx := 0 // count of visible repo rows encountered
+	prevKind := model.RepoKind(-1)
 	for i, repo := range repos {
-		if maxRows > 0 && lineCount >= maxRows {
+		if maxLines > 0 && lineCount >= maxLines {
+			// Check if there are more rows below
+			for j := i; j < len(repos); j++ {
+				cells := filteredCells(repos[j], favorites, searchQuery, showOnlyFavorites)
+				if len(cells) > 0 {
+					hasBelow = true
+					break
+				}
+			}
 			break
 		}
 
-		if i == splitIdx && splitIdx > 0 {
-			if maxRows > 0 && lineCount >= maxRows {
+		cells := filteredCells(repo, favorites, searchQuery, showOnlyFavorites)
+
+		// Skip repos with no matching targets
+		if len(cells) == 0 {
+			continue
+		}
+
+		// Skip rows before the scroll offset
+		if visibleIdx < skipRows {
+			visibleIdx++
+			prevKind = repo.Kind
+			continue
+		}
+
+		// Reserve last line for scroll-down indicator if needed
+		linesNeeded := 1
+		if prevKind >= 0 && repo.Kind != prevKind {
+			linesNeeded++ // separator
+		}
+		remaining := totalVisible - visibleIdx - 1 // rows after this one
+		if maxLines > 0 && remaining > 0 && lineCount+linesNeeded >= maxLines {
+			hasBelow = true
+			break
+		}
+
+		// Separator between repo kind groups (only before a visible row)
+		if prevKind >= 0 && repo.Kind != prevKind {
+			if maxLines > 0 && lineCount >= maxLines {
+				hasBelow = true
 				break
 			}
 			b.WriteString(renderSeparator(width))
@@ -321,37 +375,7 @@ func renderGrid(repos []model.Repo, cursorRow, cursorCol int, width, maxRows int
 			lineCount++
 		}
 
-		cells := buildGridCells(&repo)
-
-		// Filter cells by search query
-		if searchQuery != "" {
-			q := strings.ToLower(searchQuery)
-			var filtered []GridCell
-			for _, c := range cells {
-				if strings.Contains(strings.ToLower(c.Label), q) {
-					filtered = append(filtered, c)
-				}
-			}
-			cells = filtered
-		}
-
-		// Filter to favorites only
-		if showOnlyFavorites {
-			var filtered []GridCell
-			for _, c := range cells {
-				if favorites[cellID(repo.Name, c)] {
-					filtered = append(filtered, c)
-				}
-			}
-			cells = filtered
-		}
-
-		// Skip repos with no matching targets
-		if len(cells) == 0 {
-			continue
-		}
-
-		if maxRows > 0 && lineCount >= maxRows {
+		if maxLines > 0 && lineCount >= maxLines {
 			break
 		}
 
@@ -370,7 +394,42 @@ func renderGrid(repos []model.Repo, cursorRow, cursorCol int, width, maxRows int
 		b.WriteString("\n")
 		rowY++
 		lineCount++
+		visibleIdx++
+		prevKind = repo.Kind
+	}
+
+	// Scroll-down indicator
+	if hasBelow {
+		below := totalVisible - visibleIdx
+		hint := lipgloss.NewStyle().Foreground(colorMuted).Render(
+			fmt.Sprintf("  ▼ %d more below", below))
+		b.WriteString(hint + "\n")
 	}
 
 	return b.String(), hitZones
+}
+
+// filteredCells returns the grid cells for a repo after applying search and favorites filters.
+func filteredCells(repo model.Repo, favorites map[string]bool, searchQuery string, showOnlyFavorites bool) []GridCell {
+	cells := buildGridCells(&repo)
+	if searchQuery != "" {
+		q := strings.ToLower(searchQuery)
+		var filtered []GridCell
+		for _, c := range cells {
+			if strings.Contains(strings.ToLower(c.Label), q) {
+				filtered = append(filtered, c)
+			}
+		}
+		cells = filtered
+	}
+	if showOnlyFavorites {
+		var filtered []GridCell
+		for _, c := range cells {
+			if favorites[cellID(repo.Name, c)] {
+				filtered = append(filtered, c)
+			}
+		}
+		cells = filtered
+	}
+	return cells
 }

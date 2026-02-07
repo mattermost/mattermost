@@ -116,6 +116,7 @@ func (m *Manager) startProcess(id, repoName, targetName, cmdStr, dir string) err
 
 	done := make(chan struct{})
 	stopped := make(chan struct{})
+	var stopOnce sync.Once
 	proc := &ManagedProcess{
 		Info: model.Process{
 			ID:        id,
@@ -126,7 +127,7 @@ func (m *Manager) startProcess(id, repoName, targetName, cmdStr, dir string) err
 			StartedAt: time.Now(),
 		},
 		SessionName: sessionName,
-		cancel:      func() { close(stopped) },
+		cancel:      func() { stopOnce.Do(func() { close(stopped) }) },
 		done:        done,
 	}
 	m.processes[id] = proc

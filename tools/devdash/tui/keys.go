@@ -36,7 +36,7 @@ func DefaultKeyMap() KeyMap {
 		Execute:       key.NewBinding(key.WithKeys("enter")),
 		ToggleLog:     key.NewBinding(key.WithKeys("L")),
 		Stop:          key.NewBinding(key.WithKeys("s")),
-		Restart:       key.NewBinding(key.WithKeys("R")),
+		Restart:       key.NewBinding(key.WithKeys("r")),
 		Search:        key.NewBinding(key.WithKeys("/")),
 		Help:          key.NewBinding(key.WithKeys("?", "f1")),
 		Quit:          key.NewBinding(key.WithKeys("q", "ctrl+c")),

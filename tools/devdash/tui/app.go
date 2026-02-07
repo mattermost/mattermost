@@ -2,6 +2,7 @@ package tui
 
 import (
 	"fmt"
+	"os"
 	"strings"
 	"time"
 
@@ -28,10 +29,11 @@ type App struct {
 	keys    KeyMap
 
 	// Grid state
-	cursorRow int
-	cursorCol int
-	gridCells [][]GridCell // cached per-repo cells
-	hScrolls  []int        // per-row horizontal scroll offset (in chars)
+	cursorRow   int
+	cursorCol   int
+	gridCells   [][]GridCell // cached per-repo cells
+	hScrolls    []int        // per-row horizontal scroll offset (in chars)
+	gridVScroll int          // vertical scroll: index into visibleRepoIndices to start rendering from
 
 	// Log panel
 	logPanel    LogPanel
@@ -98,7 +100,7 @@ func NewApp(repos []model.Repo, mgr *process.Manager, repoRoot string) *App {
 		favorites:        config.LoadFavorites(repoRoot),
 		showOnlyFavorites: config.LoadSettings(repoRoot).FavsOnly,
 		gridSearchInput:  si,
-		gridSearching:    true,
+		gridSearching:    false,
 		logPanel:         NewLogPanel(),
 	}
 }
@@ -289,6 +291,10 @@ func (a *App) handleKey(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 		}
 		return a, nil
 
+	case key.Matches(msg, a.keys.Restart):
+		a.runOrRestart()
+		return a, nil
+
 	case key.Matches(msg, a.keys.Search):
 		// Grid target search — preserve existing filter text
 		a.enterGridSearch()
@@ -367,15 +373,6 @@ func (a *App) handleKey(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 	case key.Matches(msg, a.keys.Execute):
 		a.executeAtCursor()
 
-	case key.Matches(msg, a.keys.Restart):
-		if a.focusedProc != "" {
-			a.procMgr.Stop(a.focusedProc)
-			// Re-execute after a brief pause
-			repo, cell := a.cellAtCursor()
-			if repo != nil {
-				a.procMgr.Start(repo, cell.Target, cell.IsNpm)
-			}
-		}
 	}
 
 	return a, nil
@@ -386,7 +383,7 @@ const doubleClickThreshold = 400 * time.Millisecond
 func (a *App) handleMouse(msg tea.MouseMsg) (tea.Model, tea.Cmd) {
 	if msg.Action != tea.MouseActionPress || msg.Button != tea.MouseButtonLeft {
 		// Handle scroll wheel in log panel
-		if a.logVisible && msg.Y > a.gridHeight() {
+		if a.logVisible && msg.Y > a.height-a.logPanelHeight() {
 			if msg.Button == tea.MouseButtonWheelUp {
 				a.logPanel.viewport.LineUp(3)
 				a.logPanel.autoScroll = false
@@ -405,9 +402,9 @@ func (a *App) handleMouse(msg tea.MouseMsg) (tea.Model, tea.Cmd) {
 	for _, hz := range a.hitZones {
 		if clickX >= hz.X && clickX < hz.X+hz.Width && clickY == hz.Y {
 			if hz.TargetIdx == -1 {
-				// Clicked repo name — just select the row
+				// Clicked repo name — select it
 				a.cursorRow = hz.RepoIdx
-				a.cursorCol = 0
+				a.cursorCol = -1
 			} else {
 				now := time.Now()
 				sameCell := a.lastClickRow == hz.RepoIdx && a.lastClickCol == hz.TargetIdx
@@ -467,7 +464,14 @@ func (a *App) displayCellsForRow(row int) ([]GridCell, []int) {
 
 // cellAtCursor returns the repo and cell at the current cursor, mapping
 // from display index back to the original cell.
+// When cursor is on the repo name (col -1), returns the repo with an empty cell.
 func (a *App) cellAtCursor() (*model.Repo, GridCell) {
+	if a.cursorCol == -1 {
+		if a.cursorRow < len(a.repos) {
+			return &a.repos[a.cursorRow], GridCell{}
+		}
+		return nil, GridCell{}
+	}
 	displayCells, _ := a.displayCellsForRow(a.cursorRow)
 	if a.cursorCol >= len(displayCells) {
 		return nil, GridCell{}
@@ -480,6 +484,12 @@ func (a *App) cellAtCursor() (*model.Repo, GridCell) {
 }
 
 func (a *App) executeAtCursor() {
+	// Repo name selected — open a shell
+	if a.cursorCol == -1 {
+		a.openShellForRepo()
+		return
+	}
+
 	repo, cell := a.cellAtCursor()
 	if repo == nil {
 		return
@@ -510,6 +520,41 @@ func (a *App) executeAtCursor() {
 	a.logVisible = true
 	a.logPanel.SetSize(a.width, a.logPanelHeight())
 	a.focus = FocusLog
+}
+
+// openShellForRepo starts an interactive shell session for the repo at the cursor.
+func (a *App) openShellForRepo() {
+	if a.cursorRow >= len(a.repos) {
+		return
+	}
+	repo := &a.repos[a.cursorRow]
+
+	shell := os.Getenv("SHELL")
+	if shell == "" {
+		shell = "/bin/sh"
+	}
+
+	id := repo.Name + ":shell"
+
+	// If already running, just focus it
+	if _, ok := a.procMgr.Get(id); ok {
+		a.focusedProc = id
+		a.logPanel.SetProcess(id)
+		a.logVisible = true
+		a.logPanel.SetSize(a.width, a.logPanelHeight())
+		a.focus = FocusLog
+		a.logPanel.inputting = true
+		return
+	}
+
+	a.procMgr.StartCustom(repo, "shell", false, shell)
+
+	a.focusedProc = id
+	a.logPanel.SetProcess(id)
+	a.logVisible = true
+	a.logPanel.SetSize(a.width, a.logPanelHeight())
+	a.focus = FocusLog
+	a.logPanel.inputting = true
 }
 
 // executeWithInputMode runs the target at cursor and immediately enters input mode.
@@ -543,6 +588,11 @@ func (a *App) dismissProcess() {
 	var id string
 	if a.focus == FocusLog && a.focusedProc != "" {
 		id = a.focusedProc
+	} else if a.cursorCol == -1 {
+		// Repo name — dismiss the shell if running
+		if a.cursorRow < len(a.repos) {
+			id = a.repos[a.cursorRow].Name + ":shell"
+		}
 	} else {
 		repo, cell := a.cellAtCursor()
 		if repo == nil {
@@ -565,6 +615,65 @@ func (a *App) dismissProcess() {
 		a.logVisible = false
 		a.focus = FocusGrid
 	}
+}
+
+// runOrRestart runs the focused item if idle, or restarts it if already started.
+// Works from both grid cursor and focused log tab.
+func (a *App) runOrRestart() {
+	// Repo name selected from grid — open a shell
+	if a.focus != FocusLog && a.cursorCol == -1 {
+		a.openShellForRepo()
+		return
+	}
+
+	var id string
+	var repo *model.Repo
+	var target string
+	var isNpm bool
+
+	if a.focus == FocusLog && a.focusedProc != "" {
+		// From log tab: look up process info from manager
+		proc, ok := a.procMgr.Get(a.focusedProc)
+		if !ok {
+			return
+		}
+		id = a.focusedProc
+		target = proc.Info.Target
+		isNpm = strings.HasPrefix(proc.Info.Command, "npm ")
+		for i := range a.repos {
+			if a.repos[i].Name == proc.Info.Repo {
+				repo = &a.repos[i]
+				break
+			}
+		}
+	} else {
+		// From grid: use cursor position
+		r, cell := a.cellAtCursor()
+		if r == nil {
+			return
+		}
+		repo = r
+		id = r.Name + ":" + cell.Target
+		target = cell.Target
+		isNpm = cell.IsNpm
+	}
+
+	if repo == nil {
+		return
+	}
+
+	// Stop if currently managed (running, exited, or failed)
+	if _, ok := a.procMgr.Get(id); ok {
+		a.procMgr.Stop(id)
+	}
+
+	a.procMgr.Start(repo, target, isNpm)
+
+	a.focusedProc = id
+	a.logPanel.SetProcess(id)
+	a.logVisible = true
+	a.logPanel.SetSize(a.width, a.logPanelHeight())
+	a.focus = FocusLog
 }
 
 // focusLogForCursor opens the log panel for the cursor's process without running it.
@@ -719,6 +828,7 @@ func (a *App) enterGridSearch() {
 // snapCursorToFirstMatch moves cursor to the first row/col with matching cells.
 func (a *App) snapCursorToFirstMatch() {
 	a.cursorCol = 0
+	a.gridVScroll = 0
 	for r := 0; r < len(a.repos); r++ {
 		cells, _ := a.displayCellsForRow(r)
 		if len(cells) > 0 {
@@ -730,8 +840,18 @@ func (a *App) snapCursorToFirstMatch() {
 }
 
 // moveCursorDown moves cursor down, skipping rows with no matching cells when filtering.
+// Wraps to the first visible row when at the bottom.
 func (a *App) moveCursorDown() {
 	for r := a.cursorRow + 1; r < len(a.repos); r++ {
+		cells, _ := a.displayCellsForRow(r)
+		if len(cells) > 0 {
+			a.cursorRow = r
+			a.clampCol()
+			return
+		}
+	}
+	// Wrap to first visible row
+	for r := 0; r < a.cursorRow; r++ {
 		cells, _ := a.displayCellsForRow(r)
 		if len(cells) > 0 {
 			a.cursorRow = r
@@ -742,27 +862,54 @@ func (a *App) moveCursorDown() {
 }
 
 // moveCursorLeft moves cursor left in display order, skipping separators.
+// Goes to repo name (col -1) when at the first target. Wraps from repo name to last target.
 func (a *App) moveCursorLeft() {
-	if a.cursorCol <= 0 {
+	displayCells, _ := a.displayCellsForRow(a.cursorRow)
+	if a.cursorCol == -1 {
+		// Wrap from repo name to last non-separator cell
+		a.cursorCol = len(displayCells) - 1
+		if a.cursorCol >= 0 && displayCells[a.cursorCol].IsSep {
+			a.cursorCol--
+		}
+		if a.cursorCol < 0 {
+			a.cursorCol = -1
+		}
+		a.ensureCursorVisible()
 		return
 	}
-	displayCells, _ := a.displayCellsForRow(a.cursorRow)
+	if a.cursorCol <= 0 {
+		// Move to repo name
+		a.cursorCol = -1
+		return
+	}
 	a.cursorCol--
 	// Skip separator
 	if a.cursorCol >= 0 && a.cursorCol < len(displayCells) && displayCells[a.cursorCol].IsSep {
 		a.cursorCol--
 	}
 	if a.cursorCol < 0 {
-		a.cursorCol = 0
+		a.cursorCol = -1
 	}
 	a.ensureCursorVisible()
 }
 
 // moveCursorRight moves cursor right in display order, skipping separators.
+// Wraps from last target to repo name (col -1).
 func (a *App) moveCursorRight() {
 	displayCells, _ := a.displayCellsForRow(a.cursorRow)
 	maxCol := len(displayCells) - 1
+	if a.cursorCol == -1 {
+		// Move from repo name to first target
+		a.cursorCol = 0
+		if len(displayCells) > 0 && displayCells[0].IsSep {
+			a.cursorCol = 1
+		}
+		a.ensureCursorVisible()
+		return
+	}
 	if a.cursorCol >= maxCol {
+		// Wrap to repo name
+		a.cursorCol = -1
 		return
 	}
 	a.cursorCol++
@@ -771,12 +918,15 @@ func (a *App) moveCursorRight() {
 		a.cursorCol++
 	}
 	if a.cursorCol > maxCol {
-		a.cursorCol = maxCol
+		a.cursorCol = -1
 	}
 	a.ensureCursorVisible()
 }
 
 func (a *App) clampCol() {
+	if a.cursorCol == -1 {
+		return // repo name is always valid
+	}
 	displayCells, _ := a.displayCellsForRow(a.cursorRow)
 	maxCol := len(displayCells) - 1
 	if maxCol < 0 {
@@ -786,7 +936,7 @@ func (a *App) clampCol() {
 		a.cursorCol = maxCol
 	}
 	// If landed on separator, nudge forward (or back if at end)
-	if a.cursorCol < len(displayCells) && displayCells[a.cursorCol].IsSep {
+	if a.cursorCol >= 0 && a.cursorCol < len(displayCells) && displayCells[a.cursorCol].IsSep {
 		if a.cursorCol+1 < len(displayCells) {
 			a.cursorCol++
 		} else if a.cursorCol > 0 {
@@ -799,7 +949,7 @@ func (a *App) clampCol() {
 // ensureCursorVisible adjusts the horizontal scroll of the current row
 // so the cursor column is within the visible area.
 func (a *App) ensureCursorVisible() {
-	if a.cursorRow >= len(a.repos) || a.width == 0 {
+	if a.cursorRow >= len(a.repos) || a.width == 0 || a.cursorCol == -1 {
 		return
 	}
 	displayCells, _ := a.displayCellsForRow(a.cursorRow)
@@ -869,33 +1019,119 @@ func plainHotkeyHints(hints []string) string {
 	return strings.Join(hints, "  ")
 }
 
-func (a *App) gridHeight() int {
-	h := len(a.repos) + 2 // repos + possible separator + header
-	return h
+// visibleRepoIndices returns the repo indices that have visible cells after filtering.
+func (a *App) visibleRepoIndices() []int {
+	var indices []int
+	for i := range a.repos {
+		cells, _ := a.displayCellsForRow(i)
+		if len(cells) > 0 {
+			indices = append(indices, i)
+		}
+	}
+	return indices
 }
 
 // visibleGridRows returns the total number of lines the grid will render,
-// including separator lines between repo kinds.
+// including separator lines between repo kind groups.
 func (a *App) visibleGridRows() int {
 	count := 0
-	splitIdx := -1
-	for i, r := range a.repos {
-		if r.Kind == model.RepoKindPlugin {
-			splitIdx = i
+	prevKind := model.RepoKind(-1)
+	for i := range a.repos {
+		cells, _ := a.displayCellsForRow(i)
+		if len(cells) == 0 {
+			continue
+		}
+		if prevKind >= 0 && a.repos[i].Kind != prevKind {
+			count++
+		}
+		count++
+		prevKind = a.repos[i].Kind
+	}
+	return count
+}
+
+// maxGridLines returns the maximum number of grid lines available for rendering.
+// When the log panel is hidden, all terminal height (minus chrome) is available.
+func (a *App) maxGridLines() int {
+	if !a.logVisible {
+		chrome := 2 // header + search
+		if len(a.procMgr.ProcessIDs()) > 0 {
+			chrome++ // tab bar
+		}
+		return a.height - chrome
+	}
+	return a.height - 2 - a.logPanelHeight() - func() int {
+		if len(a.procMgr.ProcessIDs()) > 0 {
+			return 1
+		}
+		return 0
+	}()
+}
+
+// ensureGridVScroll adjusts gridVScroll so the cursor row is visible within maxLines.
+func (a *App) ensureGridVScroll(maxLines int) {
+	vis := a.visibleRepoIndices()
+	if len(vis) == 0 {
+		a.gridVScroll = 0
+		return
+	}
+
+	// Find cursor position in visible list
+	cursorVisIdx := -1
+	for vi, ri := range vis {
+		if ri == a.cursorRow {
+			cursorVisIdx = vi
 			break
 		}
 	}
-	for i := range a.repos {
-		// renderGrid emits a separator line before the first plugin repo
-		if i == splitIdx && splitIdx > 0 {
-			count++
+	if cursorVisIdx < 0 {
+		a.gridVScroll = 0
+		return
+	}
+
+	// Count how many visible rows fit in maxLines (accounting for separators)
+	countLines := func(startVisIdx int) (repoCount, lineCount int) {
+		prevKind := model.RepoKind(-1)
+		for vi := startVisIdx; vi < len(vis); vi++ {
+			ri := vis[vi]
+			lines := 0
+			if prevKind >= 0 && a.repos[ri].Kind != prevKind {
+				lines++ // separator
+			}
+			lines++ // the row itself
+			if lineCount+lines > maxLines {
+				break
+			}
+			lineCount += lines
+			repoCount++
+			prevKind = a.repos[ri].Kind
 		}
-		cells, _ := a.displayCellsForRow(i)
-		if len(cells) > 0 {
-			count++
+		return
+	}
+
+	// If cursor is above the scroll window, scroll up
+	if cursorVisIdx < a.gridVScroll {
+		a.gridVScroll = cursorVisIdx
+	}
+
+	// If cursor is below the scroll window, scroll down until it's visible
+	for {
+		repoCount, _ := countLines(a.gridVScroll)
+		endVisIdx := a.gridVScroll + repoCount - 1
+		if endVisIdx >= cursorVisIdx {
+			break
+		}
+		a.gridVScroll++
+		if a.gridVScroll >= len(vis) {
+			a.gridVScroll = 0
+			break
 		}
 	}
-	return count
+
+	// Clamp
+	if a.gridVScroll >= len(vis) {
+		a.gridVScroll = 0
+	}
 }
 
 // logPanelHeight returns the height available for the log panel:
@@ -928,25 +1164,28 @@ func (a *App) View() string {
 
 	var b strings.Builder
 
-	// Header: title + context-sensitive hotkey hints
+	// Header: title + context-sensitive hotkey hints (only for active state)
 	var keys []string
-	if a.cmdEditing {
+	if a.gridSearching {
+		keys = []string{"Enter Select", "Esc Clear", "↓ Grid"}
+	} else if a.cmdEditing {
 		keys = []string{"Enter Run", "Esc Cancel"}
 	} else if a.logPanel.inputting {
 		keys = []string{"Enter Send", "Esc Exit"}
 	} else if a.logVisible {
 		keys = []string{
 			"1-9 Tab", "i Input",
-			"s Stop", "R Restart", "x Dismiss",
+			"r Run", "s Stop", "x Dismiss",
 			"Tab Next", "S-Tab Prev", "Esc Close",
+			"? Help", "q Quit",
 		}
 	} else {
 		keys = []string{
-			"Enter Run", "d DryRun", "f Focus", "F Fav", "L Logs",
+			"r Run", "Enter Run", "d DryRun", "f Focus", "F Fav", "L Logs",
 			"s Stop", "/ Search",
+			"? Help", "q Quit",
 		}
 	}
-	keys = append(keys, "? Help", "q Quit")
 	logo := headerStyle.Render(" DevDash ")
 	headerRight := renderHotkeyHints(keys)
 	headerRightPlain := plainHotkeyHints(keys)
@@ -989,24 +1228,14 @@ func (a *App) View() string {
 	b.WriteString(searchLeft + strings.Repeat(" ", gap) + legend)
 	b.WriteString("\n")
 
-	// Grid
-	maxGridRows := len(a.repos)
-	if a.logVisible {
-		// Show grid rows that fit above the log panel + tab bar
-		chrome := 2 // header + search
-		if len(a.orderedProcessIDs()) > 0 {
-			chrome++ // tab bar
-		}
-		maxGridRows = a.height - chrome - a.logPanelHeight()
-		if maxGridRows < 3 {
-			maxGridRows = 3
-		}
-	}
+	// Grid — compute max lines and scroll offset
+	maxLines := a.maxGridLines()
+	a.ensureGridVScroll(maxLines)
 
 	gridStr, hitZones := renderGrid(
 		a.repos,
 		a.cursorRow, a.cursorCol,
-		a.width, maxGridRows,
+		a.width, maxLines, a.gridVScroll,
 		a.hScrolls,
 		a.favorites,
 		a.gridSearchQuery,
@@ -1078,7 +1307,7 @@ func (a *App) renderHelp() string {
 		"Navigation:",
 		"  j/k ↑/↓    Move between repos",
 		"  h/l ←/→    Move between targets",
-		"  Enter      Execute target",
+		"  Enter      Execute target (or shell on repo name)",
 		"  Dbl-Click  Click any target to run it",
 		"  f          Focus log panel on target",
 		"  d          Dry-run: edit command before running",
@@ -1087,7 +1316,7 @@ func (a *App) renderHelp() string {
 		"",
 		"Process Control:",
 		"  s          Stop focused process",
-		"  R          Restart focused process",
+		"  r          Run target / restart process",
 		"  x          Dismiss: stop + remove + close panel",
 		"  Ctrl+X     Stop all processes",
 		"",

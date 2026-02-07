@@ -16,8 +16,6 @@ var (
 	commentRe = regexp.MustCompile(`##\s*(.+)$`)
 	// Variable assignment patterns to reject
 	varAssignRe = regexp.MustCompile(`^[a-zA-Z_][a-zA-Z0-9_]*\s*[:?+]?=`)
-	// .PHONY line parser
-	phonyRe = regexp.MustCompile(`^\.PHONY\s*:\s*(.+)`)
 )
 
 func ParseMakeTargets(path string) ([]model.Target, error) {
@@ -29,10 +27,9 @@ func ParseMakeTargets(path string) ([]model.Target, error) {
 
 	var targets []model.Target
 	seen := make(map[string]bool)
-	phony := make(map[string]bool)
 	var prevComment string
 
-	// First pass: collect all lines
+	// Collect all lines
 	var lines []string
 	scanner := bufio.NewScanner(f)
 	for scanner.Scan() {
@@ -40,15 +37,6 @@ func ParseMakeTargets(path string) ([]model.Target, error) {
 	}
 	if err := scanner.Err(); err != nil {
 		return nil, err
-	}
-
-	// Collect .PHONY targets (these are the real user-facing targets)
-	for _, line := range lines {
-		if m := phonyRe.FindStringSubmatch(line); m != nil {
-			for _, name := range strings.Fields(m[1]) {
-				phony[name] = true
-			}
-		}
 	}
 
 	// Parse targets
@@ -123,20 +111,20 @@ func ParseMakeTargets(path string) ([]model.Target, error) {
 		prevComment = ""
 	}
 
-	// If we found .PHONY declarations, use them to filter to only
-	// user-facing targets (skip intermediate build artifacts).
-	// But only if there are enough phony targets to be meaningful.
-	if len(phony) > 5 {
-		var filtered []model.Target
-		for _, t := range targets {
-			if phony[t.Name] {
-				filtered = append(filtered, t)
-			}
+	// Use .PHONY as a hint to prioritize user-facing targets, but don't
+	// exclude targets that aren't declared phony — many real targets
+	// (e.g. test-data) simply lack the declaration.
+	// Instead, filter out likely internal targets by naming convention.
+	var filtered []model.Target
+	for _, t := range targets {
+		// Skip targets that look like intermediate build artifacts
+		if isInternalTarget(t.Name) {
+			continue
 		}
-		// Only use filtered list if it's non-empty
-		if len(filtered) > 0 {
-			targets = filtered
-		}
+		filtered = append(filtered, t)
+	}
+	if len(filtered) > 0 {
+		targets = filtered
 	}
 
 	return targets, nil
@@ -160,6 +148,21 @@ func classifyTarget(name string) model.TargetCategory {
 	default:
 		return model.CategoryOther
 	}
+}
+
+// isInternalTarget returns true for targets that are likely intermediate
+// build artifacts rather than user-facing commands.
+func isInternalTarget(name string) bool {
+	// File-like targets (contain a path separator or common extensions)
+	if strings.Contains(name, "/") {
+		return true
+	}
+	for _, ext := range []string{".o", ".a", ".so", ".tar", ".gz", ".zip"} {
+		if strings.HasSuffix(name, ext) {
+			return true
+		}
+	}
+	return false
 }
 
 func containsAny(s string, substrs ...string) bool {

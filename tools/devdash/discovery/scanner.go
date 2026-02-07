@@ -57,43 +57,59 @@ func ScanAll(mmRoot string) ([]model.Repo, error) {
 		repos = append(repos, repo)
 	}
 
-	// 2. Sibling plugin repos
+	// 2. Sibling repos (other projects alongside mattermost)
 	scanRoot := filepath.Dir(mmRoot)
+	mmDirName := filepath.Base(mmRoot)
 	entries, err := os.ReadDir(scanRoot)
 	if err != nil {
 		return repos, nil // non-fatal
 	}
 
+	var siblings []model.Repo
 	var plugins []model.Repo
 	for _, entry := range entries {
-		if !entry.IsDir() || !strings.HasPrefix(entry.Name(), "mattermost-plugin-") {
+		if !entry.IsDir() || entry.Name() == mmDirName {
 			continue
 		}
 
 		repoPath := filepath.Join(scanRoot, entry.Name())
+
+		// Need at least a Makefile or package.json
 		mfPath := filepath.Join(repoPath, "Makefile")
-		if _, err := os.Stat(mfPath); err != nil {
+		pkgPath := filepath.Join(repoPath, "package.json")
+		hasMakefile := fileExists(mfPath)
+		hasPkgJSON := fileExists(pkgPath)
+		if !hasMakefile && !hasPkgJSON {
 			continue
 		}
 
-		// Shorten display name: mattermost-plugin-playbooks -> playbooks
-		displayName := strings.TrimPrefix(entry.Name(), "mattermost-plugin-")
+		// Determine kind and display name
+		isPlugin := strings.HasPrefix(entry.Name(), "mattermost-plugin-")
+		kind := model.RepoKindSibling
+		displayName := entry.Name()
+		if isPlugin {
+			kind = model.RepoKindPlugin
+			displayName = strings.TrimPrefix(entry.Name(), "mattermost-plugin-")
+		} else {
+			// Shorten common prefixes
+			displayName = strings.TrimPrefix(displayName, "mattermost-")
+		}
 
 		repo := model.Repo{
-			Name:         displayName,
-			Path:         repoPath,
-			Kind:         model.RepoKindPlugin,
-			MakefilePath: mfPath,
+			Name: displayName,
+			Path: repoPath,
+			Kind: kind,
 		}
 
-		targets, err := ParseMakeTargets(mfPath)
-		if err == nil {
-			repo.MakeTargets = targets
+		if hasMakefile {
+			repo.MakefilePath = mfPath
+			targets, err := ParseMakeTargets(mfPath)
+			if err == nil {
+				repo.MakeTargets = targets
+			}
 		}
 
-		// Check for webapp/package.json
-		pkgPath := filepath.Join(repoPath, "webapp", "package.json")
-		if _, err := os.Stat(pkgPath); err == nil {
+		if hasPkgJSON {
 			repo.PackageJSON = pkgPath
 			scripts, err := ParseNpmScripts(pkgPath)
 			if err == nil {
@@ -101,13 +117,38 @@ func ScanAll(mmRoot string) ([]model.Repo, error) {
 			}
 		}
 
-		plugins = append(plugins, repo)
+		// Also check webapp/package.json for repos that have a nested webapp
+		if !hasPkgJSON {
+			wpPath := filepath.Join(repoPath, "webapp", "package.json")
+			if fileExists(wpPath) {
+				repo.PackageJSON = wpPath
+				scripts, err := ParseNpmScripts(wpPath)
+				if err == nil {
+					repo.NpmScripts = scripts
+				}
+			}
+		}
+
+		if isPlugin {
+			plugins = append(plugins, repo)
+		} else {
+			siblings = append(siblings, repo)
+		}
 	}
 
+	sort.Slice(siblings, func(i, j int) bool {
+		return siblings[i].Name < siblings[j].Name
+	})
 	sort.Slice(plugins, func(i, j int) bool {
 		return plugins[i].Name < plugins[j].Name
 	})
 
+	repos = append(repos, siblings...)
 	repos = append(repos, plugins...)
 	return repos, nil
+}
+
+func fileExists(path string) bool {
+	_, err := os.Stat(path)
+	return err == nil
 }
