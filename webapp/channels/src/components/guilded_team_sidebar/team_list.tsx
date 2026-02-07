@@ -8,6 +8,7 @@ import type {DropResult} from 'react-beautiful-dnd';
 import {useDispatch, useSelector} from 'react-redux';
 import {useHistory} from 'react-router-dom';
 
+import {getTeamsUnreadStatuses} from 'mattermost-redux/selectors/entities/channels';
 import {get} from 'mattermost-redux/selectors/entities/preferences';
 import {getCurrentTeamId, getMyTeams} from 'mattermost-redux/selectors/entities/teams';
 
@@ -43,6 +44,7 @@ export default function TeamList({onTeamClick}: Props) {
     const isDmMode = useSelector((state: GlobalState) => state.views.guildedLayout.isDmMode);
     const locale = useSelector(getCurrentLocale);
     const userTeamsOrderPreference = useSelector((state: GlobalState) => get(state, Preferences.TEAMS_ORDER, '', ''));
+    const [unreadTeamsSet, mentionsInTeamMap] = useSelector(getTeamsUnreadStatuses);
 
     // Sort using user's preferred team order, then filter out favorited teams
     const nonFavoritedTeams = filterAndSortTeamsByDisplayName(allTeams, locale, userTeamsOrderPreference)
@@ -124,6 +126,13 @@ export default function TeamList({onTeamClick}: Props) {
                                                 </span>
                                             )}
                                             {!isDmMode && team.id === currentTeamId && <span className='team-list__active-indicator'/>}
+                                            {mentionsInTeamMap.has(team.id) && mentionsInTeamMap.get(team.id)! > 0 ? (
+                                                <span className='team-list__mention-badge'>
+                                                    {mentionsInTeamMap.get(team.id)! > 99 ? '99+' : mentionsInTeamMap.get(team.id)}
+                                                </span>
+                                            ) : unreadTeamsSet.has(team.id) ? (
+                                                <span className='team-list__unread-badge'/>
+                                            ) : null}
                                         </div>
                                     </div>
                                 )}

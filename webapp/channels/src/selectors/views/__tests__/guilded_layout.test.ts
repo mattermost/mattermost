@@ -17,6 +17,9 @@ describe('guilded_layout selectors', () => {
                     },
                     preferences: {myPreferences: {}},
                 },
+                views: {
+                    browser: {windowSize: 'desktopView'},
+                },
             } as unknown as GlobalState;
 
             expect(Selectors.isGuildedLayoutEnabled(state)).toBe(true);
@@ -31,6 +34,27 @@ describe('guilded_layout selectors', () => {
                         },
                     },
                     preferences: {myPreferences: {}},
+                },
+                views: {
+                    browser: {windowSize: 'desktopView'},
+                },
+            } as unknown as GlobalState;
+
+            expect(Selectors.isGuildedLayoutEnabled(state)).toBe(false);
+        });
+
+        it('returns false on mobile view even when flag is enabled', () => {
+            const state = {
+                entities: {
+                    general: {
+                        config: {
+                            FeatureFlagGuildedChatLayout: 'true',
+                        },
+                    },
+                    preferences: {myPreferences: {}},
+                },
+                views: {
+                    browser: {windowSize: 'mobileView'},
                 },
             } as unknown as GlobalState;
 

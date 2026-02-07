@@ -13,6 +13,7 @@ import {getThreads} from 'mattermost-redux/selectors/entities/threads';
 import type {Post} from '@mattermost/types/posts';
 
 import {Constants} from 'utils/constants';
+import {getIsMobileView} from 'selectors/views/browser';
 
 import type {Channel} from '@mattermost/types/channels';
 import type {UserProfile} from '@mattermost/types/users';
@@ -39,14 +40,16 @@ export const isThreadsInSidebarActive = createSelector(
 );
 
 /**
- * Returns true if the full Guilded layout is enabled (feature flag + user preference, ignores viewport).
+ * Returns true if the full Guilded layout is enabled (feature flag + user preference + not mobile view).
+ * Automatically disabled on mobile viewports (<= 768px).
  */
 export const isGuildedLayoutEnabled = createSelector(
     'isGuildedLayoutEnabled',
     getConfig,
     (state: GlobalState) => getBool(state, Preferences.CATEGORY_DISPLAY_SETTINGS, Preferences.GUILDED_CHAT_LAYOUT, true),
-    (config, userPrefGuilded): boolean => {
-        return config.FeatureFlagGuildedChatLayout === 'true' && userPrefGuilded;
+    (state: GlobalState) => getIsMobileView(state),
+    (config, userPrefGuilded, isMobile): boolean => {
+        return config.FeatureFlagGuildedChatLayout === 'true' && userPrefGuilded && !isMobile;
     },
 );
 
@@ -104,26 +107,37 @@ interface UnreadDmInfo {
 }
 
 /**
- * Get total count of unread DM/GM messages
+ * Get total count of unread DM/GM messages and the number of distinct unread DM/GM channels.
+ * Returns [totalMentions, distinctChannels].
  */
-export const getUnreadDmCount = createSelector(
-    'getUnreadDmCount',
+export const getUnreadDmStats = createSelector(
+    'getUnreadDmStats',
     getAllChannels,
     getMyChannelMemberships,
-    (channels, memberships): number => {
-        let count = 0;
+    (channels, memberships): [number, number] => {
+        let totalMentions = 0;
+        let distinctChannels = 0;
         for (const channel of Object.values(channels)) {
-            // Only count DM and GM channels
             if (channel.type !== Constants.DM_CHANNEL && channel.type !== Constants.GM_CHANNEL) {
                 continue;
             }
             const membership = memberships[channel.id];
             if (membership && membership.mention_count > 0) {
-                count += membership.mention_count;
+                totalMentions += membership.mention_count;
+                distinctChannels++;
             }
         }
-        return count;
+        return [totalMentions, distinctChannels];
     },
+);
+
+/**
+ * Get total count of unread DM/GM messages
+ */
+export const getUnreadDmCount = createSelector(
+    'getUnreadDmCount',
+    getUnreadDmStats,
+    ([totalMentions]): number => totalMentions,
 );
 
 /**

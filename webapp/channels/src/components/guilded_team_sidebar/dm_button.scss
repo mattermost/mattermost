@@ -52,22 +52,4 @@
         transform: translateY(-50%);
     }
 
-    &__badge {
-        position: absolute;
-        z-index: 1;
-        top: -4px;
-        right: -4px;
-        display: flex;
-        min-width: 18px;
-        height: 18px;
-        align-items: center;
-        justify-content: center;
-        padding: 0 5px;
-        border-radius: 9px;
-        background: var(--mention-bg);
-        box-shadow: 0 0 0 3px var(--sidebar-teambar-bg);
-        color: var(--mention-color);
-        font-size: 11px;
-        font-weight: 600;
-    }
 }

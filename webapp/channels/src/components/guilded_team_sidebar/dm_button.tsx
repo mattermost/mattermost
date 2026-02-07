@@ -3,9 +3,6 @@
 
 import classNames from 'classnames';
 import React from 'react';
-import {useSelector} from 'react-redux';
-
-import {getUnreadDmCount} from 'selectors/views/guilded_layout';
 
 import './dm_button.scss';
 
@@ -15,10 +12,6 @@ interface Props {
 }
 
 export default function DmButton({isActive, onClick}: Props) {
-    const unreadCount = useSelector(getUnreadDmCount);
-
-    const displayCount = unreadCount > 99 ? '99+' : unreadCount;
-
     return (
         <div
             className={classNames('dm-button', {
@@ -31,11 +24,6 @@ export default function DmButton({isActive, onClick}: Props) {
         >
             <i className='icon icon-account-multiple-outline' />
             {isActive && <span className='dm-button__active-indicator' />}
-            {unreadCount > 0 && (
-                <span className='dm-button__badge'>
-                    {displayCount}
-                </span>
-            )}
         </div>
     );
 }

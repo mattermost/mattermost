@@ -19,6 +19,9 @@ describe('selectors/views/guilded_layout', () => {
                         myPreferences: {},
                     },
                 },
+                views: {
+                    browser: {windowSize: 'desktopView'},
+                },
             } as unknown as GlobalState;
 
             expect(Selectors.isGuildedLayoutEnabled(state)).toBe(false);
@@ -35,6 +38,9 @@ describe('selectors/views/guilded_layout', () => {
                     preferences: {
                         myPreferences: {},
                     },
+                },
+                views: {
+                    browser: {windowSize: 'desktopView'},
                 },
             } as unknown as GlobalState;
 
@@ -59,6 +65,9 @@ describe('selectors/views/guilded_layout', () => {
                         },
                     },
                 },
+                views: {
+                    browser: {windowSize: 'desktopView'},
+                },
             } as unknown as GlobalState;
 
             expect(Selectors.isGuildedLayoutEnabled(state)).toBe(false);
@@ -82,6 +91,9 @@ describe('selectors/views/guilded_layout', () => {
                         },
                     },
                 },
+                views: {
+                    browser: {windowSize: 'desktopView'},
+                },
             } as unknown as GlobalState;
 
             expect(Selectors.isGuildedLayoutEnabled(state)).toBe(true);
@@ -96,6 +108,29 @@ describe('selectors/views/guilded_layout', () => {
                     preferences: {
                         myPreferences: {},
                     },
+                },
+                views: {
+                    browser: {windowSize: 'desktopView'},
+                },
+            } as unknown as GlobalState;
+
+            expect(Selectors.isGuildedLayoutEnabled(state)).toBe(false);
+        });
+
+        it('should return false on mobile view even when flag and preference are enabled', () => {
+            const state = {
+                entities: {
+                    general: {
+                        config: {
+                            FeatureFlagGuildedChatLayout: 'true',
+                        },
+                    },
+                    preferences: {
+                        myPreferences: {},
+                    },
+                },
+                views: {
+                    browser: {windowSize: 'mobileView'},
                 },
             } as unknown as GlobalState;
 
@@ -461,6 +496,95 @@ describe('selectors/views/guilded_layout', () => {
         });
     });
 
+    describe('getUnreadDmStats', () => {
+        it('should return [0, 0] when no DM channels', () => {
+            const state = {
+                entities: {
+                    channels: {
+                        channels: {},
+                        myMembers: {},
+                    },
+                },
+            } as unknown as GlobalState;
+
+            expect(Selectors.getUnreadDmStats(state)).toEqual([0, 0]);
+        });
+
+        it('should return total mentions and distinct channel count', () => {
+            const state = {
+                entities: {
+                    channels: {
+                        channels: {
+                            dm1: {id: 'dm1', type: 'D', name: 'user1__user2'},
+                            dm2: {id: 'dm2', type: 'D', name: 'user1__user3'},
+                            channel1: {id: 'channel1', type: 'O', name: 'town-square'},
+                        },
+                        myMembers: {
+                            dm1: {channel_id: 'dm1', mention_count: 3},
+                            dm2: {channel_id: 'dm2', mention_count: 2},
+                            channel1: {channel_id: 'channel1', mention_count: 10},
+                        },
+                    },
+                },
+            } as unknown as GlobalState;
+
+            expect(Selectors.getUnreadDmStats(state)).toEqual([5, 2]); // 3+2 mentions, 2 distinct channels
+        });
+
+        it('should return [0, 0] when DM channels have no mentions', () => {
+            const state = {
+                entities: {
+                    channels: {
+                        channels: {
+                            dm1: {id: 'dm1', type: 'D', name: 'user1__user2'},
+                        },
+                        myMembers: {
+                            dm1: {channel_id: 'dm1', mention_count: 0},
+                        },
+                    },
+                },
+            } as unknown as GlobalState;
+
+            expect(Selectors.getUnreadDmStats(state)).toEqual([0, 0]);
+        });
+
+        it('should count GM channels (type G) as well', () => {
+            const state = {
+                entities: {
+                    channels: {
+                        channels: {
+                            dm1: {id: 'dm1', type: 'D', name: 'user1__user2'},
+                            gm1: {id: 'gm1', type: 'G', name: 'group-message'},
+                        },
+                        myMembers: {
+                            dm1: {channel_id: 'dm1', mention_count: 2},
+                            gm1: {channel_id: 'gm1', mention_count: 3},
+                        },
+                    },
+                },
+            } as unknown as GlobalState;
+
+            expect(Selectors.getUnreadDmStats(state)).toEqual([5, 2]); // 2+3 mentions, 2 channels
+        });
+
+        it('should count 1 distinct channel for single unread DM', () => {
+            const state = {
+                entities: {
+                    channels: {
+                        channels: {
+                            dm1: {id: 'dm1', type: 'D', name: 'user1__user2'},
+                        },
+                        myMembers: {
+                            dm1: {channel_id: 'dm1', mention_count: 5},
+                        },
+                    },
+                },
+            } as unknown as GlobalState;
+
+            expect(Selectors.getUnreadDmStats(state)).toEqual([5, 1]);
+        });
+    });
+
     describe('getUnreadDmCount', () => {
         it('should return 0 when no DM channels', () => {
             const state = {
@@ -494,42 +618,6 @@ describe('selectors/views/guilded_layout', () => {
             } as unknown as GlobalState;
 
             expect(Selectors.getUnreadDmCount(state)).toBe(5); // 3 + 2, excludes channel mentions
-        });
-
-        it('should return 0 when DM channels have no mentions', () => {
-            const state = {
-                entities: {
-                    channels: {
-                        channels: {
-                            dm1: {id: 'dm1', type: 'D', name: 'user1__user2'},
-                        },
-                        myMembers: {
-                            dm1: {channel_id: 'dm1', mention_count: 0},
-                        },
-                    },
-                },
-            } as unknown as GlobalState;
-
-            expect(Selectors.getUnreadDmCount(state)).toBe(0);
-        });
-
-        it('should handle GM channels (type G) as well', () => {
-            const state = {
-                entities: {
-                    channels: {
-                        channels: {
-                            dm1: {id: 'dm1', type: 'D', name: 'user1__user2'},
-                            gm1: {id: 'gm1', type: 'G', name: 'group-message'},
-                        },
-                        myMembers: {
-                            dm1: {channel_id: 'dm1', mention_count: 2},
-                            gm1: {channel_id: 'gm1', mention_count: 3},
-                        },
-                    },
-                },
-            } as unknown as GlobalState;
-
-            expect(Selectors.getUnreadDmCount(state)).toBe(5); // 2 + 3
         });
     });
 

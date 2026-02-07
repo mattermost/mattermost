@@ -6,6 +6,7 @@ import React from 'react';
 import {useSelector} from 'react-redux';
 import {useHistory} from 'react-router-dom';
 
+import {getTeamsUnreadStatuses} from 'mattermost-redux/selectors/entities/channels';
 import {get} from 'mattermost-redux/selectors/entities/preferences';
 import {getCurrentTeamId, getTeam} from 'mattermost-redux/selectors/entities/teams';
 
@@ -39,6 +40,7 @@ export default function FavoritedTeams({onTeamClick, onExpandClick}: Props) {
     const isDmMode = useSelector((state: GlobalState) => state.views.guildedLayout.isDmMode);
     const locale = useSelector(getCurrentLocale);
     const userTeamsOrderPreference = useSelector((state: GlobalState) => get(state, Preferences.TEAMS_ORDER, '', ''));
+    const [unreadTeamsSet, mentionsInTeamMap] = useSelector(getTeamsUnreadStatuses);
 
     // Get team objects for favorited IDs, sorted by user's preferred order
     const favoritedTeams = useSelector((state: GlobalState) => {
@@ -80,6 +82,13 @@ export default function FavoritedTeams({onTeamClick, onExpandClick}: Props) {
                         </span>
                     )}
                     {!isDmMode && team.id === currentTeamId && <span className='favorited-teams__active-indicator'/>}
+                    {mentionsInTeamMap.has(team.id) && mentionsInTeamMap.get(team.id)! > 0 ? (
+                        <span className='favorited-teams__mention-badge'>
+                            {mentionsInTeamMap.get(team.id)! > 99 ? '99+' : mentionsInTeamMap.get(team.id)}
+                        </span>
+                    ) : unreadTeamsSet.has(team.id) ? (
+                        <span className='favorited-teams__unread-badge'/>
+                    ) : null}
                 </button>
             ))}
             <button

@@ -11,15 +11,8 @@ import DmButton from '../dm_button';
 
 const mockStore = configureStore([]);
 
-const renderWithProviders = (component: React.ReactElement, storeState = {}) => {
-    const defaultState = {
-        entities: {
-            channels: {channels: {}, myMembers: {}},
-            users: {profiles: {}},
-        },
-        ...storeState,
-    };
-    const store = mockStore(defaultState);
+const renderWithProviders = (component: React.ReactElement) => {
+    const store = mockStore({});
 
     return render(
         <Provider store={store}>
@@ -88,46 +81,5 @@ describe('DmButton', () => {
         const {container} = renderWithProviders(<DmButton {...defaultProps} isActive={false} />);
 
         expect(container.querySelector('.dm-button__active-indicator')).not.toBeInTheDocument();
-    });
-
-    it('shows unread badge when unreadCount > 0', () => {
-        const stateWithUnreads = {
-            entities: {
-                channels: {
-                    channels: {
-                        dm1: {id: 'dm1', type: 'D', name: 'user1__user2'},
-                    },
-                    myMembers: {
-                        dm1: {channel_id: 'dm1', mention_count: 5},
-                    },
-                },
-                users: {profiles: {}},
-            },
-        };
-        const {container} = renderWithProviders(
-            <DmButton {...defaultProps} />,
-            stateWithUnreads,
-        );
-
-        expect(container.querySelector('.dm-button__badge')).toBeInTheDocument();
-    });
-
-    it('shows 99+ when unread count exceeds 99', () => {
-        const stateWithManyUnreads = {
-            entities: {
-                channels: {
-                    channels: {
-                        dm1: {id: 'dm1', type: 'D', name: 'user1__user2'},
-                    },
-                    myMembers: {
-                        dm1: {channel_id: 'dm1', mention_count: 150},
-                    },
-                },
-                users: {profiles: {}},
-            },
-        };
-        renderWithProviders(<DmButton {...defaultProps} />, stateWithManyUnreads);
-
-        expect(screen.getByText('99+')).toBeInTheDocument();
     });
 });

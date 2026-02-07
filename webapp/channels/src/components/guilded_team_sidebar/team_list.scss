@@ -100,12 +100,29 @@
     &__unread-badge {
         position: absolute;
         z-index: 1;
-        top: -2px;
         right: -3px;
+        bottom: -2px;
         width: 8px;
         height: 8px;
         border-radius: 100%;
+        background: var(--sidebar-text);
+        box-shadow: 0 0 0 3px var(--sidebar-teambar-bg);
+    }
+
+    &__mention-badge {
+        position: absolute;
+        z-index: 1;
+        right: -3px;
+        bottom: -3px;
+        min-width: 20px;
+        padding: 0 6px;
+        border-radius: 8px;
         background: var(--mention-bg);
         box-shadow: 0 0 0 3px var(--sidebar-teambar-bg);
+        color: var(--mention-color);
+        font-size: 11px;
+        font-weight: 700;
+        line-height: 16px;
+        text-align: center;
     }
 }
