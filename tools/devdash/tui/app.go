@@ -67,8 +67,8 @@ type App struct {
 	hitZones []HitZone
 
 	// Double-click tracking
-	lastClickRow int
-	lastClickCol int
+	lastClickRow  int
+	lastClickCol  int
 	lastClickTime time.Time
 
 	// Paths
@@ -98,18 +98,21 @@ func NewApp(repos []model.Repo, mgr *process.Manager, repoRoot string) *App {
 		gridCells:       cells,
 		hScrolls:        make([]int, len(repos)),
 		repoRoot:        repoRoot,
-		favorites:       config.LoadFavorites(repoRoot),
-		gridSearchInput: si,
-		gridSearching:   true,
-		logPanel:        NewLogPanel(),
-		scanTime:        time.Now(),
+		favorites:        config.LoadFavorites(repoRoot),
+		showOnlyFavorites: config.LoadSettings(repoRoot).FavsOnly,
+		gridSearchInput:  si,
+		gridSearching:    true,
+		logPanel:         NewLogPanel(),
+		scanTime:         time.Now(),
 	}
 }
+
+const pollInterval = 200 * time.Millisecond
 
 func (a *App) Init() tea.Cmd {
 	return tea.Batch(
 		a.gridSearchInput.Cursor.BlinkCmd(),
-		tea.Tick(time.Second, func(t time.Time) tea.Msg {
+		tea.Tick(pollInterval, func(t time.Time) tea.Msg {
 			return TickMsg(t)
 		}),
 	)
@@ -123,35 +126,26 @@ func (a *App) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		a.height = msg.Height
 		if a.logVisible {
 			a.logPanel.SetSize(msg.Width, msg.Height/2)
-			// Resize PTY to match log panel viewport
+			// Resize tmux pane to match log panel viewport
 			if a.focusedProc != "" {
-				a.procMgr.ResizePTY(a.focusedProc, uint16(msg.Height/2-3), uint16(msg.Width))
+				a.procMgr.ResizeTmux(a.focusedProc, int(msg.Height/2-3), msg.Width)
 			}
 		}
 		return a, nil
 
 	case TickMsg:
-		// Refresh log content if visible
+		// Poll tmux capture-pane for the focused process
 		if a.logVisible && a.focusedProc != "" {
-			if proc, ok := a.procMgr.Get(a.focusedProc); ok {
-				a.logPanel.UpdateContent(proc)
+			if content, err := a.procMgr.CapturePaneContent(a.focusedProc); err == nil {
+				a.logPanel.UpdateContent(content)
 			}
 		}
-		return a, tea.Tick(time.Second, func(t time.Time) tea.Msg {
+		return a, tea.Tick(pollInterval, func(t time.Time) tea.Msg {
 			return TickMsg(t)
 		})
 
-	case ProcessOutputMsg:
-		// If this is the process we're watching, refresh the log
-		if a.logVisible && msg.ProcessID == a.focusedProc {
-			if proc, ok := a.procMgr.Get(a.focusedProc); ok {
-				a.logPanel.UpdateContent(proc)
-			}
-		}
-		return a, nil
-
 	case ProcessExitMsg:
-		// Process exited — stay in log panel so background output keeps streaming.
+		// Process exited — stay in log panel so output remains visible.
 		return a, nil
 
 	case tea.MouseMsg:
@@ -168,6 +162,7 @@ func (a *App) handleKey(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 	// Ctrl+F toggles favorites-only view from anywhere
 	if key.Matches(msg, a.keys.FavsOnly) {
 		a.showOnlyFavorites = !a.showOnlyFavorites
+		config.SaveSettings(a.repoRoot, config.Settings{FavsOnly: a.showOnlyFavorites})
 		a.snapCursorToFirstMatch()
 		return a, nil
 	}
@@ -230,36 +225,14 @@ func (a *App) handleKey(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 		}
 	}
 
-	// If searching in log panel, route to search input
-	if a.focus == FocusLog && a.logPanel.searching {
-		switch msg.String() {
-		case "esc":
-			a.logPanel.searching = false
-			a.logPanel.searchInput.Blur()
-			return a, nil
-		case "enter":
-			a.logPanel.searching = false
-			a.logPanel.searchInput.Blur()
-			// Refresh log with search filter
-			if proc, ok := a.procMgr.Get(a.focusedProc); ok {
-				a.logPanel.UpdateContent(proc)
-			}
-			return a, nil
-		default:
-			var cmd tea.Cmd
-			a.logPanel.searchInput, cmd = a.logPanel.searchInput.Update(msg)
-			return a, cmd
-		}
-	}
-
-	// Raw input mode — forward keystrokes directly to the process PTY
+	// Raw input mode — forward keystrokes to process via tmux send-keys
 	if a.focus == FocusLog && a.logPanel.inputting {
 		if msg.String() == "esc" {
 			a.logPanel.inputting = false
 			return a, nil
 		}
-		if raw := keyToRawBytes(msg); raw != nil {
-			a.procMgr.WriteInput(a.focusedProc, string(raw))
+		if args := keyToTmuxArgs(msg); args != nil {
+			a.procMgr.WriteInput(a.focusedProc, args...)
 		}
 		return a, nil
 	}
@@ -320,11 +293,6 @@ func (a *App) handleKey(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 		return a, nil
 
 	case key.Matches(msg, a.keys.Search):
-		if a.logVisible && a.focus == FocusLog {
-			a.logPanel.searching = true
-			a.logPanel.searchInput.Focus()
-			return a, a.logPanel.searchInput.Cursor.BlinkCmd()
-		}
 		// Grid target search — preserve existing filter text
 		a.enterGridSearch()
 		return a, a.gridSearchInput.Cursor.BlinkCmd()
@@ -338,22 +306,6 @@ func (a *App) handleKey(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 
 	// Log panel keys (only when log panel is visible)
 	if a.logVisible {
-		// Log level cycle
-		if key.Matches(msg, a.keys.LogLevelCycle) {
-			switch a.logPanel.logLevel {
-			case process.LogLevelAll:
-				a.logPanel.logLevel = process.LogLevelError
-			case process.LogLevelError:
-				a.logPanel.logLevel = process.LogLevelWarn
-			case process.LogLevelWarn:
-				a.logPanel.logLevel = process.LogLevelInfo
-			default:
-				a.logPanel.logLevel = process.LogLevelAll
-			}
-			a.refreshLog()
-			return a, nil
-		}
-
 		// Number keys 1-9 switch log tabs
 		if k := msg.String(); len(k) == 1 && k[0] >= '1' && k[0] <= '9' {
 			idx := int(k[0] - '1')
@@ -540,7 +492,6 @@ func (a *App) executeAtCursor() {
 		a.logVisible = true
 		a.logPanel.SetSize(a.width, a.height/2)
 		a.focus = FocusLog
-		a.refreshLog()
 		return
 	}
 
@@ -581,7 +532,6 @@ func (a *App) executeWithInputMode() {
 	a.logPanel.SetSize(a.width, a.height/2)
 	a.focus = FocusLog
 	a.logPanel.inputting = true
-	a.refreshLog()
 }
 
 // dismissProcess stops and removes the process for the current context.
@@ -629,7 +579,6 @@ func (a *App) focusLogForCursor() {
 	a.logVisible = true
 	a.logPanel.SetSize(a.width, a.height/2)
 	a.focus = FocusLog
-	a.refreshLog()
 }
 
 // dryRunAtCursor opens the command editor for the cursor's target, allowing
@@ -667,7 +616,6 @@ func (a *App) openLogForCursor() {
 	if _, ok := a.procMgr.Get(id); ok {
 		a.focusedProc = id
 		a.logPanel.SetProcess(id)
-		a.refreshLog()
 	}
 }
 
@@ -689,10 +637,9 @@ func (a *App) switchLogTab(idx int) {
 	a.logVisible = true
 	a.logPanel.SetSize(a.width, a.height/2)
 	a.focus = FocusLog
-	a.refreshLog()
 }
 
-// cycleLog cycles through: grid → proc1 log → proc2 log → ... → grid.
+// cycleLog cycles through: grid -> proc1 log -> proc2 log -> ... -> grid.
 // dir=1 for forward (Tab), dir=-1 for backward (Shift+Tab).
 func (a *App) cycleLog(dir int) {
 	ids := a.sortedProcessIDs()
@@ -712,7 +659,6 @@ func (a *App) cycleLog(dir int) {
 		a.logVisible = true
 		a.logPanel.SetSize(a.width, a.height/2)
 		a.focus = FocusLog
-		a.refreshLog()
 		return
 	}
 
@@ -732,16 +678,6 @@ func (a *App) cycleLog(dir int) {
 
 	a.focusedProc = ids[nextIdx]
 	a.logPanel.SetProcess(ids[nextIdx])
-	a.refreshLog()
-}
-
-func (a *App) refreshLog() {
-	if a.focusedProc == "" {
-		return
-	}
-	if proc, ok := a.procMgr.Get(a.focusedProc); ok {
-		a.logPanel.UpdateContent(proc)
-	}
 }
 
 func (a *App) toggleFavorite() {
@@ -769,10 +705,8 @@ func (a *App) moveCursorUp() {
 			return
 		}
 	}
-	// At the top — if there's an active filter, move focus back to search
-	if a.gridSearchQuery != "" || a.showOnlyFavorites {
-		a.enterGridSearch()
-	}
+	// At the top — move focus to search input
+	a.enterGridSearch()
 }
 
 // enterGridSearch focuses the search input, preserving existing filter text.
@@ -939,18 +873,29 @@ func (a *App) View() string {
 		badges += " " + lipgloss.NewStyle().Bold(true).Foreground(lipgloss.Color("3")).Render("[favs]")
 	}
 
-	// Search bar — always visible
+	// Search bar — always visible, with category legend right-aligned
+	legend := RenderLegend()
+	legendWidth := lipgloss.Width(legend)
+
+	var searchLeft string
 	if a.gridSearching {
 		prefix := lipgloss.NewStyle().Bold(true).Reverse(true).Padding(0, 1).Render("Search")
-		b.WriteString(prefix + " " + a.gridSearchInput.View() + badges)
+		searchLeft = prefix + " " + a.gridSearchInput.View() + badges
 	} else {
 		prefix := lipgloss.NewStyle().Bold(true).Foreground(colorMuted).Padding(0, 1).Render("Search")
 		text := a.gridSearchQuery
 		if text == "" {
 			text = legendStyle.Render("/")
 		}
-		b.WriteString(prefix + " " + text + badges)
+		searchLeft = prefix + " " + text + badges
 	}
+
+	leftWidth := lipgloss.Width(searchLeft)
+	gap := a.width - leftWidth - legendWidth
+	if gap < 1 {
+		gap = 1
+	}
+	b.WriteString(searchLeft + strings.Repeat(" ", gap) + legend)
 	b.WriteString("\n")
 
 	// Grid
@@ -1011,7 +956,7 @@ func (a *App) View() string {
 		}
 	} else if a.logVisible {
 		keys = []string{
-			"1-9:Tab", "v:Level", "i:Input",
+			"1-9:Tab", "i:Input",
 			"s:Stop", "R:Restart", "x:Dismiss",
 			"Tab:Next", "S-Tab:Prev", "Esc:Close",
 		}
@@ -1021,7 +966,7 @@ func (a *App) View() string {
 			"s:Stop", "/:Search", "?:Help", "q:Quit",
 		}
 	}
-	statusLine := RenderLegend() + "  │  " + legendStyle.Render(strings.Join(keys, "  "))
+	statusLine := legendStyle.Render(strings.Join(keys, "  "))
 	b.WriteString(statusBarStyle.Width(a.width).Render(statusLine))
 
 	// Help overlay
@@ -1061,10 +1006,8 @@ func (a *App) renderHelp() string {
 		"  L          Toggle log panel",
 		"  Tab        Cycle to next process log",
 		"  Shift+Tab  Cycle to prev / back to grid",
-		"  /          Search targets (grid) or logs (log)",
-		"  i          Run target + enter input mode (PTY)",
+		"  i          Run target + enter input mode (tmux)",
 		"  1-9        Switch log tab by number",
-		"  v          Cycle log level filter",
 		"  g/G        Jump to top/bottom",
 		"  Esc        Close log panel",
 		"",

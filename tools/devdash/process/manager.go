@@ -1,18 +1,12 @@
 package process
 
 import (
-	"context"
 	"fmt"
-	"os"
-	"os/exec"
 	"path/filepath"
-	"strings"
 	"sync"
-	"syscall"
 	"time"
 
 	tea "github.com/charmbracelet/bubbletea"
-	"github.com/creack/pty"
 
 	"github.com/mattermost/mattermost/tools/devdash/model"
 )
@@ -29,28 +23,23 @@ type ExitMsg struct {
 }
 
 type ManagedProcess struct {
-	Info      model.Process
-	LogBuffer *LogBuffer
-	cmd       *exec.Cmd
-	ptmx      *os.File // PTY master — nil if process has exited and PTY was closed
-	cancel    context.CancelFunc
-	done      chan struct{}
+	Info        model.Process
+	SessionName string // tmux session name
+	cancel      func()
+	done        chan struct{}
 }
 
 type Manager struct {
 	mu        sync.RWMutex
 	processes map[string]*ManagedProcess
 	program   *tea.Program
-	maxLog    int
+	tmux      *TmuxClient
 }
 
-func NewManager(maxLogLines int) *Manager {
-	if maxLogLines <= 0 {
-		maxLogLines = 10000
-	}
+func NewManager(tmux *TmuxClient) *Manager {
 	return &Manager{
 		processes: make(map[string]*ManagedProcess),
-		maxLog:    maxLogLines,
+		tmux:      tmux,
 	}
 }
 
@@ -68,7 +57,7 @@ func CommandFor(repo *model.Repo, targetName string, isNpm bool) string {
 	return fmt.Sprintf("make -C %s %s", repo.Path, targetName)
 }
 
-// StartCustom starts a process with a user-provided command string, run via sh -c.
+// StartCustom starts a process with a user-provided command string.
 func (m *Manager) StartCustom(repo *model.Repo, targetName string, isNpm bool, cmdStr string) error {
 	id := repo.Name + ":" + targetName
 	m.mu.Lock()
@@ -78,16 +67,12 @@ func (m *Manager) StartCustom(repo *model.Repo, targetName string, isNpm bool, c
 		return fmt.Errorf("%s is already running", id)
 	}
 
-	ctx, cancel := context.WithCancel(context.Background())
-
-	cmd := exec.CommandContext(ctx, "sh", "-c", cmdStr)
+	dir := repo.Path
 	if isNpm {
-		cmd.Dir = filepath.Dir(repo.PackageJSON)
-	} else {
-		cmd.Dir = repo.Path
+		dir = filepath.Dir(repo.PackageJSON)
 	}
 
-	return m.startProcess(id, repo.Name, targetName, cmdStr, cmd, cancel)
+	return m.startProcess(id, repo.Name, targetName, cmdStr, dir)
 }
 
 func (m *Manager) Start(repo *model.Repo, targetName string, isNpm bool) error {
@@ -99,37 +84,37 @@ func (m *Manager) Start(repo *model.Repo, targetName string, isNpm bool) error {
 		return fmt.Errorf("%s is already running", id)
 	}
 
-	ctx, cancel := context.WithCancel(context.Background())
-
-	var cmd *exec.Cmd
 	var cmdStr string
+	var dir string
 	if isNpm {
-		cmd = exec.CommandContext(ctx, "npm", "run", targetName)
-		cmd.Dir = filepath.Dir(repo.PackageJSON)
 		cmdStr = fmt.Sprintf("npm run %s", targetName)
+		dir = filepath.Dir(repo.PackageJSON)
 	} else {
-		cmd = exec.CommandContext(ctx, "make", "-C", repo.Path, targetName)
 		cmdStr = fmt.Sprintf("make -C %s %s", repo.Path, targetName)
+		dir = repo.Path
 	}
 
-	return m.startProcess(id, repo.Name, targetName, cmdStr, cmd, cancel)
+	return m.startProcess(id, repo.Name, targetName, cmdStr, dir)
 }
 
 // startProcess is the shared implementation for Start and StartCustom.
-// Caller must hold m.mu.Lock and have verified no duplicate running process.
-func (m *Manager) startProcess(id, repoName, targetName, cmdStr string, cmd *exec.Cmd, cancel context.CancelFunc) error {
-	// Don't let context cancellation auto-kill; we handle signals ourselves
-	cmd.Cancel = func() error { return nil }
+// Caller must hold m.mu.Lock.
+func (m *Manager) startProcess(id, repoName, targetName, cmdStr, dir string) error {
+	sessionName := SessionName(repoName, targetName)
 
-	// Start with a PTY for full terminal support (colors, prompts, etc.)
-	ptmx, err := pty.StartWithSize(cmd, &pty.Winsize{Rows: 40, Cols: 120})
+	// Kill any stale session with the same name
+	if m.tmux.HasSession(sessionName) {
+		_ = m.tmux.KillSession(sessionName)
+	}
+
+	err := m.tmux.NewSession(sessionName, cmdStr, dir, 40, 120)
 	if err != nil {
-		cancel()
 		m.mu.Unlock()
 		return err
 	}
 
-	logBuf := NewLogBuffer(m.maxLog)
+	done := make(chan struct{})
+	stopped := make(chan struct{})
 	proc := &ManagedProcess{
 		Info: model.Process{
 			ID:        id,
@@ -139,81 +124,54 @@ func (m *Manager) startProcess(id, repoName, targetName, cmdStr string, cmd *exe
 			State:     model.ProcessRunning,
 			StartedAt: time.Now(),
 		},
-		LogBuffer: logBuf,
-		cmd:       cmd,
-		ptmx:      ptmx,
-		cancel:    cancel,
-		done:      make(chan struct{}),
+		SessionName: sessionName,
+		cancel:      func() { close(stopped) },
+		done:        done,
 	}
 	m.processes[id] = proc
 	program := m.program
 	m.mu.Unlock()
 
-	// Wait for the lead command to exit (separate from PTY lifetime).
-	// Background processes spawned by the command may keep the PTY alive.
+	// Poll to detect when the main command exits.
+	// The tmux pane stays alive (sleep wrapper) so background processes keep logging.
 	go func() {
-		exitCode := 0
-		if err := cmd.Wait(); err != nil {
-			if exitErr, ok := err.(*exec.ExitError); ok {
-				exitCode = exitErr.ExitCode()
-			} else {
-				exitCode = -1
-			}
-		}
+		ticker := time.NewTicker(500 * time.Millisecond)
+		defer ticker.Stop()
 
-		m.mu.Lock()
-		if exitCode == 0 {
-			proc.Info.State = model.ProcessExited
-		} else {
-			proc.Info.State = model.ProcessFailed
-		}
-		proc.Info.ExitCode = exitCode
-		m.mu.Unlock()
-
-		close(proc.done)
-		if program != nil {
-			program.Send(ExitMsg{ProcessID: id, ExitCode: exitCode})
-		}
-	}()
-
-	// Read PTY output in background.
-	// Continues until the PTY master is closed (by Stop/Remove), so background
-	// processes spawned by the target keep streaming output.
-	go func() {
-		buf := make([]byte, 8192)
-		var partial string
 		for {
-			n, readErr := ptmx.Read(buf)
-			if n > 0 {
-				raw := partial + string(buf[:n])
-				partial = ""
-
-				raw = sanitizePTY(raw)
-
-				lines := strings.Split(raw, "\n")
-				for i, line := range lines {
-					if i == len(lines)-1 {
-						if line != "" {
-							partial = line
-						}
-						continue
-					}
-					line = handleCR(line)
-					logBuf.Append(line)
+			select {
+			case <-stopped:
+				return
+			case <-ticker.C:
+				if !m.tmux.HasSession(sessionName) {
+					// Session was killed externally
+					m.mu.Lock()
+					proc.Info.State = model.ProcessFailed
+					proc.Info.ExitCode = -1
+					m.mu.Unlock()
+					close(done)
 					if program != nil {
-						program.Send(OutputMsg{ProcessID: id, Line: line})
+						program.Send(ExitMsg{ProcessID: id, ExitCode: -1})
 					}
+					return
 				}
-			}
-			if readErr != nil {
-				if partial != "" {
-					partial = handleCR(partial)
-					logBuf.Append(partial)
+				if m.tmux.CommandExited(sessionName) {
+					// Main command exited; pane stays alive for background output
+					exitCode := m.tmux.CommandExitCode(sessionName)
+					m.mu.Lock()
+					if exitCode == 0 {
+						proc.Info.State = model.ProcessExited
+					} else {
+						proc.Info.State = model.ProcessFailed
+					}
+					proc.Info.ExitCode = exitCode
+					m.mu.Unlock()
+					close(done)
 					if program != nil {
-						program.Send(OutputMsg{ProcessID: id, Line: partial})
+						program.Send(ExitMsg{ProcessID: id, ExitCode: exitCode})
 					}
+					return
 				}
-				break
 			}
 		}
 	}()
@@ -221,44 +179,42 @@ func (m *Manager) startProcess(id, repoName, targetName, cmdStr string, cmd *exe
 	return nil
 }
 
-// WriteInput sends input to a running process's PTY (stdin).
-func (m *Manager) WriteInput(id, input string) error {
+// WriteInput sends key sequences to a running process via tmux send-keys.
+func (m *Manager) WriteInput(id string, keys ...string) error {
 	m.mu.RLock()
 	proc, ok := m.processes[id]
 	m.mu.RUnlock()
 
-	if !ok || proc.Info.State != model.ProcessRunning || proc.ptmx == nil {
-		return fmt.Errorf("process %s not running", id)
+	if !ok {
+		return fmt.Errorf("process %s not found", id)
 	}
 
-	_, err := proc.ptmx.WriteString(input)
-	return err
+	return m.tmux.SendKeys(proc.SessionName, keys...)
 }
 
-// ResizePTY updates the PTY window size for a running process.
-func (m *Manager) ResizePTY(id string, rows, cols uint16) {
+// ResizeTmux updates the tmux window size for a process.
+func (m *Manager) ResizeTmux(id string, rows, cols int) {
 	m.mu.RLock()
 	proc, ok := m.processes[id]
 	m.mu.RUnlock()
 
-	if !ok || proc.ptmx == nil {
+	if !ok {
 		return
 	}
-	_ = pty.Setsize(proc.ptmx, &pty.Winsize{Rows: rows, Cols: cols})
+	_ = m.tmux.ResizeWindow(proc.SessionName, rows, cols)
 }
 
-// signalProcess sends a signal to the process and its children.
-// With PTY, the child runs in its own session (via Setsid from pty.Start),
-// so we signal via the process group.
-func signalProcess(cmd *exec.Cmd, sig syscall.Signal) error {
-	if cmd.Process == nil {
-		return nil
+// CapturePaneContent returns the visible terminal content of a process's tmux pane.
+func (m *Manager) CapturePaneContent(id string) (string, error) {
+	m.mu.RLock()
+	proc, ok := m.processes[id]
+	m.mu.RUnlock()
+
+	if !ok {
+		return "", fmt.Errorf("process %s not found", id)
 	}
-	pgid, err := syscall.Getpgid(cmd.Process.Pid)
-	if err != nil {
-		return cmd.Process.Signal(sig)
-	}
-	return syscall.Kill(-pgid, sig)
+
+	return m.tmux.CapturePaneANSI(proc.SessionName)
 }
 
 func (m *Manager) Stop(id string) error {
@@ -266,38 +222,46 @@ func (m *Manager) Stop(id string) error {
 	proc, ok := m.processes[id]
 	m.mu.RUnlock()
 
-	if !ok || proc.Info.State != model.ProcessRunning {
+	if !ok {
 		return nil
 	}
 
-	_ = signalProcess(proc.cmd, syscall.SIGTERM)
+	if proc.Info.State == model.ProcessRunning {
+		// Send Ctrl-C to the main command
+		_ = m.tmux.SendKeys(proc.SessionName, "C-c")
 
-	select {
-	case <-proc.done:
-	case <-time.After(5 * time.Second):
-		_ = signalProcess(proc.cmd, syscall.SIGKILL)
-		proc.cancel()
 		select {
 		case <-proc.done:
-		case <-time.After(2 * time.Second):
+		case <-time.After(5 * time.Second):
 		}
 	}
 
-	// Close PTY master to stop the read loop and signal any background processes.
-	m.mu.Lock()
-	if proc.ptmx != nil {
-		proc.ptmx.Close()
-		proc.ptmx = nil
+	// Always kill the session to clean up the sleep wrapper
+	_ = m.tmux.KillSession(proc.SessionName)
+	proc.cancel()
+
+	// Wait for poll goroutine to finish
+	select {
+	case <-proc.done:
+	default:
+		// If done was already closed, that's fine
 	}
-	m.mu.Unlock()
 
 	return nil
 }
 
-// Remove stops a process (if running) and removes it from the manager entirely,
-// so it appears as if it was never started.
+// Remove stops a process (if running) and removes it from the manager entirely.
 func (m *Manager) Remove(id string) {
-	m.Stop(id)
+	m.mu.RLock()
+	proc, ok := m.processes[id]
+	m.mu.RUnlock()
+
+	if ok {
+		// Kill the tmux session directly
+		_ = m.tmux.KillSession(proc.SessionName)
+		proc.cancel()
+	}
+
 	m.mu.Lock()
 	delete(m.processes, id)
 	m.mu.Unlock()
@@ -316,6 +280,9 @@ func (m *Manager) StopAll() {
 	for _, id := range ids {
 		m.Stop(id)
 	}
+
+	// Kill any remaining sessions
+	m.tmux.KillAllSessions()
 }
 
 func (m *Manager) Get(id string) (*ManagedProcess, bool) {

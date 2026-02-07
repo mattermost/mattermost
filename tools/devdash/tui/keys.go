@@ -22,9 +22,8 @@ type KeyMap struct {
 	Favorite      key.Binding
 	FocusProc     key.Binding
 	DryRun        key.Binding
-	ProcInput     key.Binding
-	LogLevelCycle key.Binding
-	FavsOnly      key.Binding
+	ProcInput key.Binding
+	FavsOnly  key.Binding
 	Dismiss       key.Binding
 }
 
@@ -49,9 +48,8 @@ func DefaultKeyMap() KeyMap {
 		Favorite:      key.NewBinding(key.WithKeys("F")),
 		FocusProc:     key.NewBinding(key.WithKeys("f")),
 		DryRun:        key.NewBinding(key.WithKeys("d")),
-		ProcInput:     key.NewBinding(key.WithKeys("i")),
-		LogLevelCycle: key.NewBinding(key.WithKeys("v")),
-		FavsOnly:      key.NewBinding(key.WithKeys("ctrl+f")),
+		ProcInput: key.NewBinding(key.WithKeys("i")),
+		FavsOnly:  key.NewBinding(key.WithKeys("ctrl+f")),
 		Dismiss:       key.NewBinding(key.WithKeys("x")),
 	}
 }

@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"os"
+	"os/exec"
 	"path/filepath"
 
 	"github.com/mattermost/mattermost/tools/devdash/discovery"
@@ -11,8 +12,14 @@ import (
 )
 
 func main() {
+	// Check tmux is available
+	if _, err := exec.LookPath("tmux"); err != nil {
+		fmt.Fprintln(os.Stderr, "error: tmux is required but not found in PATH")
+		fmt.Fprintln(os.Stderr, "install with: brew install tmux")
+		os.Exit(1)
+	}
+
 	// Find the mattermost repo root.
-	// We expect to be run from the root, or we detect it.
 	mmRoot, err := findRepoRoot()
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "error: %v\n", err)
@@ -31,8 +38,12 @@ func main() {
 		os.Exit(1)
 	}
 
+	// Create tmux client and clean up stale sessions from previous crashes
+	tmuxClient := process.NewTmuxClient("devdash")
+	_ = tmuxClient.CleanStaleSessions()
+
 	// Create process manager and launch TUI
-	mgr := process.NewManager(10000)
+	mgr := process.NewManager(tmuxClient)
 
 	if err := tui.Run(repos, mgr, mmRoot); err != nil {
 		fmt.Fprintf(os.Stderr, "error: %v\n", err)

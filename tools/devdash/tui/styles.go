@@ -83,12 +83,6 @@ var (
 	separatorStyle = lipgloss.NewStyle().
 			Foreground(colorMuted)
 
-	// Log panel line styles
-	logLineError = lipgloss.NewStyle().Foreground(colorDanger)
-	logLineWarn  = lipgloss.NewStyle().Foreground(colorWarning)
-	logLineInfo  = lipgloss.NewStyle().Foreground(lipgloss.Color("252"))
-	logLineDebug = lipgloss.NewStyle().Foreground(colorMuted)
-
 	// Legend style
 	legendStyle = lipgloss.NewStyle().Foreground(colorMuted)
 )
