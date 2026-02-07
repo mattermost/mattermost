@@ -24,6 +24,7 @@ type KeyMap struct {
 	DryRun        key.Binding
 	ProcInput     key.Binding
 	LogLevelCycle key.Binding
+	FavsOnly      key.Binding
 }
 
 func DefaultKeyMap() KeyMap {
@@ -49,5 +50,6 @@ func DefaultKeyMap() KeyMap {
 		DryRun:        key.NewBinding(key.WithKeys("d")),
 		ProcInput:     key.NewBinding(key.WithKeys("i")),
 		LogLevelCycle: key.NewBinding(key.WithKeys("v")),
+		FavsOnly:      key.NewBinding(key.WithKeys("ctrl+f")),
 	}
 }

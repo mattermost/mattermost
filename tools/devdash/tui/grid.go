@@ -293,7 +293,7 @@ func renderSeparator(width int) string {
 	return separatorStyle.Render(strings.Repeat("─ ", width/2))
 }
 
-func renderGrid(repos []model.Repo, cursorRow, cursorCol int, width, maxRows int, hScrolls []int, favorites map[string]bool, searchQuery string, procStateFn func(string) model.ProcessState, focusedProc string, logFocusActive bool) (string, []HitZone) {
+func renderGrid(repos []model.Repo, cursorRow, cursorCol int, width, maxRows int, hScrolls []int, favorites map[string]bool, searchQuery string, procStateFn func(string) model.ProcessState, focusedProc string, logFocusActive bool, showOnlyFavorites bool) (string, []HitZone) {
 	var b strings.Builder
 	var hitZones []HitZone
 
@@ -333,8 +333,19 @@ func renderGrid(repos []model.Repo, cursorRow, cursorCol int, width, maxRows int
 			cells = filtered
 		}
 
-		// Skip repos with no matching targets when searching
-		if searchQuery != "" && len(cells) == 0 {
+		// Filter to favorites only
+		if showOnlyFavorites {
+			var filtered []GridCell
+			for _, c := range cells {
+				if favorites[cellID(repo.Name, c)] {
+					filtered = append(filtered, c)
+				}
+			}
+			cells = filtered
+		}
+
+		// Skip repos with no matching targets
+		if len(cells) == 0 {
 			continue
 		}
 

@@ -49,9 +49,12 @@ type App struct {
 	favorites map[string]bool
 
 	// Target search
-	gridSearching bool
+	gridSearching   bool
 	gridSearchInput textinput.Model
 	gridSearchQuery string // live filter applied to grid cells
+
+	// Favorites-only view
+	showOnlyFavorites bool
 
 	// Command editing (dry-run mode)
 	cmdEditing    bool
@@ -165,6 +168,13 @@ func (a *App) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 }
 
 func (a *App) handleKey(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
+	// Ctrl+F toggles favorites-only view from anywhere
+	if key.Matches(msg, a.keys.FavsOnly) {
+		a.showOnlyFavorites = !a.showOnlyFavorites
+		a.snapCursorToFirstMatch()
+		return a, nil
+	}
+
 	// Help overlay intercepts everything
 	if a.showHelp {
 		if msg.String() == "esc" || msg.String() == "?" || msg.String() == "q" {
@@ -473,7 +483,7 @@ func (a *App) handleMouse(msg tea.MouseMsg) (tea.Model, tea.Cmd) {
 }
 
 // displayCellsForRow returns the display-ordered cells and index mapping for a row,
-// applying the current search filter if active.
+// applying the current search filter and favorites-only filter if active.
 func (a *App) displayCellsForRow(row int) ([]GridCell, []int) {
 	if row >= len(a.repos) {
 		return nil, nil
@@ -484,6 +494,16 @@ func (a *App) displayCellsForRow(row int) ([]GridCell, []int) {
 		var filtered []GridCell
 		for _, c := range cells {
 			if strings.Contains(strings.ToLower(c.Label), q) {
+				filtered = append(filtered, c)
+			}
+		}
+		cells = filtered
+	}
+	if a.showOnlyFavorites {
+		repoName := a.repos[row].Name
+		var filtered []GridCell
+		for _, c := range cells {
+			if a.favorites[cellID(repoName, c)] {
 				filtered = append(filtered, c)
 			}
 		}
@@ -696,7 +716,7 @@ func (a *App) moveCursorUp() {
 		}
 	}
 	// At the top — if there's an active filter, move focus back to search
-	if a.gridSearchQuery != "" {
+	if a.gridSearchQuery != "" || a.showOnlyFavorites {
 		a.enterGridSearch()
 	}
 }
@@ -859,17 +879,23 @@ func (a *App) View() string {
 	b.WriteString(headerStyle.Width(a.width).Render(headerText))
 	b.WriteString("\n")
 
+	// Active filter badges
+	var badges string
+	if a.showOnlyFavorites {
+		badges += " " + lipgloss.NewStyle().Bold(true).Foreground(lipgloss.Color("3")).Render("[favs]")
+	}
+
 	// Search bar — always visible
 	if a.gridSearching {
 		prefix := lipgloss.NewStyle().Bold(true).Reverse(true).Padding(0, 1).Render("Search")
-		b.WriteString(prefix + " " + a.gridSearchInput.View())
+		b.WriteString(prefix + " " + a.gridSearchInput.View() + badges)
 	} else {
 		prefix := lipgloss.NewStyle().Bold(true).Foreground(colorMuted).Padding(0, 1).Render("Search")
 		text := a.gridSearchQuery
 		if text == "" {
 			text = legendStyle.Render("/")
 		}
-		b.WriteString(prefix + " " + text)
+		b.WriteString(prefix + " " + text + badges)
 	}
 	b.WriteString("\n")
 
@@ -892,6 +918,7 @@ func (a *App) View() string {
 		a.procMgr.ProcessState,
 		a.focusedProc,
 		a.gridSearching || (a.logVisible && a.focus == FocusLog),
+		a.showOnlyFavorites,
 	)
 	a.hitZones = hitZones
 	b.WriteString(gridStr)
@@ -968,6 +995,7 @@ func (a *App) renderHelp() string {
 		"  f          Focus log panel on target",
 		"  d          Dry-run: edit command before running",
 		"  F          Toggle favorite",
+		"  Ctrl+F     Toggle favorites-only view",
 		"",
 		"Process Control:",
 		"  s          Stop focused process",
