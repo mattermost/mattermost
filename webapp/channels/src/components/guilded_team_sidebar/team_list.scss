@@ -12,6 +12,12 @@
     padding-top: 4px;
     -webkit-overflow-scrolling: touch;
 
+    &__draggable {
+        display: flex;
+        justify-content: center;
+        width: 100%;
+    }
+
     // Team button - matches TSX class structure
     &__team {
         position: relative;
@@ -30,8 +36,10 @@
         color: var(--sidebar-header-text-color);
         cursor: pointer;
         font-weight: bold;
+        outline: none;
         text-align: center;
         transition: border-radius 0.2s ease;
+        user-select: none;
 
         &:hover {
             border-radius: 30%;
@@ -41,6 +49,13 @@
         &--active {
             border-radius: 30%;
             background-color: rgba(var(--sidebar-text-rgb), 0.08);
+        }
+
+        // Dragging state
+        &--dragging {
+            cursor: grabbing;
+            opacity: 0.8;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
         }
 
         img {

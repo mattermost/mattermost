@@ -19,9 +19,16 @@ jest.mock('react-router-dom', () => ({
     }),
 }));
 
+// Mock team_actions
+const mockUpdateTeamsOrderForUser = jest.fn(() => ({type: 'MOCK_UPDATE_TEAMS_ORDER'}));
+jest.mock('actions/team_actions', () => ({
+    updateTeamsOrderForUser: (...args: any[]) => mockUpdateTeamsOrderForUser(...args),
+}));
+
 // Mock react-redux useSelector - variables must be prefixed with 'mock'
 let mockCallCount = 0;
 let mockValues: any[] = [];
+const mockDispatch = jest.fn((action: any) => action);
 
 jest.mock('react-redux', () => ({
     ...jest.requireActual('react-redux'),
@@ -30,6 +37,7 @@ jest.mock('react-redux', () => ({
         mockCallCount++;
         return value;
     },
+    useDispatch: () => mockDispatch,
 }));
 
 describe('TeamList', () => {
@@ -55,6 +63,8 @@ describe('TeamList', () => {
         jest.clearAllMocks();
         mockCallCount = 0;
         mockPush.mockClear();
+        mockDispatch.mockClear();
+        mockUpdateTeamsOrderForUser.mockClear();
         // TeamList calls useSelector in order: getMyTeams, getFavoritedTeamIds, getCurrentTeamId, isDmMode, locale, userTeamsOrderPreference
         mockValues = [allTeams, ['team1'], 'team1', false, 'en', ''];
     });
