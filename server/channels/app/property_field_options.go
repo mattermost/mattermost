@@ -32,9 +32,7 @@ func AssignOptionIDs(field *model.PropertyField) {
 // This is used when changing field types to ensure invalid options are removed.
 func ClearOptionsIfNotSelect(field *model.PropertyField) {
 	if field.Type != model.PropertyFieldTypeSelect && field.Type != model.PropertyFieldTypeMultiselect {
-		if _, ok := field.Attrs[model.PropertyFieldAttributeOptions]; ok {
-			delete(field.Attrs, model.PropertyFieldAttributeOptions)
-		}
+		delete(field.Attrs, model.PropertyFieldAttributeOptions)
 	}
 }
 

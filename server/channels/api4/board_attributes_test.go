@@ -6,6 +6,7 @@ package api4
 import (
 	"context"
 	"fmt"
+	"strings"
 	"testing"
 
 	"github.com/mattermost/mattermost/server/public/model"
@@ -60,8 +61,8 @@ func TestCreateBoardAttributeField(t *testing.T) {
 	th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
 		name := model.NewId()
 		field := &model.PropertyField{
-			Name: fmt.Sprintf("  %s\t", name), // name should be sanitized
-			Type: model.PropertyFieldTypeText,
+			Name:  fmt.Sprintf("  %s\t", name), // name should be sanitized
+			Type:  model.PropertyFieldTypeText,
 			Attrs: map[string]any{"sort_order": 0},
 		}
 
@@ -82,13 +83,13 @@ func TestCreateBoardAttributeField(t *testing.T) {
 		// Create enough fields to reach the limit (20 total)
 		const fieldLimit = 20
 		fieldsToCreate := fieldLimit - currentCount
-		for i := 0; i < fieldsToCreate; i++ {
+		for range fieldsToCreate {
 			field := &model.PropertyField{
 				Name: model.NewId(),
 				Type: model.PropertyFieldTypeText,
 			}
-			_, resp, err := th.SystemAdminClient.CreateBoardAttributeField(context.Background(), field)
-			require.NoError(t, err)
+			_, resp, createErr := th.SystemAdminClient.CreateBoardAttributeField(context.Background(), field)
+			require.NoError(t, createErr)
 			CheckCreatedStatus(t, resp)
 		}
 
@@ -111,8 +112,8 @@ func TestListBoardAttributeFields(t *testing.T) {
 	})
 
 	field := &model.PropertyField{
-		Name: model.NewId(),
-		Type: model.PropertyFieldTypeText,
+		Name:  model.NewId(),
+		Type:  model.PropertyFieldTypeText,
 		Attrs: map[string]any{"sort_order": 0},
 	}
 
@@ -151,24 +152,24 @@ func TestListBoardAttributeFields(t *testing.T) {
 	t.Run("fields should be returned in sort_order", func(t *testing.T) {
 		// Create fields with different sort orders
 		field1 := &model.PropertyField{
-			Name: model.NewId(),
-			Type: model.PropertyFieldTypeText,
+			Name:  model.NewId(),
+			Type:  model.PropertyFieldTypeText,
 			Attrs: map[string]any{"sort_order": float64(2)},
 		}
 		createdField1, appErr := th.App.CreateBoardAttributeField(field1)
 		require.Nil(t, appErr)
 
 		field2 := &model.PropertyField{
-			Name: model.NewId(),
-			Type: model.PropertyFieldTypeText,
+			Name:  model.NewId(),
+			Type:  model.PropertyFieldTypeText,
 			Attrs: map[string]any{"sort_order": float64(0)},
 		}
 		createdField2, appErr := th.App.CreateBoardAttributeField(field2)
 		require.Nil(t, appErr)
 
 		field3 := &model.PropertyField{
-			Name: model.NewId(),
-			Type: model.PropertyFieldTypeText,
+			Name:  model.NewId(),
+			Type:  model.PropertyFieldTypeText,
 			Attrs: map[string]any{"sort_order": float64(1)},
 		}
 		createdField3, appErr := th.App.CreateBoardAttributeField(field3)
@@ -308,7 +309,7 @@ func TestPatchBoardAttributeField(t *testing.T) {
 			require.Equal(t, model.PropertyFieldTypeText, patchedTextField.Type)
 
 			// Verify options were removed
-			options, ok = patchedTextField.Attrs["options"]
+			_, ok = patchedTextField.Attrs["options"]
 			require.False(t, ok, "options should be removed when changing from select to text type")
 		})
 	}, "a user with admin permissions should be able to patch the field")
@@ -411,10 +412,11 @@ func TestBoardAttributeFieldEdgeCases(t *testing.T) {
 	})
 
 	t.Run("should handle very long field names", func(t *testing.T) {
-		longName := ""
-		for i := 0; i < 1000; i++ {
-			longName += "a"
+		var longNameBuilder strings.Builder
+		for range 1000 {
+			longNameBuilder.WriteString("a")
 		}
+		longName := longNameBuilder.String()
 
 		field := &model.PropertyField{
 			Name: longName,
@@ -460,10 +462,11 @@ func TestBoardAttributeFieldEdgeCases(t *testing.T) {
 	})
 
 	t.Run("should handle select field with very long option names", func(t *testing.T) {
-		longOptionName := ""
-		for i := 0; i < 500; i++ {
-			longOptionName += "a"
+		var longOptionNameBuilder strings.Builder
+		for range 500 {
+			longOptionNameBuilder.WriteString("a")
 		}
+		longOptionName := longOptionNameBuilder.String()
 
 		field := &model.PropertyField{
 			Name: model.NewId(),

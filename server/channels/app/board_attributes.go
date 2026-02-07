@@ -18,7 +18,6 @@ const (
 
 var boardAttributesGroupID string
 
-
 // BoardAttributesGroupID returns the group ID for board attributes, registering it if necessary.
 func (a *App) BoardAttributesGroupID() (string, error) {
 	if boardAttributesGroupID != "" {
@@ -138,11 +137,11 @@ func (a *App) PatchBoardAttributeField(fieldID string, patch *model.PropertyFiel
 		shouldDeleteValues = true
 	}
 
-	if err := patch.IsValid(); err != nil {
-		if appErr, ok := err.(*model.AppError); ok {
+	if patchErr := patch.IsValid(); patchErr != nil {
+		if appErr, ok := patchErr.(*model.AppError); ok {
 			return nil, appErr
 		}
-		return nil, model.NewAppError("PatchBoardAttributeField", "app.board_attributes.patch_validation.app_error", nil, "", http.StatusBadRequest).Wrap(err)
+		return nil, model.NewAppError("PatchBoardAttributeField", "app.board_attributes.patch_validation.app_error", nil, "", http.StatusBadRequest).Wrap(patchErr)
 	}
 
 	existingField.Patch(patch)
