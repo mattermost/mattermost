@@ -13,7 +13,6 @@ import (
 	"github.com/mattermost/mattermost/server/public/shared/httpservice"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/public/shared/timezones"
-	"github.com/mattermost/mattermost/server/v8/channels/app/properties"
 	"github.com/mattermost/mattermost/server/v8/einterfaces"
 	"github.com/mattermost/mattermost/server/v8/platform/services/imageproxy"
 	"github.com/mattermost/mattermost/server/v8/platform/services/searchengine"
@@ -158,8 +157,8 @@ func (a *App) SetServer(srv *Server) {
 	a.ch.srv = srv
 }
 
-func (a *App) PropertyService() *properties.PropertyService {
-	return a.Srv().propertyService
+func (a *App) PropertyAccessService() *PropertyAccessService {
+	return a.Srv().propertyAccessService
 }
 
 func (a *App) UpdateExpiredDNDStatuses() ([]*model.Status, error) {

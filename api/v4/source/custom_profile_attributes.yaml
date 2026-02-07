@@ -83,6 +83,17 @@
                     saml:
                       type: string
                       description: "SAML attribute for syncing"
+                    protected:
+                      type: boolean
+                      description: "If true, the field is read-only and cannot be modified."
+                    source_plugin_id:
+                      type: string
+                      description: "The ID of the plugin that created this field. This attribute cannot be changed."
+                    access_mode:
+                      type: string
+                      description: "Access mode of the field"
+                      enum: ["", "source_only", "shared_only"]
+                      default: ""
       responses:
         "201":
           description: Custom Profile Attribute field creation successful
@@ -107,6 +118,9 @@
         only the fields you want to update. Omitted fields will not be
         updated. The fields that can be updated are defined in the
         request body, all other provided fields will be ignored.
+
+        **Note:** Fields with `attrs.protected = true` cannot be
+        modified and will return an error.
 
         _This endpoint is experimental._
 
@@ -167,6 +181,17 @@
                     saml:
                       type: string
                       description: "SAML attribute for syncing"
+                    protected:
+                      type: boolean
+                      description: "If true, the field is read-only and cannot be modified."
+                    source_plugin_id:
+                      type: string
+                      description: "The ID of the plugin that created this field. This attribute cannot be changed."
+                    access_mode:
+                      type: string
+                      description: "Access mode of the field"
+                      enum: ["", "source_only", "shared_only"]
+                      default: ""
       responses:
         "200":
           description: Custom Profile Attribute field patch successful
@@ -228,6 +253,9 @@
         want to update. Omitted fields will not be updated. The fields
         that can be updated are defined in the request body, all other
         provided fields will be ignored.
+
+        **Note:** Values for fields with `attrs.protected = true` cannot be
+        updated and will return an error.
 
         _This endpoint is experimental._
 
@@ -355,6 +383,9 @@
       summary: Update custom profile attribute values for a user
       description: |
         Update Custom Profile Attribute field values for a specific user.
+
+        **Note:** Values for fields with `attrs.protected = true` cannot be
+        updated and will return an error.
 
         _This endpoint is experimental._
 
