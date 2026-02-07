@@ -24,6 +24,7 @@ type LogPanel struct {
 	processID   string
 	logLevel    process.LogLevel
 	searching   bool
+	inputting   bool // true when raw keystrokes are forwarded to process PTY
 	autoScroll  bool
 	width       int
 	height      int
@@ -32,12 +33,13 @@ type LogPanel struct {
 
 func NewLogPanel() LogPanel {
 	ti := textinput.New()
-	ti.Placeholder = "search..."
+	ti.Placeholder = ""
 	ti.CharLimit = 128
+	ti.Prompt = ""
 
 	return LogPanel{
-		logLevel:   process.LogLevelAll,
-		autoScroll: true,
+		logLevel:    process.LogLevelAll,
+		autoScroll:  true,
 		searchInput: ti,
 	}
 }
@@ -45,7 +47,7 @@ func NewLogPanel() LogPanel {
 func (lp *LogPanel) SetSize(width, height int) {
 	lp.width = width
 	lp.height = height
-	contentHeight := height - 3 // header + search + border
+	contentHeight := height - 3 // header + search/input + border
 
 	if !lp.ready {
 		lp.viewport = viewport.New(width, contentHeight)
@@ -168,10 +170,15 @@ func (lp *LogPanel) View(tabs []LogTab, isFocused bool) string {
 
 	tabBar := strings.Join(tabParts, "") + levelPart
 
-	// Search bar if active
-	searchBar := ""
+	// Search bar or input mode indicator
+	inputBar := ""
 	if lp.searching {
-		searchBar = lp.searchInput.View() + "\n"
+		prefix := lipgloss.NewStyle().Bold(true).Reverse(true).Padding(0, 1).Render("Search")
+		inputBar = prefix + " " + lp.searchInput.View() + "\n"
+	} else if lp.inputting {
+		inputBar = lipgloss.NewStyle().
+			Bold(true).Foreground(colorWarning).
+			Render("  INPUT MODE — keystrokes forwarded to process (Esc to exit)") + "\n"
 	}
 
 	// Scroll indicator
@@ -182,5 +189,5 @@ func (lp *LogPanel) View(tabs []LogTab, isFocused bool) string {
 			Render(" ▲ scroll-locked (press G for bottom)")
 	}
 
-	return tabBar + "\n" + searchBar + lp.viewport.View() + scrollIndicator
+	return tabBar + "\n" + inputBar + lp.viewport.View() + scrollIndicator
 }

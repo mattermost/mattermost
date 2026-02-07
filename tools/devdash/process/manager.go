@@ -1,18 +1,18 @@
 package process
 
 import (
-	"bufio"
 	"context"
 	"fmt"
-	"io"
 	"os"
 	"os/exec"
 	"path/filepath"
+	"strings"
 	"sync"
 	"syscall"
 	"time"
 
 	tea "github.com/charmbracelet/bubbletea"
+	"github.com/creack/pty"
 
 	"github.com/mattermost/mattermost/tools/devdash/model"
 )
@@ -32,6 +32,7 @@ type ManagedProcess struct {
 	Info      model.Process
 	LogBuffer *LogBuffer
 	cmd       *exec.Cmd
+	ptmx      *os.File // PTY master — nil if process has exited and PTY was closed
 	cancel    context.CancelFunc
 	done      chan struct{}
 }
@@ -117,26 +118,12 @@ func (m *Manager) Start(repo *model.Repo, targetName string, isNpm bool) error {
 // startProcess is the shared implementation for Start and StartCustom.
 // Caller must hold m.mu.Lock and have verified no duplicate running process.
 func (m *Manager) startProcess(id, repoName, targetName, cmdStr string, cmd *exec.Cmd, cancel context.CancelFunc) error {
-	// Create a new process group so we can signal all children
-	cmd.SysProcAttr = &syscall.SysProcAttr{Setpgid: true}
-
 	// Don't let context cancellation auto-kill; we handle signals ourselves
 	cmd.Cancel = func() error { return nil }
 
-	stdout, err := cmd.StdoutPipe()
+	// Start with a PTY for full terminal support (colors, prompts, etc.)
+	ptmx, err := pty.StartWithSize(cmd, &pty.Winsize{Rows: 40, Cols: 120})
 	if err != nil {
-		cancel()
-		m.mu.Unlock()
-		return err
-	}
-	stderr, err := cmd.StderrPipe()
-	if err != nil {
-		cancel()
-		m.mu.Unlock()
-		return err
-	}
-
-	if err := cmd.Start(); err != nil {
 		cancel()
 		m.mu.Unlock()
 		return err
@@ -154,6 +141,7 @@ func (m *Manager) startProcess(id, repoName, targetName, cmdStr string, cmd *exe
 		},
 		LogBuffer: logBuf,
 		cmd:       cmd,
+		ptmx:      ptmx,
 		cancel:    cancel,
 		done:      make(chan struct{}),
 	}
@@ -161,27 +149,49 @@ func (m *Manager) startProcess(id, repoName, targetName, cmdStr string, cmd *exe
 	program := m.program
 	m.mu.Unlock()
 
-	// Stream output in background
-	var wg sync.WaitGroup
-	streamPipe := func(r io.Reader) {
-		defer wg.Done()
-		s := bufio.NewScanner(r)
-		s.Buffer(make([]byte, 0, 64*1024), 1024*1024)
-		for s.Scan() {
-			line := s.Text()
-			logBuf.Append(line)
-			if program != nil {
-				program.Send(OutputMsg{ProcessID: id, Line: line})
+	// Read PTY output in background.
+	// Sanitizes terminal control sequences and handles \r for progress bars.
+	go func() {
+		buf := make([]byte, 8192)
+		var partial string
+		for {
+			n, readErr := ptmx.Read(buf)
+			if n > 0 {
+				raw := partial + string(buf[:n])
+				partial = ""
+
+				// Strip non-color ANSI sequences (cursor movement, clearing, etc.)
+				raw = sanitizePTY(raw)
+
+				// Split into lines, keeping the last partial
+				lines := strings.Split(raw, "\n")
+				for i, line := range lines {
+					if i == len(lines)-1 {
+						if line != "" {
+							partial = line
+						}
+						continue
+					}
+					// Handle \r: text after the last \r overwrites the line
+					line = handleCR(line)
+					logBuf.Append(line)
+					if program != nil {
+						program.Send(OutputMsg{ProcessID: id, Line: line})
+					}
+				}
+			}
+			if readErr != nil {
+				// Flush remaining partial line
+				if partial != "" {
+					partial = handleCR(partial)
+					logBuf.Append(partial)
+					if program != nil {
+						program.Send(OutputMsg{ProcessID: id, Line: partial})
+					}
+				}
+				break
 			}
 		}
-	}
-
-	wg.Add(2)
-	go streamPipe(stdout)
-	go streamPipe(stderr)
-
-	go func() {
-		wg.Wait()
 
 		exitCode := 0
 		if err := cmd.Wait(); err != nil {
@@ -192,7 +202,10 @@ func (m *Manager) startProcess(id, repoName, targetName, cmdStr string, cmd *exe
 			}
 		}
 
+		ptmx.Close()
+
 		m.mu.Lock()
+		proc.ptmx = nil
 		if exitCode == 0 {
 			proc.Info.State = model.ProcessExited
 		} else {
@@ -210,17 +223,43 @@ func (m *Manager) startProcess(id, repoName, targetName, cmdStr string, cmd *exe
 	return nil
 }
 
-// signalProcessGroup sends a signal to the entire process group.
-func signalProcessGroup(cmd *exec.Cmd, sig syscall.Signal) error {
+// WriteInput sends input to a running process's PTY (stdin).
+func (m *Manager) WriteInput(id, input string) error {
+	m.mu.RLock()
+	proc, ok := m.processes[id]
+	m.mu.RUnlock()
+
+	if !ok || proc.Info.State != model.ProcessRunning || proc.ptmx == nil {
+		return fmt.Errorf("process %s not running", id)
+	}
+
+	_, err := proc.ptmx.WriteString(input)
+	return err
+}
+
+// ResizePTY updates the PTY window size for a running process.
+func (m *Manager) ResizePTY(id string, rows, cols uint16) {
+	m.mu.RLock()
+	proc, ok := m.processes[id]
+	m.mu.RUnlock()
+
+	if !ok || proc.ptmx == nil {
+		return
+	}
+	_ = pty.Setsize(proc.ptmx, &pty.Winsize{Rows: rows, Cols: cols})
+}
+
+// signalProcess sends a signal to the process and its children.
+// With PTY, the child runs in its own session (via Setsid from pty.Start),
+// so we signal via the process group.
+func signalProcess(cmd *exec.Cmd, sig syscall.Signal) error {
 	if cmd.Process == nil {
 		return nil
 	}
 	pgid, err := syscall.Getpgid(cmd.Process.Pid)
 	if err != nil {
-		// Fallback: signal just the process
 		return cmd.Process.Signal(sig)
 	}
-	// Negative PID signals the entire process group
 	return syscall.Kill(-pgid, sig)
 }
 
@@ -233,20 +272,15 @@ func (m *Manager) Stop(id string) error {
 		return nil
 	}
 
-	// SIGTERM the entire process group
-	_ = signalProcessGroup(proc.cmd, syscall.SIGTERM)
+	_ = signalProcess(proc.cmd, syscall.SIGTERM)
 
-	// Wait for graceful exit
 	select {
 	case <-proc.done:
 		return nil
 	case <-time.After(5 * time.Second):
 	}
 
-	// SIGKILL the entire process group
-	_ = signalProcessGroup(proc.cmd, syscall.SIGKILL)
-
-	// Cancel the context to clean up
+	_ = signalProcess(proc.cmd, syscall.SIGKILL)
 	proc.cancel()
 
 	select {
@@ -303,7 +337,7 @@ func (m *Manager) FailedCount() int {
 	return count
 }
 
-// ProcessIDs returns all process IDs that have been started (in insertion-ish order).
+// ProcessIDs returns all process IDs that have been started.
 func (m *Manager) ProcessIDs() []string {
 	m.mu.RLock()
 	defer m.mu.RUnlock()
@@ -322,6 +356,3 @@ func (m *Manager) ProcessState(id string) model.ProcessState {
 	}
 	return model.ProcessIdle
 }
-
-// Suppress unused import warning
-var _ = os.Interrupt

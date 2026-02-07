@@ -83,9 +83,10 @@ func NewApp(repos []model.Repo, mgr *process.Manager, repoRoot string) *App {
 	}
 
 	si := textinput.New()
-	si.Placeholder = "filter targets..."
+	si.Placeholder = ""
 	si.CharLimit = 64
-	si.Prompt = "/ "
+	si.Prompt = ""
+	si.Focus()
 
 	return &App{
 		repos:           repos,
@@ -96,15 +97,19 @@ func NewApp(repos []model.Repo, mgr *process.Manager, repoRoot string) *App {
 		repoRoot:        repoRoot,
 		favorites:       config.LoadFavorites(repoRoot),
 		gridSearchInput: si,
+		gridSearching:   true,
 		logPanel:        NewLogPanel(),
 		scanTime:        time.Now(),
 	}
 }
 
 func (a *App) Init() tea.Cmd {
-	return tea.Tick(time.Second, func(t time.Time) tea.Msg {
-		return TickMsg(t)
-	})
+	return tea.Batch(
+		a.gridSearchInput.Cursor.BlinkCmd(),
+		tea.Tick(time.Second, func(t time.Time) tea.Msg {
+			return TickMsg(t)
+		}),
+	)
 }
 
 func (a *App) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
@@ -115,6 +120,10 @@ func (a *App) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		a.height = msg.Height
 		if a.logVisible {
 			a.logPanel.SetSize(msg.Width, msg.Height/2)
+			// Resize PTY to match log panel viewport
+			if a.focusedProc != "" {
+				a.procMgr.ResizePTY(a.focusedProc, uint16(msg.Height/2-3), uint16(msg.Width))
+			}
 		}
 		return a, nil
 
@@ -199,26 +208,17 @@ func (a *App) handleKey(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 			a.gridSearchInput.Reset()
 			a.gridSearchInput.Blur()
 			return a, nil
-		case "enter":
-			// Lock in the filter and return to grid nav
+		case "enter", "down", "j":
+			// Move focus to the filtered grid
 			a.gridSearching = false
 			a.gridSearchInput.Blur()
+			a.snapCursorToFirstMatch()
 			return a, nil
 		default:
 			var cmd tea.Cmd
 			a.gridSearchInput, cmd = a.gridSearchInput.Update(msg)
 			a.gridSearchQuery = a.gridSearchInput.Value()
-			// Move cursor to first row with matching cells
-			a.cursorCol = 0
-			a.cursorRow = 0
-			for r := 0; r < len(a.repos); r++ {
-				cells, _ := a.displayCellsForRow(r)
-				if len(cells) > 0 {
-					a.cursorRow = r
-					break
-				}
-			}
-			a.clampCol()
+			a.snapCursorToFirstMatch()
 			return a, cmd
 		}
 	}
@@ -243,6 +243,18 @@ func (a *App) handleKey(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 			a.logPanel.searchInput, cmd = a.logPanel.searchInput.Update(msg)
 			return a, cmd
 		}
+	}
+
+	// Raw input mode — forward keystrokes directly to the process PTY
+	if a.focus == FocusLog && a.logPanel.inputting {
+		if msg.String() == "esc" {
+			a.logPanel.inputting = false
+			return a, nil
+		}
+		if raw := keyToRawBytes(msg); raw != nil {
+			a.procMgr.WriteInput(a.focusedProc, string(raw))
+		}
+		return a, nil
 	}
 
 	switch {
@@ -306,14 +318,21 @@ func (a *App) handleKey(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 			a.logPanel.searchInput.Focus()
 			return a, a.logPanel.searchInput.Cursor.BlinkCmd()
 		}
-		// Grid target search
-		a.gridSearching = true
-		a.gridSearchInput.Focus()
+		// Grid target search — preserve existing filter text
+		a.enterGridSearch()
 		return a, a.gridSearchInput.Cursor.BlinkCmd()
 	}
 
 	// Log panel keys (only when log panel is visible)
 	if a.logVisible {
+		// Process input mode — forward raw keystrokes to PTY
+		if key.Matches(msg, a.keys.ProcInput) && a.focus == FocusLog && a.focusedProc != "" {
+			if a.procMgr.ProcessState(a.focusedProc) == model.ProcessRunning {
+				a.logPanel.inputting = true
+				return a, nil
+			}
+		}
+
 		// Log level cycle
 		if key.Matches(msg, a.keys.LogLevelCycle) {
 			switch a.logPanel.logLevel {
@@ -415,11 +434,8 @@ func (a *App) handleMouse(msg tea.MouseMsg) (tea.Model, tea.Cmd) {
 		return a, nil
 	}
 
-	// Adjust Y for rows above the grid (header + optional search bar)
-	yOffset := 1 // header
-	if a.gridSearching || a.gridSearchQuery != "" {
-		yOffset = 2 // header + search bar
-	}
+	// Adjust Y for rows above the grid (header + search bar)
+	yOffset := 2
 	clickY := msg.Y - yOffset
 	clickX := msg.X
 
@@ -669,8 +685,32 @@ func (a *App) toggleFavorite() {
 }
 
 // moveCursorUp moves cursor up, skipping rows with no matching cells when filtering.
+// If already at the top row and a search filter is active, re-enters search input.
 func (a *App) moveCursorUp() {
 	for r := a.cursorRow - 1; r >= 0; r-- {
+		cells, _ := a.displayCellsForRow(r)
+		if len(cells) > 0 {
+			a.cursorRow = r
+			a.clampCol()
+			return
+		}
+	}
+	// At the top — if there's an active filter, move focus back to search
+	if a.gridSearchQuery != "" {
+		a.enterGridSearch()
+	}
+}
+
+// enterGridSearch focuses the search input, preserving existing filter text.
+func (a *App) enterGridSearch() {
+	a.gridSearching = true
+	a.gridSearchInput.Focus()
+}
+
+// snapCursorToFirstMatch moves cursor to the first row/col with matching cells.
+func (a *App) snapCursorToFirstMatch() {
+	a.cursorCol = 0
+	for r := 0; r < len(a.repos); r++ {
 		cells, _ := a.displayCellsForRow(r)
 		if len(cells) > 0 {
 			a.cursorRow = r
@@ -819,15 +859,19 @@ func (a *App) View() string {
 	b.WriteString(headerStyle.Width(a.width).Render(headerText))
 	b.WriteString("\n")
 
-	// Search bar (only shown when searching/filtered)
+	// Search bar — always visible
 	if a.gridSearching {
-		b.WriteString(a.gridSearchInput.View())
-		b.WriteString("\n")
-	} else if a.gridSearchQuery != "" {
-		b.WriteString(lipgloss.NewStyle().Foreground(colorWarning).Render(
-			fmt.Sprintf("  filter: %q  (Esc to clear)", a.gridSearchQuery)))
-		b.WriteString("\n")
+		prefix := lipgloss.NewStyle().Bold(true).Reverse(true).Padding(0, 1).Render("Search")
+		b.WriteString(prefix + " " + a.gridSearchInput.View())
+	} else {
+		prefix := lipgloss.NewStyle().Bold(true).Foreground(colorMuted).Padding(0, 1).Render("Search")
+		text := a.gridSearchQuery
+		if text == "" {
+			text = legendStyle.Render("/")
+		}
+		b.WriteString(prefix + " " + text)
 	}
+	b.WriteString("\n")
 
 	// Grid
 	maxGridRows := len(a.repos)
@@ -847,7 +891,7 @@ func (a *App) View() string {
 		a.gridSearchQuery,
 		a.procMgr.ProcessState,
 		a.focusedProc,
-		a.logVisible && a.focus == FocusLog,
+		a.gridSearching || (a.logVisible && a.focus == FocusLog),
 	)
 	a.hitZones = hitZones
 	b.WriteString(gridStr)
@@ -880,9 +924,13 @@ func (a *App) View() string {
 		keys = []string{
 			"Enter:Run", "Esc:Cancel",
 		}
+	} else if a.logPanel.inputting {
+		keys = []string{
+			"Enter:Send", "Esc:Close",
+		}
 	} else if a.logVisible {
 		keys = []string{
-			"1-9:Tab", "v:Level",
+			"1-9:Tab", "v:Level", "i:Input",
 			"s:Stop", "R:Restart",
 			"Tab:Next", "S-Tab:Prev", "Esc:Close",
 		}
@@ -931,6 +979,7 @@ func (a *App) renderHelp() string {
 		"  Tab        Cycle to next process log",
 		"  Shift+Tab  Cycle to prev / back to grid",
 		"  /          Search targets (grid) or logs (log)",
+		"  i          Send input to running process (PTY)",
 		"  1-9        Switch log tab by number",
 		"  v          Cycle log level filter",
 		"  g/G        Jump to top/bottom",
