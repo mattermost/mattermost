@@ -151,10 +151,7 @@ func (a *App) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		return a, nil
 
 	case ProcessExitMsg:
-		// When the focused process exits, return to grid navigation
-		if msg.ProcessID == a.focusedProc && a.focus == FocusLog {
-			a.focus = FocusGrid
-		}
+		// Process exited — stay in log panel so background output keeps streaming.
 		return a, nil
 
 	case tea.MouseMsg:
@@ -333,16 +330,14 @@ func (a *App) handleKey(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 		return a, a.gridSearchInput.Cursor.BlinkCmd()
 	}
 
+	// Dismiss: stop process, remove from manager, close log panel
+	if key.Matches(msg, a.keys.Dismiss) {
+		a.dismissProcess()
+		return a, nil
+	}
+
 	// Log panel keys (only when log panel is visible)
 	if a.logVisible {
-		// Process input mode — forward raw keystrokes to PTY
-		if key.Matches(msg, a.keys.ProcInput) && a.focus == FocusLog && a.focusedProc != "" {
-			if a.procMgr.ProcessState(a.focusedProc) == model.ProcessRunning {
-				a.logPanel.inputting = true
-				return a, nil
-			}
-		}
-
 		// Log level cycle
 		if key.Matches(msg, a.keys.LogLevelCycle) {
 			switch a.logPanel.logLevel {
@@ -410,6 +405,9 @@ func (a *App) handleKey(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 
 	case key.Matches(msg, a.keys.DryRun):
 		a.dryRunAtCursor()
+
+	case key.Matches(msg, a.keys.ProcInput):
+		a.executeWithInputMode()
 
 	case key.Matches(msg, a.keys.Execute):
 		a.executeAtCursor()
@@ -558,6 +556,62 @@ func (a *App) executeAtCursor() {
 	a.logVisible = true
 	a.logPanel.SetSize(a.width, a.height/2)
 	a.focus = FocusLog
+}
+
+// executeWithInputMode runs the target at cursor and immediately enters input mode.
+// If already running, just opens the log in input mode.
+func (a *App) executeWithInputMode() {
+	repo, cell := a.cellAtCursor()
+	if repo == nil {
+		return
+	}
+
+	id := repo.Name + ":" + cell.Target
+	state := a.procMgr.ProcessState(id)
+
+	if state != model.ProcessRunning {
+		if err := a.procMgr.Start(repo, cell.Target, cell.IsNpm); err != nil {
+			return
+		}
+	}
+
+	a.focusedProc = id
+	a.logPanel.SetProcess(id)
+	a.logVisible = true
+	a.logPanel.SetSize(a.width, a.height/2)
+	a.focus = FocusLog
+	a.logPanel.inputting = true
+	a.refreshLog()
+}
+
+// dismissProcess stops and removes the process for the current context.
+// If viewing a log, dismisses that process. Otherwise dismisses the cursor's target.
+func (a *App) dismissProcess() {
+	var id string
+	if a.focus == FocusLog && a.focusedProc != "" {
+		id = a.focusedProc
+	} else {
+		repo, cell := a.cellAtCursor()
+		if repo == nil {
+			return
+		}
+		id = repo.Name + ":" + cell.Target
+	}
+
+	// Only dismiss if the process has actually been started
+	if _, ok := a.procMgr.Get(id); !ok {
+		return
+	}
+
+	a.procMgr.Remove(id)
+
+	// Close log panel if we just dismissed the focused process
+	if a.focusedProc == id {
+		a.focusedProc = ""
+		a.logPanel.inputting = false
+		a.logVisible = false
+		a.focus = FocusGrid
+	}
 }
 
 // focusLogForCursor opens the log panel for the cursor's process without running it.
@@ -958,7 +1012,7 @@ func (a *App) View() string {
 	} else if a.logVisible {
 		keys = []string{
 			"1-9:Tab", "v:Level", "i:Input",
-			"s:Stop", "R:Restart",
+			"s:Stop", "R:Restart", "x:Dismiss",
 			"Tab:Next", "S-Tab:Prev", "Esc:Close",
 		}
 	} else {
@@ -1000,6 +1054,7 @@ func (a *App) renderHelp() string {
 		"Process Control:",
 		"  s          Stop focused process",
 		"  R          Restart focused process",
+		"  x          Dismiss: stop + remove + close panel",
 		"  Ctrl+X     Stop all processes",
 		"",
 		"Log Panel:",
@@ -1007,7 +1062,7 @@ func (a *App) renderHelp() string {
 		"  Tab        Cycle to next process log",
 		"  Shift+Tab  Cycle to prev / back to grid",
 		"  /          Search targets (grid) or logs (log)",
-		"  i          Send input to running process (PTY)",
+		"  i          Run target + enter input mode (PTY)",
 		"  1-9        Switch log tab by number",
 		"  v          Cycle log level filter",
 		"  g/G        Jump to top/bottom",

@@ -149,50 +149,9 @@ func (m *Manager) startProcess(id, repoName, targetName, cmdStr string, cmd *exe
 	program := m.program
 	m.mu.Unlock()
 
-	// Read PTY output in background.
-	// Sanitizes terminal control sequences and handles \r for progress bars.
+	// Wait for the lead command to exit (separate from PTY lifetime).
+	// Background processes spawned by the command may keep the PTY alive.
 	go func() {
-		buf := make([]byte, 8192)
-		var partial string
-		for {
-			n, readErr := ptmx.Read(buf)
-			if n > 0 {
-				raw := partial + string(buf[:n])
-				partial = ""
-
-				// Strip non-color ANSI sequences (cursor movement, clearing, etc.)
-				raw = sanitizePTY(raw)
-
-				// Split into lines, keeping the last partial
-				lines := strings.Split(raw, "\n")
-				for i, line := range lines {
-					if i == len(lines)-1 {
-						if line != "" {
-							partial = line
-						}
-						continue
-					}
-					// Handle \r: text after the last \r overwrites the line
-					line = handleCR(line)
-					logBuf.Append(line)
-					if program != nil {
-						program.Send(OutputMsg{ProcessID: id, Line: line})
-					}
-				}
-			}
-			if readErr != nil {
-				// Flush remaining partial line
-				if partial != "" {
-					partial = handleCR(partial)
-					logBuf.Append(partial)
-					if program != nil {
-						program.Send(OutputMsg{ProcessID: id, Line: partial})
-					}
-				}
-				break
-			}
-		}
-
 		exitCode := 0
 		if err := cmd.Wait(); err != nil {
 			if exitErr, ok := err.(*exec.ExitError); ok {
@@ -202,10 +161,7 @@ func (m *Manager) startProcess(id, repoName, targetName, cmdStr string, cmd *exe
 			}
 		}
 
-		ptmx.Close()
-
 		m.mu.Lock()
-		proc.ptmx = nil
 		if exitCode == 0 {
 			proc.Info.State = model.ProcessExited
 		} else {
@@ -217,6 +173,48 @@ func (m *Manager) startProcess(id, repoName, targetName, cmdStr string, cmd *exe
 		close(proc.done)
 		if program != nil {
 			program.Send(ExitMsg{ProcessID: id, ExitCode: exitCode})
+		}
+	}()
+
+	// Read PTY output in background.
+	// Continues until the PTY master is closed (by Stop/Remove), so background
+	// processes spawned by the target keep streaming output.
+	go func() {
+		buf := make([]byte, 8192)
+		var partial string
+		for {
+			n, readErr := ptmx.Read(buf)
+			if n > 0 {
+				raw := partial + string(buf[:n])
+				partial = ""
+
+				raw = sanitizePTY(raw)
+
+				lines := strings.Split(raw, "\n")
+				for i, line := range lines {
+					if i == len(lines)-1 {
+						if line != "" {
+							partial = line
+						}
+						continue
+					}
+					line = handleCR(line)
+					logBuf.Append(line)
+					if program != nil {
+						program.Send(OutputMsg{ProcessID: id, Line: line})
+					}
+				}
+			}
+			if readErr != nil {
+				if partial != "" {
+					partial = handleCR(partial)
+					logBuf.Append(partial)
+					if program != nil {
+						program.Send(OutputMsg{ProcessID: id, Line: partial})
+					}
+				}
+				break
+			}
 		}
 	}()
 
@@ -276,19 +274,33 @@ func (m *Manager) Stop(id string) error {
 
 	select {
 	case <-proc.done:
-		return nil
 	case <-time.After(5 * time.Second):
+		_ = signalProcess(proc.cmd, syscall.SIGKILL)
+		proc.cancel()
+		select {
+		case <-proc.done:
+		case <-time.After(2 * time.Second):
+		}
 	}
 
-	_ = signalProcess(proc.cmd, syscall.SIGKILL)
-	proc.cancel()
-
-	select {
-	case <-proc.done:
-	case <-time.After(2 * time.Second):
+	// Close PTY master to stop the read loop and signal any background processes.
+	m.mu.Lock()
+	if proc.ptmx != nil {
+		proc.ptmx.Close()
+		proc.ptmx = nil
 	}
+	m.mu.Unlock()
 
 	return nil
+}
+
+// Remove stops a process (if running) and removes it from the manager entirely,
+// so it appears as if it was never started.
+func (m *Manager) Remove(id string) {
+	m.Stop(id)
+	m.mu.Lock()
+	delete(m.processes, id)
+	m.mu.Unlock()
 }
 
 func (m *Manager) StopAll() {
