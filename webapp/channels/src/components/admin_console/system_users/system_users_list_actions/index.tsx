@@ -553,7 +553,7 @@ export function SystemUsersListAction({user, currentUser, tableId, rowIndex, onE
                 <Menu.Item
                     key={item.id}
                     id={`${menuItemIdPrefix}-plugin-${item.id}`}
-                    labels={<span>{item.text}</span>}
+                    labels={typeof item.text === 'string' ? <span>{item.text}</span> : item.text as React.ReactElement}
                     onClick={() => item.action(user.id)}
                 />
             ))}
