@@ -1,7 +1,6 @@
 package tui
 
 import (
-	"fmt"
 	"sort"
 	"strings"
 
@@ -306,17 +305,20 @@ func renderGrid(repos []model.Repo, cursorRow, cursorCol int, width, maxRows int
 	}
 
 	rowY := 0
-	rendered := 0
+	lineCount := 0 // total output lines (repos + separators)
 	for i, repo := range repos {
-		if maxRows > 0 && rendered >= maxRows {
-			b.WriteString(fmt.Sprintf("  ... and %d more repos\n", len(repos)-rendered))
+		if maxRows > 0 && lineCount >= maxRows {
 			break
 		}
 
 		if i == splitIdx && splitIdx > 0 {
+			if maxRows > 0 && lineCount >= maxRows {
+				break
+			}
 			b.WriteString(renderSeparator(width))
 			b.WriteString("\n")
 			rowY++
+			lineCount++
 		}
 
 		cells := buildGridCells(&repo)
@@ -349,6 +351,10 @@ func renderGrid(repos []model.Repo, cursorRow, cursorCol int, width, maxRows int
 			continue
 		}
 
+		if maxRows > 0 && lineCount >= maxRows {
+			break
+		}
+
 		col := -1
 		if i == cursorRow {
 			col = cursorCol
@@ -363,7 +369,7 @@ func renderGrid(repos []model.Repo, cursorRow, cursorCol int, width, maxRows int
 		b.WriteString(line)
 		b.WriteString("\n")
 		rowY++
-		rendered++
+		lineCount++
 	}
 
 	return b.String(), hitZones

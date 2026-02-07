@@ -874,11 +874,22 @@ func (a *App) gridHeight() int {
 	return h
 }
 
-// visibleGridRows returns how many grid rows are actually displayed
-// (capped by maxGridRows in View).
+// visibleGridRows returns the total number of lines the grid will render,
+// including separator lines between repo kinds.
 func (a *App) visibleGridRows() int {
 	count := 0
+	splitIdx := -1
+	for i, r := range a.repos {
+		if r.Kind == model.RepoKindPlugin {
+			splitIdx = i
+			break
+		}
+	}
 	for i := range a.repos {
+		// renderGrid emits a separator line before the first plugin repo
+		if i == splitIdx && splitIdx > 0 {
+			count++
+		}
 		cells, _ := a.displayCellsForRow(i)
 		if len(cells) > 0 {
 			count++
@@ -1015,8 +1026,22 @@ func (a *App) View() string {
 		for i, id := range ids {
 			tabs[i] = LogTab{ID: id, State: a.procMgr.ProcessState(id)}
 		}
-		b.WriteString(RenderTabBar(tabs, a.focusedProc, a.focus == FocusLog))
+		b.WriteString(RenderTabBar(tabs, a.focusedProc, a.focus == FocusLog, a.logPanel.inputting))
 		b.WriteString("\n")
+	}
+
+	// Size log panel based on actual remaining space (grid lines + chrome already rendered)
+	if a.logVisible {
+		gridLines := strings.Count(gridStr, "\n")
+		chrome := 2 // header + search bar
+		if len(ids) > 0 {
+			chrome++ // tab bar
+		}
+		lpH := a.height - chrome - gridLines
+		if lpH < 4 {
+			lpH = 4
+		}
+		a.logPanel.SetSize(a.width, lpH)
 	}
 
 	// Log panel / command editor (viewport only — tab bar already rendered above)

@@ -81,7 +81,8 @@ var (
 )
 
 // RenderTabBar renders the numbered process tabs without the viewport.
-func RenderTabBar(tabs []LogTab, currentID string, isFocused bool) string {
+// When inputting is true, the current tab gets an "Input (Esc to exit)" suffix.
+func RenderTabBar(tabs []LogTab, currentID string, isFocused, inputting bool) string {
 	var tabParts []string
 	for i, tab := range tabs {
 		num := fmt.Sprintf("%d", i+1)
@@ -100,7 +101,14 @@ func RenderTabBar(tabs []LogTab, currentID string, isFocused bool) string {
 			label = indicator + " " + label
 		}
 
-		if tab.ID == currentID {
+		isCurrent := tab.ID == currentID
+
+		// Append input mode suffix to the focused tab
+		if isCurrent && inputting {
+			label += " — Input (Esc to exit)"
+		}
+
+		if isCurrent {
 			if isFocused {
 				tabParts = append(tabParts, tabFocusedStyle.Render(label))
 			} else {
@@ -118,15 +126,7 @@ func (lp *LogPanel) View(tabs []LogTab, isFocused bool) string {
 		return ""
 	}
 
-	tabBar := RenderTabBar(tabs, lp.processID, isFocused)
-
-	// Input mode indicator
-	inputBar := ""
-	if lp.inputting {
-		inputBar = lipgloss.NewStyle().
-			Bold(true).Foreground(colorWarning).
-			Render("  INPUT MODE — keystrokes forwarded to process (Esc to exit)") + "\n"
-	}
+	tabBar := RenderTabBar(tabs, lp.processID, isFocused, lp.inputting)
 
 	// Scroll indicator
 	scrollIndicator := ""
@@ -136,21 +136,14 @@ func (lp *LogPanel) View(tabs []LogTab, isFocused bool) string {
 			Render(" ▲ scroll-locked (press G for bottom)")
 	}
 
-	return tabBar + "\n" + inputBar + lp.viewport.View() + scrollIndicator
+	return tabBar + "\n" + lp.viewport.View() + scrollIndicator
 }
 
-// ViewContent renders just the viewport content (input bar + scrollable area),
+// ViewContent renders just the viewport content (scrollable area),
 // without the tab bar (which is rendered separately by the app).
 func (lp *LogPanel) ViewContent() string {
 	if !lp.ready {
 		return ""
-	}
-
-	inputBar := ""
-	if lp.inputting {
-		inputBar = lipgloss.NewStyle().
-			Bold(true).Foreground(colorWarning).
-			Render("  INPUT MODE — keystrokes forwarded to process (Esc to exit)") + "\n"
 	}
 
 	scrollIndicator := ""
@@ -160,5 +153,5 @@ func (lp *LogPanel) ViewContent() string {
 			Render(" ▲ scroll-locked (press G for bottom)")
 	}
 
-	return inputBar + lp.viewport.View() + scrollIndicator
+	return lp.viewport.View() + scrollIndicator
 }
