@@ -163,3 +163,7 @@ docker-compose.override.yaml
 **/CLAUDE.local.md
 **/CLAUDE.md
 .cursorrules
+
+# DevDash
+tools/devdash/bin/
+.devdash-favorites.json

@@ -1,0 +1,51 @@
+package tui
+
+import "github.com/charmbracelet/bubbles/key"
+
+type KeyMap struct {
+	Up            key.Binding
+	Down          key.Binding
+	Left          key.Binding
+	Right         key.Binding
+	Execute       key.Binding
+	ToggleLog     key.Binding
+	Stop          key.Binding
+	Restart       key.Binding
+	Search        key.Binding
+	Help          key.Binding
+	Quit          key.Binding
+	StopAll       key.Binding
+	Rescan        key.Binding
+	TabNext       key.Binding
+	TabPrev       key.Binding
+	Escape        key.Binding
+	Favorite      key.Binding
+	FocusProc     key.Binding
+	DryRun        key.Binding
+	LogLevelCycle key.Binding
+}
+
+func DefaultKeyMap() KeyMap {
+	return KeyMap{
+		Up:            key.NewBinding(key.WithKeys("up", "k")),
+		Down:          key.NewBinding(key.WithKeys("down", "j")),
+		Left:          key.NewBinding(key.WithKeys("left", "h")),
+		Right:         key.NewBinding(key.WithKeys("right", "l")),
+		Execute:       key.NewBinding(key.WithKeys("enter")),
+		ToggleLog:     key.NewBinding(key.WithKeys("L")),
+		Stop:          key.NewBinding(key.WithKeys("s")),
+		Restart:       key.NewBinding(key.WithKeys("R")),
+		Search:        key.NewBinding(key.WithKeys("/")),
+		Help:          key.NewBinding(key.WithKeys("?", "f1")),
+		Quit:          key.NewBinding(key.WithKeys("q", "ctrl+c")),
+		StopAll:       key.NewBinding(key.WithKeys("ctrl+x")),
+		Rescan:        key.NewBinding(key.WithKeys("ctrl+r")),
+		TabNext:       key.NewBinding(key.WithKeys("tab")),
+		TabPrev:       key.NewBinding(key.WithKeys("shift+tab")),
+		Escape:        key.NewBinding(key.WithKeys("esc")),
+		Favorite:      key.NewBinding(key.WithKeys("F")),
+		FocusProc:     key.NewBinding(key.WithKeys("f")),
+		DryRun:        key.NewBinding(key.WithKeys("d")),
+		LogLevelCycle: key.NewBinding(key.WithKeys("v")),
+	}
+}
