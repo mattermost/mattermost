@@ -6,7 +6,7 @@
 // Console output is expected for CLI tools
 
 /**
- * Autonomous Testing CLI
+ * E2E Test Generation CLI (e2e-test-gen)
  *
  * A complete test automation pipeline that:
  * 1. Explores the UI using Playwright's accessibility tree
@@ -15,16 +15,16 @@
  * 4. Heals failing tests automatically
  *
  * Usage:
- *   npx tsx autonomous-cli.ts generate "auto-translation" --scenarios 5
- *   npx tsx autonomous-cli.ts heal specs/functional/ai-assisted/
- *   npx tsx autonomous-cli.ts run specs/functional/ai-assisted/
+ *   npx tsx e2e-test-gen-cli.ts generate "auto-translation" --scenarios 5
+ *   npx tsx e2e-test-gen-cli.ts heal specs/functional/ai-assisted/
+ *   npx tsx e2e-test-gen-cli.ts run specs/functional/ai-assisted/
  */
 
 import {existsSync, readFileSync, writeFileSync, mkdirSync, readdirSync} from 'fs';
 import {resolve, join, basename, dirname} from 'path';
 import {spawnSync} from 'child_process';
 
-import {config, getBaseUrl, getCredentials} from './autonomous-config';
+import {config, getBaseUrl, getCredentials} from './e2e-test-gen-config';
 import {SelectorValidator} from './lib/src/validators/selector-validator.js';
 
 // =============================================================================
@@ -178,22 +178,22 @@ OPTIONS:
 
 EXAMPLES:
   # Full autonomous pipeline from PDF spec
-  npx tsx autonomous-cli.ts auto --spec "UX-Spec.pdf" --scenarios 5
+  npx tsx e2e-test-gen-cli.ts auto --spec "UX-Spec.pdf" --scenarios 5
 
   # Generate tests from feature description
-  npx tsx autonomous-cli.ts generate "auto-translation" --scenarios 5
+  npx tsx e2e-test-gen-cli.ts generate "auto-translation" --scenarios 5
 
   # Generate from markdown spec
-  npx tsx autonomous-cli.ts generate --spec specs/auto-translation.md
+  npx tsx e2e-test-gen-cli.ts generate --spec specs/auto-translation.md
 
   # Fix failing tests
-  npx tsx autonomous-cli.ts heal specs/functional/ai-assisted/
+  npx tsx e2e-test-gen-cli.ts heal specs/functional/ai-assisted/
 
   # Run tests
-  npx tsx autonomous-cli.ts run specs/functional/ai-assisted/ --project chrome
+  npx tsx e2e-test-gen-cli.ts run specs/functional/ai-assisted/ --project chrome
 
   # Convert PDF to markdown spec
-  npx tsx autonomous-cli.ts convert "UX-Spec.pdf"
+  npx tsx e2e-test-gen-cli.ts convert "UX-Spec.pdf"
 
 OUTPUT:
   Generated tests are saved to: specs/functional/ai-assisted/<feature>/
@@ -1902,7 +1902,7 @@ async function commandHeal(parsedArgs: ParsedArgs): Promise<void> {
     const {verbose} = parsedArgs;
 
     if (!testPath) {
-        console.error('Usage: npx tsx autonomous-cli.ts heal <test-path>');
+        console.error('Usage: npx tsx e2e-test-gen-cli.ts heal <test-path>');
         process.exit(1);
     }
 
@@ -2023,7 +2023,7 @@ async function commandRun(parsedArgs: ParsedArgs): Promise<void> {
             }
         }
 
-        console.log('\nRun "npx tsx autonomous-cli.ts heal <path>" to auto-fix.');
+        console.log('\nRun "npx tsx e2e-test-gen-cli.ts heal <path>" to auto-fix.');
         process.exit(1);
     }
 }
@@ -2125,7 +2125,7 @@ async function commandPlanFromPDF(parsedArgs: ParsedArgs): Promise<void> {
     const pdfPath = parsedArgs.feature;
 
     if (!pdfPath) {
-        console.error('Usage: npx tsx autonomous-cli.ts plan-from-pdf <pdf-file>');
+        console.error('Usage: npx tsx e2e-test-gen-cli.ts plan-from-pdf <pdf-file>');
         process.exit(1);
     }
 
@@ -2267,7 +2267,7 @@ async function commandConvert(parsedArgs: ParsedArgs): Promise<void> {
     const specFile = parsedArgs.feature;
 
     if (!specFile) {
-        console.error('Usage: npx tsx autonomous-cli.ts convert <spec-file>');
+        console.error('Usage: npx tsx e2e-test-gen-cli.ts convert <spec-file>');
         process.exit(1);
     }
 
@@ -2316,7 +2316,7 @@ async function commandMCPPlan(parsedArgs: ParsedArgs): Promise<void> {
     console.log(`│  Save the plan to specs/plan.md                                 │`);
     console.log(`└─────────────────────────────────────────────────────────────────┘`);
     console.log(`\nAlternatively, use the 'generate' command for direct LLM generation:`);
-    console.log(`  npx tsx autonomous-cli.ts generate --spec "${specFile || 'your-spec.md'}" --scenarios 5`);
+    console.log(`  npx tsx e2e-test-gen-cli.ts generate --spec "${specFile || 'your-spec.md'}" --scenarios 5`);
 }
 
 /**
@@ -2339,7 +2339,7 @@ async function commandMCPGenerate(parsedArgs: ParsedArgs): Promise<void> {
     console.log(`│  Save tests to specs/functional/ai-assisted/<feature>/         │`);
     console.log(`└─────────────────────────────────────────────────────────────────┘`);
     console.log(`\nAlternatively, use the 'generate' command for direct LLM generation:`);
-    console.log(`  npx tsx autonomous-cli.ts generate --spec "${specFile || 'your-spec.md'}" --scenarios 5`);
+    console.log(`  npx tsx e2e-test-gen-cli.ts generate --spec "${specFile || 'your-spec.md'}" --scenarios 5`);
 }
 
 /**
@@ -2357,7 +2357,7 @@ async function commandMCPHeal(parsedArgs: ParsedArgs): Promise<void> {
     console.log(`│  Debug and fix failing tests in ${testPath}`);
     console.log(`└─────────────────────────────────────────────────────────────────┘`);
     console.log(`\nAlternatively, use the 'heal' command for direct LLM healing:`);
-    console.log(`  npx tsx autonomous-cli.ts heal ${testPath}`);
+    console.log(`  npx tsx e2e-test-gen-cli.ts heal ${testPath}`);
 }
 
 /**

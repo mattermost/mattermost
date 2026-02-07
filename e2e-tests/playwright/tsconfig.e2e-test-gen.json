@@ -12,6 +12,6 @@
         "noEmit": true,
         "baseUrl": "."
     },
-    "include": ["autonomous-cli.ts", "lib/src/spec-bridge.ts", "lib/src/autonomous/**/*"],
+    "include": ["e2e-test-gen-cli.ts", "lib/src/spec-bridge.ts", "lib/src/e2e-test-gen/**/*"],
     "exclude": ["node_modules"]
 }

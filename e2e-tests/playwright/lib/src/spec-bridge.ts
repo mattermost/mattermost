@@ -26,10 +26,10 @@
 import {writeFileSync, mkdirSync, existsSync} from 'fs';
 import {join, basename} from 'path';
 
-import {SpecificationParser} from './autonomous/spec_parser';
+import {SpecificationParser} from './e2e-test-gen/spec_parser';
 import {LLMProviderFactory} from 'e2e-ai-agents';
 import type {LLMProvider, ProviderConfig, HybridConfig} from 'e2e-ai-agents';
-import type {FeatureSpecification, BusinessScenario} from './autonomous/types';
+import type {FeatureSpecification, BusinessScenario} from './e2e-test-gen/types';
 
 /**
  * Configuration for SpecBridge
