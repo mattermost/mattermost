@@ -15,7 +15,6 @@ export type ClientConfig = {
     AppDownloadLink: string;
     AppsPluginEnabled: string;
     AsymmetricSigningPublicKey: string;
-    AutoTranslationLanguages: string;
     AvailableLocales: string;
     BannerColor: string;
     BannerText: string;
@@ -50,7 +49,6 @@ export type ClientConfig = {
     EmailNotificationContentsType: string;
     EnableAskCommunityLink: string;
     EnableBanner: string;
-    EnableAutoTranslation: string;
     EnableBotAccountCreation: string;
     EnableChannelViewedMessages: string;
     EnableClientMetrics: string;
@@ -242,6 +240,7 @@ export type ClientConfig = {
     EnableUserManagedAttributes: string;
 
     // Auto Translation Settings
+    AutoTranslationLanguages: string;
     EnableAutoTranslation: string;
     RestrictDMAndGMAutotranslation: string;
 };
