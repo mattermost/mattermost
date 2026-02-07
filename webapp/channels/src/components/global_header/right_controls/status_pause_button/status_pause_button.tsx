@@ -6,6 +6,7 @@ import {FormattedMessage} from 'react-intl';
 import {useDispatch, useSelector} from 'react-redux';
 
 import {savePreferences} from 'mattermost-redux/actions/preferences';
+import {setStatus} from 'mattermost-redux/actions/users';
 import {getConfig} from 'mattermost-redux/selectors/entities/general';
 import {get} from 'mattermost-redux/selectors/entities/preferences';
 import {getCurrentUser} from 'mattermost-redux/selectors/entities/users';
@@ -31,11 +32,20 @@ const StatusPauseButton: React.FC = () => {
         if (!currentUser) {
             return;
         }
+
+        const newPausedState = !isPaused;
+
+        if (newPausedState) {
+            dispatch(setStatus({user_id: currentUser.id, status: 'away'}));
+        } else {
+            dispatch(setStatus({user_id: currentUser.id, status: 'online'}));
+        }
+
         dispatch(savePreferences(currentUser.id, [{
             user_id: currentUser.id,
             category: 'mattermost_extended',
             name: 'status_paused',
-            value: isPaused ? 'false' : 'true',
+            value: newPausedState ? 'true' : 'false',
         }]));
     }, [dispatch, currentUser, isPaused]);
 
