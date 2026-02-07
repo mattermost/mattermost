@@ -25,6 +25,23 @@
         cursor: pointer;
         font-weight: bold;
         text-align: center;
+        transition: border-radius 0.2s ease;
+
+        &:hover {
+            border-radius: 30%;
+        }
+
+        // Hover color overlay
+        &:hover::after {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            border-radius: inherit;
+            background-color: rgba(var(--sidebar-text-rgb), 0.16);
+            content: '';
+        }
 
         img {
             width: 100%;

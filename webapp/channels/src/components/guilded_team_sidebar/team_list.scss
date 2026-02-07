@@ -31,9 +31,15 @@
         cursor: pointer;
         font-weight: bold;
         text-align: center;
+        transition: border-radius 0.2s ease;
 
-        // Active state - circle with no background change
+        &:hover {
+            border-radius: 30%;
+        }
+
+        // Active state - rounded square shape
         &--active {
+            border-radius: 30%;
             background-color: rgba(var(--sidebar-text-rgb), 0.08);
         }
 
@@ -42,6 +48,18 @@
             height: 100%;
             border-radius: inherit;
             object-fit: cover;
+        }
+
+        // Hover color overlay
+        &:hover::after {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            border-radius: inherit;
+            background-color: rgba(var(--sidebar-text-rgb), 0.16);
+            content: '';
         }
     }
 

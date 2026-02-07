@@ -13,13 +13,31 @@
     background-color: rgba(var(--sidebar-text-rgb), 0.08);
     color: var(--sidebar-header-text-color);
     cursor: pointer;
+    transition: border-radius 0.2s ease;
+
+    &:hover {
+        border-radius: 30%;
+    }
+
+    // Hover color overlay
+    &:hover::after {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        border-radius: inherit;
+        background-color: rgba(var(--sidebar-text-rgb), 0.16);
+        content: '';
+    }
 
     .icon {
         font-size: 20px;
     }
 
-    // Active state - subtle overlay, no color inversion
+    // Active state - subtle overlay, rounded square shape
     &--active {
+        border-radius: 30%;
         background-color: rgba(var(--sidebar-text-rgb), 0.16);
     }
 
