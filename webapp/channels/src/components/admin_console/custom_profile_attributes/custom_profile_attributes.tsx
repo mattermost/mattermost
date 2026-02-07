@@ -17,8 +17,6 @@ import {getPluginDisplayName} from 'selectors/plugins';
 import SettingsGroup from 'components/admin_console/settings_group';
 import TextSetting from 'components/admin_console/text_setting';
 
-import {getPluginDisplayName} from 'selectors/plugins';
-
 import type {GlobalState} from 'types/store';
 
 type AttributeHelpTextProps = {

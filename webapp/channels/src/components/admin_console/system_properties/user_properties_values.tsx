@@ -21,6 +21,7 @@ import {isKeyPressed} from 'utils/keyboard';
 import type {GlobalState} from 'types/store';
 
 import {DangerText} from './controls';
+import {useIsFieldOrphaned} from './orphaned_fields_utils';
 import './user_properties_values.scss';
 import {useAttributeLinkModal} from './user_properties_dot_menu';
 
@@ -40,6 +41,7 @@ const UserPropertyValues = ({
 }: Props) => {
     const {formatMessage} = useIntl();
     const pluginDisplayName = useSelector((state: GlobalState) => getPluginDisplayName(state, field.attrs?.source_plugin_id));
+    const isOrphaned = useIsFieldOrphaned(field);
 
     const [query, setQuery] = React.useState('');
     const {promptEditLdapLink, promptEditSamlLink} = useAttributeLinkModal(field, updateField);
@@ -153,11 +155,19 @@ const UserPropertyValues = ({
             <>
                 <span className='user-property-field-values'>
                     <PowerPlugOutlineIcon size={18}/>
-                    <FormattedMessage
-                        id='admin.system_properties.user_properties.table.values.managed_by_plugin'
-                        defaultMessage='Managed by plugin: {pluginId}'
-                        values={{pluginId: pluginDisplayName}}
-                    />
+                    {isOrphaned ? (
+                        <FormattedMessage
+                            id='admin.system_properties.user_properties.table.values.plugin_removed'
+                            defaultMessage='Plugin removed: {pluginId}'
+                            values={{pluginId: pluginDisplayName}}
+                        />
+                    ) : (
+                        <FormattedMessage
+                            id='admin.system_properties.user_properties.table.values.managed_by_plugin'
+                            defaultMessage='Managed by plugin: {pluginId}'
+                            values={{pluginId: pluginDisplayName}}
+                        />
+                    )}
                 </span>
             </>
         );
