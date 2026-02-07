@@ -27,7 +27,10 @@ export class SelectorValidator {
     private semanticWhitelist: Map<string, string[]> = new Map();
     private minConfidence: number;
 
-    constructor(globalSelectors: {[semantic: string]: Array<{selector: string; confidence: number}>}, minConfidence: number = 50) {
+    constructor(
+        globalSelectors: {[semantic: string]: Array<{selector: string; confidence: number}>},
+        minConfidence: number = 50,
+    ) {
         this.minConfidence = minConfidence;
 
         // Build flat whitelist from semantic map
@@ -37,7 +40,10 @@ export class SelectorValidator {
                     this.whitelist.add(elem.selector);
                 }
             }
-            this.semanticWhitelist.set(semantic, elements.map((e) => e.selector));
+            this.semanticWhitelist.set(
+                semantic,
+                elements.map((e) => e.selector),
+            );
         }
     }
 
@@ -131,7 +137,10 @@ export class SelectorValidator {
         return {
             total: results.length,
             whitelisted: results.filter((r) => r.isWhitelisted).length,
-            coverage: results.length > 0 ? Math.round((results.filter((r) => r.isWhitelisted).length / results.length) * 100) : 100,
+            coverage:
+                results.length > 0
+                    ? Math.round((results.filter((r) => r.isWhitelisted).length / results.length) * 100)
+                    : 100,
             unobserved,
         };
     }

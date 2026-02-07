@@ -489,9 +489,11 @@ async function generateWithUIContext(parsedArgs: ParsedArgs): Promise<Generation
 
     // Build UI map from discoveries (Phase 1)
     let uiMap: UIMap | undefined;
-    if (discoveries.length > 0) {
-        uiMap = buildUIMap(discoveries);
-        console.log(`  ✓ Built UI map with ${uiMap.stats.totalSelectors} selectors (${uiMap.stats.avgConfidence}% avg confidence)`);
+    if ((discoveries ?? []).length > 0) {
+        uiMap = buildUIMap(discoveries ?? []);
+        console.log(
+            `  ✓ Built UI map with ${uiMap.stats.totalSelectors} selectors (${uiMap.stats.avgConfidence}% avg confidence)`,
+        );
 
         // Phase 3: Apply selector validation and enforcement
         console.log('\n🔍 Phase 3: Validating selectors against whitelist...');
@@ -499,11 +501,15 @@ async function generateWithUIContext(parsedArgs: ParsedArgs): Promise<Generation
         const validated = validator.applyValidation(code);
         const summary = validator.getSummary(code);
 
-        console.log(`  ✓ Checked ${summary.total} selectors: ${summary.whitelisted}/${summary.total} whitelisted (${summary.coverage}%)`);
+        console.log(
+            `  ✓ Checked ${summary.total} selectors: ${summary.whitelisted}/${summary.total} whitelisted (${summary.coverage}%)`,
+        );
         if (summary.unobserved.length > 0) {
             console.log(`  ⚠️  ${summary.unobserved.length} selectors commented out (unobserved)`);
             if (parsedArgs.verbose) {
-                console.log(`     Unobserved: ${summary.unobserved.slice(0, 3).join(', ')}${summary.unobserved.length > 3 ? '...' : ''}`);
+                console.log(
+                    `     Unobserved: ${summary.unobserved.slice(0, 3).join(', ')}${summary.unobserved.length > 3 ? '...' : ''}`,
+                );
             }
         }
 
@@ -1188,7 +1194,7 @@ async function healTests(testPath: string, testOutput: string): Promise<string> 
             const parsed = JSON.parse(uiContext);
             discoveries = parsed.discoveries || [];
 
-            if (discoveries.length > 0) {
+            if ((discoveries ?? []).length > 0) {
                 console.log('  ✓ Extracted discoveries from re-exploration');
 
                 // Try to load existing UI map
@@ -1199,20 +1205,26 @@ async function healTests(testPath: string, testOutput: string): Promise<string> 
                     try {
                         const mapContent = readFileSync(existingMapFile, 'utf-8');
                         existingMap = JSON.parse(mapContent);
-                        console.log(`  ✓ Loaded existing UI map (${existingMap.stats.totalSelectors} selectors)`);
+                        if (existingMap && existingMap.stats) {
+                            console.log(`  ✓ Loaded existing UI map (${existingMap.stats.totalSelectors} selectors)`);
+                        } else {
+                            console.log('  ⚠️  Existing UI map loaded but stats are missing');
+                        }
                     } catch {
                         console.log('  ⚠️  Could not load existing UI map');
                     }
                 }
 
                 // Build new UI map from discoveries
-                const newMap = buildUIMap(discoveries);
+                const newMap = buildUIMap(discoveries ?? []);
                 console.log(`  ✓ Built new UI map from re-discovery (${newMap.stats.totalSelectors} selectors)`);
 
                 // Merge maps if we have an existing one
                 if (existingMap) {
                     healingUIMap = mergeUIMaps([existingMap, newMap]);
-                    console.log(`  ✓ Merged maps: ${healingUIMap.stats.totalSelectors} total selectors (confidence boosted)`);
+                    console.log(
+                        `  ✓ Merged maps: ${healingUIMap.stats.totalSelectors} total selectors (confidence boosted)`,
+                    );
                 } else {
                     healingUIMap = newMap;
                 }
@@ -1438,9 +1450,12 @@ function buildUIMap(discoveries: Array<{url: string; title: string; elements: an
 
         // Detect page semantics
         const semantics = {
-            hasLoginForm: discovery.text.toLowerCase().includes('password') || discovery.text.toLowerCase().includes('login'),
+            hasLoginForm:
+                discovery.text.toLowerCase().includes('password') || discovery.text.toLowerCase().includes('login'),
             hasProfileMenu: elements.some((e) => e.text.toLowerCase().includes('profile')),
-            hasPostForm: elements.some((e) => e.text.toLowerCase().includes('post') || e.text.toLowerCase().includes('message')),
+            hasPostForm: elements.some(
+                (e) => e.text.toLowerCase().includes('post') || e.text.toLowerCase().includes('message'),
+            ),
             hasNavMenu: elements.some((e) => e.role === 'link' && e.confidence >= 80),
             hasFormInputs: elements.some((e) => e.tag === 'input'),
             hasButtons: elements.some((e) => e.role === 'button'),
@@ -1474,7 +1489,12 @@ function buildUIMap(discoveries: Array<{url: string; title: string; elements: an
  * Validate UI map signal strength (Phase 2: Gating)
  * Returns metadata about coverage and confidence to gate generation
  */
-function validateUIMapSignal(uiMap: UIMap): {coverage: number; requiredSemantics: number; isValid: boolean; guidance: string} {
+function validateUIMapSignal(uiMap: UIMap): {
+    coverage: number;
+    requiredSemantics: number;
+    isValid: boolean;
+    guidance: string;
+} {
     const minConfidenceThreshold = config.generation?.minConfidenceThreshold ?? 50;
     const requiredSemantics = config.generation?.requiredSemantics ?? 3;
 
@@ -1514,7 +1534,10 @@ function draftFeatureSpec(feature: string, uiMap: UIMap): string {
         .filter(([, elems]) => elems.some((e) => e.confidence < 60))
         .slice(0, 10)
         .map(([semantic, elems]) => {
-            const examples = elems.slice(0, 2).map((e) => `${e.text || e.role}`).join(', ');
+            const examples = elems
+                .slice(0, 2)
+                .map((e) => `${e.text || e.role}`)
+                .join(', ');
             return `- [ ] ${semantic}: ${examples}`;
         });
 
@@ -1668,7 +1691,9 @@ async function commandGenerate(parsedArgs: ParsedArgs): Promise<void> {
 
         // ===== PHASE 2: SIGNAL GATING =====
         const signal = validateUIMapSignal(uiMap);
-        console.log(`\n📊 UI Signal Analysis: ${signal.coverage}% coverage (${signal.requiredSemantics} semantic types)`);
+        console.log(
+            `\n📊 UI Signal Analysis: ${signal.coverage}% coverage (${signal.requiredSemantics} semantic types)`,
+        );
         console.log(`   ${signal.guidance}`);
 
         // Gate 1: Insufficient signal - exit with guidance
