@@ -98,6 +98,7 @@ type Store interface {
 	AutoTranslation() AutoTranslationStore
 	GetSchemaDefinition() (*model.SupportPacketDatabaseSchema, error)
 	ContentFlagging() ContentFlaggingStore
+	Recap() RecapStore
 	ReadReceipt() ReadReceiptStore
 	TemporaryPost() TemporaryPostStore
 }
@@ -1157,17 +1158,16 @@ type AttributesStore interface {
 }
 
 type AutoTranslationStore interface {
-	IsChannelEnabled(channelID string) (bool, *model.AppError)
-	SetChannelEnabled(channelID string, enabled bool) *model.AppError
-	IsUserEnabled(userID, channelID string) (bool, *model.AppError)
-	SetUserEnabled(userID, channelID string, enabled bool) *model.AppError
-	GetUserLanguage(userID, channelID string) (string, *model.AppError)
+	IsUserEnabled(userID, channelID string) (bool, error)
+	GetUserLanguage(userID, channelID string) (string, error)
 	// GetActiveDestinationLanguages returns distinct locales of users who have auto-translation enabled.
-	// Optional filterUserIDs parameter restricts results to specific user IDs (typically those with active WebSocket connections).
-	// Pass nil for filterUserIDs to include all users, or a pointer to a slice to filter to specific users.
-	GetActiveDestinationLanguages(channelID, excludeUserID string, filterUserIDs []string) ([]string, *model.AppError)
-	Get(objectID, dstLang string) (*model.Translation, *model.AppError)
-	Save(translation *model.Translation) *model.AppError
+	GetActiveDestinationLanguages(channelID, excludeUserID string, filterUserIDs []string) ([]string, error)
+	Get(objectType, objectID, dstLang string) (*model.Translation, error)
+	GetBatch(objectType string, objectIDs []string, dstLang string) (map[string]*model.Translation, error)
+	GetAllForObject(objectType, objectID string) ([]*model.Translation, error)
+	Save(translation *model.Translation) error
+	GetAllByStatePage(state model.TranslationState, offset, limit int) ([]*model.Translation, error)
+	GetByStateOlderThan(state model.TranslationState, olderThanMillis int64, limit int) ([]*model.Translation, error)
 
 	ClearCaches()
 	// InvalidateUserAutoTranslation invalidates all auto-translation caches for a user in a channel.
@@ -1290,4 +1290,17 @@ type ThreadMembershipImportData struct {
 	LastViewed int64
 	// UnreadMentions is the number of unread mentions to set the UnreadMentions field to.
 	UnreadMentions int64
+}
+
+type RecapStore interface {
+	SaveRecap(recap *model.Recap) (*model.Recap, error)
+	UpdateRecap(recap *model.Recap) (*model.Recap, error)
+	GetRecap(id string) (*model.Recap, error)
+	GetRecapsForUser(userId string, page, perPage int) ([]*model.Recap, error)
+	UpdateRecapStatus(id, status string) error
+	MarkRecapAsRead(id string) error
+	DeleteRecap(id string) error
+	DeleteRecapChannels(recapId string) error
+	SaveRecapChannel(recapChannel *model.RecapChannel) error
+	GetRecapChannelsByRecapId(recapId string) ([]*model.RecapChannel, error)
 }

@@ -12,6 +12,8 @@ import type {UserPropertyField, UserPropertyFieldType} from '@mattermost/types/p
 import {Client4} from 'mattermost-redux/client';
 import {getCustomProfileAttributes} from 'mattermost-redux/selectors/entities/general';
 
+import {getPluginDisplayName} from 'selectors/plugins';
+
 import SettingsGroup from 'components/admin_console/settings_group';
 import TextSetting from 'components/admin_console/text_setting';
 
@@ -44,7 +46,7 @@ const AttributeHelpText = ({attributeKey, attributeName, attributeType}: Attribu
     <div className='help-text-container'>
         {attributeKey === 'ldap' && (
             <FormattedMessage
-                id='admin.customProfileAttribDesc'
+                id='admin.customProfileAttribDesc.ldap'
                 defaultMessage='(Optional) The attribute in the AD/LDAP server used to populate the {name} of users in Mattermost. When set, users cannot edit their {name}, since it is synchronized with the LDAP server. When left blank, users can set their {name} in <strong>Account Menu > Account Settings > Profile</strong>.'
                 values={{
                     name: attributeName,
@@ -54,7 +56,7 @@ const AttributeHelpText = ({attributeKey, attributeName, attributeType}: Attribu
         )}
         {attributeKey === 'saml' && (
             <FormattedMessage
-                id='admin.customProfileAttribDesc'
+                id='admin.customProfileAttribDesc.saml'
                 defaultMessage='(Optional) The attribute in the SAML Assertion that will be used to populate the {name} of users in Mattermost.'
                 values={{
                     name: attributeName,
@@ -66,10 +68,6 @@ const AttributeHelpText = ({attributeKey, attributeName, attributeType}: Attribu
                 <FormattedMessage
                     id='admin.customProfileAttribWarning'
                     defaultMessage='(Warning) This attribute will be converted to a TEXT attribute, if the field is set to synchronize.'
-                    values={{
-                        name: attributeName,
-                        strong: (msg) => <strong>{msg}</strong>,
-                    }}
                 />
             </div>
         )}
@@ -149,7 +147,7 @@ const CustomProfileAttributes: React.FC<Props> = (props: Props): JSX.Element | n
                 subtitle={
                     <FormattedMessage
                         id='admin.customProfileAttributes.subtitle'
-                        defaultMessage='You can add or remove custom profile attributes by going to the <link>system properties page</link>.'
+                        defaultMessage='You can add or remove custom profile attributes by going to the <link>user attributes page</link>.'
                         values={{
                             link: (msg) => (
                                 <Link

@@ -6,9 +6,9 @@ package api4
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"net/http"
-	"sort"
 	"strings"
 	"testing"
 	"time"
@@ -23,6 +23,7 @@ import (
 	"github.com/mattermost/mattermost/server/v8/channels/app"
 	"github.com/mattermost/mattermost/server/v8/channels/store/storetest/mocks"
 	"github.com/mattermost/mattermost/server/v8/channels/utils/testutils"
+	einterfacesmocks "github.com/mattermost/mattermost/server/v8/einterfaces/mocks"
 )
 
 func TestCreateChannel(t *testing.T) {
@@ -256,7 +257,7 @@ func TestCreateChannel(t *testing.T) {
 			require.NoError(t, err)
 
 			// Verify that the guest user can access the private channel they were added to
-			_, _, err = guestClient.GetChannel(context.Background(), private.Id, "")
+			_, _, err = guestClient.GetChannel(context.Background(), private.Id)
 			require.NoError(t, err)
 
 			// Verify that the guest user cannot add members to the private channel
@@ -269,7 +270,7 @@ func TestCreateChannel(t *testing.T) {
 			require.NoError(t, err)
 
 			// Verify that the guest user can access the public channel they were added to
-			_, _, err = guestClient.GetChannel(context.Background(), public.Id, "")
+			_, _, err = guestClient.GetChannel(context.Background(), public.Id)
 			require.NoError(t, err)
 
 			// Verify that the guest user cannot add members to the public channel
@@ -482,76 +483,10 @@ func TestUpdateChannel(t *testing.T) {
 	})
 }
 
-func TestPatchChannel(t *testing.T) {
+func TestPatchChannelGroupConstrained(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
 	client := th.Client
-	team := th.BasicTeam
-
-	t.Run("should be unable to apply a null patch", func(t *testing.T) {
-		var nullPatch *model.ChannelPatch
-
-		_, nullResp, err := client.PatchChannel(context.Background(), th.BasicChannel.Id, nullPatch)
-		require.Error(t, err)
-		CheckBadRequestStatus(t, nullResp)
-	})
-
-	t.Run("should be able to patch values", func(t *testing.T) {
-		patch := &model.ChannelPatch{
-			Name:        new(string),
-			DisplayName: new(string),
-			Header:      new(string),
-			Purpose:     new(string),
-		}
-		*patch.Name = model.NewId()
-		*patch.DisplayName = model.NewId()
-		*patch.Header = model.NewId()
-		*patch.Purpose = model.NewId()
-
-		channel, _, err := client.PatchChannel(context.Background(), th.BasicChannel.Id, patch)
-		require.NoError(t, err)
-
-		require.Equal(t, *patch.Name, channel.Name, "do not match")
-		require.Equal(t, *patch.DisplayName, channel.DisplayName, "do not match")
-		require.Equal(t, *patch.Header, channel.Header, "do not match")
-		require.Equal(t, *patch.Purpose, channel.Purpose, "do not match")
-	})
-
-	t.Run("should be able to patch with no name", func(t *testing.T) {
-		channel := &model.Channel{
-			DisplayName: GenerateTestChannelName(),
-			Name:        GenerateTestChannelName(),
-			Type:        model.ChannelTypeOpen,
-			TeamId:      team.Id,
-		}
-		var err error
-		channel, _, err = client.CreateChannel(context.Background(), channel)
-		require.NoError(t, err)
-
-		patch := &model.ChannelPatch{
-			Header:  new(string),
-			Purpose: new(string),
-		}
-
-		oldName := channel.Name
-		patchedChannel, _, err := client.PatchChannel(context.Background(), channel.Id, patch)
-		require.NoError(t, err)
-
-		require.Equal(t, oldName, patchedChannel.Name, "should not have updated")
-	})
-
-	t.Run("Test updating default channel's name and returns error", func(t *testing.T) {
-		// Test updating default channel's name and returns error
-		defaultChannel, appErr := th.App.GetChannelByName(th.Context, model.DefaultChannelName, team.Id, false)
-		require.Nil(t, appErr)
-		defaultChannelPatch := &model.ChannelPatch{
-			Name: new(string),
-		}
-		*defaultChannelPatch.Name = "testing"
-		_, resp, err := client.PatchChannel(context.Background(), defaultChannel.Id, defaultChannelPatch)
-		require.Error(t, err)
-		CheckBadRequestStatus(t, resp)
-	})
 
 	t.Run("Test GroupConstrained flag", func(t *testing.T) {
 		// Test GroupConstrained flag
@@ -575,6 +510,9 @@ func TestPatchChannel(t *testing.T) {
 		user := th.CreateUser(t)
 		_, _, err = client.Login(context.Background(), user.Email, user.Password)
 		require.NoError(t, err)
+
+		patch.GroupConstrained = model.NewPointer(false)
+
 		_, resp, err = client.PatchChannel(context.Background(), th.BasicChannel.Id, patch)
 		require.Error(t, err)
 		CheckForbiddenStatus(t, resp)
@@ -752,6 +690,78 @@ func TestPatchChannel(t *testing.T) {
 				}
 			}
 		}
+	})
+}
+
+func TestPatchChannel(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+	client := th.Client
+	team := th.BasicTeam
+
+	t.Run("should be unable to apply a null patch", func(t *testing.T) {
+		var nullPatch *model.ChannelPatch
+
+		_, nullResp, err := client.PatchChannel(context.Background(), th.BasicChannel.Id, nullPatch)
+		require.Error(t, err)
+		CheckBadRequestStatus(t, nullResp)
+	})
+
+	t.Run("should be able to patch values", func(t *testing.T) {
+		patch := &model.ChannelPatch{
+			Name:        new(string),
+			DisplayName: new(string),
+			Header:      new(string),
+			Purpose:     new(string),
+		}
+		*patch.Name = model.NewId()
+		*patch.DisplayName = model.NewId()
+		*patch.Header = model.NewId()
+		*patch.Purpose = model.NewId()
+
+		channel, _, err := client.PatchChannel(context.Background(), th.BasicChannel.Id, patch)
+		require.NoError(t, err)
+
+		require.Equal(t, *patch.Name, channel.Name, "do not match")
+		require.Equal(t, *patch.DisplayName, channel.DisplayName, "do not match")
+		require.Equal(t, *patch.Header, channel.Header, "do not match")
+		require.Equal(t, *patch.Purpose, channel.Purpose, "do not match")
+	})
+
+	t.Run("should be able to patch with no name", func(t *testing.T) {
+		channel := &model.Channel{
+			DisplayName: GenerateTestChannelName(),
+			Name:        GenerateTestChannelName(),
+			Type:        model.ChannelTypeOpen,
+			TeamId:      team.Id,
+		}
+		var err error
+		channel, _, err = client.CreateChannel(context.Background(), channel)
+		require.NoError(t, err)
+
+		patch := &model.ChannelPatch{
+			Header:  new(string),
+			Purpose: new(string),
+		}
+
+		oldName := channel.Name
+		patchedChannel, _, err := client.PatchChannel(context.Background(), channel.Id, patch)
+		require.NoError(t, err)
+
+		require.Equal(t, oldName, patchedChannel.Name, "should not have updated")
+	})
+
+	t.Run("Test updating default channel's name and returns error", func(t *testing.T) {
+		// Test updating default channel's name and returns error
+		defaultChannel, appErr := th.App.GetChannelByName(th.Context, model.DefaultChannelName, team.Id, false)
+		require.Nil(t, appErr)
+		defaultChannelPatch := &model.ChannelPatch{
+			Name: new(string),
+		}
+		*defaultChannelPatch.Name = "testing"
+		_, resp, err := client.PatchChannel(context.Background(), defaultChannel.Id, defaultChannelPatch)
+		require.Error(t, err)
+		CheckBadRequestStatus(t, resp)
 	})
 
 	t.Run("Test updating the header of someone else's GM channel", func(t *testing.T) {
@@ -1136,6 +1146,368 @@ func TestPatchChannel(t *testing.T) {
 		require.Equal(t, "Channel banner can only be configured on Public and Private channels.", err.Error())
 		CheckBadRequestStatus(t, resp)
 		require.Nil(t, patchedChannel)
+	})
+
+	t.Run("Patch channel with no changes returns 400", func(t *testing.T) {
+		_, err := client.Logout(context.Background())
+		require.NoError(t, err)
+		th.LoginBasic(t)
+
+		patch := &model.ChannelPatch{}
+		_, resp, err := client.PatchChannel(context.Background(), th.BasicChannel.Id, patch)
+		require.Error(t, err)
+		CheckBadRequestStatus(t, resp)
+	})
+
+	t.Run("Patch channel with autotranslation when feature is available properly updates the channel for admins", func(t *testing.T) {
+		mockAutoTranslation := &einterfacesmocks.AutoTranslationInterface{}
+		mockAutoTranslation.On("IsFeatureAvailable").Return(true)
+		mockAutoTranslation.On("IsChannelEnabled", mock.Anything).Return(true, nil)
+		mockAutoTranslation.On("Translate", mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(nil, nil)
+		originalAutoTranslation := th.Server.AutoTranslation
+		th.Server.AutoTranslation = mockAutoTranslation
+		defer func() {
+			th.Server.AutoTranslation = originalAutoTranslation
+		}()
+
+		_, err := th.SystemAdminClient.Logout(context.Background())
+		require.NoError(t, err)
+		th.LoginSystemAdmin(t)
+
+		patch := &model.ChannelPatch{
+			AutoTranslation: model.NewPointer(true),
+		}
+
+		_, resp, err := th.SystemAdminClient.PatchChannel(context.Background(), th.BasicChannel.Id, patch)
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+		patchedChannel, appErr := th.App.GetChannel(th.Context, th.BasicChannel.Id)
+		require.Nil(t, appErr)
+		require.True(t, patchedChannel.AutoTranslation)
+
+		patch = &model.ChannelPatch{
+			AutoTranslation: model.NewPointer(false),
+		}
+
+		_, resp, err = th.SystemAdminClient.PatchChannel(context.Background(), th.BasicChannel.Id, patch)
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+		patchedChannel, appErr = th.App.GetChannel(th.Context, th.BasicChannel.Id)
+		require.Nil(t, appErr)
+		require.False(t, patchedChannel.AutoTranslation)
+	})
+
+	t.Run("Patch channel with autotranslation when feature is available properly updates the channel for users only with the proper permissions", func(t *testing.T) {
+		mockAutoTranslation := &einterfacesmocks.AutoTranslationInterface{}
+		mockAutoTranslation.On("IsFeatureAvailable").Return(true)
+		mockAutoTranslation.On("IsChannelEnabled", mock.Anything).Return(true, nil)
+		mockAutoTranslation.On("Translate", mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(nil, nil)
+		originalAutoTranslation := th.Server.AutoTranslation
+		th.Server.AutoTranslation = mockAutoTranslation
+		defer func() {
+			th.Server.AutoTranslation = originalAutoTranslation
+		}()
+
+		_, err := client.Logout(context.Background())
+		require.NoError(t, err)
+		th.LoginBasic(t)
+
+		privateChannel := th.CreateChannelWithClient(t, th.SystemAdminClient, model.ChannelTypePrivate)
+		th.AddUserToChannel(t, th.BasicUser, privateChannel)
+
+		patch := &model.ChannelPatch{
+			AutoTranslation: model.NewPointer(true),
+		}
+
+		_, resp, err := client.PatchChannel(context.Background(), th.BasicChannel.Id, patch)
+		require.Error(t, err)
+		CheckForbiddenStatus(t, resp)
+
+		_, resp, err = client.PatchChannel(context.Background(), privateChannel.Id, patch)
+		require.Error(t, err)
+		CheckForbiddenStatus(t, resp)
+
+		th.AddPermissionToRole(t, model.PermissionManagePrivateChannelAutoTranslation.Id, model.SystemUserRoleId)
+		defer th.RemovePermissionFromRole(t, model.PermissionManagePrivateChannelAutoTranslation.Id, model.SystemUserRoleId)
+
+		_, resp, err = client.PatchChannel(context.Background(), th.BasicChannel.Id, patch)
+		require.Error(t, err)
+		CheckForbiddenStatus(t, resp)
+
+		_, _, err = client.PatchChannel(context.Background(), privateChannel.Id, patch)
+		require.NoError(t, err)
+		patchedChannel, appErr := th.App.GetChannel(th.Context, privateChannel.Id)
+		require.Nil(t, appErr)
+		require.True(t, patchedChannel.AutoTranslation)
+
+		th.AddPermissionToRole(t, model.PermissionManagePublicChannelAutoTranslation.Id, model.SystemUserRoleId)
+		defer th.RemovePermissionFromRole(t, model.PermissionManagePublicChannelAutoTranslation.Id, model.SystemUserRoleId)
+
+		_, _, err = client.PatchChannel(context.Background(), th.BasicChannel.Id, patch)
+		require.NoError(t, err)
+		patchedChannel, appErr = th.App.GetChannel(th.Context, privateChannel.Id)
+		require.Nil(t, appErr)
+		require.True(t, patchedChannel.AutoTranslation)
+	})
+
+	t.Run("Patch channel with AutoTranslation when feature not available returns 403", func(t *testing.T) {
+		mockAutoTranslation := &einterfacesmocks.AutoTranslationInterface{}
+		mockAutoTranslation.On("IsFeatureAvailable").Return(false)
+		mockAutoTranslation.On("IsChannelEnabled", mock.Anything).Return(true, nil)
+		mockAutoTranslation.On("Translate", mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(nil, nil)
+		originalAutoTranslation := th.Server.AutoTranslation
+		th.Server.AutoTranslation = mockAutoTranslation
+		defer func() {
+			th.Server.AutoTranslation = originalAutoTranslation
+		}()
+
+		_, err := client.Logout(context.Background())
+		require.NoError(t, err)
+		th.LoginBasic(t)
+
+		patch := &model.ChannelPatch{
+			AutoTranslation: model.NewPointer(true),
+		}
+
+		_, resp, err := client.PatchChannel(context.Background(), th.BasicChannel.Id, patch)
+		require.Error(t, err)
+		CheckForbiddenStatus(t, resp)
+		var appErr *model.AppError
+		require.True(t, errors.As(err, &appErr))
+		require.Contains(t, []string{"api.channel.patch_update_channel.feature_not_available.app_error", "api.channel.patch_update_channel.auto_translation_restricted.app_error"}, appErr.Id)
+	})
+
+	t.Run("Patch channel with autotranslation on DM is only available for members", func(t *testing.T) {
+		mockAutoTranslation := &einterfacesmocks.AutoTranslationInterface{}
+		mockAutoTranslation.On("IsFeatureAvailable").Return(true)
+		mockAutoTranslation.On("IsChannelEnabled", mock.Anything).Return(true, nil)
+		mockAutoTranslation.On("Translate", mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(nil, nil)
+		originalAutoTranslation := th.Server.AutoTranslation
+		th.Server.AutoTranslation = mockAutoTranslation
+		defer func() {
+			th.Server.AutoTranslation = originalAutoTranslation
+		}()
+
+		_, err := client.Logout(context.Background())
+		require.NoError(t, err)
+		th.LoginBasic(t)
+
+		dmChannel, resp, err := client.CreateDirectChannel(context.Background(), th.BasicUser.Id, th.BasicUser2.Id)
+		require.NoError(t, err)
+		CheckCreatedStatus(t, resp)
+
+		nonMemberDmChannel, resp, err := th.SystemAdminClient.CreateDirectChannel(context.Background(), th.BasicUser2.Id, th.SystemAdminUser.Id)
+		require.NoError(t, err)
+		CheckCreatedStatus(t, resp)
+
+		patch := &model.ChannelPatch{
+			AutoTranslation: model.NewPointer(true),
+		}
+
+		_, resp, err = client.PatchChannel(context.Background(), dmChannel.Id, patch)
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+		patchedChannel, appErr := th.App.GetChannel(th.Context, dmChannel.Id)
+		require.Nil(t, appErr)
+		require.True(t, patchedChannel.AutoTranslation)
+
+		_, resp, err = client.PatchChannel(context.Background(), nonMemberDmChannel.Id, patch)
+		require.Error(t, err)
+		CheckForbiddenStatus(t, resp)
+	})
+
+	t.Run("Patch channel with autotranslation on GM is only available for members", func(t *testing.T) {
+		mockAutoTranslation := &einterfacesmocks.AutoTranslationInterface{}
+		mockAutoTranslation.On("IsFeatureAvailable").Return(true)
+		mockAutoTranslation.On("IsChannelEnabled", mock.Anything).Return(true, nil)
+		mockAutoTranslation.On("Translate", mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(nil, nil)
+		originalAutoTranslation := th.Server.AutoTranslation
+		th.Server.AutoTranslation = mockAutoTranslation
+		defer func() {
+			th.Server.AutoTranslation = originalAutoTranslation
+		}()
+
+		_, err := client.Logout(context.Background())
+		require.NoError(t, err)
+		th.LoginBasic(t)
+
+		user3 := th.CreateUser(t)
+
+		gmChannel, resp, err := client.CreateGroupChannel(context.Background(), []string{th.BasicUser.Id, th.BasicUser2.Id, user3.Id})
+		require.NoError(t, err)
+		CheckCreatedStatus(t, resp)
+
+		nonMemberGmChannel, resp, err := th.SystemAdminClient.CreateGroupChannel(context.Background(), []string{th.BasicUser2.Id, th.SystemAdminUser.Id, user3.Id})
+		require.NoError(t, err)
+		CheckCreatedStatus(t, resp)
+
+		patch := &model.ChannelPatch{
+			AutoTranslation: model.NewPointer(true),
+		}
+
+		_, resp, err = client.PatchChannel(context.Background(), gmChannel.Id, patch)
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+		patchedChannel, appErr := th.App.GetChannel(th.Context, gmChannel.Id)
+		require.Nil(t, appErr)
+		require.True(t, patchedChannel.AutoTranslation)
+
+		_, resp, err = client.PatchChannel(context.Background(), nonMemberGmChannel.Id, patch)
+		require.Error(t, err)
+		CheckForbiddenStatus(t, resp)
+	})
+
+	t.Run("Patch DM with AutoTranslation when RestrictDMAndGM is true returns 403", func(t *testing.T) {
+		mockAutoTranslation := &einterfacesmocks.AutoTranslationInterface{}
+		mockAutoTranslation.On("IsFeatureAvailable").Return(true)
+		mockAutoTranslation.On("IsChannelEnabled", mock.Anything).Return(true, nil)
+		mockAutoTranslation.On("Translate", mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(nil, nil)
+		originalAutoTranslation := th.Server.AutoTranslation
+		th.Server.AutoTranslation = mockAutoTranslation
+		defer func() {
+			th.Server.AutoTranslation = originalAutoTranslation
+		}()
+
+		_, err := client.Logout(context.Background())
+		require.NoError(t, err)
+		th.LoginBasic(t)
+
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.AutoTranslationSettings.RestrictDMAndGM = true
+		})
+		defer th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.AutoTranslationSettings.RestrictDMAndGM = false
+		})
+
+		dmChannel, resp, err := client.CreateDirectChannel(context.Background(), th.BasicUser.Id, th.BasicUser2.Id)
+		require.NoError(t, err)
+		CheckCreatedStatus(t, resp)
+
+		patch := &model.ChannelPatch{
+			AutoTranslation: model.NewPointer(true),
+		}
+
+		_, resp, err = client.PatchChannel(context.Background(), dmChannel.Id, patch)
+		require.Error(t, err)
+		CheckForbiddenStatus(t, resp)
+		// May be feature_not_available when AutoTranslation is nil, or auto_translation_restricted when RestrictDMAndGM applies
+		var appErr *model.AppError
+		require.True(t, errors.As(err, &appErr))
+		require.Contains(t, []string{"api.channel.patch_update_channel.feature_not_available.app_error", "api.channel.patch_update_channel.auto_translation_restricted.app_error"}, appErr.Id)
+	})
+
+	t.Run("Patch GM with AutoTranslation when RestrictDMAndGM is true returns 403", func(t *testing.T) {
+		mockAutoTranslation := &einterfacesmocks.AutoTranslationInterface{}
+		mockAutoTranslation.On("IsFeatureAvailable").Return(true)
+		mockAutoTranslation.On("IsChannelEnabled", mock.Anything).Return(true, nil)
+		mockAutoTranslation.On("Translate", mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(nil, nil)
+		originalAutoTranslation := th.Server.AutoTranslation
+		th.Server.AutoTranslation = mockAutoTranslation
+		defer func() {
+			th.Server.AutoTranslation = originalAutoTranslation
+		}()
+
+		_, err := client.Logout(context.Background())
+		require.NoError(t, err)
+		th.LoginBasic(t)
+
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.AutoTranslationSettings.RestrictDMAndGM = true
+		})
+		defer th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.AutoTranslationSettings.RestrictDMAndGM = false
+		})
+
+		user3 := th.CreateUser(t)
+		gmChannel, resp, err := client.CreateGroupChannel(context.Background(), []string{th.BasicUser.Id, th.BasicUser2.Id, user3.Id})
+		require.NoError(t, err)
+		CheckCreatedStatus(t, resp)
+
+		patch := &model.ChannelPatch{
+			AutoTranslation: model.NewPointer(true),
+		}
+
+		_, resp, err = client.PatchChannel(context.Background(), gmChannel.Id, patch)
+		require.Error(t, err)
+		CheckForbiddenStatus(t, resp)
+		// May be feature_not_available when AutoTranslation is nil, or auto_translation_restricted when RestrictDMAndGM applies
+		var appErr *model.AppError
+		require.True(t, errors.As(err, &appErr))
+		require.Contains(t, []string{"api.channel.patch_update_channel.feature_not_available.app_error", "api.channel.patch_update_channel.auto_translation_restricted.app_error"}, appErr.Id)
+	})
+
+	t.Run("Mixed patch only gets through if all permissions are met", func(t *testing.T) {
+		mockAutoTranslation := &einterfacesmocks.AutoTranslationInterface{}
+		mockAutoTranslation.On("IsFeatureAvailable").Return(true)
+		mockAutoTranslation.On("IsChannelEnabled", mock.Anything).Return(true, nil)
+		mockAutoTranslation.On("Translate", mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(nil, nil)
+		originalAutoTranslation := th.Server.AutoTranslation
+		th.Server.AutoTranslation = mockAutoTranslation
+		defer func() {
+			th.Server.AutoTranslation = originalAutoTranslation
+		}()
+
+		_, err := client.Logout(context.Background())
+		require.NoError(t, err)
+		th.LoginBasic(t)
+
+		th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
+		defer func() {
+			appErr := th.App.Srv().RemoveLicense()
+			require.Nil(t, appErr)
+		}()
+
+		// Mixed patch (channel property + AutoTranslation) fails when user lacks AutoTranslation permission
+		newHeader := "mixed patch header"
+		mixedPatch := &model.ChannelPatch{
+			Header:          &newHeader,
+			AutoTranslation: model.NewPointer(true),
+			BannerInfo: &model.ChannelBannerInfo{
+				Enabled: model.NewPointer(false),
+				Text:    model.NewPointer("mixed patch banner"),
+			},
+		}
+
+		// Permissions missing: AutoTranslation, BannerInfo
+		_, resp, err := client.PatchChannel(context.Background(), th.BasicChannel.Id, mixedPatch)
+		require.Error(t, err)
+		CheckForbiddenStatus(t, resp)
+
+		// Permissions missing: Channel properties
+		th.AddPermissionToRole(t, model.PermissionManagePublicChannelAutoTranslation.Id, model.SystemUserRoleId)
+		defer th.RemovePermissionFromRole(t, model.PermissionManagePublicChannelAutoTranslation.Id, model.SystemUserRoleId)
+		th.AddPermissionToRole(t, model.PermissionManagePublicChannelBanner.Id, model.SystemUserRoleId)
+		defer th.RemovePermissionFromRole(t, model.PermissionManagePublicChannelBanner.Id, model.SystemUserRoleId)
+		th.RemovePermissionFromRole(t, model.PermissionManagePublicChannelProperties.Id, model.ChannelUserRoleId)
+		defer th.AddPermissionToRole(t, model.PermissionManagePublicChannelProperties.Id, model.ChannelUserRoleId)
+
+		_, resp, err = client.PatchChannel(context.Background(), th.BasicChannel.Id, mixedPatch)
+		require.Error(t, err)
+		CheckForbiddenStatus(t, resp)
+
+		// Permissions missing: AutoTranslation
+		th.AddPermissionToRole(t, model.PermissionManagePublicChannelProperties.Id, model.ChannelUserRoleId)
+		th.RemovePermissionFromRole(t, model.PermissionManagePublicChannelAutoTranslation.Id, model.SystemUserRoleId)
+
+		_, resp, err = client.PatchChannel(context.Background(), th.BasicChannel.Id, mixedPatch)
+		require.Error(t, err)
+		CheckForbiddenStatus(t, resp)
+
+		// Permission missing: BannerInfo
+		th.AddPermissionToRole(t, model.PermissionManagePublicChannelAutoTranslation.Id, model.SystemUserRoleId)
+		th.RemovePermissionFromRole(t, model.PermissionManagePublicChannelBanner.Id, model.SystemUserRoleId)
+		_, resp, err = client.PatchChannel(context.Background(), th.BasicChannel.Id, mixedPatch)
+		require.Error(t, err)
+		CheckForbiddenStatus(t, resp)
+
+		// No missing permissions
+		th.AddPermissionToRole(t, model.PermissionManagePublicChannelBanner.Id, model.SystemUserRoleId)
+
+		patchedChannel, resp, err := client.PatchChannel(context.Background(), th.BasicChannel.Id, mixedPatch)
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+		require.Equal(t, newHeader, patchedChannel.Header)
+		require.True(t, patchedChannel.AutoTranslation)
 	})
 }
 
@@ -1625,50 +1997,50 @@ func TestGetChannel(t *testing.T) {
 	th := Setup(t).InitBasic(t)
 	client := th.Client
 
-	channel, _, err := client.GetChannel(context.Background(), th.BasicChannel.Id, "")
+	channel, _, err := client.GetChannel(context.Background(), th.BasicChannel.Id)
 	require.NoError(t, err)
 	require.Equal(t, th.BasicChannel.Id, channel.Id, "ids did not match")
 
 	_, err = client.RemoveUserFromChannel(context.Background(), th.BasicChannel.Id, th.BasicUser.Id)
 	require.NoError(t, err)
-	_, _, err = client.GetChannel(context.Background(), th.BasicChannel.Id, "")
+	_, _, err = client.GetChannel(context.Background(), th.BasicChannel.Id)
 	require.NoError(t, err)
 
-	channel, _, err = client.GetChannel(context.Background(), th.BasicPrivateChannel.Id, "")
+	channel, _, err = client.GetChannel(context.Background(), th.BasicPrivateChannel.Id)
 	require.NoError(t, err)
 	require.Equal(t, th.BasicPrivateChannel.Id, channel.Id, "ids did not match")
 
 	_, err = client.RemoveUserFromChannel(context.Background(), th.BasicPrivateChannel.Id, th.BasicUser.Id)
 	require.NoError(t, err)
-	_, resp, err := client.GetChannel(context.Background(), th.BasicPrivateChannel.Id, "")
+	_, resp, err := client.GetChannel(context.Background(), th.BasicPrivateChannel.Id)
 	require.Error(t, err)
 	CheckForbiddenStatus(t, resp)
 
-	_, resp, err = client.GetChannel(context.Background(), model.NewId(), "")
+	_, resp, err = client.GetChannel(context.Background(), model.NewId())
 	require.Error(t, err)
 	CheckNotFoundStatus(t, resp)
 
 	_, err = client.Logout(context.Background())
 	require.NoError(t, err)
-	_, resp, err = client.GetChannel(context.Background(), th.BasicChannel.Id, "")
+	_, resp, err = client.GetChannel(context.Background(), th.BasicChannel.Id)
 	require.Error(t, err)
 	CheckUnauthorizedStatus(t, resp)
 
 	user := th.CreateUser(t)
 	_, _, err = client.Login(context.Background(), user.Email, user.Password)
 	require.NoError(t, err)
-	_, resp, err = client.GetChannel(context.Background(), th.BasicChannel.Id, "")
+	_, resp, err = client.GetChannel(context.Background(), th.BasicChannel.Id)
 	require.Error(t, err)
 	CheckForbiddenStatus(t, resp)
 
 	th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
-		_, _, err = client.GetChannel(context.Background(), th.BasicChannel.Id, "")
+		_, _, err = client.GetChannel(context.Background(), th.BasicChannel.Id)
 		require.NoError(t, err)
 
-		_, _, err = client.GetChannel(context.Background(), th.BasicPrivateChannel.Id, "")
+		_, _, err = client.GetChannel(context.Background(), th.BasicPrivateChannel.Id)
 		require.NoError(t, err)
 
-		_, resp, err = client.GetChannel(context.Background(), th.BasicUser.Id, "")
+		_, resp, err = client.GetChannel(context.Background(), th.BasicUser.Id)
 		require.Error(t, err)
 		CheckNotFoundStatus(t, resp)
 	})
@@ -1930,21 +2302,22 @@ func TestGetPublicChannelsByIdsForTeam(t *testing.T) {
 
 	t.Run("should return 2 channels", func(t *testing.T) {
 		input := []string{th.BasicChannel.Id}
-		output := []string{th.BasicChannel.DisplayName}
+		expectedDisplayNames := []string{th.BasicChannel.DisplayName}
 
 		input = append(input, GenerateTestID())
 		input = append(input, th.BasicChannel2.Id)
 		input = append(input, th.BasicPrivateChannel.Id)
-		output = append(output, th.BasicChannel2.DisplayName)
-		sort.Strings(output)
+		expectedDisplayNames = append(expectedDisplayNames, th.BasicChannel2.DisplayName)
 
 		channels, _, err := client.GetPublicChannelsByIdsForTeam(context.Background(), teamId, input)
 		require.NoError(t, err)
 		require.Len(t, channels, 2, "should return 2 channels")
 
+		actualDisplayNames := make([]string, len(channels))
 		for i, c := range channels {
-			require.Equal(t, output[i], c.DisplayName, "missing channel")
+			actualDisplayNames[i] = c.DisplayName
 		}
+		require.ElementsMatch(t, expectedDisplayNames, actualDisplayNames, "missing channel")
 	})
 
 	t.Run("forbidden for invalid team", func(t *testing.T) {
@@ -3644,7 +4017,7 @@ func TestViewChannel(t *testing.T) {
 
 	member, _, err := client.GetChannelMember(context.Background(), th.BasicChannel.Id, th.BasicUser.Id, "")
 	require.NoError(t, err)
-	channel, _, err = client.GetChannel(context.Background(), th.BasicChannel.Id, "")
+	channel, _, err = client.GetChannel(context.Background(), th.BasicChannel.Id)
 	require.NoError(t, err)
 	require.Equal(t, channel.TotalMsgCount, member.MsgCount, "should match message counts")
 	require.Equal(t, int64(0), member.MentionCount, "should have no mentions")
@@ -3679,9 +4052,9 @@ func TestReadMultipleChannels(t *testing.T) {
 	user := th.BasicUser
 
 	t.Run("Should successfully mark public channels as read for self", func(t *testing.T) {
-		channel, _, err := client.GetChannel(context.Background(), th.BasicChannel.Id, "")
+		channel, _, err := client.GetChannel(context.Background(), th.BasicChannel.Id)
 		require.NoError(t, err)
-		channel2, _, err := client.GetChannel(context.Background(), th.BasicChannel2.Id, "")
+		channel2, _, err := client.GetChannel(context.Background(), th.BasicChannel2.Id)
 		require.NoError(t, err)
 
 		channelResponse, _, err := client.ReadMultipleChannels(context.Background(), user.Id, []string{channel.Id, channel2.Id})
@@ -3692,7 +4065,7 @@ func TestReadMultipleChannels(t *testing.T) {
 	})
 
 	t.Run("Should successfully mark private channels as read for self", func(t *testing.T) {
-		channel, _, err := client.GetChannel(context.Background(), th.BasicPrivateChannel.Id, "")
+		channel, _, err := client.GetChannel(context.Background(), th.BasicPrivateChannel.Id)
 		require.NoError(t, err)
 
 		// private channel without membership should be ignored
@@ -3704,7 +4077,7 @@ func TestReadMultipleChannels(t *testing.T) {
 	})
 
 	t.Run("Should fail marking public/private channels for other user", func(t *testing.T) {
-		channel, _, err := client.GetChannel(context.Background(), th.BasicChannel.Id, "")
+		channel, _, err := client.GetChannel(context.Background(), th.BasicChannel.Id)
 		require.NoError(t, err)
 
 		_, _, err = client.ReadMultipleChannels(context.Background(), th.BasicUser2.Id, []string{channel.Id})
@@ -3713,9 +4086,9 @@ func TestReadMultipleChannels(t *testing.T) {
 
 	t.Run("Admin should succeed in marking public/private channels for other user", func(t *testing.T) {
 		adminClient := th.SystemAdminClient
-		channel, _, err := adminClient.GetChannel(context.Background(), th.BasicChannel.Id, "")
+		channel, _, err := adminClient.GetChannel(context.Background(), th.BasicChannel.Id)
 		require.NoError(t, err)
-		privateChannel, _, err := adminClient.GetChannel(context.Background(), th.BasicPrivateChannel.Id, "")
+		privateChannel, _, err := adminClient.GetChannel(context.Background(), th.BasicPrivateChannel.Id)
 		require.NoError(t, err)
 
 		channelResponse, _, err := adminClient.ReadMultipleChannels(context.Background(), th.BasicUser2.Id, []string{channel.Id, privateChannel.Id})
@@ -3729,9 +4102,9 @@ func TestReadMultipleChannels(t *testing.T) {
 		th.LoginSystemManager(t)
 		sysMgrClient := th.SystemManagerClient
 
-		channel, _, err := sysMgrClient.GetChannel(context.Background(), th.BasicChannel.Id, "")
+		channel, _, err := sysMgrClient.GetChannel(context.Background(), th.BasicChannel.Id)
 		require.NoError(t, err)
-		privateChannel, _, err := sysMgrClient.GetChannel(context.Background(), th.BasicPrivateChannel.Id, "")
+		privateChannel, _, err := sysMgrClient.GetChannel(context.Background(), th.BasicPrivateChannel.Id)
 		require.NoError(t, err)
 
 		_, _, err = sysMgrClient.ReadMultipleChannels(context.Background(), th.BasicUser2.Id, []string{channel.Id, privateChannel.Id})
@@ -4119,6 +4492,124 @@ func TestUpdateChannelMemberSchemeRoles(t *testing.T) {
 	resp, err = SystemAdminClient.UpdateChannelMemberSchemeRoles(context.Background(), th.BasicChannel.Id, th.SystemAdminUser.Id, s4)
 	require.Error(t, err)
 	CheckUnauthorizedStatus(t, resp)
+}
+
+func TestUpdateChannelMemberAutotranslation(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+	client := th.Client
+
+	mockAutotranslation := &einterfacesmocks.AutoTranslationInterface{}
+	mockAutotranslation.On("IsFeatureAvailable").Return(true)
+	mockAutotranslation.On("IsChannelEnabled", mock.Anything).Return(true, nil)
+	mockAutotranslation.On("Translate", mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(nil, nil)
+	originalAutoTranslation := th.Server.AutoTranslation
+	th.Server.AutoTranslation = mockAutotranslation
+	defer func() {
+		th.Server.AutoTranslation = originalAutoTranslation
+	}()
+
+	channel := th.CreatePublicChannel(t)
+	_, appErr := th.App.AddUserToChannel(th.Context, th.BasicUser2, channel, false)
+	require.Nil(t, appErr)
+
+	t.Run("user can disable own autotranslation", func(t *testing.T) {
+		_, err := client.UpdateChannelMemberAutotranslation(context.Background(), channel.Id, th.BasicUser.Id, true)
+		require.NoError(t, err)
+
+		member, _, err := client.GetChannelMember(context.Background(), channel.Id, th.BasicUser.Id, "")
+		require.NoError(t, err)
+		require.True(t, member.AutoTranslationDisabled, "autotranslation should be disabled")
+	})
+
+	t.Run("user can enable own autotranslation", func(t *testing.T) {
+		_, err := client.UpdateChannelMemberAutotranslation(context.Background(), channel.Id, th.BasicUser.Id, false)
+		require.NoError(t, err)
+
+		member, _, err := client.GetChannelMember(context.Background(), channel.Id, th.BasicUser.Id, "")
+		require.NoError(t, err)
+		require.False(t, member.AutoTranslationDisabled, "autotranslation should be enabled")
+	})
+
+	t.Run("user cannot update other user autotranslation without permission", func(t *testing.T) {
+		resp, err := client.UpdateChannelMemberAutotranslation(context.Background(), channel.Id, th.BasicUser2.Id, true)
+		require.Error(t, err)
+		CheckForbiddenStatus(t, resp)
+
+		member, _, err := client.GetChannelMember(context.Background(), channel.Id, th.BasicUser2.Id, "")
+		require.NoError(t, err)
+		require.False(t, member.AutoTranslationDisabled, "autotranslation should remain enabled when update is forbidden")
+	})
+
+	t.Run("user with PermissionEditOtherUsers can update other user autotranslation", func(t *testing.T) {
+		_, err := th.SystemAdminClient.UpdateChannelMemberAutotranslation(context.Background(), channel.Id, th.BasicUser2.Id, true)
+		require.NoError(t, err)
+
+		member, _, err := th.SystemAdminClient.GetChannelMember(context.Background(), channel.Id, th.BasicUser2.Id, "")
+		require.NoError(t, err)
+		require.True(t, member.AutoTranslationDisabled, "autotranslation should be disabled")
+	})
+
+	t.Run("feature is disabled returns forbidden response", func(t *testing.T) {
+		// Use a dedicated mock so IsFeatureAvailable returns false. The handler returns
+		// before calling IsChannelEnabled/Translate, so we only need this expectation.
+		featureDisabledMock := &einterfacesmocks.AutoTranslationInterface{}
+		featureDisabledMock.On("IsFeatureAvailable").Return(false)
+		th.Server.AutoTranslation = featureDisabledMock
+		defer func() { th.Server.AutoTranslation = mockAutotranslation }()
+
+		resp, err := client.UpdateChannelMemberAutotranslation(context.Background(), channel.Id, th.BasicUser.Id, true)
+		require.Error(t, err)
+		CheckForbiddenStatus(t, resp)
+	})
+
+	t.Run("channel autotranslation is disabled returns bad request", func(t *testing.T) {
+		// Use a dedicated mock so IsChannelEnabled returns false.
+		channelDisabledMock := &einterfacesmocks.AutoTranslationInterface{}
+		channelDisabledMock.On("IsFeatureAvailable").Return(true)
+		channelDisabledMock.On("IsChannelEnabled", channel.Id).Return(false, nil)
+		th.Server.AutoTranslation = channelDisabledMock
+		defer func() { th.Server.AutoTranslation = mockAutotranslation }()
+
+		resp, err := client.UpdateChannelMemberAutotranslation(context.Background(), channel.Id, th.BasicUser.Id, true)
+		require.Error(t, err)
+		CheckBadRequestStatus(t, resp)
+	})
+
+	t.Run("invalid channel id returns bad request", func(t *testing.T) {
+		resp, err := client.UpdateChannelMemberAutotranslation(context.Background(), "junk", th.BasicUser.Id, true)
+		require.Error(t, err)
+		CheckBadRequestStatus(t, resp)
+	})
+
+	t.Run("invalid user id returns bad request", func(t *testing.T) {
+		resp, err := client.UpdateChannelMemberAutotranslation(context.Background(), channel.Id, "junk", true)
+		require.Error(t, err)
+		CheckBadRequestStatus(t, resp)
+	})
+
+	t.Run("nonexistent channel returns not found", func(t *testing.T) {
+		resp, err := client.UpdateChannelMemberAutotranslation(context.Background(), model.NewId(), th.BasicUser.Id, true)
+		require.Error(t, err)
+		CheckNotFoundStatus(t, resp)
+	})
+
+	t.Run("nonexistent user returns not found", func(t *testing.T) {
+		// Use SystemAdminClient so permission check passes and we get the "member not found" error from the app
+		resp, err := th.SystemAdminClient.UpdateChannelMemberAutotranslation(context.Background(), channel.Id, model.NewId(), true)
+		require.Error(t, err)
+		CheckNotFoundStatus(t, resp)
+	})
+
+	t.Run("unauthorized when not logged in", func(t *testing.T) {
+		_, err := client.Logout(context.Background())
+		require.NoError(t, err)
+		defer th.LoginBasic(t)
+
+		resp, err := client.UpdateChannelMemberAutotranslation(context.Background(), channel.Id, th.BasicUser.Id, true)
+		require.Error(t, err)
+		CheckUnauthorizedStatus(t, resp)
+	})
 }
 
 func TestUpdateChannelNotifyProps(t *testing.T) {

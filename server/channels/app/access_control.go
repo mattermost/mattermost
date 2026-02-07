@@ -229,6 +229,8 @@ func (a *App) UnassignPoliciesFromChannels(rctx request.CTX, policyID string, ch
 			if err := acs.DeletePolicy(rctx, child.ID); err != nil {
 				return model.NewAppError("UnassignPoliciesFromChannels", "app.pap.unassign_access_control_policy_from_channels.app_error", nil, err.Error(), http.StatusInternalServerError)
 			}
+			// invalidate the channel cache
+			a.Srv().Store().Channel().InvalidateChannel(channelID)
 			continue
 		}
 		_, appErr = acs.SavePolicy(rctx, child)
@@ -302,15 +304,6 @@ func (a *App) GetAccessControlFieldsAutocomplete(rctx request.CTX, after string,
 	return fields, nil
 }
 
-func (a *App) UpdateAccessControlPolicyActive(rctx request.CTX, policyID string, active bool) *model.AppError {
-	_, err := a.Srv().Store().AccessControlPolicy().SetActiveStatus(rctx, policyID, active)
-	if err != nil {
-		return model.NewAppError("UpdateAccessControlPolicyActive", "app.pap.update_access_control_policy_active.app_error", nil, err.Error(), http.StatusInternalServerError)
-	}
-
-	return nil
-}
-
 func (a *App) UpdateAccessControlPoliciesActive(rctx request.CTX, updates []model.AccessControlPolicyActiveUpdate) ([]*model.AccessControlPolicy, *model.AppError) {
 	acs := a.Srv().ch.AccessControl
 	if acs == nil {
@@ -347,7 +340,7 @@ func (a *App) ValidateChannelAccessControlPermission(rctx request.CTX, userID, c
 	}
 
 	// Check if user has channel admin permission for the specific channel
-	if !a.HasPermissionToChannel(rctx, userID, channelID, model.PermissionManageChannelAccessRules) {
+	if ok, _ := a.HasPermissionToChannel(rctx, userID, channelID, model.PermissionManageChannelAccessRules); !ok {
 		return model.NewAppError("ValidateChannelAccessControlPermission", "app.pap.access_control.insufficient_channel_permissions", nil, "user_id="+userID+" channel_id="+channelID, http.StatusForbidden)
 	}
 
@@ -392,7 +385,7 @@ func (a *App) ValidateAccessControlPolicyPermissionWithOptions(rctx request.CTX,
 	// For read-only operations, allow access to system policies if they're applied to the specific channel
 	if opts.isReadOnly && policy.Type != model.AccessControlPolicyTypeChannel && opts.channelID != "" {
 		// Check if user has access to the channel
-		if !a.HasPermissionToChannel(rctx, userID, opts.channelID, model.PermissionReadChannel) {
+		if ok, _ := a.HasPermissionToChannel(rctx, userID, opts.channelID, model.PermissionReadChannel); !ok {
 			return model.NewAppError("ValidateAccessControlPolicyPermissionWithOptions", "app.pap.access_control.insufficient_permissions", nil, "user_id="+userID+" channel_id="+opts.channelID, http.StatusForbidden)
 		}
 

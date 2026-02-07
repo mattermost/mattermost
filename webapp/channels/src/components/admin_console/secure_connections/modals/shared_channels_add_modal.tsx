@@ -7,7 +7,6 @@ import {FormattedMessage, useIntl} from 'react-intl';
 import {useDispatch, useSelector} from 'react-redux';
 import styled from 'styled-components';
 
-import {ArchiveOutlineIcon, GlobeIcon, LockIcon} from '@mattermost/compass-icons/components';
 import type IconProps from '@mattermost/compass-icons/components/props';
 import {GenericModal} from '@mattermost/components';
 import type {Channel, ChannelWithTeamData} from '@mattermost/types/channels';
@@ -19,7 +18,7 @@ import {getChannel} from 'mattermost-redux/selectors/entities/channels';
 import SectionNotice from 'components/section_notice';
 import ChannelsInput from 'components/widgets/inputs/channels_input';
 
-import {isArchivedChannel} from 'utils/channel_utils';
+import {getChannelIconComponent} from 'utils/channel_utils';
 import Constants from 'utils/constants';
 
 import type {GlobalState} from 'types/store';
@@ -269,15 +268,7 @@ const ChannelLabel = ({channel, bold}: {channel: Channel; bold?: boolean}) => {
 };
 
 const ChannelIcon = ({channel, size = 16, ...otherProps}: {channel: Channel} & IconProps) => {
-    let Icon = GlobeIcon;
-
-    if (channel?.type === Constants.PRIVATE_CHANNEL) {
-        Icon = LockIcon;
-    }
-
-    if (isArchivedChannel(channel)) {
-        Icon = ArchiveOutlineIcon;
-    }
+    const Icon = getChannelIconComponent(channel);
 
     return (
         <Icon

@@ -21,14 +21,18 @@ const (
 
 var cpaGroupID string
 
+func (a *App) CpaGroupID() (string, error) {
+	return getCpaGroupID(a.Srv().propertyAccessService)
+}
+
 // ToDo: we should explore moving this to the database cache layer
 // instead of maintaining the ID cached at the application level
-func (a *App) CpaGroupID() (string, error) {
+func getCpaGroupID(service *PropertyAccessService) (string, error) {
 	if cpaGroupID != "" {
 		return cpaGroupID, nil
 	}
 
-	cpaGroup, err := a.Srv().propertyAccessService.RegisterPropertyGroup(model.CustomProfileAttributesPropertyGroupName)
+	cpaGroup, err := service.RegisterPropertyGroup(model.CustomProfileAttributesPropertyGroupName)
 	if err != nil {
 		return "", errors.Wrap(err, "cannot register Custom Profile Attributes property group")
 	}

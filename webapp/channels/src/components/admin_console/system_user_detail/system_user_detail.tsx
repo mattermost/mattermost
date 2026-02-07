@@ -8,6 +8,7 @@ import React, {PureComponent} from 'react';
 import type {ChangeEvent, MouseEvent} from 'react';
 import type {IntlShape, WrappedComponentProps} from 'react-intl';
 import {FormattedMessage, defineMessage, injectIntl} from 'react-intl';
+import {useSelector} from 'react-redux';
 import type {RouteComponentProps} from 'react-router-dom';
 import ReactSelect from 'react-select';
 import {useSelector} from 'react-redux';
@@ -20,6 +21,8 @@ import type {UserProfile} from '@mattermost/types/users';
 
 import type {ActionResult} from 'mattermost-redux/types/actions';
 import {isEmail, getInputTypeFromValueType} from 'mattermost-redux/utils/helpers';
+
+import {getPluginDisplayName} from 'selectors/plugins';
 
 import AdminUserCard from 'components/admin_console/admin_user_card/admin_user_card';
 import BlockableLink from 'components/admin_console/blockable_link';
@@ -45,6 +48,8 @@ import type {GlobalState} from 'types/store';
 import {Constants, ModalIdentifiers} from 'utils/constants';
 import {validHttpUrl} from 'utils/url';
 import {toTitleCase} from 'utils/utils';
+
+import type {GlobalState} from 'types/store';
 
 import type {PropsFromRedux} from './index';
 
@@ -896,7 +901,7 @@ export class SystemUserDetail extends PureComponent<Props, State> {
                                         <WithTooltip
                                             title={defineMessage({
                                                 id: 'generic.enterprise_feature',
-                                                defaultMessage: 'Enterprise feature',
+                                                defaultMessage: 'Enterprise Feature',
                                             })}
                                             hint={defineMessage({
                                                 id: 'admin.user_item.manageSettings.disabled_tooltip',
@@ -1004,7 +1009,7 @@ export class SystemUserDetail extends PureComponent<Props, State> {
                     message={
                         <div>
                             <FormattedMessage
-                                id='deactivate_member_modal.desc'
+                                id='deactivate_member_modal.desc_with_confirmation'
                                 defaultMessage='This action deactivates {username}. They will be logged out and not have access to any teams or channels on this system. Are you sure you want to deactivate {username}?'
                                 values={{
                                     username: this.state.user?.username ?? '',

@@ -6370,10 +6370,6 @@
     "translation": "You will not receive notifications for {{.Channel}} until channel mute is turned off."
   },
   {
-    "id": "api.command_mute.not_member.error",
-    "translation": "Could not mute channel {{.Channel}} as you are not a member."
-  },
-  {
     "id": "api.command_mute.no_channel.error",
     "translation": "Could not find the specified channel. Please use the [channel handle](https://docs.mattermost.com/messaging/managing-channels.html#naming-a-channel) to identify channels."
   },
@@ -8595,10 +8591,6 @@
     "translation": "Unable to remove OAuth data."
   },
   {
-    "id": "api.server.cws.subscribe_to_newsletter.app_error",
-    "translation": "CWS Server failed to subscribe to newsletter."
-  },
-  {
     "id": "api.license.request-trial.bad-request.business-email",
     "translation": "Invalid business email for trial"
   },
@@ -10493,10 +10485,6 @@
     "translation": "Could not unassign access control policy from channels."
   },
   {
-    "id": "app.pap.update_access_control_policy_active.app_error",
-    "translation": "Could not change active status of access control policy."
-  },
-  {
     "id": "app.pdp.access_evaluation.app_error",
     "translation": "Failed evaluate access control policy."
   },
@@ -11043,18 +11031,6 @@
   {
     "id": "model.config.is_valid.autotranslation.provider.unsupported.app_error",
     "translation": "Unsupported autotranslation provider."
-  },
-  {
-    "id": "model.config.is_valid.autotranslation.timeouts.fetch.app_error",
-    "translation": "Invalid fetch timeout for autotranslation settings. Must be a positive number."
-  },
-  {
-    "id": "model.config.is_valid.autotranslation.timeouts.new_post.app_error",
-    "translation": "Invalid new post timeout for autotranslation settings. Must be a positive number."
-  },
-  {
-    "id": "model.config.is_valid.autotranslation.timeouts.notification.app_error",
-    "translation": "Invalid notification timeout for autotranslation settings. Must be a positive number."
   },
   {
     "id": "model.config.is_valid.client_side_cert_enable.app_error",
@@ -11619,65 +11595,5 @@
   {
     "id": "model.post.query_params.invalid_time_field",
     "translation": "Invalid time field."
-  },
-  {
-    "id": "store.sql_autotranslation.channel_not_found",
-    "translation": "Channel not found."
-  },
-  {
-    "id": "store.sql_autotranslation.get.app_error",
-    "translation": "Unable to get translation."
-  },
-  {
-    "id": "store.sql_autotranslation.get_active_languages.app_error",
-    "translation": "Unable to get active languages."
-  },
-  {
-    "id": "store.sql_autotranslation.get_channel_enabled.app_error",
-    "translation": "Unable to get channel autotranslation enabled status."
-  },
-  {
-    "id": "store.sql_autotranslation.get_user_enabled.app_error",
-    "translation": "Unable to get user autotranslation enabled status."
-  },
-  {
-    "id": "store.sql_autotranslation.get_user_language.app_error",
-    "translation": "Unable to get user language."
-  },
-  {
-    "id": "store.sql_autotranslation.is_channel_enabled.app_error",
-    "translation": "Unable to get channel autotranslation enabled status."
-  },
-  {
-    "id": "store.sql_autotranslation.member_not_found",
-    "translation": "Member not found."
-  },
-  {
-    "id": "store.sql_autotranslation.meta_json.app_error",
-    "translation": "Failed to parse translation metadata JSON."
-  },
-  {
-    "id": "store.sql_autotranslation.query_build_error",
-    "translation": "Failed to build query."
-  },
-  {
-    "id": "store.sql_autotranslation.save.app_error",
-    "translation": "Unable to save translation."
-  },
-  {
-    "id": "store.sql_autotranslation.save.invalid_translation",
-    "translation": "Translation validation failed. The translation object is invalid."
-  },
-  {
-    "id": "store.sql_autotranslation.save.meta_json.app_error",
-    "translation": "Failed to serialise translation metadata to JSON."
-  },
-  {
-    "id": "store.sql_autotranslation.set_channel_enabled.app_error",
-    "translation": "Unable to set channel autotranslation enabled status."
-  },
-  {
-    "id": "store.sql_autotranslation.set_user_enabled.app_error",
-    "translation": "Unable to set user autotranslation enabled status."
   }
 ]
