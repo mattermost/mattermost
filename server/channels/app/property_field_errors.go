@@ -75,6 +75,21 @@ func HandlePropertyFieldError(err error, config PropertyFieldErrorConfig, errorK
 	// Check for store errors
 	var nfErr *store.ErrNotFound
 	if errors.As(err, &nfErr) {
+		// For delete operations, use delete error key instead of not found key
+		// This is because trying to delete a non-existent field is a delete operation error
+		if errorKey == "delete" {
+			key := config.DeleteKey
+			if key == "" {
+				key = "property_field_delete.app_error"
+			}
+			return model.NewAppError(
+				config.Operation,
+				config.ErrorKeyPrefix+"."+key,
+				nil,
+				"",
+				http.StatusNotFound,
+			).Wrap(err)
+		}
 		key := config.NotFoundKey
 		if key == "" {
 			key = "property_field_not_found.app_error"
@@ -90,6 +105,21 @@ func HandlePropertyFieldError(err error, config PropertyFieldErrorConfig, errorK
 
 	// Check for sql.ErrNoRows (legacy support, used in some Get operations)
 	if errors.Is(err, sql.ErrNoRows) {
+		// For delete operations, use delete error key instead of not found key
+		// This is because trying to delete a non-existent field is a delete operation error
+		if errorKey == "delete" {
+			key := config.DeleteKey
+			if key == "" {
+				key = "property_field_delete.app_error"
+			}
+			return model.NewAppError(
+				config.Operation,
+				config.ErrorKeyPrefix+"."+key,
+				nil,
+				"",
+				http.StatusNotFound,
+			).Wrap(err)
+		}
 		key := config.NotFoundKey
 		if key == "" {
 			key = "property_field_not_found.app_error"
