@@ -1,0 +1,17 @@
+{
+    "compilerOptions": {
+        "module": "ESNext",
+        "moduleResolution": "bundler",
+        "target": "ES2022",
+        "strict": true,
+        "resolveJsonModule": true,
+        "isolatedModules": true,
+        "esModuleInterop": true,
+        "allowSyntheticDefaultImports": true,
+        "skipLibCheck": true,
+        "noEmit": true,
+        "baseUrl": "."
+    },
+    "include": ["e2e-test-gen-cli.ts", "lib/src/spec-bridge.ts", "lib/src/e2e-test-gen/**/*"],
+    "exclude": ["node_modules"]
+}
