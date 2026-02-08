@@ -79,10 +79,11 @@ jest.mock('react-router-dom', () => ({
     }),
 }));
 
-// Mock components to break circular dependency chains through member_row imports
-jest.mock('components/profile_picture', () => () => null);
-jest.mock('components/profile_popover', () => ({children}: any) => children || null);
-jest.mock('components/custom_status/custom_status_emoji', () => () => null);
+// Mock member_row to break ALL circular dependency chains at once
+// member_row imports profile_picture, profile_popover, custom_status_emoji,
+// and selectors/views/custom_status - all of which eventually reach
+// utils/constants -> post_list -> posts.ts circular dependency
+jest.mock('components/persistent_rhs/member_row', () => () => null);
 
 describe('Guilded Layout Status Syncing', () => {
     const dispatch = jest.fn();
