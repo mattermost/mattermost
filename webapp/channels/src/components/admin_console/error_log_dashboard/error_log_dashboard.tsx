@@ -944,7 +944,14 @@ const ErrorLogDashboard: React.FC<Props> = ({config, patchConfig}) => {
 
         filteredErrors.forEach((error) => {
             // Create a key from the message (normalized)
-            const key = error.message.trim().toLowerCase();
+            // Remove timestamp patterns like [1770561332.93] to allow proper grouping
+            const normalizedMessage = error.message
+                .replace(/^\[\d+\.?\d*\]\s*/, '') // Remove [timestamp] at start
+                .replace(/\btimestamp[:\s=]+\d+\.?\d*/gi, '') // Remove timestamp=12345 patterns
+                .replace(/\bat[:\s=]+\d+\.?\d*/gi, '') // Remove at=12345 patterns
+                .trim()
+                .toLowerCase();
+            const key = normalizedMessage;
 
             if (groups.has(key)) {
                 const group = groups.get(key)!;

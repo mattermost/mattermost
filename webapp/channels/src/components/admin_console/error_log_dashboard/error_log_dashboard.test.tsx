@@ -546,4 +546,71 @@ describe('ErrorLogDashboard', () => {
 
         expect(mockWriteText).toHaveBeenCalled();
     });
+
+    test('should group errors with timestamps together', async () => {
+        // Mock errors with timestamps in messages
+        const timestampedErrors = [
+            {
+                id: 'ws1',
+                create_at: Date.now() - 60000,
+                type: 'js' as const,
+                user_id: 'user1',
+                username: 'user1',
+                message: '[1770561332.93] WSClient websocket onerror. data: {"isTrusted":true}',
+                stack: 'Error stack',
+                url: '/channels/test',
+                user_agent: 'Mozilla/5.0',
+            },
+            {
+                id: 'ws2',
+                create_at: Date.now() - 30000,
+                type: 'js' as const,
+                user_id: 'user2',
+                username: 'user2',
+                message: '[1770533397.71] WSClient websocket onerror. data: {"isTrusted":true}',
+                stack: 'Error stack',
+                url: '/channels/test',
+                user_agent: 'Mozilla/5.0',
+            },
+            {
+                id: 'ws3',
+                create_at: Date.now() - 10000,
+                type: 'js' as const,
+                user_id: 'user1',
+                username: 'user1',
+                message: '[1770599999.12] WSClient websocket onerror. data: {"isTrusted":true}',
+                stack: 'Error stack',
+                url: '/channels/test',
+                user_agent: 'Mozilla/5.0',
+            },
+        ];
+
+        Client4.getErrorLogs.mockResolvedValue({
+            errors: timestampedErrors,
+            stats: {total: 3, api: 0, js: 3},
+        });
+
+        renderWithContext(
+            <ErrorLogDashboard
+                config={baseConfig}
+                patchConfig={mockPatchConfig}
+            />,
+        );
+
+        // Wait for data to load - should be in grouped mode by default
+        await waitFor(() => {
+            expect(screen.getByText(/WSClient websocket onerror/i)).toBeInTheDocument();
+        });
+
+        // In grouped mode, all 3 errors should be grouped into 1 group
+        // Look for the occurrence count text
+        await waitFor(() => {
+            expect(screen.getByText('3 occurrences')).toBeInTheDocument();
+        });
+
+        // Should show 2 users in the group
+        await waitFor(() => {
+            expect(screen.getByText('2 users')).toBeInTheDocument();
+        });
+    });
 });
