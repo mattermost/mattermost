@@ -28,7 +28,7 @@ import DmSearchInput from './dm_search_input';
 
 import './dm_list_page.scss';
 
-const ROW_HEIGHT = 60;
+const ROW_HEIGHT = 52;
 
 const DMListPage = () => {
     const dispatch = useDispatch();

@@ -6,9 +6,9 @@
     position: relative;
     display: flex;
     overflow: hidden;
-    height: 60px;
+    height: 52px;
     align-items: center;
-    padding: 7px 18px 7px 21px;
+    padding: 4px 18px 4px 21px;
     color: rgba(var(--sidebar-text-rgb), 0.64);
     cursor: pointer;
     list-style-type: none;
@@ -92,8 +92,9 @@
     &__display-name {
         overflow: hidden;
         height: 20px;
-        color: rgba(var(--sidebar-text-rgb), 0.64);
+        color: rgba(var(--sidebar-text-rgb), 0.9);
         font-size: 15px;
+        font-weight: 600;
         line-height: 20px;
         text-overflow: ellipsis;
         user-select: none;
@@ -117,7 +118,7 @@
     &__preview {
         overflow: hidden;
         flex: 1;
-        color: rgba(var(--sidebar-text-rgb), 0.56);
+        color: rgba(var(--sidebar-text-rgb), 0.64);
         font-size: 13px;
         text-overflow: ellipsis;
         white-space: nowrap;
