@@ -9,6 +9,10 @@ on:
 permissions:
   contents: read
 
+# Auto-discovery test system: Go tests are discovered via '// mattermost-extended-test'
+# marker comments. Webapp tests run from the centralized tests/mattermost_extended/ folder.
+# To add a new test: add the marker to Go files, or place webapp tests in that folder.
+
 jobs:
   # Quick unit tests that don't need Docker
   unit-tests:
@@ -36,13 +40,26 @@ jobs:
       - name: Create results directory
         run: mkdir -p test-results
 
-      - name: Run Model Tests (MattermostExtended + StatusLog)
-        id: model-tests
+      - name: Discover and run marked tests
+        id: run-tests
         continue-on-error: true
         working-directory: ./server
         run: |
-          gotestsum --format testname --junitfile ../test-results/model-tests.xml -- -v \
-            -run "TestMattermostExtended|TestStatusLog" \
+          # Find all marked test files in server/public/model/
+          FILES=$(grep -rl '// mattermost-extended-test' ./public/model/ --include '*_test.go' || true)
+          if [ -z "$FILES" ]; then
+            echo "No marked test files found in ./public/model/"
+            echo "skip=true" >> $GITHUB_OUTPUT
+            exit 0
+          fi
+
+          # Extract all Test* function names
+          PATTERN=$(grep -ohE 'func (Test[A-Za-z0-9_]+)' $FILES | sed 's/func //' | sort -u | paste -sd '|')
+          echo "Discovered test pattern: $PATTERN"
+          echo "From files: $FILES"
+
+          gotestsum --format testname --junitfile ../test-results/unit-tests.xml -- -v \
+            -run "$PATTERN" \
             ./public/model/... \
             -timeout 10m
 
@@ -60,36 +77,41 @@ jobs:
           echo "## Unit Tests Summary" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
 
-          if [ -f test-results/model-tests.xml ]; then
-            TESTS=$(grep -o 'tests="[0-9]*"' test-results/model-tests.xml | head -1 | grep -o '[0-9]*' || echo "0")
-            FAILURES=$(grep -o 'failures="[0-9]*"' test-results/model-tests.xml | head -1 | grep -o '[0-9]*' || echo "0")
-            ERRORS=$(grep -o 'errors="[0-9]*"' test-results/model-tests.xml | head -1 | grep -o '[0-9]*' || echo "0")
-
-            if [ "$FAILURES" = "0" ] && [ "$ERRORS" = "0" ]; then
-              echo "✅ **Model Tests**: $TESTS tests passed" >> $GITHUB_STEP_SUMMARY
-            else
-              echo "❌ **Model Tests**: $FAILURES failures, $ERRORS errors out of $TESTS tests" >> $GITHUB_STEP_SUMMARY
-              echo "" >> $GITHUB_STEP_SUMMARY
-              echo "<details><summary>View failures</summary>" >> $GITHUB_STEP_SUMMARY
-              echo "" >> $GITHUB_STEP_SUMMARY
-              echo '```' >> $GITHUB_STEP_SUMMARY
-              grep -A 10 '<failure' test-results/model-tests.xml | head -100 >> $GITHUB_STEP_SUMMARY || true
-              echo '```' >> $GITHUB_STEP_SUMMARY
-              echo "</details>" >> $GITHUB_STEP_SUMMARY
-            fi
-          else
-            echo "⚠️ **Model Tests**: No results file found" >> $GITHUB_STEP_SUMMARY
+          if [ "${{ steps.run-tests.outputs.skip }}" = "true" ]; then
+            echo "No marked test files found" >> $GITHUB_STEP_SUMMARY
+            exit 0
           fi
+
+          for file in test-results/*.xml; do
+            if [ -f "$file" ]; then
+              NAME=$(basename "$file" .xml)
+              TESTS=$(grep -o 'tests="[0-9]*"' "$file" | head -1 | grep -o '[0-9]*' || echo "0")
+              FAILURES=$(grep -o 'failures="[0-9]*"' "$file" | head -1 | grep -o '[0-9]*' || echo "0")
+              ERRORS=$(grep -o 'errors="[0-9]*"' "$file" | head -1 | grep -o '[0-9]*' || echo "0")
+
+              if [ "$FAILURES" = "0" ] && [ "$ERRORS" = "0" ]; then
+                echo "- **$NAME**: $TESTS tests passed" >> $GITHUB_STEP_SUMMARY
+              else
+                echo "- **$NAME**: $FAILURES failures, $ERRORS errors out of $TESTS tests" >> $GITHUB_STEP_SUMMARY
+                echo "<details><summary>View failures</summary>" >> $GITHUB_STEP_SUMMARY
+                echo "" >> $GITHUB_STEP_SUMMARY
+                echo '```' >> $GITHUB_STEP_SUMMARY
+                grep -A 10 '<failure' "$file" | head -100 >> $GITHUB_STEP_SUMMARY || true
+                echo '```' >> $GITHUB_STEP_SUMMARY
+                echo "</details>" >> $GITHUB_STEP_SUMMARY
+              fi
+            fi
+          done
 
       - name: Check for failures
         if: always()
         run: |
-          if [ "${{ steps.model-tests.outcome }}" = "failure" ]; then
+          if [ "${{ steps.run-tests.outcome }}" = "failure" ]; then
             echo "::error::Unit tests failed"
             exit 1
           fi
 
-  # Webapp Jest tests for Mattermost Extended features
+  # Webapp Jest tests - auto-discovered from centralized folder
   webapp-tests:
     name: Webapp Tests
     runs-on: ubuntu-latest
@@ -111,93 +133,16 @@ jobs:
       - name: Create results directory
         run: mkdir -p test-results
 
-      - name: Run Encryption Utility Tests
-        id: encryption-tests
-        continue-on-error: true
-        working-directory: ./webapp/channels
-        run: |
-          set -o pipefail
-          npm test -- --ci --coverage=false \
-            --testPathPatterns="utils/encryption/.*\\.test\\.(ts|tsx)$" \
-            2>&1 | tee ../../test-results/encryption-tests.log
-          cp build/test-results.xml ../../test-results/encryption-tests.xml 2>/dev/null || true
-
-      - name: Run Status Log Dashboard Tests
-        id: status-log-dashboard-tests
-        continue-on-error: true
-        working-directory: ./webapp/channels
-        run: |
-          set -o pipefail
-          npm test -- --ci --coverage=false \
-            --testPathPatterns="status_log_dashboard\\.test\\.tsx$" \
-            2>&1 | tee ../../test-results/status-log-dashboard.log
-          cp build/test-results.xml ../../test-results/status-log-dashboard.xml 2>/dev/null || true
-
-      - name: Run Error Log Dashboard Tests
-        id: error-log-dashboard-tests
-        continue-on-error: true
-        working-directory: ./webapp/channels
-        run: |
-          set -o pipefail
-          npm test -- --ci --coverage=false \
-            --testPathPatterns="error_log_dashboard\\.test\\.tsx$" \
-            2>&1 | tee ../../test-results/error-log-dashboard.log
-          cp build/test-results.xml ../../test-results/error-log-dashboard.xml 2>/dev/null || true
-
-      - name: Run Preference Overrides Dashboard Tests
-        id: preference-overrides-tests
-        continue-on-error: true
-        working-directory: ./webapp/channels
-        run: |
-          set -o pipefail
-          npm test -- --ci --coverage=false \
-            --testPathPatterns="preference_overrides_dashboard\\.test\\.tsx$" \
-            2>&1 | tee ../../test-results/preference-overrides.log
-          cp build/test-results.xml ../../test-results/preference-overrides.xml 2>/dev/null || true
-
-      - name: Run Video Component Tests
-        id: video-tests
-        continue-on-error: true
-        working-directory: ./webapp/channels
-        run: |
-          set -o pipefail
-          npm test -- --ci --coverage=false \
-            --testPathPatterns="(video_player|video_link_embed|youtube_video_discord)\\.test\\.tsx$" \
-            2>&1 | tee ../../test-results/video-tests.log
-          cp build/test-results.xml ../../test-results/video-tests.xml 2>/dev/null || true
-
-      - name: Run Custom Icons Tests
-        id: icons-tests
-        continue-on-error: true
-        working-directory: ./webapp/channels
-        run: |
-          set -o pipefail
-          npm test -- --ci --coverage=false \
-            --testPathPatterns="icon_libraries/(custom_svgs|types)\\.test\\.ts$" \
-            2>&1 | tee ../../test-results/icons-tests.log
-          cp build/test-results.xml ../../test-results/icons-tests.xml 2>/dev/null || true
-
-      - name: Run Mattermost Extended Feature Tests
-        id: mattermost-extended-tests
+      - name: Run all Mattermost Extended webapp tests
+        id: webapp-tests
         continue-on-error: true
         working-directory: ./webapp/channels
         run: |
           set -o pipefail
           npm test -- --ci --coverage=false \
             --testPathPatterns="tests/mattermost_extended/.*\\.test\\.(ts|tsx)$" \
-            2>&1 | tee ../../test-results/mattermost-extended-tests.log
-          cp build/test-results.xml ../../test-results/mattermost-extended-tests.xml 2>/dev/null || true
-
-      - name: Run Guilded Layout Tests
-        id: guilded-layout-tests
-        continue-on-error: true
-        working-directory: ./webapp/channels
-        run: |
-          set -o pipefail
-          npm test -- --ci --coverage=false \
-            --testPathPatterns="guilded_layout\\.test\\.(ts|tsx)$|guilded_team_sidebar.*\\.test\\.(ts|tsx)$|team_sidebar/__tests__/team_sidebar\\.test\\.tsx$|sidebar_right/__tests__/sidebar_right\\.test\\.tsx$|persistent_rhs.*\\.test\\.(ts|tsx)$|dm_list_page.*\\.test\\.(ts|tsx)$|enhanced_dm_row.*\\.test\\.(ts|tsx)$|enhanced_group_dm_row.*\\.test\\.(ts|tsx)$|dm_preview_utils\\.test\\.(ts|tsx)$|tests/mattermost_extended/guilded_.*\\.test\\.(ts|tsx)$|tests/mattermost_extended/guilded_group_dm\\.test\\.(ts|tsx)$" \
-            2>&1 | tee ../../test-results/guilded-layout-tests.log
-          cp build/test-results.xml ../../test-results/guilded-layout-tests.xml 2>/dev/null || true
+            2>&1 | tee ../../test-results/webapp-tests.log
+          cp build/test-results.xml ../../test-results/webapp-tests.xml 2>/dev/null || true
 
       - name: Upload test results
         if: always()
@@ -213,62 +158,36 @@ jobs:
           echo "## Webapp Tests Summary" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
 
-          # Check log files for test results if XML not available
           for logfile in test-results/*.log; do
             if [ -f "$logfile" ]; then
               NAME=$(basename "$logfile" .log)
-              XMLFILE="test-results/${NAME}.xml"
 
-              if [ -f "$XMLFILE" ]; then
-                TESTS=$(grep -o 'tests="[0-9]*"' "$XMLFILE" | head -1 | grep -o '[0-9]*' || echo "0")
-                FAILURES=$(grep -o 'failures="[0-9]*"' "$XMLFILE" | head -1 | grep -o '[0-9]*' || echo "0")
-                ERRORS=$(grep -o 'errors="[0-9]*"' "$XMLFILE" | head -1 | grep -o '[0-9]*' || echo "0")
-
-                if [ "$FAILURES" = "0" ] && [ "$ERRORS" = "0" ]; then
-                  echo "✅ **$NAME**: $TESTS tests passed" >> $GITHUB_STEP_SUMMARY
-                else
-                  echo "❌ **$NAME**: $FAILURES failures, $ERRORS errors out of $TESTS tests" >> $GITHUB_STEP_SUMMARY
-                  echo "" >> $GITHUB_STEP_SUMMARY
-                  echo "<details><summary>View failures for $NAME</summary>" >> $GITHUB_STEP_SUMMARY
-                  echo "" >> $GITHUB_STEP_SUMMARY
-                  echo '```' >> $GITHUB_STEP_SUMMARY
-                  grep -A 10 '<failure' "$XMLFILE" | head -100 >> $GITHUB_STEP_SUMMARY || true
-                  echo '```' >> $GITHUB_STEP_SUMMARY
-                  echo "</details>" >> $GITHUB_STEP_SUMMARY
-                  echo "" >> $GITHUB_STEP_SUMMARY
-                fi
-              else
-                # Parse from log file - Jest outputs "Tests: X passed, X total" or "Test Suites: X passed"
-                # Also check for deprecation/error messages
-                if grep -q "was replaced by" "$logfile"; then
-                  ERROR_MSG=$(grep "was replaced by" "$logfile" | head -1)
-                  echo "❌ **$NAME**: Jest CLI error - $ERROR_MSG" >> $GITHUB_STEP_SUMMARY
-                elif grep -q "PASS\|FAIL" "$logfile"; then
-                  # Jest ran - look for summary line
-                  SUMMARY=$(grep -E "Tests:.*[0-9]+ (passed|failed)" "$logfile" | tail -1 || echo "")
-                  if [ -n "$SUMMARY" ]; then
-                    if echo "$SUMMARY" | grep -q "failed"; then
-                      echo "❌ **$NAME**: $SUMMARY" >> $GITHUB_STEP_SUMMARY
-                    else
-                      echo "✅ **$NAME**: $SUMMARY" >> $GITHUB_STEP_SUMMARY
-                    fi
+              if grep -q "was replaced by" "$logfile"; then
+                ERROR_MSG=$(grep "was replaced by" "$logfile" | head -1)
+                echo "- **$NAME**: Jest CLI error - $ERROR_MSG" >> $GITHUB_STEP_SUMMARY
+              elif grep -q "PASS\|FAIL" "$logfile"; then
+                SUMMARY=$(grep -E "Tests:.*[0-9]+ (passed|failed)" "$logfile" | tail -1 || echo "")
+                if [ -n "$SUMMARY" ]; then
+                  if echo "$SUMMARY" | grep -q "failed"; then
+                    echo "- **$NAME**: $SUMMARY" >> $GITHUB_STEP_SUMMARY
                   else
-                    # Count PASS/FAIL lines
-                    PASS_COUNT=$(grep -c "^PASS" "$logfile" || echo "0")
-                    FAIL_COUNT=$(grep -c "^FAIL" "$logfile" || echo "0")
-                    if [ "$FAIL_COUNT" = "0" ] && [ "$PASS_COUNT" -gt "0" ]; then
-                      echo "✅ **$NAME**: $PASS_COUNT test files passed" >> $GITHUB_STEP_SUMMARY
-                    elif [ "$FAIL_COUNT" -gt "0" ]; then
-                      echo "❌ **$NAME**: $FAIL_COUNT failed, $PASS_COUNT passed" >> $GITHUB_STEP_SUMMARY
-                    else
-                      echo "⚠️ **$NAME**: Could not parse results" >> $GITHUB_STEP_SUMMARY
-                    fi
+                    echo "- **$NAME**: $SUMMARY" >> $GITHUB_STEP_SUMMARY
                   fi
-                elif grep -q "npm error" "$logfile"; then
-                  echo "❌ **$NAME**: npm error (see logs)" >> $GITHUB_STEP_SUMMARY
                 else
-                  echo "⚠️ **$NAME**: Could not parse results" >> $GITHUB_STEP_SUMMARY
+                  PASS_COUNT=$(grep -c "^PASS" "$logfile" || echo "0")
+                  FAIL_COUNT=$(grep -c "^FAIL" "$logfile" || echo "0")
+                  if [ "$FAIL_COUNT" = "0" ] && [ "$PASS_COUNT" -gt "0" ]; then
+                    echo "- **$NAME**: $PASS_COUNT test files passed" >> $GITHUB_STEP_SUMMARY
+                  elif [ "$FAIL_COUNT" -gt "0" ]; then
+                    echo "- **$NAME**: $FAIL_COUNT failed, $PASS_COUNT passed" >> $GITHUB_STEP_SUMMARY
+                  else
+                    echo "- **$NAME**: Could not parse results" >> $GITHUB_STEP_SUMMARY
+                  fi
                 fi
+              elif grep -q "npm error" "$logfile"; then
+                echo "- **$NAME**: npm error (see logs)" >> $GITHUB_STEP_SUMMARY
+              else
+                echo "- **$NAME**: Could not parse results" >> $GITHUB_STEP_SUMMARY
               fi
             fi
           done
@@ -276,17 +195,7 @@ jobs:
       - name: Check for failures
         if: always()
         run: |
-          FAILED=0
-          [ "${{ steps.encryption-tests.outcome }}" = "failure" ] && FAILED=1
-          [ "${{ steps.status-log-dashboard-tests.outcome }}" = "failure" ] && FAILED=1
-          [ "${{ steps.error-log-dashboard-tests.outcome }}" = "failure" ] && FAILED=1
-          [ "${{ steps.preference-overrides-tests.outcome }}" = "failure" ] && FAILED=1
-          [ "${{ steps.video-tests.outcome }}" = "failure" ] && FAILED=1
-          [ "${{ steps.icons-tests.outcome }}" = "failure" ] && FAILED=1
-          [ "${{ steps.mattermost-extended-tests.outcome }}" = "failure" ] && FAILED=1
-          [ "${{ steps.guilded-layout-tests.outcome }}" = "failure" ] && FAILED=1
-
-          if [ "$FAILED" = "1" ]; then
+          if [ "${{ steps.webapp-tests.outcome }}" = "failure" ]; then
             echo "::error::Webapp tests failed - see summary above for details"
             exit 1
           fi
@@ -333,42 +242,27 @@ jobs:
       - name: Create results directory
         run: mkdir -p test-results
 
-      - name: Run Status Log Store Tests
-        id: status-log-store
+      - name: Discover and run marked store tests
+        id: run-tests
         continue-on-error: true
         working-directory: ./server
         env:
           MM_SQLSETTINGS_DRIVERNAME: postgres
           MM_SQLSETTINGS_DATASOURCE: postgres://mmuser:mostest@localhost:5432/mattermost_test?sslmode=disable
         run: |
-          gotestsum --format testname --junitfile ../test-results/status-log-store.xml -- -v \
-            -run "TestStatusLogStore" \
-            ./channels/store/sqlstore/... \
-            -timeout 15m
+          FILES=$(grep -rl '// mattermost-extended-test' ./channels/store/sqlstore/ --include '*_test.go' || true)
+          if [ -z "$FILES" ]; then
+            echo "No marked test files found in ./channels/store/sqlstore/"
+            echo "skip=true" >> $GITHUB_OUTPUT
+            exit 0
+          fi
 
-      - name: Run Encryption Session Key Store Tests
-        id: encryption-store
-        continue-on-error: true
-        working-directory: ./server
-        env:
-          MM_SQLSETTINGS_DRIVERNAME: postgres
-          MM_SQLSETTINGS_DATASOURCE: postgres://mmuser:mostest@localhost:5432/mattermost_test?sslmode=disable
-        run: |
-          gotestsum --format testname --junitfile ../test-results/encryption-store.xml -- -v \
-            -run "TestEncryptionSessionKeyStore" \
-            ./channels/store/sqlstore/... \
-            -timeout 15m
+          PATTERN=$(grep -ohE 'func (Test[A-Za-z0-9_]+)' $FILES | sed 's/func //' | sort -u | paste -sd '|')
+          echo "Discovered test pattern: $PATTERN"
+          echo "From files: $FILES"
 
-      - name: Run Custom Channel Icon Store Tests
-        id: channel-icon-store
-        continue-on-error: true
-        working-directory: ./server
-        env:
-          MM_SQLSETTINGS_DRIVERNAME: postgres
-          MM_SQLSETTINGS_DATASOURCE: postgres://mmuser:mostest@localhost:5432/mattermost_test?sslmode=disable
-        run: |
-          gotestsum --format testname --junitfile ../test-results/channel-icon-store.xml -- -v \
-            -run "TestCustomChannelIconStore" \
+          gotestsum --format testname --junitfile ../test-results/store-tests.xml -- -v \
+            -run "$PATTERN" \
             ./channels/store/sqlstore/... \
             -timeout 15m
 
@@ -386,6 +280,11 @@ jobs:
           echo "## Store Tests Summary" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
 
+          if [ "${{ steps.run-tests.outputs.skip }}" = "true" ]; then
+            echo "No marked test files found" >> $GITHUB_STEP_SUMMARY
+            exit 0
+          fi
+
           for file in test-results/*.xml; do
             if [ -f "$file" ]; then
               NAME=$(basename "$file" .xml)
@@ -394,17 +293,15 @@ jobs:
               ERRORS=$(grep -o 'errors="[0-9]*"' "$file" | head -1 | grep -o '[0-9]*' || echo "0")
 
               if [ "$FAILURES" = "0" ] && [ "$ERRORS" = "0" ]; then
-                echo "✅ **$NAME**: $TESTS tests passed" >> $GITHUB_STEP_SUMMARY
+                echo "- **$NAME**: $TESTS tests passed" >> $GITHUB_STEP_SUMMARY
               else
-                echo "❌ **$NAME**: $FAILURES failures, $ERRORS errors out of $TESTS tests" >> $GITHUB_STEP_SUMMARY
-                echo "" >> $GITHUB_STEP_SUMMARY
-                echo "<details><summary>View failures for $NAME</summary>" >> $GITHUB_STEP_SUMMARY
+                echo "- **$NAME**: $FAILURES failures, $ERRORS errors out of $TESTS tests" >> $GITHUB_STEP_SUMMARY
+                echo "<details><summary>View failures</summary>" >> $GITHUB_STEP_SUMMARY
                 echo "" >> $GITHUB_STEP_SUMMARY
                 echo '```' >> $GITHUB_STEP_SUMMARY
                 grep -A 10 '<failure' "$file" | head -100 >> $GITHUB_STEP_SUMMARY || true
                 echo '```' >> $GITHUB_STEP_SUMMARY
                 echo "</details>" >> $GITHUB_STEP_SUMMARY
-                echo "" >> $GITHUB_STEP_SUMMARY
               fi
             fi
           done
@@ -412,12 +309,7 @@ jobs:
       - name: Check for failures
         if: always()
         run: |
-          FAILED=0
-          [ "${{ steps.status-log-store.outcome }}" = "failure" ] && FAILED=1
-          [ "${{ steps.encryption-store.outcome }}" = "failure" ] && FAILED=1
-          [ "${{ steps.channel-icon-store.outcome }}" = "failure" ] && FAILED=1
-
-          if [ "$FAILED" = "1" ]; then
+          if [ "${{ steps.run-tests.outcome }}" = "failure" ]; then
             echo "::error::Store tests failed - see summary above for details"
             exit 1
           fi
@@ -474,81 +366,27 @@ jobs:
       - name: Create results directory
         run: mkdir -p test-results
 
-      - name: Run Custom Channel Icon API Tests
-        id: channel-icon-api
+      - name: Discover and run marked API tests
+        id: run-tests
         continue-on-error: true
         working-directory: ./server
         env:
           MM_SQLSETTINGS_DRIVERNAME: postgres
           MM_SQLSETTINGS_DATASOURCE: postgres://mmuser:mostest@localhost:5432/mattermost_test?sslmode=disable
         run: |
-          gotestsum --format testname --junitfile ../test-results/channel-icon-api.xml -- -v \
-            -run "TestCustomChannelIcon" \
-            ./channels/api4/... \
-            -timeout 15m
+          FILES=$(grep -rl '// mattermost-extended-test' ./channels/api4/ --include '*_test.go' || true)
+          if [ -z "$FILES" ]; then
+            echo "No marked test files found in ./channels/api4/"
+            echo "skip=true" >> $GITHUB_OUTPUT
+            exit 0
+          fi
 
-      - name: Run Encryption API Tests
-        id: encryption-api
-        continue-on-error: true
-        working-directory: ./server
-        env:
-          MM_SQLSETTINGS_DRIVERNAME: postgres
-          MM_SQLSETTINGS_DATASOURCE: postgres://mmuser:mostest@localhost:5432/mattermost_test?sslmode=disable
-        run: |
-          gotestsum --format testname --junitfile ../test-results/encryption-api.xml -- -v \
-            -run "TestEncryption" \
-            ./channels/api4/... \
-            -timeout 15m
+          PATTERN=$(grep -ohE 'func (Test[A-Za-z0-9_]+)' $FILES | sed 's/func //' | sort -u | paste -sd '|')
+          echo "Discovered test pattern: $PATTERN"
+          echo "From files: $FILES"
 
-      - name: Run Preference Override API Tests
-        id: preference-api
-        continue-on-error: true
-        working-directory: ./server
-        env:
-          MM_SQLSETTINGS_DRIVERNAME: postgres
-          MM_SQLSETTINGS_DATASOURCE: postgres://mmuser:mostest@localhost:5432/mattermost_test?sslmode=disable
-        run: |
-          gotestsum --format testname --junitfile ../test-results/preference-api.xml -- -v \
-            -run "TestPreferenceOverride" \
-            ./channels/api4/... \
-            -timeout 15m
-
-      - name: Run Error Log API Tests
-        id: error-log-api
-        continue-on-error: true
-        working-directory: ./server
-        env:
-          MM_SQLSETTINGS_DRIVERNAME: postgres
-          MM_SQLSETTINGS_DATASOURCE: postgres://mmuser:mostest@localhost:5432/mattermost_test?sslmode=disable
-        run: |
-          gotestsum --format testname --junitfile ../test-results/error-log-api.xml -- -v \
-            -run "TestErrorLog" \
-            ./channels/api4/... \
-            -timeout 15m
-
-      - name: Run Status Log API Tests
-        id: status-log-api
-        continue-on-error: true
-        working-directory: ./server
-        env:
-          MM_SQLSETTINGS_DRIVERNAME: postgres
-          MM_SQLSETTINGS_DATASOURCE: postgres://mmuser:mostest@localhost:5432/mattermost_test?sslmode=disable
-        run: |
-          gotestsum --format testname --junitfile ../test-results/status-log-api.xml -- -v \
-            -run "TestStatusLog" \
-            ./channels/api4/... \
-            -timeout 15m
-
-      - name: Run Status Extended API Tests (AccurateStatuses, NoOffline Scenarios)
-        id: status-extended-api
-        continue-on-error: true
-        working-directory: ./server
-        env:
-          MM_SQLSETTINGS_DRIVERNAME: postgres
-          MM_SQLSETTINGS_DATASOURCE: postgres://mmuser:mostest@localhost:5432/mattermost_test?sslmode=disable
-        run: |
-          gotestsum --format testname --junitfile ../test-results/status-extended-api.xml -- -v \
-            -run "TestAccurateStatusesScenario|TestNoOfflineScenario|TestManualActionActivityScenario|TestCombinedFeaturesScenario|TestMultiUserStatusScenario|TestConfigurationScenario|TestWebSocketStatusEvents" \
+          gotestsum --format testname --junitfile ../test-results/api-tests.xml -- -v \
+            -run "$PATTERN" \
             ./channels/api4/... \
             -timeout 15m
 
@@ -566,6 +404,11 @@ jobs:
           echo "## API Tests Summary" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
 
+          if [ "${{ steps.run-tests.outputs.skip }}" = "true" ]; then
+            echo "No marked test files found" >> $GITHUB_STEP_SUMMARY
+            exit 0
+          fi
+
           for file in test-results/*.xml; do
             if [ -f "$file" ]; then
               NAME=$(basename "$file" .xml)
@@ -574,17 +417,15 @@ jobs:
               ERRORS=$(grep -o 'errors="[0-9]*"' "$file" | head -1 | grep -o '[0-9]*' || echo "0")
 
               if [ "$FAILURES" = "0" ] && [ "$ERRORS" = "0" ]; then
-                echo "✅ **$NAME**: $TESTS tests passed" >> $GITHUB_STEP_SUMMARY
+                echo "- **$NAME**: $TESTS tests passed" >> $GITHUB_STEP_SUMMARY
               else
-                echo "❌ **$NAME**: $FAILURES failures, $ERRORS errors out of $TESTS tests" >> $GITHUB_STEP_SUMMARY
-                echo "" >> $GITHUB_STEP_SUMMARY
-                echo "<details><summary>View failures for $NAME</summary>" >> $GITHUB_STEP_SUMMARY
+                echo "- **$NAME**: $FAILURES failures, $ERRORS errors out of $TESTS tests" >> $GITHUB_STEP_SUMMARY
+                echo "<details><summary>View failures</summary>" >> $GITHUB_STEP_SUMMARY
                 echo "" >> $GITHUB_STEP_SUMMARY
                 echo '```' >> $GITHUB_STEP_SUMMARY
                 grep -A 10 '<failure' "$file" | head -100 >> $GITHUB_STEP_SUMMARY || true
                 echo '```' >> $GITHUB_STEP_SUMMARY
                 echo "</details>" >> $GITHUB_STEP_SUMMARY
-                echo "" >> $GITHUB_STEP_SUMMARY
               fi
             fi
           done
@@ -592,15 +433,7 @@ jobs:
       - name: Check for failures
         if: always()
         run: |
-          FAILED=0
-          [ "${{ steps.channel-icon-api.outcome }}" = "failure" ] && FAILED=1
-          [ "${{ steps.encryption-api.outcome }}" = "failure" ] && FAILED=1
-          [ "${{ steps.preference-api.outcome }}" = "failure" ] && FAILED=1
-          [ "${{ steps.error-log-api.outcome }}" = "failure" ] && FAILED=1
-          [ "${{ steps.status-log-api.outcome }}" = "failure" ] && FAILED=1
-          [ "${{ steps.status-extended-api.outcome }}" = "failure" ] && FAILED=1
-
-          if [ "$FAILED" = "1" ]; then
+          if [ "${{ steps.run-tests.outcome }}" = "failure" ]; then
             echo "::error::API tests failed - see summary above for details"
             exit 1
           fi
@@ -657,68 +490,27 @@ jobs:
       - name: Create results directory
         run: mkdir -p test-results
 
-      - name: Run AccurateStatuses Tests
-        id: accurate-statuses
+      - name: Discover and run marked platform tests
+        id: run-tests
         continue-on-error: true
         working-directory: ./server
         env:
           MM_SQLSETTINGS_DRIVERNAME: postgres
           MM_SQLSETTINGS_DATASOURCE: postgres://mmuser:mostest@localhost:5432/mattermost_test?sslmode=disable
         run: |
-          gotestsum --format testname --junitfile ../test-results/accurate-statuses.xml -- -v \
-            -run "TestUpdateActivityFromHeartbeat|TestUpdateActivityFromManualAction|TestUpdateActivityFromHeartbeatEdgeCases|TestSetStatusAwayIfNeededExtended" \
-            ./channels/app/platform/... \
-            -timeout 15m
+          FILES=$(grep -rl '// mattermost-extended-test' ./channels/app/platform/ --include '*_test.go' || true)
+          if [ -z "$FILES" ]; then
+            echo "No marked test files found in ./channels/app/platform/"
+            echo "skip=true" >> $GITHUB_OUTPUT
+            exit 0
+          fi
 
-      - name: Run NoOffline Tests
-        id: no-offline
-        continue-on-error: true
-        working-directory: ./server
-        env:
-          MM_SQLSETTINGS_DRIVERNAME: postgres
-          MM_SQLSETTINGS_DATASOURCE: postgres://mmuser:mostest@localhost:5432/mattermost_test?sslmode=disable
-        run: |
-          gotestsum --format testname --junitfile ../test-results/no-offline.xml -- -v \
-            -run "TestSetOnlineIfNoOffline|TestNoOfflineWithAccurateStatuses|TestNoOfflineOnWebSocketConnect" \
-            ./channels/app/platform/... \
-            -timeout 15m
+          PATTERN=$(grep -ohE 'func (Test[A-Za-z0-9_]+)' $FILES | sed 's/func //' | sort -u | paste -sd '|')
+          echo "Discovered test pattern: $PATTERN"
+          echo "From files: $FILES"
 
-      - name: Run DND Extended Tests
-        id: dnd-extended
-        continue-on-error: true
-        working-directory: ./server
-        env:
-          MM_SQLSETTINGS_DRIVERNAME: postgres
-          MM_SQLSETTINGS_DATASOURCE: postgres://mmuser:mostest@localhost:5432/mattermost_test?sslmode=disable
-        run: |
-          gotestsum --format testname --junitfile ../test-results/dnd-extended.xml -- -v \
-            -run "TestDNDInactivityTimeout|TestDNDRestoration|TestSetStatusDoNotDisturbExtended|TestSetStatusDoNotDisturbTimedExtended|TestSetStatusOutOfOfficeExtended|TestDNDWithNoOffline" \
-            ./channels/app/platform/... \
-            -timeout 15m
-
-      - name: Run Upstream Status Tests
-        id: upstream-status
-        continue-on-error: true
-        working-directory: ./server
-        env:
-          MM_SQLSETTINGS_DRIVERNAME: postgres
-          MM_SQLSETTINGS_DATASOURCE: postgres://mmuser:mostest@localhost:5432/mattermost_test?sslmode=disable
-        run: |
-          gotestsum --format testname --junitfile ../test-results/upstream-status.xml -- -v \
-            -run "TestSaveStatus|TestSetStatusOffline|TestQueueSetStatusOffline|TestTruncateDNDEndTime" \
-            ./channels/app/platform/... \
-            -timeout 15m
-
-      - name: Run Status Logs Platform Tests
-        id: status-logs-platform
-        continue-on-error: true
-        working-directory: ./server
-        env:
-          MM_SQLSETTINGS_DRIVERNAME: postgres
-          MM_SQLSETTINGS_DATASOURCE: postgres://mmuser:mostest@localhost:5432/mattermost_test?sslmode=disable
-        run: |
-          gotestsum --format testname --junitfile ../test-results/status-logs-platform.xml -- -v \
-            -run "TestLogStatusChange|TestLogActivityUpdate|TestGetStatusLogs|TestGetStatusLogsWithOptions|TestGetStatusLogCount|TestClearStatusLogs|TestGetStatusLogStats|TestCleanupOldStatusLogs|TestCheckDNDTimeouts|TestBuildStatusNotificationMessage" \
+          gotestsum --format testname --junitfile ../test-results/platform-tests.xml -- -v \
+            -run "$PATTERN" \
             ./channels/app/platform/... \
             -timeout 15m
 
@@ -736,6 +528,11 @@ jobs:
           echo "## Platform Tests Summary" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
 
+          if [ "${{ steps.run-tests.outputs.skip }}" = "true" ]; then
+            echo "No marked test files found" >> $GITHUB_STEP_SUMMARY
+            exit 0
+          fi
+
           for file in test-results/*.xml; do
             if [ -f "$file" ]; then
               NAME=$(basename "$file" .xml)
@@ -744,17 +541,15 @@ jobs:
               ERRORS=$(grep -o 'errors="[0-9]*"' "$file" | head -1 | grep -o '[0-9]*' || echo "0")
 
               if [ "$FAILURES" = "0" ] && [ "$ERRORS" = "0" ]; then
-                echo "✅ **$NAME**: $TESTS tests passed" >> $GITHUB_STEP_SUMMARY
+                echo "- **$NAME**: $TESTS tests passed" >> $GITHUB_STEP_SUMMARY
               else
-                echo "❌ **$NAME**: $FAILURES failures, $ERRORS errors out of $TESTS tests" >> $GITHUB_STEP_SUMMARY
-                echo "" >> $GITHUB_STEP_SUMMARY
-                echo "<details><summary>View failures for $NAME</summary>" >> $GITHUB_STEP_SUMMARY
+                echo "- **$NAME**: $FAILURES failures, $ERRORS errors out of $TESTS tests" >> $GITHUB_STEP_SUMMARY
+                echo "<details><summary>View failures</summary>" >> $GITHUB_STEP_SUMMARY
                 echo "" >> $GITHUB_STEP_SUMMARY
                 echo '```' >> $GITHUB_STEP_SUMMARY
                 grep -A 10 '<failure' "$file" | head -100 >> $GITHUB_STEP_SUMMARY || true
                 echo '```' >> $GITHUB_STEP_SUMMARY
                 echo "</details>" >> $GITHUB_STEP_SUMMARY
-                echo "" >> $GITHUB_STEP_SUMMARY
               fi
             fi
           done
@@ -762,14 +557,7 @@ jobs:
       - name: Check for failures
         if: always()
         run: |
-          FAILED=0
-          [ "${{ steps.accurate-statuses.outcome }}" = "failure" ] && FAILED=1
-          [ "${{ steps.no-offline.outcome }}" = "failure" ] && FAILED=1
-          [ "${{ steps.dnd-extended.outcome }}" = "failure" ] && FAILED=1
-          [ "${{ steps.upstream-status.outcome }}" = "failure" ] && FAILED=1
-          [ "${{ steps.status-logs-platform.outcome }}" = "failure" ] && FAILED=1
-
-          if [ "$FAILED" = "1" ]; then
+          if [ "${{ steps.run-tests.outcome }}" = "failure" ]; then
             echo "::error::Platform tests failed - see summary above for details"
             exit 1
           fi
@@ -832,18 +620,18 @@ jobs:
           echo "============================================" >> $REPORT_FILE
           echo "" >> $REPORT_FILE
 
-          echo "# 📊 Test Results Summary" >> $GITHUB_STEP_SUMMARY
+          echo "# Test Results Summary" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "| Job | Status |" >> $GITHUB_STEP_SUMMARY
           echo "|-----|--------|" >> $GITHUB_STEP_SUMMARY
 
           # Check each job's status
-          [ "${{ needs.unit-tests.result }}" = "success" ] && U="✅ Passed" || U="❌ Failed"
-          [ "${{ needs.webapp-tests.result }}" = "success" ] && W="✅ Passed" || W="❌ Failed"
-          [ "${{ needs.store-tests.result }}" = "success" ] && S="✅ Passed" || S="❌ Failed"
-          [ "${{ needs.api-tests.result }}" = "success" ] && A="✅ Passed" || A="❌ Failed"
-          [ "${{ needs.platform-tests.result }}" = "success" ] && P="✅ Passed" || P="❌ Failed"
-          [ "${{ needs.compile-check.result }}" = "success" ] && C="✅ Passed" || C="❌ Failed"
+          [ "${{ needs.unit-tests.result }}" = "success" ] && U="Passed" || U="Failed"
+          [ "${{ needs.webapp-tests.result }}" = "success" ] && W="Passed" || W="Failed"
+          [ "${{ needs.store-tests.result }}" = "success" ] && S="Passed" || S="Failed"
+          [ "${{ needs.api-tests.result }}" = "success" ] && A="Passed" || A="Failed"
+          [ "${{ needs.platform-tests.result }}" = "success" ] && P="Passed" || P="Failed"
+          [ "${{ needs.compile-check.result }}" = "success" ] && C="Passed" || C="Failed"
 
           echo "| Unit Tests | $U |" >> $GITHUB_STEP_SUMMARY
           echo "| Webapp Tests | $W |" >> $GITHUB_STEP_SUMMARY
@@ -890,18 +678,17 @@ jobs:
                   TOTAL_ERRORS=$((TOTAL_ERRORS + ERRORS))
 
                   if [ "$FAILURES" = "0" ] && [ "$ERRORS" = "0" ]; then
-                    echo "- ✅ **$NAME**: $TESTS tests passed" >> $GITHUB_STEP_SUMMARY
+                    echo "- **$NAME**: $TESTS tests passed" >> $GITHUB_STEP_SUMMARY
                   else
-                    echo "- ❌ **$NAME**: $FAILURES failures, $ERRORS errors out of $TESTS tests" >> $GITHUB_STEP_SUMMARY
+                    echo "- **$NAME**: $FAILURES failures, $ERRORS errors out of $TESTS tests" >> $GITHUB_STEP_SUMMARY
                   fi
                 fi
               done
 
-              # Process log files (Jest/webapp tests) - parse "Tests: X failed, Y passed, Z total"
+              # Process log files (Jest/webapp tests)
               for file in "$dir"*.log; do
                 if [ -f "$file" ]; then
                   NAME=$(basename "$file" .log)
-                  # Parse Jest output: "Tests:       2 failed, 17 passed, 19 total"
                   SUMMARY_LINE=$(grep -E "^Tests:\s+[0-9]+" "$file" | tail -1 || echo "")
                   if [ -n "$SUMMARY_LINE" ]; then
                     TESTS=$(echo "$SUMMARY_LINE" | grep -oE '[0-9]+ total' | grep -oE '[0-9]+' || echo "0")
@@ -912,9 +699,9 @@ jobs:
                     TOTAL_FAILURES=$((TOTAL_FAILURES + FAILURES))
 
                     if [ "$FAILURES" = "0" ] || [ -z "$FAILURES" ]; then
-                      echo "- ✅ **$NAME**: $TESTS tests passed" >> $GITHUB_STEP_SUMMARY
+                      echo "- **$NAME**: $TESTS tests passed" >> $GITHUB_STEP_SUMMARY
                     else
-                      echo "- ❌ **$NAME**: $FAILURES failed, $PASSED passed out of $TESTS total" >> $GITHUB_STEP_SUMMARY
+                      echo "- **$NAME**: $FAILURES failed, $PASSED passed out of $TESTS total" >> $GITHUB_STEP_SUMMARY
                     fi
                   fi
                 fi
@@ -931,15 +718,12 @@ jobs:
           echo "TOTALS: $TOTAL_TESTS tests, $TOTAL_FAILURES failures, $TOTAL_ERRORS errors" >> $REPORT_FILE
           echo "" >> $REPORT_FILE
 
-          # List all failures in detail for easy resolution
+          # List all failures in detail
           if [ "$TOTAL_FAILURES" -gt 0 ] || [ "$TOTAL_ERRORS" -gt 0 ]; then
             echo "" >> $GITHUB_STEP_SUMMARY
-            echo "## 🔴 All Failures (for resolution)" >> $GITHUB_STEP_SUMMARY
-            echo "" >> $GITHUB_STEP_SUMMARY
-            echo "Copy these to resolve one by one:" >> $GITHUB_STEP_SUMMARY
+            echo "## All Failures (for resolution)" >> $GITHUB_STEP_SUMMARY
             echo "" >> $GITHUB_STEP_SUMMARY
 
-            # Also write to plain-text report
             echo "FAILED TESTS:" >> $REPORT_FILE
             echo "=============" >> $REPORT_FILE
             echo "" >> $REPORT_FILE
@@ -947,25 +731,8 @@ jobs:
             for dir in all-results/*/; do
               for file in "$dir"*.xml; do
                 if [ -f "$file" ]; then
-                  # Extract failed test names - try multiple methods
-                  FAILED_TESTS=""
-                  # Method 1: Look for testcase elements that have failure children
-                  while IFS= read -r line; do
-                    if echo "$line" | grep -q '<testcase.*name='; then
-                      TEST_NAME=$(echo "$line" | sed -n 's/.*name="\([^"]*\)".*/\1/p')
-                      # Read next lines to check for failure
-                      if echo "$line" | grep -q '<failure' || grep -q '<failure' <<< "$(head -5)"; then
-                        FAILED_TESTS="${FAILED_TESTS}${TEST_NAME}"$'\n'
-                      fi
-                    fi
-                  done < "$file"
+                  FAILED_TESTS=$(awk '/<testcase/{name=""} /<testcase.*name="/{match($0,/name="([^"]*)"/,a); name=a[1]} /<failure/{if(name!="")print name; name=""}' "$file" 2>/dev/null || true)
 
-                  # Method 2: Simpler approach - find testcases with failures nearby
-                  if [ -z "$FAILED_TESTS" ]; then
-                    FAILED_TESTS=$(awk '/<testcase/{name=""} /<testcase.*name="/{match($0,/name="([^"]*)"/,a); name=a[1]} /<failure/{if(name!="")print name; name=""}' "$file" 2>/dev/null || true)
-                  fi
-
-                  # Method 3: Fallback - just grep for test names near failures
                   if [ -z "$FAILED_TESTS" ]; then
                     FAILED_TESTS=$(grep -B5 '<failure' "$file" 2>/dev/null | grep -o 'name="[^"]*"' | sed 's/name="//;s/"//' || true)
                   fi
@@ -978,12 +745,10 @@ jobs:
                     echo '```' >> $GITHUB_STEP_SUMMARY
                     echo "" >> $GITHUB_STEP_SUMMARY
 
-                    # Write to plain-text report
                     echo "--- $NAME ---" >> $REPORT_FILE
                     echo "$FAILED_TESTS" >> $REPORT_FILE
                     echo "" >> $REPORT_FILE
 
-                    # Show failure messages (GitHub summary)
                     echo "<details><summary>Failure details</summary>" >> $GITHUB_STEP_SUMMARY
                     echo "" >> $GITHUB_STEP_SUMMARY
                     echo '```' >> $GITHUB_STEP_SUMMARY
@@ -992,12 +757,9 @@ jobs:
                     echo "</details>" >> $GITHUB_STEP_SUMMARY
                     echo "" >> $GITHUB_STEP_SUMMARY
 
-                    # Write failure details to plain-text report
                     echo "Failure details for $NAME:" >> $REPORT_FILE
                     echo "----------------------------" >> $REPORT_FILE
-                    # Extract failure messages more cleanly
                     grep -A30 '<failure' "$file" | sed 's/<[^>]*>//g' | head -100 >> $REPORT_FILE || true
-                    echo "" >> $REPORT_FILE
                     echo "" >> $REPORT_FILE
                   fi
                 fi

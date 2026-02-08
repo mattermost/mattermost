@@ -1,0 +1,220 @@
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
+
+import React from 'react';
+import {render, fireEvent} from '@testing-library/react';
+import {Provider} from 'react-redux';
+import {BrowserRouter} from 'react-router-dom';
+import configureStore from 'redux-mock-store';
+
+import DmListPage from 'components/dm_list_page/index';
+
+const mockStore = configureStore([]);
+
+// Track dispatch calls
+const mockDispatch = jest.fn((action) => action);
+
+// Mock useHistory
+const mockPush = jest.fn();
+jest.mock('react-router-dom', () => ({
+    ...jest.requireActual('react-router-dom'),
+    useHistory: () => ({
+        push: mockPush,
+    }),
+}));
+
+// Selector call tracking
+let mockSelectorCallCount = 0;
+let mockCurrentChannelId: string | null = 'dm1';
+const mockCurrentTeamUrl = '/test-team';
+const mockCurrentUserId = 'user1';
+const mockDmChannels = [
+    {
+        type: 'dm' as const,
+        channel: {id: 'dm1', name: 'user1__user2', type: 'D', last_post_at: 2000},
+        user: {id: 'user2', username: 'user2', nickname: '', first_name: '', last_name: ''},
+    },
+    {
+        type: 'dm' as const,
+        channel: {id: 'dm2', name: 'user1__user3', type: 'D', last_post_at: 1000},
+        user: {id: 'user3', username: 'user3', nickname: '', first_name: '', last_name: ''},
+    },
+];
+
+jest.mock('react-redux', () => ({
+    ...jest.requireActual('react-redux'),
+    useDispatch: () => mockDispatch,
+    useSelector: (selector: any) => {
+        const idx = mockSelectorCallCount;
+        mockSelectorCallCount++;
+        // First selector: getCurrentChannelId
+        if (idx === 0) {
+            return mockCurrentChannelId;
+        }
+        // Second selector: getCurrentRelativeTeamUrl
+        if (idx === 1) {
+            return mockCurrentTeamUrl;
+        }
+        // Third selector: getCurrentUserId
+        if (idx === 2) {
+            return mockCurrentUserId;
+        }
+        // Fourth selector: getAllDmChannelsWithUsers
+        return mockDmChannels;
+    },
+}));
+
+// Mock react-virtualized-auto-sizer
+// ... (rest of mocks)
+jest.mock('react-virtualized-auto-sizer', () => ({
+    __esModule: true,
+    default: ({children}: {children: (size: {height: number; width: number}) => React.ReactNode}) =>
+        children({height: 500, width: 300}),
+}));
+
+// Mock getPosts action
+const mockGetPosts = jest.fn().mockReturnValue({type: 'MOCK_GET_POSTS'});
+jest.mock('mattermost-redux/actions/posts', () => ({
+    getPosts: (...args: any[]) => mockGetPosts(...args),
+}));
+
+// Mock savePreferences action
+const mockSavePreferences = jest.fn().mockReturnValue({type: 'MOCK_SAVE_PREFERENCES'});
+jest.mock('mattermost-redux/actions/preferences', () => ({
+    savePreferences: (...args: any[]) => mockSavePreferences(...args),
+}));
+
+// Mock leaveDirectChannel action
+const mockLeaveDirectChannel = jest.fn().mockReturnValue({type: 'MOCK_LEAVE_DIRECT_CHANNEL'});
+jest.mock('actions/views/channel', () => ({
+    leaveDirectChannel: (...args: any[]) => mockLeaveDirectChannel(...args),
+}));
+
+// Mock modules that may have complex imports
+jest.mock('actions/views/modals', () => ({
+    openModal: jest.fn().mockReturnValue({type: 'MOCK_OPEN_MODAL'}),
+}));
+jest.mock('components/more_direct_channels', () => () => null);
+jest.mock('utils/constants', () => {
+    const actual = jest.requireActual('utils/constants');
+    return {
+        ...actual,
+        ModalIdentifiers: {
+            ...actual.ModalIdentifiers,
+            CREATE_DM_CHANNEL: 'create_dm_channel',
+        },
+    };
+});
+
+// Mock child components - capture onClose prop
+jest.mock('components/dm_list_page/dm_search_input', () => (props: any) => <input data-testid="dm-search-input" />);
+jest.mock('components/enhanced_dm_row', () => ({channel, onClose}: any) => (
+    <div data-testid={`dm-row-${channel.id}`}>
+        {channel.name}
+        <button data-testid={`close-dm-${channel.id}`} onClick={() => onClose?.(channel.id)}>close</button>
+    </div>
+));
+jest.mock('components/enhanced_group_dm_row', () => ({channel, onClose}: any) => (
+    <div data-testid={`gm-row-${channel.id}`}>
+        {channel.name}
+        <button data-testid={`close-gm-${channel.id}`} onClick={() => onClose?.(channel.id)}>close</button>
+    </div>
+));
+
+describe('DmListPage', () => {
+    beforeEach(() => {
+        jest.clearAllMocks();
+        mockSelectorCallCount = 0;
+        mockCurrentChannelId = 'dm1';
+    });
+
+    // BUG 3: DM list should dispatch an action to fetch latest posts for DM channels
+    it('dispatches action to fetch latest DM posts on mount', () => {
+        const store = mockStore({});
+        render(
+            <Provider store={store}>
+                <BrowserRouter>
+                    <DmListPage />
+                </BrowserRouter>
+            </Provider>,
+        );
+
+        // Should dispatch getPosts for each DM channel
+        expect(mockDispatch).toHaveBeenCalled();
+        expect(mockGetPosts).toHaveBeenCalledWith('dm1', 0, 1);
+        expect(mockGetPosts).toHaveBeenCalledWith('dm2', 0, 1);
+    });
+
+    // BUG 4: When opening DM mode, should auto-select (navigate to) the most recent DM if none active
+    it('auto-selects and navigates to the most recent DM on mount if no channel active', () => {
+        mockCurrentChannelId = null;
+        const store = mockStore({});
+        render(
+            <Provider store={store}>
+                <BrowserRouter>
+                    <DmListPage />
+                </BrowserRouter>
+            </Provider>,
+        );
+
+        // Should navigate to the most recent DM (first in list - user2)
+        expect(mockPush).toHaveBeenCalledWith('/test-team/messages/@user2');
+    });
+
+    it('does NOT auto-select if already viewing a DM channel', () => {
+        mockCurrentChannelId = 'dm2';
+        const store = mockStore({});
+        render(
+            <Provider store={store}>
+                <BrowserRouter>
+                    <DmListPage />
+                </BrowserRouter>
+            </Provider>,
+        );
+
+        // Should NOT navigate because we're already on a DM in the list
+        expect(mockPush).not.toHaveBeenCalled();
+    });
+
+    it('auto-selects first DM when current channel is a regular channel (not a DM)', () => {
+        // Simulate being on a regular channel like Town Square
+        mockCurrentChannelId = 'regular-channel-id';
+        const store = mockStore({});
+        render(
+            <Provider store={store}>
+                <BrowserRouter>
+                    <DmListPage />
+                </BrowserRouter>
+            </Provider>,
+        );
+
+        // Should navigate to the most recent DM because current channel is not in the DM list
+        expect(mockPush).toHaveBeenCalledWith('/test-team/messages/@user2');
+    });
+
+    it('closes a DM conversation when close button is clicked', () => {
+        const store = mockStore({});
+        const {getByTestId} = render(
+            <Provider store={store}>
+                <BrowserRouter>
+                    <DmListPage />
+                </BrowserRouter>
+            </Provider>,
+        );
+
+        // Click close on the active DM (dm1)
+        fireEvent.click(getByTestId('close-dm-dm1'));
+
+        // Should dispatch leaveDirectChannel and savePreferences
+        expect(mockLeaveDirectChannel).toHaveBeenCalledWith('user1__user2');
+        expect(mockSavePreferences).toHaveBeenCalledWith('user1', [{
+            user_id: 'user1',
+            category: 'direct_channel_show',
+            name: 'user2',
+            value: 'false',
+        }]);
+
+        // Since dm1 is the active channel, should navigate to next DM
+        expect(mockPush).toHaveBeenCalledWith('/test-team/messages/@user3');
+    });
+});

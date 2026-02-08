@@ -1,3 +1,4 @@
+// mattermost-extended-test
 package platform
 
 import (
