@@ -13,7 +13,7 @@ const mockStore = configureStore([]);
 // Mock react-redux
 let mockChannel: any = null;
 let mockGroupedMembers: any = null;
-const mockDispatch = jest.fn();
+const mockDispatch = jest.fn((action) => action);
 
 jest.mock('react-redux', () => ({
     ...jest.requireActual('react-redux'),
@@ -31,7 +31,7 @@ jest.mock('react-redux', () => ({
 }));
 
 // Mock the actual actions used by the component
-const mockGetProfilesInChannel = jest.fn().mockReturnValue({type: 'MOCK_GET_PROFILES_IN_CHANNEL'});
+const mockGetProfilesInChannel = jest.fn().mockReturnValue(Promise.resolve({data: []}));
 const mockGetChannelMembers = jest.fn().mockReturnValue({type: 'MOCK_GET_CHANNEL_MEMBERS'});
 
 jest.mock('mattermost-redux/actions/users', () => ({

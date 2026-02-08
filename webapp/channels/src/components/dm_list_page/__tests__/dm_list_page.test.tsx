@@ -97,6 +97,7 @@ jest.mock('actions/views/modals', () => ({
 jest.mock('components/more_direct_channels', () => () => null);
 jest.mock('utils/constants', () => ({
     ModalIdentifiers: {CREATE_DM_CHANNEL: 'create_dm_channel'},
+    ActionTypes: {SET_NAVIGATION_BLOCKED: 'SET_NAVIGATION_BLOCKED'},
     Constants: {
         DM_CHANNEL: 'D',
         GM_CHANNEL: 'G',

@@ -84,7 +84,13 @@ describe('EnhancedDmRow', () => {
                 postsInChannel: {},
             },
             preferences: {
-                myPreferences: {},
+                myPreferences: {
+                    'display_settings--name_format': {
+                        category: 'display_settings',
+                        name: 'name_format',
+                        value: 'nickname_full_name',
+                    },
+                },
             },
             emojis: {
                 customEmoji: {},

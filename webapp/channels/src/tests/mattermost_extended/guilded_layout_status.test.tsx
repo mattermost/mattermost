@@ -22,6 +22,10 @@ jest.mock('mattermost-redux/selectors/entities/channels', () => ({
     getCurrentChannelId: jest.fn(),
 }));
 
+jest.mock('mattermost-redux/selectors/entities/preferences', () => ({
+    getTeammateNameDisplaySetting: jest.fn(),
+}));
+
 jest.mock('mattermost-redux/selectors/entities/users', () => ({
     getCurrentUserId: jest.fn(),
 }));
@@ -50,6 +54,7 @@ jest.mock('actions/status_actions', () => ({
 jest.mock('selectors/views/guilded_layout', () => ({
     getChannelMembersGroupedByStatus: jest.fn(),
     getAllDmChannelsWithUsers: jest.fn(),
+    getLastPostInChannel: jest.fn(),
 }));
 
 jest.mock('react-router-dom', () => ({
