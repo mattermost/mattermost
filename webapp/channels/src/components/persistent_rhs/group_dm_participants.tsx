@@ -18,11 +18,11 @@ interface Props {
     channelId: string;
 }
 
-const getProfilesInChannel = makeGetProfilesInChannel();
+const doGetProfilesInChannel = makeGetProfilesInChannel();
 
 export default function GroupDmParticipants({channelId}: Props) {
     const profiles = useSelector((state: GlobalState) =>
-        (getProfilesInChannel(state, channelId) || [])
+        (doGetProfilesInChannel(state, channelId) || [])
     );
 
     const membersWithStatus = useSelector((state: GlobalState) => {

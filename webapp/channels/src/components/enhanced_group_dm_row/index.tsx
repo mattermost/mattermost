@@ -10,7 +10,7 @@ import {CloseIcon} from '@mattermost/compass-icons/components';
 
 import {Client4} from 'mattermost-redux/client';
 import {getMyChannelMember} from 'mattermost-redux/selectors/entities/channels';
-import {getCurrentTeamUrl} from 'mattermost-redux/selectors/entities/teams';
+import {getCurrentRelativeTeamUrl} from 'mattermost-redux/selectors/entities/teams';
 import {getCurrentUserId, getUser} from 'mattermost-redux/selectors/entities/users';
 
 import {GlobalState} from 'types/store';
@@ -31,7 +31,7 @@ type Props = {
 };
 
 const EnhancedGroupDmRow = ({channel, users, isActive, onDmClick, onClose}: Props) => {
-    const currentTeamUrl = useSelector(getCurrentTeamUrl);
+    const currentTeamUrl = useSelector(getCurrentRelativeTeamUrl);
     const currentUserId = useSelector(getCurrentUserId);
     const member = useSelector((state: GlobalState) => getMyChannelMember(state, channel.id));
     

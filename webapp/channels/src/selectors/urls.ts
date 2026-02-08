@@ -13,6 +13,8 @@ import {
     getTeam,
 } from 'mattermost-redux/selectors/entities/teams';
 
+import {isGuildedLayoutEnabled} from 'selectors/views/guilded_layout';
+
 import Constants from 'utils/constants';
 
 import type {GlobalState} from 'types/store';
@@ -35,8 +37,11 @@ export function getPermalinkURL(state: GlobalState, teamId: Team['id'], postId: 
 
 export function getChannelURL(state: GlobalState, channel: Pick<Channel, 'type' | 'name'>, teamId: string): string {
     let notificationURL;
+    const isGuilded = isGuildedLayoutEnabled(state);
+    const dmRoute = isGuilded ? '/messages/' : '/channels/';
+
     if (channel && (channel.type === Constants.DM_CHANNEL || channel.type === Constants.GM_CHANNEL)) {
-        notificationURL = getCurrentRelativeTeamUrl(state) + '/channels/' + channel.name;
+        notificationURL = getCurrentRelativeTeamUrl(state) + dmRoute + channel.name;
     } else if (channel) {
         const team = getTeam(state, teamId);
         notificationURL = getTeamRelativeUrl(team) + '/channels/' + channel.name;

@@ -330,7 +330,7 @@ interface GroupedMembers {
 }
 
 // Create reusable selector instance from factory
-const getProfilesInChannel = makeGetProfilesInChannel();
+const doGetProfilesInChannel = makeGetProfilesInChannel();
 
 /**
  * Get channel members grouped by status (online admins, online members, offline)
@@ -338,7 +338,7 @@ const getProfilesInChannel = makeGetProfilesInChannel();
  */
 export const getChannelMembersGroupedByStatus = createSelector(
     'getChannelMembersGroupedByStatus',
-    (state: GlobalState, channelId: string) => getProfilesInChannel(state, channelId),
+    (state: GlobalState, channelId: string) => doGetProfilesInChannel(state, channelId),
     (state: GlobalState, channelId: string) => getChannelMembersInChannels(state)?.[channelId],
     (state: GlobalState) => state,
     (profiles, memberships, state): GroupedMembers | null => {

@@ -16,7 +16,7 @@ import {isGuildedLayoutEnabled, getAllDmChannelsWithUsers} from 'selectors/views
 
 import type {ActionFunc} from 'types/store';
 
-const getProfilesInChannel = makeGetProfilesInChannel();
+const doGetProfilesInChannel = makeGetProfilesInChannel();
 
 /**
  * Adds the following users to the status pool for fetching their statuses:
@@ -70,7 +70,7 @@ export function addVisibleUsersInCurrentChannelAndSelfToStatusPoll(): ActionFunc
             // Add all members of current channel that are currently loaded in store
             // (used in Persistent RHS members tab)
             if (currentChannelId) {
-                const profiles = getProfilesInChannel(state, currentChannelId);
+                const profiles = doGetProfilesInChannel(state, currentChannelId);
                 for (const profile of profiles) {
                     if (profile.id !== currentUserId) {
                         userIdsToFetchStatusFor.add(profile.id);

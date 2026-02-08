@@ -61,6 +61,7 @@ export type Props = {
         canUserDirectMessage: (userId: string, otherUserId: string) => Promise<ActionResult<{can_dm: boolean}>>;
     };
     focusOriginElement: string;
+    isGuilded?: boolean;
 }
 
 type State = {
@@ -226,7 +227,8 @@ export default class MoreDirectChannels extends React.PureComponent<Props, State
             this.setState({saving: false});
 
             if (!error) {
-                this.exitToChannel = '/' + this.props.currentTeamName + '/channels/' + data.name;
+                const routePrefix = this.props.isGuilded ? '/messages/' : '/channels/';
+                this.exitToChannel = '/' + this.props.currentTeamName + routePrefix + data.name;
                 this.handleHide();
             }
         };

@@ -31,6 +31,7 @@ import {openDirectChannelToUserId, openGroupChannelToUserIds} from 'actions/chan
 import {loadStatusesForProfilesList, loadProfilesMissingStatus} from 'actions/status_actions';
 import {loadProfilesForGroupChannels} from 'actions/user_actions';
 import {setModalSearchTerm} from 'actions/views/search';
+import {isGuildedLayoutEnabled} from 'selectors/views/guilded_layout';
 
 import type {GlobalState} from 'types/store';
 
@@ -86,6 +87,7 @@ export const makeMapStateToProps = () => {
             currentUserId,
             restrictDirectMessage,
             totalCount: stats.total_users_count ?? 0,
+            isGuilded: isGuildedLayoutEnabled(state),
         };
     };
 };

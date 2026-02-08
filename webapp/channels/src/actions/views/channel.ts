@@ -49,6 +49,7 @@ import {openDirectChannelToUserId} from 'actions/channel_actions';
 import {loadCustomStatusEmojisForPostList} from 'actions/emoji_actions';
 import {closeRightHandSide} from 'actions/views/rhs';
 import {markThreadAsRead} from 'actions/views/threads';
+import {isGuildedLayoutEnabled} from 'selectors/views/guilded_layout';
 import {getLastViewedChannelName} from 'selectors/local_storage';
 import {getSelectedPost, getSelectedPostId} from 'selectors/rhs';
 import {getLastPostsApiTimeForChannel} from 'selectors/views/channel';
@@ -127,7 +128,9 @@ export function switchToChannel(channel: Channel & {userId?: string}): ActionFun
             if (!gmChannel?.name) {
                 return {error: true};
             }
-            getHistory().push(`${teamUrl}/channels/${gmChannel.name}`);
+            const isGuilded = isGuildedLayoutEnabled(state);
+            const route = isGuilded ? 'messages' : 'channels';
+            getHistory().push(`${teamUrl}/${route}/${gmChannel.name}`);
         } else if (channel.type === Constants.THREADS) {
             getHistory().push(`${teamUrl}/${channel.name}`);
         } else {
