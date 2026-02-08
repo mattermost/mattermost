@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
+import React, {useMemo} from 'react';
 import {useSelector} from 'react-redux';
 import {Link} from 'react-router-dom';
 import classNames from 'classnames';
@@ -10,8 +10,10 @@ import {CloseIcon} from '@mattermost/compass-icons/components';
 
 import {Client4} from 'mattermost-redux/client';
 import {getMyChannelMember} from 'mattermost-redux/selectors/entities/channels';
+import {getTeammateNameDisplaySetting} from 'mattermost-redux/selectors/entities/preferences';
 import {getCurrentRelativeTeamUrl} from 'mattermost-redux/selectors/entities/teams';
 import {getCurrentUserId, getUser} from 'mattermost-redux/selectors/entities/users';
+import {displayUsername} from 'mattermost-redux/utils/user_utils';
 
 import {GlobalState} from 'types/store';
 import {Channel} from '@mattermost/types/channels';
@@ -33,6 +35,7 @@ type Props = {
 const EnhancedGroupDmRow = ({channel, users, isActive, onDmClick, onClose}: Props) => {
     const currentTeamUrl = useSelector(getCurrentRelativeTeamUrl);
     const currentUserId = useSelector(getCurrentUserId);
+    const teammateNameDisplaySetting = useSelector(getTeammateNameDisplaySetting);
     const member = useSelector((state: GlobalState) => getMyChannelMember(state, channel.id));
     
     // Last post selectors
@@ -63,7 +66,18 @@ const EnhancedGroupDmRow = ({channel, users, isActive, onDmClick, onClose}: Prop
         previewText = 'Loading...';
     }
 
-    const displayName = channel.display_name || users.map((u) => u.username).join(', ');
+    const displayName = useMemo(() => {
+        if (channel.display_name && !channel.display_name.includes(',')) {
+            return channel.display_name;
+        }
+
+        const otherUsers = users.filter((u) => u.id !== currentUserId);
+        if (otherUsers.length === 0) {
+            return channel.display_name;
+        }
+
+        return otherUsers.map((u) => displayUsername(u, teammateNameDisplaySetting)).join(', ');
+    }, [channel.display_name, users, currentUserId, teammateNameDisplaySetting]);
 
     return (
         <Link

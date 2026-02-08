@@ -10,8 +10,10 @@ import {CloseIcon} from '@mattermost/compass-icons/components';
 
 import {Client4} from 'mattermost-redux/client';
 import {getMyChannelMember} from 'mattermost-redux/selectors/entities/channels';
+import {getTeammateNameDisplaySetting} from 'mattermost-redux/selectors/entities/preferences';
 import {getCurrentRelativeTeamUrl} from 'mattermost-redux/selectors/entities/teams';
 import {getCurrentUserId, getUser, getStatusForUserId} from 'mattermost-redux/selectors/entities/users';
+import {displayUsername} from 'mattermost-redux/utils/user_utils';
 
 import {GlobalState} from 'types/store';
 import {Channel} from '@mattermost/types/channels';
@@ -35,6 +37,7 @@ type Props = {
 const EnhancedDmRow = ({channel, user, isActive, onDmClick, onClose}: Props) => {
     const currentTeamUrl = useSelector(getCurrentRelativeTeamUrl);
     const currentUserId = useSelector(getCurrentUserId);
+    const teammateNameDisplaySetting = useSelector(getTeammateNameDisplaySetting);
     const member = useSelector((state: GlobalState) => getMyChannelMember(state, channel.id));
     const userStatus = useSelector((state: GlobalState) => getStatusForUserId(state, user.id)) || 'offline';
 
@@ -68,6 +71,8 @@ const EnhancedDmRow = ({channel, user, isActive, onDmClick, onClose}: Props) => 
         previewText = 'Loading...';
     }
 
+    const displayName = displayUsername(user, teammateNameDisplaySetting);
+
     return (
         <Link
             to={`${currentTeamUrl}/messages/@${user.username}`}
@@ -88,7 +93,7 @@ const EnhancedDmRow = ({channel, user, isActive, onDmClick, onClose}: Props) => 
 
             <div className='enhanced-dm-row__content'>
                 <div className='enhanced-dm-row__header'>
-                    <span className='enhanced-dm-row__display-name'>{user.nickname || user.username}</span>
+                    <span className='enhanced-dm-row__display-name'>{displayName}</span>
                     {lastPost && <span className='enhanced-dm-row__timestamp'>{timestamp}</span>}
                 </div>
 
