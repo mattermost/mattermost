@@ -25,8 +25,7 @@
         "*.config.ts",
         "lib/src/spec-bridge.ts",
         "lib/src/e2e-test-gen/**/*",
-        "lib/src/validators/**/*",
-
+        "lib/src/validators/**/*"
     ],
     "exclude": ["node_modules", "playwright-report"]
 }
