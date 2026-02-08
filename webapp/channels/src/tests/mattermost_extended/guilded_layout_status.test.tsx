@@ -59,6 +59,10 @@ jest.mock('selectors/views/guilded_layout', () => ({
 
 jest.mock('components/profile_popover', () => () => <div />);
 jest.mock('components/custom_status/custom_status_emoji', () => () => <div />);
+jest.mock('actions/views/channel', () => ({
+    switchToChannel: jest.fn(),
+    markChannelAsRead: jest.fn(),
+}));
 jest.mock('selectors/emojis', () => ({
     getEmojiMap: jest.fn().mockReturnValue(new Map()),
     getCustomEmojisByName: jest.fn().mockReturnValue(new Map()),
