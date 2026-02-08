@@ -57,21 +57,13 @@ jest.mock('selectors/views/guilded_layout', () => ({
     getLastPostInChannel: jest.fn(),
 }));
 
-jest.mock('components/profile_popover', () => () => <div />);
-jest.mock('components/custom_status/custom_status_emoji', () => () => <div />);
-jest.mock('actions/views/channel', () => ({
-    switchToChannel: jest.fn(),
-    markChannelAsRead: jest.fn(),
-}));
-jest.mock('selectors/emojis', () => ({
-    getEmojiMap: jest.fn().mockReturnValue(new Map()),
-    getCustomEmojisByName: jest.fn().mockReturnValue(new Map()),
-}));
-jest.mock('selectors/views/custom_status', () => ({
-    makeGetCustomStatus: jest.fn().mockReturnValue(() => null),
-    isCustomStatusEnabled: jest.fn().mockReturnValue(false),
-    isCustomStatusExpired: jest.fn().mockReturnValue(false),
-    showStatusDropdownPulsatingDot: jest.fn().mockReturnValue(false),
+// Mock mattermost-redux/utils/post_utils to break the circular dependency chain:
+// utils/constants -> post_list -> posts -> post_utils -> roles.ts (undefined selector)
+jest.mock('mattermost-redux/utils/post_utils', () => ({
+    canEditPost: jest.fn().mockReturnValue(false),
+    isPostEphemeral: jest.fn().mockReturnValue(false),
+    isSystemMessage: jest.fn().mockReturnValue(false),
+    shouldFilterJoinLeavePost: jest.fn().mockReturnValue(false),
 }));
 
 jest.mock('react-router-dom', () => ({
