@@ -35,10 +35,12 @@ type PropertyFieldErrorConfig struct {
 }
 
 // DefaultPropertyFieldErrorConfig returns a default configuration with common error keys.
-func DefaultPropertyFieldErrorConfig(operation, errorKeyPrefix string) PropertyFieldErrorConfig {
+// It uses the generic "app.property_field" prefix for error messages that are shared
+// across all property field types (Board Attributes, Custom Profile Attributes, etc.).
+func DefaultPropertyFieldErrorConfig(operation string) PropertyFieldErrorConfig {
 	return PropertyFieldErrorConfig{
 		Operation:      operation,
-		ErrorKeyPrefix: errorKeyPrefix,
+		ErrorKeyPrefix: "app.property_field", // Use generic prefix for shared errors
 		NotFoundKey:    "property_field_not_found.app_error",
 		CreateKey:      "create_property_field.app_error",
 		UpdateKey:      "property_field_update.app_error",

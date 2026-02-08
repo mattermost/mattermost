@@ -69,7 +69,7 @@ func (a *App) GetBoardAttributeField(fieldID string) (*model.PropertyField, *mod
 
 	field, err := a.Srv().propertyService.GetPropertyField(groupID, fieldID)
 	if err != nil {
-		config := DefaultPropertyFieldErrorConfig("GetBoardAttributeField", "app.board_attributes")
+		config := DefaultPropertyFieldErrorConfig("GetBoardAttributeField")
 		return nil, HandlePropertyFieldError(err, config, "get")
 	}
 
@@ -112,7 +112,7 @@ func (a *App) CreateBoardAttributeField(field *model.PropertyField) (*model.Prop
 	// The store expects an empty ID and will generate one.
 	newField, err := a.Srv().propertyService.CreatePropertyField(field)
 	if err != nil {
-		config := DefaultPropertyFieldErrorConfig("CreateBoardAttributeField", "app.board_attributes")
+		config := DefaultPropertyFieldErrorConfig("CreateBoardAttributeField")
 		return nil, HandlePropertyFieldError(err, config, "create")
 	}
 
@@ -128,7 +128,7 @@ func (a *App) PatchBoardAttributeField(fieldID string, patch *model.PropertyFiel
 
 	existingField, err := a.Srv().propertyService.GetPropertyField(groupID, fieldID)
 	if err != nil {
-		config := DefaultPropertyFieldErrorConfig("PatchBoardAttributeField", "app.board_attributes")
+		config := DefaultPropertyFieldErrorConfig("PatchBoardAttributeField")
 		return nil, HandlePropertyFieldError(err, config, "get")
 	}
 
@@ -152,7 +152,7 @@ func (a *App) PatchBoardAttributeField(fieldID string, patch *model.PropertyFiel
 
 	patchedField, err := a.Srv().propertyService.UpdatePropertyField(groupID, existingField)
 	if err != nil {
-		config := DefaultPropertyFieldErrorConfig("PatchBoardAttributeField", "app.board_attributes")
+		config := DefaultPropertyFieldErrorConfig("PatchBoardAttributeField")
 		return nil, HandlePropertyFieldError(err, config, "update")
 	}
 
@@ -176,7 +176,7 @@ func (a *App) DeleteBoardAttributeField(fieldID string) *model.AppError {
 	}
 
 	if err := a.Srv().propertyService.DeletePropertyField(groupID, fieldID); err != nil {
-		config := DefaultPropertyFieldErrorConfig("DeleteBoardAttributeField", "app.board_attributes")
+		config := DefaultPropertyFieldErrorConfig("DeleteBoardAttributeField")
 		return HandlePropertyFieldError(err, config, "delete")
 	}
 

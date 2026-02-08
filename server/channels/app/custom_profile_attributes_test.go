@@ -24,7 +24,7 @@ func TestGetCPAField(t *testing.T) {
 	t.Run("should fail when getting a non-existent field", func(t *testing.T) {
 		field, appErr := th.App.GetCPAField(model.NewId())
 		require.NotNil(t, appErr)
-		require.Equal(t, "app.custom_profile_attributes.property_field_not_found.app_error", appErr.Id)
+		require.Equal(t, "app.property_field.property_field_not_found.app_error", appErr.Id)
 		require.Empty(t, field)
 	})
 
@@ -39,7 +39,7 @@ func TestGetCPAField(t *testing.T) {
 
 		fetchedField, appErr := th.App.GetCPAField(createdField.ID)
 		require.NotNil(t, appErr)
-		require.Equal(t, "app.custom_profile_attributes.property_field_not_found.app_error", appErr.Id)
+		require.Equal(t, "app.property_field.property_field_not_found.app_error", appErr.Id)
 		require.Empty(t, fetchedField)
 	})
 
@@ -459,7 +459,7 @@ func TestPatchCPAField(t *testing.T) {
 
 		updatedField, uErr := th.App.PatchCPAField(field.ID, patch)
 		require.NotNil(t, uErr)
-		require.Equal(t, "app.custom_profile_attributes.property_field_not_found.app_error", uErr.Id)
+		require.Equal(t, "app.property_field.property_field_not_found.app_error", uErr.Id)
 		require.Empty(t, updatedField)
 	})
 
@@ -705,7 +705,7 @@ func TestDeleteCPAField(t *testing.T) {
 	t.Run("should fail if the field doesn't exist", func(t *testing.T) {
 		err := th.App.DeleteCPAField(model.NewId())
 		require.NotNil(t, err)
-		require.Equal(t, "app.custom_profile_attributes.property_field_delete.app_error", err.Id)
+		require.Equal(t, "app.property_field.property_field_delete.app_error", err.Id)
 	})
 
 	t.Run("should not allow to delete a field outside of CPA", func(t *testing.T) {
@@ -719,7 +719,7 @@ func TestDeleteCPAField(t *testing.T) {
 
 		dErr := th.App.DeleteCPAField(field.ID)
 		require.NotNil(t, dErr)
-		require.Equal(t, "app.custom_profile_attributes.property_field_delete.app_error", dErr.Id)
+		require.Equal(t, "app.property_field.property_field_delete.app_error", dErr.Id)
 	})
 
 	t.Run("should correctly delete the field", func(t *testing.T) {
