@@ -79,11 +79,19 @@ jest.mock('react-router-dom', () => ({
     }),
 }));
 
-// Mock member_row to break ALL circular dependency chains at once
-// member_row imports profile_picture, profile_popover, custom_status_emoji,
-// and selectors/views/custom_status - all of which eventually reach
-// utils/constants -> post_list -> posts.ts circular dependency
-jest.mock('components/persistent_rhs/member_row', () => () => null);
+// Mock posts selectors to prevent the circular dependency error at posts.ts:211.
+// Multiple import chains from member_row, dm_list_page, and actions/views/channel
+// all converge on posts.ts where createSelector throws due to undefined input.
+jest.mock('mattermost-redux/selectors/entities/posts', () => ({
+    getPost: jest.fn(),
+    getAllPosts: jest.fn().mockReturnValue({}),
+    getPostIdsInCurrentChannel: jest.fn(),
+    getPostsInCurrentChannel: jest.fn(),
+    getMostRecentPostIdInChannel: jest.fn(),
+    getLatestReplyablePostId: jest.fn(),
+    isPostIdSending: jest.fn(),
+    makeGetPostsForThread: jest.fn(() => jest.fn()),
+}));
 
 describe('Guilded Layout Status Syncing', () => {
     const dispatch = jest.fn();
