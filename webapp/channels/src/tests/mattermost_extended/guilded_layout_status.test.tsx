@@ -57,6 +57,8 @@ jest.mock('selectors/views/guilded_layout', () => ({
     getLastPostInChannel: jest.fn(),
 }));
 
+jest.mock('components/profile_popover', () => () => <div />);
+
 jest.mock('react-router-dom', () => ({
     useHistory: () => ({
         push: jest.fn(),

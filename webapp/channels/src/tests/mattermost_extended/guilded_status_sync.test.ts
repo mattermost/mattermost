@@ -4,7 +4,7 @@
 import cloneDeep from 'lodash/cloneDeep';
 
 import {addUserIdsForStatusFetchingPoll} from 'mattermost-redux/actions/status_profile_polling';
-import {Preferences} from 'mattermost-redux/constants';
+import {Constants} from 'utils/constants';
 
 import * as Actions from 'actions/status_actions';
 import mockStore from 'tests/test_store';
@@ -58,7 +58,7 @@ describe('tests/mattermost_extended/guilded_status_sync', () => {
             preferences: {
                 myPreferences: {
                     'display_settings--guilded_chat_layout': {category: 'display_settings', name: 'guilded_chat_layout', value: 'true'},
-                    [Preferences.CATEGORY_DIRECT_CHANNEL_SHOW + '--other_user_id']: {category: Preferences.CATEGORY_DIRECT_CHANNEL_SHOW, name: 'other_user_id', value: 'true'},
+                    [Constants.Preferences.CATEGORY_DIRECT_CHANNEL_SHOW + '--other_user_id']: {category: Constants.Preferences.CATEGORY_DIRECT_CHANNEL_SHOW, name: 'other_user_id', value: 'true'},
                 },
             },
             posts: {
@@ -68,6 +68,9 @@ describe('tests/mattermost_extended/guilded_status_sync', () => {
         views: {
             channel: {
                 postVisibility: {channel_id1: 0},
+            },
+            browser: {
+                windowSize: 'DESKTOP_VIEW',
             },
         },
     };

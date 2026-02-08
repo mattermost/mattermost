@@ -38,6 +38,8 @@ jest.mock('selectors/views/guilded_layout', () => ({
     getLastPostInChannel: jest.fn(),
 }));
 
+jest.mock('components/emoji/render_emoji', () => () => <div />);
+
 describe('Guilded Group DM', () => {
     const mockChannel = {
         id: 'channel_id_1',

@@ -95,18 +95,16 @@ jest.mock('actions/views/modals', () => ({
     openModal: jest.fn().mockReturnValue({type: 'MOCK_OPEN_MODAL'}),
 }));
 jest.mock('components/more_direct_channels', () => () => null);
-jest.mock('utils/constants', () => ({
-    ModalIdentifiers: {CREATE_DM_CHANNEL: 'create_dm_channel'},
-    ActionTypes: {SET_NAVIGATION_BLOCKED: 'SET_NAVIGATION_BLOCKED'},
-    Constants: {
-        DM_CHANNEL: 'D',
-        GM_CHANNEL: 'G',
-        Preferences: {
-            CATEGORY_DIRECT_CHANNEL_SHOW: 'direct_channel_show',
-            CATEGORY_GROUP_CHANNEL_SHOW: 'group_channel_show',
+jest.mock('utils/constants', () => {
+    const actual = jest.requireActual('utils/constants');
+    return {
+        ...actual,
+        ModalIdentifiers: {
+            ...actual.ModalIdentifiers,
+            CREATE_DM_CHANNEL: 'create_dm_channel',
         },
-    },
-}));
+    };
+});
 
 // Mock child components - capture onClose prop
 jest.mock('../dm_search_input', () => (props: any) => <input data-testid="dm-search-input" />);
