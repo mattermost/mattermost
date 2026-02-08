@@ -1,6 +1,14 @@
 ---
 name: "E2E Tests (Testcontainers)"
 on:
+  push:
+    branches:
+      - MM-67295_testcontainers
+    paths:
+      - ".github/workflows/e2e-tests-testcontainers.yml"
+      - "e2e-tests/testcontainers/**"
+      - "e2e-tests/playwright/**"
+      - "e2e-tests/cypress/**"
   workflow_dispatch:
     inputs:
       commit_sha:
@@ -48,14 +56,17 @@ concurrency:
 
 env:
   COMMIT_SHA: "${{ inputs.commit_sha || github.sha }}"
-  SERVER_IMAGE: "${{ inputs.server_image }}"
+  SERVER_IMAGE: "${{ inputs.server_image || 'mattermostdevelopment/mattermost-enterprise-edition:master' }}"
+  ENABLED_DOCKER_SERVICES: "${{ inputs.enabled_docker_services || 'postgres inbucket' }}"
+  PW_TEST_FILTER: "${{ inputs.playwright_test_filter || '--grep @smoke' }}"
+  MM_ENV_INPUT: "${{ inputs.mm_env || '' }}"
 
 jobs:
   # ════════════════════════════════════════════════════════════════════════════
   # CYPRESS
   # ════════════════════════════════════════════════════════════════════════════
   cypress:
-    if: inputs.run_cypress
+    if: inputs.run_cypress != 'false'
     runs-on: ubuntu-24.04
     timeout-minutes: 60
     defaults:
@@ -81,9 +92,9 @@ jobs:
         working-directory: e2e-tests/testcontainers
         env:
           TC_SERVER_IMAGE: ${{ env.SERVER_IMAGE }}
-          TC_DEPENDENCIES: ${{ inputs.enabled_docker_services }}
+          TC_DEPENDENCIES: ${{ env.ENABLED_DOCKER_SERVICES }}
           MM_LICENSE: ${{ secrets.MM_E2E_TEST_LICENSE_ONPREM_ENT }}
-          MM_ENV: ${{ inputs.mm_env }}
+          MM_ENV: ${{ env.MM_ENV_INPUT }}
         run: |
           DEPS=$(echo "$TC_DEPENDENCIES" | tr ' ' ',')
 
@@ -131,7 +142,7 @@ jobs:
   # PLAYWRIGHT
   # ════════════════════════════════════════════════════════════════════════════
   playwright:
-    if: inputs.run_playwright
+    if: inputs.run_playwright != 'false'
     runs-on: ubuntu-24.04
     timeout-minutes: 60
     defaults:
@@ -164,10 +175,10 @@ jobs:
           PW_TC: "true"
           TC_SERVER_IMAGE: ${{ env.SERVER_IMAGE }}
           MM_LICENSE: ${{ secrets.MM_E2E_TEST_LICENSE_ONPREM_ENT }}
-          MM_ENV: ${{ inputs.mm_env }}
+          MM_ENV: ${{ env.MM_ENV_INPUT }}
         run: |
-          export TC_DEPENDENCIES=$(echo "${{ inputs.enabled_docker_services }}" | tr ' ' ',')
-          npm run test:ci -- ${{ inputs.playwright_test_filter }}
+          export TC_DEPENDENCIES=$(echo "${{ env.ENABLED_DOCKER_SERVICES }}" | tr ' ' ',')
+          npm run test:ci -- ${{ env.PW_TEST_FILTER }}
       - name: ci/upload-results
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         if: always()
@@ -198,7 +209,7 @@ jobs:
             echo ""
             echo "| Runner | Status |"
             echo "|--------|--------|"
-            if [ "${{ inputs.run_cypress }}" = "true" ]; then
+            if [ "${{ inputs.run_cypress || 'true' }}" != "false" ]; then
               if [ "$CYPRESS_RESULT" = "success" ]; then
                 echo "| Cypress | :white_check_mark: Passed |"
               elif [ "$CYPRESS_RESULT" = "skipped" ]; then
@@ -207,7 +218,7 @@ jobs:
                 echo "| Cypress | :x: $CYPRESS_RESULT |"
               fi
             fi
-            if [ "${{ inputs.run_playwright }}" = "true" ]; then
+            if [ "${{ inputs.run_playwright || 'true' }}" != "false" ]; then
               if [ "$PLAYWRIGHT_RESULT" = "success" ]; then
                 echo "| Playwright | :white_check_mark: Passed |"
               elif [ "$PLAYWRIGHT_RESULT" = "skipped" ]; then
@@ -218,6 +229,6 @@ jobs:
             fi
             echo ""
             echo "**Server image:** \`${{ env.SERVER_IMAGE }}\`"
-            echo "**Services:** \`${{ inputs.enabled_docker_services }}\`"
+            echo "**Services:** \`${{ env.ENABLED_DOCKER_SERVICES }}\`"
             echo "**Commit:** \`${{ env.COMMIT_SHA }}\`"
           } >> $GITHUB_STEP_SUMMARY
