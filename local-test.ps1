@@ -421,6 +421,87 @@ function Get-PluginSettingsFromBackup {
     return $null
 }
 
+function Build-LocalConfig {
+    <#
+    .SYNOPSIS
+    Builds local config by starting from the full production backup config.json
+    and overriding only the settings that must change for local development.
+    All other production settings (emoji, display, notifications, etc.) are preserved.
+    #>
+    $backupDir = Join-Path $WORK_DIR "backup"
+    $prodConfigPath = Join-Path $backupDir "data\config.json"
+    $workDirUnix = $WORK_DIR -replace "\\", "/"
+
+    # Start from the full production config
+    if (Test-Path $prodConfigPath) {
+        $config = Get-Content $prodConfigPath -Raw -Encoding UTF8 | ConvertFrom-Json -AsHashtable
+        "Starting from production config.json" | Out-File $LOG_FILE -Append -Encoding UTF8
+    } else {
+        $config = @{}
+        Log-Warning "No production config.json found in backup, starting from defaults"
+    }
+
+    # Ensure required sections exist
+    foreach ($section in @('ServiceSettings', 'SqlSettings', 'FileSettings', 'LogSettings', 'PluginSettings', 'EmailSettings', 'RateLimitSettings', 'FeatureFlags')) {
+        if (-not $config.ContainsKey($section)) { $config[$section] = @{} }
+    }
+
+    # --- Local development overrides (only what MUST change) ---
+
+    # ServiceSettings - local URL and dev mode
+    $config['ServiceSettings']['SiteURL'] = "http://localhost:$MM_PORT"
+    $config['ServiceSettings']['ListenAddress'] = ":$MM_PORT"
+    $config['ServiceSettings']['EnableDeveloper'] = $true
+    $config['ServiceSettings']['AllowCorsFrom'] = '*'
+    $config['ServiceSettings']['EnableLocalMode'] = $false
+
+    # SqlSettings - local database
+    $config['SqlSettings']['DriverName'] = 'postgres'
+    $config['SqlSettings']['DataSource'] = "postgres://${PG_USER}:${PG_PASSWORD}@localhost:${PG_PORT}/${PG_DATABASE}?sslmode=disable"
+    $config['SqlSettings']['DataSourceReplicas'] = @()
+
+    # FileSettings - local storage instead of S3
+    $config['FileSettings']['DriverName'] = 'local'
+    $config['FileSettings']['Directory'] = "$workDirUnix/data"
+
+    # LogSettings - verbose local logging
+    $config['LogSettings']['EnableConsole'] = $true
+    $config['LogSettings']['ConsoleLevel'] = 'DEBUG'
+    $config['LogSettings']['ConsoleJson'] = $false
+    $config['LogSettings']['EnableFile'] = $true
+    $config['LogSettings']['FileLevel'] = 'INFO'
+    $config['LogSettings']['FileJson'] = $false
+    $config['LogSettings']['FileLocation'] = "$workDirUnix"
+
+    # PluginSettings - local paths (preserves plugin configs and states from production)
+    $config['PluginSettings']['Enable'] = $true
+    $config['PluginSettings']['EnableUploads'] = $true
+    $config['PluginSettings']['Directory'] = "$workDirUnix/data/plugins"
+    $config['PluginSettings']['ClientDirectory'] = "$workDirUnix/data/client/plugins"
+
+    # EmailSettings - disable sending (keeps other email settings from production)
+    $config['EmailSettings']['SendEmailNotifications'] = $false
+    $config['EmailSettings']['RequireEmailVerification'] = $false
+
+    # RateLimitSettings - disable for local
+    $config['RateLimitSettings']['Enable'] = $false
+
+    # FeatureFlags - ensure custom Mattermost Extended flags are enabled
+    foreach ($flag in @('Encryption', 'CustomChannelIcons', 'ThreadsInSidebar', 'CustomThreadNames', 'ErrorLogDashboard')) {
+        $config['FeatureFlags'][$flag] = $true
+    }
+
+    # MattermostExtendedSettings - ensure section exists with defaults if missing
+    if (-not $config.ContainsKey('MattermostExtendedSettings')) {
+        $config['MattermostExtendedSettings'] = @{
+            'Posts' = @{ 'HideDeletedMessagePlaceholder' = $true }
+            'Channels' = @{ 'SidebarChannelSettings' = $true }
+        }
+    }
+
+    return $config
+}
+
 # ============================================================================
 # Command Functions
 # ============================================================================
@@ -704,162 +785,16 @@ function Invoke-Setup {
         Log "Found $pluginCount plugins in backup."
     }
 
-    # [5/5] Create config file (merging production settings with local overrides)
+    # [5/5] Create config file (production config with local overrides)
     Log "[5/5] Creating config file..."
-
-    # Read production config from backup
-    $backupConfig = Get-BackupConfig
-    $workDirUnix = $WORK_DIR -replace "\\", "/"
-
-    # Build config object - start with production or defaults
-    $config = [ordered]@{}
-
-    # ServiceSettings - local overrides
-    $config['ServiceSettings'] = [ordered]@{
-        'SiteURL' = "http://localhost:$MM_PORT"
-        'ListenAddress' = ":$MM_PORT"
-        'EnableDeveloper' = $true
-        'EnableTesting' = $false
-        'AllowCorsFrom' = '*'
-        'EnableLocalMode' = $false
-    }
-
-    # TeamSettings - use production if available, or defaults
-    if ($backupConfig -and $backupConfig.PSObject.Properties['TeamSettings']) {
-        $config['TeamSettings'] = $backupConfig.TeamSettings
-    } else {
-        $config['TeamSettings'] = [ordered]@{
-            'SiteName' = 'Mattermost Local Test'
-            'EnableUserCreation' = $true
-            'EnableOpenServer' = $true
-            'EnableCustomUserStatuses' = $true
-            'EnableLastActiveTime' = $true
-        }
-    }
-
-    # SqlSettings - local database
-    $config['SqlSettings'] = [ordered]@{
-        'DriverName' = 'postgres'
-        'DataSource' = "postgres://${PG_USER}:${PG_PASSWORD}@localhost:${PG_PORT}/${PG_DATABASE}?sslmode=disable"
-        'DataSourceReplicas' = @()
-        'MaxIdleConns' = 20
-        'MaxOpenConns' = 300
-    }
-
-    # FileSettings - local storage (not S3)
-    $config['FileSettings'] = [ordered]@{
-        'DriverName' = 'local'
-        'Directory' = "$workDirUnix/data"
-        'EnableFileAttachments' = $true
-        'EnablePublicLink' = $true
-    }
-
-    # LogSettings - local logging
-    $config['LogSettings'] = [ordered]@{
-        'EnableConsole' = $true
-        'ConsoleLevel' = 'DEBUG'
-        'ConsoleJson' = $false
-        'EnableFile' = $true
-        'FileLevel' = 'INFO'
-        'FileJson' = $false
-        'FileLocation' = "$workDirUnix"
-    }
-
-    # PluginSettings - merge production plugin configs with local paths
-    $prodPluginSettings = Get-PluginSettingsFromBackup -BackupConfig $backupConfig
-    $config['PluginSettings'] = [ordered]@{
-        'Enable' = $true
-        'EnableUploads' = $true
-        'Directory' = "$workDirUnix/data/plugins"
-        'ClientDirectory' = "$workDirUnix/data/client/plugins"
-    }
-    # Add production plugin configs and states if available
-    if ($prodPluginSettings) {
-        if ($prodPluginSettings.PSObject.Properties['Plugins']) {
-            $config['PluginSettings']['Plugins'] = $prodPluginSettings.Plugins
-        }
-        if ($prodPluginSettings.PSObject.Properties['PluginStates']) {
-            $config['PluginSettings']['PluginStates'] = $prodPluginSettings.PluginStates
-        }
-        if ($prodPluginSettings.PSObject.Properties['EnableMarketplace']) {
-            $config['PluginSettings']['EnableMarketplace'] = $prodPluginSettings.EnableMarketplace
-        }
-        if ($prodPluginSettings.PSObject.Properties['EnableRemoteMarketplace']) {
-            $config['PluginSettings']['EnableRemoteMarketplace'] = $prodPluginSettings.EnableRemoteMarketplace
-        }
-        if ($prodPluginSettings.PSObject.Properties['RequirePluginSignature']) {
-            $config['PluginSettings']['RequirePluginSignature'] = $prodPluginSettings.RequirePluginSignature
-        }
-    }
-
-    # EmailSettings - disable email in local
-    $config['EmailSettings'] = [ordered]@{
-        'EnableSignUpWithEmail' = $true
-        'EnableSignInWithEmail' = $true
-        'EnableSignInWithUsername' = $true
-        'SendEmailNotifications' = $false
-        'RequireEmailVerification' = $false
-    }
-
-    # RateLimitSettings - disable for local testing
-    $config['RateLimitSettings'] = [ordered]@{
-        'Enable' = $false
-    }
-
-    # PrivacySettings - use production or defaults
-    if ($backupConfig -and $backupConfig.PSObject.Properties['PrivacySettings']) {
-        $config['PrivacySettings'] = $backupConfig.PrivacySettings
-    } else {
-        $config['PrivacySettings'] = [ordered]@{
-            'ShowEmailAddress' = $true
-            'ShowFullName' = $true
-        }
-    }
-
-    # FeatureFlags - from backup + custom Mattermost Extended flags
-    $featureFlags = Get-FeatureFlagsFromBackup -BackupConfig $backupConfig -TryDatabase
-    $config['FeatureFlags'] = $featureFlags
-
-    # MattermostExtendedSettings - from database, backup, or defaults
-    $extSettings = Get-MattermostExtendedSettingsFromBackup -BackupConfig $backupConfig -TryDatabase
-    $config['MattermostExtendedSettings'] = $extSettings
-
-    # Write config as JSON
+    $config = Build-LocalConfig
     $configPath = Join-Path $WORK_DIR "config.json"
-    $configJson = $config | ConvertTo-Json -Depth 10
-    # Write without BOM (Go's JSON parser doesn't like BOM)
-    [System.IO.File]::WriteAllText($configPath, $configJson)
+    [System.IO.File]::WriteAllText($configPath, ($config | ConvertTo-Json -Depth 20))
 
-    # Log what we loaded
-    $pluginCount = 0
-    $enabledCount = 0
-    if ($config['PluginSettings']['Plugins']) {
-        $pluginCount = @($config['PluginSettings']['Plugins'].PSObject.Properties).Count
-    }
-    if ($config['PluginSettings']['PluginStates']) {
-        foreach ($state in $config['PluginSettings']['PluginStates'].PSObject.Properties) {
-            if ($state.Value.Enable -eq $true) {
-                $enabledCount++
-            }
-        }
-    }
-    # Count extended settings
-    $extSettingsDesc = @()
-    if ($extSettings.PSObject.Properties['Posts'] -and $extSettings.Posts.PSObject.Properties['HideDeletedMessagePlaceholder'] -and $extSettings.Posts.HideDeletedMessagePlaceholder -eq $true) {
-        $extSettingsDesc += "HideDeletedPlaceholder"
-    }
-    if ($extSettings.PSObject.Properties['Channels'] -and $extSettings.Channels.PSObject.Properties['SidebarChannelSettings'] -and $extSettings.Channels.SidebarChannelSettings -eq $true) {
-        $extSettingsDesc += "SidebarChannelSettings"
-    }
-
+    $flagCount = if ($config['FeatureFlags']) { $config['FeatureFlags'].Count } else { 0 }
+    $pluginCount = if ($config['PluginSettings']['Plugins']) { $config['PluginSettings']['Plugins'].Count } else { 0 }
     Log "Config file created: $configPath"
-    Log "  - Plugin configs: $pluginCount, Enabled plugins: $enabledCount"
-    Log "  - Feature flags: $($featureFlags.Count) ($(($featureFlags.Keys | Sort-Object) -join ', '))"
-    if ($extSettingsDesc.Count -gt 0) {
-        Log "  - Extended tweaks: $($extSettingsDesc -join ', ')"
-    } else {
-        Log "  - Extended tweaks: (none enabled)"
-    }
+    Log "  - $flagCount feature flags, $pluginCount plugin configs (from production)"
 
     Log ""
     Log-Success "=== Setup Complete ==="
@@ -1114,151 +1049,13 @@ function Invoke-FixConfig {
         Log "Backed up existing config to config.json.backup"
     }
 
-    # Read production config from backup
-    $backupConfig = Get-BackupConfig
-    $workDirUnix = $WORK_DIR -replace "\\", "/"
-
-    # Build config object - same logic as Invoke-Setup
-    $config = [ordered]@{}
-
-    # ServiceSettings - local overrides
-    $config['ServiceSettings'] = [ordered]@{
-        'SiteURL' = "http://localhost:$MM_PORT"
-        'ListenAddress' = ":$MM_PORT"
-        'EnableDeveloper' = $true
-        'EnableTesting' = $false
-        'AllowCorsFrom' = '*'
-        'EnableLocalMode' = $false
-    }
-
-    # TeamSettings - use production if available, or defaults
-    if ($backupConfig -and $backupConfig.PSObject.Properties['TeamSettings']) {
-        $config['TeamSettings'] = $backupConfig.TeamSettings
-    } else {
-        $config['TeamSettings'] = [ordered]@{
-            'SiteName' = 'Mattermost Local Test'
-            'EnableUserCreation' = $true
-            'EnableOpenServer' = $true
-            'EnableCustomUserStatuses' = $true
-            'EnableLastActiveTime' = $true
-        }
-    }
-
-    # SqlSettings - local database
-    $config['SqlSettings'] = [ordered]@{
-        'DriverName' = 'postgres'
-        'DataSource' = "postgres://${PG_USER}:${PG_PASSWORD}@localhost:${PG_PORT}/${PG_DATABASE}?sslmode=disable"
-        'DataSourceReplicas' = @()
-        'MaxIdleConns' = 20
-        'MaxOpenConns' = 300
-    }
-
-    # FileSettings - local storage (not S3)
-    $config['FileSettings'] = [ordered]@{
-        'DriverName' = 'local'
-        'Directory' = "$workDirUnix/data"
-        'EnableFileAttachments' = $true
-        'EnablePublicLink' = $true
-    }
-
-    # LogSettings - local logging
-    $config['LogSettings'] = [ordered]@{
-        'EnableConsole' = $true
-        'ConsoleLevel' = 'DEBUG'
-        'ConsoleJson' = $false
-        'EnableFile' = $true
-        'FileLevel' = 'INFO'
-        'FileJson' = $false
-        'FileLocation' = "$workDirUnix"
-    }
-
-    # PluginSettings - merge production plugin configs with local paths
-    $prodPluginSettings = Get-PluginSettingsFromBackup -BackupConfig $backupConfig
-    $config['PluginSettings'] = [ordered]@{
-        'Enable' = $true
-        'EnableUploads' = $true
-        'Directory' = "$workDirUnix/data/plugins"
-        'ClientDirectory' = "$workDirUnix/data/client/plugins"
-    }
-    if ($prodPluginSettings) {
-        if ($prodPluginSettings.PSObject.Properties['Plugins']) {
-            $config['PluginSettings']['Plugins'] = $prodPluginSettings.Plugins
-        }
-        if ($prodPluginSettings.PSObject.Properties['PluginStates']) {
-            $config['PluginSettings']['PluginStates'] = $prodPluginSettings.PluginStates
-        }
-        if ($prodPluginSettings.PSObject.Properties['EnableMarketplace']) {
-            $config['PluginSettings']['EnableMarketplace'] = $prodPluginSettings.EnableMarketplace
-        }
-        if ($prodPluginSettings.PSObject.Properties['EnableRemoteMarketplace']) {
-            $config['PluginSettings']['EnableRemoteMarketplace'] = $prodPluginSettings.EnableRemoteMarketplace
-        }
-        if ($prodPluginSettings.PSObject.Properties['RequirePluginSignature']) {
-            $config['PluginSettings']['RequirePluginSignature'] = $prodPluginSettings.RequirePluginSignature
-        }
-    }
-
-    # EmailSettings - disable email in local
-    $config['EmailSettings'] = [ordered]@{
-        'EnableSignUpWithEmail' = $true
-        'EnableSignInWithEmail' = $true
-        'EnableSignInWithUsername' = $true
-        'SendEmailNotifications' = $false
-        'RequireEmailVerification' = $false
-    }
-
-    # RateLimitSettings - disable for local testing
-    $config['RateLimitSettings'] = [ordered]@{
-        'Enable' = $false
-    }
-
-    # PrivacySettings - use production or defaults
-    if ($backupConfig -and $backupConfig.PSObject.Properties['PrivacySettings']) {
-        $config['PrivacySettings'] = $backupConfig.PrivacySettings
-    } else {
-        $config['PrivacySettings'] = [ordered]@{
-            'ShowEmailAddress' = $true
-            'ShowFullName' = $true
-        }
-    }
-
-    # FeatureFlags - from backup + custom Mattermost Extended flags
-    $featureFlags = Get-FeatureFlagsFromBackup -BackupConfig $backupConfig -TryDatabase
-    $config['FeatureFlags'] = $featureFlags
-
-    # MattermostExtendedSettings - from database, backup, or defaults
-    $extSettings = Get-MattermostExtendedSettingsFromBackup -BackupConfig $backupConfig -TryDatabase
-    $config['MattermostExtendedSettings'] = $extSettings
-
-    # Write config as JSON
-    $configJson = $config | ConvertTo-Json -Depth 10
+    # Build config from production backup with local overrides
+    $config = Build-LocalConfig
+    $configJson = $config | ConvertTo-Json -Depth 20
     [System.IO.File]::WriteAllText($configPath, $configJson)
 
-    # Log what we loaded
-    $pluginCount = 0
-    $enabledCount = 0
-    if ($config['PluginSettings']['Plugins']) {
-        $pluginCount = @($config['PluginSettings']['Plugins'].PSObject.Properties).Count
-    }
-    if ($config['PluginSettings']['PluginStates']) {
-        foreach ($state in $config['PluginSettings']['PluginStates'].PSObject.Properties) {
-            if ($state.Value.Enable -eq $true) {
-                $enabledCount++
-            }
-        }
-    }
-
-    # Count extended settings
-    $extSettingsDesc = @()
-    if ($extSettings.PSObject.Properties['Posts'] -and $extSettings.Posts.PSObject.Properties['HideDeletedMessagePlaceholder'] -and $extSettings.Posts.HideDeletedMessagePlaceholder -eq $true) {
-        $extSettingsDesc += "HideDeletedPlaceholder"
-    }
-    if ($extSettings.PSObject.Properties['Channels'] -and $extSettings.Channels.PSObject.Properties['SidebarChannelSettings'] -and $extSettings.Channels.SidebarChannelSettings -eq $true) {
-        $extSettingsDesc += "SidebarChannelSettings"
-    }
-
     Log ""
-    Log-Success "Config reset to clean local settings with production plugin configs."
+    Log-Success "Config reset from production config.json with local overrides."
     Log ""
     Log "Key settings:"
     Log "  - Database: postgres://${PG_USER}:****@localhost:${PG_PORT}/${PG_DATABASE}"
@@ -2148,33 +1945,11 @@ function Invoke-All {
             if (!(Test-Path $pluginsDir)) { New-Item -ItemType Directory -Path $pluginsDir -Force | Out-Null }
             if (!(Test-Path $clientPluginsDir)) { New-Item -ItemType Directory -Path $clientPluginsDir -Force | Out-Null }
 
-            # Build config
-            $backupConfig = Get-BackupConfig
-            $workDirUnix = $WORK_DIR -replace "\\", "/"
-            $config = [ordered]@{}
-            $config['ServiceSettings'] = [ordered]@{ 'SiteURL' = "http://localhost:$MM_PORT"; 'ListenAddress' = ":$MM_PORT"; 'EnableDeveloper' = $true; 'EnableTesting' = $false; 'AllowCorsFrom' = '*'; 'EnableLocalMode' = $false }
-            if ($backupConfig -and $backupConfig.PSObject.Properties['TeamSettings']) { $config['TeamSettings'] = $backupConfig.TeamSettings }
-            else { $config['TeamSettings'] = [ordered]@{ 'SiteName' = 'Mattermost Local Test'; 'EnableUserCreation' = $true; 'EnableOpenServer' = $true; 'EnableCustomUserStatuses' = $true; 'EnableLastActiveTime' = $true } }
-            $config['SqlSettings'] = [ordered]@{ 'DriverName' = 'postgres'; 'DataSource' = "postgres://${PG_USER}:${PG_PASSWORD}@localhost:${PG_PORT}/${PG_DATABASE}?sslmode=disable"; 'DataSourceReplicas' = @(); 'MaxIdleConns' = 20; 'MaxOpenConns' = 300 }
-            $config['FileSettings'] = [ordered]@{ 'DriverName' = 'local'; 'Directory' = "$workDirUnix/data"; 'EnableFileAttachments' = $true; 'EnablePublicLink' = $true }
-            $config['LogSettings'] = [ordered]@{ 'EnableConsole' = $true; 'ConsoleLevel' = 'DEBUG'; 'ConsoleJson' = $false; 'EnableFile' = $true; 'FileLevel' = 'INFO'; 'FileJson' = $false; 'FileLocation' = "$workDirUnix" }
-            $prodPluginSettings = Get-PluginSettingsFromBackup -BackupConfig $backupConfig
-            $config['PluginSettings'] = [ordered]@{ 'Enable' = $true; 'EnableUploads' = $true; 'Directory' = "$workDirUnix/data/plugins"; 'ClientDirectory' = "$workDirUnix/data/client/plugins" }
-            if ($prodPluginSettings) {
-                if ($prodPluginSettings.PSObject.Properties['Plugins']) { $config['PluginSettings']['Plugins'] = $prodPluginSettings.Plugins }
-                if ($prodPluginSettings.PSObject.Properties['PluginStates']) { $config['PluginSettings']['PluginStates'] = $prodPluginSettings.PluginStates }
-            }
-            $config['EmailSettings'] = [ordered]@{ 'EnableSignUpWithEmail' = $true; 'EnableSignInWithEmail' = $true; 'EnableSignInWithUsername' = $true; 'SendEmailNotifications' = $false; 'RequireEmailVerification' = $false }
-            $config['RateLimitSettings'] = [ordered]@{ 'Enable' = $false }
-            if ($backupConfig -and $backupConfig.PSObject.Properties['PrivacySettings']) { $config['PrivacySettings'] = $backupConfig.PrivacySettings }
-            else { $config['PrivacySettings'] = [ordered]@{ 'ShowEmailAddress' = $true; 'ShowFullName' = $true } }
-            $featureFlags = Get-FeatureFlagsFromBackup -BackupConfig $backupConfig -TryDatabase
-            $config['FeatureFlags'] = $featureFlags
-            $extSettings = Get-MattermostExtendedSettingsFromBackup -BackupConfig $backupConfig -TryDatabase
-            $config['MattermostExtendedSettings'] = $extSettings
+            # Build config from production backup with local overrides
+            $config = Build-LocalConfig
             $configPath = Join-Path $WORK_DIR "config.json"
-            [System.IO.File]::WriteAllText($configPath, ($config | ConvertTo-Json -Depth 10))
-            "Config created" | Out-File $LOG_FILE -Append -Encoding UTF8
+            [System.IO.File]::WriteAllText($configPath, ($config | ConvertTo-Json -Depth 20))
+            "Config created from production backup" | Out-File $LOG_FILE -Append -Encoding UTF8
             $taskConfig.Increment(100)
 
             # Wait for builds with progress updates
@@ -2336,21 +2111,9 @@ function Invoke-All {
         if (!(Test-Path $pluginsDir)) { New-Item -ItemType Directory -Path $pluginsDir -Force | Out-Null }
         if (!(Test-Path $clientPluginsDir)) { New-Item -ItemType Directory -Path $clientPluginsDir -Force | Out-Null }
 
-        $backupConfig = Get-BackupConfig; $workDirUnix = $WORK_DIR -replace "\\", "/"
-        $config = [ordered]@{}
-        $config['ServiceSettings'] = [ordered]@{ 'SiteURL' = "http://localhost:$MM_PORT"; 'ListenAddress' = ":$MM_PORT"; 'EnableDeveloper' = $true; 'EnableTesting' = $false; 'AllowCorsFrom' = '*'; 'EnableLocalMode' = $false }
-        if ($backupConfig -and $backupConfig.PSObject.Properties['TeamSettings']) { $config['TeamSettings'] = $backupConfig.TeamSettings }
-        else { $config['TeamSettings'] = [ordered]@{ 'SiteName' = 'Mattermost Local Test'; 'EnableUserCreation' = $true; 'EnableOpenServer' = $true } }
-        $config['SqlSettings'] = [ordered]@{ 'DriverName' = 'postgres'; 'DataSource' = "postgres://${PG_USER}:${PG_PASSWORD}@localhost:${PG_PORT}/${PG_DATABASE}?sslmode=disable"; 'DataSourceReplicas' = @() }
-        $config['FileSettings'] = [ordered]@{ 'DriverName' = 'local'; 'Directory' = "$workDirUnix/data" }
-        $config['LogSettings'] = [ordered]@{ 'EnableConsole' = $true; 'ConsoleLevel' = 'DEBUG'; 'ConsoleJson' = $false; 'EnableFile' = $true; 'FileLevel' = 'INFO'; 'FileLocation' = "$workDirUnix" }
-        $config['PluginSettings'] = [ordered]@{ 'Enable' = $true; 'EnableUploads' = $true; 'Directory' = "$workDirUnix/data/plugins"; 'ClientDirectory' = "$workDirUnix/data/client/plugins" }
-        $config['EmailSettings'] = [ordered]@{ 'EnableSignUpWithEmail' = $true; 'EnableSignInWithEmail' = $true; 'EnableSignInWithUsername' = $true; 'SendEmailNotifications' = $false; 'RequireEmailVerification' = $false }
-        $config['RateLimitSettings'] = [ordered]@{ 'Enable' = $false }
-        $featureFlags = Get-FeatureFlagsFromBackup -BackupConfig $backupConfig -TryDatabase; $config['FeatureFlags'] = $featureFlags
-        $extSettings = Get-MattermostExtendedSettingsFromBackup -BackupConfig $backupConfig -TryDatabase; $config['MattermostExtendedSettings'] = $extSettings
+        $config = Build-LocalConfig
         $configPath = Join-Path $WORK_DIR "config.json"
-        [System.IO.File]::WriteAllText($configPath, ($config | ConvertTo-Json -Depth 10))
+        [System.IO.File]::WriteAllText($configPath, ($config | ConvertTo-Json -Depth 20))
 
         Write-Host "  Waiting for builds..." -ForegroundColor DarkGray
         if ($BuildWebapp -and $webappBuildJob) {
