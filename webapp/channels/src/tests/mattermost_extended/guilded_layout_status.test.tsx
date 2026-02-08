@@ -59,6 +59,16 @@ jest.mock('selectors/views/guilded_layout', () => ({
 
 jest.mock('components/profile_popover', () => () => <div />);
 jest.mock('components/custom_status/custom_status_emoji', () => () => <div />);
+jest.mock('selectors/emojis', () => ({
+    getEmojiMap: jest.fn().mockReturnValue(new Map()),
+    getCustomEmojisByName: jest.fn().mockReturnValue(new Map()),
+}));
+jest.mock('selectors/views/custom_status', () => ({
+    makeGetCustomStatus: jest.fn().mockReturnValue(() => null),
+    isCustomStatusEnabled: jest.fn().mockReturnValue(false),
+    isCustomStatusExpired: jest.fn().mockReturnValue(false),
+    showStatusDropdownPulsatingDot: jest.fn().mockReturnValue(false),
+}));
 
 jest.mock('react-router-dom', () => ({
     useHistory: () => ({
