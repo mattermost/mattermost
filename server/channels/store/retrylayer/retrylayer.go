@@ -12802,6 +12802,48 @@ func (s *RetryLayerStatusStore) UpdateExpiredDNDStatuses() ([]*model.Status, err
 
 }
 
+func (s *RetryLayerStatusStore) GetDNDUsersInactiveSince(cutoffTime int64) ([]*model.Status, error) {
+
+	tries := 0
+	for {
+		result, err := s.StatusStore.GetDNDUsersInactiveSince(cutoffTime)
+		if err == nil {
+			return result, nil
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
+func (s *RetryLayerStatusStore) GetOnlineUsersInactiveSince(cutoffTime int64) ([]*model.Status, error) {
+
+	tries := 0
+	for {
+		result, err := s.StatusStore.GetOnlineUsersInactiveSince(cutoffTime)
+		if err == nil {
+			return result, nil
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
 func (s *RetryLayerStatusStore) UpdateLastActivityAt(userID string, lastActivityAt int64) error {
 
 	tries := 0

@@ -10216,6 +10216,38 @@ func (s *TimerLayerStatusStore) UpdateExpiredDNDStatuses() ([]*model.Status, err
 	return result, err
 }
 
+func (s *TimerLayerStatusStore) GetDNDUsersInactiveSince(cutoffTime int64) ([]*model.Status, error) {
+	start := time.Now()
+
+	result, err := s.StatusStore.GetDNDUsersInactiveSince(cutoffTime)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("StatusStore.GetDNDUsersInactiveSince", success, elapsed)
+	}
+	return result, err
+}
+
+func (s *TimerLayerStatusStore) GetOnlineUsersInactiveSince(cutoffTime int64) ([]*model.Status, error) {
+	start := time.Now()
+
+	result, err := s.StatusStore.GetOnlineUsersInactiveSince(cutoffTime)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("StatusStore.GetOnlineUsersInactiveSince", success, elapsed)
+	}
+	return result, err
+}
+
 func (s *TimerLayerStatusStore) UpdateLastActivityAt(userID string, lastActivityAt int64) error {
 	start := time.Now()
 

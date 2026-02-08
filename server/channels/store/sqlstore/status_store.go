@@ -190,3 +190,23 @@ func (s SqlStatusStore) GetDNDUsersInactiveSince(cutoffTime int64) ([]*model.Sta
 
 	return statuses, nil
 }
+
+// GetOnlineUsersInactiveSince returns all Online users whose LastActivityAt is before the given cutoff time.
+// This is used for the inactivity timeout feature to set Online users to Away after extended inactivity.
+// Includes manually-set Online users since AccurateStatuses overrides manual status protection.
+func (s SqlStatusStore) GetOnlineUsersInactiveSince(cutoffTime int64) ([]*model.Status, error) {
+	query := s.statusSelectQuery.Where(
+		sq.And{
+			sq.Eq{"Status": model.StatusOnline},
+			sq.Lt{"LastActivityAt": cutoffTime},
+		},
+	)
+
+	statuses := []*model.Status{}
+	err := s.GetReplica().SelectBuilder(&statuses, query)
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to find Online users inactive since cutoff")
+	}
+
+	return statuses, nil
+}

@@ -750,6 +750,8 @@ type StatusStore interface {
 	UpdateExpiredDNDStatuses() ([]*model.Status, error)
 	// GetDNDUsersInactiveSince returns all DND users whose LastActivityAt is before the given cutoff time
 	GetDNDUsersInactiveSince(cutoffTime int64) ([]*model.Status, error)
+	// GetOnlineUsersInactiveSince returns all Online users whose LastActivityAt is before the given cutoff time
+	GetOnlineUsersInactiveSince(cutoffTime int64) ([]*model.Status, error)
 }
 
 type FileInfoStore interface {

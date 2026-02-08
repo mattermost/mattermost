@@ -440,8 +440,8 @@ func (ps *PlatformService) Start(broadcastHooks map[string]BroadcastHook) error 
 	// Start the status log cleanup routine (runs hourly)
 	go ps.statusLogCleanupLoop()
 
-	// Start the DND timeout check routine (runs every minute)
-	go ps.dndTimeoutCheckLoop()
+	// Start the status enforcement loop (inactivity + DND timeouts, runs every minute)
+	go ps.statusEnforcementLoop()
 
 	ps.hubStart(broadcastHooks)
 
