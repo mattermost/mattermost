@@ -28,11 +28,11 @@ export default function GroupDmParticipants({channelId}: Props) {
     const membersWithStatus = useSelector((state: GlobalState) => {
         return profiles.map((user: UserProfile) => ({
             user,
-            status: getStatusForUserId(state, user.id) || 'offline',
+            status: user.is_bot ? 'online' : (getStatusForUserId(state, user.id) || 'offline'),
         }));
     });
 
-    // Sort: online first, then alphabetically
+    // Sort: online/bots first, then alphabetically
     const sortedMembers = [...membersWithStatus].sort((a, b) => {
         const aOnline = a.status !== 'offline' ? 0 : 1;
         const bOnline = b.status !== 'offline' ? 0 : 1;

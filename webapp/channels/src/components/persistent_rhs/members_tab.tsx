@@ -69,6 +69,17 @@ export default function MembersTab() {
             });
         }
 
+        if (groupedMembers.bots?.length > 0) {
+            result.push({
+                label: `Bot — ${groupedMembers.bots.length}`,
+                members: groupedMembers.bots.map((m: any) => ({
+                    user: m.user,
+                    status: m.status,
+                    isAdmin: false,
+                })),
+            });
+        }
+
         if (groupedMembers.offline.length > 0) {
             result.push({
                 label: `Offline — ${groupedMembers.offline.length}`,

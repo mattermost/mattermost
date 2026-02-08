@@ -34,7 +34,7 @@ export default function MemberRow({user, status, isAdmin}: Props) {
 
     const userProfileSrc = Client4.getProfilePictureUrl(user.id, user.last_picture_update);
 
-    const isOffline = status === 'offline';
+    const isOffline = status === 'offline' && !user.is_bot;
 
     return (
         <ProfilePopover
@@ -56,6 +56,7 @@ export default function MemberRow({user, status, isAdmin}: Props) {
             <div className='member-row__info'>
                 <span className='member-row__name'>
                     {displayName}
+                    {user.is_bot && <span className='member-row__bot-tag'>{'BOT'}</span>}
                 </span>
                 {(customStatus?.emoji || customStatus?.text) && (
                     <div className='member-row__status-row'>

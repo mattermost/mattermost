@@ -63,6 +63,7 @@ export default function FollowersTab({threadId, channelId}: Props) {
 
         const onlineAdmins: {user: UserProfile; status: string}[] = [];
         const onlineMembers: {user: UserProfile; status: string}[] = [];
+        const bots: {user: UserProfile}[] = [];
         const offline: {user: UserProfile; isAdmin: boolean}[] = [];
 
         const sortByName = (a: {user: UserProfile}, b: {user: UserProfile}) => {
@@ -75,6 +76,11 @@ export default function FollowersTab({threadId, channelId}: Props) {
             const status = statuses[user.id] || 'offline';
             const isAdmin = channelMembers?.[user.id]?.scheme_admin === true;
 
+            if (user.is_bot) {
+                bots.push({user});
+                continue;
+            }
+
             if (status === 'offline') {
                 offline.push({user, isAdmin});
             } else if (isAdmin) {
@@ -86,6 +92,7 @@ export default function FollowersTab({threadId, channelId}: Props) {
 
         onlineAdmins.sort(sortByName);
         onlineMembers.sort(sortByName);
+        bots.sort(sortByName);
         offline.sort(sortByName);
 
         const result: MemberGroup[] = [];
@@ -101,6 +108,13 @@ export default function FollowersTab({threadId, channelId}: Props) {
             result.push({
                 label: `Member — ${onlineMembers.length}`,
                 members: onlineMembers.map((m) => ({user: m.user, status: m.status, isAdmin: false})),
+            });
+        }
+
+        if (bots.length > 0) {
+            result.push({
+                label: `Bot — ${bots.length}`,
+                members: bots.map((m) => ({user: m.user, status: 'online', isAdmin: false})),
             });
         }
 

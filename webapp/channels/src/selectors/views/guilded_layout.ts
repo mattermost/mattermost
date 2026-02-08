@@ -326,6 +326,7 @@ interface MemberWithStatus {
 interface GroupedMembers {
     onlineAdmins: MemberWithStatus[];
     onlineMembers: MemberWithStatus[];
+    bots: MemberWithStatus[];
     offline: MemberWithStatus[];
 }
 
@@ -349,6 +350,7 @@ export const getChannelMembersGroupedByStatus = createSelector(
         const result: GroupedMembers = {
             onlineAdmins: [],
             onlineMembers: [],
+            bots: [],
             offline: [],
         };
 
@@ -357,6 +359,12 @@ export const getChannelMembersGroupedByStatus = createSelector(
             const status = getStatusForUserId(state, user.id) || 'offline';
             const isAdmin = membership?.scheme_admin === true;
             const isOnline = status !== 'offline';
+
+            // Bots always show as online in their own group
+            if (user.is_bot) {
+                result.bots.push({user, status: 'online', isAdmin: false});
+                continue;
+            }
 
             const memberInfo: MemberWithStatus = {
                 user,
@@ -382,6 +390,7 @@ export const getChannelMembersGroupedByStatus = createSelector(
 
         result.onlineAdmins.sort(sortByName);
         result.onlineMembers.sort(sortByName);
+        result.bots.sort(sortByName);
         result.offline.sort(sortByName);
 
         return result;

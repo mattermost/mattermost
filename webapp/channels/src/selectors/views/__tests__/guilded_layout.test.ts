@@ -216,6 +216,57 @@ describe('guilded_layout selectors', () => {
             expect(result!.onlineMembers[0].user.username).toBe('member1');
             expect(result!.offline).toHaveLength(1);
             expect(result!.offline[0].user.username).toBe('offline1');
+            expect(result!.bots).toHaveLength(0);
+        });
+
+        it('groups bots into their own group with online status', () => {
+            const state = {
+                entities: {
+                    channels: {
+                        membersInChannel: {
+                            channel1: {
+                                user1: {channel_id: 'channel1', user_id: 'user1', scheme_admin: false},
+                                bot1: {channel_id: 'channel1', user_id: 'bot1', scheme_admin: false},
+                                bot2: {channel_id: 'channel1', user_id: 'bot2', scheme_admin: false},
+                                user2: {channel_id: 'channel1', user_id: 'user2', scheme_admin: false},
+                            },
+                        },
+                    },
+                    users: {
+                        profiles: {
+                            user1: {id: 'user1', username: 'alice', nickname: 'Alice'},
+                            bot1: {id: 'bot1', username: 'testbot', nickname: 'Test Bot', is_bot: true},
+                            bot2: {id: 'bot2', username: 'anotherbot', nickname: 'Another Bot', is_bot: true},
+                            user2: {id: 'user2', username: 'bob', nickname: 'Bob'},
+                        },
+                        profilesInChannel: {
+                            channel1: new Set(['user1', 'bot1', 'bot2', 'user2']),
+                        },
+                        statuses: {
+                            user1: 'online',
+                            bot1: 'offline',
+                            bot2: 'offline',
+                            user2: 'offline',
+                        },
+                    },
+                    general: {config: {}},
+                    preferences: {myPreferences: {}},
+                },
+            } as unknown as GlobalState;
+
+            const result = Selectors.getChannelMembersGroupedByStatus(state, 'channel1');
+
+            expect(result).not.toBeNull();
+            expect(result!.onlineMembers).toHaveLength(1);
+            expect(result!.onlineMembers[0].user.username).toBe('alice');
+            expect(result!.bots).toHaveLength(2);
+            expect(result!.bots[0].status).toBe('online');
+            expect(result!.bots[1].status).toBe('online');
+            // Bots sorted alphabetically
+            expect(result!.bots[0].user.nickname).toBe('Another Bot');
+            expect(result!.bots[1].user.nickname).toBe('Test Bot');
+            expect(result!.offline).toHaveLength(1);
+            expect(result!.offline[0].user.username).toBe('bob');
         });
     });
 
