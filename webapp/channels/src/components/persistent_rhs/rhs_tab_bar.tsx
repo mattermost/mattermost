@@ -31,7 +31,7 @@ export default function RhsTabBar({activeTab, onTabChange, memberCount, threadCo
                     onClick={() => onTabChange('members')}
                     aria-label={formatMessage({id: 'rhs_tab_bar.members', defaultMessage: 'Members'})}
                 >
-                    <i className='icon icon-account-multiple-outline' />
+                    <i className='icon icon-account-outline' />
                     {memberCount > 0 && <span className='rhs-tab-bar__count'>{memberCount}</span>}
                 </button>
             </WithTooltip>
