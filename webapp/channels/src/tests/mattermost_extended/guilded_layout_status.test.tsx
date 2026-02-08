@@ -58,6 +58,7 @@ jest.mock('selectors/views/guilded_layout', () => ({
 }));
 
 jest.mock('components/profile_popover', () => () => <div />);
+jest.mock('components/custom_status/custom_status_emoji', () => () => <div />);
 
 jest.mock('react-router-dom', () => ({
     useHistory: () => ({
