@@ -79,6 +79,9 @@ jest.mock('react-router-dom', () => ({
     }),
 }));
 
+// Mock profile picture to break the circular dependency chain
+jest.mock('components/profile_picture', () => () => null);
+
 describe('Guilded Layout Status Syncing', () => {
     const dispatch = jest.fn();
 

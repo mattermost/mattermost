@@ -385,6 +385,7 @@ describe('GuildedTeamSidebar', () => {
                         config: {
                             ExperimentalPrimaryTeam: 'my-team',
                         },
+                        serverVersion: '',
                     },
                 },
             };
@@ -420,6 +421,7 @@ describe('GuildedTeamSidebar', () => {
                         config: {
                             ExperimentalPrimaryTeam: 'my-team',
                         },
+                        serverVersion: '',
                     },
                     users: {
                         ...defaultState.entities.users,
