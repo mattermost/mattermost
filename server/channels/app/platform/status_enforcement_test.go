@@ -10,6 +10,10 @@ import (
 	"github.com/mattermost/mattermost/server/public/model"
 )
 
+// Note: GetStatus returns *model.AppError, not error.
+// We must use require.Nil instead of require.NoError to avoid the typed nil interface problem:
+// a nil *model.AppError assigned to error interface is non-nil.
+
 func TestCheckInactivityTimeouts(t *testing.T) {
 	t.Run("inactive Online user gets set to Away", func(t *testing.T) {
 		th := Setup(t).InitBasic(t)
@@ -30,7 +34,7 @@ func TestCheckInactivityTimeouts(t *testing.T) {
 		th.Service.CheckInactivityTimeouts()
 
 		updated, err := th.Service.GetStatus(th.BasicUser.Id)
-		require.NoError(t, err)
+		require.Nil(t, err)
 		assert.Equal(t, model.StatusAway, updated.Status)
 	})
 
@@ -53,7 +57,7 @@ func TestCheckInactivityTimeouts(t *testing.T) {
 		th.Service.CheckInactivityTimeouts()
 
 		updated, err := th.Service.GetStatus(th.BasicUser.Id)
-		require.NoError(t, err)
+		require.Nil(t, err)
 		assert.Equal(t, model.StatusOnline, updated.Status)
 	})
 
@@ -76,7 +80,7 @@ func TestCheckInactivityTimeouts(t *testing.T) {
 		th.Service.CheckInactivityTimeouts()
 
 		updated, err := th.Service.GetStatus(th.BasicUser.Id)
-		require.NoError(t, err)
+		require.Nil(t, err)
 		assert.Equal(t, model.StatusAway, updated.Status, "AccurateStatuses should override manual status protection")
 	})
 
@@ -111,7 +115,7 @@ func TestCheckInactivityTimeouts(t *testing.T) {
 		th.Service.CheckInactivityTimeouts()
 
 		updated, err := th.Service.GetStatus(th.BasicUser.Id)
-		require.NoError(t, err)
+		require.Nil(t, err)
 		assert.Equal(t, model.StatusOnline, updated.Status, "paused users should not be transitioned")
 	})
 
@@ -134,7 +138,7 @@ func TestCheckInactivityTimeouts(t *testing.T) {
 		th.Service.CheckInactivityTimeouts()
 
 		updated, err := th.Service.GetStatus(th.BasicUser.Id)
-		require.NoError(t, err)
+		require.Nil(t, err)
 		assert.Equal(t, model.StatusOnline, updated.Status, "should not transition when AccurateStatuses is disabled")
 	})
 
@@ -157,7 +161,7 @@ func TestCheckInactivityTimeouts(t *testing.T) {
 		th.Service.CheckInactivityTimeouts()
 
 		updated, err := th.Service.GetStatus(th.BasicUser.Id)
-		require.NoError(t, err)
+		require.Nil(t, err)
 		assert.Equal(t, model.StatusOnline, updated.Status, "should not transition when timeout is 0")
 	})
 }
@@ -182,7 +186,7 @@ func TestCheckDNDTimeoutsViaTransitionManager(t *testing.T) {
 		th.Service.CheckDNDTimeouts()
 
 		updated, err := th.Service.GetStatus(th.BasicUser.Id)
-		require.NoError(t, err)
+		require.Nil(t, err)
 		assert.Equal(t, model.StatusOffline, updated.Status)
 		assert.Equal(t, model.StatusDnd, updated.PrevStatus, "PrevStatus should be preserved for DND restoration")
 	})
@@ -206,7 +210,7 @@ func TestCheckDNDTimeoutsViaTransitionManager(t *testing.T) {
 		th.Service.CheckDNDTimeouts()
 
 		updated, err := th.Service.GetStatus(th.BasicUser.Id)
-		require.NoError(t, err)
+		require.Nil(t, err)
 		assert.Equal(t, model.StatusDnd, updated.Status, "DND user within timeout should not be changed")
 	})
 }

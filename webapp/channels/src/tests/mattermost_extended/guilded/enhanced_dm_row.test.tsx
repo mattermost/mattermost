@@ -421,11 +421,7 @@ describe('EnhancedDmRow', () => {
                             id: 'post1',
                             channel_id: 'dm1',
                             user_id: 'user2',
-                            message: '>[@revlis](https://example.com): quoted text
-
-reply test
-
-> blockquote',
+                            message: '>[@revlis](https://example.com): quoted text\n\nreply test\n\n> blockquote',
                             create_at: 1000,
                         },
                     },
@@ -464,8 +460,7 @@ reply test
                             id: 'post1',
                             channel_id: 'dm1',
                             user_id: 'user1',
-                            message: '> quoted
-my reply',
+                            message: '> quoted\nmy reply',
                             create_at: 1000,
                         },
                     },

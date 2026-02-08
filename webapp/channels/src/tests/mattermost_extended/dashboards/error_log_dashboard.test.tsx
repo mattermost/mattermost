@@ -79,8 +79,7 @@ describe('ErrorLogDashboard', () => {
             user_id: 'user1',
             username: 'testuser1',
             message: 'API request failed',
-            stack: 'Error: API request failed
-    at fetch...',
+            stack: 'Error: API request failed\n    at fetch...',
             url: '/channels/general',
             user_agent: 'Mozilla/5.0',
             status_code: 500,
@@ -94,13 +93,10 @@ describe('ErrorLogDashboard', () => {
             user_id: 'user2',
             username: 'testuser2',
             message: 'TypeError: Cannot read property',
-            stack: 'TypeError: Cannot read property
-    at Component...',
+            stack: 'TypeError: Cannot read property\n    at Component...',
             url: '/channels/town-square',
             user_agent: 'Chrome/100.0',
-            component_stack: '
-    at Post
-    at Channel',
+            component_stack: '\n    at Post\n    at Channel',
         },
         {
             id: 'error3',
@@ -109,8 +105,7 @@ describe('ErrorLogDashboard', () => {
             user_id: 'user1',
             username: 'testuser1',
             message: 'Unauthorized request',
-            stack: 'Error: Unauthorized
-    at auth...',
+            stack: 'Error: Unauthorized\n    at auth...',
             url: '/channels/private',
             user_agent: 'Mozilla/5.0',
             status_code: 401,

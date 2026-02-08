@@ -10,8 +10,7 @@ describe('dm_preview_utils', () => {
         });
 
         it('removes blockquote lines and keeps non-blockquote text', () => {
-            const input = '> quoted line
-regular text';
+            const input = '> quoted line\nregular text';
             expect(stripBlockquotes(input)).toBe('regular text');
         });
 
@@ -22,14 +21,12 @@ regular text';
                 'reply test :face_with_cowboy_hat:',
                 '',
                 '> blockquote',
-            ].join('
-');
+            ].join('\n');
             expect(stripBlockquotes(input)).toBe('reply test :face_with_cowboy_hat:');
         });
 
         it('handles blockquotes with leading whitespace', () => {
-            const input = '  > indented blockquote
-regular text';
+            const input = '  > indented blockquote\nregular text';
             expect(stripBlockquotes(input)).toBe('regular text');
         });
 
@@ -38,16 +35,12 @@ regular text';
         });
 
         it('returns empty string when message is only blockquotes', () => {
-            const input = '> line 1
-> line 2
-> line 3';
+            const input = '> line 1\n> line 2\n> line 3';
             expect(stripBlockquotes(input)).toBe('');
         });
 
         it('collapses multiple non-blockquote lines into single line', () => {
-            const input = 'line one
-line two
-line three';
+            const input = 'line one\nline two\nline three';
             expect(stripBlockquotes(input)).toBe('line one line two line three');
         });
 
@@ -56,19 +49,12 @@ line three';
         });
 
         it('trims whitespace from result', () => {
-            const input = '> quote
-  hello  
-> another quote';
+            const input = '> quote\n  hello  \n> another quote';
             expect(stripBlockquotes(input)).toBe('hello');
         });
 
         it('filters out empty lines left after removing blockquotes', () => {
-            const input = '> quote
-
-
-hello
-
-> quote2';
+            const input = '> quote\n\n\nhello\n\n> quote2';
             expect(stripBlockquotes(input)).toBe('hello');
         });
     });
