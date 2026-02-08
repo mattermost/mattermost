@@ -529,7 +529,7 @@ function Show-Help {
     Log "  fix-config  - Reset config.json to clean local settings"
     Log "  kill        - Kill the running Mattermost server process"
     Log "  restart     - Quick restart: kill, build, start"
-    Log "  s3-sync     - Download S3 storage files (uploads, plugins, etc.)"
+    Log "  s3-sync     - Download S3 storage files to cache (auto-copied by 'all')"
     Log "  all         - Dev setup: kill, setup, build server only, start"
     Log "  all-build   - Full setup: kill, setup, build server + webapp, start"
     Log "  demo        - Create fresh demo environment (no backup needed)"
@@ -1290,15 +1290,15 @@ function Invoke-S3Sync {
         exit 1
     }
 
-    # Create data directory if it doesn't exist
-    $dataDir = Join-Path $WORK_DIR "data"
-    if (!(Test-Path $dataDir)) {
-        New-Item -ItemType Directory -Path $dataDir -Force | Out-Null
+    # Sync to persistent s3-cache directory (survives 'all' rebuilds)
+    $s3CacheDir = Join-Path $WORK_DIR "s3-cache"
+    if (!(Test-Path $s3CacheDir)) {
+        New-Item -ItemType Directory -Path $s3CacheDir -Force | Out-Null
     }
 
     Log "Bucket: $S3_BUCKET"
     Log "Endpoint: $S3_ENDPOINT"
-    Log "Destination: $dataDir"
+    Log "Destination: $s3CacheDir"
     Log ""
 
     # Set AWS credentials for this session
@@ -1315,7 +1315,7 @@ function Invoke-S3Sync {
     Log ""
 
     # Try with credentials
-    $result = & aws s3 sync "s3://$S3_BUCKET/" $dataDir @endpointFlag --size-only --delete 2>&1
+    $result = & aws s3 sync "s3://$S3_BUCKET/" $s3CacheDir @endpointFlag --size-only --delete 2>&1
     $result | Out-File $LOG_FILE -Append -Encoding UTF8
     $result | ForEach-Object { Log $_ }
 
@@ -1327,10 +1327,12 @@ function Invoke-S3Sync {
     Log ""
     Log-Success "=== S3 Sync Complete ==="
     Log ""
-    Log "Files downloaded to: $dataDir"
+    Log "Files downloaded to: $s3CacheDir"
     Log ""
     Log "Contents:"
-    Get-ChildItem -Path $dataDir -Name | ForEach-Object { Log "  $_" }
+    Get-ChildItem -Path $s3CacheDir -Name | ForEach-Object { Log "  $_" }
+    Log ""
+    Log "These files will be automatically copied into data/ when you run './local-test.ps1 all'"
     Log ""
 }
 
@@ -1940,6 +1942,13 @@ function Invoke-All {
             } elseif (!(Test-Path $dataDir)) {
                 New-Item -ItemType Directory -Path $dataDir -Force | Out-Null
             }
+            # Copy S3 cache into data (emojis, file attachments, etc.)
+            $s3CacheDir = Join-Path $WORK_DIR "s3-cache"
+            if (Test-Path $s3CacheDir) {
+                Copy-Item -Path "$s3CacheDir\*" -Destination $dataDir -Recurse -Force -ErrorAction SilentlyContinue
+                "Copied S3 cache into data" | Out-File $LOG_FILE -Append -Encoding UTF8
+            }
+
             $pluginsDir = Join-Path $dataDir "plugins"
             $clientPluginsDir = Join-Path $dataDir "client\plugins"
             if (!(Test-Path $pluginsDir)) { New-Item -ItemType Directory -Path $pluginsDir -Force | Out-Null }
@@ -2107,6 +2116,10 @@ function Invoke-All {
         $backupDataDir = Join-Path $backupDir "data"
         if (Test-Path $backupDataDir) { Copy-Item -Path "$backupDataDir\*" -Destination $dataDir -Recurse -Force -ErrorAction SilentlyContinue }
         elseif (!(Test-Path $dataDir)) { New-Item -ItemType Directory -Path $dataDir -Force | Out-Null }
+        # Copy S3 cache into data (emojis, file attachments, etc.)
+        $s3CacheDir = Join-Path $WORK_DIR "s3-cache"
+        if (Test-Path $s3CacheDir) { Copy-Item -Path "$s3CacheDir\*" -Destination $dataDir -Recurse -Force -ErrorAction SilentlyContinue }
+
         $pluginsDir = Join-Path $dataDir "plugins"; $clientPluginsDir = Join-Path $dataDir "client\plugins"
         if (!(Test-Path $pluginsDir)) { New-Item -ItemType Directory -Path $pluginsDir -Force | Out-Null }
         if (!(Test-Path $clientPluginsDir)) { New-Item -ItemType Directory -Path $clientPluginsDir -Force | Out-Null }
