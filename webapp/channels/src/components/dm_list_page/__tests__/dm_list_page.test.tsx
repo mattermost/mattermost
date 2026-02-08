@@ -25,7 +25,7 @@ jest.mock('react-router-dom', () => ({
 
 // Selector call tracking
 let mockSelectorCallCount = 0;
-const mockCurrentChannelId = 'dm1';
+let mockCurrentChannelId: string | null = 'dm1';
 const mockCurrentTeamUrl = '/test-team';
 const mockCurrentUserId = 'user1';
 const mockDmChannels = [
@@ -44,7 +44,7 @@ const mockDmChannels = [
 jest.mock('react-redux', () => ({
     ...jest.requireActual('react-redux'),
     useDispatch: () => mockDispatch,
-    useSelector: () => {
+    useSelector: (selector: any) => {
         const idx = mockSelectorCallCount;
         mockSelectorCallCount++;
         // First selector: getCurrentChannelId
@@ -65,6 +65,7 @@ jest.mock('react-redux', () => ({
 }));
 
 // Mock react-virtualized-auto-sizer
+// ... (rest of mocks)
 jest.mock('react-virtualized-auto-sizer', () => ({
     __esModule: true,
     default: ({children}: {children: (size: {height: number; width: number}) => React.ReactNode}) =>
@@ -125,6 +126,7 @@ describe('DmListPage', () => {
     beforeEach(() => {
         jest.clearAllMocks();
         mockSelectorCallCount = 0;
+        mockCurrentChannelId = 'dm1';
     });
 
     // BUG 3: DM list should dispatch an action to fetch latest posts for DM channels
@@ -144,8 +146,9 @@ describe('DmListPage', () => {
         expect(mockGetPosts).toHaveBeenCalledWith('dm2', 0, 1);
     });
 
-    // BUG 4: When opening DM mode, should auto-select (navigate to) the most recent DM
-    it('auto-selects and navigates to the most recent DM on mount', () => {
+    // BUG 4: When opening DM mode, should auto-select (navigate to) the most recent DM if none active
+    it('auto-selects and navigates to the most recent DM on mount if no channel active', () => {
+        mockCurrentChannelId = null;
         const store = mockStore({});
         render(
             <Provider store={store}>
@@ -157,6 +160,21 @@ describe('DmListPage', () => {
 
         // Should navigate to the most recent DM (first in list - user2)
         expect(mockPush).toHaveBeenCalledWith('/test-team/messages/@user2');
+    });
+
+    it('does NOT auto-select if a channel is already active', () => {
+        mockCurrentChannelId = 'dm2';
+        const store = mockStore({});
+        render(
+            <Provider store={store}>
+                <BrowserRouter>
+                    <DmListPage />
+                </BrowserRouter>
+            </Provider>,
+        );
+
+        // Should NOT navigate because we already have an active channel
+        expect(mockPush).not.toHaveBeenCalled();
     });
 
     it('closes a DM conversation when close button is clicked', () => {

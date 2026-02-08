@@ -59,6 +59,8 @@ const EnhancedGroupDmRow = ({channel, users, isActive, onDmClick, onClose}: Prop
         const isOwnMessage = lastPost.user_id === currentUserId;
         const prefix = isOwnMessage ? 'You: ' : (lastPostUser ? `${lastPostUser.username}: ` : '');
         previewText = `${prefix}${lastPost.message}`;
+    } else if (channel.last_post_at > 0) {
+        previewText = 'Loading...';
     }
 
     const displayName = channel.display_name || users.map((u) => u.username).join(', ');

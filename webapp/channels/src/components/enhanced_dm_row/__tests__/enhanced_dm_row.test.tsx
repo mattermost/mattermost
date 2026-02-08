@@ -264,13 +264,32 @@ describe('EnhancedDmRow', () => {
         expect(badge?.textContent).toBe('3');
     });
 
-    it('shows "No messages yet" when channel has no posts', () => {
+    it('shows "Loading..." when channel has posts but they are not loaded yet', () => {
         const store = mockStore(baseState);
         const {container} = render(
             <Provider store={store}>
                 <BrowserRouter>
                     <EnhancedDmRow
                         channel={mockChannel}
+                        user={mockUser}
+                        isActive={false}
+                    />
+                </BrowserRouter>
+            </Provider>,
+        );
+
+        const preview = container.querySelector('.enhanced-dm-row__preview');
+        expect(preview?.textContent).toBe('Loading...');
+    });
+
+    it('shows "No messages yet" when channel has never had posts (last_post_at is 0)', () => {
+        const emptyChannel = {...mockChannel, last_post_at: 0};
+        const store = mockStore(baseState);
+        const {container} = render(
+            <Provider store={store}>
+                <BrowserRouter>
+                    <EnhancedDmRow
+                        channel={emptyChannel}
                         user={mockUser}
                         isActive={false}
                     />

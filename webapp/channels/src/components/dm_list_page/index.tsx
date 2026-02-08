@@ -37,20 +37,20 @@ const DMListPage = () => {
     const currentTeamUrl = useSelector(getCurrentRelativeTeamUrl);
     const currentUserId = useSelector(getCurrentUserId);
     const allDms = useSelector(getAllDmChannelsWithUsers);
-    const hasFetchedPosts = useRef(false);
+    const hasFetchedPosts = useRef<Set<string>>(new Set());
     const hasFetchedStatuses = useRef(false);
     const hasAutoSelected = useRef(false);
 
     const [searchTerm, setSearchTerm] = useState('');
 
-    // Fetch latest post for each DM channel (once on mount)
+    // Fetch latest post for each DM channel (on mount and when new DMs appear)
     useEffect(() => {
-        if (!hasFetchedPosts.current && allDms.length > 0) {
-            hasFetchedPosts.current = true;
-            allDms.forEach((dm) => {
+        allDms.forEach((dm) => {
+            if (!hasFetchedPosts.current.has(dm.channel.id)) {
+                hasFetchedPosts.current.add(dm.channel.id);
                 dispatch(getPosts(dm.channel.id, 0, 1));
-            });
-        }
+            }
+        });
     }, [dispatch, allDms]);
 
     // Fetch statuses for all DM users (once on mount)
@@ -71,9 +71,9 @@ const DMListPage = () => {
         }
     }, [dispatch, allDms]);
 
-    // Auto-select the most recent DM on mount
+    // Auto-select the most recent DM on mount ONLY IF we are not already on a DM channel
     useEffect(() => {
-        if (!hasAutoSelected.current && allDms.length > 0 && currentTeamUrl) {
+        if (!hasAutoSelected.current && allDms.length > 0 && currentTeamUrl && !currentChannelId) {
             hasAutoSelected.current = true;
             const firstDm = allDms[0];
             if (firstDm.type === 'dm') {
@@ -82,7 +82,7 @@ const DMListPage = () => {
                 history.push(`${currentTeamUrl}/messages/${firstDm.channel.name}`);
             }
         }
-    }, [allDms, currentTeamUrl, history]);
+    }, [allDms, currentTeamUrl, currentChannelId, history]);
 
     const filteredDms = useMemo(() => {
         if (!searchTerm) {

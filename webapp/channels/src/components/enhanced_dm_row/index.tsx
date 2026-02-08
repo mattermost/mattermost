@@ -64,6 +64,8 @@ const EnhancedDmRow = ({channel, user, isActive, onDmClick, onClose}: Props) => 
         const isOwnMessage = lastPost.user_id === currentUserId;
         const prefix = isOwnMessage ? 'You: ' : '';
         previewText = `${prefix}${lastPost.message}`;
+    } else if (channel.last_post_at > 0) {
+        previewText = 'Loading...';
     }
 
     return (
