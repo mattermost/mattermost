@@ -20,35 +20,20 @@ on:
         type: string
         required: false
         default: "mattermostdevelopment/mattermost-enterprise-edition:master"
-      enabled_docker_services:
-        description: "Space-separated list of docker services"
-        type: string
-        required: false
-        default: "postgres inbucket"
       mm_env:
         description: "Comma-separated env vars for the server (e.g., MM_FEATUREFLAGS_X=true)"
         type: string
         required: false
       run_cypress:
-        description: "Run Cypress smoke tests"
+        description: "Run Cypress tests"
         type: boolean
         required: false
         default: true
       run_playwright:
-        description: "Run Playwright smoke tests"
+        description: "Run Playwright tests"
         type: boolean
         required: false
         default: true
-      cypress_test_filter:
-        description: "Cypress test filter"
-        type: string
-        required: false
-        default: '--stage="@prod" --group="@smoke"'
-      playwright_test_filter:
-        description: "Playwright test filter"
-        type: string
-        required: false
-        default: "--grep @smoke"
 
 concurrency:
   group: "${{ github.workflow }}-${{ github.ref }}"
@@ -57,18 +42,18 @@ concurrency:
 env:
   COMMIT_SHA: "${{ inputs.commit_sha || github.sha }}"
   SERVER_IMAGE: "${{ inputs.server_image || 'mattermostdevelopment/mattermost-enterprise-edition:master' }}"
-  ENABLED_DOCKER_SERVICES: "${{ inputs.enabled_docker_services || 'postgres inbucket' }}"
-  PW_TEST_FILTER: "${{ inputs.playwright_test_filter || '--grep @smoke' }}"
   MM_ENV_INPUT: "${{ inputs.mm_env || '' }}"
 
 jobs:
   # ════════════════════════════════════════════════════════════════════════════
-  # CYPRESS
+  # CYPRESS SMOKE
   # ════════════════════════════════════════════════════════════════════════════
-  cypress:
+  cypress-smoke:
     if: inputs.run_cypress != 'false'
     runs-on: ubuntu-24.04
-    timeout-minutes: 60
+    timeout-minutes: 30
+    outputs:
+      status: ${{ steps.result.outputs.status }}
     defaults:
       run:
         shell: bash
@@ -92,12 +77,9 @@ jobs:
         working-directory: e2e-tests/testcontainers
         env:
           TC_SERVER_IMAGE: ${{ env.SERVER_IMAGE }}
-          TC_DEPENDENCIES: ${{ env.ENABLED_DOCKER_SERVICES }}
           MM_LICENSE: ${{ secrets.MM_E2E_TEST_LICENSE_ONPREM_ENT }}
           MM_ENV: ${{ env.MM_ENV_INPUT }}
         run: |
-          DEPS=$(echo "$TC_DEPENDENCIES" | tr ' ' ',')
-
           ENV_ARGS=""
           if [ -n "$MM_ENV" ]; then
             IFS=',' read -ra ENV_VARS <<< "$MM_ENV"
@@ -106,24 +88,23 @@ jobs:
             done
           fi
 
-          node dist/cli.js start --admin -D "$DEPS" $ENV_ARGS -o .tc.out
+          node dist/cli.js start --admin -D "postgres,inbucket" $ENV_ARGS -o .tc.out
 
           SERVER_URL=$(jq -r '.containers.mattermost.url' .tc.out/.tc.docker.json)
           echo "SERVER_URL=$SERVER_URL" >> $GITHUB_OUTPUT
           echo "Server started at: $SERVER_URL"
-      - name: ci/run-cypress-tests
+      - name: ci/run-cypress-smoke
         working-directory: e2e-tests/cypress
         env:
-          MM_SERVICESETTINGS_SITEURL: ${{ steps.start-server.outputs.SERVER_URL }}
           CYPRESS_baseUrl: ${{ steps.start-server.outputs.SERVER_URL }}
           MM_LICENSE: ${{ secrets.MM_E2E_TEST_LICENSE_ONPREM_ENT }}
-          REPO: mattermost
-          BRANCH: "tc-test-cypress"
-          BUILD_ID: "${{ github.run_id }}_${{ github.run_attempt }}-tc-cypress"
-          CI_BASE_URL: "tc-cypress-0"
         run: |
           npm ci
-          node run_test_cycle.js
+          node run_tests.js --stage='@prod' --group='@smoke'
+      - name: ci/set-result
+        id: result
+        if: always()
+        run: echo "status=${{ job.status }}" >> $GITHUB_OUTPUT
       - name: ci/stop-server
         if: always()
         working-directory: e2e-tests/testcontainers
@@ -132,19 +113,96 @@ jobs:
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         if: always()
         with:
-          name: cypress-tc-results
+          name: cypress-smoke-results
           path: |
             e2e-tests/cypress/logs/
             e2e-tests/cypress/results/
           retention-days: 5
 
   # ════════════════════════════════════════════════════════════════════════════
-  # PLAYWRIGHT
+  # CYPRESS FULL (only if smoke passes)
   # ════════════════════════════════════════════════════════════════════════════
-  playwright:
-    if: inputs.run_playwright != 'false'
+  cypress-full:
+    needs: cypress-smoke
+    if: needs.cypress-smoke.result == 'success'
     runs-on: ubuntu-24.04
     timeout-minutes: 60
+    outputs:
+      status: ${{ steps.result.outputs.status }}
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - name: ci/checkout-repo
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          ref: ${{ env.COMMIT_SHA }}
+          fetch-depth: 0
+      - name: ci/setup-node
+        uses: actions/setup-node@395ad3262231945c25e8478fd5baf05154b1d79f # v6.1.0
+        with:
+          node-version-file: ".nvmrc"
+          cache: npm
+          cache-dependency-path: "e2e-tests/cypress/package-lock.json"
+      - name: ci/setup-testcontainers
+        working-directory: e2e-tests/testcontainers
+        run: npm ci --ignore-scripts --omit=dev
+      - name: ci/start-server
+        id: start-server
+        working-directory: e2e-tests/testcontainers
+        env:
+          TC_SERVER_IMAGE: ${{ env.SERVER_IMAGE }}
+          MM_LICENSE: ${{ secrets.MM_E2E_TEST_LICENSE_ONPREM_ENT }}
+          MM_ENV: ${{ env.MM_ENV_INPUT }}
+        run: |
+          ENV_ARGS=""
+          if [ -n "$MM_ENV" ]; then
+            IFS=',' read -ra ENV_VARS <<< "$MM_ENV"
+            for env_var in "${ENV_VARS[@]}"; do
+              ENV_ARGS="$ENV_ARGS -E $env_var"
+            done
+          fi
+
+          node dist/cli.js start --admin -D "postgres,inbucket,minio,openldap,elasticsearch,keycloak" $ENV_ARGS -o .tc.out
+
+          SERVER_URL=$(jq -r '.containers.mattermost.url' .tc.out/.tc.docker.json)
+          echo "SERVER_URL=$SERVER_URL" >> $GITHUB_OUTPUT
+          echo "Server started at: $SERVER_URL"
+      - name: ci/run-cypress-full
+        working-directory: e2e-tests/cypress
+        env:
+          CYPRESS_baseUrl: ${{ steps.start-server.outputs.SERVER_URL }}
+          MM_LICENSE: ${{ secrets.MM_E2E_TEST_LICENSE_ONPREM_ENT }}
+        run: |
+          npm ci
+          node run_tests.js --stage='@prod' --excludeGroup='@smoke,@te_only,@cloud_only,@high_availability' --sortFirst='@compliance_export,@elasticsearch,@ldap_group,@ldap' --sortLast='@saml,@keycloak,@plugin,@plugins_uninstall,@mfa,@license_removal'
+      - name: ci/set-result
+        id: result
+        if: always()
+        run: echo "status=${{ job.status }}" >> $GITHUB_OUTPUT
+      - name: ci/stop-server
+        if: always()
+        working-directory: e2e-tests/testcontainers
+        run: node dist/cli.js stop || true
+      - name: ci/upload-results
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        if: always()
+        with:
+          name: cypress-full-results
+          path: |
+            e2e-tests/cypress/logs/
+            e2e-tests/cypress/results/
+          retention-days: 5
+
+  # ════════════════════════════════════════════════════════════════════════════
+  # PLAYWRIGHT SMOKE
+  # ════════════════════════════════════════════════════════════════════════════
+  playwright-smoke:
+    if: inputs.run_playwright != 'false'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    outputs:
+      status: ${{ steps.result.outputs.status }}
     defaults:
       run:
         shell: bash
@@ -169,21 +227,81 @@ jobs:
       - name: ci/playwright-install
         working-directory: e2e-tests/playwright
         run: npm ci
-      - name: ci/run-playwright-tests
+      - name: ci/run-playwright-smoke
         working-directory: e2e-tests/playwright
         env:
           PW_TC: "true"
           TC_SERVER_IMAGE: ${{ env.SERVER_IMAGE }}
+          TC_DEPENDENCIES: "postgres,inbucket"
           MM_LICENSE: ${{ secrets.MM_E2E_TEST_LICENSE_ONPREM_ENT }}
           MM_ENV: ${{ env.MM_ENV_INPUT }}
-        run: |
-          export TC_DEPENDENCIES=$(echo "${{ env.ENABLED_DOCKER_SERVICES }}" | tr ' ' ',')
-          npm run test:ci -- ${{ env.PW_TEST_FILTER }}
+        run: npm run test:ci -- --grep @smoke
+      - name: ci/set-result
+        id: result
+        if: always()
+        run: echo "status=${{ job.status }}" >> $GITHUB_OUTPUT
       - name: ci/upload-results
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         if: always()
         with:
-          name: playwright-tc-results
+          name: playwright-smoke-results
+          path: |
+            e2e-tests/playwright/logs/
+            e2e-tests/playwright/results/
+          retention-days: 5
+
+  # ════════════════════════════════════════════════════════════════════════════
+  # PLAYWRIGHT FULL (only if smoke passes)
+  # ════════════════════════════════════════════════════════════════════════════
+  playwright-full:
+    needs: playwright-smoke
+    if: needs.playwright-smoke.result == 'success'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 120
+    outputs:
+      status: ${{ steps.result.outputs.status }}
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - name: ci/checkout-repo
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          ref: ${{ env.COMMIT_SHA }}
+          fetch-depth: 0
+      - name: ci/setup-node
+        uses: actions/setup-node@395ad3262231945c25e8478fd5baf05154b1d79f # v6.1.0
+        with:
+          node-version-file: ".nvmrc"
+          cache: npm
+          cache-dependency-path: "e2e-tests/playwright/package-lock.json"
+      - name: ci/get-webapp-node-modules
+        working-directory: webapp
+        run: make node_modules
+      - name: ci/setup-testcontainers
+        working-directory: e2e-tests/testcontainers
+        run: npm ci --ignore-scripts --omit=dev
+      - name: ci/playwright-install
+        working-directory: e2e-tests/playwright
+        run: npm ci
+      - name: ci/run-playwright-full
+        working-directory: e2e-tests/playwright
+        env:
+          PW_TC: "true"
+          TC_SERVER_IMAGE: ${{ env.SERVER_IMAGE }}
+          TC_DEPENDENCIES: "postgres,inbucket,minio,openldap,elasticsearch,keycloak"
+          MM_LICENSE: ${{ secrets.MM_E2E_TEST_LICENSE_ONPREM_ENT }}
+          MM_ENV: ${{ env.MM_ENV_INPUT }}
+        run: npm run test:ci -- --grep-invert "@smoke|@visual"
+      - name: ci/set-result
+        id: result
+        if: always()
+        run: echo "status=${{ job.status }}" >> $GITHUB_OUTPUT
+      - name: ci/upload-results
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        if: always()
+        with:
+          name: playwright-full-results
           path: |
             e2e-tests/playwright/logs/
             e2e-tests/playwright/results/
@@ -196,39 +314,38 @@ jobs:
     if: always()
     runs-on: ubuntu-24.04
     needs:
-      - cypress
-      - playwright
+      - cypress-smoke
+      - cypress-full
+      - playwright-smoke
+      - playwright-full
     steps:
       - name: ci/write-summary
         env:
-          CYPRESS_RESULT: ${{ needs.cypress.result }}
-          PLAYWRIGHT_RESULT: ${{ needs.playwright.result }}
+          CY_SMOKE: ${{ needs.cypress-smoke.result }}
+          CY_FULL: ${{ needs.cypress-full.result }}
+          PW_SMOKE: ${{ needs.playwright-smoke.result }}
+          PW_FULL: ${{ needs.playwright-full.result }}
         run: |
+          status_icon() {
+            case "$1" in
+              success)  echo ":white_check_mark: Passed" ;;
+              skipped)  echo ":fast_forward: Skipped" ;;
+              *)        echo ":x: $1" ;;
+            esac
+          }
+
           {
             echo "## E2E Testcontainers Results"
             echo ""
-            echo "| Runner | Status |"
-            echo "|--------|--------|"
+            echo "| Runner | Smoke | Full |"
+            echo "|--------|-------|------|"
             if [ "${{ inputs.run_cypress || 'true' }}" != "false" ]; then
-              if [ "$CYPRESS_RESULT" = "success" ]; then
-                echo "| Cypress | :white_check_mark: Passed |"
-              elif [ "$CYPRESS_RESULT" = "skipped" ]; then
-                echo "| Cypress | :fast_forward: Skipped |"
-              else
-                echo "| Cypress | :x: $CYPRESS_RESULT |"
-              fi
+              echo "| Cypress | $(status_icon "$CY_SMOKE") | $(status_icon "$CY_FULL") |"
             fi
             if [ "${{ inputs.run_playwright || 'true' }}" != "false" ]; then
-              if [ "$PLAYWRIGHT_RESULT" = "success" ]; then
-                echo "| Playwright | :white_check_mark: Passed |"
-              elif [ "$PLAYWRIGHT_RESULT" = "skipped" ]; then
-                echo "| Playwright | :fast_forward: Skipped |"
-              else
-                echo "| Playwright | :x: $PLAYWRIGHT_RESULT |"
-              fi
+              echo "| Playwright | $(status_icon "$PW_SMOKE") | $(status_icon "$PW_FULL") |"
             fi
             echo ""
             echo "**Server image:** \`${{ env.SERVER_IMAGE }}\`"
-            echo "**Services:** \`${{ env.ENABLED_DOCKER_SERVICES }}\`"
             echo "**Commit:** \`${{ env.COMMIT_SHA }}\`"
           } >> $GITHUB_STEP_SUMMARY

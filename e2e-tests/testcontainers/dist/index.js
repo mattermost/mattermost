@@ -1,6 +1,6 @@
 'use strict';
 
-var config = require('./config-B98dqnFP.js');
+var config = require('./config.js');
 require('testcontainers');
 require('@testcontainers/postgresql');
 require('fs');

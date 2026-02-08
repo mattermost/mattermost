@@ -262,9 +262,8 @@ jobs:
           TC_DEPENDENCIES: ${{ inputs.ENABLED_DOCKER_SERVICES }}
           MM_LICENSE: ${{ secrets.MM_LICENSE }}
         run: |
-          # Convert space-separated to comma-separated for testcontainers
-          DEPS=$(echo "$TC_DEPENDENCIES" | tr ' ' ',')
-          node dist/cli.js start --detach --admin -D "$DEPS" -o .tc.out
+          # -D accepts comma-separated, space-separated, or both
+          node dist/cli.js start --detach --admin -D "$TC_DEPENDENCIES" -o .tc.out
           # Extract server URL from testcontainers output
           SERVER_URL=$(jq -r '.mattermost.url' .tc.out/latest/.tc.docker.json)
           echo "SERVER_URL=$SERVER_URL" >> $GITHUB_OUTPUT

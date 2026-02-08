@@ -85,9 +85,12 @@ export function applyCliOverrides(
         }
     }
 
-    // Additional dependencies (CLI flag adds to existing)
+    // Additional dependencies (CLI flag adds to existing; accepts comma-separated, space-separated, or both)
     if (options.deps) {
-        const additionalDeps = options.deps.split(',').map((s) => s.trim());
+        const additionalDeps = options.deps
+            .split(/[\s,]+/)
+            .map((s) => s.trim())
+            .filter(Boolean);
         result.dependencies = [...new Set([...result.dependencies, ...additionalDeps])];
     }
 

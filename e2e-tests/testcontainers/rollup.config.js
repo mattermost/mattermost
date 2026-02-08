@@ -13,7 +13,7 @@ export default {
             dir: 'dist',
             format: 'cjs',
             sourcemap: true,
-            preserveModules: false,
+            chunkFileNames: '[name].js',
         },
     ],
     plugins: [

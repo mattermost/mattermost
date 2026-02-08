@@ -151,8 +151,8 @@ jobs:
           MM_LICENSE: ${{ secrets.MM_LICENSE }}
           MM_ENV: ${{ inputs.mm_env }}
         run: |
-          # Convert space-separated to comma-separated for testcontainers
-          export TC_DEPENDENCIES=$(echo "${{ inputs.enabled_docker_services }}" | tr ' ' ',')
+          # TC_DEPENDENCIES accepts comma-separated, space-separated, or both
+          export TC_DEPENDENCIES="${{ inputs.enabled_docker_services }}"
           npm run test:ci -- ${{ inputs.test_filter }}
       - name: ci/upload-results
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
@@ -249,8 +249,8 @@ jobs:
           MM_ENV: ${{ inputs.mm_env }}
         run: |
           echo "Retesting failed specs: $SPEC_FILES"
-          # Convert space-separated to comma-separated for testcontainers
-          export TC_DEPENDENCIES=$(echo "${{ inputs.enabled_docker_services }}" | tr ' ' ',')
+          # TC_DEPENDENCIES accepts comma-separated, space-separated, or both
+          export TC_DEPENDENCIES="${{ inputs.enabled_docker_services }}"
           # Convert comma-separated to space-separated for playwright
           SPEC_ARGS=$(echo "$SPEC_FILES" | tr ',' ' ')
           npm run test:ci -- $SPEC_ARGS

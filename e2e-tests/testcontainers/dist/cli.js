@@ -12,7 +12,7 @@ var require$$2$1 = require('os');
 var require$$3$1 = require('crypto');
 var os = require('node:os');
 var tty = require('node:tty');
-var config = require('./config-B98dqnFP.js');
+var config = require('./config.js');
 var readline = require('readline');
 require('testcontainers');
 require('@testcontainers/postgresql');
@@ -5471,9 +5471,12 @@ function applyCliOverrides(config$1, options) {
             result.server.serviceEnvironment = env;
         }
     }
-    // Additional dependencies (CLI flag adds to existing)
+    // Additional dependencies (CLI flag adds to existing; accepts comma-separated, space-separated, or both)
     if (options.deps) {
-        const additionalDeps = options.deps.split(',').map((s) => s.trim());
+        const additionalDeps = options.deps
+            .split(/[\s,]+/)
+            .map((s) => s.trim())
+            .filter(Boolean);
         result.dependencies = [...new Set([...result.dependencies, ...additionalDeps])];
     }
     // Output directory (CLI flag)

@@ -220,9 +220,6 @@ jobs:
           MM_LICENSE: ${{ secrets.MM_LICENSE }}
           MM_ENV: ${{ inputs.mm_env }}
         run: |
-          # Convert space-separated dependencies to comma-separated
-          DEPS=$(echo "$TC_DEPENDENCIES" | tr ' ' ',')
-
           # Build environment variable arguments from MM_ENV (comma-separated KEY=value pairs)
           ENV_ARGS=""
           if [ -n "$MM_ENV" ]; then
@@ -233,7 +230,8 @@ jobs:
           fi
 
           # Start testcontainers environment (using bundled CLI)
-          node dist/cli.js start --admin -D "$DEPS" $ENV_ARGS -o .tc.out
+          # -D accepts comma-separated, space-separated, or both
+          node dist/cli.js start --admin -D "$TC_DEPENDENCIES" $ENV_ARGS -o .tc.out
 
           # Export server URL from testcontainers JSON output
           SERVER_URL=$(jq -r '.containers.mattermost.url' .tc.out/.tc.docker.json)
@@ -357,9 +355,6 @@ jobs:
           MM_LICENSE: ${{ secrets.MM_LICENSE }}
           MM_ENV: ${{ inputs.mm_env }}
         run: |
-          # Convert space-separated dependencies to comma-separated
-          DEPS=$(echo "$TC_DEPENDENCIES" | tr ' ' ',')
-
           # Build environment variable arguments from MM_ENV (comma-separated KEY=value pairs)
           ENV_ARGS=""
           if [ -n "$MM_ENV" ]; then
@@ -370,7 +365,8 @@ jobs:
           fi
 
           # Start testcontainers environment (using bundled CLI)
-          node dist/cli.js start --admin -D "$DEPS" $ENV_ARGS -o .tc.out
+          # -D accepts comma-separated, space-separated, or both
+          node dist/cli.js start --admin -D "$TC_DEPENDENCIES" $ENV_ARGS -o .tc.out
 
           # Export server URL from testcontainers JSON output
           SERVER_URL=$(jq -r '.containers.mattermost.url' .tc.out/.tc.docker.json)

@@ -559,9 +559,11 @@ export function resolveConfig(userConfig?: TestcontainersConfig): ResolvedTestco
         }
     }
 
-    // Dependencies
+    // Dependencies (accepts comma-separated, space-separated, or both)
     if (process.env.TC_DEPENDENCIES) {
-        resolved.dependencies = process.env.TC_DEPENDENCIES.split(',').map((s) => s.trim());
+        resolved.dependencies = process.env.TC_DEPENDENCIES.split(/[\s,]+/)
+            .map((s) => s.trim())
+            .filter(Boolean);
     }
 
     // Output directory

@@ -9738,9 +9738,11 @@ function resolveConfig(userConfig) {
             resolved.server.serviceEnvironment = env;
         }
     }
-    // Dependencies
+    // Dependencies (accepts comma-separated, space-separated, or both)
     if (process.env.TC_DEPENDENCIES) {
-        resolved.dependencies = process.env.TC_DEPENDENCIES.split(',').map((s) => s.trim());
+        resolved.dependencies = process.env.TC_DEPENDENCIES.split(/[\s,]+/)
+            .map((s) => s.trim())
+            .filter(Boolean);
     }
     // Output directory
     if (process.env.TC_OUTPUT_DIR) {
@@ -9955,4 +9957,4 @@ exports.writeKeycloakCertificate = writeKeycloakCertificate;
 exports.writeKeycloakSetup = writeKeycloakSetup;
 exports.writeOpenLdapSetup = writeOpenLdapSetup;
 exports.writeServerConfig = writeServerConfig;
-//# sourceMappingURL=config-B98dqnFP.js.map
+//# sourceMappingURL=config.js.map
