@@ -4,9 +4,10 @@
 import React from 'react';
 import {useSelector} from 'react-redux';
 
-import {getProfilesInChannel} from 'mattermost-redux/selectors/entities/channels';
+import {makeGetProfilesInChannel} from 'mattermost-redux/selectors/entities/users';
 import {getStatusForUserId} from 'mattermost-redux/selectors/entities/users';
 
+import type {UserProfile} from '@mattermost/types/users';
 import type {GlobalState} from 'types/store';
 
 import MemberRow from './member_row';
@@ -17,13 +18,15 @@ interface Props {
     channelId: string;
 }
 
+const getProfilesInChannel = makeGetProfilesInChannel();
+
 export default function GroupDmParticipants({channelId}: Props) {
     const profiles = useSelector((state: GlobalState) =>
         (getProfilesInChannel(state, channelId) || [])
     );
 
     const membersWithStatus = useSelector((state: GlobalState) => {
-        return profiles.map((user) => ({
+        return profiles.map((user: UserProfile) => ({
             user,
             status: getStatusForUserId(state, user.id) || 'offline',
         }));

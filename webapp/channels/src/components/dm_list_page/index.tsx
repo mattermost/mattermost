@@ -117,7 +117,10 @@ const DMListPage = () => {
         dispatch(openModal({
             modalId: ModalIdentifiers.CREATE_DM_CHANNEL,
             dialogType: MoreDirectChannels,
-            dialogProps: {},
+            dialogProps: {
+                isExistingChannel: false,
+                focusOriginElement: null,
+            },
         }));
     }, [dispatch]);
 

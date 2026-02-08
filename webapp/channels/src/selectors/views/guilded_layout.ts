@@ -59,7 +59,16 @@ export const isGuildedLayoutEnabled = createSelector(
 export const GUILDED_MOBILE_BREAKPOINT = 768;
 
 // Guilded layout view state selectors
-export const getGuildedLayoutState = (state: GlobalState) => state.views.guildedLayout;
+interface GuildedLayoutState {
+    isTeamSidebarExpanded: boolean;
+    isDmMode: boolean;
+    rhsActiveTab: string;
+    activeModal: string | null;
+    modalData: any;
+    favoritedTeamIds: string[];
+}
+
+export const getGuildedLayoutState = (state: GlobalState) => state.views.guildedLayout as GuildedLayoutState;
 
 export const isTeamSidebarExpanded = createSelector(
     'isTeamSidebarExpanded',
