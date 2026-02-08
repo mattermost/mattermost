@@ -37,6 +37,38 @@
         border-radius: 1px;
         background-color: rgba(var(--sidebar-text-rgb), 0.16);
     }
+
+    &__create-btn {
+        display: flex;
+        width: 42px;
+        height: 42px;
+        align-items: center;
+        justify-content: center;
+        margin-bottom: 12px;
+        padding: 0;
+        border: 2px dashed rgba(var(--sidebar-text-rgb), 0.24);
+        border-radius: 50%;
+        background: transparent;
+        color: rgba(var(--sidebar-text-rgb), 0.56);
+        cursor: pointer;
+        outline: none;
+        transition: border-color 0.15s, color 0.15s, background-color 0.15s;
+
+        .icon-plus {
+            font-size: 22px;
+        }
+
+        &:hover {
+            border-color: rgba(var(--sidebar-text-rgb), 0.48);
+            background-color: rgba(var(--sidebar-text-rgb), 0.08);
+            color: var(--sidebar-text);
+        }
+
+        &:active {
+            background-color: rgba(var(--sidebar-text-rgb), 0.16);
+            transform: scale(0.95);
+        }
+    }
 }
 
 // Global header style adjustments (match native)

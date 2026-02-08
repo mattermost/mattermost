@@ -3,12 +3,20 @@
 
 import classNames from 'classnames';
 import React, {useCallback, useRef, useEffect} from 'react';
+import {useIntl} from 'react-intl';
 import {useDispatch, useSelector} from 'react-redux';
+import {useHistory} from 'react-router-dom';
+
+import Permissions from 'mattermost-redux/constants/permissions';
+import {getConfig} from 'mattermost-redux/selectors/entities/general';
+import {getJoinableTeamIds} from 'mattermost-redux/selectors/entities/teams';
 
 import {
     setTeamSidebarExpanded,
     setDmMode,
 } from 'actions/views/guilded_layout';
+
+import SystemPermissionGate from 'components/permissions_gates/system_permission_gate';
 
 import {getFavoritedTeamIds} from 'selectors/views/guilded_layout';
 
@@ -24,11 +32,17 @@ import './guilded_team_sidebar.scss';
 
 export default function GuildedTeamSidebar() {
     const dispatch = useDispatch();
+    const history = useHistory();
+    const intl = useIntl();
     const containerRef = useRef<HTMLDivElement>(null);
 
     const isExpanded = useSelector((state: GlobalState) => state.views.guildedLayout.isTeamSidebarExpanded);
     const isDmMode = useSelector((state: GlobalState) => state.views.guildedLayout.isDmMode);
     const hasFavorites = useSelector((state: GlobalState) => getFavoritedTeamIds(state).length > 0);
+    const joinableTeamIds = useSelector(getJoinableTeamIds);
+    const moreTeamsToJoin = joinableTeamIds && joinableTeamIds.length > 0;
+    const config = useSelector(getConfig);
+    const experimentalPrimaryTeam = config.ExperimentalPrimaryTeam;
 
     useEffect(() => {
         if (!isExpanded) {
@@ -83,6 +97,42 @@ export default function GuildedTeamSidebar() {
                 <TeamList
                     onTeamClick={handleTeamClick}
                 />
+                <div className='guilded-team-sidebar__divider' />
+                {moreTeamsToJoin && !experimentalPrimaryTeam ? (
+                    <div
+                        role='button'
+                        tabIndex={0}
+                        className='guilded-team-sidebar__create-btn'
+                        title={intl.formatMessage({id: 'team_sidebar.join', defaultMessage: 'Other teams you can join'})}
+                        onClick={() => history.push('/select_team')}
+                        onKeyDown={(e) => {
+                            if (e.key === 'Enter' || e.key === ' ') {
+                                e.preventDefault();
+                                history.push('/select_team');
+                            }
+                        }}
+                    >
+                        <i className='icon icon-plus'/>
+                    </div>
+                ) : (
+                    <SystemPermissionGate permissions={[Permissions.CREATE_TEAM]}>
+                        <div
+                            role='button'
+                            tabIndex={0}
+                            className='guilded-team-sidebar__create-btn'
+                            title={intl.formatMessage({id: 'navbar_dropdown.create', defaultMessage: 'Create a Team'})}
+                            onClick={() => history.push('/create_team')}
+                            onKeyDown={(e) => {
+                                if (e.key === 'Enter' || e.key === ' ') {
+                                    e.preventDefault();
+                                    history.push('/create_team');
+                                }
+                            }}
+                        >
+                            <i className='icon icon-plus'/>
+                        </div>
+                    </SystemPermissionGate>
+                )}
             </div>
 
             {isExpanded && (
