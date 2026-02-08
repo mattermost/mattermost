@@ -2023,8 +2023,10 @@ function Invoke-All {
             $taskClean.StartTask()
             docker rm -f $PG_CONTAINER 2>$null | Out-Null
             if (Test-Path $pgDataPath) { Remove-Item -Path $pgDataPath -Recurse -Force }
+            if (Test-Path $backupDir) { Remove-Item -Path $backupDir -Recurse -Force }
+            if (Test-Path $dataDir) { Remove-Item -Path $dataDir -Recurse -Force }
             if (!(Test-Path $WORK_DIR)) { New-Item -ItemType Directory -Path $WORK_DIR -Force | Out-Null }
-            "Cleaned database container" | Out-File $LOG_FILE -Append -Encoding UTF8
+            "Cleaned database container and local data" | Out-File $LOG_FILE -Append -Encoding UTF8
             $taskClean.Increment(100)
 
             # Check Docker
@@ -2266,6 +2268,8 @@ function Invoke-All {
         Show-Task "Clean database" "running"
         docker rm -f $PG_CONTAINER 2>$null | Out-Null
         if (Test-Path $pgDataPath) { Remove-Item -Path $pgDataPath -Recurse -Force }
+        if (Test-Path $backupDir) { Remove-Item -Path $backupDir -Recurse -Force }
+        if (Test-Path $dataDir) { Remove-Item -Path $dataDir -Recurse -Force }
         if (!(Test-Path $WORK_DIR)) { New-Item -ItemType Directory -Path $WORK_DIR -Force | Out-Null }
 
         $dockerCheck = docker info 2>&1
