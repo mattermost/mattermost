@@ -844,14 +844,13 @@ const defaultServerConfig: AdminConfig = {
     AutoTranslationSettings: {
         Enable: false,
         Provider: '',
+        TargetLanguages: ['en'],
+        Workers: 4,
+        TimeoutMs: 5000,
         LibreTranslate: {
             URL: '',
             APIKey: '',
         },
-        TargetLanguages: ['en'],
-        Workers: 4,
-        TimeoutMs: 5000,
-        Workers: 0,
         Agents: {
             LLMServiceID: '',
         },
