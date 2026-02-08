@@ -79,6 +79,34 @@ jest.mock('react-router-dom', () => ({
     }),
 }));
 
+jest.mock('components/persistent_rhs/member_row', () => () => null);
+
+jest.mock('mattermost-redux/selectors/entities/threads', () => ({
+    getThreadOrderInCurrentTeam: jest.fn(),
+    getUnreadThreadOrderInCurrentTeam: jest.fn(),
+    getThreadCountsInCurrentTeam: jest.fn(),
+    getThread: jest.fn(),
+    getThreads: jest.fn(),
+}));
+
+jest.mock('actions/views/channel', () => ({
+    leaveDirectChannel: jest.fn(),
+}));
+
+jest.mock('actions/views/modals', () => ({
+    openModal: jest.fn(),
+}));
+
+jest.mock('components/more_direct_channels', () => () => null);
+
+jest.mock('components/enhanced_dm_row', () => () => null);
+
+jest.mock('components/enhanced_group_dm_row', () => () => null);
+
+jest.mock('mattermost-redux/actions/preferences', () => ({
+    savePreferences: jest.fn(),
+}));
+
 // Mock posts selectors to prevent the circular dependency error at posts.ts:211.
 // Multiple import chains from member_row, dm_list_page, and actions/views/channel
 // all converge on posts.ts where createSelector throws due to undefined input.
@@ -118,7 +146,10 @@ describe('Guilded Layout Status Syncing', () => {
                 return null;
             });
 
-            (getProfilesInChannel as jest.Mock).mockReturnValue(() => Promise.resolve({data: mockProfiles}));
+            // Mock getProfilesInChannel to return a simple object (action)
+            (getProfilesInChannel as jest.Mock).mockReturnValue({type: 'MOCK_GET_PROFILES'});
+            // Mock dispatch to return a Promise resolving with the profiles data
+            dispatch.mockReturnValue(Promise.resolve({data: mockProfiles}));
 
             render(<MembersTab />);
 
