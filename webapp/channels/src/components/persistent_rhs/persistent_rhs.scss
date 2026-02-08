@@ -14,16 +14,16 @@
 
     &__header {
         display: flex;
-        height: 56px;
+        height: 62px;
         align-items: center;
-        padding: 12px;
+        padding: 13px;
         border-bottom: 1px solid rgba(var(--center-channel-color-rgb), 0.12);
     }
 
     &__title {
         margin: 0;
         color: var(--center-channel-color);
-        font-size: 16px;
+        font-size: 18px;
         font-weight: 600;
     }
 
@@ -31,7 +31,7 @@
     &__content {
         flex: 1 1 auto;
         overflow-y: auto;
-        padding: 0 4px 16px;
+        padding: 0 4px 18px;
 
         // Auto-hide scrollbar to match sidebar-left (SimpleBar) behavior
         &::-webkit-scrollbar {

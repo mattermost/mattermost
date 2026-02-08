@@ -9,13 +9,13 @@
         flex-direction: column;
         align-items: center;
         justify-content: center;
-        gap: 8px;
+        gap: 9px;
         color: rgba(var(--center-channel-color-rgb), 0.56);
-        font-size: 14px;
+        font-size: 15px;
     }
 
     &__empty-icon {
-        font-size: 32px;
+        font-size: 35px;
         opacity: 0.4;
     }
 }

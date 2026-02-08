@@ -9,19 +9,19 @@
         align-items: center;
         justify-content: center;
         color: rgba(var(--center-channel-color-rgb), 0.56);
-        font-size: 14px;
+        font-size: 15px;
     }
 
     &__group-header {
         display: flex;
         align-items: center;
-        padding: 12px 12px 4px; // Left padding matches member-row to align with avatars
+        padding: 13px 13px 4px; // Left padding matches member-row to align with avatars
     }
 
     &__group-label {
         color: rgba(var(--center-channel-color-rgb), 0.56);
         font-family: 'Open Sans', sans-serif;
-        font-size: 12px;
+        font-size: 13px;
         font-weight: 600;
         letter-spacing: 0.02em;
         text-transform: uppercase;

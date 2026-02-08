@@ -3,17 +3,17 @@
 
 .rhs-tab-bar {
     display: flex;
-    height: 56px; // Match channel-header max-height
+    height: 62px; // Match channel-header max-height
     align-items: center;
     justify-content: center;
     gap: 4px;
-    padding: 12px; // Match channel-header padding
+    padding: 13px; // Match channel-header padding
     border-bottom: 1px solid rgba(var(--center-channel-color-rgb), 0.12);
 
     &__tab {
         display: flex;
-        min-width: 32px; // Match channel-header__icon
-        height: 32px; // Match channel-header__icon
+        min-width: 35px; // Match channel-header__icon
+        height: 35px; // Match channel-header__icon
         align-items: center;
         justify-content: center;
         padding: 0;
@@ -25,7 +25,7 @@
         transition: background-color 0.12s ease, color 0.12s ease;
 
         &--wide {
-            padding: 0 8px;
+            padding: 0 9px;
             gap: 2px;
         }
 
@@ -45,18 +45,18 @@
         }
 
         .icon {
-            font-size: 16px; // Match channel-header__icon
+            font-size: 18px; // Match channel-header__icon
 
             svg {
-                width: 16px;
-                height: 16px;
+                width: 18px;
+                height: 18px;
             }
         }
 
         .icon-discord-thread {
             display: inline-block;
-            width: 18px;
-            height: 18px;
+            width: 20px;
+            height: 20px;
             background-color: currentcolor;
             mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath d='M5 4h9M2 6l3 2-3 2M8 8h6M5 12h9' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' fill='none'/%3E%3C/svg%3E");
             mask-position: center;
@@ -66,8 +66,8 @@
     }
 
     &__count {
-        font-size: 12px;
+        font-size: 13px;
         font-weight: 600;
-        line-height: 16px;
+        line-height: 18px;
     }
 }

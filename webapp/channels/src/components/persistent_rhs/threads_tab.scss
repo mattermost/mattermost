@@ -9,26 +9,26 @@
         flex-direction: column;
         align-items: center;
         justify-content: center;
-        gap: 8px;
-        padding: 32px;
+        gap: 9px;
+        padding: 35px;
         text-align: center;
     }
 
     &__empty-icon {
-        margin-bottom: 8px;
+        margin-bottom: 9px;
         color: rgba(var(--center-channel-color-rgb), 0.24);
-        font-size: 48px;
+        font-size: 53px;
     }
 
     &__empty-text {
         color: var(--center-channel-color);
-        font-size: 16px;
+        font-size: 18px;
         font-weight: 600;
     }
 
     &__empty-hint {
-        max-width: 200px;
+        max-width: 220px;
         color: rgba(var(--center-channel-color-rgb), 0.56);
-        font-size: 14px;
+        font-size: 15px;
     }
 }

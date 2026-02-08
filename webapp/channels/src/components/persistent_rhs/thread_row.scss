@@ -4,8 +4,8 @@
 .thread-row {
     display: flex;
     align-items: center;
-    gap: 12px;
-    padding: 12px 16px;
+    gap: 13px;
+    padding: 13px 18px;
     cursor: pointer;
     transition: background-color 0.12s ease;
 
@@ -32,7 +32,7 @@
     &__preview {
         overflow: hidden;
         color: var(--center-channel-color);
-        font-size: 14px;
+        font-size: 15px;
         text-overflow: ellipsis;
         white-space: nowrap;
         
@@ -46,18 +46,18 @@
     &__meta {
         display: flex;
         align-items: center;
-        gap: 8px;
+        gap: 9px;
     }
 
     &__reply-count,
     &__follower-count {
         color: rgba(var(--center-channel-color-rgb), 0.56);
-        font-size: 12px;
+        font-size: 13px;
     }
 
     &__unread-dot {
-        width: 8px;
-        height: 8px;
+        width: 9px;
+        height: 9px;
         border-radius: 50%;
         background-color: var(--button-bg);
     }
@@ -68,9 +68,9 @@
     }
 
     &__avatar {
-        width: 24px;
-        height: 24px;
-        margin-left: -8px;
+        width: 26px;
+        height: 26px;
+        margin-left: -9px;
         border: 2px solid var(--center-channel-bg);
         border-radius: 50%;
         object-fit: cover;

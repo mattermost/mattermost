@@ -5,9 +5,9 @@
 
 .member-row {
     display: flex;
-    height: 36px;
+    height: 40px;
     align-items: center;
-    padding: 4px 12px;
+    padding: 4px 13px;
     border-radius: 4px;
     cursor: pointer;
 
@@ -29,14 +29,14 @@
         flex: 1;
         flex-direction: column;
         justify-content: center;
-        margin-left: 6px;
+        margin-left: 7px;
     }
 
     &__name {
         overflow: hidden;
         color: var(--center-channel-color);
-        font-size: 13px;
-        line-height: 16px;
+        font-size: 14px;
+        line-height: 18px;
         text-overflow: ellipsis;
         white-space: nowrap;
     }
@@ -45,14 +45,14 @@
         display: flex;
         align-items: center;
         gap: 3px;
-        line-height: 12px;
+        line-height: 13px;
 
         // Make emoji same size as text, with negative margin to align with name
         .emoticon {
-            width: 11px !important;
-            height: 11px !important;
-            min-width: 11px;
-            min-height: 11px;
+            width: 12px !important;
+            height: 12px !important;
+            min-width: 12px;
+            min-height: 12px;
             margin-left: -2px;
         }
     }
@@ -60,9 +60,10 @@
     &__status-text {
         overflow: hidden;
         color: rgba(var(--center-channel-color-rgb), 0.56);
-        font-size: 10px;
-        line-height: 12px;
+        font-size: 11px;
+        line-height: 13px;
         text-overflow: ellipsis;
         white-space: nowrap;
     }
 }
+

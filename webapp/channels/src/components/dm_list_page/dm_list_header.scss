@@ -4,34 +4,34 @@
 // Match native sidebarHeaderContainer styling
 .dm-list-header {
     display: flex;
-    height: 55px; // Match sidebarHeaderContainer
+    height: 61px; // Match sidebarHeaderContainer
     flex-direction: row;
     flex-shrink: 0;
     flex-wrap: nowrap;
     align-items: center;
     justify-content: space-between;
-    padding: 0 16px;
+    padding: 0 18px;
     color: var(--sidebar-header-text-color);
 
     &__left {
         display: flex;
         align-items: center;
-        gap: 8px;
+        gap: 9px;
     }
 
     &__new-button {
         display: flex;
-        min-width: 28px;
-        height: 28px;
+        min-width: 31px;
+        height: 31px;
         align-items: center;
         justify-content: center;
-        padding: 0 6px;
+        padding: 0 7px;
         border: none;
         border-radius: 4px;
         background: transparent;
         color: inherit;
         cursor: pointer;
-        font-size: 18px;
+        font-size: 20px;
 
         &:hover {
             background: rgba(var(--sidebar-header-text-color-rgb), 0.08);
@@ -47,7 +47,7 @@
         margin: 0;
         color: inherit;
         font-family: Metropolis, sans-serif;
-        font-size: 16px;
+        font-size: 18px;
         font-weight: 600;
         text-overflow: ellipsis;
         white-space: nowrap;

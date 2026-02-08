@@ -61,7 +61,7 @@ export default function MemberRow({user, status, isAdmin}: Props) {
                     <div className='member-row__status-row'>
                         <CustomStatusEmoji
                             userID={user.id}
-                            emojiSize={12}
+                            emojiSize={13}
                             showTooltip={false}
                         />
                         {customStatus?.text && (

@@ -115,7 +115,7 @@ const EnhancedGroupDmRow = ({channel, users, isActive, onDmClick, onClose}: Prop
                 onClick={handleClose}
                 aria-label='Close conversation'
             >
-                <CloseIcon size={16}/>
+                <CloseIcon size={18}/>
             </button>
         </Link>
     );

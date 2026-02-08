@@ -6,9 +6,9 @@
     position: relative;
     display: flex;
     overflow: hidden;
-    height: 48px;
+    height: 53px;
     align-items: center;
-    padding: 6px 16px 6px 19px;
+    padding: 7px 18px 7px 21px;
     color: rgba(var(--sidebar-text-rgb), 0.64);
     cursor: pointer;
     list-style-type: none;
@@ -65,7 +65,7 @@
 
     &__avatar {
         flex-shrink: 0;
-        margin-right: 6px;
+        margin-right: 7px;
 
         // Override status icon for sidebar context
         .status-wrapper .status {
@@ -91,10 +91,10 @@
 
     &__display-name {
         overflow: hidden;
-        height: 18px;
+        height: 20px;
         color: rgba(var(--sidebar-text-rgb), 0.64);
-        font-size: 14px;
-        line-height: 18px;
+        font-size: 15px;
+        line-height: 20px;
         text-overflow: ellipsis;
         user-select: none;
         white-space: nowrap;
@@ -102,14 +102,14 @@
 
     &__timestamp {
         flex-shrink: 0;
-        margin-left: 8px;
+        margin-left: 9px;
         color: rgba(var(--sidebar-text-rgb), 0.56);
-        font-size: 12px;
+        font-size: 13px;
     }
 
     &__footer {
         display: flex;
-        height: 16px;
+        height: 18px;
         align-items: center;
         justify-content: space-between;
     }
@@ -118,24 +118,24 @@
         overflow: hidden;
         flex: 1;
         color: rgba(var(--sidebar-text-rgb), 0.56);
-        font-size: 12px;
+        font-size: 13px;
         text-overflow: ellipsis;
         white-space: nowrap;
     }
 
     &__badge {
         display: flex;
-        min-width: 18px;
-        height: 18px;
+        min-width: 20px;
+        height: 20px;
         flex-shrink: 0;
         align-items: center;
         justify-content: center;
-        padding: 0 5px;
-        border-radius: 9px;
-        margin-left: 8px;
+        padding: 0 6px;
+        border-radius: 10px;
+        margin-left: 9px;
         background: var(--mention-bg);
         color: var(--mention-color);
-        font-size: 11px;
+        font-size: 12px;
         font-weight: 600;
     }
 
@@ -144,12 +144,12 @@
         flex-shrink: 0;
         align-items: center;
         justify-content: center;
-        width: 20px;
-        height: 20px;
+        width: 22px;
+        height: 22px;
         padding: 0;
         border: none;
         border-radius: 4px;
-        margin-left: 8px;
+        margin-left: 9px;
         background: none;
         color: rgba(var(--sidebar-text-rgb), 0.56);
         cursor: pointer;
@@ -162,6 +162,6 @@
 
     &__menu {
         display: none;
-        margin-left: 8px;
+        margin-left: 9px;
     }
 }
