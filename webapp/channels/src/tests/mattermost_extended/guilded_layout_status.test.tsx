@@ -8,9 +8,11 @@ import {useSelector, useDispatch} from 'react-redux';
 import {getCurrentChannel} from 'mattermost-redux/selectors/entities/channels';
 import {getProfilesInChannel} from 'mattermost-redux/actions/users';
 
-import MembersTab from 'components/persistent_rhs/members_tab';
-import DMListPage from 'components/dm_list_page';
 import {loadStatusesForProfilesList, loadStatusesByIds} from 'actions/status_actions';
+
+// Lazy-import components after mocks are set up to avoid circular deps
+let MembersTab: any;
+let DMListPage: any;
 
 jest.mock('react-redux', () => ({
     useSelector: jest.fn(),
@@ -57,25 +59,6 @@ jest.mock('selectors/views/guilded_layout', () => ({
     getLastPostInChannel: jest.fn(),
 }));
 
-// Mock mattermost-redux/selectors/entities/posts to break the circular dependency chain:
-// Any import -> utils/constants -> post_list -> posts (circular deps with roles/post_utils)
-jest.mock('mattermost-redux/selectors/entities/posts', () => ({
-    getPost: jest.fn(),
-    makeGetPostsForThread: jest.fn().mockReturnValue(jest.fn().mockReturnValue([])),
-}));
-jest.mock('mattermost-redux/utils/post_list', () => ({
-    START_OF_NEW_MESSAGES: 'start-of-new-messages',
-    MAX_COMBINED_SYSTEM_POSTS: 100,
-    COMBINED_USER_ACTIVITY: 'combined-user-activity',
-    DATE_LINE: 'date-',
-    combineUserActivitySystemPost: jest.fn(),
-    isStartOfNewMessages: jest.fn(),
-    isCombinedUserActivityPost: jest.fn(),
-    isDateLine: jest.fn(),
-    getDateForDateLine: jest.fn(),
-    getPostIdsForCombinedUserActivityPost: jest.fn(),
-}));
-
 jest.mock('react-router-dom', () => ({
     useHistory: () => ({
         push: jest.fn(),
@@ -84,6 +67,11 @@ jest.mock('react-router-dom', () => ({
 
 describe('Guilded Layout Status Syncing', () => {
     const dispatch = jest.fn();
+
+    beforeAll(() => {
+        MembersTab = require('components/persistent_rhs/members_tab').default;
+        DMListPage = require('components/dm_list_page').default;
+    });
 
     beforeEach(() => {
         (useDispatch as jest.Mock).mockReturnValue(dispatch);
