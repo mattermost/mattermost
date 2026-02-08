@@ -9,11 +9,14 @@ import {getCurrentChannelId} from 'mattermost-redux/selectors/entities/channels'
 import {getIsUserStatusesConfigEnabled} from 'mattermost-redux/selectors/entities/common';
 import {getPostsInCurrentChannel} from 'mattermost-redux/selectors/entities/posts';
 import {getDirectShowPreferences} from 'mattermost-redux/selectors/entities/preferences';
-import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
+import {getCurrentUserId, makeGetProfilesInChannel} from 'mattermost-redux/selectors/entities/users';
 
 import {loadCustomEmojisForCustomStatusesByUserIds} from 'actions/emoji_actions';
+import {isGuildedLayoutEnabled, getAllDmChannelsWithUsers} from 'selectors/views/guilded_layout';
 
 import type {ActionFunc} from 'types/store';
+
+const getProfilesInChannel = makeGetProfilesInChannel();
 
 /**
  * Adds the following users to the status pool for fetching their statuses:
@@ -47,6 +50,32 @@ export function addVisibleUsersInCurrentChannelAndSelfToStatusPoll(): ActionFunc
             if (directShowPreference.value === 'true') {
                 // This is the other user's id in the DM
                 userIdsToFetchStatusFor.add(directShowPreference.name);
+            }
+        }
+
+        // Guilded layout specific: Add all members of the current channel and all users in DM list
+        if (isGuildedLayoutEnabled(state)) {
+            // Add all users from the DM list (used in DM list page and team sidebar)
+            const dms = getAllDmChannelsWithUsers(state);
+            for (const dm of dms) {
+                if (dm.type === 'dm') {
+                    userIdsToFetchStatusFor.add(dm.user.id);
+                } else if (dm.type === 'group') {
+                    for (const user of dm.users) {
+                        userIdsToFetchStatusFor.add(user.id);
+                    }
+                }
+            }
+
+            // Add all members of current channel that are currently loaded in store
+            // (used in Persistent RHS members tab)
+            if (currentChannelId) {
+                const profiles = getProfilesInChannel(state, currentChannelId);
+                for (const profile of profiles) {
+                    if (profile.id !== currentUserId) {
+                        userIdsToFetchStatusFor.add(profile.id);
+                    }
+                }
             }
         }
 

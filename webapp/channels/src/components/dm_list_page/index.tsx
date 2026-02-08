@@ -14,6 +14,7 @@ import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
 import {getPosts} from 'mattermost-redux/actions/posts';
 import {savePreferences} from 'mattermost-redux/actions/preferences';
 
+import {loadStatusesByIds} from 'actions/status_actions';
 import {leaveDirectChannel} from 'actions/views/channel';
 import {openModal} from 'actions/views/modals';
 import {getAllDmChannelsWithUsers} from 'selectors/views/guilded_layout';
@@ -37,6 +38,7 @@ const DMListPage = () => {
     const currentUserId = useSelector(getCurrentUserId);
     const allDms = useSelector(getAllDmChannelsWithUsers);
     const hasFetchedPosts = useRef(false);
+    const hasFetchedStatuses = useRef(false);
     const hasAutoSelected = useRef(false);
 
     const [searchTerm, setSearchTerm] = useState('');
@@ -48,6 +50,24 @@ const DMListPage = () => {
             allDms.forEach((dm) => {
                 dispatch(getPosts(dm.channel.id, 0, 1));
             });
+        }
+    }, [dispatch, allDms]);
+
+    // Fetch statuses for all DM users (once on mount)
+    useEffect(() => {
+        if (!hasFetchedStatuses.current && allDms.length > 0) {
+            hasFetchedStatuses.current = true;
+            const userIds: string[] = [];
+            allDms.forEach((dm) => {
+                if (dm.type === 'dm') {
+                    userIds.push(dm.user.id);
+                } else if (dm.type === 'group') {
+                    dm.users.forEach((u) => userIds.push(u.id));
+                }
+            });
+            if (userIds.length > 0) {
+                dispatch(loadStatusesByIds(userIds));
+            }
         }
     }, [dispatch, allDms]);
 

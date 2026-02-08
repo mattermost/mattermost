@@ -8,6 +8,7 @@ import {getCurrentChannel} from 'mattermost-redux/selectors/entities/channels';
 import {getProfilesInChannel} from 'mattermost-redux/actions/users';
 import {getChannelMembers} from 'mattermost-redux/actions/channels';
 
+import {loadStatusesForProfilesList} from 'actions/status_actions';
 import {getChannelMembersGroupedByStatus} from 'selectors/views/guilded_layout';
 
 import type {GlobalState} from 'types/store';
@@ -30,7 +31,11 @@ export default function MembersTab() {
 
     useEffect(() => {
         if (channel?.id) {
-            dispatch(getProfilesInChannel(channel.id, 0, 100));
+            dispatch(getProfilesInChannel(channel.id, 0, 100)).then(({data}) => {
+                if (data) {
+                    dispatch(loadStatusesForProfilesList(data));
+                }
+            });
             dispatch(getChannelMembers(channel.id));
         }
     }, [dispatch, channel?.id]);
