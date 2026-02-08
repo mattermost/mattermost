@@ -53,6 +53,20 @@ jest.mock('actions/status_actions', () => ({
     loadStatusesByIds: jest.fn(() => ({type: 'MOCK_LOAD_STATUSES_IDS'})),
 }));
 
+// Mock roles to break the circular dependency: roles -> teams -> roles
+jest.mock('mattermost-redux/selectors/entities/roles', () => ({
+    getMyTeamRoles: jest.fn().mockReturnValue({}),
+    getMyChannelRoles: jest.fn().mockReturnValue({}),
+    getMySystemRoles: jest.fn().mockReturnValue(new Set()),
+    getRolesById: jest.fn().mockReturnValue({}),
+    haveIChannelPermission: jest.fn().mockReturnValue(false),
+    haveITeamPermission: jest.fn().mockReturnValue(false),
+    haveISystemPermission: jest.fn().mockReturnValue(false),
+    haveICurrentChannelPermission: jest.fn().mockReturnValue(false),
+    haveICurrentTeamPermission: jest.fn().mockReturnValue(false),
+    getGroupListPermissions: jest.fn().mockReturnValue({}),
+}));
+
 jest.mock('selectors/views/guilded_layout', () => ({
     getChannelMembersGroupedByStatus: jest.fn(),
     getAllDmChannelsWithUsers: jest.fn(),
