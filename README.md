@@ -14,7 +14,7 @@
 
 <p align="center">
   <img src="https://img.shields.io/badge/base-Mattermost%20v11.3.0-blue" alt="Base Version">
-  <img src="https://img.shields.io/badge/license-MIT-green" alt="License">
+  <img src="https://img.shields.io/badge/license-AGPL%20v3.0-blue" alt="License">
   <img src="https://img.shields.io/badge/platform-Linux-lightgrey" alt="Platform">
 </p>
 

@@ -382,13 +382,29 @@ export default function AboutBuildModal(props: Props) {
                 <div className='about-modal__notice form-group pt-3'>
                     <p>
                         <FormattedMessage
+                            id='about.extendedNotice'
+                            defaultMessage='This is a modified version of Mattermost. <linkSource>Source code</linkSource> is available under the AGPL v3.0 license.'
+                            values={{
+                                linkSource: (msg: React.ReactNode) => (
+                                    <ExternalLink
+                                        location='about_build_modal'
+                                        href='https://github.com/stalecontext/mattermost-extended'
+                                    >
+                                        {msg}
+                                    </ExternalLink>
+                                ),
+                            }}
+                        />
+                    </p>
+                    <p>
+                        <FormattedMessage
                             id='about.notice'
                             defaultMessage='Mattermost is made possible by the open source software used in our <linkServer>server</linkServer>, <linkDesktop>desktop</linkDesktop> and <linkMobile>mobile</linkMobile> apps.'
                             values={{
                                 linkServer: (msg: React.ReactNode) => (
                                     <ExternalLink
                                         location='about_build_modal'
-                                        href='https://github.com/mattermost/mattermost-server/blob/master/NOTICE.txt'
+                                        href='https://github.com/stalecontext/mattermost-extended/blob/master/NOTICE.txt'
                                     >
                                         {msg}
                                     </ExternalLink>

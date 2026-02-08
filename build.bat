@@ -92,7 +92,6 @@ echo Tag v%VERSION% has been pushed to GitHub.
 echo.
 echo GitHub Actions is now building Mattermost:
 echo - Team Edition: mattermost-team-%VERSION%-linux-amd64.tar.gz
-echo - Enterprise: mattermost-%VERSION%-linux-amd64.tar.gz
 echo.
 echo Monitor build progress:
 echo https://github.com/stalecontext/mattermost-extended/actions

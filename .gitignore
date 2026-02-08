@@ -179,3 +179,6 @@ demo-data/demo-data.jsonl
 
 # Implementation plans (may contain sensitive context)
 docs/plans/
+
+# License compliance report (internal)
+docs/LICENSE_COMPLIANCE.md
