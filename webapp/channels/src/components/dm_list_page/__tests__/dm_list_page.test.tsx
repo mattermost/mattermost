@@ -162,7 +162,7 @@ describe('DmListPage', () => {
         expect(mockPush).toHaveBeenCalledWith('/test-team/messages/@user2');
     });
 
-    it('does NOT auto-select if a channel is already active', () => {
+    it('does NOT auto-select if already viewing a DM channel', () => {
         mockCurrentChannelId = 'dm2';
         const store = mockStore({});
         render(
@@ -173,8 +173,24 @@ describe('DmListPage', () => {
             </Provider>,
         );
 
-        // Should NOT navigate because we already have an active channel
+        // Should NOT navigate because we're already on a DM in the list
         expect(mockPush).not.toHaveBeenCalled();
+    });
+
+    it('auto-selects first DM when current channel is a regular channel (not a DM)', () => {
+        // Simulate being on a regular channel like Town Square
+        mockCurrentChannelId = 'regular-channel-id';
+        const store = mockStore({});
+        render(
+            <Provider store={store}>
+                <BrowserRouter>
+                    <DmListPage />
+                </BrowserRouter>
+            </Provider>,
+        );
+
+        // Should navigate to the most recent DM because current channel is not in the DM list
+        expect(mockPush).toHaveBeenCalledWith('/test-team/messages/@user2');
     });
 
     it('closes a DM conversation when close button is clicked', () => {

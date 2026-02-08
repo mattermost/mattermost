@@ -6,7 +6,7 @@
     position: relative;
     display: flex;
     overflow: hidden;
-    height: 53px;
+    height: 60px;
     align-items: center;
     padding: 7px 18px 7px 21px;
     color: rgba(var(--sidebar-text-rgb), 0.64);
@@ -59,20 +59,20 @@
         }
     }
 
-    // Group avatar cluster sized to 31x31 container
+    // Group avatar cluster sized to 38x38 container (matches md avatar sizing)
     &__avatars {
         position: relative;
         flex-shrink: 0;
-        width: 31px;
-        height: 31px;
-        margin-right: 11px;
+        width: 38px;
+        height: 38px;
+        margin-right: 9px;
     }
 
     &__avatar-container {
         position: absolute;
         overflow: hidden;
-        width: 18px;
-        height: 18px;
+        width: 22px;
+        height: 22px;
         border: 2px solid var(--sidebar-bg);
         border-radius: 50%;
         background-color: var(--sidebar-bg);
@@ -108,15 +108,15 @@
         bottom: 0;
         left: 0;
         display: flex;
-        width: 18px;
-        height: 18px;
+        width: 22px;
+        height: 22px;
         align-items: center;
         justify-content: center;
         border: 2px solid var(--sidebar-bg);
         border-radius: 50%;
         background-color: rgba(var(--sidebar-text-rgb), 0.16);
         color: var(--sidebar-text);
-        font-size: 8px;
+        font-size: 9px;
         font-weight: 700;
     }
 

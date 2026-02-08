@@ -84,7 +84,7 @@ const EnhancedDmRow = ({channel, user, isActive, onDmClick, onClose}: Props) => 
         >
             <div className='enhanced-dm-row__avatar'>
                 <ProfilePicture
-                    size='sm'
+                    size='md'
                     status={userStatus}
                     src={avatarUrl}
                     username={user.username}

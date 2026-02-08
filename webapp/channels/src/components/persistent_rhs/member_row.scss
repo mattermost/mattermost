@@ -5,7 +5,7 @@
 
 .member-row {
     display: flex;
-    height: 40px;
+    height: 42px;
     align-items: center;
     padding: 4px 13px;
     border-radius: 4px;
@@ -29,7 +29,8 @@
         flex: 1;
         flex-direction: column;
         justify-content: center;
-        margin-left: 7px;
+        gap: 2px;
+        margin-left: 9px;
     }
 
     &__name {

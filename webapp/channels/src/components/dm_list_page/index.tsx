@@ -28,7 +28,7 @@ import DmSearchInput from './dm_search_input';
 
 import './dm_list_page.scss';
 
-const ROW_HEIGHT = 53;
+const ROW_HEIGHT = 60;
 
 const DMListPage = () => {
     const dispatch = useDispatch();
@@ -73,13 +73,17 @@ const DMListPage = () => {
 
     // Auto-select the most recent DM on mount ONLY IF we are not already on a DM channel
     useEffect(() => {
-        if (!hasAutoSelected.current && allDms.length > 0 && currentTeamUrl && !currentChannelId) {
-            hasAutoSelected.current = true;
-            const firstDm = allDms[0];
-            if (firstDm.type === 'dm') {
-                history.push(`${currentTeamUrl}/messages/@${firstDm.user.username}`);
-            } else {
-                history.push(`${currentTeamUrl}/messages/${firstDm.channel.name}`);
+        if (!hasAutoSelected.current && allDms.length > 0 && currentTeamUrl) {
+            // Skip auto-selection if the current channel is already a DM in the list
+            const isAlreadyOnDm = currentChannelId && allDms.some((dm) => dm.channel.id === currentChannelId);
+            if (!isAlreadyOnDm) {
+                hasAutoSelected.current = true;
+                const firstDm = allDms[0];
+                if (firstDm.type === 'dm') {
+                    history.push(`${currentTeamUrl}/messages/@${firstDm.user.username}`);
+                } else {
+                    history.push(`${currentTeamUrl}/messages/${firstDm.channel.name}`);
+                }
             }
         }
     }, [allDms, currentTeamUrl, currentChannelId, history]);

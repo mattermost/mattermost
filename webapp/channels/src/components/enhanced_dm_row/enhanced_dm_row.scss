@@ -6,7 +6,7 @@
     position: relative;
     display: flex;
     overflow: hidden;
-    height: 53px;
+    height: 60px;
     align-items: center;
     padding: 7px 18px 7px 21px;
     color: rgba(var(--sidebar-text-rgb), 0.64);
@@ -65,7 +65,7 @@
 
     &__avatar {
         flex-shrink: 0;
-        margin-right: 7px;
+        margin-right: 9px;
 
         // Override status icon for sidebar context
         .status-wrapper .status {

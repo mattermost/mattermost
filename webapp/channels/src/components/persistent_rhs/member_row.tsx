@@ -46,7 +46,7 @@ export default function MemberRow({user, status, isAdmin}: Props) {
         >
             <div className='member-row__avatar'>
                 <ProfilePicture
-                    size='sm'
+                    size='md'
                     status={status}
                     isBot={user.is_bot}
                     username={displayName}
