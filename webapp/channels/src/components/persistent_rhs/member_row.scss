@@ -17,6 +17,10 @@
 
     &--offline {
         opacity: 0.6;
+
+        .member-row__avatar img {
+            filter: grayscale(100%);
+        }
     }
 
     &__avatar {
