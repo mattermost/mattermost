@@ -195,7 +195,7 @@ jobs:
         run: |
           set -o pipefail
           npm test -- --ci --coverage=false \
-            --testPathPatterns="guilded_layout\\.test\\.(ts|tsx)$|guilded_team_sidebar.*\\.test\\.(ts|tsx)$|team_sidebar/__tests__/team_sidebar\\.test\\.tsx$|sidebar_right/__tests__/sidebar_right\\.test\\.tsx$|persistent_rhs.*\\.test\\.(ts|tsx)$|dm_list_page.*\\.test\\.(ts|tsx)$|enhanced_dm_row.*\\.test\\.(ts|tsx)$|enhanced_group_dm_row.*\\.test\\.(ts|tsx)$|tests/mattermost_extended/guilded_.*\\.test\\.(ts|tsx)$" \
+            --testPathPatterns="guilded_layout\\.test\\.(ts|tsx)$|guilded_team_sidebar.*\\.test\\.(ts|tsx)$|team_sidebar/__tests__/team_sidebar\\.test\\.tsx$|sidebar_right/__tests__/sidebar_right\\.test\\.tsx$|persistent_rhs.*\\.test\\.(ts|tsx)$|dm_list_page.*\\.test\\.(ts|tsx)$|enhanced_dm_row.*\\.test\\.(ts|tsx)$|enhanced_group_dm_row.*\\.test\\.(ts|tsx)$|tests/mattermost_extended/guilded_.*\\.test\\.(ts|tsx)$|tests/mattermost_extended/guilded_group_dm\\.test\\.(ts|tsx)$" \
             2>&1 | tee ../../test-results/guilded-layout-tests.log
           cp build/test-results.xml ../../test-results/guilded-layout-tests.xml 2>/dev/null || true
 
