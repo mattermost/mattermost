@@ -86,6 +86,9 @@ describe('EnhancedDmRow', () => {
             preferences: {
                 myPreferences: {},
             },
+            emojis: {
+                customEmoji: {},
+            },
         },
         views: {
             guildedLayout: {
@@ -399,5 +402,178 @@ describe('EnhancedDmRow', () => {
 
         const status = container.querySelector('.status');
         expect(status).toBeInTheDocument();
+    });
+
+    it('strips blockquotes from message preview', () => {
+        const stateWithBlockquote = {
+            ...baseState,
+            entities: {
+                ...baseState.entities,
+                posts: {
+                    posts: {
+                        post1: {
+                            id: 'post1',
+                            channel_id: 'dm1',
+                            user_id: 'user2',
+                            message: '>[@revlis](https://example.com): quoted text\n\nreply test\n\n> blockquote',
+                            create_at: 1000,
+                        },
+                    },
+                    postsInChannel: {
+                        dm1: [{order: ['post1'], recent: true}],
+                    },
+                },
+            },
+        };
+
+        const store = mockStore(stateWithBlockquote);
+        const {container} = render(
+            <Provider store={store}>
+                <BrowserRouter>
+                    <EnhancedDmRow
+                        channel={mockChannel}
+                        user={mockUser}
+                        isActive={false}
+                    />
+                </BrowserRouter>
+            </Provider>,
+        );
+
+        const preview = container.querySelector('.enhanced-dm-row__preview');
+        expect(preview?.textContent).toBe('reply test');
+    });
+
+    it('strips blockquotes from own message preview with You: prefix', () => {
+        const stateWithBlockquote = {
+            ...baseState,
+            entities: {
+                ...baseState.entities,
+                posts: {
+                    posts: {
+                        post1: {
+                            id: 'post1',
+                            channel_id: 'dm1',
+                            user_id: 'user1',
+                            message: '> quoted\nmy reply',
+                            create_at: 1000,
+                        },
+                    },
+                    postsInChannel: {
+                        dm1: [{order: ['post1'], recent: true}],
+                    },
+                },
+            },
+        };
+
+        const store = mockStore(stateWithBlockquote);
+        const {container} = render(
+            <Provider store={store}>
+                <BrowserRouter>
+                    <EnhancedDmRow
+                        channel={mockChannel}
+                        user={mockUser}
+                        isActive={false}
+                    />
+                </BrowserRouter>
+            </Provider>,
+        );
+
+        const preview = container.querySelector('.enhanced-dm-row__preview');
+        expect(preview?.textContent).toBe('You: my reply');
+    });
+
+    it('renders emoji shortcodes as emoticon spans in preview', () => {
+        const stateWithEmoji = {
+            ...baseState,
+            entities: {
+                ...baseState.entities,
+                posts: {
+                    posts: {
+                        post1: {
+                            id: 'post1',
+                            channel_id: 'dm1',
+                            user_id: 'user2',
+                            message: 'hello :smile: world',
+                            create_at: 1000,
+                        },
+                    },
+                    postsInChannel: {
+                        dm1: [{order: ['post1'], recent: true}],
+                    },
+                },
+            },
+        };
+
+        const store = mockStore(stateWithEmoji);
+        const {container} = render(
+            <Provider store={store}>
+                <BrowserRouter>
+                    <EnhancedDmRow
+                        channel={mockChannel}
+                        user={mockUser}
+                        isActive={false}
+                    />
+                </BrowserRouter>
+            </Provider>,
+        );
+
+        const preview = container.querySelector('.enhanced-dm-row__preview');
+
+        // The emoticon span should be rendered for the :smile: emoji
+        const emoticon = preview?.querySelector('.emoticon');
+        expect(emoticon).toBeInTheDocument();
+        expect(emoticon?.getAttribute('data-emoticon')).toBe('smile');
+
+        // Text around the emoji should still be present
+        expect(preview?.textContent).toContain('hello');
+        expect(preview?.textContent).toContain('world');
+    });
+
+    it('renders emoji and strips blockquotes together', () => {
+        const stateWithBoth = {
+            ...baseState,
+            entities: {
+                ...baseState.entities,
+                posts: {
+                    posts: {
+                        post1: {
+                            id: 'post1',
+                            channel_id: 'dm1',
+                            user_id: 'user2',
+                            message: '>[@someone](https://example.com): quoted\n\nreply test :face_with_cowboy_hat:\n\n> blockquote',
+                            create_at: 1000,
+                        },
+                    },
+                    postsInChannel: {
+                        dm1: [{order: ['post1'], recent: true}],
+                    },
+                },
+            },
+        };
+
+        const store = mockStore(stateWithBoth);
+        const {container} = render(
+            <Provider store={store}>
+                <BrowserRouter>
+                    <EnhancedDmRow
+                        channel={mockChannel}
+                        user={mockUser}
+                        isActive={false}
+                    />
+                </BrowserRouter>
+            </Provider>,
+        );
+
+        const preview = container.querySelector('.enhanced-dm-row__preview');
+
+        // Blockquotes should be stripped, only "reply test" + emoji remain
+        expect(preview?.textContent).toContain('reply test');
+        expect(preview?.textContent).not.toContain('quoted');
+        expect(preview?.textContent).not.toContain('blockquote');
+
+        // Emoji should be rendered as emoticon span
+        const emoticon = preview?.querySelector('.emoticon');
+        expect(emoticon).toBeInTheDocument();
+        expect(emoticon?.getAttribute('data-emoticon')).toBe('face_with_cowboy_hat');
     });
 });

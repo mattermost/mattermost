@@ -21,6 +21,7 @@ import {UserProfile} from '@mattermost/types/users';
 
 import {getLastPostInChannel} from 'selectors/views/guilded_layout';
 import {getRelativeTimestamp} from 'utils/datetime';
+import {formatDmPreview} from 'utils/dm_preview_utils';
 
 import ProfilePicture from 'components/profile_picture';
 
@@ -62,13 +63,14 @@ const EnhancedDmRow = ({channel, user, isActive, onDmClick, onClose}: Props) => 
 
     // Last message preview text
     // In 1-on-1 DMs: show "You: " for own messages, no prefix for the other person
-    let previewText = 'No messages yet';
+    let previewContent: React.ReactNode = 'No messages yet';
     if (lastPost) {
         const isOwnMessage = lastPost.user_id === currentUserId;
         const prefix = isOwnMessage ? 'You: ' : '';
-        previewText = `${prefix}${lastPost.message}`;
+        const formatted = formatDmPreview(lastPost.message);
+        previewContent = formatted ? <>{prefix}{formatted}</> : `${prefix}${lastPost.message}`;
     } else if (channel.last_post_at > 0) {
-        previewText = 'Loading...';
+        previewContent = 'Loading...';
     }
 
     const displayName = displayUsername(user, teammateNameDisplaySetting);
@@ -98,7 +100,7 @@ const EnhancedDmRow = ({channel, user, isActive, onDmClick, onClose}: Props) => 
                 </div>
 
                 <div className='enhanced-dm-row__footer'>
-                    <span className='enhanced-dm-row__preview'>{previewText}</span>
+                    <span className='enhanced-dm-row__preview'>{previewContent}</span>
 
                     {hasMentions && (
                         <div className='enhanced-dm-row__badge'>

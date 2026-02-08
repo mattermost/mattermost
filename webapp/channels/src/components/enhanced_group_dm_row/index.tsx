@@ -21,6 +21,7 @@ import {UserProfile} from '@mattermost/types/users';
 
 import {getLastPostInChannel} from 'selectors/views/guilded_layout';
 import {getRelativeTimestamp} from 'utils/datetime';
+import {formatDmPreview} from 'utils/dm_preview_utils';
 
 import './enhanced_group_dm_row.scss';
 
@@ -57,13 +58,14 @@ const EnhancedGroupDmRow = ({channel, users, isActive, onDmClick, onClose}: Prop
 
     // Last message preview text
     // In group DMs: show "You: " for own messages, username for others
-    let previewText = 'No messages yet';
+    let previewContent: React.ReactNode = 'No messages yet';
     if (lastPost) {
         const isOwnMessage = lastPost.user_id === currentUserId;
         const prefix = isOwnMessage ? 'You: ' : (lastPostUser ? `${lastPostUser.username}: ` : '');
-        previewText = `${prefix}${lastPost.message}`;
+        const formatted = formatDmPreview(lastPost.message);
+        previewContent = formatted ? <>{prefix}{formatted}</> : `${prefix}${lastPost.message}`;
     } else if (channel.last_post_at > 0) {
-        previewText = 'Loading...';
+        previewContent = 'Loading...';
     }
 
     const displayName = useMemo(() => {
@@ -114,7 +116,7 @@ const EnhancedGroupDmRow = ({channel, users, isActive, onDmClick, onClose}: Prop
                 </div>
 
                 <div className='enhanced-group-dm-row__footer'>
-                    <span className='enhanced-group-dm-row__preview'>{previewText}</span>
+                    <span className='enhanced-group-dm-row__preview'>{previewContent}</span>
 
                     {hasMentions && (
                         <div className='enhanced-group-dm-row__badge'>

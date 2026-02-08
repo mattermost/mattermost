@@ -122,6 +122,12 @@
         font-size: 13px;
         text-overflow: ellipsis;
         white-space: nowrap;
+
+        .emoticon {
+            display: inline-block;
+            vertical-align: middle;
+            margin: 0 1px;
+        }
     }
 
     &__badge {
