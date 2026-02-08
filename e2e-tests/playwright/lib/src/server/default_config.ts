@@ -849,10 +849,12 @@ const defaultServerConfig: AdminConfig = {
             APIKey: '',
         },
         TargetLanguages: ['en'],
+        Workers: 4,
         TimeoutMs: 5000,
         Workers: 0,
         Agents: {
             LLMServiceID: '',
         },
+        RestrictDMAndGM: false,
     },
 };
