@@ -1,0 +1,223 @@
+---
+name: "E2E Tests (Testcontainers)"
+on:
+  workflow_dispatch:
+    inputs:
+      commit_sha:
+        description: "Commit SHA to test. If empty, uses the workflow dispatch ref."
+        type: string
+        required: false
+      server_image:
+        description: "Full server image (e.g., mattermostdevelopment/mattermost-enterprise-edition:master)"
+        type: string
+        required: false
+        default: "mattermostdevelopment/mattermost-enterprise-edition:master"
+      enabled_docker_services:
+        description: "Space-separated list of docker services"
+        type: string
+        required: false
+        default: "postgres inbucket"
+      mm_env:
+        description: "Comma-separated env vars for the server (e.g., MM_FEATUREFLAGS_X=true)"
+        type: string
+        required: false
+      run_cypress:
+        description: "Run Cypress smoke tests"
+        type: boolean
+        required: false
+        default: true
+      run_playwright:
+        description: "Run Playwright smoke tests"
+        type: boolean
+        required: false
+        default: true
+      cypress_test_filter:
+        description: "Cypress test filter"
+        type: string
+        required: false
+        default: '--stage="@prod" --group="@smoke"'
+      playwright_test_filter:
+        description: "Playwright test filter"
+        type: string
+        required: false
+        default: "--grep @smoke"
+
+concurrency:
+  group: "${{ github.workflow }}-${{ github.ref }}"
+  cancel-in-progress: true
+
+env:
+  COMMIT_SHA: "${{ inputs.commit_sha || github.sha }}"
+  SERVER_IMAGE: "${{ inputs.server_image }}"
+
+jobs:
+  # ════════════════════════════════════════════════════════════════════════════
+  # CYPRESS
+  # ════════════════════════════════════════════════════════════════════════════
+  cypress:
+    if: inputs.run_cypress
+    runs-on: ubuntu-24.04
+    timeout-minutes: 60
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - name: ci/checkout-repo
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          ref: ${{ env.COMMIT_SHA }}
+          fetch-depth: 0
+      - name: ci/setup-node
+        uses: actions/setup-node@395ad3262231945c25e8478fd5baf05154b1d79f # v6.1.0
+        with:
+          node-version-file: ".nvmrc"
+          cache: npm
+          cache-dependency-path: "e2e-tests/cypress/package-lock.json"
+      - name: ci/setup-testcontainers
+        working-directory: e2e-tests/testcontainers
+        run: npm ci --ignore-scripts --omit=dev
+      - name: ci/start-server
+        id: start-server
+        working-directory: e2e-tests/testcontainers
+        env:
+          TC_SERVER_IMAGE: ${{ env.SERVER_IMAGE }}
+          TC_DEPENDENCIES: ${{ inputs.enabled_docker_services }}
+          MM_LICENSE: ${{ secrets.MM_E2E_TEST_LICENSE_ONPREM_ENT }}
+          MM_ENV: ${{ inputs.mm_env }}
+        run: |
+          DEPS=$(echo "$TC_DEPENDENCIES" | tr ' ' ',')
+
+          ENV_ARGS=""
+          if [ -n "$MM_ENV" ]; then
+            IFS=',' read -ra ENV_VARS <<< "$MM_ENV"
+            for env_var in "${ENV_VARS[@]}"; do
+              ENV_ARGS="$ENV_ARGS -E $env_var"
+            done
+          fi
+
+          node dist/cli.js start --admin -D "$DEPS" $ENV_ARGS -o .tc.out
+
+          SERVER_URL=$(jq -r '.containers.mattermost.url' .tc.out/.tc.docker.json)
+          echo "SERVER_URL=$SERVER_URL" >> $GITHUB_OUTPUT
+          echo "Server started at: $SERVER_URL"
+      - name: ci/run-cypress-tests
+        working-directory: e2e-tests/cypress
+        env:
+          MM_SERVICESETTINGS_SITEURL: ${{ steps.start-server.outputs.SERVER_URL }}
+          CYPRESS_baseUrl: ${{ steps.start-server.outputs.SERVER_URL }}
+          MM_LICENSE: ${{ secrets.MM_E2E_TEST_LICENSE_ONPREM_ENT }}
+          REPO: mattermost
+          BRANCH: "tc-test-cypress"
+          BUILD_ID: "${{ github.run_id }}_${{ github.run_attempt }}-tc-cypress"
+          CI_BASE_URL: "tc-cypress-0"
+        run: |
+          npm ci
+          node run_test_cycle.js
+      - name: ci/stop-server
+        if: always()
+        working-directory: e2e-tests/testcontainers
+        run: node dist/cli.js stop || true
+      - name: ci/upload-results
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        if: always()
+        with:
+          name: cypress-tc-results
+          path: |
+            e2e-tests/cypress/logs/
+            e2e-tests/cypress/results/
+          retention-days: 5
+
+  # ════════════════════════════════════════════════════════════════════════════
+  # PLAYWRIGHT
+  # ════════════════════════════════════════════════════════════════════════════
+  playwright:
+    if: inputs.run_playwright
+    runs-on: ubuntu-24.04
+    timeout-minutes: 60
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - name: ci/checkout-repo
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          ref: ${{ env.COMMIT_SHA }}
+          fetch-depth: 0
+      - name: ci/setup-node
+        uses: actions/setup-node@395ad3262231945c25e8478fd5baf05154b1d79f # v6.1.0
+        with:
+          node-version-file: ".nvmrc"
+          cache: npm
+          cache-dependency-path: "e2e-tests/playwright/package-lock.json"
+      - name: ci/get-webapp-node-modules
+        working-directory: webapp
+        run: make node_modules
+      - name: ci/setup-testcontainers
+        working-directory: e2e-tests/testcontainers
+        run: npm ci --ignore-scripts --omit=dev
+      - name: ci/playwright-install
+        working-directory: e2e-tests/playwright
+        run: npm ci
+      - name: ci/run-playwright-tests
+        working-directory: e2e-tests/playwright
+        env:
+          PW_TC: "true"
+          TC_SERVER_IMAGE: ${{ env.SERVER_IMAGE }}
+          MM_LICENSE: ${{ secrets.MM_E2E_TEST_LICENSE_ONPREM_ENT }}
+          MM_ENV: ${{ inputs.mm_env }}
+        run: |
+          export TC_DEPENDENCIES=$(echo "${{ inputs.enabled_docker_services }}" | tr ' ' ',')
+          npm run test:ci -- ${{ inputs.playwright_test_filter }}
+      - name: ci/upload-results
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        if: always()
+        with:
+          name: playwright-tc-results
+          path: |
+            e2e-tests/playwright/logs/
+            e2e-tests/playwright/results/
+          retention-days: 5
+
+  # ════════════════════════════════════════════════════════════════════════════
+  # SUMMARY
+  # ════════════════════════════════════════════════════════════════════════════
+  summary:
+    if: always()
+    runs-on: ubuntu-24.04
+    needs:
+      - cypress
+      - playwright
+    steps:
+      - name: ci/write-summary
+        env:
+          CYPRESS_RESULT: ${{ needs.cypress.result }}
+          PLAYWRIGHT_RESULT: ${{ needs.playwright.result }}
+        run: |
+          {
+            echo "## E2E Testcontainers Results"
+            echo ""
+            echo "| Runner | Status |"
+            echo "|--------|--------|"
+            if [ "${{ inputs.run_cypress }}" = "true" ]; then
+              if [ "$CYPRESS_RESULT" = "success" ]; then
+                echo "| Cypress | :white_check_mark: Passed |"
+              elif [ "$CYPRESS_RESULT" = "skipped" ]; then
+                echo "| Cypress | :fast_forward: Skipped |"
+              else
+                echo "| Cypress | :x: $CYPRESS_RESULT |"
+              fi
+            fi
+            if [ "${{ inputs.run_playwright }}" = "true" ]; then
+              if [ "$PLAYWRIGHT_RESULT" = "success" ]; then
+                echo "| Playwright | :white_check_mark: Passed |"
+              elif [ "$PLAYWRIGHT_RESULT" = "skipped" ]; then
+                echo "| Playwright | :fast_forward: Skipped |"
+              else
+                echo "| Playwright | :x: $PLAYWRIGHT_RESULT |"
+              fi
+            fi
+            echo ""
+            echo "**Server image:** \`${{ env.SERVER_IMAGE }}\`"
+            echo "**Services:** \`${{ inputs.enabled_docker_services }}\`"
+            echo "**Commit:** \`${{ env.COMMIT_SHA }}\`"
+          } >> $GITHUB_STEP_SUMMARY
