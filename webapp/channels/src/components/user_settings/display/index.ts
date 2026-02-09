@@ -91,6 +91,8 @@ export function makeMapStateToProps() {
             renderEmoticonsAsEmoji: get(state, Preferences.CATEGORY_DISPLAY_SETTINGS, Preferences.RENDER_EMOTICONS_AS_EMOJI, Preferences.RENDER_EMOTICONS_AS_EMOJI_DEFAULT, userPreference),
             guildedChatLayout: get(state, Preferences.CATEGORY_DISPLAY_SETTINGS, Preferences.GUILDED_CHAT_LAYOUT, Preferences.GUILDED_CHAT_LAYOUT_DEFAULT, userPreference),
             guildedChatLayoutFeatureEnabled: config.FeatureFlagGuildedChatLayout === 'true',
+            smoothScrolling: get(state, Preferences.CATEGORY_DISPLAY_SETTINGS, Preferences.SMOOTH_SCROLLING, Preferences.SMOOTH_SCROLLING_DEFAULT, userPreference),
+            smoothScrollingFeatureEnabled: config.FeatureFlagSmoothScrolling === 'true',
             emojiPickerEnabled,
             lastActiveDisplay,
             lastActiveTimeEnabled,

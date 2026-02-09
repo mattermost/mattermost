@@ -96,6 +96,8 @@ export const Preferences = {
     COLLAPSE_DISPLAY_DEFAULT: 'false',
     GUILDED_CHAT_LAYOUT: 'guilded_chat_layout',
     GUILDED_CHAT_LAYOUT_DEFAULT: 'true',
+    SMOOTH_SCROLLING: 'smooth_scrolling',
+    SMOOTH_SCROLLING_DEFAULT: 'true',
     AVAILABILITY_STATUS_ON_POSTS: 'availability_status_on_posts',
     AVAILABILITY_STATUS_ON_POSTS_DEFAULT: 'true',
     USE_MILITARY_TIME: 'use_military_time',

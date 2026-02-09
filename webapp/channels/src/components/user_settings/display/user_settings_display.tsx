@@ -81,6 +81,7 @@ function getDisplayStateFromProps(props: Props) {
         oneClickReactionsOnPosts: props.oneClickReactionsOnPosts,
         clickToReply: props.clickToReply,
         guildedChatLayout: props.guildedChatLayout,
+        smoothScrolling: props.smoothScrolling,
     };
 }
 
@@ -162,6 +163,8 @@ type Props = OwnProps & {
     renderEmoticonsAsEmoji: string;
     guildedChatLayout: string;
     guildedChatLayoutFeatureEnabled: boolean;
+    smoothScrolling: string;
+    smoothScrollingFeatureEnabled: boolean;
     discordRepliesEnabled: boolean;
     settingsResorted: boolean;
     overriddenPreferenceKeys: Set<string>;
@@ -190,6 +193,7 @@ type State = {
     oneClickReactionsOnPosts: string;
     clickToReply: string;
     guildedChatLayout: string;
+    smoothScrolling: string;
     handleSubmit?: () => void;
     serverError?: string;
 }
@@ -356,6 +360,12 @@ export default class UserSettingsDisplay extends React.PureComponent<Props, Stat
             name: Preferences.GUILDED_CHAT_LAYOUT,
             value: this.state.guildedChatLayout,
         };
+        const smoothScrollingPreference = {
+            user_id: userId,
+            category: Preferences.CATEGORY_DISPLAY_SETTINGS,
+            name: Preferences.SMOOTH_SCROLLING,
+            value: this.state.smoothScrolling,
+        };
 
         this.setState({isSaving: true});
 
@@ -373,6 +383,7 @@ export default class UserSettingsDisplay extends React.PureComponent<Props, Stat
             oneClickReactionsOnPostsPreference,
             colorizeUsernamesPreference,
             guildedChatLayoutPreference,
+            smoothScrollingPreference,
         ];
 
         await this.props.actions.savePreferences(userId, preferences);
@@ -426,6 +437,10 @@ export default class UserSettingsDisplay extends React.PureComponent<Props, Stat
 
     handleGuildedChatLayoutRadio = (guildedChatLayout: string) => {
         this.setState({guildedChatLayout});
+    };
+
+    handleSmoothScrollingRadio = (smoothScrolling: string) => {
+        this.setState({smoothScrolling});
     };
 
     handleOnChange(e: React.ChangeEvent, display: {[key: string]: any}) {
@@ -1180,6 +1195,43 @@ export default class UserSettingsDisplay extends React.PureComponent<Props, Stat
             });
         }
 
+        let smoothScrollingSection = null;
+        if (this.props.smoothScrollingFeatureEnabled) {
+            smoothScrollingSection = this.createSection({
+                section: 'smoothScrolling',
+                display: 'smoothScrolling',
+                value: this.state.smoothScrolling,
+                defaultDisplay: Preferences.SMOOTH_SCROLLING_DEFAULT,
+                title: defineMessage({
+                    id: 'user.settings.display.smoothScrollingTitle',
+                    defaultMessage: 'Smooth Scrolling',
+                }),
+                firstOption: {
+                    value: 'true',
+                    radionButtonText: {
+                        label: defineMessage({
+                            id: 'user.settings.sidebar.on',
+                            defaultMessage: 'On',
+                        }),
+                    },
+                },
+                secondOption: {
+                    value: 'false',
+                    radionButtonText: {
+                        label: defineMessage({
+                            id: 'user.settings.sidebar.off',
+                            defaultMessage: 'Off',
+                        }),
+                    },
+                },
+                description: defineMessage({
+                    id: 'user.settings.display.smoothScrollingDescription',
+                    defaultMessage: 'Use browser-native scroll anchoring for smoother scrolling. Prevents messages from jumping when images load, reactions are added, or content changes height.',
+                }),
+                preferenceName: Preferences.SMOOTH_SCROLLING,
+            });
+        }
+
         const channelDisplayModeSection = this.createSection({
             section: Preferences.CHANNEL_DISPLAY_MODE,
             display: 'channelDisplayMode',
@@ -1398,6 +1450,7 @@ export default class UserSettingsDisplay extends React.PureComponent<Props, Stat
                         {linkPreviewSection}
                         {collapseSection}
                         {oneClickReactionsOnPostsSection}
+                        {smoothScrollingSection}
                         {renderEmoticonsAsEmojiSection}
                     </>
                 );
@@ -1445,6 +1498,7 @@ export default class UserSettingsDisplay extends React.PureComponent<Props, Stat
                             {linkPreviewSection}
                             {collapseSection}
                             {oneClickReactionsOnPostsSection}
+                            {smoothScrollingSection}
                             {renderEmoticonsAsEmojiSection}
 
                             {/* Channel Section */}
@@ -1478,6 +1532,7 @@ export default class UserSettingsDisplay extends React.PureComponent<Props, Stat
                         {clickToReply}
                         {channelDisplayModeSection}
                         {oneClickReactionsOnPostsSection}
+                        {smoothScrollingSection}
                         {renderEmoticonsAsEmojiSection}
                         {languagesSection}
                     </>
