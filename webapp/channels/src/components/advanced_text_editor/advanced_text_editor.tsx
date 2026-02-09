@@ -688,13 +688,16 @@ const AdvancedTextEditor = ({
 
     const ariaLabel = loginSuccessfulLabel ? `${loginSuccessfulLabel} ${ariaLabelMessageInput}` : ariaLabelMessageInput;
 
-    const additionalControls = useMemo(() => [
+    const permanentControls = useMemo(() => [
         !isInEditMode && priorityEncryptionControl,
+    ].filter(Boolean), [priorityEncryptionControl, isInEditMode]);
+
+    const additionalControls = useMemo(() => [
         !isInEditMode && priorityAdditionalControl,
         aiRewriteEnabled && aiRewriteAdditionalControl,
         !isInEditMode && burnOnReadAdditionalControl,
         ...(pluginItems || []),
-    ].filter(Boolean), [pluginItems, priorityEncryptionControl, priorityAdditionalControl, aiRewriteAdditionalControl, isInEditMode, aiRewriteEnabled, burnOnReadAdditionalControl]);
+    ].filter(Boolean), [pluginItems, priorityAdditionalControl, aiRewriteAdditionalControl, isInEditMode, aiRewriteEnabled, burnOnReadAdditionalControl]);
 
     const formattingBar = (
         <AutoHeightSwitcher
@@ -705,6 +708,7 @@ const AdvancedTextEditor = ({
                     getCurrentMessage={getCurrentValue}
                     getCurrentSelection={getCurrentSelection}
                     disableControls={showPreview}
+                    permanentControls={permanentControls}
                     additionalControls={additionalControls}
                     location={location}
                 />

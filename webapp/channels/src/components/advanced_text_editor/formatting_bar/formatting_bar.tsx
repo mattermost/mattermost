@@ -130,6 +130,12 @@ interface FormattingBarProps {
      * e.g: message priority picker
      */
     additionalControls?: React.ReactNodeArray;
+
+    /**
+     * controls that always show inline regardless of bar width,
+     * e.g: encryption toggle
+     */
+    permanentControls?: React.ReactNodeArray;
 }
 
 const DEFAULT_MIN_MODE_X_COORD = 55;
@@ -142,6 +148,7 @@ const FormattingBar = (props: FormattingBarProps): JSX.Element => {
         disableControls,
         location,
         additionalControls,
+        permanentControls,
     } = props;
     const [showHiddenControls, setShowHiddenControls] = useState(false);
     const formattingBarRef = useRef<HTMLDivElement>(null);
@@ -172,6 +179,7 @@ const FormattingBar = (props: FormattingBarProps): JSX.Element => {
     }, [wideMode, update, showHiddenControls]);
 
     const hasAdditionalControls = Array.isArray(additionalControls) && additionalControls.length > 0;
+    const hasPermanentControls = Array.isArray(permanentControls) && permanentControls.length > 0;
     const showAdditionalControlsInline = wideMode === 'wide' && hasAdditionalControls;
     const hasHiddenControls = wideMode !== 'wide';
 
@@ -237,7 +245,8 @@ const FormattingBar = (props: FormattingBarProps): JSX.Element => {
                 );
             })}
 
-            {showAdditionalControlsInline && <Separator/>}
+            {(hasPermanentControls || showAdditionalControlsInline) && <Separator/>}
+            {hasPermanentControls && permanentControls}
             {showAdditionalControlsInline && additionalControls}
 
             {hasHiddenControls && (
