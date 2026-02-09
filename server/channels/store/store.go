@@ -1199,7 +1199,7 @@ type ReadReceiptStore interface {
 type TemporaryPostStore interface {
 	InvalidateTemporaryPost(id string)
 	Save(rctx request.CTX, post *model.TemporaryPost) (*model.TemporaryPost, error)
-	Get(rctx request.CTX, id string) (*model.TemporaryPost, error)
+	Get(rctx request.CTX, id string, allowFromCache bool) (*model.TemporaryPost, error)
 	Delete(rctx request.CTX, id string) error
 	GetExpiredPosts(rctx request.CTX) ([]string, error)
 }

@@ -11376,10 +11376,10 @@ func (s *TimerLayerTemporaryPostStore) Delete(rctx request.CTX, id string) error
 	return err
 }
 
-func (s *TimerLayerTemporaryPostStore) Get(rctx request.CTX, id string) (*model.TemporaryPost, error) {
+func (s *TimerLayerTemporaryPostStore) Get(rctx request.CTX, id string, allowFromCache bool) (*model.TemporaryPost, error) {
 	start := time.Now()
 
-	result, err := s.TemporaryPostStore.Get(rctx, id)
+	result, err := s.TemporaryPostStore.Get(rctx, id, allowFromCache)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
 	if s.Root.Metrics != nil {
