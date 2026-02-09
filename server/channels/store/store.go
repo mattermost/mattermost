@@ -898,7 +898,7 @@ type GroupStore interface {
 	CreateWithUserIds(group *model.GroupWithUserIds) (*model.Group, error)
 	Get(groupID string) (*model.Group, error)
 	GetByName(name string, opts model.GroupSearchOpts) (*model.Group, error)
-	GetByNames(names []string, viewRestrictions *model.ViewUsersRestrictions) ([]*model.Group, error)
+	GetByNames(names []string, opts model.GroupSearchOpts) ([]*model.Group, error)
 	GetByIDs(groupIDs []string) ([]*model.Group, error)
 	GetByRemoteID(remoteID string, groupSource model.GroupSource) (*model.Group, error)
 	GetAllBySource(groupSource model.GroupSource) ([]*model.Group, error)
@@ -1158,8 +1158,6 @@ type AttributesStore interface {
 }
 
 type AutoTranslationStore interface {
-	IsChannelEnabled(channelID string) (bool, error)
-	SetChannelEnabled(channelID string, enabled bool) error
 	IsUserEnabled(userID, channelID string) (bool, error)
 	GetUserLanguage(userID, channelID string) (string, error)
 	// GetActiveDestinationLanguages returns distinct locales of users who have auto-translation enabled.
@@ -1201,7 +1199,7 @@ type ReadReceiptStore interface {
 type TemporaryPostStore interface {
 	InvalidateTemporaryPost(id string)
 	Save(rctx request.CTX, post *model.TemporaryPost) (*model.TemporaryPost, error)
-	Get(rctx request.CTX, id string) (*model.TemporaryPost, error)
+	Get(rctx request.CTX, id string, allowFromCache bool) (*model.TemporaryPost, error)
 	Delete(rctx request.CTX, id string) error
 	GetExpiredPosts(rctx request.CTX) ([]string, error)
 }

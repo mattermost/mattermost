@@ -45,7 +45,7 @@ func (mpe *mmPreviewExtractor) Match(filename string) bool {
 	return mmpreviewSupportedExtensions[extension]
 }
 
-func (mpe *mmPreviewExtractor) Extract(filename string, file io.ReadSeeker) (string, error) {
+func (mpe *mmPreviewExtractor) Extract(filename string, file io.ReadSeeker, maxFileSize int64) (string, error) {
 	b, w, err := createMultipartFormData("file", filename, file)
 	if err != nil {
 		return "", errors.Wrap(err, "Unable to generate file preview using mmpreview.")
@@ -70,7 +70,7 @@ func (mpe *mmPreviewExtractor) Extract(filename string, file io.ReadSeeker) (str
 	if err != nil {
 		return "", errors.Wrap(err, "unable to read the response from mmpreview")
 	}
-	return mpe.pdfExtractor.Extract(filename, bytes.NewReader(data))
+	return mpe.pdfExtractor.Extract(filename, bytes.NewReader(data), maxFileSize)
 }
 
 func createMultipartFormData(fieldName, fileName string, fileData io.ReadSeeker) (bytes.Buffer, *multipart.Writer, error) {

@@ -3463,7 +3463,8 @@ func (a *App) updateTemporaryPostIfAllRead(rctx request.CTX, post *model.Post, r
 	}
 
 	// All recipients have read - update temporary post expiration to match receipt
-	tmpPost, err := a.Srv().Store().TemporaryPost().Get(rctx, post.Id)
+	// Bypass cache to ensure we get fresh data from DB
+	tmpPost, err := a.Srv().Store().TemporaryPost().Get(rctx, post.Id, false)
 	if err != nil {
 		return model.NewAppError("RevealPost", "app.post.get_post.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
@@ -3593,7 +3594,7 @@ func (a *App) enrichPostWithExpirationMetadata(post *model.Post, expireAt int64)
 }
 
 func (a *App) getBurnOnReadPost(rctx request.CTX, post *model.Post) (*model.Post, *model.AppError) {
-	tmpPost, err := a.Srv().Store().TemporaryPost().Get(rctx, post.Id)
+	tmpPost, err := a.Srv().Store().TemporaryPost().Get(rctx, post.Id, true)
 	if err != nil {
 		return nil, model.NewAppError("getBurnOnReadPost", "app.post.get_post.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
