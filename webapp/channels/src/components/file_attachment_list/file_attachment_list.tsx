@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {useMemo} from 'react';
+import React, {useCallback, useMemo} from 'react';
 import {useSelector} from 'react-redux';
 
 import type {FileInfo} from '@mattermost/types/files';
@@ -13,6 +13,7 @@ import FilePreviewModal from 'components/file_preview_modal';
 import MultiImageView from 'components/multi_image_view';
 import SingleImageView from 'components/single_image_view';
 import VideoPlayer from 'components/video_player';
+import {useEncryptedFile} from 'components/file_attachment/use_encrypted_file';
 
 import {FileTypes, ModalIdentifiers} from 'utils/constants';
 import {isEncryptedFile} from 'utils/encryption/file';
@@ -26,36 +27,151 @@ import type {OwnProps, PropsFromRedux} from './index';
 type Props = OwnProps & PropsFromRedux;
 
 /**
- * Resolves the actual file type, taking encryption into account.
- * For encrypted files with decrypted originalInfo, uses the real MIME type.
- * For encrypted files not yet decrypted, returns null.
- * For normal files, uses extension-based detection.
+ * Wrapper for single encrypted files. Decrypts first to determine the actual
+ * file type, then renders the appropriate view component (SingleImageView,
+ * VideoPlayer, or FileAttachment).
  */
-function resolveFileType(
-    fileInfo: FileInfo,
-    encryptedOriginalInfo: Record<string, {name: string; type: string; size: number}>,
-    enableSVGs: boolean,
-): string | null {
-    if (isEncryptedFile(fileInfo)) {
-        const origInfo = encryptedOriginalInfo[fileInfo.id];
-        if (origInfo) {
-            const mimeType = getFileTypeFromMime(origInfo.type);
-            // Map getFileTypeFromMime results to FileTypes constants
-            if (mimeType === 'video') {
-                return FileTypes.VIDEO;
-            }
-            if (mimeType === 'audio') {
-                return FileTypes.AUDIO;
-            }
-            if (mimeType === 'image') {
-                return FileTypes.IMAGE;
-            }
-            return FileTypes.OTHER;
-        }
-        // Not yet decrypted - return null to indicate unknown
-        return null;
+function EncryptedSingleFileView({
+    fileInfo,
+    postId,
+    compactDisplay,
+    isEmbedVisible,
+    isInPermalink,
+    disableActions,
+    disableDownload,
+    handleFileDropdownOpened,
+    overrideGenerateFileDownloadUrl,
+    openModal,
+    enableSVGs,
+    videoEmbedEnabled,
+    maxVideoHeight,
+}: {
+    fileInfo: FileInfo;
+    postId: string;
+    compactDisplay?: boolean;
+    isEmbedVisible?: boolean;
+    isInPermalink?: boolean;
+    disableActions?: boolean;
+    disableDownload?: boolean;
+    handleFileDropdownOpened?: (open: boolean) => void;
+    overrideGenerateFileDownloadUrl?: (fileId: string) => string;
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    openModal: (modalData: any) => void;
+    enableSVGs: boolean;
+    videoEmbedEnabled: boolean;
+    maxVideoHeight?: number;
+}) {
+    const {
+        originalFileInfo,
+        status: decryptionStatus,
+    } = useEncryptedFile(fileInfo, postId, true);
+
+    const handleImageClick = useCallback((indexClicked: number) => {
+        openModal({
+            modalId: ModalIdentifiers.FILE_PREVIEW_MODAL,
+            dialogType: FilePreviewModal,
+            dialogProps: {
+                postId,
+                fileInfos: [fileInfo],
+                startIndex: indexClicked,
+            },
+        });
+    }, [fileInfo, postId, openModal]);
+
+    // Decryption failed - show as encrypted file attachment
+    if (decryptionStatus === 'failed') {
+        return (
+            <div
+                data-testid='fileAttachmentList'
+                className='post-image__columns clearfix'
+            >
+                <FileAttachment
+                    fileInfo={fileInfo}
+                    index={0}
+                    handleImageClick={handleImageClick}
+                    compactDisplay={compactDisplay}
+                    handleFileDropdownOpened={handleFileDropdownOpened}
+                    preventDownload={disableDownload}
+                    disableActions={disableActions}
+                    overrideGenerateFileDownloadUrl={overrideGenerateFileDownloadUrl}
+                    postId={postId}
+                />
+            </div>
+        );
     }
-    return getFileType(fileInfo.extension);
+
+    // Still decrypting - show loading placeholder
+    if (!originalFileInfo) {
+        return (
+            <div
+                data-testid='fileAttachmentList'
+                className='post-image__columns clearfix'
+            >
+                <div
+                    className='post-image__column'
+                    style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        minHeight: '100px',
+                    }}
+                >
+                    <span style={{color: 'rgba(var(--center-channel-color-rgb), 0.56)', fontSize: '14px'}}>
+                        {'Loading...'}
+                    </span>
+                </div>
+            </div>
+        );
+    }
+
+    // Decrypted - render based on actual file type
+    const mimeType = getFileTypeFromMime(originalFileInfo.type);
+
+    if (videoEmbedEnabled && mimeType === 'video') {
+        return (
+            <VideoPlayer
+                fileInfo={fileInfo}
+                postId={postId}
+                index={0}
+                maxHeight={maxVideoHeight}
+                compactDisplay={compactDisplay}
+            />
+        );
+    }
+
+    if (mimeType === 'image') {
+        return (
+            <SingleImageView
+                fileInfo={fileInfo}
+                isEmbedVisible={isEmbedVisible}
+                postId={postId}
+                compactDisplay={compactDisplay}
+                isInPermalink={isInPermalink}
+                disableActions={disableActions}
+            />
+        );
+    }
+
+    // Other file types (audio, documents, etc.)
+    return (
+        <div
+            data-testid='fileAttachmentList'
+            className='post-image__columns clearfix'
+        >
+            <FileAttachment
+                fileInfo={fileInfo}
+                index={0}
+                handleImageClick={handleImageClick}
+                compactDisplay={compactDisplay}
+                handleFileDropdownOpened={handleFileDropdownOpened}
+                preventDownload={disableDownload}
+                disableActions={disableActions}
+                overrideGenerateFileDownloadUrl={overrideGenerateFileDownloadUrl}
+                postId={postId}
+            />
+        </div>
+    );
 }
 
 export default function FileAttachmentList(props: Props) {
@@ -94,8 +210,61 @@ export default function FileAttachmentList(props: Props) {
         return null;
     }
 
+    // Comprehensive encrypted file check using all available indicators:
+    // 1. MIME type (application/x-penc) - for files with correct server MIME
+    // 2. Filename pattern (encrypted_*.penc) - for files with correct naming
+    // 3. Post props metadata (post.props.encrypted_files) - definitive source
+    const encryptedFilesProps = props.post?.props?.encrypted_files;
+    const isFileEncrypted = (fi: FileInfo): boolean => {
+        return isEncryptedFile(fi) ||
+            Boolean(fi.name?.startsWith('encrypted_') && fi.name?.endsWith('.penc')) ||
+            Boolean(encryptedFilesProps?.[fi.id]);
+    };
+
     // Helper to get resolved file type for a file
-    const getResolvedType = (fi: FileInfo) => resolveFileType(fi, encryptedOriginalInfo, enableSVGs);
+    const getResolvedType = (fi: FileInfo): string | null => {
+        if (isFileEncrypted(fi)) {
+            const origInfo = encryptedOriginalInfo[fi.id];
+            if (origInfo) {
+                const mimeType = getFileTypeFromMime(origInfo.type);
+                if (mimeType === 'video') {
+                    return FileTypes.VIDEO;
+                }
+                if (mimeType === 'audio') {
+                    return FileTypes.AUDIO;
+                }
+                if (mimeType === 'image') {
+                    return FileTypes.IMAGE;
+                }
+                return FileTypes.OTHER;
+            }
+            // Not yet decrypted - type unknown
+            return null;
+        }
+        return getFileType(fi.extension);
+    };
+
+    // Handle single encrypted file - type unknown until decrypted
+    // Uses wrapper that decrypts first, then renders the correct view
+    if (fileInfos && fileInfos.length === 1 && !fileInfos[0].archived && isFileEncrypted(fileInfos[0])) {
+        return (
+            <EncryptedSingleFileView
+                fileInfo={fileInfos[0]}
+                postId={props.post.id}
+                compactDisplay={compactDisplay}
+                isEmbedVisible={props.isEmbedVisible}
+                isInPermalink={isInPermalink}
+                disableActions={props.disableActions}
+                disableDownload={props.disableDownload}
+                handleFileDropdownOpened={props.handleFileDropdownOpened}
+                overrideGenerateFileDownloadUrl={props.overrideGenerateFileDownloadUrl}
+                openModal={props.actions.openModal}
+                enableSVGs={enableSVGs}
+                videoEmbedEnabled={videoEmbedEnabled}
+                maxVideoHeight={maxVideoHeight}
+            />
+        );
+    }
 
     // Handle single video file with VideoEmbed feature flag
     if (fileInfos && fileInfos.length === 1 && !fileInfos[0].archived && videoEmbedEnabled) {

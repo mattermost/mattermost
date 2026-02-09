@@ -10,8 +10,10 @@ import {getFilePreviewUrl, getFileUrl} from 'mattermost-redux/utils/file_utils';
 
 import FilePreviewModal from 'components/file_preview_modal';
 import SizeAwareImage from 'components/size_aware_image';
+import {useEncryptedFile} from 'components/file_attachment/use_encrypted_file';
 
 import {ModalIdentifiers} from 'utils/constants';
+import {isEncryptedFile} from 'utils/encryption/file';
 
 import type {PropsFromRedux} from './index';
 
@@ -22,6 +24,110 @@ export interface Props extends PropsFromRedux {
     postId: string;
     compactDisplay?: boolean;
     isInPermalink?: boolean;
+}
+
+/**
+ * Wrapper for a single image item that may be encrypted.
+ * Hooks can't be called in loops, so each image needs its own component.
+ */
+function MultiImageItem({
+    fileInfo,
+    postId,
+    index,
+    compactDisplay,
+    isInPermalink,
+    isLoaded,
+    onImageClick,
+    onImageLoaded,
+    maxImageHeight,
+    maxImageWidth,
+}: {
+    fileInfo: FileInfo;
+    postId: string;
+    index: number;
+    compactDisplay?: boolean;
+    isInPermalink?: boolean;
+    isLoaded: boolean;
+    onImageClick: (index: number) => void;
+    onImageLoaded: (fileId: string) => void;
+    maxImageHeight?: number;
+    maxImageWidth?: number;
+}) {
+    const isEncrypted = isEncryptedFile(fileInfo) ||
+        Boolean(fileInfo.name?.startsWith('encrypted_') && fileInfo.name?.endsWith('.penc'));
+
+    const {
+        fileUrl: decryptedFileUrl,
+        status: decryptionStatus,
+    } = useEncryptedFile(fileInfo, postId, isEncrypted);
+
+    const {has_preview_image: hasPreviewImage, id} = fileInfo;
+
+    let fileUrl: string;
+    let previewUrl: string;
+
+    if (isEncrypted) {
+        // Use the full decrypted blob URL for both display and download
+        const url = decryptedFileUrl || '';
+        fileUrl = url;
+        previewUrl = url;
+    } else {
+        fileUrl = getFileUrl(id);
+        previewUrl = hasPreviewImage ? getFilePreviewUrl(id) : fileUrl;
+    }
+
+    const dimensions = {
+        width: fileInfo.width || 0,
+        height: fileInfo.height || 0,
+    };
+
+    // Show placeholder while encrypted file is decrypting
+    if (isEncrypted && !decryptedFileUrl) {
+        const isDecrypting = decryptionStatus !== 'failed';
+        return (
+            <div
+                className={classNames('multi-image-view__item')}
+                style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    minHeight: '100px',
+                    minWidth: '100px',
+                    background: 'rgba(var(--center-channel-color-rgb), 0.04)',
+                    borderRadius: '4px',
+                }}
+            >
+                <span style={{color: 'rgba(var(--center-channel-color-rgb), 0.56)', fontSize: '13px'}}>
+                    {isDecrypting ? 'Loading...' : 'Encrypted file'}
+                </span>
+            </div>
+        );
+    }
+
+    return (
+        <div
+            className={classNames('multi-image-view__item', {
+                'multi-image-view__item--loaded': isLoaded,
+            })}
+        >
+            <SizeAwareImage
+                onClick={() => onImageClick(index)}
+                className={classNames('multi-image-view__image', {
+                    'compact-display': compactDisplay,
+                    'is-permalink': isInPermalink,
+                })}
+                src={previewUrl}
+                dimensions={dimensions}
+                fileInfo={fileInfo}
+                fileURL={fileUrl}
+                onImageLoaded={() => onImageLoaded(id)}
+                showLoader={true}
+                handleSmallImageContainer={true}
+                maxHeight={maxImageHeight}
+                maxWidth={maxImageWidth}
+            />
+        </div>
+    );
 }
 
 export default function MultiImageView(props: Props) {
@@ -64,41 +170,20 @@ export default function MultiImageView(props: Props) {
                     return null;
                 }
 
-                const {has_preview_image: hasPreviewImage, id} = fileInfo;
-                const fileUrl = getFileUrl(id);
-                const previewUrl = hasPreviewImage ? getFilePreviewUrl(id) : fileUrl;
-
-                const dimensions = {
-                    width: fileInfo.width || 0,
-                    height: fileInfo.height || 0,
-                };
-
-                const isLoaded = loadedImages[id];
-
                 return (
-                    <div
-                        key={id}
-                        className={classNames('multi-image-view__item', {
-                            'multi-image-view__item--loaded': isLoaded,
-                        })}
-                    >
-                        <SizeAwareImage
-                            onClick={() => handleImageClick(index)}
-                            className={classNames('multi-image-view__image', {
-                                'compact-display': compactDisplay,
-                                'is-permalink': isInPermalink,
-                            })}
-                            src={previewUrl}
-                            dimensions={dimensions}
-                            fileInfo={fileInfo}
-                            fileURL={fileUrl}
-                            onImageLoaded={() => handleImageLoaded(id)}
-                            showLoader={true}
-                            handleSmallImageContainer={true}
-                            maxHeight={props.maxImageHeight || undefined}
-                            maxWidth={props.maxImageWidth || undefined}
-                        />
-                    </div>
+                    <MultiImageItem
+                        key={fileInfo.id}
+                        fileInfo={fileInfo}
+                        postId={postId}
+                        index={index}
+                        compactDisplay={compactDisplay}
+                        isInPermalink={isInPermalink}
+                        isLoaded={loadedImages[fileInfo.id]}
+                        onImageClick={handleImageClick}
+                        onImageLoaded={handleImageLoaded}
+                        maxImageHeight={props.maxImageHeight || undefined}
+                        maxImageWidth={props.maxImageWidth || undefined}
+                    />
                 );
             })}
         </div>

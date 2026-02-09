@@ -47,7 +47,6 @@ export default function SingleImageView(props: Props) {
     const {
         isEncrypted,
         fileUrl: decryptedFileUrl,
-        thumbnailUrl: decryptedThumbnailUrl,
         status: decryptionStatus,
         originalFileInfo,
     } = useEncryptedFile(fileInfo, postId, true); // autoDecrypt=true for images
@@ -119,12 +118,13 @@ export default function SingleImageView(props: Props) {
     // Determine URLs to use
     const {fileURL, previewURL} = useMemo(() => {
         if (isEncrypted) {
-            // For encrypted files, use decrypted blob URLs
+            // For encrypted files, use the full decrypted blob URL for display.
+            // The thumbnail is only 120x120 and should NOT be used as the preview
+            // for SingleImageView which needs the full-resolution image.
             const decryptedUrl = decryptedFileUrl || '';
-            const decryptedPreview = decryptedThumbnailUrl || decryptedUrl;
             return {
                 fileURL: decryptedUrl,
-                previewURL: decryptedPreview,
+                previewURL: decryptedUrl,
             };
         }
         // Normal files use server URLs
@@ -135,7 +135,7 @@ export default function SingleImageView(props: Props) {
             fileURL: normalFileUrl,
             previewURL: normalPreviewUrl,
         };
-    }, [fileInfo, isEncrypted, decryptedFileUrl, decryptedThumbnailUrl]);
+    }, [fileInfo, isEncrypted, decryptedFileUrl]);
 
     if (fileInfo === undefined) {
         return <></>;
