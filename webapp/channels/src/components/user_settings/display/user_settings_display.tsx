@@ -1450,7 +1450,6 @@ export default class UserSettingsDisplay extends React.PureComponent<Props, Stat
                         {linkPreviewSection}
                         {collapseSection}
                         {oneClickReactionsOnPostsSection}
-                        {smoothScrollingSection}
                         {renderEmoticonsAsEmojiSection}
                     </>
                 );
@@ -1460,6 +1459,7 @@ export default class UserSettingsDisplay extends React.PureComponent<Props, Stat
                         {guildedChatLayoutSection}
                         {channelDisplayModeSection}
                         {collapsedReplyThreads}
+                        {smoothScrollingSection}
                     </>
                 );
             case 'language':
@@ -1498,7 +1498,6 @@ export default class UserSettingsDisplay extends React.PureComponent<Props, Stat
                             {linkPreviewSection}
                             {collapseSection}
                             {oneClickReactionsOnPostsSection}
-                            {smoothScrollingSection}
                             {renderEmoticonsAsEmojiSection}
 
                             {/* Channel Section */}
@@ -1509,6 +1508,7 @@ export default class UserSettingsDisplay extends React.PureComponent<Props, Stat
                             {guildedChatLayoutSection}
                             {channelDisplayModeSection}
                             {collapsedReplyThreads}
+                            {smoothScrollingSection}
 
                             {/* Language */}
                             {languagesSection}
