@@ -137,7 +137,7 @@ jobs:
               SERVER_IMAGE_TAG="${COMMIT_SHA::7}"
               SERVER_IMAGE_ORG=mattermostdevelopment
               BUILD_ID_SUFFIX="${REPORT_TYPE@L}-${SERVER}-ent"
-              WORKERS_NUMBER=20
+              WORKERS_NUMBER=40  # POC: Testing with more parallelization to reduce total runtime
               TEST_FILTER_CYPRESS="$TEST_FILTER_CYPRESS_PR"
               COMPUTED_REPORT_TYPE="${REPORT_TYPE}"
               ### Run sanity assertions after variable generations
