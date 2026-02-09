@@ -106,6 +106,25 @@ export function submitPost(
             post = attachFileEncryptionMetadata(post, draft.fileInfos);
         }
 
+        // Attach spoiler file IDs to post props (mattermost-extended)
+        if (draft.spoilerFileIds && draft.spoilerFileIds.length > 0) {
+            const spoilerFilesMap: Record<string, boolean> = {};
+            for (const fileId of draft.spoilerFileIds) {
+                if (draft.fileInfos.some((fi) => fi.id === fileId)) {
+                    spoilerFilesMap[fileId] = true;
+                }
+            }
+            if (Object.keys(spoilerFilesMap).length > 0) {
+                post = {
+                    ...post,
+                    props: {
+                        ...post.props,
+                        spoiler_files: spoilerFilesMap,
+                    },
+                };
+            }
+        }
+
         if (schedulingInfo) {
             const scheduledPost = scheduledPostFromPost(post, schedulingInfo);
             scheduledPost.file_ids = draft.fileInfos.map((fileInfo) => fileInfo.id);

@@ -1,16 +1,19 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {useCallback, useRef, useState} from 'react';
+import React, {useCallback, useMemo, useRef, useState} from 'react';
 import {useSelector} from 'react-redux';
 
 import type {ServerError} from '@mattermost/types/errors';
 import type {FileInfo} from '@mattermost/types/files';
 import {PostPriority} from '@mattermost/types/posts';
 
+import {getConfig} from 'mattermost-redux/selectors/entities/general';
 import {sortFileInfos} from 'mattermost-redux/utils/file_utils';
 
 import {getCurrentLocale} from 'selectors/i18n';
+
+import type {GlobalState} from 'types/store';
 
 import FilePreview from 'components/file_preview';
 import type {FilePreviewInfo} from 'components/file_preview/file_preview';
@@ -38,6 +41,7 @@ const useUploadFiles = (
     isPostBeingEdited?: boolean,
 ): [React.ReactNode, React.ReactNode] => {
     const locale = useSelector(getCurrentLocale);
+    const spoilersEnabled = useSelector((state: GlobalState) => getConfig(state).FeatureFlagSpoilers === 'true');
 
     const [uploadsProgressPercent, setUploadsProgressPercent] = useState<{ [clientID: string]: FilePreviewInfo }>({});
 
@@ -142,12 +146,22 @@ const useUploadFiles = (
         handleFileUploadChange();
     }, [draft, fileUploadRef, handleDraftChange, handleUploadError, handleFileUploadChange]);
 
+    const handleToggleSpoiler = useCallback((fileId: string) => {
+        const currentSpoilers = draft.spoilerFileIds || [];
+        const newSpoilers = currentSpoilers.includes(fileId)
+            ? currentSpoilers.filter((id) => id !== fileId)
+            : [...currentSpoilers, fileId];
+        handleDraftChange({...draft, spoilerFileIds: newSpoilers}, {instant: true});
+    }, [draft, handleDraftChange]);
+
     let attachmentPreview = null;
     if (!isDisabled && (draft.fileInfos.length > 0 || draft.uploadsInProgress.length > 0)) {
         attachmentPreview = (
             <FilePreview
                 fileInfos={draft.fileInfos}
                 onRemove={removePreview}
+                onToggleSpoiler={spoilersEnabled ? handleToggleSpoiler : undefined}
+                spoilerFileIds={draft.spoilerFileIds}
                 uploadsInProgress={draft.uploadsInProgress}
                 uploadsProgressPercent={uploadsProgressPercent}
             />
