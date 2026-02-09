@@ -33,31 +33,28 @@ func TestCustomChannelIconSVGAttackVectors(t *testing.T) {
 		*cfg.CacheSettings.CacheType = "lru"
 	}).InitBasic(t)
 
-	t.Run("SVG with foreignObject containing script (base64)", func(t *testing.T) {
-		// foreignObject allows embedding HTML inside SVG — bypasses regex
+	t.Run("SVG with foreignObject containing script is rejected", func(t *testing.T) {
+		// foreignObject allows embedding HTML inside SVG — server should reject
 		svg := `<svg xmlns="http://www.w3.org/2000/svg"><foreignObject><body xmlns="http://www.w3.org/1999/xhtml"><script>alert('xss')</script></body></foreignObject></svg>`
 		icon := &model.CustomChannelIcon{
 			Name: "foreignobject-xss",
 			Svg:  base64.StdEncoding.EncodeToString([]byte(svg)),
 		}
 		resp, err := th.SystemAdminClient.DoAPIPostJSON(context.Background(), "/custom_channel_icons", icon)
-		// Server accepts it — sanitization is client-side only
-		checkStatusCode(t, resp, err, http.StatusCreated)
-		closeIfOpen(resp, err)
+		checkStatusCode(t, resp, err, http.StatusBadRequest)
 	})
 
-	t.Run("SVG with animate xlink:href to javascript (base64)", func(t *testing.T) {
+	t.Run("SVG with animate xlink:href to javascript is rejected", func(t *testing.T) {
 		svg := `<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"><a><circle r="400"/><animate attributeName="xlink:href" values="javascript:alert(1)"/></a></svg>`
 		icon := &model.CustomChannelIcon{
 			Name: "animate-xss",
 			Svg:  base64.StdEncoding.EncodeToString([]byte(svg)),
 		}
 		resp, err := th.SystemAdminClient.DoAPIPostJSON(context.Background(), "/custom_channel_icons", icon)
-		checkStatusCode(t, resp, err, http.StatusCreated)
-		closeIfOpen(resp, err)
+		checkStatusCode(t, resp, err, http.StatusBadRequest)
 	})
 
-	t.Run("SVG with use element and data URI (base64)", func(t *testing.T) {
+	t.Run("SVG with use element and data URI is rejected", func(t *testing.T) {
 		// <use> with data: URI can embed arbitrary SVG including scripts
 		innerSvg := `<svg id="x" xmlns="http://www.w3.org/2000/svg"><a xlink:href="javascript:alert(1)"><rect width="100" height="100"/></a></svg>`
 		dataUri := "data:image/svg+xml;base64," + base64.StdEncoding.EncodeToString([]byte(innerSvg))
@@ -67,11 +64,10 @@ func TestCustomChannelIconSVGAttackVectors(t *testing.T) {
 			Svg:  base64.StdEncoding.EncodeToString([]byte(svg)),
 		}
 		resp, err := th.SystemAdminClient.DoAPIPostJSON(context.Background(), "/custom_channel_icons", icon)
-		checkStatusCode(t, resp, err, http.StatusCreated)
-		closeIfOpen(resp, err)
+		checkStatusCode(t, resp, err, http.StatusBadRequest)
 	})
 
-	t.Run("SVG with entity-encoded javascript href (base64)", func(t *testing.T) {
+	t.Run("SVG with entity-encoded javascript href is rejected", func(t *testing.T) {
 		// HTML entity encoding bypasses naive string matching
 		svg := `<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"><a xlink:href="&#x6A;&#x61;&#x76;&#x61;&#x73;&#x63;&#x72;&#x69;&#x70;&#x74;&#x3A;alert(1)"><text y="20">Click</text></a></svg>`
 		icon := &model.CustomChannelIcon{
@@ -79,34 +75,31 @@ func TestCustomChannelIconSVGAttackVectors(t *testing.T) {
 			Svg:  base64.StdEncoding.EncodeToString([]byte(svg)),
 		}
 		resp, err := th.SystemAdminClient.DoAPIPostJSON(context.Background(), "/custom_channel_icons", icon)
-		checkStatusCode(t, resp, err, http.StatusCreated)
-		closeIfOpen(resp, err)
+		checkStatusCode(t, resp, err, http.StatusBadRequest)
 	})
 
-	t.Run("SVG with set element targeting href (base64)", func(t *testing.T) {
+	t.Run("SVG with set element targeting href is rejected", func(t *testing.T) {
 		svg := `<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"><a id="x"><text y="20">Click</text><set attributeName="xlink:href" to="javascript:alert(1)"/></a></svg>`
 		icon := &model.CustomChannelIcon{
 			Name: "set-element-xss",
 			Svg:  base64.StdEncoding.EncodeToString([]byte(svg)),
 		}
 		resp, err := th.SystemAdminClient.DoAPIPostJSON(context.Background(), "/custom_channel_icons", icon)
-		checkStatusCode(t, resp, err, http.StatusCreated)
-		closeIfOpen(resp, err)
+		checkStatusCode(t, resp, err, http.StatusBadRequest)
 	})
 
-	t.Run("SVG with event handler in newline-split attribute (base64)", func(t *testing.T) {
-		// Regex often doesn't match across newlines
+	t.Run("SVG with event handler in newline-split attribute is rejected", func(t *testing.T) {
+		// Regex often doesn't match across newlines — server must handle this
 		svg := "<svg xmlns=\"http://www.w3.org/2000/svg\"><rect width=\"100\" height=\"100\"\nonload\n=\n\"alert(1)\"/></svg>"
 		icon := &model.CustomChannelIcon{
 			Name: "newline-event-xss",
 			Svg:  base64.StdEncoding.EncodeToString([]byte(svg)),
 		}
 		resp, err := th.SystemAdminClient.DoAPIPostJSON(context.Background(), "/custom_channel_icons", icon)
-		checkStatusCode(t, resp, err, http.StatusCreated)
-		closeIfOpen(resp, err)
+		checkStatusCode(t, resp, err, http.StatusBadRequest)
 	})
 
-	t.Run("SVG with CSS url() pointing to external resource (base64)", func(t *testing.T) {
+	t.Run("SVG with CSS url() pointing to external resource is rejected", func(t *testing.T) {
 		// CSS-based data exfiltration
 		svg := `<svg xmlns="http://www.w3.org/2000/svg"><style>@import url("https://evil.com/steal.css");</style><rect width="100" height="100"/></svg>`
 		icon := &model.CustomChannelIcon{
@@ -114,11 +107,10 @@ func TestCustomChannelIconSVGAttackVectors(t *testing.T) {
 			Svg:  base64.StdEncoding.EncodeToString([]byte(svg)),
 		}
 		resp, err := th.SystemAdminClient.DoAPIPostJSON(context.Background(), "/custom_channel_icons", icon)
-		checkStatusCode(t, resp, err, http.StatusCreated)
-		closeIfOpen(resp, err)
+		checkStatusCode(t, resp, err, http.StatusBadRequest)
 	})
 
-	t.Run("SVG with embedded image linking to external resource (base64)", func(t *testing.T) {
+	t.Run("SVG with embedded image linking to external resource is rejected", func(t *testing.T) {
 		// SSRF-like: forces browsers viewing the icon to make external requests
 		svg := `<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"><image xlink:href="https://evil.com/track.gif" width="1" height="1"/></svg>`
 		icon := &model.CustomChannelIcon{
@@ -126,8 +118,7 @@ func TestCustomChannelIconSVGAttackVectors(t *testing.T) {
 			Svg:  base64.StdEncoding.EncodeToString([]byte(svg)),
 		}
 		resp, err := th.SystemAdminClient.DoAPIPostJSON(context.Background(), "/custom_channel_icons", icon)
-		checkStatusCode(t, resp, err, http.StatusCreated)
-		closeIfOpen(resp, err)
+		checkStatusCode(t, resp, err, http.StatusBadRequest)
 	})
 }
 
@@ -159,50 +150,35 @@ func TestCustomChannelIconEdgeCases(t *testing.T) {
 		closeIfOpen(resp, err)
 	})
 
-	t.Run("Icon with non-SVG base64 content is stored", func(t *testing.T) {
-		// Server doesn't validate that the base64 decodes to valid SVG
+	t.Run("Icon with non-SVG base64 content is rejected", func(t *testing.T) {
+		// Server should validate that the base64 decodes to valid SVG
 		icon := &model.CustomChannelIcon{
 			Name: "not-svg",
 			Svg:  base64.StdEncoding.EncodeToString([]byte("this is not SVG at all")),
 		}
 		resp, err := th.SystemAdminClient.DoAPIPostJSON(context.Background(), "/custom_channel_icons", icon)
-		checkStatusCode(t, resp, err, http.StatusCreated)
-		closeIfOpen(resp, err)
+		checkStatusCode(t, resp, err, http.StatusBadRequest)
 	})
 
-	t.Run("Icon with HTML instead of SVG is stored", func(t *testing.T) {
+	t.Run("Icon with HTML instead of SVG is rejected", func(t *testing.T) {
 		html := `<html><body><h1>Not an icon</h1><script>alert('xss')</script></body></html>`
 		icon := &model.CustomChannelIcon{
 			Name: "html-injection",
 			Svg:  base64.StdEncoding.EncodeToString([]byte(html)),
 		}
 		resp, err := th.SystemAdminClient.DoAPIPostJSON(context.Background(), "/custom_channel_icons", icon)
-		checkStatusCode(t, resp, err, http.StatusCreated)
-		closeIfOpen(resp, err)
+		checkStatusCode(t, resp, err, http.StatusBadRequest)
 	})
 
-	t.Run("Admin can retrieve stored XSS icon and content is preserved", func(t *testing.T) {
+	t.Run("SVG with XSS payload is rejected at creation time", func(t *testing.T) {
 		svg := `<svg xmlns="http://www.w3.org/2000/svg"><foreignObject><body xmlns="http://www.w3.org/1999/xhtml"><img src=x onerror="alert(1)"/></body></foreignObject></svg>`
 		encoded := base64.StdEncoding.EncodeToString([]byte(svg))
 		icon := &model.CustomChannelIcon{
-			Name: "verify-stored-xss",
+			Name: "verify-xss-rejected",
 			Svg:  encoded,
 		}
 		resp, err := th.SystemAdminClient.DoAPIPostJSON(context.Background(), "/custom_channel_icons", icon)
-		checkStatusCode(t, resp, err, http.StatusCreated)
-		var created model.CustomChannelIcon
-		json.NewDecoder(resp.Body).Decode(&created)
-		closeIfOpen(resp, err)
-
-		// Fetch it back
-		resp, err = th.Client.DoAPIGet(context.Background(), "/custom_channel_icons/"+created.Id, "")
-		checkStatusCode(t, resp, err, http.StatusOK)
-		defer closeIfOpen(resp, err)
-
-		var fetched model.CustomChannelIcon
-		decErr := json.NewDecoder(resp.Body).Decode(&fetched)
-		require.NoError(t, decErr)
-		// Verify the XSS payload is stored as-is
-		assert.Equal(t, encoded, fetched.Svg)
+		// Server should reject SVG with XSS vectors
+		checkStatusCode(t, resp, err, http.StatusBadRequest)
 	})
 }

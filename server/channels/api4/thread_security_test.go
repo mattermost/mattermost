@@ -53,19 +53,17 @@ func TestThreadFollowerPermissions(t *testing.T) {
 		closeIfOpen(resp, err)
 	})
 
-	t.Run("Channel member can add another user as follower", func(t *testing.T) {
-		// This is an IDOR concern: user can force-follow another user
+	t.Run("Channel member cannot add another user as follower (IDOR protection)", func(t *testing.T) {
+		// IDOR: user should NOT be able to force-follow another user
 		userIds := []string{th.BasicUser2.Id}
 		resp, err := th.Client.DoAPIPostJSON(context.Background(), "/posts/"+rpost.Id+"/thread/followers", userIds)
-		checkStatusCode(t, resp, err, http.StatusOK)
-		closeIfOpen(resp, err)
+		checkStatusCode(t, resp, err, http.StatusForbidden)
 	})
 
-	t.Run("Channel member can remove another users follow", func(t *testing.T) {
-		// This is an IDOR concern: user can unfollow someone else
+	t.Run("Channel member cannot remove another users follow (IDOR protection)", func(t *testing.T) {
+		// IDOR: user should NOT be able to unfollow someone else
 		resp, err := th.Client.DoAPIDelete(context.Background(), "/posts/"+rpost.Id+"/thread/followers/"+th.BasicUser2.Id)
-		checkStatusCode(t, resp, err, http.StatusOK)
-		closeIfOpen(resp, err)
+		checkStatusCode(t, resp, err, http.StatusForbidden)
 	})
 
 	t.Run("Adding non-existent user as follower", func(t *testing.T) {

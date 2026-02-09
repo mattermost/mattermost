@@ -94,7 +94,7 @@ func TestErrorLogPayloadInjection(t *testing.T) {
 		closeIfOpen(resp, err)
 	})
 
-	t.Run("Credential-like data in request_payload is stored", func(t *testing.T) {
+	t.Run("Credential-like data in request_payload is redacted before storage", func(t *testing.T) {
 		// Clear existing errors
 		resp, err := th.SystemAdminClient.DoAPIDelete(context.Background(), "/errors")
 		closeIfOpen(resp, err)
@@ -111,7 +111,7 @@ func TestErrorLogPayloadInjection(t *testing.T) {
 		checkStatusCode(t, resp, err, http.StatusOK)
 		closeIfOpen(resp, err)
 
-		// Verify it's stored and visible to admin
+		// Verify credentials are NOT stored in plain text
 		resp, err = th.SystemAdminClient.DoAPIGet(context.Background(), "/errors", "")
 		checkStatusCode(t, resp, err, http.StatusOK)
 		defer closeIfOpen(resp, err)
@@ -121,18 +121,14 @@ func TestErrorLogPayloadInjection(t *testing.T) {
 		require.NoError(t, decErr)
 		errors := response["errors"].([]any)
 		require.GreaterOrEqual(t, len(errors), 1)
-		// Credentials are stored in the error log — this is a data leak concern
-		found := false
+		// Credentials should be redacted — password should NOT appear in stored data
 		for _, e := range errors {
 			errMap := e.(map[string]any)
 			if payload, ok := errMap["request_payload"].(string); ok {
-				if strings.Contains(payload, "SuperSecret123!") {
-					found = true
-					break
-				}
+				assert.NotContains(t, payload, "SuperSecret123!",
+					"Password should be redacted from stored error log request_payload")
 			}
 		}
-		assert.True(t, found, "Credentials in request_payload are stored in error logs")
 	})
 }
 

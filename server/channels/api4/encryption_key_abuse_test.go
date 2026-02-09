@@ -29,37 +29,32 @@ func TestEncryptionWeakKeyRegistration(t *testing.T) {
 		cfg.FeatureFlags.Encryption = true
 	})
 
-	t.Run("Minimal valid-format key is accepted (server has no JWK validation)", func(t *testing.T) {
-		// This is a valid concern: server only checks starts-with-{ and len>=10
-		// A weak 512-bit RSA key in JWK format would pass validation
+	t.Run("Minimal valid-format key without proper JWK structure is rejected", func(t *testing.T) {
+		// Server should validate JWK structure, not just check starts-with-{ and len>=10
 		req := &model.EncryptionPublicKeyRequest{
 			PublicKey: `{"kty":"RSA","n":"weak","e":"AQAB","extra":"pad"}`,
 		}
 		resp, err := th.Client.DoAPIPostJSON(context.Background(), "/encryption/publickey", req)
-		checkStatusCode(t, resp, err, http.StatusCreated)
-		closeIfOpen(resp, err)
+		checkStatusCode(t, resp, err, http.StatusBadRequest)
 	})
 
-	t.Run("Key that is valid JSON object but not JWK is accepted", func(t *testing.T) {
-		// Server only checks first char is { and length, not actual JWK structure
+	t.Run("Key that is valid JSON object but not JWK is rejected", func(t *testing.T) {
+		// Server should validate actual JWK structure, not just JSON object shape
 		req := &model.EncryptionPublicKeyRequest{
 			PublicKey: `{"not_a_key": "this is just arbitrary JSON data"}`,
 		}
 		resp, err := th.Client.DoAPIPostJSON(context.Background(), "/encryption/publickey", req)
-		checkStatusCode(t, resp, err, http.StatusCreated)
-		closeIfOpen(resp, err)
+		checkStatusCode(t, resp, err, http.StatusBadRequest)
 	})
 
-	t.Run("Oversized public key payload is accepted (no max size check)", func(t *testing.T) {
-		// No server-side max size on public keys - potential storage abuse
+	t.Run("Oversized public key payload is rejected", func(t *testing.T) {
+		// Server should enforce max size on public keys to prevent storage abuse
 		largeKey := `{"kty":"RSA","n":"` + strings.Repeat("A", 100*1024) + `","e":"AQAB"}`
 		req := &model.EncryptionPublicKeyRequest{
 			PublicKey: largeKey,
 		}
 		resp, err := th.Client.DoAPIPostJSON(context.Background(), "/encryption/publickey", req)
-		// Document current behavior: accepted (no size limit enforced)
-		checkStatusCode(t, resp, err, http.StatusCreated)
-		closeIfOpen(resp, err)
+		checkStatusCode(t, resp, err, http.StatusBadRequest)
 	})
 }
 
@@ -161,7 +156,7 @@ func TestEncryptionStatusLeaksSessionId(t *testing.T) {
 		cfg.FeatureFlags.Encryption = true
 	})
 
-	t.Run("Encryption status endpoint returns session_id to caller", func(t *testing.T) {
+	t.Run("Encryption status endpoint does not leak session_id", func(t *testing.T) {
 		resp, err := th.Client.DoAPIGet(context.Background(), "/encryption/status", "")
 		checkStatusCode(t, resp, err, http.StatusOK)
 		defer closeIfOpen(resp, err)
@@ -169,8 +164,8 @@ func TestEncryptionStatusLeaksSessionId(t *testing.T) {
 		var status model.EncryptionStatus
 		decErr := json.NewDecoder(resp.Body).Decode(&status)
 		require.NoError(t, decErr)
-		// Session ID is returned (needed for key storage but is sensitive)
-		assert.NotEmpty(t, status.SessionId)
+		// Session ID should not be returned in the response (security concern)
+		assert.Empty(t, status.SessionId, "Session ID should not be exposed in encryption status response")
 	})
 }
 

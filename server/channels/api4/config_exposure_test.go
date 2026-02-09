@@ -100,8 +100,8 @@ func TestConfigExposureAuthenticated(t *testing.T) {
 		assert.Equal(t, "true", config["MattermostExtendedStatusesEnableStatusLogs"])
 	})
 
-	t.Run("Status pause allowed users leaked to all authenticated users", func(t *testing.T) {
-		// Even a regular user can see the allowlist of privileged users
+	t.Run("Status pause allowed users NOT visible to regular users", func(t *testing.T) {
+		// Regular users should NOT see the allowlist of privileged users
 		resp, err := th.Client.DoAPIGet(context.Background(), "/config/client?format=old", "")
 		checkStatusCode(t, resp, err, http.StatusOK)
 		defer closeIfOpen(resp, err)
@@ -110,11 +110,12 @@ func TestConfigExposureAuthenticated(t *testing.T) {
 		decErr := json.NewDecoder(resp.Body).Decode(&config)
 		require.NoError(t, decErr)
 
-		// This reveals which users have special status privileges
-		assert.Equal(t, "admin,specialuser", config["MattermostExtendedStatusesStatusPauseAllowedUsers"])
+		// Allowlist should be hidden from non-admin users
+		assert.Empty(t, config["MattermostExtendedStatusesStatusPauseAllowedUsers"],
+			"Status pause allowlist should not be visible to regular users")
 	})
 
-	t.Run("Invisibility allowed users leaked to all authenticated users", func(t *testing.T) {
+	t.Run("Invisibility allowed users NOT visible to regular users", func(t *testing.T) {
 		resp, err := th.Client.DoAPIGet(context.Background(), "/config/client?format=old", "")
 		checkStatusCode(t, resp, err, http.StatusOK)
 		defer closeIfOpen(resp, err)
@@ -123,7 +124,8 @@ func TestConfigExposureAuthenticated(t *testing.T) {
 		decErr := json.NewDecoder(resp.Body).Decode(&config)
 		require.NoError(t, decErr)
 
-		assert.Equal(t, "admin,vipuser", config["MattermostExtendedStatusesInvisibilityAllowedUsers"])
+		assert.Empty(t, config["MattermostExtendedStatusesInvisibilityAllowedUsers"],
+			"Invisibility allowlist should not be visible to regular users")
 	})
 
 	t.Run("Preference override keys exposed to all authenticated users", func(t *testing.T) {
