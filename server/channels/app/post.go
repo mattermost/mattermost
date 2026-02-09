@@ -166,7 +166,8 @@ func (a *App) CreatePost(rctx request.CTX, post *model.Post, channel *model.Chan
 	}
 
 	// Validate burn-on-read restrictions (self-DMs, DMs with bots)
-	if err := PostBurnOnReadCheckWithApp("App.CreatePost", a, rctx, post.UserId, post.ChannelId, post.Type, channel); err != nil {
+	err = PostBurnOnReadCheckWithApp("App.CreatePost", a, rctx, post.UserId, post.ChannelId, post.Type, channel)
+	if err != nil {
 		return nil, false, err
 	}
 
