@@ -898,7 +898,7 @@ type GroupStore interface {
 	CreateWithUserIds(group *model.GroupWithUserIds) (*model.Group, error)
 	Get(groupID string) (*model.Group, error)
 	GetByName(name string, opts model.GroupSearchOpts) (*model.Group, error)
-	GetByNames(names []string, viewRestrictions *model.ViewUsersRestrictions) ([]*model.Group, error)
+	GetByNames(names []string, opts model.GroupSearchOpts) ([]*model.Group, error)
 	GetByIDs(groupIDs []string) ([]*model.Group, error)
 	GetByRemoteID(remoteID string, groupSource model.GroupSource) (*model.Group, error)
 	GetAllBySource(groupSource model.GroupSource) ([]*model.Group, error)
@@ -1158,16 +1158,13 @@ type AttributesStore interface {
 }
 
 type AutoTranslationStore interface {
-	IsChannelEnabled(channelID string) (bool, error)
-	SetChannelEnabled(channelID string, enabled bool) error
 	IsUserEnabled(userID, channelID string) (bool, error)
-	SetUserEnabled(userID, channelID string, enabled bool) error
 	GetUserLanguage(userID, channelID string) (string, error)
 	// GetActiveDestinationLanguages returns distinct locales of users who have auto-translation enabled.
 	GetActiveDestinationLanguages(channelID, excludeUserID string, filterUserIDs []string) ([]string, error)
-	Get(objectID, dstLang string) (*model.Translation, error)
-	GetBatch(objectIDs []string, dstLang string) (map[string]*model.Translation, error)
-	GetAllForObject(objectID string) ([]*model.Translation, error)
+	Get(objectType, objectID, dstLang string) (*model.Translation, error)
+	GetBatch(objectType string, objectIDs []string, dstLang string) (map[string]*model.Translation, error)
+	GetAllForObject(objectType, objectID string) ([]*model.Translation, error)
 	Save(translation *model.Translation) error
 	GetAllByStatePage(state model.TranslationState, offset, limit int) ([]*model.Translation, error)
 	GetByStateOlderThan(state model.TranslationState, olderThanMillis int64, limit int) ([]*model.Translation, error)
