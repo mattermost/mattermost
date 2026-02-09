@@ -303,5 +303,7 @@ channels/db/migrations/postgres/000152_translations_primary_key_change.down.sql
 channels/db/migrations/postgres/000152_translations_primary_key_change.up.sql
 channels/db/migrations/postgres/000153_add_translation_channel_id.down.sql
 channels/db/migrations/postgres/000153_add_translation_channel_id.up.sql
-channels/db/migrations/postgres/000154_add_translation_channel_updateat_index.down.sql
-channels/db/migrations/postgres/000154_add_translation_channel_updateat_index.up.sql
+channels/db/migrations/postgres/000154_drop_translation_updateat_index.down.sql
+channels/db/migrations/postgres/000154_drop_translation_updateat_index.up.sql
+channels/db/migrations/postgres/000155_create_translation_channel_updateat_index.down.sql
+channels/db/migrations/postgres/000155_create_translation_channel_updateat_index.up.sql
