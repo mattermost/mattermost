@@ -24,6 +24,7 @@ export interface Props extends PropsFromRedux {
     postId: string;
     compactDisplay?: boolean;
     isInPermalink?: boolean;
+    spoilerFileIds?: string[];
 }
 
 /**
@@ -37,6 +38,7 @@ function MultiImageItem({
     compactDisplay,
     isInPermalink,
     isLoaded,
+    isSpoilered,
     onImageClick,
     onImageLoaded,
     maxImageHeight,
@@ -48,11 +50,14 @@ function MultiImageItem({
     compactDisplay?: boolean;
     isInPermalink?: boolean;
     isLoaded: boolean;
+    isSpoilered?: boolean;
     onImageClick: (index: number) => void;
     onImageLoaded: (fileId: string) => void;
     maxImageHeight?: number;
     maxImageWidth?: number;
 }) {
+    const [spoilerRevealed, setSpoilerRevealed] = useState(false);
+    const showSpoilerOverlay = isSpoilered && !spoilerRevealed;
     const isEncrypted = isEncryptedFile(fileInfo) ||
         Boolean(fileInfo.name?.startsWith('encrypted_') && fileInfo.name?.endsWith('.penc'));
 
@@ -110,22 +115,38 @@ function MultiImageItem({
                 'multi-image-view__item--loaded': isLoaded,
             })}
         >
-            <SizeAwareImage
-                onClick={() => onImageClick(index)}
-                className={classNames('multi-image-view__image', {
-                    'compact-display': compactDisplay,
-                    'is-permalink': isInPermalink,
+            <div
+                className={classNames('multi-image-spoiler-wrapper', {
+                    'multi-image-spoiler-wrapper--blurred': showSpoilerOverlay,
                 })}
-                src={previewUrl}
-                dimensions={dimensions}
-                fileInfo={fileInfo}
-                fileURL={fileUrl}
-                onImageLoaded={() => onImageLoaded(id)}
-                showLoader={true}
-                handleSmallImageContainer={true}
-                maxHeight={maxImageHeight}
-                maxWidth={maxImageWidth}
-            />
+                onClick={showSpoilerOverlay ? (e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    setSpoilerRevealed(true);
+                } : undefined}
+            >
+                <SizeAwareImage
+                    onClick={showSpoilerOverlay ? undefined : () => onImageClick(index)}
+                    className={classNames('multi-image-view__image', {
+                        'compact-display': compactDisplay,
+                        'is-permalink': isInPermalink,
+                    })}
+                    src={previewUrl}
+                    dimensions={dimensions}
+                    fileInfo={fileInfo}
+                    fileURL={fileUrl}
+                    onImageLoaded={() => onImageLoaded(id)}
+                    showLoader={true}
+                    handleSmallImageContainer={true}
+                    maxHeight={maxImageHeight}
+                    maxWidth={maxImageWidth}
+                />
+                {showSpoilerOverlay && (
+                    <div className='spoiler-overlay'>
+                        <span className='spoiler-overlay__text'>{'SPOILER'}</span>
+                    </div>
+                )}
+            </div>
         </div>
     );
 }
@@ -179,6 +200,7 @@ export default function MultiImageView(props: Props) {
                         compactDisplay={compactDisplay}
                         isInPermalink={isInPermalink}
                         isLoaded={loadedImages[fileInfo.id]}
+                        isSpoilered={props.spoilerFileIds?.includes(fileInfo.id)}
                         onImageClick={handleImageClick}
                         onImageLoaded={handleImageLoaded}
                         maxImageHeight={props.maxImageHeight || undefined}
