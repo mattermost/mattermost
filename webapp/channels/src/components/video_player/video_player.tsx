@@ -55,9 +55,9 @@ export default function VideoPlayer(props: Props) {
             };
         }
         return {
-            url: getFileUrl(fileInfo.id),
-            mimeType: fileInfo.mime_type || 'video/mp4',
-            filename: fileInfo.name || 'video',
+            url: fileInfo ? getFileUrl(fileInfo.id) : '',
+            mimeType: fileInfo?.mime_type || 'video/mp4',
+            filename: fileInfo?.name || 'video',
         };
     }, [fileInfo, isEncrypted, decryptedFileUrl, originalFileInfo]);
 

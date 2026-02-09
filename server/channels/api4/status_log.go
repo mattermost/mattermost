@@ -354,6 +354,15 @@ func updateStatusNotificationRule(c *Context, w http.ResponseWriter, r *http.Req
 	// Ensure the ID matches the URL parameter
 	rule.Id = c.Params.RuleId
 
+	// Fetch existing rule to preserve immutable fields (CreatedBy, CreateAt)
+	existingRule, storeErr := c.App.Srv().Store().StatusNotificationRule().Get(rule.Id)
+	if storeErr != nil {
+		c.Err = model.NewAppError("updateStatusNotificationRule", "api.status_notification_rule.not_found.app_error", nil, "", http.StatusNotFound).Wrap(storeErr)
+		return
+	}
+	rule.CreatedBy = existingRule.CreatedBy
+	rule.CreateAt = existingRule.CreateAt
+
 	// Validate watched user and recipient exist
 	if _, appErr := c.App.GetUser(rule.WatchedUserID); appErr != nil {
 		c.Err = model.NewAppError("updateStatusNotificationRule", "api.status_notification_rule.watched_user_not_found.app_error", nil, "", http.StatusBadRequest)
