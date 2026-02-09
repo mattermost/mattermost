@@ -792,10 +792,6 @@
     "translation": "Nie można znaleźć określonego kanału. Użyj [uchwytu kanału](https://docs.mattermost.com/messaging/managing-channels.html#naming-a-channel), aby zidentyfikować kanały."
   },
   {
-    "id": "api.command_mute.not_member.error",
-    "translation": "Nie można wyciszyć kanału {{.Channel}} jeśli nie jesteś jego członkiem."
-  },
-  {
     "id": "api.command_mute.success_mute",
     "translation": "Nie będziesz otrzymywać powiadomień o kanale {{.Channel}}, dopóki wyciszenie kanału jest wyłączone."
   },
@@ -4589,11 +4585,11 @@
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.edge",
-    "translation": "Wersja 140+"
+    "translation": "Wersja 142+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.chrome",
-    "translation": "Wersja 140+"
+    "translation": "Wersja 142+"
   },
   {
     "id": "web.error.unsupported_browser.learn_more",
@@ -8612,10 +8608,6 @@
     "translation": "Pomijanie instalacji wtyczki {{.Id}}, ponieważ istniejąca wersja jest równa lub nowsza."
   },
   {
-    "id": "api.server.cws.subscribe_to_newsletter.app_error",
-    "translation": "Serwer CWS nie zdołał zapisać się do newslettera."
-  },
-  {
     "id": "api.license.request-trial.bad-request.business-email",
     "translation": "Nieprawidłowy e-mail służbowy dla wersji testowej"
   },
@@ -10696,10 +10688,6 @@
     "translation": "Nie można usunąć polityki kontroli dostępu z Kanałów."
   },
   {
-    "id": "app.pap.update_access_control_policy_active.app_error",
-    "translation": "Nie można zmienić aktywnego statusu polityki kontroli dostępu."
-  },
-  {
     "id": "app.pap.is_ready.app_error",
     "translation": "Usługa kontroli dostępu nie jest gotowa."
   },
@@ -10998,18 +10986,6 @@
   {
     "id": "model.config.is_valid.autotranslation.provider.unsupported.app_error",
     "translation": "Nieobsługiwany dostawca autotranslacji."
-  },
-  {
-    "id": "model.config.is_valid.autotranslation.timeouts.fetch.app_error",
-    "translation": "Nieprawidłowy limit czasu pobierania dla ustawień automatycznego tłumaczenia. Musi być liczbą dodatnią."
-  },
-  {
-    "id": "model.config.is_valid.autotranslation.timeouts.new_post.app_error",
-    "translation": "Nieprawidłowy limit czasu nowej poczty dla ustawień autotranslacji. Musi być liczbą dodatnią."
-  },
-  {
-    "id": "model.config.is_valid.autotranslation.timeouts.notification.app_error",
-    "translation": "Nieprawidłowy limit czasu powiadomienia dla ustawień autotranslacji. Musi być liczbą dodatnią."
   },
   {
     "id": "api.channel.get_channel.flagged_post_mismatch.app_error",
@@ -11436,66 +11412,6 @@
     "translation": "Nieprawidłowe pole czasu."
   },
   {
-    "id": "store.sql_autotranslation.channel_not_found",
-    "translation": "Kanał nie został znaleziony."
-  },
-  {
-    "id": "store.sql_autotranslation.get.app_error",
-    "translation": "Nie można uzyskać tłumaczenia."
-  },
-  {
-    "id": "store.sql_autotranslation.get_active_languages.app_error",
-    "translation": "Nie można uzyskać aktywnych języków."
-  },
-  {
-    "id": "store.sql_autotranslation.get_channel_enabled.app_error",
-    "translation": "Nie można uzyskać statusu włączenia autotranslacji Kanału."
-  },
-  {
-    "id": "store.sql_autotranslation.get_user_enabled.app_error",
-    "translation": "Nie można uzyskać statusu włączonej autotranslacji użytkownika."
-  },
-  {
-    "id": "store.sql_autotranslation.get_user_language.app_error",
-    "translation": "Nie można uzyskać języka użytkownika."
-  },
-  {
-    "id": "store.sql_autotranslation.is_channel_enabled.app_error",
-    "translation": "Nie można uzyskać statusu włączenia autotranslacji Kanału."
-  },
-  {
-    "id": "store.sql_autotranslation.member_not_found",
-    "translation": "Nie znaleziono członka."
-  },
-  {
-    "id": "store.sql_autotranslation.meta_json.app_error",
-    "translation": "Nie udało się przeanalizować metadanych tłumaczenia JSON."
-  },
-  {
-    "id": "store.sql_autotranslation.query_build_error",
-    "translation": "Nie udało się utworzyć zapytania."
-  },
-  {
-    "id": "store.sql_autotranslation.save.app_error",
-    "translation": "Nie można zapisać tłumaczenia."
-  },
-  {
-    "id": "store.sql_autotranslation.save.invalid_translation",
-    "translation": "Walidacja tłumaczenia nie powiodła się. Obiekt tłumaczenia jest nieprawidłowy."
-  },
-  {
-    "id": "store.sql_autotranslation.save.meta_json.app_error",
-    "translation": "Nie udało się serializować metadanych tłumaczenia do JSON."
-  },
-  {
-    "id": "store.sql_autotranslation.set_channel_enabled.app_error",
-    "translation": "Nie można ustawić statusu włączenia autotranslacji Kanału."
-  },
-  {
-    "id": "store.sql_autotranslation.set_user_enabled.app_error",
-    "translation": "Nie można ustawić statusu włączonej autotranslacji użytkownika."
-  },
-  {
     "id": "api.post.burn_post.user_not_in_channel.app_error",
     "translation": "Nie masz uprawnień do zniszczenia tego posta. Musisz być członkiem Kanału."
   },
@@ -11690,5 +11606,113 @@
   {
     "id": "app.update_scheduled_post.convert_to_post.error",
     "translation": "Nie można przekonwertować zaplanowanego postu na format postu."
+  },
+  {
+    "id": "api.recap.disabled.app_error",
+    "translation": "Ta funkcja nie jest włączona."
+  },
+  {
+    "id": "api.recap.permission_denied",
+    "translation": "Nie masz uprawnień dostępu do tego podsumowania."
+  },
+  {
+    "id": "app.ai.summarize.agent_call_failed",
+    "translation": "Połączenie z agentem AI nie powiodło się."
+  },
+  {
+    "id": "app.ai.summarize.parse_failed",
+    "translation": "Nie udało się przeanalizować odpowiedzi podsumowania AI."
+  },
+  {
+    "id": "app.recap.delete.app_error",
+    "translation": "Nie udało się usunąć podsumowania."
+  },
+  {
+    "id": "app.recap.delete_channels.app_error",
+    "translation": "Nie udało się usunąć kanałów podsumowania."
+  },
+  {
+    "id": "app.recap.get.app_error",
+    "translation": "Nie udało się uzyskać podsumowania."
+  },
+  {
+    "id": "app.recap.get_channel.app_error",
+    "translation": "Nie udało się uzyskać kanału."
+  },
+  {
+    "id": "app.recap.get_channels.app_error",
+    "translation": "Nie udało się pobrać kanałów podsumowujących."
+  },
+  {
+    "id": "app.recap.get_last_viewed.app_error",
+    "translation": "Nie udało się uzyskać znacznika czasu ostatniego wyświetlenia."
+  },
+  {
+    "id": "app.recap.get_team.app_error",
+    "translation": "Nie udało się pozyskać zespołu."
+  },
+  {
+    "id": "app.recap.list.app_error",
+    "translation": "Nie udało się uzyskać podsumowania."
+  },
+  {
+    "id": "app.recap.mark_read.app_error",
+    "translation": "Nie udało się oznaczyć podsumowania jako przeczytane."
+  },
+  {
+    "id": "app.recap.permission_denied",
+    "translation": "Brak pozwolenia na podsumowanie."
+  },
+  {
+    "id": "app.recap.save.app_error",
+    "translation": "Nie udało się zapisać podsumowania."
+  },
+  {
+    "id": "app.recap.save_channel.app_error",
+    "translation": "Nie udało się zapisać kanału podsumowania."
+  },
+  {
+    "id": "app.recap.update.app_error",
+    "translation": "Nie udało się zaktualizować podsumowania."
+  },
+  {
+    "id": "ent.autotranslation.add_task.missing_object_id",
+    "translation": "Zadanie tłumaczenia musi zawierać identyfikator obiektu."
+  },
+  {
+    "id": "ent.autotranslation.add_task.missing_object_type",
+    "translation": "Zadanie tłumaczenia musi zawierać typ obiektu."
+  },
+  {
+    "id": "ent.autotranslation.add_task.nil_task",
+    "translation": "Zadanie tłumaczenia nie może mieć wartości null."
+  },
+  {
+    "id": "ent.autotranslation.create_translation_failed",
+    "translation": "Nie udało się utworzyć tłumaczenia."
+  },
+  {
+    "id": "ent.autotranslation.detect_language.nil_context",
+    "translation": "Kontekst jest niezbędny do wykrywania języka."
+  },
+  {
+    "id": "ent.autotranslation.detect_language.text_too_large",
+    "translation": "Tekst przekracza maksymalny rozmiar dla wykrywania języka."
+  },
+  {
+    "id": "ent.autotranslation.detect_remote.error",
+    "translation": "Nie udało się wykryć języka przy użyciu dostawcy tłumaczeń."
+  },
+  {
+    "id": "ent.autotranslation.extract_content.mask_error",
+    "translation": "Nie udało się zamaskować zawartości do tłumaczenia."
+  },
+  {
+    "id": "ent.autotranslation.extract_post.nil_post",
+    "translation": "Obiekt Post nie może mieć wartości null."
+  },
+  {
+    "id": "ent.autotranslation.feature_unavailable",
+    "translation": "Automatyczne tłumaczenie nie jest dostępne. Skontaktuj się z administratorem systemu, aby Aktualizuj licencję korporacyjną."
   }
 ]

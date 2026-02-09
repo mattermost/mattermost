@@ -5,7 +5,7 @@ import cloneDeep from 'lodash/cloneDeep';
 import React from 'react';
 import {FormattedMessage} from 'react-intl';
 
-import type {AccessControlPolicy} from '@mattermost/types/access_control';
+import type {AccessControlPolicy, AccessControlPolicyActiveUpdate} from '@mattermost/types/access_control';
 import type {Channel, ChannelModeration as ChannelPermissions, ChannelModerationPatch} from '@mattermost/types/channels';
 import {SyncableType} from '@mattermost/types/groups';
 import type {SyncablePatch, Group} from '@mattermost/types/groups';
@@ -117,7 +117,7 @@ export type ChannelDetailsActions = {
     getChannel: (channelId: string) => void;
     getTeam: (teamId: string) => Promise<ActionResult>;
     getChannelModerations: (channelId: string) => Promise<ActionResult>;
-    patchChannel: (channelId: string, patch: Channel) => Promise<ActionResult>;
+    patchChannel: (channelId: string, patch: Partial<Channel>) => Promise<ActionResult>;
     updateChannelPrivacy: (channelId: string, privacy: string) => Promise<ActionResult>;
     patchGroupSyncable: (groupID: string, syncableID: string, syncableType: SyncableType, patch: Partial<SyncablePatch>) => Promise<ActionResult>;
     patchChannelModerations: (channelID: string, patch: ChannelModerationPatch[]) => Promise<ActionResult>;
@@ -139,7 +139,7 @@ export type ChannelDetailsActions = {
     saveChannelAccessPolicy: (policy: AccessControlPolicy) => Promise<ActionResult>;
     validateChannelExpression: (expression: string, channelId: string) => Promise<ActionResult>;
     createAccessControlSyncJob: (job: JobTypeBase & { data: any }) => Promise<ActionResult>;
-    updateAccessControlPolicyActive: (policyId: string, active: boolean) => Promise<ActionResult>;
+    updateAccessControlPoliciesActive: (states: AccessControlPolicyActiveUpdate[]) => Promise<ActionResult>;
     searchUsersForExpression: (expression: string, term: string, after: string, limit: number, channelId?: string) => Promise<ActionResult>;
     getChannelMembers: (channelId: string, page?: number, perPage?: number) => Promise<ActionResult>;
     getProfilesByIds: (userIds: string[]) => Promise<ActionResult>;
@@ -556,7 +556,6 @@ export default class ChannelDetails extends React.PureComponent<ChannelDetailsPr
 
         // Then patch the channel
         const patchResult = await actions.patchChannel(channel.id, {
-            ...channel,
             group_constrained: isSynced,
         });
 
@@ -802,7 +801,7 @@ export default class ChannelDetails extends React.PureComponent<ChannelDetailsPr
                         } else {
                         // Update the active status separately
                             try {
-                                await actions.updateAccessControlPolicyActive(channelID, channelRulesAutoSync);
+                                await actions.updateAccessControlPoliciesActive([{id: channelID, active: channelRulesAutoSync} as AccessControlPolicyActiveUpdate]);
                             } catch (activeError) {
                             // eslint-disable-next-line no-console
                                 console.error('Failed to update policy active status:', activeError);

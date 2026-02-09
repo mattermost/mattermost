@@ -790,10 +790,6 @@
     "translation": "Konnte den Kanal nicht finden. Bitte nutze den [Kanal-Handle](https://docs.mattermost.com/messaging/managing-channels.html#naming-a-channel), um Kanäle zu identifizieren."
   },
   {
-    "id": "api.command_mute.not_member.error",
-    "translation": "Kanal {{.Channel}} konnte nicht stumm geschaltet werden, da du kein Mitglied bist."
-  },
-  {
     "id": "api.command_mute.success_mute",
     "translation": "Du wirst keine Benachrichtigungen mehr für {{.Channel}} erhalten bis die Stummschaltung aufgehoben wurde."
   },
@@ -8614,10 +8610,6 @@
     "translation": "Überspringe die Installation des Plugins {{.Id}}, da die vorhandene Version gleich oder neuer ist."
   },
   {
-    "id": "api.server.cws.subscribe_to_newsletter.app_error",
-    "translation": "CWS Server kann den Newsletter nicht abonnieren."
-  },
-  {
     "id": "api.post.post_priority.persistent_notification_validation_error.request_error",
     "translation": "Das Prüfen einer dauerhaften Benachrichtigung ist fehlgeschlagen."
   },
@@ -10512,10 +10504,6 @@
     "translation": "Die Zuweisung der Zugriffskontrollrichtlinie für Kanäle konnte nicht aufgehoben werden."
   },
   {
-    "id": "app.pap.update_access_control_policy_active.app_error",
-    "translation": "Der aktive Status der Zugriffskontrollrichtlinie konnte nicht geändert werden."
-  },
-  {
     "id": "app.pdp.access_evaluation.app_error",
     "translation": "Die Auswertung der Zugriffskontrollrichtlinie ist fehlgeschlagen."
   },
@@ -10996,18 +10984,6 @@
     "translation": "Nicht unterstützter Autotranslationsanbieter."
   },
   {
-    "id": "model.config.is_valid.autotranslation.timeouts.fetch.app_error",
-    "translation": "Ungültiges Fetch-Timeout für die Autotranslation-Einstellungen. Muss eine positive Zahl sein."
-  },
-  {
-    "id": "model.config.is_valid.autotranslation.timeouts.new_post.app_error",
-    "translation": "Ungültige Zeitüberschreitung für neue Beiträge bei automatischen Übersetzungseinstellungen. Muss eine positive Zahl sein."
-  },
-  {
-    "id": "model.config.is_valid.autotranslation.timeouts.notification.app_error",
-    "translation": "Ungültiges Zeitlimit für Benachrichtigungen bei automatischen Übersetzungseinstellungen. Muss eine positive Zahl sein."
-  },
-  {
     "id": "api.channel.get_channel.flagged_post_mismatch.app_error",
     "translation": "Die Kanal-ID stimmt nicht mit der Kanal-ID des markierten Beitrags überein."
   },
@@ -11430,66 +11406,6 @@
   {
     "id": "model.post.query_params.invalid_time_field",
     "translation": "Ungültiges Zeitfeld."
-  },
-  {
-    "id": "store.sql_autotranslation.channel_not_found",
-    "translation": "Kanal nicht gefunden."
-  },
-  {
-    "id": "store.sql_autotranslation.get.app_error",
-    "translation": "Ich kann keine Übersetzung bekommen."
-  },
-  {
-    "id": "store.sql_autotranslation.get_active_languages.app_error",
-    "translation": "Aktive Sprachen können nicht abgerufen werden."
-  },
-  {
-    "id": "store.sql_autotranslation.get_channel_enabled.app_error",
-    "translation": "Der Status der aktivierten Kanal-Autotranslation kann nicht abgerufen werden."
-  },
-  {
-    "id": "store.sql_autotranslation.get_user_enabled.app_error",
-    "translation": "Es ist nicht möglich, den Status der aktivierten Benutzerautoübersetzung zu erhalten."
-  },
-  {
-    "id": "store.sql_autotranslation.get_user_language.app_error",
-    "translation": "Die Sprache des Benutzers kann nicht abgerufen werden."
-  },
-  {
-    "id": "store.sql_autotranslation.is_channel_enabled.app_error",
-    "translation": "Der Status der aktivierten Kanal-Autotranslation kann nicht abgerufen werden."
-  },
-  {
-    "id": "store.sql_autotranslation.member_not_found",
-    "translation": "Mitglied nicht gefunden."
-  },
-  {
-    "id": "store.sql_autotranslation.meta_json.app_error",
-    "translation": "Das Parsen der Übersetzungsmetadaten JSON ist fehlgeschlagen."
-  },
-  {
-    "id": "store.sql_autotranslation.query_build_error",
-    "translation": "Fehler beim Erstellen der Abfrage."
-  },
-  {
-    "id": "store.sql_autotranslation.save.app_error",
-    "translation": "Die Übersetzung kann nicht gespeichert werden."
-  },
-  {
-    "id": "store.sql_autotranslation.save.invalid_translation",
-    "translation": "Validierung der Übersetzung fehlgeschlagen. Das Übersetzungsobjekt ist ungültig."
-  },
-  {
-    "id": "store.sql_autotranslation.save.meta_json.app_error",
-    "translation": "Die Übersetzungsmetadaten konnten nicht in JSON serialisiert werden."
-  },
-  {
-    "id": "store.sql_autotranslation.set_channel_enabled.app_error",
-    "translation": "Status der automatischen Kanalübersetzung kann nicht gesetzt werden."
-  },
-  {
-    "id": "store.sql_autotranslation.set_user_enabled.app_error",
-    "translation": "Der Status \"Benutzerautoübersetzung aktiviert\" konnte nicht gesetzt werden."
   },
   {
     "id": "api.post.burn_post.user_not_in_channel.app_error",

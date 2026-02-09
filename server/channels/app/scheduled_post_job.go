@@ -23,7 +23,7 @@ const (
 )
 
 func (a *App) ProcessScheduledPosts(rctx request.CTX) {
-	rctx = rctx.WithLogger(rctx.Logger().With(mlog.String("component", "scheduled_post_job")))
+	rctx = rctx.WithLogFields(mlog.String("component", "scheduled_post_job"))
 
 	if !*a.Config().ServiceSettings.ScheduledPosts {
 		return

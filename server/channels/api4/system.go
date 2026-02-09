@@ -87,6 +87,9 @@ func generateSupportPacket(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	auditRec := c.MakeAuditRecord(model.AuditEventGenerateSupportPacket, model.AuditStatusFail)
+	defer c.LogAuditRec(auditRec)
+
 	// We support the existing API hence the logs are always included
 	// if nothing specified.
 	includeLogs := true
@@ -97,6 +100,9 @@ func generateSupportPacket(c *Context, w http.ResponseWriter, r *http.Request) {
 		IncludeLogs:   includeLogs,
 		PluginPackets: r.Form["plugin_packets"],
 	}
+
+	auditRec.AddMeta("include_logs", supportPacketOptions.IncludeLogs)
+	auditRec.AddMeta("plugin_packets", supportPacketOptions.PluginPackets)
 
 	// Checking to see if the server has a e10 or e20 license (this feature is only permitted for servers with licenses)
 	if c.App.Channels().License() == nil {
@@ -116,6 +122,9 @@ func generateSupportPacket(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.Err = model.NewAppError("Api4.generateSupportPacket", "api.unable_to_create_zip_file", nil, "", http.StatusForbidden).Wrap(err)
 		return
 	}
+
+	auditRec.Success()
+	auditRec.AddMeta("filename", outputZipFilename)
 
 	// Prevent caching so support packets are always fresh
 	w.Header().Set("Cache-Control", "no-cache, no-store, must-revalidate")
@@ -703,7 +712,7 @@ func pushNotificationAck(c *Context, w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	c.AppContext.WithLogger(c.AppContext.Logger().With(
+	c.AppContext = c.AppContext.WithLogFields(
 		mlog.String("type", model.NotificationTypePush),
 		mlog.String("ack_id", ack.Id),
 		mlog.String("push_type", ack.NotificationType),
@@ -711,7 +720,7 @@ func pushNotificationAck(c *Context, w http.ResponseWriter, r *http.Request) {
 		mlog.String("ack_type", ack.NotificationType),
 		mlog.String("device_type", ack.ClientPlatform),
 		mlog.Int("received_at", ack.ClientReceivedAt),
-	))
+	)
 	err := c.App.SendAckToPushProxy(c.AppContext, &ack)
 	if ack.IsIdLoaded {
 		if err != nil {
