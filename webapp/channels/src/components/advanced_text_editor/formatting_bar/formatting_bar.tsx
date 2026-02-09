@@ -171,7 +171,8 @@ const FormattingBar = (props: FormattingBarProps): JSX.Element => {
         update?.();
     }, [wideMode, update, showHiddenControls]);
 
-    const hasHiddenControls = wideMode !== 'wide';
+    const hasAdditionalControls = Array.isArray(additionalControls) && additionalControls.length > 0;
+    const hasHiddenControls = wideMode !== 'wide' || hasAdditionalControls;
 
     /**
      * wrapping this factory in useCallback prevents it from constantly getting a new
@@ -235,13 +236,6 @@ const FormattingBar = (props: FormattingBarProps): JSX.Element => {
                 );
             })}
 
-            {Array.isArray(additionalControls) && additionalControls.length > 0 && (
-                <>
-                    {showSeparators && <Separator/>}
-                    {additionalControls}
-                </>
-            )}
-
             {hasHiddenControls && (
                 <>
                     <WithTooltip
@@ -292,6 +286,8 @@ const FormattingBar = (props: FormattingBarProps): JSX.Element => {
                             />
                         );
                     })}
+                    {hasAdditionalControls && hiddenControls.length > 0 && <Separator/>}
+                    {hasAdditionalControls && additionalControls}
                 </HiddenControlsContainer>
             </CSSTransition>
         </FormattingBarContainer>
