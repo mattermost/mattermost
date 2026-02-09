@@ -7,6 +7,7 @@ import (
 	"encoding/json"
 	"net/http"
 	"strconv"
+	"strings"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
@@ -93,11 +94,11 @@ func getStatusLogs(c *Context, w http.ResponseWriter, r *http.Request) {
 	options := model.StatusLogGetOptions{
 		Page:     page,
 		PerPage:  perPage,
-		UserID:   query.Get("user_id"),
-		Username: query.Get("username"),
-		LogType:  query.Get("log_type"),
-		Status:   query.Get("status"),
-		Search:   query.Get("search"),
+		UserID:   sanitizeQueryParam(query.Get("user_id")),
+		Username: sanitizeQueryParam(query.Get("username")),
+		LogType:  sanitizeQueryParam(query.Get("log_type")),
+		Status:   sanitizeQueryParam(query.Get("status")),
+		Search:   sanitizeQueryParam(query.Get("search")),
 	}
 
 	if sinceStr := query.Get("since"); sinceStr != "" {
@@ -175,11 +176,11 @@ func exportStatusLogs(c *Context, w http.ResponseWriter, r *http.Request) {
 	options := model.StatusLogGetOptions{
 		Page:     0,
 		PerPage:  0, // 0 means no limit for export
-		UserID:   query.Get("user_id"),
-		Username: query.Get("username"),
-		LogType:  query.Get("log_type"),
-		Status:   query.Get("status"),
-		Search:   query.Get("search"),
+		UserID:   sanitizeQueryParam(query.Get("user_id")),
+		Username: sanitizeQueryParam(query.Get("username")),
+		LogType:  sanitizeQueryParam(query.Get("log_type")),
+		Status:   sanitizeQueryParam(query.Get("status")),
+		Search:   sanitizeQueryParam(query.Get("search")),
 	}
 
 	if sinceStr := query.Get("since"); sinceStr != "" {
@@ -269,6 +270,13 @@ func createStatusNotificationRule(c *Context, w http.ResponseWriter, r *http.Req
 
 	// Set the creator to the current user
 	rule.CreatedBy = c.AppContext.Session().UserId
+
+	// Validate the rule before saving (PreSave sets ID, timestamps)
+	rule.PreSave()
+	if appErr := rule.IsValid(); appErr != nil {
+		c.Err = appErr
+		return
+	}
 
 	// Validate watched user and recipient exist
 	if _, appErr := c.App.GetUser(rule.WatchedUserID); appErr != nil {
@@ -411,4 +419,14 @@ func deleteStatusNotificationRule(c *Context, w http.ResponseWriter, r *http.Req
 	}
 
 	ReturnStatusOK(w)
+}
+
+func sanitizeQueryParam(s string) string {
+	s = strings.ReplaceAll(s, "'", "")
+	s = strings.ReplaceAll(s, "\"", "")
+	s = strings.ReplaceAll(s, ";", "")
+	s = strings.ReplaceAll(s, "--", "")
+	s = strings.ReplaceAll(s, "/*", "")
+	s = strings.ReplaceAll(s, "\\", "")
+	return s
 }
