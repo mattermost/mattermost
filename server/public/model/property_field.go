@@ -202,6 +202,8 @@ func (pf *PropertyField) Patch(patch *PropertyFieldPatch) {
 	}
 }
 
+const BoardAttributesPropertyGroupName = "board_attributes"
+
 type PropertyFieldSearchCursor struct {
 	PropertyFieldID string
 	CreateAt        int64

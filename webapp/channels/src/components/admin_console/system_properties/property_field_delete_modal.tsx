@@ -6,7 +6,7 @@ import {FormattedMessage, useIntl} from 'react-intl';
 import {useDispatch} from 'react-redux';
 
 import {GenericModal} from '@mattermost/components';
-import type {UserPropertyField} from '@mattermost/types/properties';
+import type {PropertyField} from '@mattermost/types/properties';
 
 import {openModal} from 'actions/views/modals';
 
@@ -17,19 +17,24 @@ type Props = {
     onConfirm: () => void;
     onCancel?: () => void;
     onExited: () => void;
+    messageId?: string;
+    messageDefault?: string;
 }
 
 const noop = () => {};
 
-export const useUserPropertyFieldDelete = () => {
+// Shared hook for property field deletion confirmation
+export const usePropertyFieldDelete = (messageId?: string, messageDefault?: string) => {
     const dispatch = useDispatch();
-    const promptDelete = (field: UserPropertyField) => {
+    const promptDelete = (field: PropertyField) => {
         return new Promise<boolean>((resolve) => {
             dispatch(openModal({
-                modalId: ModalIdentifiers.USER_PROPERTY_FIELD_DELETE,
-                dialogType: RemoveUserPropertyFieldModal,
+                modalId: ModalIdentifiers.PROPERTY_FIELD_DELETE,
+                dialogType: RemovePropertyFieldModal,
                 dialogProps: {
                     name: field.name,
+                    messageId,
+                    messageDefault,
                     onConfirm: () => resolve(true),
                 },
             }));
@@ -39,11 +44,13 @@ export const useUserPropertyFieldDelete = () => {
     return {promptDelete} as const;
 };
 
-function RemoveUserPropertyFieldModal({
+function RemovePropertyFieldModal({
     name,
     onExited,
     onCancel,
     onConfirm,
+    messageId = 'admin.system_properties.confirm.delete.text',
+    messageDefault = 'Deleting this attribute will remove all user-defined values associated with it.',
 }: Props) {
     const {formatMessage} = useIntl();
 
@@ -59,8 +66,8 @@ function RemoveUserPropertyFieldModal({
 
     const message = (
         <FormattedMessage
-            id={'admin.system_properties.confirm.delete.text'}
-            defaultMessage={'Deleting this attribute will remove all user-defined values associated with it.'}
+            id={messageId}
+            defaultMessage={messageDefault}
         />
     );
 
@@ -79,4 +86,4 @@ function RemoveUserPropertyFieldModal({
     );
 }
 
-export default RemoveUserPropertyFieldModal;
+export default RemovePropertyFieldModal;

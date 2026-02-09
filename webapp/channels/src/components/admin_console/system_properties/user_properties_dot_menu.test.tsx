@@ -28,7 +28,8 @@ describe('UserPropertyDotMenu', () => {
             visibility: 'when_set',
             value_type: '',
         },
-    };
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    } as any;
 
     const updateField = jest.fn();
     const deleteField = jest.fn();
@@ -187,8 +188,9 @@ describe('UserPropertyDotMenu', () => {
         // Wait for createField to be called
         await waitFor(() => {
             // Verify createField was called with the correct parameters
+            // Note: Duplicated fields get a new temporary ID, not the original ID
             expect(createField).toHaveBeenCalledWith(expect.objectContaining({
-                id: baseField.id,
+                id: expect.stringMatching(/^temp_\d+$/),
                 name: 'Test Field (copy)',
             }));
         });

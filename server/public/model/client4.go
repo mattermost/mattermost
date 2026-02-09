@@ -660,6 +660,18 @@ func (c *Client4) customProfileAttributeValuesRoute() clientRoute {
 	return c.customProfileAttributesRoute().Join("values")
 }
 
+func (c *Client4) boardAttributesRoute() clientRoute {
+	return newClientRoute("board_attributes")
+}
+
+func (c *Client4) boardAttributeFieldsRoute() clientRoute {
+	return c.boardAttributesRoute().Join("fields")
+}
+
+func (c *Client4) boardAttributeFieldRoute(fieldID string) clientRoute {
+	return c.boardAttributeFieldsRoute().Join(fieldID)
+}
+
 func (c *Client4) accessControlPoliciesRoute() clientRoute {
 	return newClientRoute("access_control_policies")
 }
@@ -7744,6 +7756,42 @@ func (c *Client4) PatchCPAValuesForUser(ctx context.Context, userID string, valu
 	}
 	defer closeBody(r)
 	return DecodeJSONFromResponse[map[string]json.RawMessage](r)
+}
+
+func (c *Client4) CreateBoardAttributeField(ctx context.Context, field *PropertyField) (*PropertyField, *Response, error) {
+	r, err := c.doAPIPostJSON(ctx, c.boardAttributeFieldsRoute(), field)
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+	return DecodeJSONFromResponse[*PropertyField](r)
+}
+
+func (c *Client4) ListBoardAttributeFields(ctx context.Context) ([]*PropertyField, *Response, error) {
+	r, err := c.doAPIGet(ctx, c.boardAttributeFieldsRoute(), "")
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+	return DecodeJSONFromResponse[[]*PropertyField](r)
+}
+
+func (c *Client4) PatchBoardAttributeField(ctx context.Context, fieldID string, patch *PropertyFieldPatch) (*PropertyField, *Response, error) {
+	r, err := c.doAPIPatchJSON(ctx, c.boardAttributeFieldRoute(fieldID), patch)
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+	return DecodeJSONFromResponse[*PropertyField](r)
+}
+
+func (c *Client4) DeleteBoardAttributeField(ctx context.Context, fieldID string) (*Response, error) {
+	r, err := c.doAPIDelete(ctx, c.boardAttributeFieldRoute(fieldID))
+	if err != nil {
+		return BuildResponse(r), err
+	}
+	defer closeBody(r)
+	return BuildResponse(r), nil
 }
 
 func (c *Client4) GetPostPropertyValues(ctx context.Context, postId string) ([]PropertyValue, *Response, error) {

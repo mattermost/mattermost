@@ -16,7 +16,7 @@ import Toggle from 'components/toggle';
 import {ModalIdentifiers} from 'utils/constants';
 
 import AttributeModal from './attribute_modal';
-import {useUserPropertyFieldDelete} from './user_properties_delete_modal';
+import {usePropertyFieldDelete} from './property_field_delete_modal';
 import {isCreatePending} from './user_properties_utils';
 
 import './user_properties_dot_menu.scss';
@@ -115,7 +115,7 @@ const DotMenu = ({
     deleteField,
 }: Props) => {
     const {formatMessage} = useIntl();
-    const {promptDelete} = useUserPropertyFieldDelete();
+    const {promptDelete} = usePropertyFieldDelete();
     const {promptEditLdapLink, promptEditSamlLink} = useAttributeLinkModal(field, updateField);
 
     const handleDuplicate = () => {
@@ -124,7 +124,18 @@ const DotMenu = ({
             defaultMessage: '{fieldName} (copy)',
         }, {fieldName: field.name});
 
-        createField({...field, attrs: {...field.attrs}, name});
+        // Create a new field with a new ID and reset create_at/delete_at to mark it as pending
+        createField({
+            ...field,
+            id: `temp_${Date.now()}`,
+            name,
+            attrs: {...field.attrs},
+            create_at: 0,
+            delete_at: 0,
+            update_at: 0,
+            created_by: '',
+            updated_by: '',
+        });
     };
 
     const handleDelete = () => {

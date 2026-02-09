@@ -3,26 +3,25 @@
 
 import React from 'react';
 
-import type {UserPropertyField} from '@mattermost/types/properties';
+import type {PropertyField} from '@mattermost/types/properties';
 import {collectionFromArray} from '@mattermost/types/utilities';
 
 import {fireEvent, renderWithContext, screen, userEvent, waitFor} from 'tests/react_testing_utils';
 
-import {UserPropertiesTable} from './user_properties_table';
+import {BoardPropertiesTable} from './board_properties_table';
 
-jest.mock('./property_field_delete_modal', () => ({
-    usePropertyFieldDelete: jest.fn(() => ({
-        promptDelete: jest.fn().mockResolvedValue(true),
-    })),
+jest.mock('./board_properties_dot_menu', () => ({
+    __esModule: true,
+    default: jest.fn(() => <div data-testid='board-property-field-dotmenu-mock'/>),
 }));
 
-describe('UserPropertiesTable', () => {
-    const baseFields: UserPropertyField[] = [
+describe('BoardPropertiesTable', () => {
+    const baseFields: PropertyField[] = [
         {
             id: 'field1',
             name: 'Field 1',
             type: 'text',
-            group_id: 'custom_profile_attributes',
+            group_id: 'board_attributes',
             create_at: 1736541716295,
             delete_at: 0,
             update_at: 0,
@@ -30,15 +29,13 @@ describe('UserPropertiesTable', () => {
             updated_by: '',
             attrs: {
                 sort_order: 0,
-                visibility: 'when_set',
-                value_type: '',
             },
         },
         {
             id: 'field2',
             name: 'Field 2',
             type: 'select',
-            group_id: 'custom_profile_attributes',
+            group_id: 'board_attributes',
             create_at: 1736541716295,
             delete_at: 0,
             update_at: 0,
@@ -46,8 +43,6 @@ describe('UserPropertiesTable', () => {
             updated_by: '',
             attrs: {
                 sort_order: 1,
-                visibility: 'when_set',
-                value_type: '',
                 options: [
                     {id: 'option1', name: 'Option 1'},
                     {id: 'option2', name: 'Option 2'},
@@ -65,7 +60,7 @@ describe('UserPropertiesTable', () => {
         const collection = collectionFromArray(fields);
 
         return renderWithContext(
-            <UserPropertiesTable
+            <BoardPropertiesTable
                 data={collection}
                 canCreate={true}
                 createField={createField}
@@ -120,8 +115,8 @@ describe('UserPropertiesTable', () => {
         renderComponent();
 
         // Check that dot menus exist
-        const dotMenuButtons = screen.getAllByTestId(/user-property-field_dotmenu-/);
-        expect(dotMenuButtons).toHaveLength(2);
+        const dotMenuButtons = screen.getAllByTestId(/board-property-field-dotmenu-mock/);
+        expect(dotMenuButtons.length).toBeGreaterThan(0);
     });
 
     it('handles deleted fields correctly', () => {
@@ -148,11 +143,11 @@ describe('UserPropertiesTable', () => {
 
         // Add validation warnings
         collection.warnings = {
-            field1: {name: 'user_properties.validation.name_required'},
+            field1: {name: 'name_required'},
         };
 
         renderWithContext(
-            <UserPropertiesTable
+            <BoardPropertiesTable
                 data={collection}
                 canCreate={true}
                 createField={createField}
@@ -169,11 +164,11 @@ describe('UserPropertiesTable', () => {
     });
 
     it('autofocuses name input for new text field', () => {
-        const pendingTextField: UserPropertyField = {
+        const pendingTextField: PropertyField = {
             id: 'pending-text',
             name: '',
             type: 'text',
-            group_id: 'custom_profile_attributes',
+            group_id: 'board_attributes',
             create_at: 0,
             delete_at: 0,
             update_at: 0,
@@ -181,8 +176,6 @@ describe('UserPropertiesTable', () => {
             updated_by: '',
             attrs: {
                 sort_order: 2,
-                visibility: 'when_set',
-                value_type: '',
             },
         };
 

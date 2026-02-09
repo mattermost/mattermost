@@ -158,6 +158,10 @@ type Routes struct {
 	CustomProfileAttributesField  *mux.Router // 'api/v4/custom_profile_attributes/fields/{field_id:[A-Za-z0-9]+}'
 	CustomProfileAttributesValues *mux.Router // 'api/v4/custom_profile_attributes/values'
 
+	BoardAttributes       *mux.Router // 'api/v4/board_attributes'
+	BoardAttributesFields *mux.Router // 'api/v4/board_attributes/fields'
+	BoardAttributesField  *mux.Router // 'api/v4/board_attributes/fields/{field_id:[A-Za-z0-9]+}'
+
 	AuditLogs *mux.Router // 'api/v4/audit_logs'
 
 	AccessControlPolicies *mux.Router // 'api/v4/access_control_policies'
@@ -310,6 +314,10 @@ func Init(srv *app.Server) (*API, error) {
 	api.BaseRoutes.CustomProfileAttributesField = api.BaseRoutes.CustomProfileAttributesFields.PathPrefix("/{field_id:[A-Za-z0-9]+}").Subrouter()
 	api.BaseRoutes.CustomProfileAttributesValues = api.BaseRoutes.CustomProfileAttributes.PathPrefix("/values").Subrouter()
 
+	api.BaseRoutes.BoardAttributes = api.BaseRoutes.APIRoot.PathPrefix("/board_attributes").Subrouter()
+	api.BaseRoutes.BoardAttributesFields = api.BaseRoutes.BoardAttributes.PathPrefix("/fields").Subrouter()
+	api.BaseRoutes.BoardAttributesField = api.BaseRoutes.BoardAttributesFields.PathPrefix("/{field_id:[A-Za-z0-9]+}").Subrouter()
+
 	api.BaseRoutes.AuditLogs = api.BaseRoutes.APIRoot.PathPrefix("/audit_logs").Subrouter()
 
 	api.BaseRoutes.AccessControlPolicies = api.BaseRoutes.APIRoot.PathPrefix("/access_control_policies").Subrouter()
@@ -371,6 +379,7 @@ func Init(srv *app.Server) (*API, error) {
 	api.InitClientPerformanceMetrics()
 	api.InitScheduledPost()
 	api.InitCustomProfileAttributes()
+	api.InitBoardAttributes()
 	api.InitAuditLogging()
 	api.InitAccessControlPolicy()
 	api.InitContentFlagging()
@@ -463,6 +472,10 @@ func InitLocal(srv *app.Server) *API {
 	api.BaseRoutes.CustomProfileAttributesField = api.BaseRoutes.CustomProfileAttributesFields.PathPrefix("/{field_id:[A-Za-z0-9]+}").Subrouter()
 	api.BaseRoutes.CustomProfileAttributesValues = api.BaseRoutes.CustomProfileAttributes.PathPrefix("/values").Subrouter()
 
+	api.BaseRoutes.BoardAttributes = api.BaseRoutes.APIRoot.PathPrefix("/board_attributes").Subrouter()
+	api.BaseRoutes.BoardAttributesFields = api.BaseRoutes.BoardAttributes.PathPrefix("/fields").Subrouter()
+	api.BaseRoutes.BoardAttributesField = api.BaseRoutes.BoardAttributesFields.PathPrefix("/{field_id:[A-Za-z0-9]+}").Subrouter()
+
 	api.BaseRoutes.AccessControlPolicies = api.BaseRoutes.APIRoot.PathPrefix("/access_control_policies").Subrouter()
 	api.BaseRoutes.AccessControlPolicy = api.BaseRoutes.APIRoot.PathPrefix("/access_control_policies/{policy_id:[A-Za-z0-9]+}").Subrouter()
 
@@ -487,6 +500,7 @@ func InitLocal(srv *app.Server) *API {
 	api.InitJobLocal()
 	api.InitSamlLocal()
 	api.InitCustomProfileAttributesLocal()
+	api.InitBoardAttributesLocal()
 	api.InitAccessControlPolicyLocal()
 
 	srv.LocalRouter.Handle("/api/v4/{anything:.*}", http.HandlerFunc(api.Handle404))

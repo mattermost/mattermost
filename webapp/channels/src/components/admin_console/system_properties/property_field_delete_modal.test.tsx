@@ -10,20 +10,20 @@ import {openModal} from 'actions/views/modals';
 import {renderHookWithContext, renderWithContext, screen, userEvent} from 'tests/react_testing_utils';
 import {ModalIdentifiers} from 'utils/constants';
 
-import RemoveUserPropertyFieldModal, {useUserPropertyFieldDelete} from './user_properties_delete_modal';
+import RemovePropertyFieldModal, {usePropertyFieldDelete} from './property_field_delete_modal';
 
 jest.mock('actions/views/modals', () => ({
     openModal: jest.fn(() => ({type: 'MOCK_OPEN_MODAL'})),
 }));
 
-describe('RemoveUserPropertyFieldModal', () => {
+describe('RemovePropertyFieldModal', () => {
     const onConfirm = jest.fn();
     const onCancel = jest.fn();
     const onExited = jest.fn();
 
     it('renders with the correct field name', () => {
         renderWithContext(
-            <RemoveUserPropertyFieldModal
+            <RemovePropertyFieldModal
                 name='Test Field'
                 onConfirm={onConfirm}
                 onCancel={onCancel}
@@ -38,7 +38,7 @@ describe('RemoveUserPropertyFieldModal', () => {
 
     it('calls onConfirm when confirm button is clicked', async () => {
         renderWithContext(
-            <RemoveUserPropertyFieldModal
+            <RemovePropertyFieldModal
                 name='Test Field'
                 onConfirm={onConfirm}
                 onCancel={onCancel}
@@ -52,7 +52,7 @@ describe('RemoveUserPropertyFieldModal', () => {
 
     it('calls onCancel when cancel button is clicked', async () => {
         renderWithContext(
-            <RemoveUserPropertyFieldModal
+            <RemovePropertyFieldModal
                 name='Test Field'
                 onConfirm={onConfirm}
                 onCancel={onCancel}
@@ -65,7 +65,7 @@ describe('RemoveUserPropertyFieldModal', () => {
     });
 });
 
-describe('useUserPropertyFieldDelete', () => {
+describe('usePropertyFieldDelete', () => {
     const baseField: UserPropertyField = {
         id: 'test-id',
         name: 'Test Field',
@@ -84,22 +84,24 @@ describe('useUserPropertyFieldDelete', () => {
     };
 
     it('calls openModal with correct params when promptDelete is called', () => {
-        const {result} = renderHookWithContext(() => useUserPropertyFieldDelete());
+        const {result} = renderHookWithContext(() => usePropertyFieldDelete());
 
         result.current.promptDelete(baseField);
 
         expect(openModal).toHaveBeenCalledWith({
-            modalId: ModalIdentifiers.USER_PROPERTY_FIELD_DELETE,
-            dialogType: RemoveUserPropertyFieldModal,
+            modalId: ModalIdentifiers.PROPERTY_FIELD_DELETE,
+            dialogType: RemovePropertyFieldModal,
             dialogProps: {
                 name: baseField.name,
+                messageId: undefined,
+                messageDefault: undefined,
                 onConfirm: expect.any(Function),
             },
         });
     });
 
     it('returns a promise that resolves when onConfirm is called', async () => {
-        const {result} = renderHookWithContext(() => useUserPropertyFieldDelete());
+        const {result} = renderHookWithContext(() => usePropertyFieldDelete());
 
         // Create a mock implementation that immediately calls the onConfirm callback
         (openModal as jest.Mock).mockImplementationOnce(({dialogProps}) => {

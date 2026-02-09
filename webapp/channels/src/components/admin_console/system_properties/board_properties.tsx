@@ -4,31 +4,31 @@
 import React from 'react';
 import {defineMessages} from 'react-intl';
 
-import type {UserPropertyField} from '@mattermost/types/properties';
+import type {PropertyField} from '@mattermost/types/properties';
 
 import {AttributesPanel} from './attributes_panel';
-import {userPropertyFieldConfig} from './user_properties_config';
-import {UserPropertiesTable} from './user_properties_table';
+import {boardPropertyFieldConfig} from './board_properties_config';
+import {BoardPropertiesTable} from './board_properties_table';
 
 import type {SearchableStrings} from '../types';
 
-export default function SystemProperties() {
+export default function BoardProperties() {
     return (
-        <AttributesPanel<UserPropertyField>
-            group_id={userPropertyFieldConfig.group_id}
+        <AttributesPanel<PropertyField>
+            group_id={boardPropertyFieldConfig.group_id}
             title={{
-                id: 'admin.system_properties.user_properties.title',
-                defaultMessage: 'Configure user attributes',
+                id: 'admin.system_properties.board_properties.title',
+                defaultMessage: 'Configure board attributes',
             }}
             subtitle={{
-                id: 'admin.system_properties.user_properties.subtitle',
-                defaultMessage: 'Attributes will be shown in user profile and can be used in access control policies.',
+                id: 'admin.system_properties.board_properties.subtitle',
+                defaultMessage: 'Customize the attributes available by default in cards across all boards.',
             }}
-            dataTestId='user_properties'
-            fieldConfig={userPropertyFieldConfig}
+            dataTestId='board_properties'
+            fieldConfig={boardPropertyFieldConfig}
             pageTitle={msg.pageTitle}
             renderTable={(tableProps) => (
-                <UserPropertiesTable
+                <BoardPropertiesTable
                     data={tableProps.data}
                     canCreate={tableProps.canCreate}
                     createField={tableProps.createField}
@@ -42,7 +42,7 @@ export default function SystemProperties() {
 }
 
 const msg = defineMessages({
-    pageTitle: {id: 'admin.sidebar.user_attributes', defaultMessage: 'User Attributes'},
+    pageTitle: {id: 'admin.sidebar.board_attributes', defaultMessage: 'Board Attributes'},
 });
 
 export const searchableStrings: SearchableStrings = Object.values(msg);
