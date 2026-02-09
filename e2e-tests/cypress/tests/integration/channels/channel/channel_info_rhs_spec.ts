@@ -207,7 +207,6 @@ describe('Channel Info RHS', () => {
                 cy.get('#channel-info-btn').click();
 
                 cy.apiPatchChannel(testChannel.id, {
-                    ...testChannel,
                     purpose: 'purpose for the tests',
                 }).then(() => {
                     cy.uiGetRHS().findByText('purpose for the tests').should('be.visible');
@@ -221,7 +220,6 @@ describe('Channel Info RHS', () => {
                 cy.get('#channel-info-btn').click();
 
                 cy.apiPatchChannel(testChannel.id, {
-                    ...testChannel,
                     header: 'header for the tests',
                 }).then(() => {
                     cy.uiGetRHS().findByText('header for the tests').should('be.visible');
@@ -433,7 +431,6 @@ describe('Channel Info RHS', () => {
                 cy.get('#channel-info-btn').click();
 
                 cy.apiPatchChannel(groupChannel.id, {
-                    ...groupChannel,
                     header: 'header for the tests',
                 }).then(() => {
                     cy.uiGetRHS().findByText('header for the tests').should('be.visible');
@@ -527,7 +524,6 @@ describe('Channel Info RHS', () => {
                 cy.get('#channel-info-btn').click();
 
                 cy.apiPatchChannel(directChannel.id, {
-                    ...directChannel,
                     header: 'header for the tests',
                 }).then(() => {
                     cy.uiGetRHS().findByText('header for the tests').should('be.visible');

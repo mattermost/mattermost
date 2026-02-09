@@ -2785,6 +2785,7 @@ func (s *LocalizationSettings) SetDefaults() {
 
 type AutoTranslationSettings struct {
 	Enable          *bool                           `access:"site_localization,cloud_restrictable"`
+	RestrictDMAndGM *bool                           `access:"site_localization,cloud_restrictable"`
 	Provider        *string                         `access:"site_localization,cloud_restrictable"`
 	TargetLanguages *[]string                       `access:"site_localization,cloud_restrictable"`
 	Workers         *int                            `access:"site_localization,cloud_restrictable"`
@@ -2833,6 +2834,10 @@ func (s *AutoTranslationSettings) SetDefaults() {
 		s.Agents = &AgentsProviderSettings{}
 	}
 	s.Agents.SetDefaults()
+
+	if s.RestrictDMAndGM == nil {
+		s.RestrictDMAndGM = NewPointer(false)
+	}
 }
 
 func (s *LibreTranslateProviderSettings) SetDefaults() {
