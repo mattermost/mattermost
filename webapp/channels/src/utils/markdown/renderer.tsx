@@ -260,6 +260,10 @@ export default class Renderer extends marked.Renderer {
             this.emojiMap,
         );
     }
+
+    public spoiler(text: string) {
+        return '<span class="markdown-spoiler" data-spoiler="true">' + text + '</span>';
+    }
 }
 
 // Marked helper functions that should probably just be exported

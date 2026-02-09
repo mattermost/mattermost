@@ -33,6 +33,7 @@ export function formatWithRenderer(text: string, renderer: marked.Renderer) {
         tables: true,
         mangle: false,
         inlinelatex: config.EnableLatex === 'true' && config.EnableInlineLatex === 'true',
+        spoiler: config.FeatureFlagSpoilers === 'true',
         urlFilter,
     };
 
