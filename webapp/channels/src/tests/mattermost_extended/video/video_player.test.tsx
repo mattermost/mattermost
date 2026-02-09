@@ -20,6 +20,20 @@ jest.mock('components/file_preview_modal', () => ({
     default: () => <div data-testid='file-preview-modal'>Preview Modal</div>,
 }));
 
+// Mock useEncryptedFile hook (uses useSelector/useDispatch which require Redux Provider)
+jest.mock('components/file_attachment/use_encrypted_file', () => ({
+    useEncryptedFile: () => ({
+        isEncrypted: false,
+        fileUrl: undefined,
+        thumbnailUrl: undefined,
+        status: undefined,
+        error: undefined,
+        originalFileInfo: undefined,
+        decrypt: jest.fn(),
+    }),
+    useIsFileEncrypted: () => false,
+}));
+
 describe('VideoPlayer', () => {
     const mockOpenModal = jest.fn();
 

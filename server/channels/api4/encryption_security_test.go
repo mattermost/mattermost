@@ -265,7 +265,8 @@ func TestEncryptionAdminDeleteUserKeysIsolation(t *testing.T) {
 		checkStatusCode(t, resp, err, http.StatusOK)
 		closeIfOpen(resp, err)
 
-		th.LoginBasic2(t)
+		// Don't re-login as BasicUser2 - th.Client is already authenticated from LoginBasic2 above.
+		// Re-logging would create a new session, but the key was registered on the previous session.
 		resp, err = th.Client.DoAPIGet(context.Background(), "/encryption/publickey", "")
 		checkStatusCode(t, resp, err, http.StatusOK)
 		defer closeIfOpen(resp, err)
