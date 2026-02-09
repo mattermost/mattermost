@@ -122,6 +122,16 @@ export function makeGetDraft() {
                 retrievedDraft = {...retrievedDraft, fileInfos: retrievedDraft.metadata.files};
             }
 
+            // Mattermost Extended - Extract spoiler file IDs from post props when editing
+            if (!retrievedDraft.spoilerFileIds && retrievedDraft.props?.spoiler_files) {
+                const spoilerFileIds = Object.keys(retrievedDraft.props.spoiler_files).filter(
+                    (id) => retrievedDraft.props.spoiler_files[id] === true,
+                );
+                if (spoilerFileIds.length > 0) {
+                    retrievedDraft = {...retrievedDraft, spoilerFileIds};
+                }
+            }
+
             // Check if the draft has the required values in its properties
             const isDraftWithRequiredValues = typeof retrievedDraft.message !== 'undefined' && typeof retrievedDraft.uploadsInProgress !== 'undefined' && typeof retrievedDraft.fileInfos !== 'undefined';
 

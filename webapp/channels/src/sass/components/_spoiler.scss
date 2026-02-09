@@ -1,6 +1,6 @@
 // Spoiler text styles (||spoiler|| markdown)
 .markdown-spoiler {
-    background-color: rgba(var(--center-channel-color-rgb), 0.8);
+    background-color: var(--center-channel-color);
     color: transparent;
     border-radius: 3px;
     padding: 0 4px;
@@ -41,7 +41,6 @@
 .multi-image-spoiler-wrapper,
 .video-player-spoiler-wrapper {
     position: relative;
-    overflow: hidden;
 
     &--blurred {
         cursor: pointer;
@@ -78,24 +77,6 @@
         padding: 6px 12px;
         border-radius: 4px;
         background: rgba(var(--center-channel-bg-rgb), 0.7);
-    }
-}
-
-// Spoiler toggle in file preview (upload area)
-.file-preview__spoiler-toggle {
-    cursor: pointer;
-    padding: 4px;
-    margin-left: 4px;
-    color: rgba(var(--center-channel-color-rgb), 0.56);
-    display: inline-flex;
-    align-items: center;
-
-    &:hover {
-        color: rgba(var(--center-channel-color-rgb), 0.8);
-    }
-
-    i {
-        font-size: 16px;
     }
 }
 

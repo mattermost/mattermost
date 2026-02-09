@@ -198,7 +198,33 @@ const useSubmit = (
         try {
             let response;
             if (isInEditMode) {
-                response = await dispatch(editPost({...submittingDraft, id: postId}));
+                // Mattermost Extended - Attach spoiler_files to post props for edit
+                let editDraft = submittingDraft;
+                if (editDraft.spoilerFileIds && editDraft.spoilerFileIds.length > 0) {
+                    const spoilerFilesMap: Record<string, boolean> = {};
+                    for (const fileId of editDraft.spoilerFileIds) {
+                        if (editDraft.fileInfos.some((fi) => fi.id === fileId)) {
+                            spoilerFilesMap[fileId] = true;
+                        }
+                    }
+                    editDraft = {
+                        ...editDraft,
+                        props: {
+                            ...editDraft.props,
+                            spoiler_files: Object.keys(spoilerFilesMap).length > 0 ? spoilerFilesMap : undefined,
+                        },
+                    };
+                } else if (editDraft.props?.spoiler_files) {
+                    // All spoilers removed - clear the prop
+                    editDraft = {
+                        ...editDraft,
+                        props: {
+                            ...editDraft.props,
+                            spoiler_files: undefined,
+                        },
+                    };
+                }
+                response = await dispatch(editPost({...editDraft, id: postId}));
                 handleFileChange(submittingDraft);
             } else {
                 response = await dispatch(onSubmit(submittingDraft, options, schedulingInfo));

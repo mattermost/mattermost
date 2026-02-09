@@ -122,21 +122,22 @@ export default class FilePreview extends React.PureComponent<Props> {
                             </div>
                         </div>
                         <div>
-                            {Boolean(this.props.onToggleSpoiler) && (
-                                <a
-                                    className='file-preview__spoiler-toggle'
-                                    onClick={() => this.props.onToggleSpoiler?.(info.id)}
-                                    title={isSpoilered ? 'Remove spoiler' : 'Mark as spoiler'}
-                                >
-                                    <i className={isSpoilered ? 'icon icon-eye-off-outline' : 'icon icon-eye-outline'}/>
-                                </a>
-                            )}
                             {Boolean(this.props.onRemove) && (
                                 <a
                                     className='file-preview__remove'
                                     onClick={this.handleRemove.bind(this, info.id)}
                                 >
                                     <i className='icon icon-close'/>
+                                </a>
+                            )}
+                            {Boolean(this.props.onToggleSpoiler) && (
+                                <a
+                                    className='file-preview__remove'
+                                    style={{right: '32px'}}
+                                    onClick={() => this.props.onToggleSpoiler?.(info.id)}
+                                    title={isSpoilered ? 'Remove spoiler' : 'Mark as spoiler'}
+                                >
+                                    <i className={isSpoilered ? 'icon icon-eye-off-outline' : 'icon icon-eye-outline'}/>
                                 </a>
                             )}
                         </div>
