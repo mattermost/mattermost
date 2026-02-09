@@ -454,6 +454,88 @@ function Get-PluginSettingsFromBackup {
     return $null
 }
 
+function New-PluginBundles {
+    <#
+    .SYNOPSIS
+    Creates .tar.gz bundles for plugin directories in the file store.
+    Mattermost's syncPlugins removes all extracted directories and reinstalls
+    only from .tar.gz bundles. Plugins without bundles are lost on restart.
+
+    Handles two types of plugin directories:
+    1. Full plugins with plugin.json - bundles them directly
+    2. Webapp-only storage dirs (just _bundle.js) - generates a minimal manifest
+       and restructures into a proper plugin archive
+    #>
+    param(
+        [Parameter(Mandatory=$true)]
+        [string]$PluginsDir
+    )
+
+    if (!(Test-Path $PluginsDir)) { return 0 }
+
+    $created = 0
+    $pluginDirs = Get-ChildItem -Path $PluginsDir -Directory -ErrorAction SilentlyContinue
+    foreach ($dir in $pluginDirs) {
+        $tarGz = Join-Path $PluginsDir "$($dir.Name).tar.gz"
+        if (Test-Path $tarGz) { continue }
+
+        $pluginId = $dir.Name
+        $hasManifest = (Test-Path (Join-Path $dir.FullName "plugin.json")) -or (Test-Path (Join-Path $dir.FullName "plugin.yaml"))
+
+        if ($hasManifest) {
+            # Full plugin with manifest - bundle directly
+            $tarResult = & tar -czf $tarGz -C $PluginsDir $pluginId 2>&1
+            if ($LASTEXITCODE -eq 0) {
+                $created++
+                "Created plugin bundle: $pluginId.tar.gz" | Out-File $LOG_FILE -Append -Encoding UTF8
+            } else {
+                "Failed to create bundle for $pluginId`: $tarResult" | Out-File $LOG_FILE -Append -Encoding UTF8
+            }
+        } else {
+            # Webapp-only storage dir (contains <hash>_bundle.js from file store)
+            # Generate a minimal manifest and restructure into proper plugin format
+            $bundleJs = Get-ChildItem -Path $dir.FullName -Filter "*_bundle.js" -File -ErrorAction SilentlyContinue | Select-Object -First 1
+            if (!$bundleJs) { continue }
+
+            $tempDir = Join-Path ([System.IO.Path]::GetTempPath()) "pluginbuild_$pluginId"
+            try {
+                if (Test-Path $tempDir) { Remove-Item $tempDir -Recurse -Force }
+                $pluginRoot = Join-Path $tempDir $pluginId
+                $webappDist = Join-Path $pluginRoot "webapp\dist"
+                New-Item -ItemType Directory -Path $webappDist -Force | Out-Null
+
+                # Generate minimal plugin.json manifest
+                $pluginName = ($pluginId -replace '^com\.(github|mattermost|example)\.', '' -replace '[-_]', ' ')
+                $pluginName = (Get-Culture).TextInfo.ToTitleCase($pluginName)
+                $manifest = @{
+                    id = $pluginId
+                    name = $pluginName
+                    version = "1.0.0"
+                    min_server_version = "7.0.0"
+                    webapp = @{}
+                } | ConvertTo-Json -Depth 5
+                [System.IO.File]::WriteAllText((Join-Path $pluginRoot "plugin.json"), $manifest)
+
+                # Copy the webapp bundle as main.js
+                Copy-Item $bundleJs.FullName (Join-Path $webappDist "main.js")
+
+                # Create the tar.gz
+                $tarResult = & tar -czf $tarGz -C $tempDir $pluginId 2>&1
+                if ($LASTEXITCODE -eq 0) {
+                    $created++
+                    "Created webapp plugin bundle: $pluginId.tar.gz (from _bundle.js)" | Out-File $LOG_FILE -Append -Encoding UTF8
+                } else {
+                    "Failed to create webapp bundle for $pluginId`: $tarResult" | Out-File $LOG_FILE -Append -Encoding UTF8
+                    if (Test-Path $tarGz) { Remove-Item $tarGz -Force -ErrorAction SilentlyContinue }
+                }
+            } finally {
+                if (Test-Path $tempDir) { Remove-Item $tempDir -Recurse -Force -ErrorAction SilentlyContinue }
+            }
+        }
+    }
+    return $created
+}
+
 function Build-LocalConfig {
     <#
     .SYNOPSIS
@@ -507,10 +589,12 @@ function Build-LocalConfig {
     $config['LogSettings']['FileLocation'] = "$workDirUnix"
 
     # PluginSettings - local paths (preserves plugin configs and states from production)
+    # IMPORTANT: Directory must be separate from the file store's plugins/ path (data/plugins/)
+    # to avoid conflicts where syncPlugins tries to install into the same dir it reads from
     $config['PluginSettings']['Enable'] = $true
     $config['PluginSettings']['EnableUploads'] = $true
-    $config['PluginSettings']['Directory'] = "$workDirUnix/data/plugins"
-    $config['PluginSettings']['ClientDirectory'] = "$workDirUnix/data/client/plugins"
+    $config['PluginSettings']['Directory'] = "$workDirUnix/plugins"
+    $config['PluginSettings']['ClientDirectory'] = "$workDirUnix/client/plugins"
 
     # EmailSettings - disable sending (keeps other email settings from production)
     $config['EmailSettings']['SendEmailNotifications'] = $false
@@ -800,7 +884,7 @@ function Invoke-Setup {
         Log "No data directory in backup, created empty data directory."
     }
 
-    # Ensure plugin directories exist
+    # Ensure file store plugin directory exists (data/plugins/ for .tar.gz bundles)
     $pluginsDir = Join-Path $dataDir "plugins"
     $clientPluginsDir = Join-Path $dataDir "client\plugins"
     if (!(Test-Path $pluginsDir)) {
@@ -810,12 +894,35 @@ function Invoke-Setup {
         New-Item -ItemType Directory -Path $clientPluginsDir -Force | Out-Null
     }
 
+    # Ensure runtime plugin directories exist (separate from file store)
+    $runtimePluginsDir = Join-Path $WORK_DIR "plugins"
+    $runtimeClientPluginsDir = Join-Path $WORK_DIR "client\plugins"
+    if (!(Test-Path $runtimePluginsDir)) { New-Item -ItemType Directory -Path $runtimePluginsDir -Force | Out-Null }
+    if (!(Test-Path $runtimeClientPluginsDir)) { New-Item -ItemType Directory -Path $runtimeClientPluginsDir -Force | Out-Null }
+
+    # Copy S3 cache plugin bundles into file store (real .tar.gz from production)
+    $s3CachePlugins = Join-Path $WORK_DIR "s3-cache\plugins"
+    if (Test-Path $s3CachePlugins) {
+        $s3Bundles = Get-ChildItem -Path $s3CachePlugins -Filter "*.tar.gz" -File -ErrorAction SilentlyContinue
+        foreach ($bundle in $s3Bundles) {
+            Copy-Item $bundle.FullName (Join-Path $pluginsDir $bundle.Name) -Force
+        }
+        if ($s3Bundles.Count -gt 0) {
+            Log "Copied $($s3Bundles.Count) plugin bundles from S3 cache."
+        }
+    }
+
     # Check if plugins were restored from backup
     $pluginCount = (Get-ChildItem -Path $pluginsDir -Directory -ErrorAction SilentlyContinue).Count
     if ($pluginCount -eq 0) {
         Log-Warning "No plugins found in backup. Run './local-test.ps1 s3-sync' to download plugins from S3."
     } else {
-        Log "Found $pluginCount plugins in backup."
+        Log "Found $pluginCount plugin directories in file store."
+        # Create .tar.gz bundles for plugins that don't have one yet
+        $bundlesCreated = New-PluginBundles -PluginsDir $pluginsDir
+        if ($bundlesCreated -gt 0) {
+            Log "Created $bundlesCreated plugin bundles (needed for server sync)."
+        }
     }
 
     # [5/5] Create config file (production config with local overrides)
@@ -835,7 +942,8 @@ function Invoke-Setup {
     Log "PostgreSQL running on port $PG_PORT"
     Log "Data directory: $WORK_DIR\data"
     Log "Config file: $WORK_DIR\config.json"
-    Log "Plugins directory: $WORK_DIR\data\plugins"
+    Log "Plugins file store: $WORK_DIR\data\plugins"
+    Log "Plugins runtime:    $WORK_DIR\plugins"
     Log ""
     Log "Next steps:"
     Log "  1. Build the server: ./local-test.ps1 build"
@@ -1235,15 +1343,35 @@ function Invoke-Stop {
     Log-Success "Stopped."
 }
 
+function Stop-MattermostProcessTree {
+    <#
+    .SYNOPSIS
+    Kills mattermost.exe and all child processes (plugin subprocesses).
+    Mattermost plugins run as separate processes (plugin-windows-amd64.exe)
+    that hold file locks and must be killed together with the parent.
+    #>
+    $mmProc = Get-Process -Name "mattermost" -ErrorAction SilentlyContinue
+    if ($mmProc) {
+        # taskkill /t kills the entire process tree including plugin subprocesses
+        foreach ($p in $mmProc) {
+            & taskkill /t /f /pid $p.Id 2>&1 | Out-Null
+        }
+        $mmProc | Wait-Process -Timeout 10 -ErrorAction SilentlyContinue
+    }
+    # Also kill any orphaned plugin processes
+    Get-Process -Name "plugin-windows-amd64" -ErrorAction SilentlyContinue |
+        Stop-Process -Force -ErrorAction SilentlyContinue
+    Start-Sleep -Milliseconds 500
+    return ($null -ne $mmProc)
+}
+
 function Invoke-Kill {
     Log ""
     Log "=== Killing Mattermost Server ==="
     Log ""
 
-    $process = Get-Process -Name "mattermost" -ErrorAction SilentlyContinue
-    if ($process) {
-        Stop-Process -Name "mattermost" -Force
-        Log-Success "Mattermost server killed."
+    if (Stop-MattermostProcessTree) {
+        Log-Success "Mattermost server and plugin processes killed."
     } else {
         Log "No running mattermost.exe found."
     }
@@ -1545,12 +1673,12 @@ function Invoke-Demo {
         'FileLocation' = "$workDirUnix"
     }
 
-    # PluginSettings
+    # PluginSettings - separate from file store (data/plugins/) to avoid sync conflicts
     $config['PluginSettings'] = [ordered]@{
         'Enable' = $true
         'EnableUploads' = $true
-        'Directory' = "$workDirUnix/data/plugins"
-        'ClientDirectory' = "$workDirUnix/data/client/plugins"
+        'Directory' = "$workDirUnix/plugins"
+        'ClientDirectory' = "$workDirUnix/client/plugins"
     }
 
     # EmailSettings - enable email/username login
@@ -1662,10 +1790,14 @@ function Invoke-Demo {
     $dataDir = Join-Path $WORK_DIR "data"
     $pluginsDir = Join-Path $dataDir "plugins"
     $clientPluginsDir = Join-Path $dataDir "client\plugins"
+    $runtimePluginsDir = Join-Path $WORK_DIR "plugins"
+    $runtimeClientPluginsDir = Join-Path $WORK_DIR "client\plugins"
 
     New-Item -ItemType Directory -Path $dataDir -Force | Out-Null
     New-Item -ItemType Directory -Path $pluginsDir -Force | Out-Null
     New-Item -ItemType Directory -Path $clientPluginsDir -Force | Out-Null
+    New-Item -ItemType Directory -Path $runtimePluginsDir -Force | Out-Null
+    New-Item -ItemType Directory -Path $runtimeClientPluginsDir -Force | Out-Null
     Log-Success "Data directories created."
 
     # [4/6] Build server
@@ -1844,11 +1976,10 @@ function Invoke-All {
             $taskWebapp = if ($script:AllState.BuildWebapp) { $ctx.AddTask("[green]Webapp build[/]") } else { $null }
             $taskCopy = if ($script:AllState.BuildWebapp) { $ctx.AddTask("[blue]Copy webapp[/]") } else { $null }
 
-            # Task 1: Kill server
+            # Task 1: Kill server (including plugin subprocesses)
             $taskKill.StartTask()
-            $process = Get-Process -Name "mattermost" -ErrorAction SilentlyContinue
-            if ($process) { Stop-Process -Name "mattermost" -Force }
-            "Killed mattermost process" | Out-File $LOG_FILE -Append -Encoding UTF8
+            Stop-MattermostProcessTree | Out-Null
+            "Killed mattermost process tree" | Out-File $LOG_FILE -Append -Encoding UTF8
             $taskKill.Increment(100)
 
             # Task 2: Clean database
@@ -1856,7 +1987,17 @@ function Invoke-All {
             docker rm -f $PG_CONTAINER 2>$null | Out-Null
             if (Test-Path $pgDataPath) { Remove-Item -Path $pgDataPath -Recurse -Force }
             if (Test-Path $backupDir) { Remove-Item -Path $backupDir -Recurse -Force }
-            if (Test-Path $dataDir) { Remove-Item -Path $dataDir -Recurse -Force }
+            if (Test-Path $dataDir) {
+                # Retry removal - plugin .exe files may still be locked briefly after process exit
+                for ($retry = 0; $retry -lt 3; $retry++) {
+                    try {
+                        Remove-Item -Path $dataDir -Recurse -Force -ErrorAction Stop
+                        break
+                    } catch {
+                        if ($retry -lt 2) { Start-Sleep -Seconds 2 } else { throw }
+                    }
+                }
+            }
             if (!(Test-Path $WORK_DIR)) { New-Item -ItemType Directory -Path $WORK_DIR -Force | Out-Null }
             "Cleaned database container and local data" | Out-File $LOG_FILE -Append -Encoding UTF8
             $taskClean.Increment(100)
@@ -1982,10 +2123,24 @@ function Invoke-All {
                 "Copied S3 cache into data" | Out-File $LOG_FILE -Append -Encoding UTF8
             }
 
+            # File store plugin dir (data/plugins/ for .tar.gz bundles)
             $pluginsDir = Join-Path $dataDir "plugins"
             $clientPluginsDir = Join-Path $dataDir "client\plugins"
             if (!(Test-Path $pluginsDir)) { New-Item -ItemType Directory -Path $pluginsDir -Force | Out-Null }
             if (!(Test-Path $clientPluginsDir)) { New-Item -ItemType Directory -Path $clientPluginsDir -Force | Out-Null }
+
+            # Runtime plugin dirs (separate from file store)
+            $runtimePluginsDir = Join-Path $WORK_DIR "plugins"
+            $runtimeClientPluginsDir = Join-Path $WORK_DIR "client\plugins"
+            if (!(Test-Path $runtimePluginsDir)) { New-Item -ItemType Directory -Path $runtimePluginsDir -Force | Out-Null }
+            if (!(Test-Path $runtimeClientPluginsDir)) { New-Item -ItemType Directory -Path $runtimeClientPluginsDir -Force | Out-Null }
+
+            # Create .tar.gz bundles for plugins that don't have one yet
+            # (Mattermost syncPlugins removes extracted dirs and only reinstalls from bundles)
+            $bundlesCreated = New-PluginBundles -PluginsDir $pluginsDir
+            if ($bundlesCreated -gt 0) {
+                "Created $bundlesCreated plugin bundles" | Out-File $LOG_FILE -Append -Encoding UTF8
+            }
 
             # Build config from production backup with local overrides
             $config = Build-LocalConfig
@@ -2079,14 +2234,23 @@ function Invoke-All {
         }
 
         Show-Task "Kill server" "running"
-        $process = Get-Process -Name "mattermost" -ErrorAction SilentlyContinue
-        if ($process) { Stop-Process -Name "mattermost" -Force }
+        Stop-MattermostProcessTree | Out-Null
 
         Show-Task "Clean database" "running"
         docker rm -f $PG_CONTAINER 2>$null | Out-Null
         if (Test-Path $pgDataPath) { Remove-Item -Path $pgDataPath -Recurse -Force }
         if (Test-Path $backupDir) { Remove-Item -Path $backupDir -Recurse -Force }
-        if (Test-Path $dataDir) { Remove-Item -Path $dataDir -Recurse -Force }
+        if (Test-Path $dataDir) {
+            # Retry removal - plugin .exe files may still be locked briefly after process exit
+            for ($retry = 0; $retry -lt 3; $retry++) {
+                try {
+                    Remove-Item -Path $dataDir -Recurse -Force -ErrorAction Stop
+                    break
+                } catch {
+                    if ($retry -lt 2) { Start-Sleep -Seconds 2 } else { throw }
+                }
+            }
+        }
         if (!(Test-Path $WORK_DIR)) { New-Item -ItemType Directory -Path $WORK_DIR -Force | Out-Null }
 
         $dockerCheck = docker info 2>&1
@@ -2153,9 +2317,20 @@ function Invoke-All {
         $s3CacheDir = Join-Path $WORK_DIR "s3-cache"
         if (Test-Path $s3CacheDir) { Copy-Item -Path "$s3CacheDir\*" -Destination $dataDir -Recurse -Force -ErrorAction SilentlyContinue }
 
+        # File store plugin dir
         $pluginsDir = Join-Path $dataDir "plugins"; $clientPluginsDir = Join-Path $dataDir "client\plugins"
         if (!(Test-Path $pluginsDir)) { New-Item -ItemType Directory -Path $pluginsDir -Force | Out-Null }
         if (!(Test-Path $clientPluginsDir)) { New-Item -ItemType Directory -Path $clientPluginsDir -Force | Out-Null }
+
+        # Runtime plugin dirs (separate from file store)
+        $runtimePluginsDir = Join-Path $WORK_DIR "plugins"
+        $runtimeClientPluginsDir = Join-Path $WORK_DIR "client\plugins"
+        if (!(Test-Path $runtimePluginsDir)) { New-Item -ItemType Directory -Path $runtimePluginsDir -Force | Out-Null }
+        if (!(Test-Path $runtimeClientPluginsDir)) { New-Item -ItemType Directory -Path $runtimeClientPluginsDir -Force | Out-Null }
+
+        # Create .tar.gz bundles for plugins that don't have one yet
+        $bundlesCreated = New-PluginBundles -PluginsDir $pluginsDir
+        if ($bundlesCreated -gt 0) { Write-Host "  Created $bundlesCreated plugin bundles" -ForegroundColor DarkGray }
 
         $config = Build-LocalConfig
         $configPath = Join-Path $WORK_DIR "config.json"
