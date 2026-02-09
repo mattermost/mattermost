@@ -1,6 +1,8 @@
 services:
   postgres:
-    image: "postgres:14"
+    build:
+      context: .
+      dockerfile: ./Dockerfile.postgres
     restart: always
     networks:
       - mm-test
