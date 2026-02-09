@@ -262,6 +262,15 @@ const FEATURES: FeatureDefinition[] = [
         icon: EyeOffOutlineIcon,
         isMajor: false,
     },
+    {
+        key: 'SmoothScrolling',
+        title: 'Smooth Scrolling',
+        description: 'CSS-based scroll anchoring for buttery smooth post list scrolling. Eliminates jank from image loading, reactions, embeds, and encrypted file decryption.',
+        defaultValue: false,
+        section: 'ux',
+        icon: PaletteOutlineIcon,
+        isMajor: true,
+    },
 
     // Status & Activity
     {

@@ -162,6 +162,9 @@ type FeatureFlags struct {
 
 	// Enable spoiler tags for text (||spoiler||) and blur overlays for images/videos
 	Spoilers bool
+
+	// Enable smooth scrolling with CSS overflow-anchor for buttery smooth post list scrolling
+	SmoothScrolling bool
 }
 
 // featureFlagDefaults defines the default value for each boolean feature flag.
