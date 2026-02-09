@@ -1201,6 +1201,10 @@ func (a *App) SwitchOAuthToEmail(rctx request.CTX, email, password, requesterId 
 		return "", model.NewAppError("SwitchOAuthToEmail", "api.user.oauth_to_email.context.app_error", nil, "", http.StatusForbidden)
 	}
 
+	if !user.IsOAuthUser() && !user.IsSAMLUser() {
+		return "", model.NewAppError("SwitchOAuthToEmail", "api.user.oauth_to_email.not_oauth_user.app_error", nil, "", http.StatusBadRequest)
+	}
+
 	if err := a.UpdatePassword(rctx, user, password); err != nil {
 		return "", err
 	}

@@ -8180,10 +8180,6 @@
     "translation": "Вы не будзеце атрымліваць апавяшчэнні для {{.Channel}}, пакуль адключаны гук канала."
   },
   {
-    "id": "api.command_mute.not_member.error",
-    "translation": "Немагчыма адключыць гук у канале {{.Channel}}, бо вы не з'яўляецеся яго ўдзельнікам."
-  },
-  {
     "id": "api.command_mute.no_channel.error",
     "translation": "Немагчыма знайсці ўказаны канал. Калі ласка, выкарыстоўвайце [ідэнтыфікатар канала](https://docs.mattermost.com/messaging/managing-channels.html#naming-a-channel), каб ідэнтыфікаваць каналы."
   },
@@ -8546,10 +8542,6 @@
   {
     "id": "api.saml.invalid_email_token.app_error",
     "translation": "Няправільны email_token"
-  },
-  {
-    "id": "api.server.cws.health_check.app_error",
-    "translation": "Сервер CWS недаступны."
   },
   {
     "id": "api.server.cws.needs_enterprise_edition",
@@ -10484,10 +10476,6 @@
     "translation": "Немагчыма адмяніць прызначэнне палітыкі кантролю доступу ад каналаў."
   },
   {
-    "id": "app.pap.update_access_control_policy_active.app_error",
-    "translation": "Немагчыма змяніць актыўны статус палітыкі кантролю доступу."
-  },
-  {
     "id": "app.pdp.access_evaluation.app_error",
     "translation": "Не атрымалася ацаніць палітыку кантролю доступу."
   },
@@ -10952,18 +10940,6 @@
     "translation": "Непадтрымоўваны пастаўшчык аўтаматычнага перакладу."
   },
   {
-    "id": "model.config.is_valid.autotranslation.timeouts.fetch.app_error",
-    "translation": "Несапраўдны час чакання атрымання для налад аўтаматычнага перакладу. Павінна быць станоўчым лікам."
-  },
-  {
-    "id": "model.config.is_valid.autotranslation.timeouts.new_post.app_error",
-    "translation": "Несапраўдны час чакання новага паведамлення для налад аўтаматычнага перакладу. Павінна быць станоўчым лікам."
-  },
-  {
-    "id": "model.config.is_valid.autotranslation.timeouts.notification.app_error",
-    "translation": "Несапраўдны час чакання апавяшчэння для налад аўтаматычнага перакладу. Павінна быць станоўчым лікам."
-  },
-  {
     "id": "api.channel.get_channel.flagged_post_mismatch.app_error",
     "translation": "Ідэнтыфікатар канала не супадае з ідэнтыфікатарам маркіраванага паведамлення."
   },
@@ -11386,66 +11362,6 @@
   {
     "id": "model.post.query_params.invalid_time_field",
     "translation": "Няслушнае поле часу."
-  },
-  {
-    "id": "store.sql_autotranslation.channel_not_found",
-    "translation": "Канал не знойдзены."
-  },
-  {
-    "id": "store.sql_autotranslation.get.app_error",
-    "translation": "Немагчыма атрымаць пераклад."
-  },
-  {
-    "id": "store.sql_autotranslation.get_active_languages.app_error",
-    "translation": "Немагчыма атрымаць актыўныя мовы."
-  },
-  {
-    "id": "store.sql_autotranslation.get_channel_enabled.app_error",
-    "translation": "Немагчыма атрымаць статус уключэння аўтаперакладу канала."
-  },
-  {
-    "id": "store.sql_autotranslation.get_user_enabled.app_error",
-    "translation": "Немагчыма атрымаць статус уключэння аўтаперакладу карыстальніка."
-  },
-  {
-    "id": "store.sql_autotranslation.get_user_language.app_error",
-    "translation": "Немагчыма атрымаць мову карыстальніка."
-  },
-  {
-    "id": "store.sql_autotranslation.is_channel_enabled.app_error",
-    "translation": "Немагчыма атрымаць статус уключэння аўтаперакладу канала."
-  },
-  {
-    "id": "store.sql_autotranslation.member_not_found",
-    "translation": "Удзельнік не знойдзены."
-  },
-  {
-    "id": "store.sql_autotranslation.meta_json.app_error",
-    "translation": "Не атрымалася прааналізаваць JSON метададзеных перакладу."
-  },
-  {
-    "id": "store.sql_autotranslation.query_build_error",
-    "translation": "Не атрымалася стварыць запыт."
-  },
-  {
-    "id": "store.sql_autotranslation.save.app_error",
-    "translation": "Немагчыма захаваць пераклад."
-  },
-  {
-    "id": "store.sql_autotranslation.save.invalid_translation",
-    "translation": "Праверка перакладу не ўдалася. Аб'ект перакладу няслушны."
-  },
-  {
-    "id": "store.sql_autotranslation.save.meta_json.app_error",
-    "translation": "Не атрымалася серыялізаваць метададзеныя перакладу ў JSON."
-  },
-  {
-    "id": "store.sql_autotranslation.set_channel_enabled.app_error",
-    "translation": "Немагчыма ўсталяваць статус уключэння аўтаперакладу канала."
-  },
-  {
-    "id": "store.sql_autotranslation.set_user_enabled.app_error",
-    "translation": "Немагчыма ўсталяваць статус уключэння аўтаперакладу карыстальніка."
   },
   {
     "id": "api.post.burn_post.user_not_in_channel.app_error",

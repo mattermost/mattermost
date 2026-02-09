@@ -117,7 +117,7 @@ export type ChannelDetailsActions = {
     getChannel: (channelId: string) => void;
     getTeam: (teamId: string) => Promise<ActionResult>;
     getChannelModerations: (channelId: string) => Promise<ActionResult>;
-    patchChannel: (channelId: string, patch: Channel) => Promise<ActionResult>;
+    patchChannel: (channelId: string, patch: Partial<Channel>) => Promise<ActionResult>;
     updateChannelPrivacy: (channelId: string, privacy: string) => Promise<ActionResult>;
     patchGroupSyncable: (groupID: string, syncableID: string, syncableType: SyncableType, patch: Partial<SyncablePatch>) => Promise<ActionResult>;
     patchChannelModerations: (channelID: string, patch: ChannelModerationPatch[]) => Promise<ActionResult>;
@@ -556,7 +556,6 @@ export default class ChannelDetails extends React.PureComponent<ChannelDetailsPr
 
         // Then patch the channel
         const patchResult = await actions.patchChannel(channel.id, {
-            ...channel,
             group_constrained: isSynced,
         });
 
