@@ -45,6 +45,7 @@ function EncryptedSingleFileView({
     enableSVGs,
     videoEmbedEnabled,
     maxVideoHeight,
+    isSpoilered,
 }: {
     fileInfo: FileInfo;
     postId: string;
@@ -61,6 +62,7 @@ function EncryptedSingleFileView({
     enableSVGs: boolean;
     videoEmbedEnabled: boolean;
     maxVideoHeight?: number;
+    isSpoilered?: boolean;
 }) {
     const {
         originalFileInfo,
@@ -136,6 +138,7 @@ function EncryptedSingleFileView({
                 index={0}
                 maxHeight={maxVideoHeight}
                 compactDisplay={compactDisplay}
+                isSpoilered={isSpoilered}
             />
         );
     }
@@ -149,6 +152,7 @@ function EncryptedSingleFileView({
                 compactDisplay={compactDisplay}
                 isInPermalink={isInPermalink}
                 disableActions={disableActions}
+                isSpoilered={isSpoilered}
             />
         );
     }
@@ -210,6 +214,13 @@ export default function FileAttachmentList(props: Props) {
         return null;
     }
 
+    // Mattermost Extended - Spoiler file IDs from post.props
+    const spoilerFilesProps = props.post?.props?.spoiler_files as Record<string, boolean> | undefined;
+    const isFileSpoilered = (fi: FileInfo): boolean => {
+        return Boolean(spoilerFilesProps?.[fi.id]);
+    };
+    const spoilerFileIdsList = spoilerFilesProps ? Object.keys(spoilerFilesProps) : undefined;
+
     // Comprehensive encrypted file check using all available indicators:
     // 1. MIME type (application/x-penc) - for files with correct server MIME
     // 2. Filename pattern (encrypted_*.penc) - for files with correct naming
@@ -262,6 +273,7 @@ export default function FileAttachmentList(props: Props) {
                 enableSVGs={enableSVGs}
                 videoEmbedEnabled={videoEmbedEnabled}
                 maxVideoHeight={maxVideoHeight}
+                isSpoilered={isFileSpoilered(fileInfos[0])}
             />
         );
     }
@@ -277,6 +289,7 @@ export default function FileAttachmentList(props: Props) {
                     index={0}
                     maxHeight={maxVideoHeight}
                     compactDisplay={compactDisplay}
+                    isSpoilered={isFileSpoilered(fileInfos[0])}
                 />
             );
         }
@@ -295,6 +308,7 @@ export default function FileAttachmentList(props: Props) {
                     compactDisplay={compactDisplay}
                     isInPermalink={isInPermalink}
                     disableActions={props.disableActions}
+                    isSpoilered={isFileSpoilered(fileInfos[0])}
                 />
             );
         }
@@ -354,6 +368,7 @@ export default function FileAttachmentList(props: Props) {
                     postId={props.post.id}
                     compactDisplay={compactDisplay}
                     isInPermalink={isInPermalink}
+                    spoilerFileIds={spoilerFileIdsList}
                 />
             );
         }
@@ -419,6 +434,7 @@ export default function FileAttachmentList(props: Props) {
                                 index={originalIndex}
                                 maxHeight={maxVideoHeight}
                                 compactDisplay={compactDisplay}
+                                isSpoilered={isFileSpoilered(fileInfo)}
                             />
                         </div>,
                     );
@@ -459,6 +475,7 @@ export default function FileAttachmentList(props: Props) {
                             index={i}
                             maxHeight={maxVideoHeight}
                             compactDisplay={compactDisplay}
+                            isSpoilered={isFileSpoilered(fileInfo)}
                         />
                     </div>,
                 );
