@@ -216,6 +216,14 @@
     "translation": "Back to {{.SiteName}}"
   },
   {
+    "id": "api.board_attributes.invalid_field_patch",
+    "translation": "Invalid board attribute field patch"
+  },
+  {
+    "id": "api.board_attributes.license_error",
+    "translation": "Your license does not support Board Attributes."
+  },
+  {
     "id": "api.bot.create_disabled",
     "translation": "Bot creation has been disabled."
   },
@@ -1960,14 +1968,6 @@
   {
     "id": "api.custom_profile_attributes.license_error",
     "translation": "Your license does not support Custom Profile Attributes."
-  },
-  {
-    "id": "api.board_attributes.license_error",
-    "translation": "Your license does not support Board Attributes."
-  },
-  {
-    "id": "api.board_attributes.invalid_field_patch",
-    "translation": "Invalid board attribute field patch"
   },
   {
     "id": "api.custom_status.disabled",
@@ -4895,6 +4895,26 @@
     "translation": "We encountered an error saving the audit."
   },
   {
+    "id": "app.board_attributes.count_property_fields.app_error",
+    "translation": "Unable to count the number of fields for the board attributes group"
+  },
+  {
+    "id": "app.board_attributes.group_id.app_error",
+    "translation": "Cannot register Board Attributes property group"
+  },
+  {
+    "id": "app.board_attributes.limit_reached.app_error",
+    "translation": "Board Attributes field limit reached"
+  },
+  {
+    "id": "app.board_attributes.patch_validation.app_error",
+    "translation": "Invalid board attribute field patch"
+  },
+  {
+    "id": "app.board_attributes.search_property_fields.app_error",
+    "translation": "Unable to search board attribute fields"
+  },
+  {
     "id": "app.bot.createbot.internal_error",
     "translation": "Unable to save the bot."
   },
@@ -5599,10 +5619,6 @@
     "translation": "Cannot register Custom Profile Attributes property group"
   },
   {
-    "id": "app.custom_profile_attributes.create_property_field.app_error",
-    "translation": "Unable to create Custom Profile Attribute field"
-  },
-  {
     "id": "app.custom_profile_attributes.delete_property_values_for_user.app_error",
     "translation": "Unable to delete Custom Profile Attribute Values for user"
   },
@@ -5627,10 +5643,6 @@
     "translation": "Unable to convert the property field to a custom profile attribute field"
   },
   {
-    "id": "app.custom_profile_attributes.property_field_delete.app_error",
-    "translation": "Unable to delete Custom Profile Attribute field"
-  },
-  {
     "id": "app.custom_profile_attributes.property_field_is_managed.app_error",
     "translation": "Cannot update value for an admin-managed Custom Profile Attribute field"
   },
@@ -5641,10 +5653,6 @@
   {
     "id": "app.custom_profile_attributes.property_field_not_found.app_error",
     "translation": "Custom Profile Attribute field not found"
-  },
-  {
-    "id": "app.custom_profile_attributes.property_field_update.app_error",
-    "translation": "Unable to update Custom Profile Attribute field"
   },
   {
     "id": "app.custom_profile_attributes.property_value_upsert.app_error",
@@ -7369,26 +7377,6 @@
   {
     "id": "app.property_field.update.name_conflict.app_error",
     "translation": "Cannot update property to \"{{.Name}}\": a property with this name already exists at the {{.ConflictLevel}} level."
-  },
-  {
-    "id": "app.property_field.create_property_field.app_error",
-    "translation": "Unable to create attribute field"
-  },
-  {
-    "id": "app.property_field.property_field_update.app_error",
-    "translation": "Unable to update attribute field"
-  },
-  {
-    "id": "app.property_field.property_field_delete.app_error",
-    "translation": "Unable to delete attribute field"
-  },
-  {
-    "id": "app.property_field.get_property_field.app_error",
-    "translation": "Unable to get attribute field"
-  },
-  {
-    "id": "app.property_field.property_field_not_found.app_error",
-    "translation": "Attribute field not found"
   },
   {
     "id": "app.reaction.bulk_get_for_post_ids.app_error",
