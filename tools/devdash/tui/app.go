@@ -20,6 +20,7 @@ type FocusArea int
 
 const (
 	FocusGrid FocusArea = iota
+	FocusTabBar
 	FocusLog
 )
 
@@ -41,10 +42,11 @@ type App struct {
 	focusedProc string // process ID shown in log
 
 	// UI state
-	focus    FocusArea
-	showHelp bool
-	width    int
-	height   int
+	focus         FocusArea
+	focusedTabIdx int // selected tab index when FocusTabBar
+	showHelp      bool
+	width         int
+	height        int
 
 	// Favorites: set of "repo:target" strings
 	favorites map[string]bool
@@ -253,8 +255,10 @@ func (a *App) handleKey(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 			a.cursorCol = 0
 			return a, nil
 		}
-		if a.logVisible && a.focus == FocusLog {
+		if a.focus == FocusTabBar {
 			a.focus = FocusGrid
+		} else if a.logVisible && a.focus == FocusLog {
+			a.focus = FocusTabBar
 		} else if a.logVisible {
 			a.logVisible = false
 			a.focus = FocusGrid
@@ -314,6 +318,55 @@ func (a *App) handleKey(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 			a.switchLogTab(idx)
 			return a, nil
 		}
+	}
+
+	// Tab bar navigation
+	if a.focus == FocusTabBar {
+		ids := a.orderedProcessIDs()
+		if len(ids) == 0 {
+			a.focus = FocusGrid
+			return a, nil
+		}
+		switch {
+		case key.Matches(msg, a.keys.Up):
+			// Back to grid (last visible row)
+			a.focus = FocusGrid
+			a.snapCursorToLastVisible()
+			return a, nil
+		case key.Matches(msg, a.keys.Left):
+			if a.focusedTabIdx > 0 {
+				a.focusedTabIdx--
+			} else {
+				a.focusedTabIdx = len(ids) - 1
+			}
+			a.focusedProc = ids[a.focusedTabIdx]
+			a.logPanel.SetProcess(a.focusedProc)
+			a.logVisible = true
+			a.logPanel.SetSize(a.width, a.logPanelHeight())
+			return a, nil
+		case key.Matches(msg, a.keys.Right):
+			if a.focusedTabIdx < len(ids)-1 {
+				a.focusedTabIdx++
+			} else {
+				a.focusedTabIdx = 0
+			}
+			a.focusedProc = ids[a.focusedTabIdx]
+			a.logPanel.SetProcess(a.focusedProc)
+			a.logVisible = true
+			a.logPanel.SetSize(a.width, a.logPanelHeight())
+			return a, nil
+		case key.Matches(msg, a.keys.Execute):
+			// Enter input mode for the focused tab
+			if a.focusedProc != "" {
+				a.logPanel.inputting = true
+				a.focus = FocusLog
+			}
+			return a, nil
+		case key.Matches(msg, a.keys.Escape):
+			a.focus = FocusGrid
+			return a, nil
+		}
+		return a, nil
 	}
 
 	// Log viewport scrolling and input mode when focused
@@ -621,7 +674,7 @@ func (a *App) dismissProcess() {
 // Works from both grid cursor and focused log tab.
 func (a *App) runOrRestart() {
 	// Repo name selected from grid — open a shell
-	if a.focus != FocusLog && a.cursorCol == -1 {
+	if a.focus == FocusGrid && a.cursorCol == -1 {
 		a.openShellForRepo()
 		return
 	}
@@ -631,7 +684,7 @@ func (a *App) runOrRestart() {
 	var target string
 	var isNpm bool
 
-	if a.focus == FocusLog && a.focusedProc != "" {
+	if (a.focus == FocusLog || a.focus == FocusTabBar) && a.focusedProc != "" {
 		// From log tab: look up process info from manager
 		proc, ok := a.procMgr.Get(a.focusedProc)
 		if !ok {
@@ -825,6 +878,39 @@ func (a *App) enterGridSearch() {
 	a.gridSearchInput.Focus()
 }
 
+// enterTabBar focuses the tab bar, selecting the current focused proc's tab.
+func (a *App) enterTabBar() {
+	ids := a.orderedProcessIDs()
+	if len(ids) == 0 {
+		return
+	}
+	a.focus = FocusTabBar
+	// Find the index of the currently focused proc
+	a.focusedTabIdx = 0
+	for i, id := range ids {
+		if id == a.focusedProc {
+			a.focusedTabIdx = i
+			break
+		}
+	}
+	a.focusedProc = ids[a.focusedTabIdx]
+	a.logPanel.SetProcess(a.focusedProc)
+	a.logVisible = true
+	a.logPanel.SetSize(a.width, a.logPanelHeight())
+}
+
+// snapCursorToLastVisible moves cursor to the last visible row.
+func (a *App) snapCursorToLastVisible() {
+	for r := len(a.repos) - 1; r >= 0; r-- {
+		cells, _ := a.displayCellsForRow(r)
+		if len(cells) > 0 {
+			a.cursorRow = r
+			a.clampCol()
+			return
+		}
+	}
+}
+
 // snapCursorToFirstMatch moves cursor to the first row/col with matching cells.
 func (a *App) snapCursorToFirstMatch() {
 	a.cursorCol = 0
@@ -840,7 +926,7 @@ func (a *App) snapCursorToFirstMatch() {
 }
 
 // moveCursorDown moves cursor down, skipping rows with no matching cells when filtering.
-// Wraps to the first visible row when at the bottom.
+// At the bottom, enters the tab bar if tabs exist, otherwise wraps to the top.
 func (a *App) moveCursorDown() {
 	for r := a.cursorRow + 1; r < len(a.repos); r++ {
 		cells, _ := a.displayCellsForRow(r)
@@ -850,7 +936,13 @@ func (a *App) moveCursorDown() {
 			return
 		}
 	}
-	// Wrap to first visible row
+	// At the bottom — enter tab bar if tabs exist
+	ids := a.orderedProcessIDs()
+	if len(ids) > 0 {
+		a.enterTabBar()
+		return
+	}
+	// Otherwise wrap to first visible row
 	for r := 0; r < a.cursorRow; r++ {
 		cells, _ := a.displayCellsForRow(r)
 		if len(cells) > 0 {
@@ -1172,6 +1264,13 @@ func (a *App) View() string {
 		keys = []string{"Enter Run", "Esc Cancel"}
 	} else if a.logPanel.inputting {
 		keys = []string{"Enter Send", "Esc Exit"}
+	} else if a.focus == FocusTabBar {
+		keys = []string{
+			"←/→ Switch", "Enter Input",
+			"r Run", "s Stop", "x Dismiss",
+			"↑ Grid", "Esc Grid",
+			"? Help", "q Quit",
+		}
 	} else if a.logVisible {
 		keys = []string{
 			"1-9 Tab", "i Input",
@@ -1241,7 +1340,7 @@ func (a *App) View() string {
 		a.gridSearchQuery,
 		a.procMgr.ProcessState,
 		a.focusedProc,
-		a.gridSearching || (a.logVisible && a.focus == FocusLog),
+		a.gridSearching || a.focus == FocusTabBar || (a.logVisible && a.focus == FocusLog),
 		a.showOnlyFavorites,
 	)
 	a.hitZones = hitZones
@@ -1257,7 +1356,7 @@ func (a *App) View() string {
 		}
 		b.WriteString(lipgloss.NewStyle().Foreground(lipgloss.Color("237")).Render(strings.Repeat("─", a.width)))
 		b.WriteString("\n")
-		b.WriteString(RenderTabBar(tabs, a.focusedProc, a.focus == FocusLog, a.logPanel.inputting))
+		b.WriteString(RenderTabBar(tabs, a.focusedProc, a.focus == FocusLog || a.focus == FocusTabBar, a.logPanel.inputting))
 		b.WriteString("\n")
 	}
 
