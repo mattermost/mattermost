@@ -3,11 +3,15 @@
 
 package model
 
-import "net/http"
+import (
+	"encoding/json"
+	"net/http"
+)
 
 const (
 	PreferenceCategoryEncryption = "encryption"
 	PreferenceNamePublicKey      = "public_key"
+	EncryptionPublicKeyMaxSize   = 10 * 1024
 )
 
 // EncryptionSessionKey represents a public encryption key tied to a specific session.
@@ -76,10 +80,30 @@ func (r *EncryptionPublicKeyRequest) IsValid() *AppError {
 	if r.PublicKey == "" {
 		return NewAppError("EncryptionPublicKeyRequest.IsValid", "model.encryption_key.is_valid.public_key.app_error", nil, "", http.StatusBadRequest)
 	}
+
+	if len(r.PublicKey) > EncryptionPublicKeyMaxSize {
+		return NewAppError("EncryptionPublicKeyRequest.IsValid", "model.encryption_key.is_valid.public_key_too_large.app_error", nil, "", http.StatusBadRequest)
+	}
+
 	// Basic validation - JWK should be JSON
 	if len(r.PublicKey) < 10 || r.PublicKey[0] != '{' {
 		return NewAppError("EncryptionPublicKeyRequest.IsValid", "model.encryption_key.is_valid.public_key_format.app_error", nil, "", http.StatusBadRequest)
 	}
+
+	var jwk map[string]interface{}
+	if err := json.Unmarshal([]byte(r.PublicKey), &jwk); err != nil {
+		return NewAppError("EncryptionPublicKeyRequest.IsValid", "model.encryption_key.is_valid.public_key_parse.app_error", nil, "", http.StatusBadRequest)
+	}
+
+	kty, ok := jwk["kty"].(string)
+	if !ok {
+		return NewAppError("EncryptionPublicKeyRequest.IsValid", "model.encryption_key.is_valid.public_key_kty_missing.app_error", nil, "", http.StatusBadRequest)
+	}
+
+	if kty != "RSA" && kty != "EC" && kty != "OKP" {
+		return NewAppError("EncryptionPublicKeyRequest.IsValid", "model.encryption_key.is_valid.public_key_kty_invalid.app_error", nil, "", http.StatusBadRequest)
+	}
+
 	return nil
 }
 

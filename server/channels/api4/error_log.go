@@ -6,6 +6,7 @@ package api4
 import (
 	"encoding/json"
 	"net/http"
+	"strings"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
@@ -62,7 +63,7 @@ func reportError(c *Context, w http.ResponseWriter, r *http.Request) {
 		UserAgent:      r.Header.Get("User-Agent"),
 		ComponentStack: report.ComponentStack,
 		Extra:          report.Extra,
-		RequestPayload: report.RequestPayload,
+		RequestPayload: redactRequestPayload(report.RequestPayload),
 		ResponseBody:   report.ResponseBody,
 	}
 
@@ -133,4 +134,42 @@ func clearErrorLogs(c *Context, w http.ResponseWriter, r *http.Request) {
 	c.App.Srv().Platform().ClearErrorLogs()
 
 	ReturnStatusOK(w)
+}
+
+func redactRequestPayload(payload string) string {
+	if payload == "" {
+		return ""
+	}
+	var data map[string]interface{}
+	if err := json.Unmarshal([]byte(payload), &data); err != nil {
+		return payload
+	}
+
+	sensitiveFields := []string{"password", "token", "secret", "api_key", "authorization"}
+
+	var redact func(m map[string]interface{})
+	redact = func(m map[string]interface{}) {
+		for k, v := range m {
+			isSensitive := false
+			for _, sensitive := range sensitiveFields {
+				if strings.EqualFold(k, sensitive) {
+					isSensitive = true
+					break
+				}
+			}
+			if isSensitive {
+				m[k] = "[REDACTED]"
+			} else if nested, ok := v.(map[string]interface{}); ok {
+				redact(nested)
+			}
+		}
+	}
+
+	redact(data)
+
+	res, err := json.Marshal(data)
+	if err != nil {
+		return payload
+	}
+	return string(res)
 }
