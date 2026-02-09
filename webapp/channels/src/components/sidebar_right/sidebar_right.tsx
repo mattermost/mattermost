@@ -312,11 +312,11 @@ export default class SidebarRight extends React.PureComponent<Props, State> {
             return (
                 <>
                     <div
-                        className={'sidebar--right sidebar--right--width-holder'}
+                        className={'sidebar--right sidebar--right--width-holder sidebar--right--persistent'}
                         ref={this.sidebarRightWidthHolder}
                     />
                     <ResizableRhs
-                        className='sidebar--right move--left is-open'
+                        className='sidebar--right sidebar--right--persistent move--left is-open'
                         id='sidebar-right'
                         role='region'
                         rightWidthHolderRef={this.sidebarRightWidthHolder}

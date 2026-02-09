@@ -311,6 +311,14 @@
     }
 }
 
+// Persistent RHS: fixed width, no expand/resize transitions
+.sidebar--right--persistent {
+    width: 304px !important;
+    min-width: 304px !important;
+    max-width: 304px !important;
+    transition: none !important;
+}
+
 // global header style adjustments
 @media screen and (min-width: 769px) {
     // adjust RHS position and height

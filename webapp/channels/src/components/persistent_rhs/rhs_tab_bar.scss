@@ -4,6 +4,7 @@
 .rhs-tab-bar {
     display: flex;
     height: 56px; // Match channel-header max-height
+    flex-shrink: 0;
     align-items: stretch;
     padding: 0;
     border-bottom: 1px solid rgba(var(--center-channel-color-rgb), 0.12);

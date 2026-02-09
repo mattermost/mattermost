@@ -15,6 +15,7 @@
     &__header {
         display: flex;
         height: 56px;
+        flex-shrink: 0;
         align-items: center;
         padding: 12px;
         border-bottom: 1px solid rgba(var(--center-channel-color-rgb), 0.12);
