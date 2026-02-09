@@ -26,6 +26,7 @@ export type PostDraft = {
     updateAt: number;
     show?: boolean;
     type?: PostType;
+    spoilerFileIds?: string[];
     metadata?: {
         priority?: {
             priority: PostPriority|'';

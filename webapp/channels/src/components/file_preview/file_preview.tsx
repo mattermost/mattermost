@@ -26,6 +26,8 @@ export type FilePreviewInfo = FileInfo & UploadInfo;
 type Props = {
     enableSVGs: boolean;
     onRemove?: (id: string) => void;
+    onToggleSpoiler?: (id: string) => void;
+    spoilerFileIds?: string[];
     fileInfos: FilePreviewInfo[];
     uploadsInProgress?: string[];
     uploadsProgressPercent?: {[clientID: string]: FilePreviewInfo};
@@ -48,10 +50,14 @@ export default class FilePreview extends React.PureComponent<Props> {
         this.props.fileInfos.forEach((info) => {
             const type = Utils.getFileType(info.extension);
             const isEncrypted = isEncryptedFile(info);
+            const isSpoilered = this.props.spoilerFileIds?.includes(info.id) ?? false;
 
             let className = 'file-preview post-image__column';
             if (isEncrypted) {
                 className += ' file-preview--encrypted';
+            }
+            if (isSpoilered) {
+                className += ' file-preview--spoilered';
             }
             let previewImage;
 
@@ -116,6 +122,15 @@ export default class FilePreview extends React.PureComponent<Props> {
                             </div>
                         </div>
                         <div>
+                            {Boolean(this.props.onToggleSpoiler) && (
+                                <a
+                                    className='file-preview__spoiler-toggle'
+                                    onClick={() => this.props.onToggleSpoiler?.(info.id)}
+                                    title={isSpoilered ? 'Remove spoiler' : 'Mark as spoiler'}
+                                >
+                                    <i className={isSpoilered ? 'icon icon-eye-off-outline' : 'icon icon-eye-outline'}/>
+                                </a>
+                            )}
                             {Boolean(this.props.onRemove) && (
                                 <a
                                     className='file-preview__remove'
