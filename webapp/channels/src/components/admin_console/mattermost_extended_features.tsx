@@ -120,6 +120,15 @@ const FEATURES: FeatureDefinition[] = [
         isMajor: true,
     },
 
+    {
+        key: 'Spoilers',
+        title: 'Spoiler Tags',
+        description: 'Enable spoiler tags for text (||spoiler||) and blur overlays for images/videos. Users can click to reveal hidden content.',
+        defaultValue: false,
+        section: 'security',
+        icon: EyeOffOutlineIcon,
+    },
+
     // Layout & Navigation
     {
         key: 'GuildedChatLayout',
