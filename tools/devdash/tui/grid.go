@@ -54,13 +54,32 @@ func buildGridCells(repo *model.Repo) []GridCell {
 			Target: t.Name,
 		})
 	}
+	// npm run scripts — labeled "run:<name>"
+	scriptNames := make(map[string]bool)
 	for _, s := range repo.NpmScripts {
+		scriptNames[s.Name] = true
 		cells = append(cells, GridCell{
-			Label:  "npm:" + s.Name,
+			Label:  "run:" + s.Name,
 			IsNpm:  true,
 			Target: s.Name,
 		})
 	}
+
+	// Built-in npm commands — labeled "npm:<cmd>", target prefixed with @
+	if repo.PackageJSON != "" {
+		for _, cmd := range []string{"install", "ci", "start", "test", "build"} {
+			// Skip if already defined as a user script
+			if scriptNames[cmd] {
+				continue
+			}
+			cells = append(cells, GridCell{
+				Label:  "npm:" + cmd,
+				IsNpm:  true,
+				Target: "@" + cmd,
+			})
+		}
+	}
+
 	return cells
 }
 

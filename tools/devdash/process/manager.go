@@ -3,6 +3,7 @@ package process
 import (
 	"fmt"
 	"path/filepath"
+	"strings"
 	"sync"
 	"time"
 
@@ -53,6 +54,9 @@ func (m *Manager) SetProgram(p *tea.Program) {
 // CommandFor returns the command string that would be executed for a target.
 func CommandFor(repo *model.Repo, targetName string, isNpm bool) string {
 	if isNpm {
+		if strings.HasPrefix(targetName, "@") {
+			return fmt.Sprintf("npm %s", strings.TrimPrefix(targetName, "@"))
+		}
 		return fmt.Sprintf("npm run %s", targetName)
 	}
 	return fmt.Sprintf("make -C %s %s", repo.Path, targetName)
@@ -88,7 +92,12 @@ func (m *Manager) Start(repo *model.Repo, targetName string, isNpm bool) error {
 	var cmdStr string
 	var dir string
 	if isNpm {
-		cmdStr = fmt.Sprintf("npm run %s", targetName)
+		if strings.HasPrefix(targetName, "@") {
+			// Direct npm command: npm install, npm ci, etc.
+			cmdStr = fmt.Sprintf("npm %s", strings.TrimPrefix(targetName, "@"))
+		} else {
+			cmdStr = fmt.Sprintf("npm run %s", targetName)
+		}
 		dir = filepath.Dir(repo.PackageJSON)
 	} else {
 		cmdStr = fmt.Sprintf("make -C %s %s", repo.Path, targetName)
