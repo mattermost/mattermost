@@ -27,7 +27,7 @@ type GridCell struct {
 	IsSep     bool   // separator between favorites and the rest
 }
 
-const repoColWidth = 16
+const repoColWidth = 22
 
 // cellID returns a unique key for a cell within a repo.
 // Uses "repo:npm:name" for npm scripts, "repo:name" for make targets.
@@ -134,8 +134,8 @@ type chipInfo struct {
 func renderGridRow(repo *model.Repo, cells []GridCell, cursorCol int, isActiveRow bool, width int, hScroll int, procStateFn func(string) model.ProcessState, favorites map[string]bool, hitZones *[]HitZone, rowY int, repoIdx int, focusedProc string, logFocusActive bool) string {
 	// Repo name column (fixed, never scrolls) — with extra spacing
 	nameStr := repo.Name
-	if len(nameStr) > 13 {
-		nameStr = nameStr[:12] + "~"
+	if len(nameStr) > 18 {
+		nameStr = nameStr[:17] + "~"
 	}
 
 	var nameRendered string
@@ -340,7 +340,8 @@ func renderGrid(repos []model.Repo, cursorRow, cursorCol int, width, maxLines, s
 	rowY := 0
 	lineCount := 0
 	if hasAbove {
-		lineCount++ // account for scroll-up indicator
+		rowY++       // scroll-up indicator takes a line
+		lineCount++
 	}
 	visibleIdx := 0 // count of visible repo rows encountered
 	prevKind := model.RepoKind(-1)

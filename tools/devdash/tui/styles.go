@@ -34,17 +34,20 @@ var (
 	repoNameStyle = lipgloss.NewStyle().
 			Bold(true).
 			Foreground(lipgloss.Color("15")).
-			Width(14)
+			Width(20).
+			MaxWidth(20)
 
 	repoNameActiveStyle = lipgloss.NewStyle().
 				Bold(true).
 				Foreground(colorPrimary).
-				Width(14)
+				Width(20).
+				MaxWidth(20)
 
 	repoNameSelectedStyle = lipgloss.NewStyle().
 				Bold(true).
 				Reverse(true).
-				Width(14)
+				Width(20).
+				MaxWidth(20)
 
 	// Target chip (base)
 	chipStyle = lipgloss.NewStyle().
