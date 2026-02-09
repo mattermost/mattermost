@@ -212,10 +212,6 @@ export default class PostList extends React.PureComponent<Props, State> {
     }
 
     getSnapshotBeforeUpdate(prevProps: Props) {
-        if (this.props.smoothScrolling) {
-            return null;
-        }
-
         if (this.postListRef && this.postListRef.current) {
             const postsAddedAtTop = this.props.postListIds && this.props.postListIds.length !== (prevProps.postListIds || []).length && this.props.postListIds[0] === (prevProps.postListIds || [])[0];
             const channelHeaderAdded = this.props.atOldestPost !== prevProps.atOldestPost;
@@ -253,8 +249,17 @@ export default class PostList extends React.PureComponent<Props, State> {
             if ((postsAddedAtTop || channelHeaderAdded) && !this.state.atBottom && snapshot) {
                 const scrollValue = snapshot.previousScrollTop + (postlistScrollHeight - snapshot.previousScrollHeight);
                 if (scrollValue !== 0 && (scrollValue - snapshot.previousScrollTop) !== 0) {
-                    //true as third param so chrome can use animationFrame when correcting scroll
-                    this.listRef.current?.scrollTo(scrollValue, scrollValue - snapshot.previousScrollTop, true);
+                    if (this.props.smoothScrolling) {
+                        // Direct scrollTop assignment — avoids the scrollTo → scrollBy
+                        // path that can double-correct when overflow-anchor is active.
+                        const scrollContainer = this.postListRef.current.parentElement;
+                        if (scrollContainer) {
+                            scrollContainer.scrollTop = scrollValue;
+                        }
+                    } else {
+                        //true as third param so chrome can use animationFrame when correcting scroll
+                        this.listRef.current?.scrollTo(scrollValue, scrollValue - snapshot.previousScrollTop, true);
+                    }
                 }
             }
         }

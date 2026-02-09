@@ -27,6 +27,7 @@ export class DynamicVirtualizedList extends PureComponent {
     _keepScrollToBottom = false;
     _mountingCorrections = 0;
     _correctedInstances = 0;
+    _wasAtBottom = true;
 
     static defaultProps = {
         innerTagName: 'div',
@@ -134,12 +135,6 @@ export class DynamicVirtualizedList extends PureComponent {
     }
 
     getSnapshotBeforeUpdate(_, prevState) {
-        // With smooth scrolling, CSS overflow-anchor handles scroll correction
-        // for older posts loading, so no snapshot is needed.
-        if (this.props.smoothScrolling) {
-            return null;
-        }
-
         if (prevState.localOlderPostsToRender[0] !== this.state.localOlderPostsToRender[0] ||
             prevState.localOlderPostsToRender[1] !== this.state.localOlderPostsToRender[1]
         ) {
@@ -212,11 +207,18 @@ export class DynamicVirtualizedList extends PureComponent {
 
             const scrollValue = snapshot.previousScrollTop + (postlistScrollHeight - snapshot.previousScrollHeight);
 
-            this.scrollTo(
-                scrollValue,
-                scrollValue - snapshot.previousScrollTop,
-                true,
-            );
+            if (this.props.smoothScrolling) {
+                // Direct scrollTop assignment — safe with overflow-anchor since
+                // both calculate the same target value. Avoids the heavy
+                // scrollTo → setState → scrollBy path that can double-correct.
+                this._outerRef.scrollTop = scrollValue;
+            } else {
+                this.scrollTo(
+                    scrollValue,
+                    scrollValue - snapshot.previousScrollTop,
+                    true,
+                );
+            }
         }
     }
 
@@ -492,18 +494,14 @@ export class DynamicVirtualizedList extends PureComponent {
         const element = this._outerRef;
 
         // When smooth scrolling is enabled, CSS overflow-anchor handles content
-        // resize automatically. Update measurements first (so wasAtBottom uses
-        // accurate totalMeasuredSize), then only do a lightweight snap-to-bottom
-        // if needed — no setState/forceUpdate that would fight with overflow-anchor.
+        // resize automatically. Use _wasAtBottom (tracked from the last scroll
+        // event, before any content resize) to decide if we need to snap back
+        // to the bottom — avoids stale totalMeasuredSize issues.
         if (this.props.smoothScrolling) {
             this._generateOffsetMeasurements();
 
-            const wasAtBottom =
-                this.props.height + element.scrollTop >=
-                this._listMetaData.totalMeasuredSize - atBottomMargin;
-
             if (
-                (wasAtBottom || this._keepScrollToBottom) &&
+                (this._wasAtBottom || this._keepScrollToBottom) &&
                 this.props.correctScrollToBottom
             ) {
                 requestAnimationFrame(() => {
@@ -598,7 +596,8 @@ export class DynamicVirtualizedList extends PureComponent {
         if (!this.state.scrolledToInitIndex) {
             return;
         }
-        const {scrollTop, scrollHeight} = event.currentTarget;
+        const {scrollTop, scrollHeight, clientHeight} = event.currentTarget;
+        this._wasAtBottom = scrollTop + clientHeight >= scrollHeight - atBottomMargin;
         if (this._scrollCorrectionInProgress) {
             if (this.state.scrollUpdateWasRequested) {
                 this.setState(() => ({
