@@ -50,9 +50,11 @@ const ListItem = (props: Props) => {
 
     // This effects adds the observer which calls height change callback debounced
     useLayoutEffect(() => {
-        // With smooth scrolling, CSS overflow-anchor handles corrections immediately.
-        // Use a minimal debounce (one frame) to batch rapid resize events.
+        // With smooth scrolling, fire immediately on the first resize (leading edge)
+        // so scroll compensation happens before the browser paints. Subsequent
+        // rapid resizes within the window are still batched via trailing edge.
         const debounceTime = props.smoothScrolling ? 16 : RESIZE_DEBOUNCE_TIME;
+        const debounceOpts = props.smoothScrolling ? {leading: true} : undefined;
         const debouncedOnHeightChange = debounce((changedHeight: number) => {
             // Check if component is still mounted as it may have been
             // unmounted by the time the debounced function is called
@@ -67,7 +69,7 @@ const ListItem = (props: Props) => {
             heightRef.current = changedHeight;
 
             props.onHeightChange(props.itemId, changedHeight, forceScrollCorrection);
-        }, debounceTime);
+        }, debounceTime, debounceOpts);
 
         function itemRowSizeObserverCallback(changedHeight: number) {
             if (!rowRef.current) {

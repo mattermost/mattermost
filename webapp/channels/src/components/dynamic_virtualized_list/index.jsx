@@ -504,11 +504,10 @@ export class DynamicVirtualizedList extends PureComponent {
                 (this._wasAtBottom || this._keepScrollToBottom) &&
                 this.props.correctScrollToBottom
             ) {
-                requestAnimationFrame(() => {
-                    if (this._outerRef) {
-                        this._outerRef.scrollTop = this._outerRef.scrollHeight - this._outerRef.clientHeight;
-                    }
-                });
+                // Synchronous scrollTop adjustment — no rAF delay so the scroll
+                // correction happens before the browser paints, preventing any
+                // visible flash when content grows at the bottom (e.g. reactions).
+                element.scrollTop = element.scrollHeight - element.clientHeight;
             }
             return;
         }
