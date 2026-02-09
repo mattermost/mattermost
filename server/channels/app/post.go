@@ -643,14 +643,6 @@ func (a *App) handlePostEvents(rctx request.CTX, post *model.Post, user *model.U
 		return err
 	}
 
-	// Send initial read receipt counts for burn-on-read posts
-	if post.Type == model.PostTypeBurnOnRead {
-		// No revealing user yet (post just created), send empty string
-		if err := a.publishPostRevealedEventToAuthor(rctx, post, "", ""); err != nil {
-			rctx.Logger().Error("Failed to publish initial burn-on-read read receipt event", mlog.String("post_id", post.Id), mlog.Err(err))
-		}
-	}
-
 	if post.Type != model.PostTypeAutoResponder { // don't respond to an auto-responder
 		a.Srv().Go(func() {
 			_, err := a.SendAutoResponseIfNecessary(rctx, channel, user, post)
@@ -1215,7 +1207,17 @@ func (a *App) GetPosts(rctx request.CTX, channelID string, offset int, limit int
 }
 
 func (a *App) GetPostsEtag(channelID string, collapsedThreads bool) string {
-	return a.Srv().Store().Post().GetEtag(channelID, true, collapsedThreads)
+	if a.AutoTranslation() == nil || !a.AutoTranslation().IsFeatureAvailable() {
+		return a.Srv().Store().Post().GetEtag(channelID, true, collapsedThreads, false)
+	}
+
+	channelEnabled, err := a.AutoTranslation().IsChannelEnabled(channelID)
+	if err != nil || !channelEnabled {
+		return a.Srv().Store().Post().GetEtag(channelID, true, collapsedThreads, false)
+	}
+
+	// Channel has auto-translation enabled - include translation etag
+	return a.Srv().Store().Post().GetEtag(channelID, true, collapsedThreads, true)
 }
 
 func (a *App) GetPostsSince(rctx request.CTX, options model.GetPostsSinceOptions) (*model.PostList, *model.AppError) {
@@ -3108,11 +3110,23 @@ func (a *App) RewriteMessage(
 		return nil, model.NewAppError("RewriteMessage", "app.post.rewrite.invalid_action", nil, fmt.Sprintf("invalid action: %s", action), 400)
 	}
 
+	userLocale := ""
+	if session := rctx.Session(); session != nil && session.UserId != "" {
+		user, appErr := a.GetUser(session.UserId)
+		if appErr == nil {
+			userLocale = user.Locale
+		} else {
+			rctx.Logger().Warn("Failed to get user for rewrite locale", mlog.Err(appErr), mlog.String("user_id", session.UserId))
+		}
+	}
+
+	systemPrompt := buildRewriteSystemPrompt(userLocale)
+
 	// Prepare completion request in the format expected by the client
 	client := a.GetBridgeClient(rctx.Session().UserId)
 	completionRequest := agentclient.CompletionRequest{
 		Posts: []agentclient.Post{
-			{Role: "system", Message: model.RewriteSystemPrompt},
+			{Role: "system", Message: systemPrompt},
 			{Role: "user", Message: userPrompt},
 		},
 	}
@@ -3286,6 +3300,17 @@ func getRewritePromptForAction(action model.RewriteAction, message string, custo
 	return actionPrompt
 }
 
+func buildRewriteSystemPrompt(userLocale string) string {
+	locale := strings.TrimSpace(userLocale)
+	if locale == "" {
+		return model.RewriteSystemPrompt
+	}
+
+	return fmt.Sprintf(`%s
+
+User locale: %s. Preserve locale-specific spelling, grammar, and formatting. Keep locale identifiers (like %s) unchanged. Do not translate between locales.`, model.RewriteSystemPrompt, locale, locale)
+}
+
 // RevealPost reveals a burn-on-read post for a specific user, creating a read receipt
 // if this is the first time the user is revealing it. Returns the revealed post content
 // with expiration metadata.
@@ -3448,7 +3473,8 @@ func (a *App) updateTemporaryPostIfAllRead(rctx request.CTX, post *model.Post, r
 	}
 
 	// All recipients have read - update temporary post expiration to match receipt
-	tmpPost, err := a.Srv().Store().TemporaryPost().Get(rctx, post.Id)
+	// Bypass cache to ensure we get fresh data from DB
+	tmpPost, err := a.Srv().Store().TemporaryPost().Get(rctx, post.Id, false)
 	if err != nil {
 		return model.NewAppError("RevealPost", "app.post.get_post.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
@@ -3578,7 +3604,7 @@ func (a *App) enrichPostWithExpirationMetadata(post *model.Post, expireAt int64)
 }
 
 func (a *App) getBurnOnReadPost(rctx request.CTX, post *model.Post) (*model.Post, *model.AppError) {
-	tmpPost, err := a.Srv().Store().TemporaryPost().Get(rctx, post.Id)
+	tmpPost, err := a.Srv().Store().TemporaryPost().Get(rctx, post.Id, true)
 	if err != nil {
 		return nil, model.NewAppError("getBurnOnReadPost", "app.post.get_post.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}

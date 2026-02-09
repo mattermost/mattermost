@@ -873,13 +873,13 @@ func getGroupsByNames(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	restrictions, appErr := c.App.GetViewUsersRestrictions(c.AppContext, c.AppContext.Session().UserId)
-	if appErr != nil {
-		c.Err = appErr
-		return
+	filterAllowReference := !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionSysconsoleReadUserManagementGroups)
+
+	opts := model.GroupSearchOpts{
+		FilterAllowReference: filterAllowReference,
 	}
 
-	groups, appErr := c.App.GetGroupsByNames(groupNames, restrictions)
+	groups, appErr := c.App.GetGroupsByNames(groupNames, opts)
 	if appErr != nil {
 		c.Err = appErr
 		return

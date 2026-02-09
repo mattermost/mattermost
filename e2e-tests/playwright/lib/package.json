@@ -12,7 +12,7 @@
     "url": "https://github.com/mattermost/mattermost/issues"
   },
   "homepage": "https://github.com/mattermost/mattermost/tree/master/e2e-tests/playwright/lib#readme",
-  "type": "commonjs",
+  "type": "module",
   "files": [
     "dist"
   ],
@@ -42,14 +42,14 @@
     "access": "public"
   },
   "dependencies": {
-    "@axe-core/playwright": "4.11.0",
+    "@axe-core/playwright": "4.11.1",
     "@mattermost/client": "file:../../../webapp/platform/client",
     "@mattermost/types": "file:../../../webapp/platform/types",
     "@percy/cli": "1.31.8",
     "@percy/playwright": "1.0.10",
     "async-wait-until": "2.0.31",
     "axe-core": "4.11.1",
-    "chalk": "4.1.2",
+    "chalk": "5.6.2",
     "deepmerge": "4.3.1",
     "dotenv": "17.2.3",
     "luxon": "3.7.2",
@@ -60,8 +60,8 @@
     "@rollup/plugin-typescript": "12.3.0",
     "@types/luxon": "3.7.1",
     "@types/mime-types": "3.0.1",
-    "@types/node": "25.0.9",
-    "rollup": "4.55.2",
+    "@types/node": "25.2.0",
+    "rollup": "4.57.1",
     "rollup-plugin-copy": "3.5.0"
   },
   "peerDependencies": {

@@ -792,10 +792,6 @@
     "translation": "Не удалось найти указанный канал. Пожалуйста, используйте [дескриптор канала](https://docs.mattermost.com/messaging/managing-channels.html#naming-a-channel) для идентификации каналов."
   },
   {
-    "id": "api.command_mute.not_member.error",
-    "translation": "Не удалось отключить канал {{.Channel}}, поскольку вы не являетесь его участником."
-  },
-  {
     "id": "api.command_mute.success_mute",
     "translation": "Вы не будете получать уведомления для {{.Channel}} до тех пор, пока отключен звук."
   },
@@ -8566,10 +8562,6 @@
   {
     "id": "ent.elasticsearch.create_client.ca_cert_missing",
     "translation": "Не удалось открыть файл CA для {{.Backend}}"
-  },
-  {
-    "id": "api.server.cws.health_check.app_error",
-    "translation": "Сервер CWS не доступен."
   },
   {
     "id": "app.group.username_conflict",
