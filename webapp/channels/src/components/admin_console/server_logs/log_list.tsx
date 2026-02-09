@@ -271,7 +271,7 @@ export default class LogList extends React.PureComponent<Props, State> {
         const placeholderEmpty: JSX.Element = (
             <FormattedMessage
                 id='admin.channel_settings.channel_list.no_logs_found'
-                defaultMessage='No logs found. Ensure logs are written to a path within the logging root path specified by the MM_LOG_PATH environment variable.'
+                defaultMessage='No logs found. Ensure log files are within the logging root directory (configured via MM_LOG_PATH or the default logs directory).'
             />
         );
 
