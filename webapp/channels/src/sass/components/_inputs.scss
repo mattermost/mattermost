@@ -224,6 +224,15 @@ input::-webkit-file-upload-button {
     overflow-y: auto;
 }
 
+// Ensure "(optional)" text in date/datetime field labels is not bold
+.form-group {
+    .control-label {
+        .light {
+            font-weight: normal;
+        }
+    }
+}
+
 // Manual time entry styles
 .date-time-input-manual {
     display: flex;

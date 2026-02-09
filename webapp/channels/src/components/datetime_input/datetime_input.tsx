@@ -187,15 +187,6 @@ const TimeInputManual: React.FC<TimeInputManualProps> = ({
 
     return (
         <div className='date-time-input-manual'>
-            <label
-                htmlFor='time_input'
-                className='date-time-input__label'
-            >
-                {formatMessage({
-                    id: 'datetime.time',
-                    defaultMessage: 'Time',
-                })}
-            </label>
             <input
                 ref={timeInputRef}
                 id='time_input'

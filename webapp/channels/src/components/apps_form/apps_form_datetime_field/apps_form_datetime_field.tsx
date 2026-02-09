@@ -94,7 +94,7 @@ const AppsFormDateTimeField: React.FC<Props> = ({
     return (
         <div className='apps-form-datetime-input'>
             {showTimezoneIndicator && (
-                <div style={{fontSize: '11px', color: '#888', marginBottom: '8px', fontStyle: 'italic'}}>
+                <div style={{fontSize: '11px', color: '#888', marginBottom: '8px'}}>
                     {'🌍 Times in ' + getTimezoneAbbreviation(timezone)}
                 </div>
             )}
