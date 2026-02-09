@@ -146,8 +146,8 @@ func PostBurnOnReadCheckWithApp(where string, a *App, rctx request.CTX, userId, 
 		if otherUserId != "" && otherUserId != userId {
 			otherUser, err := a.GetUser(otherUserId)
 			if err != nil {
-				// Data integrity issue: can't validate the other user (e.g., deleted user, DB error)
-				// Block the burn-on-read post as we can't ensure it's valid
+				// Failed to retrieve the other user (user not found, DB error, etc.)
+				// Block burn-on-read post as we cannot validate the recipient
 				return model.NewAppError(where, "api.post.fill_in_post_props.burn_on_read.user.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 			}
 			if otherUser.IsBot {
