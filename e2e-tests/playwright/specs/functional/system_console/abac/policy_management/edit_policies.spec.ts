@@ -1,9 +1,9 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {expect, test} from '@mattermost/playwright-lib';
-
 import {
+    expect,
+    test,
     enableABAC,
     disableABAC,
     navigateToABACPage,
@@ -14,7 +14,7 @@ import {
     verifyUserNotInChannel,
     updateUserAttributes,
     createUserWithAttributes,
-} from '../../../../../lib/src/server/abac_helpers';
+} from '@mattermost/playwright-lib';
 
 import {
     CustomProfileAttribute,
