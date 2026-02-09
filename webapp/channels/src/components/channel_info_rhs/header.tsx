@@ -11,20 +11,15 @@ import WithTooltip from 'components/with_tooltip';
 
 interface Props {
     channel: Channel;
-    isArchived: boolean;
     isMobile: boolean;
     onClose: () => void;
 }
-
-const Icon = styled.i`
-    font-size:12px;
-`;
 
 const HeaderTitle = styled.span`
     line-height: 2.4rem;
 `;
 
-const Header = ({channel, isArchived, isMobile, onClose}: Props) => {
+const Header = ({channel, isMobile, onClose}: Props) => {
     const {formatMessage} = useIntl();
 
     return (
@@ -50,12 +45,10 @@ const Header = ({channel, isArchived, isMobile, onClose}: Props) => {
                             defaultMessage='Info'
                         />
                     </HeaderTitle>
-
                     {channel.display_name &&
                     <span
                         className='style--none sidebar--right__title__subtitle'
                     >
-                        {isArchived && (<Icon className='icon icon-archive-outline'/>)}
                         {channel.display_name}
                     </span>
                     }

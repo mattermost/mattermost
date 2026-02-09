@@ -17,13 +17,15 @@ type Props = {
     onConfirm: () => void;
     onCancel?: () => void;
     onExited: () => void;
+    isOrphaned?: boolean;
+    sourcePluginId?: string;
 }
 
 const noop = () => {};
 
 export const useUserPropertyFieldDelete = () => {
     const dispatch = useDispatch();
-    const promptDelete = (field: UserPropertyField) => {
+    const promptDelete = (field: UserPropertyField, isOrphaned = false) => {
         return new Promise<boolean>((resolve) => {
             dispatch(openModal({
                 modalId: ModalIdentifiers.USER_PROPERTY_FIELD_DELETE,
@@ -31,6 +33,8 @@ export const useUserPropertyFieldDelete = () => {
                 dialogProps: {
                     name: field.name,
                     onConfirm: () => resolve(true),
+                    isOrphaned,
+                    sourcePluginId: field.attrs?.source_plugin_id as string | undefined,
                 },
             }));
         });
@@ -44,6 +48,8 @@ function RemoveUserPropertyFieldModal({
     onExited,
     onCancel,
     onConfirm,
+    isOrphaned = false,
+    sourcePluginId,
 }: Props) {
     const {formatMessage} = useIntl();
 
@@ -57,10 +63,26 @@ function RemoveUserPropertyFieldModal({
         defaultMessage: 'Delete',
     });
 
-    const message = (
+    const message = isOrphaned ? (
+        <>
+            <p>
+                <FormattedMessage
+                    id='admin.system_properties.confirm.delete.orphaned_body'
+                    defaultMessage='This attribute was created by the plugin "{pluginId}" which has been uninstalled.'
+                    values={{pluginId: sourcePluginId || 'unknown'}}
+                />
+            </p>
+            <p>
+                <FormattedMessage
+                    id='admin.system_properties.confirm.delete.orphaned_warning'
+                    defaultMessage='Deleting this attribute will remove all user-defined values associated with it. This action cannot be undone.'
+                />
+            </p>
+        </>
+    ) : (
         <FormattedMessage
-            id={'admin.system_properties.confirm.delete.text'}
-            defaultMessage={'Deleting this attribute will remove all user-defined values associated with it.'}
+            id='admin.system_properties.confirm.delete.text'
+            defaultMessage='Deleting this attribute will remove all user-defined values associated with it.'
         />
     );
 

@@ -9,6 +9,7 @@ import (
 	"net/http"
 
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/utils"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
 )
 
@@ -25,7 +26,10 @@ func (a *App) GetGroup(id string, opts *model.GetGroupOpts, viewRestrictions *mo
 	}
 
 	if opts != nil && opts.IncludeMemberIDs {
-		users, err := a.Srv().Store().Group().GetMemberUsers(id)
+		perPage := 100
+		users, err := utils.Pager(func(page int) ([]*model.User, error) {
+			return a.Srv().Store().Group().GetMemberUsersPage(id, page, perPage, viewRestrictions)
+		}, perPage)
 		if err != nil {
 			return nil, model.NewAppError("GetGroup", "app.member_count", nil, "", http.StatusInternalServerError).Wrap(err)
 		}
