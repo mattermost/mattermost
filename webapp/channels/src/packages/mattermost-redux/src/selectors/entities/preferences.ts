@@ -178,7 +178,7 @@ const getDefaultTheme = createSelector('getDefaultTheme', getConfig, (config): T
     }
 
     // If no config.DefaultTheme or value doesn't refer to a valid theme name...
-    return Preferences.THEMES.denim;
+    return Preferences.THEMES.guilded;
 });
 
 export const getTheme: (state: GlobalState) => Theme = createShallowSelector(
