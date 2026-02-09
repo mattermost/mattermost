@@ -34,6 +34,18 @@ gh run watch
 gh run list --workflow=test.yml --limit=1
 ```
 
+### Test File Location
+
+**IMPORTANT: Never modify upstream test files.** All custom tests for Mattermost Extended features go in:
+
+```
+webapp/channels/src/tests/mattermost_extended/
+```
+
+Organize by feature area (e.g., `video/`, `encryption/`, `guilded/`, `dashboards/`). Import components from their normal paths (`components/...`). Use React Testing Library, not Enzyme.
+
+Server-side tests follow Go conventions: `_test.go` files alongside the code they test.
+
 ### Test Scope Options (upstream-tests.yml)
 
 | Scope | Tests |
