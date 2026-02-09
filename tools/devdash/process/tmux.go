@@ -50,9 +50,15 @@ func (t *TmuxClient) NewSession(name, cmd, dir string, rows, cols int) error {
 	// Wrap: run command, save exit code to marker file, then sleep forever.
 	// The sleep keeps the pane alive so background processes spawned by the
 	// command can continue writing to the terminal.
+	// Use the user's login shell so profile/rc files load (nvm, fnm, asdf, etc.)
+	shell := os.Getenv("SHELL")
+	if shell == "" {
+		shell = "/bin/sh"
+	}
+
 	wrappedCmd := fmt.Sprintf(
-		`%s; _ec=$?; printf '\n[exited %%d]\n' "$_ec"; echo "$_ec" > %s; while true; do sleep 86400; done`,
-		cmd, exitFile,
+		`%s; _ec=$?; printf '\n[exited %%d]\n' "$_ec"; echo "$_ec" > %s; exec %s`,
+		cmd, exitFile, shell,
 	)
 
 	args := []string{
@@ -62,7 +68,7 @@ func (t *TmuxClient) NewSession(name, cmd, dir string, rows, cols int) error {
 		"-s", name, // session name
 		"-x", fmt.Sprintf("%d", cols),
 		"-y", fmt.Sprintf("%d", rows),
-		"sh", "-c", wrappedCmd,
+		shell, "-l", "-c", wrappedCmd,
 	}
 
 	tmuxCmd := exec.Command("tmux", args...)

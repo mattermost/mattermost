@@ -85,3 +85,4 @@ func isMMRoot(dir string) bool {
 	_, errW := os.Stat(filepath.Join(dir, "webapp"))
 	return errS == nil && errW == nil
 }
+

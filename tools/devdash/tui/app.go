@@ -983,6 +983,7 @@ func (a *App) moveCursorUp() {
 func (a *App) enterGridSearch() {
 	a.gridSearching = true
 	a.gridSearchInput.Focus()
+	a.focus = FocusGrid
 }
 
 // focusedTabIndex returns the index of focusedProc in the ordered process list.
