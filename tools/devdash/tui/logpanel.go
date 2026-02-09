@@ -63,12 +63,22 @@ func (lp *LogPanel) UpdateContent(content string) {
 	}
 }
 
+// TabFocus represents the focus level of the current tab.
+type TabFocus int
+
+const (
+	TabFocusNone  TabFocus = iota // tab bar visible but not focused
+	TabFocusBar                   // tab bar arrow-nav focused
+	TabFocusLog                   // log viewport focused
+	TabFocusInput                 // input mode active
+)
+
 var (
-	// Tab styles: only the focused tab gets the highlight
-	tabFocusedStyle = lipgloss.NewStyle().
-			Bold(true).
-			Reverse(true).
-			Padding(0, 1)
+	// Tab styles
+	tabSelectedStyle = lipgloss.NewStyle().
+				Bold(true).
+				Reverse(true).
+				Padding(0, 1)
 
 	tabCurrentStyle = lipgloss.NewStyle().
 			Bold(true).
@@ -78,14 +88,21 @@ var (
 	tabOtherStyle = lipgloss.NewStyle().
 			Foreground(colorMuted).
 			Padding(0, 1)
+
+	tabInputStyle = lipgloss.NewStyle().
+			Bold(true).
+			Foreground(lipgloss.Color("15")).
+			Background(colorPrimary).
+			Padding(0, 1)
 )
 
-// RenderTabBar renders the numbered process tabs without the viewport.
-// When inputting is true, the current tab gets an "Input (Esc to exit)" suffix.
-func RenderTabBar(tabs []LogTab, currentID string, isFocused, inputting bool) string {
+// RenderTabBar renders the numbered process tabs.
+func RenderTabBar(tabs []LogTab, currentID string, focus TabFocus) string {
 	var tabParts []string
 	for i, tab := range tabs {
 		num := fmt.Sprintf("%d", i+1)
+
+		isCurrent := tab.ID == currentID
 
 		// State indicator
 		indicator := ""
@@ -101,32 +118,29 @@ func RenderTabBar(tabs []LogTab, currentID string, isFocused, inputting bool) st
 			label = indicator + " " + label
 		}
 
-		isCurrent := tab.ID == currentID
-
-		// Append input mode suffix to the focused tab
-		if isCurrent && inputting {
-			label += " — Input (Esc to exit)"
-		}
-
 		if isCurrent {
-			if isFocused {
-				tabParts = append(tabParts, tabFocusedStyle.Render(label))
-			} else {
+			switch focus {
+			case TabFocusInput, TabFocusLog:
+				tabParts = append(tabParts, tabInputStyle.Render(label))
+			case TabFocusBar:
+				tabParts = append(tabParts, tabSelectedStyle.Render(label))
+			default:
 				tabParts = append(tabParts, tabCurrentStyle.Render(label))
 			}
 		} else {
 			tabParts = append(tabParts, tabOtherStyle.Render(label))
 		}
 	}
+
 	return strings.Join(tabParts, "")
 }
 
-func (lp *LogPanel) View(tabs []LogTab, isFocused bool) string {
+func (lp *LogPanel) View(tabs []LogTab, focus TabFocus) string {
 	if !lp.ready {
 		return ""
 	}
 
-	tabBar := RenderTabBar(tabs, lp.processID, isFocused, lp.inputting)
+	tabBar := RenderTabBar(tabs, lp.processID, focus)
 
 	// Scroll indicator
 	scrollIndicator := ""

@@ -292,8 +292,8 @@ func cellForeground(cell GridCell, repo *model.Repo) lipgloss.TerminalColor {
 	return nil
 }
 
-func renderSeparator(width int) string {
-	return separatorStyle.Render(strings.Repeat("─", width))
+func renderSeparator(_ int) string {
+	return ""
 }
 
 func renderGrid(repos []model.Repo, cursorRow, cursorCol int, width, maxLines, skipRows int, hScrolls []int, favorites map[string]bool, searchQuery string, procStateFn func(string) model.ProcessState, focusedProc string, logFocusActive bool, showOnlyFavorites bool) (string, []HitZone) {

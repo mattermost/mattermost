@@ -74,6 +74,9 @@ type App struct {
 	lastClickCol  int
 	lastClickTime time.Time
 
+	// Double-tap Esc tracking for exiting input mode
+	lastEscTime time.Time
+
 	// Paths
 	repoRoot string
 
@@ -228,10 +231,25 @@ func (a *App) handleKey(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 
 	// Raw input mode — forward keystrokes to process via tmux send-keys
 	if a.focus == FocusLog && a.logPanel.inputting {
-		if msg.String() == "esc" {
+		// Ctrl+] — immediate exit from input mode
+		if msg.String() == "ctrl+]" {
 			a.logPanel.inputting = false
 			return a, nil
 		}
+		if msg.String() == "esc" {
+			now := time.Now()
+			if now.Sub(a.lastEscTime) < doubleClickThreshold {
+				// Double-tap Esc — exit input mode
+				a.logPanel.inputting = false
+				a.lastEscTime = time.Time{}
+				return a, nil
+			}
+			// First Esc — forward to process and record time
+			a.lastEscTime = now
+			a.procMgr.WriteInput(a.focusedProc, "Escape")
+			return a, nil
+		}
+		a.lastEscTime = time.Time{} // reset on any other key
 		if args := keyToTmuxArgs(msg); args != nil {
 			a.procMgr.WriteInput(a.focusedProc, args...)
 		}
@@ -262,6 +280,9 @@ func (a *App) handleKey(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 		} else if a.logVisible {
 			a.logVisible = false
 			a.focus = FocusGrid
+		} else if a.focus == FocusGrid {
+			// Already on grid — snap to top-left
+			a.snapCursorToFirstMatch()
 		}
 		return a, nil
 
@@ -356,9 +377,8 @@ func (a *App) handleKey(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 			a.logPanel.SetSize(a.width, a.logPanelHeight())
 			return a, nil
 		case key.Matches(msg, a.keys.Execute):
-			// Enter input mode for the focused tab
+			// Enter log focus for the selected tab
 			if a.focusedProc != "" {
-				a.logPanel.inputting = true
 				a.focus = FocusLog
 			}
 			return a, nil
@@ -371,26 +391,32 @@ func (a *App) handleKey(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 
 	// Log viewport scrolling and input mode when focused
 	if a.focus == FocusLog && a.logVisible {
-		// Enter input mode from log focus
-		if key.Matches(msg, a.keys.ProcInput) {
+		// Enter input mode with i, Enter, or Space
+		if key.Matches(msg, a.keys.ProcInput) || key.Matches(msg, a.keys.Execute) || key.Matches(msg, a.keys.FocusProc) {
 			if a.focusedProc != "" {
 				a.logPanel.inputting = true
 			}
 			return a, nil
 		}
-		switch msg.String() {
-		case "up", "k":
+		switch {
+		case key.Matches(msg, a.keys.Up):
 			a.logPanel.viewport.LineUp(1)
 			a.logPanel.autoScroll = false
 			return a, nil
-		case "down", "j":
+		case key.Matches(msg, a.keys.Down):
 			a.logPanel.viewport.LineDown(1)
 			return a, nil
-		case "G":
+		case key.Matches(msg, a.keys.Left):
+			a.cycleLog(-1)
+			return a, nil
+		case key.Matches(msg, a.keys.Right):
+			a.cycleLog(1)
+			return a, nil
+		case msg.String() == "G":
 			a.logPanel.viewport.GotoBottom()
 			a.logPanel.autoScroll = true
 			return a, nil
-		case "g":
+		case msg.String() == "g":
 			a.logPanel.viewport.GotoTop()
 			a.logPanel.autoScroll = false
 			return a, nil
@@ -639,7 +665,7 @@ func (a *App) executeWithInputMode() {
 // If viewing a log, dismisses that process. Otherwise dismisses the cursor's target.
 func (a *App) dismissProcess() {
 	var id string
-	if a.focus == FocusLog && a.focusedProc != "" {
+	if (a.focus == FocusLog || a.focus == FocusTabBar) && a.focusedProc != "" {
 		id = a.focusedProc
 	} else if a.cursorCol == -1 {
 		// Repo name — dismiss the shell if running
@@ -726,7 +752,14 @@ func (a *App) runOrRestart() {
 	a.logPanel.SetProcess(id)
 	a.logVisible = true
 	a.logPanel.SetSize(a.width, a.logPanelHeight())
-	a.focus = FocusLog
+
+	// From grid: stay on grid so the user can quickly start multiple targets.
+	// From tab bar / log: keep focus there.
+	if a.focus == FocusGrid {
+		// don't change focus
+	} else {
+		a.focus = FocusLog
+	}
 }
 
 // focusLogForCursor opens the log panel for the cursor's process without running it.
@@ -835,12 +868,31 @@ func (a *App) cycleLog(dir int) {
 
 	nextIdx := curIdx + dir
 	if nextIdx < 0 || nextIdx >= len(ids) {
-		a.focus = FocusGrid
-		return
+		// Wrap when in log/tab bar focus; exit to grid when cycling via Tab/Shift+Tab
+		if a.focus == FocusLog || a.focus == FocusTabBar {
+			nextIdx = (nextIdx + len(ids)) % len(ids)
+		} else {
+			a.focus = FocusGrid
+			return
+		}
 	}
 
 	a.focusedProc = ids[nextIdx]
 	a.logPanel.SetProcess(ids[nextIdx])
+}
+
+// tabFocus returns the current tab focus level for rendering.
+func (a *App) tabFocus() TabFocus {
+	if a.logPanel.inputting {
+		return TabFocusInput
+	}
+	if a.focus == FocusLog {
+		return TabFocusLog
+	}
+	if a.focus == FocusTabBar {
+		return TabFocusBar
+	}
+	return TabFocusNone
 }
 
 func (a *App) toggleFavorite() {
@@ -1148,7 +1200,7 @@ func (a *App) maxGridLines() int {
 	if !a.logVisible {
 		chrome := 2 // header + search
 		if len(a.procMgr.ProcessIDs()) > 0 {
-			chrome += 2 // separator + tab bar
+			chrome += 2 // spacer + tab bar
 		}
 		return a.height - chrome
 	}
@@ -1231,7 +1283,7 @@ func (a *App) ensureGridVScroll(maxLines int) {
 func (a *App) logPanelHeight() int {
 	chrome := 2 // header + search bar
 	if len(a.procMgr.ProcessIDs()) > 0 {
-		chrome += 2 // separator + tab bar
+		chrome += 2 // spacer + tab bar
 	}
 	gridRows := a.visibleGridRows()
 	// Cap grid rows so the log panel gets at least 6 lines
@@ -1263,12 +1315,19 @@ func (a *App) View() string {
 	} else if a.cmdEditing {
 		keys = []string{"Enter Run", "Esc Cancel"}
 	} else if a.logPanel.inputting {
-		keys = []string{"Enter Send", "Esc Exit"}
+		keys = []string{"Esc×2 Exit", "C-] Exit"}
 	} else if a.focus == FocusTabBar {
 		keys = []string{
-			"←/→ Switch", "Enter Input",
+			"←/→ Switch", "Enter Focus",
 			"r Run", "s Stop", "x Dismiss",
 			"↑ Grid", "Esc Grid",
+			"? Help", "q Quit",
+		}
+	} else if a.focus == FocusLog && a.logVisible {
+		keys = []string{
+			"Enter Input", "i Input",
+			"r Run", "s Stop", "x Dismiss",
+			"g/G Top/Btm", "Esc Tab",
 			"? Help", "q Quit",
 		}
 	} else if a.logVisible {
@@ -1280,8 +1339,8 @@ func (a *App) View() string {
 		}
 	} else {
 		keys = []string{
-			"r Run", "Enter Run", "d DryRun", "f Focus", "F Fav", "L Logs",
-			"s Stop", "/ Search",
+			"r Run", "Enter Run", "d DryRun", "Space Focus", "F Fav", "L Logs",
+			"s Stop", "f Search",
 			"? Help", "q Quit",
 		}
 	}
@@ -1354,9 +1413,43 @@ func (a *App) View() string {
 		for i, id := range ids {
 			tabs[i] = LogTab{ID: id, State: a.procMgr.ProcessState(id)}
 		}
-		b.WriteString(lipgloss.NewStyle().Foreground(lipgloss.Color("237")).Render(strings.Repeat("─", a.width)))
-		b.WriteString("\n")
-		b.WriteString(RenderTabBar(tabs, a.focusedProc, a.focus == FocusLog || a.focus == FocusTabBar, a.logPanel.inputting))
+		tabBar := RenderTabBar(tabs, a.focusedProc, a.tabFocus())
+		if a.logPanel.inputting {
+			// Compute offset: width of all tabs before the focused one
+			offset := 0
+			for _, tab := range tabs {
+				if tab.ID == a.focusedProc {
+					break
+				}
+				w := lipgloss.Width(RenderTabBar(
+					[]LogTab{tab}, "", TabFocusNone,
+				))
+				offset += w
+			}
+			// Measure the focused tab's rendered width
+			focusedTab := RenderTabBar(
+				[]LogTab{{ID: a.focusedProc, State: a.procMgr.ProcessState(a.focusedProc)}},
+				a.focusedProc, TabFocusInput,
+			)
+			tabWidth := lipgloss.Width(focusedTab)
+			left := " INPUT"
+			right := "Esc×2 to exit "
+			padLen := tabWidth - len(left) - len(right)
+			if padLen < 1 {
+				padLen = 1
+			}
+			content := left + strings.Repeat(" ", padLen) + right
+			inputTag := lipgloss.NewStyle().
+				Foreground(lipgloss.Color("15")).
+				Background(colorPrimary).
+				Bold(true).
+				Width(tabWidth).
+				Render(content)
+			b.WriteString(strings.Repeat(" ", offset) + inputTag + "\n")
+		} else {
+			b.WriteString("\n")
+		}
+		b.WriteString(tabBar)
 		b.WriteString("\n")
 	}
 
@@ -1365,7 +1458,7 @@ func (a *App) View() string {
 		gridLines := strings.Count(gridStr, "\n")
 		chrome := 2 // header + search bar
 		if len(ids) > 0 {
-			chrome += 2 // separator + tab bar
+			chrome += 2 // spacer + tab bar
 		}
 		lpH := a.height - chrome - gridLines
 		if lpH < 4 {
@@ -1406,33 +1499,35 @@ func (a *App) renderHelp() string {
 		"DevDash Help",
 		"",
 		"Navigation:",
-		"  j/k ↑/↓    Move between repos",
-		"  h/l ←/→    Move between targets",
+		"  j or k     Move between repos",
+		"  h or l     Move between targets",
 		"  Enter      Execute target (or shell on repo name)",
 		"  Dbl-Click  Click any target to run it",
-		"  f          Focus log panel on target",
+		"  Space      Focus log panel on target",
+		"  f or /     Search targets",
 		"  d          Dry-run: edit command before running",
 		"  F          Toggle favorite",
-		"  Ctrl+F     Toggle favorites-only view",
+		"  Ctrl+f     Toggle favorites-only view",
 		"",
 		"Process Control:",
 		"  s          Stop focused process",
-		"  r          Run target / restart process",
+		"  r          Run target or restart process",
 		"  x          Dismiss: stop + remove + close panel",
-		"  Ctrl+X     Stop all processes",
+		"  Ctrl+x     Stop all processes",
 		"",
 		"Log Panel:",
 		"  L          Toggle log panel",
 		"  Tab        Cycle to next process log",
-		"  Shift+Tab  Cycle to prev / back to grid",
+		"  Shift+Tab  Cycle to prev or back to grid",
 		"  i          Run target + enter input mode (tmux)",
 		"  1-9        Switch log tab by number",
-		"  g/G        Jump to top/bottom",
+		"  g or G     Jump to top or bottom",
+		"  Esc×2      Exit input mode",
 		"  Esc        Close log panel",
 		"",
 		"Other:",
-		"  Ctrl+R     Re-scan repos",
-		"  ?/F1       This help",
+		"  Ctrl+r     Re-scan repos",
+		"  ? or F1    This help",
 		"  q          Quit",
 	}, "\n"))
 
