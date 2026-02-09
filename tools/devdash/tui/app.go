@@ -220,7 +220,7 @@ func (a *App) handleKey(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 			a.gridSearchInput.Reset()
 			a.gridSearchInput.Blur()
 			return a, nil
-		case "enter", "down", "j":
+		case "enter", "down":
 			// Move focus to the filtered grid
 			a.gridSearching = false
 			a.gridSearchInput.Blur()
@@ -505,9 +505,22 @@ func (a *App) handleMouse(msg tea.MouseMsg) (tea.Model, tea.Cmd) {
 			a.gridSearching = false
 			a.gridSearchInput.Blur()
 			if hz.TargetIdx == -1 {
-				// Clicked repo name — select it
+				// Clicked repo name
+				now := time.Now()
+				sameCell := a.lastClickRow == hz.RepoIdx && a.lastClickCol == -1
+				isDouble := sameCell && now.Sub(a.lastClickTime) < doubleClickThreshold
+
 				a.cursorRow = hz.RepoIdx
 				a.cursorCol = -1
+
+				if isDouble {
+					a.openShellForRepo()
+					a.lastClickTime = time.Time{}
+				} else {
+					a.lastClickRow = hz.RepoIdx
+					a.lastClickCol = -1
+					a.lastClickTime = now
+				}
 			} else {
 				now := time.Now()
 				sameCell := a.lastClickRow == hz.RepoIdx && a.lastClickCol == hz.TargetIdx
