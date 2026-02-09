@@ -32,12 +32,15 @@ export interface Props extends PropsFromRedux {
     isEmbedVisible?: boolean;
     isInPermalink?: boolean;
     disableActions?: boolean;
+    isSpoilered?: boolean;
 }
 
 export default function SingleImageView(props: Props) {
     const {fileInfo, compactDisplay, isInPermalink, postId} = props;
 
     const [loaded, setLoaded] = useState(false);
+    const [spoilerRevealed, setSpoilerRevealed] = useState(false);
+    const showSpoilerOverlay = props.isSpoilered && !spoilerRevealed;
     const [dimensions, setDimensions] = useState({
         width: fileInfo?.width || 0,
         height: fileInfo?.height || 0,
@@ -286,25 +289,41 @@ export default function SingleImageView(props: Props) {
                     style={imageContainerStyle}
                 >
                     <div
-                        className={classNames('image-loaded', fadeInClass, svgClass)}
-                        style={styleIfSvgWithDimensions}
+                        className={classNames('single-image-spoiler-wrapper', {
+                            'single-image-spoiler-wrapper--blurred': showSpoilerOverlay,
+                        })}
+                        onClick={showSpoilerOverlay ? (e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            setSpoilerRevealed(true);
+                        } : undefined}
                     >
-                        <div className={classNames(permalinkClass)}>
-                            <SizeAwareImage
-                                onClick={handleImageClick}
-                                className={classNames(minPreviewClass, permalinkClass)}
-                                src={previewURL}
-                                dimensions={dimensions}
-                                fileInfo={displayFileInfo}
-                                fileURL={fileURL}
-                                onImageLoaded={imageLoaded}
-                                showLoader={props.isEmbedVisible}
-                                handleSmallImageContainer={true}
-                                enablePublicLink={!isEncrypted && props.enablePublicLink}
-                                getFilePublicLink={getFilePublicLink}
-                                hideUtilities={props.disableActions}
-                            />
+                        <div
+                            className={classNames('image-loaded', fadeInClass, svgClass)}
+                            style={styleIfSvgWithDimensions}
+                        >
+                            <div className={classNames(permalinkClass)}>
+                                <SizeAwareImage
+                                    onClick={showSpoilerOverlay ? undefined : handleImageClick}
+                                    className={classNames(minPreviewClass, permalinkClass)}
+                                    src={previewURL}
+                                    dimensions={dimensions}
+                                    fileInfo={displayFileInfo}
+                                    fileURL={fileURL}
+                                    onImageLoaded={imageLoaded}
+                                    showLoader={props.isEmbedVisible}
+                                    handleSmallImageContainer={true}
+                                    enablePublicLink={!isEncrypted && props.enablePublicLink}
+                                    getFilePublicLink={getFilePublicLink}
+                                    hideUtilities={props.disableActions}
+                                />
+                            </div>
                         </div>
+                        {showSpoilerOverlay && (
+                            <div className='spoiler-overlay'>
+                                <span className='spoiler-overlay__text'>{'SPOILER'}</span>
+                            </div>
+                        )}
                     </div>
                 </div>
                 }
