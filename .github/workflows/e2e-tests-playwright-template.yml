@@ -116,6 +116,7 @@ jobs:
       BUILD_ID: "${{ inputs.build_id }}"
     steps:
       - name: ci/verify-runner-specs
+        working-directory: /tmp
         run: |
           echo "=========================================="
           echo "RUNNER VERIFICATION"
