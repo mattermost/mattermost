@@ -1291,6 +1291,16 @@ function isChannelOrPermalink(link: string) {
 }
 
 export async function handleFormattedTextClick(e: React.UIEvent, currentRelativeTeamUrl = '') {
+    // Mattermost Extended - Spoiler click-to-reveal
+    const target = e.target as HTMLElement;
+    const spoiler = target.closest('.markdown-spoiler');
+    if (spoiler) {
+        e.preventDefault();
+        e.stopPropagation();
+        spoiler.classList.toggle('markdown-spoiler--revealed');
+        return;
+    }
+
     const hashtagAttribute = (e.target as any).getAttributeNode('data-hashtag');
     const linkAttribute = (e.target as any).getAttributeNode('data-link');
     const channelMentionAttribute = (e.target as any).getAttributeNode('data-channel-mention');

@@ -1,0 +1,107 @@
+// Spoiler text styles (||spoiler|| markdown)
+.markdown-spoiler {
+    background-color: rgba(var(--center-channel-color-rgb), 0.8);
+    color: transparent;
+    border-radius: 3px;
+    padding: 0 4px;
+    cursor: pointer;
+    transition: background-color 0.2s ease, color 0.2s ease;
+    user-select: none;
+
+    // Ensure child elements (bold, italic, code, links, emoji) are also hidden
+    * {
+        color: transparent !important;
+        text-decoration-color: transparent !important;
+    }
+
+    img.emoticon,
+    span.emoticon {
+        visibility: hidden;
+    }
+
+    &.markdown-spoiler--revealed {
+        background-color: rgba(var(--center-channel-color-rgb), 0.1);
+        color: inherit;
+        user-select: auto;
+
+        * {
+            color: inherit !important;
+            text-decoration-color: inherit !important;
+        }
+
+        img.emoticon,
+        span.emoticon {
+            visibility: visible;
+        }
+    }
+}
+
+// Media spoiler overlay (images/videos)
+.single-image-spoiler-wrapper,
+.multi-image-spoiler-wrapper,
+.video-player-spoiler-wrapper {
+    position: relative;
+    overflow: hidden;
+
+    &--blurred {
+        cursor: pointer;
+
+        img,
+        video,
+        .post-image,
+        .SizeAwareImage {
+            filter: blur(20px);
+            transition: filter 0.3s ease;
+        }
+    }
+}
+
+.spoiler-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(var(--center-channel-color-rgb), 0.05);
+    z-index: 1;
+    cursor: pointer;
+
+    &__text {
+        color: rgba(var(--center-channel-color-rgb), 0.72);
+        font-size: 14px;
+        font-weight: 600;
+        letter-spacing: 1px;
+        text-transform: uppercase;
+        padding: 6px 12px;
+        border-radius: 4px;
+        background: rgba(var(--center-channel-bg-rgb), 0.7);
+    }
+}
+
+// Spoiler toggle in file preview (upload area)
+.file-preview__spoiler-toggle {
+    cursor: pointer;
+    padding: 4px;
+    margin-left: 4px;
+    color: rgba(var(--center-channel-color-rgb), 0.56);
+    display: inline-flex;
+    align-items: center;
+
+    &:hover {
+        color: rgba(var(--center-channel-color-rgb), 0.8);
+    }
+
+    i {
+        font-size: 16px;
+    }
+}
+
+// Blurred thumbnail in upload preview
+.file-preview--spoilered {
+    .post-image__thumbnail {
+        filter: blur(8px);
+    }
+}
