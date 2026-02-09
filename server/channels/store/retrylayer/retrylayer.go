@@ -14441,11 +14441,11 @@ func (s *RetryLayerTemporaryPostStore) Delete(rctx request.CTX, id string) error
 
 }
 
-func (s *RetryLayerTemporaryPostStore) Get(rctx request.CTX, id string) (*model.TemporaryPost, error) {
+func (s *RetryLayerTemporaryPostStore) Get(rctx request.CTX, id string, allowFromCache bool) (*model.TemporaryPost, error) {
 
 	tries := 0
 	for {
-		result, err := s.TemporaryPostStore.Get(rctx, id)
+		result, err := s.TemporaryPostStore.Get(rctx, id, allowFromCache)
 		if err == nil {
 			return result, nil
 		}
