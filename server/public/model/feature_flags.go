@@ -159,6 +159,9 @@ type FeatureFlags struct {
 
 	// Enable Guilded-style chat layout with enhanced team sidebar, DM page, and persistent RHS
 	GuildedChatLayout bool
+
+	// Enable spoiler tags for text (||spoiler||) and blur overlays for images/videos
+	Spoilers bool
 }
 
 // featureFlagDefaults defines the default value for each boolean feature flag.

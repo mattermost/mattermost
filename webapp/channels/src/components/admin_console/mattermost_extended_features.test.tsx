@@ -21,6 +21,7 @@ describe('components/admin_console/MattermostExtendedFeatures', () => {
             ImageMulti: false,
             ImageSmaller: false,
             SystemConsoleDarkMode: true,
+            Spoilers: false,
         },
     } as unknown as AdminConfig;
 
