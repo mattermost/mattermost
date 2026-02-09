@@ -23,12 +23,21 @@ import (
 func TestThreadFollowerPermissions(t *testing.T) {
 	th := Setup(t).InitBasic(t)
 
-	// Create a root post to have a thread
+	// Create a root post and a reply to establish a thread
 	post := &model.Post{
 		ChannelId: th.BasicChannel.Id,
 		Message:   "root post for thread security test",
 	}
 	rpost, _, err := th.Client.CreatePost(context.Background(), post)
+	require.NoError(t, err)
+
+	// Create a reply so the thread actually exists
+	reply := &model.Post{
+		ChannelId: th.BasicChannel.Id,
+		Message:   "reply to create thread",
+		RootId:    rpost.Id,
+	}
+	_, _, err = th.Client.CreatePost(context.Background(), reply)
 	require.NoError(t, err)
 
 	t.Run("Channel member can list thread followers", func(t *testing.T) {

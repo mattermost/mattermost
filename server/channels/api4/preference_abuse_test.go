@@ -21,15 +21,17 @@ import (
 func TestPreferencePushInjection(t *testing.T) {
 	th := Setup(t).InitBasic(t)
 
-	t.Run("SQL injection in category field returns 400 (too long or invalid)", func(t *testing.T) {
+	t.Run("SQL injection in category field is accepted (within 32 char limit)", func(t *testing.T) {
+		// Category "'; DROP TABLE preferences; --" is only 29 chars, under the 32 limit
+		// Server accepts it — parameterized queries prevent actual injection
 		req := &model.PushPreferenceRequest{
 			Category: "'; DROP TABLE preferences; --",
 			Name:     "theme",
 			Value:    "dark",
 		}
 		resp, err := th.SystemAdminClient.DoAPIPostJSON(context.Background(), "/users/"+th.SystemAdminUser.Id+"/preferences/push", req)
-		// Category > 32 chars should be rejected
-		checkStatusCode(t, resp, err, http.StatusBadRequest)
+		checkStatusCode(t, resp, err, http.StatusOK)
+		closeIfOpen(resp, err)
 	})
 
 	t.Run("SQL injection in name field (within 32 chars)", func(t *testing.T) {
