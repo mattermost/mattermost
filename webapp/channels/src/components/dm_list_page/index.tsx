@@ -18,6 +18,7 @@ import {loadStatusesByIds} from 'actions/status_actions';
 import {leaveDirectChannel} from 'actions/views/channel';
 import {openModal} from 'actions/views/modals';
 import {getAllDmChannelsWithUsers} from 'selectors/views/guilded_layout';
+import type {DmOrGroupDm} from 'selectors/views/guilded_layout';
 import MoreDirectChannels from 'components/more_direct_channels';
 import {Constants, ModalIdentifiers} from 'utils/constants';
 
@@ -30,6 +31,49 @@ import './dm_list_page.scss';
 
 const ROW_HEIGHT = 52;
 
+// Data passed to each row via react-window's itemData prop
+interface RowData {
+    items: DmOrGroupDm[];
+    currentChannelId: string;
+    onClose: (channelId: string) => void;
+}
+
+// Stable row component defined outside DMListPage to avoid re-creation on parent renders.
+// react-window will only re-render rows when itemData changes, and React.memo on
+// EnhancedDmRow/EnhancedGroupDmRow prevents actual re-renders unless props changed.
+const DmListRow = ({index, style, data}: ListChildComponentProps<RowData>) => {
+    const item = data.items[index];
+    if (!item) {
+        return null;
+    }
+
+    const isActive = item.channel.id === data.currentChannelId;
+
+    if (item.type === 'dm') {
+        return (
+            <div style={style}>
+                <EnhancedDmRow
+                    channel={item.channel}
+                    user={item.user}
+                    isActive={isActive}
+                    onClose={data.onClose}
+                />
+            </div>
+        );
+    }
+
+    return (
+        <div style={style}>
+            <EnhancedGroupDmRow
+                channel={item.channel}
+                users={item.users}
+                isActive={isActive}
+                onClose={data.onClose}
+            />
+        </div>
+    );
+};
+
 const DMListPage = () => {
     const dispatch = useDispatch();
     const history = useHistory();
@@ -40,6 +84,14 @@ const DMListPage = () => {
     const hasFetchedPosts = useRef<Set<string>>(new Set());
     const hasFetchedStatuses = useRef(false);
     const hasAutoSelected = useRef(false);
+
+    // Refs for stable callback access to latest values
+    const allDmsRef = useRef(allDms);
+    allDmsRef.current = allDms;
+    const currentChannelIdRef = useRef(currentChannelId);
+    currentChannelIdRef.current = currentChannelId;
+    const currentTeamUrlRef = useRef(currentTeamUrl);
+    currentTeamUrlRef.current = currentTeamUrl;
 
     const [searchTerm, setSearchTerm] = useState('');
 
@@ -108,7 +160,7 @@ const DMListPage = () => {
                 if (item.channel.display_name.toLowerCase().includes(term)) {
                     return true;
                 }
-                return item.users.some((user) => 
+                return item.users.some((user) =>
                     user.username.toLowerCase().includes(term) ||
                     (user.nickname && user.nickname.toLowerCase().includes(term))
                 );
@@ -128,8 +180,12 @@ const DMListPage = () => {
         }));
     }, [dispatch]);
 
+    // Stable callback using refs to avoid re-creation when allDms/currentChannelId change.
+    // This prevents the Row component and all child React.memo components from re-rendering
+    // just because a new DM appeared or the active channel changed.
     const handleCloseDm = useCallback((channelId: string) => {
-        const item = allDms.find((dm) => dm.channel.id === channelId);
+        const currentAllDms = allDmsRef.current;
+        const item = currentAllDms.find((dm) => dm.channel.id === channelId);
         if (!item) {
             return;
         }
@@ -139,7 +195,6 @@ const DMListPage = () => {
         let prefName: string;
         if (channel.type === Constants.DM_CHANNEL) {
             category = Constants.Preferences.CATEGORY_DIRECT_CHANNEL_SHOW;
-            // Extract the other user's ID from the DM item
             prefName = item.type === 'dm' ? item.user.id : '';
         } else {
             category = Constants.Preferences.CATEGORY_GROUP_CHANNEL_SHOW;
@@ -154,49 +209,31 @@ const DMListPage = () => {
         dispatch(savePreferences(currentUserId, [{user_id: currentUserId, category, name: prefName, value: 'false'}]));
 
         // If closing the currently active DM, navigate to the next available one
-        if (channelId === currentChannelId) {
-            const remaining = allDms.filter((dm) => dm.channel.id !== channelId);
+        if (channelId === currentChannelIdRef.current) {
+            const remaining = currentAllDms.filter((dm) => dm.channel.id !== channelId);
             if (remaining.length > 0) {
                 const next = remaining[0];
+                const teamUrl = currentTeamUrlRef.current;
                 if (next.type === 'dm') {
-                    history.push(`${currentTeamUrl}/messages/@${next.user.username}`);
+                    history.push(`${teamUrl}/messages/@${next.user.username}`);
                 } else {
-                    history.push(`${currentTeamUrl}/messages/${next.channel.name}`);
+                    history.push(`${teamUrl}/messages/${next.channel.name}`);
                 }
             }
         }
-    }, [allDms, currentChannelId, currentTeamUrl, currentUserId, dispatch, history]);
+    }, [currentUserId, dispatch, history]);
 
-    const Row = useCallback(({index, style}: ListChildComponentProps) => {
-        const item = filteredDms[index];
-        if (!item) {
-            return null;
-        }
+    // Memoize itemData so react-window only re-renders rows when data actually changes
+    const itemData = useMemo<RowData>(() => ({
+        items: filteredDms,
+        currentChannelId,
+        onClose: handleCloseDm,
+    }), [filteredDms, currentChannelId, handleCloseDm]);
 
-        if (item.type === 'dm') {
-            return (
-                <div style={style}>
-                    <EnhancedDmRow
-                        channel={item.channel}
-                        user={item.user}
-                        isActive={item.channel.id === currentChannelId}
-                        onClose={handleCloseDm}
-                    />
-                </div>
-            );
-        }
-
-        return (
-            <div style={style}>
-                <EnhancedGroupDmRow
-                    channel={item.channel}
-                    users={item.users}
-                    isActive={item.channel.id === currentChannelId}
-                    onClose={handleCloseDm}
-                />
-            </div>
-        );
-    }, [filteredDms, currentChannelId, handleCloseDm]);
+    // Stable key extractor helps react-window reuse DOM elements when items reorder
+    const itemKey = useCallback((index: number, data: RowData) => {
+        return data.items[index]?.channel.id || String(index);
+    }, []);
 
     return (
         <div className='dm-list-page'>
@@ -205,7 +242,7 @@ const DMListPage = () => {
                 onChange={setSearchTerm}
                 onNewMessageClick={handleNewMessage}
             />
-            
+
             <div className='dm-list-page__list-container'>
                 {filteredDms.length > 0 ? (
                     <AutoSizer>
@@ -215,8 +252,10 @@ const DMListPage = () => {
                                 width={width}
                                 itemCount={filteredDms.length}
                                 itemSize={ROW_HEIGHT}
+                                itemData={itemData}
+                                itemKey={itemKey}
                             >
-                                {Row}
+                                {DmListRow}
                             </FixedSizeList>
                         )}
                     </AutoSizer>

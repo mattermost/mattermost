@@ -211,19 +211,19 @@ export function getLastPostInChannel(state: GlobalState, channelId: string) {
 }
 
 // DM list types
-interface DmInfo {
+export interface DmInfo {
     type: 'dm';
     channel: Channel;
     user: UserProfile;
 }
 
-interface GroupDmInfo {
+export interface GroupDmInfo {
     type: 'group';
     channel: Channel;
     users: UserProfile[];
 }
 
-type DmOrGroupDm = DmInfo | GroupDmInfo;
+export type DmOrGroupDm = DmInfo | GroupDmInfo;
 
 /**
  * Get all DM and Group DM channels with user info, sorted by last activity.
@@ -251,6 +251,32 @@ export const getAllDmChannelsWithUsers = createSelector(
         for (const pref of groupShowPrefs) {
             if (pref.value === 'false') {
                 hiddenGms.add(pref.name);
+            }
+        }
+
+        // Build O(1) lookup maps for GM user resolution (avoids O(n) find per display name)
+        const userByUsername = new Map<string, UserProfile>();
+        const userByNickname = new Map<string, UserProfile>();
+        const userByFullName = new Map<string, UserProfile>();
+        let hasGmChannels = false;
+
+        for (const channel of Object.values(channels)) {
+            if (channel.type === Constants.GM_CHANNEL && memberships[channel.id] && !hiddenGms.has(channel.id)) {
+                hasGmChannels = true;
+                break;
+            }
+        }
+
+        if (hasGmChannels) {
+            for (const user of Object.values(users)) {
+                userByUsername.set(user.username, user);
+                if (user.nickname) {
+                    userByNickname.set(user.nickname, user);
+                }
+                const fullName = `${user.first_name} ${user.last_name}`.trim();
+                if (fullName) {
+                    userByFullName.set(fullName, user);
+                }
             }
         }
 
@@ -291,11 +317,9 @@ export const getAllDmChannelsWithUsers = createSelector(
                 // GM display_name is typically comma-separated usernames
                 const displayNames = channel.display_name.split(', ');
                 for (const displayName of displayNames) {
-                    const user = Object.values(users).find(
-                        (u) => u.username === displayName ||
-                               u.nickname === displayName ||
-                               `${u.first_name} ${u.last_name}` === displayName,
-                    );
+                    const user = userByUsername.get(displayName) ||
+                        userByNickname.get(displayName) ||
+                        userByFullName.get(displayName);
                     if (user && user.id !== currentUserId) {
                         gmUsers.push(user);
                     }

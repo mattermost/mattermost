@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {useMemo} from 'react';
+import React, {useMemo, useCallback} from 'react';
 import {useSelector} from 'react-redux';
 import {Link} from 'react-router-dom';
 import classNames from 'classnames';
@@ -33,12 +33,12 @@ type Props = {
     onClose?: (channelId: string) => void;
 };
 
-const EnhancedGroupDmRow = ({channel, users, isActive, onDmClick, onClose}: Props) => {
+const EnhancedGroupDmRow = React.memo(({channel, users, isActive, onDmClick, onClose}: Props) => {
     const currentTeamUrl = useSelector(getCurrentRelativeTeamUrl);
     const currentUserId = useSelector(getCurrentUserId);
     const teammateNameDisplaySetting = useSelector(getTeammateNameDisplaySetting);
     const member = useSelector((state: GlobalState) => getMyChannelMember(state, channel.id));
-    
+
     // Last post selectors
     const lastPost = useSelector((state: GlobalState) => getLastPostInChannel(state, channel.id));
     const lastPostUser = useSelector((state: GlobalState) => lastPost ? getUser(state, lastPost.user_id) : null);
@@ -50,23 +50,25 @@ const EnhancedGroupDmRow = ({channel, users, isActive, onDmClick, onClose}: Prop
     // Format timestamp
     const timestamp = lastPost ? getRelativeTimestamp(lastPost.create_at) : '';
 
-    const handleClose = (e: React.MouseEvent) => {
+    const handleClose = useCallback((e: React.MouseEvent) => {
         e.preventDefault();
         e.stopPropagation();
         onClose?.(channel.id);
-    };
+    }, [onClose, channel.id]);
 
-    // Last message preview text
-    // In group DMs: show "You: " for own messages, username for others
-    let previewContent: React.ReactNode = 'No messages yet';
-    if (lastPost) {
-        const isOwnMessage = lastPost.user_id === currentUserId;
-        const prefix = isOwnMessage ? 'You: ' : (lastPostUser ? `${lastPostUser.username}: ` : '');
-        const formatted = formatDmPreview(lastPost.message);
-        previewContent = formatted ? <>{prefix}{formatted}</> : `${prefix}${lastPost.message}`;
-    } else if (channel.last_post_at > 0) {
-        previewContent = 'Loading...';
-    }
+    // Memoize preview to avoid re-creating React node tree on every render
+    const previewContent = useMemo(() => {
+        if (lastPost) {
+            const isOwnMessage = lastPost.user_id === currentUserId;
+            const prefix = isOwnMessage ? 'You: ' : (lastPostUser ? `${lastPostUser.username}: ` : '');
+            const formatted = formatDmPreview(lastPost.message);
+            return formatted ? <>{prefix}{formatted}</> : `${prefix}${lastPost.message}`;
+        }
+        if (channel.last_post_at > 0) {
+            return 'Loading...';
+        }
+        return 'No messages yet';
+    }, [lastPost?.id, lastPost?.message, lastPost?.user_id, currentUserId, lastPostUser?.username, channel.last_post_at]);
 
     const displayName = useMemo(() => {
         if (channel.display_name && !channel.display_name.includes(',')) {
@@ -81,6 +83,21 @@ const EnhancedGroupDmRow = ({channel, users, isActive, onDmClick, onClose}: Prop
         return otherUsers.map((u) => displayUsername(u, teammateNameDisplaySetting)).join(', ');
     }, [channel.display_name, users, currentUserId, teammateNameDisplaySetting]);
 
+    // Memoize avatar elements to avoid recomputation
+    const avatarElements = useMemo(() => {
+        return users.slice(0, 3).map((u, i) => (
+            <div
+                key={u.id}
+                className={classNames('enhanced-group-dm-row__avatar-container', `enhanced-group-dm-row__avatar-container--${i}`)}
+            >
+                <img
+                    src={Client4.getProfilePictureUrl(u.id, u.last_picture_update)}
+                    alt={`${u.username} avatar`}
+                />
+            </div>
+        ));
+    }, [users]);
+
     return (
         <Link
             to={`${currentTeamUrl}/messages/${channel.name}`}
@@ -91,17 +108,7 @@ const EnhancedGroupDmRow = ({channel, users, isActive, onDmClick, onClose}: Prop
             onClick={onDmClick}
         >
             <div className='enhanced-group-dm-row__avatars'>
-                {users.slice(0, 3).map((u, i) => (
-                    <div
-                        key={u.id}
-                        className={classNames('enhanced-group-dm-row__avatar-container', `enhanced-group-dm-row__avatar-container--${i}`)}
-                    >
-                        <img
-                            src={Client4.getProfilePictureUrl(u.id, u.last_picture_update)}
-                            alt={`${u.username} avatar`}
-                        />
-                    </div>
-                ))}
+                {avatarElements}
                 {users.length > 3 && (
                     <div className='enhanced-group-dm-row__avatar-more'>
                         {`+${users.length - 3}`}
@@ -135,6 +142,32 @@ const EnhancedGroupDmRow = ({channel, users, isActive, onDmClick, onClose}: Prop
             </button>
         </Link>
     );
-};
+}, (prev, next) => {
+    // Custom comparison needed because `users` array is recreated by the selector.
+    // We compare each user by reference identity since Redux user objects are stable.
+    if (prev.channel !== next.channel) {
+        return false;
+    }
+    if (prev.isActive !== next.isActive) {
+        return false;
+    }
+    if (prev.onClose !== next.onClose) {
+        return false;
+    }
+    if (prev.onDmClick !== next.onDmClick) {
+        return false;
+    }
+    if (prev.users.length !== next.users.length) {
+        return false;
+    }
+    for (let i = 0; i < prev.users.length; i++) {
+        if (prev.users[i] !== next.users[i]) {
+            return false;
+        }
+    }
+    return true;
+});
+
+EnhancedGroupDmRow.displayName = 'EnhancedGroupDmRow';
 
 export default EnhancedGroupDmRow;

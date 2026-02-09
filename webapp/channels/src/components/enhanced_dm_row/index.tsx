@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
+import React, {useMemo, useCallback} from 'react';
 import {useSelector} from 'react-redux';
 import {Link} from 'react-router-dom';
 import classNames from 'classnames';
@@ -35,7 +35,7 @@ type Props = {
     onClose?: (channelId: string) => void;
 };
 
-const EnhancedDmRow = ({channel, user, isActive, onDmClick, onClose}: Props) => {
+const EnhancedDmRow = React.memo(({channel, user, isActive, onDmClick, onClose}: Props) => {
     const currentTeamUrl = useSelector(getCurrentRelativeTeamUrl);
     const currentUserId = useSelector(getCurrentUserId);
     const teammateNameDisplaySetting = useSelector(getTeammateNameDisplaySetting);
@@ -53,25 +53,30 @@ const EnhancedDmRow = ({channel, user, isActive, onDmClick, onClose}: Props) => 
     // Format timestamp
     const timestamp = lastPost ? getRelativeTimestamp(lastPost.create_at) : '';
 
-    const handleClose = (e: React.MouseEvent) => {
+    const handleClose = useCallback((e: React.MouseEvent) => {
         e.preventDefault();
         e.stopPropagation();
         onClose?.(channel.id);
-    };
+    }, [onClose, channel.id]);
 
-    const avatarUrl = Client4.getProfilePictureUrl(user.id, user.last_picture_update);
+    const avatarUrl = useMemo(
+        () => Client4.getProfilePictureUrl(user.id, user.last_picture_update),
+        [user.id, user.last_picture_update],
+    );
 
-    // Last message preview text
-    // In 1-on-1 DMs: show "You: " for own messages, no prefix for the other person
-    let previewContent: React.ReactNode = 'No messages yet';
-    if (lastPost) {
-        const isOwnMessage = lastPost.user_id === currentUserId;
-        const prefix = isOwnMessage ? 'You: ' : '';
-        const formatted = formatDmPreview(lastPost.message);
-        previewContent = formatted ? <>{prefix}{formatted}</> : `${prefix}${lastPost.message}`;
-    } else if (channel.last_post_at > 0) {
-        previewContent = 'Loading...';
-    }
+    // Memoize preview to avoid re-creating React node tree on every render
+    const previewContent = useMemo(() => {
+        if (lastPost) {
+            const isOwnMessage = lastPost.user_id === currentUserId;
+            const prefix = isOwnMessage ? 'You: ' : '';
+            const formatted = formatDmPreview(lastPost.message);
+            return formatted ? <>{prefix}{formatted}</> : `${prefix}${lastPost.message}`;
+        }
+        if (channel.last_post_at > 0) {
+            return 'Loading...';
+        }
+        return 'No messages yet';
+    }, [lastPost?.id, lastPost?.message, lastPost?.user_id, currentUserId, channel.last_post_at]);
 
     const displayName = displayUsername(user, teammateNameDisplaySetting);
 
@@ -119,6 +124,8 @@ const EnhancedDmRow = ({channel, user, isActive, onDmClick, onClose}: Props) => 
             </button>
         </Link>
     );
-};
+});
+
+EnhancedDmRow.displayName = 'EnhancedDmRow';
 
 export default EnhancedDmRow;
