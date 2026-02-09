@@ -7,5 +7,6 @@ DROP INDEX IF EXISTS idx_translations_updateat;
 
 -- Create covering index for etag queries
 -- Index is per-channel (not per-locale) since we cache etags at channel level
+-- morph:nontransactional
 CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_translations_channel_updateat
     ON translations(channelid, objectType, updateAt DESC, dstlang);
