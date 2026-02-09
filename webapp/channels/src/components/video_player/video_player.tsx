@@ -115,8 +115,10 @@ export default function VideoPlayer(props: Props) {
         return null;
     }
 
-    // Show loading while encrypted file is being decrypted
+    // Show loading/failed state while encrypted file is being decrypted
+    const isDecryptionFailed = isEncrypted && decryptionStatus === 'failed';
     if (isEncrypted && !decryptedFileUrl) {
+        const placeholderText = isDecryptionFailed ? 'Encrypted file' : 'Loading...';
         const containerStyle: React.CSSProperties = {
             maxWidth: `${maxWidth}px`,
         };
@@ -139,10 +141,10 @@ export default function VideoPlayer(props: Props) {
                     }}
                 >
                     <span style={{color: 'rgba(var(--center-channel-color-rgb), 0.56)', fontSize: '14px'}}>
-                        {decryptionStatus === 'decrypting' ? 'Loading...' : 'Loading...'}
+                        {placeholderText}
                     </span>
                 </div>
-                <span className='video-player-caption'>{'Loading...'}</span>
+                <span className='video-player-caption'>{placeholderText}</span>
             </div>
         );
     }

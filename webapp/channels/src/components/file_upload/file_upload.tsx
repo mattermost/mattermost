@@ -362,6 +362,7 @@ export class FileUpload extends PureComponent<Props, State> {
 
                     // Use the encrypted file for upload
                     fileToUpload = encryptedFile;
+                    fileName = encryptedFile.name;
                     fileType = encryptedFile.type;
 
                     console.log('[FileUpload] Encrypted file:', fileName, 'clientId:', clientId);

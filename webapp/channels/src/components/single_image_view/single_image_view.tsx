@@ -178,8 +178,11 @@ export default function SingleImageView(props: Props) {
         </button>
     );
 
-    // For encrypted files without decryption yet, show "Loading..."
-    const displayName = isEncrypted && !originalFileInfo ? 'Loading...' : displayFileInfo.name;
+    // For encrypted files: show status while processing, "Encrypted file" if can't decrypt
+    const isDecryptionFailed = isEncrypted && decryptionStatus === 'failed';
+    const displayName = isEncrypted && !originalFileInfo
+        ? (isDecryptionFailed ? 'Encrypted file' : 'Loading...')
+        : displayFileInfo.name;
 
     const fileHeader = (
         <div
@@ -238,8 +241,9 @@ export default function SingleImageView(props: Props) {
     // Show encrypted placeholder if file is encrypted but not yet decrypted
     const showEncryptedPlaceholder = isEncrypted && !decryptedFileUrl;
 
-    // Show simple loading placeholder while decrypting
+    // Show placeholder while decrypting or "Encrypted file" if decryption failed
     if (showEncryptedPlaceholder) {
+        const placeholderText = isDecryptionFailed ? 'Encrypted file' : 'Loading...';
         return (
             <div
                 className={classNames('file-view--single', permalinkClass)}
@@ -259,7 +263,7 @@ export default function SingleImageView(props: Props) {
                             }}
                         >
                             <span style={{color: 'rgba(var(--center-channel-color-rgb), 0.56)', fontSize: '14px'}}>
-                                {'Loading...'}
+                                {placeholderText}
                             </span>
                         </div>
                     )}

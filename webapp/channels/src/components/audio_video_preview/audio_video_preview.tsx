@@ -56,11 +56,28 @@ export default function AudioVideoPreview({fileInfo, fileUrl, isMobileView, post
         return undefined;
     }, [handleLoadError, effectiveUrl]);
 
-    // Show loading state while decrypting (same as normal file loading)
+    // Show loading state while decrypting, or "Encrypted file" if decryption failed
     if (isEncrypted && !decryptedFileUrl) {
+        if (decryptionStatus === 'failed') {
+            return (
+                <div
+                    className='file-preview-modal__content'
+                    style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        minHeight: '100px',
+                        color: 'rgba(var(--center-channel-color-rgb), 0.56)',
+                        fontSize: '14px',
+                    }}
+                >
+                    {'Encrypted file'}
+                </div>
+            );
+        }
         return (
             <LoadingImagePreview
-                loading={decryptionStatus === 'decrypting' ? 'Loading' : 'Loading'}
+                loading={'Loading'}
                 progress={decryptionStatus === 'decrypting' ? 50 : 0}
             />
         );

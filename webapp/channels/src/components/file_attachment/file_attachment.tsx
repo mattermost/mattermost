@@ -89,6 +89,9 @@ export default function FileAttachment(props: Props) {
         thumbnailUrl: decryptedThumbnailUrl,
     } = useEncryptedFile(props.fileInfo, props.postId, true);
 
+    // Whether decryption failed (e.g. missing keys from a different session)
+    const isDecryptionFailed = isEncrypted && decryptionStatus === 'failed';
+
     // For encrypted files, use the decrypted metadata for display
     // Once decrypted, this gives us the original name/type/extension so
     // the file renders exactly like a normal attachment
@@ -112,7 +115,8 @@ export default function FileAttachment(props: Props) {
     }, [props.fileInfo, isEncrypted, originalFileInfo]);
 
     // Whether the encrypted file is still being decrypted (not yet ready to display)
-    const isDecryptingEncrypted = isEncrypted && !originalFileInfo;
+    // Excludes failed state - failed files should show "Encrypted file" not "Loading..."
+    const isDecryptingEncrypted = isEncrypted && !originalFileInfo && !isDecryptionFailed;
 
     const handleImageLoaded = () => {
         if (mounted.current) {
@@ -410,6 +414,11 @@ export default function FileAttachment(props: Props) {
                                 id='file_attachment.loading'
                                 defaultMessage='Loading...'
                             />
+                        ) : isDecryptionFailed ? (
+                            <FormattedMessage
+                                id='file_attachment.encrypted'
+                                defaultMessage='Encrypted file'
+                            />
                         ) : fileInfo.name}
                     </span>
                     {fileInfo.archived ? <span className={'post-image__archived'}>
@@ -418,7 +427,9 @@ export default function FileAttachment(props: Props) {
                             id='workspace_limits.archived_file.archived'
                             defaultMessage='This file is archived'
                         />
-                    </span> : !isDecryptingEncrypted && <>
+                    </span> : isDecryptionFailed ? (
+                        <span className='post-image__type'>{'PENC'}</span>
+                    ) : !isDecryptingEncrypted && <>
                         <span className='post-image__type'>{fileInfo.extension?.toUpperCase()}</span>
                         <span className='post-image__size'>{fileSizeToString(fileInfo.size)}</span>
                     </>
