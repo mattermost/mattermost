@@ -36,6 +36,8 @@ type Manager struct {
 	order     []string // insertion-order process IDs
 	program   *tea.Program
 	tmux      *TmuxClient
+	paneRows  int // last known log panel height
+	paneCols  int // last known log panel width
 }
 
 func NewManager(tmux *TmuxClient) *Manager {
@@ -117,7 +119,15 @@ func (m *Manager) startProcess(id, repoName, targetName, cmdStr, dir string) err
 		_ = m.tmux.KillSession(sessionName)
 	}
 
-	err := m.tmux.NewSession(sessionName, cmdStr, dir, 40, 120)
+	rows := m.paneRows
+	cols := m.paneCols
+	if rows < 10 {
+		rows = 40
+	}
+	if cols < 20 {
+		cols = 120
+	}
+	err := m.tmux.NewSession(sessionName, cmdStr, dir, rows, cols)
 	if err != nil {
 		m.mu.Unlock()
 		return err
@@ -216,18 +226,22 @@ func (m *Manager) WriteInput(id string, keys ...string) error {
 
 // ResizeTmux updates the tmux window size for a process.
 func (m *Manager) ResizeTmux(id string, rows, cols int) {
-	m.mu.RLock()
+	m.mu.Lock()
+	unchanged := m.paneRows == rows && m.paneCols == cols
+	m.paneRows = rows
+	m.paneCols = cols
 	proc, ok := m.processes[id]
-	m.mu.RUnlock()
+	m.mu.Unlock()
 
-	if !ok {
+	if !ok || unchanged {
 		return
 	}
 	_ = m.tmux.ResizeWindow(proc.SessionName, rows, cols)
 }
 
 // CapturePaneContent returns the visible terminal content of a process's tmux pane.
-func (m *Manager) CapturePaneContent(id string) (string, error) {
+// CapturePaneVisible captures just the visible pane (fast, for auto-scroll).
+func (m *Manager) CapturePaneVisible(id string) (string, error) {
 	m.mu.RLock()
 	proc, ok := m.processes[id]
 	m.mu.RUnlock()
@@ -236,7 +250,20 @@ func (m *Manager) CapturePaneContent(id string) (string, error) {
 		return "", fmt.Errorf("process %s not found", id)
 	}
 
-	return m.tmux.CapturePaneANSI(proc.SessionName)
+	return m.tmux.CapturePaneVisible(proc.SessionName)
+}
+
+// CapturePaneHistory captures full scrollback (for on-demand scroll).
+func (m *Manager) CapturePaneHistory(id string) (string, error) {
+	m.mu.RLock()
+	proc, ok := m.processes[id]
+	m.mu.RUnlock()
+
+	if !ok {
+		return "", fmt.Errorf("process %s not found", id)
+	}
+
+	return m.tmux.CapturePaneHistory(proc.SessionName)
 }
 
 func (m *Manager) Stop(id string) error {

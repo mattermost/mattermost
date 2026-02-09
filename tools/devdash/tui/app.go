@@ -141,9 +141,14 @@ func (a *App) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case TickMsg:
 		// Poll tmux capture-pane for the focused process
 		if a.logVisible && a.focusedProc != "" {
-			if content, err := a.procMgr.CapturePaneContent(a.focusedProc); err == nil {
-				a.logPanel.UpdateContent(content)
+			if a.logPanel.autoScroll {
+				// Fast path: only capture visible pane
+				if content, err := a.procMgr.CapturePaneVisible(a.focusedProc); err == nil {
+					a.logPanel.UpdateContent(content)
+					a.logPanel.historyDirty = true // new output invalidates cached history
+				}
 			}
+			// When scroll-locked, don't poll — user is reading cached history
 		}
 		return a, tea.Tick(pollInterval, func(t time.Time) tea.Msg {
 			return TickMsg(t)
@@ -403,6 +408,7 @@ func (a *App) handleKey(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 		}
 		switch {
 		case key.Matches(msg, a.keys.Up):
+			a.loadHistoryIfNeeded()
 			a.logPanel.viewport.LineUp(1)
 			a.logPanel.autoScroll = false
 			return a, nil
@@ -416,10 +422,12 @@ func (a *App) handleKey(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 			a.cycleLog(1)
 			return a, nil
 		case msg.String() == "G":
-			a.logPanel.viewport.GotoBottom()
+			// Return to auto-scroll: switch back to fast visible-only capture
 			a.logPanel.autoScroll = true
+			a.logPanel.lastContent = "" // force refresh on next tick
 			return a, nil
 		case msg.String() == "g":
+			a.loadHistoryIfNeeded()
 			a.logPanel.viewport.GotoTop()
 			a.logPanel.autoScroll = false
 			return a, nil
@@ -470,6 +478,7 @@ func (a *App) handleMouse(msg tea.MouseMsg) (tea.Model, tea.Cmd) {
 		// Handle scroll wheel in log panel
 		if a.logVisible && msg.Y > a.height-a.logPanelHeight() {
 			if msg.Button == tea.MouseButtonWheelUp {
+				a.loadHistoryIfNeeded()
 				a.logPanel.viewport.LineUp(3)
 				a.logPanel.autoScroll = false
 			} else if msg.Button == tea.MouseButtonWheelDown {
@@ -690,6 +699,21 @@ func (a *App) executeWithInputMode() {
 	a.logPanel.SetSize(a.width, a.logPanelHeight())
 	a.focus = FocusLog
 	a.logPanel.inputting = true
+}
+
+// loadHistoryIfNeeded does a one-time full scrollback capture when the user
+// first scrolls up. The result is cached until new output arrives.
+func (a *App) loadHistoryIfNeeded() {
+	if a.focusedProc == "" || !a.logPanel.historyDirty {
+		return
+	}
+	if content, err := a.procMgr.CapturePaneHistory(a.focusedProc); err == nil {
+		a.logPanel.historyDirty = false
+		a.logPanel.historyCache = content
+		a.logPanel.lastContent = content
+		a.logPanel.viewport.SetContent(content)
+		a.logPanel.viewport.GotoBottom()
+	}
 }
 
 // dismissProcess stops and removes the process for the current context.
@@ -1507,6 +1531,10 @@ func (a *App) View() string {
 			lpH = 4
 		}
 		a.logPanel.SetSize(a.width, lpH)
+		// Keep tmux pane sized to match the log panel
+		if a.focusedProc != "" {
+			a.procMgr.ResizeTmux(a.focusedProc, lpH, a.width)
+		}
 	}
 
 	// Log panel / command editor (viewport only — tab bar already rendered above)

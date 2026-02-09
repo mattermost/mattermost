@@ -17,13 +17,16 @@ type LogTab struct {
 }
 
 type LogPanel struct {
-	viewport   viewport.Model
-	processID  string
-	inputting  bool // true when raw keystrokes are forwarded to process via tmux
-	autoScroll bool
-	width      int
-	height     int
-	ready      bool
+	viewport     viewport.Model
+	processID    string
+	inputting    bool   // true when raw keystrokes are forwarded to process via tmux
+	autoScroll   bool
+	lastContent  string // cache to skip redundant viewport updates
+	historyCache string // cached full scrollback (loaded on first scroll-up)
+	historyDirty bool   // true when history needs refresh on next scroll-up
+	width        int
+	height       int
+	ready        bool
 }
 
 func NewLogPanel() LogPanel {
@@ -48,13 +51,18 @@ func (lp *LogPanel) SetSize(width, height int) {
 func (lp *LogPanel) SetProcess(id string) {
 	lp.processID = id
 	lp.autoScroll = true
+	lp.lastContent = ""
+	lp.historyCache = ""
+	lp.historyDirty = true
 }
 
 // UpdateContent sets the log panel content from a captured tmux pane string.
+// Skips the viewport update if content hasn't changed.
 func (lp *LogPanel) UpdateContent(content string) {
-	if !lp.ready {
+	if !lp.ready || content == lp.lastContent {
 		return
 	}
+	lp.lastContent = content
 
 	lp.viewport.SetContent(content)
 

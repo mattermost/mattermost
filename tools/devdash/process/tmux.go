@@ -75,6 +75,9 @@ func (t *TmuxClient) NewSession(name, cmd, dir string, rows, cols int) error {
 		return fmt.Errorf("tmux new-session: %w: %s", err, stderr.String())
 	}
 
+	// Set scrollback buffer to 10k lines
+	_ = t.run("set-option", "-t", name, "history-limit", "10000")
+
 	return nil
 }
 
@@ -111,9 +114,14 @@ func (t *TmuxClient) CommandExitCode(name string) int {
 	return code
 }
 
-// CapturePaneANSI captures the visible pane content with ANSI escape codes preserved.
-func (t *TmuxClient) CapturePaneANSI(name string) (string, error) {
+// CapturePaneVisible captures just the visible pane content (fast, no scrollback).
+func (t *TmuxClient) CapturePaneVisible(name string) (string, error) {
 	return t.output("capture-pane", "-t", name, "-p", "-e")
+}
+
+// CapturePaneHistory captures the full scrollback buffer (slower, for on-demand scroll).
+func (t *TmuxClient) CapturePaneHistory(name string) (string, error) {
+	return t.output("capture-pane", "-t", name, "-p", "-e", "-S", "-")
 }
 
 // SendKeys sends key sequences to a tmux session.
