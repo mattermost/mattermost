@@ -100,7 +100,8 @@ jobs:
           status: pending
 
   run-tests:
-    runs-on: ubuntu-24.04
+    # POC: Testing with 16-core runner to measure speedup vs standard 2-core
+    runs-on: ubuntu-latest-16-cores
     timeout-minutes: ${{ fromJSON(inputs.timeout_minutes) }}
     defaults:
       run:
@@ -182,7 +183,8 @@ jobs:
           original-results-path: e2e-tests/playwright/results/reporter/results.json
 
   run-failed-tests:
-    runs-on: ubuntu-24.04
+    # POC: Testing with 16-core runner to measure speedup vs standard 2-core
+    runs-on: ubuntu-latest-16-cores
     timeout-minutes: ${{ fromJSON(inputs.timeout_minutes) }}
     needs:
       - run-tests

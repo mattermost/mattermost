@@ -153,7 +153,8 @@ jobs:
           fi
 
   run-tests:
-    runs-on: ubuntu-24.04
+    # POC: Testing with 16-core runner to measure speedup vs standard 2-core
+    runs-on: ubuntu-latest-16-cores
     timeout-minutes: ${{ fromJSON(inputs.timeout_minutes) }}
     continue-on-error: ${{ inputs.workers > 1 }}
     needs:
@@ -246,7 +247,8 @@ jobs:
           original-results-path: e2e-tests/cypress/results
 
   run-failed-tests:
-    runs-on: ubuntu-24.04
+    # POC: Testing with 16-core runner to measure speedup vs standard 2-core
+    runs-on: ubuntu-latest-16-cores
     timeout-minutes: ${{ fromJSON(inputs.timeout_minutes) }}
     needs:
       - generate-test-cycle
