@@ -197,7 +197,19 @@ func getMockStore(t *testing.T) *mocks.Store {
 	mockReadReceiptStore := &mocks.ReadReceiptStore{}
 	mockStore.On("ReadReceipt").Return(mockReadReceiptStore)
 
+	fakeTemporaryPost := model.TemporaryPost{
+		ID:       "123",
+		Type:     model.PostTypeBurnOnRead,
+		ExpireAt: model.GetMillis() + 300000,
+		Message:  "test message",
+		FileIDs:  []string{"file1"},
+	}
 	mockTemporaryPostStore := mocks.TemporaryPostStore{}
+	mockTemporaryPostStore.On("Save", mock.Anything, mock.AnythingOfType("*model.TemporaryPost")).Return(&fakeTemporaryPost, nil)
+	mockTemporaryPostStore.On("Delete", mock.Anything, "123").Return(nil)
+	mockTemporaryPostStore.On("Get", mock.Anything, "123", false).Return(&fakeTemporaryPost, nil)
+	mockTemporaryPostStore.On("Get", mock.Anything, "123", true).Return(&fakeTemporaryPost, nil)
+	mockTemporaryPostStore.On("InvalidateTemporaryPost", "123").Return()
 	mockStore.On("TemporaryPost").Return(&mockTemporaryPostStore)
 
 	return &mockStore

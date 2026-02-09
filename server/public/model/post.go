@@ -26,39 +26,40 @@ import (
 type PostContextKey string
 
 const (
-	PostSystemMessagePrefix      = "system_"
-	PostTypeDefault              = ""
-	PostTypeSlackAttachment      = "slack_attachment"
-	PostTypeSystemGeneric        = "system_generic"
-	PostTypeJoinLeave            = "system_join_leave" // Deprecated, use PostJoinChannel or PostLeaveChannel instead
-	PostTypeJoinChannel          = "system_join_channel"
-	PostTypeGuestJoinChannel     = "system_guest_join_channel"
-	PostTypeLeaveChannel         = "system_leave_channel"
-	PostTypeJoinTeam             = "system_join_team"
-	PostTypeLeaveTeam            = "system_leave_team"
-	PostTypeAutoResponder        = "system_auto_responder"
-	PostTypeAddRemove            = "system_add_remove" // Deprecated, use PostAddToChannel or PostRemoveFromChannel instead
-	PostTypeAddToChannel         = "system_add_to_channel"
-	PostTypeAddGuestToChannel    = "system_add_guest_to_chan"
-	PostTypeRemoveFromChannel    = "system_remove_from_channel"
-	PostTypeMoveChannel          = "system_move_channel"
-	PostTypeAddToTeam            = "system_add_to_team"
-	PostTypeRemoveFromTeam       = "system_remove_from_team"
-	PostTypeHeaderChange         = "system_header_change"
-	PostTypeDisplaynameChange    = "system_displayname_change"
-	PostTypeConvertChannel       = "system_convert_channel"
-	PostTypePurposeChange        = "system_purpose_change"
-	PostTypeChannelDeleted       = "system_channel_deleted"
-	PostTypeChannelRestored      = "system_channel_restored"
-	PostTypeEphemeral            = "system_ephemeral"
-	PostTypeChangeChannelPrivacy = "system_change_chan_privacy"
-	PostTypeWrangler             = "system_wrangler"
-	PostTypeGMConvertedToChannel = "system_gm_to_channel"
-	PostTypeAddBotTeamsChannels  = "add_bot_teams_channels"
-	PostTypeMe                   = "me"
-	PostCustomTypePrefix         = "custom_"
-	PostTypeReminder             = "reminder"
-	PostTypeBurnOnRead           = "burn_on_read"
+	PostSystemMessagePrefix       = "system_"
+	PostTypeDefault               = ""
+	PostTypeSlackAttachment       = "slack_attachment"
+	PostTypeSystemGeneric         = "system_generic"
+	PostTypeJoinLeave             = "system_join_leave" // Deprecated, use PostJoinChannel or PostLeaveChannel instead
+	PostTypeJoinChannel           = "system_join_channel"
+	PostTypeGuestJoinChannel      = "system_guest_join_channel"
+	PostTypeLeaveChannel          = "system_leave_channel"
+	PostTypeJoinTeam              = "system_join_team"
+	PostTypeLeaveTeam             = "system_leave_team"
+	PostTypeAutoResponder         = "system_auto_responder"
+	PostTypeAutotranslationChange = "system_autotranslation"
+	PostTypeAddRemove             = "system_add_remove" // Deprecated, use PostAddToChannel or PostRemoveFromChannel instead
+	PostTypeAddToChannel          = "system_add_to_channel"
+	PostTypeAddGuestToChannel     = "system_add_guest_to_chan"
+	PostTypeRemoveFromChannel     = "system_remove_from_channel"
+	PostTypeMoveChannel           = "system_move_channel"
+	PostTypeAddToTeam             = "system_add_to_team"
+	PostTypeRemoveFromTeam        = "system_remove_from_team"
+	PostTypeHeaderChange          = "system_header_change"
+	PostTypeDisplaynameChange     = "system_displayname_change"
+	PostTypeConvertChannel        = "system_convert_channel"
+	PostTypePurposeChange         = "system_purpose_change"
+	PostTypeChannelDeleted        = "system_channel_deleted"
+	PostTypeChannelRestored       = "system_channel_restored"
+	PostTypeEphemeral             = "system_ephemeral"
+	PostTypeChangeChannelPrivacy  = "system_change_chan_privacy"
+	PostTypeWrangler              = "system_wrangler"
+	PostTypeGMConvertedToChannel  = "system_gm_to_channel"
+	PostTypeAddBotTeamsChannels   = "add_bot_teams_channels"
+	PostTypeMe                    = "me"
+	PostCustomTypePrefix          = "custom_"
+	PostTypeReminder              = "reminder"
+	PostTypeBurnOnRead            = "burn_on_read"
 
 	PostFileidsMaxRunes   = 300
 	PostFilenamesMaxRunes = 4000
@@ -523,6 +524,7 @@ func (o *Post) IsValid(maxPostSize int) *AppError {
 		PostTypeMe,
 		PostTypeWrangler,
 		PostTypeGMConvertedToChannel,
+		PostTypeAutotranslationChange,
 		PostTypeBurnOnRead:
 	default:
 		if !strings.HasPrefix(o.Type, PostCustomTypePrefix) {
@@ -1188,14 +1190,15 @@ type RewriteRequest struct {
 	Message      string        `json:"message"`
 	Action       RewriteAction `json:"action"`
 	CustomPrompt string        `json:"custom_prompt,omitempty"`
+	RootID       string        `json:"root_id,omitempty"`
 }
 
 type RewriteResponse struct {
 	RewrittenText string `json:"rewritten_text"`
 }
 
-const RewriteSystemPrompt = `You are a JSON API that rewrites text. Your response must be valid JSON only. 
-Return this exact format: {"rewritten_text":"content"}. 
+const RewriteSystemPrompt = `You are a JSON API that rewrites text. Your response must be valid JSON only.
+Return this exact format: {"rewritten_text":"content"}.
 Do not use markdown, code blocks, or any formatting. Start with { and end with }.`
 
 // ReportPostOptionsCursor contains cursor information for pagination.

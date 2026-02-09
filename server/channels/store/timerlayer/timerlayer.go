@@ -804,10 +804,10 @@ func (s *TimerLayerAutoTranslationStore) ClearCaches() {
 	}
 }
 
-func (s *TimerLayerAutoTranslationStore) Get(objectID string, dstLang string) (*model.Translation, error) {
+func (s *TimerLayerAutoTranslationStore) Get(objectType string, objectID string, dstLang string) (*model.Translation, error) {
 	start := time.Now()
 
-	result, err := s.AutoTranslationStore.Get(objectID, dstLang)
+	result, err := s.AutoTranslationStore.Get(objectType, objectID, dstLang)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
 	if s.Root.Metrics != nil {
@@ -852,10 +852,10 @@ func (s *TimerLayerAutoTranslationStore) GetAllByStatePage(state model.Translati
 	return result, err
 }
 
-func (s *TimerLayerAutoTranslationStore) GetAllForObject(objectID string) ([]*model.Translation, error) {
+func (s *TimerLayerAutoTranslationStore) GetAllForObject(objectType string, objectID string) ([]*model.Translation, error) {
 	start := time.Now()
 
-	result, err := s.AutoTranslationStore.GetAllForObject(objectID)
+	result, err := s.AutoTranslationStore.GetAllForObject(objectType, objectID)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
 	if s.Root.Metrics != nil {
@@ -868,10 +868,10 @@ func (s *TimerLayerAutoTranslationStore) GetAllForObject(objectID string) ([]*mo
 	return result, err
 }
 
-func (s *TimerLayerAutoTranslationStore) GetBatch(objectIDs []string, dstLang string) (map[string]*model.Translation, error) {
+func (s *TimerLayerAutoTranslationStore) GetBatch(objectType string, objectIDs []string, dstLang string) (map[string]*model.Translation, error) {
 	start := time.Now()
 
-	result, err := s.AutoTranslationStore.GetBatch(objectIDs, dstLang)
+	result, err := s.AutoTranslationStore.GetBatch(objectType, objectIDs, dstLang)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
 	if s.Root.Metrics != nil {
@@ -946,22 +946,6 @@ func (s *TimerLayerAutoTranslationStore) InvalidateUserLocaleCache(userID string
 	}
 }
 
-func (s *TimerLayerAutoTranslationStore) IsChannelEnabled(channelID string) (bool, error) {
-	start := time.Now()
-
-	result, err := s.AutoTranslationStore.IsChannelEnabled(channelID)
-
-	elapsed := float64(time.Since(start)) / float64(time.Second)
-	if s.Root.Metrics != nil {
-		success := "false"
-		if err == nil {
-			success = "true"
-		}
-		s.Root.Metrics.ObserveStoreMethodDuration("AutoTranslationStore.IsChannelEnabled", success, elapsed)
-	}
-	return result, err
-}
-
 func (s *TimerLayerAutoTranslationStore) IsUserEnabled(userID string, channelID string) (bool, error) {
 	start := time.Now()
 
@@ -990,38 +974,6 @@ func (s *TimerLayerAutoTranslationStore) Save(translation *model.Translation) er
 			success = "true"
 		}
 		s.Root.Metrics.ObserveStoreMethodDuration("AutoTranslationStore.Save", success, elapsed)
-	}
-	return err
-}
-
-func (s *TimerLayerAutoTranslationStore) SetChannelEnabled(channelID string, enabled bool) error {
-	start := time.Now()
-
-	err := s.AutoTranslationStore.SetChannelEnabled(channelID, enabled)
-
-	elapsed := float64(time.Since(start)) / float64(time.Second)
-	if s.Root.Metrics != nil {
-		success := "false"
-		if err == nil {
-			success = "true"
-		}
-		s.Root.Metrics.ObserveStoreMethodDuration("AutoTranslationStore.SetChannelEnabled", success, elapsed)
-	}
-	return err
-}
-
-func (s *TimerLayerAutoTranslationStore) SetUserEnabled(userID string, channelID string, enabled bool) error {
-	start := time.Now()
-
-	err := s.AutoTranslationStore.SetUserEnabled(userID, channelID, enabled)
-
-	elapsed := float64(time.Since(start)) / float64(time.Second)
-	if s.Root.Metrics != nil {
-		success := "false"
-		if err == nil {
-			success = "true"
-		}
-		s.Root.Metrics.ObserveStoreMethodDuration("AutoTranslationStore.SetUserEnabled", success, elapsed)
 	}
 	return err
 }
@@ -4853,10 +4805,10 @@ func (s *TimerLayerGroupStore) GetByName(name string, opts model.GroupSearchOpts
 	return result, err
 }
 
-func (s *TimerLayerGroupStore) GetByNames(names []string, viewRestrictions *model.ViewUsersRestrictions) ([]*model.Group, error) {
+func (s *TimerLayerGroupStore) GetByNames(names []string, opts model.GroupSearchOpts) ([]*model.Group, error) {
 	start := time.Now()
 
-	result, err := s.GroupStore.GetByNames(names, viewRestrictions)
+	result, err := s.GroupStore.GetByNames(names, opts)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
 	if s.Root.Metrics != nil {
@@ -11424,10 +11376,10 @@ func (s *TimerLayerTemporaryPostStore) Delete(rctx request.CTX, id string) error
 	return err
 }
 
-func (s *TimerLayerTemporaryPostStore) Get(rctx request.CTX, id string) (*model.TemporaryPost, error) {
+func (s *TimerLayerTemporaryPostStore) Get(rctx request.CTX, id string, allowFromCache bool) (*model.TemporaryPost, error) {
 	start := time.Now()
 
-	result, err := s.TemporaryPostStore.Get(rctx, id)
+	result, err := s.TemporaryPostStore.Get(rctx, id, allowFromCache)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
 	if s.Root.Metrics != nil {
