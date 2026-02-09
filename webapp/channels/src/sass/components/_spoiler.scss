@@ -69,7 +69,7 @@
     align-items: center;
     justify-content: center;
     background: rgba(var(--center-channel-color-rgb), 0.05);
-    z-index: 1;
+    z-index: 3; // Must be above .image-loaded img which has z-index: 2
     cursor: pointer;
 
     &__text {
