@@ -426,6 +426,15 @@ export default class PostList extends React.PureComponent<Props, State> {
             this.props.actions.loadNewerPosts();
         }
 
+        // When the user explicitly scrolls up, stop forcing scroll-to-bottom
+        // on content resizes. This must be detected here (not inside the
+        // DynamicVirtualizedList scroll handler) because rapid content resizes
+        // during initial load cause transient "not at bottom" scroll events
+        // that would falsely clear the flag.
+        if (didUserScrollBackwards) {
+            this.listRef.current?.clearKeepScrollToBottom();
+        }
+
         if (this.props.isMobileView) {
             if (!this.state.isScrolling) {
                 this.setState({

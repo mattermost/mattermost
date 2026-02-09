@@ -53,6 +53,13 @@ export class DynamicVirtualizedList extends PureComponent {
         super(props);
     }
 
+    // Called by the parent when the user explicitly scrolls away from the bottom.
+    // Separated from _onScrollVertical to avoid false positives during rapid
+    // initial load where content resizes cause transient "not at bottom" states.
+    clearKeepScrollToBottom() {
+        this._keepScrollToBottom = false;
+    }
+
     scrollBy = (scrollOffset, scrollBy) => () => {
         const element = this._outerRef;
         if (typeof element.scrollBy === 'function' && scrollBy) {
@@ -175,7 +182,11 @@ export class DynamicVirtualizedList extends PureComponent {
             }
             if (!prevState.scrolledToInitIndex) {
                 this._keepScrollPosition = false;
-                this._keepScrollToBottom = false;
+
+                // Don't clear _keepScrollToBottom here — it needs to persist
+                // until the user manually scrolls away from the bottom. During
+                // initial channel load, images/gifs may still be loading and
+                // each resize needs to keep snapping to the bottom.
             }
         }
 
