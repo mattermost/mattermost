@@ -51,9 +51,6 @@ const useBurnOnRead = (
     const channel = useSelector((state: GlobalState) => getChannel(state, channelId));
     const currentUser = useSelector(getCurrentUser);
 
-    // Burn-on-read is not allowed for bot users
-    const isNotBot = !currentUser?.is_bot;
-
     // Burn-on-read is not allowed in self-DMs or DMs with bots (AI agents, plugins, etc.)
     const otherUserId = useMemo(() => {
         if (!channel || !currentUser || !isDirectChannel(channel)) {
@@ -114,7 +111,7 @@ const useBurnOnRead = (
 
     // Button component with tour tip wrapper (in formatting bar)
     const additionalControl = useMemo(() =>
-        (!rootId && isEnabled && canSend && isAllowedInChannel && isNotBot ? (
+        (!rootId && isEnabled && canSend && isAllowedInChannel ? (
             <div
                 key='burn-on-read-control-key'
                 className='BurnOnReadControl'
@@ -131,7 +128,7 @@ const useBurnOnRead = (
                     onTryItOut={() => handleBurnOnReadApply(true)}
                 />
             </div>
-        ) : undefined), [rootId, isEnabled, canSend, isAllowedInChannel, isNotBot, hasBurnOnReadSet, handleBurnOnReadApply, shouldShowPreview, durationMinutes]);
+        ) : undefined), [rootId, isEnabled, canSend, isAllowedInChannel, hasBurnOnReadSet, handleBurnOnReadApply, shouldShowPreview, durationMinutes]);
 
     return {
         labels,

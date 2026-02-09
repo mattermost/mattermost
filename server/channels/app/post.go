@@ -602,17 +602,6 @@ func (a *App) FillInPostProps(rctx request.CTX, post *model.Post, channel *model
 			return model.NewAppError("FillInPostProps", "api.post.fill_in_post_props.burn_on_read.config.app_error", nil, "", http.StatusNotImplemented)
 		}
 
-		// Get user to check if they're a bot
-		user, err := a.GetUser(post.UserId)
-		if err != nil {
-			return model.NewAppError("FillInPostProps", "api.post.fill_in_post_props.burn_on_read.user.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
-		}
-
-		// Burn-on-read is not allowed for bot users
-		if user.IsBot {
-			return model.NewAppError("FillInPostProps", "api.post.fill_in_post_props.burn_on_read.bot.app_error", nil, "", http.StatusBadRequest)
-		}
-
 		// Get channel if not provided - needed for validation
 		if channel == nil {
 			ch, err := a.GetChannel(rctx, post.ChannelId)

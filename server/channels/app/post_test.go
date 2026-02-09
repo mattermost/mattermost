@@ -5379,12 +5379,12 @@ func TestBurnOnReadRestrictionsForDMsAndBots(t *testing.T) {
 		require.Equal(t, model.PostTypeBurnOnRead, createdPost.Type)
 	})
 
-	t.Run("should reject burn-on-read posts from bot users", func(t *testing.T) {
+	t.Run("should allow burn-on-read posts from bot users", func(t *testing.T) {
 		// Create a bot user
 		bot := &model.Bot{
 			Username:    "testbot",
 			DisplayName: "Test Bot",
-			Description: "Test Bot for burn-on-read restrictions",
+			Description: "Test Bot for burn-on-read (bots can send BoR for OTP, integrations, etc.)",
 			OwnerId:     th.BasicUser.Id,
 		}
 		createdBot, appErr := th.App.CreateBot(th.Context, bot)
@@ -5395,7 +5395,7 @@ func TestBurnOnReadRestrictionsForDMsAndBots(t *testing.T) {
 		require.Nil(t, appErr)
 		require.True(t, botUser.IsBot)
 
-		// Try to create a burn-on-read post as bot
+		// Create a burn-on-read post as bot (should succeed - bots can send BoR)
 		post := &model.Post{
 			ChannelId: th.BasicChannel.Id,
 			Message:   "This is a burn-on-read message from bot",
@@ -5403,9 +5403,10 @@ func TestBurnOnReadRestrictionsForDMsAndBots(t *testing.T) {
 			Type:      model.PostTypeBurnOnRead,
 		}
 
-		_, _, err := th.App.CreatePost(th.Context, post, th.BasicChannel, model.CreatePostFlags{SetOnline: true})
-		require.NotNil(t, err)
-		require.Equal(t, "api.post.fill_in_post_props.burn_on_read.bot.app_error", err.Id)
+		createdPost, _, err := th.App.CreatePost(th.Context, post, th.BasicChannel, model.CreatePostFlags{SetOnline: true})
+		require.Nil(t, err)
+		require.NotNil(t, createdPost)
+		require.Equal(t, model.PostTypeBurnOnRead, createdPost.Type)
 	})
 
 	t.Run("should reject burn-on-read posts in self DMs", func(t *testing.T) {

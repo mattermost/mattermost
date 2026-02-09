@@ -256,7 +256,7 @@ describe('useBurnOnRead', () => {
             expect(result.current.additionalControl).toBeUndefined();
         });
 
-        it('should hide button when user is a bot', () => {
+        it('should show button when user is a bot (bots can send BoR for OTP, integrations)', () => {
             (getCurrentUser as jest.Mock).mockReturnValue({id: 'bot-user-id', is_bot: true});
             const publicChannel = createMockChannel('O');
             (getChannel as jest.Mock).mockReturnValue(publicChannel);
@@ -272,7 +272,7 @@ describe('useBurnOnRead', () => {
                 {wrapper},
             );
 
-            expect(result.current.additionalControl).toBeUndefined();
+            expect(result.current.additionalControl).toBeDefined();
         });
     });
 
