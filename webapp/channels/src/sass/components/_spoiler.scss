@@ -37,18 +37,22 @@
 }
 
 // Media spoiler overlay (images/videos)
+// Wrappers use width: fit-content to shrink to the image/video size
+// so the overlay and blur only cover the media, not the full post width.
 .single-image-spoiler-wrapper,
 .multi-image-spoiler-wrapper,
 .video-player-spoiler-wrapper {
     position: relative;
+    width: fit-content;
+    max-width: 100%;
 
     &--blurred {
         cursor: pointer;
+        overflow: hidden; // Clip blur bleed at wrapper edges
+        border-radius: 4px;
 
         img,
-        video,
-        .post-image,
-        .SizeAwareImage {
+        video {
             filter: blur(20px);
             transition: filter 0.3s ease;
         }

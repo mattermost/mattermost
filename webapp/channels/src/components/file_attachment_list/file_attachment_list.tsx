@@ -385,6 +385,7 @@ export default function FileAttachmentList(props: Props) {
                     postId={props.post.id}
                     compactDisplay={compactDisplay}
                     isInPermalink={isInPermalink}
+                    spoilerFileIds={spoilerFileIdsList}
                 />,
             );
 
