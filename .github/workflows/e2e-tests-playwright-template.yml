@@ -114,6 +114,7 @@ jobs:
       TEST_FILTER: "${{ inputs.test_filter }}"
       BRANCH: "${{ inputs.branch }}-${{ inputs.test_type }}"
       BUILD_ID: "${{ inputs.build_id }}"
+      PW_WORKERS: "8"  # POC: Testing with 8 parallel Playwright workers
     steps:
       - name: ci/verify-runner-specs
         working-directory: /tmp
