@@ -7,6 +7,7 @@ import type {Dispatch} from 'redux';
 
 import {removePost} from 'mattermost-redux/actions/posts';
 
+import {runMessageWillBePostedHooks} from 'actions/hooks';
 import {createPost} from 'actions/post_actions';
 
 import FailedPostOptions from './failed_post_options';
@@ -16,6 +17,7 @@ function mapDispatchToProps(dispatch: Dispatch) {
         actions: bindActionCreators({
             createPost,
             removePost,
+            runMessageWillBePostedHooks,
         }, dispatch),
     };
 }

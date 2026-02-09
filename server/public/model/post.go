@@ -67,6 +67,12 @@ const (
 	PostMessageMaxBytesV2 = 65535                     // Maximum size of a TEXT column in MySQL
 	PostMessageMaxRunesV2 = PostMessageMaxBytesV2 / 4 // Assume a worst-case representation
 
+	// Encrypted messages (PENC:v1:...) expand significantly due to per-recipient
+	// RSA-encrypted AES keys and base64 encoding. Use byte-level limit since
+	// encrypted content is ASCII-only (base64).
+	EncryptedMessagePrefix       = "PENC:v1:"
+	PostEncryptedMessageMaxRunes = PostMessageMaxBytesV2
+
 	// Reporting API constants
 	MaxReportingPerPage        = 1000 // Maximum number of posts that can be requested per page in reporting endpoints
 	ReportingTimeFieldCreateAt = "create_at"
@@ -491,9 +497,17 @@ func (o *Post) IsValid(maxPostSize int) *AppError {
 		return NewAppError("Post.IsValid", "model.post.is_valid.original_id.app_error", nil, "", http.StatusBadRequest)
 	}
 
-	if utf8.RuneCountInString(o.Message) > maxPostSize {
+	// Encrypted messages are significantly larger than plaintext due to
+	// per-recipient RSA-encrypted AES keys and base64 encoding.
+	// Use a higher limit for encrypted content (ASCII-only, so runes == bytes).
+	effectiveMaxSize := maxPostSize
+	if strings.HasPrefix(o.Message, EncryptedMessagePrefix) {
+		effectiveMaxSize = PostEncryptedMessageMaxRunes
+	}
+
+	if utf8.RuneCountInString(o.Message) > effectiveMaxSize {
 		return NewAppError("Post.IsValid", "model.post.is_valid.message_length.app_error",
-			map[string]any{"Length": utf8.RuneCountInString(o.Message), "MaxLength": maxPostSize}, "id="+o.Id, http.StatusBadRequest)
+			map[string]any{"Length": utf8.RuneCountInString(o.Message), "MaxLength": effectiveMaxSize}, "id="+o.Id, http.StatusBadRequest)
 	}
 
 	if utf8.RuneCountInString(o.Hashtags) > PostHashtagsMaxRunes {

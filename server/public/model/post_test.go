@@ -80,6 +80,40 @@ func TestPostIsValid(t *testing.T) {
 	require.Nil(t, appErr)
 }
 
+func TestPostIsValid_EncryptedMessageLength(t *testing.T) {
+	maxPostSize := PostMessageMaxRunesV2 // 16383
+
+	o := Post{}
+	o.Id = NewId()
+	o.CreateAt = GetMillis()
+	o.UpdateAt = GetMillis()
+	o.UserId = NewId()
+	o.ChannelId = NewId()
+
+	// Normal message exceeding maxPostSize should fail
+	o.Message = strings.Repeat("a", maxPostSize+1)
+	appErr := o.IsValid(maxPostSize)
+	require.NotNil(t, appErr)
+	require.Equal(t, "model.post.is_valid.message_length.app_error", appErr.Id)
+
+	// Encrypted message exceeding maxPostSize should succeed (uses higher limit)
+	o.Message = EncryptedMessagePrefix + strings.Repeat("a", maxPostSize+1)
+	appErr = o.IsValid(maxPostSize)
+	require.Nil(t, appErr, "encrypted messages should allow up to PostEncryptedMessageMaxRunes")
+
+	// Encrypted message at PostEncryptedMessageMaxRunes should succeed
+	// Account for prefix length in the total
+	o.Message = EncryptedMessagePrefix + strings.Repeat("a", PostEncryptedMessageMaxRunes-len(EncryptedMessagePrefix))
+	appErr = o.IsValid(maxPostSize)
+	require.Nil(t, appErr, "encrypted message at exactly PostEncryptedMessageMaxRunes should be valid")
+
+	// Encrypted message exceeding PostEncryptedMessageMaxRunes should fail
+	o.Message = EncryptedMessagePrefix + strings.Repeat("a", PostEncryptedMessageMaxRunes)
+	appErr = o.IsValid(maxPostSize)
+	require.NotNil(t, appErr, "encrypted message exceeding PostEncryptedMessageMaxRunes should fail")
+	require.Equal(t, "model.post.is_valid.message_length.app_error", appErr.Id)
+}
+
 func TestPostPreSave(t *testing.T) {
 	o := Post{Message: "test"}
 	o.PreSave()

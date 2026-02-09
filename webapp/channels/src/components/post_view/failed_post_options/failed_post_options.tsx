@@ -7,14 +7,18 @@ import {FormattedMessage} from 'react-intl';
 
 import type {FileInfo} from '@mattermost/types/files';
 import type {Post} from '@mattermost/types/posts';
+import {PostPriority} from '@mattermost/types/posts';
 
 import type {ExtendedPost} from 'mattermost-redux/actions/posts';
+
+import type {ActionResult} from 'mattermost-redux/types/actions';
 
 type Props = {
     post: Post;
     actions: {
         createPost: (post: Post, files: FileInfo[]) => void;
         removePost: (post: ExtendedPost) => void;
+        runMessageWillBePostedHooks?: (post: Post) => Promise<ActionResult<Post>>;
     };
 };
 
@@ -22,12 +26,23 @@ const FailedPostOptions = ({
     post,
     actions,
 }: Props) => {
-    const retryPost = useCallback((e: MouseEvent): void => {
+    const retryPost = useCallback(async (e: MouseEvent): Promise<void> => {
         e.preventDefault();
 
         const postDetails = {...post};
         Reflect.deleteProperty(postDetails, 'id');
-        actions.createPost(postDetails, []);
+
+        // For encrypted posts, re-encrypt through hooks since the message
+        // in Redux was decrypted by the encryption middleware
+        if (postDetails.metadata?.priority?.priority === PostPriority.ENCRYPTED && actions.runMessageWillBePostedHooks) {
+            const hookResult = await actions.runMessageWillBePostedHooks(postDetails);
+            if (hookResult.error) {
+                return;
+            }
+            actions.createPost(hookResult.data!, []);
+        } else {
+            actions.createPost(postDetails, []);
+        }
     }, [actions, post]);
 
     const cancelPost = useCallback((e: MouseEvent): void => {
