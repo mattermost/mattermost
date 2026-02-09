@@ -334,6 +334,14 @@ export default class AtMentionProvider extends Provider {
                 sort(orderUsers);
         }
 
+        const agentUsernames = new Set(agents.map((agent) => agent.username));
+        let filteredPriorityProfiles = priorityProfiles;
+        let filteredLocalAndRemoteMembers = localAndRemoteMembers;
+        if (this.data?.agents && agentUsernames.size > 0) {
+            filteredPriorityProfiles = priorityProfiles.filter((member) => !agentUsernames.has(member.username));
+            filteredLocalAndRemoteMembers = localAndRemoteMembers.filter((member) => !agentUsernames.has(member.username));
+        }
+
         // handle groups
         const localGroups = this.localGroups();
 
@@ -378,8 +386,8 @@ export default class AtMentionProvider extends Provider {
             }
         }
 
-        if (priorityProfiles.length > 0 || localAndRemoteMembers.length > 0) {
-            items.push(membersGroup([...priorityProfiles, ...localAndRemoteMembers]));
+        if (filteredPriorityProfiles.length > 0 || filteredLocalAndRemoteMembers.length > 0) {
+            items.push(membersGroup([...filteredPriorityProfiles, ...filteredLocalAndRemoteMembers]));
         }
 
         // Filter out default agent from agents group when shown at top to avoid duplicate entries
