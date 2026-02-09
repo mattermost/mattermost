@@ -96,9 +96,11 @@ var (
 			Padding(0, 1)
 )
 
-// RenderTabBar renders the numbered process tabs.
-func RenderTabBar(tabs []LogTab, currentID string, focus TabFocus) string {
+// RenderTabBar renders the numbered process tabs and returns hit zones for mouse support.
+func RenderTabBar(tabs []LogTab, currentID string, focus TabFocus) (string, []TabHitZone) {
 	var tabParts []string
+	var hitZones []TabHitZone
+	x := 0
 	for i, tab := range tabs {
 		num := fmt.Sprintf("%d", i+1)
 
@@ -118,21 +120,29 @@ func RenderTabBar(tabs []LogTab, currentID string, focus TabFocus) string {
 			label = indicator + " " + label
 		}
 
+		var rendered string
 		if isCurrent {
 			switch focus {
 			case TabFocusInput, TabFocusLog:
-				tabParts = append(tabParts, tabInputStyle.Render(label))
+				rendered = tabInputStyle.Render(label)
 			case TabFocusBar:
-				tabParts = append(tabParts, tabSelectedStyle.Render(label))
+				rendered = tabSelectedStyle.Render(label)
 			default:
-				tabParts = append(tabParts, tabCurrentStyle.Render(label))
+				rendered = tabCurrentStyle.Render(label)
 			}
 		} else {
-			tabParts = append(tabParts, tabOtherStyle.Render(label))
+			rendered = tabOtherStyle.Render(label)
 		}
+
+		w := lipgloss.Width(rendered)
+		hitZones = append(hitZones, TabHitZone{
+			X: x, Width: w, TabIdx: i, ProcID: tab.ID,
+		})
+		x += w
+		tabParts = append(tabParts, rendered)
 	}
 
-	return strings.Join(tabParts, "")
+	return strings.Join(tabParts, ""), hitZones
 }
 
 func (lp *LogPanel) View(tabs []LogTab, focus TabFocus) string {
@@ -140,7 +150,7 @@ func (lp *LogPanel) View(tabs []LogTab, focus TabFocus) string {
 		return ""
 	}
 
-	tabBar := RenderTabBar(tabs, lp.processID, focus)
+	tabBar, _ := RenderTabBar(tabs, lp.processID, focus)
 
 	// Scroll indicator
 	scrollIndicator := ""

@@ -19,6 +19,13 @@ type HitZone struct {
 	IsNpm         bool
 }
 
+// TabHitZone tracks where a tab was rendered for mouse click detection.
+type TabHitZone struct {
+	X, Width int
+	TabIdx   int
+	ProcID   string
+}
+
 // GridCell represents one target/script in the grid.
 type GridCell struct {
 	Label     string
@@ -142,7 +149,7 @@ func renderGridRow(repo *model.Repo, cells []GridCell, cursorCol int, isActiveRo
 	if isActiveRow && cursorCol == -1 && !logFocusActive {
 		// Repo name is selected
 		nameRendered = repoNameSelectedStyle.Render("▸ " + nameStr)
-	} else if isActiveRow {
+	} else if isActiveRow && !logFocusActive {
 		nameRendered = repoNameActiveStyle.Render("▸ " + nameStr)
 	} else {
 		nameRendered = repoNameStyle.Render("  " + nameStr)

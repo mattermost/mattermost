@@ -42,9 +42,8 @@ type App struct {
 	focusedProc string // process ID shown in log
 
 	// UI state
-	focus         FocusArea
-	focusedTabIdx int // selected tab index when FocusTabBar
-	showHelp      bool
+	focus    FocusArea
+	showHelp bool
 	width         int
 	height        int
 
@@ -67,7 +66,9 @@ type App struct {
 	cmdEditIsNpm  bool
 
 	// Mouse hit zones (rebuilt each render)
-	hitZones []HitZone
+	hitZones    []HitZone
+	tabHitZones []TabHitZone
+	tabBarY     int // screen Y of the tab bar line
 
 	// Double-click tracking
 	lastClickRow  int
@@ -355,23 +356,25 @@ func (a *App) handleKey(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 			a.snapCursorToLastVisible()
 			return a, nil
 		case key.Matches(msg, a.keys.Left):
-			if a.focusedTabIdx > 0 {
-				a.focusedTabIdx--
+			idx := a.focusedTabIndex()
+			if idx > 0 {
+				idx--
 			} else {
-				a.focusedTabIdx = len(ids) - 1
+				idx = len(ids) - 1
 			}
-			a.focusedProc = ids[a.focusedTabIdx]
+			a.focusedProc = ids[idx]
 			a.logPanel.SetProcess(a.focusedProc)
 			a.logVisible = true
 			a.logPanel.SetSize(a.width, a.logPanelHeight())
 			return a, nil
 		case key.Matches(msg, a.keys.Right):
-			if a.focusedTabIdx < len(ids)-1 {
-				a.focusedTabIdx++
+			idx := a.focusedTabIndex()
+			if idx < len(ids)-1 {
+				idx++
 			} else {
-				a.focusedTabIdx = 0
+				idx = 0
 			}
-			a.focusedProc = ids[a.focusedTabIdx]
+			a.focusedProc = ids[idx]
 			a.logPanel.SetProcess(a.focusedProc)
 			a.logVisible = true
 			a.logPanel.SetSize(a.width, a.logPanelHeight())
@@ -460,6 +463,9 @@ func (a *App) handleKey(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 const doubleClickThreshold = 400 * time.Millisecond
 
 func (a *App) handleMouse(msg tea.MouseMsg) (tea.Model, tea.Cmd) {
+	if a.logPanel.inputting {
+		return a, nil
+	}
 	if msg.Action != tea.MouseActionPress || msg.Button != tea.MouseButtonLeft {
 		// Handle scroll wheel in log panel
 		if a.logVisible && msg.Y > a.height-a.logPanelHeight() {
@@ -473,6 +479,12 @@ func (a *App) handleMouse(msg tea.MouseMsg) (tea.Model, tea.Cmd) {
 		return a, nil
 	}
 
+	// Click on search bar (Y=1)
+	if msg.Y == 1 {
+		a.enterGridSearch()
+		return a, a.gridSearchInput.Cursor.BlinkCmd()
+	}
+
 	// Adjust Y for rows above the grid (header + search bar)
 	yOffset := 2
 	clickY := msg.Y - yOffset
@@ -480,6 +492,9 @@ func (a *App) handleMouse(msg tea.MouseMsg) (tea.Model, tea.Cmd) {
 
 	for _, hz := range a.hitZones {
 		if clickX >= hz.X && clickX < hz.X+hz.Width && clickY == hz.Y {
+			a.focus = FocusGrid
+			a.gridSearching = false
+			a.gridSearchInput.Blur()
 			if hz.TargetIdx == -1 {
 				// Clicked repo name — select it
 				a.cursorRow = hz.RepoIdx
@@ -505,6 +520,22 @@ func (a *App) handleMouse(msg tea.MouseMsg) (tea.Model, tea.Cmd) {
 				}
 			}
 			return a, nil
+		}
+	}
+
+	// Tab bar clicks
+	if msg.Y == a.tabBarY {
+		for _, hz := range a.tabHitZones {
+			if msg.X >= hz.X && msg.X < hz.X+hz.Width {
+				a.gridSearching = false
+				a.gridSearchInput.Blur()
+				a.focusedProc = hz.ProcID
+				a.logPanel.SetProcess(hz.ProcID)
+				a.logVisible = true
+				a.logPanel.SetSize(a.width, a.logPanelHeight())
+				a.focus = FocusTabBar
+				return a, nil
+			}
 		}
 	}
 
@@ -930,6 +961,17 @@ func (a *App) enterGridSearch() {
 	a.gridSearchInput.Focus()
 }
 
+// focusedTabIndex returns the index of focusedProc in the ordered process list.
+func (a *App) focusedTabIndex() int {
+	ids := a.orderedProcessIDs()
+	for i, id := range ids {
+		if id == a.focusedProc {
+			return i
+		}
+	}
+	return 0
+}
+
 // enterTabBar focuses the tab bar, selecting the current focused proc's tab.
 func (a *App) enterTabBar() {
 	ids := a.orderedProcessIDs()
@@ -937,15 +979,10 @@ func (a *App) enterTabBar() {
 		return
 	}
 	a.focus = FocusTabBar
-	// Find the index of the currently focused proc
-	a.focusedTabIdx = 0
-	for i, id := range ids {
-		if id == a.focusedProc {
-			a.focusedTabIdx = i
-			break
-		}
+	// If no proc is focused, default to first
+	if a.focusedProc == "" {
+		a.focusedProc = ids[0]
 	}
-	a.focusedProc = ids[a.focusedTabIdx]
 	a.logPanel.SetProcess(a.focusedProc)
 	a.logVisible = true
 	a.logPanel.SetSize(a.width, a.logPanelHeight())
@@ -1413,37 +1450,42 @@ func (a *App) View() string {
 		for i, id := range ids {
 			tabs[i] = LogTab{ID: id, State: a.procMgr.ProcessState(id)}
 		}
-		tabBar := RenderTabBar(tabs, a.focusedProc, a.tabFocus())
+		tabBar, tabHZ := RenderTabBar(tabs, a.focusedProc, a.tabFocus())
+		a.tabHitZones = tabHZ
+		// Tab bar Y = header(1) + search(1) + grid lines + spacer/INPUT line(1)
+		gridLines := strings.Count(gridStr, "\n")
+		a.tabBarY = 2 + gridLines + 1
 		if a.logPanel.inputting {
-			// Compute offset: width of all tabs before the focused one
-			offset := 0
-			for _, tab := range tabs {
-				if tab.ID == a.focusedProc {
+			// Find the focused tab's hit zone for offset and width
+			var offset, tabWidth int
+			for _, hz := range tabHZ {
+				if hz.ProcID == a.focusedProc {
+					offset = hz.X
+					tabWidth = hz.Width
 					break
 				}
-				w := lipgloss.Width(RenderTabBar(
-					[]LogTab{tab}, "", TabFocusNone,
-				))
-				offset += w
 			}
-			// Measure the focused tab's rendered width
-			focusedTab := RenderTabBar(
-				[]LogTab{{ID: a.focusedProc, State: a.procMgr.ProcessState(a.focusedProc)}},
-				a.focusedProc, TabFocusInput,
-			)
-			tabWidth := lipgloss.Width(focusedTab)
-			left := " INPUT"
-			right := "Esc×2 to exit "
-			padLen := tabWidth - len(left) - len(right)
-			if padLen < 1 {
-				padLen = 1
+			bg := lipgloss.NewStyle().Background(colorPrimary)
+			white := lipgloss.NewStyle().Bold(true).Foreground(lipgloss.Color("15")).Background(colorPrimary)
+			faded := lipgloss.NewStyle().Foreground(lipgloss.Color("183")).Background(colorPrimary)
+
+			left := white.Render(" INPUT ")
+			right := white.Render("Esc×2") + bg.Render(" ") + faded.Render("Exit") + bg.Render(" ")
+			leftW := lipgloss.Width(left)
+			rightW := lipgloss.Width(right)
+			remaining := tabWidth - leftW
+			var content string
+			if remaining >= rightW {
+				// Both fit — pad between them
+				content = left + bg.Render(strings.Repeat(" ", remaining-rightW)) + right
+			} else if remaining > 0 {
+				// Truncate hint to fit
+				content = left + lipgloss.NewStyle().MaxWidth(remaining).Render(right)
+			} else {
+				content = left
 			}
-			content := left + strings.Repeat(" ", padLen) + right
 			inputTag := lipgloss.NewStyle().
-				Foreground(lipgloss.Color("15")).
-				Background(colorPrimary).
-				Bold(true).
-				Width(tabWidth).
+				MaxWidth(tabWidth).
 				Render(content)
 			b.WriteString(strings.Repeat(" ", offset) + inputTag + "\n")
 		} else {
