@@ -1,40 +1,6 @@
 ---
 name: E2E Tests (release cut)
 on:
-  # TODO: Remove workflow_call before merging — added for testing via test-e2e-on-release.yml
-  workflow_call:
-    inputs:
-      branch:
-        type: string
-        required: true
-      commit_sha:
-        type: string
-        required: true
-      server_image_tag:
-        type: string
-        required: true
-      server_image_aliases:
-        type: string
-        required: false
-    secrets:
-      MM_E2E_TEST_LICENSE_ONPREM_ENT:
-        required: false
-      MM_E2E_AUTOMATION_DASHBOARD_URL:
-        required: false
-      MM_E2E_AUTOMATION_DASHBOARD_TOKEN:
-        required: false
-      MM_E2E_PUSH_NOTIFICATION_SERVER:
-        required: false
-      MM_E2E_REPORT_WEBHOOK_URL:
-        required: false
-      MM_E2E_CWS_URL:
-        required: false
-      MM_E2E_CWS_EXTRA_HTTP_HEADERS:
-        required: false
-      CYPRESS_AWS_ACCESS_KEY_ID:
-        required: false
-      CYPRESS_AWS_SECRET_ACCESS_KEY:
-        required: false
   workflow_dispatch:
     inputs:
       branch:
