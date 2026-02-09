@@ -63,7 +63,7 @@ const useBurnOnRead = (
 
     const isAllowedInChannel = useMemo(() => {
         if (!channel || !currentUser) {
-            return true;
+            return false; // Fail-closed: if we can't validate, don't show the button
         }
 
         // Check if it's a self-DM by comparing channel name with expected self-DM name

@@ -302,7 +302,7 @@ describe('useBurnOnRead', () => {
     });
 
     describe('edge cases', () => {
-        it('should handle missing channel gracefully', () => {
+        it('should hide button when channel is missing (fail-closed)', () => {
             (getChannel as jest.Mock).mockReturnValue(null);
 
             const {result} = renderHook(
@@ -316,8 +316,28 @@ describe('useBurnOnRead', () => {
                 {wrapper},
             );
 
-            // Should show button when channel is not available (defaults to true)
-            expect(result.current.additionalControl).toBeDefined();
+            // Should hide button when channel is missing (fail-closed: if we can't validate, don't show)
+            expect(result.current.additionalControl).toBeUndefined();
+        });
+
+        it('should hide button when currentUser is missing (fail-closed principle)', () => {
+            (getCurrentUser as jest.Mock).mockReturnValue(null);
+            const publicChannel = createMockChannel('O');
+            (getChannel as jest.Mock).mockReturnValue(publicChannel);
+
+            const {result} = renderHook(
+                () => useBurnOnRead(
+                    createMockDraft(),
+                    mockHandleDraftChange,
+                    mockFocusTextbox,
+                    false,
+                    true,
+                ),
+                {wrapper},
+            );
+
+            // Should hide button when currentUser is missing (fail-closed: if we can't validate, don't show)
+            expect(result.current.additionalControl).toBeUndefined();
         });
     });
 
