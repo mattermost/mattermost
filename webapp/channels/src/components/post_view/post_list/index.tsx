@@ -7,6 +7,8 @@ import type {Dispatch} from 'redux';
 
 import {markChannelAsRead} from 'mattermost-redux/actions/channels';
 import {RequestStatus} from 'mattermost-redux/constants';
+import {getConfig} from 'mattermost-redux/selectors/entities/general';
+import {get as getPreference} from 'mattermost-redux/selectors/entities/preferences';
 import {getRecentPostsChunkInChannel, makeGetPostsChunkAroundPost, getUnreadPostsChunk, getPost, isPostsChunkIncludingUnreadsPosts, getLimitedViews} from 'mattermost-redux/selectors/entities/posts';
 import {memoizeResult} from 'mattermost-redux/utils/helpers';
 import {makePreparePostIdsForPostList} from 'mattermost-redux/utils/post_list';
@@ -89,6 +91,10 @@ function makeMapStateToProps() {
             }
         }
 
+        const config = getConfig(state);
+        const smoothScrollingPref = getPreference(state, 'display_settings', 'smooth_scrolling', 'true');
+        const smoothScrolling = config?.FeatureFlagSmoothScrolling === 'true' && smoothScrollingPref !== 'false';
+
         return {
             lastViewedAt,
             isFirstLoad: isFirstLoad(state, channelId),
@@ -101,6 +107,7 @@ function makeMapStateToProps() {
             shouldStartFromBottomWhenUnread,
             isMobileView: getIsMobileView(state),
             hasInaccessiblePosts,
+            smoothScrolling,
         };
     };
 }

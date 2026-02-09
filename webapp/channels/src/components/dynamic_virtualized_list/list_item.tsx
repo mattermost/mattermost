@@ -17,6 +17,7 @@ export interface Props {
     index: number;
     height: number;
     width?: number; // Its optional since it may not be available when the parent component is mounted
+    smoothScrolling?: boolean;
     onHeightChange: (itemId: string, height: number, forceScrollCorrection: boolean) => void;
     onUnmount: (itemId: string, index: number) => void;
 }
@@ -49,6 +50,9 @@ const ListItem = (props: Props) => {
 
     // This effects adds the observer which calls height change callback debounced
     useLayoutEffect(() => {
+        // With smooth scrolling, CSS overflow-anchor handles corrections immediately.
+        // Use a minimal debounce (one frame) to batch rapid resize events.
+        const debounceTime = props.smoothScrolling ? 16 : RESIZE_DEBOUNCE_TIME;
         const debouncedOnHeightChange = debounce((changedHeight: number) => {
             // Check if component is still mounted as it may have been
             // unmounted by the time the debounced function is called
@@ -63,7 +67,7 @@ const ListItem = (props: Props) => {
             heightRef.current = changedHeight;
 
             props.onHeightChange(props.itemId, changedHeight, forceScrollCorrection);
-        }, RESIZE_DEBOUNCE_TIME);
+        }, debounceTime);
 
         function itemRowSizeObserverCallback(changedHeight: number) {
             if (!rowRef.current) {

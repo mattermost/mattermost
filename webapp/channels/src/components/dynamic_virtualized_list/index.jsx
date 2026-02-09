@@ -134,6 +134,12 @@ export class DynamicVirtualizedList extends PureComponent {
     }
 
     getSnapshotBeforeUpdate(_, prevState) {
+        // With smooth scrolling, CSS overflow-anchor handles scroll correction
+        // for older posts loading, so no snapshot is needed.
+        if (this.props.smoothScrolling) {
+            return null;
+        }
+
         if (prevState.localOlderPostsToRender[0] !== this.state.localOlderPostsToRender[0] ||
             prevState.localOlderPostsToRender[1] !== this.state.localOlderPostsToRender[1]
         ) {
@@ -199,6 +205,9 @@ export class DynamicVirtualizedList extends PureComponent {
         if (prevState.localOlderPostsToRender[0] !== this.state.localOlderPostsToRender[0] ||
             prevState.localOlderPostsToRender[1] !== this.state.localOlderPostsToRender[1]
         ) {
+            if (!snapshot) {
+                return;
+            }
             const postlistScrollHeight = this._outerRef.scrollHeight;
 
             const scrollValue = snapshot.previousScrollTop + (postlistScrollHeight - snapshot.previousScrollHeight);
@@ -495,6 +504,14 @@ export class DynamicVirtualizedList extends PureComponent {
             return;
         }
 
+        // When smooth scrolling is enabled, CSS overflow-anchor handles content
+        // resize automatically. Still update measurements but skip manual
+        // scrollOffset += delta correction.
+        if (this.props.smoothScrolling) {
+            this._generateOffsetMeasurements();
+            return;
+        }
+
         if (forceScrollCorrection || this._keepScrollPosition) {
             const delta = newSize - oldSize;
             const [, , visibleStartIndex] = this._getRangeToRender(this.state.scrollOffset);
@@ -661,6 +678,7 @@ export class DynamicVirtualizedList extends PureComponent {
                             itemId,
                             height: size,
                             width,
+                            smoothScrolling: this.props.smoothScrolling,
                             onHeightChange: this._handleNewMeasurements,
                             onUnmount: this._onItemRowUnmount,
                         }),
@@ -703,7 +721,7 @@ export class DynamicVirtualizedList extends PureComponent {
                 style: {
                     WebkitOverflowScrolling: 'touch',
                     overflowY: 'auto',
-                    overflowAnchor: 'none',
+                    overflowAnchor: this.props.smoothScrolling ? 'auto' : 'none',
                     willChange: 'transform',
                     width: '100%',
                     ...style,

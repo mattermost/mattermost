@@ -73,6 +73,8 @@ type Props = {
 
     isMobileView: boolean;
 
+    smoothScrolling?: boolean;
+
     /*
      * Used for populating header, scroll correction and disabling triggering loadOlderPosts
      */
@@ -151,6 +153,8 @@ export default class PostList extends React.PureComponent<Props, State> {
     showSearchHintThreshold: number;
     mounted: boolean;
     newMessageLineIndex: number;
+    editorObserver: ResizeObserver | null = null;
+    lastEditorHeight = 0;
 
     constructor(props: Props) {
         super(props);
@@ -208,9 +212,17 @@ export default class PostList extends React.PureComponent<Props, State> {
 
         window.addEventListener('resize', this.handleWindowResize);
         EventEmitter.addListener(EventTypes.POST_LIST_SCROLL_TO_BOTTOM, this.scrollToLatestMessages);
+
+        if (this.props.smoothScrolling) {
+            this.observeEditorHeight();
+        }
     }
 
     getSnapshotBeforeUpdate(prevProps: Props) {
+        if (this.props.smoothScrolling) {
+            return null;
+        }
+
         if (this.postListRef && this.postListRef.current) {
             const postsAddedAtTop = this.props.postListIds && this.props.postListIds.length !== (prevProps.postListIds || []).length && this.props.postListIds[0] === (prevProps.postListIds || [])[0];
             const channelHeaderAdded = this.props.atOldestPost !== prevProps.atOldestPost;
@@ -259,7 +271,48 @@ export default class PostList extends React.PureComponent<Props, State> {
         this.mounted = false;
         window.removeEventListener('resize', this.handleWindowResize);
         EventEmitter.removeListener(EventTypes.POST_LIST_SCROLL_TO_BOTTOM, this.scrollToLatestMessages);
+        this.editorObserver?.disconnect();
     }
+
+    // Observe the editor container for height changes (e.g., PendingRepliesBar
+    // appearing/disappearing). When the editor grows, the scroll container shrinks
+    // and content shifts. Compensate by adjusting scrollTop.
+    observeEditorHeight = () => {
+        const editorContainer = document.getElementById('post-create');
+        if (!editorContainer) {
+            return;
+        }
+
+        this.lastEditorHeight = editorContainer.offsetHeight;
+
+        this.editorObserver = new ResizeObserver((entries) => {
+            const entry = entries[0];
+            if (!entry) {
+                return;
+            }
+
+            const newHeight = Math.ceil(entry.borderBoxSize[0].blockSize);
+            const delta = newHeight - this.lastEditorHeight;
+            this.lastEditorHeight = newHeight;
+
+            if (delta === 0) {
+                return;
+            }
+
+            const scrollContainer = document.getElementById('postListScrollContainer');
+            if (!scrollContainer) {
+                return;
+            }
+
+            // Editor grew → scroll container shrank → scroll up to compensate
+            // Editor shrank → scroll container grew → scroll down to compensate
+            requestAnimationFrame(() => {
+                scrollContainer.scrollTop -= delta;
+            });
+        });
+
+        this.editorObserver.observe(editorContainer);
+    };
 
     static getDerivedStateFromProps(props: Props, state: State) {
         const postListIds = props.postListIds || [];
@@ -731,6 +784,7 @@ export default class PostList extends React.PureComponent<Props, State> {
                                             innerListStyle={postListStyle}
                                             initRangeToRender={this.initRangeToRender}
                                             loaderId={PostListRowListIds.OLDER_MESSAGES_LOADER}
+                                            smoothScrolling={this.props.smoothScrolling}
                                             correctScrollToBottom={this.props.atLatestPost}
                                             onItemsRendered={this.onItemsRendered}
                                             scrollToFailed={this.scrollToFailed}

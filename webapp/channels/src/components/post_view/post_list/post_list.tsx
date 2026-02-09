@@ -117,6 +117,7 @@ export interface Props {
     toggleShouldStartFromBottomWhenUnread: () => void;
     shouldStartFromBottomWhenUnread: boolean;
     hasInaccessiblePosts: boolean;
+    smoothScrolling?: boolean;
 
     actions: {
 
@@ -385,6 +386,7 @@ export default class PostList extends React.PureComponent<Props, State> {
                             postListIds={this.props.formattedPostIds}
                             latestPostTimeStamp={this.props.latestPostTimeStamp}
                             isMobileView={this.props.isMobileView}
+                            smoothScrolling={this.props.smoothScrolling}
                             lastViewedAt={this.props.lastViewedAt}
                         />
                     </div>

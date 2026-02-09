@@ -39,6 +39,7 @@ declare module 'components/dynamic_virtualized_list' {
         correctScrollToBottom?: boolean;
         innerListStyle?: CSSProperties;
         loaderId?: string;
+        smoothScrolling?: boolean;
         scrollToFailed?: (index: number) => void;
     }
 
