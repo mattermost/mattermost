@@ -157,6 +157,7 @@ $S3_BUCKET = $config["S3_BUCKET"]
 $S3_ENDPOINT = $config["S3_ENDPOINT"]
 $S3_ACCESS_KEY = $config["S3_ACCESS_KEY"]
 $S3_SECRET_KEY = $config["S3_SECRET_KEY"]
+$ENCRYPTION_KEY = $config["ENCRYPTION_KEY"]
 
 $CONTAINER_NAME = "mm-local-test"
 $PG_CONTAINER = "mm-local-postgres"
@@ -169,6 +170,38 @@ if (!$BACKUP_PATH) {
 if (!$WORK_DIR) {
     Log-Error "WORK_DIR not set in local-test.config"
     exit 1
+}
+
+# Decrypt .enc backup if needed
+if ($BACKUP_PATH.EndsWith(".enc")) {
+    if (!$ENCRYPTION_KEY) {
+        Log-Error "BACKUP_PATH ends in .enc but ENCRYPTION_KEY is not set in local-test.config"
+        exit 1
+    }
+
+    $decryptedPath = $BACKUP_PATH -replace '\.enc$', ''
+    if (!(Test-Path $decryptedPath)) {
+        if (!(Test-Path $BACKUP_PATH)) {
+            Log-Error "Encrypted backup file not found: $BACKUP_PATH"
+            exit 1
+        }
+        Log "Decrypting backup: $BACKUP_PATH ..."
+        $cloudronCmd = Get-Command cloudron -ErrorAction SilentlyContinue
+        if (!$cloudronCmd) {
+            Log-Error "Cloudron CLI not found. Install with: npm install -g cloudron"
+            exit 1
+        }
+        & cloudron backup decrypt --password="$ENCRYPTION_KEY" $BACKUP_PATH $decryptedPath 2>&1
+        if ($LASTEXITCODE -ne 0) {
+            if (Test-Path $decryptedPath) { Remove-Item $decryptedPath -Force }
+            Log-Error "Failed to decrypt backup (wrong key or corrupted file?)"
+            exit 1
+        }
+        Log-Success "Backup decrypted to: $decryptedPath"
+    } else {
+        Log "Decrypted backup already exists: $decryptedPath"
+    }
+    $BACKUP_PATH = $decryptedPath
 }
 
 # Log config (excluding secrets)

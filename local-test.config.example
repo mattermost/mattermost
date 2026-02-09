@@ -2,8 +2,11 @@
 # Copy this file to local-test.config and fill in your values
 # DO NOT commit local-test.config - it contains local paths
 
-# Path to your Cloudron backup .tar.gz file
+# Path to your Cloudron backup .tar.gz or .tar.gz.enc file
 BACKUP_PATH=C:\path\to\your\backup.tar.gz
+
+# Encryption password for .tar.gz.enc backups (only needed if BACKUP_PATH ends in .enc)
+ENCRYPTION_KEY=
 
 # Directory where extracted backup and test data will be stored
 WORK_DIR=C:\mattermost-local-test
