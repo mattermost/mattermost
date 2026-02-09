@@ -25,6 +25,7 @@ export interface Props extends PropsFromRedux {
     maxHeight?: number;
     maxWidth?: number;
     compactDisplay?: boolean;
+    isSpoilered?: boolean;
 }
 
 export default function VideoPlayer(props: Props) {
@@ -33,6 +34,8 @@ export default function VideoPlayer(props: Props) {
     const maxHeight = props.maxHeight ?? defaultMaxHeight ?? 350;
     const maxWidth = props.maxWidth ?? defaultMaxWidth ?? 480;
     const [hasError, setHasError] = useState(false);
+    const [spoilerRevealed, setSpoilerRevealed] = useState(false);
+    const showSpoilerOverlay = props.isSpoilered && !spoilerRevealed;
 
     // Handle encrypted video files
     const {
@@ -193,27 +196,46 @@ export default function VideoPlayer(props: Props) {
             className={classNames('video-player-container', {'compact-display': compactDisplay})}
             style={containerStyle}
         >
-            <video
-                key={displayInfo.url}
-                className='video-player'
-                controls={true}
-                preload='metadata'
-                style={videoStyle}
-                onClick={handleClick}
-                onDoubleClick={handleDoubleClick}
-                onError={handleError}
+            <div
+                className={classNames('video-player-spoiler-wrapper', {
+                    'video-player-spoiler-wrapper--blurred': showSpoilerOverlay,
+                })}
+                onClick={showSpoilerOverlay ? (e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    setSpoilerRevealed(true);
+                } : undefined}
             >
-                <source
-                    src={displayInfo.url}
-                    type={displayInfo.mimeType}
-                />
-                <a
-                    href={displayInfo.url}
-                    download={displayInfo.filename}
+                <video
+                    key={displayInfo.url}
+                    className='video-player'
+                    controls={!showSpoilerOverlay}
+                    preload='metadata'
+                    style={{
+                        ...videoStyle,
+                        ...(showSpoilerOverlay ? {pointerEvents: 'none' as const} : {}),
+                    }}
+                    onClick={showSpoilerOverlay ? undefined : handleClick}
+                    onDoubleClick={showSpoilerOverlay ? undefined : handleDoubleClick}
+                    onError={handleError}
                 >
-                    {`Download ${displayInfo.filename}`}
-                </a>
-            </video>
+                    <source
+                        src={displayInfo.url}
+                        type={displayInfo.mimeType}
+                    />
+                    <a
+                        href={displayInfo.url}
+                        download={displayInfo.filename}
+                    >
+                        {`Download ${displayInfo.filename}`}
+                    </a>
+                </video>
+                {showSpoilerOverlay && (
+                    <div className='spoiler-overlay'>
+                        <span className='spoiler-overlay__text'>{'SPOILER'}</span>
+                    </div>
+                )}
+            </div>
             <span className='video-player-caption'>{displayInfo.filename}</span>
         </div>
     );
