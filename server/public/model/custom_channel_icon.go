@@ -4,7 +4,10 @@
 package model
 
 import (
+	"encoding/base64"
 	"net/http"
+	"regexp"
+	"strings"
 	"unicode/utf8"
 )
 
@@ -68,6 +71,31 @@ func (i *CustomChannelIcon) IsValid() *AppError {
 
 	if len(i.Svg) > CustomChannelIconSvgMaxSize {
 		return NewAppError("CustomChannelIcon.IsValid", "model.custom_channel_icon.is_valid.svg_size.app_error", nil, "", http.StatusBadRequest)
+	}
+
+	svgData, err := base64.StdEncoding.DecodeString(i.Svg)
+	if err != nil {
+		return NewAppError("CustomChannelIcon.IsValid", "model.custom_channel_icon.is_valid.svg_base64.app_error", nil, "", http.StatusBadRequest)
+	}
+
+	svgStr := string(svgData)
+	if !strings.HasPrefix(strings.TrimSpace(svgStr), "<svg") {
+		return NewAppError("CustomChannelIcon.IsValid", "model.custom_channel_icon.is_valid.svg_start.app_error", nil, "", http.StatusBadRequest)
+	}
+
+	lowerSvg := strings.ToLower(svgStr)
+	if strings.Contains(lowerSvg, "<script") ||
+		strings.Contains(lowerSvg, "<foreignobject") ||
+		strings.Contains(lowerSvg, "javascript:") ||
+		strings.Contains(lowerSvg, "data:") ||
+		strings.Contains(lowerSvg, "@import") ||
+		strings.Contains(lowerSvg, "xlink:href=\"http") ||
+		strings.Contains(lowerSvg, "xlink:href='http") {
+		return NewAppError("CustomChannelIcon.IsValid", "model.custom_channel_icon.is_valid.svg_security.app_error", nil, "", http.StatusBadRequest)
+	}
+
+	if matched, _ := regexp.MatchString(`(?i)\bon[a-z]+\s*=`, svgStr); matched {
+		return NewAppError("CustomChannelIcon.IsValid", "model.custom_channel_icon.is_valid.svg_security.app_error", nil, "", http.StatusBadRequest)
 	}
 
 	if !IsValidId(i.CreatedBy) {
