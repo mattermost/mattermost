@@ -155,15 +155,15 @@ func TestErrorLogSpam(t *testing.T) {
 		}
 	})
 
-	t.Run("Very large stack trace is accepted", func(t *testing.T) {
+	t.Run("Very large stack trace is rejected by payload size limit", func(t *testing.T) {
 		report := &model.ErrorLogReport{
 			Type:    model.ErrorLogTypeJS,
 			Message: "stack overflow",
 			Stack:   strings.Repeat("    at SomeFunction (file.js:1:1)\n", 10000),
 		}
 		resp, err := th.Client.DoAPIPostJSON(context.Background(), "/errors", report)
-		checkStatusCode(t, resp, err, http.StatusOK)
-		closeIfOpen(resp, err)
+		// Server enforces MaximumPayloadSizeBytes — returns 413
+		checkStatusCode(t, resp, err, http.StatusRequestEntityTooLarge)
 	})
 }
 
