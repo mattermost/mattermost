@@ -28,6 +28,7 @@ jest.mock('plugins/pluggable', () => () => <div/>);
 
 jest.mock('actions/status_actions', () => ({
     addVisibleUsersInCurrentChannelAndSelfToStatusPoll: jest.fn().mockImplementation(() => () => {}),
+    fetchVisibleUserStatusesNow: jest.fn().mockImplementation(() => () => Promise.resolve({data: true})),
 }));
 
 jest.mock('mattermost-redux/selectors/entities/general', () => ({
@@ -36,6 +37,12 @@ jest.mock('mattermost-redux/selectors/entities/general', () => ({
 
 jest.mock('selectors/views/browser', () => ({
     getIsMobileView: () => false,
+}));
+
+let mockIsGuilded = false;
+jest.mock('selectors/views/guilded_layout', () => ({
+    isGuildedLayoutEnabled: jest.fn(() => mockIsGuilded),
+    getAllDmChannelsWithUsers: jest.fn(() => []),
 }));
 
 describe('ChannelController', () => {
@@ -52,7 +59,10 @@ describe('ChannelController', () => {
                 },
             },
         } as unknown as GlobalState;
+        mockIsGuilded = false;
         jest.useFakeTimers();
+        (actions.addVisibleUsersInCurrentChannelAndSelfToStatusPoll as jest.Mock).mockClear();
+        (actions.fetchVisibleUserStatusesNow as jest.Mock).mockClear();
     });
 
     it('dispatches addVisibleUsersInCurrentChannelAndSelfToStatusPoll when enableUserStatuses is true', () => {
@@ -87,6 +97,71 @@ describe('ChannelController', () => {
         });
 
         expect(actions.addVisibleUsersInCurrentChannelAndSelfToStatusPoll).not.toHaveBeenCalled();
+    });
+
+    it('dispatches fetchVisibleUserStatusesNow in guilded mode with polling enabled', () => {
+        mockIsGuilded = true;
+        mockState.entities.general.config.EnableUserStatuses = 'true';
+        mockState.entities.general.config.MattermostExtendedStatusesGuildedStatusPollingIntervalSeconds = '15';
+        const store = mockStore(mockState);
+
+        renderWithContext(
+            <Provider store={store}>
+                <ChannelController shouldRenderCenterChannel={true}/>
+            </Provider>,
+        );
+
+        act(() => {
+            jest.advanceTimersByTime(15000);
+        });
+
+        expect(actions.fetchVisibleUserStatusesNow).toHaveBeenCalled();
+        expect(actions.addVisibleUsersInCurrentChannelAndSelfToStatusPoll).not.toHaveBeenCalled();
+    });
+
+    it('falls back to queue-based polling in guilded mode when interval is 0', () => {
+        mockIsGuilded = true;
+        mockState.entities.general.config.EnableUserStatuses = 'true';
+        mockState.entities.general.config.MattermostExtendedStatusesGuildedStatusPollingIntervalSeconds = '0';
+        const store = mockStore(mockState);
+
+        renderWithContext(
+            <Provider store={store}>
+                <ChannelController shouldRenderCenterChannel={true}/>
+            </Provider>,
+        );
+
+        act(() => {
+            jest.advanceTimersByTime(Constants.STATUS_INTERVAL);
+        });
+
+        expect(actions.addVisibleUsersInCurrentChannelAndSelfToStatusPoll).toHaveBeenCalled();
+        expect(actions.fetchVisibleUserStatusesNow).not.toHaveBeenCalled();
+    });
+
+    it('enforces minimum 5s polling interval in guilded mode', () => {
+        mockIsGuilded = true;
+        mockState.entities.general.config.EnableUserStatuses = 'true';
+        mockState.entities.general.config.MattermostExtendedStatusesGuildedStatusPollingIntervalSeconds = '2';
+        const store = mockStore(mockState);
+
+        renderWithContext(
+            <Provider store={store}>
+                <ChannelController shouldRenderCenterChannel={true}/>
+            </Provider>,
+        );
+
+        // At 2s, should NOT have fired yet (min is 5s)
+        act(() => {
+            jest.advanceTimersByTime(2000);
+        });
+        expect(actions.fetchVisibleUserStatusesNow).not.toHaveBeenCalled();
+
+        // At 5s, should fire
+        act(() => {
+            jest.advanceTimersByTime(3000);
+        });
+        expect(actions.fetchVisibleUserStatusesNow).toHaveBeenCalled();
     });
 });
 

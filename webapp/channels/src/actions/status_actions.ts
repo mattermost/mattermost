@@ -14,7 +14,7 @@ import {getCurrentUserId, makeGetProfilesInChannel} from 'mattermost-redux/selec
 import {loadCustomEmojisForCustomStatusesByUserIds} from 'actions/emoji_actions';
 import {isGuildedLayoutEnabled, getAllDmChannelsWithUsers} from 'selectors/views/guilded_layout';
 
-import type {ActionFunc} from 'types/store';
+import type {ActionFunc, ActionFuncAsync} from 'types/store';
 
 const doGetProfilesInChannel = makeGetProfilesInChannel();
 
@@ -86,6 +86,76 @@ export function addVisibleUsersInCurrentChannelAndSelfToStatusPoll(): ActionFunc
         const userIdsForStatus = Array.from(userIdsToFetchStatusFor);
         if (userIdsForStatus.length > 0) {
             dispatch(addUserIdsForStatusFetchingPoll(userIdsForStatus));
+        }
+
+        return {data: true};
+    };
+}
+
+/**
+ * Directly fetches statuses for all visible users, bypassing the BackgroundDataLoader queue.
+ * Used by Guilded layout for faster status polling.
+ */
+export function fetchVisibleUserStatusesNow(): ActionFuncAsync<boolean> {
+    return async (dispatch, getState) => {
+        const state = getState();
+        const enabledUserStatuses = getIsUserStatusesConfigEnabled(state);
+        if (!enabledUserStatuses) {
+            return {data: false};
+        }
+
+        const currentUserId = getCurrentUserId(state);
+        const currentChannelId = getCurrentChannelId(state);
+        const postsInChannel = getPostsInCurrentChannel(state);
+        const numberOfPostsVisibleInCurrentChannel = state.views.channel.postVisibility[currentChannelId] || 0;
+
+        const userIdsToFetchStatusFor = new Set<string>();
+
+        // Users with recent posts in current channel
+        if (postsInChannel && numberOfPostsVisibleInCurrentChannel > 0) {
+            const posts = postsInChannel.slice(0, numberOfPostsVisibleInCurrentChannel);
+            for (const post of posts) {
+                if (post.user_id && post.user_id !== currentUserId) {
+                    userIdsToFetchStatusFor.add(post.user_id);
+                }
+            }
+        }
+
+        // Users with open DMs
+        const directShowPreferences = getDirectShowPreferences(state);
+        for (const directShowPreference of directShowPreferences) {
+            if (directShowPreference.value === 'true') {
+                userIdsToFetchStatusFor.add(directShowPreference.name);
+            }
+        }
+
+        // All DM list users and channel members (guilded-specific)
+        const dms = getAllDmChannelsWithUsers(state);
+        for (const dm of dms) {
+            if (dm.type === 'dm') {
+                userIdsToFetchStatusFor.add(dm.user.id);
+            } else if (dm.type === 'group') {
+                for (const user of dm.users) {
+                    userIdsToFetchStatusFor.add(user.id);
+                }
+            }
+        }
+
+        if (currentChannelId) {
+            const profiles = doGetProfilesInChannel(state, currentChannelId);
+            for (const profile of profiles) {
+                if (profile.id !== currentUserId) {
+                    userIdsToFetchStatusFor.add(profile.id);
+                }
+            }
+        }
+
+        // Current user
+        userIdsToFetchStatusFor.add(currentUserId);
+
+        const userIds = Array.from(userIdsToFetchStatusFor);
+        if (userIds.length > 0) {
+            await dispatch(getStatusesByIds(userIds));
         }
 
         return {data: true};

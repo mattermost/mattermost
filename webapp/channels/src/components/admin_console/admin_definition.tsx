@@ -6817,6 +6817,13 @@ const AdminDefinition: AdminDefinitionType = {
                             placeholder: defineMessage({id: 'admin.mattermost_extended.statuses.heartbeatInterval.placeholder', defaultMessage: 'E.g. 30'}),
                         },
                         {
+                            type: 'number',
+                            key: 'MattermostExtendedSettings.Statuses.GuildedStatusPollingIntervalSeconds',
+                            label: defineMessage({id: 'admin.mattermost_extended.statuses.guildedStatusPollingInterval.title', defaultMessage: 'Guilded Status Polling Interval (seconds):'}),
+                            help_text: defineMessage({id: 'admin.mattermost_extended.statuses.guildedStatusPollingInterval.desc', defaultMessage: 'How often the Guilded layout directly fetches statuses for visible users. Lower = more responsive. Min 5, 0 = disabled. Default: 15.'}),
+                            placeholder: defineMessage({id: 'admin.mattermost_extended.statuses.guildedStatusPollingInterval.placeholder', defaultMessage: 'E.g. 15'}),
+                        },
+                        {
                             type: 'bool',
                             key: 'MattermostExtendedSettings.Statuses.EnableStatusLogs',
                             label: defineMessage({id: 'admin.mattermost_extended.statuses.enableStatusLogs.title', defaultMessage: 'Enable Status Logs:'}),

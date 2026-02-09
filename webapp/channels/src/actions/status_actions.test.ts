@@ -13,6 +13,11 @@ import * as Actions from 'actions/status_actions';
 
 import mockStore from 'tests/test_store';
 
+jest.mock('selectors/views/guilded_layout', () => ({
+    isGuildedLayoutEnabled: jest.fn(() => false),
+    getAllDmChannelsWithUsers: jest.fn(() => []),
+}));
+
 jest.mock('mattermost-redux/actions/users', () => ({
     getStatusesByIds: jest.fn(() => {
         return {type: ''};
@@ -157,6 +162,40 @@ describe('actions/status_actions', () => {
             const testStore = mockStore(state);
             testStore.dispatch(Actions.loadStatusesForProfilesMap(null));
             expect(getStatusesByIds).not.toHaveBeenCalled();
+        });
+    });
+
+    describe('fetchVisibleUserStatusesNow', () => {
+        beforeEach(() => {
+            (getStatusesByIds as jest.Mock).mockClear();
+        });
+
+        test('calls getStatusesByIds directly with visible user IDs', async () => {
+            const state = cloneDeep(initialState);
+            const testStore = mockStore(state);
+            await testStore.dispatch(Actions.fetchVisibleUserStatusesNow());
+            expect(getStatusesByIds).toHaveBeenCalledWith(
+                expect.arrayContaining(['user_id2', 'user_id3', 'current_user_id']),
+            );
+            expect(addUserIdsForStatusFetchingPoll).not.toHaveBeenCalled();
+        });
+
+        test('returns {data: false} when user statuses are disabled', async () => {
+            const state = cloneDeep(initialState);
+            state.entities.general.config.EnableUserStatuses = 'false';
+            const testStore = mockStore(state);
+            const result = await testStore.dispatch(Actions.fetchVisibleUserStatusesNow());
+            expect(result).toEqual({data: false});
+            expect(getStatusesByIds).not.toHaveBeenCalled();
+        });
+
+        test('includes current user ID even with empty channel', async () => {
+            const state = cloneDeep(initialState);
+            state.entities.channels.currentChannelId = 'channel_id2';
+            state.entities.preferences.myPreferences = {};
+            const testStore = mockStore(state);
+            await testStore.dispatch(Actions.fetchVisibleUserStatusesNow());
+            expect(getStatusesByIds).toHaveBeenCalledWith(['current_user_id']);
         });
     });
 });

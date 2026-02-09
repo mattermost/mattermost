@@ -2,15 +2,16 @@
 // See LICENSE.txt for license information.
 
 import classNames from 'classnames';
-import React, {lazy, useEffect} from 'react';
+import React, {lazy, useEffect, useMemo} from 'react';
 import {useDispatch, useSelector} from 'react-redux';
 import {useLocation} from 'react-router-dom';
 
 import {cleanUpStatusAndProfileFetchingPoll} from 'mattermost-redux/actions/status_profile_polling';
 import {getIsUserStatusesConfigEnabled} from 'mattermost-redux/selectors/entities/common';
+import {getConfig} from 'mattermost-redux/selectors/entities/general';
 
 import {setDmMode} from 'actions/views/guilded_layout';
-import {addVisibleUsersInCurrentChannelAndSelfToStatusPoll} from 'actions/status_actions';
+import {addVisibleUsersInCurrentChannelAndSelfToStatusPoll, fetchVisibleUserStatusesNow} from 'actions/status_actions';
 import {isGuildedLayoutEnabled} from 'selectors/views/guilded_layout';
 import {getIsMobileView} from 'selectors/views/browser';
 
@@ -41,7 +42,16 @@ export default function ChannelController(props: Props) {
     const isMobileView = useSelector(getIsMobileView);
     const enabledUserStatuses = useSelector(getIsUserStatusesConfigEnabled);
     const isGuilded = useSelector(isGuildedLayoutEnabled);
+    const config = useSelector(getConfig);
     const dispatch = useDispatch();
+
+    const guildedPollingInterval = useMemo(() => {
+        const raw = parseInt(config.MattermostExtendedStatusesGuildedStatusPollingIntervalSeconds || '15', 10);
+        if (isNaN(raw) || raw === 0) {
+            return 0;
+        }
+        return Math.max(raw, 5) * 1000;
+    }, [config.MattermostExtendedStatusesGuildedStatusPollingIntervalSeconds]);
 
     useEffect(() => {
         const isMsBrowser = isInternetExplorer() || isEdge();
@@ -61,19 +71,26 @@ export default function ChannelController(props: Props) {
     }, []);
 
     // Starts a regular interval to fetch statuses of users.
-    // see function "addVisibleUsersInCurrentChannelAndSelfToStatusPoll" for more details on which user's statuses are fetched.
+    // Guilded layout with polling enabled: direct-fetch at configured interval (faster).
+    // Otherwise: queue-based fetch at 60s via BackgroundDataLoader.
     useEffect(() => {
         let loadStatusesIntervalId: NodeJS.Timeout;
         if (enabledUserStatuses) {
-            loadStatusesIntervalId = setInterval(() => {
-                dispatch(addVisibleUsersInCurrentChannelAndSelfToStatusPoll());
-            }, Constants.STATUS_INTERVAL);
+            if (isGuilded && guildedPollingInterval > 0) {
+                loadStatusesIntervalId = setInterval(() => {
+                    dispatch(fetchVisibleUserStatusesNow());
+                }, guildedPollingInterval);
+            } else {
+                loadStatusesIntervalId = setInterval(() => {
+                    dispatch(addVisibleUsersInCurrentChannelAndSelfToStatusPoll());
+                }, Constants.STATUS_INTERVAL);
+            }
         }
 
         return () => {
             clearInterval(loadStatusesIntervalId);
         };
-    }, [enabledUserStatuses]);
+    }, [enabledUserStatuses, isGuilded, guildedPollingInterval]);
 
     // Auto-set DM mode based on route when Guilded layout is active
     useEffect(() => {

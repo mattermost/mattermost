@@ -87,6 +87,10 @@ type MattermostExtendedStatusesSettings struct {
 	// Comma-separated usernames that can set themselves Offline even with NoOffline enabled.
 	// Their LastActivityAt still updates normally — they just appear Offline to others.
 	InvisibilityAllowedUsers *string
+
+	// How often (seconds) the Guilded layout directly fetches statuses for visible users.
+	// Lower = more responsive. Min 5, 0 = disabled. Default: 15.
+	GuildedStatusPollingIntervalSeconds *int
 }
 
 // MattermostExtendedPreferencesSettings contains settings for admin preference overrides.
@@ -167,6 +171,9 @@ func (s *MattermostExtendedStatusesSettings) SetDefaults() {
 	}
 	if s.InvisibilityAllowedUsers == nil {
 		s.InvisibilityAllowedUsers = NewPointer("")
+	}
+	if s.GuildedStatusPollingIntervalSeconds == nil {
+		s.GuildedStatusPollingIntervalSeconds = NewPointer(15)
 	}
 }
 
