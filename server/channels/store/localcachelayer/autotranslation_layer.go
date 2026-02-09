@@ -7,8 +7,6 @@ import (
 	"bytes"
 	"fmt"
 
-	"github.com/pkg/errors"
-
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
 )
@@ -45,31 +43,6 @@ func (s LocalCacheAutoTranslationStore) ClearCaches() {
 	}
 }
 
-// IsChannelEnabled checks if auto-translation is enabled for a channel
-// Uses the existing Channel cache instead of maintaining a separate cache
-func (s LocalCacheAutoTranslationStore) IsChannelEnabled(channelID string) (bool, error) {
-	// Get channel from cache (with DB fallback)
-	channel, err := s.rootStore.Channel().Get(channelID, true)
-	if err != nil {
-		return false, errors.Wrapf(err, "failed to get channel for auto-translation check, channel_id=%s", channelID)
-	}
-
-	return channel.AutoTranslation, nil
-}
-
-// SetChannelEnabled sets auto-translation status for a channel and invalidates Channel cache
-func (s LocalCacheAutoTranslationStore) SetChannelEnabled(channelID string, enabled bool) error {
-	err := s.AutoTranslationStore.SetChannelEnabled(channelID, enabled)
-	if err != nil {
-		return err
-	}
-
-	// Invalidate the Channel cache since we modified channel.autotranslation
-	s.rootStore.Channel().InvalidateChannel(channelID)
-
-	return nil
-}
-
 // IsUserEnabled checks if auto-translation is enabled for a user in a channel (with caching)
 func (s LocalCacheAutoTranslationStore) IsUserEnabled(userID, channelID string) (bool, error) {
 	key := userAutoTranslationKey(userID, channelID)
@@ -86,28 +59,6 @@ func (s LocalCacheAutoTranslationStore) IsUserEnabled(userID, channelID string) 
 
 	s.rootStore.doStandardAddToCache(s.rootStore.userAutoTranslationCache, key, enabled)
 	return enabled, nil
-}
-
-// SetUserEnabled sets auto-translation status for a user in a channel and invalidates cache
-func (s LocalCacheAutoTranslationStore) SetUserEnabled(userID, channelID string, enabled bool) error {
-	err := s.AutoTranslationStore.SetUserEnabled(userID, channelID, enabled)
-	if err != nil {
-		return err
-	}
-
-	// Invalidate user auto-translation cache
-	userKey := userAutoTranslationKey(userID, channelID)
-	s.rootStore.doInvalidateCacheCluster(s.rootStore.userAutoTranslationCache, userKey, nil)
-
-	// Invalidate user language cache (for safety, in case locale changed while disabled)
-	langKey := userLanguageKey(userID, channelID)
-	s.rootStore.doInvalidateCacheCluster(s.rootStore.userAutoTranslationCache, langKey, nil)
-
-	if s.rootStore.metrics != nil {
-		s.rootStore.metrics.IncrementMemCacheInvalidationCounter(s.rootStore.userAutoTranslationCache.Name())
-	}
-
-	return nil
 }
 
 // GetUserLanguage gets the user's language preference for a channel (with caching)

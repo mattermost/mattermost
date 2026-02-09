@@ -854,5 +854,6 @@ const defaultServerConfig: AdminConfig = {
         Agents: {
             LLMServiceID: '',
         },
+        RestrictDMAndGM: false,
     },
 };

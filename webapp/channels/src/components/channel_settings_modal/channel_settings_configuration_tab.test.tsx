@@ -169,7 +169,6 @@ describe('ChannelSettingsConfigurationTab', () => {
 
         // Verify patchChannel was called with the updated values
         expect(patchChannel).toHaveBeenCalledWith('channel1', {
-            ...mockChannel,
             banner_info: {
                 enabled: true,
                 text: 'New banner text',
@@ -397,7 +396,6 @@ describe('ChannelSettingsConfigurationTab', () => {
 
         // Verify patchChannel was called with the trimmed values
         expect(patchChannel).toHaveBeenCalledWith('channel1', {
-            ...mockChannelWithBanner,
             banner_info: {
                 enabled: true,
                 text: 'Banner text with whitespace', // Whitespace should be trimmed

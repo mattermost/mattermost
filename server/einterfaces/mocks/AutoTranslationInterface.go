@@ -76,9 +76,9 @@ func (_m *AutoTranslationInterface) DetectRemote(ctx context.Context, text strin
 	return r0, r1, r2
 }
 
-// GetBatch provides a mock function with given fields: objectIDs, dstLang
-func (_m *AutoTranslationInterface) GetBatch(objectIDs []string, dstLang string) (map[string]*model.Translation, *model.AppError) {
-	ret := _m.Called(objectIDs, dstLang)
+// GetBatch provides a mock function with given fields: objectType, objectIDs, dstLang
+func (_m *AutoTranslationInterface) GetBatch(objectType string, objectIDs []string, dstLang string) (map[string]*model.Translation, *model.AppError) {
+	ret := _m.Called(objectType, objectIDs, dstLang)
 
 	if len(ret) == 0 {
 		panic("no return value specified for GetBatch")
@@ -86,19 +86,19 @@ func (_m *AutoTranslationInterface) GetBatch(objectIDs []string, dstLang string)
 
 	var r0 map[string]*model.Translation
 	var r1 *model.AppError
-	if rf, ok := ret.Get(0).(func([]string, string) (map[string]*model.Translation, *model.AppError)); ok {
-		return rf(objectIDs, dstLang)
+	if rf, ok := ret.Get(0).(func(string, []string, string) (map[string]*model.Translation, *model.AppError)); ok {
+		return rf(objectType, objectIDs, dstLang)
 	}
-	if rf, ok := ret.Get(0).(func([]string, string) map[string]*model.Translation); ok {
-		r0 = rf(objectIDs, dstLang)
+	if rf, ok := ret.Get(0).(func(string, []string, string) map[string]*model.Translation); ok {
+		r0 = rf(objectType, objectIDs, dstLang)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(map[string]*model.Translation)
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func([]string, string) *model.AppError); ok {
-		r1 = rf(objectIDs, dstLang)
+	if rf, ok := ret.Get(1).(func(string, []string, string) *model.AppError); ok {
+		r1 = rf(objectType, objectIDs, dstLang)
 	} else {
 		if ret.Get(1) != nil {
 			r1 = ret.Get(1).(*model.AppError)
@@ -250,26 +250,6 @@ func (_m *AutoTranslationInterface) MakeWorker() model.Worker {
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(model.Worker)
-		}
-	}
-
-	return r0
-}
-
-// SetChannelEnabled provides a mock function with given fields: channelID, enabled
-func (_m *AutoTranslationInterface) SetChannelEnabled(channelID string, enabled bool) *model.AppError {
-	ret := _m.Called(channelID, enabled)
-
-	if len(ret) == 0 {
-		panic("no return value specified for SetChannelEnabled")
-	}
-
-	var r0 *model.AppError
-	if rf, ok := ret.Get(0).(func(string, bool) *model.AppError); ok {
-		r0 = rf(channelID, enabled)
-	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*model.AppError)
 		}
 	}
 

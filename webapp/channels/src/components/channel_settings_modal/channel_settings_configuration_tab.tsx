@@ -150,9 +150,7 @@ function ChannelSettingsConfigurationTab({channel, setAreThereUnsavedChanges, sh
             return false;
         }
 
-        const updated: Channel = {
-            ...channel,
-        };
+        const updated: Partial<Channel> = {};
 
         updated.banner_info = {
             text: updatedChannelBanner.text?.trim() || '',
