@@ -19,29 +19,23 @@
         align-items: center;
         padding-top: 4px;
         -webkit-overflow-scrolling: touch;
-
-        &::-webkit-scrollbar {
-            width: 4px;
-        }
-
-        &::-webkit-scrollbar-thumb {
-            background: rgba(var(--sidebar-text-rgb), 0.2);
-            border-radius: 2px;
-        }
     }
 
     &__divider {
         width: 32px;
+        min-height: 2px;
         height: 2px;
         margin: 8px 0;
         border-radius: 1px;
         background-color: rgba(var(--sidebar-text-rgb), 0.16);
+        flex-shrink: 0;
     }
 
     &__create-btn {
         display: flex;
         width: 42px;
         height: 42px;
+        flex-shrink: 0;
         align-items: center;
         justify-content: center;
         margin-bottom: 12px;

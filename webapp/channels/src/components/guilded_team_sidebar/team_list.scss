@@ -5,12 +5,18 @@
     position: relative;
     display: flex;
     min-height: 0;
-    height: 100%;
     flex: 1;
     flex-direction: column;
     align-items: center;
-    padding-top: 4px;
+    padding: 4px 10px;
+    align-self: stretch;
+    overflow-y: auto;
     -webkit-overflow-scrolling: touch;
+    scrollbar-width: none; // Firefox
+
+    &::-webkit-scrollbar {
+        display: none; // Chrome/Safari
+    }
 
     &__draggable {
         display: flex;
