@@ -2801,10 +2801,6 @@
     "translation": "Unable to get the pending post."
   },
   {
-    "id": "api.post.fill_in_post_props.burn_on_read.bot.app_error",
-    "translation": "Bot users cannot send burn-on-read posts."
-  },
-  {
     "id": "api.post.fill_in_post_props.burn_on_read.bot_dm.app_error",
     "translation": "Burn-on-read posts are not allowed in direct messages with bots or AI agents."
   },
