@@ -126,7 +126,7 @@ func TestListCPAFields(t *testing.T) {
 	})
 	require.NoError(t, err)
 
-	createdField, appErr := th.App.CreateCPAField(field)
+	createdField, appErr := th.App.CreateCPAField("", field)
 	require.Nil(t, appErr)
 	require.NotNil(t, createdField)
 
@@ -151,7 +151,7 @@ func TestListCPAFields(t *testing.T) {
 	})
 
 	t.Run("the endpoint should only list non deleted fields", func(t *testing.T) {
-		require.Nil(t, th.App.DeleteCPAField(createdField.ID))
+		require.Nil(t, th.App.DeleteCPAField("", createdField.ID))
 		fields, resp, err := th.Client.ListCPAFields(context.Background())
 		CheckOKStatus(t, resp)
 		require.NoError(t, err)
@@ -184,7 +184,7 @@ func TestPatchCPAField(t *testing.T) {
 		})
 		require.NoError(t, err)
 
-		createdField, appErr := th.App.CreateCPAField(field)
+		createdField, appErr := th.App.CreateCPAField("", field)
 		require.Nil(t, appErr)
 		require.NotNil(t, createdField)
 
@@ -203,7 +203,7 @@ func TestPatchCPAField(t *testing.T) {
 		})
 		require.NoError(t, err)
 
-		createdField, appErr := th.App.CreateCPAField(field)
+		createdField, appErr := th.App.CreateCPAField("", field)
 		require.Nil(t, appErr)
 		require.NotNil(t, createdField)
 
@@ -307,7 +307,7 @@ func TestPatchCPAField(t *testing.T) {
 		})
 		require.NoError(t, err)
 
-		createdField, appErr := th.App.CreateCPAField(field)
+		createdField, appErr := th.App.CreateCPAField("", field)
 		require.Nil(t, appErr)
 		require.NotNil(t, createdField)
 
@@ -388,7 +388,7 @@ func TestDeleteCPAField(t *testing.T) {
 		CheckOKStatus(t, resp)
 		require.NoError(t, err)
 
-		deletedField, appErr := th.App.GetCPAField(createdField.ID)
+		deletedField, appErr := th.App.GetCPAField("", createdField.ID)
 		require.Nil(t, appErr)
 		require.NotZero(t, deletedField.DeleteAt)
 
@@ -430,11 +430,11 @@ func TestListCPAValues(t *testing.T) {
 	})
 	require.NoError(t, err)
 
-	createdField, appErr := th.App.CreateCPAField(field)
+	createdField, appErr := th.App.CreateCPAField("", field)
 	require.Nil(t, appErr)
 	require.NotNil(t, createdField)
 
-	_, appErr = th.App.PatchCPAValue(th.BasicUser.Id, createdField.ID, json.RawMessage(`"Field Value"`), true)
+	_, appErr = th.App.PatchCPAValue("", th.BasicUser.Id, createdField.ID, json.RawMessage(`"Field Value"`), true)
 	require.Nil(t, appErr)
 
 	t.Run("endpoint should not work if no valid license is present", func(t *testing.T) {
@@ -474,11 +474,11 @@ func TestListCPAValues(t *testing.T) {
 		})
 		require.NoError(t, err)
 
-		createdArrayField, appErr := th.App.CreateCPAField(arrayField)
+		createdArrayField, appErr := th.App.CreateCPAField("", arrayField)
 		require.Nil(t, appErr)
 		require.NotNil(t, createdArrayField)
 
-		_, appErr = th.App.PatchCPAValue(th.BasicUser.Id, createdArrayField.ID, json.RawMessage(fmt.Sprintf(`["%s", "%s"]`, optionID1, optionID2)), true)
+		_, appErr = th.App.PatchCPAValue("", th.BasicUser.Id, createdArrayField.ID, json.RawMessage(fmt.Sprintf(`["%s", "%s"]`, optionID1, optionID2)), true)
 		require.Nil(t, appErr)
 
 		values, resp, err := th.Client.ListCPAValues(context.Background(), th.BasicUser.Id)
@@ -515,7 +515,7 @@ func TestPatchCPAValues(t *testing.T) {
 	})
 	require.NoError(t, err)
 
-	createdField, appErr := th.App.CreateCPAField(field)
+	createdField, appErr := th.App.CreateCPAField("", field)
 	require.Nil(t, appErr)
 	require.NotNil(t, createdField)
 
@@ -618,7 +618,7 @@ func TestPatchCPAValues(t *testing.T) {
 		})
 		require.NoError(t, err)
 
-		createdArrayField, appErr := th.App.CreateCPAField(arrayField)
+		createdArrayField, appErr := th.App.CreateCPAField("", arrayField)
 		require.Nil(t, appErr)
 		require.NotNil(t, createdArrayField)
 
@@ -656,7 +656,7 @@ func TestPatchCPAValues(t *testing.T) {
 		})
 		require.NoError(t, err)
 
-		createdLDAPField, appErr := th.App.CreateCPAField(ldapField)
+		createdLDAPField, appErr := th.App.CreateCPAField("", ldapField)
 		require.Nil(t, appErr)
 		require.NotNil(t, createdLDAPField)
 
@@ -670,7 +670,7 @@ func TestPatchCPAValues(t *testing.T) {
 		})
 		require.NoError(t, err)
 
-		createdSAMLField, appErr := th.App.CreateCPAField(samlField)
+		createdSAMLField, appErr := th.App.CreateCPAField("", samlField)
 		require.Nil(t, appErr)
 		require.NotNil(t, createdSAMLField)
 
@@ -710,7 +710,7 @@ func TestPatchCPAValues(t *testing.T) {
 		})
 		require.NoError(t, err)
 
-		createdField, appErr := th.App.CreateCPAField(field)
+		createdField, appErr := th.App.CreateCPAField("", field)
 		require.Nil(t, appErr)
 		require.NotNil(t, createdField)
 
@@ -796,10 +796,10 @@ func TestPatchCPAValues(t *testing.T) {
 		t.Run("batch update with managed fields fails for regular user", func(t *testing.T) {
 			// First set some initial values to ensure we can verify they don't change
 			// Set initial values for both fields using th.App (admins can set managed field values)
-			_, appErr := th.App.PatchCPAValue(th.BasicUser.Id, createdRegularField.ID, json.RawMessage(`"Initial Regular Value"`), false)
+			_, appErr := th.App.PatchCPAValue("", th.BasicUser.Id, createdRegularField.ID, json.RawMessage(`"Initial Regular Value"`), false)
 			require.Nil(t, appErr)
 
-			_, appErr = th.App.PatchCPAValue(th.BasicUser.Id, createdManagedField.ID, json.RawMessage(`"Initial Managed Value"`), true)
+			_, appErr = th.App.PatchCPAValue("", th.BasicUser.Id, createdManagedField.ID, json.RawMessage(`"Initial Managed Value"`), true)
 			require.Nil(t, appErr)
 
 			// Try to batch update both managed and regular fields - this should fail
@@ -814,7 +814,7 @@ func TestPatchCPAValues(t *testing.T) {
 			CheckErrorID(t, err, "app.custom_profile_attributes.property_field_is_managed.app_error")
 
 			// Verify that no values were updated when the batch operation failed
-			currentValues, appErr := th.App.ListCPAValues(th.BasicUser.Id)
+			currentValues, appErr := th.App.ListCPAValues("", th.BasicUser.Id)
 			require.Nil(t, appErr)
 
 			// Check that values remain unchanged - both fields should retain their initial values
@@ -880,7 +880,7 @@ func TestPatchCPAValuesForUser(t *testing.T) {
 	})
 	require.NoError(t, err)
 
-	createdField, appErr := th.App.CreateCPAField(field)
+	createdField, appErr := th.App.CreateCPAField("", field)
 	require.Nil(t, appErr)
 	require.NotNil(t, createdField)
 
@@ -983,7 +983,7 @@ func TestPatchCPAValuesForUser(t *testing.T) {
 		})
 		require.NoError(t, err)
 
-		createdArrayField, appErr := th.App.CreateCPAField(arrayField)
+		createdArrayField, appErr := th.App.CreateCPAField("", arrayField)
 		require.Nil(t, appErr)
 		require.NotNil(t, createdArrayField)
 
@@ -1021,7 +1021,7 @@ func TestPatchCPAValuesForUser(t *testing.T) {
 		})
 		require.NoError(t, err)
 
-		createdLDAPField, appErr := th.App.CreateCPAField(ldapField)
+		createdLDAPField, appErr := th.App.CreateCPAField("", ldapField)
 		require.Nil(t, appErr)
 		require.NotNil(t, createdLDAPField)
 
@@ -1035,7 +1035,7 @@ func TestPatchCPAValuesForUser(t *testing.T) {
 		})
 		require.NoError(t, err)
 
-		createdSAMLField, appErr := th.App.CreateCPAField(samlField)
+		createdSAMLField, appErr := th.App.CreateCPAField("", samlField)
 		require.Nil(t, appErr)
 		require.NotNil(t, createdSAMLField)
 
@@ -1075,7 +1075,7 @@ func TestPatchCPAValuesForUser(t *testing.T) {
 		})
 		require.NoError(t, err)
 
-		createdField, appErr := th.App.CreateCPAField(field)
+		createdField, appErr := th.App.CreateCPAField("", field)
 		require.Nil(t, appErr)
 		require.NotNil(t, createdField)
 
@@ -1145,7 +1145,7 @@ func TestPatchCPAValuesForUser(t *testing.T) {
 
 		th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
 			// Set initial value through the app layer that we will be replacing during the test
-			_, appErr := th.App.PatchCPAValue(th.SystemAdminUser.Id, createdManagedField.ID, json.RawMessage(`"Initial Admin Value"`), true)
+			_, appErr := th.App.PatchCPAValue("", th.SystemAdminUser.Id, createdManagedField.ID, json.RawMessage(`"Initial Admin Value"`), true)
 			require.Nil(t, appErr)
 
 			values := map[string]json.RawMessage{
@@ -1202,10 +1202,10 @@ func TestPatchCPAValuesForUser(t *testing.T) {
 		t.Run("batch update with managed fields fails for regular user", func(t *testing.T) {
 			// First set some initial values to ensure we can verify they don't change
 			// Set initial values for both fields using th.App (admins can set managed field values)
-			_, appErr := th.App.PatchCPAValue(th.BasicUser.Id, createdRegularField.ID, json.RawMessage(`"Initial Regular Value"`), false)
+			_, appErr := th.App.PatchCPAValue("", th.BasicUser.Id, createdRegularField.ID, json.RawMessage(`"Initial Regular Value"`), false)
 			require.Nil(t, appErr)
 
-			_, appErr = th.App.PatchCPAValue(th.BasicUser.Id, createdManagedField.ID, json.RawMessage(`"Initial Managed Value"`), true)
+			_, appErr = th.App.PatchCPAValue("", th.BasicUser.Id, createdManagedField.ID, json.RawMessage(`"Initial Managed Value"`), true)
 			require.Nil(t, appErr)
 
 			// Try to batch update both managed and regular fields - this should fail
@@ -1220,7 +1220,7 @@ func TestPatchCPAValuesForUser(t *testing.T) {
 			CheckErrorID(t, err, "app.custom_profile_attributes.property_field_is_managed.app_error")
 
 			// Verify that no values were updated when the batch operation failed
-			currentValues, appErr := th.App.ListCPAValues(th.BasicUser.Id)
+			currentValues, appErr := th.App.ListCPAValues("", th.BasicUser.Id)
 			require.Nil(t, appErr)
 
 			// Check that values remain unchanged - both fields should retain their initial values
