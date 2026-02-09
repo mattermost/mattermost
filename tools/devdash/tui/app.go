@@ -384,7 +384,7 @@ func (a *App) handleKey(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 			a.logVisible = true
 			a.logPanel.SetSize(a.width, a.logPanelHeight())
 			return a, nil
-		case key.Matches(msg, a.keys.Execute):
+		case key.Matches(msg, a.keys.Execute), key.Matches(msg, a.keys.FocusProc):
 			// Enter log focus for the selected tab
 			if a.focusedProc != "" {
 				a.focus = FocusLog

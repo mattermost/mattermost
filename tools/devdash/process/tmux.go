@@ -47,18 +47,18 @@ func (t *TmuxClient) NewSession(name, cmd, dir string, rows, cols int) error {
 	// Remove stale exit file from a previous run
 	os.Remove(exitFile)
 
-	// Wrap: run command, save exit code to marker file, then sleep forever.
-	// The sleep keeps the pane alive so background processes spawned by the
-	// command can continue writing to the terminal.
-	// Use the user's login shell so profile/rc files load (nvm, fnm, asdf, etc.)
+	// Use the user's interactive shell so profile/rc files AND directory-based
+	// version managers (mise, nvm, fnm, asdf) activate properly via shell hooks.
 	shell := os.Getenv("SHELL")
 	if shell == "" {
 		shell = "/bin/sh"
 	}
 
+	// Wrap: cd into dir (triggers version manager hooks), run command,
+	// save exit code to marker file, then drop into interactive shell.
 	wrappedCmd := fmt.Sprintf(
-		`%s; _ec=$?; printf '\n[exited %%d]\n' "$_ec"; echo "$_ec" > %s; exec %s`,
-		cmd, exitFile, shell,
+		`cd %q && %s; _ec=$?; printf '\n[exited %%d]\n' "$_ec"; echo "$_ec" > %s; exec %s`,
+		dir, cmd, exitFile, shell,
 	)
 
 	args := []string{
@@ -68,7 +68,7 @@ func (t *TmuxClient) NewSession(name, cmd, dir string, rows, cols int) error {
 		"-s", name, // session name
 		"-x", fmt.Sprintf("%d", cols),
 		"-y", fmt.Sprintf("%d", rows),
-		shell, "-l", "-c", wrappedCmd,
+		shell, "-i", "-c", wrappedCmd,
 	}
 
 	tmuxCmd := exec.Command("tmux", args...)
