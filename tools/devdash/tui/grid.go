@@ -122,7 +122,7 @@ func renderGridRow(repo *model.Repo, cells []GridCell, cursorCol int, isActiveRo
 	var nameRendered string
 	if isActiveRow && cursorCol == -1 && !logFocusActive {
 		// Repo name is selected
-		nameRendered = chipSelectedStyle.Render("▸ " + nameStr)
+		nameRendered = repoNameSelectedStyle.Render("▸ " + nameStr)
 	} else if isActiveRow {
 		nameRendered = repoNameActiveStyle.Render("▸ " + nameStr)
 	} else {
@@ -293,7 +293,7 @@ func cellForeground(cell GridCell, repo *model.Repo) lipgloss.TerminalColor {
 }
 
 func renderSeparator(width int) string {
-	return separatorStyle.Render(strings.Repeat("─ ", width/2))
+	return separatorStyle.Render(strings.Repeat("─", width))
 }
 
 func renderGrid(repos []model.Repo, cursorRow, cursorCol int, width, maxLines, skipRows int, hScrolls []int, favorites map[string]bool, searchQuery string, procStateFn func(string) model.ProcessState, focusedProc string, logFocusActive bool, showOnlyFavorites bool) (string, []HitZone) {

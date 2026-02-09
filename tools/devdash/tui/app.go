@@ -1056,7 +1056,7 @@ func (a *App) maxGridLines() int {
 	if !a.logVisible {
 		chrome := 2 // header + search
 		if len(a.procMgr.ProcessIDs()) > 0 {
-			chrome++ // tab bar
+			chrome += 2 // separator + tab bar
 		}
 		return a.height - chrome
 	}
@@ -1139,7 +1139,7 @@ func (a *App) ensureGridVScroll(maxLines int) {
 func (a *App) logPanelHeight() int {
 	chrome := 2 // header + search bar
 	if len(a.procMgr.ProcessIDs()) > 0 {
-		chrome++ // tab bar
+		chrome += 2 // separator + tab bar
 	}
 	gridRows := a.visibleGridRows()
 	// Cap grid rows so the log panel gets at least 6 lines
@@ -1255,6 +1255,8 @@ func (a *App) View() string {
 		for i, id := range ids {
 			tabs[i] = LogTab{ID: id, State: a.procMgr.ProcessState(id)}
 		}
+		b.WriteString(lipgloss.NewStyle().Foreground(lipgloss.Color("237")).Render(strings.Repeat("─", a.width)))
+		b.WriteString("\n")
 		b.WriteString(RenderTabBar(tabs, a.focusedProc, a.focus == FocusLog, a.logPanel.inputting))
 		b.WriteString("\n")
 	}
@@ -1264,7 +1266,7 @@ func (a *App) View() string {
 		gridLines := strings.Count(gridStr, "\n")
 		chrome := 2 // header + search bar
 		if len(ids) > 0 {
-			chrome++ // tab bar
+			chrome += 2 // separator + tab bar
 		}
 		lpH := a.height - chrome - gridLines
 		if lpH < 4 {

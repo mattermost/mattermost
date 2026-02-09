@@ -41,6 +41,11 @@ var (
 				Foreground(colorPrimary).
 				Width(14)
 
+	repoNameSelectedStyle = lipgloss.NewStyle().
+				Bold(true).
+				Reverse(true).
+				Width(14)
+
 	// Target chip (base)
 	chipStyle = lipgloss.NewStyle().
 			Padding(0, 1).
@@ -70,7 +75,7 @@ var (
 
 	// Separator
 	separatorStyle = lipgloss.NewStyle().
-			Foreground(colorMuted)
+			Foreground(lipgloss.Color("237"))
 
 	// Legend style
 	legendStyle = lipgloss.NewStyle().Foreground(colorMuted)
