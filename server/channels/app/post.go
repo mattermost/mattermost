@@ -165,6 +165,11 @@ func (a *App) CreatePost(rctx request.CTX, post *model.Post, channel *model.Chan
 		return nil, false, model.NewAppError("CreatePost", "app.post.create_post.shared_dm_or_gm.app_error", nil, "", http.StatusBadRequest)
 	}
 
+	// Validate burn-on-read restrictions (self-DMs, DMs with bots)
+	if err := PostBurnOnReadCheckWithApp("App.CreatePost", a, rctx, post.UserId, post.ChannelId, post.Type, channel); err != nil {
+		return nil, false, err
+	}
+
 	foundPost, err := a.deduplicateCreatePost(rctx, post)
 	if err != nil {
 		return nil, false, err
@@ -600,38 +605,6 @@ func (a *App) FillInPostProps(rctx request.CTX, post *model.Post, channel *model
 
 		if !a.Config().FeatureFlags.BurnOnRead || !model.SafeDereference(a.Config().ServiceSettings.EnableBurnOnRead) {
 			return model.NewAppError("FillInPostProps", "api.post.fill_in_post_props.burn_on_read.config.app_error", nil, "", http.StatusNotImplemented)
-		}
-
-		// Get channel if not provided - needed for validation
-		if channel == nil {
-			ch, err := a.GetChannel(rctx, post.ChannelId)
-			if err != nil {
-				return model.NewAppError("FillInPostProps", "api.post.fill_in_post_props.burn_on_read.channel.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
-			}
-			channel = ch
-		}
-
-		// Burn-on-read is not allowed in self-DMs or DMs with bots (including AI agents, plugins)
-		if channel.Type == model.ChannelTypeDirect {
-			// Check if it's a self-DM by comparing the channel name with the expected self-DM name
-			selfDMName := model.GetDMNameFromIds(post.UserId, post.UserId)
-			if channel.Name == selfDMName {
-				return model.NewAppError("FillInPostProps", "api.post.fill_in_post_props.burn_on_read.self_dm.app_error", nil, "", http.StatusBadRequest)
-			}
-
-			// Check if the DM is with a bot (AI agents, plugins, etc.)
-			otherUserId := channel.GetOtherUserIdForDM(post.UserId)
-			if otherUserId != "" && otherUserId != post.UserId {
-				otherUser, err := a.GetUser(otherUserId)
-				if err != nil {
-					// Data integrity issue: can't validate the other user (e.g., deleted user, DB error)
-					// Block the burn-on-read post as we can't ensure it's valid
-					return model.NewAppError("FillInPostProps", "api.post.fill_in_post_props.burn_on_read.user.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
-				}
-				if otherUser.IsBot {
-					return model.NewAppError("FillInPostProps", "api.post.fill_in_post_props.burn_on_read.bot_dm.app_error", nil, "", http.StatusBadRequest)
-				}
-			}
 		}
 
 		// Apply burn-on-read expiration settings from configuration
