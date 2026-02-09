@@ -3591,10 +3591,6 @@
     "translation": "Obvestil kanala {{.Channel}} ne boste prejemali dokler ne izključite utišanje kanala."
   },
   {
-    "id": "api.command_mute.not_member.error",
-    "translation": "Kanala {{.Channel}} ni mogoče utišati ker niste član kanala."
-  },
-  {
     "id": "api.command_mute.no_channel.error",
     "translation": "Podanega kanala ni bilo mogoče najti. Prosim uporabite [channel handle](https://about.mattermost.com/default-channel-handle-documentation) za identifikacijo kanalov."
   },

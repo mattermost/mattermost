@@ -649,14 +649,6 @@ func (a *App) handlePostEvents(rctx request.CTX, post *model.Post, user *model.U
 		return err
 	}
 
-	// Send initial read receipt counts for burn-on-read posts
-	if post.Type == model.PostTypeBurnOnRead {
-		// No revealing user yet (post just created), send empty string
-		if err := a.publishPostRevealedEventToAuthor(rctx, post, "", ""); err != nil {
-			rctx.Logger().Error("Failed to publish initial burn-on-read read receipt event", mlog.String("post_id", post.Id), mlog.Err(err))
-		}
-	}
-
 	if post.Type != model.PostTypeAutoResponder { // don't respond to an auto-responder
 		a.Srv().Go(func() {
 			_, err := a.SendAutoResponseIfNecessary(rctx, channel, user, post)
@@ -3095,17 +3087,42 @@ func (a *App) RewriteMessage(
 	message string,
 	action model.RewriteAction,
 	customPrompt string,
+	rootID string,
 ) (*model.RewriteResponse, *model.AppError) {
-	userPrompt := getRewritePromptForAction(action, message, customPrompt)
+	// Build thread context if rootID is provided
+	var threadContext string
+	if rootID != "" {
+		context, appErr := a.buildThreadContextForRewrite(rctx, rootID)
+		if appErr != nil {
+			// Log error but continue without context rather than failing the rewrite
+			rctx.Logger().Warn("Failed to build thread context for rewrite", mlog.String("root_id", rootID), mlog.Err(appErr))
+		} else {
+			threadContext = context
+		}
+	}
+
+	userPrompt := getRewritePromptForAction(action, message, customPrompt, threadContext)
 	if userPrompt == "" {
 		return nil, model.NewAppError("RewriteMessage", "app.post.rewrite.invalid_action", nil, fmt.Sprintf("invalid action: %s", action), 400)
 	}
+
+	userLocale := ""
+	if session := rctx.Session(); session != nil && session.UserId != "" {
+		user, appErr := a.GetUser(session.UserId)
+		if appErr == nil {
+			userLocale = user.Locale
+		} else {
+			rctx.Logger().Warn("Failed to get user for rewrite locale", mlog.Err(appErr), mlog.String("user_id", session.UserId))
+		}
+	}
+
+	systemPrompt := buildRewriteSystemPrompt(userLocale)
 
 	// Prepare completion request in the format expected by the client
 	client := a.GetBridgeClient(rctx.Session().UserId)
 	completionRequest := agentclient.CompletionRequest{
 		Posts: []agentclient.Post{
-			{Role: "system", Message: model.RewriteSystemPrompt},
+			{Role: "system", Message: systemPrompt},
 			{Role: "user", Message: userPrompt},
 		},
 	}
@@ -3127,38 +3144,167 @@ func (a *App) RewriteMessage(
 	return &response, nil
 }
 
-// getRewritePromptForAction returns the appropriate prompt and system prompt for the given rewrite action
-func getRewritePromptForAction(action model.RewriteAction, message string, customPrompt string) string {
-	if message == "" {
-		return fmt.Sprintf(`Write according to these instructions: %s`, customPrompt)
+// buildThreadContextForRewrite builds context from root post + last 10 posts in the thread
+func (a *App) buildThreadContextForRewrite(rctx request.CTX, rootID string) (string, *model.AppError) {
+	const maxContextPosts = 10
+
+	// Get the thread posts
+	postList, appErr := a.GetPostThread(rctx, rootID, model.GetPostsOptions{}, rctx.Session().UserId)
+	if appErr != nil {
+		return "", appErr
 	}
 
-	switch action {
-	case model.RewriteActionCustom:
-		return fmt.Sprintf(`%s
+	if postList == nil || len(postList.Posts) == 0 {
+		return "", nil
+	}
+
+	// Get root post
+	rootPost, ok := postList.Posts[rootID]
+	if !ok {
+		return "", nil
+	}
+
+	// Skip if root post is a system post or deleted
+	if strings.HasPrefix(rootPost.Type, model.PostSystemMessagePrefix) || rootPost.DeleteAt > 0 {
+		return "", nil
+	}
+
+	// Collect reply posts, filtering out system posts and deleted posts
+	var replies []*model.Post
+	for _, postID := range postList.Order {
+		if postID == rootID {
+			continue // Skip root post
+		}
+		post, ok := postList.Posts[postID]
+		if !ok {
+			continue
+		}
+		// Skip system posts
+		if strings.HasPrefix(post.Type, model.PostSystemMessagePrefix) {
+			continue
+		}
+		// Skip deleted posts
+		if post.DeleteAt > 0 {
+			continue
+		}
+		replies = append(replies, post)
+	}
+
+	// Get last maxContextPosts replies
+	var contextReplies []*model.Post
+	startIdx := 0
+	if len(replies) > maxContextPosts {
+		startIdx = len(replies) - maxContextPosts
+	}
+	contextReplies = replies[startIdx:]
+
+	// Get user profiles for all posts in context
+	userIDs := []string{rootPost.UserId}
+	for _, reply := range contextReplies {
+		userIDs = append(userIDs, reply.UserId)
+	}
+	slices.Sort(userIDs)
+	userIDs = slices.Compact(userIDs)
+
+	users, appErr := a.GetUsersByIds(rctx, userIDs, &store.UserGetByIdsOpts{})
+	if appErr != nil {
+		return "", appErr
+	}
+
+	userMap := make(map[string]string, len(users))
+	for _, user := range users {
+		userMap[user.Id] = user.Username
+	}
+
+	// Build context string
+	var contextBuilder strings.Builder
+	contextBuilder.WriteString("Thread context:\n")
+
+	rootUsername := userMap[rootPost.UserId]
+	if rootUsername == "" {
+		rootUsername = "Unknown"
+	}
+	contextBuilder.WriteString(fmt.Sprintf("Root post (%s): %s\n", rootUsername, rootPost.Message))
+
+	if len(contextReplies) > 0 {
+		contextBuilder.WriteString("\nRecent replies:\n")
+		for _, reply := range contextReplies {
+			username := userMap[reply.UserId]
+			if username == "" {
+				username = "Unknown"
+			}
+			contextBuilder.WriteString(fmt.Sprintf("- %s: %s\n", username, reply.Message))
+		}
+	}
+
+	return contextBuilder.String(), nil
+}
+
+// getRewritePromptForAction returns the appropriate prompt and system prompt for the given rewrite action
+func getRewritePromptForAction(action model.RewriteAction, message string, customPrompt string, threadContext string) string {
+	var actionPrompt string
+
+	if message == "" {
+		actionPrompt = fmt.Sprintf(`Write according to these instructions: %s`, customPrompt)
+	} else {
+		switch action {
+		case model.RewriteActionCustom:
+			actionPrompt = fmt.Sprintf(`%s
 
 %s`, customPrompt, message)
 
-	case model.RewriteActionShorten:
-		return fmt.Sprintf(`Make this up to 2 to 3 times shorter: %s`, message)
+		case model.RewriteActionShorten:
+			actionPrompt = fmt.Sprintf(`Make this up to 2 to 3 times shorter: %s`, message)
 
-	case model.RewriteActionElaborate:
-		return fmt.Sprintf(`Make this up to 2 to 3 times longer, using Markdown if necessary: %s`, message)
+		case model.RewriteActionElaborate:
+			actionPrompt = fmt.Sprintf(`Make this up to 2 to 3 times longer, using Markdown if necessary: %s`, message)
 
-	case model.RewriteActionImproveWriting:
-		return fmt.Sprintf(`Improve this writing, using Markdown if necessary: %s`, message)
+		case model.RewriteActionImproveWriting:
+			actionPrompt = fmt.Sprintf(`Improve this writing, using Markdown if necessary: %s`, message)
 
-	case model.RewriteActionFixSpelling:
-		return fmt.Sprintf(`Fix spelling and grammar: %s`, message)
+		case model.RewriteActionFixSpelling:
+			actionPrompt = fmt.Sprintf(`Fix spelling and grammar: %s`, message)
 
-	case model.RewriteActionSimplify:
-		return fmt.Sprintf(`Simplify this: %s`, message)
+		case model.RewriteActionSimplify:
+			actionPrompt = fmt.Sprintf(`Simplify this: %s`, message)
 
-	case model.RewriteActionSummarize:
-		return fmt.Sprintf(`Summarize this, using Markdown if necessary: %s`, message)
+		case model.RewriteActionSummarize:
+			actionPrompt = fmt.Sprintf(`Summarize this, using Markdown if necessary: %s`, message)
+
+		default:
+			// Invalid action - return empty string to trigger validation error
+			return ""
+		}
 	}
 
-	return ""
+	// If no action prompt was generated, return empty string
+	if actionPrompt == "" {
+		return ""
+	}
+
+	// Build final prompt with thread context if available
+	if threadContext != "" {
+		var promptBuilder strings.Builder
+		promptBuilder.WriteString("=== THREAD CONTEXT (for reference only) ===\n")
+		promptBuilder.WriteString(threadContext)
+		promptBuilder.WriteString("\n\n=== REWRITE TASK ===\n")
+		promptBuilder.WriteString(actionPrompt)
+		promptBuilder.WriteString("\n\nRewrite the message considering the thread context above.")
+		return promptBuilder.String()
+	}
+
+	return actionPrompt
+}
+
+func buildRewriteSystemPrompt(userLocale string) string {
+	locale := strings.TrimSpace(userLocale)
+	if locale == "" {
+		return model.RewriteSystemPrompt
+	}
+
+	return fmt.Sprintf(`%s
+
+User locale: %s. Preserve locale-specific spelling, grammar, and formatting. Keep locale identifiers (like %s) unchanged. Do not translate between locales.`, model.RewriteSystemPrompt, locale, locale)
 }
 
 // RevealPost reveals a burn-on-read post for a specific user, creating a read receipt
@@ -3323,7 +3469,8 @@ func (a *App) updateTemporaryPostIfAllRead(rctx request.CTX, post *model.Post, r
 	}
 
 	// All recipients have read - update temporary post expiration to match receipt
-	tmpPost, err := a.Srv().Store().TemporaryPost().Get(rctx, post.Id)
+	// Bypass cache to ensure we get fresh data from DB
+	tmpPost, err := a.Srv().Store().TemporaryPost().Get(rctx, post.Id, false)
 	if err != nil {
 		return model.NewAppError("RevealPost", "app.post.get_post.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
@@ -3453,7 +3600,7 @@ func (a *App) enrichPostWithExpirationMetadata(post *model.Post, expireAt int64)
 }
 
 func (a *App) getBurnOnReadPost(rctx request.CTX, post *model.Post) (*model.Post, *model.AppError) {
-	tmpPost, err := a.Srv().Store().TemporaryPost().Get(rctx, post.Id)
+	tmpPost, err := a.Srv().Store().TemporaryPost().Get(rctx, post.Id, true)
 	if err != nil {
 		return nil, model.NewAppError("getBurnOnReadPost", "app.post.get_post.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
