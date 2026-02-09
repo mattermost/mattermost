@@ -3,11 +3,11 @@
 
 import React from 'react';
 
-import {LockOutlineIcon} from '@mattermost/compass-icons/components';
 import type {FileInfo} from '@mattermost/types/files';
 
 import {getFilePreviewUrl, getFileDownloadUrl} from 'mattermost-redux/utils/file_utils';
 
+import LoadingImagePreview from 'components/loading_image_preview';
 import {useEncryptedFile} from 'components/file_attachment/use_encrypted_file';
 
 import {FileTypes} from 'utils/constants';
@@ -29,12 +29,7 @@ export default function ImagePreview({fileInfo, canDownloadFiles, postId}: Props
         isEncrypted,
         fileUrl: decryptedFileUrl,
         status: decryptionStatus,
-        error: decryptionError,
-        decrypt,
     } = useEncryptedFile(fileInfo, postId, true); // autoDecrypt=true
-
-    const hasFailed = decryptionStatus === 'failed';
-    const noPermission = hasFailed && decryptionError?.includes('no key');
 
     let fileUrl;
     let previewUrl;
@@ -51,27 +46,13 @@ export default function ImagePreview({fileInfo, canDownloadFiles, postId}: Props
         previewUrl = fileInfo.has_preview_image ? getFilePreviewUrl(fileInfo.id) : fileUrl;
     }
 
-    // Show encrypted placeholder while decrypting
+    // Show loading state while decrypting (same as normal image loading)
     if (isEncrypted && !decryptedFileUrl) {
         return (
-            <div
-                className='image_preview image_preview--encrypted'
-            >
-                <div className='image_preview__encrypted-placeholder'>
-                    <LockOutlineIcon
-                        size={64}
-                        color={'rgba(var(--encrypted-color), 1)'}
-                    />
-                    <span className='image_preview__encrypted-text'>
-                        {decryptionStatus === 'decrypting' ? 'Decrypting...' : 'Encrypted file'}
-                    </span>
-                    {hasFailed && (
-                        <span className='image_preview__encrypted-error'>
-                            {noPermission ? 'You do not have permission' : 'Decryption failed'}
-                        </span>
-                    )}
-                </div>
-            </div>
+            <LoadingImagePreview
+                loading={decryptionStatus === 'decrypting' ? 'Loading' : 'Loading'}
+                progress={decryptionStatus === 'decrypting' ? 50 : 0}
+            />
         );
     }
 

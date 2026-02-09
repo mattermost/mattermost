@@ -1,11 +1,13 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
+import React, {useRef, useState, useEffect, useCallback} from 'react';
 
 import type {FileInfo} from '@mattermost/types/files';
 
 import FileInfoPreview from 'components/file_info_preview';
+import LoadingImagePreview from 'components/loading_image_preview';
+import {useEncryptedFile} from 'components/file_attachment/use_encrypted_file';
 
 import Constants from 'utils/constants';
 
@@ -13,99 +15,87 @@ type Props = {
     fileInfo: FileInfo;
     fileUrl: string;
     isMobileView: boolean;
+    postId?: string;
 }
 
-type State = {
-    canPlay: boolean;
-}
+export default function AudioVideoPreview({fileInfo, fileUrl, isMobileView, postId}: Props) {
+    const videoRef = useRef<HTMLVideoElement>(null);
+    const sourceRef = useRef<HTMLSourceElement>(null);
+    const [canPlay, setCanPlay] = useState(true);
 
-export default class AudioVideoPreview extends React.PureComponent<Props, State> {
-    sourceRef = React.createRef<HTMLSourceElement>();
-    videoRef = React.createRef<HTMLVideoElement>();
+    // Check if file is encrypted and get decrypted URL
+    const {
+        isEncrypted,
+        fileUrl: decryptedFileUrl,
+        status: decryptionStatus,
+    } = useEncryptedFile(fileInfo, postId, true); // autoDecrypt=true
 
-    constructor(props: Props) {
-        super(props);
+    // Determine the actual URL to use for playback
+    const effectiveUrl = isEncrypted ? (decryptedFileUrl || '') : fileUrl;
 
-        this.state = {
-            canPlay: true,
-        };
-    }
+    const handleLoadError = useCallback(() => {
+        setCanPlay(false);
+    }, []);
 
-    componentDidMount() {
-        this.handleFileInfoChanged();
-
-        if (this.sourceRef.current) {
-            this.sourceRef.current.addEventListener('error', this.handleLoadError, {once: true});
+    // Reset canPlay when the URL changes (e.g. after decryption completes)
+    useEffect(() => {
+        if (effectiveUrl) {
+            setCanPlay(true);
         }
-    }
+    }, [effectiveUrl]);
 
-    componentDidUpdate(prevProps: Props) {
-        if (this.props.fileUrl !== prevProps.fileUrl) {
-            this.handleFileInfoChanged();
+    // Attach error listener to source element
+    useEffect(() => {
+        const source = sourceRef.current;
+        if (source) {
+            source.addEventListener('error', handleLoadError, {once: true});
+            return () => {
+                source.removeEventListener('error', handleLoadError);
+            };
         }
+        return undefined;
+    }, [handleLoadError, effectiveUrl]);
 
-        if (this.sourceRef.current) {
-            this.sourceRef.current.addEventListener('error', this.handleLoadError, {once: true});
-        }
-    }
-
-    handleFileInfoChanged = () => {
-        let video = this.videoRef.current;
-        if (!video) {
-            video = document.createElement('video');
-        }
-
-        this.setState({
-            canPlay: true,
-        });
-    };
-
-    handleLoadError = () => {
-        this.setState({
-            canPlay: false,
-        });
-    };
-
-    stop = () => {
-        if (this.videoRef.current) {
-            const video = this.videoRef.current;
-            video.pause();
-            video.currentTime = 0;
-        }
-    };
-
-    render() {
-        if (!this.state.canPlay) {
-            return (
-                <FileInfoPreview
-                    fileInfo={this.props.fileInfo}
-                    fileUrl={this.props.fileUrl}
-                />
-            );
-        }
-
-        let width = Constants.WEB_VIDEO_WIDTH;
-        let height = Constants.WEB_VIDEO_HEIGHT;
-        if (this.props.isMobileView) {
-            width = Constants.MOBILE_VIDEO_WIDTH;
-            height = Constants.MOBILE_VIDEO_HEIGHT;
-        }
-
-        // add a key to the video to prevent React from using an old video source while a new one is loading
+    // Show loading state while decrypting (same as normal file loading)
+    if (isEncrypted && !decryptedFileUrl) {
         return (
-            <video
-                key={this.props.fileInfo.id}
-                ref={this.videoRef}
-                data-setup='{}'
-                controls={true}
-                width={width}
-                height={height}
-            >
-                <source
-                    ref={this.sourceRef}
-                    src={this.props.fileUrl}
-                />
-            </video>
+            <LoadingImagePreview
+                loading={decryptionStatus === 'decrypting' ? 'Loading' : 'Loading'}
+                progress={decryptionStatus === 'decrypting' ? 50 : 0}
+            />
         );
     }
+
+    if (!canPlay) {
+        return (
+            <FileInfoPreview
+                fileInfo={fileInfo}
+                fileUrl={effectiveUrl}
+            />
+        );
+    }
+
+    let width = Constants.WEB_VIDEO_WIDTH;
+    let height = Constants.WEB_VIDEO_HEIGHT;
+    if (isMobileView) {
+        width = Constants.MOBILE_VIDEO_WIDTH;
+        height = Constants.MOBILE_VIDEO_HEIGHT;
+    }
+
+    // Use a key that changes when the URL changes so React creates a fresh video element
+    return (
+        <video
+            key={effectiveUrl || fileInfo.id}
+            ref={videoRef}
+            data-setup='{}'
+            controls={true}
+            width={width}
+            height={height}
+        >
+            <source
+                ref={sourceRef}
+                src={effectiveUrl}
+            />
+        </video>
+    );
 }

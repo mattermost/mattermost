@@ -5,7 +5,7 @@ import classNames from 'classnames';
 import React, {useRef, useState, useEffect, useMemo} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 
-import {ArchiveOutlineIcon, LockOutlineIcon} from '@mattermost/compass-icons/components';
+import {ArchiveOutlineIcon} from '@mattermost/compass-icons/components';
 import type {FileInfo} from '@mattermost/types/files';
 
 import {getFileThumbnailUrl, getFileUrl} from 'mattermost-redux/utils/file_utils';
@@ -84,15 +84,14 @@ export default function FileAttachment(props: Props) {
     const {
         isEncrypted,
         status: decryptionStatus,
-        error: decryptionError,
         originalFileInfo,
         fileUrl: decryptedFileUrl,
         thumbnailUrl: decryptedThumbnailUrl,
-        decrypt,
     } = useEncryptedFile(props.fileInfo, props.postId, true);
 
     // For encrypted files, use the decrypted metadata for display
-    // This prevents leaking original filename/type to users without keys
+    // Once decrypted, this gives us the original name/type/extension so
+    // the file renders exactly like a normal attachment
     const displayFileInfo = useMemo(() => {
         if (!isEncrypted || !originalFileInfo) {
             return props.fileInfo;
@@ -112,6 +111,9 @@ export default function FileAttachment(props: Props) {
         };
     }, [props.fileInfo, isEncrypted, originalFileInfo]);
 
+    // Whether the encrypted file is still being decrypted (not yet ready to display)
+    const isDecryptingEncrypted = isEncrypted && !originalFileInfo;
+
     const handleImageLoaded = () => {
         if (mounted.current) {
             setLoaded(true);
@@ -121,15 +123,11 @@ export default function FileAttachment(props: Props) {
     const loadFiles = () => {
         const fileInfo = displayFileInfo;
         if (fileInfo.archived) {
-            // if archived, file preview will not be accessible anyway.
-            // So skip trying to load.
             return;
         }
 
         // Don't load server thumbnails for encrypted files - they're encrypted blobs
         if (isEncrypted) {
-            // For encrypted files, we need to decrypt first to show thumbnail
-            // The thumbnail will be generated client-side after decryption
             if (decryptedThumbnailUrl) {
                 setLoaded(true);
             }
@@ -318,42 +316,17 @@ export default function FileAttachment(props: Props) {
     const {compactDisplay} = props;
     const fileInfo = displayFileInfo;
 
-    // For encrypted files, determine what to show based on decryption state
-    // - decrypted: show normal file (no special styling)
-    // - decrypting: show "Decrypting..." placeholder
-    // - failed: show "No permission" or error message
-    // - pending/idle: show "Encrypted file" placeholder (auto-decrypt should kick in)
-    const isDecrypted = decryptionStatus === 'decrypted' && originalFileInfo;
-    const isDecrypting = decryptionStatus === 'decrypting';
-    const hasFailed = decryptionStatus === 'failed';
-    const noPermission = hasFailed && decryptionError?.includes('no key');
-    const showEncryptedPlaceholder = isEncrypted && !isDecrypted;
+    const ariaLabelImage = `${formatMessage({id: 'file_attachment.thumbnail', defaultMessage: 'file thumbnail'})} ${fileInfo.name}`.toLowerCase();
 
     let fileThumbnail;
     let fileDetail;
     let fileActions;
-    const ariaLabelImage = showEncryptedPlaceholder
-        ? formatMessage({id: 'file_attachment.encrypted_file', defaultMessage: 'Encrypted file'})
-        : `${formatMessage({id: 'file_attachment.thumbnail', defaultMessage: 'file thumbnail'})} ${fileInfo.name}`.toLowerCase();
 
     if (!compactDisplay) {
-        if (showEncryptedPlaceholder) {
-            // Show lock icon for encrypted files we can't decrypt
-            fileThumbnail = (
-                <div
-                    className='post-image__thumbnail post-image__thumbnail--encrypted'
-                    onClick={decrypt}
-                    role='button'
-                    tabIndex={0}
-                >
-                    <LockOutlineIcon
-                        size={48}
-                        color={'rgba(var(--encrypted-color), 1)'}
-                    />
-                </div>
-            );
-        } else if (isEncrypted && decryptedThumbnailUrl) {
-            // Show decrypted thumbnail for encrypted images
+        // Thumbnail rendering - encrypted files use decrypted thumbnails,
+        // otherwise render exactly like normal files
+        if (isEncrypted && decryptedThumbnailUrl) {
+            // Decrypted image thumbnail
             fileThumbnail = (
                 <a
                     aria-label={ariaLabelImage}
@@ -370,8 +343,8 @@ export default function FileAttachment(props: Props) {
                     />
                 </a>
             );
-        } else if (isEncrypted) {
-            // Encrypted file without thumbnail (non-image) - show file icon based on decrypted type
+        } else if (isDecryptingEncrypted) {
+            // Still decrypting - show the normal file type icon as placeholder
             fileThumbnail = (
                 <a
                     aria-label={ariaLabelImage}
@@ -380,12 +353,13 @@ export default function FileAttachment(props: Props) {
                     onClick={onAttachmentClick}
                 >
                     <FileThumbnail
-                        fileInfo={displayFileInfo}
+                        fileInfo={fileInfo}
                         disablePreview={true}
                     />
                 </a>
             );
         } else {
+            // Normal file (or decrypted non-image encrypted file)
             fileThumbnail = (
                 <a
                     aria-label={ariaLabelImage}
@@ -418,93 +392,48 @@ export default function FileAttachment(props: Props) {
             );
         }
 
-        if (showEncryptedPlaceholder) {
-            // Show encrypted placeholder message based on decryption state
-            let statusMessage;
-            if (isDecrypting) {
-                statusMessage = (
-                    <FormattedMessage
-                        id='file_attachment.decrypting'
-                        defaultMessage='Decrypting...'
-                    />
-                );
-            } else if (noPermission) {
-                statusMessage = (
-                    <FormattedMessage
-                        id='file_attachment.no_permission'
-                        defaultMessage='You do not have permission'
-                    />
-                );
-            } else if (hasFailed) {
-                statusMessage = (
-                    <FormattedMessage
-                        id='file_attachment.decryption_failed'
-                        defaultMessage='Decryption failed'
-                    />
-                );
-            } else {
-                statusMessage = (
-                    <FormattedMessage
-                        id='file_attachment.decrypting'
-                        defaultMessage='Decrypting...'
-                    />
-                );
-            }
-
-            fileDetail = (
-                <div
-                    className='post-image__detail_wrapper'
-                >
-                    <div className='post-image__detail'>
-                        <span className='post-image__name post-image__name--encrypted'>
+        // File details - always render normally using displayFileInfo
+        // (which has the real name/type/size once decrypted)
+        fileDetail = (
+            <div
+                className='post-image__detail_wrapper'
+                onClick={onAttachmentClick}
+            >
+                <div className='post-image__detail'>
+                    <span
+                        className={classNames('post-image__name', {
+                            'post-image__name--archived': fileInfo.archived,
+                        })}
+                    >
+                        {isDecryptingEncrypted ? (
                             <FormattedMessage
-                                id='file_attachment.encrypted_file'
-                                defaultMessage='Encrypted file'
+                                id='file_attachment.loading'
+                                defaultMessage='Loading...'
                             />
-                        </span>
-                        <span className='post-image__encrypted-hint'>
-                            {statusMessage}
-                        </span>
-                    </div>
-                </div>
-            );
-        } else {
-            fileDetail = (
-                <div
-                    className='post-image__detail_wrapper'
-                    onClick={onAttachmentClick}
-                >
-                    <div className='post-image__detail'>
-                        <span
-                            className={classNames('post-image__name', {
-                                'post-image__name--archived': fileInfo.archived,
-                            })}
-                        >
-                            {fileInfo.name}
-                        </span>
-                        {fileInfo.archived ? <span className={'post-image__archived'}>
+                        ) : fileInfo.name}
+                    </span>
+                    {fileInfo.archived ? <span className={'post-image__archived'}>
 
-                            <FormattedMessage
-                                id='workspace_limits.archived_file.archived'
-                                defaultMessage='This file is archived'
-                            />
-                        </span> : <>
-                            <span className='post-image__type'>{fileInfo.extension?.toUpperCase()}</span>
-                            <span className='post-image__size'>{fileSizeToString(fileInfo.size)}</span>
-                        </>
-                        }
-                    </div>
+                        <FormattedMessage
+                            id='workspace_limits.archived_file.archived'
+                            defaultMessage='This file is archived'
+                        />
+                    </span> : !isDecryptingEncrypted && <>
+                        <span className='post-image__type'>{fileInfo.extension?.toUpperCase()}</span>
+                        <span className='post-image__size'>{fileSizeToString(fileInfo.size)}</span>
+                    </>
+                    }
                 </div>
-            );
-        }
+            </div>
+        );
 
-        if (!fileInfo.archived && !props.disableActions && !showEncryptedPlaceholder) {
+        if (!fileInfo.archived && !props.disableActions && !isDecryptingEncrypted) {
             fileActions = renderFileMenuItems();
         }
     }
 
     let filenameOverlay;
-    if (props.canDownloadFiles && !fileInfo.archived && !showEncryptedPlaceholder) {
+    if (props.canDownloadFiles && !fileInfo.archived && !isDecryptingEncrypted) {
         filenameOverlay = (
             <FilenameOverlay
                 fileInfo={fileInfo}
@@ -541,21 +470,6 @@ export default function FileAttachment(props: Props) {
                     })}
                 </span>
             </span>);
-    } else if (showEncryptedPlaceholder && compactDisplay) {
-        fileThumbnail = (
-            <LockOutlineIcon
-                size={16}
-                color={'rgba(var(--encrypted-color), 1)'}
-            />
-        );
-        filenameOverlay = (
-            <span className='post-image__encrypted-name'>
-                <FormattedMessage
-                    id='file_attachment.encrypted_file_compact'
-                    defaultMessage='Encrypted file'
-                />
-            </span>
-        );
     }
 
     return (
@@ -568,10 +482,6 @@ export default function FileAttachment(props: Props) {
                     'post-image__column',
                     {'keep-open': keepOpen},
                     {'post-image__column--archived': fileInfo.archived},
-                    // Show encrypted styling for all encrypted files (even after decryption)
-                    {'post-image__column--encrypted': isEncrypted},
-                    {'post-image__column--decrypting': isDecrypting},
-                    {'post-image__column--failed': hasFailed},
                     {'post-image__column--compact': compactDisplay},
                 ])}
             >

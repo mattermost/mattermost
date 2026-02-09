@@ -4,7 +4,6 @@
 import classNames from 'classnames';
 import React, {useState, useEffect, useCallback, useMemo} from 'react';
 
-import {LockOutlineIcon} from '@mattermost/compass-icons/components';
 import type {FileInfo} from '@mattermost/types/files';
 
 import {getFilePreviewUrl, getFileUrl} from 'mattermost-redux/utils/file_utils';
@@ -50,15 +49,11 @@ export default function SingleImageView(props: Props) {
         fileUrl: decryptedFileUrl,
         thumbnailUrl: decryptedThumbnailUrl,
         status: decryptionStatus,
-        error: decryptionError,
         originalFileInfo,
-        decrypt,
     } = useEncryptedFile(fileInfo, postId, true); // autoDecrypt=true for images
 
     // Determine decryption state for display
     const isDecrypted = decryptionStatus === 'decrypted' && decryptedFileUrl;
-    const hasFailed = decryptionStatus === 'failed';
-    const noPermission = hasFailed && decryptionError?.includes('no key');
 
     // Update dimensions when fileInfo changes
     useEffect(() => {
@@ -183,8 +178,8 @@ export default function SingleImageView(props: Props) {
         </button>
     );
 
-    // For encrypted files without decryption, show generic name
-    const displayName = isEncrypted && !originalFileInfo ? 'Encrypted file' : displayFileInfo.name;
+    // For encrypted files without decryption yet, show "Loading..."
+    const displayName = isEncrypted && !originalFileInfo ? 'Loading...' : displayFileInfo.name;
 
     const fileHeader = (
         <div
@@ -198,7 +193,6 @@ export default function SingleImageView(props: Props) {
                     data-testid='image-name'
                     className={classNames('image-name', {
                         'compact-display': compactDisplay,
-                        'image-name--encrypted': isEncrypted && !originalFileInfo,
                     })}
                 >
                     <div
@@ -244,33 +238,29 @@ export default function SingleImageView(props: Props) {
     // Show encrypted placeholder if file is encrypted but not yet decrypted
     const showEncryptedPlaceholder = isEncrypted && !decryptedFileUrl;
 
-    // Render encrypted placeholder while decrypting
+    // Show simple loading placeholder while decrypting
     if (showEncryptedPlaceholder) {
         return (
             <div
-                className={classNames('file-view--single', permalinkClass, 'file-view--encrypted')}
+                className={classNames('file-view--single', permalinkClass)}
             >
                 <div className='file__image'>
                     {fileHeader}
                     {props.isEmbedVisible && (
                         <div
-                            className={classNames('image-container', 'image-container--encrypted', permalinkClass)}
-                            onClick={decrypt}
-                            role='button'
-                            tabIndex={0}
+                            className={classNames('image-container', permalinkClass)}
+                            style={{
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                minHeight: '100px',
+                                background: 'rgba(var(--center-channel-color-rgb), 0.04)',
+                                borderRadius: '4px',
+                            }}
                         >
-                            <div className='encrypted-image-placeholder'>
-                                <LockOutlineIcon
-                                    size={48}
-                                    color={'rgba(var(--encrypted-color), 1)'}
-                                />
-                                <span className='encrypted-image-placeholder__text'>
-                                    {decryptionStatus === 'decrypting' ? 'Decrypting...' : 'Encrypted file'}
-                                </span>
-                                <span className='encrypted-image-placeholder__error'>
-                                    {noPermission ? 'You do not have permission' : hasFailed ? 'Decryption failed' : ''}
-                                </span>
-                            </div>
+                            <span style={{color: 'rgba(var(--center-channel-color-rgb), 0.56)', fontSize: '14px'}}>
+                                {'Loading...'}
+                            </span>
                         </div>
                     )}
                 </div>

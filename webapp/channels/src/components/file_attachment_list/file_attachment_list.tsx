@@ -2,6 +2,9 @@
 // See LICENSE.txt for license information.
 
 import React, {useMemo} from 'react';
+import {useSelector} from 'react-redux';
+
+import type {FileInfo} from '@mattermost/types/files';
 
 import {sortFileInfos} from 'mattermost-redux/utils/file_utils';
 
@@ -13,13 +16,54 @@ import VideoPlayer from 'components/video_player';
 
 import {FileTypes, ModalIdentifiers} from 'utils/constants';
 import {isEncryptedFile} from 'utils/encryption/file';
+import {getFileTypeFromMime} from 'utils/file_utils';
 import {getFileType} from 'utils/utils';
+
+import type {GlobalState} from 'types/store';
 
 import type {OwnProps, PropsFromRedux} from './index';
 
 type Props = OwnProps & PropsFromRedux;
 
+/**
+ * Resolves the actual file type, taking encryption into account.
+ * For encrypted files with decrypted originalInfo, uses the real MIME type.
+ * For encrypted files not yet decrypted, returns null.
+ * For normal files, uses extension-based detection.
+ */
+function resolveFileType(
+    fileInfo: FileInfo,
+    encryptedOriginalInfo: Record<string, {name: string; type: string; size: number}>,
+    enableSVGs: boolean,
+): string | null {
+    if (isEncryptedFile(fileInfo)) {
+        const origInfo = encryptedOriginalInfo[fileInfo.id];
+        if (origInfo) {
+            const mimeType = getFileTypeFromMime(origInfo.type);
+            // Map getFileTypeFromMime results to FileTypes constants
+            if (mimeType === 'video') {
+                return FileTypes.VIDEO;
+            }
+            if (mimeType === 'audio') {
+                return FileTypes.AUDIO;
+            }
+            if (mimeType === 'image') {
+                return FileTypes.IMAGE;
+            }
+            return FileTypes.OTHER;
+        }
+        // Not yet decrypted - return null to indicate unknown
+        return null;
+    }
+    return getFileType(fileInfo.extension);
+}
+
 export default function FileAttachmentList(props: Props) {
+    // Get encryption state to resolve actual file types for encrypted files
+    const encryptedOriginalInfo = useSelector((state: GlobalState) =>
+        state.views.encryption?.encryptedFiles?.originalInfo || {},
+    );
+
     const handleImageClick = (indexClicked: number) => {
         props.actions.openModal({
             modalId: ModalIdentifiers.FILE_PREVIEW_MODAL,
@@ -50,9 +94,12 @@ export default function FileAttachmentList(props: Props) {
         return null;
     }
 
+    // Helper to get resolved file type for a file
+    const getResolvedType = (fi: FileInfo) => resolveFileType(fi, encryptedOriginalInfo, enableSVGs);
+
     // Handle single video file with VideoEmbed feature flag
     if (fileInfos && fileInfos.length === 1 && !fileInfos[0].archived && videoEmbedEnabled) {
-        const fileType = getFileType(fileInfos[0].extension);
+        const fileType = getResolvedType(fileInfos[0]);
         if (fileType === FileTypes.VIDEO) {
             return (
                 <VideoPlayer
@@ -68,7 +115,7 @@ export default function FileAttachmentList(props: Props) {
 
     // Handle single image file
     if (fileInfos && fileInfos.length === 1 && !fileInfos[0].archived) {
-        const fileType = getFileType(fileInfos[0].extension);
+        const fileType = getResolvedType(fileInfos[0]);
 
         if (fileType === FileTypes.IMAGE || (fileType === FileTypes.SVG && enableSVGs)) {
             return (
@@ -80,6 +127,30 @@ export default function FileAttachmentList(props: Props) {
                     isInPermalink={isInPermalink}
                     disableActions={props.disableActions}
                 />
+            );
+        }
+
+        // Encrypted file not yet decrypted - render as FileAttachment which will
+        // auto-decrypt and trigger a re-render with the correct type
+        if (fileType === null) {
+            return (
+                <div
+                    data-testid='fileAttachmentList'
+                    className='post-image__columns clearfix'
+                >
+                    <FileAttachment
+                        key={fileInfos[0].id}
+                        fileInfo={fileInfos[0]}
+                        index={0}
+                        handleImageClick={handleImageClick}
+                        compactDisplay={compactDisplay}
+                        handleFileDropdownOpened={props.handleFileDropdownOpened}
+                        preventDownload={props.disableDownload}
+                        disableActions={props.disableActions}
+                        overrideGenerateFileDownloadUrl={props.overrideGenerateFileDownloadUrl}
+                        postId={props.post.id}
+                    />
+                </div>
             );
         }
     } else if (fileCount === 1 && props.isEmbedVisible && !fileInfos?.[0]) {
@@ -94,7 +165,7 @@ export default function FileAttachmentList(props: Props) {
             if (fileInfo.archived) {
                 return false;
             }
-            const fileType = getFileType(fileInfo.extension);
+            const fileType = getResolvedType(fileInfo);
             return fileType === FileTypes.IMAGE || (fileType === FileTypes.SVG && enableSVGs);
         });
 
@@ -102,7 +173,7 @@ export default function FileAttachmentList(props: Props) {
             if (fileInfo.archived) {
                 return true; // Keep archived files in the regular list
             }
-            const fileType = getFileType(fileInfo.extension);
+            const fileType = getResolvedType(fileInfo);
             return !(fileType === FileTypes.IMAGE || (fileType === FileTypes.SVG && enableSVGs));
         });
 
@@ -134,8 +205,8 @@ export default function FileAttachmentList(props: Props) {
             );
 
             // Separate videos from other non-image files
-            const videoFiles = nonImageFiles.filter((f) => getFileType(f.extension) === FileTypes.VIDEO && !f.archived);
-            const otherFiles = nonImageFiles.filter((f) => getFileType(f.extension) !== FileTypes.VIDEO || f.archived);
+            const videoFiles = nonImageFiles.filter((f) => getResolvedType(f) === FileTypes.VIDEO && !f.archived);
+            const otherFiles = nonImageFiles.filter((f) => getResolvedType(f) !== FileTypes.VIDEO || f.archived);
 
             // Add other non-image files (not videos)
             for (let i = 0; i < otherFiles.length; i++) {
@@ -202,7 +273,7 @@ export default function FileAttachmentList(props: Props) {
         for (let i = 0; i < sortedFileInfos.length; i++) {
             const fileInfo = sortedFileInfos[i];
             const isDeleted = fileInfo.delete_at > 0;
-            const fileType = getFileType(fileInfo.extension);
+            const fileType = getResolvedType(fileInfo);
 
             // Use VideoPlayer for video files if VideoEmbed is enabled
             // Wrap in full-width container so videos go on their own line

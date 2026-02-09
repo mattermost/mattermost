@@ -18,12 +18,14 @@ import FileInfoPreview from 'components/file_info_preview';
 import LoadingImagePreview from 'components/loading_image_preview';
 import type {Props as PDFPreviewComponentProps} from 'components/pdf_preview';
 
+import {ENCRYPTED_FILE_MIME_TYPE} from 'utils/encryption/file';
 import Constants, {FileTypes, ZoomSettings} from 'utils/constants';
 import * as Keyboard from 'utils/keyboard';
 import * as Utils from 'utils/utils';
 
 import type {FilePreviewComponent} from 'types/store/plugins';
 
+import EncryptedFilePreview from './encrypted_file_preview';
 import FilePreviewModalFooter from './file_preview_modal_footer/file_preview_modal_footer';
 import FilePreviewModalHeader from './file_preview_modal_header/file_preview_modal_header';
 import ImagePreview from './image_preview';
@@ -167,6 +169,14 @@ export default class FilePreviewModal extends React.PureComponent<Props, State> 
     isImageUrl = (url: string): boolean => {
         const fileType = Utils.getFileType(url);
         return fileType === FileTypes.IMAGE || fileType === FileTypes.SVG;
+    };
+
+    private isEncryptedFile = (fileInfo: FileInfo | LinkInfo): boolean => {
+        if (!isFileInfo(fileInfo)) {
+            return false;
+        }
+        return fileInfo.mime_type === ENCRYPTED_FILE_MIME_TYPE ||
+            Boolean(fileInfo.name?.startsWith('encrypted_') && fileInfo.name?.endsWith('.penc'));
     };
 
     private getFileTypeFromFileInfo = (fileInfo: FileInfo | LinkInfo): typeof FileTypes[keyof typeof FileTypes] => {
@@ -338,7 +348,19 @@ export default class FilePreviewModal extends React.PureComponent<Props, State> 
 
         if (!isFileInfo(fileInfo) || !fileInfo.archived) {
             if (this.state.loaded[this.state.imageIndex]) {
-                if (fileType === FileTypes.IMAGE || fileType === FileTypes.SVG) {
+                if (isFileInfo(fileInfo) && this.isEncryptedFile(fileInfo)) {
+                    // Encrypted files need special handling - the actual file type
+                    // is hidden inside the encrypted payload. EncryptedFilePreview
+                    // decrypts and routes to the correct viewer.
+                    content = (
+                        <EncryptedFilePreview
+                            fileInfo={fileInfo}
+                            canDownloadFiles={this.props.canDownloadFiles}
+                            postId={this.props.postId || this.props.post?.id}
+                            isMobileView={this.props.isMobileView}
+                        />
+                    );
+                } else if (fileType === FileTypes.IMAGE || fileType === FileTypes.SVG) {
                     content = (
                         <ImagePreview
                             fileInfo={fileInfo as FileInfo}
@@ -351,6 +373,8 @@ export default class FilePreviewModal extends React.PureComponent<Props, State> 
                         <AudioVideoPreview
                             fileInfo={fileInfo as FileInfo}
                             fileUrl={fileUrl}
+                            isMobileView={this.props.isMobileView}
+                            postId={this.props.postId || this.props.post?.id}
                         />
                     );
                 } else if (fileType === FileTypes.PDF) {

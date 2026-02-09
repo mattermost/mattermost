@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {useCallback, useState} from 'react';
+import React, {useCallback, useMemo, useState} from 'react';
 import classNames from 'classnames';
 
 import type {FileInfo} from '@mattermost/types/files';
@@ -9,8 +9,10 @@ import type {FileInfo} from '@mattermost/types/files';
 import {getFileDownloadUrl, getFileUrl} from 'mattermost-redux/utils/file_utils';
 
 import FilePreviewModal from 'components/file_preview_modal';
+import {useEncryptedFile} from 'components/file_attachment/use_encrypted_file';
 
 import {ModalIdentifiers} from 'utils/constants';
+import {getFileExtensionFromType} from 'utils/file_utils';
 
 import type {PropsFromRedux} from './index';
 
@@ -28,15 +30,36 @@ export interface Props extends PropsFromRedux {
 export default function VideoPlayer(props: Props) {
     const {fileInfo, postId, compactDisplay, defaultMaxHeight, defaultMaxWidth} = props;
 
-    // Early return MUST be before hooks, but we need to handle this case carefully
-    // React hooks cannot be conditionally called, so we use safe defaults
     const maxHeight = props.maxHeight ?? defaultMaxHeight ?? 350;
     const maxWidth = props.maxWidth ?? defaultMaxWidth ?? 480;
     const [hasError, setHasError] = useState(false);
 
+    // Handle encrypted video files
+    const {
+        isEncrypted,
+        fileUrl: decryptedFileUrl,
+        originalFileInfo,
+        status: decryptionStatus,
+    } = useEncryptedFile(fileInfo, postId, true);
+
+    // Resolve display info for encrypted files
+    const displayInfo = useMemo(() => {
+        if (isEncrypted && originalFileInfo) {
+            return {
+                url: decryptedFileUrl || '',
+                mimeType: originalFileInfo.type,
+                filename: originalFileInfo.name,
+            };
+        }
+        return {
+            url: getFileUrl(fileInfo.id),
+            mimeType: fileInfo.mime_type || 'video/mp4',
+            filename: fileInfo.name || 'video',
+        };
+    }, [fileInfo, isEncrypted, decryptedFileUrl, originalFileInfo]);
+
     const handleClick = useCallback((e: React.MouseEvent) => {
         // Don't open modal on click - let native video controls handle play/pause
-        // The video element's controls attribute handles all interaction
         e.stopPropagation();
     }, []);
 
@@ -45,36 +68,84 @@ export default function VideoPlayer(props: Props) {
         if (!fileInfo) {
             return;
         }
+
+        // For encrypted files, pass resolved file info to modal
+        const modalFileInfo = isEncrypted && originalFileInfo ? {
+            ...fileInfo,
+            name: originalFileInfo.name,
+            extension: originalFileInfo.name.split('.').pop() || getFileExtensionFromType(originalFileInfo.type),
+            mime_type: originalFileInfo.type,
+            size: originalFileInfo.size,
+        } : fileInfo;
+
         props.actions.openModal({
             modalId: ModalIdentifiers.FILE_PREVIEW_MODAL,
             dialogType: FilePreviewModal,
             dialogProps: {
-                fileInfos: [fileInfo],
+                fileInfos: [modalFileInfo],
                 postId,
                 startIndex: 0,
             },
         });
-    }, [fileInfo, postId, props.actions]);
+    }, [fileInfo, postId, props.actions, isEncrypted, originalFileInfo]);
 
     const handleError = useCallback(() => {
         setHasError(true);
     }, []);
 
     const handleDownload = useCallback(() => {
+        if (isEncrypted && decryptedFileUrl && originalFileInfo) {
+            // Download decrypted file
+            const link = document.createElement('a');
+            link.href = decryptedFileUrl;
+            link.download = originalFileInfo.name;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            return;
+        }
         if (!fileInfo?.id) {
             return;
         }
         const downloadUrl = getFileDownloadUrl(fileInfo.id);
         window.open(downloadUrl, '_blank');
-    }, [fileInfo?.id]);
+    }, [fileInfo?.id, isEncrypted, decryptedFileUrl, originalFileInfo]);
 
     if (!fileInfo) {
         return null;
     }
 
-    const fileUrl = getFileUrl(fileInfo.id);
-    const mimeType = fileInfo.mime_type || 'video/mp4';
-    const filename = fileInfo.name || 'video';
+    // Show loading while encrypted file is being decrypted
+    if (isEncrypted && !decryptedFileUrl) {
+        const containerStyle: React.CSSProperties = {
+            maxWidth: `${maxWidth}px`,
+        };
+        return (
+            <div
+                className={classNames('video-player-container', {'compact-display': compactDisplay})}
+                style={containerStyle}
+            >
+                <div
+                    className='video-player'
+                    style={{
+                        maxHeight: `${maxHeight}px`,
+                        maxWidth: '100%',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        minHeight: '100px',
+                        background: 'rgba(var(--center-channel-color-rgb), 0.04)',
+                        borderRadius: '4px',
+                    }}
+                >
+                    <span style={{color: 'rgba(var(--center-channel-color-rgb), 0.56)', fontSize: '14px'}}>
+                        {decryptionStatus === 'decrypting' ? 'Loading...' : 'Loading...'}
+                    </span>
+                </div>
+                <span className='video-player-caption'>{'Loading...'}</span>
+            </div>
+        );
+    }
 
     // Container style with max width
     const containerStyle: React.CSSProperties = {
@@ -110,7 +181,7 @@ export default function VideoPlayer(props: Props) {
                         {'Download'}
                     </button>
                 </div>
-                <span className='video-player-caption'>{filename}</span>
+                <span className='video-player-caption'>{displayInfo.filename}</span>
             </div>
         );
     }
@@ -121,6 +192,7 @@ export default function VideoPlayer(props: Props) {
             style={containerStyle}
         >
             <video
+                key={displayInfo.url}
                 className='video-player'
                 controls={true}
                 preload='metadata'
@@ -130,17 +202,17 @@ export default function VideoPlayer(props: Props) {
                 onError={handleError}
             >
                 <source
-                    src={fileUrl}
-                    type={mimeType}
+                    src={displayInfo.url}
+                    type={displayInfo.mimeType}
                 />
                 <a
-                    href={fileUrl}
-                    download={filename}
+                    href={displayInfo.url}
+                    download={displayInfo.filename}
                 >
-                    {`Download ${filename}`}
+                    {`Download ${displayInfo.filename}`}
                 </a>
             </video>
-            <span className='video-player-caption'>{filename}</span>
+            <span className='video-player-caption'>{displayInfo.filename}</span>
         </div>
     );
 }
