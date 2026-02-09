@@ -4820,10 +4820,10 @@ func (s *TimerLayerGroupStore) GetByName(name string, opts model.GroupSearchOpts
 	return result, err
 }
 
-func (s *TimerLayerGroupStore) GetByNames(names []string, viewRestrictions *model.ViewUsersRestrictions) ([]*model.Group, error) {
+func (s *TimerLayerGroupStore) GetByNames(names []string, opts model.GroupSearchOpts) ([]*model.Group, error) {
 	start := time.Now()
 
-	result, err := s.GroupStore.GetByNames(names, viewRestrictions)
+	result, err := s.GroupStore.GetByNames(names, opts)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
 	if s.Root.Metrics != nil {

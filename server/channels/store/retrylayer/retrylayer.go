@@ -5909,11 +5909,11 @@ func (s *RetryLayerGroupStore) GetByName(name string, opts model.GroupSearchOpts
 
 }
 
-func (s *RetryLayerGroupStore) GetByNames(names []string, viewRestrictions *model.ViewUsersRestrictions) ([]*model.Group, error) {
+func (s *RetryLayerGroupStore) GetByNames(names []string, opts model.GroupSearchOpts) ([]*model.Group, error) {
 
 	tries := 0
 	for {
-		result, err := s.GroupStore.GetByNames(names, viewRestrictions)
+		result, err := s.GroupStore.GetByNames(names, opts)
 		if err == nil {
 			return result, nil
 		}
