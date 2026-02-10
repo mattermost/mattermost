@@ -497,7 +497,8 @@ function PolicyDetails({
                                             }
                                             const isSynced = attr.attrs?.ldap || attr.attrs?.saml;
                                             const isAdminManaged = attr.attrs?.managed === 'admin';
-                                            return isSynced || isAdminManaged;
+                                            const isProtected = attr.attrs?.protected;
+                                            return isSynced || isAdminManaged || isProtected;
                                         }).
                                         map((attr) => ({
                                             attribute: attr.name,

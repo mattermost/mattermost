@@ -1,13 +1,13 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {shallow} from 'enzyme';
 import React from 'react';
 
 import type {ChannelType} from '@mattermost/types/channels';
 
 import ChannelSelect from 'components/channel_select/channel_select';
 
+import {renderWithContext} from 'tests/react_testing_utils';
 import Constants from 'utils/constants';
 import {TestHelper} from 'utils/test_helper';
 
@@ -41,7 +41,7 @@ describe('components/ChannelSelect', () => {
     };
 
     test('should match snapshot', () => {
-        const wrapper = shallow(<ChannelSelect {...defaultProps}/>);
-        expect(wrapper).toMatchSnapshot();
+        const {container} = renderWithContext(<ChannelSelect {...defaultProps}/>);
+        expect(container).toMatchSnapshot();
     });
 });
