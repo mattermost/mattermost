@@ -363,8 +363,10 @@ const DateTimeInputContainer: React.FC<Props> = ({
             return relativeFormatDate(date, formatMessage);
         }
 
-        // Use centralized date formatting utility
-        return formatDateForDisplay(date.toDate(), locale);
+        // Extract date in the moment's timezone, not UTC
+        // .toDate() would convert to UTC and lose the timezone-specific date
+        const dateInTimezone = new Date(date.year(), date.month(), date.date());
+        return formatDateForDisplay(dateInTimezone, locale);
     };
 
     const calendarIcon = (

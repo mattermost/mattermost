@@ -47,6 +47,9 @@ export function parseDateInTimezone(value: string, timezone?: string): Moment | 
         return parsed.isValid() ? parsed : null;
     }
 
-    const parsed = moment.tz(value, timezone);
+    // Parse UTC string first, then convert to specified timezone
+    // moment.tz(value, timezone) would parse AS IF in that timezone (wrong!)
+    // moment.utc(value).tz(timezone) parses AS UTC then converts (correct!)
+    const parsed = moment.utc(value).tz(timezone);
     return parsed.isValid() ? parsed : null;
 }
