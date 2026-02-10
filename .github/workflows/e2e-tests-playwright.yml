@@ -91,28 +91,102 @@ jobs:
       AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
 
   # ════════════════════════════════════════════════════════════════════════════
-  # FULL TESTS (only if smoke passes and pr_number is provided)
+  # FULL TESTS - Sharded across 4 runners (POC for parallelization)
   # ════════════════════════════════════════════════════════════════════════════
-  playwright-full:
-    needs:
-      - playwright-smoke
-      - generate-build-variables
+  playwright-full-shard-1:
+    needs: [playwright-smoke, generate-build-variables]
     if: needs.playwright-smoke.outputs.failed == '0' && inputs.pr_number != ''
     uses: ./.github/workflows/e2e-tests-playwright-template.yml
     with:
       test_type: full
       test_filter: '--grep-invert "@smoke|@visual"'
-      timeout_minutes: 120
+      timeout_minutes: 60
+      shard: 1
+      total_shards: 4
       enabled_docker_services: "postgres inbucket minio openldap elasticsearch keycloak"
       commit_sha: ${{ inputs.commit_sha }}
       branch: ${{ needs.generate-build-variables.outputs.branch }}
       build_id: ${{ needs.generate-build-variables.outputs.build_id }}
       server_image_tag: ${{ needs.generate-build-variables.outputs.server_image_tag }}
       server: ${{ inputs.server }}
-      enable_reporting: ${{ inputs.enable_reporting }}
-      report_type: ${{ inputs.report_type }}
+      enable_reporting: false
       pr_number: ${{ inputs.pr_number }}
-      context_name: "E2E Tests / playwright-full"
+      context_name: "E2E Tests / playwright-full-1/4"
+    secrets:
+      MM_LICENSE: ${{ secrets.MM_LICENSE }}
+      REPORT_WEBHOOK_URL: ${{ secrets.REPORT_WEBHOOK_URL }}
+      AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+      AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+
+  playwright-full-shard-2:
+    needs: [playwright-smoke, generate-build-variables]
+    if: needs.playwright-smoke.outputs.failed == '0' && inputs.pr_number != ''
+    uses: ./.github/workflows/e2e-tests-playwright-template.yml
+    with:
+      test_type: full
+      test_filter: '--grep-invert "@smoke|@visual"'
+      timeout_minutes: 60
+      shard: 2
+      total_shards: 4
+      enabled_docker_services: "postgres inbucket minio openldap elasticsearch keycloak"
+      commit_sha: ${{ inputs.commit_sha }}
+      branch: ${{ needs.generate-build-variables.outputs.branch }}
+      build_id: ${{ needs.generate-build-variables.outputs.build_id }}
+      server_image_tag: ${{ needs.generate-build-variables.outputs.server_image_tag }}
+      server: ${{ inputs.server }}
+      enable_reporting: false
+      pr_number: ${{ inputs.pr_number }}
+      context_name: "E2E Tests / playwright-full-2/4"
+    secrets:
+      MM_LICENSE: ${{ secrets.MM_LICENSE }}
+      REPORT_WEBHOOK_URL: ${{ secrets.REPORT_WEBHOOK_URL }}
+      AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+      AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+
+  playwright-full-shard-3:
+    needs: [playwright-smoke, generate-build-variables]
+    if: needs.playwright-smoke.outputs.failed == '0' && inputs.pr_number != ''
+    uses: ./.github/workflows/e2e-tests-playwright-template.yml
+    with:
+      test_type: full
+      test_filter: '--grep-invert "@smoke|@visual"'
+      timeout_minutes: 60
+      shard: 3
+      total_shards: 4
+      enabled_docker_services: "postgres inbucket minio openldap elasticsearch keycloak"
+      commit_sha: ${{ inputs.commit_sha }}
+      branch: ${{ needs.generate-build-variables.outputs.branch }}
+      build_id: ${{ needs.generate-build-variables.outputs.build_id }}
+      server_image_tag: ${{ needs.generate-build-variables.outputs.server_image_tag }}
+      server: ${{ inputs.server }}
+      enable_reporting: false
+      pr_number: ${{ inputs.pr_number }}
+      context_name: "E2E Tests / playwright-full-3/4"
+    secrets:
+      MM_LICENSE: ${{ secrets.MM_LICENSE }}
+      REPORT_WEBHOOK_URL: ${{ secrets.REPORT_WEBHOOK_URL }}
+      AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+      AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+
+  playwright-full-shard-4:
+    needs: [playwright-smoke, generate-build-variables]
+    if: needs.playwright-smoke.outputs.failed == '0' && inputs.pr_number != ''
+    uses: ./.github/workflows/e2e-tests-playwright-template.yml
+    with:
+      test_type: full
+      test_filter: '--grep-invert "@smoke|@visual"'
+      timeout_minutes: 60
+      shard: 4
+      total_shards: 4
+      enabled_docker_services: "postgres inbucket minio openldap elasticsearch keycloak"
+      commit_sha: ${{ inputs.commit_sha }}
+      branch: ${{ needs.generate-build-variables.outputs.branch }}
+      build_id: ${{ needs.generate-build-variables.outputs.build_id }}
+      server_image_tag: ${{ needs.generate-build-variables.outputs.server_image_tag }}
+      server: ${{ inputs.server }}
+      enable_reporting: false
+      pr_number: ${{ inputs.pr_number }}
+      context_name: "E2E Tests / playwright-full-4/4"
     secrets:
       MM_LICENSE: ${{ secrets.MM_LICENSE }}
       REPORT_WEBHOOK_URL: ${{ secrets.REPORT_WEBHOOK_URL }}
