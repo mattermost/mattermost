@@ -456,8 +456,20 @@
     "translation": "Cannot add a permission that is restricted by the team or system permission scheme."
   },
   {
+    "id": "api.channel.patch_update_channel.auto_translation_restricted.app_error",
+    "translation": "Auto translation is not allowed for this channel."
+  },
+  {
+    "id": "api.channel.patch_update_channel.feature_not_available.app_error",
+    "translation": "Auto translation feature is not available."
+  },
+  {
     "id": "api.channel.patch_update_channel.forbidden.app_error",
     "translation": "Failed to update the channel."
+  },
+  {
+    "id": "api.channel.patch_update_channel.no_changes.app_error",
+    "translation": "No changes in the patch."
   },
   {
     "id": "api.channel.patch_update_channel.restricted_dm.app_error",
@@ -470,6 +482,22 @@
   {
     "id": "api.channel.post_channel_privacy_message.error",
     "translation": "Failed to post channel privacy update message."
+  },
+  {
+    "id": "api.channel.post_update_channel_autotranslation_message.create_post.error",
+    "translation": "Failed to post Auto-translation update message."
+  },
+  {
+    "id": "api.channel.post_update_channel_autotranslation_message.disabled",
+    "translation": "@%s disabled Auto-translation for this channel. All new messages will appear in the original language."
+  },
+  {
+    "id": "api.channel.post_update_channel_autotranslation_message.enabled",
+    "translation": "@%s enabled Auto-translation for this channel. All new messages will appear in your preferred language."
+  },
+  {
+    "id": "api.channel.post_update_channel_autotranslation_message.retrieve_user.error",
+    "translation": "Failed to retrieve user while updating Auto-translation status"
   },
   {
     "id": "api.channel.post_update_channel_displayname_message_and_forget.create_post.error",
@@ -4505,6 +4533,10 @@
   {
     "id": "api.user.login_with_desktop_token.not_oauth_or_saml_user.app_error",
     "translation": "User is not an OAuth or SAML user."
+  },
+  {
+    "id": "api.user.oauth.get_settings.app_error",
+    "translation": "Failed to get {{.Service}} settings"
   },
   {
     "id": "api.user.oauth_to_email.context.app_error",
