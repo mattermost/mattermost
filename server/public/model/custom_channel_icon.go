@@ -5,6 +5,7 @@ package model
 
 import (
 	"encoding/base64"
+	"html"
 	"net/http"
 	"regexp"
 	"strings"
@@ -82,6 +83,8 @@ func (i *CustomChannelIcon) IsValid() *AppError {
 	if !strings.HasPrefix(strings.TrimSpace(svgStr), "<svg") {
 		return NewAppError("CustomChannelIcon.IsValid", "model.custom_channel_icon.is_valid.svg_start.app_error", nil, "", http.StatusBadRequest)
 	}
+
+	svgStr = html.UnescapeString(svgStr)
 
 	lowerSvg := strings.ToLower(svgStr)
 	if strings.Contains(lowerSvg, "<script") ||
