@@ -12,6 +12,7 @@ import (
 	"github.com/charmbracelet/lipgloss"
 
 	"github.com/mattermost/mattermost/tools/devdash/config"
+	"github.com/mattermost/mattermost/tools/devdash/discovery"
 	"github.com/mattermost/mattermost/tools/devdash/model"
 	"github.com/mattermost/mattermost/tools/devdash/process"
 )
@@ -79,8 +80,9 @@ type App struct {
 	// Double-tap Esc tracking for exiting input mode
 	lastEscTime time.Time
 
-	// Paths
-	repoRoot string
+	// Discovery
+	repoRoot    string
+	subPkgDepth int // sub-package scan depth (1-4, default 2)
 
 }
 
@@ -106,6 +108,7 @@ func NewApp(repos []model.Repo, mgr *process.Manager, repoRoot string) *App {
 		gridCells:       cells,
 		hScrolls:        make([]int, len(repos)),
 		repoRoot:        repoRoot,
+		subPkgDepth:     2,
 		favorites:        cfg.FavoritesMap(),
 		showOnlyFavorites: cfg.FavsOnly,
 		gridSearchInput:  si,
@@ -338,6 +341,10 @@ func (a *App) handleKey(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 		// Grid target search — preserve existing filter text
 		a.enterGridSearch()
 		return a, a.gridSearchInput.Cursor.BlinkCmd()
+
+	case key.Matches(msg, a.keys.Rescan):
+		a.rescanRepos()
+		return a, nil
 	}
 
 	// Dismiss: stop process, remove from manager, close log panel
@@ -518,6 +525,9 @@ func (a *App) handleKey(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 
 	case key.Matches(msg, a.keys.FocusProc):
 		a.focusLogForCursor()
+
+	case msg.String() == "D":
+		a.cycleSubPkgDepth()
 
 	case key.Matches(msg, a.keys.DryRun):
 		a.dryRunAtCursor()
@@ -1054,6 +1064,28 @@ func (a *App) tabFocus() TabFocus {
 }
 
 // saveConfig persists favorites and settings to a single .devdash.json file.
+// rescanRepos re-discovers repos from disk and rebuilds the grid.
+func (a *App) rescanRepos() {
+	repos, err := discovery.ScanAll(a.repoRoot, a.subPkgDepth)
+	if err != nil || len(repos) == 0 {
+		return
+	}
+	a.repos = repos
+	a.gridCells = make([][]GridCell, len(repos))
+	for i := range repos {
+		a.gridCells[i] = buildGridCells(&repos[i])
+	}
+	a.hScrolls = make([]int, len(repos))
+	a.gridVScroll = 0
+	a.snapCursorToFirstMatch()
+}
+
+// cycleSubPkgDepth cycles the sub-package scan depth (1→2→3→4→1) and rescans.
+func (a *App) cycleSubPkgDepth() {
+	a.subPkgDepth = a.subPkgDepth%4 + 1 // cycles 1→2→3→4→1
+	a.rescanRepos()
+}
+
 func (a *App) saveConfig() {
 	config.Save(a.repoRoot, config.Config{
 		FavsOnly:  a.showOnlyFavorites,
@@ -1551,8 +1583,8 @@ func (a *App) View() string {
 		}
 	} else {
 		keys = []string{
-			"r Run", "Enter Run", "d DryRun", "Space Focus", "F Fav", "L Logs",
-			"s Stop", "f Search",
+			"r Run", "Enter Run", "d DryRun", "Space Focus", "F Fav",
+			"s Stop", "f Search", "D Depth",
 			"? Help", "q Quit",
 		}
 	}
@@ -1572,6 +1604,9 @@ func (a *App) View() string {
 	var badges string
 	if a.showOnlyFavorites {
 		badges += " " + lipgloss.NewStyle().Bold(true).Foreground(lipgloss.Color("3")).Render("[favs]")
+	}
+	if a.subPkgDepth != 2 {
+		badges += " " + lipgloss.NewStyle().Foreground(colorMuted).Render(fmt.Sprintf("[depth:%d]", a.subPkgDepth))
 	}
 
 	// Search bar — always visible, with category legend right-aligned
@@ -1729,6 +1764,7 @@ func (a *App) renderHelp() string {
 		"  Space      Focus log panel on target",
 		"  f or /     Search targets",
 		"  d          Dry-run: edit command before running",
+		"  D          Cycle sub-package scan depth (1-4)",
 		"  F          Toggle favorite",
 		"  Ctrl+f     Toggle favorites-only view",
 		"",

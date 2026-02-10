@@ -94,7 +94,5 @@ func RenderLegend() string {
 		dot := lipgloss.NewStyle().Foreground(c).Render("●")
 		parts = append(parts, dot+legendStyle.Render(e.name))
 	}
-	npmDot := lipgloss.NewStyle().Foreground(lipgloss.Color("214")).Render("●")
-	parts = append(parts, npmDot+legendStyle.Render("npm"))
 	return strings.Join(parts, " ")
 }

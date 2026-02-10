@@ -144,7 +144,7 @@ func ClassifyTarget(name string) model.TargetCategory {
 		return model.CategoryBuild
 	case containsAny(n, "clean", "nuke", "reset"):
 		return model.CategoryClean
-	case containsAny(n, "deploy", "upload", "install"):
+	case containsAny(n, "deploy", "upload"):
 		return model.CategoryDeploy
 	default:
 		return model.CategoryOther

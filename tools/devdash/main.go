@@ -27,7 +27,7 @@ func main() {
 	}
 
 	// Discover repos
-	repos, err := discovery.ScanAll(mmRoot)
+	repos, err := discovery.ScanAll(mmRoot, 2)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "scan error: %v\n", err)
 		os.Exit(1)

@@ -22,7 +22,7 @@ var internalSubs = []struct {
 	{"api", "api/Makefile", ""},
 }
 
-func ScanAll(mmRoot string) ([]model.Repo, error) {
+func ScanAll(mmRoot string, subPkgDepth int) ([]model.Repo, error) {
 	var repos []model.Repo
 
 	// 1. Internal sub-projects
@@ -165,7 +165,7 @@ func ScanAll(mmRoot string) ([]model.Repo, error) {
 	var result []model.Repo
 	for _, repo := range repos {
 		result = append(result, repo)
-		subs := discoverSubPackages(repo)
+		subs := discoverSubPackages(repo, subPkgDepth)
 		sort.Slice(subs, func(i, j int) bool {
 			return subs[i].Name < subs[j].Name
 		})
@@ -178,11 +178,11 @@ func ScanAll(mmRoot string) ([]model.Repo, error) {
 // discoverSubPackages scans a repo's directory tree (up to 3 levels) for
 // nested package.json files that aren't the repo's root package.json.
 // Each becomes a separate Repo entry with a "parent/subpath" display name.
-func discoverSubPackages(parent model.Repo) []model.Repo {
+func discoverSubPackages(parent model.Repo, maxDepth int) []model.Repo {
 	var subs []model.Repo
 	rootPkg := parent.PackageJSON
 
-	walkDir(parent.Path, parent.Path, 0, 3, func(pkgPath, relDir string) {
+	walkDir(parent.Path, parent.Path, 0, maxDepth, func(pkgPath, relDir string) {
 		// Skip if this is the root package.json already on the parent
 		if pkgPath == rootPkg {
 			return
