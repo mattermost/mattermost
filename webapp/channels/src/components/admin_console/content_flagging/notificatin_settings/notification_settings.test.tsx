@@ -1,11 +1,12 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {render, screen, fireEvent} from '@testing-library/react';
 import React from 'react';
 import {IntlProvider} from 'react-intl';
 
 import type {ContentFlaggingNotificationSettings} from '@mattermost/types/config';
+
+import {fireEvent, render, screen, userEvent} from 'tests/react_testing_utils';
 
 import ContentFlaggingNotificationSettingsSection from './notification_settings';
 
@@ -30,10 +31,6 @@ describe('ContentFlaggingNotificationSettingsSection', () => {
         } as ContentFlaggingNotificationSettings,
         onChange: jest.fn(),
     };
-
-    beforeEach(() => {
-        jest.clearAllMocks();
-    });
 
     test('should render section title and description', () => {
         renderWithContext(<ContentFlaggingNotificationSettingsSection {...defaultProps}/>);
@@ -80,11 +77,11 @@ describe('ContentFlaggingNotificationSettingsSection', () => {
         expect(screen.getByTestId('dismissed_reporter')).not.toBeChecked();
     });
 
-    test('should handle checkbox change when adding a target', () => {
+    test('should handle checkbox change when adding a target', async () => {
         renderWithContext(<ContentFlaggingNotificationSettingsSection {...defaultProps}/>);
 
         const flaggedAuthorsCheckbox = screen.getByTestId('flagged_author');
-        fireEvent.click(flaggedAuthorsCheckbox);
+        await userEvent.click(flaggedAuthorsCheckbox);
 
         expect(defaultProps.onChange).toHaveBeenCalledWith('test-id', {
             EventTargetMapping: {
@@ -96,11 +93,11 @@ describe('ContentFlaggingNotificationSettingsSection', () => {
         });
     });
 
-    test('should handle checkbox change when removing a target', () => {
+    test('should handle checkbox change when removing a target', async () => {
         renderWithContext(<ContentFlaggingNotificationSettingsSection {...defaultProps}/>);
 
         const removedAuthorCheckbox = screen.getByTestId('removed_author');
-        fireEvent.click(removedAuthorCheckbox);
+        await userEvent.click(removedAuthorCheckbox);
 
         expect(defaultProps.onChange).toHaveBeenCalledWith('test-id', {
             EventTargetMapping: {
@@ -140,6 +137,7 @@ describe('ContentFlaggingNotificationSettingsSection', () => {
 
         renderWithContext(<ContentFlaggingNotificationSettingsSection {...propsWithoutMapping}/>);
 
+        // Use fireEvent.click to test defensive coding in handler (checkbox is disabled)
         const flaggedReviewersCheckbox = screen.getByTestId('flagged_reviewers');
         fireEvent.click(flaggedReviewersCheckbox);
 
@@ -153,7 +151,7 @@ describe('ContentFlaggingNotificationSettingsSection', () => {
         });
     });
 
-    test('should initialize action array if not present', () => {
+    test('should initialize action array if not present', async () => {
         const propsWithPartialMapping = {
             ...defaultProps,
             value: {
@@ -168,7 +166,7 @@ describe('ContentFlaggingNotificationSettingsSection', () => {
         renderWithContext(<ContentFlaggingNotificationSettingsSection {...propsWithPartialMapping}/>);
 
         const assignedReviewersCheckbox = screen.getByTestId('assigned_reviewers');
-        fireEvent.click(assignedReviewersCheckbox);
+        await userEvent.click(assignedReviewersCheckbox);
 
         expect(defaultProps.onChange).toHaveBeenCalledWith('test-id', {
             EventTargetMapping: {
@@ -181,6 +179,7 @@ describe('ContentFlaggingNotificationSettingsSection', () => {
     test('should not add duplicate targets', () => {
         renderWithContext(<ContentFlaggingNotificationSettingsSection {...defaultProps}/>);
 
+        // Use fireEvent.click to test defensive coding in handler (checkbox is disabled)
         // Try to add 'reviewers' to flagged again (it's already there)
         const flaggedReviewersCheckbox = screen.getByTestId('flagged_reviewers');
         fireEvent.click(flaggedReviewersCheckbox);
@@ -196,16 +195,16 @@ describe('ContentFlaggingNotificationSettingsSection', () => {
         });
     });
 
-    test('should handle multiple checkbox changes correctly', () => {
+    test('should handle multiple checkbox changes correctly', async () => {
         renderWithContext(<ContentFlaggingNotificationSettingsSection {...defaultProps}/>);
 
         // First change: add author to flagged
         const flaggedAuthorsCheckbox = screen.getByTestId('flagged_author');
-        fireEvent.click(flaggedAuthorsCheckbox);
+        await userEvent.click(flaggedAuthorsCheckbox);
 
         // Second change: add reporter to removed
         const removedReporterCheckbox = screen.getByTestId('removed_reporter');
-        fireEvent.click(removedReporterCheckbox);
+        await userEvent.click(removedReporterCheckbox);
 
         expect(defaultProps.onChange).toHaveBeenCalledTimes(2);
 
@@ -228,13 +227,13 @@ describe('ContentFlaggingNotificationSettingsSection', () => {
         });
     });
 
-    test('should handle unchecking and rechecking the same checkbox', () => {
+    test('should handle unchecking and rechecking the same checkbox', async () => {
         renderWithContext(<ContentFlaggingNotificationSettingsSection {...defaultProps}/>);
 
         const removedAuthorCheckbox = screen.getByTestId('removed_author');
 
         // First click: uncheck (remove author from removed)
-        fireEvent.click(removedAuthorCheckbox);
+        await userEvent.click(removedAuthorCheckbox);
         expect(defaultProps.onChange).toHaveBeenNthCalledWith(1, 'test-id', {
             EventTargetMapping: {
                 flagged: ['reviewers'],
@@ -245,7 +244,7 @@ describe('ContentFlaggingNotificationSettingsSection', () => {
         });
 
         // Second click: check again (add author back to removed)
-        fireEvent.click(removedAuthorCheckbox);
+        await userEvent.click(removedAuthorCheckbox);
         expect(defaultProps.onChange).toHaveBeenNthCalledWith(2, 'test-id', {
             EventTargetMapping: {
                 flagged: ['reviewers'],

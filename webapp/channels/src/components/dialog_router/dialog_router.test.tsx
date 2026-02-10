@@ -55,7 +55,6 @@ describe('components/dialog_router/DialogRouter', () => {
     };
 
     beforeEach(() => {
-        jest.clearAllMocks();
         jest.spyOn(console, 'error').mockImplementation(() => {});
     });
 

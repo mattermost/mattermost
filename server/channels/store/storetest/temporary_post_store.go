@@ -53,7 +53,7 @@ func testTemporaryPostSave(t *testing.T, rctx request.CTX, ss store.Store) {
 
 func testTemporaryPostGet(t *testing.T, rctx request.CTX, ss store.Store) {
 	t.Run("should fail on nonexisting post", func(t *testing.T) {
-		post, err := ss.TemporaryPost().Get(rctx, model.NewId())
+		post, err := ss.TemporaryPost().Get(rctx, model.NewId(), true)
 		require.Nil(t, post)
 		require.Error(t, err)
 	})
@@ -70,7 +70,7 @@ func testTemporaryPostGet(t *testing.T, rctx request.CTX, ss store.Store) {
 		saved, err := ss.TemporaryPost().Save(rctx, post)
 		require.NoError(t, err)
 
-		retrieved, err := ss.TemporaryPost().Get(rctx, saved.ID)
+		retrieved, err := ss.TemporaryPost().Get(rctx, saved.ID, true)
 		require.NoError(t, err)
 		require.Equal(t, saved.ID, retrieved.ID)
 		require.Equal(t, saved.Message, retrieved.Message)
@@ -101,7 +101,7 @@ func testTemporaryPostDelete(t *testing.T, rctx request.CTX, ss store.Store) {
 		require.NoError(t, err)
 
 		// Verify it's deleted
-		retrieved, err := ss.TemporaryPost().Get(rctx, saved.ID)
+		retrieved, err := ss.TemporaryPost().Get(rctx, saved.ID, true)
 		require.Nil(t, retrieved)
 		require.Error(t, err)
 	})

@@ -86,7 +86,7 @@ const onPremServerConfig = (): Partial<TestAdminConfig> => {
 };
 
 // Should be based only from the generated default config from ./server via "make config-reset"
-// Based on v11.3 server
+// Based on v11.4 server
 const defaultServerConfig: AdminConfig = {
     ServiceSettings: {
         SiteURL: '',
@@ -846,12 +846,8 @@ const defaultServerConfig: AdminConfig = {
         Enable: false,
         Provider: '',
         TargetLanguages: ['en'],
-        TimeoutsMs: {
-            Short: 1200,
-            Medium: 2500,
-            Long: 6000,
-            Notification: 300,
-        },
+        Workers: 4,
+        TimeoutMs: 5000,
         LibreTranslate: {
             URL: '',
             APIKey: '',
@@ -859,5 +855,6 @@ const defaultServerConfig: AdminConfig = {
         Agents: {
             LLMServiceID: '',
         },
+        RestrictDMAndGM: false,
     },
 };
