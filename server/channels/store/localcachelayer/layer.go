@@ -73,6 +73,8 @@ const (
 	// Auto-translation caches
 	UserAutoTranslationCacheSize = 50000 // User+channel combos
 	UserAutoTranslationCacheSec  = 15 * 60
+	PostTranslationEtagCacheSize = 25000 // Channel etags for post translations
+	PostTranslationEtagCacheSec  = 15 * 60
 
 	ContentFlaggingCacheSize = 100
 
@@ -138,13 +140,15 @@ type LocalCacheStore struct {
 
 	autotranslation          LocalCacheAutoTranslationStore
 	userAutoTranslationCache cache.Cache
+	postTranslationEtagCache cache.Cache
 
 	contentFlagging      LocalCacheContentFlaggingStore
 	contentFlaggingCache cache.Cache
 
-	readReceipt                 LocalCacheReadReceiptStore
-	readReceiptCache            cache.Cache
-	readReceiptPostReadersCache cache.Cache
+	readReceipt                     LocalCacheReadReceiptStore
+	readReceiptCache                cache.Cache
+	readReceiptPostReadersCache     cache.Cache
+	readReceiptPostUnreadCountCache cache.Cache
 
 	temporaryPost      LocalCacheTemporaryPostStore
 	temporaryPostCache cache.Cache
@@ -399,6 +403,14 @@ func NewLocalCacheLayer(baseStore store.Store, metrics einterfaces.MetricsInterf
 	}); err != nil {
 		return
 	}
+	if localCacheStore.postTranslationEtagCache, err = cacheProvider.NewCache(&cache.CacheOptions{
+		Size:                   PostTranslationEtagCacheSize,
+		Name:                   "PostTranslationEtag",
+		DefaultExpiry:          PostTranslationEtagCacheSec * time.Second,
+		InvalidateClusterEvent: model.ClusterEventInvalidateCacheForPostTranslationEtag,
+	}); err != nil {
+		return
+	}
 	localCacheStore.autotranslation = LocalCacheAutoTranslationStore{AutoTranslationStore: baseStore.AutoTranslation(), rootStore: &localCacheStore}
 	if localCacheStore.contentFlaggingCache, err = cacheProvider.NewCache(&cache.CacheOptions{
 		Size:                   ContentFlaggingCacheSize,
@@ -420,6 +432,13 @@ func NewLocalCacheLayer(baseStore store.Store, metrics einterfaces.MetricsInterf
 	if localCacheStore.readReceiptPostReadersCache, err = cacheProvider.NewCache(&cache.CacheOptions{
 		Size:                   ReadReceiptCacheSize,
 		Name:                   "ReadReceiptPostReaders",
+		InvalidateClusterEvent: model.ClusterEventInvalidateCacheForReadReceipts,
+	}); err != nil {
+		return
+	}
+	if localCacheStore.readReceiptPostUnreadCountCache, err = cacheProvider.NewCache(&cache.CacheOptions{
+		Size:                   ReadReceiptCacheSize,
+		Name:                   "ReadReceiptPostUnreadCount",
 		InvalidateClusterEvent: model.ClusterEventInvalidateCacheForReadReceipts,
 	}); err != nil {
 		return
@@ -462,6 +481,7 @@ func NewLocalCacheLayer(baseStore store.Store, metrics einterfaces.MetricsInterf
 		cluster.RegisterClusterMessageHandler(model.ClusterEventInvalidateCacheForAllProfiles, localCacheStore.user.handleClusterInvalidateAllProfiles)
 		cluster.RegisterClusterMessageHandler(model.ClusterEventInvalidateCacheForTeams, localCacheStore.team.handleClusterInvalidateTeam)
 		cluster.RegisterClusterMessageHandler(model.ClusterEventInvalidateCacheForUserAutoTranslation, localCacheStore.autotranslation.handleClusterInvalidateUserAutoTranslation)
+		cluster.RegisterClusterMessageHandler(model.ClusterEventInvalidateCacheForPostTranslationEtag, localCacheStore.autotranslation.handleClusterInvalidatePostTranslationEtag)
 		cluster.RegisterClusterMessageHandler(model.ClusterEventInvalidateCacheForContentFlagging, localCacheStore.contentFlagging.handleClusterInvalidateContentFlagging)
 		cluster.RegisterClusterMessageHandler(model.ClusterEventInvalidateCacheForReadReceipts, localCacheStore.readReceipt.handleClusterInvalidateReadReceipts)
 		cluster.RegisterClusterMessageHandler(model.ClusterEventInvalidateCacheForTemporaryPosts, localCacheStore.temporaryPost.handleClusterInvalidateTemporaryPosts)
@@ -663,6 +683,7 @@ func (s *LocalCacheStore) Invalidate() {
 	s.doClearCacheCluster(s.teamAllTeamIdsForUserCache)
 	s.doClearCacheCluster(s.rolePermissionsCache)
 	s.doClearCacheCluster(s.userAutoTranslationCache)
+	s.doClearCacheCluster(s.postTranslationEtagCache)
 	s.doClearCacheCluster(s.readReceiptCache)
 	s.doClearCacheCluster(s.readReceiptPostReadersCache)
 	s.doClearCacheCluster(s.temporaryPostCache)
