@@ -49,7 +49,6 @@ test.describe('ABAC Policies - Advanced Policies', () => {
         // # Skip test if no license for ABAC
         await pw.skipIfNoLicense();
 
-
         // ============================================================
         // SETUP: Use simplified attribute setup (same as working tests)
         // ============================================================
@@ -88,9 +87,21 @@ test.describe('ABAC Policies - Advanced Policies', () => {
         await adminClient.addToChannel(partialSatisfyingUser.id, privateChannel.id);
 
         // Verify initial channel state
-        const initialUser1InChannel = await verifyUserInChannel(adminClient, satisfyingUserNotInChannel.id, privateChannel.id);
-        const initialUser2InChannel = await verifyUserInChannel(adminClient, satisfyingUserInChannel.id, privateChannel.id);
-        const initialUser3InChannel = await verifyUserInChannel(adminClient, partialSatisfyingUser.id, privateChannel.id);
+        const initialUser1InChannel = await verifyUserInChannel(
+            adminClient,
+            satisfyingUserNotInChannel.id,
+            privateChannel.id,
+        );
+        const initialUser2InChannel = await verifyUserInChannel(
+            adminClient,
+            satisfyingUserInChannel.id,
+            privateChannel.id,
+        );
+        const initialUser3InChannel = await verifyUserInChannel(
+            adminClient,
+            partialSatisfyingUser.id,
+            privateChannel.id,
+        );
         expect(initialUser1InChannel).toBe(false);
         expect(initialUser2InChannel).toBe(true);
         expect(initialUser3InChannel).toBe(true);
@@ -217,7 +228,6 @@ test.describe('ABAC Policies - Advanced Policies', () => {
         // Step 8: User who does NOT satisfy policy and IS in channel → AUTO-REMOVED
         const user3AfterSync = await verifyUserInChannel(adminClient, partialSatisfyingUser.id, privateChannel.id);
         expect(user3AfterSync).toBe(false); // AUTO-REMOVED
-
     });
 
     /**
@@ -233,7 +243,6 @@ test.describe('ABAC Policies - Advanced Policies', () => {
         test.setTimeout(300000); // 5 minutes for 5 operator steps
         // # Skip test if no license for ABAC
         await pw.skipIfNoLicense();
-
 
         // # Setup
         const {adminUser, adminClient, team} = await pw.initSetup();
@@ -251,9 +260,7 @@ test.describe('ABAC Policies - Advanced Policies', () => {
             // Ignore errors
         }
 
-        const attributeFields: CustomProfileAttribute[] = [
-            {name: 'Department', type: 'text', value: ''},
-        ];
+        const attributeFields: CustomProfileAttribute[] = [{name: 'Department', type: 'text', value: ''}];
         const attributeFieldsMap = await setupCustomProfileAttributeFields(adminClient, attributeFields);
 
         // Create users with different Department values for testing various operators
@@ -529,7 +536,6 @@ test.describe('ABAC Policies - Advanced Policies', () => {
         const sales5InChannel = await verifyUserInChannel(adminClient, salesUser.id, channel5.id);
         expect(eng5InChannel).toBe(true);
         expect(sales5InChannel).toBe(false);
-
     });
 
     /**
@@ -550,7 +556,6 @@ test.describe('ABAC Policies - Advanced Policies', () => {
         // # Skip test if no license for ABAC
         await pw.skipIfNoLicense();
 
-
         // # Setup
         const {adminUser, adminClient, team} = await pw.initSetup();
 
@@ -562,7 +567,7 @@ test.describe('ABAC Policies - Advanced Policies', () => {
         try {
             const existingFields = await (adminClient as any).doFetch(
                 `${adminClient.getBaseRoute()}/custom_profile_attributes/fields`,
-                {method: 'GET'}
+                {method: 'GET'},
             );
             for (const field of existingFields || []) {
                 try {
@@ -625,8 +630,8 @@ test.describe('ABAC Policies - Advanced Policies', () => {
         // # Create policy with complex CEL expression using || and ()
         // Expression: Department == "Engineering" OR (Department == "Sales" AND Location == "Remote")
         const policyName = `Complex Policy ${await pw.random.id()}`;
-        const complexExpression = 'user.attributes.Department == "Engineering" || (user.attributes.Department == "Sales" && user.attributes.Location == "Remote")';
-
+        const complexExpression =
+            'user.attributes.Department == "Engineering" || (user.attributes.Department == "Sales" && user.attributes.Location == "Remote")';
 
         await createAdvancedPolicy(systemConsolePage.page, {
             name: policyName,
@@ -695,6 +700,5 @@ test.describe('ABAC Policies - Advanced Policies', () => {
         // Step 7: Sales-Office user should be removed (meets SOME rules but not ALL - Sales but not Remote)
         const salesOfficeInChannel = await verifyUserInChannel(adminClient, salesOfficeUser.id, channel.id);
         expect(salesOfficeInChannel).toBe(false);
-
     });
 });

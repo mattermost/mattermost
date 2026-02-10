@@ -1,13 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {
-    expect,
-    test,
-    enableABAC,
-    navigateToABACPage,
-    verifyUserInChannel,
-} from '@mattermost/playwright-lib';
+import {expect, test, enableABAC, navigateToABACPage, verifyUserInChannel} from '@mattermost/playwright-lib';
 
 import {
     CustomProfileAttribute,
@@ -43,16 +37,13 @@ test.describe('ABAC Policy Management - Edit Policies', () => {
 
         await pw.skipIfNoLicense();
 
-
         const {adminUser, adminClient, team} = await pw.initSetup();
 
         // Enable user-managed attributes FIRST (same order as MM-T5783)
         await enableUserManagedAttributes(adminClient);
 
         // Set up the Department attribute field
-        const attributeFields: CustomProfileAttribute[] = [
-            {name: 'Department', type: 'text', value: ''},
-        ];
+        const attributeFields: CustomProfileAttribute[] = [{name: 'Department', type: 'text', value: ''}];
         const attributeFieldsMap = await setupCustomProfileAttributeFields(adminClient, attributeFields);
 
         // Create users with proper CPA attributes
@@ -129,7 +120,6 @@ test.describe('ABAC Policy Management - Edit Policies', () => {
         const engineerAfterSync = await verifyUserInChannel(adminClient, engineerUser.id, privateChannel.id);
         const salesAfterSync = await verifyUserInChannel(adminClient, salesUser.id, privateChannel.id);
 
-
         // Debug: Fetch user attributes to verify they're set
         try {
             await (adminClient as any).doFetch(
@@ -197,7 +187,9 @@ test.describe('ABAC Policy Management - Edit Policies', () => {
                 await page.waitForTimeout(500);
 
                 // Look for input in the dropdown
-                const menuInput = page.locator('#value-selector-menu input[type="text"], .value-selector-menu input').first();
+                const menuInput = page
+                    .locator('#value-selector-menu input[type="text"], .value-selector-menu input')
+                    .first();
                 if (await menuInput.isVisible({timeout: 2000})) {
                     await menuInput.fill('Sales');
                     await page.waitForTimeout(500);
@@ -282,12 +274,15 @@ test.describe('ABAC Policy Management - Edit Policies', () => {
             await adminClient.addToChannel(salesUser.id, privateChannel.id);
 
             // Verify the user was actually added
-            const salesInChannelAfterManualAdd = await verifyUserInChannel(adminClient, salesUser.id, privateChannel.id);
+            const salesInChannelAfterManualAdd = await verifyUserInChannel(
+                adminClient,
+                salesUser.id,
+                privateChannel.id,
+            );
             expect(salesInChannelAfterManualAdd).toBe(true);
         } catch (error) {
             throw new Error(`Step 7 FAILED: Admin should be able to manually add satisfying user. Error: ${error}`);
         }
-
     });
 
     /**
@@ -311,7 +306,6 @@ test.describe('ABAC Policy Management - Edit Policies', () => {
         test.setTimeout(180000);
 
         await pw.skipIfNoLicense();
-
 
         const {adminUser, adminClient, team} = await pw.initSetup();
 
@@ -487,10 +481,17 @@ test.describe('ABAC Policy Management - Edit Policies', () => {
         // STEP 5 & 6: Verify channel membership after edit
         // ===========================================
 
-        const engineerRemoteAfterEdit = await verifyUserInChannel(adminClient, engineerRemoteUser.id, privateChannel.id);
-        const engineerOfficeAfterEdit = await verifyUserInChannel(adminClient, engineerOfficeUser.id, privateChannel.id);
+        const engineerRemoteAfterEdit = await verifyUserInChannel(
+            adminClient,
+            engineerRemoteUser.id,
+            privateChannel.id,
+        );
+        const engineerOfficeAfterEdit = await verifyUserInChannel(
+            adminClient,
+            engineerOfficeUser.id,
+            privateChannel.id,
+        );
         const salesAfterEdit = await verifyUserInChannel(adminClient, salesUser.id, privateChannel.id);
-
 
         // Step 5: engineerRemoteUser should be in channel (satisfies BOTH attributes)
         expect(engineerRemoteAfterEdit).toBe(true);
@@ -500,7 +501,6 @@ test.describe('ABAC Policy Management - Edit Policies', () => {
 
         // salesUser should not be in channel (never satisfied any policy)
         expect(salesAfterEdit).toBe(false);
-
     });
 
     /**
@@ -528,7 +528,6 @@ test.describe('ABAC Policy Management - Edit Policies', () => {
         test.setTimeout(180000);
 
         await pw.skipIfNoLicense();
-
 
         const {adminUser, adminClient, team} = await pw.initSetup();
 
@@ -601,7 +600,6 @@ test.describe('ABAC Policy Management - Edit Policies', () => {
         await verifyUserInChannel(adminClient, engineerRemoteUser.id, privateChannel.id);
         await verifyUserInChannel(adminClient, engineerOfficeUser.id, privateChannel.id);
         await verifyUserInChannel(adminClient, salesRemoteUser.id, privateChannel.id);
-
 
         // ===========================================
         // STEP 1-2: Edit policy to REMOVE Location rule
@@ -714,10 +712,17 @@ test.describe('ABAC Policy Management - Edit Policies', () => {
         // STEP 5 & 6: Verify channel membership after edit
         // ===========================================
 
-        const engineerRemoteAfterEdit = await verifyUserInChannel(adminClient, engineerRemoteUser.id, privateChannel.id);
-        const engineerOfficeAfterEdit = await verifyUserInChannel(adminClient, engineerOfficeUser.id, privateChannel.id);
+        const engineerRemoteAfterEdit = await verifyUserInChannel(
+            adminClient,
+            engineerRemoteUser.id,
+            privateChannel.id,
+        );
+        const engineerOfficeAfterEdit = await verifyUserInChannel(
+            adminClient,
+            engineerOfficeUser.id,
+            privateChannel.id,
+        );
         const salesRemoteAfterEdit = await verifyUserInChannel(adminClient, salesRemoteUser.id, privateChannel.id);
-
 
         // Step 5: engineerOfficeUser should be AUTO-ADDED (now satisfies simpler Dept-only policy)
         expect(engineerOfficeAfterEdit).toBe(true);
@@ -727,6 +732,5 @@ test.describe('ABAC Policy Management - Edit Policies', () => {
 
         // Step 6: salesRemoteUser should NOT be in channel (never satisfied Dept requirement)
         expect(salesRemoteAfterEdit).toBe(false);
-
     });
 });

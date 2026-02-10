@@ -10,9 +10,7 @@ import {
     verifyUserInChannel,
 } from '@mattermost/playwright-lib';
 
-import {
-    setupCustomProfileAttributeFields,
-} from '../../../channels/custom_profile_attributes/helpers';
+import {setupCustomProfileAttributeFields} from '../../../channels/custom_profile_attributes/helpers';
 import {
     ensureUserAttributes,
     createUserForABAC,
@@ -37,7 +35,6 @@ test.describe('ABAC Policies - Channel Integration', () => {
         test.setTimeout(120000);
 
         await pw.skipIfNoLicense();
-
 
         // ============================================================
         // SETUP: Create users, channel, and policy
@@ -96,7 +93,10 @@ test.describe('ABAC Policies - Channel Integration', () => {
         await systemConsolePage.page.waitForTimeout(1000);
 
         // Verify channel shows "Manual Invites" management
-        const channelRow = systemConsolePage.page.locator('.DataGrid_row').filter({hasText: channel.display_name}).first();
+        const channelRow = systemConsolePage.page
+            .locator('.DataGrid_row')
+            .filter({hasText: channel.display_name})
+            .first();
         // const managementText = await channelRow.textContent();
 
         // Click Edit
@@ -127,7 +127,9 @@ test.describe('ABAC Policies - Channel Integration', () => {
         await systemConsolePage.page.waitForTimeout(500);
 
         // Select policy in modal
-        const modal = systemConsolePage.page.locator('[role="dialog"]').filter({hasText: 'Select an Access Control Policy'});
+        const modal = systemConsolePage.page
+            .locator('[role="dialog"]')
+            .filter({hasText: 'Select an Access Control Policy'});
         await modal.waitFor({state: 'visible', timeout: 5000});
 
         const modalSearch = modal.locator('[data-testid="searchInput"]');
@@ -177,7 +179,6 @@ test.describe('ABAC Policies - Channel Integration', () => {
             blocked = true;
         }
         expect(blocked).toBe(true);
-
     });
 
     /**
@@ -210,7 +211,6 @@ test.describe('ABAC Policies - Channel Integration', () => {
         test.setTimeout(120000);
 
         await pw.skipIfNoLicense();
-
 
         const {adminUser, adminClient, team} = await pw.initSetup();
         await ensureUserAttributes(adminClient);
@@ -404,6 +404,5 @@ test.describe('ABAC Policies - Channel Integration', () => {
                 }
             }
         }
-
     });
 });

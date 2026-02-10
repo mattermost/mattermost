@@ -1,14 +1,9 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {
-    expect,
-    test,
-} from '@mattermost/playwright-lib';
+import {expect, test} from '@mattermost/playwright-lib';
 
-import {
-    ensureUserAttributes,
-} from '../support';
+import {ensureUserAttributes} from '../support';
 
 /**
  * ABAC Basic Operations - Enable/Disable
@@ -38,8 +33,12 @@ test.describe('ABAC Basic Operations - Enable/Disable', () => {
         const abacSection = systemConsolePage.page.getByTestId('sysconsole_section_AttributeBasedAccessControl');
         await expect(abacSection).toBeVisible();
 
-        const enableRadio = systemConsolePage.page.locator('#AccessControlSettings\\.EnableAttributeBasedAccessControltrue');
-        const disableRadio = systemConsolePage.page.locator('#AccessControlSettings\\.EnableAttributeBasedAccessControlfalse');
+        const enableRadio = systemConsolePage.page.locator(
+            '#AccessControlSettings\\.EnableAttributeBasedAccessControltrue',
+        );
+        const disableRadio = systemConsolePage.page.locator(
+            '#AccessControlSettings\\.EnableAttributeBasedAccessControlfalse',
+        );
         const saveButton = systemConsolePage.page.getByRole('button', {name: 'Save'});
 
         // # Test enable ABAC

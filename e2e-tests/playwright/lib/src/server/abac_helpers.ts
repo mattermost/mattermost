@@ -41,7 +41,9 @@ export async function createUserWithAttributes(
             if (field) {
                 valuesByFieldId[field.id] = attrValue;
             } else {
-                throw new Error(`Attribute field "${attrName}" not found. Available fields: ${fields.map((f: any) => f.name).join(', ')}`);
+                throw new Error(
+                    `Attribute field "${attrName}" not found. Available fields: ${fields.map((f: any) => f.name).join(', ')}`,
+                );
             }
         }
 
@@ -128,7 +130,10 @@ export async function createBasicPolicy(
 
     // Set auto-sync if specified
     if (options.autoSync) {
-        const autoSyncToggle = page.locator('input[type="checkbox"]').filter({hasText: /auto|sync/i}).first();
+        const autoSyncToggle = page
+            .locator('input[type="checkbox"]')
+            .filter({hasText: /auto|sync/i})
+            .first();
         if (await autoSyncToggle.isVisible({timeout: 1000})) {
             await autoSyncToggle.check();
         }
@@ -187,7 +192,10 @@ export async function createAdvancedPolicy(
 
     // Set auto-sync if specified
     if (options.autoSync) {
-        const autoSyncToggle = page.locator('input[type="checkbox"]').filter({hasText: /auto|sync/i}).first();
+        const autoSyncToggle = page
+            .locator('input[type="checkbox"]')
+            .filter({hasText: /auto|sync/i})
+            .first();
         if (await autoSyncToggle.isVisible({timeout: 1000})) {
             await autoSyncToggle.check();
         }
@@ -276,11 +284,7 @@ export async function runSyncJob(page: Page, waitForCompletion: boolean = true):
 /**
  * Verify user is member of channel
  */
-export async function verifyUserInChannel(
-    client: Client4,
-    userId: string,
-    channelId: string,
-): Promise<boolean> {
+export async function verifyUserInChannel(client: Client4, userId: string, channelId: string): Promise<boolean> {
     try {
         const members = await client.getChannelMembers(channelId);
         return members.some((m: any) => m.user_id === userId);
@@ -292,11 +296,7 @@ export async function verifyUserInChannel(
 /**
  * Verify user is NOT member of channel
  */
-export async function verifyUserNotInChannel(
-    client: Client4,
-    userId: string,
-    channelId: string,
-): Promise<boolean> {
+export async function verifyUserNotInChannel(client: Client4, userId: string, channelId: string): Promise<boolean> {
     return !(await verifyUserInChannel(client, userId, channelId));
 }
 
@@ -318,7 +318,9 @@ export async function updateUserAttributes(
         if (field) {
             valuesByFieldId[field.id] = attrValue;
         } else {
-            throw new Error(`Attribute field "${attrName}" not found. Available fields: ${fields.map((f: any) => f.name).join(', ')}`);
+            throw new Error(
+                `Attribute field "${attrName}" not found. Available fields: ${fields.map((f: any) => f.name).join(', ')}`,
+            );
         }
     }
 

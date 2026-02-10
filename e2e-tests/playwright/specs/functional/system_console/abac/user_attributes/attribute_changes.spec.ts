@@ -46,7 +46,6 @@ test.describe('ABAC User Attributes - Attribute Changes', () => {
 
         await pw.skipIfNoLicense();
 
-
         // ============================================================
         // SETUP: Create attribute, policy, and channel
         // ============================================================
@@ -78,7 +77,7 @@ test.describe('ABAC User Attributes - Attribute Changes', () => {
             attribute: 'Department',
             operator: '==',
             value: 'Engineering',
-            autoSync: true,  // ✅ Auto-add enabled
+            autoSync: true, // ✅ Auto-add enabled
             channels: [privateChannel.display_name],
         });
 
@@ -158,9 +157,11 @@ test.describe('ABAC User Attributes - Attribute Changes', () => {
 
         // Find system message for user being added
         const userAddedMessage = postList.find((post: any) => {
-            return post.type === 'system_add_to_channel' &&
-                   post.props?.addedUserId === testUser.id &&
-                   post.user_id === 'system';
+            return (
+                post.type === 'system_add_to_channel' &&
+                post.props?.addedUserId === testUser.id &&
+                post.user_id === 'system'
+            );
         });
 
         if (userAddedMessage) {
@@ -172,7 +173,6 @@ test.describe('ABAC User Attributes - Attribute Changes', () => {
         // System messages might be disabled in test env, so we don't fail the test
         // The important verification is that the user was added
         expect(finalInChannel).toBe(true);
-
     });
 
     /**
@@ -196,7 +196,6 @@ test.describe('ABAC User Attributes - Attribute Changes', () => {
 
         await pw.skipIfNoLicense();
 
-
         // ============================================================
         // SETUP: Create attribute, policy with auto-add FALSE, and channel
         // ============================================================
@@ -204,9 +203,7 @@ test.describe('ABAC User Attributes - Attribute Changes', () => {
 
         await enableUserManagedAttributes(adminClient);
 
-        const attributeFields: CustomProfileAttribute[] = [
-            {name: 'Department', type: 'text', value: ''},
-        ];
+        const attributeFields: CustomProfileAttribute[] = [{name: 'Department', type: 'text', value: ''}];
         const attributeFieldsMap = await setupCustomProfileAttributeFields(adminClient, attributeFields);
 
         // Create test user WITHOUT the qualifying attribute
@@ -228,7 +225,7 @@ test.describe('ABAC User Attributes - Attribute Changes', () => {
             attribute: 'Department',
             operator: '==',
             value: 'Engineering',
-            autoSync: false,  // ✅ Auto-add DISABLED
+            autoSync: false, // ✅ Auto-add DISABLED
             channels: [privateChannel.display_name],
         });
 
@@ -256,8 +253,7 @@ test.describe('ABAC User Attributes - Attribute Changes', () => {
         const postList = posts.order.map((postId: string) => posts.posts[postId]);
 
         const userAddedMessage = postList.find((post: any) => {
-            return post.type === 'system_add_to_channel' &&
-                   post.props?.addedUserId === testUser.id;
+            return post.type === 'system_add_to_channel' && post.props?.addedUserId === testUser.id;
         });
 
         if (userAddedMessage) {
@@ -265,7 +261,6 @@ test.describe('ABAC User Attributes - Attribute Changes', () => {
         } else {
             // System message not found (may be disabled in test env)
         }
-
     });
 
     /**
@@ -288,7 +283,6 @@ test.describe('ABAC User Attributes - Attribute Changes', () => {
 
         await pw.skipIfNoLicense();
 
-
         // ============================================================
         // SETUP
         // ============================================================
@@ -296,9 +290,7 @@ test.describe('ABAC User Attributes - Attribute Changes', () => {
 
         await enableUserManagedAttributes(adminClient);
 
-        const attributeFields: CustomProfileAttribute[] = [
-            {name: 'Department', type: 'text', value: ''},
-        ];
+        const attributeFields: CustomProfileAttribute[] = [{name: 'Department', type: 'text', value: ''}];
         const attributeFieldsMap = await setupCustomProfileAttributeFields(adminClient, attributeFields);
 
         // Create test user WITH the qualifying attribute (starts with Department=Engineering)
@@ -323,7 +315,7 @@ test.describe('ABAC User Attributes - Attribute Changes', () => {
             attribute: 'Department',
             operator: '==',
             value: 'Engineering',
-            autoSync: false,  // Auto-add FALSE
+            autoSync: false, // Auto-add FALSE
             channels: [privateChannel.display_name],
         });
 
@@ -372,8 +364,10 @@ test.describe('ABAC User Attributes - Attribute Changes', () => {
         const postList = posts.order.map((postId: string) => posts.posts[postId]);
 
         const userRemovedMessage = postList.find((post: any) => {
-            return (post.type === 'system_remove_from_channel' || post.type === 'system_leave_channel') &&
-                   (post.props?.removedUserId === testUser.id || post.user_id === testUser.id);
+            return (
+                (post.type === 'system_remove_from_channel' || post.type === 'system_leave_channel') &&
+                (post.props?.removedUserId === testUser.id || post.user_id === testUser.id)
+            );
         });
 
         if (userRemovedMessage) {
@@ -399,7 +393,7 @@ test.describe('ABAC User Attributes - Attribute Changes', () => {
             attribute: 'Department',
             operator: '==',
             value: 'Engineering',
-            autoSync: true,  // Auto-add TRUE
+            autoSync: true, // Auto-add TRUE
             channels: [channel2.display_name],
         });
 
@@ -438,6 +432,5 @@ test.describe('ABAC User Attributes - Attribute Changes', () => {
         // Verify user is removed
         const userRemovedFromChannel2 = await verifyUserInChannel(adminClient, testUser.id, channel2.id);
         expect(userRemovedFromChannel2).toBe(false);
-
     });
 });

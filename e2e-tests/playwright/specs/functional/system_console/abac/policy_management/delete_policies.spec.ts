@@ -1,22 +1,13 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {
-    expect,
-    test,
-    enableABAC,
-    navigateToABACPage,
-} from '@mattermost/playwright-lib';
+import {expect, test, enableABAC, navigateToABACPage} from '@mattermost/playwright-lib';
 
 import {
     CustomProfileAttribute,
     setupCustomProfileAttributeFields,
 } from '../../../channels/custom_profile_attributes/helpers';
-import {
-    createPrivateChannelForABAC,
-    createBasicPolicy,
-    enableUserManagedAttributes,
-} from '../support';
+import {createPrivateChannelForABAC, createBasicPolicy, enableUserManagedAttributes} from '../support';
 
 /**
  * ABAC Policy Management - Delete Policies
@@ -41,16 +32,13 @@ test.describe('ABAC Policy Management - Delete Policies', () => {
 
         await pw.skipIfNoLicense();
 
-
         const {adminUser, adminClient} = await pw.initSetup();
 
         // Enable user-managed attributes
         await enableUserManagedAttributes(adminClient);
 
         // Set up a basic attribute field
-        const attributeFields: CustomProfileAttribute[] = [
-            {name: 'Department', type: 'text', value: ''},
-        ];
+        const attributeFields: CustomProfileAttribute[] = [{name: 'Department', type: 'text', value: ''}];
         await setupCustomProfileAttributeFields(adminClient, attributeFields);
 
         const {systemConsolePage} = await pw.testBrowser.login(adminUser);
@@ -132,7 +120,6 @@ test.describe('ABAC Policy Management - Delete Policies', () => {
         await page.waitForLoadState('networkidle');
         await page.waitForTimeout(1500);
 
-
         // ===========================================
         // STEP 1-2: Verify Delete is DISABLED for policy WITH channel
         // ===========================================
@@ -151,10 +138,15 @@ test.describe('ABAC Policy Management - Delete Policies', () => {
         await page.waitForTimeout(1000);
 
         // Find and click the three-dot menu for the policy with channel
-        const policyWithChannelRow = page.locator('tr.clickable, .DataGrid_row').filter({hasText: policyWithChannelName}).first();
+        const policyWithChannelRow = page
+            .locator('tr.clickable, .DataGrid_row')
+            .filter({hasText: policyWithChannelName})
+            .first();
         await policyWithChannelRow.waitFor({state: 'visible', timeout: 10000});
 
-        const menuButtonWithChannel = policyWithChannelRow.locator('button[id*="policy-menu"], button[aria-label*="menu" i], .menu-button, button:has(svg)').first();
+        const menuButtonWithChannel = policyWithChannelRow
+            .locator('button[id*="policy-menu"], button[aria-label*="menu" i], .menu-button, button:has(svg)')
+            .first();
         await menuButtonWithChannel.click();
         await page.waitForTimeout(500);
 
@@ -191,10 +183,15 @@ test.describe('ABAC Policy Management - Delete Policies', () => {
         await page.waitForTimeout(1000);
 
         // Find and click the three-dot menu for the policy without channel
-        const policyWithoutChannelRow = page.locator('tr.clickable, .DataGrid_row').filter({hasText: policyWithoutChannelName}).first();
+        const policyWithoutChannelRow = page
+            .locator('tr.clickable, .DataGrid_row')
+            .filter({hasText: policyWithoutChannelName})
+            .first();
         await policyWithoutChannelRow.waitFor({state: 'visible', timeout: 10000});
 
-        const menuButtonWithoutChannel = policyWithoutChannelRow.locator('button[id*="policy-menu"], button[aria-label*="menu" i], .menu-button, button:has(svg)').first();
+        const menuButtonWithoutChannel = policyWithoutChannelRow
+            .locator('button[id*="policy-menu"], button[aria-label*="menu" i], .menu-button, button:has(svg)')
+            .first();
         await menuButtonWithoutChannel.click();
         await page.waitForTimeout(500);
 
@@ -222,8 +219,10 @@ test.describe('ABAC Policy Management - Delete Policies', () => {
         await searchInput.fill(policyWithoutChannelName);
         await page.waitForTimeout(1000);
 
-        const policyStillExists = await page.locator('tr.clickable, .DataGrid_row').filter({hasText: policyWithoutChannelName}).isVisible({timeout: 3000});
+        const policyStillExists = await page
+            .locator('tr.clickable, .DataGrid_row')
+            .filter({hasText: policyWithoutChannelName})
+            .isVisible({timeout: 3000});
         expect(policyStillExists).toBe(false);
-
     });
 });

@@ -34,7 +34,6 @@ test.describe('ABAC Policies - Create Policies', () => {
         // # Skip test if no license for ABAC
         await pw.skipIfNoLicense();
 
-
         // ============================================================
         // SETUP: Create users and channel BEFORE creating policy
         // ============================================================
@@ -44,9 +43,7 @@ test.describe('ABAC Policies - Create Policies', () => {
         await enableUserManagedAttributes(adminClient);
 
         // Define and create the Department attribute field
-        const departmentAttribute: CustomProfileAttribute[] = [
-            {name: 'Department', type: 'text', value: ''},
-        ];
+        const departmentAttribute: CustomProfileAttribute[] = [{name: 'Department', type: 'text', value: ''}];
         const attributeFieldsMap = await setupCustomProfileAttributeFields(adminClient, departmentAttribute);
 
         // Create 3 users as per test case:
@@ -77,9 +74,21 @@ test.describe('ABAC Policies - Create Policies', () => {
         await adminClient.addToChannel(nonSatisfyingUserInChannel.id, privateChannel.id);
 
         // Verify initial channel state
-        const initialUser1InChannel = await verifyUserInChannel(adminClient, satisfyingUserNotInChannel.id, privateChannel.id);
-        const initialUser2InChannel = await verifyUserInChannel(adminClient, satisfyingUserInChannel.id, privateChannel.id);
-        const initialUser3InChannel = await verifyUserInChannel(adminClient, nonSatisfyingUserInChannel.id, privateChannel.id);
+        const initialUser1InChannel = await verifyUserInChannel(
+            adminClient,
+            satisfyingUserNotInChannel.id,
+            privateChannel.id,
+        );
+        const initialUser2InChannel = await verifyUserInChannel(
+            adminClient,
+            satisfyingUserInChannel.id,
+            privateChannel.id,
+        );
+        const initialUser3InChannel = await verifyUserInChannel(
+            adminClient,
+            nonSatisfyingUserInChannel.id,
+            privateChannel.id,
+        );
         expect(initialUser1InChannel).toBe(false);
         expect(initialUser2InChannel).toBe(true);
         expect(initialUser3InChannel).toBe(true);
@@ -151,7 +160,11 @@ test.describe('ABAC Policies - Create Policies', () => {
 
         // 8a. Add user who SATISFIES the policy - should succeed
         await adminClient.addToChannel(satisfyingUserNotInChannel.id, privateChannel.id);
-        const user1AfterManualAdd = await verifyUserInChannel(adminClient, satisfyingUserNotInChannel.id, privateChannel.id);
+        const user1AfterManualAdd = await verifyUserInChannel(
+            adminClient,
+            satisfyingUserNotInChannel.id,
+            privateChannel.id,
+        );
         expect(user1AfterManualAdd).toBe(true); // Successfully added by admin
 
         // 8b. Try to add user who does NOT satisfy the policy - should FAIL
@@ -162,9 +175,12 @@ test.describe('ABAC Policies - Create Policies', () => {
         }
 
         // Verify the non-satisfying user is NOT in the channel
-        const user3AfterAttempt = await verifyUserInChannel(adminClient, nonSatisfyingUserInChannel.id, privateChannel.id);
+        const user3AfterAttempt = await verifyUserInChannel(
+            adminClient,
+            nonSatisfyingUserInChannel.id,
+            privateChannel.id,
+        );
         expect(user3AfterAttempt).toBe(false); // Policy prevents non-compliant users
-
     });
 
     /**
@@ -193,7 +209,6 @@ test.describe('ABAC Policies - Create Policies', () => {
         // # Skip test if no license for ABAC
         await pw.skipIfNoLicense();
 
-
         // ============================================================
         // SETUP: Create users and channel BEFORE creating policy
         // ============================================================
@@ -203,9 +218,7 @@ test.describe('ABAC Policies - Create Policies', () => {
         await enableUserManagedAttributes(adminClient);
 
         // Define and create the Department attribute field
-        const departmentAttribute: CustomProfileAttribute[] = [
-            {name: 'Department', type: 'text', value: ''},
-        ];
+        const departmentAttribute: CustomProfileAttribute[] = [{name: 'Department', type: 'text', value: ''}];
         const attributeFieldsMap = await setupCustomProfileAttributeFields(adminClient, departmentAttribute);
 
         // Create 3 users as per test case:
@@ -236,9 +249,21 @@ test.describe('ABAC Policies - Create Policies', () => {
         await adminClient.addToChannel(nonSatisfyingUserInChannel.id, privateChannel.id);
 
         // Verify initial channel state
-        const initialUser1InChannel = await verifyUserInChannel(adminClient, satisfyingUserNotInChannel.id, privateChannel.id);
-        const initialUser2InChannel = await verifyUserInChannel(adminClient, satisfyingUserInChannel.id, privateChannel.id);
-        const initialUser3InChannel = await verifyUserInChannel(adminClient, nonSatisfyingUserInChannel.id, privateChannel.id);
+        const initialUser1InChannel = await verifyUserInChannel(
+            adminClient,
+            satisfyingUserNotInChannel.id,
+            privateChannel.id,
+        );
+        const initialUser2InChannel = await verifyUserInChannel(
+            adminClient,
+            satisfyingUserInChannel.id,
+            privateChannel.id,
+        );
+        const initialUser3InChannel = await verifyUserInChannel(
+            adminClient,
+            nonSatisfyingUserInChannel.id,
+            privateChannel.id,
+        );
         expect(initialUser1InChannel).toBe(false);
         expect(initialUser2InChannel).toBe(true);
         expect(initialUser3InChannel).toBe(true);
@@ -318,7 +343,7 @@ test.describe('ABAC Policies - Create Policies', () => {
 
         // Expected: +1 added (satisfyingUserNotInChannel)
         // Removed: 2 (nonSatisfyingUserInChannel + admin who created the channel without Department=Engineering)
-        expect(jobDetails.added).toBe(1);  // satisfyingUserNotInChannel was auto-added
+        expect(jobDetails.added).toBe(1); // satisfyingUserNotInChannel was auto-added
         expect(jobDetails.removed).toBeGreaterThanOrEqual(1); // At least nonSatisfyingUserInChannel was removed (admin may also be removed)
 
         // ============================================================
@@ -336,6 +361,5 @@ test.describe('ABAC Policies - Create Policies', () => {
         // Step 7: User who does NOT satisfy policy and IS in channel → auto-removed
         const user3AfterSync = await verifyUserInChannel(adminClient, nonSatisfyingUserInChannel.id, privateChannel.id);
         expect(user3AfterSync).toBe(false); // AUTO-REMOVED
-
     });
 });

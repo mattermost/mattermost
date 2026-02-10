@@ -56,11 +56,7 @@ export async function verifyPolicyNotExists(page: Page, policyName: string): Pro
 /**
  * Create user attribute field via API
  */
-export async function createUserAttributeField(
-    client: Client4,
-    name: string,
-    type: string = 'text',
-): Promise<any> {
+export async function createUserAttributeField(client: Client4, name: string, type: string = 'text'): Promise<any> {
     const url = `${client.getBaseRoute()}/custom_profile_attributes/fields`;
     const field = {
         name: name,
@@ -71,7 +67,8 @@ export async function createUserAttributeField(
         },
     };
 
-    try { // eslint-disable-line no-useless-catch
+    try {
+        // eslint-disable-line no-useless-catch
         const response = await (client as any).doFetch(url, {
             method: 'POST',
             body: JSON.stringify(field),
@@ -87,7 +84,7 @@ export async function createUserAttributeField(
  * Enable user-managed attributes config
  */
 export async function enableUserManagedAttributes(client: Client4): Promise<void> {
-    try {  
+    try {
         const config = await client.getConfig();
         if (config.AccessControlSettings?.EnableUserManagedAttributes !== true) {
             config.AccessControlSettings = config.AccessControlSettings || {};
@@ -107,10 +104,10 @@ export async function ensureUserAttributes(client: Client4, attributeNames?: str
     await enableUserManagedAttributes(client);
 
     let existingAttributes: any[] = [];
-    try {  
+    try {
         existingAttributes = await (client as any).doFetch(
             `${client.getBaseRoute()}/custom_profile_attributes/fields`,
-            {method: 'GET'}
+            {method: 'GET'},
         );
     } catch {
         // console.warn(`Failed to fetch existing attributes:`, _error.message);
@@ -120,7 +117,7 @@ export async function ensureUserAttributes(client: Client4, attributeNames?: str
         const exists = existingAttributes.some((attr: any) => attr.name === attrName);
 
         if (!exists) {
-            try {  
+            try {
                 await createUserAttributeField(client, attrName);
             } catch {
                 throw new Error(`Cannot proceed: Attribute "${attrName}" does not exist and could not be created`);
@@ -128,7 +125,7 @@ export async function ensureUserAttributes(client: Client4, attributeNames?: str
         }
     }
 
-    await new Promise(resolve => setTimeout(resolve, 1000));
+    await new Promise((resolve) => setTimeout(resolve, 1000));
 }
 
 /**
@@ -191,12 +188,7 @@ export async function createUserForABAC(
         '',
     );
 
-    await setupCustomProfileAttributeValuesForUser(
-        adminClient,
-        attributes,
-        attributeFieldsMap,
-        user.id,
-    );
+    await setupCustomProfileAttributeValuesForUser(adminClient, attributes, attributeFieldsMap, user.id);
 
     return user;
 }
@@ -218,9 +210,9 @@ export interface TestAccessRuleResult {
 export async function testAccessRule(
     page: Page,
     options: {
-        expectedMatchingUsers?: string[];  // usernames that SHOULD match
-        expectedNonMatchingUsers?: string[];  // usernames that should NOT match
-        searchForUser?: string;  // optional: search for a specific user in the modal
+        expectedMatchingUsers?: string[]; // usernames that SHOULD match
+        expectedNonMatchingUsers?: string[]; // usernames that should NOT match
+        searchForUser?: string; // optional: search for a specific user in the modal
     } = {},
 ): Promise<TestAccessRuleResult> {
     const testButton = page.locator('button').filter({hasText: 'Test access rule'});
@@ -233,7 +225,11 @@ export async function testAccessRule(
     await page.waitForTimeout(1000);
     let totalMatches = 0;
 
-    const countText = await modal.locator('text=/\\d+.*(?:members|total|match)/i').first().textContent({timeout: 5000}).catch(() => null);
+    const countText = await modal
+        .locator('text=/\\d+.*(?:members|total|match)/i')
+        .first()
+        .textContent({timeout: 5000})
+        .catch(() => null);
 
     if (countText) {
         const totalMatch = countText.match(/of\s*(\d+)\s*total/i);
@@ -331,10 +327,7 @@ export async function testAccessRule(
 /**
  * Create private channel with unique ID for ABAC testing
  */
-export async function createPrivateChannelForABAC(
-    client: Client4,
-    teamId: string,
-): Promise<Channel> {
+export async function createPrivateChannelForABAC(client: Client4, teamId: string): Promise<Channel> {
     // Generate unique ID - lowercase alphanumeric only
     const uniqueId = Date.now().toString(36) + Math.random().toString(36).substring(2, 7);
     const channel = await client.createChannel({
@@ -418,10 +411,10 @@ export async function createBasicPolicy(
     const operatorMap: Record<string, string> = {
         '==': 'is',
         '!=': 'is not',
-        'in': 'is one of',
-        'contains': 'contains',
-        'startsWith': 'starts with',
-        'endsWith': 'ends with',
+        in: 'is one of',
+        contains: 'contains',
+        startsWith: 'starts with',
+        endsWith: 'ends with',
     };
     const operatorText = operatorMap[options.operator] || options.operator;
     const operatorOption = page.locator(`[id^="operator-selector-menu"] li:has-text("${operatorText}")`).first();
@@ -459,7 +452,10 @@ export async function createBasicPolicy(
             await searchInput.fill(channelName);
             await page.waitForTimeout(500);
 
-            const channelOption = page.locator('.channel-selector-modal, [role="dialog"]').locator('text=' + channelName).first();
+            const channelOption = page
+                .locator('.channel-selector-modal, [role="dialog"]')
+                .locator('text=' + channelName)
+                .first();
             await channelOption.click({force: true});
             await page.waitForTimeout(300);
         }
@@ -547,7 +543,7 @@ export async function createMultiAttributePolicy(
 
         // Click "Add attribute" to add a new row (for EVERY rule - there's no default row)
         const addAttrBtn = page.getByRole('button', {name: /add attribute/i});
-        if (await addAttrBtn.isVisible({timeout: 2000}) && !(await addAttrBtn.isDisabled())) {
+        if ((await addAttrBtn.isVisible({timeout: 2000})) && !(await addAttrBtn.isDisabled())) {
             await addAttrBtn.click();
             await page.waitForTimeout(500);
         }
@@ -560,7 +556,9 @@ export async function createMultiAttributePolicy(
         await page.waitForTimeout(500);
 
         // Select the attribute from the menu
-        const attributeOption = page.locator(`[id^="attribute-selector-menu"] li:has-text("${rule.attribute}")`).first();
+        const attributeOption = page
+            .locator(`[id^="attribute-selector-menu"] li:has-text("${rule.attribute}")`)
+            .first();
         await attributeOption.click({force: true});
         await page.waitForTimeout(500);
 
@@ -575,10 +573,10 @@ export async function createMultiAttributePolicy(
         const operatorMap: Record<string, string> = {
             '==': 'is',
             '!=': 'is not',
-            'in': 'in',
-            'contains': 'contains',
-            'startsWith': 'starts with',
-            'endsWith': 'ends with',
+            in: 'in',
+            contains: 'contains',
+            startsWith: 'starts with',
+            endsWith: 'ends with',
         };
         const operatorText = operatorMap[rule.operator] || 'is';
         const operatorOption = page.locator(`[id^="operator-selector-menu"] li:has-text("${operatorText}")`).first();
@@ -612,12 +610,19 @@ export async function createMultiAttributePolicy(
         await page.waitForTimeout(500);
 
         for (const channelName of options.channels) {
-            const searchInput = page.locator('[role="dialog"], .modal').filter({hasText: /channel/i}).locator('input[placeholder*="Search" i]').first();
+            const searchInput = page
+                .locator('[role="dialog"], .modal')
+                .filter({hasText: /channel/i})
+                .locator('input[placeholder*="Search" i]')
+                .first();
             await searchInput.waitFor({state: 'visible', timeout: 5000});
             await searchInput.fill(channelName);
             await page.waitForTimeout(500);
 
-            const channelOption = page.locator('.channel-selector-modal, [role="dialog"]').locator('text=' + channelName).first();
+            const channelOption = page
+                .locator('.channel-selector-modal, [role="dialog"]')
+                .locator('text=' + channelName)
+                .first();
             await channelOption.click({force: true});
             await page.waitForTimeout(300);
         }
@@ -751,7 +756,9 @@ export async function createAdvancedPolicy(
 
     // Verify channels were added before saving
     if (options.channels && options.channels.length > 0) {
-        const channelsTable = page.locator('.policy-channels-table, [class*="channel"]').filter({hasText: options.channels[0]});
+        const channelsTable = page
+            .locator('.policy-channels-table, [class*="channel"]')
+            .filter({hasText: options.channels[0]});
         await channelsTable.isVisible({timeout: 3000}).catch(() => false);
     }
 
@@ -813,7 +820,7 @@ export async function createAdvancedPolicy(
  */
 export async function activatePolicy(client: Client4, policyId: string): Promise<void> {
     const url = `${client.getBaseRoute()}/access_control_policies/${policyId}/activate?active=true`;
-    try {  
+    try {
         await (client as any).doFetch(url, {method: 'GET'});
     } catch {
         // console.error(`Failed to activate policy ${policyId}:`, error.message || String(error));
@@ -856,7 +863,11 @@ export async function waitForLatestSyncJob(page: Page, maxRetries: number = 5): 
 /**
  * Open job details modal, search for a channel, get channel membership changes
  */
-export async function getJobDetailsForChannel(page: Page, jobRow: any, channelName: string): Promise<{added: number; removed: number}> {
+export async function getJobDetailsForChannel(
+    page: Page,
+    jobRow: any,
+    channelName: string,
+): Promise<{added: number; removed: number}> {
     // Click on the job row to open details modal
     await jobRow.click();
     await page.waitForTimeout(1000);
@@ -904,7 +915,9 @@ export async function getJobDetailsForChannel(page: Page, jobRow: any, channelNa
             }
 
             // Close the Channel Membership Changes modal
-            const closeButton = membershipModal.locator('button[aria-label*="Close" i], .close, button:has-text("×")').first();
+            const closeButton = membershipModal
+                .locator('button[aria-label*="Close" i], .close, button:has-text("×")')
+                .first();
             if (await closeButton.isVisible({timeout: 1000})) {
                 await closeButton.click();
                 await page.waitForTimeout(500);
@@ -926,7 +939,9 @@ export async function getJobDetailsForChannel(page: Page, jobRow: any, channelNa
     }
 
     // Close the Job Details modal
-    const closeJobDetailsButton = jobDetailsModal.locator('button[aria-label*="Close" i], .close, button:has-text("×")').first();
+    const closeJobDetailsButton = jobDetailsModal
+        .locator('button[aria-label*="Close" i], .close, button:has-text("×")')
+        .first();
     if (await closeJobDetailsButton.isVisible({timeout: 1000})) {
         await closeJobDetailsButton.click();
         await page.waitForTimeout(500);
@@ -942,7 +957,10 @@ export async function getJobDetailsForChannel(page: Page, jobRow: any, channelNa
  * Check both recent jobs if they have similar timestamps
  * This handles the case where two jobs are created almost simultaneously
  */
-export async function getJobDetailsFromRecentJobs(page: Page, channelName: string): Promise<{added: number; removed: number}> {
+export async function getJobDetailsFromRecentJobs(
+    page: Page,
+    channelName: string,
+): Promise<{added: number; removed: number}> {
     // Get all job rows
     const jobRows = page.locator('tr.clickable');
     const jobCount = await jobRows.count();
@@ -967,7 +985,7 @@ export async function getJobDetailsFromRecentJobs(page: Page, channelName: strin
         // Check if timestamps are within 2 minutes of each other
         // Parse times like "Jan 22, 2026 - 10:11 AM"
         if (job1TimeText && job2TimeText) {
-            try {  
+            try {
                 const time1 = new Date(job1TimeText.replace(' - ', ' ')).getTime();
                 const time2 = new Date(job2TimeText.replace(' - ', ' ')).getTime();
                 const diffMs = Math.abs(time1 - time2);
@@ -1005,7 +1023,11 @@ export async function getJobDetailsFromRecentJobs(page: Page, channelName: strin
 /**
  * Get policy ID by name using search API (with retry)
  */
-export async function getPolicyIdByName(client: Client4, policyName: string, retries: number = 3): Promise<string | null> {
+export async function getPolicyIdByName(
+    client: Client4,
+    policyName: string,
+    retries: number = 3,
+): Promise<string | null> {
     const searchUrl = `${client.getBaseRoute()}/access_control/policies/search`;
 
     // Extract the base name without the random ID suffix for search
@@ -1014,7 +1036,7 @@ export async function getPolicyIdByName(client: Client4, policyName: string, ret
     const searchTerm = baseNameMatch ? baseNameMatch[1] : policyName;
 
     for (let attempt = 1; attempt <= retries; attempt++) {
-        try {  
+        try {
             // Use the search API
             const result = await (client as any).doFetch(searchUrl, {
                 method: 'POST',
@@ -1044,20 +1066,20 @@ export async function getPolicyIdByName(client: Client4, policyName: string, ret
                 } else {
                     // Wait before retrying
                     if (attempt < retries) {
-                        await new Promise(resolve => setTimeout(resolve, 2000));
+                        await new Promise((resolve) => setTimeout(resolve, 2000));
                     }
                 }
             } else {
                 // Wait before retrying
                 if (attempt < retries) {
-                    await new Promise(resolve => setTimeout(resolve, 2000));
+                    await new Promise((resolve) => setTimeout(resolve, 2000));
                 }
             }
         } catch {
             // console.error(`Failed to search policies (attempt ${attempt}):`, _error.message || String(_error));
 
             if (attempt < retries) {
-                await new Promise(resolve => setTimeout(resolve, 2000));
+                await new Promise((resolve) => setTimeout(resolve, 2000));
             }
         }
     }

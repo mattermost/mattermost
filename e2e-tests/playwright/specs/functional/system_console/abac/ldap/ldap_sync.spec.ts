@@ -38,7 +38,6 @@ test.describe('ABAC LDAP Integration - Sync', () => {
 
         await pw.skipIfNoLicense();
 
-
         // ============================================================
         // SETUP
         // ============================================================
@@ -68,7 +67,7 @@ test.describe('ABAC LDAP Integration - Sync', () => {
             attribute: 'Department',
             operator: '==',
             value: 'Engineering',
-            autoSync: true,  // Auto-add TRUE
+            autoSync: true, // Auto-add TRUE
             channels: [channel1.display_name],
         });
 
@@ -111,8 +110,7 @@ test.describe('ABAC LDAP Integration - Sync', () => {
         const posts1 = await adminClient.getPosts(channel1.id, 0, 10);
         const postList1 = posts1.order.map((postId: string) => posts1.posts[postId]);
         const addMessage1 = postList1.find((post: any) => {
-            return post.type === 'system_add_to_channel' &&
-                   post.props?.addedUserId === user1.id;
+            return post.type === 'system_add_to_channel' && post.props?.addedUserId === user1.id;
         });
         if (addMessage1) {
             // System message found
@@ -120,14 +118,13 @@ test.describe('ABAC LDAP Integration - Sync', () => {
             // System message not found (may be disabled in test env)
         }
 
-
         // ============================================================
         // STEP 2: Single attribute using "contains" operator
         // ============================================================
 
         // Create user with Department that doesn't contain "Eng"
         const user2 = await createUserWithAttributes(adminClient, {
-            Department: 'Sales',  // Doesn't contain "Eng"
+            Department: 'Sales', // Doesn't contain "Eng"
         });
         await adminClient.addToTeam(team.id, user2.id);
 
@@ -141,7 +138,7 @@ test.describe('ABAC LDAP Integration - Sync', () => {
         await createAdvancedPolicy(systemConsolePage.page, {
             name: policy2Name,
             celExpression: 'user.attributes.Department.contains("Eng")',
-            autoSync: true,  // Auto-add TRUE
+            autoSync: true, // Auto-add TRUE
             channels: [channel2.display_name],
         });
 
@@ -179,16 +176,13 @@ test.describe('ABAC LDAP Integration - Sync', () => {
         const posts2 = await adminClient.getPosts(channel2.id, 0, 10);
         const postList2 = posts2.order.map((postId: string) => posts2.posts[postId]);
         const addMessage2 = postList2.find((post: any) => {
-            return post.type === 'system_add_to_channel' &&
-                   post.props?.addedUserId === user2.id;
+            return post.type === 'system_add_to_channel' && post.props?.addedUserId === user2.id;
         });
         if (addMessage2) {
             // System message found
         } else {
             // System message not found (may be disabled in test env)
         }
-
-
     });
 
     /**
@@ -224,7 +218,6 @@ test.describe('ABAC LDAP Integration - Sync', () => {
 
         await pw.skipIfNoLicense();
 
-
         // ============================================================
         // SETUP
         // ============================================================
@@ -253,7 +246,7 @@ test.describe('ABAC LDAP Integration - Sync', () => {
             attribute: 'Department',
             operator: '==',
             value: 'Engineering',
-            autoSync: false,  // Auto-add FALSE
+            autoSync: false, // Auto-add FALSE
             channels: [channel1.display_name],
         });
 
@@ -322,7 +315,7 @@ test.describe('ABAC LDAP Integration - Sync', () => {
         await createAdvancedPolicy(systemConsolePage.page, {
             name: policy2Name,
             celExpression: 'user.attributes.Department in ["Engineering", "Product"]',
-            autoSync: false,  // Auto-add FALSE
+            autoSync: false, // Auto-add FALSE
             channels: [channel2.display_name],
         });
 
@@ -367,7 +360,6 @@ test.describe('ABAC LDAP Integration - Sync', () => {
         // Final verification
         const user2Final = await verifyUserInChannel(adminClient, user2.id, channel2.id);
         expect(user2Final).toBe(true);
-
     });
 
     /**
@@ -401,7 +393,6 @@ test.describe('ABAC LDAP Integration - Sync', () => {
 
         await pw.skipIfNoLicense();
 
-
         // ============================================================
         // SETUP
         // ============================================================
@@ -429,7 +420,7 @@ test.describe('ABAC LDAP Integration - Sync', () => {
         await createAdvancedPolicy(systemConsolePage.page, {
             name: policy1Name,
             celExpression: 'user.attributes.Department.startsWith("Eng")',
-            autoSync: true,  // Auto-add TRUE
+            autoSync: true, // Auto-add TRUE
             channels: [channel1.display_name],
         });
 
@@ -470,15 +461,13 @@ test.describe('ABAC LDAP Integration - Sync', () => {
         const posts1 = await adminClient.getPosts(channel1.id, 0, 10);
         const postList1 = posts1.order.map((postId: string) => posts1.posts[postId]);
         const removeMessage1 = postList1.find((post: any) => {
-            return post.type === 'system_remove_from_channel' &&
-                   post.props?.removedUserId === user1.id;
+            return post.type === 'system_remove_from_channel' && post.props?.removedUserId === user1.id;
         });
         if (removeMessage1) {
             // System message found
         } else {
             // System message not found (may be disabled in test env)
         }
-
 
         // ============================================================
         // STEP 2: Two attributes using == operator
@@ -501,7 +490,7 @@ test.describe('ABAC LDAP Integration - Sync', () => {
             attribute: 'Department',
             operator: '==',
             value: 'Engineering',
-            autoSync: true,  // Auto-add TRUE
+            autoSync: true, // Auto-add TRUE
             channels: [channel2.display_name],
         });
 
@@ -540,16 +529,13 @@ test.describe('ABAC LDAP Integration - Sync', () => {
         const posts2 = await adminClient.getPosts(channel2.id, 0, 10);
         const postList2 = posts2.order.map((postId: string) => posts2.posts[postId]);
         const removeMessage2 = postList2.find((post: any) => {
-            return post.type === 'system_remove_from_channel' &&
-                   post.props?.removedUserId === user2.id;
+            return post.type === 'system_remove_from_channel' && post.props?.removedUserId === user2.id;
         });
         if (removeMessage2) {
             // System message found
         } else {
             // System message not found (may be disabled in test env)
         }
-
-
     });
 
     /**
@@ -565,7 +551,6 @@ test.describe('ABAC LDAP Integration - Sync', () => {
         test.setTimeout(120000);
 
         await pw.skipIfNoLicense();
-
 
         // ============================================================
         // SETUP
@@ -643,6 +628,5 @@ test.describe('ABAC LDAP Integration - Sync', () => {
 
         const phase3InChannel = await verifyUserInChannel(adminClient, user.id, privateChannel.id);
         expect(phase3InChannel).toBe(false);
-
     });
 });
