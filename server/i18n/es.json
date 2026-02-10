@@ -8600,10 +8600,6 @@
     "translation": "Sólo las publicaciones raíz tienen permitidas tener prioridad."
   },
   {
-    "id": "api.server.cws.health_check.app_error",
-    "translation": "El servidor CWS no está disponible."
-  },
-  {
     "id": "api.channel.bookmark.channel_bookmark.license.error",
     "translation": "Tu licencia no soporta marcadores de canal."
   },
