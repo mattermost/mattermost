@@ -64,9 +64,56 @@
         background: color-mix(in sRGB, var(--center-channel-bg), var(--button-bg) 16%);
         color: rgb(var(--button-bg-rgb));
     }
+
+    &.channelBookmarksDotMenuButton--overflow {
+        width: 32px;
+        height: 32px;
+        border-radius: 0;
+    }
 }
 
 #bookmark-create-file-input,
 #bookmark-create-file-input-in-modal {
     display: none;
+}
+
+// Overflow menu button styles
+.channelBookmarksBarMenuButton {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    padding: 4px;
+    border-radius: 4px;
+    border: none;
+    background: transparent;
+    color: rgba(var(--center-channel-color-rgb), 0.56);
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background-color 150ms ease;
+
+    &.withLabel {
+        padding: 4px 12px 4px 6px;
+        border-radius: 12px;
+    }
+
+    &.hasOverflow {
+        background: rgba(var(--center-channel-color-rgb), 0.08);
+        color: rgba(var(--center-channel-color-rgb), 0.72);
+    }
+
+    &:hover:not(:disabled) {
+        background: rgba(var(--center-channel-color-rgb), 0.12);
+        color: rgba(var(--center-channel-color-rgb), 0.88);
+    }
+
+    &[aria-expanded="true"] {
+        background: rgba(var(--button-bg-rgb), 0.08);
+        color: rgb(var(--button-bg-rgb));
+    }
+
+    &:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+    }
 }

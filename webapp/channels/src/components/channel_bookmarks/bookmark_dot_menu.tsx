@@ -13,6 +13,10 @@ import {
     ArrowExpandIcon,
     OpenInNewIcon,
     BookOutlineIcon,
+    ChevronLeftIcon,
+    ChevronRightIcon,
+    ChevronUpIcon,
+    ChevronDownIcon,
 } from '@mattermost/compass-icons/components';
 import type {ChannelBookmark, ChannelBookmarkPatch} from '@mattermost/types/channel_bookmarks';
 
@@ -33,10 +37,27 @@ import BookmarkDeleteModal from './bookmark_delete_modal';
 import ChannelBookmarksCreateModal from './channel_bookmarks_create_modal';
 import {useCanGetPublicLink, useChannelBookmarkPermission} from './utils';
 
-type Props = {bookmark: ChannelBookmark; open: () => void};
+type MoveDirection = 'horizontal' | 'vertical';
+
+type Props = {
+    bookmark: ChannelBookmark;
+    open: () => void;
+    buttonClassName?: string;
+    onMoveBefore?: () => void;
+    onMoveAfter?: () => void;
+    moveBeforeLabel?: string;
+    moveAfterLabel?: string;
+    moveDirection?: MoveDirection;
+};
 const BookmarkItemDotMenu = ({
     bookmark,
     open,
+    buttonClassName,
+    onMoveBefore,
+    onMoveAfter,
+    moveBeforeLabel,
+    moveAfterLabel,
+    moveDirection = 'horizontal',
 }: Props) => {
     const {formatMessage} = useIntl();
     const dispatch = useDispatch();
@@ -112,7 +133,7 @@ const BookmarkItemDotMenu = ({
             transformOrigin={{vertical: 'top', horizontal: 'right'}}
             menuButton={{
                 id: `channelBookmarksDotMenuButton-${bookmark.id}`,
-                class: 'channelBookmarksDotMenuButton',
+                class: `channelBookmarksDotMenuButton ${buttonClassName ?? ''}`,
                 children: <DotsHorizontalIcon size={18}/>,
                 'aria-label': formatMessage({id: 'channel_bookmarks.editBookmarkLabel', defaultMessage: 'Bookmark menu'}),
             }}
@@ -156,6 +177,27 @@ const BookmarkItemDotMenu = ({
                     leadingElement={<LinkVariantIcon size={18}/>}
                     labels={<span>{copyFileLabel}</span>}
                     aria-label={copyFileLabel}
+                />
+            )}
+            {(onMoveBefore || onMoveAfter) && <Menu.Separator/>}
+            {onMoveBefore && (
+                <Menu.Item
+                    key='channelBookmarkMoveBefore'
+                    id='channelBookmarkMoveBefore'
+                    onClick={onMoveBefore}
+                    leadingElement={moveDirection === 'vertical' ? <ChevronUpIcon size={18}/> : <ChevronLeftIcon size={18}/>}
+                    labels={<span>{moveBeforeLabel}</span>}
+                    aria-label={moveBeforeLabel}
+                />
+            )}
+            {onMoveAfter && (
+                <Menu.Item
+                    key='channelBookmarkMoveAfter'
+                    id='channelBookmarkMoveAfter'
+                    onClick={onMoveAfter}
+                    leadingElement={moveDirection === 'vertical' ? <ChevronDownIcon size={18}/> : <ChevronRightIcon size={18}/>}
+                    labels={<span>{moveAfterLabel}</span>}
+                    aria-label={moveAfterLabel}
                 />
             )}
             {canDelete && (

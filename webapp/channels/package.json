@@ -6,6 +6,10 @@
   "version": "11.4.0",
   "private": true,
   "dependencies": {
+    "@atlaskit/pragmatic-drag-and-drop": "1.7.7",
+    "@atlaskit/pragmatic-drag-and-drop-hitbox": "1.1.0",
+    "@atlaskit/pragmatic-drag-and-drop-live-region": "1.3.3",
+    "@atlaskit/pragmatic-drag-and-drop-react-drop-indicator": "3.2.12",
     "@floating-ui/react": "0.26.6",
     "@giphy/js-fetch-api": "5.7.0",
     "@giphy/react-components": "10.1.0",
