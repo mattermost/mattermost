@@ -236,7 +236,6 @@ export type ClientConfig = {
 
     // Access Control Settings
     EnableAttributeBasedAccessControl: string;
-    EnableChannelScopeAccessControl: string;
     EnableUserManagedAttributes: string;
 
     // Auto Translation Settings
@@ -1015,7 +1014,6 @@ export type ExportSettings = {
 
 export type AccessControlSettings = {
     EnableAttributeBasedAccessControl: boolean;
-    EnableChannelScopeAccessControl: boolean;
     EnableUserManagedAttributes: boolean;
 };
 

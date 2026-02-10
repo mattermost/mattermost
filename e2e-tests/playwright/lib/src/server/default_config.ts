@@ -808,7 +808,6 @@ const defaultServerConfig: AdminConfig = {
     },
     AccessControlSettings: {
         EnableAttributeBasedAccessControl: false,
-        EnableChannelScopeAccessControl: true,
         EnableUserManagedAttributes: false,
     },
     ContentFlaggingSettings: {
