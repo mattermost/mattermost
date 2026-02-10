@@ -45,12 +45,13 @@ describe('PostAriaLabelDiv', () => {
         },
     };
 
-    const baseProps = {
+    const baseProps: Omit<Props, 'ref'> = {
         post: TestHelper.getPostMock({
             user_id: author.id,
             message: 'This is a test.',
         }),
-    } as Omit<Props, 'ref'>;
+        autotranslated: false,
+    };
 
     test('should render aria-label in the given locale', () => {
         const {mountOptions} = mockStore(baseState);

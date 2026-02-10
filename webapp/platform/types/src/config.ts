@@ -240,6 +240,7 @@ export type ClientConfig = {
     EnableUserManagedAttributes: string;
 
     // Auto Translation Settings
+    AutoTranslationLanguages: string;
     EnableAutoTranslation: string;
     RestrictDMAndGMAutotranslation: string;
 };

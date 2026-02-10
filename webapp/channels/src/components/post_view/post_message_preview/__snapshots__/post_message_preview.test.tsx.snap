@@ -68,6 +68,7 @@ exports[`PostMessagePreview direct and group messages should render preview for 
       </div>
     </div>
     <Connect(PostMessageView)
+      isChannelAutotranslated={false}
       maxHeight={105}
       overflowType="ellipsis"
       post={
@@ -77,6 +78,7 @@ exports[`PostMessagePreview direct and group messages should render preview for 
           "metadata": Object {},
         }
       }
+      userLanguage="en"
     />
     <div
       className="post__preview-footer"
@@ -165,6 +167,7 @@ exports[`PostMessagePreview direct and group messages should render preview for 
       </div>
     </div>
     <Connect(PostMessageView)
+      isChannelAutotranslated={false}
       maxHeight={105}
       overflowType="ellipsis"
       post={
@@ -174,6 +177,7 @@ exports[`PostMessagePreview direct and group messages should render preview for 
           "metadata": Object {},
         }
       }
+      userLanguage="en"
     />
     <div
       className="post__preview-footer"
@@ -266,6 +270,7 @@ exports[`PostMessagePreview nested previews should render file preview 1`] = `
       </div>
     </div>
     <Connect(PostMessageView)
+      isChannelAutotranslated={false}
       maxHeight={105}
       overflowType="ellipsis"
       post={
@@ -279,6 +284,7 @@ exports[`PostMessagePreview nested previews should render file preview 1`] = `
           "metadata": Object {},
         }
       }
+      userLanguage="en"
     />
     <Connect(FileAttachmentList)
       compactDisplay={false}
@@ -390,6 +396,7 @@ exports[`PostMessagePreview nested previews should render opengraph preview 1`] 
       </div>
     </div>
     <Connect(PostMessageView)
+      isChannelAutotranslated={false}
       maxHeight={105}
       overflowType="ellipsis"
       post={
@@ -406,6 +413,7 @@ exports[`PostMessagePreview nested previews should render opengraph preview 1`] 
           },
         }
       }
+      userLanguage="en"
     />
     <Connect(PostAttachmentOpenGraph)
       isEmbedVisible={true}
@@ -520,6 +528,7 @@ exports[`PostMessagePreview should not render bot icon 1`] = `
       </div>
     </div>
     <Connect(PostMessageView)
+      isChannelAutotranslated={false}
       maxHeight={105}
       overflowType="ellipsis"
       post={
@@ -534,6 +543,7 @@ exports[`PostMessagePreview should not render bot icon 1`] = `
           },
         }
       }
+      userLanguage="en"
     />
     <div
       className="post__preview-footer"
@@ -627,6 +637,7 @@ exports[`PostMessagePreview should render bot icon 1`] = `
       </div>
     </div>
     <Connect(PostMessageView)
+      isChannelAutotranslated={false}
       maxHeight={105}
       overflowType="ellipsis"
       post={
@@ -641,6 +652,7 @@ exports[`PostMessagePreview should render bot icon 1`] = `
           },
         }
       }
+      userLanguage="en"
     />
     <div
       className="post__preview-footer"
@@ -729,6 +741,7 @@ exports[`PostMessagePreview should render correctly 1`] = `
       </div>
     </div>
     <Connect(PostMessageView)
+      isChannelAutotranslated={false}
       maxHeight={105}
       overflowType="ellipsis"
       post={
@@ -738,6 +751,7 @@ exports[`PostMessagePreview should render correctly 1`] = `
           "metadata": Object {},
         }
       }
+      userLanguage="en"
     />
     <div
       className="post__preview-footer"
@@ -828,6 +842,7 @@ exports[`PostMessagePreview show render without preview when preview posts becom
       </div>
     </div>
     <Connect(PostMessageView)
+      isChannelAutotranslated={false}
       maxHeight={105}
       overflowType="ellipsis"
       post={
@@ -837,6 +852,7 @@ exports[`PostMessagePreview show render without preview when preview posts becom
           "metadata": Object {},
         }
       }
+      userLanguage="en"
     />
     <div
       className="post__preview-footer"
