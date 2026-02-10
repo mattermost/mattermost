@@ -3,6 +3,7 @@
 
 import type {AnchorHTMLAttributes} from 'react';
 import React, {cloneElement, forwardRef, useRef} from 'react';
+import type {DraggableProvided} from 'react-beautiful-dnd';
 import {useDispatch, useSelector} from 'react-redux';
 import {Link} from 'react-router-dom';
 import styled, {css} from 'styled-components';
@@ -27,7 +28,7 @@ import type {GlobalState} from 'types/store';
 import BookmarkItemDotMenu from './bookmark_dot_menu';
 import BookmarkIcon from './bookmark_icon';
 
-const useBookmarkLink = (bookmark: ChannelBookmark, disableLinks = false) => {
+const useBookmarkLink = (bookmark: ChannelBookmark) => {
     const linkRef = useRef<HTMLAnchorElement>(null);
     const dispatch = useDispatch();
     const fileInfo: FileInfo | undefined = useSelector((state: GlobalState) => (bookmark?.file_id && getFile(state, bookmark.file_id)) || undefined);
@@ -65,7 +66,7 @@ const useBookmarkLink = (bookmark: ChannelBookmark, disableLinks = false) => {
     if (bookmark.type === 'link' && bookmark.link_url) {
         link = (
             <DynamicLink
-                href={disableLinks ? undefined : bookmark.link_url}
+                href={bookmark.link_url}
                 ref={linkRef}
                 isFile={false}
             >
@@ -76,7 +77,7 @@ const useBookmarkLink = (bookmark: ChannelBookmark, disableLinks = false) => {
     } else if (bookmark.type === 'file' && bookmark.file_id) {
         link = (
             <DynamicLink
-                href={disableLinks ? undefined : getFileDownloadUrl(bookmark.file_id)}
+                href={getFileDownloadUrl(bookmark.file_id)}
                 onClick={handleOpenFile}
                 ref={linkRef}
                 isFile={true}
@@ -94,35 +95,38 @@ const useBookmarkLink = (bookmark: ChannelBookmark, disableLinks = false) => {
     } as const;
 };
 
-interface BookmarkItemContentProps {
+type Props = {
     bookmark: ChannelBookmark;
+    drag: DraggableProvided;
+    isDragging: boolean;
     disableInteractions: boolean;
-}
-
-function BookmarkItemContent({
-    bookmark,
-    disableInteractions,
-}: BookmarkItemContentProps) {
-    const {link, open} = useBookmarkLink(bookmark, disableInteractions);
+};
+const BookmarkItem = (({bookmark, drag, disableInteractions}: Props) => {
+    const {link, open} = useBookmarkLink(bookmark);
 
     return (
-        <Chip $disableInteractions={disableInteractions}>
-            {link && cloneElement(link, {role: 'link'})}
+        <Chip
+            ref={drag.innerRef}
+            {...drag.draggableProps}
+            $disableInteractions={disableInteractions}
+        >
+            {link && cloneElement(link, {...drag.dragHandleProps, role: 'link'})}
             <BookmarkItemDotMenu
                 bookmark={bookmark}
                 open={open}
             />
         </Chip>
     );
-}
+});
 
 const Chip = styled.div<{$disableInteractions: boolean}>`
     position: relative;
-    display: flex;
-    align-items: center;
-    width: 100%;
-    min-width: 0;
+    border-radius: 12px;
     overflow: hidden;
+    margin: 1px 0;
+    flex-shrink: 0;
+    min-width: 5rem;
+    max-width: 25rem;
 
     button {
         position: absolute;
@@ -186,7 +190,7 @@ const Label = styled.span`
 const TARGET_BLANK_URL_PREFIX = '!';
 
 type DynamicLinkProps = AnchorHTMLAttributes<HTMLAnchorElement> & {
-    href?: string;
+    href: string;
     children: React.ReactNode;
     isFile: boolean;
 };
@@ -197,18 +201,6 @@ const DynamicLink = forwardRef<HTMLAnchorElement, DynamicLinkProps>(({
     onClick,
     ...otherProps
 }, ref) => {
-    // When href is undefined (e.g. during drag), render an inert span
-    if (!href) {
-        return (
-            <StyledSpan
-                {...otherProps}
-                ref={ref as React.Ref<HTMLSpanElement>}
-            >
-                {children}
-            </StyledSpan>
-        );
-    }
-
     const siteURL = getSiteURL();
     const openInNewTab = shouldOpenInNewTab(href, siteURL);
 
@@ -253,14 +245,10 @@ const DynamicLink = forwardRef<HTMLAnchorElement, DynamicLinkProps>(({
     );
 });
 
-DynamicLink.displayName = 'DynamicLink';
-
 const linkStyles = css`
     display: flex;
     padding: 0 12px 0 6px;
     gap: 5px;
-    min-width: 0;
-    overflow: hidden;
 
     color: rgba(var(--center-channel-color-rgb), 1);
     font-family: Open Sans;
@@ -288,8 +276,4 @@ const StyledExternalLink = styled(ExternalLink)`
     }
 `;
 
-const StyledSpan = styled.span`
-    ${linkStyles}
-`;
-
-export default BookmarkItemContent;
+export default BookmarkItem;

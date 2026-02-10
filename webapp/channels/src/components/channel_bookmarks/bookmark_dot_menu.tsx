@@ -33,11 +33,10 @@ import BookmarkDeleteModal from './bookmark_delete_modal';
 import ChannelBookmarksCreateModal from './channel_bookmarks_create_modal';
 import {useCanGetPublicLink, useChannelBookmarkPermission} from './utils';
 
-type Props = {bookmark: ChannelBookmark; open: () => void; buttonClassName?: string};
+type Props = {bookmark: ChannelBookmark; open: () => void};
 const BookmarkItemDotMenu = ({
     bookmark,
     open,
-    buttonClassName,
 }: Props) => {
     const {formatMessage} = useIntl();
     const dispatch = useDispatch();
@@ -113,7 +112,7 @@ const BookmarkItemDotMenu = ({
             transformOrigin={{vertical: 'top', horizontal: 'right'}}
             menuButton={{
                 id: `channelBookmarksDotMenuButton-${bookmark.id}`,
-                class: `channelBookmarksDotMenuButton ${buttonClassName ?? ''}`,
+                class: 'channelBookmarksDotMenuButton',
                 children: <DotsHorizontalIcon size={18}/>,
                 'aria-label': formatMessage({id: 'channel_bookmarks.editBookmarkLabel', defaultMessage: 'Bookmark menu'}),
             }}
