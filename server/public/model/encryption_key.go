@@ -104,6 +104,23 @@ func (r *EncryptionPublicKeyRequest) IsValid() *AppError {
 		return NewAppError("EncryptionPublicKeyRequest.IsValid", "model.encryption_key.is_valid.public_key_kty_invalid.app_error", nil, "", http.StatusBadRequest)
 	}
 
+	if kty == "RSA" {
+		if n, ok := jwk["n"].(string); !ok || len(n) < 100 {
+			return NewAppError("EncryptionPublicKeyRequest.IsValid", "model.encryption_key.is_valid.public_key_rsa_n_weak.app_error", nil, "", http.StatusBadRequest)
+		}
+	} else if kty == "EC" {
+		if _, ok := jwk["x"].(string); !ok {
+			return NewAppError("EncryptionPublicKeyRequest.IsValid", "model.encryption_key.is_valid.public_key_ec_x_missing.app_error", nil, "", http.StatusBadRequest)
+		}
+		if _, ok := jwk["y"].(string); !ok {
+			return NewAppError("EncryptionPublicKeyRequest.IsValid", "model.encryption_key.is_valid.public_key_ec_y_missing.app_error", nil, "", http.StatusBadRequest)
+		}
+	} else if kty == "OKP" {
+		if _, ok := jwk["x"].(string); !ok {
+			return NewAppError("EncryptionPublicKeyRequest.IsValid", "model.encryption_key.is_valid.public_key_okp_x_missing.app_error", nil, "", http.StatusBadRequest)
+		}
+	}
+
 	return nil
 }
 
