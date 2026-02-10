@@ -8,7 +8,7 @@ import {useLocation} from 'react-router-dom';
 
 import {cleanUpStatusAndProfileFetchingPoll} from 'mattermost-redux/actions/status_profile_polling';
 import {getIsUserStatusesConfigEnabled} from 'mattermost-redux/selectors/entities/common';
-import {getConfig} from 'mattermost-redux/selectors/entities/general';
+import {getConfig, getFeatureFlagValue} from 'mattermost-redux/selectors/entities/general';
 
 import {setDmMode} from 'actions/views/guilded_layout';
 import {addVisibleUsersInCurrentChannelAndSelfToStatusPoll, fetchVisibleUserStatusesNow} from 'actions/status_actions';
@@ -42,6 +42,7 @@ export default function ChannelController(props: Props) {
     const isMobileView = useSelector(getIsMobileView);
     const enabledUserStatuses = useSelector(getIsUserStatusesConfigEnabled);
     const isGuilded = useSelector(isGuildedLayoutEnabled);
+    const accurateStatuses = useSelector((state) => getFeatureFlagValue(state, 'AccurateStatuses') === 'true');
     const config = useSelector(getConfig);
     const dispatch = useDispatch();
 
@@ -71,11 +72,13 @@ export default function ChannelController(props: Props) {
     }, []);
 
     // Starts a regular interval to fetch statuses of users.
+    // When AccurateStatuses is enabled, the server pushes status changes via WebSocket,
+    // so polling is unnecessary.
     // Guilded layout with polling enabled: direct-fetch at configured interval (faster).
     // Otherwise: queue-based fetch at 60s via BackgroundDataLoader.
     useEffect(() => {
         let loadStatusesIntervalId: NodeJS.Timeout;
-        if (enabledUserStatuses) {
+        if (enabledUserStatuses && !accurateStatuses) {
             if (isGuilded && guildedPollingInterval > 0) {
                 loadStatusesIntervalId = setInterval(() => {
                     dispatch(fetchVisibleUserStatusesNow());
@@ -90,7 +93,7 @@ export default function ChannelController(props: Props) {
         return () => {
             clearInterval(loadStatusesIntervalId);
         };
-    }, [enabledUserStatuses, isGuilded, guildedPollingInterval]);
+    }, [enabledUserStatuses, isGuilded, guildedPollingInterval, accurateStatuses]);
 
     // Auto-set DM mode based on route when Guilded layout is active
     useEffect(() => {

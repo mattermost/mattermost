@@ -293,7 +293,13 @@ func (ps *PlatformService) BroadcastStatus(status *model.Status) {
 		// this is considered a non-critical service and will be disabled when server busy.
 		return
 	}
-	event := model.NewWebSocketEvent(model.WebsocketEventStatusChange, "", "", status.UserId, nil, "")
+	// When AccurateStatuses is enabled, the server owns all status transitions,
+	// so broadcast to all connected users instead of just the affected user.
+	targetUserId := status.UserId
+	if ps.Config().FeatureFlags.AccurateStatuses {
+		targetUserId = ""
+	}
+	event := model.NewWebSocketEvent(model.WebsocketEventStatusChange, "", "", targetUserId, nil, "")
 	event.Add("status", status.Status)
 	event.Add("user_id", status.UserId)
 	ps.Publish(event)
@@ -1353,8 +1359,6 @@ func (ps *PlatformService) UpdateActivityFromHeartbeat(userID string, windowActi
 		if dbErr := ps.Store.Status().SaveOrUpdate(status); dbErr != nil {
 			ps.Log().Warn("Failed to save status from heartbeat", mlog.String("user_id", userID), mlog.Err(dbErr))
 		}
-		// Broadcast status change via WebSocket so other users see the update
-		ps.BroadcastStatus(status)
 	} else if lastActivityAtChanged {
 		if dbErr := ps.Store.Status().UpdateLastActivityAt(userID, status.LastActivityAt); dbErr != nil {
 			ps.Log().Warn("Failed to update LastActivityAt from heartbeat", mlog.String("user_id", userID), mlog.Err(dbErr))
@@ -1421,7 +1425,7 @@ func (ps *PlatformService) UpdateActivityFromHeartbeat(userID string, windowActi
 		}
 	}
 
-	// Broadcast status change if status changed
+	// Broadcast status change and notify shared channel service
 	if statusChanged {
 		ps.BroadcastStatus(status)
 		if ps.sharedChannelService != nil {
