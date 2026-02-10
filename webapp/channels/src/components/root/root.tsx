@@ -71,12 +71,14 @@ const AnnouncementBarController = makeAsyncComponent('AnnouncementBarController'
 const SystemNotice = makeAsyncComponent('SystemNotice', lazy(() => import('components/system_notice')));
 const CloudEffects = makeAsyncComponent('CloudEffects', lazy(() => import('components/cloud_effects')));
 const TeamSidebar = makeAsyncComponent('TeamSidebar', lazy(() => import('components/team_sidebar')));
+const ProductSidebar = makeAsyncComponent('ProductSidebar', lazy(() => import('components/product_sidebar')));
 const SidebarRight = makeAsyncComponent('SidebarRight', lazy(() => import('components/sidebar_right')));
 const ModalController = makeAsyncComponent('ModalController', lazy(() => import('components/modal_controller')));
 const AppBar = makeAsyncComponent('AppBar', lazy(() => import('components/app_bar/app_bar')));
 const ComponentLibrary = makeAsyncComponent('ComponentLibrary', lazy(() => import('components/component_library')));
 const PopoutController = makeAsyncComponent('PopoutController', lazy(() => import('components/popout_controller')));
 const Help = makeAsyncComponent('Help', lazy(() => import('components/help')));
+const NewSearch = makeAsyncComponent('NewSearch', lazy(() => import('components/new_search/new_search')));
 
 const Pluggable = makeAsyncPluggableComponent();
 
@@ -423,8 +425,24 @@ export default class Root extends React.PureComponent<Props, State> {
                         <ModalController/>
                         <AnnouncementBarController/>
                         <SystemNotice/>
-                        <GlobalHeader/>
+                        {!this.props.isProductSidebarEnabled && <GlobalHeader/>}
+                        {this.props.isProductSidebarEnabled && (
+                            <div
+                                style={{
+                                    position: 'fixed',
+                                    top: 8,
+                                    left: 64,
+                                    opacity: 0,
+                                    pointerEvents: 'none',
+                                    zIndex: -1,
+                                }}
+                                aria-hidden='true'
+                            >
+                                <NewSearch isCentered={true}/>
+                            </div>
+                        )}
                         <CloudEffects/>
+                        <ProductSidebar/>
                         <TeamSidebar/>
                         <div className='main-wrapper'>
                             <Switch>

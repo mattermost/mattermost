@@ -1,0 +1,142 @@
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
+
+.TeamSection {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 12px 0 8px;
+
+    // Wrapper for single-team avatar to enable tooltip interaction
+    &__avatarWrapper {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    // Menu button styling - remove default button appearance
+    &__menuButton {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 0;
+        border: none;
+        background: transparent;
+
+        &:focus-visible {
+            border-radius: 8px;
+            outline: 2px solid var(--button-bg);
+            outline-offset: 2px;
+        }
+    }
+
+    // Dropdown menu styling - matches Figma Team Switcher Menu design
+    &__menu {
+        min-width: 200px;
+        max-width: 280px;
+        max-height: 320px;
+        overflow-y: auto;
+
+        // Override MuiPaper styling for the menu container
+        &.MuiPopover-paper,
+        .MuiPaper-root {
+            border: 1px solid rgba(var(--center-channel-color-rgb), 0.16);
+            border-radius: 4px;
+            background: var(--center-channel-bg, white);
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+        }
+
+        // Override MuiList padding
+        .MuiList-root {
+            padding: 8px 0;
+        }
+
+        // Menu item styling - override MUI defaults
+        .MuiMenuItem-root {
+            min-height: unset;
+            padding: 6px 16px;
+            gap: 6px;
+
+            // Leading element (team icon wrapper) - add left padding per Figma
+            > .leading-element {
+                width: auto;
+                height: auto;
+                padding-left: 4px;
+                margin-inline-end: 0;
+            }
+
+            // Label styling - override MUI defaults
+            > .label-elements {
+                padding: 2px 4px;
+                gap: 4px;
+                line-height: 20px;
+
+                > :first-child,
+                > :only-child {
+                    color: var(--center-channel-color, #3f4350);
+                    font-family: 'Open Sans', sans-serif;
+                    font-size: 14px;
+                    font-weight: 400;
+                    line-height: 20px;
+                }
+            }
+
+            // Trailing element (checkmark) wrapper
+            > .trailing-elements {
+                padding: 4px;
+                margin-inline-start: 0;
+            }
+        }
+
+        // Team icon sizing within menu items (24px) - override base TeamIcon styles for menu context
+        .TeamIcon {
+            width: 24px !important;
+            min-width: 24px;
+            height: 24px !important;
+            min-height: 24px;
+            border: none !important;
+            border-radius: 4px !important;
+            background-color: rgba(var(--center-channel-color-rgb), 0.16) !important;
+            box-shadow: none !important;
+
+            &:hover {
+                background-color: rgba(var(--center-channel-color-rgb), 0.16) !important;
+                box-shadow: none !important;
+            }
+
+            .TeamIcon__content {
+                width: 24px;
+                height: 24px;
+                border-radius: 4px;
+            }
+
+            .TeamIcon__image {
+                width: 24px;
+                min-width: 24px;
+                height: 24px;
+                min-height: 24px;
+                border-radius: 4px;
+            }
+
+            .TeamIcon__initials {
+                width: 24px;
+                min-width: 24px;
+                height: 24px;
+                min-height: 24px;
+                border-radius: 4px;
+                color: var(--center-channel-color, #3f4350);
+                font-family: 'Metropolis', sans-serif;
+                font-size: 11.2px;
+                font-weight: 600;
+                line-height: 24px;
+            }
+        }
+    }
+
+    // Checkmark icon for current team - blue color from Figma
+    &__checkIcon {
+        width: 16px;
+        height: 16px;
+        color: rgba(28, 88, 217, 1);
+    }
+}

@@ -1,0 +1,75 @@
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
+
+.MoreMenu__wrapper {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    // Menu button styling via Menu.Container
+    .MoreMenuButton {
+        display: flex;
+        width: 40px;
+        height: 40px;
+        align-items: center;
+        justify-content: center;
+        border: none;
+        border-radius: 8px;
+        background: transparent;
+        color: rgba(var(--sidebar-text-rgb), 0.72);
+        cursor: pointer;
+
+        &:hover {
+            background: rgba(var(--sidebar-text-rgb), 0.08);
+            color: var(--sidebar-text);
+        }
+
+        &[aria-expanded="true"] {
+            background: rgba(var(--sidebar-text-rgb), 0.16);
+            color: var(--sidebar-text);
+        }
+    }
+}
+
+// Override MuiPaper styles specifically for MoreMenu popover
+// Uses :has() to target Paper only when it contains our MoreMenu
+.MuiPaper-root:has(.MoreMenu) {
+    padding: 8px 0;
+    border: 1px solid rgba(var(--center-channel-color-rgb), 0.16);
+    border-radius: 4px;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+}
+
+.MoreMenu {
+    width: 241px;
+
+    // System menu items styling
+    .Menu__item {
+        height: 36px;
+        padding: 6px 16px;
+        font-family: 'Open Sans', sans-serif;
+        font-size: 14px;
+        gap: 6px;
+        line-height: 20px;
+    }
+
+    .MuiDivider-root {
+        margin: 8px 0;
+    }
+
+    // System items have gray 16x16 icons in 24x24 container with 4px padding
+    &__systemIcon {
+        display: flex;
+        width: 24px;
+        height: 24px;
+        align-items: center;
+        justify-content: center;
+        padding: 4px;
+        color: rgba(var(--center-channel-color-rgb), 1);
+
+        svg {
+            width: 16px;
+            height: 16px;
+        }
+    }
+}

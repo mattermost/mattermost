@@ -1,0 +1,47 @@
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
+
+.ProductIcon {
+    position: relative;
+    display: flex;
+    width: 40px;
+    height: 40px;
+    align-items: center;
+    justify-content: center;
+    border-radius: var(--radius-s, 4px);
+    cursor: pointer;
+    transition: background-color 150ms ease;
+
+    // Link reset - full coverage of the icon container
+    a {
+        display: flex;
+        width: 100%;
+        height: 100%;
+        align-items: center;
+        justify-content: center;
+        color: inherit;
+        text-decoration: none;
+    }
+
+    // Hover state
+    &:hover {
+        background-color: rgba(var(--sidebar-text-rgb), 0.08);
+    }
+
+    // Active state with blue bar indicator
+    &--active {
+        background-color: rgba(var(--sidebar-text-rgb), 0.16);
+
+        // Blue bar indicator positioned at sidebar edge
+        &::before {
+            position: absolute;
+            top: 0;
+            left: -8px;
+            width: 3px;
+            height: 40px;
+            border-radius: 0 4px 4px 0;
+            background-color: var(--button-bg);
+            content: '';
+        }
+    }
+}

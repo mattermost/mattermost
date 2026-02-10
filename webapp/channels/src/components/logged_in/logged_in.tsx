@@ -182,7 +182,7 @@ export default class LoggedIn extends React.PureComponent<Props> {
         const excludedElements = ['input', 'textarea'];
         const targetElement = e.target as HTMLElement;
 
-        if (!targetElement) {
+        if (!targetElement || !targetElement.tagName) {
             return;
         }
 

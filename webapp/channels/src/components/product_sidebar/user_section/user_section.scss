@@ -1,0 +1,53 @@
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
+
+.UserSection {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    // Override UserAccountMenu button styling for sidebar context
+    .userAccountMenu_menuButton {
+        padding: 4px;
+        border-radius: var(--radius-s, 4px);
+        margin: 0;
+        background: transparent;
+
+        // Hover and expanded states
+        &:hover,
+        &[aria-expanded="true"] {
+            background: rgba(var(--sidebar-text-rgb), 0.08);
+
+            .userStatusIconWrapper {
+                background-image: linear-gradient(
+                    0deg,
+                    rgba(var(--sidebar-text-rgb), 0.08),
+                    rgba(var(--sidebar-text-rgb), 0.08)
+                );
+            }
+        }
+
+        // Custom status background override
+        &.withCustomStatus {
+            background: rgba(var(--sidebar-text-rgb), 0.16);
+
+            .userStatusIconWrapper {
+                background-image: linear-gradient(
+                    0deg,
+                    rgba(var(--sidebar-text-rgb), 0.16),
+                    rgba(var(--sidebar-text-rgb), 0.16)
+                );
+            }
+        }
+    }
+
+    // Override status icon wrapper positioning for sidebar
+    .userStatusIconWrapper {
+        right: 0;
+        bottom: -2px;
+
+        // Use sidebar background color instead of global header
+        background-color: var(--sidebar-header-bg);
+        color: var(--sidebar-text);
+    }
+}
