@@ -48,13 +48,13 @@ test.describe('ABAC Policies - Channel Integration', () => {
 
         // Create satisfying user (Department=Engineering) - NOT in channel initially
         const satisfyingUser = await createUserForABAC(adminClient, attributeFieldsMap, [
-            {name: 'Department', value: 'Engineering'},
+            {name: 'Department', value: 'Engineering', type: 'text'},
         ]);
         await adminClient.addToTeam(team.id, satisfyingUser.id);
 
         // Create non-satisfying user (Department=Sales) - will be IN channel initially
         const nonSatisfyingUser = await createUserForABAC(adminClient, attributeFieldsMap, [
-            {name: 'Department', value: 'Sales'},
+            {name: 'Department', value: 'Sales', type: 'text'},
         ]);
         await adminClient.addToTeam(team.id, nonSatisfyingUser.id);
 

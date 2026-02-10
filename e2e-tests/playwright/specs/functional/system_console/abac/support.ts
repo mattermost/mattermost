@@ -67,17 +67,11 @@ export async function createUserAttributeField(client: Client4, name: string, ty
         },
     };
 
-    try {
-        // eslint-disable-line no-useless-catch
-        const response = await (client as any).doFetch(url, {
-            method: 'POST',
-            body: JSON.stringify(field),
-        });
-        return response;
-    } catch (error) {
-        // console.error(`Failed to create user attribute field "${name}":`, error);
-        throw error;
-    }
+    const response = await (client as any).doFetch(url, {
+        method: 'POST',
+        body: JSON.stringify(field),
+    });
+    return response;
 }
 
 /**
@@ -183,7 +177,7 @@ export async function createUserForABAC(
             email: `${username}@example.com`,
             username: username,
             password: 'Password123!',
-        },
+        } as any,
         '',
         '',
     );
@@ -820,12 +814,7 @@ export async function createAdvancedPolicy(
  */
 export async function activatePolicy(client: Client4, policyId: string): Promise<void> {
     const url = `${client.getBaseRoute()}/access_control_policies/${policyId}/activate?active=true`;
-    try {
-        await (client as any).doFetch(url, {method: 'GET'});
-    } catch {
-        // console.error(`Failed to activate policy ${policyId}:`, error.message || String(error));
-        throw error;
-    }
+    await (client as any).doFetch(url, {method: 'GET'});
 }
 
 /**

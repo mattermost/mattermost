@@ -137,7 +137,7 @@ test.describe('ABAC Policies - Advanced Policies', () => {
             await policyRowForTest.click();
             await systemConsolePage.page.waitForLoadState('networkidle');
 
-            await testAccessRule(systemConsolePage.page, {
+            const testResult = await testAccessRule(systemConsolePage.page, {
                 expectedMatchingUsers: [satisfyingUserNotInChannel.username, satisfyingUserInChannel.username],
                 expectedNonMatchingUsers: [partialSatisfyingUser.username],
             });
@@ -592,21 +592,21 @@ test.describe('ABAC Policies - Advanced Policies', () => {
         // # Create test users with different attribute combinations
         // User 1: Department=Engineering (satisfies first condition)
         const engineerUser = await createUserForABAC(adminClient, attributeFieldsMap, [
-            {name: 'Department', value: 'Engineering'},
-            {name: 'Location', value: 'Office'},
+            {name: 'Department', value: 'Engineering', type: 'text'},
+            {name: 'Location', value: 'Office', type: 'text'},
         ]);
 
         // User 2: Department=Sales AND Location=Remote (satisfies second grouped condition)
         const salesRemoteUser = await createUserForABAC(adminClient, attributeFieldsMap, [
-            {name: 'Department', value: 'Sales'},
-            {name: 'Location', value: 'Remote'},
+            {name: 'Department', value: 'Sales', type: 'text'},
+            {name: 'Location', value: 'Remote', type: 'text'},
         ]);
 
         // User 3: Department=Sales, Location=Office (meets SOME rules - Sales but not Remote)
         // This user satisfies only PART of the grouped condition (Sales && Remote)
         const salesOfficeUser = await createUserForABAC(adminClient, attributeFieldsMap, [
-            {name: 'Department', value: 'Sales'},
-            {name: 'Location', value: 'Office'},
+            {name: 'Department', value: 'Sales', type: 'text'},
+            {name: 'Location', value: 'Office', type: 'text'},
         ]);
 
         // # Add all users to the team
