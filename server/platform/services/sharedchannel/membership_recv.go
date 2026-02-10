@@ -42,7 +42,7 @@ func (scs *Service) checkMembershipConflict(userID, channelID string, changeTime
 	return false, nil
 }
 
-// onReceiveMembershipChanges processes channel membership changes from a remote cluster.
+// onReceiveMembershipChanges processes channel membership changes from a remote cluster
 func (scs *Service) onReceiveMembershipChanges(syncMsg *model.SyncMsg, rc *model.RemoteCluster, response *remotecluster.Response) error {
 	// Check if feature flag is enabled
 	if !scs.server.Config().FeatureFlags.EnableSharedChannelsMemberSync {
