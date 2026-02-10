@@ -104,11 +104,22 @@ var (
 			Padding(0, 1)
 )
 
-// RenderTabBar renders the numbered process tabs and returns hit zones for mouse support.
-func RenderTabBar(tabs []LogTab, currentID string, focus TabFocus) (string, []TabHitZone) {
-	var tabParts []string
-	var hitZones []TabHitZone
-	x := 0
+// RenderTabBar renders the numbered process tabs with horizontal scrolling.
+// hScroll is the pixel offset into the tab bar; width is the available screen width.
+// Returns the rendered string, hit zones (adjusted for scroll), and the updated hScroll.
+func RenderTabBar(tabs []LogTab, currentID string, focus TabFocus, width, hScroll int) (string, []TabHitZone, int) {
+	type tabEntry struct {
+		rendered string
+		width    int
+		startX   int // logical X before scrolling
+		idx      int
+		procID   string
+	}
+
+	var entries []tabEntry
+	logicalX := 0
+	currentStart := 0
+	currentEnd := 0
 	for i, tab := range tabs {
 		num := fmt.Sprintf("%d", i+1)
 
@@ -143,14 +154,60 @@ func RenderTabBar(tabs []LogTab, currentID string, focus TabFocus) (string, []Ta
 		}
 
 		w := lipgloss.Width(rendered)
-		hitZones = append(hitZones, TabHitZone{
-			X: x, Width: w, TabIdx: i, ProcID: tab.ID,
+		entries = append(entries, tabEntry{
+			rendered: rendered, width: w, startX: logicalX,
+			idx: i, procID: tab.ID,
 		})
-		x += w
-		tabParts = append(tabParts, rendered)
+		if isCurrent {
+			currentStart = logicalX
+			currentEnd = logicalX + w
+		}
+		logicalX += w
 	}
 
-	return strings.Join(tabParts, ""), hitZones
+	totalWidth := logicalX
+	availableWidth := width - 2 // reserve 2 chars for scroll indicators
+
+	// Auto-scroll to keep the current tab visible
+	if currentStart < hScroll {
+		hScroll = currentStart
+	}
+	if currentEnd > hScroll+availableWidth {
+		hScroll = currentEnd - availableWidth
+	}
+	if hScroll < 0 {
+		hScroll = 0
+	}
+
+	// Collect visible tabs
+	var visibleParts []string
+	var hitZones []TabHitZone
+	for _, e := range entries {
+		eEnd := e.startX + e.width
+		if eEnd <= hScroll {
+			continue
+		}
+		if e.startX-hScroll >= availableWidth {
+			break
+		}
+		screenX := 1 + (e.startX - hScroll) // +1 for left scroll indicator
+		visibleParts = append(visibleParts, e.rendered)
+		hitZones = append(hitZones, TabHitZone{
+			X: screenX, Width: e.width, TabIdx: e.idx, ProcID: e.procID,
+		})
+	}
+
+	// Scroll indicators
+	leftInd := " "
+	rightInd := " "
+	if hScroll > 0 {
+		leftInd = "◂"
+	}
+	if totalWidth-hScroll > availableWidth {
+		rightInd = "▸"
+	}
+
+	return leftInd + strings.Join(visibleParts, "") + rightInd, hitZones, hScroll
 }
 
 func (lp *LogPanel) View(tabs []LogTab, focus TabFocus) string {
@@ -158,7 +215,7 @@ func (lp *LogPanel) View(tabs []LogTab, focus TabFocus) string {
 		return ""
 	}
 
-	tabBar, _ := RenderTabBar(tabs, lp.processID, focus)
+	tabBar, _, _ := RenderTabBar(tabs, lp.processID, focus, lp.width, 0)
 
 	// Scroll indicator
 	scrollIndicator := ""

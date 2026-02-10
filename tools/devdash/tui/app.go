@@ -69,6 +69,7 @@ type App struct {
 	hitZones    []HitZone
 	tabHitZones []TabHitZone
 	tabBarY     int // screen Y of the tab bar line
+	tabHScroll  int // horizontal scroll offset for tab bar
 
 	// Double-click tracking
 	lastClickRow  int
@@ -1196,12 +1197,21 @@ func (a *App) ensureCursorVisible() {
 		return
 	}
 
-	// Calculate chip positions (approximate: label + padding + margin = len + 3)
+	// Calculate chip positions accounting for state indicators and padding
+	repo := &a.repos[a.cursorRow]
 	chipPositions := make([]int, len(displayCells)+1)
 	x := 0
 	for i, c := range displayCells {
 		chipPositions[i] = x
-		x += len(c.Label) + 4 // padding(2) + margin(1) + state indicator wiggle room
+		labelW := len(c.Label)
+		if !c.IsSep {
+			// Account for state indicator prefix (▶/▷/■/□ + space = 2 chars)
+			procID := repo.Name + ":" + c.Target
+			if state := a.procMgr.ProcessState(procID); state != model.ProcessIdle {
+				labelW += 2
+			}
+		}
+		x += labelW + 3 // padding(2) + margin(1)
 	}
 	chipPositions[len(displayCells)] = x
 
@@ -1508,7 +1518,8 @@ func (a *App) View() string {
 		for i, id := range ids {
 			tabs[i] = LogTab{ID: id, State: a.procMgr.ProcessState(id)}
 		}
-		tabBar, tabHZ := RenderTabBar(tabs, a.focusedProc, a.tabFocus())
+		tabBar, tabHZ, newHScroll := RenderTabBar(tabs, a.focusedProc, a.tabFocus(), a.width, a.tabHScroll)
+		a.tabHScroll = newHScroll
 		a.tabHitZones = tabHZ
 		// Tab bar Y = header(1) + search(1) + grid lines + spacer/INPUT line(1)
 		gridLines := strings.Count(gridStr, "\n")
