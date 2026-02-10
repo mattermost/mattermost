@@ -363,7 +363,8 @@ export function isIdNotPost(postId: string): boolean {
     return (
         PostListUtils.isStartOfNewMessages(postId) ||
         PostListUtils.isDateLine(postId) ||
-        postId in PostListRowListIds
+        postId in PostListRowListIds ||
+        postId.includes(':')
     );
 }
 
