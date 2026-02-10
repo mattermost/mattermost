@@ -150,10 +150,10 @@ export default class WebSocketClient {
         // Setup network event listener
         // Remove existing listeners if any
         if (this.onlineHandler) {
-            window.removeEventListener('online', this.onlineHandler);
+            globalThis.window?.removeEventListener('online', this.onlineHandler);
         }
         if (this.offlineHandler) {
-            window.removeEventListener('offline', this.offlineHandler);
+            globalThis.window?.removeEventListener('offline', this.offlineHandler);
         }
 
         this.onlineHandler = () => {
@@ -199,8 +199,8 @@ export default class WebSocketClient {
             });
         };
 
-        window.addEventListener('online', this.onlineHandler);
-        window.addEventListener('offline', this.offlineHandler);
+        globalThis.window?.addEventListener('online', this.onlineHandler);
+        globalThis.window?.addEventListener('offline', this.offlineHandler);
 
         // Add connection id, and last_sequence_number to the query param.
         // We cannot use a cookie because it will bleed across tabs.
@@ -559,11 +559,11 @@ export default class WebSocketClient {
         }
 
         if (this.onlineHandler) {
-            window.removeEventListener('online', this.onlineHandler);
+            globalThis.window?.removeEventListener('online', this.onlineHandler);
             this.onlineHandler = null;
         }
         if (this.offlineHandler) {
-            window.removeEventListener('offline', this.offlineHandler);
+            globalThis.window?.removeEventListener('offline', this.offlineHandler);
             this.offlineHandler = null;
         }
     }
@@ -656,7 +656,7 @@ export default class WebSocketClient {
     acknowledgePostedNotification(postId: string, status: string, reason?: string, postedData?: string) {
         const data = {
             post_id: postId,
-            user_agent: window.navigator.userAgent,
+            user_agent: globalThis.window?.navigator?.userAgent ?? '',
             status,
             reason,
             data: postedData,
