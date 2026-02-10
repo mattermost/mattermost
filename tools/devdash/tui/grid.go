@@ -6,6 +6,7 @@ import (
 
 	"github.com/charmbracelet/lipgloss"
 
+	"github.com/mattermost/mattermost/tools/devdash/discovery"
 	"github.com/mattermost/mattermost/tools/devdash/model"
 )
 
@@ -27,10 +28,11 @@ type TabHitZone struct {
 
 // GridCell represents one target/script in the grid.
 type GridCell struct {
-	Label     string
-	IsNpm     bool
-	Target    string // actual target/script name
-	IsSep     bool   // separator between favorites and the rest
+	Label    string
+	IsNpm    bool
+	Target   string // actual target/script name
+	IsSep    bool   // separator between favorites and the rest
+	Category model.TargetCategory
 }
 
 // repoColWidth is computed dynamically per render based on the longest repo name.
@@ -47,46 +49,49 @@ func cellID(repoName string, c GridCell) string {
 }
 
 func buildGridCells(repo *model.Repo) []GridCell {
-	// Sort make targets by category (Run, Deploy, Lint, Test, Build, Clean, Other)
-	sorted := make([]model.Target, len(repo.MakeTargets))
-	copy(sorted, repo.MakeTargets)
-	sort.SliceStable(sorted, func(i, j int) bool {
-		return sorted[i].Category < sorted[j].Category
-	})
-
 	var cells []GridCell
-	for _, t := range sorted {
+
+	// Make targets
+	for _, t := range repo.MakeTargets {
 		cells = append(cells, GridCell{
-			Label:  t.Name,
-			IsNpm:  false,
-			Target: t.Name,
+			Label:    t.Name,
+			IsNpm:    false,
+			Target:   t.Name,
+			Category: t.Category,
 		})
 	}
-	// npm run scripts — labeled "run:<name>"
+
+	// npm run scripts — labeled "run:<name>", categorized like make targets
 	scriptNames := make(map[string]bool)
 	for _, s := range repo.NpmScripts {
 		scriptNames[s.Name] = true
 		cells = append(cells, GridCell{
-			Label:  "run:" + s.Name,
-			IsNpm:  true,
-			Target: s.Name,
+			Label:    "run:" + s.Name,
+			IsNpm:    true,
+			Target:   s.Name,
+			Category: discovery.ClassifyTarget(s.Name),
 		})
 	}
 
 	// Built-in npm commands — labeled "npm:<cmd>"
 	if repo.PackageJSON != "" {
 		for _, cmd := range []string{"install", "ci", "start", "test", "build"} {
-			// Skip if already defined as a user script
 			if scriptNames[cmd] {
 				continue
 			}
 			cells = append(cells, GridCell{
-				Label:  "npm:" + cmd,
-				IsNpm:  true,
-				Target: cmd,
+				Label:    "npm:" + cmd,
+				IsNpm:    true,
+				Target:   cmd,
+				Category: discovery.ClassifyTarget(cmd),
 			})
 		}
 	}
+
+	// Sort all cells together by category
+	sort.SliceStable(cells, func(i, j int) bool {
+		return cells[i].Category < cells[j].Category
+	})
 
 	return cells
 }
@@ -202,7 +207,7 @@ func renderGridRow(repo *model.Repo, cells []GridCell, cursorCol int, isActiveRo
 		isGridSelected := isActiveRow && i == cursorCol && !logFocusActive
 		isLogTarget := isFocused && logFocusActive
 
-		style := chipColorStyle(cell, repo, isFav, isGridSelected, isLogTarget)
+		style := chipColorStyle(cell, isFav, isGridSelected, isLogTarget)
 
 		rendered := style.Render(label)
 		w := lipgloss.Width(rendered)
@@ -271,7 +276,7 @@ func renderGridRow(repo *model.Repo, cells []GridCell, cursorCol int, isActiveRo
 }
 
 // chipColorStyle returns the appropriate style for a chip based on state.
-func chipColorStyle(cell GridCell, repo *model.Repo, isFav, isGridSelected, isLogTarget bool) lipgloss.Style {
+func chipColorStyle(cell GridCell, isFav, isGridSelected, isLogTarget bool) lipgloss.Style {
 	// Grid-focused selection: the ONE highlight
 	if isGridSelected {
 		return chipSelectedStyle
@@ -280,7 +285,7 @@ func chipColorStyle(cell GridCell, repo *model.Repo, isFav, isGridSelected, isLo
 	// Log-focused target: double underline, no highlight
 	if isLogTarget {
 		base := chipLogTargetStyle
-		fg := cellForeground(cell, repo)
+		fg := cellForeground(cell)
 		if fg != nil {
 			base = base.Foreground(fg)
 		}
@@ -293,25 +298,17 @@ func chipColorStyle(cell GridCell, repo *model.Repo, isFav, isGridSelected, isLo
 		base = chipFavoriteStyle
 	}
 
-	fg := cellForeground(cell, repo)
+	fg := cellForeground(cell)
 	if fg != nil {
 		return base.Foreground(fg)
 	}
 	return base
 }
 
-// cellForeground returns the category/npm color for a cell, or nil for default.
-func cellForeground(cell GridCell, repo *model.Repo) lipgloss.TerminalColor {
-	if cell.IsNpm {
-		return lipgloss.Color("214")
-	}
-	for _, t := range repo.MakeTargets {
-		if t.Name == cell.Target {
-			if c, ok := categoryColors[int(t.Category)]; ok {
-				return c
-			}
-			break
-		}
+// cellForeground returns the category color for a cell, or nil for default.
+func cellForeground(cell GridCell) lipgloss.TerminalColor {
+	if c, ok := categoryColors[int(cell.Category)]; ok {
+		return c
 	}
 	return nil
 }

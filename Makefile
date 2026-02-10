@@ -35,26 +35,57 @@ clean: ## Clean all build artifacts
 	@$(MAKE) -C webapp clean
 	@$(MAKE) dashboard-clean
 
-init-cli-tools: ## Install tmux + mise and generate a starter mise.toml
-	@echo "==> Checking for Homebrew..."
-	@command -v brew >/dev/null 2>&1 || { echo "Error: Homebrew is required. Install from https://brew.sh"; exit 1; }
-	@echo "==> Installing tmux (if missing)..."
-	@command -v tmux >/dev/null 2>&1 || brew install tmux
-	@echo "==> Installing mise (if missing)..."
-	@command -v mise >/dev/null 2>&1 || brew install mise
-	@if [ ! -f mise.toml ]; then \
-		echo "==> Creating mise.toml..."; \
+init-cli-tools: ## Install tmux + mise and generate a starter mise config
+	@OS=$$(uname -s); \
+	echo "==> Detected OS: $$OS"; \
+	echo "==> Installing tmux (if missing)..."; \
+	if ! command -v tmux >/dev/null 2>&1; then \
+		if [ "$$OS" = "Darwin" ]; then \
+			command -v brew >/dev/null 2>&1 || { echo "Error: Homebrew is required on macOS. Install from https://brew.sh"; exit 1; }; \
+			brew install tmux; \
+		elif [ "$$OS" = "Linux" ]; then \
+			if command -v apt-get >/dev/null 2>&1; then \
+				sudo apt-get update && sudo apt-get install -y tmux; \
+			elif command -v dnf >/dev/null 2>&1; then \
+				sudo dnf install -y tmux; \
+			elif command -v pacman >/dev/null 2>&1; then \
+				sudo pacman -S --noconfirm tmux; \
+			else \
+				echo "Error: No supported package manager found. Install tmux manually."; exit 1; \
+			fi; \
+		else \
+			echo "Error: Unsupported OS '$$OS'. Install tmux manually."; exit 1; \
+		fi; \
+	else \
+		echo "    tmux already installed."; \
+	fi; \
+	echo "==> Installing mise (if missing)..."; \
+	if ! command -v mise >/dev/null 2>&1; then \
+		if [ "$$OS" = "Darwin" ] && command -v brew >/dev/null 2>&1; then \
+			brew install mise; \
+		else \
+			curl https://mise.run | sh; \
+		fi; \
+	else \
+		echo "    mise already installed."; \
+	fi
+	@MISE_GLOBAL="$${XDG_CONFIG_HOME:-$$HOME/.config}/mise/config.toml"; \
+	if [ ! -f mise.toml ] && [ ! -f "$$MISE_GLOBAL" ]; then \
+		echo "==> Creating mise config..."; \
 		tools/devdash/scripts/init-mise.sh; \
 	else \
-		echo "==> mise.toml already exists, skipping."; \
+		echo "==> mise config already exists, skipping. Run 'make edit-config' to modify."; \
 	fi
+	@mise trust --yes 2>/dev/null || true
 	@echo "==> Running mise install..."
 	@mise install
-	@echo "==> Done! Run 'mise activate zsh >> ~/.zshrc' if not already set up."
+	@SHELL_NAME=$$(basename "$$SHELL"); \
+	echo "==> Done! Run 'mise activate $$SHELL_NAME >> ~/.$${SHELL_NAME}rc' if not already set up."
 
-edit-config: ## Open mise.toml in your editor
-	@if [ ! -f mise.toml ]; then \
-		echo "==> Creating mise.toml..."; \
+edit-config: ## Open mise config in your editor
+	@MISE_GLOBAL="$${XDG_CONFIG_HOME:-$$HOME/.config}/mise/config.toml"; \
+	if [ ! -f mise.toml ] && [ ! -f "$$MISE_GLOBAL" ]; then \
+		echo "==> Creating mise config..."; \
 		tools/devdash/scripts/init-mise.sh; \
 	fi
 	@mise trust --yes 2>/dev/null || true

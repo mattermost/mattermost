@@ -66,6 +66,12 @@ func ScanAll(mmRoot string) ([]model.Repo, error) {
 		return repos, nil // non-fatal
 	}
 
+	// Track seen git roots to deduplicate worktrees of the same repo
+	seenGitRoots := make(map[string]bool)
+	if gitRoot, ok := resolveGitRepoRoot(mmRoot); ok {
+		seenGitRoots[gitRoot] = true
+	}
+
 	var siblings []model.Repo
 	var plugins []model.Repo
 	for _, entry := range entries {
@@ -74,6 +80,14 @@ func ScanAll(mmRoot string) ([]model.Repo, error) {
 		}
 
 		repoPath := filepath.Join(scanRoot, entry.Name())
+
+		// Deduplicate by real git root (skip worktrees of already-seen repos)
+		if gitRoot, ok := resolveGitRepoRoot(repoPath); ok {
+			if seenGitRoots[gitRoot] {
+				continue
+			}
+			seenGitRoots[gitRoot] = true
+		}
 
 		// Need at least a Makefile or package.json
 		mfPath := filepath.Join(repoPath, "Makefile")
@@ -147,15 +161,18 @@ func ScanAll(mmRoot string) ([]model.Repo, error) {
 	repos = append(repos, siblings...)
 	repos = append(repos, plugins...)
 
-	// 3. Discover sub-packages (nested package.json) for all repos
-	var subRepos []model.Repo
+	// 3. Discover sub-packages and insert immediately after their parent
+	var result []model.Repo
 	for _, repo := range repos {
+		result = append(result, repo)
 		subs := discoverSubPackages(repo)
-		subRepos = append(subRepos, subs...)
+		sort.Slice(subs, func(i, j int) bool {
+			return subs[i].Name < subs[j].Name
+		})
+		result = append(result, subs...)
 	}
-	repos = append(repos, subRepos...)
 
-	return repos, nil
+	return result, nil
 }
 
 // discoverSubPackages scans a repo's directory tree (up to 3 levels) for
@@ -231,6 +248,50 @@ func walkDir(root, dir string, depth, maxDepth int, fn func(pkgPath, relDir stri
 		}
 		walkDir(root, filepath.Join(dir, name), depth+1, maxDepth, fn)
 	}
+}
+
+// resolveGitRepoRoot returns the main git repository root for a path.
+// For worktrees, it follows the .git file back to the main repo.
+// Returns ("", false) if not a git repo.
+func resolveGitRepoRoot(repoPath string) (string, bool) {
+	gitPath := filepath.Join(repoPath, ".git")
+	info, err := os.Lstat(gitPath)
+	if err != nil {
+		return "", false
+	}
+
+	// Regular repo: .git is a directory
+	if info.IsDir() {
+		return repoPath, true
+	}
+
+	// Worktree: .git is a file containing "gitdir: <path>"
+	data, err := os.ReadFile(gitPath)
+	if err != nil {
+		return repoPath, true
+	}
+
+	line := strings.TrimSpace(string(data))
+	if !strings.HasPrefix(line, "gitdir: ") {
+		return repoPath, true
+	}
+
+	// gitdir points to .git/worktrees/<name> in the main repo
+	// Walk up to find the main .git dir
+	gitDir := strings.TrimPrefix(line, "gitdir: ")
+	if !filepath.IsAbs(gitDir) {
+		gitDir = filepath.Join(repoPath, gitDir)
+	}
+	gitDir = filepath.Clean(gitDir)
+
+	// Expect: <main-repo>/.git/worktrees/<name> → go up 3 levels
+	mainRoot := filepath.Dir(filepath.Dir(filepath.Dir(gitDir)))
+	mainGit := filepath.Join(mainRoot, ".git")
+	if info, err := os.Stat(mainGit); err == nil && info.IsDir() {
+		return mainRoot, true
+	}
+
+	return repoPath, true
 }
 
 func fileExists(path string) bool {

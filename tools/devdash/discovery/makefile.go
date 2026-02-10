@@ -106,7 +106,7 @@ func ParseMakeTargets(path string) ([]model.Target, error) {
 		targets = append(targets, model.Target{
 			Name:        name,
 			Description: desc,
-			Category:    classifyTarget(name),
+			Category:    ClassifyTarget(name),
 		})
 		prevComment = ""
 	}
@@ -130,7 +130,8 @@ func ParseMakeTargets(path string) ([]model.Target, error) {
 	return targets, nil
 }
 
-func classifyTarget(name string) model.TargetCategory {
+// ClassifyTarget returns the category for a target/script name based on naming heuristics.
+func ClassifyTarget(name string) model.TargetCategory {
 	n := strings.ToLower(name)
 	switch {
 	case containsAny(n, "run", "start", "stop", "dev", "watch", "debug"):

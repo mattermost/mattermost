@@ -15,7 +15,7 @@ func main() {
 	// Check tmux is available
 	if _, err := exec.LookPath("tmux"); err != nil {
 		fmt.Fprintln(os.Stderr, "error: tmux is required but not found in PATH")
-		fmt.Fprintln(os.Stderr, "install with: brew install tmux")
+		fmt.Fprintln(os.Stderr, "install with: make init-cli-tools")
 		os.Exit(1)
 	}
 
