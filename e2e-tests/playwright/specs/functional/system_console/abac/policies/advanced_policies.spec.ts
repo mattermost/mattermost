@@ -5,40 +5,25 @@ import {
     expect,
     test,
     enableABAC,
-    disableABAC,
     navigateToABACPage,
-    editPolicy,
-    deletePolicy,
     runSyncJob,
     verifyUserInChannel,
-    verifyUserNotInChannel,
-    updateUserAttributes,
     createUserWithAttributes,
 } from '@mattermost/playwright-lib';
 
 import {
     CustomProfileAttribute,
     setupCustomProfileAttributeFields,
-    setupCustomProfileAttributeValuesForUser,
-    deleteCustomProfileAttributes,
 } from '../../../channels/custom_profile_attributes/helpers';
-
 import {
-    verifyPolicyExists,
-    verifyPolicyNotExists,
-    createUserAttributeField,
     ensureUserAttributes,
     createUserForABAC,
     testAccessRule,
     createPrivateChannelForABAC,
-    createBasicPolicy,
-    createMultiAttributePolicy,
     createAdvancedPolicy,
     activatePolicy,
     waitForLatestSyncJob,
-    getJobDetailsForChannel,
     getJobDetailsFromRecentJobs,
-    getPolicyIdByName,
     enableUserManagedAttributes,
 } from '../support';
 
@@ -141,7 +126,7 @@ test.describe('ABAC Policies - Advanced Policies', () => {
             await policyRowForTest.click();
             await systemConsolePage.page.waitForLoadState('networkidle');
 
-            const testResult = await testAccessRule(systemConsolePage.page, {
+            await testAccessRule(systemConsolePage.page, {
                 expectedMatchingUsers: [satisfyingUserNotInChannel.username, satisfyingUserInChannel.username],
                 expectedNonMatchingUsers: [partialSatisfyingUser.username],
             });
@@ -185,9 +170,9 @@ test.describe('ABAC Policies - Advanced Policies', () => {
         // ============================================================
 
         // Direct verification via API first to debug
-        const user1DirectCheck = await verifyUserInChannel(adminClient, satisfyingUserNotInChannel.id, privateChannel.id);
-        const user2DirectCheck = await verifyUserInChannel(adminClient, satisfyingUserInChannel.id, privateChannel.id);
-        const user3DirectCheck = await verifyUserInChannel(adminClient, partialSatisfyingUser.id, privateChannel.id);
+        await verifyUserInChannel(adminClient, satisfyingUserNotInChannel.id, privateChannel.id);
+        await verifyUserInChannel(adminClient, satisfyingUserInChannel.id, privateChannel.id);
+        await verifyUserInChannel(adminClient, partialSatisfyingUser.id, privateChannel.id);
 
         // Try to get job details, but don't fail test if they're not as expected
         // The direct API checks below are the authoritative verification
@@ -196,12 +181,17 @@ test.describe('ABAC Policies - Advanced Policies', () => {
 
             // Log expectations but don't fail on job details - use direct API checks instead
             if (jobDetails.added >= 1) {
+                // Expected: user added
             } else {
+                // No users added
             }
             if (jobDetails.removed >= 1) {
+                // Expected: user removed
             } else {
+                // No users removed
             }
-        } catch (e) {
+        } catch {
+            // Ignore errors
         }
 
         // ============================================================
@@ -253,9 +243,13 @@ test.describe('ABAC Policies - Advanced Policies', () => {
         try {
             const existingFields = await adminClient.getCustomProfileAttributeFields();
             for (const field of existingFields || []) {
-                await adminClient.deleteCustomProfileAttributeField(field.id).catch(() => {});
+                await adminClient.deleteCustomProfileAttributeField(field.id).catch(() => {
+                    // Ignore deletion errors
+                });
             }
-        } catch (e) { /* ignore */ }
+        } catch {
+            // Ignore errors
+        }
 
         const attributeFields: CustomProfileAttribute[] = [
             {name: 'Department', type: 'text', value: ''},
@@ -303,7 +297,7 @@ test.describe('ABAC Policies - Advanced Policies', () => {
             await policyRowForTest1.click();
             await systemConsolePage.page.waitForLoadState('networkidle');
 
-            const testResult1 = await testAccessRule(systemConsolePage.page, {
+            await testAccessRule(systemConsolePage.page, {
                 expectedMatchingUsers: [engineerUser.username],
                 expectedNonMatchingUsers: [salesUser.username],
             });
@@ -356,7 +350,7 @@ test.describe('ABAC Policies - Advanced Policies', () => {
             await policyRowForTest2.click();
             await systemConsolePage.page.waitForLoadState('networkidle');
 
-            const testResult2 = await testAccessRule(systemConsolePage.page, {
+            await testAccessRule(systemConsolePage.page, {
                 expectedMatchingUsers: [engineerUser.username],
                 expectedNonMatchingUsers: [salesUser.username],
             });
@@ -407,7 +401,7 @@ test.describe('ABAC Policies - Advanced Policies', () => {
             await policyRowForTest3.click();
             await systemConsolePage.page.waitForLoadState('networkidle');
 
-            const testResult3 = await testAccessRule(systemConsolePage.page, {
+            await testAccessRule(systemConsolePage.page, {
                 expectedMatchingUsers: [engineerUser.username],
                 expectedNonMatchingUsers: [salesUser.username],
             });
@@ -458,7 +452,7 @@ test.describe('ABAC Policies - Advanced Policies', () => {
             await policyRowForTest4.click();
             await systemConsolePage.page.waitForLoadState('networkidle');
 
-            const testResult4 = await testAccessRule(systemConsolePage.page, {
+            await testAccessRule(systemConsolePage.page, {
                 expectedMatchingUsers: [engineerUser.username],
                 expectedNonMatchingUsers: [salesUser.username],
             });
@@ -509,7 +503,7 @@ test.describe('ABAC Policies - Advanced Policies', () => {
             await policyRowForTest5.click();
             await systemConsolePage.page.waitForLoadState('networkidle');
 
-            const testResult5 = await testAccessRule(systemConsolePage.page, {
+            await testAccessRule(systemConsolePage.page, {
                 expectedMatchingUsers: [engineerUser.username],
                 expectedNonMatchingUsers: [salesUser.username],
             });
@@ -573,11 +567,12 @@ test.describe('ABAC Policies - Advanced Policies', () => {
             for (const field of existingFields || []) {
                 try {
                     await adminClient.deleteCustomProfileAttributeField(field.id);
-                } catch (e) {
+                } catch {
                     // Ignore deletion errors
                 }
             }
-        } catch (e) {
+        } catch {
+            // Ignore errors
         }
 
         // # Create attributes: Department and Location
@@ -586,8 +581,8 @@ test.describe('ABAC Policies - Advanced Policies', () => {
             {name: 'Location', type: 'text'},
         ]);
 
-        // Verify attributes were created
-        const createdAttrs = Object.keys(attributeFieldsMap);
+        // Verify attributes were created (unused but kept for debugging)
+        Object.keys(attributeFieldsMap);
 
         // # Create test users with different attribute combinations
         // User 1: Department=Engineering (satisfies first condition)
@@ -650,7 +645,7 @@ test.describe('ABAC Policies - Advanced Policies', () => {
             await policyRow.click();
             await systemConsolePage.page.waitForLoadState('networkidle');
 
-            const testResult = await testAccessRule(systemConsolePage.page, {
+            await testAccessRule(systemConsolePage.page, {
                 expectedMatchingUsers: [engineerUser.username, salesRemoteUser.username],
                 expectedNonMatchingUsers: [salesOfficeUser.username],
             });
@@ -658,6 +653,7 @@ test.describe('ABAC Policies - Advanced Policies', () => {
             // Go back to ABAC page
             await navigateToABACPage(systemConsolePage.page);
         } else {
+            // Policy row not visible
         }
 
         // # Wait for sync job (from Apply Policy)
@@ -682,7 +678,7 @@ test.describe('ABAC Policies - Advanced Policies', () => {
             }
         } else {
             // Try to list what policies ARE visible
-            const visiblePolicies = await systemConsolePage.page.locator('.policy-name').allTextContents();
+            await systemConsolePage.page.locator('.policy-name').allTextContents();
         }
         await searchInput.clear();
 

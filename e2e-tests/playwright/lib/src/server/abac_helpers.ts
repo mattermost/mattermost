@@ -2,10 +2,8 @@
 // See LICENSE.txt for license information.
 
 import type {Page} from '@playwright/test';
-
 import type {Client4} from '@mattermost/client';
 import type {UserProfile} from '@mattermost/types/users';
-import type {Channel} from '@mattermost/types/channels';
 
 import {getRandomId} from '../util';
 

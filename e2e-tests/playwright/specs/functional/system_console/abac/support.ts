@@ -71,14 +71,14 @@ export async function createUserAttributeField(
         },
     };
 
-    try {
+    try { // eslint-disable-line no-useless-catch
         const response = await (client as any).doFetch(url, {
             method: 'POST',
             body: JSON.stringify(field),
         });
         return response;
     } catch (error) {
-        console.error(`Failed to create user attribute field "${name}":`, error);
+        // console.error(`Failed to create user attribute field "${name}":`, error);
         throw error;
     }
 }
@@ -87,15 +87,15 @@ export async function createUserAttributeField(
  * Enable user-managed attributes config
  */
 export async function enableUserManagedAttributes(client: Client4): Promise<void> {
-    try {
+    try {  
         const config = await client.getConfig();
         if (config.AccessControlSettings?.EnableUserManagedAttributes !== true) {
             config.AccessControlSettings = config.AccessControlSettings || {};
             config.AccessControlSettings.EnableUserManagedAttributes = true;
             await client.updateConfig(config);
         }
-    } catch (error: any) {
-        console.warn('Failed to enable EnableUserManagedAttributes:', error.message || String(error));
+    } catch {
+        // console.warn('Failed to enable EnableUserManagedAttributes:', _error.message || String(_error));
     }
 }
 
@@ -107,22 +107,22 @@ export async function ensureUserAttributes(client: Client4, attributeNames?: str
     await enableUserManagedAttributes(client);
 
     let existingAttributes: any[] = [];
-    try {
+    try {  
         existingAttributes = await (client as any).doFetch(
             `${client.getBaseRoute()}/custom_profile_attributes/fields`,
             {method: 'GET'}
         );
-    } catch (error: any) {
-        console.warn(`Failed to fetch existing attributes:`, error.message);
+    } catch {
+        // console.warn(`Failed to fetch existing attributes:`, _error.message);
     }
 
     for (const attrName of attributesToCreate) {
         const exists = existingAttributes.some((attr: any) => attr.name === attrName);
 
         if (!exists) {
-            try {
+            try {  
                 await createUserAttributeField(client, attrName);
-            } catch (error: any) {
+            } catch {
                 throw new Error(`Cannot proceed: Attribute "${attrName}" does not exist and could not be created`);
             }
         }
@@ -279,7 +279,7 @@ export async function testAccessRule(
                 const isVisible = await userInResults.isVisible({timeout: 2000});
 
                 if (!isVisible) {
-                    console.error(`✗ Expected user "${expectedUser}" NOT found in matching results`);
+                    // console.error(`✗ Expected user "${expectedUser}" NOT found in matching results`);
                     expectedUsersMatch = false;
                 }
 
@@ -301,7 +301,7 @@ export async function testAccessRule(
                 const isVisible = await userInResults.isVisible({timeout: 2000});
 
                 if (isVisible) {
-                    console.error(`✗ Non-matching user "${unexpectedUser}" FOUND in results (should NOT be there)`);
+                    // console.error(`✗ Non-matching user "${unexpectedUser}" FOUND in results (should NOT be there)`);
                     unexpectedUsersMatch = true;
                 }
 
@@ -779,7 +779,7 @@ export async function createAdvancedPolicy(
     // Make sure Save button is enabled
     const saveEnabled = await saveButton.isEnabled({timeout: 5000}).catch(() => false);
     if (!saveEnabled) {
-        console.error(`❌ Save button is disabled - cannot save policy`);
+        // console.error(`❌ Save button is disabled - cannot save policy`);
         throw new Error(`Save button is disabled`);
     }
 
@@ -790,7 +790,7 @@ export async function createAdvancedPolicy(
     const errorMessage = page.locator('text=/Unable to save|errors in the form/i').first();
     if (await errorMessage.isVisible({timeout: 2000}).catch(() => false)) {
         const errorText = await errorMessage.textContent();
-        console.error(`❌ Save failed: ${errorText}`);
+        // console.error(`❌ Save failed: ${errorText}`);
         throw new Error(`Failed to save policy: ${errorText}`);
     }
 
@@ -803,7 +803,7 @@ export async function createAdvancedPolicy(
         await page.waitForLoadState('networkidle');
         await page.waitForTimeout(2000);
     } else {
-        console.error(`❌ Apply Policy button not found`);
+        // console.error(`❌ Apply Policy button not found`);
         throw new Error(`Apply Policy button not visible after Save`);
     }
 }
@@ -813,10 +813,10 @@ export async function createAdvancedPolicy(
  */
 export async function activatePolicy(client: Client4, policyId: string): Promise<void> {
     const url = `${client.getBaseRoute()}/access_control_policies/${policyId}/activate?active=true`;
-    try {
+    try {  
         await (client as any).doFetch(url, {method: 'GET'});
-    } catch (error: any) {
-        console.error(`Failed to activate policy ${policyId}:`, error.message || String(error));
+    } catch {
+        // console.error(`Failed to activate policy ${policyId}:`, error.message || String(error));
         throw error;
     }
 }
@@ -967,7 +967,7 @@ export async function getJobDetailsFromRecentJobs(page: Page, channelName: strin
         // Check if timestamps are within 2 minutes of each other
         // Parse times like "Jan 22, 2026 - 10:11 AM"
         if (job1TimeText && job2TimeText) {
-            try {
+            try {  
                 const time1 = new Date(job1TimeText.replace(' - ', ' ')).getTime();
                 const time2 = new Date(job2TimeText.replace(' - ', ' ')).getTime();
                 const diffMs = Math.abs(time1 - time2);
@@ -976,7 +976,7 @@ export async function getJobDetailsFromRecentJobs(page: Page, channelName: strin
                 if (diffMinutes <= 2) {
                     checkBothJobs = true;
                 }
-            } catch (e) {
+            } catch {
                 checkBothJobs = true;
             }
         }
@@ -1014,7 +1014,7 @@ export async function getPolicyIdByName(client: Client4, policyName: string, ret
     const searchTerm = baseNameMatch ? baseNameMatch[1] : policyName;
 
     for (let attempt = 1; attempt <= retries; attempt++) {
-        try {
+        try {  
             // Use the search API
             const result = await (client as any).doFetch(searchUrl, {
                 method: 'POST',
@@ -1053,8 +1053,8 @@ export async function getPolicyIdByName(client: Client4, policyName: string, ret
                     await new Promise(resolve => setTimeout(resolve, 2000));
                 }
             }
-        } catch (error: any) {
-            console.error(`Failed to search policies (attempt ${attempt}):`, error.message || String(error));
+        } catch {
+            // console.error(`Failed to search policies (attempt ${attempt}):`, _error.message || String(_error));
 
             if (attempt < retries) {
                 await new Promise(resolve => setTimeout(resolve, 2000));

@@ -5,40 +5,23 @@ import {
     expect,
     test,
     enableABAC,
-    disableABAC,
     navigateToABACPage,
-    editPolicy,
-    deletePolicy,
     runSyncJob,
     verifyUserInChannel,
-    verifyUserNotInChannel,
-    updateUserAttributes,
-    createUserWithAttributes,
 } from '@mattermost/playwright-lib';
 
 import {
     CustomProfileAttribute,
     setupCustomProfileAttributeFields,
-    setupCustomProfileAttributeValuesForUser,
-    deleteCustomProfileAttributes,
 } from '../../../channels/custom_profile_attributes/helpers';
-
 import {
-    verifyPolicyExists,
-    verifyPolicyNotExists,
-    createUserAttributeField,
-    ensureUserAttributes,
     createUserForABAC,
     testAccessRule,
     createPrivateChannelForABAC,
     createBasicPolicy,
-    createMultiAttributePolicy,
-    createAdvancedPolicy,
     activatePolicy,
     waitForLatestSyncJob,
-    getJobDetailsForChannel,
     getJobDetailsFromRecentJobs,
-    getPolicyIdByName,
     enableUserManagedAttributes,
 } from '../support';
 
@@ -172,11 +155,10 @@ test.describe('ABAC Policies - Create Policies', () => {
         expect(user1AfterManualAdd).toBe(true); // Successfully added by admin
 
         // 8b. Try to add user who does NOT satisfy the policy - should FAIL
-        let nonSatisfyingAddFailed = false;
         try {
             await adminClient.addToChannel(nonSatisfyingUserInChannel.id, privateChannel.id);
-        } catch (error: any) {
-            nonSatisfyingAddFailed = true;
+        } catch {
+            // Expected to fail - policy prevents non-compliant users
         }
 
         // Verify the non-satisfying user is NOT in the channel

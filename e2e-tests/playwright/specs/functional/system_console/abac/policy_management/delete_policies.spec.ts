@@ -5,40 +5,16 @@ import {
     expect,
     test,
     enableABAC,
-    disableABAC,
     navigateToABACPage,
-    editPolicy,
-    deletePolicy,
-    runSyncJob,
-    verifyUserInChannel,
-    verifyUserNotInChannel,
-    updateUserAttributes,
-    createUserWithAttributes,
 } from '@mattermost/playwright-lib';
 
 import {
     CustomProfileAttribute,
     setupCustomProfileAttributeFields,
-    setupCustomProfileAttributeValuesForUser,
-    deleteCustomProfileAttributes,
 } from '../../../channels/custom_profile_attributes/helpers';
-
 import {
-    verifyPolicyExists,
-    verifyPolicyNotExists,
-    createUserAttributeField,
-    ensureUserAttributes,
-    createUserForABAC,
-    testAccessRule,
     createPrivateChannelForABAC,
     createBasicPolicy,
-    createMultiAttributePolicy,
-    createAdvancedPolicy,
-    activatePolicy,
-    waitForLatestSyncJob,
-    getJobDetailsForChannel,
-    getJobDetailsFromRecentJobs,
-    getPolicyIdByName,
     enableUserManagedAttributes,
 } from '../support';
 
@@ -168,7 +144,7 @@ test.describe('ABAC Policy Management - Delete Policies', () => {
         await page.waitForTimeout(500);
 
         // Verify both policies are visible
-        const allPolicies = await page.locator('.policy-name, tr.clickable').count();
+        await page.locator('.policy-name, tr.clickable').count();
 
         // Now search for the policy with channel
         await searchInput.fill(policyWithChannelName);
@@ -204,7 +180,7 @@ test.describe('ABAC Policy Management - Delete Policies', () => {
         const policyWithoutChannelExists = await page.locator('text=' + policyWithoutChannelName).count();
 
         if (policyWithoutChannelExists === 0) {
-            // Try scrolling or reloading if policy not visible
+            // Try reloading if policy not visible
             await page.reload();
             await page.waitForLoadState('networkidle');
             await page.waitForTimeout(1000);

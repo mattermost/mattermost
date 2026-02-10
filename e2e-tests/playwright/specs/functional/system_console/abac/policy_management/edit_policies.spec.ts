@@ -5,40 +5,21 @@ import {
     expect,
     test,
     enableABAC,
-    disableABAC,
     navigateToABACPage,
-    editPolicy,
-    deletePolicy,
-    runSyncJob,
     verifyUserInChannel,
-    verifyUserNotInChannel,
-    updateUserAttributes,
-    createUserWithAttributes,
 } from '@mattermost/playwright-lib';
 
 import {
     CustomProfileAttribute,
     setupCustomProfileAttributeFields,
-    setupCustomProfileAttributeValuesForUser,
-    deleteCustomProfileAttributes,
 } from '../../../channels/custom_profile_attributes/helpers';
-
 import {
-    verifyPolicyExists,
-    verifyPolicyNotExists,
-    createUserAttributeField,
-    ensureUserAttributes,
     createUserForABAC,
     testAccessRule,
     createPrivateChannelForABAC,
     createBasicPolicy,
-    createMultiAttributePolicy,
     createAdvancedPolicy,
-    activatePolicy,
     waitForLatestSyncJob,
-    getJobDetailsForChannel,
-    getJobDetailsFromRecentJobs,
-    getPolicyIdByName,
     enableUserManagedAttributes,
 } from '../support';
 
@@ -99,18 +80,10 @@ test.describe('ABAC Policy Management - Edit Policies', () => {
 
         // Admin user is automatically added as channel creator, but let's add the test users
         // Note: addToChannel(userId, channelId) - user first, then channel
-        try {
-            await adminClient.addToChannel(engineerUser.id, privateChannel.id);
-        } catch (error) {
-            throw error;
-        }
+        await adminClient.addToChannel(engineerUser.id, privateChannel.id);
 
         // Verify we can access the channel
-        try {
-            const channelCheck = await adminClient.getChannel(privateChannel.id);
-        } catch (error) {
-            throw new Error(`Channel ${privateChannel.id} not accessible after creation: ${error}`);
-        }
+        // const channelCheck = await adminClient.getChannel(privateChannel.id);
 
         const {systemConsolePage} = await pw.testBrowser.login(adminUser);
         const page = systemConsolePage.page;
@@ -120,15 +93,16 @@ test.describe('ABAC Policy Management - Edit Policies', () => {
 
         // Check membership BEFORE policy creation
         // Using library helper verifyUserInChannel(client, userId, channelId)
-        const engineerBeforePolicy = await verifyUserInChannel(adminClient, engineerUser.id, privateChannel.id);
+        await verifyUserInChannel(adminClient, engineerUser.id, privateChannel.id);
 
         // Debug: Show user attributes BEFORE policy creation
         try {
-            const engAttrs = await (adminClient as any).doFetch(
+            await (adminClient as any).doFetch(
                 `${adminClient.getBaseRoute()}/users/${engineerUser.id}/custom_profile_attributes`,
                 {method: 'GET'},
             );
-        } catch (e) {
+        } catch {
+            // Ignore errors
         }
 
         // ===========================================
@@ -146,10 +120,7 @@ test.describe('ABAC Policy Management - Edit Policies', () => {
         });
 
         // Check membership AFTER policy creation (before explicit sync)
-        const engineerAfterPolicy = await verifyUserInChannel(adminClient, engineerUser.id, privateChannel.id);
-
-        if (!engineerAfterPolicy) {
-        }
+        await verifyUserInChannel(adminClient, engineerUser.id, privateChannel.id);
 
         // Wait for the automatic sync (triggered by createBasicPolicy's "Apply Policy") to complete
         await page.waitForTimeout(3000); // Give time for sync job to run
@@ -161,16 +132,12 @@ test.describe('ABAC Policy Management - Edit Policies', () => {
 
         // Debug: Fetch user attributes to verify they're set
         try {
-            const engAttrs = await (adminClient as any).doFetch(
+            await (adminClient as any).doFetch(
                 `${adminClient.getBaseRoute()}/users/${engineerUser.id}/custom_profile_attributes`,
                 {method: 'GET'},
             );
-        } catch (e) {
-        }
-
-        // If engineerUser was removed, show debug info
-        if (!engineerAfterSync && engineerAfterPolicy) {
-        } else if (!engineerAfterSync && !engineerAfterPolicy) {
+        } catch {
+            // Ignore errors
         }
 
         expect(engineerAfterSync).toBe(true);
@@ -207,6 +174,7 @@ test.describe('ABAC Policy Management - Edit Policies', () => {
                 await page.waitForTimeout(500);
             }
         } else {
+            // Checkbox not visible
         }
 
         // Edit the value: Change from "Engineering" to "Sales"
@@ -272,7 +240,7 @@ test.describe('ABAC Policy Management - Edit Policies', () => {
         // ===========================================
         // STEP 3: Click Test Access Rule
         // ===========================================
-        const testResult = await testAccessRule(page);
+        await testAccessRule(page);
 
         // ===========================================
         // STEP 4: Save the changes
@@ -411,13 +379,8 @@ test.describe('ABAC Policy Management - Edit Policies', () => {
 
         // Verify initial state after original policy sync
         // Using library helper verifyUserInChannel(client, userId, channelId)
-        const engineerRemoteInitial = await verifyUserInChannel(adminClient, engineerRemoteUser.id, privateChannel.id);
-        const engineerOfficeInitial = await verifyUserInChannel(adminClient, engineerOfficeUser.id, privateChannel.id);
-
-        // Both Engineering users should be in channel now (auto-add is ON)
-        // Note: If this fails, the original policy isn't working
-        if (!engineerRemoteInitial || !engineerOfficeInitial) {
-        }
+        await verifyUserInChannel(adminClient, engineerRemoteUser.id, privateChannel.id);
+        await verifyUserInChannel(adminClient, engineerOfficeUser.id, privateChannel.id);
 
         // ===========================================
         // STEP 1-2: Edit policy to ADD another attribute (Location=Remote)
@@ -493,12 +456,13 @@ test.describe('ABAC Policy Management - Edit Policies', () => {
         try {
             await validIndicator.waitFor({state: 'visible', timeout: 10000});
         } catch {
+            // Ignore if Valid indicator doesn't appear
         }
 
         // ===========================================
         // STEP 3: Test Access Rule
         // ===========================================
-        const testResult = await testAccessRule(page);
+        await testAccessRule(page);
 
         // ===========================================
         // STEP 4: Save the changes
@@ -634,9 +598,9 @@ test.describe('ABAC Policy Management - Edit Policies', () => {
 
         // Verify initial state after original policy sync
         // Using library helper verifyUserInChannel(client, userId, channelId)
-        const engineerRemoteInitial = await verifyUserInChannel(adminClient, engineerRemoteUser.id, privateChannel.id);
-        const engineerOfficeInitial = await verifyUserInChannel(adminClient, engineerOfficeUser.id, privateChannel.id);
-        const salesRemoteInitial = await verifyUserInChannel(adminClient, salesRemoteUser.id, privateChannel.id);
+        await verifyUserInChannel(adminClient, engineerRemoteUser.id, privateChannel.id);
+        await verifyUserInChannel(adminClient, engineerOfficeUser.id, privateChannel.id);
+        await verifyUserInChannel(adminClient, salesRemoteUser.id, privateChannel.id);
 
 
         // ===========================================
@@ -719,12 +683,13 @@ test.describe('ABAC Policy Management - Edit Policies', () => {
         try {
             await validIndicator.waitFor({state: 'visible', timeout: 10000});
         } catch {
+            // Ignore if Valid indicator doesn't appear
         }
 
         // ===========================================
         // STEP 3: Test Access Rule
         // ===========================================
-        const testResult = await testAccessRule(page);
+        await testAccessRule(page);
 
         // ===========================================
         // STEP 4: Save the changes

@@ -5,13 +5,9 @@ import {
     expect,
     test,
     enableABAC,
-    disableABAC,
     navigateToABACPage,
-    editPolicy,
-    deletePolicy,
     runSyncJob,
     verifyUserInChannel,
-    verifyUserNotInChannel,
     updateUserAttributes,
     createUserWithAttributes,
 } from '@mattermost/playwright-lib';
@@ -19,26 +15,14 @@ import {
 import {
     CustomProfileAttribute,
     setupCustomProfileAttributeFields,
-    setupCustomProfileAttributeValuesForUser,
-    deleteCustomProfileAttributes,
 } from '../../../channels/custom_profile_attributes/helpers';
-
 import {
-    verifyPolicyExists,
-    verifyPolicyNotExists,
-    createUserAttributeField,
     ensureUserAttributes,
     createUserForABAC,
-    testAccessRule,
     createPrivateChannelForABAC,
     createBasicPolicy,
-    createMultiAttributePolicy,
-    createAdvancedPolicy,
     activatePolicy,
     waitForLatestSyncJob,
-    getJobDetailsForChannel,
-    getJobDetailsFromRecentJobs,
-    getPolicyIdByName,
     enableUserManagedAttributes,
 } from '../support';
 
@@ -136,17 +120,10 @@ test.describe('ABAC User Attributes - Attribute Changes', () => {
         // ============================================================
 
         // DEBUG: Verify attribute was updated before sync
-        const userAttributesBefore = await adminClient.getUserCustomProfileAttributesValues(testUser.id);
+        await adminClient.getUserCustomProfileAttributesValues(testUser.id);
 
         // Get the Department field to check its value
-        const fields = await adminClient.getCustomProfileAttributeFields();
-        const deptField = fields.find((f: any) => f.name === 'Department');
-        if (deptField) {
-            const deptValue = (userAttributesBefore as any)[deptField.id];
-            if (deptValue !== 'Engineering') {
-                console.error(`[ERROR] Department is "${deptValue}", expected "Engineering"!`);
-            }
-        }
+        await adminClient.getCustomProfileAttributeFields();
 
         await runSyncJob(systemConsolePage.page);
         await waitForLatestSyncJob(systemConsolePage.page);
@@ -156,20 +133,17 @@ test.describe('ABAC User Attributes - Attribute Changes', () => {
         // ============================================================
 
         // DEBUG: Check all channel members
-        const allMembers = await adminClient.getChannelMembers(privateChannel.id);
-        for (const member of allMembers) {
-            const memberUser = await adminClient.getUser((member as any).user_id);
-        }
+        await adminClient.getChannelMembers(privateChannel.id);
 
         const finalInChannel = await verifyUserInChannel(adminClient, testUser.id, privateChannel.id);
 
         if (!finalInChannel) {
-            console.error('\n[ERROR] User NOT in channel after sync!');
-            console.error('[ERROR] This means the ABAC sync did not add the user.');
-            console.error('[ERROR] Possible causes:');
-            console.error('[ERROR] 1. Policy not active');
-            console.error('[ERROR] 2. Attribute value not matching policy');
-            console.error('[ERROR] 3. Sync job failed silently');
+            // console.error('\n[ERROR] User NOT in channel after sync!');
+            // console.error('[ERROR] This means the ABAC sync did not add the user.');
+            // console.error('[ERROR] Possible causes:');
+            // console.error('[ERROR] 1. Policy not active');
+            // console.error('[ERROR] 2. Attribute value not matching policy');
+            // console.error('[ERROR] 3. Sync job failed silently');
         }
 
         expect(finalInChannel).toBe(true);
@@ -190,7 +164,9 @@ test.describe('ABAC User Attributes - Attribute Changes', () => {
         });
 
         if (userAddedMessage) {
+            // System message found
         } else {
+            // System message not found (may be disabled in test env)
         }
 
         // System messages might be disabled in test env, so we don't fail the test
@@ -285,7 +261,9 @@ test.describe('ABAC User Attributes - Attribute Changes', () => {
         });
 
         if (userAddedMessage) {
+            // System message found
         } else {
+            // System message not found (may be disabled in test env)
         }
 
     });
@@ -399,7 +377,9 @@ test.describe('ABAC User Attributes - Attribute Changes', () => {
         });
 
         if (userRemovedMessage) {
+            // System message found
         } else {
+            // System message not found (may be disabled in test env)
         }
 
         // ============================================================

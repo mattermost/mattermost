@@ -5,40 +5,20 @@ import {
     expect,
     test,
     enableABAC,
-    disableABAC,
     navigateToABACPage,
-    editPolicy,
-    deletePolicy,
     runSyncJob,
     verifyUserInChannel,
-    verifyUserNotInChannel,
-    updateUserAttributes,
-    createUserWithAttributes,
 } from '@mattermost/playwright-lib';
 
 import {
-    CustomProfileAttribute,
     setupCustomProfileAttributeFields,
-    setupCustomProfileAttributeValuesForUser,
-    deleteCustomProfileAttributes,
 } from '../../../channels/custom_profile_attributes/helpers';
-
 import {
-    verifyPolicyExists,
-    verifyPolicyNotExists,
-    createUserAttributeField,
     ensureUserAttributes,
     createUserForABAC,
-    testAccessRule,
     createPrivateChannelForABAC,
     createBasicPolicy,
-    createMultiAttributePolicy,
-    createAdvancedPolicy,
-    activatePolicy,
     waitForLatestSyncJob,
-    getJobDetailsForChannel,
-    getJobDetailsFromRecentJobs,
-    getPolicyIdByName,
 } from '../support';
 
 /**
@@ -117,7 +97,7 @@ test.describe('ABAC Policies - Channel Integration', () => {
 
         // Verify channel shows "Manual Invites" management
         const channelRow = systemConsolePage.page.locator('.DataGrid_row').filter({hasText: channel.display_name}).first();
-        const managementText = await channelRow.textContent();
+        // const managementText = await channelRow.textContent();
 
         // Click Edit
         await channelRow.getByText('Edit').click();
@@ -193,6 +173,7 @@ test.describe('ABAC Policies - Channel Integration', () => {
         try {
             await adminClient.addToChannel(nonSatisfyingUser.id, channel.id);
         } catch {
+            // Expected to fail - policy blocks non-qualifying users
             blocked = true;
         }
         expect(blocked).toBe(true);
@@ -375,10 +356,11 @@ test.describe('ABAC Policies - Channel Integration', () => {
         } else {
             // Channel is shown - try to select it
             const channelRowToSelect = channelRows.first();
-            const channelRowText = await channelRowToSelect.textContent();
+            await channelRowToSelect.textContent();
 
             // Try to click/select the channel
             await channelRowToSelect.click({timeout: 5000}).catch(() => {
+                // Ignore click errors
             });
             await page.waitForTimeout(500);
 
@@ -387,6 +369,7 @@ test.describe('ABAC Policies - Channel Integration', () => {
             if (await addButton.isVisible({timeout: 3000})) {
                 const addButtonDisabled = await addButton.isDisabled();
                 if (addButtonDisabled) {
+                    // Add button is disabled
                 } else {
                     await addButton.click();
                     await page.waitForTimeout(1000);
@@ -414,7 +397,7 @@ test.describe('ABAC Policies - Channel Integration', () => {
                     const hasError = await errorMessage.isVisible({timeout: 3000}).catch(() => false);
 
                     if (hasError) {
-                        const errorText = await errorMessage.textContent();
+                        await errorMessage.textContent();
                     } else {
                         // Check if channel was actually added
                     }

@@ -5,40 +5,20 @@ import {
     expect,
     test,
     enableABAC,
-    disableABAC,
     navigateToABACPage,
-    editPolicy,
-    deletePolicy,
     runSyncJob,
     verifyUserInChannel,
-    verifyUserNotInChannel,
     updateUserAttributes,
     createUserWithAttributes,
 } from '@mattermost/playwright-lib';
 
 import {
-    CustomProfileAttribute,
-    setupCustomProfileAttributeFields,
-    setupCustomProfileAttributeValuesForUser,
-    deleteCustomProfileAttributes,
-} from '../../../channels/custom_profile_attributes/helpers';
-
-import {
-    verifyPolicyExists,
-    verifyPolicyNotExists,
-    createUserAttributeField,
     ensureUserAttributes,
-    createUserForABAC,
-    testAccessRule,
     createPrivateChannelForABAC,
     createBasicPolicy,
-    createMultiAttributePolicy,
     createAdvancedPolicy,
     activatePolicy,
     waitForLatestSyncJob,
-    getJobDetailsForChannel,
-    getJobDetailsFromRecentJobs,
-    getPolicyIdByName,
 } from '../support';
 
 /**
@@ -135,7 +115,9 @@ test.describe('ABAC LDAP Integration - Sync', () => {
                    post.props?.addedUserId === user1.id;
         });
         if (addMessage1) {
+            // System message found
         } else {
+            // System message not found (may be disabled in test env)
         }
 
 
@@ -201,7 +183,9 @@ test.describe('ABAC LDAP Integration - Sync', () => {
                    post.props?.addedUserId === user2.id;
         });
         if (addMessage2) {
+            // System message found
         } else {
+            // System message not found (may be disabled in test env)
         }
 
 
@@ -307,7 +291,7 @@ test.describe('ABAC LDAP Integration - Sync', () => {
         const user1AfterSync = await verifyUserInChannel(adminClient, user1.id, channel1.id);
 
         if (user1AfterSync) {
-            // If user WAS auto-added, this documents current behavior (potential bug)
+            // If user WAS auto-added, this documents current behavior
         } else {
             // If user was NOT auto-added, then admin can manually add
             await adminClient.addToChannel(user1.id, channel1.id);
@@ -372,6 +356,7 @@ test.describe('ABAC LDAP Integration - Sync', () => {
         const user2AfterSync = await verifyUserInChannel(adminClient, user2.id, channel2.id);
 
         if (user2AfterSync) {
+            // User was auto-added
         } else {
             await adminClient.addToChannel(user2.id, channel2.id);
 
@@ -489,7 +474,9 @@ test.describe('ABAC LDAP Integration - Sync', () => {
                    post.props?.removedUserId === user1.id;
         });
         if (removeMessage1) {
+            // System message found
         } else {
+            // System message not found (may be disabled in test env)
         }
 
 
@@ -557,7 +544,9 @@ test.describe('ABAC LDAP Integration - Sync', () => {
                    post.props?.removedUserId === user2.id;
         });
         if (removeMessage2) {
+            // System message found
         } else {
+            // System message not found (may be disabled in test env)
         }
 
 
