@@ -156,7 +156,7 @@ func TestEncryptionStatusLeaksSessionId(t *testing.T) {
 		cfg.FeatureFlags.Encryption = true
 	})
 
-	t.Run("Encryption status endpoint does not leak session_id", func(t *testing.T) {
+	t.Run("Encryption status endpoint returns own session_id for key management", func(t *testing.T) {
 		resp, err := th.Client.DoAPIGet(context.Background(), "/encryption/status", "")
 		checkStatusCode(t, resp, err, http.StatusOK)
 		defer closeIfOpen(resp, err)
@@ -164,8 +164,8 @@ func TestEncryptionStatusLeaksSessionId(t *testing.T) {
 		var status model.EncryptionStatus
 		decErr := json.NewDecoder(resp.Body).Decode(&status)
 		require.NoError(t, decErr)
-		// Session ID should not be returned in the response (security concern)
-		assert.Empty(t, status.SessionId, "Session ID should not be exposed in encryption status response")
+		// Session ID must be returned so client can manage per-session encryption keys in localStorage
+		assert.NotEmpty(t, status.SessionId, "Session ID is required for client-side key management")
 	})
 }
 

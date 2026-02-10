@@ -51,6 +51,7 @@ func getEncryptionStatus(c *Context, w http.ResponseWriter, r *http.Request) {
 		Enabled:    enabled,
 		CanEncrypt: canEncrypt,
 		HasKey:     hasKey,
+		SessionId:  sessionId,
 	}
 
 	if err := json.NewEncoder(w).Encode(status); err != nil {
