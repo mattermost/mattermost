@@ -325,7 +325,7 @@
                 background: transparent;
                 color: functions.v(center-channel-color);
                 font-size: 22px;
-                line-height: 28px;
+                line-height: 44px;
             }
         }
 
@@ -335,7 +335,7 @@
             color: functions.v(center-channel-color);
             font-size: 22px;
             font-weight: 600;
-            line-height: 28px;
+            line-height: 44px;
             word-break: break-word;
         }
     }
@@ -1065,8 +1065,8 @@
         .no-channel-message {
             width: 100%;
             margin-top: 40px;
-            color: variables.$gray;
-            font-size: 1.25em;
+            color: (--center-channel-color, 0.72);
+            font-size: 1em;
             text-align: center;
         }
     }
