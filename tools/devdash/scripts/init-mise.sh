@@ -3,22 +3,12 @@
 # Called by `make init-cli-tools`.
 
 cat > mise.toml <<'EOF'
-[tools]
-go = "1.24"
-node = "20.11"
-python = "latest"
-java = "17"
-ruby = "3.2.0"
-watchexec = "latest"
-rust = "stable"
-dotnet = "8"
-
 [settings]
 idiomatic_version_file_enable_tools = ["node", "python", "go", "java", "ruby", "rust"]
 
 [env]
 #ENABLED_DOCKER_SERVICES="postgres inbucket redis minio keycloak openldap prometheus loki grafana promtail"
-ENABLED_DOCKER_SERVICES="postgres inbucket redis"
+ENABLED_DOCKER_SERVICES="postgres redis"
 
 MM_DEBUG=1
 RUN_SERVER_IN_BACKGROUND="false"
