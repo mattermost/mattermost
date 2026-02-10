@@ -9953,10 +9953,6 @@
     "translation": "Workers must be between 1 and 32."
   },
   {
-    "id": "model.config.is_valid.autotranslation.timeouts.short.app_error",
-    "translation": "Invalid short timeout for autotranslation settings. Must be a positive number."
-  },
-  {
     "id": "model.config.is_valid.cache_type.app_error",
     "translation": "Cache type must be either lru or redis."
   },
