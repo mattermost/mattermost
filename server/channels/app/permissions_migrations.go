@@ -21,64 +21,66 @@ type permissionTransformation struct {
 type permissionsMap []permissionTransformation
 
 const (
-	PermissionManageSystem                     = "manage_system"
-	PermissionManageTeam                       = "manage_team"
-	PermissionManageEmojis                     = "manage_emojis"
-	PermissionManageOthersEmojis               = "manage_others_emojis"
-	PermissionCreateEmojis                     = "create_emojis"
-	PermissionDeleteEmojis                     = "delete_emojis"
-	PermissionDeleteOthersEmojis               = "delete_others_emojis"
-	PermissionManageWebhooks                   = "manage_webhooks"
-	PermissionManageOthersWebhooks             = "manage_others_webhooks"
-	PermissionManageIncomingWebhooks           = "manage_incoming_webhooks"
-	PermissionManageOwnIncomingWebhooks        = "manage_own_incoming_webhooks"
-	PermissionManageOthersIncomingWebhooks     = "manage_others_incoming_webhooks"
-	PermissionManageOutgoingWebhooks           = "manage_outgoing_webhooks"
-	PermissionManageOwnOutgoingWebhooks        = "manage_own_outgoing_webhooks"
-	PermissionManageOthersOutgoingWebhooks     = "manage_others_outgoing_webhooks"
-	PermissionBypassIncomingWebhookChannelLock = "bypass_incoming_webhook_channel_lock"
-	PermissionListPublicTeams                  = "list_public_teams"
-	PermissionListPrivateTeams                 = "list_private_teams"
-	PermissionJoinPublicTeams                  = "join_public_teams"
-	PermissionJoinPrivateTeams                 = "join_private_teams"
-	PermissionPermanentDeleteUser              = "permanent_delete_user"
-	PermissionCreateBot                        = "create_bot"
-	PermissionReadBots                         = "read_bots"
-	PermissionReadOthersBots                   = "read_others_bots"
-	PermissionManageBots                       = "manage_bots"
-	PermissionManageOthersBots                 = "manage_others_bots"
-	PermissionManageSlashCommands              = "manage_slash_commands"
-	PermissionManageOwnSlashCommands           = "manage_own_slash_commands"
-	PermissionDeletePublicChannel              = "delete_public_channel"
-	PermissionDeletePrivateChannel             = "delete_private_channel"
-	PermissionManagePublicChannelProperties    = "manage_public_channel_properties"
-	PermissionManagePrivateChannelProperties   = "manage_private_channel_properties"
-	PermissionConvertPublicChannelToPrivate    = "convert_public_channel_to_private"
-	PermissionConvertPrivateChannelToPublic    = "convert_private_channel_to_public"
-	PermissionViewMembers                      = "view_members"
-	PermissionInviteUser                       = "invite_user"
-	PermissionInviteGuest                      = "invite_guest"
-	PermissionPromoteGuest                     = "promote_guest"
-	PermissionDemoteToGuest                    = "demote_to_guest"
-	PermissionUseChannelMentions               = "use_channel_mentions"
-	PermissionCreatePost                       = "create_post"
-	PermissionCreatePost_PUBLIC                = "create_post_public"
-	PermissionUseGroupMentions                 = "use_group_mentions"
-	PermissionAddReaction                      = "add_reaction"
-	PermissionRemoveReaction                   = "remove_reaction"
-	PermissionManagePublicChannelMembers       = "manage_public_channel_members"
-	PermissionManagePrivateChannelMembers      = "manage_private_channel_members"
-	PermissionReadJobs                         = "read_jobs"
-	PermissionManageJobs                       = "manage_jobs"
-	PermissionReadOtherUsersTeams              = "read_other_users_teams"
-	PermissionEditOtherUsers                   = "edit_other_users"
-	PermissionReadPublicChannelGroups          = "read_public_channel_groups"
-	PermissionReadPrivateChannelGroups         = "read_private_channel_groups"
-	PermissionEditBrand                        = "edit_brand"
-	PermissionManageSharedChannels             = "manage_shared_channels"
-	PermissionManageSecureConnections          = "manage_secure_connections"
-	PermissionManageOAuth                      = "manage_oauth"
-	PermissionManageRemoteClusters             = "manage_remote_clusters" // deprecated; use `manage_secure_connections`
+	PermissionManageSystem                        = "manage_system"
+	PermissionManageTeam                          = "manage_team"
+	PermissionManageEmojis                        = "manage_emojis"
+	PermissionManageOthersEmojis                  = "manage_others_emojis"
+	PermissionCreateEmojis                        = "create_emojis"
+	PermissionDeleteEmojis                        = "delete_emojis"
+	PermissionDeleteOthersEmojis                  = "delete_others_emojis"
+	PermissionManageWebhooks                      = "manage_webhooks"
+	PermissionManageOthersWebhooks                = "manage_others_webhooks"
+	PermissionManageIncomingWebhooks              = "manage_incoming_webhooks"
+	PermissionManageOwnIncomingWebhooks           = "manage_own_incoming_webhooks"
+	PermissionManageOthersIncomingWebhooks        = "manage_others_incoming_webhooks"
+	PermissionManageOutgoingWebhooks              = "manage_outgoing_webhooks"
+	PermissionManageOwnOutgoingWebhooks           = "manage_own_outgoing_webhooks"
+	PermissionManageOthersOutgoingWebhooks        = "manage_others_outgoing_webhooks"
+	PermissionBypassIncomingWebhookChannelLock    = "bypass_incoming_webhook_channel_lock"
+	PermissionListPublicTeams                     = "list_public_teams"
+	PermissionListPrivateTeams                    = "list_private_teams"
+	PermissionJoinPublicTeams                     = "join_public_teams"
+	PermissionJoinPrivateTeams                    = "join_private_teams"
+	PermissionPermanentDeleteUser                 = "permanent_delete_user"
+	PermissionCreateBot                           = "create_bot"
+	PermissionReadBots                            = "read_bots"
+	PermissionReadOthersBots                      = "read_others_bots"
+	PermissionManageBots                          = "manage_bots"
+	PermissionManageOthersBots                    = "manage_others_bots"
+	PermissionManageSlashCommands                 = "manage_slash_commands"
+	PermissionManageOwnSlashCommands              = "manage_own_slash_commands"
+	PermissionDeletePublicChannel                 = "delete_public_channel"
+	PermissionDeletePrivateChannel                = "delete_private_channel"
+	PermissionManagePublicChannelProperties       = "manage_public_channel_properties"
+	PermissionManagePrivateChannelProperties      = "manage_private_channel_properties"
+	PermissionManagePublicChannelAutoTranslation  = "manage_public_channel_auto_translation"
+	PermissionManagePrivateChannelAutoTranslation = "manage_private_channel_auto_translation"
+	PermissionConvertPublicChannelToPrivate       = "convert_public_channel_to_private"
+	PermissionConvertPrivateChannelToPublic       = "convert_private_channel_to_public"
+	PermissionViewMembers                         = "view_members"
+	PermissionInviteUser                          = "invite_user"
+	PermissionInviteGuest                         = "invite_guest"
+	PermissionPromoteGuest                        = "promote_guest"
+	PermissionDemoteToGuest                       = "demote_to_guest"
+	PermissionUseChannelMentions                  = "use_channel_mentions"
+	PermissionCreatePost                          = "create_post"
+	PermissionCreatePost_PUBLIC                   = "create_post_public"
+	PermissionUseGroupMentions                    = "use_group_mentions"
+	PermissionAddReaction                         = "add_reaction"
+	PermissionRemoveReaction                      = "remove_reaction"
+	PermissionManagePublicChannelMembers          = "manage_public_channel_members"
+	PermissionManagePrivateChannelMembers         = "manage_private_channel_members"
+	PermissionReadJobs                            = "read_jobs"
+	PermissionManageJobs                          = "manage_jobs"
+	PermissionReadOtherUsersTeams                 = "read_other_users_teams"
+	PermissionEditOtherUsers                      = "edit_other_users"
+	PermissionReadPublicChannelGroups             = "read_public_channel_groups"
+	PermissionReadPrivateChannelGroups            = "read_private_channel_groups"
+	PermissionEditBrand                           = "edit_brand"
+	PermissionManageSharedChannels                = "manage_shared_channels"
+	PermissionManageSecureConnections             = "manage_secure_connections"
+	PermissionManageOAuth                         = "manage_oauth"
+	PermissionManageRemoteClusters                = "manage_remote_clusters" // deprecated; use `manage_secure_connections`
 )
 
 // Deprecated: This function should only be used if a case arises where team and/or channel scheme roles do not need to be migrated.
@@ -1231,6 +1233,22 @@ func (a *App) getAddChannelAccessRulesPermissionMigration() (permissionsMap, err
 	}, nil
 }
 
+func (a *App) getAddChannelAutoTranslationPermissionMigration() (permissionsMap, error) {
+	return permissionsMap{
+		permissionTransformation{
+			On: permissionOr(
+				isRole(model.ChannelAdminRoleId),
+				isRole(model.TeamAdminRoleId),
+				isRole(model.SystemAdminRoleId),
+			),
+			Add: []string{
+				model.PermissionManagePublicChannelAutoTranslation.Id,
+				model.PermissionManagePrivateChannelAutoTranslation.Id,
+			},
+		},
+	}, nil
+}
+
 // Only sysadmins, team admins, and users with channels and groups managements have access to "convert channel to public"
 func (a *App) getRestrictAcessToChannelConversionToPublic() (permissionsMap, error) {
 	return []permissionTransformation{
@@ -1304,6 +1322,7 @@ func (s *Server) doPermissionsMigrations() error {
 		{Key: model.MigrationAddSysconsoleMobileSecurityPermission, Migration: a.addSysConsoleMobileSecurityPermission},
 		{Key: model.MigrationKeyAddChannelBannerPermissions, Migration: a.getAddChannelBannerPermissionMigration},
 		{Key: model.MigrationKeyAddChannelAccessRulesPermission, Migration: a.getAddChannelAccessRulesPermissionMigration},
+		{Key: model.MigrationKeyAddChannelAutoTranslationPermissions, Migration: a.getAddChannelAutoTranslationPermissionMigration},
 	}
 
 	roles, err := s.Store().Role().GetAll()

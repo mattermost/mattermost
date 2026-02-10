@@ -2797,8 +2797,10 @@ func (s *LocalizationSettings) SetDefaults() {
 
 type AutoTranslationSettings struct {
 	Enable          *bool                           `access:"site_localization,cloud_restrictable"`
+	RestrictDMAndGM *bool                           `access:"site_localization,cloud_restrictable"`
 	Provider        *string                         `access:"site_localization,cloud_restrictable"`
 	TargetLanguages *[]string                       `access:"site_localization,cloud_restrictable"`
+	Workers         *int                            `access:"site_localization,cloud_restrictable"`
 	TimeoutMs       *int                            `access:"site_localization,cloud_restrictable"`
 	LibreTranslate  *LibreTranslateProviderSettings `access:"site_localization,cloud_restrictable"`
 	Agents          *AgentsProviderSettings         `access:"site_localization,cloud_restrictable"`
@@ -2827,6 +2829,10 @@ func (s *AutoTranslationSettings) SetDefaults() {
 		s.TargetLanguages = &[]string{"en"}
 	}
 
+	if s.Workers == nil {
+		s.Workers = NewPointer(4)
+	}
+
 	if s.TimeoutMs == nil {
 		s.TimeoutMs = NewPointer(5000)
 	}
@@ -2840,6 +2846,10 @@ func (s *AutoTranslationSettings) SetDefaults() {
 		s.Agents = &AgentsProviderSettings{}
 	}
 	s.Agents.SetDefaults()
+
+	if s.RestrictDMAndGM == nil {
+		s.RestrictDMAndGM = NewPointer(false)
+	}
 }
 
 func (s *LibreTranslateProviderSettings) SetDefaults() {
@@ -3539,6 +3549,15 @@ func (s *PluginSettings) Sanitize(pluginManifests []*Manifest) {
 				if definedSetting.Secret && strings.EqualFold(definedSetting.Key, key) {
 					settings[key] = FakeSetting
 					break
+				}
+			}
+
+			for _, section := range manifest.SettingsSchema.Sections {
+				for _, definedSetting := range section.Settings {
+					if definedSetting.Secret && strings.EqualFold(definedSetting.Key, key) {
+						settings[key] = FakeSetting
+						break
+					}
 				}
 			}
 		}
@@ -4833,6 +4852,11 @@ func (s *AutoTranslationSettings) isValid() *AppError {
 	// Validate timeout if set (must be positive)
 	if s.TimeoutMs != nil && *s.TimeoutMs <= 0 {
 		return NewAppError("Config.IsValid", "model.config.is_valid.autotranslation.timeout.app_error", nil, "", http.StatusBadRequest)
+	}
+
+	// Validate workers if set (must be between 1 and 32)
+	if s.Workers != nil && (*s.Workers < 1 || *s.Workers > 32) {
+		return NewAppError("Config.IsValid", "model.config.is_valid.autotranslation.workers.app_error", nil, "", http.StatusBadRequest)
 	}
 
 	return nil
