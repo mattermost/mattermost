@@ -13,7 +13,7 @@ import Avatar from 'components/widgets/users/avatar';
 
 import {Constants} from 'utils/constants';
 import * as PostUtils from 'utils/post_utils';
-import {imageURLForUser} from 'utils/utils';
+import {getProfilePictureURL} from 'utils/post_utils';
 
 type Props = {
     post?: Post;
@@ -40,8 +40,8 @@ export default function PreviewPostAvatar({post, user, enablePostIconOverride, h
             return Constants.DEFAULT_WEBHOOK_LOGO;
         }
 
-        return imageURLForUser(user?.id ?? '');
-    }, [enablePostIconOverride, fromAutoResponder, fromWebhook, hasImageProxy, post?.props, user?.id]);
+        return getProfilePictureURL(post, user);
+    }, [enablePostIconOverride, fromAutoResponder, fromWebhook, hasImageProxy, post, user]);
 
     let avatar = (
         <Avatar
