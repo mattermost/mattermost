@@ -4,6 +4,7 @@
 package storetest
 
 import (
+	"encoding/base64"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -13,6 +14,9 @@ import (
 	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
 )
+
+var validSvgBase64 = base64.StdEncoding.EncodeToString([]byte("<svg xmlns='http://www.w3.org/2000/svg'><circle r='10'/></svg>"))
+var updatedSvgBase64 = base64.StdEncoding.EncodeToString([]byte("<svg xmlns='http://www.w3.org/2000/svg'><rect width='10' height='10'/></svg>"))
 
 func TestCustomChannelIconStore(t *testing.T, rctx request.CTX, ss store.Store) {
 	t.Run("Save", func(t *testing.T) { testCustomChannelIconStoreSave(t, rctx, ss) })
@@ -28,7 +32,7 @@ func testCustomChannelIconStoreSave(t *testing.T, rctx request.CTX, ss store.Sto
 	t.Run("saves valid icon", func(t *testing.T) {
 		icon := &model.CustomChannelIcon{
 			Name:           "test-icon",
-			Svg:            "<svg>test</svg>",
+			Svg:            validSvgBase64,
 			NormalizeColor: true,
 			CreatedBy:      model.NewId(),
 		}
@@ -53,7 +57,7 @@ func testCustomChannelIconStoreSave(t *testing.T, rctx request.CTX, ss store.Sto
 		icon := &model.CustomChannelIcon{
 			Id:        "", // Empty ID
 			Name:      "no-id-icon",
-			Svg:       "<svg>no-id</svg>",
+			Svg:       validSvgBase64,
 			CreatedBy: model.NewId(),
 		}
 
@@ -69,7 +73,7 @@ func testCustomChannelIconStoreSave(t *testing.T, rctx request.CTX, ss store.Sto
 		// Missing name
 		icon := &model.CustomChannelIcon{
 			Name:      "",
-			Svg:       "<svg>test</svg>",
+			Svg:       validSvgBase64,
 			CreatedBy: model.NewId(),
 		}
 		_, err := ss.CustomChannelIcon().Save(icon)
@@ -87,7 +91,7 @@ func testCustomChannelIconStoreSave(t *testing.T, rctx request.CTX, ss store.Sto
 		// Missing CreatedBy
 		icon = &model.CustomChannelIcon{
 			Name:      "test",
-			Svg:       "<svg>test</svg>",
+			Svg:       validSvgBase64,
 			CreatedBy: "",
 		}
 		_, err = ss.CustomChannelIcon().Save(icon)
@@ -99,7 +103,7 @@ func testCustomChannelIconStoreGet(t *testing.T, rctx request.CTX, ss store.Stor
 	// Create test icon
 	icon := &model.CustomChannelIcon{
 		Name:      "get-test",
-		Svg:       "<svg>get</svg>",
+		Svg:       validSvgBase64,
 		CreatedBy: model.NewId(),
 	}
 	savedIcon, err := ss.CustomChannelIcon().Save(icon)
@@ -129,7 +133,7 @@ func testCustomChannelIconStoreGet(t *testing.T, rctx request.CTX, ss store.Stor
 		// Create and delete an icon
 		deleteIcon := &model.CustomChannelIcon{
 			Name:      "to-delete",
-			Svg:       "<svg>delete</svg>",
+			Svg:       validSvgBase64,
 			CreatedBy: model.NewId(),
 		}
 		deletedIcon, err := ss.CustomChannelIcon().Save(deleteIcon)
@@ -149,7 +153,7 @@ func testCustomChannelIconStoreGetByName(t *testing.T, rctx request.CTX, ss stor
 	// Create test icon
 	icon := &model.CustomChannelIcon{
 		Name:      "name-test-icon",
-		Svg:       "<svg>name</svg>",
+		Svg:       validSvgBase64,
 		CreatedBy: model.NewId(),
 	}
 	savedIcon, err := ss.CustomChannelIcon().Save(icon)
@@ -176,7 +180,7 @@ func testCustomChannelIconStoreGetByName(t *testing.T, rctx request.CTX, ss stor
 		// Create and delete an icon
 		deleteIcon := &model.CustomChannelIcon{
 			Name:      "delete-by-name",
-			Svg:       "<svg>delete</svg>",
+			Svg:       validSvgBase64,
 			CreatedBy: model.NewId(),
 		}
 		deletedIcon, err := ss.CustomChannelIcon().Save(deleteIcon)
@@ -199,9 +203,9 @@ func testCustomChannelIconStoreGetAll(t *testing.T, rctx request.CTX, ss store.S
 
 	// Create test icons
 	icons := []*model.CustomChannelIcon{
-		{Name: "alpha-icon", Svg: "<svg>a</svg>", CreatedBy: model.NewId()},
-		{Name: "beta-icon", Svg: "<svg>b</svg>", CreatedBy: model.NewId()},
-		{Name: "gamma-icon", Svg: "<svg>c</svg>", CreatedBy: model.NewId()},
+		{Name: "alpha-icon", Svg: validSvgBase64, CreatedBy: model.NewId()},
+		{Name: "beta-icon", Svg: validSvgBase64, CreatedBy: model.NewId()},
+		{Name: "gamma-icon", Svg: validSvgBase64, CreatedBy: model.NewId()},
 	}
 
 	var savedIds []string
@@ -249,7 +253,7 @@ func testCustomChannelIconStoreUpdate(t *testing.T, rctx request.CTX, ss store.S
 	// Create test icon
 	icon := &model.CustomChannelIcon{
 		Name:           "update-test",
-		Svg:            "<svg>original</svg>",
+		Svg:            validSvgBase64,
 		NormalizeColor: false,
 		CreatedBy:      model.NewId(),
 	}
@@ -261,7 +265,7 @@ func testCustomChannelIconStoreUpdate(t *testing.T, rctx request.CTX, ss store.S
 
 	t.Run("updates fields successfully", func(t *testing.T) {
 		savedIcon.Name = "updated-name"
-		savedIcon.Svg = "<svg>updated</svg>"
+		savedIcon.Svg = updatedSvgBase64
 		savedIcon.NormalizeColor = true
 
 		updatedIcon, err := ss.CustomChannelIcon().Update(savedIcon)
@@ -269,7 +273,7 @@ func testCustomChannelIconStoreUpdate(t *testing.T, rctx request.CTX, ss store.S
 		require.NotNil(t, updatedIcon)
 
 		assert.Equal(t, "updated-name", updatedIcon.Name)
-		assert.Equal(t, "<svg>updated</svg>", updatedIcon.Svg)
+		assert.Equal(t, updatedSvgBase64, updatedIcon.Svg)
 		assert.True(t, updatedIcon.NormalizeColor)
 		// Use GreaterOrEqual since save and update can happen within same millisecond on fast systems
 		assert.GreaterOrEqual(t, updatedIcon.UpdateAt, savedIcon.CreateAt)
@@ -279,7 +283,7 @@ func testCustomChannelIconStoreUpdate(t *testing.T, rctx request.CTX, ss store.S
 		nonExistent := &model.CustomChannelIcon{
 			Id:        model.NewId(),
 			Name:      "ghost",
-			Svg:       "<svg>ghost</svg>",
+			Svg:       validSvgBase64,
 			CreatedBy: model.NewId(),
 			CreateAt:  model.GetMillis(),
 			UpdateAt:  model.GetMillis(),
@@ -293,7 +297,7 @@ func testCustomChannelIconStoreDelete(t *testing.T, rctx request.CTX, ss store.S
 	t.Run("sets deleteat timestamp", func(t *testing.T) {
 		icon := &model.CustomChannelIcon{
 			Name:      "delete-test",
-			Svg:       "<svg>delete</svg>",
+			Svg:       validSvgBase64,
 			CreatedBy: model.NewId(),
 		}
 		savedIcon, err := ss.CustomChannelIcon().Save(icon)
@@ -311,7 +315,7 @@ func testCustomChannelIconStoreDelete(t *testing.T, rctx request.CTX, ss store.S
 	t.Run("does not physically delete", func(t *testing.T) {
 		icon := &model.CustomChannelIcon{
 			Name:      "soft-delete-test",
-			Svg:       "<svg>soft</svg>",
+			Svg:       validSvgBase64,
 			CreatedBy: model.NewId(),
 		}
 		savedIcon, err := ss.CustomChannelIcon().Save(icon)
@@ -343,10 +347,10 @@ func testCustomChannelIconStoreSearch(t *testing.T, rctx request.CTX, ss store.S
 
 	// Create test icons with searchable names
 	icons := []*model.CustomChannelIcon{
-		{Name: "apple-fruit", Svg: "<svg>a</svg>", CreatedBy: model.NewId()},
-		{Name: "banana-fruit", Svg: "<svg>b</svg>", CreatedBy: model.NewId()},
-		{Name: "cherry-berry", Svg: "<svg>c</svg>", CreatedBy: model.NewId()},
-		{Name: "date-fruit", Svg: "<svg>d</svg>", CreatedBy: model.NewId()},
+		{Name: "apple-fruit", Svg: validSvgBase64, CreatedBy: model.NewId()},
+		{Name: "banana-fruit", Svg: validSvgBase64, CreatedBy: model.NewId()},
+		{Name: "cherry-berry", Svg: validSvgBase64, CreatedBy: model.NewId()},
+		{Name: "date-fruit", Svg: validSvgBase64, CreatedBy: model.NewId()},
 	}
 
 	var savedIds []string
