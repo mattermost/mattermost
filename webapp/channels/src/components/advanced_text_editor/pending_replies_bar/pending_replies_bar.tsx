@@ -32,6 +32,7 @@ function ReplyChip({
     const fileEmojis = (reply.file_categories || []).map((cat: string) => {
         const emojiMap: Record<string, string> = {
             image: '🖼️',
+            gif: '🎞️',
             video: '🎥',
             audio: '🎵',
             document: '📄',

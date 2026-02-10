@@ -3,8 +3,10 @@
 
 import {getPost} from 'mattermost-redux/selectors/entities/posts';
 import {getUser} from 'mattermost-redux/selectors/entities/users';
+import {getConfig} from 'mattermost-redux/selectors/entities/general';
 
 import {ActionTypes} from 'utils/constants';
+import {isVideoUrl} from 'components/video_link_embed';
 
 import type {ThunkActionFunc} from 'types/store';
 import type {DiscordReplyData} from 'reducers/views/discord_replies';
@@ -70,16 +72,47 @@ function getFileCategory(mimeType: string): string {
 }
 
 /**
- * Gets deduplicated file categories from a post's attachments.
+ * Gets deduplicated file categories from a post's attachments and embedded media.
  */
-function getFileCategories(post: {metadata?: {files?: Array<{mime_type: string}>}}): string[] {
-    const files = post.metadata?.files || [];
+function getFileCategories(post: {metadata?: {
+    files?: Array<{mime_type: string}>;
+    embeds?: Array<{type: string; url: string}>;
+    images?: Record<string, {format: string; frameCount?: number}>;
+}}, videoLinkEmbedEnabled: boolean): string[] {
     const categories = new Set<string>();
+
+    // 1. File attachments
+    const files = post.metadata?.files || [];
     for (const f of files) {
         if (f.mime_type) {
             categories.add(getFileCategory(f.mime_type));
         }
     }
+
+    // 2. Embedded content from links
+    const embeds = post.metadata?.embeds || [];
+    for (const embed of embeds) {
+        if (embed.type === 'image') {
+            categories.add('image');
+        } else if (embed.type === 'opengraph' || embed.type === 'link') {
+            // Check if the link URL points to a video
+            if (videoLinkEmbedEnabled && embed.url && isVideoUrl(embed.url)) {
+                categories.add('video');
+            }
+        }
+    }
+
+    // 3. Images metadata (includes inline images and gifs from links)
+    const images = post.metadata?.images || {};
+    for (const url of Object.keys(images)) {
+        const img = images[url];
+        if (img.format === 'gif' && img.frameCount && img.frameCount > 1) {
+            categories.add('gif');
+        } else if (img.format) {
+            categories.add('image');
+        }
+    }
+
     return Array.from(categories);
 }
 
@@ -166,7 +199,9 @@ export function addPendingReply(postId: string): ThunkActionFunc<boolean> {
         // Check for media attachments
         const hasImage = hasImageAttachment(post);
         const hasVideo = hasVideoAttachment(post);
-        const fileCategories = getFileCategories(post);
+        const config = getConfig(state);
+        const videoLinkEmbedEnabled = config?.FeatureFlagVideoLinkEmbed === 'true';
+        const fileCategories = getFileCategories(post, videoLinkEmbedEnabled);
 
         // Clean text - strip quotes, take first line only, and truncate
         const strippedText = stripQuotes(post.message);
@@ -229,6 +264,7 @@ export function generateQuoteText(): ThunkActionFunc<string> {
             // Format file type emojis
             const emojiMap: Record<string, string> = {
                 image: '🖼️',
+                gif: '🎞️',
                 video: '🎥',
                 audio: '🎵',
                 document: '📄',

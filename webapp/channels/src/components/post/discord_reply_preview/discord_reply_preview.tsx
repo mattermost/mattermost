@@ -73,6 +73,7 @@ function ConnectorSVG({position, height = 18}: {position: 'single' | 'first' | '
 // Map file categories to emojis
 const FILE_CATEGORY_EMOJIS: Record<string, string> = {
     image: '🖼️',
+    gif: '🎞️',
     video: '🎥',
     audio: '🎵',
     document: '📄',
