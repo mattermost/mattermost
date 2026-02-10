@@ -238,6 +238,10 @@ export type ClientConfig = {
     EnableAttributeBasedAccessControl: string;
     EnableChannelScopeAccessControl: string;
     EnableUserManagedAttributes: string;
+
+    // Auto Translation Settings
+    EnableAutoTranslation: string;
+    RestrictDMAndGMAutotranslation: string;
 };
 
 export type License = {
@@ -754,16 +758,18 @@ export type LocalizationSettings = {
 
 export type AutoTranslationSettings = {
     Enable: boolean;
-    Provider: '' | 'libretranslate';
+    TargetLanguages: string[];
+    Workers: number;
+    Provider: '' | 'libretranslate' | 'agents';
     LibreTranslate: {
         URL: string;
         APIKey: string;
     };
-    TimeoutsMs: {
-        NewPost: number;
-        Fetch: number;
-        Notification: number;
+    Agents?: {
+        LLMServiceID: string;
     };
+    TimeoutMs: number;
+    RestrictDMAndGM: boolean;
 };
 
 export type SamlSettings = {
@@ -1106,13 +1112,6 @@ export type EnvironmentConfigSettings<T> = {
 export type EnvironmentConfig = {
     [P in keyof AdminConfig]: EnvironmentConfigSettings<AdminConfig[P]>;
 }
-
-export type WarnMetricStatus = {
-    id: string;
-    limit: number;
-    acked: boolean;
-    store_status: string;
-};
 
 export enum CollapsedThreads {
     DISABLED = 'disabled',

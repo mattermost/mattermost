@@ -441,9 +441,15 @@ func (a *App) CreateOAuthUser(rctx request.CTX, service string, userData io.Read
 	if e != nil {
 		return nil, e
 	}
-	user, err1 := provider.GetUserFromJSON(rctx, userData, tokenUser)
-	if err1 != nil {
-		return nil, model.NewAppError("CreateOAuthUser", "api.user.create_oauth_user.create.app_error", map[string]any{"Service": service}, "", http.StatusInternalServerError).Wrap(err1)
+
+	settings, err := provider.GetSSOSettings(rctx, a.Config(), service)
+	if err != nil {
+		return nil, model.NewAppError("CreateOAuthUser", "api.user.oauth.get_settings.app_error", map[string]any{"Service": service}, "", http.StatusInternalServerError).Wrap(err)
+	}
+
+	user, err := provider.GetUserFromJSON(rctx, userData, tokenUser, settings)
+	if err != nil {
+		return nil, model.NewAppError("CreateOAuthUser", "api.user.create_oauth_user.create.app_error", map[string]any{"Service": service}, "", http.StatusInternalServerError).Wrap(err)
 	}
 	if user.AuthService == "" {
 		user.AuthService = service
@@ -469,7 +475,7 @@ func (a *App) CreateOAuthUser(rctx request.CTX, service string, userData io.Read
 			return nil, model.NewAppError("CreateOAuthUser", "api.user.create_oauth_user.already_attached.app_error", map[string]any{"Service": service, "Auth": model.UserAuthServiceEmail}, "email="+user.Email, http.StatusBadRequest)
 		}
 		if provider.IsSameUser(rctx, userByEmail, user) {
-			if _, err := a.Srv().Store().User().UpdateAuthData(userByEmail.Id, user.AuthService, user.AuthData, "", false); err != nil {
+			if _, err = a.Srv().Store().User().UpdateAuthData(userByEmail.Id, user.AuthService, user.AuthData, "", false); err != nil {
 				// if the user is not updated, write a warning to the log, but don't prevent user login
 				rctx.Logger().Warn("Error attempting to update user AuthData", mlog.Err(err))
 			}
@@ -480,13 +486,13 @@ func (a *App) CreateOAuthUser(rctx request.CTX, service string, userData io.Read
 
 	user.EmailVerified = true
 
-	ruser, err := a.CreateUser(rctx, user)
-	if err != nil {
-		return nil, err
+	ruser, appErr := a.CreateUser(rctx, user)
+	if appErr != nil {
+		return nil, appErr
 	}
 
-	if err = a.AddUserToTeamByInviteIfNeeded(rctx, ruser, inviteToken, inviteId); err != nil {
-		rctx.Logger().Warn("Failed to add user to team", mlog.Err(err))
+	if appErr = a.AddUserToTeamByInviteIfNeeded(rctx, ruser, inviteToken, inviteId); appErr != nil {
+		rctx.Logger().Warn("Failed to add user to team", mlog.Err(appErr))
 	}
 
 	return ruser, nil
@@ -2449,7 +2455,11 @@ func (a *App) AutocompleteUsersInTeam(rctx request.CTX, teamID string, term stri
 }
 
 func (a *App) UpdateOAuthUserAttrs(rctx request.CTX, userData io.Reader, user *model.User, provider einterfaces.OAuthProvider, service string, tokenUser *model.User) *model.AppError {
-	oauthUser, err1 := provider.GetUserFromJSON(rctx, userData, tokenUser)
+	settings, err := provider.GetSSOSettings(rctx, a.Config(), service)
+	if err != nil {
+		return model.NewAppError("UpdateOAuthUserAttrs", "api.user.oauth.get_settings.app_error", map[string]any{"Service": service}, "", http.StatusInternalServerError).Wrap(err)
+	}
+	oauthUser, err1 := provider.GetUserFromJSON(rctx, userData, tokenUser, settings)
 	if err1 != nil {
 		return model.NewAppError("UpdateOAuthUserAttrs", "api.user.update_oauth_user_attrs.get_user.app_error", map[string]any{"Service": service}, "", http.StatusBadRequest).Wrap(err1)
 	}
@@ -3036,7 +3046,7 @@ func (a *App) UpdateThreadFollowForUserFromChannelAdd(rctx request.CTX, userID, 
 	}
 	a.sanitizeProfiles(userThread.Participants, false)
 	userThread.Post.SanitizeProps()
-	sanitizedPost, appErr := a.SanitizePostMetadataForUser(rctx, userThread.Post, userID)
+	sanitizedPost, isMemberForPreviews, appErr := a.SanitizePostMetadataForUser(rctx, userThread.Post, userID)
 	if appErr != nil {
 		return appErr
 	}
@@ -3049,6 +3059,16 @@ func (a *App) UpdateThreadFollowForUserFromChannelAdd(rctx request.CTX, userID, 
 	message.Add("thread", string(payload))
 	message.Add("previous_unread_replies", int64(0))
 	message.Add("previous_unread_mentions", int64(0))
+
+	auditRec := a.MakeAuditRecord(rctx, model.AuditEventWebsocketPost, model.AuditStatusSuccess)
+	defer a.LogAuditRec(rctx, auditRec, nil)
+	model.AddEventParameterToAuditRec(auditRec, "post_id", userThread.Post.Id)
+	model.AddEventParameterToAuditRec(auditRec, "user_id", userID)
+	model.AddEventParameterToAuditRec(auditRec, "source", "UpdateThreadFollowForUserFromChannelAdd")
+	if !isMemberForPreviews {
+		model.AddEventParameterToAuditRec(auditRec, "non_channel_member_access", true)
+	}
+	auditRec.Success()
 
 	a.Publish(message)
 	return nil

@@ -1266,16 +1266,17 @@ func (s *AnalyticsSettings) SetDefaults() {
 }
 
 type SSOSettings struct {
-	Enable            *bool   `access:"authentication_openid"`
-	Secret            *string `access:"authentication_openid"` // telemetry: none
-	Id                *string `access:"authentication_openid"` // telemetry: none
-	Scope             *string `access:"authentication_openid"` // telemetry: none
-	AuthEndpoint      *string `access:"authentication_openid"` // telemetry: none
-	TokenEndpoint     *string `access:"authentication_openid"` // telemetry: none
-	UserAPIEndpoint   *string `access:"authentication_openid"` // telemetry: none
-	DiscoveryEndpoint *string `access:"authentication_openid"` // telemetry: none
-	ButtonText        *string `access:"authentication_openid"` // telemetry: none
-	ButtonColor       *string `access:"authentication_openid"` // telemetry: none
+	Enable               *bool   `access:"authentication_openid"`
+	Secret               *string `access:"authentication_openid"` // telemetry: none
+	Id                   *string `access:"authentication_openid"` // telemetry: none
+	Scope                *string `access:"authentication_openid"` // telemetry: none
+	AuthEndpoint         *string `access:"authentication_openid"` // telemetry: none
+	TokenEndpoint        *string `access:"authentication_openid"` // telemetry: none
+	UserAPIEndpoint      *string `access:"authentication_openid"` // telemetry: none
+	DiscoveryEndpoint    *string `access:"authentication_openid"` // telemetry: none
+	ButtonText           *string `access:"authentication_openid"` // telemetry: none
+	ButtonColor          *string `access:"authentication_openid"` // telemetry: none
+	UsePreferredUsername *bool   `access:"authentication_openid"` // telemetry: none
 }
 
 func (s *SSOSettings) setDefaults(scope, authEndpoint, tokenEndpoint, userAPIEndpoint, buttonColor string) {
@@ -1318,18 +1319,24 @@ func (s *SSOSettings) setDefaults(scope, authEndpoint, tokenEndpoint, userAPIEnd
 	if s.ButtonColor == nil {
 		s.ButtonColor = NewPointer(buttonColor)
 	}
+
+	// Note: Preferred username is not supported for Google.
+	if s.UsePreferredUsername == nil {
+		s.UsePreferredUsername = NewPointer(false)
+	}
 }
 
 type Office365Settings struct {
-	Enable            *bool   `access:"authentication_openid"`
-	Secret            *string `access:"authentication_openid"` // telemetry: none
-	Id                *string `access:"authentication_openid"` // telemetry: none
-	Scope             *string `access:"authentication_openid"`
-	AuthEndpoint      *string `access:"authentication_openid"` // telemetry: none
-	TokenEndpoint     *string `access:"authentication_openid"` // telemetry: none
-	UserAPIEndpoint   *string `access:"authentication_openid"` // telemetry: none
-	DiscoveryEndpoint *string `access:"authentication_openid"` // telemetry: none
-	DirectoryId       *string `access:"authentication_openid"` // telemetry: none
+	Enable               *bool   `access:"authentication_openid"`
+	Secret               *string `access:"authentication_openid"` // telemetry: none
+	Id                   *string `access:"authentication_openid"` // telemetry: none
+	Scope                *string `access:"authentication_openid"`
+	AuthEndpoint         *string `access:"authentication_openid"` // telemetry: none
+	TokenEndpoint        *string `access:"authentication_openid"` // telemetry: none
+	UserAPIEndpoint      *string `access:"authentication_openid"` // telemetry: none
+	DiscoveryEndpoint    *string `access:"authentication_openid"` // telemetry: none
+	DirectoryId          *string `access:"authentication_openid"` // telemetry: none
+	UsePreferredUsername *bool   `access:"authentication_openid"` // telemetry: none
 }
 
 func (s *Office365Settings) setDefaults() {
@@ -1368,6 +1375,10 @@ func (s *Office365Settings) setDefaults() {
 	if s.DirectoryId == nil {
 		s.DirectoryId = NewPointer("")
 	}
+
+	if s.UsePreferredUsername == nil {
+		s.UsePreferredUsername = NewPointer(false)
+	}
 }
 
 func (s *Office365Settings) SSOSettings() *SSOSettings {
@@ -1380,6 +1391,7 @@ func (s *Office365Settings) SSOSettings() *SSOSettings {
 	ssoSettings.AuthEndpoint = s.AuthEndpoint
 	ssoSettings.TokenEndpoint = s.TokenEndpoint
 	ssoSettings.UserAPIEndpoint = s.UserAPIEndpoint
+	ssoSettings.UsePreferredUsername = s.UsePreferredUsername
 	return &ssoSettings
 }
 
@@ -2784,29 +2796,25 @@ func (s *LocalizationSettings) SetDefaults() {
 }
 
 type AutoTranslationSettings struct {
-	Enable         *bool                           `access:"site_localization,cloud_restrictable"`
-	Provider       *string                         `access:"site_localization,cloud_restrictable"`
-	TimeoutsMs     *AutoTranslationTimeoutsInMs    `access:"site_localization,cloud_restrictable"`
-	LibreTranslate *LibreTranslateProviderSettings `access:"site_localization,cloud_restrictable"`
-	// TODO: Enable Agents provider in future release
-	// Agents         *AgentsProviderSettings         `access:"site_localization,cloud_restrictable"`
+	Enable          *bool                           `access:"site_localization,cloud_restrictable"`
+	RestrictDMAndGM *bool                           `access:"site_localization,cloud_restrictable"`
+	Provider        *string                         `access:"site_localization,cloud_restrictable"`
+	TargetLanguages *[]string                       `access:"site_localization,cloud_restrictable"`
+	Workers         *int                            `access:"site_localization,cloud_restrictable"`
+	TimeoutMs       *int                            `access:"site_localization,cloud_restrictable"`
+	LibreTranslate  *LibreTranslateProviderSettings `access:"site_localization,cloud_restrictable"`
+	Agents          *AgentsProviderSettings         `access:"site_localization,cloud_restrictable"`
 }
 
-type AutoTranslationTimeoutsInMs struct {
-	NewPost      *int `access:"site_localization,cloud_restrictable"`
-	Fetch        *int `access:"site_localization,cloud_restrictable"`
-	Notification *int `access:"site_localization,cloud_restrictable"`
-}
-
+// LibreTranslateProviderSettings configures the LibreTranslate translation provider.
 type LibreTranslateProviderSettings struct {
-	URL    *string `access:"site_localization,cloud_restrictable"`
-	APIKey *string `access:"site_localization,cloud_restrictable"`
+	URL    *string `access:"site_localization,cloud_restrictable"` // LibreTranslate server URL
+	APIKey *string `access:"site_localization,cloud_restrictable"` // Optional API key for authenticated requests
 }
 
-// TODO: Enable Agents provider in future release
-// type AgentsProviderSettings struct {
-// 	BotUserId *string `access:"site_localization,cloud_restrictable"`
-// }
+type AgentsProviderSettings struct {
+	LLMServiceID *string `access:"site_localization,cloud_restrictable"`
+}
 
 func (s *AutoTranslationSettings) SetDefaults() {
 	if s.Enable == nil {
@@ -2817,34 +2825,30 @@ func (s *AutoTranslationSettings) SetDefaults() {
 		s.Provider = NewPointer("")
 	}
 
-	if s.TimeoutsMs == nil {
-		s.TimeoutsMs = &AutoTranslationTimeoutsInMs{}
+	if s.TargetLanguages == nil {
+		s.TargetLanguages = &[]string{"en"}
 	}
-	s.TimeoutsMs.SetDefaults()
+
+	if s.Workers == nil {
+		s.Workers = NewPointer(4)
+	}
+
+	if s.TimeoutMs == nil {
+		s.TimeoutMs = NewPointer(5000)
+	}
 
 	if s.LibreTranslate == nil {
 		s.LibreTranslate = &LibreTranslateProviderSettings{}
 	}
 	s.LibreTranslate.SetDefaults()
 
-	// TODO: Enable Agents provider in future release
-	// if s.Agents == nil {
-	// 	s.Agents = &AgentsProviderSettings{}
-	// }
-	// s.Agents.SetDefaults()
-}
-
-func (s *AutoTranslationTimeoutsInMs) SetDefaults() {
-	if s.NewPost == nil {
-		s.NewPost = NewPointer(800)
+	if s.Agents == nil {
+		s.Agents = &AgentsProviderSettings{}
 	}
+	s.Agents.SetDefaults()
 
-	if s.Fetch == nil {
-		s.Fetch = NewPointer(2000)
-	}
-
-	if s.Notification == nil {
-		s.Notification = NewPointer(300)
+	if s.RestrictDMAndGM == nil {
+		s.RestrictDMAndGM = NewPointer(false)
 	}
 }
 
@@ -2858,12 +2862,11 @@ func (s *LibreTranslateProviderSettings) SetDefaults() {
 	}
 }
 
-// TODO: Enable Agents provider in future release
-// func (s *AgentsProviderSettings) SetDefaults() {
-// 	if s.BotUserId == nil {
-// 		s.BotUserId = NewPointer("")
-// 	}
-// }
+func (s *AgentsProviderSettings) SetDefaults() {
+	if s.LLMServiceID == nil {
+		s.LLMServiceID = NewPointer("")
+	}
+}
 
 type SamlSettings struct {
 	// Basic
@@ -3546,6 +3549,15 @@ func (s *PluginSettings) Sanitize(pluginManifests []*Manifest) {
 				if definedSetting.Secret && strings.EqualFold(definedSetting.Key, key) {
 					settings[key] = FakeSetting
 					break
+				}
+			}
+
+			for _, section := range manifest.SettingsSchema.Sections {
+				for _, definedSetting := range section.Settings {
+					if definedSetting.Secret && strings.EqualFold(definedSetting.Key, key) {
+						settings[key] = FakeSetting
+						break
+					}
 				}
 			}
 		}
@@ -4829,26 +4841,22 @@ func (s *AutoTranslationSettings) isValid() *AppError {
 		if s.LibreTranslate == nil || s.LibreTranslate.URL == nil || *s.LibreTranslate.URL == "" || !IsValidHTTPURL(*s.LibreTranslate.URL) {
 			return NewAppError("Config.IsValid", "model.config.is_valid.autotranslation.libretranslate.url.app_error", nil, "", http.StatusBadRequest)
 		}
-	// TODO: Enable Agents provider in future release
-	// case "agents":
-	// 	if s.Agents == nil || s.Agents.BotUserId == nil || *s.Agents.BotUserId == "" {
-	// 		return NewAppError("Config.IsValid", "model.config.is_valid.autotranslation.agents.bot_user_id.app_error", nil, "", http.StatusBadRequest)
-	// 	}
+	case "agents":
+		if s.Agents == nil || s.Agents.LLMServiceID == nil || *s.Agents.LLMServiceID == "" {
+			return NewAppError("Config.IsValid", "model.config.is_valid.autotranslation.agents.llm_service_id.app_error", nil, "", http.StatusBadRequest)
+		}
 	default:
 		return NewAppError("Config.IsValid", "model.config.is_valid.autotranslation.provider.unsupported.app_error", nil, "", http.StatusBadRequest)
 	}
 
-	// Validate timeouts if set
-	if s.TimeoutsMs != nil {
-		if s.TimeoutsMs.NewPost != nil && *s.TimeoutsMs.NewPost <= 0 {
-			return NewAppError("Config.IsValid", "model.config.is_valid.autotranslation.timeouts.new_post.app_error", nil, "", http.StatusBadRequest)
-		}
-		if s.TimeoutsMs.Fetch != nil && *s.TimeoutsMs.Fetch <= 0 {
-			return NewAppError("Config.IsValid", "model.config.is_valid.autotranslation.timeouts.fetch.app_error", nil, "", http.StatusBadRequest)
-		}
-		if s.TimeoutsMs.Notification != nil && *s.TimeoutsMs.Notification <= 0 {
-			return NewAppError("Config.IsValid", "model.config.is_valid.autotranslation.timeouts.notification.app_error", nil, "", http.StatusBadRequest)
-		}
+	// Validate timeout if set (must be positive)
+	if s.TimeoutMs != nil && *s.TimeoutMs <= 0 {
+		return NewAppError("Config.IsValid", "model.config.is_valid.autotranslation.timeout.app_error", nil, "", http.StatusBadRequest)
+	}
+
+	// Validate workers if set (must be between 1 and 32)
+	if s.Workers != nil && (*s.Workers < 1 || *s.Workers > 32) {
+		return NewAppError("Config.IsValid", "model.config.is_valid.autotranslation.workers.app_error", nil, "", http.StatusBadRequest)
 	}
 
 	return nil
@@ -5061,49 +5069,39 @@ func (o *Config) Sanitize(pluginManifests []*Manifest, opts *SanitizeOptions) {
 	o.PluginSettings.Sanitize(pluginManifests)
 }
 
-// SanitizeDataSource redacts sensitive information (username and password) from a database
+// SanitizeDataSource redacts sensitive information (username and password) from a PostgreSQL
 // connection string while preserving other connection parameters.
 //
-// Parameters:
-//   - driverName: The database driver name (postgres or mysql)
-//   - dataSource: The database connection string to sanitize
+// Example:
 //
-// Returns:
-//   - The sanitized connection string with username/password replaced by SanitizedPassword
-//   - An error if the driverName is not supported or if parsing fails
-//
-// Examples:
-//   - PostgreSQL: "postgres://user:pass@host:5432/db" -> "postgres://****:****@host:5432/db"
-//   - MySQL: "user:pass@tcp(host:3306)/db" -> "****:****@tcp(host:3306)/db"
+//	"postgres://user:pass@host:5432/db" -> "postgres://****:****@host:5432/db"
 func SanitizeDataSource(driverName, dataSource string) (string, error) {
-	// Handle empty data source
 	if dataSource == "" {
 		return "", nil
 	}
 
-	switch driverName {
-	case DatabaseDriverPostgres:
-		u, err := url.Parse(dataSource)
-		if err != nil {
-			return "", err
-		}
-		u.User = url.UserPassword(SanitizedPassword, SanitizedPassword)
-
-		// Remove username and password from query string
-		params := u.Query()
-		params.Del("user")
-		params.Del("password")
-		u.RawQuery = params.Encode()
-
-		// Unescape the URL to make it human-readable
-		out, err := url.QueryUnescape(u.String())
-		if err != nil {
-			return "", err
-		}
-		return out, nil
-	default:
-		return "", errors.New("invalid drivername. Not postgres or mysql.")
+	if driverName != DatabaseDriverPostgres {
+		return "", errors.New("invalid drivername: only postgres is supported")
 	}
+
+	u, err := url.Parse(dataSource)
+	if err != nil {
+		return "", err
+	}
+	u.User = url.UserPassword(SanitizedPassword, SanitizedPassword)
+
+	// Remove username and password from query string
+	params := u.Query()
+	params.Del("user")
+	params.Del("password")
+	u.RawQuery = params.Encode()
+
+	// Unescape the URL to make it human-readable
+	out, err := url.QueryUnescape(u.String())
+	if err != nil {
+		return "", err
+	}
+	return out, nil
 }
 
 type FilterTag struct {
