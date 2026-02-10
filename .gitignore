@@ -166,4 +166,6 @@ docker-compose.override.yaml
 
 # DevDash
 tools/devdash/bin/
+.devdash.json
 .devdash-favorites.json
+.devdash-settings.json

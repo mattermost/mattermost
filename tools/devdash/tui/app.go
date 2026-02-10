@@ -97,6 +97,8 @@ func NewApp(repos []model.Repo, mgr *process.Manager, repoRoot string) *App {
 	si.Prompt = ""
 	si.Focus()
 
+	cfg := config.Load(repoRoot)
+
 	return &App{
 		repos:           repos,
 		procMgr:         mgr,
@@ -104,8 +106,8 @@ func NewApp(repos []model.Repo, mgr *process.Manager, repoRoot string) *App {
 		gridCells:       cells,
 		hScrolls:        make([]int, len(repos)),
 		repoRoot:        repoRoot,
-		favorites:        config.LoadFavorites(repoRoot),
-		showOnlyFavorites: config.LoadSettings(repoRoot).FavsOnly,
+		favorites:        cfg.FavoritesMap(),
+		showOnlyFavorites: cfg.FavsOnly,
 		gridSearchInput:  si,
 		gridSearching:    false,
 		logPanel:         NewLogPanel(),
@@ -173,7 +175,7 @@ func (a *App) handleKey(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 	// Ctrl+F toggles favorites-only view from anywhere
 	if key.Matches(msg, a.keys.FavsOnly) {
 		a.showOnlyFavorites = !a.showOnlyFavorites
-		config.SaveSettings(a.repoRoot, config.Settings{FavsOnly: a.showOnlyFavorites})
+		a.saveConfig()
 		a.snapCursorToFirstMatch()
 		return a, nil
 	}
@@ -964,6 +966,14 @@ func (a *App) tabFocus() TabFocus {
 	return TabFocusNone
 }
 
+// saveConfig persists favorites and settings to a single .devdash.json file.
+func (a *App) saveConfig() {
+	config.Save(a.repoRoot, config.Config{
+		FavsOnly:  a.showOnlyFavorites,
+		Favorites: config.FavoritesFromMap(a.favorites),
+	})
+}
+
 func (a *App) toggleFavorite() {
 	repo, cell := a.cellAtCursor()
 	if repo == nil {
@@ -975,7 +985,7 @@ func (a *App) toggleFavorite() {
 	} else {
 		a.favorites[id] = true
 	}
-	config.SaveFavorites(a.repoRoot, a.favorites)
+	a.saveConfig()
 }
 
 // moveCursorUp moves cursor up, skipping rows with no matching cells when filtering.
@@ -1449,7 +1459,7 @@ func (a *App) View() string {
 			"? Help", "q Quit",
 		}
 	}
-	logo := headerStyle.Render(" DevDash ")
+	logo := headerStyle.Render(" MM DevDash ")
 	headerRight := renderHotkeyHints(keys)
 	headerRightPlain := plainHotkeyHints(keys)
 	logoWidth := lipgloss.Width(logo)
@@ -1611,7 +1621,7 @@ func (a *App) renderHelp() string {
 		Padding(1, 2).
 		Width(60).
 		Render(strings.Join([]string{
-		"DevDash Help",
+		"DevDash Help — Mattermost (MM) Dev Dashboard",
 		"",
 		"Navigation:",
 		"  j or k     Move between repos",
