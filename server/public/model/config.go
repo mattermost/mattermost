@@ -3539,6 +3539,15 @@ func (s *PluginSettings) Sanitize(pluginManifests []*Manifest) {
 					break
 				}
 			}
+
+			for _, section := range manifest.SettingsSchema.Sections {
+				for _, definedSetting := range section.Settings {
+					if definedSetting.Secret && strings.EqualFold(definedSetting.Key, key) {
+						settings[key] = FakeSetting
+						break
+					}
+				}
+			}
 		}
 	}
 }
