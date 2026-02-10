@@ -17,6 +17,8 @@ import PluginLinkTooltip from 'components/plugin_link_tooltip';
 import PostEmoji from 'components/post_emoji';
 import PostEditedIndicator from 'components/post_view/post_edited_indicator';
 
+import {convertEntityToCharacter} from './text_formatting';
+
 export type Options = Partial<{
     postId: string;
     editedAt: number;
@@ -315,14 +317,7 @@ export default function messageHtmlToComponent(html: string, options: Options = 
         },
         processNode: (node: any) => {
             // Decode HTML entities in the text content
-            const decoded = node.data.
-                replace(/&lt;/g, '<').
-                replace(/&gt;/g, '>').
-                replace(/&quot;/g, '"').
-                replace(/&#39;/g, "'").
-                replace(/&amp;/g, '&');
-
-            return decoded;
+            return convertEntityToCharacter(node.data);
         },
     });
 
