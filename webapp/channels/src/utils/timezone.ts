@@ -48,7 +48,7 @@ export function parseDateInTimezone(value: string, timezone?: string): Moment | 
     }
 
     // Detect date-only strings (YYYY-MM-DD format, no time component)
-    const isDateOnly = /^\d{4}-\d{2}-\d{2}$/.test(value);
+    const isDateOnly = (/^\d{4}-\d{2}-\d{2}$/).test(value);
 
     if (isDateOnly) {
         // For date-only strings, parse AS IF in the target timezone
