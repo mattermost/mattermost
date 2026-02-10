@@ -90,6 +90,19 @@ func containsAlphaNumericChar(s string) bool {
 	return false
 }
 
+// containsCJK returns true if the string contains any CJK (Chinese, Japanese, Korean) characters.
+func containsCJK(s string) bool {
+	for _, r := range s {
+		if unicode.Is(unicode.Han, r) ||
+			unicode.Is(unicode.Hiragana, r) ||
+			unicode.Is(unicode.Katakana, r) ||
+			unicode.Is(unicode.Hangul, r) {
+			return true
+		}
+	}
+	return false
+}
+
 // isQuotedWord return true if the input string is quoted, false otherwise. Ex :-
 //
 //	"quoted string"  -  will return true
