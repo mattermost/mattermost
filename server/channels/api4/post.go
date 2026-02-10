@@ -1724,6 +1724,13 @@ func addThreadFollowers(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	for _, userId := range userIds {
+		if userId != c.AppContext.Session().UserId && !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageSystem) {
+			c.Err = model.NewAppError("addThreadFollowers", "api.post.thread_follower.forbidden.app_error", nil, "cannot modify another user's thread follow status", http.StatusForbidden)
+			return
+		}
+	}
+
 	// Add each user as a follower
 	for _, userId := range userIds {
 		if err := c.App.AddThreadFollower(c.AppContext, c.Params.PostId, userId); err != nil {
@@ -1751,6 +1758,11 @@ func removeThreadFollower(c *Context, w http.ResponseWriter, r *http.Request) {
 	// Verify this is a root post (thread)
 	if post.RootId != "" {
 		c.SetInvalidURLParam("post_id")
+		return
+	}
+
+	if c.Params.UserId != c.AppContext.Session().UserId && !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageSystem) {
+		c.Err = model.NewAppError("removeThreadFollower", "api.post.thread_follower.forbidden.app_error", nil, "cannot modify another user's thread follow status", http.StatusForbidden)
 		return
 	}
 

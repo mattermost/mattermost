@@ -8,6 +8,8 @@ package api4
 import (
 	"context"
 	"net/http"
+	"net/url"
+	"strings"
 	"testing"
 
 	"github.com/mattermost/mattermost/server/public/model"
@@ -51,7 +53,7 @@ func TestStatusLogAdvancedSQLInjection(t *testing.T) {
 
 	for _, tc := range injections {
 		t.Run(tc.name, func(t *testing.T) {
-			resp, err := th.SystemAdminClient.DoAPIGet(context.Background(), "/status_logs?"+tc.param+"="+tc.value, "")
+			resp, err := th.SystemAdminClient.DoAPIGet(context.Background(), "/status_logs?"+tc.param+"="+url.QueryEscape(tc.value), "")
 			// Server should gracefully handle SQL injection attempts via parameterized queries.
 			// Returns 200 with filtered/empty results (injection treated as literal string).
 			checkStatusCode(t, resp, err, http.StatusOK)
@@ -131,7 +133,9 @@ func TestStatusLogExportInjection(t *testing.T) {
 
 	for _, tc := range injections {
 		t.Run(tc.name, func(t *testing.T) {
-			resp, err := th.SystemAdminClient.DoAPIGet(context.Background(), "/status_logs/export?"+tc.query, "")
+			parts := strings.SplitN(tc.query, "=", 2)
+			encodedQuery := parts[0] + "=" + url.QueryEscape(parts[1])
+			resp, err := th.SystemAdminClient.DoAPIGet(context.Background(), "/status_logs/export?"+encodedQuery, "")
 			// Server should gracefully handle SQL injection attempts via parameterized queries.
 			checkStatusCode(t, resp, err, http.StatusOK)
 			closeIfOpen(resp, err)
