@@ -100,8 +100,7 @@ jobs:
           status: pending
 
   run-tests:
-    # POC: Testing with 16-core runner to measure speedup vs standard 2-core
-    runs-on: ubuntu-latest-16-cores
+    runs-on: ubuntu-24.04
     timeout-minutes: ${{ fromJSON(inputs.timeout_minutes) }}
     defaults:
       run:
@@ -114,16 +113,7 @@ jobs:
       TEST_FILTER: "${{ inputs.test_filter }}"
       BRANCH: "${{ inputs.branch }}-${{ inputs.test_type }}"
       BUILD_ID: "${{ inputs.build_id }}"
-      PW_WORKERS: "8"  # POC: Testing with 8 parallel Playwright workers
     steps:
-      - name: ci/verify-runner-specs
-        working-directory: /tmp
-        run: |
-          echo "=========================================="
-          echo "RUNNER VERIFICATION"
-          echo "CPUs: $(nproc)"
-          echo "Memory: $(free -h | grep Mem | awk '{print $2}')"
-          echo "=========================================="
       - name: ci/checkout-repo
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
         with:
@@ -192,8 +182,7 @@ jobs:
           original-results-path: e2e-tests/playwright/results/reporter/results.json
 
   run-failed-tests:
-    # POC: Testing with 16-core runner to measure speedup vs standard 2-core
-    runs-on: ubuntu-latest-16-cores
+    runs-on: ubuntu-24.04
     timeout-minutes: ${{ fromJSON(inputs.timeout_minutes) }}
     needs:
       - run-tests
