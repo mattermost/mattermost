@@ -29,6 +29,8 @@ export default class SystemConsolePage {
 
     readonly mobileSecurity;
 
+    readonly selfDeletingMessages;
+
     readonly featureDiscovery;
 
     // modal
@@ -53,6 +55,10 @@ export default class SystemConsolePage {
         this.systemUsers = new components.SystemUsers(page.getByTestId('systemUsersSection'));
         this.mobileSecurity = new components.SystemConsoleMobileSecurity(
             page.getByTestId('sysconsole_section_MobileSecuritySettings'),
+            this.page,
+        );
+        this.selfDeletingMessages = new components.SystemConsoleSelfDeletingMessages(
+            page.getByTestId('sysconsole_section_PostSettings'),
             this.page,
         );
         this.featureDiscovery = new components.SystemConsoleFeatureDiscovery(page.getByTestId('featureDiscovery'));
