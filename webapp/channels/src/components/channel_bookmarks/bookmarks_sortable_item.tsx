@@ -3,7 +3,7 @@
 
 import {useSortable} from '@dnd-kit/sortable';
 import {CSS} from '@dnd-kit/utilities';
-import React, {useCallback, useEffect, useRef} from 'react';
+import React from 'react';
 import styled, {css} from 'styled-components';
 
 import type {ChannelBookmark} from '@mattermost/types/channel_bookmarks';
@@ -14,9 +14,6 @@ interface BookmarksSortableItemProps {
     id: string;
     bookmark: ChannelBookmark;
     disabled?: boolean;
-    onMount?: (id: string, element: HTMLElement | null) => void;
-    hidden?: boolean;
-    isInOverflow?: boolean;
     isDragging?: boolean;
 }
 
@@ -24,16 +21,8 @@ function BookmarksSortableItem({
     id,
     bookmark,
     disabled = false,
-    onMount,
-    hidden = false,
-    isInOverflow = false,
     isDragging: globalIsDragging = false,
 }: BookmarksSortableItemProps) {
-    const elementRef = useRef<HTMLDivElement>(null);
-
-    // Track pointer sessions to detect if a click originated from a drag
-    const pointerSessionRef = useRef<{isDragSession: boolean} | null>(null);
-
     const {
         attributes,
         listeners,
@@ -46,53 +35,8 @@ function BookmarksSortableItem({
         disabled,
         data: {
             bookmark,
-            isInOverflow,
         },
     });
-
-    // Mark current pointer session as a drag session when dragging starts
-    useEffect(() => {
-        if ((isDragging || globalIsDragging) && pointerSessionRef.current) {
-            pointerSessionRef.current.isDragSession = true;
-        }
-    }, [isDragging, globalIsDragging]);
-
-    // Track pointer down to start a new session
-    const handlePointerDown = useCallback(() => {
-        pointerSessionRef.current = {isDragSession: false};
-    }, []);
-
-    // Clear session after click event has fired
-    const handlePointerUp = useCallback(() => {
-        // Use requestAnimationFrame to ensure click event fires first
-        requestAnimationFrame(() => {
-            pointerSessionRef.current = null;
-        });
-    }, []);
-
-    // Combine refs and report mount
-    const setRefs = useCallback((node: HTMLDivElement | null) => {
-        setNodeRef(node);
-        (elementRef as React.MutableRefObject<HTMLDivElement | null>).current = node;
-        if (onMount) {
-            onMount(id, node);
-        }
-    }, [setNodeRef, onMount, id]);
-
-    // Re-report on bookmark changes (name changes can affect width)
-    useEffect(() => {
-        if (elementRef.current && onMount) {
-            onMount(id, elementRef.current);
-        }
-    }, [bookmark.display_name, id, onMount]);
-
-    // Prevent click if this pointer session was a drag
-    const handleClick = useCallback((e: React.MouseEvent) => {
-        if (globalIsDragging || isDragging || pointerSessionRef.current?.isDragSession) {
-            e.preventDefault();
-            e.stopPropagation();
-        }
-    }, [globalIsDragging, isDragging]);
 
     const style = {
         transform: CSS.Transform.toString(transform),
@@ -103,16 +47,10 @@ function BookmarksSortableItem({
 
     return (
         <SortableChip
-            ref={setRefs}
+            ref={setNodeRef}
             style={style}
             $isDragging={isDragging}
-            $isInOverflow={isInOverflow}
-            $hidden={hidden}
             data-testid={`bookmark-item-${id}`}
-            onClick={handleClick}
-            onClickCapture={handleClick}
-            onPointerDown={handlePointerDown}
-            onPointerUp={handlePointerUp}
         >
             <DragHandle
                 {...attributes}
@@ -122,7 +60,6 @@ function BookmarksSortableItem({
                 <BookmarkItemContent
                     bookmark={bookmark}
                     disableInteractions={isDragging || globalIsDragging}
-                    isInOverflow={isInOverflow}
                 />
             </DragHandle>
         </SortableChip>
@@ -131,31 +68,18 @@ function BookmarksSortableItem({
 
 const SortableChip = styled.div<{
     $isDragging: boolean;
-    $isInOverflow: boolean;
-    $hidden: boolean;
 }>`
     position: relative;
-    border-radius: ${({$isInOverflow}) => ($isInOverflow ? '4px' : '12px')};
+    border-radius: 12px;
     overflow: hidden;
     flex-shrink: 0;
-    min-width: ${({$isInOverflow}) => ($isInOverflow ? 'auto' : '5rem')};
-    max-width: ${({$isInOverflow}) => ($isInOverflow ? 'none' : '25rem')};
+    min-width: 5rem;
+    max-width: 25rem;
     touch-action: none;
-
-    ${({$hidden}) => $hidden && css`
-        position: absolute;
-        visibility: hidden;
-        pointer-events: none;
-    `}
 
     ${({$isDragging}) => $isDragging && css`
         box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
         cursor: grabbing;
-    `}
-
-    ${({$isInOverflow}) => $isInOverflow && css`
-        width: 100%;
-        margin: 0;
     `}
 `;
 

@@ -3,7 +3,7 @@
 
 import type {DragEndEvent, DragOverEvent, DragStartEvent, UniqueIdentifier} from '@dnd-kit/core';
 import {arrayMove} from '@dnd-kit/sortable';
-import {useCallback, useState} from 'react';
+import {useCallback, useRef, useState} from 'react';
 
 export type ContainerId = 'bar' | 'overflow';
 
@@ -12,6 +12,11 @@ export interface DragState {
     activeContainer: ContainerId | null;
     overId: UniqueIdentifier | null;
     overContainer: ContainerId | null;
+}
+
+interface LocalOrder {
+    visible: string[];
+    overflow: string[];
 }
 
 interface UseBookmarksDndOptions {
@@ -29,6 +34,13 @@ interface UseBookmarksDndResult {
     getLocalOrder: () => {visible: string[]; overflow: string[]};
 }
 
+const INITIAL_DRAG_STATE: DragState = {
+    activeId: null,
+    activeContainer: null,
+    overId: null,
+    overContainer: null,
+};
+
 /**
  * Hook to handle drag and drop logic for bookmarks,
  * including cross-list dragging between visible bar and overflow menu.
@@ -38,21 +50,20 @@ export function useBookmarksDnd({
     overflowItems,
     onReorder,
 }: UseBookmarksDndOptions): UseBookmarksDndResult {
-    const [dragState, setDragState] = useState<DragState>({
-        activeId: null,
-        activeContainer: null,
-        overId: null,
-        overContainer: null,
-    });
+    const [dragState, setDragState] = useState<DragState>(INITIAL_DRAG_STATE);
 
-    // Local order during drag (for optimistic UI)
-    const [localVisible, setLocalVisible] = useState<string[] | null>(null);
-    const [localOverflow, setLocalOverflow] = useState<string[] | null>(null);
+    // Combined local order — single state object so updaters always see
+    // the latest values for BOTH lists (no stale closure issues).
+    const [localOrder, setLocalOrder] = useState<LocalOrder | null>(null);
+
+    // Ref for activeContainer so handleDragOver reads it synchronously
+    // without depending on dragState in its closure.
+    const activeContainerRef = useRef<ContainerId | null>(null);
 
     const getContainer = useCallback((id: UniqueIdentifier): ContainerId | null => {
         const idStr = String(id);
-        const visible = localVisible ?? visibleItems;
-        const overflow = localOverflow ?? overflowItems;
+        const visible = localOrder?.visible ?? visibleItems;
+        const overflow = localOrder?.overflow ?? overflowItems;
 
         if (visible.includes(idStr)) {
             return 'bar';
@@ -61,11 +72,12 @@ export function useBookmarksDnd({
             return 'overflow';
         }
         return null;
-    }, [visibleItems, overflowItems, localVisible, localOverflow]);
+    }, [visibleItems, overflowItems, localOrder]);
 
     const handleDragStart = useCallback((event: DragStartEvent) => {
         const {active} = event;
         const container = getContainer(active.id);
+        activeContainerRef.current = container;
 
         setDragState({
             activeId: active.id,
@@ -74,9 +86,10 @@ export function useBookmarksDnd({
             overContainer: null,
         });
 
-        // Initialize local order
-        setLocalVisible([...visibleItems]);
-        setLocalOverflow([...overflowItems]);
+        setLocalOrder({
+            visible: [...visibleItems],
+            overflow: [...overflowItems],
+        });
     }, [visibleItems, overflowItems, getContainer]);
 
     const handleDragOver = useCallback((event: DragOverEvent) => {
@@ -93,8 +106,12 @@ export function useBookmarksDnd({
 
         const activeId = String(active.id);
         const overId = String(over.id);
-        const activeContainer = getContainer(active.id);
-        const overContainer = getContainer(over.id) ?? (over.id === 'overflow-droppable' ? 'overflow' : 'bar');
+
+        // Use the original container from drag start — NOT getContainer() which
+        // reads from the mutating local lists and would flip after a cross-container
+        // move, causing an infinite dragOver → setState → re-render → dragOver loop.
+        const activeContainer = activeContainerRef.current;
+        const overContainer = getContainer(over.id) ?? (over.id === 'overflow-drop-zone' ? 'overflow' : 'bar');
 
         setDragState((prev) => ({
             ...prev,
@@ -102,79 +119,91 @@ export function useBookmarksDnd({
             overContainer,
         }));
 
-        // If moving between containers, update local order
+        // Cross-container move
         if (activeContainer !== overContainer && activeContainer && overContainer) {
-            setLocalVisible((prev) => {
-                const visible = prev ?? visibleItems;
-                const overflow = localOverflow ?? overflowItems;
+            setLocalOrder((prev) => {
+                if (!prev) {
+                    return prev;
+                }
+                const {visible, overflow} = prev;
 
                 if (activeContainer === 'bar' && overContainer === 'overflow') {
-                    // Moving from bar to overflow
+                    if (overflow.includes(activeId)) {
+                        // Already moved — reposition within overflow
+                        const oldIndex = overflow.indexOf(activeId);
+                        const newIndex = overflow.indexOf(overId);
+                        if (oldIndex !== -1 && newIndex !== -1 && oldIndex !== newIndex) {
+                            return {...prev, overflow: arrayMove(overflow, oldIndex, newIndex)};
+                        }
+                        return prev;
+                    }
+
+                    // First move from bar to overflow
                     const newVisible = visible.filter((id) => id !== activeId);
                     const overIndex = overflow.indexOf(overId);
                     const newOverflow = [...overflow];
                     newOverflow.splice(overIndex >= 0 ? overIndex : newOverflow.length, 0, activeId);
-                    setLocalOverflow(newOverflow);
-                    return newVisible;
+                    return {visible: newVisible, overflow: newOverflow};
                 } else if (activeContainer === 'overflow' && overContainer === 'bar') {
-                    // Moving from overflow to bar
+                    if (visible.includes(activeId)) {
+                        // Already moved — reposition within bar
+                        const oldIndex = visible.indexOf(activeId);
+                        const newIndex = visible.indexOf(overId);
+                        if (oldIndex !== -1 && newIndex !== -1 && oldIndex !== newIndex) {
+                            return {...prev, visible: arrayMove(visible, oldIndex, newIndex)};
+                        }
+                        return prev;
+                    }
+
+                    // First move from overflow to bar
                     const newOverflow = overflow.filter((id) => id !== activeId);
                     const overIndex = visible.indexOf(overId);
                     const newVisible = [...visible];
                     newVisible.splice(overIndex >= 0 ? overIndex : newVisible.length, 0, activeId);
-                    setLocalOverflow(newOverflow);
-                    return newVisible;
+                    return {visible: newVisible, overflow: newOverflow};
                 }
                 return prev;
             });
         } else if (activeContainer === overContainer && overId !== activeId) {
             // Reordering within same container
-            if (activeContainer === 'bar') {
-                setLocalVisible((prev) => {
-                    const visible = prev ?? visibleItems;
-                    const oldIndex = visible.indexOf(activeId);
-                    const newIndex = visible.indexOf(overId);
-                    if (oldIndex !== -1 && newIndex !== -1) {
-                        return arrayMove(visible, oldIndex, newIndex);
-                    }
+            setLocalOrder((prev) => {
+                if (!prev) {
                     return prev;
-                });
-            } else if (activeContainer === 'overflow') {
-                setLocalOverflow((prev) => {
-                    const overflow = prev ?? overflowItems;
-                    const oldIndex = overflow.indexOf(activeId);
-                    const newIndex = overflow.indexOf(overId);
-                    if (oldIndex !== -1 && newIndex !== -1) {
-                        return arrayMove(overflow, oldIndex, newIndex);
+                }
+
+                if (activeContainer === 'bar') {
+                    const oldIndex = prev.visible.indexOf(activeId);
+                    const newIndex = prev.visible.indexOf(overId);
+                    if (oldIndex !== -1 && newIndex !== -1 && oldIndex !== newIndex) {
+                        return {...prev, visible: arrayMove(prev.visible, oldIndex, newIndex)};
                     }
-                    return prev;
-                });
-            }
+                } else if (activeContainer === 'overflow') {
+                    const oldIndex = prev.overflow.indexOf(activeId);
+                    const newIndex = prev.overflow.indexOf(overId);
+                    if (oldIndex !== -1 && newIndex !== -1 && oldIndex !== newIndex) {
+                        return {...prev, overflow: arrayMove(prev.overflow, oldIndex, newIndex)};
+                    }
+                }
+                return prev;
+            });
         }
-    }, [visibleItems, overflowItems, localOverflow, getContainer]);
+    }, [getContainer]);
 
     const handleDragEnd = useCallback(async (event: DragEndEvent) => {
         const {active, over} = event;
 
         if (!over) {
-            // Cancelled or no drop target
-            setDragState({
-                activeId: null,
-                activeContainer: null,
-                overId: null,
-                overContainer: null,
-            });
-            setLocalVisible(null);
-            setLocalOverflow(null);
+            setDragState(INITIAL_DRAG_STATE);
+            setLocalOrder(null);
+            activeContainerRef.current = null;
             return;
         }
 
         const activeId = String(active.id);
 
         // Calculate the new index in the combined order
-        // The overflow items come after visible items
-        const finalVisible = localVisible ?? visibleItems;
-        const finalOverflow = localOverflow ?? overflowItems;
+        const finalVisible = localOrder?.visible ?? visibleItems;
+        const finalOverflow = localOrder?.overflow ?? overflowItems;
         const combinedOrder = [...finalVisible, ...finalOverflow];
 
         const newIndex = combinedOrder.indexOf(activeId);
@@ -182,36 +211,24 @@ export function useBookmarksDnd({
         const oldIndex = originalCombined.indexOf(activeId);
 
         if (newIndex !== -1 && oldIndex !== newIndex) {
-            // Reorder API call
             await onReorder(activeId, oldIndex, newIndex);
         }
 
-        // Reset state
-        setDragState({
-            activeId: null,
-            activeContainer: null,
-            overId: null,
-            overContainer: null,
-        });
-        setLocalVisible(null);
-        setLocalOverflow(null);
-    }, [visibleItems, overflowItems, localVisible, localOverflow, onReorder]);
+        setDragState(INITIAL_DRAG_STATE);
+        setLocalOrder(null);
+        activeContainerRef.current = null;
+    }, [visibleItems, overflowItems, localOrder, onReorder]);
 
     const handleDragCancel = useCallback(() => {
-        setDragState({
-            activeId: null,
-            activeContainer: null,
-            overId: null,
-            overContainer: null,
-        });
-        setLocalVisible(null);
-        setLocalOverflow(null);
+        setDragState(INITIAL_DRAG_STATE);
+        setLocalOrder(null);
+        activeContainerRef.current = null;
     }, []);
 
     const getLocalOrder = useCallback(() => ({
-        visible: localVisible ?? visibleItems,
-        overflow: localOverflow ?? overflowItems,
-    }), [localVisible, localOverflow, visibleItems, overflowItems]);
+        visible: localOrder?.visible ?? visibleItems,
+        overflow: localOrder?.overflow ?? overflowItems,
+    }), [localOrder, visibleItems, overflowItems]);
 
     return {
         dragState,

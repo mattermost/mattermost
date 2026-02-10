@@ -1,6 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {useDroppable} from '@dnd-kit/core';
 import {SortableContext, verticalListSortingStrategy} from '@dnd-kit/sortable';
 import React, {memo, useCallback} from 'react';
 import {useIntl} from 'react-intl';
@@ -36,6 +37,8 @@ interface BookmarksBarMenuProps {
     canUploadFiles: boolean;
     canReorder: boolean;
     isDragging: boolean;
+    forceOpen?: boolean;
+    onOpenChange?: (open: boolean) => void;
 }
 
 function BookmarksBarMenu({
@@ -47,6 +50,8 @@ function BookmarksBarMenu({
     canUploadFiles,
     canReorder,
     isDragging,
+    forceOpen,
+    onOpenChange,
 }: BookmarksBarMenuProps) {
     const {formatMessage} = useIntl();
     const dispatch = useDispatch();
@@ -108,6 +113,18 @@ function BookmarksBarMenu({
         input.click();
     }, [handleCreate]);
 
+    // The drop zone triggers auto-open when dragging near the overflow button.
+    // Once the menu is open (forceOpen), disable it so the actual overflow
+    // sortable items handle collision detection instead of being shadowed.
+    const {setNodeRef: setDroppableRef} = useDroppable({
+        id: 'overflow-drop-zone',
+        disabled: !isDragging || forceOpen === true,
+    });
+
+    const handleToggle = useCallback((open: boolean) => {
+        onOpenChange?.(open);
+    }, [onOpenChange]);
+
     if (!showMenu) {
         return null;
     }
@@ -144,8 +161,72 @@ function BookmarksBarMenu({
         return <PlusIcon size={18}/>;
     };
 
+    const menuItems: React.ReactNode[] = [];
+
+    if (showOverflow) {
+        menuItems.push(
+            <OverflowSection key='overflow-section'>
+                <SortableContext
+                    items={overflowItems}
+                    strategy={verticalListSortingStrategy}
+                    id='overflow'
+                >
+                    {overflowItems.map((id) => {
+                        const bookmark = bookmarks[id];
+                        if (!bookmark) {
+                            return null;
+                        }
+
+                        return (
+                            <OverflowBookmarkItem
+                                key={id}
+                                id={id}
+                                bookmark={bookmark}
+                                canReorder={canReorder}
+                                isDragging={isDragging}
+                            />
+                        );
+                    })}
+                </SortableContext>
+            </OverflowSection>,
+        );
+    }
+
+    if (showOverflow && showAddSection) {
+        menuItems.push(<Menu.Separator key='separator'/>);
+    }
+
+    if (showAddSection) {
+        menuItems.push(
+            <Menu.Item
+                key='addLink'
+                id='channelBookmarksAddLink'
+                onClick={handleCreateLink}
+                leadingElement={<LinkVariantIcon size={18}/>}
+                labels={<span>{addLinkLabel}</span>}
+                disabled={limitReached}
+            />,
+        );
+
+        if (canUploadFiles) {
+            menuItems.push(
+                <Menu.Item
+                    key='attachFile'
+                    id='channelBookmarksAttachFile'
+                    onClick={handleCreateFile}
+                    leadingElement={<PaperclipIcon size={18}/>}
+                    labels={<span>{attachFileLabel}</span>}
+                    disabled={limitReached}
+                />,
+            );
+        }
+    }
+
     return (
-        <MenuContainer data-testid='bookmarks-bar-menu'>
+        <MenuContainer
+            ref={setDroppableRef}
+            data-testid='bookmarks-bar-menu'
+        >
             <Menu.Container
                 anchorOrigin={{vertical: 'bottom', horizontal: 'right'}}
                 transformOrigin={{vertical: 'top', horizontal: 'right'}}
@@ -160,62 +241,12 @@ function BookmarksBarMenu({
                 menu={{
                     id: 'channelBookmarksBarMenu',
                     width: '280px',
+                    isMenuOpen: forceOpen,
+                    onToggle: handleToggle,
+                    hideBackdrop: isDragging,
                 }}
             >
-                {/* Overflow items section */}
-                {showOverflow && (
-                    <OverflowSection>
-                        <SortableContext
-                            items={overflowItems}
-                            strategy={verticalListSortingStrategy}
-                            id='overflow'
-                        >
-                            {overflowItems.map((id) => {
-                                const bookmark = bookmarks[id];
-                                if (!bookmark) {
-                                    return null;
-                                }
-
-                                return (
-                                    <OverflowBookmarkItem
-                                        key={id}
-                                        id={id}
-                                        bookmark={bookmark}
-                                        canReorder={canReorder}
-                                        isDragging={isDragging}
-                                    />
-                                );
-                            })}
-                        </SortableContext>
-                    </OverflowSection>
-                )}
-
-                {/* Divider between overflow and add options */}
-                {showOverflow && showAddSection && (
-                    <Menu.Separator/>
-                )}
-
-                {/* Add bookmark options */}
-                {showAddSection && (
-                    <>
-                        <Menu.Item
-                            id='channelBookmarksAddLink'
-                            onClick={handleCreateLink}
-                            leadingElement={<LinkVariantIcon size={18}/>}
-                            labels={<span>{addLinkLabel}</span>}
-                            disabled={limitReached}
-                        />
-                        {canUploadFiles && (
-                            <Menu.Item
-                                id='channelBookmarksAttachFile'
-                                onClick={handleCreateFile}
-                                leadingElement={<PaperclipIcon size={18}/>}
-                                labels={<span>{attachFileLabel}</span>}
-                                disabled={limitReached}
-                            />
-                        )}
-                    </>
-                )}
+                {menuItems}
             </Menu.Container>
         </MenuContainer>
     );
@@ -282,10 +313,12 @@ const OverflowCount = styled.span`
     text-align: center;
 `;
 
-const OverflowSection = styled.div`
+const OverflowSection = styled.ul`
     display: flex;
     flex-direction: column;
     padding: 4px 0;
+    margin: 0;
+    list-style: none;
     max-height: 300px;
     overflow-y: auto;
 `;

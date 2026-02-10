@@ -5,32 +5,38 @@ import {
     DndContext,
     closestCenter,
     KeyboardSensor,
-    PointerSensor,
+    MouseSensor,
+    TouchSensor,
     useSensor,
     useSensors,
     DragOverlay,
     MeasuringStrategy,
 } from '@dnd-kit/core';
-import type {DragEndEvent, DragStartEvent} from '@dnd-kit/core';
+import type {DragOverEvent} from '@dnd-kit/core';
 import {
     SortableContext,
     sortableKeyboardCoordinates,
     horizontalListSortingStrategy,
 } from '@dnd-kit/sortable';
-import React, {useCallback, useEffect, useRef, useState} from 'react';
+import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import styled from 'styled-components';
 
 import type {ChannelBookmark} from '@mattermost/types/channel_bookmarks';
 
 import BookmarkItemContent from './bookmark_item_content';
 import BookmarksBarMenu from './bookmarks_bar_menu';
+import BookmarkMeasureItem from './bookmarks_measure_item';
 import BookmarksSortableItem from './bookmarks_sortable_item';
+import {useBookmarksDnd} from './hooks';
 import {useChannelBookmarks, MAX_BOOKMARKS_PER_CHANNEL, useCanUploadFiles, useChannelBookmarkPermission} from './utils';
 
 import './channel_bookmarks.scss';
 
 // Space to reserve for the menu button
 const MENU_BUTTON_WIDTH = 80;
+
+// Debounce delay for overflow recalculation
+const OVERFLOW_DEBOUNCE_MS = 100;
 
 type Props = {
     channelId: string;
@@ -45,10 +51,11 @@ function ChannelBookmarks({channelId}: Props) {
 
     const containerRef = useRef<HTMLDivElement>(null);
     const itemRefs = useRef<Map<string, HTMLElement>>(new Map());
+    const isDraggingRef = useRef(false);
+    const pendingRecalcRef = useRef(false);
+    const debounceTimerRef = useRef<ReturnType<typeof setTimeout>>();
 
     const [overflowStartIndex, setOverflowStartIndex] = useState<number>(order.length);
-    const [isDragging, setIsDragging] = useState(false);
-    const [activeId, setActiveId] = useState<string | null>(null);
 
     // Register item element for measurement
     const registerItemRef = useCallback((id: string, element: HTMLElement | null) => {
@@ -90,6 +97,20 @@ function ChannelBookmarks({channelId}: Props) {
         setOverflowStartIndex(newOverflowIndex);
     }, [order]);
 
+    // Debounced version that skips while dragging
+    const debouncedCalculateOverflow = useCallback(() => {
+        if (isDraggingRef.current) {
+            pendingRecalcRef.current = true;
+            return;
+        }
+
+        if (debounceTimerRef.current) {
+            clearTimeout(debounceTimerRef.current);
+        }
+
+        debounceTimerRef.current = setTimeout(calculateOverflow, OVERFLOW_DEBOUNCE_MS);
+    }, [calculateOverflow]);
+
     // Recalculate overflow on mount, resize, and order changes
     useEffect(() => {
         const container = containerRef.current;
@@ -101,21 +122,34 @@ function ChannelBookmarks({channelId}: Props) {
         const timeoutId = setTimeout(calculateOverflow, 0);
 
         const resizeObserver = new ResizeObserver(() => {
-            calculateOverflow();
+            debouncedCalculateOverflow();
         });
         resizeObserver.observe(container);
 
         return () => {
             clearTimeout(timeoutId);
+            if (debounceTimerRef.current) {
+                clearTimeout(debounceTimerRef.current);
+            }
             resizeObserver.disconnect();
         };
-    }, [calculateOverflow, order]);
+    }, [calculateOverflow, debouncedCalculateOverflow, order]);
 
-    // DnD sensors
+    // Visible and overflow item lists
+    const visibleItems = useMemo(() => order.slice(0, overflowStartIndex), [order, overflowStartIndex]);
+    const overflowItems = useMemo(() => order.slice(overflowStartIndex), [order, overflowStartIndex]);
+
+    // DnD sensors — MouseSensor + TouchSensor for better cross-device handling
     const sensors = useSensors(
-        useSensor(PointerSensor, {
+        useSensor(MouseSensor, {
             activationConstraint: {
                 distance: 8,
+            },
+        }),
+        useSensor(TouchSensor, {
+            activationConstraint: {
+                delay: 250,
+                tolerance: 5,
             },
         }),
         useSensor(KeyboardSensor, {
@@ -123,38 +157,80 @@ function ChannelBookmarks({channelId}: Props) {
         }),
     );
 
-    const handleDragStart = useCallback((event: DragStartEvent) => {
-        setIsDragging(true);
-        setActiveId(String(event.active.id));
-    }, []);
+    // Wire up the bookmarks DnD hook
+    const {
+        dragState,
+        handleDragStart: hookDragStart,
+        handleDragOver: hookDragOver,
+        handleDragEnd: hookDragEnd,
+        handleDragCancel: hookDragCancel,
+        getLocalOrder,
+    } = useBookmarksDnd({
+        visibleItems,
+        overflowItems,
+        onReorder: reorder,
+    });
 
-    const handleDragEnd = useCallback(async (event: DragEndEvent) => {
-        setIsDragging(false);
-        setActiveId(null);
+    // Overflow menu auto-open state (controlled by drag proximity)
+    const [overflowMenuOpen, setOverflowMenuOpen] = useState(false);
 
-        const {active, over} = event;
-        if (!over || active.id === over.id) {
-            return;
+    const handleDragStart = useCallback((...args: Parameters<typeof hookDragStart>) => {
+        isDraggingRef.current = true;
+        hookDragStart(...args);
+    }, [hookDragStart]);
+
+    const handleDragOver = useCallback((event: DragOverEvent) => {
+        hookDragOver(event);
+
+        // Auto-open overflow menu when dragging near it
+        if (event.over?.id === 'overflow-drop-zone') {
+            setOverflowMenuOpen(true);
         }
+    }, [hookDragOver]);
 
-        const oldIndex = order.indexOf(String(active.id));
-        const newIndex = order.indexOf(String(over.id));
+    const handleDragEnd = useCallback(async (...args: Parameters<typeof hookDragEnd>) => {
+        isDraggingRef.current = false;
 
-        if (oldIndex !== -1 && newIndex !== -1 && oldIndex !== newIndex) {
-            await reorder(String(active.id), oldIndex, newIndex);
+        // Don't force-close the overflow menu here — when isDragging goes false,
+        // forceOpen reverts to undefined (uncontrolled) and the menu's own anchor
+        // state keeps it open. The user closes it normally (click outside / escape),
+        // which fires onToggle(false) → setOverflowMenuOpen(false).
+
+        await hookDragEnd(...args);
+
+        // Flush any pending recalculation from resizes that happened during drag
+        if (pendingRecalcRef.current) {
+            pendingRecalcRef.current = false;
+            calculateOverflow();
         }
-    }, [order, reorder]);
+    }, [hookDragEnd, calculateOverflow]);
 
     const handleDragCancel = useCallback(() => {
-        setIsDragging(false);
-        setActiveId(null);
+        isDraggingRef.current = false;
+        setOverflowMenuOpen(false);
+
+        hookDragCancel();
+
+        // Flush any pending recalculation
+        if (pendingRecalcRef.current) {
+            pendingRecalcRef.current = false;
+            calculateOverflow();
+        }
+    }, [hookDragCancel, calculateOverflow]);
+
+    const handleOverflowOpenChange = useCallback((open: boolean) => {
+        setOverflowMenuOpen(open);
     }, []);
 
-    // Items in overflow menu
-    const overflowItems = order.slice(overflowStartIndex);
+    const isDragging = dragState.activeId !== null;
 
     // Get active bookmark for drag overlay
-    const activeBookmark: ChannelBookmark | null = activeId ? bookmarks[activeId] : null;
+    const activeBookmark: ChannelBookmark | null = dragState.activeId ? bookmarks[String(dragState.activeId)] : null;
+
+    // During drag, use the hook's optimistic order for both containers
+    const localOrder = getLocalOrder();
+    const barRenderOrder = isDragging ? localOrder.visible : visibleItems;
+    const overflowRenderOrder = isDragging ? localOrder.overflow : overflowItems;
 
     // Show empty state with just add button if no bookmarks
     if (!hasBookmarks) {
@@ -183,6 +259,7 @@ function ChannelBookmarks({channelId}: Props) {
             sensors={sensors}
             collisionDetection={closestCenter}
             onDragStart={handleDragStart}
+            onDragOver={handleDragOver}
             onDragEnd={handleDragEnd}
             onDragCancel={handleDragCancel}
             measuring={{
@@ -197,18 +274,35 @@ function ChannelBookmarks({channelId}: Props) {
                 className='channel-bookmarks-container'
             >
                 <BookmarksBarContent>
+                    {/* Hidden measure components for ALL items — always present regardless
+                        of visible/overflow split, so calculateOverflow has consistent refs. */}
+                    {order.map((id) => {
+                        const bookmark = bookmarks[id];
+                        if (!bookmark) {
+                            return null;
+                        }
+                        return (
+                            <BookmarkMeasureItem
+                                key={`measure-${id}`}
+                                id={id}
+                                bookmark={bookmark}
+                                onMount={registerItemRef}
+                            />
+                        );
+                    })}
+
+                    {/* During drag, SortableContext uses the optimistic order so dnd-kit
+                        manages transforms/transitions for cross-container items properly. */}
                     <SortableContext
-                        items={order}
+                        items={barRenderOrder}
                         strategy={horizontalListSortingStrategy}
                         id='bar'
                     >
-                        {order.map((id, index) => {
+                        {barRenderOrder.map((id) => {
                             const bookmark = bookmarks[id];
                             if (!bookmark) {
                                 return null;
                             }
-
-                            const isOverflow = index >= overflowStartIndex;
 
                             return (
                                 <BookmarksSortableItem
@@ -216,8 +310,6 @@ function ChannelBookmarks({channelId}: Props) {
                                     id={id}
                                     bookmark={bookmark}
                                     disabled={!canReorder}
-                                    onMount={registerItemRef}
-                                    hidden={isOverflow}
                                     isDragging={isDragging}
                                 />
                             );
@@ -227,17 +319,19 @@ function ChannelBookmarks({channelId}: Props) {
 
                 <BookmarksBarMenu
                     channelId={channelId}
-                    overflowItems={overflowItems}
+                    overflowItems={overflowRenderOrder}
                     bookmarks={bookmarks}
                     hasBookmarks={hasBookmarks}
                     limitReached={limitReached}
                     canUploadFiles={canUploadFiles}
                     canReorder={canReorder}
                     isDragging={isDragging}
+                    forceOpen={isDragging ? overflowMenuOpen : undefined}
+                    onOpenChange={handleOverflowOpenChange}
                 />
             </Container>
 
-            <DragOverlay>
+            <DragOverlay zIndex={1400}>
                 {activeBookmark ? (
                     <DragOverlayItem>
                         <BookmarkItemContent
@@ -271,6 +365,7 @@ const BookmarksBarContent = styled.div`
     flex: 1;
     min-width: 0;
     overflow: hidden;
+    position: relative;
 `;
 
 const DragOverlayItem = styled.div`

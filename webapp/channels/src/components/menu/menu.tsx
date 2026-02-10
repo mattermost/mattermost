@@ -74,6 +74,12 @@ type MenuProps = {
     onKeyDown?: (event: KeyboardEvent<HTMLDivElement>, forceCloseMenu?: () => void) => void;
     width?: string;
     isMenuOpen?: boolean;
+
+    /**
+     * When true, hides the MUI Popover backdrop so that elements behind the
+     * menu remain interactive (e.g. during drag-and-drop).
+     */
+    hideBackdrop?: boolean;
 }
 
 const defaultAnchorOrigin = {vertical: 'bottom', horizontal: 'left'} as PopoverOrigin;
@@ -236,9 +242,15 @@ export function Menu(props: Props) {
     }, [isMenuOpen]);
 
     useEffect(() => {
-        if (props.menu.isMenuOpen === false) {
+        if (props.menu.isMenuOpen === true && !anchorElement) {
+            const button = document.getElementById(props.menuButton.id);
+            if (button) {
+                setAnchorElement(button);
+            }
+        } else if (props.menu.isMenuOpen === false && anchorElement) {
             setAnchorElement(null);
         }
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- intentionally exclude anchorElement/id to avoid loops
     }, [props.menu.isMenuOpen]);
 
     const providerValue = useMenuContextValue(closeMenu, Boolean(anchorElement));
@@ -262,6 +274,7 @@ export function Menu(props: Props) {
                     marginThreshold={0}
                     anchorOrigin={props.anchorOrigin || defaultAnchorOrigin}
                     transformOrigin={props.transformOrigin || defaultTransformOrigin}
+                    hideBackdrop={props.menu.hideBackdrop}
                     TransitionProps={{
                         mountOnEnter: true,
                         unmountOnExit: true,

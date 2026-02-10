@@ -3,7 +3,7 @@
 
 import {useSortable} from '@dnd-kit/sortable';
 import {CSS} from '@dnd-kit/utilities';
-import React, {useCallback, useContext, useEffect, useRef} from 'react';
+import React, {useCallback, useContext, useRef} from 'react';
 import {useDispatch, useSelector} from 'react-redux';
 import {Link} from 'react-router-dom';
 import styled, {css} from 'styled-components';
@@ -46,9 +46,6 @@ function OverflowBookmarkItem({
     const linkRef = useRef<HTMLAnchorElement>(null);
     const menuContext = useContext(MenuContext);
 
-    // Track pointer sessions to detect if a click originated from a drag
-    const pointerSessionRef = useRef<{isDragSession: boolean} | null>(null);
-
     const fileInfo: FileInfo | undefined = useSelector(
         (state: GlobalState) => (bookmark?.file_id && getFile(state, bookmark.file_id)) || undefined,
     );
@@ -75,47 +72,19 @@ function OverflowBookmarkItem({
         opacity: isDragging ? 0.5 : 1,
     };
 
-    // Mark current pointer session as a drag session when dragging starts
-    useEffect(() => {
-        if ((isDragging || globalIsDragging) && pointerSessionRef.current) {
-            pointerSessionRef.current.isDragSession = true;
-        }
-    }, [isDragging, globalIsDragging]);
-
-    // Track pointer down to start a new session
-    const handlePointerDown = useCallback(() => {
-        pointerSessionRef.current = {isDragSession: false};
-    }, []);
-
-    // Clear session after click event has fired
-    const handlePointerUp = useCallback(() => {
-        // Use requestAnimationFrame to ensure click event fires first
-        requestAnimationFrame(() => {
-            pointerSessionRef.current = null;
-        });
-    }, []);
-
-    // Check if we should prevent click (drag occurred in this pointer session)
-    const shouldPreventClick = useCallback(() => {
-        return globalIsDragging || isDragging || pointerSessionRef.current?.isDragSession;
-    }, [globalIsDragging, isDragging]);
-
+    // Open the bookmark via its rendered anchor element
     const open = useCallback(() => {
         linkRef.current?.click();
     }, []);
 
     const handleOpenFile = useCallback((e: React.MouseEvent<HTMLAnchorElement>) => {
         e.preventDefault();
-
-        // Prevent click if this pointer session was a drag
-        if (shouldPreventClick()) {
+        if (globalIsDragging || isDragging) {
             return;
         }
 
         if (fileInfo) {
-            // Close the menu before opening file preview
             menuContext.close?.();
-
             dispatch(openModal({
                 modalId: ModalIdentifiers.FILE_PREVIEW_MODAL,
                 dialogType: FilePreviewModal,
@@ -126,67 +95,67 @@ function OverflowBookmarkItem({
                 },
             }));
         }
-    }, [dispatch, fileInfo, bookmark.owner_id, bookmark.channel_id, menuContext, shouldPreventClick]);
+    }, [dispatch, fileInfo, bookmark.owner_id, bookmark.channel_id, menuContext, globalIsDragging, isDragging]);
 
     const handleLinkClick = useCallback((e: React.MouseEvent<HTMLElement>) => {
-        // Prevent click if this pointer session was a drag
-        if (shouldPreventClick()) {
+        if (globalIsDragging || isDragging) {
             e.preventDefault();
             return;
         }
-
-        // Close the menu when clicking a link
         menuContext.close?.();
-    }, [menuContext, shouldPreventClick]);
+    }, [menuContext, globalIsDragging, isDragging]);
 
-    const handleClick = useCallback((e: React.MouseEvent) => {
-        // Prevent click if this pointer session was a drag
-        if (shouldPreventClick()) {
+    // Keyboard support: Enter/Space triggers the link
+    const handleKeyDown = useCallback((e: React.KeyboardEvent) => {
+        if (e.key === 'Enter' || e.key === ' ') {
             e.preventDefault();
-            e.stopPropagation();
+            if (!globalIsDragging && !isDragging) {
+                open();
+            }
         }
-    }, [shouldPreventClick]);
+    }, [open, globalIsDragging, isDragging]);
 
     const icon = (
-        <BookmarkIcon
-            type={bookmark.type}
-            emoji={bookmark.emoji}
-            imageUrl={bookmark.image_url}
-            fileInfo={fileInfo}
-        />
+        <LeadingElement>
+            <BookmarkIcon
+                type={bookmark.type}
+                emoji={bookmark.emoji}
+                imageUrl={bookmark.image_url}
+                fileInfo={fileInfo}
+            />
+        </LeadingElement>
     );
 
     return (
         <ItemContainer
             ref={setNodeRef}
+            role='menuitem'
+            tabIndex={-1}
             style={style}
             $isDragging={isDragging}
             data-testid={`overflow-bookmark-item-${id}`}
-            onClick={handleClick}
-            onPointerDown={handlePointerDown}
-            onPointerUp={handlePointerUp}
+            onKeyDown={handleKeyDown}
         >
             <DragHandle
                 {...attributes}
                 {...listeners}
                 $canDrag={canReorder}
             >
-                <ItemContent>
-                    <BookmarkLink
-                        bookmark={bookmark}
-                        linkRef={linkRef}
-                        onOpenFile={handleOpenFile}
-                        onLinkClick={handleLinkClick}
-                        icon={icon}
-                    />
-                </ItemContent>
+                {icon}
+                <BookmarkLink
+                    bookmark={bookmark}
+                    linkRef={linkRef}
+                    onOpenFile={handleOpenFile}
+                    onLinkClick={handleLinkClick}
+                    disableLinks={globalIsDragging || isDragging}
+                />
             </DragHandle>
-            <DotMenuWrapper>
+            <TrailingElement>
                 <BookmarkItemDotMenu
                     bookmark={bookmark}
                     open={open}
                 />
-            </DotMenuWrapper>
+            </TrailingElement>
         </ItemContainer>
     );
 }
@@ -197,16 +166,24 @@ interface BookmarkLinkProps {
     linkRef: React.RefObject<HTMLAnchorElement>;
     onOpenFile: (e: React.MouseEvent<HTMLAnchorElement>) => void;
     onLinkClick: (e: React.MouseEvent<HTMLElement>) => void;
-    icon: React.ReactNode;
+    disableLinks?: boolean;
 }
 
-function BookmarkLink({bookmark, linkRef, onOpenFile, onLinkClick, icon}: BookmarkLinkProps) {
+function BookmarkLink({bookmark, linkRef, onOpenFile, onLinkClick, disableLinks}: BookmarkLinkProps) {
     const siteURL = getSiteURL();
 
     if (bookmark.type === 'link' && bookmark.link_url) {
         const href = bookmark.link_url;
         const openInNewTab = shouldOpenInNewTab(href, siteURL);
         const prefixed = href[0] === '!';
+
+        if (disableLinks) {
+            return (
+                <StyledSpan tabIndex={-1}>
+                    <Label>{bookmark.display_name}</Label>
+                </StyledSpan>
+            );
+        }
 
         if (prefixed || openInNewTab) {
             return (
@@ -217,8 +194,8 @@ function BookmarkLink({bookmark, linkRef, onOpenFile, onLinkClick, icon}: Bookma
                     location='channel_bookmarks.overflow'
                     ref={linkRef}
                     onClick={onLinkClick}
+                    tabIndex={-1}
                 >
-                    {icon}
                     <Label>{bookmark.display_name}</Label>
                 </StyledExternalLink>
             );
@@ -230,8 +207,8 @@ function BookmarkLink({bookmark, linkRef, onOpenFile, onLinkClick, icon}: Bookma
                     to={href.slice(siteURL.length)}
                     ref={linkRef as React.RefObject<HTMLAnchorElement>}
                     onClick={onLinkClick}
+                    tabIndex={-1}
                 >
-                    {icon}
                     <Label>{bookmark.display_name}</Label>
                 </StyledLink>
             );
@@ -242,21 +219,28 @@ function BookmarkLink({bookmark, linkRef, onOpenFile, onLinkClick, icon}: Bookma
                 href={href}
                 ref={linkRef}
                 onClick={onLinkClick}
+                tabIndex={-1}
             >
-                {icon}
                 <Label>{bookmark.display_name}</Label>
             </StyledAnchor>
         );
     }
 
     if (bookmark.type === 'file' && bookmark.file_id) {
+        if (disableLinks) {
+            return (
+                <StyledSpan tabIndex={-1}>
+                    <Label>{bookmark.display_name}</Label>
+                </StyledSpan>
+            );
+        }
         return (
             <StyledAnchor
                 href={getFileDownloadUrl(bookmark.file_id)}
                 onClick={onOpenFile}
                 ref={linkRef}
+                tabIndex={-1}
             >
-                {icon}
                 <Label>{bookmark.display_name}</Label>
             </StyledAnchor>
         );
@@ -265,14 +249,13 @@ function BookmarkLink({bookmark, linkRef, onOpenFile, onLinkClick, icon}: Bookma
     return null;
 }
 
-const ItemContainer = styled.div<{$isDragging: boolean}>`
+const ItemContainer = styled.li<{$isDragging: boolean}>`
     display: flex;
     align-items: center;
-    padding: 0 8px;
-    margin: 0 4px;
-    border-radius: 4px;
-    min-height: 32px;
-    position: relative;
+    padding: 6px 20px;
+    min-height: 36px;
+    list-style: none;
+    outline: none;
 
     ${({$isDragging}) => $isDragging && css`
         background: rgba(var(--center-channel-color-rgb), 0.08);
@@ -283,7 +266,11 @@ const ItemContainer = styled.div<{$isDragging: boolean}>`
         background: rgba(var(--center-channel-color-rgb), 0.08);
     }
 
-    /* Show dot menu on hover */
+    &:focus-visible {
+        box-shadow: 0 0 0 2px var(--sidebar-text-active-border) inset;
+    }
+
+    /* Show dot menu on hover or focus-within */
     &:hover,
     &:focus-within {
         > div:last-child {
@@ -293,6 +280,9 @@ const ItemContainer = styled.div<{$isDragging: boolean}>`
 `;
 
 const DragHandle = styled.div<{$canDrag: boolean}>`
+    display: flex;
+    align-items: center;
+    gap: 8px;
     flex: 1;
     min-width: 0;
     cursor: ${({$canDrag}) => ($canDrag ? 'grab' : 'pointer')};
@@ -302,18 +292,23 @@ const DragHandle = styled.div<{$canDrag: boolean}>`
     }
 `;
 
-const ItemContent = styled.div`
+const LeadingElement = styled.div`
     display: flex;
     align-items: center;
-    min-width: 0;
+    justify-content: center;
+    width: 18px;
+    height: 18px;
+    flex-shrink: 0;
+    color: rgba(var(--center-channel-color-rgb), 0.64);
 `;
 
-const DotMenuWrapper = styled.div`
+const TrailingElement = styled.div`
     opacity: 0;
     transition: opacity 150ms ease;
     flex-shrink: 0;
+    margin-inline-start: 4px;
 
-    /* Override default positioning from bookmark_dot_menu */
+    /* Reset dot menu button positioning */
     button {
         position: relative !important;
         visibility: visible !important;
@@ -325,21 +320,19 @@ const DotMenuWrapper = styled.div`
 const linkStyles = css`
     display: flex;
     align-items: center;
-    gap: 8px;
-    padding: 4px 0;
-    color: rgba(var(--center-channel-color-rgb), 1);
-    font-size: 12px;
-    font-weight: 600;
+    min-width: 0;
+    color: var(--center-channel-color);
+    font-size: 14px;
+    font-weight: 400;
     line-height: 16px;
     text-decoration: none;
-    min-width: 0;
 
     &:hover,
     &:visited,
     &:active,
     &:focus {
         text-decoration: none;
-        color: rgba(var(--center-channel-color-rgb), 1);
+        color: var(--center-channel-color);
     }
 `;
 
@@ -359,6 +352,10 @@ const StyledExternalLink = styled(ExternalLink)`
     &&&& {
         ${linkStyles}
     }
+`;
+
+const StyledSpan = styled.span`
+    ${linkStyles}
 `;
 
 const Label = styled.span`

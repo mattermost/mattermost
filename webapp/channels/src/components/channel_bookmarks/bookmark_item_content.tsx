@@ -27,7 +27,7 @@ import type {GlobalState} from 'types/store';
 import BookmarkItemDotMenu from './bookmark_dot_menu';
 import BookmarkIcon from './bookmark_icon';
 
-const useBookmarkLink = (bookmark: ChannelBookmark) => {
+const useBookmarkLink = (bookmark: ChannelBookmark, disableLinks = false) => {
     const linkRef = useRef<HTMLAnchorElement>(null);
     const dispatch = useDispatch();
     const fileInfo: FileInfo | undefined = useSelector((state: GlobalState) => (bookmark?.file_id && getFile(state, bookmark.file_id)) || undefined);
@@ -65,7 +65,7 @@ const useBookmarkLink = (bookmark: ChannelBookmark) => {
     if (bookmark.type === 'link' && bookmark.link_url) {
         link = (
             <DynamicLink
-                href={bookmark.link_url}
+                href={disableLinks ? undefined : bookmark.link_url}
                 ref={linkRef}
                 isFile={false}
             >
@@ -76,7 +76,7 @@ const useBookmarkLink = (bookmark: ChannelBookmark) => {
     } else if (bookmark.type === 'file' && bookmark.file_id) {
         link = (
             <DynamicLink
-                href={getFileDownloadUrl(bookmark.file_id)}
+                href={disableLinks ? undefined : getFileDownloadUrl(bookmark.file_id)}
                 onClick={handleOpenFile}
                 ref={linkRef}
                 isFile={true}
@@ -97,21 +97,16 @@ const useBookmarkLink = (bookmark: ChannelBookmark) => {
 interface BookmarkItemContentProps {
     bookmark: ChannelBookmark;
     disableInteractions: boolean;
-    isInOverflow?: boolean;
 }
 
 function BookmarkItemContent({
     bookmark,
     disableInteractions,
-    isInOverflow = false,
 }: BookmarkItemContentProps) {
-    const {link, open} = useBookmarkLink(bookmark);
+    const {link, open} = useBookmarkLink(bookmark, disableInteractions);
 
     return (
-        <Chip
-            $disableInteractions={disableInteractions}
-            $isInOverflow={isInOverflow}
-        >
+        <Chip $disableInteractions={disableInteractions}>
             {link && cloneElement(link, {role: 'link'})}
             <BookmarkItemDotMenu
                 bookmark={bookmark}
@@ -121,26 +116,13 @@ function BookmarkItemContent({
     );
 }
 
-const Chip = styled.div<{$disableInteractions: boolean; $isInOverflow: boolean}>`
+const Chip = styled.div<{$disableInteractions: boolean}>`
     position: relative;
     display: flex;
     align-items: center;
     width: 100%;
     min-width: 0;
     overflow: hidden;
-
-    ${({$isInOverflow}) => $isInOverflow && css`
-        padding: 4px 8px;
-        border-radius: 4px;
-
-        &:hover {
-            background: rgba(var(--center-channel-color-rgb), 0.08);
-        }
-
-        a {
-            padding: 0 !important;
-        }
-    `}
 
     button {
         position: absolute;
@@ -149,7 +131,7 @@ const Chip = styled.div<{$disableInteractions: boolean; $isInOverflow: boolean}>
         top: 3px;
     }
 
-    ${({$disableInteractions, $isInOverflow}) => !$disableInteractions && !$isInOverflow && css`
+    ${({$disableInteractions}) => !$disableInteractions && css`
         &:hover,
         &:focus-within,
         &:has([aria-expanded="true"]) {
@@ -204,7 +186,7 @@ const Label = styled.span`
 const TARGET_BLANK_URL_PREFIX = '!';
 
 type DynamicLinkProps = AnchorHTMLAttributes<HTMLAnchorElement> & {
-    href: string;
+    href?: string;
     children: React.ReactNode;
     isFile: boolean;
 };
@@ -215,6 +197,18 @@ const DynamicLink = forwardRef<HTMLAnchorElement, DynamicLinkProps>(({
     onClick,
     ...otherProps
 }, ref) => {
+    // When href is undefined (e.g. during drag), render an inert span
+    if (!href) {
+        return (
+            <StyledSpan
+                {...otherProps}
+                ref={ref as React.Ref<HTMLSpanElement>}
+            >
+                {children}
+            </StyledSpan>
+        );
+    }
+
     const siteURL = getSiteURL();
     const openInNewTab = shouldOpenInNewTab(href, siteURL);
 
@@ -292,6 +286,10 @@ const StyledExternalLink = styled(ExternalLink)`
     &&&& {
         ${linkStyles}
     }
+`;
+
+const StyledSpan = styled.span`
+    ${linkStyles}
 `;
 
 export default BookmarkItemContent;
