@@ -7,12 +7,13 @@ import type {KeyboardEvent, MouseEvent} from 'react';
 
 import type {FileInfo} from '@mattermost/types/files';
 
-import {getFilePreviewUrl, getFileUrl} from 'mattermost-redux/utils/file_utils';
+import {Client4} from 'mattermost-redux/client';
+import {getFilePreviewUrl, getFileUrl, getFileThumbnailUrl} from 'mattermost-redux/utils/file_utils';
 
 import FilePreviewModal from 'components/file_preview_modal';
 import SizeAwareImage from 'components/size_aware_image';
 
-import {FileTypes, ModalIdentifiers} from 'utils/constants';
+import {FileTypes, HttpHeaders, ModalIdentifiers} from 'utils/constants';
 import {
     getFileType,
 } from 'utils/utils';
@@ -38,6 +39,8 @@ type State = {
         width: number;
         height: number;
     };
+    thumbnailCheckComplete: boolean;
+    thumbnailRejected: boolean;
 }
 
 export default class SingleImageView extends React.PureComponent<Props, State> {
@@ -54,12 +57,53 @@ export default class SingleImageView extends React.PureComponent<Props, State> {
                 width: props.fileInfo?.width || 0,
                 height: props.fileInfo?.height || 0,
             },
+            thumbnailCheckComplete: false,
+            thumbnailRejected: false,
         };
     }
 
     componentDidMount() {
         this.mounted = true;
+        this.checkThumbnailAvailability();
     }
+
+    checkThumbnailAvailability = () => {
+        // Probe the thumbnail endpoint to see if it's rejected by a plugin
+        // This allows plugins to control inline image display via thumbnail rejection when
+        // there's only one file in the post and we try to display it inline as a preview and
+        // not as a thumbnail.
+        const {fileInfo} = this.props;
+        if (!fileInfo || !fileInfo.has_preview_image) {
+            // No preview image, so we'll use the file directly - don't check thumbnail
+            this.setState({thumbnailCheckComplete: true, thumbnailRejected: false});
+            return;
+        }
+
+        const thumbnailUrl = getFileThumbnailUrl(fileInfo.id);
+
+        // Use Client4.getOptions() to get properly authenticated request options
+        // This includes the Bearer token and all required headers
+        const options = Client4.getOptions({method: 'HEAD'});
+
+        fetch(thumbnailUrl, options).then((response) => {
+            if (this.mounted) {
+                // 403 Forbidden with X-Reject-Reason header = rejected by plugin
+                const rejected = response.status === 403 && response.headers.get(HttpHeaders.REJECT_REASON) !== null;
+                this.setState({
+                    thumbnailCheckComplete: true,
+                    thumbnailRejected: rejected,
+                });
+            }
+        }).catch(() => {
+            // On error, assume not rejected (fail open for compatibility)
+            if (this.mounted) {
+                this.setState({
+                    thumbnailCheckComplete: true,
+                    thumbnailRejected: false,
+                });
+            }
+        });
+    };
 
     static getDerivedStateFromProps(props: Props, state: State) {
         if ((props.fileInfo?.width !== state.dimensions.width) || props.fileInfo.height !== state.dimensions.height) {
@@ -112,10 +156,48 @@ export default class SingleImageView extends React.PureComponent<Props, State> {
         const {fileInfo, compactDisplay, isInPermalink} = this.props;
         const {
             loaded,
+            thumbnailCheckComplete,
+            thumbnailRejected,
         } = this.state;
 
         if (fileInfo === undefined) {
             return <></>;
+        }
+
+        // If thumbnail check not complete yet, don't render the preview
+        // This prevents flashing the image before we know if it should be hidden
+        if (!thumbnailCheckComplete) {
+            return (
+                <div className={classNames('file-view--single')}>
+                    <div className='file__image'>
+                        <div className='image-header'>
+                            <div className='image-name'>{fileInfo.name}</div>
+                        </div>
+                    </div>
+                </div>
+            );
+        }
+
+        // If thumbnail was rejected, treat this file as rejected
+        // Show it collapsed with file icon instead of inline preview
+        const effectivelyRejected = this.props.isFileRejected || thumbnailRejected;
+        if (effectivelyRejected) {
+            // Don't show inline preview - return minimal view
+            // User can still click to attempt opening in modal (which will be controlled by preview rejection)
+            return (
+                <div className={classNames('file-view--single')}>
+                    <div className='file__image'>
+                        <div className='image-header'>
+                            <div
+                                className='image-name'
+                                onClick={this.handleImageClick}
+                            >
+                                {fileInfo.name}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            );
         }
 
         const {has_preview_image: hasPreviewImage, id} = fileInfo;
@@ -245,6 +327,7 @@ export default class SingleImageView extends React.PureComponent<Props, State> {
                                     enablePublicLink={this.props.enablePublicLink}
                                     getFilePublicLink={this.getFilePublicLink}
                                     hideUtilities={this.props.disableActions}
+                                    isFileRejected={effectivelyRejected}
                                 />
                             </div>
                         </div>

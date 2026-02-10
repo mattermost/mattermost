@@ -2197,8 +2197,16 @@
     "translation": "Mismatched flagged post ID specified."
   },
   {
+    "id": "api.file.get_file.plugin_hook_timeout",
+    "translation": "Plugin hook timed out"
+  },
+  {
     "id": "api.file.get_file.public_invalid.app_error",
     "translation": "The public link does not appear to be valid."
+  },
+  {
+    "id": "api.file.get_file.rejected_by_plugin",
+    "translation": "File download rejected by plugin"
   },
   {
     "id": "api.file.get_file_info.app_error",
@@ -2209,8 +2217,20 @@
     "translation": "File doesn't have a preview image."
   },
   {
+    "id": "api.file.get_file_preview.rejected_by_plugin",
+    "translation": "File preview download rejected by plugin"
+  },
+  {
     "id": "api.file.get_file_thumbnail.no_thumbnail.app_error",
     "translation": "File doesn't have a thumbnail image."
+  },
+  {
+    "id": "api.file.get_file_thumbnail.rejected_by_plugin",
+    "translation": "File thumbnail download rejected by plugin"
+  },
+  {
+    "id": "api.file.get_public_file.rejected_by_plugin",
+    "translation": "Public file download rejected by plugin"
   },
   {
     "id": "api.file.get_public_link.disabled.app_error",
@@ -8023,6 +8043,14 @@
   {
     "id": "app.thread.mark_all_as_read_by_channels.app_error",
     "translation": "Unable to mark all threads as read by channel"
+  },
+  {
+    "id": "app.toast.send_toast_message.message.app_error",
+    "translation": "Message is required"
+  },
+  {
+    "id": "app.toast.send_toast_message.user_id.app_error",
+    "translation": "User ID is required"
   },
   {
     "id": "app.update_error",

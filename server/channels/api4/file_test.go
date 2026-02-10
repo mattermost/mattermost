@@ -1614,3 +1614,99 @@ func TestSearchFilesAcrossTeams(t *testing.T) {
 	require.Len(t, fileInfos.Order, 1, "wrong search")
 	require.Equal(t, fileInfos.FileInfos[fileInfos.Order[0]].ChannelId, channels[0].Id, "wrong search")
 }
+
+// TestHeadRequestsFileEndpoints tests that HEAD requests work correctly for file endpoints
+func TestHeadRequestsFileEndpoints(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+	client := th.Client
+
+	// Upload a test file
+	sent, err := testutils.ReadTestFile("test.png")
+	require.NoError(t, err)
+
+	fileResp, _, err := client.UploadFile(context.Background(), sent, th.BasicChannel.Id, "test.png")
+	require.NoError(t, err)
+	fileId := fileResp.FileInfos[0].Id
+
+	// Helper function to make HEAD requests
+	makeHeadRequest := func(url string) (*http.Response, error) {
+		req, err := http.NewRequest("HEAD", url, nil)
+		require.NoError(t, err)
+
+		req.Header.Set(model.HeaderAuth, client.AuthType+" "+client.AuthToken)
+
+		return client.HTTPClient.Do(req)
+	}
+
+	t.Run("HEAD request to file endpoint returns 200 OK", func(t *testing.T) {
+		url := fmt.Sprintf("%s/files/%s", client.APIURL, fileId)
+		resp, err := makeHeadRequest(url)
+		require.NoError(t, err)
+		defer resp.Body.Close()
+
+		require.Equal(t, http.StatusOK, resp.StatusCode)
+		require.NotEmpty(t, resp.Header.Get("Content-Type"))
+	})
+
+	t.Run("HEAD request to thumbnail endpoint returns 200 OK", func(t *testing.T) {
+		url := fmt.Sprintf("%s/files/%s/thumbnail", client.APIURL, fileId)
+		resp, err := makeHeadRequest(url)
+		require.NoError(t, err)
+		defer resp.Body.Close()
+
+		require.Equal(t, http.StatusOK, resp.StatusCode)
+	})
+
+	t.Run("HEAD request to preview endpoint returns 200 OK", func(t *testing.T) {
+		url := fmt.Sprintf("%s/files/%s/preview", client.APIURL, fileId)
+		resp, err := makeHeadRequest(url)
+		require.NoError(t, err)
+		defer resp.Body.Close()
+
+		require.Equal(t, http.StatusOK, resp.StatusCode)
+	})
+
+	t.Run("HEAD request returns no body", func(t *testing.T) {
+		url := fmt.Sprintf("%s/files/%s", client.APIURL, fileId)
+		resp, err := makeHeadRequest(url)
+		require.NoError(t, err)
+		defer resp.Body.Close()
+
+		body, err := io.ReadAll(resp.Body)
+		require.NoError(t, err)
+		require.Empty(t, body, "HEAD response should not contain a body")
+	})
+
+	t.Run("HEAD request requires authentication", func(t *testing.T) {
+		url := fmt.Sprintf("%s/files/%s", client.APIURL, fileId)
+		req, err := http.NewRequest("HEAD", url, nil)
+		require.NoError(t, err)
+
+		// Don't set auth header
+		resp, err := client.HTTPClient.Do(req)
+		require.NoError(t, err)
+		defer resp.Body.Close()
+
+		require.Equal(t, http.StatusUnauthorized, resp.StatusCode)
+	})
+
+	t.Run("HEAD request with invalid file ID returns 400", func(t *testing.T) {
+		// Use an ID that matches the route pattern [A-Za-z0-9]+ but is invalid (not 26 characters)
+		url := fmt.Sprintf("%s/files/%s", client.APIURL, "invalidid")
+		resp, err := makeHeadRequest(url)
+		require.NoError(t, err)
+		defer resp.Body.Close()
+
+		require.Equal(t, http.StatusBadRequest, resp.StatusCode)
+	})
+
+	t.Run("HEAD request for non-existent file returns 404", func(t *testing.T) {
+		url := fmt.Sprintf("%s/files/%s", client.APIURL, model.NewId())
+		resp, err := makeHeadRequest(url)
+		require.NoError(t, err)
+		defer resp.Body.Close()
+
+		require.Equal(t, http.StatusNotFound, resp.StatusCode)
+	})
+}

@@ -86,6 +86,14 @@ export default function FileAttachment(props: Props) {
             // So skip trying to load.
             return;
         }
+
+        // If file is rejected, don't try to load thumbnail - just mark as loaded
+        // so it shows the file icon instead
+        if (props.isFileRejected) {
+            setLoaded(true);
+            return;
+        }
+
         const fileType = getFileType(fileInfo.extension);
 
         if (!props.disableThumbnail) {
@@ -123,6 +131,13 @@ export default function FileAttachment(props: Props) {
             setLoaded(getFileType(props.fileInfo.extension) !== FileTypes.IMAGE && !(props.enableSVGs && props.fileInfo.extension === FileTypes.SVG));
         }
     }, [props.fileInfo.extension, props.fileInfo.id, props.enableSVGs]);
+
+    // If file becomes rejected, mark as loaded so it shows the file icon
+    useEffect(() => {
+        if (props.isFileRejected) {
+            setLoaded(true);
+        }
+    }, [props.isFileRejected]);
 
     const onAttachmentClick = (e: React.MouseEvent<HTMLElement, MouseEvent>) => {
         e.preventDefault();

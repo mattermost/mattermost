@@ -8,6 +8,10 @@ import {CSSTransition} from 'react-transition-group';
 
 import './info_toast.scss';
 
+const VALID_POSITIONS = ['top-left', 'top-center', 'top-right', 'bottom-left', 'bottom-center', 'bottom-right'] as const;
+export type ToastPosition = typeof VALID_POSITIONS[number];
+const DEFAULT_POSITION: ToastPosition = 'bottom-right';
+
 type Props = {
     content: {
         icon?: JSX.Element;
@@ -15,11 +19,16 @@ type Props = {
         undo?: () => void;
     };
     className?: string;
+    position?: ToastPosition;
     onExited: () => void;
 }
 
-function InfoToast({content, onExited, className}: Props): JSX.Element {
+function InfoToast({content, onExited, className, position = DEFAULT_POSITION}: Props): JSX.Element {
     const {formatMessage} = useIntl();
+
+    // Validate position and fallback to default if invalid
+    const validatedPosition = VALID_POSITIONS.includes(position) ? position : DEFAULT_POSITION;
+
     const closeToast = useCallback(() => {
         onExited();
     }, [onExited]);
@@ -29,7 +38,7 @@ function InfoToast({content, onExited, className}: Props): JSX.Element {
         onExited();
     }, [content.undo, onExited]);
 
-    const toastContainerClassname = classNames('info-toast', className);
+    const toastContainerClassname = classNames('info-toast', `info-toast--${validatedPosition}`, className);
 
     useEffect(() => {
         const timer = setTimeout(() => {

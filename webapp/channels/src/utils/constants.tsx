@@ -906,6 +906,10 @@ export const FileTypes = {
     LICENSE_EXTENSION: '.mattermost-license',
 };
 
+export const HttpHeaders = {
+    REJECT_REASON: 'X-Reject-Reason',
+};
+
 export const NotificationLevels = {
     DEFAULT: 'default',
     ALL: 'all',
