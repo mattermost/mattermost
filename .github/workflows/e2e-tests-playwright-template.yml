@@ -17,6 +17,16 @@ on:
         type: number
         required: false
         default: 60
+      shard:
+        description: "Shard number (1-indexed)"
+        type: number
+        required: false
+        default: 1
+      total_shards:
+        description: "Total number of shards"
+        type: number
+        required: false
+        default: 1
       enabled_docker_services:
         description: "Space-separated list of docker services to enable"
         type: string
@@ -129,6 +139,9 @@ jobs:
         working-directory: webapp
         run: make node_modules
       - name: ci/run-tests
+        env:
+          PW_SHARD: ${{ inputs.shard }}
+          PW_TOTAL_SHARDS: ${{ inputs.total_shards }}
         run: |
           make cloud-init
           make

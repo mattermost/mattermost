@@ -37,7 +37,13 @@ EOF
 
 # Run Playwright test
 # NB: do not exit the script if some testcases fail
-${MME2E_DC_SERVER} exec -i -u "$MME2E_UID" -- playwright bash -c "cd e2e-tests/playwright && npm run test:ci -- ${TEST_FILTER}" | tee ../playwright/logs/playwright.log || true
+# Build shard argument if sharding is enabled
+SHARD_ARG=""
+if [ -n "${PW_SHARD:-}" ] && [ -n "${PW_TOTAL_SHARDS:-}" ] && [ "${PW_TOTAL_SHARDS}" -gt 1 ]; then
+  SHARD_ARG="--shard=${PW_SHARD}/${PW_TOTAL_SHARDS}"
+  mme2e_log "Running with sharding: ${SHARD_ARG}"
+fi
+${MME2E_DC_SERVER} exec -i -u "$MME2E_UID" -- playwright bash -c "cd e2e-tests/playwright && npm run test:ci -- ${TEST_FILTER} ${SHARD_ARG}" | tee ../playwright/logs/playwright.log || true
 
 # Collect run results
 # Documentation on the results.json file: https://playwright.dev/docs/api/class-testcase#test-case-expected-status
