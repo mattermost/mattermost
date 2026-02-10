@@ -1,7 +1,6 @@
 package tui
 
 import (
-	"fmt"
 	"sort"
 	"strings"
 
@@ -344,42 +343,12 @@ func renderGrid(repos []model.Repo, cursorRow, cursorCol int, width, maxLines, s
 		repoColWidth = maxNameCol
 	}
 
-	// Pre-compute total visible repo count for scroll indicators
-	totalVisible := 0
-	for _, repo := range repos {
-		cells := filteredCells(repo, favorites, searchQuery, showOnlyFavorites)
-		if len(cells) > 0 {
-			totalVisible++
-		}
-	}
-
-	// Scroll-up indicator
-	hasAbove := skipRows > 0
-	hasBelow := false
-	if hasAbove && maxLines > 0 {
-		hint := lipgloss.NewStyle().Foreground(colorMuted).Render(
-			fmt.Sprintf("  ▲ %d more above", skipRows))
-		b.WriteString(hint + "\n")
-	}
-
 	rowY := 0
 	lineCount := 0
-	if hasAbove {
-		rowY++       // scroll-up indicator takes a line
-		lineCount++
-	}
 	visibleIdx := 0 // count of visible repo rows encountered
 	prevKind := model.RepoKind(-1)
 	for i, repo := range repos {
 		if maxLines > 0 && lineCount >= maxLines {
-			// Check if there are more rows below
-			for j := i; j < len(repos); j++ {
-				cells := filteredCells(repos[j], favorites, searchQuery, showOnlyFavorites)
-				if len(cells) > 0 {
-					hasBelow = true
-					break
-				}
-			}
 			break
 		}
 
@@ -397,21 +366,9 @@ func renderGrid(repos []model.Repo, cursorRow, cursorCol int, width, maxLines, s
 			continue
 		}
 
-		// Reserve last line for scroll-down indicator if needed
-		linesNeeded := 1
-		if prevKind >= 0 && repo.Kind != prevKind {
-			linesNeeded++ // separator
-		}
-		remaining := totalVisible - visibleIdx - 1 // rows after this one
-		if maxLines > 0 && remaining > 0 && lineCount+linesNeeded >= maxLines {
-			hasBelow = true
-			break
-		}
-
 		// Separator between repo kind groups (only before a visible row)
 		if prevKind >= 0 && repo.Kind != prevKind {
 			if maxLines > 0 && lineCount >= maxLines {
-				hasBelow = true
 				break
 			}
 			b.WriteString(renderSeparator(width))
@@ -441,14 +398,6 @@ func renderGrid(repos []model.Repo, cursorRow, cursorCol int, width, maxLines, s
 		lineCount++
 		visibleIdx++
 		prevKind = repo.Kind
-	}
-
-	// Scroll-down indicator
-	if hasBelow {
-		below := totalVisible - visibleIdx
-		hint := lipgloss.NewStyle().Foreground(colorMuted).Render(
-			fmt.Sprintf("  ▼ %d more below", below))
-		b.WriteString(hint + "\n")
 	}
 
 	return b.String(), hitZones

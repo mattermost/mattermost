@@ -434,6 +434,14 @@ func (a *App) handleKey(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 			a.logPanel.viewport.GotoTop()
 			a.logPanel.autoScroll = false
 			return a, nil
+		case key.Matches(msg, a.keys.PageUp):
+			a.loadHistoryIfNeeded()
+			a.logPanel.viewport.HalfViewUp()
+			a.logPanel.autoScroll = false
+			return a, nil
+		case key.Matches(msg, a.keys.PageDown):
+			a.logPanel.viewport.HalfViewDown()
+			return a, nil
 		}
 		var cmd tea.Cmd
 		a.logPanel.viewport, cmd = a.logPanel.viewport.Update(msg)
@@ -442,6 +450,22 @@ func (a *App) handleKey(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 
 	// Grid navigation
 	switch {
+	case key.Matches(msg, a.keys.PageUp):
+		pageSize := a.maxGridLines() / 2
+		if pageSize < 1 {
+			pageSize = 1
+		}
+		for i := 0; i < pageSize; i++ {
+			a.moveCursorUp()
+		}
+	case key.Matches(msg, a.keys.PageDown):
+		pageSize := a.maxGridLines() / 2
+		if pageSize < 1 {
+			pageSize = 1
+		}
+		for i := 0; i < pageSize; i++ {
+			a.moveCursorDown()
+		}
 	case key.Matches(msg, a.keys.Up):
 		a.moveCursorUp()
 	case key.Matches(msg, a.keys.Down):
@@ -478,14 +502,39 @@ func (a *App) handleMouse(msg tea.MouseMsg) (tea.Model, tea.Cmd) {
 		return a, nil
 	}
 	if msg.Action != tea.MouseActionPress || msg.Button != tea.MouseButtonLeft {
-		// Handle scroll wheel in log panel
-		if a.logVisible && msg.Y > a.height-a.logPanelHeight() {
-			if msg.Button == tea.MouseButtonWheelUp {
-				a.loadHistoryIfNeeded()
-				a.logPanel.viewport.LineUp(3)
-				a.logPanel.autoScroll = false
-			} else if msg.Button == tea.MouseButtonWheelDown {
-				a.logPanel.viewport.LineDown(3)
+		// Handle scroll wheel — route to grid or log based on mouse position
+		if msg.Button == tea.MouseButtonWheelUp || msg.Button == tea.MouseButtonWheelDown {
+			// Tab bar is the boundary: above = grid, below = log
+			logStart := a.tabBarY + 1 // line after tab bar
+			if a.logVisible && msg.Y >= logStart {
+				// Log panel scroll
+				if msg.Button == tea.MouseButtonWheelUp {
+					a.loadHistoryIfNeeded()
+					a.logPanel.viewport.LineUp(3)
+					a.logPanel.autoScroll = false
+				} else {
+					a.logPanel.viewport.LineDown(3)
+				}
+			} else if msg.Y >= 2 {
+				// Grid scroll — shift viewport without moving cursor
+				vis := a.visibleRepoIndices()
+				if len(vis) > 0 {
+					if msg.Button == tea.MouseButtonWheelUp {
+						a.gridVScroll -= 3
+					} else {
+						a.gridVScroll += 3
+					}
+					maxScroll := len(vis) - 1
+					if maxScroll < 0 {
+						maxScroll = 0
+					}
+					if a.gridVScroll > maxScroll {
+						a.gridVScroll = maxScroll
+					}
+					if a.gridVScroll < 0 {
+						a.gridVScroll = 0
+					}
+				}
 			}
 		}
 		return a, nil
@@ -1310,21 +1359,28 @@ func (a *App) visibleGridRows() int {
 }
 
 // maxGridLines returns the maximum number of grid lines available for rendering.
-// When the log panel is hidden, all terminal height (minus chrome) is available.
+// When tabs/panels exist, caps to half the available height so the log panel
+// has reserved space. Full height when no tabs are open.
 func (a *App) maxGridLines() int {
-	if !a.logVisible {
-		chrome := 2 // header + search
-		if len(a.procMgr.ProcessIDs()) > 0 {
-			chrome += 2 // spacer + tab bar
-		}
-		return a.height - chrome
+	chrome := 2 // header + search
+	hasTabs := len(a.procMgr.ProcessIDs()) > 0
+	if hasTabs {
+		chrome += 2 // spacer + tab bar
 	}
-	return a.height - 2 - a.logPanelHeight() - func() int {
-		if len(a.procMgr.ProcessIDs()) > 0 {
-			return 1
-		}
-		return 0
-	}()
+	available := a.height - chrome
+	if !hasTabs {
+		// No tabs — grid gets full height (minus 1 for trailing \n)
+		return available - 1
+	}
+	// Tabs exist — cap grid to half so log panel has room
+	half := available / 2
+	if half < 3 {
+		half = 3
+	}
+	if !a.logVisible {
+		return available - 1
+	}
+	return half
 }
 
 // ensureGridVScroll adjusts gridVScroll so the cursor row is visible within maxLines.
@@ -1463,11 +1519,12 @@ func (a *App) View() string {
 	headerRight := renderHotkeyHints(keys)
 	headerRightPlain := plainHotkeyHints(keys)
 	logoWidth := lipgloss.Width(logo)
-	headerGap := a.width - logoWidth - len(headerRightPlain) - 1
+	headerGap := a.width - logoWidth - lipgloss.Width(headerRightPlain) - 1
 	if headerGap < 1 {
 		headerGap = 1
 	}
-	b.WriteString(logo + strings.Repeat(" ", headerGap) + headerRight)
+	headerLine := logo + strings.Repeat(" ", headerGap) + headerRight
+	b.WriteString(lipgloss.NewStyle().MaxWidth(a.width).Render(headerLine))
 	b.WriteString("\n")
 
 	// Active filter badges

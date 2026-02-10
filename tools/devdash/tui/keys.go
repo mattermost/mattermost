@@ -25,6 +25,8 @@ type KeyMap struct {
 	ProcInput key.Binding
 	FavsOnly  key.Binding
 	Dismiss       key.Binding
+	PageUp        key.Binding
+	PageDown      key.Binding
 }
 
 func DefaultKeyMap() KeyMap {
@@ -51,5 +53,7 @@ func DefaultKeyMap() KeyMap {
 		ProcInput: key.NewBinding(key.WithKeys("i")),
 		FavsOnly:  key.NewBinding(key.WithKeys("ctrl+f")),
 		Dismiss:       key.NewBinding(key.WithKeys("x")),
+		PageUp:        key.NewBinding(key.WithKeys("pgup", "shift+up")),
+		PageDown:      key.NewBinding(key.WithKeys("pgdown", "shift+down")),
 	}
 }

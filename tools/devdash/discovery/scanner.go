@@ -15,6 +15,7 @@ var internalSubs = []struct {
 	makefileSub string
 	pkgJSONSub  string
 }{
+	{"mattermost", "Makefile", ""},
 	{"server", "server/Makefile", ""},
 	{"webapp", "webapp/Makefile", "webapp/package.json"},
 	{"e2e-tests", "e2e-tests/Makefile", ""},
@@ -33,7 +34,7 @@ func ScanAll(mmRoot string) ([]model.Repo, error) {
 
 		repo := model.Repo{
 			Name:         sub.name,
-			Path:         filepath.Join(mmRoot, strings.Split(sub.makefileSub, "/")[0]),
+			Path:         filepath.Dir(mfPath),
 			Kind:         model.RepoKindInternal,
 			MakefilePath: mfPath,
 		}
