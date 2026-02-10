@@ -76,7 +76,7 @@ export type UserReportOptions = UserReportFilter & {
 };
 
 export type UserReport = UserProfile & {
-    last_login_at: number;
+    last_login: number;
     last_status_at?: number;
     last_post_date?: number;
     days_active?: number;
