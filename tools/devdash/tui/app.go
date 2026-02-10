@@ -146,9 +146,13 @@ func (a *App) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		if a.logVisible && a.focusedProc != "" {
 			if a.logPanel.autoScroll {
 				// Fast path: only capture visible pane
-				if content, err := a.procMgr.CapturePaneVisible(a.focusedProc); err == nil {
+				content, err := a.procMgr.CapturePaneVisible(a.focusedProc)
+				if err == nil {
 					a.logPanel.UpdateContent(content)
-					a.logPanel.historyDirty = true // new output invalidates cached history
+					a.logPanel.historyDirty = true
+				} else {
+					// Clear cache so next tick retries instead of silently stalling
+					a.logPanel.lastContent = ""
 				}
 			}
 			// When scroll-locked, don't poll — user is reading cached history

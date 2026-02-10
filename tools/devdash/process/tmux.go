@@ -72,6 +72,10 @@ func (t *TmuxClient) NewSession(name, cmd, dir string, rows, cols int) error {
 		shell, "-i", "-c", wrappedCmd,
 	}
 
+	// Set history-limit on the server BEFORE creating the session,
+	// so the new window inherits it. Setting after has no effect on existing windows.
+	_ = t.run("set-option", "-g", "history-limit", "50000")
+
 	tmuxCmd := exec.Command("tmux", args...)
 	tmuxCmd.Dir = dir
 
@@ -81,9 +85,6 @@ func (t *TmuxClient) NewSession(name, cmd, dir string, rows, cols int) error {
 	if err := tmuxCmd.Run(); err != nil {
 		return fmt.Errorf("tmux new-session: %w: %s", err, stderr.String())
 	}
-
-	// Set scrollback buffer to 10k lines
-	_ = t.run("set-option", "-t", name, "history-limit", "10000")
 
 	return nil
 }
