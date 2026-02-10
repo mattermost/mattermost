@@ -8544,10 +8544,6 @@
     "translation": "Няправільны email_token"
   },
   {
-    "id": "api.server.cws.health_check.app_error",
-    "translation": "Сервер CWS недаступны."
-  },
-  {
     "id": "api.server.cws.needs_enterprise_edition",
     "translation": "Паслуга даступная толькі ў выданні Mattermost Enterprise"
   },

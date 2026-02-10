@@ -7462,10 +7462,6 @@
     "translation": "구성원을 그룹-팀 및 그룹-채널에 추가하지 못했습니다"
   },
   {
-    "id": "api.server.cws.health_check.app_error",
-    "translation": "CWS 서버는 사용할수 없습니다."
-  },
-  {
     "id": "api.remote_cluster.service_not_enabled.app_error",
     "translation": "원격 클러스터 서비스가 활성화되어있지 않습니다."
   },

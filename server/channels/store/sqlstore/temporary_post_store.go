@@ -92,7 +92,8 @@ func (s *SqlTemporaryPostStore) saveT(tx *sqlxTxWrapper, post *model.TemporaryPo
 	return post, nil
 }
 
-func (s *SqlTemporaryPostStore) Get(rctx request.CTX, id string) (*model.TemporaryPost, error) {
+func (s *SqlTemporaryPostStore) Get(rctx request.CTX, id string, allowFromCache bool) (*model.TemporaryPost, error) {
+	// allowFromCache parameter is handled by the cache layer, not used here
 	query := s.selectQueryBuilder.
 		Where(sq.Eq{"PostId": id})
 

@@ -8562,10 +8562,6 @@
     "translation": "Kunde inte öppna CA-filen för {{.Backend}}"
   },
   {
-    "id": "api.server.cws.health_check.app_error",
-    "translation": "CWS Server är inte tillgänglig."
-  },
-  {
     "id": "app.group.username_conflict",
     "translation": "Användaren med användarnamn \"{{.Username}}\" finns redan."
   },

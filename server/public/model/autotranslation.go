@@ -36,6 +36,7 @@ const (
 type Translation struct {
 	ObjectID   string           `json:"object_id"`
 	ObjectType string           `json:"object_type"`
+	ChannelID  string           `json:"channel_id,omitempty"` // Channel ID for efficient queries
 	Lang       string           `json:"lang"`
 	Provider   string           `json:"provider"`
 	Type       TranslationType  `json:"type"`
@@ -71,6 +72,7 @@ func (t *Translation) Clone() *Translation {
 	return &Translation{
 		ObjectID:   t.ObjectID,
 		ObjectType: t.ObjectType,
+		ChannelID:  t.ChannelID,
 		Lang:       t.Lang,
 		Provider:   t.Provider,
 		Type:       t.Type,

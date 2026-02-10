@@ -8562,10 +8562,6 @@
     "translation": "{{.Backend}} için CA dosyası açılamadı"
   },
   {
-    "id": "api.server.cws.health_check.app_error",
-    "translation": "Müşteri site sunucusu kullanılamıyor."
-  },
-  {
     "id": "app.group.username_conflict",
     "translation": "\"{{.Username}}\" adında bir kullanıcı zaten var."
   },

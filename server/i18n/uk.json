@@ -7612,10 +7612,6 @@
     "translation": "Взаємодія з клієнтським порталом Mattermost була відключена системним адміністратором."
   },
   {
-    "id": "api.server.cws.health_check.app_error",
-    "translation": "Сервер CWS недоступний."
-  },
-  {
     "id": "api.server.cws.needs_enterprise_edition",
     "translation": "Послуга доступна лише у версії Mattermost Enterprise"
   },

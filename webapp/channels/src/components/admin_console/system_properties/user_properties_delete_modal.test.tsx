@@ -92,6 +92,8 @@ describe('useUserPropertyFieldDelete', () => {
             dialogProps: {
                 name: baseField.name,
                 onConfirm: expect.any(Function),
+                isOrphaned: false,
+                sourcePluginId: undefined,
             },
         });
     });
