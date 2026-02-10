@@ -108,27 +108,4 @@ describe('components/learn_more_trial_modal/start_trial_btn', () => {
 
         expect(mockOnClick).toHaveBeenCalled();
     });
-
-    // test('does not show success for embargoed countries', async () => {
-    //     const mockOnClick = jest.fn();
-
-    //     const clonedState = JSON.parse(JSON.stringify(state));
-    //     clonedState.entities.admin.analytics.TOTAL_USERS = 451;
-
-    //     // Mount the component
-    //     const wrapper = mountWithIntl(
-    //         <Provider store={mockStore(clonedState)}>
-    //             <StartTrialBtn
-    //                 {...props}
-    //                 onClick={mockOnClick}
-    //             />
-    //         </Provider>,
-    //     );
-
-    //     act(() => {
-    //         wrapper.find('.start-trial-btn').simulate('click');
-    //     });
-
-    //     expect(mockOnClick).not.toHaveBeenCalled();
-    // });
 });
