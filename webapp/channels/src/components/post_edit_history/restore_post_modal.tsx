@@ -8,7 +8,7 @@ import {GenericModal} from '@mattermost/components';
 import type {Post} from '@mattermost/types/posts';
 
 import FileAttachmentListContainer from 'components/file_attachment_list';
-import PostMessageContainer from 'components/post_view/post_message_view';
+import PostMessageView from 'components/post_view/post_message_view';
 
 import './restore_post_history.scss';
 
@@ -30,10 +30,11 @@ type Props = {
         handleRestore: (post: Post) => void;
     };
     onExited: () => void;
+    isChannelAutotranslated: boolean;
 }
 
-const RestorePostModal = ({post, postHeader, actions, onExited}: Props) => {
-    const {formatMessage} = useIntl();
+const RestorePostModal = ({post, postHeader, actions, onExited, isChannelAutotranslated}: Props) => {
+    const {formatMessage, locale} = useIntl();
     const onHide = () => onExited();
 
     const handleRestore = async () => {
@@ -61,13 +62,14 @@ const RestorePostModal = ({post, postHeader, actions, onExited}: Props) => {
         >
             <div className='edit-post-history__restore__modal__content'>
                 {postHeader}
-                <div className='post__body'>
-                    <PostMessageContainer
-                        post={post}
-                        isRHS={true}
-                        showPostEditedIndicator={false}
-                    />
-                </div>
+                <PostMessageView
+                    post={post}
+                    overflowType='ellipsis'
+                    maxHeight={100}
+                    showPostEditedIndicator={false}
+                    userLanguage={locale}
+                    isChannelAutotranslated={isChannelAutotranslated}
+                />
                 <FileAttachmentListContainer
                     post={post}
                     isEditHistory={true}

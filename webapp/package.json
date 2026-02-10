@@ -22,7 +22,7 @@
     "gen-lang-imports": "node scripts/gen_lang_imports.mjs"
   },
   "dependencies": {
-    "@mattermost/compass-icons": "0.1.52",
+    "@mattermost/compass-icons": "0.1.53",
     "ajv": "8.17.1",
     "react-intl": "7.1.14",
     "styled-components": "5.3.7",

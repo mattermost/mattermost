@@ -114,6 +114,7 @@ const PageVersionHistoryModal = ({
                             post={post}
                             isCurrent={post.id === page.id}
                             postCurrentVersion={page}
+                            isChannelAutotranslated={false}
                             onVersionRestored={onVersionRestored}
                             customHandleUndo={async () => {
                                 // To undo a restore, we restore back to the current version (first in history)

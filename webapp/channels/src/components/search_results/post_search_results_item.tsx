@@ -2,13 +2,18 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
+import {useSelector} from 'react-redux';
 
 import type {Post} from '@mattermost/types/posts';
+
+import {isChannelAutotranslated} from 'mattermost-redux/selectors/entities/channels';
 
 import PostComponent from 'components/post';
 
 import {Locations} from 'utils/constants';
 import {isPagePost} from 'utils/page_utils';
+
+import type {GlobalState} from 'types/store';
 
 type Props = {
     a11yIndex: number;
@@ -22,7 +27,7 @@ type Props = {
 
 export default function PostSearchResultsItem(props: Props) {
     const isPage = isPagePost(props.post);
-
+    const autotranslated = useSelector((state: GlobalState) => isChannelAutotranslated(state, props.post.channel_id));
     return (
         <div
             className='search-item__container'
@@ -41,6 +46,7 @@ export default function PostSearchResultsItem(props: Props) {
                 isMentionSearch={props.isMentionSearch}
                 a11yIndex={props.a11yIndex}
                 location={Locations.SEARCH}
+                isChannelAutotranslated={autotranslated}
             />
         </div>
     );

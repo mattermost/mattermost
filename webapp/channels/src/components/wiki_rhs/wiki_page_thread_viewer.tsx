@@ -382,6 +382,7 @@ const WikiPageThreadViewer = (props: Props) => {
                             onCardClick={() => {}}
                             previousPostId={index > 0 ? props.postIds[index - 1] : ''}
                             isRootPost={isRootPost}
+                            isChannelAutotranslated={false}
                         />
                     );
                 })}

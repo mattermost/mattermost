@@ -3,7 +3,7 @@
 
 import {connect} from 'react-redux';
 
-import {makeGetChannel} from 'mattermost-redux/selectors/entities/channels';
+import {isChannelAutotranslated, makeGetChannel} from 'mattermost-redux/selectors/entities/channels';
 import {getPost, isPostPriorityEnabled, makeGetPostsForThread} from 'mattermost-redux/selectors/entities/posts';
 import {getCurrentRelativeTeamUrl} from 'mattermost-redux/selectors/entities/teams';
 import {getThread} from 'mattermost-redux/selectors/entities/threads';
@@ -37,6 +37,7 @@ function makeMapStateToProps() {
             postsInThread: getPostsForThread(state, post.id),
             thread,
             isPostPriorityEnabled: isPostPriorityEnabled(state),
+            isChannelAutotranslated: isChannelAutotranslated(state, post.channel_id),
         };
     };
 }
