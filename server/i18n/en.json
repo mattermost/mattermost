@@ -8545,6 +8545,10 @@
     "translation": "Failed to detect language using translation provider."
   },
   {
+    "id": "ent.autotranslation.extract_content.attachment_error",
+    "translation": "Failed to extract message attachments for translation."
+  },
+  {
     "id": "ent.autotranslation.extract_content.mask_error",
     "translation": "Failed to mask content for translation."
   },
