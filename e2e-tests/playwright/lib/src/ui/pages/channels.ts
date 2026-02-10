@@ -6,6 +6,7 @@ import {waitUntil} from 'async-wait-until';
 
 import {ChannelsPost, ChannelSettingsModal, SettingsModal, components, InvitePeopleModal} from '@/ui/components';
 import {duration} from '@/util';
+import ChannelSwitcheModal from '../components/channels/channel_switch_modal';
 export default class ChannelsPage {
     readonly channels = 'Channels';
 
@@ -22,6 +23,7 @@ export default class ChannelsPage {
     readonly messagePriority;
 
     readonly channelSettingsModal;
+    readonly channelSwitchModal;
     readonly deletePostModal;
     readonly findChannelsModal;
     public invitePeopleModal: InvitePeopleModal | undefined;
@@ -55,6 +57,7 @@ export default class ChannelsPage {
 
         // Modals
         this.channelSettingsModal = new ChannelSettingsModal(page.getByRole('dialog', {name: 'Channel Settings'}));
+        this.channelSwitchModal = new ChannelSwitcheModal(page.getByRole('dialog', {name: 'Find Channels'}), page);
         this.deletePostModal = new components.DeletePostModal(page.locator('#deletePostModal'));
         this.findChannelsModal = new components.FindChannelsModal(page.getByRole('dialog', {name: 'Find Channels'}));
         this.profileModal = new components.ProfileModal(page.getByRole('dialog', {name: 'Profile'}));
@@ -227,5 +230,17 @@ export default class ChannelsPage {
         await this.scheduleMessageMenu.selectCustomTime();
 
         return await this.scheduleMessageModal.scheduleMessage(dayFromToday, timeOptionIndex);
+    }
+
+    async openChannelSwitchModal(useHotkey: boolean) {
+        if (useHotkey) {
+            await this.page.keyboard.type('Ctrl+K');
+        } else {
+            await this.sidebarLeft.findChannelButton.click();
+        }
+
+        await expect(this.channelSwitchModal.container).toBeVisible();
+
+        return this.channelSwitchModal;
     }
 }

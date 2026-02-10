@@ -27,7 +27,7 @@ export default defineConfig({
     use: {
         baseURL: testConfig.baseURL,
         ignoreHTTPSErrors: true,
-        headless: testConfig.headless,
+        headless: false,
         locale: 'en-US',
         launchOptions: {
             args: ['--use-fake-device-for-media-stream', '--use-fake-ui-for-media-stream'],

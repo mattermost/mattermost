@@ -230,7 +230,8 @@ export class QuickSwitchModal extends React.PureComponent<Props, State> {
                         providers={providers}
                         completeOnTab={false}
                         spellCheck='false'
-                        delayInputUpdate={true}
+                        // TODO remove delayInputUpdate from here and wherever else it's used
+                        delayInputUpdate={false}
                         openWhenEmpty={true}
                         onSuggestionsReceived={this.handleSuggestionsReceived}
                         forceSuggestionsWhenBlur={true}
