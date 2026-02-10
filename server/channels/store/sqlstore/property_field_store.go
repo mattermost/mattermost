@@ -337,8 +337,8 @@ func (s *SqlPropertyFieldStore) buildConflictSubquery(level string, objectType, 
 // being updated should not conflict with itself. Pass an empty string when creating
 // new fields.
 func (s *SqlPropertyFieldStore) CheckPropertyNameConflict(field *model.PropertyField, excludeID string) (model.PropertyFieldTargetLevel, error) {
-	// Legacy properties (ObjectType = "") use old uniqueness via DB constraint
-	if field.ObjectType == "" {
+	// Legacy properties (PSAv1) use old uniqueness via DB constraint
+	if field.IsPSAv1() {
 		return "", nil
 	}
 
@@ -442,20 +442,8 @@ func (s *SqlPropertyFieldStore) checkChannelLevelConflict(field *model.PropertyF
 
 	// Build team subquery (requires subquery to get TeamId from Channels)
 	// Use Question placeholder format for proper parameter merging
-	teamSubquery := sq.StatementBuilder.PlaceholderFormat(sq.Question).
-		Select("'team'").
-		From("PropertyFields").
-		Where(sq.Eq{"ObjectType": field.ObjectType}).
-		Where(sq.Eq{"GroupID": field.GroupID}).
-		Where(sq.Eq{"TargetType": "team"}).
-		Where(sq.Eq{"Name": field.Name}).
-		Where(sq.Expr("TargetID = (SELECT TeamId FROM Channels WHERE Id = ?)", field.TargetID)).
-		Where(sq.Eq{"DeleteAt": 0}).
-		Limit(1)
-
-	if excludeID != "" {
-		teamSubquery = teamSubquery.Where(sq.NotEq{"ID": excludeID})
-	}
+	teamSubquery := s.buildConflictSubquery("team", field.ObjectType, field.GroupID, field.Name, excludeID).
+		Where(sq.Expr("TargetID = (SELECT TeamId FROM Channels WHERE Id = ?)", field.TargetID))
 
 	teamSQL, teamArgs, err := teamSubquery.ToSql()
 	if err != nil {

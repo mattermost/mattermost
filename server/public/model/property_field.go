@@ -202,6 +202,14 @@ func (pf *PropertyField) Patch(patch *PropertyFieldPatch) {
 	}
 }
 
+// IsPSAv1 returns true if this property field uses the legacy PSAv1 schema.
+// Legacy properties have an empty ObjectType and rely on simple TargetID uniqueness
+// enforced by the idx_propertyfields_unique_legacy database constraint, rather than
+// the hierarchical uniqueness model used by PSAv2 (ObjectType-based) properties.
+func (pf *PropertyField) IsPSAv1() bool {
+	return pf.ObjectType == ""
+}
+
 type PropertyFieldSearchCursor struct {
 	PropertyFieldID string
 	CreateAt        int64
