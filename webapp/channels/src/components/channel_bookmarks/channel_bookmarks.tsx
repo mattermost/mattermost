@@ -224,6 +224,31 @@ function ChannelBookmarks({channelId}: Props) {
 
     const isDragging = dragState.activeId !== null;
 
+    // MUI Modal calls event.stopPropagation() on Escape before dnd-kit's
+    // document-level sensor listener can see it. Intercept in capture phase
+    // (fires first), stop the original, and re-dispatch directly on document
+    // so dnd-kit's MouseSensor catches it and cancels the drag.
+    useEffect(() => {
+        if (!isDragging) {
+            return undefined;
+        }
+        const handler = (e: KeyboardEvent) => {
+            if (e.key !== 'Escape' || (e as any).dndRedispatch) {
+                return;
+            }
+            e.stopPropagation();
+            const redispatch = new KeyboardEvent('keydown', {
+                key: 'Escape',
+                code: 'Escape',
+                bubbles: false,
+            });
+            Object.defineProperty(redispatch, 'dndRedispatch', {value: true});
+            document.dispatchEvent(redispatch);
+        };
+        document.addEventListener('keydown', handler, true);
+        return () => document.removeEventListener('keydown', handler, true);
+    }, [isDragging]);
+
     // Get active bookmark for drag overlay
     const activeBookmark: ChannelBookmark | null = dragState.activeId ? bookmarks[String(dragState.activeId)] : null;
 

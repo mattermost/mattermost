@@ -244,6 +244,7 @@ function BookmarksBarMenu({
                     isMenuOpen: forceOpen,
                     onToggle: handleToggle,
                     hideBackdrop: isDragging,
+                    disableEscapeKeyDown: isDragging,
                 }}
             >
                 {menuItems}

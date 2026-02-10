@@ -80,6 +80,12 @@ type MenuProps = {
      * menu remain interactive (e.g. during drag-and-drop).
      */
     hideBackdrop?: boolean;
+
+    /**
+     * When true, pressing Escape will not close the menu. Useful during
+     * drag-and-drop so the drag can be cancelled without closing the menu.
+     */
+    disableEscapeKeyDown?: boolean;
 }
 
 const defaultAnchorOrigin = {vertical: 'bottom', horizontal: 'left'} as PopoverOrigin;
@@ -122,7 +128,10 @@ export function Menu(props: Props) {
     const isMenuOpen = Boolean(anchorElement);
 
     // Callback function handler called when menu is closed by escapeKeyDown, backdropClick or tabKeyDown
-    function handleMenuClose(event: MouseEvent<HTMLDivElement>) {
+    function handleMenuClose(event: MouseEvent<HTMLDivElement>, reason?: string) {
+        if (reason === 'escapeKeyDown' && props.menu.disableEscapeKeyDown) {
+            return;
+        }
         event.preventDefault();
         setAnchorElement(null);
     }
