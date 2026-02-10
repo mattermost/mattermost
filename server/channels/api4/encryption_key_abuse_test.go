@@ -68,7 +68,7 @@ func TestEncryptionKeyOverwrite(t *testing.T) {
 	t.Run("User can overwrite own key by re-registering", func(t *testing.T) {
 		// Register first key
 		req1 := &model.EncryptionPublicKeyRequest{
-			PublicKey: `{"kty":"RSA","n":"original-key-data","e":"AQAB"}`,
+			PublicKey: `{"kty":"RSA","n":"` + strings.Repeat("A", 200) + `","e":"AQAB"}`,
 		}
 		resp, err := th.Client.DoAPIPostJSON(context.Background(), "/encryption/publickey", req1)
 		checkStatusCode(t, resp, err, http.StatusCreated)
@@ -76,7 +76,7 @@ func TestEncryptionKeyOverwrite(t *testing.T) {
 
 		// Overwrite with new key
 		req2 := &model.EncryptionPublicKeyRequest{
-			PublicKey: `{"kty":"RSA","n":"replaced-key-data","e":"AQAB"}`,
+			PublicKey: `{"kty":"RSA","n":"` + strings.Repeat("B", 200) + `","e":"AQAB"}`,
 		}
 		resp, err = th.Client.DoAPIPostJSON(context.Background(), "/encryption/publickey", req2)
 		checkStatusCode(t, resp, err, http.StatusCreated)
@@ -90,7 +90,7 @@ func TestEncryptionKeyOverwrite(t *testing.T) {
 		var key model.EncryptionPublicKey
 		decErr := json.NewDecoder(resp.Body).Decode(&key)
 		require.NoError(t, decErr)
-		assert.Contains(t, key.PublicKey, "replaced-key-data")
+		assert.Contains(t, key.PublicKey, strings.Repeat("B", 200))
 	})
 }
 
@@ -126,7 +126,7 @@ func TestEncryptionKeyEnumeration(t *testing.T) {
 		// Register a key for user1
 		th.LoginBasic(t)
 		req := &model.EncryptionPublicKeyRequest{
-			PublicKey: `{"kty":"RSA","n":"user1-enumeration-test","e":"AQAB"}`,
+			PublicKey: `{"kty":"RSA","n":"` + strings.Repeat("A", 200) + `","e":"AQAB"}`,
 		}
 		resp, err := th.Client.DoAPIPostJSON(context.Background(), "/encryption/publickey", req)
 		checkStatusCode(t, resp, err, http.StatusCreated)

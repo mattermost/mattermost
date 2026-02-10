@@ -7,7 +7,9 @@ package api4
 
 import (
 	"context"
+	"encoding/base64"
 	"net/http"
+	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -38,12 +40,12 @@ func TestAllFeaturesDisabledSimultaneously(t *testing.T) {
 		path   string
 		body   any
 	}{
-		{"Encryption register key", "POST", "/encryption/publickey", &model.EncryptionPublicKeyRequest{PublicKey: `{"kty":"RSA","n":"test","e":"AQAB","pad":"12345"}`}},
+		{"Encryption register key", "POST", "/encryption/publickey", &model.EncryptionPublicKeyRequest{PublicKey: `{"kty":"RSA","n":"` + strings.Repeat("A", 200) + `","e":"AQAB","pad":"12345"}`}},
 		{"Error log submit", "POST", "/errors", &model.ErrorLogReport{Type: model.ErrorLogTypeJS, Message: "test"}},
 		{"Error log list", "GET", "/errors", nil},
 		{"Error log clear", "DELETE", "/errors", nil},
 		{"Custom icons list", "GET", "/custom_channel_icons", nil},
-		{"Custom icons create", "POST", "/custom_channel_icons", &model.CustomChannelIcon{Name: "test", Svg: "<svg>test</svg>"}},
+		{"Custom icons create", "POST", "/custom_channel_icons", &model.CustomChannelIcon{Name: "test", Svg: base64.StdEncoding.EncodeToString([]byte("<svg xmlns='http://www.w3.org/2000/svg'><circle r='10'/></svg>"))}},
 		{"Status logs list", "GET", "/status_logs", nil},
 		{"Status logs export", "GET", "/status_logs/export", nil},
 		{"Status logs clear", "DELETE", "/status_logs", nil},
@@ -136,7 +138,7 @@ func TestFeatureFlagToggleDuringUse(t *testing.T) {
 
 		// Register a key
 		req := &model.EncryptionPublicKeyRequest{
-			PublicKey: `{"kty":"RSA","n":"toggle-test-key","e":"AQAB"}`,
+			PublicKey: `{"kty":"RSA","n":"` + strings.Repeat("a", 100) + `","e":"AQAB"}`,
 		}
 		resp, err := th.Client.DoAPIPostJSON(context.Background(), "/encryption/publickey", req)
 		checkStatusCode(t, resp, err, http.StatusCreated)
@@ -172,7 +174,7 @@ func TestFeatureFlagToggleDuringUse(t *testing.T) {
 			*cfg.CacheSettings.CacheType = "lru"
 		})
 
-		icon := &model.CustomChannelIcon{Name: "toggle-test", Svg: "<svg>toggle</svg>"}
+		icon := &model.CustomChannelIcon{Name: "toggle-test", Svg: base64.StdEncoding.EncodeToString([]byte("<svg xmlns='http://www.w3.org/2000/svg'><circle r='10'/></svg>"))}
 		resp, err := th.SystemAdminClient.DoAPIPostJSON(context.Background(), "/custom_channel_icons", icon)
 		checkStatusCode(t, resp, err, http.StatusCreated)
 		closeIfOpen(resp, err)

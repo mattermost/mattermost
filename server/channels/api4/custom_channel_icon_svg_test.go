@@ -125,11 +125,17 @@ func TestCustomChannelIconEdgeCases(t *testing.T) {
 	}).InitBasic(t)
 
 	t.Run("Icon at exactly max SVG size boundary", func(t *testing.T) {
-		// Exactly 50KB should be accepted
-		padding := strings.Repeat("x", model.CustomChannelIconSvgMaxSize-10)
+		// Exactly 50KB (51200 bytes) of base64 content should be accepted.
+		// Base64 encodes 3 bytes into 4 chars. So we need 51200 * 3 / 4 = 38400 bytes of raw SVG.
+		rawLen := model.CustomChannelIconSvgMaxSize * 3 / 4
+		prefix := "<svg xmlns='http://www.w3.org/2000/svg'>"
+		suffix := "</svg>"
+		paddingLen := rawLen - len(prefix) - len(suffix)
+		rawSvg := prefix + strings.Repeat(" ", paddingLen) + suffix
+
 		icon := &model.CustomChannelIcon{
 			Name: "boundary",
-			Svg:  padding + "1234567890",
+			Svg:  base64.StdEncoding.EncodeToString([]byte(rawSvg)),
 		}
 		resp, err := th.SystemAdminClient.DoAPIPostJSON(context.Background(), "/custom_channel_icons", icon)
 		checkStatusCode(t, resp, err, http.StatusCreated)
@@ -139,7 +145,7 @@ func TestCustomChannelIconEdgeCases(t *testing.T) {
 	t.Run("Icon at exactly max name length boundary", func(t *testing.T) {
 		icon := &model.CustomChannelIcon{
 			Name: strings.Repeat("a", model.CustomChannelIconNameMaxLength),
-			Svg:  "<svg>ok</svg>",
+			Svg:  base64.StdEncoding.EncodeToString([]byte("<svg xmlns='http://www.w3.org/2000/svg'><circle r='10'/></svg>")),
 		}
 		resp, err := th.SystemAdminClient.DoAPIPostJSON(context.Background(), "/custom_channel_icons", icon)
 		checkStatusCode(t, resp, err, http.StatusCreated)

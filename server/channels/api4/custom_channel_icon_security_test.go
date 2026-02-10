@@ -7,6 +7,7 @@ package api4
 
 import (
 	"context"
+	"encoding/base64"
 	"encoding/json"
 	"net/http"
 	"strings"
@@ -31,7 +32,7 @@ func TestCustomChannelIconSecurityFeatureFlag(t *testing.T) {
 	})
 
 	t.Run("POST create returns 403 when feature disabled", func(t *testing.T) {
-		icon := &model.CustomChannelIcon{Name: "test", Svg: "<svg>test</svg>"}
+		icon := &model.CustomChannelIcon{Name: "test", Svg: base64.StdEncoding.EncodeToString([]byte("<svg xmlns='http://www.w3.org/2000/svg'><circle r='10'/></svg>"))}
 		resp, err := th.SystemAdminClient.DoAPIPostJSON(context.Background(), "/custom_channel_icons", icon)
 		checkStatusCode(t, resp, err, http.StatusForbidden)
 	})
@@ -67,13 +68,13 @@ func TestCustomChannelIconSecurityPermissions(t *testing.T) {
 	})
 
 	t.Run("Regular user cannot POST create", func(t *testing.T) {
-		icon := &model.CustomChannelIcon{Name: "user-created", Svg: "<svg>hack</svg>"}
+		icon := &model.CustomChannelIcon{Name: "user-created", Svg: base64.StdEncoding.EncodeToString([]byte("<svg xmlns='http://www.w3.org/2000/svg'><circle r='10'/></svg>"))}
 		resp, err := th.Client.DoAPIPostJSON(context.Background(), "/custom_channel_icons", icon)
 		checkStatusCode(t, resp, err, http.StatusForbidden)
 	})
 
 	t.Run("Regular user cannot PUT update", func(t *testing.T) {
-		icon := &model.CustomChannelIcon{Name: "admin-icon", Svg: "<svg>admin</svg>"}
+		icon := &model.CustomChannelIcon{Name: "admin-icon", Svg: base64.StdEncoding.EncodeToString([]byte("<svg xmlns='http://www.w3.org/2000/svg'><circle r='10'/></svg>"))}
 		resp, err := th.SystemAdminClient.DoAPIPostJSON(context.Background(), "/custom_channel_icons", icon)
 		checkStatusCode(t, resp, err, http.StatusCreated)
 		var created model.CustomChannelIcon
@@ -87,7 +88,7 @@ func TestCustomChannelIconSecurityPermissions(t *testing.T) {
 	})
 
 	t.Run("Regular user cannot DELETE", func(t *testing.T) {
-		icon := &model.CustomChannelIcon{Name: "to-delete", Svg: "<svg>del</svg>"}
+		icon := &model.CustomChannelIcon{Name: "to-delete", Svg: base64.StdEncoding.EncodeToString([]byte("<svg xmlns='http://www.w3.org/2000/svg'><circle r='10'/></svg>"))}
 		resp, err := th.SystemAdminClient.DoAPIPostJSON(context.Background(), "/custom_channel_icons", icon)
 		checkStatusCode(t, resp, err, http.StatusCreated)
 		var created model.CustomChannelIcon
@@ -106,7 +107,7 @@ func TestCustomChannelIconSecurityValidation(t *testing.T) {
 	}).InitBasic(t)
 
 	t.Run("Create with missing name returns 400", func(t *testing.T) {
-		icon := &model.CustomChannelIcon{Svg: "<svg>test</svg>"}
+		icon := &model.CustomChannelIcon{Svg: base64.StdEncoding.EncodeToString([]byte("<svg xmlns='http://www.w3.org/2000/svg'><circle r='10'/></svg>"))}
 		resp, err := th.SystemAdminClient.DoAPIPostJSON(context.Background(), "/custom_channel_icons", icon)
 		checkStatusCode(t, resp, err, http.StatusBadRequest)
 	})
@@ -129,7 +130,7 @@ func TestCustomChannelIconSecurityValidation(t *testing.T) {
 	t.Run("Create with name exceeding 64 chars returns 400", func(t *testing.T) {
 		icon := &model.CustomChannelIcon{
 			Name: strings.Repeat("a", model.CustomChannelIconNameMaxLength+1),
-			Svg:  "<svg>test</svg>",
+			Svg:  base64.StdEncoding.EncodeToString([]byte("<svg xmlns='http://www.w3.org/2000/svg'><circle r='10'/></svg>")),
 		}
 		resp, err := th.SystemAdminClient.DoAPIPostJSON(context.Background(), "/custom_channel_icons", icon)
 		checkStatusCode(t, resp, err, http.StatusBadRequest)
@@ -147,13 +148,12 @@ func TestCustomChannelIconSecurityValidation(t *testing.T) {
 		checkStatusCode(t, resp, err, http.StatusNotFound)
 	})
 
-	t.Run("SVG with script tags accepted as base64 content", func(t *testing.T) {
+	t.Run("SVG with script tags in base64 content is rejected", func(t *testing.T) {
 		icon := &model.CustomChannelIcon{
 			Name: "xss-test-icon",
 			Svg:  `PHN2Zz48c2NyaXB0PmFsZXJ0KCd4c3MnKTwvc2NyaXB0Pjwvc3ZnPg==`,
 		}
 		resp, err := th.SystemAdminClient.DoAPIPostJSON(context.Background(), "/custom_channel_icons", icon)
-		checkStatusCode(t, resp, err, http.StatusCreated)
-		closeIfOpen(resp, err)
+		checkStatusCode(t, resp, err, http.StatusBadRequest)
 	})
 }

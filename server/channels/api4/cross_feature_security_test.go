@@ -8,6 +8,7 @@ package api4
 import (
 	"context"
 	"net/http"
+	"strings"
 	"testing"
 
 	"github.com/mattermost/mattermost/server/public/model"
@@ -43,7 +44,7 @@ func TestCrossFeatureIsolation(t *testing.T) {
 		})
 
 		keyReq := &model.EncryptionPublicKeyRequest{
-			PublicKey: `{"kty":"RSA","n":"test-key","e":"AQAB"}`,
+			PublicKey: `{"kty":"RSA","n":"` + strings.Repeat("A", 200) + `","e":"AQAB"}`,
 		}
 		resp, err := th.Client.DoAPIPostJSON(context.Background(), "/encryption/publickey", keyReq)
 		checkStatusCode(t, resp, err, http.StatusForbidden)

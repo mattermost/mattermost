@@ -7,6 +7,7 @@ import (
 	"context"
 	"encoding/json"
 	"net/http"
+	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -21,7 +22,7 @@ import (
 
 // Helper to create a valid JWK public key for testing
 func createTestJwk() string {
-	return `{"kty":"RSA","n":"test-key-data","e":"AQAB"}`
+	return `{"kty":"RSA","n":"` + strings.Repeat("A", 200) + `","e":"AQAB"}`
 }
 
 // TestGetEncryptionStatus tests the GET /api/v4/encryption/status endpoint
@@ -133,7 +134,7 @@ func TestRegisterPublicKey(t *testing.T) {
 		resp.Body.Close()
 
 		// Register updated key
-		updatedKey := `{"kty":"RSA","n":"updated-key-data","e":"AQAB"}`
+		updatedKey := `{"kty":"RSA","n":"` + strings.Repeat("B", 200) + `","e":"AQAB"}`
 		keyReq.PublicKey = updatedKey
 		resp, err := th.Client.DoAPIPostJSON(context.Background(), "/encryption/publickey", keyReq)
 		require.NoError(t, err)

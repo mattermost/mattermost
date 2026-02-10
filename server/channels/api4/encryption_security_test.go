@@ -9,6 +9,7 @@ import (
 	"context"
 	"encoding/json"
 	"net/http"
+	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -30,7 +31,7 @@ func TestEncryptionSecurityFeatureFlagDisabled(t *testing.T) {
 
 	t.Run("RegisterPublicKey returns 403 when encryption disabled", func(t *testing.T) {
 		keyReq := &model.EncryptionPublicKeyRequest{
-			PublicKey: `{"kty":"RSA","n":"test-key","e":"AQAB"}`,
+			PublicKey: `{"kty":"RSA","n":"` + strings.Repeat("A", 200) + `","e":"AQAB"}`,
 		}
 		resp, err := th.Client.DoAPIPostJSON(context.Background(), "/encryption/publickey", keyReq)
 		checkStatusCode(t, resp, err, http.StatusForbidden)
@@ -203,7 +204,7 @@ func TestEncryptionSecuritySessionIsolation(t *testing.T) {
 
 	t.Run("User can only see own key via GET publickey", func(t *testing.T) {
 		keyReq := &model.EncryptionPublicKeyRequest{
-			PublicKey: `{"kty":"RSA","n":"user1-key-data","e":"AQAB"}`,
+			PublicKey: `{"kty":"RSA","n":"` + strings.Repeat("A", 200) + `","e":"AQAB"}`,
 		}
 		resp, err := th.Client.DoAPIPostJSON(context.Background(), "/encryption/publickey", keyReq)
 		checkStatusCode(t, resp, err, http.StatusCreated)
@@ -247,7 +248,7 @@ func TestEncryptionAdminDeleteUserKeysIsolation(t *testing.T) {
 	t.Run("Admin deleting user1 keys does not affect user2", func(t *testing.T) {
 		th.LoginBasic(t)
 		keyReq := &model.EncryptionPublicKeyRequest{
-			PublicKey: `{"kty":"RSA","n":"user1-key-isolation","e":"AQAB"}`,
+			PublicKey: `{"kty":"RSA","n":"` + strings.Repeat("A", 200) + `","e":"AQAB"}`,
 		}
 		resp, err := th.Client.DoAPIPostJSON(context.Background(), "/encryption/publickey", keyReq)
 		checkStatusCode(t, resp, err, http.StatusCreated)
@@ -255,7 +256,7 @@ func TestEncryptionAdminDeleteUserKeysIsolation(t *testing.T) {
 
 		th.LoginBasic2(t)
 		keyReq2 := &model.EncryptionPublicKeyRequest{
-			PublicKey: `{"kty":"RSA","n":"user2-key-isolation","e":"AQAB"}`,
+			PublicKey: `{"kty":"RSA","n":"` + strings.Repeat("B", 200) + `","e":"AQAB"}`,
 		}
 		resp, err = th.Client.DoAPIPostJSON(context.Background(), "/encryption/publickey", keyReq2)
 		checkStatusCode(t, resp, err, http.StatusCreated)
@@ -275,6 +276,6 @@ func TestEncryptionAdminDeleteUserKeysIsolation(t *testing.T) {
 		decErr := json.NewDecoder(resp.Body).Decode(&key)
 		require.NoError(t, decErr)
 		assert.NotEmpty(t, key.PublicKey)
-		assert.Contains(t, key.PublicKey, "user2-key-isolation")
+		assert.Contains(t, key.PublicKey, strings.Repeat("B", 200))
 	})
 }
