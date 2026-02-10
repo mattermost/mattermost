@@ -391,7 +391,7 @@ type PostStore interface {
 	GetPostAfterTime(channelID string, timestamp int64, collapsedThreads bool) (*model.Post, error)
 	GetPostIdAfterTime(channelID string, timestamp int64, collapsedThreads bool) (string, error)
 	GetPostIdBeforeTime(channelID string, timestamp int64, collapsedThreads bool) (string, error)
-	GetEtag(channelID string, allowFromCache bool, collapsedThreads bool) string
+	GetEtag(channelID string, allowFromCache bool, collapsedThreads bool, includeTranslations bool) string
 	Search(teamID string, userID string, params *model.SearchParams) (*model.PostList, error)
 	AnalyticsUserCountsWithPostsByDay(teamID string) (model.AnalyticsRows, error)
 	AnalyticsPostCountsByDay(options *model.AnalyticsPostCountsOptions) (model.AnalyticsRows, error)
@@ -898,7 +898,7 @@ type GroupStore interface {
 	CreateWithUserIds(group *model.GroupWithUserIds) (*model.Group, error)
 	Get(groupID string) (*model.Group, error)
 	GetByName(name string, opts model.GroupSearchOpts) (*model.Group, error)
-	GetByNames(names []string, viewRestrictions *model.ViewUsersRestrictions) ([]*model.Group, error)
+	GetByNames(names []string, opts model.GroupSearchOpts) ([]*model.Group, error)
 	GetByIDs(groupIDs []string) ([]*model.Group, error)
 	GetByRemoteID(remoteID string, groupSource model.GroupSource) (*model.Group, error)
 	GetAllBySource(groupSource model.GroupSource) ([]*model.Group, error)
@@ -1158,17 +1158,14 @@ type AttributesStore interface {
 }
 
 type AutoTranslationStore interface {
-	IsChannelEnabled(channelID string) (bool, error)
-	SetChannelEnabled(channelID string, enabled bool) error
 	IsUserEnabled(userID, channelID string) (bool, error)
 	GetUserLanguage(userID, channelID string) (string, error)
 	// GetActiveDestinationLanguages returns distinct locales of users who have auto-translation enabled.
 	GetActiveDestinationLanguages(channelID, excludeUserID string, filterUserIDs []string) ([]string, error)
-	Get(objectID, dstLang string) (*model.Translation, error)
-	GetBatch(objectIDs []string, dstLang string) (map[string]*model.Translation, error)
-	GetAllForObject(objectID string) ([]*model.Translation, error)
+	Get(objectType, objectID, dstLang string) (*model.Translation, error)
+	GetBatch(objectType string, objectIDs []string, dstLang string) (map[string]*model.Translation, error)
+	GetAllForObject(objectType, objectID string) ([]*model.Translation, error)
 	Save(translation *model.Translation) error
-	GetAllByStatePage(state model.TranslationState, offset, limit int) ([]*model.Translation, error)
 	GetByStateOlderThan(state model.TranslationState, olderThanMillis int64, limit int) ([]*model.Translation, error)
 
 	ClearCaches()
@@ -1178,6 +1175,12 @@ type AutoTranslationStore interface {
 	// InvalidateUserLocaleCache invalidates all language caches for a user across all channels.
 	// This is called when a user changes their locale preference.
 	InvalidateUserLocaleCache(userID string)
+	// GetLatestPostUpdateAtForChannel returns the most recent updateAt timestamp for post translations
+	// in the given channel (across all locales). Returns 0 if no translations exist.
+	GetLatestPostUpdateAtForChannel(channelID string) (int64, error)
+	// InvalidatePostTranslationEtag invalidates the cached post translation etag for a channel.
+	// This should be called after saving a new post translation.
+	InvalidatePostTranslationEtag(channelID string)
 }
 
 type ContentFlaggingStore interface {
@@ -1201,7 +1204,7 @@ type ReadReceiptStore interface {
 type TemporaryPostStore interface {
 	InvalidateTemporaryPost(id string)
 	Save(rctx request.CTX, post *model.TemporaryPost) (*model.TemporaryPost, error)
-	Get(rctx request.CTX, id string) (*model.TemporaryPost, error)
+	Get(rctx request.CTX, id string, allowFromCache bool) (*model.TemporaryPost, error)
 	Delete(rctx request.CTX, id string) error
 	GetExpiredPosts(rctx request.CTX) ([]string, error)
 }
