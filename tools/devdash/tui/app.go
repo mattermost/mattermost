@@ -1165,6 +1165,26 @@ func (a *App) clampCol() {
 	a.ensureCursorVisible()
 }
 
+// repoColumnWidth computes the dynamic repo name column width.
+func (a *App) repoColumnWidth() int {
+	w := repoColWidthMin
+	for i := range a.repos {
+		cells, _ := a.displayCellsForRow(i)
+		if len(cells) == 0 {
+			continue
+		}
+		nw := len(a.repos[i].Name) + 4
+		if nw > w {
+			w = nw
+		}
+	}
+	maxCol := a.width / 3
+	if w > maxCol {
+		w = maxCol
+	}
+	return w
+}
+
 // ensureCursorVisible adjusts the horizontal scroll of the current row
 // so the cursor column is within the visible area.
 func (a *App) ensureCursorVisible() {
@@ -1185,7 +1205,7 @@ func (a *App) ensureCursorVisible() {
 	}
 	chipPositions[len(displayCells)] = x
 
-	availableWidth := a.width - repoColWidth - 2 // minus scroll indicators
+	availableWidth := a.width - a.repoColumnWidth() - 2 // minus scroll indicators
 	if availableWidth < 10 {
 		availableWidth = 10
 	}

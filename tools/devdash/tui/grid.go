@@ -34,7 +34,9 @@ type GridCell struct {
 	IsSep     bool   // separator between favorites and the rest
 }
 
-const repoColWidth = 22
+// repoColWidth is computed dynamically per render based on the longest repo name.
+// The constant is kept as a minimum width.
+const repoColWidthMin = 14
 
 // cellID returns a unique key for a cell within a repo.
 // Uses "repo:npm:name" for npm scripts, "repo:name" for make targets.
@@ -72,7 +74,7 @@ func buildGridCells(repo *model.Repo) []GridCell {
 		})
 	}
 
-	// Built-in npm commands — labeled "npm:<cmd>", target prefixed with @
+	// Built-in npm commands — labeled "npm:<cmd>"
 	if repo.PackageJSON != "" {
 		for _, cmd := range []string{"install", "ci", "start", "test", "build"} {
 			// Skip if already defined as a user script
@@ -82,7 +84,7 @@ func buildGridCells(repo *model.Repo) []GridCell {
 			cells = append(cells, GridCell{
 				Label:  "npm:" + cmd,
 				IsNpm:  true,
-				Target: "@" + cmd,
+				Target: cmd,
 			})
 		}
 	}
@@ -138,23 +140,20 @@ type chipInfo struct {
 	startX   int // x position in the full (unclipped) row
 }
 
-func renderGridRow(repo *model.Repo, cells []GridCell, cursorCol int, isActiveRow bool, width int, hScroll int, procStateFn func(string) model.ProcessState, favorites map[string]bool, hitZones *[]HitZone, rowY int, repoIdx int, focusedProc string, logFocusActive bool) string {
-	// Repo name column (fixed, never scrolls) — with extra spacing
-	nameStr := repo.Name
-	if len(nameStr) > 18 {
-		nameStr = nameStr[:17] + "~"
-	}
+func renderGridRow(repo *model.Repo, cells []GridCell, cursorCol int, isActiveRow bool, width int, hScroll int, procStateFn func(string) model.ProcessState, favorites map[string]bool, hitZones *[]HitZone, rowY int, repoIdx int, focusedProc string, logFocusActive bool, repoColWidth int) string {
+	// Repo name column (fixed width, never scrolls)
+	nameStyle := repoNameStyle.Width(repoColWidth).MaxWidth(repoColWidth)
+	activeStyle := repoNameActiveStyle.Width(repoColWidth).MaxWidth(repoColWidth)
+	selectedStyle := lipgloss.NewStyle().Bold(true).Reverse(true).Width(repoColWidth).MaxWidth(repoColWidth)
 
 	var nameRendered string
 	if isActiveRow && cursorCol == -1 && !logFocusActive {
-		// Repo name is selected
-		nameRendered = repoNameSelectedStyle.Render("▸ " + nameStr)
+		nameRendered = selectedStyle.Render("▸ " + repo.Name)
 	} else if isActiveRow && !logFocusActive {
-		nameRendered = repoNameActiveStyle.Render("▸ " + nameStr)
+		nameRendered = activeStyle.Render("▸ " + repo.Name)
 	} else {
-		nameRendered = repoNameStyle.Render("  " + nameStr)
+		nameRendered = nameStyle.Render("  " + repo.Name)
 	}
-	nameRendered += "  " // spacing between repo name and chips
 
 	if hitZones != nil {
 		*hitZones = append(*hitZones, HitZone{
@@ -179,12 +178,11 @@ func renderGridRow(repo *model.Repo, cells []GridCell, cursorCol int, isActiveRo
 			continue
 		}
 
-		id := cellID(repo.Name, cell)
-		state := procStateFn(id)
+		procID := repo.Name + ":" + cell.Target
+		state := procStateFn(procID)
 
 		// Combined state + log-focus indicator
 		label := cell.Label
-		procID := repo.Name + ":" + cell.Target
 		isFocused := focusedProc == procID
 		switch state {
 		case model.ProcessRunning:
@@ -201,7 +199,7 @@ func renderGridRow(repo *model.Repo, cells []GridCell, cursorCol int, isActiveRo
 			}
 		}
 
-		isFav := favorites[id]
+		isFav := favorites[cellID(repo.Name, cell)]
 		isGridSelected := isActiveRow && i == cursorCol && !logFocusActive
 		isLogTarget := isFocused && logFocusActive
 
@@ -214,7 +212,8 @@ func renderGridRow(repo *model.Repo, cells []GridCell, cursorCol int, isActiveRo
 	}
 
 	totalChipsWidth := logicalX
-	availableWidth := width - repoColWidth
+	nameRenderedWidth := lipgloss.Width(nameRendered)
+	availableWidth := width - nameRenderedWidth
 
 	// Determine visible chips based on hScroll offset
 	var visibleChips []string
@@ -326,6 +325,25 @@ func renderGrid(repos []model.Repo, cursorRow, cursorCol int, width, maxLines, s
 	var b strings.Builder
 	var hitZones []HitZone
 
+	// Compute column width from the longest visible repo name
+	// "▸ " prefix = 2 chars, plus 2 chars spacing after
+	repoColWidth := repoColWidthMin
+	for _, repo := range repos {
+		cells := filteredCells(repo, favorites, searchQuery, showOnlyFavorites)
+		if len(cells) == 0 {
+			continue
+		}
+		w := len(repo.Name) + 4 // "▸ " + name + "  "
+		if w > repoColWidth {
+			repoColWidth = w
+		}
+	}
+	// Cap so chips still have room
+	maxNameCol := width / 3
+	if repoColWidth > maxNameCol {
+		repoColWidth = maxNameCol
+	}
+
 	// Pre-compute total visible repo count for scroll indicators
 	totalVisible := 0
 	for _, repo := range repos {
@@ -416,7 +434,7 @@ func renderGrid(repos []model.Repo, cursorRow, cursorCol int, width, maxLines, s
 			hScroll = hScrolls[i]
 		}
 
-		line := renderGridRow(&repo, cells, col, i == cursorRow, width, hScroll, procStateFn, favorites, &hitZones, rowY, i, focusedProc, logFocusActive)
+		line := renderGridRow(&repo, cells, col, i == cursorRow, width, hScroll, procStateFn, favorites, &hitZones, rowY, i, focusedProc, logFocusActive, repoColWidth)
 		b.WriteString(line)
 		b.WriteString("\n")
 		rowY++

@@ -145,7 +145,91 @@ func ScanAll(mmRoot string) ([]model.Repo, error) {
 
 	repos = append(repos, siblings...)
 	repos = append(repos, plugins...)
+
+	// 3. Discover sub-packages (nested package.json) for all repos
+	var subRepos []model.Repo
+	for _, repo := range repos {
+		subs := discoverSubPackages(repo)
+		subRepos = append(subRepos, subs...)
+	}
+	repos = append(repos, subRepos...)
+
 	return repos, nil
+}
+
+// discoverSubPackages scans a repo's directory tree (up to 3 levels) for
+// nested package.json files that aren't the repo's root package.json.
+// Each becomes a separate Repo entry with a "parent/subpath" display name.
+func discoverSubPackages(parent model.Repo) []model.Repo {
+	var subs []model.Repo
+	rootPkg := parent.PackageJSON
+
+	walkDir(parent.Path, parent.Path, 0, 3, func(pkgPath, relDir string) {
+		// Skip if this is the root package.json already on the parent
+		if pkgPath == rootPkg {
+			return
+		}
+
+		scripts, err := ParseNpmScripts(pkgPath)
+		if err != nil || len(scripts) == 0 {
+			return
+		}
+
+		// Check for a Makefile in the same directory
+		var makeTargets []model.Target
+		var mfPath string
+		mf := filepath.Join(filepath.Dir(pkgPath), "Makefile")
+		if fileExists(mf) {
+			mfPath = mf
+			if targets, err := ParseMakeTargets(mf); err == nil {
+				makeTargets = targets
+			}
+		}
+
+		subs = append(subs, model.Repo{
+			Name:         parent.Name + "/" + relDir,
+			Path:         filepath.Dir(pkgPath),
+			Kind:         parent.Kind,
+			PackageJSON:  pkgPath,
+			NpmScripts:   scripts,
+			MakefilePath: mfPath,
+			MakeTargets:  makeTargets,
+		})
+	})
+
+	return subs
+}
+
+// walkDir recursively scans for package.json files up to maxDepth levels,
+// skipping node_modules, .git, dist, and build directories.
+func walkDir(root, dir string, depth, maxDepth int, fn func(pkgPath, relDir string)) {
+	if depth > maxDepth {
+		return
+	}
+
+	pkg := filepath.Join(dir, "package.json")
+	if fileExists(pkg) && depth > 0 { // depth > 0 skips the root
+		rel, _ := filepath.Rel(root, dir)
+		fn(pkg, rel)
+	}
+
+	entries, err := os.ReadDir(dir)
+	if err != nil {
+		return
+	}
+
+	for _, e := range entries {
+		if !e.IsDir() {
+			continue
+		}
+		name := e.Name()
+		// Skip directories that never contain useful sub-packages
+		if name == "node_modules" || name == ".git" || name == "dist" ||
+			name == "build" || name == "vendor" || name == ".next" {
+			continue
+		}
+		walkDir(root, filepath.Join(dir, name), depth+1, maxDepth, fn)
+	}
 }
 
 func fileExists(path string) bool {

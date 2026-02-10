@@ -30,24 +30,14 @@ var (
 			Background(colorPrimary).
 			Padding(0, 1)
 
-	// Repo name in grid
+	// Repo name in grid (width applied dynamically per render)
 	repoNameStyle = lipgloss.NewStyle().
 			Bold(true).
-			Foreground(lipgloss.Color("15")).
-			Width(20).
-			MaxWidth(20)
+			Foreground(lipgloss.Color("15"))
 
 	repoNameActiveStyle = lipgloss.NewStyle().
 				Bold(true).
-				Foreground(colorPrimary).
-				Width(20).
-				MaxWidth(20)
-
-	repoNameSelectedStyle = lipgloss.NewStyle().
-				Bold(true).
-				Reverse(true).
-				Width(20).
-				MaxWidth(20)
+				Foreground(colorPrimary)
 
 	// Target chip (base)
 	chipStyle = lipgloss.NewStyle().

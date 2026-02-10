@@ -27,8 +27,9 @@ func NewTmuxClient(socket string) *TmuxClient {
 // tmux forbids ":" and "." in session names, so we replace them.
 func SessionName(repoName, targetName string) string {
 	name := fmt.Sprintf("dd_%s_%s", repoName, targetName)
-	name = strings.ReplaceAll(name, ":", "_")
-	name = strings.ReplaceAll(name, ".", "_")
+	for _, ch := range []string{":", ".", "/", "@"} {
+		name = strings.ReplaceAll(name, ch, "_")
+	}
 	return name
 }
 

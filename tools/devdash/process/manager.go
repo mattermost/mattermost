@@ -3,7 +3,6 @@ package process
 import (
 	"fmt"
 	"path/filepath"
-	"strings"
 	"sync"
 	"time"
 
@@ -53,11 +52,19 @@ func (m *Manager) SetProgram(p *tea.Program) {
 	m.program = p
 }
 
+// npmDirectCommands are npm commands that run directly (npm <cmd>)
+// rather than through npm run.
+var npmDirectCommands = map[string]bool{
+	"install": true, "ci": true, "start": true,
+	"test": true, "build": true, "update": true,
+	"audit": true, "outdated": true, "publish": true,
+}
+
 // CommandFor returns the command string that would be executed for a target.
 func CommandFor(repo *model.Repo, targetName string, isNpm bool) string {
 	if isNpm {
-		if strings.HasPrefix(targetName, "@") {
-			return fmt.Sprintf("npm %s", strings.TrimPrefix(targetName, "@"))
+		if npmDirectCommands[targetName] {
+			return fmt.Sprintf("npm %s", targetName)
 		}
 		return fmt.Sprintf("npm run %s", targetName)
 	}
@@ -94,9 +101,8 @@ func (m *Manager) Start(repo *model.Repo, targetName string, isNpm bool) error {
 	var cmdStr string
 	var dir string
 	if isNpm {
-		if strings.HasPrefix(targetName, "@") {
-			// Direct npm command: npm install, npm ci, etc.
-			cmdStr = fmt.Sprintf("npm %s", strings.TrimPrefix(targetName, "@"))
+		if npmDirectCommands[targetName] {
+			cmdStr = fmt.Sprintf("npm %s", targetName)
 		} else {
 			cmdStr = fmt.Sprintf("npm run %s", targetName)
 		}
