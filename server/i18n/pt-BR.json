@@ -8352,10 +8352,6 @@
     "translation": "Portal indisponível para registro auto-hospedado."
   },
   {
-    "id": "api.server.cws.health_check.app_error",
-    "translation": "O Servidor CWS não está disponível."
-  },
-  {
     "id": "api.server.cws.needs_enterprise_edition",
     "translation": "Serviço disponível apenas na edição Mattermost Enterprise"
   },

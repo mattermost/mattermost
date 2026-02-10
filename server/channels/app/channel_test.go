@@ -3746,6 +3746,40 @@ func TestPatchChannel(t *testing.T) {
 			*cfg.TeamSettings.RestrictDirectMessage = model.DirectMessageAny
 		})
 	})
+
+	t.Run("Patch channel with autotranslations post a message to the channel", func(t *testing.T) {
+		channel := th.createChannel(t, th.BasicTeam, model.ChannelTypeOpen)
+
+		patch := &model.ChannelPatch{
+			AutoTranslation: model.NewPointer(true),
+		}
+
+		patchedChannel, appErr := th.App.PatchChannel(th.Context, channel, patch, channel.CreatorId)
+		require.Nil(t, appErr)
+		require.True(t, patchedChannel.AutoTranslation)
+
+		posts, appErr := th.App.GetPosts(th.Context, channel.Id, 0, 1)
+		require.Nil(t, appErr)
+		require.NotNil(t, posts)
+		systemPost := posts.Posts[posts.Order[0]]
+		require.Equal(t, model.PostTypeAutotranslationChange, systemPost.Type)
+		require.Equal(t, th.BasicUser.Username, systemPost.GetProp("username"))
+		require.Equal(t, true, systemPost.GetProp("enabled"))
+
+		patch.AutoTranslation = model.NewPointer(false)
+
+		patchedChannel, appErr = th.App.PatchChannel(th.Context, channel, patch, channel.CreatorId)
+		require.Nil(t, appErr)
+		require.False(t, patchedChannel.AutoTranslation)
+
+		posts, appErr = th.App.GetPosts(th.Context, channel.Id, 0, 1)
+		require.Nil(t, appErr)
+		require.NotNil(t, posts)
+		systemPost = posts.Posts[posts.Order[0]]
+		require.Equal(t, model.PostTypeAutotranslationChange, systemPost.Type)
+		require.Equal(t, th.BasicUser.Username, systemPost.GetProp("username"))
+		require.Equal(t, false, systemPost.GetProp("enabled"))
+	})
 }
 
 func TestCreateChannelWithCategorySorting(t *testing.T) {
