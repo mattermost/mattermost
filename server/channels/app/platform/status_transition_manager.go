@@ -178,7 +178,8 @@ func (m *StatusTransitionManager) applyTransition(status *model.Status, oldStatu
 	status.Status = newStatus
 
 	// Status pause: don't update LastActivityAt for paused users (even on manual changes)
-	if !m.ps.IsUserStatusPaused(opts.UserID) {
+	// Also don't update LastActivityAt for inactivity transitions - preserve the actual last activity time
+	if !m.ps.IsUserStatusPaused(opts.UserID) && opts.Reason != TransitionReasonInactivity {
 		status.LastActivityAt = now
 	}
 

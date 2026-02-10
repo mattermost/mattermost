@@ -969,6 +969,20 @@ func (ps *PlatformService) SetStatusAwayIfNeeded(userID string, manual bool) {
 	}
 
 	if ps.Config().FeatureFlags.AccurateStatuses {
+		if !manual {
+			status, err := ps.GetStatus(userID)
+			if err == nil {
+				// Already Away, nothing to do
+				if status.Status == model.StatusAway {
+					return
+				}
+				// Use InactivityTimeoutMinutes (the AccurateStatuses setting) for the check
+				inactivityTimeout := int64(*ps.Config().MattermostExtendedSettings.Statuses.InactivityTimeoutMinutes) * 60 * 1000
+				if inactivityTimeout > 0 && model.GetMillis()-status.LastActivityAt < inactivityTimeout {
+					return
+				}
+			}
+		}
 		ps.statusTransitionManager.TransitionStatus(StatusTransitionOptions{
 			UserID:    userID,
 			NewStatus: model.StatusAway,
