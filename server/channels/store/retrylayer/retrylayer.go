@@ -892,11 +892,11 @@ func (s *RetryLayerAutoTranslationStore) ClearCaches() {
 
 }
 
-func (s *RetryLayerAutoTranslationStore) Get(objectID string, dstLang string) (*model.Translation, error) {
+func (s *RetryLayerAutoTranslationStore) Get(objectType string, objectID string, dstLang string) (*model.Translation, error) {
 
 	tries := 0
 	for {
-		result, err := s.AutoTranslationStore.Get(objectID, dstLang)
+		result, err := s.AutoTranslationStore.Get(objectType, objectID, dstLang)
 		if err == nil {
 			return result, nil
 		}
@@ -934,11 +934,11 @@ func (s *RetryLayerAutoTranslationStore) GetActiveDestinationLanguages(channelID
 
 }
 
-func (s *RetryLayerAutoTranslationStore) GetAllByStatePage(state model.TranslationState, offset int, limit int) ([]*model.Translation, error) {
+func (s *RetryLayerAutoTranslationStore) GetAllForObject(objectType string, objectID string) ([]*model.Translation, error) {
 
 	tries := 0
 	for {
-		result, err := s.AutoTranslationStore.GetAllByStatePage(state, offset, limit)
+		result, err := s.AutoTranslationStore.GetAllForObject(objectType, objectID)
 		if err == nil {
 			return result, nil
 		}
@@ -955,32 +955,11 @@ func (s *RetryLayerAutoTranslationStore) GetAllByStatePage(state model.Translati
 
 }
 
-func (s *RetryLayerAutoTranslationStore) GetAllForObject(objectID string) ([]*model.Translation, error) {
+func (s *RetryLayerAutoTranslationStore) GetBatch(objectType string, objectIDs []string, dstLang string) (map[string]*model.Translation, error) {
 
 	tries := 0
 	for {
-		result, err := s.AutoTranslationStore.GetAllForObject(objectID)
-		if err == nil {
-			return result, nil
-		}
-		if !isRepeatableError(err) {
-			return result, err
-		}
-		tries++
-		if tries >= 3 {
-			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
-			return result, err
-		}
-		timepkg.Sleep(100 * timepkg.Millisecond)
-	}
-
-}
-
-func (s *RetryLayerAutoTranslationStore) GetBatch(objectIDs []string, dstLang string) (map[string]*model.Translation, error) {
-
-	tries := 0
-	for {
-		result, err := s.AutoTranslationStore.GetBatch(objectIDs, dstLang)
+		result, err := s.AutoTranslationStore.GetBatch(objectType, objectIDs, dstLang)
 		if err == nil {
 			return result, nil
 		}
@@ -1018,6 +997,27 @@ func (s *RetryLayerAutoTranslationStore) GetByStateOlderThan(state model.Transla
 
 }
 
+func (s *RetryLayerAutoTranslationStore) GetLatestPostUpdateAtForChannel(channelID string) (int64, error) {
+
+	tries := 0
+	for {
+		result, err := s.AutoTranslationStore.GetLatestPostUpdateAtForChannel(channelID)
+		if err == nil {
+			return result, nil
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
 func (s *RetryLayerAutoTranslationStore) GetUserLanguage(userID string, channelID string) (string, error) {
 
 	tries := 0
@@ -1039,6 +1039,12 @@ func (s *RetryLayerAutoTranslationStore) GetUserLanguage(userID string, channelI
 
 }
 
+func (s *RetryLayerAutoTranslationStore) InvalidatePostTranslationEtag(channelID string) {
+
+	s.AutoTranslationStore.InvalidatePostTranslationEtag(channelID)
+
+}
+
 func (s *RetryLayerAutoTranslationStore) InvalidateUserAutoTranslation(userID string, channelID string) {
 
 	s.AutoTranslationStore.InvalidateUserAutoTranslation(userID, channelID)
@@ -1048,27 +1054,6 @@ func (s *RetryLayerAutoTranslationStore) InvalidateUserAutoTranslation(userID st
 func (s *RetryLayerAutoTranslationStore) InvalidateUserLocaleCache(userID string) {
 
 	s.AutoTranslationStore.InvalidateUserLocaleCache(userID)
-
-}
-
-func (s *RetryLayerAutoTranslationStore) IsChannelEnabled(channelID string) (bool, error) {
-
-	tries := 0
-	for {
-		result, err := s.AutoTranslationStore.IsChannelEnabled(channelID)
-		if err == nil {
-			return result, nil
-		}
-		if !isRepeatableError(err) {
-			return result, err
-		}
-		tries++
-		if tries >= 3 {
-			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
-			return result, err
-		}
-		timepkg.Sleep(100 * timepkg.Millisecond)
-	}
 
 }
 
@@ -1098,48 +1083,6 @@ func (s *RetryLayerAutoTranslationStore) Save(translation *model.Translation) er
 	tries := 0
 	for {
 		err := s.AutoTranslationStore.Save(translation)
-		if err == nil {
-			return nil
-		}
-		if !isRepeatableError(err) {
-			return err
-		}
-		tries++
-		if tries >= 3 {
-			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
-			return err
-		}
-		timepkg.Sleep(100 * timepkg.Millisecond)
-	}
-
-}
-
-func (s *RetryLayerAutoTranslationStore) SetChannelEnabled(channelID string, enabled bool) error {
-
-	tries := 0
-	for {
-		err := s.AutoTranslationStore.SetChannelEnabled(channelID, enabled)
-		if err == nil {
-			return nil
-		}
-		if !isRepeatableError(err) {
-			return err
-		}
-		tries++
-		if tries >= 3 {
-			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
-			return err
-		}
-		timepkg.Sleep(100 * timepkg.Millisecond)
-	}
-
-}
-
-func (s *RetryLayerAutoTranslationStore) SetUserEnabled(userID string, channelID string, enabled bool) error {
-
-	tries := 0
-	for {
-		err := s.AutoTranslationStore.SetUserEnabled(userID, channelID, enabled)
 		if err == nil {
 			return nil
 		}
@@ -6343,11 +6286,11 @@ func (s *RetryLayerGroupStore) GetByName(name string, opts model.GroupSearchOpts
 
 }
 
-func (s *RetryLayerGroupStore) GetByNames(names []string, viewRestrictions *model.ViewUsersRestrictions) ([]*model.Group, error) {
+func (s *RetryLayerGroupStore) GetByNames(names []string, opts model.GroupSearchOpts) ([]*model.Group, error) {
 
 	tries := 0
 	for {
-		result, err := s.GroupStore.GetByNames(names, viewRestrictions)
+		result, err := s.GroupStore.GetByNames(names, opts)
 		if err == nil {
 			return result, nil
 		}
@@ -9163,9 +9106,9 @@ func (s *RetryLayerPostStore) GetEditHistoryForPost(postID string) ([]*model.Pos
 
 }
 
-func (s *RetryLayerPostStore) GetEtag(channelID string, allowFromCache bool, collapsedThreads bool) string {
+func (s *RetryLayerPostStore) GetEtag(channelID string, allowFromCache bool, collapsedThreads bool, includeTranslations bool) string {
 
-	return s.PostStore.GetEtag(channelID, allowFromCache, collapsedThreads)
+	return s.PostStore.GetEtag(channelID, allowFromCache, collapsedThreads, includeTranslations)
 
 }
 
@@ -15547,11 +15490,11 @@ func (s *RetryLayerTemporaryPostStore) Delete(rctx request.CTX, id string) error
 
 }
 
-func (s *RetryLayerTemporaryPostStore) Get(rctx request.CTX, id string) (*model.TemporaryPost, error) {
+func (s *RetryLayerTemporaryPostStore) Get(rctx request.CTX, id string, allowFromCache bool) (*model.TemporaryPost, error) {
 
 	tries := 0
 	for {
-		result, err := s.TemporaryPostStore.Get(rctx, id)
+		result, err := s.TemporaryPostStore.Get(rctx, id, allowFromCache)
 		if err == nil {
 			return result, nil
 		}

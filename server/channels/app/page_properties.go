@@ -18,7 +18,7 @@ const (
 )
 
 func (a *App) GetPagePropertyGroup() (*model.PropertyGroup, error) {
-	return a.Srv().propertyService.GetPropertyGroup("pages")
+	return a.Srv().propertyAccessService.GetPropertyGroup("pages")
 }
 
 func (a *App) GetPagePropertyFieldByName(fieldName string) (*model.PropertyField, *model.AppError) {
@@ -27,7 +27,7 @@ func (a *App) GetPagePropertyFieldByName(fieldName string) (*model.PropertyField
 		return nil, model.NewAppError("GetPagePropertyFieldByName", "app.page.get_group.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
-	field, err := a.Srv().propertyService.GetPropertyFieldByName(group.ID, "", fieldName)
+	field, err := a.Srv().propertyAccessService.GetPropertyFieldByName(anonymousCallerId, group.ID, "", fieldName)
 	if err != nil {
 		return nil, model.NewAppError("GetPagePropertyFieldByName", "app.page.get_field.app_error", map[string]any{"FieldName": fieldName}, "", http.StatusInternalServerError).Wrap(err)
 	}
@@ -51,7 +51,7 @@ func (a *App) SetPageStatus(rctx request.CTX, page *model.Post, status string) *
 
 	rctx.Logger().Debug("SetPageStatus: property group found", mlog.String("group_id", group.ID))
 
-	statusField, err := a.Srv().propertyService.GetPropertyFieldByName(group.ID, "", pagePropertyNameStatus)
+	statusField, err := a.Srv().propertyAccessService.GetPropertyFieldByName(anonymousCallerId, group.ID, "", pagePropertyNameStatus)
 	if err != nil {
 		rctx.Logger().Error("SetPageStatus: failed to get status field", mlog.Err(err))
 		return model.NewAppError("SetPageStatus", "app.page.get_status_field.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
@@ -78,7 +78,7 @@ func (a *App) SetPageStatus(rctx request.CTX, page *model.Post, status string) *
 		mlog.String("field_id", statusField.ID),
 		mlog.String("value", string(propertyValue.Value)))
 
-	_, err = a.Srv().propertyService.UpsertPropertyValue(propertyValue)
+	_, err = a.Srv().propertyAccessService.UpsertPropertyValue(anonymousCallerId, propertyValue)
 	if err != nil {
 		rctx.Logger().Error("SetPageStatus: upsert failed", mlog.Err(err))
 		return model.NewAppError("SetPageStatus", "app.page.set_status.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
@@ -105,7 +105,7 @@ func (a *App) GetPageStatus(rctx request.CTX, page *model.Post) (string, *model.
 
 	rctx.Logger().Debug("GetPageStatus: property group found", mlog.String("group_id", group.ID))
 
-	statusField, err := a.Srv().propertyService.GetPropertyFieldByName(group.ID, "", pagePropertyNameStatus)
+	statusField, err := a.Srv().propertyAccessService.GetPropertyFieldByName(anonymousCallerId, group.ID, "", pagePropertyNameStatus)
 	if err != nil {
 		rctx.Logger().Error("GetPageStatus: failed to get status field", mlog.Err(err))
 		return "", model.NewAppError("GetPageStatus", "app.page.get_status_field.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
@@ -124,7 +124,7 @@ func (a *App) GetPageStatus(rctx request.CTX, page *model.Post) (string, *model.
 		mlog.String("field_id", statusField.ID),
 		mlog.String("target_id", pageId))
 
-	values, err := a.Srv().propertyService.SearchPropertyValues(group.ID, searchOpts)
+	values, err := a.Srv().propertyAccessService.SearchPropertyValues(anonymousCallerId, group.ID, searchOpts)
 	if err != nil {
 		rctx.Logger().Warn("GetPageStatus: search returned error, using default",
 			mlog.Err(err),
@@ -163,7 +163,7 @@ func (a *App) GetPageStatusField() (*model.PropertyField, *model.AppError) {
 		return nil, model.NewAppError("GetPageStatusField", "app.page.get_group.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
-	statusField, err := a.Srv().propertyService.GetPropertyFieldByName(group.ID, "", pagePropertyNameStatus)
+	statusField, err := a.Srv().propertyAccessService.GetPropertyFieldByName(anonymousCallerId, group.ID, "", pagePropertyNameStatus)
 	if err != nil {
 		return nil, model.NewAppError("GetPageStatusField", "app.page.get_status_field.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
@@ -243,13 +243,13 @@ func (a *App) EnrichPagesWithProperties(rctx request.CTX, postList *model.PostLi
 		return nil
 	}
 
-	statusField, err := a.Srv().propertyService.GetPropertyFieldByName(group.ID, "", pagePropertyNameStatus)
+	statusField, err := a.Srv().propertyAccessService.GetPropertyFieldByName(anonymousCallerId, group.ID, "", pagePropertyNameStatus)
 	if err != nil {
 		rctx.Logger().Warn("EnrichPagesWithProperties: failed to get status field, skipping enrichment", mlog.Err(err))
 		return nil
 	}
 
-	wikiField, err := a.Srv().propertyService.GetPropertyFieldByName(group.ID, "", pagePropertyNameWiki)
+	wikiField, err := a.Srv().propertyAccessService.GetPropertyFieldByName(anonymousCallerId, group.ID, "", pagePropertyNameWiki)
 	if err != nil {
 		rctx.Logger().Warn("EnrichPagesWithProperties: failed to get wiki field, skipping wiki_id enrichment", mlog.Err(err))
 		// Continue without wiki enrichment - status enrichment can still proceed
@@ -283,7 +283,7 @@ func (a *App) EnrichPagesWithProperties(rctx request.CTX, postList *model.PostLi
 		UseMaster: shouldUseMaster,
 	}
 
-	statusValues, err := a.Srv().propertyService.SearchPropertyValues(group.ID, statusSearchOpts)
+	statusValues, err := a.Srv().propertyAccessService.SearchPropertyValues(anonymousCallerId, group.ID, statusSearchOpts)
 	if err != nil {
 		rctx.Logger().Warn("EnrichPagesWithProperties: status search returned error, skipping enrichment", mlog.Err(err))
 		return nil
@@ -308,7 +308,7 @@ func (a *App) EnrichPagesWithProperties(rctx request.CTX, postList *model.PostLi
 			UseMaster: shouldUseMaster,
 		}
 
-		wikiValues, wikiErr := a.Srv().propertyService.SearchPropertyValues(group.ID, wikiSearchOpts)
+		wikiValues, wikiErr := a.Srv().propertyAccessService.SearchPropertyValues(anonymousCallerId, group.ID, wikiSearchOpts)
 		if wikiErr != nil {
 			rctx.Logger().Warn("EnrichPagesWithProperties: wiki search returned error, skipping wiki_id enrichment", mlog.Err(wikiErr))
 		} else {

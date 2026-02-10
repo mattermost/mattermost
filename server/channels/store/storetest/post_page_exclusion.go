@@ -160,7 +160,7 @@ func testGetEtagIgnoresPageUpdates(t *testing.T, rctx request.CTX, ss store.Stor
 	require.NoError(t, err)
 
 	// Get baseline ETag
-	baselineEtag := ss.Post().GetEtag(channel.Id, false, false)
+	baselineEtag := ss.Post().GetEtag(channel.Id, false, false, false)
 	require.NotEmpty(t, baselineEtag)
 
 	time.Sleep(2 * time.Millisecond)
@@ -175,7 +175,7 @@ func testGetEtagIgnoresPageUpdates(t *testing.T, rctx request.CTX, ss store.Stor
 	require.NoError(t, err)
 
 	// ETag should be unchanged
-	afterPageEtag := ss.Post().GetEtag(channel.Id, false, false)
+	afterPageEtag := ss.Post().GetEtag(channel.Id, false, false, false)
 	require.Equal(t, baselineEtag, afterPageEtag, "ETag should not change after creating a page")
 
 	time.Sleep(2 * time.Millisecond)
@@ -190,7 +190,7 @@ func testGetEtagIgnoresPageUpdates(t *testing.T, rctx request.CTX, ss store.Stor
 	require.NoError(t, err)
 
 	// ETag should now be different
-	afterMessageEtag := ss.Post().GetEtag(channel.Id, false, false)
+	afterMessageEtag := ss.Post().GetEtag(channel.Id, false, false, false)
 	require.NotEqual(t, baselineEtag, afterMessageEtag, "ETag should change after creating a regular message")
 }
 

@@ -119,6 +119,8 @@ func init() {
 		PermissionSysconsoleWriteUserManagementChannels.Id: {
 			PermissionManagePublicChannelProperties,
 			PermissionManagePrivateChannelProperties,
+			PermissionManagePublicChannelAutoTranslation,
+			PermissionManagePrivateChannelAutoTranslation,
 			PermissionManagePrivateChannelMembers,
 			PermissionManagePublicChannelMembers,
 			PermissionDeletePrivateChannel,
@@ -932,6 +934,8 @@ func MakeDefaultRoles() map[string]*Role {
 			PermissionManagePublicChannelBanner.Id,
 			PermissionManagePrivateChannelBanner.Id,
 			PermissionManageChannelAccessRules.Id,
+			PermissionManagePublicChannelAutoTranslation.Id,
+			PermissionManagePrivateChannelAutoTranslation.Id,
 		},
 		SchemeManaged: true,
 		BuiltIn:       true,

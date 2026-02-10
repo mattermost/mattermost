@@ -5,7 +5,15 @@ import type {Team} from '@mattermost/types/teams';
 import type {UserProfile} from '@mattermost/types/users';
 import type {Client4} from '@mattermost/client';
 
-import {test as base, expect} from '@mattermost/playwright-lib';
+import {
+    test as base,
+    expect,
+    getAdminClient,
+    createRandomTeam,
+    getOnPremServerConfig,
+    createRandomUser,
+    makeClient,
+} from '@mattermost/playwright-lib';
 
 /**
  * Worker-scoped fixtures: shared across all tests in a worker.
@@ -50,9 +58,6 @@ export const test = base.extend<PagesTestFixtures, PagesWorkerFixtures>({
     pagesWorkerSetup: [
         // eslint-disable-next-line no-empty-pattern
         async ({}, use) => {
-            const {getAdminClient, createRandomTeam, getOnPremServerConfig} =
-                await import('@mattermost/playwright-lib');
-
             // Login admin
             const {adminClient, adminUser} = await getAdminClient();
 
@@ -77,7 +82,6 @@ export const test = base.extend<PagesTestFixtures, PagesWorkerFixtures>({
     // Each test gets a dedicated user to avoid relying on shared sysadmin state.
     sharedPagesSetup: async ({pagesWorkerSetup}, use) => {
         const {team, adminClient} = pagesWorkerSetup;
-        const {createRandomUser, makeClient} = await import('@mattermost/playwright-lib');
 
         // Create a new system admin user for this test
         const randomUser = await createRandomUser('pages-admin');
@@ -151,9 +155,6 @@ export const testWithRegularUser = base.extend<PermissionsTestFixtures, Permissi
     permissionsWorkerSetup: [
         // eslint-disable-next-line no-empty-pattern
         async ({}, use) => {
-            const {getAdminClient, createRandomTeam, getOnPremServerConfig} =
-                await import('@mattermost/playwright-lib');
-
             // Login admin
             const {adminClient} = await getAdminClient();
 
@@ -193,7 +194,6 @@ export const testWithRegularUser = base.extend<PermissionsTestFixtures, Permissi
     // Test-scoped fixture: creates a fresh regular user for each test
     sharedPagesSetup: async ({permissionsWorkerSetup}, use) => {
         const {team, adminClient} = permissionsWorkerSetup;
-        const {createRandomUser, makeClient} = await import('@mattermost/playwright-lib');
 
         // Create a new regular user for this test
         const randomUser = await createRandomUser('pages-user');

@@ -456,8 +456,20 @@
     "translation": "Cannot add a permission that is restricted by the team or system permission scheme."
   },
   {
+    "id": "api.channel.patch_update_channel.auto_translation_restricted.app_error",
+    "translation": "Auto translation is not allowed for this channel."
+  },
+  {
+    "id": "api.channel.patch_update_channel.feature_not_available.app_error",
+    "translation": "Auto translation feature is not available."
+  },
+  {
     "id": "api.channel.patch_update_channel.forbidden.app_error",
     "translation": "Failed to update the channel."
+  },
+  {
+    "id": "api.channel.patch_update_channel.no_changes.app_error",
+    "translation": "No changes in the patch."
   },
   {
     "id": "api.channel.patch_update_channel.restricted_dm.app_error",
@@ -470,6 +482,22 @@
   {
     "id": "api.channel.post_channel_privacy_message.error",
     "translation": "Failed to post channel privacy update message."
+  },
+  {
+    "id": "api.channel.post_update_channel_autotranslation_message.create_post.error",
+    "translation": "Failed to post Auto-translation update message."
+  },
+  {
+    "id": "api.channel.post_update_channel_autotranslation_message.disabled",
+    "translation": "@%s disabled Auto-translation for this channel. All new messages will appear in the original language."
+  },
+  {
+    "id": "api.channel.post_update_channel_autotranslation_message.enabled",
+    "translation": "@%s enabled Auto-translation for this channel. All new messages will appear in your preferred language."
+  },
+  {
+    "id": "api.channel.post_update_channel_autotranslation_message.retrieve_user.error",
+    "translation": "Failed to retrieve user while updating Auto-translation status"
   },
   {
     "id": "api.channel.post_update_channel_displayname_message_and_forget.create_post.error",
@@ -570,6 +598,14 @@
   {
     "id": "api.channel.update_channel.update_direct_or_group_messages_not_allowed.app_error",
     "translation": "You are not allowed to update the name, display_name, and purpose of direct or group messages."
+  },
+  {
+    "id": "api.channel.update_channel_member_autotranslation.channel_not_enabled.app_error",
+    "translation": "Auto-translation is not enabled for this channel."
+  },
+  {
+    "id": "api.channel.update_channel_member_autotranslation.feature_not_available.app_error",
+    "translation": "Auto-translation is not available."
   },
   {
     "id": "api.channel.update_channel_member_roles.changing_guest_role.app_error",
@@ -1912,6 +1948,10 @@
   {
     "id": "api.context.server_busy.app_error",
     "translation": "Server is busy, non-critical services are temporarily unavailable."
+  },
+  {
+    "id": "api.context.session_cookie_not_allowed.app_error",
+    "translation": "Cookie-based authentication is not allowed for this endpoint. Please use header-based authentication."
   },
   {
     "id": "api.context.session_expired.app_error",
@@ -4549,6 +4589,10 @@
   {
     "id": "api.user.login_with_desktop_token.not_oauth_or_saml_user.app_error",
     "translation": "User is not an OAuth or SAML user."
+  },
+  {
+    "id": "api.user.oauth.get_settings.app_error",
+    "translation": "Failed to get {{.Service}} settings"
   },
   {
     "id": "api.user.oauth_to_email.context.app_error",

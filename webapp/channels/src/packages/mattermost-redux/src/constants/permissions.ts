@@ -22,6 +22,8 @@ const values = {
     CREATE_GROUP_CHANNEL: 'create_group_channel',
     MANAGE_PUBLIC_CHANNEL_PROPERTIES: 'manage_public_channel_properties',
     MANAGE_PRIVATE_CHANNEL_PROPERTIES: 'manage_private_channel_properties',
+    MANAGE_PUBLIC_CHANNEL_AUTO_TRANSLATION: 'manage_public_channel_auto_translation',
+    MANAGE_PRIVATE_CHANNEL_AUTO_TRANSLATION: 'manage_private_channel_auto_translation',
     LIST_PUBLIC_TEAMS: 'list_public_teams',
     JOIN_PUBLIC_TEAMS: 'join_public_teams',
     LIST_PRIVATE_TEAMS: 'list_private_teams',

@@ -645,13 +645,13 @@ func testPostStoreGet(t *testing.T, rctx request.CTX, ss store.Store) {
 	o1.UserId = model.NewId()
 	o1.Message = NewTestID()
 
-	etag1 := ss.Post().GetEtag(o1.ChannelId, false, false)
+	etag1 := ss.Post().GetEtag(o1.ChannelId, false, false, false)
 	require.Equal(t, 0, strings.Index(etag1, model.CurrentVersion+"."), "Invalid Etag")
 
 	o1, err = ss.Post().Save(rctx, o1)
 	require.NoError(t, err)
 
-	etag2 := ss.Post().GetEtag(o1.ChannelId, false, false)
+	etag2 := ss.Post().GetEtag(o1.ChannelId, false, false, false)
 	require.Equal(t, 0, strings.Index(etag2, fmt.Sprintf("%v.%v", model.CurrentVersion, o1.UpdateAt)), "Invalid Etag")
 
 	r1, err := ss.Post().Get(rctx, o1.Id, model.GetPostsOptions{}, "", map[string]bool{})
@@ -1225,7 +1225,7 @@ func testPostStoreDelete(t *testing.T, rctx request.CTX, ss store.Store) {
 		require.NoError(t, err)
 
 		// Verify etag generation for the channel containing the post.
-		etag1 := ss.Post().GetEtag(rootPost.ChannelId, false, false)
+		etag1 := ss.Post().GetEtag(rootPost.ChannelId, false, false, false)
 		require.Equal(t, 0, strings.Index(etag1, model.CurrentVersion+"."), "Invalid Etag")
 
 		// Verify the created post.
@@ -1251,7 +1251,7 @@ func testPostStoreDelete(t *testing.T, rctx request.CTX, ss store.Store) {
 		require.IsType(t, &store.ErrNotFound{}, err)
 
 		// Verify etag generation for the channel containing the now deleted post.
-		etag2 := ss.Post().GetEtag(rootPost.ChannelId, false, false)
+		etag2 := ss.Post().GetEtag(rootPost.ChannelId, false, false, false)
 		require.Equal(t, 0, strings.Index(etag2, model.CurrentVersion+"."), "Invalid Etag")
 	})
 
