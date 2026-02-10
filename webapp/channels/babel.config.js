@@ -23,6 +23,12 @@ const config = {
         }],
     ],
     plugins: [
+        [
+            'babel-plugin-react-compiler',
+            {
+                target: '18',
+            },
+        ],
         'babel-plugin-typescript-to-proptypes',
         [
             'babel-plugin-styled-components',

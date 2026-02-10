@@ -152,16 +152,11 @@ const AdvancedTextEditor = ({
 
     const isRHS = isThreadView ? false : Boolean(rootId) || location === Locations.RHS_COMMENT;
 
-    const getFormattingBarPreferenceName = () => {
-        let name: string;
-        if (isRHS) {
-            name = isInEditMode ? AdvancedTextEditorConst.EDIT : AdvancedTextEditorConst.COMMENT;
-        } else {
-            name = AdvancedTextEditorConst.POST;
-        }
-
-        return name;
-    };
+    // Determine the formatting bar preference name based on context
+    let formattingBarPreferenceName = AdvancedTextEditorConst.POST;
+    if (isRHS) {
+        formattingBarPreferenceName = isInEditMode ? AdvancedTextEditorConst.EDIT : AdvancedTextEditorConst.COMMENT;
+    }
 
     const currentUserId = useSelector(getCurrentUserId);
     const channel = useSelector((state: GlobalState) => getChannelSelector(state, channelId));
@@ -174,8 +169,7 @@ const AdvancedTextEditor = ({
     const canUploadFiles = useSelector((state: GlobalState) => canUploadFilesAccordingToConfig(getConfig(state)));
     const fullWidthTextBox = useSelector((state: GlobalState) => get(state, Preferences.CATEGORY_DISPLAY_SETTINGS, Preferences.CHANNEL_DISPLAY_MODE, Preferences.CHANNEL_DISPLAY_MODE_DEFAULT) === Preferences.CHANNEL_DISPLAY_MODE_FULL_SCREEN);
     const isFormattingBarHidden = useSelector((state: GlobalState) => {
-        const preferenceName = getFormattingBarPreferenceName();
-        return getBool(state, Preferences.ADVANCED_TEXT_EDITOR, preferenceName);
+        return getBool(state, Preferences.ADVANCED_TEXT_EDITOR, formattingBarPreferenceName);
     });
     const teammateId = useSelector((state: GlobalState) => getDirectChannel(state, channelId)?.teammate_id || '');
     const teammateDisplayName = useSelector((state: GlobalState) => (teammateId ? getDisplayName(state, teammateId) : ''));
@@ -288,7 +282,7 @@ const AdvancedTextEditor = ({
         const res = applyMarkdownUtil(params);
 
         handleDraftChange({
-            ...draft,
+            ...draftRef.current,
             message: res.message,
         });
 
@@ -296,18 +290,16 @@ const AdvancedTextEditor = ({
             const textbox = textboxRef.current?.getInputBox();
             Utils.setSelectionRange(textbox, res.selectionStart, res.selectionEnd);
         });
-    }, [showPreview, handleDraftChange, draft]);
+    }, [showPreview, handleDraftChange]);
 
     const toggleAdvanceTextEditor = useCallback(() => {
         dispatch(savePreferences(currentUserId, [{
             category: Preferences.ADVANCED_TEXT_EDITOR,
             user_id: currentUserId,
-
-            // name: isRHS ? AdvancedTextEditorConst.COMMENT : AdvancedTextEditorConst.POST,
-            name: getFormattingBarPreferenceName(),
+            name: formattingBarPreferenceName,
             value: String(!isFormattingBarHidden),
         }]));
-    }, [dispatch, currentUserId, getFormattingBarPreferenceName, isFormattingBarHidden]);
+    }, [dispatch, currentUserId, formattingBarPreferenceName, isFormattingBarHidden]);
 
     useOrientationHandler(textboxRef, rootId);
     const pluginItems = usePluginItems(draft, textboxRef, handleDraftChange, channelId);
