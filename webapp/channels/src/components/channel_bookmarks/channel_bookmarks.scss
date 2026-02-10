@@ -38,6 +38,7 @@
     width: 18px;
     height: 18px;
     align-items: center;
+    justify-content: center;
     padding: 0;
     border: none;
     border-radius: 4px;
@@ -59,6 +60,11 @@
         background: rgba(var(--button-bg-rgb), 16%);
         background: color-mix(in sRGB, var(--center-channel-bg), var(--button-bg) 16%);
         color: rgb(var(--button-bg-rgb));
+    }
+
+    &.channelBookmarksDotMenuButton--overflow {
+        width: 32px;
+        height: 32px;
     }
 }
 

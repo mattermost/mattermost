@@ -154,6 +154,7 @@ function OverflowBookmarkItem({
                 <BookmarkItemDotMenu
                     bookmark={bookmark}
                     open={open}
+                    buttonClassName='channelBookmarksDotMenuButton--overflow'
                 />
             </TrailingElement>
         </ItemContainer>
@@ -270,9 +271,10 @@ const ItemContainer = styled.li<{$isDragging: boolean}>`
         box-shadow: 0 0 0 2px var(--sidebar-text-active-border) inset;
     }
 
-    /* Show dot menu on hover or focus-within */
+    /* Show dot menu on hover, focus-within, or when its dropdown is open */
     &:hover,
-    &:focus-within {
+    &:focus-within,
+    &:has([aria-expanded="true"]) {
         > div:last-child {
             opacity: 1;
         }
@@ -307,14 +309,6 @@ const TrailingElement = styled.div`
     transition: opacity 150ms ease;
     flex-shrink: 0;
     margin-inline-start: 4px;
-
-    /* Reset dot menu button positioning */
-    button {
-        position: relative !important;
-        visibility: visible !important;
-        right: auto !important;
-        top: auto !important;
-    }
 `;
 
 const linkStyles = css`
