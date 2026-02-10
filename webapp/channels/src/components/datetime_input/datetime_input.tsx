@@ -438,7 +438,9 @@ const DateTimeInputContainer: React.FC<Props> = ({
                                     <span className='date-time-input__icon'>{clockIcon}</span>
                                     <span className='date-time-input__value'>
                                         {displayTime ? (
-                                            <span>{displayTime.format(isMilitaryTime ? 'HH:mm' : 'LT')}</span>
+                                            <time dateTime={displayTime.toISOString()}>
+                                                {displayTime.format(isMilitaryTime ? 'HH:mm' : 'LT')}
+                                            </time>
                                         ) : (
                                             <span>{'--:--'}</span>
                                         )}

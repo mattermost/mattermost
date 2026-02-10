@@ -19,6 +19,7 @@
         overflow: visible !important;
     }
 
-    // NOTE: Removed .modal-body overflow override to preserve scroll containment
-    // Date picker popups use portals/high z-index to escape modal bounds instead
+    .modal-body {
+        overflow: visible !important;
+    }
 }

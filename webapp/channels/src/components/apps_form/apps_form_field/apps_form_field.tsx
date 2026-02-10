@@ -35,6 +35,7 @@ export interface Props {
 
     value: AppFormValue;
     onChange: (name: string, value: any) => void;
+    setIsInteracting?: (isInteracting: boolean) => void;
     autoFocus?: boolean;
     listComponent?: React.ComponentProps<typeof AutocompleteSelector>['listComponent'];
     performLookup: (name: string, userInput: string) => Promise<AppSelectOption[]>;
@@ -206,6 +207,7 @@ export default class AppsFormField extends React.PureComponent<Props> {
                         field={field}
                         value={value as string | null}
                         onChange={onChange}
+                        setIsInteracting={this.props.setIsInteracting}
                     />
                     {helpTextContent && (
                         <div className='help-text'>
@@ -227,6 +229,7 @@ export default class AppsFormField extends React.PureComponent<Props> {
                         field={field}
                         value={value as string | null}
                         onChange={onChange}
+                        setIsInteracting={this.props.setIsInteracting}
                     />
                     {helpTextContent && (
                         <div className='help-text'>

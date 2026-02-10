@@ -14,12 +14,14 @@ type Props = {
     field: AppField;
     value: string | null;
     onChange: (name: string, value: string | null) => void;
+    setIsInteracting?: (isInteracting: boolean) => void;
 };
 
 const AppsFormDateField: React.FC<Props> = ({
     field,
     value,
     onChange,
+    setIsInteracting,
 }) => {
     const intl = useIntl();
     const [isPopperOpen, setIsPopperOpen] = useState(false);
@@ -53,7 +55,8 @@ const AppsFormDateField: React.FC<Props> = ({
 
     const handlePopperOpenState = useCallback((isOpen: boolean) => {
         setIsPopperOpen(isOpen);
-    }, []);
+        setIsInteracting?.(isOpen);
+    }, [setIsInteracting]);
 
     const disabledDays = useMemo(() => {
         const disabled = [];

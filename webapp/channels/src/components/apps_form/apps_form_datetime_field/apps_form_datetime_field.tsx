@@ -20,6 +20,7 @@ type Props = {
     field: AppField;
     value: string | null;
     onChange: (name: string, value: string | null) => void;
+    setIsInteracting?: (isInteracting: boolean) => void;
 };
 
 // Helper to get timezone abbreviation (e.g., "MST", "EDT")
@@ -42,6 +43,7 @@ const AppsFormDateTimeField: React.FC<Props> = ({
     field,
     value,
     onChange,
+    setIsInteracting,
 }) => {
     const userTimezone = useSelector(getCurrentTimezone);
 
@@ -106,6 +108,7 @@ const AppsFormDateTimeField: React.FC<Props> = ({
                 timePickerInterval={timePickerInterval}
                 allowPastDates={allowPastDates}
                 allowManualTimeEntry={allowManualTimeEntry}
+                setIsInteracting={setIsInteracting}
             />
         </div>
     );
