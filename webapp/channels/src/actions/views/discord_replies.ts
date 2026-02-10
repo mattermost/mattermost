@@ -32,6 +32,58 @@ function hasVideoAttachment(post: {metadata?: {files?: Array<{mime_type: string}
 }
 
 /**
+ * Maps a MIME type to a file category for emoji display.
+ */
+function getFileCategory(mimeType: string): string {
+    if (mimeType.startsWith('image/')) {
+        return 'image';
+    }
+    if (mimeType.startsWith('video/')) {
+        return 'video';
+    }
+    if (mimeType.startsWith('audio/')) {
+        return 'audio';
+    }
+    if (mimeType === 'application/pdf' ||
+        mimeType.startsWith('application/msword') ||
+        mimeType.startsWith('application/vnd.openxmlformats-officedocument') ||
+        mimeType.startsWith('application/vnd.oasis.opendocument') ||
+        mimeType === 'application/rtf') {
+        return 'document';
+    }
+    if (mimeType === 'application/zip' ||
+        mimeType === 'application/x-tar' ||
+        mimeType === 'application/gzip' ||
+        mimeType === 'application/x-7z-compressed' ||
+        mimeType === 'application/x-rar-compressed' ||
+        mimeType === 'application/vnd.rar') {
+        return 'archive';
+    }
+    if (mimeType.startsWith('text/') ||
+        mimeType === 'application/json' ||
+        mimeType === 'application/xml' ||
+        mimeType === 'application/javascript' ||
+        mimeType === 'application/typescript') {
+        return 'code';
+    }
+    return 'file';
+}
+
+/**
+ * Gets deduplicated file categories from a post's attachments.
+ */
+function getFileCategories(post: {metadata?: {files?: Array<{mime_type: string}>}}): string[] {
+    const files = post.metadata?.files || [];
+    const categories = new Set<string>();
+    for (const f of files) {
+        if (f.mime_type) {
+            categories.add(getFileCategory(f.mime_type));
+        }
+    }
+    return Array.from(categories);
+}
+
+/**
  * Strips quote lines from a message.
  */
 function stripQuotes(message: string): string {
@@ -114,9 +166,12 @@ export function addPendingReply(postId: string): ThunkActionFunc<boolean> {
         // Check for media attachments
         const hasImage = hasImageAttachment(post);
         const hasVideo = hasVideoAttachment(post);
+        const fileCategories = getFileCategories(post);
 
-        // Clean text - strip quotes and truncate
-        const cleanText = truncateText(stripQuotes(post.message), MAX_PREVIEW_LENGTH);
+        // Clean text - strip quotes, take first line only, and truncate
+        const strippedText = stripQuotes(post.message);
+        const firstLine = strippedText.split('\n')[0] || '';
+        const cleanText = truncateText(firstLine, MAX_PREVIEW_LENGTH);
 
         const replyData: DiscordReplyData = {
             post_id: postId,
@@ -126,6 +181,7 @@ export function addPendingReply(postId: string): ThunkActionFunc<boolean> {
             text: cleanText,
             has_image: hasImage,
             has_video: hasVideo,
+            file_categories: fileCategories,
         };
 
         dispatch(addPendingReplyAction(replyData));
@@ -170,14 +226,24 @@ export function generateQuoteText(): ThunkActionFunc<string> {
         for (const reply of pendingReplies) {
             const permalink = getPostPermalink(state, reply.post_id);
 
-            // Format media preview
-            let content = reply.text;
-            if (reply.has_image && reply.has_video) {
-                content = content ? `${content} [media]` : '[media]';
-            } else if (reply.has_image) {
-                content = content ? `${content} [image]` : '[image]';
-            } else if (reply.has_video) {
-                content = content ? `${content} [video]` : '[video]';
+            // Format file type emojis
+            const emojiMap: Record<string, string> = {
+                image: '🖼️',
+                video: '🎥',
+                audio: '🎵',
+                document: '📄',
+                archive: '📦',
+                code: '💻',
+                file: '📎',
+            };
+            const fileEmojis = (reply.file_categories || []).map((cat) => emojiMap[cat] || '📎').join(' ');
+            let content = '';
+            if (fileEmojis && reply.text) {
+                content = `${fileEmojis} ${reply.text}`;
+            } else if (fileEmojis) {
+                content = fileEmojis;
+            } else {
+                content = reply.text;
             }
 
             quoteLines.push(`>[@${reply.username}](${permalink}): ${content}`);

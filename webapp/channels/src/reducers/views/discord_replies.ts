@@ -17,6 +17,7 @@ export interface DiscordReplyData {
     text: string;
     has_image: boolean;
     has_video: boolean;
+    file_categories: string[];
 }
 
 export interface DiscordRepliesState {

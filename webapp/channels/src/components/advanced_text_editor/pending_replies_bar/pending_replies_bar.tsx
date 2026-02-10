@@ -28,16 +28,28 @@ function ReplyChip({
         onRemove(reply.post_id);
     }, [reply.post_id, onRemove]);
 
-    // Build tooltip with message preview
-    let tooltipText = reply.text || '';
-    if (reply.has_image && reply.has_video) {
-        tooltipText = tooltipText ? `${tooltipText} [image] [video]` : '[image] [video]';
-    } else if (reply.has_image) {
-        tooltipText = tooltipText ? `${tooltipText} [image]` : '[image]';
-    } else if (reply.has_video) {
-        tooltipText = tooltipText ? `${tooltipText} [video]` : '[video]';
-    }
-    if (!tooltipText) {
+    // Build tooltip with message preview and file type emojis
+    const fileEmojis = (reply.file_categories || []).map((cat: string) => {
+        const emojiMap: Record<string, string> = {
+            image: '🖼️',
+            video: '🎥',
+            audio: '🎵',
+            document: '📄',
+            archive: '📦',
+            code: '💻',
+            file: '📎',
+        };
+        return emojiMap[cat] || '📎';
+    }).join(' ');
+
+    let tooltipText = '';
+    if (fileEmojis && reply.text) {
+        tooltipText = `${fileEmojis} ${reply.text}`;
+    } else if (fileEmojis) {
+        tooltipText = fileEmojis;
+    } else if (reply.text) {
+        tooltipText = reply.text;
+    } else {
         tooltipText = '(empty message)';
     }
 

@@ -17,9 +17,6 @@ import {Client4} from 'mattermost-redux/client';
 
 import './discord_reply_preview.scss';
 
-// Maximum length for preview text
-const MAX_PREVIEW_LENGTH = 100;
-
 type Props = {
     post: Post;
 };
@@ -73,26 +70,37 @@ function ConnectorSVG({position, height = 18}: {position: 'single' | 'first' | '
     );
 }
 
-// Truncate text to a maximum length
-function truncateText(text: string, maxLength: number): string {
-    if (text.length <= maxLength) {
-        return text;
+// Map file categories to emojis
+const FILE_CATEGORY_EMOJIS: Record<string, string> = {
+    image: '🖼️',
+    video: '🎥',
+    audio: '🎵',
+    document: '📄',
+    archive: '📦',
+    code: '💻',
+    file: '📎',
+};
+
+// Build emoji prefix string from file categories
+function getFileEmojis(categories: string[]): string {
+    if (!categories || categories.length === 0) {
+        return '';
     }
-    return text.substring(0, maxLength - 3) + '...';
+    return categories.map((cat) => FILE_CATEGORY_EMOJIS[cat] || '📎').join(' ');
 }
 
 // Format the display text for a reply
 function formatReplyPreview(reply: DiscordReplyData): string {
-    if (reply.has_image && reply.has_video) {
-        return '[media]';
+    const emojis = getFileEmojis(reply.file_categories);
+    const text = reply.text || '';
+
+    if (emojis && text) {
+        return `${emojis} ${text}`;
     }
-    if (reply.has_image) {
-        return reply.text ? `${truncateText(reply.text.split('\n')[0], MAX_PREVIEW_LENGTH)} [image]` : '[image]';
+    if (emojis) {
+        return emojis;
     }
-    if (reply.has_video) {
-        return reply.text ? `${truncateText(reply.text.split('\n')[0], MAX_PREVIEW_LENGTH)} [video]` : '[video]';
-    }
-    return truncateText(reply.text?.split('\n')[0] || '', MAX_PREVIEW_LENGTH);
+    return text;
 }
 
 // Single reply item component
