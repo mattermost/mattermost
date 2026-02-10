@@ -34,6 +34,7 @@ export function formatWithRenderer(text: string, renderer: marked.Renderer) {
         mangle: false,
         inlinelatex: config.EnableLatex === 'true' && config.EnableInlineLatex === 'true',
         spoiler: config.FeatureFlagSpoilers === 'true',
+        extraFormatting: config.FeatureFlagExtraFormatting === 'true',
         urlFilter,
     };
 

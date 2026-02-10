@@ -165,6 +165,9 @@ type FeatureFlags struct {
 
 	// Enable smooth scrolling with CSS overflow-anchor for buttery smooth post list scrolling
 	SmoothScrolling bool
+
+	// Enable extra formatting options: __underline__ syntax
+	ExtraFormatting bool
 }
 
 // featureFlagDefaults defines the default value for each boolean feature flag.

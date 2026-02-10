@@ -168,6 +168,15 @@ const FEATURES: FeatureDefinition[] = [
         icon: MessageTextOutlineIcon,
         isMajor: false,
     },
+    {
+        key: 'ExtraFormatting',
+        title: 'Extra Formatting',
+        description: 'Additional text formatting: __underline__ syntax. Bold still works with **bold**.',
+        defaultValue: false,
+        section: 'messaging',
+        icon: MessageTextOutlineIcon,
+        isMajor: false,
+    },
 
     // Media & Embeds
     {

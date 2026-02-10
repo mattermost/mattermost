@@ -261,6 +261,10 @@ export default class Renderer extends marked.Renderer {
         );
     }
 
+    public underline(text: string) {
+        return '<u>' + text + '</u>';
+    }
+
     public spoiler(text: string) {
         return '<span class="markdown-spoiler" data-spoiler="true">' + text + '</span>';
     }
