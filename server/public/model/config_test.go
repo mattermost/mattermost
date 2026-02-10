@@ -1790,6 +1790,48 @@ func TestPluginSettingsSanitize(t *testing.T) {
 				},
 			},
 		},
+		"plugin with settings in sections": {
+			manifests: []*Manifest{
+				{
+					Id: "plugin.id",
+					SettingsSchema: &PluginSettingsSchema{
+						Settings: []*PluginSetting{
+							{
+								Key:    "somesetting",
+								Type:   "text",
+								Secret: false,
+							},
+						},
+						Sections: []*PluginSettingsSection{
+							{
+								Key:   "section1",
+								Title: "Section 1",
+								Settings: []*PluginSetting{
+									{
+										Key:    "secrettext",
+										Type:   "text",
+										Secret: true,
+									},
+									{
+										Key:    "secretnumber",
+										Type:   "number",
+										Secret: true,
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+			expected: map[string]map[string]any{
+				"plugin.id": {
+					"someoldsettings": "some old value",
+					"somesetting":     "some value",
+					"secrettext":      FakeSetting,
+					"secretnumber":    FakeSetting,
+				},
+			},
+		},
 	} {
 		t.Run(name, func(t *testing.T) {
 			c := PluginSettings{}
