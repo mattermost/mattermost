@@ -253,7 +253,7 @@ function BookmarkLink({bookmark, linkRef, onOpenFile, onLinkClick, disableLinks}
 const ItemContainer = styled.li<{$isDragging: boolean}>`
     display: flex;
     align-items: center;
-    padding: 6px 20px;
+    padding: 0 20px;
     min-height: 36px;
     list-style: none;
     outline: none;
