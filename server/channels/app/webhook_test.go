@@ -1164,3 +1164,49 @@ func TestDoOutgoingWebhookRequest(t *testing.T) {
 		require.Equal(t, `Bearer test`, *resp.Text)
 	})
 }
+
+func TestHandleIncomingWebhook_InvalidAttachment(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.ServiceSettings.EnableIncomingWebhooks = true
+	})
+
+	hook, appErr := th.App.CreateIncomingWebhookForChannel(th.BasicUser.Id, th.BasicChannel, &model.IncomingWebhook{
+		ChannelId: th.BasicChannel.Id,
+	})
+	require.Nil(t, appErr)
+
+	t.Run("should reject attachment with invalid author_link", func(t *testing.T) {
+		req := &model.IncomingWebhookRequest{
+			Text: "test",
+			Attachments: []*model.SlackAttachment{
+				{
+					AuthorName: "Author",
+					AuthorLink: "something@something.com",
+				},
+			},
+		}
+
+		appErr := th.App.HandleIncomingWebhook(th.Context, hook.Id, req)
+		require.NotNil(t, appErr)
+		assert.Equal(t, http.StatusBadRequest, appErr.StatusCode)
+		assert.Contains(t, appErr.Error(), "invalid author link URL")
+	})
+
+	t.Run("should accept attachment with valid author_link", func(t *testing.T) {
+		req := &model.IncomingWebhookRequest{
+			Text: "test",
+			Attachments: []*model.SlackAttachment{
+				{
+					AuthorName: "Author",
+					AuthorLink: "https://example.com",
+				},
+			},
+		}
+
+		appErr := th.App.HandleIncomingWebhook(th.Context, hook.Id, req)
+		require.Nil(t, appErr)
+	})
+}

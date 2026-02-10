@@ -4,9 +4,13 @@
 package app
 
 import (
+	"net/http"
 	"testing"
 
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+
+	"github.com/mattermost/mattermost/server/public/model"
 )
 
 func TestPossibleAtMentions(t *testing.T) {
@@ -83,4 +87,37 @@ func TestTrimUsernameSpecialChar(t *testing.T) {
 			require.Equal(t, actualString, data.word)
 		}
 	}
+}
+
+func TestHandleCommandResponsePost_InvalidAttachment(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+
+	cmd := &model.Command{
+		CreatorId: th.BasicUser.Id,
+		TeamId:    th.BasicTeam.Id,
+		Trigger:   "test",
+	}
+
+	args := &model.CommandArgs{
+		UserId:    th.BasicUser.Id,
+		ChannelId: th.BasicChannel.Id,
+		TeamId:    th.BasicTeam.Id,
+	}
+
+	t.Run("should reject command response with invalid attachment", func(t *testing.T) {
+		response := &model.CommandResponse{
+			Text: "test",
+			Attachments: []*model.SlackAttachment{
+				{
+					AuthorName: "Author",
+					AuthorLink: "invalid-url",
+				},
+			},
+		}
+
+		_, appErr := th.App.HandleCommandResponsePost(th.Context, cmd, args, response, false)
+		require.NotNil(t, appErr)
+		assert.Equal(t, http.StatusBadRequest, appErr.StatusCode)
+	})
 }

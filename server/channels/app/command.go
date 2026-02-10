@@ -674,6 +674,14 @@ func (a *App) HandleCommandResponsePost(rctx request.CTX, command *model.Command
 		response.Text = a.ProcessSlackText(rctx, response.Text)
 		response.Attachments = a.ProcessSlackAttachments(rctx, response.Attachments)
 	}
+	for i, attachment := range response.Attachments {
+		if attachment != nil {
+			if err := attachment.IsValid(); err != nil {
+				return nil, model.NewAppError("HandleCommandResponsePost", "api.command.invalid_attachment.app_error",
+					map[string]any{"attachment_index": i}, err.Error(), http.StatusBadRequest)
+			}
+		}
+	}
 
 	if _, err := a.CreateCommandPost(rctx, post, args.TeamId, response, response.SkipSlackParsing); err != nil {
 		return post, err

@@ -172,6 +172,15 @@ func (a *App) TriggerWebhook(rctx request.CTX, payload *model.OutgoingWebhookPay
 					text = a.ProcessSlackText(rctx, *webhookResp.Text)
 				}
 				webhookResp.Attachments = a.ProcessSlackAttachments(rctx, webhookResp.Attachments)
+				for i, attachment := range webhookResp.Attachments {
+					if attachment != nil {
+						if err := attachment.IsValid(); err != nil {
+							logger.Warn("Invalid attachment in outgoing webhook response",
+								mlog.Int("attachment_index", i), mlog.Err(err))
+							continue
+						}
+					}
+				}
 				// attachments is in here for slack compatibility
 				if len(webhookResp.Attachments) > 0 {
 					webhookResp.Props[model.PostPropsAttachments] = webhookResp.Attachments
@@ -774,6 +783,14 @@ func (a *App) HandleIncomingWebhook(rctx request.CTX, hookID string, req *model.
 
 	text = a.ProcessSlackText(rctx, text)
 	req.Attachments = a.ProcessSlackAttachments(rctx, req.Attachments)
+	for i, attachment := range req.Attachments {
+		if attachment != nil {
+			if err := attachment.IsValid(); err != nil {
+				return model.NewAppError("HandleIncomingWebhook", "web.incoming_webhook.invalid_attachment.app_error",
+					map[string]any{"attachment_index": i}, err.Error(), http.StatusBadRequest)
+			}
+		}
+	}
 	// attachments is in here for slack compatibility
 	if len(req.Attachments) > 0 {
 		req.Props[model.PostPropsAttachments] = req.Attachments
