@@ -153,6 +153,7 @@ func (a *App) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				} else {
 					// Clear cache so next tick retries instead of silently stalling
 					a.logPanel.lastContent = ""
+					a.logPanel.lastRaw = ""
 				}
 			}
 			// When scroll-locked, don't poll — user is reading cached history
@@ -404,6 +405,28 @@ func (a *App) handleKey(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 		return a, nil
 	}
 
+	// Log search input mode
+	if a.focus == FocusLog && a.logPanel.logSearching {
+		switch msg.String() {
+		case "esc":
+			a.logPanel.logSearching = false
+			a.logPanel.logSearchQuery = ""
+			a.logPanel.logSearchInput.Blur()
+			a.logPanel.SetSearchQuery("")
+			return a, nil
+		case "enter":
+			// Close search bar but keep filter active
+			a.logPanel.logSearching = false
+			a.logPanel.logSearchInput.Blur()
+			return a, nil
+		default:
+			var cmd tea.Cmd
+			a.logPanel.logSearchInput, cmd = a.logPanel.logSearchInput.Update(msg)
+			a.logPanel.SetSearchQuery(a.logPanel.logSearchInput.Value())
+			return a, cmd
+		}
+	}
+
 	// Log viewport scrolling and input mode when focused
 	if a.focus == FocusLog && a.logVisible {
 		// Enter input mode with i, Enter, or Space
@@ -414,6 +437,16 @@ func (a *App) handleKey(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 			return a, nil
 		}
 		switch {
+		case msg.String() == "/":
+			// Activate log search
+			a.loadHistoryIfNeeded()
+			a.logPanel.InitSearchInput()
+			return a, a.logPanel.logSearchInput.Cursor.BlinkCmd()
+		case msg.String() == "l":
+			// Cycle log level filter
+			a.loadHistoryIfNeeded()
+			a.logPanel.CycleLogLevel()
+			return a, nil
 		case key.Matches(msg, a.keys.Up):
 			a.loadHistoryIfNeeded()
 			a.logPanel.viewport.LineUp(1)
@@ -431,7 +464,8 @@ func (a *App) handleKey(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 		case msg.String() == "G":
 			// Return to auto-scroll: switch back to fast visible-only capture
 			a.logPanel.autoScroll = true
-			a.logPanel.lastContent = "" // force refresh on next tick
+			a.logPanel.lastContent = ""
+			a.logPanel.lastRaw = "" // force refresh on next tick
 			return a, nil
 		case msg.String() == "g":
 			a.loadHistoryIfNeeded()
@@ -779,9 +813,9 @@ func (a *App) loadHistoryIfNeeded() {
 	if content, err := a.procMgr.CapturePaneHistory(a.focusedProc); err == nil {
 		a.logPanel.historyDirty = false
 		a.logPanel.historyCache = content
-		a.logPanel.lastContent = content
-		a.logPanel.viewport.SetContent(content)
-		a.logPanel.viewport.GotoBottom()
+		a.logPanel.lastRaw = ""    // force re-filter
+		a.logPanel.lastContent = ""
+		a.logPanel.UpdateContent(content)
 	}
 }
 
@@ -1498,11 +1532,14 @@ func (a *App) View() string {
 			"↑ Grid", "Esc Grid",
 			"? Help", "q Quit",
 		}
+	} else if a.logPanel.logSearching {
+		keys = []string{"Enter Keep", "Esc Clear"}
 	} else if a.focus == FocusLog && a.logVisible {
 		keys = []string{
+			"/ Search", "l Level",
 			"Enter Input", "i Input",
 			"r Run", "s Stop", "x Dismiss",
-			"g/G Top/Btm", "Esc Tab",
+			"Esc Tab",
 			"? Help", "q Quit",
 		}
 	} else if a.logVisible {
@@ -1707,6 +1744,8 @@ func (a *App) renderHelp() string {
 		"  Shift+Tab  Cycle to prev or back to grid",
 		"  i          Run target + enter input mode (tmux)",
 		"  1-9        Switch log tab by number",
+		"  /          Search log output (fzf-style filter)",
+		"  l          Cycle log level (ALL→DEBUG→INFO→WARN→ERROR)",
 		"  g or G     Jump to top or bottom",
 		"  Esc×2      Exit input mode",
 		"  Esc        Close log panel",

@@ -2,13 +2,21 @@ package tui
 
 import (
 	"fmt"
+	"regexp"
 	"strings"
 
+	"github.com/charmbracelet/bubbles/textinput"
 	"github.com/charmbracelet/bubbles/viewport"
 	"github.com/charmbracelet/lipgloss"
 
 	"github.com/mattermost/mattermost/tools/devdash/model"
 )
+
+// Log levels for filtering (cumulative, index = minimum level shown)
+var logLevelNames = []string{"ALL", "DEBUG", "INFO", "WARN", "ERROR"}
+
+var levelRe = regexp.MustCompile(`(?i)^\s*(error|warn|info|debug|trace)\b`)
+var levelOrder = map[string]int{"trace": 0, "debug": 1, "info": 2, "warn": 3, "error": 4}
 
 // LogTab holds info for rendering a single tab in the log panel header.
 type LogTab struct {
@@ -22,11 +30,20 @@ type LogPanel struct {
 	inputting    bool   // true when raw keystrokes are forwarded to process via tmux
 	autoScroll   bool
 	lastContent  string // cache to skip redundant viewport updates
+	lastRaw      string // raw unfiltered content (for re-filtering)
 	historyCache string // cached full scrollback (loaded on first scroll-up)
 	historyDirty bool   // true when history needs refresh on next scroll-up
 	width        int
 	height       int
 	ready        bool
+
+	// Log search
+	logSearching   bool
+	logSearchInput textinput.Model
+	logSearchQuery string // active filter text
+
+	// Log level filter
+	logLevel int // 0=ALL, 1=DEBUG, 2=INFO, 3=WARN, 4=ERROR
 }
 
 func NewLogPanel() LogPanel {
@@ -52,23 +69,85 @@ func (lp *LogPanel) SetProcess(id string) {
 	lp.processID = id
 	lp.autoScroll = true
 	lp.lastContent = ""
+	lp.lastRaw = ""
 	lp.historyCache = ""
 	lp.historyDirty = true
+	lp.logSearching = false
+	lp.logSearchQuery = ""
+	lp.logLevel = 0
 }
 
 // UpdateContent sets the log panel content from a captured tmux pane string.
-// Skips the viewport update if content hasn't changed.
+// Applies active filters (log level + search) before setting viewport content.
 func (lp *LogPanel) UpdateContent(content string) {
-	if !lp.ready || content == lp.lastContent {
+	if !lp.ready || content == lp.lastRaw {
 		return
 	}
-	lp.lastContent = content
+	lp.lastRaw = content
+	lp.applyFilters()
+}
 
-	lp.viewport.SetContent(content)
+// applyFilters re-filters lastRaw content and updates the viewport.
+func (lp *LogPanel) applyFilters() {
+	if !lp.ready {
+		return
+	}
+	filtered := lp.filterContent(lp.lastRaw)
+	if filtered == lp.lastContent {
+		return
+	}
+	lp.lastContent = filtered
+	lp.viewport.SetContent(filtered)
 
 	if lp.autoScroll {
 		lp.viewport.GotoBottom()
 	}
+}
+
+// filterContent applies log level and search filters to raw content.
+func (lp *LogPanel) filterContent(raw string) string {
+	if lp.logLevel == 0 && lp.logSearchQuery == "" {
+		return raw
+	}
+
+	lines := strings.Split(raw, "\n")
+	var result []string
+	query := strings.ToLower(lp.logSearchQuery)
+
+	for _, line := range lines {
+		// Log level filter
+		if lp.logLevel > 0 {
+			if m := levelRe.FindString(line); m != "" {
+				lineLevel := levelOrder[strings.ToLower(strings.TrimSpace(m))]
+				if lineLevel < lp.logLevel {
+					continue
+				}
+			}
+			// Non-log lines always pass through
+		}
+
+		// Search filter
+		if query != "" {
+			if !strings.Contains(strings.ToLower(line), query) {
+				continue
+			}
+		}
+
+		result = append(result, line)
+	}
+	return strings.Join(result, "\n")
+}
+
+// CycleLogLevel advances to the next log level filter.
+func (lp *LogPanel) CycleLogLevel() {
+	lp.logLevel = (lp.logLevel + 1) % len(logLevelNames)
+	lp.lastContent = "" // force re-filter
+	lp.applyFilters()
+}
+
+// LogLevelName returns the current log level filter name.
+func (lp *LogPanel) LogLevelName() string {
+	return logLevelNames[lp.logLevel]
 }
 
 // TabFocus represents the focus level of the current tab.
@@ -235,12 +314,57 @@ func (lp *LogPanel) ViewContent() string {
 		return ""
 	}
 
-	scrollIndicator := ""
-	if !lp.autoScroll {
-		scrollIndicator = lipgloss.NewStyle().
-			Foreground(colorWarning).
-			Render(" ▲ scroll-locked (press G for bottom)")
+	var b strings.Builder
+
+	// Search bar
+	if lp.logSearching {
+		prefix := lipgloss.NewStyle().Bold(true).Reverse(true).Padding(0, 1).Render("Search")
+		b.WriteString(prefix + " " + lp.logSearchInput.View() + "\n")
+	} else if lp.logSearchQuery != "" {
+		prefix := lipgloss.NewStyle().Bold(true).Foreground(colorPrimary).Padding(0, 1).Render("Search")
+		b.WriteString(prefix + " " + lp.logSearchQuery + "\n")
 	}
 
-	return lp.viewport.View() + scrollIndicator
+	// Log level badge (when not ALL)
+	if lp.logLevel > 0 {
+		badge := lipgloss.NewStyle().Bold(true).Foreground(lipgloss.Color("3")).Render("[" + logLevelNames[lp.logLevel] + "+]")
+		if lp.logSearching || lp.logSearchQuery != "" {
+			// Append to search line — rewind the newline
+			s := b.String()
+			if strings.HasSuffix(s, "\n") {
+				b.Reset()
+				b.WriteString(s[:len(s)-1] + " " + badge + "\n")
+			}
+		} else {
+			b.WriteString(badge + "\n")
+		}
+	}
+
+	b.WriteString(lp.viewport.View())
+
+	if !lp.autoScroll {
+		b.WriteString(lipgloss.NewStyle().
+			Foreground(colorWarning).
+			Render(" ▲ scroll-locked (press G for bottom)"))
+	}
+
+	return b.String()
+}
+
+// InitSearchInput creates the search text input model.
+func (lp *LogPanel) InitSearchInput() {
+	si := textinput.New()
+	si.Placeholder = ""
+	si.CharLimit = 128
+	si.Prompt = ""
+	si.Focus()
+	lp.logSearchInput = si
+	lp.logSearching = true
+}
+
+// SetSearchQuery updates the search filter and re-applies filters.
+func (lp *LogPanel) SetSearchQuery(query string) {
+	lp.logSearchQuery = query
+	lp.lastContent = "" // force re-filter
+	lp.applyFilters()
 }
