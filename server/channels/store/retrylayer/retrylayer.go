@@ -56,6 +56,7 @@ type RetryLayer struct {
 	PropertyValueStore              store.PropertyValueStore
 	ReactionStore                   store.ReactionStore
 	ReadReceiptStore                store.ReadReceiptStore
+	RecapStore                      store.RecapStore
 	RemoteClusterStore              store.RemoteClusterStore
 	RetentionPolicyStore            store.RetentionPolicyStore
 	RoleStore                       store.RoleStore
@@ -219,6 +220,10 @@ func (s *RetryLayer) Reaction() store.ReactionStore {
 
 func (s *RetryLayer) ReadReceipt() store.ReadReceiptStore {
 	return s.ReadReceiptStore
+}
+
+func (s *RetryLayer) Recap() store.RecapStore {
+	return s.RecapStore
 }
 
 func (s *RetryLayer) RemoteCluster() store.RemoteClusterStore {
@@ -474,6 +479,11 @@ type RetryLayerReactionStore struct {
 
 type RetryLayerReadReceiptStore struct {
 	store.ReadReceiptStore
+	Root *RetryLayer
+}
+
+type RetryLayerRecapStore struct {
+	store.RecapStore
 	Root *RetryLayer
 }
 
@@ -862,21 +872,150 @@ func (s *RetryLayerAutoTranslationStore) ClearCaches() {
 
 }
 
-func (s *RetryLayerAutoTranslationStore) Get(objectID string, dstLang string) (*model.Translation, *model.AppError) {
+func (s *RetryLayerAutoTranslationStore) Get(objectType string, objectID string, dstLang string) (*model.Translation, error) {
 
-	return s.AutoTranslationStore.Get(objectID, dstLang)
+	tries := 0
+	for {
+		result, err := s.AutoTranslationStore.Get(objectType, objectID, dstLang)
+		if err == nil {
+			return result, nil
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
 
 }
 
-func (s *RetryLayerAutoTranslationStore) GetActiveDestinationLanguages(channelID string, excludeUserID string, filterUserIDs []string) ([]string, *model.AppError) {
+func (s *RetryLayerAutoTranslationStore) GetActiveDestinationLanguages(channelID string, excludeUserID string, filterUserIDs []string) ([]string, error) {
 
-	return s.AutoTranslationStore.GetActiveDestinationLanguages(channelID, excludeUserID, filterUserIDs)
+	tries := 0
+	for {
+		result, err := s.AutoTranslationStore.GetActiveDestinationLanguages(channelID, excludeUserID, filterUserIDs)
+		if err == nil {
+			return result, nil
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
 
 }
 
-func (s *RetryLayerAutoTranslationStore) GetUserLanguage(userID string, channelID string) (string, *model.AppError) {
+func (s *RetryLayerAutoTranslationStore) GetAllByStatePage(state model.TranslationState, offset int, limit int) ([]*model.Translation, error) {
 
-	return s.AutoTranslationStore.GetUserLanguage(userID, channelID)
+	tries := 0
+	for {
+		result, err := s.AutoTranslationStore.GetAllByStatePage(state, offset, limit)
+		if err == nil {
+			return result, nil
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
+func (s *RetryLayerAutoTranslationStore) GetAllForObject(objectType string, objectID string) ([]*model.Translation, error) {
+
+	tries := 0
+	for {
+		result, err := s.AutoTranslationStore.GetAllForObject(objectType, objectID)
+		if err == nil {
+			return result, nil
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
+func (s *RetryLayerAutoTranslationStore) GetBatch(objectType string, objectIDs []string, dstLang string) (map[string]*model.Translation, error) {
+
+	tries := 0
+	for {
+		result, err := s.AutoTranslationStore.GetBatch(objectType, objectIDs, dstLang)
+		if err == nil {
+			return result, nil
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
+func (s *RetryLayerAutoTranslationStore) GetByStateOlderThan(state model.TranslationState, olderThanMillis int64, limit int) ([]*model.Translation, error) {
+
+	tries := 0
+	for {
+		result, err := s.AutoTranslationStore.GetByStateOlderThan(state, olderThanMillis, limit)
+		if err == nil {
+			return result, nil
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
+func (s *RetryLayerAutoTranslationStore) GetUserLanguage(userID string, channelID string) (string, error) {
+
+	tries := 0
+	for {
+		result, err := s.AutoTranslationStore.GetUserLanguage(userID, channelID)
+		if err == nil {
+			return result, nil
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
 
 }
 
@@ -892,33 +1031,45 @@ func (s *RetryLayerAutoTranslationStore) InvalidateUserLocaleCache(userID string
 
 }
 
-func (s *RetryLayerAutoTranslationStore) IsChannelEnabled(channelID string) (bool, *model.AppError) {
+func (s *RetryLayerAutoTranslationStore) IsUserEnabled(userID string, channelID string) (bool, error) {
 
-	return s.AutoTranslationStore.IsChannelEnabled(channelID)
-
-}
-
-func (s *RetryLayerAutoTranslationStore) IsUserEnabled(userID string, channelID string) (bool, *model.AppError) {
-
-	return s.AutoTranslationStore.IsUserEnabled(userID, channelID)
-
-}
-
-func (s *RetryLayerAutoTranslationStore) Save(translation *model.Translation) *model.AppError {
-
-	return s.AutoTranslationStore.Save(translation)
-
-}
-
-func (s *RetryLayerAutoTranslationStore) SetChannelEnabled(channelID string, enabled bool) *model.AppError {
-
-	return s.AutoTranslationStore.SetChannelEnabled(channelID, enabled)
+	tries := 0
+	for {
+		result, err := s.AutoTranslationStore.IsUserEnabled(userID, channelID)
+		if err == nil {
+			return result, nil
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
 
 }
 
-func (s *RetryLayerAutoTranslationStore) SetUserEnabled(userID string, channelID string, enabled bool) *model.AppError {
+func (s *RetryLayerAutoTranslationStore) Save(translation *model.Translation) error {
 
-	return s.AutoTranslationStore.SetUserEnabled(userID, channelID, enabled)
+	tries := 0
+	for {
+		err := s.AutoTranslationStore.Save(translation)
+		if err == nil {
+			return nil
+		}
+		if !isRepeatableError(err) {
+			return err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
 
 }
 
@@ -10465,6 +10616,216 @@ func (s *RetryLayerReadReceiptStore) Update(rctx request.CTX, receipt *model.Rea
 
 }
 
+func (s *RetryLayerRecapStore) DeleteRecap(id string) error {
+
+	tries := 0
+	for {
+		err := s.RecapStore.DeleteRecap(id)
+		if err == nil {
+			return nil
+		}
+		if !isRepeatableError(err) {
+			return err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
+func (s *RetryLayerRecapStore) DeleteRecapChannels(recapId string) error {
+
+	tries := 0
+	for {
+		err := s.RecapStore.DeleteRecapChannels(recapId)
+		if err == nil {
+			return nil
+		}
+		if !isRepeatableError(err) {
+			return err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
+func (s *RetryLayerRecapStore) GetRecap(id string) (*model.Recap, error) {
+
+	tries := 0
+	for {
+		result, err := s.RecapStore.GetRecap(id)
+		if err == nil {
+			return result, nil
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
+func (s *RetryLayerRecapStore) GetRecapChannelsByRecapId(recapId string) ([]*model.RecapChannel, error) {
+
+	tries := 0
+	for {
+		result, err := s.RecapStore.GetRecapChannelsByRecapId(recapId)
+		if err == nil {
+			return result, nil
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
+func (s *RetryLayerRecapStore) GetRecapsForUser(userId string, page int, perPage int) ([]*model.Recap, error) {
+
+	tries := 0
+	for {
+		result, err := s.RecapStore.GetRecapsForUser(userId, page, perPage)
+		if err == nil {
+			return result, nil
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
+func (s *RetryLayerRecapStore) MarkRecapAsRead(id string) error {
+
+	tries := 0
+	for {
+		err := s.RecapStore.MarkRecapAsRead(id)
+		if err == nil {
+			return nil
+		}
+		if !isRepeatableError(err) {
+			return err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
+func (s *RetryLayerRecapStore) SaveRecap(recap *model.Recap) (*model.Recap, error) {
+
+	tries := 0
+	for {
+		result, err := s.RecapStore.SaveRecap(recap)
+		if err == nil {
+			return result, nil
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
+func (s *RetryLayerRecapStore) SaveRecapChannel(recapChannel *model.RecapChannel) error {
+
+	tries := 0
+	for {
+		err := s.RecapStore.SaveRecapChannel(recapChannel)
+		if err == nil {
+			return nil
+		}
+		if !isRepeatableError(err) {
+			return err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
+func (s *RetryLayerRecapStore) UpdateRecap(recap *model.Recap) (*model.Recap, error) {
+
+	tries := 0
+	for {
+		result, err := s.RecapStore.UpdateRecap(recap)
+		if err == nil {
+			return result, nil
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
+func (s *RetryLayerRecapStore) UpdateRecapStatus(id string, status string) error {
+
+	tries := 0
+	for {
+		err := s.RecapStore.UpdateRecapStatus(id, status)
+		if err == nil {
+			return nil
+		}
+		if !isRepeatableError(err) {
+			return err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
 func (s *RetryLayerRemoteClusterStore) Delete(remoteClusterID string) (bool, error) {
 
 	tries := 0
@@ -17594,6 +17955,7 @@ func New(childStore store.Store) *RetryLayer {
 	newStore.PropertyValueStore = &RetryLayerPropertyValueStore{PropertyValueStore: childStore.PropertyValue(), Root: &newStore}
 	newStore.ReactionStore = &RetryLayerReactionStore{ReactionStore: childStore.Reaction(), Root: &newStore}
 	newStore.ReadReceiptStore = &RetryLayerReadReceiptStore{ReadReceiptStore: childStore.ReadReceipt(), Root: &newStore}
+	newStore.RecapStore = &RetryLayerRecapStore{RecapStore: childStore.Recap(), Root: &newStore}
 	newStore.RemoteClusterStore = &RetryLayerRemoteClusterStore{RemoteClusterStore: childStore.RemoteCluster(), Root: &newStore}
 	newStore.RetentionPolicyStore = &RetryLayerRetentionPolicyStore{RetentionPolicyStore: childStore.RetentionPolicy(), Root: &newStore}
 	newStore.RoleStore = &RetryLayerRoleStore{RoleStore: childStore.Role(), Root: &newStore}

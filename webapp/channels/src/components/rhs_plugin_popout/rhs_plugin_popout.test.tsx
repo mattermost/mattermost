@@ -66,7 +66,6 @@ const baseState = {
 describe('RhsPluginPopout', () => {
     beforeEach(() => {
         mockUseParams.mockReturnValue({pluginId});
-        jest.clearAllMocks();
     });
 
     it('should render LoadingScreen when plugin is not found', () => {
