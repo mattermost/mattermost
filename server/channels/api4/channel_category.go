@@ -27,6 +27,22 @@ func getCategoriesForTeamForUser(c *Context, w http.ResponseWriter, r *http.Requ
 		return
 	}
 
+	// ChannelSync override: if enabled and user should be synced,
+	// return the synced view instead of personal categories
+	if c.App.IsChannelSyncEnabled() {
+		shouldSync, syncErr := c.App.ShouldSyncUser(c.AppContext, c.Params.UserId, c.Params.TeamId)
+		if syncErr == nil && shouldSync {
+			state, stateErr := c.App.GetSyncedCategoriesForUser(c.AppContext, c.Params.UserId, c.Params.TeamId)
+			if stateErr == nil && state.ShouldSync {
+				converted := convertSyncStateToSidebarCategories(state, c.Params.UserId, c.Params.TeamId)
+				if err := json.NewEncoder(w).Encode(converted); err != nil {
+					c.Logger.Warn("Error encoding response", mlog.Err(err))
+				}
+				return
+			}
+		}
+	}
+
 	categories, appErr := c.App.GetSidebarCategoriesForTeamForUser(c.AppContext, c.Params.UserId, c.Params.TeamId)
 	if appErr != nil {
 		c.Err = appErr
@@ -41,6 +57,48 @@ func getCategoriesForTeamForUser(c *Context, w http.ResponseWriter, r *http.Requ
 
 	if _, err := w.Write(categoriesJSON); err != nil {
 		c.Logger.Warn("Error while writing response", mlog.Err(err))
+	}
+}
+
+// convertSyncStateToSidebarCategories converts the synced state to the standard
+// OrderedSidebarCategories format so the webapp renders it normally.
+func convertSyncStateToSidebarCategories(state *model.ChannelSyncUserState, userId, teamId string) *model.OrderedSidebarCategories {
+	var categories model.SidebarCategoriesWithChannels
+	var order []string
+
+	for _, cat := range state.Categories {
+		sidebarCat := &model.SidebarCategoryWithChannels{
+			SidebarCategory: model.SidebarCategory{
+				Id:          cat.Id,
+				UserId:      userId,
+				TeamId:      teamId,
+				SortOrder:   cat.SortOrder,
+				Sorting:     model.SidebarCategoryManual,
+				Type:        model.SidebarCategoryCustom,
+				DisplayName: cat.DisplayName,
+				Muted:       cat.Muted,
+				Collapsed:   cat.Collapsed,
+			},
+			Channels: cat.ChannelIds,
+		}
+
+		// Special handling for well-known names
+		switch cat.DisplayName {
+		case "Favorites":
+			sidebarCat.Type = model.SidebarCategoryFavorites
+		case "Channels":
+			sidebarCat.Type = model.SidebarCategoryChannels
+		case "Direct Messages":
+			sidebarCat.Type = model.SidebarCategoryDirectMessages
+		}
+
+		categories = append(categories, sidebarCat)
+		order = append(order, cat.Id)
+	}
+
+	return &model.OrderedSidebarCategories{
+		Categories: categories,
+		Order:      order,
 	}
 }
 

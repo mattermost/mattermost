@@ -170,6 +170,9 @@ type Routes struct {
 
 	CustomChannelIcons *mux.Router // 'api/v4/custom_channel_icons'
 	CustomChannelIcon  *mux.Router // 'api/v4/custom_channel_icons/{icon_id:[A-Za-z0-9]+}'
+
+	ChannelSync       *mux.Router // 'api/v4/teams/{team_id:[A-Za-z0-9]+}/channel_sync'
+	ChannelSyncGlobal *mux.Router // 'api/v4/channel_sync'
 }
 
 type API struct {
@@ -325,10 +328,14 @@ func Init(srv *app.Server) (*API, error) {
 	api.BaseRoutes.CustomChannelIcons = api.BaseRoutes.APIRoot.PathPrefix("/custom_channel_icons").Subrouter()
 	api.BaseRoutes.CustomChannelIcon = api.BaseRoutes.CustomChannelIcons.PathPrefix("/{icon_id:[A-Za-z0-9]+}").Subrouter()
 
+	api.BaseRoutes.ChannelSync = api.BaseRoutes.Team.PathPrefix("/channel_sync").Subrouter()
+	api.BaseRoutes.ChannelSyncGlobal = api.BaseRoutes.APIRoot.PathPrefix("/channel_sync").Subrouter()
+
 	api.InitUser()
 	api.InitBot()
 	api.InitTeam()
 	api.InitChannel()
+	api.InitChannelSync()
 	api.InitPost()
 	api.InitFile()
 	api.InitUpload()
