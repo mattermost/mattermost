@@ -788,10 +788,6 @@
     "translation": "지정한 채널을 찾을 수 없습니다. 채널을 식별하려면 [채널 핸들](https://docs.mattermost.com/messaging/managing-channels.html#naming-a-channel)을 사용하세요."
   },
   {
-    "id": "api.command_mute.not_member.error",
-    "translation": "사용자가 채널 회원이 아니기 때문에 {{.Channel}} 채널 음소거할 수 없습니다."
-  },
-  {
     "id": "api.command_mute.success_mute",
     "translation": "채널 음소거가 해제될 때까지{{.Channel}}에 대한 알림을 받지 않습니다."
   },
@@ -7466,10 +7462,6 @@
     "translation": "구성원을 그룹-팀 및 그룹-채널에 추가하지 못했습니다"
   },
   {
-    "id": "api.server.cws.health_check.app_error",
-    "translation": "CWS 서버는 사용할수 없습니다."
-  },
-  {
     "id": "api.remote_cluster.service_not_enabled.app_error",
     "translation": "원격 클러스터 서비스가 활성화되어있지 않습니다."
   },
@@ -8176,10 +8168,6 @@
   {
     "id": "api.server.cws.needs_enterprise_edition",
     "translation": "매터모스트 엔터프라이즈 에디션에서만 사용 가능한 서비스"
-  },
-  {
-    "id": "api.server.cws.subscribe_to_newsletter.app_error",
-    "translation": "CWS 서버에서 뉴스레터를 구독하지 못했습니다."
   },
   {
     "id": "api.server.hosted_signup_unavailable.error",
@@ -9316,10 +9304,6 @@
   {
     "id": "app.pap.unassign_access_control_policy_from_channels.app_error",
     "translation": "채널에서 액세스 제어 정책을 할당 해제할 수 없습니다."
-  },
-  {
-    "id": "app.pap.update_access_control_policy_active.app_error",
-    "translation": "액세스 제어 정책의 활성 상태를 변경할 수 없습니다."
   },
   {
     "id": "app.pdp.access_evaluation.app_error",

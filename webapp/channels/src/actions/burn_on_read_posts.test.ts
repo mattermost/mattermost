@@ -28,10 +28,6 @@ describe('burn_on_read_posts actions', () => {
         ...mockPost,
     };
 
-    beforeEach(() => {
-        jest.clearAllMocks();
-    });
-
     describe('revealBurnOnReadPost', () => {
         const mockState = {
             entities: {

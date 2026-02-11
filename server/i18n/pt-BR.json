@@ -792,10 +792,6 @@
     "translation": "Não foi possível encontrar o canal especificado Por favor use o [identificador de canal](https://docs.mattermost.com/messaging/managing-channels.html#naming-a-channel) para identificar os canais."
   },
   {
-    "id": "api.command_mute.not_member.error",
-    "translation": "Não foi possível silenciar o canal {{.Channel}} porque você não é um membro."
-  },
-  {
     "id": "api.command_mute.success_mute",
     "translation": "Você não irá receber notificações de {{.Channel}} até que o mudo do canal seja desativado."
   },
@@ -8356,16 +8352,8 @@
     "translation": "Portal indisponível para registro auto-hospedado."
   },
   {
-    "id": "api.server.cws.health_check.app_error",
-    "translation": "O Servidor CWS não está disponível."
-  },
-  {
     "id": "api.server.cws.needs_enterprise_edition",
     "translation": "Serviço disponível apenas na edição Mattermost Enterprise"
-  },
-  {
-    "id": "api.server.cws.subscribe_to_newsletter.app_error",
-    "translation": "O Servidor CWS falhou ao assinar o newsletter."
   },
   {
     "id": "api.team.invite_members.unable_to_send_email.app_error",

@@ -1,0 +1,181 @@
+---
+name: E2E Tests - Playwright
+on:
+  workflow_call:
+    inputs:
+      commit_sha:
+        type: string
+        required: true
+      enable_reporting:
+        type: boolean
+        required: false
+        default: false
+      server:
+        type: string
+        required: false
+        default: onprem
+      report_type:
+        type: string
+        required: false
+      pr_number:
+        type: string
+        required: false
+      server_image_tag:
+        type: string
+        required: false
+        description: "Server image tag (e.g., master or short SHA)"
+      server_edition:
+        type: string
+        required: false
+        description: "Server edition: enterprise (default), fips, or team"
+      server_image_repo:
+        type: string
+        required: false
+        default: mattermostdevelopment
+        description: "Docker registry: mattermostdevelopment (default) or mattermost"
+      skip_smoke:
+        type: boolean
+        required: false
+        default: false
+        description: "Skip smoke tests and run full tests directly"
+      server_image_aliases:
+        type: string
+        required: false
+        description: "Comma-separated alias tags for context name (e.g., 'release-11.4, release-11')"
+      ref_branch:
+        type: string
+        required: false
+        description: "Source branch name for webhook messages (e.g., 'master' or 'release-11.4')"
+    secrets:
+      MM_LICENSE:
+        required: false
+      REPORT_WEBHOOK_URL:
+        required: false
+      AWS_ACCESS_KEY_ID:
+        required: true
+      AWS_SECRET_ACCESS_KEY:
+        required: true
+
+jobs:
+  generate-build-variables:
+    runs-on: ubuntu-24.04
+    outputs:
+      branch: "${{ steps.build-vars.outputs.branch }}"
+      build_id: "${{ steps.build-vars.outputs.build_id }}"
+      server_image_tag: "${{ steps.build-vars.outputs.server_image_tag }}"
+      server_image: "${{ steps.build-vars.outputs.server_image }}"
+    steps:
+      - name: ci/generate-build-variables
+        id: build-vars
+        env:
+          COMMIT_SHA: ${{ inputs.commit_sha }}
+          PR_NUMBER: ${{ inputs.pr_number }}
+          INPUT_SERVER_IMAGE_TAG: ${{ inputs.server_image_tag }}
+          RUN_ID: ${{ github.run_id }}
+          RUN_ATTEMPT: ${{ github.run_attempt }}
+        run: |
+          # Use provided server_image_tag or derive from commit SHA
+          if [ -n "$INPUT_SERVER_IMAGE_TAG" ]; then
+            SERVER_IMAGE_TAG="$INPUT_SERVER_IMAGE_TAG"
+          else
+            SERVER_IMAGE_TAG="${COMMIT_SHA::7}"
+          fi
+
+          # Validate server_image_tag format (alphanumeric, dots, hyphens, underscores)
+          if ! [[ "$SERVER_IMAGE_TAG" =~ ^[a-zA-Z0-9._-]+$ ]]; then
+            echo "::error::Invalid server_image_tag format: ${SERVER_IMAGE_TAG}"
+            exit 1
+          fi
+          echo "server_image_tag=${SERVER_IMAGE_TAG}" >> $GITHUB_OUTPUT
+
+          # Generate branch name
+          REF_BRANCH="${{ inputs.ref_branch }}"
+          if [ -n "$PR_NUMBER" ]; then
+            echo "branch=server-pr-${PR_NUMBER}" >> $GITHUB_OUTPUT
+          elif [ -n "$REF_BRANCH" ]; then
+            echo "branch=server-${REF_BRANCH}-${SERVER_IMAGE_TAG}" >> $GITHUB_OUTPUT
+          else
+            echo "branch=server-commit-${SERVER_IMAGE_TAG}" >> $GITHUB_OUTPUT
+          fi
+
+          # Determine server image name
+          EDITION="${{ inputs.server_edition }}"
+          REPO="${{ inputs.server_image_repo }}"
+          REPO="${REPO:-mattermostdevelopment}"
+          case "$EDITION" in
+            fips) IMAGE_NAME="mattermost-enterprise-fips-edition" ;;
+            team) IMAGE_NAME="mattermost-team-edition" ;;
+            *)    IMAGE_NAME="mattermost-enterprise-edition" ;;
+          esac
+          SERVER_IMAGE="${REPO}/${IMAGE_NAME}:${SERVER_IMAGE_TAG}"
+          echo "server_image=${SERVER_IMAGE}" >> $GITHUB_OUTPUT
+
+          # Validate server_image_aliases format if provided
+          ALIASES="${{ inputs.server_image_aliases }}"
+          if [ -n "$ALIASES" ] && ! [[ "$ALIASES" =~ ^[a-zA-Z0-9._,\ -]+$ ]]; then
+            echo "::error::Invalid server_image_aliases format: ${ALIASES}"
+            exit 1
+          fi
+
+          # Generate build ID
+          if [ -n "$EDITION" ] && [ "$EDITION" != "enterprise" ]; then
+            echo "build_id=${RUN_ID}_${RUN_ATTEMPT}-${SERVER_IMAGE_TAG}-playwright-onprem-${EDITION}" >> $GITHUB_OUTPUT
+          else
+            echo "build_id=${RUN_ID}_${RUN_ATTEMPT}-${SERVER_IMAGE_TAG}-playwright-onprem-ent" >> $GITHUB_OUTPUT
+          fi
+
+  playwright-smoke:
+    if: ${{ !inputs.skip_smoke }}
+    needs:
+      - generate-build-variables
+    uses: ./.github/workflows/e2e-tests-playwright-template.yml
+    with:
+      test_type: smoke
+      test_filter: "--grep @smoke"
+      timeout_minutes: 30
+      enabled_docker_services: "postgres inbucket"
+      commit_sha: ${{ inputs.commit_sha }}
+      branch: ${{ needs.generate-build-variables.outputs.branch }}
+      build_id: ${{ needs.generate-build-variables.outputs.build_id }}
+      server_image_tag: ${{ needs.generate-build-variables.outputs.server_image_tag }}
+      server_edition: ${{ inputs.server_edition }}
+      server_image_repo: ${{ inputs.server_image_repo }}
+      server_image_aliases: ${{ inputs.server_image_aliases }}
+      server: ${{ inputs.server }}
+      context_name: "e2e-test/playwright-smoke/${{ inputs.server_edition || 'enterprise' }}"
+      pr_number: ${{ inputs.pr_number }}
+    secrets:
+      MM_LICENSE: ${{ secrets.MM_LICENSE }}
+      AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+      AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+
+  # Full Tests (runs if smoke passed or skipped)
+  playwright-full:
+    needs:
+      - playwright-smoke
+      - generate-build-variables
+    if: always() && (needs.playwright-smoke.result == 'skipped' || needs.playwright-smoke.outputs.failed == '0')
+    uses: ./.github/workflows/e2e-tests-playwright-template.yml
+    with:
+      test_type: full
+      test_filter: '--grep-invert "@visual"'
+      timeout_minutes: 120
+      enabled_docker_services: "postgres inbucket minio openldap elasticsearch keycloak"
+      commit_sha: ${{ inputs.commit_sha }}
+      branch: ${{ needs.generate-build-variables.outputs.branch }}
+      build_id: ${{ needs.generate-build-variables.outputs.build_id }}
+      server_image_tag: ${{ needs.generate-build-variables.outputs.server_image_tag }}
+      server_edition: ${{ inputs.server_edition }}
+      server_image_repo: ${{ inputs.server_image_repo }}
+      server_image_aliases: ${{ inputs.server_image_aliases }}
+      server: ${{ inputs.server }}
+      enable_reporting: ${{ inputs.enable_reporting }}
+      report_type: ${{ inputs.report_type }}
+      ref_branch: ${{ inputs.ref_branch }}
+      pr_number: ${{ inputs.pr_number }}
+      context_name: "e2e-test/playwright-full/${{ inputs.server_edition || 'enterprise' }}"
+    secrets:
+      MM_LICENSE: ${{ secrets.MM_LICENSE }}
+      REPORT_WEBHOOK_URL: ${{ secrets.REPORT_WEBHOOK_URL }}
+      AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+      AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}

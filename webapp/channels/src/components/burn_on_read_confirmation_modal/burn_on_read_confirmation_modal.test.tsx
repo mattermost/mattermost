@@ -1,10 +1,9 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {fireEvent} from '@testing-library/react';
 import React from 'react';
 
-import {renderWithContext, screen} from 'tests/react_testing_utils';
+import {renderWithContext, screen, userEvent} from 'tests/react_testing_utils';
 
 import BurnOnReadConfirmationModal from './burn_on_read_confirmation_modal';
 
@@ -14,10 +13,6 @@ describe('BurnOnReadConfirmationModal', () => {
         onConfirm: jest.fn(),
         onCancel: jest.fn(),
     };
-
-    beforeEach(() => {
-        jest.clearAllMocks();
-    });
 
     it('should render receiver delete message when show is true and isSenderDelete is false', () => {
         renderWithContext(<BurnOnReadConfirmationModal {...baseProps}/>);
@@ -49,7 +44,7 @@ describe('BurnOnReadConfirmationModal', () => {
         expect(screen.queryByText('Delete Message Now?')).not.toBeInTheDocument();
     });
 
-    it('should call onCancel when Cancel button is clicked', () => {
+    it('should call onCancel when Cancel button is clicked', async () => {
         const onCancel = jest.fn();
         renderWithContext(
             <BurnOnReadConfirmationModal
@@ -59,12 +54,12 @@ describe('BurnOnReadConfirmationModal', () => {
         );
 
         const cancelButton = screen.getByText('Cancel');
-        fireEvent.click(cancelButton);
+        await userEvent.click(cancelButton);
 
         expect(onCancel).toHaveBeenCalledTimes(1);
     });
 
-    it('should call onConfirm with false when Delete Now button is clicked without checkbox', () => {
+    it('should call onConfirm with false when Delete Now button is clicked without checkbox', async () => {
         const onConfirm = jest.fn();
         renderWithContext(
             <BurnOnReadConfirmationModal
@@ -74,7 +69,7 @@ describe('BurnOnReadConfirmationModal', () => {
         );
 
         const confirmButton = screen.getByText('Delete Now');
-        fireEvent.click(confirmButton);
+        await userEvent.click(confirmButton);
 
         expect(onConfirm).toHaveBeenCalledWith(false);
     });
@@ -103,7 +98,7 @@ describe('BurnOnReadConfirmationModal', () => {
         expect(screen.queryByRole('checkbox')).not.toBeInTheDocument();
     });
 
-    it('should call onConfirm with true when checkbox is checked', () => {
+    it('should call onConfirm with true when checkbox is checked', async () => {
         const onConfirm = jest.fn();
         renderWithContext(
             <BurnOnReadConfirmationModal
@@ -114,10 +109,10 @@ describe('BurnOnReadConfirmationModal', () => {
         );
 
         const checkbox = screen.getByRole('checkbox');
-        fireEvent.click(checkbox);
+        await userEvent.click(checkbox);
 
         const confirmButton = screen.getByText('Delete Now');
-        fireEvent.click(confirmButton);
+        await userEvent.click(confirmButton);
 
         expect(onConfirm).toHaveBeenCalledWith(true);
     });

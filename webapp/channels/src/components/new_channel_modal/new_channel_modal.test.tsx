@@ -267,9 +267,11 @@ describe('components/new_channel_modal', () => {
         const ChannelPurposeTextArea = screen.getByLabelText('Channel Purpose');
         expect(ChannelPurposeTextArea).toBeInTheDocument();
 
+        // Simulate user interaction with purpose field including focus/blur for validation - fireEvent used because userEvent doesn't have direct focus/blur methods
         await act(async () => {
             fireEvent.focus(ChannelPurposeTextArea);
-            fireEvent.change(ChannelPurposeTextArea, {target: {value}});
+            await userEvent.clear(ChannelPurposeTextArea);
+            await userEvent.type(ChannelPurposeTextArea, value);
             fireEvent.blur(ChannelPurposeTextArea);
         });
 
@@ -399,10 +401,13 @@ describe('components/new_channel_modal', () => {
         expect(createChannelButton).toBeEnabled();
 
         // Submit
-        await act(async () => userEvent.click(createChannelButton));
+        await userEvent.click(createChannelButton);
 
-        const serverError = screen.getByText('Something went wrong. Please try again.');
-        expect(serverError).toBeInTheDocument();
+        // Wait for async state updates
+        await waitFor(() => {
+            const serverError = screen.getByText('Something went wrong. Please try again.');
+            expect(serverError).toBeInTheDocument();
+        });
         expect(createChannelButton).toBeDisabled();
     });
 
