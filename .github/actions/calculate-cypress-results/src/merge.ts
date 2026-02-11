@@ -165,11 +165,13 @@ export function calculateResultsFromSpecs(
     const color = getColor(parseFloat(passRate));
 
     // Build commit status message
-    const specSuffix = totalSpecs > 0 ? ` in ${totalSpecs} spec files` : "";
+    const rate = total > 0 ? (passed * 100) / total : 0;
+    const rateStr = rate === 100 ? "100%" : `${rate.toFixed(1)}%`;
+    const specSuffix = totalSpecs > 0 ? `, ${totalSpecs} specs` : "";
     const commitStatusMessage =
-        failed === 0
-            ? `${passed} passed${specSuffix}`
-            : `${failed} failed, ${passed} passed${specSuffix}`;
+        rate === 100
+            ? `${rateStr} passed (${passed})${specSuffix}`
+            : `${rateStr} passed (${passed}/${total}), ${failed} failed${specSuffix}`;
 
     return {
         passed,
