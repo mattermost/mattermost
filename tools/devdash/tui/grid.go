@@ -88,9 +88,15 @@ func buildGridCells(repo *model.Repo) []GridCell {
 		}
 	}
 
-	// Sort all cells together by category
+	// Sort by category, then make targets before npm scripts within each category
 	sort.SliceStable(cells, func(i, j int) bool {
-		return cells[i].Category < cells[j].Category
+		if cells[i].Category != cells[j].Category {
+			return cells[i].Category < cells[j].Category
+		}
+		if cells[i].IsNpm != cells[j].IsNpm {
+			return !cells[i].IsNpm // make targets first
+		}
+		return false // preserve original order within same type
 	})
 
 	return cells

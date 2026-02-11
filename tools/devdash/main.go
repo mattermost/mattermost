@@ -6,6 +6,7 @@ import (
 	"os/exec"
 	"path/filepath"
 
+	"github.com/mattermost/mattermost/tools/devdash/config"
 	"github.com/mattermost/mattermost/tools/devdash/discovery"
 	"github.com/mattermost/mattermost/tools/devdash/process"
 	"github.com/mattermost/mattermost/tools/devdash/tui"
@@ -26,8 +27,15 @@ func main() {
 		os.Exit(1)
 	}
 
+	// Load config for saved depth setting
+	cfg := config.Load(mmRoot)
+	depth := cfg.Depth
+	if depth <= 0 {
+		depth = 1
+	}
+
 	// Discover repos
-	repos, err := discovery.ScanAll(mmRoot, 2)
+	repos, err := discovery.ScanAll(mmRoot, depth)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "scan error: %v\n", err)
 		os.Exit(1)

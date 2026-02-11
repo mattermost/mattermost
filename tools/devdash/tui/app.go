@@ -3,6 +3,7 @@ package tui
 import (
 	"fmt"
 	"os"
+	"path/filepath"
 	"strings"
 	"time"
 
@@ -48,8 +49,9 @@ type App struct {
 	width         int
 	height        int
 
-	// Favorites: set of "repo:target" strings
-	favorites map[string]bool
+	// Favorites
+	favorites map[string]bool   // cellID → true (for grid rendering)
+	favPaths  map[string]string // cellID → repo filesystem path
 
 	// Target search
 	gridSearching   bool
@@ -101,6 +103,15 @@ func NewApp(repos []model.Repo, mgr *process.Manager, repoRoot string) *App {
 
 	cfg := config.Load(repoRoot)
 
+	// Resolve relative favorite paths to absolute
+	scanRoot := filepath.Dir(repoRoot)
+	favPaths := cfg.FavPathsMap()
+	for id, p := range favPaths {
+		if p != "" && !filepath.IsAbs(p) {
+			favPaths[id] = filepath.Join(scanRoot, p)
+		}
+	}
+
 	return &App{
 		repos:           repos,
 		procMgr:         mgr,
@@ -108,8 +119,9 @@ func NewApp(repos []model.Repo, mgr *process.Manager, repoRoot string) *App {
 		gridCells:       cells,
 		hScrolls:        make([]int, len(repos)),
 		repoRoot:        repoRoot,
-		subPkgDepth:     2,
+		subPkgDepth:     cfg.Depth,
 		favorites:        cfg.FavoritesMap(),
+		favPaths:         favPaths,
 		showOnlyFavorites: cfg.FavsOnly,
 		gridSearchInput:  si,
 		gridSearching:    false,
@@ -145,21 +157,20 @@ func (a *App) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		return a, nil
 
 	case TickMsg:
-		// Poll tmux capture-pane for the focused process
-		if a.logVisible && a.focusedProc != "" {
-			if a.logPanel.autoScroll {
-				// Fast path: only capture visible pane
-				content, err := a.procMgr.CapturePaneVisible(a.focusedProc)
-				if err == nil {
+		// Poll tmux capture-pane for the active/focused process only
+		if a.logVisible && a.focusedProc != "" && a.logPanel.autoScroll {
+			hasFilter := a.logPanel.logLevel > 0 || a.logPanel.logSearchQuery != ""
+			if hasFilter {
+				// Filters need full history to produce meaningful results
+				if content, err := a.procMgr.CapturePaneHistory(a.focusedProc); err == nil {
 					a.logPanel.UpdateContent(content)
-					a.logPanel.historyDirty = true
-				} else {
-					// Clear cache so next tick retries instead of silently stalling
-					a.logPanel.lastContent = ""
-					a.logPanel.lastRaw = ""
+				}
+			} else {
+				// No filter: fast visible-pane-only capture
+				if content, err := a.procMgr.CapturePaneVisible(a.focusedProc); err == nil {
+					a.logPanel.UpdateContent(content)
 				}
 			}
-			// When scroll-locked, don't poll — user is reading cached history
 		}
 		return a, tea.Tick(pollInterval, func(t time.Time) tea.Msg {
 			return TickMsg(t)
@@ -183,6 +194,11 @@ func (a *App) handleKey(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 	// Ctrl+F toggles favorites-only view from anywhere
 	if key.Matches(msg, a.keys.FavsOnly) {
 		a.showOnlyFavorites = !a.showOnlyFavorites
+		if a.showOnlyFavorites {
+			a.scanFavoritePaths()
+		} else {
+			a.rescanRepos()
+		}
 		a.saveConfig()
 		a.snapCursorToFirstMatch()
 		return a, nil
@@ -273,6 +289,28 @@ func (a *App) handleKey(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 		return a, nil
 	}
 
+	// Log search input mode — intercepts ALL keys before the shared handlers
+	if a.logPanel.logSearching {
+		switch msg.String() {
+		case "esc":
+			a.logPanel.logSearching = false
+			a.logPanel.logSearchQuery = ""
+			a.logPanel.logSearchInput.Blur()
+			a.logPanel.SetSearchQuery("")
+			return a, nil
+		case "enter":
+			// Close search bar but keep filter active
+			a.logPanel.logSearching = false
+			a.logPanel.logSearchInput.Blur()
+			return a, nil
+		default:
+			var cmd tea.Cmd
+			a.logPanel.logSearchInput, cmd = a.logPanel.logSearchInput.Update(msg)
+			a.logPanel.SetSearchQuery(a.logPanel.logSearchInput.Value())
+			return a, cmd
+		}
+	}
+
 	switch {
 	case key.Matches(msg, a.keys.Quit):
 		a.procMgr.StopAll()
@@ -338,7 +376,13 @@ func (a *App) handleKey(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 		return a, nil
 
 	case key.Matches(msg, a.keys.Search):
-		// Grid target search — preserve existing filter text
+		if a.focus == FocusLog && a.logVisible {
+			// Log search when in log focus
+			a.loadHistory()
+			a.logPanel.InitSearchInput()
+			return a, a.logPanel.logSearchInput.Cursor.BlinkCmd()
+		}
+		// Grid target search
 		a.enterGridSearch()
 		return a, a.gridSearchInput.Cursor.BlinkCmd()
 
@@ -412,28 +456,6 @@ func (a *App) handleKey(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 		return a, nil
 	}
 
-	// Log search input mode
-	if a.focus == FocusLog && a.logPanel.logSearching {
-		switch msg.String() {
-		case "esc":
-			a.logPanel.logSearching = false
-			a.logPanel.logSearchQuery = ""
-			a.logPanel.logSearchInput.Blur()
-			a.logPanel.SetSearchQuery("")
-			return a, nil
-		case "enter":
-			// Close search bar but keep filter active
-			a.logPanel.logSearching = false
-			a.logPanel.logSearchInput.Blur()
-			return a, nil
-		default:
-			var cmd tea.Cmd
-			a.logPanel.logSearchInput, cmd = a.logPanel.logSearchInput.Update(msg)
-			a.logPanel.SetSearchQuery(a.logPanel.logSearchInput.Value())
-			return a, cmd
-		}
-	}
-
 	// Log viewport scrolling and input mode when focused
 	if a.focus == FocusLog && a.logVisible {
 		// Enter input mode with i, Enter, or Space
@@ -444,18 +466,13 @@ func (a *App) handleKey(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 			return a, nil
 		}
 		switch {
-		case msg.String() == "/":
-			// Activate log search
-			a.loadHistoryIfNeeded()
-			a.logPanel.InitSearchInput()
-			return a, a.logPanel.logSearchInput.Cursor.BlinkCmd()
 		case msg.String() == "l":
 			// Cycle log level filter
-			a.loadHistoryIfNeeded()
+			a.loadHistory()
 			a.logPanel.CycleLogLevel()
 			return a, nil
 		case key.Matches(msg, a.keys.Up):
-			a.loadHistoryIfNeeded()
+			a.loadHistory()
 			a.logPanel.viewport.LineUp(1)
 			a.logPanel.autoScroll = false
 			return a, nil
@@ -469,18 +486,16 @@ func (a *App) handleKey(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 			a.cycleLog(1)
 			return a, nil
 		case msg.String() == "G":
-			// Return to auto-scroll: switch back to fast visible-only capture
+			// Return to auto-scroll
 			a.logPanel.autoScroll = true
-			a.logPanel.lastContent = ""
-			a.logPanel.lastRaw = "" // force refresh on next tick
 			return a, nil
 		case msg.String() == "g":
-			a.loadHistoryIfNeeded()
+			a.loadHistory()
 			a.logPanel.viewport.GotoTop()
 			a.logPanel.autoScroll = false
 			return a, nil
 		case key.Matches(msg, a.keys.PageUp):
-			a.loadHistoryIfNeeded()
+			a.loadHistory()
 			a.logPanel.viewport.HalfViewUp()
 			a.logPanel.autoScroll = false
 			return a, nil
@@ -526,7 +541,7 @@ func (a *App) handleKey(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 	case key.Matches(msg, a.keys.FocusProc):
 		a.focusLogForCursor()
 
-	case msg.String() == "D":
+	case msg.String() == "ctrl+d":
 		a.cycleSubPkgDepth()
 
 	case key.Matches(msg, a.keys.DryRun):
@@ -557,7 +572,7 @@ func (a *App) handleMouse(msg tea.MouseMsg) (tea.Model, tea.Cmd) {
 			if a.logVisible && msg.Y >= logStart {
 				// Log panel scroll
 				if msg.Button == tea.MouseButtonWheelUp {
-					a.loadHistoryIfNeeded()
+					a.loadHistory()
 					a.logPanel.viewport.LineUp(3)
 					a.logPanel.autoScroll = false
 				} else {
@@ -604,6 +619,8 @@ func (a *App) handleMouse(msg tea.MouseMsg) (tea.Model, tea.Cmd) {
 			a.focus = FocusGrid
 			a.gridSearching = false
 			a.gridSearchInput.Blur()
+			a.logPanel.logSearching = false
+			a.logPanel.logSearchQuery = ""
 			if hz.TargetIdx == -1 {
 				// Clicked repo name
 				now := time.Now()
@@ -651,6 +668,8 @@ func (a *App) handleMouse(msg tea.MouseMsg) (tea.Model, tea.Cmd) {
 			if msg.X >= hz.X && msg.X < hz.X+hz.Width {
 				a.gridSearching = false
 				a.gridSearchInput.Blur()
+				a.logPanel.logSearching = false
+				a.logPanel.logSearchQuery = ""
 				a.focusedProc = hz.ProcID
 				a.logPanel.SetProcess(hz.ProcID)
 				a.logVisible = true
@@ -814,17 +833,12 @@ func (a *App) executeWithInputMode() {
 	a.logPanel.inputting = true
 }
 
-// loadHistoryIfNeeded does a one-time full scrollback capture when the user
-// first scrolls up. The result is cached until new output arrives.
-func (a *App) loadHistoryIfNeeded() {
-	if a.focusedProc == "" || !a.logPanel.historyDirty {
+// loadHistory captures full scrollback and updates the viewport.
+func (a *App) loadHistory() {
+	if a.focusedProc == "" {
 		return
 	}
 	if content, err := a.procMgr.CapturePaneHistory(a.focusedProc); err == nil {
-		a.logPanel.historyDirty = false
-		a.logPanel.historyCache = content
-		a.logPanel.lastRaw = ""    // force re-filter
-		a.logPanel.lastContent = ""
 		a.logPanel.UpdateContent(content)
 	}
 }
@@ -1066,7 +1080,52 @@ func (a *App) tabFocus() TabFocus {
 // saveConfig persists favorites and settings to a single .devdash.json file.
 // rescanRepos re-discovers repos from disk and rebuilds the grid.
 func (a *App) rescanRepos() {
-	repos, err := discovery.ScanAll(a.repoRoot, a.subPkgDepth)
+	a.rescanReposAtDepth(a.subPkgDepth)
+}
+
+func (a *App) rescanReposAtDepth(depth int) {
+	repos, err := discovery.ScanAll(a.repoRoot, depth)
+	if err != nil || len(repos) == 0 {
+		return
+	}
+	a.repos = repos
+	a.gridCells = make([][]GridCell, len(repos))
+	for i := range repos {
+		a.gridCells[i] = buildGridCells(&repos[i])
+	}
+	a.hScrolls = make([]int, len(repos))
+	a.gridVScroll = 0
+	a.snapCursorToFirstMatch()
+}
+
+// scanFavoritePaths scans only the specific repo paths referenced by favorites.
+// Much faster than a full tree walk — used when favorites-only mode is toggled on.
+func (a *App) scanFavoritePaths() {
+	scanRoot := filepath.Dir(a.repoRoot)
+
+	// Collect unique paths, resolving relative → absolute
+	pathSet := make(map[string]bool)
+	for _, p := range a.favPaths {
+		if p == "" {
+			continue
+		}
+		abs := p
+		if !filepath.IsAbs(abs) {
+			abs = filepath.Join(scanRoot, abs)
+		}
+		pathSet[abs] = true
+	}
+	paths := make([]string, 0, len(pathSet))
+	for p := range pathSet {
+		paths = append(paths, p)
+	}
+
+	if len(paths) == 0 {
+		return
+	}
+
+	// ScanPaths infers repo names and kinds from the paths
+	repos, err := discovery.ScanPaths(paths, nil, a.repoRoot)
 	if err != nil || len(repos) == 0 {
 		return
 	}
@@ -1082,14 +1141,26 @@ func (a *App) rescanRepos() {
 
 // cycleSubPkgDepth cycles the sub-package scan depth (1→2→3→4→1) and rescans.
 func (a *App) cycleSubPkgDepth() {
-	a.subPkgDepth = a.subPkgDepth%4 + 1 // cycles 1→2→3→4→1
+	a.subPkgDepth = (a.subPkgDepth + 1) % 5 // cycles 0→1→2→3→4→0
 	a.rescanRepos()
+	a.saveConfig()
 }
 
 func (a *App) saveConfig() {
+	// Store paths relative to the parent of mmRoot (the scan root)
+	scanRoot := filepath.Dir(a.repoRoot)
+	relPaths := make(map[string]string, len(a.favPaths))
+	for id, p := range a.favPaths {
+		if rel, err := filepath.Rel(scanRoot, p); err == nil {
+			relPaths[id] = rel
+		} else {
+			relPaths[id] = p
+		}
+	}
 	config.Save(a.repoRoot, config.Config{
 		FavsOnly:  a.showOnlyFavorites,
-		Favorites: config.FavoritesFromMap(a.favorites),
+		Depth:     a.subPkgDepth,
+		Favorites: config.BuildFavorites(a.favorites, relPaths),
 	})
 }
 
@@ -1101,8 +1172,10 @@ func (a *App) toggleFavorite() {
 	id := cellID(repo.Name, cell)
 	if a.favorites[id] {
 		delete(a.favorites, id)
+		delete(a.favPaths, id)
 	} else {
 		a.favorites[id] = true
+		a.favPaths[id] = repo.Path
 	}
 	a.saveConfig()
 }
@@ -1584,7 +1657,7 @@ func (a *App) View() string {
 	} else {
 		keys = []string{
 			"r Run", "Enter Run", "d DryRun", "Space Focus", "F Fav",
-			"s Stop", "f Search", "D Depth",
+			"s Stop", "f Search", "C-d Depth",
 			"? Help", "q Quit",
 		}
 	}
@@ -1605,7 +1678,7 @@ func (a *App) View() string {
 	if a.showOnlyFavorites {
 		badges += " " + lipgloss.NewStyle().Bold(true).Foreground(lipgloss.Color("3")).Render("[favs]")
 	}
-	if a.subPkgDepth != 2 {
+	if a.subPkgDepth != 1 {
 		badges += " " + lipgloss.NewStyle().Foreground(colorMuted).Render(fmt.Sprintf("[depth:%d]", a.subPkgDepth))
 	}
 
@@ -1667,16 +1740,18 @@ func (a *App) View() string {
 		// Tab bar Y = header(1) + search(1) + grid lines + spacer/INPUT line(1)
 		gridLines := strings.Count(gridStr, "\n")
 		a.tabBarY = 2 + gridLines + 1
-		if a.logPanel.inputting {
-			// Find the focused tab's hit zone for offset and width
-			var offset, tabWidth int
-			for _, hz := range tabHZ {
-				if hz.ProcID == a.focusedProc {
-					offset = hz.X
-					tabWidth = hz.Width
-					break
-				}
+		// Spacer line above tab bar: shows indicators for input mode and log level
+		var offset, tabWidth int
+		for _, hz := range tabHZ {
+			if hz.ProcID == a.focusedProc {
+				offset = hz.X
+				tabWidth = hz.Width
+				break
 			}
+		}
+
+		if a.logPanel.inputting {
+			// INPUT mode indicator
 			bg := lipgloss.NewStyle().Background(colorPrimary)
 			white := lipgloss.NewStyle().Bold(true).Foreground(lipgloss.Color("15")).Background(colorPrimary)
 			faded := lipgloss.NewStyle().Foreground(lipgloss.Color("183")).Background(colorPrimary)
@@ -1688,10 +1763,8 @@ func (a *App) View() string {
 			remaining := tabWidth - leftW
 			var content string
 			if remaining >= rightW {
-				// Both fit — pad between them
 				content = left + bg.Render(strings.Repeat(" ", remaining-rightW)) + right
 			} else if remaining > 0 {
-				// Truncate hint to fit
 				content = left + lipgloss.NewStyle().MaxWidth(remaining).Render(right)
 			} else {
 				content = left
@@ -1700,6 +1773,27 @@ func (a *App) View() string {
 				MaxWidth(tabWidth).
 				Render(content)
 			b.WriteString(strings.Repeat(" ", offset) + inputTag + "\n")
+		} else if a.focus == FocusLog && a.logPanel.logSearching {
+			// Search input (replaces log level indicator)
+			prefix := lipgloss.NewStyle().Bold(true).Reverse(true).Padding(0, 1).Render("Search")
+			b.WriteString(prefix + " " + a.logPanel.logSearchInput.View() + "\n")
+		} else if a.focus == FocusLog && a.logPanel.logSearchQuery != "" {
+			// Active search filter (persisted after closing input)
+			prefix := lipgloss.NewStyle().Bold(true).Foreground(colorPrimary).Padding(0, 1).Render("Search")
+			levelName := a.logPanel.LogLevelName()
+			levelTag := lipgloss.NewStyle().
+				Foreground(lipgloss.Color("15")).
+				Background(lipgloss.Color("237")).
+				Render(" LOG: " + levelName + " ")
+			b.WriteString(prefix + " " + a.logPanel.logSearchQuery + "  " + levelTag + "\n")
+		} else if a.focus == FocusLog {
+			// Log level indicator
+			levelName := a.logPanel.LogLevelName()
+			levelTag := lipgloss.NewStyle().
+				Foreground(lipgloss.Color("15")).
+				Background(lipgloss.Color("237")).
+				Render(" LOG: " + levelName + " ")
+			b.WriteString(strings.Repeat(" ", offset) + levelTag + "\n")
 		} else {
 			b.WriteString("\n")
 		}
@@ -1764,7 +1858,7 @@ func (a *App) renderHelp() string {
 		"  Space      Focus log panel on target",
 		"  f or /     Search targets",
 		"  d          Dry-run: edit command before running",
-		"  D          Cycle sub-package scan depth (1-4)",
+		"  Ctrl+d     Cycle sub-package scan depth (0-4)",
 		"  F          Toggle favorite",
 		"  Ctrl+f     Toggle favorites-only view",
 		"",

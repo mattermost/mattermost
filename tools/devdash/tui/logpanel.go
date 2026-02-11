@@ -15,8 +15,19 @@ import (
 // Log levels for filtering (cumulative, index = minimum level shown)
 var logLevelNames = []string{"ALL", "DEBUG", "INFO", "WARN", "ERROR"}
 
-var levelRe = regexp.MustCompile(`(?i)^\s*(error|warn|info|debug|trace)\b`)
-var levelOrder = map[string]int{"trace": 0, "debug": 1, "info": 2, "warn": 3, "error": 4}
+// Regex to strip ANSI escape codes for level matching
+var ansiRe = regexp.MustCompile(`\x1b\[[0-9;]*m`)
+
+// Plain text: level appears at or near the start of line (possibly after ANSI codes)
+var plainLevelRe = regexp.MustCompile(`(?i)^(panic|fatal|critical|error|warn|info|debug|trace)\b`)
+
+// JSON: "level":"<value>" anywhere in the line
+var jsonLevelRe = regexp.MustCompile(`(?i)"level"\s*:\s*"(panic|fatal|critical|error|warn|info|debug|trace)"`)
+
+var levelOrder = map[string]int{
+	"trace": 0, "debug": 1, "info": 2, "warn": 3,
+	"error": 4, "critical": 4, "fatal": 4, "panic": 4,
+}
 
 // LogTab holds info for rendering a single tab in the log panel header.
 type LogTab struct {
@@ -25,17 +36,13 @@ type LogTab struct {
 }
 
 type LogPanel struct {
-	viewport     viewport.Model
-	processID    string
-	inputting    bool   // true when raw keystrokes are forwarded to process via tmux
-	autoScroll   bool
-	lastContent  string // cache to skip redundant viewport updates
-	lastRaw      string // raw unfiltered content (for re-filtering)
-	historyCache string // cached full scrollback (loaded on first scroll-up)
-	historyDirty bool   // true when history needs refresh on next scroll-up
-	width        int
-	height       int
-	ready        bool
+	viewport   viewport.Model
+	processID  string
+	inputting  bool // true when raw keystrokes are forwarded to process via tmux
+	autoScroll bool
+	width      int
+	height     int
+	ready      bool
 
 	// Log search
 	logSearching   bool
@@ -68,10 +75,6 @@ func (lp *LogPanel) SetSize(width, height int) {
 func (lp *LogPanel) SetProcess(id string) {
 	lp.processID = id
 	lp.autoScroll = true
-	lp.lastContent = ""
-	lp.lastRaw = ""
-	lp.historyCache = ""
-	lp.historyDirty = true
 	lp.logSearching = false
 	lp.logSearchQuery = ""
 	lp.logLevel = 0
@@ -80,23 +83,10 @@ func (lp *LogPanel) SetProcess(id string) {
 // UpdateContent sets the log panel content from a captured tmux pane string.
 // Applies active filters (log level + search) before setting viewport content.
 func (lp *LogPanel) UpdateContent(content string) {
-	if !lp.ready || content == lp.lastRaw {
-		return
-	}
-	lp.lastRaw = content
-	lp.applyFilters()
-}
-
-// applyFilters re-filters lastRaw content and updates the viewport.
-func (lp *LogPanel) applyFilters() {
 	if !lp.ready {
 		return
 	}
-	filtered := lp.filterContent(lp.lastRaw)
-	if filtered == lp.lastContent {
-		return
-	}
-	lp.lastContent = filtered
+	filtered := lp.filterContent(content)
 	lp.viewport.SetContent(filtered)
 
 	if lp.autoScroll {
@@ -104,7 +94,30 @@ func (lp *LogPanel) applyFilters() {
 	}
 }
 
+// detectLevel extracts the log level from a line, handling:
+// - Plain text with ANSI codes: "\033[31merror\033[0m some message"
+// - Plain text without codes: "error some message" or "error  some message"
+// - JSON format: {"level":"error","msg":"..."}
+// Returns the level string (lowercase) and true, or ("", false) if no level detected.
+func detectLevel(line string) (string, bool) {
+	// Try JSON format first
+	if m := jsonLevelRe.FindStringSubmatch(line); m != nil {
+		return strings.ToLower(m[1]), true
+	}
+
+	// Strip ANSI codes and leading whitespace for plain text matching
+	stripped := ansiRe.ReplaceAllString(line, "")
+	stripped = strings.TrimSpace(stripped)
+	if m := plainLevelRe.FindStringSubmatch(stripped); m != nil {
+		return strings.ToLower(m[1]), true
+	}
+
+	return "", false
+}
+
 // filterContent applies log level and search filters to raw content.
+// Continuation lines (stack traces, indented lines) inherit the level
+// of the preceding log line so they get filtered together.
 func (lp *LogPanel) filterContent(raw string) string {
 	if lp.logLevel == 0 && lp.logSearchQuery == "" {
 		return raw
@@ -113,17 +126,26 @@ func (lp *LogPanel) filterContent(raw string) string {
 	lines := strings.Split(raw, "\n")
 	var result []string
 	query := strings.ToLower(lp.logSearchQuery)
+	lastLogLineVisible := true // tracks whether the last log-level line passed the filter
 
 	for _, line := range lines {
 		// Log level filter
 		if lp.logLevel > 0 {
-			if m := levelRe.FindString(line); m != "" {
-				lineLevel := levelOrder[strings.ToLower(strings.TrimSpace(m))]
-				if lineLevel < lp.logLevel {
+			if level, ok := detectLevel(line); ok {
+				// This is a log line with a detectable level
+				lvl := levelOrder[level]
+				if lvl < lp.logLevel {
+					lastLogLineVisible = false
+					continue
+				}
+				lastLogLineVisible = true
+			} else {
+				// Continuation line (stack trace, indented text, blank) —
+				// inherit visibility from the last log line
+				if !lastLogLineVisible {
 					continue
 				}
 			}
-			// Non-log lines always pass through
 		}
 
 		// Search filter
@@ -141,8 +163,6 @@ func (lp *LogPanel) filterContent(raw string) string {
 // CycleLogLevel advances to the next log level filter.
 func (lp *LogPanel) CycleLogLevel() {
 	lp.logLevel = (lp.logLevel + 1) % len(logLevelNames)
-	lp.lastContent = "" // force re-filter
-	lp.applyFilters()
 }
 
 // LogLevelName returns the current log level filter name.
@@ -315,31 +335,6 @@ func (lp *LogPanel) ViewContent() string {
 	}
 
 	var b strings.Builder
-
-	// Search bar
-	if lp.logSearching {
-		prefix := lipgloss.NewStyle().Bold(true).Reverse(true).Padding(0, 1).Render("Search")
-		b.WriteString(prefix + " " + lp.logSearchInput.View() + "\n")
-	} else if lp.logSearchQuery != "" {
-		prefix := lipgloss.NewStyle().Bold(true).Foreground(colorPrimary).Padding(0, 1).Render("Search")
-		b.WriteString(prefix + " " + lp.logSearchQuery + "\n")
-	}
-
-	// Log level badge (when not ALL)
-	if lp.logLevel > 0 {
-		badge := lipgloss.NewStyle().Bold(true).Foreground(lipgloss.Color("3")).Render("[" + logLevelNames[lp.logLevel] + "+]")
-		if lp.logSearching || lp.logSearchQuery != "" {
-			// Append to search line — rewind the newline
-			s := b.String()
-			if strings.HasSuffix(s, "\n") {
-				b.Reset()
-				b.WriteString(s[:len(s)-1] + " " + badge + "\n")
-			}
-		} else {
-			b.WriteString(badge + "\n")
-		}
-	}
-
 	b.WriteString(lp.viewport.View())
 
 	if !lp.autoScroll {
@@ -362,9 +357,7 @@ func (lp *LogPanel) InitSearchInput() {
 	lp.logSearching = true
 }
 
-// SetSearchQuery updates the search filter and re-applies filters.
+// SetSearchQuery updates the search filter. Next poll tick will apply it.
 func (lp *LogPanel) SetSearchQuery(query string) {
 	lp.logSearchQuery = query
-	lp.lastContent = "" // force re-filter
-	lp.applyFilters()
 }

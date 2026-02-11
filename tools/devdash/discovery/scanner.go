@@ -16,10 +16,6 @@ var internalSubs = []struct {
 	pkgJSONSub  string
 }{
 	{"mattermost", "Makefile", ""},
-	{"server", "server/Makefile", ""},
-	{"webapp", "webapp/Makefile", "webapp/package.json"},
-	{"e2e-tests", "e2e-tests/Makefile", ""},
-	{"api", "api/Makefile", ""},
 }
 
 func ScanAll(mmRoot string, subPkgDepth int) ([]model.Repo, error) {
@@ -161,7 +157,13 @@ func ScanAll(mmRoot string, subPkgDepth int) ([]model.Repo, error) {
 	repos = append(repos, siblings...)
 	repos = append(repos, plugins...)
 
-	// 3. Discover sub-packages and insert immediately after their parent
+	// 3. Discover sub-packages and insert immediately after their parent.
+	// Track seen paths to deduplicate (e.g. mattermost/webapp vs webapp).
+	seenPaths := make(map[string]bool)
+	for _, repo := range repos {
+		seenPaths[repo.Path] = true
+	}
+
 	var result []model.Repo
 	for _, repo := range repos {
 		result = append(result, repo)
@@ -169,66 +171,75 @@ func ScanAll(mmRoot string, subPkgDepth int) ([]model.Repo, error) {
 		sort.Slice(subs, func(i, j int) bool {
 			return subs[i].Name < subs[j].Name
 		})
-		result = append(result, subs...)
+		for _, sub := range subs {
+			if seenPaths[sub.Path] {
+				continue
+			}
+			seenPaths[sub.Path] = true
+			result = append(result, sub)
+		}
 	}
 
 	return result, nil
 }
 
-// discoverSubPackages scans a repo's directory tree (up to 3 levels) for
-// nested package.json files that aren't the repo's root package.json.
-// Each becomes a separate Repo entry with a "parent/subpath" display name.
+// discoverSubPackages scans a repo's directory tree for nested sub-projects
+// (directories with a Makefile or package.json). Each becomes a separate
+// Repo entry with a "parent/subpath" display name.
 func discoverSubPackages(parent model.Repo, maxDepth int) []model.Repo {
 	var subs []model.Repo
-	rootPkg := parent.PackageJSON
 
-	walkDir(parent.Path, parent.Path, 0, maxDepth, func(pkgPath, relDir string) {
-		// Skip if this is the root package.json already on the parent
-		if pkgPath == rootPkg {
+	walkDir(parent.Path, parent.Path, 0, maxDepth, func(dir, relDir string) {
+		mfPath := filepath.Join(dir, "Makefile")
+		pkgPath := filepath.Join(dir, "package.json")
+		hasMakefile := fileExists(mfPath)
+		hasPkgJSON := fileExists(pkgPath)
+
+		if !hasMakefile && !hasPkgJSON {
 			return
 		}
 
-		scripts, err := ParseNpmScripts(pkgPath)
-		if err != nil || len(scripts) == 0 {
-			return
+		repo := model.Repo{
+			Name: parent.Name + "/" + relDir,
+			Path: dir,
+			Kind: parent.Kind,
 		}
 
-		// Check for a Makefile in the same directory
-		var makeTargets []model.Target
-		var mfPath string
-		mf := filepath.Join(filepath.Dir(pkgPath), "Makefile")
-		if fileExists(mf) {
-			mfPath = mf
-			if targets, err := ParseMakeTargets(mf); err == nil {
-				makeTargets = targets
+		if hasMakefile {
+			repo.MakefilePath = mfPath
+			if targets, err := ParseMakeTargets(mfPath); err == nil {
+				repo.MakeTargets = targets
 			}
 		}
 
-		subs = append(subs, model.Repo{
-			Name:         parent.Name + "/" + relDir,
-			Path:         filepath.Dir(pkgPath),
-			Kind:         parent.Kind,
-			PackageJSON:  pkgPath,
-			NpmScripts:   scripts,
-			MakefilePath: mfPath,
-			MakeTargets:  makeTargets,
-		})
+		if hasPkgJSON {
+			repo.PackageJSON = pkgPath
+			if scripts, err := ParseNpmScripts(pkgPath); err == nil {
+				repo.NpmScripts = scripts
+			}
+		}
+
+		if len(repo.MakeTargets) == 0 && len(repo.NpmScripts) == 0 {
+			return
+		}
+
+		subs = append(subs, repo)
 	})
 
 	return subs
 }
 
-// walkDir recursively scans for package.json files up to maxDepth levels,
+// walkDir recursively scans directories up to maxDepth levels,
 // skipping node_modules, .git, dist, and build directories.
-func walkDir(root, dir string, depth, maxDepth int, fn func(pkgPath, relDir string)) {
+// Calls fn for each subdirectory (depth > 0 skips the root).
+func walkDir(root, dir string, depth, maxDepth int, fn func(dir, relDir string)) {
 	if depth > maxDepth {
 		return
 	}
 
-	pkg := filepath.Join(dir, "package.json")
-	if fileExists(pkg) && depth > 0 { // depth > 0 skips the root
+	if depth > 0 {
 		rel, _ := filepath.Rel(root, dir)
-		fn(pkg, rel)
+		fn(dir, rel)
 	}
 
 	entries, err := os.ReadDir(dir)
@@ -241,7 +252,6 @@ func walkDir(root, dir string, depth, maxDepth int, fn func(pkgPath, relDir stri
 			continue
 		}
 		name := e.Name()
-		// Skip directories that never contain useful sub-packages
 		if name == "node_modules" || name == ".git" || name == "dist" ||
 			name == "build" || name == "vendor" || name == ".next" {
 			continue
@@ -292,6 +302,121 @@ func resolveGitRepoRoot(repoPath string) (string, bool) {
 	}
 
 	return repoPath, true
+}
+
+// ScanPaths creates Repo entries for specific filesystem paths (no tree walking).
+// Repo names are derived from the path relative to mmRoot's parent (the scan root).
+// Kind is inferred: paths inside mmRoot are Internal, mattermost-plugin-* are Plugin, rest are Sibling.
+func ScanPaths(paths []string, repoNames map[string]string, mmRoot string) ([]model.Repo, error) {
+	scanRoot := filepath.Dir(mmRoot)
+	mmName := filepath.Base(mmRoot)
+
+	var repos []model.Repo
+	for _, dir := range paths {
+		// Derive display name from path
+		name := ""
+		if repoNames != nil {
+			name = repoNames[dir]
+		}
+		if name == "" {
+			name = deriveRepoName(dir, scanRoot, mmName)
+		}
+
+		kind := inferRepoKind(dir, mmRoot)
+
+		repo := model.Repo{
+			Name: name,
+			Path: dir,
+			Kind: kind,
+		}
+
+		mf := filepath.Join(dir, "Makefile")
+		if fileExists(mf) {
+			repo.MakefilePath = mf
+			if targets, err := ParseMakeTargets(mf); err == nil {
+				repo.MakeTargets = targets
+			}
+		}
+
+		pkg := filepath.Join(dir, "package.json")
+		if fileExists(pkg) {
+			repo.PackageJSON = pkg
+			if scripts, err := ParseNpmScripts(pkg); err == nil {
+				repo.NpmScripts = scripts
+			}
+		}
+
+		if len(repo.MakeTargets) > 0 || len(repo.NpmScripts) > 0 {
+			repos = append(repos, repo)
+		}
+	}
+
+	sort.Slice(repos, func(i, j int) bool {
+		if repos[i].Kind != repos[j].Kind {
+			return repos[i].Kind < repos[j].Kind
+		}
+		return repos[i].Name < repos[j].Name
+	})
+
+	return repos, nil
+}
+
+// deriveRepoName generates a display name from a repo path.
+// For paths inside mmRoot: "mattermost/server", "mattermost/webapp/channels"
+// For sibling repos: "mobile", "desktop" (strips mattermost- prefix)
+// For plugins: "playbooks" (strips mattermost-plugin- prefix)
+func deriveRepoName(dir, scanRoot, mmName string) string {
+	rel, err := filepath.Rel(scanRoot, dir)
+	if err != nil {
+		return filepath.Base(dir)
+	}
+
+	// Split into parts: e.g. "mattermost/server" or "mattermost-plugin-playbooks/webapp"
+	parts := strings.Split(rel, string(filepath.Separator))
+	if len(parts) == 0 {
+		return filepath.Base(dir)
+	}
+
+	// Top-level directory name
+	topDir := parts[0]
+
+	// Inside mmRoot: use mmName as prefix
+	if topDir == mmName {
+		return strings.Join(parts, "/")
+	}
+
+	// Plugin: strip prefix on top-level, keep sub-path
+	if strings.HasPrefix(topDir, "mattermost-plugin-") {
+		parts[0] = strings.TrimPrefix(topDir, "mattermost-plugin-")
+		return strings.Join(parts, "/")
+	}
+
+	// Sibling: strip mattermost- prefix
+	parts[0] = strings.TrimPrefix(topDir, "mattermost-")
+	return strings.Join(parts, "/")
+}
+
+// inferRepoKind determines the RepoKind from a path relative to mmRoot.
+// Paths inside mmRoot are Internal, mattermost-plugin-* are Plugin, rest are Sibling.
+func inferRepoKind(dir, mmRoot string) model.RepoKind {
+	// Inside the mattermost repo → Internal
+	if strings.HasPrefix(dir, mmRoot+string(filepath.Separator)) || dir == mmRoot {
+		return model.RepoKindInternal
+	}
+	// Plugin repos
+	base := filepath.Base(dir)
+	if strings.HasPrefix(base, "mattermost-plugin-") {
+		return model.RepoKindPlugin
+	}
+	// Walk up to check if any parent is a plugin
+	parent := filepath.Dir(dir)
+	for parent != filepath.Dir(parent) {
+		if strings.HasPrefix(filepath.Base(parent), "mattermost-plugin-") {
+			return model.RepoKindPlugin
+		}
+		parent = filepath.Dir(parent)
+	}
+	return model.RepoKindSibling
 }
 
 func fileExists(path string) bool {
