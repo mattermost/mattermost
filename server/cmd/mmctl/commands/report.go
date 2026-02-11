@@ -149,7 +149,7 @@ func printReportPost(post *model.Post) {
 		fmt.Fprintf(os.Stdout, "Channel ID: %s\n", post.ChannelId)
 		fmt.Fprintf(os.Stdout, "Created At: %s\n", createdAt)
 		fmt.Fprintf(os.Stdout, "Updated At: %s\n", updatedAt)
-		fmt.Fprintf(os.Stdout, "Message: %s\n", post.Message)
+		fmt.Fprintf(os.Stdout, "Message: %s\n", printer.SanitizeForTerminal(post.Message))
 		if post.DeleteAt > 0 {
 			deletedAt := time.Unix(post.DeleteAt/1000, 0).Format("2006-01-02 15:04:05")
 			fmt.Fprintf(os.Stdout, "Deleted At: %s\n", deletedAt)

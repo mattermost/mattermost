@@ -36,21 +36,9 @@ var searchPostStoreTests = []searchTest{
 		Tags: []string{EnginePostgres, EngineElasticSearch},
 	},
 	{
-		Name: "Should be able to search without stemming",
-		Fn:   testStemming,
-		Tags: []string{EnginePostgres},
-	},
-	{
-		// Postgres supports search with and without quotes
 		Name: "Should be able to search for email addresses with or without quotes",
 		Fn:   testSearchEmailAddresses,
 		Tags: []string{EnginePostgres, EngineElasticSearch},
-	},
-	{
-		// MySql supports search with quotes only
-		Name: "Should be able to search for email addresses with quotes",
-		Fn:   testSearchEmailAddressesWithQuotes,
-		Tags: []string{EngineElasticSearch},
 	},
 	{
 		Name: "Should be able to search when markdown underscores are applied",
@@ -290,6 +278,11 @@ var searchPostStoreTests = []searchTest{
 		Fn:   testSearchPostDeleted,
 		Tags: []string{EngineAll},
 	},
+	{
+		Name: "Should be able to search for URLs in Postgres",
+		Fn:   testSearchURLsPostgres,
+		Tags: []string{EnginePostgres},
+	},
 }
 
 func TestSearchPostStore(t *testing.T, s store.Store, testEngine *SearchTestEngine) {
@@ -472,65 +465,6 @@ func testSearchANDORQuotesCombinations(t *testing.T, th *SearchTestHelper) {
 	}
 }
 
-func testStemming(t *testing.T, th *SearchTestHelper) {
-	p1, err := th.createPost(th.User.Id, th.ChannelBasic.Id, "great minds think", "", model.PostTypeDefault, 0, false)
-	require.NoError(t, err)
-	p2, err := th.createPost(th.User.Id, th.ChannelBasic.Id, "mindful of what you think", "", model.PostTypeDefault, 0, false)
-	require.NoError(t, err)
-
-	defer th.deleteUserPosts(th.User.Id)
-
-	testCases := []struct {
-		name        string
-		terms       string
-		orTerms     bool
-		expectedLen int
-		expectedIDs []string
-	}{
-		{
-			name:        "simple search, no stemming",
-			terms:       `"minds think"`,
-			orTerms:     false,
-			expectedLen: 1,
-			expectedIDs: []string{p1.Id},
-		},
-		{
-			name:        "simple search, single word, no stemming",
-			terms:       `"minds"`,
-			orTerms:     false,
-			expectedLen: 1,
-			expectedIDs: []string{p1.Id},
-		},
-		{
-			name:        "non-simple search, stemming",
-			terms:       `minds think`,
-			orTerms:     true,
-			expectedLen: 2,
-			expectedIDs: []string{p1.Id, p2.Id},
-		},
-		{
-			name:        "simple search, no stemming, no results",
-			terms:       `"mind"`,
-			orTerms:     false,
-			expectedLen: 0,
-			expectedIDs: []string{},
-		},
-	}
-
-	for _, tc := range testCases {
-		t.Run(tc.name, func(t *testing.T) {
-			params := &model.SearchParams{Terms: tc.terms, OrTerms: tc.orTerms}
-			results, err := th.Store.Post().SearchPostsForUser(th.Context, []*model.SearchParams{params}, th.User.Id, th.Team.Id, 0, 20)
-			require.NoError(t, err)
-
-			require.Len(t, results.Posts, tc.expectedLen)
-			for _, id := range tc.expectedIDs {
-				th.checkPostInSearchResults(t, id, results.Posts)
-			}
-		})
-	}
-}
-
 func testSearchEmailAddresses(t *testing.T, th *SearchTestHelper) {
 	p1, err := th.createPost(th.User.Id, th.ChannelBasic.Id, "email test@test.com", "", model.PostTypeDefault, 0, false)
 	require.NoError(t, err)
@@ -555,21 +489,6 @@ func testSearchEmailAddresses(t *testing.T, th *SearchTestHelper) {
 		require.Len(t, results.Posts, 1)
 		th.checkPostInSearchResults(t, p1.Id, results.Posts)
 	})
-}
-
-func testSearchEmailAddressesWithQuotes(t *testing.T, th *SearchTestHelper) {
-	p1, err := th.createPost(th.User.Id, th.ChannelBasic.Id, "email test@test.com", "", model.PostTypeDefault, 0, false)
-	require.NoError(t, err)
-	_, err = th.createPost(th.User.Id, th.ChannelBasic.Id, "email test2@test.com", "", model.PostTypeDefault, 0, false)
-	require.NoError(t, err)
-	defer th.deleteUserPosts(th.User.Id)
-
-	params := &model.SearchParams{Terms: "\"test@test.com\""}
-	results, err := th.Store.Post().SearchPostsForUser(th.Context, []*model.SearchParams{params}, th.User.Id, th.Team.Id, 0, 20)
-	require.NoError(t, err)
-
-	require.Len(t, results.Posts, 1)
-	th.checkPostInSearchResults(t, p1.Id, results.Posts)
 }
 
 func testSearchMarkdownUnderscores(t *testing.T, th *SearchTestHelper) {
@@ -2110,4 +2029,132 @@ func testSearchPostDeleted(t *testing.T, th *SearchTestHelper) {
 		require.NoError(t, err)
 		require.Len(t, results.Posts, 0)
 	})
+}
+
+func testSearchURLsPostgres(t *testing.T, th *SearchTestHelper) {
+	createPost := func(msg string) string {
+		post, err := th.createPost(th.User.Id, th.ChannelBasic.Id, msg, "", model.PostTypeDefault, 0, false)
+		require.NoError(t, err)
+		return post.Id
+	}
+
+	// Create posts with various URL formats
+	fullUrlId := createPost("check out https://example.com/path/to/page for more info")
+	urlNoProtocolId := createPost("visit example.org/docs today")
+	urlNoPathId := createPost("go to https://mattermost.com for details")
+	urlNoProtocolNoPathId := createPost("see testsite.io now")
+	httpUrlId := createPost("old link http://legacy.example.net/old")
+
+	defer th.deleteUserPosts(th.User.Id)
+
+	// Note: Searching for URLs with the protocol (https://, http://) doesn't work because
+	// Mattermost strips special characters (including ":") from search terms before sending
+	// them to PostgreSQL. This is defined in specialSearchChars (store.go) and applied in
+	// post_store.go. The colon is stripped because it has special meaning in PostgreSQL's
+	// to_tsquery() function (prefix operator). As a result, "https://example.com" becomes
+	// "https //example.com" (two separate tokens) which won't match the original URL.
+	// Users should search for the domain/path portion without the protocol.
+	testCases := []struct {
+		name        string
+		terms       string
+		expectedIDs []string
+	}{
+		// Searches WITH protocol - these don't work due to tokenization at "://"
+		{
+			name:        "Search full URL with protocol and path does not match",
+			terms:       "https://example.com/path/to/page",
+			expectedIDs: []string{},
+		},
+		{
+			name:        "Search URL with protocol but without path does not match",
+			terms:       "https://mattermost.com",
+			expectedIDs: []string{},
+		},
+		{
+			name:        "Search HTTP URL with protocol and path does not match",
+			terms:       "http://legacy.example.net/old",
+			expectedIDs: []string{},
+		},
+		{
+			name:        "Search URL in quotes with protocol does not match",
+			terms:       `"https://example.com/path/to/page"`,
+			expectedIDs: []string{},
+		},
+		// Searches WITHOUT protocol - these work correctly
+		{
+			name:        "Search URL without protocol finds post with full URL",
+			terms:       "example.com/path/to/page",
+			expectedIDs: []string{fullUrlId},
+		},
+		{
+			name:        "Search domain only from URL with path",
+			terms:       "example.com",
+			expectedIDs: []string{fullUrlId},
+		},
+		{
+			name:        "Search domain without protocol or path",
+			terms:       "mattermost.com",
+			expectedIDs: []string{urlNoPathId},
+		},
+		{
+			name:        "Search post with URL without protocol in content",
+			terms:       "example.org/docs",
+			expectedIDs: []string{urlNoProtocolId},
+		},
+		{
+			name:        "Search domain only from post without protocol",
+			terms:       "example.org",
+			expectedIDs: []string{urlNoProtocolId},
+		},
+		{
+			name:        "Search simple domain without protocol or path in post",
+			terms:       "testsite.io",
+			expectedIDs: []string{urlNoProtocolNoPathId},
+		},
+		{
+			name:        "Search HTTP URL without protocol",
+			terms:       "legacy.example.net/old",
+			expectedIDs: []string{httpUrlId},
+		},
+		{
+			name:        "Search HTTP domain only",
+			terms:       "legacy.example.net",
+			expectedIDs: []string{httpUrlId},
+		},
+		// Searches with additional text
+		{
+			name:        "Search domain with surrounding text",
+			terms:       "visit example.org/docs today",
+			expectedIDs: []string{urlNoProtocolId},
+		},
+		{
+			name:        "Search domain with text before",
+			terms:       "check example.com/path/to/page",
+			expectedIDs: []string{fullUrlId},
+		},
+		{
+			name:        "Search domain with text after",
+			terms:       "mattermost.com details",
+			expectedIDs: []string{urlNoPathId},
+		},
+		// Negative test cases
+		{
+			name:        "Search non-existent domain returns nothing",
+			terms:       "nonexistent.example.com",
+			expectedIDs: []string{},
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			params := &model.SearchParams{Terms: tc.terms}
+			results, err := th.Store.Post().SearchPostsForUser(th.Context, []*model.SearchParams{params}, th.User.Id, th.Team.Id, 0, 20)
+			require.NoError(t, err)
+
+			require.Len(t, results.Posts, len(tc.expectedIDs))
+			for _, id := range tc.expectedIDs {
+				th.checkPostInSearchResults(t, id, results.Posts)
+			}
+		})
+	}
 }

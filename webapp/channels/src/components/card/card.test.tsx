@@ -1,9 +1,10 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {mount, shallow} from 'enzyme';
 import React from 'react';
 import {FormattedMessage} from 'react-intl';
+
+import {renderWithContext} from 'tests/react_testing_utils';
 
 import Card from './card';
 import TitleAndButtonCardHeader from './title_and_button_card_header/title_and_button_card_header';
@@ -31,14 +32,14 @@ describe('components/card/card', () => {
     };
 
     test('should match snapshot', () => {
-        const wrapper = mount(
+        const {container} = renderWithContext(
             <Card {...baseProps}>
                 <Card.Header>{'Header Test'}</Card.Header>
                 <Card.Body>{'Body Test'}</Card.Body>
             </Card>,
         );
 
-        expect(wrapper).toMatchSnapshot();
+        expect(container).toMatchSnapshot();
     });
 
     test('should match snapshot when expanded', () => {
@@ -47,14 +48,14 @@ describe('components/card/card', () => {
             expanded: true,
         };
 
-        const wrapper = mount(
+        const {container} = renderWithContext(
             <Card {...props}>
                 <Card.Header>{'Header Test'}</Card.Header>
                 <Card.Body>{'Body Test'}</Card.Body>
             </Card>,
         );
 
-        expect(wrapper).toMatchSnapshot();
+        expect(container).toMatchSnapshot();
     });
 
     test('should match snapshot when using header content and no button', () => {
@@ -64,7 +65,7 @@ describe('components/card/card', () => {
             className: 'console',
         };
 
-        const wrapper = shallow(
+        const {container} = renderWithContext(
             <Card {...props}>
                 <Card.Header>
                     <TitleAndButtonCardHeader
@@ -75,7 +76,7 @@ describe('components/card/card', () => {
             </Card>,
         );
 
-        expect(wrapper).toMatchSnapshot();
+        expect(container).toMatchSnapshot();
     });
 
     test('should match snapshot when using header content and a button', () => {
@@ -96,7 +97,7 @@ describe('components/card/card', () => {
             ,
         };
 
-        const wrapper = shallow(
+        const {container} = renderWithContext(
             <Card {...props}>
                 <Card.Header>
                     <TitleAndButtonCardHeader
@@ -108,6 +109,6 @@ describe('components/card/card', () => {
             </Card>,
         );
 
-        expect(wrapper).toMatchSnapshot();
+        expect(container).toMatchSnapshot();
     });
 });

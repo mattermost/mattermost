@@ -28,6 +28,7 @@ import {getCategoryInTeamByType} from 'mattermost-redux/selectors/entities/chann
 import {
     getChannel as getChannelSelector,
     getMyChannelMember as getMyChannelMemberSelector,
+    hasAutotranslationBecomeEnabled,
     isManuallyUnread,
 } from 'mattermost-redux/selectors/entities/channels';
 import {getCurrentTeamId} from 'mattermost-redux/selectors/entities/teams';
@@ -37,6 +38,7 @@ import {DelayedDataLoader} from 'mattermost-redux/utils/data_loader';
 import {addChannelToInitialCategory, addChannelToCategory} from './channel_categories';
 import {logError} from './errors';
 import {bindClientFunc, forceLogoutIfNecessary} from './helpers';
+import {resetReloadPostsInChannel} from './posts';
 import {savePreferences} from './preferences';
 import {loadRolesIfNeeded} from './roles';
 import {getMissingProfilesByIds} from './users';
@@ -260,6 +262,44 @@ export function patchChannel(channelId: string, patch: Partial<Channel>): Action
         onSuccess: [ChannelTypes.RECEIVED_CHANNEL],
         params: [channelId, patch],
     });
+}
+
+export function setMyChannelAutotranslation(channelId: string, enabled: boolean): ActionFuncAsync<boolean> {
+    return async (dispatch, getState) => {
+        const state = getState();
+        const myChannelMember = getMyChannelMemberSelector(state, channelId);
+
+        if (!myChannelMember) {
+            return {data: false, error: 'Channel member not found'};
+        }
+
+        const updatedMember: ChannelMembership = {
+            ...myChannelMember,
+            autotranslation_disabled: !enabled,
+        };
+        try {
+            await Client4.setMyChannelAutotranslation(channelId, enabled);
+        } catch (error) {
+            forceLogoutIfNecessary(error, dispatch, getState);
+            dispatch(logError(error));
+            return {data: undefined, error};
+        }
+
+        // We check before updating the store
+        const becameEnabled = hasAutotranslationBecomeEnabled(state, updatedMember);
+
+        dispatch({
+            type: ChannelTypes.RECEIVED_MY_CHANNEL_MEMBER,
+            data: updatedMember,
+        });
+
+        // If autotranslation changed, delete posts for this channel
+        if (becameEnabled) {
+            await dispatch(resetReloadPostsInChannel(channelId));
+        }
+
+        return {data: true, error: undefined};
+    };
 }
 
 export function updateChannelPrivacy(channelId: string, privacy: string): ActionFuncAsync<Channel> {

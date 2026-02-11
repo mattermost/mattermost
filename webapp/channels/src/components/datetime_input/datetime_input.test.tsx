@@ -26,7 +26,6 @@ describe('components/datetime_input/DateTimeInput', () => {
     };
 
     beforeEach(() => {
-        jest.clearAllMocks();
         mockGetCurrentMomentForTimezone.mockReturnValue(moment('2025-06-08T10:00:00Z'));
         mockIsBeforeTime.mockReturnValue(false);
     });

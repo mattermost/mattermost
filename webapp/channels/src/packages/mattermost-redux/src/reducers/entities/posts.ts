@@ -1,6 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import type {WebSocketMessages} from '@mattermost/client';
 import type {
     OpenGraphMetadata,
     Post,
@@ -20,7 +21,7 @@ import type {
 } from '@mattermost/types/utilities';
 
 import type {MMReduxAction} from 'mattermost-redux/action_types';
-import {ChannelTypes, PostTypes, UserTypes, ThreadTypes, CloudTypes, LimitsTypes} from 'mattermost-redux/action_types';
+import {ChannelTypes, PostTypes, UserTypes, ThreadTypes, CloudTypes, LimitsTypes, TeamTypes} from 'mattermost-redux/action_types';
 import {Posts} from 'mattermost-redux/constants';
 import {PostTypes as PostTypeConstants} from 'mattermost-redux/constants/posts';
 import {comparePosts, isPermalink, shouldUpdatePost} from 'mattermost-redux/utils/post_utils';
@@ -155,6 +156,52 @@ export function nextPostsReplies(state: {[x in Post['id']]: number} = {}, action
     default:
         return state;
     }
+}
+
+// Helper function to remove posts and permalink embeds for a set of channel IDs.
+function removePostsAndEmbedsForChannels(state: IDMappedObjects<Post>, channelIds: Set<string>): IDMappedObjects<Post> {
+    let postModified = false;
+    const nextState = {...state};
+
+    for (const post of Object.values(state)) {
+        // Remove posts from the channels
+        if (channelIds.has(post.channel_id)) {
+            Reflect.deleteProperty(nextState, post.id);
+            postModified = true;
+            continue;
+        }
+
+        // Remove permalink embeds referencing those channels (matches server behavior)
+        if (post.metadata?.embeds?.length) {
+            const newEmbeds: PostEmbed[] = [];
+            let embedRemoved = false;
+
+            for (const embed of post.metadata.embeds) {
+                if (embed.type === 'permalink' && embed.data && channelIds.has((embed.data as PostPreviewMetadata).channel_id)) {
+                    embedRemoved = true;
+                } else {
+                    newEmbeds.push(embed);
+                }
+            }
+
+            if (embedRemoved) {
+                nextState[post.id] = {
+                    ...nextState[post.id],
+                    metadata: {
+                        ...nextState[post.id].metadata,
+                        embeds: newEmbeds,
+                    },
+                };
+                postModified = true;
+            }
+        }
+    }
+
+    if (!postModified) {
+        return state;
+    }
+
+    return nextState;
 }
 
 export function handlePosts(state: IDMappedObjects<Post> = {}, action: MMReduxAction) {
@@ -363,24 +410,15 @@ export function handlePosts(state: IDMappedObjects<Post> = {}, action: MMReduxAc
 
     case ChannelTypes.LEAVE_CHANNEL: {
         const channelId = action.data.id;
+        return removePostsAndEmbedsForChannels(state, new Set([channelId]));
+    }
 
-        let postDeleted = false;
-
-        // Remove any posts from the channel left by the user
-        const nextState = {...state};
-        for (const post of Object.values(state)) {
-            if (post.channel_id === channelId) {
-                Reflect.deleteProperty(nextState, post.id);
-                postDeleted = true;
-            }
-        }
-
-        if (!postDeleted) {
-            // Nothing changed
+    case TeamTypes.LEAVE_TEAM: {
+        const channelIds: string[] = action.data.channelIds || [];
+        if (channelIds.length === 0) {
             return state;
         }
-
-        return nextState;
+        return removePostsAndEmbedsForChannels(state, new Set(channelIds));
     }
 
     case ThreadTypes.FOLLOW_CHANGED_THREAD: {
@@ -391,6 +429,33 @@ export function handlePosts(state: IDMappedObjects<Post> = {}, action: MMReduxAc
             [id]: {
                 ...post,
                 is_following: following,
+            },
+        };
+    }
+
+    case PostTypes.POST_TRANSLATION_UPDATED: {
+        const data: WebSocketMessages.PostTranslationUpdated['data'] = action.data;
+        if (!state[data.object_id]) {
+            return state;
+        }
+
+        const translations = state[data.object_id].metadata?.translations || {};
+        const newTranslations = {
+            ...translations,
+            [data.language]: {
+                lang: data.language,
+                object: data.translation ? JSON.parse(data.translation) : undefined,
+                state: data.state,
+                source_lang: data.src_lang,
+            }};
+        return {
+            ...state,
+            [data.object_id]: {
+                ...state[data.object_id],
+                metadata: {
+                    ...state[data.object_id].metadata,
+                    translations: newTranslations,
+                },
             },
         };
     }
@@ -541,7 +606,13 @@ export function handlePendingPosts(state: string[] = [], action: MMReduxAction) 
 export function postsInChannel(state: Record<string, PostOrderBlock[]> = {}, action: MMReduxAction, prevPosts: IDMappedObjects<Post>, nextPosts: Record<string, Post>) {
     switch (action.type) {
     case PostTypes.RESET_POSTS_IN_CHANNEL: {
-        return {};
+        const {channelId} = action;
+        if (!channelId) {
+            return {};
+        }
+        const nextState = {...state};
+        Reflect.deleteProperty(nextState, channelId);
+        return nextState;
     }
     case PostTypes.RECEIVED_NEW_POST: {
         const post = action.data as Post;
@@ -902,9 +973,7 @@ export function postsInChannel(state: Record<string, PostOrderBlock[]> = {}, act
 
             // For BoR posts: only remove the post itself (BoR doesn't support threads)
             // For regular posts: remove the post and its thread replies
-            const nextOrder = isBoRPost ?
-                block.order.filter((postId: string) => postId !== post.id) :
-                block.order.filter((postId: string) => postId !== post.id && prevPosts[postId]?.root_id !== post.id);
+            const nextOrder = isBoRPost ? block.order.filter((postId: string) => postId !== post.id) : block.order.filter((postId: string) => postId !== post.id && prevPosts[postId]?.root_id !== post.id);
 
             if (nextOrder.length !== block.order.length) {
                 nextPostsForChannel[i] = {
