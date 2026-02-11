@@ -216,6 +216,7 @@ export type ViewsState = {
         layoutByTeam: Record<string, ChannelSyncLayout>;
         shouldSyncByTeam: Record<string, boolean>;
         editMode: boolean;
+        editorChannelsByTeam: Record<string, Channel[]>;
     };
 
     channelSidebar: {

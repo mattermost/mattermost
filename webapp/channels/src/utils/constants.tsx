@@ -374,6 +374,7 @@ export const ActionTypes = keyMirror({
     CHANNEL_SYNC_RECEIVED_LAYOUT: null,
     CHANNEL_SYNC_SET_EDIT_MODE: null,
     CHANNEL_SYNC_SET_SHOULD_SYNC: null,
+    CHANNEL_SYNC_RECEIVED_EDITOR_CHANNELS: null,
 
     // Guilded Layout
     GUILDED_TOGGLE_TEAM_SIDEBAR: null,

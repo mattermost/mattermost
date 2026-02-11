@@ -11,6 +11,8 @@ import SidebarHeader from 'components/sidebar/sidebar_header';
 
 import Pluggable from 'plugins/pluggable';
 import Constants, {ModalIdentifiers, RHSStates} from 'utils/constants';
+
+import './sidebar_edit_mode.scss';
 import {isKeyPressed, cmdOrCtrlPressed} from 'utils/keyboard';
 import {localizeMessage} from 'utils/utils';
 
@@ -39,9 +41,13 @@ type Props = {
     canJoinPublicChannel: boolean;
     isOpen: boolean;
     isChannelSyncEnabled: boolean;
+    isAdmin: boolean;
+    isEditMode: boolean;
     actions: {
         fetchMyCategories: (teamId: string) => void;
         fetchChannelSyncState: (teamId: string) => void;
+        enterLayoutEditMode: (teamId: string) => void;
+        setLayoutEditMode: (enabled: boolean) => void;
         getThreadsForCurrentTeam: (options: {unread: boolean}) => void;
         openModal: <P>(modalData: ModalData<P>) => void;
         closeModal: (modalId: string) => void;
@@ -302,7 +308,34 @@ export default class Sidebar extends React.PureComponent<Props, State> {
                 </div>
                 <div className='sidebar--left__icons'>
                     <Pluggable pluggableName='LeftSidebarHeader'/>
+                    {this.props.isAdmin && this.props.isChannelSyncEnabled && (
+                        <button
+                            className={classNames('sidebar-layout-edit-toggle', {active: this.props.isEditMode})}
+                            title={this.props.isEditMode ? 'Exit Layout Edit Mode' : 'Edit Team Layout'}
+                            onClick={() => {
+                                if (this.props.isEditMode) {
+                                    this.props.actions.setLayoutEditMode(false);
+                                } else {
+                                    this.props.actions.enterLayoutEditMode(this.props.teamId);
+                                }
+                            }}
+                        >
+                            <i className={`icon ${this.props.isEditMode ? 'icon-check' : 'icon-pencil-outline'}`}/>
+                        </button>
+                    )}
                 </div>
+                {this.props.isEditMode && (
+                    <div className='sidebar-edit-mode-banner'>
+                        <i className='icon icon-pencil-outline'/>
+                        <span>{'Editing Team Layout'}</span>
+                        <button
+                            className='sidebar-edit-mode-done'
+                            onClick={() => this.props.actions.setLayoutEditMode(false)}
+                        >
+                            {'Done'}
+                        </button>
+                    </div>
+                )}
                 <SidebarList
                     handleOpenMoreDirectChannelsModal={this.handleOpenMoreDirectChannelsModal}
                     onDragStart={this.onDragStart}

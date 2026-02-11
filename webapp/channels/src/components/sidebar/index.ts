@@ -12,11 +12,15 @@ import {isCustomGroupsEnabled} from 'mattermost-redux/selectors/entities/prefere
 import {haveICurrentChannelPermission, haveISystemPermission} from 'mattermost-redux/selectors/entities/roles';
 import {getCurrentTeam} from 'mattermost-redux/selectors/entities/teams';
 
+import {isCurrentUserSystemAdmin} from 'mattermost-redux/selectors/entities/users';
+import {isCurrentUserCurrentTeamAdmin} from 'mattermost-redux/selectors/entities/teams';
+
 import {clearChannelSelection} from 'actions/views/channel_sidebar';
-import {fetchChannelSyncState} from 'actions/views/channel_sync';
+import {fetchChannelSyncState, enterLayoutEditMode, setLayoutEditMode} from 'actions/views/channel_sync';
 import {closeModal, openModal} from 'actions/views/modals';
 import {closeRightHandSide} from 'actions/views/rhs';
 import {getConfig} from 'mattermost-redux/selectors/entities/general';
+import {isLayoutEditMode} from 'selectors/views/channel_sync';
 
 import {getIsLhsOpen} from 'selectors/lhs';
 import {getIsRhsOpen, getRhsState} from 'selectors/rhs';
@@ -55,6 +59,8 @@ function mapStateToProps(state: GlobalState) {
     return {
         teamId: currentTeam ? currentTeam.id : '',
         isChannelSyncEnabled: config.FeatureFlagChannelSync === 'true',
+        isAdmin: isCurrentUserSystemAdmin(state) || isCurrentUserCurrentTeamAdmin(state),
+        isEditMode: isLayoutEditMode(state),
         canCreatePrivateChannel,
         canCreatePublicChannel,
         canJoinPublicChannel,
@@ -77,6 +83,8 @@ function mapDispatchToProps(dispatch: Dispatch) {
             clearChannelSelection,
             fetchMyCategories,
             fetchChannelSyncState,
+            enterLayoutEditMode,
+            setLayoutEditMode,
             getThreadsForCurrentTeam,
             openModal,
             closeModal,

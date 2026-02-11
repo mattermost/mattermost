@@ -12,6 +12,7 @@ import type {Spring} from 'rebound';
 
 import type {ChannelCategory} from '@mattermost/types/channel_categories';
 import type {Channel} from '@mattermost/types/channels';
+import type {ChannelSyncLayout} from '@mattermost/types/channel_sync';
 import type {Team} from '@mattermost/types/teams';
 
 import {CategoryTypes} from 'mattermost-redux/constants/channel_categories';
@@ -20,6 +21,7 @@ import {General} from 'mattermost-redux/constants';
 import {makeAsyncComponent} from 'components/async_load';
 import Scrollbars from 'components/common/scrollbars';
 import SidebarCategory from 'components/sidebar/sidebar_category';
+import SidebarEditCategory from 'components/sidebar/sidebar_edit_category';
 
 import {findNextUnreadChannelId} from 'utils/channel_utils';
 import {Constants, DraggingStates, DraggingStateTypes} from 'utils/constants';
@@ -51,6 +53,10 @@ type Props = WrappedComponentProps & {
     staticPages: StaticPage[];
     isGuildedLayoutEnabled: boolean;
     isSynced: boolean;
+    isEditMode: boolean;
+    editLayout?: ChannelSyncLayout;
+    editorChannels: Channel[];
+    userChannelIds: Set<string>;
 
     handleOpenMoreDirectChannelsModal: (e: Event) => void;
     onDragStart: (initial: DragStart) => void;
@@ -65,6 +71,9 @@ type Props = WrappedComponentProps & {
         setDraggingState: (data: DraggingState) => void;
         stopDragging: () => void;
         clearChannelSelection: () => void;
+        moveChannelInCanonicalLayout: (sourceCategoryId: string, destCategoryId: string, sourceIndex: number, destIndex: number, channelId: string) => void;
+        moveCategoryInCanonicalLayout: (sourceIndex: number, destIndex: number) => void;
+        addCategoryToCanonicalLayout: (displayName: string) => void;
     };
 };
 
@@ -432,7 +441,105 @@ export class SidebarList extends React.PureComponent<Props, State> {
         this.props.actions.stopDragging();
     };
 
+    onEditModeDragEnd = (result: DropResult) => {
+        const {source, destination, type} = result;
+
+        if (!destination) {
+            return;
+        }
+
+        if (type === 'EDIT_CHANNEL') {
+            this.props.actions.moveChannelInCanonicalLayout(
+                source.droppableId.replace('edit-cat-', ''),
+                destination.droppableId.replace('edit-cat-', ''),
+                source.index,
+                destination.index,
+                result.draggableId.replace('edit-ch-', ''),
+            );
+        } else if (type === 'EDIT_CATEGORY') {
+            this.props.actions.moveCategoryInCanonicalLayout(
+                source.index,
+                destination.index,
+            );
+        }
+    };
+
+    renderEditMode = () => {
+        const {editLayout, editorChannels, userChannelIds} = this.props;
+
+        const categories = editLayout?.categories || [];
+
+        // Channels in the layout
+        const placedChannelIds = new Set<string>();
+        categories.forEach((cat) => {
+            cat.channel_ids.forEach((id) => placedChannelIds.add(id));
+        });
+
+        // Uncategorized channels
+        const uncategorized = editorChannels.filter((ch) => !placedChannelIds.has(ch.id));
+
+        return (
+            <DragDropContext
+                onDragEnd={this.onEditModeDragEnd}
+            >
+                <Droppable
+                    droppableId='droppable-edit-categories'
+                    type='EDIT_CATEGORY'
+                >
+                    {(provided) => (
+                        <div
+                            ref={provided.innerRef}
+                            {...provided.droppableProps}
+                        >
+                            {categories.map((cat, index) => (
+                                <SidebarEditCategory
+                                    key={cat.id}
+                                    category={cat}
+                                    categoryIndex={index}
+                                    editorChannels={editorChannels}
+                                    userChannelIds={userChannelIds}
+                                />
+                            ))}
+                            {uncategorized.length > 0 && (
+                                <SidebarEditCategory
+                                    key='uncategorized'
+                                    category={{
+                                        id: 'uncategorized',
+                                        display_name: 'Uncategorized',
+                                        sort_order: 9999,
+                                        channel_ids: uncategorized.map((ch) => ch.id),
+                                    }}
+                                    categoryIndex={categories.length}
+                                    editorChannels={editorChannels}
+                                    userChannelIds={userChannelIds}
+                                    isUncategorized={true}
+                                />
+                            )}
+                            {provided.placeholder}
+                        </div>
+                    )}
+                </Droppable>
+                <button
+                    className='sidebar-edit-add-category'
+                    onClick={() => {
+                        const name = prompt('Category name:');
+                        if (name) {
+                            this.props.actions.addCategoryToCanonicalLayout(name);
+                        }
+                    }}
+                >
+                    <i className='icon icon-plus'/>
+                    {'Add Category'}
+                </button>
+            </DragDropContext>
+        );
+    };
+
     render() {
+        if (this.props.isEditMode) {
+            return this.renderEditMode();
+        }
+
         let {categories} = this.props;
 
         // In Guilded layout, filter out Direct Messages category - DMs are accessed via team sidebar

@@ -3,6 +3,7 @@
 
 import {getCurrentTeamId} from 'mattermost-redux/selectors/entities/teams';
 
+import type {Channel} from '@mattermost/types/channels';
 import type {ChannelSyncUserState, ChannelSyncLayout} from '@mattermost/types/channel_sync';
 import type {GlobalState} from 'types/store';
 
@@ -37,6 +38,11 @@ export function getQuickJoinChannelIds(state: GlobalState): string[] {
         }
     }
     return ids;
+}
+
+export function getEditorChannels(state: GlobalState): Channel[] {
+    const teamId = getCurrentTeamId(state);
+    return state.views.channelSync?.editorChannelsByTeam?.[teamId] ?? [];
 }
 
 export function getQuickJoinChannelCategories(state: GlobalState): Record<string, string> {

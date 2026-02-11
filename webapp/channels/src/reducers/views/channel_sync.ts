@@ -3,6 +3,7 @@
 
 import {combineReducers} from 'redux';
 
+import type {Channel} from '@mattermost/types/channels';
 import type {ChannelSyncLayout, ChannelSyncUserState} from '@mattermost/types/channel_sync';
 
 import {ActionTypes} from 'utils/constants';
@@ -52,9 +53,22 @@ function editMode(state = false, action: {type: string; data: boolean}) {
     }
 }
 
+function editorChannelsByTeam(state: Record<string, Channel[]> = {}, action: {type: string; data: {teamId: string; channels: Channel[]}}) {
+    switch (action.type) {
+    case ActionTypes.CHANNEL_SYNC_RECEIVED_EDITOR_CHANNELS:
+        return {
+            ...state,
+            [action.data.teamId]: action.data.channels,
+        };
+    default:
+        return state;
+    }
+}
+
 export default combineReducers({
     syncStateByTeam,
     layoutByTeam,
     shouldSyncByTeam,
     editMode,
+    editorChannelsByTeam,
 });

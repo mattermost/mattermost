@@ -6,7 +6,7 @@ import {bindActionCreators} from 'redux';
 import type {Dispatch} from 'redux';
 
 import {moveCategory} from 'mattermost-redux/actions/channel_categories';
-import {getCurrentChannelId, getUnreadChannelIds} from 'mattermost-redux/selectors/entities/channels';
+import {getCurrentChannelId, getUnreadChannelIds, getMyChannelMemberships} from 'mattermost-redux/selectors/entities/channels';
 import {shouldShowUnreadsCategory, isCollapsedThreadsEnabled} from 'mattermost-redux/selectors/entities/preferences';
 import {getCurrentTeam} from 'mattermost-redux/selectors/entities/teams';
 import {getThreadCountsInCurrentTeam} from 'mattermost-redux/selectors/entities/threads';
@@ -26,7 +26,8 @@ import {
     getCategoriesForCurrentTeam,
     isUnreadFilterEnabled,
 } from 'selectors/views/channel_sidebar';
-import {getShouldSync} from 'selectors/views/channel_sync';
+import {moveChannelInCanonicalLayout, moveCategoryInCanonicalLayout, addCategoryToCanonicalLayout} from 'actions/views/channel_sync';
+import {getShouldSync, isLayoutEditMode, getSyncLayout, getEditorChannels} from 'selectors/views/channel_sync';
 import {isGuildedLayoutEnabled} from 'selectors/views/guilded_layout';
 
 import type {GlobalState} from 'types/store';
@@ -59,6 +60,10 @@ function mapStateToProps(state: GlobalState) {
         staticPages: getVisibleStaticPages(state),
         isGuildedLayoutEnabled: isGuildedLayoutEnabled(state),
         isSynced: getShouldSync(state),
+        isEditMode: isLayoutEditMode(state),
+        editLayout: getSyncLayout(state),
+        editorChannels: getEditorChannels(state),
+        userChannelIds: new Set(Object.keys(getMyChannelMemberships(state))),
     };
 }
 
@@ -73,6 +78,9 @@ function mapDispatchToProps(dispatch: Dispatch) {
             stopDragging,
             clearChannelSelection,
             switchToLhsStaticPage,
+            moveChannelInCanonicalLayout,
+            moveCategoryInCanonicalLayout,
+            addCategoryToCanonicalLayout,
         }, dispatch),
     };
 }
