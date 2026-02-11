@@ -4535,6 +4535,10 @@
     "translation": "User is not an OAuth or SAML user."
   },
   {
+    "id": "api.user.oauth.get_settings.app_error",
+    "translation": "Failed to get {{.Service}} settings"
+  },
+  {
     "id": "api.user.oauth_to_email.context.app_error",
     "translation": "Update password failed because context user_id did not match provided user's id."
   },
