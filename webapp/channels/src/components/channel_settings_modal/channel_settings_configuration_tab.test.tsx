@@ -61,6 +61,7 @@ const mockChannelWithBanner = TestHelper.getChannelMock({
 const baseProps = {
     channel: mockChannel,
     setAreThereUnsavedChanges: jest.fn(),
+    canManageBanner: true,
 };
 
 describe('ChannelSettingsConfigurationTab', () => {
@@ -345,6 +346,7 @@ describe('ChannelSettingsConfigurationTab', () => {
             <ChannelSettingsConfigurationTab
                 channel={channelWithValidColor}
                 setAreThereUnsavedChanges={jest.fn()}
+                canManageBanner={true}
             />,
         );
 
