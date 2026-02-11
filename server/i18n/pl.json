@@ -11710,5 +11710,41 @@
   {
     "id": "ent.autotranslation.feature_unavailable",
     "translation": "Automatyczne tłumaczenie nie jest dostępne. Skontaktuj się z administratorem systemu, aby Aktualizuj licencję korporacyjną."
+  },
+  {
+    "id": "api.channel.patch_update_channel.auto_translation_restricted.app_error",
+    "translation": "Automatyczne tłumaczenie nie jest dozwolone dla tego Kanału."
+  },
+  {
+    "id": "api.channel.patch_update_channel.feature_not_available.app_error",
+    "translation": "Funkcja automatycznego tłumaczenia nie jest dostępna."
+  },
+  {
+    "id": "api.channel.patch_update_channel.no_changes.app_error",
+    "translation": "Brak zmian w aktualizacji."
+  },
+  {
+    "id": "api.channel.post_update_channel_autotranslation_message.create_post.error",
+    "translation": "Nie udało się opublikować wiadomości o aktualizacji automatycznego tłumaczenia."
+  },
+  {
+    "id": "api.channel.post_update_channel_autotranslation_message.disabled",
+    "translation": "@%s wyłączył automatyczne tłumaczenie dla tego Kanału. Wszystkie nowe wiadomości będą wyświetlane w oryginalnym języku."
+  },
+  {
+    "id": "api.channel.post_update_channel_autotranslation_message.enabled",
+    "translation": "@%s włączył automatyczne tłumaczenie dla tego Kanału. Wszystkie nowe wiadomości będą wyświetlane w preferowanym przez Ciebie języku."
+  },
+  {
+    "id": "api.channel.post_update_channel_autotranslation_message.retrieve_user.error",
+    "translation": "Nie udało się pobrać użytkownika podczas aktualizacji statusu autotłumaczenia"
+  },
+  {
+    "id": "api.channel.update_channel_member_autotranslation.channel_not_enabled.app_error",
+    "translation": "Automatyczne tłumaczenie nie jest włączone dla tego Kanału."
+  },
+  {
+    "id": "api.channel.update_channel_member_autotranslation.feature_not_available.app_error",
+    "translation": "Automatyczne tłumaczenie nie jest dostępne."
   }
 ]
