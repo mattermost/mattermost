@@ -9,4 +9,26 @@ export {createRandomPost} from './post';
 export {createNewTeam, createRandomTeam} from './team';
 export {createNewUserProfile, createRandomUser, getDefaultAdminUser, isOutsideRemoteUserHour} from './user';
 export {installAndEnablePlugin, isPluginActive, getPluginStatus} from './plugin';
-//getPluginStatus
+export {
+    openTeamSettingsModal,
+    switchToTab,
+    updateTeamName,
+    updateTeamDescription,
+    uploadTeamIcon,
+    removeTeamIcon,
+    toggleOpenInvite,
+    addAllowedDomain,
+    removeAllowedDomain,
+    regenerateInviteId,
+    verifyModalOpen,
+    verifyTeamData,
+    verifyUnsavedChangesWarning,
+    verifySavedMessage,
+    saveTeamSettings,
+    cancelTeamSettings,
+    closeTeamSettingsModal,
+    verifyModalClosed,
+    verifyTabActive,
+    verifyTabExists,
+    verifySaveButtonState,
+} from './team_settings_helpers';

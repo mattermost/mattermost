@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {useCallback, useEffect} from 'react';
+import React, {useCallback} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 import {useDispatch, useSelector} from 'react-redux';
 import {useHistory} from 'react-router-dom';
@@ -50,7 +50,6 @@ interface Props {
 }
 
 export default function SidebarTeamMenu(props: Props) {
-    const dispatch = useDispatch();
     const license = useSelector(getLicense);
     const config = useSelector(getConfig);
 
@@ -68,21 +67,6 @@ export default function SidebarTeamMenu(props: Props) {
     const canJoinAnotherTeam = !experimentalPrimaryTeam && haveMoreJoinableTeams;
 
     const tooltipText = props.currentTeam.description ? props.currentTeam.description : props.currentTeam.display_name;
-
-    // TODO: REMOVE THIS - Auto-open Team Settings Modal for testing
-    useEffect(() => {
-        const timer = setTimeout(() => {
-            dispatch(openModal({
-                modalId: ModalIdentifiers.TEAM_SETTINGS,
-                dialogType: TeamSettingsModal,
-                dialogProps: {
-                    isOpen: true,
-                    focusOriginElement: 'sidebarTeamMenuButton',
-                },
-            }));
-        }, 1000); // Wait 1 second after mount
-        return () => clearTimeout(timer);
-    }, []); // Empty deps = run once on mount
 
     return (
         <Menu.Container
