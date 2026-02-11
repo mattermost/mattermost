@@ -1096,7 +1096,7 @@ export class SystemUserDetail extends PureComponent<Props, State> {
                     if (!this.state.confirmPassword) {
                         this.setState({
                             confirmPasswordError: this.props.intl.formatMessage({
-                                id: 'admin.userDetail.saveChangesModal.passwordRequired',
+                                id: 'admin.userDetail.saveChangesModal.passwordEmpty',
                                 defaultMessage: 'Password is required to change your email address',
                             }),
                             isSaving: false,
