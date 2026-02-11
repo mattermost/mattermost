@@ -19173,8 +19173,10 @@ function calculateResults(results) {
   const total = passing + failed;
   const passRate = total > 0 ? (passing * 100 / total).toFixed(2) : "0.00";
   const color = getColor(parseFloat(passRate));
-  const specSuffix = totalSpecs > 0 ? ` in ${totalSpecs} spec files` : "";
-  const commitStatusMessage = failed === 0 ? `${passed} passed${specSuffix}` : `${failed} failed, ${passed} passed${specSuffix}`;
+  const rate = total > 0 ? passing * 100 / total : 0;
+  const rateStr = rate === 100 ? "100%" : `${rate.toFixed(1)}%`;
+  const specSuffix = totalSpecs > 0 ? `, ${totalSpecs} specs` : "";
+  const commitStatusMessage = rate === 100 ? `${rateStr} passed (${passing})${specSuffix}` : `${rateStr} passed (${passing}/${total}), ${failed} failed${specSuffix}`;
   return {
     passed,
     failed,
