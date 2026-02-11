@@ -102,6 +102,18 @@ func convertSyncStateToSidebarCategories(state *model.ChannelSyncUserState, user
 	}
 }
 
+// checkChannelSyncBlocked returns true if the user is synced and trying to modify categories.
+func checkChannelSyncBlocked(c *Context, userId, teamId string) bool {
+	if !c.App.IsChannelSyncEnabled() {
+		return false
+	}
+	shouldSync, err := c.App.ShouldSyncUser(c.AppContext, userId, teamId)
+	if err != nil || !shouldSync {
+		return false
+	}
+	return true
+}
+
 func createCategoryForTeamForUser(c *Context, w http.ResponseWriter, r *http.Request) {
 	c.RequireUserId().RequireTeamId()
 	if c.Err != nil {
@@ -115,6 +127,11 @@ func createCategoryForTeamForUser(c *Context, w http.ResponseWriter, r *http.Req
 
 	if !c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), c.Params.TeamId, model.PermissionViewTeam) {
 		c.SetPermissionError(model.PermissionViewTeam)
+		return
+	}
+
+	if checkChannelSyncBlocked(c, c.Params.UserId, c.Params.TeamId) {
+		c.Err = model.NewAppError("createCategoryForTeamForUser", "api.channel_sync.categories_synced", nil, "Categories are managed by Channel Sync", http.StatusForbidden)
 		return
 	}
 
@@ -196,6 +213,11 @@ func updateCategoryOrderForTeamForUser(c *Context, w http.ResponseWriter, r *htt
 		return
 	}
 
+	if checkChannelSyncBlocked(c, c.Params.UserId, c.Params.TeamId) {
+		c.Err = model.NewAppError("updateCategoryOrderForTeamForUser", "api.channel_sync.categories_synced", nil, "Category ordering is managed by Channel Sync", http.StatusForbidden)
+		return
+	}
+
 	auditRec := c.MakeAuditRecord(model.AuditEventUpdateCategoryOrderForTeamForUser, model.AuditStatusFail)
 	defer c.LogAuditRec(auditRec)
 
@@ -271,6 +293,11 @@ func updateCategoriesForTeamForUser(c *Context, w http.ResponseWriter, r *http.R
 
 	if !c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), c.Params.TeamId, model.PermissionViewTeam) {
 		c.SetPermissionError(model.PermissionViewTeam)
+		return
+	}
+
+	if checkChannelSyncBlocked(c, c.Params.UserId, c.Params.TeamId) {
+		c.Err = model.NewAppError("updateCategoriesForTeamForUser", "api.channel_sync.categories_synced", nil, "Categories are managed by Channel Sync", http.StatusForbidden)
 		return
 	}
 
@@ -388,6 +415,11 @@ func updateCategoryForTeamForUser(c *Context, w http.ResponseWriter, r *http.Req
 		return
 	}
 
+	if checkChannelSyncBlocked(c, c.Params.UserId, c.Params.TeamId) {
+		c.Err = model.NewAppError("updateCategoryForTeamForUser", "api.channel_sync.categories_synced", nil, "Categories are managed by Channel Sync", http.StatusForbidden)
+		return
+	}
+
 	auditRec := c.MakeAuditRecord(model.AuditEventUpdateCategoryForTeamForUser, model.AuditStatusFail)
 	defer c.LogAuditRec(auditRec)
 
@@ -436,6 +468,11 @@ func deleteCategoryForTeamForUser(c *Context, w http.ResponseWriter, r *http.Req
 
 	if !c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), c.Params.TeamId, model.PermissionViewTeam) {
 		c.SetPermissionError(model.PermissionViewTeam)
+		return
+	}
+
+	if checkChannelSyncBlocked(c, c.Params.UserId, c.Params.TeamId) {
+		c.Err = model.NewAppError("deleteCategoryForTeamForUser", "api.channel_sync.categories_synced", nil, "Categories are managed by Channel Sync", http.StatusForbidden)
 		return
 	}
 
