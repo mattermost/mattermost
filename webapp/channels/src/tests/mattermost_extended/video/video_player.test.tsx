@@ -186,7 +186,7 @@ describe('VideoPlayer', () => {
         expect(container.firstChild).toBeNull();
     });
 
-    test('handles missing mime_type with default', () => {
+    test('handles missing mime_type with default video/mp4', () => {
         const fileInfoNoMime: FileInfo = {
             ...baseFileInfo,
             mime_type: '',
@@ -195,7 +195,49 @@ describe('VideoPlayer', () => {
         render(<VideoPlayer {...defaultProps} fileInfo={fileInfoNoMime} />);
 
         const source = document.querySelector('source');
+        // Default is video/mp4 which is browser-supported, so type attribute is set
         expect(source).toHaveAttribute('type', 'video/mp4');
+    });
+
+    test('sets type attribute for browser-supported MIME types', () => {
+        const supportedTypes = ['video/mp4', 'video/webm', 'video/ogg'];
+        for (const mimeType of supportedTypes) {
+            const fileInfo: FileInfo = {
+                ...baseFileInfo,
+                mime_type: mimeType,
+            };
+
+            const {unmount} = render(<VideoPlayer {...defaultProps} fileInfo={fileInfo} />);
+
+            const source = document.querySelector('source');
+            expect(source).toHaveAttribute('type', mimeType);
+            unmount();
+        }
+    });
+
+    test('omits type attribute for non-browser MIME types so browser attempts playback', () => {
+        const unsupportedTypes = [
+            {mime: 'video/quicktime', ext: 'mov'},
+            {mime: 'video/x-matroska', ext: 'mkv'},
+            {mime: 'video/x-msvideo', ext: 'avi'},
+            {mime: 'video/x-ms-wmv', ext: 'wmv'},
+            {mime: 'video/mpeg', ext: 'mpg'},
+            {mime: 'video/x-flv', ext: 'flv'},
+        ];
+        for (const {mime, ext} of unsupportedTypes) {
+            const fileInfo: FileInfo = {
+                ...baseFileInfo,
+                name: `test.${ext}`,
+                mime_type: mime,
+                extension: ext,
+            };
+
+            const {unmount} = render(<VideoPlayer {...defaultProps} fileInfo={fileInfo} />);
+
+            const source = document.querySelector('source');
+            expect(source).not.toHaveAttribute('type');
+            unmount();
+        }
     });
 
     test('handles missing name with default', () => {

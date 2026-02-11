@@ -14,12 +14,19 @@ const mockStore = configureStore([]);
 // Track dispatch calls
 const mockDispatch = jest.fn((action) => action);
 
-// Mock useHistory
+// Mock useHistory and useLocation
 const mockPush = jest.fn();
+let mockPathname = '/test-team/channels/town-square';
 jest.mock('react-router-dom', () => ({
     ...jest.requireActual('react-router-dom'),
     useHistory: () => ({
         push: mockPush,
+    }),
+    useLocation: () => ({
+        pathname: mockPathname,
+        search: '',
+        hash: '',
+        state: undefined,
     }),
 }));
 
@@ -126,6 +133,7 @@ describe('DmListPage', () => {
         jest.clearAllMocks();
         mockSelectorCallCount = 0;
         mockCurrentChannelId = 'dm1';
+        mockPathname = '/test-team/channels/town-square';
     });
 
     // BUG 3: DM list should dispatch an action to fetch latest posts for DM channels
@@ -190,6 +198,24 @@ describe('DmListPage', () => {
 
         // Should navigate to the most recent DM because current channel is not in the DM list
         expect(mockPush).toHaveBeenCalledWith('/test-team/messages/@user2');
+    });
+
+    it('does NOT auto-select if URL is already on a /messages/ route (avatar click)', () => {
+        // Simulate: user clicked an avatar which called history.push to /messages/@someone
+        // but Redux currentChannelId hasn't updated yet (still on a non-DM channel)
+        mockCurrentChannelId = 'regular-channel-id';
+        mockPathname = '/test-team/messages/@someuser';
+        const store = mockStore({});
+        render(
+            <Provider store={store}>
+                <BrowserRouter>
+                    <DmListPage />
+                </BrowserRouter>
+            </Provider>,
+        );
+
+        // Should NOT navigate because the URL already indicates we're going to a DM
+        expect(mockPush).not.toHaveBeenCalled();
     });
 
     it('closes a DM conversation when close button is clicked', () => {
