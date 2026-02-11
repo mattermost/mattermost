@@ -59,7 +59,7 @@ export function SystemUsersListAction({user, currentUser, tableId, rowIndex, onE
     const isLicensed = useSelector(getLicense)?.IsLicensed === 'true';
     const haveSysConsoleWriteUserManagementUsersPermissions = useSelector((state: GlobalState) => haveISystemPermission(state, {permission: Permissions.SYSCONSOLE_WRITE_USERMANAGEMENT_USERS}));
     const showManageUserSettings = useSelector(getShowManageUserSettings);
-    const pluginMenuItems = useSelector((state: GlobalState) => state.plugins.components.SystemUsersListMenuItem) as SystemUsersListMenuItemAction[];
+    const pluginMenuItems = (useSelector((state: GlobalState) => state.plugins.components.SystemUsersListMenuItem) ?? []) as SystemUsersListMenuItemAction[];
 
     function getTranslatedUserRole(userRoles: UserProfile['roles']) {
         if (user.delete_at > 0) {
