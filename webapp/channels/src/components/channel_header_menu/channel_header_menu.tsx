@@ -157,6 +157,7 @@ export default function ChannelHeaderMenu({dmUser, gmMembers, isMobile, archived
                     isFavorite={isFavorite}
                     isMobile={isMobile || false}
                     isChannelBookmarksEnabled={isChannelBookmarksEnabled}
+                    isChannelAutotranslated={isChannelAutotranslated}
                 />
             )}
             {isGroup && (
@@ -168,6 +169,7 @@ export default function ChannelHeaderMenu({dmUser, gmMembers, isMobile, archived
                     isFavorite={isFavorite}
                     isMobile={isMobile || false}
                     isChannelBookmarksEnabled={isChannelBookmarksEnabled}
+                    isChannelAutotranslated={isChannelAutotranslated}
                 />
             )}
             {(!isDirect && !isGroup) && (

@@ -3,6 +3,7 @@
 
 import {Permissions} from 'mattermost-redux/constants';
 import {createSelector} from 'mattermost-redux/selectors/create_selector';
+import {getConfig} from 'mattermost-redux/selectors/entities/general';
 import {haveIChannelPermission} from 'mattermost-redux/selectors/entities/roles';
 
 import Constants from 'utils/constants';
@@ -19,10 +20,19 @@ export const canAccessChannelSettings = createSelector(
     (state: GlobalState) => state,
     (state: GlobalState) => state.entities.channels.channels,
     (state: GlobalState, channelId: string) => channelId,
-    (state, channels, channelId) => {
+    (state: GlobalState) => getConfig(state)?.RestrictDMAndGMAutotranslation === 'true',
+    (state, channels, channelId, restrictDMAndGMAutotranslation) => {
         const channel = channels[channelId];
         if (!channel) {
             return false;
+        }
+
+        const isDM = channel.type === Constants.DM_CHANNEL;
+        const isGM = channel.type === Constants.GM_CHANNEL;
+
+        // For DM and GM: allow Channel Settings when "Restrict auto-translation on DM and GM" is not enabled
+        if (isDM || isGM) {
+            return !restrictDMAndGMAutotranslation;
         }
 
         const isPrivate = channel.type === Constants.PRIVATE_CHANNEL;
@@ -51,6 +61,15 @@ export const canAccessChannelSettings = createSelector(
             bannerPermission,
         );
 
+        // Configuration tab (translation) permissions
+        const translationPermission = isPrivate ? Permissions.MANAGE_PRIVATE_CHANNEL_AUTO_TRANSLATION : Permissions.MANAGE_PUBLIC_CHANNEL_AUTO_TRANSLATION;
+        const hasTranslationPermission = haveIChannelPermission(
+            state,
+            teamId,
+            channelId,
+            translationPermission,
+        );
+
         // Archive tab permissions
         const archivePermission = isPrivate ? Permissions.DELETE_PRIVATE_CHANNEL : Permissions.DELETE_PUBLIC_CHANNEL;
 
@@ -62,6 +81,6 @@ export const canAccessChannelSettings = createSelector(
         );
 
         // User can access channel settings if they have permission for at least one tab
-        return hasInfoPermission || hasBannerPermission || hasArchivePermission;
+        return hasInfoPermission || hasBannerPermission || hasTranslationPermission || hasArchivePermission;
     },
 );

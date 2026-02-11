@@ -12,6 +12,8 @@ describe('Selectors.Views.ChannelSettings', () => {
     const channelId = 'channel1';
     const defaultChannelId = 'default_channel';
     const privateChannelId = 'private_channel1';
+    const dmChannelId = 'dm_channel1';
+    const gmChannelId = 'gm_channel1';
 
     // Create a more complete mock state
     const baseState = {
@@ -35,6 +37,18 @@ describe('Selectors.Views.ChannelSettings', () => {
                         team_id: teamId,
                         name: 'private-channel',
                         type: 'P', // Constants.PRIVATE_CHANNEL
+                    },
+                    [dmChannelId]: {
+                        id: dmChannelId,
+                        team_id: teamId,
+                        name: 'user1__user2',
+                        type: 'D', // Constants.DM_CHANNEL
+                    },
+                    [gmChannelId]: {
+                        id: gmChannelId,
+                        team_id: teamId,
+                        name: 'group-channel',
+                        type: 'G', // Constants.GM_CHANNEL
                     },
                 },
             },
@@ -149,5 +163,45 @@ describe('Selectors.Views.ChannelSettings', () => {
         });
         const result = canAccessChannelSettings(baseState, defaultChannelId);
         expect(result).toBe(false);
+    });
+
+    describe('DM and GM channels with RestrictDMAndGMAutotranslation', () => {
+        it('should return true for DM channel when RestrictDMAndGMAutotranslation is not enabled', () => {
+            const result = canAccessChannelSettings(baseState, dmChannelId);
+            expect(result).toBe(true);
+        });
+
+        it('should return true for GM channel when RestrictDMAndGMAutotranslation is not enabled', () => {
+            const result = canAccessChannelSettings(baseState, gmChannelId);
+            expect(result).toBe(true);
+        });
+
+        it('should return false for DM channel when RestrictDMAndGMAutotranslation is enabled', () => {
+            const stateWithRestriction = {
+                ...baseState,
+                entities: {
+                    ...baseState.entities,
+                    general: {
+                        config: {RestrictDMAndGMAutotranslation: 'true'},
+                    },
+                },
+            } as unknown as GlobalState;
+            const result = canAccessChannelSettings(stateWithRestriction, dmChannelId);
+            expect(result).toBe(false);
+        });
+
+        it('should return false for GM channel when RestrictDMAndGMAutotranslation is enabled', () => {
+            const stateWithRestriction = {
+                ...baseState,
+                entities: {
+                    ...baseState.entities,
+                    general: {
+                        config: {RestrictDMAndGMAutotranslation: 'true'},
+                    },
+                },
+            } as unknown as GlobalState;
+            const result = canAccessChannelSettings(stateWithRestriction, gmChannelId);
+            expect(result).toBe(false);
+        });
     });
 });

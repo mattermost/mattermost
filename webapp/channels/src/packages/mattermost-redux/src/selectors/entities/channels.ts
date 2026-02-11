@@ -1462,7 +1462,17 @@ export function getChannelAutotranslation(state: GlobalState, channelId: string)
     const channel = getChannel(state, channelId);
     const config = getConfig(state);
 
-    return Boolean(channel?.autotranslation && config?.EnableAutoTranslation === 'true');
+    if (!channel?.autotranslation || config?.EnableAutoTranslation !== 'true') {
+        return false;
+    }
+
+    // When autotranslation is restricted on DMs and GMs, do not consider them autotranslated
+    const isDMOrGM = channel.type === General.DM_CHANNEL || channel.type === General.GM_CHANNEL;
+    if (isDMOrGM && config?.RestrictDMAndGMAutotranslation === 'true') {
+        return false;
+    }
+
+    return true;
 }
 
 export function getMyChannelAutotranslation(state: GlobalState, channelId: string): boolean {
