@@ -62,7 +62,7 @@ describe('components/admin_console/license_settings/modals/license_diff_view', (
         // Should show labels
         expect(screen.getByText('Plan')).toBeInTheDocument();
         expect(screen.getByText('Start Date')).toBeInTheDocument();
-        expect(screen.getByText('Expiration Date')).toBeInTheDocument();
+        expect(screen.getByText('End Date')).toBeInTheDocument();
         expect(screen.getByText('Users')).toBeInTheDocument();
         expect(screen.getByText('Name')).toBeInTheDocument();
         expect(screen.getByText('Company')).toBeInTheDocument();
@@ -197,6 +197,170 @@ describe('components/admin_console/license_settings/modals/license_diff_view', (
             <LicenseDiffView
                 currentLicense={emptyLicense}
                 newLicense={baseNewLicense}
+                locale={locale}
+            />,
+            initialState,
+        );
+
+        expect(container.querySelector('.license-transition-banner')).not.toBeInTheDocument();
+    });
+
+    // Upgrade banners (comparison diff view)
+    test('should show success banner for professional to enterprise upgrade', () => {
+        const {container} = renderWithContext(
+            <LicenseDiffView
+                currentLicense={baseCurrentLicense}
+                newLicense={baseNewLicense}
+                locale={locale}
+            />,
+            initialState,
+        );
+
+        expect(screen.getByText('This license adds Enterprise capabilities')).toBeInTheDocument();
+        expect(container.querySelector('.license-transition-banner--success')).toBeInTheDocument();
+        expect(screen.queryByText('View plan differences')).not.toBeInTheDocument();
+    });
+
+    test('should show success banner for professional to enterprise advanced upgrade', () => {
+        const advancedLicense: License = {
+            ...baseNewLicense,
+            sku_name: 'Enterprise Advanced',
+            sku_short_name: 'advanced',
+        };
+
+        const {container} = renderWithContext(
+            <LicenseDiffView
+                currentLicense={baseCurrentLicense}
+                newLicense={advancedLicense}
+                locale={locale}
+            />,
+            initialState,
+        );
+
+        expect(screen.getByText('This license adds Enterprise Advanced capabilities')).toBeInTheDocument();
+        expect(container.querySelector('.license-transition-banner--success')).toBeInTheDocument();
+        expect(screen.queryByText('View plan differences')).not.toBeInTheDocument();
+    });
+
+    test('should show success banner for enterprise to enterprise advanced upgrade', () => {
+        const enterpriseLicense: ClientLicense = {
+            ...baseCurrentLicense,
+            SkuName: 'Enterprise',
+            SkuShortName: 'enterprise',
+        };
+
+        const advancedLicense: License = {
+            ...baseNewLicense,
+            sku_name: 'Enterprise Advanced',
+            sku_short_name: 'advanced',
+        };
+
+        const {container} = renderWithContext(
+            <LicenseDiffView
+                currentLicense={enterpriseLicense}
+                newLicense={advancedLicense}
+                locale={locale}
+            />,
+            initialState,
+        );
+
+        expect(screen.getByText('This license adds Enterprise Advanced capabilities')).toBeInTheDocument();
+        expect(container.querySelector('.license-transition-banner--success')).toBeInTheDocument();
+    });
+
+    // Downgrade banners (comparison diff view)
+    test('should show danger banner for enterprise to professional downgrade', () => {
+        const enterpriseLicense: ClientLicense = {
+            ...baseCurrentLicense,
+            SkuName: 'Enterprise',
+            SkuShortName: 'enterprise',
+        };
+
+        const professionalLicense: License = {
+            ...baseNewLicense,
+            sku_name: 'Professional',
+            sku_short_name: 'professional',
+        };
+
+        const {container} = renderWithContext(
+            <LicenseDiffView
+                currentLicense={enterpriseLicense}
+                newLicense={professionalLicense}
+                locale={locale}
+            />,
+            initialState,
+        );
+
+        expect(screen.getByText('This license downgrades your plan')).toBeInTheDocument();
+        expect(container.querySelector('.license-transition-banner--danger')).toBeInTheDocument();
+        expect(screen.getByText('View plan differences')).toBeInTheDocument();
+    });
+
+    test('should show danger banner for enterprise advanced to enterprise downgrade', () => {
+        const advancedLicense: ClientLicense = {
+            ...baseCurrentLicense,
+            SkuName: 'Enterprise Advanced',
+            SkuShortName: 'advanced',
+        };
+
+        const enterpriseNewLicense: License = {
+            ...baseNewLicense,
+            sku_name: 'Enterprise',
+            sku_short_name: 'enterprise',
+        };
+
+        const {container} = renderWithContext(
+            <LicenseDiffView
+                currentLicense={advancedLicense}
+                newLicense={enterpriseNewLicense}
+                locale={locale}
+            />,
+            initialState,
+        );
+
+        expect(screen.getByText('This license downgrades your plan')).toBeInTheDocument();
+        expect(container.querySelector('.license-transition-banner--danger')).toBeInTheDocument();
+        expect(screen.getByText('View plan differences')).toBeInTheDocument();
+    });
+
+    test('should show danger banner for enterprise advanced to professional downgrade', () => {
+        const advancedLicense: ClientLicense = {
+            ...baseCurrentLicense,
+            SkuName: 'Enterprise Advanced',
+            SkuShortName: 'advanced',
+        };
+
+        const professionalLicense: License = {
+            ...baseNewLicense,
+            sku_name: 'Professional',
+            sku_short_name: 'professional',
+        };
+
+        const {container} = renderWithContext(
+            <LicenseDiffView
+                currentLicense={advancedLicense}
+                newLicense={professionalLicense}
+                locale={locale}
+            />,
+            initialState,
+        );
+
+        expect(screen.getByText('This license downgrades your plan')).toBeInTheDocument();
+        expect(container.querySelector('.license-transition-banner--danger')).toBeInTheDocument();
+        expect(screen.getByText('View plan differences')).toBeInTheDocument();
+    });
+
+    test('should not show banner when same SKU', () => {
+        const sameLicense: License = {
+            ...baseNewLicense,
+            sku_name: 'Professional',
+            sku_short_name: 'professional',
+        };
+
+        const {container} = renderWithContext(
+            <LicenseDiffView
+                currentLicense={baseCurrentLicense}
+                newLicense={sameLicense}
                 locale={locale}
             />,
             initialState,

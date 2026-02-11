@@ -65,6 +65,15 @@
             color: var(--online-indicator);
         }
     }
+
+    &--danger {
+        border-color: rgba(var(--dnd-indicator-rgb), 0.32);
+        background-color: rgba(var(--dnd-indicator-rgb), 0.08);
+
+        .license-transition-banner__icon .icon {
+            color: var(--dnd-indicator);
+        }
+    }
 }
 
 .license-diff-view {
