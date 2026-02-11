@@ -713,6 +713,9 @@ describe('reconnect', () => {
 describe('handleChannelUpdatedEvent', () => {
     const initialState = {
         entities: {
+            general: {
+                config: {},
+            },
             channels: {
                 currentChannelId: 'channel',
                 channels: {
@@ -720,6 +723,7 @@ describe('handleChannelUpdatedEvent', () => {
                         id: 'channel',
                     },
                 },
+                myMembers: {},
             },
             teams: {
                 currentTeamId: 'team',
