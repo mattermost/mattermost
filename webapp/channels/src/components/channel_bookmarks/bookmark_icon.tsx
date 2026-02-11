@@ -51,6 +51,7 @@ const BookmarkIcon = ({
             <BookmarkIconImg
                 src={getImageSrc(imageUrl, hasImageProxy)}
                 size={size}
+                draggable={false}
             />
         );
     } else if (fileInfo) {

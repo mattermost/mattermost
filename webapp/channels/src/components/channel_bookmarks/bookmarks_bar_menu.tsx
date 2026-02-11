@@ -4,7 +4,7 @@
 import {dropTargetForElements} from '@atlaskit/pragmatic-drag-and-drop/element/adapter';
 import React, {memo, useCallback, useEffect, useRef} from 'react';
 import {useIntl} from 'react-intl';
-import styled from 'styled-components';
+import styled, {css} from 'styled-components';
 
 import {
     DotsHorizontalIcon,
@@ -132,7 +132,12 @@ function BookmarksBarMenu({
             </OverflowSection>,
         );
         if (canAdd) {
-            menuItems.push(<Menu.Separator key='separator'/>);
+            menuItems.push(
+                <Menu.Separator
+                    key='separator'
+                    sx={{margin: '8px 0'}}
+                />,
+            );
         }
     }
 
@@ -160,7 +165,10 @@ function BookmarksBarMenu({
     }
 
     return (
-        <MenuContainer ref={triggerRef}>
+        <MenuContainer
+            ref={triggerRef}
+            $hasOverflow={hasOverflow}
+        >
             <Menu.Container
                 anchorOrigin={{vertical: 'bottom', horizontal: 'right'}}
                 transformOrigin={{vertical: 'top', horizontal: 'right'}}
@@ -187,11 +195,16 @@ function BookmarksBarMenu({
 
 export default memo(BookmarksBarMenu);
 
-const MenuContainer = styled.div`
+const MenuContainer = styled.div<{$hasOverflow: boolean}>`
     display: flex;
     align-items: center;
     flex-shrink: 0;
     padding: 0 8px;
+
+    ${({$hasOverflow}) => $hasOverflow && css`
+        background: linear-gradient(to right, transparent, var(--center-channel-bg) 16px);
+        padding-left: 16px;
+    `}
 `;
 
 const ButtonContent = styled.div`
@@ -208,7 +221,7 @@ const OverflowCount = styled.span`
 const OverflowSection = styled.ul`
     display: flex;
     flex-direction: column;
-    padding: 4px 0;
+    padding: 0;
     max-height: 300px;
     overflow-y: auto;
     list-style: none;

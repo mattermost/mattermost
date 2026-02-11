@@ -118,11 +118,6 @@ const BarItemWrapper = styled.div`
     min-width: 5rem;
     max-width: 25rem;
     padding: 0 3px;
-
-    /* Prevent native link/image drag so pragmatic-dnd handles it */
-    a, img {
-        -webkit-user-drag: none;
-    }
 `;
 
 // Inner chip: border-radius + overflow hidden for visual clipping.

@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import type {AnchorHTMLAttributes} from 'react';
-import React, {cloneElement, forwardRef, useRef} from 'react';
+import React, {forwardRef, useCallback, useRef} from 'react';
 import {useDispatch, useSelector} from 'react-redux';
 import {Link} from 'react-router-dom';
 import styled, {css} from 'styled-components';
@@ -27,16 +27,28 @@ import type {GlobalState} from 'types/store';
 import BookmarkItemDotMenu from './bookmark_dot_menu';
 import BookmarkIcon from './bookmark_icon';
 
-const useBookmarkLink = (bookmark: ChannelBookmark, disableLinks: boolean) => {
+/**
+ * Hook that provides link data and handlers for a bookmark.
+ * Shared by both bar items (BookmarkItemContent) and overflow items.
+ *
+ * @param bookmark - The bookmark to render
+ * @param disableLinks - When true, href is undefined (e.g. during drag)
+ * @param onNavigate - Optional callback fired after link click or file preview open
+ */
+export const useBookmarkLink = (
+    bookmark: ChannelBookmark,
+    disableLinks: boolean,
+    onNavigate?: () => void,
+) => {
     const linkRef = useRef<HTMLAnchorElement>(null);
     const dispatch = useDispatch();
     const fileInfo: FileInfo | undefined = useSelector((state: GlobalState) => (bookmark?.file_id && getFile(state, bookmark.file_id)) || undefined);
 
-    const open = () => {
+    const open = useCallback(() => {
         linkRef.current?.click();
-    };
+    }, []);
 
-    const handleOpenFile = (e: React.MouseEvent<HTMLAnchorElement>) => {
+    const handleOpenFile = useCallback((e: React.MouseEvent<HTMLElement>) => {
         e.preventDefault();
 
         if (fileInfo) {
@@ -49,8 +61,13 @@ const useBookmarkLink = (bookmark: ChannelBookmark, disableLinks: boolean) => {
                     startIndex: 0,
                 },
             }));
+            onNavigate?.();
         }
-    };
+    }, [dispatch, fileInfo, bookmark.owner_id, bookmark.channel_id, onNavigate]);
+
+    const handleLinkClick = useCallback(() => {
+        onNavigate?.();
+    }, [onNavigate]);
 
     const icon = (
         <BookmarkIcon
@@ -60,36 +77,27 @@ const useBookmarkLink = (bookmark: ChannelBookmark, disableLinks: boolean) => {
             fileInfo={fileInfo}
         />
     );
-    let link;
+
+    let href: string | undefined;
+    let onClick: ((e: React.MouseEvent<HTMLElement>) => void) | undefined;
+    let isFile = false;
 
     if (bookmark.type === 'link' && bookmark.link_url) {
-        link = (
-            <DynamicLink
-                href={disableLinks ? undefined : bookmark.link_url}
-                ref={linkRef}
-                isFile={false}
-            >
-                {icon}
-                <Label>{bookmark.display_name}</Label>
-            </DynamicLink>
-        );
+        href = disableLinks ? undefined : bookmark.link_url;
+        onClick = onNavigate ? handleLinkClick : undefined;
     } else if (bookmark.type === 'file' && bookmark.file_id) {
-        link = (
-            <DynamicLink
-                href={disableLinks ? undefined : getFileDownloadUrl(bookmark.file_id)}
-                onClick={handleOpenFile}
-                ref={linkRef}
-                isFile={true}
-            >
-                {icon}
-                <Label>{bookmark.display_name}</Label>
-            </DynamicLink>
-        );
+        href = disableLinks ? undefined : getFileDownloadUrl(bookmark.file_id);
+        onClick = handleOpenFile;
+        isFile = true;
     }
 
     return {
-        link,
+        href,
+        onClick,
+        linkRef,
+        isFile,
         icon,
+        displayName: bookmark.display_name,
         open,
     } as const;
 };
@@ -105,11 +113,24 @@ interface BookmarkItemContentProps {
 }
 
 const BookmarkItemContent = ({bookmark, disableInteractions, onMoveBefore, onMoveAfter, moveBeforeLabel, moveAfterLabel, moveDirection}: BookmarkItemContentProps) => {
-    const {link, open} = useBookmarkLink(bookmark, disableInteractions);
+    const {href, onClick, linkRef, isFile, icon, displayName, open} = useBookmarkLink(bookmark, disableInteractions);
+    const hasLink = bookmark.type === 'link' || bookmark.type === 'file';
 
     return (
         <Chip $disableInteractions={disableInteractions}>
-            {link && cloneElement(link, {role: 'link'})}
+            {hasLink && (
+                <DynamicLink
+                    href={href}
+                    onClick={onClick}
+                    ref={linkRef}
+                    isFile={isFile}
+                    draggable={false}
+                    role='link'
+                >
+                    {icon}
+                    <Label>{displayName}</Label>
+                </DynamicLink>
+            )}
             <BookmarkItemDotMenu
                 bookmark={bookmark}
                 open={open}
@@ -125,17 +146,26 @@ const BookmarkItemContent = ({bookmark, disableInteractions, onMoveBefore, onMov
 
 const Chip = styled.div<{$disableInteractions: boolean}>`
     position: relative;
-    border-radius: 12px;
-    overflow: hidden;
-    margin: 1px 0;
-    flex-shrink: 0;
-    min-width: 5rem;
-    max-width: 25rem;
     display: flex;
     align-items: center;
     width: 100%;
     min-width: 0;
     overflow: hidden;
+
+    /* Bar link styles — applied to any anchor/span rendered by DynamicLink */
+    a, span[role="link"] {
+        display: flex;
+        padding: 0 12px 0 6px;
+        gap: 5px;
+        min-width: 0;
+        overflow: hidden;
+        color: rgba(var(--center-channel-color-rgb), 1);
+        font-family: Open Sans;
+        font-size: 12px;
+        font-style: normal;
+        font-weight: 600;
+        line-height: 16px;
+    }
 
     button {
         position: absolute;
@@ -198,26 +228,32 @@ const Label = styled.span`
 
 const TARGET_BLANK_URL_PREFIX = '!';
 
-type DynamicLinkProps = AnchorHTMLAttributes<HTMLAnchorElement> & {
+type DynamicLinkProps = Omit<AnchorHTMLAttributes<HTMLAnchorElement>, 'onClick'> & {
     href?: string;
     children: React.ReactNode;
     isFile: boolean;
+    onClick?: (e: React.MouseEvent<HTMLElement>) => void;
 };
-const DynamicLink = forwardRef<HTMLAnchorElement, DynamicLinkProps>(({
+
+/**
+ * Smart link component that chooses the best rendering strategy based on href.
+ * Renders plain elements — callers apply styling via parent CSS selectors.
+ */
+export const DynamicLink = forwardRef<HTMLAnchorElement, DynamicLinkProps>(({
     href,
     children,
     isFile,
-    onClick,
     ...otherProps
 }, ref) => {
     if (!href) {
         return (
-            <StyledSpan
+            <span
                 {...otherProps}
                 ref={ref as React.Ref<HTMLSpanElement>}
+                draggable={false}
             >
                 {children}
-            </StyledSpan>
+            </span>
         );
     }
 
@@ -228,79 +264,44 @@ const DynamicLink = forwardRef<HTMLAnchorElement, DynamicLinkProps>(({
 
     if (prefixed || openInNewTab) {
         return (
-            <StyledExternalLink
+            <ExternalLink
                 {...otherProps}
                 href={prefixed ? href.substring(1) : href}
                 rel='noopener noreferrer'
                 target='_blank'
                 location='channel_bookmarks.item'
                 ref={ref}
+                draggable={false}
             >
                 {children}
-            </StyledExternalLink>
+            </ExternalLink>
         );
     }
 
     if (href.startsWith(siteURL) && !isFile) {
         return (
-            <StyledLink
+            <Link
                 {...otherProps}
                 to={href.slice(siteURL.length)}
                 ref={ref}
+                draggable={false}
             >
                 {children}
-            </StyledLink>
+            </Link>
         );
     }
 
     return (
-        <StyledAnchor
+        <a
             {...otherProps}
             href={href}
             ref={ref}
-            onClick={onClick}
+            draggable={false}
         >
             {children}
-        </StyledAnchor>
+        </a>
     );
 });
 DynamicLink.displayName = 'DynamicLink';
-
-const linkStyles = css`
-    display: flex;
-    padding: 0 12px 0 6px;
-    gap: 5px;
-    min-width: 0;
-    overflow: hidden;
-
-    color: rgba(var(--center-channel-color-rgb), 1);
-    font-family: Open Sans;
-    font-size: 12px;
-    font-style: normal;
-    font-weight: 600;
-    line-height: 16px;
-`;
-
-const StyledAnchor = styled.a`
-    &&&& {
-        ${linkStyles}
-    }
-`;
-
-const StyledLink = styled(Link)`
-    &&&& {
-        ${linkStyles}
-    }
-`;
-
-const StyledExternalLink = styled(ExternalLink)`
-    &&&& {
-        ${linkStyles}
-    }
-`;
-
-const StyledSpan = styled.span`
-    ${linkStyles}
-`;
 
 export default BookmarkItemContent;

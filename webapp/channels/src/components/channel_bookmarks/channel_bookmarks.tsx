@@ -200,7 +200,7 @@ function ChannelBookmarks({channelId}: Props) {
             data-testid='channel-bookmarks-container'
             className='channel-bookmarks-container'
         >
-            <BookmarksBarContent>
+            <BookmarksBarContent $hasOverflow={overflowItems.length > 0}>
                 {/* Hidden measure components for ALL items */}
                 {order.map((id) => {
                     const bookmark = bookmarks[id];
@@ -270,10 +270,10 @@ const Container = styled.div`
     gap: 2px;
 `;
 
-const BookmarksBarContent = styled.div`
+const BookmarksBarContent = styled.div<{$hasOverflow: boolean}>`
     display: flex;
     align-items: center;
-    flex: 1;
+    ${({$hasOverflow}) => $hasOverflow && 'flex: 1;'}
     min-width: 0;
     overflow: hidden;
     position: relative;
