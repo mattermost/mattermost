@@ -267,6 +267,11 @@ function ChannelSettingsInfoTab({
             updated.header = channelHeader.trim();
         }
 
+        if (Object.keys(updated).length === 0) {
+            // Return true if no changes were made
+            return true;
+        }
+
         const {data, error} = await dispatch(patchChannel(channel.id, updated));
         if (error) {
             handleServerError(error as ServerError);
@@ -345,13 +350,16 @@ function ChannelSettingsInfoTab({
 
     // Memoize the calculation for whether to show the save changes panel
     const shouldShowPanel = useMemo(() => {
-        const unsavedChanges = channel ? (
-            (!isDMorGroupChannel && displayName.trim() !== channel.display_name) ||
-            (!isDMorGroupChannel && channelUrl.trim() !== channel.name) ||
-            (!isDMorGroupChannel && channelPurpose.trim() !== channel.purpose) ||
-            channelHeader.trim() !== channel.header ||
-            (isDMorGroupChannel && channelType !== channel.type)
-        ) : false;
+        let unsavedChanges = false;
+        if (channel) {
+            unsavedChanges = unsavedChanges || channelHeader.trim() !== channel.header;
+            if (!isDMorGroupChannel) {
+                unsavedChanges = unsavedChanges || displayName.trim() !== channel.display_name;
+                unsavedChanges = unsavedChanges || channelUrl.trim() !== channel.name;
+                unsavedChanges = unsavedChanges || channelPurpose.trim() !== channel.purpose;
+                unsavedChanges = unsavedChanges || channelType !== channel.type;
+            }
+        }
 
         return unsavedChanges || saveChangesPanelState === 'saved';
     }, [channel, isDMorGroupChannel, displayName, channelUrl, channelPurpose, channelHeader, channelType, saveChangesPanelState]);
