@@ -1267,6 +1267,26 @@ func (_m *Store) StatusNotificationRule() store.StatusNotificationRuleStore {
 	return r0
 }
 
+// ChannelSync provides a mock function with no fields
+func (_m *Store) ChannelSync() store.ChannelSyncStore {
+	ret := _m.Called()
+
+	if len(ret) == 0 {
+		panic("no return value specified for ChannelSync")
+	}
+
+	var r0 store.ChannelSyncStore
+	if rf, ok := ret.Get(0).(func() store.ChannelSyncStore); ok {
+		r0 = rf()
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(store.ChannelSyncStore)
+		}
+	}
+
+	return r0
+}
+
 // System provides a mock function with no fields
 func (_m *Store) System() store.SystemStore {
 	ret := _m.Called()

@@ -118,6 +118,7 @@ type SqlStoreStores struct {
 	customChannelIcon          store.CustomChannelIconStore
 	statusLog                  store.StatusLogStore
 	statusNotificationRule     store.StatusNotificationRuleStore
+	channelSync                store.ChannelSyncStore
 }
 
 type SqlStore struct {
@@ -275,6 +276,7 @@ func New(settings model.SqlSettings, logger mlog.LoggerIFace, metrics einterface
 	store.stores.customChannelIcon = newSqlCustomChannelIconStore(store)
 	store.stores.statusLog = newSqlStatusLogStore(store)
 	store.stores.statusNotificationRule = newSqlStatusNotificationRuleStore(store)
+	store.stores.channelSync = newSqlChannelSyncStore(store)
 
 	store.stores.preference.(*SqlPreferenceStore).deleteUnusedFeatures()
 
@@ -916,6 +918,10 @@ func (ss *SqlStore) StatusLog() store.StatusLogStore {
 
 func (ss *SqlStore) StatusNotificationRule() store.StatusNotificationRuleStore {
 	return ss.stores.statusNotificationRule
+}
+
+func (ss *SqlStore) ChannelSync() store.ChannelSyncStore {
+	return ss.stores.channelSync
 }
 
 func (ss *SqlStore) DropAllTables() {

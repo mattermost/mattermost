@@ -62,6 +62,7 @@ type Store interface {
 	LinkMetadata() LinkMetadataStore
 	SharedChannel() SharedChannelStore
 	Draft() DraftStore
+	ChannelSync() ChannelSyncStore
 	MarkSystemRanUnitTests()
 	Close()
 	LockToMaster()
@@ -1386,4 +1387,27 @@ type ThreadMembershipImportData struct {
 	LastViewed int64
 	// UnreadMentions is the number of unread mentions to set the UnreadMentions field to.
 	UnreadMentions int64
+}
+
+type ChannelSyncStore interface {
+	// GetLayout retrieves the canonical layout for a team. Returns nil (not error) if no layout exists.
+	GetLayout(teamId string) (*model.ChannelSyncLayout, error)
+
+	// SaveLayout creates or replaces the canonical layout for a team.
+	SaveLayout(layout *model.ChannelSyncLayout) error
+
+	// DeleteLayout removes the canonical layout for a team.
+	DeleteLayout(teamId string) error
+
+	// GetDismissals returns all dismissed channel IDs for a user on a team.
+	GetDismissals(userId string, teamId string) ([]string, error)
+
+	// SaveDismissal records that a user dismissed a Quick Join channel.
+	SaveDismissal(dismissal *model.ChannelSyncDismissal) error
+
+	// DeleteDismissal removes a dismissal (e.g., if the user later joins the channel).
+	DeleteDismissal(userId string, channelId string, teamId string) error
+
+	// DeleteDismissalsForChannel removes all dismissals for a channel (e.g., channel deleted).
+	DeleteDismissalsForChannel(channelId string) error
 }
