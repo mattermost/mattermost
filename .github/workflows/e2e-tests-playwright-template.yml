@@ -115,12 +115,12 @@ jobs:
       BUILD_ID: "${{ inputs.build_id }}"
     steps:
       - name: ci/checkout-repo
-        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
           ref: ${{ inputs.commit_sha }}
           fetch-depth: 0
       - name: ci/setup-node
-        uses: actions/setup-node@395ad3262231945c25e8478fd5baf05154b1d79f # v6.1.0
+        uses: actions/setup-node@6044e13b5dc448c55e2357c09f80417699197238 # v6.2.0
         with:
           node-version-file: ".nvmrc"
           cache: npm
@@ -136,7 +136,7 @@ jobs:
         if: always()
         run: make cloud-teardown
       - name: ci/upload-results
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6.0.0
         if: always()
         with:
           name: playwright-${{ inputs.test_type }}-results
@@ -166,12 +166,12 @@ jobs:
       color: ${{ steps.calculate.outputs.color }}
     steps:
       - name: ci/checkout-repo
-        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
           ref: ${{ inputs.commit_sha }}
           fetch-depth: 0
       - name: ci/download-results
-        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
+        uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131 # v7.0.0
         with:
           name: playwright-${{ inputs.test_type }}-results
           path: e2e-tests/playwright/
@@ -204,12 +204,12 @@ jobs:
       BUILD_ID: "${{ inputs.build_id }}-retest"
     steps:
       - name: ci/checkout-repo
-        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
           ref: ${{ inputs.commit_sha }}
           fetch-depth: 0
       - name: ci/setup-node
-        uses: actions/setup-node@395ad3262231945c25e8478fd5baf05154b1d79f # v6.1.0
+        uses: actions/setup-node@6044e13b5dc448c55e2357c09f80417699197238 # v6.2.0
         with:
           node-version-file: ".nvmrc"
           cache: npm
@@ -228,7 +228,7 @@ jobs:
         if: always()
         run: make cloud-teardown
       - name: ci/upload-retest-results
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6.0.0
         if: always()
         with:
           name: playwright-${{ inputs.test_type }}-retest-results
@@ -254,12 +254,12 @@ jobs:
         working-directory: e2e-tests
     steps:
       - name: ci/checkout-repo
-        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
           ref: ${{ inputs.commit_sha }}
           fetch-depth: 0
       - name: ci/setup-node
-        uses: actions/setup-node@395ad3262231945c25e8478fd5baf05154b1d79f # v6.1.0
+        uses: actions/setup-node@6044e13b5dc448c55e2357c09f80417699197238 # v6.2.0
         with:
           node-version-file: ".nvmrc"
           cache: npm
@@ -267,7 +267,7 @@ jobs:
 
       # Download original results (always needed)
       - name: ci/download-results
-        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
+        uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131 # v7.0.0
         with:
           name: playwright-${{ inputs.test_type }}-results
           path: e2e-tests/playwright/
@@ -275,7 +275,7 @@ jobs:
       # Download retest results (only if retest ran)
       - name: ci/download-retest-results
         if: needs.run-failed-tests.result != 'skipped'
-        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
+        uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131 # v7.0.0
         with:
           name: playwright-${{ inputs.test_type }}-retest-results
           path: e2e-tests/playwright/retest-results/
@@ -289,7 +289,7 @@ jobs:
           retest-results-path: ${{ needs.run-failed-tests.result != 'skipped' && 'e2e-tests/playwright/retest-results/results/reporter/results.json' || '' }}
 
       - name: ci/aws-configure
-        uses: aws-actions/configure-aws-credentials@61815dcd50bd041e203e49132bacad1fd04d2708 # v5.1.1
+        uses: aws-actions/configure-aws-credentials@4ce2bbcf5d401e557e0537d863a6aced08605794 # v5.1.1
         with:
           aws-region: us-east-1
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
