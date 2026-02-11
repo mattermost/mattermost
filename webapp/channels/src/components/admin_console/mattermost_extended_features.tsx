@@ -815,6 +815,7 @@ const MattermostExtendedFeatures: React.FC<Props> = ({config, patchConfig, disab
             security: [],
             messaging: [],
             media: [],
+            channels: [],
             layout: [],
             ux: [],
             status: [],
