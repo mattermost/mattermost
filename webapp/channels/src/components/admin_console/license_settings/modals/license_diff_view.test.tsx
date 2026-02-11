@@ -109,12 +109,91 @@ describe('components/admin_console/license_settings/modals/license_diff_view', (
         // Should NOT show current license values
         expect(screen.queryByText('Professional')).not.toBeInTheDocument();
         expect(screen.queryByText('100')).not.toBeInTheDocument();
+
+        // Should show End Date label instead of Expiration Date
+        expect(screen.getByText('End Date')).toBeInTheDocument();
+        expect(screen.queryByText('Expiration Date')).not.toBeInTheDocument();
     });
 
-    test('should render info-only view when no current license', () => {
+    test('should show warning banner for entry to professional transition', () => {
+        const entryLicense: ClientLicense = {
+            ...baseCurrentLicense,
+            SkuShortName: 'entry',
+            SkuName: 'Entry',
+        };
+
+        const professionalLicense: License = {
+            ...baseNewLicense,
+            sku_name: 'Professional',
+            sku_short_name: 'professional',
+        };
+
+        const {container} = renderWithContext(
+            <LicenseDiffView
+                currentLicense={entryLicense}
+                newLicense={professionalLicense}
+                locale={locale}
+            />,
+            initialState,
+        );
+
+        expect(screen.getByText('This license changes your available features')).toBeInTheDocument();
+        expect(container.querySelector('.license-transition-banner--warning')).toBeInTheDocument();
+        expect(screen.getByText('View plan differences')).toBeInTheDocument();
+    });
+
+    test('should show info banner for entry to enterprise transition', () => {
+        const entryLicense: ClientLicense = {
+            ...baseCurrentLicense,
+            SkuShortName: 'entry',
+            SkuName: 'Entry',
+        };
+
+        const {container} = renderWithContext(
+            <LicenseDiffView
+                currentLicense={entryLicense}
+                newLicense={baseNewLicense}
+                locale={locale}
+            />,
+            initialState,
+        );
+
+        expect(screen.getByText('This license adds Enterprise capabilities, with feature changes')).toBeInTheDocument();
+        expect(container.querySelector('.license-transition-banner--info')).toBeInTheDocument();
+        expect(screen.getByText('View plan differences')).toBeInTheDocument();
+    });
+
+    test('should show success banner for entry to enterprise advanced transition', () => {
+        const entryLicense: ClientLicense = {
+            ...baseCurrentLicense,
+            SkuShortName: 'entry',
+            SkuName: 'Entry',
+        };
+
+        const advancedLicense: License = {
+            ...baseNewLicense,
+            sku_name: 'Enterprise Advanced',
+            sku_short_name: 'advanced',
+        };
+
+        const {container} = renderWithContext(
+            <LicenseDiffView
+                currentLicense={entryLicense}
+                newLicense={advancedLicense}
+                locale={locale}
+            />,
+            initialState,
+        );
+
+        expect(screen.getByText('This license adds Enterprise Advanced capabilities')).toBeInTheDocument();
+        expect(container.querySelector('.license-transition-banner--success')).toBeInTheDocument();
+        expect(screen.queryByText('View plan differences')).not.toBeInTheDocument();
+    });
+
+    test('should not show banner when no current license', () => {
         const emptyLicense: ClientLicense = {};
 
-        renderWithContext(
+        const {container} = renderWithContext(
             <LicenseDiffView
                 currentLicense={emptyLicense}
                 newLicense={baseNewLicense}
@@ -123,9 +202,7 @@ describe('components/admin_console/license_settings/modals/license_diff_view', (
             initialState,
         );
 
-        // Should have info-only table class
-        const table = screen.getByRole('table');
-        expect(table).toHaveClass('info-only');
+        expect(container.querySelector('.license-transition-banner')).not.toBeInTheDocument();
     });
 
     test('should highlight changed values', () => {
