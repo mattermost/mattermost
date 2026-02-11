@@ -82,6 +82,9 @@ type App struct {
 	// Double-tap Esc tracking for exiting input mode
 	lastEscTime time.Time
 
+	// Scroll throttle
+	lastScrollTime time.Time
+
 	// Discovery
 	repoRoot    string
 	subPkgDepth int // sub-package scan depth (1-4, default 2)
@@ -509,6 +512,14 @@ func (a *App) handleKey(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 		case key.Matches(msg, a.keys.PageDown):
 			a.logPanel.viewport.HalfViewDown()
 			return a, nil
+		case key.Matches(msg, a.keys.Home):
+			a.loadHistory()
+			a.logPanel.viewport.GotoTop()
+			a.logPanel.autoScroll = false
+			return a, nil
+		case key.Matches(msg, a.keys.End):
+			a.logPanel.autoScroll = true
+			return a, nil
 		}
 		var cmd tea.Cmd
 		a.logPanel.viewport, cmd = a.logPanel.viewport.Update(msg)
@@ -517,6 +528,10 @@ func (a *App) handleKey(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 
 	// Grid navigation
 	switch {
+	case key.Matches(msg, a.keys.Home):
+		a.snapCursorToFirstMatch()
+	case key.Matches(msg, a.keys.End):
+		a.snapCursorToLastVisible()
 	case key.Matches(msg, a.keys.PageUp):
 		pageSize := a.maxGridLines() / 2
 		if pageSize < 1 {
@@ -572,8 +587,13 @@ func (a *App) handleMouse(msg tea.MouseMsg) (tea.Model, tea.Cmd) {
 		return a, nil
 	}
 	if msg.Action != tea.MouseActionPress || msg.Button != tea.MouseButtonLeft {
-		// Handle scroll wheel — route to grid or log based on mouse position
+		// Handle scroll wheel — throttle + route to grid or log based on mouse position
 		if msg.Button == tea.MouseButtonWheelUp || msg.Button == tea.MouseButtonWheelDown {
+			now := time.Now()
+			if now.Sub(a.lastScrollTime) < 30*time.Millisecond {
+				return a, nil
+			}
+			a.lastScrollTime = now
 			// Tab bar is the boundary: above = grid, below = log
 			logStart := a.tabBarY + 1 // line after tab bar
 			if a.logVisible && msg.Y >= logStart {
