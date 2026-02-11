@@ -18,7 +18,6 @@ import {getCurrentLocale} from 'selectors/i18n';
 import {isModalOpen} from 'selectors/views/modals';
 
 import SuccessSvg from 'components/common/svg_images_components/success_svg';
-
 import LoadingWrapper from 'components/widgets/loading/loading_wrapper';
 
 import {ModalIdentifiers} from 'utils/constants';

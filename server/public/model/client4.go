@@ -4396,7 +4396,7 @@ func (c *Client4) PreviewLicenseFile(ctx context.Context, data []byte) (*License
 		return nil, nil, fmt.Errorf("failed to close multipart writer for license preview: %w", err)
 	}
 
-	r, err := c.doAPIRequestReader(ctx, http.MethodPost, c.APIURL+c.licenseRoute()+"/preview", writer.FormDataContentType(), body, nil)
+	r, err := c.doAPIRequestReaderRoute(ctx, http.MethodPost, c.licenseRoute().Join("preview"), writer.FormDataContentType(), body, nil)
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
