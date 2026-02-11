@@ -18,6 +18,12 @@ import type {PropsFromRedux} from './index';
 
 import './video_player.scss';
 
+const BROWSER_SUPPORTED_VIDEO_MIMES = new Set(['video/mp4', 'video/webm', 'video/ogg']);
+
+function isBrowserSupportedVideoMime(mime: string): boolean {
+    return BROWSER_SUPPORTED_VIDEO_MIMES.has(mime);
+}
+
 export interface Props extends PropsFromRedux {
     fileInfo: FileInfo;
     postId: string;
@@ -221,7 +227,7 @@ export default function VideoPlayer(props: Props) {
                 >
                     <source
                         src={displayInfo.url}
-                        type={displayInfo.mimeType}
+                        {...(isBrowserSupportedVideoMime(displayInfo.mimeType) ? {type: displayInfo.mimeType} : {})}
                     />
                     <a
                         href={displayInfo.url}
