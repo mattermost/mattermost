@@ -38,8 +38,10 @@ type Props = {
     canCreatePrivateChannel: boolean;
     canJoinPublicChannel: boolean;
     isOpen: boolean;
+    isChannelSyncEnabled: boolean;
     actions: {
         fetchMyCategories: (teamId: string) => void;
+        fetchChannelSyncState: (teamId: string) => void;
         getThreadsForCurrentTeam: (options: {unread: boolean}) => void;
         openModal: <P>(modalData: ModalData<P>) => void;
         closeModal: (modalId: string) => void;
@@ -75,6 +77,10 @@ export default class Sidebar extends React.PureComponent<Props, State> {
         if (this.props.teamId) {
             this.props.actions.fetchMyCategories(this.props.teamId);
 
+            if (this.props.isChannelSyncEnabled) {
+                this.props.actions.fetchChannelSyncState(this.props.teamId);
+            }
+
             // Fetch threads for sidebar if feature is enabled
             if (this.props.isThreadsInSidebarEnabled) {
                 this.props.actions.getThreadsForCurrentTeam({unread: false});
@@ -88,6 +94,10 @@ export default class Sidebar extends React.PureComponent<Props, State> {
     componentDidUpdate(prevProps: Props) {
         if (this.props.teamId && prevProps.teamId !== this.props.teamId) {
             this.props.actions.fetchMyCategories(this.props.teamId);
+
+            if (this.props.isChannelSyncEnabled) {
+                this.props.actions.fetchChannelSyncState(this.props.teamId);
+            }
 
             // Fetch threads for sidebar if feature is enabled
             if (this.props.isThreadsInSidebarEnabled) {

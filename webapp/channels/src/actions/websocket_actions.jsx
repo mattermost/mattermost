@@ -115,6 +115,7 @@ import * as StatusActions from 'actions/status_actions';
 import {setGlobalItem} from 'actions/storage';
 import {loadProfilesForDM, loadProfilesForGM, loadProfilesForSidebar} from 'actions/user_actions';
 import {syncPostsInChannel} from 'actions/views/channel';
+import {handleChannelSyncUpdated} from 'actions/views/channel_sync';
 import {setGlobalDraft, transformServerDraft} from 'actions/views/drafts';
 import {openModal} from 'actions/views/modals';
 import {closeRightHandSide} from 'actions/views/rhs';
@@ -665,6 +666,9 @@ export function handleEvent(msg) {
         break;
     case SocketEvents.CONTENT_FLAGGING_REPORT_VALUE_CHANGED:
         dispatch(handleContentFlaggingReportValueChanged(msg));
+        break;
+    case SocketEvents.CHANNEL_SYNC_UPDATED:
+        dispatch(handleChannelSyncUpdated(msg.broadcast.team_id || msg.data?.team_id));
         break;
     default:
     }

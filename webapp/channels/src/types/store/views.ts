@@ -2,6 +2,7 @@
 // See LICENSE.txt for license information.
 
 import type {Channel} from '@mattermost/types/channels';
+import type {ChannelSyncLayout, ChannelSyncUserState} from '@mattermost/types/channel_sync';
 import type {MarketplaceApp, MarketplacePlugin} from '@mattermost/types/marketplace';
 import type {CursorPaginationDirection, ReportDuration} from '@mattermost/types/reports';
 import type {Team} from '@mattermost/types/teams';
@@ -208,6 +209,13 @@ export type ViewsState = {
 
     productMenu: {
         switcherOpen: boolean;
+    };
+
+    channelSync: {
+        syncStateByTeam: Record<string, ChannelSyncUserState>;
+        layoutByTeam: Record<string, ChannelSyncLayout>;
+        shouldSyncByTeam: Record<string, boolean>;
+        editMode: boolean;
     };
 
     channelSidebar: {

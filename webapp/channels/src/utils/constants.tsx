@@ -369,6 +369,12 @@ export const ActionTypes = keyMirror({
     DISCORD_REPLY_REMOVE_PENDING: null,
     DISCORD_REPLY_CLEAR_PENDING: null,
 
+    // Channel Sync
+    CHANNEL_SYNC_RECEIVED_STATE: null,
+    CHANNEL_SYNC_RECEIVED_LAYOUT: null,
+    CHANNEL_SYNC_SET_EDIT_MODE: null,
+    CHANNEL_SYNC_SET_SHOULD_SYNC: null,
+
     // Guilded Layout
     GUILDED_TOGGLE_TEAM_SIDEBAR: null,
     GUILDED_SET_TEAM_SIDEBAR_EXPANDED: null,
@@ -752,6 +758,7 @@ export const SocketEvents = {
     CPA_VALUES_UPDATED: 'custom_profile_attributes_values_updated',
     CONTENT_FLAGGING_REPORT_VALUE_CHANGED: 'content_flagging_report_value_updated',
     ERROR_LOGGED: 'error_logged',
+    CHANNEL_SYNC_UPDATED: 'channel_sync_updated',
 };
 
 export const TutorialSteps = {

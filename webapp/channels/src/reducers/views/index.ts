@@ -10,6 +10,7 @@ import browser from './browser';
 import channel from './channel';
 import channelSelectorModal from './channel_selector_modal';
 import channelSidebar from './channel_sidebar';
+import channelSync from './channel_sync';
 import discordReplies from './discord_replies';
 import drafts from './drafts';
 import emoji from './emoji';
@@ -55,6 +56,7 @@ export default combineReducers({
     marketplace,
     textbox,
     channelSidebar,
+    channelSync,
     addChannelCtaDropdown,
     onboardingTasks,
     threads,

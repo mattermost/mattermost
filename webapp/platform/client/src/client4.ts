@@ -12,6 +12,7 @@ import type {UserAutocomplete, AutocompleteSuggestion} from '@mattermost/types/a
 import type {Bot, BotPatch} from '@mattermost/types/bots';
 import type {ChannelBookmark, ChannelBookmarkCreate, ChannelBookmarkPatch} from '@mattermost/types/channel_bookmarks';
 import type {ChannelCategory, OrderedChannelCategories} from '@mattermost/types/channel_categories';
+import type {ChannelSyncLayout, ChannelSyncUserState} from '@mattermost/types/channel_sync';
 import type {
     Channel,
     ChannelMemberCountsByGroup,
@@ -2114,6 +2115,57 @@ export default class Client4 {
         return this.doFetch<ChannelCategory>(
             `${this.getChannelCategoriesRoute(userId, teamId)}/${categoryId}`,
             {method: 'delete'},
+        );
+    };
+
+    // Channel Sync Routes
+
+    getChannelSyncLayout = (teamId: string) => {
+        return this.doFetch<ChannelSyncLayout>(
+            `${this.getTeamRoute(teamId)}/channel_sync/layout`,
+            {method: 'get'},
+        );
+    };
+
+    saveChannelSyncLayout = (teamId: string, layout: ChannelSyncLayout) => {
+        return this.doFetch<ChannelSyncLayout>(
+            `${this.getTeamRoute(teamId)}/channel_sync/layout`,
+            {method: 'put', body: JSON.stringify(layout)},
+        );
+    };
+
+    deleteChannelSyncLayout = (teamId: string) => {
+        return this.doFetch<StatusOK>(
+            `${this.getTeamRoute(teamId)}/channel_sync/layout`,
+            {method: 'delete'},
+        );
+    };
+
+    getChannelSyncState = (teamId: string) => {
+        return this.doFetch<ChannelSyncUserState>(
+            `${this.getTeamRoute(teamId)}/channel_sync/state`,
+            {method: 'get'},
+        );
+    };
+
+    getChannelSyncEditorChannels = (teamId: string) => {
+        return this.doFetch<Channel[]>(
+            `${this.getTeamRoute(teamId)}/channel_sync/channels`,
+            {method: 'get'},
+        );
+    };
+
+    dismissQuickJoinChannel = (teamId: string, channelId: string) => {
+        return this.doFetch<StatusOK>(
+            `${this.getTeamRoute(teamId)}/channel_sync/dismiss`,
+            {method: 'post', body: JSON.stringify({channel_id: channelId})},
+        );
+    };
+
+    shouldSyncUser = (teamId: string) => {
+        return this.doFetch<{should_sync: boolean}>(
+            `${this.getBaseRoute()}/channel_sync/should_sync?team_id=${teamId}`,
+            {method: 'get'},
         );
     };
 

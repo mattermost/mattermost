@@ -13,8 +13,11 @@ import {haveICurrentChannelPermission, haveISystemPermission} from 'mattermost-r
 import {getCurrentTeam} from 'mattermost-redux/selectors/entities/teams';
 
 import {clearChannelSelection} from 'actions/views/channel_sidebar';
+import {fetchChannelSyncState} from 'actions/views/channel_sync';
 import {closeModal, openModal} from 'actions/views/modals';
 import {closeRightHandSide} from 'actions/views/rhs';
+import {getConfig} from 'mattermost-redux/selectors/entities/general';
+
 import {getIsLhsOpen} from 'selectors/lhs';
 import {getIsRhsOpen, getRhsState} from 'selectors/rhs';
 import {getIsMobileView} from 'selectors/views/browser';
@@ -47,8 +50,11 @@ function mapStateToProps(state: GlobalState) {
     // Check if ThreadsInSidebar behavior is active (either ThreadsInSidebar OR GuildedChatLayout flag)
     const isThreadsInSidebarEnabled = isThreadsInSidebarActive(state);
 
+    const config = getConfig(state);
+
     return {
         teamId: currentTeam ? currentTeam.id : '',
+        isChannelSyncEnabled: config.FeatureFlagChannelSync === 'true',
         canCreatePrivateChannel,
         canCreatePublicChannel,
         canJoinPublicChannel,
@@ -70,6 +76,7 @@ function mapDispatchToProps(dispatch: Dispatch) {
         actions: bindActionCreators({
             clearChannelSelection,
             fetchMyCategories,
+            fetchChannelSyncState,
             getThreadsForCurrentTeam,
             openModal,
             closeModal,
