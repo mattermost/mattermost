@@ -22,6 +22,7 @@ describe('components/admin_console/MattermostExtendedFeatures', () => {
             ImageSmaller: false,
             SystemConsoleDarkMode: true,
             Spoilers: false,
+            ChannelSync: false,
         },
     } as unknown as AdminConfig;
 
@@ -41,13 +42,14 @@ describe('components/admin_console/MattermostExtendedFeatures', () => {
             expect(screen.getByText('Features')).toBeInTheDocument();
         });
 
-        test('should render all 8 sections', () => {
+        test('should render all 9 sections', () => {
             renderWithContext(<MattermostExtendedFeatures {...defaultProps}/>);
 
             expect(screen.getByText('Security & Privacy')).toBeInTheDocument();
             expect(screen.getByText('Messaging')).toBeInTheDocument();
             expect(screen.getByText('Media & Embeds')).toBeInTheDocument();
             expect(screen.getByText('Layout & Navigation')).toBeInTheDocument();
+            expect(screen.getByText('Channels')).toBeInTheDocument();
             expect(screen.getByText('User Experience')).toBeInTheDocument();
             expect(screen.getByText('Status & Activity')).toBeInTheDocument();
             expect(screen.getByText('System Console')).toBeInTheDocument();
@@ -59,7 +61,7 @@ describe('components/admin_console/MattermostExtendedFeatures', () => {
 
             // Major features should have the badge
             const majorBadges = screen.getAllByText('Major');
-            expect(majorBadges.length).toBe(7); // 7 major features
+            expect(majorBadges.length).toBe(8); // 8 major features
         });
 
         test('should render stats bar with correct counts', () => {
@@ -308,8 +310,8 @@ describe('components/admin_console/MattermostExtendedFeatures', () => {
                 />,
             );
 
-            // Should show 3 / 7 for major features (3 enabled out of 7 total)
-            expect(screen.getByText(/3 \/ 7/)).toBeInTheDocument();
+            // Should show 3 / 8 for major features (3 enabled out of 8 total)
+            expect(screen.getByText(/3 \/ 8/)).toBeInTheDocument();
         });
     });
 });

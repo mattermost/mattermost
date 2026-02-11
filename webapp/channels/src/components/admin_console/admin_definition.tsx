@@ -6962,6 +6962,27 @@ const AdminDefinition: AdminDefinitionType = {
                     ],
                 },
             },
+            channel_sync: {
+                url: 'mattermost_extended/channel_sync',
+                title: defineMessage({id: 'admin.sidebar.channelSync', defaultMessage: 'Channel Sync'}),
+                searchableStrings: [
+                    defineMessage({id: 'admin.sidebar.channelSync', defaultMessage: 'Channel Sync'}),
+                ],
+                icon: <ForumOutlineIcon size={14} color={'currentColor'}/>,
+                schema: {
+                    id: 'MattermostExtendedChannelSync',
+                    name: defineMessage({id: 'admin.mattermost_extended.channel_sync.title', defaultMessage: 'Channel Sync Settings'}),
+                    settings: [
+                        {
+                            type: 'text',
+                            key: 'MattermostExtendedSettings.ChannelSync.ExcludedUsernames',
+                            label: defineMessage({id: 'admin.mattermost_extended.channel_sync.excluded.title', defaultMessage: 'Excluded Usernames:'}),
+                            help_text: defineMessage({id: 'admin.mattermost_extended.channel_sync.excluded.desc', defaultMessage: 'Comma-separated list of usernames excluded from channel sync. These users manage their own sidebar layout.'}),
+                            placeholder: defineMessage({id: 'admin.mattermost_extended.channel_sync.excluded.placeholder', defaultMessage: 'E.g. admin,testuser'}),
+                        },
+                    ],
+                },
+            },
             threads: {
                 url: 'mattermost_extended/threads',
                 title: defineMessage({id: 'admin.sidebar.threads', defaultMessage: 'Threads'}),

@@ -168,6 +168,9 @@ type FeatureFlags struct {
 
 	// Enable extra formatting options: __underline__ syntax
 	ExtraFormatting bool
+
+	// Enable server-side channel category sync across all users per team
+	ChannelSync bool
 }
 
 // featureFlagDefaults defines the default value for each boolean feature flag.

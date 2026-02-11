@@ -20,6 +20,9 @@ type MattermostExtendedSettings struct {
 
 	// Preferences section - admin overrides for user preferences
 	Preferences MattermostExtendedPreferencesSettings
+
+	// ChannelSync section - channel category synchronization settings
+	ChannelSync MattermostExtendedChannelSyncSettings
 }
 
 // MattermostExtendedPostsSettings contains tweaks for posts/messages behavior.
@@ -101,6 +104,12 @@ type MattermostExtendedPreferencesSettings struct {
 	Overrides map[string]string
 }
 
+// MattermostExtendedChannelSyncSettings contains settings for channel category synchronization.
+type MattermostExtendedChannelSyncSettings struct {
+	// Comma-separated usernames excluded from channel sync
+	ExcludedUsernames *string
+}
+
 // SetDefaults applies the default settings to the struct.
 func (s *MattermostExtendedSettings) SetDefaults() {
 	s.Posts.SetDefaults()
@@ -108,6 +117,7 @@ func (s *MattermostExtendedSettings) SetDefaults() {
 	s.Media.SetDefaults()
 	s.Statuses.SetDefaults()
 	s.Preferences.SetDefaults()
+	s.ChannelSync.SetDefaults()
 }
 
 // SetDefaults for Posts settings
@@ -181,5 +191,12 @@ func (s *MattermostExtendedStatusesSettings) SetDefaults() {
 func (s *MattermostExtendedPreferencesSettings) SetDefaults() {
 	if s.Overrides == nil {
 		s.Overrides = make(map[string]string)
+	}
+}
+
+// SetDefaults for ChannelSync settings
+func (s *MattermostExtendedChannelSyncSettings) SetDefaults() {
+	if s.ExcludedUsernames == nil {
+		s.ExcludedUsernames = NewPointer("")
 	}
 }

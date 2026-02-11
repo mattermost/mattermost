@@ -196,6 +196,9 @@ func GenerateClientConfig(c *model.Config, telemetryID string, license *model.Li
 	props["MattermostExtendedStatusesInvisibilityAllowedUsers"] = ""
 	props["MattermostExtendedStatusesGuildedStatusPollingIntervalSeconds"] = strconv.Itoa(*c.MattermostExtendedSettings.Statuses.GuildedStatusPollingIntervalSeconds)
 
+	// Mattermost Extended ChannelSync Settings
+	props["MattermostExtendedChannelSyncExcludedUsernames"] = *c.MattermostExtendedSettings.ChannelSync.ExcludedUsernames
+
 	// Mattermost Extended Preference Overrides
 	// Expose the keys of overridden preferences so the client can hide them from user settings
 	overrideKeys := make([]string, 0, len(c.MattermostExtendedSettings.Preferences.Overrides))

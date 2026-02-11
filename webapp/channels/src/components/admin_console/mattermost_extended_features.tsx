@@ -38,7 +38,7 @@ export const messages = defineMessages({
     title: {id: 'admin.mattermost_extended.features.title', defaultMessage: 'Features'},
 });
 
-type SectionId = 'security' | 'messaging' | 'media' | 'layout' | 'ux' | 'status' | 'system' | 'preferences';
+type SectionId = 'security' | 'messaging' | 'media' | 'layout' | 'channels' | 'ux' | 'status' | 'system' | 'preferences';
 
 interface SectionDefinition {
     id: SectionId;
@@ -81,6 +81,12 @@ const SECTIONS: SectionDefinition[] = [
         title: 'Layout & Navigation',
         icon: ViewGridPlusOutlineIcon,
         description: 'Chat layout and sidebar enhancements',
+    },
+    {
+        id: 'channels',
+        title: 'Channels',
+        icon: ForumOutlineIcon,
+        description: 'Channel organization and synchronization',
     },
     {
         id: 'ux',
@@ -232,6 +238,17 @@ const FEATURES: FeatureDefinition[] = [
         section: 'media',
         icon: VideoOutlineIcon,
         isMajor: false,
+    },
+
+    // Channels
+    {
+        key: 'ChannelSync',
+        title: 'Channel Sync',
+        description: 'Synchronize sidebar channel categories across all users per team. Admins define a canonical layout that all users see.',
+        defaultValue: false,
+        section: 'channels',
+        icon: ForumOutlineIcon,
+        isMajor: true,
     },
 
     // User Experience
