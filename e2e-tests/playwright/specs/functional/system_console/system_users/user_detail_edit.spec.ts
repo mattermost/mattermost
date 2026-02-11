@@ -223,7 +223,9 @@ test('displays inline validation errors for invalid email and username', {tag: '
     await usernameInput.fill('');
 
     // * Verify username validation error appears
-    const usernameError = systemConsolePage.page.locator('div.field-error').filter({hasText: 'Username cannot be empty'});
+    const usernameError = systemConsolePage.page
+        .locator('div.field-error')
+        .filter({hasText: 'Username cannot be empty'});
     await expect(usernameError).toBeVisible();
 
     // * Verify username input has error styling
