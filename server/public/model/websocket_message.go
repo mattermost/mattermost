@@ -107,6 +107,7 @@ const (
 	WebsocketEventCustomChannelIconDeleted            WebsocketEventType = "custom_channel_icon_deleted"
 	WebsocketEventErrorLogged                         WebsocketEventType = "error_logged"
 	WebsocketEventStatusLog                           WebsocketEventType = "status_log"
+	WebsocketEventChannelSyncUpdated                  WebsocketEventType = "channel_sync_updated"
 
 	WebSocketMsgTypeResponse = "response"
 	WebSocketMsgTypeEvent    = "event"

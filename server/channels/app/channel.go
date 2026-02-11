@@ -310,6 +310,11 @@ func (a *App) CreateChannel(rctx request.CTX, channel *model.Channel, addMember 
 		}, plugin.ChannelHasBeenCreatedID)
 	})
 
+	// ChannelSync: auto-add new channel to canonical layout
+	if a.IsChannelSyncEnabled() {
+		_ = a.EnsureChannelInSyncLayout(rctx, sc)
+	}
+
 	return sc, nil
 }
 
@@ -1631,6 +1636,11 @@ func (a *App) DeleteChannel(rctx request.CTX, channel *model.Channel, userID str
 	message.Add("delete_at", deleteAt)
 	a.Publish(message)
 
+	// ChannelSync: clean up dismissals for deleted channel
+	if a.IsChannelSyncEnabled() {
+		_ = a.Srv().Store().ChannelSync().DeleteDismissalsForChannel(channel.Id)
+	}
+
 	return nil
 }
 
@@ -1770,6 +1780,11 @@ func (a *App) AddUserToChannel(rctx request.CTX, user *model.User, channel *mode
 	userMessage.Add("user_id", user.Id)
 	userMessage.Add("team_id", channel.TeamId)
 	a.Publish(userMessage)
+
+	// ChannelSync: clear any Quick Join dismissal when user joins a channel
+	if a.IsChannelSyncEnabled() {
+		_ = a.ClearDismissalOnJoin(rctx, user.Id, channel.Id, channel.TeamId)
+	}
 
 	return newMember, nil
 }
