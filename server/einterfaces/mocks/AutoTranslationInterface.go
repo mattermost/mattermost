@@ -256,46 +256,6 @@ func (_m *AutoTranslationInterface) MakeWorker() model.Worker {
 	return r0
 }
 
-// SetChannelEnabled provides a mock function with given fields: channelID, enabled
-func (_m *AutoTranslationInterface) SetChannelEnabled(channelID string, enabled bool) *model.AppError {
-	ret := _m.Called(channelID, enabled)
-
-	if len(ret) == 0 {
-		panic("no return value specified for SetChannelEnabled")
-	}
-
-	var r0 *model.AppError
-	if rf, ok := ret.Get(0).(func(string, bool) *model.AppError); ok {
-		r0 = rf(channelID, enabled)
-	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*model.AppError)
-		}
-	}
-
-	return r0
-}
-
-// SetUserEnabled provides a mock function with given fields: channelID, userID, enabled
-func (_m *AutoTranslationInterface) SetUserEnabled(channelID string, userID string, enabled bool) *model.AppError {
-	ret := _m.Called(channelID, userID, enabled)
-
-	if len(ret) == 0 {
-		panic("no return value specified for SetUserEnabled")
-	}
-
-	var r0 *model.AppError
-	if rf, ok := ret.Get(0).(func(string, string, bool) *model.AppError); ok {
-		r0 = rf(channelID, userID, enabled)
-	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*model.AppError)
-		}
-	}
-
-	return r0
-}
-
 // Shutdown provides a mock function with no fields
 func (_m *AutoTranslationInterface) Shutdown() error {
 	ret := _m.Called()

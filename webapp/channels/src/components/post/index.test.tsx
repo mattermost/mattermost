@@ -61,6 +61,7 @@ describe('PostComponent', () => {
                 location={Locations.CENTER}
                 post={post3}
                 previousPostId={post2.id}
+                isChannelAutotranslated={false}
             />,
             {
                 entities: {
@@ -136,6 +137,7 @@ describe('PostComponent', () => {
                 location={Locations.CENTER}
                 post={post3}
                 previousPostId={post2.id}
+                isChannelAutotranslated={false}
             />,
             {
                 entities: {
