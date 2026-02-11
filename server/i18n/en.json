@@ -10055,7 +10055,7 @@
   {
     "id": "model.config.is_valid.elastic_search.enable_cjk_analyzers.app_error",
     "translation": "{{.Searching}} setting must be set to true when {{.EnableCJKAnalyzers}} is set to true"
-  },  
+  },
   {
     "id": "model.config.is_valid.elastic_search.enable_searching.app_error",
     "translation": "{{.EnableIndexing}} setting must be set to true when {{.Searching}} is set to true"
