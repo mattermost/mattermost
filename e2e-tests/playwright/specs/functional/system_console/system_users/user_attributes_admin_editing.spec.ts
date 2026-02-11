@@ -149,6 +149,10 @@ test.describe('System Console - Admin User Profile Editing', () => {
         await expect(saveButton).toBeEnabled();
         await saveButton.click();
 
+        // # Confirm save in the confirmation modal
+        await expect(systemConsolePage.page.locator('[data-testid="admin-userDetail-saveChangesModal"]')).toBeVisible();
+        await systemConsolePage.page.locator('#confirmModalButton').click();
+
         // * Verify success (no error message and field retains new value)
         const errorMessage = systemConsolePage.page.locator('.error-message');
         await expect(errorMessage).not.toBeVisible();
@@ -202,6 +206,10 @@ test.describe('System Console - Admin User Profile Editing', () => {
         await expect(saveButton).toBeEnabled();
         await saveButton.click();
 
+        // # Confirm save in the confirmation modal
+        await expect(systemConsolePage.page.locator('[data-testid="admin-userDetail-saveChangesModal"]')).toBeVisible();
+        await systemConsolePage.page.locator('#confirmModalButton').click();
+
         // * Verify success
         const errorMessage = systemConsolePage.page.locator('.error-message');
         await expect(errorMessage).not.toBeVisible();
@@ -223,6 +231,10 @@ test.describe('System Console - Admin User Profile Editing', () => {
         const saveButton = systemConsolePage.page.locator('[data-testid="saveSetting"]');
         await expect(saveButton).toBeEnabled();
         await saveButton.click();
+
+        // # Confirm save in the confirmation modal
+        await expect(systemConsolePage.page.locator('[data-testid="admin-userDetail-saveChangesModal"]')).toBeVisible();
+        await systemConsolePage.page.locator('#confirmModalButton').click();
 
         // * Verify success and persistence
         const errorMessage = systemConsolePage.page.locator('.error-message');
@@ -256,6 +268,10 @@ test.describe('System Console - Admin User Profile Editing', () => {
         // # Save the form
         await saveButton.click();
 
+        // # Confirm save in the confirmation modal
+        await expect(systemConsolePage.page.locator('[data-testid="admin-userDetail-saveChangesModal"]')).toBeVisible();
+        await systemConsolePage.page.locator('#confirmModalButton').click();
+
         // * Verify success (no error message)
         const errorMessage = systemConsolePage.page.locator('.error-message');
         await expect(errorMessage).not.toBeVisible();
@@ -268,66 +284,63 @@ test.describe('System Console - Admin User Profile Editing', () => {
     });
 
     test('Should validate invalid email and show error with cancel option', async () => {
-        // # Find system email field
-        const systemEmailInput = systemConsolePage.page.locator('input[type="email"]').first();
-        const originalEmail = await systemEmailInput.inputValue();
+        // # Find CPA email field (Work Email) by its label
+        const workEmailLabel = systemConsolePage.page.locator('label').filter({hasText: /Work Email/});
+        const emailInput = workEmailLabel.locator('input[type="email"]').first();
+        const originalEmail = await emailInput.inputValue();
 
         // # Enter invalid email
-        await systemEmailInput.clear();
-        await systemEmailInput.fill('not-an-email');
+        await emailInput.clear();
+        await emailInput.fill('not-an-email');
 
-        // # Click Save button
+        // * Verify inline validation error appears
+        const fieldError = workEmailLabel.locator('.field-error');
+        await expect(fieldError).toBeVisible();
+        await expect(fieldError).toContainText('Invalid email address');
+
+        // * Verify Save button is disabled due to validation error
         const saveButton = systemConsolePage.page.locator('[data-testid="saveSetting"]');
-        await expect(saveButton).toBeEnabled();
-        await saveButton.click();
-
-        // * Verify error message appears
-        const errorMessage = systemConsolePage.page.locator('.error-message');
-        await expect(errorMessage).toBeVisible();
-        await expect(errorMessage).toContainText('Invalid email address');
+        await expect(saveButton).toBeDisabled();
 
         // * Verify Cancel button is visible and enabled
         const cancelButton = systemConsolePage.page.locator('button:has-text("Cancel")');
         await expect(cancelButton).toBeVisible();
         await expect(cancelButton).toBeEnabled();
 
-        // * Verify Save button remains enabled (user can fix and retry)
-        await expect(saveButton).toBeEnabled();
-
         // # Test the cancel functionality
         await cancelButton.click();
 
         // * Verify email reverts to original value
-        await expect(systemEmailInput).toHaveValue(originalEmail);
+        await expect(emailInput).toHaveValue(originalEmail);
 
-        // * Verify error message disappears
-        await expect(errorMessage).not.toBeVisible();
+        // * Verify validation error disappears
+        await expect(fieldError).not.toBeVisible();
 
         // * Verify Cancel button disappears
         await expect(cancelButton).not.toBeVisible();
 
-        // * Verify Save button becomes disabled
+        // * Verify Save button remains disabled (no unsaved changes)
         await expect(saveButton).toBeDisabled();
     });
 
     test('Should validate invalid URL and show error with cancel option', async () => {
-        // # Find custom URL field (Personal Website)
-        const urlInput = systemConsolePage.page.locator('input[type="url"]').first();
+        // # Find custom URL field (Personal Website) by its label
+        const websiteLabel = systemConsolePage.page.locator('label').filter({hasText: /Personal Website/});
+        const urlInput = websiteLabel.locator('input[type="url"]').first();
         const originalUrl = await urlInput.inputValue();
 
         // # Enter invalid URL (specifically the one mentioned: "<%>")
         await urlInput.clear();
         await urlInput.fill('<%>');
 
-        // # Click Save button
-        const saveButton = systemConsolePage.page.locator('[data-testid="saveSetting"]');
-        await expect(saveButton).toBeEnabled();
-        await saveButton.click();
+        // * Verify inline validation error appears
+        const fieldError = websiteLabel.locator('.field-error');
+        await expect(fieldError).toBeVisible();
+        await expect(fieldError).toContainText('Invalid URL');
 
-        // * Verify error message appears
-        const errorMessage = systemConsolePage.page.locator('.error-message');
-        await expect(errorMessage).toBeVisible();
-        await expect(errorMessage).toContainText('Invalid URL');
+        // * Verify Save button is disabled due to validation error
+        const saveButton = systemConsolePage.page.locator('[data-testid="saveSetting"]');
+        await expect(saveButton).toBeDisabled();
 
         // * Verify Cancel button is visible
         const cancelButton = systemConsolePage.page.locator('button:has-text("Cancel")');
@@ -340,8 +353,8 @@ test.describe('System Console - Admin User Profile Editing', () => {
         // * Verify URL reverts to original value
         await expect(urlInput).toHaveValue(originalUrl);
 
-        // * Verify error message disappears
-        await expect(errorMessage).not.toBeVisible();
+        // * Verify validation error disappears
+        await expect(fieldError).not.toBeVisible();
 
         // * Verify Cancel button disappears
         await expect(cancelButton).not.toBeVisible();
@@ -356,14 +369,14 @@ test.describe('System Console - Admin User Profile Editing', () => {
         await workEmailInput.clear();
         await workEmailInput.fill('not-an-email-either');
 
-        // # Click Save button
-        const saveButton = systemConsolePage.page.locator('button:has-text("Save")');
-        await saveButton.click();
+        // * Verify inline validation error appears
+        const fieldError = workEmailLabel.locator('.field-error');
+        await expect(fieldError).toBeVisible();
+        await expect(fieldError).toContainText('Invalid email address');
 
-        // * Verify error message appears
-        const errorMessage = systemConsolePage.page.locator('.error-message');
-        await expect(errorMessage).toBeVisible();
-        await expect(errorMessage).toContainText('Invalid email address');
+        // * Verify Save button is disabled due to validation error
+        const saveButton = systemConsolePage.page.locator('[data-testid="saveSetting"]');
+        await expect(saveButton).toBeDisabled();
 
         // * Verify Cancel button is available
         const cancelButton = systemConsolePage.page.locator('button:has-text("Cancel")');
@@ -418,6 +431,10 @@ test.describe('System Console - Admin User Profile Editing', () => {
         const saveButton = systemConsolePage.page.locator('[data-testid="saveSetting"]');
         await expect(saveButton).toBeEnabled();
         await saveButton.click();
+
+        // # Confirm save in the confirmation modal
+        await expect(systemConsolePage.page.locator('[data-testid="admin-userDetail-saveChangesModal"]')).toBeVisible();
+        await systemConsolePage.page.locator('#confirmModalButton').click();
 
         // * Verify both changes were saved successfully
         const errorMessage = systemConsolePage.page.locator('.error-message');
