@@ -112,7 +112,7 @@ func NewApp(repos []model.Repo, mgr *process.Manager, repoRoot string) *App {
 		}
 	}
 
-	return &App{
+	app := &App{
 		repos:           repos,
 		procMgr:         mgr,
 		keys:            DefaultKeyMap(),
@@ -127,6 +127,13 @@ func NewApp(repos []model.Repo, mgr *process.Manager, repoRoot string) *App {
 		gridSearching:    false,
 		logPanel:         NewLogPanel(),
 	}
+
+	// If favs-only was persisted, rescan with targeted paths instead of depth
+	if app.showOnlyFavorites {
+		app.scanFavoritePaths()
+	}
+
+	return app
 }
 
 const pollInterval = 200 * time.Millisecond
@@ -1678,7 +1685,7 @@ func (a *App) View() string {
 	if a.showOnlyFavorites {
 		badges += " " + lipgloss.NewStyle().Bold(true).Foreground(lipgloss.Color("3")).Render("[favs]")
 	}
-	if a.subPkgDepth != 1 {
+	if a.subPkgDepth > 0 {
 		badges += " " + lipgloss.NewStyle().Foreground(colorMuted).Render(fmt.Sprintf("[depth:%d]", a.subPkgDepth))
 	}
 

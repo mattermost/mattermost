@@ -27,12 +27,9 @@ func main() {
 		os.Exit(1)
 	}
 
-	// Load config for saved depth setting
+	// Load config for saved depth setting (default 0 = no sub-packages)
 	cfg := config.Load(mmRoot)
 	depth := cfg.Depth
-	if depth <= 0 {
-		depth = 1
-	}
 
 	// Discover repos
 	repos, err := discovery.ScanAll(mmRoot, depth)
