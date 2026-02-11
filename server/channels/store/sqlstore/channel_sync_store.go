@@ -70,7 +70,7 @@ func (s *SqlChannelSyncStore) SaveLayout(layout *model.ChannelSyncLayout) error 
 			string(categoriesJSON), layout.UpdateAt, layout.UpdateBy,
 		))
 
-	if _, err := s.GetMasterX().ExecBuilder(query); err != nil {
+	if _, err := s.GetMaster().ExecBuilder(query); err != nil {
 		return err
 	}
 
@@ -82,7 +82,7 @@ func (s *SqlChannelSyncStore) DeleteLayout(teamId string) error {
 		Delete("ChannelSyncLayouts").
 		Where(sq.Eq{"TeamId": teamId})
 
-	if _, err := s.GetMasterX().ExecBuilder(query); err != nil {
+	if _, err := s.GetMaster().ExecBuilder(query); err != nil {
 		return err
 	}
 	return nil
@@ -121,7 +121,7 @@ func (s *SqlChannelSyncStore) SaveDismissal(dismissal *model.ChannelSyncDismissa
 		Values(dismissal.UserId, dismissal.ChannelId, dismissal.TeamId).
 		SuffixExpr(sq.Expr("ON CONFLICT DO NOTHING"))
 
-	if _, err := s.GetMasterX().ExecBuilder(query); err != nil {
+	if _, err := s.GetMaster().ExecBuilder(query); err != nil {
 		return err
 	}
 	return nil
@@ -136,7 +136,7 @@ func (s *SqlChannelSyncStore) DeleteDismissal(userId string, channelId string, t
 			sq.Eq{"TeamId": teamId},
 		})
 
-	if _, err := s.GetMasterX().ExecBuilder(query); err != nil {
+	if _, err := s.GetMaster().ExecBuilder(query); err != nil {
 		return err
 	}
 	return nil
@@ -147,7 +147,7 @@ func (s *SqlChannelSyncStore) DeleteDismissalsForChannel(channelId string) error
 		Delete("ChannelSyncDismissals").
 		Where(sq.Eq{"ChannelId": channelId})
 
-	if _, err := s.GetMasterX().ExecBuilder(query); err != nil {
+	if _, err := s.GetMaster().ExecBuilder(query); err != nil {
 		return err
 	}
 	return nil
