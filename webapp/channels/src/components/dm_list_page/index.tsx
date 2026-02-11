@@ -4,7 +4,7 @@
 import React, {useMemo, useState, useCallback, useEffect, useRef} from 'react';
 import {useDispatch, useSelector} from 'react-redux';
 import {FormattedMessage} from 'react-intl';
-import {useHistory} from 'react-router-dom';
+import {useHistory, useLocation} from 'react-router-dom';
 import {FixedSizeList, ListChildComponentProps} from 'react-window';
 import AutoSizer from 'react-virtualized-auto-sizer';
 
@@ -77,6 +77,7 @@ const DmListRow = ({index, style, data}: ListChildComponentProps<RowData>) => {
 const DMListPage = () => {
     const dispatch = useDispatch();
     const history = useHistory();
+    const location = useLocation();
     const currentChannelId = useSelector(getCurrentChannelId);
     const currentTeamUrl = useSelector(getCurrentRelativeTeamUrl);
     const currentUserId = useSelector(getCurrentUserId);
@@ -123,13 +124,19 @@ const DMListPage = () => {
         }
     }, [dispatch, allDms]);
 
-    // Auto-select the most recent DM on mount ONLY IF we are not already on a DM channel
+    // Auto-select the most recent DM on mount ONLY IF we are not already on a DM channel.
+    // We check both currentChannelId (Redux state, updates async) and the URL path
+    // (updates synchronously with history.push) to avoid overriding avatar click navigation.
     useEffect(() => {
         if (!hasAutoSelected.current && allDms.length > 0 && currentTeamUrl) {
-            // Skip auto-selection if the current channel is already a DM in the list
-            const isAlreadyOnDm = currentChannelId && allDms.some((dm) => dm.channel.id === currentChannelId);
+            // Check if already navigating to a DM via URL (handles avatar clicks where
+            // currentChannelId hasn't updated yet but the URL has)
+            const isOnDmRoute = location.pathname.includes('/messages/');
+
+            // Also check if the current channel is already a DM in the list
+            const isAlreadyOnDm = isOnDmRoute || (currentChannelId && allDms.some((dm) => dm.channel.id === currentChannelId));
+            hasAutoSelected.current = true;
             if (!isAlreadyOnDm) {
-                hasAutoSelected.current = true;
                 const firstDm = allDms[0];
                 if (firstDm.type === 'dm') {
                     history.push(`${currentTeamUrl}/messages/@${firstDm.user.username}`);
@@ -138,7 +145,7 @@ const DMListPage = () => {
                 }
             }
         }
-    }, [allDms, currentTeamUrl, currentChannelId, history]);
+    }, [allDms, currentTeamUrl, currentChannelId, location.pathname, history]);
 
     const filteredDms = useMemo(() => {
         if (!searchTerm) {
