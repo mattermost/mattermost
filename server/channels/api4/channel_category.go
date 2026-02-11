@@ -73,7 +73,7 @@ func convertSyncStateToSidebarCategories(state *model.ChannelSyncUserState, user
 				UserId:      userId,
 				TeamId:      teamId,
 				SortOrder:   cat.SortOrder,
-				Sorting:     model.SidebarCategoryManual,
+				Sorting:     model.SidebarCategorySortManual,
 				Type:        model.SidebarCategoryCustom,
 				DisplayName: cat.DisplayName,
 				Muted:       cat.Muted,
