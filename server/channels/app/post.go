@@ -1285,6 +1285,9 @@ func (a *App) supplementWithTranslationUpdatedPosts(rctx request.CTX, postList *
 	}
 
 	for _, post := range posts {
+		if post.DeleteAt != 0 {
+			continue
+		}
 		if collapsedThreads && post.RootId != "" {
 			continue
 		}
