@@ -638,7 +638,7 @@ describe('convertEntityToCharacter', () => {
 
     it('should decode &#39; to \'', () => {
         expect(convertEntityToCharacter('&#39;')).toBe("'");
-        expect(convertEntityToCharacter("don&#39;t")).toBe("don't");
+        expect(convertEntityToCharacter('don&#39;t')).toBe('don\'t');
     });
 
     it('should decode &amp; to &', () => {
