@@ -20,7 +20,7 @@ import {fetchChannelSyncState, enterLayoutEditMode, setLayoutEditMode} from 'act
 import {closeModal, openModal} from 'actions/views/modals';
 import {closeRightHandSide} from 'actions/views/rhs';
 import {getConfig} from 'mattermost-redux/selectors/entities/general';
-import {isLayoutEditMode} from 'selectors/views/channel_sync';
+import {isLayoutEditMode, getShouldSync} from 'selectors/views/channel_sync';
 
 import {getIsLhsOpen} from 'selectors/lhs';
 import {getIsRhsOpen, getRhsState} from 'selectors/rhs';
@@ -61,6 +61,7 @@ function mapStateToProps(state: GlobalState) {
         isChannelSyncEnabled: config.FeatureFlagChannelSync === 'true',
         isAdmin: isCurrentUserSystemAdmin(state) || isCurrentUserCurrentTeamAdmin(state),
         isEditMode: isLayoutEditMode(state),
+        isSynced: getShouldSync(state),
         canCreatePrivateChannel,
         canCreatePublicChannel,
         canJoinPublicChannel,

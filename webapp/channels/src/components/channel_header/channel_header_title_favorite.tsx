@@ -10,6 +10,7 @@ import {favoriteChannel, unfavoriteChannel} from 'mattermost-redux/actions/chann
 import {getCurrentChannel, isCurrentChannelFavorite} from 'mattermost-redux/selectors/entities/channels';
 
 import WithTooltip from 'components/with_tooltip';
+import {getShouldSync} from 'selectors/views/channel_sync';
 
 import type {A11yFocusEventDetail} from 'utils/constants';
 import {A11yCustomEventTypes} from 'utils/constants';
@@ -18,6 +19,7 @@ const ChannelHeaderTitleFavorite = () => {
     const intl = useIntl();
     const dispatch = useDispatch();
     const isFavorite = useSelector(isCurrentChannelFavorite);
+    const isSynced = useSelector(getShouldSync);
     const channel = useSelector(getCurrentChannel);
     const channelIsArchived = (channel?.delete_at ?? 0) > 0;
     const favIconRef = useRef<HTMLButtonElement>(null);
@@ -46,7 +48,7 @@ const ChannelHeaderTitleFavorite = () => {
         });
     }, [isFavorite, channel, dispatch]);
 
-    if (!channel || channelIsArchived) {
+    if (!channel || channelIsArchived || isSynced) {
         return null;
     }
 

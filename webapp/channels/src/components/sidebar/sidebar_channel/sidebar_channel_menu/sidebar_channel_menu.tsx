@@ -49,6 +49,7 @@ const SidebarChannelMenu = ({
     channelLeaveHandler,
     sidebarChannelSettingsEnabled,
     canAccessChannelSettings,
+    isSynced,
 }: Props) => {
     const isLeaving = useRef(false);
 
@@ -335,10 +336,10 @@ const SidebarChannelMenu = ({
             }}
         >
             {markAsReadUnreadMenuItem}
-            {favoriteUnfavoriteMenuItem}
+            {!isSynced && favoriteUnfavoriteMenuItem}
             {muteUnmuteChannelMenuItem}
-            <Menu.Separator/>
-            <ChannelMoveToSubmenu channel={channel}/>
+            {!isSynced && <Menu.Separator/>}
+            {!isSynced && <ChannelMoveToSubmenu channel={channel}/>}
             {(copyLinkMenuItem || addMembersMenuItem) && <Menu.Separator/>}
             {copyLinkMenuItem}
             {addMembersMenuItem}

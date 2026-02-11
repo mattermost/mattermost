@@ -19,6 +19,7 @@ import {unmuteChannel, muteChannel} from 'actions/channel_actions';
 import {markMostRecentPostInChannelAsUnread} from 'actions/post_actions';
 import {openModal} from 'actions/views/modals';
 import {canAccessChannelSettings} from 'selectors/views/channel_settings';
+import {getShouldSync} from 'selectors/views/channel_sync';
 
 import {getSiteURL} from 'utils/url';
 
@@ -60,6 +61,7 @@ function mapStateToProps(state: GlobalState, ownProps: OwnProps) {
         managePrivateChannelMembers,
         sidebarChannelSettingsEnabled,
         canAccessChannelSettings: canAccessSettings,
+        isSynced: getShouldSync(state),
     };
 }
 

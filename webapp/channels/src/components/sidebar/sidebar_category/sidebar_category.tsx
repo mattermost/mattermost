@@ -262,7 +262,7 @@ export default class SidebarCategory extends React.PureComponent<Props, State> {
             return null;
         }
 
-        if (category.type === CategoryTypes.FAVORITES && !channelIds?.length) {
+        if (category.type === CategoryTypes.FAVORITES && (!channelIds?.length || this.props.isSynced)) {
             return null;
         }
 

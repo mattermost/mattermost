@@ -80,6 +80,8 @@ type Props = WrappedComponentProps & {
 type State = {
     showTopUnread: boolean;
     showBottomUnread: boolean;
+    isAddingCategory: boolean;
+    newCategoryName: string;
 };
 
 // scrollMargin is the margin at the edge of the channel list that we leave when scrolling to a channel.
@@ -105,6 +107,8 @@ export class SidebarList extends React.PureComponent<Props, State> {
         this.state = {
             showTopUnread: false,
             showBottomUnread: false,
+            isAddingCategory: false,
+            newCategoryName: '',
         };
         this.scrollbar = React.createRef();
 
@@ -475,63 +479,102 @@ export class SidebarList extends React.PureComponent<Props, State> {
             cat.channel_ids.forEach((id) => placedChannelIds.add(id));
         });
 
-        // Uncategorized channels
-        const uncategorized = editorChannels.filter((ch) => !placedChannelIds.has(ch.id));
+        // Uncategorized channels (sorted alphabetically)
+        const uncategorized = editorChannels
+            .filter((ch) => !placedChannelIds.has(ch.id))
+            .sort((a, b) => a.display_name.localeCompare(b.display_name));
 
-        return (
-            <DragDropContext
-                onDragEnd={this.onEditModeDragEnd}
-            >
-                <Droppable
-                    droppableId='droppable-edit-categories'
-                    type='EDIT_CATEGORY'
-                >
-                    {(provided) => (
-                        <div
-                            ref={provided.innerRef}
-                            {...provided.droppableProps}
-                        >
-                            {categories.map((cat, index) => (
-                                <SidebarEditCategory
-                                    key={cat.id}
-                                    category={cat}
-                                    categoryIndex={index}
-                                    editorChannels={editorChannels}
-                                    userChannelIds={userChannelIds}
-                                />
-                            ))}
-                            {uncategorized.length > 0 && (
-                                <SidebarEditCategory
-                                    key='uncategorized'
-                                    category={{
-                                        id: 'uncategorized',
-                                        display_name: 'Uncategorized',
-                                        sort_order: 9999,
-                                        channel_ids: uncategorized.map((ch) => ch.id),
-                                    }}
-                                    categoryIndex={categories.length}
-                                    editorChannels={editorChannels}
-                                    userChannelIds={userChannelIds}
-                                    isUncategorized={true}
-                                />
-                            )}
-                            {provided.placeholder}
-                        </div>
-                    )}
-                </Droppable>
-                <button
-                    className='sidebar-edit-add-category'
-                    onClick={() => {
-                        const name = prompt('Category name:');
-                        if (name) {
-                            this.props.actions.addCategoryToCanonicalLayout(name);
+        const addCategoryControl = this.state.isAddingCategory ? (
+            <div className='sidebar-edit-add-category-input'>
+                <input
+                    autoFocus={true}
+                    type='text'
+                    placeholder='Category name...'
+                    value={this.state.newCategoryName}
+                    onChange={(e) => this.setState({newCategoryName: e.target.value})}
+                    onKeyDown={(e) => {
+                        if (e.key === 'Enter' && this.state.newCategoryName.trim()) {
+                            this.props.actions.addCategoryToCanonicalLayout(this.state.newCategoryName.trim());
+                            this.setState({isAddingCategory: false, newCategoryName: ''});
+                        } else if (e.key === 'Escape') {
+                            this.setState({isAddingCategory: false, newCategoryName: ''});
                         }
                     }}
+                    onBlur={() => {
+                        if (this.state.newCategoryName.trim()) {
+                            this.props.actions.addCategoryToCanonicalLayout(this.state.newCategoryName.trim());
+                        }
+                        this.setState({isAddingCategory: false, newCategoryName: ''});
+                    }}
+                />
+            </div>
+        ) : (
+            <button
+                className='sidebar-edit-add-category'
+                onClick={() => this.setState({isAddingCategory: true})}
+            >
+                <i className='icon icon-plus'/>
+                {'Add Category'}
+            </button>
+        );
+
+        return (
+            <div
+                id='sidebar-left'
+                className='SidebarNavContainer'
+            >
+                <DragDropContext
+                    onDragEnd={this.onEditModeDragEnd}
                 >
-                    <i className='icon icon-plus'/>
-                    {'Add Category'}
-                </button>
-            </DragDropContext>
+                    {addCategoryControl}
+                    <Scrollbars
+                        ref={this.scrollbar}
+                    >
+                        {categories.length === 0 && (
+                            <div className='sidebar-edit-hint'>
+                                {'Create categories above, then drag channels into them.'}
+                            </div>
+                        )}
+                        <Droppable
+                            droppableId='droppable-edit-categories'
+                            type='EDIT_CATEGORY'
+                        >
+                            {(provided) => (
+                                <div
+                                    ref={provided.innerRef}
+                                    {...provided.droppableProps}
+                                >
+                                    {categories.map((cat, index) => (
+                                        <SidebarEditCategory
+                                            key={cat.id}
+                                            category={cat}
+                                            categoryIndex={index}
+                                            editorChannels={editorChannels}
+                                            userChannelIds={userChannelIds}
+                                        />
+                                    ))}
+                                    {provided.placeholder}
+                                </div>
+                            )}
+                        </Droppable>
+                        {uncategorized.length > 0 && (
+                            <SidebarEditCategory
+                                key='uncategorized'
+                                category={{
+                                    id: 'uncategorized',
+                                    display_name: 'Uncategorized',
+                                    sort_order: 9999,
+                                    channel_ids: uncategorized.map((ch) => ch.id),
+                                }}
+                                categoryIndex={categories.length}
+                                editorChannels={editorChannels}
+                                userChannelIds={userChannelIds}
+                                isUncategorized={true}
+                            />
+                        )}
+                    </Scrollbars>
+                </DragDropContext>
+            </div>
         );
     };
 

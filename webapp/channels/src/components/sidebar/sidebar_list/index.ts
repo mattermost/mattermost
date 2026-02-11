@@ -6,6 +6,7 @@ import {bindActionCreators} from 'redux';
 import type {Dispatch} from 'redux';
 
 import {moveCategory} from 'mattermost-redux/actions/channel_categories';
+import {CategoryTypes} from 'mattermost-redux/constants/channel_categories';
 import {getCurrentChannelId, getUnreadChannelIds, getMyChannelMemberships} from 'mattermost-redux/selectors/entities/channels';
 import {shouldShowUnreadsCategory, isCollapsedThreadsEnabled} from 'mattermost-redux/selectors/entities/preferences';
 import {getCurrentTeam} from 'mattermost-redux/selectors/entities/teams';
@@ -27,7 +28,7 @@ import {
     isUnreadFilterEnabled,
 } from 'selectors/views/channel_sidebar';
 import {moveChannelInCanonicalLayout, moveCategoryInCanonicalLayout, addCategoryToCanonicalLayout} from 'actions/views/channel_sync';
-import {getShouldSync, isLayoutEditMode, getSyncLayout, getEditorChannels} from 'selectors/views/channel_sync';
+import {getShouldSync, isLayoutEditMode, getSyncLayout, getEditorChannels, getSyncedCategories} from 'selectors/views/channel_sync';
 import {isGuildedLayoutEnabled} from 'selectors/views/guilded_layout';
 
 import type {GlobalState} from 'types/store';
@@ -43,10 +44,27 @@ function mapStateToProps(state: GlobalState) {
         hasUnreadThreads = Boolean(getThreadCountsInCurrentTeam(state)?.total_unread_threads);
     }
 
+    const isSynced = getShouldSync(state);
+    const personalCategories = getCategoriesForCurrentTeam(state);
+
+    let categories;
+    if (isSynced) {
+        const syncedCats = getSyncedCategories(state);
+        if (syncedCats) {
+            // Add the personal DM category so Guilded layout can filter it and non-Guilded users see DMs
+            const dmCat = personalCategories.find((c) => c.type === CategoryTypes.DIRECT_MESSAGES);
+            categories = dmCat ? [...syncedCats, dmCat] : syncedCats;
+        } else {
+            categories = personalCategories;
+        }
+    } else {
+        categories = personalCategories;
+    }
+
     return {
         currentTeam,
         currentChannelId: getCurrentChannelId(state),
-        categories: getCategoriesForCurrentTeam(state),
+        categories,
         isUnreadFilterEnabled: isUnreadFilterEnabled(state),
         unreadChannelIds: getUnreadChannelIds(state),
         displayedChannels: getDisplayedChannels(state),
@@ -59,7 +77,7 @@ function mapStateToProps(state: GlobalState) {
         currentStaticPageId: getCurrentStaticPageId(state),
         staticPages: getVisibleStaticPages(state),
         isGuildedLayoutEnabled: isGuildedLayoutEnabled(state),
-        isSynced: getShouldSync(state),
+        isSynced,
         isEditMode: isLayoutEditMode(state),
         editLayout: getSyncLayout(state),
         editorChannels: getEditorChannels(state),

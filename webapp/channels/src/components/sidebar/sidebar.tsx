@@ -41,6 +41,7 @@ type Props = {
     canJoinPublicChannel: boolean;
     isOpen: boolean;
     isChannelSyncEnabled: boolean;
+    isSynced: boolean;
     isAdmin: boolean;
     isEditMode: boolean;
     actions: {
@@ -295,35 +296,35 @@ export default class Sidebar extends React.PureComponent<Props, State> {
                         handleOpenDirectMessagesModal={this.handleOpenMoreDirectChannelsModal}
                         unreadFilterEnabled={this.props.unreadFilterEnabled}
                         canCreateCustomGroups={this.props.canCreateCustomGroups}
+                        isAdmin={this.props.isAdmin}
+                        isChannelSyncEnabled={this.props.isChannelSyncEnabled}
+                        isSynced={this.props.isSynced}
+                        isEditMode={this.props.isEditMode}
+                        onEditLayoutToggle={() => {
+                            if (this.props.isEditMode) {
+                                this.props.actions.setLayoutEditMode(false);
+                            } else {
+                                this.props.actions.enterLayoutEditMode(this.props.teamId);
+                            }
+                        }}
                     />
                 )}
-                <div
-                    id='lhsNavigator'
-                    role='application'
-                    aria-label={ariaLabel}
-                    className='a11y__region'
-                    data-a11y-sort-order='6'
-                >
-                    <ChannelNavigator/>
-                </div>
-                <div className='sidebar--left__icons'>
-                    <Pluggable pluggableName='LeftSidebarHeader'/>
-                    {this.props.isAdmin && this.props.isChannelSyncEnabled && (
-                        <button
-                            className={classNames('sidebar-layout-edit-toggle', {active: this.props.isEditMode})}
-                            title={this.props.isEditMode ? 'Exit Layout Edit Mode' : 'Edit Team Layout'}
-                            onClick={() => {
-                                if (this.props.isEditMode) {
-                                    this.props.actions.setLayoutEditMode(false);
-                                } else {
-                                    this.props.actions.enterLayoutEditMode(this.props.teamId);
-                                }
-                            }}
-                        >
-                            <i className={`icon ${this.props.isEditMode ? 'icon-check' : 'icon-pencil-outline'}`}/>
-                        </button>
-                    )}
-                </div>
+                {!this.props.isEditMode && (
+                    <div
+                        id='lhsNavigator'
+                        role='application'
+                        aria-label={ariaLabel}
+                        className='a11y__region'
+                        data-a11y-sort-order='6'
+                    >
+                        <ChannelNavigator/>
+                    </div>
+                )}
+                {!this.props.isEditMode && (
+                    <div className='sidebar--left__icons'>
+                        <Pluggable pluggableName='LeftSidebarHeader'/>
+                    </div>
+                )}
                 {this.props.isEditMode && (
                     <div className='sidebar-edit-mode-banner'>
                         <i className='icon icon-pencil-outline'/>

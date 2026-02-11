@@ -36,6 +36,7 @@ type Props = {
     unreadFilterEnabled: boolean;
     onCreateNewCategoryClick: () => void;
     onInvitePeopleClick: () => void;
+    isSynced?: boolean;
 };
 
 export default function SidebarBrowserOrAddChannelMenu(props: Props) {
@@ -117,7 +118,7 @@ export default function SidebarBrowserOrAddChannelMenu(props: Props) {
     }
 
     let createNewCategoryMenuItem: JSX.Element | null = null;
-    if (!props.unreadFilterEnabled) {
+    if (!props.unreadFilterEnabled && !props.isSynced) {
         createNewCategoryMenuItem = (
             <Menu.Item
                 id='createCategoryMenuItem'

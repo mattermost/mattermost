@@ -123,7 +123,11 @@ export function enterLayoutEditMode(teamId: string): ActionFuncAsync {
                 data: layout,
             });
         } catch {
-            // No layout exists yet — start with empty
+            // No layout exists yet — start with empty default so drag operations work
+            dispatch({
+                type: ActionTypes.CHANNEL_SYNC_RECEIVED_LAYOUT,
+                data: {team_id: teamId, categories: [], update_at: 0, update_by: ''},
+            });
         }
 
         return {data: true};
@@ -207,6 +211,32 @@ export function addCategoryToCanonicalLayout(displayName: string): ActionFunc {
             sort_order: newLayout.categories.length * 10,
             channel_ids: [],
         });
+
+        dispatch({
+            type: ActionTypes.CHANNEL_SYNC_RECEIVED_LAYOUT,
+            data: newLayout,
+        });
+
+        dispatch(saveChannelSyncLayout(teamId, newLayout));
+        return {data: true};
+    };
+}
+
+export function renameCategoryInCanonicalLayout(categoryId: string, newName: string): ActionFunc {
+    return (dispatch, getState) => {
+        const teamId = getCurrentTeamId(getState());
+        const layout = getState().views.channelSync.layoutByTeam[teamId];
+        if (!layout) {
+            return {data: false};
+        }
+
+        const newLayout = JSON.parse(JSON.stringify(layout)) as ChannelSyncLayout;
+        const cat = newLayout.categories.find((c) => c.id === categoryId);
+        if (!cat) {
+            return {data: false};
+        }
+
+        cat.display_name = newName;
 
         dispatch({
             type: ActionTypes.CHANNEL_SYNC_RECEIVED_LAYOUT,
