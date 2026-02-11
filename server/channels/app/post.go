@@ -1226,7 +1226,7 @@ func (a *App) GetPostsSince(rctx request.CTX, options model.GetPostsSinceOptions
 		return nil, model.NewAppError("GetPostsSince", "app.post.get_posts_since.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
-	a.supplementWithTranslationUpdatedPosts(rctx, postList, options.ChannelId, options.Time)
+	a.supplementWithTranslationUpdatedPosts(rctx, postList, options.ChannelId, options.Time, options.CollapsedThreads)
 
 	if appErr := a.filterInaccessiblePosts(postList, filterPostOptions{assumeSortedCreatedAt: true}); appErr != nil {
 		return nil, appErr
@@ -1245,7 +1245,7 @@ func (a *App) GetPostsSince(rctx request.CTX, options model.GetPostsSinceOptions
 
 // supplementWithTranslationUpdatedPosts finds posts whose translations were updated after `since`
 // and adds them to the post list (Posts map only, not Order) so the client receives fresh translations.
-func (a *App) supplementWithTranslationUpdatedPosts(rctx request.CTX, postList *model.PostList, channelID string, since int64) {
+func (a *App) supplementWithTranslationUpdatedPosts(rctx request.CTX, postList *model.PostList, channelID string, since int64, collapsedThreads bool) {
 	if a.AutoTranslation() == nil || !a.AutoTranslation().IsFeatureAvailable() {
 		return
 	}
@@ -1285,6 +1285,9 @@ func (a *App) supplementWithTranslationUpdatedPosts(rctx request.CTX, postList *
 	}
 
 	for _, post := range posts {
+		if collapsedThreads && post.RootId != "" {
+			continue
+		}
 		t, ok := translationsMap[post.Id]
 		if !ok {
 			continue
