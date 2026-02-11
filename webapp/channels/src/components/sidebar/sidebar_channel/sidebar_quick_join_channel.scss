@@ -1,0 +1,68 @@
+.quick-join-item {
+    opacity: 0.6;
+
+    .sidebar-item--quick-join {
+        display: flex;
+        align-items: center;
+        width: 100%;
+        padding: 6px 16px;
+        background: none;
+        border: none;
+        color: inherit;
+        cursor: default;
+        text-align: left;
+        font-size: 14px;
+
+        .icon {
+            margin-right: 8px;
+            font-size: 18px;
+            opacity: 0.7;
+        }
+
+        .SidebarChannelLinkLabel {
+            flex: 1;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+    }
+
+    .quick-join-actions {
+        display: flex;
+        gap: 2px;
+        margin-left: auto;
+    }
+
+    .quick-join-btn {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 24px;
+        height: 24px;
+        padding: 0;
+        background: none;
+        border: none;
+        border-radius: 4px;
+        color: inherit;
+        cursor: pointer;
+        opacity: 0.7;
+
+        &:hover {
+            opacity: 1;
+            background: rgba(var(--sidebar-text-rgb), 0.1);
+        }
+
+        .icon {
+            margin: 0;
+            font-size: 14px;
+        }
+    }
+
+    .join-btn:hover {
+        color: var(--button-bg);
+    }
+
+    .dismiss-btn:hover {
+        color: var(--error-text);
+    }
+}

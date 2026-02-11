@@ -40,10 +40,12 @@ import SidebarCategoryGenericMenu from './sidebar_category_generic_menu';
 
 type Props = {
     category: ChannelCategory;
+    isSynced?: boolean;
 };
 
 const SidebarCategoryMenu = ({
     category,
+    isSynced,
 }: Props) => {
     const dispatch = useDispatch();
     const showUnreadsCategory = useSelector(shouldShowUnreadsCategory);
@@ -81,7 +83,7 @@ const SidebarCategoryMenu = ({
 
     let deleteCategoryMenuItem: JSX.Element | null = null;
     let renameCategoryMenuItem: JSX.Element | null = null;
-    if (category.type === CategoryTypes.CUSTOM) {
+    if (category.type === CategoryTypes.CUSTOM && !isSynced) {
         function handleDeleteCategory() {
             dispatch(openModal({
                 modalId: ModalIdentifiers.DELETE_CATEGORY,
@@ -241,10 +243,10 @@ const SidebarCategoryMenu = ({
             {muteUnmuteCategoryMenuItem}
             {renameCategoryMenuItem}
             {deleteCategoryMenuItem}
-            <Menu.Separator/>
-            {sortChannelsMenuItem}
-            <Menu.Separator/>
-            <CreateNewCategoryMenuItem id={category.id}/>
+            {!isSynced && <Menu.Separator/>}
+            {!isSynced && sortChannelsMenuItem}
+            {!isSynced && <Menu.Separator/>}
+            {!isSynced && <CreateNewCategoryMenuItem id={category.id}/>}
         </SidebarCategoryGenericMenu>
     );
 };

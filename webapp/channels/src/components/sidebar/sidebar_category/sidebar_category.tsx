@@ -9,6 +9,7 @@ import {FormattedMessage, defineMessages} from 'react-intl';
 
 import type {ChannelCategory} from '@mattermost/types/channel_categories';
 import {CategorySorting} from '@mattermost/types/channel_categories';
+import type {ChannelSyncUserState} from '@mattermost/types/channel_sync';
 import type {PreferenceType} from '@mattermost/types/preferences';
 
 import {CategoryTypes} from 'mattermost-redux/constants/channel_categories';
@@ -31,6 +32,7 @@ import AddChannelsCtaButton from '../add_channels_cta_button';
 import InviteMembersButton from '../invite_members_button';
 import {SidebarCategoryHeader} from '../sidebar_category_header';
 import SidebarChannel from '../sidebar_channel';
+import SidebarQuickJoinChannel from '../sidebar_channel/sidebar_quick_join_channel';
 
 type Props = {
     category: ChannelCategory;
@@ -42,6 +44,8 @@ type Props = {
     draggingState: DraggingState;
     currentUserId: string;
     isAdmin: boolean;
+    isSynced: boolean;
+    syncState?: ChannelSyncUserState;
     actions: {
         setCategoryCollapsed: (categoryId: string, collapsed: boolean) => void;
         setCategorySorting: (categoryId: string, sorting: CategorySorting) => void;
@@ -112,19 +116,41 @@ export default class SidebarCategory extends React.PureComponent<Props, State> {
     };
 
     renderChannel = (channelId: string, index: number) => {
-        const {setChannelRef, category, draggingState} = this.props;
+        const {setChannelRef, category, draggingState, isSynced} = this.props;
         return (
             <SidebarChannel
                 key={channelId}
                 channelIndex={index}
                 channelId={channelId}
-                isDraggable={true}
+                isDraggable={!isSynced}
                 setChannelRef={setChannelRef}
                 isCategoryCollapsed={category.collapsed}
                 isCategoryDragged={draggingState.type === DraggingStateTypes.CATEGORY && draggingState.id === category.id}
                 isAutoSortedCategory={category.sorting === CategorySorting.Alphabetical || category.sorting === CategorySorting.Recency}
             />
         );
+    };
+
+    renderQuickJoinItems = () => {
+        const {isSynced, syncState, category} = this.props;
+        if (!isSynced || !syncState || category.collapsed) {
+            return null;
+        }
+
+        const syncCategory = syncState.categories.find(
+            (cat) => cat.id === category.id || cat.display_name === category.display_name,
+        );
+
+        if (!syncCategory?.quick_join?.length) {
+            return null;
+        }
+
+        return syncCategory.quick_join.map((channelId) => (
+            <SidebarQuickJoinChannel
+                key={`quick-join-${channelId}`}
+                channelId={channelId}
+            />
+        ));
     };
 
     handleCollapse = () => {
@@ -256,7 +282,7 @@ export default class SidebarCategory extends React.PureComponent<Props, State> {
                 </div>
             );
 
-            categoryMenu = <SidebarCategoryMenu category={category}/>;
+            categoryMenu = <SidebarCategoryMenu category={category} isSynced={this.props.isSynced}/>;
         } else if (category.type === CategoryTypes.DIRECT_MESSAGES) {
             const addHelpLabel = localizeMessage({id: 'sidebar.createDirectMessage', defaultMessage: 'Create new direct message'});
 
@@ -294,7 +320,7 @@ export default class SidebarCategory extends React.PureComponent<Props, State> {
                 isCollapsible = false;
             }
         } else {
-            categoryMenu = <SidebarCategoryMenu category={category}/>;
+            categoryMenu = <SidebarCategoryMenu category={category} isSynced={this.props.isSynced}/>;
         }
 
         let displayName = category.display_name;
@@ -374,6 +400,7 @@ export default class SidebarCategory extends React.PureComponent<Props, State> {
                                                 >
                                                     {this.renderNewDropBox(droppableSnapshot.isDraggingOver)}
                                                     {renderedChannels}
+                                                    {this.renderQuickJoinItems()}
                                                     {this.showPlaceholder() ? droppableProvided.placeholder : null}
                                                 </ul>
                                             </div>

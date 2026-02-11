@@ -50,6 +50,7 @@ type Props = WrappedComponentProps & {
     currentStaticPageId: string;
     staticPages: StaticPage[];
     isGuildedLayoutEnabled: boolean;
+    isSynced: boolean;
 
     handleOpenMoreDirectChannelsModal: (e: Event) => void;
     onDragStart: (initial: DragStart) => void;
@@ -362,6 +363,10 @@ export class SidebarList extends React.PureComponent<Props, State> {
     }, 100);
 
     onBeforeCapture = (before: BeforeCapture) => {
+        if (this.props.isSynced) {
+            return;
+        }
+
         // // Ensure no channels are animating
         this.channelRefs.forEach((ref) => ref.classList.remove('animating'));
 
@@ -409,6 +414,11 @@ export class SidebarList extends React.PureComponent<Props, State> {
     };
 
     onDragEnd = (result: DropResult) => {
+        if (this.props.isSynced) {
+            this.props.actions.stopDragging();
+            return;
+        }
+
         this.props.onDragEnd(result);
 
         if (result.reason === 'DROP' && result.destination) {

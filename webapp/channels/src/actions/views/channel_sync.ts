@@ -3,6 +3,8 @@
 
 import {Client4} from 'mattermost-redux/client';
 import {fetchMyCategories} from 'mattermost-redux/actions/channel_categories';
+import {getChannel as fetchChannel} from 'mattermost-redux/actions/channels';
+import {getChannel} from 'mattermost-redux/selectors/entities/channels';
 
 import {ActionTypes} from 'utils/constants';
 
@@ -10,7 +12,7 @@ import type {ChannelSyncLayout} from '@mattermost/types/channel_sync';
 import type {ActionFuncAsync} from 'types/store';
 
 export function fetchChannelSyncState(teamId: string): ActionFuncAsync {
-    return async (dispatch) => {
+    return async (dispatch, getState) => {
         try {
             const state = await Client4.getChannelSyncState(teamId);
             dispatch({
@@ -21,6 +23,25 @@ export function fetchChannelSyncState(teamId: string): ActionFuncAsync {
                 type: ActionTypes.CHANNEL_SYNC_SET_SHOULD_SYNC,
                 data: {teamId, shouldSync: state.should_sync},
             });
+
+            // Fetch channel data for Quick Join items not already in the store
+            if (state.should_sync) {
+                const reduxState = getState();
+                const quickJoinIds: string[] = [];
+                for (const cat of state.categories) {
+                    if (cat.quick_join) {
+                        for (const chId of cat.quick_join) {
+                            if (!getChannel(reduxState, chId)) {
+                                quickJoinIds.push(chId);
+                            }
+                        }
+                    }
+                }
+                for (const chId of quickJoinIds) {
+                    dispatch(fetchChannel(chId));
+                }
+            }
+
             return {data: state};
         } catch (error) {
             dispatch({

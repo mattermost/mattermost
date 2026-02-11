@@ -13,6 +13,7 @@ import {getCurrentUser, getCurrentUserId} from 'mattermost-redux/selectors/entit
 import {isAdmin} from 'mattermost-redux/utils/user_utils';
 
 import {getDraggingState, makeGetFilteredChannelIdsForCategory} from 'selectors/views/channel_sidebar';
+import {getShouldSync, getSyncState} from 'selectors/views/channel_sync';
 
 import type {GlobalState} from 'types/store';
 
@@ -31,6 +32,8 @@ function makeMapStateToProps() {
             draggingState: getDraggingState(state),
             currentUserId: getCurrentUserId(state),
             isAdmin: isAdmin(getCurrentUser(state).roles),
+            isSynced: getShouldSync(state),
+            syncState: getSyncState(state),
         };
     };
 }

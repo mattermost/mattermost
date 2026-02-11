@@ -26,6 +26,7 @@ import {
     getCategoriesForCurrentTeam,
     isUnreadFilterEnabled,
 } from 'selectors/views/channel_sidebar';
+import {getShouldSync} from 'selectors/views/channel_sync';
 import {isGuildedLayoutEnabled} from 'selectors/views/guilded_layout';
 
 import type {GlobalState} from 'types/store';
@@ -57,6 +58,7 @@ function mapStateToProps(state: GlobalState) {
         currentStaticPageId: getCurrentStaticPageId(state),
         staticPages: getVisibleStaticPages(state),
         isGuildedLayoutEnabled: isGuildedLayoutEnabled(state),
+        isSynced: getShouldSync(state),
     };
 }
 
