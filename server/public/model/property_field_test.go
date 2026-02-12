@@ -408,6 +408,96 @@ func TestPropertyField_Patch(t *testing.T) {
 	})
 }
 
+func TestPropertyField_IsPSAv1(t *testing.T) {
+	t.Run("basic ObjectType tests", func(t *testing.T) {
+		testCases := []struct {
+			name       string
+			objectType string
+			want       bool
+		}{
+			{
+				name:       "returns true for empty ObjectType (PSAv1 legacy schema)",
+				objectType: "",
+				want:       true,
+			},
+			{
+				name:       "returns false for post ObjectType (PSAv2 typed schema)",
+				objectType: "post",
+				want:       false,
+			},
+			{
+				name:       "returns false for user ObjectType",
+				objectType: "user",
+				want:       false,
+			},
+			{
+				name:       "returns false for channel ObjectType",
+				objectType: "channel",
+				want:       false,
+			},
+			{
+				name:       "returns false for team ObjectType",
+				objectType: "team",
+				want:       false,
+			},
+			{
+				name:       "returns false for board ObjectType",
+				objectType: "board",
+				want:       false,
+			},
+			{
+				name:       "returns false for card ObjectType",
+				objectType: "card",
+				want:       false,
+			},
+		}
+
+		for _, tc := range testCases {
+			t.Run(tc.name, func(t *testing.T) {
+				pf := &PropertyField{
+					ObjectType: tc.objectType,
+				}
+				assert.Equal(t, tc.want, pf.IsPSAv1(), "Expected IsPSAv1() to return %v for ObjectType=%q", tc.want, tc.objectType)
+			})
+		}
+	})
+
+	t.Run("returns true for zero-value PropertyField", func(t *testing.T) {
+		pf := &PropertyField{}
+		assert.True(t, pf.IsPSAv1(), "Zero-value PropertyField should be treated as PSAv1")
+	})
+
+	t.Run("works correctly when used with other fields set", func(t *testing.T) {
+		// PSAv1 field with all other fields populated
+		psav1Field := &PropertyField{
+			ID:         NewId(),
+			GroupID:    NewId(),
+			Name:       "Legacy Field",
+			Type:       PropertyFieldTypeText,
+			TargetID:   NewId(),
+			TargetType: "channel",
+			ObjectType: "", // PSAv1
+			CreateAt:   GetMillis(),
+			UpdateAt:   GetMillis(),
+		}
+		assert.True(t, psav1Field.IsPSAv1())
+
+		// PSAv2 field with all other fields populated
+		psav2Field := &PropertyField{
+			ID:         NewId(),
+			GroupID:    NewId(),
+			Name:       "Modern Field",
+			Type:       PropertyFieldTypeText,
+			TargetID:   NewId(),
+			TargetType: "channel",
+			ObjectType: "post", // PSAv2
+			CreateAt:   GetMillis(),
+			UpdateAt:   GetMillis(),
+		}
+		assert.False(t, psav2Field.IsPSAv1())
+	})
+}
+
 func TestPropertyFieldSearchCursor_IsValid(t *testing.T) {
 	t.Run("empty cursor is valid", func(t *testing.T) {
 		cursor := PropertyFieldSearchCursor{}

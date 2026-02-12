@@ -27,6 +27,16 @@ const (
 	PropertyFieldObjectTypeMaxRunes = 255
 )
 
+// PropertyFieldTargetLevel represents the hierarchy level of a property field.
+// Used both for TargetType field values and for conflict detection results.
+type PropertyFieldTargetLevel string
+
+const (
+	PropertyFieldTargetLevelSystem  PropertyFieldTargetLevel = "system"
+	PropertyFieldTargetLevelTeam    PropertyFieldTargetLevel = "team"
+	PropertyFieldTargetLevelChannel PropertyFieldTargetLevel = "channel"
+)
+
 type PropertyField struct {
 	ID         string            `json:"id"`
 	GroupID    string            `json:"group_id"`
@@ -233,6 +243,14 @@ func (pf *PropertyField) Patch(patch *PropertyFieldPatch) {
 	if patch.TargetType != nil {
 		pf.TargetType = *patch.TargetType
 	}
+}
+
+// IsPSAv1 returns true if this property field uses the legacy PSAv1 schema.
+// Legacy properties have an empty ObjectType and rely on simple TargetID uniqueness
+// enforced by the idx_propertyfields_unique_legacy database constraint, rather than
+// the hierarchical uniqueness model used by PSAv2 (ObjectType-based) properties.
+func (pf *PropertyField) IsPSAv1() bool {
+	return pf.ObjectType == ""
 }
 
 type PropertyFieldSearchCursor struct {
