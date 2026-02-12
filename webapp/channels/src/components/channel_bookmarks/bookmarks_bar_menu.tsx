@@ -18,7 +18,6 @@ import type {IDMappedObjects} from '@mattermost/types/utilities';
 import * as Menu from 'components/menu';
 
 import {useBookmarkAddActions} from './channel_bookmarks_menu';
-import type {KeyboardReorderItemProps} from './hooks';
 import OverflowBookmarkItem from './overflow_bookmark_item';
 
 interface BookmarksBarMenuProps {
@@ -28,13 +27,9 @@ interface BookmarksBarMenuProps {
     hasBookmarks: boolean;
     limitReached: boolean;
     canUploadFiles: boolean;
-    canReorder: boolean;
-    isDragging: boolean;
     canAdd: boolean;
     forceOpen?: boolean;
     onOpenChange?: (open: boolean) => void;
-    getItemProps?: (id: string) => KeyboardReorderItemProps;
-    reorderState?: {isReordering: boolean; itemId: string | null};
 }
 
 function BookmarksBarMenu({
@@ -44,13 +39,9 @@ function BookmarksBarMenu({
     hasBookmarks,
     limitReached,
     canUploadFiles,
-    canReorder,
-    isDragging,
     canAdd,
     forceOpen,
     onOpenChange,
-    getItemProps,
-    reorderState,
 }: BookmarksBarMenuProps) {
     const {formatMessage} = useIntl();
     const triggerRef = useRef<HTMLDivElement>(null);
@@ -120,10 +111,6 @@ function BookmarksBarMenu({
                     key={id}
                     id={id}
                     bookmark={bookmarks[id]}
-                    canReorder={canReorder}
-                    isDragging={isDragging}
-                    keyboardReorderProps={getItemProps?.(id)}
-                    isKeyboardReordering={reorderState?.isReordering && reorderState?.itemId === id}
                 />,
             );
         });

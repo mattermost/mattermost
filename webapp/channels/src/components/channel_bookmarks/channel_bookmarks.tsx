@@ -243,13 +243,9 @@ function ChannelBookmarks({channelId}: Props) {
                 hasBookmarks={hasBookmarks}
                 limitReached={limitReached}
                 canUploadFiles={canUploadFiles}
-                canReorder={canReorder}
                 canAdd={canAdd}
-                isDragging={isDragging}
                 forceOpen={showDragOverlay || undefined}
                 onOpenChange={handleOverflowOpenChange}
-                getItemProps={canReorder ? getItemProps : undefined}
-                reorderState={reorderState}
             />
         </Container>
     );
