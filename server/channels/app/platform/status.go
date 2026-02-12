@@ -1309,20 +1309,21 @@ func (ps *PlatformService) UpdateActivityFromHeartbeat(userID string, windowActi
 			status.Manual = false
 		}
 
-		// AccurateStatuses: Handle status transitions based on activity
-		if !status.Manual {
-			// Only auto-adjust non-manual statuses
-			if isManualActivity {
-				// Manual activity detected - user should be online
-				if status.Status == model.StatusAway || status.Status == model.StatusOffline {
-					newStatus = model.StatusOnline
-				}
-			} else {
-				// No manual activity in this heartbeat
-				// Check if enough time has passed since last activity to set Away
-				if status.Status == model.StatusOnline && inactivityTimeout > 0 && timeSinceLastActivity >= inactivityTimeout {
-					newStatus = model.StatusAway
-				}
+		// AccurateStatuses: Handle status transitions based on activity.
+		// IMPORTANT: When AccurateStatuses is enabled, Manual flag does NOT protect statuses.
+		// The server owns ALL status transitions via heartbeat.
+		if isManualActivity {
+			// Manual activity detected - user should be online
+			if status.Status == model.StatusAway || status.Status == model.StatusOffline {
+				newStatus = model.StatusOnline
+				status.Manual = false
+			}
+		} else {
+			// No manual activity in this heartbeat
+			// Check if enough time has passed since last activity to set Away
+			if status.Status == model.StatusOnline && inactivityTimeout > 0 && timeSinceLastActivity >= inactivityTimeout {
+				newStatus = model.StatusAway
+				status.Manual = false
 			}
 		}
 	}
