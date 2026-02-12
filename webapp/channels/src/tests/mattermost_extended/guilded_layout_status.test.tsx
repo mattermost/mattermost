@@ -77,6 +77,12 @@ jest.mock('react-router-dom', () => ({
     useHistory: () => ({
         push: jest.fn(),
     }),
+    useLocation: () => ({
+        pathname: '/team/messages',
+        search: '',
+        hash: '',
+        state: undefined,
+    }),
 }));
 
 jest.mock('components/persistent_rhs/member_row', () => () => null);

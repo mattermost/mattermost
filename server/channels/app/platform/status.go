@@ -467,24 +467,23 @@ func (ps *PlatformService) UpdateActivityFromManualAction(userID string, channel
 	newStatus := status.Status
 	statusChanged := false
 
-	// Only auto-set to Online if:
-	// 1. User is currently Away or Offline
-	// 2. User's status is NOT manually set
-	// 3. User is NOT in DND or Out of Office mode
+	// Auto-set to Online if user is currently Away or Offline.
+	// For manual actions (sending messages, switching channels), we override
+	// even manually-set Away status since the user is clearly active.
+	// DND and Out of Office are never overridden by manual actions.
 	if status.Status != model.StatusDnd && status.Status != model.StatusOutOfOffice {
-		if !status.Manual {
-			if status.Status == model.StatusAway || status.Status == model.StatusOffline {
-				// If user was DND but went offline due to inactivity, restore DND instead of Online
-				if status.Status == model.StatusOffline && status.PrevStatus == model.StatusDnd {
-					newStatus = model.StatusDnd
-					status.Manual = true
-					status.PrevStatus = ""
-				} else {
-					newStatus = model.StatusOnline
-				}
-				statusChanged = true
-				status.Status = newStatus
+		if status.Status == model.StatusAway || status.Status == model.StatusOffline {
+			// If user was DND but went offline due to inactivity, restore DND instead of Online
+			if status.Status == model.StatusOffline && status.PrevStatus == model.StatusDnd {
+				newStatus = model.StatusDnd
+				status.Manual = true
+				status.PrevStatus = ""
+			} else {
+				newStatus = model.StatusOnline
+				status.Manual = false
 			}
+			statusChanged = true
+			status.Status = newStatus
 		}
 	}
 
