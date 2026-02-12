@@ -994,6 +994,7 @@ func (ps *PlatformService) SetStatusAwayIfNeeded(userID string, manual bool) {
 			NewStatus: model.StatusAway,
 			Reason:    TransitionReasonInactivity,
 			Manual:    manual,
+			Force:     true, // AccurateStatuses overrides manual status protection
 		})
 		return
 	}

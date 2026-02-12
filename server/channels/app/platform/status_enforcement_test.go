@@ -166,6 +166,58 @@ func TestCheckInactivityTimeouts(t *testing.T) {
 	})
 }
 
+func TestSetStatusAwayIfNeededWithManualStatus(t *testing.T) {
+	t.Run("manually-set Online user should become Away when inactive (AccurateStatuses overrides)", func(t *testing.T) {
+		th := Setup(t).InitBasic(t)
+		th.Service.UpdateConfig(func(cfg *model.Config) {
+			cfg.FeatureFlags.AccurateStatuses = true
+			cfg.MattermostExtendedSettings.Statuses.InactivityTimeoutMinutes = model.NewPointer(5)
+			*cfg.TeamSettings.UserStatusAwayTimeout = 300 // 5 minutes
+		})
+
+		// User manually sets status to Online, but last activity was 10 minutes ago
+		status := &model.Status{
+			UserId:         th.BasicUser.Id,
+			Status:         model.StatusOnline,
+			Manual:         true, // User explicitly set this
+			LastActivityAt: model.GetMillis() - 10*60*1000, // 10 minutes ago
+		}
+		th.Service.SaveAndBroadcastStatus(status)
+
+		// Call SetStatusAwayIfNeeded (e.g., from WebSocket disconnect or activity check)
+		th.Service.SetStatusAwayIfNeeded(th.BasicUser.Id, false)
+
+		updated, err := th.Service.GetStatus(th.BasicUser.Id)
+		require.Nil(t, err)
+		assert.Equal(t, model.StatusAway, updated.Status, "AccurateStatuses should override manual status and set Away based on inactivity")
+		assert.False(t, updated.Manual, "status should no longer be marked as manual after automatic transition")
+	})
+
+	t.Run("active manually-set Online user should remain Online", func(t *testing.T) {
+		th := Setup(t).InitBasic(t)
+		th.Service.UpdateConfig(func(cfg *model.Config) {
+			cfg.FeatureFlags.AccurateStatuses = true
+			cfg.MattermostExtendedSettings.Statuses.InactivityTimeoutMinutes = model.NewPointer(5)
+			*cfg.TeamSettings.UserStatusAwayTimeout = 300 // 5 minutes
+		})
+
+		// User manually sets status to Online with recent activity
+		status := &model.Status{
+			UserId:         th.BasicUser.Id,
+			Status:         model.StatusOnline,
+			Manual:         true,
+			LastActivityAt: model.GetMillis() - 2*60*1000, // 2 minutes ago (within timeout)
+		}
+		th.Service.SaveAndBroadcastStatus(status)
+
+		th.Service.SetStatusAwayIfNeeded(th.BasicUser.Id, false)
+
+		updated, err := th.Service.GetStatus(th.BasicUser.Id)
+		require.Nil(t, err)
+		assert.Equal(t, model.StatusOnline, updated.Status, "user with recent activity should remain Online")
+	})
+}
+
 func TestCheckDNDTimeoutsViaTransitionManager(t *testing.T) {
 	t.Run("DND user goes Offline with PrevStatus preserved", func(t *testing.T) {
 		th := Setup(t).InitBasic(t)
