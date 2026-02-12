@@ -126,6 +126,7 @@ function OverflowBookmarkItem({
                     bookmark={bookmark}
                     open={openBookmark}
                     buttonClassName='channelBookmarksDotMenuButton--overflow'
+                    onBeforeAction={handleNavigate}
                 />
             )}
             {...otherProps}

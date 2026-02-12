@@ -37,11 +37,13 @@ type Props = {
     bookmark: ChannelBookmark;
     open: () => void;
     buttonClassName?: string;
+    onBeforeAction?: () => void;
 };
 const BookmarkItemDotMenu = ({
     bookmark,
     open,
     buttonClassName,
+    onBeforeAction,
 }: Props) => {
     const {formatMessage} = useIntl();
     const dispatch = useDispatch();
@@ -67,6 +69,7 @@ const BookmarkItemDotMenu = ({
     const deleteLabel = formatMessage({id: 'channel_bookmarks.delete', defaultMessage: 'Delete'});
 
     const handleEdit = useCallback(() => {
+        onBeforeAction?.();
         dispatch(openModal({
             modalId: ModalIdentifiers.CHANNEL_BOOKMARK_CREATE,
             dialogType: ChannelBookmarksCreateModal,
@@ -76,17 +79,19 @@ const BookmarkItemDotMenu = ({
                 onConfirm: async (data: ChannelBookmarkPatch) => dispatch(editBookmark(bookmark.channel_id, bookmark.id, data)) as ActionResult<boolean>,
             },
         }));
-    }, [editBookmark, dispatch, bookmark]);
+    }, [editBookmark, dispatch, bookmark, onBeforeAction]);
 
     const copyLink = useCallback(() => {
+        onBeforeAction?.();
         if (bookmark.type === 'link' && bookmark.link_url) {
             copyToClipboard(bookmark.link_url);
         } else if (bookmark.type === 'file' && bookmark.file_id) {
             copyToClipboard(getFileDownloadUrl(bookmark.file_id));
         }
-    }, [bookmark.type, bookmark.link_url, bookmark.file_id]);
+    }, [bookmark.type, bookmark.link_url, bookmark.file_id, onBeforeAction]);
 
     const handleDelete = useCallback(() => {
+        onBeforeAction?.();
         dispatch(openModal({
             modalId: ModalIdentifiers.CHANNEL_BOOKMARK_DELETE,
             dialogType: BookmarkDeleteModal,
@@ -95,9 +100,10 @@ const BookmarkItemDotMenu = ({
                 onConfirm: () => dispatch(deleteBookmark(bookmark.channel_id, bookmark.id)),
             },
         }));
-    }, [deleteBookmark, dispatch, bookmark]);
+    }, [deleteBookmark, dispatch, bookmark, onBeforeAction]);
 
     const handleGetPublicLink = useCallback(() => {
+        onBeforeAction?.();
         if (!bookmark.file_id) {
             return;
         }
@@ -109,7 +115,7 @@ const BookmarkItemDotMenu = ({
                 fileId: bookmark.file_id,
             },
         }));
-    }, [bookmark.file_id, dispatch]);
+    }, [bookmark.file_id, dispatch, onBeforeAction]);
 
     return (
         <Menu.Container
