@@ -255,6 +255,11 @@ func (pas *PropertyAccessService) UpdatePropertyField(callerID string, groupID s
 		return nil, fmt.Errorf("UpdatePropertyField: %w", err)
 	}
 
+	// Validate protected field update
+	if err := pas.validateProtectedFieldUpdate(field); err != nil {
+		return nil, fmt.Errorf("UpdatePropertyField: %w", err)
+	}
+
 	// Validate access mode
 	if err := model.ValidatePropertyFieldAccessMode(field); err != nil {
 		return nil, fmt.Errorf("UpdatePropertyField: %w", err)
@@ -312,6 +317,11 @@ func (pas *PropertyAccessService) UpdatePropertyFields(callerID string, groupID 
 
 		// Ensure source_plugin_id hasn't changed
 		if err := pas.ensureSourcePluginIDUnchanged(existingField, field); err != nil {
+			return nil, fmt.Errorf("UpdatePropertyFields: field %s: %w", field.ID, err)
+		}
+
+		// Validate protected field update
+		if err := pas.validateProtectedFieldUpdate(field); err != nil {
 			return nil, fmt.Errorf("UpdatePropertyFields: field %s: %w", field.ID, err)
 		}
 
@@ -843,6 +853,21 @@ func (pas *PropertyAccessService) ensureSourcePluginIDUnchanged(existingField, u
 	}
 
 	return nil
+}
+
+// validateProtectedFieldUpdate validates that a field can be updated to protected=true.
+// Prevents creating orphaned protected fields (protected=true but no source_plugin_id).
+// Returns nil if the update is valid, or an error if it should be rejected.
+func (pas *PropertyAccessService) validateProtectedFieldUpdate(updatedField *model.PropertyField) error {
+	if !model.IsPropertyFieldProtected(updatedField) {
+		return nil
+	}
+
+	if pas.getSourcePluginID(updatedField) != "" {
+		return nil
+	}
+
+	return fmt.Errorf("cannot set protected=true on a field without a source_plugin_id")
 }
 
 // checkFieldWriteAccess checks if the given caller can modify a PropertyField.
