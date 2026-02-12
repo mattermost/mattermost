@@ -226,6 +226,17 @@ describe('findFirstAvailableAttributeFromList', () => {
         expect(result?.name).toBe('admin_managed_attribute');
     });
 
+    test('returns first attribute that is plugin-managed (protected)', () => {
+        const attributes = [
+            createMockAttribute('invalid attribute'), // Has spaces
+            createMockAttribute('unsafe_attribute'), // Not synced or protected
+            createMockAttribute('protected_attribute', {protected: true, source_plugin_id: 'com.example.plugin'}), // Protected by plugin
+        ];
+
+        const result = findFirstAvailableAttributeFromList(attributes, false);
+        expect(result?.name).toBe('protected_attribute');
+    });
+
     test('skips attributes with spaces even when synced', () => {
         const attributes = [
             createMockAttribute('synced attribute', {ldap: 'ldap_field'}), // Has spaces but synced

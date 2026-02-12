@@ -792,10 +792,6 @@
     "translation": "Не вдалося знайти вказаний канал. Будь ласка, використовуйте [гештег каналу](https://docs.mattermost.com/messaging/managing-channels.html#naming-a-channel) для ідентифікаціі каналів."
   },
   {
-    "id": "api.command_mute.not_member.error",
-    "translation": "Не вдалося вимкнути звук в каналі {{.Channel}}, оскільки ви не є його учасником."
-  },
-  {
     "id": "api.command_mute.success_mute",
     "translation": "Ви не будете отримувати сповіщення для {{.Channel}}, поки вимкнений звук каналу."
   },
@@ -7614,10 +7610,6 @@
   {
     "id": "api.server.cws.disabled",
     "translation": "Взаємодія з клієнтським порталом Mattermost була відключена системним адміністратором."
-  },
-  {
-    "id": "api.server.cws.health_check.app_error",
-    "translation": "Сервер CWS недоступний."
   },
   {
     "id": "api.server.cws.needs_enterprise_edition",

@@ -73,6 +73,49 @@ func (pf *PropertyField) PreSave() {
 	pf.DeleteAt = 0
 }
 
+// EnsureOptionIDs generates IDs for any options that don't have them in select/multiselect fields.
+// This ensures option IDs are always set, similar to how field IDs are auto-generated.
+func (pf *PropertyField) EnsureOptionIDs() error {
+	if pf.Type != PropertyFieldTypeSelect && pf.Type != PropertyFieldTypeMultiselect {
+		return nil
+	}
+
+	if pf.Attrs == nil {
+		return nil
+	}
+
+	optionsRaw, ok := pf.Attrs[PropertyFieldAttributeOptions]
+	if !ok {
+		return nil
+	}
+
+	// Normalize with JSON to handle any slice type
+	optionsBytes, err := json.Marshal(optionsRaw)
+	if err != nil {
+		return fmt.Errorf("failed to marshal options for field ID %s: %w", pf.ID, err)
+	}
+
+	var options []map[string]any
+	if err := json.Unmarshal(optionsBytes, &options); err != nil {
+		return fmt.Errorf("invalid options format for field ID %s: %w", pf.ID, err)
+	}
+
+	for _, optMap := range options {
+		if id, ok := optMap["id"].(string); !ok || id == "" {
+			optMap["id"] = NewId()
+		}
+	}
+
+	// Convert back to []any to maintain type compatibility
+	optionsAny := make([]any, len(options))
+	for i, opt := range options {
+		optionsAny[i] = opt
+	}
+	pf.Attrs[PropertyFieldAttributeOptions] = optionsAny
+
+	return nil
+}
+
 func (pf *PropertyField) IsValid() error {
 	if !IsValidId(pf.ID) {
 		return NewAppError("PropertyField.IsValid", "model.property_field.is_valid.app_error", map[string]any{"FieldName": "id", "Reason": "invalid id"}, "", http.StatusBadRequest)
