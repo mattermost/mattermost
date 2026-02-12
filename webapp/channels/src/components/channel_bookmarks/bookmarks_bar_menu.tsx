@@ -168,9 +168,12 @@ function BookmarksBarMenu({
                     id: 'channelBookmarksBarMenuButton',
                     class: buttonClass,
                     children: buttonContent,
-                    'aria-label': hasOverflow ? formatMessage({id: 'channel_bookmarks.overflowMenu', defaultMessage: 'Show {count} more bookmarks'}, {count: overflowItems.length}) : addBookmarkLabel,
+                    'aria-label': hasOverflow ? formatMessage({id: 'channel_bookmarks.overflowMenu', defaultMessage: '{count} more bookmarks'}, {count: overflowItems.length}) : addBookmarkLabel,
                     disabled: !hasOverflow && limitReached,
                 }}
+                menuButtonTooltip={hasOverflow ? {
+                    text: formatMessage({id: 'channel_bookmarks.overflowMenu', defaultMessage: '{count} more bookmarks'}, {count: overflowItems.length}),
+                } : undefined}
                 menu={{
                     id: 'channelBookmarksBarMenuDropdown',
                     isMenuOpen: forceOpen,
