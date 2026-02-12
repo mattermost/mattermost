@@ -1367,7 +1367,7 @@ func New(ps *platform.PlatformService, driver, dataSource string) *MetricsInterf
 			Namespace: MetricsNamespace,
 			Subsystem: MetricsSubsystemPlugin,
 			Name:      "webapp_perf",
-			Help:      "Duration of plugin webapp performance measurements (seconds)",
+			Help:      "Plugin webapp performance measurements",
 		}),
 		[]string{"platform", "agent", "plugin_id", "plugin_metric_label"},
 	)
