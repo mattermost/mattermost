@@ -527,6 +527,135 @@ function getDateTimeDialog(triggerId, webhookBaseUrl) {
     return getBasicDateTimeDialog(triggerId, webhookBaseUrl);
 }
 
+// Range selection dialogs - MM-T2530I
+function getDateRangeHorizontalDialog(triggerId, webhookBaseUrl) {
+    return {
+        trigger_id: triggerId,
+        url: `${webhookBaseUrl}/datetime_dialog_submit`,
+        dialog: {
+            callback_id: 'range_horizontal_callback',
+            title: 'Date Range Test - Horizontal',
+            icon_url: 'https://mattermost.com/wp-content/uploads/2022/02/icon_WS.png',
+            elements: [
+                {
+                    display_name: 'Event Date Range',
+                    name: 'event_range',
+                    type: 'date',
+                    default: '',
+                    placeholder: 'Select date range',
+                    help_text: 'Select start and end dates (side-by-side)',
+                    optional: false,
+                    datetime_config: {
+                        is_range: true,
+                        range_layout: 'horizontal',
+                        allow_single_day_range: false,
+                    },
+                },
+            ],
+            submit_label: 'Submit',
+            notify_on_cancel: true,
+            state: 'range_state',
+        },
+    };
+}
+
+// Range selection with vertical layout - MM-T2530J
+function getDateRangeVerticalDialog(triggerId, webhookBaseUrl) {
+    return {
+        trigger_id: triggerId,
+        url: `${webhookBaseUrl}/datetime_dialog_submit`,
+        dialog: {
+            callback_id: 'range_vertical_callback',
+            title: 'Date Range Test - Vertical',
+            icon_url: 'https://mattermost.com/wp-content/uploads/2022/02/icon_WS.png',
+            elements: [
+                {
+                    display_name: 'Event Date Range',
+                    name: 'event_range',
+                    type: 'date',
+                    default: '',
+                    placeholder: 'Select date range',
+                    help_text: 'Select start and end dates (stacked)',
+                    optional: false,
+                    datetime_config: {
+                        is_range: true,
+                        range_layout: 'vertical',
+                        allow_single_day_range: false,
+                    },
+                },
+            ],
+            submit_label: 'Submit',
+            notify_on_cancel: true,
+            state: 'range_state',
+        },
+    };
+}
+
+// Range selection with single-day allowed - MM-T2530K
+function getDateRangeSingleDayDialog(triggerId, webhookBaseUrl) {
+    return {
+        trigger_id: triggerId,
+        url: `${webhookBaseUrl}/datetime_dialog_submit`,
+        dialog: {
+            callback_id: 'range_single_day_callback',
+            title: 'Date Range Test - Single Day Allowed',
+            icon_url: 'https://mattermost.com/wp-content/uploads/2022/02/icon_WS.png',
+            elements: [
+                {
+                    display_name: 'Event Date Range',
+                    name: 'event_range',
+                    type: 'date',
+                    default: '',
+                    placeholder: 'Select date range',
+                    help_text: 'Can select same day for start and end',
+                    optional: false,
+                    datetime_config: {
+                        is_range: true,
+                        range_layout: 'horizontal',
+                        allow_single_day_range: true,
+                    },
+                },
+            ],
+            submit_label: 'Submit',
+            notify_on_cancel: true,
+            state: 'range_state',
+        },
+    };
+}
+
+// DateTime range selection with time pickers - MM-T2530L
+function getDateTimeRangeDialog(triggerId, webhookBaseUrl) {
+    return {
+        trigger_id: triggerId,
+        url: `${webhookBaseUrl}/datetime_dialog_submit`,
+        dialog: {
+            callback_id: 'datetime_range_callback',
+            title: 'DateTime Range Test',
+            icon_url: 'https://mattermost.com/wp-content/uploads/2022/02/icon_WS.png',
+            elements: [
+                {
+                    display_name: 'Meeting Time Range',
+                    name: 'meeting_range',
+                    type: 'datetime',
+                    default: '',
+                    placeholder: 'Select date and time range',
+                    help_text: 'Select start and end date/time',
+                    optional: false,
+                    datetime_config: {
+                        is_range: true,
+                        range_layout: 'horizontal',
+                        allow_single_day_range: true,
+                        time_interval: 30,
+                    },
+                },
+            ],
+            submit_label: 'Submit',
+            notify_on_cancel: true,
+            state: 'range_state',
+        },
+    };
+}
+
 module.exports = {
     getFullDialog,
     getSimpleDialog,
@@ -544,4 +673,8 @@ module.exports = {
     getMinDateConstraintDialog,
     getCustomIntervalDialog,
     getRelativeDateDialog,
+    getDateRangeHorizontalDialog,
+    getDateRangeVerticalDialog,
+    getDateRangeSingleDayDialog,
+    getDateTimeRangeDialog,
 };
