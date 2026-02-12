@@ -123,6 +123,10 @@
 // MUI's styled() injects flex: 1 0 auto on .label-elements which prevents
 // shrinking. We need !important to override the generated class styles.
 .overflowBookmarkItem.MuiMenuItem-root {
+    min-height: 36px;
+    padding-top: 2px;
+    padding-bottom: 2px;
+
     > .label-elements {
         flex: 1 1 0px !important;
         min-width: 0;
