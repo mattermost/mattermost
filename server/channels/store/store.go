@@ -428,6 +428,7 @@ type PostStore interface {
 	// RefreshPostStats refreshes the various materialized views for admin console post stats.
 	RefreshPostStats() error
 	RestoreContentFlaggedPost(post *model.Post, statusFieldId, contentFlaggingManagedFieldId string) error
+	PermanentDeleteAssociatedData(postIds []string) error
 
 	// Import idempotency methods
 	GetPostsByTypeAndProps(channelId, postType, propKey, propValue string) ([]*model.Post, error)
@@ -1240,7 +1241,7 @@ type TemporaryPostStore interface {
 	Save(rctx request.CTX, post *model.TemporaryPost) (*model.TemporaryPost, error)
 	Get(rctx request.CTX, id string, allowFromCache bool) (*model.TemporaryPost, error)
 	Delete(rctx request.CTX, id string) error
-	GetExpiredPosts(rctx request.CTX) ([]string, error)
+	GetExpiredPosts(rctx request.CTX, lastPostId string, limit uint64) ([]string, error)
 }
 
 type WikiStore interface {

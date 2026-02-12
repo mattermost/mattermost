@@ -647,8 +647,9 @@ test.skip(
 
         // # Create a second browser context for mentioned user (simulating them checking notifications)
         // First get mentioned user's storage state by logging them in temporarily
-        const {page: mentionedUserTempPage} = await pw.testBrowser.login(mentionedUser);
-        const mentionedUserStorageState = await pw.testBrowser.context!.storageState();
+        const {page: mentionedUserTempPage, context: mentionedUserTempContext} =
+            await pw.testBrowser.login(mentionedUser);
+        const mentionedUserStorageState = await mentionedUserTempContext.storageState();
         await mentionedUserTempPage.close();
 
         // # Now create a new context for mentioned user and navigate to a DIFFERENT channel (off-topic)
