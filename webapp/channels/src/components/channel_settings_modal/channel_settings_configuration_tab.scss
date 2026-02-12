@@ -1,17 +1,17 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-@import "utils/_animations";
+@use "utils/animations";
 
 .ChannelSettingsModal__configurationTab {
     display: flex;
     flex-direction: column;
     gap: 16px;
 
-    .channel_banner_header {
+    .channel_banner_header, .channel_translation_header {
         display: flex;
 
-        .channel_banner_header__text {
+        .channel_banner_header__text, .channel_translation_header__text {
             display: flex;
             flex: 1;
             flex-direction: column;
@@ -32,11 +32,10 @@
     }
 
     .channel_banner_section_body {
-        @include fade-in;
+        @include animations.fade-in;
 
         display: flex;
         width: 100%;
-        height: 550px;
         flex-direction: column;
         gap: 16px;
     }

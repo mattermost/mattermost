@@ -19,11 +19,11 @@ import (
 
 const (
 	getPendingScheduledPostsPageSize = 100
-	scheduledPostBatchWaitTime       = 1 * time.Second
+	scheduledPostBatchWaitTime       = 100 * time.Millisecond
 )
 
 func (a *App) ProcessScheduledPosts(rctx request.CTX) {
-	rctx = rctx.WithLogger(rctx.Logger().With(mlog.String("component", "scheduled_post_job")))
+	rctx = rctx.WithLogFields(mlog.String("component", "scheduled_post_job"))
 
 	if !*a.Config().ServiceSettings.ScheduledPosts {
 		return
@@ -190,7 +190,7 @@ func (a *App) postScheduledPost(rctx request.CTX, scheduledPost *model.Scheduled
 		return scheduledPost, err
 	}
 
-	_, appErr = a.CreatePost(rctx.WithContext(context.WithValue(rctx.Context(), model.PostContextKeyIsScheduledPost, true)), post, channel, model.CreatePostFlags{
+	_, _, appErr = a.CreatePost(rctx.WithContext(context.WithValue(rctx.Context(), model.PostContextKeyIsScheduledPost, true)), post, channel, model.CreatePostFlags{
 		TriggerWebhooks: true,
 		SetOnline:       false,
 	})
@@ -452,7 +452,7 @@ func (a *App) notifyUser(rctx request.CTX, userId string, userFailedMessages []*
 		UserId:    systemBot.UserId,
 	}
 
-	if _, err := a.CreatePost(rctx, post, channel, model.CreatePostFlags{SetOnline: true}); err != nil {
+	if _, _, err := a.CreatePost(rctx, post, channel, model.CreatePostFlags{SetOnline: true}); err != nil {
 		rctx.Logger().Error("Failed to post notification about failed scheduled messages", mlog.Err(err))
 	}
 }

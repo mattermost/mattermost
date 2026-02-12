@@ -1,531 +1,489 @@
 // Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
 
 exports[`components/multiselect/multiselect MultiSelectList should match snapshot when custom no option message is defined 1`] = `
-<Fragment>
+<div>
   <div
-    className="filtered-user-list"
+    class="filtered-user-list"
   >
     <div
-      className="filter-row"
+      class="filter-row"
     >
       <div
-        className="multi-select__container react-select"
+        class="multi-select__container react-select"
       >
-        <ForwardRef
-          aria-invalid={false}
-          className=""
-          classNamePrefix="react-select-auto react-select"
-          components={
-            Object {
-              "IndicatorsContainer": [Function],
-              "Menu": [Function],
-              "MultiValueLabel": [Function],
-              "MultiValueRemove": [Function],
-            }
-          }
-          getOptionLabel={[Function]}
-          getOptionValue={[Function]}
-          id="selectItems"
-          inputValue=""
-          isClearable={false}
-          isMulti={true}
-          menuIsOpen={false}
-          onBlur={[Function]}
-          onChange={[Function]}
-          onInputChange={[Function]}
-          onKeyDown={[Function]}
-          openMenuOnFocus={false}
-          options={
-            Array [
-              Object {
-                "id": "0",
-                "label": "0",
-                "value": "0",
-              },
-              Object {
-                "id": "1",
-                "label": "1",
-                "value": "1",
-              },
-              Object {
-                "id": "2",
-                "label": "2",
-                "value": "2",
-              },
-              Object {
-                "id": "3",
-                "label": "3",
-                "value": "3",
-              },
-              Object {
-                "id": "4",
-                "label": "4",
-                "value": "4",
-              },
-              Object {
-                "id": "5",
-                "label": "5",
-                "value": "5",
-              },
-              Object {
-                "id": "6",
-                "label": "6",
-                "value": "6",
-              },
-              Object {
-                "id": "7",
-                "label": "7",
-                "value": "7",
-              },
-            ]
-          }
-          styles={
-            Object {
-              "container": [Function],
-            }
-          }
-          value={
-            Array [
-              Object {
-                "id": "id",
-                "label": "label",
-                "value": "value",
-              },
-            ]
-          }
-        />
-        <SaveButton
-          disabled={false}
-          id="saveItems"
-          onClick={[Function]}
-          saving={false}
-        />
-      </div>
-      <div
-        className="multi-select__help"
-        id="multiSelectHelpMemberInfo"
-      >
-        <MemoizedFormattedMessage
-          defaultMessage="{memberOptions, number} of {totalCount, number} members"
-          id="multiselect.numMembers"
-          values={
-            Object {
-              "memberOptions": 5,
-              "totalCount": 8,
-            }
-          }
-        />
-      </div>
-    </div>
-    <MultiSelectList
-      ariaLabelRenderer={[Function]}
-      customNoOptionsMessage={
         <div
-          className="custom-no-options-message"
+          class="css-1dedlln"
+          id="selectItems"
+        >
+          <span
+            class="css-1f43avz-a11yText-A11yText"
+            id="react-select-5-live-region"
+          />
+          <span
+            aria-atomic="false"
+            aria-live="polite"
+            aria-relevant="additions text"
+            class="css-1f43avz-a11yText-A11yText"
+            role="log"
+          />
+          <div
+            class="react-select-auto react-select__control css-13cymwt-control"
+          >
+            <div
+              class="react-select-auto react-select__value-container react-select-auto react-select__value-container--is-multi react-select-auto react-select__value-container--has-value css-1dyz3mf"
+            >
+              <div
+                class="react-select-auto react-select__multi-value css-1p3m7a8-multiValue"
+              >
+                <div
+                  class="react-select__padded-component"
+                >
+                  <span>
+                    label
+                  </span>
+                </div>
+                <div
+                  aria-label="Remove label"
+                  class="react-select-auto react-select__multi-value__remove css-v7duua"
+                  role="button"
+                >
+                  <svg
+                    aria-hidden="true"
+                    class="css-tj5bde-Svg"
+                    focusable="false"
+                    height="14"
+                    viewBox="0 0 20 20"
+                    width="14"
+                  >
+                    <path
+                      d="M14.348 14.849c-0.469 0.469-1.229 0.469-1.697 0l-2.651-3.030-2.651 3.029c-0.469 0.469-1.229 0.469-1.697 0-0.469-0.469-0.469-1.229 0-1.697l2.758-3.15-2.759-3.152c-0.469-0.469-0.469-1.228 0-1.697s1.228-0.469 1.697 0l2.652 3.031 2.651-3.031c0.469-0.469 1.228-0.469 1.697 0s0.469 1.229 0 1.697l-2.758 3.152 2.758 3.15c0.469 0.469 0.469 1.229 0 1.698z"
+                    />
+                  </svg>
+                </div>
+              </div>
+              <div
+                class="react-select-auto react-select__input-container css-19bb58m"
+                data-value=""
+              >
+                <input
+                  aria-activedescendant=""
+                  aria-autocomplete="list"
+                  aria-expanded="false"
+                  aria-haspopup="true"
+                  aria-invalid="false"
+                  autocapitalize="none"
+                  autocomplete="off"
+                  autocorrect="off"
+                  class="react-select-auto react-select__input"
+                  id="react-select-5-input"
+                  role="combobox"
+                  spellcheck="false"
+                  style="color: inherit; background: 0px; opacity: 1; width: 100%; grid-area: 1 / 2; min-width: 2px; border: 0px; margin: 0px; outline: 0; padding: 0px;"
+                  tabindex="0"
+                  type="text"
+                  value=""
+                />
+              </div>
+            </div>
+          </div>
+        </div>
+        <button
+          class="btn btn-primary "
+          data-testid="saveSetting"
+          id="saveItems"
+          type="submit"
         >
           <span>
-            No matches found
+            Save
           </span>
-        </div>
-      }
-      onAction={[Function]}
-      onAdd={[Function]}
-      onSelect={[Function]}
-      optionRenderer={[Function]}
-      options={
-        Array [
-          Object {
-            "id": "0",
-            "label": "0",
-            "value": "0",
-          },
-          Object {
-            "id": "1",
-            "label": "1",
-            "value": "1",
-          },
-          Object {
-            "id": "2",
-            "label": "2",
-            "value": "2",
-          },
-          Object {
-            "id": "3",
-            "label": "3",
-            "value": "3",
-          },
-          Object {
-            "id": "4",
-            "label": "4",
-            "value": "4",
-          },
-        ]
-      }
-      page={0}
-      perPage={5}
-      query=""
-    />
+        </button>
+      </div>
+      <div
+        class="multi-select__help"
+        id="multiSelectHelpMemberInfo"
+      >
+        5 of 8 members
+      </div>
+    </div>
     <div
-      className="multi-select__help"
+      aria-live="polite"
+      class="multi-select__wrapper"
+    >
+      <div
+        class="more-modal__list"
+      >
+        <div
+          aria-live="polite"
+          class="sr-only"
+          role="status"
+        >
+          5 results found for your search.
+        </div>
+        <div
+          aria-atomic="true"
+          aria-live="polite"
+          class="sr-only"
+        />
+        <div
+          class="more-modal__options"
+          id="multiSelectList"
+          role="presentation"
+        >
+          <div>
+            0
+          </div>
+          <div>
+            1
+          </div>
+          <div>
+            2
+          </div>
+          <div>
+            3
+          </div>
+          <div>
+            4
+          </div>
+        </div>
+      </div>
+    </div>
+    <div
+      class="multi-select__help"
       id="multiSelectMessageNote"
     />
     <div
-      className="filter-controls"
+      class="filter-controls"
     >
       <button
-        className="btn btn-sm btn-tertiary filter-control filter-control__next"
-        onClick={[Function]}
+        class="btn btn-sm btn-tertiary filter-control filter-control__next"
       >
-        <MemoizedFormattedMessage
-          defaultMessage="Next"
-          id="filtered_user_list.next"
-        />
+        Next
       </button>
     </div>
   </div>
-</Fragment>
+</div>
 `;
 
 exports[`components/multiselect/multiselect should match snapshot 1`] = `
-<Fragment>
+<div>
   <div
-    className="filtered-user-list"
+    class="filtered-user-list"
   >
     <div
-      className="filter-row"
+      class="filter-row"
     >
       <div
-        className="multi-select__container react-select"
+        class="multi-select__container react-select"
       >
-        <ForwardRef
-          aria-invalid={false}
-          className=""
-          classNamePrefix="react-select-auto react-select"
-          components={
-            Object {
-              "IndicatorsContainer": [Function],
-              "Menu": [Function],
-              "MultiValueLabel": [Function],
-              "MultiValueRemove": [Function],
-            }
-          }
-          getOptionLabel={[Function]}
-          getOptionValue={[Function]}
+        <div
+          class="css-1dedlln"
           id="selectItems"
-          inputValue=""
-          isClearable={false}
-          isMulti={true}
-          menuIsOpen={false}
-          onBlur={[Function]}
-          onChange={[Function]}
-          onInputChange={[Function]}
-          onKeyDown={[Function]}
-          openMenuOnFocus={false}
-          options={
-            Array [
-              Object {
-                "id": "0",
-                "label": "0",
-                "value": "0",
-              },
-              Object {
-                "id": "1",
-                "label": "1",
-                "value": "1",
-              },
-              Object {
-                "id": "2",
-                "label": "2",
-                "value": "2",
-              },
-              Object {
-                "id": "3",
-                "label": "3",
-                "value": "3",
-              },
-              Object {
-                "id": "4",
-                "label": "4",
-                "value": "4",
-              },
-              Object {
-                "id": "5",
-                "label": "5",
-                "value": "5",
-              },
-              Object {
-                "id": "6",
-                "label": "6",
-                "value": "6",
-              },
-              Object {
-                "id": "7",
-                "label": "7",
-                "value": "7",
-              },
-            ]
-          }
-          styles={
-            Object {
-              "container": [Function],
-            }
-          }
-          value={
-            Array [
-              Object {
-                "id": "id",
-                "label": "label",
-                "value": "value",
-              },
-            ]
-          }
-        />
-        <SaveButton
-          disabled={false}
+        >
+          <span
+            class="css-1f43avz-a11yText-A11yText"
+            id="react-select-2-live-region"
+          />
+          <span
+            aria-atomic="false"
+            aria-live="polite"
+            aria-relevant="additions text"
+            class="css-1f43avz-a11yText-A11yText"
+            role="log"
+          />
+          <div
+            class="react-select-auto react-select__control css-13cymwt-control"
+          >
+            <div
+              class="react-select-auto react-select__value-container react-select-auto react-select__value-container--is-multi react-select-auto react-select__value-container--has-value css-1dyz3mf"
+            >
+              <div
+                class="react-select-auto react-select__multi-value css-1p3m7a8-multiValue"
+              >
+                <div
+                  class="react-select__padded-component"
+                >
+                  <span>
+                    label
+                  </span>
+                </div>
+                <div
+                  aria-label="Remove label"
+                  class="react-select-auto react-select__multi-value__remove css-v7duua"
+                  role="button"
+                >
+                  <svg
+                    aria-hidden="true"
+                    class="css-tj5bde-Svg"
+                    focusable="false"
+                    height="14"
+                    viewBox="0 0 20 20"
+                    width="14"
+                  >
+                    <path
+                      d="M14.348 14.849c-0.469 0.469-1.229 0.469-1.697 0l-2.651-3.030-2.651 3.029c-0.469 0.469-1.229 0.469-1.697 0-0.469-0.469-0.469-1.229 0-1.697l2.758-3.15-2.759-3.152c-0.469-0.469-0.469-1.228 0-1.697s1.228-0.469 1.697 0l2.652 3.031 2.651-3.031c0.469-0.469 1.228-0.469 1.697 0s0.469 1.229 0 1.697l-2.758 3.152 2.758 3.15c0.469 0.469 0.469 1.229 0 1.698z"
+                    />
+                  </svg>
+                </div>
+              </div>
+              <div
+                class="react-select-auto react-select__input-container css-19bb58m"
+                data-value=""
+              >
+                <input
+                  aria-activedescendant=""
+                  aria-autocomplete="list"
+                  aria-expanded="false"
+                  aria-haspopup="true"
+                  aria-invalid="false"
+                  autocapitalize="none"
+                  autocomplete="off"
+                  autocorrect="off"
+                  class="react-select-auto react-select__input"
+                  id="react-select-2-input"
+                  role="combobox"
+                  spellcheck="false"
+                  style="color: inherit; background: 0px; opacity: 1; width: 100%; grid-area: 1 / 2; min-width: 2px; border: 0px; margin: 0px; outline: 0; padding: 0px;"
+                  tabindex="0"
+                  type="text"
+                  value=""
+                />
+              </div>
+            </div>
+          </div>
+        </div>
+        <button
+          class="btn btn-primary "
+          data-testid="saveSetting"
           id="saveItems"
-          onClick={[Function]}
-          saving={false}
-        />
+          type="submit"
+        >
+          <span>
+            Save
+          </span>
+        </button>
       </div>
       <div
-        className="multi-select__help"
+        class="multi-select__help"
         id="multiSelectHelpMemberInfo"
       >
-        <MemoizedFormattedMessage
-          defaultMessage="{memberOptions, number} of {totalCount, number} members"
-          id="multiselect.numMembers"
-          values={
-            Object {
-              "memberOptions": 5,
-              "totalCount": 8,
-            }
-          }
-        />
+        5 of 8 members
       </div>
     </div>
-    <MultiSelectList
-      ariaLabelRenderer={[Function]}
-      onAction={[Function]}
-      onAdd={[Function]}
-      onSelect={[Function]}
-      optionRenderer={[Function]}
-      options={
-        Array [
-          Object {
-            "id": "0",
-            "label": "0",
-            "value": "0",
-          },
-          Object {
-            "id": "1",
-            "label": "1",
-            "value": "1",
-          },
-          Object {
-            "id": "2",
-            "label": "2",
-            "value": "2",
-          },
-          Object {
-            "id": "3",
-            "label": "3",
-            "value": "3",
-          },
-          Object {
-            "id": "4",
-            "label": "4",
-            "value": "4",
-          },
-        ]
-      }
-      page={0}
-      perPage={5}
-      query=""
-    />
     <div
-      className="multi-select__help"
+      aria-live="polite"
+      class="multi-select__wrapper"
+    >
+      <div
+        class="more-modal__list"
+      >
+        <div
+          aria-live="polite"
+          class="sr-only"
+          role="status"
+        >
+          5 results found for your search.
+        </div>
+        <div
+          aria-atomic="true"
+          aria-live="polite"
+          class="sr-only"
+        />
+        <div
+          class="more-modal__options"
+          id="multiSelectList"
+          role="presentation"
+        >
+          <div>
+            0
+          </div>
+          <div>
+            1
+          </div>
+          <div>
+            2
+          </div>
+          <div>
+            3
+          </div>
+          <div>
+            4
+          </div>
+        </div>
+      </div>
+    </div>
+    <div
+      class="multi-select__help"
       id="multiSelectMessageNote"
     />
     <div
-      className="filter-controls"
+      class="filter-controls"
     >
       <button
-        className="btn btn-sm btn-tertiary filter-control filter-control__next"
-        onClick={[Function]}
+        class="btn btn-sm btn-tertiary filter-control filter-control__next"
       >
-        <MemoizedFormattedMessage
-          defaultMessage="Next"
-          id="filtered_user_list.next"
-        />
+        Next
       </button>
     </div>
   </div>
-</Fragment>
+</div>
 `;
 
 exports[`components/multiselect/multiselect should match snapshot for page 2 1`] = `
-<Fragment>
+<div>
   <div
-    className="filtered-user-list"
+    class="filtered-user-list"
   >
     <div
-      className="filter-row"
+      class="filter-row"
     >
       <div
-        className="multi-select__container react-select"
+        class="multi-select__container react-select"
       >
-        <ForwardRef
-          aria-invalid={false}
-          className=""
-          classNamePrefix="react-select-auto react-select"
-          components={
-            Object {
-              "IndicatorsContainer": [Function],
-              "Menu": [Function],
-              "MultiValueLabel": [Function],
-              "MultiValueRemove": [Function],
-            }
-          }
-          getOptionLabel={[Function]}
-          getOptionValue={[Function]}
+        <div
+          class="css-1dedlln"
           id="selectItems"
-          inputValue=""
-          isClearable={false}
-          isMulti={true}
-          menuIsOpen={false}
-          onBlur={[Function]}
-          onChange={[Function]}
-          onInputChange={[Function]}
-          onKeyDown={[Function]}
-          openMenuOnFocus={false}
-          options={
-            Array [
-              Object {
-                "id": "0",
-                "label": "0",
-                "value": "0",
-              },
-              Object {
-                "id": "1",
-                "label": "1",
-                "value": "1",
-              },
-              Object {
-                "id": "2",
-                "label": "2",
-                "value": "2",
-              },
-              Object {
-                "id": "3",
-                "label": "3",
-                "value": "3",
-              },
-              Object {
-                "id": "4",
-                "label": "4",
-                "value": "4",
-              },
-              Object {
-                "id": "5",
-                "label": "5",
-                "value": "5",
-              },
-              Object {
-                "id": "6",
-                "label": "6",
-                "value": "6",
-              },
-              Object {
-                "id": "7",
-                "label": "7",
-                "value": "7",
-              },
-            ]
-          }
-          styles={
-            Object {
-              "container": [Function],
-            }
-          }
-          value={
-            Array [
-              Object {
-                "id": "id",
-                "label": "label",
-                "value": "value",
-              },
-            ]
-          }
-        />
-        <SaveButton
-          disabled={false}
+        >
+          <span
+            class="css-1f43avz-a11yText-A11yText"
+            id="react-select-3-live-region"
+          />
+          <span
+            aria-atomic="false"
+            aria-live="polite"
+            aria-relevant="additions text"
+            class="css-1f43avz-a11yText-A11yText"
+            role="log"
+          />
+          <div
+            class="react-select-auto react-select__control css-13cymwt-control"
+          >
+            <div
+              class="react-select-auto react-select__value-container react-select-auto react-select__value-container--is-multi react-select-auto react-select__value-container--has-value css-1dyz3mf"
+            >
+              <div
+                class="react-select-auto react-select__multi-value css-1p3m7a8-multiValue"
+              >
+                <div
+                  class="react-select__padded-component"
+                >
+                  <span>
+                    label
+                  </span>
+                </div>
+                <div
+                  aria-label="Remove label"
+                  class="react-select-auto react-select__multi-value__remove css-v7duua"
+                  role="button"
+                >
+                  <svg
+                    aria-hidden="true"
+                    class="css-tj5bde-Svg"
+                    focusable="false"
+                    height="14"
+                    viewBox="0 0 20 20"
+                    width="14"
+                  >
+                    <path
+                      d="M14.348 14.849c-0.469 0.469-1.229 0.469-1.697 0l-2.651-3.030-2.651 3.029c-0.469 0.469-1.229 0.469-1.697 0-0.469-0.469-0.469-1.229 0-1.697l2.758-3.15-2.759-3.152c-0.469-0.469-0.469-1.228 0-1.697s1.228-0.469 1.697 0l2.652 3.031 2.651-3.031c0.469-0.469 1.228-0.469 1.697 0s0.469 1.229 0 1.697l-2.758 3.152 2.758 3.15c0.469 0.469 0.469 1.229 0 1.698z"
+                    />
+                  </svg>
+                </div>
+              </div>
+              <div
+                class="react-select-auto react-select__input-container css-19bb58m"
+                data-value=""
+              >
+                <input
+                  aria-activedescendant=""
+                  aria-autocomplete="list"
+                  aria-expanded="false"
+                  aria-haspopup="true"
+                  aria-invalid="false"
+                  autocapitalize="none"
+                  autocomplete="off"
+                  autocorrect="off"
+                  class="react-select-auto react-select__input"
+                  id="react-select-3-input"
+                  role="combobox"
+                  spellcheck="false"
+                  style="color: inherit; background: 0px; opacity: 1; width: 100%; grid-area: 1 / 2; min-width: 2px; border: 0px; margin: 0px; outline: 0; padding: 0px;"
+                  tabindex="0"
+                  type="text"
+                  value=""
+                />
+              </div>
+            </div>
+          </div>
+        </div>
+        <button
+          class="btn btn-primary "
+          data-testid="saveSetting"
           id="saveItems"
-          onClick={[Function]}
-          saving={false}
-        />
+          type="submit"
+        >
+          <span>
+            Save
+          </span>
+        </button>
       </div>
       <div
-        className="multi-select__help"
+        class="multi-select__help"
         id="multiSelectHelpMemberInfo"
       >
-        <MemoizedFormattedMessage
-          defaultMessage="{memberOptions, number} of {totalCount, number} members"
-          id="multiselect.numMembers"
-          values={
-            Object {
-              "memberOptions": 3,
-              "totalCount": 8,
-            }
-          }
-        />
+        3 of 8 members
       </div>
     </div>
-    <MultiSelectList
-      ariaLabelRenderer={[Function]}
-      onAction={[Function]}
-      onAdd={[Function]}
-      onSelect={[Function]}
-      optionRenderer={[Function]}
-      options={
-        Array [
-          Object {
-            "id": "5",
-            "label": "5",
-            "value": "5",
-          },
-          Object {
-            "id": "6",
-            "label": "6",
-            "value": "6",
-          },
-          Object {
-            "id": "7",
-            "label": "7",
-            "value": "7",
-          },
-        ]
-      }
-      page={1}
-      perPage={5}
-      query=""
-    />
     <div
-      className="multi-select__help"
+      aria-live="polite"
+      class="multi-select__wrapper"
+    >
+      <div
+        class="more-modal__list"
+      >
+        <div
+          aria-live="polite"
+          class="sr-only"
+          role="status"
+        >
+          3 results found for your search.
+        </div>
+        <div
+          aria-atomic="true"
+          aria-live="polite"
+          class="sr-only"
+        >
+          5
+        </div>
+        <div
+          class="more-modal__options"
+          id="multiSelectList"
+          role="presentation"
+        >
+          <div>
+            5
+          </div>
+          <div>
+            6
+          </div>
+          <div>
+            7
+          </div>
+        </div>
+      </div>
+    </div>
+    <div
+      class="multi-select__help"
       id="multiSelectMessageNote"
     />
     <div
-      className="filter-controls"
+      class="filter-controls"
     >
       <button
-        className="btn btn-sm btn-tertiary filter-control filter-control__prev"
-        onClick={[Function]}
+        class="btn btn-sm btn-tertiary filter-control filter-control__prev"
       >
-        <MemoizedFormattedMessage
-          defaultMessage="Previous"
-          id="filtered_user_list.prev"
-        />
+        Previous
       </button>
     </div>
   </div>
-</Fragment>
+</div>
 `;

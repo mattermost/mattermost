@@ -98,6 +98,7 @@ type Store interface {
 	AutoTranslation() AutoTranslationStore
 	GetSchemaDefinition() (*model.SupportPacketDatabaseSchema, error)
 	ContentFlagging() ContentFlaggingStore
+	Recap() RecapStore
 	ReadReceipt() ReadReceiptStore
 	TemporaryPost() TemporaryPostStore
 }
@@ -390,7 +391,7 @@ type PostStore interface {
 	GetPostAfterTime(channelID string, timestamp int64, collapsedThreads bool) (*model.Post, error)
 	GetPostIdAfterTime(channelID string, timestamp int64, collapsedThreads bool) (string, error)
 	GetPostIdBeforeTime(channelID string, timestamp int64, collapsedThreads bool) (string, error)
-	GetEtag(channelID string, allowFromCache bool, collapsedThreads bool) string
+	GetEtag(channelID string, allowFromCache bool, collapsedThreads bool, includeTranslations bool) string
 	Search(teamID string, userID string, params *model.SearchParams) (*model.PostList, error)
 	AnalyticsUserCountsWithPostsByDay(teamID string) (model.AnalyticsRows, error)
 	AnalyticsPostCountsByDay(options *model.AnalyticsPostCountsOptions) (model.AnalyticsRows, error)
@@ -424,6 +425,7 @@ type PostStore interface {
 	// RefreshPostStats refreshes the various materialized views for admin console post stats.
 	RefreshPostStats() error
 	RestoreContentFlaggedPost(post *model.Post, statusFieldId, contentFlaggingManagedFieldId string) error
+	PermanentDeleteAssociatedData(postIds []string) error
 }
 
 type UserStore interface {
@@ -897,7 +899,7 @@ type GroupStore interface {
 	CreateWithUserIds(group *model.GroupWithUserIds) (*model.Group, error)
 	Get(groupID string) (*model.Group, error)
 	GetByName(name string, opts model.GroupSearchOpts) (*model.Group, error)
-	GetByNames(names []string, viewRestrictions *model.ViewUsersRestrictions) ([]*model.Group, error)
+	GetByNames(names []string, opts model.GroupSearchOpts) ([]*model.Group, error)
 	GetByIDs(groupIDs []string) ([]*model.Group, error)
 	GetByRemoteID(remoteID string, groupSource model.GroupSource) (*model.Group, error)
 	GetAllBySource(groupSource model.GroupSource) ([]*model.Group, error)
@@ -1157,17 +1159,15 @@ type AttributesStore interface {
 }
 
 type AutoTranslationStore interface {
-	IsChannelEnabled(channelID string) (bool, *model.AppError)
-	SetChannelEnabled(channelID string, enabled bool) *model.AppError
-	IsUserEnabled(userID, channelID string) (bool, *model.AppError)
-	SetUserEnabled(userID, channelID string, enabled bool) *model.AppError
-	GetUserLanguage(userID, channelID string) (string, *model.AppError)
+	IsUserEnabled(userID, channelID string) (bool, error)
+	GetUserLanguage(userID, channelID string) (string, error)
 	// GetActiveDestinationLanguages returns distinct locales of users who have auto-translation enabled.
-	// Optional filterUserIDs parameter restricts results to specific user IDs (typically those with active WebSocket connections).
-	// Pass nil for filterUserIDs to include all users, or a pointer to a slice to filter to specific users.
-	GetActiveDestinationLanguages(channelID, excludeUserID string, filterUserIDs []string) ([]string, *model.AppError)
-	Get(objectID, dstLang string) (*model.Translation, *model.AppError)
-	Save(translation *model.Translation) *model.AppError
+	GetActiveDestinationLanguages(channelID, excludeUserID string, filterUserIDs []string) ([]string, error)
+	Get(objectType, objectID, dstLang string) (*model.Translation, error)
+	GetBatch(objectType string, objectIDs []string, dstLang string) (map[string]*model.Translation, error)
+	GetAllForObject(objectType, objectID string) ([]*model.Translation, error)
+	Save(translation *model.Translation) error
+	GetByStateOlderThan(state model.TranslationState, olderThanMillis int64, limit int) ([]*model.Translation, error)
 
 	ClearCaches()
 	// InvalidateUserAutoTranslation invalidates all auto-translation caches for a user in a channel.
@@ -1176,6 +1176,12 @@ type AutoTranslationStore interface {
 	// InvalidateUserLocaleCache invalidates all language caches for a user across all channels.
 	// This is called when a user changes their locale preference.
 	InvalidateUserLocaleCache(userID string)
+	// GetLatestPostUpdateAtForChannel returns the most recent updateAt timestamp for post translations
+	// in the given channel (across all locales). Returns 0 if no translations exist.
+	GetLatestPostUpdateAtForChannel(channelID string) (int64, error)
+	// InvalidatePostTranslationEtag invalidates the cached post translation etag for a channel.
+	// This should be called after saving a new post translation.
+	InvalidatePostTranslationEtag(channelID string)
 }
 
 type ContentFlaggingStore interface {
@@ -1199,9 +1205,9 @@ type ReadReceiptStore interface {
 type TemporaryPostStore interface {
 	InvalidateTemporaryPost(id string)
 	Save(rctx request.CTX, post *model.TemporaryPost) (*model.TemporaryPost, error)
-	Get(rctx request.CTX, id string) (*model.TemporaryPost, error)
+	Get(rctx request.CTX, id string, allowFromCache bool) (*model.TemporaryPost, error)
 	Delete(rctx request.CTX, id string) error
-	GetExpiredPosts(rctx request.CTX) ([]string, error)
+	GetExpiredPosts(rctx request.CTX, lastPostId string, limit uint64) ([]string, error)
 }
 
 // ChannelSearchOpts contains options for searching channels.
@@ -1290,4 +1296,17 @@ type ThreadMembershipImportData struct {
 	LastViewed int64
 	// UnreadMentions is the number of unread mentions to set the UnreadMentions field to.
 	UnreadMentions int64
+}
+
+type RecapStore interface {
+	SaveRecap(recap *model.Recap) (*model.Recap, error)
+	UpdateRecap(recap *model.Recap) (*model.Recap, error)
+	GetRecap(id string) (*model.Recap, error)
+	GetRecapsForUser(userId string, page, perPage int) ([]*model.Recap, error)
+	UpdateRecapStatus(id, status string) error
+	MarkRecapAsRead(id string) error
+	DeleteRecap(id string) error
+	DeleteRecapChannels(recapId string) error
+	SaveRecapChannel(recapChannel *model.RecapChannel) error
+	GetRecapChannelsByRecapId(recapId string) ([]*model.RecapChannel, error)
 }

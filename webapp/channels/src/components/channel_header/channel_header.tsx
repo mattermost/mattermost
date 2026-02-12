@@ -10,10 +10,12 @@ import type {WrappedComponentProps} from 'react-intl';
 import CustomStatusEmoji from 'components/custom_status/custom_status_emoji';
 import CustomStatusText from 'components/custom_status/custom_status_text';
 import Timestamp from 'components/timestamp';
+import Tag from 'components/widgets/tag/tag';
 import WithTooltip from 'components/with_tooltip';
 
 import CallButton from 'plugins/call_button';
 import ChannelHeaderPlug from 'plugins/channel_header_plug';
+import Pluggable from 'plugins/pluggable';
 import {
     Constants,
     NotificationLevels,
@@ -161,6 +163,25 @@ class ChannelHeader extends React.PureComponent<Props> {
             );
         }
 
+        let autotranslationMessage: ReactNode = '';
+        if (this.props.isChannelAutotranslated) {
+            autotranslationMessage = (
+                <WithTooltip
+                    title={this.props.intl.formatMessage({id: 'channel_header.autotranslationMessage.tooltip.title', defaultMessage: 'Auto-translation is enabled'})}
+                    hint={this.props.intl.formatMessage({id: 'channel_header.autotranslationMessage.tooltip.hint', defaultMessage: 'This channel is being automatically translated to your language'})}
+                >
+                    <div className='autotranslation-header'>
+                        <Tag
+                            text={this.props.intl.formatMessage({id: 'channel_header.autotranslationMessage', defaultMessage: 'Auto-translated'})}
+                            icon={'translate'}
+                            size='xs'
+                            variant='default'
+                        />
+                    </div>
+                </WithTooltip>
+            );
+        }
+
         if (isEmptyObject(channel) ||
             isEmptyObject(channelMember) ||
             isEmptyObject(currentUser) ||
@@ -202,7 +223,7 @@ class ChannelHeader extends React.PureComponent<Props> {
                         <span className='last-active__text'>
                             <FormattedMessage
                                 id='channel_header.lastActive'
-                                defaultMessage='Active {timestamp}'
+                                defaultMessage='Last online {timestamp}'
                                 values={{
                                     timestamp: (
                                         <Timestamp
@@ -372,6 +393,11 @@ class ChannelHeader extends React.PureComponent<Props> {
                                             {channelFilesIcon}
                                         </HeaderIconWrapper>
                                     }
+                                    <Pluggable
+                                        pluggableName='ChannelHeaderIcon'
+                                        channel={channel}
+                                        channelMember={channelMember!}
+                                    />
                                 </div>
                                 <div
                                     id='channelHeaderDescription'
@@ -379,6 +405,7 @@ class ChannelHeader extends React.PureComponent<Props> {
                                 >
                                     {dmHeaderTextStatus}
                                     {hasGuestsText}
+                                    {autotranslationMessage}
                                     <ChannelHeaderText
                                         teamId={teamId}
                                         channel={channel}

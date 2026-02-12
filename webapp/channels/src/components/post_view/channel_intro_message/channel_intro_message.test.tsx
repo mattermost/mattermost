@@ -125,7 +125,7 @@ describe('components/post_view/ChannelIntroMessages', () => {
             expect(screen.queryByText('Any member can join and read this channel.')).not.toBeInTheDocument();
 
             // there are no profiles in the dom, channel type is GM_CHANNEL, teammate text should be displayed
-            expect(screen.getByText('This is the start of your group message history with these teammates. ', {exact: false})).toBeInTheDocument();
+            expect(screen.getByText('This is the start of your group message history with these teammates.', {exact: false})).toBeInTheDocument();
 
             expect(screen.getByText('This is the start of your', {exact: false})).toHaveClass('channel-intro__text');
         });

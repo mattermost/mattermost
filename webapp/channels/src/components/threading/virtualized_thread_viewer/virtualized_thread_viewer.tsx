@@ -45,6 +45,7 @@ type Props = {
     newMessagesSeparatorActions: NewMessagesSeparatorActionComponent[];
     inputPlaceholder?: string;
     measureRhsOpened: () => void;
+    isChannelAutotranslated: boolean;
 }
 
 type State = {
@@ -364,7 +365,6 @@ class ThreadViewerVirtualized extends PureComponent<Props, State> {
             >
                 <Row
                     a11yIndex={a11yIndex}
-                    currentUserId={this.props.currentUserId}
                     isRootPost={isRootPost}
                     isLastPost={isLastPost}
                     isDeletedPost={isDeletedPost}
@@ -374,6 +374,7 @@ class ThreadViewerVirtualized extends PureComponent<Props, State> {
                     timestampProps={this.props.useRelativeTimestamp ? THREADING_TIME : undefined}
                     threadId={this.props.selected.id}
                     newMessagesSeparatorActions={this.props.newMessagesSeparatorActions}
+                    isChannelAutotranslated={this.props.isChannelAutotranslated}
                 />
             </div>
         );

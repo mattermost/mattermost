@@ -792,10 +792,6 @@
     "translation": "Не удалось найти указанный канал. Пожалуйста, используйте [дескриптор канала](https://docs.mattermost.com/messaging/managing-channels.html#naming-a-channel) для идентификации каналов."
   },
   {
-    "id": "api.command_mute.not_member.error",
-    "translation": "Не удалось отключить канал {{.Channel}}, поскольку вы не являетесь его участником."
-  },
-  {
     "id": "api.command_mute.success_mute",
     "translation": "Вы не будете получать уведомления для {{.Channel}} до тех пор, пока отключен звук."
   },
@@ -8568,10 +8564,6 @@
     "translation": "Не удалось открыть файл CA для {{.Backend}}"
   },
   {
-    "id": "api.server.cws.health_check.app_error",
-    "translation": "Сервер CWS не доступен."
-  },
-  {
     "id": "app.group.username_conflict",
     "translation": "пользователь с таким именем \"{{.Username}}\" уже существует."
   },
@@ -8598,10 +8590,6 @@
   {
     "id": "app.oauth.remove_auth_data_by_client_id.app_error",
     "translation": "Невозможно удалить данные oauth."
-  },
-  {
-    "id": "api.server.cws.subscribe_to_newsletter.app_error",
-    "translation": "Серверу CWS не удалось подписаться на рассылку новостей."
   },
   {
     "id": "api.license.request-trial.bad-request.business-email",
