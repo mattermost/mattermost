@@ -25,7 +25,7 @@ export const allowOnlyUserFromSpecificDomain = (domain) => {
         cy.findByText('Save').should('be.visible').click();
 
         // # Close the modal
-        cy.get('#teamSettingsModalLabel').find('button').should('be.visible').click();
+        cy.get('button[aria-label="Close"]').should('be.visible').click();
     });
 };
 
