@@ -1,35 +1,12 @@
 // Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
 
 exports[`components/learn_more_trial_modal/start_trial_btn should match snapshot 1`] = `
-<ContextProvider
-  value={
-    Object {
-      "getServerState": undefined,
-      "identityFunctionCheck": "once",
-      "stabilityCheck": "once",
-      "store": Object {
-        "clearActions": [Function],
-        "dispatch": [Function],
-        "getActions": [Function],
-        "getState": [Function],
-        "replaceReducer": [Function],
-        "subscribe": [Function],
-      },
-      "subscription": Object {
-        "addNestedSub": [Function],
-        "getListeners": [Function],
-        "handleChangeWrapper": [Function],
-        "isSubscribed": [Function],
-        "notifyNestedSubs": [Function],
-        "trySubscribe": [Function],
-        "tryUnsubscribe": [Function],
-      },
-    }
-  }
->
-  <StartTrialBtn
-    message="Start trial"
-    onClick={[MockFunction]}
-  />
-</ContextProvider>
+<div>
+  <a
+    class="btn btn-secondary"
+    id="start_trial_btn"
+  >
+    Start trial
+  </a>
+</div>
 `;
