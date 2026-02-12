@@ -16,6 +16,11 @@ export function getShouldSync(state: GlobalState): boolean {
     return state.views.channelSync?.shouldSyncByTeam?.[teamId] ?? false;
 }
 
+export function isSyncStateLoaded(state: GlobalState): boolean {
+    const teamId = getCurrentTeamId(state);
+    return state.views.channelSync?.shouldSyncByTeam?.[teamId] !== undefined;
+}
+
 export function getSyncState(state: GlobalState): ChannelSyncUserState | undefined {
     const teamId = getCurrentTeamId(state);
     return state.views.channelSync?.syncStateByTeam?.[teamId];
@@ -58,15 +63,16 @@ export function getSyncedCategories(state: GlobalState): ChannelCategory[] | nul
     const userId = getCurrentUserId(state);
 
     // Collect channel IDs placed in synced categories
+    const syncedCats = syncState.categories || [];
     const placedIds = new Set<string>();
-    for (const cat of syncState.categories) {
+    for (const cat of syncedCats) {
         for (const chId of (cat.channel_ids || [])) {
             placedIds.add(chId);
         }
     }
 
     // Build synced categories, excluding DM category (handled separately by personal categories)
-    const categories: ChannelCategory[] = syncState.categories
+    const categories: ChannelCategory[] = syncedCats
         .filter((cat) => cat.display_name !== 'Direct Messages')
         .map((cat) => ({
             id: cat.id,

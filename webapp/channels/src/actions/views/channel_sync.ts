@@ -32,7 +32,7 @@ export function fetchChannelSyncState(teamId: string): ActionFuncAsync {
             if (state.should_sync) {
                 const reduxState = getState();
                 const quickJoinIds: string[] = [];
-                for (const cat of state.categories) {
+                for (const cat of (state.categories || [])) {
                     if (cat.quick_join) {
                         for (const chId of cat.quick_join) {
                             if (!getChannel(reduxState, chId)) {

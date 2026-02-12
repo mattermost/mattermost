@@ -16,7 +16,7 @@ func (a *App) IsChannelSyncEnabled() bool {
 }
 
 // ShouldSyncUser checks if a specific user should have their sidebar synced.
-// Returns false if: feature disabled, user is excluded, or no layout exists for the team.
+// Returns false if: feature disabled or user is excluded.
 func (a *App) ShouldSyncUser(rctx request.CTX, userId string, teamId string) (bool, *model.AppError) {
 	if !a.IsChannelSyncEnabled() {
 		return false, nil
@@ -28,15 +28,6 @@ func (a *App) ShouldSyncUser(rctx request.CTX, userId string, teamId string) (bo
 		return false, err
 	}
 	if a.isUserExcludedFromSync(user.Username) {
-		return false, nil
-	}
-
-	// Check if a layout exists for this team
-	layout, storeErr := a.Srv().Store().ChannelSync().GetLayout(teamId)
-	if storeErr != nil {
-		return false, model.NewAppError("ShouldSyncUser", "app.channel_sync.should_sync.store_error", nil, "", 500).Wrap(storeErr)
-	}
-	if layout == nil {
 		return false, nil
 	}
 
@@ -101,13 +92,28 @@ func (a *App) DeleteChannelSyncLayout(rctx request.CTX, teamId string) *model.Ap
 
 // GetSyncedCategoriesForUser builds the merged view of categories for a synced user.
 func (a *App) GetSyncedCategoriesForUser(rctx request.CTX, userId string, teamId string) (*model.ChannelSyncUserState, *model.AppError) {
+	// 0. Check if user is excluded from sync
+	user, userErr := a.GetUser(userId)
+	if userErr != nil {
+		return nil, userErr
+	}
+	if a.isUserExcludedFromSync(user.Username) {
+		return &model.ChannelSyncUserState{TeamId: teamId, ShouldSync: false}, nil
+	}
+
 	// 1. Get canonical layout
 	layout, err := a.Srv().Store().ChannelSync().GetLayout(teamId)
 	if err != nil {
 		return nil, model.NewAppError("GetSyncedCategoriesForUser", "app.channel_sync.get_synced.store_error", nil, "", 500).Wrap(err)
 	}
 	if layout == nil {
-		return &model.ChannelSyncUserState{TeamId: teamId, ShouldSync: false}, nil
+		// No layout defined yet — still sync, with empty categories.
+		// The webapp will show all team channels in an "Uncategorized" category.
+		return &model.ChannelSyncUserState{
+			TeamId:     teamId,
+			ShouldSync: true,
+			Categories: []*model.ChannelSyncUserCategory{},
+		}, nil
 	}
 
 	// 2. Get user's channel memberships for this team
@@ -170,6 +176,11 @@ func (a *App) GetSyncedCategoriesForUser(rctx request.CTX, userId string, teamId
 			} else if !dismissedSet[chId] {
 				userCat.QuickJoin = append(userCat.QuickJoin, chId)
 			}
+		}
+
+		// Skip empty categories (user has no channels and no Quick Join items)
+		if len(userCat.ChannelIds) == 0 && len(userCat.QuickJoin) == 0 {
+			continue
 		}
 
 		categories = append(categories, userCat)

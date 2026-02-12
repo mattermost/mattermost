@@ -65,7 +65,7 @@ function mapStateToProps(state: GlobalState) {
             categories = personalCategories;
         }
     } else if (isChannelSyncEnabled) {
-        // ChannelSync enabled but no layout yet — show all team channels alphabetically
+        // ChannelSync enabled but no layout defined yet — show all team channels alphabetically in Uncategorized
         const teamId = getCurrentTeamId(state);
         const userId = getCurrentUserId(state);
         const memberships = getMyChannelMemberships(state);
@@ -86,7 +86,7 @@ function mapStateToProps(state: GlobalState) {
             user_id: userId,
             team_id: teamId,
             type: CategoryTypes.CUSTOM,
-            display_name: 'Channels',
+            display_name: 'Uncategorized',
             sorting: CategorySorting.Manual,
             channel_ids: teamChannelIds,
             muted: false,
