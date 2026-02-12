@@ -253,6 +253,12 @@ func getClientConfig(c *Context, w http.ResponseWriter, r *http.Request) {
 		config = c.App.Srv().Platform().LimitedClientConfigWithComputed()
 	} else {
 		config = c.App.Srv().Platform().ClientConfigWithComputed()
+
+		// Strip sensitive allowlists from non-admin users
+		if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageSystem) {
+			delete(config, "MattermostExtendedStatusesStatusPauseAllowedUsers")
+			delete(config, "MattermostExtendedStatusesInvisibilityAllowedUsers")
+		}
 	}
 
 	if err := json.NewEncoder(w).Encode(config); err != nil {
