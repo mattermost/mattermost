@@ -3,18 +3,47 @@
 
 import {combineReducers} from 'redux';
 
+import type {ChannelCategory} from '@mattermost/types/channel_categories';
 import type {Channel} from '@mattermost/types/channels';
 import type {ChannelSyncLayout, ChannelSyncUserState} from '@mattermost/types/channel_sync';
 
+import {ChannelCategoryTypes} from 'mattermost-redux/action_types';
+
 import {ActionTypes} from 'utils/constants';
 
-function syncStateByTeam(state: Record<string, ChannelSyncUserState> = {}, action: {type: string; data: ChannelSyncUserState}) {
+function syncStateByTeam(state: Record<string, ChannelSyncUserState> = {}, action: {type: string; data: ChannelSyncUserState | ChannelCategory}) {
     switch (action.type) {
     case ActionTypes.CHANNEL_SYNC_RECEIVED_STATE:
         return {
             ...state,
-            [action.data.team_id]: action.data,
+            [(action.data as ChannelSyncUserState).team_id]: action.data as ChannelSyncUserState,
         };
+    case ChannelCategoryTypes.RECEIVED_CATEGORY: {
+        // When a personal category is updated (e.g., collapsed), reflect it in the sync state
+        const category = action.data as ChannelCategory;
+        const teamState = state[category.team_id];
+        if (!teamState?.categories) {
+            return state;
+        }
+        let changed = false;
+        const updatedCategories = teamState.categories.map((cat) => {
+            if (cat.id === category.id) {
+                changed = true;
+                return {...cat, collapsed: category.collapsed, muted: category.muted};
+            }
+            return cat;
+        });
+        if (!changed) {
+            return state;
+        }
+        return {
+            ...state,
+            [category.team_id]: {
+                ...teamState,
+                categories: updatedCategories,
+            },
+        };
+    }
     default:
         return state;
     }

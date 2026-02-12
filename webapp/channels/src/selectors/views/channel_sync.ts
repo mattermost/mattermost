@@ -65,18 +65,20 @@ export function getSyncedCategories(state: GlobalState): ChannelCategory[] | nul
         }
     }
 
-    // Build synced categories
-    const categories: ChannelCategory[] = syncState.categories.map((cat) => ({
-        id: cat.id,
-        user_id: userId,
-        team_id: teamId,
-        type: 'custom' as ChannelCategory['type'],
-        display_name: cat.display_name,
-        sorting: CategorySorting.Manual,
-        channel_ids: cat.channel_ids || [],
-        muted: cat.muted,
-        collapsed: cat.collapsed,
-    }));
+    // Build synced categories, excluding DM category (handled separately by personal categories)
+    const categories: ChannelCategory[] = syncState.categories
+        .filter((cat) => cat.display_name !== 'Direct Messages')
+        .map((cat) => ({
+            id: cat.id,
+            user_id: userId,
+            team_id: teamId,
+            type: 'custom' as ChannelCategory['type'],
+            display_name: cat.display_name,
+            sorting: CategorySorting.Manual,
+            channel_ids: cat.channel_ids || [],
+            muted: cat.muted,
+            collapsed: cat.collapsed,
+        }));
 
     // Find uncategorized channels (user's team channels not placed in any synced category)
     const memberships = getMyChannelMemberships(state);

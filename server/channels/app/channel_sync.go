@@ -256,7 +256,7 @@ func (a *App) GetAllChannelsForLayoutEditor(rctx request.CTX, userId string, tea
 				return nil, model.NewAppError("GetAllChannelsForLayoutEditor", "app.channel_sync.editor.store_error", nil, "", 500).Wrap(err)
 			}
 			for _, ch := range channels {
-				if ch.DeleteAt == 0 && (ch.Type == model.ChannelTypeOpen || ch.Type == model.ChannelTypePrivate) {
+				if ch.TeamId == teamId && ch.DeleteAt == 0 && (ch.Type == model.ChannelTypeOpen || ch.Type == model.ChannelTypePrivate) {
 					result = append(result, &ch.Channel)
 				}
 			}

@@ -122,7 +122,7 @@ export default class SidebarCategory extends React.PureComponent<Props, State> {
                 key={channelId}
                 channelIndex={index}
                 channelId={channelId}
-                isDraggable={!isSynced}
+                isDraggable={!isSynced || category.type === CategoryTypes.DIRECT_MESSAGES}
                 setChannelRef={setChannelRef}
                 isCategoryCollapsed={category.collapsed}
                 isCategoryDragged={draggingState.type === DraggingStateTypes.CATEGORY && draggingState.id === category.id}

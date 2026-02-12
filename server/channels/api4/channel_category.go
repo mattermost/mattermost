@@ -415,10 +415,8 @@ func updateCategoryForTeamForUser(c *Context, w http.ResponseWriter, r *http.Req
 		return
 	}
 
-	if checkChannelSyncBlocked(c, c.Params.UserId, c.Params.TeamId) {
-		c.Err = model.NewAppError("updateCategoryForTeamForUser", "api.channel_sync.categories_synced", nil, "Categories are managed by Channel Sync", http.StatusForbidden)
-		return
-	}
+	// Note: single-category updates are allowed even when synced, because the sync
+	// view overrides channel ordering. This lets users toggle collapsed/muted state.
 
 	auditRec := c.MakeAuditRecord(model.AuditEventUpdateCategoryForTeamForUser, model.AuditStatusFail)
 	defer c.LogAuditRec(auditRec)

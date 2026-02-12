@@ -74,6 +74,7 @@ type Props = WrappedComponentProps & {
         moveChannelInCanonicalLayout: (sourceCategoryId: string, destCategoryId: string, sourceIndex: number, destIndex: number, channelId: string) => void;
         moveCategoryInCanonicalLayout: (sourceIndex: number, destIndex: number) => void;
         addCategoryToCanonicalLayout: (displayName: string) => void;
+        importPersonalLayoutToCanonical: () => void;
     };
 };
 
@@ -375,8 +376,14 @@ export class SidebarList extends React.PureComponent<Props, State> {
         this.updateUnreadIndicators();
     }, 100);
 
+    isDmChannelDrag = (draggableId: string): boolean => {
+        const channel = this.props.displayedChannels.find((ch) => ch.id === draggableId);
+        return Boolean(channel && (channel.type === General.DM_CHANNEL || channel.type === General.GM_CHANNEL));
+    };
+
     onBeforeCapture = (before: BeforeCapture) => {
-        if (this.props.isSynced) {
+        // When synced, only allow DM/GM channel dragging (personal category)
+        if (this.props.isSynced && !this.isDmChannelDrag(before.draggableId)) {
             return;
         }
 
@@ -427,7 +434,8 @@ export class SidebarList extends React.PureComponent<Props, State> {
     };
 
     onDragEnd = (result: DropResult) => {
-        if (this.props.isSynced) {
+        // When synced, only allow DM/GM channel drops (personal category)
+        if (this.props.isSynced && !this.isDmChannelDrag(result.draggableId)) {
             this.props.actions.stopDragging();
             return;
         }
@@ -532,7 +540,14 @@ export class SidebarList extends React.PureComponent<Props, State> {
                     >
                         {categories.length === 0 && (
                             <div className='sidebar-edit-hint'>
-                                {'Create categories above, then drag channels into them.'}
+                                <p>{'Create categories above, then drag channels into them.'}</p>
+                                <button
+                                    className='sidebar-edit-import-button'
+                                    onClick={() => this.props.actions.importPersonalLayoutToCanonical()}
+                                >
+                                    <i className='icon icon-import'/>
+                                    {'Import My Layout'}
+                                </button>
                             </div>
                         )}
                         <Droppable
