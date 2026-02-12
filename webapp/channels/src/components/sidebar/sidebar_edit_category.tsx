@@ -9,6 +9,7 @@ import type {Channel} from '@mattermost/types/channels';
 import type {ChannelSyncCategory} from '@mattermost/types/channel_sync';
 
 import {renameCategoryInCanonicalLayout, removeCategoryFromCanonicalLayout} from 'actions/views/channel_sync';
+import SidebarBaseChannelIcon from 'components/sidebar/sidebar_channel/sidebar_base_channel/sidebar_base_channel_icon';
 
 type Props = {
     category: ChannelSyncCategory;
@@ -160,8 +161,6 @@ const SidebarEditChannelItem: React.FC<{
     index: number;
     isJoined: boolean;
 }> = ({channel, index, isJoined}) => {
-    const icon = channel.type === 'O' ? 'icon-globe' : 'icon-lock-outline';
-
     return (
         <Draggable
             draggableId={`edit-ch-${channel.id}`}
@@ -175,7 +174,10 @@ const SidebarEditChannelItem: React.FC<{
                     className={`SidebarChannel edit-mode-channel ${isJoined ? '' : 'not-joined'}`}
                 >
                     <div className='SidebarLink'>
-                        <i className={`icon ${icon}`}/>
+                        <SidebarBaseChannelIcon
+                            channelType={channel.type}
+                            customIcon={channel.props?.custom_icon}
+                        />
                         <span className='SidebarChannelLinkLabel'>
                             {channel.display_name}
                         </span>
