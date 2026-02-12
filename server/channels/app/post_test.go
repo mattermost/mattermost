@@ -5569,7 +5569,6 @@ func TestBurnOnReadRestrictionsForDMsAndBots(t *testing.T) {
 		require.Nil(t, err)
 		require.NotNil(t, createdPost)
 		require.Equal(t, model.PostTypeBurnOnRead, createdPost.Type)
-
 	})
 }
 
