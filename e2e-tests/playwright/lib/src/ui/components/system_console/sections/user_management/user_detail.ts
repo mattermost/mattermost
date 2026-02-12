@@ -3,6 +3,36 @@
 
 import {Locator, expect} from '@playwright/test';
 
+import {ConfirmModal} from '@/ui/components/system_console/base_modal';
+
+/**
+ * Save Changes confirmation modal on the User Detail page.
+ * Shown when saving edits to user fields (email, username, auth data, etc.).
+ */
+export class SaveChangesModal extends ConfirmModal {
+    readonly messageBody: Locator;
+    readonly changesList: Locator;
+
+    constructor(container: Locator) {
+        super(container);
+        this.messageBody = this.container.locator('#confirmModalBody');
+        this.changesList = this.messageBody.locator('ul.changes-list');
+    }
+
+    /**
+     * Get the list of change summary texts shown in the modal.
+     */
+    async getChanges(): Promise<string[]> {
+        const items = this.changesList.locator('li');
+        const count = await items.count();
+        const changes: string[] = [];
+        for (let i = 0; i < count; i++) {
+            changes.push(((await items.nth(i).textContent()) ?? '').trim());
+        }
+        return changes;
+    }
+}
+
 /**
  * System Console -> User Management -> Users -> User Detail
  * Accessed by clicking on a user row in the Users list
@@ -19,6 +49,9 @@ export default class UserDetail {
 
     // Team Membership Panel
     readonly teamMembershipPanel: TeamMembershipPanel;
+
+    // Save Changes confirmation modal
+    readonly saveChangesModal: SaveChangesModal;
 
     // Save section
     readonly saveButton: Locator;
@@ -38,6 +71,11 @@ export default class UserDetail {
         // Team Membership Panel
         this.teamMembershipPanel = new TeamMembershipPanel(
             this.container.locator('.AdminPanel').filter({hasText: 'Team Membership'}),
+        );
+
+        // Save Changes confirmation modal (page-level, rendered outside container via portal)
+        this.saveChangesModal = new SaveChangesModal(
+            this.container.page().locator('#admin-userDetail-saveChangesModal'),
         );
 
         // Save section
@@ -84,6 +122,12 @@ class AdminUserCard {
     readonly twoColumnLayout: Locator;
     readonly fieldRows: Locator;
 
+    // System field inputs (scoped via wrapping <label> to avoid substring ambiguity)
+    readonly usernameInput: Locator;
+    readonly emailInput: Locator;
+    readonly authDataInput: Locator;
+    readonly authenticationMethod: Locator;
+
     // Footer section
     readonly resetPasswordButton: Locator;
     readonly deactivateButton: Locator;
@@ -104,6 +148,12 @@ class AdminUserCard {
         this.twoColumnLayout = this.body.locator('.two-column-layout');
         this.fieldRows = this.body.locator('.field-row');
 
+        // System fields — use exact label text to avoid substring matches (e.g., "Email" vs "Work Email")
+        this.usernameInput = this.getFieldInputByExactLabel('Username');
+        this.emailInput = this.getFieldInputByExactLabel('Email');
+        this.authDataInput = this.getFieldInputByExactLabel('Auth Data');
+        this.authenticationMethod = this.getFieldColumn('Authentication Method').locator('label > span').last();
+
         // Footer
         const footer = container.locator('.AdminUserCard__footer');
         this.resetPasswordButton = footer.getByRole('button', {name: 'Reset Password'});
@@ -115,28 +165,35 @@ class AdminUserCard {
         await expect(this.container).toBeVisible();
     }
 
-    getFieldByLabel(labelText: string): Locator {
-        return this.body.getByLabel(labelText);
+    /**
+     * Get the .field-column container for a field by its exact label text.
+     */
+    private getFieldColumn(labelText: string): Locator {
+        return this.body
+            .locator('.field-column')
+            .filter({has: this.body.page().locator(`span:text-is("${labelText}")`)});
     }
 
-    getSelectByLabel(labelText: string): Locator {
-        return this.body.getByLabel(labelText);
+    /**
+     * Get the input inside a field column by exact label text.
+     * Avoids substring ambiguity (e.g., "Email" won't match "Work Email").
+     */
+    getFieldInputByExactLabel(labelText: string): Locator {
+        return this.getFieldColumn(labelText).locator('input');
     }
 
-    async fillField(labelText: string, value: string) {
-        const input = this.getFieldByLabel(labelText);
-        await input.clear();
-        await input.fill(value);
+    /**
+     * Get the select inside a field column by exact label text.
+     */
+    getSelectByExactLabel(labelText: string): Locator {
+        return this.getFieldColumn(labelText).locator('select');
     }
 
-    async getFieldValue(labelText: string): Promise<string> {
-        const input = this.getFieldByLabel(labelText);
-        return await input.inputValue();
-    }
-
-    async getUserId(): Promise<string> {
-        const text = (await this.userId.textContent()) ?? '';
-        return text.replace('User ID: ', '');
+    /**
+     * Get the .field-error validation message locator for a field by its exact label text.
+     */
+    getFieldError(labelText: string): Locator {
+        return this.getFieldColumn(labelText).locator('.field-error');
     }
 }
 
@@ -158,57 +215,5 @@ class TeamMembershipPanel {
     async toBeVisible() {
         await expect(this.container).toBeVisible();
         await expect(this.title).toBeVisible();
-    }
-
-    async clickAddTeam() {
-        await this.addTeamButton.click();
-    }
-
-    async getTeamCount(): Promise<number> {
-        return this.teamRows.count();
-    }
-
-    getTeamRowByIndex(index: number): TeamRow {
-        return new TeamRow(this.teamRows.nth(index));
-    }
-
-    getTeamRowByName(teamName: string): TeamRow {
-        return new TeamRow(this.teamRows.filter({hasText: teamName}));
-    }
-}
-
-class TeamRow {
-    readonly container: Locator;
-    readonly teamName: Locator;
-    readonly teamType: Locator;
-    readonly role: Locator;
-    readonly actionMenuButton: Locator;
-
-    constructor(container: Locator) {
-        this.container = container;
-        this.teamName = container.locator('.TeamRow__team-name b');
-        this.teamType = container.locator('.TeamRow__description').first();
-        this.role = container.locator('.TeamRow__description').last();
-        this.actionMenuButton = container.locator('.TeamRow__actions button');
-    }
-
-    async toBeVisible() {
-        await expect(this.container).toBeVisible();
-    }
-
-    async getTeamName(): Promise<string> {
-        return (await this.teamName.textContent()) ?? '';
-    }
-
-    async getTeamType(): Promise<string> {
-        return (await this.teamType.textContent()) ?? '';
-    }
-
-    async getRole(): Promise<string> {
-        return (await this.role.textContent()) ?? '';
-    }
-
-    async openActionMenu() {
-        await this.actionMenuButton.click();
     }
 }
