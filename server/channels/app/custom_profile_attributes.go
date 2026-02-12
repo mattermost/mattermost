@@ -43,7 +43,7 @@ func (a *App) GetCPAField(fieldID string) (*model.CPAField, *model.AppError) {
 
 	field, err := a.Srv().propertyService.GetPropertyField(groupID, fieldID)
 	if err != nil {
-		config := DefaultPropertyFieldErrorConfig("GetCPAField")
+		config := DefaultPropertyFieldErrorConfig("GetCPAField", "")
 		return nil, HandlePropertyFieldError(err, config, "get")
 	}
 
@@ -111,7 +111,7 @@ func (a *App) CreateCPAField(field *model.CPAField) (*model.CPAField, *model.App
 
 	newField, err := a.Srv().propertyService.CreatePropertyField(field.ToPropertyField())
 	if err != nil {
-		config := DefaultPropertyFieldErrorConfig("CreateCPAField")
+		config := DefaultPropertyFieldErrorConfig("CreateCPAField", "")
 		return nil, HandlePropertyFieldError(err, config, "create")
 	}
 
@@ -153,7 +153,7 @@ func (a *App) PatchCPAField(fieldID string, patch *model.PropertyFieldPatch) (*m
 
 	patchedField, err := a.Srv().propertyService.UpdatePropertyField(groupID, existingField.ToPropertyField())
 	if err != nil {
-		config := DefaultPropertyFieldErrorConfig("PatchCPAField")
+		config := DefaultPropertyFieldErrorConfig("PatchCPAField", "")
 		return nil, HandlePropertyFieldError(err, config, "update")
 	}
 
@@ -186,7 +186,7 @@ func (a *App) DeleteCPAField(id string) *model.AppError {
 	}
 
 	if err := a.Srv().propertyService.DeletePropertyField(groupID, id); err != nil {
-		config := DefaultPropertyFieldErrorConfig("DeleteCPAField")
+		config := DefaultPropertyFieldErrorConfig("DeleteCPAField", "")
 		return HandlePropertyFieldError(err, config, "delete")
 	}
 
