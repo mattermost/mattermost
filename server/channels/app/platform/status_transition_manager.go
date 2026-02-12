@@ -185,6 +185,9 @@ func (m *StatusTransitionManager) applyTransition(status *model.Status, oldStatu
 		status.Manual = true
 	case newStatus == model.StatusOnline:
 		status.Manual = false
+	case !opts.Manual:
+		// Automatic transitions (e.g., inactivity -> Away) clear the manual flag
+		status.Manual = false
 	}
 
 	// Handle DND-specific fields
