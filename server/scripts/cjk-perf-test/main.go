@@ -162,7 +162,8 @@ func main() {
 	}
 	defer db.Close()
 
-	if err := db.Ping(); err != nil {
+	err = db.Ping()
+	if err != nil {
 		fmt.Fprintf(os.Stderr, "Error pinging database: %v\n", err)
 		os.Exit(1)
 	}
@@ -278,11 +279,11 @@ const columnsPerRow = 18
 func insertBatch(db *sql.DB, n int, channelID, userID string) error {
 	// Build a multi-row INSERT statement with all columns the ORM expects.
 	valueStrings := make([]string, 0, n)
-	valueArgs := make([]interface{}, 0, n*columnsPerRow)
+	valueArgs := make([]any, 0, n*columnsPerRow)
 
 	now := time.Now().UnixMilli()
 
-	for i := 0; i < n; i++ {
+	for i := range n {
 		id := newID()
 		createAt := now - int64(rand.Intn(86400000)) // spread over last 24h
 		msg := randomMessage()

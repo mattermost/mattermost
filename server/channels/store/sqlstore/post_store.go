@@ -2100,7 +2100,7 @@ func splitCJKSearchTerms(input string) []string {
 		offset += (loc[1] - loc[0]) - 1
 	}
 	// Split remaining unquoted text by whitespace
-	for _, word := range strings.Fields(remaining) {
+	for word := range strings.FieldsSeq(remaining) {
 		word = strings.TrimRight(word, "*")
 		if word != "" {
 			terms = append(terms, word)
