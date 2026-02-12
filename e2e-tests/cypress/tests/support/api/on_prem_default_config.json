@@ -484,6 +484,7 @@
         "Password": "changeme",
         "EnableIndexing": false,
         "EnableSearching": false,
+        "EnableCJKAnalyzers": false,
         "EnableAutocomplete": false,
         "Sniff": false,
         "PostIndexReplicas": 1,
