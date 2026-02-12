@@ -118,3 +118,37 @@
         cursor: not-allowed;
     }
 }
+
+// Overflow bookmark items — clamp labels so dot menu stays visible.
+// MUI's styled() injects flex: 1 0 auto on .label-elements which prevents
+// shrinking. We need !important to override the generated class styles.
+.overflowBookmarkItem.MuiMenuItem-root {
+    > .label-elements {
+        flex: 1 1 0px !important;
+        min-width: 0;
+        overflow: hidden;
+
+        > span {
+            display: block;
+            max-width: 100%;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+    }
+
+    > .trailing-elements {
+        flex-shrink: 0;
+        margin-inline-start: 8px;
+        opacity: 0;
+        transition: opacity 150ms ease;
+    }
+
+    &:hover,
+    &:focus-within,
+    &:has([aria-expanded="true"]) {
+        > .trailing-elements {
+            opacity: 1;
+        }
+    }
+}

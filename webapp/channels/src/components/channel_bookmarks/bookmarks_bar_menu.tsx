@@ -27,9 +27,12 @@ interface BookmarksBarMenuProps {
     hasBookmarks: boolean;
     limitReached: boolean;
     canUploadFiles: boolean;
+    canReorder: boolean;
+    isDragging: boolean;
     canAdd: boolean;
     forceOpen?: boolean;
     onOpenChange?: (open: boolean) => void;
+    reorderState?: {isReordering: boolean; itemId: string | null};
 }
 
 function BookmarksBarMenu({
@@ -39,9 +42,12 @@ function BookmarksBarMenu({
     hasBookmarks,
     limitReached,
     canUploadFiles,
+    canReorder,
+    isDragging,
     canAdd,
     forceOpen,
     onOpenChange,
+    reorderState,
 }: BookmarksBarMenuProps) {
     const {formatMessage} = useIntl();
     const triggerRef = useRef<HTMLDivElement>(null);
@@ -111,6 +117,9 @@ function BookmarksBarMenu({
                     key={id}
                     id={id}
                     bookmark={bookmarks[id]}
+                    canReorder={canReorder}
+                    isDragging={isDragging}
+                    isKeyboardReordering={reorderState?.isReordering && reorderState?.itemId === id}
                 />,
             );
         });

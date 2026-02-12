@@ -4,7 +4,7 @@
 import type {AnchorHTMLAttributes} from 'react';
 import React, {forwardRef, useCallback, useRef} from 'react';
 import {useDispatch, useSelector} from 'react-redux';
-import {Link} from 'react-router-dom';
+import {Link, useHistory} from 'react-router-dom';
 import styled, {css} from 'styled-components';
 
 import type {ChannelBookmark} from '@mattermost/types/channel_bookmarks';
@@ -42,11 +42,44 @@ export const useBookmarkLink = (
 ) => {
     const linkRef = useRef<HTMLAnchorElement>(null);
     const dispatch = useDispatch();
+    const history = useHistory();
     const fileInfo: FileInfo | undefined = useSelector((state: GlobalState) => (bookmark?.file_id && getFile(state, bookmark.file_id)) || undefined);
 
+    // DOM-based open — clicks the rendered DynamicLink (used by bar items)
     const open = useCallback(() => {
         linkRef.current?.click();
     }, []);
+
+    // Imperative open — handles all bookmark types without a rendered link element.
+    // Used by overflow menu items where there's no DynamicLink in the DOM.
+    const openBookmark = useCallback(() => {
+        if (bookmark.type === 'file' && fileInfo) {
+            dispatch(openModal({
+                modalId: ModalIdentifiers.FILE_PREVIEW_MODAL,
+                dialogType: FilePreviewModal,
+                dialogProps: {
+                    post: {user_id: bookmark.owner_id, channel_id: bookmark.channel_id} as Post,
+                    fileInfos: [fileInfo],
+                    startIndex: 0,
+                },
+            }));
+            onNavigate?.();
+        } else if (bookmark.type === 'link' && bookmark.link_url) {
+            const siteURL = getSiteURL();
+            const url = bookmark.link_url;
+            const prefixed = url[0] === '!';
+            const openInNewTab = shouldOpenInNewTab(url, siteURL);
+
+            if (prefixed || openInNewTab) {
+                window.open(prefixed ? url.substring(1) : url, '_blank', 'noopener,noreferrer');
+            } else if (url.startsWith(siteURL)) {
+                history.push(url.slice(siteURL.length));
+            } else {
+                window.location.href = url;
+            }
+            onNavigate?.();
+        }
+    }, [bookmark, fileInfo, dispatch, history, onNavigate]);
 
     const handleOpenFile = useCallback((e: React.MouseEvent<HTMLElement>) => {
         e.preventDefault();
@@ -99,6 +132,7 @@ export const useBookmarkLink = (
         icon,
         displayName: bookmark.display_name,
         open,
+        openBookmark,
     } as const;
 };
 
