@@ -13,10 +13,12 @@ import type {ChannelBookmark} from '@mattermost/types/channel_bookmarks';
 
 import * as Menu from 'components/menu';
 import {MenuContext} from 'components/menu/menu_context';
+import WithTooltip from 'components/with_tooltip';
 
 import BookmarkItemDotMenu from './bookmark_dot_menu';
 import {useBookmarkLink} from './bookmark_item_content';
 import {createBookmarkDragPreview} from './drag_preview';
+import {useTextOverflow} from './hooks';
 
 import './channel_bookmarks.scss';
 
@@ -47,6 +49,9 @@ function OverflowBookmarkItem({
     const liRef = useRef<HTMLLIElement | null>(null);
     const [isDragSelf, setIsDragSelf] = useState(false);
     const [closestEdge, setClosestEdge] = useState<Edge | null>(null);
+
+    const labelRef = useRef<HTMLSpanElement>(null);
+    const isLabelOverflowing = useTextOverflow(labelRef);
 
     const linksDisabled = isDragging || isDragSelf;
     const {openBookmark, icon} = useBookmarkLink(bookmark, linksDisabled, handleNavigate);
@@ -120,7 +125,17 @@ function OverflowBookmarkItem({
             data-testid={`overflow-bookmark-item-${id}`}
             onClick={openBookmark}
             leadingElement={icon}
-            labels={<span>{bookmark.display_name}</span>}
+            labels={(
+                <WithTooltip
+                    id={`overflow-bookmark-tooltip-${id}`}
+                    title={bookmark.display_name}
+                    disabled={!isLabelOverflowing}
+                >
+                    <span ref={labelRef}>
+                        {bookmark.display_name}
+                    </span>
+                </WithTooltip>
+            )}
             trailingElements={(
                 <BookmarkItemDotMenu
                     bookmark={bookmark}

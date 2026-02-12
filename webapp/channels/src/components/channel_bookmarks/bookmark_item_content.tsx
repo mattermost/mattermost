@@ -18,6 +18,7 @@ import {openModal} from 'actions/views/modals';
 
 import ExternalLink from 'components/external_link';
 import FilePreviewModal from 'components/file_preview_modal';
+import WithTooltip from 'components/with_tooltip';
 
 import {ModalIdentifiers} from 'utils/constants';
 import {getSiteURL, shouldOpenInNewTab} from 'utils/url';
@@ -26,6 +27,7 @@ import type {GlobalState} from 'types/store';
 
 import BookmarkItemDotMenu from './bookmark_dot_menu';
 import BookmarkIcon from './bookmark_icon';
+import {useTextOverflow} from './hooks';
 
 /**
  * Hook that provides link data and handlers for a bookmark.
@@ -149,8 +151,10 @@ interface BookmarkItemContentProps {
 const BookmarkItemContent = ({bookmark, disableInteractions, keyboardReorderProps}: BookmarkItemContentProps) => {
     const {href, onClick, linkRef, isFile, icon, displayName, open} = useBookmarkLink(bookmark, disableInteractions);
     const hasLink = bookmark.type === 'link' || bookmark.type === 'file';
+    const labelRef = useRef<HTMLSpanElement>(null);
+    const isLabelOverflowing = useTextOverflow(labelRef);
 
-    return (
+    const chip = (
         <Chip $disableInteractions={disableInteractions}>
             {hasLink && (
                 <DynamicLink
@@ -165,7 +169,7 @@ const BookmarkItemContent = ({bookmark, disableInteractions, keyboardReorderProp
                     onKeyDown={keyboardReorderProps?.onKeyDown}
                 >
                     {icon}
-                    <Label>{displayName}</Label>
+                    <Label ref={labelRef}>{displayName}</Label>
                 </DynamicLink>
             )}
             <BookmarkItemDotMenu
@@ -174,6 +178,19 @@ const BookmarkItemContent = ({bookmark, disableInteractions, keyboardReorderProp
             />
         </Chip>
     );
+
+    if (isLabelOverflowing) {
+        return (
+            <WithTooltip
+                id={`bookmark-tooltip-${bookmark.id}`}
+                title={displayName}
+            >
+                {chip}
+            </WithTooltip>
+        );
+    }
+
+    return chip;
 };
 
 const Chip = styled.div<{$disableInteractions: boolean}>`
