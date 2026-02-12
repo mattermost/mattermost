@@ -153,7 +153,7 @@ jobs:
           fi
 
   run-tests:
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-latest-16-cores
     timeout-minutes: ${{ fromJSON(inputs.timeout_minutes) }}
     continue-on-error: ${{ inputs.workers > 1 }}
     needs:

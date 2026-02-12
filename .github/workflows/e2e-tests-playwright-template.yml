@@ -110,7 +110,7 @@ jobs:
           status: pending
 
   run-tests:
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-latest-16-cores
     timeout-minutes: ${{ fromJSON(inputs.timeout_minutes) }}
     defaults:
       run:
