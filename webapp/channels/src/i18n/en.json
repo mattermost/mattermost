@@ -6245,6 +6245,7 @@
   "system_policy_indicator.more_policies": "{count} more",
   "system_policy_indicator.multiple_policies_title": "Multiple system access policies applied to this {resourceType}",
   "system_policy_indicator.single_policy_title": "System access policy applied to this {resourceType}",
+  "tag.default.agent": "AGENT",
   "tag.default.beta": "BETA",
   "tag.default.bot": "BOT",
   "tag.default.guest": "GUEST",
