@@ -21,10 +21,7 @@ export const koreanTestPhrase = '한글이 잘 입력되는지 테스트';
  *
  * Note: This only works on Chrome-based browsers because it relies on the Chrome Devtools Protocol (CDP).
  */
-export async function typeKoreanWithIme(
-    page: Page,
-    text: string,
-) {
+export async function typeKoreanWithIme(page: Page, text: string) {
     const client = await page.context().newCDPSession(page);
 
     for (const decomposed of decomposeKorean(text)) {
@@ -76,21 +73,83 @@ function decomposeKorean(text: string): Array<{character: string; jama?: string[
     // https://web.archive.org/web/20190512031142/http://www.programminginkorean.com/programming/hangul-in-unicode/composing-syllables-in-unicode/
 
     // All Korean Hangul characters/syllables are in this range of Unicode
-    const hangulStart = 0xAC00;
-    const hangulEnd = 0xD7A3;
+    const hangulStart = 0xac00;
+    const hangulEnd = 0xd7a3;
 
     // Hangul characters are made up of an initial consonant, a medial vowel, and an optional final vowel
     const initial = [
-        'ㄱ', 'ㄲ', 'ㄴ', 'ㄷ', 'ㄸ', 'ㄹ', 'ㅁ', 'ㅂ', 'ㅃ', 'ㅅ', 'ㅆ', 'ㅇ', 'ㅈ', 'ㅉ', 'ㅊ', 'ㅋ', 'ㅌ', 'ㅍ', 'ㅎ'
+        'ㄱ',
+        'ㄲ',
+        'ㄴ',
+        'ㄷ',
+        'ㄸ',
+        'ㄹ',
+        'ㅁ',
+        'ㅂ',
+        'ㅃ',
+        'ㅅ',
+        'ㅆ',
+        'ㅇ',
+        'ㅈ',
+        'ㅉ',
+        'ㅊ',
+        'ㅋ',
+        'ㅌ',
+        'ㅍ',
+        'ㅎ',
     ];
     const medial = [
-        'ㅏ', 'ㅐ', 'ㅑ', 'ㅒ', 'ㅓ', 'ㅔ', 'ㅕ', 'ㅖ', 'ㅗ', 'ㅘ',
-        'ㅙ', 'ㅚ', 'ㅛ', 'ㅜ', 'ㅝ', 'ㅞ', 'ㅟ', 'ㅠ', 'ㅡ', 'ㅢ', 'ㅣ'
+        'ㅏ',
+        'ㅐ',
+        'ㅑ',
+        'ㅒ',
+        'ㅓ',
+        'ㅔ',
+        'ㅕ',
+        'ㅖ',
+        'ㅗ',
+        'ㅘ',
+        'ㅙ',
+        'ㅚ',
+        'ㅛ',
+        'ㅜ',
+        'ㅝ',
+        'ㅞ',
+        'ㅟ',
+        'ㅠ',
+        'ㅡ',
+        'ㅢ',
+        'ㅣ',
     ];
     const final = [
-        '', 'ㄱ', 'ㄲ', 'ㄳ', 'ㄴ', 'ㄵ', 'ㄶ', 'ㄷ', 'ㄹ', 'ㄺ', 'ㄻ',
-        'ㄼ', 'ㄽ', 'ㄾ', 'ㄿ', 'ㅀ', 'ㅁ', 'ㅂ', 'ㅄ', 'ㅅ', 'ㅆ', 'ㅇ',
-        'ㅈ', 'ㅊ', 'ㅋ', 'ㅌ', 'ㅍ', 'ㅎ'
+        '',
+        'ㄱ',
+        'ㄲ',
+        'ㄳ',
+        'ㄴ',
+        'ㄵ',
+        'ㄶ',
+        'ㄷ',
+        'ㄹ',
+        'ㄺ',
+        'ㄻ',
+        'ㄼ',
+        'ㄽ',
+        'ㄾ',
+        'ㄿ',
+        'ㅀ',
+        'ㅁ',
+        'ㅂ',
+        'ㅄ',
+        'ㅅ',
+        'ㅆ',
+        'ㅇ',
+        'ㅈ',
+        'ㅊ',
+        'ㅋ',
+        'ㅌ',
+        'ㅍ',
+        'ㅎ',
     ];
 
     const result = [];
@@ -114,7 +173,7 @@ function decomposeKorean(text: string): Array<{character: string; jama?: string[
             if (final[finalIndex]) {
                 jama.push(final[finalIndex]);
             }
-            result.push({character, jama})
+            result.push({character, jama});
         } else {
             // This is some other character, so just add it separately
             result.push({character});
