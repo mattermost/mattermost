@@ -105,14 +105,14 @@ export const useBookmarkLink = (
 interface BookmarkItemContentProps {
     bookmark: ChannelBookmark;
     disableInteractions: boolean;
-    onMoveBefore?: () => void;
-    onMoveAfter?: () => void;
-    moveBeforeLabel?: string;
-    moveAfterLabel?: string;
-    moveDirection?: 'horizontal' | 'vertical';
+    keyboardReorderProps?: {
+        tabIndex: number;
+        'aria-roledescription': string;
+        onKeyDown: (e: React.KeyboardEvent) => void;
+    };
 }
 
-const BookmarkItemContent = ({bookmark, disableInteractions, onMoveBefore, onMoveAfter, moveBeforeLabel, moveAfterLabel, moveDirection}: BookmarkItemContentProps) => {
+const BookmarkItemContent = ({bookmark, disableInteractions, keyboardReorderProps}: BookmarkItemContentProps) => {
     const {href, onClick, linkRef, isFile, icon, displayName, open} = useBookmarkLink(bookmark, disableInteractions);
     const hasLink = bookmark.type === 'link' || bookmark.type === 'file';
 
@@ -126,6 +126,9 @@ const BookmarkItemContent = ({bookmark, disableInteractions, onMoveBefore, onMov
                     isFile={isFile}
                     draggable={false}
                     role='link'
+                    tabIndex={keyboardReorderProps?.tabIndex}
+                    aria-roledescription={keyboardReorderProps?.['aria-roledescription']}
+                    onKeyDown={keyboardReorderProps?.onKeyDown}
                 >
                     {icon}
                     <Label>{displayName}</Label>
@@ -134,11 +137,6 @@ const BookmarkItemContent = ({bookmark, disableInteractions, onMoveBefore, onMov
             <BookmarkItemDotMenu
                 bookmark={bookmark}
                 open={open}
-                onMoveBefore={onMoveBefore}
-                onMoveAfter={onMoveAfter}
-                moveBeforeLabel={moveBeforeLabel}
-                moveAfterLabel={moveAfterLabel}
-                moveDirection={moveDirection}
             />
         </Chip>
     );
@@ -152,8 +150,10 @@ const Chip = styled.div<{$disableInteractions: boolean}>`
     min-width: 0;
     overflow: hidden;
 
-    /* Bar link styles — applied to any anchor/span rendered by DynamicLink */
-    a, span[role="link"] {
+    /* Bar link styles — applied to any anchor/span rendered by DynamicLink.
+       Use &&& specificity to override browser default link colors. */
+    &&& a,
+    &&& span[role="link"] {
         display: flex;
         padding: 0 12px 0 6px;
         gap: 5px;
@@ -165,6 +165,7 @@ const Chip = styled.div<{$disableInteractions: boolean}>`
         font-style: normal;
         font-weight: 600;
         line-height: 16px;
+        text-decoration: none;
     }
 
     button {

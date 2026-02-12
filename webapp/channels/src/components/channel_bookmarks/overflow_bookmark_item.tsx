@@ -8,7 +8,6 @@ import type {Edge} from '@atlaskit/pragmatic-drag-and-drop-hitbox/closest-edge';
 import {attachClosestEdge, extractClosestEdge} from '@atlaskit/pragmatic-drag-and-drop-hitbox/closest-edge';
 import {DropIndicator} from '@atlaskit/pragmatic-drag-and-drop-react-drop-indicator/box';
 import React, {useCallback, useContext, useEffect, useRef, useState} from 'react';
-import {useIntl} from 'react-intl';
 import styled, {css} from 'styled-components';
 
 import type {ChannelBookmark} from '@mattermost/types/channel_bookmarks';
@@ -24,15 +23,11 @@ interface OverflowBookmarkItemProps {
     bookmark: ChannelBookmark;
     canReorder: boolean;
     isDragging: boolean;
-    onMoveUp?: () => void;
-    onMoveDown?: () => void;
+    keyboardReorderProps?: {tabIndex: number; 'aria-roledescription': string; onKeyDown: (e: React.KeyboardEvent) => void};
+    isKeyboardReordering?: boolean;
 }
 
-function OverflowBookmarkItem({id, bookmark, canReorder, isDragging, onMoveUp, onMoveDown}: OverflowBookmarkItemProps) {
-    const {formatMessage} = useIntl();
-    const moveUpLabel = formatMessage({id: 'channel_bookmarks.moveUp', defaultMessage: 'Move up'});
-    const moveDownLabel = formatMessage({id: 'channel_bookmarks.moveDown', defaultMessage: 'Move down'});
-
+function OverflowBookmarkItem({id, bookmark, canReorder, isDragging, isKeyboardReordering}: OverflowBookmarkItemProps) {
     const menuContext = useContext(MenuContext);
     const handleNavigate = useCallback(() => {
         menuContext.close?.();
@@ -86,6 +81,7 @@ function OverflowBookmarkItem({id, bookmark, canReorder, isDragging, onMoveUp, o
         <ItemContainer
             ref={ref}
             $isDragSelf={isDragSelf}
+            $isKeyboardReordering={isKeyboardReordering}
             data-testid={`overflow-bookmark-item-${id}`}
         >
             <OverflowLink $canReorder={canReorder}>
@@ -105,11 +101,6 @@ function OverflowBookmarkItem({id, bookmark, canReorder, isDragging, onMoveUp, o
                     bookmark={bookmark}
                     open={open}
                     buttonClassName='channelBookmarksDotMenuButton--overflow'
-                    onMoveBefore={onMoveUp}
-                    onMoveAfter={onMoveDown}
-                    moveBeforeLabel={moveUpLabel}
-                    moveAfterLabel={moveDownLabel}
-                    moveDirection='vertical'
                 />
             </TrailingElement>
             {closestEdge && (
@@ -124,7 +115,7 @@ function OverflowBookmarkItem({id, bookmark, canReorder, isDragging, onMoveUp, o
 
 export default OverflowBookmarkItem;
 
-const ItemContainer = styled.li<{$isDragSelf: boolean}>`
+const ItemContainer = styled.li<{$isDragSelf: boolean; $isKeyboardReordering?: boolean}>`
     position: relative;
     display: flex;
     align-items: center;
@@ -146,6 +137,11 @@ const ItemContainer = styled.li<{$isDragSelf: boolean}>`
 
     ${({$isDragSelf}) => $isDragSelf && css`
         opacity: 0.4;
+    `}
+
+    ${({$isKeyboardReordering}) => $isKeyboardReordering && css`
+        outline: 2px solid rgb(var(--button-bg-rgb));
+        outline-offset: -2px;
     `}
 `;
 

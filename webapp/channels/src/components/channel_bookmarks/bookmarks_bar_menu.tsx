@@ -18,6 +18,7 @@ import type {IDMappedObjects} from '@mattermost/types/utilities';
 import * as Menu from 'components/menu';
 
 import {useBookmarkAddActions} from './channel_bookmarks_menu';
+import type {KeyboardReorderItemProps} from './hooks';
 import OverflowBookmarkItem from './overflow_bookmark_item';
 
 interface BookmarksBarMenuProps {
@@ -32,8 +33,8 @@ interface BookmarksBarMenuProps {
     canAdd: boolean;
     forceOpen?: boolean;
     onOpenChange?: (open: boolean) => void;
-    order: string[];
-    onKeyboardMove?: (id: string, direction: -1 | 1) => void;
+    getItemProps?: (id: string) => KeyboardReorderItemProps;
+    reorderState?: {isReordering: boolean; itemId: string | null};
 }
 
 function BookmarksBarMenu({
@@ -48,8 +49,8 @@ function BookmarksBarMenu({
     canAdd,
     forceOpen,
     onOpenChange,
-    order,
-    onKeyboardMove,
+    getItemProps,
+    reorderState,
 }: BookmarksBarMenuProps) {
     const {formatMessage} = useIntl();
     const triggerRef = useRef<HTMLDivElement>(null);
@@ -113,24 +114,19 @@ function BookmarksBarMenu({
     const menuItems: React.ReactNode[] = [];
 
     if (hasOverflow) {
-        menuItems.push(
-            <OverflowSection key='overflow-section'>
-                {overflowItems.map((id) => {
-                    const orderIndex = order.indexOf(id);
-                    return (
-                        <OverflowBookmarkItem
-                            key={id}
-                            id={id}
-                            bookmark={bookmarks[id]}
-                            canReorder={canReorder}
-                            isDragging={isDragging}
-                            onMoveUp={onKeyboardMove && orderIndex > 0 ? () => onKeyboardMove(id, -1) : undefined}
-                            onMoveDown={onKeyboardMove && orderIndex < order.length - 1 ? () => onKeyboardMove(id, 1) : undefined}
-                        />
-                    );
-                })}
-            </OverflowSection>,
-        );
+        overflowItems.forEach((id) => {
+            menuItems.push(
+                <OverflowBookmarkItem
+                    key={id}
+                    id={id}
+                    bookmark={bookmarks[id]}
+                    canReorder={canReorder}
+                    isDragging={isDragging}
+                    keyboardReorderProps={getItemProps?.(id)}
+                    isKeyboardReordering={reorderState?.isReordering && reorderState?.itemId === id}
+                />,
+            );
+        });
         if (canAdd) {
             menuItems.push(
                 <Menu.Separator
@@ -218,12 +214,3 @@ const OverflowCount = styled.span`
     min-width: 1em;
 `;
 
-const OverflowSection = styled.ul`
-    display: flex;
-    flex-direction: column;
-    padding: 0;
-    max-height: 300px;
-    overflow-y: auto;
-    list-style: none;
-    margin: 0;
-`;

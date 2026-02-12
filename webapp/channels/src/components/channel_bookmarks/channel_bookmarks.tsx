@@ -1,9 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {announce} from '@atlaskit/pragmatic-drag-and-drop-live-region';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
-import {useIntl} from 'react-intl';
 import styled from 'styled-components';
 
 import type {ChannelBookmark} from '@mattermost/types/channel_bookmarks';
@@ -11,7 +9,7 @@ import type {ChannelBookmark} from '@mattermost/types/channel_bookmarks';
 import BookmarksBarItem from './bookmarks_bar_item';
 import BookmarksBarMenu from './bookmarks_bar_menu';
 import BookmarkMeasureItem from './bookmarks_measure_item';
-import {useBookmarksDnd} from './hooks';
+import {useBookmarksDnd, useKeyboardReorder} from './hooks';
 import {useChannelBookmarks, MAX_BOOKMARKS_PER_CHANNEL, useCanUploadFiles, useChannelBookmarkPermission} from './utils';
 
 import './channel_bookmarks.scss';
@@ -27,7 +25,6 @@ type Props = {
 };
 
 function ChannelBookmarks({channelId}: Props) {
-    const {formatMessage} = useIntl();
     const {order, bookmarks, reorder} = useChannelBookmarks(channelId);
     const canReorder = Boolean(useChannelBookmarkPermission(channelId, 'order'));
     const canAdd = Boolean(useChannelBookmarkPermission(channelId, 'add'));
@@ -82,8 +79,10 @@ function ChannelBookmarks({channelId}: Props) {
         setOverflowStartIndex(newOverflowIndex);
     }, [order]);
 
+    const isKeyboardReorderingRef = useRef(false);
+
     const debouncedCalculateOverflow = useCallback(() => {
-        if (isDraggingRef.current) {
+        if (isDraggingRef.current || isKeyboardReorderingRef.current) {
             pendingRecalcRef.current = true;
             return;
         }
@@ -169,25 +168,25 @@ function ChannelBookmarks({channelId}: Props) {
         // Normal menu toggle — no interaction with drag overlay
     }, []);
 
-    // Keyboard movement handler — moves a bookmark by one position
-    const handleKeyboardMove = useCallback((id: string, direction: -1 | 1) => {
-        const currentIndex = order.indexOf(id);
-        if (currentIndex === -1) {
-            return;
+    // --- Keyboard reorder ---
+    const {reorderState, getItemProps} = useKeyboardReorder({
+        order,
+        visibleItems,
+        overflowItems,
+        onReorder: reorder,
+        getName: useCallback((id: string) => bookmarks[id]?.display_name ?? '', [bookmarks]),
+        onOverflowOpenChange: setAutoOpenOverflow,
+        canReorder,
+    });
+
+    // Pause overflow recalculation during keyboard reorder
+    useEffect(() => {
+        isKeyboardReorderingRef.current = reorderState.isReordering;
+        if (!reorderState.isReordering && pendingRecalcRef.current) {
+            pendingRecalcRef.current = false;
+            calculateOverflow();
         }
-        const newIndex = currentIndex + direction;
-        if (newIndex < 0 || newIndex >= order.length) {
-            return;
-        }
-        const bookmarkName = bookmarks[id]?.display_name ?? '';
-        reorder(id, currentIndex, newIndex);
-        announce(
-            formatMessage(
-                {id: 'channel_bookmarks.moved', defaultMessage: '{name} moved to position {position} of {total}'},
-                {name: bookmarkName, position: newIndex + 1, total: order.length},
-            ),
-        );
-    }, [order, bookmarks, reorder, formatMessage]);
+    }, [reorderState.isReordering, calculateOverflow]);
 
     // --- Render ---
     if (!hasBookmarks) {
@@ -223,7 +222,6 @@ function ChannelBookmarks({channelId}: Props) {
                     if (!bookmark) {
                         return null;
                     }
-                    const orderIndex = order.indexOf(id);
                     return (
                         <BookmarksBarItem
                             key={id}
@@ -231,8 +229,8 @@ function ChannelBookmarks({channelId}: Props) {
                             bookmark={bookmark}
                             disabled={!canReorder}
                             isDraggingGlobal={isDragging}
-                            onMoveLeft={canReorder && orderIndex > 0 ? () => handleKeyboardMove(id, -1) : undefined}
-                            onMoveRight={canReorder && orderIndex < order.length - 1 ? () => handleKeyboardMove(id, 1) : undefined}
+                            keyboardReorderProps={canReorder ? getItemProps(id) : undefined}
+                            isKeyboardReordering={reorderState.isReordering && reorderState.itemId === id}
                         />
                     );
                 })}
@@ -250,8 +248,8 @@ function ChannelBookmarks({channelId}: Props) {
                 isDragging={isDragging}
                 forceOpen={showDragOverlay || undefined}
                 onOpenChange={handleOverflowOpenChange}
-                order={order}
-                onKeyboardMove={canReorder ? handleKeyboardMove : undefined}
+                getItemProps={canReorder ? getItemProps : undefined}
+                reorderState={reorderState}
             />
         </Container>
     );
@@ -277,4 +275,5 @@ const BookmarksBarContent = styled.div<{$hasOverflow: boolean}>`
     min-width: 0;
     overflow: hidden;
     position: relative;
+    padding-left: 2px;
 `;

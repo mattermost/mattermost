@@ -2,3 +2,5 @@
 // See LICENSE.txt for license information.
 
 export {useBookmarksDnd} from './use_bookmarks_dnd';
+export {useKeyboardReorder} from './use_keyboard_reorder';
+export type {KeyboardReorderItemProps} from './use_keyboard_reorder';
