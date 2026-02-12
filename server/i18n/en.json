@@ -5547,10 +5547,6 @@
     "translation": "Cannot fetch flagged post as the post is not flagged."
   },
   {
-    "id": "app.content_flagging.permanently_delete.app_error",
-    "translation": "Failed to overwrite post with scrubbed post when permanently deleting flagged post."
-  },
-  {
     "id": "app.content_flagging.permanently_delete.marshal_comment.app_error",
     "translation": "Failed to marshal reviewer comment"
   },
