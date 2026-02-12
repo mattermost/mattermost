@@ -1,26 +1,34 @@
 .quick-join-item {
-    opacity: 0.6;
-
     .sidebar-item--quick-join {
-        display: flex;
-        align-items: center;
+        display: flex !important;
+        align-items: center !important;
         width: 100%;
         padding: 6px 16px;
+        padding-right: 8px !important; // Reserve space for buttons
         background: none;
         border: none;
         color: inherit;
         cursor: default;
         text-align: left;
         font-size: 14px;
+        opacity: 0.7;
+        flex-wrap: nowrap !important;
 
-        .icon {
+        &:hover {
+            opacity: 1;
+        }
+
+        .icon,
+        .sidebar-channel-icon {
             margin-right: 8px;
             font-size: 18px;
             opacity: 0.7;
+            flex-shrink: 0;
         }
 
         .SidebarChannelLinkLabel {
-            flex: 1;
+            flex: 1 1 auto;
+            min-width: 0; // Allow text to shrink
             overflow: hidden;
             text-overflow: ellipsis;
             white-space: nowrap;
@@ -28,41 +36,63 @@
     }
 
     .quick-join-actions {
-        display: flex;
-        gap: 2px;
+        display: flex !important;
+        align-items: center;
+        gap: 4px;
+        flex-shrink: 0; // Never shrink buttons
         margin-left: auto;
+        padding-left: 4px;
     }
 
     .quick-join-btn {
-        display: flex;
+        display: flex !important;
         align-items: center;
         justify-content: center;
-        width: 24px;
-        height: 24px;
+        width: 22px;
+        height: 22px;
+        min-width: 22px; // Prevent shrinking
+        max-width: 22px;
         padding: 0;
-        background: none;
         border: none;
         border-radius: 4px;
-        color: inherit;
         cursor: pointer;
-        opacity: 0.7;
-
-        &:hover {
-            opacity: 1;
-            background: rgba(var(--sidebar-text-rgb), 0.1);
-        }
+        flex-shrink: 0;
+        transition: background-color 0.1s, filter 0.1s;
 
         .icon {
             margin: 0;
             font-size: 14px;
         }
+
+        &.join-btn {
+            background-color: var(--button-bg);
+            color: var(--button-color);
+
+            &:hover:not(:disabled) {
+                filter: brightness(0.9);
+            }
+        }
+
+        &.dismiss-btn {
+            background-color: rgba(var(--sidebar-text-rgb), 0.12);
+            color: rgba(var(--sidebar-text-rgb), 0.72);
+
+            &:hover:not(:disabled) {
+                background-color: rgba(var(--sidebar-text-rgb), 0.2);
+            }
+        }
+
+        &.loading,
+        &:disabled {
+            opacity: 0.5;
+            pointer-events: none;
+        }
     }
 
-    .join-btn:hover {
-        color: var(--button-bg);
-    }
-
-    .dismiss-btn:hover {
-        color: var(--error-text);
+    // Hide Mattermost's built-in hover menus
+    .SidebarMenu,
+    .SidebarMenu__menuButton,
+    [class*="SidebarMenu"] {
+        display: none !important;
     }
 }

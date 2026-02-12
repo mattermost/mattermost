@@ -9,7 +9,7 @@ import {FormattedMessage, defineMessages} from 'react-intl';
 
 import type {ChannelCategory} from '@mattermost/types/channel_categories';
 import {CategorySorting} from '@mattermost/types/channel_categories';
-import type {ChannelSyncUserState} from '@mattermost/types/channel_sync';
+import type {ChannelSyncUserState, ChannelSyncLayout} from '@mattermost/types/channel_sync';
 import type {PreferenceType} from '@mattermost/types/preferences';
 
 import {CategoryTypes} from 'mattermost-redux/constants/channel_categories';
@@ -46,6 +46,7 @@ type Props = {
     isAdmin: boolean;
     isSynced: boolean;
     syncState?: ChannelSyncUserState;
+    syncLayout?: ChannelSyncLayout;
     actions: {
         setCategoryCollapsed: (categoryId: string, collapsed: boolean) => void;
         setCategorySorting: (categoryId: string, sorting: CategorySorting) => void;
@@ -131,26 +132,67 @@ export default class SidebarCategory extends React.PureComponent<Props, State> {
         );
     };
 
-    renderQuickJoinItems = () => {
-        const {isSynced, syncState, category} = this.props;
-        if (!isSynced || !syncState || category.collapsed) {
-            return null;
+    renderChannelsWithQuickJoin = () => {
+        const {channelIds, category, isSynced, syncState, syncLayout} = this.props;
+
+        // If not synced or collapsed, just render regular channels
+        if (!isSynced || category.collapsed) {
+            return channelIds.map(this.renderChannel);
         }
 
-        const syncCategory = syncState.categories.find(
+        // Find the sync category to get quick join items
+        const syncCategory = syncState?.categories.find(
             (cat) => cat.id === category.id || cat.display_name === category.display_name,
         );
 
         if (!syncCategory?.quick_join?.length) {
-            return null;
+            // No quick join items, just render regular channels
+            return channelIds.map(this.renderChannel);
         }
 
-        return syncCategory.quick_join.map((channelId) => (
-            <SidebarQuickJoinChannel
-                key={`quick-join-${channelId}`}
-                channelId={channelId}
-            />
-        ));
+        // Get canonical order from layout
+        const layoutCategory = syncLayout?.categories.find(
+            (cat) => cat.display_name === category.display_name,
+        );
+
+        if (!layoutCategory) {
+            // Fallback: render joined then quick join
+            const renderedChannels = channelIds.map(this.renderChannel);
+            const quickJoinItems = syncCategory.quick_join.map((channelId) => (
+                <SidebarQuickJoinChannel
+                    key={`quick-join-${channelId}`}
+                    channelId={channelId}
+                />
+            ));
+            return [...renderedChannels, ...quickJoinItems];
+        }
+
+        // Build lookup sets for quick access
+        const joinedSet = new Set(channelIds);
+        const quickJoinSet = new Set(syncCategory.quick_join);
+
+        // Render channels in canonical order, interleaving joined and quick join
+        const mergedItems: JSX.Element[] = [];
+        let channelIndex = 0;
+
+        for (const canonicalChannelId of layoutCategory.channel_ids) {
+            if (joinedSet.has(canonicalChannelId)) {
+                // This is a joined channel - render as normal
+                mergedItems.push(this.renderChannel(canonicalChannelId, channelIndex));
+                channelIndex++;
+            } else if (quickJoinSet.has(canonicalChannelId)) {
+                // This is an unjoined channel - render as quick join
+                mergedItems.push(
+                    <SidebarQuickJoinChannel
+                        key={`quick-join-${canonicalChannelId}`}
+                        channelId={canonicalChannelId}
+                    />,
+                );
+            }
+            // else: channel is neither joined nor in quick join (dismissed or user doesn't have access)
+        }
+
+        return mergedItems;
     };
 
     handleCollapse = () => {
@@ -266,7 +308,7 @@ export default class SidebarCategory extends React.PureComponent<Props, State> {
             return null;
         }
 
-        const renderedChannels = channelIds.map(this.renderChannel);
+        const renderedChannels = this.renderChannelsWithQuickJoin();
 
         let categoryMenu: JSX.Element;
         let newLabel: JSX.Element;
@@ -400,7 +442,6 @@ export default class SidebarCategory extends React.PureComponent<Props, State> {
                                                 >
                                                     {this.renderNewDropBox(droppableSnapshot.isDraggingOver)}
                                                     {renderedChannels}
-                                                    {this.renderQuickJoinItems()}
                                                     {this.showPlaceholder() ? droppableProvided.placeholder : null}
                                                 </ul>
                                             </div>
