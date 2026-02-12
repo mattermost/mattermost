@@ -115,19 +115,11 @@ export const QuickInput = React.memo(({
     }, []);
 
     useEffect(() => {
-        const updateInputFromProps = () => {
-            if (!inputRef.current || inputRef.current.value === value) {
-                return;
-            }
+        if (!inputRef.current || inputRef.current.value === value) {
+            return;
+        }
 
-            inputRef.current.value = value;
-        };
-
-        updateInputFromProps();
-
-        /* eslint-disable-next-line react-hooks/exhaustive-deps --
-         * This 'useEffect' should run only when 'value' prop changes.
-         **/
+        inputRef.current.value = value;
     }, [value]);
 
     const setInputRef = useCallback((input: HTMLInputElement) => {
