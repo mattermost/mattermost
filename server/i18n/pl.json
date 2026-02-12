@@ -11746,5 +11746,45 @@
   {
     "id": "api.channel.update_channel_member_autotranslation.feature_not_available.app_error",
     "translation": "Automatyczne tłumaczenie nie jest dostępne."
+  },
+  {
+    "id": "api.context.session_cookie_not_allowed.app_error",
+    "translation": "Uwierzytelnianie oparte na plikach cookie nie jest dozwolone dla tego punktu końcowego. Użyj uwierzytelniania opartego na Nagłówkach."
+  },
+  {
+    "id": "api.user.oauth_to_email.not_oauth_user.app_error",
+    "translation": "Nie można przełączyć na uwierzytelnianie e-mail, ponieważ użytkownik nie korzysta z uwierzytelniania OAuth lub SAML."
+  },
+  {
+    "id": "ent.autotranslation.invalid_input",
+    "translation": "Podano nieprawidłowy kod języka."
+  },
+  {
+    "id": "ent.autotranslation.mask_verification_failed",
+    "translation": "Nie udało się zaktualizować tłumaczenia o nowe wartości maski."
+  },
+  {
+    "id": "ent.autotranslation.no_translatable_content",
+    "translation": "Treść nie zawiera tekstu, który można przetłumaczyć."
+  },
+  {
+    "id": "ent.autotranslation.provider_not_available",
+    "translation": "Dostawca tłumaczeń nie jest dostępny."
+  },
+  {
+    "id": "ent.autotranslation.provider_not_initialized",
+    "translation": "Dostawca tłumaczeń nie został zainicjowany."
+  },
+  {
+    "id": "ent.autotranslation.store_error",
+    "translation": "Nie można przetworzyć żądania automatycznego tłumaczenia."
+  },
+  {
+    "id": "ent.autotranslation.unmask.missing_mask",
+    "translation": "Tłumaczenie zawiera nierozpoznane tokeny."
+  },
+  {
+    "id": "ent.autotranslation.unmask.orphan_token",
+    "translation": "Tłumaczenie zawiera nieprawidłowe tokeny."
   }
 ]
