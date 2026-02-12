@@ -115,6 +115,30 @@ $app-bar-width: 44px;
                 display: grid;
                 place-items: center;
             }
+
+            // Theme-aware styling for RHS panel icons (higher specificity to override span:not(.pulsating_dot))
+            span.app-bar__icon-inner--rhs-panel {
+                background-color: rgba(var(--sidebar-text-rgb), 0.16);
+                color: rgba(var(--sidebar-text-rgb), 0.80);
+                fill: rgba(var(--sidebar-text-rgb), 0.80);
+
+                &:hover {
+                    background-color: rgba(var(--sidebar-text-rgb), 0.24);
+                    color: rgba(var(--sidebar-text-rgb), 0.90);
+                    fill: rgba(var(--sidebar-text-rgb), 0.90);
+                }
+            }
+
+            .app-bar__icon-inner--close-mode {
+                background-color: rgba(var(--error-text-rgb), 0.12);
+                color: var(--error-text);
+
+                &:hover {
+                    background-color: rgba(var(--error-text-rgb), 0.24);
+                    box-shadow: 0 0 0 2px rgba(var(--error-text-rgb), 0.24) !important;
+                }
+            }
+
         }
 
         .app-bar__divider {

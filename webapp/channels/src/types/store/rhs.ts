@@ -10,6 +10,8 @@ import type {SidebarSize} from 'components/resizable_sidebar/constants';
 
 import type {RHSStates} from 'utils/constants';
 
+import type {RhsPanelsState} from './rhs_panel';
+
 export type SearchType = '' | 'files' | 'messages';
 
 export type FakePost = {
@@ -45,6 +47,9 @@ export type RhsViewState = {
     editChannelMembers: boolean;
     size: SidebarSize;
     shouldFocusRHS: boolean;
+
+    // Open RHS Panels feature - multi-panel state
+    openPanels: RhsPanelsState;
 };
 
 export type RhsState = typeof RHSStates[keyof typeof RHSStates] | null;

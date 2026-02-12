@@ -1,0 +1,75 @@
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
+
+.thread-panel-tooltip {
+    display: flex;
+    max-width: 240px;
+    flex-direction: column;
+    padding: 4px 0;
+    gap: 6px;
+
+    &--loading {
+        font-size: 12px;
+        font-style: italic;
+        opacity: 0.7;
+    }
+
+    &__header {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    &__author {
+        overflow: hidden;
+        color: inherit;
+        font-size: 12px;
+        font-weight: 600;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    &__replies {
+        font-size: 11px;
+        opacity: 0.7;
+        white-space: nowrap;
+    }
+
+    &__avatars {
+        display: flex;
+        align-items: center;
+        gap: 2px;
+
+        .Avatar {
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+    }
+
+    &__more {
+        margin-left: 4px;
+        font-size: 10px;
+        opacity: 0.7;
+    }
+
+    &__preview {
+        display: -webkit-box;
+        overflow: hidden;
+        -webkit-box-orient: vertical;
+        font-size: 12px;
+        -webkit-line-clamp: 2;
+        line-height: 1.4;
+        opacity: 0.85;
+        word-break: break-word;
+
+        // Reset markdown styles for tooltip
+        p {
+            margin: 0;
+        }
+
+        code {
+            padding: 0 2px;
+            border-radius: 2px;
+            background: rgba(255, 255, 255, 0.1);
+        }
+    }
+}
