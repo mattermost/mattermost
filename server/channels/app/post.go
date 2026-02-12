@@ -423,12 +423,19 @@ func (a *App) CreatePost(rctx request.CTX, post *model.Post, channel *model.Chan
 			_, translateErr := a.AutoTranslation().Translate(rctx.Context(), model.TranslationObjectTypePost, rpost.Id, rpost.ChannelId, rpost.UserId, rpost)
 			if translateErr != nil {
 				var notAvailErr *model.ErrAutoTranslationNotAvailable
-				if errors.As(translateErr, &notAvailErr) {
+				var systemPostErr *model.ErrAutoTranslationSystemPost
+				var userNotEnabledErr *model.ErrAutoTranslationUserNotEnabled
+				switch {
+				case errors.As(translateErr, &notAvailErr):
 					// Feature not available - log at debug level and continue
 					rctx.Logger().Debug("Auto-translation feature not available", mlog.String("post_id", rpost.Id), mlog.Err(translateErr))
-				} else if translateErr.Id == "ent.autotranslation.no_translatable_content" {
+				case errors.As(translateErr, &systemPostErr):
+					// System post - not translatable, expected
+				case errors.As(translateErr, &userNotEnabledErr):
+					// User not opted in - translations still initialized for other users
+				case translateErr.Id == "ent.autotranslation.no_translatable_content":
 					// No translatable content (only URLs/mentions) - this is expected, don't log
-				} else {
+				default:
 					// Unexpected error - log at warn level but don't fail post creation
 					rctx.Logger().Warn("Failed to translate post", mlog.String("post_id", rpost.Id), mlog.Err(translateErr))
 				}
@@ -915,12 +922,19 @@ func (a *App) UpdatePost(rctx request.CTX, receivedUpdatedPost *model.Post, upda
 			_, translateErr := a.AutoTranslation().Translate(rctx.Context(), model.TranslationObjectTypePost, rpost.Id, rpost.ChannelId, rpost.UserId, rpost)
 			if translateErr != nil {
 				var notAvailErr *model.ErrAutoTranslationNotAvailable
-				if errors.As(translateErr, &notAvailErr) {
+				var systemPostErr *model.ErrAutoTranslationSystemPost
+				var userNotEnabledErr *model.ErrAutoTranslationUserNotEnabled
+				switch {
+				case errors.As(translateErr, &notAvailErr):
 					// Feature not available - log at debug level and continue
 					rctx.Logger().Debug("Auto-translation feature not available for edited post", mlog.String("post_id", rpost.Id), mlog.Err(translateErr))
-				} else if translateErr.Id == "ent.autotranslation.no_translatable_content" {
+				case errors.As(translateErr, &systemPostErr):
+					// System post - not translatable, expected
+				case errors.As(translateErr, &userNotEnabledErr):
+					// User not opted in - translations still initialized for other users
+				case translateErr.Id == "ent.autotranslation.no_translatable_content":
 					// No translatable content (only URLs/mentions) - this is expected, don't log
-				} else {
+				default:
 					// Unexpected error - log at warn level but don't fail post update
 					rctx.Logger().Warn("Failed to translate edited post", mlog.String("post_id", rpost.Id), mlog.Err(translateErr))
 				}
