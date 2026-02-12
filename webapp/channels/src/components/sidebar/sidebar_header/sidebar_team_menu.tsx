@@ -16,6 +16,7 @@ import {
     MessagePlusOutlineIcon,
     PlusIcon,
     MonitorAccountIcon,
+    SortAscendingIcon,
 } from '@mattermost/compass-icons/components';
 import type {Team} from '@mattermost/types/teams';
 
@@ -25,7 +26,10 @@ import {getConfig, getLicense} from 'mattermost-redux/selectors/entities/general
 import {haveICurrentTeamPermission} from 'mattermost-redux/selectors/entities/roles';
 import {haveISystemPermission} from 'mattermost-redux/selectors/entities/roles_helpers';
 import {getJoinableTeamIds} from 'mattermost-redux/selectors/entities/teams';
+import {isCurrentUserSystemAdmin} from 'mattermost-redux/selectors/entities/users';
+import {isCurrentUserCurrentTeamAdmin} from 'mattermost-redux/selectors/entities/teams';
 
+import {enterLayoutEditMode} from 'actions/views/channel_sync';
 import {openModal} from 'actions/views/modals';
 import {getMainMenuPluginComponents} from 'selectors/plugins';
 
@@ -52,6 +56,8 @@ interface Props {
 export default function SidebarTeamMenu(props: Props) {
     const license = useSelector(getLicense);
     const config = useSelector(getConfig);
+    const isAdmin = useSelector(isCurrentUserSystemAdmin) || useSelector(isCurrentUserCurrentTeamAdmin);
+    const isChannelSyncEnabled = config?.FeatureFlagChannelSync === 'true';
 
     const havePermissionToCreateTeam = useSelector((state: GlobalState) => haveISystemPermission(state, {permission: Permissions.CREATE_TEAM}));
     const havePermissionToManageTeam = useSelector((state: GlobalState) => haveICurrentTeamPermission(state, Permissions.MANAGE_TEAM));
@@ -97,6 +103,9 @@ export default function SidebarTeamMenu(props: Props) {
                 <TeamSettingsMenuItem/>
             )}
             <ManageViewMembersMenuItem/>
+            {isAdmin && isChannelSyncEnabled && (
+                <ResortChannelsMenuItem teamId={props.currentTeam.id}/>
+            )}
             {(isTeamGroupConstrained && isLicensedForLDAPGroups && havePermissionToManageTeam) && (
                 <ManageGroupsMenuItem
                     teamID={props.currentTeam.id}
@@ -453,6 +462,32 @@ function RestrictedIndicatorForCreateTeam({isFreeTrial}: {isFreeTrial: boolean})
                 id: 'navbar_dropdown.create.modal.messageEndUser',
                 defaultMessage: "Multiple teams allow for context-specific spaces that are more attuned to your teams' needs.",
             })}
+        />
+    );
+}
+
+function ResortChannelsMenuItem({teamId}: {teamId: string}) {
+    const dispatch = useDispatch();
+
+    const handleClick = useCallback(() => {
+        dispatch(enterLayoutEditMode(teamId));
+    }, [dispatch, teamId]);
+
+    return (
+        <Menu.Item
+            leadingElement={(
+                <SortAscendingIcon
+                    size={18}
+                    aria-hidden='true'
+                />
+            )}
+            onClick={handleClick}
+            labels={(
+                <FormattedMessage
+                    id='sidebarLeft.teamMenu.resortChannelsMenuItem.primaryLabel'
+                    defaultMessage='Resort channels'
+                />
+            )}
         />
     );
 }

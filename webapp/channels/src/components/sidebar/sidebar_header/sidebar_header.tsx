@@ -4,11 +4,6 @@
 import React from 'react';
 import {useSelector} from 'react-redux';
 
-import {
-    PencilOutlineIcon,
-    CheckIcon,
-} from '@mattermost/compass-icons/components';
-
 import {getCurrentTeam} from 'mattermost-redux/selectors/entities/teams';
 
 import SidebarBrowseOrAddChannelMenu from './sidebar_browse_or_add_channel_menu';
@@ -27,11 +22,8 @@ export type Props = {
     handleOpenDirectMessagesModal: () => void;
     unreadFilterEnabled: boolean;
     canCreateCustomGroups: boolean;
-    isAdmin: boolean;
-    isChannelSyncEnabled: boolean;
     isSynced: boolean;
     isEditMode: boolean;
-    onEditLayoutToggle: () => void;
 }
 
 const SidebarHeader = (props: Props) => {
@@ -44,17 +36,6 @@ const SidebarHeader = (props: Props) => {
     return (
         <div className='sidebarHeaderContainer'>
             <SidebarTeamMenu currentTeam={currentTeam}/>
-            {props.isAdmin && props.isChannelSyncEnabled && (
-                <button
-                    id='editTeamLayoutButton'
-                    className={`btn btn-icon btn-sm btn-inverted btn-round ${props.isEditMode ? 'btn-primary' : 'btn-tertiary'}`}
-                    aria-label={props.isEditMode ? 'Exit Layout Edit Mode' : 'Edit Team Layout'}
-                    title={props.isEditMode ? 'Exit Layout Edit Mode' : 'Edit Team Layout'}
-                    onClick={props.onEditLayoutToggle}
-                >
-                    {props.isEditMode ? <CheckIcon size={18}/> : <PencilOutlineIcon size={18}/>}
-                </button>
-            )}
             {!props.isEditMode && (props.canCreateChannel || props.canJoinPublicChannel) && (
                 <SidebarBrowseOrAddChannelMenu
                     canCreateChannel={props.canCreateChannel}

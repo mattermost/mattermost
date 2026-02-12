@@ -42,12 +42,10 @@ type Props = {
     isOpen: boolean;
     isChannelSyncEnabled: boolean;
     isSynced: boolean;
-    isAdmin: boolean;
     isEditMode: boolean;
     actions: {
         fetchMyCategories: (teamId: string) => void;
         fetchChannelSyncState: (teamId: string) => void;
-        enterLayoutEditMode: (teamId: string) => void;
         setLayoutEditMode: (enabled: boolean) => void;
         getThreadsForCurrentTeam: (options: {unread: boolean}) => void;
         openModal: <P>(modalData: ModalData<P>) => void;
@@ -296,17 +294,8 @@ export default class Sidebar extends React.PureComponent<Props, State> {
                         handleOpenDirectMessagesModal={this.handleOpenMoreDirectChannelsModal}
                         unreadFilterEnabled={this.props.unreadFilterEnabled}
                         canCreateCustomGroups={this.props.canCreateCustomGroups}
-                        isAdmin={this.props.isAdmin}
-                        isChannelSyncEnabled={this.props.isChannelSyncEnabled}
                         isSynced={this.props.isSynced}
                         isEditMode={this.props.isEditMode}
-                        onEditLayoutToggle={() => {
-                            if (this.props.isEditMode) {
-                                this.props.actions.setLayoutEditMode(false);
-                            } else {
-                                this.props.actions.enterLayoutEditMode(this.props.teamId);
-                            }
-                        }}
                     />
                 )}
                 {!this.props.isEditMode && (
