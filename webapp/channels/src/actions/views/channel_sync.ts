@@ -4,9 +4,12 @@
 import {Client4} from 'mattermost-redux/client';
 import {fetchMyCategories} from 'mattermost-redux/actions/channel_categories';
 import {getChannel as fetchChannel} from 'mattermost-redux/actions/channels';
+import {CategoryTypes} from 'mattermost-redux/constants/channel_categories';
 import {getChannel} from 'mattermost-redux/selectors/entities/channels';
 import {getCurrentTeamId} from 'mattermost-redux/selectors/entities/teams';
 import {generateId} from 'mattermost-redux/utils/helpers';
+
+import {getCategoriesForCurrentTeam} from 'selectors/views/channel_sidebar';
 
 import {ActionTypes} from 'utils/constants';
 
@@ -269,6 +272,49 @@ export function removeCategoryFromCanonicalLayout(categoryId: string): ActionFun
             const targetCat = newLayout.categories.find((c) => c.display_name === 'Channels') || newLayout.categories[0];
             targetCat.channel_ids.push(...orphanedChannels);
         }
+
+        dispatch({
+            type: ActionTypes.CHANNEL_SYNC_RECEIVED_LAYOUT,
+            data: newLayout,
+        });
+
+        dispatch(saveChannelSyncLayout(teamId, newLayout));
+        return {data: true};
+    };
+}
+
+export function importPersonalLayoutToCanonical(): ActionFunc {
+    return (dispatch, getState) => {
+        const state = getState();
+        const teamId = getCurrentTeamId(state);
+        const personalCategories = getCategoriesForCurrentTeam(state);
+        const editorChannels = state.views.channelSync?.editorChannelsByTeam?.[teamId] ?? [];
+        const editorChannelIds = new Set(editorChannels.map((ch: {id: string}) => ch.id));
+
+        const categories = personalCategories
+            .filter((cat) => {
+                // Exclude DM and empty Favorites
+                if (cat.type === CategoryTypes.DIRECT_MESSAGES) {
+                    return false;
+                }
+                if (cat.type === CategoryTypes.FAVORITES && (!cat.channel_ids || cat.channel_ids.length === 0)) {
+                    return false;
+                }
+                return true;
+            })
+            .map((cat, index) => ({
+                id: generateId(),
+                display_name: cat.display_name,
+                sort_order: index * 10,
+                channel_ids: (cat.channel_ids || []).filter((chId: string) => editorChannelIds.has(chId)),
+            }));
+
+        const newLayout: ChannelSyncLayout = {
+            team_id: teamId,
+            categories,
+            update_at: 0,
+            update_by: '',
+        };
 
         dispatch({
             type: ActionTypes.CHANNEL_SYNC_RECEIVED_LAYOUT,

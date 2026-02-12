@@ -117,10 +117,37 @@
 }
 
 .sidebar-edit-hint {
-    padding: 8px 16px;
+    padding: 12px 16px;
     color: rgba(var(--sidebar-text-rgb), 0.56);
     font-size: 12px;
-    font-style: italic;
+    text-align: center;
+
+    p {
+        margin: 0 0 12px;
+        font-style: italic;
+    }
+}
+
+.sidebar-edit-import-button {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 16px;
+    background: rgba(var(--button-bg-rgb), 0.15);
+    border: 1px solid rgba(var(--button-bg-rgb), 0.3);
+    border-radius: 4px;
+    color: var(--button-bg);
+    cursor: pointer;
+    font-size: 13px;
+    font-weight: 600;
+
+    .icon {
+        font-size: 16px;
+    }
+
+    &:hover {
+        background: rgba(var(--button-bg-rgb), 0.25);
+    }
 }
 
 .sidebar-edit-add-category {

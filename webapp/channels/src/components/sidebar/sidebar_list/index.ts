@@ -27,7 +27,7 @@ import {
     getCategoriesForCurrentTeam,
     isUnreadFilterEnabled,
 } from 'selectors/views/channel_sidebar';
-import {moveChannelInCanonicalLayout, moveCategoryInCanonicalLayout, addCategoryToCanonicalLayout} from 'actions/views/channel_sync';
+import {moveChannelInCanonicalLayout, moveCategoryInCanonicalLayout, addCategoryToCanonicalLayout, importPersonalLayoutToCanonical} from 'actions/views/channel_sync';
 import {getShouldSync, isLayoutEditMode, getSyncLayout, getEditorChannels, getSyncedCategories} from 'selectors/views/channel_sync';
 import {isGuildedLayoutEnabled} from 'selectors/views/guilded_layout';
 
@@ -99,6 +99,7 @@ function mapDispatchToProps(dispatch: Dispatch) {
             moveChannelInCanonicalLayout,
             moveCategoryInCanonicalLayout,
             addCategoryToCanonicalLayout,
+            importPersonalLayoutToCanonical,
         }, dispatch),
     };
 }
