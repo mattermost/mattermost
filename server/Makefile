@@ -471,7 +471,7 @@ test-server: export GOTESTSUM_FORMAT := $(GOTESTSUM_FORMAT)
 test-server: export GOTESTSUM_JUNITFILE := $(GOTESTSUM_JUNITFILE)
 test-server: export GOTESTSUM_JSONFILE := $(GOTESTSUM_JSONFILE)
 test-server: test-server-pre
-	$(GOBIN)/gotestsum --rerun-fails=3   --jsonfile tmp.json.log --post-run-command "bash -c 'echo; echo Slowest tests; gotestsum tool slowest --num 10 --jsonfile tmp.json.log'" --packages="$(TE_PACKAGES) $(EE_PACKAGES)" -- $(GOFLAGS) -parallel=20 -timeout=90m $(COVERAGE_FLAG)
+	$(GOBIN)/gotestsum --rerun-fails=3 --jsonfile tmp.json.log --post-run-command "bash -c 'echo; echo Slowest tests; $(GOBIN)/gotestsum tool slowest --num 10 --jsonfile tmp.json.log'" --packages="$(TE_PACKAGES) $(EE_PACKAGES)" -- $(GOFLAGS) -parallel=8 -timeout=90m $(COVERAGE_FLAG)
 ifneq ($(IS_CI),true)
   ifneq ($(MM_NO_DOCKER),true)
     ifneq ($(TEMP_DOCKER_SERVICES),)
