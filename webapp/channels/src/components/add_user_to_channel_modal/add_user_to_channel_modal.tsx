@@ -270,7 +270,6 @@ export default class AddUserToChannelModal extends React.PureComponent<Props, St
                 providers={this.suggestionProviders}
                 listPosition='bottom'
                 completeOnTab={false}
-                delayInputUpdate={true}
                 openWhenEmpty={false}
             />
         );

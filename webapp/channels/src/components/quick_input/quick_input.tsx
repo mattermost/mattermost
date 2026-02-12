@@ -12,12 +12,6 @@ import WithTooltip from 'components/with_tooltip';
 export type Props = {
 
     /**
-     * Whether to delay updating the value of the textbox from props. Should only be used
-     * on textboxes that to properly compose CJK characters as the user types.
-     */
-    delayInputUpdate?: boolean;
-
-    /**
      * An optional React component that will be used instead of an HTML input when rendering
      */
     inputComponent?: ReactComponentLike;
@@ -93,7 +87,6 @@ const defaultClearableTooltipText = (
 // A component that can be used to make controlled inputs that function properly in certain
 // environments (ie. IE11) where typing quickly would sometimes miss inputs
 export const QuickInput = React.memo(({
-    delayInputUpdate = false,
     value = '',
     clearable = false,
     autoFocus,
@@ -130,11 +123,7 @@ export const QuickInput = React.memo(({
             inputRef.current.value = value;
         };
 
-        if (delayInputUpdate) {
-            requestAnimationFrame(updateInputFromProps);
-        } else {
-            updateInputFromProps();
-        }
+        updateInputFromProps();
 
         /* eslint-disable-next-line react-hooks/exhaustive-deps --
          * This 'useEffect' should run only when 'value' prop changes.
