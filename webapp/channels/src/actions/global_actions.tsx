@@ -4,7 +4,7 @@
 import {batchActions} from 'redux-batched-actions';
 
 import type {Channel, ChannelMembership} from '@mattermost/types/channels';
-import type {Post} from '@mattermost/types/posts';
+import type {Post, PostType} from '@mattermost/types/posts';
 import type {Team} from '@mattermost/types/teams';
 import type {UserProfile} from '@mattermost/types/users';
 
@@ -172,29 +172,42 @@ export function showMobileSubMenuModal(elements: any[]) { // TODO Use more speci
 export function sendEphemeralPost(message: string, channelId?: string, parentId?: string, userId?: string): ActionFuncAsync<boolean> {
     return (doDispatch, doGetState) => {
         const timestamp = Utils.getTimestamp();
-        const post = {
+        const post: Post = {
             id: Utils.generateId(),
             user_id: userId || '0',
             channel_id: channelId || getCurrentChannelId(doGetState()),
             message,
-            type: PostTypes.EPHEMERAL,
+            type: PostTypes.EPHEMERAL as PostType,
             create_at: timestamp,
             update_at: timestamp,
             root_id: parentId || '',
             props: {},
-        } as Post;
+            delete_at: 0,
+            edit_at: 0,
+            is_pinned: false,
+            hashtags: '',
+            metadata: {
+                embeds: [],
+                emojis: [],
+                files: [],
+                images: {},
+            },
+            original_id: '',
+            pending_post_id: '',
+            reply_count: 0,
+        };
 
         return doDispatch(handleNewPost(post));
     };
 }
 
 export function sendAddToChannelEphemeralPost(user: UserProfile, addedUsername: string, addedUserId: string, channelId: string, postRootId = '', timestamp: number) {
-    const post = {
+    const post: Post = {
         id: Utils.generateId(),
         user_id: user.id,
         channel_id: channelId || getCurrentChannelId(getState()),
         message: '',
-        type: PostTypes.EPHEMERAL_ADD_TO_CHANNEL,
+        type: PostTypes.EPHEMERAL_ADD_TO_CHANNEL as PostType,
         create_at: timestamp,
         update_at: timestamp,
         root_id: postRootId,
@@ -203,7 +216,20 @@ export function sendAddToChannelEphemeralPost(user: UserProfile, addedUsername: 
             addedUsername,
             addedUserId,
         },
-    } as unknown as Post;
+        edit_at: 0,
+        delete_at: 0,
+        is_pinned: false,
+        original_id: '',
+        pending_post_id: '',
+        reply_count: 0,
+        metadata: {
+            embeds: [],
+            emojis: [],
+            files: [],
+            images: {},
+        },
+        hashtags: '',
+    };
 
     dispatch(handleNewPost(post));
 }

@@ -236,8 +236,12 @@ export type ClientConfig = {
 
     // Access Control Settings
     EnableAttributeBasedAccessControl: string;
-    EnableChannelScopeAccessControl: string;
     EnableUserManagedAttributes: string;
+
+    // Auto Translation Settings
+    AutoTranslationLanguages: string;
+    EnableAutoTranslation: string;
+    RestrictDMAndGMAutotranslation: string;
 };
 
 export type License = {
@@ -755,6 +759,7 @@ export type LocalizationSettings = {
 export type AutoTranslationSettings = {
     Enable: boolean;
     TargetLanguages: string[];
+    Workers: number;
     Provider: '' | 'libretranslate' | 'agents';
     LibreTranslate: {
         URL: string;
@@ -763,12 +768,8 @@ export type AutoTranslationSettings = {
     Agents?: {
         LLMServiceID: string;
     };
-    TimeoutsMs: {
-        Short: number;
-        Medium: number;
-        Long: number;
-        Notification: number;
-    };
+    TimeoutMs: number;
+    RestrictDMAndGM: boolean;
 };
 
 export type SamlSettings = {
@@ -887,6 +888,7 @@ export type ElasticsearchSettings = {
     Password: string;
     EnableIndexing: boolean;
     EnableSearching: boolean;
+    EnableCJKAnalyzers: boolean;
     EnableAutocomplete: boolean;
     Sniff: boolean;
     PostIndexReplicas: number;
@@ -1014,7 +1016,6 @@ export type ExportSettings = {
 
 export type AccessControlSettings = {
     EnableAttributeBasedAccessControl: boolean;
-    EnableChannelScopeAccessControl: boolean;
     EnableUserManagedAttributes: boolean;
 };
 

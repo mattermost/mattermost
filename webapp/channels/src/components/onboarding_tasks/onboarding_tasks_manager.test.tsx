@@ -1,11 +1,9 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {mount} from 'enzyme';
 import React from 'react';
-import {Provider} from 'react-redux';
 
-import configureStore from 'store';
+import {renderWithContext, screen} from 'tests/react_testing_utils';
 
 import {useTasksList} from './onboarding_tasks_manager';
 
@@ -49,49 +47,44 @@ describe('onboarding tasks manager', () => {
     };
 
     it('Places all the elements (6 ignoring plugins) when user is first admin or admin', () => {
-        const store = configureStore(initialState);
-
-        const wrapper = mount(
-            <Provider store={store}>
-                <WrapperComponent/>
-            </Provider>,
+        renderWithContext(
+            <WrapperComponent/>,
+            initialState,
         );
 
-        expect(wrapper.find('li')).toHaveLength(6);
+        expect(screen.getAllByRole('listitem')).toHaveLength(6);
 
         // find the visit system console and start_trial
-        expect(wrapper.findWhere((node) => node.key() === 'visit_system_console')).toHaveLength(1);
-        expect(wrapper.findWhere((node) => node.key() === 'start_trial')).toHaveLength(1);
+        expect(screen.getByText('visit_system_console')).toBeInTheDocument();
+        expect(screen.getByText('start_trial')).toBeInTheDocument();
     });
 
     it('Removes start_trial and visit_system_console when user is end user', () => {
         const endUserState = {...initialState, entities: {...initialState.entities, users: {...initialState.entities.users, currentUserId: user2}}};
-        const store = configureStore(endUserState);
 
-        const wrapper = mount(
-            <Provider store={store}>
-                <WrapperComponent/>
-            </Provider>,
+        renderWithContext(
+            <WrapperComponent/>,
+            endUserState,
         );
-        expect(wrapper.find('li')).toHaveLength(4);
+
+        expect(screen.getAllByRole('listitem')).toHaveLength(4);
 
         // verify visit_system_console and start_trial were removed
-        expect(wrapper.findWhere((node) => node.key() === 'visit_system_console')).toHaveLength(0);
-        expect(wrapper.findWhere((node) => node.key() === 'start_trial')).toHaveLength(0);
+        expect(screen.queryByText('visit_system_console')).not.toBeInTheDocument();
+        expect(screen.queryByText('start_trial')).not.toBeInTheDocument();
     });
 
     it('Removes invite people task item when user is GUEST user', () => {
         const endUserState = {...initialState, entities: {...initialState.entities, users: {...initialState.entities.users, currentUserId: user3}}};
-        const store = configureStore(endUserState);
 
-        const wrapper = mount(
-            <Provider store={store}>
-                <WrapperComponent/>
-            </Provider>,
+        renderWithContext(
+            <WrapperComponent/>,
+            endUserState,
         );
-        expect(wrapper.find('li')).toHaveLength(3);
+
+        expect(screen.getAllByRole('listitem')).toHaveLength(3);
 
         // verify visit_system_console and start_trial were removed
-        expect(wrapper.findWhere((node) => node.key() === 'invite_people')).toHaveLength(0);
+        expect(screen.queryByText('invite_people')).not.toBeInTheDocument();
     });
 });

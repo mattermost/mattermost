@@ -273,7 +273,10 @@ func (p Printer) linesToBytes(opts printOpts) (b []byte, err error) {
 	case FormatPlain:
 		var buf bytes.Buffer
 		for i := range p.Lines {
-			fmt.Fprintf(&buf, "%s%s", p.Lines[i], newline)
+			// Sanitize output to prevent terminal escape injection attacks
+			// when writing user-controlled content to the terminal
+			line := fmt.Sprintf("%s", p.Lines[i])
+			fmt.Fprintf(&buf, "%s%s", SanitizeForTerminal(line), newline)
 		}
 		b = buf.Bytes()
 	case FormatJSON:
