@@ -8,3 +8,5 @@ export {initSetup, getAdminClient} from './init';
 export {createRandomPost} from './post';
 export {createNewTeam, createRandomTeam} from './team';
 export {createNewUserProfile, createRandomUser, getDefaultAdminUser, isOutsideRemoteUserHour} from './user';
+export {installAndEnablePlugin, isPluginActive, getPluginStatus} from './plugin';
+//getPluginStatus

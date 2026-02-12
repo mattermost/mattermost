@@ -1,11 +1,9 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {screen} from '@testing-library/react';
-import userEvent from '@testing-library/user-event';
 import React from 'react';
 
-import {renderWithContext} from 'tests/react_testing_utils';
+import {renderWithContext, screen, userEvent} from 'tests/react_testing_utils';
 import {TestHelper} from 'utils/test_helper';
 
 import ChannelSettingsConfigurationTab from './channel_settings_configuration_tab';
@@ -63,13 +61,10 @@ const mockChannelWithBanner = TestHelper.getChannelMock({
 const baseProps = {
     channel: mockChannel,
     setAreThereUnsavedChanges: jest.fn(),
+    canManageBanner: true,
 };
 
 describe('ChannelSettingsConfigurationTab', () => {
-    beforeEach(() => {
-        jest.clearAllMocks();
-    });
-
     it('should render with the correct initial values when banner is disabled', () => {
         renderWithContext(<ChannelSettingsConfigurationTab {...baseProps}/>);
 
@@ -175,7 +170,6 @@ describe('ChannelSettingsConfigurationTab', () => {
 
         // Verify patchChannel was called with the updated values
         expect(patchChannel).toHaveBeenCalledWith('channel1', {
-            ...mockChannel,
             banner_info: {
                 enabled: true,
                 text: 'New banner text',
@@ -352,6 +346,7 @@ describe('ChannelSettingsConfigurationTab', () => {
             <ChannelSettingsConfigurationTab
                 channel={channelWithValidColor}
                 setAreThereUnsavedChanges={jest.fn()}
+                canManageBanner={true}
             />,
         );
 
@@ -403,7 +398,6 @@ describe('ChannelSettingsConfigurationTab', () => {
 
         // Verify patchChannel was called with the trimmed values
         expect(patchChannel).toHaveBeenCalledWith('channel1', {
-            ...mockChannelWithBanner,
             banner_info: {
                 enabled: true,
                 text: 'Banner text with whitespace', // Whitespace should be trimmed

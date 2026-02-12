@@ -153,8 +153,26 @@ func (os *OpensearchInterfaceImpl) Start() *model.AppError {
 		time.Duration(*esSettings.RequestTimeoutSeconds)*time.Second,
 		os.Platform.Log())
 
+	opts := []func(*types.IndexTemplateMapping){}
+	// Set up additional analyzers to use in the post index template if CJK analyzers are enabled
+	if *os.Platform.Config().ElasticsearchSettings.EnableCJKAnalyzers {
+		if slices.Contains(os.plugins, "analysis-nori") {
+			opts = append(opts, common.WithNoriAnalyzer())
+		}
+		if slices.Contains(os.plugins, "analysis-kuromoji") {
+			opts = append(opts, common.WithKuromojiAnalyzer())
+		}
+		if slices.Contains(os.plugins, "analysis-smartcn") {
+			opts = append(opts, common.WithSmartCNAnalyzer())
+		}
+
+		if len(opts) == 0 {
+			os.Platform.Log().Warn("EnableCJKAnalyzers is set but no CJK analyzer plugins found installed. Please review opensearch settings.")
+		}
+	}
+
 	// Set up posts index template.
-	templateBuf, err := json.Marshal(common.GetPostTemplate(os.Platform.Config()))
+	templateBuf, err := json.Marshal(common.GetPostTemplate(os.Platform.Config(), opts...))
 	if err != nil {
 		return model.NewAppError("Opensearch.start", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
@@ -314,6 +332,30 @@ func (os *OpensearchInterfaceImpl) getPostIndexNames() ([]string, error) {
 	return postIndexes, nil
 }
 
+func (os *OpensearchInterfaceImpl) getFieldVariants(fieldName string, query string) []string {
+	variants := []string{fieldName}
+
+	if os.Platform.Config().ElasticsearchSettings.EnableCJKAnalyzers == nil ||
+		!*os.Platform.Config().ElasticsearchSettings.EnableCJKAnalyzers ||
+		!common.ContainsCJK(query) {
+		return variants
+	}
+
+	if slices.Contains(os.plugins, "analysis-nori") {
+		variants = append(variants, fieldName+".nori")
+	}
+
+	if slices.Contains(os.plugins, "analysis-kuromoji") {
+		variants = append(variants, fieldName+".kuromoji")
+	}
+
+	if slices.Contains(os.plugins, "analysis-smartcn") {
+		variants = append(variants, fieldName+".smartcn")
+	}
+
+	return variants
+}
+
 func (os *OpensearchInterfaceImpl) SearchPosts(channels model.ChannelList, searchParams []*model.SearchParams, page, perPage int) ([]string, model.PostSearchMatches, *model.AppError) {
 	os.mutex.RLock()
 	defer os.mutex.RUnlock()
@@ -465,13 +507,13 @@ func (os *OpensearchInterfaceImpl) SearchPosts(channels model.ChannelList, searc
 					{
 						SimpleQueryString: &types.SimpleQueryStringQuery{
 							Query:           params.Terms,
-							Fields:          []string{"message"},
+							Fields:          os.getFieldVariants("message", params.Terms),
 							DefaultOperator: &termOperator,
 						},
 					}, {
 						SimpleQueryString: &types.SimpleQueryStringQuery{
 							Query:           params.Terms,
-							Fields:          []string{"attachments"},
+							Fields:          os.getFieldVariants("attachments", params.Terms),
 							DefaultOperator: &termOperator,
 						},
 					}, {
@@ -511,13 +553,13 @@ func (os *OpensearchInterfaceImpl) SearchPosts(channels model.ChannelList, searc
 						{
 							SimpleQueryString: &types.SimpleQueryStringQuery{
 								Query:           params.ExcludedTerms,
-								Fields:          []string{"message"},
+								Fields:          os.getFieldVariants("message", params.ExcludedTerms),
 								DefaultOperator: &termOperator,
 							},
 						}, {
 							SimpleQueryString: &types.SimpleQueryStringQuery{
 								Query:           params.ExcludedTerms,
-								Fields:          []string{"attachments"},
+								Fields:          os.getFieldVariants("attachments", params.ExcludedTerms),
 								DefaultOperator: &termOperator,
 							},
 						}, {
@@ -572,6 +614,7 @@ func (os *OpensearchInterfaceImpl) SearchPosts(channels model.ChannelList, searc
 		},
 	)
 
+	// highlighting base fields should be enough even if CJK analyzers are enabled
 	highlight := &types.Highlight{
 		HighlightQuery: &types.Query{
 			Bool: fullHighlightsQuery,
