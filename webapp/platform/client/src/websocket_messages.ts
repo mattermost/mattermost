@@ -423,11 +423,14 @@ export type RecapUpdated = BaseWebSocketMessage<WebSocketEvents.RecapUpdated, {
 // Post translation messages
 
 export type PostTranslationUpdated = BaseWebSocketMessage<WebSocketEvents.PostTranslationUpdated, {
-    language: string;
     object_id: string;
-    src_lang: string;
-    state: 'ready' | 'skipped' | 'processing' | 'unavailable';
-    translation: string;
+    translations: Array<{
+        language: string;
+        state: 'ready' | 'skipped' | 'processing' | 'unavailable';
+        translation?: string;
+        translation_type?: string;
+        src_lang?: string;
+    }>;
 }>;
 
 // Plugin and integration messages

@@ -439,15 +439,17 @@ export function handlePosts(state: IDMappedObjects<Post> = {}, action: MMReduxAc
             return state;
         }
 
-        const translations = state[data.object_id].metadata?.translations || {};
-        const newTranslations = {
-            ...translations,
-            [data.language]: {
-                lang: data.language,
-                object: data.translation ? JSON.parse(data.translation) : undefined,
-                state: data.state,
-                source_lang: data.src_lang,
-            }};
+        const existingTranslations = state[data.object_id].metadata?.translations || {};
+        const newTranslations = {...existingTranslations};
+
+        for (const t of data.translations) {
+            newTranslations[t.language] = {
+                object: t.translation ? JSON.parse(t.translation) : undefined,
+                state: t.state,
+                source_lang: t.src_lang,
+            };
+        }
+
         return {
             ...state,
             [data.object_id]: {
