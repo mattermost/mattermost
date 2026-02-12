@@ -16,7 +16,13 @@ import (
 
 func TestUpsertSyncUserStatus(t *testing.T) {
 	setup := func(remoteID string, user *model.User) (*Service, *MockAppIface, *model.Status, *model.RemoteCluster) {
-		userID := user.Id
+		var userID string
+		if user == nil {
+			userID = model.NewId()
+		} else {
+			userID = user.Id
+		}
+
 		status := &model.Status{
 			UserId: userID,
 			Status: model.StatusDnd,
@@ -70,43 +76,9 @@ func TestUpsertSyncUserStatus(t *testing.T) {
 
 	t.Run("should return an error when the user doesn't exist locally", func(t *testing.T) {
 		remoteID := model.NewId()
-		anotherRemoteID := model.NewId()
-		user := &model.User{
-			Id:       model.NewId(),
-			RemoteId: model.NewPointer(anotherRemoteID),
-		}
+		var user *model.User
 
 		scs, mockApp, status, remoteCluster := setup(remoteID, user)
-
-		//remoteID := model.NewId()
-		//userID := model.NewId()
-		//status := &model.Status{
-		//	UserId: userID,
-		//	Status: model.StatusDnd,
-		//}
-		//remoteCluster := &model.RemoteCluster{
-		//	RemoteId: remoteID,
-		//	Name:     "test-remote",
-		//}
-		//
-		//mockUserStore := &mocks.UserStore{}
-		//mockUserStore.On("Get", mockTypeContext, userID).Return(nil, store.NewErrNotFound("User", userID))
-		//
-		//mockStore := &mocks.Store{}
-		//mockStore.On("User").Return(mockUserStore)
-		//
-		//logger := mlog.CreateConsoleTestLogger(t)
-		//
-		//mockServer := &MockServerIface{}
-		//mockServer.On("Log").Return(logger)
-		//mockServer.On("GetStore").Return(mockStore)
-		//
-		//mockApp := &MockAppIface{}
-		//
-		//scs := &Service{
-		//	server: mockServer,
-		//	app:    mockApp,
-		//}
 
 		rctx := request.TestContext(t)
 		err := scs.upsertSyncUserStatus(rctx, status, remoteCluster)
@@ -117,44 +89,17 @@ func TestUpsertSyncUserStatus(t *testing.T) {
 	})
 
 	t.Run("should return an error when attempting to sync a local user", func(t *testing.T) {
-		mockServer := &MockServerIface{}
-		logger := mlog.CreateConsoleTestLogger(t)
-		mockServer.On("Log").Return(logger)
-		mockApp := &MockAppIface{}
-
-		// Create service
-		scs := &Service{
-			server: mockServer,
-			app:    mockApp,
-		}
-
-		// Create test data - local user with no RemoteId
-		userID := model.NewId()
+		remoteID := model.NewId()
 		user := &model.User{
-			Id:       userID,
-			RemoteId: nil, // Local user
-		}
-		status := &model.Status{
-			UserId: userID,
-			Status: model.StatusDnd,
-		}
-		remoteCluster := &model.RemoteCluster{
-			RemoteId: model.NewId(),
-			Name:     "test-remote",
+			Id:       model.NewId(),
+			RemoteId: nil,
 		}
 
-		// Setup store mocks
-		mockStore := &mocks.Store{}
-		mockUserStore := &mocks.UserStore{}
-		mockUserStore.On("Get", mockTypeContext, userID).Return(user, nil)
-		mockStore.On("User").Return(mockUserStore)
-		mockServer.On("GetStore").Return(mockStore)
+		scs, mockApp, status, remoteCluster := setup(remoteID, user)
 
-		// Execute
 		rctx := request.TestContext(t)
 		err := scs.upsertSyncUserStatus(rctx, status, remoteCluster)
 
-		// Assert
 		require.Error(t, err)
 		assert.ErrorIs(t, err, ErrRemoteIDMismatch)
 		assert.Contains(t, err.Error(), "error updating user status")
@@ -162,47 +107,18 @@ func TestUpsertSyncUserStatus(t *testing.T) {
 	})
 
 	t.Run("should return an error when attempting to sync a user from a different remote", func(t *testing.T) {
-		// Setup mocks
-		mockServer := &MockServerIface{}
-		logger := mlog.CreateConsoleTestLogger(t)
-		mockServer.On("Log").Return(logger)
-		mockApp := &MockAppIface{}
-
-		// Create service
-		scs := &Service{
-			server: mockServer,
-			app:    mockApp,
-		}
-
-		// Create test data - user from remote cluster A
-		remoteClusterA := model.NewId()
-		remoteClusterB := model.NewId()
-		userID := model.NewId()
+		remoteID := model.NewId()
+		anotherRemoteID := model.NewId()
 		user := &model.User{
-			Id:       userID,
-			RemoteId: model.NewPointer(remoteClusterA), // User belongs to cluster A
-		}
-		status := &model.Status{
-			UserId: userID,
-			Status: model.StatusDnd,
-		}
-		remoteCluster := &model.RemoteCluster{
-			RemoteId: remoteClusterB, // Cluster B attempting the sync
-			Name:     "test-remote-b",
+			Id:       model.NewId(),
+			RemoteId: model.NewPointer(anotherRemoteID),
 		}
 
-		// Setup store mocks
-		mockStore := &mocks.Store{}
-		mockUserStore := &mocks.UserStore{}
-		mockUserStore.On("Get", mockTypeContext, userID).Return(user, nil)
-		mockStore.On("User").Return(mockUserStore)
-		mockServer.On("GetStore").Return(mockStore)
+		scs, mockApp, status, remoteCluster := setup(remoteID, user)
 
-		// Execute
 		rctx := request.TestContext(t)
 		err := scs.upsertSyncUserStatus(rctx, status, remoteCluster)
 
-		// Assert
 		require.Error(t, err)
 		assert.ErrorIs(t, err, ErrRemoteIDMismatch)
 		assert.Contains(t, err.Error(), "error updating user status")
