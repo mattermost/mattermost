@@ -735,7 +735,7 @@ const ErrorLogDashboard: React.FC<Props> = ({config, patchConfig}) => {
         document.body.appendChild(a);
         a.click();
         document.body.removeChild(a);
-        setTimeout(() => URL.revokeObjectURL(url), 10000);
+        URL.revokeObjectURL(url);
     };
 
     const toggleStack = (id: string) => {
@@ -793,7 +793,7 @@ const ErrorLogDashboard: React.FC<Props> = ({config, patchConfig}) => {
         document.body.appendChild(a);
         a.click();
         document.body.removeChild(a);
-        setTimeout(() => URL.revokeObjectURL(url), 10000);
+        URL.revokeObjectURL(url);
     };
 
     const addMutedPattern = (pattern: string) => {

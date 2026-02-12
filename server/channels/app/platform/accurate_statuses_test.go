@@ -401,7 +401,7 @@ func TestUpdateActivityFromManualAction(t *testing.T) {
 		assert.Greater(t, after.LastActivityAt, oldTime)
 	})
 
-	t.Run("should NOT change manually set Away status", func(t *testing.T) {
+	t.Run("should change manually set Away status to Online", func(t *testing.T) {
 		th := Setup(t).InitBasic(t)
 
 		th.Service.UpdateConfig(func(cfg *model.Config) {
@@ -420,11 +420,11 @@ func TestUpdateActivityFromManualAction(t *testing.T) {
 		// Call UpdateActivityFromManualAction
 		th.Service.UpdateActivityFromManualAction(th.BasicUser.Id, th.BasicChannel.Id, "test_action")
 
-		// Manually set status should NOT change, but LastActivityAt should update
+		// Manual actions prove the user is active, so Away should become Online
 		after, err := th.Service.GetStatus(th.BasicUser.Id)
 		require.Nil(t, err)
-		assert.Equal(t, model.StatusAway, after.Status)
-		assert.True(t, after.Manual)
+		assert.Equal(t, model.StatusOnline, after.Status)
+		assert.False(t, after.Manual)
 		assert.Greater(t, after.LastActivityAt, oldTime)
 	})
 }
