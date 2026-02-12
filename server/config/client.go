@@ -192,8 +192,8 @@ func GenerateClientConfig(c *model.Config, telemetryID string, license *model.Li
 	props["MattermostExtendedStatusesEnableStatusLogs"] = strconv.FormatBool(*c.MattermostExtendedSettings.Statuses.EnableStatusLogs)
 	props["MattermostExtendedStatusesDNDInactivityTimeoutMinutes"] = strconv.Itoa(*c.MattermostExtendedSettings.Statuses.DNDInactivityTimeoutMinutes)
 	props["MattermostExtendedStatusesStatusLogRetentionDays"] = strconv.Itoa(*c.MattermostExtendedSettings.Statuses.StatusLogRetentionDays)
-	props["MattermostExtendedStatusesStatusPauseAllowedUsers"] = ""
-	props["MattermostExtendedStatusesInvisibilityAllowedUsers"] = ""
+	props["MattermostExtendedStatusesStatusPauseAllowedUsers"] = *c.MattermostExtendedSettings.Statuses.StatusPauseAllowedUsers
+	props["MattermostExtendedStatusesInvisibilityAllowedUsers"] = *c.MattermostExtendedSettings.Statuses.InvisibilityAllowedUsers
 	props["MattermostExtendedStatusesGuildedStatusPollingIntervalSeconds"] = strconv.Itoa(*c.MattermostExtendedSettings.Statuses.GuildedStatusPollingIntervalSeconds)
 
 	// Mattermost Extended ChannelSync Settings
