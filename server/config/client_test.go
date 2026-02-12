@@ -343,7 +343,6 @@ func TestGetClientConfig(t *testing.T) {
 			&model.Config{
 				AccessControlSettings: model.AccessControlSettings{
 					EnableAttributeBasedAccessControl: model.NewPointer(true),
-					EnableChannelScopeAccessControl:   model.NewPointer(true),
 					EnableUserManagedAttributes:       model.NewPointer(true),
 				},
 			},
@@ -351,7 +350,6 @@ func TestGetClientConfig(t *testing.T) {
 			nil,
 			map[string]string{
 				"EnableAttributeBasedAccessControl": "true",
-				"EnableChannelScopeAccessControl":   "true",
 				"EnableUserManagedAttributes":       "true",
 			},
 		},
@@ -360,7 +358,6 @@ func TestGetClientConfig(t *testing.T) {
 			&model.Config{
 				AccessControlSettings: model.AccessControlSettings{
 					EnableAttributeBasedAccessControl: model.NewPointer(false),
-					EnableChannelScopeAccessControl:   model.NewPointer(false),
 					EnableUserManagedAttributes:       model.NewPointer(false),
 				},
 			},
@@ -368,7 +365,6 @@ func TestGetClientConfig(t *testing.T) {
 			nil,
 			map[string]string{
 				"EnableAttributeBasedAccessControl": "false",
-				"EnableChannelScopeAccessControl":   "false",
 				"EnableUserManagedAttributes":       "false",
 			},
 		},
@@ -379,7 +375,6 @@ func TestGetClientConfig(t *testing.T) {
 			nil,
 			map[string]string{
 				"EnableAttributeBasedAccessControl": "false",
-				"EnableChannelScopeAccessControl":   "true",
 				"EnableUserManagedAttributes":       "false",
 			},
 		},

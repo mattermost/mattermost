@@ -264,17 +264,17 @@ func (_m *PostStore) GetEditHistoryForPost(postID string) ([]*model.Post, error)
 	return r0, r1
 }
 
-// GetEtag provides a mock function with given fields: channelID, allowFromCache, collapsedThreads
-func (_m *PostStore) GetEtag(channelID string, allowFromCache bool, collapsedThreads bool) string {
-	ret := _m.Called(channelID, allowFromCache, collapsedThreads)
+// GetEtag provides a mock function with given fields: channelID, allowFromCache, collapsedThreads, includeTranslations
+func (_m *PostStore) GetEtag(channelID string, allowFromCache bool, collapsedThreads bool, includeTranslations bool) string {
+	ret := _m.Called(channelID, allowFromCache, collapsedThreads, includeTranslations)
 
 	if len(ret) == 0 {
 		panic("no return value specified for GetEtag")
 	}
 
 	var r0 string
-	if rf, ok := ret.Get(0).(func(string, bool, bool) string); ok {
-		r0 = rf(channelID, allowFromCache, collapsedThreads)
+	if rf, ok := ret.Get(0).(func(string, bool, bool, bool) string); ok {
+		r0 = rf(channelID, allowFromCache, collapsedThreads, includeTranslations)
 	} else {
 		r0 = ret.Get(0).(string)
 	}
@@ -1130,6 +1130,24 @@ func (_m *PostStore) PermanentDelete(rctx request.CTX, postID string) error {
 	var r0 error
 	if rf, ok := ret.Get(0).(func(request.CTX, string) error); ok {
 		r0 = rf(rctx, postID)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// PermanentDeleteAssociatedData provides a mock function with given fields: postIds
+func (_m *PostStore) PermanentDeleteAssociatedData(postIds []string) error {
+	ret := _m.Called(postIds)
+
+	if len(ret) == 0 {
+		panic("no return value specified for PermanentDeleteAssociatedData")
+	}
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func([]string) error); ok {
+		r0 = rf(postIds)
 	} else {
 		r0 = ret.Error(0)
 	}
