@@ -1,0 +1,91 @@
+---
+name: Check E2E Test Only
+description: Check if PR contains only E2E test changes and determine the appropriate docker image tag
+
+inputs:
+  base_sha:
+    description: Base commit SHA (PR base)
+    required: false
+  head_sha:
+    description: Head commit SHA (PR head)
+    required: false
+  pr_number:
+    description: PR number (used to fetch SHAs via API if base_sha/head_sha not provided)
+    required: false
+
+outputs:
+  e2e_test_only:
+    description: Whether the PR contains only E2E test changes (true/false)
+    value: ${{ steps.check.outputs.e2e_test_only }}
+  image_tag:
+    description: Docker image tag to use (master for E2E-only, short SHA for mixed)
+    value: ${{ steps.check.outputs.image_tag }}
+
+runs:
+  using: composite
+  steps:
+    - name: ci/check-e2e-test-only
+      id: check
+      shell: bash
+      env:
+        GH_TOKEN: ${{ github.token }}
+        INPUT_BASE_SHA: ${{ inputs.base_sha }}
+        INPUT_HEAD_SHA: ${{ inputs.head_sha }}
+        INPUT_PR_NUMBER: ${{ inputs.pr_number }}
+      run: |
+        # Resolve SHAs from PR number if not provided
+        if [ -z "$INPUT_BASE_SHA" ] || [ -z "$INPUT_HEAD_SHA" ]; then
+          if [ -z "$INPUT_PR_NUMBER" ]; then
+            echo "::error::Either base_sha/head_sha or pr_number must be provided"
+            exit 1
+          fi
+
+          echo "Resolving SHAs from PR #${INPUT_PR_NUMBER}"
+          PR_DATA=$(gh api "repos/${{ github.repository }}/pulls/${INPUT_PR_NUMBER}")
+          INPUT_BASE_SHA=$(echo "$PR_DATA" | jq -r '.base.sha')
+          INPUT_HEAD_SHA=$(echo "$PR_DATA" | jq -r '.head.sha')
+
+          if [ -z "$INPUT_BASE_SHA" ] || [ "$INPUT_BASE_SHA" = "null" ] || \
+             [ -z "$INPUT_HEAD_SHA" ] || [ "$INPUT_HEAD_SHA" = "null" ]; then
+            echo "::error::Could not resolve SHAs for PR #${INPUT_PR_NUMBER}"
+            exit 1
+          fi
+        fi
+
+        SHORT_SHA="${INPUT_HEAD_SHA::7}"
+
+        # Get changed files - try git first, fall back to API
+        CHANGED_FILES=$(git diff --name-only "$INPUT_BASE_SHA"..."$INPUT_HEAD_SHA" 2>/dev/null || \
+          gh api "repos/${{ github.repository }}/pulls/${INPUT_PR_NUMBER}/files" --jq '.[].filename' 2>/dev/null || echo "")
+
+        if [ -z "$CHANGED_FILES" ]; then
+          echo "::warning::Could not determine changed files, assuming not E2E-only"
+          echo "e2e_test_only=false" >> $GITHUB_OUTPUT
+          echo "image_tag=${SHORT_SHA}" >> $GITHUB_OUTPUT
+          exit 0
+        fi
+
+        echo "Changed files:"
+        echo "$CHANGED_FILES"
+
+        # Check if all files are E2E-related
+        E2E_TEST_ONLY="true"
+        while IFS= read -r file; do
+          [ -z "$file" ] && continue
+          if [[ ! "$file" =~ ^e2e-tests/ ]] && \
+             [[ ! "$file" =~ ^\.github/workflows/e2e- ]]; then
+            echo "Non-E2E file found: $file"
+            E2E_TEST_ONLY="false"
+            break
+          fi
+        done <<< "$CHANGED_FILES"
+
+        echo "E2E test only: ${E2E_TEST_ONLY}"
+
+        # Set outputs
+        echo "e2e_test_only=${E2E_TEST_ONLY}" >> $GITHUB_OUTPUT
+        if [ "$E2E_TEST_ONLY" = "true" ]; then
+          echo "image_tag=master" >> $GITHUB_OUTPUT
+        else
+          echo "image_tag=${SHORT_SHA}" >> $GITHUB_OUTPUT
+        fi

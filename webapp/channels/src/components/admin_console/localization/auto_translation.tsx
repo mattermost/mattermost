@@ -7,6 +7,7 @@ import {Link} from 'react-router-dom';
 
 import type {AutoTranslationSettings} from '@mattermost/types/config';
 
+import BooleanSetting from 'components/admin_console/boolean_setting';
 import MultiSelectSetting from 'components/admin_console/multiselect_settings';
 import Setting from 'components/admin_console/setting';
 import {
@@ -282,6 +283,25 @@ export default function AutoTranslation(props: SystemConsoleCustomSettingsCompon
                     setByEnv={props.setByEnv}
                     onChange={handleTimeoutChange}
                     disabled={props.disabled}
+                />
+                <BooleanSetting
+                    id='RestrictDMAndGM'
+                    label={
+                        <FormattedMessage
+                            id='admin.site.localization.restrictDMAndGMTitle'
+                            defaultMessage='Restrict auto-translation on direct messages and group messages'
+                        />
+                    }
+                    helpText={
+                        <FormattedMessage
+                            id='admin.site.localization.restrictDMAndGMDescription'
+                            defaultMessage='By default, any member of a direct message or group message can enable auto-translation in those channels. If restricted, auto-translation will not be available in direct messages and group messages.'
+                        />
+                    }
+                    value={autoTranslationSettings.RestrictDMAndGM}
+                    onChange={handleChange}
+                    disabled={props.disabled || props.setByEnv}
+                    setByEnv={props.setByEnv}
                 />
             </SectionContent>
             }

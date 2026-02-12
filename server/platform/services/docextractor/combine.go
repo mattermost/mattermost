@@ -31,11 +31,11 @@ func (ce *combineExtractor) Match(filename string) bool {
 	return false
 }
 
-func (ce *combineExtractor) Extract(filename string, r io.ReadSeeker) (string, error) {
+func (ce *combineExtractor) Extract(filename string, r io.ReadSeeker, maxFileSize int64) (string, error) {
 	for _, extractor := range ce.SubExtractors {
 		if extractor.Match(filename) {
 			r.Seek(0, io.SeekStart)
-			text, err := extractor.Extract(filename, r)
+			text, err := extractor.Extract(filename, r, maxFileSize)
 			if err != nil {
 				ce.logger.Warn("Unable to extract file content", mlog.String("file_name", filename), mlog.String("extractor", extractor.Name()), mlog.Err(err))
 				continue

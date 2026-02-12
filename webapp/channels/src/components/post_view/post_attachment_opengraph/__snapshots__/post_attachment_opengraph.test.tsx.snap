@@ -1,313 +1,151 @@
 // Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
 
 exports[`PostAttachmentOpenGraph should match snapshot 1`] = `
-<Provider
-  store={
-    Object {
-      "clearActions": [Function],
-      "dispatch": [Function],
-      "getActions": [Function],
-      "getState": [Function],
-      "replaceReducer": [Function],
-      "subscribe": [Function],
-    }
-  }
->
-  <Connect(PostAttachmentOpenGraph)
-    actions={
-      Object {
-        "editPost": [MockFunction],
-      }
-    }
-    currentUserId="1234"
-    link="http://mattermost.com"
-    openGraphData={
-      Object {
-        "description": "description",
-        "images": Array [
-          Object {
-            "secure_url": "",
-            "url": "http://mattermost.com/OpenGraphImage.jpg",
-          },
-        ],
-        "site_name": "Mattermost",
-        "title": "Mattermost Private Cloud Messaging",
-      }
-    }
-    post={
-      Object {
-        "channel_id": "channel_id",
-        "create_at": 1,
-        "id": "post_id_1",
-        "message": "https://mattermost.com",
-        "metadata": Object {
-          "images": Object {
-            "http://mattermost.com/OpenGraphImage.jpg": Object {
-              "format": "png",
-              "frameCount": 0,
-              "height": 100,
-              "width": 100,
-            },
-          },
-        },
-        "root_id": "root_id",
-      }
-    }
-    postId=""
-    toggleEmbedVisibility={[MockFunction]}
+<div>
+  <a
+    class="PostAttachmentOpenGraph"
+    href="https://www.mattermost.com/?utm_source=mattermost&utm_medium=in-product&utm_content=post_attachment_opengraph&uid=user-1&sid=&edition=team&server_version="
+    location="post_attachment_opengraph"
+    rel="noopener noreferrer"
+    role="link"
+    target="_blank"
+    title="Mattermost | Open Source Collaboration for Developers"
   >
-    <PostAttachmentOpenGraph
-      actions={
-        Object {
-          "editPost": [Function],
-        }
-      }
-      currentUserId="user-1"
-      enableLinkPreviews={true}
-      imageCollapsed={false}
-      link="http://mattermost.com"
-      post={
-        Object {
-          "channel_id": "channel_id",
-          "create_at": 1,
-          "id": "post_id_1",
-          "message": "https://mattermost.com",
-          "metadata": Object {
-            "images": Object {
-              "http://mattermost.com/OpenGraphImage.jpg": Object {
-                "format": "png",
-                "frameCount": 0,
-                "height": 100,
-                "width": 100,
-              },
-            },
-          },
-          "root_id": "root_id",
-        }
-      }
-      postId=""
-      previewEnabled={true}
-      toggleEmbedVisibility={[MockFunction]}
-    />
-  </Connect(PostAttachmentOpenGraph)>
-</Provider>
+    <div
+      class="PostAttachmentOpenGraph__body"
+    >
+      <span
+        class="sitename"
+      >
+        Mattermost.com
+      </span>
+      <span
+        class="title"
+      >
+        Mattermost | Open Source Collaboration for Developers
+      </span>
+      <span
+        class="description"
+      >
+        Mattermost is a secure, open source platform for communication, collaboration, and workflow orchestration across tools and teams.
+      </span>
+    </div>
+    <div
+      class="PostAttachmentOpenGraph__image large"
+    >
+      <div
+        class="AutoHeight"
+        style="transition-property: height; transition-duration: 250ms; transition-timing-function: ease; width: 100%; height: auto; overflow: visible;"
+      >
+        <div>
+          <button
+            class="preview-toggle style--none"
+          >
+            <svg
+              fill="currentColor"
+              height="18"
+              version="1.1"
+              viewBox="0 0 24 24"
+              width="18"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                d="M7,10L12,15L17,10H7Z"
+              />
+            </svg>
+          </button>
+          <figure>
+            <img
+              alt="Mattermost | Open Source Collaboration for Developers"
+              src="/api/v4/image?url=http%3A%2F%2Flocalhost%3A8065%2Fapi%2Fv4%2Fimage%3Furl%3Dhttp%253A%252F%252Fmattermo%E2%80%A6t.com%252Fwp-content%252Fuploads%252F2021%252F09%252FHomepage%25402x.png"
+            />
+          </figure>
+        </div>
+      </div>
+    </div>
+  </a>
+</div>
 `;
 
 exports[`PostAttachmentOpenGraphBody should match snapshot 1`] = `
-<Memo()
-  description="test-description"
-  isInPermalink={false}
-  sitename="test-sitename"
-  title="test-title"
->
+<div>
   <div
-    className="PostAttachmentOpenGraph__body"
+    class="PostAttachmentOpenGraph__body"
   >
     <span
-      className="sitename"
+      class="sitename"
     >
       test-sitename
     </span>
     <span
-      className="title"
+      class="title"
     >
       test-title
     </span>
     <span
-      className="description"
+      class="description"
     >
       test-description
     </span>
   </div>
-</Memo()>
+</div>
 `;
 
 exports[`PostAttachmentOpenGraphBody should match snapshot 2`] = `
-<Memo()
-  description="test_description"
-  isInPermalink={false}
-  siteName="test_sitename"
-  title="test_title"
->
+<div>
   <div
-    className="PostAttachmentOpenGraph__body"
+    class="PostAttachmentOpenGraph__body"
   >
     <span
-      className="title"
+      class="title"
     >
       test_title
     </span>
     <span
-      className="description"
+      class="description"
     >
       test_description
     </span>
   </div>
-</Memo()>
+</div>
 `;
 
 exports[`PostAttachmentOpenGraphImage should match snapshot 1`] = `
-<Provider
-  store={
-    Object {
-      "clearActions": [Function],
-      "dispatch": [Function],
-      "getActions": [Function],
-      "getState": [Function],
-      "replaceReducer": [Function],
-      "subscribe": [Function],
-    }
-  }
->
-  <Memo()
-    imageMetadata={
-      Object {
-        "format": "png",
-        "frameCount": 0,
-        "height": 1256,
-        "secure_url": "http://localhost:8065/api/v4/image?url=http%3A%2F%2Fmattermo…t.com%2Fwp-content%2Fuploads%2F2021%2F09%2FHomepage%402x.png",
-        "type": "image/png",
-        "url": "",
-        "width": 2400,
-      }
-    }
-    isEmbedVisible={true}
-    isInPermalink={false}
-    title="test_image"
-    toggleEmbedVisibility={[MockFunction]}
+<div>
+  <div
+    class="PostAttachmentOpenGraph__image large"
   >
     <div
-      className="PostAttachmentOpenGraph__image large"
+      class="AutoHeight"
+      style="transition-property: height; transition-duration: 250ms; transition-timing-function: ease; width: 100%; height: auto; overflow: visible;"
     >
-      <AutoHeightSwitcher
-        showSlot={1}
-        slot1={
-          <Memo(Connect(Component))
-            imageMetadata={
-              Object {
-                "format": "png",
-                "frameCount": 0,
-                "height": 1256,
-                "secure_url": "http://localhost:8065/api/v4/image?url=http%3A%2F%2Fmattermo…t.com%2Fwp-content%2Fuploads%2F2021%2F09%2FHomepage%402x.png",
-                "type": "image/png",
-                "url": "",
-                "width": 2400,
-              }
-            }
-            src="http://localhost:8065/api/v4/image?url=http%3A%2F%2Fmattermo…t.com%2Fwp-content%2Fuploads%2F2021%2F09%2FHomepage%402x.png"
-          >
-            [Function]
-          </Memo(Connect(Component))>
-        }
-        slot2={
-          <button
-            className="preview-toggle style--none"
-            onClick={[Function]}
-          >
-            <MenuDownIcon
-              color="currentColor"
-              size={18}
-            />
-          </button>
-        }
-      >
-        <Transition
-          appear={false}
-          enter={true}
-          exit={true}
-          in={false}
-          mountOnEnter={false}
-          onEnter={[Function]}
-          onEntered={[Function]}
-          onEntering={[Function]}
-          onExit={[Function]}
-          onExited={[Function]}
-          onExiting={[Function]}
-          timeout={250}
-          unmountOnExit={false}
+      <div>
+        <button
+          class="preview-toggle style--none"
         >
-          <div
-            className="AutoHeight"
-            style={
-              Object {
-                "height": "auto",
-                "overflow": "visible",
-                "transitionDuration": "250ms",
-                "transitionProperty": "height",
-                "transitionTimingFunction": "ease",
-                "width": "100%",
-              }
-            }
+          <svg
+            fill="currentColor"
+            height="18"
+            version="1.1"
+            viewBox="0 0 24 24"
+            width="18"
+            xmlns="http://www.w3.org/2000/svg"
           >
-            <div>
-              <Connect(Component)
-                imageMetadata={
-                  Object {
-                    "format": "png",
-                    "frameCount": 0,
-                    "height": 1256,
-                    "secure_url": "http://localhost:8065/api/v4/image?url=http%3A%2F%2Fmattermo…t.com%2Fwp-content%2Fuploads%2F2021%2F09%2FHomepage%402x.png",
-                    "type": "image/png",
-                    "url": "",
-                    "width": 2400,
-                  }
-                }
-                src="http://localhost:8065/api/v4/image?url=http%3A%2F%2Fmattermo…t.com%2Fwp-content%2Fuploads%2F2021%2F09%2FHomepage%402x.png"
-              >
-                <Memo(ExternalImage)
-                  dispatch={[Function]}
-                  enableSVGs={true}
-                  hasImageProxy={true}
-                  imageMetadata={
-                    Object {
-                      "format": "png",
-                      "frameCount": 0,
-                      "height": 1256,
-                      "secure_url": "http://localhost:8065/api/v4/image?url=http%3A%2F%2Fmattermo…t.com%2Fwp-content%2Fuploads%2F2021%2F09%2FHomepage%402x.png",
-                      "type": "image/png",
-                      "url": "",
-                      "width": 2400,
-                    }
-                  }
-                  src="http://localhost:8065/api/v4/image?url=http%3A%2F%2Fmattermo…t.com%2Fwp-content%2Fuploads%2F2021%2F09%2FHomepage%402x.png"
-                >
-                  <button
-                    className="preview-toggle style--none"
-                    onClick={[Function]}
-                  >
-                    <MenuDownIcon
-                      color="currentColor"
-                      size={18}
-                    >
-                      <svg
-                        fill="currentColor"
-                        height={18}
-                        version="1.1"
-                        viewBox="0 0 24 24"
-                        width={18}
-                        xmlns="http://www.w3.org/2000/svg"
-                      >
-                        <path
-                          d="M7,10L12,15L17,10H7Z"
-                        />
-                      </svg>
-                    </MenuDownIcon>
-                  </button>
-                  <figure>
-                    <img
-                      alt="test_image"
-                      src="/api/v4/image?url=http%3A%2F%2Flocalhost%3A8065%2Fapi%2Fv4%2Fimage%3Furl%3Dhttp%253A%252F%252Fmattermo%E2%80%A6t.com%252Fwp-content%252Fuploads%252F2021%252F09%252FHomepage%25402x.png"
-                    />
-                  </figure>
-                </Memo(ExternalImage)>
-              </Connect(Component)>
-            </div>
-          </div>
-        </Transition>
-      </AutoHeightSwitcher>
+            <path
+              d="M7,10L12,15L17,10H7Z"
+            />
+          </svg>
+        </button>
+        <figure>
+          <img
+            alt="test_image"
+            src="/api/v4/image?url=http%3A%2F%2Flocalhost%3A8065%2Fapi%2Fv4%2Fimage%3Furl%3Dhttp%253A%252F%252Fmattermo%E2%80%A6t.com%252Fwp-content%252Fuploads%252F2021%252F09%252FHomepage%25402x.png"
+          />
+        </figure>
+      </div>
     </div>
-  </Memo()>
-</Provider>
+  </div>
+</div>
 `;
 
-exports[`PostAttachmentOpenGraphImage should not render when used in Permalink 1`] = `Object {}`;
+exports[`PostAttachmentOpenGraphImage should not render when used in Permalink 1`] = `<div />`;

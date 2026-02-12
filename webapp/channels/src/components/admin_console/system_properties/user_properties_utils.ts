@@ -143,6 +143,11 @@ export const useUserPropertyFields = () => {
             const currentByName = byNamesLower(current.data);
 
             const warnings = Object.values(pending.data).reduce<NonNullable<UserPropertyFields['warnings']>>((acc, field) => {
+                // Skip validation for protected fields - they can't be edited
+                if (field.attrs?.protected) {
+                    return acc;
+                }
+
                 if (!field.name) {
                     // name not provided
                     acc[field.id] = {name: ValidationWarningNameRequired};

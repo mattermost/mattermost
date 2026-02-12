@@ -5911,10 +5911,6 @@
     "translation": "Du kommer inte ta emot notifieringar om {{.Channel}} tills tyst kanal är avaktiverad."
   },
   {
-    "id": "api.command_mute.not_member.error",
-    "translation": "Kunde inte tysta kanalen {{.Channel}} eftersom du inte är medlem."
-  },
-  {
     "id": "api.command_mute.no_channel.error",
     "translation": "Hittar ej den utpekade kanalen. Använd [channel handle](https://docs.mattermost.com/messaging/managing-channels.html#naming-a-channel) för att identifiera kanaler."
   },
@@ -8566,10 +8562,6 @@
     "translation": "Kunde inte öppna CA-filen för {{.Backend}}"
   },
   {
-    "id": "api.server.cws.health_check.app_error",
-    "translation": "CWS Server är inte tillgänglig."
-  },
-  {
     "id": "app.group.username_conflict",
     "translation": "Användaren med användarnamn \"{{.Username}}\" finns redan."
   },
@@ -10520,10 +10512,6 @@
     "translation": "Det gick inte att ta bort policy för åtkomstkontroll från kanaler."
   },
   {
-    "id": "app.pap.update_access_control_policy_active.app_error",
-    "translation": "Kunde inte ändra aktiv status för policy för åtkomstkontroll."
-  },
-  {
     "id": "app.pdp.access_evaluation.app_error",
     "translation": "Misslyckades med att utvärdera policy för åtkomstkontroll."
   },
@@ -11052,18 +11040,6 @@
     "translation": "Leverantören av autotranslation stöds inte."
   },
   {
-    "id": "model.config.is_valid.autotranslation.timeouts.fetch.app_error",
-    "translation": "Tidsgränsen för hämtning av autotranslation är ogiltig. Måste vara ett positivt tal."
-  },
-  {
-    "id": "model.config.is_valid.autotranslation.timeouts.new_post.app_error",
-    "translation": "Tidsgränsen för hämtning av autotranslation av nytt inlägg är ogiltig. Måste vara ett positivt tal."
-  },
-  {
-    "id": "model.config.is_valid.autotranslation.timeouts.notification.app_error",
-    "translation": "Tidsgränsen för avisering av autotranslation är ogiltig. Måste vara ett positivt tal."
-  },
-  {
     "id": "model.oauth.validate_grant.credentials.app_error",
     "translation": "Ogiltiga klient-uppgifter."
   },
@@ -11084,14 +11060,6 @@
     "translation": "Ogiltigt tidsfält."
   },
   {
-    "id": "store.sql_autotranslation.channel_not_found",
-    "translation": "Kanal hittades inte."
-  },
-  {
-    "id": "store.sql_autotranslation.member_not_found",
-    "translation": "Medlem hittades inte."
-  },
-  {
     "id": "app.post.rewrite.empty_response",
     "translation": "Tomt svar från AI."
   },
@@ -11102,14 +11070,6 @@
   {
     "id": "api.templates.guest_magic_link_body.title",
     "translation": "Logga in till Mattermost"
-  },
-  {
-    "id": "store.sql_autotranslation.get.app_error",
-    "translation": "Kunde inte hämta översättning."
-  },
-  {
-    "id": "store.sql_autotranslation.save.app_error",
-    "translation": "Kunde inte spara översättningen."
   },
   {
     "id": "app.agents.get_services.app_error",
@@ -11148,14 +11108,6 @@
     "translation": "Pekar-version stöds inte."
   },
   {
-    "id": "store.sql_autotranslation.get_active_languages.app_error",
-    "translation": "Kunde inte hämta aktiva språk."
-  },
-  {
-    "id": "store.sql_autotranslation.get_user_language.app_error",
-    "translation": "Kunde inte hämta användarens språk."
-  },
-  {
     "id": "app.agents.get_agents.app_error",
     "translation": "Hämtningen av agenterna misslyckades."
   },
@@ -11192,10 +11144,6 @@
     "translation": "Ogiltigt cursor-id."
   },
   {
-    "id": "store.sql_autotranslation.query_build_error",
-    "translation": "Misslyckades att skapa frågan."
-  },
-  {
     "id": "model.post.query_params.invalid_sort_direction",
     "translation": "Ogiltig sorteringsriktning."
   },
@@ -11230,10 +11178,6 @@
   {
     "id": "model.post.decode_cursor.invalid_format",
     "translation": "Ogiltigt pekar-format: 8 delar förväntades."
-  },
-  {
-    "id": "store.sql_autotranslation.meta_json.app_error",
-    "translation": "Misslyckades att tolka översättningens JSON-metadata."
   },
   {
     "id": "api.user.login_by_intune.not_available.app_error",
