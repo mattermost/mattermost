@@ -38,13 +38,11 @@ const TeamSettingsModal = ({isOpen, onExited, focusOriginElement}: Props) => {
     const modalBodyRef = useRef<HTMLDivElement>(null);
     const {formatMessage} = useIntl();
 
-    // Get canInviteUsers from Redux (moved from connect wrapper)
     const teamId = useSelector(getCurrentTeamId);
     const canInviteUsers = useSelector((state: GlobalState) =>
         haveITeamPermission(state, teamId, Permissions.INVITE_USER),
     );
 
-    // Sync show with isOpen prop
     useEffect(() => {
         setShow(isOpen);
     }, [isOpen]);
@@ -59,7 +57,6 @@ const TeamSettingsModal = ({isOpen, onExited, focusOriginElement}: Props) => {
         }
         setActiveTab(tab);
 
-        // Auto-scroll to top on tab switch
         if (modalBodyRef.current) {
             modalBodyRef.current.scrollTop = 0;
         }
@@ -98,7 +95,6 @@ const TeamSettingsModal = ({isOpen, onExited, focusOriginElement}: Props) => {
         onExited();
     }, [onExited, focusOriginElement]);
 
-    // Build tabs configuration with display property
     const tabs = [
         {
             name: 'info',

@@ -8,28 +8,7 @@
 
 import path from 'path';
 
-import {expect, test} from '@mattermost/playwright-lib';
-
-import {
-    openTeamSettingsModal,
-    switchToTab,
-    updateTeamName,
-    updateTeamDescription,
-    uploadTeamIcon,
-    removeTeamIcon,
-    addAllowedDomain,
-    removeAllowedDomain,
-    saveTeamSettings,
-    cancelTeamSettings,
-    closeTeamSettingsModal,
-    verifyModalOpen,
-    verifyModalClosed,
-    verifyTeamData,
-    verifyUnsavedChangesWarning,
-    verifySavedMessage,
-    verifyTabActive,
-    verifyTabExists,
-} from '../../../../lib/src/server';
+import {ChannelsPage, expect, test} from '@mattermost/playwright-lib';
 
 // Asset file path for team icon uploads
 const TEAM_ICON_ASSET = path.resolve(__dirname, '../../../../lib/src/asset/mattermost-icon_128x128.png');
@@ -43,28 +22,23 @@ test.describe('Team Settings Modal - Complete Test Suite', () => {
         // # Set up admin user and login
         const {adminUser} = await pw.initSetup();
         const {page} = await pw.testBrowser.login(adminUser);
+        const channelsPage = new ChannelsPage(page);
 
         // # Navigate to a team
-        await page.goto('/');
+        await channelsPage.goto();
         await page.waitForLoadState('networkidle');
 
         // # Open Team Settings Modal
-        await openTeamSettingsModal(page);
-
-        // * Verify modal opens with correct title
-        const isOpen = await verifyModalOpen(page);
-        expect(isOpen).toBe(true);
+        const teamSettings = await channelsPage.openTeamSettings();
 
         // * Verify Info tab is selected by default
-        const infoTabActive = await verifyTabActive(page, 'info');
-        expect(infoTabActive).toBe(true);
+        await expect(teamSettings.infoTab).toHaveAttribute('aria-selected', 'true');
 
         // # Close modal
-        await closeTeamSettingsModal(page);
+        await teamSettings.close();
 
         // * Verify modal closes
-        const isClosed = await verifyModalClosed(page);
-        expect(isClosed).toBe(true);
+        await expect(teamSettings.container).not.toBeVisible();
     });
 
     /**
@@ -75,42 +49,37 @@ test.describe('Team Settings Modal - Complete Test Suite', () => {
         // # Set up admin user and login
         const {adminUser, adminClient, team} = await pw.initSetup();
         const {page} = await pw.testBrowser.login(adminUser);
-
-        // Store original team name for cleanup
-        const originalTeamName = team.display_name;
+        const channelsPage = new ChannelsPage(page);
 
         // # Navigate to team
-        await page.goto(`/${team.name}`);
+        await channelsPage.goto(team.name);
         await page.waitForLoadState('networkidle');
 
         // # Open Team Settings Modal
-        await openTeamSettingsModal(page);
+        const teamSettings = await channelsPage.openTeamSettings();
 
         // * Verify current team name is displayed
-        const nameInput = page.locator('input#teamName');
-        await expect(nameInput).toHaveValue(originalTeamName);
+        await expect(teamSettings.infoSettings.nameInput).toHaveValue(team.display_name);
 
         // # Edit team name
         const newTeamName = `Updated Team ${await pw.random.id()}`;
-        await updateTeamName(page, newTeamName);
+        await teamSettings.infoSettings.updateName(newTeamName);
 
         // # Save changes
-        await saveTeamSettings(page);
+        await teamSettings.save();
 
         // * Wait for "Settings saved" message
-        await verifySavedMessage(page);
+        await teamSettings.verifySavedMessage();
 
         // * Verify team name updated via API
-        await verifyTeamData(adminClient, team.id, {
-            display_name: newTeamName,
-        });
+        const updatedTeam = await adminClient.getTeam(team.id);
+        expect(updatedTeam.display_name).toBe(newTeamName);
 
         // # Close modal
-        await closeTeamSettingsModal(page);
+        await teamSettings.close();
 
         // * Verify modal closes without warning
-        const isClosed = await verifyModalClosed(page);
-        expect(isClosed).toBe(true);
+        await expect(teamSettings.container).not.toBeVisible();
     });
 
     /**
@@ -121,35 +90,34 @@ test.describe('Team Settings Modal - Complete Test Suite', () => {
         // # Set up admin user and login
         const {adminUser, adminClient, team} = await pw.initSetup();
         const {page} = await pw.testBrowser.login(adminUser);
+        const channelsPage = new ChannelsPage(page);
 
         // # Navigate to team
-        await page.goto(`/${team.name}`);
+        await channelsPage.goto(team.name);
         await page.waitForLoadState('networkidle');
 
         // # Open Team Settings Modal
-        await openTeamSettingsModal(page);
+        const teamSettings = await channelsPage.openTeamSettings();
 
         // # Edit team description
         const newDescription = `Test description ${await pw.random.id()}`;
-        await updateTeamDescription(page, newDescription);
+        await teamSettings.infoSettings.updateDescription(newDescription);
 
         // # Save changes
-        await saveTeamSettings(page);
+        await teamSettings.save();
 
         // * Wait for "Settings saved" message
-        await verifySavedMessage(page);
+        await teamSettings.verifySavedMessage();
 
         // * Verify description updated via API
-        await verifyTeamData(adminClient, team.id, {
-            description: newDescription,
-        });
+        const updatedTeam = await adminClient.getTeam(team.id);
+        expect(updatedTeam.description).toBe(newDescription);
 
         // # Close modal
-        await closeTeamSettingsModal(page);
+        await teamSettings.close();
 
         // * Verify modal closes
-        const isClosed = await verifyModalClosed(page);
-        expect(isClosed).toBe(true);
+        await expect(teamSettings.container).not.toBeVisible();
     });
 
     /**
@@ -160,39 +128,36 @@ test.describe('Team Settings Modal - Complete Test Suite', () => {
         // # Set up admin user and login
         const {adminUser, team} = await pw.initSetup();
         const {page} = await pw.testBrowser.login(adminUser);
+        const channelsPage = new ChannelsPage(page);
 
         // # Navigate to team
-        await page.goto(`/${team.name}`);
+        await channelsPage.goto(team.name);
         await page.waitForLoadState('networkidle');
 
         // # Open Team Settings Modal
-        await openTeamSettingsModal(page);
+        const teamSettings = await channelsPage.openTeamSettings();
 
         // # Edit team name to create unsaved changes
         const newTeamName = `Modified Team ${await pw.random.id()}`;
-        await updateTeamName(page, newTeamName);
+        await teamSettings.infoSettings.updateName(newTeamName);
 
         // # Try to close modal (first attempt)
-        await closeTeamSettingsModal(page);
+        await teamSettings.close();
 
         // * Verify "You have unsaved changes" warning appears
-        const hasWarning = await verifyUnsavedChangesWarning(page);
-        expect(hasWarning).toBe(true);
+        await teamSettings.verifyUnsavedChanges();
 
         // * Verify Save button is visible
-        const saveButton = page.getByRole('button', {name: 'Save'});
-        await expect(saveButton).toBeVisible();
+        await expect(teamSettings.saveButton).toBeVisible();
 
         // * Verify modal is still open
-        const isOpen = await verifyModalOpen(page);
-        expect(isOpen).toBe(true);
+        await expect(teamSettings.container).toBeVisible();
 
         // # Try to close modal again (second attempt - warn-once behavior)
-        await closeTeamSettingsModal(page);
+        await teamSettings.close();
 
         // * Verify modal closes on second attempt
-        const isClosed = await verifyModalClosed(page);
-        expect(isClosed).toBe(true);
+        await expect(teamSettings.container).not.toBeVisible();
     });
 
     /**
@@ -203,40 +168,37 @@ test.describe('Team Settings Modal - Complete Test Suite', () => {
         // # Set up admin user and login
         const {adminUser, team} = await pw.initSetup();
         const {page} = await pw.testBrowser.login(adminUser);
+        const channelsPage = new ChannelsPage(page);
 
         // # Navigate to team
-        await page.goto(`/${team.name}`);
+        await channelsPage.goto(team.name);
         await page.waitForLoadState('networkidle');
 
         // # Open Team Settings Modal
-        await openTeamSettingsModal(page);
+        const teamSettings = await channelsPage.openTeamSettings();
 
-        // * Verify both tabs are visible (admin has INVITE_USER permission)
-        const accessTabExists = await verifyTabExists(page, 'access');
-        expect(accessTabExists).toBe(true);
+        // * Verify Access tab is visible (admin has INVITE_USER permission)
+        await expect(teamSettings.accessTab).toBeVisible();
 
         // # Edit team name in Info tab (create unsaved changes)
         const newTeamName = `Modified Team ${await pw.random.id()}`;
-        await updateTeamName(page, newTeamName);
+        await teamSettings.infoSettings.updateName(newTeamName);
 
         // # Try to switch to Access tab
-        await switchToTab(page, 'access');
+        await teamSettings.openAccessTab();
 
         // * Verify "You have unsaved changes" error appears
-        const hasWarning = await verifyUnsavedChangesWarning(page);
-        expect(hasWarning).toBe(true);
+        await teamSettings.verifyUnsavedChanges();
 
         // * Verify still on Info tab
-        const infoTabActive = await verifyTabActive(page, 'info');
-        expect(infoTabActive).toBe(true);
+        await expect(teamSettings.infoTab).toHaveAttribute('aria-selected', 'true');
 
         // # Click Undo button
-        await cancelTeamSettings(page);
+        await teamSettings.undo();
 
         // * Verify can now switch to Access tab
-        await switchToTab(page, 'access');
-        const accessTabActive = await verifyTabActive(page, 'access');
-        expect(accessTabActive).toBe(true);
+        await teamSettings.openAccessTab();
+        await expect(teamSettings.accessTab).toHaveAttribute('aria-selected', 'true');
     });
 
     /**
@@ -247,35 +209,34 @@ test.describe('Team Settings Modal - Complete Test Suite', () => {
         // # Set up admin user and login
         const {adminUser, adminClient, team} = await pw.initSetup();
         const {page} = await pw.testBrowser.login(adminUser);
+        const channelsPage = new ChannelsPage(page);
 
         // # Navigate to team
-        await page.goto(`/${team.name}`);
+        await channelsPage.goto(team.name);
         await page.waitForLoadState('networkidle');
 
         // # Open Team Settings Modal
-        await openTeamSettingsModal(page);
+        const teamSettings = await channelsPage.openTeamSettings();
 
         // # Edit team name
         const newTeamName = `Updated Team ${await pw.random.id()}`;
-        await updateTeamName(page, newTeamName);
+        await teamSettings.infoSettings.updateName(newTeamName);
 
         // # Save changes
-        await saveTeamSettings(page);
+        await teamSettings.save();
 
         // * Wait for "Settings saved" message
-        await verifySavedMessage(page);
+        await teamSettings.verifySavedMessage();
 
         // * Verify team name updated via API
-        await verifyTeamData(adminClient, team.id, {
-            display_name: newTeamName,
-        });
+        const updatedTeam = await adminClient.getTeam(team.id);
+        expect(updatedTeam.display_name).toBe(newTeamName);
 
         // # Close modal immediately after save (should work without warning)
-        await closeTeamSettingsModal(page);
+        await teamSettings.close();
 
         // * Verify modal closes without warning
-        const isClosed = await verifyModalClosed(page);
-        expect(isClosed).toBe(true);
+        await expect(teamSettings.container).not.toBeVisible();
     });
 
     /**
@@ -286,164 +247,148 @@ test.describe('Team Settings Modal - Complete Test Suite', () => {
         // # Set up admin user and login
         const {adminUser, team} = await pw.initSetup();
         const {page} = await pw.testBrowser.login(adminUser);
-
-        const originalTeamName = team.display_name;
+        const channelsPage = new ChannelsPage(page);
 
         // # Navigate to team
-        await page.goto(`/${team.name}`);
+        await channelsPage.goto(team.name);
         await page.waitForLoadState('networkidle');
 
         // # Open Team Settings Modal
-        await openTeamSettingsModal(page);
+        const teamSettings = await channelsPage.openTeamSettings();
 
         // # Edit team name
         const newTeamName = `Modified Team ${await pw.random.id()}`;
-        await updateTeamName(page, newTeamName);
+        await teamSettings.infoSettings.updateName(newTeamName);
 
         // * Verify input shows new value
-        const nameInput = page.locator('input#teamName');
-        await expect(nameInput).toHaveValue(newTeamName);
+        await expect(teamSettings.infoSettings.nameInput).toHaveValue(newTeamName);
 
         // # Click Undo button
-        await cancelTeamSettings(page);
+        await teamSettings.undo();
 
         // * Verify input restored to original value
-        await expect(nameInput).toHaveValue(originalTeamName);
+        await expect(teamSettings.infoSettings.nameInput).toHaveValue(team.display_name);
 
         // * Verify can close modal without warning
-        await closeTeamSettingsModal(page);
-        const isClosed = await verifyModalClosed(page);
-        expect(isClosed).toBe(true);
+        await teamSettings.close();
+        await expect(teamSettings.container).not.toBeVisible();
     });
 
     /**
      * MM-TXXXX: Upload and Remove team icon
-     * @objective Verify team icon can be removed
+     * @objective Verify team icon can be uploaded and removed
      */
     test('MM-TXXXX Upload and Remove team icon', async ({pw}) => {
         // # Set up admin user and login
         const {adminUser, adminClient, team} = await pw.initSetup();
         const {page} = await pw.testBrowser.login(adminUser);
+        const channelsPage = new ChannelsPage(page);
 
         // # Navigate to team
-        await page.goto(`/${team.name}`);
+        await channelsPage.goto(team.name);
         await page.waitForLoadState('networkidle');
 
         // # Open Team Settings Modal
-        await openTeamSettingsModal(page);
+        const teamSettings = await channelsPage.openTeamSettings();
+        const infoSettings = teamSettings.infoSettings;
 
         // # Upload team icon using asset file
-        await uploadTeamIcon(page, TEAM_ICON_ASSET);
-        await page.waitForTimeout(2000);
+        await infoSettings.uploadIcon(TEAM_ICON_ASSET);
 
-        // * Verify upload preview shows (as div with background-image before save)
-        const teamIconImage = page.locator('#teamIconImage');
-        await expect(teamIconImage).toBeVisible();
+        // * Verify upload preview shows
+        await expect(infoSettings.teamIconImage).toBeVisible();
 
         // * Verify remove button appears
-        const removeButton = page.locator('button[data-testid="removeImageButton"]');
-        await expect(removeButton).toBeVisible();
+        await expect(infoSettings.removeImageButton).toBeVisible();
 
         // # Save changes
-        await saveTeamSettings(page);
-        await verifySavedMessage(page);
+        await teamSettings.save();
+        await teamSettings.verifySavedMessage();
 
         // * Get team data after upload to verify icon exists via API
-        await page.waitForTimeout(1000);
         const teamWithIcon = await adminClient.getTeam(team.id);
         expect(teamWithIcon.last_team_icon_update).toBeGreaterThan(0);
 
         // # Close and reopen modal to verify persistence
-        await closeTeamSettingsModal(page);
-        await page.waitForTimeout(1000);
-        await openTeamSettingsModal(page);
+        await teamSettings.close();
+        await expect(teamSettings.container).not.toBeVisible();
+        const teamSettings2 = await channelsPage.openTeamSettings();
 
-        // * Verify uploaded icon persists after reopening modal (now as img tag)
-        const persistedIcon = page.locator('#teamIconImage');
-        await expect(persistedIcon).toBeVisible();
-        await expect(removeButton).toBeVisible();
+        // * Verify uploaded icon persists after reopening modal
+        await expect(teamSettings2.infoSettings.teamIconImage).toBeVisible();
+        await expect(teamSettings2.infoSettings.removeImageButton).toBeVisible();
 
-        // # Remove the icon (this removes it immediately without save)
-        await removeTeamIcon(page);
-
-        // * Wait for removal to process
-        await page.waitForTimeout(2000);
+        // # Remove the icon
+        await teamSettings2.infoSettings.removeIcon();
 
         // * Verify icon was removed - check for default icon initials in modal
-        const teamIconInitial = page.locator('#teamIconInitial');
-        await expect(teamIconInitial).toBeVisible();
+        await expect(teamSettings2.infoSettings.teamIconInitial).toBeVisible();
 
-        // * Verify icon was removed via API (last_team_icon_update should be 0 or undefined)
+        // * Verify icon was removed via API
         const teamAfterRemove = await adminClient.getTeam(team.id);
         expect(teamAfterRemove.last_team_icon_update || 0).toBe(0);
 
         // # Close modal
-        await closeTeamSettingsModal(page);
+        await teamSettings2.close();
     });
 
     /**
-     * Access tab - add and remove allowed domain
+     * MM-TXXXX: Access tab - add and remove allowed domain
      * @objective Verify allowed domains can be added and removed
      */
     test('MM-TXXXX Access tab - add and remove allowed domain', async ({pw}) => {
         // # Set up admin user and login
         const {adminUser, adminClient, team} = await pw.initSetup();
         const {page} = await pw.testBrowser.login(adminUser);
+        const channelsPage = new ChannelsPage(page);
 
         // # Navigate to team
-        await page.goto(`/${team.name}`);
+        await channelsPage.goto(team.name);
         await page.waitForLoadState('networkidle');
 
         // # Open Team Settings Modal
-        await openTeamSettingsModal(page);
+        const teamSettings = await channelsPage.openTeamSettings();
 
         // # Switch to Access tab
-        await switchToTab(page, 'access');
+        const accessSettings = await teamSettings.openAccessTab();
 
         // * Verify Access tab is active
-        const accessTabActive = await verifyTabActive(page, 'access');
-        expect(accessTabActive).toBe(true);
+        await expect(teamSettings.accessTab).toHaveAttribute('aria-selected', 'true');
 
         // # Enable allowed domains checkbox to show the input
-        const allowedDomainsCheckbox = page.locator('input[name="showAllowedDomains"]');
-        await allowedDomainsCheckbox.check();
-        await page.waitForTimeout(500);
+        await accessSettings.enableAllowedDomains();
 
         // # Add an allowed domain
         const testDomain = 'testdomain.com';
-        await addAllowedDomain(page, testDomain);
-        await page.waitForTimeout(500);
+        await accessSettings.addDomain(testDomain);
 
         // * Verify domain appears in the UI
-        const domainChip = page.locator('#allowedDomains').getByText(testDomain);
+        const domainChip = teamSettings.container.locator('#allowedDomains').getByText(testDomain);
         await expect(domainChip).toBeVisible();
 
         // # Save changes
-        await saveTeamSettings(page);
+        await teamSettings.save();
 
         // * Wait for "Settings saved" message
-        await verifySavedMessage(page);
+        await teamSettings.verifySavedMessage();
 
         // * Verify domain was saved via API
-        await page.waitForTimeout(1000);
         const updatedTeam = await adminClient.getTeam(team.id);
         expect(updatedTeam.allowed_domains).toContain(testDomain);
 
         // # Remove the added domain
-        await removeAllowedDomain(page, testDomain);
-        await page.waitForTimeout(500);
+        await accessSettings.removeDomain(testDomain);
 
         // # Save changes
-        await saveTeamSettings(page);
-        await verifySavedMessage(page);
+        await teamSettings.save();
+        await teamSettings.verifySavedMessage();
 
         // * Verify domain was removed via API
-        await page.waitForTimeout(1000);
         const finalTeam = await adminClient.getTeam(team.id);
         expect(finalTeam.allowed_domains).not.toContain(testDomain);
 
         // # Close modal
-        await closeTeamSettingsModal(page);
+        await teamSettings.close();
     });
 
     /**
@@ -454,60 +399,54 @@ test.describe('Team Settings Modal - Complete Test Suite', () => {
         // # Set up admin user and login
         const {adminUser, adminClient, team} = await pw.initSetup();
         const {page} = await pw.testBrowser.login(adminUser);
+        const channelsPage = new ChannelsPage(page);
 
         // Get original allow_open_invite state
         const originalTeam = await adminClient.getTeam(team.id);
         const originalAllowOpenInvite = originalTeam.allow_open_invite ?? false;
 
         // # Navigate to team
-        await page.goto(`/${team.name}`);
+        await channelsPage.goto(team.name);
         await page.waitForLoadState('networkidle');
 
         // # Open Team Settings Modal
-        await openTeamSettingsModal(page);
+        const teamSettings = await channelsPage.openTeamSettings();
 
         // # Switch to Access tab
-        await switchToTab(page, 'access');
+        const accessSettings = await teamSettings.openAccessTab();
 
         // * Verify Access tab is active
-        const accessTabActive = await verifyTabActive(page, 'access');
-        expect(accessTabActive).toBe(true);
+        await expect(teamSettings.accessTab).toHaveAttribute('aria-selected', 'true');
 
         // # Toggle allow open invite checkbox
-        const allowOpenInviteCheckbox = page.locator('input[name="allowOpenInvite"]');
-        await allowOpenInviteCheckbox.click();
-        await page.waitForTimeout(500);
+        await accessSettings.toggleOpenInvite();
 
         // * Verify Save panel appears
-        const saveButton = page.locator('button[data-testid="SaveChangesPanel__save-btn"]');
-        await expect(saveButton).toBeVisible();
+        await expect(teamSettings.saveButton).toBeVisible();
 
         // # Save changes
-        await saveTeamSettings(page);
+        await teamSettings.save();
 
         // * Wait for "Settings saved" message
-        await verifySavedMessage(page);
+        await teamSettings.verifySavedMessage();
 
         // * Verify setting toggled via API
-        await page.waitForTimeout(1000);
         const updatedTeam = await adminClient.getTeam(team.id);
         expect(updatedTeam.allow_open_invite).toBe(!originalAllowOpenInvite);
 
         // # Toggle back to original state
-        await allowOpenInviteCheckbox.click();
-        await page.waitForTimeout(500);
+        await accessSettings.toggleOpenInvite();
 
         // # Save changes
-        await saveTeamSettings(page);
-        await verifySavedMessage(page);
+        await teamSettings.save();
+        await teamSettings.verifySavedMessage();
 
         // * Verify reverted to original state via API
-        await page.waitForTimeout(1000);
         const finalTeam = await adminClient.getTeam(team.id);
         expect(finalTeam.allow_open_invite).toBe(originalAllowOpenInvite);
 
         // # Close modal
-        await closeTeamSettingsModal(page);
+        await teamSettings.close();
     });
 
     /**
@@ -518,28 +457,26 @@ test.describe('Team Settings Modal - Complete Test Suite', () => {
         // # Set up admin user and login
         const {adminUser, adminClient, team} = await pw.initSetup();
         const {page} = await pw.testBrowser.login(adminUser);
+        const channelsPage = new ChannelsPage(page);
 
         // Get original invite ID
         const originalInviteId = team.invite_id;
 
         // # Navigate to team
-        await page.goto(`/${team.name}`);
+        await channelsPage.goto(team.name);
         await page.waitForLoadState('networkidle');
 
         // # Open Team Settings Modal
-        await openTeamSettingsModal(page);
+        const teamSettings = await channelsPage.openTeamSettings();
 
         // # Switch to Access tab
-        await switchToTab(page, 'access');
+        const accessSettings = await teamSettings.openAccessTab();
 
         // * Verify Access tab is active
-        const accessTabActive = await verifyTabActive(page, 'access');
-        expect(accessTabActive).toBe(true);
+        await expect(teamSettings.accessTab).toHaveAttribute('aria-selected', 'true');
 
         // # Click regenerate button
-        const regenerateButton = page.locator('button[data-testid="regenerateButton"]');
-        await regenerateButton.click();
-        await page.waitForTimeout(1000);
+        await accessSettings.regenerateInviteId();
 
         // * Verify invite ID changed via API
         const updatedTeam = await adminClient.getTeam(team.id);
@@ -547,6 +484,6 @@ test.describe('Team Settings Modal - Complete Test Suite', () => {
         expect(updatedTeam.invite_id).toBeTruthy();
 
         // # Close modal
-        await closeTeamSettingsModal(page);
+        await teamSettings.close();
     });
 });

@@ -100,8 +100,6 @@ const InfoTab = ({team, areThereUnsavedChanges, maxFileSize, showTabSwitchError,
         setSaveChangesPanelState('saved');
         setShowTabSwitchError(false);
 
-        // CRITICAL FIX: Set areThereUnsavedChanges to false immediately after save
-        // This replaces the justSaved flag pattern and allows modal to close immediately
         setAreThereUnsavedChanges(false);
     }, [handleNameDescriptionSubmit, handleTeamIconSubmit, setShowTabSwitchError, setAreThereUnsavedChanges]);
 
@@ -167,8 +165,6 @@ const InfoTab = ({team, areThereUnsavedChanges, maxFileSize, showTabSwitchError,
         setDescription(description);
     }, [setAreThereUnsavedChanges]);
 
-    // CRITICAL FIX: Removed inner modal header with close/collapse buttons
-    // GenericModal provides its own header and close button
     return (
         <div
             className='modal-info-tab-content user-settings'

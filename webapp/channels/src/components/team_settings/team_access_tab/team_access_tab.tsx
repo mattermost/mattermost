@@ -83,13 +83,10 @@ const AccessTab = ({showTabSwitchError, areThereUnsavedChanges, setShowTabSwitch
         setSaveChangesPanelState('saved');
         setShowTabSwitchError(false);
 
-        // CRITICAL FIX: Set areThereUnsavedChanges to false immediately after save
-        // This replaces the justSaved flag pattern and allows modal to close immediately
+        // allows modal to close immediately
         setAreThereUnsavedChanges(false);
     }, [handleAllowedDomainsSubmit, handleOpenInviteSubmit, setShowTabSwitchError, setAreThereUnsavedChanges]);
 
-    // CRITICAL FIX: Removed inner modal header with close/collapse buttons and ModalSection wrapper
-    // GenericModal provides its own header and close button
     return (
         <div
             className='modal-access-tab-content user-settings'
