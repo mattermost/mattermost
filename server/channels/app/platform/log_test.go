@@ -191,6 +191,7 @@ func TestGetLogsSkipSendPathValidation(t *testing.T) {
 	mainHelper.Parallel(t)
 
 	th := Setup(t)
+	defer th.TearDown()
 
 	t.Run("path validation prevents reading files outside log directory", func(t *testing.T) {
 		// Create a directory to use as the allowed log root
