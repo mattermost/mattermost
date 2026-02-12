@@ -153,3 +153,8 @@ export type GetFilteredUsersStatsOpts = {
 export type AuthChangeResponse = {
     follow_link: string;
 };
+
+export type UserAuthUpdate = {
+    auth_data?: string;
+    auth_service?: string;
+};
