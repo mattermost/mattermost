@@ -68,8 +68,8 @@
     &.channelBookmarksDotMenuButton--overflow {
         width: 32px;
         height: 32px;
-        border-radius: 4px;
         justify-content: center;
+        border-radius: 4px;
     }
 }
 
@@ -82,15 +82,15 @@
 .channelBookmarksBarMenuButton {
     display: flex;
     align-items: center;
-    gap: 4px;
     padding: 4px;
-    border-radius: 4px;
     border: none;
+    border-radius: 4px;
     background: transparent;
     color: rgba(var(--center-channel-color-rgb), 0.56);
+    cursor: pointer;
     font-size: 12px;
     font-weight: 600;
-    cursor: pointer;
+    gap: 4px;
     transition: background-color 150ms ease;
 
     &.withLabel {
@@ -114,8 +114,8 @@
     }
 
     &:disabled {
-        opacity: 0.5;
         cursor: not-allowed;
+        opacity: 0.5;
     }
 }
 
@@ -128,14 +128,14 @@
     padding-bottom: 2px;
 
     > .label-elements {
-        flex: 1 1 0px !important;
-        min-width: 0;
         overflow: hidden;
+        min-width: 0;
+        flex: 1 1 0px !important;
 
         > span {
             display: block;
-            max-width: 100%;
             overflow: hidden;
+            max-width: 100%;
             text-overflow: ellipsis;
             white-space: nowrap;
         }
