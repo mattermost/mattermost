@@ -117,25 +117,25 @@ export function registerInfoCommand(program: Command): void {
             console.log(chalk.cyan('\nExamples:'));
             console.log(chalk.cyan('========='));
             console.log(
-                '  mattermost-testcontainers start                           # Start with defaults (enterprise)',
+                '  npx @mattermost/testcontainers start                           # Start with defaults (enterprise)',
             );
-            console.log('  mattermost-testcontainers start -D minio,elasticsearch    # Add dependencies');
-            console.log('  mattermost-testcontainers start -t release-11.4           # Specific tag');
-            console.log('  mattermost-testcontainers start -e team                   # Team edition');
-            console.log('  mattermost-testcontainers start -e fips                   # FIPS edition');
-            console.log('  mattermost-testcontainers start --ha                      # HA cluster');
-            console.log('  mattermost-testcontainers start --subpath                 # Subpath mode');
+            console.log('  npx @mattermost/testcontainers start -D minio,elasticsearch    # Add dependencies');
+            console.log('  npx @mattermost/testcontainers start -t release-11.4           # Specific tag');
+            console.log('  npx @mattermost/testcontainers start -e team                   # Team edition');
+            console.log('  npx @mattermost/testcontainers start -e fips                   # FIPS edition');
+            console.log('  npx @mattermost/testcontainers start --ha                      # HA cluster');
+            console.log('  npx @mattermost/testcontainers start --subpath                 # Subpath mode');
             console.log(
-                '  mattermost-testcontainers start --entry                   # Entry tier (ignores MM_LICENSE)',
+                '  npx @mattermost/testcontainers start --entry                   # Entry tier (ignores MM_LICENSE)',
             );
-            console.log('  mattermost-testcontainers start --admin                   # Create admin user');
-            console.log('  mattermost-testcontainers start --deps-only               # Dependencies only');
-            console.log('  mattermost-testcontainers start -S production             # Production env');
-            console.log('  mattermost-testcontainers start -E KEY=value              # Pass env var');
-            console.log('  mattermost-testcontainers restart                         # Restart all containers');
-            console.log('  mattermost-testcontainers upgrade -t release-11.5         # Upgrade to new tag');
-            console.log('  mattermost-testcontainers stop                            # Stop all containers');
-            console.log('  mattermost-testcontainers rm                              # Remove session containers');
-            console.log('  mattermost-testcontainers rm-all                          # Remove ALL testcontainers');
+            console.log('  npx @mattermost/testcontainers start --admin                   # Create admin user');
+            console.log('  npx @mattermost/testcontainers start --deps-only               # Dependencies only');
+            console.log('  npx @mattermost/testcontainers start -S production             # Production env');
+            console.log('  npx @mattermost/testcontainers start -E KEY=value              # Pass env var');
+            console.log('  npx @mattermost/testcontainers restart                         # Restart all containers');
+            console.log('  npx @mattermost/testcontainers upgrade -t release-11.5         # Upgrade to new tag');
+            console.log('  npx @mattermost/testcontainers stop                            # Stop all containers');
+            console.log('  npx @mattermost/testcontainers rm                              # Remove session containers');
+            console.log('  npx @mattermost/testcontainers rm-all                          # Remove ALL testcontainers');
         });
 }

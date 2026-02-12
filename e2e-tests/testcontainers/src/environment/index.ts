@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 // Disable Ryuk (testcontainers cleanup container) so containers persist after CLI exits.
-// Containers should only be cleaned up via `mattermost-testcontainers stop`.
+// Containers should only be cleaned up via `npx @mattermost/testcontainers stop`.
 process.env.TESTCONTAINERS_RYUK_DISABLED = 'true';
 
 import {Network, StartedNetwork, StartedTestContainer} from 'testcontainers';

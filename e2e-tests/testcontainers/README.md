@@ -24,7 +24,7 @@ npx @mattermost/testcontainers start
 Start a Mattermost server with PostgreSQL and Inbucket (email):
 
 ```bash
-mattermost-testcontainers start
+npx @mattermost/testcontainers start
 ```
 
 This starts three containers on a shared Docker network, waits for health checks, configures default test settings via mmctl, and prints connection info:
@@ -40,7 +40,7 @@ Inbucket:        http://localhost:34016
 Stop everything:
 
 ```bash
-mattermost-testcontainers stop
+npx @mattermost/testcontainers stop
 ```
 
 ## CLI Commands
@@ -50,7 +50,7 @@ mattermost-testcontainers stop
 Start the test environment.
 
 ```bash
-mattermost-testcontainers start [options]
+npx @mattermost/testcontainers start [options]
 ```
 
 | Option                    | Description                                                                                                                                                              |
@@ -76,7 +76,7 @@ mattermost-testcontainers start [options]
 Stop all containers from the current session.
 
 ```bash
-mattermost-testcontainers stop
+npx @mattermost/testcontainers stop
 ```
 
 ### `restart`
@@ -84,7 +84,7 @@ mattermost-testcontainers stop
 Restart all containers. Stops Mattermost first, restarts dependencies, waits for readiness, then starts Mattermost.
 
 ```bash
-mattermost-testcontainers restart
+npx @mattermost/testcontainers restart
 ```
 
 ### `rm`
@@ -92,7 +92,7 @@ mattermost-testcontainers restart
 Stop and remove containers from the current session.
 
 ```bash
-mattermost-testcontainers rm [-y]
+npx @mattermost/testcontainers rm [-y]
 ```
 
 ### `rm-all`
@@ -100,7 +100,7 @@ mattermost-testcontainers rm [-y]
 Remove **all** testcontainers resources (finds containers and networks with the `org.testcontainers=true` Docker label).
 
 ```bash
-mattermost-testcontainers rm-all [-y]
+npx @mattermost/testcontainers rm-all [-y]
 ```
 
 ### `upgrade`
@@ -108,7 +108,7 @@ mattermost-testcontainers rm-all [-y]
 Upgrade Mattermost to a new image tag in-place (preserves network, ports, environment).
 
 ```bash
-mattermost-testcontainers upgrade -t release-11.5
+npx @mattermost/testcontainers upgrade -t release-11.5
 ```
 
 ### `info`
@@ -116,7 +116,7 @@ mattermost-testcontainers upgrade -t release-11.5
 Display available dependencies, configuration options, and examples.
 
 ```bash
-mattermost-testcontainers info
+npx @mattermost/testcontainers info
 ```
 
 ## CLI Examples
@@ -125,35 +125,35 @@ mattermost-testcontainers info
 
 ```bash
 # Default enterprise edition, master tag
-mattermost-testcontainers start
+npx @mattermost/testcontainers start
 
 # Specific version
-mattermost-testcontainers start -t release-11.4
+npx @mattermost/testcontainers start -t release-11.4
 
 # Team edition
-mattermost-testcontainers start -e team -t release-11.4
+npx @mattermost/testcontainers start -e team -t release-11.4
 
 # ESR version (currently 10.11)
-mattermost-testcontainers start --esr
+npx @mattermost/testcontainers start --esr
 
 # With admin user
-mattermost-testcontainers start --admin sysadmin --admin-password 'Sys@dmin-sample1'
+npx @mattermost/testcontainers start --admin sysadmin --admin-password 'Sys@dmin-sample1'
 ```
 
 ### With Additional Dependencies
 
 ```bash
 # Add LDAP
-mattermost-testcontainers start -D openldap
+npx @mattermost/testcontainers start -D openldap
 
 # Add S3 storage and search
-mattermost-testcontainers start -D minio,elasticsearch
+npx @mattermost/testcontainers start -D minio,elasticsearch
 
 # Full stack (requires MM_LICENSE)
-mattermost-testcontainers start -D openldap,minio,elasticsearch,redis,keycloak
+npx @mattermost/testcontainers start -D openldap,minio,elasticsearch,redis,keycloak
 
 # Monitoring stack
-mattermost-testcontainers start -D prometheus,grafana,loki,promtail
+npx @mattermost/testcontainers start -D prometheus,grafana,loki,promtail
 ```
 
 ### HA Mode (3-Node Cluster)
@@ -164,10 +164,10 @@ Requires `MM_LICENSE` environment variable.
 export MM_LICENSE="your-license-string"
 
 # HA cluster with nginx load balancer
-mattermost-testcontainers start --ha
+npx @mattermost/testcontainers start --ha
 
 # HA with dependencies
-mattermost-testcontainers start --ha -D minio,elasticsearch,redis
+npx @mattermost/testcontainers start --ha -D minio,elasticsearch,redis
 ```
 
 Output:
@@ -186,16 +186,16 @@ Two independent servers behind a single nginx reverse proxy. Server 1 (`/matterm
 
 ```bash
 # Basic subpath
-mattermost-testcontainers start --subpath
+npx @mattermost/testcontainers start --subpath
 
 # Subpath with admin on server1 only
-mattermost-testcontainers start --subpath --admin
+npx @mattermost/testcontainers start --subpath --admin
 
 # Subpath with HA server1 (requires MM_LICENSE)
-mattermost-testcontainers start --subpath --ha
+npx @mattermost/testcontainers start --subpath --ha
 
 # Subpath with dependencies on server1
-mattermost-testcontainers start --subpath -D minio,openldap
+npx @mattermost/testcontainers start --subpath -D minio,openldap
 ```
 
 Output:
@@ -213,7 +213,7 @@ Mattermost:      http://localhost:34063 (nginx with subpaths)
 Start only the dependencies and run Mattermost locally:
 
 ```bash
-mattermost-testcontainers start --deps-only
+npx @mattermost/testcontainers start --deps-only
 
 # Source the generated env file, then run your local server
 source .tc.out/.env.tc
@@ -224,15 +224,15 @@ make run-server
 
 ```bash
 # Set feature flags
-mattermost-testcontainers start -E MM_FEATUREFLAGS_MOVETHREADSENABLED=true
+npx @mattermost/testcontainers start -E MM_FEATUREFLAGS_MOVETHREADSENABLED=true
 
 # Multiple env vars
-mattermost-testcontainers start \
+npx @mattermost/testcontainers start \
   -E MM_SERVICESETTINGS_ENABLEOPENSERVER=false \
   -E MM_TEAMSETTINGS_MAXUSERSPERTEAM=50
 
 # From env file
-mattermost-testcontainers start --env-file ./test.env
+npx @mattermost/testcontainers start --env-file ./test.env
 ```
 
 ## Configuration File
@@ -391,8 +391,8 @@ Start the environment as a separate process before running tests. The CLI writes
 ```json
 {
     "scripts": {
-        "test:setup": "mattermost-testcontainers start --admin",
-        "test:teardown": "mattermost-testcontainers stop",
+        "test:setup": "npx @mattermost/testcontainers start --admin",
+        "test:teardown": "npx @mattermost/testcontainers stop",
         "test:run": "cypress run",
         "test": "npm run test:setup && npm run test:run; npm run test:teardown"
     }
@@ -427,7 +427,7 @@ export default defineConfig({
 
 ```bash
 # Start environment
-mattermost-testcontainers start --admin
+npx @mattermost/testcontainers start --admin
 
 # Source environment variables
 source .tc.out/.env.tc

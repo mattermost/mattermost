@@ -185,7 +185,7 @@ function generateSubpathLandingPage(): string {
     <strong>Test Environment Info:</strong><br><br>
     This environment runs two independent Mattermost servers behind an nginx reverse proxy.
     Each server has its own database and can be accessed via its subpath.<br><br>
-    Use <code>mattermost-testcontainers stop</code> to stop all containers.
+    Use <code>npx @mattermost/testcontainers stop</code> to stop all containers.
   </div>
 </body>
 </html>`;

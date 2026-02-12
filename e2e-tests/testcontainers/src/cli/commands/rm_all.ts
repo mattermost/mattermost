@@ -53,7 +53,7 @@ export function registerRmAllCommand(program: Command): Command {
         .option('-o, --output-dir <dir>', 'Output directory to remove', DEFAULT_OUTPUT_DIR)
         .option('-y, --yes', 'Skip confirmation prompt')
         .action(async (command, options: RmAllOptions) => {
-            // Handle "mattermost-testcontainers rm-all help"
+            // Handle "npx @mattermost/testcontainers rm-all help"
             if (command === 'help') {
                 rmAllCommand.help();
                 return;

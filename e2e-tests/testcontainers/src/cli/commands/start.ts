@@ -69,7 +69,7 @@ export function registerStartCommand(program: Command): Command {
             DEFAULT_OUTPUT_DIR,
         )
         .action(async (command, options: StartOptions) => {
-            // Handle "mattermost-testcontainers start help"
+            // Handle "npx @mattermost/testcontainers start help"
             if (command === 'help') {
                 startCommand.help();
                 return;
@@ -181,10 +181,10 @@ async function executeStartCommand(options: StartOptions): Promise<void> {
                     }
 
                     console.log(chalk.gray('\nCommands:'));
-                    console.log(chalk.gray('  mattermost-testcontainers restart    # Restart all containers'));
-                    console.log(chalk.gray('  mattermost-testcontainers upgrade    # Upgrade mattermost to new tag'));
+                    console.log(chalk.gray('  npx @mattermost/testcontainers restart    # Restart all containers'));
+                    console.log(chalk.gray('  npx @mattermost/testcontainers upgrade    # Upgrade mattermost to new tag'));
                     console.log(
-                        chalk.gray('  mattermost-testcontainers rm         # Remove containers and start fresh'),
+                        chalk.gray('  npx @mattermost/testcontainers rm         # Remove containers and start fresh'),
                     );
                     process.exit(0);
                 } else if (stoppedCount > 0) {
@@ -193,9 +193,9 @@ async function executeStartCommand(options: StartOptions): Promise<void> {
                         console.log(`  ${name}: ${chalk.gray('stopped')}`);
                     }
                     console.log(chalk.gray('\nCommands:'));
-                    console.log(chalk.gray('  mattermost-testcontainers restart    # Restart all containers'));
+                    console.log(chalk.gray('  npx @mattermost/testcontainers restart    # Restart all containers'));
                     console.log(
-                        chalk.gray('  mattermost-testcontainers rm         # Remove containers and start fresh'),
+                        chalk.gray('  npx @mattermost/testcontainers rm         # Remove containers and start fresh'),
                     );
                     process.exit(0);
                 }
@@ -464,7 +464,7 @@ async function executeStartCommand(options: StartOptions): Promise<void> {
 
         console.log(
             chalk.gray(
-                '\nContainers are running. Use `mattermost-testcontainers stop` to stop or `mattermost-testcontainers rm` to remove.',
+                '\nContainers are running. Use `npx @mattermost/testcontainers stop` to stop or `npx @mattermost/testcontainers rm` to remove.',
             ),
         );
     } catch (error) {

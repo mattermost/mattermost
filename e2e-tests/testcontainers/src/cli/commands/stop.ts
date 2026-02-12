@@ -21,7 +21,7 @@ export function registerStopCommand(program: Command): Command {
         .argument('[command]', 'Use "help" to show help')
         .option('-o, --output-dir <dir>', 'Output directory containing .tc.docker.json', DEFAULT_OUTPUT_DIR)
         .action(async (command, options: OutputDirOptions) => {
-            // Handle "mattermost-testcontainers stop help"
+            // Handle "npx @mattermost/testcontainers stop help"
             if (command === 'help') {
                 stopCommand.help();
                 return;

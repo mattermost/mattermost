@@ -46,7 +46,7 @@ export function registerRmCommand(program: Command): Command {
         .option('-o, --output-dir <dir>', 'Output directory containing .tc.docker.json', DEFAULT_OUTPUT_DIR)
         .option('-y, --yes', 'Skip confirmation prompt')
         .action(async (command, options: RmOptions) => {
-            // Handle "mattermost-testcontainers rm help"
+            // Handle "npx @mattermost/testcontainers rm help"
             if (command === 'help') {
                 rmCommand.help();
                 return;
