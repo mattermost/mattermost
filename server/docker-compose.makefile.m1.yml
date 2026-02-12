@@ -1,6 +1,5 @@
 services:
   elasticsearch:
-    image: "mattermostdevelopment/mattermost-elasticsearch:8.9.0"
     platform: linux/arm64/v8
     restart: 'no'
     container_name: mattermost-elasticsearch
