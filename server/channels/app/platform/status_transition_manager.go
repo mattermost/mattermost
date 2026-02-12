@@ -36,6 +36,7 @@ type StatusTransitionOptions struct {
 	ChannelID    string                 // Active channel (if applicable)
 	WindowActive bool                   // Is the user's window active?
 	DNDEndTime   int64                  // For timed DND (seconds, not milliseconds)
+	Source       string                 // Calling function name for logging (e.g., "SetStatusOnline")
 }
 
 // StatusTransitionResult contains the outcome of a transition attempt
@@ -241,7 +242,11 @@ func (m *StatusTransitionManager) saveAndBroadcast(status *model.Status, oldStat
 	}
 
 	reason := m.mapTransitionReasonToLogReason(opts.Reason, oldStatus, status.Status)
-	m.ps.LogStatusChange(status.UserId, username, oldStatus, status.Status, reason, opts.Device, opts.WindowActive, opts.ChannelID, opts.Manual, "StatusTransitionManager", status.LastActivityAt)
+	source := opts.Source
+	if source == "" {
+		source = "StatusTransitionManager" // Fallback if no source provided
+	}
+	m.ps.LogStatusChange(status.UserId, username, oldStatus, status.Status, reason, opts.Device, opts.WindowActive, opts.ChannelID, opts.Manual, source, status.LastActivityAt)
 }
 
 // mapTransitionReasonToLogReason converts transition reason to log reason constant

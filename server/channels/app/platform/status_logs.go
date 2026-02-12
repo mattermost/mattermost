@@ -496,6 +496,7 @@ func (ps *PlatformService) CheckInactivityTimeouts() {
 			Reason:    TransitionReasonInactivity,
 			Manual:    false,
 			Force:     true, // AccurateStatuses overrides manual status protection
+			Source:    "CheckInactivityTimeouts",
 		})
 
 		if result.Changed {
@@ -548,6 +549,7 @@ func (ps *PlatformService) CheckDNDTimeouts() {
 			NewStatus: model.StatusOffline,
 			Reason:    TransitionReasonDNDInactivity,
 			Manual:    false,
+			Source:    "CheckDNDTimeouts",
 		})
 
 		if result.Changed {

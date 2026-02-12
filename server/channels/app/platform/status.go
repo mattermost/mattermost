@@ -707,6 +707,7 @@ func (ps *PlatformService) SetStatusOnline(userID string, manual bool, device st
 			Reason:    TransitionReasonConnect,
 			Manual:    manual,
 			Device:    device,
+			Source:    "SetStatusOnline",
 		})
 		return
 	}
@@ -800,6 +801,7 @@ func (ps *PlatformService) SetStatusOffline(userID string, manual bool, force bo
 			Manual:    manual,
 			Force:     force,
 			Device:    device,
+			Source:    "SetStatusOffline",
 		})
 		return
 	}
@@ -995,6 +997,7 @@ func (ps *PlatformService) SetStatusAwayIfNeeded(userID string, manual bool) {
 			Reason:    TransitionReasonInactivity,
 			Manual:    manual,
 			Force:     true, // AccurateStatuses overrides manual status protection
+			Source:    "SetStatusAwayIfNeeded",
 		})
 		return
 	}
@@ -1069,6 +1072,7 @@ func (ps *PlatformService) SetStatusDoNotDisturbTimed(userID string, endtime int
 			Reason:     TransitionReasonManual,
 			Manual:     true,
 			DNDEndTime: truncateDNDEndTime(endtime),
+			Source:     "SetStatusDoNotDisturbTimed",
 		})
 		return
 	}
@@ -1126,6 +1130,7 @@ func (ps *PlatformService) SetStatusDoNotDisturb(userID string) {
 			NewStatus: model.StatusDnd,
 			Reason:    TransitionReasonManual,
 			Manual:    true,
+			Source:    "SetStatusDoNotDisturb",
 		})
 		return
 	}
@@ -1167,6 +1172,7 @@ func (ps *PlatformService) SetStatusOutOfOffice(userID string) {
 			NewStatus: model.StatusOutOfOffice,
 			Reason:    TransitionReasonManual,
 			Manual:    true,
+			Source:    "SetStatusOutOfOffice",
 		})
 		return
 	}
