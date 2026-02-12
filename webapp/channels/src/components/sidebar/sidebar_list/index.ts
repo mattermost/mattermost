@@ -5,11 +5,16 @@ import {connect} from 'react-redux';
 import {bindActionCreators} from 'redux';
 import type {Dispatch} from 'redux';
 
+import type {ChannelCategory} from '@mattermost/types/channel_categories';
+import {CategorySorting} from '@mattermost/types/channel_categories';
+
 import {moveCategory} from 'mattermost-redux/actions/channel_categories';
 import {CategoryTypes} from 'mattermost-redux/constants/channel_categories';
-import {getCurrentChannelId, getUnreadChannelIds, getMyChannelMemberships} from 'mattermost-redux/selectors/entities/channels';
+import {getCurrentChannelId, getUnreadChannelIds, getMyChannelMemberships, getAllChannels} from 'mattermost-redux/selectors/entities/channels';
+import {getCurrentUserId} from 'mattermost-redux/selectors/entities/common';
+import {getConfig} from 'mattermost-redux/selectors/entities/general';
 import {shouldShowUnreadsCategory, isCollapsedThreadsEnabled} from 'mattermost-redux/selectors/entities/preferences';
-import {getCurrentTeam} from 'mattermost-redux/selectors/entities/teams';
+import {getCurrentTeam, getCurrentTeamId} from 'mattermost-redux/selectors/entities/teams';
 import {getThreadCountsInCurrentTeam} from 'mattermost-redux/selectors/entities/threads';
 
 import {switchToChannelById} from 'actions/views/channel';
@@ -46,6 +51,8 @@ function mapStateToProps(state: GlobalState) {
 
     const isSynced = getShouldSync(state);
     const personalCategories = getCategoriesForCurrentTeam(state);
+    const config = getConfig(state);
+    const isChannelSyncEnabled = config.FeatureFlagChannelSync === 'true';
 
     let categories;
     if (isSynced) {
@@ -57,6 +64,36 @@ function mapStateToProps(state: GlobalState) {
         } else {
             categories = personalCategories;
         }
+    } else if (isChannelSyncEnabled) {
+        // ChannelSync enabled but no layout yet — show all team channels alphabetically
+        const teamId = getCurrentTeamId(state);
+        const userId = getCurrentUserId(state);
+        const memberships = getMyChannelMemberships(state);
+        const allChannels = getAllChannels(state);
+        const teamChannelIds = Object.keys(memberships)
+            .filter((chId) => {
+                const ch = allChannels[chId];
+                return ch && ch.team_id === teamId && ch.type !== 'D' && ch.type !== 'G';
+            })
+            .sort((a, b) => {
+                const chA = allChannels[a];
+                const chB = allChannels[b];
+                return (chA?.display_name || '').localeCompare(chB?.display_name || '');
+            });
+
+        const channelsCat: ChannelCategory = {
+            id: 'sync-all-channels',
+            user_id: userId,
+            team_id: teamId,
+            type: CategoryTypes.CUSTOM,
+            display_name: 'Channels',
+            sorting: CategorySorting.Manual,
+            channel_ids: teamChannelIds,
+            muted: false,
+            collapsed: false,
+        };
+        const dmCat = personalCategories.find((c) => c.type === CategoryTypes.DIRECT_MESSAGES);
+        categories = dmCat ? [channelsCat, dmCat] : [channelsCat];
     } else {
         categories = personalCategories;
     }

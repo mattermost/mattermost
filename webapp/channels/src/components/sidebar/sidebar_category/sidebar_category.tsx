@@ -346,7 +346,7 @@ export default class SidebarCategory extends React.PureComponent<Props, State> {
                     }
 
                     let addChannelsCtaButton = null;
-                    if (category.type === 'channels' && !category.collapsed) {
+                    if (category.type === 'channels' && !category.collapsed && !this.props.isSynced) {
                         addChannelsCtaButton = (
                             <AddChannelsCtaButton/>
                         );
