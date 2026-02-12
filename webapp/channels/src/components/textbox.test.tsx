@@ -27,6 +27,7 @@ describe('components/TextBox', () => {
             autocompleteUsersInChannel: jest.fn(),
             autocompleteChannels: jest.fn(),
             searchAssociatedGroupsForReference: jest.fn(),
+            fetchAgents: jest.fn(),
         },
         useChannelMentions: true,
         tabIndex: 0,

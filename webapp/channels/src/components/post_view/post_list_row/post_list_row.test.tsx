@@ -42,6 +42,7 @@ describe('components/post_view/post_list_row', () => {
         currentUserId: 'user_id_1',
         newMessagesSeparatorActions: [],
         channelId: 'channel_id_1',
+        isChannelAutotranslated: false,
     };
 
     test('should render more messages loading indicator', () => {

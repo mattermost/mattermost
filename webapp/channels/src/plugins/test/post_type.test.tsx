@@ -33,6 +33,8 @@ describe('plugins/PostMessageView', () => {
         theme: Preferences.THEMES.denim,
         enableFormatting: true,
         currentRelativeTeamUrl: 'team_url',
+        isChannelAutotranslated: false,
+        userLanguage: 'en',
     };
 
     test('should match snapshot with extended post type', () => {
