@@ -4,6 +4,9 @@ on:
   push:
     tags:
       - 'v*-custom.*'
+  pull_request:
+    branches:
+      - master
   workflow_dispatch:
 
 permissions:
