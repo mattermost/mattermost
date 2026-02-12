@@ -2069,6 +2069,13 @@ export default class Client4 {
         );
     };
 
+    getPersonalChannelCategories = (userId: string, teamId: string) => {
+        return this.doFetch<OrderedChannelCategories>(
+            `${this.getChannelCategoriesRoute(userId, teamId)}?personal=true`,
+            {method: 'get'},
+        );
+    };
+
     createChannelCategory = (userId: string, teamId: string, category: Partial<ChannelCategory>) => {
         return this.doFetch<ChannelCategory>(
             `${this.getChannelCategoriesRoute(userId, teamId)}`,

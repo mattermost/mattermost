@@ -6,10 +6,9 @@ import {fetchMyCategories} from 'mattermost-redux/actions/channel_categories';
 import {getChannel as fetchChannel} from 'mattermost-redux/actions/channels';
 import {CategoryTypes} from 'mattermost-redux/constants/channel_categories';
 import {getChannel} from 'mattermost-redux/selectors/entities/channels';
+import {getCurrentUserId} from 'mattermost-redux/selectors/entities/common';
 import {getCurrentTeamId} from 'mattermost-redux/selectors/entities/teams';
 import {generateId} from 'mattermost-redux/utils/helpers';
-
-import {getCategoriesForCurrentTeam} from 'selectors/views/channel_sidebar';
 
 import {ActionTypes} from 'utils/constants';
 
@@ -283,17 +282,19 @@ export function removeCategoryFromCanonicalLayout(categoryId: string): ActionFun
     };
 }
 
-export function importPersonalLayoutToCanonical(): ActionFunc {
-    return (dispatch, getState) => {
+export function importPersonalLayoutToCanonical(): ActionFuncAsync {
+    return async (dispatch, getState) => {
         const state = getState();
         const teamId = getCurrentTeamId(state);
-        const personalCategories = getCategoriesForCurrentTeam(state);
+        const userId = getCurrentUserId(state);
         const editorChannels = state.views.channelSync?.editorChannelsByTeam?.[teamId] ?? [];
         const editorChannelIds = new Set(editorChannels.map((ch: {id: string}) => ch.id));
 
-        const categories = personalCategories
+        // Fetch personal categories from API (bypasses sync override via ?personal=true)
+        const personalData = await Client4.getPersonalChannelCategories(userId, teamId);
+
+        const categories = (personalData.categories || [])
             .filter((cat) => {
-                // Exclude DM and empty Favorites
                 if (cat.type === CategoryTypes.DIRECT_MESSAGES) {
                     return false;
                 }

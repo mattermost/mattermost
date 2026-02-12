@@ -28,8 +28,9 @@ func getCategoriesForTeamForUser(c *Context, w http.ResponseWriter, r *http.Requ
 	}
 
 	// ChannelSync override: if enabled and user should be synced,
-	// return the synced view instead of personal categories
-	if c.App.IsChannelSyncEnabled() {
+	// return the synced view instead of personal categories.
+	// The ?personal=true query param bypasses this (used by layout import).
+	if r.URL.Query().Get("personal") != "true" && c.App.IsChannelSyncEnabled() {
 		shouldSync, syncErr := c.App.ShouldSyncUser(c.AppContext, c.Params.UserId, c.Params.TeamId)
 		if syncErr == nil && shouldSync {
 			state, stateErr := c.App.GetSyncedCategoriesForUser(c.AppContext, c.Params.UserId, c.Params.TeamId)
