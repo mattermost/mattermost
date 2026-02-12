@@ -836,22 +836,6 @@ func (s *TimerLayerAutoTranslationStore) GetActiveDestinationLanguages(channelID
 	return result, err
 }
 
-func (s *TimerLayerAutoTranslationStore) GetAllByStatePage(state model.TranslationState, offset int, limit int) ([]*model.Translation, error) {
-	start := time.Now()
-
-	result, err := s.AutoTranslationStore.GetAllByStatePage(state, offset, limit)
-
-	elapsed := float64(time.Since(start)) / float64(time.Second)
-	if s.Root.Metrics != nil {
-		success := "false"
-		if err == nil {
-			success = "true"
-		}
-		s.Root.Metrics.ObserveStoreMethodDuration("AutoTranslationStore.GetAllByStatePage", success, elapsed)
-	}
-	return result, err
-}
-
 func (s *TimerLayerAutoTranslationStore) GetAllForObject(objectType string, objectID string) ([]*model.Translation, error) {
 	start := time.Now()
 
@@ -900,6 +884,22 @@ func (s *TimerLayerAutoTranslationStore) GetByStateOlderThan(state model.Transla
 	return result, err
 }
 
+func (s *TimerLayerAutoTranslationStore) GetLatestPostUpdateAtForChannel(channelID string) (int64, error) {
+	start := time.Now()
+
+	result, err := s.AutoTranslationStore.GetLatestPostUpdateAtForChannel(channelID)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("AutoTranslationStore.GetLatestPostUpdateAtForChannel", success, elapsed)
+	}
+	return result, err
+}
+
 func (s *TimerLayerAutoTranslationStore) GetUserLanguage(userID string, channelID string) (string, error) {
 	start := time.Now()
 
@@ -914,6 +914,21 @@ func (s *TimerLayerAutoTranslationStore) GetUserLanguage(userID string, channelI
 		s.Root.Metrics.ObserveStoreMethodDuration("AutoTranslationStore.GetUserLanguage", success, elapsed)
 	}
 	return result, err
+}
+
+func (s *TimerLayerAutoTranslationStore) InvalidatePostTranslationEtag(channelID string) {
+	start := time.Now()
+
+	s.AutoTranslationStore.InvalidatePostTranslationEtag(channelID)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if true {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("AutoTranslationStore.InvalidatePostTranslationEtag", success, elapsed)
+	}
 }
 
 func (s *TimerLayerAutoTranslationStore) InvalidateUserAutoTranslation(userID string, channelID string) {
@@ -6500,10 +6515,10 @@ func (s *TimerLayerPostStore) GetEditHistoryForPost(postID string) ([]*model.Pos
 	return result, err
 }
 
-func (s *TimerLayerPostStore) GetEtag(channelID string, allowFromCache bool, collapsedThreads bool) string {
+func (s *TimerLayerPostStore) GetEtag(channelID string, allowFromCache bool, collapsedThreads bool, includeTranslations bool) string {
 	start := time.Now()
 
-	result := s.PostStore.GetEtag(channelID, allowFromCache, collapsedThreads)
+	result := s.PostStore.GetEtag(channelID, allowFromCache, collapsedThreads, includeTranslations)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
 	if s.Root.Metrics != nil {
@@ -6991,6 +7006,22 @@ func (s *TimerLayerPostStore) PermanentDelete(rctx request.CTX, postID string) e
 			success = "true"
 		}
 		s.Root.Metrics.ObserveStoreMethodDuration("PostStore.PermanentDelete", success, elapsed)
+	}
+	return err
+}
+
+func (s *TimerLayerPostStore) PermanentDeleteAssociatedData(postIds []string) error {
+	start := time.Now()
+
+	err := s.PostStore.PermanentDeleteAssociatedData(postIds)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("PostStore.PermanentDeleteAssociatedData", success, elapsed)
 	}
 	return err
 }
@@ -11392,10 +11423,10 @@ func (s *TimerLayerTemporaryPostStore) Get(rctx request.CTX, id string, allowFro
 	return result, err
 }
 
-func (s *TimerLayerTemporaryPostStore) GetExpiredPosts(rctx request.CTX) ([]string, error) {
+func (s *TimerLayerTemporaryPostStore) GetExpiredPosts(rctx request.CTX, lastPostId string, limit uint64) ([]string, error) {
 	start := time.Now()
 
-	result, err := s.TemporaryPostStore.GetExpiredPosts(rctx)
+	result, err := s.TemporaryPostStore.GetExpiredPosts(rctx, lastPostId, limit)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
 	if s.Root.Metrics != nil {

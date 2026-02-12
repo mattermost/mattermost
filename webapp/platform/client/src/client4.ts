@@ -147,6 +147,7 @@ import type {UserThreadList, UserThread, UserThreadWithPost} from '@mattermost/t
 import type {
     AuthChangeResponse,
     UserAccessToken,
+    UserAuthUpdate,
     UserProfile,
     UsersStats,
     UserStatus,
@@ -652,6 +653,13 @@ export default class Client4 {
         return this.doFetch<UserProfile>(
             `${this.getUserRoute(user.id)}`,
             {method: 'put', body: JSON.stringify(user)},
+        );
+    };
+
+    updateUserAuth = (userId: string, userAuth: UserAuthUpdate) => {
+        return this.doFetch<UserAuthUpdate>(
+            `${this.getUserRoute(userId)}/auth`,
+            {method: 'put', body: JSON.stringify(userAuth)},
         );
     };
 
@@ -1751,6 +1759,13 @@ export default class Client4 {
         return this.doFetch<ServerChannel>(
             `${this.getChannelRoute(channelId)}/patch`,
             {method: 'put', body: JSON.stringify(channelPatch)},
+        );
+    };
+
+    setMyChannelAutotranslation = (channelId: string, enabled: boolean) => {
+        return this.doFetch<StatusOK>(
+            `${this.getChannelMemberRoute(channelId, 'me')}/autotranslation`,
+            {method: 'put', body: JSON.stringify({autotranslation_disabled: !enabled})},
         );
     };
 
