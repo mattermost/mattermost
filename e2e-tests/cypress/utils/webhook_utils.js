@@ -527,6 +527,49 @@ function getDateTimeDialog(triggerId, webhookBaseUrl) {
     return getBasicDateTimeDialog(triggerId, webhookBaseUrl);
 }
 
+function getTimezoneManualDialog(triggerId, webhookBaseUrl) {
+    return createDialog(triggerId, webhookBaseUrl, {
+        callback_id: 'timezone_manual',
+        title: 'Timezone & Manual Entry Demo',
+        introduction_text: '**Timezone & Manual Entry Demo**\n\n' +
+            'This dialog demonstrates timezone support and manual time entry features.',
+        elements: [
+            {
+                display_name: 'Your Local Time (Manual Entry)',
+                name: 'local_manual',
+                type: 'datetime',
+                help_text: 'Type any time: 9am, 14:30, 3:45pm - no rounding',
+                datetime_config: {
+                    allow_manual_time_entry: true,
+                },
+                optional: true,
+            },
+            {
+                display_name: 'London Office Hours (Dropdown)',
+                name: 'london_dropdown',
+                type: 'datetime',
+                help_text: 'Times shown in GMT - select from 60 min intervals',
+                datetime_config: {
+                    location_timezone: 'Europe/London',
+                    time_interval: 60,
+                },
+                optional: true,
+            },
+            {
+                display_name: 'London Office Hours (Manual Entry)',
+                name: 'london_manual',
+                type: 'datetime',
+                help_text: 'Type time in GMT: 9am, 14:30, 3:45pm - no rounding',
+                datetime_config: {
+                    location_timezone: 'Europe/London',
+                    allow_manual_time_entry: true,
+                },
+                optional: true,
+            },
+        ],
+    });
+}
+
 module.exports = {
     getFullDialog,
     getSimpleDialog,
@@ -544,4 +587,5 @@ module.exports = {
     getMinDateConstraintDialog,
     getCustomIntervalDialog,
     getRelativeDateDialog,
+    getTimezoneManualDialog,
 };

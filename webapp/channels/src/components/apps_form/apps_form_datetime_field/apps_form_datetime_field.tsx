@@ -20,14 +20,44 @@ type Props = {
     field: AppField;
     value: string | null;
     onChange: (name: string, value: string | null) => void;
+    setIsInteracting?: (isInteracting: boolean) => void;
+};
+
+// Helper to get timezone abbreviation (e.g., "MST", "EDT")
+const getTimezoneAbbreviation = (timezone: string): string => {
+    try {
+        const now = new Date();
+        const formatter = new Intl.DateTimeFormat('en-US', {
+            timeZone: timezone,
+            timeZoneName: 'short',
+        });
+        const parts = formatter.formatToParts(now);
+        const tzPart = parts.find((part) => part.type === 'timeZoneName');
+        return tzPart?.value || timezone;
+    } catch {
+        return timezone;
+    }
 };
 
 const AppsFormDateTimeField: React.FC<Props> = ({
     field,
     value,
     onChange,
+    setIsInteracting,
 }) => {
-    const timezone = useSelector(getCurrentTimezone);
+    const userTimezone = useSelector(getCurrentTimezone);
+
+    // Extract datetime config with fallback to top-level fields
+    const config = field.datetime_config || {};
+    const locationTimezone = config.location_timezone;
+    const timePickerInterval = config.time_interval ?? field.time_interval ?? DEFAULT_TIME_INTERVAL_MINUTES;
+    const allowManualTimeEntry = config.allow_manual_time_entry ?? false;
+
+    // Use location_timezone if specified, otherwise fall back to user's timezone
+    const timezone = locationTimezone || userTimezone;
+
+    // Show timezone indicator when location_timezone is set
+    const showTimezoneIndicator = Boolean(locationTimezone);
 
     const momentValue = useMemo(() => {
         if (value) {
@@ -37,16 +67,19 @@ const AppsFormDateTimeField: React.FC<Props> = ({
             }
         }
 
-        // Default to current time for display only
-        return timezone ? moment.tz(timezone) : moment();
+        // No automatic defaults - field starts empty
+        // Required fields get a default from apps_form_component.tsx
+        return null;
     }, [value, timezone]);
 
-    const handleDateTimeChange = useCallback((date: moment.Moment) => {
+    const handleDateTimeChange = useCallback((date: moment.Moment | null) => {
+        if (!date) {
+            onChange(field.name, null);
+            return;
+        }
         const newValue = momentToString(date, true);
         onChange(field.name, newValue);
     }, [field.name, onChange]);
-
-    const timePickerInterval = field.time_interval || DEFAULT_TIME_INTERVAL_MINUTES;
 
     const allowPastDates = useMemo(() => {
         if (field.min_date) {
@@ -62,13 +95,20 @@ const AppsFormDateTimeField: React.FC<Props> = ({
 
     return (
         <div className='apps-form-datetime-input'>
+            {showTimezoneIndicator && (
+                <div style={{fontSize: '11px', color: '#888', marginBottom: '8px'}}>
+                    {'🌍 Times in ' + getTimezoneAbbreviation(timezone)}
+                </div>
+            )}
             <DateTimeInput
                 time={momentValue}
                 handleChange={handleDateTimeChange}
                 timezone={timezone}
-                relativeDate={true}
+                relativeDate={!locationTimezone}
                 timePickerInterval={timePickerInterval}
                 allowPastDates={allowPastDates}
+                allowManualTimeEntry={allowManualTimeEntry}
+                setIsInteracting={setIsInteracting}
             />
         </div>
     );

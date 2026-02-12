@@ -413,7 +413,7 @@ const CustomStatusModal: React.FC<Props> = (props: Props) => {
                 {showDateAndTimeField && (
                     <DateTimeInput
                         time={customExpiryTime}
-                        handleChange={setCustomExpiryTime}
+                        handleChange={(date) => date && setCustomExpiryTime(date)}
                         timezone={timezone}
                         setIsInteracting={setIsInteracting}
                         relativeDate={true}
