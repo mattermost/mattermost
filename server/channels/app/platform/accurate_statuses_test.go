@@ -747,3 +747,92 @@ func TestWebSocketConnectionDoesNotUpdateLastActivityAt(t *testing.T) {
 			"WebSocket connection should NOT update session LastActivityAt")
 	})
 }
+
+func TestManualStatusNotProtectedWithAccurateStatuses(t *testing.T) {
+	t.Run("manually set online status should transition to away after inactivity", func(t *testing.T) {
+		th := Setup(t).InitBasic(t)
+
+		th.Service.UpdateConfig(func(cfg *model.Config) {
+			cfg.FeatureFlags.AccurateStatuses = true
+			*cfg.MattermostExtendedSettings.Statuses.InactivityTimeoutMinutes = 5
+		})
+
+		// User manually sets themselves to Online
+		th.Service.SetStatusOnline(th.BasicUser.Id, true, "desktop")
+
+		// Simulate inactivity: set LastActivityAt to 10 minutes ago (past the 5 minute timeout)
+		status, err := th.Service.GetStatus(th.BasicUser.Id)
+		require.Nil(t, err)
+		status.LastActivityAt = model.GetMillis() - 600000 // 10 minutes ago
+		status.ActiveChannel = th.BasicChannel.Id
+		th.Service.SaveAndBroadcastStatus(status)
+
+		// Send heartbeat with window inactive - should trigger auto-away despite manual=true
+		th.Service.UpdateActivityFromHeartbeat(th.BasicUser.Id, false, th.BasicChannel.Id, "desktop")
+
+		// Verify status transitioned to Away (Manual flag did NOT protect it)
+		final, err := th.Service.GetStatus(th.BasicUser.Id)
+		require.Nil(t, err)
+		assert.Equal(t, model.StatusAway, final.Status,
+			"Manually set Online should transition to Away after inactivity - Manual flag should NOT protect")
+	})
+
+	t.Run("manually set away status should transition to online on activity", func(t *testing.T) {
+		th := Setup(t).InitBasic(t)
+
+		th.Service.UpdateConfig(func(cfg *model.Config) {
+			cfg.FeatureFlags.AccurateStatuses = true
+		})
+
+		// User manually sets themselves to Away
+		th.Service.SetStatusAwayIfNeeded(th.BasicUser.Id, true)
+
+		// Verify Manual=true
+		status, err := th.Service.GetStatus(th.BasicUser.Id)
+		require.Nil(t, err)
+		assert.True(t, status.Manual)
+		status.ActiveChannel = th.BasicChannel.Id
+		th.Service.SaveAndBroadcastStatus(status)
+
+		// Send heartbeat with window active - should transition to Online despite manual=true
+		th.Service.UpdateActivityFromHeartbeat(th.BasicUser.Id, true, th.BasicChannel.Id, "desktop")
+
+		// Verify status transitioned to Online (Manual flag did NOT protect it)
+		final, err := th.Service.GetStatus(th.BasicUser.Id)
+		require.Nil(t, err)
+		assert.Equal(t, model.StatusOnline, final.Status,
+			"Manually set Away should transition to Online on activity - Manual flag should NOT protect")
+	})
+
+	t.Run("manually set DND should transition to offline after extended inactivity", func(t *testing.T) {
+		th := Setup(t).InitBasic(t)
+
+		th.Service.UpdateConfig(func(cfg *model.Config) {
+			cfg.FeatureFlags.AccurateStatuses = true
+			*cfg.MattermostExtendedSettings.Statuses.DNDInactivityTimeoutMinutes = 10
+		})
+
+		// User manually sets themselves to DND
+		th.Service.SetStatusDoNotDisturb(th.BasicUser.Id)
+
+		// Verify Manual=true
+		status, err := th.Service.GetStatus(th.BasicUser.Id)
+		require.Nil(t, err)
+		assert.True(t, status.Manual)
+
+		// Simulate extended inactivity: 15 minutes ago (past DNDInactivityTimeout of 10 min)
+		status.LastActivityAt = model.GetMillis() - 900000 // 15 minutes ago
+		status.ActiveChannel = th.BasicChannel.Id
+		th.Service.SaveAndBroadcastStatus(status)
+
+		// Send heartbeat - should transition DND to Offline despite manual=true
+		th.Service.UpdateActivityFromHeartbeat(th.BasicUser.Id, false, th.BasicChannel.Id, "desktop")
+
+		// Verify status transitioned to Offline (Manual flag did NOT protect DND)
+		final, err := th.Service.GetStatus(th.BasicUser.Id)
+		require.Nil(t, err)
+		assert.Equal(t, model.StatusOffline, final.Status,
+			"Manually set DND should transition to Offline after extended inactivity - Manual flag should NOT protect")
+		assert.Equal(t, model.StatusDnd, final.PrevStatus, "PrevStatus should preserve DND for restoration")
+	})
+}

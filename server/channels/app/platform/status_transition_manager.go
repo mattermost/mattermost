@@ -131,19 +131,10 @@ func (m *StatusTransitionManager) checkTransitionBlocked(status *model.Status, o
 		return "dnd_ooo_protected"
 	}
 
-	// Manual status is protected from automatic changes
-	if status.Manual && !opts.Manual && !opts.Force {
-		// Exception: NoOffline allows Offline->Online even if manual
-		// But not if user is invisible (allowed to stay offline)
-		if m.ps.Config().FeatureFlags.NoOffline && status.Status == model.StatusOffline && opts.NewStatus == model.StatusOnline && !m.ps.IsUserInvisible(opts.UserID) {
-			return "" // Allow this transition
-		}
-		// Exception: DND/OOO users can go Offline automatically (inactivity timeout)
-		if (status.Status == model.StatusDnd || status.Status == model.StatusOutOfOffice) && opts.NewStatus == model.StatusOffline {
-			return "" // Allow DND/OOO -> Offline for inactivity
-		}
-		return "manual_status_protected"
-	}
+	// IMPORTANT: When AccurateStatuses is enabled, Manual flag should NEVER block transitions.
+	// The server owns ALL status transitions. Manual is only set for logging/display purposes,
+	// but does not protect any status from automatic changes.
+	// This is intentionally a no-op - no manual status protection.
 
 	return ""
 }
@@ -193,6 +184,9 @@ func (m *StatusTransitionManager) applyTransition(status *model.Status, oldStatu
 	case opts.Manual || dndRestored:
 		status.Manual = true
 	case newStatus == model.StatusOnline:
+		status.Manual = false
+	case !opts.Manual:
+		// Automatic transitions (e.g., inactivity -> Away) clear the manual flag
 		status.Manual = false
 	}
 

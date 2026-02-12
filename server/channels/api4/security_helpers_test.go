@@ -6,6 +6,7 @@ package api4
 // mattermost-extended-test
 
 import (
+	"fmt"
 	"net/http"
 	"testing"
 
@@ -41,4 +42,15 @@ func closeIfOpen(resp *http.Response, err error) {
 	if err == nil && resp != nil && resp.Body != nil {
 		resp.Body.Close()
 	}
+}
+
+// teamRoute returns the API route for a team: /teams/{teamId}
+// Client4.teamRoute is unexported, so we replicate it for test usage.
+func teamRoute(teamId string) string {
+	return fmt.Sprintf("/teams/%v", teamId)
+}
+
+// apiBaseRoute returns the base API route (empty string, since DoAPIGet already prepends APIURL).
+func apiBaseRoute() string {
+	return ""
 }
