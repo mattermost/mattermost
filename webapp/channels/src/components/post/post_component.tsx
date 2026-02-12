@@ -141,6 +141,10 @@ function PostComponent(props: Props) {
     const {post, shouldHighlight, togglePostMenu} = props;
     const {formatMessage} = useIntl();
 
+    if (!post) {
+        return null;
+    }
+
     const isSearchResultItem = (props.matches && props.matches.length > 0) || props.isMentionSearch || (props.term && props.term.length > 0);
     const isRHS = props.location === Locations.RHS_ROOT || props.location === Locations.RHS_COMMENT || props.location === Locations.SEARCH;
     const postRef = useRef<HTMLDivElement>(null);
