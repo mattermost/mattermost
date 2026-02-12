@@ -207,6 +207,7 @@ describe('components/dot_menu/DotMenu', () => {
         userId: 'user_id_1',
         isMilitaryTime: false,
         canMove: true,
+        isChannelAutotranslated: false,
         canReply: true,
         canForward: true,
         canFollowThread: true,
