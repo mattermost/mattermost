@@ -45,6 +45,22 @@ jobs:
         run: |
           npm run i18n-extract:check
 
+  check-external-links:
+    needs: check-lint
+    runs-on: ubuntu-24.04
+    defaults:
+      run:
+        working-directory: webapp
+    steps:
+      - name: ci/checkout-repo
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+      - name: ci/setup
+        uses: ./.github/actions/webapp-setup
+      - name: ci/check-external-links
+        run: |
+          set -o pipefail
+          npm run check-external-links -- --markdown | tee -a $GITHUB_STEP_SUMMARY
+
   check-types:
     needs: check-lint
     runs-on: ubuntu-24.04

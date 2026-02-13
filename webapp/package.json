@@ -19,7 +19,8 @@
     "i18n-extract": "npm run i18n-extract --workspaces --if-present",
     "i18n-extract:check": "npm run i18n-extract:check --workspaces --if-present",
     "clean": "npm run clean --workspaces --if-present",
-    "gen-lang-imports": "node scripts/gen_lang_imports.mjs"
+    "gen-lang-imports": "node scripts/gen_lang_imports.mjs",
+    "check-external-links": "node scripts/check-external-links.mjs"
   },
   "dependencies": {
     "@mattermost/compass-icons": "0.1.53",
