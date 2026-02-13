@@ -252,6 +252,16 @@ body {
         height: functions.em(38px);
     }
 
+    // This flow has a fixed white background, so the team name input must not
+    // inherit light themed text colors.
+    #teamNameInput {
+        color: #3f4350;
+
+        &::placeholder {
+            color: rgba(63, 67, 80, 0.64);
+        }
+    }
+
     .or__container {
         height: 1px;
         margin: 2em 0;
