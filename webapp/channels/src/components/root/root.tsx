@@ -35,6 +35,7 @@ import {EmojiIndicesByAlias} from 'utils/emoji';
 import {TEAM_NAME_PATH_PATTERN} from 'utils/path';
 import {getSiteURL} from 'utils/url';
 import {isAndroidWeb, isChromebook, isDesktopApp, isIosWeb} from 'utils/user_agent';
+import {applySystemThemeIfNeeded, cleanupSystemThemeDetection, initializeSystemThemeDetection} from 'utils/theme_utils';
 import {isTextDroppableEvent} from 'utils/utils';
 
 import LuxonController from './luxon_controller';
@@ -177,22 +178,6 @@ export default class Root extends React.PureComponent<Props, State> {
         this.props.history.push('/landing#' + this.props.location.pathname + this.props.location.search);
         BrowserStore.setLandingPageSeen(true);
     };
-
-    applyTheme() {
-        // don't apply theme when in system console; system console hardcoded to THEMES.denim
-        // AdminConsole will apply denim on mount re-apply user theme on unmount
-        if (this.props.location.pathname.startsWith('/admin_console')) {
-            return;
-        }
-
-        // First check if we should apply a theme based on system preference
-        const systemThemeApplied = applySystemThemeIfNeeded();
-
-        // If no system theme was applied, use the regular theme
-        if (!systemThemeApplied) {
-            applyTheme(this.props.theme);
-        }
-    }
 
     componentDidUpdate(prevProps: Props, prevState: State) {
         if (this.props.location.pathname === '/') {
