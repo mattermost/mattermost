@@ -27,8 +27,15 @@ function useSystemDarkMode(): boolean {
         }
 
         const handler = (e: MediaQueryListEvent) => setIsDark(e.matches);
-        mql.addEventListener('change', handler);
-        return () => mql.removeEventListener('change', handler);
+        if (mql.addEventListener) {
+            mql.addEventListener('change', handler);
+            return () => mql.removeEventListener('change', handler);
+        } else if (mql.addListener) {
+            // Fallback for older browsers (Safari <14)
+            mql.addListener(handler);
+            return () => mql.removeListener(handler);
+        }
+        return undefined;
     }, []);
 
     return isDark;
