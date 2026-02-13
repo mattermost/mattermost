@@ -3739,5 +3739,3 @@ func (a *App) BurnPost(rctx request.CTX, post *model.Post, userID string, connec
 
 	return nil
 }
-
-// e2e-agents master-branch validation marker

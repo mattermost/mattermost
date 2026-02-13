@@ -432,5 +432,3 @@ class ChannelHeader extends React.PureComponent<Props> {
 }
 
 export default injectIntl(ChannelHeader);
-
-// e2e-agents master-branch validation marker
