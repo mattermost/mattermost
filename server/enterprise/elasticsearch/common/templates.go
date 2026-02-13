@@ -183,6 +183,9 @@ func GetPostTemplate(cfg *model.Config, opts ...func(*types.IndexTemplateMapping
 					Normalizer: model.NewPointer("mm_hashtag"),
 					Store:      model.NewPointer(true),
 				},
+				"channel_type": types.KeywordProperty{
+					Type: "keyword",
+				},
 			},
 		},
 	}

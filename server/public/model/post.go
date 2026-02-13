@@ -298,6 +298,7 @@ type PostForIndexing struct {
 	Post
 	TeamId         string `json:"team_id"`
 	ParentCreateAt *int64 `json:"parent_create_at"`
+	ChannelType    string `json:"channel_type"`
 }
 
 type FileForIndexing struct {

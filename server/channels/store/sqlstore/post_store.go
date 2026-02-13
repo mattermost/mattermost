@@ -2467,7 +2467,7 @@ func (s *SqlPostStore) GetPostsBatchForIndexing(startTime int64, startPostID str
 
 	postColumnsPosts := strings.Join(postSliceColumnsWithName("Posts"), ", ")
 	query := `SELECT
-				` + postColumnsPosts + `, Channels.TeamId
+				` + postColumnsPosts + `, Channels.TeamId, Channels.Type AS ChannelType
 			FROM Posts
 			LEFT JOIN
 				Channels

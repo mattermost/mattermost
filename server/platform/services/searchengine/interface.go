@@ -25,10 +25,12 @@ type SearchEngineInterface interface {
 	IsSearchEnabled() bool
 	IsAutocompletionEnabled() bool
 	IsIndexingSync() bool
-	IndexPost(post *model.Post, teamId string) *model.AppError
+	IndexPost(post *model.Post, teamId string, channelType string) *model.AppError
 	SearchPosts(channels model.ChannelList, searchParams []*model.SearchParams, page, perPage int) ([]string, model.PostSearchMatches, *model.AppError)
 	DeletePost(post *model.Post) *model.AppError
 	DeleteChannelPosts(rctx request.CTX, channelID string) *model.AppError
+	UpdatePostsChannelTypeByChannelId(rctx request.CTX, channelID string, channelType string) *model.AppError
+	BackfillPostsChannelType(rctx request.CTX, channelIDs []string, channelType string) *model.AppError
 	DeleteUserPosts(rctx request.CTX, userID string) *model.AppError
 	// IndexChannel indexes a given channel. The userIDs are only populated
 	// for private channels.
