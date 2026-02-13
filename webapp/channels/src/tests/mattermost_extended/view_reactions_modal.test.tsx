@@ -4,6 +4,7 @@
 import React from 'react';
 import {render, screen, within} from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
+import {IntlProvider} from 'react-intl';
 import {Provider} from 'react-redux';
 
 import testConfigureStore from 'tests/test_store';
@@ -164,12 +165,14 @@ describe('ViewReactionsModal', () => {
     function renderModal(state = baseState, post = basePost) {
         const store = testConfigureStore(state as any);
         return render(
-            <Provider store={store}>
-                <ViewReactionsModal
-                    post={post}
-                    onExited={jest.fn()}
-                />
-            </Provider>,
+            <IntlProvider locale='en'>
+                <Provider store={store}>
+                    <ViewReactionsModal
+                        post={post}
+                        onExited={jest.fn()}
+                    />
+                </Provider>
+            </IntlProvider>,
         );
     }
 
