@@ -4,8 +4,10 @@
 import {getPost} from 'mattermost-redux/selectors/entities/posts';
 import {getUser} from 'mattermost-redux/selectors/entities/users';
 import {getConfig} from 'mattermost-redux/selectors/entities/general';
+import {get} from 'mattermost-redux/selectors/entities/preferences';
+import {getCurrentChannelId} from 'mattermost-redux/selectors/entities/channels';
 
-import {ActionTypes} from 'utils/constants';
+import {ActionTypes, Preferences} from 'utils/constants';
 import {isVideoUrl} from 'components/video_link_embed';
 
 import type {ThunkActionFunc} from 'types/store';
@@ -138,29 +140,52 @@ function truncateText(text: string, maxLength: number): string {
 /**
  * Action creator to add a pending reply.
  */
-function addPendingReplyAction(reply: DiscordReplyData) {
+function addPendingReplyAction(reply: DiscordReplyData, channelId?: string) {
     return {
         type: ActionTypes.DISCORD_REPLY_ADD_PENDING,
         reply,
+        channelId,
     };
 }
 
 /**
  * Action creator to remove a pending reply.
  */
-export function removePendingReply(postId: string) {
-    return {
-        type: ActionTypes.DISCORD_REPLY_REMOVE_PENDING,
-        postId,
+export function removePendingReply(postId: string): ThunkActionFunc<void> {
+    return (dispatch, getState) => {
+        const state = getState();
+        const channelSpecific = get(state, Preferences.CATEGORY_DISPLAY_SETTINGS, Preferences.CHANNEL_SPECIFIC_REPLIES, Preferences.CHANNEL_SPECIFIC_REPLIES_DEFAULT) === 'true';
+        const channelId = channelSpecific ? getCurrentChannelId(state) : undefined;
+        dispatch({
+            type: ActionTypes.DISCORD_REPLY_REMOVE_PENDING,
+            postId,
+            channelId,
+        });
     };
 }
 
 /**
  * Action creator to clear all pending replies.
  */
-export function clearPendingReplies() {
+export function clearPendingReplies(): ThunkActionFunc<void> {
+    return (dispatch, getState) => {
+        const state = getState();
+        const channelSpecific = get(state, Preferences.CATEGORY_DISPLAY_SETTINGS, Preferences.CHANNEL_SPECIFIC_REPLIES, Preferences.CHANNEL_SPECIFIC_REPLIES_DEFAULT) === 'true';
+        const channelId = channelSpecific ? getCurrentChannelId(state) : undefined;
+        dispatch({
+            type: ActionTypes.DISCORD_REPLY_CLEAR_PENDING,
+            channelId,
+        });
+    };
+}
+
+/**
+ * Action creator to clear all pending replies across all channels.
+ */
+export function clearAllPendingReplies() {
     return {
         type: ActionTypes.DISCORD_REPLY_CLEAR_PENDING,
+        clearAll: true,
     };
 }
 
@@ -208,6 +233,9 @@ export function addPendingReply(postId: string): ThunkActionFunc<boolean> {
         const firstLine = strippedText.split('\n')[0] || '';
         const cleanText = truncateText(firstLine, MAX_PREVIEW_LENGTH);
 
+        const channelSpecific = get(state, Preferences.CATEGORY_DISPLAY_SETTINGS, Preferences.CHANNEL_SPECIFIC_REPLIES, Preferences.CHANNEL_SPECIFIC_REPLIES_DEFAULT) === 'true';
+        const channelId = channelSpecific ? getCurrentChannelId(state) : undefined;
+
         const replyData: DiscordReplyData = {
             post_id: postId,
             user_id: post.user_id,
@@ -219,7 +247,7 @@ export function addPendingReply(postId: string): ThunkActionFunc<boolean> {
             file_categories: fileCategories,
         };
 
-        dispatch(addPendingReplyAction(replyData));
+        dispatch(addPendingReplyAction(replyData, channelId));
         return true;
     };
 }

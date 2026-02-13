@@ -12,6 +12,8 @@ import {savePreferences} from 'mattermost-redux/actions/preferences';
 import {autoUpdateTimezone} from 'mattermost-redux/actions/timezone';
 import {patchUser, updateMe} from 'mattermost-redux/actions/users';
 import {getConfig, getLicense} from 'mattermost-redux/selectors/entities/general';
+
+import {clearAllPendingReplies} from 'actions/views/discord_replies';
 import {
     get,
     isCollapsedThreadsAllowed,
@@ -85,6 +87,7 @@ export function makeMapStateToProps() {
             collapsedReplyThreadsAllowUserPreference: isCollapsedThreadsAllowed(state) && getConfig(state).CollapsedThreads !== CollapsedThreads.ALWAYS_ON,
             collapsedReplyThreads: getCollapsedThreadsPreference(state),
             clickToReply: get(state, Preferences.CATEGORY_DISPLAY_SETTINGS, Preferences.CLICK_TO_REPLY, Preferences.CLICK_TO_REPLY_DEFAULT, userPreference),
+            channelSpecificReplies: get(state, Preferences.CATEGORY_DISPLAY_SETTINGS, Preferences.CHANNEL_SPECIFIC_REPLIES, Preferences.CHANNEL_SPECIFIC_REPLIES_DEFAULT, userPreference),
             linkPreviewDisplay: get(state, Preferences.CATEGORY_DISPLAY_SETTINGS, Preferences.LINK_PREVIEW_DISPLAY, Preferences.LINK_PREVIEW_DISPLAY_DEFAULT, userPreference),
             alwaysShowRemoteUserHour: get(state, Preferences.CATEGORY_DISPLAY_SETTINGS, Preferences.ALWAYS_SHOW_REMOTE_USER_HOUR, Preferences.ALWAYS_SHOW_REMOTE_USER_HOUR_DEFAULT, userPreference),
             oneClickReactionsOnPosts: get(state, Preferences.CATEGORY_DISPLAY_SETTINGS, Preferences.ONE_CLICK_REACTIONS_ENABLED, Preferences.ONE_CLICK_REACTIONS_ENABLED_DEFAULT, userPreference),
@@ -110,6 +113,7 @@ function mapDispatchToProps(dispatch: Dispatch) {
             savePreferences,
             updateMe,
             patchUser,
+            clearAllPendingReplies,
         }, dispatch),
     };
 }

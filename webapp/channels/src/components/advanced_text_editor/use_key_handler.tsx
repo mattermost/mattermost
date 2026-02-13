@@ -9,10 +9,12 @@ import type {SchedulingInfo} from '@mattermost/types/schedule_post';
 
 import {getBool} from 'mattermost-redux/selectors/entities/preferences';
 
+import {clearPendingReplies} from 'actions/views/discord_replies';
 import {emitShortcutReactToLastPostFrom, unsetEditingPost} from 'actions/post_actions';
 import {editLatestPost} from 'actions/views/create_comment';
 import {replyToLatestPostInChannel} from 'actions/views/rhs';
 import {getIsRhsExpanded} from 'selectors/rhs';
+import {hasPendingReplies} from 'selectors/views/discord_replies';
 
 import type {TextboxElement} from 'components/textbox';
 import type TextboxClass from 'components/textbox/textbox';
@@ -58,6 +60,7 @@ const useKeyHandler = (
     const codeBlockOnCtrlEnter = useSelector((state: GlobalState) => getBool(state, Preferences.CATEGORY_ADVANCED_SETTINGS, 'code_block_ctrl_enter', true));
     const messageHistory = useSelector((state: GlobalState) => state.entities.posts.messagesHistory.messages);
     const rhsExpanded = useSelector(getIsRhsExpanded);
+    const pendingRepliesExist = useSelector(hasPendingReplies);
 
     const timeoutId = useRef<number>();
     const messageHistoryIndex = useRef(messageHistory.length);
@@ -182,6 +185,9 @@ const useKeyHandler = (
         }
 
         if (Keyboard.isKeyPressed(e, KeyCodes.ESCAPE)) {
+            if (pendingRepliesExist) {
+                dispatch(clearPendingReplies());
+            }
             textboxRef.current?.blur();
             if (isInEditMode) {
                 onCancel?.();

@@ -80,6 +80,7 @@ function getDisplayStateFromProps(props: Props) {
         lastActiveDisplay: props.lastActiveDisplay.toString(),
         oneClickReactionsOnPosts: props.oneClickReactionsOnPosts,
         clickToReply: props.clickToReply,
+        channelSpecificReplies: props.channelSpecificReplies,
         guildedChatLayout: props.guildedChatLayout,
         smoothScrolling: props.smoothScrolling,
     };
@@ -153,6 +154,7 @@ type Props = OwnProps & {
     collapsedReplyThreads: string;
     collapsedReplyThreadsAllowUserPreference: boolean;
     clickToReply: string;
+    channelSpecificReplies: string;
     linkPreviewDisplay: string;
     alwaysShowRemoteUserHour: string;
     oneClickReactionsOnPosts: string;
@@ -173,6 +175,7 @@ type Props = OwnProps & {
         autoUpdateTimezone: (deviceTimezone: string) => void;
         updateMe: (user: UserProfile) => Promise<ActionResult>;
         patchUser: (user: UserProfile) => Promise<ActionResult>;
+        clearAllPendingReplies: () => void;
     };
 }
 
@@ -192,6 +195,7 @@ type State = {
     lastActiveDisplay: string;
     oneClickReactionsOnPosts: string;
     clickToReply: string;
+    channelSpecificReplies: string;
     guildedChatLayout: string;
     smoothScrolling: string;
     handleSubmit?: () => void;
@@ -354,6 +358,12 @@ export default class UserSettingsDisplay extends React.PureComponent<Props, Stat
             name: Preferences.CLICK_TO_REPLY,
             value: this.state.clickToReply,
         };
+        const channelSpecificRepliesPreference = {
+            user_id: userId,
+            category: Preferences.CATEGORY_DISPLAY_SETTINGS,
+            name: Preferences.CHANNEL_SPECIFIC_REPLIES,
+            value: this.state.channelSpecificReplies,
+        };
         const guildedChatLayoutPreference = {
             user_id: userId,
             category: Preferences.CATEGORY_DISPLAY_SETTINGS,
@@ -375,6 +385,7 @@ export default class UserSettingsDisplay extends React.PureComponent<Props, Stat
             messageDisplayPreference,
             collapsedReplyThreadsPreference,
             clickToReplyPreference,
+            channelSpecificRepliesPreference,
             collapseDisplayPreference,
             linkPreviewDisplayPreference,
             alwaysShowRemoteUserHourPreference,
@@ -385,6 +396,10 @@ export default class UserSettingsDisplay extends React.PureComponent<Props, Stat
             guildedChatLayoutPreference,
             smoothScrollingPreference,
         ];
+
+        if (this.state.channelSpecificReplies !== this.props.channelSpecificReplies) {
+            this.props.actions.clearAllPendingReplies();
+        }
 
         await this.props.actions.savePreferences(userId, preferences);
 
@@ -433,6 +448,10 @@ export default class UserSettingsDisplay extends React.PureComponent<Props, Stat
 
     handleClickToReplyRadio = (clickToReply: string) => {
         this.setState({clickToReply});
+    };
+
+    handleChannelSpecificRepliesRadio = (channelSpecificReplies: string) => {
+        this.setState({channelSpecificReplies});
     };
 
     handleGuildedChatLayoutRadio = (guildedChatLayout: string) => {
@@ -1158,6 +1177,40 @@ export default class UserSettingsDisplay extends React.PureComponent<Props, Stat
             preferenceName: Preferences.CLICK_TO_REPLY,
         });
 
+        const channelSpecificReplies = this.props.discordRepliesEnabled ? this.createSection({
+            section: 'channelSpecificReplies',
+            display: 'channelSpecificReplies',
+            value: this.state.channelSpecificReplies,
+            defaultDisplay: Preferences.CHANNEL_SPECIFIC_REPLIES_DEFAULT,
+            title: defineMessage({
+                id: 'user.settings.display.channelSpecificReplies',
+                defaultMessage: 'Channel-Specific Replies',
+            }),
+            firstOption: {
+                value: 'false',
+                radionButtonText: {
+                    label: defineMessage({
+                        id: 'user.settings.display.channelSpecificRepliesGlobal',
+                        defaultMessage: 'Global \u2013 replies follow you across channels',
+                    }),
+                },
+            },
+            secondOption: {
+                value: 'true',
+                radionButtonText: {
+                    label: defineMessage({
+                        id: 'user.settings.display.channelSpecificRepliesLocal',
+                        defaultMessage: 'Per-channel \u2013 replies stay with the channel you queued them in',
+                    }),
+                },
+            },
+            description: defineMessage({
+                id: 'user.settings.display.channelSpecificRepliesDescription',
+                defaultMessage: 'When enabled, pending replies are scoped to each channel instead of following you globally.',
+            }),
+            preferenceName: Preferences.CHANNEL_SPECIFIC_REPLIES,
+        }) : null;
+
         let guildedChatLayoutSection = null;
         if (this.props.guildedChatLayoutFeatureEnabled) {
             guildedChatLayoutSection = this.createSection({
@@ -1447,6 +1500,7 @@ export default class UserSettingsDisplay extends React.PureComponent<Props, Stat
                     <>
                         {messageDisplaySection}
                         {clickToReply}
+                        {channelSpecificReplies}
                         {linkPreviewSection}
                         {collapseSection}
                         {oneClickReactionsOnPostsSection}
@@ -1495,6 +1549,7 @@ export default class UserSettingsDisplay extends React.PureComponent<Props, Stat
                             />
                             {messageDisplaySection}
                             {clickToReply}
+                            {channelSpecificReplies}
                             {linkPreviewSection}
                             {collapseSection}
                             {oneClickReactionsOnPostsSection}
@@ -1530,6 +1585,7 @@ export default class UserSettingsDisplay extends React.PureComponent<Props, Stat
                         {collapseSection}
                         {messageDisplaySection}
                         {clickToReply}
+                        {channelSpecificReplies}
                         {channelDisplayModeSection}
                         {oneClickReactionsOnPostsSection}
                         {smoothScrollingSection}
