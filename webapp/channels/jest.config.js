@@ -32,10 +32,6 @@ const config = {
     },
     moduleDirectories: ['src', 'node_modules'],
     moduleFileExtensions: ['ts', 'tsx', 'js', 'jsx', 'json'],
-    reporters: [
-        'default',
-        ['jest-junit', {outputDirectory: 'build', outputName: 'test-results.xml'}],
-    ],
     transformIgnorePatterns: [
         'node_modules/(?!react-native|react-router|pdfjs-dist|p-queue|p-timeout|@mattermost/compass-icons|cidr-regex|ip-regex|serialize-error)',
     ],
