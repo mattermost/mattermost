@@ -88,9 +88,16 @@ func (scs *Service) HandleMembershipBatchChange(channelID string, userIDs []stri
 	scs.queueMembershipSyncTask(channelID, "", "", syncMsg, nil)
 }
 
-// SyncAllChannelMembers synchronizes all channel members to a specific remote.
+// SyncAllChannelMembers synchronizes channel members to a specific remote.
 // This is typically called when a channel is first shared with a remote cluster.
 // If remote is provided, it will be used instead of fetching from the database.
+//
+// When LastMembersSyncAt is non-zero, only members updated after that cursor are synced (i.e., the delta).
+// When LastMembersSyncAt is zero (initial share), all current members are synced.
+//
+// Limitation: this function only detects membership additions and modifications, not removals.
+// Channel member rows are hard-deleted from the database, so members removed while a remote was
+// offline cannot be detected by this query. Removals rely on real-time HandleMembershipChange events.
 func (scs *Service) SyncAllChannelMembers(channelID string, remoteID string, remote *model.SharedChannelRemote) error {
 	if !scs.isChannelMemberSyncEnabled() {
 		return nil
@@ -225,6 +232,43 @@ func (scs *Service) syncMembersInBatches(channelID, remoteID string, members mod
 	}
 
 	return nil
+}
+
+// ForceMembershipSyncForRemote syncs channel membership for all channels shared with the
+// specified remote. Called when a remote comes back online to catch up on any membership
+// changes that occurred while it was offline.
+//
+// Note: SyncAllChannelMembers uses the LastMembersSyncAt cursor on each SharedChannelRemote
+// record, so only the membership delta since the last successful sync is sent, not the full
+// member list. See SyncAllChannelMembers for known limitations regarding removed members.
+func (scs *Service) ForceMembershipSyncForRemote(rc *model.RemoteCluster) {
+	if !scs.isChannelMemberSyncEnabled() {
+		return
+	}
+
+	opts := model.SharedChannelRemoteFilterOpts{
+		RemoteId: rc.RemoteId,
+	}
+	scrs, err := scs.server.GetStore().SharedChannel().GetRemotes(0, 999999, opts)
+	if err != nil {
+		scs.server.Log().Log(mlog.LvlSharedChannelServiceError, "Failed to fetch shared channel remotes for membership sync",
+			mlog.String("remote", rc.DisplayName),
+			mlog.String("remoteId", rc.RemoteId),
+			mlog.Err(err),
+		)
+		return
+	}
+
+	for _, scr := range scrs {
+		if syncErr := scs.SyncAllChannelMembers(scr.ChannelId, rc.RemoteId, scr); syncErr != nil {
+			scs.server.Log().Log(mlog.LvlSharedChannelServiceError, "Failed to sync channel members for reconnected remote",
+				mlog.String("channel_id", scr.ChannelId),
+				mlog.String("remote", rc.DisplayName),
+				mlog.String("remoteId", rc.RemoteId),
+				mlog.Err(syncErr),
+			)
+		}
+	}
 }
 
 // processMembershipChange processes a channel membership change task.
