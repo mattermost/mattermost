@@ -74,6 +74,18 @@ type MenuProps = {
     onKeyDown?: (event: KeyboardEvent<HTMLDivElement>, forceCloseMenu?: () => void) => void;
     width?: string;
     isMenuOpen?: boolean;
+
+    /**
+     * When true, hides the MUI Popover backdrop so elements behind the
+     * menu remain interactive (e.g. during drag-and-drop).
+     */
+    hideBackdrop?: boolean;
+
+    /**
+     * When true, pressing Escape will not close the menu. Useful during
+     * drag-and-drop so the drag can be cancelled without closing the menu.
+     */
+    disableEscapeKeyDown?: boolean;
 }
 
 const defaultAnchorOrigin = {vertical: 'bottom', horizontal: 'left'} as PopoverOrigin;
@@ -116,7 +128,18 @@ export function Menu(props: Props) {
     const isMenuOpen = Boolean(anchorElement);
 
     // Callback function handler called when menu is closed by escapeKeyDown, backdropClick or tabKeyDown
-    function handleMenuClose(event: MouseEvent<HTMLDivElement>) {
+    function handleMenuClose(event: MouseEvent<HTMLDivElement>, reason?: string) {
+        if (reason === 'escapeKeyDown' && props.menu.disableEscapeKeyDown) {
+            return;
+        }
+
+        // When hideBackdrop is active (during DnD), block all MUI-initiated close.
+        // The menu is controlled exclusively via isMenuOpen in this mode.
+        if (props.menu.hideBackdrop) {
+            event.preventDefault();
+            return;
+        }
+
         event.preventDefault();
         setAnchorElement(null);
     }
@@ -236,9 +259,15 @@ export function Menu(props: Props) {
     }, [isMenuOpen]);
 
     useEffect(() => {
-        if (props.menu.isMenuOpen === false) {
+        if (props.menu.isMenuOpen === true && !anchorElement) {
+            const button = document.getElementById(props.menuButton.id);
+            if (button) {
+                setAnchorElement(button);
+            }
+        } else if (props.menu.isMenuOpen === false && anchorElement) {
             setAnchorElement(null);
         }
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- intentionally exclude anchorElement/id to avoid loops
     }, [props.menu.isMenuOpen]);
 
     const providerValue = useMenuContextValue(closeMenu, Boolean(anchorElement));
@@ -262,6 +291,14 @@ export function Menu(props: Props) {
                     marginThreshold={0}
                     anchorOrigin={props.anchorOrigin || defaultAnchorOrigin}
                     transformOrigin={props.transformOrigin || defaultTransformOrigin}
+                    hideBackdrop={props.menu.hideBackdrop}
+
+                    // When hideBackdrop is true (e.g. during drag-and-drop), the MUI
+                    // Modal root still covers the viewport with position:fixed;inset:0.
+                    // Making it pointer-events:none lets drag events pass through to
+                    // elements behind it, while the paper content stays interactive.
+                    style={props.menu.hideBackdrop ? {pointerEvents: 'none'} : undefined}
+                    PaperProps={props.menu.hideBackdrop ? {style: {pointerEvents: 'auto'}} : undefined}
                     TransitionProps={{
                         mountOnEnter: true,
                         unmountOnExit: true,
