@@ -542,6 +542,53 @@ func (c *CommonTestSuite) TestSearchPublicChannelsWithoutMembership() {
 		c.Len(ids, 1, "should only find the post in teamA's public channel")
 		c.Equal(postA.Id, ids[0])
 	})
+
+	c.Run("Should not return public channel posts when compliance mode is enabled", func() {
+		// Enable compliance mode — this should override the public channel search setting.
+		originalCompliance := *cfg.ComplianceSettings.Enable
+		*cfg.ComplianceSettings.Enable = true
+		defer func() {
+			*cfg.ComplianceSettings.Enable = originalCompliance
+		}()
+
+		publicChannel := createChannel(c.TH.BasicTeam.Id, "compliance-pub-"+model.NewId(), "Compliance Public", model.ChannelTypeOpen)
+
+		searchTerm := "compliancetest" + model.NewId()
+		post := createPost(c.TH.BasicUser.Id, publicChannel.Id, searchTerm)
+		c.Nil(c.ESImpl.IndexPost(post, c.TH.BasicTeam.Id, "O"))
+		c.NoError(c.RefreshIndexFn())
+
+		channels := model.ChannelList{c.TH.BasicChannel}
+		searchParams := []*model.SearchParams{{
+			Terms:     searchTerm,
+			IsHashtag: false,
+			OrTerms:   false,
+		}}
+
+		ids, _, err := c.ESImpl.SearchPosts(channels, searchParams, 0, 20)
+		c.Nil(err)
+		c.Len(ids, 0, "public channel post should not be found when compliance mode is enabled")
+	})
+
+	c.Run("Should not return private channel posts from non-member channels", func() {
+		privateChannel := createChannel(c.TH.BasicTeam.Id, "private-leak-"+model.NewId(), "Private Leak", model.ChannelTypePrivate)
+
+		searchTerm := "privateleaktest" + model.NewId()
+		post := createPost(c.TH.BasicUser.Id, privateChannel.Id, searchTerm)
+		c.Nil(c.ESImpl.IndexPost(post, c.TH.BasicTeam.Id, "P"))
+		c.NoError(c.RefreshIndexFn())
+
+		channels := model.ChannelList{c.TH.BasicChannel}
+		searchParams := []*model.SearchParams{{
+			Terms:     searchTerm,
+			IsHashtag: false,
+			OrTerms:   false,
+		}}
+
+		ids, _, err := c.ESImpl.SearchPosts(channels, searchParams, 0, 20)
+		c.Nil(err)
+		c.Len(ids, 0, "private channel post should not be found by non-member even with public channel search enabled")
+	})
 }
 
 func (c *CommonTestSuite) TestIndexChannel() {
