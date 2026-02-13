@@ -256,7 +256,7 @@ func (pas *PropertyAccessService) UpdatePropertyField(callerID string, groupID s
 	}
 
 	// Validate protected field update
-	if err := pas.validateProtectedFieldUpdate(field); err != nil {
+	if err := pas.validateProtectedFieldUpdate(field, callerID); err != nil {
 		return nil, fmt.Errorf("UpdatePropertyField: %w", err)
 	}
 
@@ -321,7 +321,7 @@ func (pas *PropertyAccessService) UpdatePropertyFields(callerID string, groupID 
 		}
 
 		// Validate protected field update
-		if err := pas.validateProtectedFieldUpdate(field); err != nil {
+		if err := pas.validateProtectedFieldUpdate(field, callerID); err != nil {
 			return nil, fmt.Errorf("UpdatePropertyFields: field %s: %w", field.ID, err)
 		}
 
@@ -857,17 +857,23 @@ func (pas *PropertyAccessService) ensureSourcePluginIDUnchanged(existingField, u
 
 // validateProtectedFieldUpdate validates that a field can be updated to protected=true.
 // Prevents creating orphaned protected fields (protected=true but no source_plugin_id).
+// Also ensures only the source plugin can set protected=true on fields with a source_plugin_id.
 // Returns nil if the update is valid, or an error if it should be rejected.
-func (pas *PropertyAccessService) validateProtectedFieldUpdate(updatedField *model.PropertyField) error {
+func (pas *PropertyAccessService) validateProtectedFieldUpdate(updatedField *model.PropertyField, callerID string) error {
 	if !model.IsPropertyFieldProtected(updatedField) {
 		return nil
 	}
 
-	if pas.getSourcePluginID(updatedField) != "" {
-		return nil
+	sourcePluginID := pas.getSourcePluginID(updatedField)
+	if sourcePluginID == "" {
+		return fmt.Errorf("cannot set protected=true on a field without a source_plugin_id")
 	}
 
-	return fmt.Errorf("cannot set protected=true on a field without a source_plugin_id")
+	if sourcePluginID != callerID {
+		return fmt.Errorf("cannot set protected=true: only source plugin '%s' can modify this field", sourcePluginID)
+	}
+
+	return nil
 }
 
 // checkFieldWriteAccess checks if the given caller can modify a PropertyField.

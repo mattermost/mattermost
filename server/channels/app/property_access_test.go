@@ -979,6 +979,33 @@ func TestUpdatePropertyField_WriteAccessControl(t *testing.T) {
 		assert.Contains(t, err.Error(), "source_plugin_id")
 	})
 
+	t.Run("prevents non-source plugin from setting protected=true", func(t *testing.T) {
+		field := &model.PropertyField{
+			GroupID: groupID,
+			Name:    "Field With Source Plugin",
+			Type:    model.PropertyFieldTypeText,
+			Attrs:   model.StringInterface{},
+		}
+
+		// Create field via plugin1 (sets source_plugin_id automatically)
+		created, err := th.App.PropertyAccessService().CreatePropertyFieldForPlugin("plugin1", field)
+		require.NoError(t, err)
+		assert.False(t, model.IsPropertyFieldProtected(created))
+
+		// Try to set protected=true by a different plugin (plugin2)
+		created.Attrs[model.PropertyAttrsProtected] = true
+		updated, err := th.App.PropertyAccessService().UpdatePropertyField("plugin2", groupID, created)
+		require.Error(t, err)
+		assert.Nil(t, updated)
+		assert.Contains(t, err.Error(), "cannot set protected=true")
+		assert.Contains(t, err.Error(), "plugin1")
+
+		// Verify the source plugin (plugin1) CAN set protected=true
+		updated, err = th.App.PropertyAccessService().UpdatePropertyField("plugin1", groupID, created)
+		require.NoError(t, err)
+		assert.True(t, model.IsPropertyFieldProtected(updated))
+	})
+
 	t.Run("non-CPA group allows anyone to update protected field", func(t *testing.T) {
 		// Register a non-CPA group
 		nonCpaGroup, err := pas.RegisterPropertyGroup("other-group-update")
