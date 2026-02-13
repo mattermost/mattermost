@@ -8685,6 +8685,10 @@
     "translation": "{{.Backend}} aggregator worker failed due to the indexing job failing"
   },
   {
+    "id": "ent.elasticsearch.backfill_posts_channel_type.error",
+    "translation": "{{.Backend}} failed to backfill channel type on posts"
+  },
+  {
     "id": "ent.elasticsearch.create_client.ca_cert_missing",
     "translation": "Could not open the CA file for {{.Backend}}"
   },
@@ -8915,6 +8919,10 @@
   {
     "id": "ent.elasticsearch.test_config.reenter_password",
     "translation": "The Search Server URL or Username has changed. Please re-enter the password to test connection."
+  },
+  {
+    "id": "ent.elasticsearch.update_posts_channel_type.error",
+    "translation": "{{.Backend}} failed to update channel type on posts"
   },
   {
     "id": "ent.id_loaded.license_disable.app_error",

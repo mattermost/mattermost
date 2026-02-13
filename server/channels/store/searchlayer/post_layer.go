@@ -30,7 +30,7 @@ func (s SearchPostStore) indexPost(rctx request.CTX, post *model.Post) {
 					rctx.Logger().Error("Couldn't get channel for post for SearchEngine indexing.", mlog.String("channel_id", post.ChannelId), mlog.String("search_engine", engineCopy.GetName()), mlog.String("post_id", post.Id), mlog.Err(chanErr))
 					return
 				}
-				if err := engineCopy.IndexPost(post, channel.TeamId); err != nil {
+				if err := engineCopy.IndexPost(post, channel.TeamId, string(channel.Type)); err != nil {
 					rctx.Logger().Warn("Encountered error indexing post", mlog.String("post_id", post.Id), mlog.String("search_engine", engineCopy.GetName()), mlog.Err(err))
 					return
 				}

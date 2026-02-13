@@ -17,6 +17,26 @@ type SearchEngineInterface struct {
 	mock.Mock
 }
 
+// BackfillPostsChannelType provides a mock function with given fields: rctx, channelIDs, channelType
+func (_m *SearchEngineInterface) BackfillPostsChannelType(rctx request.CTX, channelIDs []string, channelType string) *model.AppError {
+	ret := _m.Called(rctx, channelIDs, channelType)
+
+	if len(ret) == 0 {
+		panic("no return value specified for BackfillPostsChannelType")
+	}
+
+	var r0 *model.AppError
+	if rf, ok := ret.Get(0).(func(request.CTX, []string, string) *model.AppError); ok {
+		r0 = rf(rctx, channelIDs, channelType)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.AppError)
+		}
+	}
+
+	return r0
+}
+
 // DataRetentionDeleteIndexes provides a mock function with given fields: rctx, cutoff
 func (_m *SearchEngineInterface) DataRetentionDeleteIndexes(rctx request.CTX, cutoff time.Time) *model.AppError {
 	ret := _m.Called(rctx, cutoff)
@@ -331,17 +351,17 @@ func (_m *SearchEngineInterface) IndexFile(file *model.FileInfo, channelId strin
 	return r0
 }
 
-// IndexPost provides a mock function with given fields: post, teamId
-func (_m *SearchEngineInterface) IndexPost(post *model.Post, teamId string) *model.AppError {
-	ret := _m.Called(post, teamId)
+// IndexPost provides a mock function with given fields: post, teamId, channelType
+func (_m *SearchEngineInterface) IndexPost(post *model.Post, teamId string, channelType string) *model.AppError {
+	ret := _m.Called(post, teamId, channelType)
 
 	if len(ret) == 0 {
 		panic("no return value specified for IndexPost")
 	}
 
 	var r0 *model.AppError
-	if rf, ok := ret.Get(0).(func(*model.Post, string) *model.AppError); ok {
-		r0 = rf(post, teamId)
+	if rf, ok := ret.Get(0).(func(*model.Post, string, string) *model.AppError); ok {
+		r0 = rf(post, teamId, channelType)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*model.AppError)
@@ -800,6 +820,26 @@ func (_m *SearchEngineInterface) TestConfig(rctx request.CTX, cfg *model.Config)
 // UpdateConfig provides a mock function with given fields: cfg
 func (_m *SearchEngineInterface) UpdateConfig(cfg *model.Config) {
 	_m.Called(cfg)
+}
+
+// UpdatePostsChannelTypeByChannelId provides a mock function with given fields: rctx, channelID, channelType
+func (_m *SearchEngineInterface) UpdatePostsChannelTypeByChannelId(rctx request.CTX, channelID string, channelType string) *model.AppError {
+	ret := _m.Called(rctx, channelID, channelType)
+
+	if len(ret) == 0 {
+		panic("no return value specified for UpdatePostsChannelTypeByChannelId")
+	}
+
+	var r0 *model.AppError
+	if rf, ok := ret.Get(0).(func(request.CTX, string, string) *model.AppError); ok {
+		r0 = rf(rctx, channelID, channelType)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.AppError)
+		}
+	}
+
+	return r0
 }
 
 // NewSearchEngineInterface creates a new instance of SearchEngineInterface. It also registers a testing interface on the mock and a cleanup function to assert the mocks expectations.

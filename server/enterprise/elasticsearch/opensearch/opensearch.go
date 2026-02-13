@@ -23,9 +23,11 @@ import (
 
 	"github.com/elastic/go-elasticsearch/v8/typedapi/core/deletebyquery"
 	"github.com/elastic/go-elasticsearch/v8/typedapi/core/search"
+	"github.com/elastic/go-elasticsearch/v8/typedapi/core/updatebyquery"
 	"github.com/elastic/go-elasticsearch/v8/typedapi/types"
 	"github.com/elastic/go-elasticsearch/v8/typedapi/types/enums/highlighterencoder"
 	"github.com/elastic/go-elasticsearch/v8/typedapi/types/enums/operator"
+	"github.com/elastic/go-elasticsearch/v8/typedapi/types/enums/scriptlanguage"
 	"github.com/elastic/go-elasticsearch/v8/typedapi/types/enums/sortorder"
 	"github.com/opensearch-project/opensearch-go/v4"
 	"github.com/opensearch-project/opensearch-go/v4/opensearchapi"
@@ -262,7 +264,7 @@ func (os *OpensearchInterfaceImpl) GetPlugins() []string {
 	return os.plugins
 }
 
-func (os *OpensearchInterfaceImpl) IndexPost(post *model.Post, teamId string) *model.AppError {
+func (os *OpensearchInterfaceImpl) IndexPost(post *model.Post, teamId string, channelType string) *model.AppError {
 	os.mutex.RLock()
 	defer os.mutex.RUnlock()
 
@@ -273,7 +275,7 @@ func (os *OpensearchInterfaceImpl) IndexPost(post *model.Post, teamId string) *m
 	indexName := common.BuildPostIndexName(*os.Platform.Config().ElasticsearchSettings.AggregatePostsAfterDays,
 		*os.Platform.Config().ElasticsearchSettings.IndexPrefix+common.IndexBasePosts, *os.Platform.Config().ElasticsearchSettings.IndexPrefix+common.IndexBasePosts_MONTH, time.Now(), post.CreateAt)
 
-	searchPost, err := common.ESPostFromPost(post, teamId)
+	searchPost, err := common.ESPostFromPost(post, teamId, channelType)
 	if err != nil {
 		return model.NewAppError("Opensearch.IndexPost", "ent.elasticsearch.index_post.error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
@@ -595,12 +597,47 @@ func (os *OpensearchInterfaceImpl) SearchPosts(channels model.ChannelList, searc
 		fullHighlightsQuery.Must = append([]types.Query(nil), highlightQueries...)
 	}
 
-	filters = append(filters,
-		types.Query{
+	// Build channel access filter, optionally including non-member public channels.
+	cfg := os.Platform.Config()
+	includePublicChannels := model.SafeDereference(cfg.ElasticsearchSettings.EnableSearchPublicChannelsWithoutMembership) &&
+		!model.SafeDereference(cfg.ComplianceSettings.Enable)
+
+	var channelFilter types.Query
+	if includePublicChannels {
+		teamIdSet := make(map[string]struct{})
+		for _, channel := range channels {
+			if channel.TeamId != "" {
+				teamIdSet[channel.TeamId] = struct{}{}
+			}
+		}
+		var teamIds []string
+		for id := range teamIdSet {
+			teamIds = append(teamIds, id)
+		}
+
+		channelFilter = types.Query{
+			Bool: &types.BoolQuery{
+				Should: []types.Query{
+					{Terms: &types.TermsQuery{TermsQuery: map[string]types.TermsQueryField{"channel_id": channelIds}}},
+					{Bool: &types.BoolQuery{
+						Filter: []types.Query{
+							{Term: map[string]types.TermQuery{"channel_type": {Value: "O"}}},
+							{Terms: &types.TermsQuery{TermsQuery: map[string]types.TermsQueryField{"team_id": teamIds}}},
+						},
+					}},
+				},
+			},
+		}
+	} else {
+		channelFilter = types.Query{
 			Terms: &types.TermsQuery{
 				TermsQuery: map[string]types.TermsQueryField{"channel_id": channelIds},
 			},
-		},
+		}
+	}
+
+	filters = append(filters,
+		channelFilter,
 		types.Query{
 			Bool: &types.BoolQuery{
 				Should: []types.Query{
@@ -774,6 +811,127 @@ func (os *OpensearchInterfaceImpl) DeleteChannelPosts(rctx request.CTX, channelI
 		return model.NewAppError("Opensearch.DeleteChannelPosts", "ent.elasticsearch.delete_channel_posts.error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 	rctx.Logger().Info("Posts for channel deleted", mlog.String("channel_id", channelID), mlog.Int("deleted", response.Deleted))
+
+	return nil
+}
+
+func (os *OpensearchInterfaceImpl) UpdatePostsChannelTypeByChannelId(rctx request.CTX, channelID string, channelType string) *model.AppError {
+	os.mutex.RLock()
+	defer os.mutex.RUnlock()
+
+	if atomic.LoadInt32(&os.ready) == 0 {
+		return model.NewAppError("Opensearch.UpdatePostsChannelTypeByChannelId", "ent.elasticsearch.not_started.error", map[string]any{"Backend": model.ElasticsearchSettingsOSBackend}, "", http.StatusInternalServerError)
+	}
+
+	postIndexes, err := os.getPostIndexNames()
+	if err != nil {
+		return model.NewAppError("Opensearch.UpdatePostsChannelTypeByChannelId", "ent.elasticsearch.update_posts_channel_type.error", map[string]any{"Backend": model.ElasticsearchSettingsOSBackend}, "", http.StatusInternalServerError).Wrap(err)
+	}
+
+	ctx, cancel := context.WithTimeout(context.Background(), time.Duration(*os.Platform.Config().ElasticsearchSettings.RequestTimeoutSeconds)*time.Second)
+	defer cancel()
+
+	query := &types.Query{
+		Bool: &types.BoolQuery{
+			Filter: []types.Query{{
+				Term: map[string]types.TermQuery{"channel_id": {Value: channelID}},
+			}},
+		},
+	}
+
+	scriptSource := "ctx._source.channel_type = params.channel_type"
+	lang := scriptlanguage.Painless
+	channelTypeJSON, jsonErr := json.Marshal(channelType)
+	if jsonErr != nil {
+		return model.NewAppError("Opensearch.UpdatePostsChannelTypeByChannelId", "ent.elasticsearch.update_posts_channel_type.error", map[string]any{"Backend": model.ElasticsearchSettingsOSBackend}, "", http.StatusInternalServerError).Wrap(jsonErr)
+	}
+
+	queryBuf, err := json.Marshal(updatebyquery.Request{
+		Query: query,
+		Script: &types.Script{
+			Source: &scriptSource,
+			Lang:   &lang,
+			Params: map[string]json.RawMessage{
+				"channel_type": channelTypeJSON,
+			},
+		},
+	})
+	if err != nil {
+		return model.NewAppError("Opensearch.UpdatePostsChannelTypeByChannelId", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+	response, err := os.client.UpdateByQuery(ctx, opensearchapi.UpdateByQueryReq{
+		Indices: postIndexes,
+		Body:    bytes.NewReader(queryBuf),
+	})
+	if err != nil {
+		return model.NewAppError("Opensearch.UpdatePostsChannelTypeByChannelId", "ent.elasticsearch.update_posts_channel_type.error", map[string]any{"Backend": model.ElasticsearchSettingsOSBackend}, "", http.StatusInternalServerError).Wrap(err)
+	}
+	rctx.Logger().Info("Posts channel_type updated", mlog.String("channel_id", channelID), mlog.String("channel_type", channelType), mlog.Int("updated", response.Updated))
+
+	return nil
+}
+
+func (os *OpensearchInterfaceImpl) BackfillPostsChannelType(rctx request.CTX, channelIDs []string, channelType string) *model.AppError {
+	os.mutex.RLock()
+	defer os.mutex.RUnlock()
+
+	if atomic.LoadInt32(&os.ready) == 0 {
+		return model.NewAppError("Opensearch.BackfillPostsChannelType", "ent.elasticsearch.not_started.error", map[string]any{"Backend": model.ElasticsearchSettingsOSBackend}, "", http.StatusInternalServerError)
+	}
+
+	postIndexes, err := os.getPostIndexNames()
+	if err != nil {
+		return model.NewAppError("Opensearch.BackfillPostsChannelType", "ent.elasticsearch.backfill_posts_channel_type.error", map[string]any{"Backend": model.ElasticsearchSettingsOSBackend}, "", http.StatusInternalServerError).Wrap(err)
+	}
+
+	ctx, cancel := context.WithTimeout(context.Background(), time.Hour)
+	defer cancel()
+
+	query := &types.Query{
+		Bool: &types.BoolQuery{
+			Filter: []types.Query{{
+				Terms: &types.TermsQuery{
+					TermsQuery: map[string]types.TermsQueryField{
+						"channel_id": channelIDs,
+					},
+				},
+			}},
+		},
+	}
+
+	scriptSource := "ctx._source.channel_type = params.channel_type"
+	lang := scriptlanguage.Painless
+	channelTypeJSON, jsonErr := json.Marshal(channelType)
+	if jsonErr != nil {
+		return model.NewAppError("Opensearch.BackfillPostsChannelType", "ent.elasticsearch.backfill_posts_channel_type.error", map[string]any{"Backend": model.ElasticsearchSettingsOSBackend}, "", http.StatusInternalServerError).Wrap(jsonErr)
+	}
+
+	queryBuf, err := json.Marshal(updatebyquery.Request{
+		Query: query,
+		Script: &types.Script{
+			Source: &scriptSource,
+			Lang:   &lang,
+			Params: map[string]json.RawMessage{
+				"channel_type": channelTypeJSON,
+			},
+		},
+	})
+	if err != nil {
+		return model.NewAppError("Opensearch.BackfillPostsChannelType", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+
+	requestsPerSecond := 1000
+	response, err := os.client.UpdateByQuery(ctx, opensearchapi.UpdateByQueryReq{
+		Indices: postIndexes,
+		Body:    bytes.NewReader(queryBuf),
+		Params: opensearchapi.UpdateByQueryParams{
+			RequestsPerSecond: &requestsPerSecond,
+		},
+	})
+	if err != nil {
+		return model.NewAppError("Opensearch.BackfillPostsChannelType", "ent.elasticsearch.backfill_posts_channel_type.error", map[string]any{"Backend": model.ElasticsearchSettingsOSBackend}, "", http.StatusInternalServerError).Wrap(err)
+	}
+	rctx.Logger().Info("Backfilled channel_type on posts", mlog.Int("updated", response.Updated), mlog.String("channel_type", channelType))
 
 	return nil
 }

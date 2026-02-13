@@ -62,6 +62,7 @@ type ESPost struct {
 	Hashtags    []string `json:"hashtags"`
 	Attachments string   `json:"attachments"`
 	URLs        []string `json:"urls"`
+	ChannelType string   `json:"channel_type"`
 }
 
 type ESFile struct {
@@ -95,9 +96,10 @@ type ESUser struct {
 	ChannelsIds                []string `json:"channel_id"`
 }
 
-func ESPostFromPost(post *model.Post, teamId string) (*ESPost, error) {
+func ESPostFromPost(post *model.Post, teamId string, channelType string) (*ESPost, error) {
 	p := &model.PostForIndexing{
-		TeamId: teamId,
+		TeamId:      teamId,
+		ChannelType: channelType,
 	}
 	err := post.ShallowCopy(&p.Post)
 	if err != nil {
@@ -108,14 +110,15 @@ func ESPostFromPost(post *model.Post, teamId string) (*ESPost, error) {
 
 func ESPostFromPostForIndexing(post *model.PostForIndexing) *ESPost {
 	searchPost := ESPost{
-		Id:        post.Id,
-		TeamId:    post.TeamId,
-		ChannelId: post.ChannelId,
-		UserId:    post.UserId,
-		CreateAt:  post.CreateAt,
-		Message:   post.Message,
-		Type:      post.Type,
-		Hashtags:  strings.Fields(post.Hashtags),
+		Id:          post.Id,
+		TeamId:      post.TeamId,
+		ChannelId:   post.ChannelId,
+		UserId:      post.UserId,
+		CreateAt:    post.CreateAt,
+		Message:     post.Message,
+		Type:        post.Type,
+		Hashtags:    strings.Fields(post.Hashtags),
+		ChannelType: post.ChannelType,
 	}
 
 	var searchAttachments []string
