@@ -4,14 +4,15 @@
 package app
 
 import (
+	"context"
 	"math"
 	"net/http"
 	"strconv"
 	"strings"
 
 	"github.com/pkg/errors"
-	"github.com/throttled/throttled"
-	"github.com/throttled/throttled/store/memstore"
+	"github.com/throttled/throttled/v2"
+	"github.com/throttled/throttled/v2/store/memstore"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/i18n"
@@ -20,7 +21,7 @@ import (
 )
 
 type RateLimiter struct {
-	throttledRateLimiter *throttled.GCRARateLimiter
+	throttledRateLimiter *throttled.GCRARateLimiterCtx
 	useAuth              bool
 	useIP                bool
 	header               string
@@ -28,7 +29,7 @@ type RateLimiter struct {
 }
 
 func NewRateLimiter(settings *model.RateLimitSettings, trustedProxyIPHeader []string) (*RateLimiter, error) {
-	store, err := memstore.New(*settings.MemoryStoreSize)
+	store, err := memstore.NewCtx(*settings.MemoryStoreSize)
 	if err != nil {
 		return nil, errors.Wrap(err, i18n.T("api.server.start_server.rate_limiting_memory_store"))
 	}
@@ -38,7 +39,7 @@ func NewRateLimiter(settings *model.RateLimitSettings, trustedProxyIPHeader []st
 		MaxBurst: *settings.MaxBurst,
 	}
 
-	throttledRateLimiter, err := throttled.NewGCRARateLimiter(store, quota)
+	throttledRateLimiter, err := throttled.NewGCRARateLimiterCtx(store, quota)
 	if err != nil {
 		return nil, errors.Wrap(err, i18n.T("api.server.start_server.rate_limiting_rate_limiter"))
 	}
@@ -75,8 +76,8 @@ func (rl *RateLimiter) GenerateKey(r *http.Request) string {
 	return key
 }
 
-func (rl *RateLimiter) RateLimitWriter(key string, w http.ResponseWriter) bool {
-	limited, context, err := rl.throttledRateLimiter.RateLimit(key, 1)
+func (rl *RateLimiter) RateLimitWriter(ctx context.Context, key string, w http.ResponseWriter) bool {
+	limited, context, err := rl.throttledRateLimiter.RateLimitCtx(ctx, key, 1)
 	if err != nil {
 		mlog.Error("Internal server error when rate limiting. Rate Limiting broken.", mlog.Err(err))
 		return false
@@ -92,9 +93,9 @@ func (rl *RateLimiter) RateLimitWriter(key string, w http.ResponseWriter) bool {
 	return limited
 }
 
-func (rl *RateLimiter) UserIdRateLimit(userID string, w http.ResponseWriter) bool {
+func (rl *RateLimiter) UserIdRateLimit(ctx context.Context, userID string, w http.ResponseWriter) bool {
 	if rl.useAuth {
-		return rl.RateLimitWriter(userID, w)
+		return rl.RateLimitWriter(ctx, userID, w)
 	}
 	return false
 }
@@ -103,7 +104,7 @@ func (rl *RateLimiter) RateLimitHandler(wrappedHandler http.Handler) http.Handle
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		key := rl.GenerateKey(r)
 
-		if !rl.RateLimitWriter(key, w) {
+		if !rl.RateLimitWriter(r.Context(), key, w) {
 			wrappedHandler.ServeHTTP(w, r)
 		}
 	})
