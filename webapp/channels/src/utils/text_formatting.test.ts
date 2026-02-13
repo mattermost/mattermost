@@ -24,6 +24,7 @@ import {
     doFormatText,
     replaceTokens,
     isChannelNamesMap,
+    convertEntityToCharacter,
 } from 'utils/text_formatting';
 import type {ChannelNamesMap} from 'utils/text_formatting';
 
@@ -616,5 +617,57 @@ describe('isChannelsNameMap', () => {
 
         delete (prop['some id'] as any).display_name;
         expect(isChannelNamesMap(prop)).toBe(false);
+    });
+});
+
+describe('convertEntityToCharacter', () => {
+    it('should decode &lt; to <', () => {
+        expect(convertEntityToCharacter('&lt;')).toBe('<');
+        expect(convertEntityToCharacter('&lt;div&gt;')).toBe('<div>');
+    });
+
+    it('should decode &gt; to >', () => {
+        expect(convertEntityToCharacter('&gt;')).toBe('>');
+        expect(convertEntityToCharacter('a &gt; b')).toBe('a > b');
+    });
+
+    it('should decode &quot; to "', () => {
+        expect(convertEntityToCharacter('&quot;')).toBe('"');
+        expect(convertEntityToCharacter('say &quot;hello&quot;')).toBe('say "hello"');
+    });
+
+    it('should decode &#39; to \'', () => {
+        expect(convertEntityToCharacter('&#39;')).toBe("'");
+        expect(convertEntityToCharacter('don&#39;t')).toBe('don\'t');
+    });
+
+    it('should decode &amp; to &', () => {
+        expect(convertEntityToCharacter('&amp;')).toBe('&');
+        expect(convertEntityToCharacter('A &amp; B')).toBe('A & B');
+    });
+
+    it('should decode multiple entities in correct order', () => {
+        // &amp; should be decoded last to handle already-encoded entities
+        expect(convertEntityToCharacter('&lt;div&gt;')).toBe('<div>');
+        expect(convertEntityToCharacter('&quot;test&quot; &amp; &#39;test&#39;')).toBe('"test" & \'test\'');
+    });
+
+    it('should handle mixed text and entities', () => {
+        expect(convertEntityToCharacter('if (x &lt; 10 &amp;&amp; y &gt; 5)')).toBe('if (x < 10 && y > 5)');
+        expect(convertEntityToCharacter('console.log(&quot;Hello&quot;);')).toBe('console.log("Hello");');
+    });
+
+    it('should handle text with no entities', () => {
+        expect(convertEntityToCharacter('plain text')).toBe('plain text');
+        expect(convertEntityToCharacter('no entities here')).toBe('no entities here');
+    });
+
+    it('should handle empty string', () => {
+        expect(convertEntityToCharacter('')).toBe('');
+    });
+
+    it('should handle code-like content', () => {
+        expect(convertEntityToCharacter('const x = &lt;Component /&gt;;')).toBe('const x = <Component />;');
+        expect(convertEntityToCharacter('if (a &lt; b &amp;&amp; c &gt; d)')).toBe('if (a < b && c > d)');
     });
 });

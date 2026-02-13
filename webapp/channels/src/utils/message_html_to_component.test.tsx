@@ -2,6 +2,7 @@
 // See LICENSE.txt for license information.
 
 import {shallow} from 'enzyme';
+import React from 'react';
 import type {AnchorHTMLAttributes} from 'react';
 
 import AtMention from 'components/at_mention';
@@ -285,5 +286,31 @@ describe('convertPropsToReactStandard', () => {
             id: 'unique-id',
         };
         expect(convertPropsToReactStandard(inputProps)).toEqual(expected);
+    });
+});
+
+describe('messageHtmlToComponent - inline code angle brackets', () => {
+    test('should render angle brackets correctly in inline code', () => {
+        const input = '* test `< or >`\n* test < or >\n`< or >`';
+        const html = TextFormatting.formatText(input, {}, emptyEmojiMap);
+        const result = messageHtmlToComponent(html);
+
+        renderWithContext(<div>{result}</div>);
+
+        // Check that angle brackets are rendered correctly in code blocks
+        const codeElements = screen.getAllByText((content, element) => {
+            return element?.tagName === 'CODE' && content.includes('<') && content.includes('>');
+        });
+
+        // Should find 2 code elements with angle brackets
+        expect(codeElements.length).toBeGreaterThanOrEqual(2);
+
+        // Verify the text content contains actual angle brackets, not HTML entities
+        codeElements.forEach((el) => {
+            expect(el.textContent).toContain('<');
+            expect(el.textContent).toContain('>');
+            expect(el.textContent).not.toContain('&lt;');
+            expect(el.textContent).not.toContain('&gt;');
+        });
     });
 });

@@ -17,6 +17,8 @@ import PluginLinkTooltip from 'components/plugin_link_tooltip';
 import PostEmoji from 'components/post_emoji';
 import PostEditedIndicator from 'components/post_view/post_edited_indicator';
 
+import {convertEntityToCharacter} from './text_formatting';
+
 export type Options = Partial<{
     postId: string;
     editedAt: number;
@@ -302,6 +304,22 @@ export default function messageHtmlToComponent(html: string, options: Options = 
             },
         });
     }
+
+    // Handle inline code to prevent double-escaping of HTML entities
+    // When html-to-react parses <code>&lt;</code>, it extracts the text "&lt;"
+    // React then escapes it again to "&amp;lt;" which displays as "&lt;" instead of "<"
+    // We need to decode entities in text nodes inside code blocks so React's escaping produces the correct result
+    processingInstructions.push({
+        replaceChildren: false,
+        shouldProcessNode: (node: any) => {
+            // Match text nodes that are children of code elements
+            return node.type === 'text' && node.parent && node.parent.name === 'code';
+        },
+        processNode: (node: any) => {
+            // Decode HTML entities in the text content
+            return convertEntityToCharacter(node.data);
+        },
+    });
 
     processingInstructions.push({
         replaceChildren: false,
