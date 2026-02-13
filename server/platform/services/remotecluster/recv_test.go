@@ -258,6 +258,47 @@ func TestReceiveInviteConfirmation_TokenInvalidation(t *testing.T) {
 
 		remoteClusterStoreMock.AssertExpectations(t)
 	})
+
+	t.Run("Protocol v2+ with RefreshedToken equal to original token - rejected (MM-67098)", func(t *testing.T) {
+		// Security: RefreshedToken must be different from the original invite token.
+		// If the remote sends back the same token, they did not actually refresh; reject.
+		originalToken := model.NewId()
+		remoteId := model.NewId()
+
+		originalRC := &model.RemoteCluster{
+			RemoteId: remoteId,
+			Token:    originalToken,
+			SiteURL:  model.SiteURLPending + model.NewId(),
+			CreateAt: model.GetMillis(),
+		}
+
+		remoteClusterStoreMock := &mocks.RemoteClusterStore{}
+		remoteClusterStoreMock.On("Get", remoteId, false).Return(originalRC, nil)
+		// Update must NOT be called when RefreshedToken == rc.Token
+
+		storeMock := &mocks.Store{}
+		storeMock.On("RemoteCluster").Return(remoteClusterStoreMock)
+
+		mockServer := newMockServerWithStore(t, storeMock)
+		mockApp := newMockApp(t, nil)
+		service, err := NewRemoteClusterService(mockServer, mockApp)
+		require.NoError(t, err)
+
+		confirm := model.RemoteClusterInvite{
+			RemoteId:       remoteId,
+			SiteURL:        "http://example.com",
+			Token:          model.NewId(),
+			RefreshedToken: originalToken, // Same as rc.Token - invalid, must be different
+			Version:        3,
+		}
+
+		rcUpdated, err := service.ReceiveInviteConfirmation(confirm)
+
+		require.Error(t, err)
+		assert.Nil(t, rcUpdated)
+		assert.Contains(t, err.Error(), "RefreshedToken must be different from the original invite token")
+		remoteClusterStoreMock.AssertNotCalled(t, "Update", mock.Anything)
+	})
 }
 
 // TestReceiveInviteConfirmation_EdgeCases tests various edge cases
