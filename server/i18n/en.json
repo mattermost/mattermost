@@ -11782,11 +11782,11 @@
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.safari",
-    "translation": "Version 17.4+"
+    "translation": "Version 26.2+"
   },
   {
     "id": "web.error.unsupported_browser.min_os_version.mac",
-    "translation": "macOS 12+"
+    "translation": "macOS 14+"
   },
   {
     "id": "web.error.unsupported_browser.min_os_version.windows",

@@ -1,126 +1,110 @@
 // Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
 
 exports[`components/drafts/panel/panel_header should match snapshot 1`] = `
-<div
-  className="PanelHeader"
->
+<div>
   <div
-    className="PanelHeader__left"
-  >
-    <div>
-      title
-    </div>
-  </div>
-  <div
-    className="PanelHeader__right"
+    class="PanelHeader"
   >
     <div
-      className="PanelHeader__actions"
+      class="PanelHeader__left"
     >
       <div>
-        actions
+        title
       </div>
     </div>
     <div
-      className="PanelHeader__info"
+      class="PanelHeader__right"
     >
       <div
-        className="PanelHeader__timestamp"
+        class="PanelHeader__actions"
       >
-        <Connect(injectIntl(Timestamp))
-          day="numeric"
-          units={
-            Array [
-              "now",
-              "minute",
-              "hour",
-              "day",
-              "week",
-              "month",
-              "year",
-            ]
-          }
-          useSemanticOutput={false}
-          useTime={false}
-          value={1970-01-01T00:00:12.345Z}
-        />
+        <div>
+          actions
+        </div>
       </div>
-      <Memo(Tag)
-        text="draft"
-        uppercase={true}
-        variant="danger"
-      />
+      <div
+        class="PanelHeader__info"
+      >
+        <div
+          class="PanelHeader__timestamp"
+        >
+          56 years ago
+        </div>
+        <div
+          class="TagWrapper-kezsCu cA-dXXM Tag Tag--danger Tag--xs"
+        >
+          <span
+            class="TagText-bWoQAI beIloY"
+          >
+            draft
+          </span>
+        </div>
+      </div>
     </div>
   </div>
 </div>
 `;
 
 exports[`components/drafts/panel/panel_header should show sync icon when draft is from server 1`] = `
-<div
-  className="PanelHeader"
->
+<div>
   <div
-    className="PanelHeader__left"
-  >
-    <div>
-      title
-    </div>
-  </div>
-  <div
-    className="PanelHeader__right"
+    class="PanelHeader"
   >
     <div
-      className="PanelHeader__actions"
+      class="PanelHeader__left"
     >
       <div>
-        actions
+        title
       </div>
     </div>
     <div
-      className="PanelHeader__info"
+      class="PanelHeader__right"
     >
       <div
-        className="PanelHeader__sync-icon"
+        class="PanelHeader__actions"
       >
-        <WithTooltip
-          title={
-            <Memo(MemoizedFormattedMessage)
-              defaultMessage="Updated from another device"
-              id="drafts.info.sync"
-            />
-          }
-        >
-          <SyncIcon
-            size={18}
-          />
-        </WithTooltip>
+        <div>
+          actions
+        </div>
       </div>
       <div
-        className="PanelHeader__timestamp"
+        class="PanelHeader__info"
       >
-        <Connect(injectIntl(Timestamp))
-          day="numeric"
-          units={
-            Array [
-              "now",
-              "minute",
-              "hour",
-              "day",
-              "week",
-              "month",
-              "year",
-            ]
-          }
-          useSemanticOutput={false}
-          useTime={false}
-          value={1970-01-01T00:00:12.345Z}
-        />
+        <div
+          class="PanelHeader__sync-icon"
+        >
+          <div
+            data-testid="with-tooltip"
+          >
+            <svg
+              fill="currentColor"
+              height="18"
+              version="1.1"
+              viewBox="0 0 24 24"
+              width="18"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                d="M12,18A6,6 0 0,1 6,12C6,11 6.25,10.03 6.7,9.2L5.24,7.74C4.46,8.97 4,10.43 4,12A8,8 0 0,0 12,20V23L16,19L12,15M12,4V1L8,5L12,9V6A6,6 0 0,1 18,12C18,13 17.75,13.97 17.3,14.8L18.76,16.26C19.54,15.03 20,13.57 20,12A8,8 0 0,0 12,4Z"
+              />
+            </svg>
+          </div>
+        </div>
+        <div
+          class="PanelHeader__timestamp"
+        >
+          56 years ago
+        </div>
+        <div
+          class="TagWrapper-kezsCu cA-dXXM Tag Tag--danger Tag--xs"
+        >
+          <span
+            class="TagText-bWoQAI beIloY"
+          >
+            draft
+          </span>
+        </div>
       </div>
-      <Memo(Tag)
-        text="draft"
-        uppercase={true}
-        variant="danger"
-      />
     </div>
   </div>
 </div>
