@@ -85,7 +85,7 @@ describe('components/user_settings/display/user_settings_theme/user_settings_the
         );
 
         // The applyToAllTeams checkbox should be checked by default (from props)
-        const checkbox = screen.getByRole('checkbox');
+        const checkbox = screen.getByRole('checkbox', {name: /apply new theme to all my teams/i});
         expect(checkbox).toBeChecked();
 
         // Click Save to trigger submitTheme

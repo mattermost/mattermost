@@ -58,8 +58,12 @@ export default function ThemeProvider({children}: {children: React.ReactNode}) {
                 const rawValue = teamDarkPref?.value ?? defaultDarkPref?.value;
 
                 if (rawValue) {
-                    const parsed: Theme = typeof rawValue === 'string' ? JSON.parse(rawValue) : rawValue;
-                    return setThemeDefaults(parsed);
+                    try {
+                        const parsed: Theme = typeof rawValue === 'string' ? JSON.parse(rawValue) : rawValue;
+                        return setThemeDefaults(parsed);
+                    } catch {
+                        // Fall through to getTheme if parsing fails
+                    }
                 }
             }
         }

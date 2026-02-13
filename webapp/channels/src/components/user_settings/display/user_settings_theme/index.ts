@@ -30,9 +30,17 @@ function mapStateToProps(state: GlobalState) {
     const defaultDarkThemePrefKey = 'theme_dark--';
 
     if (darkThemePreferences[darkThemePrefKey]) {
-        darkTheme = JSON.parse(darkThemePreferences[darkThemePrefKey].value);
+        try {
+            darkTheme = JSON.parse(darkThemePreferences[darkThemePrefKey].value);
+        } catch {
+            // Leave darkTheme undefined if parsing fails
+        }
     } else if (darkThemePreferences[defaultDarkThemePrefKey]) {
-        darkTheme = JSON.parse(darkThemePreferences[defaultDarkThemePrefKey].value);
+        try {
+            darkTheme = JSON.parse(darkThemePreferences[defaultDarkThemePrefKey].value);
+        } catch {
+            // Leave darkTheme undefined if parsing fails
+        }
     }
 
     // Check if theme auto switch is enabled

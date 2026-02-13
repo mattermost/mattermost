@@ -33,21 +33,21 @@ const teamId = 'team-id-1';
 const teamId2 = 'team-id-2';
 
 const darkThemeForTeam = {
-    type: 'custom',
+    type: 'custom' as const,
     sidebarBg: '#111111',
     centerChannelBg: '#222222',
     centerChannelColor: '#eeeeee',
 };
 
 const darkThemeDefault = {
-    type: 'custom',
+    type: 'custom' as const,
     sidebarBg: '#333333',
     centerChannelBg: '#444444',
     centerChannelColor: '#dddddd',
 };
 
 const userLightTheme = {
-    type: 'custom',
+    type: 'custom' as const,
     sidebarBg: '#aaaaaa',
     centerChannelBg: '#ffffff',
     centerChannelColor: '#333333',
@@ -274,7 +274,7 @@ describe('ThemeProvider', () => {
         matchMedia.useMediaQuery('(prefers-color-scheme: dark)');
 
         const darkThemeForTeam2 = {
-            type: 'custom',
+            type: 'custom' as const,
             sidebarBg: '#555555',
             centerChannelBg: '#666666',
             centerChannelColor: '#cccccc',

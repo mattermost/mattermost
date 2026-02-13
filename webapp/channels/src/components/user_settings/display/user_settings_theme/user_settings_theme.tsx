@@ -149,14 +149,12 @@ export default class ThemeSetting extends React.PureComponent<Props, State> {
     };
 
     updateTheme = (theme: Theme): void => {
-        let themeChanged = this.state.theme.length === theme.length;
-        if (!themeChanged) {
-            for (const field in theme) {
-                if (Object.hasOwn(theme, field)) {
-                    if (this.state.theme[field] !== theme[field]) {
-                        themeChanged = true;
-                        break;
-                    }
+        let themeChanged = false;
+        for (const field in theme) {
+            if (Object.hasOwn(theme, field)) {
+                if (this.state.theme[field] !== theme[field]) {
+                    themeChanged = true;
+                    break;
                 }
             }
         }
@@ -172,14 +170,12 @@ export default class ThemeSetting extends React.PureComponent<Props, State> {
     };
 
     updateDarkTheme = (darkTheme: Theme): void => {
-        let themeChanged = this.state.darkTheme.length === darkTheme.length;
-        if (!themeChanged) {
-            for (const field in darkTheme) {
-                if (Object.hasOwn(darkTheme, field)) {
-                    if (this.state.darkTheme[field] !== darkTheme[field]) {
-                        themeChanged = true;
-                        break;
-                    }
+        let themeChanged = false;
+        for (const field in darkTheme) {
+            if (Object.hasOwn(darkTheme, field)) {
+                if (this.state.darkTheme[field] !== darkTheme[field]) {
+                    themeChanged = true;
+                    break;
                 }
             }
         }

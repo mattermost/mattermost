@@ -98,9 +98,17 @@ export function applySystemThemeIfNeeded(): boolean {
         const defaultDarkThemePrefKey = 'theme_dark--';
 
         if (displayPreferences[darkThemePrefKey]) {
-            theme = JSON.parse(displayPreferences[darkThemePrefKey].value);
+            try {
+                theme = JSON.parse(displayPreferences[darkThemePrefKey].value);
+            } catch {
+                theme = getTheme(state);
+            }
         } else if (displayPreferences[defaultDarkThemePrefKey]) {
-            theme = JSON.parse(displayPreferences[defaultDarkThemePrefKey].value);
+            try {
+                theme = JSON.parse(displayPreferences[defaultDarkThemePrefKey].value);
+            } catch {
+                theme = getTheme(state);
+            }
         } else {
             // If no dark theme is set, use the regular theme
             theme = getTheme(state);
