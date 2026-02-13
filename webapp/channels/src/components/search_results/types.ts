@@ -15,7 +15,6 @@ export type OwnProps = {
     [key: string]: any;
     isSideBarExpanded: boolean;
     isMentionSearch: boolean;
-    isFlaggedPosts: boolean;
     isPinnedPosts: boolean;
     updateSearchTerms: (terms: string) => void;
     getMorePostsForSearch: () => void;

@@ -12,6 +12,7 @@ import type {CloudState, CloudUsage} from './cloud';
 import type {ContentFlaggingState} from './content_flagging';
 import type {EmojisState} from './emojis';
 import type {FilesState} from './files';
+import type {FlaggedPostsState} from './flagged_posts';
 import type {GeneralState} from './general';
 import type {GroupsState} from './groups';
 import type {HostedCustomerState} from './hosted_customer';
@@ -101,6 +102,7 @@ export type GlobalState = {
             remotesByRemoteId?: Record<string, RemoteClusterInfo>;
         };
         contentFlagging: ContentFlaggingState;
+        flaggedPosts: FlaggedPostsState;
     };
     errors: any[];
     requests: {
