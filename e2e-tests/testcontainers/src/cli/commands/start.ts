@@ -182,7 +182,9 @@ async function executeStartCommand(options: StartOptions): Promise<void> {
 
                     console.log(chalk.gray('\nCommands:'));
                     console.log(chalk.gray('  npx @mattermost/testcontainers restart    # Restart all containers'));
-                    console.log(chalk.gray('  npx @mattermost/testcontainers upgrade    # Upgrade mattermost to new tag'));
+                    console.log(
+                        chalk.gray('  npx @mattermost/testcontainers upgrade    # Upgrade mattermost to new tag'),
+                    );
                     console.log(
                         chalk.gray('  npx @mattermost/testcontainers rm         # Remove containers and start fresh'),
                     );

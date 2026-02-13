@@ -1,6 +1,6 @@
 {
     "name": "@mattermost/testcontainers",
-    "version": "0.2.0",
+    "version": "0.2.1",
     "description": "CLI and library for managing Mattermost test environments using Docker containers with automatic port allocation, subpath routing, HA clustering, and isolated dependencies",
     "repository": {
         "type": "git",

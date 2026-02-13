@@ -53,23 +53,23 @@ Start the test environment.
 npx @mattermost/testcontainers start [options]
 ```
 
-| Option                    | Description                                                                                                                                                              |
-| ------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `-e, --edition <edition>` | Server edition: `enterprise` (default), `fips`, `team`                                                                                                                   |
-| `-t, --tag <tag>`         | Image tag (e.g., `master`, `release-11.4`)                                                                                                                               |
-| `-D, --deps <deps>`       | Additional dependencies, comma-separated: `openldap`, `keycloak`, `minio`, `elasticsearch`, `opensearch`, `redis`, `dejavu`, `prometheus`, `grafana`, `loki`, `promtail` |
-| `--deps-only`             | Start dependencies only (no Mattermost server)                                                                                                                           |
-| `--ha`                    | High-availability mode (3-node cluster with nginx)                                                                                                                       |
-| `--subpath`               | Subpath mode (two servers at `/mattermost1` and `/mattermost2`)                                                                                                          |
-| `--entry`                 | Mattermost Entry tier                                                                                                                                                    |
-| `--esr`                   | Use the current ESR (Extended Support Release) version (see [`src/config/esr.ts`](src/config/esr.ts))                                                                    |
-| `--admin [username]`      | Create admin user (default: `sysadmin`)                                                                                                                                  |
-| `--admin-password <pw>`   | Admin password (default: `Sys@dmin-sample1`)                                                                                                                             |
-| `-E, --env <KEY=value>`   | Environment variable for Mattermost (repeatable)                                                                                                                         |
-| `--env-file <path>`       | Env file for Mattermost server variables                                                                                                                                 |
-| `-S, --service-env <env>` | Service environment: `test` (default), `production`, `dev`                                                                                                               |
-| `-c, --config <path>`     | Path to config file                                                                                                                                                      |
-| `-o, --output-dir <dir>`  | Output directory (default: `.tc.out`)                                                                                                                                    |
+| Option                    | Description                                                                                                                                                                                |
+| ------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `-e, --edition <edition>` | Server edition: `enterprise` (default), `fips`, `team`                                                                                                                                     |
+| `-t, --tag <tag>`         | Image tag (e.g., `master`, `release-11.4`)                                                                                                                                                 |
+| `-D, --deps <deps>`       | Additional dependencies, comma-separated: `openldap`, `keycloak`, `minio`, `elasticsearch`, `opensearch`, `redis`, `dejavu`, `prometheus`, `grafana`, `loki`, `promtail`, `libretranslate` |
+| `--deps-only`             | Start dependencies only (no Mattermost server)                                                                                                                                             |
+| `--ha`                    | High-availability mode (3-node cluster with nginx)                                                                                                                                         |
+| `--subpath`               | Subpath mode (two servers at `/mattermost1` and `/mattermost2`)                                                                                                                            |
+| `--entry`                 | Mattermost Entry tier                                                                                                                                                                      |
+| `--esr`                   | Use the current `10.11` ESR (Extended Support Release) version                                                                                                                             |
+| `--admin [username]`      | Create admin user (default: `sysadmin`)                                                                                                                                                    |
+| `--admin-password <pw>`   | Admin password (default: `Sys@dmin-sample1`)                                                                                                                                               |
+| `-E, --env <KEY=value>`   | Environment variable for Mattermost (repeatable)                                                                                                                                           |
+| `--env-file <path>`       | Env file for Mattermost server variables                                                                                                                                                   |
+| `-S, --service-env <env>` | Service environment: `test` (default), `production`, `dev`                                                                                                                                 |
+| `-c, --config <path>`     | Path to config file                                                                                                                                                                        |
+| `-o, --output-dir <dir>`  | Output directory (default: `.tc.out`)                                                                                                                                                      |
 
 ### `stop`
 
@@ -308,10 +308,6 @@ For example, if your config file sets `server.tag: 'release-11.4'` but you run w
 | `admin.username`            | `string`   | —                          | Admin username to create                  |
 | `admin.password`            | `string`   | `'Sys@dmin-sample1'`       | Admin password                            |
 
-### Default Images
-
-Default container images for all services are defined in [`src/config/default_images.ts`](src/config/default_images.ts). These match the versions used by the upstream Mattermost docker-compose test configuration. See the file for the full list of images and their versions.
-
 ### Image Overrides
 
 Override default images in the config file:
@@ -444,12 +440,7 @@ Use the library API for full control in custom test scripts:
 import {MattermostTestEnvironment, discoverAndLoadConfig} from '@mattermost/testcontainers';
 
 async function main() {
-    const config = await discoverAndLoadConfig({
-        overrides: {
-            dependencies: ['postgres', 'inbucket', 'openldap'],
-            admin: {username: 'sysadmin'},
-        },
-    });
+    const config = await discoverAndLoadConfig();
 
     const env = new MattermostTestEnvironment(config);
     await env.start();
@@ -458,8 +449,8 @@ async function main() {
     console.log(`Server running at ${serverUrl}`);
 
     // Access specific service info
-    const pgInfo = env.getPostgresInfo();
-    console.log(`PostgreSQL: ${pgInfo.connectionString}`);
+    const info = env.getConnectionInfo();
+    console.log(`PostgreSQL: ${info.postgres.connectionString}`);
 
     // Run mmctl commands
     const mmctl = env.getMmctl();
@@ -493,21 +484,22 @@ main().catch(console.error);
 
 ## Supported Dependencies
 
-| Dependency      | Description                                                     | Default Image                                          |
-| --------------- | --------------------------------------------------------------- | ------------------------------------------------------ |
-| `postgres`      | PostgreSQL database (always included)                           | `postgres:14`                                          |
-| `inbucket`      | Email testing (SMTP + web UI)                                   | `inbucket/inbucket:stable`                             |
-| `openldap`      | LDAP authentication                                             | `osixia/openldap:1.4.0`                                |
-| `keycloak`      | SAML/OIDC identity provider                                     | `quay.io/keycloak/keycloak:23.0.7`                     |
-| `minio`         | S3-compatible object storage                                    | `minio/minio:RELEASE.2024-06-22T05-26-45Z`             |
-| `elasticsearch` | Search engine                                                   | `mattermostdevelopment/mattermost-elasticsearch:8.9.0` |
-| `opensearch`    | Search engine (alternative)                                     | `mattermostdevelopment/mattermost-opensearch:2.7.0`    |
-| `redis`         | Cache (requires `MM_LICENSE`)                                   | `redis:7.4.0`                                          |
-| `dejavu`        | Elasticsearch web UI (requires `elasticsearch` or `opensearch`) | `appbaseio/dejavu:3.4.2`                               |
-| `prometheus`    | Metrics collection                                              | `prom/prometheus:v2.46.0`                              |
-| `grafana`       | Dashboards (requires `prometheus` or `loki`)                    | `grafana/grafana:10.4.2`                               |
-| `loki`          | Log aggregation (requires `promtail`)                           | `grafana/loki:3.0.0`                                   |
-| `promtail`      | Log shipping (requires `loki`)                                  | `grafana/promtail:3.0.0`                               |
+| Dependency       | Description                                                     | Default Image                                          |
+| ---------------- | --------------------------------------------------------------- | ------------------------------------------------------ |
+| `postgres`       | PostgreSQL database (always included)                           | `postgres:14`                                          |
+| `inbucket`       | Email testing (SMTP + web UI, always included)                  | `inbucket/inbucket:stable`                             |
+| `openldap`       | LDAP authentication                                             | `osixia/openldap:1.4.0`                                |
+| `keycloak`       | SAML/OIDC identity provider                                     | `quay.io/keycloak/keycloak:23.0.7`                     |
+| `minio`          | S3-compatible object storage                                    | `minio/minio:RELEASE.2024-06-22T05-26-45Z`             |
+| `elasticsearch`  | Search engine                                                   | `mattermostdevelopment/mattermost-elasticsearch:8.9.0` |
+| `opensearch`     | Search engine (alternative)                                     | `mattermostdevelopment/mattermost-opensearch:2.7.0`    |
+| `redis`          | Cache (requires `MM_LICENSE`)                                   | `redis:7.4.0`                                          |
+| `dejavu`         | Elasticsearch web UI (requires `elasticsearch` or `opensearch`) | `appbaseio/dejavu:3.4.2`                               |
+| `prometheus`     | Metrics collection                                              | `prom/prometheus:v2.46.0`                              |
+| `grafana`        | Dashboards (requires `prometheus` or `loki`)                    | `grafana/grafana:10.4.2`                               |
+| `loki`           | Log aggregation (requires `promtail`)                           | `grafana/loki:3.0.0`                                   |
+| `promtail`       | Log shipping (requires `loki`)                                  | `grafana/promtail:3.0.0`                               |
+| `libretranslate` | Translation service                                             | `libretranslate/libretranslate:v1.8.4`                 |
 
 ## Output Directory
 
