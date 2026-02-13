@@ -341,6 +341,18 @@ func (a *App) getEmbedForPost(rctx request.CTX, post *model.Post, firstLink stri
 	}
 
 	if image != nil {
+		// See MM-67372
+		if image.Format == "svg" || model.IsSVGImageURL(firstLink) {
+			rctx.Logger().Debug("Skipping SVG image embed",
+				mlog.String("post_id", post.Id),
+				mlog.String("url", firstLink))
+			// Return a link embed instead of an image embed
+			return &model.PostEmbed{
+				Type: model.PostEmbedLink,
+				URL:  firstLink,
+			}, nil
+		}
+
 		// Note that we're not passing the image info here since it'll be part of the PostMetadata.Images field
 		return &model.PostEmbed{
 			Type: model.PostEmbedImage,
@@ -619,6 +631,24 @@ func (a *App) containsPermalink(rctx request.CTX, post *model.Post) bool {
 	return looksLikeAPermalink(link, a.GetSiteURL())
 }
 
+// filterSVGImage filters out SVG images (MM-67372).
+// Returns nil if the image is an SVG, otherwise returns the image unchanged.
+func filterSVGImage(image *model.PostImage, imageURL string) *model.PostImage {
+	if image == nil {
+		return nil
+	}
+
+	if image.Format == "svg" {
+		return nil
+	}
+
+	if model.IsSVGImageURL(imageURL) {
+		return nil
+	}
+
+	return image
+}
+
 func (a *App) getLinkMetadata(rctx request.CTX, requestURL string, timestamp int64, isNewPost bool, previewedPostPropVal string) (*opengraph.OpenGraph, *model.PostImage, *model.Permalink, error) {
 	requestURL = resolveMetadataURL(requestURL, a.GetSiteURL())
 
@@ -636,6 +666,8 @@ func (a *App) getLinkMetadata(rctx request.CTX, requestURL string, timestamp int
 	}
 
 	if ok && previewedPostPropVal == "" {
+		og = model.TruncateOpenGraph(og)
+		image = filterSVGImage(image, requestURL)
 		return og, image, permalink, nil
 	}
 
@@ -643,6 +675,8 @@ func (a *App) getLinkMetadata(rctx request.CTX, requestURL string, timestamp int
 	if !isNewPost {
 		og, image, ok = a.getLinkMetadataFromDatabase(requestURL, timestamp)
 		if ok && previewedPostPropVal == "" {
+			og = model.TruncateOpenGraph(og)
+			image = filterSVGImage(image, requestURL)
 			cacheLinkMetadata(rctx, requestURL, timestamp, og, image, nil)
 			return og, image, nil, nil
 		}
@@ -892,12 +926,11 @@ func (a *App) parseLinkMetadata(rctx request.CTX, requestURL string, body io.Rea
 		body = bufRd
 	}
 
-	if contentType == "image/svg+xml" {
-		image := &model.PostImage{
-			Format: "svg",
-		}
-
-		return nil, image, nil
+	if strings.HasPrefix(contentType, "image/svg+xml") {
+		// See MM-67372
+		rctx.Logger().Debug("Filtering SVG image from link metadata",
+			mlog.String("url", requestURL))
+		return nil, nil, nil
 	} else if strings.HasPrefix(contentType, "image") {
 		image, err := parseImages(rctx, requestURL, io.LimitReader(body, MaxMetadataImageSize))
 		return nil, image, err

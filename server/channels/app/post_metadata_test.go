@@ -2763,11 +2763,15 @@ func TestParseLinkMetadata(t *testing.T) {
 	t.Run("svg", func(t *testing.T) {
 		og, dimensions, err := th.App.parseLinkMetadata(th.Context, "http://example.com/image.svg", nil, "image/svg+xml")
 		assert.NoError(t, err)
-
 		assert.Nil(t, og)
-		assert.Equal(t, &model.PostImage{
-			Format: "svg",
-		}, dimensions)
+		assert.Nil(t, dimensions)
+	})
+
+	t.Run("svg with charset", func(t *testing.T) {
+		og, dimensions, err := th.App.parseLinkMetadata(th.Context, "http://example.com/image.svg", nil, "image/svg+xml; charset=utf-8")
+		assert.NoError(t, err)
+		assert.Nil(t, og)
+		assert.Nil(t, dimensions)
 	})
 }
 
