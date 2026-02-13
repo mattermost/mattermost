@@ -21,7 +21,8 @@ export const canAccessChannelSettings = createSelector(
     (state: GlobalState) => state.entities.channels.channels,
     (state: GlobalState, channelId: string) => channelId,
     (state: GlobalState) => getConfig(state)?.RestrictDMAndGMAutotranslation === 'true',
-    (state, channels, channelId, restrictDMAndGMAutotranslation) => {
+    (state: GlobalState) => getConfig(state)?.EnableAutoTranslation === 'true',
+    (state, channels, channelId, isAutoTranslationEnabled, isDMAndGMAutotranslationRestricted) => {
         const channel = channels[channelId];
         if (!channel) {
             return false;
@@ -32,7 +33,7 @@ export const canAccessChannelSettings = createSelector(
 
         // For DM and GM: allow Channel Settings when "Restrict auto-translation on DM and GM" is not enabled
         if (isDM || isGM) {
-            return !restrictDMAndGMAutotranslation;
+            return isAutoTranslationEnabled && !isDMAndGMAutotranslationRestricted;
         }
 
         const isPrivate = channel.type === Constants.PRIVATE_CHANNEL;

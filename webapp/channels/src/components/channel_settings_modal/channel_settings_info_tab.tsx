@@ -12,8 +12,6 @@ import {patchChannel, updateChannelPrivacy} from 'mattermost-redux/actions/chann
 import {General} from 'mattermost-redux/constants';
 import Permissions from 'mattermost-redux/constants/permissions';
 import {haveIChannelPermission} from 'mattermost-redux/selectors/entities/roles';
-import {getCurrentUserRoles} from 'mattermost-redux/selectors/entities/users';
-import {isGuest} from 'mattermost-redux/utils/user_utils';
 
 import {
     setShowPreviewOnChannelSettingsHeaderModal,
@@ -58,19 +56,13 @@ function ChannelSettingsInfoTab({
     const isGroup = channel.type === Constants.GM_CHANNEL;
     const isDMorGroupChannel = isDirect || isGroup;
 
-    const isArchived = channel.delete_at !== 0;
-    const isGroupConstrained = channel.group_constrained === true;
-
     // Permissions for transforming channel type
     const canConvertToPrivate = useSelector((state: GlobalState) => {
-        if (isDirect) {
+        if (isDMorGroupChannel) {
+            // Group channels can be converted to private,
+            // but that is handled in a different flow.
             return false;
         }
-        if (isGroup) {
-            const currentUserRoles = getCurrentUserRoles(state);
-            return !isArchived && !isGroupConstrained && !isGuest(currentUserRoles);
-        }
-
         return haveIChannelPermission(state, channel.team_id, channel.id, Permissions.CONVERT_PUBLIC_CHANNEL_TO_PRIVATE);
     });
 
