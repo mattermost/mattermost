@@ -291,4 +291,91 @@ describe('Interactive Dialog - Date and DateTime Fields', () => {
             });
         });
     });
+
+    it('MM-T2530H - DateTime field respects 12h/24h time preference', () => {
+        // # Set user preference to 24-hour time
+        cy.apiSaveClockDisplayModeTo24HourPreference(true);
+
+        cy.reload();
+        cy.get('#postListContent').should('be.visible');
+
+        // # Open datetime dialog
+        openDateTimeDialog();
+
+        // * Verify Meeting Time field
+        verifyFormGroup('Meeting Time', {
+            inputSelector: '.apps-form-datetime-input',
+        });
+
+        // # Select a date
+        cy.get('#appsModal').within(() => {
+            cy.contains('.form-group', 'Meeting Time').within(() => {
+                cy.get('.dateTime__date .date-time-input').click();
+            });
+        });
+
+        cy.get('.rdp', {timeout: 5000}).should('be.visible');
+        selectDateFromPicker('15');
+
+        // # Open time menu
+        cy.get('#appsModal').within(() => {
+            cy.contains('.form-group', 'Meeting Time').within(() => {
+                cy.get('.dateTime__time button[data-testid="time_button"]').click();
+            });
+        });
+
+        // * Verify 24-hour format in dropdown (e.g., "14:00" not "2:00 PM")
+        cy.get('[id="expiryTimeMenu"]', {timeout: 10000}).should('be.visible');
+        cy.get('[id^="time_option_"]').first().invoke('text').then((text) => {
+            expect(text).to.match(/^\d{2}:\d{2}$/); // 24-hour format: HH:MM
+        });
+
+        // # Select a time
+        cy.get('[id^="time_option_"]').eq(5).click();
+
+        // * Verify selected time shows in 24-hour format
+        cy.get('#appsModal').within(() => {
+            cy.contains('.form-group', 'Meeting Time').within(() => {
+                cy.get('.dateTime__time .date-time-input__value').invoke('text').then((text) => {
+                    expect(text).to.match(/^\d{2}:\d{2}$/);
+                });
+            });
+        });
+
+        // # Close dialog
+        cy.get('#appsModal').within(() => {
+            cy.get('#appsModalCancel').click();
+        });
+
+        // # Set user preference to 12-hour time
+        cy.apiSaveClockDisplayModeTo24HourPreference(false);
+
+        cy.reload();
+        cy.get('#postListContent').should('be.visible');
+
+        // # Open dialog again
+        openDateTimeDialog();
+
+        // # Select date and open time menu
+        cy.get('#appsModal').within(() => {
+            cy.contains('.form-group', 'Meeting Time').within(() => {
+                cy.get('.dateTime__date .date-time-input').click();
+            });
+        });
+
+        cy.get('.rdp').should('be.visible');
+        selectDateFromPicker('20');
+
+        cy.get('#appsModal').within(() => {
+            cy.contains('.form-group', 'Meeting Time').within(() => {
+                cy.get('.dateTime__time button[data-testid="time_button"]').click();
+            });
+        });
+
+        // * Verify 12-hour format in dropdown (e.g., "2:00 PM" not "14:00")
+        cy.get('[id="expiryTimeMenu"]').should('be.visible');
+        cy.get('[id^="time_option_"]').first().invoke('text').then((text) => {
+            expect(text).to.match(/\d{1,2}:\d{2} [AP]M/); // 12-hour format: H:MM AM/PM
+        });
+    });
 });

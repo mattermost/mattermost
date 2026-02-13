@@ -44,13 +44,14 @@ describe('PostAriaLabelDiv', () => {
         },
     };
 
-    const baseProps = {
+    const baseProps: Omit<Props, 'ref'> = {
         post: TestHelper.getPostMock({
             user_id: author.id,
             message: 'This is a test.',
             create_at: new Date('2020-01-15T12:00:00Z').getTime(),
         }),
-    } as Omit<Props, 'ref'>;
+        autotranslated: false,
+    };
 
     test('should render aria-label in the given locale', () => {
         (reactIntl.useIntl as jest.Mock).mockImplementation(() => reactIntl.createIntl({locale: 'en', messages: enMessages, defaultLocale: 'en'}));

@@ -46,6 +46,20 @@ on:
         type: string
         required: false
         default: onprem
+      server_edition:
+        description: "Server edition: enterprise (default), fips, or team"
+        type: string
+        required: false
+        default: enterprise
+      server_image_repo:
+        description: "Docker registry: mattermostdevelopment (default) or mattermost"
+        type: string
+        required: false
+        default: mattermostdevelopment
+      server_image_aliases:
+        description: "Comma-separated alias tags for description (e.g., 'release-11.4, release-11')"
+        type: string
+        required: false
 
       # Reporting options
       enable_reporting:
@@ -53,6 +67,10 @@ on:
         required: false
         default: false
       report_type:
+        type: string
+        required: false
+      ref_branch:
+        description: "Source branch name for webhook messages (e.g., 'master' or 'release-11.4')"
         type: string
         required: false
       pr_number:
@@ -92,7 +110,7 @@ on:
         required: false
 
 env:
-  SERVER_IMAGE: "mattermostdevelopment/mattermost-enterprise-edition:${{ inputs.server_image_tag }}"
+  SERVER_IMAGE: "${{ inputs.server_image_repo }}/${{ inputs.server_edition == 'fips' && 'mattermost-enterprise-fips-edition' || inputs.server_edition == 'team' && 'mattermost-team-edition' || 'mattermost-enterprise-edition' }}:${{ inputs.server_image_tag }}"
 
 jobs:
   update-initial-status:
@@ -106,7 +124,7 @@ jobs:
           repository_full_name: ${{ github.repository }}
           commit_sha: ${{ inputs.commit_sha }}
           context: ${{ inputs.context_name }}
-          description: "with image tag: ${{ inputs.server_image_tag }}"
+          description: "tests running, image_tag:${{ inputs.server_image_tag }}${{ inputs.server_image_aliases && format(' ({0})', inputs.server_image_aliases) || '' }}"
           status: pending
 
   generate-test-cycle:
@@ -121,12 +139,12 @@ jobs:
           echo "workers=$(jq -nc '[range(${{ inputs.workers }})]')" >> $GITHUB_OUTPUT
 
       - name: ci/checkout-repo
-        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
           ref: ${{ inputs.commit_sha }}
           fetch-depth: 0
       - name: ci/setup-node
-        uses: actions/setup-node@395ad3262231945c25e8478fd5baf05154b1d79f # v6.1.0
+        uses: actions/setup-node@6044e13b5dc448c55e2357c09f80417699197238 # v6.2.0
         with:
           node-version-file: ".nvmrc"
           cache: npm
@@ -187,7 +205,7 @@ jobs:
           ref: ${{ inputs.commit_sha }}
           fetch-depth: 0
       - name: ci/setup-node
-        uses: actions/setup-node@395ad3262231945c25e8478fd5baf05154b1d79f # v6.1.0
+        uses: actions/setup-node@6044e13b5dc448c55e2357c09f80417699197238 # v6.2.0
         with:
           node-version-file: ".nvmrc"
           cache: npm
@@ -203,7 +221,7 @@ jobs:
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         if: always()
         with:
-          name: cypress-${{ inputs.test_type }}-results-${{ matrix.worker_index }}
+          name: cypress-${{ inputs.test_type }}-${{ inputs.server_edition }}-results-${{ matrix.worker_index }}
           path: |
             e2e-tests/cypress/logs/
             e2e-tests/cypress/results/
@@ -229,14 +247,11 @@ jobs:
       color: ${{ steps.calculate.outputs.color }}
     steps:
       - name: ci/checkout-repo
-        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
-        with:
-          ref: ${{ inputs.commit_sha }}
-          fetch-depth: 0
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
       - name: ci/download-results
         uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
         with:
-          pattern: cypress-${{ inputs.test_type }}-results-*
+          pattern: cypress-${{ inputs.test_type }}-${{ inputs.server_edition }}-results-*
           path: e2e-tests/cypress/
           merge-multiple: true
       - name: ci/calculate
@@ -279,7 +294,7 @@ jobs:
           ref: ${{ inputs.commit_sha }}
           fetch-depth: 0
       - name: ci/setup-node
-        uses: actions/setup-node@395ad3262231945c25e8478fd5baf05154b1d79f # v6.1.0
+        uses: actions/setup-node@6044e13b5dc448c55e2357c09f80417699197238 # v6.2.0
         with:
           node-version-file: ".nvmrc"
           cache: npm
@@ -298,7 +313,7 @@ jobs:
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         if: always()
         with:
-          name: cypress-${{ inputs.test_type }}-retest-results
+          name: cypress-${{ inputs.test_type }}-${{ inputs.server_edition }}-retest-results
           path: |
             e2e-tests/cypress/logs/
             e2e-tests/cypress/results/
@@ -321,12 +336,9 @@ jobs:
         working-directory: e2e-tests
     steps:
       - name: ci/checkout-repo
-        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
-        with:
-          ref: ${{ inputs.commit_sha }}
-          fetch-depth: 0
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
       - name: ci/setup-node
-        uses: actions/setup-node@395ad3262231945c25e8478fd5baf05154b1d79f # v6.1.0
+        uses: actions/setup-node@6044e13b5dc448c55e2357c09f80417699197238 # v6.2.0
         with:
           node-version-file: ".nvmrc"
           cache: npm
@@ -337,7 +349,7 @@ jobs:
         if: needs.run-failed-tests.result == 'skipped'
         uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
         with:
-          pattern: cypress-${{ inputs.test_type }}-results-*
+          pattern: cypress-${{ inputs.test_type }}-${{ inputs.server_edition }}-results-*
           path: e2e-tests/cypress/
           merge-multiple: true
       - name: ci/use-previous-calculation
@@ -365,14 +377,14 @@ jobs:
         if: needs.run-failed-tests.result != 'skipped'
         uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
         with:
-          pattern: cypress-${{ inputs.test_type }}-results-*
+          pattern: cypress-${{ inputs.test_type }}-${{ inputs.server_edition }}-results-*
           path: e2e-tests/cypress/
           merge-multiple: true
       - name: ci/download-retest-results
         if: needs.run-failed-tests.result != 'skipped'
         uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
         with:
-          name: cypress-${{ inputs.test_type }}-retest-results
+          name: cypress-${{ inputs.test_type }}-${{ inputs.server_edition }}-retest-results
           path: e2e-tests/cypress/retest-results/
       - name: ci/calculate-results
         if: needs.run-failed-tests.result != 'skipped'
@@ -427,7 +439,7 @@ jobs:
         if: inputs.workers > 1
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
-          name: cypress-${{ inputs.test_type }}-results
+          name: cypress-${{ inputs.test_type }}-${{ inputs.server_edition }}-results
           path: |
             e2e-tests/cypress/logs/
             e2e-tests/cypress/results/
@@ -435,17 +447,28 @@ jobs:
         if: inputs.enable_reporting && env.REPORT_WEBHOOK_URL != ''
         env:
           REPORT_WEBHOOK_URL: ${{ secrets.REPORT_WEBHOOK_URL }}
-          PASS_RATE: ${{ steps.final-results.outputs.pass_rate }}
-          PASSED: ${{ steps.final-results.outputs.passed }}
-          TOTAL: ${{ steps.final-results.outputs.total }}
-          TOTAL_SPECS: ${{ steps.final-results.outputs.total_specs }}
+          COMMIT_STATUS_MESSAGE: ${{ steps.final-results.outputs.commit_status_message }}
           COLOR: ${{ steps.final-results.outputs.color }}
           REPORT_URL: ${{ needs.generate-test-cycle.outputs.status_check_url }}
           TEST_TYPE: ${{ inputs.test_type }}
+          REPORT_TYPE: ${{ inputs.report_type }}
+          COMMIT_SHA: ${{ inputs.commit_sha }}
+          REF_BRANCH: ${{ inputs.ref_branch }}
           PR_NUMBER: ${{ inputs.pr_number }}
         run: |
           # Capitalize test type
           TEST_TYPE_CAP=$(echo "$TEST_TYPE" | sed 's/.*/\u&/')
+
+          # Build source line based on report type
+          COMMIT_SHORT="${COMMIT_SHA::7}"
+          COMMIT_URL="https://github.com/${{ github.repository }}/commit/${COMMIT_SHA}"
+          if [ "$REPORT_TYPE" = "RELEASE_CUT" ]; then
+            SOURCE_LINE=":github_round: [${COMMIT_SHORT}](${COMMIT_URL}) on \`${REF_BRANCH}\`"
+          elif [ "$REPORT_TYPE" = "MASTER" ] || [ "$REPORT_TYPE" = "RELEASE" ]; then
+            SOURCE_LINE=":git_merge: [${COMMIT_SHORT}](${COMMIT_URL}) on \`${REF_BRANCH}\`"
+          else
+            SOURCE_LINE=":open-pull-request: [mattermost-pr-${PR_NUMBER}](https://github.com/${{ github.repository }}/pull/${PR_NUMBER})"
+          fi
 
           # Build payload with attachments
           PAYLOAD=$(cat <<EOF
@@ -454,7 +477,7 @@ jobs:
             "icon_url": "https://mattermost.com/wp-content/uploads/2022/02/icon_WS.png",
             "attachments": [{
               "color": "${COLOR}",
-              "text": "**Results - Cypress ${TEST_TYPE_CAP} Tests**\n\n:open-pull-request: [mattermost-pr-${PR_NUMBER}](https://github.com/${{ github.repository }}/pull/${PR_NUMBER})\n:docker: \`${{ env.SERVER_IMAGE }}\`\n${PASS_RATE}% (${PASSED}/${TOTAL}) in ${TOTAL_SPECS} spec files | [full report](${REPORT_URL})"
+              "text": "**Results - Cypress ${TEST_TYPE_CAP} Tests**\n\n${SOURCE_LINE}\n:docker: \`${{ env.SERVER_IMAGE }}\`\n${COMMIT_STATUS_MESSAGE} | [full report](${REPORT_URL})"
             }]
           }
           EOF
@@ -528,7 +551,7 @@ jobs:
           repository_full_name: ${{ github.repository }}
           commit_sha: ${{ inputs.commit_sha }}
           context: ${{ inputs.context_name }}
-          description: "${{ needs.report.outputs.commit_status_message }} with image tag: ${{ inputs.server_image_tag }}"
+          description: "${{ needs.report.outputs.commit_status_message }}, image_tag:${{ inputs.server_image_tag }}${{ inputs.server_image_aliases && format(' ({0})', inputs.server_image_aliases) || '' }}"
           status: success
           target_url: ${{ needs.generate-test-cycle.outputs.status_check_url }}
 
@@ -547,6 +570,6 @@ jobs:
           repository_full_name: ${{ github.repository }}
           commit_sha: ${{ inputs.commit_sha }}
           context: ${{ inputs.context_name }}
-          description: "${{ needs.report.outputs.commit_status_message }} with image tag: ${{ inputs.server_image_tag }}"
+          description: "${{ needs.report.outputs.commit_status_message }}, image_tag:${{ inputs.server_image_tag }}${{ inputs.server_image_aliases && format(' ({0})', inputs.server_image_aliases) || '' }}"
           status: failure
           target_url: ${{ needs.generate-test-cycle.outputs.status_check_url }}
