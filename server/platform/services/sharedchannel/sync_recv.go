@@ -268,6 +268,7 @@ func (scs *Service) processSyncMessage(rctx request.CTX, syncMsg *model.SyncMsg,
 				mlog.String("remote", rc.Name),
 				mlog.String("user_id", status.UserId),
 				mlog.Err(err))
+			syncResp.StatusErrors = append(syncResp.StatusErrors, status.UserId)
 		}
 	}
 
