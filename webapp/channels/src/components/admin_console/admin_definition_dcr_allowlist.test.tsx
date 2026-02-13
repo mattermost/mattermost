@@ -1,6 +1,8 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import type {AdminDefinitionSettingInput} from './types';
+
 import AdminDefinition from './admin_definition';
 
 describe('AdminDefinition - DCR Redirect URI Allowlist', () => {
@@ -16,7 +18,7 @@ describe('AdminDefinition - DCR Redirect URI Allowlist', () => {
 
         expect(allowlistSetting).toBeDefined();
         expect(allowlistSetting?.type).toBe('text');
-        expect(allowlistSetting?.multiple).toBe(true);
+        expect((allowlistSetting as AdminDefinitionSettingInput)?.multiple).toBe(true);
         expect(allowlistSetting?.key).toBe('ServiceSettings.DCRRedirectURIAllowlist');
     });
 

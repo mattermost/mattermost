@@ -1,36 +1,33 @@
-.. _mmctl_post_create:
+.. _mmctl_license_get:
 
-mmctl post create
+mmctl license get
 -----------------
 
-Create a post
+Get the current license.
 
 Synopsis
 ~~~~~~~~
 
 
-Create a post
+Get the current server license and print it.
 
 ::
 
-  mmctl post create [flags]
+  mmctl license get [flags]
 
 Examples
 ~~~~~~~~
 
 ::
 
-    post create myteam:mychannel --message "some text for the post"
+    license get
 
 Options
 ~~~~~~~
 
 ::
 
-  -b, --burn-on-read      Message will be deleted after a certain time after being read
-  -h, --help              help for create
-  -m, --message string    Message for the post
-  -r, --reply-to string   Post id to reply to
+  -h, --help   help for get
 
 Options inherited from parent commands
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -50,5 +47,5 @@ Options inherited from parent commands
 SEE ALSO
 ~~~~~~~~
 
-* `mmctl post <mmctl_post.rst>`_ 	 - Management of posts
+* `mmctl license <mmctl_license.rst>`_ 	 - Licensing commands
 

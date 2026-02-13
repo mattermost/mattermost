@@ -18,9 +18,9 @@ type OAuthProvider struct {
 	mock.Mock
 }
 
-// GetSSOSettings provides a mock function with given fields: rctx, config, service
-func (_m *OAuthProvider) GetSSOSettings(rctx request.CTX, config *model.Config, service string) (*model.SSOSettings, error) {
-	ret := _m.Called(rctx, config, service)
+// GetSSOSettings provides a mock function with given fields: c, config, service
+func (_m *OAuthProvider) GetSSOSettings(c request.CTX, config *model.Config, service string) (*model.SSOSettings, error) {
+	ret := _m.Called(c, config, service)
 
 	if len(ret) == 0 {
 		panic("no return value specified for GetSSOSettings")
@@ -29,10 +29,10 @@ func (_m *OAuthProvider) GetSSOSettings(rctx request.CTX, config *model.Config, 
 	var r0 *model.SSOSettings
 	var r1 error
 	if rf, ok := ret.Get(0).(func(request.CTX, *model.Config, string) (*model.SSOSettings, error)); ok {
-		return rf(rctx, config, service)
+		return rf(c, config, service)
 	}
 	if rf, ok := ret.Get(0).(func(request.CTX, *model.Config, string) *model.SSOSettings); ok {
-		r0 = rf(rctx, config, service)
+		r0 = rf(c, config, service)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*model.SSOSettings)
@@ -40,7 +40,7 @@ func (_m *OAuthProvider) GetSSOSettings(rctx request.CTX, config *model.Config, 
 	}
 
 	if rf, ok := ret.Get(1).(func(request.CTX, *model.Config, string) error); ok {
-		r1 = rf(rctx, config, service)
+		r1 = rf(c, config, service)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -48,9 +48,9 @@ func (_m *OAuthProvider) GetSSOSettings(rctx request.CTX, config *model.Config, 
 	return r0, r1
 }
 
-// GetUserFromIdToken provides a mock function with given fields: rctx, idToken
-func (_m *OAuthProvider) GetUserFromIdToken(rctx request.CTX, idToken string) (*model.User, error) {
-	ret := _m.Called(rctx, idToken)
+// GetUserFromIdToken provides a mock function with given fields: c, idToken
+func (_m *OAuthProvider) GetUserFromIdToken(c request.CTX, idToken string) (*model.User, error) {
+	ret := _m.Called(c, idToken)
 
 	if len(ret) == 0 {
 		panic("no return value specified for GetUserFromIdToken")
@@ -59,10 +59,10 @@ func (_m *OAuthProvider) GetUserFromIdToken(rctx request.CTX, idToken string) (*
 	var r0 *model.User
 	var r1 error
 	if rf, ok := ret.Get(0).(func(request.CTX, string) (*model.User, error)); ok {
-		return rf(rctx, idToken)
+		return rf(c, idToken)
 	}
 	if rf, ok := ret.Get(0).(func(request.CTX, string) *model.User); ok {
-		r0 = rf(rctx, idToken)
+		r0 = rf(c, idToken)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*model.User)
@@ -70,7 +70,7 @@ func (_m *OAuthProvider) GetUserFromIdToken(rctx request.CTX, idToken string) (*
 	}
 
 	if rf, ok := ret.Get(1).(func(request.CTX, string) error); ok {
-		r1 = rf(rctx, idToken)
+		r1 = rf(c, idToken)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -79,8 +79,8 @@ func (_m *OAuthProvider) GetUserFromIdToken(rctx request.CTX, idToken string) (*
 }
 
 // GetUserFromJSON provides a mock function with given fields: c, data, tokenUser, settings
-func (_m *OAuthProvider) GetUserFromJSON(rctx request.CTX, data io.Reader, tokenUser *model.User, settings *model.SSOSettings) (*model.User, error) {
-	ret := _m.Called(rctx, data, tokenUser, settings)
+func (_m *OAuthProvider) GetUserFromJSON(c request.CTX, data io.Reader, tokenUser *model.User, settings *model.SSOSettings) (*model.User, error) {
+	ret := _m.Called(c, data, tokenUser, settings)
 
 	if len(ret) == 0 {
 		panic("no return value specified for GetUserFromJSON")
@@ -89,10 +89,10 @@ func (_m *OAuthProvider) GetUserFromJSON(rctx request.CTX, data io.Reader, token
 	var r0 *model.User
 	var r1 error
 	if rf, ok := ret.Get(0).(func(request.CTX, io.Reader, *model.User, *model.SSOSettings) (*model.User, error)); ok {
-		return rf(rctx, data, tokenUser, settings)
+		return rf(c, data, tokenUser, settings)
 	}
 	if rf, ok := ret.Get(0).(func(request.CTX, io.Reader, *model.User, *model.SSOSettings) *model.User); ok {
-		r0 = rf(rctx, data, tokenUser, settings)
+		r0 = rf(c, data, tokenUser, settings)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*model.User)
@@ -100,7 +100,7 @@ func (_m *OAuthProvider) GetUserFromJSON(rctx request.CTX, data io.Reader, token
 	}
 
 	if rf, ok := ret.Get(1).(func(request.CTX, io.Reader, *model.User, *model.SSOSettings) error); ok {
-		r1 = rf(rctx, data, tokenUser, settings)
+		r1 = rf(c, data, tokenUser, settings)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -108,9 +108,9 @@ func (_m *OAuthProvider) GetUserFromJSON(rctx request.CTX, data io.Reader, token
 	return r0, r1
 }
 
-// IsSameUser provides a mock function with given fields: rctx, dbUser, oAuthUser
-func (_m *OAuthProvider) IsSameUser(rctx request.CTX, dbUser *model.User, oAuthUser *model.User) bool {
-	ret := _m.Called(rctx, dbUser, oAuthUser)
+// IsSameUser provides a mock function with given fields: c, dbUser, oAuthUser
+func (_m *OAuthProvider) IsSameUser(c request.CTX, dbUser *model.User, oAuthUser *model.User) bool {
+	ret := _m.Called(c, dbUser, oAuthUser)
 
 	if len(ret) == 0 {
 		panic("no return value specified for IsSameUser")
@@ -118,7 +118,7 @@ func (_m *OAuthProvider) IsSameUser(rctx request.CTX, dbUser *model.User, oAuthU
 
 	var r0 bool
 	if rf, ok := ret.Get(0).(func(request.CTX, *model.User, *model.User) bool); ok {
-		r0 = rf(rctx, dbUser, oAuthUser)
+		r0 = rf(c, dbUser, oAuthUser)
 	} else {
 		r0 = ret.Get(0).(bool)
 	}

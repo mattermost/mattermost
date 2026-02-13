@@ -142,7 +142,7 @@ func TestIsValidDCRRedirectURIPattern(t *testing.T) {
 	require.True(t, IsValidDCRRedirectURIPattern("https://example.com/**"))
 	require.True(t, IsValidDCRRedirectURIPattern("http://localhost:3000/cb"))
 	require.True(t, IsValidDCRRedirectURIPattern("http://localhost:*"))
-	require.True(t, IsValidDCRRedirectURIPattern("http://x"))   // minimum valid http URL (8 chars)
+	require.True(t, IsValidDCRRedirectURIPattern("http://x"))  // minimum valid http URL (8 chars)
 	require.True(t, IsValidDCRRedirectURIPattern("https://x")) // minimum valid https URL (9 chars)
 	require.False(t, IsValidDCRRedirectURIPattern("https://"))
 	require.False(t, IsValidDCRRedirectURIPattern("ftp://example.com"))
