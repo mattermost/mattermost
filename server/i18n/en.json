@@ -10041,6 +10041,10 @@
     "translation": "Leading or trailing whitespace detected for {{.Setting}}. Found \"{{.Value}}\"."
   },
   {
+    "id": "model.config.is_valid.dcr_redirect_uri_allowlist.app_error",
+    "translation": "DCR redirect URI allowlist contains an invalid pattern. Patterns must start with http:// or https:// and cannot be empty or whitespace."
+  },
+  {
     "id": "model.config.is_valid.display.custom_url_schemes.app_error",
     "translation": "The custom URL scheme {{.Scheme}} is invalid. Custom URL schemes must start with a letter and contain only letters, numbers, plus (+), period (.) and hyphen (-)."
   },
