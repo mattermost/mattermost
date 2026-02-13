@@ -17,9 +17,11 @@ import {
     skipIfNoLicense,
 } from './flag';
 import {getBlobFromAsset, getFileFromAsset} from './file';
+import {testConfig} from './test_config';
 import {
     createNewUserProfile,
     createNewTeam,
+    createPageViaDraft,
     createRandomChannel,
     createRandomPost,
     createRandomTeam,
@@ -73,6 +75,9 @@ export class PlaywrightExtended {
     // ./browser_context
     readonly testBrowser;
 
+    // Base URL
+    readonly url: string;
+
     // ./flag
     readonly shouldHaveCallsEnabled;
     readonly shouldHaveFeatureFlag;
@@ -108,6 +113,7 @@ export class PlaywrightExtended {
     // ./server
     readonly createNewUserProfile;
     readonly createNewTeam;
+    readonly createPageViaDraft;
     readonly isOutsideRemoteUserHour;
     readonly makeClient;
 
@@ -133,6 +139,9 @@ export class PlaywrightExtended {
     constructor(browser: Browser, page: Page, isMobile: boolean) {
         // ./browser_context
         this.testBrowser = new TestBrowser(browser);
+
+        // Base URL
+        this.url = testConfig.baseURL;
 
         // ./flag
         this.shouldHaveCallsEnabled = shouldHaveCallsEnabled;
@@ -177,6 +186,7 @@ export class PlaywrightExtended {
         this.createNewUserProfile = createNewUserProfile;
         this.createNewTeam = createNewTeam;
         this.makeClient = makeClient;
+        this.createPageViaDraft = createPageViaDraft;
 
         // ./visual
         this.matchSnapshot = matchSnapshot;

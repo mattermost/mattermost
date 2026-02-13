@@ -1,0 +1,209 @@
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
+
+.PageViewer {
+    display: flex;
+    width: 100%;
+    max-width: 800px;
+    height: 100%;
+    flex-direction: column;
+
+    &::-webkit-scrollbar {
+        width: 8px;
+    }
+
+    &::-webkit-scrollbar-track {
+        background: transparent;
+    }
+
+    &::-webkit-scrollbar-thumb {
+        border-radius: 4px;
+        background: rgba(var(--center-channel-color-rgb), 0.24);
+
+        &:hover {
+            background: rgba(var(--center-channel-color-rgb), 0.32);
+        }
+    }
+
+    &__header {
+        padding: 32px 24px 24px;
+        border-bottom: 1px solid var(--center-channel-color-08);
+    }
+
+    &__title {
+        margin: 0 0 12px 0;
+        color: var(--center-channel-color);
+        font-size: 40px;
+        font-weight: 600;
+        letter-spacing: -0.02em;
+        line-height: 1.2;
+    }
+
+    &__meta {
+        display: flex;
+        height: 32px;
+        align-items: center;
+        color: var(--center-channel-color-64);
+        font-size: 14px;
+        gap: 16px;
+    }
+
+    &__author,
+    &__date,
+    &__status {
+        display: flex;
+        align-items: center;
+    }
+
+    &__author {
+        gap: 8px;
+    }
+
+    &__authorText {
+        line-height: 1;
+    }
+
+    &__status {
+        gap: 6px;
+    }
+
+    &__status-indicator {
+        display: inline-block;
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background-color: var(--button-bg);
+    }
+
+    &__content {
+        padding: 0 24px;
+
+        .tiptap-editor-wrapper {
+            min-height: unset;
+            border-radius: 0;
+        }
+
+        .tiptap-toolbar {
+            display: none;
+        }
+
+        h1, h2, h3 {
+            padding: 4px 8px;
+            border-radius: 4px;
+            margin-right: -8px;
+            margin-left: -8px;
+            scroll-margin-top: 80px;
+            transition: background-color 0.3s ease, box-shadow 0.3s ease;
+
+            &.highlighted {
+                background-color: rgba(var(--button-bg-rgb), 0.12);
+                box-shadow: 0 0 0 2px rgba(var(--button-bg-rgb), 0.24);
+            }
+        }
+    }
+
+    &__placeholder {
+        padding: 24px;
+        border: 1px dashed rgba(var(--center-channel-color-rgb), 0.16);
+        border-radius: 8px;
+        background: rgba(var(--center-channel-color-rgb), 0.04);
+        color: var(--center-channel-color);
+
+        p {
+            margin: 0 0 12px 0;
+
+            &:last-child {
+                margin-bottom: 0;
+            }
+
+            strong {
+                color: var(--center-channel-color);
+                font-weight: 600;
+            }
+        }
+    }
+
+    &__message {
+        padding: 16px;
+        border: 1px solid rgba(var(--center-channel-color-rgb), 0.08);
+        border-radius: 4px;
+        margin-top: 16px;
+        background: var(--center-channel-bg);
+        color: var(--center-channel-color);
+        font-family: var(--font-family);
+        font-size: 14px;
+        line-height: 1.6;
+        white-space: pre-wrap;
+        word-wrap: break-word;
+    }
+
+    &__loading {
+        display: flex;
+        min-height: 400px;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 16px;
+
+        p {
+            color: rgba(var(--center-channel-color-rgb), 0.56);
+            font-size: 14px;
+        }
+    }
+
+    &__error {
+        display: flex;
+        min-height: 400px;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        padding: 48px 24px;
+        text-align: center;
+
+        i {
+            margin-bottom: 16px;
+            color: var(--error-text);
+            font-size: 48px;
+        }
+
+        p {
+            margin: 0 0 8px 0;
+            color: rgba(var(--center-channel-color-rgb), 0.72);
+            font-size: 16px;
+
+            &:last-child {
+                margin-bottom: 0;
+                color: rgba(var(--center-channel-color-rgb), 0.56);
+                font-size: 14px;
+            }
+        }
+    }
+
+    @media screen and (max-width: 480px) {
+        &__header {
+            padding: 16px 12px 12px;
+        }
+
+        &__content {
+            padding: 0 12px;
+        }
+
+        &__title {
+            font-size: 28px;
+        }
+    }
+}
+
+// Highlight animation for clicked comments in RHS
+.highlight-animation {
+    animation: comment-highlight 2s ease-out;
+}
+
+@keyframes comment-highlight {
+    0% {
+        background-color: rgba(255, 235, 59, 0.4);
+    }
+    100% {
+        background-color: transparent;
+    }
+}

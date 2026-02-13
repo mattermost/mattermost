@@ -133,6 +133,25 @@
         color: rgba(var(--center-channel-color-rgb), 1);
 
         @include mixins.text-clamp(2, 20);
+
+        // Pages-specific: ensure content doesn't overflow
+        &:has(.inline-comment-anchor-box) {
+            display: block;
+            overflow: hidden;
+        }
+
+        .inline-comment-anchor-box {
+            padding: 2px 8px;
+            margin: 2px 0 0;
+
+            .inline-comment-anchor-text {
+                overflow: hidden;
+                font-size: 13px;
+                line-height: 16px;
+                text-overflow: ellipsis;
+                white-space: nowrap;
+            }
+        }
     }
 
     .menu-anchor {

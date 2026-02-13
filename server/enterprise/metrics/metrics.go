@@ -44,6 +44,7 @@ const (
 	MetricsSubsystemClientsWeb         = "webapp"
 	MetricsSubsystemClientsDesktopApp  = "desktopapp"
 	MetricsSubsystemAccessControl      = "access_control"
+	MetricsSubsystemWiki               = "wiki"
 	MetricsSubsystemAutoTranslation    = "autotranslation"
 	MetricsCloudInstallationLabel      = "installationId"
 	MetricsCloudDatabaseClusterLabel   = "databaseClusterName"
@@ -241,6 +242,15 @@ type MetricsInterfaceImpl struct {
 	AccessControlEvaluateDuration          prometheus.Histogram
 	AccessControlSearchQueryDuration       prometheus.Histogram
 	AccessControlCacheInvalidation         prometheus.Counter
+
+	WikiPageOperationDuration   *prometheus.HistogramVec
+	WikiHierarchyLoadDuration   prometheus.Histogram
+	WikiBreadcrumbFetchDuration prometheus.Histogram
+	WikiDraftSaveTotal          *prometheus.CounterVec
+	WikiEditConflictsTotal      prometheus.Counter
+	WikiHierarchyDepth          prometheus.Histogram
+	WikiPagesPerChannel         prometheus.Histogram
+	WikiSearchDuration          prometheus.Histogram
 
 	// Auto-translation metrics
 	AutoTranslateTranslateDuration       *prometheus.HistogramVec
@@ -1601,6 +1611,96 @@ func New(ps *platform.PlatformService, driver, dataSource string) *MetricsInterf
 		})
 	m.Registry.MustRegister(m.AccessControlCacheInvalidation)
 
+	m.WikiPageOperationDuration = prometheus.NewHistogramVec(
+		withLabels(prometheus.HistogramOpts{
+			Namespace: MetricsNamespace,
+			Subsystem: MetricsSubsystemWiki,
+			Name:      "page_operation_duration_seconds",
+			Help:      "Time taken for wiki page operations",
+			Buckets:   prometheus.DefBuckets,
+		}),
+		[]string{"operation"},
+	)
+	m.Registry.MustRegister(m.WikiPageOperationDuration)
+
+	m.WikiHierarchyLoadDuration = prometheus.NewHistogram(
+		withLabels(prometheus.HistogramOpts{
+			Namespace: MetricsNamespace,
+			Subsystem: MetricsSubsystemWiki,
+			Name:      "hierarchy_load_seconds",
+			Help:      "Time to load page hierarchy for a channel",
+			Buckets:   []float64{0.01, 0.025, 0.05, 0.1, 0.25, 0.5, 1, 2.5, 5},
+		}),
+	)
+	m.Registry.MustRegister(m.WikiHierarchyLoadDuration)
+
+	m.WikiBreadcrumbFetchDuration = prometheus.NewHistogram(
+		withLabels(prometheus.HistogramOpts{
+			Namespace: MetricsNamespace,
+			Subsystem: MetricsSubsystemWiki,
+			Name:      "breadcrumb_fetch_seconds",
+			Help:      "Time to fetch breadcrumb path for a page",
+			Buckets:   []float64{0.01, 0.025, 0.05, 0.1, 0.25, 0.5, 1, 2.5},
+		}),
+	)
+	m.Registry.MustRegister(m.WikiBreadcrumbFetchDuration)
+
+	m.WikiDraftSaveTotal = prometheus.NewCounterVec(
+		prometheus.CounterOpts{
+			Namespace:   MetricsNamespace,
+			Subsystem:   MetricsSubsystemWiki,
+			Name:        "draft_saves_total",
+			Help:        "Total number of draft saves",
+			ConstLabels: additionalLabels,
+		},
+		[]string{"result"},
+	)
+	m.Registry.MustRegister(m.WikiDraftSaveTotal)
+
+	m.WikiEditConflictsTotal = prometheus.NewCounter(
+		prometheus.CounterOpts{
+			Namespace:   MetricsNamespace,
+			Subsystem:   MetricsSubsystemWiki,
+			Name:        "edit_conflicts_total",
+			Help:        "Total number of edit conflicts detected",
+			ConstLabels: additionalLabels,
+		},
+	)
+	m.Registry.MustRegister(m.WikiEditConflictsTotal)
+
+	m.WikiHierarchyDepth = prometheus.NewHistogram(
+		withLabels(prometheus.HistogramOpts{
+			Namespace: MetricsNamespace,
+			Subsystem: MetricsSubsystemWiki,
+			Name:      "hierarchy_depth",
+			Help:      "Depth of page hierarchy (nesting level)",
+			Buckets:   []float64{1, 2, 3, 5, 7, 10, 15, 20},
+		}),
+	)
+	m.Registry.MustRegister(m.WikiHierarchyDepth)
+
+	m.WikiPagesPerChannel = prometheus.NewHistogram(
+		withLabels(prometheus.HistogramOpts{
+			Namespace: MetricsNamespace,
+			Subsystem: MetricsSubsystemWiki,
+			Name:      "pages_per_channel",
+			Help:      "Number of pages in a channel",
+			Buckets:   []float64{1, 5, 10, 25, 50, 100, 250, 500, 1000},
+		}),
+	)
+	m.Registry.MustRegister(m.WikiPagesPerChannel)
+
+	m.WikiSearchDuration = prometheus.NewHistogram(
+		withLabels(prometheus.HistogramOpts{
+			Namespace: MetricsNamespace,
+			Subsystem: MetricsSubsystemWiki,
+			Name:      "search_duration_seconds",
+			Help:      "Time to search pages in a channel",
+			Buckets:   []float64{0.05, 0.1, 0.25, 0.5, 1, 2.5, 5, 10},
+		}),
+	)
+	m.Registry.MustRegister(m.WikiSearchDuration)
+
 	// Auto-translation Subsystem
 	m.AutoTranslateTranslateDuration = prometheus.NewHistogramVec(
 		withLabels(prometheus.HistogramOpts{
@@ -2299,6 +2399,54 @@ func (mi *MetricsInterfaceImpl) ObserveAccessControlEvaluateDuration(value float
 
 func (mi *MetricsInterfaceImpl) IncrementAccessControlCacheInvalidation() {
 	mi.AccessControlCacheInvalidation.Inc()
+}
+
+func (mi *MetricsInterfaceImpl) ObserveWikiPageOperation(operation string, elapsed float64) {
+	if mi.WikiPageOperationDuration != nil {
+		mi.WikiPageOperationDuration.WithLabelValues(operation).Observe(elapsed)
+	}
+}
+
+func (mi *MetricsInterfaceImpl) ObserveWikiHierarchyLoad(elapsed float64) {
+	if mi.WikiHierarchyLoadDuration != nil {
+		mi.WikiHierarchyLoadDuration.Observe(elapsed)
+	}
+}
+
+func (mi *MetricsInterfaceImpl) ObserveWikiBreadcrumbFetch(elapsed float64) {
+	if mi.WikiBreadcrumbFetchDuration != nil {
+		mi.WikiBreadcrumbFetchDuration.Observe(elapsed)
+	}
+}
+
+func (mi *MetricsInterfaceImpl) IncrementWikiDraftSave(result string) {
+	if mi.WikiDraftSaveTotal != nil {
+		mi.WikiDraftSaveTotal.WithLabelValues(result).Inc()
+	}
+}
+
+func (mi *MetricsInterfaceImpl) IncrementWikiEditConflict() {
+	if mi.WikiEditConflictsTotal != nil {
+		mi.WikiEditConflictsTotal.Inc()
+	}
+}
+
+func (mi *MetricsInterfaceImpl) ObserveWikiHierarchyDepth(depth float64) {
+	if mi.WikiHierarchyDepth != nil {
+		mi.WikiHierarchyDepth.Observe(depth)
+	}
+}
+
+func (mi *MetricsInterfaceImpl) ObserveWikiPagesPerChannel(count float64) {
+	if mi.WikiPagesPerChannel != nil {
+		mi.WikiPagesPerChannel.Observe(count)
+	}
+}
+
+func (mi *MetricsInterfaceImpl) ObserveWikiSearchDuration(elapsed float64) {
+	if mi.WikiSearchDuration != nil {
+		mi.WikiSearchDuration.Observe(elapsed)
+	}
 }
 
 func (mi *MetricsInterfaceImpl) ObserveAutoTranslateTranslateDuration(objectType string, elapsed float64) {

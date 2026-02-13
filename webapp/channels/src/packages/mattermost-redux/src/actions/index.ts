@@ -22,6 +22,7 @@ import * as teams from './teams';
 import * as timezone from './timezone';
 import * as users from './users';
 import * as websocket from './websocket';
+import * as wikis from './wikis';
 
 export {
     admin,
@@ -45,5 +46,6 @@ export {
     timezone,
     websocket,
     users,
+    wikis,
 };
 

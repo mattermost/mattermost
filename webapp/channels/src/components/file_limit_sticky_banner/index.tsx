@@ -104,58 +104,54 @@ function FileLimitStickyBanner() {
         />
     );
 
-    const adminMessage = isAirGapped ?
-        (
-            <FormattedMessage
-                id={'create_post.file_limit_sticky_banner.admin_message_airgapped'}
-                defaultMessage={'New uploads will automatically archive older files. To view them again, you can delete older files.'}
-            />
-        ) :
-        (
-            <FormattedMessage
-                id={'create_post.file_limit_sticky_banner.admin_message'}
-                defaultMessage={'New uploads will automatically archive older files. To view them again, you can delete older files or <a>upgrade to a paid plan.</a>'}
-                values={{
-                    a: (chunks: React.ReactNode) => {
-                        return (
-                            <a
-                                onClick={
-                                    (e) => {
-                                        e.preventDefault();
-                                        openPricingModal();
-                                    }
+    const adminMessage = isAirGapped ? (
+        <FormattedMessage
+            id={'create_post.file_limit_sticky_banner.admin_message_airgapped'}
+            defaultMessage={'New uploads will automatically archive older files. To view them again, you can delete older files.'}
+        />
+    ) : (
+        <FormattedMessage
+            id={'create_post.file_limit_sticky_banner.admin_message'}
+            defaultMessage={'New uploads will automatically archive older files. To view them again, you can delete older files or <a>upgrade to a paid plan.</a>'}
+            values={{
+                a: (chunks: React.ReactNode) => {
+                    return (
+                        <a
+                            onClick={
+                                (e) => {
+                                    e.preventDefault();
+                                    openPricingModal();
                                 }
-                            >{chunks}</a>
-                        );
-                    },
-                }}
-            />
-        );
+                            }
+                        >{chunks}</a>
+                    );
+                },
+            }}
+        />
+    );
 
-    const nonAdminMessage = isAirGapped ?
-        (
-            <FormattedMessage
-                id={'create_post.file_limit_sticky_banner.non_admin_message_airgapped'}
-                defaultMessage={'New uploads will automatically archive older files. To view them again, contact your admin.'}
-            />
-        ) :
-        (
-            <FormattedMessage
-                id={'create_post.file_limit_sticky_banner.non_admin_message'}
-                defaultMessage={'New uploads will automatically archive older files. To view them again, <a>notify your admin to upgrade to a paid plan.</a>'}
-                values={{
-                    a: (chunks: React.ReactNode) => (
-                        <NotifyAdminCTA
-                            ctaText={chunks}
-                            notifyRequestData={{
-                                required_plan: LicenseSkus.Professional,
-                                required_feature: MattermostFeatures.UNLIMITED_FILE_STORAGE,
-                                trial_notification: false,
-                            }}
-                        />),
-                }}
-            />
-        );
+    const nonAdminMessage = isAirGapped ? (
+        <FormattedMessage
+            id={'create_post.file_limit_sticky_banner.non_admin_message_airgapped'}
+            defaultMessage={'New uploads will automatically archive older files. To view them again, contact your admin.'}
+        />
+    ) : (
+        <FormattedMessage
+            id={'create_post.file_limit_sticky_banner.non_admin_message'}
+            defaultMessage={'New uploads will automatically archive older files. To view them again, <a>notify your admin to upgrade to a paid plan.</a>'}
+            values={{
+                a: (chunks: React.ReactNode) => (
+                    <NotifyAdminCTA
+                        ctaText={chunks}
+                        notifyRequestData={{
+                            required_plan: LicenseSkus.Professional,
+                            required_feature: MattermostFeatures.UNLIMITED_FILE_STORAGE,
+                            trial_notification: false,
+                        }}
+                    />),
+            }}
+        />
+    );
 
     return (
         <StyledDiv id='cloud_file_limit_banner'>

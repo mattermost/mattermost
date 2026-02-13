@@ -4,6 +4,7 @@
 import {combineReducers} from 'redux';
 
 import {ChannelTypes, PostTypes, UserTypes, GeneralTypes} from 'mattermost-redux/action_types';
+import {PostTypes as PostTypeConstants} from 'mattermost-redux/constants/posts';
 
 import {ActionTypes, Constants} from 'utils/constants';
 
@@ -27,6 +28,10 @@ function postVisibility(state: {[channelId: string]: number} = {}, action: MMAct
         return nextState;
     }
     case PostTypes.RECEIVED_NEW_POST: {
+        // Pages are not shown in channel feed, so don't increment visibility count
+        if (action.data?.type === PostTypeConstants.PAGE) {
+            return state;
+        }
         if (action.data && state[action.data.channel_id]) {
             const nextState = {...state};
             nextState[action.data.channel_id] += 1;

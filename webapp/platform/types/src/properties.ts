@@ -85,3 +85,5 @@ export const supportsOptions = (field: UserPropertyField) => {
 };
 
 export type UserPropertyFieldPatch = Partial<Pick<UserPropertyField, 'name' | 'attrs' | 'type'>>;
+
+export type PageStatus = 'Rough draft' | 'In progress' | 'In review' | 'Done';

@@ -17,6 +17,8 @@ type Props = {
     post: Post;
     previousPostId: string;
     timestampProps?: Partial<TimestampProps>;
+    id?: Post['id'];
+    isRootPost?: boolean;
     isChannelAutotranslated: boolean;
 }
 
@@ -27,8 +29,13 @@ function Reply({
     post,
     previousPostId,
     timestampProps,
+    isRootPost,
     isChannelAutotranslated,
 }: Props) {
+    if (!post) {
+        return null;
+    }
+
     return (
         <PostComponent
             a11yIndex={a11yIndex}
@@ -37,7 +44,7 @@ function Reply({
             post={post}
             previousPostId={previousPostId}
             timestampProps={timestampProps}
-            location={Locations.RHS_COMMENT}
+            location={isRootPost ? Locations.RHS_ROOT : Locations.RHS_COMMENT}
             isChannelAutotranslated={isChannelAutotranslated}
         />
     );

@@ -972,7 +972,7 @@ func TestAddChannelMemberNoUserRequestor(t *testing.T) {
 		assert.Equal(t, channel.Id, history.ChannelId)
 		channelMemberHistoryUserIds = append(channelMemberHistoryUserIds, history.UserId)
 	}
-	assert.Equal(t, groupUserIds, channelMemberHistoryUserIds)
+	assert.ElementsMatch(t, groupUserIds, channelMemberHistoryUserIds)
 
 	postList, nErr := th.App.Srv().Store().Post().GetPosts(th.Context, model.GetPostsOptions{ChannelId: channel.Id, Page: 0, PerPage: 1}, false, map[string]bool{})
 	require.NoError(t, nErr)
@@ -2119,6 +2119,7 @@ func TestPatchChannelModerationsForChannel(t *testing.T) {
 	manageMembers := model.ChannelModeratedPermissions[2]
 	channelMentions := model.ChannelModeratedPermissions[3]
 	manageBookmarks := model.ChannelModeratedPermissions[4]
+	managePages := model.ChannelModeratedPermissions[5]
 
 	nonChannelModeratedPermission := model.PermissionCreateBot.Id
 
@@ -2385,6 +2386,12 @@ func TestPatchChannelModerationsForChannel(t *testing.T) {
 			},
 			HigherScopedGuestPermissions: []string{},
 			ShouldError:                  false,
+			RevertChannelModerationsPatch: []*model.ChannelModerationPatch{
+				{
+					Name:  &createPosts,
+					Roles: &model.ChannelModeratedRolesPatch{Members: model.NewPointer(true)},
+				},
+			},
 		},
 		{
 			Name: "Channel should have no scheme when all moderated permissions are equivalent to higher scoped role",
@@ -2418,6 +2425,12 @@ func TestPatchChannelModerationsForChannel(t *testing.T) {
 				},
 				{
 					Name: &manageBookmarks,
+					Roles: &model.ChannelModeratedRolesPatch{
+						Members: model.NewPointer(true),
+					},
+				},
+				{
+					Name: &managePages,
 					Roles: &model.ChannelModeratedRolesPatch{
 						Members: model.NewPointer(true),
 					},
@@ -2489,7 +2502,7 @@ func TestPatchChannelModerationsForChannel(t *testing.T) {
 				if permission, found := tc.PermissionsModeratedByPatch[moderation.Name]; found && permission.Guests != nil {
 					require.Equal(t, moderation.Roles.Guests.Value, permission.Guests.Value)
 					require.Equal(t, moderation.Roles.Guests.Enabled, permission.Guests.Enabled)
-				} else if moderation.Name == manageMembers || moderation.Name == "manage_bookmarks" {
+				} else if moderation.Name == manageMembers || moderation.Name == "manage_bookmarks" || moderation.Name == "manage_pages" {
 					require.Empty(t, moderation.Roles.Guests)
 				} else {
 					require.Equal(t, moderation.Roles.Guests.Value, true)

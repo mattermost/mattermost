@@ -18,6 +18,7 @@ import ResizableRhs from 'components/resizable_sidebar/resizable_rhs';
 import RhsCard from 'components/rhs_card';
 import RhsThread from 'components/rhs_thread';
 import Search from 'components/search/index';
+import WikiRHS from 'components/wiki_rhs';
 
 import RhsPlugin from 'plugins/rhs_plugin';
 import a11yController from 'utils/a11y_controller_instance';
@@ -44,6 +45,7 @@ export type Props = {
     isChannelMembers: boolean;
     isPluginView: boolean;
     isPostEditHistory: boolean;
+    isWiki: boolean;
     previousRhsState: RhsState;
     rhsChannel?: Channel;
     selectedPostId: string;
@@ -151,6 +153,7 @@ export default class SidebarRight extends React.PureComponent<Props, State> {
             (this.props.isChannelInfo !== prevProps.isChannelInfo) ||
             (this.props.isChannelMembers !== prevProps.isChannelMembers) ||
             (this.props.isPostEditHistory !== prevProps.isPostEditHistory) ||
+            (this.props.isWiki !== prevProps.isWiki) ||
             (this.props.rhsChannel?.id !== prevProps.rhsChannel?.id) ||
             (this.props.teamId !== prevProps.teamId)
         );
@@ -274,6 +277,7 @@ export default class SidebarRight extends React.PureComponent<Props, State> {
             isChannelMembers,
             isExpanded,
             isPostEditHistory,
+            isWiki,
         } = this.props;
 
         if (!isOpen) {
@@ -308,6 +312,8 @@ export default class SidebarRight extends React.PureComponent<Props, State> {
             content = <ChannelMembersRhs/>;
         } else if (isPostEditHistory) {
             content = <PostEditHistory/>;
+        } else if (isWiki) {
+            content = <WikiRHS/>;
         }
 
         const isRHSLoading = Boolean(
@@ -318,7 +324,7 @@ export default class SidebarRight extends React.PureComponent<Props, State> {
 
         const channelDisplayName = rhsChannel ? rhsChannel.display_name : '';
 
-        const isSidebarRightExpanded = (postRightVisible || postCardVisible || isPluginView || searchVisible || isPostEditHistory) && isExpanded;
+        const isSidebarRightExpanded = (postRightVisible || postCardVisible || isPluginView || searchVisible || isPostEditHistory || isWiki) && isExpanded;
         const containerClassName = classNames('sidebar--right', 'move--left is-open', {
             'sidebar--right--expanded expanded': isSidebarRightExpanded,
         });
@@ -348,14 +354,20 @@ export default class SidebarRight extends React.PureComponent<Props, State> {
                                 <LoadingScreen centered={true}/>
                             </div>
                         ) : (
-                            <Search
-                                isSideBarRight={true}
-                                isSideBarRightOpen={true}
-                                getFocus={this.getSearchBarFocus}
-                                channelDisplayName={channelDisplayName}
-                            >
-                                {content}
-                            </Search>
+                            <>
+                                {(isChannelInfo || isChannelMembers || isWiki) ? (
+                                    content
+                                ) : (
+                                    <Search
+                                        isSideBarRight={true}
+                                        isSideBarRightOpen={true}
+                                        getFocus={this.getSearchBarFocus}
+                                        channelDisplayName={channelDisplayName}
+                                    >
+                                        {content}
+                                    </Search>
+                                )}
+                            </>
                         )}
                     </div>
                 </ResizableRhs>

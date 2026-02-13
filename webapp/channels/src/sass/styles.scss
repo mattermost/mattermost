@@ -3,6 +3,7 @@
 // Dependencies
 @import '~bootstrap/dist/css/bootstrap.css';
 @import '~font-awesome/css/font-awesome.css';
+@import 'pages/print';
 
 // styles.scss
 @include meta.load-css('utils/module');

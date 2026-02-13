@@ -3749,6 +3749,16 @@ func (s *MessageExportSettings) SetDefaults() {
 	s.GlobalRelaySettings.SetDefaults()
 }
 
+type WikiExportSettings struct {
+	DownloadExportResults *bool `access:"compliance_compliance_export"`
+}
+
+func (s *WikiExportSettings) SetDefaults() {
+	if s.DownloadExportResults == nil {
+		s.DownloadExportResults = NewPointer(true)
+	}
+}
+
 type DisplaySettings struct {
 	CustomURLSchemes []string `access:"site_posts"`
 	MaxMarkdownNodes *int     `access:"site_posts"`
@@ -3992,6 +4002,7 @@ type Config struct {
 	ElasticsearchSettings       ElasticsearchSettings
 	DataRetentionSettings       DataRetentionSettings
 	MessageExportSettings       MessageExportSettings
+	WikiExportSettings          WikiExportSettings
 	JobSettings                 JobSettings
 	PluginSettings              PluginSettings
 	DisplaySettings             DisplaySettings
@@ -4111,6 +4122,7 @@ func (o *Config) SetDefaults() {
 	o.ExperimentalAuditSettings.SetDefaults()
 	o.JobSettings.SetDefaults()
 	o.MessageExportSettings.SetDefaults()
+	o.WikiExportSettings.SetDefaults()
 	o.DisplaySettings.SetDefaults()
 	o.GuestAccountsSettings.SetDefaults()
 	o.ImageProxySettings.SetDefaults()

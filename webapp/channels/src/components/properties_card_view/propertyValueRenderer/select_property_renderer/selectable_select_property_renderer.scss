@@ -1,0 +1,23 @@
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
+
+.SelectableSelectPropertyRenderer {
+    width: 100%;
+    min-width: 200px;
+
+    .selectable-select-property__control {
+        border-radius: 4px;
+        transition: background-color 0.15s ease;
+    }
+
+    .selectable-select-property__menu {
+        border-radius: 4px;
+        margin-top: 4px;
+        box-shadow: var(--elevation-4);
+    }
+
+    .selectable-select-property__option {
+        padding: 8px 12px;
+        font-size: 14px;
+    }
+}

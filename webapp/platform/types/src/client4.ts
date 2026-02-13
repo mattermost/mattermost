@@ -23,6 +23,7 @@ export type Options = {
     signal?: RequestInit['signal'];
     ignoreStatus?: boolean; /** If true, status codes > 300 are ignored and don't cause an error */
     duplex?: 'half'; /** Optional, but required for node clients. Must be 'half' for half-duplex fetch; 'full' is reserved for future use. See https://fetch.spec.whatwg.org/#dom-requestinit-duplex */
+    keepalive?: boolean; /** If true, the request will continue even if the page is unloading */
 };
 
 export type OptsSignalExt = {signal?: AbortSignal};

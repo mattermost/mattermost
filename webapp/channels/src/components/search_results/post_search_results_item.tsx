@@ -11,6 +11,7 @@ import {isChannelAutotranslated} from 'mattermost-redux/selectors/entities/chann
 import PostComponent from 'components/post';
 
 import {Locations} from 'utils/constants';
+import {isPagePost} from 'utils/page_utils';
 
 import type {GlobalState} from 'types/store';
 
@@ -25,12 +26,19 @@ type Props = {
 }
 
 export default function PostSearchResultsItem(props: Props) {
+    const isPage = isPagePost(props.post);
     const autotranslated = useSelector((state: GlobalState) => isChannelAutotranslated(state, props.post.channel_id));
     return (
         <div
             className='search-item__container'
             data-testid='search-item-container'
         >
+            {isPage && (
+                <div className='search-item__page-indicator'>
+                    <i className='icon-file-document-outline'/>
+                    <span>{'Wiki Page'}</span>
+                </div>
+            )}
             <PostComponent
                 post={props.post}
                 matches={props.matches}

@@ -174,6 +174,16 @@ exports[`components/admin_console/permission_schemes_settings/permission_tree sh
               "restore_custom_group",
             ],
           },
+          Object {
+            "id": "pages",
+            "permissions": Array [
+              "create_page",
+              "read_page",
+              "edit_page",
+              "delete_own_page",
+              "delete_page",
+            ],
+          },
         ]
       }
       readOnly={false}
@@ -397,6 +407,16 @@ exports[`components/admin_console/permission_schemes_settings/permission_tree sh
               "restore_custom_group",
             ],
           },
+          Object {
+            "id": "pages",
+            "permissions": Array [
+              "create_page",
+              "read_page",
+              "edit_page",
+              "delete_own_page",
+              "delete_page",
+            ],
+          },
         ]
       }
       readOnly={false}
@@ -607,6 +627,16 @@ exports[`components/admin_console/permission_schemes_settings/permission_tree sh
               "edit_custom_group",
               "delete_custom_group",
               "restore_custom_group",
+            ],
+          },
+          Object {
+            "id": "pages",
+            "permissions": Array [
+              "create_page",
+              "read_page",
+              "edit_page",
+              "delete_own_page",
+              "delete_page",
             ],
           },
         ]
@@ -832,6 +862,16 @@ exports[`components/admin_console/permission_schemes_settings/permission_tree sh
               "restore_custom_group",
             ],
           },
+          Object {
+            "id": "pages",
+            "permissions": Array [
+              "create_page",
+              "read_page",
+              "edit_page",
+              "delete_own_page",
+              "delete_page",
+            ],
+          },
         ]
       }
       readOnly={true}
@@ -1055,6 +1095,16 @@ exports[`components/admin_console/permission_schemes_settings/permission_tree sh
               "restore_custom_group",
             ],
           },
+          Object {
+            "id": "pages",
+            "permissions": Array [
+              "create_page",
+              "read_page",
+              "edit_page",
+              "delete_own_page",
+              "delete_page",
+            ],
+          },
         ]
       }
       readOnly={false}
@@ -1276,6 +1326,16 @@ exports[`components/admin_console/permission_schemes_settings/permission_tree sh
               "edit_custom_group",
               "delete_custom_group",
               "restore_custom_group",
+            ],
+          },
+          Object {
+            "id": "pages",
+            "permissions": Array [
+              "create_page",
+              "read_page",
+              "edit_page",
+              "delete_own_page",
+              "delete_page",
             ],
           },
         ]
@@ -1506,6 +1566,16 @@ exports[`components/admin_console/permission_schemes_settings/permission_tree sh
               "edit_custom_group",
               "delete_custom_group",
               "restore_custom_group",
+            ],
+          },
+          Object {
+            "id": "pages",
+            "permissions": Array [
+              "create_page",
+              "read_page",
+              "edit_page",
+              "delete_own_page",
+              "delete_page",
             ],
           },
         ]

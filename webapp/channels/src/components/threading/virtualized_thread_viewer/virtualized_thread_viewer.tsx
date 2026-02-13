@@ -35,7 +35,7 @@ type Props = {
     directTeammate: UserProfile | undefined;
     highlightedPostId?: Post['id'];
     selectedPostFocusedAt?: number;
-    lastPost: Post;
+    lastPost: Post | FakePost;
     onCardClick: (post: Post) => void;
     replyListIds: string[];
     selected: Post | FakePost;
@@ -45,6 +45,7 @@ type Props = {
     newMessagesSeparatorActions: NewMessagesSeparatorActionComponent[];
     inputPlaceholder?: string;
     measureRhsOpened: () => void;
+    hideRootPost?: boolean;
     isChannelAutotranslated: boolean;
 }
 
@@ -354,6 +355,10 @@ class ThreadViewerVirtualized extends PureComponent<Props, State> {
         const isDeletedPost = ('delete_at' in this.props.selected && this.props.selected.delete_at !== 0) ||
             ('state' in this.props.selected && this.props.selected.state === Posts.POST_DELETED);
 
+        if (isRootPost && this.props.hideRootPost) {
+            return null;
+        }
+
         if (!isDateLine(itemId) && !isStartOfNewMessages(itemId) && !isCreateComment(itemId) && !isRootPost) {
             a11yIndex++;
         }
@@ -438,33 +443,39 @@ class ThreadViewerVirtualized extends PureComponent<Props, State> {
                     data-a11y-order-reversed={true}
                 >
                     <AutoSizer>
-                        {({width, height}) => (
-                            <>
-                                <DynamicVirtualizedList
-                                    id='threadViewerScrollContainer'
-                                    canLoadMorePosts={this.canLoadMorePosts}
-                                    height={height}
-                                    initRangeToRender={this.initRangeToRender}
-                                    initScrollToIndex={this.initScrollToIndex}
-                                    innerListStyle={this.getInnerStyles()}
-                                    innerRef={this.innerRef}
-                                    itemData={this.props.replyListIds}
-                                    scrollToFailed={this.handleScrollToFailed}
-                                    onItemsRendered={this.onItemsRendered}
-                                    onScroll={this.handleScroll}
-                                    overscanCountBackward={OVERSCAN_COUNT_BACKWARD}
-                                    overscanCountForward={OVERSCAN_COUNT_FORWARD}
-                                    ref={this.listRef}
-                                    style={virtListStyles}
-                                    width={width}
-                                    className={'post-list__dynamic--RHS'}
-                                    correctScrollToBottom={true}
-                                >
-                                    {this.renderRow}
-                                </DynamicVirtualizedList>
-                                {this.renderToast(width)}
-                            </>
-                        )}
+                        {({width, height}) => {
+                            if (!width || !height) {
+                                return <div style={{padding: '20px', color: 'red'}}>{'No dimensions from AutoSizer (width: '}{width}{', height: '}{height}{')'}</div>;
+                            }
+
+                            return (
+                                <>
+                                    <DynamicVirtualizedList
+                                        id='threadViewerScrollContainer'
+                                        canLoadMorePosts={this.canLoadMorePosts}
+                                        height={height}
+                                        initRangeToRender={this.initRangeToRender}
+                                        initScrollToIndex={this.initScrollToIndex}
+                                        innerListStyle={this.getInnerStyles()}
+                                        innerRef={this.innerRef}
+                                        itemData={this.props.replyListIds}
+                                        scrollToFailed={this.handleScrollToFailed}
+                                        onItemsRendered={this.onItemsRendered}
+                                        onScroll={this.handleScroll}
+                                        overscanCountBackward={OVERSCAN_COUNT_BACKWARD}
+                                        overscanCountForward={OVERSCAN_COUNT_FORWARD}
+                                        ref={this.listRef}
+                                        style={virtListStyles}
+                                        width={width}
+                                        className={'post-list__dynamic--RHS'}
+                                        correctScrollToBottom={true}
+                                    >
+                                        {this.renderRow}
+                                    </DynamicVirtualizedList>
+                                    {this.renderToast(width)}
+                                </>
+                            );
+                        }}
                     </AutoSizer>
                 </div>
                 <CreateComment

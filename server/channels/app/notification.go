@@ -51,7 +51,7 @@ func (a *App) canSendPushNotifications() bool {
 	return true
 }
 
-func (a *App) SendNotifications(rctx request.CTX, post *model.Post, team *model.Team, channel *model.Channel, sender *model.User, parentPostList *model.PostList, setOnline bool) ([]string, error) {
+func (a *App) SendNotifications(rctx request.CTX, post *model.Post, team *model.Team, channel *model.Channel, sender *model.User, parentPostList *model.PostList, setOnline bool, preExtractedMentions []string) ([]string, error) {
 	// Do not send notifications in archived channels
 	if channel.DeleteAt > 0 {
 		return []string{}, nil
@@ -174,12 +174,26 @@ func (a *App) SendNotifications(rctx request.CTX, post *model.Post, team *model.
 
 	var mentions *MentionResults
 	var keywords MentionKeywords
+
 	if post.Type == model.PostTypeBurnOnRead {
 		borPost, appErr := a.getBurnOnReadPost(store.RequestContextWithMaster(rctx), post)
 		if appErr != nil {
 			return nil, appErr
 		}
 		mentions, keywords = a.getExplicitMentionsAndKeywords(rctx, borPost, channel, profileMap, groups, channelMemberNotifyPropsMap, parentPostList)
+	} else if len(preExtractedMentions) > 0 {
+		rctx.Logger().Debug("Using pre-extracted mentions for page notification",
+			mlog.String("post_id", post.Id),
+			mlog.Int("mention_count", len(preExtractedMentions)),
+		)
+		mentions = &MentionResults{
+			Mentions:      make(map[string]MentionType),
+			GroupMentions: make(map[string]MentionType),
+		}
+		for _, userID := range preExtractedMentions {
+			mentions.Mentions[userID] = KeywordMention
+		}
+		keywords = MentionKeywords{}
 	} else {
 		mentions, keywords = a.getExplicitMentionsAndKeywords(rctx, post, channel, profileMap, groups, channelMemberNotifyPropsMap, parentPostList)
 	}
@@ -1410,6 +1424,10 @@ func splitAtFinal(items []string) (preliminary []string, final string) {
 // Given a message and a map mapping mention keywords to the users who use them, returns a map of mentioned
 // users and a slice of potential mention users not in the channel and whether or not @here was mentioned.
 func getExplicitMentions(post *model.Post, keywords MentionKeywords) *MentionResults {
+	if shouldUseCustomMentionParsing(post) {
+		return getExplicitMentionsFromPage(post, keywords)
+	}
+
 	parser := makeStandardMentionParser(keywords)
 
 	buf := ""

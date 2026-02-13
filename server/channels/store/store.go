@@ -101,6 +101,8 @@ type Store interface {
 	Recap() RecapStore
 	ReadReceipt() ReadReceiptStore
 	TemporaryPost() TemporaryPostStore
+	Wiki() WikiStore
+	Page() PageStore
 }
 
 type RetentionPolicyStore interface {
@@ -367,6 +369,7 @@ type ThreadStore interface {
 	SaveMultipleMemberships(memberships []*model.ThreadMembership) ([]*model.ThreadMembership, error)
 	MaintainMultipleFromImport(memberships []*model.ThreadMembership) ([]*model.ThreadMembership, error)
 	UpdateTeamIdForChannelThreads(channelId, teamId string) error
+	CreateThreadForPageComment(thread *model.Thread) error
 }
 
 type PostStore interface {
@@ -426,6 +429,12 @@ type PostStore interface {
 	RefreshPostStats() error
 	RestoreContentFlaggedPost(post *model.Post, statusFieldId, contentFlaggingManagedFieldId string) error
 	PermanentDeleteAssociatedData(postIds []string) error
+
+	// Import idempotency methods
+	GetPostsByTypeAndProps(channelId, postType, propKey, propValue string) ([]*model.Post, error)
+	GetPostsByTypeAndPropsGlobal(postType, propKey, propValue string) ([]*model.Post, error)
+	GetPostRepliesByTypeAndProps(rootId, postType, propKey, propValue string) ([]*model.Post, error)
+	GetPageCommentsByPageIdPropAndImportSourceId(pageId, importSourceId string) ([]*model.Post, error)
 }
 
 type UserStore interface {
@@ -1057,8 +1066,11 @@ type PostPriorityStore interface {
 }
 
 type DraftStore interface {
+	// Draft metadata methods (Drafts table)
 	Upsert(d *model.Draft) (*model.Draft, error)
+	UpsertPageDraft(d *model.Draft) (*model.Draft, error)
 	Get(userID, channelID, rootID string, includeDeleted bool) (*model.Draft, error)
+	GetManyByRootIds(userID, channelID string, rootIDs []string, includeDeleted bool) ([]*model.Draft, error)
 	Delete(userID, channelID, rootID string) error
 	DeleteDraftsAssociatedWithPost(channelID, rootID string) error
 	GetDraftsForUser(userID, teamID string) ([]*model.Draft, error)
@@ -1066,6 +1078,28 @@ type DraftStore interface {
 	DeleteEmptyDraftsByCreateAtAndUserId(createAt int64, userID string) error
 	DeleteOrphanDraftsByCreateAtAndUserId(createAt int64, userID string) error
 	PermanentDeleteByUser(userId string) error
+	UpdatePropsOnly(userId, wikiId, draftId string, props map[string]any, expectedUpdateAt int64) error
+	UpdateDraftParent(userId, wikiId, draftId, newParentId string) error
+	BatchUpdateDraftParentId(userId, wikiId, oldParentId, newParentId string) ([]*model.Draft, error)
+
+	// Page draft content methods (PageContents table with status='draft')
+	// With unified page ID model, drafts are stored in PageContents table
+	CreatePageDraft(content *model.PageContent) (*model.PageContent, error)
+	CreateDraftForExistingPage(pageId, userId, content string, baseUpdateAt int64) (*model.PageContent, error)
+	PageDraftExists(pageId, userId string) (bool, int64, error)
+	UpdatePageDraftContent(pageId, userId, content string, expectedUpdateAt int64) (int64, error)
+	UpsertPageDraftContent(pageId, userId, content string, lastUpdateAt int64) (*model.PageContent, error)
+	GetPageDraft(pageId, userId string) (*model.PageContent, error)
+	DeletePageDraft(pageId, userId string) error
+	DeletePageDraftAtomic(pageId, userId, wikiId string) error
+	GetPageDraftsForUser(userId, wikiId string, offset, limit int) ([]*model.PageContent, error)
+	GetActiveEditorsForPage(pageId string, minUpdateAt int64) ([]*model.PageContent, error)
+
+	// Publish operations (atomic state transition)
+	PublishPageDraft(pageId, userId string) (*model.PageContent, error)
+
+	// Cleanup operations
+	PermanentDeletePageDraftsByUser(userId string) error
 }
 
 type PostAcknowledgementStore interface {
@@ -1208,6 +1242,134 @@ type TemporaryPostStore interface {
 	Get(rctx request.CTX, id string, allowFromCache bool) (*model.TemporaryPost, error)
 	Delete(rctx request.CTX, id string) error
 	GetExpiredPosts(rctx request.CTX, lastPostId string, limit uint64) ([]string, error)
+}
+
+type WikiStore interface {
+	Save(wiki *model.Wiki) (*model.Wiki, error)
+	CreateWikiWithDefaultPage(wiki *model.Wiki, userId string) (*model.Wiki, error)
+	Get(id string) (*model.Wiki, error)
+	GetForChannel(channelId string, includeDeleted bool) ([]*model.Wiki, error)
+	Update(wiki *model.Wiki) (*model.Wiki, error)
+	Delete(id string, hard bool) error
+	GetPages(wikiId string, offset, limit int) ([]*model.Post, error)
+	GetPageByTitleInWiki(wikiId, title string) (*model.Post, error)
+	GetAbandonedPages(cutoffTime int64) ([]*model.Post, error)
+	DeleteAllPagesForWiki(wikiId string) error
+	MovePageToWiki(pageId, targetWikiId string, parentPageId *string) error
+	MoveWikiToChannel(wikiId string, targetChannelId string, timestamp int64) (*model.Wiki, error)
+	SetWikiIdInPostProps(pageId, wikiId string) error
+	// ResolveNamesToIDs converts wiki names/IDs to wiki IDs.
+	// Supports both direct wiki IDs and case-insensitive name matching.
+	// Team scoping is applied when teamId is provided.
+	ResolveNamesToIDs(names []string, teamId string) ([]string, error)
+
+	// GetWikisForExport returns wikis in a channel with team/channel names for export
+	GetWikisForExport(channelId string) ([]*model.WikiForExport, error)
+
+	// GetPagesForExport returns pages for a wiki with content and user info for export.
+	// Uses cursor-based pagination - pass empty afterId for first page.
+	GetPagesForExport(wikiId string, limit int, afterId string) ([]*model.PageForExport, error)
+
+	// GetPageCommentsForExport returns comments for a page with user info for export
+	GetPageCommentsForExport(pageId string) ([]*model.PageCommentForExport, error)
+}
+
+// PageStore manages page hierarchy operations.
+// Pages are stored as Posts with Type="page", but hierarchy-specific
+// operations are isolated in this store for better separation of concerns.
+type PageStore interface {
+	// CreatePage creates a page and its content in a single transaction
+	CreatePage(rctx request.CTX, post *model.Post, content, searchText string) (*model.Post, error)
+
+	// GetPage fetches a page by ID.
+	// Uses DBXFromContext to respect master flag for read-after-write consistency.
+	GetPage(rctx request.CTX, pageID string, includeDeleted bool) (*model.Post, error)
+
+	// DeletePage soft-deletes a page and all its associated data (content and comments).
+	// It also atomically reparents any child pages to newParentID (or makes them root pages if empty).
+	DeletePage(pageID string, deleteByID string, newParentID string) error
+
+	// RestorePage restores a soft-deleted page and its content in a single transaction
+	RestorePage(pageID string) error
+
+	// SoftDeletePageComments soft-deletes all comments for a page
+	SoftDeletePageComments(pageID, deleteByID string) error
+
+	// SoftDeletePagePost soft-deletes the page post itself
+	SoftDeletePagePost(pageID, deleteByID string) error
+
+	// GetPageChildren fetches direct children of a page
+	GetPageChildren(postID string, options model.GetPostsOptions) (*model.PostList, error)
+
+	// GetPageDescendants fetches all descendants of a page (entire subtree)
+	GetPageDescendants(postID string) (*model.PostList, error)
+
+	// GetPageAncestors fetches all ancestors of a page up to the root
+	GetPageAncestors(postID string) (*model.PostList, error)
+
+	// GetChannelPages fetches all pages in a channel
+	GetChannelPages(channelID string) (*model.PostList, error)
+
+	// GetSiblingPages fetches all sibling pages (pages with the same parent) for a given parent.
+	// If parentID is empty, returns root-level pages in the channel.
+	// Results are sorted by page_sort_order, then CreateAt, then Id.
+	GetSiblingPages(parentID, channelID string) ([]*model.Post, error)
+
+	// UpdatePageSortOrder reorders a page among its siblings.
+	// Moves the page to newIndex position (0-indexed) and recalculates sort orders for all siblings.
+	// Uses SELECT FOR UPDATE to prevent concurrent modification issues.
+	// Returns the updated list of siblings with their new sort orders.
+	UpdatePageSortOrder(pageID, parentID, channelID string, newIndex int64) ([]*model.Post, error)
+
+	// ChangePageParent updates the parent of a page.
+	// Uses optimistic locking: only updates if UpdateAt matches expectedUpdateAt.
+	// Returns ErrNotFound if no rows affected (page not found or concurrent modification).
+	ChangePageParent(postID string, newParentID string, expectedUpdateAt int64) error
+
+	// MovePage atomically moves a page within the hierarchy.
+	// Combines parent change and sibling reordering in a single transaction.
+	// - newParentID: if non-nil, changes the page's parent (nil = keep current, empty string = root)
+	// - newIndex: if non-nil, reorders the page to this position among siblings
+	// Uses optimistic locking: only updates if UpdateAt matches expectedUpdateAt.
+	// Returns ErrNotFound if page not found or concurrent modification detected.
+	// Returns ErrInvalidInput if the move would create a cycle.
+	MovePage(pageID, channelID string, newParentID *string, newIndex *int64, expectedUpdateAt int64) ([]*model.Post, error)
+
+	// ReparentChildren updates all direct children of a page to a new parent.
+	// Used when deleting a page to avoid orphaning its children.
+	// If newParentID is empty, children become root pages.
+	ReparentChildren(pageID string, newParentID string) error
+
+	// UpdatePageWithContent updates a page's title and/or content and creates edit history
+	UpdatePageWithContent(rctx request.CTX, pageID, title, content, searchText string) (*model.Post, error)
+
+	// Update updates a page (following MM pattern - no business logic, just UPDATE)
+	// Returns ErrNotFound if page doesn't exist or was deleted
+	Update(rctx request.CTX, page *model.Post) (*model.Post, error)
+
+	// GetPageVersionHistory fetches the version history for a page with pagination
+	GetPageVersionHistory(pageID string, offset, limit int) ([]*model.Post, error)
+
+	// GetCommentsForPage fetches comments and replies for a page with pagination
+	GetCommentsForPage(pageID string, includeDeleted bool, offset, limit int) (*model.PostList, error)
+
+	// PageContent operations (PageContents table)
+	// PageStore owns both Posts (Type='page') and PageContents tables for transactional atomicity
+	SavePageContent(pageContent *model.PageContent) (*model.PageContent, error)
+	GetPageContent(pageID string) (*model.PageContent, error)
+	GetManyPageContents(pageIDs []string) ([]*model.PageContent, error)
+	GetPageContentWithDeleted(pageID string) (*model.PageContent, error)
+	GetManyPageContentsWithDeleted(pageIDs []string) ([]*model.PageContent, error)
+	UpdatePageContent(pageContent *model.PageContent) (*model.PageContent, error)
+	DeletePageContent(pageID, userID string) error
+	PermanentDeletePageContent(pageID string) error
+	RestorePageContent(pageID string) error
+
+	// AtomicUpdatePageNotification atomically finds and updates an existing page update
+	// notification post within a transaction using SELECT FOR UPDATE to prevent lost updates
+	// from concurrent modifications. Returns the updated post, or nil if no matching
+	// notification was found (caller should create a new one).
+	AtomicUpdatePageNotification(channelID, pageID, userID, username, pageTitle string, sinceTime int64) (*model.Post, error)
 }
 
 // ChannelSearchOpts contains options for searching channels.

@@ -17,6 +17,24 @@ type ThreadStore struct {
 	mock.Mock
 }
 
+// CreateThreadForPageComment provides a mock function with given fields: thread
+func (_m *ThreadStore) CreateThreadForPageComment(thread *model.Thread) error {
+	ret := _m.Called(thread)
+
+	if len(ret) == 0 {
+		panic("no return value specified for CreateThreadForPageComment")
+	}
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(*model.Thread) error); ok {
+		r0 = rf(thread)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
 // DeleteMembershipForUser provides a mock function with given fields: userID, postID
 func (_m *ThreadStore) DeleteMembershipForUser(userID string, postID string) error {
 	ret := _m.Called(userID, postID)

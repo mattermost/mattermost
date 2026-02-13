@@ -159,7 +159,9 @@ func (a *App) SessionHasPermissionToCreateJob(session model.Session, job *model.
 		model.JobTypeExportProcess,
 		model.JobTypeExportDelete,
 		model.JobTypeCloud,
-		model.JobTypeExtractContent:
+		model.JobTypeExtractContent,
+		model.JobTypeWikiExport,
+		model.JobTypeWikiImport:
 		return a.SessionHasPermissionTo(session, model.PermissionManageJobs), model.PermissionManageJobs
 	case model.JobTypeAccessControlSync:
 		// Allow system admins OR channel admins to create access control sync jobs
@@ -210,7 +212,9 @@ func (a *App) SessionHasPermissionToManageJob(session model.Session, job *model.
 		model.JobTypeExportProcess,
 		model.JobTypeExportDelete,
 		model.JobTypeCloud,
-		model.JobTypeExtractContent:
+		model.JobTypeExtractContent,
+		model.JobTypeWikiExport,
+		model.JobTypeWikiImport:
 		permission = model.PermissionManageJobs
 	case model.JobTypeAccessControlSync:
 		permission = model.PermissionManageSystem
@@ -247,7 +251,9 @@ func (a *App) SessionHasPermissionToReadJob(session model.Session, jobType strin
 		model.JobTypeExportDelete,
 		model.JobTypeCloud,
 		model.JobTypeMobileSessionMetadata,
-		model.JobTypeExtractContent:
+		model.JobTypeExtractContent,
+		model.JobTypeWikiExport,
+		model.JobTypeWikiImport:
 		return a.SessionHasPermissionTo(session, model.PermissionReadJobs), model.PermissionReadJobs
 	case model.JobTypeAccessControlSync:
 		return a.SessionHasPermissionTo(session, model.PermissionManageSystem), model.PermissionManageSystem

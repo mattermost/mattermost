@@ -115,6 +115,8 @@ type SqlStoreStores struct {
 	recap                      store.RecapStore
 	readReceipt                store.ReadReceiptStore
 	temporaryPost              store.TemporaryPostStore
+	wiki                       store.WikiStore
+	page                       store.PageStore
 }
 
 type SqlStore struct {
@@ -269,6 +271,8 @@ func New(settings model.SqlSettings, logger mlog.LoggerIFace, metrics einterface
 	store.stores.recap = newSqlRecapStore(store)
 	store.stores.readReceipt = newSqlReadReceiptStore(store, metrics)
 	store.stores.temporaryPost = newSqlTemporaryPostStore(store, metrics)
+	store.stores.wiki = newSqlWikiStore(store)
+	store.stores.page = newSqlPageStore(store)
 
 	store.stores.preference.(*SqlPreferenceStore).deleteUnusedFeatures()
 
@@ -1045,4 +1049,12 @@ func (ss *SqlStore) ScheduledPost() store.ScheduledPostStore {
 
 func (ss *SqlStore) ContentFlagging() store.ContentFlaggingStore {
 	return ss.stores.ContentFlagging
+}
+
+func (ss *SqlStore) Wiki() store.WikiStore {
+	return ss.stores.wiki
+}
+
+func (ss *SqlStore) Page() store.PageStore {
+	return ss.stores.page
 }

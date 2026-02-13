@@ -1246,6 +1246,17 @@ func (a *App) exportFile(rctx request.CTX, outPath, filePath string, zipWr *zip.
 	return nil
 }
 
+// ExportFileToWriter exports a file to a zip writer. This is a public wrapper around exportFile
+// for use by external packages like wiki_export.
+func (a *App) ExportFileToWriter(rctx request.CTX, filePath string, zipWr *zip.Writer) error {
+	// Explicitly check for nil to avoid returning a non-nil interface with nil value
+	// (Go interface nil quirk: (*AppError)(nil) != nil when assigned to error interface)
+	if appErr := a.exportFile(rctx, "", filePath, zipWr); appErr != nil {
+		return appErr
+	}
+	return nil
+}
+
 func (a *App) ListExports() ([]string, *model.AppError) {
 	exports, appErr := a.ListExportDirectory(*a.Config().ExportSettings.Directory)
 	if appErr != nil {

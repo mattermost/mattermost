@@ -29,6 +29,10 @@ type SearchParams struct {
 	ExcludedExtensions     []string `json:"excluded_extensions,omitempty"`
 	OnDate                 string   `json:"on_date,omitempty"`
 	ExcludedDate           string   `json:"excluded_date,omitempty"`
+	PostTypes              []string `json:"post_types,omitempty"`
+	ExcludedPostTypes      []string `json:"excluded_post_types,omitempty"`
+	WikiNames              []string `json:"wiki_names,omitempty"`
+	ExcludedWikiNames      []string `json:"excluded_wiki_names,omitempty"`
 	OrTerms                bool     `json:"or_terms,omitempty"`
 	IncludeDeletedChannels bool     `json:"include_deleted_channels,omitempty"`
 	TimeZoneOffset         int      `json:"timezone_offset,omitempty"`
@@ -109,7 +113,7 @@ func (p *SearchParams) GetExcludedDateMillis() (int64, int64) {
 	return GetStartOfDayMillis(date, p.TimeZoneOffset), GetEndOfDayMillis(date, p.TimeZoneOffset)
 }
 
-var searchFlags = [...]string{"from", "channel", "in", "before", "after", "on", "ext"}
+var searchFlags = [...]string{"from", "channel", "in", "before", "after", "on", "ext", "type", "wiki"}
 
 type flag struct {
 	name    string
@@ -270,6 +274,10 @@ func ParseSearchParams(text string, timeZoneOffset int) []*SearchParams {
 	excludedDate := ""
 	excludedExtensions := []string{}
 	extensions := []string{}
+	var postTypes []string
+	var excludedPostTypes []string
+	var wikiNames []string
+	var excludedWikiNames []string
 
 	for _, flag := range flags {
 		if flag.name == "in" || flag.name == "channel" {
@@ -308,6 +316,18 @@ func ParseSearchParams(text string, timeZoneOffset int) []*SearchParams {
 			} else {
 				extensions = append(extensions, flag.value)
 			}
+		} else if flag.name == "type" {
+			if flag.exclude {
+				excludedPostTypes = append(excludedPostTypes, flag.value)
+			} else {
+				postTypes = append(postTypes, flag.value)
+			}
+		} else if flag.name == "wiki" {
+			if flag.exclude {
+				excludedWikiNames = append(excludedWikiNames, flag.value)
+			} else {
+				wikiNames = append(wikiNames, flag.value)
+			}
 		}
 	}
 
@@ -330,6 +350,10 @@ func ParseSearchParams(text string, timeZoneOffset int) []*SearchParams {
 			ExcludedExtensions: excludedExtensions,
 			OnDate:             onDate,
 			ExcludedDate:       excludedDate,
+			PostTypes:          postTypes,
+			ExcludedPostTypes:  excludedPostTypes,
+			WikiNames:          wikiNames,
+			ExcludedWikiNames:  excludedWikiNames,
 			TimeZoneOffset:     timeZoneOffset,
 		})
 	}
@@ -351,6 +375,10 @@ func ParseSearchParams(text string, timeZoneOffset int) []*SearchParams {
 			ExcludedExtensions: excludedExtensions,
 			OnDate:             onDate,
 			ExcludedDate:       excludedDate,
+			PostTypes:          postTypes,
+			ExcludedPostTypes:  excludedPostTypes,
+			WikiNames:          wikiNames,
+			ExcludedWikiNames:  excludedWikiNames,
 			TimeZoneOffset:     timeZoneOffset,
 		})
 	}
@@ -361,6 +389,8 @@ func ParseSearchParams(text string, timeZoneOffset int) []*SearchParams {
 		(len(inChannels) != 0 || len(fromUsers) != 0 ||
 			len(excludedChannels) != 0 || len(excludedUsers) != 0 ||
 			len(extensions) != 0 || len(excludedExtensions) != 0 ||
+			len(postTypes) != 0 || len(excludedPostTypes) != 0 ||
+			len(wikiNames) != 0 || len(excludedWikiNames) != 0 ||
 			afterDate != "" || excludedAfterDate != "" ||
 			beforeDate != "" || excludedBeforeDate != "" ||
 			onDate != "" || excludedDate != "") {
@@ -380,6 +410,10 @@ func ParseSearchParams(text string, timeZoneOffset int) []*SearchParams {
 			ExcludedExtensions: excludedExtensions,
 			OnDate:             onDate,
 			ExcludedDate:       excludedDate,
+			PostTypes:          postTypes,
+			ExcludedPostTypes:  excludedPostTypes,
+			WikiNames:          wikiNames,
+			ExcludedWikiNames:  excludedWikiNames,
 			TimeZoneOffset:     timeZoneOffset,
 		})
 	}

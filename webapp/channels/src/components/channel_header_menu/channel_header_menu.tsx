@@ -58,9 +58,9 @@ export default function ChannelHeaderMenu({dmUser, gmMembers, isMobile, archived
     const isMuted = useSelector(isCurrentChannelMuted);
     const isLicensedForLDAPGroups = useSelector(getLicense).LDAPGroups === 'true';
     const pluginMenuItems = useSelector(getChannelHeaderMenuPluginComponents);
-    const isChannelBookmarksEnabled = useSelector(getIsChannelBookmarksEnabled);
     const pluginItemsVisible = usePluginVisibilityInSharedChannel(channel?.id);
     const isChannelAutotranslated = useSelector((state: GlobalState) => (channel?.id ? getChannelAutotranslation(state, channel.id) : false));
+    const isChannelBookmarksEnabled = useSelector(getIsChannelBookmarksEnabled);
 
     const isReadonly = false;
 
@@ -156,7 +156,6 @@ export default function ChannelHeaderMenu({dmUser, gmMembers, isMobile, archived
                     pluginItems={pluginItems}
                     isFavorite={isFavorite}
                     isMobile={isMobile || false}
-                    isChannelBookmarksEnabled={isChannelBookmarksEnabled}
                 />
             )}
             {isGroup && (
@@ -167,7 +166,6 @@ export default function ChannelHeaderMenu({dmUser, gmMembers, isMobile, archived
                     pluginItems={pluginItems}
                     isFavorite={isFavorite}
                     isMobile={isMobile || false}
-                    isChannelBookmarksEnabled={isChannelBookmarksEnabled}
                 />
             )}
             {(!isDirect && !isGroup) && (

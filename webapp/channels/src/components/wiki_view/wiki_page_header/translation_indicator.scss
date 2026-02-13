@@ -1,0 +1,101 @@
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
+
+.translation-indicator {
+    position: relative;
+    display: inline-flex;
+
+    &__trigger {
+        display: flex;
+        align-items: center;
+        padding: 4px 8px;
+        border: 1px solid rgba(var(--center-channel-color-rgb), 0.16);
+        border-radius: 4px;
+        background: var(--center-channel-bg);
+        color: rgba(var(--center-channel-color-rgb), 0.72);
+        cursor: pointer;
+        font-size: 12px;
+        gap: 4px;
+        transition: all 0.15s ease;
+
+        &:hover {
+            background: rgba(var(--center-channel-color-rgb), 0.08);
+            color: rgba(var(--center-channel-color-rgb), 0.88);
+        }
+
+        .icon {
+            font-size: 12px;
+        }
+    }
+
+    &__current-language {
+        font-weight: 500;
+    }
+
+    &__count {
+        min-width: 16px;
+        height: 16px;
+        padding: 0 4px;
+        border-radius: 8px;
+        background: rgba(var(--button-bg-rgb), 0.16);
+        color: var(--button-bg);
+        font-size: 10px;
+        font-weight: 600;
+        line-height: 16px;
+        text-align: center;
+    }
+
+    &__dropdown {
+        position: absolute;
+        z-index: 100;
+        top: 100%;
+        left: 0;
+        min-width: 200px;
+        padding: 8px 0;
+        border: 1px solid rgba(var(--center-channel-color-rgb), 0.16);
+        border-radius: 4px;
+        margin-top: 4px;
+        background: var(--center-channel-bg);
+        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
+    }
+
+    &__section {
+        &:not(:last-child) {
+            padding-bottom: 8px;
+            border-bottom: 1px solid rgba(var(--center-channel-color-rgb), 0.08);
+            margin-bottom: 8px;
+        }
+    }
+
+    &__section-header {
+        padding: 4px 12px;
+        color: rgba(var(--center-channel-color-rgb), 0.56);
+        font-size: 11px;
+        font-weight: 600;
+        text-transform: uppercase;
+    }
+
+    &__option {
+        display: flex;
+        width: 100%;
+        align-items: center;
+        padding: 8px 12px;
+        border: none;
+        background: transparent;
+        color: var(--center-channel-color);
+        cursor: pointer;
+        font-size: 13px;
+        gap: 8px;
+        text-align: left;
+        transition: background 0.1s ease;
+
+        &:hover {
+            background: rgba(var(--center-channel-color-rgb), 0.08);
+        }
+
+        svg {
+            flex-shrink: 0;
+            color: rgba(var(--center-channel-color-rgb), 0.56);
+        }
+    }
+}

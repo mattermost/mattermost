@@ -54,6 +54,33 @@ export function createBookmark(channelId: string, bookmark: ChannelBookmarkCreat
     };
 }
 
+export function createBookmarkFromPage(
+    channelId: string,
+    pageId: string,
+    displayName?: string,
+    emoji?: string,
+    connectionId?: string,
+): ActionFuncAsync<boolean> {
+    return async (dispatch: DispatchFunc) => {
+        try {
+            const createdBookmark = await Client4.createBookmarkFromPage(channelId, pageId, displayName, emoji, connectionId);
+
+            dispatch({
+                type: ChannelBookmarkTypes.RECEIVED_BOOKMARK,
+                data: createdBookmark,
+            });
+        } catch (error) {
+            dispatch(logError(error));
+            return {
+                data: false,
+                error,
+            };
+        }
+
+        return {data: true};
+    };
+}
+
 export function editBookmark(channelId: string, id: string, patch: ChannelBookmarkPatch, connectionId: string): ActionFuncAsync<boolean> {
     return async (dispatch: DispatchFunc) => {
         try {

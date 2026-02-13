@@ -23,6 +23,7 @@ function makeMapStateToProps() {
         const {threadId} = ownProps;
 
         const post = getPost(state, threadId);
+        const thread = getThread(state, threadId);
 
         if (!post) {
             return {};
@@ -34,7 +35,7 @@ function makeMapStateToProps() {
             currentRelativeTeamUrl: getCurrentRelativeTeamUrl(state),
             displayName: getDisplayName(state, post.user_id, true),
             postsInThread: getPostsForThread(state, post.id),
-            thread: getThread(state, threadId),
+            thread,
             isPostPriorityEnabled: isPostPriorityEnabled(state),
             isChannelAutotranslated: isChannelAutotranslated(state, post.channel_id),
         };

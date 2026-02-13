@@ -5,8 +5,6 @@ import React, {memo} from 'react';
 import {FormattedMessage} from 'react-intl';
 import {areEqual} from 'react-window';
 
-import type {UserThread} from '@mattermost/types/threads';
-
 import {SearchSVG} from 'components/common/svg_images_components/search_svg';
 import LoadingScreen from 'components/loading_screen';
 import NoResultsIndicator from 'components/no_results_indicator';
@@ -16,13 +14,12 @@ import {ShortcutKeyVariant} from 'components/shortcut_key';
 
 import {Constants} from 'utils/constants';
 
+import type {ThreadData} from './virtualized_thread_list';
+
 import ThreadItem from '../thread_item';
 
 type Props = {
-    data: {
-        ids: Array<UserThread['id']>;
-        selectedThreadId?: UserThread['id'];
-    };
+    data: ThreadData;
     index: number;
     style: any;
 };
@@ -79,6 +76,8 @@ function Row({index, style, data}: Props) {
             style={style}
             threadId={itemId}
             isFirstThreadInList={index === 0}
+            rowIndex={index}
+            setRowHeight={data.setRowHeight}
         />
     );
 }

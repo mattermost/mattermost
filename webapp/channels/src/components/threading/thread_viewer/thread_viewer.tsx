@@ -20,11 +20,11 @@ import WebSocketClient from 'client/web_websocket_client';
 
 import type {FakePost} from 'types/store/rhs';
 
-import ThreadViewerVirtualized from '../virtualized_thread_viewer';
+import ConnectedThreadViewerVirtualized from '../virtualized_thread_viewer';
 
 import './thread_viewer.scss';
 
-const DeferredThreadViewerVirt = deferComponentRender(ThreadViewerVirtualized);
+const DeferredThreadViewerVirt = deferComponentRender(ConnectedThreadViewerVirtualized);
 
 type Attrs = Pick<HTMLAttributes<HTMLDivElement>, 'className' | 'id'>;
 
@@ -56,6 +56,7 @@ export type Props = Attrs & {
     rootPostId: string;
     enableWebSocketEventScope: boolean;
     lastUpdateAt: number;
+    hideRootPost?: boolean;
 };
 
 type State = {
@@ -246,7 +247,6 @@ export default class ThreadViewer extends React.PureComponent<Props, State> {
                             />
                             {this.props.selected && (
                                 <DeferredThreadViewerVirt
-                                    inputPlaceholder={this.props.inputPlaceholder}
                                     key={this.props.selected.id}
                                     channelId={this.props.channel.id}
                                     onCardClick={this.handleCardClick}
@@ -256,6 +256,8 @@ export default class ThreadViewer extends React.PureComponent<Props, State> {
                                     highlightedPostId={this.props.highlightedPostId}
                                     selectedPostFocusedAt={this.props.selectedPostFocusedAt}
                                     isThreadView={Boolean(this.props.isCollapsedThreadsEnabled && this.props.isThreadView)}
+                                    hideRootPost={this.props.hideRootPost}
+                                    inputPlaceholder={this.props.inputPlaceholder}
                                 />
                             )}
                         </>

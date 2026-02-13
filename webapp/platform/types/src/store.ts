@@ -20,12 +20,14 @@ import type {JobsState} from './jobs';
 import type {LimitsState} from './limits';
 import type {PostsState} from './posts';
 import type {PreferenceType} from './preferences';
+import type {SelectPropertyField} from './properties';
 import type {Recap} from './recaps';
 import type {
     AdminRequestsStatuses, ChannelsRequestsStatuses,
     FilesRequestsStatuses, GeneralRequestsStatuses,
     PostsRequestsStatuses, RolesRequestsStatuses,
     TeamsRequestsStatuses, UsersRequestsStatuses,
+    WikiRequestsStatuses,
 } from './requests';
 import type {Role} from './roles';
 import type {ScheduledPostsState} from './schedule_post';
@@ -101,6 +103,24 @@ export type GlobalState = {
             remotesByRemoteId?: Record<string, RemoteClusterInfo>;
         };
         contentFlagging: ContentFlaggingState;
+        wikiPages: {
+            byWiki: Record<string, string[]>;
+            lastPagesInvalidated: Record<string, number>;
+            lastDraftsInvalidated: Record<string, number>;
+            statusField: SelectPropertyField | null;
+            publishedDraftTimestamps: Record<string, number>;
+            deletedDraftTimestamps: Record<string, number>;
+        };
+        wikis: {
+            byChannel: Record<string, string[]>;
+            byId: Record<string, any>;
+        };
+        activeEditors: {
+            byPageId: Record<string, Record<string, {
+                userId: string;
+                lastActivity: number;
+            }>>;
+        };
     };
     errors: any[];
     requests: {
@@ -112,6 +132,7 @@ export type GlobalState = {
         admin: AdminRequestsStatuses;
         files: FilesRequestsStatuses;
         roles: RolesRequestsStatuses;
+        wiki: WikiRequestsStatuses;
     };
     websocket: {
         connected: boolean;

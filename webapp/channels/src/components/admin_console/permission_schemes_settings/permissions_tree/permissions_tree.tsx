@@ -200,6 +200,16 @@ export default class PermissionsTree extends React.PureComponent<Props, State> {
                     Permissions.RESTORE_CUSTOM_GROUP,
                 ],
             },
+            {
+                id: 'pages',
+                permissions: [
+                    Permissions.CREATE_PAGE,
+                    Permissions.READ_PAGE,
+                    Permissions.EDIT_PAGE,
+                    Permissions.DELETE_OWN_PAGE,
+                    Permissions.DELETE_PAGE,
+                ],
+            },
         ];
         this.updateGroups();
     }

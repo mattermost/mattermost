@@ -1333,3 +1333,207 @@
             application/json:
               schema:
                 $ref: "#/components/schemas/AppError"
+
+  "/api/v4/posts/extract-image":
+    post:
+      tags:
+        - posts
+      summary: Extract text from an image using AI
+      description: >
+        Extract text from an image using AI based on the specified action. The image will be
+        processed by an AI agent and the extracted text will be returned.
+
+        ##### Permissions
+
+        Must be authenticated.
+
+        __Minimum server version__: 11.2
+      operationId: ExtractImageText
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - agent_id
+                - file_id
+                - action
+              properties:
+                agent_id:
+                  type: string
+                  description: The ID of the AI agent to use for extraction
+                file_id:
+                  type: string
+                  description: The ID of the image file to extract text from
+                action:
+                  type: string
+                  description: The extraction action to perform
+                  enum:
+                    - extract_handwriting
+                    - describe_image
+        description: Image extraction request object
+        required: true
+      responses:
+        "200":
+          description: Text extracted successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  extracted_text:
+                    type: string
+                    description: The extracted text from the image
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AppError"
+
+  "/api/v4/posts/{post_id}/status":
+    put:
+      tags:
+        - posts
+      summary: Update page status
+      description: >
+        Update the status attribute for a page (post of type "page").
+
+        ##### Permissions
+
+        Must have `edit_post` permission for the page.
+
+        __Minimum server version__: TBD
+      operationId: UpdatePageStatus
+      parameters:
+        - name: post_id
+          in: path
+          description: Page (Post) GUID
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - status
+              properties:
+                status:
+                  type: string
+                  description: The status value to set
+        description: Status update request
+        required: true
+      responses:
+        "200":
+          description: Status update successful
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StatusOK"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+    get:
+      tags:
+        - posts
+      summary: Get page status
+      description: >
+        Get the status attribute for a page (post of type "page").
+
+        ##### Permissions
+
+        Must have `read_channel_content` permission for the channel containing the page.
+
+        __Minimum server version__: TBD
+      operationId: GetPageStatus
+      parameters:
+        - name: post_id
+          in: path
+          description: Page (Post) GUID
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Status retrieval successful
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    description: The status value
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+  "/api/v4/posts/status/field":
+    get:
+      tags:
+        - posts
+      summary: Get page status field definition
+      description: >
+        Get the field definition for the page status attribute. This includes
+        the available status values and their properties.
+
+        ##### Permissions
+
+        Must be authenticated.
+
+        __Minimum server version__: TBD
+      operationId: GetPageStatusField
+      responses:
+        "200":
+          description: Status field retrieval successful
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: string
+                    description: Field identifier
+                  name:
+                    type: string
+                    description: Field display name
+                  type:
+                    type: string
+                    description: Field type
+                  options:
+                    type: array
+                    description: Available status options
+                    items:
+                      type: object
+                      properties:
+                        value:
+                          type: string
+                        label:
+                          type: string
+                        color:
+                          type: string
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AppError"

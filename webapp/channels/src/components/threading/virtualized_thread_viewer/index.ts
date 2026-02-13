@@ -39,7 +39,8 @@ function makeMapStateToProps() {
         const lastViewedAt = getThreadLastViewedAt(state, selected.id);
         const directTeammate = getDirectTeammate(state, channelId);
 
-        const lastPost = getPost(state, postIds[0]);
+        // Handle empty postIds array (e.g., when filtering returns no results)
+        const lastPost = postIds.length > 0 ? (getPost(state, postIds[0]) || selected) : selected;
 
         const replyListIds = getRepliesListWithSeparators(state, {
             postIds,

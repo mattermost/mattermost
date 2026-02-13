@@ -1,9 +1,9 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {memo, useCallback, useEffect, useMemo} from 'react';
+import React, {memo, useCallback, useEffect, useMemo, useRef} from 'react';
 import AutoSizer from 'react-virtualized-auto-sizer';
-import {FixedSizeList} from 'react-window';
+import {VariableSizeList} from 'react-window';
 import InfiniteLoader from 'react-window-infinite-loader';
 
 import type {UserThread} from '@mattermost/types/threads';
@@ -14,9 +14,14 @@ import {Constants} from 'utils/constants';
 
 import Row from './virtualized_thread_list_row';
 
-type ThreadData = {
+// Default height for regular threads, page threads may need more
+export const DEFAULT_ROW_HEIGHT = 133;
+export const PAGE_THREAD_ROW_HEIGHT = 160;
+
+export type ThreadData = {
     ids: string[];
     selectedThreadId: string | undefined;
+    setRowHeight: (index: number, height: number) => void;
 };
 
 type Props = {
@@ -41,8 +46,21 @@ function VirtualizedThreadList({
     addNoMoreResultsItem,
 }: Props) {
     const infiniteLoaderRef = React.useRef<any>();
+    const listRef = useRef<VariableSizeList>(null);
     const startIndexRef = React.useRef<number>(0);
     const stopIndexRef = React.useRef<number>(0);
+    const rowHeightsRef = useRef<{[key: number]: number}>({});
+
+    const getRowHeight = useCallback((index: number) => {
+        return rowHeightsRef.current[index] || DEFAULT_ROW_HEIGHT;
+    }, []);
+
+    const setRowHeight = useCallback((index: number, height: number) => {
+        if (rowHeightsRef.current[index] !== height) {
+            rowHeightsRef.current[index] = height;
+            listRef.current?.resetAfterIndex(index);
+        }
+    }, []);
 
     useEffect(() => {
         if (ids.length > 0 && selectedThreadId) {
@@ -65,9 +83,10 @@ function VirtualizedThreadList({
             {
                 ids: addNoMoreResultsItem && ids.length === total ? [...ids, Constants.THREADS_NO_RESULTS_ITEM_ID] : (isLoading && ids.length !== total && [...ids, Constants.THREADS_LOADING_INDICATOR_ITEM_ID]) || ids,
                 selectedThreadId,
+                setRowHeight,
             }
         ),
-        [ids, selectedThreadId, isLoading, addNoMoreResultsItem, total],
+        [ids, selectedThreadId, isLoading, addNoMoreResultsItem, total, setRowHeight],
     );
 
     const itemKey = useCallback((index: number, data: ThreadData) => data.ids[index], []);
@@ -88,7 +107,7 @@ function VirtualizedThreadList({
                 >
                     {({onItemsRendered, ref}) => {
                         return (
-                            <FixedSizeList
+                            <VariableSizeList
                                 onItemsRendered={({
                                     overscanStartIndex,
                                     overscanStopIndex,
@@ -104,18 +123,27 @@ function VirtualizedThreadList({
                                     startIndexRef.current = visibleStartIndex;
                                     stopIndexRef.current = visibleStopIndex;
                                 }}
-                                ref={ref}
+                                ref={(instance) => {
+                                    // Store ref locally and pass to InfiniteLoader
+                                    (listRef as React.MutableRefObject<VariableSizeList | null>).current = instance;
+                                    if (typeof ref === 'function') {
+                                        ref(instance);
+                                    } else if (ref) {
+                                        (ref as React.MutableRefObject<VariableSizeList | null>).current = instance;
+                                    }
+                                }}
                                 height={height}
                                 itemCount={data.ids.length}
                                 itemData={data}
                                 itemKey={itemKey}
-                                itemSize={133}
+                                itemSize={getRowHeight}
+                                estimatedItemSize={DEFAULT_ROW_HEIGHT}
                                 style={style}
                                 width={width}
                                 className='virtualized-thread-list'
                             >
                                 {Row}
-                            </FixedSizeList>
+                            </VariableSizeList>
                         );
                     }
                     }

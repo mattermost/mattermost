@@ -306,7 +306,7 @@ func testChannelStoreSaveDirectChannel(t *testing.T, rctx request.CTX, ss store.
 	require.ElementsMatch(t, []string{u1.Id}, userIDs)
 
 	// Manually truncate Channels table until testlib can handle cleanups
-	s.GetMaster().Exec("TRUNCATE Channels")
+	s.GetMaster().Exec("TRUNCATE Channels CASCADE")
 }
 
 func testChannelStoreCreateDirectChannel(t *testing.T, rctx request.CTX, ss store.Store) {
@@ -607,7 +607,7 @@ func testChannelStoreGet(t *testing.T, rctx request.CTX, ss store.Store, s SqlSt
 	require.True(t, errors.As(err, &nfErr))
 
 	// Manually truncate Channels table until testlib can handle cleanups
-	s.GetMaster().Exec("TRUNCATE Channels")
+	s.GetMaster().Exec("TRUNCATE Channels CASCADE")
 }
 
 func testChannelStoreGetMany(t *testing.T, rctx request.CTX, ss store.Store, s SqlStore) {
@@ -641,7 +641,7 @@ func testChannelStoreGetMany(t *testing.T, rctx request.CTX, ss store.Store, s S
 	require.True(t, errors.As(err, &nfErr))
 
 	// Manually truncate Channels table until testlib can handle cleanups
-	s.GetMaster().Exec("TRUNCATE Channels")
+	s.GetMaster().Exec("TRUNCATE Channels CASCADE")
 }
 
 func testChannelStoreGetChannelsByIds(t *testing.T, rctx request.CTX, ss store.Store) {
@@ -4149,7 +4149,7 @@ func testChannelStoreGetAllChannels(t *testing.T, rctx request.CTX, ss store.Sto
 	assert.Equal(t, *list[0].PolicyID, policy.ID)
 
 	// Manually truncate Channels table until testlib can handle cleanups
-	s.GetMaster().Exec("TRUNCATE Channels")
+	s.GetMaster().Exec("TRUNCATE Channels CASCADE")
 }
 
 func testChannelStoreGetMoreChannels(t *testing.T, rctx request.CTX, ss store.Store) {
@@ -6435,7 +6435,7 @@ func testAutocomplete(t *testing.T, rctx request.CTX, ss store.Store, s SqlStore
 	})
 
 	// Manually truncate Channels table until testlib can handle cleanups
-	s.GetMaster().Exec("TRUNCATE Channels")
+	s.GetMaster().Exec("TRUNCATE Channels CASCADE")
 }
 
 func testChannelStoreSearchForUserInTeam(t *testing.T, rctx request.CTX, ss store.Store) {
@@ -7942,10 +7942,12 @@ func testChannelStoreRemoveAllDeactivatedMembers(t *testing.T, rctx request.CTX,
 	require.ElementsMatch(t, []string{u3.Id}, userIDs)
 
 	// Manually truncate Channels table until testlib can handle cleanups
-	s.GetMaster().Exec("TRUNCATE Channels")
+	s.GetMaster().Exec("TRUNCATE Channels CASCADE")
 }
 
 func testChannelStoreExportAllDirectChannels(t *testing.T, rctx request.CTX, ss store.Store, s SqlStore) {
+	s.GetMaster().Exec("TRUNCATE Channels CASCADE")
+
 	teamID := model.NewId()
 
 	o1 := model.Channel{}
@@ -7999,10 +8001,12 @@ func testChannelStoreExportAllDirectChannels(t *testing.T, rctx request.CTX, ss 
 	assert.ElementsMatch(t, []string{o1.DisplayName, o2.DisplayName}, []string{d1[0].DisplayName, d1[1].DisplayName})
 
 	// Manually truncate Channels table until testlib can handle cleanups
-	s.GetMaster().Exec("TRUNCATE Channels")
+	s.GetMaster().Exec("TRUNCATE Channels CASCADE")
 }
 
 func testChannelStoreExportAllDirectChannelsExcludePrivateAndPublic(t *testing.T, rctx request.CTX, ss store.Store, s SqlStore) {
+	s.GetMaster().Exec("TRUNCATE Channels CASCADE")
+
 	teamID := model.NewId()
 
 	o1 := model.Channel{}
@@ -8061,10 +8065,12 @@ func testChannelStoreExportAllDirectChannelsExcludePrivateAndPublic(t *testing.T
 	assert.Equal(t, o1.DisplayName, d1[0].DisplayName)
 
 	// Manually truncate Channels table until testlib can handle cleanups
-	s.GetMaster().Exec("TRUNCATE Channels")
+	s.GetMaster().Exec("TRUNCATE Channels CASCADE")
 }
 
 func testChannelStoreExportAllDirectChannelsDeletedChannel(t *testing.T, rctx request.CTX, ss store.Store, s SqlStore) {
+	s.GetMaster().Exec("TRUNCATE Channels CASCADE")
+
 	teamID := model.NewId()
 
 	o1 := model.Channel{}
@@ -8116,7 +8122,7 @@ func testChannelStoreExportAllDirectChannelsDeletedChannel(t *testing.T, rctx re
 	assert.Len(t, d1[0].Members, 2)
 
 	// Manually truncate Channels table until testlib can handle cleanups
-	s.GetMaster().Exec("TRUNCATE Channels")
+	s.GetMaster().Exec("TRUNCATE Channels CASCADE")
 }
 
 func testChannelStoreGetChannelsBatchForIndexing(t *testing.T, rctx request.CTX, ss store.Store) {

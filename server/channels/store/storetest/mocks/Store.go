@@ -746,6 +746,26 @@ func (_m *Store) OutgoingOAuthConnection() store.OutgoingOAuthConnectionStore {
 	return r0
 }
 
+// Page provides a mock function with no fields
+func (_m *Store) Page() store.PageStore {
+	ret := _m.Called()
+
+	if len(ret) == 0 {
+		panic("no return value specified for Page")
+	}
+
+	var r0 store.PageStore
+	if rf, ok := ret.Get(0).(func() store.PageStore); ok {
+		r0 = rf()
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(store.PageStore)
+		}
+	}
+
+	return r0
+}
+
 // Plugin provides a mock function with no fields
 func (_m *Store) Plugin() store.PluginStore {
 	ret := _m.Called()
@@ -1480,6 +1500,26 @@ func (_m *Store) Webhook() store.WebhookStore {
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(store.WebhookStore)
+		}
+	}
+
+	return r0
+}
+
+// Wiki provides a mock function with no fields
+func (_m *Store) Wiki() store.WikiStore {
+	ret := _m.Called()
+
+	if len(ret) == 0 {
+		panic("no return value specified for Wiki")
+	}
+
+	var r0 store.WikiStore
+	if rf, ok := ret.Get(0).(func() store.WikiStore); ok {
+		r0 = rf()
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(store.WikiStore)
 		}
 	}
 

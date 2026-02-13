@@ -313,6 +313,16 @@ func (_m *MetricsInterface) IncrementWebsocketReconnectEventWithDisconnectErrCod
 	_m.Called(eventType, disconnectErrCode)
 }
 
+// IncrementWikiDraftSave provides a mock function with given fields: result
+func (_m *MetricsInterface) IncrementWikiDraftSave(result string) {
+	_m.Called(result)
+}
+
+// IncrementWikiEditConflict provides a mock function with no fields
+func (_m *MetricsInterface) IncrementWikiEditConflict() {
+	_m.Called()
+}
+
 // ObserveAPIEndpointDuration provides a mock function with given fields: endpoint, method, statusCode, originClient, pageLoadContext, elapsed
 func (_m *MetricsInterface) ObserveAPIEndpointDuration(endpoint string, method string, statusCode string, originClient string, pageLoadContext string, elapsed float64) {
 	_m.Called(endpoint, method, statusCode, originClient, pageLoadContext, elapsed)
@@ -586,6 +596,36 @@ func (_m *MetricsInterface) ObserveSharedChannelsTaskInQueueDuration(elapsed flo
 // ObserveStoreMethodDuration provides a mock function with given fields: method, success, elapsed
 func (_m *MetricsInterface) ObserveStoreMethodDuration(method string, success string, elapsed float64) {
 	_m.Called(method, success, elapsed)
+}
+
+// ObserveWikiBreadcrumbFetch provides a mock function with given fields: elapsed
+func (_m *MetricsInterface) ObserveWikiBreadcrumbFetch(elapsed float64) {
+	_m.Called(elapsed)
+}
+
+// ObserveWikiHierarchyDepth provides a mock function with given fields: depth
+func (_m *MetricsInterface) ObserveWikiHierarchyDepth(depth float64) {
+	_m.Called(depth)
+}
+
+// ObserveWikiHierarchyLoad provides a mock function with given fields: elapsed
+func (_m *MetricsInterface) ObserveWikiHierarchyLoad(elapsed float64) {
+	_m.Called(elapsed)
+}
+
+// ObserveWikiPageOperation provides a mock function with given fields: operation, elapsed
+func (_m *MetricsInterface) ObserveWikiPageOperation(operation string, elapsed float64) {
+	_m.Called(operation, elapsed)
+}
+
+// ObserveWikiPagesPerChannel provides a mock function with given fields: count
+func (_m *MetricsInterface) ObserveWikiPagesPerChannel(count float64) {
+	_m.Called(count)
+}
+
+// ObserveWikiSearchDuration provides a mock function with given fields: elapsed
+func (_m *MetricsInterface) ObserveWikiSearchDuration(elapsed float64) {
+	_m.Called(elapsed)
 }
 
 // Register provides a mock function with no fields

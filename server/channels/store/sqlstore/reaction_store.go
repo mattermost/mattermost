@@ -17,6 +17,14 @@ import (
 	"github.com/pkg/errors"
 )
 
+const (
+	// regularPostsFilter excludes pages from post queries.
+	// Pages have separate lifecycle management and should not be included in
+	// regular post operations like retention policies, exports, or cleanup.
+	// Page comments are allowed since they appear in the channel feed.
+	reactionRegularPostsFilter = "(p.Type NOT IN ('page') OR p.Type IS NULL)"
+)
+
 type SqlReactionStore struct {
 	*SqlStore
 }
@@ -345,7 +353,7 @@ func (s *SqlReactionStore) DeleteOrphanedRowsByIds(r *model.RetentionIdsForDelet
 }
 
 func (s *SqlReactionStore) PermanentDeleteBatch(endTime int64, limit int64) (int64, error) {
-	query := "DELETE from Reactions WHERE CreateAt = any (array (SELECT CreateAt FROM Reactions WHERE CreateAt < ? LIMIT ?))"
+	query := fmt.Sprintf("DELETE FROM Reactions WHERE ctid IN (SELECT r.ctid FROM Reactions AS r INNER JOIN Posts AS p ON r.PostId = p.Id WHERE r.CreateAt < ? AND %s LIMIT ?)", reactionRegularPostsFilter)
 
 	sqlResult, err := s.GetMaster().Exec(query, endTime, limit)
 	if err != nil {

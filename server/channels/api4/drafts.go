@@ -20,6 +20,17 @@ func (api *API) InitDrafts() {
 	api.BaseRoutes.ChannelForUser.Handle("/drafts", api.APISessionRequired(deleteDraft)).Methods(http.MethodDelete)
 }
 
+func (api *API) InitPageDrafts() {
+	api.BaseRoutes.Wiki.Handle("/drafts", api.APISessionRequired(createPageDraft)).Methods(http.MethodPost)
+	api.BaseRoutes.Wiki.Handle("/drafts", api.APISessionRequired(getPageDraftsForWiki)).Methods(http.MethodGet)
+	api.BaseRoutes.Wiki.Handle("/drafts/{page_id:[A-Za-z0-9]+}", api.APISessionRequired(getPageDraft)).Methods(http.MethodGet)
+	api.BaseRoutes.Wiki.Handle("/drafts/{page_id:[A-Za-z0-9]+}", api.APISessionRequired(savePageDraft)).Methods(http.MethodPut)
+	api.BaseRoutes.Wiki.Handle("/drafts/{page_id:[A-Za-z0-9]+}", api.APISessionRequired(deletePageDraft)).Methods(http.MethodDelete)
+	api.BaseRoutes.Wiki.Handle("/drafts/{page_id:[A-Za-z0-9]+}/move", api.APISessionRequired(movePageDraft)).Methods(http.MethodPost)
+	api.BaseRoutes.Wiki.Handle("/drafts/{page_id:[A-Za-z0-9]+}/publish", api.APISessionRequired(publishPageDraft)).Methods(http.MethodPost)
+	api.BaseRoutes.Wiki.Handle("/drafts/{page_id:[A-Za-z0-9]+}/editor_stopped", api.APISessionRequired(notifyEditorStopped)).Methods(http.MethodPost)
+}
+
 func upsertDraft(c *Context, w http.ResponseWriter, r *http.Request) {
 	if !*c.App.Config().ServiceSettings.AllowSyncedDrafts {
 		c.Err = model.NewAppError("upsertDraft", "api.drafts.disabled.app_error", nil, "", http.StatusNotImplemented)

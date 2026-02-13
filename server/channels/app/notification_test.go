@@ -54,7 +54,7 @@ func TestSendNotifications(t *testing.T) {
 	require.Nil(t, createPostErr)
 
 	t.Run("Basic channel", func(t *testing.T) {
-		mentions, err := th.App.SendNotifications(th.Context, post1, th.BasicTeam, th.BasicChannel, th.BasicUser, nil, true)
+		mentions, err := th.App.SendNotifications(th.Context, post1, th.BasicTeam, th.BasicChannel, th.BasicUser, nil, true, nil)
 		require.NoError(t, err)
 		require.NotNil(t, mentions)
 		require.True(t, slices.Contains(mentions, th.BasicUser2.Id), "mentions", mentions)
@@ -78,14 +78,14 @@ func TestSendNotifications(t *testing.T) {
 		groupMentionPost, _, createPostErr := th.App.CreatePost(th.Context, groupMentionPost, th.BasicChannel, model.CreatePostFlags{SetOnline: true})
 		require.Nil(t, createPostErr)
 
-		mentions, err := th.App.SendNotifications(th.Context, groupMentionPost, th.BasicTeam, th.BasicChannel, th.BasicUser, nil, true)
+		mentions, err := th.App.SendNotifications(th.Context, groupMentionPost, th.BasicTeam, th.BasicChannel, th.BasicUser, nil, true, nil)
 		require.NoError(t, err)
 		require.NotNil(t, mentions)
 		require.Len(t, mentions, 0)
 
 		th.App.Srv().SetLicense(getLicWithSkuShortName(model.LicenseShortSkuProfessional))
 
-		mentions, err = th.App.SendNotifications(th.Context, groupMentionPost, th.BasicTeam, th.BasicChannel, th.BasicUser, nil, true)
+		mentions, err = th.App.SendNotifications(th.Context, groupMentionPost, th.BasicTeam, th.BasicChannel, th.BasicUser, nil, true, nil)
 		require.NoError(t, err)
 		require.NotNil(t, mentions)
 		require.Len(t, mentions, 1)
@@ -102,7 +102,7 @@ func TestSendNotifications(t *testing.T) {
 		}, true, true)
 		require.Nil(t, appErr)
 
-		mentions, err := th.App.SendNotifications(th.Context, post2, th.BasicTeam, dm, th.BasicUser, nil, true)
+		mentions, err := th.App.SendNotifications(th.Context, post2, th.BasicTeam, dm, th.BasicUser, nil, true, nil)
 		require.NoError(t, err)
 		require.NotNil(t, mentions)
 
@@ -118,12 +118,12 @@ func TestSendNotifications(t *testing.T) {
 		}, true, true)
 		require.Nil(t, appErr)
 
-		mentions, err = th.App.SendNotifications(th.Context, post3, th.BasicTeam, dm, th.BasicUser, nil, true)
+		mentions, err = th.App.SendNotifications(th.Context, post3, th.BasicTeam, dm, th.BasicUser, nil, true, nil)
 		require.NoError(t, err)
 		require.NotNil(t, mentions)
 
 		th.BasicChannel.DeleteAt = 1
-		mentions, err = th.App.SendNotifications(th.Context, post1, th.BasicTeam, th.BasicChannel, th.BasicUser, nil, true)
+		mentions, err = th.App.SendNotifications(th.Context, post1, th.BasicTeam, th.BasicChannel, th.BasicUser, nil, true, nil)
 		require.NoError(t, err)
 		require.Empty(t, mentions)
 	})
@@ -143,7 +143,7 @@ func TestSendNotifications(t *testing.T) {
 		}, true, true)
 		require.Nil(t, appErr)
 
-		mentions, err := th.App.SendNotifications(th.Context, post2, th.BasicTeam, channel, users[0], nil, true)
+		mentions, err := th.App.SendNotifications(th.Context, post2, th.BasicTeam, channel, users[0], nil, true, nil)
 		require.NoError(t, err)
 		require.NotNil(t, mentions)
 
@@ -159,12 +159,12 @@ func TestSendNotifications(t *testing.T) {
 		}, true, true)
 		require.Nil(t, appErr)
 
-		mentions, err = th.App.SendNotifications(th.Context, post3, th.BasicTeam, channel, users[0], nil, true)
+		mentions, err = th.App.SendNotifications(th.Context, post3, th.BasicTeam, channel, users[0], nil, true, nil)
 		require.NoError(t, err)
 		require.NotNil(t, mentions)
 
 		th.BasicChannel.DeleteAt = 1
-		mentions, err = th.App.SendNotifications(th.Context, post1, th.BasicTeam, th.BasicChannel, users[0], nil, true)
+		mentions, err = th.App.SendNotifications(th.Context, post1, th.BasicTeam, th.BasicChannel, users[0], nil, true, nil)
 		require.NoError(t, err)
 		require.Empty(t, mentions)
 	})
@@ -194,7 +194,7 @@ func TestSendNotifications(t *testing.T) {
 				Order: []string{rootPost.Id, childPost.Id},
 				Posts: map[string]*model.Post{rootPost.Id: rootPost, childPost.Id: childPost},
 			}
-			mentions, err := th.App.SendNotifications(th.Context, childPost, th.BasicTeam, th.BasicChannel, th.BasicUser2, &postList, true)
+			mentions, err := th.App.SendNotifications(th.Context, childPost, th.BasicTeam, th.BasicChannel, th.BasicUser2, &postList, true, nil)
 			require.NoError(t, err)
 			require.False(t, slices.Contains(mentions, user.Id))
 		}
@@ -242,7 +242,7 @@ func TestSendNotifications_MentionsFollowers(t *testing.T) {
 			ChannelId: th.BasicChannel.Id,
 			Message:   "@channel",
 		}
-		_, err := th.App.SendNotifications(th.Context, post, th.BasicTeam, th.BasicChannel, sender, nil, false)
+		_, err := th.App.SendNotifications(th.Context, post, th.BasicTeam, th.BasicChannel, sender, nil, false, nil)
 		require.NoError(t, err)
 
 		received1 := <-messages1
@@ -259,7 +259,7 @@ func TestSendNotifications_MentionsFollowers(t *testing.T) {
 			ChannelId: th.BasicChannel.Id,
 			Message:   fmt.Sprintf("@%s @%s", th.BasicUser.Username, th.BasicUser2.Username),
 		}
-		_, err = th.App.SendNotifications(th.Context, post, th.BasicTeam, th.BasicChannel, sender, nil, false)
+		_, err = th.App.SendNotifications(th.Context, post, th.BasicTeam, th.BasicChannel, sender, nil, false, nil)
 		require.NoError(t, err)
 
 		received1 = <-messages1
@@ -276,7 +276,7 @@ func TestSendNotifications_MentionsFollowers(t *testing.T) {
 			ChannelId: th.BasicChannel.Id,
 			Message:   "@" + th.BasicUser.Username,
 		}
-		_, err = th.App.SendNotifications(th.Context, post, th.BasicTeam, th.BasicChannel, sender, nil, false)
+		_, err = th.App.SendNotifications(th.Context, post, th.BasicTeam, th.BasicChannel, sender, nil, false, nil)
 		require.NoError(t, err)
 
 		received1 = <-messages1
@@ -329,7 +329,7 @@ func TestSendNotifications_MentionsFollowers(t *testing.T) {
 		require.True(t, th.App.allowGroupMentions(th.Context, post))
 
 		// Test sending notifications
-		_, err := th.App.SendNotifications(th.Context, post, th.BasicTeam, th.BasicChannel, sender, nil, false)
+		_, err := th.App.SendNotifications(th.Context, post, th.BasicTeam, th.BasicChannel, sender, nil, false, nil)
 		require.NoError(t, err)
 
 		received1 := <-messages1
@@ -384,7 +384,7 @@ func TestSendNotifications_MentionsFollowers(t *testing.T) {
 			ChannelId: th.BasicChannel.Id,
 			Message:   fmt.Sprintf("@%s", th.BasicUser.Username),
 		}
-		_, err := th.App.SendNotifications(th.Context, post, th.BasicTeam, th.BasicChannel, sender, nil, false)
+		_, err := th.App.SendNotifications(th.Context, post, th.BasicTeam, th.BasicChannel, sender, nil, false, nil)
 		require.NoError(t, err)
 
 		received1 := <-messages1
@@ -420,7 +420,7 @@ func TestSendNotifications_MentionsFollowers(t *testing.T) {
 		}
 		post.SetProps(model.StringInterface{model.PostPropsPreviewedPost: linkedPostId})
 
-		_, err := th.App.SendNotifications(th.Context, post, th.BasicTeam, th.BasicChannel, sender, nil, false)
+		_, err := th.App.SendNotifications(th.Context, post, th.BasicTeam, th.BasicChannel, sender, nil, false, nil)
 		require.NoError(t, err)
 
 		received := <-messages
@@ -2908,7 +2908,7 @@ func TestReplyPostNotificationsWithCRT(t *testing.T) {
 			Order: []string{rootPost.Id, childPost.Id},
 			Posts: map[string]*model.Post{rootPost.Id: rootPost, childPost.Id: childPost},
 		}
-		mentions, err := th.App.SendNotifications(th.Context, childPost, th.BasicTeam, th.BasicChannel, th.BasicUser2, &postList, true)
+		mentions, err := th.App.SendNotifications(th.Context, childPost, th.BasicTeam, th.BasicChannel, th.BasicUser2, &postList, true, nil)
 		require.NoError(t, err)
 		assert.False(t, slices.Contains(mentions, user.Id))
 

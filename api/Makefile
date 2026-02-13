@@ -54,6 +54,7 @@ build-v4: node_modules playbooks
 	@cat $(V4_SRC)/exports.yaml >> $(V4_YAML)
 	@cat $(V4_SRC)/ip_filters.yaml >> $(V4_YAML)
 	@cat $(V4_SRC)/bookmarks.yaml >> $(V4_YAML)
+	@cat $(V4_SRC)/wikis.yaml >> $(V4_YAML)
 	@cat $(V4_SRC)/reports.yaml >> $(V4_YAML)
 	@cat $(V4_SRC)/limits.yaml >> $(V4_YAML)
 	@cat $(V4_SRC)/logs.yaml >> $(V4_YAML)

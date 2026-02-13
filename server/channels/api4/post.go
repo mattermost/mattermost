@@ -52,8 +52,13 @@ func (api *API) InitPost() {
 	api.BaseRoutes.Post.Handle("/move", api.APISessionRequired(moveThread)).Methods(http.MethodPost)
 
 	api.BaseRoutes.Posts.Handle("/rewrite", api.APISessionRequired(rewriteMessage)).Methods(http.MethodPost)
+
 	api.BaseRoutes.Post.Handle("/reveal", api.APISessionRequired(revealPost)).Methods(http.MethodGet)
 	api.BaseRoutes.Post.Handle("/burn", api.APISessionRequired(burnPost)).Methods(http.MethodDelete)
+
+	api.BaseRoutes.Post.Handle("/status", api.APISessionRequired(updatePageStatus)).Methods(http.MethodPut)
+	api.BaseRoutes.Post.Handle("/status", api.APISessionRequired(getPageStatus)).Methods(http.MethodGet)
+	api.BaseRoutes.Posts.Handle("/status/field", api.APISessionRequired(getPageStatusField)).Methods(http.MethodGet)
 }
 
 func createPostChecks(where string, c *Context, post *model.Post) {
@@ -673,15 +678,27 @@ func getEditHistoryForPost(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	ok, isMember := c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), originalPost.ChannelId, model.PermissionEditPost)
-	if !ok {
-		c.SetPermissionError(model.PermissionEditPost)
-		return
-	}
-
-	if c.AppContext.Session().UserId != originalPost.UserId {
-		c.SetPermissionError(model.PermissionEditPost)
-		return
+	// Pages have relaxed edit history permissions (any channel member can view)
+	// Regular posts require author to be the viewer
+	var isMember bool
+	if app.HasRelaxedEditHistoryPermissions(originalPost) {
+		var ok bool
+		ok, isMember = c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), originalPost.ChannelId, model.PermissionReadChannel)
+		if !ok {
+			c.SetPermissionError(model.PermissionReadChannel)
+			return
+		}
+	} else {
+		var ok bool
+		ok, isMember = c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), originalPost.ChannelId, model.PermissionEditPost)
+		if !ok {
+			c.SetPermissionError(model.PermissionEditPost)
+			return
+		}
+		if c.AppContext.Session().UserId != originalPost.UserId {
+			c.SetPermissionError(model.PermissionEditPost)
+			return
+		}
 	}
 
 	postsList, err := c.App.GetEditHistoryForPost(c.Params.PostId)
@@ -986,6 +1003,11 @@ func searchPosts(c *Context, w http.ResponseWriter, r *http.Request, teamId stri
 		return
 	}
 
+	// Enrich page posts with wiki_id for navigation
+	if enrichErr := c.App.EnrichPagesWithProperties(c.AppContext, clientPostList); enrichErr != nil {
+		c.Logger.Warn("Failed to enrich page search results", mlog.Err(enrichErr))
+	}
+
 	if !allPostHaveMembership || !isMemberForAllPreviews {
 		model.AddEventParameterToAuditRec(auditRec, "non_channel_member_access", true)
 		if !isMemberForAllPreviews {
@@ -1040,10 +1062,21 @@ func updatePost(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	ok, isMember := c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), originalPost.ChannelId, model.PermissionEditPost)
-	if !ok {
-		c.SetPermissionError(model.PermissionEditPost)
-		return
+	// Pages use page-specific permissions; regular posts use generic edit permission
+	var isMember bool
+	if app.RequiresPageModifyPermission(originalPost) {
+		if !c.CheckPagePermission(originalPost, app.PageOperationEdit) {
+			return
+		}
+		// For pages, we consider the user a member if they have permission
+		isMember = true
+	} else {
+		var ok bool
+		ok, isMember = c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), originalPost.ChannelId, model.PermissionEditPost)
+		if !ok {
+			c.SetPermissionError(model.PermissionEditPost)
+			return
+		}
 	}
 
 	auditRec.AddEventPriorState(originalPost)
@@ -1112,6 +1145,11 @@ func patchPost(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	c.Logger.Debug("[patchPost] Received PostPatch",
+		mlog.Any("page_parent_id", post.PageParentId),
+		mlog.Any("message", post.Message),
+		mlog.Any("props", post.Props))
+
 	auditRec := c.MakeAuditRecord(model.AuditEventPatchPost, model.AuditStatusFail)
 	model.AddEventParameterToAuditRec(auditRec, "id", c.Params.PostId)
 	model.AddEventParameterAuditableToAuditRec(auditRec, "patch", &post)
@@ -1169,18 +1207,29 @@ func postPatchChecks(c *Context, auditRec *model.AuditRecord, message *string) b
 	auditRec.AddEventPriorState(originalPost)
 	auditRec.AddEventObjectType("post")
 
-	var permission *model.Permission
-
-	if c.AppContext.Session().UserId == originalPost.UserId {
-		permission = model.PermissionEditPost
+	// Pages use page-specific permissions; regular posts use generic edit permission
+	var isMember bool
+	if app.RequiresPageModifyPermission(originalPost) {
+		if !c.CheckPagePermission(originalPost, app.PageOperationEdit) {
+			return false
+		}
+		// For pages, we consider the user a member if they have permission
+		isMember = true
 	} else {
-		permission = model.PermissionEditOthersPosts
-	}
+		var permission *model.Permission
 
-	ok, isMember := c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), originalPost.ChannelId, permission)
-	if !ok {
-		c.SetPermissionError(permission)
-		return false
+		if c.AppContext.Session().UserId == originalPost.UserId {
+			permission = model.PermissionEditPost
+		} else {
+			permission = model.PermissionEditOthersPosts
+		}
+
+		var ok bool
+		ok, isMember = c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), originalPost.ChannelId, permission)
+		if !ok {
+			c.SetPermissionError(permission)
+			return false
+		}
 	}
 
 	if *c.App.Config().ServiceSettings.PostEditTimeLimit != -1 && model.GetMillis() > originalPost.CreateAt+int64(*c.App.Config().ServiceSettings.PostEditTimeLimit*1000) && message != nil {
@@ -1642,10 +1691,17 @@ func restorePostVersion(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// user can only restore their own posts
-	if c.AppContext.Session().UserId != toRestorePost.UserId {
-		c.SetPermissionError(model.PermissionEditPost)
-		return
+	// Pages use page-specific permissions; regular posts require ownership
+	if app.RequiresPageModifyPermission(toRestorePost) {
+		if !c.CheckPagePermission(toRestorePost, app.PageOperationEdit) {
+			return
+		}
+	} else {
+		// user can only restore their own posts
+		if c.AppContext.Session().UserId != toRestorePost.UserId {
+			c.SetPermissionError(model.PermissionEditPost)
+			return
+		}
 	}
 
 	isMember := postPatchChecks(c, auditRec, &toRestorePost.Message)
@@ -1691,6 +1747,70 @@ func hasPermittedWranglerRole(c *Context, user *model.User, channelMember *model
 	}
 
 	return false
+}
+
+// updatePageStatus updates the status attribute for a page (thin wrapper around App.SetPageStatus)
+func updatePageStatus(c *Context, w http.ResponseWriter, r *http.Request) {
+	c.RequirePostId()
+	if c.Err != nil {
+		return
+	}
+
+	var req struct {
+		Status string `json:"status"`
+	}
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil || req.Status == "" {
+		c.SetInvalidParam("status")
+		return
+	}
+
+	page, err := c.App.GetPage(c.AppContext, c.Params.PostId)
+	if err != nil {
+		c.Err = err
+		return
+	}
+
+	if err := c.App.SetPageStatus(c.AppContext, page, req.Status); err != nil {
+		c.Err = err
+		return
+	}
+
+	ReturnStatusOK(w)
+}
+
+// getPageStatus retrieves the status attribute for a page (thin wrapper around App.GetPageStatus)
+func getPageStatus(c *Context, w http.ResponseWriter, r *http.Request) {
+	c.RequirePostId()
+	if c.Err != nil {
+		return
+	}
+
+	page, err := c.App.GetPage(c.AppContext, c.Params.PostId)
+	if err != nil {
+		c.Err = err
+		return
+	}
+
+	status, err := c.App.GetPageStatus(c.AppContext, page)
+	if err != nil {
+		c.Err = err
+		return
+	}
+
+	fmt.Fprintf(w, `{"status":"%s"}`, status)
+}
+
+// getPageStatusField retrieves the status field definition (thin wrapper around App.GetPageStatusField)
+func getPageStatusField(c *Context, w http.ResponseWriter, r *http.Request) {
+	field, err := c.App.GetPageStatusField()
+	if err != nil {
+		c.Err = err
+		return
+	}
+
+	if err := json.NewEncoder(w).Encode(field); err != nil {
+		c.Logger.Warn("Error encoding response", mlog.Err(err))
+	}
 }
 
 // rewriteMessage handles AI-powered message rewriting requests

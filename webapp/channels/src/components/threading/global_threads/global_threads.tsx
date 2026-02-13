@@ -41,6 +41,7 @@ import ThreadList, {ThreadFilter, FILTER_STORAGE_KEY} from './thread_list';
 import ThreadPane from './thread_pane';
 
 import {useThreadRouting} from '../hooks';
+import {shouldHideRootPost} from '../page_thread_utils';
 import ThreadViewer from '../thread_viewer';
 
 import './global_threads.scss';
@@ -193,6 +194,7 @@ const GlobalThreads = () => {
                                 rootPostId={selectedThread.id}
                                 useRelativeTimestamp={true}
                                 isThreadView={true}
+                                hideRootPost={shouldHideRootPost(selectedPost)}
                             />
                         </ThreadPane>
                     ) : (
@@ -208,7 +210,7 @@ const GlobalThreads = () => {
                                 defaultMessage: 'You have {numUnread, plural, =0 {no unread threads} =1 {<link>{numUnread} thread</link>} other {<link>{numUnread} threads</link>}} {numUnread, plural, =0 {} other {with unread messages}}',
                             }, {
                                 numUnread,
-                                link: (chunks) => (
+                                link: (chunks: React.ReactNode) => (
                                     <Link
                                         key='single'
                                         to={`${url}/${unreadThreadIds[0]}`}

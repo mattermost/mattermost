@@ -307,3 +307,13 @@ channels/db/migrations/postgres/000154_drop_translation_updateat_index.down.sql
 channels/db/migrations/postgres/000154_drop_translation_updateat_index.up.sql
 channels/db/migrations/postgres/000155_create_translation_channel_updateat_index.down.sql
 channels/db/migrations/postgres/000155_create_translation_channel_updateat_index.up.sql
+channels/db/migrations/postgres/000156_add_page_parent_id_to_posts.down.sql
+channels/db/migrations/postgres/000156_add_page_parent_id_to_posts.up.sql
+channels/db/migrations/postgres/000157_add_page_parent_id_index.down.sql
+channels/db/migrations/postgres/000157_add_page_parent_id_index.up.sql
+channels/db/migrations/postgres/000158_add_channel_pages_index.down.sql
+channels/db/migrations/postgres/000158_add_channel_pages_index.up.sql
+channels/db/migrations/postgres/000159_create_wikis.down.sql
+channels/db/migrations/postgres/000159_create_wikis.up.sql
+channels/db/migrations/postgres/000160_create_page_contents.down.sql
+channels/db/migrations/postgres/000160_create_page_contents.up.sql

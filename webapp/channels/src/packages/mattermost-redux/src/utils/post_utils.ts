@@ -44,6 +44,10 @@ export function isUserActivityPost(postType: PostType): boolean {
     return Posts.USER_ACTIVITY_POST_TYPES.includes(postType);
 }
 
+export function isPageActivityPost(postType: PostType): boolean {
+    return postType === Posts.POST_TYPES.PAGE_ADDED;
+}
+
 export function isPostOwner(userId: UserProfile['id'], post: Post) {
     return userId === post.user_id;
 }
@@ -236,6 +240,21 @@ export function shouldUpdatePost(receivedPost: Post, storedPost?: Post): boolean
         if (!storedPost.metadata && receivedPost.metadata) {
             // Metadata is not the same between posts
             return true;
+        }
+
+        // Page-specific checks (pages have special update requirements)
+        if (receivedPost.type === Posts.POST_TYPES.PAGE) {
+            // Page content has changed (pages load content lazily from PageContents table)
+            if (storedPost.message !== receivedPost.message) {
+                return true;
+            }
+
+            // Page status has changed
+            const storedStatus = storedPost.props?.page_status;
+            const receivedStatus = receivedPost.props?.page_status;
+            if (storedStatus !== receivedStatus) {
+                return true;
+            }
         }
 
         // The stored post is the same as the one we've received

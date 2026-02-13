@@ -476,6 +476,36 @@ func (_m *PostStore) GetOldestEntityCreationTime() (int64, error) {
 	return r0, r1
 }
 
+// GetPageCommentsByPageIdPropAndImportSourceId provides a mock function with given fields: pageId, importSourceId
+func (_m *PostStore) GetPageCommentsByPageIdPropAndImportSourceId(pageId string, importSourceId string) ([]*model.Post, error) {
+	ret := _m.Called(pageId, importSourceId)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetPageCommentsByPageIdPropAndImportSourceId")
+	}
+
+	var r0 []*model.Post
+	var r1 error
+	if rf, ok := ret.Get(0).(func(string, string) ([]*model.Post, error)); ok {
+		return rf(pageId, importSourceId)
+	}
+	if rf, ok := ret.Get(0).(func(string, string) []*model.Post); ok {
+		r0 = rf(pageId, importSourceId)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]*model.Post)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(string, string) error); ok {
+		r1 = rf(pageId, importSourceId)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // GetParentsForExportAfter provides a mock function with given fields: limit, afterID, includeArchivedChannels
 func (_m *PostStore) GetParentsForExportAfter(limit int, afterID string, includeArchivedChannels bool) ([]*model.PostForExport, error) {
 	ret := _m.Called(limit, afterID, includeArchivedChannels)
@@ -645,6 +675,36 @@ func (_m *PostStore) GetPostReminders(now int64) ([]*model.PostReminder, error) 
 
 	if rf, ok := ret.Get(1).(func(int64) error); ok {
 		r1 = rf(now)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// GetPostRepliesByTypeAndProps provides a mock function with given fields: rootId, postType, propKey, propValue
+func (_m *PostStore) GetPostRepliesByTypeAndProps(rootId string, postType string, propKey string, propValue string) ([]*model.Post, error) {
+	ret := _m.Called(rootId, postType, propKey, propValue)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetPostRepliesByTypeAndProps")
+	}
+
+	var r0 []*model.Post
+	var r1 error
+	if rf, ok := ret.Get(0).(func(string, string, string, string) ([]*model.Post, error)); ok {
+		return rf(rootId, postType, propKey, propValue)
+	}
+	if rf, ok := ret.Get(0).(func(string, string, string, string) []*model.Post); ok {
+		r0 = rf(rootId, postType, propKey, propValue)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]*model.Post)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(string, string, string, string) error); ok {
+		r1 = rf(rootId, postType, propKey, propValue)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -825,6 +885,66 @@ func (_m *PostStore) GetPostsByThread(threadID string, since int64) ([]*model.Po
 
 	if rf, ok := ret.Get(1).(func(string, int64) error); ok {
 		r1 = rf(threadID, since)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// GetPostsByTypeAndProps provides a mock function with given fields: channelId, postType, propKey, propValue
+func (_m *PostStore) GetPostsByTypeAndProps(channelId string, postType string, propKey string, propValue string) ([]*model.Post, error) {
+	ret := _m.Called(channelId, postType, propKey, propValue)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetPostsByTypeAndProps")
+	}
+
+	var r0 []*model.Post
+	var r1 error
+	if rf, ok := ret.Get(0).(func(string, string, string, string) ([]*model.Post, error)); ok {
+		return rf(channelId, postType, propKey, propValue)
+	}
+	if rf, ok := ret.Get(0).(func(string, string, string, string) []*model.Post); ok {
+		r0 = rf(channelId, postType, propKey, propValue)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]*model.Post)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(string, string, string, string) error); ok {
+		r1 = rf(channelId, postType, propKey, propValue)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// GetPostsByTypeAndPropsGlobal provides a mock function with given fields: postType, propKey, propValue
+func (_m *PostStore) GetPostsByTypeAndPropsGlobal(postType string, propKey string, propValue string) ([]*model.Post, error) {
+	ret := _m.Called(postType, propKey, propValue)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetPostsByTypeAndPropsGlobal")
+	}
+
+	var r0 []*model.Post
+	var r1 error
+	if rf, ok := ret.Get(0).(func(string, string, string) ([]*model.Post, error)); ok {
+		return rf(postType, propKey, propValue)
+	}
+	if rf, ok := ret.Get(0).(func(string, string, string) []*model.Post); ok {
+		r0 = rf(postType, propKey, propValue)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]*model.Post)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(string, string, string) error); ok {
+		r1 = rf(postType, propKey, propValue)
 	} else {
 		r1 = ret.Error(1)
 	}

@@ -1,0 +1,301 @@
+@media print {
+    // =========================================================================
+    // HIDE EVERYTHING EXCEPT PAGE CONTENT
+    // =========================================================================
+
+    // Global header (top bar with Channels, Search, icons)
+    #global-header,
+    .global-header,
+    .GlobalHeader,
+    header[id="global-header"] {
+        display: none !important;
+    }
+
+    // All sidebars
+    .sidebar,
+    .sidebar-left,
+    .sidebar--left,
+    #sidebar-left,
+    #SidebarContainer,
+    .SidebarChannelNavigator,
+    .LhsNavigator,
+    .team-sidebar,
+    .multi-teams,
+    #sidebar-right,
+    .RhsContainer {
+        display: none !important;
+    }
+
+    // App bar (right side icons)
+    .app-bar {
+        display: none !important;
+    }
+
+    // Channel-related UI
+    .channel-header,
+    .channel-bookmarks,
+    .channel-tabs,
+    .channel-tabs-container,
+    .ChannelTabsBar,
+    .ChannelBanner {
+        display: none !important;
+    }
+
+    // Wiki/Page navigation UI
+    .wiki-navigation,
+    .PagesHierarchyPanel,
+    .PagePane__header,
+    .WikiView__hamburgerButton {
+        display: none !important;
+    }
+
+    // Page metadata (author, status badge) - keep only title and content
+    .PageViewer__meta,
+    .page-meta {
+        display: none !important;
+    }
+
+    // Other UI elements
+    .announcement-bar,
+    .AnnouncementBar,
+    .backstage-navbar,
+    #navbar_wrapper,
+    .new-messages-indicator,
+    .comment-section,
+    .floating-buttons,
+    .post-create,
+    #post-create {
+        display: none !important;
+    }
+
+    // =========================================================================
+    // RESET DOCUMENT STRUCTURE FOR CLEAN PRINT
+    // =========================================================================
+
+    html, body {
+        overflow: visible !important;
+        width: 100% !important;
+        height: auto !important;
+        padding: 0 !important;
+        margin: 0 !important;
+        background: white !important;
+    }
+
+    // Reset all container elements
+    #root,
+    .app__body,
+    .channel_view,
+    #channel_view,
+    .channel-view,
+    .inner-wrap,
+    #app-content,
+    .app__content,
+    .channel-tab-panel,
+    .channel-tab-panel-content,
+    .channel-tab-panel-content--wiki {
+        position: static !important;
+        display: block !important;
+        overflow: visible !important;
+        width: 100% !important;
+        height: auto !important;
+        min-height: auto !important;
+        padding: 0 !important;
+        border: none !important;
+        margin: 0 !important;
+        background: transparent !important;
+    }
+
+    // WikiView container
+    .WikiView {
+        position: static !important;
+        display: block !important;
+        overflow: visible !important;
+        width: 100% !important;
+        height: auto !important;
+        flex: none !important;
+        padding: 0 !important;
+        margin: 0 !important;
+    }
+
+    // PagePane - the main content container
+    .PagePane {
+        position: static !important;
+        display: block !important;
+        overflow: visible !important;
+        width: 100% !important;
+        height: auto !important;
+        flex: none !important;
+        padding: 0 !important;
+        margin: 0 !important;
+        margin-left: 0 !important;
+        background: white !important;
+    }
+
+    .PagePane__content {
+        display: block !important;
+        overflow: visible !important;
+        width: 100% !important;
+        max-width: 100% !important;
+        height: auto !important;
+        padding: 0 !important;
+    }
+
+    // =========================================================================
+    // PAGE CONTENT STYLING
+    // =========================================================================
+
+    // PageViewer - full width for print
+    .PageViewer,
+    .page-draft-editor {
+        display: block !important;
+        width: 100% !important;
+        max-width: 100% !important;
+        height: auto !important;
+        padding: 0 !important;
+        margin: 0 !important;
+    }
+
+    // Page header (title area)
+    .PageViewer__header,
+    .draft-header {
+        padding: 0 0 24px 0 !important;
+        border: none !important;
+        border-bottom: none !important;
+    }
+
+    // Page title
+    .PageViewer__title,
+    .page-title-input {
+        padding: 0 !important;
+        margin: 0 0 16px 0 !important;
+        color: black !important;
+        font-size: 32pt !important;
+        line-height: 1.2 !important;
+    }
+
+    // Page content area
+    .PageViewer__content,
+    .draft-content {
+        padding: 0 !important;
+    }
+
+    // =========================================================================
+    // TYPOGRAPHY FOR PRINT
+    // =========================================================================
+
+    // Headings
+    h1, h2, h3, h4, h5, h6 {
+        color: black !important;
+        page-break-after: avoid;
+    }
+
+    h1 { font-size: 24pt !important; }
+    h2 { font-size: 18pt !important; }
+    h3 { font-size: 14pt !important; }
+
+    // Paragraphs and lists
+    p, li, td {
+        color: black !important;
+        orphans: 3;
+        widows: 3;
+    }
+
+    // Links - don't show href for internal links
+    a {
+        color: black !important;
+        text-decoration: underline !important;
+    }
+
+    a[href^="/"]:after,
+    a[href^="#"]:after,
+    a.mention-link:after {
+        content: none !important;
+    }
+
+    // Show href for external links (optional - can be removed if too noisy)
+    a[href^="http"]:not(.mention-link):after {
+        color: #666;
+        content: " (" attr(href) ")";
+        font-size: 0.8em;
+    }
+
+    // =========================================================================
+    // IMAGES AND MEDIA
+    // =========================================================================
+
+    img {
+        max-width: 100% !important;
+        height: auto !important;
+        page-break-inside: avoid;
+    }
+
+    // =========================================================================
+    // CODE BLOCKS
+    // =========================================================================
+
+    pre, code {
+        border: 1px solid #ddd !important;
+        background: #f5f5f5 !important;
+        page-break-inside: avoid;
+        white-space: pre-wrap !important;
+        word-wrap: break-word !important;
+    }
+
+    pre {
+        padding: 12px !important;
+        margin: 12px 0 !important;
+    }
+
+    // =========================================================================
+    // TABLES
+    // =========================================================================
+
+    table {
+        border-collapse: collapse !important;
+        page-break-inside: auto;
+    }
+
+    tr {
+        page-break-after: auto;
+        page-break-inside: avoid;
+    }
+
+    thead {
+        display: table-header-group;
+    }
+
+    th, td {
+        padding: 8px !important;
+        border: 1px solid #ddd !important;
+    }
+
+    // =========================================================================
+    // TIPTAP EDITOR CONTENT
+    // =========================================================================
+
+    .tiptap-editor-wrapper,
+    .ProseMirror {
+        overflow: visible !important;
+        min-height: auto !important;
+        padding: 0 !important;
+        border: none !important;
+    }
+
+    // Hide editor toolbar
+    .tiptap-toolbar {
+        display: none !important;
+    }
+
+    // =========================================================================
+    // PAGE MARGINS (use @page rule for multi-page documents)
+    // =========================================================================
+
+    @page {
+        margin: 20mm;
+        size: auto;
+    }
+
+    @page :first {
+        margin-top: 20mm;
+    }
+}

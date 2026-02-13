@@ -5940,9 +5940,9 @@ func TestGetChannelModerations(t *testing.T) {
 	t.Run("Returns default moderations with default roles", func(t *testing.T) {
 		moderations, _, err := th.SystemAdminClient.GetChannelModerations(context.Background(), channel.Id, "")
 		require.NoError(t, err)
-		require.Equal(t, len(moderations), 5)
+		require.Equal(t, len(moderations), 6)
 		for _, moderation := range moderations {
-			if moderation.Name == "manage_members" || moderation.Name == "manage_bookmarks" {
+			if moderation.Name == "manage_members" || moderation.Name == "manage_bookmarks" || moderation.Name == "manage_pages" {
 				require.Empty(t, moderation.Roles.Guests)
 			} else {
 				require.Equal(t, moderation.Roles.Guests.Value, true)
@@ -6160,17 +6160,17 @@ func TestPatchChannelModerations(t *testing.T) {
 	t.Run("Returns default moderations with empty patch", func(t *testing.T) {
 		moderations, _, err := th.SystemAdminClient.PatchChannelModerations(context.Background(), channel.Id, emptyPatch)
 		require.NoError(t, err)
-		require.Equal(t, len(moderations), 5)
+		require.Len(t, moderations, 6)
 		for _, moderation := range moderations {
-			if moderation.Name == "manage_members" || moderation.Name == "manage_bookmarks" {
+			if moderation.Name == "manage_members" || moderation.Name == "manage_bookmarks" || moderation.Name == "manage_pages" {
 				require.Empty(t, moderation.Roles.Guests)
 			} else {
-				require.Equal(t, moderation.Roles.Guests.Value, true)
-				require.Equal(t, moderation.Roles.Guests.Enabled, true)
+				require.True(t, moderation.Roles.Guests.Value)
+				require.True(t, moderation.Roles.Guests.Enabled)
 			}
 
-			require.Equal(t, moderation.Roles.Members.Value, true)
-			require.Equal(t, moderation.Roles.Members.Enabled, true)
+			require.True(t, moderation.Roles.Members.Value)
+			require.True(t, moderation.Roles.Members.Enabled)
 		}
 
 		require.Nil(t, channel.SchemeId)
@@ -6186,21 +6186,21 @@ func TestPatchChannelModerations(t *testing.T) {
 
 		moderations, _, err := th.SystemAdminClient.PatchChannelModerations(context.Background(), channel.Id, patch)
 		require.NoError(t, err)
-		require.Equal(t, len(moderations), 5)
+		require.Len(t, moderations, 6)
 		for _, moderation := range moderations {
-			if moderation.Name == "manage_members" || moderation.Name == "manage_bookmarks" {
+			if moderation.Name == "manage_members" || moderation.Name == "manage_bookmarks" || moderation.Name == "manage_pages" {
 				require.Empty(t, moderation.Roles.Guests)
 			} else {
-				require.Equal(t, moderation.Roles.Guests.Value, true)
-				require.Equal(t, moderation.Roles.Guests.Enabled, true)
+				require.True(t, moderation.Roles.Guests.Value)
+				require.True(t, moderation.Roles.Guests.Enabled)
 			}
 
 			if moderation.Name == createPosts {
-				require.Equal(t, moderation.Roles.Members.Value, false)
-				require.Equal(t, moderation.Roles.Members.Enabled, true)
+				require.False(t, moderation.Roles.Members.Value)
+				require.True(t, moderation.Roles.Members.Enabled)
 			} else {
-				require.Equal(t, moderation.Roles.Members.Value, true)
-				require.Equal(t, moderation.Roles.Members.Enabled, true)
+				require.True(t, moderation.Roles.Members.Value)
+				require.True(t, moderation.Roles.Members.Enabled)
 			}
 		}
 		var appErr *model.AppError
@@ -6217,7 +6217,7 @@ func TestPatchChannelModerations(t *testing.T) {
 
 		scheme, appErr := th.App.GetScheme(*schemeId)
 		require.Nil(t, appErr)
-		require.Equal(t, scheme.DeleteAt, int64(0))
+		require.Equal(t, int64(0), scheme.DeleteAt)
 
 		patch := []*model.ChannelModerationPatch{
 			{
@@ -6228,17 +6228,17 @@ func TestPatchChannelModerations(t *testing.T) {
 
 		moderations, _, err := th.SystemAdminClient.PatchChannelModerations(context.Background(), channel.Id, patch)
 		require.NoError(t, err)
-		require.Equal(t, len(moderations), 5)
+		require.Len(t, moderations, 6)
 		for _, moderation := range moderations {
-			if moderation.Name == "manage_members" || moderation.Name == "manage_bookmarks" {
+			if moderation.Name == "manage_members" || moderation.Name == "manage_bookmarks" || moderation.Name == "manage_pages" {
 				require.Empty(t, moderation.Roles.Guests)
 			} else {
-				require.Equal(t, moderation.Roles.Guests.Value, true)
-				require.Equal(t, moderation.Roles.Guests.Enabled, true)
+				require.True(t, moderation.Roles.Guests.Value)
+				require.True(t, moderation.Roles.Guests.Enabled)
 			}
 
-			require.Equal(t, moderation.Roles.Members.Value, true)
-			require.Equal(t, moderation.Roles.Members.Enabled, true)
+			require.True(t, moderation.Roles.Members.Value)
+			require.True(t, moderation.Roles.Members.Enabled)
 		}
 
 		channel, appErr = th.App.GetChannel(th.Context, channel.Id)
@@ -6247,7 +6247,7 @@ func TestPatchChannelModerations(t *testing.T) {
 
 		scheme, appErr = th.App.GetScheme(*schemeId)
 		require.Nil(t, appErr)
-		require.NotEqual(t, scheme.DeleteAt, int64(0))
+		require.NotEqual(t, int64(0), scheme.DeleteAt)
 	})
 
 	t.Run("Does not return an error if the team scheme has a blank DefaultChannelGuestRole field", func(t *testing.T) {
@@ -6285,17 +6285,17 @@ func TestPatchChannelModerations(t *testing.T) {
 
 		moderations, _, err := th.SystemAdminClient.PatchChannelModerations(context.Background(), channel.Id, emptyPatch)
 		require.NoError(t, err)
-		require.Equal(t, len(moderations), 5)
+		require.Len(t, moderations, 6)
 		for _, moderation := range moderations {
-			if moderation.Name == "manage_members" || moderation.Name == "manage_bookmarks" {
+			if moderation.Name == "manage_members" || moderation.Name == "manage_bookmarks" || moderation.Name == "manage_pages" {
 				require.Empty(t, moderation.Roles.Guests)
 			} else {
-				require.Equal(t, moderation.Roles.Guests.Value, false)
-				require.Equal(t, moderation.Roles.Guests.Enabled, false)
+				require.False(t, moderation.Roles.Guests.Value)
+				require.False(t, moderation.Roles.Guests.Enabled)
 			}
 
-			require.Equal(t, moderation.Roles.Members.Value, true)
-			require.Equal(t, moderation.Roles.Members.Enabled, true)
+			require.True(t, moderation.Roles.Members.Value)
+			require.True(t, moderation.Roles.Members.Enabled)
 		}
 
 		patch := []*model.ChannelModerationPatch{
@@ -6307,17 +6307,17 @@ func TestPatchChannelModerations(t *testing.T) {
 
 		moderations, _, err = th.SystemAdminClient.PatchChannelModerations(context.Background(), channel.Id, patch)
 		require.NoError(t, err)
-		require.Equal(t, len(moderations), 5)
+		require.Len(t, moderations, 6)
 		for _, moderation := range moderations {
-			if moderation.Name == "manage_members" || moderation.Name == "manage_bookmarks" {
+			if moderation.Name == "manage_members" || moderation.Name == "manage_bookmarks" || moderation.Name == "manage_pages" {
 				require.Empty(t, moderation.Roles.Guests)
 			} else {
-				require.Equal(t, moderation.Roles.Guests.Value, false)
-				require.Equal(t, moderation.Roles.Guests.Enabled, false)
+				require.False(t, moderation.Roles.Guests.Value)
+				require.False(t, moderation.Roles.Guests.Enabled)
 			}
 
-			require.Equal(t, moderation.Roles.Members.Value, true)
-			require.Equal(t, moderation.Roles.Members.Enabled, true)
+			require.True(t, moderation.Roles.Members.Value)
+			require.True(t, moderation.Roles.Members.Enabled)
 		}
 	})
 }

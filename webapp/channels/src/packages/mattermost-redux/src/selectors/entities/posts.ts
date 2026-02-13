@@ -244,8 +244,14 @@ export function makeGetPostsForThread(): (state: GlobalState, rootId: string) =>
         'makeGetPostsForThread',
         getAllPosts,
         getCurrentUser,
-        (state: GlobalState, rootId: string) => state.entities.posts.postsInThread[rootId],
-        (state: GlobalState, rootId: string) => state.entities.posts.posts[rootId],
+        (state: GlobalState, rootId: string) => {
+            const postsForThread = state.entities.posts.postsInThread[rootId];
+            return postsForThread;
+        },
+        (state: GlobalState, rootId: string) => {
+            const rootPost = state.entities.posts.posts[rootId];
+            return rootPost;
+        },
         shouldShowJoinLeaveMessages,
         (posts, currentUser, postsForThread, rootPost, showJoinLeave) => {
             const thread: Post[] = [];

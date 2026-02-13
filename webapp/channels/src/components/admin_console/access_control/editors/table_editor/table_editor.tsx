@@ -448,12 +448,10 @@ function TableEditor({
                     onClick={() => setShowTestResults(true)}
                     disabled={disabled || !value || userWouldBeExcluded}
                     disabledTooltip={
-                        userWouldBeExcluded ?
-                            formatMessage({
-                                id: 'admin.access_control.table_editor.user_excluded_tooltip',
-                                defaultMessage: 'You cannot test access rules that would exclude you from the channel',
-                            }) :
-                            undefined
+                        userWouldBeExcluded ? formatMessage({
+                            id: 'admin.access_control.table_editor.user_excluded_tooltip',
+                            defaultMessage: 'You cannot test access rules that would exclude you from the channel',
+                        }) : undefined
                     }
                 />
             </div>

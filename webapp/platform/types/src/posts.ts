@@ -35,6 +35,9 @@ export type PostType = 'system_add_remove' |
 'custom_spillage_report' |
 'system_autotranslation' |
 'burn_on_read' |
+'page' |
+'page_comment' |
+'page_draft' |
 '';
 
 export type PostEmbedType = 'image' | 'link' | 'message_attachment' | 'opengraph' | 'permalink';
@@ -96,6 +99,18 @@ export type Post = {
     channel_id: string;
     root_id: string;
     original_id: string;
+
+    /**
+     * Parent page ID for hierarchical pages in the wiki/pages feature.
+     *
+     * - Only present on posts of type 'page'
+     * - Used to build page hierarchy trees
+     * - Empty string ('') indicates a root-level page
+     * - Undefined for non-page posts
+     *
+     * @since v9.x (wiki feature)
+     */
+    page_parent_id?: string;
     message: string;
     type: PostType;
     props: Record<string, unknown>;

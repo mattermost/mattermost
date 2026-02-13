@@ -2329,6 +2329,21 @@
     }
 }
 
+.page-mention-message {
+    .page-mention-context {
+        display: flex;
+        align-items: center;
+        padding: 8px 12px;
+        border-radius: 4px;
+        border-left: 2px solid rgba(var(--center-channel-color-rgb), 0.16);
+        margin-top: 8px;
+        background-color: rgba(var(--center-channel-color-rgb), 0.04);
+        color: rgba(var(--center-channel-color-rgb), 0.72);
+        font-size: 14px;
+        line-height: 20px;
+    }
+}
+
 .post-message__shimmer {
     position: absolute;
     z-index: 999;

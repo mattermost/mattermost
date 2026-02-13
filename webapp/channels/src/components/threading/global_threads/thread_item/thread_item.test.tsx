@@ -85,6 +85,9 @@ const mockRouting = {
     currentTeamId: 'tid',
     goToInChannel: jest.fn(),
     select: jest.fn(),
+    params: {
+        team: 'tname',
+    },
 };
 jest.mock('../../hooks', () => {
     return {
