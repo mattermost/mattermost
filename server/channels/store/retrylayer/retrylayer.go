@@ -998,6 +998,27 @@ func (s *RetryLayerAutoTranslationStore) GetLatestPostUpdateAtForChannel(channel
 
 }
 
+func (s *RetryLayerAutoTranslationStore) GetTranslationsSinceForChannel(channelID string, dstLang string, since int64) (map[string]*model.Translation, error) {
+
+	tries := 0
+	for {
+		result, err := s.AutoTranslationStore.GetTranslationsSinceForChannel(channelID, dstLang, since)
+		if err == nil {
+			return result, nil
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
 func (s *RetryLayerAutoTranslationStore) GetUserLanguage(userID string, channelID string) (string, error) {
 
 	tries := 0
