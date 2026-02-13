@@ -8,7 +8,7 @@ import type {AppField} from '@mattermost/types/apps';
 
 import DatePicker from 'components/date_picker/date_picker';
 
-import {stringToDate, dateToString, resolveRelativeDate} from 'utils/date_utils';
+import {stringToDate, dateToString, resolveRelativeDate, formatDateForDisplay} from 'utils/date_utils';
 
 type Props = {
     field: AppField;
@@ -34,11 +34,7 @@ const AppsFormDateField: React.FC<Props> = ({
         }
 
         try {
-            return new Intl.DateTimeFormat(intl.locale, {
-                year: 'numeric',
-                month: 'short',
-                day: 'numeric',
-            }).format(dateValue);
+            return formatDateForDisplay(dateValue, intl.locale);
         } catch {
             return '';
         }

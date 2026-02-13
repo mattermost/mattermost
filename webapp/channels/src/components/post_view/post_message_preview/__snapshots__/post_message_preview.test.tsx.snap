@@ -1,876 +1,741 @@
 // Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
 
 exports[`PostMessagePreview direct and group messages should render preview for D message 1`] = `
-<PostAttachmentContainer
-  className="permalink"
-  link="team1/pl/post_id"
->
+<div>
   <div
-    className="post-preview"
+    class="attachment attachment--permalink"
+    role="button"
   >
     <div
-      className="post-preview__header"
+      class="attachment__content attachment__content--permalink"
     >
       <div
-        className="col col__name"
+        class="clearfix attachment__container attachment__container--permalink"
       >
         <div
-          className="post__img"
+          class="attachment__body__wrap attachment__body__wrap--permalink"
         >
-          <span
-            className="profile-icon"
+          <div
+            class="post-preview"
           >
-            <PreviewPostAvatar
-              enablePostIconOverride={false}
-              hasImageProxy={false}
-              post={
-                Object {
-                  "id": "post_id",
-                  "message": "post message",
-                  "metadata": Object {},
-                }
-              }
-              user={
-                Object {
-                  "id": "user_1",
-                  "username": "username1",
-                }
-              }
-            />
-          </span>
+            <div
+              class="post-preview__header"
+            >
+              <div
+                class="col col__name"
+              >
+                <div
+                  class="post__img"
+                >
+                  <span
+                    class="profile-icon"
+                  >
+                    <img
+                      alt="username1 profile image"
+                      class="Avatar Avatar-sm avatar-post-preview"
+                      loading="lazy"
+                      src="/api/v4/users/user_1/image?_=0"
+                    />
+                  </span>
+                </div>
+              </div>
+              <div
+                class="col col__name permalink--username"
+              >
+                <div
+                  class="user-popover"
+                >
+                  username1
+                </div>
+              </div>
+              <div
+                class="col d-flex align-items-center"
+              >
+                <time
+                  class="post-preview__time"
+                  datetime="2020-01-15T12:00:00.000"
+                >
+                  January 15, 2020
+                </time>
+              </div>
+            </div>
+            <div
+              class="post-message post-message--collapsed"
+            >
+              <div
+                class="post-message__text-container"
+                style="max-height: 105px;"
+              >
+                <div
+                  class="post-message__text"
+                  dir="auto"
+                  id="postMessageText_post_id"
+                >
+                  <p>
+                    post message
+                  </p>
+                </div>
+              </div>
+            </div>
+            <div
+              class="post__preview-footer"
+            >
+              <p>
+                Only visible to users in ~channel name
+              </p>
+            </div>
+          </div>
         </div>
       </div>
-      <div
-        className="col col__name permalink--username"
-      >
-        <Connect(UserProfile)
-          disablePopover={true}
-          overwriteName=""
-          userId="user_1"
-        />
-      </div>
-      <div
-        className="col d-flex align-items-center"
-      >
-        <Connect(injectIntl(Timestamp))
-          className="post-preview__time"
-          day="numeric"
-          units={
-            Array [
-              "now",
-              "minute",
-              "hour",
-              "day",
-            ]
-          }
-          useTime={false}
-        />
-      </div>
-    </div>
-    <Connect(PostMessageView)
-      isChannelAutotranslated={false}
-      maxHeight={105}
-      overflowType="ellipsis"
-      post={
-        Object {
-          "id": "post_id",
-          "message": "post message",
-          "metadata": Object {},
-        }
-      }
-      userLanguage="en"
-    />
-    <div
-      className="post__preview-footer"
-    >
-      <p>
-        <MemoizedFormattedMessage
-          defaultMessage="Only visible to users in ~{channel}"
-          id="post_message_preview.channel"
-          values={
-            Object {
-              "channel": "channel name",
-            }
-          }
-        />
-      </p>
     </div>
   </div>
-</PostAttachmentContainer>
+</div>
 `;
 
 exports[`PostMessagePreview direct and group messages should render preview for G message 1`] = `
-<PostAttachmentContainer
-  className="permalink"
-  link="team1/pl/post_id"
->
+<div>
   <div
-    className="post-preview"
+    class="attachment attachment--permalink"
+    role="button"
   >
     <div
-      className="post-preview__header"
+      class="attachment__content attachment__content--permalink"
     >
       <div
-        className="col col__name"
+        class="clearfix attachment__container attachment__container--permalink"
       >
         <div
-          className="post__img"
+          class="attachment__body__wrap attachment__body__wrap--permalink"
         >
-          <span
-            className="profile-icon"
+          <div
+            class="post-preview"
           >
-            <PreviewPostAvatar
-              enablePostIconOverride={false}
-              hasImageProxy={false}
-              post={
-                Object {
-                  "id": "post_id",
-                  "message": "post message",
-                  "metadata": Object {},
-                }
-              }
-              user={
-                Object {
-                  "id": "user_1",
-                  "username": "username1",
-                }
-              }
-            />
-          </span>
+            <div
+              class="post-preview__header"
+            >
+              <div
+                class="col col__name"
+              >
+                <div
+                  class="post__img"
+                >
+                  <span
+                    class="profile-icon"
+                  >
+                    <img
+                      alt="username1 profile image"
+                      class="Avatar Avatar-sm avatar-post-preview"
+                      loading="lazy"
+                      src="/api/v4/users/user_1/image?_=0"
+                    />
+                  </span>
+                </div>
+              </div>
+              <div
+                class="col col__name permalink--username"
+              >
+                <div
+                  class="user-popover"
+                >
+                  username1
+                </div>
+              </div>
+              <div
+                class="col d-flex align-items-center"
+              >
+                <time
+                  class="post-preview__time"
+                  datetime="2020-01-15T12:00:00.000"
+                >
+                  January 15, 2020
+                </time>
+              </div>
+            </div>
+            <div
+              class="post-message post-message--collapsed"
+            >
+              <div
+                class="post-message__text-container"
+                style="max-height: 105px;"
+              >
+                <div
+                  class="post-message__text"
+                  dir="auto"
+                  id="postMessageText_post_id"
+                >
+                  <p>
+                    post message
+                  </p>
+                </div>
+              </div>
+            </div>
+            <div
+              class="post__preview-footer"
+            >
+              <p>
+                Only visible to users in ~channel name
+              </p>
+            </div>
+          </div>
         </div>
       </div>
-      <div
-        className="col col__name permalink--username"
-      >
-        <Connect(UserProfile)
-          disablePopover={true}
-          overwriteName=""
-          userId="user_1"
-        />
-      </div>
-      <div
-        className="col d-flex align-items-center"
-      >
-        <Connect(injectIntl(Timestamp))
-          className="post-preview__time"
-          day="numeric"
-          units={
-            Array [
-              "now",
-              "minute",
-              "hour",
-              "day",
-            ]
-          }
-          useTime={false}
-        />
-      </div>
-    </div>
-    <Connect(PostMessageView)
-      isChannelAutotranslated={false}
-      maxHeight={105}
-      overflowType="ellipsis"
-      post={
-        Object {
-          "id": "post_id",
-          "message": "post message",
-          "metadata": Object {},
-        }
-      }
-      userLanguage="en"
-    />
-    <div
-      className="post__preview-footer"
-    >
-      <p>
-        <MemoizedFormattedMessage
-          defaultMessage="Only visible to users in ~{channel}"
-          id="post_message_preview.channel"
-          values={
-            Object {
-              "channel": "channel name",
-            }
-          }
-        />
-      </p>
     </div>
   </div>
-</PostAttachmentContainer>
+</div>
 `;
 
 exports[`PostMessagePreview nested previews should render file preview 1`] = `
-<PostAttachmentContainer
-  className="permalink"
-  link="/team1/pl/post_id"
->
+<div>
   <div
-    className="post-preview"
+    class="attachment attachment--permalink"
+    role="button"
   >
     <div
-      className="post-preview__header"
+      class="attachment__content attachment__content--permalink"
     >
       <div
-        className="col col__name"
+        class="clearfix attachment__container attachment__container--permalink"
       >
         <div
-          className="post__img"
+          class="attachment__body__wrap attachment__body__wrap--permalink"
         >
-          <span
-            className="profile-icon"
+          <div
+            class="post-preview"
           >
-            <PreviewPostAvatar
-              enablePostIconOverride={false}
-              hasImageProxy={false}
-              post={
-                Object {
-                  "file_ids": Array [
-                    "file_1",
-                    "file_2",
-                  ],
-                  "id": "post_id",
-                  "message": "post message",
-                  "metadata": Object {},
-                }
-              }
-              user={
-                Object {
-                  "id": "user_1",
-                  "username": "username1",
-                }
-              }
-            />
-          </span>
+            <div
+              class="post-preview__header"
+            >
+              <div
+                class="col col__name"
+              >
+                <div
+                  class="post__img"
+                >
+                  <span
+                    class="profile-icon"
+                  >
+                    <img
+                      alt="username1 profile image"
+                      class="Avatar Avatar-sm avatar-post-preview"
+                      loading="lazy"
+                      src="/api/v4/users/user_1/image?_=0"
+                    />
+                  </span>
+                </div>
+              </div>
+              <div
+                class="col col__name permalink--username"
+              >
+                <div
+                  class="user-popover"
+                >
+                  username1
+                </div>
+              </div>
+              <div
+                class="col d-flex align-items-center"
+              >
+                <time
+                  class="post-preview__time"
+                  datetime="2020-01-15T12:00:00.000"
+                >
+                  January 15, 2020
+                </time>
+              </div>
+            </div>
+            <div
+              class="post-message post-message--collapsed"
+            >
+              <div
+                class="post-message__text-container"
+                style="max-height: 105px;"
+              >
+                <div
+                  class="post-message__text"
+                  dir="auto"
+                  id="postMessageText_post_id"
+                >
+                  <p>
+                    post message
+                  </p>
+                </div>
+              </div>
+            </div>
+            <div
+              class="post__preview-footer"
+            >
+              <p>
+                Only visible to users in ~channel name
+              </p>
+            </div>
+          </div>
         </div>
       </div>
-      <div
-        className="col col__name permalink--username"
-      >
-        <Connect(UserProfile)
-          disablePopover={true}
-          overwriteName=""
-          userId="user_1"
-        />
-      </div>
-      <div
-        className="col d-flex align-items-center"
-      >
-        <Connect(injectIntl(Timestamp))
-          className="post-preview__time"
-          day="numeric"
-          units={
-            Array [
-              "now",
-              "minute",
-              "hour",
-              "day",
-            ]
-          }
-          useTime={false}
-        />
-      </div>
-    </div>
-    <Connect(PostMessageView)
-      isChannelAutotranslated={false}
-      maxHeight={105}
-      overflowType="ellipsis"
-      post={
-        Object {
-          "file_ids": Array [
-            "file_1",
-            "file_2",
-          ],
-          "id": "post_id",
-          "message": "post message",
-          "metadata": Object {},
-        }
-      }
-      userLanguage="en"
-    />
-    <Connect(FileAttachmentList)
-      compactDisplay={false}
-      handleFileDropdownOpened={[MockFunction]}
-      isInPermalink={true}
-      post={
-        Object {
-          "file_ids": Array [
-            "file_1",
-            "file_2",
-          ],
-          "id": "post_id",
-          "message": "post message",
-          "metadata": Object {},
-        }
-      }
-    />
-    <div
-      className="post__preview-footer"
-    >
-      <p>
-        <MemoizedFormattedMessage
-          defaultMessage="Only visible to users in ~{channel}"
-          id="post_message_preview.channel"
-          values={
-            Object {
-              "channel": "channel name",
-            }
-          }
-        />
-      </p>
     </div>
   </div>
-</PostAttachmentContainer>
+</div>
 `;
 
 exports[`PostMessagePreview nested previews should render opengraph preview 1`] = `
-<PostAttachmentContainer
-  className="permalink"
-  link="/team1/pl/post_id"
->
+<div>
   <div
-    className="post-preview"
+    class="attachment attachment--permalink"
+    role="button"
   >
     <div
-      className="post-preview__header"
+      class="attachment__content attachment__content--permalink"
     >
       <div
-        className="col col__name"
+        class="clearfix attachment__container attachment__container--permalink"
       >
         <div
-          className="post__img"
+          class="attachment__body__wrap attachment__body__wrap--permalink"
         >
-          <span
-            className="profile-icon"
+          <div
+            class="post-preview"
           >
-            <PreviewPostAvatar
-              enablePostIconOverride={false}
-              hasImageProxy={false}
-              post={
-                Object {
-                  "id": "post_id",
-                  "message": "post message",
-                  "metadata": Object {
-                    "embeds": Array [
-                      Object {
-                        "type": "opengraph",
-                        "url": "https://example.com",
-                      },
-                    ],
-                  },
-                }
-              }
-              user={
-                Object {
-                  "id": "user_1",
-                  "username": "username1",
-                }
-              }
-            />
-          </span>
+            <div
+              class="post-preview__header"
+            >
+              <div
+                class="col col__name"
+              >
+                <div
+                  class="post__img"
+                >
+                  <span
+                    class="profile-icon"
+                  >
+                    <img
+                      alt="username1 profile image"
+                      class="Avatar Avatar-sm avatar-post-preview"
+                      loading="lazy"
+                      src="/api/v4/users/user_1/image?_=0"
+                    />
+                  </span>
+                </div>
+              </div>
+              <div
+                class="col col__name permalink--username"
+              >
+                <div
+                  class="user-popover"
+                >
+                  username1
+                </div>
+              </div>
+              <div
+                class="col d-flex align-items-center"
+              >
+                <time
+                  class="post-preview__time"
+                  datetime="2020-01-15T12:00:00.000"
+                >
+                  January 15, 2020
+                </time>
+              </div>
+            </div>
+            <div
+              class="post-message post-message--collapsed"
+            >
+              <div
+                class="post-message__text-container"
+                style="max-height: 105px;"
+              >
+                <div
+                  class="post-message__text"
+                  dir="auto"
+                  id="postMessageText_post_id"
+                >
+                  <p>
+                    post message
+                  </p>
+                </div>
+              </div>
+            </div>
+            <div
+              class="post__preview-footer"
+            >
+              <p>
+                Only visible to users in ~channel name
+              </p>
+            </div>
+          </div>
         </div>
       </div>
-      <div
-        className="col col__name permalink--username"
-      >
-        <Connect(UserProfile)
-          disablePopover={true}
-          overwriteName=""
-          userId="user_1"
-        />
-      </div>
-      <div
-        className="col d-flex align-items-center"
-      >
-        <Connect(injectIntl(Timestamp))
-          className="post-preview__time"
-          day="numeric"
-          units={
-            Array [
-              "now",
-              "minute",
-              "hour",
-              "day",
-            ]
-          }
-          useTime={false}
-        />
-      </div>
-    </div>
-    <Connect(PostMessageView)
-      isChannelAutotranslated={false}
-      maxHeight={105}
-      overflowType="ellipsis"
-      post={
-        Object {
-          "id": "post_id",
-          "message": "post message",
-          "metadata": Object {
-            "embeds": Array [
-              Object {
-                "type": "opengraph",
-                "url": "https://example.com",
-              },
-            ],
-          },
-        }
-      }
-      userLanguage="en"
-    />
-    <Connect(PostAttachmentOpenGraph)
-      isEmbedVisible={true}
-      isInPermalink={true}
-      link="https://example.com"
-      post={
-        Object {
-          "id": "post_id",
-          "message": "post message",
-          "metadata": Object {
-            "embeds": Array [
-              Object {
-                "type": "opengraph",
-                "url": "https://example.com",
-              },
-            ],
-          },
-        }
-      }
-      postId="post_id"
-      toggleEmbedVisibility={[Function]}
-    />
-    <div
-      className="post__preview-footer"
-    >
-      <p>
-        <MemoizedFormattedMessage
-          defaultMessage="Only visible to users in ~{channel}"
-          id="post_message_preview.channel"
-          values={
-            Object {
-              "channel": "channel name",
-            }
-          }
-        />
-      </p>
     </div>
   </div>
-</PostAttachmentContainer>
+</div>
 `;
 
 exports[`PostMessagePreview should not render bot icon 1`] = `
-<PostAttachmentContainer
-  className="permalink"
-  link="/team1/pl/post_id"
->
+<div>
   <div
-    className="post-preview"
+    class="attachment attachment--permalink"
+    role="button"
   >
     <div
-      className="post-preview__header"
+      class="attachment__content attachment__content--permalink"
     >
       <div
-        className="col col__name"
+        class="clearfix attachment__container attachment__container--permalink"
       >
         <div
-          className="post__img"
+          class="attachment__body__wrap attachment__body__wrap--permalink"
         >
-          <span
-            className="profile-icon"
+          <div
+            class="post-preview"
           >
-            <PreviewPostAvatar
-              enablePostIconOverride={false}
-              hasImageProxy={false}
-              post={
-                Object {
-                  "id": "post_id",
-                  "message": "post message",
-                  "metadata": Object {},
-                  "props": Object {
-                    "from_webhook": "false",
-                    "override_icon_url": "https://fakeicon.com/image.jpg",
-                    "use_user_icon": "false",
-                  },
-                }
-              }
-              user={
-                Object {
-                  "id": "user_1",
-                  "username": "username1",
-                }
-              }
-            />
-          </span>
+            <div
+              class="post-preview__header"
+            >
+              <div
+                class="col col__name"
+              >
+                <div
+                  class="post__img"
+                >
+                  <span
+                    class="profile-icon"
+                  >
+                    <img
+                      alt="username1 profile image"
+                      class="Avatar Avatar-sm avatar-post-preview"
+                      loading="lazy"
+                      src="/api/v4/users/user_1/image?_=0"
+                    />
+                  </span>
+                </div>
+              </div>
+              <div
+                class="col col__name permalink--username"
+              >
+                <div
+                  class="user-popover"
+                >
+                  username1
+                </div>
+              </div>
+              <div
+                class="col d-flex align-items-center"
+              >
+                <time
+                  class="post-preview__time"
+                  datetime="2020-01-15T12:00:00.000"
+                >
+                  January 15, 2020
+                </time>
+              </div>
+            </div>
+            <div
+              class="post-message post-message--collapsed"
+            >
+              <div
+                class="post-message__text-container"
+                style="max-height: 105px;"
+              >
+                <div
+                  class="post-message__text"
+                  dir="auto"
+                  id="postMessageText_post_id"
+                >
+                  <p>
+                    post message
+                  </p>
+                </div>
+              </div>
+            </div>
+            <div
+              class="post__preview-footer"
+            >
+              <p>
+                Only visible to users in ~channel name
+              </p>
+            </div>
+          </div>
         </div>
       </div>
-      <div
-        className="col col__name permalink--username"
-      >
-        <Connect(UserProfile)
-          disablePopover={true}
-          overwriteName=""
-          userId="user_1"
-        />
-      </div>
-      <div
-        className="col d-flex align-items-center"
-      >
-        <Connect(injectIntl(Timestamp))
-          className="post-preview__time"
-          day="numeric"
-          units={
-            Array [
-              "now",
-              "minute",
-              "hour",
-              "day",
-            ]
-          }
-          useTime={false}
-        />
-      </div>
-    </div>
-    <Connect(PostMessageView)
-      isChannelAutotranslated={false}
-      maxHeight={105}
-      overflowType="ellipsis"
-      post={
-        Object {
-          "id": "post_id",
-          "message": "post message",
-          "metadata": Object {},
-          "props": Object {
-            "from_webhook": "false",
-            "override_icon_url": "https://fakeicon.com/image.jpg",
-            "use_user_icon": "false",
-          },
-        }
-      }
-      userLanguage="en"
-    />
-    <div
-      className="post__preview-footer"
-    >
-      <p>
-        <MemoizedFormattedMessage
-          defaultMessage="Only visible to users in ~{channel}"
-          id="post_message_preview.channel"
-          values={
-            Object {
-              "channel": "channel name",
-            }
-          }
-        />
-      </p>
     </div>
   </div>
-</PostAttachmentContainer>
+</div>
 `;
 
 exports[`PostMessagePreview should render bot icon 1`] = `
-<PostAttachmentContainer
-  className="permalink"
-  link="/team1/pl/post_id"
->
+<div>
   <div
-    className="post-preview"
+    class="attachment attachment--permalink"
+    role="button"
   >
     <div
-      className="post-preview__header"
+      class="attachment__content attachment__content--permalink"
     >
       <div
-        className="col col__name"
+        class="clearfix attachment__container attachment__container--permalink"
       >
         <div
-          className="post__img"
+          class="attachment__body__wrap attachment__body__wrap--permalink"
         >
-          <span
-            className="profile-icon"
+          <div
+            class="post-preview"
           >
-            <PreviewPostAvatar
-              enablePostIconOverride={true}
-              hasImageProxy={false}
-              post={
-                Object {
-                  "id": "post_id",
-                  "message": "post message",
-                  "metadata": Object {},
-                  "props": Object {
-                    "from_webhook": "true",
-                    "override_icon_url": "https://fakeicon.com/image.jpg",
-                    "use_user_icon": false,
-                  },
-                }
-              }
-              user={
-                Object {
-                  "id": "user_1",
-                  "username": "username1",
-                }
-              }
-            />
-          </span>
+            <div
+              class="post-preview__header"
+            >
+              <div
+                class="col col__name"
+              >
+                <div
+                  class="post__img"
+                >
+                  <span
+                    class="profile-icon"
+                  >
+                    <img
+                      alt="username1 profile image"
+                      class="Avatar Avatar-sm avatar-post-preview"
+                      loading="lazy"
+                      src="https://fakeicon.com/image.jpg"
+                    />
+                  </span>
+                </div>
+              </div>
+              <div
+                class="col col__name permalink--username"
+              >
+                <div
+                  class="user-popover"
+                >
+                  username1
+                </div>
+              </div>
+              <div
+                class="col d-flex align-items-center"
+              >
+                <time
+                  class="post-preview__time"
+                  datetime="2020-01-15T12:00:00.000"
+                >
+                  January 15, 2020
+                </time>
+              </div>
+            </div>
+            <div
+              class="post-message post-message--collapsed"
+            >
+              <div
+                class="post-message__text-container"
+                style="max-height: 105px;"
+              >
+                <div
+                  class="post-message__text"
+                  dir="auto"
+                  id="postMessageText_post_id"
+                >
+                  <p>
+                    post message
+                  </p>
+                </div>
+              </div>
+            </div>
+            <div
+              class="post__preview-footer"
+            >
+              <p>
+                Only visible to users in ~channel name
+              </p>
+            </div>
+          </div>
         </div>
       </div>
-      <div
-        className="col col__name permalink--username"
-      >
-        <Connect(UserProfile)
-          disablePopover={true}
-          overwriteName=""
-          userId="user_1"
-        />
-      </div>
-      <div
-        className="col d-flex align-items-center"
-      >
-        <Connect(injectIntl(Timestamp))
-          className="post-preview__time"
-          day="numeric"
-          units={
-            Array [
-              "now",
-              "minute",
-              "hour",
-              "day",
-            ]
-          }
-          useTime={false}
-        />
-      </div>
-    </div>
-    <Connect(PostMessageView)
-      isChannelAutotranslated={false}
-      maxHeight={105}
-      overflowType="ellipsis"
-      post={
-        Object {
-          "id": "post_id",
-          "message": "post message",
-          "metadata": Object {},
-          "props": Object {
-            "from_webhook": "true",
-            "override_icon_url": "https://fakeicon.com/image.jpg",
-            "use_user_icon": false,
-          },
-        }
-      }
-      userLanguage="en"
-    />
-    <div
-      className="post__preview-footer"
-    >
-      <p>
-        <MemoizedFormattedMessage
-          defaultMessage="Only visible to users in ~{channel}"
-          id="post_message_preview.channel"
-          values={
-            Object {
-              "channel": "channel name",
-            }
-          }
-        />
-      </p>
     </div>
   </div>
-</PostAttachmentContainer>
+</div>
 `;
 
 exports[`PostMessagePreview should render correctly 1`] = `
-<PostAttachmentContainer
-  className="permalink"
-  link="/team1/pl/post_id"
->
+<div>
   <div
-    className="post-preview"
+    class="attachment attachment--permalink"
+    role="button"
   >
     <div
-      className="post-preview__header"
+      class="attachment__content attachment__content--permalink"
     >
       <div
-        className="col col__name"
+        class="clearfix attachment__container attachment__container--permalink"
       >
         <div
-          className="post__img"
+          class="attachment__body__wrap attachment__body__wrap--permalink"
         >
-          <span
-            className="profile-icon"
+          <div
+            class="post-preview"
           >
-            <PreviewPostAvatar
-              enablePostIconOverride={false}
-              hasImageProxy={false}
-              post={
-                Object {
-                  "id": "post_id",
-                  "message": "post message",
-                  "metadata": Object {},
-                }
-              }
-              user={
-                Object {
-                  "id": "user_1",
-                  "username": "username1",
-                }
-              }
-            />
-          </span>
+            <div
+              class="post-preview__header"
+            >
+              <div
+                class="col col__name"
+              >
+                <div
+                  class="post__img"
+                >
+                  <span
+                    class="profile-icon"
+                  >
+                    <img
+                      alt="username1 profile image"
+                      class="Avatar Avatar-sm avatar-post-preview"
+                      loading="lazy"
+                      src="/api/v4/users/user_1/image?_=0"
+                    />
+                  </span>
+                </div>
+              </div>
+              <div
+                class="col col__name permalink--username"
+              >
+                <div
+                  class="user-popover"
+                >
+                  username1
+                </div>
+              </div>
+              <div
+                class="col d-flex align-items-center"
+              >
+                <time
+                  class="post-preview__time"
+                  datetime="2020-01-15T12:00:00.000"
+                >
+                  January 15, 2020
+                </time>
+              </div>
+            </div>
+            <div
+              class="post-message post-message--collapsed"
+            >
+              <div
+                class="post-message__text-container"
+                style="max-height: 105px;"
+              >
+                <div
+                  class="post-message__text"
+                  dir="auto"
+                  id="postMessageText_post_id"
+                >
+                  <p>
+                    post message
+                  </p>
+                </div>
+              </div>
+            </div>
+            <div
+              class="post__preview-footer"
+            >
+              <p>
+                Only visible to users in ~channel name
+              </p>
+            </div>
+          </div>
         </div>
       </div>
-      <div
-        className="col col__name permalink--username"
-      >
-        <Connect(UserProfile)
-          disablePopover={true}
-          overwriteName=""
-          userId="user_1"
-        />
-      </div>
-      <div
-        className="col d-flex align-items-center"
-      >
-        <Connect(injectIntl(Timestamp))
-          className="post-preview__time"
-          day="numeric"
-          units={
-            Array [
-              "now",
-              "minute",
-              "hour",
-              "day",
-            ]
-          }
-          useTime={false}
-        />
-      </div>
-    </div>
-    <Connect(PostMessageView)
-      isChannelAutotranslated={false}
-      maxHeight={105}
-      overflowType="ellipsis"
-      post={
-        Object {
-          "id": "post_id",
-          "message": "post message",
-          "metadata": Object {},
-        }
-      }
-      userLanguage="en"
-    />
-    <div
-      className="post__preview-footer"
-    >
-      <p>
-        <MemoizedFormattedMessage
-          defaultMessage="Only visible to users in ~{channel}"
-          id="post_message_preview.channel"
-          values={
-            Object {
-              "channel": "channel name",
-            }
-          }
-        />
-      </p>
     </div>
   </div>
-</PostAttachmentContainer>
+</div>
 `;
 
-exports[`PostMessagePreview should render without preview 1`] = `""`;
+exports[`PostMessagePreview should render without preview 1`] = `<div />`;
 
 exports[`PostMessagePreview show render without preview when preview posts becomes undefined after being defined 1`] = `
-<PostAttachmentContainer
-  className="permalink"
-  link="/team1/pl/post_id"
->
+<div>
   <div
-    className="post-preview"
+    class="attachment attachment--permalink"
+    role="button"
   >
     <div
-      className="post-preview__header"
+      class="attachment__content attachment__content--permalink"
     >
       <div
-        className="col col__name"
+        class="clearfix attachment__container attachment__container--permalink"
       >
         <div
-          className="post__img"
+          class="attachment__body__wrap attachment__body__wrap--permalink"
         >
-          <span
-            className="profile-icon"
+          <div
+            class="post-preview"
           >
-            <PreviewPostAvatar
-              enablePostIconOverride={false}
-              hasImageProxy={false}
-              post={
-                Object {
-                  "id": "post_id",
-                  "message": "post message",
-                  "metadata": Object {},
-                }
-              }
-              user={
-                Object {
-                  "id": "user_1",
-                  "username": "username1",
-                }
-              }
-            />
-          </span>
+            <div
+              class="post-preview__header"
+            >
+              <div
+                class="col col__name"
+              >
+                <div
+                  class="post__img"
+                >
+                  <span
+                    class="profile-icon"
+                  >
+                    <img
+                      alt="username1 profile image"
+                      class="Avatar Avatar-sm avatar-post-preview"
+                      loading="lazy"
+                      src="/api/v4/users/user_1/image?_=0"
+                    />
+                  </span>
+                </div>
+              </div>
+              <div
+                class="col col__name permalink--username"
+              >
+                <div
+                  class="user-popover"
+                >
+                  username1
+                </div>
+              </div>
+              <div
+                class="col d-flex align-items-center"
+              >
+                <time
+                  class="post-preview__time"
+                  datetime="2020-01-15T12:00:00.000"
+                >
+                  January 15, 2020
+                </time>
+              </div>
+            </div>
+            <div
+              class="post-message post-message--collapsed"
+            >
+              <div
+                class="post-message__text-container"
+                style="max-height: 105px;"
+              >
+                <div
+                  class="post-message__text"
+                  dir="auto"
+                  id="postMessageText_post_id"
+                >
+                  <p>
+                    post message
+                  </p>
+                </div>
+              </div>
+            </div>
+            <div
+              class="post__preview-footer"
+            >
+              <p>
+                Only visible to users in ~channel name
+              </p>
+            </div>
+          </div>
         </div>
       </div>
-      <div
-        className="col col__name permalink--username"
-      >
-        <Connect(UserProfile)
-          disablePopover={true}
-          overwriteName=""
-          userId="user_1"
-        />
-      </div>
-      <div
-        className="col d-flex align-items-center"
-      >
-        <Connect(injectIntl(Timestamp))
-          className="post-preview__time"
-          day="numeric"
-          units={
-            Array [
-              "now",
-              "minute",
-              "hour",
-              "day",
-            ]
-          }
-          useTime={false}
-        />
-      </div>
-    </div>
-    <Connect(PostMessageView)
-      isChannelAutotranslated={false}
-      maxHeight={105}
-      overflowType="ellipsis"
-      post={
-        Object {
-          "id": "post_id",
-          "message": "post message",
-          "metadata": Object {},
-        }
-      }
-      userLanguage="en"
-    />
-    <div
-      className="post__preview-footer"
-    >
-      <p>
-        <MemoizedFormattedMessage
-          defaultMessage="Only visible to users in ~{channel}"
-          id="post_message_preview.channel"
-          values={
-            Object {
-              "channel": "channel name",
-            }
-          }
-        />
-      </p>
     </div>
   </div>
-</PostAttachmentContainer>
+</div>
 `;
 
-exports[`PostMessagePreview show render without preview when preview posts becomes undefined after being defined 2`] = `""`;
+exports[`PostMessagePreview show render without preview when preview posts becomes undefined after being defined 2`] = `<div />`;

@@ -2857,12 +2857,28 @@
     "translation": "Unable to get the pending post."
   },
   {
+    "id": "api.post.fill_in_post_props.burn_on_read.bot_dm.app_error",
+    "translation": "Burn-on-read posts are not allowed in direct messages with bots or AI agents."
+  },
+  {
+    "id": "api.post.fill_in_post_props.burn_on_read.channel.app_error",
+    "translation": "An error occurred while validating the channel for burn-on-read post."
+  },
+  {
     "id": "api.post.fill_in_post_props.burn_on_read.config.app_error",
     "translation": "Burn-on-read posts are not enabled. Please enable the feature flag and service setting."
   },
   {
     "id": "api.post.fill_in_post_props.burn_on_read.license.app_error",
     "translation": "Burn-on-read posts require an Enterprise Advanced license."
+  },
+  {
+    "id": "api.post.fill_in_post_props.burn_on_read.self_dm.app_error",
+    "translation": "Burn-on-read posts are not allowed when messaging yourself."
+  },
+  {
+    "id": "api.post.fill_in_post_props.burn_on_read.user.app_error",
+    "translation": "An error occurred while validating the user for burn-on-read post."
   },
   {
     "id": "api.post.fill_in_post_props.invalid_ai_generated_user.app_error",
@@ -13018,11 +13034,11 @@
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.safari",
-    "translation": "Version 17.4+"
+    "translation": "Version 26.2+"
   },
   {
     "id": "web.error.unsupported_browser.min_os_version.mac",
-    "translation": "macOS 12+"
+    "translation": "macOS 14+"
   },
   {
     "id": "web.error.unsupported_browser.min_os_version.windows",
