@@ -539,6 +539,7 @@ export const ModalIdentifiers = {
     FLAG_POST: 'flag_post',
     REMOVE_FLAGGED_POST: 'remove_flagged_post',
     THREAD_INVITE: 'thread_invite',
+    VIEW_REACTIONS: 'view_reactions',
 };
 
 export const UserStatuses = {

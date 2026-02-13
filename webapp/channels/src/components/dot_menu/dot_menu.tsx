@@ -12,6 +12,7 @@ import {
     BookmarkOutlineIcon,
     ContentCopyIcon,
     DotsHorizontalIcon,
+    EmoticonOutlineIcon,
     EmoticonPlusOutlineIcon,
     LinkVariantIcon,
     MarkAsUnreadIcon,
@@ -38,6 +39,7 @@ import FlagPostModal from 'components/flag_message_modal/flag_post_modal';
 import ForwardPostModal from 'components/forward_post_modal';
 import * as Menu from 'components/menu';
 import MoveThreadModal from 'components/move_thread_modal';
+import ViewReactionsModal from 'components/view_reactions_modal/view_reactions_modal';
 import ChannelPermissionGate from 'components/permissions_gates/channel_permission_gate';
 
 import {createBurnOnReadDeleteModalHandlers} from 'hooks/useBurnOnReadDeleteModal';
@@ -168,6 +170,7 @@ type Props = {
     isBurnOnReadPost: boolean;
     isUnrevealedBurnOnReadPost: boolean;
     discordRepliesEnabled?: boolean;
+    hasReactions?: boolean;
 }
 
 type State = {
@@ -393,6 +396,16 @@ export class DotMenuClass extends React.PureComponent<Props, State> {
     handleCreateThread = (e: ChangeEvent) => {
         // This opens the thread in RHS (original Reply behavior)
         this.props.handleCommentClick?.(e);
+    };
+
+    handleViewReactions = () => {
+        this.props.actions.openModal({
+            modalId: ModalIdentifiers.VIEW_REACTIONS,
+            dialogType: ViewReactionsModal,
+            dialogProps: {
+                post: this.props.post,
+            },
+        });
     };
 
     handleMenuKeydown = (event: React.KeyboardEvent<HTMLDivElement>, forceCloseMenu?: (() => void)) => {
@@ -647,6 +660,20 @@ export class DotMenuClass extends React.PureComponent<Props, State> {
                         leadingElement={<ArrowRightBoldOutlineIcon size={18}/>}
                         trailingElements={<ShortcutKey shortcutKey='Shift + F'/>}
                         onClick={this.handleForwardMenuItemActivated}
+                    />
+                }
+                {Boolean(this.props.hasReactions && !isSystemMessage) &&
+                    <Menu.Item
+                        id={`view_reactions_${this.props.post.id}`}
+                        data-testid={`view_reactions_${this.props.post.id}`}
+                        labels={
+                            <FormattedMessage
+                                id='post_info.view_reactions'
+                                defaultMessage='View Reactions'
+                            />
+                        }
+                        leadingElement={<EmoticonOutlineIcon size={18}/>}
+                        onClick={this.handleViewReactions}
                     />
                 }
                 {Boolean(isMobile && !isSystemMessage && !this.props.isReadOnly && this.props.enableEmojiPicker) &&
