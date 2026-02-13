@@ -3,13 +3,14 @@
 
 import React from 'react';
 
+import type {DeepPartial} from '@mattermost/types/utilities';
+
 import {Preferences} from 'mattermost-redux/constants';
 import {setThemeDefaults} from 'mattermost-redux/utils/theme_utils';
 
 import matchMedia from 'tests/helpers/match_media.mock';
 import {renderWithContext} from 'tests/react_testing_utils';
 
-import type {DeepPartial} from '@mattermost/types/utilities';
 import type {GlobalState} from 'types/store';
 
 import {useUserTheme} from './theme_context';
