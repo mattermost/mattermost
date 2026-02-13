@@ -1431,8 +1431,14 @@ func deleteChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 	defer c.LogAuditRec(auditRec)
 
 	if channel.Type == model.ChannelTypeDirect || channel.Type == model.ChannelTypeGroup {
-		c.Err = model.NewAppError("deleteChannel", "api.channel.delete_channel.type.invalid", nil, "", http.StatusBadRequest)
-		return
+		if !c.Params.Permanent {
+			c.Err = model.NewAppError("deleteChannel", "api.channel.delete_channel.type.invalid", nil, "", http.StatusBadRequest)
+			return
+		}
+		if !c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), channel.Id, model.PermissionDeletePrivateChannel) {
+			c.SetPermissionError(model.PermissionDeletePrivateChannel)
+			return
+		}
 	}
 
 	if channel.Type == model.ChannelTypeOpen {
