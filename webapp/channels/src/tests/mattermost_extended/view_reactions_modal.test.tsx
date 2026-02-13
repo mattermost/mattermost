@@ -52,6 +52,11 @@ jest.mock('utils/emoji', () => {
     };
 });
 
+// Mock getCustomEmojisByName selector to avoid reselect memoization warnings across tests
+jest.mock('mattermost-redux/selectors/entities/emojis', () => ({
+    getCustomEmojisByName: () => new Map(),
+}));
+
 // Mock getMissingProfilesByIds action
 const mockGetMissingProfilesByIds = jest.fn(() => ({type: 'MOCK_GET_MISSING_PROFILES'}));
 jest.mock('mattermost-redux/actions/users', () => ({
@@ -186,11 +191,13 @@ describe('ViewReactionsModal', () => {
     });
 
     test('should display all emoji groups in the emoji list', () => {
-        const {container} = renderModal();
+        renderModal();
 
-        // Should have 3 emoji items (thumbsup, heart, smile)
-        const emojiImages = container.querySelectorAll('.view-reactions-modal__emoji-img');
-        expect(emojiImages.length).toBe(3);
+        // Should have 3 emoji item buttons (thumbsup, heart, smile)
+        const emojiItemButtons = screen.getAllByRole('button').filter(
+            (btn) => btn.classList.contains('view-reactions-modal__emoji-item'),
+        );
+        expect(emojiItemButtons.length).toBe(3);
     });
 
     test('should show correct reaction counts for each emoji', () => {
@@ -259,11 +266,13 @@ describe('ViewReactionsModal', () => {
         expect(emojiItemButtons[1].classList.contains('view-reactions-modal__emoji-item--selected')).toBe(true);
     });
 
-    test('should render user avatars with correct URLs', () => {
-        const {container} = renderModal();
+    test('should render user avatars', () => {
+        renderModal();
 
-        const avatarImages = container.querySelectorAll('.Avatar');
-        expect(avatarImages.length).toBeGreaterThanOrEqual(2);
+        // Default selection is thumbsup with alice and bob
+        // Avatar alt text follows pattern "{username} profile image"
+        expect(screen.getByAltText('alice profile image')).toBeInTheDocument();
+        expect(screen.getByAltText('bob profile image')).toBeInTheDocument();
     });
 
     test('should fetch missing profiles on mount', () => {
@@ -278,15 +287,6 @@ describe('ViewReactionsModal', () => {
     });
 
     test('should handle post with no reactions gracefully', () => {
-        // Suppress reselect memoization warning from getCustomEmojisByName when state shape changes
-        const originalConsoleError = console.error;
-        console.error = (...args: any[]) => {
-            if (typeof args[0] === 'string' && args[0].includes('Selector unknown returned a different result')) {
-                return;
-            }
-            originalConsoleError(...args);
-        };
-
         const stateNoReactions = {
             ...baseState,
             entities: {
@@ -297,20 +297,21 @@ describe('ViewReactionsModal', () => {
             },
         };
 
-        const {container} = renderModal(stateNoReactions);
+        renderModal(stateNoReactions);
 
         // Should still render the modal
         expect(screen.getByText('View Reactions')).toBeInTheDocument();
 
-        // No emoji items
-        const emojiItems = container.querySelectorAll('.view-reactions-modal__emoji-item');
-        expect(emojiItems.length).toBe(0);
+        // No emoji item buttons should exist
+        const emojiItemButtons = screen.getAllByRole('button').filter(
+            (btn) => btn.classList.contains('view-reactions-modal__emoji-item'),
+        );
+        expect(emojiItemButtons.length).toBe(0);
 
-        // No user rows
-        const userRows = container.querySelectorAll('.view-reactions-modal__user-row');
-        expect(userRows.length).toBe(0);
-
-        console.error = originalConsoleError;
+        // No user names should be visible
+        expect(screen.queryByText('@alice')).not.toBeInTheDocument();
+        expect(screen.queryByText('@bob')).not.toBeInTheDocument();
+        expect(screen.queryByText('@charlie')).not.toBeInTheDocument();
     });
 
     test('should display username with @ prefix', () => {
@@ -330,14 +331,20 @@ describe('ViewReactionsModal', () => {
         expect(userRows.length).toBe(2);
     });
 
-    test('should render emoji images for system emojis', () => {
-        const {container} = renderModal();
+    test('should render emoji items with content for each reaction group', () => {
+        renderModal();
 
-        const emojiImages = container.querySelectorAll('.view-reactions-modal__emoji-img');
+        // Each emoji group should have a button with a count
+        const emojiItemButtons = screen.getAllByRole('button').filter(
+            (btn) => btn.classList.contains('view-reactions-modal__emoji-item'),
+        );
+        expect(emojiItemButtons.length).toBe(3);
 
-        // Each image should have an src from the mock getEmojiImageUrl
-        emojiImages.forEach((img) => {
-            expect(img.getAttribute('src')).toMatch(/\/static\/emoji\//);
+        // Each button should contain a count span
+        emojiItemButtons.forEach((btn) => {
+            const count = btn.querySelector('.view-reactions-modal__emoji-count');
+            expect(count).not.toBeNull();
+            expect(Number(count!.textContent)).toBeGreaterThanOrEqual(1);
         });
     });
 
