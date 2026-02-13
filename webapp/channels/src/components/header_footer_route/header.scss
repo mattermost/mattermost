@@ -91,6 +91,14 @@
     }
 }
 
+body.announcement-bar--fixed {
+    .hfroute-header {
+        .header-back-button {
+            top: auto;
+        }
+    }
+}
+
 @media screen and (max-width: 699px) {
     .hfroute-header {
         padding: 0 24px;
