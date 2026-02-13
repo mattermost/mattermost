@@ -1,118 +1,86 @@
 // Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
 
 exports[`components/learn_more_trial_modal/learn_more_trial_modal_step should match snapshot 1`] = `
-<ContextProvider
-  value={
-    Object {
-      "getServerState": undefined,
-      "identityFunctionCheck": "once",
-      "stabilityCheck": "once",
-      "store": Object {
-        "clearActions": [Function],
-        "dispatch": [Function],
-        "getActions": [Function],
-        "getState": [Function],
-        "replaceReducer": [Function],
-        "subscribe": [Function],
-      },
-      "subscription": Object {
-        "addNestedSub": [Function],
-        "getListeners": [Function],
-        "handleChangeWrapper": [Function],
-        "isSubscribed": [Function],
-        "notifyNestedSubs": [Function],
-        "trySubscribe": [Function],
-        "tryUnsubscribe": [Function],
-      },
-    }
-  }
->
-  <LearnMoreTrialModalStep
-    buttonLabel="button"
-    description="Step description"
-    id="stepId"
-    svgElement={<svg />}
-    svgWrapperClassName="stepClassname"
-    title="Step title"
-  />
-</ContextProvider>
+<div>
+  <div
+    class="LearnMoreTrialModalStep slide-container"
+    id="learnMoreTrialModalStep-stepId"
+  >
+    <div
+      class="stepClassname svg-wrapper"
+    >
+      <svg />
+    </div>
+    <div
+      class="title"
+    >
+      Step title
+    </div>
+    <div
+      class="description"
+    >
+      Step description
+    </div>
+  </div>
+</div>
 `;
 
 exports[`components/learn_more_trial_modal/learn_more_trial_modal_step should match snapshot when loaded in cloud workspace 1`] = `
-<ContextProvider
-  value={
-    Object {
-      "getServerState": undefined,
-      "identityFunctionCheck": "once",
-      "stabilityCheck": "once",
-      "store": Object {
-        "clearActions": [Function],
-        "dispatch": [Function],
-        "getActions": [Function],
-        "getState": [Function],
-        "replaceReducer": [Function],
-        "subscribe": [Function],
-      },
-      "subscription": Object {
-        "addNestedSub": [Function],
-        "getListeners": [Function],
-        "handleChangeWrapper": [Function],
-        "isSubscribed": [Function],
-        "notifyNestedSubs": [Function],
-        "trySubscribe": [Function],
-        "tryUnsubscribe": [Function],
-      },
-    }
-  }
->
-  <LearnMoreTrialModalStep
-    bottomLeftMessage="Step bottom message"
-    buttonLabel="button"
-    description="Step description"
-    id="stepId"
-    isCloud={true}
-    svgElement={<svg />}
-    svgWrapperClassName="stepClassname"
-    title="Step title"
-  />
-</ContextProvider>
+<div>
+  <div
+    class="LearnMoreTrialModalStep slide-container"
+    id="learnMoreTrialModalStep-stepId"
+  >
+    <div
+      class="stepClassname svg-wrapper"
+    >
+      <svg />
+    </div>
+    <div
+      class="title"
+    >
+      Step title
+    </div>
+    <div
+      class="description"
+    >
+      Step description
+    </div>
+    <div
+      class="bottom-text-left-message"
+    >
+      Step bottom message
+    </div>
+  </div>
+</div>
 `;
 
 exports[`components/learn_more_trial_modal/learn_more_trial_modal_step should match snapshot with optional params 1`] = `
-<ContextProvider
-  value={
-    Object {
-      "getServerState": undefined,
-      "identityFunctionCheck": "once",
-      "stabilityCheck": "once",
-      "store": Object {
-        "clearActions": [Function],
-        "dispatch": [Function],
-        "getActions": [Function],
-        "getState": [Function],
-        "replaceReducer": [Function],
-        "subscribe": [Function],
-      },
-      "subscription": Object {
-        "addNestedSub": [Function],
-        "getListeners": [Function],
-        "handleChangeWrapper": [Function],
-        "isSubscribed": [Function],
-        "notifyNestedSubs": [Function],
-        "trySubscribe": [Function],
-        "tryUnsubscribe": [Function],
-      },
-    }
-  }
->
-  <LearnMoreTrialModalStep
-    bottomLeftMessage="Step bottom message"
-    buttonLabel="button"
-    description="Step description"
-    id="stepId"
-    svgElement={<svg />}
-    svgWrapperClassName="stepClassname"
-    title="Step title"
-  />
-</ContextProvider>
+<div>
+  <div
+    class="LearnMoreTrialModalStep slide-container"
+    id="learnMoreTrialModalStep-stepId"
+  >
+    <div
+      class="stepClassname svg-wrapper"
+    >
+      <svg />
+    </div>
+    <div
+      class="title"
+    >
+      Step title
+    </div>
+    <div
+      class="description"
+    >
+      Step description
+    </div>
+    <div
+      class="bottom-text-left-message"
+    >
+      Step bottom message
+    </div>
+  </div>
+</div>
 `;

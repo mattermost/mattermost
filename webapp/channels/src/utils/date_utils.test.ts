@@ -8,6 +8,7 @@ import {
     stringToMoment,
     momentToString,
     resolveRelativeDate,
+    formatDateForDisplay,
 } from './date_utils';
 
 describe('date_utils', () => {
@@ -357,6 +358,58 @@ describe('date_utils', () => {
                 const displayed = moment?.tz(timezone).format('YYYY-MM-DD HH:mm:ss');
                 expect(displayed).toBe(expected);
             });
+        });
+    });
+
+    describe('formatDateForDisplay', () => {
+        it('should format date with short month and numeric day/year', () => {
+            const date = new Date('2025-01-15T10:00:00Z');
+            const result = formatDateForDisplay(date, 'en-US');
+
+            // Should match pattern: "Jan 15, 2025"
+            expect(result).toMatch(/^[A-Z][a-z]{2} \d{1,2}, \d{4}$/);
+            expect(result).toContain('Jan');
+            expect(result).toContain('15');
+            expect(result).toContain('2025');
+        });
+
+        it('should use provided locale', () => {
+            const date = new Date('2025-01-15T10:00:00Z');
+            const result = formatDateForDisplay(date, 'en-US');
+
+            // Format should be consistent regardless of system locale
+            expect(result).toBeTruthy();
+            expect(result.length).toBeGreaterThan(0);
+        });
+
+        it('should fallback to navigator language if no locale provided', () => {
+            const date = new Date('2025-01-15T10:00:00Z');
+            const result = formatDateForDisplay(date);
+
+            // Should still format successfully using default locale
+            expect(result).toBeTruthy();
+            expect(result).toContain('15');
+            expect(result).toContain('2025');
+        });
+
+        it('should handle invalid dates gracefully', () => {
+            const invalidDate = new Date('invalid');
+            const result = formatDateForDisplay(invalidDate, 'en-US');
+
+            // Should return fallback without throwing
+            expect(result).toBeTruthy();
+        });
+
+        it('should format dates consistently for datetime fields', () => {
+            const date1 = new Date('2025-06-15T14:30:00Z');
+            const date2 = new Date('2025-12-25T09:00:00Z');
+
+            const result1 = formatDateForDisplay(date1, 'en-US');
+            const result2 = formatDateForDisplay(date2, 'en-US');
+
+            // Both should use same format pattern
+            expect(result1).toMatch(/^[A-Z][a-z]{2} \d{1,2}, \d{4}$/);
+            expect(result2).toMatch(/^[A-Z][a-z]{2} \d{1,2}, \d{4}$/);
         });
     });
 });
