@@ -424,8 +424,7 @@ export type RecapUpdated = BaseWebSocketMessage<WebSocketEvents.RecapUpdated, {
 
 export type PostTranslationUpdated = BaseWebSocketMessage<WebSocketEvents.PostTranslationUpdated, {
     object_id: string;
-    translations: Array<{
-        language: string;
+    translations: Record<string, {
         state: 'ready' | 'skipped' | 'processing' | 'unavailable';
         translation?: string;
         translation_type?: string;

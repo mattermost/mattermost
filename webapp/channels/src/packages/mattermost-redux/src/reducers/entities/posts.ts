@@ -434,21 +434,26 @@ export function handlePosts(state: IDMappedObjects<Post> = {}, action: MMReduxAc
     }
 
     case PostTypes.POST_TRANSLATION_UPDATED: {
-        const data: WebSocketMessages.PostTranslationUpdated['data'] = action.data;
+        const data: {
+            object_id: string;
+            language: string;
+            state: 'ready' | 'skipped' | 'processing' | 'unavailable';
+            translation?: string;
+            src_lang?: string;
+        } = action.data;
         if (!state[data.object_id]) {
             return state;
         }
 
         const existingTranslations = state[data.object_id].metadata?.translations || {};
-        const newTranslations = {...existingTranslations};
-
-        for (const t of data.translations) {
-            newTranslations[t.language] = {
-                object: t.translation ? JSON.parse(t.translation) : undefined,
-                state: t.state,
-                source_lang: t.src_lang,
-            };
-        }
+        const newTranslations = {
+            ...existingTranslations,
+            [data.language]: {
+                object: data.translation ? JSON.parse(data.translation) : undefined,
+                state: data.state,
+                source_lang: data.src_lang,
+            },
+        };
 
         return {
             ...state,
