@@ -1,5 +1,5 @@
 ---
-name: E2E Tests (smoke-then-full)
+name: E2E Tests (full)
 on:
   # Argo Events Trigger (automated):
   #   - Triggered by: Enterprise CI/docker-image status check (success)
