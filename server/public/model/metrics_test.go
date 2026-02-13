@@ -75,3 +75,61 @@ func TestPerformanceReport_IsValid(t *testing.T) {
 		})
 	}
 }
+
+func TestPerformanceReport_ProcessLabels(t *testing.T) {
+	tests := []struct {
+		name     string
+		labels   map[string]string
+		expected map[string]string
+	}{
+		{
+			name: "normalizes known values case-insensitively",
+			labels: map[string]string{
+				"platform":              "IOS",
+				"agent":                 "SafARi",
+				"desktop_app_version":   "6.2.0",
+				"network_request_group": "websocket reconnect deferred",
+			},
+			expected: map[string]string{
+				"platform":              "ios",
+				"agent":                 "safari",
+				"desktop_app_version":   "6.2.0",
+				"network_request_group": "WebSocket Reconnect Deferred",
+			},
+		},
+		{
+			name: "defaults unknown values",
+			labels: map[string]string{
+				"platform":              "plan9",
+				"agent":                 "netscape",
+				"network_request_group": "mystery",
+			},
+			expected: map[string]string{
+				"platform":              "other",
+				"agent":                 "other",
+				"desktop_app_version":   "",
+				"network_request_group": "Login",
+			},
+		},
+		{
+			name:   "handles missing labels",
+			labels: nil,
+			expected: map[string]string{
+				"platform":              "other",
+				"agent":                 "other",
+				"desktop_app_version":   "",
+				"network_request_group": "Login",
+			},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			report := &PerformanceReport{
+				Labels: tt.labels,
+			}
+
+			require.Equal(t, tt.expected, report.ProcessLabels())
+		})
+	}
+}

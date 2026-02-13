@@ -148,13 +148,13 @@ func processLabel(labels map[string]string, name string, acceptedValues map[stri
 	if !ok {
 		return defaultValue
 	}
-	value = strings.ToLower(value)
 
-	// check if the value is one that we accept
-	_, ok = acceptedValues[value]
-	if !ok {
-		return defaultValue
+	// Match case-insensitively while preserving the canonical accepted value.
+	for acceptedValue := range acceptedValues {
+		if strings.EqualFold(value, acceptedValue) {
+			return acceptedValue
+		}
 	}
 
-	return value
+	return defaultValue
 }
