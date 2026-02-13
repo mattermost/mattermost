@@ -1,0 +1,225 @@
+{
+    "version": 1,
+    "flows": [
+        {
+            "id": "messaging.send",
+            "name": "Send Message",
+            "priority": "P0",
+            "keywords": ["message", "post", "send"],
+            "paths": [
+                "channels/src/components/post/**",
+                "channels/src/components/post_view/**",
+                "channels/src/components/message_with_additional_content.tsx",
+                "channels/src/components/post_markdown/**"
+            ],
+            "tests": ["e2e-tests/playwright/specs/functional/ai-assisted/messaging.send/send_message.spec.ts"],
+            "audience": ["member", "guest"],
+            "flags": [
+                {
+                    "name": "WysiwygEditor",
+                    "source": "feature"
+                }
+            ]
+        },
+        {
+            "id": "messaging.realtime",
+            "name": "Realtime Receive Messages",
+            "priority": "P0",
+            "keywords": ["websocket", "realtime"],
+            "paths": ["channels/src/actions/websocket_actions.ts", "platform/client/src/websocket_*"],
+            "tests": [
+                "e2e-tests/playwright/specs/functional/ai-assisted/messaging.realtime/realtime_receive_messages.spec.ts",
+                "e2e-tests/playwright/specs/functional/ai-assisted/realtime_receive_messages/realtime_receive_messages.spec.ts"
+            ],
+            "audience": ["member", "guest"],
+            "flags": [
+                {
+                    "name": "WebSocketEventScope",
+                    "source": "feature"
+                }
+            ]
+        },
+        {
+            "id": "messaging.persistence",
+            "name": "Message Persistence",
+            "priority": "P0",
+            "keywords": ["persistence", "message", "post"],
+            "paths": ["channels/src/components/post_view/**", "platform/client/src/websocket_message.ts"],
+            "tests": [
+                "e2e-tests/playwright/specs/functional/ai-assisted/message_persistence/message_persistence.spec.ts"
+            ],
+            "audience": ["member", "guest"],
+            "flags": []
+        },
+        {
+            "id": "messaging.markdown",
+            "name": "Markdown Rendering",
+            "priority": "P0",
+            "keywords": ["markdown"],
+            "paths": ["channels/src/components/post_markdown/**"],
+            "tests": [
+                "e2e-tests/playwright/specs/functional/ai-assisted/markdown_rendering/markdown_rendering.spec.ts"
+            ],
+            "audience": ["member", "guest"],
+            "flags": [
+                {
+                    "name": "WysiwygEditor",
+                    "source": "feature"
+                }
+            ]
+        },
+        {
+            "id": "messaging.mentions",
+            "name": "Mentions Rendering",
+            "priority": "P0",
+            "keywords": ["mention", "mentions"],
+            "paths": ["channels/src/components/post_view/**"],
+            "tests": ["e2e-tests/playwright/specs/functional/channels/mentions/multiple_mentions.spec.ts"],
+            "audience": ["member", "guest"],
+            "flags": []
+        },
+        {
+            "id": "channels.list",
+            "name": "Channel List Rendering",
+            "priority": "P0",
+            "keywords": ["channel", "channels", "sidebar"],
+            "paths": [
+                "channels/src/components/channel_header/**",
+                "channels/src/components/channel_header_menu/**",
+                "channels/src/components/channel_settings_modal/**"
+            ],
+            "tests": [
+                "e2e-tests/playwright/specs/accessibility/channels/intro_channel.spec.ts",
+                "e2e-tests/playwright/specs/visual/channels/intro_channel.spec.ts"
+            ],
+            "audience": ["member", "guest"],
+            "flags": []
+        },
+        {
+            "id": "channels.switch",
+            "name": "Channel Switching",
+            "priority": "P0",
+            "keywords": ["channel", "switch"],
+            "paths": ["channels/src/components/channel_header/**", "channels/src/components/channel_header_menu/**"],
+            "tests": [],
+            "audience": ["member", "guest"],
+            "flags": []
+        },
+        {
+            "id": "channels.lifecycle",
+            "name": "Channel Create/Join/Leave",
+            "priority": "P0",
+            "keywords": ["channel", "create", "join", "leave", "invite"],
+            "paths": [
+                "channels/src/components/channel_header_menu/**",
+                "channels/src/components/channel_settings_modal/**"
+            ],
+            "tests": ["e2e-tests/playwright/specs/accessibility/channels/add_people_to_channel_dialog.spec.ts"],
+            "audience": ["member", "guest"],
+            "flags": []
+        },
+        {
+            "id": "messaging.edit",
+            "name": "Edit Message",
+            "priority": "P1",
+            "keywords": ["edit", "message"],
+            "paths": ["channels/src/components/post_edit_history/**", "channels/src/components/post/**"],
+            "tests": [
+                "e2e-tests/playwright/specs/functional/channels/file_attachments/edit_message_with_attachment.spec.ts"
+            ],
+            "audience": ["member", "guest"],
+            "flags": [
+                {
+                    "name": "WysiwygEditor",
+                    "source": "feature"
+                }
+            ]
+        },
+        {
+            "id": "messaging.delete",
+            "name": "Delete Message",
+            "priority": "P1",
+            "keywords": ["delete", "message"],
+            "paths": ["channels/src/components/post/**", "channels/src/components/post_edit_history/**"],
+            "tests": [
+                "e2e-tests/playwright/specs/functional/channels/content_flagging/edge-cases/author-deletes-message-before-review.spec.ts"
+            ],
+            "audience": ["member", "guest"],
+            "flags": []
+        },
+        {
+            "id": "messaging.threads",
+            "name": "Threads",
+            "priority": "P1",
+            "keywords": ["thread", "threads"],
+            "paths": ["channels/src/components/threading/**"],
+            "tests": [
+                "e2e-tests/playwright/specs/functional/channels/threads/threads_list.spec.ts",
+                "e2e-tests/playwright/specs/functional/channels/message_scroll/thread_appears_and_scrollable_in_the_rhs.spec.ts"
+            ],
+            "audience": ["member", "guest"],
+            "flags": [
+                {
+                    "name": "MoveThreadsEnabled",
+                    "source": "feature"
+                }
+            ]
+        },
+        {
+            "id": "threads.popout",
+            "name": "Multi-window Threads",
+            "priority": "P1",
+            "keywords": ["thread", "threads", "popout", "multi-window"],
+            "paths": ["channels/src/components/threading/**"],
+            "tests": [],
+            "audience": ["member", "guest"],
+            "flags": [
+                {
+                    "name": "MoveThreadsEnabled",
+                    "source": "feature"
+                }
+            ]
+        },
+        {
+            "id": "search.messages",
+            "name": "Search",
+            "priority": "P1",
+            "keywords": ["search"],
+            "paths": ["channels/src/components/search_results/**", "channels/src/components/search/**"],
+            "tests": [
+                "e2e-tests/playwright/specs/functional/channels/search/find_channels.spec.ts",
+                "e2e-tests/playwright/specs/functional/channels/search/search_box_clear_button.spec.ts",
+                "e2e-tests/playwright/specs/functional/channels/search/search_box_suggestions.spec.ts",
+                "e2e-tests/playwright/specs/functional/channels/search/team_selector.spec.ts"
+            ],
+            "audience": ["member", "guest"],
+            "flags": []
+        },
+        {
+            "id": "channels.settings",
+            "name": "Channel Settings",
+            "priority": "P1",
+            "keywords": ["settings", "channel"],
+            "paths": ["channels/src/components/channel_settings_modal/**"],
+            "tests": [
+                "e2e-tests/playwright/specs/accessibility/channels/settings_dialog/settings.spec.ts",
+                "e2e-tests/playwright/specs/visual/channels/settings_dialog/settings_dialog.spec.ts"
+            ],
+            "audience": ["channel_admin", "team_admin", "system_admin"],
+            "flags": []
+        },
+        {
+            "id": "accessibility.core",
+            "name": "Accessibility Core",
+            "priority": "P1",
+            "keywords": ["accessibility", "keyboard"],
+            "paths": ["channels/src/components/**"],
+            "tests": [
+                "e2e-tests/playwright/specs/accessibility/channels/account_menu_keyboard.spec.ts",
+                "e2e-tests/playwright/specs/accessibility/channels/team_menu.spec.ts"
+            ],
+            "audience": ["member", "guest"],
+            "flags": []
+        }
+    ]
+}

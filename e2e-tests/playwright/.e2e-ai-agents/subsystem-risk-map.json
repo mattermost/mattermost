@@ -1,0 +1,136 @@
+{
+  "schemaVersion": "1.0.0",
+  "rules": [
+    {
+      "id": "platform-client-contracts",
+      "description": "Shared client/type contracts can ripple across channels, webapp plugins, and API interactions.",
+      "patterns": [
+        "platform/client/src/**",
+        "platform/types/src/**"
+      ],
+      "scoreDelta": 4,
+      "priorityFloor": "P0",
+      "reasons": [
+        "Shared platform client/types changed; broad integration blast radius is likely."
+      ],
+      "keywords": [
+        "platform",
+        "client",
+        "types"
+      ]
+    },
+    {
+      "id": "auth-permissions-surface",
+      "description": "Authentication, permissions, and admin pathways require strict regression coverage.",
+      "patterns": [
+        "channels/src/**/auth/**",
+        "channels/src/**/permission*/**",
+        "channels/src/**/admin*/**"
+      ],
+      "scoreDelta": 4,
+      "priorityFloor": "P0",
+      "reasons": [
+        "Auth/permission/admin surface changed; high risk for access-control regressions."
+      ],
+      "keywords": [
+        "auth",
+        "permissions",
+        "admin",
+        "security"
+      ]
+    },
+    {
+      "id": "realtime-websocket-surface",
+      "description": "WebSocket/realtime handlers affect message delivery, ordering, and presence.",
+      "patterns": [
+        "channels/src/actions/websocket_actions.ts",
+        "channels/src/**/websocket*/**",
+        "channels/src/**/realtime*/**"
+      ],
+      "scoreDelta": 3,
+      "priorityFloor": "P0",
+      "reasons": [
+        "Realtime transport logic changed; core messaging flows can regress silently."
+      ],
+      "keywords": [
+        "websocket",
+        "realtime",
+        "messaging"
+      ]
+    },
+    {
+      "id": "post-composer-markdown",
+      "description": "Composer and markdown changes affect message creation and rendering paths.",
+      "patterns": [
+        "channels/src/components/advanced_text_editor/**",
+        "channels/src/**/markdown/**",
+        "channels/src/**/post_*/**"
+      ],
+      "scoreDelta": 3,
+      "priorityFloor": "P1",
+      "reasons": [
+        "Composer/markdown surface changed; end-user authoring and formatting flows are affected."
+      ],
+      "keywords": [
+        "composer",
+        "markdown",
+        "post"
+      ]
+    },
+    {
+      "id": "channel-navigation-lists",
+      "description": "Channel navigation/list surfaces are central to daily user journeys.",
+      "patterns": [
+        "channels/src/components/channel_sidebar/**",
+        "channels/src/components/channel_list/**",
+        "channels/src/components/channel_switcher/**"
+      ],
+      "scoreDelta": 2,
+      "priorityFloor": "P1",
+      "reasons": [
+        "Channel navigation changed; user routing and discoverability flows are high-traffic."
+      ],
+      "keywords": [
+        "channels",
+        "navigation",
+        "sidebar"
+      ]
+    },
+    {
+      "id": "plugins-runtime-surface",
+      "description": "Plugin runtime and hooks can impact many screens indirectly.",
+      "patterns": [
+        "channels/src/plugins/**",
+        "plugins/**"
+      ],
+      "scoreDelta": 3,
+      "priorityFloor": "P1",
+      "reasons": [
+        "Plugin integration surface changed; extension points can affect multiple workflows."
+      ],
+      "keywords": [
+        "plugins",
+        "extensions"
+      ]
+    },
+    {
+      "id": "state-store-selectors",
+      "description": "Core stores/reducers/selectors can fan out to many components.",
+      "patterns": [
+        "channels/src/store/**",
+        "channels/src/reducers/**",
+        "channels/src/selectors/**"
+      ],
+      "scoreDelta": 2,
+      "priorityFloor": "P1",
+      "reasons": [
+        "State management surface changed; downstream UI behavior may shift widely."
+      ],
+      "keywords": [
+        "store",
+        "reducers",
+        "selectors"
+      ]
+    }
+  ]
+}

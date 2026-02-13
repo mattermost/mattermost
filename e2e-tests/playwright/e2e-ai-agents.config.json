@@ -1,0 +1,90 @@
+{
+  "path": "../../webapp",
+  "testsRoot": ".",
+  "mode": "impact",
+  "framework": "playwright",
+  "flowCatalogPath": ".e2e-ai-agents/flows.json",
+  "testDiscovery": {
+    "patterns": [
+      "specs/**/*.spec.ts"
+    ]
+  },
+  "flowDiscovery": {
+    "patterns": [
+      "channels/src/**/*.{ts,tsx,js,jsx}",
+      "components/**/*.{ts,tsx,js,jsx}"
+    ],
+    "exclude": [
+      "**/*.test.*",
+      "**/*.spec.*",
+      "**/node_modules/**",
+      "**/dist/**"
+    ]
+  },
+  "impact": {
+    "allowFallback": false,
+    "dependencyGraph": {
+      "enabled": true,
+      "maxDepth": 3,
+      "maxExpandedFiles": 1200,
+      "filePatterns": [
+        "**/*.{ts,tsx,js,jsx}"
+      ],
+      "excludePatterns": [
+        "**/node_modules/**",
+        "**/dist/**",
+        "**/build/**",
+        "**/*.test.*",
+        "**/*.spec.*"
+      ],
+      "aliasRoots": [
+        "channels/src",
+        "components/src",
+        "platform"
+      ],
+      "pathAliases": {
+        "@mattermost/client/*": [
+          "platform/client/src/*"
+        ],
+        "@mattermost/types/*": [
+          "platform/types/src/*"
+        ]
+      }
+    },
+    "traceability": {
+      "enabled": true,
+      "manifestPath": ".e2e-ai-agents/traceability.json",
+      "minSignalsPerTest": 1
+    },
+    "subsystemRisk": {
+      "enabled": true,
+      "mapPath": ".e2e-ai-agents/subsystem-risk-map.json",
+      "maxRulesPerFile": 4
+    }
+  },
+  "policy": {
+    "minConfidenceForTargeted": 60,
+    "safeMergeMinConfidence": 85,
+    "forceFullOnWarningsAtOrAbove": 3,
+    "forceFullOnP0WithGaps": true,
+    "forceFullOnRiskyFiles": true,
+    "riskyFilePatterns": [
+      "**/auth/**",
+      "**/permissions/**",
+      "**/admin/**",
+      "**/security/**",
+      "**/*.sql"
+    ]
+  },
+  "git": {
+    "since": "origin/master",
+    "includeUncommitted": true
+  },
+  "pipeline": {
+    "enabled": false,
+    "scenarios": 3,
+    "outputDir": "specs/functional/ai-assisted",
+    "heal": true,
+    "mcp": true
+  }
+}

@@ -25,12 +25,20 @@
     "codegen": "npm run build && cross-env playwright codegen $PW_BASE_URL",
     "playwright-ui": "npm run build && cross-env playwright test --ui",
     "show-report": "npm run build && npx playwright show-report results/reporter",
-    "clean": "rm -rf dist node_modules package-lock.json *.tsbuildinfo logs results storage_state test-results && npm run clean --workspaces"
+    "clean": "rm -rf dist node_modules package-lock.json *.tsbuildinfo logs results storage_state test-results && npm run clean --workspaces",
+    "test:impact:agents": "node ./node_modules/@yasserkhanorg/e2e-agents/dist/cli.js impact --path ../../webapp --tests-root . --config ./e2e-ai-agents.config.json",
+    "test:recommend:agents": "node ./node_modules/@yasserkhanorg/e2e-agents/dist/cli.js suggest --path ../../webapp --tests-root . --config ./e2e-ai-agents.config.json",
+    "test:approve-generate:agents": "node ./node_modules/@yasserkhanorg/e2e-agents/dist/cli.js approve-and-generate --path ../../webapp --tests-root . --config ./e2e-ai-agents.config.json",
+    "test:finalize-generated:agents": "node ./node_modules/@yasserkhanorg/e2e-agents/dist/cli.js finalize-generated-tests --path ../../webapp --tests-root .",
+    "test:traceability:ingest:agents": "node ./node_modules/@yasserkhanorg/e2e-agents/dist/cli.js traceability-ingest --path ../../webapp --tests-root . --traceability-input ./.e2e-ai-agents/traceability-input.json",
+    "test:impact": "node ./node_modules/@yasserkhanorg/e2e-agents/dist/cli.js impact --path ../../webapp --tests-root . --config ./e2e-ai-agents.config.json",
+    "test:impact:pr": "node ./node_modules/@yasserkhanorg/e2e-agents/dist/cli.js impact --path ../../webapp --tests-root . --config ./e2e-ai-agents.config.json --since origin/master"
   },
   "dependencies": {
     "@mattermost/client": "file:../../webapp/platform/client",
     "@mattermost/playwright-lib": "*",
-    "@mattermost/types": "file:../../webapp/platform/types"
+    "@mattermost/types": "file:../../webapp/platform/types",
+    "@yasserkhanorg/e2e-agents": "^0.3.2"
   },
   "devDependencies": {
     "@playwright/test": "1.58.1",
