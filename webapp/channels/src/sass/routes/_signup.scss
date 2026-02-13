@@ -252,8 +252,7 @@ body {
         height: functions.em(38px);
     }
 
-    // This flow has a fixed white background, so the team name input must not
-    // inherit light themed text colors.
+    // Keep team name input readable on this fixed white background.
     #teamNameInput {
         color: #3f4350;
 
