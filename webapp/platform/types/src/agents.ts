@@ -7,6 +7,7 @@ export type Agent = {
     username: string;
     service_id: string;
     service_type: string;
+    is_default?: boolean;
 };
 
 export type LLMService = {
