@@ -116,6 +116,92 @@ func TestCreateUpload(t *testing.T) {
 			require.NoError(t, err)
 			require.NotEmpty(t, u)
 		})
+
+		t.Run("directory conflict - import directory is subdirectory of plugin directory", func(t *testing.T) {
+			originalPluginDir := *th.App.Config().PluginSettings.Directory
+			originalImportDir := *th.App.Config().ImportSettings.Directory
+
+			// Use non-existent paths to test conflict detection without filesystem dependencies
+			pluginDir := "/nonexistent/conflict-test/plugins"
+			importDir := "/nonexistent/conflict-test/plugins/imports"
+
+			defer th.App.UpdateConfig(func(cfg *model.Config) {
+				*cfg.PluginSettings.Directory = originalPluginDir
+				*cfg.ImportSettings.Directory = originalImportDir
+			})
+
+			th.App.UpdateConfig(func(cfg *model.Config) {
+				*cfg.PluginSettings.Directory = pluginDir
+				*cfg.ImportSettings.Directory = importDir
+			})
+
+			us := &model.UploadSession{
+				Filename: info.Name(),
+				FileSize: info.Size(),
+				Type:     model.UploadTypeImport,
+			}
+			u, resp, err := th.SystemAdminClient.CreateUpload(context.Background(), us)
+			require.Nil(t, u)
+			CheckErrorID(t, err, "api.upload.create.directory_conflict.app_error")
+			require.Equal(t, http.StatusForbidden, resp.StatusCode)
+		})
+
+		t.Run("directory conflict - plugin directory is subdirectory of import directory", func(t *testing.T) {
+			originalPluginDir := *th.App.Config().PluginSettings.Directory
+			originalImportDir := *th.App.Config().ImportSettings.Directory
+
+			// Use non-existent paths to test conflict detection without filesystem dependencies
+			importDir := "/nonexistent/conflict-test/data"
+			pluginDir := "/nonexistent/conflict-test/data/plugins"
+
+			defer th.App.UpdateConfig(func(cfg *model.Config) {
+				*cfg.PluginSettings.Directory = originalPluginDir
+				*cfg.ImportSettings.Directory = originalImportDir
+			})
+
+			th.App.UpdateConfig(func(cfg *model.Config) {
+				*cfg.ImportSettings.Directory = importDir
+				*cfg.PluginSettings.Directory = pluginDir
+			})
+
+			us := &model.UploadSession{
+				Filename: info.Name(),
+				FileSize: info.Size(),
+				Type:     model.UploadTypeImport,
+			}
+			u, resp, err := th.SystemAdminClient.CreateUpload(context.Background(), us)
+			require.Nil(t, u)
+			CheckErrorID(t, err, "api.upload.create.directory_conflict.app_error")
+			require.Equal(t, http.StatusForbidden, resp.StatusCode)
+		})
+
+		t.Run("directory conflict - same directory", func(t *testing.T) {
+			originalPluginDir := *th.App.Config().PluginSettings.Directory
+			originalImportDir := *th.App.Config().ImportSettings.Directory
+
+			// Use non-existent path to test conflict detection without filesystem dependencies
+			sharedDir := "/nonexistent/conflict-test/shared"
+
+			defer th.App.UpdateConfig(func(cfg *model.Config) {
+				*cfg.PluginSettings.Directory = originalPluginDir
+				*cfg.ImportSettings.Directory = originalImportDir
+			})
+
+			th.App.UpdateConfig(func(cfg *model.Config) {
+				*cfg.PluginSettings.Directory = sharedDir
+				*cfg.ImportSettings.Directory = sharedDir
+			})
+
+			us := &model.UploadSession{
+				Filename: info.Name(),
+				FileSize: info.Size(),
+				Type:     model.UploadTypeImport,
+			}
+			u, resp, err := th.SystemAdminClient.CreateUpload(context.Background(), us)
+			require.Nil(t, u)
+			CheckErrorID(t, err, "api.upload.create.directory_conflict.app_error")
+			require.Equal(t, http.StatusForbidden, resp.StatusCode)
+		})
 	})
 
 	t.Run("should clean filename", func(t *testing.T) {
