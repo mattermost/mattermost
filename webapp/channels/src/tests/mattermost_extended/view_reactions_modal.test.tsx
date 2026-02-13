@@ -33,22 +33,23 @@ jest.mock('mattermost-redux/utils/emoji_utils', () => ({
 }));
 
 // Mock utils/emoji with a controlled set of emojis
-const mockEmojiIndices = new Map<string, number>();
-mockEmojiIndices.set('thumbsup', 0);
-mockEmojiIndices.set('+1', 0);
-mockEmojiIndices.set('heart', 1);
-mockEmojiIndices.set('smile', 2);
+// NOTE: Data must be defined INSIDE the factory because jest.mock() is hoisted above variable declarations
+jest.mock('utils/emoji', () => {
+    const indices = new Map<string, number>();
+    indices.set('thumbsup', 0);
+    indices.set('+1', 0);
+    indices.set('heart', 1);
+    indices.set('smile', 2);
 
-const mockEmojis = [
-    {short_name: 'thumbsup', unified: '1F44D'},
-    {short_name: 'heart', unified: '2764'},
-    {short_name: 'smile', unified: '1F604'},
-];
-
-jest.mock('utils/emoji', () => ({
-    EmojiIndicesByAlias: mockEmojiIndices,
-    Emojis: mockEmojis,
-}));
+    return {
+        EmojiIndicesByAlias: indices,
+        Emojis: [
+            {short_name: 'thumbsup', unified: '1F44D'},
+            {short_name: 'heart', unified: '2764'},
+            {short_name: 'smile', unified: '1F604'},
+        ],
+    };
+});
 
 // Mock getMissingProfilesByIds action
 const mockGetMissingProfilesByIds = jest.fn(() => ({type: 'MOCK_GET_MISSING_PROFILES'}));

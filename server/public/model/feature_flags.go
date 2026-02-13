@@ -171,6 +171,9 @@ type FeatureFlags struct {
 
 	// Enable server-side channel category sync across all users per team
 	ChannelSync bool
+
+	// Enable "View Reactions" dialog in post dot menu
+	ViewReactionsDialog bool
 }
 
 // featureFlagDefaults defines the default value for each boolean feature flag.

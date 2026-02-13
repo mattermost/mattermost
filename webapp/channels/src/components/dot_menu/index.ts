@@ -152,7 +152,7 @@ function makeMapStateToProps() {
             isBurnOnReadPost: isBoRPost,
             isUnrevealedBurnOnReadPost: shouldDisplayConcealedPlaceholder(state, post.id),
             discordRepliesEnabled: config?.FeatureFlagDiscordReplies === 'true',
-            hasReactions: Boolean(state.entities.posts.reactions[post.id] && Object.keys(state.entities.posts.reactions[post.id]).length > 0),
+            hasReactions: config?.FeatureFlagViewReactionsDialog === 'true' && Boolean(state.entities.posts.reactions[post.id] && Object.keys(state.entities.posts.reactions[post.id]).length > 0),
         };
     };
 }

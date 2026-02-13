@@ -32,6 +32,7 @@ import {
     ShieldOutlineIcon,
     ChevronDownIcon,
     ViewGridPlusOutlineIcon,
+    EmoticonOutlineIcon,
 } from '@mattermost/compass-icons/components';
 
 export const messages = defineMessages({
@@ -296,6 +297,15 @@ const FEATURES: FeatureDefinition[] = [
         section: 'ux',
         icon: PaletteOutlineIcon,
         isMajor: true,
+    },
+    {
+        key: 'ViewReactionsDialog',
+        title: 'View Reactions Dialog',
+        description: 'Add "View Reactions" option to post menu showing who reacted with each emoji.',
+        defaultValue: false,
+        section: 'ux',
+        icon: EmoticonOutlineIcon,
+        isMajor: false,
     },
 
     // Status & Activity
