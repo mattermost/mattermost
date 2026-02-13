@@ -481,9 +481,19 @@ function handlePostReceived(nextState: any, post: Post, nestedPermalinkLevel?: n
         currentState[post.id] = {...currentState[post.id], ...post.metadata};
     }
 
-    // Edited posts that don't have 'is_following' specified should maintain 'is_following' state
-    if (post.update_at > 0 && post.is_following == null && currentState[post.id]) {
-        post.is_following = currentState[post.id].is_following;
+    // Posts that don't have CRT fields specified should maintain existing state.
+    // This happens when posts are returned via GetPostsByIds (e.g. translation
+    // supplement) which doesn't JOIN the Threads/ThreadMemberships tables.
+    if (post.update_at > 0 && currentState[post.id]) {
+        if (post.is_following == null) {
+            post.is_following = currentState[post.id].is_following;
+        }
+        if (post.participants == null && currentState[post.id].participants) {
+            post.participants = currentState[post.id].participants;
+        }
+        if (!post.last_reply_at && currentState[post.id].last_reply_at) {
+            post.last_reply_at = currentState[post.id].last_reply_at;
+        }
     }
 
     if (post.delete_at > 0) {

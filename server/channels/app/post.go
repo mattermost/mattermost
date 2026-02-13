@@ -1232,6 +1232,8 @@ func (a *App) GetPostsSince(rctx request.CTX, options model.GetPostsSinceOptions
 		return nil, model.NewAppError("GetPostsSince", "app.post.get_posts_since.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
+	a.supplementWithTranslationUpdatedPosts(rctx, postList, options.ChannelId, options.Time, options.CollapsedThreads)
+
 	if appErr := a.filterInaccessiblePosts(postList, filterPostOptions{assumeSortedCreatedAt: true}); appErr != nil {
 		return nil, appErr
 	}
@@ -1245,6 +1247,73 @@ func (a *App) GetPostsSince(rctx request.CTX, options model.GetPostsSinceOptions
 	a.applyPostsWillBeConsumedHook(postList.Posts)
 
 	return postList, nil
+}
+
+// supplementWithTranslationUpdatedPosts finds posts whose translations were updated after `since`
+// and adds them to the post list (Posts map only, not Order) so the client receives fresh translations.
+func (a *App) supplementWithTranslationUpdatedPosts(rctx request.CTX, postList *model.PostList, channelID string, since int64, collapsedThreads bool) {
+	if a.AutoTranslation() == nil || !a.AutoTranslation().IsFeatureAvailable() {
+		return
+	}
+
+	userID := rctx.Session().UserId
+	userLang, appErr := a.AutoTranslation().GetUserLanguage(userID, channelID)
+	if appErr != nil {
+		rctx.Logger().Debug("Failed to get user language for translation-since supplement", mlog.String("channel_id", channelID), mlog.Err(appErr))
+		return
+	}
+	if userLang == "" {
+		return
+	}
+
+	translationsMap, err := a.Srv().Store().AutoTranslation().GetTranslationsSinceForChannel(channelID, userLang, since)
+	if err != nil {
+		rctx.Logger().Warn("Failed to get translations since for channel", mlog.String("channel_id", channelID), mlog.Err(err))
+		return
+	}
+
+	// Filter to post IDs not already in the post list
+	var missingPostIDs []string
+	for postID := range translationsMap {
+		if _, exists := postList.Posts[postID]; !exists {
+			missingPostIDs = append(missingPostIDs, postID)
+		}
+	}
+
+	if len(missingPostIDs) == 0 {
+		return
+	}
+
+	posts, err := a.Srv().Store().Post().GetPostsByIds(missingPostIDs)
+	if err != nil {
+		rctx.Logger().Warn("Failed to fetch posts for translation-since supplement", mlog.Err(err))
+		return
+	}
+
+	for _, post := range posts {
+		if post.DeleteAt != 0 {
+			continue
+		}
+		if collapsedThreads && post.RootId != "" {
+			continue
+		}
+		t, ok := translationsMap[post.Id]
+		if !ok {
+			continue
+		}
+
+		if post.Metadata == nil {
+			post.Metadata = &model.PostMetadata{}
+		}
+		if post.Metadata.Translations == nil {
+			post.Metadata.Translations = make(map[string]*model.PostTranslation)
+		}
+		post.Metadata.Translations[t.Lang] = t.ToPostTranslation()
+
+		// Add to Posts map only — not to Order — so the client gets the updated translation
+		// without changing the chronological post list.
+		postList.Posts[post.Id] = post
+	}
 }
 
 func (a *App) GetSinglePost(rctx request.CTX, postID string, includeDeleted bool) (*model.Post, *model.AppError) {

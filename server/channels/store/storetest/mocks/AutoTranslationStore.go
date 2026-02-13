@@ -197,6 +197,36 @@ func (_m *AutoTranslationStore) GetLatestPostUpdateAtForChannel(channelID string
 	return r0, r1
 }
 
+// GetTranslationsSinceForChannel provides a mock function with given fields: channelID, dstLang, since
+func (_m *AutoTranslationStore) GetTranslationsSinceForChannel(channelID string, dstLang string, since int64) (map[string]*model.Translation, error) {
+	ret := _m.Called(channelID, dstLang, since)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetTranslationsSinceForChannel")
+	}
+
+	var r0 map[string]*model.Translation
+	var r1 error
+	if rf, ok := ret.Get(0).(func(string, string, int64) (map[string]*model.Translation, error)); ok {
+		return rf(channelID, dstLang, since)
+	}
+	if rf, ok := ret.Get(0).(func(string, string, int64) map[string]*model.Translation); ok {
+		r0 = rf(channelID, dstLang, since)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(map[string]*model.Translation)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(string, string, int64) error); ok {
+		r1 = rf(channelID, dstLang, since)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // GetUserLanguage provides a mock function with given fields: userID, channelID
 func (_m *AutoTranslationStore) GetUserLanguage(userID string, channelID string) (string, error) {
 	ret := _m.Called(userID, channelID)
