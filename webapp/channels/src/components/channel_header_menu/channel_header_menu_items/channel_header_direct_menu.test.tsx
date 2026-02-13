@@ -18,7 +18,7 @@ const DM_CHANNEL_ID = 'dm_channel_id';
 const CURRENT_USER_ID = 'user_id';
 
 function getBaseState(overrides?: DeepPartial<GlobalState>): DeepPartial<GlobalState> {
-    const channel = TestHelper.getChannelMock({id: DM_CHANNEL_ID, type: 'D' as const});
+    const channel = TestHelper.getChannelMock({id: DM_CHANNEL_ID, type: 'D'});
     const currentUser = TestHelper.getUserMock({id: CURRENT_USER_ID});
     return {
         entities: {
@@ -28,7 +28,9 @@ function getBaseState(overrides?: DeepPartial<GlobalState>): DeepPartial<GlobalS
                 },
             },
             general: {
-                config: {},
+                config: {
+                    EnableAutoTranslation: 'true',
+                },
             },
             users: {
                 currentUserId: CURRENT_USER_ID,
@@ -48,7 +50,7 @@ function getStateWithRestrictedDMAndGM(): DeepPartial<GlobalState> {
 }
 
 describe('components/ChannelHeaderMenu/ChannelHeaderDirectMenu', () => {
-    const channel = TestHelper.getChannelMock({id: DM_CHANNEL_ID, type: 'D' as const});
+    const channel = TestHelper.getChannelMock({id: DM_CHANNEL_ID, type: 'D'});
     const user = TestHelper.getUserMock({id: CURRENT_USER_ID});
     const defaultProps = {
         channel,

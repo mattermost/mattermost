@@ -33,7 +33,9 @@ function getBaseState(overrides?: DeepPartial<GlobalState>): DeepPartial<GlobalS
                 },
             },
             general: {
-                config: {},
+                config: {
+                    EnableAutoTranslation: 'true',
+                },
             },
             users: {
                 currentUserId: CURRENT_USER_ID,

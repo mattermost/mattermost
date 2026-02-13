@@ -22,7 +22,7 @@ export const canAccessChannelSettings = createSelector(
     (state: GlobalState, channelId: string) => channelId,
     (state: GlobalState) => getConfig(state)?.RestrictDMAndGMAutotranslation === 'true',
     (state: GlobalState) => getConfig(state)?.EnableAutoTranslation === 'true',
-    (state, channels, channelId, isAutoTranslationEnabled, isDMAndGMAutotranslationRestricted) => {
+    (state, channels, channelId, isDMAndGMAutotranslationRestricted, isAutoTranslationEnabled) => {
         const channel = channels[channelId];
         if (!channel) {
             return false;
