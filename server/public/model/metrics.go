@@ -44,6 +44,9 @@ const (
 	DesktopClientCPUUsage    MetricType = "desktop_cpu"
 	DesktopClientMemoryUsage MetricType = "desktop_memory"
 
+	// PluginWebappPerf is the metric type for plugin webapp performance metrics
+	PluginWebappPerf MetricType = "plugin_webapp_perf"
+
 	performanceReportTTLMilliseconds = 300 * 1000 // 300 seconds/5 minutes
 )
 

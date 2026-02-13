@@ -35,7 +35,7 @@ export function isDevModeEnabled(state: GlobalState) {
 export function isChannelAccessControlEnabled(state: GlobalState): boolean {
     const accessControlSettings = getAccessControlSettings(state);
 
-    // Channel-level access control requires both main ABAC and channel scope
-    return accessControlSettings.EnableAttributeBasedAccessControl &&
-           accessControlSettings.EnableChannelScopeAccessControl;
+    // Channel-level access control requires main ABAC toggle
+    // Permission system (MANAGE_CHANNEL_ACCESS_RULES) handles granular access
+    return accessControlSettings.EnableAttributeBasedAccessControl;
 }

@@ -1,43 +1,74 @@
 // Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
 
 exports[`components/drafts/draft_actions should match snapshot 1`] = `
-<ContextProvider
-  value={
-    Object {
-      "getServerState": undefined,
-      "identityFunctionCheck": "once",
-      "stabilityCheck": "once",
-      "store": Object {
-        "clearActions": [Function],
-        "dispatch": [Function],
-        "getActions": [Function],
-        "getState": [Function],
-        "replaceReducer": [Function],
-        "subscribe": [Function],
-      },
-      "subscription": Object {
-        "addNestedSub": [Function],
-        "getListeners": [Function],
-        "handleChangeWrapper": [Function],
-        "isSubscribed": [Function],
-        "notifyNestedSubs": [Function],
-        "trySubscribe": [Function],
-        "tryUnsubscribe": [Function],
-      },
-    }
-  }
->
-  <Memo(DraftActions)
-    canEdit={true}
-    canSend={true}
-    channelId=""
-    displayName=""
-    draftId=""
-    itemId=""
-    onDelete={[MockFunction]}
-    onEdit={[MockFunction]}
-    onSchedule={[MockFunction]}
-    onSend={[MockFunction]}
-  />
-</ContextProvider>
+<div>
+  <div
+    class="DraftAction"
+  >
+    <div
+      data-testid="with-tooltip"
+    >
+      <button
+        aria-labelledby="draft_tooltip_delete"
+        class="DraftAction__button DraftAction__button--delete"
+        id="draft_icon-trash-can-outline_delete"
+      >
+        <i
+          class="icon icon-trash-can-outline"
+        />
+      </button>
+    </div>
+  </div>
+  <div
+    class="DraftAction"
+  >
+    <div
+      data-testid="with-tooltip"
+    >
+      <button
+        aria-labelledby="draft_tooltip_edit"
+        class="DraftAction__button"
+        id="draft_icon-pencil-outline_edit"
+      >
+        <i
+          class="icon icon-pencil-outline"
+        />
+      </button>
+    </div>
+  </div>
+  <div
+    class="DraftAction"
+  >
+    <div
+      data-testid="with-tooltip"
+    >
+      <button
+        aria-labelledby="draft_tooltip_reschedule"
+        class="DraftAction__button"
+        id="draft_icon-clock-send-outline_reschedule"
+      >
+        <i
+          class="icon icon-clock-send-outline"
+        />
+      </button>
+    </div>
+  </div>
+  <div
+    class="DraftAction"
+  >
+    <div
+      data-testid="with-tooltip"
+    >
+      <button
+        aria-labelledby="draft_tooltip_send"
+        class="DraftAction__button"
+        id="draft_icon-send-outline_send"
+      >
+        <i
+          class="icon icon-send-outline"
+        />
+      </button>
+    </div>
+  </div>
+</div>
 `;

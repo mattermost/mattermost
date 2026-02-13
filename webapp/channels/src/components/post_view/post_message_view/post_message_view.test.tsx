@@ -32,6 +32,8 @@ describe('components/post_view/PostAttachment', () => {
         theme: {} as Theme,
         pluginPostTypes: {},
         currentRelativeTeamUrl: 'dummy_team_url',
+        isChannelAutotranslated: false,
+        userLanguage: 'en',
     };
 
     test('should match snapshot', () => {
