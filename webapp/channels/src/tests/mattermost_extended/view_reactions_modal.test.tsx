@@ -52,10 +52,13 @@ jest.mock('utils/emoji', () => {
     };
 });
 
-// Mock getCustomEmojisByName selector to avoid reselect memoization warnings across tests
-jest.mock('mattermost-redux/selectors/entities/emojis', () => ({
-    getCustomEmojisByName: () => new Map(),
-}));
+// Mock getCustomEmojisByName selector with a stable reference to avoid reselect memoization warnings
+jest.mock('mattermost-redux/selectors/entities/emojis', () => {
+    const stableMap = new Map();
+    return {
+        getCustomEmojisByName: () => stableMap,
+    };
+});
 
 // Mock getMissingProfilesByIds action
 const mockGetMissingProfilesByIds = jest.fn(() => ({type: 'MOCK_GET_MISSING_PROFILES'}));
