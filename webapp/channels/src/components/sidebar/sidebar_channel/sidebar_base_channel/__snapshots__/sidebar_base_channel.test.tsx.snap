@@ -1,137 +1,61 @@
 // Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
 
 exports[`components/sidebar/sidebar_channel/sidebar_base_channel should match snapshot 1`] = `
-<Connect(injectIntl(SidebarChannelLink))
-  ariaLabelPrefix="public channel"
-  channel={
-    Object {
-      "create_at": 0,
-      "creator_id": "",
-      "delete_at": 0,
-      "display_name": "channel_display_name",
-      "group_constrained": false,
-      "header": "",
-      "id": "channel_id",
-      "last_post_at": 0,
-      "last_root_post_at": 0,
-      "name": "",
-      "purpose": "",
-      "scheme_id": "",
-      "team_id": "",
-      "type": "O",
-      "update_at": 0,
-    }
-  }
-  channelLeaveHandler={[Function]}
-  icon={
-    <SidebarBaseChannelIcon
-      channelType="O"
-    />
-  }
-  label="channel_display_name"
-  link="/team_name/channels/"
-/>
+<div>
+  <div>
+    <button
+      aria-label="Channel options"
+    >
+      Options
+    </button>
+    <div>
+      channel_display_name
+    </div>
+  </div>
+</div>
 `;
 
 exports[`components/sidebar/sidebar_channel/sidebar_base_channel should match snapshot when private channel 1`] = `
-<Connect(injectIntl(SidebarChannelLink))
-  ariaLabelPrefix="private channel"
-  channel={
-    Object {
-      "create_at": 0,
-      "creator_id": "",
-      "delete_at": 0,
-      "display_name": "channel_display_name",
-      "group_constrained": false,
-      "header": "",
-      "id": "channel_id",
-      "last_post_at": 0,
-      "last_root_post_at": 0,
-      "name": "",
-      "purpose": "",
-      "scheme_id": "",
-      "team_id": "",
-      "type": "P",
-      "update_at": 0,
-    }
-  }
-  channelLeaveHandler={[Function]}
-  icon={
-    <SidebarBaseChannelIcon
-      channelType="P"
-    />
-  }
-  label="channel_display_name"
-  link="/team_name/channels/"
-/>
+<div>
+  <div>
+    <button
+      aria-label="Channel options"
+    >
+      Options
+    </button>
+    <div>
+      channel_display_name
+    </div>
+  </div>
+</div>
 `;
 
 exports[`components/sidebar/sidebar_channel/sidebar_base_channel should match snapshot when shared channel 1`] = `
-<Connect(injectIntl(SidebarChannelLink))
-  ariaLabelPrefix="public channel"
-  channel={
-    Object {
-      "create_at": 0,
-      "creator_id": "",
-      "delete_at": 0,
-      "display_name": "channel_display_name",
-      "group_constrained": false,
-      "header": "",
-      "id": "channel_id",
-      "last_post_at": 0,
-      "last_root_post_at": 0,
-      "name": "",
-      "purpose": "",
-      "scheme_id": "",
-      "shared": true,
-      "team_id": "",
-      "type": "O",
-      "update_at": 0,
-    }
-  }
-  channelLeaveHandler={[Function]}
-  icon={
-    <SidebarBaseChannelIcon
-      channelType="O"
-    />
-  }
-  isSharedChannel={true}
-  label="channel_display_name"
-  link="/team_name/channels/"
-/>
+<div>
+  <div>
+    <button
+      aria-label="Channel options"
+    >
+      Options
+    </button>
+    <div>
+      channel_display_name
+    </div>
+  </div>
+</div>
 `;
 
 exports[`components/sidebar/sidebar_channel/sidebar_base_channel should match snapshot when shared private channel 1`] = `
-<Connect(injectIntl(SidebarChannelLink))
-  ariaLabelPrefix="private channel"
-  channel={
-    Object {
-      "create_at": 0,
-      "creator_id": "",
-      "delete_at": 0,
-      "display_name": "channel_display_name",
-      "group_constrained": false,
-      "header": "",
-      "id": "channel_id",
-      "last_post_at": 0,
-      "last_root_post_at": 0,
-      "name": "",
-      "purpose": "",
-      "scheme_id": "",
-      "shared": true,
-      "team_id": "",
-      "type": "P",
-      "update_at": 0,
-    }
-  }
-  channelLeaveHandler={[Function]}
-  icon={
-    <SidebarBaseChannelIcon
-      channelType="P"
-    />
-  }
-  isSharedChannel={true}
-  label="channel_display_name"
-  link="/team_name/channels/"
-/>
+<div>
+  <div>
+    <button
+      aria-label="Channel options"
+    >
+      Options
+    </button>
+    <div>
+      channel_display_name
+    </div>
+  </div>
+</div>
 `;
