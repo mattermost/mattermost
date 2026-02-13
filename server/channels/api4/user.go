@@ -7,6 +7,7 @@ import (
 	"crypto/sha256"
 	"encoding/base64"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"net/http"
@@ -20,6 +21,7 @@ import (
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 
 	"github.com/mattermost/mattermost/server/v8/channels/app"
+	"github.com/mattermost/mattermost/server/v8/channels/app/email"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
 	"github.com/mattermost/mattermost/server/v8/channels/utils"
 )
@@ -69,6 +71,7 @@ func (api *API) InitUser() {
 	api.BaseRoutes.Users.Handle("/login/desktop_token", api.RateLimitedHandler(api.APIHandler(loginWithDesktopToken), model.RateLimitSettings{PerSec: model.NewPointer(2), MaxBurst: model.NewPointer(1)})).Methods(http.MethodPost)
 	api.BaseRoutes.Users.Handle("/login/switch", api.APIHandler(switchAccountType)).Methods(http.MethodPost)
 	api.BaseRoutes.Users.Handle("/login/cws", api.APIHandlerTrustRequester(loginCWS)).Methods(http.MethodPost)
+	api.BaseRoutes.Users.Handle("/login/type", api.APIHandler(getLoginType)).Methods(http.MethodPost)
 	api.BaseRoutes.Users.Handle("/logout", api.APIHandler(logout)).Methods(http.MethodPost)
 
 	api.BaseRoutes.UserByUsername.Handle("", api.APISessionRequired(getUserByUsername)).Methods(http.MethodGet)
@@ -240,7 +243,7 @@ func createUser(c *Context, w http.ResponseWriter, r *http.Request) {
 		}
 		auditRec.AddMeta("token_type", token.Type)
 
-		if token.Type == app.TokenTypeGuestInvitation {
+		if token.Type == model.TokenTypeGuestInvitation {
 			if c.App.Channels().License() == nil {
 				c.Err = model.NewAppError("CreateUserWithToken", "api.user.create_user.guest_accounts.license.app_error", nil, "", http.StatusBadRequest)
 				return
@@ -919,7 +922,7 @@ func getUsers(c *Context, w http.ResponseWriter, r *http.Request) {
 
 		profiles, appErr = c.App.GetUsersWithoutTeamPage(userGetOptions, c.IsSystemAdmin())
 	} else if notInChannelId != "" {
-		if !c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), notInChannelId, model.PermissionReadChannel) {
+		if ok, _ := c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), notInChannelId, model.PermissionReadChannel); !ok {
 			c.SetPermissionError(model.PermissionReadChannel)
 			return
 		}
@@ -961,7 +964,7 @@ func getUsers(c *Context, w http.ResponseWriter, r *http.Request) {
 			profiles, appErr = c.App.GetUsersInTeamPage(userGetOptions, c.IsSystemAdmin())
 		}
 	} else if inChannelId != "" {
-		if !c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), inChannelId, model.PermissionReadChannel) {
+		if ok, _ := c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), inChannelId, model.PermissionReadChannel); !ok {
 			c.SetPermissionError(model.PermissionReadChannel)
 			return
 		}
@@ -1168,14 +1171,18 @@ func searchUsers(c *Context, w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	if props.InChannelId != "" && !c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), props.InChannelId, model.PermissionReadChannel) {
-		c.SetPermissionError(model.PermissionReadChannel)
-		return
+	if props.InChannelId != "" {
+		if ok, _ := c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), props.InChannelId, model.PermissionReadChannel); !ok {
+			c.SetPermissionError(model.PermissionReadChannel)
+			return
+		}
 	}
 
-	if props.NotInChannelId != "" && !c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), props.NotInChannelId, model.PermissionReadChannel) {
-		c.SetPermissionError(model.PermissionReadChannel)
-		return
+	if props.NotInChannelId != "" {
+		if ok, _ := c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), props.NotInChannelId, model.PermissionReadChannel); !ok {
+			c.SetPermissionError(model.PermissionReadChannel)
+			return
+		}
 	}
 
 	if props.TeamId != "" && !c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), props.TeamId, model.PermissionViewTeam) {
@@ -1261,7 +1268,7 @@ func autocompleteUsers(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	if channelId != "" {
-		if !c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), channelId, model.PermissionReadChannel) {
+		if ok, _ := c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), channelId, model.PermissionReadChannel); !ok {
 			c.SetPermissionError(model.PermissionReadChannel)
 			return
 		}
@@ -1319,6 +1326,12 @@ func autocompleteUsers(c *Context, w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		autocomplete.Users = result
+	}
+
+	// Fetch agent users for autocomplete
+	agentUsers, appErr := c.App.GetUsersForAgents(c.AppContext, c.AppContext.Session().UserId)
+	if appErr == nil && agentUsers != nil {
+		autocomplete.Agents = agentUsers
 	}
 
 	if err := json.NewEncoder(w).Encode(autocomplete); err != nil {
@@ -2007,21 +2020,49 @@ func login(c *Context, w http.ResponseWriter, r *http.Request) {
 	mfaToken := props["token"]
 	deviceId := props["device_id"]
 	ldapOnly := props["ldap_only"] == "true"
+	magicLinkToken := props["magic_link_token"]
 
 	auditRec := c.MakeAuditRecord(model.AuditEventLogin, model.AuditStatusFail)
 	defer c.LogAuditRec(auditRec)
-	model.AddEventParameterToAuditRec(auditRec, "login_id", loginId)
 	model.AddEventParameterToAuditRec(auditRec, "device_id", deviceId)
 
-	c.LogAuditWithUserId(id, "attempt - login_id="+loginId)
+	var user *model.User
+	var err *model.AppError
 
-	user, err := c.App.AuthenticateUserForLogin(c.AppContext, id, loginId, password, mfaToken, "", ldapOnly)
-	if err != nil {
-		c.LogAuditWithUserId(id, "failure - login_id="+loginId)
-		c.Err = err
-		return
+	if magicLinkToken != "" {
+		auditRec.AddMeta("login_method", "guest_magic_link")
+		c.LogAudit("attempt - guest_magic_link")
+
+		if !*c.App.Config().GuestAccountsSettings.EnableGuestMagicLink {
+			c.Err = model.NewAppError("login", "api.user.login.guest_magic_link.disabled.error", nil, "", http.StatusUnauthorized)
+			return
+		}
+
+		user, err = c.App.AuthenticateUserForGuestMagicLink(c.AppContext, magicLinkToken)
+		if err != nil {
+			c.LogAudit("failure - guest_magic_link")
+			c.Err = err
+			return
+		}
+	} else {
+		model.AddEventParameterToAuditRec(auditRec, "login_id", loginId)
+		c.LogAuditWithUserId(id, "attempt - login_id="+loginId)
+
+		user, err = c.App.AuthenticateUserForLogin(c.AppContext, id, loginId, password, mfaToken, "", ldapOnly)
+		if err != nil {
+			c.LogAuditWithUserId(id, "failure - login_id="+loginId)
+			c.Err = err
+			return
+		}
 	}
 	auditRec.AddEventResultState(user)
+
+	if user.IsMagicLinkEnabled() {
+		if !*c.App.Config().GuestAccountsSettings.EnableGuestMagicLink {
+			c.Err = model.NewAppError("login", "api.user.login.guest_magic_link.disabled.error", nil, "", http.StatusUnauthorized)
+			return
+		}
+	}
 
 	if user.IsGuest() {
 		if c.App.Channels().License() == nil {
@@ -2079,6 +2120,11 @@ func loginWithDesktopToken(c *Context, w http.ResponseWriter, r *http.Request) {
 	token := props["token"]
 	deviceId := props["device_id"]
 
+	auditRec := c.MakeAuditRecord(model.AuditEventLoginWithDesktopToken, model.AuditStatusFail)
+	defer c.LogAuditRec(auditRec)
+	auditRec.AddMeta("login_method", "desktop_token")
+	model.AddEventParameterToAuditRec(auditRec, "device_id", deviceId)
+
 	user, err := c.App.ValidateDesktopToken(token, time.Now().Add(-model.DesktopTokenTTL).Unix())
 	if err != nil {
 		c.Err = err
@@ -2101,6 +2147,9 @@ func loginWithDesktopToken(c *Context, w http.ResponseWriter, r *http.Request) {
 	c.AppContext = c.AppContext.WithSession(session)
 
 	c.App.AttachSessionCookies(c.AppContext, w, r)
+
+	auditRec.Success()
+	c.LogAuditWithUserId(user.Id, "success")
 
 	if err := json.NewEncoder(w).Encode(user); err != nil {
 		c.Logger.Warn("Error while writing response", mlog.Err(err))
@@ -2186,6 +2235,114 @@ func loginCWS(c *Context, w http.ResponseWriter, r *http.Request) {
 	http.Redirect(w, r, redirectURL, http.StatusFound)
 }
 
+func getLoginType(c *Context, w http.ResponseWriter, r *http.Request) {
+	props := model.MapFromJSON(r.Body)
+	id := props["id"]
+	loginId := props["login_id"]
+	deviceId := props["device_id"]
+
+	// For the time being, we only support getting the login type when
+	// guest magic link is enabled. We can consider adding support for other
+	// login methods in the future, and this check may be removed.
+	if !*c.App.Config().GuestAccountsSettings.EnableGuestMagicLink ||
+		!*c.App.Config().GuestAccountsSettings.Enable ||
+		!*c.App.Channels().License().Features.GuestAccounts {
+		w.WriteHeader(http.StatusNotFound)
+		return
+	}
+
+	if loginId == "" {
+		c.SetInvalidParam("login_id")
+		return
+	}
+
+	auditRec := c.MakeAuditRecord(model.AuditEventLogin, model.AuditStatusFail)
+	defer c.LogAuditRec(auditRec)
+	model.AddEventParameterToAuditRec(auditRec, "login_id", loginId)
+	model.AddEventParameterToAuditRec(auditRec, "device_id", deviceId)
+
+	c.LogAuditWithUserId(id, "attempt - login_id="+loginId)
+
+	user, err := c.App.GetUserForLogin(c.AppContext, id, loginId)
+	if err != nil {
+		c.Logger.Debug("Could not get user for login", mlog.Err(err))
+		if err := json.NewEncoder(w).Encode(model.LoginTypeResponse{
+			AuthService: "",
+		}); err != nil {
+			c.Logger.Warn("Error while writing response", mlog.Err(err))
+		}
+		return
+	}
+
+	if user.DeleteAt > 0 {
+		if err := json.NewEncoder(w).Encode(model.LoginTypeResponse{
+			AuthService:   "",
+			IsDeactivated: true,
+		}); err != nil {
+			c.Logger.Warn("Error while writing response", mlog.Err(err))
+		}
+		return
+	}
+
+	c.LogAuditWithUserId(user.Id, "found user for login_id="+loginId)
+	auditRec.AddEventResultState(user)
+
+	auditRec.Success()
+
+	canSendMagicLinkEmail := func(user *model.User) bool {
+		if !user.IsGuest() {
+			return false
+		}
+
+		if !user.IsMagicLinkEnabled() {
+			return false
+		}
+
+		if c.App.Channels().License() == nil {
+			return false
+		}
+
+		if !*c.App.Channels().License().Features.GuestAccounts {
+			return false
+		}
+
+		if !*c.App.Config().GuestAccountsSettings.EnableGuestMagicLink {
+			return false
+		}
+
+		return true
+	}
+
+	if canSendMagicLinkEmail(user) {
+		eErr := c.App.Srv().EmailService.SendMagicLinkEmailSelfService(user.Email, c.App.GetSiteURL())
+		if eErr != nil {
+			switch {
+			case errors.Is(eErr, email.NoRateLimiterError):
+				c.Err = model.NewAppError("getLoginType", "app.email.no_rate_limiter.app_error", nil, fmt.Sprintf("user_id=%s", user.Id), http.StatusInternalServerError)
+			case errors.Is(eErr, email.SetupRateLimiterError):
+				c.Err = model.NewAppError("getLoginType", "app.email.setup_rate_limiter.app_error", nil, fmt.Sprintf("user_id=%s, error=%v", user.Id, eErr), http.StatusInternalServerError)
+			default:
+				c.Err = model.NewAppError("getLoginType", "app.email.rate_limit_exceeded.app_error", nil, fmt.Sprintf("user_id=%s, error=%v", user.Id, eErr), http.StatusRequestEntityTooLarge)
+			}
+			return
+		}
+		c.Logger.Debug("Guest magic link email sent successfully", mlog.String("user_id", user.Id))
+
+		if jErr := json.NewEncoder(w).Encode(model.LoginTypeResponse{
+			AuthService: model.UserAuthServiceMagicLink,
+		}); jErr != nil {
+			c.Logger.Warn("Error while writing response", mlog.Err(err))
+		}
+		return
+	}
+
+	if err := json.NewEncoder(w).Encode(model.LoginTypeResponse{
+		AuthService: "",
+	}); err != nil {
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
+	}
+}
+
 func logout(c *Context, w http.ResponseWriter, r *http.Request) {
 	Logout(c, w, r)
 }
@@ -2193,6 +2350,21 @@ func logout(c *Context, w http.ResponseWriter, r *http.Request) {
 func Logout(c *Context, w http.ResponseWriter, r *http.Request) {
 	auditRec := c.MakeAuditRecord(model.AuditEventLogout, model.AuditStatusFail)
 	defer c.LogAuditRec(auditRec)
+
+	// Determine detailed authentication status for audit record (MM-67140)
+	var authStatus string
+	if c.AppContext.Session().UserId != "" {
+		authStatus = "authenticated"
+	} else {
+		_, tokenLocation := app.ParseAuthTokenFromRequest(r)
+		if tokenLocation == app.TokenLocationNotFound {
+			authStatus = "no_token"
+		} else {
+			authStatus = "token_invalid"
+		}
+	}
+	model.AddEventParameterToAuditRec(auditRec, "auth_status", authStatus)
+
 	c.LogAudit("")
 
 	c.RemoveSessionCookie(w, r)
@@ -2967,6 +3139,11 @@ func promoteGuestToUser(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if user.IsMagicLinkEnabled() {
+		c.Err = model.NewAppError("Api4.promoteGuestToUser", "api.user.promote_guest_to_user.magic_link_enabled.app_error", nil, "", http.StatusNotImplemented)
+		return
+	}
+
 	if err := c.App.PromoteGuestToUser(c.AppContext, user, c.AppContext.Session().UserId); err != nil {
 		c.Err = err
 		return
@@ -3052,7 +3229,7 @@ func publishUserTyping(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !c.App.HasPermissionToChannel(c.AppContext, c.Params.UserId, typingRequest.ChannelId, model.PermissionCreatePost) {
+	if ok, _ := c.App.HasPermissionToChannel(c.AppContext, c.Params.UserId, typingRequest.ChannelId, model.PermissionCreatePost); !ok {
 		c.SetPermissionError(model.PermissionCreatePost)
 		return
 	}
@@ -3379,7 +3556,8 @@ func getThreadForUser(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.SetPermissionError(model.PermissionEditOtherUsers)
 		return
 	}
-	if !c.App.SessionHasPermissionToChannelByPost(*c.AppContext.Session(), c.Params.ThreadId, model.PermissionReadChannelContent) {
+	ok, isMember := c.App.SessionHasPermissionToReadPost(c.AppContext, *c.AppContext.Session(), c.Params.ThreadId)
+	if !ok {
 		c.SetPermissionError(model.PermissionReadChannelContent)
 		return
 	}
@@ -3400,6 +3578,14 @@ func getThreadForUser(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	if err := json.NewEncoder(w).Encode(thread); err != nil {
 		c.Logger.Warn("Error while writing response", mlog.Err(err))
+	}
+
+	auditRec := c.MakeAuditRecord(model.AuditEventGetThreadForUser, model.AuditStatusSuccess)
+	defer c.LogAuditRec(auditRec)
+	model.AddEventParameterToAuditRec(auditRec, "thread_id", c.Params.ThreadId)
+
+	if !isMember {
+		model.AddEventParameterToAuditRec(auditRec, "non_channel_member_access", true)
 	}
 }
 
@@ -3496,9 +3682,14 @@ func updateReadStateThreadByUser(c *Context, w http.ResponseWriter, r *http.Requ
 		c.SetPermissionError(model.PermissionEditOtherUsers)
 		return
 	}
-	if !c.App.SessionHasPermissionToChannelByPost(*c.AppContext.Session(), c.Params.ThreadId, model.PermissionReadChannelContent) {
+	ok, isMember := c.App.SessionHasPermissionToReadPost(c.AppContext, *c.AppContext.Session(), c.Params.ThreadId)
+	if !ok {
 		c.SetPermissionError(model.PermissionReadChannelContent)
 		return
+	}
+
+	if !isMember {
+		model.AddEventParameterToAuditRec(auditRec, "non_channel_member_access", true)
 	}
 
 	thread, err := c.App.UpdateThreadReadForUser(c.AppContext, c.AppContext.Session().Id, c.Params.UserId, c.Params.TeamId, c.Params.ThreadId, c.Params.Timestamp)
@@ -3532,9 +3723,13 @@ func setUnreadThreadByPostId(c *Context, w http.ResponseWriter, r *http.Request)
 		return
 	}
 
-	if !c.App.SessionHasPermissionToChannelByPost(*c.AppContext.Session(), c.Params.ThreadId, model.PermissionReadChannelContent) {
+	ok, isMember := c.App.SessionHasPermissionToReadPost(c.AppContext, *c.AppContext.Session(), c.Params.ThreadId)
+	if !ok {
 		c.SetPermissionError(model.PermissionReadChannelContent)
 		return
+	}
+	if !isMember {
+		model.AddEventParameterToAuditRec(auditRec, "non_channel_member_access", true)
 	}
 
 	// We want to make sure the thread is followed when marking as unread
@@ -3574,7 +3769,7 @@ func unfollowThreadByUser(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.SetPermissionError(model.PermissionEditOtherUsers)
 		return
 	}
-	if !c.App.SessionHasPermissionToChannelByPost(*c.AppContext.Session(), c.Params.ThreadId, model.PermissionReadChannelContent) {
+	if ok, _ := c.App.SessionHasPermissionToReadPost(c.AppContext, *c.AppContext.Session(), c.Params.ThreadId); !ok {
 		c.SetPermissionError(model.PermissionReadChannelContent)
 		return
 	}
@@ -3607,7 +3802,7 @@ func followThreadByUser(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !c.App.SessionHasPermissionToChannelByPost(*c.AppContext.Session(), c.Params.ThreadId, model.PermissionReadChannelContent) {
+	if ok, _ := c.App.SessionHasPermissionToReadPost(c.AppContext, *c.AppContext.Session(), c.Params.ThreadId); !ok {
 		c.SetPermissionError(model.PermissionReadChannelContent)
 		return
 	}

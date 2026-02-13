@@ -1,7 +1,6 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {DateTime} from 'luxon';
 import type {Moment} from 'moment-timezone';
 import moment from 'moment-timezone';
 import React, {useEffect, useState, useCallback, useRef} from 'react';
@@ -10,26 +9,28 @@ import {useIntl} from 'react-intl';
 import {useSelector} from 'react-redux';
 
 import {getCurrentLocale} from 'selectors/i18n';
+import {isUseMilitaryTime} from 'selectors/preferences';
 
 import DatePicker from 'components/date_picker';
 import * as Menu from 'components/menu';
 import Timestamp from 'components/timestamp';
 
 import Constants from 'utils/constants';
+import {formatDateForDisplay} from 'utils/date_utils';
 import {relativeFormatDate} from 'utils/datetime';
 import {isKeyPressed} from 'utils/keyboard';
 import {getCurrentMomentForTimezone, isBeforeTime} from 'utils/timezone';
 
 const CUSTOM_STATUS_TIME_PICKER_INTERVALS_IN_MINUTES = 30;
 
-export function getRoundedTime(value: Moment, roundedTo = CUSTOM_STATUS_TIME_PICKER_INTERVALS_IN_MINUTES) {
-    const start = moment(value);
-    const diff = start.minute() % roundedTo;
+export function getRoundedTime(value: Moment, roundedTo = CUSTOM_STATUS_TIME_PICKER_INTERVALS_IN_MINUTES): Moment {
+    const diff = value.minute() % roundedTo;
     if (diff === 0) {
-        return value;
+        // Always return a new moment for consistency, even if no rounding needed
+        return moment(value).seconds(0).milliseconds(0);
     }
     const remainder = roundedTo - diff;
-    return start.add(remainder, 'm').seconds(0).milliseconds(0);
+    return moment(value).add(remainder, 'm').seconds(0).milliseconds(0);
 }
 
 export const getTimeInIntervals = (startTime: Moment, interval = CUSTOM_STATUS_TIME_PICKER_INTERVALS_IN_MINUTES): Date[] => {
@@ -71,6 +72,7 @@ const DateTimeInputContainer: React.FC<Props> = ({
     allowPastDates = false,
 }: Props) => {
     const locale = useSelector(getCurrentLocale);
+    const isMilitaryTime = useSelector(isUseMilitaryTime);
     const [timeOptions, setTimeOptions] = useState<Date[]>([]);
     const [isPopperOpen, setIsPopperOpen] = useState(false);
     const [isTimeMenuOpen, setIsTimeMenuOpen] = useState(false);
@@ -118,7 +120,7 @@ const DateTimeInputContainer: React.FC<Props> = ({
         };
     }, [handleKeyDown]);
 
-    const setTimeAndOptions = () => {
+    useEffect(() => {
         const currentTime = getCurrentMomentForTimezone(timezone);
         let startTime = moment(time).startOf('day');
 
@@ -129,9 +131,7 @@ const DateTimeInputContainer: React.FC<Props> = ({
         }
 
         setTimeOptions(getTimeInIntervals(startTime, timePickerInterval));
-    };
-
-    useEffect(setTimeAndOptions, [time]);
+    }, [time, timezone, allowPastDates, timePickerInterval]);
 
     const handleDayChange = (day: Date, modifiers: DayModifiers) => {
         if (modifiers.today) {
@@ -153,7 +153,12 @@ const DateTimeInputContainer: React.FC<Props> = ({
     const currentTime = getCurrentMomentForTimezone(timezone).toDate();
 
     const formatDate = (date: Moment): string => {
-        return relativeDate ? relativeFormatDate(date, formatMessage) : DateTime.fromJSDate(date.toDate()).toLocaleString();
+        if (relativeDate) {
+            return relativeFormatDate(date, formatMessage);
+        }
+
+        // Use centralized date formatting utility
+        return formatDateForDisplay(date.toDate(), locale);
     };
 
     const calendarIcon = (
@@ -218,6 +223,7 @@ const DateTimeInputContainer: React.FC<Props> = ({
                                     <Timestamp
                                         useRelative={false}
                                         useDate={false}
+                                        useTime={isMilitaryTime ? {hour: 'numeric', minute: '2-digit', hourCycle: 'h23'} : {hour: 'numeric', minute: '2-digit', hour12: true}}
                                         value={time.toString()}
                                     />
                                 </span>
@@ -234,7 +240,7 @@ const DateTimeInputContainer: React.FC<Props> = ({
                 >
                     {timeOptions.map((option, index) => (
                         <Menu.Item
-                            key={index}
+                            key={option.getTime()}
                             id={`time_option_${index}`}
                             data-testid={`time_option_${index}`}
                             labels={
@@ -242,6 +248,7 @@ const DateTimeInputContainer: React.FC<Props> = ({
                                     <Timestamp
                                         useRelative={false}
                                         useDate={false}
+                                        useTime={isMilitaryTime ? {hour: 'numeric', minute: '2-digit', hourCycle: 'h23'} : {hour: 'numeric', minute: '2-digit', hour12: true}}
                                         value={option}
                                     />
                                 </span>

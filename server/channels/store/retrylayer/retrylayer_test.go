@@ -67,7 +67,11 @@ func genStore() *mocks.Store {
 	mock.On("PropertyValue").Return(&mocks.PropertyValueStore{})
 	mock.On("AccessControlPolicy").Return(&mocks.AccessControlPolicyStore{})
 	mock.On("Attributes").Return(&mocks.AttributesStore{})
+	mock.On("AutoTranslation").Return(&mocks.AutoTranslationStore{})
 	mock.On("ContentFlagging").Return(&mocks.ContentFlaggingStore{})
+	mock.On("ReadReceipt").Return(&mocks.ReadReceiptStore{})
+	mock.On("Recap").Return(&mocks.RecapStore{})
+	mock.On("TemporaryPost").Return(&mocks.TemporaryPostStore{})
 	return mock
 }
 

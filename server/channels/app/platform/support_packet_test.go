@@ -11,10 +11,10 @@ import (
 	"path"
 	"testing"
 
+	"github.com/goccy/go-yaml"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
-	"gopkg.in/yaml.v3"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
@@ -36,6 +36,9 @@ func TestGenerateSupportPacket(t *testing.T) {
 		err = os.RemoveAll(dir)
 		assert.NoError(t, err)
 	})
+
+	// Set MM_LOG_PATH to allow log file reads from our temp directory
+	t.Setenv("MM_LOG_PATH", dir)
 
 	th.Service.UpdateConfig(func(cfg *model.Config) {
 		*cfg.LogSettings.FileLocation = dir
@@ -204,6 +207,8 @@ func TestGetSupportPacketDiagnostics(t *testing.T) {
 		assert.Equal(t, model.CurrentVersion, d.Server.Version)
 		// BuildHash is not present in tests
 		assert.Equal(t, "docker", d.Server.InstallationType)
+		assert.Positive(t, d.Server.CPUCores)
+		assert.Positive(t, d.Server.TotalMemoryMB)
 
 		/* Config */
 		assert.Equal(t, "memory://", d.Config.Source)

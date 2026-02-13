@@ -189,7 +189,7 @@ func TestPreparePostForClient(t *testing.T) {
 		fileInfo.ChannelId = th.BasicChannel.Id
 		require.Nil(t, err)
 
-		post, err := th.App.CreatePost(th.Context, &model.Post{
+		post, _, err := th.App.CreatePost(th.Context, &model.Post{
 			UserId:    th.BasicUser.Id,
 			ChannelId: th.BasicChannel.Id,
 			FileIds:   []string{fileInfo.Id},
@@ -216,7 +216,7 @@ func TestPreparePostForClient(t *testing.T) {
 
 		emoji := th.CreateEmoji(t)
 
-		post, err := th.App.CreatePost(th.Context, &model.Post{
+		post, _, err := th.App.CreatePost(th.Context, &model.Post{
 			UserId:    th.BasicUser.Id,
 			ChannelId: th.BasicChannel.Id,
 			Message:   ":" + emoji.Name + ": :taco:",
@@ -259,7 +259,7 @@ func TestPreparePostForClient(t *testing.T) {
 		emoji3 := th.CreateEmoji(t)
 		emoji4 := th.CreateEmoji(t)
 
-		post, err := th.App.CreatePost(th.Context, &model.Post{
+		post, _, err := th.App.CreatePost(th.Context, &model.Post{
 			UserId:    th.BasicUser.Id,
 			ChannelId: th.BasicChannel.Id,
 			Message:   ":" + emoji3.Name + ": :taco:",
@@ -299,7 +299,7 @@ func TestPreparePostForClient(t *testing.T) {
 				*cfg.ServiceSettings.EnablePostIconOverride = override
 			})
 
-			post, err := th.App.CreatePost(th.Context, &model.Post{
+			post, _, err := th.App.CreatePost(th.Context, &model.Post{
 				UserId:    th.BasicUser.Id,
 				ChannelId: th.BasicChannel.Id,
 				Message:   "Test",
@@ -355,7 +355,7 @@ func TestPreparePostForClient(t *testing.T) {
 	t.Run("markdown image dimensions", func(t *testing.T) {
 		th := setup(t)
 
-		post, err := th.App.CreatePost(th.Context, &model.Post{
+		post, _, err := th.App.CreatePost(th.Context, &model.Post{
 			UserId:    th.BasicUser.Id,
 			ChannelId: th.BasicChannel.Id,
 			Message:   fmt.Sprintf("This is ![our logo](%s/test-image2.png) and ![our icon](%s/test-image1.png)", server.URL, server.URL),
@@ -383,7 +383,7 @@ func TestPreparePostForClient(t *testing.T) {
 	t.Run("post props has invalid fields", func(t *testing.T) {
 		th := setup(t)
 
-		post, err := th.App.CreatePost(th.Context, &model.Post{
+		post, _, err := th.App.CreatePost(th.Context, &model.Post{
 			UserId:    th.BasicUser.Id,
 			ChannelId: th.BasicChannel.Id,
 			Message:   "some post",
@@ -413,7 +413,7 @@ func TestPreparePostForClient(t *testing.T) {
 	t.Run("image embed", func(t *testing.T) {
 		th := setup(t)
 
-		post, err := th.App.CreatePost(th.Context, &model.Post{
+		post, _, err := th.App.CreatePost(th.Context, &model.Post{
 			UserId:    th.BasicUser.Id,
 			ChannelId: th.BasicChannel.Id,
 			Message: `This is our logo: ` + server.URL + `/test-image2.png
@@ -448,7 +448,7 @@ func TestPreparePostForClient(t *testing.T) {
 	t.Run("opengraph embed", func(t *testing.T) {
 		th := setup(t)
 
-		post, err := th.App.CreatePost(th.Context, &model.Post{
+		post, _, err := th.App.CreatePost(th.Context, &model.Post{
 			UserId:    th.BasicUser.Id,
 			ChannelId: th.BasicChannel.Id,
 			Message:   `This is our web page: ` + server.URL,
@@ -522,7 +522,7 @@ func TestPreparePostForClient(t *testing.T) {
 					}
 					prepost.AddProp(model.PostPropsUnsafeLinks, "true")
 
-					post, err := th.App.CreatePost(th.Context, prepost, th.BasicChannel, model.CreatePostFlags{SetOnline: true})
+					post, _, err := th.App.CreatePost(th.Context, prepost, th.BasicChannel, model.CreatePostFlags{SetOnline: true})
 					require.Nil(t, err)
 
 					clientPost := th.App.PreparePostForClient(th.Context, post, &model.PreparePostForClientOpts{})
@@ -538,7 +538,7 @@ func TestPreparePostForClient(t *testing.T) {
 							Message:   `Bla bla bla: ` + fmt.Sprintf(tc.link, server.URL),
 						}
 
-						post, err := th.App.CreatePost(th.Context, prepost, th.BasicChannel, model.CreatePostFlags{SetOnline: true})
+						post, _, err := th.App.CreatePost(th.Context, prepost, th.BasicChannel, model.CreatePostFlags{SetOnline: true})
 						require.Nil(t, err)
 
 						clientPost := th.App.PreparePostForClient(th.Context, post, &model.PreparePostForClientOpts{})
@@ -553,7 +553,7 @@ func TestPreparePostForClient(t *testing.T) {
 	t.Run("message attachment embed", func(t *testing.T) {
 		th := setup(t)
 
-		post, err := th.App.CreatePost(th.Context, &model.Post{
+		post, _, err := th.App.CreatePost(th.Context, &model.Post{
 			UserId:    th.BasicUser.Id,
 			ChannelId: th.BasicChannel.Id,
 			Props: map[string]any{
@@ -593,7 +593,7 @@ func TestPreparePostForClient(t *testing.T) {
 		fileInfo, err := th.App.DoUploadFile(th.Context, time.Now(), th.BasicTeam.Id, th.BasicChannel.Id, th.BasicUser.Id, "test.txt", []byte("test"), true)
 		require.Nil(t, err)
 
-		post, err := th.App.CreatePost(th.Context, &model.Post{
+		post, _, err := th.App.CreatePost(th.Context, &model.Post{
 			Message:   "test",
 			FileIds:   []string{fileInfo.Id},
 			UserId:    th.BasicUser.Id,
@@ -627,7 +627,7 @@ func TestPreparePostForClient(t *testing.T) {
 
 		th.Context.Session().UserId = th.BasicUser.Id
 
-		referencedPost, err := th.App.CreatePost(th.Context, &model.Post{
+		referencedPost, _, err := th.App.CreatePost(th.Context, &model.Post{
 			UserId:    th.BasicUser.Id,
 			ChannelId: th.BasicChannel.Id,
 			Message:   "hello world",
@@ -637,7 +637,7 @@ func TestPreparePostForClient(t *testing.T) {
 
 		link := fmt.Sprintf("%s/%s/pl/%s", *th.App.Config().ServiceSettings.SiteURL, th.BasicTeam.Name, referencedPost.Id)
 
-		previewPost, err := th.App.CreatePost(th.Context, &model.Post{
+		previewPost, _, err := th.App.CreatePost(th.Context, &model.Post{
 			UserId:    th.BasicUser.Id,
 			ChannelId: th.BasicChannel.Id,
 			Message:   link,
@@ -684,7 +684,7 @@ func TestPreparePostForClient(t *testing.T) {
 
 		for _, testCase := range testCases {
 			t.Run(testCase.Description, func(t *testing.T) {
-				referencedPost, err := th.App.CreatePost(th.Context, &model.Post{
+				referencedPost, _, err := th.App.CreatePost(th.Context, &model.Post{
 					UserId:    th.BasicUser.Id,
 					ChannelId: testCase.Channel.Id,
 					Message:   "hello world",
@@ -694,7 +694,7 @@ func TestPreparePostForClient(t *testing.T) {
 
 				link := fmt.Sprintf("%s/%s/pl/%s", *th.App.Config().ServiceSettings.SiteURL, th.BasicTeam.Name, referencedPost.Id)
 
-				previewPost, err := th.App.CreatePost(th.Context, &model.Post{
+				previewPost, _, err := th.App.CreatePost(th.Context, &model.Post{
 					UserId:    th.BasicUser.Id,
 					ChannelId: th.BasicChannel.Id,
 					Message:   link,
@@ -721,7 +721,7 @@ func TestPreparePostForClient(t *testing.T) {
 
 		th.Context.Session().UserId = th.BasicUser.Id
 
-		referencedPost, err := th.App.CreatePost(th.Context, &model.Post{
+		referencedPost, _, err := th.App.CreatePost(th.Context, &model.Post{
 			UserId:    th.BasicUser.Id,
 			ChannelId: th.BasicChannel.Id,
 			Message:   `This is our logo: ` + server.URL + `/test-image2.png`,
@@ -731,7 +731,7 @@ func TestPreparePostForClient(t *testing.T) {
 
 		link := fmt.Sprintf("%s/%s/pl/%s", *th.App.Config().ServiceSettings.SiteURL, th.BasicTeam.Name, referencedPost.Id)
 
-		previewPost, err := th.App.CreatePost(th.Context, &model.Post{
+		previewPost, _, err := th.App.CreatePost(th.Context, &model.Post{
 			UserId:    th.BasicUser.Id,
 			ChannelId: th.BasicChannel.Id,
 			Message:   link,
@@ -757,7 +757,7 @@ func TestPreparePostForClient(t *testing.T) {
 
 		th.Context.Session().UserId = th.BasicUser.Id
 
-		nestedPermalinkPost, err := th.App.CreatePost(th.Context, &model.Post{
+		nestedPermalinkPost, _, err := th.App.CreatePost(th.Context, &model.Post{
 			UserId:    th.BasicUser.Id,
 			ChannelId: th.BasicChannel.Id,
 			Message:   `This is our logo: ` + server.URL + `/test-image2.png`,
@@ -767,7 +767,7 @@ func TestPreparePostForClient(t *testing.T) {
 
 		nestedLink := fmt.Sprintf("%s/%s/pl/%s", *th.App.Config().ServiceSettings.SiteURL, th.BasicTeam.Name, nestedPermalinkPost.Id)
 
-		referencedPost, err := th.App.CreatePost(th.Context, &model.Post{
+		referencedPost, _, err := th.App.CreatePost(th.Context, &model.Post{
 			UserId:    th.BasicUser.Id,
 			ChannelId: th.BasicChannel.Id,
 			Message:   nestedLink,
@@ -777,7 +777,7 @@ func TestPreparePostForClient(t *testing.T) {
 
 		link := fmt.Sprintf("%s/%s/pl/%s", *th.App.Config().ServiceSettings.SiteURL, th.BasicTeam.Name, referencedPost.Id)
 
-		previewPost, err := th.App.CreatePost(th.Context, &model.Post{
+		previewPost, _, err := th.App.CreatePost(th.Context, &model.Post{
 			UserId:    th.BasicUser.Id,
 			ChannelId: th.BasicChannel.Id,
 			Message:   link,
@@ -803,7 +803,7 @@ func TestPreparePostForClient(t *testing.T) {
 
 		th.Context.Session().UserId = th.BasicUser.Id
 
-		referencedPost, err := th.App.CreatePost(th.Context, &model.Post{
+		referencedPost, _, err := th.App.CreatePost(th.Context, &model.Post{
 			UserId:    th.BasicUser.Id,
 			ChannelId: th.BasicChannel.Id,
 			Message:   "hello world",
@@ -812,7 +812,7 @@ func TestPreparePostForClient(t *testing.T) {
 
 		link := fmt.Sprintf("%s/%s/pl/%s", *th.App.Config().ServiceSettings.SiteURL, th.BasicTeam.Name, referencedPost.Id)
 
-		previewPost, err := th.App.CreatePost(th.Context, &model.Post{
+		previewPost, _, err := th.App.CreatePost(th.Context, &model.Post{
 			UserId:    th.BasicUser.Id,
 			ChannelId: th.BasicChannel.Id,
 			Message:   link,
@@ -927,7 +927,7 @@ func testProxyOpenGraphImage(t *testing.T, th *TestHelper, shouldProxy bool) {
 	serverURL = server.URL
 	defer server.Close()
 
-	post, err := th.App.CreatePost(th.Context, &model.Post{
+	post, _, err := th.App.CreatePost(th.Context, &model.Post{
 		UserId:    th.BasicUser.Id,
 		ChannelId: th.BasicChannel.Id,
 		Message:   `This is our web page: ` + server.URL,
@@ -2710,11 +2710,15 @@ func TestParseLinkMetadata(t *testing.T) {
 	t.Run("svg", func(t *testing.T) {
 		og, dimensions, err := th.App.parseLinkMetadata(th.Context, "http://example.com/image.svg", nil, "image/svg+xml")
 		assert.NoError(t, err)
-
 		assert.Nil(t, og)
-		assert.Equal(t, &model.PostImage{
-			Format: "svg",
-		}, dimensions)
+		assert.Nil(t, dimensions)
+	})
+
+	t.Run("svg with charset", func(t *testing.T) {
+		og, dimensions, err := th.App.parseLinkMetadata(th.Context, "http://example.com/image.svg", nil, "image/svg+xml; charset=utf-8")
+		assert.NoError(t, err)
+		assert.Nil(t, og)
+		assert.Nil(t, dimensions)
 	})
 }
 
@@ -2909,112 +2913,6 @@ func TestContainsPermalink(t *testing.T) {
 	}
 }
 
-func TestSanitizePostMetadataForUserAndChannel(t *testing.T) {
-	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic(t)
-
-	enableLinkPreviews := *th.App.Config().ServiceSettings.EnableLinkPreviews
-	siteURL := *th.App.Config().ServiceSettings.SiteURL
-	defer func() {
-		th.App.UpdateConfig(func(cfg *model.Config) {
-			cfg.ServiceSettings.EnableLinkPreviews = &enableLinkPreviews
-			cfg.ServiceSettings.SiteURL = &siteURL
-		})
-	}()
-	th.App.UpdateConfig(func(cfg *model.Config) {
-		*cfg.ServiceSettings.EnableLinkPreviews = true
-		*cfg.ServiceSettings.SiteURL = "http://mymattermost.com"
-	})
-
-	t.Run("should not preview for users with no access to the channel", func(t *testing.T) {
-		directChannel, err := th.App.createDirectChannel(th.Context, th.BasicUser.Id, th.BasicUser2.Id)
-		assert.Nil(t, err)
-
-		userID := model.NewId()
-		post := &model.Post{
-			Id: userID,
-			Metadata: &model.PostMetadata{
-				Embeds: []*model.PostEmbed{
-					{
-						Type: model.PostEmbedPermalink,
-						Data: &model.PreviewPost{
-							PostID: "permalink_post_id",
-							Post: &model.Post{
-								Id:        "permalink_post_id",
-								Message:   "permalink post message",
-								ChannelId: directChannel.Id,
-							},
-						},
-					},
-				},
-			},
-		}
-
-		previewedPost := model.NewPreviewPost(post, th.BasicTeam, directChannel)
-
-		actual := th.App.sanitizePostMetadataForUserAndChannel(th.Context, post, previewedPost, directChannel, th.BasicUser2.Id)
-		assert.NotNil(t, actual.Metadata.Embeds[0].Data)
-
-		guestID := model.NewId()
-		guest := &model.User{
-			Email:         "success+" + guestID + "@simulator.amazonses.com",
-			Username:      "un_" + guestID,
-			Nickname:      "nn_" + guestID,
-			Password:      "Password1",
-			EmailVerified: true,
-		}
-		guest, appErr := th.App.CreateGuest(th.Context, guest)
-		require.Nil(t, appErr)
-
-		actual = th.App.sanitizePostMetadataForUserAndChannel(th.Context, post, previewedPost, directChannel, guest.Id)
-		assert.Len(t, actual.Metadata.Embeds, 0)
-	})
-
-	t.Run("channel previews always work for archived channels", func(t *testing.T) {
-		publicChannel, err := th.App.CreateChannel(th.Context, &model.Channel{
-			Name:      model.NewId(),
-			Type:      model.ChannelTypeOpen,
-			TeamId:    th.BasicTeam.Id,
-			CreatorId: th.SystemAdminUser.Id,
-		}, true)
-
-		require.Nil(t, err)
-		require.NotEmpty(t, publicChannel.Id)
-
-		err = th.App.DeleteChannel(th.Context, publicChannel, th.SystemAdminUser.Id)
-		require.Nil(t, err)
-
-		publicChannel, err = th.App.GetChannel(th.Context, publicChannel.Id)
-		require.Nil(t, err)
-		require.NotEmpty(t, publicChannel.Id)
-		require.NotEqual(t, 0, publicChannel.DeleteAt)
-
-		post := &model.Post{
-			Id: th.BasicUser.Id,
-			Metadata: &model.PostMetadata{
-				Embeds: []*model.PostEmbed{
-					{
-						Type: model.PostEmbedPermalink,
-						Data: &model.PreviewPost{
-							PostID: "permalink_post_id",
-							Post: &model.Post{
-								Id:        "permalink_post_id",
-								Message:   "permalink post message",
-								ChannelId: publicChannel.Id,
-							},
-						},
-					},
-				},
-			},
-		}
-
-		previewedPost := model.NewPreviewPost(post, th.BasicTeam, publicChannel)
-
-		actual := th.App.sanitizePostMetadataForUserAndChannel(th.Context, post, previewedPost, publicChannel, th.BasicUser.Id)
-		assert.NotNil(t, actual.Metadata.Embeds[0].Data)
-	})
-}
-
 func TestSanitizePostMetaDataForAudit(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
@@ -3025,7 +2923,7 @@ func TestSanitizePostMetaDataForAudit(t *testing.T) {
 
 	th.Context.Session().UserId = th.BasicUser.Id
 
-	referencedPost, err := th.App.CreatePost(th.Context, &model.Post{
+	referencedPost, _, err := th.App.CreatePost(th.Context, &model.Post{
 		UserId:    th.BasicUser.Id,
 		ChannelId: th.BasicChannel.Id,
 		Message:   "hello world",
@@ -3035,7 +2933,7 @@ func TestSanitizePostMetaDataForAudit(t *testing.T) {
 
 	link := fmt.Sprintf("%s/%s/pl/%s", *th.App.Config().ServiceSettings.SiteURL, th.BasicTeam.Name, referencedPost.Id)
 
-	previewPost, err := th.App.CreatePost(th.Context, &model.Post{
+	previewPost, _, err := th.App.CreatePost(th.Context, &model.Post{
 		UserId:    th.BasicUser.Id,
 		ChannelId: th.BasicChannel.Id,
 		Message:   link,
@@ -3127,15 +3025,16 @@ func TestSanitizePostMetadataForUser(t *testing.T) {
 			},
 		}
 
-		sanitizedPost, err := th.App.SanitizePostMetadataForUser(th.Context, post, th.BasicUser.Id)
+		sanitizedPost, isMemberForPreviews, err := th.App.SanitizePostMetadataForUser(th.Context, post, th.BasicUser.Id)
 		require.Nil(t, err)
 		require.NotNil(t, sanitizedPost)
 
 		require.Equal(t, 1, len(sanitizedPost.Metadata.Embeds))
 		require.Equal(t, model.PostEmbedLink, sanitizedPost.Metadata.Embeds[0].Type)
+		require.True(t, isMemberForPreviews)
 	})
 
-	t.Run("should remove embeds for archived channels if the config does not allow it", func(t *testing.T) {
+	t.Run("should not remove embeds for archived channels", func(t *testing.T) {
 		publicChannel, err := th.App.CreateChannel(th.Context, &model.Channel{
 			Name:      model.NewId(),
 			Type:      model.ChannelTypeOpen,
@@ -3178,12 +3077,13 @@ func TestSanitizePostMetadataForUser(t *testing.T) {
 			},
 		}
 
-		sanitizedPost, err := th.App.SanitizePostMetadataForUser(th.Context, post, th.BasicUser.Id)
+		sanitizedPost, isMemberForPreviews, err := th.App.SanitizePostMetadataForUser(th.Context, post, th.BasicUser.Id)
 		require.Nil(t, err)
 		require.NotNil(t, sanitizedPost)
 
 		require.Equal(t, 2, len(sanitizedPost.Metadata.Embeds))
 		require.Equal(t, model.PostEmbedPermalink, sanitizedPost.Metadata.Embeds[0].Type)
+		require.False(t, isMemberForPreviews)
 	})
 }
 
@@ -3288,4 +3188,68 @@ func TestGetLinkMetadataFromCache(t *testing.T) {
 
 		assertCached(t, nilURL, nil, nil, nil)
 	})
+}
+
+func TestPreparePostForClient_BurnOnReadSenderExpireAt(t *testing.T) {
+	// Set feature flag before setup
+	os.Setenv("MM_FEATUREFLAGS_BURNONREAD", "true")
+	t.Cleanup(func() {
+		os.Unsetenv("MM_FEATUREFLAGS_BURNONREAD")
+	})
+
+	th := Setup(t).InitBasic(t)
+
+	// Enable Enterprise Advanced license and BoR config
+	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		cfg.ServiceSettings.EnableBurnOnRead = model.NewPointer(true)
+	})
+
+	// Create a burn-on-read post
+	borPost := &model.Post{
+		ChannelId: th.BasicChannel.Id,
+		UserId:    th.BasicUser.Id,
+		Message:   "test burn on read",
+		Type:      model.PostTypeBurnOnRead,
+	}
+	borPost.AddProp(model.PostPropsExpireAt, model.GetMillis()+int64(10*60*1000))
+
+	post, _, appErr := th.App.CreatePost(th.Context, borPost, th.BasicChannel, model.CreatePostFlags{})
+	require.Nil(t, appErr)
+
+	// Simulate recipient revealing the post
+	user2 := th.CreateUser(t)
+	th.LinkUserToTeam(t, user2, th.BasicTeam)
+	th.AddUserToChannel(t, user2, th.BasicChannel)
+
+	_, appErr = th.App.RevealPost(th.Context, post, user2.Id, "")
+	require.Nil(t, appErr)
+
+	// Get the read receipt to get the expireAt
+	receipt, err := th.App.Srv().Store().ReadReceipt().Get(th.Context, post.Id, user2.Id)
+	require.NoError(t, err)
+
+	// Update temporary post with sender's expireAt (simulating all recipients revealed)
+	tmpPost, err := th.App.Srv().Store().TemporaryPost().Get(th.Context, post.Id, true)
+	require.NoError(t, err)
+	tmpPost.ExpireAt = receipt.ExpireAt
+	_, err = th.App.Srv().Store().TemporaryPost().Save(th.Context, tmpPost)
+	require.NoError(t, err)
+
+	// Create a new context for the sender (post author) with proper session
+	senderContext := th.Context
+	senderContext.Session().UserId = th.BasicUser.Id
+
+	// Fetch the post without ExpireAt in metadata (simulating page reload)
+	postFromDB, appErr := th.App.GetSinglePost(th.Context, post.Id, false)
+	require.Nil(t, appErr)
+	postFromDB.Metadata = &model.PostMetadata{} // Reset metadata to simulate fresh fetch
+
+	// PreparePostForClient should fill ExpireAt from TemporaryPost for the sender
+	preparedPost := th.App.PreparePostForClient(senderContext, postFromDB, &model.PreparePostForClientOpts{})
+
+	// Verify that ExpireAt is now set in metadata for the sender
+	require.NotNil(t, preparedPost.Metadata)
+	require.NotZero(t, preparedPost.Metadata.ExpireAt)
+	require.Equal(t, receipt.ExpireAt, preparedPost.Metadata.ExpireAt)
 }

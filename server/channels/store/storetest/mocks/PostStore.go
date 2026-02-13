@@ -264,17 +264,17 @@ func (_m *PostStore) GetEditHistoryForPost(postID string) ([]*model.Post, error)
 	return r0, r1
 }
 
-// GetEtag provides a mock function with given fields: channelID, allowFromCache, collapsedThreads
-func (_m *PostStore) GetEtag(channelID string, allowFromCache bool, collapsedThreads bool) string {
-	ret := _m.Called(channelID, allowFromCache, collapsedThreads)
+// GetEtag provides a mock function with given fields: channelID, allowFromCache, collapsedThreads, includeTranslations
+func (_m *PostStore) GetEtag(channelID string, allowFromCache bool, collapsedThreads bool, includeTranslations bool) string {
+	ret := _m.Called(channelID, allowFromCache, collapsedThreads, includeTranslations)
 
 	if len(ret) == 0 {
 		panic("no return value specified for GetEtag")
 	}
 
 	var r0 string
-	if rf, ok := ret.Get(0).(func(string, bool, bool) string); ok {
-		r0 = rf(channelID, allowFromCache, collapsedThreads)
+	if rf, ok := ret.Get(0).(func(string, bool, bool, bool) string); ok {
+		r0 = rf(channelID, allowFromCache, collapsedThreads, includeTranslations)
 	} else {
 		r0 = ret.Get(0).(string)
 	}
@@ -862,6 +862,36 @@ func (_m *PostStore) GetPostsCreatedAt(channelID string, timestamp int64) ([]*mo
 	return r0, r1
 }
 
+// GetPostsForReporting provides a mock function with given fields: rctx, queryParams
+func (_m *PostStore) GetPostsForReporting(rctx request.CTX, queryParams model.ReportPostQueryParams) (*model.ReportPostListResponse, error) {
+	ret := _m.Called(rctx, queryParams)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetPostsForReporting")
+	}
+
+	var r0 *model.ReportPostListResponse
+	var r1 error
+	if rf, ok := ret.Get(0).(func(request.CTX, model.ReportPostQueryParams) (*model.ReportPostListResponse, error)); ok {
+		return rf(rctx, queryParams)
+	}
+	if rf, ok := ret.Get(0).(func(request.CTX, model.ReportPostQueryParams) *model.ReportPostListResponse); ok {
+		r0 = rf(rctx, queryParams)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.ReportPostListResponse)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(request.CTX, model.ReportPostQueryParams) error); ok {
+		r1 = rf(rctx, queryParams)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // GetPostsSince provides a mock function with given fields: rctx, options, allowFromCache, sanitizeOptions
 func (_m *PostStore) GetPostsSince(rctx request.CTX, options model.GetPostsSinceOptions, allowFromCache bool, sanitizeOptions map[string]bool) (*model.PostList, error) {
 	ret := _m.Called(rctx, options, allowFromCache, sanitizeOptions)
@@ -1100,6 +1130,24 @@ func (_m *PostStore) PermanentDelete(rctx request.CTX, postID string) error {
 	var r0 error
 	if rf, ok := ret.Get(0).(func(request.CTX, string) error); ok {
 		r0 = rf(rctx, postID)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// PermanentDeleteAssociatedData provides a mock function with given fields: postIds
+func (_m *PostStore) PermanentDeleteAssociatedData(postIds []string) error {
+	ret := _m.Called(postIds)
+
+	if len(ret) == 0 {
+		panic("no return value specified for PermanentDeleteAssociatedData")
+	}
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func([]string) error); ok {
+		r0 = rf(postIds)
 	} else {
 		r0 = ret.Error(0)
 	}

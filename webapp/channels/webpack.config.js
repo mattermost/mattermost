@@ -107,7 +107,9 @@ var config = {
                 test: /\.(png|eot|tiff|svg|woff2|woff|ttf|gif|mp3|jpg)$/,
                 type: 'asset/resource',
                 use: [
-                    {
+
+                    // Skip image optimizations during development to speed up build time
+                    !DEV && {
                         loader: 'image-webpack-loader',
                         options: {},
                     },
@@ -196,7 +198,6 @@ var config = {
                 {from: 'src/images/payment_processing.png', to: 'images'},
                 {from: 'src/images/purchase_alert.png', to: 'images'},
                 {from: '../node_modules/pdfjs-dist/cmaps', to: 'cmaps'},
-                {from: 'src/components/initial_loading_screen/initial_loading_screen.css', to: 'css'},
             ],
         }),
 

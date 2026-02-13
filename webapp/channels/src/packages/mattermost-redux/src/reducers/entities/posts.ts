@@ -1,6 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import type {WebSocketMessages} from '@mattermost/client';
 import type {
     OpenGraphMetadata,
     Post,
@@ -20,8 +21,9 @@ import type {
 } from '@mattermost/types/utilities';
 
 import type {MMReduxAction} from 'mattermost-redux/action_types';
-import {ChannelTypes, PostTypes, UserTypes, ThreadTypes, CloudTypes, LimitsTypes} from 'mattermost-redux/action_types';
+import {ChannelTypes, PostTypes, UserTypes, ThreadTypes, CloudTypes, LimitsTypes, TeamTypes} from 'mattermost-redux/action_types';
 import {Posts} from 'mattermost-redux/constants';
+import {PostTypes as PostTypeConstants} from 'mattermost-redux/constants/posts';
 import {comparePosts, isPermalink, shouldUpdatePost} from 'mattermost-redux/utils/post_utils';
 
 export function removeUnneededMetadata(post: Post) {
@@ -156,6 +158,52 @@ export function nextPostsReplies(state: {[x in Post['id']]: number} = {}, action
     }
 }
 
+// Helper function to remove posts and permalink embeds for a set of channel IDs.
+function removePostsAndEmbedsForChannels(state: IDMappedObjects<Post>, channelIds: Set<string>): IDMappedObjects<Post> {
+    let postModified = false;
+    const nextState = {...state};
+
+    for (const post of Object.values(state)) {
+        // Remove posts from the channels
+        if (channelIds.has(post.channel_id)) {
+            Reflect.deleteProperty(nextState, post.id);
+            postModified = true;
+            continue;
+        }
+
+        // Remove permalink embeds referencing those channels (matches server behavior)
+        if (post.metadata?.embeds?.length) {
+            const newEmbeds: PostEmbed[] = [];
+            let embedRemoved = false;
+
+            for (const embed of post.metadata.embeds) {
+                if (embed.type === 'permalink' && embed.data && channelIds.has((embed.data as PostPreviewMetadata).channel_id)) {
+                    embedRemoved = true;
+                } else {
+                    newEmbeds.push(embed);
+                }
+            }
+
+            if (embedRemoved) {
+                nextState[post.id] = {
+                    ...nextState[post.id],
+                    metadata: {
+                        ...nextState[post.id].metadata,
+                        embeds: newEmbeds,
+                    },
+                };
+                postModified = true;
+            }
+        }
+    }
+
+    if (!postModified) {
+        return state;
+    }
+
+    return nextState;
+}
+
 export function handlePosts(state: IDMappedObjects<Post> = {}, action: MMReduxAction) {
     switch (action.type) {
     case PostTypes.RECEIVED_POST:
@@ -184,6 +232,12 @@ export function handlePosts(state: IDMappedObjects<Post> = {}, action: MMReduxAc
 
         if (!state[post.id]) {
             return state;
+        }
+
+        if (state[post.id].type === PostTypeConstants.BURN_ON_READ) {
+            const nextState = {...state};
+            Reflect.deleteProperty(nextState, post.id);
+            return nextState;
         }
 
         // Mark the post as deleted
@@ -279,26 +333,92 @@ export function handlePosts(state: IDMappedObjects<Post> = {}, action: MMReduxAc
         };
     }
 
-    case ChannelTypes.LEAVE_CHANNEL: {
-        const channelId = action.data.id;
+    case PostTypes.REVEAL_BURN_ON_READ_SUCCESS: {
+        const {post, expireAt} = action.data;
 
-        let postDeleted = false;
-
-        // Remove any posts from the channel left by the user
-        const nextState = {...state};
-        for (const post of Object.values(state)) {
-            if (post.channel_id === channelId) {
-                Reflect.deleteProperty(nextState, post.id);
-                postDeleted = true;
-            }
-        }
-
-        if (!postDeleted) {
-            // Nothing changed
+        if (!state[post.id]) {
             return state;
         }
 
-        return nextState;
+        const currentPost = state[post.id];
+        const currentMetadata = currentPost.metadata || {};
+        const newMetadata = post.metadata || {};
+
+        return {
+            ...state,
+            [post.id]: {
+                ...currentPost,
+                ...post,
+                metadata: {
+                    ...currentMetadata,
+                    ...newMetadata,
+                    expire_at: expireAt,
+                },
+            },
+        };
+    }
+
+    case PostTypes.POST_RECIPIENTS_UPDATED: {
+        const {postId, recipients} = action.data;
+
+        if (!state[postId]) {
+            return state;
+        }
+
+        const currentPost = state[postId];
+        const currentMetadata = currentPost.metadata || {};
+        const currentRecipients = currentMetadata.recipients || [];
+
+        // Merge new recipients with existing ones (don't replace).
+        // Server sends incremental updates (only the revealing user), so we must merge.
+        const mergedRecipients = [...new Set([...currentRecipients, ...recipients])];
+
+        return {
+            ...state,
+            [postId]: {
+                ...currentPost,
+                metadata: {
+                    ...currentMetadata,
+                    recipients: mergedRecipients,
+                },
+            },
+        };
+    }
+
+    case PostTypes.BURN_ON_READ_ALL_REVEALED: {
+        const {postId, senderExpireAt} = action.data;
+
+        if (!state[postId]) {
+            return state;
+        }
+
+        const currentPost = state[postId];
+        const currentMetadata = currentPost.metadata || {};
+
+        // Set sender's expiration time to trigger timer display
+        return {
+            ...state,
+            [postId]: {
+                ...currentPost,
+                metadata: {
+                    ...currentMetadata,
+                    expire_at: senderExpireAt,
+                },
+            },
+        };
+    }
+
+    case ChannelTypes.LEAVE_CHANNEL: {
+        const channelId = action.data.id;
+        return removePostsAndEmbedsForChannels(state, new Set([channelId]));
+    }
+
+    case TeamTypes.LEAVE_TEAM: {
+        const channelIds: string[] = action.data.channelIds || [];
+        if (channelIds.length === 0) {
+            return state;
+        }
+        return removePostsAndEmbedsForChannels(state, new Set(channelIds));
     }
 
     case ThreadTypes.FOLLOW_CHANGED_THREAD: {
@@ -309,6 +429,33 @@ export function handlePosts(state: IDMappedObjects<Post> = {}, action: MMReduxAc
             [id]: {
                 ...post,
                 is_following: following,
+            },
+        };
+    }
+
+    case PostTypes.POST_TRANSLATION_UPDATED: {
+        const data: WebSocketMessages.PostTranslationUpdated['data'] = action.data;
+        if (!state[data.object_id]) {
+            return state;
+        }
+
+        const translations = state[data.object_id].metadata?.translations || {};
+        const newTranslations = {
+            ...translations,
+            [data.language]: {
+                lang: data.language,
+                object: data.translation ? JSON.parse(data.translation) : undefined,
+                state: data.state,
+                source_lang: data.src_lang,
+            }};
+        return {
+            ...state,
+            [data.object_id]: {
+                ...state[data.object_id],
+                metadata: {
+                    ...state[data.object_id].metadata,
+                    translations: newTranslations,
+                },
             },
         };
     }
@@ -459,7 +606,13 @@ export function handlePendingPosts(state: string[] = [], action: MMReduxAction) 
 export function postsInChannel(state: Record<string, PostOrderBlock[]> = {}, action: MMReduxAction, prevPosts: IDMappedObjects<Post>, nextPosts: Record<string, Post>) {
     switch (action.type) {
     case PostTypes.RESET_POSTS_IN_CHANNEL: {
-        return {};
+        const {channelId} = action;
+        if (!channelId) {
+            return {};
+        }
+        const nextState = {...state};
+        Reflect.deleteProperty(nextState, channelId);
+        return nextState;
     }
     case PostTypes.RECEIVED_NEW_POST: {
         const post = action.data as Post;
@@ -751,21 +904,30 @@ export function postsInChannel(state: Record<string, PostOrderBlock[]> = {}, act
     case PostTypes.POST_DELETED: {
         const post = action.data;
 
-        // Deleting a post removes its comments from the order, but does not remove the post itself
-
         const postsForChannel = state[post.channel_id] || [];
         if (postsForChannel.length === 0) {
             return state;
         }
 
         let changed = false;
-
         let nextPostsForChannel = [...postsForChannel];
+
+        const isBoRPost = prevPosts[post.id]?.type === PostTypeConstants.BURN_ON_READ;
+
+        const shouldRemovePost = (postId: string) => {
+            const isTheDeletedPost = postId === post.id;
+            const isReplyToDeletedPost = prevPosts[postId]?.root_id === post.id;
+
+            if (isBoRPost) {
+                return isTheDeletedPost;
+            }
+
+            return isReplyToDeletedPost;
+        };
+
         for (let i = 0; i < nextPostsForChannel.length; i++) {
             const block = nextPostsForChannel[i];
-
-            // Remove any comments for this post
-            const nextOrder = block.order.filter((postId: string) => prevPosts[postId].root_id !== post.id);
+            const nextOrder = block.order.filter((postId) => !shouldRemovePost(postId));
 
             if (nextOrder.length !== block.order.length) {
                 nextPostsForChannel[i] = {
@@ -802,12 +964,16 @@ export function postsInChannel(state: Record<string, PostOrderBlock[]> = {}, act
 
         let changed = false;
 
+        const isBoRPost = prevPosts[post.id]?.type === PostTypeConstants.BURN_ON_READ;
+
         // Remove the post and its comments from the channel
         let nextPostsForChannel = [...postsForChannel];
         for (let i = 0; i < nextPostsForChannel.length; i++) {
             const block = nextPostsForChannel[i];
 
-            const nextOrder = block.order.filter((postId: string) => postId !== post.id && prevPosts[postId].root_id !== post.id);
+            // For BoR posts: only remove the post itself (BoR doesn't support threads)
+            // For regular posts: remove the post and its thread replies
+            const nextOrder = isBoRPost ? block.order.filter((postId: string) => postId !== post.id) : block.order.filter((postId: string) => postId !== post.id && prevPosts[postId]?.root_id !== post.id);
 
             if (nextOrder.length !== block.order.length) {
                 nextPostsForChannel[i] = {

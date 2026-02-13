@@ -3,7 +3,6 @@
 exports[`components/post_view/post_list snapshot for loading when there are no posts 1`] = `
 <div
   className="post-list-holder-by-time"
-  key="postlist-fake-id"
 >
   <div
     className="post-list__table"
@@ -26,6 +25,7 @@ exports[`components/post_view/post_list snapshot for loading when there are no p
         atLatestPost={false}
         autoRetryEnable={true}
         channelId="fake-id"
+        isChannelAutotranslated={false}
         isMobileView={false}
         lastViewedAt={1532345226632}
         loadingNewerPosts={false}
@@ -41,7 +41,6 @@ exports[`components/post_view/post_list snapshot for loading when there are no p
 exports[`components/post_view/post_list snapshot with couple of posts 1`] = `
 <div
   className="post-list-holder-by-time"
-  key="postlist-fake-id"
 >
   <div
     className="post-list__table"
@@ -64,6 +63,7 @@ exports[`components/post_view/post_list snapshot with couple of posts 1`] = `
         atLatestPost={false}
         autoRetryEnable={true}
         channelId="fake-id"
+        isChannelAutotranslated={false}
         isMobileView={false}
         lastViewedAt={1532345226632}
         loadingNewerPosts={false}

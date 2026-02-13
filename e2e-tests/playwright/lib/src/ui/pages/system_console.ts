@@ -3,85 +3,81 @@
 
 import {Page} from '@playwright/test';
 
-import {components} from '@/ui/components';
+import SystemConsoleNavbar from '@/ui/components/system_console/navbar';
+import SystemConsoleSidebar from '@/ui/components/system_console/sidebar';
+import SystemConsoleHeader from '@/ui/components/system_console/header';
+import EditionAndLicense from '@/ui/components/system_console/sections/about/edition_and_license';
+import TeamStatistics from '@/ui/components/system_console/sections/reporting/team_statistics';
+import Users from '@/ui/components/system_console/sections/user_management/users';
+import DelegatedGranularAdministration from '@/ui/components/system_console/sections/user_management/delegated_granular_administration';
+import MobileSecurity from '@/ui/components/system_console/sections/environment/mobile_security';
+import Notifications from '@/ui/components/system_console/sections/site_configuration/notifications';
+import FeatureDiscovery from '@/ui/components/system_console/sections/system_users/feature_discovery';
 
 export default class SystemConsolePage {
     readonly page: Page;
 
-    readonly sidebar;
-    readonly navbar;
+    // Layout
+    readonly navbar: SystemConsoleNavbar;
+    readonly sidebar: SystemConsoleSidebar;
+    readonly header: SystemConsoleHeader;
 
-    /**
-     * System Console -> User Management -> Users
-     */
-    readonly systemUsers;
-    readonly systemUsersFilterPopover;
-    readonly systemUsersRoleMenu;
-    readonly systemUsersStatusMenu;
-    readonly systemUsersDateRangeMenu;
-    readonly systemUsersColumnToggleMenu;
-    readonly systemUsersActionMenus;
+    // About
+    readonly editionAndLicense: EditionAndLicense;
 
-    readonly mobileSecurity;
+    // Reporting
+    readonly teamStatistics: TeamStatistics;
 
-    readonly featureDiscovery;
+    // User Management
+    readonly users: Users;
+    readonly delegatedGranularAdministration: DelegatedGranularAdministration;
 
-    // modal
-    readonly confirmModal;
-    readonly exportModal;
-    readonly saveChangesModal;
+    // Environment
+    readonly mobileSecurity: MobileSecurity;
+
+    // Site Configuration
+    readonly notifications: Notifications;
+
+    // Feature Discovery (license-gated features)
+    readonly featureDiscovery: FeatureDiscovery;
 
     constructor(page: Page) {
         this.page = page;
 
-        // Areas of the page
-        this.navbar = new components.SystemConsoleNavbar(page.locator('.backstage-navbar'));
-        this.sidebar = new components.SystemConsoleSidebar(page.locator('.admin-sidebar'));
+        // Layout
+        this.navbar = new SystemConsoleNavbar(page.locator('.backstage-navbar'));
+        this.sidebar = new SystemConsoleSidebar(page.locator('.admin-sidebar'));
 
-        // Sections and sub-sections
-        this.systemUsers = new components.SystemUsers(page.getByTestId('systemUsersSection'));
-        this.mobileSecurity = new components.SystemConsoleMobileSecurity(
-            page.getByTestId('sysconsole_section_MobileSecuritySettings'),
-        );
-        this.featureDiscovery = new components.SystemConsoleFeatureDiscovery(page.getByTestId('featureDiscovery'));
+        const adminConsoleWrapper = page.locator('#adminConsoleWrapper');
+        this.header = new SystemConsoleHeader(adminConsoleWrapper);
 
-        // Menus & Popovers
-        this.systemUsersFilterPopover = new components.SystemUsersFilterPopover(
-            page.locator('#systemUsersFilterPopover'),
-        );
-        this.systemUsersRoleMenu = new components.SystemUsersFilterMenu(page.locator('#DropdownInput_filterRole'));
-        this.systemUsersStatusMenu = new components.SystemUsersFilterMenu(page.locator('#DropdownInput_filterStatus'));
-        this.systemUsersColumnToggleMenu = new components.SystemUsersColumnToggleMenu(
-            page.locator('#systemUsersColumnTogglerMenu'),
-        );
-        this.systemUsersDateRangeMenu = new components.SystemUsersFilterMenu(
-            page.locator('#systemUsersDateRangeSelectorMenu'),
-        );
-        this.systemUsersActionMenus = Array.from(Array(10).keys()).map(
-            (index) => new components.SystemUsersFilterMenu(page.locator(`#actionMenu-systemUsersTable-${index}`)),
-        );
+        // About
+        this.editionAndLicense = new EditionAndLicense(adminConsoleWrapper);
 
-        this.confirmModal = new components.GenericConfirmModal(page.locator('#confirmModal'));
-        this.exportModal = new components.GenericConfirmModal(page.getByRole('dialog', {name: 'Export user data'}));
-        this.saveChangesModal = new components.SystemUsers(page.locator('div.modal-content'));
+        // Reporting
+        this.teamStatistics = new TeamStatistics(adminConsoleWrapper);
+
+        // User Management
+        this.users = new Users(adminConsoleWrapper);
+        this.delegatedGranularAdministration = new DelegatedGranularAdministration(adminConsoleWrapper);
+
+        // Environment
+        this.mobileSecurity = new MobileSecurity(adminConsoleWrapper);
+
+        // Site Configuration
+        this.notifications = new Notifications(adminConsoleWrapper);
+
+        // Feature Discovery
+        this.featureDiscovery = new FeatureDiscovery(adminConsoleWrapper);
     }
 
     async toBeVisible() {
         await this.page.waitForLoadState('networkidle');
-
-        await this.sidebar.toBeVisible();
         await this.navbar.toBeVisible();
+        await this.sidebar.toBeVisible();
     }
 
     async goto() {
         await this.page.goto('/admin_console');
-    }
-
-    async saveRoleChange() {
-        await this.saveChangesModal.container.locator('button.btn-primary:has-text("Save")').click();
-    }
-
-    async clickResetButton() {
-        await this.saveChangesModal.container.locator('button.btn-primary:has-text("Reset")').click();
     }
 }

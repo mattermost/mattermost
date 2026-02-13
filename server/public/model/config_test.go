@@ -1449,21 +1449,21 @@ func TestLogSettingsIsValid(t *testing.T) {
 				AdvancedLoggingJSON: json.RawMessage(`
 				{
 					"console-log": {
-							"Type": "XYZ",
-							"Format": "json",
-							"Levels": [
-							  {"ID": 10, "Name": "stdlog", "Stacktrace": false},
-									{"ID": 5, "Name": "debug", "Stacktrace": false},
-									{"ID": 4, "Name": "info", "Stacktrace": false, "color": 36},
-									{"ID": 3, "Name": "warn", "Stacktrace": false, "color": 33},
-									{"ID": 2, "Name": "error", "Stacktrace": true, "color": 31},
-									{"ID": 1, "Name": "fatal", "Stacktrace": true},
-									{"ID": 0, "Name": "panic", "Stacktrace": true}
-							],
-							"Options": {
-									"Out": "stdout"
-							},
-							"MaxQueueSize": 1000
+						"Type": "XYZ",
+						"Format": "json",
+						"Levels": [
+							{"ID": 10, "Name": "stdlog", "Stacktrace": false},
+							{"ID": 5, "Name": "debug", "Stacktrace": false},
+							{"ID": 4, "Name": "info", "Stacktrace": false, "color": 36},
+							{"ID": 3, "Name": "warn", "Stacktrace": false, "color": 33},
+							{"ID": 2, "Name": "error", "Stacktrace": true, "color": 31},
+							{"ID": 1, "Name": "fatal", "Stacktrace": true},
+							{"ID": 0, "Name": "panic", "Stacktrace": true}
+						],
+						"Options": {
+							"Out": "stdout"
+						},
+						"MaxQueueSize": 1000
 					}
 				}
 				`),
@@ -1475,18 +1475,85 @@ func TestLogSettingsIsValid(t *testing.T) {
 				AdvancedLoggingJSON: json.RawMessage(`
 				{
 					"console-log": {
-							"Type": "console",
-							"Format": "json",
-							"Levels": [
-								{"ID": 5, "Name": "debug", "Stacktrace": false},
-								{"ID": 4, "Name": "info", "Stacktrace": false, "color": 36},
-								{"ID": 3, "Name": "warn", "Stacktrace": false, "color": 33},
-								{"ID": 2, "Name": "error", "Stacktrace": true, "color": 31}
-							],
-							"Options": {
-									"Out": "stdout"
-							},
-							"MaxQueueSize": 1000
+						"Type": "console",
+						"Format": "json",
+						"Levels": [
+							{"ID": 5, "Name": "debug", "Stacktrace": false},
+							{"ID": 4, "Name": "info", "Stacktrace": false, "color": 36},
+							{"ID": 3, "Name": "warn", "Stacktrace": false, "color": 33},
+							{"ID": 2, "Name": "error", "Stacktrace": true, "color": 31}
+						],
+						"Options": {
+							"Out": "stdout"
+						},
+						"MaxQueueSize": 1000
+					}
+				}
+				`),
+			},
+			ExpectError: false,
+		},
+		"AdvancedLoggingJSON with invalid log level": {
+			LogSettings: LogSettings{
+				AdvancedLoggingJSON: json.RawMessage(`
+				{
+					"console-log": {
+						"Type": "console",
+						"Format": "json",
+						"Levels": [
+							{"ID": 999, "Name": "info", "Stacktrace": false}
+						],
+						"Options": {
+							"Out": "stdout"
+						},
+						"MaxQueueSize": 1000
+					}
+				}
+				`),
+			},
+			ExpectError: true,
+		},
+		"AdvancedLoggingJSON with audit log level": {
+			LogSettings: LogSettings{
+				AdvancedLoggingJSON: json.RawMessage(`
+				{
+					"console-log": {
+						"Type": "console",
+						"Format": "json",
+						"Levels": [
+							{ "id": 100, "name": "audit-api" },
+							{ "id": 101, "name": "audit-content" },
+							{ "id": 102, "name": "audit-permissions" },
+							{ "id": 103, "name": "audit-cli" }
+						],
+						"Options": {
+							"Out": "stdout"
+						},
+						"MaxQueueSize": 1000
+					}
+				}
+				`),
+			},
+			ExpectError: true,
+		},
+		"AdvancedLoggingJSON with custom log levels": {
+			LogSettings: LogSettings{
+				AdvancedLoggingJSON: json.RawMessage(`
+				{
+					"audit-log": {
+						"Type": "console",
+						"Format": "json",
+						"Levels": [
+							{"ID": 140, "Name": "LDAPError", "Stacktrace": false},
+							{"ID": 141, "Name": "LDAPWarn", "Stacktrace": false},
+							{"ID": 142, "Name": "LDAPInfo", "Stacktrace": false},
+							{"ID": 143, "Name": "LDAPDebug", "Stacktrace": false},
+							{"ID": 144, "Name": "LDAPTrace", "Stacktrace": false}
+						],
+						"Options": {
+							"Out": "stdout"
+						},
+						"MaxQueueSize": 1000
 					}
 				}
 				`),
@@ -1720,6 +1787,91 @@ func TestPluginSettingsSanitize(t *testing.T) {
 				},
 				pluginID2: {
 					"somesetting": 456,
+				},
+			},
+		},
+		"secret settings in sections are sanitized": {
+			manifests: []*Manifest{
+				{
+					Id: pluginID1,
+					SettingsSchema: &PluginSettingsSchema{
+						Settings: []*PluginSetting{
+							{
+								Key:    "somesetting",
+								Type:   "text",
+								Secret: false,
+							},
+						},
+						Sections: []*PluginSettingsSection{
+							{
+								Key: "section1",
+								Settings: []*PluginSetting{
+									{
+										Key:    "secrettext",
+										Type:   "text",
+										Secret: true,
+									},
+									{
+										Key:    "secretnumber",
+										Type:   "number",
+										Secret: true,
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+			expected: map[string]map[string]any{
+				pluginID1: {
+					"someoldsettings": "some old value",
+					"somesetting":     "some value",
+					"secrettext":      FakeSetting,
+					"secretnumber":    FakeSetting,
+				},
+			},
+		},
+		"secret settings across multiple sections": {
+			manifests: []*Manifest{
+				{
+					Id: pluginID1,
+					SettingsSchema: &PluginSettingsSchema{
+						Sections: []*PluginSettingsSection{
+							{
+								Key: "section1",
+								Settings: []*PluginSetting{
+									{
+										Key:    "somesetting",
+										Type:   "text",
+										Secret: false,
+									},
+									{
+										Key:    "secrettext",
+										Type:   "text",
+										Secret: true,
+									},
+								},
+							},
+							{
+								Key: "section2",
+								Settings: []*PluginSetting{
+									{
+										Key:    "secretnumber",
+										Type:   "number",
+										Secret: true,
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+			expected: map[string]map[string]any{
+				pluginID1: {
+					"someoldsettings": "some old value",
+					"somesetting":     "some value",
+					"secrettext":      FakeSetting,
+					"secretnumber":    FakeSetting,
 				},
 			},
 		},
@@ -2281,6 +2433,106 @@ func TestExperimentalAuditSettingsIsValid(t *testing.T) {
 			},
 			ExpectError: true,
 		},
+		"AdvancedLoggingJSON has missing target": {
+			ExperimentalAuditSettings: ExperimentalAuditSettings{
+				AdvancedLoggingJSON: json.RawMessage(`
+				{
+					"foo": "bar",
+				}
+				`),
+			},
+			ExpectError: true,
+		},
+		"AdvancedLoggingJSON has an unknown Type": {
+			ExperimentalAuditSettings: ExperimentalAuditSettings{
+				AdvancedLoggingJSON: json.RawMessage(`
+				{
+					"console-log": {
+						"Type": "XYZ",
+						"Format": "json",
+						"Levels": [
+							{ "id": 100, "name": "audit-api" },
+							{ "id": 101, "name": "audit-content" },
+							{ "id": 102, "name": "audit-permissions" },
+							{ "id": 103, "name": "audit-cli" }
+						],
+						"Options": {
+							"Out": "stdout"
+						},
+						"MaxQueueSize": 1000
+					}
+				}
+				`),
+			},
+			ExpectError: true,
+		},
+		"AdvancedLoggingJSON is valid": {
+			ExperimentalAuditSettings: ExperimentalAuditSettings{
+				AdvancedLoggingJSON: json.RawMessage(`
+				{
+					"console-log": {
+						"Type": "console",
+						"Format": "json",
+						"Levels": [
+							{ "id": 100, "name": "audit-api" },
+							{ "id": 101, "name": "audit-content" },
+							{ "id": 102, "name": "audit-permissions" },
+							{ "id": 103, "name": "audit-cli" }
+						],
+						"Options": {
+							"Out": "stdout"
+						},
+						"MaxQueueSize": 1000
+					}
+				}
+				`),
+			},
+			ExpectError: false,
+		},
+
+		"AdvancedLoggingJSON with standard log levels": {
+			ExperimentalAuditSettings: ExperimentalAuditSettings{
+				AdvancedLoggingJSON: json.RawMessage(`
+				{
+					"console-log": {
+						"Type": "console",
+						"Format": "json",
+						"Levels": [
+							{"ID": 5, "Name": "debug", "Stacktrace": false},
+							{"ID": 4, "Name": "info", "Stacktrace": false, "color": 36},
+							{"ID": 3, "Name": "warn", "Stacktrace": false, "color": 33},
+							{"ID": 2, "Name": "error", "Stacktrace": true, "color": 31}
+						],
+						"Options": {
+							"Out": "stdout"
+						},
+						"MaxQueueSize": 1000
+					}
+				}
+				`),
+			},
+			ExpectError: true,
+		},
+		"AdvancedLoggingJSON with unknown log level": {
+			ExperimentalAuditSettings: ExperimentalAuditSettings{
+				AdvancedLoggingJSON: json.RawMessage(`
+				{
+					"audit-log": {
+						"Type": "console",
+						"Format": "json",
+						"Levels": [
+							{"ID": 999, "Name": "info", "Stacktrace": false}
+						],
+						"Options": {
+							"Out": "stdout"
+						},
+						"MaxQueueSize": 1000
+					}
+				}
+				`),
+			},
+			ExpectError: true,
+		},
 	} {
 		t.Run(name, func(t *testing.T) {
 			test.ExperimentalAuditSettings.SetDefaults()
@@ -2358,7 +2610,7 @@ func TestFilterConfig(t *testing.T) {
 		require.NoError(t, err)
 		require.Empty(t, m)
 
-		cfg.SqlSettings.DriverName = NewPointer("mysql")
+		cfg.SqlSettings.DriverName = NewPointer("postgresql")
 		m, err = FilterConfig(cfg, ConfigFilterOptions{
 			GetConfigOptions: GetConfigOptions{
 				RemoveDefaults: true,
@@ -2367,7 +2619,7 @@ func TestFilterConfig(t *testing.T) {
 		})
 		require.NoError(t, err)
 		require.NotEmpty(t, m)
-		require.Equal(t, "mysql", m["SqlSettings"].(map[string]any)["DriverName"])
+		require.Equal(t, "postgresql", m["SqlSettings"].(map[string]any)["DriverName"])
 	})
 
 	t.Run("should not clear non primitive types", func(t *testing.T) {
@@ -2482,9 +2734,7 @@ func TestAutoTranslationSettingsDefaults(t *testing.T) {
 
 		require.False(t, *c.AutoTranslationSettings.Enable)
 		require.Equal(t, "", *c.AutoTranslationSettings.Provider)
-		require.Equal(t, 800, *c.AutoTranslationSettings.TimeoutsMs.NewPost)
-		require.Equal(t, 2000, *c.AutoTranslationSettings.TimeoutsMs.Fetch)
-		require.Equal(t, 300, *c.AutoTranslationSettings.TimeoutsMs.Notification)
+		require.Equal(t, 5000, *c.AutoTranslationSettings.TimeoutMs)
 		require.Equal(t, "", *c.AutoTranslationSettings.LibreTranslate.URL)
 		require.Equal(t, "", *c.AutoTranslationSettings.LibreTranslate.APIKey)
 		// TODO: Enable Agents provider in future release

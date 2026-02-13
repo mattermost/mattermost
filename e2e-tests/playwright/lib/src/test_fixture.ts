@@ -19,6 +19,7 @@ import {
 import {getBlobFromAsset, getFileFromAsset} from './file';
 import {
     createNewUserProfile,
+    createNewTeam,
     createRandomChannel,
     createRandomPost,
     createRandomTeam,
@@ -26,7 +27,10 @@ import {
     getAdminClient,
     initSetup,
     isOutsideRemoteUserHour,
+    makeClient,
     mergeWithOnPremServerConfig,
+    installAndEnablePlugin,
+    isPluginActive,
 } from './server';
 import {
     toBeFocusedWithFocusVisible,
@@ -87,6 +91,8 @@ export class PlaywrightExtended {
     readonly getAdminClient;
     readonly mergeWithOnPremServerConfig;
     readonly initSetup;
+    readonly installAndEnablePlugin;
+    readonly isPluginActive;
 
     // ./test_action
     readonly toBeFocusedWithFocusVisible;
@@ -101,7 +107,9 @@ export class PlaywrightExtended {
 
     // ./server
     readonly createNewUserProfile;
+    readonly createNewTeam;
     readonly isOutsideRemoteUserHour;
+    readonly makeClient;
 
     // ./visual
     readonly matchSnapshot;
@@ -145,6 +153,8 @@ export class PlaywrightExtended {
         this.getAdminClient = getAdminClient;
         this.mergeWithOnPremServerConfig = mergeWithOnPremServerConfig;
         this.isOutsideRemoteUserHour = isOutsideRemoteUserHour;
+        this.installAndEnablePlugin = installAndEnablePlugin;
+        this.isPluginActive = isPluginActive;
 
         // ./test_action
         this.toBeFocusedWithFocusVisible = toBeFocusedWithFocusVisible;
@@ -165,6 +175,8 @@ export class PlaywrightExtended {
 
         // ./server
         this.createNewUserProfile = createNewUserProfile;
+        this.createNewTeam = createNewTeam;
+        this.makeClient = makeClient;
 
         // ./visual
         this.matchSnapshot = matchSnapshot;

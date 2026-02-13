@@ -4,6 +4,7 @@
 package app
 
 import (
+	"context"
 	"fmt"
 	"net/http"
 	"strings"
@@ -18,11 +19,11 @@ import (
 
 const (
 	getPendingScheduledPostsPageSize = 100
-	scheduledPostBatchWaitTime       = 1 * time.Second
+	scheduledPostBatchWaitTime       = 100 * time.Millisecond
 )
 
 func (a *App) ProcessScheduledPosts(rctx request.CTX) {
-	rctx = rctx.WithLogger(rctx.Logger().With(mlog.String("component", "scheduled_post_job")))
+	rctx = rctx.WithLogFields(mlog.String("component", "scheduled_post_job"))
 
 	if !*a.Config().ServiceSettings.ScheduledPosts {
 		return
@@ -189,11 +190,10 @@ func (a *App) postScheduledPost(rctx request.CTX, scheduledPost *model.Scheduled
 		return scheduledPost, err
 	}
 
-	createPostFlags := model.CreatePostFlags{
+	_, _, appErr = a.CreatePost(rctx.WithContext(context.WithValue(rctx.Context(), model.PostContextKeyIsScheduledPost, true)), post, channel, model.CreatePostFlags{
 		TriggerWebhooks: true,
 		SetOnline:       false,
-	}
-	_, appErr = a.CreatePost(rctx, post, channel, createPostFlags)
+	})
 	if appErr != nil {
 		rctx.Logger().Error(
 			"App.processScheduledPostBatch: failed to post scheduled post",
@@ -305,6 +305,19 @@ func (a *App) canPostScheduledPost(rctx request.CTX, scheduledPost *model.Schedu
 	if appErr := PostPriorityCheckWithApp("ScheduledPostJob.postChecks", a, scheduledPost.UserId, scheduledPost.GetPriority(), scheduledPost.RootId); appErr != nil {
 		rctx.Logger().Debug(
 			"canPostScheduledPost post priority check failed",
+			mlog.String("scheduled_post_id", scheduledPost.Id),
+			mlog.String("user_id", scheduledPost.UserId),
+			mlog.String("channel_id", scheduledPost.ChannelId),
+			mlog.String("error_code", model.ScheduledPostErrorInvalidPost),
+			mlog.Err(appErr),
+		)
+		return model.ScheduledPostErrorInvalidPost, nil
+	}
+
+	// Validate burn-on-read restrictions for scheduled post
+	if appErr := PostBurnOnReadCheckWithApp("ScheduledPostJob.postChecks", a, rctx, scheduledPost.UserId, scheduledPost.ChannelId, scheduledPost.Type, channel); appErr != nil {
+		rctx.Logger().Debug(
+			"canPostScheduledPost burn-on-read check failed",
 			mlog.String("scheduled_post_id", scheduledPost.Id),
 			mlog.String("user_id", scheduledPost.UserId),
 			mlog.String("channel_id", scheduledPost.ChannelId),
@@ -452,7 +465,7 @@ func (a *App) notifyUser(rctx request.CTX, userId string, userFailedMessages []*
 		UserId:    systemBot.UserId,
 	}
 
-	if _, err := a.CreatePost(rctx, post, channel, model.CreatePostFlags{SetOnline: true}); err != nil {
+	if _, _, err := a.CreatePost(rctx, post, channel, model.CreatePostFlags{SetOnline: true}); err != nil {
 		rctx.Logger().Error("Failed to post notification about failed scheduled messages", mlog.Err(err))
 	}
 }

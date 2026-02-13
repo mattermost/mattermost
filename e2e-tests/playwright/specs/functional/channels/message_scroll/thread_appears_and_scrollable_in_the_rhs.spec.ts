@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {AdminConfig, CollapsedThreads} from '@mattermost/types/config';
+import {CollapsedThreads} from '@mattermost/types/config';
 
 import {expect, test} from '@mattermost/playwright-lib';
 
@@ -20,13 +20,9 @@ test('MM-T3293 The entire thread appears in the RHS (scrollable)', {tag: ['@mess
 
     // # Update server config to disable collapsed threads
     const {adminClient} = await pw.getAdminClient();
-    await adminClient.updateConfig(
-        pw.mergeWithOnPremServerConfig({
-            ServiceSettings: {CollapsedThreads: CollapsedThreads.DISABLED},
-        } as Partial<AdminConfig>),
-    );
+    await adminClient.patchConfig({ServiceSettings: {CollapsedThreads: CollapsedThreads.DISABLED}});
 
-    const otherUser = pw.random.user('other');
+    const otherUser = await pw.random.user('other');
     const createdOtherUser = await adminClient.createUser(otherUser, '', '');
     otherUser.id = createdOtherUser.id;
 

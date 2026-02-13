@@ -64,6 +64,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_tree sh
             "permissions": Array [
               "create_public_channel",
               "manage_public_channel_properties",
+              "manage_public_channel_auto_translation",
               Object {
                 "combined": true,
                 "id": "manage_public_channel_members_and_read_groups",
@@ -81,6 +82,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_tree sh
             "permissions": Array [
               "create_private_channel",
               "manage_private_channel_properties",
+              "manage_private_channel_auto_translation",
               Object {
                 "combined": true,
                 "id": "manage_private_channel_members_and_read_groups",
@@ -258,6 +260,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_tree sh
             "permissions": Array [
               "create_public_channel",
               "manage_public_channel_properties",
+              "manage_public_channel_auto_translation",
               Object {
                 "combined": true,
                 "id": "manage_public_channel_members_and_read_groups",
@@ -275,6 +278,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_tree sh
             "permissions": Array [
               "create_private_channel",
               "manage_private_channel_properties",
+              "manage_private_channel_auto_translation",
               Object {
                 "combined": true,
                 "id": "manage_private_channel_members_and_read_groups",
@@ -479,6 +483,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_tree sh
             "permissions": Array [
               "create_public_channel",
               "manage_public_channel_properties",
+              "manage_public_channel_auto_translation",
               Object {
                 "combined": true,
                 "id": "manage_public_channel_members_and_read_groups",
@@ -496,6 +501,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_tree sh
             "permissions": Array [
               "create_private_channel",
               "manage_private_channel_properties",
+              "manage_private_channel_auto_translation",
               Object {
                 "combined": true,
                 "id": "manage_private_channel_members_and_read_groups",
@@ -689,6 +695,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_tree sh
             "permissions": Array [
               "create_public_channel",
               "manage_public_channel_properties",
+              "manage_public_channel_auto_translation",
               Object {
                 "combined": true,
                 "id": "manage_public_channel_members_and_read_groups",
@@ -706,6 +713,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_tree sh
             "permissions": Array [
               "create_private_channel",
               "manage_private_channel_properties",
+              "manage_private_channel_auto_translation",
               Object {
                 "combined": true,
                 "id": "manage_private_channel_members_and_read_groups",
@@ -910,6 +918,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_tree sh
             "permissions": Array [
               "create_public_channel",
               "manage_public_channel_properties",
+              "manage_public_channel_auto_translation",
               Object {
                 "combined": true,
                 "id": "manage_public_channel_members_and_read_groups",
@@ -927,6 +936,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_tree sh
             "permissions": Array [
               "create_private_channel",
               "manage_private_channel_properties",
+              "manage_private_channel_auto_translation",
               Object {
                 "combined": true,
                 "id": "manage_private_channel_members_and_read_groups",
@@ -1131,6 +1141,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_tree sh
             "permissions": Array [
               "create_public_channel",
               "manage_public_channel_properties",
+              "manage_public_channel_auto_translation",
               Object {
                 "combined": true,
                 "id": "manage_public_channel_members_and_read_groups",
@@ -1148,6 +1159,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_tree sh
             "permissions": Array [
               "create_private_channel",
               "manage_private_channel_properties",
+              "manage_private_channel_auto_translation",
               Object {
                 "combined": true,
                 "id": "manage_private_channel_members_and_read_groups",
@@ -1359,6 +1371,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_tree sh
             "permissions": Array [
               "create_public_channel",
               "manage_public_channel_properties",
+              "manage_public_channel_auto_translation",
               Object {
                 "combined": true,
                 "id": "manage_public_channel_members_and_read_groups",
@@ -1376,6 +1389,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_tree sh
             "permissions": Array [
               "create_private_channel",
               "manage_private_channel_properties",
+              "manage_private_channel_auto_translation",
               Object {
                 "combined": true,
                 "id": "manage_private_channel_members_and_read_groups",

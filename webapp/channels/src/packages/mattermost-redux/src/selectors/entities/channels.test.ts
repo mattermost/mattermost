@@ -3,6 +3,7 @@
 
 import type {Channel} from '@mattermost/types/channels';
 import type {GlobalState} from '@mattermost/types/store';
+import type {DeepPartial} from '@mattermost/types/utilities';
 
 import {General, Permissions} from 'mattermost-redux/constants';
 import {CategoryTypes} from 'mattermost-redux/constants/channel_categories';
@@ -3226,5 +3227,140 @@ describe('Selectors.Channels.getRecentProfilesFromDMs', () => {
             ...[user3.username, user4.username].sort(),
             user1.username,
         ]);
+    });
+});
+
+describe('hasAutotranslationBecomeEnabled', () => {
+    const enabledChannel = {...TestHelper.fakeChannel('team_id'), autotranslation: true};
+    const enabledMember = {...TestHelper.fakeChannelMember('user_id', enabledChannel.id), autotranslation_disabled: false};
+    const disabledChannel = {...enabledChannel, autotranslation: false};
+    const disabledMember = {...enabledMember, autotranslation_disabled: true};
+
+    it('returns false when EnableAutoTranslation is not enabled in config', () => {
+        const state: DeepPartial<GlobalState> = {
+            entities: {
+                general: {config: {EnableAutoTranslation: 'false'}},
+                channels: {
+                    channels: {
+                        [disabledChannel.id]: disabledChannel,
+                    },
+                    myMembers: {
+                        [enabledChannel.id]: enabledMember,
+                    },
+                },
+            },
+        };
+
+        expect(Selectors.hasAutotranslationBecomeEnabled(state as GlobalState, enabledChannel)).toBe(false);
+    });
+
+    it('returns false when missing state', () => {
+        const missingChannelState: DeepPartial<GlobalState> = {
+            entities: {
+                general: {config: {EnableAutoTranslation: 'true'}},
+                channels: {
+                    channels: {},
+                    myMembers: {[disabledChannel.id]: disabledMember},
+                },
+            },
+        };
+
+        expect(Selectors.hasAutotranslationBecomeEnabled(missingChannelState as GlobalState, enabledMember)).toBe(false);
+
+        const missingMemberState: DeepPartial<GlobalState> = {
+            entities: {
+                general: {config: {EnableAutoTranslation: 'true'}},
+                channels: {
+                    channels: {[disabledChannel.id]: disabledChannel},
+                    myMembers: {},
+                },
+            },
+        };
+
+        expect(Selectors.hasAutotranslationBecomeEnabled(missingMemberState as GlobalState, enabledChannel)).toBe(false);
+    });
+
+    it('returns false on disable', () => {
+        const state: DeepPartial<GlobalState> = {
+            entities: {
+                general: {config: {EnableAutoTranslation: 'true'}},
+                channels: {
+                    channels: {[enabledChannel.id]: enabledChannel},
+                    myMembers: {[enabledChannel.id]: enabledMember},
+                },
+            },
+        };
+
+        expect(Selectors.hasAutotranslationBecomeEnabled(state as GlobalState, disabledChannel)).toBe(false);
+        expect(Selectors.hasAutotranslationBecomeEnabled(state as GlobalState, disabledMember)).toBe(false);
+    });
+
+    it('returns false when no change', () => {
+        const stateEnabled: DeepPartial<GlobalState> = {
+            entities: {
+                general: {config: {EnableAutoTranslation: 'true'}},
+                channels: {
+                    channels: {[enabledChannel.id]: enabledChannel},
+                    myMembers: {[enabledChannel.id]: enabledMember},
+                },
+            },
+        };
+
+        expect(Selectors.hasAutotranslationBecomeEnabled(stateEnabled as GlobalState, enabledChannel)).toBe(false);
+        expect(Selectors.hasAutotranslationBecomeEnabled(stateEnabled as GlobalState, enabledMember)).toBe(false);
+
+        const stateDisabled: DeepPartial<GlobalState> = {
+            entities: {
+                general: {config: {EnableAutoTranslation: 'true'}},
+                channels: {
+                    channels: {[disabledChannel.id]: disabledChannel},
+                    myMembers: {[disabledChannel.id]: disabledMember},
+                },
+            },
+        };
+
+        expect(Selectors.hasAutotranslationBecomeEnabled(stateDisabled as GlobalState, disabledChannel)).toBe(false);
+        expect(Selectors.hasAutotranslationBecomeEnabled(stateDisabled as GlobalState, disabledMember)).toBe(false);
+    });
+
+    it('returns false when change doesn\'t enable autotranslation', () => {
+        const state: DeepPartial<GlobalState> = {
+            entities: {
+                general: {config: {EnableAutoTranslation: 'true'}},
+                channels: {
+                    channels: {[disabledChannel.id]: disabledChannel},
+                    myMembers: {[disabledChannel.id]: disabledMember},
+                },
+            },
+        };
+
+        expect(Selectors.hasAutotranslationBecomeEnabled(state as GlobalState, enabledChannel)).toBe(false);
+        expect(Selectors.hasAutotranslationBecomeEnabled(state as GlobalState, enabledMember)).toBe(false);
+    });
+
+    it('returns true when autotranslation becomes enabled', () => {
+        const enabledChannelState: DeepPartial<GlobalState> = {
+            entities: {
+                general: {config: {EnableAutoTranslation: 'true'}},
+                channels: {
+                    channels: {[enabledChannel.id]: enabledChannel},
+                    myMembers: {[disabledChannel.id]: disabledMember},
+                },
+            },
+        };
+
+        expect(Selectors.hasAutotranslationBecomeEnabled(enabledChannelState as GlobalState, enabledMember)).toBe(true);
+
+        const enabledMemberState: DeepPartial<GlobalState> = {
+            entities: {
+                general: {config: {EnableAutoTranslation: 'true'}},
+                channels: {
+                    channels: {[disabledChannel.id]: disabledChannel},
+                    myMembers: {[enabledChannel.id]: enabledMember},
+                },
+            },
+        };
+
+        expect(Selectors.hasAutotranslationBecomeEnabled(enabledMemberState as GlobalState, enabledChannel)).toBe(true);
     });
 });

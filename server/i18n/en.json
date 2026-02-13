@@ -456,8 +456,20 @@
     "translation": "Cannot add a permission that is restricted by the team or system permission scheme."
   },
   {
+    "id": "api.channel.patch_update_channel.auto_translation_restricted.app_error",
+    "translation": "Auto translation is not allowed for this channel."
+  },
+  {
+    "id": "api.channel.patch_update_channel.feature_not_available.app_error",
+    "translation": "Auto translation feature is not available."
+  },
+  {
     "id": "api.channel.patch_update_channel.forbidden.app_error",
     "translation": "Failed to update the channel."
+  },
+  {
+    "id": "api.channel.patch_update_channel.no_changes.app_error",
+    "translation": "No changes in the patch."
   },
   {
     "id": "api.channel.patch_update_channel.restricted_dm.app_error",
@@ -470,6 +482,22 @@
   {
     "id": "api.channel.post_channel_privacy_message.error",
     "translation": "Failed to post channel privacy update message."
+  },
+  {
+    "id": "api.channel.post_update_channel_autotranslation_message.create_post.error",
+    "translation": "Failed to post Auto-translation update message."
+  },
+  {
+    "id": "api.channel.post_update_channel_autotranslation_message.disabled",
+    "translation": "@%s disabled Auto-translation for this channel. All new messages will appear in the original language."
+  },
+  {
+    "id": "api.channel.post_update_channel_autotranslation_message.enabled",
+    "translation": "@%s enabled Auto-translation for this channel. All new messages will appear in your preferred language."
+  },
+  {
+    "id": "api.channel.post_update_channel_autotranslation_message.retrieve_user.error",
+    "translation": "Failed to retrieve user while updating Auto-translation status"
   },
   {
     "id": "api.channel.post_update_channel_displayname_message_and_forget.create_post.error",
@@ -570,6 +598,14 @@
   {
     "id": "api.channel.update_channel.update_direct_or_group_messages_not_allowed.app_error",
     "translation": "You are not allowed to update the name, display_name, and purpose of direct or group messages."
+  },
+  {
+    "id": "api.channel.update_channel_member_autotranslation.channel_not_enabled.app_error",
+    "translation": "Auto-translation is not enabled for this channel."
+  },
+  {
+    "id": "api.channel.update_channel_member_autotranslation.feature_not_available.app_error",
+    "translation": "Auto-translation is not available."
   },
   {
     "id": "api.channel.update_channel_member_roles.changing_guest_role.app_error",
@@ -1262,10 +1298,6 @@
     "translation": "Could not find the specified channel. Please use the [channel handle](https://docs.mattermost.com/messaging/managing-channels.html#naming-a-channel) to identify channels."
   },
   {
-    "id": "api.command_mute.not_member.error",
-    "translation": "Could not mute channel {{.Channel}} as you are not a member."
-  },
-  {
     "id": "api.command_mute.success_mute",
     "translation": "You will not receive notifications for {{.Channel}} until channel mute is turned off."
   },
@@ -1766,6 +1798,10 @@
     "translation": "Content flagging feature is disabled."
   },
   {
+    "id": "api.content_flagging.error.invalid_post_type",
+    "translation": "Flagging a post of type '{{.PostType}}' is not allowed."
+  },
+  {
     "id": "api.content_flagging.error.license",
     "translation": "Your license does not support content flagging."
   },
@@ -1912,6 +1948,10 @@
   {
     "id": "api.context.server_busy.app_error",
     "translation": "Server is busy, non-critical services are temporarily unavailable."
+  },
+  {
+    "id": "api.context.session_cookie_not_allowed.app_error",
+    "translation": "Cookie-based authentication is not allowed for this endpoint. Please use header-based authentication."
   },
   {
     "id": "api.context.session_expired.app_error",
@@ -2153,8 +2193,16 @@
     "translation": "Unable to get the file size."
   },
   {
+    "id": "api.file.get_file.invalid_flagged_post.app_error",
+    "translation": "Mismatched flagged post ID specified."
+  },
+  {
     "id": "api.file.get_file.public_invalid.app_error",
     "translation": "The public link does not appear to be valid."
+  },
+  {
+    "id": "api.file.get_file_info.app_error",
+    "translation": "Failed to get file info."
   },
   {
     "id": "api.file.get_file_preview.no_preview.app_error",
@@ -2649,6 +2697,10 @@
     "translation": "Unable to verify plugin signature."
   },
   {
+    "id": "api.post.burn_post.user_not_in_channel.app_error",
+    "translation": "You do not have permission to burn this post. You must be a member of the channel."
+  },
+  {
     "id": "api.post.check_for_out_of_channel_group_users.message.none",
     "translation": "@{{.GroupName}} has no members on this team"
   },
@@ -2675,6 +2727,10 @@
   {
     "id": "api.post.check_for_out_of_team_mentions.message.one",
     "translation": "@{{.Username}} didn't get notified by this mention because they aren't a member of this team."
+  },
+  {
+    "id": "api.post.create_post.burn_on_read.app_error",
+    "translation": "An error occurred while creating a burn-on-read post."
   },
   {
     "id": "api.post.create_post.can_not_post_in_restricted_dm.error",
@@ -2745,8 +2801,36 @@
     "translation": "Unable to get the pending post."
   },
   {
+    "id": "api.post.fill_in_post_props.burn_on_read.bot_dm.app_error",
+    "translation": "Burn-on-read posts are not allowed in direct messages with bots or AI agents."
+  },
+  {
+    "id": "api.post.fill_in_post_props.burn_on_read.channel.app_error",
+    "translation": "An error occurred while validating the channel for burn-on-read post."
+  },
+  {
+    "id": "api.post.fill_in_post_props.burn_on_read.config.app_error",
+    "translation": "Burn-on-read posts are not enabled. Please enable the feature flag and service setting."
+  },
+  {
+    "id": "api.post.fill_in_post_props.burn_on_read.license.app_error",
+    "translation": "Burn-on-read posts require an Enterprise Advanced license."
+  },
+  {
+    "id": "api.post.fill_in_post_props.burn_on_read.self_dm.app_error",
+    "translation": "Burn-on-read posts are not allowed when messaging yourself."
+  },
+  {
+    "id": "api.post.fill_in_post_props.burn_on_read.user.app_error",
+    "translation": "An error occurred while validating the user for burn-on-read post."
+  },
+  {
     "id": "api.post.fill_in_post_props.invalid_ai_generated_user.app_error",
     "translation": "The AI-generated user must be either the post creator or a bot."
+  },
+  {
+    "id": "api.post.get_link_metadata_for_permalink.burn_on_read.app_error",
+    "translation": "Cannot retrieve link metadata for burn-on-read post permalink."
   },
   {
     "id": "api.post.get_message_for_notification.files_sent",
@@ -2763,12 +2847,20 @@
     }
   },
   {
+    "id": "api.post.get_posts_for_reporting.channel_not_found",
+    "translation": "Channel not found"
+  },
+  {
     "id": "api.post.move_thread.disabled.app_error",
     "translation": "Thread moving is disabled"
   },
   {
     "id": "api.post.move_thread.no_permission",
     "translation": "You do not have permission to move this thread."
+  },
+  {
+    "id": "api.post.patch_post.can_not_update_burn_on_read_post.error",
+    "translation": "Burn-on-read posts cannot be updated."
   },
   {
     "id": "api.post.patch_post.can_not_update_post_in_deleted.error",
@@ -2805,6 +2897,18 @@
   {
     "id": "api.post.posts_by_ids.invalid_body.request_error",
     "translation": "The number of Post IDs received has exceeded the maximum size of {{.MaxLength}}"
+  },
+  {
+    "id": "api.post.reveal_post.cannot_reveal_own_post.app_error",
+    "translation": "You cannot reveal your own burn-on-read post."
+  },
+  {
+    "id": "api.post.reveal_post.disabled.app_error",
+    "translation": "Burn-on-read feature is not enabled or requires an Enterprise Advanced license."
+  },
+  {
+    "id": "api.post.reveal_post.user_not_in_channel.app_error",
+    "translation": "You do not have permission to reveal this post. You must be a member of the channel."
   },
   {
     "id": "api.post.search_files.invalid_body.app_error",
@@ -2849,6 +2953,10 @@
   {
     "id": "api.post.send_notifications_and_forget.push_message",
     "translation": "sent you a message."
+  },
+  {
+    "id": "api.post.update_post.burn_on_read.app_error",
+    "translation": "Burn-on-read posts cannot be edited."
   },
   {
     "id": "api.post.update_post.can_not_update_post_in_deleted.error",
@@ -2947,6 +3055,10 @@
     "translation": "You cannot react in an archived channel."
   },
   {
+    "id": "api.reaction.save.burn_on_read.app_error",
+    "translation": "You cannot react to a burn-on-read post."
+  },
+  {
     "id": "api.reaction.save.restricted_dm.error",
     "translation": "Cannot react in restricted DM"
   },
@@ -2957,6 +3069,14 @@
   {
     "id": "api.reaction.save_reaction.user_id.app_error",
     "translation": "You cannot save reaction for the other user."
+  },
+  {
+    "id": "api.recap.disabled.app_error",
+    "translation": "This feature is not enabled."
+  },
+  {
+    "id": "api.recap.permission_denied",
+    "translation": "You do not have permission to access this recap."
   },
   {
     "id": "api.remote_cluster.accept_invitation_error",
@@ -3083,16 +3203,8 @@
     "translation": "Interactions with the Mattermost Customer Portal have been disabled by the system admin."
   },
   {
-    "id": "api.server.cws.health_check.app_error",
-    "translation": "CWS Server is not available."
-  },
-  {
     "id": "api.server.cws.needs_enterprise_edition",
     "translation": "Service only available in Mattermost Enterprise edition"
-  },
-  {
-    "id": "api.server.cws.subscribe_to_newsletter.app_error",
-    "translation": "CWS Server failed to subscribe to newsletter."
   },
   {
     "id": "api.server.hosted_signup_unavailable.error",
@@ -3357,6 +3469,10 @@
   {
     "id": "api.team.invite_guests_to_channels.disabled.error",
     "translation": "Guest accounts are disabled"
+  },
+  {
+    "id": "api.team.invite_guests_to_channels.guest_magic_link_disabled.error",
+    "translation": "Guest magic link is not enabled"
   },
   {
     "id": "api.team.invite_guests_to_channels.invalid_body.app_error",
@@ -3644,7 +3760,7 @@
   },
   {
     "id": "api.templates.email_footer_v2",
-    "translation": "© 2022 Mattermost, Inc. 530 Lytton Avenue, Second floor, Palo Alto, CA, 94301"
+    "translation": "© 2015 - {{ .CurrentYear }} Mattermost, Inc. 2100 Geng Road, Suite 210, Palo Alto, CA, 94303"
   },
   {
     "id": "api.templates.email_info1",
@@ -3669,6 +3785,26 @@
   {
     "id": "api.templates.email_warning",
     "translation": "If you did not make this change, please contact the system administrator."
+  },
+  {
+    "id": "api.templates.guest_magic_link_body.footer.info",
+    "translation": "This email was sent to you because someone requested a login link for Mattermost. If you did not request this, you can safely ignore this email."
+  },
+  {
+    "id": "api.templates.guest_magic_link_body.footer.title",
+    "translation": "Didn't request this email?"
+  },
+  {
+    "id": "api.templates.guest_magic_link_body.subtitle",
+    "translation": "Click the button below to sign in to your account. Remember not to share this link with anyone else."
+  },
+  {
+    "id": "api.templates.guest_magic_link_body.title",
+    "translation": "Sign in to Mattermost"
+  },
+  {
+    "id": "api.templates.guest_magic_link_subject",
+    "translation": "Sign in to {{ .SiteName }}"
   },
   {
     "id": "api.templates.invite_body.button",
@@ -4267,6 +4403,26 @@
     "translation": "Access control service unavailable. Cannot filter users for ABAC-enabled channel."
   },
   {
+    "id": "api.user.guest_magic_link.expired_token.app_error",
+    "translation": "This invitation link has expired."
+  },
+  {
+    "id": "api.user.guest_magic_link.invalid_token.app_error",
+    "translation": "Invalid invitation link."
+  },
+  {
+    "id": "api.user.guest_magic_link.invalid_token_type.app_error",
+    "translation": "Invalid invitation link type."
+  },
+  {
+    "id": "api.user.guest_magic_link.missing_token.app_error",
+    "translation": "Missing invitation token."
+  },
+  {
+    "id": "api.user.guest_magic_link.username_generation_failed.app_error",
+    "translation": "Could not generate a unique username. Please contact your system administrator."
+  },
+  {
     "id": "api.user.invalidate_password_recovery_tokens.error",
     "translation": "Unable to get tokens by type when invalidating password recovery tokens"
   },
@@ -4315,6 +4471,10 @@
     "translation": "Your license does not support guest accounts"
   },
   {
+    "id": "api.user.login.guest_magic_link.disabled.error",
+    "translation": "Login with magic link is disabled."
+  },
+  {
     "id": "api.user.login.inactive.app_error",
     "translation": "Login failed because your account has been deactivated.  Please contact an administrator."
   },
@@ -4351,6 +4511,22 @@
     "translation": "CWS token is not valid"
   },
   {
+    "id": "api.user.login_by_intune.account_locked.app_error",
+    "translation": "Your account has been deactivated. Please contact your system administrator."
+  },
+  {
+    "id": "api.user.login_by_intune.bot_login_forbidden.app_error",
+    "translation": "Bot accounts cannot sign in using Microsoft authentication."
+  },
+  {
+    "id": "api.user.login_by_intune.not_available.app_error",
+    "translation": "Microsoft Intune authentication is not available."
+  },
+  {
+    "id": "api.user.login_by_intune.not_configured.app_error",
+    "translation": "Microsoft Intune authentication is not configured."
+  },
+  {
     "id": "api.user.login_by_oauth.bot_login_forbidden.app_error",
     "translation": "Bot login is forbidden."
   },
@@ -4375,16 +4551,32 @@
     "translation": "User is not an OAuth or SAML user."
   },
   {
+    "id": "api.user.oauth.get_settings.app_error",
+    "translation": "Failed to get {{.Service}} settings"
+  },
+  {
     "id": "api.user.oauth_to_email.context.app_error",
     "translation": "Update password failed because context user_id did not match provided user's id."
+  },
+  {
+    "id": "api.user.oauth_to_email.magic_link.app_error",
+    "translation": "Magic Link is the only sign-in method available for this account."
   },
   {
     "id": "api.user.oauth_to_email.not_available.app_error",
     "translation": "Authentication Transfer not configured or available on this server."
   },
   {
+    "id": "api.user.oauth_to_email.not_oauth_user.app_error",
+    "translation": "Unable to switch to email authentication because user is not using OAuth or SAML authentication."
+  },
+  {
     "id": "api.user.patch_user.login_provider_attribute_set.app_error",
     "translation": "Field '{{.Field}}' must be set through user's login provider."
+  },
+  {
+    "id": "api.user.promote_guest_to_user.magic_link_enabled.app_error",
+    "translation": "Unable to convert the guest to regular user because the guest uses magic link authentication."
   },
   {
     "id": "api.user.promote_guest_to_user.no_guest.app_error",
@@ -4439,6 +4631,10 @@
     "translation": "Failed to send email change verification email successfully"
   },
   {
+    "id": "api.user.send_password_reset.guest_magic_link.app_error",
+    "translation": "Unable to reset password for guest magic link accounts."
+  },
+  {
     "id": "api.user.send_password_reset.send.app_error",
     "translation": "Failed to send password reset email successfully."
   },
@@ -4485,6 +4681,10 @@
   {
     "id": "api.user.update_password.incorrect.app_error",
     "translation": "The \"Current Password\" you entered is incorrect. Please check that Caps Lock is off and try again."
+  },
+  {
+    "id": "api.user.update_password.magic_link.app_error",
+    "translation": "Cannot update password for Magic Link accounts."
   },
   {
     "id": "api.user.update_password.menu",
@@ -4711,6 +4911,14 @@
     "translation": "Bridge call failed."
   },
   {
+    "id": "app.ai.summarize.agent_call_failed",
+    "translation": "AI agent call failed."
+  },
+  {
+    "id": "app.ai.summarize.parse_failed",
+    "translation": "Failed to parse AI summarization response."
+  },
+  {
     "id": "app.analytics.getanalytics.internal_error",
     "translation": "Unable to get the analytics."
   },
@@ -4765,6 +4973,22 @@
   {
     "id": "app.bot.update.app_error",
     "translation": "Unable to update the bot."
+  },
+  {
+    "id": "app.burn_post.not_burn_on_read.app_error",
+    "translation": "This post is not a burn-on-read post and cannot be burned."
+  },
+  {
+    "id": "app.burn_post.not_revealed.app_error",
+    "translation": "This burn-on-read post has not been revealed yet. You must reveal it before burning."
+  },
+  {
+    "id": "app.burn_post.read_receipt.get.error",
+    "translation": "An error occurred while retrieving the read receipt."
+  },
+  {
+    "id": "app.burn_post.read_receipt.update.error",
+    "translation": "An error occurred while updating the read receipt."
   },
   {
     "id": "app.channel.add_member.deleted_user.app_error",
@@ -5341,10 +5565,6 @@
   {
     "id": "app.content_flagging.no_status_property.app_error",
     "translation": "Cannot fetch flagged post as the post is not flagged."
-  },
-  {
-    "id": "app.content_flagging.permanently_delete.app_error",
-    "translation": "Failed to overwrite post with scrubbed post when permanently deleting flagged post."
   },
   {
     "id": "app.content_flagging.permanently_delete.marshal_comment.app_error",
@@ -6747,8 +6967,8 @@
     "translation": "Could not unassign access control policy from channels."
   },
   {
-    "id": "app.pap.update_access_control_policy_active.app_error",
-    "translation": "Could not change active status of access control policy."
+    "id": "app.pap.update_access_control_policies_active.app_error",
+    "translation": "Could not update active status of access control policies."
   },
   {
     "id": "app.pdp.access_evaluation.app_error",
@@ -6991,6 +7211,10 @@
     "translation": "Unable to get the flagged posts."
   },
   {
+    "id": "app.post.get_post.app_error",
+    "translation": "An error occurred while retrieving the burn-on-read post content."
+  },
+  {
     "id": "app.post.get_post_after_time.app_error",
     "translation": "Unable to get post after time bound."
   },
@@ -7009,6 +7233,18 @@
   {
     "id": "app.post.get_posts_created_at.app_error",
     "translation": "Unable to get the posts for the channel."
+  },
+  {
+    "id": "app.post.get_posts_for_reporting.app_error",
+    "translation": "Unable to retrieve posts for reporting."
+  },
+  {
+    "id": "app.post.get_posts_for_reporting.invalid_input_error",
+    "translation": "Unable to retrieve posts for reporting. Invalid input."
+  },
+  {
+    "id": "app.post.get_posts_for_reporting.license_error",
+    "translation": "Your license does not support reporting on posts."
   },
   {
     "id": "app.post.get_posts_since.app_error",
@@ -7191,6 +7427,58 @@
     "translation": "Reaction limit has been reached for this post."
   },
   {
+    "id": "app.recap.delete.app_error",
+    "translation": "Failed to delete recap."
+  },
+  {
+    "id": "app.recap.delete_channels.app_error",
+    "translation": "Failed to delete recap channels."
+  },
+  {
+    "id": "app.recap.get.app_error",
+    "translation": "Failed to get recap."
+  },
+  {
+    "id": "app.recap.get_channel.app_error",
+    "translation": "Failed to get channel."
+  },
+  {
+    "id": "app.recap.get_channels.app_error",
+    "translation": "Failed to get recap channels."
+  },
+  {
+    "id": "app.recap.get_last_viewed.app_error",
+    "translation": "Failed to get last viewed timestamp."
+  },
+  {
+    "id": "app.recap.get_team.app_error",
+    "translation": "Failed to get team."
+  },
+  {
+    "id": "app.recap.list.app_error",
+    "translation": "Failed to get recaps."
+  },
+  {
+    "id": "app.recap.mark_read.app_error",
+    "translation": "Failed to mark recap as read."
+  },
+  {
+    "id": "app.recap.permission_denied",
+    "translation": "No permission for recap."
+  },
+  {
+    "id": "app.recap.save.app_error",
+    "translation": "Failed to save recap."
+  },
+  {
+    "id": "app.recap.save_channel.app_error",
+    "translation": "Failed to save recap channel."
+  },
+  {
+    "id": "app.recap.update.app_error",
+    "translation": "Failed to update recap."
+  },
+  {
     "id": "app.recover.delete.app_error",
     "translation": "Unable to delete token."
   },
@@ -7249,6 +7537,38 @@
   {
     "id": "app.report.start_users_batch_export.started_export",
     "translation": "You've started an export of user data for {{.DateRange}}. When the export is complete, a CSV file will be delivered to you in this direct message."
+  },
+  {
+    "id": "app.reveal_post.cannot_reveal_own_post.app_error",
+    "translation": "You cannot reveal your own burn-on-read post."
+  },
+  {
+    "id": "app.reveal_post.missing_expire_at.app_error",
+    "translation": "The burn-on-read post is missing the required expiration time."
+  },
+  {
+    "id": "app.reveal_post.not_burn_on_read.app_error",
+    "translation": "This post is not a burn-on-read post and cannot be revealed."
+  },
+  {
+    "id": "app.reveal_post.post_expired.app_error",
+    "translation": "This burn-on-read post has expired and can no longer be revealed."
+  },
+  {
+    "id": "app.reveal_post.read_receipt.get.error",
+    "translation": "An error occurred while retrieving the read receipt."
+  },
+  {
+    "id": "app.reveal_post.read_receipt.get_unread_count.error",
+    "translation": "Unable to get the unread count for the read receipt."
+  },
+  {
+    "id": "app.reveal_post.read_receipt.save.error",
+    "translation": "An error occurred while saving the read receipt."
+  },
+  {
+    "id": "app.reveal_post.read_receipt_expired.error",
+    "translation": "Your access to this burn-on-read post has expired."
   },
   {
     "id": "app.role.check_roles_exist.role_not_found",
@@ -7719,6 +8039,10 @@
   {
     "id": "app.update_error",
     "translation": "update error"
+  },
+  {
+    "id": "app.update_scheduled_post.convert_to_post.error",
+    "translation": "Unable to convert scheduled post to post format."
   },
   {
     "id": "app.update_scheduled_post.existing_scheduled_post.not_exist",
@@ -8209,6 +8533,102 @@
     "translation": " attached a file."
   },
   {
+    "id": "ent.autotranslation.add_task.missing_object_id",
+    "translation": "Translation task must include an object ID."
+  },
+  {
+    "id": "ent.autotranslation.add_task.missing_object_type",
+    "translation": "Translation task must include an object type."
+  },
+  {
+    "id": "ent.autotranslation.add_task.nil_task",
+    "translation": "Translation task cannot be null."
+  },
+  {
+    "id": "ent.autotranslation.create_translation_failed",
+    "translation": "Failed to create translation."
+  },
+  {
+    "id": "ent.autotranslation.detect_language.nil_context",
+    "translation": "Context is required for language detection."
+  },
+  {
+    "id": "ent.autotranslation.detect_language.text_too_large",
+    "translation": "Text exceeds maximum size for language detection."
+  },
+  {
+    "id": "ent.autotranslation.detect_remote.error",
+    "translation": "Failed to detect language using translation provider."
+  },
+  {
+    "id": "ent.autotranslation.extract_content.mask_error",
+    "translation": "Failed to mask content for translation."
+  },
+  {
+    "id": "ent.autotranslation.extract_post.nil_post",
+    "translation": "Post object cannot be null."
+  },
+  {
+    "id": "ent.autotranslation.feature_unavailable",
+    "translation": "Auto-translation is not available. Please contact your system administrator about upgrading your enterprise license."
+  },
+  {
+    "id": "ent.autotranslation.invalid_input",
+    "translation": "Invalid language code provided."
+  },
+  {
+    "id": "ent.autotranslation.mask_verification_failed",
+    "translation": "Failed to update translation with new mask values."
+  },
+  {
+    "id": "ent.autotranslation.no_translatable_content",
+    "translation": "Content contains no translatable text."
+  },
+  {
+    "id": "ent.autotranslation.provider_not_available",
+    "translation": "Translation provider is not available."
+  },
+  {
+    "id": "ent.autotranslation.provider_not_initialized",
+    "translation": "Translation provider is not initialized."
+  },
+  {
+    "id": "ent.autotranslation.store_error",
+    "translation": "Unable to process auto-translation request."
+  },
+  {
+    "id": "ent.autotranslation.unmask.missing_mask",
+    "translation": "Translation contains unrecognized tokens."
+  },
+  {
+    "id": "ent.autotranslation.unmask.orphan_token",
+    "translation": "Translation contains invalid tokens."
+  },
+  {
+    "id": "ent.autotranslation.validate_content.invalid_json",
+    "translation": "Unable to parse JSON content."
+  },
+  {
+    "id": "ent.autotranslation.validate_content.invalid_type",
+    "translation": "Unsupported content type for translation."
+  },
+  {
+    "id": "ent.autotranslation.validate_content.nil_content",
+    "translation": "Content cannot be null."
+  },
+  {
+    "id": "ent.autotranslation.validate_content.text_too_large",
+    "translation": "Content exceeds maximum size for translation."
+  },
+  {
+    "id": "ent.autotranslation.validate_id.empty",
+    "translation": "Required ID cannot be empty."
+  },
+  {
+    "id": "ent.autotranslation.validate_id.invalid",
+    "translation": "Invalid ID format."
+  },
+  {
     "id": "ent.cluster.config_changed.info",
     "translation": "Cluster configuration has changed for id={{ .id }}. The cluster may become unstable and a restart is required. To ensure the cluster is configured correctly you should perform a rolling restart immediately."
   },
@@ -8499,6 +8919,38 @@
   {
     "id": "ent.id_loaded.license_disable.app_error",
     "translation": "Your license does not support ID Loaded Push Notifications."
+  },
+  {
+    "id": "ent.intune.login.account_not_found.app_error",
+    "translation": "Your account isn't fully set up yet. Please sign in to Mattermost via the web or desktop app first."
+  },
+  {
+    "id": "ent.intune.login.extract_auth_data.app_error",
+    "translation": "Authentication failed. Please try again or contact your system administrator."
+  },
+  {
+    "id": "ent.intune.login.not_configured.app_error",
+    "translation": "Microsoft Intune authentication is not configured."
+  },
+  {
+    "id": "ent.intune.validate_token.invalid_tenant_id.app_error",
+    "translation": "Authentication failed. Invalid configuration."
+  },
+  {
+    "id": "ent.intune.validate_token.invalid_token.app_error",
+    "translation": "Authentication failed. Please try again."
+  },
+  {
+    "id": "ent.intune.validate_token.jwks_init.app_error",
+    "translation": "Authentication service initialization failed. Please contact your system administrator."
+  },
+  {
+    "id": "ent.intune.validate_token.missing_claims.app_error",
+    "translation": "Authentication failed. Required user information is missing."
+  },
+  {
+    "id": "ent.intune.validate_token.token_expired.app_error",
+    "translation": "Authentication session has expired. Please try signing in again."
   },
   {
     "id": "ent.jobs.start_synchronize_job.timeout",
@@ -9489,6 +9941,10 @@
     "translation": "Invalid RemoteImageProxyURL for atmos/camo. Must be set to your shared key."
   },
   {
+    "id": "model.config.is_valid.autotranslation.agents.llm_service_id.app_error",
+    "translation": "Invalid autotranslation agents configuration: AI service must not be empty."
+  },
+  {
     "id": "model.config.is_valid.autotranslation.libretranslate.url.app_error",
     "translation": "LibreTranslate URL must be a valid URL and start with http:// or https://."
   },
@@ -9501,16 +9957,12 @@
     "translation": "Unsupported autotranslation provider."
   },
   {
-    "id": "model.config.is_valid.autotranslation.timeouts.fetch.app_error",
-    "translation": "Invalid fetch timeout for autotranslation settings. Must be a positive number."
+    "id": "model.config.is_valid.autotranslation.timeout.app_error",
+    "translation": "Invalid timeout for autotranslation settings. Must be a positive number."
   },
   {
-    "id": "model.config.is_valid.autotranslation.timeouts.new_post.app_error",
-    "translation": "Invalid new post timeout for autotranslation settings. Must be a positive number."
-  },
-  {
-    "id": "model.config.is_valid.autotranslation.timeouts.notification.app_error",
-    "translation": "Invalid notification timeout for autotranslation settings. Must be a positive number."
+    "id": "model.config.is_valid.autotranslation.workers.app_error",
+    "translation": "Workers must be between 1 and 32."
   },
   {
     "id": "model.config.is_valid.cache_type.app_error",
@@ -9613,6 +10065,10 @@
     "translation": "{{.EnableIndexing}} setting must be set to true when {{.Autocomplete}} is set to true"
   },
   {
+    "id": "model.config.is_valid.elastic_search.enable_cjk_analyzers.app_error",
+    "translation": "{{.Searching}} setting must be set to true when {{.EnableCJKAnalyzers}} is set to true"
+  },
+  {
     "id": "model.config.is_valid.elastic_search.enable_searching.app_error",
     "translation": "{{.EnableIndexing}} setting must be set to true when {{.Searching}} is set to true"
   },
@@ -9713,6 +10169,10 @@
     "translation": "Invalid group unread channels for service settings. Must be 'disabled', 'default_on', or 'default_off'."
   },
   {
+    "id": "model.config.is_valid.guest_accounts.cannot_enforce_multifactor_authentication_when_guest_magic_link_is_enabled.app_error",
+    "translation": "You cannot enforce multifactor authentication for guest accounts when magic link authentication is enabled."
+  },
+  {
     "id": "model.config.is_valid.image_decoder_concurrency.app_error",
     "translation": "Invalid decoder concurrency {{.Value}}. Should be a positive number or -1."
   },
@@ -9727,6 +10187,38 @@
   {
     "id": "model.config.is_valid.import.retention_days_too_low.app_error",
     "translation": "Invalid value for RetentionDays. Value is too low."
+  },
+  {
+    "id": "model.config.is_valid.intune_auth_service.app_error",
+    "translation": "Intune MAM Auth Service is required when Intune is enabled."
+  },
+  {
+    "id": "model.config.is_valid.intune_auth_service_invalid.app_error",
+    "translation": "Intune MAM Auth Service must be either 'office365' or 'saml'."
+  },
+  {
+    "id": "model.config.is_valid.intune_client_id.app_error",
+    "translation": "Intune MAM Client ID is required when Intune is enabled."
+  },
+  {
+    "id": "model.config.is_valid.intune_client_id_format.app_error",
+    "translation": "Intune MAM Client ID must be a valid UUID."
+  },
+  {
+    "id": "model.config.is_valid.intune_requires_office365.app_error",
+    "translation": "Intune MAM requires OpenID Connect (Office 365) to be enabled when Auth Service is set to 'office365'."
+  },
+  {
+    "id": "model.config.is_valid.intune_requires_saml.app_error",
+    "translation": "Intune MAM requires SAML to be enabled when Auth Service is set to 'saml'."
+  },
+  {
+    "id": "model.config.is_valid.intune_tenant_id.app_error",
+    "translation": "Intune MAM Tenant ID is required when Intune is enabled."
+  },
+  {
+    "id": "model.config.is_valid.intune_tenant_id_format.app_error",
+    "translation": "Intune MAM Tenant ID must be a valid UUID."
   },
   {
     "id": "model.config.is_valid.invalid_redis_db.app_error",
@@ -10565,6 +11057,34 @@
     "translation": "Channel notifications are disabled in {{.ChannelName}}. The {{.Mention}} did not trigger any notifications."
   },
   {
+    "id": "model.post.decode_cursor.invalid_base64",
+    "translation": "Invalid cursor format: unable to decode base64."
+  },
+  {
+    "id": "model.post.decode_cursor.invalid_exclude_system_posts",
+    "translation": "Invalid cursor format: exclude_system_posts must be a boolean."
+  },
+  {
+    "id": "model.post.decode_cursor.invalid_format",
+    "translation": "Invalid cursor format: expected 8 parts."
+  },
+  {
+    "id": "model.post.decode_cursor.invalid_include_deleted",
+    "translation": "Invalid cursor format: include_deleted must be a boolean."
+  },
+  {
+    "id": "model.post.decode_cursor.invalid_timestamp",
+    "translation": "Invalid cursor format: timestamp must be an integer."
+  },
+  {
+    "id": "model.post.decode_cursor.invalid_version",
+    "translation": "Invalid cursor format: version must be an integer."
+  },
+  {
+    "id": "model.post.decode_cursor.unsupported_version",
+    "translation": "Unsupported cursor version."
+  },
+  {
     "id": "model.post.is_valid.channel_id.app_error",
     "translation": "Invalid channel id."
   },
@@ -10615,6 +11135,22 @@
   {
     "id": "model.post.is_valid.user_id.app_error",
     "translation": "Invalid user id."
+  },
+  {
+    "id": "model.post.query_params.invalid_channel_id",
+    "translation": "Invalid channel id."
+  },
+  {
+    "id": "model.post.query_params.invalid_cursor_id",
+    "translation": "Invalid cursor id."
+  },
+  {
+    "id": "model.post.query_params.invalid_sort_direction",
+    "translation": "Invalid sort direction."
+  },
+  {
+    "id": "model.post.query_params.invalid_time_field",
+    "translation": "Invalid time field."
   },
   {
     "id": "model.preference.is_valid.category.app_error",
@@ -10803,6 +11339,42 @@
   {
     "id": "model.token.is_valid.size",
     "translation": "Invalid token."
+  },
+  {
+    "id": "model.translation.is_valid.lang.app_error",
+    "translation": "Invalid language code. Use a standard ISO code such as 'en', 'ja', or 'fr'."
+  },
+  {
+    "id": "model.translation.is_valid.nil.app_error",
+    "translation": "Translation object cannot be null."
+  },
+  {
+    "id": "model.translation.is_valid.object_id.app_error",
+    "translation": "Invalid object id."
+  },
+  {
+    "id": "model.translation.is_valid.object_json.app_error",
+    "translation": "Invalid object JSON."
+  },
+  {
+    "id": "model.translation.is_valid.object_type.app_error",
+    "translation": "Invalid object type."
+  },
+  {
+    "id": "model.translation.is_valid.provider.app_error",
+    "translation": "Invalid translation provider."
+  },
+  {
+    "id": "model.translation.is_valid.text.app_error",
+    "translation": "Invalid translation text."
+  },
+  {
+    "id": "model.translation.is_valid.type.app_error",
+    "translation": "Invalid translation type."
+  },
+  {
+    "id": "model.translation.is_valid.type_invalid.app_error",
+    "translation": "Invalid translation type. Must be 'string' or 'object'."
   },
   {
     "id": "model.upload_session.is_valid.channel_id.app_error",
@@ -11198,11 +11770,11 @@
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.chrome",
-    "translation": "Version 140+"
+    "translation": "Version 144+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.edge",
-    "translation": "Version 140+"
+    "translation": "Version 144+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.firefox",
@@ -11210,11 +11782,11 @@
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.safari",
-    "translation": "Version 17.4+"
+    "translation": "Version 26.2+"
   },
   {
     "id": "web.error.unsupported_browser.min_os_version.mac",
-    "translation": "macOS 12+"
+    "translation": "macOS 14+"
   },
   {
     "id": "web.error.unsupported_browser.min_os_version.windows",
