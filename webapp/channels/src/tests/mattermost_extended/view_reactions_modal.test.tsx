@@ -186,10 +186,10 @@ describe('ViewReactionsModal', () => {
     });
 
     test('should display all emoji groups in the emoji list', () => {
-        renderModal();
+        const {container} = renderModal();
 
         // Should have 3 emoji items (thumbsup, heart, smile)
-        const emojiImages = screen.getAllByRole('img');
+        const emojiImages = container.querySelectorAll('.view-reactions-modal__emoji-img');
         expect(emojiImages.length).toBe(3);
     });
 
@@ -262,7 +262,7 @@ describe('ViewReactionsModal', () => {
     test('should render user avatars with correct URLs', () => {
         const {container} = renderModal();
 
-        const avatarImages = container.querySelectorAll('.avatar');
+        const avatarImages = container.querySelectorAll('.Avatar');
         expect(avatarImages.length).toBeGreaterThanOrEqual(2);
     });
 
@@ -278,6 +278,15 @@ describe('ViewReactionsModal', () => {
     });
 
     test('should handle post with no reactions gracefully', () => {
+        // Suppress reselect memoization warning from getCustomEmojisByName when state shape changes
+        const originalConsoleError = console.error;
+        console.error = (...args: any[]) => {
+            if (typeof args[0] === 'string' && args[0].includes('Selector unknown returned a different result')) {
+                return;
+            }
+            originalConsoleError(...args);
+        };
+
         const stateNoReactions = {
             ...baseState,
             entities: {
@@ -300,6 +309,8 @@ describe('ViewReactionsModal', () => {
         // No user rows
         const userRows = container.querySelectorAll('.view-reactions-modal__user-row');
         expect(userRows.length).toBe(0);
+
+        console.error = originalConsoleError;
     });
 
     test('should display username with @ prefix', () => {
@@ -320,9 +331,9 @@ describe('ViewReactionsModal', () => {
     });
 
     test('should render emoji images for system emojis', () => {
-        renderModal();
+        const {container} = renderModal();
 
-        const emojiImages = screen.getAllByRole('img');
+        const emojiImages = container.querySelectorAll('.view-reactions-modal__emoji-img');
 
         // Each image should have an src from the mock getEmojiImageUrl
         emojiImages.forEach((img) => {
