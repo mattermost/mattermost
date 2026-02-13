@@ -788,10 +788,6 @@
     "translation": "无法找到指定的频道。请使用[频道识别](https://docs.mattermost.com/messaging/managing-channels.html#naming-a-channel) 以分辨频道。"
   },
   {
-    "id": "api.command_mute.not_member.error",
-    "translation": "无法静音频道 {{.Channel}} 因为您不是成员。"
-  },
-  {
     "id": "api.command_mute.success_mute",
     "translation": "您将不会收到 {{.Channel}} 的通知直到取消频道静音。"
   },
@@ -5499,11 +5495,11 @@
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.edge",
-    "translation": "版本 140 及以上"
+    "translation": "版本 142 及以上"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.chrome",
-    "translation": "版本 140 及以上"
+    "translation": "版本 142 及以上"
   },
   {
     "id": "web.error.unsupported_browser.learn_more",
@@ -7331,7 +7327,7 @@
   },
   {
     "id": "api.templates.email_footer_v2",
-    "translation": "© 2022 Mattermost, Inc. 530 Lytton Avenue, Second floor, Palo Alto, CA, 94301"
+    "translation": "© 2015 - {{ .CurrentYear }} Mattermost, Inc. 2100 Geng Road, Suite 210, Palo Alto, CA, 94303"
   },
   {
     "id": "api.templates.cloud_welcome_email.title",
@@ -8356,10 +8352,6 @@
   {
     "id": "api.command_marketplace.desc",
     "translation": "打开市场"
-  },
-  {
-    "id": "api.server.cws.health_check.app_error",
-    "translation": "CWS 服务器不可用。"
   },
   {
     "id": "api.drafts.disabled.app_error",
@@ -10494,10 +10486,6 @@
     "translation": "无法从频道取消分配访问控制策略。"
   },
   {
-    "id": "app.pap.update_access_control_policy_active.app_error",
-    "translation": "无法更改访问控制策略的活跃状态。"
-  },
-  {
     "id": "app.pdp.access_evaluation.app_error",
     "translation": "评估访问控制策略失败。"
   },
@@ -11086,18 +11074,6 @@
     "translation": "不支持的自动翻译服务提供商。"
   },
   {
-    "id": "model.config.is_valid.autotranslation.timeouts.fetch.app_error",
-    "translation": "自动翻译设置的获取超时无效。必须为正数。"
-  },
-  {
-    "id": "model.config.is_valid.autotranslation.timeouts.new_post.app_error",
-    "translation": "自动翻译设置的新消息超时无效。必须为正数。"
-  },
-  {
-    "id": "model.config.is_valid.autotranslation.timeouts.notification.app_error",
-    "translation": "自动翻译设置的通知超时无效。必须为正数。"
-  },
-  {
     "id": "api.command.move_command.creator_no_permission.app_error",
     "translation": "没有移动命令的权限"
   },
@@ -11602,63 +11578,227 @@
     "translation": "无效的时间字段。"
   },
   {
-    "id": "store.sql_autotranslation.channel_not_found",
-    "translation": "未找到频道。"
+    "id": "api.content_flagging.error.invalid_post_type",
+    "translation": "不允许标记类型为“{{.PostType}}”的消息。"
   },
   {
-    "id": "store.sql_autotranslation.get.app_error",
-    "translation": "无法获取翻译。"
+    "id": "api.recap.disabled.app_error",
+    "translation": "此功能尚未启用。"
   },
   {
-    "id": "store.sql_autotranslation.get_active_languages.app_error",
-    "translation": "无法获取可用语言。"
+    "id": "api.recap.permission_denied",
+    "translation": "您没有权限访问此摘要。"
   },
   {
-    "id": "store.sql_autotranslation.get_channel_enabled.app_error",
-    "translation": "无法获取频道自动翻译启用状态。"
+    "id": "api.user.oauth_to_email.not_oauth_user.app_error",
+    "translation": "无法切换到邮箱认证，因为用户未使用 OAuth 或 SAML 认证。"
   },
   {
-    "id": "store.sql_autotranslation.get_user_enabled.app_error",
-    "translation": "无法获取用户自动翻译启用状态。"
+    "id": "app.ai.summarize.agent_call_failed",
+    "translation": "AI 代理调用失败。"
   },
   {
-    "id": "store.sql_autotranslation.get_user_language.app_error",
-    "translation": "无法获取用户语言。"
+    "id": "app.ai.summarize.parse_failed",
+    "translation": "解析 AI 摘要响应失败。"
   },
   {
-    "id": "store.sql_autotranslation.is_channel_enabled.app_error",
-    "translation": "无法获取频道自动翻译启用状态。"
+    "id": "app.recap.delete.app_error",
+    "translation": "删除摘要失败。"
   },
   {
-    "id": "store.sql_autotranslation.member_not_found",
-    "translation": "未找到成员。"
+    "id": "app.recap.delete_channels.app_error",
+    "translation": "删除摘要频道失败。"
   },
   {
-    "id": "store.sql_autotranslation.meta_json.app_error",
-    "translation": "解析翻译元数据 JSON 失败。"
+    "id": "app.recap.get.app_error",
+    "translation": "获取摘要失败。"
   },
   {
-    "id": "store.sql_autotranslation.query_build_error",
-    "translation": "构建查询失败。"
+    "id": "app.recap.get_channel.app_error",
+    "translation": "获取频道失败。"
   },
   {
-    "id": "store.sql_autotranslation.save.app_error",
-    "translation": "无法保存翻译内容。"
+    "id": "app.recap.get_channels.app_error",
+    "translation": "获取摘要频道失败。"
   },
   {
-    "id": "store.sql_autotranslation.save.invalid_translation",
-    "translation": "翻译校验失败。翻译对象无效。"
+    "id": "app.recap.get_last_viewed.app_error",
+    "translation": "获取最后查看时间戳失败。"
   },
   {
-    "id": "store.sql_autotranslation.save.meta_json.app_error",
-    "translation": "序列化翻译元数据至 JSON 失败。"
+    "id": "app.recap.get_team.app_error",
+    "translation": "获取团队失败。"
   },
   {
-    "id": "store.sql_autotranslation.set_channel_enabled.app_error",
-    "translation": "无法设置频道自动翻译启用状态。"
+    "id": "app.recap.list.app_error",
+    "translation": "获取摘要列表失败。"
   },
   {
-    "id": "store.sql_autotranslation.set_user_enabled.app_error",
-    "translation": "无法设置用户自动翻译启用状态。"
+    "id": "app.recap.mark_read.app_error",
+    "translation": "将摘要标记为已读失败。"
+  },
+  {
+    "id": "app.recap.permission_denied",
+    "translation": "无摘要权限。"
+  },
+  {
+    "id": "app.recap.save.app_error",
+    "translation": "保存摘要失败。"
+  },
+  {
+    "id": "app.recap.save_channel.app_error",
+    "translation": "保存摘要频道失败。"
+  },
+  {
+    "id": "app.recap.update.app_error",
+    "translation": "更新摘要失败。"
+  },
+  {
+    "id": "app.update_scheduled_post.convert_to_post.error",
+    "translation": "无法将定时消息转换为消息格式。"
+  },
+  {
+    "id": "ent.autotranslation.add_task.missing_object_id",
+    "translation": "翻译任务必须包含对象 ID。"
+  },
+  {
+    "id": "ent.autotranslation.add_task.missing_object_type",
+    "translation": "翻译任务必须包含对象类型。"
+  },
+  {
+    "id": "ent.autotranslation.add_task.nil_task",
+    "translation": "翻译任务不能为空。"
+  },
+  {
+    "id": "ent.autotranslation.create_translation_failed",
+    "translation": "创建翻译失败。"
+  },
+  {
+    "id": "ent.autotranslation.detect_language.nil_context",
+    "translation": "语言检测需要上下文。"
+  },
+  {
+    "id": "ent.autotranslation.detect_language.text_too_large",
+    "translation": "文本超出语言检测的最大大小。"
+  },
+  {
+    "id": "ent.autotranslation.detect_remote.error",
+    "translation": "使用翻译提供方检测语言失败。"
+  },
+  {
+    "id": "ent.autotranslation.extract_content.mask_error",
+    "translation": "内容屏蔽失败，无法进行翻译。"
+  },
+  {
+    "id": "ent.autotranslation.extract_post.nil_post",
+    "translation": "消息对象不能为空。"
+  },
+  {
+    "id": "ent.autotranslation.feature_unavailable",
+    "translation": "自动翻译不可用。请联系系统管理员，升级企业许可证。"
+  },
+  {
+    "id": "ent.autotranslation.invalid_input",
+    "translation": "提供了无效的语言代码。"
+  },
+  {
+    "id": "ent.autotranslation.mask_verification_failed",
+    "translation": "使用新的屏蔽值更新翻译失败。"
+  },
+  {
+    "id": "ent.autotranslation.no_translatable_content",
+    "translation": "内容不包含可翻译文本。"
+  },
+  {
+    "id": "ent.autotranslation.provider_not_available",
+    "translation": "翻译提供方不可用。"
+  },
+  {
+    "id": "ent.autotranslation.provider_not_initialized",
+    "translation": "翻译提供方未初始化。"
+  },
+  {
+    "id": "ent.autotranslation.store_error",
+    "translation": "无法处理自动翻译请求。"
+  },
+  {
+    "id": "ent.autotranslation.unmask.missing_mask",
+    "translation": "翻译中包含未识别的标记。"
+  },
+  {
+    "id": "ent.autotranslation.unmask.orphan_token",
+    "translation": "翻译中包含无效标记。"
+  },
+  {
+    "id": "ent.autotranslation.validate_content.invalid_json",
+    "translation": "无法解析 JSON 内容。"
+  },
+  {
+    "id": "ent.autotranslation.validate_content.invalid_type",
+    "translation": "不支持此内容类型的翻译。"
+  },
+  {
+    "id": "ent.autotranslation.validate_content.nil_content",
+    "translation": "内容不能为空。"
+  },
+  {
+    "id": "ent.autotranslation.validate_content.text_too_large",
+    "translation": "内容超出最大限制。"
+  },
+  {
+    "id": "ent.autotranslation.validate_id.empty",
+    "translation": "必填 ID 不能为空。"
+  },
+  {
+    "id": "ent.autotranslation.validate_id.invalid",
+    "translation": "ID 格式无效。"
+  },
+  {
+    "id": "model.config.is_valid.autotranslation.agents.llm_service_id.app_error",
+    "translation": "自动翻译代理配置无效：AI 服务不能为空。"
+  },
+  {
+    "id": "model.config.is_valid.autotranslation.timeout.app_error",
+    "translation": "自动翻译设置的超时时间无效。必须为正数。"
+  },
+  {
+    "id": "model.config.is_valid.guest_accounts.cannot_enforce_multifactor_authentication_when_guest_magic_link_is_enabled.app_error",
+    "translation": "启用魔法链接认证时，无法强制来宾账户使用多因素认证。"
+  },
+  {
+    "id": "model.translation.is_valid.lang.app_error",
+    "translation": "无效的语言代码。请使用标准的 ISO 代码，如 'en'、'ja' 或 'fr'。"
+  },
+  {
+    "id": "model.translation.is_valid.nil.app_error",
+    "translation": "翻译对象不能为空。"
+  },
+  {
+    "id": "model.translation.is_valid.object_id.app_error",
+    "translation": "对象 ID 无效。"
+  },
+  {
+    "id": "model.translation.is_valid.object_json.app_error",
+    "translation": "对象 JSON 无效。"
+  },
+  {
+    "id": "model.translation.is_valid.object_type.app_error",
+    "translation": "对象类型无效。"
+  },
+  {
+    "id": "model.translation.is_valid.provider.app_error",
+    "translation": "翻译提供方无效。"
+  },
+  {
+    "id": "model.translation.is_valid.text.app_error",
+    "translation": "翻译文本无效。"
+  },
+  {
+    "id": "model.translation.is_valid.type.app_error",
+    "translation": "翻译类型无效。"
+  },
+  {
+    "id": "model.translation.is_valid.type_invalid.app_error",
+    "translation": "翻译类型无效。必须为 'string' 或 'object'。"
   }
 ]

@@ -2710,11 +2710,15 @@ func TestParseLinkMetadata(t *testing.T) {
 	t.Run("svg", func(t *testing.T) {
 		og, dimensions, err := th.App.parseLinkMetadata(th.Context, "http://example.com/image.svg", nil, "image/svg+xml")
 		assert.NoError(t, err)
-
 		assert.Nil(t, og)
-		assert.Equal(t, &model.PostImage{
-			Format: "svg",
-		}, dimensions)
+		assert.Nil(t, dimensions)
+	})
+
+	t.Run("svg with charset", func(t *testing.T) {
+		og, dimensions, err := th.App.parseLinkMetadata(th.Context, "http://example.com/image.svg", nil, "image/svg+xml; charset=utf-8")
+		assert.NoError(t, err)
+		assert.Nil(t, og)
+		assert.Nil(t, dimensions)
 	})
 }
 
@@ -3184,6 +3188,70 @@ func TestGetLinkMetadataFromCache(t *testing.T) {
 
 		assertCached(t, nilURL, nil, nil, nil)
 	})
+}
+
+func TestPreparePostForClient_BurnOnReadSenderExpireAt(t *testing.T) {
+	// Set feature flag before setup
+	os.Setenv("MM_FEATUREFLAGS_BURNONREAD", "true")
+	t.Cleanup(func() {
+		os.Unsetenv("MM_FEATUREFLAGS_BURNONREAD")
+	})
+
+	th := Setup(t).InitBasic(t)
+
+	// Enable Enterprise Advanced license and BoR config
+	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		cfg.ServiceSettings.EnableBurnOnRead = model.NewPointer(true)
+	})
+
+	// Create a burn-on-read post
+	borPost := &model.Post{
+		ChannelId: th.BasicChannel.Id,
+		UserId:    th.BasicUser.Id,
+		Message:   "test burn on read",
+		Type:      model.PostTypeBurnOnRead,
+	}
+	borPost.AddProp(model.PostPropsExpireAt, model.GetMillis()+int64(10*60*1000))
+
+	post, _, appErr := th.App.CreatePost(th.Context, borPost, th.BasicChannel, model.CreatePostFlags{})
+	require.Nil(t, appErr)
+
+	// Simulate recipient revealing the post
+	user2 := th.CreateUser(t)
+	th.LinkUserToTeam(t, user2, th.BasicTeam)
+	th.AddUserToChannel(t, user2, th.BasicChannel)
+
+	_, appErr = th.App.RevealPost(th.Context, post, user2.Id, "")
+	require.Nil(t, appErr)
+
+	// Get the read receipt to get the expireAt
+	receipt, err := th.App.Srv().Store().ReadReceipt().Get(th.Context, post.Id, user2.Id)
+	require.NoError(t, err)
+
+	// Update temporary post with sender's expireAt (simulating all recipients revealed)
+	tmpPost, err := th.App.Srv().Store().TemporaryPost().Get(th.Context, post.Id, true)
+	require.NoError(t, err)
+	tmpPost.ExpireAt = receipt.ExpireAt
+	_, err = th.App.Srv().Store().TemporaryPost().Save(th.Context, tmpPost)
+	require.NoError(t, err)
+
+	// Create a new context for the sender (post author) with proper session
+	senderContext := th.Context
+	senderContext.Session().UserId = th.BasicUser.Id
+
+	// Fetch the post without ExpireAt in metadata (simulating page reload)
+	postFromDB, appErr := th.App.GetSinglePost(th.Context, post.Id, false)
+	require.Nil(t, appErr)
+	postFromDB.Metadata = &model.PostMetadata{} // Reset metadata to simulate fresh fetch
+
+	// PreparePostForClient should fill ExpireAt from TemporaryPost for the sender
+	preparedPost := th.App.PreparePostForClient(senderContext, postFromDB, &model.PreparePostForClientOpts{})
+
+	// Verify that ExpireAt is now set in metadata for the sender
+	require.NotNil(t, preparedPost.Metadata)
+	require.NotZero(t, preparedPost.Metadata.ExpireAt)
+	require.Equal(t, receipt.ExpireAt, preparedPost.Metadata.ExpireAt)
 }
 func TestSanitizeChannelMentionsForUser(t *testing.T) {
 	mainHelper.Parallel(t)

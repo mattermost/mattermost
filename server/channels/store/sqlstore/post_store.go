@@ -938,7 +938,7 @@ func (s *SqlPostStore) InvalidateLastPostTimeCache(channelId string) {
 }
 
 //nolint:unparam
-func (s *SqlPostStore) GetEtag(channelId string, allowFromCache, collapsedThreads bool) string {
+func (s *SqlPostStore) GetEtag(channelId string, allowFromCache, collapsedThreads bool, includeTranslations bool) string {
 	q := s.getQueryBuilder().Select("Id", "UpdateAt").From("Posts").Where(sq.Eq{"ChannelId": channelId}).OrderBy("UpdateAt DESC").Limit(1)
 	if collapsedThreads {
 		q.Where(sq.Eq{"RootId": ""})
@@ -1021,6 +1021,52 @@ func (s *SqlPostStore) permanentDelete(postIds []string) (err error) {
 	}
 	defer finalizeTransactionX(transaction, &err)
 
+	err = s.permanentDeleteAssociatedData(transaction, postIds)
+	if err != nil {
+		return err
+	}
+
+	query := s.getQueryBuilder().
+		Delete("Posts").
+		Where(sq.Eq{"Id": postIds})
+
+	if _, err = transaction.ExecBuilder(query); err != nil {
+		return errors.Wrap(err, "failed to delete Posts")
+	}
+
+	if err = transaction.Commit(); err != nil {
+		return errors.Wrap(err, "commit_transaction")
+	}
+
+	return nil
+}
+
+// PermanentDeleteAssociatedData deletes the following data items associated with the given post IDs:
+// - Threads
+// - Reactions
+// - Temporary Posts
+// - Read Receipts
+// - Thread replies if post is a root post
+func (s *SqlPostStore) PermanentDeleteAssociatedData(postIds []string) error {
+	transaction, err := s.GetMaster().Beginx()
+	if err != nil {
+		return errors.Wrap(err, "begin_transaction")
+	}
+	defer finalizeTransactionX(transaction, &err)
+
+	err = s.permanentDeleteAssociatedData(transaction, postIds)
+	if err != nil {
+		return err
+	}
+
+	if err = transaction.Commit(); err != nil {
+		return errors.Wrap(err, "commit_transaction")
+	}
+
+	return nil
+}
+
+func (s *SqlPostStore) permanentDeleteAssociatedData(transaction *sqlxTxWrapper, postIds []string) (err error) {
 	if err = s.permanentDeleteThreads(transaction, postIds); err != nil {
 		return err
 	}
@@ -1039,18 +1085,10 @@ func (s *SqlPostStore) permanentDelete(postIds []string) (err error) {
 
 	query := s.getQueryBuilder().
 		Delete("Posts").
-		Where(
-			sq.Or{
-				sq.Eq{"Id": postIds},
-				sq.Eq{"RootId": postIds},
-			},
-		)
+		Where(sq.Eq{"RootId": postIds})
+
 	if _, err = transaction.ExecBuilder(query); err != nil {
 		return errors.Wrap(err, "failed to delete Posts")
-	}
-
-	if err = transaction.Commit(); err != nil {
-		return errors.Wrap(err, "commit_transaction")
 	}
 
 	return nil
@@ -2094,7 +2132,6 @@ func (s *SqlPostStore) search(teamId string, userId string, params *model.Search
 		terms = wildCardRegex.ReplaceAllLiteralString(terms, ":* ")
 		excludedTerms = wildCardRegex.ReplaceAllLiteralString(excludedTerms, ":* ")
 
-		simpleSearch := false
 		// Replace spaces with to_tsquery symbols
 		replaceSpaces := func(input string, excludedInput bool) string {
 			if input == "" {
@@ -2106,11 +2143,6 @@ func (s *SqlPostStore) search(teamId string, userId string, params *model.Search
 
 			// Replace spaces within quoted strings with '<->'
 			input = quotedStringsRegex.ReplaceAllStringFunc(input, func(match string) string {
-				// If the whole search term is a quoted string,
-				// we don't want to do stemming.
-				if input == match {
-					simpleSearch = true
-				}
 				return strings.Replace(match, " ", "<->", -1)
 			})
 
@@ -2131,10 +2163,6 @@ func (s *SqlPostStore) search(teamId string, userId string, params *model.Search
 		}
 
 		textSearchCfg := s.pgDefaultTextSearchConfig
-		if simpleSearch {
-			textSearchCfg = "simple"
-		}
-
 		searchClause := fmt.Sprintf("to_tsvector('%[1]s', %[2]s) @@  to_tsquery('%[1]s', ?)", textSearchCfg, searchType)
 		baseQuery = baseQuery.Where(searchClause, tsQueryClause)
 	}

@@ -48,6 +48,10 @@ func (c *CommonTestSuite) TestSearchStore() {
 	})
 }
 
+func (c *CommonTestSuite) TestSearchStoreEnabledCJK() {
+	searchtest.TestSearchPostStoreEnabledCJK(c.T(), c.TH.App.Srv().Store())
+}
+
 func (c *CommonTestSuite) TestIndexPost() {
 	testCases := []struct {
 		Name                string

@@ -33,9 +33,9 @@ func (_m *TemporaryPostStore) Delete(rctx request.CTX, id string) error {
 	return r0
 }
 
-// Get provides a mock function with given fields: rctx, id
-func (_m *TemporaryPostStore) Get(rctx request.CTX, id string) (*model.TemporaryPost, error) {
-	ret := _m.Called(rctx, id)
+// Get provides a mock function with given fields: rctx, id, allowFromCache
+func (_m *TemporaryPostStore) Get(rctx request.CTX, id string, allowFromCache bool) (*model.TemporaryPost, error) {
+	ret := _m.Called(rctx, id, allowFromCache)
 
 	if len(ret) == 0 {
 		panic("no return value specified for Get")
@@ -43,19 +43,19 @@ func (_m *TemporaryPostStore) Get(rctx request.CTX, id string) (*model.Temporary
 
 	var r0 *model.TemporaryPost
 	var r1 error
-	if rf, ok := ret.Get(0).(func(request.CTX, string) (*model.TemporaryPost, error)); ok {
-		return rf(rctx, id)
+	if rf, ok := ret.Get(0).(func(request.CTX, string, bool) (*model.TemporaryPost, error)); ok {
+		return rf(rctx, id, allowFromCache)
 	}
-	if rf, ok := ret.Get(0).(func(request.CTX, string) *model.TemporaryPost); ok {
-		r0 = rf(rctx, id)
+	if rf, ok := ret.Get(0).(func(request.CTX, string, bool) *model.TemporaryPost); ok {
+		r0 = rf(rctx, id, allowFromCache)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*model.TemporaryPost)
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func(request.CTX, string) error); ok {
-		r1 = rf(rctx, id)
+	if rf, ok := ret.Get(1).(func(request.CTX, string, bool) error); ok {
+		r1 = rf(rctx, id, allowFromCache)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -63,9 +63,9 @@ func (_m *TemporaryPostStore) Get(rctx request.CTX, id string) (*model.Temporary
 	return r0, r1
 }
 
-// GetExpiredPosts provides a mock function with given fields: rctx
-func (_m *TemporaryPostStore) GetExpiredPosts(rctx request.CTX) ([]string, error) {
-	ret := _m.Called(rctx)
+// GetExpiredPosts provides a mock function with given fields: rctx, lastPostId, limit
+func (_m *TemporaryPostStore) GetExpiredPosts(rctx request.CTX, lastPostId string, limit uint64) ([]string, error) {
+	ret := _m.Called(rctx, lastPostId, limit)
 
 	if len(ret) == 0 {
 		panic("no return value specified for GetExpiredPosts")
@@ -73,19 +73,19 @@ func (_m *TemporaryPostStore) GetExpiredPosts(rctx request.CTX) ([]string, error
 
 	var r0 []string
 	var r1 error
-	if rf, ok := ret.Get(0).(func(request.CTX) ([]string, error)); ok {
-		return rf(rctx)
+	if rf, ok := ret.Get(0).(func(request.CTX, string, uint64) ([]string, error)); ok {
+		return rf(rctx, lastPostId, limit)
 	}
-	if rf, ok := ret.Get(0).(func(request.CTX) []string); ok {
-		r0 = rf(rctx)
+	if rf, ok := ret.Get(0).(func(request.CTX, string, uint64) []string); ok {
+		r0 = rf(rctx, lastPostId, limit)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).([]string)
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func(request.CTX) error); ok {
-		r1 = rf(rctx)
+	if rf, ok := ret.Get(1).(func(request.CTX, string, uint64) error); ok {
+		r1 = rf(rctx, lastPostId, limit)
 	} else {
 		r1 = ret.Error(1)
 	}
