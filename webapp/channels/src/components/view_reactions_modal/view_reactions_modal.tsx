@@ -27,6 +27,8 @@ import type {GlobalState} from 'types/store';
 
 import './view_reactions_modal.scss';
 
+const EMPTY_REACTIONS: Record<string, Reaction> = {};
+
 type Props = {
     post: Post;
     onExited: () => void;
@@ -80,7 +82,7 @@ function UserRow({userId}: {userId: string}) {
 export default function ViewReactionsModal({post, onExited}: Props) {
     const dispatch = useDispatch();
     const reactions: Record<string, Reaction> = useSelector(
-        (state: GlobalState) => state.entities.posts.reactions[post.id] || {},
+        (state: GlobalState) => state.entities.posts.reactions[post.id] || EMPTY_REACTIONS,
     );
     const customEmojisByName = useSelector(getCustomEmojisByName);
 
