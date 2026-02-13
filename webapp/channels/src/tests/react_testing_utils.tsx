@@ -16,6 +16,8 @@ import type {DeepPartial} from '@mattermost/types/utilities';
 import configureStore from 'store';
 import globalStore from 'stores/redux_store';
 
+import SharedPackageProvider from 'components/root/shared_package_provider';
+
 import WebSocketClient from 'client/web_websocket_client';
 import mergeObjects from 'packages/mattermost-redux/test/merge_objects';
 import mockStore from 'tests/test_store';
@@ -183,14 +185,16 @@ const Providers = ({children, store, history, options}: RenderStateProps) => {
     return (
         <Provider store={store}>
             <Router history={history}>
-                <IntlProvider
-                    locale={options.locale}
-                    messages={options.intlMessages}
-                >
-                    <WebSocketContext.Provider value={WebSocketClient}>
-                        {children}
-                    </WebSocketContext.Provider>
-                </IntlProvider>
+                <SharedPackageProvider>
+                    <IntlProvider
+                        locale={options.locale}
+                        messages={options.intlMessages}
+                    >
+                        <WebSocketContext.Provider value={WebSocketClient}>
+                            {children}
+                        </WebSocketContext.Provider>
+                    </IntlProvider>
+                </SharedPackageProvider>
             </Router>
         </Provider>
     );
