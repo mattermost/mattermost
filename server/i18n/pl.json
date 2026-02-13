@@ -4585,11 +4585,11 @@
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.edge",
-    "translation": "Wersja 142+"
+    "translation": "Wersja 144+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.chrome",
-    "translation": "Wersja 142+"
+    "translation": "Wersja 144+"
   },
   {
     "id": "web.error.unsupported_browser.learn_more",
@@ -11786,5 +11786,77 @@
   {
     "id": "ent.autotranslation.unmask.orphan_token",
     "translation": "Tłumaczenie zawiera nieprawidłowe tokeny."
+  },
+  {
+    "id": "ent.autotranslation.validate_content.invalid_json",
+    "translation": "Nie można przeanalizować zawartości JSON."
+  },
+  {
+    "id": "ent.autotranslation.validate_content.invalid_type",
+    "translation": "Nieobsługiwany typ zawartości dla tłumaczenia."
+  },
+  {
+    "id": "ent.autotranslation.validate_content.nil_content",
+    "translation": "Treść nie może mieć wartości null."
+  },
+  {
+    "id": "ent.autotranslation.validate_content.text_too_large",
+    "translation": "Zawartość przekracza maksymalny rozmiar tłumaczenia."
+  },
+  {
+    "id": "ent.autotranslation.validate_id.empty",
+    "translation": "Wymagany identyfikator nie może być pusty."
+  },
+  {
+    "id": "ent.autotranslation.validate_id.invalid",
+    "translation": "Nieprawidłowy format ID."
+  },
+  {
+    "id": "model.config.is_valid.autotranslation.agents.llm_service_id.app_error",
+    "translation": "Nieprawidłowa konfiguracja agentów autotranslacji: Usługa AI nie może być pusta."
+  },
+  {
+    "id": "model.config.is_valid.autotranslation.timeout.app_error",
+    "translation": "Nieprawidłowy limit czasu dla ustawień autotranslacji. Musi być liczbą dodatnią."
+  },
+  {
+    "id": "model.config.is_valid.autotranslation.workers.app_error",
+    "translation": "Liczba pracowników musi wynosić od 1 do 32."
+  },
+  {
+    "id": "model.translation.is_valid.lang.app_error",
+    "translation": "Nieprawidłowy kod języka. Użyj standardowego kodu ISO, takiego jak \"en\", \"ja\" lub \"fr\"."
+  },
+  {
+    "id": "model.translation.is_valid.nil.app_error",
+    "translation": "Obiekt tłumaczenia nie może mieć wartości null."
+  },
+  {
+    "id": "model.translation.is_valid.object_id.app_error",
+    "translation": "Nieprawidłowy identyfikator obiektu."
+  },
+  {
+    "id": "model.translation.is_valid.object_json.app_error",
+    "translation": "Nieprawidłowy obiekt JSON."
+  },
+  {
+    "id": "model.translation.is_valid.object_type.app_error",
+    "translation": "Nieprawidłowy typ obiektu."
+  },
+  {
+    "id": "model.translation.is_valid.provider.app_error",
+    "translation": "Nieprawidłowy dostawca tłumaczeń."
+  },
+  {
+    "id": "model.translation.is_valid.text.app_error",
+    "translation": "Nieprawidłowy tekst tłumaczenia."
+  },
+  {
+    "id": "model.translation.is_valid.type.app_error",
+    "translation": "Nieprawidłowy typ tłumaczenia."
+  },
+  {
+    "id": "model.translation.is_valid.type_invalid.app_error",
+    "translation": "Nieprawidłowy typ tłumaczenia. Musi to być \"string\" lub \"object\"."
   }
 ]
