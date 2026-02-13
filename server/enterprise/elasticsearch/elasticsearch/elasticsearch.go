@@ -6,6 +6,7 @@ package elasticsearch
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"slices"
 	"strings"
@@ -805,7 +806,13 @@ func (es *ElasticsearchInterfaceImpl) UpdatePostsChannelTypeByChannelId(rctx req
 	if err != nil {
 		return model.NewAppError("Elasticsearch.UpdatePostsChannelTypeByChannelId", "ent.elasticsearch.update_posts_channel_type.error", map[string]any{"Backend": model.ElasticsearchSettingsESBackend}, "", http.StatusInternalServerError).Wrap(err)
 	}
-	rctx.Logger().Info("Posts channel_type updated", mlog.String("channel_id", channelID), mlog.String("channel_type", channelType), mlog.Int("updated", *response.Updated))
+	if len(response.Failures) > 0 {
+		rctx.Logger().Warn("UpdatePostsChannelTypeByChannelId had partial failures; reindexing may be required to prevent missing posts",
+			mlog.String("channel_id", channelID),
+			mlog.Int("failure_count", len(response.Failures)),
+			mlog.Err(fmt.Errorf("first failure: %v", response.Failures[0])))
+	}
+	rctx.Logger().Info("Posts channel_type updated", mlog.String("channel_id", channelID), mlog.String("channel_type", channelType), mlog.Int("updated", model.SafeDereference(response.Updated)))
 
 	return nil
 }
@@ -861,7 +868,13 @@ func (es *ElasticsearchInterfaceImpl) BackfillPostsChannelType(rctx request.CTX,
 	if err != nil {
 		return model.NewAppError("Elasticsearch.BackfillPostsChannelType", "ent.elasticsearch.backfill_posts_channel_type.error", map[string]any{"Backend": model.ElasticsearchSettingsESBackend}, "", http.StatusInternalServerError).Wrap(err)
 	}
-	rctx.Logger().Info("Backfilled channel_type on posts", mlog.Int("updated", *response.Updated), mlog.String("channel_type", channelType))
+	if len(response.Failures) > 0 {
+		rctx.Logger().Warn("BackfillPostsChannelType had partial failures; reindexing may be required to prevent missing posts",
+			mlog.String("channel_type", channelType),
+			mlog.Int("failure_count", len(response.Failures)),
+			mlog.Err(fmt.Errorf("first failure: %v", response.Failures[0])))
+	}
+	rctx.Logger().Info("Backfilled channel_type on posts", mlog.Int("updated", model.SafeDereference(response.Updated)), mlog.String("channel_type", channelType))
 
 	return nil
 }
