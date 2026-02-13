@@ -290,17 +290,14 @@ describe('ViewReactionsModal', () => {
     });
 
     test('should handle post with no reactions gracefully', () => {
-        const stateNoReactions = {
-            ...baseState,
-            entities: {
-                ...baseState.entities,
-                posts: {
-                    reactions: {},
-                },
-            },
+        // Use a post ID that has no reactions in the state (avoids selector memoization warnings
+        // from changing state shape)
+        const postWithNoReactions = {
+            ...basePost,
+            id: 'post_no_reactions',
         };
 
-        renderModal(stateNoReactions);
+        renderModal(baseState, postWithNoReactions);
 
         // Should still render the modal
         expect(screen.getByText('View Reactions')).toBeInTheDocument();
