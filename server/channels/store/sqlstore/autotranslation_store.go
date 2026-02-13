@@ -434,3 +434,63 @@ func (s *SqlAutoTranslationStore) GetLatestPostUpdateAtForChannel(channelID stri
 }
 
 func (s *SqlAutoTranslationStore) InvalidatePostTranslationEtag(channelID string) {}
+
+func (s *SqlAutoTranslationStore) GetTranslationsSinceForChannel(channelID, dstLang string, since int64) (map[string]*model.Translation, error) {
+	query := s.getQueryBuilder().
+		Select("ObjectType", "ObjectId", "DstLang", "ProviderId", "NormHash", "Text", "Confidence", "Meta", "State", "UpdateAt").
+		From("Translations").
+		Where(sq.Eq{"channelid": channelID}).
+		Where(sq.Eq{"DstLang": dstLang}).
+		Where(sq.Eq{"ObjectType": model.TranslationObjectTypePost}).
+		Where(sq.NotEq{"State": string(model.TranslationStateProcessing)}).
+		Where(sq.Gt{"UpdateAt": since}).
+		Limit(1000)
+
+	var translations []Translation
+	if err := s.GetReplica().SelectBuilder(&translations, query); err != nil {
+		return nil, errors.Wrapf(err, "failed to get translations since for channel_id=%s dst_lang=%s", channelID, dstLang)
+	}
+
+	result := make(map[string]*model.Translation, len(translations))
+	for _, t := range translations {
+		var translationTypeStr string
+
+		meta, err := t.Meta.ToMap()
+		if err != nil {
+			continue
+		}
+
+		if v, ok := meta["type"]; ok {
+			if s, ok := v.(string); ok {
+				translationTypeStr = s
+			}
+		}
+
+		objectType := t.ObjectType
+		if objectType == "" {
+			objectType = model.TranslationObjectTypePost
+		}
+
+		modelT := &model.Translation{
+			ObjectID:   t.ObjectID,
+			ObjectType: objectType,
+			Lang:       t.DstLang,
+			Type:       model.TranslationType(translationTypeStr),
+			Confidence: t.Confidence,
+			State:      model.TranslationState(t.State),
+			NormHash:   t.NormHash,
+			Meta:       meta,
+			UpdateAt:   t.UpdateAt,
+		}
+
+		if modelT.Type == model.TranslationTypeObject {
+			modelT.ObjectJSON = json.RawMessage(t.Text)
+		} else {
+			modelT.Text = t.Text
+		}
+
+		result[t.ObjectID] = modelT
+	}
+
+	return result, nil
+}
